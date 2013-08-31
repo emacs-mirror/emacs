@@ -1,3 +1,8 @@
+2013-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (--with-sound): Rename ossaudio to bsd-ossaudio,
+	and voxware to oss.
+
 2013-08-31  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.ac: Allow for --with-sound=voxware that will enable

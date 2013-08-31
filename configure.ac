@@ -167,12 +167,12 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
     AC_DEFINE_UNQUOTED(MAILHOST, ["$withval"], [String giving fallback POP mail host.]))
 
 AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
-  [compile with sound support (VALUE one of: yes, ossaudio, alsa, voxware, no;
+  [compile with sound support (VALUE one of: yes, alsa, oss, bsd-ossaudio, no;
 default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW.])],
   [ case "${withval}" in
-      yes|no|ossaudio|alsa|voxware) val=$withval ;;
+      yes|no|alsa|oss|bsd-ossaudio) val=$withval ;;
       *) AC_MSG_ERROR([`--with-sound=$withval' is invalid;
-this option's value should be `yes', `no', `ossaudio', `alsa', or `voxware'.])
+this option's value should be `yes', `no', `alsa', `oss', or `bsd-ossaudio'.])
       ;;
     esac
     with_sound=$val
@@ -1307,15 +1307,15 @@ if test "${with_sound}" != "no"; then
     #include <windows.h>
     #endif
     ])
-  test "${with_sound}" = "voxware" && test "${have_sound_header}" != "yes" && \
-    AC_MSG_ERROR([OSS/Voxware sound support requested but not found.])
+  test "${with_sound}" = "oss" && test "${have_sound_header}" != "yes" && \
+    AC_MSG_ERROR([OSS sound support requested but not found.])
 
-  if test "${with_sound}" = "ossaudio" || test "${with_sound}" = "yes"; then
+  if test "${with_sound}" = "bsd-ossaudio" || test "${with_sound}" = "yes"; then
     # Emulation library used on NetBSD.
     AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
-    test "${with_sound}" = "ossaudio" && test -z "$LIBSOUND" && \
-      AC_MSG_ERROR([ossaudio sound support requested but not found.])
-    dnl FIXME?  If we did find ossaudio, should we set with_sound=ossaudio?
+    test "${with_sound}" = "bsd-ossaudio" && test -z "$LIBSOUND" && \
+      AC_MSG_ERROR([bsd-ossaudio sound support requested but not found.])
+    dnl FIXME?  If we did find ossaudio, should we set with_sound=bsd-ossaudio?
     dnl Traditionally, we go on to check for alsa too.  Does that make sense?
   fi
   AC_SUBST(LIBSOUND)
