@@ -1,3 +1,7 @@
+2013-08-31  Ulrich Müller  <ulm@gentoo.org>
+
+	* emacs.1: Update manual links.
+
 2013-04-20  Petr Hracek  <phracek@redhat.com>  (tiny change)
 
 	* emacs.1: Add some more command-line options.  (Bug#14165)
