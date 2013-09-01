@@ -1,5 +1,17 @@
 2013-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* nsterm.m (ns_set_terminal_modes, ns_reset_terminal_modes):
+	Remove no-ops.
+	(ns_create_terminal): Adjust terminal setup.
+	* w32term.c (w32_set_terminal_modes, w32_reset_terminal_modes):
+	Remove no-ops.
+	(w32_create_terminal): Adjust terminal setup.
+	* xterm.c (XTset_terminal_modes, XTreset_terminal_modes):
+	Remove no-ops.
+	(x_create_terminal): Adjust terminal setup.
+
+2013-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* dispextern.h (SET_TEXT_POS_FROM_MARKER): Indent.
 	(CLIP_TEXT_POS_FROM_MARKER): New macro.
 	* dispnew.c (buffer_posn_from_coords):

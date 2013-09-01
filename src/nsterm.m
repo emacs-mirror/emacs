@@ -963,24 +963,6 @@ ns_ring_bell (struct frame *f)
     }
 }
 
-
-static void
-ns_reset_terminal_modes (struct terminal *terminal)
-/*  Externally called as hook */
-{
-  NSTRACE (ns_reset_terminal_modes);
-}
-
-
-static void
-ns_set_terminal_modes (struct terminal *terminal)
-/*  Externally called as hook */
-{
-  NSTRACE (ns_set_terminal_modes);
-}
-
-
-
 /* ==========================================================================
 
     Frame / window manager related functions
@@ -4050,8 +4032,8 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->ins_del_lines_hook = 0; /* XXX vestigial? */
   terminal->delete_glyphs_hook = 0; /* XXX vestigial? */
   terminal->ring_bell_hook = ns_ring_bell;
-  terminal->reset_terminal_modes_hook = ns_reset_terminal_modes;
-  terminal->set_terminal_modes_hook = ns_set_terminal_modes;
+  terminal->reset_terminal_modes_hook = NULL;
+  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = ns_update_begin;
   terminal->update_end_hook = ns_update_end;
   terminal->set_terminal_window_hook = NULL; /* XXX vestigial? */

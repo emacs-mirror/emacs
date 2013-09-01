@@ -224,8 +224,6 @@ void x_wm_set_icon_pixmap (struct frame *, int);
 static void w32_initialize (void);
 static void x_update_end (struct frame *);
 static void w32_frame_up_to_date (struct frame *);
-static void w32_set_terminal_modes (struct terminal *);
-static void w32_reset_terminal_modes (struct terminal *);
 static void x_clear_frame (struct frame *);
 static void frame_highlight (struct frame *);
 static void frame_unhighlight (struct frame *);
@@ -934,28 +932,6 @@ w32_destroy_fringe_bitmap (int which)
   fringe_bmp[which] = 0;
 }
 
-
-
-/* This is called when starting Emacs and when restarting after
-   suspend.  When starting Emacs, no window is mapped.  And nothing
-   must be done to Emacs's own window if it is suspended (though that
-   rarely happens).  */
-
-static void
-w32_set_terminal_modes (struct terminal *term)
-{
-}
-
-/* This is called when exiting or suspending Emacs.  Exiting will make
-   the W32 windows go away, and suspending requires no action. */
-
-static void
-w32_reset_terminal_modes (struct terminal *term)
-{
-}
-
-
-
 /***********************************************************************
 			   Display Iterator
  ***********************************************************************/
@@ -6354,8 +6330,8 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->ins_del_lines_hook = x_ins_del_lines;
   terminal->delete_glyphs_hook = x_delete_glyphs;
   terminal->ring_bell_hook = w32_ring_bell;
-  terminal->reset_terminal_modes_hook = w32_reset_terminal_modes;
-  terminal->set_terminal_modes_hook = w32_set_terminal_modes;
+  terminal->reset_terminal_modes_hook = NULL;
+  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = x_update_begin;
   terminal->update_end_hook = x_update_end;
   terminal->set_terminal_window_hook = w32_set_terminal_window;

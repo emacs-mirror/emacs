@@ -297,8 +297,6 @@ static struct terminal *x_create_terminal (struct x_display_info *);
 void x_delete_terminal (struct terminal *);
 static void x_update_end (struct frame *);
 static void XTframe_up_to_date (struct frame *);
-static void XTset_terminal_modes (struct terminal *);
-static void XTreset_terminal_modes (struct terminal *);
 static void x_clear_frame (struct frame *);
 static _Noreturn void x_ins_del_lines (struct frame *, int, int);
 static void frame_highlight (struct frame *);
@@ -833,27 +831,6 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
   XSetClipMask (display, gc, None);
 }
 
-
-
-/* This is called when starting Emacs and when restarting after
-   suspend.  When starting Emacs, no X window is mapped.  And nothing
-   must be done to Emacs's own window if it is suspended (though that
-   rarely happens).  */
-
-static void
-XTset_terminal_modes (struct terminal *terminal)
-{
-}
-
-/* This is called when exiting or suspending Emacs.  Exiting will make
-   the X-windows go away, and suspending requires no action.  */
-
-static void
-XTreset_terminal_modes (struct terminal *terminal)
-{
-}
-
-
 /***********************************************************************
 			    Glyph display
  ***********************************************************************/
@@ -10546,8 +10523,8 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->delete_glyphs_hook = x_delete_glyphs;
   terminal->ring_bell_hook = XTring_bell;
   terminal->toggle_invisible_pointer_hook = XTtoggle_invisible_pointer;
-  terminal->reset_terminal_modes_hook = XTreset_terminal_modes;
-  terminal->set_terminal_modes_hook = XTset_terminal_modes;
+  terminal->reset_terminal_modes_hook = NULL;
+  terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = x_update_begin;
   terminal->update_end_hook = x_update_end;
   terminal->set_terminal_window_hook = XTset_terminal_window;
