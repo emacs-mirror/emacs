@@ -118,7 +118,7 @@ emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -126,7 +126,7 @@ setwins=subdirs=`find . -type d -print`; \
 setwins_almost=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | */obsolete | */term ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -134,7 +134,7 @@ setwins_almost=subdirs=`find . -type d -print`; \
 setwins_for_subdirs=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | */cedet* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 

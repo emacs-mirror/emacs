@@ -1,5 +1,9 @@
 2013-09-01  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):
+	Avoid leading space in $wins.  Otherwise the sed command used by
+	eg compile-main ends up containing "/*.el".  (Bug#15170)
+
 	* frame.el (frame-background-mode): Doc fix.  (Bug#15226)
 
 2013-08-30  Glenn Morris  <rgm@gnu.org>

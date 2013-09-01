@@ -1,3 +1,9 @@
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Avoid leading space in $wins.
+	Otherwise the sed command used by eg compile-main ends up
+	containing "/*.el".  (Bug#15170)
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,

@@ -52,7 +52,7 @@ emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | ./data* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
