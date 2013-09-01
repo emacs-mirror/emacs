@@ -875,7 +875,8 @@ Set this to the symbol `dark' if your background color is dark,
 if you want Emacs to examine the brightness for you.
 
 If you change this without using customize, you should use
-`frame-set-background-mode' to update existing frames."
+`frame-set-background-mode' to update existing frames;
+e.g. (mapc 'frame-set-background-mode (frame-list))."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
