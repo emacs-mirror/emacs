@@ -223,8 +223,16 @@ struct text_pos
 /* Set text position POS from marker MARKER.  */
 
 #define SET_TEXT_POS_FROM_MARKER(POS, MARKER)		\
-     (CHARPOS (POS) = marker_position ((MARKER)),	\
-      BYTEPOS (POS) = marker_byte_position ((MARKER)))
+  (CHARPOS (POS) = marker_position (MARKER),		\
+   BYTEPOS (POS) = marker_byte_position (MARKER))
+
+/* Like above, but clip POS within accessible range.  */
+
+#define CLIP_TEXT_POS_FROM_MARKER(POS, MARKER)		\
+  (CHARPOS (POS) = clip_to_bounds			\
+   (BEGV, marker_position (MARKER), ZV),		\
+   BYTEPOS (POS) = clip_to_bounds			\
+   (BEGV_BYTE, marker_byte_position (MARKER), ZV_BYTE))
 
 /* Set marker MARKER from text position POS.  */
 

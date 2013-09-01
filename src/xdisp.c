@@ -20606,13 +20606,8 @@ redisplay_mode_lines (Lisp_Object window, int force)
 	    {
 	      struct text_pos pt;
 
-	      SET_TEXT_POS_FROM_MARKER (pt, w->pointm);
-	      if (CHARPOS (pt) < BEGV)
-		TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	      else if (CHARPOS (pt) > (ZV - 1))
-		TEMP_SET_PT_BOTH (ZV, ZV_BYTE);
-	      else
-		TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
+	      CLIP_TEXT_POS_FROM_MARKER (pt, w->pointm);
+	      TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
 	    }
 
 	  /* Display mode lines.  */

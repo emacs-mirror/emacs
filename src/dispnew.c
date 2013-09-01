@@ -5066,9 +5066,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      wrong thing with `face-remapping-alist' (bug#2044).  */
   Fset_buffer (w->contents);
   itdata = bidi_shelve_cache ();
-  SET_TEXT_POS_FROM_MARKER (startp, w->start);
-  CHARPOS (startp) = min (ZV, max (BEGV, CHARPOS (startp)));
-  BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
+  CLIP_TEXT_POS_FROM_MARKER (startp, w->start);
   start_display (&it, w, startp);
   /* start_display takes into account the header-line row, but IT's
      vpos still counts from the glyph row that includes the window's

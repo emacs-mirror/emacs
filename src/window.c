@@ -1494,7 +1494,6 @@ if it isn't already recorded.  */)
       && !noninteractive)
     {
       struct text_pos startp;
-      ptrdiff_t charpos = marker_position (w->start);
       struct it it;
       struct buffer *old_buffer = NULL;
       void *itdata = NULL;
@@ -1512,12 +1511,7 @@ if it isn't already recorded.  */)
          `-l' containing a call to `rmail' with subsequent other
          commands.  At the end, W->start happened to be BEG, while
          rmail had already narrowed the buffer.  */
-      if (charpos < BEGV)
-	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
-      else if (charpos > ZV)
-	SET_TEXT_POS (startp, ZV, ZV_BYTE);
-      else
-	SET_TEXT_POS_FROM_MARKER (startp, w->start);
+      CLIP_TEXT_POS_FROM_MARKER (startp, w->start);
 
       itdata = bidi_shelve_cache ();
       start_display (&it, w, startp);
@@ -5038,7 +5032,6 @@ displayed_window_lines (struct window *w)
 {
   struct it it;
   struct text_pos start;
-  ptrdiff_t charpos = marker_position (w->start);
   int height = window_box_height (w);
   struct buffer *old_buffer;
   int bottom_y;
@@ -5055,12 +5048,7 @@ displayed_window_lines (struct window *w)
   /* In case W->start is out of the accessible range, do something
      reasonable.  This happens in Info mode when Info-scroll-down
      calls (recenter -1) while W->start is 1.  */
-  if (charpos < BEGV)
-    SET_TEXT_POS (start, BEGV, BEGV_BYTE);
-  else if (charpos > ZV)
-    SET_TEXT_POS (start, ZV, ZV_BYTE);
-  else
-    SET_TEXT_POS_FROM_MARKER (start, w->start);
+  CLIP_TEXT_POS_FROM_MARKER (start, w->start);
 
   itdata = bidi_shelve_cache ();
   start_display (&it, w, start);

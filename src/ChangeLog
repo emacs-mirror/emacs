@@ -1,3 +1,11 @@
+2013-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (SET_TEXT_POS_FROM_MARKER): Indent.
+	(CLIP_TEXT_POS_FROM_MARKER): New macro.
+	* dispnew.c (buffer_posn_from_coords):
+	* window.c (Fwindow_end, displayed_window_lines):
+	* xdisp.c (redisplay_mode_lines): Use it.
+
 2013-09-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* fontset.c (face_for_char): Check char in the current face font first
