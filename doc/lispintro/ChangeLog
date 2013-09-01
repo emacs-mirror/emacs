@@ -1,3 +1,8 @@
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (beginning-of-buffer complete):
+	Put back a version of the removed paragraph about raw prefix arg.
+
 2013-09-01  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* emacs-lisp-intro.texi (beginning-of-buffer complete):

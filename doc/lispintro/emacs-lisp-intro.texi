@@ -6399,7 +6399,10 @@ appropriate tenths position in the buffer.  This is a flourish that
 means that the cursor is always located @emph{at least} the requested
 tenths of the way through the buffer, which is a nicety that is,
 perhaps, not necessary, but which, if it did not occur, would be sure
-to draw complaints.
+to draw complaints.  (The @code{(not (consp arg))} portion is so that
+if you specify the command with a @kbd{C-u}, but without a number,
+that is to say, if the `raw prefix argument' is simply a cons cell,
+the command does not put you at the beginning of the second line.)
 
 @node Second Buffer Related Review
 @section Review
