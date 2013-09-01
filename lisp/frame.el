@@ -872,8 +872,10 @@ If there is no frame by that name, signal an error."
   "The brightness of the background.
 Set this to the symbol `dark' if your background color is dark,
 `light' if your background is light, or nil (automatic by default)
-if you want Emacs to examine the brightness for you.  Don't set this
-variable with `setq'; this won't have the expected effect."
+if you want Emacs to examine the brightness for you.
+
+If you change this without using customize after Emacs has started,
+you should use `frame-set-background-mode' to update existing frames."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)

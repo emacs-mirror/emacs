@@ -1,3 +1,7 @@
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (frame-background-mode): Doc fix.  (Bug#15226)
+
 2013-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory):
