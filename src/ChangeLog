@@ -1,3 +1,8 @@
+2013-09-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* fontset.c (face_for_char): Check char in the current face font first
+	if HAVE_NS (Bug#15138).
+
 2013-08-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (temp_output_buffer_show): Make sure window returned
