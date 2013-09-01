@@ -2242,8 +2242,8 @@ Optional Packages:
   --with-mail-unlink      unlink, rather than empty, mail spool after reading
   --with-mailhost=HOSTNAME
                           string giving default POP mail host
-  --with-sound=VALUE      compile with sound support (VALUE one of: yes,
-                          ossaudio, alsa, no; default yes). Only for
+  --with-sound=VALUE      compile with sound support (VALUE one of: yes, alsa,
+                          oss, bsd-ossaudio, no; default yes). Only for
                           GNU/Linux, FreeBSD, NetBSD, MinGW.
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
                           gtk3, lucid or athena, motif, no)
@@ -4151,9 +4151,9 @@ fi
 # Check whether --with-sound was given.
 if test "${with_sound+set}" = set; then :
   withval=$with_sound;  case "${withval}" in
-      yes|no|ossaudio|alsa) val=$withval ;;
+      yes|no|alsa|oss|bsd-ossaudio) val=$withval ;;
       *) as_fn_error "\`--with-sound=$withval' is invalid;
-this option's value should be \`yes', \`no', \`ossaudio', or \`alsa'." "$LINENO" 5
+this option's value should be \`yes', \`no', \`alsa', \`oss', or \`bsd-ossaudio'." "$LINENO" 5
       ;;
     esac
     with_sound=$val
@@ -9081,7 +9081,10 @@ fi
 
 done
 
-  if test "${with_sound}" = "ossaudio" || test "${with_sound}" = "yes"; then
+  test "${with_sound}" = "oss" && test "${have_sound_header}" != "yes" && \
+    as_fn_error "OSS sound support requested but not found." "$LINENO" 5
+
+  if test "${with_sound}" = "bsd-ossaudio" || test "${with_sound}" = "yes"; then
     # Emulation library used on NetBSD.
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _oss_ioctl in -lossaudio" >&5
 $as_echo_n "checking for _oss_ioctl in -lossaudio... " >&6; }
@@ -9125,8 +9128,8 @@ else
   LIBSOUND=
 fi
 
-    test "${with_sound}" = "ossaudio" && test -z "$LIBSOUND" && \
-      as_fn_error "ossaudio sound support requested but not found." "$LINENO" 5
+    test "${with_sound}" = "bsd-ossaudio" && test -z "$LIBSOUND" && \
+      as_fn_error "bsd-ossaudio sound support requested but not found." "$LINENO" 5
           fi
 
 
