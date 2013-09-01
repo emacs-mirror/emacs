@@ -6323,7 +6323,7 @@ and avoids clobbering the mark."
                         (/ (+ 10 (* size (prefix-numeric-value arg)))
                            10)))
                  (point-min))))
-  (if arg (forward-line 1)))
+  (if (and arg (not (consp arg))) (forward-line 1)))
 @end group
 @end smallexample
 
@@ -6390,7 +6390,7 @@ to move point to the beginning of the next line if the command is
 invoked with an argument:
 
 @smallexample
-(if arg (forward-line 1)))
+(if (and arg (not (consp arg))) (forward-line 1))
 @end smallexample
 
 @noindent
@@ -6400,13 +6400,6 @@ means that the cursor is always located @emph{at least} the requested
 tenths of the way through the buffer, which is a nicety that is,
 perhaps, not necessary, but which, if it did not occur, would be sure
 to draw complaints.
-
-On the other hand, it also means that if you specify the command with
-a @kbd{C-u}, but without a number, that is to say, if the `raw prefix
-argument' is simply a cons cell, then the command puts you at the
-beginning of the second line @dots{}  I don't know whether this is
-intended or whether no one has dealt with the code to avoid this
-happening.
 
 @node Second Buffer Related Review
 @section Review
