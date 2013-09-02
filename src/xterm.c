@@ -5622,18 +5622,7 @@ x_scroll_bar_clear (struct frame *f)
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
 
-
-/* The main X event-reading loop - XTread_socket.  */
-
-/* This holds the state XLookupString needs to implement dead keys
-   and other tricks known as "compose processing".  _X Window System_
-   says that a portable program can't use this, but Stephen Gildea assures
-   me that letting the compiler initialize it to zeros will work okay.
-
-   This must be defined outside of XTread_socket, for the same reasons
-   given for enter_timestamp, above.  */
-
-static XComposeStatus compose_status;
+#ifdef ENABLE_CHECKING
 
 /* Record the last 100 characters stored
    to help debug the loss-of-chars-during-GC problem.  */
@@ -5645,6 +5634,12 @@ static short temp_buffer[100];
   if (temp_index == sizeof temp_buffer / sizeof (short))	\
     temp_index = 0;						\
   temp_buffer[temp_index++] = (keysym)
+
+#else /* not ENABLE_CHECKING */
+
+#define STORE_KEYSYM_FOR_DEBUG(keysym) ((void)0)
+
+#endif /* ENABLE_CHECKING */
 
 /* Set this to nonzero to fake an "X I/O error"
    on a particular display.  */
@@ -5783,6 +5778,12 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   struct coding_system coding;
   XEvent event = *eventptr;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+  /* This holds the state XLookupString needs to implement dead keys
+     and other tricks known as "compose processing".  _X Window System_
+     says that a portable program can't use this, but Stephen Gildea assures
+     me that letting the compiler initialize it to zeros will work okay.  */
+  static XComposeStatus compose_status;
+
   USE_SAFE_ALLOCA;
 
   *finish = X_EVENT_NORMAL;
