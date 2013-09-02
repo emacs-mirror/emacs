@@ -52,12 +52,12 @@
 ;; Extra functions `python-nav-forward-statement',
 ;; `python-nav-backward-statement',
 ;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
-;; `python-nav-beginning-of-block' and `python-nav-end-of-block' are
-;; included but no bound to any key.  At last but not least the
-;; specialized `python-nav-forward-sexp' allows easy navigation
-;; between code blocks.  If you prefer `cc-mode'-like `forward-sexp'
-;; movement, setting `forward-sexp-function' to nil is enough, You can
-;; do that using the `python-mode-hook':
+;; `python-nav-beginning-of-block', `python-nav-end-of-block' and
+;; `python-nav-if-name-main' are included but no bound to any key.  At
+;; last but not least the specialized `python-nav-forward-sexp' allows
+;; easy navigation between code blocks.  If you prefer `cc-mode'-like
+;; `forward-sexp' movement, setting `forward-sexp-function' to nil is
+;; enough, You can do that using the `python-mode-hook':
 
 ;; (add-hook 'python-mode-hook
 ;;           (lambda () (setq forward-sexp-function nil)))
@@ -1582,6 +1582,29 @@ This command assumes point is not in a string or comment."
   (interactive "^p")
   (or arg (setq arg 1))
   (python-nav-up-list (- arg)))
+
+(defun python-nav-if-name-main ()
+  "Move point at the beginning the __main__ block.
+When \"if __name__ == '__main__':\" is found returns its
+position, else returns nil."
+  (interactive)
+  (let ((point (point))
+        (found (catch 'found
+                 (goto-char (point-min))
+                 (while (re-search-forward
+                         (python-rx line-start
+                                    "if" (+ space)
+                                    "__name__" (+ space)
+                                    "==" (+ space)
+                                    (group-n 1 (or ?\" ?\'))
+                                    "__main__" (backref 1) (* space) ":")
+                         nil t)
+                   (when (not (python-syntax-context-type))
+                     (beginning-of-line)
+                     (throw 'found t))))))
+    (if found
+        (point)
+      (ignore (goto-char point)))))
 
 
 ;;; Shell integration

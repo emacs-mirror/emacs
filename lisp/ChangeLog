@@ -2,6 +2,7 @@
 
 	* progmodes/python.el (python-shell-completion-get-completions):
 	Drop use of deleted `comint-last-prompt-overlay'.
+	(python-nav-if-name-main): New command.
 
 2013-09-01  Glenn Morris  <rgm@gnu.org>
 
