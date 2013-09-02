@@ -1,3 +1,9 @@
+2013-09-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* avoid.el (mouse-avoidance-point-position)
+	(mouse-avoidance-too-close-p): Handle case where posn-at-point
+	returns nil.
+
 2013-09-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-shell-completion-get-completions):
