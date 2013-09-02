@@ -2137,17 +2137,58 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (define-obsolete-function-alias
   'python-send-string 'python-shell-internal-send-string "24.3")
 
+(defun python-shell-buffer-substring (start end &optional nomain)
+  "Send buffer substring from START to END formatted for shell.
+This is a wrapper over `buffer-substring' that takes care of
+different transformations for the code sent to be evaluated in
+the python shell:
+  1. When Optional Argument NOMAIN is non-nil everything under an
+     \"if __name__ == '__main__'\" block will be removed.
+  2. When a subregion of the buffer is sent, it takes care of
+     appending extra whitelines so tracebacks are correct.
+  3. Wraps indented regions under an \"if True:\" block so the
+     interpreter evaluates them correctly."
+  (let ((substring (buffer-substring-no-properties start end))
+        (fillstr (make-string (1- (line-number-at-pos start)) ?\n))
+        (toplevel-block-p (save-excursion
+                            (goto-char start)
+                            (or (zerop (line-number-at-pos start))
+                                (progn
+                                  (python-util-forward-comment 1)
+                                  (zerop (current-indentation)))))))
+    (with-temp-buffer
+      (python-mode)
+      (insert fillstr)
+      (insert substring)
+      (goto-char (point-min))
+      (when (not toplevel-block-p)
+        (insert "if True:")
+        (delete-region (point) (line-end-position)))
+      (when nomain
+        (let* ((if-name-main-start-end
+                (and nomain
+                     (save-excursion
+                       (when (python-nav-if-name-main)
+                         (cons (point)
+                               (progn (python-nav-forward-sexp)
+                                      (point)))))))
+               ;; Oh destructuring bind, how I miss you.
+               (if-name-main-start (car if-name-main-start-end))
+               (if-name-main-end (cdr if-name-main-start-end)))
+          (when if-name-main-start-end
+            (goto-char if-name-main-start)
+            (delete-region if-name-main-start if-name-main-end)
+            (insert
+             (make-string
+              (- (line-number-at-pos if-name-main-end)
+                 (line-number-at-pos if-name-main-start)) ?\n)))))
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
   (python-shell-send-string
-   (concat
-    (let ((line-num (line-number-at-pos start)))
-      ;; When sending a region, add blank lines for non sent code so
-      ;; backtraces remain correct.
-      (make-string (1- line-num) ?\n))
-    (buffer-substring start end))
-   nil t))
+   (python-shell-buffer-substring start end) nil t))
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
@@ -2156,13 +2197,9 @@ by \"if __name__== '__main__':\""
   (interactive "P")
   (save-restriction
     (widen)
-    (let ((str (buffer-substring (point-min) (point-max))))
-      (and
-       (not arg)
-       (setq str (replace-regexp-in-string
-                  (python-rx if-name-main)
-                  "if __name__ == '__main__ ':" str)))
-      (python-shell-send-string str))))
+    (python-shell-send-string
+     (python-shell-buffer-substring
+      (point-min) (point-max) (not arg)))))
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
