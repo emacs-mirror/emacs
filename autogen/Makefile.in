@@ -1220,6 +1220,7 @@ ns_appbindir = @ns_appbindir@
 ns_appdir = @ns_appdir@
 ns_appresdir = @ns_appresdir@
 ns_appsrc = @ns_appsrc@
+ns_check_file = @ns_check_file@
 ns_self_contained = @ns_self_contained@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@

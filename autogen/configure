@@ -604,6 +604,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 SUBDIR_MAKEFILES_IN
+ns_check_file
 WINDOW_SYSTEM_OBJ
 EMACS_HEAPSIZE
 TEMACS_POST_LINK
@@ -29053,10 +29054,13 @@ if test "$HAVE_NS" = "yes"; then
   if test "$NS_IMPL_GNUSTEP" = yes; then
     ac_config_files="$ac_config_files nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in"
 
+    ns_check_file=Resources/Info-gnustep.plist
   else
     ac_config_files="$ac_config_files nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in"
 
+    ns_check_file=Contents/Info.plist
   fi
+
 fi
 
 SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile"
