@@ -184,9 +184,6 @@ struct ns_display_info *x_display_list; /* Chain of existing displays */
 Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_window;
-
 /* display update */
 NSPoint last_mouse_motion_position;
 static NSRect last_mouse_glyph;
@@ -5458,11 +5455,13 @@ not_in_argv (NSString *arg)
   if (!NILP (Vmouse_autoselect_window))
     {
       NSTRACE (mouse_autoselect_window);
-      Lisp_Object window;
-      window = window_from_coordinates(emacsframe, last_mouse_motion_position.x,
-                                       last_mouse_motion_position.y, 0, 0);
+      static Lisp_Object last_mouse_window;
+      Lisp_Object window = window_from_coordinates
+	(emacsframe, last_mouse_motion_position.x,
+	 last_mouse_motion_position.y, 0, 0);
+
       if (WINDOWP (window)
-          && !EQ (window, last_window)
+          && !EQ (window, last_mouse_window)
           && !EQ (window, selected_window)
           && (focus_follows_mouse
               || (EQ (XWINDOW (window)->frame,
@@ -5473,7 +5472,8 @@ not_in_argv (NSString *arg)
           emacs_event->frame_or_window = window;
           EV_TRAILER2 (e);
         }
-      last_window = window;
+      /* Remember the last window where we saw the mouse.  */
+      last_mouse_window = window;
     }
 
   if (!note_mouse_movement (emacsframe, last_mouse_motion_position.x,

@@ -140,15 +140,10 @@ int use_xim = 1;
 int use_xim = 0;  /* configure --without-xim */
 #endif
 
-
-
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
 static bool any_help_event_p;
-
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_window;
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -6656,18 +6651,16 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             /* Generate SELECT_WINDOW_EVENTs when needed.
                Don't let popup menus influence things (bug#1261).  */
             if (!NILP (Vmouse_autoselect_window) && !popup_activated ())
-              {
-                Lisp_Object window;
+	      {
+		static Lisp_Object last_mouse_window;
+		Lisp_Object window = window_from_coordinates
+		  (f, event.xmotion.x, event.xmotion.y, 0, 0);
 
-                window = window_from_coordinates (f,
-                                                  event.xmotion.x, event.xmotion.y,
-                                                  0, 0);
-
-                /* Window will be selected only when it is not selected now and
-                   last mouse movement event was not in it.  Minibuffer window
-                   will be selected only when it is active.  */
-                if (WINDOWP (window)
-                    && !EQ (window, last_window)
+		/* Window will be selected only when it is not selected now and
+		   last mouse movement event was not in it.  Minibuffer window
+		   will be selected only when it is active.  */
+		if (WINDOWP (window)
+		    && !EQ (window, last_mouse_window)
 		    && !EQ (window, selected_window)
 		    /* For click-to-focus window managers
 		       create event iff we don't leave the
@@ -6675,13 +6668,13 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 		    && (focus_follows_mouse
 			|| (EQ (XWINDOW (window)->frame,
 				XWINDOW (selected_window)->frame))))
-                  {
-                    inev.ie.kind = SELECT_WINDOW_EVENT;
-                    inev.ie.frame_or_window = window;
-                  }
-
-                last_window=window;
-              }
+		  {
+		    inev.ie.kind = SELECT_WINDOW_EVENT;
+		    inev.ie.frame_or_window = window;
+		  }
+		/* Remember the last window where we saw the mouse.  */
+		last_mouse_window = window;
+	      }
             if (!note_mouse_movement (f, &event.xmotion))
 	      help_echo_string = previous_help_echo_string;
           }

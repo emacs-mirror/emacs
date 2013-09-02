@@ -84,9 +84,6 @@ static int last_mousemove_y = 0;
 
 static int any_help_event_p;
 
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_window;
-
 extern unsigned int msh_mousewheel;
 
 extern void free_frame_menubar (struct frame *);
@@ -4503,18 +4500,16 @@ w32_read_socket (struct terminal *terminal,
 	      /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	      if (!NILP (Vmouse_autoselect_window))
 		{
-		  Lisp_Object window;
-		  int x = LOWORD (msg.msg.lParam);
-		  int y = HIWORD (msg.msg.lParam);
-
-		  window = window_from_coordinates (f, x, y, 0, 0);
+		  static Lisp_Object last_mouse_window;
+		  Lisp_Object window = window_from_coordinates
+		    (f, LOWORD (msg.msg.lParam), HIWORD (msg.msg.lParam), 0, 0);
 
 		  /* Window will be selected only when it is not
 		     selected now and last mouse movement event was
 		     not in it.  Minibuffer window will be selected
 		     only when it is active.  */
 		  if (WINDOWP (window)
-		      && !EQ (window, last_window)
+		      && !EQ (window, last_mouse_window)
 		      && !EQ (window, selected_window)
 		      /* For click-to-focus window managers
 			 create event iff we don't leave the
@@ -4526,8 +4521,8 @@ w32_read_socket (struct terminal *terminal,
 		      inev.kind = SELECT_WINDOW_EVENT;
 		      inev.frame_or_window = window;
 		    }
-
-		  last_window = window;
+		  /* Remember the last window where we saw the mouse.  */
+		  last_mouse_window = window;
 		}
 	      if (!note_mouse_movement (f, &msg.msg))
 		help_echo_string = previous_help_echo_string;

@@ -946,9 +946,6 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 			  Mouse Highlight (and friends..)
  ************************************************************************/
 
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_mouse_window;
-
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 int
@@ -2668,10 +2665,10 @@ dos_rawgetc (void)
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
-	      mouse_window = window_from_coordinates (SELECTED_FRAME (),
-						      mouse_last_x,
-						      mouse_last_y,
-						      0, 0);
+	      static Lisp_Object last_mouse_window;
+
+	      mouse_window = window_from_coordinates
+		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -2686,10 +2683,9 @@ dos_rawgetc (void)
 		  event.timestamp = event_timestamp ();
 		  kbd_buffer_store_event (&event);
 		}
+	      /* Remember the last window where we saw the mouse.  */
 	      last_mouse_window = mouse_window;
 	    }
-	  else
-	    last_mouse_window = Qnil;
 
 	  previous_help_echo_string = help_echo_string;
 	  help_echo_string = help_echo_object = help_echo_window = Qnil;
