@@ -133,9 +133,6 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #include <X11/XKBlib.h>
 #endif
 
-/* Default to using XGetMotionEvents.  */
-#define X_MOTION_HISTORY 1
-
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
@@ -223,6 +220,15 @@ static struct frame *last_mouse_glyph_frame;
    event.  */
 
 static Lisp_Object last_mouse_scroll_bar;
+
+/* This is a hack.  We would really prefer that XTmouse_position would
+   return the time associated with the position it returns, but there
+   doesn't seem to be any way to wrest the time-stamp from the server
+   along with the position query.  So, we just keep track of the time
+   of the last movement we received, and return that in hopes that
+   it's somewhat accurate.  */
+
+static Time last_mouse_movement_time;
 
 /* Time for last user interaction as returned in X events.  */
 
@@ -3716,48 +3722,6 @@ construct_mouse_click (struct input_event *result, XButtonEvent *event, struct f
   return Qnil;
 }
 
-#ifdef X_MOTION_HISTORY
-
-/* Here we assume that X server supports XGetMotionEvents.  If you hit
-   eassert in the function below, most probably your X server is too
-   old and/or buggy.  Undef X_MOTION_HISTORY to enable legacy code.  */
-
-static Time
-x_last_mouse_movement_time (struct frame *f)
-{
-  Time t;
-  int nevents;
-  XTimeCoord *xtc;
-
-  block_input ();
-  xtc = XGetMotionEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  1, last_user_time, &nevents);
-  eassert (xtc && nevents > 0);
-  t = xtc[nevents - 1].time;
-  XFree (xtc);
-  unblock_input ();
-  return t;
-}
-
-#else /* no X_MOTION_HISTORY */
-
-/* This is a hack.  We would really prefer that XTmouse_position would
-   return the time associated with the position it returns, but there
-   doesn't seem to be any way to wrest the time-stamp from the server
-   along with the position query.  So, we just keep track of the time
-   of the last movement we received, and return that in hopes that
-   it's somewhat accurate.  */
-
-static Time last_mouse_movement_time;
-
-static Time
-x_last_mouse_movement_time (struct frame *f)
-{
-  return last_mouse_movement_time;
-}
-
-#endif /* X_MOTION_HISTORY */
-
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
 
@@ -3772,9 +3736,7 @@ static Lisp_Object last_mouse_motion_frame;
 static int
 note_mouse_movement (struct frame *frame, XMotionEvent *event)
 {
-#ifndef X_MOTION_HISTORY
   last_mouse_movement_time = event->time;
-#endif /* legacy */
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
 
@@ -4030,7 +3992,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	    *fp = f1;
 	    XSETINT (*x, win_x);
 	    XSETINT (*y, win_y);
-	    *timestamp = x_last_mouse_movement_time (f1);
+	    *timestamp = last_mouse_movement_time;
 	  }
       }
     }
@@ -5533,12 +5495,12 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
    mark bits.  */
 
 static void
-x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
+x_scroll_bar_note_movement (struct scroll_bar *bar, XMotionEvent *event)
 {
   struct frame *f = XFRAME (XWINDOW (bar->window)->frame);
-#ifndef X_MOTION_HISTORY
-  last_mouse_movement_time = event->xmotion.time;
-#endif /* legacy */
+
+  last_mouse_movement_time = event->time;
+
   f->mouse_moved = 1;
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
@@ -5546,7 +5508,7 @@ x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
   if (! NILP (bar->dragging))
     {
       /* Where should the handle be now?  */
-      int new_start = event->xmotion.y - XINT (bar->dragging);
+      int new_start = event->y - XINT (bar->dragging);
 
       if (new_start != bar->start)
 	{
@@ -5623,8 +5585,9 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 
       f->mouse_moved = 0;
       last_mouse_scroll_bar = Qnil;
-      *timestamp = x_last_mouse_movement_time (f);
     }
+
+  *timestamp = last_mouse_movement_time;
 
   unblock_input ();
 }
@@ -6722,7 +6685,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                                         event.xmotion.window);
 
             if (bar)
-              x_scroll_bar_note_movement (bar, &event);
+              x_scroll_bar_note_movement (bar, &event.xmotion);
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
             /* If we move outside the frame, then we're

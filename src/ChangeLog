@@ -1,3 +1,11 @@
+2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_last_mouse_movement_time): Revert last change.
+	This code should use XDisplayMotionBufferSize to check display's
+	motion history first, and there are few other issues as well.
+	(x_scroll_bar_note_movement): Pass XMotionEvent rather than XEvent.
+	(handle_one_xevent): Adjust user.
+
 2013-09-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (check_minibuf_window): Don't abort if no window was
