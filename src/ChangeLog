@@ -8,8 +8,10 @@
 
 2013-09-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* frame.c (check_minibuf_window): Don't abort if no window was
-	found (Bug#15247).
+	* dispnew.c (Flast_nonminibuf_frame): Move from here ...
+	* frame.c (Flast_nonminibuf_frame): ... to here.
+	(check_minibuf_window): Don't abort if no window was found
+	(Bug#15247).
 
 2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
