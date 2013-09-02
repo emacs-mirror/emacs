@@ -859,14 +859,6 @@ extern Lisp_Object minibuf_window;
 
 extern Lisp_Object minibuf_selected_window;
 
-/* Window that the mouse is over (nil if no mouse support).  */
-
-extern Lisp_Object Vmouse_window;
-
-/* Last mouse-click event (nil if no mouse support).  */
-
-extern Lisp_Object Vmouse_event;
-
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, bool);

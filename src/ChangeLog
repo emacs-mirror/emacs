@@ -1,5 +1,6 @@
 2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (Vmouse_window, Vmouse_event): Remove the leftovers.
 	* xterm.c (toplevel): Drop obsolete comment and move compose_status...
 	(handle_one_xevent): ...to here.
 	(STORE_KEYSYM_FOR_DEBUG): Move under ENABLE_CHECKING and make no-op
