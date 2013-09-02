@@ -1137,9 +1137,8 @@ check_minibuf_window (Lisp_Object frame, int select)
 	      }
 	  }
 
-      if (!WINDOWP (window))
-	emacs_abort ();
-      else
+      /* Don't abort if no window was found (Bug#15247).  */
+      if (WINDOWP (window))
 	{
 	  /* Use set_window_buffer instead of Fset_window_buffer (see
 	     discussion of bug#11984, bug#12025, bug#12026).  */
