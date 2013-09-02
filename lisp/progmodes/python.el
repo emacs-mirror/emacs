@@ -2266,13 +2266,17 @@ and use the following as the value of this variable:
 LINE is used to detect the context on how to complete given
 INPUT."
   (let* ((prompt
-          ;; Get the last prompt for the inferior process
-          ;; buffer. This is used for the completion code selection
-          ;; heuristic.
+          ;; Get last prompt of the inferior process buffer (this
+          ;; intentionally avoids using `comint-last-prompt' because
+          ;; of incompatibilities with Emacs 24.x).
           (with-current-buffer (process-buffer process)
-            (buffer-substring-no-properties
-             (overlay-start comint-last-prompt-overlay)
-             (overlay-end comint-last-prompt-overlay))))
+            (save-excursion
+              (buffer-substring-no-properties
+               (- (point) (length line))
+               (progn
+                 (re-search-backward "^")
+                 (python-util-forward-comment)
+                 (point))))))
          (completion-context
           ;; Check whether a prompt matches a pdb string, an import
           ;; statement or just the standard prompt and use the
