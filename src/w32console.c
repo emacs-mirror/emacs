@@ -53,7 +53,6 @@ static void w32con_write_glyphs (struct frame *f, struct glyph *string, int len)
 static void w32con_delete_glyphs (struct frame *f, int n);
 static void w32con_reset_terminal_modes (struct terminal *t);
 static void w32con_set_terminal_modes (struct terminal *t);
-static void w32con_set_terminal_window (struct frame *f, int size);
 static void w32con_update_begin (struct frame * f);
 static void w32con_update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
@@ -497,11 +496,6 @@ w32con_update_end (struct frame * f)
   SetConsoleCursorPosition (cur_screen, cursor_coords);
 }
 
-static void
-w32con_set_terminal_window (struct frame *f, int size)
-{
-}
-
 /***********************************************************************
 			stubs from termcap.c
  ***********************************************************************/
@@ -619,7 +613,7 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   term->ring_bell_hook		= w32_sys_ring_bell;
   term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 

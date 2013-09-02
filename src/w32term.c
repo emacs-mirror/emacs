@@ -2665,19 +2665,6 @@ w32_ring_bell (struct frame *f)
   unblock_input ();
 }
 
-
-/* Specify how many text lines, from the top of the window,
-   should be affected by insert-lines and delete-lines operations.
-   This, and those operations, are used only within an update
-   that is bounded by calls to x_update_begin and x_update_end.  */
-
-static void
-w32_set_terminal_window (struct frame *f, int n)
-{
-  /* This function intentionally left blank.  */
-}
-
-
 /***********************************************************************
 			      Line Dance
  ***********************************************************************/
@@ -6334,7 +6321,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->set_terminal_modes_hook = NULL;
   terminal->update_begin_hook = x_update_begin;
   terminal->update_end_hook = x_update_end;
-  terminal->set_terminal_window_hook = w32_set_terminal_window;
+  terminal->set_terminal_window_hook = NULL;
   terminal->read_socket_hook = w32_read_socket;
   terminal->frame_up_to_date_hook = w32_frame_up_to_date;
   terminal->mouse_position_hook = w32_mouse_position;

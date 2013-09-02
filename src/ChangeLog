@@ -1,3 +1,14 @@
+2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* msdos.c (IT_set_terminal_window): Remove no-op.
+	(initialize_msdos_display): Adjust terminal setup.
+	* w32console.c (w32con_set_terminal_window): Remove no-op.
+	(initialize_w32_display): Adjust terminal setup.
+	* w32term.c (w32_set_terminal_window): Remove no-op.
+	(w32_create_terminal): Adjust terminal setup.
+	* xterm.c (XTset_terminal_window): Remove no-op.
+	(x_create_terminal): Adjust terminal setup.
+
 2013-09-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* nsterm.m (ns_set_terminal_modes, ns_reset_terminal_modes):

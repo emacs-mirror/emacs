@@ -1546,11 +1546,6 @@ IT_reset_terminal_modes (struct terminal *term)
   term_setup_done = 0;
 }
 
-static void
-IT_set_terminal_window (struct frame *f, int foo)
-{
-}
-
 /* Remember the screen colors of the current frame, to serve as the
    default colors for newly-created frames.  */
 DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
@@ -1871,7 +1866,7 @@ initialize_msdos_display (struct terminal *term)
   term->ring_bell_hook = IT_ring_bell;
   term->reset_terminal_modes_hook = IT_reset_terminal_modes;
   term->set_terminal_modes_hook = IT_set_terminal_modes;
-  term->set_terminal_window_hook = IT_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook = IT_update_begin;
   term->update_end_hook = IT_update_end;
   term->frame_up_to_date_hook = IT_frame_up_to_date;
