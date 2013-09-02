@@ -290,8 +290,7 @@ generations (this defaults to 1)."
   (life-display-generation 0)
   (signal 'life-extinct nil))
 
-(put 'life-extinct 'error-conditions '(life-extinct quit))
-(put 'life-extinct 'error-message "All life has perished")
+(define-error 'life-extinct "All life has perished" 'quit) ;FIXME: quit really?
 
 (provide 'life)
 

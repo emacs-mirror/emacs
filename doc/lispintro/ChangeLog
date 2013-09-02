@@ -1,3 +1,54 @@
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (beginning-of-buffer complete):
+	Put back a version of the removed paragraph about raw prefix arg.
+
+2013-09-01  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* emacs-lisp-intro.texi (beginning-of-buffer complete):
+	Update function details.  (Bug#15085)
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Complete copy-region-as-kill): Fix typo.
+
+	* emacs-lisp-intro.texi (Thank You): Avoid mailto: in html output.
+
+	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
+	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
+	(INSTALL_DATA): New, set by configure.
+	(HTML_OPTS, DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS):
+	New variables.
+	(.SUFFIXES): Add .ps and .dvi.
+	(.dvi.ps): New suffix rule.
+	(dvi, html, pdf, ps): Use *_TARGETS variables.
+	(emacs-lisp-intro.ps): Remove explicit rule.
+	(emacs-lisp-intro.html): Use HTML_OPTS.
+	(clean): Use DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS.
+	(.PHONY): install-dvi, install-html, install-pdf, install-ps
+	,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	uninstall-ps, and uninstall-doc.
+	(install-dvi, install-html, install-pdf, install-ps, install-doc)
+	(uninstall-dvi, uninstall-html, uninstall-ps, uninstall-pdf)
+	(uninstall-doc): New rules.
+
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp-intro.texi (Beginning init File): Rename from
+	"Beginning a .emacs File", since a node name cannot include a
+	period.
+	(Top, Emacs Initialization, Change a defun): All references
+	changed.  (Bug#15038)
+
+2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp-intro.texi (zap-to-char): Remove obsolete stuff.
+
 2013-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Top):

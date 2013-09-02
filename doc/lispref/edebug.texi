@@ -1132,14 +1132,14 @@ from the macro definition with @code{def-edebug-spec}.  Adding
 definitions in Lisp, but @code{def-edebug-spec} makes it possible to
 define Edebug specifications for special forms implemented in C.
 
-@deffn Macro def-edebug-spec macro specification
+@defmac def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
 evaluated.  @var{specification} should be the edebug specification.
 Neither argument is evaluated.
 
 The @var{macro} argument can actually be any symbol, not just a macro
 name.
-@end deffn
+@end defmac
 
 Here is a table of the possibilities for @var{specification} and how each
 directs processing of arguments.

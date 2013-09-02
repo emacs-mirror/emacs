@@ -55,30 +55,28 @@
 (defsubst timer--check (timer)
   (or (timerp timer) (signal 'wrong-type-argument (list #'timerp timer))))
 
+(defun timer--time-setter (timer time)
+  (timer--check timer)
+  (setf (timer--high-seconds timer) (pop time))
+  (let ((low time) (usecs 0) (psecs 0))
+    (when (consp time)
+      (setq low (pop time))
+      (when time
+        (setq usecs (pop time))
+        (when time
+          (setq psecs (car time)))))
+    (setf (timer--low-seconds timer) low)
+    (setf (timer--usecs timer) usecs)
+    (setf (timer--psecs timer) psecs)
+    time))
+
 ;; Pseudo field `time'.
 (defun timer--time (timer)
+  (declare (gv-setter timer--time-setter))
   (list (timer--high-seconds timer)
         (timer--low-seconds timer)
 	(timer--usecs timer)
 	(timer--psecs timer)))
-
-(gv-define-simple-setter timer--time
-  (lambda (timer time)
-    (timer--check timer)
-    (setf (timer--high-seconds timer) (pop time))
-    (let ((low time) (usecs 0) (psecs 0))
-      (if (consp time)
-          (progn
-            (setq low (pop time))
-            (if time
-                (progn
-                  (setq usecs (pop time))
-                  (if time
-                      (setq psecs (car time)))))))
-      (setf (timer--low-seconds timer) low)
-      (setf (timer--usecs timer) usecs)
-      (setf (timer--psecs timer) psecs))))
-
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.

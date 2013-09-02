@@ -119,7 +119,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 (defun describe-current-display-table ()
   "Describe the display table in use in the selected window and buffer."
   (interactive)
-  (let ((disptab (or (window-display-table (selected-window))
+  (let ((disptab (or (window-display-table)
 		     buffer-display-table
 		     standard-display-table)))
     (if disptab

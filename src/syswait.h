@@ -52,9 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define WTERMSIG(status) ((status) & 0x7f)
 #endif
 
-/* Defined in process.c.  */
-extern void record_deleted_pid (pid_t);
-
 /* Defined in sysdep.c.  */
 extern void wait_for_termination (pid_t, int *, bool);
 extern pid_t child_status_changed (pid_t, int *, int);

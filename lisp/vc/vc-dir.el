@@ -215,6 +215,9 @@ See `run-hooks'."
     (define-key map [register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into the version control system"))
+    (define-key map [ignore]
+      '(menu-item "Ignore Current File" vc-dir-ignore
+		  :help "Ignore the current file under current version control system"))
     map)
   "Menu for VC dir.")
 
@@ -237,9 +240,11 @@ See `run-hooks'."
     ;; VC commands
     (define-key map "v" 'vc-next-action)   ;; C-x v v
     (define-key map "=" 'vc-diff)	   ;; C-x v =
+    (define-key map "D" 'vc-root-diff)	   ;; C-x v D
     (define-key map "i" 'vc-register)	   ;; C-x v i
     (define-key map "+" 'vc-update)	   ;; C-x v +
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
+    (define-key map "L" 'vc-print-root-log) ;; C-x v L
     ;; More confusing than helpful, probably
     ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer
@@ -277,6 +282,7 @@ See `run-hooks'."
     (define-key map "Q" 'vc-dir-query-replace-regexp)
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
+    (define-key map "G" 'vc-dir-ignore)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -788,6 +794,11 @@ with the command \\[tags-loop-continue]."
 	  (error "File `%s' is visited read-only" file))))
   (tags-query-replace from to delimited
 		      '(mapcar 'car (vc-dir-marked-only-files-and-states))))
+
+(defun vc-dir-ignore ()
+  "Ignore the current file."
+  (interactive)
+  (vc-ignore (vc-dir-current-file)))
 
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))

@@ -40,11 +40,11 @@
 ;;
 ;; SGR control sequences are defined in section 3.8.117 of the ECMA-48
 ;; standard (identical to ISO/IEC 6429), which is freely available as a
-;; PDF file <URL:http://www.ecma.ch/ecma1/STAND/ECMA-048.HTM>.  The
-;; "Graphic Rendition Combination Mode (GRCM)" implemented is
-;; "cumulative mode" as defined in section 7.2.8.  Cumulative mode means
-;; that whenever possible, SGR control sequences are combined (ie. blue
-;; and bold).
+;; PDF file <URL:http://www.ecma-international.org/publications/standards/Ecma-048.htm>.
+;; The "Graphic Rendition Combination Mode (GRCM)" implemented is
+;; "cumulative mode" as defined in section 7.2.8.  Cumulative mode
+;; means that whenever possible, SGR control sequences are combined
+;; (ie. blue and bold).
 
 ;; The basic functions are:
 ;;

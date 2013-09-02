@@ -110,7 +110,9 @@ It has `lisp-mode-abbrev-table' as its parent."
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
-				"defgeneric" "defmethod") t))
+				"defgeneric" "defmethod"
+				"cl-defun" "cl-defsubst" "cl-defmacro"
+				"cl-define-compiler-macro") t))
 			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
@@ -132,7 +134,8 @@ It has `lisp-mode-abbrev-table' as its parent."
 			     (regexp-opt
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
-				"defface" "defpackage") t))
+				"defface" "defpackage" "cl-deftype"
+				"cl-defstruct") t))
 			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
@@ -572,7 +575,7 @@ if that value is non-nil."
 (defalias 'common-lisp-mode 'lisp-mode)
 
 ;; This will do unless inf-lisp.el is loaded.
-(defun lisp-eval-defun (&optional and-go)
+(defun lisp-eval-defun (&optional _and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
   (interactive)
   (error "Process lisp does not exist"))
@@ -659,7 +662,7 @@ alternative printed representations that can be displayed."
 						printed-value)))))
 
 
-(defun last-sexp-toggle-display (&optional arg)
+(defun last-sexp-toggle-display (&optional _arg)
   "Toggle between abbreviated and unabbreviated printed representations."
   (interactive "P")
   (save-restriction
@@ -999,12 +1002,12 @@ function is `common-lisp-indent-function'."
   :type 'function
   :group 'lisp)
 
-(defun lisp-indent-line (&optional whole-exp)
+(defun lisp-indent-line (&optional _whole-exp)
   "Indent current line as Lisp code.
 With argument, indent any additional lines of the same expression
 rigidly along with this one."
   (interactive "P")
-  (let ((indent (calculate-lisp-indent)) shift-amt end
+  (let ((indent (calculate-lisp-indent)) shift-amt
 	(pos (- (point-max) (point)))
 	(beg (progn (beginning-of-line) (point))))
     (skip-chars-forward " \t")
@@ -1044,7 +1047,7 @@ is the buffer position of the start of the containing expression."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
-          state paren-depth
+          state
           ;; setting this to a number inhibits calling hook
           (desired-indent nil)
           (retry t)
@@ -1058,7 +1061,7 @@ is the buffer position of the start of the containing expression."
       ;; Find innermost containing sexp
       (while (and retry
 		  state
-                  (> (setq paren-depth (elt state 0)) 0))
+                  (> (elt state 0) 0))
         (setq retry nil)
         (setq calculate-lisp-indent-last-sexp (elt state 2))
         (setq containing-sexp (elt state 1))
@@ -1287,7 +1290,7 @@ Lisp function does not specify a special indentation."
           body-indent
           normal-indent))))
 
-(defun lisp-indent-defform (state indent-point)
+(defun lisp-indent-defform (state _indent-point)
   (goto-char (car (cdr state)))
   (forward-line 1)
   (if (> (point) (car (cdr (cdr state))))

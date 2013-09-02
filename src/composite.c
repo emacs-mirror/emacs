@@ -160,10 +160,6 @@ static Lisp_Object Qauto_composition_function;
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-/* Temporary variable used in macros COMPOSITION_XXX.  */
-Lisp_Object composition_temp;
-
-
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
    the sequence is PROP.  STRING, if non-nil, is a string that
@@ -478,11 +474,11 @@ run_composition_function (ptrdiff_t from, ptrdiff_t to, Lisp_Object prop)
      valid too.  */
   if (from > BEGV
       && find_composition (from - 1, -1, &start, &end, &prop, Qnil)
-      && !COMPOSITION_VALID_P (start, end, prop))
+      && !composition_valid_p (start, end, prop))
     from = start;
   if (to < ZV
       && find_composition (to, -1, &start, &end, &prop, Qnil)
-      && !COMPOSITION_VALID_P (start, end, prop))
+      && !composition_valid_p (start, end, prop))
     to = end;
   if (!NILP (Ffboundp (func)))
     call2 (func, make_number (from), make_number (to));
@@ -524,7 +520,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 	 latter to the copy of it.  */
       if (from > BEGV
 	  && find_composition (from - 1, -1, &start, &end, &prop, Qnil)
-	  && COMPOSITION_VALID_P (start, end, prop))
+	  && composition_valid_p (start, end, prop))
 	{
 	  min_pos = start;
 	  if (end > to)
@@ -538,7 +534,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 	}
       else if (from < ZV
 	       && find_composition (from, -1, &start, &from, &prop, Qnil)
-	       && COMPOSITION_VALID_P (start, from, prop))
+	       && composition_valid_p (start, from, prop))
 	{
 	  if (from > to)
 	    max_pos = from;
@@ -553,7 +549,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
          (to - 1).  */
       while (from < to - 1
 	     && find_composition (from, to, &start, &from, &prop, Qnil)
-	     && COMPOSITION_VALID_P (start, from, prop)
+	     && composition_valid_p (start, from, prop)
 	     && from < to - 1)
 	run_composition_function (start, from, prop);
     }
@@ -562,7 +558,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
     {
       if (from < to
 	  && find_composition (to - 1, -1, &start, &end, &prop, Qnil)
-	  && COMPOSITION_VALID_P (start, end, prop))
+	  && composition_valid_p (start, end, prop))
 	{
 	  /* TO should be also at composition boundary.  But,
 	     insertion or deletion will make two compositions adjacent
@@ -580,7 +576,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
 	}
       else if (to < ZV
 	       && find_composition (to, -1, &start, &end, &prop, Qnil)
-	       && COMPOSITION_VALID_P (start, end, prop))
+	       && composition_valid_p (start, end, prop))
 	{
 	  run_composition_function (start, end, prop);
 	  max_pos = end;
@@ -901,7 +897,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  FRAME_PTR f = XFRAME (win->frame);
+  struct frame *f = XFRAME (win->frame);
   Lisp_Object pos = make_number (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;
@@ -1012,7 +1008,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
   if (charpos < endpos
       && find_composition (charpos, endpos, &start, &end, &prop, string)
       && start >= charpos
-      && COMPOSITION_VALID_P (start, end, prop))
+      && composition_valid_p (start, end, prop))
     {
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
@@ -1672,7 +1668,7 @@ composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
 
   /* At first check the static composition. */
   if (get_property_and_range (new_pt, Qcomposition, &val, &beg, &end, Qnil)
-      && COMPOSITION_VALID_P (beg, end, val))
+      && composition_valid_p (beg, end, val))
     {
       if (beg < new_pt /* && end > new_pt   <- It's always the case.  */
 	  && (last_pt <= beg || last_pt >= end))
@@ -1872,12 +1868,12 @@ See `find-composition' for more details.  */)
 	  && (e <= XINT (pos) ? e > end : s < start))
 	return list3 (make_number (s), make_number (e), gstring);
     }
-  if (!COMPOSITION_VALID_P (start, end, prop))
+  if (!composition_valid_p (start, end, prop))
     return list3 (make_number (start), make_number (end), Qnil);
   if (NILP (detail_p))
     return list3 (make_number (start), make_number (end), Qt);
 
-  if (COMPOSITION_REGISTERD_P (prop))
+  if (composition_registered_p (prop))
     id = COMPOSITION_ID (prop);
   else
     {
@@ -1890,7 +1886,7 @@ See `find-composition' for more details.  */)
   if (id >= 0)
     {
       Lisp_Object components, relative_p, mod_func;
-      enum composition_method method = COMPOSITION_METHOD (prop);
+      enum composition_method method = composition_method (prop);
       int width = composition_table[id]->width;
 
       components = Fcopy_sequence (COMPOSITION_COMPONENTS (prop));

@@ -1,3 +1,8 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
 2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* quail/croatian.el ("croatian-prefix"):

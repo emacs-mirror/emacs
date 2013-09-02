@@ -290,9 +290,8 @@ discard all handlers having a token number less than TOKEN-NUMBER."
              (lambda (handler)
                "Discard any HANDLER with a token number `<=' than TOKEN-NUMBER."
                (when (< (gdb-handler-token-number handler) token-number)
-                 (message (format
-                           "WARNING! Discarding GDB handler with token #%d\n"
-                           (gdb-handler-token-number handler))))
+                 (message "WARNING! Discarding GDB handler with token #%d\n"
+			  (gdb-handler-token-number handler)))
                (<= (gdb-handler-token-number handler) token-number))
              gdb-handler-list))
 
@@ -1490,7 +1489,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 					       split-horizontal)
   `(defun ,name (&optional thread)
      ,(when doc doc)
-     (message thread)
+     (message "%s" thread)
      (gdb-preempt-existing-or-display-buffer
       (gdb-get-buffer-create ,buffer thread)
       ,split-horizontal)))
@@ -2445,9 +2444,9 @@ current thread and update GDB buffers."
         (if (or (eq gdb-switch-reasons t)
                 (member reason gdb-switch-reasons))
             (when (not (string-equal gdb-thread-number thread-id))
-              (message (concat "Switched to thread " thread-id))
+              (message "Switched to thread %s" thread-id)
               (gdb-setq-thread-number thread-id))
-          (message (format "Thread %s stopped" thread-id)))))
+          (message "Thread %s stopped" thread-id))))
 
     ;; Print "(gdb)" to GUD console
     (when gdb-first-done-or-error
@@ -2500,7 +2499,7 @@ current thread and update GDB buffers."
 	;; MI error - send to minibuffer
 	(when (eq type 'error)
           ;; Skip "msg=" from `output-field'
-          (message (read (substring output-field 4)))
+          (message "%s" (read (substring output-field 4)))
           ;; Don't send to the console twice.  (If it is a console error
           ;; it is also in the console stream.)
           (setq output-field nil)))
@@ -2952,7 +2951,7 @@ If not in a source or disassembly buffer just set point."
 	 obj)
     (when (numberp pos)
       (with-selected-window (posn-window posn)
-	(with-current-buffer (window-buffer (selected-window))
+	(with-current-buffer (window-buffer)
 	  (goto-char pos)
 	  (dolist (overlay (overlays-in pos pos))
 	    (when (overlay-get overlay 'put-break)

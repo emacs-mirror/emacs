@@ -323,8 +323,6 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 
 (defun display-time-event-handler ()
   (display-time-update)
-  ;; Do redisplay right now, if no input pending.
-  (sit-for 0)
   (let* ((current (current-time))
 	 (timer display-time-timer)
 	 ;; Compute the time when this timer will run again, next.
@@ -352,8 +350,7 @@ Switches from the 1 to 5 to 15 minute load average, and then back to 1."
   (interactive)
   (if (= 3 (setq display-time-load-average (1+ display-time-load-average)))
       (setq display-time-load-average 0))
-  (display-time-update)
-  (sit-for 0))
+  (display-time-update))
 
 (defun display-time-mail-check-directory ()
   (let ((mail-files (directory-files display-time-mail-directory t))

@@ -1132,7 +1132,9 @@ See the variable `gnus-user-agent'."
 	   (gnus-v
 	    (when (memq 'gnus gnus-user-agent)
 	      (concat "Gnus/"
-		      (prin1-to-string (gnus-continuum-version gnus-version) t)
+		      (gnus-replace-in-string
+		       (format "%1.8f" (gnus-continuum-version gnus-version))
+		       "0+\\'" "")
 		      " (" gnus-version ")")))
 	   (emacs-v (gnus-emacs-version)))
       (concat gnus-v (when (and gnus-v emacs-v) " ")

@@ -885,17 +885,19 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defun mml2015-epg-key-image-to-string (key-id)
   "Return a string with the image of a key, if any"
-  (let* ((result "")
-         (key-image (mml2015-epg-key-image key-id)))
-    (when key-image
-      (setq result "  ")
-      (put-text-property
-       1 2 'display
-       (gnus-rescale-image key-image
-			   (cons mml2015-maximum-key-image-dimension
-				 mml2015-maximum-key-image-dimension))
-       result))
-    result))
+  (let ((key-image (mml2015-epg-key-image key-id)))
+    (if (not key-image)
+	""
+      (condition-case error
+	  (let ((result "  "))
+	    (put-text-property
+	     1 2 'display
+	     (gnus-rescale-image key-image
+				 (cons mml2015-maximum-key-image-dimension
+				       mml2015-maximum-key-image-dimension))
+	     result)
+	    result)
+	(error "")))))
 
 (defun mml2015-epg-signature-to-string (signature)
   (concat (epg-signature-to-string signature)

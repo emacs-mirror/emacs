@@ -789,13 +789,13 @@ so the above directions may need some modification if your site has such
 special needs.
 
 @menu
-* edt-user.el::          Creating your own @file{edt-user.el} file.
+* Init file::            Creating your own @file{edt-user.el} file.
 * Words::                Specifying word entities.
 * Control keys::         Enabling EDT control key sequence bindings.
 * Scroll margins::       Setting scroll margins.
 @end menu
 
-@node edt-user.el
+@node Init file
 @section Creating your own @file{edt-user.el} File
 
 A sample @file{edt-user.el} file is provided in the Emacs @file{etc/}

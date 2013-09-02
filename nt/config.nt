@@ -796,6 +796,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    systems that support xmenu.c. */
 #undef HAVE_MENUS
 
+/* Define to 1 if you have the `mkostemp' function. */
+#define HAVE_MKOSTEMP 1
+
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 

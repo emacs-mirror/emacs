@@ -1739,8 +1739,8 @@ This hook is mainly used for canceling the effect of
 This variable should be set only with \\[customize], which is equivalent
 to using the function `set-language-environment'."
   :link '(custom-manual "(emacs)Language Environments")
-  :set (lambda (symbol value) (set-language-environment value))
-  :get (lambda (x)
+  :set (lambda (_symbol value) (set-language-environment value))
+  :get (lambda (_x)
 	 (or (car-safe (assoc-string
 			(if (symbolp current-language-environment)
 			    (symbol-name current-language-environment)

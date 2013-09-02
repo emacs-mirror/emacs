@@ -240,6 +240,7 @@ Major and minor modes can add functions to
 copied out of the buffer.
 @end defun
 
+@c FIXME: `filter-buffer-substring-function' should be documented.
 @defvar filter-buffer-substring-functions
 This variable is a wrapper hook (@pxref{Running Hooks}), whose members
 should be functions that accept four arguments: @var{fun},
@@ -365,7 +366,8 @@ not relocate the marker, depending on the marker's insertion type
 the inserted text, regardless of the markers' insertion type.
 
   Insertion functions signal an error if the current buffer is
-read-only or if they insert within read-only text.
+read-only (@pxref{Read Only Buffers}) or if they insert within
+read-only text (@pxref{Special Properties}).
 
   These functions copy text characters from strings and buffers along
 with their properties.  The inserted characters have exactly the same
@@ -421,10 +423,10 @@ insertion point.  @xref{Sticky Properties}.
 
 @defun insert-buffer-substring from-buffer-or-name &optional start end
 This function inserts a portion of buffer @var{from-buffer-or-name}
-(which must already exist) into the current buffer before point.  The
-text inserted is the region between @var{start} and @var{end}.  (These
-arguments default to the beginning and end of the accessible portion of
-that buffer.)  This function returns @code{nil}.
+into the current buffer before point.  The text inserted is the region
+between @var{start} (inclusive) and @var{end} (exclusive).  (These
+arguments default to the beginning and end of the accessible portion
+of that buffer.)  This function returns @code{nil}.
 
 In this example, the form is executed with buffer @samp{bar} as the
 current buffer.  We assume that buffer @samp{bar} is initially empty.
@@ -482,6 +484,7 @@ it except to install it on a keymap.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
+@c FIXME: This variable is obsolete since 23.1.
 Self-insertion translates the input character through
 @code{translation-table-for-input}.  @xref{Translation of Characters}.
 
@@ -776,6 +779,7 @@ is deleted.  If point is on a nonblank line, the command deletes all
 blank lines immediately following it.
 
 A blank line is defined as a line containing only tabs and spaces.
+@c and the Newline character?
 
 @code{delete-blank-lines} returns @code{nil}.
 @end deffn
@@ -920,6 +924,7 @@ processes the text according to @code{yank-handled-properties} and
 text anyway.)
 @end defun
 
+@c FIXME: Add an index for yank-handler.
   If you put a @code{yank-handler} text property on all or part of a
 string, that alters how @code{insert-for-yank} inserts the string.  If
 different parts of the string have different @code{yank-handler}
@@ -1284,8 +1289,8 @@ This is an extensible undo item, which is undone by calling
 @item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
 This is an extensible undo item, which records a change limited to the
 range @var{beg} to @var{end}, which increased the size of the buffer
-by @var{delta}.  It is undone by calling @var{funname} with arguments
-@var{args}.
+by @var{delta} characters.  It is undone by calling @var{funname} with
+arguments @var{args}.
 
 This kind of element enables undo limited to a region to determine
 whether the element pertains to that region.
@@ -1376,7 +1381,8 @@ possible to undo either previous changes or any subsequent changes.  If
 the undo list of @var{buffer-or-name} is already disabled, this function
 has no effect.
 
-This function returns @code{nil}.
+In an interactive call, BUFFER-OR-NAME is the current buffer.  You
+cannot specify any other buffer.  This function returns @code{nil}.
 @end deffn
 
   As editing continues, undo lists get longer and longer.  To prevent
@@ -1493,6 +1499,7 @@ the header lines.  If @var{citation-regexp} is a string, it is used as
 a regular expression; if it matches the beginning of a line, that line
 is treated as a citation marker.
 
+@c FIXME: "That mode" is confusing.  It isn't a major/minor mode.
 Ordinarily, @code{fill-individual-paragraphs} regards each change in
 indentation as starting a new paragraph.  If
 @code{fill-individual-varying-indent} is non-@code{nil}, then only
@@ -1606,11 +1613,13 @@ Manual}.
 @defvar use-hard-newlines
 If this variable is non-@code{nil}, the filling functions do not delete
 newlines that have the @code{hard} text property.  These ``hard
-newlines'' act as paragraph separators.
+newlines'' act as paragraph separators.  @xref{Hard and Soft
+Newlines,, Hard and Soft Newlines, emacs, The GNU Emacs Manual}.
 @end defvar
 
 @node Margins
 @section Margins for Filling
+@cindex margins, filling
 
 @defopt fill-prefix
 This buffer-local variable, if non-@code{nil}, specifies a string of
@@ -1800,6 +1809,7 @@ prefix or @code{nil}, meaning it has failed to determine a prefix.
 @cindex filling, automatic
 @cindex Auto Fill mode
 
+@c FIXME: I don't think any of the variables below is a/an normal/abnormal hook.
   Auto Fill mode is a minor mode that fills lines automatically as text
 is inserted.  This section describes the hook used by Auto Fill mode.
 For a description of functions that you can call explicitly to fill and
@@ -1941,10 +1951,10 @@ its @code{sort-subr} call looks like this:
 @group
 (sort-subr reverse
            (function
-             (lambda ()
-               (while (and (not (eobp))
-                      (looking-at paragraph-separate))
-                 (forward-line 1))))
+            (lambda ()
+              (while (and (not (eobp))
+                          (looking-at paragraph-separate))
+                (forward-line 1))))
            'forward-paragraph)
 @end group
 @end example
@@ -2130,9 +2140,12 @@ line and point.
 When called interactively, @var{column} is the value of prefix numeric
 argument.  If @var{column} is not an integer, an error is signaled.
 
+@c This behavior used to be documented until 2013/08.
+@ignore
 If column @var{column} is beyond the end of the line, point moves to
 the end of the line.  If @var{column} is negative, point moves to the
 beginning of the line.
+@end ignore
 
 If it is impossible to move to column @var{column} because that is in
 the middle of a multicolumn character such as a tab, point moves to the
@@ -2341,6 +2354,8 @@ code.
 For example, if @var{count} is 3, this command adds 3 columns of
 indentation to each of the lines beginning in the region specified.
 
+@c FIXME: I suggest using message-indent-citation as the example, or
+@c just remove this paragraph.  --xfq
 In Mail mode, @kbd{C-c C-y} (@code{mail-yank-original}) uses
 @code{indent-rigidly} to indent the text copied from the message being
 replied to.
@@ -2518,7 +2533,7 @@ This is the contents of the 5th foo.
 @end group
 
 @group
-(capitalize-region 1 44)
+(capitalize-region 1 37)
 @result{} nil
 
 ---------- Buffer: foo ----------
@@ -3024,6 +3039,7 @@ Point}.
 
 @table @code
 @cindex property category of text character
+@c FIXME: Isn't @kindex for keyboard commands?
 @kindex category @r{(text property)}
 @item category
 If a character has a @code{category} property, we call it the
@@ -4012,6 +4028,7 @@ A rectangle is represented by a list of strings.
 This represents a window configuration to restore in one frame, and a
 position to jump to in the current buffer.
 
+@c FIXME: Mention frameset here.
 @item @code{(@var{frame-configuration} @var{position})}
 This represents a frame configuration to restore, and a position
 to jump to in the current buffer.

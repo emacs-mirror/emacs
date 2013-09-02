@@ -776,6 +776,14 @@ return information about actual files or directories, so their
 arguments must all exist as actual files or directories unless
 otherwise noted.
 
+@cindex file names, trailing whitespace
+@cindex trailing blanks in file names
+Be careful with file names that end in blanks: some filesystems
+(notably, MS-Windows) will ignore trailing whitespace in file names,
+and return information about the file after stripping those blanks
+from the name, not about the file whose name you passed to the
+functions described in this section.
+
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
@@ -2772,16 +2780,17 @@ first, before handlers for jobs such as remote file access.
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy}, @code{file-remote-p},
+@code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-notify-add-watch}, @code{file-notify-rm-watch},
 @code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p},
-@code{file-selinux-context},
+@code{file-remote-p}, @code{file-selinux-context},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*
@@ -2820,20 +2829,21 @@ first, before handlers for jobs such as remote file access.
 @code{file-accessible-direc@discretionary{}{}{}tory-p},
 @code{file-acl},
 @code{file-attributes},
-@code{file-direct@discretionary{}{}{}ory-p},
+@code{file-direc@discretionary{}{}{}tory-p},
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy}, @code{file-remote-p},
+@code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirec@discretionary{}{}{}tory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-notify-add-watch}, @code{file-notify-rm-watch},
 @code{file-ownership-pre@discretionary{}{}{}served-p},
 @code{file-readable-p}, @code{file-regular-p},
-@code{file-selinux-context},
+@code{file-remote-p}, @code{file-selinux-context},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},

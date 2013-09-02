@@ -1,4 +1,4 @@
-;;; files.el --- file input and output commands for Emacs
+;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1987, 1992-2013 Free Software Foundation, Inc.
 
@@ -1603,13 +1603,16 @@ killed."
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
 otherwise a string <2> or <3> or ... is appended to get an unused name.
-Spaces at the start of FILENAME (sans directory) are removed."
+
+Emacs treats buffers whose names begin with a space as internal buffers.
+To avoid confusion when visiting a file whose name begins with a space,
+this function prepends a \"|\" to the final result if necessary."
   (let ((lastname (file-name-nondirectory filename)))
     (if (string= lastname "")
 	(setq lastname filename))
-    (save-match-data
-      (string-match "^ *\\(.*\\)" lastname)
-      (generate-new-buffer (match-string 1 lastname)))))
+    (generate-new-buffer (if (string-match-p "\\` " lastname)
+			     (concat "|" lastname)
+			   lastname))))
 
 (defun generate-new-buffer (name)
   "Create and return a buffer with a name based on NAME.
@@ -2272,8 +2275,8 @@ since only a single case-insensitive search through the alist is made."
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
      ("\\.bash\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(bash_logout\\|shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
+     ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
+     ("\\(/\\|\\`\\)\\.\\(shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
      ("\\.m?spec\\'" . sh-mode)
      ("\\.m[mes]\\'" . nroff-mode)
@@ -2451,6 +2454,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("wishx" . tcl-mode)
      ("tcl" . tcl-mode)
      ("tclsh" . tcl-mode)
+     ("expect" . tcl-mode)
      ("scm" . scheme-mode)
      ("ash" . sh-mode)
      ("bash" . sh-mode)
@@ -3645,26 +3649,27 @@ is found.  Returns the new class name."
   (with-temp-buffer
     ;; This is with-demoted-errors, but we want to mention dir-locals
     ;; in any error message.
-    (let (err)
-      (condition-case err
-	  (progn
-	    (insert-file-contents file)
-	    (unless (zerop (buffer-size))
-	      (let* ((dir-name (file-name-directory file))
-		     (class-name (intern dir-name))
-		     (variables (let ((read-circle nil))
-				  (read (current-buffer)))))
-		(dir-locals-set-class-variables class-name variables)
-		(dir-locals-set-directory-class dir-name class-name
-						(nth 5 (file-attributes file)))
-		class-name)))
-	(error (message "Error reading dir-locals: %S" err) nil)))))
+    (condition-case err
+        (progn
+          (insert-file-contents file)
+          (unless (zerop (buffer-size))
+            (let* ((dir-name (file-name-directory file))
+                   (class-name (intern dir-name))
+                   (variables (let ((read-circle nil))
+                                (read (current-buffer)))))
+              (dir-locals-set-class-variables class-name variables)
+              (dir-locals-set-directory-class dir-name class-name
+                                              (nth 5 (file-attributes file)))
+              class-name)))
+      (error (message "Error reading dir-locals: %S" err) nil))))
 
 (defcustom enable-remote-dir-locals nil
   "Non-nil means dir-local variables will be applied to remote files."
   :version "24.3"
   :type 'boolean
   :group 'find-file)
+
+(defvar hack-dir-local-variables--warned-coding nil)
 
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
@@ -3697,8 +3702,10 @@ This does nothing if either `enable-local-variables' or
 	  (when variables
 	    (dolist (elt variables)
 	      (if (eq (car elt) 'coding)
-		  (display-warning :warning
-				   "Coding cannot be specified by dir-locals")
+                  (unless hack-dir-local-variables--warned-coding
+                    (setq hack-dir-local-variables--warned-coding t)
+                    (display-warning :warning
+                                     "Coding cannot be specified by dir-locals"))
 		(unless (memq (car elt) '(eval mode))
 		  (setq dir-local-variables-alist
 			(assq-delete-all (car elt) dir-local-variables-alist)))
@@ -4145,9 +4152,9 @@ FILENAME defaults to `buffer-file-name'."
   (file-name-sans-extension
    (file-name-nondirectory (or filename (buffer-file-name)))))
 
-(defcustom make-backup-file-name-function nil
+(defcustom make-backup-file-name-function
+  #'make-backup-file-name--default-function
   "A function to use instead of the default `make-backup-file-name'.
-A value of nil gives the default `make-backup-file-name' behavior.
 
 This could be buffer-local to do something special for specific
 files.  If you define it, you may need to change `backup-file-name-p'
@@ -4155,8 +4162,7 @@ and `file-name-sans-versions' too.
 
 See also `backup-directory-alist'."
   :group 'backup
-  :type '(choice (const :tag "Default" nil)
-		 (function :tag "Your function")))
+  :type '(function :tag "Your function"))
 
 (defcustom backup-directory-alist nil
   "Alist of filename patterns and backup directory names.
@@ -4216,24 +4222,26 @@ Checks for files in `temporary-file-directory',
 Normally this will just be the file's name with `~' appended.
 Customization hooks are provided as follows.
 
-If the variable `make-backup-file-name-function' is non-nil, its value
-should be a function which will be called with FILE as its argument;
-the resulting name is used.
+The value of `make-backup-file-name-function' should be a function which
+will be called with FILE as its argument; the resulting name is used.
 
-Otherwise a match for FILE is sought in `backup-directory-alist'; see
+By default, a match for FILE is sought in `backup-directory-alist'; see
 the documentation of that variable.  If the directory for the backup
 doesn't exist, it is created."
-  (if make-backup-file-name-function
-      (funcall make-backup-file-name-function file)
-    (if (and (eq system-type 'ms-dos)
-	     (not (msdos-long-file-names)))
-	(let ((fn (file-name-nondirectory file)))
-	  (concat (file-name-directory file)
-		  (or (and (string-match "\\`[^.]+\\'" fn)
-			   (concat (match-string 0 fn) ".~"))
-		      (and (string-match "\\`[^.]+\\.\\(..?\\)?" fn)
-			   (concat (match-string 0 fn) "~")))))
-      (concat (make-backup-file-name-1 file) "~"))))
+  (funcall (or make-backup-file-name-function
+               #'make-backup-file-name--default-function)
+           file))
+
+(defun make-backup-file-name--default-function (file)
+  (if (and (eq system-type 'ms-dos)
+           (not (msdos-long-file-names)))
+      (let ((fn (file-name-nondirectory file)))
+        (concat (file-name-directory file)
+                (or (and (string-match "\\`[^.]+\\'" fn)
+                         (concat (match-string 0 fn) ".~"))
+                    (and (string-match "\\`[^.]+\\.\\(..?\\)?" fn)
+                         (concat (match-string 0 fn) "~")))))
+    (concat (make-backup-file-name-1 file) "~")))
 
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
@@ -5246,20 +5254,28 @@ comparison."
 
 
 (put 'revert-buffer-function 'permanent-local t)
-(defvar revert-buffer-function nil
+(defvar revert-buffer-function #'revert-buffer--default
   "Function to use to revert this buffer, or nil to do the default.
 The function receives two arguments IGNORE-AUTO and NOCONFIRM,
-which are the arguments that `revert-buffer' received.")
+which are the arguments that `revert-buffer' received.
+It also has access to the `preserve-modes' argument of `revert-buffer'
+via the `revert-buffer-preserve-modes' dynamic variable.")
 
 (put 'revert-buffer-insert-file-contents-function 'permanent-local t)
-(defvar revert-buffer-insert-file-contents-function nil
+(defvar revert-buffer-insert-file-contents-function
+  #'revert-buffer-insert-file-contents--default-function
   "Function to use to insert contents when reverting this buffer.
 Gets two args, first the nominal file name to use,
 and second, t if reading the auto-save file.
 
 The function you specify is responsible for updating (or preserving) point.")
 
-(defvar buffer-stale-function nil
+(defun buffer-stale--default-function (&optional _noconfirm)
+  (and buffer-file-name
+       (file-readable-p buffer-file-name)
+       (not (verify-visited-file-modtime (current-buffer)))))
+
+(defvar buffer-stale-function #'buffer-stale--default-function
   "Function to check whether a non-file buffer needs reverting.
 This should be a function with one optional argument NOCONFIRM.
 Auto Revert Mode passes t for NOCONFIRM.  The function should return
@@ -5295,6 +5311,11 @@ mechanism, this hook is not used.")
 This is true even if a `revert-buffer-function' is being used.")
 
 (defvar revert-buffer-internal-hook)
+
+;; `revert-buffer-function' was defined long ago to be a function of only
+;; 2 arguments, so we have to use a dynbind variable to pass the
+;; `preserve-modes' argument of `revert-buffer'.
+(defvar revert-buffer-preserve-modes)
 
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
   "Replace current buffer text with the text of the visited file on disk.
@@ -5337,112 +5358,112 @@ non-nil, it is called instead of rereading visited file contents."
   ;; reversal of the argument sense.  So I'm just changing the user
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
-  (if revert-buffer-function
-      (let ((revert-buffer-in-progress-p t))
-        (funcall revert-buffer-function ignore-auto noconfirm))
-    (with-current-buffer (or (buffer-base-buffer (current-buffer))
-			     (current-buffer))
-      (let* ((revert-buffer-in-progress-p t)
-             (auto-save-p (and (not ignore-auto)
-			       (recent-auto-save-p)
-			       buffer-auto-save-file-name
-			       (file-readable-p buffer-auto-save-file-name)
-			       (y-or-n-p
-     "Buffer has been auto-saved recently.  Revert from auto-save file? ")))
-	     (file-name (if auto-save-p
-			    buffer-auto-save-file-name
-			  buffer-file-name)))
-	(cond ((null file-name)
-	       (error "Buffer does not seem to be associated with any file"))
-	      ((or noconfirm
-		   (and (not (buffer-modified-p))
-			(catch 'found
-			  (dolist (regexp revert-without-query)
-			    (when (string-match regexp file-name)
-			      (throw 'found t)))))
-		   (yes-or-no-p (format "Revert buffer from file %s? "
-					file-name)))
-	       (run-hooks 'before-revert-hook)
-	       ;; If file was backed up but has changed since,
-	       ;; we should make another backup.
-	       (and (not auto-save-p)
-		    (not (verify-visited-file-modtime (current-buffer)))
-		    (setq buffer-backed-up nil))
-	       ;; Effectively copy the after-revert-hook status,
-	       ;; since after-find-file will clobber it.
-	       (let ((global-hook (default-value 'after-revert-hook))
-		     (local-hook (when (local-variable-p 'after-revert-hook)
-				   after-revert-hook))
-		     (inhibit-read-only t))
-		 (cond
-		  (revert-buffer-insert-file-contents-function
-		   (unless (eq buffer-undo-list t)
-		     ;; Get rid of all undo records for this buffer.
-		     (setq buffer-undo-list nil))
-		   ;; Don't make undo records for the reversion.
-		   (let ((buffer-undo-list t))
-		     (funcall revert-buffer-insert-file-contents-function
-			      file-name auto-save-p)))
-		  ((not (file-exists-p file-name))
-		   (error (if buffer-file-number
-			      "File %s no longer exists!"
-			    "Cannot revert nonexistent file %s")
-			  file-name))
-		  ((not (file-readable-p file-name))
-		   (error (if buffer-file-number
-			      "File %s no longer readable!"
-			    "Cannot revert unreadable file %s")
-			  file-name))
-		  (t
-		   ;; Bind buffer-file-name to nil
-		   ;; so that we don't try to lock the file.
-		   (let ((buffer-file-name nil))
-		     (or auto-save-p
-			 (unlock-buffer)))
-		   (widen)
-		   (let ((coding-system-for-read
-			  ;; Auto-saved file should be read by Emacs's
-			  ;; internal coding.
-			  (if auto-save-p 'auto-save-coding
-			    (or coding-system-for-read
-				(and
-				 buffer-file-coding-system-explicit
-				 (car buffer-file-coding-system-explicit))))))
-		     (if (and (not enable-multibyte-characters)
-			      coding-system-for-read
-			      (not (memq (coding-system-base
-					  coding-system-for-read)
-					 '(no-conversion raw-text))))
-			 ;; As a coding system suitable for multibyte
-			 ;; buffer is specified, make the current
-			 ;; buffer multibyte.
-			 (set-buffer-multibyte t))
+  (let ((revert-buffer-in-progress-p t)
+        (revert-buffer-preserve-modes preserve-modes))
+    (funcall (or revert-buffer-function #'revert-buffer--default)
+             ignore-auto noconfirm)))
+(defun revert-buffer--default (ignore-auto noconfirm)
+  (with-current-buffer (or (buffer-base-buffer (current-buffer))
+                           (current-buffer))
+    (let* ((auto-save-p (and (not ignore-auto)
+                             (recent-auto-save-p)
+                             buffer-auto-save-file-name
+                             (file-readable-p buffer-auto-save-file-name)
+                             (y-or-n-p
+                              "Buffer has been auto-saved recently.  Revert from auto-save file? ")))
+           (file-name (if auto-save-p
+                          buffer-auto-save-file-name
+                        buffer-file-name)))
+      (cond ((null file-name)
+             (error "Buffer does not seem to be associated with any file"))
+            ((or noconfirm
+                 (and (not (buffer-modified-p))
+                      (catch 'found
+                        (dolist (regexp revert-without-query)
+                          (when (string-match regexp file-name)
+                            (throw 'found t)))))
+                 (yes-or-no-p (format "Revert buffer from file %s? "
+                                      file-name)))
+             (run-hooks 'before-revert-hook)
+             ;; If file was backed up but has changed since,
+             ;; we should make another backup.
+             (and (not auto-save-p)
+                  (not (verify-visited-file-modtime (current-buffer)))
+                  (setq buffer-backed-up nil))
+             ;; Effectively copy the after-revert-hook status,
+             ;; since after-find-file will clobber it.
+             (let ((global-hook (default-value 'after-revert-hook))
+                   (local-hook (when (local-variable-p 'after-revert-hook)
+                                 after-revert-hook))
+                   (inhibit-read-only t))
+               ;; FIXME: Throw away undo-log when preserve-modes is nil?
+               (funcall
+                (or revert-buffer-insert-file-contents-function
+                    #'revert-buffer-insert-file-contents--default-function)
+                file-name auto-save-p)
+               ;; Recompute the truename in case changes in symlinks
+               ;; have changed the truename.
+               (setq buffer-file-truename
+                     (abbreviate-file-name (file-truename buffer-file-name)))
+               (after-find-file nil nil t nil revert-buffer-preserve-modes)
+               ;; Run after-revert-hook as it was before we reverted.
+               (setq-default revert-buffer-internal-hook global-hook)
+               (if local-hook
+                   (set (make-local-variable 'revert-buffer-internal-hook)
+                        local-hook)
+                 (kill-local-variable 'revert-buffer-internal-hook))
+               (run-hooks 'revert-buffer-internal-hook))
+             t)))))
 
-		     ;; This force after-insert-file-set-coding
-		     ;; (called from insert-file-contents) to set
-		     ;; buffer-file-coding-system to a proper value.
-		     (kill-local-variable 'buffer-file-coding-system)
+(defun revert-buffer-insert-file-contents--default-function (file-name auto-save-p)
+  (cond
+   ((not (file-exists-p file-name))
+    (error (if buffer-file-number
+               "File %s no longer exists!"
+             "Cannot revert nonexistent file %s")
+           file-name))
+   ((not (file-readable-p file-name))
+    (error (if buffer-file-number
+               "File %s no longer readable!"
+             "Cannot revert unreadable file %s")
+           file-name))
+   (t
+    ;; Bind buffer-file-name to nil
+    ;; so that we don't try to lock the file.
+    (let ((buffer-file-name nil))
+      (or auto-save-p
+          (unlock-buffer)))
+    (widen)
+    (let ((coding-system-for-read
+           ;; Auto-saved file should be read by Emacs's
+           ;; internal coding.
+           (if auto-save-p 'auto-save-coding
+             (or coding-system-for-read
+                 (and
+                  buffer-file-coding-system-explicit
+                  (car buffer-file-coding-system-explicit))))))
+      (if (and (not enable-multibyte-characters)
+               coding-system-for-read
+               (not (memq (coding-system-base
+                           coding-system-for-read)
+                          '(no-conversion raw-text))))
+          ;; As a coding system suitable for multibyte
+          ;; buffer is specified, make the current
+          ;; buffer multibyte.
+          (set-buffer-multibyte t))
 
-		     ;; Note that this preserves point in an intelligent way.
-		     (if preserve-modes
-			 (let ((buffer-file-format buffer-file-format))
-			   (insert-file-contents file-name (not auto-save-p)
-						 nil nil t))
-		       (insert-file-contents file-name (not auto-save-p)
-					     nil nil t)))))
-		 ;; Recompute the truename in case changes in symlinks
-		 ;; have changed the truename.
-		 (setq buffer-file-truename
-		       (abbreviate-file-name (file-truename buffer-file-name)))
-		 (after-find-file nil nil t nil preserve-modes)
-		 ;; Run after-revert-hook as it was before we reverted.
-		 (setq-default revert-buffer-internal-hook global-hook)
-		 (if local-hook
-		     (set (make-local-variable 'revert-buffer-internal-hook)
-			  local-hook)
-		   (kill-local-variable 'revert-buffer-internal-hook))
-		 (run-hooks 'revert-buffer-internal-hook))
-	       t))))))
+      ;; This force after-insert-file-set-coding
+      ;; (called from insert-file-contents) to set
+      ;; buffer-file-coding-system to a proper value.
+      (kill-local-variable 'buffer-file-coding-system)
+
+      ;; Note that this preserves point in an intelligent way.
+      (if revert-buffer-preserve-modes
+          (let ((buffer-file-format buffer-file-format))
+            (insert-file-contents file-name (not auto-save-p)
+                                  nil nil t))
+        (insert-file-contents file-name (not auto-save-p)
+                              nil nil t))))))
 
 (defun recover-this-file ()
   "Recover the visited file--get contents from its last auto-save file."
@@ -6196,9 +6217,10 @@ normally equivalent short `-D' option is just passed on to
 		    ;; directory if FILE is a symbolic link.
  		    (unless full-directory-p
  		      (setq switches
- 			    (if (stringp switches)
- 				(concat switches " -d")
- 			      (add-to-list 'switches "-d" 'append))))
+ 			    (cond
+                             ((stringp switches) (concat switches " -d"))
+                             ((member "-d" switches) switches)
+                             (t (append switches '("-d"))))))
 		    (apply 'call-process
 			   insert-directory-program nil t nil
 			   (append
@@ -6471,7 +6493,7 @@ With prefix ARG, silently save all file-visiting buffers, then kill.
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
   (interactive "P")
-  (if (frame-parameter (selected-frame) 'client)
+  (if (frame-parameter nil 'client)
       (server-save-buffers-kill-terminal arg)
     (save-buffers-kill-emacs arg)))
 
@@ -6672,7 +6694,9 @@ based on existing mode bits, as in \"og+rX-w\"."
 	  (string-to-number value 8)
 	(file-modes-symbolic-to-number value modes)))))
 
-
+(define-obsolete-variable-alias 'cache-long-line-scans
+  'cache-long-scans "24.4")
+
 ;; Trashcan handling.
 (defcustom trash-directory nil
   "Directory for `move-file-to-trash' to move files and directories to.

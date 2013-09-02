@@ -205,7 +205,7 @@ extern void x_focus_on_frame (struct frame *f);
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
-extern int w32_defined_color (FRAME_PTR f, const char *color,
+extern int w32_defined_color (struct frame *f, const char *color,
                               XColor *color_def, int alloc);
 extern void x_set_window_size (struct frame *f, int change_grav,
                               int cols, int rows);
@@ -218,8 +218,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_pixel_width (struct frame *f);
-extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_tool_bar_lines (struct frame *f,
@@ -453,9 +451,11 @@ struct scroll_bar {
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
 
-  /* t if the background of the fringe that is adjacent to a scroll
+  /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
-  Lisp_Object fringe_extended_p;
+  /* Note: this could be a bit field, but we need to take its address
+     in ALLOCATE_PSEUDOVECTOR (see x_scroll_bar_create).  */
+  bool fringe_extended_p;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */

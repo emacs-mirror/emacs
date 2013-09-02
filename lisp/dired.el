@@ -34,6 +34,9 @@
 
 ;;; Code:
 
+(declare-function dired-buffer-more-recently-used-p
+		  "dired-x" (buffer1 buffer2))
+
 ;;; Customizable variables
 
 (defgroup dired nil
@@ -1225,7 +1228,7 @@ see `dired-use-ls-dired' for more details.")
       (save-excursion
 	(goto-char opoint)
 	(when (and (or hdr wildcard)
-		   (not (and (looking-at-p "^  \\(.*\\):$")
+		   (not (and (looking-at "^  \\(.*\\):$")
 			     (file-name-absolute-p (match-string 1)))))
 	  ;; Note that dired-build-subdir-alist will replace the name
 	  ;; by its expansion, so it does not matter whether what we insert
@@ -1242,26 +1245,25 @@ see `dired-use-ls-dired' for more details.")
   (save-excursion
     (goto-char beg)
     (while (< (point) end)
-      (condition-case nil
-	  (if (not (dired-move-to-filename))
-	      (put-text-property (line-beginning-position)
-				 (1+ (line-end-position))
-				 'invisible 'dired-hide-details-information)
-	    (put-text-property (+ (line-beginning-position) 1) (1- (point))
-			       'invisible 'dired-hide-details-detail)
-	    (add-text-properties
-	     (point)
-	     (progn
-	       (dired-move-to-end-of-filename)
-	       (point))
-	     '(mouse-face
-	       highlight
-	       dired-filename t
-	       help-echo "mouse-2: visit this file in other window"))
-	    (when (< (+ (point) 4) (line-end-position))
-	      (put-text-property (+ (point) 4) (line-end-position)
-				 'invisible 'dired-hide-details-link)))
-	(error nil))
+      (ignore-errors
+	(if (not (dired-move-to-filename))
+	    (put-text-property (line-beginning-position)
+			       (1+ (line-end-position))
+			       'invisible 'dired-hide-details-information)
+	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
+			     'invisible 'dired-hide-details-detail)
+	  (add-text-properties
+	   (point)
+	   (progn
+	     (dired-move-to-end-of-filename)
+	     (point))
+	   '(mouse-face
+	     highlight
+	     dired-filename t
+	     help-echo "mouse-2: visit this file in other window"))
+	  (when (< (+ (point) 4) (line-end-position))
+	    (put-text-property (+ (point) 4) (line-end-position)
+			       'invisible 'dired-hide-details-link))))
       (forward-line 1))))
 
 ;; Reverting a dired buffer
@@ -1401,11 +1403,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 	  (setq elt (car old-subdir-alist)
 		old-subdir-alist (cdr old-subdir-alist)
 		dir (car elt))
-	  (condition-case ()
-	      (progn
-		(dired-uncache dir)
-		(dired-insert-subdir dir))
-	    (error nil))))))
+	  (ignore-errors
+	    (dired-uncache dir)
+	    (dired-insert-subdir dir))))))
 
 (defun dired-uncache (dir)
   "Remove directory DIR from any directory cache."
@@ -3849,22 +3849,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads (dired-show-file-type dired-do-query-replace-regexp
-;;;;;;  dired-do-search dired-do-isearch-regexp dired-do-isearch
-;;;;;;  dired-isearch-filenames-regexp dired-isearch-filenames dired-isearch-filenames-setup
-;;;;;;  dired-hide-all dired-hide-subdir dired-tree-down dired-tree-up
-;;;;;;  dired-kill-subdir dired-mark-subdir-files dired-goto-subdir
-;;;;;;  dired-prev-subdir dired-insert-subdir dired-maybe-insert-subdir
-;;;;;;  dired-downcase dired-upcase dired-do-symlink-regexp dired-do-hardlink-regexp
-;;;;;;  dired-do-copy-regexp dired-do-rename-regexp dired-do-rename
-;;;;;;  dired-do-hardlink dired-do-symlink dired-do-copy dired-create-directory
-;;;;;;  dired-rename-file dired-copy-file dired-relist-file dired-remove-file
-;;;;;;  dired-add-file dired-do-redisplay dired-do-load dired-do-byte-compile
-;;;;;;  dired-do-compress dired-query dired-compress-file dired-do-kill-lines
-;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
-;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
-;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "8f5af3aa4eee1b3448525896fa6f39a3")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "04b4cb6bde3220f55574eb1d99ac0d29")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4367,7 +4352,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "4b863621846609105c0371f8ffb8c1cf")
+;;;### (autoloads nil "dired-x" "dired-x.el" "1419d865898f84c17f172320e578380c")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

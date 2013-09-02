@@ -1,3 +1,34 @@
+2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el: Use lexical-binding.
+	(erc-user-full-name): Minor CSE simplification.
+	(erc-mode-map): Assume command-remapping is available.
+	(erc-once-with-server-event): Replace `forms' arg with a function arg.
+	(erc-once-with-server-event-global): Remove.
+	(erc-ison-p): Adjust to change in erc-once-with-server-event.
+	(erc-get-buffer-create): Remove arg `proc'.
+	(iswitchb-make-buflist-hook): Declare.
+	(erc-setup-buffer): Use pcase; avoid ((lambda ..) ..).
+	(read-passwd): Assume it exists.
+	(erc-display-line, erc-cmd-IDLE): Avoid add-to-list, adjust to change
+	in erc-once-with-server-event.
+	(erc-cmd-JOIN, erc-set-channel-limit, erc-set-channel-key)
+	(erc-add-query): Minor CSE simplification.
+	(erc-cmd-BANLIST, erc-cmd-MASSUNBAN): Adjust to change
+	in erc-once-with-server-event.
+	(erc-echo-notice-in-user-and-target-buffers): Avoid add-to-list.
+	* erc-track.el: Use lexical-binding.
+	(erc-make-mode-line-buffer-name): Use closures instead of `(lambda...).
+	(erc-faces-in): Avoid add-to-list.
+	* erc-notify.el: Use lexical-binding.
+	(erc-notify-timer): Adjust to change in erc-once-with-server-event.
+	(erc-notify-QUIT): Use a closure instead of `(lambda...).
+	* erc-list.el: Use lexical-binding.
+	(erc-list-install-322-handler, erc-cmd-LIST): Adjust to change in
+	erc-once-with-server-event.
+	* erc-button.el: Use lexical-binding.
+	(erc-button-next-function): Use a closure instead of `(lambda...).
+
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
 	* erc-backend.el: Require erc at run-time too.

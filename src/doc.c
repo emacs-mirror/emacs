@@ -905,7 +905,7 @@ Otherwise, return a new string, without any text properties.  */)
 		 If this one's not active, get nil.  */
 	      earlier_maps = Fcdr (Fmemq (tem, Freverse (active_maps)));
 	      describe_map_tree (tem, 1, Fnreverse (earlier_maps),
-				 Qnil, (char *)0, 1, 0, 0, 1);
+				 Qnil, 0, 1, 0, 0, 1);
 	    }
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();

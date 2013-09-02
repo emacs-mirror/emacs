@@ -1,7 +1,1844 @@
+2013-09-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	Format code sent to Python shell for robustness.
+	* progmodes/python.el (python-shell-buffer-substring): New
+	function.
+	(python-shell-send-region, python-shell-send-buffer): Use it.
+
+2013-09-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-user-error): Move it ...
+	* net/tramp.el (tramp-user-error): ... here.
+	(tramp-find-method, tramp-check-proper-host)
+	(tramp-dissect-file-name, tramp-debug-message)
+	(tramp-handle-shell-command):
+	* net/tramp-adb.el (tramp-adb-handle-shell-command):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler): Adapt callees.
+
+	* net/tramp-cache.el (tramp-cache-print): Don't print text properties.
+
+2013-09-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* avoid.el (mouse-avoidance-point-position)
+	(mouse-avoidance-too-close-p): Handle case where posn-at-point
+	returns nil.
+
+2013-09-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-shell-completion-get-completions):
+	Drop use of deleted `comint-last-prompt-overlay'.
+	(python-nav-if-name-main): New command.
+
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):
+	Avoid leading space in $wins.  Otherwise the sed command used by
+	eg compile-main ends up containing "/*.el".  (Bug#15170)
+
+	* frame.el (frame-background-mode): Doc fix.  (Bug#15226)
+
+2013-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Fix is-this-a-directory logic.  (Bug#15220)
+
+2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el: Use SMIE.
+	(css-smie-grammar): New var.
+	(css-smie--forward-token, css-smie--backward-token)
+	(css-smie-rules): New functions.
+	(css-mode): Use them.
+	(css-navigation-syntax-table): Remove var.
+	(css-backward-sexp, css-forward-sexp, css-indent-calculate-virtual)
+	(css-indent-calculate, css-indent-line): Remove functions.
+
+	Misc changes to reduce use of `(lambda...); and other cleanups.
+	* cus-edit.el: Use lexical-binding.
+	(customize-push-and-save, customize-apropos)
+	(custom-buffer-create-internal): Use closures.
+	* progmodes/bat-mode.el (bat-mode-syntax-table): "..." are strings.
+	* progmodes/ada-xref.el: Use setq.
+	* net/tramp.el (with-tramp-progress-reporter): Avoid setq.
+	* dframe.el: Use lexical-binding.
+	(dframe-frame-mode): Fix calling convention for hooks.  Use a closure.
+	* speedbar.el (speedbar-frame-mode): Adjust call accordingly.
+	* descr-text.el: Use lexical-binding.
+	(describe-text-widget, describe-text-sexp, describe-property-list):
+	Use closures.
+	* comint.el (comint-history-isearch-push-state): Use a closure.
+	* calculator.el: Use lexical-binding.
+	(calculator-number-to-string): Make it work with lexical-binding.
+	(calculator-funcall): Same and use cl-letf.
+
+	* emacs-lisp/lisp.el (lisp--company-doc-buffer)
+	(lisp--company-doc-string, lisp--company-location): New functions.
+	(lisp-completion-at-point): Use them to improve Company support.
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Add rule for formal
+	params of lambda expressions.
+	(ruby-smie--implicit-semi-p): Refine rule (bug#15208).
+	(ruby-smie--opening-pipe-p): New function.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Handle Ruby
+	symbols and matched |...| for formal params.
+	(ruby-smie-rules): Don't let the formal params of a "do" prevent it
+	from being treated as hanging.  Handle "rescue".
+
+2013-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-engine.el (c-pull-open-brace):
+	Move definition before use.
+
+2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-defsubst): Make it clear that args
+	are immutable.  Don't use `unsafe' any more.
+	(cl--defsubst-expand): Don't substitute at the same time as keeping
+	a residual unused let-binding.  Don't use `unsafe' any more.
+
+2013-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-china.el (calendar-chinese-year-cache):
+	Recenter on 2015.
+
+	* nxml/nxml-util.el (nxml-debug-clear-inside):
+	Use cl-loop rather than loop.
+
+	* net/eww.el (eww-mode-map): Lower-case menu bar entries look bad.
+
+	* progmodes/sh-script.el (sh-builtins) <bash>: Add some bash4-isms.
+
+2013-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/antlr-mode.el: No need to require cc-mode twice.
+
+	* progmodes/cc-bytecomp.el (cc-require): Handle uncompiled case.
+
+	* progmodes/cc-mode.el (c-define-abbrev-table): Handle NAME unbound.
+
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (repeat-complex-command--called-interactively-skip):
+	New function.
+	(repeat-complex-command): Use it (bug#14136).
+
+	* progmodes/cc-mode.el: Minor cleanup of var declarations.
+	(c-define-abbrev-table): Add `doc' argument.
+	(c-mode-abbrev-table, c++-mode-abbrev-table)
+	(objc-mode-abbrev-table, java-mode-abbrev-table)
+	(idl-mode-abbrev-table, pike-mode-abbrev-table)
+	(awk-mode-abbrev-table): Use it.
+	(c-mode-syntax-table, c-mode-map, c++-mode-syntax-table)
+	(c++-mode-map, objc-mode-syntax-table, objc-mode-map)
+	(java-mode-syntax-table, java-mode-map, idl-mode-syntax-table)
+	(idl-mode-map, pike-mode-syntax-table, pike-mode-map, awk-mode-map):
+	Move initialization into the declaration; and remove any
+	autoload cookie.
+
+	* epg.el (epg--process-filter): Use with-current-buffer, save-excursion
+	and dynamic let binding.
+
+	* vc/smerge-mode.el: Remove redundant :group args.
+
+	* emacs-lisp/package.el (package-activate-1): Don't add unnecessarily
+	to load-path.
+
+2013-08-28  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-reread-key-sequence-naturally): Use non-nil
+	arg DONT-DOWNCASE-LAST of `read-key-sequence'.
+	(isearch-other-meta-char): Handle an undefined shifted printing
+	character by downshifting it.  (Bug#15200)
+
+2013-08-28  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-search): Change regexp error message for
+	non-regexp searches.  (Bug#15166)
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el (cconv--analyse-function): Improve warning.
+
+2013-08-27  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-other-meta-char): Don't store kmacro commands
+	in the keyboard macro.  (Bug#15126)
+
+2013-08-27  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-quote-char): Comment out converting unibyte
+	to multibyte, thus syncing with its `quoted-insert' counterpart.
+	(Bug#15166)
+
+2013-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-use-some-window): Add missing
+	argument in call of get-largest-window (Bug#15185).
+	Reported by Stephen Leake.
+
+2013-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-buffer-info): Fix message typo.
+
+2013-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-font-lock-keywords): Don't return nil
+	from a matcher-function unless there's no more matches (bug#15161).
+
+2013-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* minibuffer.el: Revert change from 2013-08-20.
+
+	* net/tramp.el (tramp-find-method, tramp-find-user): Mark result
+	with text property `tramp-default', if appropriate.
+	(tramp-check-proper-host): New defun.
+	(tramp-dissect-file-name): Do not check hostname.  Revert change
+	of 2013-03-18.
+	(tramp-backtrace): Make VEC-OR-PROC optional.
+
+	* net/tramp-adb.el (tramp-adb-maybe-open-connection):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-sh.el (tramp-maybe-open-connection):
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Apply `tramp-check-proper-host'.
+
+2013-08-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* epa-hook.el (epa-file-encrypt-to): Quote `safe-local-variable'
+	lambda expression in order to have `describe-variable' display it.
+
+2013-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-verify-visited-file-modtime):
+	BUF can be optional.  (Bug#15186)
+
+2013-08-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* progmodes/flymake.el (flymake-get-real-file-name-function):
+	Fix broken customization.  (Bug#15184)
+
+2013-08-25  Alan Mackenzie  <acm@muc.de>
+
+	Improve indentation of bracelists defined by macros (without "=").
+
+	* progmodes/cc-engine.el (c-inside-bracelist-p): When a macro
+	expansion begins with "{", regard it as bracelist when it doesn't
+	contain a ";".
+
+	Parse C++ inher-intro when there's a template split over 2 lines.
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5C): Code more
+	rigorously the search for "class" etc. followed by ":".
+
+	* progmodes/cc-langs.el (c-opt-<>-sexp-key): Make the value for
+	random languages a regexp which never matches rather than nil.
+
+	Handle "/"s more accurately in test for virtual semicolons (AWK Mode).
+
+	* progmodes/cc-awk.el (c-awk-one-line-possibly-open-string-re)
+	(c-awk-regexp-one-line-possibly-open-char-list-re)
+	(c-awk-one-line-possibly-open-regexp-re)
+	(c-awk-one-line-non-syn-ws*-re): Remove.
+	(c-awk-possibly-open-string-re, c-awk-non-/-syn-ws*-re)
+	(c-awk-space*-/-re, c-awk-space*-regexp-/-re)
+	(c-awk-space*-unclosed-regexp-/-re): New constants.
+	(c-awk-at-vsemi-p): Reformulate better to recognize "/"s which
+	aren't regexp delimiters.
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Add in
+	handling for a rare situation in AWK Mode involving unterminated
+	strings/regexps.
+
+2013-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist): Use sh-mode for .bash_history.
+
+	* files.el (interpreter-mode-alist): Use tcl-mode for expect scripts.
+
+	* files.el (create-file-buffer): If the result would begin with
+	spaces, prepend a "|" instead of removing them.  (Bug#15162)
+
+2013-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (fill-match-adaptive-prefix): Don't throw away
+	text-properties (bug#15155).
+
+	* calc/calc-keypd.el (calc-keypad-execute): `x-flush-mouse-queue' doesn't
+	exist any more.
+	(calc-keypad-redraw): Remove unused var `pad'.
+	(calc-keypad-press): Remove unused var `menu'.
+
+2013-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-frame):
+	Call pop-up-frame-function with BUFFER current so `make-frame' will
+	use it as the new frame's buffer (Bug#15133).
+
+2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/timeclock.el: Minor cleanups.
+	(timeclock-ask-before-exiting, timeclock-use-display-time):
+	Use `symbol'.
+	(timeclock-modeline-display): Define as alias before the
+	actual definition.
+	(timeclock-mode-line-display): Use define-minor-mode.
+	(timeclock-day-list-template): Make it a function, add an argument.
+	(timeclock-day-list-required, timeclock-day-list-length)
+	(timeclock-day-list-debt, timeclock-day-list-span)
+	(timeclock-day-list-break): Adjust calls accordingly.
+
+2013-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pp.el (pp-eval-expression, pp-macroexpand-expression):
+	Use read--expression so that completion works again.
+
+2013-08-21  Sam Steingold  <sds@gnu.org>
+
+	Add rudimentary inferior shell interaction
+	* progmodes/sh-script.el (sh-shell-process): New buffer-local variable.
+	(sh-set-shell): Reset it.
+	(sh-show-shell, sh-cd-here, sh-send-line-or-region-and-step):
+	New commands (bound to C-c C-z, C-c C-d, and C-c C-n).
+
+2013-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* align.el: Use lexical-binding.
+	(align-region): Simplify accordingly.
+
+2013-08-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* minibuffer.el (completion--sifn-requote): Bind `non-essential'.
+
+	* rfn-eshadow.el (rfn-eshadow-update-overlay): Move binding of
+	`non-essential' up.
+
+2013-08-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el:
+	* net/tramp-adb.el:
+	* net/tramp-cmds.el:
+	* net/tramp-ftp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-gw.el:
+	* net/tramp-sh.el: Don't wrap external variable declarations by
+	`eval-when-compile'.
+
+2013-08-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-rescale-image): Use ImageMagick even for GIFs
+	now that Emacs supports ImageMagick animations.
+
+2013-08-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (top): Don't declare `buffer-name'.
+	(tramp-append-tramp-buffers): Rewrite buffer local variables part.
+
+2013-08-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-select): Do autoselect when
+	mouse pointer is on margin.
+
+2013-08-16  William Parsons  <wbparsons@alum.mit.edu>  (tiny change)
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Add 500 EPSV.  (Bug#1972)
+
+2013-08-16  Glenn Morris  <rgm@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-good-msgs, ange-ftp-get-pwd):
+	Handle "Remote Directory" response of some clients.  (Bug#15058)
+
+	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local):
+	Tweak warning.  (Bug#14926)
+
+	* menu-bar.el (send-mail-item-name, read-mail-item-name): Remove.
+	(menu-bar-tools-menu): Simplify news and mail items.  (Bug#15095)
+
+	* image-mode.el (image-mode-map): Add menu items to reverse,
+	increase, decrease, reset animation speed.
+	(image--set-speed, image-increase-speed, image-decrease-speed)
+	(image-reverse-speed, image-reset-speed): New functions.
+	(image-mode-map): Add bindings for speed commands.
+
+	* image.el (image-animate-get-speed, image-animate-set-speed):
+	New functions.
+	(image-animate-timeout): Respect image :speed property.
+
+2013-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): Put point on the
+	previous line (bug#15101).
+	(debugger-eval-expression, debugger-record-expression):
+	Use read--expression (bug#15102).
+
+2013-08-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Remove byte compiler warnings, visible when compiling with
+	`byte-compile-force-lexical-warnings' set to t.
+
+	* net/tramp.el (tramp-debug-message, tramp-message, tramp-error)
+	(tramp-error-with-buffer): Rename ARGS to ARGUMENTS and BUFFER to BUF.
+	(tramp-handle-unhandled-file-name-directory)
+	(tramp-handle-file-notify-add-watch, tramp-action-login)
+	(tramp-action-succeed, tramp-action-permission-denied)
+	(tramp-action-terminal, tramp-action-process-alive): Prefix unused
+	arguments with "_".
+
+	* net/tramp-adb.el (tramp-adb-parse-device-names)
+	(tramp-adb-handle-insert-directory, tramp-adb-handle-delete-file)
+	(tramp-adb-handle-copy-file): Prefix unused arguments with "_".
+	(tramp-adb-handle-file-truename): Remove unused arguments.
+
+	* net/tramp-cache.el (tramp-flush-directory-property)
+	(tramp-flush-connection-property, tramp-list-connections)
+	(tramp-parse-connection-properties): Prefix unused arguments with "_".
+
+	* net/tramp-compat.el (tramp-compat-make-temp-file):
+	Rename FILENAME to F.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-file-notify-add-watch)
+	(tramp-gvfs-handle-write-region, tramp-bluez-parse-device-names)
+	(tramp-zeroconf-parse-workstation-device-names)
+	(tramp-zeroconf-parse-webdav-device-names)
+	(tramp-synce-parse-device-names): Prefix unused arguments with "_".
+
+	* net/tramp-gw.el (tramp-gw-gw-proc-sentinel)
+	(tramp-gw-aux-proc-sentinel): Prefix unused arguments with "_".
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Remove unused
+	arguments.
+	(tramp-sh-handle-copy-file, tramp-sh-handle-dired-compress-file)
+	(tramp-sh-handle-insert-file-contents-literally)
+	(tramp-sh-handle-file-notify-add-watch): Prefix unused arguments
+	with "_".
+	(tramp-do-copy-or-rename-file, tramp-barf-if-no-shell-prompt):
+	Remove unused variables.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-copy-file, tramp-smb-handle-delete-file)
+	(tramp-smb-read-file-entry): Prefix unused arguments with "_".
+
+	* net/tramp-uu.el (tramp-uu-b64-alphabet, tramp-uu-b64-char-to-byte):
+	Make them a defconst.
+	(tramp-uuencode-region): Remove unused variable.
+
+2013-08-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--prop-setter): New function.
+	(frameset-prop): Add gv-setter declaration.
+	(frameset-filter-minibuffer): Deal with the case that the minibuffer
+	parameter was already set in FILTERED.  Doc fix.
+	(frameset--record-minibuffer-relationships): Allow saving a
+	minibufferless frame without its corresponding minibuffer frame.
+	(frameset--reuse-frame): Accept a match from an orphaned minibufferless
+	frame, if the frame id matches.
+	(frameset--minibufferless-last-p): Sort non-orphaned minibufferless
+	frames before orphaned ones.
+	(frameset-restore): Warn about orphaned windows, instead of error out.
+
+2013-08-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-make-atom): Don't overwrite parameter
+	already present.
+	(display-buffer-in-atom-window): Handle special case where we
+	split an already atomic window.
+	(window--major-non-side-window, display-buffer-in-side-window)
+	(window--side-check): Ignore minibuffer window when walking
+	window tree.
+	(window-deletable-p): Return 'frame only if no other frame uses
+	our minibuffer window.
+	(record-window-buffer): Run buffer-list-update-hook.
+	(split-window): Make sure window--check-frame won't destroy an
+	existing atomic window in case the new window gets nested
+	inside.
+	(display-buffer-at-bottom): Ignore minibuffer window when
+	walking window tree.  Don't split a side window.
+	(pop-to-buffer): Don't set-buffer here, the select-window call
+	should do that.
+	(mouse-autoselect-window-select): Autoselect only if we are in the
+	text portion of the window.
+
+2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-parse-image-data): New function to grab both the
+	data itself and the Content-Type.
+	(shr-put-image): Use it.
+
+	* net/eww.el (eww-display-image): Ditto.
+
+	* image.el (image-content-type-suffixes): New variable.
+
+2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-imenu--build-tree)
+	(python-imenu--put-parent): Simplify and Fix (GH bug 146).
+
+2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* simple.el (backward-word): Mention the optional argument.
+
+2013-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frameset.el (frameset--make): Rename constructor from make-frameset.
+	(frameset-p, frameset-valid-p): Don't autoload.
+	(frameset-valid-p): Use normal accessors.
+
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compile-command): Tweak example in doc.
+	* obsolete/scribe.el (scribe-mode):
+	* progmodes/mixal-mode.el (mixal-mode): Quote buffer name.  (Bug#15053)
+
+	* mail/feedmail.el (feedmail-confirm-outgoing)
+	(feedmail-display-full-frame, feedmail-deduce-bcc-where): Fix types.
+
+	* cus-start.el (truncate-partial-width-windows): Fix type.
+
+	* emulation/viper-init.el (viper-search-scroll-threshold): Fix type.
+
+	* net/shr.el (shr-table-horizontal-line): Fix custom type.
+
+2013-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer--time-setter): New function.
+	(timer--time): Use it as gv-setter.
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): Output warning when
+	setter is not a symbol.
+
+2013-08-12  Grégoire Jadi  <daimrod@gmail.com>
+
+	* mail/sendmail.el (sendmail-send-it): Don't kill the error buffer
+	if sending fails.  This makes debugging easier.
+
+2013-08-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xml.el (xml-parse-tag-1): Use looking-at (this reverts change in
+	revno:113793, which breaks the test suite).
+	https://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00263.html
+
+2013-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Add DLLs for zlib.
+
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-annotate-function):
+	Handle read-only text properties in the source.  (Bug#14887)
+
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-display-html): Ignore coding system errors.
+	One web site uses "utf-8lias" as the coding system.
+
+2013-08-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-valid-p): Fix check; STATES can indeed be nil.
+
+2013-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorial.el (tutorial--describe-nonstandard-key): Use string-match-p.
+	(tutorial--detailed-help): Remove unused local variables.
+	(tutorial--save-tutorial-to): Use ignore-errors.
+	(help-with-tutorial): Use looking-at-p.
+
+	* view.el (view-buffer-other-window, view-buffer-other-frame):
+	Mark unused arguments.
+
+	* woman.el (woman-parse-colon-path, woman-parse-colon-path)
+	(woman-select-symbol-fonts, woman, woman-find-file)
+	(woman-insert-file-contents, woman-non-underline-faces):
+	Use string-match-p.
+	(woman1-unquote): Move declaration.
+
+	* xml.el (xml-parse-tag-1, xml-parse-string): Use looking-at-p.
+	(xml-parse-dtd): Use looking-at-p, string-match-p.  Mark unused
+	argument.  Remove unused local variable.
+	(xml-parse-elem-type): Use string-match-p.
+	(xml-substitute-numeric-entities): Use ignore-errors.
+
+	* calculator.el (calculator): Mark unused argument.
+	(calculator-paste, calculator-quit, calculator-integer-p):
+	Use ignore-errors.
+	(calculator-string-to-number, calculator-decimal, calculator-exp)
+	(calculator-op-or-exp): Use string-match-p.
+
+	* dired.el (dired-buffer-more-recently-used-p): Declare.
+	(dired-insert-set-properties, dired-insert-old-subdirs):
+	Use ignore-errors.
+
+	* dired-aux.el (dired-compress): Use ignore-errors.
+	(dired-do-chxxx, dired-do-chmod, dired-trample-file-versions)
+	(dired-do-async-shell-command, dired-do-shell-command)
+	(dired-shell-stuff-it, dired-compress-file, dired-insert-subdir)
+	(dired-insert-subdir-validate): Use string-match-p.
+	(dired-map-dired-file-lines, dired-subdir-hidden-p): Use looking-at-p.
+	(dired-add-entry): Use string-match-p, looking-at-p.
+	(dired-insert-subdir-newpos): Remove unused local variable.
+
+	* filenotify.el (file-notify-callback): Remove unused local variable.
+
+	* filesets.el (filesets-error): Mark unused argument.
+	(filesets-which-command-p, filesets-filter-dir-names)
+	(filesets-directory-files, filesets-get-external-viewer)
+	(filesets-ingroup-get-data): Use string-match-p.
+
+	* find-file.el (ff-other-file-name, ff-other-file-name)
+	(ff-find-the-other-file, ff-cc-hh-converter):
+	Remove unused local variables.
+	(ff-get-file-name): Use string-match-p.
+	(ff-all-dirs-under): Use ignore-errors.
+
+	* follow.el (follow-comint-scroll-to-bottom): Mark unused argument.
+	(follow-select-if-visible): Remove unused local variable.
+
+	* forms.el (read-file-filter): Move declaration.
+	(forms--make-format, forms--make-parser, forms-insert-record):
+	Quote function with #'.
+	(forms--update): Use string-match-p.  Quote function with #'.
+
+	* help-mode.el (help-dir-local-var-def): Mark unused argument.
+	(help-make-xrefs): Use looking-at-p.
+	(help-xref-on-pp): Use looking-at-p, ignore-errors.
+
+	* ibuffer.el (ibuffer-ext-visible-p): Declare.
+	(ibuffer-confirm-operation-on): Use string-match-p.
+
+	* msb.el (msb-item-handler, msb-dired-item-handler):
+	Mark unused arguments.
+
+	* ses.el (ses-decode-cell-symbol)
+	(ses-kill-override): Remove unused local variable.
+	(ses-create-cell-variable, ses-relocate-formula): Use string-match-p.
+	(ses-load): Use ignore-errors, looking-at-p.
+	(ses-jump-safe): Use ignore-errors.
+	(ses-export-tsv, ses-export-tsf, ses-unsafe): Mark unused arguments.
+
+	* tabify.el (untabify, tabify): Mark unused arguments.
+
+	* thingatpt.el (thing-at-point--bounds-of-well-formed-url):
+	Mark unused argument.
+	(bounds-of-thing-at-point, thing-at-point-bounds-of-list-at-point)
+	(thing-at-point-newsgroup-p, form-at-point): Use ignore-errors.
+
+	* emacs-lisp/timer.el (timer--time): Define setter with
+	gv-define-setter to avoid deprecation warning.
+
+	* completion.el: Remove stuff unused since revno:3176 (1993-05-27).
+	(*record-cmpl-statistics-p*): Remove (was commented out).
+	(cmpl-statistics-block): Remove (body was commented out).
+	All callers changed.
+	(add-completions-from-buffer, load-completions-from-file):
+	Remove unused variables.
+
+2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filecache.el (file-cache-delete-file-list):
+	Print message only when told so.
+	(file-cache-files-matching): Use #' in mapconcat argument.
+
+	* ffap.el (ffap-url-at-point): Fix reference to variable
+	thing-at-point-default-mail-uri-scheme.
+
+2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (define-error): New function.
+	* progmodes/ada-xref.el (ada-error-file-not-found): Rename from
+	error-file-not-found and define with define-error.
+	* emacs-lisp/cl-lib.el (cl-assertion-failed): Move here from subr.el
+	and define with define-error.
+	* userlock.el (file-locked, file-supersession):
+	* simple.el (mark-inactive):
+	* progmodes/js.el (js-moz-bad-rpc, js-js-error):
+	* progmodes/ada-mode.el (ada-mode-errors):
+	* play/life.el (life-extinct):
+	* nxml/xsd-regexp.el (xsdre-invalid-regexp, xsdre-parse-error):
+	* nxml/xmltok.el (xmltok-markup-declaration-parse-error):
+	* nxml/rng-util.el (rng-error):
+	* nxml/rng-uri.el (rng-uri-error):
+	* nxml/rng-match.el (rng-compile-error):
+	* nxml/rng-cmpct.el (rng-c-incorrect-schema):
+	* nxml/nxml-util.el (nxml-error, nxml-file-parse-error):
+	* nxml/nxml-rap.el (nxml-scan-error):
+	* nxml/nxml-outln.el (nxml-outline-error):
+	* net/soap-client.el (soap-error):
+	* net/gnutls.el (gnutls-error):
+	* net/ange-ftp.el (ftp-error):
+	* mpc.el (mpc-proc-error):
+	* json.el (json-error, json-readtable-error, json-unknown-keyword)
+	(json-number-format, json-string-escape, json-string-format)
+	(json-key-format, json-object-format):
+	* jka-compr.el (compression-error):
+	* international/quail.el (quail-error):
+	* international/kkc.el (kkc-error):
+	* emacs-lisp/ert.el (ert-test-failed):
+	* calc/calc.el (calc-error, inexact-result, math-overflow)
+	(math-underflow):
+	* bookmark.el (bookmark-error-no-filename):
+	* epg.el (epg-error): Define with define-error.
+
+	* time.el (display-time-event-handler)
+	(display-time-next-load-average): Don't call sit-for since it seems
+	unnecessary (bug#15045).
+
+	* emacs-lisp/checkdoc.el: Remove redundant :group keywords.
+	Use #' instead of ' to quote functions.
+	(checkdoc-output-mode): Use setq-local.
+	(checkdoc-spellcheck-documentation-flag, checkdoc-ispell-lisp-words)
+	(checkdoc-verb-check-experimental-flag, checkdoc-proper-noun-regexp)
+	(checkdoc-common-verbs-regexp): Mark safe-local-variable (bug#15010).
+	(checkdoc-ispell, checkdoc-ispell-current-buffer)
+	(checkdoc-ispell-interactive, checkdoc-ispell-message-interactive)
+	(checkdoc-ispell-message-text, checkdoc-ispell-start)
+	(checkdoc-ispell-continue, checkdoc-ispell-comments)
+	(checkdoc-ispell-defun): Remove unused arg `take-notes'.
+
+	* ido.el (ido-completion-help): Fix up compiler warning.
+
+2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-p): Add autoload cookie.
+	(frameset--jump-to-register): New function, based on code moved from
+	register.el.
+	(frameset-to-register): Move from register.el.  Adapt to `registerv'.
+
+	* register.el (frameset-frame-id, frameset-frame-with-id, frameset-p)
+	(frameset-restore, frameset-save, frameset-session-filter-alist):
+	Remove declarations.
+	(register-alist): Doc fix.
+	(frameset-to-register): Move to frameset.el.
+	(jump-to-register, describe-register-1): Remove frameset-specific code.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout-widgets.el (allout-widgets-pre-command-business)
+	(allout-widgets-post-command-business)
+	(allout-widgets-after-change-handler)
+	(allout-decorate-item-and-context, allout-set-boundary-marker)
+	(allout-body-modification-handler)
+	(allout-graphics-modification-handler): Mark ignored arguments.
+	(allout-widgets-post-command-business)
+	(allout-widgets-exposure-change-processor)
+	(allout-widgets-exposure-undo-processor)
+	(allout-decorate-item-and-context, allout-redecorate-visible-subtree)
+	(allout-parse-item-at-point, allout-decorate-item-guides)
+	(allout-decorate-item-cue, allout-item-span): Remove unused variables.
+	* allout.el (epa-passphrase-callback-function): Declare.
+	(allout-overlay-insert-in-front-handler)
+	(allout-overlay-interior-modification-handler)
+	(allout-isearch-end-handler, allout-chart-siblings)
+	(allout-up-current-level, allout-end-of-level, allout-reindent-body)
+	(allout-yank-processing, allout-process-exposed)
+	(allout-latex-verb-quote, allout-latexify-one-item, outlineify-sticky)
+	(allout-latex-verbatim-quote-curr-line): Remove unused variables.
+	* emacs-lisp/lisp-mode.el (lisp-eval-defun, last-sexp-toggle-display)
+	(lisp-indent-defform): Mark ignored arguments.
+	(lisp-indent-line): Mark ignored arguments.  Remove unused variables.
+	(calculate-lisp-indent): Remove unused variables.
+	* international/characters.el (indian-2-column, arabic-2-column)
+	(tibetan): Mark ignored arguments.
+	(use-cjk-char-width-table): Mark ignored arguments.
+	Remove unused variables.
+	* international/fontset.el (build-default-fontset-data)
+	(x-compose-font-name, create-fontset-from-fontset-spec):
+	Mark ignored arguments.
+	(fontset-plain-name): Remove unused variables.
+	* international/mule.el (charset-id, charset-bytes, generic-char-p)
+	(keyboard-coding-system): Mark ignored arguments.
+	(find-auto-coding): Remove unused variables.  Use `ignore-errors'.
+	* help.el (resize-temp-buffer-window):
+	* window.el (display-buffer-in-major-side-window)
+	(display-buffer-in-side-window, display-buffer-in-previous-window):
+	Remove unused variables.
+	* isearch.el (isearch-forward-symbol):
+	* version.el (emacs-bzr-version-bzr):
+	* international/mule-cmds.el (current-language-environment):
+	* term/common-win.el (x-handle-iconic, x-handle-geometry)
+	(x-handle-display):
+	* term/pc-win.el (x-list-fonts, x-display-planes)
+	(x-display-color-cells, x-server-max-request-size, x-server-vendor)
+	(x-server-version, x-display-screens, x-display-mm-height)
+	(x-display-mm-width, x-display-backing-store, x-display-visual-class)
+	(x-selection-owner-p, x-own-selection-internal)
+	(x-disown-selection-internal, x-get-selection-internal)
+	(msdos-initialize-window-system):
+	* term/tty-colors.el (tty-color-alist, tty-color-clear):
+	* term/x-win.el (x-handle-no-bitmap-icon):
+	* vc/vc-hooks.el (vc-mode, vc-default-make-version-backups-p)
+	(vc-default-find-file-hook, vc-default-extra-menu):
+	Mark ignored arguments.
+
+2013-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-debugger): Use edebug-eval to run the
+	break-condition in the context of the debugged code (bug#12685).
+
+2013-08-08  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* comint.el:
+	Do not use an overlay to highlight the last prompt.  (Bug#14744)
+	(comint-mode): Make comint-last-prompt buffer local.
+	(comint-last-prompt): New variable.
+	(comint-last-prompt-overlay): Remove.  Superseded by
+	comint-last-prompt.
+	(comint-snapshot-last-prompt, comint-output-filter):
+	Use comint-last-prompt.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-valid-p): Check vector length.  Doc fix.
+	(frameset-save): Check validity of the resulting frameset.
+
+2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.el (ido-record-command): Add doc string.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset): Do not disable creation of the default
+	frameset-p predicate.  Doc fix.
+	(frameset-valid-p): New function, copied from the old predicate-p.
+	Add additional checks.
+	(frameset-restore): Check with frameset-valid-p.
+	(frameset-p, frameset-version, frameset-timestamp, frameset-app)
+	(frameset-name, frameset-description, frameset-properties)
+	(frameset-states): Add docstring.
+	(frameset-session-filter-alist, frameset-persistent-filter-alist)
+	(frameset-filter-alist): Doc fixes.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-p, frameset-prop): Doc fixes.
+
+2013-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-function-warn): New function,
+	extracted from byte-compile-callargs-warn and byte-compile-normal-call.
+	(byte-compile-callargs-warn, byte-compile-function-form): Use it.
+	(byte-compile-normal-call): Remove obsolescence check.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-restore): Doc fix.
+
+	* register.el (frameset-frame-id, frameset-frame-with-id)
+	(frameset-p, frameset-restore, frameset-save): Declare.
+	(register-alist): Document framesets.
+	(frameset-session-filter-alist): Declare.
+	(frameset-to-register): New function.
+	(jump-to-register): Implement jumping to framesets.  Doc fix.
+	(describe-register-1): Describe framesets.
+
+	* bindings.el (ctl-x-r-map): Bind ?f to frameset-to-register.
+
+2013-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-save-frameset): Use new frameset-save args.
+	Use lexical-binding.
+
+	* frameset.el (frameset): Use type vector, not list (incompatible
+	change).  Do not declare a new constructor, use the default one.
+	Upgrade suggested properties `app', `name' and `desc' to slots `app',
+	`name' and `description', respectively, and add read-only slot
+	`timestamp'.  Doc fixes.
+	(frameset-copy, frameset-persistent-filter-alist)
+	(frameset-filter-alist, frameset-switch-to-gui-p)
+	(frameset-switch-to-tty-p, frameset-filter-tty-to-GUI)
+	(frameset-filter-sanitize-color, frameset-filter-minibuffer)
+	(frameset-filter-iconified, frameset-keep-original-display-p):
+	Doc fixes.
+	(frameset-filter-shelve-param, frameset-filter-unshelve-param):
+	Rename from frameset-filter-(save|restore)-param.  All callers changed.
+	Doc fix.
+	(frameset-p): Adapt to change to vector and be more thorough.
+	Change arg name to OBJECT.  Doc fix.
+	(frameset-prop): Rename arg PROP to PROPERTY.  Doc fix.
+	(frameset-session-filter-alist): Rename from frameset-live-filter-alist.
+	All callers changed.
+	(frameset-frame-with-id): Rename from frameset-locate-frame-id.
+	All callers changed.
+	(frameset--record-minibuffer-relationships): Rename from
+	frameset--process-minibuffer-frames.  All callers changed.
+	(frameset-save): Add new keyword arguments APP, NAME and DESCRIPTION.
+	Use new default constructor (again).  Doc fix.
+	(frameset--find-frame-if): Rename from `frameset--find-frame.
+	All callers changed.
+	(frameset--reuse-frame): Rename arg FRAME-CFG to PARAMETERS.
+	(frameset--initial-params): Rename arg FRAME-CFG to PARAMETERS.
+	Doc fix.
+	(frameset--restore-frame): Rename args FRAME-CFG and WINDOW-CFG to
+	PARAMETERS and WINDOW-STATE, respectively.
+	(frameset-restore): Add new keyword argument PREDICATE.
+	Reset frameset--target-display to nil.  Doc fix.
+
+2013-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/bat-mode.el (bat--syntax-propertize): New var.
+	(bat-mode): Use it.
+	(bat-mode-syntax-table): Mark \n as end-of-comment.
+	(bat-font-lock-keywords): Remove comment rule.
+
+	* progmodes/bat-mode.el: Rename from dos.el.  Use "bat-" prefix.
+	(dos-mode-help): Remove.  Use describe-mode (C-h m) instead.
+
+	* emacs-lisp/bytecomp.el: Check existence of f in #'f.
+	(byte-compile-callargs-warn): Use `push'.
+	(byte-compile-arglist-warn): Ignore higher-order "calls".
+	(byte-compile-file-form-autoload): Use `pcase'.
+	(byte-compile-function-form): If quoting a symbol, check that it exists.
+
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/dos.el (dos-font-lock-keywords): Rename LINUX to UNIX
+	and add a few popular commands found in batch files.
+	(dos, dos-label-face, dos-cmd-help, dos-run, dos-run-args)
+	(dos-mode): Doc fixes.
+
+2013-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/dos.el (auto-mode-alist): Add entries for dos-mode.
+	(dos-mode): Use setq-local.  Add space after "rem".
+	(dos-mode-syntax-table): Don't use "w" for symbol chars.
+	(dos-font-lock-keywords): Try to adjust font-lock rules accordingly.
+
+2013-08-07  Arni Magnusson  <arnima@hafro.is>
+
+	* progmodes/dos.el: New file.
+	* generic-x.el (bat-generic-mode): Redefine as an obsolete alias to
+	dos-mode.
+
+2013-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el: Add new faces, and day-header-array.
+	(calendar-weekday-header, calendar-weekend-header)
+	(calendar-month-header): New faces.
+	(calendar-day-header-construct): New function.
+	(calendar-day-header-width): Also :set calendar-day-header-array.
+	(calendar-american-month-header, calendar-european-month-header)
+	(calendar-iso-month-header): Use calendar- faces.
+	(calendar-generate-month):
+	Use calendar-day-header-array for day headers; apply faces to them.
+	(calendar-mode): Check calendar-font-lock-keywords non-nil.
+	(calendar-abbrev-construct): Add optional maxlen argument.
+	(calendar-day-name-array): Doc fix.
+	(calendar-day-name-array, calendar-abbrev-length)
+	(calendar-day-abbrev-array):
+	Also :set calendar-day-header-array, and maybe redraw.
+	(calendar-day-header-array): New option.  (Bug#15007)
+	(calendar-font-lock-keywords): Set to nil and make obsolete.
+	(calendar-day-name): Add option to use header array.
+
+2013-08-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-render-td): Remove debugging.
+	(shr-render-td): Make width computation consistent by defaulting
+	all zero-width columns to 10 characters.  This may not be optimal,
+	but it's at least consistent.
+	(shr-make-table-1): Redo last change to fix the real problem in
+	colspan handling.
+
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (cache-long-line-scans):
+	Make obsolete alias to `cache-long-scans'.
+
+2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset, frameset-filter-alist)
+	(frameset-filter-params, frameset-save, frameset--reuse-frame)
+	(frameset--minibufferless-last-p, frameset-restore): Doc fixes.
+	(frameset-compute-pos): Rename from frameset--compute-pos,
+	and add docstring.
+	(frameset-move-onscreen): Use frameset-compute-pos.
+	Most changes suggested by Drew Adams <drew.adams@oracle.com>.
+
+	* find-lisp.el (find-lisp-line-indent, find-lisp-find-dired-filter):
+	Fix typos in docstrings.
+
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.el (get-other-frame): Tiny cleanup.
+
+2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc.el (vc-default-ignore-completion-table):
+	Silence byte-compiler warning.
+
+	* frameset.el (frameset-p): Don't check non-nullness of the `properties'
+	slot , which can indeed be nil.
+	(frameset-live-filter-alist, frameset-persistent-filter-alist):
+	Move entry for `left' from persistent to live filter alist.
+	(frameset-filter-alist, frameset--minibufferless-last-p, frameset-save):
+	Doc fixes.
+	(frameset-filter-params): When restoring a frame, copy items added to
+	`filtered', to avoid unwittingly modifying the original parameters.
+	(frameset-move-onscreen): Rename from frameset--move-onscreen.  Doc fix.
+	(frameset--restore-frame): Fix reference to frameset-move-onscreen.
+
+	* dired.el (dired-insert-directory): Revert change in revno:113117
+	to use looking-at-p instead of looking-at.  (Bug#15028)
+
+2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Revert introduction of isearch-filter-predicates (bug#14714).
+	Rely on add-function instead.
+	* isearch.el (isearch-filter-predicates): Rename it back to
+	isearch-filter-predicate.
+	(isearch-message-prefix): Use advice-function-mapc and advice
+	properties to get the isearch-message-prefix.
+	(isearch-search, isearch-lazy-highlight-search): Revert to funcall
+	instead of run-hook-with-args-until-failure.
+	(isearch-filter-visible): Not obsolete any more.
+	* loadup.el: Preload nadvice.
+	* replace.el (perform-replace): Revert to funcall
+	instead of run-hook-with-args-until-failure.
+	* wdired.el (wdired-change-to-wdired-mode): Use add-function.
+	* dired-aux.el (dired-isearch-filenames-mode): Rename from
+	dired-isearch-filenames-toggle; make it into a proper minor mode.
+	Use add/remove-function.
+	(dired-isearch-filenames-setup, dired-isearch-filenames-end):
+	Call the minor-mode rather than add/remove-hook.
+	(dired-isearch-filter-filenames):
+	Remove isearch-message-prefix property.
+	* info.el (Info--search-loop): New function, extracted from Info-search.
+	Funcall isearch-filter-predicate instead of
+	run-hook-with-args-until-failure isearch-filter-predicates.
+	(Info-search): Use it.
+	(Info-mode): Use isearch-filter-predicate instead of
+	isearch-filter-predicates.
+
+2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not call to `selected-window' where it is assumed by default.
+	Affected functions are `window-minibuffer-p', `window-dedicated-p',
+	`window-hscroll', `window-width', `window-height', `window-buffer',
+	`window-frame', `window-start', `window-point', `next-window'
+	and `window-display-table'.
+	* abbrev.el (abbrev--default-expand):
+	* bs.el (bs--show-with-configuration):
+	* buff-menu.el (Buffer-menu-mouse-select):
+	* calc/calc.el (calc):
+	* calendar/calendar.el (calendar-generate-window):
+	* calendar/diary-lib.el (diary-simple-display, diary-show-all-entries)
+	(diary-make-entry):
+	* comint.el (send-invisible, comint-dynamic-complete-filename)
+	(comint-dynamic-simple-complete, comint-dynamic-list-completions):
+	* completion.el (complete):
+	* dabbrev.el (dabbrev-expand, dabbrev--make-friend-buffer-list):
+	* disp-table.el (describe-current-display-table):
+	* doc-view.el (doc-view-insert-image):
+	* ebuff-menu.el (Electric-buffer-menu-mouse-select):
+	* ehelp.el (with-electric-help):
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	* emacs-lisp/edebug.el (edebug-two-window-p, edebug-pop-to-buffer):
+	* emacs-lisp/helper.el (Helper-help-scroller):
+	* emulation/cua-base.el (cua--post-command-handler-1):
+	* eshell/esh-mode.el (eshell-output-filter):
+	* ffap.el (ffap-gnus-wrapper):
+	* help-macro.el (make-help-screen):
+	* hilit-chg.el (highlight-compare-buffers):
+	* hippie-exp.el (hippie-expand, try-expand-dabbrev-visible):
+	* hl-line.el (global-hl-line-highlight):
+	* icomplete.el (icomplete-simple-completing-p):
+	* isearch.el (isearch-done):
+	* jit-lock.el (jit-lock-stealth-fontify):
+	* mail/rmailsum.el (rmail-summary-scroll-msg-up):
+	* lisp/mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* mpc.el (mpc-tagbrowser, mpc):
+	* net/rcirc.el (rcirc-any-buffer):
+	* play/gomoku.el (gomoku-max-width, gomoku-max-height):
+	* play/landmark.el (landmark-max-width, landmark-max-height):
+	* play/zone.el (zone):
+	* progmodes/compile.el (compilation-goto-locus):
+	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern):
+	* progmodes/etags.el (find-tag-other-window):
+	* progmodes/fortran.el (fortran-column-ruler):
+	* progmodes/gdb-mi.el (gdb-mouse-toggle-breakpoint-fringe):
+	* progmodes/verilog-mode.el (verilog-point-text):
+	* reposition.el (reposition-window):
+	* rot13.el (toggle-rot13-mode):
+	* server.el (server-switch-buffer):
+	* shell.el (shell-dynamic-complete-command)
+	(shell-dynamic-complete-environment-variable):
+	* simple.el (insert-buffer, set-selective-display)
+	(delete-completion-window):
+	* speedbar.el (speedbar-timer-fn, speedbar-center-buffer-smartly)
+	(speedbar-recenter):
+	* startup.el (fancy-splash-head):
+	* textmodes/ispell.el (ispell-command-loop):
+	* textmodes/makeinfo.el (makeinfo-compilation-sentinel-region):
+	* tutorial.el (help-with-tutorial):
+	* vc/add-log.el (add-change-log-entry):
+	* vc/compare-w.el (compare-windows):
+	* vc/ediff-help.el (ediff-indent-help-message):
+	* vc/ediff-util.el (ediff-setup-control-buffer, ediff-position-region):
+	* vc/ediff-wind.el (ediff-skip-unsuitable-frames)
+	(ediff-setup-control-frame):
+	* vc/emerge.el (emerge-position-region):
+	* vc/pcvs-util.el (cvs-bury-buffer):
+	* window.el (walk-windows, mouse-autoselect-window-select):
+	* winner.el (winner-set-conf, winner-undo): Related users changed.
+
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--set-id): Doc fix.
+	(frameset-frame-id, frameset-frame-id-equal-p)
+	(frameset-locate-frame-id): New functions.
+	(frameset--process-minibuffer-frames, frameset--reuse-frame)
+	(frameset-restore): Use them.
+
+2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not call to `selected-frame' where it is assumed by default.
+	Affected functions are `raise-frame', `redraw-frame',
+	`frame-first-window', `frame-terminal' and `delete-frame'.
+	* calendar/appt.el (appt-disp-window):
+	* epg.el (epg-wait-for-completion):
+	* follow.el (follow-delete-other-windows-and-split)
+	(follow-avoid-tail-recenter):
+	* international/mule.el (set-terminal-coding-system):
+	* mail/rmail.el (rmail-mail-return):
+	* net/newst-plainview.el (newsticker--buffer-set-uptodate):
+	* progmodes/f90.el (f90-add-imenu-menu):
+	* progmodes/idlw-toolbar.el (idlwave-toolbar-toggle):
+	* server.el (server-switch-buffer):
+	* simple.el (delete-completion-window):
+	* talk.el (talk):
+	* term/xterm.el (terminal-init-xterm-modify-other-keys)
+	(xterm-turn-on-modify-other-keys, xterm-remove-modify-other-keys):
+	* vc/ediff-util.el (ediff-status-info, ediff-show-diff-output):
+	* vc/ediff.el (ediff-documentation): Related users changed.
+	* frame.el (selected-terminal): Remove the leftover.
+
+2013-08-05  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-generate-month):
+	Fix for calendar-column-width != 1 + calendar-day-digit-width.
+	(calendar-generate-month, calendar-font-lock-keywords):
+	Fix for calendar-day-header-width > length of any day name.
+
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-clear): Use new name of sort predicate.
+
+	* frameset.el (frameset): Add docstring.  Move :version property to its
+	own `version' slot.
+	(frameset-copy): Rename from copy-frameset.
+	(frameset-p): Check more thoroughly.
+	(frameset-prop): Do not check for :version, which is no longer a prop.
+	(frameset-live-filter-alist, frameset-persistent-filter-alist):
+	Use new :never value instead of t.
+	(frameset-filter-alist): Expand and clarify docstring.
+	(frameset-filter-tty-to-GUI, frameset-filter-sanitize-color)
+	(frameset-filter-minibuffer, frameset-filter-save-param)
+	(frameset-filter-restore-param, frameset-filter-iconified):
+	Add pointer to docstring of frameset-filter-alist.
+	(frameset-filter-params): Rename filter values to be more meaningful:
+	:never instead of t, and reverse the meanings of :save and :restore.
+	(frameset--process-minibuffer-frames): Clarify error message.
+	(frameset-save): Avoid unnecessary and confusing call to framep.
+	Use new BOA constructor for framesets.
+	(frameset--reuse-list): Doc fix.
+	(frameset--restore-frame): Rename from frameset--get-frame.  Doc fix.
+	(frameset--minibufferless-last-p): Rename from frameset--sort-states.
+	(frameset-minibufferless-first-p): Doc fix.
+	Rename from frameset-sort-frames-for-deletion.
+	(frameset-restore): Doc fixes.  Use new function names.
+	Most changes suggested by Drew Adams <drew.adams@oracle.com>.
+
+2013-08-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-forces-onscreen)
+	(desktop-restore-reuses-frames): Document :keyword constant values.
+	(desktop-filter-parameters-alist): Remove, now identical to
+	frameset-filter-alist.
+	(desktop--filter-tty*): Remove, moved to frameset.el.
+	(desktop-save-frameset, desktop-restore-frameset):
+	Do not pass :filters argument.
+
+	* frameset.el (frameset-live-filter-alist)
+	(frameset-persistent-filter-alist): New variables.
+	(frameset-filter-alist): Use them.  Add autoload cookie.
+	(frameset-filter-tty-to-GUI): Move from desktop.el and rename.
+	(frameset--set-id, frameset--reuse-frame): Rename `frame-id' to
+	`frameset--id' (it's supposed to be internal to frameset.el).
+	(frameset--process-minibuffer-frames): Ditto.  Doc fix.
+	(frameset--initial-params): New function.
+	(frameset--get-frame): Use it.  Doc fix.
+	(frameset--move-onscreen): Accept new PRED value for FORCE-ONSCREEN.
+	Accept :all, not 'all.
+	(frameset-restore): Add new predicate values for FORCE-ONSCREEN and
+	FORCE-DISPLAY.  Use :keywords for constant arguments to avoid collision
+	with fbound symbols.  Fix frame id matching, and remove matching ids if
+	the frame being restored is deleted.  Obey :delete.
+
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (macrop): New function.
+	(text-clone--maintaining): New var.
+	(text-clone--maintain): Rename from text-clone-maintain.  Use it
+	instead of inhibit-modification-hooks.
+
+	* emacs-lisp/nadvice.el (advice--normalize): For aliases to macros, use
+	a proxy, so as handle autoloads and redefinitions of the target.
+	(advice--defalias-fset, advice-remove): Use advice--symbol-function.
+
+	* emacs-lisp/pcase.el (pcase-mutually-exclusive-predicates):
+	Remove bogus (arrayp . stringp) pair.  Add entries for `vectorp'.
+	(pcase--mutually-exclusive-p): New function.
+	(pcase--split-consp): Use it.
+	(pcase--split-pred): Use it.  Optimize the case where `pat' is a qpat
+	mutually exclusive with the current predicate.
+
+	* emacs-lisp/edebug.el (edebug-lookup-function): Remove function.
+	(edebug-macrop): Remove.  Use `macrop' instead.
+	* emacs-lisp/advice.el (ad-subr-p): Remove.  Use `subrp' instead.
+	(ad-macro-p):
+	* eshell/esh-cmd.el (eshell-macrop):
+	* apropos.el (apropos-macrop): Remove.  Use `macrop' instead.
+
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice-function-mapc): Rename from advice-mapc.
+	(advice-mapc): New function, using it.
+	(advice-function-member-p): New function.
+	(advice--normalize): Store the cdr in advice--saved-rewrite since
+	that's the part that will be changed.
+	(advice--symbol-function): New function.
+	(advice-remove): Handle removal before the function is defined.
+	Adjust to new advice--saved-rewrite.
+	(advice-member-p): Use advice-function-member-p and
+	advice--symbol-function.
+
+2013-08-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-p, frameset-save): Fix autoload cookies.
+	(frameset-filter-minibuffer): Doc fix.
+	(frameset-restore): Fix autoload cookie.  Fix typo in docstring.
+	(frameset--set-id, frameset--process-minibuffer-frames)
+	(frameset-restore): Rename parameter `frameset-id' to `frame-id'.
+	(frameset--reuse-frame): Pass correct frame-id to frameset--find-frame.
+
+	* desktop.el (desktop-clear): Only delete frames when called
+	interactively and desktop-restore-frames is non-nil.  Doc fix.
+	(desktop-read): Set desktop-saved-frameset to nil.
+
+2013-08-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc.el (vc-ignore): Rewrite.
+	(vc-default-ignore-completion-table):
+	(vc--read-lines):
+	(vc--add-line, vc--remove-regexp): New functions.
+
+	* vc/vc-svn.el (vc-svn-ignore): Doc fix.
+	(vc-svn-ignore-completion-table): New function.
+
+	* vc/vc-hg.el (vc-hg-ignore): Rewrite.
+	(vc-hg-ignore-completion-table):
+	(vc-hg-find-ignore-file): New functions.
+
+	* vc/vc-git.el (vc-git-ignore): Rewrite.
+	(vc-git-ignore-completion-table):
+	(vc-git-find-ignore-file): New functions.
+
+	* vc/vc-dir.el (vc-dir-menu-map): Add menu for vc-dir-ignore.
+
+	* vc/vc-bzr.el (vc-bzr-ignore): Rewrite.
+	(vc-bzr-ignore-completion-table):
+	(vc-bzr-find-ignore-file): New functions.
+
+2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-prop): New function and setter.
+	(frameset-save): Do not modify frame list passed by the caller.
+
+2013-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-desc-from-define): Ignore unknown keys.
+
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode)
+	(easy-mmode-define-navigation): Avoid ((lambda (..) ..) ...).
+
+	* custom.el (custom-initialize-default, custom-initialize-set)
+	(custom-initialize-reset, custom-initialize-changed): Affect the
+	toplevel-default-value (bug#6275, bug#14586).
+	* emacs-lisp/advice.el (ad-compile-function): Undo previous workaround
+	for bug#6275.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Add cl-def* expressions.
+
+	* frameset.el (frameset-filter-params): Fix order of arguments.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	Move code related to saving frames to frameset.el.
+	* desktop.el: Require frameset.
+	(desktop-restore-frames): Doc fix.
+	(desktop-restore-reuses-frames): Rename from
+	desktop-restoring-reuses-frames.
+	(desktop-saved-frameset): Rename from desktop-saved-frame-states.
+	(desktop-clear): Clear frames too.
+	(desktop-filter-parameters-alist): Set from frameset-filter-alist.
+	(desktop--filter-tty*, desktop-save, desktop-read):
+	Use frameset functions.
+	(desktop-before-saving-frames-functions, desktop--filter-*-color)
+	(desktop--filter-minibuffer, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm, desktop--filter-iconified-position)
+	(desktop-restore-in-original-display-p, desktop--filter-frame-parms)
+	(desktop--process-minibuffer-frames, desktop-save-frames)
+	(desktop--reuse-list, desktop--compute-pos, desktop--move-onscreen)
+	(desktop--find-frame, desktop--select-frame, desktop--make-frame)
+	(desktop--sort-states, desktop-restoring-frames-p)
+	(desktop-restore-frames): Remove.  Most code moved to frameset.el.
+	(desktop-restoring-frameset-p, desktop-restore-frameset)
+	(desktop--check-dont-save, desktop-save-frameset): New functions.
+	(desktop--app-id): New constant.
+	(desktop-first-buffer, desktop-buffer-ok-count)
+	(desktop-buffer-fail-count): Move before first use.
+	* frameset.el: New file.
+
+2013-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el: Use lexical-binding.
+	(dir-locals-read-from-file): Remove unused `err' variable.
+	(hack-dir-local-variables--warned-coding): New var.
+	(hack-dir-local-variables): Use it to avoid repeated warnings.
+	(make-backup-file-name--default-function): New function.
+	(make-backup-file-name-function): Use it as default.
+	(buffer-stale--default-function): New function.
+	(buffer-stale-function): Use it as default.
+	(revert-buffer-insert-file-contents--default-function): New function.
+	(revert-buffer-insert-file-contents-function): Use it as default.
+	(insert-directory): Avoid add-to-list.
+
+	* autorevert.el (auto-revert-handler): Simplify.
+	Use buffer-stale--default-function.
+
+2013-08-01  Tassilo Horn  <tsdh@gnu.org>
+
+	* speedbar.el (speedbar-query-confirmation-method): Doc fix.
+
+	* whitespace.el (whitespace-ensure-local-variables): New function.
+	(whitespace-cleanup-region): Call it.
+	(whitespace-turn-on): Call it.
+
+2013-08-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Complete file name handlers.
+
+	* net/tramp.el (tramp-handle-set-visited-file-modtime)
+	(tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-file-notify-rm-watch): New functions.
+	(tramp-call-process): Do not bind `default-directory'.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	Order alphabetically.
+	[access-file, add-name-to-file, dired-call-process]:
+	[dired-compress-file, file-acl, file-notify-rm-watch]:
+	[file-ownership-preserved-p, file-selinux-context]:
+	[make-directory-internal, make-symbolic-link, set-file-acl]:
+	[set-file-selinux-context, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(tramp-adb-handle-write-region): Apply `set-visited-file-modtime'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
+	[file-notify-add-watch, file-notify-rm-watch]:
+	[set-file-times, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(with-tramp-gvfs-error-message)
+	(tramp-gvfs-handle-set-visited-file-modtime)
+	(tramp-gvfs-fuse-file-name): Remove.
+	(tramp-gvfs-handle-file-notify-add-watch)
+	(tramp-gvfs-file-gvfs-monitor-file-process-filter): New defuns.
+	(tramp-gvfs-handle-write-region): Fix error in moving tmpfile.
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	Order alphabetically.
+	[file-notify-rm-watch ]: Use default Tramp handler.
+	[executable-find]: Remove private handler.
+	(tramp-do-copy-or-rename-file-out-of-band): Do not bind
+	`default-directory'.
+	(tramp-sh-handle-executable-find)
+	(tramp-sh-handle-file-notify-rm-watch): Remove functions.
+	(tramp-sh-file-gvfs-monitor-dir-process-filter)
+	(tramp-sh-file-inotifywait-process-filter, tramp-set-remote-path):
+	Do not use `format' in `tramp-message'.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist)
+	[file-notify-rm-watch, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(tramp-smb-call-winexe): Do not bind `default-directory'.
+
+2013-08-01  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-menu-map): Fix menu entry for vc-ignore.
+
+2013-07-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-view.el (log-view-diff): Extract `log-view-diff-common',
+	use it.
+	(log-view-diff-changeset): Same.
+	(log-view-diff-common): Call backend command `previous-revision'
+	to find out the previous revision, in both cases.  Swap the
+	variables `to' and `fr', so that `fr' usually refers to the
+	earlier revision (Bug#14989).
+
+2013-07-31  Kan-Ru Chen  <kanru@kanru.info>
+
+	* ibuf-ext.el (ibuffer-filter-by-filename):
+	Make it work with dired buffers too.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* emacs-lisp/re-builder.el (reb-color-display-p):
+	* files.el (save-buffers-kill-terminal):
+	* net/browse-url.el (browse-url):
+	* server.el (server-save-buffers-kill-terminal):
+	* textmodes/reftex-toc.el (reftex-toc, reftex-toc-revert):
+	Prefer nil to selected-frame for the first arg of frame-parameter.
+
+2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-menu-map): Add menu entry for vc-ignore.
+
+2013-07-30  Stephen Berman  <stephen.berman@gmx.net>
+
+	* minibuffer.el (completion--twq-all): Try and preserve each
+	completion's case choice (bug#14907).
+
+2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Mention the new
+	:nogreeting parameter.
+	(network-stream-open-starttls): Use the :nogreeting parameter
+	(bug#14938).
+
+	* net/shr.el (shr-mouse-browse-url): Remove and use `shr-browse-url'.
+
+	* net/eww.el (eww-setup-buffer): Switching to the buffer seems
+	more natural than popping.
+
+	* net/shr.el (shr-urlify): Put `follow-link' on URLs (bug#14815).
+	(shr-urlify): Highlight under mouse.
+
+2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-prefix-map): Add key binding for vc-ignore.
+
+	* vc/vc-dir.el (vc-dir-mode-map): Change key binding for vc-dir-ignore.
+
+	* vc/vc-svn.el (vc-svn-ignore): Remove `interactive'.  Use `*vc*'
+	buffer for output.
+
+	* vc/vc-hg.el (vc-hg-ignore): Remove `interactive'.  Do not assume
+	point-min==1.  Fix search string.  Fix parentheses missing.
+
+	* vc/vc-git.el (vc-git-ignore): Remove `interactive'.  Do not
+	assume point-min==1.  Fix search string.  Fix parentheses missing.
+
+	* vc/vc-cvs.el (vc-cvs-ignore): Remove `interactive'.
+
+	* vc/vc-bzr.el (vc-bzr-ignore): Remove `interactive'.  Use `*vc*'
+	buffer for output.
+
+2013-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (frame-notice-user-settings): Avoid inflooping when the
+	initial frame is minibuffer-less.  (Bug#14841)
+
+2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-use-ssh-controlmaster-options): New customer
+	option.
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use it.
+
+2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Include `minibuffer' in the
+	minimal set of parameters passed when creating a frame, because
+	the minibuffer status of a frame cannot be changed later.
+
+2013-07-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-rename-file): Fix incorrect use of
+	replace-regexp-in-string and inadvertent omissions in previous change.
+	(todo-filter-items): Ensure only file names are comma-separated in
+	name of filtered items buffer.
+
+2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Optionally force offscreen frames back onscreen.
+	(desktop-restoring-reuses-frames): New option.
+	(desktop--compute-pos, desktop--move-onscreen): New functions.
+	(desktop--make-frame): Use desktop--move-onscreen.
+
+2013-07-27  Alan Mackenzie  <acm@muc.de>
+
+	Fontify a Java generic method as a function.
+	* progmodes/cc-langs.el (c-recognize-<>-arglists): Set the Java
+	value to t.
+
+2013-07-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Add command to rename todo files.
+	(todo-rename-file): New command.
+	(todo-key-bindings-t): Add key binding for it.  Change the
+	bindings of todo-filter-regexp-items(-multifile) to use `x'
+	instead of `r', since the latter is better suited to the new
+	renaming command.
+
+2013-07-27  Alan Mackenzie  <acm@muc.de>
+
+	Make Java try-with-resources statement parse properly.
+	* progmodes/cc-langs.el (c-block-stmt-1-2-kwds)
+	(c-block-stmt-1-2-key): New language constants/variables.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1)
+	(c-after-conditional): Adapt to deal with c-block-stmt-1-2-key.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Adapt to deal
+	with c-block-stmt-1-2-key.
+
+2013-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Apply most frame parameters after
+	creating the frame to force (partially or totally) offscreen frames to
+	be restored as such.
+
+2013-07-26  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-root-diff.
+	(Bug#14948)
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--called-interactively-skip): Use the new
+	`base' arg of backtrace-frame.
+
+2013-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (list-processes): Doc fix.
+
+2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--select-frame):
+	Try harder to reuse existing frames.
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Use backtrace-eval to handle lexical variables.
+	(edebug-eval): Use backtrace-eval.
+	(edebug--display, edebug--recursive-edit): Don't let-bind the
+	edebug-outer-* vars that keep track of variables we locally let-bind.
+	(edebug-outside-excursion): Don't restore outside values of locally
+	let-bound vars.
+	(edebug--display): Use user-error.
+	(cl-lexical-debug, cl-debug-env): Remove.
+
+2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-frames): Call `sit-for' once all frames
+	are restored to be sure that they are visible before deleting any
+	remaining ones.
+
+2013-07-26  Matthias Meulien  <orontee@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add binding for
+	vc-print-root-log.  (Bug#14948)
+
+2013-07-26  Richard Stallman  <rms@gnu.org>
+
+	Add aliases for encrypting mail.
+	* epa.el (epa-mail-aliases): New option.
+	* epa-mail.el (epa-mail-encrypt): Rewrite to be callable from programs.
+	Bind inhibit-read-only so read-only text doesn't ruin everything.
+	(epa-mail-default-recipients): New subroutine broken out.
+	Handle epa-mail-aliases.
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add support for lexical variables to the debugger's `e' command.
+	* emacs-lisp/debug.el (debug): Don't let-bind the debugger-outer-*
+	vars, except for debugger-outer-match-data.
+	(debugger-frame-number): Move check for "on a function call" from
+	callers into it.  Add `skip-base' argument.
+	(debugger-frame, debugger-frame-clear): Simplify accordingly.
+	(debugger-env-macro): Only reset the state stored in non-variables,
+	i.e. current-buffer and match-data.
+	(debugger-eval-expression): Rewrite using backtrace-eval.
+	* subr.el (internal--called-interactively-p--get-frame): Remove.
+	(called-interactively-p):
+	* emacs-lisp/edebug.el (edebug--called-interactively-skip): Use the new
+	`base' arg of backtrace-frame instead.
+
+2013-07-26  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align-regexp): Doc fix.  (Bug#14857)
+	(align-region): Explicit error if subexpression missing/does not match.
+
+	* simple.el (global-visual-line-mode):
+	Do not duplicate the mode lighter.  (Bug#14858)
+
+2013-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): In display-buffer bind
+	split-window-keep-point to t, bug#14829.
+
+2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Rename internal "desktop-X" frame params to "desktop--X".
+	(desktop-filter-parameters-alist, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm, desktop--process-minibuffer-frames)
+	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
+	Change accordingly.
+	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
+	Use pcase-let, pcase-let* to deobfuscate access to desktop--mini values.
+
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-mark-extension): Convert comment to doc string.
+
+2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Do not pass the `fullscreen'
+	parameter to modify-frame-parameters if the value has not changed;
+	this is a workaround for bug#14949.
+	(desktop--make-frame): On cl-delete-if call, check parameter name,
+	not full parameter.
+
+2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc.el (vc-ignore): New function.
+
+	* vc/vc-svn.el (vc-svn-ignore): New function.
+
+	* vc/vc-hg.el (vc-hg-ignore): New function.
+
+	* vc/vc-git.el (vc-git-ignore): New function.
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add key binding for vc-dir-ignore
+	(vc-dir-ignore): New function.
+
+	* vc/vc-cvs.el (vc-cvs-ignore): New function.
+	(cvs-append-to-ignore): Move here from pcvs.el.
+
+	* vc/vc-bzr.el (vc-bzr-ignore): New function.
+
+	* vc/pcvs.el (vc-cvs): Require 'vc-cvs.
+
+2013-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restoring-frames-p): Return a true boolean.
+	(desktop-restore-frames): Warn when deleting an existing frame failed.
+
+2013-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-machine-p): Handle "not known" response.  (Bug#14929)
+
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* filenotify.el (file-notify-supported-p):
+	* net/tramp-sh.el (tramp-sh-handle-file-notify-supported-p):
+	Remove functions.
+
+	* autorevert.el (auto-revert-use-notify):
+	(auto-revert-notify-add-watch):
+	* net/tramp.el (tramp-file-name-for-operation):
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Remove `file-notify-supported-p' entry.
+
+2013-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* printing.el: Replace all uses of deleted ps-windows-system,
+	ps-lp-system, ps-flatten-list with lpr- versions.
+
+2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--u1): Verify if self-quoting values can be
+	checked with memq (bug#14935).
+
+	* files.el (revert-buffer-function): Use a non-nil default.
+	(revert-buffer-preserve-modes): Declare var to
+	provide access to the `preserve-modes' argument.
+	(revert-buffer): Let-bind it.
+	(revert-buffer--default): New function, extracted from revert-buffer.
+
+2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lpr.el: Signal print errors more prominently.
+	(print-region-function): Don't default to nil.
+	(lpr-print-region): New function, extracted from print-region-1.
+	Check lpr's return value and signal an error in case of problem.
+	(print-region-1): Use it.
+	* ps-print.el (ps-windows-system, ps-lp-system): Remove.  Use the lpr-*
+	versions instead.
+	(ps-printer-name): Default to nil.
+	(ps-printer-name-option): Default to lpr-printer-switch.
+	(ps-print-region-function): Don't default to nil.
+	(ps-postscript-code-directory): Simplify default.
+	(ps-do-despool): Use lpr-print-region to properly check the outcome.
+	(ps-string-list, ps-eval-switch, ps-flatten-list)
+	(ps-flatten-list-1): Remove.
+	(ps-multibyte-buffer): Avoid setq.
+	* dos-w32.el (direct-print-region-helper): Use proper regexp operators.
+	(print-region-function, ps-print-region-function): Don't set them here.
+
+2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.el (ido-fractionp):
+	(ido-cache-ftp-work-directory-time, ido-max-prospects, ido-mode)
+	(ido-max-file-prompt-width, ido-unc-hosts-cache)
+	(ido-max-directory-size, ido-max-dir-file-cache)
+	(ido-decorations): Doc fix.
+
+	* ansi-color.el: Fix old URL.
+
+2013-07-23  Michael R. Mauger  <michael@mauger.com>
+
+	* progmodes/sql.el Version 3.3
+	(sql-product-alist): Improve oracle :prompt-cont-regexp.
+	(sql-starts-with-prompt-re, sql-ends-with-prompt-re): New functions.
+	(sql-interactive-remove-continuation-prompt): Rewrite, use
+	functions above.  Fix continuation prompt and complete output line
+	handling.
+	(sql-redirect-one, sql-execute): Use `read-only-mode' on
+	redirected output buffer.
+	(sql-mode): Restore deleted code (Bug#13591).
+
+2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-clear, desktop-list*): Fix previous change.
+
+2013-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-notify-add-watch): New defun.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use it.
+
+2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-clear): Simplify; remove useless checks
+	against invalid buffer names.
+	(desktop-list*): Use cl-list*.
+	(desktop-buffer-info, desktop-create-buffer): Simplify.
+
+2013-07-23  Leo Liu  <sdl.web@gmail.com>
+
+	* bookmark.el (bookmark-make-record): Restore NAME as a default
+	value.  (Bug#14933)
+
+2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload--setup-output): New function,
+	extracted from autoload--insert-text.
+	(autoload--insert-text): Remove.
+	(autoload--print-cookie-text): New function, extracted from
+	autoload--insert-cookie-text.
+	(autoload--insert-cookie-text): Remove.
+	(autoload-generate-file-autoloads): Adjust calls accordingly.
+
+	* winner.el (winner-hook-installed-p): Remove.
+	(winner-mode): Simplify accordingly.
+
+	* subr.el (add-to-list): Fix compiler-macro when `append' is
+	not constant.  Don't use `cl-member' for the base case.
+
+	* progmodes/subword.el: Fix boundary case (bug#13758).
+	(subword-forward-regexp): Make it a constant.  Wrap optional \\W in its
+	own group.
+	(subword-backward-regexp): Make it a constant.
+	(subword-forward-internal): Don't treat a trailing capital as the
+	beginning of a word.
+
+2013-07-22  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-menu-mode): Don't modify the
+	global value of tabulated-list-revert-hook (bug#14930).
+
+2013-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Require 'cl-lib.
+	(desktop-before-saving-frames-functions): New hook.
+	(desktop--process-minibuffer-frames): Set desktop-mini parameter only
+	for frames being saved.  Rename from desktop--save-minibuffer-frames.
+	(desktop-save-frames): Run hook desktop-before-saving-frames-functions.
+	Do not save frames with non-nil `desktop-dont-save' parameter.
+	Filter out deleted frames.
+	(desktop--find-frame): Use cl-find-if.
+	(desktop--select-frame): Use cl-(first|second|third) to access values
+	of desktop-mini.
+	(desktop--make-frame): Use cl-delete-if.
+	(desktop--sort-states): Fix sorting of minibuffer-owning frames.
+	(desktop-restore-frames): Use cl-(first|second|third) to access values
+	of desktop-mini.  Look for visible frame at the end, not while
+	restoring frames.
+
+	* dired-x.el (dired-mark-unmarked-files, dired-virtual)
+	(dired-guess-default, dired-mark-sexp, dired-filename-at-point):
+	Use string-match-p, looking-at-p (bug#14927).
+
+2013-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-saved-frame-states):
+	Rename from desktop--saved-states; all users changed.
+	(desktop-save-frames): Rename from desktop--save-frames.
+	Do not save state to desktop file.
+	(desktop-save): Save desktop-saved-frame-states to desktop file
+	and reset to nil.
+	(desktop-restoring-frames-p): New function.
+	(desktop-restore-frames): Use it.  Rename from desktop--restore-frames.
+	(desktop-read): Use desktop-restoring-frames-p.  Do not try to fix
+	buffer-lists when restoring frames.  Suggested by Martin Rudalics.
+
+	* desktop.el: Correctly restore iconified frames.
+	(desktop--filter-iconified-position): New function.
+	(desktop-filter-parameters-alist): Add entries for `top' and `left'.
+
+2013-07-20  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-delete-handler, gdb-stopped):
+	Let `message' do the formatting.
+	(def-gdb-preempt-display-buffer): Add explicit format.
+
+	* image-dired.el (image-dired-track-original-file):
+	Use with-current-buffer.
+	(image-dired-track-thumbnail): Use with-current-buffer.
+	Avoid changing point of wrong window.
+
+	* image-dired.el (image-dired-track-original-file):
+	Avoid changing point of wrong window.  (Bug#14909)
+
+2013-07-20  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-done-or-error):
+	Guard against "%" in gdb output.  (Bug#14127)
+
+2013-07-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/sh-script.el (sh-read-variable): Remove interactive spec.
+	(Bug#14826)
+
+	* international/mule.el (coding-system-iso-2022-flags): Fix last
+	change.
+
 2013-07-20  Kenichi Handa  <handa@gnu.org>
 
-	* international/mule.el (coding-system-iso-2022-flags): Add
-	`8-bit-level-4'.  (Bug#8522)
+	* international/mule.el (coding-system-iso-2022-flags):
+	Add `8-bit-level-4'.  (Bug#8522)
 
 2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -120,8 +1957,8 @@
 
 2013-07-13  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	conversion methods on Kernel.
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight conversion methods on Kernel.
 
 2013-07-13  Alan Mackenzie  <acm@muc.de>
 
@@ -281,17 +2118,17 @@
 
 	* net/tramp.el (tramp-current-connection): New defvar, moved from
 	tramp-sh.el.
-	(tramp-message-show-progress-reporter-message): Removed, not
+	(tramp-message-show-progress-reporter-message): Remove, not
 	needed anymore.
-	(tramp-error-with-buffer): Show message in minibuffer.  Discard
-	input before waiting.  Reset connection timestamp.
+	(tramp-error-with-buffer): Show message in minibuffer.
+	Discard input before waiting.  Reset connection timestamp.
 	(with-tramp-progress-reporter): Improve messages.
 	(tramp-process-actions): Use progress reporter.  Delete process in
 	case of error.  Improve messages.
 
-	* net/tramp-sh.el (tramp-barf-if-no-shell-prompt): Use
-	condition-case.  Call `tramp-error-with-buffer' with vector and buffer.
-	(tramp-current-connection): Removed.
+	* net/tramp-sh.el (tramp-barf-if-no-shell-prompt): Use condition-case.
+	Call `tramp-error-with-buffer' with vector and buffer.
+	(tramp-current-connection): Remove.
 	(tramp-maybe-open-connection): The car of
 	`tramp-current-connection' are the first 3 slots of the vector.
 

@@ -690,7 +690,7 @@ to a new place after repeating previous Vi command."
 the window will be scrolled up or down appropriately, to reveal context.
 If you want Viper search to behave as usual in Vi, set this variable to a
 negative number."
-  :type 'boolean
+  :type 'integer
   :group 'viper-search)
 
 (defcustom viper-re-query-replace t

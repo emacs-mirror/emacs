@@ -1403,11 +1403,11 @@
 	(mh-x-image-url-display): Don't display image if the URL looks
 	malformed.
 
-2003-10-04  Mark D Baushke  <mdb@gnu.org>
+2003-10-04  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-comp.el (mh-letter-menu): Simplify menu heading.
 
-2003-10-03  Mark D Baushke  <mdb@gnu.org>
+2003-10-03  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-mime.el (mh-mml-query-cryptographic-method): Avoid
 	revisionist history and still provide a good default.
@@ -3877,7 +3877,7 @@
 	runs checkdoc and lm-verify which is useful before releasing the
 	software. It can and should be expanded to do real unit tests.
 
-2003-04-22  Mark D Baushke  <mdb@gnu.org>
+2003-04-22  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-alias.el: Update Copyright.
 	* mh-comp.el: Ditto.
@@ -6106,7 +6106,7 @@
 	explicitly stated.
 	(mh-visit-folder): Really fix it this time.
 
-2003-01-01  Mark D Baushke  <mdb@gnu.org>
+2003-01-01  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-alias.el (mh-alias-from-has-no-alias-p): Needs the
 	mh-autoload comment or mh-customize may have problems finding the
@@ -6854,7 +6854,7 @@
 	* Makefile: Moved .PHONY rule after all rule for compatibility
 	with BSD/OS's old pmake.
 
-2002-12-03  Mark D Baushke  <mdb@gnu.org>
+2002-12-03  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-e.el (mh-get-new-mail): Simplify no-new-mail test.
 	(mh-add-cur-notation): Remove unnecessary function.
@@ -6878,7 +6878,7 @@
 	number of scan lines is fewer than mh-large-folders (closes SF
 	#646794).
 
-2002-12-02  Mark D Baushke  <mdb@gnu.org>
+2002-12-02  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-e.el (mh-add-cur-notation): New function to mark the
 	current message with the mh-note-cur character.
@@ -8312,7 +8312,7 @@
 	variable as new-file-flag.
 	This addresses part of SF #627015.
 
-2002-10-24  Mark D Baushke  <mdb@gnu.org>
+2002-10-24  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-comp.el (mh-forward): Fix mh-mml-compose-insert-p reference
 	in last commit to be mh-mml-compose-insert-flag.
@@ -8581,7 +8581,7 @@
 
 	* mh-comp.el (mh-mml-to-mime autoload): Ditto.
 
-2002-10-21  Mark D Baushke  <mdb@gnu.org>
+2002-10-21  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-mime.el (smiley-region): Use load for a non-fatal dependency
 	on the smiley library.
@@ -8735,7 +8735,7 @@
 	prompted for the number of messages to display, you got an error.
 	This has been fixed.
 
-2002-10-19  Mark D Baushke  <mdb@gnu.org>
+2002-10-19  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-e.el (mh-last-destination-folder): Destination of last refile
 	command.
@@ -8777,7 +8777,7 @@
 	macro mh-compat-write-file-hook to use write-file-functions for
 	Emacs 21.4 and local-write-file-hooks for older versions.
 
-2002-10-18  Mark D Baushke  <mdb@gnu.org>
+2002-10-18  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-invisible-headers): Add more anti-spam headers.
 
@@ -9079,7 +9079,7 @@
 	(mh-remove-xemacs-horizontal-scrollbar): New macro to avoid
 	compiler-warnings.
 
-2002-10-10  Mark D Baushke  <mdb@gnu.org>
+2002-10-10  Mark D. Baushke  <mdb@gnu.org>
 
 	* Makefile (EMACS_OPTIONS): New macro for command-line compile
 	options.
@@ -9088,13 +9088,13 @@
 	(COMPILE_COMMAND): Combine the compile command with its options.
 	(.el.elc): Use the new $(COMPILE_COMMAND).
 
-2002-10-10  Mark D Baushke  <mdb@gnu.org>
+2002-10-10  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-speed.el (mh-speed-select-attached-frame): Define a new
 	compatibility macro for getting to the attached-frame.
 	(mh-speed-update-current-folder): Use it.
 
-2002-10-10  Mark D Baushke  <mdb@gnu.org>
+2002-10-10  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-speed.el (mh-speed-update-current-folder): Use
 	'dframe-select-attached-frame if we are in a newer speedbar
@@ -9452,7 +9452,7 @@
 	present in the load-path.
 	* mh-mime.el (mh-require): Don't use it anymore.
 
-2002-07-15  Mark D Baushke  <mdb@gnu.org>
+2002-07-15  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-update-scan-format): Rewrite for compatibility
 	with XEmacs as replace-match appears not to have identical
@@ -9531,7 +9531,7 @@
 
 	* mh-mime.el (mm-destroy-parts): Add definition for old emacs.
 
-2002-06-30  Mark D Baushke  <mdb@gnu.org>
+2002-06-30  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-update-scan-format): Add documentation string.
 	(mh-scan-msg-format-regexp): Update the regexp to find %(msg).
@@ -9574,7 +9574,7 @@
 	* mh-index.el (mh-count-windows): This function works around the
 	lack of the window-list builtin function in emacs20.
 
-2002-06-29  Mark D Baushke  <mdb@gnu.org>
+2002-06-29  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-message-number-width): New function to scan
 	the last message of a folder and return its width.
@@ -9625,7 +9625,7 @@
 	* mh-mime.el (gnus-newsgroup-name): Initialize it to nil, so that
 	mm-uu-dissect doesn't cause error.
 
-2002-06-27  Mark D Baushke  <mdb@gnu.org>
+2002-06-27  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-utils.el (mh-cmd-note): Make buffer-local. Changes to this
 	variable should be made via the new mh-set-default-cmd-note

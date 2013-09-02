@@ -3381,6 +3381,7 @@ of Lisp sexps and adapts it to non-Lisp languages.
 
 @node SMIE
 @subsection Simple Minded Indentation Engine
+@cindex SMIE
 
 SMIE is a package that provides a generic navigation and indentation
 engine.  Based on a very simple parser using an ``operator precedence
@@ -3548,6 +3549,8 @@ simply ignored.
 
 @node SMIE Grammar
 @subsubsection Defining the Grammar of a Language
+@cindex SMIE grammar
+@cindex grammar, SMIE
 
 The usual way to define the SMIE grammar of a language is by
 defining a new global variable that holds the precedence table by
@@ -3623,6 +3626,8 @@ formally as left associative.
 
 @node SMIE Lexer
 @subsubsection Defining Tokens
+@cindex SMIE lexer
+@cindex defining tokens, SMIE
 
 SMIE comes with a predefined lexical analyzer which uses syntax tables
 in the following way: any sequence of characters that have word or
@@ -3757,6 +3762,7 @@ surrounding text to find ad-hoc clues.
 
 @node SMIE Indentation
 @subsubsection Specifying Indentation Rules
+@cindex indentation rules, SMIE
 
 Based on the provided grammar, SMIE will be able to provide automatic
 indentation without any extra effort.  But in practice, this default

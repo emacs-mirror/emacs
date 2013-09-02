@@ -1,4 +1,5 @@
-# Maintenance productions for the Lisp directory
+### @configure_input@
+
 # Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -16,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -117,7 +118,7 @@ emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -125,7 +126,7 @@ setwins=subdirs=`find . -type d -print`; \
 setwins_almost=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | */obsolete | */term ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -133,7 +134,7 @@ setwins_almost=subdirs=`find . -type d -print`; \
 setwins_for_subdirs=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | */cedet* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 

@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Include these headers now so we don't have to worry about include
    order dependencies in common source files.  */
 #include <direct.h>
+#include <fcntl.h>
 #include <io.h>
 #include <stdio.h>
 
@@ -41,6 +42,7 @@ int setuid (unsigned uid);
 int setregid (unsigned rgid, unsigned gid);
 char * getpass (const char * prompt);
 int fchown (int fd, unsigned uid, unsigned gid);
+int mkostemp (char * template, int flags);
 
 /* redirect or undo interceptions created by config.h */
 #undef access
@@ -61,15 +63,12 @@ int fchown (int fd, unsigned uid, unsigned gid);
 #undef fopen
 #undef mkdir
 #define mkdir   _mkdir
-#undef mktemp
-#define mktemp  _mktemp
 #undef open
 #define open    _open
 #undef pipe
 #define pipe    _pipe
 #undef read
 #define read    _read
-#undef rename
 #undef rmdir
 #define rmdir   _rmdir
 #undef unlink

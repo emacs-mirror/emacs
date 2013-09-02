@@ -53,9 +53,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* CGFloat on GNUStep may be 4 or 8 byte, but functions expect float* for some
    versions.
-   On Cocoa, functions expect CGFloat*. Make compatible type.  */
-#if defined (NS_IMPL_COCOA) || GNUSTEP_GUI_MAJOR_VERSION > 0 || \
-    GNUSTEP_GUI_MINOR_VERSION >= 22
+   On Cocoa >= 10.5, functions expect CGFloat*. Make compatible type.  */
+#ifdef NS_IMPL_COCOA
+
+#ifndef NS_HAVE_NSINTEGER
+#if defined (__LP64__) && __LP64__
+typedef double CGFloat;
+typedef long NSInteger;
+typedef unsigned long NSUInteger;
+#else
+typedef float CGFloat;
+typedef int NSInteger;
+typedef unsigned int NSUInteger;
+#endif /* not LP64 */
+#endif /* not NS_HAVE_NSINTEGER */
+
+typedef CGFloat EmacsCGFloat;
+
+#elif GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION >= 22
 typedef CGFloat EmacsCGFloat;
 #else
 typedef float EmacsCGFloat;
@@ -109,7 +124,10 @@ typedef float EmacsCGFloat;
 @interface EmacsView : NSView <NSTextInput>
 #endif
    {
+#ifdef NS_IMPL_COCOA
    char *old_title;
+   BOOL maximizing_resize;
+#endif
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;
@@ -193,6 +211,7 @@ typedef float EmacsCGFloat;
 - (NSString *)parseKeyEquiv: (const char *)key;
 - (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
 - (void)fillWithWidgetValue: (void *)wvptr;
+- (void)fillWithWidgetValue: (void *)wvptr frame: (struct frame *)f;
 - (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
 - (void) clear;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
@@ -419,18 +438,6 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 - (void)setAppleMenu: (NSMenu *)menu;
 @end
 #endif
-
-#ifndef NS_HAVE_NSINTEGER
-#if defined (__LP64__) && __LP64__
-typedef double CGFloat;
-typedef long NSInteger;
-typedef unsigned long NSUInteger;
-#else
-typedef float CGFloat;
-typedef int NSInteger;
-typedef unsigned int NSUInteger;
-#endif /* not LP64 */
-#endif /* not NS_HAVE_NSINTEGER */
 
 #endif  /* __OBJC__ */
 
@@ -745,8 +752,6 @@ struct x_output
   (FRAME_NS_DISPLAY_INFO (f)->smallest_char_width)
 #define FRAME_SMALLEST_FONT_HEIGHT(f) \
   (FRAME_NS_DISPLAY_INFO (f)->smallest_font_height)
-#define FONT_TYPE_FOR_UNIBYTE(font, ch)   0
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.ns->baseline_offset)
 #define BLACK_PIX_DEFAULT(f) 0x000000
 #define WHITE_PIX_DEFAULT(f) 0xFFFFFF
@@ -778,7 +783,7 @@ void ns_dump_glyphstring (struct glyph_string *s);
 
 /* Implemented in nsterm, published in or needed from nsfns. */
 extern Lisp_Object Qfontsize;
-extern Lisp_Object ns_list_fonts (FRAME_PTR f, Lisp_Object pattern,
+extern Lisp_Object ns_list_fonts (struct frame *f, Lisp_Object pattern,
                                   int size, int maxnames);
 extern void ns_clear_frame (struct frame *f);
 
@@ -824,11 +829,11 @@ extern void ns_release_autorelease_pool (void *);
 extern const char *ns_get_defaults_value (const char *key);
 
 /* in nsmenu */
-extern void update_frame_tool_bar (FRAME_PTR f);
-extern void free_frame_tool_bar (FRAME_PTR f);
-extern void find_and_call_menu_selection (FRAME_PTR f,
+extern void update_frame_tool_bar (struct frame *f);
+extern void free_frame_tool_bar (struct frame *f);
+extern void find_and_call_menu_selection (struct frame *f,
     int menu_bar_items_used, Lisp_Object vector, void *client_data);
-extern Lisp_Object find_and_return_menu_selection (FRAME_PTR f,
+extern Lisp_Object find_and_return_menu_selection (struct frame *f,
                                                    bool keymaps,
                                                    void *client_data);
 extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
@@ -867,8 +872,8 @@ extern int x_display_pixel_width (struct ns_display_info *);
 /* This in nsterm.m */
 extern void x_destroy_window (struct frame *f);
 extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-                      fd_set *exceptfds, EMACS_TIME *timeout,
-		      sigset_t *sigmask);
+		      fd_set *exceptfds, struct timespec const *timeout,
+		      sigset_t const *sigmask);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;

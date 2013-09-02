@@ -181,7 +181,7 @@ get_boot_time (void)
      since utmp is typically much smaller than wtmp.
      Passing a null pointer causes get_boot_time_1
      to inspect the default file, namely utmp.  */
-  get_boot_time_1 ((char *) 0, 0);
+  get_boot_time_1 (0, 0);
   if (boot_time)
     return boot_time;
 
@@ -411,28 +411,14 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       memcpy (nonce, lfname, lfdirlen);
       strcpy (nonce + lfdirlen, nonce_base);
 
-#if HAVE_MKOSTEMP
-      /* Prefer mkostemp to mkstemp, as it avoids a window where FD is
-	 temporarily open without close-on-exec.  */
       fd = mkostemp (nonce, O_BINARY | O_CLOEXEC);
-#elif HAVE_MKSTEMP
-      /* Prefer mkstemp to mktemp, as it avoids a race between
-	 mktemp and emacs_open.  */
-      fd = mkstemp (nonce);
-#else
-      mktemp (nonce);
-      fd = emacs_open (nonce, O_WRONLY | O_CREAT | O_EXCL | O_BINARY,
-		       S_IRUSR | S_IWUSR);
-#endif
-
       if (fd < 0)
 	err = errno;
       else
 	{
 	  ptrdiff_t lock_info_len;
-#if ! (HAVE_MKOSTEMP && O_CLOEXEC)
-	  fcntl (fd, F_SETFD, FD_CLOEXEC);
-#endif
+	  if (! O_CLOEXEC)
+	    fcntl (fd, F_SETFD, FD_CLOEXEC);
 	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
 	  /* Use 'write', not 'emacs_write', as garbage collection
@@ -759,16 +745,15 @@ unlock_file (Lisp_Object fn)
 void
 unlock_all_files (void)
 {
-  register Lisp_Object tail;
+  register Lisp_Object tail, buf;
   register struct buffer *b;
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      b = XBUFFER (XCDR (XCAR (tail)));
-      if (STRINGP (BVAR (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
-	{
-	  unlock_file (BVAR (b, file_truename));
-	}
+      b = XBUFFER (buf);
+      if (STRINGP (BVAR (b, file_truename))
+	  && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+	unlock_file (BVAR (b, file_truename));
     }
 }
 

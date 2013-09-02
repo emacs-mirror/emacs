@@ -7394,6 +7394,14 @@ say something like:
         gnus-thread-sort-by-score))
 @end lisp
 
+By default, threads including their subthreads are sorted according to
+the value of @code{gnus-thread-sort-functions}.  By customizing
+@code{gnus-subthread-sort-functions} you can define a custom sorting
+order for subthreads.  This allows for example to sort threads from
+high score to low score in the summary buffer, but to have subthreads
+still sorted chronologically from old to new without taking their
+score into account.
+
 @vindex gnus-thread-score-function
 The function in the @code{gnus-thread-score-function} variable (default
 @code{+}) is used for calculating the total score of a thread.  Useful
@@ -14788,14 +14796,16 @@ and says what authentication scheme to use.  The default is
 
 @item :leave
 Non-@code{nil} if the mail is to be left on the @acronym{POP} server
-after fetching.  Mails once fetched will never be fetched again by the
-@acronym{UIDL} control.  Only the built-in @code{pop3-movemail} program
-(the default) supports this keyword.
+after fetching.  Only the built-in @code{pop3-movemail} program (the
+default) supports this keyword.
 
-If this is neither @code{nil} nor a number, all mails will be left on
-the server.  If this is a number, leave mails on the server for this
-many days since you first checked new mails.  If this is @code{nil}
-(the default), mails will be deleted on the server right after fetching.
+If this is a number, leave mails on the server for this many days since
+you first checked new mails.  In that case, mails once fetched will
+never be fetched again by the @acronym{UIDL} control.  If this is
+@code{nil} (the default), mails will be deleted on the server right
+after fetching.  If this is neither @code{nil} nor a number, all mails
+will be left on the server, and you will end up getting the same mails
+again and again.
 
 @vindex pop3-uidl-file
 The @code{pop3-uidl-file} variable specifies the file to which the
@@ -21101,17 +21111,17 @@ the articles that match this query, and takes you to a summary buffer
 showing these articles. Articles may then be read, moved and deleted
 using the usual commands.
 
-The @code{nnir} group made in this way is an @code{ephemeral} group, and
-some changes are not permanent: aside from reading, moving, and
+The @code{nnir} group made in this way is an @code{ephemeral} group,
+and some changes are not permanent: aside from reading, moving, and
 deleting, you can't act on the original article. But there is an
-alternative: you can @emph{warp} to the original group for the article
-on the current line with @kbd{A W}, aka
+alternative: you can @emph{warp} (i.e., jump) to the original group
+for the article on the current line with @kbd{A W}, aka
 @code{gnus-warp-to-article}. Even better, the function
-@code{gnus-summary-refer-thread}, bound by default in summary buffers to
-@kbd{A T}, will first warp to the original group before it works its
-magic and includes all the articles in the thread. From here you can
-read, move and delete articles, but also copy them, alter article marks,
-whatever. Go nuts.
+@code{gnus-summary-refer-thread}, bound by default in summary buffers
+to @kbd{A T}, will first warp to the original group before it works
+its magic and includes all the articles in the thread. From here you
+can read, move and delete articles, but also copy them, alter article
+marks, whatever. Go nuts.
 
 You say you want to search more than just the group on the current line?
 No problem: just process-mark the groups you want to search. You want
@@ -21153,6 +21163,7 @@ query language anyway.
 * The swish++ Engine::                  Swish++ configuration and usage.
 * The swish-e Engine::                  Swish-e configuration and usage.
 * The namazu Engine::                   Namazu configuration and usage.
+* The notmuch Engine::                  Notmuch configuration and usage.
 * The hyrex Engine::                    Hyrex configuration and usage.
 * Customizations::                      User customizable settings.
 @end menu
@@ -21381,6 +21392,26 @@ mknmz --mailnews ~/Mail/archive/ ~/Mail/mail/ ~/Mail/lists/
 
 For maximum searching efficiency you might want to have a cron job run
 this command periodically, say every four hours.
+
+
+@node The notmuch Engine
+@subsubsection The notmuch Engine
+
+@table @code
+@item nnir-notmuch-program
+The name of the notmuch search executable.  Defaults to
+@samp{notmuch}.
+
+@item nnir-notmuch-additional-switches
+A list of strings, to be given as additional arguments to notmuch.
+
+@item nnir-notmuch-remove-prefix
+The prefix to remove from each file name returned by notmuch in order
+to get a group name (albeit with @samp{/} instead of @samp{.}).  This
+is a regular expression.
+
+@end table
+
 
 @node The hyrex Engine
 @subsubsection The hyrex Engine

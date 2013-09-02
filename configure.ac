@@ -24,18 +24,43 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
+dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
+dnl and then quoted again for a C string.  Separate options with spaces.
+dnl Add some environment variables, if they were passed via the environment
+dnl rather than on the command-line.
+emacs_config_options=
+optsep=
 dnl This is the documented way to record the args passed to configure,
 dnl rather than $ac_configure_args.
-emacs_config_options="$@"
-## Add some environment variables, if they were passed via the environment
-## rather than on the command-line.
-for var in CFLAGS CPPFLAGS LDFLAGS; do
-    case "$emacs_config_options" in
-      *$var=*) continue ;;
-    esac
-    eval val="\$${var}"
-    test x"$val" = x && continue
-    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
+for opt in ${1+"$@"} CFLAGS CPPFLAGS LDFLAGS; do
+  case $opt in
+    -n | --no-create | --no-recursion)
+      continue ;;
+    CFLAGS | CPPFLAGS | LDFLAGS)
+      eval 'test "${'$opt'+set}" = set' || continue
+      case " $*" in
+	*" $opt="*) continue ;;
+      esac
+      eval opt=$opt=\$$opt ;;
+  esac
+
+  emacs_shell_specials=$IFS\''"#$&()*;<>?@<:@\\`{|~'
+  case $opt in
+    *[["$emacs_shell_specials"]]*)
+      case $opt in
+	*\'*)
+	  emacs_quote_apostrophes="s/'/'\\\\''/g"
+	  opt=`AS_ECHO(["$opt"]) | sed "$emacs_quote_apostrophes"` ;;
+      esac
+      opt="'$opt'"
+      case $opt in
+	*[['"\\']]*)
+	  emacs_quote_for_c='s/[["\\]]/\\&/g; $!s/$/\\n\\/'
+	  opt=`AS_ECHO(["$opt"]) | sed "$emacs_quote_for_c"` ;;
+      esac ;;
+  esac
+  AS_VAR_APPEND([emacs_config_options], ["$optsep$opt"])
+  optsep=' '
 done
 
 AC_CONFIG_HEADER(src/config.h:src/config.in)
@@ -60,7 +85,7 @@ locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 lisppath='${locallisppath}:${standardlisppath}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
-docdir='${datadir}/emacs/${version}/etc'
+etcdocdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
 dnl Special option to disable the most of other options.
@@ -141,7 +166,18 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
     [string giving default POP mail host])],
     AC_DEFINE_UNQUOTED(MAILHOST, ["$withval"], [String giving fallback POP mail host.]))
 
-OPTION_DEFAULT_ON([sound],[don't compile with sound support])
+AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
+  [compile with sound support (VALUE one of: yes, alsa, oss, bsd-ossaudio, no;
+default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW.])],
+  [ case "${withval}" in
+      yes|no|alsa|oss|bsd-ossaudio) val=$withval ;;
+      *) AC_MSG_ERROR([`--with-sound=$withval' is invalid;
+this option's value should be `yes', `no', `alsa', `oss', or `bsd-ossaudio'.])
+      ;;
+    esac
+    with_sound=$val
+  ],
+  [with_sound=$with_features])
 
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
@@ -200,6 +236,7 @@ OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
+OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, gfile, inotify, w32, no)])],
@@ -960,6 +997,13 @@ INFO_OPTS=--no-split
 AC_SUBST(INFO_EXT)
 AC_SUBST(INFO_OPTS)
 
+if test $opsys = mingw32; then
+   DOCMISC_W32=efaq-w32
+else
+   DOCMISC_W32=
+fi
+AC_SUBST(DOCMISC_W32)
+
 dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes; then
@@ -1253,6 +1297,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
   fi
 ])
 
+HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
   AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h],
@@ -1262,47 +1307,64 @@ if test "${with_sound}" != "no"; then
     #include <windows.h>
     #endif
     ])
-  # Emulation library used on NetBSD.
-  AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
+  test "${with_sound}" = "oss" && test "${have_sound_header}" != "yes" && \
+    AC_MSG_ERROR([OSS sound support requested but not found.])
+
+  if test "${with_sound}" = "bsd-ossaudio" || test "${with_sound}" = "yes"; then
+    # Emulation library used on NetBSD.
+    AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
+    test "${with_sound}" = "bsd-ossaudio" && test -z "$LIBSOUND" && \
+      AC_MSG_ERROR([bsd-ossaudio sound support requested but not found.])
+    dnl FIXME?  If we did find ossaudio, should we set with_sound=bsd-ossaudio?
+    dnl Traditionally, we go on to check for alsa too.  Does that make sense?
+  fi
   AC_SUBST(LIBSOUND)
 
-  ALSA_REQUIRED=1.0.0
-  ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-  PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
-  if test $HAVE_ALSA = yes; then
-    SAVE_CFLAGS="$CFLAGS"
-    SAVE_LIBS="$LIBS"
-    CFLAGS="$ALSA_CFLAGS $CFLAGS"
-    LIBS="$ALSA_LIBS $LIBS"
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <asoundlib.h>]], [[snd_lib_error_set_handler (0);]])],
-                    emacs_alsa_normal=yes,
-	            emacs_alsa_normal=no)
-    if test "$emacs_alsa_normal" != yes; then
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <alsa/asoundlib.h>]],
-                     [[snd_lib_error_set_handler (0);]])],
-                     emacs_alsa_subdir=yes,
-	             emacs_alsa_subdir=no)
-      if test "$emacs_alsa_subdir" != yes; then
-        AC_MSG_ERROR([pkg-config found alsa, but it does not compile.  See config.log for error messages.])
+  if test "${with_sound}" = "alsa" || test "${with_sound}" = "yes"; then
+    ALSA_REQUIRED=1.0.0
+    ALSA_MODULES="alsa >= $ALSA_REQUIRED"
+    PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
+    if test $HAVE_ALSA = yes; then
+      SAVE_CFLAGS="$CFLAGS"
+      SAVE_LIBS="$LIBS"
+      CFLAGS="$ALSA_CFLAGS $CFLAGS"
+      LIBS="$ALSA_LIBS $LIBS"
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <asoundlib.h>]], [[snd_lib_error_set_handler (0);]])],
+                      emacs_alsa_normal=yes,
+  	            emacs_alsa_normal=no)
+      if test "$emacs_alsa_normal" != yes; then
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <alsa/asoundlib.h>]],
+                       [[snd_lib_error_set_handler (0);]])],
+                       emacs_alsa_subdir=yes,
+  	             emacs_alsa_subdir=no)
+        if test "$emacs_alsa_subdir" != yes; then
+          AC_MSG_ERROR([pkg-config found alsa, but it does not compile.  See config.log for error messages.])
+        fi
+        ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
       fi
-      ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
-    fi
 
-    CFLAGS="$SAVE_CFLAGS"
-    LIBS="$SAVE_LIBS"
-    LIBSOUND="$LIBSOUND $ALSA_LIBS"
-    CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
-    AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
-  fi
+      CFLAGS="$SAVE_CFLAGS"
+      LIBS="$SAVE_LIBS"
+      LIBSOUND="$LIBSOUND $ALSA_LIBS"
+      CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
+      AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
+    elif test "${with_sound}" = "alsa"; then
+      AC_MSG_ERROR([ALSA sound support requested but not found.])
+    fi
+  fi                            dnl with_sound = alsa|yes
 
   dnl Define HAVE_SOUND if we have sound support.  We know it works and
   dnl compiles only on the specified platforms.  For others, it
   dnl probably doesn't make sense to try.
+  dnl FIXME So surely we should bypass this whole section if not using
+  dnl one of these platforms?
   if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
      case "$opsys" in
        dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
+       dnl Adjust the --with-sound help text if you change this.
        gnu-linux|freebsd|netbsd|mingw32)
          AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
+         HAVE_SOUND=yes
          ;;
      esac
   fi
@@ -1588,7 +1650,7 @@ if test "${HAVE_NS}" = yes; then
      dnl This one isn't really used, only archlibdir is.
      libexecdir="\${ns_appbindir}/libexec"
      archlibdir="\${ns_appbindir}/libexec"
-     docdir="\${ns_appresdir}/etc"
+     etcdocdir="\${ns_appresdir}/etc"
      etcdir="\${ns_appresdir}/etc"
      dnl FIXME maybe set datarootdir instead.
      dnl That would also get applications, icons, man.
@@ -1615,6 +1677,7 @@ CLIENTRES=
 CLIENTW=
 W32_RES_LINK=
 EMACS_MANIFEST=
+UPDATE_MANIFEST=
 if test "${with_w32}" != no; then
   case "${opsys}" in
     cygwin)
@@ -1665,6 +1728,7 @@ if test "${HAVE_W32}" = "yes"; then
     x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
     *) EMACS_MANIFEST="emacs-x86.manifest" ;;
   esac
+  UPDATE_MANIFEST=update-game-score.exe.manifest
   if test "${opsys}" = "cygwin"; then
     W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
@@ -1691,6 +1755,7 @@ AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)
 AC_SUBST(EMACSRES)
 AC_SUBST(EMACS_MANIFEST)
+AC_SUBST(UPDATE_MANIFEST)
 AC_SUBST(CLIENTRES)
 AC_SUBST(CLIENTW)
 AC_SUBST(W32_RES_LINK)
@@ -2913,6 +2978,26 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
 fi
 AC_SUBST(LIBPNG)
 
+HAVE_ZLIB=no
+LIBZ=
+if test "${with_zlib}" != "no"; then
+  OLIBS=$LIBS
+  AC_SEARCH_LIBS([inflateEnd], [z], [HAVE_ZLIB=yes])
+  LIBS=$OLIBS
+  case $ac_cv_search_inflateEnd in
+    -*) LIBZ=$ac_cv_search_inflateEnd ;;
+  esac
+fi
+if test "${HAVE_ZLIB}" = "yes"; then
+  AC_DEFINE([HAVE_ZLIB], 1, [Define to 1 if you have the zlib library (-lz).])
+  ### mingw32 doesn't use -lz, since it loads the library dynamically.
+  if test "${opsys}" = "mingw32"; then
+     LIBZ=
+  fi
+fi
+AC_SUBST(LIBZ)
+
+
 ### Use -ltiff if available, unless `--with-tiff=no'.
 ### mingw32 doesn't use -ltiff, since it loads the library dynamically.
 HAVE_TIFF=no
@@ -3251,7 +3336,7 @@ select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkostemp mkstemp getline getdelim sync \
+gai_strerror getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -3405,6 +3490,9 @@ TERMCAP_OBJ=tparam.o
 if test $TERMINFO = yes; then
   AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
   TERMCAP_OBJ=terminfo.o
+fi
+if test "X$LIBS_TERMCAP" = "X-lncurses"; then
+  AC_DEFINE(USE_NCURSES, 1, [Define to 1 if you use ncurses.])
 fi
 AC_SUBST(LIBS_TERMCAP)
 AC_SUBST(TERMCAP_OBJ)
@@ -3769,7 +3857,7 @@ emacs_broken_SIGIO=no
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
   dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
-  hpux* | irix6-5 | openbsd | sol2* | unixware | gnu-kfreebsd )
+  hpux* | irix6-5 | openbsd | sol2* | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -3938,10 +4026,10 @@ case $opsys in
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)])
       dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
       dnl to prevent sigchld_handler from intercepting the child's death.
-      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
       dnl if HAVE_POSIX_OPENPT
       if test "x$ac_cv_func_posix_openpt" = xyes; then
-        AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY)])
+        AC_DEFINE(PTY_OPEN, [do { fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY); if (fd < 0 && errno == EINVAL) fd = posix_openpt (O_RDWR | O_NOCTTY); } while (0)])
         AC_DEFINE(PTY_NAME_SPRINTF, [])
       dnl if HAVE_GETPT
       elif test "x$ac_cv_func_getpt" = xyes; then
@@ -3986,12 +4074,12 @@ case $opsys in
     dnl On SysVr4, grantpt(3) forks a subprocess, so keep sigchld_handler()
     dnl from intercepting that death.  If any child but grantpt's should die
     dnl within, it should be caught after sigrelse(2).
-    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 
   unixware )
     dnl Comments are as per sol2*.
-    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 esac
 
@@ -4287,14 +4375,16 @@ fi
 
 
 case $opsys in
-  dnl Emacs supplies its own malloc, but glib (part of Gtk+) calls
-  dnl memalign and on Cygwin, that becomes the Cygwin-supplied memalign.
-  dnl As malloc is not the Cygwin malloc, the Cygwin memalign always
-  dnl returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
+  dnl Emacs supplies its own malloc, but glib calls posix_memalign,
+  dnl and on Cygwin prior to version 1.7.24 that becomes the
+  dnl Cygwin-supplied posix_memalign.  As malloc is not the Cygwin
+  dnl malloc, the Cygwin posix_memalign always returns ENOSYS.  A
+  dnl workaround is to set G_SLICE=always-malloc.  This is no longer
+  dnl needed starting with cygwin-1.7.24, and it is no longer
+  dnl effective starting with glib-2.36. */
   cygwin)
     AC_DEFINE(G_SLICE_ALWAYS_MALLOC, 1, [Define to set the
-      G_SLICE environment variable to "always-malloc" at startup, if
-      using GTK.])
+      G_SLICE environment variable to "always-malloc" at startup.])
     ;;
 
   hpux11)
@@ -4358,7 +4448,7 @@ AC_SUBST(lisppath)
 AC_SUBST(x_default_search_path)
 AC_SUBST(etcdir)
 AC_SUBST(archlibdir)
-AC_SUBST(docdir)
+AC_SUBST(etcdocdir)
 AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)
 AC_SUBST(gameuser)
@@ -4385,8 +4475,6 @@ fi
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
-dnl Replace any embedded " characters (bug#13274).
-emacs_config_options=`echo "$emacs_config_options " | sed -e 's/--no-create //' -e 's/--no-recursion //' -e 's/ *$//' -e "s/\"/'/g"`
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${emacs_config_options}",
 		   [Define to the options passed to configure.])
 AH_TEMPLATE(config_opsysfile, [Some platforms that do not use configure
@@ -4746,6 +4834,8 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
 
+echo "  Does Emacs support sound?                               ${HAVE_SOUND}"
+
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
@@ -4760,6 +4850,7 @@ echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
 echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
 echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+echo "  Does Emacs directly use zlib?                           ${HAVE_ZLIB}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
@@ -4806,10 +4897,13 @@ if test "$HAVE_NS" = "yes"; then
   if test "$NS_IMPL_GNUSTEP" = yes; then
     AC_CONFIG_FILES([nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in \
       nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in])
+    ns_check_file=Resources/Info-gnustep.plist
   else
     AC_CONFIG_FILES([nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in \
       nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in])
+    ns_check_file=Contents/Info.plist
   fi
+  AC_SUBST(ns_check_file)
 fi
 
 dnl Obviously there is duplication here wrt $SUBDIR_MAKEFILES.
@@ -4851,13 +4945,6 @@ SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e
 
 AC_SUBST(SUBDIR_MAKEFILES_IN)
 
-dnl Make the necessary directories, if they don't exist.
-AC_CONFIG_COMMANDS([mkdirs], [
-for dir in etc lisp ; do
-  test -d ${dir} || mkdir ${dir}
-done
-])
-
 dnl You might wonder (I did) why epaths.h is generated by running make,
 dnl rather than just letting configure generate it from epaths.in.
 dnl One reason is that the various paths are not fully expanded (see above);
@@ -4866,8 +4953,7 @@ dnl Secondly, the GNU Coding standards require that one should be able
 dnl to run `make prefix=/some/where/else' and override the values set
 dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
-AC_CONFIG_COMMANDS([epaths], [
-echo creating src/epaths.h
+AC_CONFIG_COMMANDS([src/epaths.h], [
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
 else
@@ -4875,9 +4961,8 @@ else
 fi
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
-AC_CONFIG_COMMANDS([gdbinit], [
+AC_CONFIG_COMMANDS([src/.gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo creating src/.gdbinit
   echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])

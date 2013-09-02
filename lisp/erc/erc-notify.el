@@ -1,4 +1,4 @@
-;;; erc-notify.el --- Online status change notification
+;;; erc-notify.el --- Online status change notification  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
@@ -115,27 +115,28 @@ changes."
 		erc-notify-interval))
     (erc-once-with-server-event
      303
-     '(let* ((server (erc-response.sender parsed))
-	     (ison-list (delete "" (split-string
-				    (erc-response.contents parsed))))
-	     (new-list ison-list)
-	     (old-list (erc-with-server-buffer erc-last-ison)))
-	(while new-list
-	  (when (not (erc-member-ignore-case (car new-list) old-list))
-	    (run-hook-with-args 'erc-notify-signon-hook server (car new-list))
-	    (erc-display-message
-	     parsed 'notice proc
-	     'notify_on ?n (car new-list) ?m (erc-network-name)))
-	  (setq new-list (cdr new-list)))
-	(while old-list
-	  (when (not (erc-member-ignore-case (car old-list) ison-list))
-	    (run-hook-with-args 'erc-notify-signoff-hook server (car old-list))
-	    (erc-display-message
-	     parsed 'notice proc
-	     'notify_off ?n (car old-list) ?m (erc-network-name)))
-	  (setq old-list (cdr old-list)))
-	(setq erc-last-ison ison-list)
-	t))
+     (lambda (proc parsed)
+       (let* ((server (erc-response.sender parsed))
+	      (ison-list (delete "" (split-string
+				     (erc-response.contents parsed))))
+	      (new-list ison-list)
+	      (old-list (erc-with-server-buffer erc-last-ison)))
+	 (while new-list
+	   (when (not (erc-member-ignore-case (car new-list) old-list))
+	     (run-hook-with-args 'erc-notify-signon-hook server (car new-list))
+	     (erc-display-message
+	      parsed 'notice proc
+	      'notify_on ?n (car new-list) ?m (erc-network-name)))
+	   (setq new-list (cdr new-list)))
+	 (while old-list
+	   (when (not (erc-member-ignore-case (car old-list) ison-list))
+	     (run-hook-with-args 'erc-notify-signoff-hook server (car old-list))
+	     (erc-display-message
+	      parsed 'notice proc
+	      'notify_off ?n (car old-list) ?m (erc-network-name)))
+	   (setq old-list (cdr old-list)))
+	 (setq erc-last-ison ison-list)
+	 t)))
     (erc-server-send
      (concat "ISON " (mapconcat 'identity erc-notify-list " ")))
     (setq erc-last-ison-time now)))
@@ -179,10 +180,11 @@ nick from `erc-last-ison' to prevent any further notifications."
   (let ((nick (erc-extract-nick (erc-response.sender parsed))))
     (when (and (erc-member-ignore-case nick erc-notify-list)
 	       (erc-member-ignore-case nick erc-last-ison))
-      (setq erc-last-ison (erc-delete-if `(lambda (el)
-					    (string= ,(erc-downcase nick)
-						     (erc-downcase el)))
-					 erc-last-ison))
+      (setq erc-last-ison (erc-delete-if
+			   (let ((nick-down (erc-downcase nick)))
+			     (lambda (el)
+			       (string= nick-down (erc-downcase el))))
+			   erc-last-ison))
       (run-hook-with-args 'erc-notify-signoff-hook
 			  (or erc-server-announced-name erc-session-server)
 			  nick)

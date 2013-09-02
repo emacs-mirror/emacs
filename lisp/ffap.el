@@ -459,7 +459,8 @@ Returned values:
 	   (let ((mesg (car (cdr error))))
 	     (cond
 	      ;; v18:
-	      ((string-match "^Unknown host" mesg) nil)
+	      ((string-match "\\(^Unknown host\\|Name or service not known$\\)"
+			     mesg) nil)
 	      ((string-match "not responding$" mesg) mesg)
 	      ;; v19:
 	      ;; (file-error "connection failed" "permission denied"
@@ -1072,7 +1073,7 @@ Assumes the buffer has not changed."
     (or (and (eq major-mode 'w3-mode) ; In a w3 buffer button?
 	     (w3-view-this-url t))
 	(let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
-	      (thing-at-point-default-mail-scheme ffap-foo-at-bar-prefix))
+	      (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix))
 	  (thing-at-point-url-at-point t
 				       (if (use-region-p)
 					   (cons (region-beginning)
@@ -1735,7 +1736,7 @@ Only intended for interactive use."
   ;; Preserve selected buffer, but do not do save-window-excursion,
   ;; since we want to see any window created by the form.  Temporarily
   ;; select the article buffer, so we can see any point movement.
-  (let ((sb (window-buffer (selected-window))))
+  (let ((sb (window-buffer)))
     (gnus-configure-windows 'article)
     (pop-to-buffer gnus-article-buffer)
     (widen)

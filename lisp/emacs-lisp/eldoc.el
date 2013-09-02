@@ -185,6 +185,7 @@ expression point is on."
 	(add-hook 'post-self-insert-hook prn-info nil t)
       (remove-hook 'post-self-insert-hook prn-info t))))
 
+;; FIXME: This changes Emacs's behavior when the file is loaded!
 (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-post-insert-mode)
 
 ;;;###autoload
@@ -487,11 +488,11 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 (defun eldoc-beginning-of-sexp ()
   (let ((parse-sexp-ignore-comments t)
 	(num-skipped-sexps 0))
-    (condition-case err
+    (condition-case _
 	(progn
 	  ;; First account for the case the point is directly over a
 	  ;; beginning of a nested sexp.
-	  (condition-case err
+	  (condition-case _
 	      (let ((p (point)))
 		(forward-sexp -1)
 		(forward-sexp 1)
@@ -518,7 +519,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   (let ((defn (and (fboundp fsym)
                    (symbol-function fsym))))
     (and (symbolp defn)
-         (condition-case err
+         (condition-case _
              (setq defn (indirect-function fsym))
            (error (setq defn nil))))
     defn))

@@ -61,6 +61,9 @@ General steps (for each step, check for possible errors):
 5.   autoreconf -i -I m4 --force
      make bootstrap
 
+     make -C etc/refcards
+     make -C etc/refcards clean
+
 6.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
     Commit etc/AUTHORS, lisp/ldefs-boot.el, and the files changed
@@ -144,6 +147,8 @@ General steps (for each step, check for possible errors):
     Download them and check the signatures.  Check they build.
 
 12. For a pretest, announce it on emacs-devel and info-gnu-emacs@gnu.org.
+    Probably should also include the platform-testers list:
+    https://lists.gnu.org/mailman/listinfo/platform-testers
     For a release, also announce it on info-gnu@gnu.org.  (Probably
     bcc the info- addresses to make it less likely that people will
     followup on those lists.)

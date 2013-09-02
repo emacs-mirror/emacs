@@ -756,8 +756,7 @@ read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
 void
 xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
 {
-  int check_window_p = 0;
-  int apply_settings = 0;
+  bool check_window_p = 0, apply_settings_p = 0;
 
   switch (event->type)
     {
@@ -777,7 +776,7 @@ xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
       if (event->xproperty.window == dpyinfo->xsettings_window
           && event->xproperty.state == PropertyNewValue
           && event->xproperty.atom == dpyinfo->Xatom_xsettings_prop)
-        apply_settings = 1;
+        apply_settings_p = 1;
       break;
     }
 
@@ -787,10 +786,10 @@ xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
       dpyinfo->xsettings_window = None;
       get_prop_window (dpyinfo);
       if (dpyinfo->xsettings_window != None)
-        apply_settings = 1;
+        apply_settings_p = 1;
     }
 
-  if (apply_settings)
+  if (apply_settings_p)
     read_and_apply_settings (dpyinfo, True);
 }
 

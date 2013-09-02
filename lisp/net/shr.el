@@ -59,7 +59,7 @@ fit these criteria."
   "Character used to draw horizontal table lines.
 If nil, don't draw horizontal table lines."
   :group 'shr
-  :type 'character)
+  :type '(choice (const nil) character))
 
 (defcustom shr-table-vertical-line ?\s
   "Character used to draw vertical table lines."
@@ -143,7 +143,7 @@ cid: URL as the argument.")
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
     (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'shr-mouse-browse-url)
+    (define-key map [mouse-2] 'shr-browse-url)
     (define-key map "I" 'shr-insert-image)
     (define-key map "w" 'shr-copy-url)
     (define-key map "u" 'shr-copy-url)
@@ -664,10 +664,11 @@ size, and full-buffer size."
   (mouse-set-point ev)
   (shr-browse-url))
 
-(defun shr-browse-url (&optional external)
+(defun shr-browse-url (&optional external mouse-event)
   "Browse the URL under point.
 If EXTERNAL, browse the URL using `shr-external-browser'."
-  (interactive "P")
+  (interactive (list current-prefix-arg last-nonmenu-event))
+  (mouse-set-point mouse-event)
   (let ((url (get-text-property (point) 'shr-url)))
     (cond
      ((not url)
@@ -704,7 +705,7 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
       (url-store-in-cache image-buffer)
       (when (or (search-forward "\n\n" nil t)
 		(search-forward "\r\n\r\n" nil t))
-	(let ((data (buffer-substring (point) (point-max))))
+	(let ((data (shr-parse-image-data)))
 	  (with-current-buffer buffer
 	    (save-excursion
 	      (let ((alt (buffer-substring start end))
@@ -731,20 +732,28 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
 	(setq payload (base64-decode-string payload)))
       payload)))
 
-(defun shr-put-image (data alt &optional flags)
-  "Put image DATA with a string ALT.  Return image."
+(defun shr-put-image (spec alt &optional flags)
+  "Insert image SPEC with a string ALT.  Return image.
+SPEC is either an image data blob, or a list where the first
+element is the data blob and the second element is the content-type."
   (if (display-graphic-p)
       (let* ((size (cdr (assq 'size flags)))
+	     (data (if (consp spec)
+		       (car spec)
+		     spec))
+	     (content-type (and (consp spec)
+				(cadr spec)))
 	     (start (point))
 	     (image (cond
 		     ((eq size 'original)
-		      (create-image data nil t :ascent 100))
+		      (create-image data nil t :ascent 100
+				    :format content-type))
 		     ((eq size 'full)
 		      (ignore-errors
-			(shr-rescale-image data t)))
+			(shr-rescale-image data t content-type)))
 		     (t
 		      (ignore-errors
-			(shr-rescale-image data))))))
+			(shr-rescale-image data nil content-type))))))
         (when image
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
@@ -766,11 +775,10 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
 	image)
     (insert alt)))
 
-(defun shr-rescale-image (data &optional force)
+(defun shr-rescale-image (data &optional force content-type)
   "Rescale DATA, if too big, to fit the current buffer.
 If FORCE, rescale the image anyway."
   (if (or (not (fboundp 'imagemagick-types))
-	  (eq (image-type-from-data data) 'gif)
 	  (not (get-buffer-window (current-buffer))))
       (create-image data nil t :ascent 100)
     (let ((edges (window-inside-pixel-edges
@@ -781,7 +789,8 @@ If FORCE, rescale the image anyway."
        :max-width (truncate (* shr-max-image-proportion
 			       (- (nth 2 edges) (nth 0 edges))))
        :max-height (truncate (* shr-max-image-proportion
-				(- (nth 3 edges) (nth 1 edges))))))))
+				(- (nth 3 edges) (nth 1 edges))))
+       :format content-type))))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))
@@ -798,7 +807,17 @@ Return a string with image data."
 	    t)
       (when (or (search-forward "\n\n" nil t)
 		(search-forward "\r\n\r\n" nil t))
-	(buffer-substring (point) (point-max))))))
+	(shr-parse-image-data)))))
+
+(defun shr-parse-image-data ()
+  (list
+   (buffer-substring (point) (point-max))
+   (save-excursion
+     (save-restriction
+       (narrow-to-region (point-min) (point))
+       (let ((content-type (mail-fetch-field "content-type")))
+	 (and content-type
+	      (intern content-type obarray)))))))
 
 (defun shr-image-displayer (content-function)
   "Return a function to display an image.
@@ -832,6 +851,8 @@ START, and END.  Note that START and END should be markers."
    start (point)
    (list 'shr-url url
 	 'help-echo (if title (format "%s (%s)" url title) url)
+	 'follow-link t
+	 'mouse-face 'highlight
 	 'keymap shr-map)))
 
 (defun shr-encode-url (url)
@@ -1485,7 +1506,11 @@ ones, in case fg and bg are nil."
 		      10))
 	      (when (and fill
 			 (setq colspan (cdr (assq :colspan (cdr column)))))
-		(setq colspan (string-to-number colspan))
+		(setq colspan (min (string-to-number colspan)
+				   ;; The colspan may be wrong, so
+				   ;; truncate it to the length of the
+				   ;; remaining columns.
+				   (- (length widths) i)))
 		(dotimes (j (1- colspan))
 		  (if (> (+ i 1 j) (1- (length widths)))
 		      (setq width (aref widths (1- (length widths))))
@@ -1495,9 +1520,6 @@ ones, in case fg and bg are nil."
 		(setq width-column (+ width-column (1- colspan))))
 	      (when (or column
 			(not fill))
-		;; Sanity check for degenerate tables.
-		(when (zerop width)
-		  (setq width 10))
 		(push (shr-render-td (cdr column) width fill)
 		      tds))
 	      (setq i (1+ i)
@@ -1506,7 +1528,6 @@ ones, in case fg and bg are nil."
     (nreverse trs)))
 
 (defun shr-render-td (cont width fill)
-  (when (= width 0) (debug))
   (with-temp-buffer
     (let ((bgcolor (cdr (assq :bgcolor cont)))
 	  (fgcolor (cdr (assq :fgcolor cont)))

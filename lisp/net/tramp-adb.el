@@ -36,6 +36,8 @@
 (require 'tramp)
 (require 'time-date)
 
+;; Pacify byte-compiler.
+(defvar directory-sep-char)
 (defvar dired-move-to-filename-regexp)
 
 (defcustom tramp-adb-program "adb"
@@ -85,54 +87,74 @@
 	     (cons 'tramp-adb-file-name-p 'tramp-adb-file-name-handler))
 
 (defconst tramp-adb-file-name-handler-alist
-  '((directory-file-name . tramp-handle-directory-file-name)
-    (dired-uncache . tramp-handle-dired-uncache)
-    (file-name-as-directory . tramp-handle-file-name-as-directory)
-    (file-name-completion . tramp-handle-file-name-completion)
-    (file-name-all-completions . tramp-adb-handle-file-name-all-completions)
-    (file-attributes . tramp-adb-handle-file-attributes)
-    (file-name-directory . tramp-handle-file-name-directory)
-    (file-name-nondirectory . tramp-handle-file-name-nondirectory)
-    (file-truename . tramp-adb-handle-file-truename)
-    (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
-    (file-name-as-directory . tramp-handle-file-name-as-directory)
-    (file-regular-p . tramp-handle-file-regular-p)
-    (file-remote-p . tramp-handle-file-remote-p)
-    (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
-    (file-directory-p . tramp-adb-handle-file-directory-p)
-    (file-symlink-p . tramp-handle-file-symlink-p)
-    ;; FIXME: This is too sloppy.
-    (file-executable-p . tramp-handle-file-exists-p)
-    (file-exists-p . tramp-handle-file-exists-p)
-    (file-readable-p . tramp-handle-file-exists-p)
-    (file-writable-p . tramp-adb-handle-file-writable-p)
-    (file-local-copy . tramp-adb-handle-file-local-copy)
-    (file-modes . tramp-handle-file-modes)
-    (file-notify-add-watch . ignore)
-    (file-notify-rm-watch . ignore)
-    (file-notify-supported-p .  ignore)
-    (expand-file-name . tramp-adb-handle-expand-file-name)
-    (find-backup-file-name . tramp-handle-find-backup-file-name)
+  '((access-file . ignore)
+    (add-name-to-file . tramp-adb-handle-copy-file)
+    ;; `byte-compiler-base-file-name' performed by default handler.
+    ;; `copy-directory' performed by default handler.
+    (copy-file . tramp-adb-handle-copy-file)
+    (delete-directory . tramp-adb-handle-delete-directory)
+    (delete-file . tramp-adb-handle-delete-file)
+    ;; `diff-latest-backup-file' performed by default handler.
+    (directory-file-name . tramp-handle-directory-file-name)
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-adb-handle-directory-files-and-attributes)
-    (make-directory . tramp-adb-handle-make-directory)
-    (delete-directory . tramp-adb-handle-delete-directory)
-    (delete-file . tramp-adb-handle-delete-file)
-    (load . tramp-handle-load)
+    (dired-call-process . ignore)
+    (dired-compress-file . ignore)
+    (dired-uncache . tramp-handle-dired-uncache)
+    (expand-file-name . tramp-adb-handle-expand-file-name)
+    (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
+    (file-acl . ignore)
+    (file-attributes . tramp-adb-handle-file-attributes)
+    (file-directory-p . tramp-adb-handle-file-directory-p)
+    ;; `file-equal-p' performed by default handler.
+    ;; FIXME: This is too sloppy.
+    (file-executable-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-handle-file-exists-p)
+    ;; `file-in-directory-p' performed by default handler.
+    (file-local-copy . tramp-adb-handle-file-local-copy)
+    (file-modes . tramp-handle-file-modes)
+    (file-name-all-completions . tramp-adb-handle-file-name-all-completions)
+    (file-name-as-directory . tramp-handle-file-name-as-directory)
+    (file-name-completion . tramp-handle-file-name-completion)
+    (file-name-directory . tramp-handle-file-name-directory)
+    (file-name-nondirectory . tramp-handle-file-name-nondirectory)
+    ;; `file-name-sans-versions' performed by default handler.
+    (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
+    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-ownership-preserved-p . ignore)
+    (file-readable-p . tramp-handle-file-exists-p)
+    (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    (file-selinux-context . ignore)
+    (file-symlink-p . tramp-handle-file-symlink-p)
+    (file-truename . tramp-adb-handle-file-truename)
+    (file-writable-p . tramp-adb-handle-file-writable-p)
+    (find-backup-file-name . tramp-handle-find-backup-file-name)
+    ;; `find-file-noselect' performed by default handler.
+    ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-adb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
+    (load . tramp-handle-load)
+    ;; `make-auto-save-file-name' performed by default handler.
+    (make-directory . tramp-adb-handle-make-directory)
+    (make-directory-internal . ignore)
+    (make-symbolic-link . ignore)
+    (process-file . tramp-adb-handle-process-file)
+    (rename-file . tramp-adb-handle-rename-file)
+    (set-file-acl . ignore)
+    (set-file-modes . tramp-adb-handle-set-file-modes)
+    (set-file-selinux-context . ignore)
+    (set-file-times . tramp-adb-handle-set-file-times)
+    (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
+    (shell-command . tramp-adb-handle-shell-command)
+    (start-file-process . tramp-adb-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
-    (vc-registered . ignore)	;no  vc control files on Android devices
-    (write-region . tramp-adb-handle-write-region)
-    (set-file-modes . tramp-adb-handle-set-file-modes)
-    (set-file-times . tramp-adb-handle-set-file-times)
-    (copy-file . tramp-adb-handle-copy-file)
-    (rename-file . tramp-adb-handle-rename-file)
-    (process-file . tramp-adb-handle-process-file)
-    (shell-command . tramp-adb-handle-shell-command)
-    (start-file-process . tramp-adb-handle-start-file-process))
+    (vc-registered . ignore)
+    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
+    (write-region . tramp-adb-handle-write-region))
   "Alist of handler functions for Tramp ADB method.")
 
 ;; It must be a `defsubst' in order to push the whole code into
@@ -154,7 +176,7 @@ pass to the OPERATION."
       (tramp-run-real-handler operation args))))
 
 ;;;###tramp-autoload
-(defun tramp-adb-parse-device-names (ignore)
+(defun tramp-adb-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (with-timeout (10)
     (with-temp-buffer
@@ -204,7 +226,7 @@ pass to the OPERATION."
 
 ;; This is derived from `tramp-sh-handle-file-truename'.  Maybe the
 ;; code could be shared?
-(defun tramp-adb-handle-file-truename (filename &optional counter prev-dirs)
+(defun tramp-adb-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-truename"
@@ -396,7 +418,7 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
 			 switches))))))
 
 (defun tramp-adb-handle-insert-directory
-  (filename switches &optional wildcard full-directory-p)
+  (filename switches &optional _wildcard _full-directory-p)
   "Like `insert-directory' for Tramp files."
   (when (stringp switches)
     (setq switches (tramp-adb--gnu-switches-to-ash (split-string switches))))
@@ -498,7 +520,7 @@ Emacs dired can't find files."
 	       (tramp-shell-quote-argument localname))
      "Couldn't delete %s" directory)))
 
-(defun tramp-adb-handle-delete-file (filename &optional trash)
+(defun tramp-adb-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
@@ -600,6 +622,9 @@ But handle the case, if the \"test\" command is not available."
 	      (tramp-error v 'file-error "Cannot write: `%s' filename"))
 	  (delete-file tmpfile)))
 
+      (when (or (eq visit t) (stringp visit))
+	(set-visited-file-modtime))
+
       (unless (equal curbuf (current-buffer))
 	(tramp-error
 	 v 'file-error
@@ -628,7 +653,7 @@ But handle the case, if the \"test\" command is not available."
 
 (defun tramp-adb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-extended-attributes)
+	    _preserve-uid-gid _preserve-extended-attributes)
   "Like `copy-file' for Tramp files.
 PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)
@@ -849,7 +874,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(tramp-compat-user-error "Shell command in progress")))
+	(tramp-user-error p "Shell command in progress")))
 
     (if current-buffer-p
 	(progn
@@ -1067,6 +1092,8 @@ FMT and ARGS are passed to `error'."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  (tramp-check-proper-host vec)
+
   (let* ((buf (tramp-get-connection-buffer vec))
 	 (p (get-buffer-process buf))
 	 (host (tramp-file-name-host vec))

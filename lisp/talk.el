@@ -50,7 +50,7 @@ Each element has the form (DISPLAY FRAME BUFFER).")
   (let ((type (frame-live-p (selected-frame))))
     (if (or (eq type t) (eq type 'x))
 	(talk-add-display
-	 (terminal-name (frame-terminal (selected-frame))))
+	 (terminal-name (frame-terminal)))
       (error "Unknown frame type")))
   (talk-update-buffers))
 

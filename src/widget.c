@@ -503,26 +503,6 @@ widget_update_wm_size_hints (Widget widget)
   update_wm_hints (ew);
 }
 
-
-#if 0
-
-static void
-create_frame_gcs (EmacsFrame ew)
-{
-  struct frame *s = ew->emacs_frame.frame;
-
-  s->output_data.x->normal_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
-  s->output_data.x->reverse_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
-  s->output_data.x->cursor_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
-  s->output_data.x->black_relief.gc = 0;
-  s->output_data.x->white_relief.gc = 0;
-}
-
-#endif /* 0 */
-
 static char setup_frame_cursor_bits[] =
 {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -683,19 +663,7 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
 static void
 EmacsFrameDestroy (Widget widget)
 {
-  EmacsFrame ew = (EmacsFrame) widget;
-  struct frame* s = ew->emacs_frame.frame;
-
-  if (! s) emacs_abort ();
-  if (! s->output_data.x) emacs_abort ();
-
-  block_input ();
-  x_free_gcs (s);
-  if (s->output_data.x->white_relief.gc)
-    XFreeGC (XtDisplay (widget), s->output_data.x->white_relief.gc);
-  if (s->output_data.x->black_relief.gc)
-    XFreeGC (XtDisplay (widget), s->output_data.x->black_relief.gc);
-  unblock_input ();
+  /* All GCs are now freed in x_free_frame_resources.  */
 }
 
 static void
@@ -838,7 +806,7 @@ void
 widget_store_internal_border (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  FRAME_PTR f = ew->emacs_frame.frame;
+  struct frame *f = ew->emacs_frame.frame;
 
   ew->emacs_frame.internal_border_width = f->internal_border_width;
 }

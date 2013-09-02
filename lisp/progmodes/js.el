@@ -2244,11 +2244,8 @@ current buffer.  Pushes a mark onto the tag ring just like
 
 ;;; MozRepl integration
 
-(put 'js-moz-bad-rpc 'error-conditions '(error timeout))
-(put 'js-moz-bad-rpc 'error-message "Mozilla RPC Error")
-
-(put 'js-js-error 'error-conditions '(error js-error))
-(put 'js-js-error 'error-message "Javascript Error")
+(define-error 'js-moz-bad-rpc "Mozilla RPC Error") ;; '(timeout error))
+(define-error 'js-js-error "Javascript Error") ;; '(js-error error))
 
 (defun js--wait-for-matching-output
   (process regexp timeout &optional start)

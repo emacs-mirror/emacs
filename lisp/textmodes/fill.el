@@ -220,7 +220,7 @@ Remove indentation from each line."
   (let ((str (or
               (and adaptive-fill-function (funcall adaptive-fill-function))
               (and adaptive-fill-regexp (looking-at adaptive-fill-regexp)
-                   (match-string-no-properties 0)))))
+                   (match-string 0)))))
     (if (>= (+ (current-left-margin) (length str)) (current-fill-column))
         ;; Death to insanely long prefixes.
         nil

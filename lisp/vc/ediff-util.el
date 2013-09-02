@@ -537,7 +537,7 @@ to invocation.")
 ;; to reside.
 (defun ediff-setup-control-buffer (ctl-buf)
   "Set up window for control buffer."
-  (if (window-dedicated-p (selected-window))
+  (if (window-dedicated-p)
       (set-buffer ctl-buf) ; we are in control frame but just in case
     (switch-to-buffer ctl-buf))
   (let ((window-min-height 2))
@@ -1629,7 +1629,7 @@ the width of the A/B/C windows."
 	    (setq lines (1+ lines)))
 	  ;; And position the beginning on the right line
 	  (goto-char beg)
-	  (recenter (/ (1+ (max (- (1- (window-height (selected-window)))
+	  (recenter (/ (1+ (max (- (1- (window-height))
 				   lines)
 				1)
 			   )
@@ -2818,7 +2818,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   (with-output-to-temp-buffer ediff-msg-buffer
     (ediff-with-current-buffer standard-output
       (fundamental-mode))
-    (raise-frame (selected-frame))
+    (raise-frame)
     (princ (ediff-version))
     (princ "\n\n")
     (ediff-with-current-buffer ediff-buffer-A
@@ -3468,7 +3468,7 @@ Without an argument, it saves customized diff argument, if available
 	  (ediff-with-current-buffer buf
 	    (goto-char (point-min)))
 	  (switch-to-buffer buf)
-	  (raise-frame (selected-frame)))))
+	  (raise-frame))))
   (if (frame-live-p ediff-control-frame)
       (ediff-reset-mouse ediff-control-frame))
   (if (window-live-p ediff-control-window)

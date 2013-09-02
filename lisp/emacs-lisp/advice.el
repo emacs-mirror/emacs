@@ -2140,14 +2140,6 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Take a macro function DEFINITION and make a lambda out of it."
   `(cdr ,definition))
 
-(defmacro ad-subr-p (definition)
-  ;;"non-nil if DEFINITION is a subr."
-  (list 'subrp definition))
-
-(defmacro ad-macro-p (definition)
-  ;;"non-nil if DEFINITION is a macro."
-  `(eq (car-safe ,definition) 'macro))
-
 (defmacro ad-lambda-p (definition)
   ;;"non-nil if DEFINITION is a lambda expression."
   `(eq (car-safe ,definition) 'lambda))
@@ -2160,12 +2152,12 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
 (defmacro ad-compiled-p (definition)
   "Return non-nil if DEFINITION is a compiled byte-code object."
   `(or (byte-code-function-p ,definition)
-    (and (ad-macro-p ,definition)
-     (byte-code-function-p (ad-lambdafy ,definition)))))
+       (and (macrop ,definition)
+            (byte-code-function-p (ad-lambdafy ,definition)))))
 
 (defmacro ad-compiled-code (compiled-definition)
   "Return the byte-code object of a COMPILED-DEFINITION."
-  `(if (ad-macro-p ,compiled-definition)
+  `(if (macrop ,compiled-definition)
     (ad-lambdafy ,compiled-definition)
     ,compiled-definition))
 
@@ -2173,7 +2165,7 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Return the lambda expression of a function/macro/advice DEFINITION."
   (cond ((ad-lambda-p definition)
 	 definition)
-	((ad-macro-p definition)
+	((macrop definition)
 	 (ad-lambdafy definition))
 	((ad-advice-p definition)
 	 (cdr definition))
@@ -2183,7 +2175,7 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Return the argument list of DEFINITION."
   (require 'help-fns)
   (help-function-arglist
-   (if (or (ad-macro-p definition) (ad-advice-p definition))
+   (if (or (macrop definition) (ad-advice-p definition))
        (cdr definition)
      definition)
    'preserve-names))
@@ -2229,7 +2221,7 @@ definition (see the code for `documentation')."
 (defun ad-advised-definition-p (definition)
   "Return non-nil if DEFINITION was generated from advice information."
   (if (or (ad-lambda-p definition)
-	  (ad-macro-p definition)
+	  (macrop definition)
 	  (ad-compiled-p definition))
       (let ((docstring (ad-docstring definition)))
 	(and (stringp docstring)
@@ -2242,8 +2234,8 @@ definition (see the code for `documentation')."
   ;; representations, so cache entries preactivated with version
   ;; 1 can't be used.
   (cond
-   ((ad-macro-p definition) 'macro2)
-   ((ad-subr-p definition) 'subr2)
+   ((macrop definition) 'macro2)
+   ((subrp definition) 'subr2)
    ((or (ad-lambda-p definition) (ad-compiled-p definition)) 'fun2)
    ((ad-advice-p definition) 'advice2))) ;; FIXME: Can this ever happen?
 
@@ -2273,14 +2265,13 @@ For that it has to be fbound with a non-autoload definition."
   "True if FUNCTION has an interpreted definition that can be compiled."
   (and (ad-has-proper-definition function)
        (or (ad-lambda-p (symbol-function function))
-	   (ad-macro-p (symbol-function function)))
+	   (macrop (symbol-function function)))
        (not (ad-compiled-p (symbol-function function)))))
 
 (defvar warning-suppress-types)         ;From warnings.el.
 (defun ad-compile-function (function)
   "Byte-compile the assembled advice function."
   (require 'bytecomp)
-  (require 'warnings)  ;To define warning-suppress-types before we let-bind it.
   (let ((byte-compile-warnings byte-compile-warnings)
         ;; Don't pop up windows showing byte-compiler warnings.
         (warning-suppress-types '((bytecomp))))
@@ -2903,7 +2894,7 @@ If COMPILE is nil then the result depends on the value of
    ((eq ad-default-compilation-action 'never) nil)
    ((eq ad-default-compilation-action 'always) t)
    ((eq ad-default-compilation-action 'like-original)
-    (or (ad-subr-p (ad-get-orig-definition function))
+    (or (subrp (ad-get-orig-definition function))
         (ad-compiled-p (ad-get-orig-definition function))))
    ;; everything else means `maybe':
    (t (featurep 'byte-compile))))
@@ -3250,7 +3241,7 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
              `((ad-set-cache
                 ',function
                 ;; the function will get compiled:
-                ,(cond ((ad-macro-p (car preactivation))
+                ,(cond ((macrop (car preactivation))
                         `(ad-macrofy
                           (function
                            ,(ad-lambdafy

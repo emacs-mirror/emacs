@@ -7497,7 +7497,7 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 	  /* We found a composition.  Store the corresponding
 	     annotation data in BUF.  */
 	  int *head = buf;
-	  enum composition_method method = COMPOSITION_METHOD (prop);
+	  enum composition_method method = composition_method (prop);
 	  int nchars = COMPOSITION_LENGTH (prop);
 
 	  ADD_COMPOSITION_DATA (buf, nchars, 0, method);
@@ -10813,11 +10813,6 @@ syms_of_coding (void)
 	listn (CONSTYPE_PURE, 2, Qcoding_system_error, Qerror));
   Fput (Qcoding_system_error, Qerror_message,
 	build_pure_c_string ("Invalid coding system"));
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   DEFSYM (Qtranslation_table, "translation-table");
   Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));

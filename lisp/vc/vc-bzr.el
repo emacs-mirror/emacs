@@ -651,6 +651,26 @@ REV non-nil gets an error."
           (vc-bzr-command "cat" t 0 file "-r" rev)
         (vc-bzr-command "cat" t 0 file))))
 
+(defun vc-bzr-ignore (file &optional directory remove)
+  "Ignore FILE under Bazaar.
+If DIRECTORY is non-nil, the repository to use will be deduced by
+DIRECTORY; if REMOVE is non-nil, remove FILE from ignored files."
+  (if remove
+      (if directory
+	  (vc--remove-regexp file (vc-bzr-find-ignore-file directory))
+	(vc--remove-regexp file
+			   (vc-bzr-find-ignore-file default-directory)))
+    (vc-bzr-command "ignore" t 0 file)))
+
+(defun vc-bzr-ignore-completion-table (file)
+  "Return the list of ignored files."
+  (vc--read-lines (vc-bzr-find-ignore-file file)))
+
+(defun vc-bzr-find-ignore-file (file)
+  "Return the root directory of the repository of FILE."
+  (expand-file-name ".bzrignore"
+		    (vc-bzr-root file)))
+
 (defun vc-bzr-checkout (_file &optional _editable rev)
   (if rev (error "Operation not supported")
     ;; Else, there's nothing to do.

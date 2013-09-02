@@ -141,13 +141,13 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
     XSETFASTINT (widthtab->contents[i], character_width (i, disptab));
 }
 
-/* Allocate or free the width run cache, as requested by the current
-   state of current_buffer's cache_long_line_scans variable.  */
+/* Allocate or free the width run cache, as requested by the
+   current state of current_buffer's cache_long_scans variable.  */
 
 static void
 width_run_cache_on_off (void)
 {
-  if (NILP (BVAR (current_buffer, cache_long_line_scans))
+  if (NILP (BVAR (current_buffer, cache_long_scans))
       /* And, for the moment, this feature doesn't work on multibyte
          characters.  */
       || !NILP (BVAR (current_buffer, enable_multibyte_characters)))
@@ -510,15 +510,10 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
   register ptrdiff_t col = 0, prev_col = 0;
   EMACS_INT goal = goalcol ? *goalcol : MOST_POSITIVE_FIXNUM;
   ptrdiff_t end = endpos ? *endpos : PT;
-  ptrdiff_t scan, scan_byte;
-  ptrdiff_t next_boundary;
-  {
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
-  scan = PT, scan_byte = PT_BYTE;
-  SET_PT_BOTH (opoint, opoint_byte);
+  ptrdiff_t scan, scan_byte, next_boundary;
+
+  scan = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &scan_byte, 1);
   next_boundary = scan;
-  }
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
@@ -835,14 +830,10 @@ This is the horizontal position of the character
 following any initial whitespace.  */)
   (void)
 {
-  Lisp_Object val;
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
+  ptrdiff_t posbyte;
 
-  scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
-
-  XSETFASTINT (val, position_indentation (PT_BYTE));
-  SET_PT_BOTH (opoint, opoint_byte);
-  return val;
+  find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &posbyte, 1);
+  return make_number (position_indentation (posbyte));
 }
 
 static ptrdiff_t
@@ -935,16 +926,13 @@ position_indentation (ptrdiff_t pos_byte)
 bool
 indented_beyond_p (ptrdiff_t pos, ptrdiff_t pos_byte, EMACS_INT column)
 {
-  ptrdiff_t val;
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-
-  SET_PT_BOTH (pos, pos_byte);
-  while (PT > BEGV && FETCH_BYTE (PT_BYTE) == '\n')
-    scan_newline (PT - 1, PT_BYTE - 1, BEGV, BEGV_BYTE, -1, 0);
-
-  val = position_indentation (PT_BYTE);
-  SET_PT_BOTH (opoint, opoint_byte);
-  return val >= column;
+  while (pos > BEGV && FETCH_BYTE (pos_byte) == '\n')
+    {
+      DEC_BOTH (pos, pos_byte);
+      pos = find_newline (pos, pos_byte, BEGV, BEGV_BYTE,
+			  -1, NULL, &pos_byte, 0);
+    }
+  return position_indentation (pos_byte) >= column;
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2,

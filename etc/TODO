@@ -76,7 +76,8 @@ to use it.
 ** Convert all defvars with leading `*' in the doc-strings into defcustoms
 of appropriate :type and :group.
 
-** Remove any leading `*'s from defcustom doc-strings.  [done?]
+** Remove any leading `*'s from defcustom doc-strings.
+[done?] [A lot of them are in CC Mode.]
 
 ** Remove unnecessary autoload cookies from defcustoms.
 This needs a bit of care, since often people have become used to
@@ -176,6 +177,15 @@ where <device> is the network device found under the first key.
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
+*** Related functions:
+**** gnus-bug
+**** report-calc-bug
+**** org-submit-bug-report
+**** lm-report-bug
+**** tramp-bug
+**** c-submit-bug-report
+**** ffap-bug and ffap-submit-bug (obsoleted)
+[Do all of them need changing?]
 
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 

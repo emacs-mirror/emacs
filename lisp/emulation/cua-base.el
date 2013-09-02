@@ -1298,7 +1298,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 			     (mark t) (point) cua--explicit-region-start))))
 
   ;; Disable transient-mark-mode if rectangle active in current buffer.
-  (if (not (window-minibuffer-p (selected-window)))
+  (if (not (window-minibuffer-p))
       (setq transient-mark-mode (and (not cua--rectangle)
 				     (if cua-highlight-region-shift-only
 					 (not cua--explicit-region-start)

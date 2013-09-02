@@ -34,7 +34,8 @@ terminal and the screen.
 * X11 Keysyms::         Operating on key symbols for X Windows.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
-* Notifications::       Desktop notifications.
+* Desktop Notifications:: Desktop notifications.
+* File Notifications::  File notifications.
 * Dynamic Libraries::   On-demand loading of support libraries.
 @end menu
 
@@ -2270,7 +2271,7 @@ Emacs is restarted by the session manager.
 @end group
 @end example
 
-@node Notifications
+@node Desktop Notifications
 @section Desktop Notifications
 @cindex desktop notifications
 
@@ -2510,6 +2511,156 @@ If @var{SPEC_VERSION} is @code{nil}, the server supports a
 specification prior to @samp{"1.0"}.
 @end defun
 
+@node File Notifications
+@section Notifications on File Changes
+@cindex file notifications
+
+Several operating systems support watching of filesystems for changes
+of files.  If configured properly, Emacs links a respective library
+like @file{gfilenotify}, @file{inotify}, or  @file{w32notify}
+statically.  These libraries enable watching of filesystems on the
+local machine.
+
+It is also possible to watch filesystems on remote machines,
+@pxref{Remote Files,, Remote Files, emacs, The GNU Emacs Manual}
+This does not depend on one of the libraries linked to Emacs.
+
+Since all these libraries emit different events on notified file
+changes, there is the Emacs library @code{filenotify} which provides a
+unique interface.
+
+@defun file-notify-add-watch file flags callback
+Add a watch for filesystem events pertaining to @var{file}.  This
+arranges for filesystem events pertaining to @var{file} to be reported
+to Emacs.
+
+The returned value is a descriptor for the added watch.  Its type
+depends on the underlying library, it cannot be assumed to be an
+integer as in the example below.  It should be used for comparison by
+@code{equal} only.
+
+If the @var{file} cannot be watched for some reason, this function
+signals a @code{file-notify-error} error.
+
+Sometimes, mounted filesystems cannot be watched for file changes.
+This is not detected by this function, a non-@code{nil} return value
+does not guarantee that changes on @var{file} will be notified.
+
+@var{flags} is a list of conditions to set what will be watched for.
+It can include the following symbols:
+
+@table @code
+@item change
+watch for file changes
+@item attribute-change
+watch for file attribute changes, like permissions or modification
+time
+@end table
+
+If @var{file} is a directory, changes for all files in that directory
+will be notified.  This does not work recursively.
+
+When any event happens, Emacs will call the @var{callback} function
+passing it a single argument @var{event}, which is of the form
+
+@lisp
+(@var{descriptor} @var{action} @var{file} [@var{file1}])
+@end lisp
+
+@var{descriptor} is the same object as the one returned by this
+function.  @var{action} is the description of the event.  It could be
+any one of the following symbols:
+
+@table @code
+@item created
+@var{file} was created
+@item deleted
+@var{file} was deleted
+@item changed
+@var{file} has changed
+@item renamed
+@var{file} has been renamed to @var{file1}
+@item attribute-changed
+a @var{file} attribute was changed
+@end table
+
+@var{file} and @var{file1} are the name of the file(s) whose event is
+being reported.  For example:
+
+@example
+@group
+(require 'filenotify)
+     @result{} filenotify
+@end group
+
+@group
+(defun my-notify-callback (event)
+  (message "Event %S" event))
+     @result{} my-notify-callback
+@end group
+
+@group
+(file-notify-add-watch
+  "/tmp" '(change attribute-change) 'my-notify-callback)
+     @result{} 35025468
+@end group
+
+@group
+(write-region "foo" nil "/tmp/foo")
+     @result{} Event (35025468 created "/tmp/.#foo")
+        Event (35025468 created "/tmp/foo")
+        Event (35025468 changed "/tmp/foo")
+        Event (35025468 deleted "/tmp/.#foo")
+@end group
+
+@group
+(write-region "bla" nil "/tmp/foo")
+     @result{} Event (35025468 created "/tmp/.#foo")
+        Event (35025468 changed "/tmp/foo") [2 times]
+        Event (35025468 deleted "/tmp/.#foo")
+@end group
+
+@group
+(set-file-modes "/tmp/foo" (default-file-modes))
+     @result{} Event (35025468 attribute-changed "/tmp/foo")
+@end group
+@end example
+
+Whether the action @code{renamed} is returned, depends on the used
+watch library.  It can be expected, when a directory is watched, and
+both @var{file} and @var{file1} belong to this directory.  Otherwise,
+the actions @code{deleted} and @code{created} could be returned in a
+random order.
+
+@example
+@group
+(rename-file "/tmp/foo" "/tmp/bla")
+     @result{} Event (35025468 renamed "/tmp/foo" "/tmp/bla")
+@end group
+
+@group
+(file-notify-add-watch
+  "/var/tmp" '(change attribute-change) 'my-notify-callback)
+     @result{} 35025504
+@end group
+
+@group
+(rename-file "/tmp/bla" "/var/tmp/bla")
+     @result{} ;; gfilenotify
+        Event (35025468 renamed "/tmp/bla" "/var/tmp/bla")
+
+     @result{} ;; inotify
+        Event (35025504 created "/var/tmp/bla")
+        Event (35025468 deleted "/tmp/bla")
+@end group
+@end example
+@end defun
+
+@defun file-notify-rm-watch descriptor
+Removes an existing file watch specified by its @var{descriptor}.
+@var{descriptor} should be an object returned by
+@code{file-notify-add-watch}.
+@end defun
 
 @node Dynamic Libraries
 @section Dynamically Loaded Libraries

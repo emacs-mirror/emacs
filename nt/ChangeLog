@@ -1,3 +1,29 @@
+2013-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Rename from INSTALL.MSYS.
+	* INSTALL.OLD: Rename from INSTALL.
+	* configure.bat: Update for INSTALL name changes.
+
+2013-08-25  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* configure.bat: Rather than disabling, make configure.bat produce
+	some warning that building with configure.bat is deprecated and
+	ask for confirmation to continue.
+
+2013-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Refer to INSTALL.MSYS.
+	* configure.bat: Disable it.
+
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (ac_cv_func_mkostemp): New var with value of "yes".
+
+	* inc/ms-w32.h (mkostemp): Declare prototype.
+	(mktemp): Don't redirect to sys_mktemp.
+
+	* config.nt (HAVE_MKOSTEMP): Define to 1.  (Bug#15015)
+
 2013-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)

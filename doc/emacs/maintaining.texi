@@ -1,4 +1,4 @@
-@c This is part of the Emacs manual.
+@c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
@@ -56,6 +56,7 @@ variable @code{vc-handled-backends} to @code{nil}
 * Old Revisions::       Examining and comparing old versions.
 * VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after committing.
+* VC Ignore::           Ignore files under version control system.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
 @ifnottex
@@ -1032,6 +1033,23 @@ unlocked; you must lock again to resume editing.  You can also use
 @kbd{C-x v u} to unlock a file if you lock it and then decide not to
 change it.
 
+@node VC Ignore
+@subsection Ignore Version Control Files
+
+@table @kbd
+@item C-x v G
+Ignore a file under current version control system.  (@code{vc-ignore}).
+@end table
+
+@kindex C-x v G
+@findex vc-ignore
+  Many source trees contain some files that do not need to be versioned,
+such as editor backups, object or bytecode files, and built programs.
+You can simply not add them, but then they’ll always crop up as
+unknown files.  You can also tell the version control system to ignore
+these files by adding them to the ignore file at the top of the tree.
+@kbd{C-x v G} (@code{vc-ignore}) can help you do this.
+
 @node VC Directory Mode
 @subsection VC Directory Mode
 
@@ -1222,7 +1240,7 @@ Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
 
   The VC Directory buffer also defines some single-key shortcuts for
 VC commands with the @kbd{C-x v} prefix: @kbd{=}, @kbd{+}, @kbd{l},
-@kbd{i}, and @kbd{v}.
+@kbd{i}, @kbd{D}, @kbd{L}, @kbd{G} and @kbd{v}.
 
   For example, you can commit a set of edited files by opening a VC
 Directory buffer, where the files are listed with the @samp{edited}

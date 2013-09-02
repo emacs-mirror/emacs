@@ -53,15 +53,15 @@ does that automatically."
 May either be a string or a list of strings.")
 
 (put 'epa-file-encrypt-to 'safe-local-variable
-     (lambda (val)
-       (or (stringp val)
-	   (and (listp val)
-		(catch 'safe
-		  (mapc (lambda (elt)
-			  (unless (stringp elt)
-			    (throw 'safe nil)))
-			val)
-		  t)))))
+     #'(lambda (val)
+	 (or (stringp val)
+	     (and (listp val)
+		  (catch 'safe
+		    (mapc (lambda (elt)
+			    (unless (stringp elt)
+			      (throw 'safe nil)))
+			  val)
+		    t)))))
 
 (put 'epa-file-encrypt-to 'permanent-local t)
 

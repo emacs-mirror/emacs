@@ -1,4 +1,4 @@
-;;; dframe --- dedicate frame support modes
+;;; dframe --- dedicate frame support modes  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
@@ -259,9 +259,15 @@ This buffer will have `dframe-frame-mode' run on it.
 FRAME-NAME is the name of the frame to create.
 LOCAL-MODE-FN is the function used to call this one.
 PARAMETERS are frame parameters to apply to this dframe.
-DELETE-HOOK are hooks to run when deleting a frame.
-POPUP-HOOK are hooks to run before showing a frame.
-CREATE-HOOK are hooks to run after creating a frame."
+DELETE-HOOK is a hook to run when deleting a frame.
+POPUP-HOOK is a hook to run before showing a frame.
+CREATE-HOOK is a hook to run after creating a frame."
+  (let ((conv-hook (lambda (val)
+                     (let ((sym (make-symbol "hook")))
+                       (set sym val) sym))))
+    (if (consp delete-hook) (setq delete-hook (funcall conv-hook delete-hook)))
+    (if (consp create-hook) (setq create-hook (funcall conv-hook create-hook)))
+    (if (consp popup-hook)  (setq popup-hook  (funcall conv-hook popup-hook))))
   ;; toggle frame on and off.
   (if (not arg) (if (dframe-live-p (symbol-value frame-var))
 		    (setq arg -1) (setq arg 1)))
@@ -270,7 +276,7 @@ CREATE-HOOK are hooks to run after creating a frame."
   ;; turn the frame off on neg number
   (if (and (numberp arg) (< arg 0))
       (progn
-	(run-hooks 'delete-hook)
+	(run-hooks delete-hook)
 	(if (and (symbol-value frame-var)
 		 (frame-live-p (symbol-value frame-var)))
 	    (progn
@@ -279,7 +285,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 	(set frame-var nil))
     ;; Set this as our currently attached frame
     (setq dframe-attached-frame (selected-frame))
-    (run-hooks 'popup-hook)
+    (run-hooks popup-hook)
     ;; Updated the buffer passed in to contain all the hacks needed
     ;; to make it work well in a dedicated window.
     (with-current-buffer (symbol-value buffer-var)
@@ -331,15 +337,15 @@ CREATE-HOOK are hooks to run after creating a frame."
       (setq temp-buffer-show-function 'dframe-temp-buffer-show-function)
       ;; If this buffer is killed, we must make sure that we destroy
       ;; the frame the dedicated window is in.
-      (add-hook 'kill-buffer-hook `(lambda ()
-				     (let ((skilling (boundp 'skilling)))
-				       (if skilling
-					   nil
-					 (if dframe-controlled
-					     (progn
-					       (funcall dframe-controlled -1)
-					       (setq ,buffer-var nil)
-					       )))))
+      (add-hook 'kill-buffer-hook (lambda ()
+                                    (let ((skilling (boundp 'skilling)))
+                                      (if skilling
+                                          nil
+                                        (if dframe-controlled
+                                            (progn
+                                              (funcall dframe-controlled -1)
+                                              (set buffer-var nil)
+                                              )))))
 		t t)
       )
     ;; Get the frame to work in
@@ -396,7 +402,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 	  (switch-to-buffer (symbol-value buffer-var))
 	  (set-window-dedicated-p (selected-window) t))
 	;; Run hooks (like reposition)
-	(run-hooks 'create-hook)
+	(run-hooks create-hook)
 	;; Frame name
 	(if (and (or (null window-system) (eq window-system 'pc))
 		 (fboundp 'set-frame-name))
@@ -602,7 +608,7 @@ Argument E is the event deleting the frame."
 If the selected frame is not in the symbol FRAME-VAR, then FRAME-VAR
 frame is selected.  If the FRAME-VAR is active, then select the
 attached frame.  If FRAME-VAR is nil, ACTIVATOR is called to
-created it.  HOOK is an optional argument of hooks to run when
+created it.  HOOK is an optional hook to run when
 selecting FRAME-VAR."
   (interactive)
   (if (eq (selected-frame) (symbol-value frame-var))
@@ -616,7 +622,7 @@ selecting FRAME-VAR."
     )
   (other-frame 0)
   ;; If updates are off, then refresh the frame (they want it now...)
-  (run-hooks 'hook))
+  (run-hooks hook))
 
 
 (defun dframe-close-frame ()

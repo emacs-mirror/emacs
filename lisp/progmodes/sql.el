@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
-;; Version: 3.2
+;; Version: 3.3
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/projects/emacs/
 
@@ -233,6 +233,7 @@
   (require 'regexp-opt))
 (require 'custom)
 (require 'thingatpt)
+(require 'view)
 
 (defvar font-lock-keyword-face)
 (defvar font-lock-set-defaults)
@@ -246,7 +247,7 @@
   :group 'languages
   :group 'processes)
 
-;; These four variables will be used as defaults, if set.
+;; These five variables will be used as defaults, if set.
 
 (defcustom sql-user ""
   "Default username."
@@ -437,7 +438,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :completion-object sql-oracle-completion-object
      :prompt-regexp "^SQL> "
      :prompt-length 5
-     :prompt-cont-regexp "^\\s-*[[:digit:]]+  "
+     :prompt-cont-regexp "^\\(?:[ ][ ][1-9]\\|[ ][1-9][0-9]\\|[1-9][0-9]\\{2\\}\\)[ ]\\{2\\}"
      :statement sql-oracle-statement-starters
      :syntax-alist ((?$ . "_") (?# . "_"))
      :terminator ("\\(^/\\|;\\)$" . "/")
@@ -3276,6 +3277,17 @@ Allows the suppression of continuation prompts.")
 
 (defvar sql-preoutput-hold nil)
 
+(defun sql-starts-with-prompt-re ()
+  "Anchor the prompt expression at the beginning of the output line.
+Remove the start of line regexp."
+  (replace-regexp-in-string "\\^" "\\\\`" comint-prompt-regexp))
+
+(defun sql-ends-with-prompt-re ()
+  "Anchor the prompt expression at the end of the output line.
+Remove the start of line regexp from the prompt expression since
+it may not follow newline characters in the output line."
+  (concat (replace-regexp-in-string "\\^" "" sql-prompt-regexp) "\\'"))
+
 (defun sql-interactive-remove-continuation-prompt (oline)
   "Strip out continuation prompts out of the OLINE.
 
@@ -3293,38 +3305,52 @@ to the next chunk to properly match the broken-up prompt.
 If the filter gets confused, it should reset and stop filtering
 to avoid deleting non-prompt output."
 
-  (let (did-filter)
-    (setq oline (concat (or sql-preoutput-hold "") oline)
-          sql-preoutput-hold nil)
+  (when comint-prompt-regexp
+    (save-match-data
+      (let (prompt-found last-nl)
 
-    (if (and comint-prompt-regexp
-             (integerp sql-output-newline-count)
-             (>= sql-output-newline-count 1))
-        (progn
-          (while (and (not (string= oline ""))
+        ;; Add this text to what's left from the last pass
+        (setq oline (concat sql-preoutput-hold oline)
+              sql-preoutput-hold "")
+
+        ;; If we are looking for multiple prompts
+        (when (and (integerp sql-output-newline-count)
+                   (>= sql-output-newline-count 1))
+          ;; Loop thru each starting prompt and remove it
+          (let ((start-re (sql-starts-with-prompt-re)))
+            (while (and (not (string= oline ""))
                       (> sql-output-newline-count 0)
-                      (string-match comint-prompt-regexp oline)
-                      (= (match-beginning 0) 0))
-
-            (setq oline (replace-match "" nil nil oline)
-                  sql-output-newline-count (1- sql-output-newline-count)
-                  did-filter t))
-
+                      (string-match start-re oline))
+              (setq oline (replace-match "" nil nil oline)
+                    sql-output-newline-count (1- sql-output-newline-count)
+                    prompt-found t)))
+          
+          ;; If we've found all the expected prompts, stop looking
           (if (= sql-output-newline-count 0)
               (setq sql-output-newline-count nil
                     oline (concat "\n" oline))
 
+            ;; Still more possible prompts, leave them for the next pass
             (setq sql-preoutput-hold oline
-                  oline ""))
+                  oline "")))
 
-          (unless did-filter
-            (setq oline (or sql-preoutput-hold "")
-                  sql-preoutput-hold nil
-                  sql-output-newline-count nil)))
+        ;; If no prompts were found, stop looking
+        (unless prompt-found
+          (setq sql-output-newline-count nil
+                oline (concat oline sql-preoutput-hold)
+                sql-preoutput-hold ""))
 
-      (setq sql-output-newline-count nil))
-
-    oline))
+        ;; Break up output by physical lines if we haven't hit the final prompt
+        (unless (and (not (string= oline ""))
+                     (string-match (sql-ends-with-prompt-re) oline)
+                     (>= (match-end 0) (length oline)))
+          (setq last-nl 0)
+          (while (string-match "\n" oline last-nl)
+            (setq last-nl (match-end 0)))
+          (setq sql-preoutput-hold (concat (substring oline last-nl)
+                                           sql-preoutput-hold)
+                oline (substring oline 0 last-nl))))))
+   oline)
 
 ;;; Sending the region to the SQLi buffer.
 
@@ -3462,7 +3488,8 @@ list of SQLi command strings."
                                                          :prompt-regexp))
           (start nil))
       (with-current-buffer buf
-        (setq view-read-only nil)
+        (setq-local view-no-disable-on-exit t)
+        (read-only-mode -1)
         (unless save-prior
           (erase-buffer))
         (goto-char (point-max))
@@ -3571,8 +3598,8 @@ buffer is popped into a view window."
                        (get-lru-window))))
       (with-current-buffer outbuf
         (set-buffer-modified-p nil)
-        (setq view-read-only t))
-      (view-buffer-other-window outbuf)
+        (read-only-mode +1))
+      (pop-to-buffer outbuf)
       (when one-win
         (shrink-window-if-larger-than-buffer)))))
 
@@ -3747,7 +3774,9 @@ must tell Emacs.  Here's how to do that in your init file:
   (setq-local abbrev-all-caps 1)
   ;; Contains the name of database objects
   (set (make-local-variable 'sql-contains-names) t)
+  ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
+  (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591
   (add-hook 'hack-local-variables-hook 'sql-highlight-product t t))
 
 

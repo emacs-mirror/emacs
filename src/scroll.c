@@ -86,7 +86,7 @@ static void do_scrolling (struct frame *,
    new contents appears.  */
 
 static void
-calculate_scrolling (FRAME_PTR frame,
+calculate_scrolling (struct frame *frame,
 		     /* matrix is of size window_size + 1 on each side.  */
 		     struct matrix_elt *matrix,
 		     int window_size, int lines_below,
@@ -422,7 +422,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
    is the equivalent of draw_cost for the old line contents */
 
 static void
-calculate_direct_scrolling (FRAME_PTR frame,
+calculate_direct_scrolling (struct frame *frame,
 			    /* matrix is of size window_size + 1 on each side.  */
 			    struct matrix_elt *matrix,
 			    int window_size, int lines_below,
@@ -652,8 +652,7 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 
   /* A queue of deletions and insertions to be performed.  */
   struct alt_queue { int count, pos, window; };
-  struct alt_queue *queue_start = (struct alt_queue *)
-    alloca (window_size * sizeof *queue_start);
+  struct alt_queue *queue_start = alloca (window_size * sizeof *queue_start);
   struct alt_queue *queue = queue_start;
 
   /* True if a terminal window has been set with set_terminal_window.  */
@@ -793,13 +792,12 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 
 
 void
-scrolling_1 (FRAME_PTR frame, int window_size, int unchanged_at_top,
+scrolling_1 (struct frame *frame, int window_size, int unchanged_at_top,
 	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
 	     int *old_hash, int *new_hash, int free_at_end)
 {
-  struct matrix_elt *matrix;
-  matrix = ((struct matrix_elt *)
-	    alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix));
+  struct matrix_elt *matrix
+    = alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix);
 
   if (FRAME_SCROLL_REGION_OK (frame))
     {
@@ -883,7 +881,7 @@ scrolling_max_lines_saved (int start, int end,
    overhead and multiply factor values */
 
 static void
-line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn,
+line_ins_del (struct frame *frame, int ov1, int pf1, int ovn, int pfn,
               register int *ov, register int *mf)
 {
   register int i;
@@ -901,7 +899,7 @@ line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn,
 }
 
 static void
-ins_del_costs (FRAME_PTR frame,
+ins_del_costs (struct frame *frame,
 	       const char *one_line_string, const char *multi_string,
 	       const char *setup_string, const char *cleanup_string,
 	       int *costvec, int *ncostvec,
@@ -957,7 +955,7 @@ ins_del_costs (FRAME_PTR frame,
  */
 
 void
-do_line_insertion_deletion_costs (FRAME_PTR frame,
+do_line_insertion_deletion_costs (struct frame *frame,
 				  const char *ins_line_string,
 				  const char *multi_ins_string,
 				  const char *del_line_string,

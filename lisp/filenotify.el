@@ -92,7 +92,7 @@ car of that event, which is the symbol `file-notify'."
 	 (pending-event (assoc desc file-notify--pending-events))
 	 (actions (nth 1 event))
 	 (file (file-notify--event-file-name event))
-	 file1 cookie callback)
+	 file1 callback)
 
     ;; Make actions a list.
     (unless (consp actions) (setq actions (cons actions nil)))
@@ -190,17 +190,6 @@ car of that event, which is the symbol `file-notify'."
 	    (funcall callback (list desc action file file1))
 	  (funcall callback (list desc action file)))))))
 
-(defun file-notify-supported-p (file)
-  "Returns non-nil if filesystem pertaining to FILE could be watched."
-  (unless (stringp file)
-    (signal 'wrong-type-argument (list file)))
-  (setq file (expand-file-name file))
-
-  (let ((handler (find-file-name-handler file 'file-notify-supported-p)))
-    (if handler
-	(funcall handler 'file-notify-supported-p file)
-      (and file-notify--library t))))
-
 (defun file-notify-add-watch (file flags callback)
   "Add a watch for filesystem events pertaining to FILE.
 This arranges for filesystem events pertaining to FILE to be reported
@@ -274,10 +263,11 @@ FILE is the name of the file whose event is being reported."
 		  '("No file notification package available")))
 
 	;; Determine low-level function to be called.
-	(setq func (cond
-		    ((eq file-notify--library 'gfilenotify) 'gfile-add-watch)
-		    ((eq file-notify--library 'inotify) 'inotify-add-watch)
-		    ((eq file-notify--library 'w32notify) 'w32notify-add-watch)))
+	(setq func
+	      (cond
+	       ((eq file-notify--library 'gfilenotify) 'gfile-add-watch)
+	       ((eq file-notify--library 'inotify) 'inotify-add-watch)
+	       ((eq file-notify--library 'w32notify) 'w32notify-add-watch)))
 
 	;; Determine respective flags.
 	(if (eq file-notify--library 'gfilenotify)

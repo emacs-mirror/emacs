@@ -486,6 +486,7 @@
 ;;   default implementation always returns nil.
 ;;
 ;; - root (file)
+;;
 ;;   Return the root of the VC controlled hierarchy for file.
 ;;
 ;; - repository-hostname (dirname)
@@ -495,6 +496,18 @@
 ;;   is nil, it means that the repository is local.
 ;;   This function is used in `vc-stay-local-p' which backends can use
 ;;   for their convenience.
+;;
+;; - ignore (file &optional remove)
+;;
+;;   Ignore FILE under the current VCS.  When called interactively and
+;;   with a prefix argument, remove an ignored file.  When called from
+;;   Lisp code, if REMOVE is non-nil, remove FILE from ignored files."
+;;
+;; - ignore-completion-table
+;;
+;;   Return the completion table for files ignored by the current
+;;   version control system, e.g., the entries in `.gitignore' and
+;;   `.bzrignore'.
 ;;
 ;; - previous-revision (file rev)
 ;;
@@ -575,9 +588,6 @@
 ;;;; New Primitives:
 ;;
 ;; - deal with push/pull operations.
-;;
-;; - add a mechanism for editing the underlying VCS's list of files
-;;   to be ignored, when that's possible.
 ;;
 ;;;; Primitives that need changing:
 ;;
@@ -1331,6 +1341,58 @@ first backend that could register the file is used."
     (error "Unknown back end"))
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
+
+(defun vc-ignore (file &optional directory remove)
+  "Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
+When called interactively and with a prefix argument, remove FILE
+from ignored files.
+When called from Lisp code, if DIRECTORY is non-nil, the
+repository to use will be deduced by DIRECTORY; if REMOVE is
+non-nil, remove FILE from ignored files."
+  (interactive
+   (if (null current-prefix-arg)
+       (list (read-file-name "The file to ignore: "))
+     (list
+      (completing-read
+       "The file to remove: "
+       (vc-call-backend
+	(vc-backend default-directory)
+	'ignore-completion-table default-directory)))))
+  (let (backend)
+    (if directory
+	(progn (setq backend (vc-backend default-directory))
+	       (vc-call-backend backend 'ignore file directory remove))
+      (setq backend (vc-backend directory))
+      (vc-call-backend backend 'ignore file default-directory remove))))
+
+(defun vc-default-ignore-completion-table (_file)
+  "Return the list of ignored files."
+  ;; Unused lexical argument `file'
+  nil)
+
+(defun vc--read-lines (file)
+  "Return a list of lines of FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (split-string (buffer-string) "\n" t)))
+
+;; Subroutine for `vc-git-ignore' and `vc-hg-ignore'.
+(defun vc--add-line (string file)
+  "Add STRING as a line to FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (unless (re-search-forward (concat "^" (regexp-quote string) "$") nil t)
+      (goto-char (point-max))
+      (insert (concat "\n" string))
+      (write-region (point-min) (point-max) file))))
+
+(defun vc--remove-regexp (regexp file)
+  "Remove all matching for REGEXP in FILE."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (while (re-search-forward regexp nil t)
+      (replace-match ""))
+    (write-region (point-min) (point-max) file)))
 
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.

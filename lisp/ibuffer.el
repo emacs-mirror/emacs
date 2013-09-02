@@ -53,6 +53,8 @@
 (defvar ibuffer-tmp-hide-regexps)
 (defvar ibuffer-tmp-show-regexps)
 
+(declare-function ibuffer-ext-visible-p "ibuf-ext"
+		  (buf all &optional ibuffer-buf))
 (declare-function ibuffer-mark-on-buffer "ibuf-ext"
 		  (func &optional ibuffer-mark-on-buffer-mark group))
 (declare-function ibuffer-generate-filter-groups "ibuf-ext"
@@ -1198,7 +1200,7 @@ a new window in the current frame, splitting vertically."
 			     (and (stringp (cadr err))
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
-				  (not (string-match "too small" (cadr err)))))
+				  (not (string-match-p "too small" (cadr err)))))
 			 (signal (car err) (cdr err))
 		       (enlarge-window 3))))))
 	      (select-window (next-window))
@@ -2631,29 +2633,7 @@ will be inserted before the group at point."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads (ibuffer-do-occur ibuffer-mark-dired-buffers ibuffer-mark-read-only-buffers
-;;;;;;  ibuffer-mark-special-buffers ibuffer-mark-old-buffers ibuffer-mark-compressed-file-buffers
-;;;;;;  ibuffer-mark-help-buffers ibuffer-mark-dissociated-buffers
-;;;;;;  ibuffer-mark-unsaved-buffers ibuffer-mark-modified-buffers
-;;;;;;  ibuffer-mark-by-mode ibuffer-mark-by-file-name-regexp ibuffer-mark-by-mode-regexp
-;;;;;;  ibuffer-mark-by-name-regexp ibuffer-copy-filename-as-kill
-;;;;;;  ibuffer-diff-with-file ibuffer-jump-to-buffer ibuffer-do-kill-lines
-;;;;;;  ibuffer-backwards-next-marked ibuffer-forward-next-marked
-;;;;;;  ibuffer-add-to-tmp-show ibuffer-add-to-tmp-hide ibuffer-bs-show
-;;;;;;  ibuffer-invert-sorting ibuffer-toggle-sorting-mode ibuffer-switch-to-saved-filters
-;;;;;;  ibuffer-add-saved-filters ibuffer-delete-saved-filters ibuffer-save-filters
-;;;;;;  ibuffer-or-filter ibuffer-negate-filter ibuffer-exchange-filters
-;;;;;;  ibuffer-decompose-filter ibuffer-pop-filter ibuffer-filter-disable
-;;;;;;  ibuffer-switch-to-saved-filter-groups ibuffer-delete-saved-filter-groups
-;;;;;;  ibuffer-save-filter-groups ibuffer-yank-filter-group ibuffer-yank
-;;;;;;  ibuffer-kill-line ibuffer-kill-filter-group ibuffer-jump-to-filter-group
-;;;;;;  ibuffer-clear-filter-groups ibuffer-decompose-filter-group
-;;;;;;  ibuffer-pop-filter-group ibuffer-set-filter-groups-by-mode
-;;;;;;  ibuffer-filters-to-filter-group ibuffer-included-in-filters-p
-;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
-;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
-;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "2c628e6cde385119c5f7b43cc1efe1a1")
+;;;### (autoloads nil "ibuf-ext" "ibuf-ext.el" "d06b2735a74954e0c6922a811de7608c")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\

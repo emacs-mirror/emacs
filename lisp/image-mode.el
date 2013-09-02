@@ -354,6 +354,10 @@ call."
     (define-key map "b" 'image-previous-frame)
     (define-key map "n" 'image-next-file)
     (define-key map "p" 'image-previous-file)
+    (define-key map "a+" 'image-increase-speed)
+    (define-key map "a-" 'image-decrease-speed)
+    (define-key map "a0" 'image-reset-speed)
+    (define-key map "ar" 'image-reverse-speed)
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
     (define-key map [remap right-char] 'image-forward-hscroll)
@@ -412,7 +416,23 @@ call."
 	     (image-toggle-animation)))
 	 :style toggle :selected image-animate-loop
 	 :active image-multi-frame
-         :help "Animate images once, or forever?"]
+	 :help "Animate images once, or forever?"]
+	["Reverse Animation" image-reverse-speed
+	 :style toggle :selected (let ((image (image-get-display-property)))
+				   (and image (<
+					       (image-animate-get-speed image)
+					       0)))
+	 :active image-multi-frame
+	 :help "Reverse direction of this image's animation?"]
+	["Speed Up Animation" image-increase-speed
+	 :active image-multi-frame
+	 :help "Speed up this image's animation"]
+	["Slow Down Animation" image-decrease-speed
+	 :active image-multi-frame
+	 :help "Slow down this image's animation"]
+	["Reset Animation Speed" image-reset-speed
+	 :active image-multi-frame
+	 :help "Reset the speed of this image's animation"]
 	["Next Frame" image-next-frame :active image-multi-frame
 	 :help "Show the next frame of this image"]
 	["Previous Frame" image-previous-frame :active image-multi-frame
@@ -437,7 +457,10 @@ call."
 (defun image-mode ()
   "Major mode for image files.
 You can use \\<image-mode-map>\\[image-toggle-display]
-to toggle between display as an image and display as text."
+to toggle between display as an image and display as text.
+
+Key bindings:
+\\{image-mode-map}"
   (interactive)
   (condition-case err
       (progn
@@ -702,6 +725,48 @@ Otherwise it plays once, then stops."
 		 (setq index nil))
 	    (image-animate image index
 			   (if image-animate-loop t)))))))))
+
+(defun image--set-speed (speed &optional multiply)
+  "Set speed of an animated image to SPEED.
+If MULTIPLY is non-nil, treat SPEED as a multiplication factor.
+If SPEED is `reset', reset the magnitude of the speed to 1."
+  (let ((image (image-get-display-property)))
+    (cond
+     ((null image)
+      (error "No image is present"))
+     ((null image-multi-frame)
+      (message "No image animation."))
+     (t
+      (if (eq speed 'reset)
+	  (setq speed (if (< (image-animate-get-speed image) 0)
+			  -1 1)
+		multiply nil))
+      (image-animate-set-speed image speed multiply)
+      ;; FIXME Hack to refresh an active image.
+      (when (image-animate-timer image)
+	(image-toggle-animation)
+	(image-toggle-animation))
+      (message "Image speed is now %s" (image-animate-get-speed image))))))
+
+(defun image-increase-speed ()
+  "Increase the speed of current animated image by a factor of 2."
+  (interactive)
+  (image--set-speed 2 t))
+
+(defun image-decrease-speed ()
+  "Decrease the speed of current animated image by a factor of 2."
+  (interactive)
+  (image--set-speed 0.5 t))
+
+(defun image-reverse-speed ()
+  "Reverse the animation of the current image."
+  (interactive)
+  (image--set-speed -1 t))
+
+(defun image-reset-speed ()
+  "Reset the animation speed of the current image."
+  (interactive)
+  (image--set-speed 'reset))
 
 (defun image-goto-frame (n &optional relative)
   "Show frame N of a multi-frame image.

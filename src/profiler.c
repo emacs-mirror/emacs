@@ -267,8 +267,8 @@ setup_cpu_timer (Lisp_Object sampling_interval)
     return NOT_RUNNING;
 
   current_sampling_interval = XINT (sampling_interval);
-  interval = make_emacs_time (current_sampling_interval / billion,
-			      current_sampling_interval % billion);
+  interval = make_timespec (current_sampling_interval / billion,
+			    current_sampling_interval % billion);
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 

@@ -993,14 +993,6 @@ at the moment are:
        ,@commands
        (eshell-debug-command ,(concat "done " (eval tag)) form))))
 
-(defsubst eshell-macrop (object)
-  "Return t if OBJECT is a macro or nil otherwise."
-  (and (symbolp object) (fboundp object)
-       (setq object (indirect-function object))
-       (listp object)
-       (eq 'macro (car object))
-       (functionp (cdr object))))
-
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate form, simplifying it as we go.
 Unless SYNCHRONOUS-P is non-nil, throws `eshell-defer' if it needs to
@@ -1016,7 +1008,7 @@ be finished later after the completion of an asynchronous subprocess."
       (setq form (cadr (cadr form))))
     ;; expand any macros directly into the form.  This is done so that
     ;; we can modify any `let' forms to evaluate only once.
-    (if (eshell-macrop (car form))
+    (if (macrop (car form))
 	(let ((exp (eshell-copy-tree (macroexpand form))))
 	  (eshell-manipulate (format "expanding macro `%s'"
 				     (symbol-name (car form)))

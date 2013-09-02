@@ -221,7 +221,7 @@ Conditions are:
        indicate some non-standard, non-simple completion mechanism,
        like file-name and other custom-func completions)."
 
-  (and (window-minibuffer-p (selected-window))
+  (and (window-minibuffer-p)
        (not executing-kbd-macro)
        minibuffer-completion-table
        (or (not (functionp minibuffer-completion-table))

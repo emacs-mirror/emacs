@@ -1211,12 +1211,9 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
     adjust_markers_for_insert (from, from_byte,
 			       from + len, from_byte + len_byte, 0);
 
-  if (! EQ (BVAR (current_buffer, undo_list), Qt))
-    {
-      if (nchars_del > 0)
-	record_delete (from, prev_text);
-      record_insert (from, len);
-    }
+  if (nchars_del > 0)
+    record_delete (from, prev_text);
+  record_insert (from, len);
 
   if (len > nchars_del)
     adjust_overlays_for_insert (from, len - nchars_del);
@@ -1373,12 +1370,12 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
     emacs_abort ();
 #endif
 
-  if (! EQ (BVAR (current_buffer, undo_list), Qt))
+  /* Record the insertion first, so that when we undo,
+     the deletion will be undone first.  Thus, undo
+     will insert before deleting, and thus will keep
+     the markers before and after this text separate.  */
+  if (!NILP (deletion))
     {
-      /* Record the insertion first, so that when we undo,
-	 the deletion will be undone first.  Thus, undo
-	 will insert before deleting, and thus will keep
-	 the markers before and after this text separate.  */
       record_insert (from + SCHARS (deletion), inschars);
       record_delete (from, deletion);
     }
@@ -1718,8 +1715,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
      so that undo handles this after reinserting the text.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  if (! EQ (BVAR (current_buffer, undo_list), Qt))
-    record_delete (from, deletion);
+  record_delete (from, deletion);
   MODIFF++;
   CHARS_MODIFF = MODIFF;
 
@@ -1760,27 +1756,22 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   return deletion;
 }
 
-/* Call this if you're about to change the region of current buffer
+/* Call this if you're about to change the text of current buffer
    from character positions START to END.  This checks the read-only
    properties of the region, calls the necessary modification hooks,
    and warns the next redisplay that it should pay attention to that
-   area.
-
-   If PRESERVE_CHARS_MODIFF, do not update CHARS_MODIFF.
-   Otherwise set CHARS_MODIFF to the new value of MODIFF.  */
+   area.  */
 
 void
-modify_region_1 (ptrdiff_t start, ptrdiff_t end, bool preserve_chars_modiff)
+modify_text (ptrdiff_t start, ptrdiff_t end)
 {
   prepare_to_modify_buffer (start, end, NULL);
 
   BUF_COMPUTE_UNCHANGED (current_buffer, start - 1, end);
-
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
   MODIFF++;
-  if (! preserve_chars_modiff)
-    CHARS_MODIFF = MODIFF;
+  CHARS_MODIFF = MODIFF;
 
   bset_point_before_scroll (current_buffer, Qnil);
 }
@@ -1796,8 +1787,8 @@ modify_region_1 (ptrdiff_t start, ptrdiff_t end, bool preserve_chars_modiff)
    by holding its value temporarily in a marker.  */
 
 void
-prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
-			  ptrdiff_t *preserve_ptr)
+prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
+			    ptrdiff_t *preserve_ptr)
 {
   struct buffer *base_buffer;
 
@@ -1868,6 +1859,17 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
     }
 
   signal_before_change (start, end, preserve_ptr);
+  Vdeactivate_mark = Qt;
+}
+
+/* Like above, but called when we know that the buffer text
+   will be modified and region caches should be invalidated.  */
+
+void
+prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
+			  ptrdiff_t *preserve_ptr)
+{
+  prepare_to_modify_buffer_1 (start, end, preserve_ptr);
 
   if (current_buffer->newline_cache)
     invalidate_region_cache (current_buffer,
@@ -1877,10 +1879,12 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
     invalidate_region_cache (current_buffer,
                              current_buffer->width_run_cache,
                              start - BEG, Z - end);
-
-  Vdeactivate_mark = Qt;
+  if (current_buffer->bidi_paragraph_cache)
+    invalidate_region_cache (current_buffer,
+                             current_buffer->bidi_paragraph_cache,
+                             start - BEG, Z - end);
 }
-
+
 /* These macros work with an argument named `preserve_ptr'
    and a local variable named `preserve_marker'.  */
 

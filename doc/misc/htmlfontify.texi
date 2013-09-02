@@ -1275,6 +1275,7 @@ normally be applied.
 @vindex hfy-html-quote-regex
 @anchor{hfy-html-quote-regex}
 
+@c FIXME: the cross-reference below looks ugly
 Regex to match (with a single back-reference per match) strings in HTML
 which should be quoted with @ref{hfy-html-quote}
 (and @pxref{hfy-html-quote-map}) to make them safe.
@@ -1340,31 +1341,6 @@ See also: @ref{hfy-page-footer}
 
 String to add to the @samp{<style> a} variant of an Htmlfontify CSS class.
 
-@item hfy-fast-lock-save
-@vindex hfy-fast-lock-save
-@anchor{hfy-fast-lock-save}
-
-Minimum size of a buffer for cached fontification.
-This value is temporarily assigned to @code{fast-lock-minimum-size} during
-html-fontification.
-
-Only buffers more than this can have associated Font Lock cache files saved.
-
-If nil, means cache files are never created.
-
-If a list, each element should be a cons pair of the form
-@code{(@var{major-mode} . @var{size})}, where @var{major-mode}
-is a symbol or t (meaning the default).  For example:
-
-@lisp
- ((c-mode     . 25600  )
-  (c++-mode   . 25600  )
-  (rmail-mode . 1048576))
-@end lisp
-
-means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
-for buffers in Rmail mode, and size is irrelevant (i.e., no saves) otherwise.
-
 @item hfy-split-index
 @vindex hfy-split-index
 @anchor{hfy-split-index}
@@ -1383,7 +1359,7 @@ be large and take a long time to render or be difficult to navigate.
 @vindex hfy-extn
 @anchor{hfy-extn}
 
-File extension used for output files
+File extension used for output files.
 
 @item hfy-default-face-def
 @vindex hfy-default-face-def
@@ -1464,7 +1440,7 @@ which can never slow you down, but may result in incomplete fontification.
 @vindex hfy-src-doc-link-unstyle
 @anchor{hfy-src-doc-link-unstyle}
 
-Regex to remove from the <style> a variant of an Htmlfontify CSS class.
+Regex to remove from the @samp{<style> a} variant of an Htmlfontify CSS class.
 
 @item hfy-link-extn
 @vindex hfy-link-extn

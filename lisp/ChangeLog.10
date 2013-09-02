@@ -5182,7 +5182,7 @@
 	inserted.
 	(Info-hide-note-references): Fix doc and customize type.
 
-2003-03-02  Matt Swift  <swift@alum.mit.edu>
+2003-03-02  Matthew Swift  <swift@alum.mit.edu>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column):
 	New custom variable.
@@ -5228,7 +5228,7 @@
 	(tramp-send-region): Correct debug message.
 	(tramp-bug): Add `tramp-chunksize'.
 
-2003-02-26  Matt Swift  <swift@alum.mit.edu>
+2003-02-26  Matthew Swift  <swift@alum.mit.edu>
 
 	* startup.el: Streamline code in several functions for efficiency
 	and readability.  Rephrase booleans to avoid `(not noninteractive)'.

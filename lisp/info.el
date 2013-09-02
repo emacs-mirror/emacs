@@ -1905,6 +1905,30 @@ the Top node in FILENAME."
 (defvar Info-search-case-fold nil
   "The value of `case-fold-search' from previous `Info-search' command.")
 
+(defun Info--search-loop (regexp bound backward)
+  (when backward
+    ;; Hide Info file header for backward search.
+    (narrow-to-region (save-excursion
+                        (goto-char (point-min))
+                        (search-forward "\n\^_")
+                        (1- (point)))
+                      (point-max)))
+  (let ((give-up nil)
+        (found nil)
+        (beg-found nil))
+    (while (not (or give-up
+                    (and found
+                         (funcall isearch-filter-predicate
+                                  beg-found found))))
+      (let ((search-spaces-regexp Info-search-whitespace-regexp))
+        (if (funcall
+             (if backward #'re-search-backward #'re-search-forward)
+             regexp bound t)
+            (setq found (point) beg-found (if backward (match-end 0)
+                                            (match-beginning 0)))
+          (setq give-up t found nil))))
+    found))
+
 (defun Info-search (regexp &optional bound _noerror _count direction)
   "Search for REGEXP, starting from point, and select node it's found in.
 If DIRECTION is `backward', search in the reverse direction."
@@ -1920,55 +1944,35 @@ If DIRECTION is `backward', search in the reverse direction."
   (when (equal regexp "")
     (setq regexp (car Info-search-history)))
   (when regexp
-    (let (found beg-found give-up
-	  (backward (eq direction 'backward))
-	  (onode Info-current-node)
-	  (ofile Info-current-file)
-	  (opoint (point))
-	  (opoint-min (point-min))
-	  (opoint-max (point-max))
-	  (ostart (window-start))
-	  (osubfile Info-current-subfile))
-      (setq Info-search-case-fold case-fold-search)
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (when backward
-	    ;; Hide Info file header for backward search
-	    (narrow-to-region (save-excursion
-				(goto-char (point-min))
-				(search-forward "\n\^_")
-				(1- (point)))
-			      (point-max)))
-	  (while (and (not give-up)
-		      (or (null found)
-			  (not (run-hook-with-args-until-failure
-				'isearch-filter-predicates beg-found found))))
-	    (let ((search-spaces-regexp Info-search-whitespace-regexp))
-	      (if (if backward
-		      (re-search-backward regexp bound t)
-		    (re-search-forward regexp bound t))
-		  (setq found (point) beg-found (if backward (match-end 0)
-						  (match-beginning 0)))
-		(setq give-up t))))))
+    (setq Info-search-case-fold case-fold-search)
+    (let* ((backward (eq direction 'backward))
+           (onode Info-current-node)
+           (ofile Info-current-file)
+           (opoint (point))
+           (opoint-min (point-min))
+           (opoint-max (point-max))
+           (ostart (window-start))
+           (osubfile Info-current-subfile)
+           (found
+            (save-excursion
+              (save-restriction
+                (widen)
+                (Info--search-loop regexp bound backward)))))
 
-      (when (and isearch-mode Info-isearch-search
-		 (not Info-isearch-initial-node)
-		 (not bound)
-		 (or give-up (and found (not (and (> found opoint-min)
-						  (< found opoint-max))))))
+      (unless (or (not isearch-mode) (not Info-isearch-search)
+                  Info-isearch-initial-node
+                  bound
+                  (and found (> found opoint-min) (< found opoint-max)))
 	(signal 'search-failed (list regexp "end of node")))
 
       ;; If no subfiles, give error now.
-      (if give-up
-	  (if (null Info-current-subfile)
-	      (if isearch-mode
-		  (signal 'search-failed (list regexp "end of manual"))
-		(let ((search-spaces-regexp Info-search-whitespace-regexp))
-		  (if backward
-		      (re-search-backward regexp)
-		    (re-search-forward regexp))))
-	    (setq found nil)))
+      (unless (or found Info-current-subfile)
+        (if isearch-mode
+            (signal 'search-failed (list regexp "end of manual"))
+          (let ((search-spaces-regexp Info-search-whitespace-regexp))
+            (if backward
+                (re-search-backward regexp)
+              (re-search-forward regexp)))))
 
       (if (and bound (not found))
 	  (signal 'search-failed (list regexp)))
@@ -2009,29 +2013,9 @@ If DIRECTION is `backward', search in the reverse direction."
 	      (while list
 		(message "Searching subfile %s..." (cdr (car list)))
 		(Info-read-subfile (car (car list)))
-		(when backward
-		  ;; Hide Info file header for backward search
-		  (narrow-to-region (save-excursion
-				      (goto-char (point-min))
-				      (search-forward "\n\^_")
-				      (1- (point)))
-				    (point-max))
-		  (goto-char (point-max)))
+		(when backward (goto-char (point-max)))
 		(setq list (cdr list))
-		(setq give-up nil found nil)
-		(while (and (not give-up)
-			    (or (null found)
-				(not (run-hook-with-args-until-failure
-				      'isearch-filter-predicates beg-found found))))
-		  (let ((search-spaces-regexp Info-search-whitespace-regexp))
-		    (if (if backward
-			    (re-search-backward regexp nil t)
-			  (re-search-forward regexp nil t))
-			(setq found (point) beg-found (if backward (match-end 0)
-							(match-beginning 0)))
-		      (setq give-up t))))
-		(if give-up
-		    (setq found nil))
+                (setq found (Info--search-loop regexp nil backward))
 		(if found
 		    (setq list nil)))
 	      (if found
@@ -4288,8 +4272,7 @@ Advanced commands:
        'Info-isearch-wrap)
   (set (make-local-variable 'isearch-push-state-function)
        'Info-isearch-push-state)
-  (set (make-local-variable 'isearch-filter-predicates)
-       '(Info-isearch-filter))
+  (set (make-local-variable 'isearch-filter-predicate) #'Info-isearch-filter)
   (set (make-local-variable 'revert-buffer-function)
        'Info-revert-buffer-function)
   (Info-set-mode-line)

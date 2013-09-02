@@ -1078,10 +1078,10 @@ with L, LRE, or LRO Unicode bidi character type.")
 ;;  (lambda (range ignore) (set-char-table-range char-width-table range 2))
 ;; 'tibetan)
 (map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'indian-2-column)
 (map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
 ;; Internal use only.
@@ -1110,8 +1110,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 (defun use-cjk-char-width-table (locale-name)
   (while (char-table-parent char-width-table)
     (setq char-width-table (char-table-parent char-width-table)))
-  (let ((slot (assq locale-name cjk-char-width-table-list))
-	table)
+  (let ((slot (assq locale-name cjk-char-width-table-list)))
     (or slot (error "Unknown locale for CJK language environment: %s"
 		    locale-name))
     (unless (nth 1 slot)
@@ -1119,7 +1118,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	(dolist (charset-info (nthcdr 2 slot))
 	  (let ((charset (car charset-info)))
 	    (dolist (code-range (cdr charset-info))
-	      (map-charset-chars #'(lambda (range arg)
+	      (map-charset-chars #'(lambda (range _arg)
 				     (set-char-table-range table range 2))
 				 charset nil
 				 (car code-range) (cdr code-range)))))
@@ -1326,7 +1325,7 @@ Setup char-width-table appropriate for non-CJK language environment."
   (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))
 
 (map-charset-chars
- #'(lambda (range ignore)
+ #'(lambda (range _ignore)
      (set-char-table-range char-script-table range 'tibetan))
  'tibetan)
 

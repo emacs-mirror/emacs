@@ -71,14 +71,13 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define USE_GTK_TOOLTIP
 #endif
 
-
-/* Bookkeeping to distinguish X versions.  */
-
-
 #ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>
 #endif
-
+
+#include "dispextern.h"
+#include "termhooks.h"
+
 #define BLACK_PIX_DEFAULT(f) BlackPixel (FRAME_X_DISPLAY (f), \
 					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
 #define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
@@ -403,12 +402,9 @@ extern Lisp_Object x_display_name_list;
 extern struct x_display_info *x_display_info_for_display (Display *);
 
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
-extern int x_display_ok  (const char *);
+extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
-
-
-struct font;
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -590,7 +586,6 @@ struct x_output
   XIC xic;
   XIMStyle xic_style;
   XFontSet xic_xfs;
-  char *xic_base_fontname;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -754,7 +749,6 @@ enum
 #define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
-#define FRAME_XIC_BASE_FONTNAME(f) ((f)->output_data.x->xic_base_fontname)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -817,7 +811,7 @@ struct scroll_bar
 
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
-  unsigned int fringe_extended_p : 1;
+  unsigned fringe_extended_p : 1;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
@@ -919,14 +913,6 @@ struct selection_input_event
 #define SELECTION_EVENT_TIME(eventp)	\
   (((struct selection_input_event *) (eventp))->time)
 
-
-struct window;
-struct glyph_matrix;
-struct frame;
-struct input_event;
-struct face;
-struct image;
-
 /* From xselect.c.  */
 
 void x_handle_selection_notify (XSelectionEvent *);
@@ -947,7 +933,7 @@ extern int x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
-extern int x_had_errors_p (Display *);
+extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, int, int, int);
@@ -968,7 +954,7 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 #endif
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_color (struct frame *f, XColor *);
-extern void x_clear_area (Display *, Window, int, int, int, int, int);
+extern void x_clear_area (Display *, Window, int, int, int, int);
 #if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
 #endif
@@ -1031,8 +1017,6 @@ extern void destroy_frame_xic (struct frame *);
 extern void xic_set_preeditarea (struct window *, int, int);
 extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
-extern int x_pixel_width (struct frame *);
-extern int x_pixel_height (struct frame *);
 extern bool x_defined_color (struct frame *, const char *, XColor *, bool);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
@@ -1080,10 +1064,6 @@ extern Lisp_Object Qx_gtk_map_stock;
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
 
-
-#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
-
 #define STORE_XCHAR2B(chp, b1, b2) \
   ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
 
@@ -1092,7 +1072,6 @@ extern Lisp_Object Qx_gtk_map_stock;
 
 #define XCHAR2B_BYTE2(chp) \
   ((chp)->byte2)
-
 
 #define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
   ((nr).x = (rx),					\

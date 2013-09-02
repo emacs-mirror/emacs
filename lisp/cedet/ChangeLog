@@ -1,3 +1,38 @@
+2013-07-29  David Engster <deng@randomsample.de>
+
+	* lisp/cedet/cedet.el (cedet-packages): Remove speedbar since its
+	development does no longer happens in CEDET upstream but in Emacs
+	proper.  Also remove cedet-contrib and cogre since those are only
+	in upstream.
+
+	* semantic/analyze/fcn.el (semantic-analyze-type-to-name): If TYPE
+	has a parent, return a fully qualified name.
+
+	* semantic/decorate/mode.el
+	(semantic-decoration-on-includes-p-default)
+        (semantic-decoration-on-includes-highlight-default): Declare for
+	byte compiler.
+
+	* semantic/wisent/python.el (semantic/format): New require.
+
+2013-07-27  Eric Ludlam <zappo@gnu.org>
+
+	* lisp/cedet/semantic/edit.el (semantic-edits-splice-remove): Wrap
+	debug message removing middle tag in semantic-edits-verbose-flag
+	check.
+
+2013-07-27  David Engster <deng@randomsample.de>
+
+	* semantic/bovine/el.el (semantic/db-el): New require.
+
+	* semantic/db-el.el (semanticdb-normalize-one-tag): It might be
+	that a symbol comes from a file but cannot be found in its table.
+	This happens for instance when a symbol was dynamically created
+	through a macro like `defstruct'.  In this case, return the
+	original tag.
+	(semanticdb-elisp-sym->tag): Deal with autoloaded functions, where
+	the argument list is not available until the file is loaded.
+
 2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data-debug.el, cedet-idutils.el: Neuter the "Version:" header.

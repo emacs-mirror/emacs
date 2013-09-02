@@ -1541,7 +1541,7 @@ a face or button specification."
 			   (t "splash.pbm")))
 	 (img (create-image image-file))
 	 (image-width (and img (car (image-size img))))
-	 (window-width (window-width (selected-window))))
+	 (window-width (window-width)))
     (when img
       (when (> window-width image-width)
 	;; Center the image in the window.

@@ -207,7 +207,7 @@ area while indicating the current selection by `<N>'."
 		  kkc-current-conversions-width nil
 		  kkc-current-conversions (cons 0 nil)))))))
 
-(put 'kkc-error 'error-conditions '(kkc-error error))
+(define-error 'kkc-error nil)
 (defun kkc-error (&rest args)
   (signal 'kkc-error (apply 'format args)))
 

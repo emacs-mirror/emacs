@@ -20,15 +20,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include "emacsgtkfixed.h"
-#include <stdio.h>
-
 #include "lisp.h"
 #include "frame.h"
 #include "xterm.h"
+#include "emacsgtkfixed.h"
 
 /* Silence a bogus diagnostic; see GNOME bug 683906.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#if 4 < __GNUC__ + (7 <= __GNUC_MINOR__)
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #endif

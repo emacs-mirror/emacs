@@ -541,6 +541,10 @@ Use a primary decoration."
 
 ;;; Decoration Modes in other files
 ;;
+(declare-function semantic-decoration-on-includes-p-default
+		  "semantic/decorate/include")
+(declare-function semantic-decoration-on-includes-highlight-default
+		  "semantic/decorate/include")
 (define-semantic-decoration-style semantic-decoration-on-includes
   "Highlight class members that are includes.
 This mode provides a nice context menu on the include statements."

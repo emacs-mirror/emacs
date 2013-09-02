@@ -981,19 +981,14 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 			- (char *) &buffer_defaults);
 	  int idx = PER_BUFFER_IDX (offset);
 
-	  Lisp_Object tail;
+	  Lisp_Object tail, buf;
 
 	  if (idx <= 0)
 	    break;
 
-	  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+	  FOR_EACH_LIVE_BUFFER (tail, buf)
 	    {
-	      Lisp_Object lbuf;
-	      struct buffer *b;
-
-	      lbuf = Fcdr (XCAR (tail));
-	      if (!BUFFERP (lbuf)) continue;
-	      b = XBUFFER (lbuf);
+	      struct buffer *b = XBUFFER (buf);
 
 	      if (! PER_BUFFER_VALUE_P (b, idx))
 		set_per_buffer_value (b, offset, newval);
@@ -1384,9 +1379,7 @@ for this variable.  The default value is meaningful for variables with
 local bindings in certain buffers.  */)
   (Lisp_Object symbol)
 {
-  register Lisp_Object value;
-
-  value = default_value (symbol);
+  Lisp_Object value = default_value (symbol);
   if (!EQ (value, Qunbound))
     return value;
 
@@ -1478,24 +1471,19 @@ of previous VARs.
 usage: (setq-default [VAR VALUE]...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object args_left;
-  register Lisp_Object val, symbol;
+  Lisp_Object args_left, symbol, val;
   struct gcpro gcpro1;
 
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
+  args_left = val = args;
   GCPRO1 (args);
 
-  do
+  while (CONSP (args_left))
     {
-      val = eval_sub (Fcar (Fcdr (args_left)));
+      val = eval_sub (Fcar (XCDR (args_left)));
       symbol = XCAR (args_left);
       Fset_default (symbol, val);
       args_left = Fcdr (XCDR (args_left));
     }
-  while (!NILP (args_left));
 
   UNGCPRO;
   return val;
@@ -1987,7 +1975,7 @@ If the current binding is global (the default), the value is nil.  */)
       {
 	union Lisp_Fwd *valcontents = SYMBOL_FWD (sym);
 	if (KBOARD_OBJFWDP (valcontents))
-	  return Fframe_terminal (Fselected_frame ());
+	  return Fframe_terminal (selected_frame);
 	else if (!BUFFER_OBJFWDP (valcontents))
 	  return Qnil;
       }

@@ -386,7 +386,7 @@ This is instead of the groups in `msb-menu-cond'."
 ;;;
 ;;; Some example function to be used for `msb-item-handling-function'.
 ;;;
-(defun msb-item-handler (buffer &optional maxbuf)
+(defun msb-item-handler (_buffer &optional _maxbuf)
   "Create one string item, concerning BUFFER, for the buffer menu.
 The item looks like:
 *% <buffer-name>
@@ -410,7 +410,7 @@ Optional second argument MAXBUF is completely ignored."
 	 (error "Unknown type of `dired-directory' in buffer %s"
 		(buffer-name)))))
 
-(defun msb-dired-item-handler (buffer &optional maxbuf)
+(defun msb-dired-item-handler (_buffer &optional _maxbuf)
   "Create one string item, concerning a dired BUFFER, for the buffer menu.
 The item looks like:
 *% <buffer-name>

@@ -331,9 +331,9 @@ See also the functions:
 ;; Mark files with some extension.
 (defun dired-mark-extension (extension &optional marker-char)
   "Mark all files with a certain EXTENSION for use in later commands.
-A `.' is *not* automatically prepended to the string entered."
-  ;; EXTENSION may also be a list of extensions instead of a single one.
-  ;; Optional MARKER-CHAR is marker to use.
+A `.' is *not* automatically prepended to the string entered.
+EXTENSION may also be a list of extensions instead of a single one.
+Optional MARKER-CHAR is marker to use."
   (interactive "sMarking extension: \nP")
   (or (listp extension)
       (setq extension (list extension)))
@@ -563,10 +563,10 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
     (dired-mark-if
      (and
       ;; not already marked
-      (looking-at " ")
+      (looking-at-p " ")
       ;; uninteresting
       (let ((fn (dired-get-filename localp t)))
-        (and fn (string-match regexp fn))))
+        (and fn (string-match-p regexp fn))))
      msg)))
 
 
@@ -610,7 +610,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   (interactive
    (list (read-string "Virtual Dired directory: " (dired-virtual-guess-dir))))
   (goto-char (point-min))
-  (or (looking-at "  ")
+  (or (looking-at-p "  ")
       ;; if not already indented, do it now:
       (indent-region (point-min) (point-max) 2))
   (or dirname (setq dirname default-directory))
@@ -627,7 +627,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; If raw ls listing (not a saved old dired buffer), give it a
   ;; decent subdir headerline:
   (goto-char (point-min))
-  (or (looking-at dired-subdir-regexp)
+  (or (looking-at-p dired-subdir-regexp)
       (insert "  "
 	      (directory-file-name (file-name-directory default-directory))
 	      ":\n"))
@@ -1089,13 +1089,13 @@ See `dired-guess-shell-alist-user'."
       (setq elt (car alist)
             regexp (car elt)
             alist (cdr alist))
-      (if (string-match regexp file)
+      (if (string-match-p regexp file)
           (setq cmds (cdr elt)
                 alist nil)))
 
     ;; If more than one file, see if all of FILES match regular expression.
     (while (and flist
-                (string-match regexp (car flist)))
+                (string-match-p regexp (car flist)))
       (setq flist (cdr flist)))
 
     ;; If flist is still non-nil, then do not guess since this means that not
@@ -1500,7 +1500,7 @@ to mark all zero length files."
                                        (or
                                         (dired-move-to-end-of-filename t)
                                         (point)))
-                sym (if (looking-at " -> ")
+                sym (if (looking-at-p " -> ")
                         (buffer-substring (progn (forward-char 4) (point))
                                           (line-end-position))
                       ""))
@@ -1564,12 +1564,12 @@ Point should be in or after a filename."
   (save-excursion
     ;; First see if just past a filename.
     (or (eobp)                             ; why?
-        (when (looking-at "[] \t\n[{}()]") ; whitespace or some parens
+        (when (looking-at-p "[] \t\n[{}()]") ; whitespace or some parens
           (skip-chars-backward " \n\t\r({[]})")
           (or (bobp) (backward-char 1))))
     (let ((filename-chars "-.[:alnum:]_/:$+@")
           start prefix)
-      (if (looking-at (format "[%s]" filename-chars))
+      (if (looking-at-p (format "[%s]" filename-chars))
           (progn
             (skip-chars-backward filename-chars)
             (setq start (point)
@@ -1577,11 +1577,11 @@ Point should be in or after a filename."
                   ;; This is something to do with ange-ftp filenames.
                   ;; It convert foo@bar to /foo@bar.
                   ;; But when does the former occur in dired buffers?
-		  (and (string-match
+		  (and (string-match-p
 			"^\\w+@"
 			(buffer-substring start (line-end-position)))
 		       "/"))
-            (if (string-match "[/~]" (char-to-string (preceding-char)))
+            (if (string-match-p "[/~]" (char-to-string (preceding-char)))
                 (setq start (1- start)))
             (skip-chars-forward filename-chars))
         (error "No file found around point!"))

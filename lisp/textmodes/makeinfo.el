@@ -211,7 +211,7 @@ nonsensical results."
 	  (with-current-buffer buffer
 	    (revert-buffer t t))
 	(setq buffer (find-file-noselect makeinfo-output-file-name)))
-      (if (window-dedicated-p (selected-window))
+      (if (window-dedicated-p)
 	  (switch-to-buffer-other-window buffer)
 	(switch-to-buffer buffer)))
     (goto-char (point-min))))

@@ -1018,27 +1018,26 @@ smaller than `window-min-height'.  Do nothing if WINDOW is not
 vertically combined, some of its contents are scrolled out of
 view, or WINDOW was not created by `display-buffer'."
   (setq window (window-normalize-window window t))
-  (let ((buffer-name (buffer-name (window-buffer window))))
-    (let ((height (if (functionp temp-buffer-max-height)
-		      (with-selected-window window
-			(funcall temp-buffer-max-height (window-buffer)))
-		    temp-buffer-max-height))
-	  (quit-cadr (cadr (window-parameter window 'quit-restore))))
-      (cond
-       ;; Resize WINDOW iff it was split off by `display-buffer'.
-       ((and (eq quit-cadr 'window)
-	     (pos-visible-in-window-p (point-min) window)
-	     (window-combined-p window))
-	(fit-window-to-buffer window height))
-       ;; Resize FRAME iff it was created by `display-buffer'.
-       ((and fit-frame-to-buffer
-	     (eq quit-cadr 'frame)
-	     (eq window (frame-root-window window)))
-	(let ((frame (window-frame window)))
-	  (fit-frame-to-buffer
-	   frame (+ (frame-height frame)
-		    (- (window-total-size window))
-		    height))))))))
+  (let ((height (if (functionp temp-buffer-max-height)
+		    (with-selected-window window
+		      (funcall temp-buffer-max-height (window-buffer)))
+		  temp-buffer-max-height))
+	(quit-cadr (cadr (window-parameter window 'quit-restore))))
+    (cond
+     ;; Resize WINDOW iff it was split off by `display-buffer'.
+     ((and (eq quit-cadr 'window)
+	   (pos-visible-in-window-p (point-min) window)
+	   (window-combined-p window))
+      (fit-window-to-buffer window height))
+     ;; Resize FRAME iff it was created by `display-buffer'.
+     ((and fit-frame-to-buffer
+	   (eq quit-cadr 'frame)
+	   (eq window (frame-root-window window)))
+      (let ((frame (window-frame window)))
+	(fit-frame-to-buffer
+	 frame (+ (frame-height frame)
+		  (- (window-total-size window))
+		  height)))))))
 
 ;;; Help windows.
 (defcustom help-window-select 'other

@@ -459,6 +459,27 @@ REV is ignored."
         (vc-hg-command buffer 0 file "cat" "-r" rev)
       (vc-hg-command buffer 0 file "cat"))))
 
+(defun vc-hg-ignore (file &optional directory remove)
+  "Ignore FILE under Mercurial.
+If DIRECTORY is non-nil, the repository to use will be deduced by
+DIRECTORY; if REMOVE is non-nil, remove FILE from ignored files."
+  (let (hgignore)
+    (if directory
+	(setq hgignore (vc-hg-find-ignore-file directory))
+      (setq hgignore (vc-hg-find-ignore-file default-directory)))
+    (if remove
+	(vc--remove-regexp file hgignore)
+      (vc--add-line file hgignore))))
+
+(defun vc-hg-ignore-completion-table (file)
+  "Return the list of ignored files."
+  (vc--read-lines (vc-hg-find-ignore-file file)))
+
+(defun vc-hg-find-ignore-file (file)
+  "Return the root directory of the repository of FILE."
+  (expand-file-name ".hgignore"
+		    (vc-hg-root file)))
+
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional _editable rev)
   "Retrieve a revision of FILE.

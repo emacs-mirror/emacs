@@ -100,13 +100,13 @@ MessageBoxW_Proc unicode_message_box = NULL;
 
 Lisp_Object Qdebug_on_next_call;
 
-void set_frame_menubar (FRAME_PTR, bool, bool);
+void set_frame_menubar (struct frame *, bool, bool);
 
 #ifdef HAVE_DIALOGS
-static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
+static Lisp_Object w32_dialog_show (struct frame *, int, Lisp_Object, char**);
 #else
 static int is_simple_dialog (Lisp_Object);
-static Lisp_Object simple_dialog_show (FRAME_PTR, Lisp_Object, Lisp_Object);
+static Lisp_Object simple_dialog_show (struct frame *, Lisp_Object, Lisp_Object);
 #endif
 
 static void utf8to16 (unsigned char *, int, WCHAR *);
@@ -137,7 +137,7 @@ If HEADER is non-nil, the frame title for the box is "Information",
 otherwise it is "Question". */)
   (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
-  FRAME_PTR f = NULL;
+  struct frame *f = NULL;
   Lisp_Object window;
 
   /* Decode the first argument: find the window or frame to use.  */
@@ -147,7 +147,7 @@ otherwise it is "Question". */)
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
-      FRAME_PTR new_f = SELECTED_FRAME ();
+      struct frame *new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Time time;
@@ -206,8 +206,8 @@ otherwise it is "Question". */)
 	   in the middle of frame F.  */
 	Lisp_Object x, y, frame, newpos;
 	XSETFRAME (frame, f);
-	XSETINT (x, x_pixel_width (f) / 2);
-	XSETINT (y, x_pixel_height (f) / 2);
+	XSETINT (x, FRAME_PIXEL_WIDTH (f) / 2);
+	XSETINT (y, FRAME_PIXEL_HEIGHT (f) / 2);
 	newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
 	return Fx_popup_menu (newpos,
 			      Fcons (Fcar (contents), Fcons (contents, Qnil)));
@@ -252,7 +252,7 @@ otherwise it is "Question". */)
    This way we can safely execute Lisp code.  */
 
 void
-x_activate_menubar (FRAME_PTR f)
+x_activate_menubar (struct frame *f)
 {
   set_frame_menubar (f, 0, 1);
 
@@ -269,7 +269,7 @@ x_activate_menubar (FRAME_PTR f)
    and put the appropriate events into the keyboard buffer.  */
 
 void
-menubar_selection_callback (FRAME_PTR f, void * client_data)
+menubar_selection_callback (struct frame *f, void * client_data)
 {
   Lisp_Object prefix, entry;
   Lisp_Object vector;
@@ -361,7 +361,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -613,7 +613,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
    is visible.  */
 
 void
-initialize_frame_menubar (FRAME_PTR f)
+initialize_frame_menubar (struct frame *f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
@@ -625,7 +625,7 @@ initialize_frame_menubar (FRAME_PTR f)
    This is used when deleting a frame, and when turning off the menu bar.  */
 
 void
-free_frame_menubar (FRAME_PTR f)
+free_frame_menubar (struct frame *f)
 {
   block_input ();
 
@@ -656,7 +656,7 @@ free_frame_menubar (FRAME_PTR f)
    (We return nil on failure, but the value doesn't actually matter.)  */
 
 Lisp_Object
-w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	       Lisp_Object title, const char **error)
 {
   int i;
@@ -983,7 +983,7 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-w32_dialog_show (FRAME_PTR f, int keymaps,
+w32_dialog_show (struct frame *f, int keymaps,
 		 Lisp_Object title, Lisp_Object header,
 		 char **error)
 {
@@ -1219,7 +1219,7 @@ is_simple_dialog (Lisp_Object contents)
 }
 
 static Lisp_Object
-simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
+simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 {
   int answer;
   UINT type;
@@ -1699,7 +1699,7 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
   (void)
 {
 #ifdef HAVE_MENUS
-  FRAME_PTR f;
+  struct frame *f;
   f = SELECTED_FRAME ();
   return (f->output_data.w32->menubar_active > 0) ? Qt : Qnil;
 #else

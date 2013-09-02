@@ -122,6 +122,7 @@
 (require 'pcvs-util)
 (require 'pcvs-parse)
 (require 'pcvs-info)
+(require 'vc-cvs)
 
 
 ;;;;
@@ -1969,25 +1970,6 @@ This command ignores files that are not flagged as `Unknown'."
 
 (declare-function vc-editable-p "vc" (file))
 (declare-function vc-checkout "vc" (file &optional writable rev))
-
-(defun cvs-append-to-ignore (dir str &optional old-dir)
-  "Add STR to the .cvsignore file in DIR.
-If OLD-DIR is non-nil, then this is a directory that we don't want
-to hear about anymore."
-  (with-current-buffer
-      (find-file-noselect (expand-file-name ".cvsignore" dir))
-    (when (ignore-errors
-	    (and buffer-read-only
-		 (eq 'CVS (vc-backend buffer-file-name))
-		 (not (vc-editable-p buffer-file-name))))
-      ;; CVSREAD=on special case
-      (vc-checkout buffer-file-name t))
-    (goto-char (point-max))
-    (unless (bolp) (insert "\n"))
-    (insert str (if old-dir "/\n" "\n"))
-    (if cvs-sort-ignore-file (sort-lines nil (point-min) (point-max)))
-    (save-buffer)))
-
 
 (defun cvs-mode-find-file-other-window (e)
   "Select a buffer containing the file in another window."

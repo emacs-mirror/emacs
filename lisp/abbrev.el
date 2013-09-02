@@ -856,7 +856,7 @@ return value is that of `abbrev-insert'.)"
               (endmark (copy-marker wordend t)))
           (unless (or ;; executing-kbd-macro
                    noninteractive
-                   (window-minibuffer-p (selected-window)))
+                   (window-minibuffer-p))
             ;; Add an undo boundary, in case we are doing this for
             ;; a self-inserting command which has avoided making one so far.
             (undo-boundary))

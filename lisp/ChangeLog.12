@@ -17355,7 +17355,7 @@
 
 	* calc/calc-embed.el (calc-do-embedded): Update help message.
 
-	* calc/calc-prog.el (calc-user-define-invokation): Update help message.
+	* calc/calc-prog.el (calc-user-define-invocation): Update help message.
 
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 

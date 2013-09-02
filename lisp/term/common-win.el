@@ -159,7 +159,7 @@ is not used)."
 		    initial-frame-alist)))))
 
 ;; Make -iconic apply only to the initial frame!
-(defun x-handle-iconic (switch)
+(defun x-handle-iconic (_switch)
   (setq initial-frame-alist
 	(cons '(visibility . icon) initial-frame-alist)))
 
@@ -175,7 +175,7 @@ is not used)."
 (declare-function x-parse-geometry "frame.c" (string))
 
 ;; Handle the geometry option
-(defun x-handle-geometry (switch)
+(defun x-handle-geometry (_switch)
   (let* ((geo (x-parse-geometry (pop x-invocation-args)))
 	 (left (assq 'left geo))
 	 (top (assq 'top geo))
@@ -216,7 +216,7 @@ is not used)."
 On X, the display name of individual X frames is recorded in the
 `display' frame parameter.")
 
-(defun x-handle-display (switch)
+(defun x-handle-display (_switch)
   "Handle -display DISPLAY option."
   (setq x-display-name (pop x-invocation-args))
   ;; Make subshell programs see the same DISPLAY value Emacs really uses.

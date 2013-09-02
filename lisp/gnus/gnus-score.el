@@ -1071,10 +1071,15 @@ EXTRA is the possible non-standard header."
 	(push (cons article n) gnus-newsgroup-scored)))
     (gnus-summary-update-line)))
 
-(defun gnus-summary-current-score ()
-  "Return the score of the current article."
-  (interactive)
-  (gnus-message 1 "%s" (gnus-summary-article-score)))
+(defun gnus-summary-current-score (arg)
+  "Return the score of the current article.
+  With prefix ARG, return the total score of the current (sub)thread."
+  (interactive "P")
+  (gnus-message 1 "%s" (if arg
+			   (gnus-thread-total-score
+			    (gnus-id-to-thread
+			     (mail-header-id (gnus-summary-article-header))))
+			   (gnus-summary-article-score))))
 
 (defun gnus-score-change-score-file (file)
   "Change current score alist."

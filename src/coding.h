@@ -378,8 +378,6 @@ struct emacs_mule_spec
   struct composition_status cmp_status;
 };
 
-struct ccl_spec;
-
 struct undecided_spec
 {
   /* Inhibit null byte detection.  1 means always inhibit,

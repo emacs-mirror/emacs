@@ -552,7 +552,8 @@ FORM is the parent form that binds this var."
       (cond
        ((byte-compile-not-lexical-var-p arg)
         (byte-compile-log-warning
-         (format "Argument %S is not a lexical variable" arg)))
+         (format "Lexical argument shadows the dynamic variable %S"
+                 arg)))
        ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
        (t (let ((varstruct (list arg nil nil nil nil)))
             (cl-pushnew arg byte-compile-lexical-variables)

@@ -1030,7 +1030,7 @@ Please send all bug fixes and enhancements to
 
 
 (defconst pr-cygwin-system
-  (and ps-windows-system (getenv "OSTYPE")
+  (and lpr-windows-system (getenv "OSTYPE")
        (string-match "cygwin" (getenv "OSTYPE"))))
 
 
@@ -1414,7 +1414,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 
   (eval-and-compile
     (cond
-     (ps-windows-system
+     (lpr-windows-system
       ;; GNU Emacs for Windows 9x/NT
       (defun pr-menu-position (entry index horizontal)
 	(let ((pos (cdr (mouse-pixel-position))))
@@ -1614,7 +1614,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   "Ensure the proper directory separator depending on the OS.
 That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
 separator; otherwise, ensure unix-style directory separator."
-  (if (or pr-cygwin-system ps-windows-system)
+  (if (or pr-cygwin-system lpr-windows-system)
       (subst-char-in-string ?/ ?\\ path)
     (subst-char-in-string ?\\ ?/ path)))
 
@@ -1667,7 +1667,7 @@ separator; otherwise, ensure unix-style directory separator."
 
 (defcustom pr-path-style
   (if (and (not pr-cygwin-system)
-	   ps-windows-system)
+	   lpr-windows-system)
       'windows
     'unix)
   "Specify which path style to use for external commands.
@@ -1778,7 +1778,7 @@ function (see it for documentation) to update text printer menu."
 (defcustom pr-txt-printer-alist
   (list (list 'default lpr-command nil
 	      (cond ((boundp 'printer-name) printer-name)
-		    (ps-windows-system "PRN")
+		    (lpr-windows-system "PRN")
 		    (t nil)
 		    )))
   ;; Examples:
@@ -1923,8 +1923,8 @@ function (see it for documentation) to update PostScript printer menu."
 
 (defcustom pr-ps-printer-alist
   (list (list 'default lpr-command nil
-	      (cond (ps-windows-system  nil)
-		    (ps-lp-system       "-d")
+	      (cond (lpr-windows-system  nil)
+		    (lpr-lp-system       "-d")
 		    (t                  "-P"))
 	      (or (getenv "PRINTER") (getenv "LPDEST") ps-printer-name)))
   ;; Examples:
@@ -2200,7 +2200,7 @@ Useful links:
      ;; hacked from `temporary-file-directory' variable in files.el
      (file-name-as-directory
       (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
-	  (cond (ps-windows-system "c:/temp")
+	  (cond (lpr-windows-system "c:/temp")
 		(t "/tmp")
 		)))))
   "Specify a directory for temporary files during printing.
@@ -2232,7 +2232,7 @@ See also `pr-temp-dir' and `pr-ps-temp-file'."
 
 
 (defcustom pr-gv-command
-  (if ps-windows-system
+  (if lpr-windows-system
       "gsview32.exe"
     "gv")
   "Specify path and name of the gsview/gv utility.
@@ -2273,7 +2273,7 @@ Useful links:
 
 
 (defcustom pr-gs-command
-  (if ps-windows-system
+  (if lpr-windows-system
       "gswin32.exe"
     "gs")
   "Specify path and name of the ghostscript utility.
@@ -2299,7 +2299,7 @@ Useful links:
 
 
 (defcustom pr-gs-switches
-  (if ps-windows-system
+  (if lpr-windows-system
       '("-q -dNOPAUSE -Ic:/gs/gs5.50;c:/gs/gs5.50/fonts")
     '("-q -dNOPAUSE -I/usr/share/ghostscript/5.10"))
   "Specify ghostscript switches.  See the documentation on GS for more info.
@@ -2341,7 +2341,7 @@ Useful links:
 
 
 (defcustom pr-gs-device
-  (if ps-windows-system
+  (if lpr-windows-system
       "mswinpr2"
     "uniprint")
   "Specify the ghostscript device switch value (-sDEVICE=).
@@ -4852,8 +4852,8 @@ Or choose the menu option Printing/Show Settings/printing."
       (ps-comment-string "pr-ps-printer-switch" pr-ps-printer-switch)
       (ps-comment-string "pr-ps-printer       " pr-ps-printer)
       (ps-comment-string "pr-cygwin-system    " pr-cygwin-system)
-      (ps-comment-string "ps-windows-system   " ps-windows-system)
-      (ps-comment-string "ps-lp-system        " ps-lp-system)
+      (ps-comment-string "lpr-windows-system   " lpr-windows-system)
+      (ps-comment-string "lpr-lp-system        " lpr-lp-system)
       nil
       '(14 . pr-path-style)
       '(14 . pr-path-alist)
@@ -5235,14 +5235,14 @@ If menu binding was not done, calls `pr-menu-bind'."
 	  pr-ps-printer        (nth 3 ps))
     (or (stringp pr-ps-command)
 	(setq pr-ps-command
-	      (cond (ps-windows-system "print")
-		    (ps-lp-system      "lp")
+	      (cond (lpr-windows-system "print")
+		    (lpr-lp-system      "lp")
 		    (t                 "lpr")
 		    )))
     (or (stringp pr-ps-printer-switch)
 	(setq pr-ps-printer-switch
-	      (cond (ps-windows-system "/D:")
-		    (ps-lp-system      "-d")
+	      (cond (lpr-windows-system "/D:")
+		    (lpr-lp-system      "-d")
 		    (t                 "-P")
 		    )))
     (pr-eval-alist (nthcdr 4 ps)))
@@ -5260,8 +5260,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 	  pr-txt-printer  (nth 2 txt)))
   (or (stringp pr-txt-command)
       (setq pr-txt-command
-	    (cond (ps-windows-system "print")
-		  (ps-lp-system      "lp")
+	    (cond (lpr-windows-system "print")
+		  (lpr-lp-system      "lp")
 		  (t                 "lpr")
 		  )))
   (pr-update-mode-line))
@@ -5667,7 +5667,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 (defun pr-switches (switches mess)
   (or (listp switches)
       (error "%S should have a list of strings" mess))
-  (ps-flatten-list			; dynamic evaluation
+  (lpr-flatten-list			; dynamic evaluation
    (mapcar 'ps-eval-switch switches)))
 
 
@@ -5825,7 +5825,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 (defun pr-find-buffer-visiting (file)
   (if (not (file-directory-p file))
-      (find-buffer-visiting (if ps-windows-system
+      (find-buffer-visiting (if lpr-windows-system
 				(downcase file)
 			      file))
     (let ((truename (file-truename file))
@@ -5939,7 +5939,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
     (pr-dosify-file-name
      (or (pr-find-command command)
 	 (pr-path-command (cond (pr-cygwin-system  'cygwin)
-				(ps-windows-system 'windows)
+				(lpr-windows-system 'windows)
 				(t                 'unix))
 			  (file-name-nondirectory command)
 			  nil)
@@ -5976,7 +5976,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 (defun pr-find-command (cmd)
-  (if ps-windows-system
+  (if lpr-windows-system
       ;; windows system
       (let ((ext (cons (file-name-extension cmd t)
 		       (list ".exe" ".bat" ".com")))

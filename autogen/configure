@@ -604,6 +604,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 SUBDIR_MAKEFILES_IN
+ns_check_file
 WINDOW_SYSTEM_OBJ
 EMACS_HEAPSIZE
 TEMACS_POST_LINK
@@ -614,12 +615,16 @@ LIBGNU_LIBDEPS
 gltests_WITNESS
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_FALSE
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_TRUE
+gl_GNULIB_ENABLED_tempname_FALSE
+gl_GNULIB_ENABLED_tempname_TRUE
 gl_GNULIB_ENABLED_strtoull_FALSE
 gl_GNULIB_ENABLED_strtoull_TRUE
 gl_GNULIB_ENABLED_strtoll_FALSE
 gl_GNULIB_ENABLED_strtoll_TRUE
 gl_GNULIB_ENABLED_stat_FALSE
 gl_GNULIB_ENABLED_stat_TRUE
+gl_GNULIB_ENABLED_secure_getenv_FALSE
+gl_GNULIB_ENABLED_secure_getenv_TRUE
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_FALSE
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_TRUE
 gl_GNULIB_ENABLED_pathmax_FALSE
@@ -1275,6 +1280,7 @@ LD_SWITCH_X_SITE
 gameuser
 gamedir
 bitmapdir
+etcdocdir
 archlibdir
 etcdir
 x_default_search_path
@@ -1311,6 +1317,7 @@ LIBXSM
 LIBGPM
 LIBGIF
 LIBTIFF
+LIBZ
 LIBPNG
 LIBJPEG
 LIBXPM
@@ -1364,6 +1371,7 @@ FIRSTFILE_OBJ
 W32_RES_LINK
 CLIENTW
 CLIENTRES
+UPDATE_MANIFEST
 EMACS_MANIFEST
 EMACSRES
 W32_LIBS
@@ -1390,6 +1398,7 @@ UNEXEC_OBJ
 C_SWITCH_MACHINE
 LD_SWITCH_SYSTEM
 CANNOT_DUMP
+DOCMISC_W32
 INFO_OPTS
 INFO_EXT
 HAVE_MAKEINFO
@@ -1533,6 +1542,7 @@ with_gconf
 with_gsettings
 with_selinux
 with_gnutls
+with_zlib
 with_file_notification
 with_makeinfo
 with_compress_info
@@ -2233,7 +2243,9 @@ Optional Packages:
   --with-mail-unlink      unlink, rather than empty, mail spool after reading
   --with-mailhost=HOSTNAME
                           string giving default POP mail host
-  --without-sound         don't compile with sound support
+  --with-sound=VALUE      compile with sound support (VALUE one of: yes, alsa,
+                          oss, bsd-ossaudio, no; default yes). Only for
+                          GNU/Linux, FreeBSD, NetBSD, MinGW.
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
                           gtk3, lucid or athena, motif, no)
   --with-wide-int         prefer wide Emacs integers (typically 62-bit)
@@ -2261,6 +2273,7 @@ Optional Packages:
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
+  --without-zlib          don't compile with zlib decompression support
   --with-file-notification=LIB
                           use a file notification library (LIB one of: yes,
                           gfile, inotify, w32, no)
@@ -3376,7 +3389,6 @@ as_fn_append ac_func_list " faccessat"
 as_fn_append ac_func_list " fcntl"
 as_fn_append ac_func_list " fdopendir"
 as_fn_append ac_header_list " stdio_ext.h"
-as_fn_append ac_func_list " __fpending"
 as_fn_append ac_func_list " fstatat"
 as_fn_append ac_func_list " fsync"
 gl_getopt_required=GNU
@@ -3388,6 +3400,7 @@ as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " inttypes.h"
 as_fn_append ac_func_list " lstat"
+as_fn_append ac_func_list " mkostemp"
 as_fn_append ac_func_list " pipe2"
 as_fn_append ac_header_list " sys/select.h"
 as_fn_append ac_func_list " pselect"
@@ -3405,6 +3418,7 @@ as_fn_append ac_func_list " futimens"
 as_fn_append ac_func_list " utimensat"
 as_fn_append ac_func_list " lutimes"
 as_fn_append ac_func_list " getdtablesize"
+as_fn_append ac_func_list " secure_getenv"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -3474,16 +3488,37 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-emacs_config_options="$@"
-## Add some environment variables, if they were passed via the environment
-## rather than on the command-line.
-for var in CFLAGS CPPFLAGS LDFLAGS; do
-    case "$emacs_config_options" in
-      *$var=*) continue ;;
-    esac
-    eval val="\$${var}"
-    test x"$val" = x && continue
-    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
+emacs_config_options=
+optsep=
+for opt in ${1+"$@"} CFLAGS CPPFLAGS LDFLAGS; do
+  case $opt in
+    -n | --no-create | --no-recursion)
+      continue ;;
+    CFLAGS | CPPFLAGS | LDFLAGS)
+      eval 'test "${'$opt'+set}" = set' || continue
+      case " $*" in
+	*" $opt="*) continue ;;
+      esac
+      eval opt=$opt=\$$opt ;;
+  esac
+
+  emacs_shell_specials=$IFS\''"#$&()*;<>?[\\`{|~'
+  case $opt in
+    *["$emacs_shell_specials"]*)
+      case $opt in
+	*\'*)
+	  emacs_quote_apostrophes="s/'/'\\\\''/g"
+	  opt=`$as_echo "$opt" | sed "$emacs_quote_apostrophes"` ;;
+      esac
+      opt="'$opt'"
+      case $opt in
+	*['"\\']*)
+	  emacs_quote_for_c='s/["\\]/\\&/g; $!s/$/\\n\\/'
+	  opt=`$as_echo "$opt" | sed "$emacs_quote_for_c"` ;;
+      esac ;;
+  esac
+  as_fn_append emacs_config_options "$optsep$opt"
+  optsep=' '
 done
 
 ac_config_headers="$ac_config_headers src/config.h:src/config.in"
@@ -4001,7 +4036,7 @@ locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 lisppath='${locallisppath}:${standardlisppath}'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
-docdir='${datadir}/emacs/${version}/etc'
+etcdocdir='${datadir}/emacs/${version}/etc'
 gamedir='${localstatedir}/games/emacs'
 
 
@@ -4116,9 +4151,16 @@ fi
 
 # Check whether --with-sound was given.
 if test "${with_sound+set}" = set; then :
-  withval=$with_sound;
+  withval=$with_sound;  case "${withval}" in
+      yes|no|alsa|oss|bsd-ossaudio) val=$withval ;;
+      *) as_fn_error "\`--with-sound=$withval' is invalid;
+this option's value should be \`yes', \`no', \`alsa', \`oss', or \`bsd-ossaudio'." "$LINENO" 5
+      ;;
+    esac
+    with_sound=$val
+
 else
-     with_sound=$with_features
+  with_sound=$with_features
 fi
 
 
@@ -4337,6 +4379,14 @@ if test "${with_gnutls+set}" = set; then :
   withval=$with_gnutls;
 else
      with_gnutls=$with_features
+fi
+
+
+# Check whether --with-zlib was given.
+if test "${with_zlib+set}" = set; then :
+  withval=$with_zlib;
+else
+     with_zlib=$with_features
 fi
 
 
@@ -7277,6 +7327,7 @@ esac
   # Code from module lstat:
   # Code from module manywarnings:
   # Code from module memrchr:
+  # Code from module mkostemp:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -7290,6 +7341,7 @@ esac
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
+  # Code from module secure_getenv:
   # Code from module sig2str:
   # Code from module signal-h:
   # Code from module snippet/_Noreturn:
@@ -7320,6 +7372,7 @@ esac
   # Code from module sys_select:
   # Code from module sys_stat:
   # Code from module sys_time:
+  # Code from module tempname:
   # Code from module time:
   # Code from module time_r:
   # Code from module timer-time:
@@ -7890,6 +7943,10 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
   for w in $ws; do
 
 as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
+gl_positive="$w"
+case $gl_positive in
+  -Wno-*) gl_positive=-W`expr "X$gl_positive" : 'X-Wno-\(.*\)'` ;;
+esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles $w" >&5
 $as_echo_n "checking whether C compiler handles $w... " >&6; }
 if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
@@ -7897,7 +7954,7 @@ if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors $w"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors $gl_positive"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7936,7 +7993,7 @@ if test "${gl_cv_warn_c__Wno_missing_field_initializers+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-missing-field-initializers"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wmissing-field-initializers"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7972,7 +8029,7 @@ if test "${gl_cv_warn_c__Wno_sign_compare+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-sign-compare"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wsign-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8008,7 +8065,7 @@ if test "${gl_cv_warn_c__Wno_type_limits+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-type-limits"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wtype-limits"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8044,7 +8101,7 @@ if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-switch"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wswitch"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8080,7 +8137,7 @@ if test "${gl_cv_warn_c__Wno_unused_parameter+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-parameter"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-parameter"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8116,7 +8173,7 @@ if test "${gl_cv_warn_c__Wno_format_nonliteral+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-nonliteral"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wformat-nonliteral"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8155,7 +8212,7 @@ if test "${gl_cv_warn_c__Wno_logical_op+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-logical-op"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wlogical-op"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8194,7 +8251,7 @@ if test "${gl_cv_warn_c__Wno_format_extra_args+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-extra-args"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wformat-extra-args"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8230,7 +8287,7 @@ if test "${gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare+set}" = 
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-tautological-constant-out-of-range-compare"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wtautological-constant-out-of-range-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8266,7 +8323,7 @@ if test "${gl_cv_warn_c__Wno_unused_command_line_argument+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-command-line-argument"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-command-line-argument"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8302,7 +8359,7 @@ if test "${gl_cv_warn_c__Wno_unused_value+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-value"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-value"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8700,6 +8757,13 @@ INFO_OPTS=--no-split
 
 
 
+if test $opsys = mingw32; then
+   DOCMISC_W32=efaq-w32
+else
+   DOCMISC_W32=
+fi
+
+
 
 if test x$GCC = xyes; then
   test "x$GCC_LINK_TEST_OPTIONS" != x && \
@@ -8995,6 +9059,7 @@ fi
 
 
 
+HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
   for ac_header in machine/soundcard.h sys/soundcard.h soundcard.h
@@ -9017,8 +9082,12 @@ fi
 
 done
 
-  # Emulation library used on NetBSD.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _oss_ioctl in -lossaudio" >&5
+  test "${with_sound}" = "oss" && test "${have_sound_header}" != "yes" && \
+    as_fn_error "OSS sound support requested but not found." "$LINENO" 5
+
+  if test "${with_sound}" = "bsd-ossaudio" || test "${with_sound}" = "yes"; then
+    # Emulation library used on NetBSD.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _oss_ioctl in -lossaudio" >&5
 $as_echo_n "checking for _oss_ioctl in -lossaudio... " >&6; }
 if test "${ac_cv_lib_ossaudio__oss_ioctl+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -9060,10 +9129,14 @@ else
   LIBSOUND=
 fi
 
+    test "${with_sound}" = "bsd-ossaudio" && test -z "$LIBSOUND" && \
+      as_fn_error "bsd-ossaudio sound support requested but not found." "$LINENO" 5
+          fi
 
 
-  ALSA_REQUIRED=1.0.0
-  ALSA_MODULES="alsa >= $ALSA_REQUIRED"
+  if test "${with_sound}" = "alsa" || test "${with_sound}" = "yes"; then
+    ALSA_REQUIRED=1.0.0
+    ALSA_MODULES="alsa >= $ALSA_REQUIRED"
 
   succeeded=no
 
@@ -9115,12 +9188,12 @@ $as_echo "no" >&6; }
      HAVE_ALSA=no
   fi
 
-  if test $HAVE_ALSA = yes; then
-    SAVE_CFLAGS="$CFLAGS"
-    SAVE_LIBS="$LIBS"
-    CFLAGS="$ALSA_CFLAGS $CFLAGS"
-    LIBS="$ALSA_LIBS $LIBS"
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    if test $HAVE_ALSA = yes; then
+      SAVE_CFLAGS="$CFLAGS"
+      SAVE_LIBS="$LIBS"
+      CFLAGS="$ALSA_CFLAGS $CFLAGS"
+      LIBS="$ALSA_LIBS $LIBS"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <asoundlib.h>
 int
@@ -9137,8 +9210,8 @@ else
   emacs_alsa_normal=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-    if test "$emacs_alsa_normal" != yes; then
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      if test "$emacs_alsa_normal" != yes; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <alsa/asoundlib.h>
 int
@@ -9155,27 +9228,30 @@ else
   emacs_alsa_subdir=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-      if test "$emacs_alsa_subdir" != yes; then
-        as_fn_error "pkg-config found alsa, but it does not compile.  See config.log for error messages." "$LINENO" 5
+        if test "$emacs_alsa_subdir" != yes; then
+          as_fn_error "pkg-config found alsa, but it does not compile.  See config.log for error messages." "$LINENO" 5
+        fi
+        ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
       fi
-      ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
-    fi
 
-    CFLAGS="$SAVE_CFLAGS"
-    LIBS="$SAVE_LIBS"
-    LIBSOUND="$LIBSOUND $ALSA_LIBS"
-    CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
+      CFLAGS="$SAVE_CFLAGS"
+      LIBS="$SAVE_LIBS"
+      LIBSOUND="$LIBSOUND $ALSA_LIBS"
+      CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
 
 $as_echo "#define HAVE_ALSA 1" >>confdefs.h
 
+    elif test "${with_sound}" = "alsa"; then
+      as_fn_error "ALSA sound support requested but not found." "$LINENO" 5
+    fi
   fi
-
-        if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
+            if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
      case "$opsys" in
-              gnu-linux|freebsd|netbsd|mingw32)
+                     gnu-linux|freebsd|netbsd|mingw32)
 
 $as_echo "#define HAVE_SOUND 1" >>confdefs.h
 
+         HAVE_SOUND=yes
          ;;
      esac
   fi
@@ -10028,7 +10104,7 @@ if test "${HAVE_NS}" = yes; then
      exec_prefix=${ns_appbindir}
           libexecdir="\${ns_appbindir}/libexec"
      archlibdir="\${ns_appbindir}/libexec"
-     docdir="\${ns_appresdir}/etc"
+     etcdocdir="\${ns_appresdir}/etc"
      etcdir="\${ns_appresdir}/etc"
                infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
@@ -10053,6 +10129,7 @@ CLIENTRES=
 CLIENTW=
 W32_RES_LINK=
 EMACS_MANIFEST=
+UPDATE_MANIFEST=
 if test "${with_w32}" != no; then
   case "${opsys}" in
     cygwin)
@@ -10216,6 +10293,7 @@ fi
     x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
     *) EMACS_MANIFEST="emacs-x86.manifest" ;;
   esac
+  UPDATE_MANIFEST=update-game-score.exe.manifest
   if test "${opsys}" = "cygwin"; then
     W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
@@ -10238,6 +10316,7 @@ fi
     XARGS_LIMIT="-s 10000"
   fi
 fi
+
 
 
 
@@ -13595,6 +13674,83 @@ fi
 fi
 
 
+HAVE_ZLIB=no
+LIBZ=
+if test "${with_zlib}" != "no"; then
+  OLIBS=$LIBS
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing inflateEnd" >&5
+$as_echo_n "checking for library containing inflateEnd... " >&6; }
+if test "${ac_cv_search_inflateEnd+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char inflateEnd ();
+int
+main ()
+{
+return inflateEnd ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' z; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_inflateEnd=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_inflateEnd+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_inflateEnd+set}" = set; then :
+
+else
+  ac_cv_search_inflateEnd=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_inflateEnd" >&5
+$as_echo "$ac_cv_search_inflateEnd" >&6; }
+ac_res=$ac_cv_search_inflateEnd
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  HAVE_ZLIB=yes
+fi
+
+  LIBS=$OLIBS
+  case $ac_cv_search_inflateEnd in
+    -*) LIBZ=$ac_cv_search_inflateEnd ;;
+  esac
+fi
+if test "${HAVE_ZLIB}" = "yes"; then
+
+$as_echo "#define HAVE_ZLIB 1" >>confdefs.h
+
+  ### mingw32 doesn't use -lz, since it loads the library dynamically.
+  if test "${opsys}" = "mingw32"; then
+     LIBZ=
+  fi
+fi
+
+
+
 ### Use -ltiff if available, unless `--with-tiff=no'.
 ### mingw32 doesn't use -ltiff, since it loads the library dynamically.
 HAVE_TIFF=no
@@ -14674,7 +14830,7 @@ select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkostemp mkstemp getline getdelim sync \
+gai_strerror getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -15021,6 +15177,11 @@ if test $TERMINFO = yes; then
 $as_echo "#define TERMINFO 1" >>confdefs.h
 
   TERMCAP_OBJ=terminfo.o
+fi
+if test "X$LIBS_TERMCAP" = "X-lncurses"; then
+
+$as_echo "#define USE_NCURSES 1" >>confdefs.h
+
 fi
 
 
@@ -16327,7 +16488,7 @@ esac
 emacs_broken_SIGIO=no
 
 case $opsys in
-      hpux* | irix6-5 | openbsd | sol2* | unixware | gnu-kfreebsd )
+      hpux* | irix6-5 | openbsd | sol2* | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -16442,10 +16603,10 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
 
       $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
-                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, \"%s\", ptyname); }" >>confdefs.h
 
             if test "x$ac_cv_func_posix_openpt" = xyes; then
-        $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY)" >>confdefs.h
+        $as_echo "#define PTY_OPEN do { fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY); if (fd < 0 && errno == EINVAL) fd = posix_openpt (O_RDWR | O_NOCTTY); } while (0)" >>confdefs.h
 
         $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
 
@@ -16487,12 +16648,12 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
     ;;
 
   sol2* )
-                $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+                $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 
   unixware )
-        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal(\"could not grant slave pty\"); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal(\"could not grant slave pty\"); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, PTY_NAME_SIZE, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 esac
@@ -16942,7 +17103,7 @@ fi
 
 
 case $opsys in
-          cygwin)
+                cygwin)
 
 $as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
 
@@ -17045,7 +17206,6 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
 
-emacs_config_options=`echo "$emacs_config_options " | sed -e 's/--no-create //' -e 's/--no-recursion //' -e 's/ *$//' -e "s/\"/'/g"`
 
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIG_OPTIONS "${emacs_config_options}"
@@ -18485,8 +18645,6 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_STRMODE $ac_have_decl
 _ACEOF
-
-
 
 
 
@@ -20680,6 +20838,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+
+
   GNULIB_MKTIME=0;
   GNULIB_NANOSLEEP=0;
   GNULIB_STRPTIME=0;
@@ -21909,6 +22069,8 @@ _ACEOF
 
 
 
+
+
    if false; then
   GL_COND_LIBTOOL_TRUE=
   GL_COND_LIBTOOL_FALSE='#'
@@ -22091,9 +22253,11 @@ _ACEOF
 
 
 
+  :
 
 
 
+  :
 
 
 
@@ -22927,27 +23091,40 @@ _ACEOF
 
 
 
-
-  fp_headers='
-#     include <stdio.h>
-#     if HAVE_STDIO_EXT_H
-#      include <stdio_ext.h>
-#     endif
-'
-  ac_fn_c_check_decl "$LINENO" "__fpending" "ac_cv_have_decl___fpending" "$fp_headers
-"
-if test "x$ac_cv_have_decl___fpending" = x""yes; then :
-  ac_have_decl=1
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __fpending" >&5
+$as_echo_n "checking for __fpending... " >&6; }
+if test "${gl_cv_func___fpending+set}" = set; then :
+  $as_echo_n "(cached) " >&6
 else
-  ac_have_decl=0
-fi
 
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DECL___FPENDING $ac_have_decl
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+             #if HAVE_STDIO_EXT_H
+             # include <stdio_ext.h>
+             #endif
+
+int
+main ()
+{
+return ! __fpending (stdin);
+  ;
+  return 0;
+}
 _ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_func___fpending=yes
+else
+  gl_cv_func___fpending=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func___fpending" >&5
+$as_echo "$gl_cv_func___fpending" >&6; }
 
-  if test $ac_cv_func___fpending = no; then
+  if test $gl_cv_func___fpending = no; then
 
 
 
@@ -24056,6 +24233,48 @@ done
 
 
           GNULIB_MEMRCHR=1
+
+
+
+
+
+
+
+
+
+
+
+  if test $ac_cv_func_mkostemp != yes; then
+    HAVE_MKOSTEMP=0
+  fi
+
+  if test $HAVE_MKOSTEMP = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS mkostemp.$ac_objext"
+
+
+
+  fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNULIB_MKOSTEMP 1
+_ACEOF
+
+
+
+
+
+
+
+          GNULIB_MKOSTEMP=1
 
 
 
@@ -27470,9 +27689,11 @@ $as_echo "#define FUTIMESAT_NULL_BUG 1" >>confdefs.h
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
+  gl_gnulib_enabled_secure_getenv=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
+  gl_gnulib_enabled_tempname=false
   gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec=false
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
   {
@@ -28073,6 +28294,70 @@ fi
       gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=true
     fi
   }
+  func_gl_gnulib_m4code_secure_getenv ()
+  {
+    if ! $gl_gnulib_enabled_secure_getenv; then
+
+
+
+
+
+  if test $ac_cv_func_secure_getenv = no; then
+    HAVE_SECURE_GETENV=0
+  fi
+
+      if test $HAVE_SECURE_GETENV = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS secure_getenv.$ac_objext"
+
+
+  for ac_func in __secure_getenv
+do :
+  ac_fn_c_check_func "$LINENO" "__secure_getenv" "ac_cv_func___secure_getenv"
+if test "x$ac_cv_func___secure_getenv" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE___SECURE_GETENV 1
+_ACEOF
+
+fi
+done
+
+  if test $ac_cv_func___secure_getenv = no; then
+    for ac_func in issetugid
+do :
+  ac_fn_c_check_func "$LINENO" "issetugid" "ac_cv_func_issetugid"
+if test "x$ac_cv_func_issetugid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ISSETUGID 1
+_ACEOF
+
+fi
+done
+
+  fi
+
+      fi
+
+
+
+
+
+          GNULIB_SECURE_GETENV=1
+
+
+
+
+
+      gl_gnulib_enabled_secure_getenv=true
+    fi
+  }
   func_gl_gnulib_m4code_stat ()
   {
     if ! $gl_gnulib_enabled_stat; then
@@ -28317,6 +28602,18 @@ done
       gl_gnulib_enabled_strtoull=true
     fi
   }
+  func_gl_gnulib_m4code_tempname ()
+  {
+    if ! $gl_gnulib_enabled_tempname; then
+
+
+  :
+
+
+      gl_gnulib_enabled_tempname=true
+      func_gl_gnulib_m4code_secure_getenv
+    fi
+  }
   func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec ()
   {
     if ! $gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec; then
@@ -28358,6 +28655,9 @@ done
   fi
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
+  fi
+  if test $HAVE_MKOSTEMP = 0; then
+    func_gl_gnulib_m4code_tempname
   fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
@@ -28458,6 +28758,14 @@ else
   gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_FALSE=
 fi
 
+   if $gl_gnulib_enabled_secure_getenv; then
+  gl_GNULIB_ENABLED_secure_getenv_TRUE=
+  gl_GNULIB_ENABLED_secure_getenv_FALSE='#'
+else
+  gl_GNULIB_ENABLED_secure_getenv_TRUE='#'
+  gl_GNULIB_ENABLED_secure_getenv_FALSE=
+fi
+
    if $gl_gnulib_enabled_stat; then
   gl_GNULIB_ENABLED_stat_TRUE=
   gl_GNULIB_ENABLED_stat_FALSE='#'
@@ -28480,6 +28788,14 @@ fi
 else
   gl_GNULIB_ENABLED_strtoull_TRUE='#'
   gl_GNULIB_ENABLED_strtoull_FALSE=
+fi
+
+   if $gl_gnulib_enabled_tempname; then
+  gl_GNULIB_ENABLED_tempname_TRUE=
+  gl_GNULIB_ENABLED_tempname_FALSE='#'
+else
+  gl_GNULIB_ENABLED_tempname_TRUE='#'
+  gl_GNULIB_ENABLED_tempname_FALSE=
 fi
 
    if $gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec; then
@@ -28674,6 +28990,8 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
 
+echo "  Does Emacs support sound?                               ${HAVE_SOUND}"
+
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
@@ -28688,6 +29006,7 @@ echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
 echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
 echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+echo "  Does Emacs directly use zlib?                           ${HAVE_ZLIB}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
@@ -28735,10 +29054,13 @@ if test "$HAVE_NS" = "yes"; then
   if test "$NS_IMPL_GNUSTEP" = yes; then
     ac_config_files="$ac_config_files nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in"
 
+    ns_check_file=Resources/Info-gnustep.plist
   else
     ac_config_files="$ac_config_files nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in"
 
+    ns_check_file=Contents/Info.plist
   fi
+
 fi
 
 SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile"
@@ -28768,13 +29090,10 @@ SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e
 
 
 
-ac_config_commands="$ac_config_commands mkdirs"
+ac_config_commands="$ac_config_commands src/epaths.h"
 
 
-ac_config_commands="$ac_config_commands epaths"
-
-
-ac_config_commands="$ac_config_commands gdbinit"
+ac_config_commands="$ac_config_commands src/.gdbinit"
 
 
 cat >confcache <<\_ACEOF
@@ -28971,6 +29290,10 @@ if test -z "${gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_TRUE}" && test 
   as_fn_error "conditional \"gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${gl_GNULIB_ENABLED_secure_getenv_TRUE}" && test -z "${gl_GNULIB_ENABLED_secure_getenv_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_secure_getenv\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${gl_GNULIB_ENABLED_stat_TRUE}" && test -z "${gl_GNULIB_ENABLED_stat_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_stat\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -28981,6 +29304,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_strtoull_TRUE}" && test -z "${gl_GNULIB_ENABLED_strtoull_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_strtoull\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${gl_GNULIB_ENABLED_tempname_TRUE}" && test -z "${gl_GNULIB_ENABLED_tempname_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_tempname\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_TRUE}" && test -z "${gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_FALSE}"; then
@@ -29639,9 +29966,8 @@ do
     "nt/Makefile") CONFIG_FILES="$CONFIG_FILES nt/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "admin/unidata/Makefile") CONFIG_FILES="$CONFIG_FILES admin/unidata/Makefile" ;;
-    "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
-    "epaths") CONFIG_COMMANDS="$CONFIG_COMMANDS epaths" ;;
-    "gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS gdbinit" ;;
+    "src/epaths.h") CONFIG_COMMANDS="$CONFIG_COMMANDS src/epaths.h" ;;
+    "src/.gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS src/.gdbinit" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -30360,22 +30686,15 @@ $as_echo X"$file" |
   done
 }
  ;;
-    "mkdirs":C)
-for dir in etc lisp ; do
-  test -d ${dir} || mkdir ${dir}
-done
- ;;
-    "epaths":C)
-echo creating src/epaths.h
+    "src/epaths.h":C)
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
 else
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 fi
  ;;
-    "gdbinit":C)
+    "src/.gdbinit":C)
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo creating src/.gdbinit
   echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
  ;;

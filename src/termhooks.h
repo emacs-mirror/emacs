@@ -18,7 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
+#ifndef EMACS_TERMHOOKS_H
+#define EMACS_TERMHOOKS_H
+
 /* Miscellanea.   */
 
 #include "systime.h" /* for Time */
@@ -27,10 +29,6 @@ INLINE_HEADER_BEGIN
 #ifndef TERMHOOKS_INLINE
 # define TERMHOOKS_INLINE INLINE
 #endif
-
-struct glyph;
-struct frame;
-
 
 enum scroll_bar_part {
   scroll_bar_above_handle,
@@ -49,7 +47,18 @@ enum scroll_bar_part {
    may do something OS dependent, like extended window manager hints on X11.  */
 extern void (*fullscreen_hook) (struct frame *f);
 
-
+/* Output method of a terminal (and frames on this terminal, respectively).  */
+
+enum output_method
+{
+  output_initial,
+  output_termcap,
+  output_x_window,
+  output_msdos_raw,
+  output_w32,
+  output_ns
+};
+
 /* Input queue declarations and hooks.  */
 
 enum event_kind
@@ -320,11 +329,6 @@ extern void term_mouse_moveto (int, int);
 /* The device for which we have enabled gpm support.  */
 extern struct tty_display_info *gpm_tty;
 #endif
-
-
-struct ns_display_info;
-struct x_display_info;
-struct w32_display_info;
 
 /* Terminal-local parameters. */
 struct terminal
@@ -660,3 +664,5 @@ extern void close_gpm (int gpm_fd);
 #endif
 
 INLINE_HEADER_END
+
+#endif /* EMACS_TERMHOOKS_H */

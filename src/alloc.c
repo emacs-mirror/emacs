@@ -318,7 +318,6 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-#if GC_MARK_STACK || defined GC_MALLOC_CHECK
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
 static void mem_rotate_left (struct mem_node *);
@@ -326,7 +325,6 @@ static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
 static struct mem_node *mem_find (void *);
-#endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
 
@@ -796,10 +794,19 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 char *
 xstrdup (const char *s)
 {
-  size_t len = strlen (s) + 1;
-  char *p = xmalloc (len);
-  memcpy (p, s, len);
-  return p;
+  ptrdiff_t size;
+  eassert (s);
+  size = strlen (s) + 1;
+  return memcpy (xmalloc (size), s, size);
+}
+
+/* Like above, but duplicates Lisp string to C string.  */
+
+char *
+xlispstrdup (Lisp_Object string)
+{
+  ptrdiff_t size = SBYTES (string) + 1;
+  return memcpy (xmalloc (size), SSDATA (string), size);
 }
 
 /* Like putenv, but (1) use the equivalent of xmalloc and (2) the
@@ -2798,7 +2805,7 @@ vector_nbytes (struct Lisp_Vector *v)
 static void
 sweep_vectors (void)
 {
-  struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
+  struct vector_block *block, **bprev = &vector_blocks;
   struct large_vector *lv, **lvprev = &large_vectors;
   struct Lisp_Vector *vector, *next;
 
@@ -3371,7 +3378,7 @@ make_save_obj_obj_obj_obj (Lisp_Object a, Lisp_Object b, Lisp_Object c,
   return val;
 }
 
-#if defined HAVE_NS || defined DOS_NT
+#if defined HAVE_NS || defined HAVE_NTGUI
 Lisp_Object
 make_save_ptr (void *a)
 {
@@ -3393,6 +3400,19 @@ make_save_ptr_int (void *a, ptrdiff_t b)
   p->data[1].integer = b;
   return val;
 }
+
+#if defined HAVE_MENUS && ! (defined USE_X_TOOLKIT || defined USE_GTK)
+Lisp_Object
+make_save_ptr_ptr (void *a, void *b)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_PTR_PTR;
+  p->data[0].pointer = a;
+  p->data[1].pointer = b;
+  return val;
+}
+#endif
 
 Lisp_Object
 make_save_funcptr_ptr_obj (void (*a) (void), void *b, Lisp_Object c)
@@ -3459,6 +3479,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->charpos = 0;
   p->next = NULL;
   p->insertion_type = 0;
+  p->need_adjustment = 0;
   return val;
 }
 
@@ -3483,6 +3504,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   m->charpos = charpos;
   m->bytepos = bytepos;
   m->insertion_type = 0;
+  m->need_adjustment = 0;
   m->next = BUF_MARKERS (buf);
   BUF_MARKERS (buf) = m;
   return obj;
@@ -4045,7 +4067,7 @@ live_string_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
     {
-      struct string_block *b = (struct string_block *) m->start;
+      struct string_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->strings[0];
 
       /* P must point to the start of a Lisp_String structure, and it
@@ -4068,7 +4090,7 @@ live_cons_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
     {
-      struct cons_block *b = (struct cons_block *) m->start;
+      struct cons_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->conses[0];
 
       /* P must point to the start of a Lisp_Cons, not be
@@ -4094,7 +4116,7 @@ live_symbol_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
     {
-      struct symbol_block *b = (struct symbol_block *) m->start;
+      struct symbol_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->symbols[0];
 
       /* P must point to the start of a Lisp_Symbol, not be
@@ -4120,7 +4142,7 @@ live_float_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_FLOAT)
     {
-      struct float_block *b = (struct float_block *) m->start;
+      struct float_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->floats[0];
 
       /* P must point to the start of a Lisp_Float and not be
@@ -4144,7 +4166,7 @@ live_misc_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_MISC)
     {
-      struct marker_block *b = (struct marker_block *) m->start;
+      struct marker_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->markers[0];
 
       /* P must point to the start of a Lisp_Misc, not be
@@ -4171,7 +4193,7 @@ live_vector_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_VECTOR_BLOCK)
     {
       /* This memory node corresponds to a vector block.  */
-      struct vector_block *block = (struct vector_block *) m->start;
+      struct vector_block *block = m->start;
       struct Lisp_Vector *vector = (struct Lisp_Vector *) block->data;
 
       /* P is in the block's allocation range.  Scan the block
@@ -4215,6 +4237,10 @@ live_buffer_p (struct mem_node *m, void *p)
 #if GC_MARK_STACK
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+
+/* Currently not used, but may be called from gdb.  */
+
+void dump_zombies (void) EXTERNALLY_VISIBLE;
 
 /* Array of objects that are kept alive because the C stack contains
    a pattern that looks like a reference to them .  */
@@ -4598,7 +4624,7 @@ check_gcpros (void)
 
 #elif GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
-static void
+void
 dump_zombies (void)
 {
   int i;
@@ -4734,6 +4760,10 @@ mark_stack (void)
   check_gcpros ();
 #endif
 }
+
+#else /* GC_MARK_STACK == 0 */
+
+#define mark_maybe_object(obj) emacs_abort ()
 
 #endif /* GC_MARK_STACK != 0 */
 
@@ -5205,7 +5235,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   ptrdiff_t i;
   bool message_p;
   ptrdiff_t count = SPECPDL_INDEX ();
-  EMACS_TIME start;
+  struct timespec start;
   Lisp_Object retval = Qnil;
   size_t tot_before = 0;
 
@@ -5230,7 +5260,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (profiler_memory_running)
     tot_before = total_bytes_of_live_objects ();
 
-  start = current_emacs_time ();
+  start = current_timespec ();
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -5493,9 +5523,9 @@ See Info node `(elisp)Garbage Collection'.  */)
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
     {
-      EMACS_TIME since_start = sub_emacs_time (current_emacs_time (), start);
+      struct timespec since_start = timespec_sub (current_timespec (), start);
       Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
-				+ EMACS_TIME_TO_DOUBLE (since_start));
+				+ timespectod (since_start));
     }
 
   gcs_done++;

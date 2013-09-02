@@ -25,8 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 G_BEGIN_DECLS
 
-struct frame;
-
 extern GtkWidget *emacs_fixed_new (struct frame *f);
 
 G_END_DECLS

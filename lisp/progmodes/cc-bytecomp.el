@@ -244,7 +244,9 @@ Having cyclic cc-require's will result in infinite recursion.  That's
 somewhat intentional."
   `(progn
      (eval-when-compile
-       (setq cc-bytecomp-noruntime-functions byte-compile-noruntime-functions)
+       (if (boundp 'byte-compile-noruntime-functions) ; in case load uncompiled
+	   (setq cc-bytecomp-noruntime-functions
+		 byte-compile-noruntime-functions))
        (cc-bytecomp-load (symbol-name ,cc-part)))
      ;; Hack to suppress spurious "might not be defined at runtime" warnings.
      ;; The basic issue is that

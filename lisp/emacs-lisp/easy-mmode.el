@@ -419,7 +419,7 @@ See `%s' for more information on %s."
 	 ;; Go through existing buffers.
 	 (dolist (buf (buffer-list))
 	   (with-current-buffer buf
-	     (if ,global-mode (,turn-on) (when ,mode (,mode -1))))))
+	     (if ,global-mode (funcall #',turn-on) (when ,mode (,mode -1))))))
 
        ;; Autoloading define-globalized-minor-mode autoloads everything
        ;; up-to-here.
@@ -449,8 +449,8 @@ See `%s' for more information on %s."
 		   (if ,mode
 		       (progn
 			 (,mode -1)
-			 (,turn-on))
-		     (,turn-on))))
+			 (funcall #',turn-on))
+		     (funcall #',turn-on))))
 	       (setq ,MODE-major-mode major-mode)))))
        (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
 
@@ -589,7 +589,7 @@ BODY is executed after moving to the destination location."
                       (prog1 (or (< (- (point-max) (point-min)) (buffer-size)))
                         (widen))))
                  ,body
-                 (when was-narrowed (,narrowfun)))))))
+                 (when was-narrowed (funcall #',narrowfun)))))))
     (unless name (setq name base-name))
     `(progn
        (defun ,next-sym (&optional count)
@@ -601,13 +601,13 @@ BODY is executed after moving to the destination location."
            ,(funcall when-narrowed
              `(if (not (re-search-forward ,re nil t count))
                   (if (looking-at ,re)
-                      (goto-char (or ,(if endfun `(,endfun)) (point-max)))
+                      (goto-char (or ,(if endfun `(funcall #',endfun)) (point-max)))
                     (user-error "No next %s" ,name))
                 (goto-char (match-beginning 0))
-                (when (and (eq (current-buffer) (window-buffer (selected-window)))
+                (when (and (eq (current-buffer) (window-buffer))
                            (called-interactively-p 'interactive))
                   (let ((endpt (or (save-excursion
-                                     ,(if endfun `(,endfun)
+                                     ,(if endfun `(funcall #',endfun)
                                         `(re-search-forward ,re nil t 2)))
                                    (point-max))))
                     (unless (pos-visible-in-window-p endpt nil t)

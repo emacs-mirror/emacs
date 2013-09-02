@@ -202,6 +202,8 @@ The detected problematic options are stored in `cus-test-errors'."
 
 	   ;; Check the values
 	   (mapc (lambda (value)
+		   ;; TODO for booleans, check for values that can be
+		   ;; evaluated and are not t or nil.  Usually a bug.
 		   (unless (widget-apply conv :match value)
 		     (setq mismatch 'mismatch)))
 		 values)

@@ -138,6 +138,13 @@ specpdl_old_value (union specbinding *pdl)
   return pdl->let.old_value;
 }
 
+static void
+set_specpdl_old_value (union specbinding *pdl, Lisp_Object val)
+{
+  eassert (pdl->kind >= SPECPDL_LET);
+  pdl->let.old_value = val;
+}
+
 static Lisp_Object
 specpdl_where (union specbinding *pdl)
 {
@@ -393,16 +400,16 @@ If COND yields nil, and there are no ELSE's, the value is nil.
 usage: (if COND THEN ELSE...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object cond;
+  Lisp_Object cond;
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  cond = eval_sub (Fcar (args));
+  cond = eval_sub (XCAR (args));
   UNGCPRO;
 
   if (!NILP (cond))
-    return eval_sub (Fcar (Fcdr (args)));
-  return Fprogn (Fcdr (Fcdr (args)));
+    return eval_sub (Fcar (XCDR (args)));
+  return Fprogn (XCDR (XCDR (args)));
 }
 
 DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
@@ -417,18 +424,17 @@ CONDITION's value if non-nil is returned from the cond-form.
 usage: (cond CLAUSES...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object clause, val;
+  Lisp_Object val = args;
   struct gcpro gcpro1;
 
-  val = Qnil;
   GCPRO1 (args);
-  while (!NILP (args))
+  while (CONSP (args))
     {
-      clause = Fcar (args);
+      Lisp_Object clause = XCAR (args);
       val = eval_sub (Fcar (clause));
       if (!NILP (val))
 	{
-	  if (!EQ (XCDR (clause), Qnil))
+	  if (!NILP (XCDR (clause)))
 	    val = Fprogn (XCDR (clause));
 	  break;
 	}
@@ -459,7 +465,7 @@ usage: (progn BODY...)  */)
   return val;
 }
 
-/* Evaluate BODY sequentually, discarding its value.  Suitable for
+/* Evaluate BODY sequentially, discarding its value.  Suitable for
    record_unwind_protect.  */
 
 void
@@ -476,11 +482,11 @@ usage: (prog1 FIRST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val;
-  register Lisp_Object args_left;
+  Lisp_Object args_left;
   struct gcpro gcpro1, gcpro2;
 
   args_left = args;
-  val = Qnil;
+  val = args;
   GCPRO2 (args, val);
 
   val = eval_sub (XCAR (args_left));
@@ -517,36 +523,37 @@ The return value of the `setq' form is the value of the last VAL.
 usage: (setq [SYM VAL]...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object args_left;
-  register Lisp_Object val, sym, lex_binding;
-  struct gcpro gcpro1;
+  Lisp_Object val, sym, lex_binding;
 
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  GCPRO1 (args);
-
-  do
+  val = args;
+  if (CONSP (args))
     {
-      val = eval_sub (Fcar (Fcdr (args_left)));
-      sym = Fcar (args_left);
+      Lisp_Object args_left = args;
+      struct gcpro gcpro1;
+      GCPRO1 (args);
 
-      /* Like for eval_sub, we do not check declared_special here since
-	 it's been done when let-binding.  */
-      if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
-	  && SYMBOLP (sym)
-	  && !NILP (lex_binding
-		    = Fassq (sym, Vinternal_interpreter_environment)))
-	XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
-      else
-	Fset (sym, val);	/* SYM is dynamically bound.  */
+      do
+	{
+	  val = eval_sub (Fcar (XCDR (args_left)));
+	  sym = XCAR (args_left);
 
-      args_left = Fcdr (Fcdr (args_left));
+	  /* Like for eval_sub, we do not check declared_special here since
+	     it's been done when let-binding.  */
+	  if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
+	      && SYMBOLP (sym)
+	      && !NILP (lex_binding
+			= Fassq (sym, Vinternal_interpreter_environment)))
+	    XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
+	  else
+	    Fset (sym, val);	/* SYM is dynamically bound.  */
+
+	  args_left = Fcdr (XCDR (args_left));
+	}
+      while (CONSP (args_left));
+
+      UNGCPRO;
     }
-  while (!NILP (args_left));
 
-  UNGCPRO;
   return val;
 }
 
@@ -563,9 +570,9 @@ of unexpected results when a quoted object is modified.
 usage: (quote ARG)  */)
   (Lisp_Object args)
 {
-  if (!NILP (Fcdr (args)))
+  if (CONSP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qquote, Flength (args));
-  return Fcar (args);
+  return XCAR (args);
 }
 
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
@@ -577,7 +584,7 @@ usage: (function ARG)  */)
 {
   Lisp_Object quoted = XCAR (args);
 
-  if (!NILP (Fcdr (args)))
+  if (CONSP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
 
   if (!NILP (Vinternal_interpreter_environment)
@@ -651,6 +658,51 @@ The return value is BASE-VARIABLE.  */)
   return base_variable;
 }
 
+static union specbinding *
+default_toplevel_binding (Lisp_Object symbol)
+{
+  union specbinding *binding = NULL;
+  union specbinding *pdl = specpdl_ptr;
+  while (pdl > specpdl)
+    {
+      switch ((--pdl)->kind)
+	{
+	case SPECPDL_LET_DEFAULT:
+	case SPECPDL_LET:
+	  if (EQ (specpdl_symbol (pdl), symbol))
+	    binding = pdl;
+	  break;
+	}
+    }
+  return binding;
+}
+
+DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_value, 1, 1, 0,
+       doc: /* Return SYMBOL's toplevel default value.
+"Toplevel" means outside of any let binding.  */)
+  (Lisp_Object symbol)
+{
+  union specbinding *binding = default_toplevel_binding (symbol);
+  Lisp_Object value
+    = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
+  if (!EQ (value, Qunbound))
+    return value;
+  xsignal1 (Qvoid_variable, symbol);
+}
+
+DEFUN ("set-default-toplevel-value", Fset_default_toplevel_value,
+       Sset_default_toplevel_value, 2, 2, 0,
+       doc: /* Set SYMBOL's toplevel default value to VALUE.
+"Toplevel" means outside of any let binding.  */)
+     (Lisp_Object symbol, Lisp_Object value)
+{
+  union specbinding *binding = default_toplevel_binding (symbol);
+  if (binding)
+    set_specpdl_old_value (binding, value);
+  else
+    Fset_default (symbol, value);
+  return Qnil;
+}
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
        doc: /* Define SYMBOL as a variable, and return SYMBOL.
@@ -679,39 +731,33 @@ To define a user option, use `defcustom' instead of `defvar'.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object sym, tem, tail;
+  Lisp_Object sym, tem, tail;
 
-  sym = Fcar (args);
-  tail = Fcdr (args);
-  if (!NILP (Fcdr (Fcdr (tail))))
-    error ("Too many arguments");
+  sym = XCAR (args);
+  tail = XCDR (args);
 
-  tem = Fdefault_boundp (sym);
-  if (!NILP (tail))
+  if (CONSP (tail))
     {
+      if (CONSP (XCDR (tail)) && CONSP (XCDR (XCDR (tail))))
+	error ("Too many arguments");
+
+      tem = Fdefault_boundp (sym);
+
       /* Do it before evaluating the initial value, for self-references.  */
       XSYMBOL (sym)->declared_special = 1;
 
       if (NILP (tem))
-	Fset_default (sym, eval_sub (Fcar (tail)));
+	Fset_default (sym, eval_sub (XCAR (tail)));
       else
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
-	  union specbinding *pdl = specpdl_ptr;
-	  while (pdl > specpdl)
+	  union specbinding *binding = default_toplevel_binding (sym);
+	  if (binding && EQ (specpdl_old_value (binding), Qunbound))
 	    {
-	      if ((--pdl)->kind >= SPECPDL_LET
-		  && EQ (specpdl_symbol (pdl), sym)
-		  && EQ (specpdl_old_value (pdl), Qunbound))
-		{
-		  message_with_string
-		    ("Warning: defvar ignored because %s is let-bound",
-		     SYMBOL_NAME (sym), 1);
-		  break;
-		}
+	      set_specpdl_old_value (binding, eval_sub (XCAR (tail)));
 	    }
 	}
-      tail = Fcdr (tail);
+      tail = XCDR (tail);
       tem = Fcar (tail);
       if (!NILP (tem))
 	{
@@ -756,18 +802,18 @@ The optional DOCSTRING specifies the variable's documentation string.
 usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   (Lisp_Object args)
 {
-  register Lisp_Object sym, tem;
+  Lisp_Object sym, tem;
 
-  sym = Fcar (args);
-  if (!NILP (Fcdr (Fcdr (Fcdr (args)))))
+  sym = XCAR (args);
+  if (CONSP (Fcdr (XCDR (XCDR (args)))))
     error ("Too many arguments");
 
-  tem = eval_sub (Fcar (Fcdr (args)));
+  tem = eval_sub (Fcar (XCDR (args)));
   if (!NILP (Vpurify_flag))
     tem = Fpurecopy (tem);
   Fset_default (sym, tem);
   XSYMBOL (sym)->declared_special = 1;
-  tem = Fcar (Fcdr (Fcdr (args)));
+  tem = Fcar (XCDR (XCDR (args)));
   if (!NILP (tem))
     {
       if (!NILP (Vpurify_flag))
@@ -808,7 +854,7 @@ usage: (let* VARLIST BODY...)  */)
 
   lexenv = Vinternal_interpreter_environment;
 
-  varlist = Fcar (args);
+  varlist = XCAR (args);
   while (CONSP (varlist))
     {
       QUIT;
@@ -849,7 +895,7 @@ usage: (let* VARLIST BODY...)  */)
       varlist = XCDR (varlist);
     }
   UNGCPRO;
-  val = Fprogn (Fcdr (args));
+  val = Fprogn (XCDR (args));
   return unbind_to (count, val);
 }
 
@@ -869,7 +915,7 @@ usage: (let VARLIST BODY...)  */)
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
 
-  varlist = Fcar (args);
+  varlist = XCAR (args);
 
   /* Make space to hold the values to give the bound variables.  */
   elt = Flength (varlist);
@@ -896,7 +942,7 @@ usage: (let VARLIST BODY...)  */)
 
   lexenv = Vinternal_interpreter_environment;
 
-  varlist = Fcar (args);
+  varlist = XCAR (args);
   for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
     {
       Lisp_Object var;
@@ -919,7 +965,7 @@ usage: (let VARLIST BODY...)  */)
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
-  elt = Fprogn (Fcdr (args));
+  elt = Fprogn (XCDR (args));
   SAFE_FREE ();
   return unbind_to (count, elt);
 }
@@ -936,8 +982,8 @@ usage: (while TEST BODY...)  */)
 
   GCPRO2 (test, body);
 
-  test = Fcar (args);
-  body = Fcdr (args);
+  test = XCAR (args);
+  body = XCDR (args);
   while (!NILP (eval_sub (test)))
     {
       QUIT;
@@ -1034,9 +1080,9 @@ usage: (catch TAG BODY...)  */)
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  tag = eval_sub (Fcar (args));
+  tag = eval_sub (XCAR (args));
   UNGCPRO;
-  return internal_catch (tag, Fprogn, Fcdr (args));
+  return internal_catch (tag, Fprogn, XCDR (args));
 }
 
 /* Set up a catch, then call C function FUNC on argument ARG.
@@ -1150,8 +1196,8 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  record_unwind_protect (unwind_body, Fcdr (args));
-  val = eval_sub (Fcar (args));
+  record_unwind_protect (unwind_body, XCDR (args));
+  val = eval_sub (XCAR (args));
   return unbind_to (count, val);
 }
 
@@ -1183,9 +1229,9 @@ See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
   (Lisp_Object args)
 {
-  Lisp_Object var = Fcar (args);
-  Lisp_Object bodyform = Fcar (Fcdr (args));
-  Lisp_Object handlers = Fcdr (Fcdr (args));
+  Lisp_Object var = XCAR (args);
+  Lisp_Object bodyform = XCAR (XCDR (args));
+  Lisp_Object handlers = XCDR (XCDR (args));
 
   return internal_lisp_condition_case (var, bodyform, handlers);
 }
@@ -2103,6 +2149,8 @@ eval_sub (Lisp_Object form)
   if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
+  else
+    fun = Ffunction (Fcons (fun, Qnil));
 
   if (SUBRP (fun))
     {
@@ -3105,20 +3153,17 @@ let_shadows_global_binding_p (Lisp_Object symbol)
   return 0;
 }
 
-/* `specpdl_ptr->symbol' is a field which describes which variable is
+/* `specpdl_ptr' describes which variable is
    let-bound, so it can be properly undone when we unbind_to.
-   It can have the following two shapes:
-   - SYMBOL : if it's a plain symbol, it means that we have let-bound
-     a symbol that is not buffer-local (at least at the time
-     the let binding started).  Note also that it should not be
+   It can be either a plain SPECPDL_LET or a SPECPDL_LET_LOCAL/DEFAULT.
+   - SYMBOL is the variable being bound.  Note that it should not be
      aliased (i.e. when let-binding V1 that's aliased to V2, we want
      to record V2 here).
-   - (SYMBOL WHERE . BUFFER) : this means that it is a let-binding for
-     variable SYMBOL which can be buffer-local.  WHERE tells us
-     which buffer is affected (or nil if the let-binding affects the
-     global value of the variable) and BUFFER tells us which buffer was
-     current (i.e. if WHERE is non-nil, then BUFFER==WHERE, otherwise
-     BUFFER did not yet have a buffer-local value).  */
+   - WHERE tells us in which buffer the binding took place.
+     This is used for SPECPDL_LET_LOCAL bindings (i.e. bindings to a
+     buffer-local variable) as well as for SPECPDL_LET_DEFAULT bindings,
+     i.e. bindings to the default value of a variable which can be
+     buffer-local.  */
 
 void
 specbind (Lisp_Object symbol, Lisp_Object value)
@@ -3256,6 +3301,16 @@ clear_unwind_protect (ptrdiff_t count)
    previous value without invoking it.  */
 
 void
+set_unwind_protect (ptrdiff_t count, void (*func) (Lisp_Object),
+		    Lisp_Object arg)
+{
+  union specbinding *p = specpdl + count;
+  p->unwind.kind = SPECPDL_UNWIND;
+  p->unwind.func = func;
+  p->unwind.arg = arg;
+}
+
+void
 set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
 {
   union specbinding *p = specpdl + count;
@@ -3299,41 +3354,38 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	case SPECPDL_UNWIND_VOID:
 	  specpdl_ptr->unwind_void.func ();
 	  break;
-	case SPECPDL_LET:
-	  /* If variable has a trivial value (no forwarding), we can
-	     just set it.  No need to check for constant symbols here,
-	     since that was already done by specbind.  */
-	  if (XSYMBOL (specpdl_symbol (specpdl_ptr))->redirect
-	      == SYMBOL_PLAINVAL)
-	    SET_SYMBOL_VAL (XSYMBOL (specpdl_symbol (specpdl_ptr)),
-			    specpdl_old_value (specpdl_ptr));
-	  else
-	    /* NOTE: we only ever come here if make_local_foo was used for
-	       the first time on this var within this let.  */
-	    Fset_default (specpdl_symbol (specpdl_ptr),
-			  specpdl_old_value (specpdl_ptr));
-	  break;
 	case SPECPDL_BACKTRACE:
 	  break;
-	case SPECPDL_LET_LOCAL:
+	case SPECPDL_LET:
+	  { /* If variable has a trivial value (no forwarding), we can
+	       just set it.  No need to check for constant symbols here,
+	       since that was already done by specbind.  */
+	    struct Lisp_Symbol *sym = XSYMBOL (specpdl_symbol (specpdl_ptr));
+	    if (sym->redirect == SYMBOL_PLAINVAL)
+	      {
+		SET_SYMBOL_VAL (sym, specpdl_old_value (specpdl_ptr));
+		break;
+	      }
+	    else
+	      { /* FALLTHROUGH!!
+		   NOTE: we only ever come here if make_local_foo was used for
+		   the first time on this var within this let.  */
+	      }
+	  }
 	case SPECPDL_LET_DEFAULT:
-	  { /* If the symbol is a list, it is really (SYMBOL WHERE
-	     . CURRENT-BUFFER) where WHERE is either nil, a buffer, or a
-	     frame.  If WHERE is a buffer or frame, this indicates we
-	     bound a variable that had a buffer-local or frame-local
-	     binding.  WHERE nil means that the variable had the default
-	     value when it was bound.  CURRENT-BUFFER is the buffer that
-	     was current when the variable was bound.  */
+	  Fset_default (specpdl_symbol (specpdl_ptr),
+			specpdl_old_value (specpdl_ptr));
+	  break;
+	case SPECPDL_LET_LOCAL:
+	  {
 	    Lisp_Object symbol = specpdl_symbol (specpdl_ptr);
 	    Lisp_Object where = specpdl_where (specpdl_ptr);
 	    Lisp_Object old_value = specpdl_old_value (specpdl_ptr);
 	    eassert (BUFFERP (where));
 
-	    if (specpdl_ptr->kind == SPECPDL_LET_DEFAULT)
-	      Fset_default (symbol, old_value);
 	    /* If this was a local binding, reset the value in the appropriate
 	       buffer, but only if that buffer's binding still exists.  */
-	    else if (!NILP (Flocal_variable_p (symbol, where)))
+	    if (!NILP (Flocal_variable_p (symbol, where)))
 	      set_internal (symbol, old_value, where, 1);
 	  }
 	  break;
@@ -3420,7 +3472,30 @@ Output stream used is value of `standard-output'.  */)
   return Qnil;
 }
 
-DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 1, NULL,
+static union specbinding *
+get_backtrace_frame (Lisp_Object nframes, Lisp_Object base)
+{
+  union specbinding *pdl = backtrace_top ();
+  register EMACS_INT i;
+
+  CHECK_NATNUM (nframes);
+
+  if (!NILP (base))
+    { /* Skip up to `base'.  */
+      base = Findirect_function (base, Qt);
+      while (backtrace_p (pdl)
+	     && !EQ (base, Findirect_function (backtrace_function (pdl), Qt)))
+	pdl = backtrace_next (pdl);
+    }
+
+  /* Find the frame requested.  */
+  for (i = XFASTINT (nframes); i > 0 && backtrace_p (pdl); i--)
+    pdl = backtrace_next (pdl);
+
+  return pdl;
+}
+
+DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 2, NULL,
        doc: /* Return the function and arguments NFRAMES up from current execution point.
 If that frame has not evaluated the arguments yet (or is a special form),
 the value is (nil FUNCTION ARG-FORMS...).
@@ -3429,17 +3504,12 @@ the value is (t FUNCTION ARG-VALUES...).
 A &rest arg is represented as the tail of the list ARG-VALUES.
 FUNCTION is whatever was supplied as car of evaluated list,
 or a lambda expression for macro calls.
-If NFRAMES is more than the number of frames, the value is nil.  */)
-  (Lisp_Object nframes)
+If NFRAMES is more than the number of frames, the value is nil.
+If BASE is non-nil, it should be a function and NFRAMES counts from its
+nearest activation frame.  */)
+  (Lisp_Object nframes, Lisp_Object base)
 {
-  union specbinding *pdl = backtrace_top ();
-  register EMACS_INT i;
-
-  CHECK_NATNUM (nframes);
-
-  /* Find the frame requested.  */
-  for (i = 0; backtrace_p (pdl) && i < XFASTINT (nframes); i++)
-    pdl = backtrace_next (pdl);
+  union specbinding *pdl = get_backtrace_frame (nframes, base);
 
   if (!backtrace_p (pdl))
     return Qnil;
@@ -3454,6 +3524,108 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
     }
 }
 
+/* For backtrace-eval, we want to temporarily unwind the last few elements of
+   the specpdl stack, and then rewind them.  We store the pre-unwind values
+   directly in the pre-existing specpdl elements (i.e. we swap the current
+   value and the old value stored in the specpdl), kind of like the inplace
+   pointer-reversal trick.  As it turns out, the rewind does the same as the
+   unwind, except it starts from the other end of the specpdl stack, so we use
+   the same function for both unwind and rewind.  */
+static void
+backtrace_eval_unrewind (int distance)
+{
+  union specbinding *tmp = specpdl_ptr;
+  int step = -1;
+  if (distance < 0)
+    { /* It's a rewind rather than unwind.  */
+      tmp += distance - 1;
+      step = 1;
+      distance = -distance;
+    }
+
+  for (; distance > 0; distance--)
+    {
+      tmp += step;
+      /*  */
+      switch (tmp->kind)
+	{
+	  /* FIXME: Ideally we'd like to "temporarily unwind" (some of) those
+	     unwind_protect, but the problem is that we don't know how to
+	     rewind them afterwards.  */
+	case SPECPDL_UNWIND:
+	case SPECPDL_UNWIND_PTR:
+	case SPECPDL_UNWIND_INT:
+	case SPECPDL_UNWIND_VOID:
+	case SPECPDL_BACKTRACE:
+	  break;
+	case SPECPDL_LET:
+	  { /* If variable has a trivial value (no forwarding), we can
+	       just set it.  No need to check for constant symbols here,
+	       since that was already done by specbind.  */
+	    struct Lisp_Symbol *sym = XSYMBOL (specpdl_symbol (tmp));
+	    if (sym->redirect == SYMBOL_PLAINVAL)
+	      {
+		Lisp_Object old_value = specpdl_old_value (tmp);
+		set_specpdl_old_value (tmp, SYMBOL_VAL (sym));
+		SET_SYMBOL_VAL (sym, old_value);
+		break;
+	      }
+	    else
+	      { /* FALLTHROUGH!!
+		   NOTE: we only ever come here if make_local_foo was used for
+		   the first time on this var within this let.  */
+	      }
+	  }
+	case SPECPDL_LET_DEFAULT:
+	  {
+	    Lisp_Object sym = specpdl_symbol (tmp);
+	    Lisp_Object old_value = specpdl_old_value (tmp);
+	    set_specpdl_old_value (tmp, Fdefault_value (sym));
+	    Fset_default (sym, old_value);
+	  }
+	  break;
+	case SPECPDL_LET_LOCAL:
+	  {
+	    Lisp_Object symbol = specpdl_symbol (tmp);
+	    Lisp_Object where = specpdl_where (tmp);
+	    Lisp_Object old_value = specpdl_old_value (tmp);
+	    eassert (BUFFERP (where));
+
+	    /* If this was a local binding, reset the value in the appropriate
+	       buffer, but only if that buffer's binding still exists.  */
+	    if (!NILP (Flocal_variable_p (symbol, where)))
+	      {
+		set_specpdl_old_value
+		  (tmp, Fbuffer_local_value (symbol, where));
+		set_internal (symbol, old_value, where, 1);
+	      }
+	  }
+	  break;
+	}
+    }
+}
+
+DEFUN ("backtrace-eval", Fbacktrace_eval, Sbacktrace_eval, 2, 3, NULL,
+       doc: /* Evaluate EXP in the context of some activation frame.
+NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  */)
+     (Lisp_Object exp, Lisp_Object nframes, Lisp_Object base)
+{
+  union specbinding *pdl = get_backtrace_frame (nframes, base);
+  ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t distance = specpdl_ptr - pdl;
+  eassert (distance >= 0);
+
+  if (!backtrace_p (pdl))
+    error ("Activation frame not found!");
+
+  backtrace_eval_unrewind (distance);
+  record_unwind_protect_int (backtrace_eval_unrewind, -distance);
+
+  /* Use eval_sub rather than Feval since the main motivation behind
+     backtrace-eval is to be able to get/set the value of lexical variables
+     from the debugger.  */
+  return unbind_to (count, eval_sub (exp));
+}
 
 void
 mark_specpdl (void)
@@ -3671,6 +3843,8 @@ alist of active lexical bindings.  */);
   defsubr (&Ssetq);
   defsubr (&Squote);
   defsubr (&Sfunction);
+  defsubr (&Sdefault_toplevel_value);
+  defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
   defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
@@ -3699,6 +3873,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
+  defsubr (&Sbacktrace_eval);
   defsubr (&Sspecial_variable_p);
   defsubr (&Sfunctionp);
 }

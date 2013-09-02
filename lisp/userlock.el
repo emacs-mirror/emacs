@@ -30,8 +30,7 @@
 
 ;;; Code:
 
-(put 'file-locked 'error-conditions '(file-locked file-error error))
-(put 'file-locked 'error-message "File is locked")
+(define-error 'file-locked "File is locked" 'file-error)
 
 ;;;###autoload
 (defun ask-user-about-lock (file opponent)
@@ -94,8 +93,7 @@ You can <q>uit; don't modify this file.")
     (with-current-buffer standard-output
       (help-mode))))
 
-(put
- 'file-supersession 'error-conditions '(file-supersession file-error error))
+(define-error 'file-supersession nil 'file-error)
 
 ;;;###autoload
 (defun ask-user-about-supersession-threat (fn)

@@ -466,13 +466,8 @@ whose value is a range-list."
 		     (- (length str)
 			(length xsdre-current-regexp))))))))
 
-(put 'xsdre-invalid-regexp
-     'error-conditions
-     '(error xsdre-invalid-regexp))
-
-(put 'xsdre-invalid-regexp
-     'error-message
-     "Invalid W3C XML Schema Datatypes regular expression")
+(define-error 'xsdre-invalid-regexp
+  "Invalid W3C XML Schema Datatypes regular expression")
 
 (defun xsdre-parse-regexp ()
   (let ((branches nil))
@@ -686,13 +681,7 @@ whose value is a range-list."
 
 ;; This error condition is used only internally.
 
-(put 'xsdre-parse-error
-     'error-conditions
-     '(error xsdre-parse-error))
-
-(put 'xsdre-parse-error
-     'error-message
-     "Internal error in parsing XSD regexp")
+(define-error 'xsdre-parse-error "Internal error in parsing XSD regexp")
 
 ;;; Character class data
 

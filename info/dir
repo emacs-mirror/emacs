@@ -36,7 +36,7 @@ Emacs editing modes
                                   Java, Pike, AWK, and CORBA IDL code.
 * IDLWAVE: (idlwave).           Major mode and shell for IDL files.
 * nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
-* Org Mode: (org).              Outline-based notes management and organizer
+* Org Mode: (org).              Outline-based notes management and organizer.
 
 Emacs network features
 * EUDC: (eudc).                 Emacs client for directory servers (LDAP, PH).
@@ -75,6 +75,7 @@ Emacs misc features
 * Forms: (forms).               Emacs package for editing data bases
                                   by filling in forms.
 * Htmlfontify: (htmlfontify).   Convert source code to html.
+* Ido: (ido).                   Interactively do things with buffers and files.
 * PCL-CVS: (pcl-cvs).           Emacs front-end to CVS.
 * RefTeX: (reftex).             Emacs support for LaTeX cross-references
                                   and citations.
@@ -85,6 +86,7 @@ Emacs misc features
 * Wisent: (wisent).             Semantic Wisent parser development.
 * SES: (ses).                   Simple Emacs Spreadsheet.
 * Speedbar: (speedbar).         File/Tag summarizing utility.
+* Todo Mode: (todo-mode).       Make and maintain todo lists.
 * VIP: (vip).                   An older VI-emulation for Emacs.
 * VIPER: (viper).               A VI-emulation mode for Emacs.
 * WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".

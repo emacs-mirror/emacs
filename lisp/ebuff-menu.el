@@ -227,7 +227,7 @@ Select buffer at point and display buffers marked \">\" in other windows."
 (defun Electric-buffer-menu-mouse-select (event)
   (interactive "e")
   (select-window (posn-window (event-end event)))
-  (set-buffer (window-buffer (selected-window)))
+  (set-buffer (window-buffer))
   (goto-char (posn-point (event-end event)))
   (throw 'electric-buffer-menu-select (point)))
 

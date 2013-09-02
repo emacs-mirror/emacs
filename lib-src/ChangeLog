@@ -1,3 +1,51 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.exe.manifest: New file.
+
+	* Makefile.in (UPDATE_MANIFEST): New variable.
+	(SCRIPTS): Add $(UPDATE_MANIFEST).
+
+2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (lisp2): Add nadvice.elc.
+
+2013-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c (read_score): Try reading a character before
+	probing the stream for EOF.  Initialize score->score to zero,
+	before reading and accumulating the score.
+	(read_scores): Fix logic that determines which value to return.
+	Close the input stream when finished reading the scores (avoids
+	failures in overwriting the file with a new one on MS-Windows,
+	since a file that is open cannot be deleted).
+
+	* ntlib.h (rename): Don't undefine.
+
+	* ntlib.c (sys_rename): New function, needed for
+	update-game-score.
+
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.h: Include fcntl.h.
+	(mkostemp): Declare prototype.
+	(mktemp): Don't redefine.
+
+	* ntlib.c (mkostemp): New function.  (Bug#15015)
+
+2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor races in hosts lacking mkostemp (Bug#15015).
+	* movemail.c (main):
+	* update-game-score.c (write_scores):
+	Use mkostemp (which now works on all platforms, due to changes
+	in the portability layer) rather than mktemp (which has a race)
+	or mkstemp (which we no longer bother with).
+
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to C89.

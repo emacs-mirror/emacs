@@ -109,8 +109,7 @@ data appears to be compressed already.")
 (put 'jka-compr-really-do-compress 'permanent-local t)
 
 
-(put 'compression-error 'error-conditions '(compression-error file-error error))
-
+(define-error 'compression-error nil 'file-error)
 
 (defvar jka-compr-acceptable-retval-list '(0 2 141))
 

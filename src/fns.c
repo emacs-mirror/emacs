@@ -146,8 +146,6 @@ To get the number of bytes, use `string-bytes'.  */)
   return val;
 }
 
-/* This does not check for quits.  That is safe since it must terminate.  */
-
 DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
@@ -1740,8 +1738,6 @@ See also the function `nreverse', which is used more often.  */)
   return new;
 }
 
-Lisp_Object merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred);
-
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
        doc: /* Sort LIST, stably, comparing elements using PREDICATE.
 Returns the sorted list.  LIST is modified by side effects.

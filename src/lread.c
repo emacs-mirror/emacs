@@ -609,7 +609,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 		     bool error_nonascii, bool input_method, Lisp_Object seconds)
 {
   Lisp_Object val, delayed_switch_frame;
-  EMACS_TIME end_time;
+  struct timespec end_time;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -622,8 +622,8 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
   if (NUMBERP (seconds))
     {
       double duration = extract_float (seconds);
-      EMACS_TIME wait_time = EMACS_TIME_FROM_DOUBLE (duration);
-      end_time = add_emacs_time (current_emacs_time (), wait_time);
+      struct timespec wait_time = dtotimespec (duration);
+      end_time = timespec_add (current_timespec (), wait_time);
     }
 
   /* Read until we get an acceptable event.  */
@@ -1044,7 +1044,7 @@ Return t if the file exists and loads successfully.  */)
 {
   FILE *stream;
   int fd;
-  int fd_index = 0;
+  int fd_index;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object found, efound, hist_file_name;
@@ -1175,7 +1175,12 @@ Return t if the file exists and loads successfully.  */)
 #endif
     }
 
-  if (fd >= 0)
+  if (fd < 0)
+    {
+      /* Pacify older GCC with --enable-gcc-warnings.  */
+      IF_LINT (fd_index = 0);
+    }
+  else
     {
       fd_index = SPECPDL_INDEX ();
       record_unwind_protect_int (close_file_unwind, fd);
@@ -1257,7 +1262,7 @@ Return t if the file exists and loads successfully.  */)
 	    }
 
 	  if (result == 0
-	      && EMACS_TIME_LT (get_stat_mtime (&s1), get_stat_mtime (&s2)))
+	      && timespec_cmp (get_stat_mtime (&s1), get_stat_mtime (&s2)) < 0)
 	    {
 	      /* Make the progress messages mention that source is newer.  */
 	      newer = 1;
@@ -3224,7 +3229,7 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
 	if (BOOL_VECTOR_P (subtree))
 	  return subtree;		/* No sub-objects anyway.  */
 	else if (CHAR_TABLE_P (subtree) || SUB_CHAR_TABLE_P (subtree)
-		 || COMPILEDP (subtree))
+		 || COMPILEDP (subtree) || HASH_TABLE_P (subtree))
 	  length = ASIZE (subtree) & PSEUDOVECTOR_SIZE_MASK;
 	else if (VECTORP (subtree))
 	  length = ASIZE (subtree);

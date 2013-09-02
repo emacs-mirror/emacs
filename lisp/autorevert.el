@@ -271,9 +271,7 @@ This variable becomes buffer local when set in any fashion.")
   :type 'boolean
   :version "24.4")
 
-(defcustom auto-revert-use-notify
-  ;; We use the support of the local filesystem as default.
-  (file-notify-supported-p temporary-file-directory)
+(defcustom auto-revert-use-notify t
   "If non-nil Auto Revert Mode uses file notification functions.
 You should set this variable through Custom."
   :group 'auto-revert
@@ -512,8 +510,7 @@ will use an up-to-date value of `auto-revert-interval'"
     (set (make-local-variable 'auto-revert-use-notify) nil))
 
   (when (and buffer-file-name auto-revert-use-notify
-	     (not auto-revert-notify-watch-descriptor)
-	     (file-notify-supported-p buffer-file-name))
+	     (not auto-revert-notify-watch-descriptor))
     (setq auto-revert-notify-watch-descriptor
 	  (ignore-errors
 	    (file-notify-add-watch
@@ -598,14 +595,14 @@ This is an internal function used by Auto-Revert Mode."
 				  (setq size
 					(nth 7 (file-attributes
 						buffer-file-name)))))
-		       (and (file-readable-p buffer-file-name)
-			    (not (verify-visited-file-modtime buffer)))))
+		       (funcall (or buffer-stale-function
+                                    #'buffer-stale--default-function)
+                                t)))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
-		     revert-buffer-function
-		     (boundp 'buffer-stale-function)
-		     (functionp buffer-stale-function)
-		     (funcall buffer-stale-function t))))
+		     (funcall (or buffer-stale-function
+                                  #'buffer-stale--default-function)
+                              t))))
 	   eob eoblist)
       (setq auto-revert-notify-modified-p nil)
       (when revert

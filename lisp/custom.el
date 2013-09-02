@@ -49,63 +49,66 @@ Users should not set it.")
 
 ;;; The `defcustom' Macro.
 
-(defun custom-initialize-default (symbol value)
-  "Initialize SYMBOL with VALUE.
+(defun custom-initialize-default (symbol exp)
+  "Initialize SYMBOL with EXP.
 This will do nothing if symbol already has a default binding.
 Otherwise, if symbol has a `saved-value' property, it will evaluate
 the car of that and use it as the default binding for symbol.
-Otherwise, VALUE will be evaluated and used as the default binding for
+Otherwise, EXP will be evaluated and used as the default binding for
 symbol."
-  (eval `(defvar ,symbol ,(if (get symbol 'saved-value)
-                              (car (get symbol 'saved-value))
-                            value))))
+  (eval `(defvar ,symbol ,(let ((sv (get symbol 'saved-value)))
+                            (if sv (car sv) exp)))))
 
-(defun custom-initialize-set (symbol value)
-  "Initialize SYMBOL based on VALUE.
+(defun custom-initialize-set (symbol exp)
+  "Initialize SYMBOL based on EXP.
 If the symbol doesn't have a default binding already,
 then set it using its `:set' function (or `set-default' if it has none).
 The value is either the value in the symbol's `saved-value' property,
-if any, or VALUE."
-  (unless (default-boundp symbol)
-    (funcall (or (get symbol 'custom-set) 'set-default)
-	     symbol
-	     (eval (if (get symbol 'saved-value)
-                       (car (get symbol 'saved-value))
-                     value)))))
+if any, or the value of EXP."
+  (condition-case nil
+      (default-toplevel-value symbol)
+    (error
+     (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+              symbol
+              (eval (let ((sv (get symbol 'saved-value)))
+                      (if sv (car sv) exp)))))))
 
-(defun custom-initialize-reset (symbol value)
-  "Initialize SYMBOL based on VALUE.
+(defun custom-initialize-reset (symbol exp)
+  "Initialize SYMBOL based on EXP.
 Set the symbol, using its `:set' function (or `set-default' if it has none).
 The value is either the symbol's current value
  (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
-or (last of all) VALUE."
-  (funcall (or (get symbol 'custom-set) 'set-default)
+or (last of all) the value of EXP."
+  (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
-           (cond ((default-boundp symbol)
-                  (funcall (or (get symbol 'custom-get) 'default-value)
-                           symbol))
-                 ((get symbol 'saved-value)
-                  (eval (car (get symbol 'saved-value))))
-                 (t
-                  (eval value)))))
+           (condition-case nil
+               (let ((def (default-toplevel-value symbol))
+                     (getter (get symbol 'custom-get)))
+                 (if getter (funcall getter symbol) def))
+             (error
+              (eval (let ((sv (get symbol 'saved-value)))
+                      (if sv (car sv) exp)))))))
 
-(defun custom-initialize-changed (symbol value)
-  "Initialize SYMBOL with VALUE.
+(defun custom-initialize-changed (symbol exp)
+  "Initialize SYMBOL with EXP.
 Like `custom-initialize-reset', but only use the `:set' function if
 not using the standard setting.
 For the standard setting, use `set-default'."
-  (cond ((default-boundp symbol)
-	 (funcall (or (get symbol 'custom-set) 'set-default)
-		  symbol
-		  (funcall (or (get symbol 'custom-get) 'default-value)
-			   symbol)))
-	((get symbol 'saved-value)
-	 (funcall (or (get symbol 'custom-set) 'set-default)
-		  symbol
-		  (eval (car (get symbol 'saved-value)))))
-	(t
-	 (set-default symbol (eval value)))))
+  (condition-case nil
+      (let ((def (default-toplevel-value symbol)))
+        (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+                 symbol
+                 (let ((getter (get symbol 'custom-get)))
+                   (if getter (funcall getter symbol) def))))
+    (error
+     (cond
+      ((get symbol 'saved-value)
+       (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+                symbol
+                (eval (car (get symbol 'saved-value)))))
+      (t
+       (set-default symbol (eval exp)))))))
 
 (defvar custom-delayed-init-variables nil
   "List of variables whose initialization is pending.")

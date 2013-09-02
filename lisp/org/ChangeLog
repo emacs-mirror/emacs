@@ -3983,7 +3983,7 @@
 	(org-export-latex-tables-tend): New options.
 	(org-export-latex-tables): Use the new options.
 
-2012-09-30  tumashu  <tumashu@gmail.com>  (tiny change)
+2012-09-30  Feng Shu  <tumashu@gmail.com>  (tiny change)
 
 	* org-exp.el (org-export-language-setup): Add simplified chinese
 	translation.
@@ -9437,7 +9437,7 @@
 	(org-update-checkbox-count-maybe): Add an optional argument passed to
 	org-update-checkbox-count.
 
-2011-07-28  Ted Zlatanov  <tzz@lifelogs.com>
+2011-07-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* org.el (org-fontify-meta-lines-and-blocks): Ignore errors.
 
@@ -18000,7 +18000,7 @@
 	* org-habit.el (org-habit-build-graph): Help-echo date when
 	mouse is over stars.
 
-2010-07-19  Jan Böker  <jan.boecker@jboecker.de>
+2010-07-19  Jan Böcker  <jan.boecker@jboecker.de>
 
 	* org.el (org-file-apps): Improve docstring to reflect
 	grouping matches.

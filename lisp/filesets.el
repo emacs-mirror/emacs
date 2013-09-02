@@ -214,8 +214,8 @@ key is supported."
 
 (defun filesets-which-command-p (cmd)
   "Call \"which CMD\" and return non-nil if the command was found."
-  (when (string-match (format "\\(/[^/]+\\)?/%s" cmd)
-		      (filesets-which-command cmd))
+  (when (string-match-p (format "\\(/[^/]+\\)?/%s" cmd)
+			(filesets-which-command cmd))
     cmd))
 
 (defun filesets-message (level &rest args)
@@ -1082,7 +1082,7 @@ defined in `filesets-ingroup-patterns'."
 
     (require 'easymenu)
 
-    (defun filesets-error (class &rest args)
+    (defun filesets-error (_class &rest args)
       "`error' wrapper."
       (error "%s" (mapconcat 'identity args " ")))
 
@@ -1093,10 +1093,10 @@ defined in `filesets-ingroup-patterns'."
 If NEGATIVE is non-nil, remove all directory names."
   (filesets-filter-list lst
 			(lambda (x)
-			  (and (not (string-match "^\\.+/$" x))
+			  (and (not (string-match-p "^\\.+/$" x))
 			       (if negative
-				   (not (string-match "[:/\\]$" x))
-				 (string-match "[:/\\]$" x))))))
+				   (not (string-match-p "[:/\\]$" x))
+				 (string-match-p "[:/\\]$" x))))))
 
 (defun filesets-conditional-sort (lst &optional access-fn)
   "Return a sorted copy of LST, LST being a list of strings.
@@ -1130,18 +1130,18 @@ Return full path if FULL-FLAG is non-nil."
 	  (dirs  nil))
       (dolist (this (file-name-all-completions "" dir))
 	(cond
-	 ((string-match "^\\.+/$" this)
+	 ((string-match-p "^\\.+/$" this)
 	  nil)
-	 ((string-match "[:/\\]$" this)
+	 ((string-match-p "[:/\\]$" this)
 	  (when (or (not match-dirs-flag)
 		    (not pattern)
-		    (string-match pattern this))
+		    (string-match-p pattern this))
 	    (filesets-message 5 "Filesets: matched dir %S with pattern %S"
 			      this pattern)
 	    (setq dirs (cons this dirs))))
 	 (t
 	  (when (or (not pattern)
-		    (string-match pattern this))
+		    (string-match-p pattern this))
 	    (filesets-message 5 "Filesets: matched file %S with pattern %S"
 			      this pattern)
 	    (setq files (cons (if full-flag
@@ -1249,7 +1249,7 @@ Return full path if FULL-FLAG is non-nil."
   (let ((filename (file-name-nondirectory file)))
     (filesets-some
      (lambda (entry)
-       (when (and (string-match (nth 0 entry) filename)
+       (when (and (string-match-p (nth 0 entry) filename)
 		  (filesets-eviewer-constraint-p entry))
 	 entry))
      filesets-external-viewers)))
@@ -2004,7 +2004,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 	(fn (or fun (lambda (a b)
 		      (and (stringp a)
 			   (stringp b)
-			   (string-match a b))))))
+			   (string-match-p a b))))))
     (filesets-some (lambda (x)
 		     (if (funcall fn (car x) masterfile)
 			 (nth pos x)

@@ -2796,14 +2796,21 @@ server."
 	(lambda (group)
 	  (gnus-group-delete-group group nil t))))))
 
-(defun gnus-group-delete-articles (group)
-  "Delete all articles in the current group."
-  (interactive (list (gnus-group-group-name)))
+(defun gnus-group-delete-articles (group &optional oldp)
+  "Delete all articles in the current group.
+If OLDP (the prefix), only delete articles that are \"old\",
+according to the expiry settings.  Note that this will delete old
+not-expirable articles, too."
+  (interactive (list (gnus-group-group-name)
+		     current-prefix-arg))
   (let ((articles (gnus-uncompress-range (gnus-active group))))
     (when (gnus-yes-or-no-p
 	   (format "Do you really want to delete these %d articles forever? "
 		   (length articles)))
-      (gnus-request-expire-articles articles group 'force))))
+      (gnus-request-expire-articles articles group
+				    (if current-prefix-arg
+					nil
+				      'force)))))
 
 (defun gnus-group-delete-group (group &optional force no-prompt)
   "Delete the current group.  Only meaningful with editable groups.

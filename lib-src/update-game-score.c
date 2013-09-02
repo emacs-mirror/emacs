@@ -228,10 +228,11 @@ static int
 read_score (FILE *f, struct score_entry *score)
 {
   int c;
+  if ((c = getc (f)) != EOF)
+    ungetc (c, f);
   if (feof (f))
     return 1;
-  while ((c = getc (f)) != EOF
-	 && isdigit (c))
+  for (score->score = 0; (c = getc (f)) != EOF && isdigit (c); )
     {
       score->score *= 10;
       score->score += (c-48);
@@ -311,34 +312,38 @@ read_score (FILE *f, struct score_entry *score)
 static int
 read_scores (const char *filename, struct score_entry **scores, int *count)
 {
-  int readval, scorecount, cursize;
+  int readval = -1, scorecount, cursize;
   struct score_entry *ret;
   FILE *f = fopen (filename, "r");
+  int retval = -1;
   if (!f)
     return -1;
   scorecount = 0;
   cursize = 16;
   ret = (struct score_entry *) malloc (sizeof (struct score_entry) * cursize);
-  if (!ret)
-    return -1;
-  while ((readval = read_score (f, &ret[scorecount])) == 0)
+  if (ret)
     {
-      /* We encountered an error.  */
-      if (readval < 0)
-	return -1;
-      scorecount++;
-      if (scorecount >= cursize)
+      while ((readval = read_score (f, &ret[scorecount])) == 0)
 	{
-	  cursize *= 2;
-	  ret = (struct score_entry *)
-	    realloc (ret, (sizeof (struct score_entry) * cursize));
-	  if (!ret)
-	    return -1;
+	  scorecount++;
+	  if (scorecount >= cursize)
+	    {
+	      cursize *= 2;
+	      ret = (struct score_entry *)
+		realloc (ret, (sizeof (struct score_entry) * cursize));
+	      if (!ret)
+		break;
+	    }
 	}
     }
-  *count = scorecount;
-  *scores = ret;
-  return 0;
+  if (readval > 0)
+    {
+      *count = scorecount;
+      *scores = ret;
+      retval = 0;
+    }
+  fclose (f);
+  return retval;
 }
 
 static int
@@ -383,6 +388,7 @@ sort_scores (struct score_entry *scores, int count, int reverse)
 static int
 write_scores (const char *filename, const struct score_entry *scores, int count)
 {
+  int fd;
   FILE *f;
   int i;
   char *tempfile = malloc (strlen (filename) + strlen (".tempXXXXXX") + 1);
@@ -390,12 +396,11 @@ write_scores (const char *filename, const struct score_entry *scores, int count)
     return -1;
   strcpy (tempfile, filename);
   strcat (tempfile, ".tempXXXXXX");
-#ifdef HAVE_MKSTEMP
-  if (mkstemp (tempfile) < 0
-#else
-  if (mktemp (tempfile) != tempfile
-#endif
-      || !(f = fopen (tempfile, "w")))
+  fd = mkostemp (tempfile, 0);
+  if (fd < 0)
+    return -1;
+  f = fdopen (fd, "w");
+  if (! f)
     return -1;
   for (i = 0; i < count; i++)
     if (fprintf (f, "%ld %s %s\n", scores[i].score, scores[i].username,
@@ -460,6 +465,5 @@ unlock_file (const char *filename, void *state)
   errno = saved_errno;
   return ret;
 }
-
 
 /* update-game-score.c ends here */

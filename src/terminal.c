@@ -39,6 +39,8 @@ static int next_terminal_id;
 /* The initial terminal device, created by initial_term_init. */
 struct terminal *initial_terminal;
 
+static Lisp_Object Qterminal_live_p;
+
 static void delete_initial_terminal (struct terminal *);
 
 /* This setter is used only in this file, so it can be private.  */
@@ -549,6 +551,8 @@ Each function is called with argument, the terminal.
 This may be called just before actually deleting the terminal,
 or some time later.  */);
   Vdelete_terminal_functions = Qnil;
+
+  DEFSYM (Qterminal_live_p, "terminal-live-p");
   DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
   DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 

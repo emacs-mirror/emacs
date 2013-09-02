@@ -70,24 +70,17 @@ sections if you need to.
      you, but there are no obvious errors, assume that `configure' did
      its job and proceed.
 
-  4. If you need to run the `configure' script more than once (e.g.,
-     with some non-default options), always clean the source
-     directories before running `configure' again:
-
-		make distclean
-		./configure
-
-  5. Invoke the `make' program:
+  4. Invoke the `make' program:
 
 		 make
 
-  6. If `make' succeeds, it will build an executable program `emacs'
+  5. If `make' succeeds, it will build an executable program `emacs'
      in the `src' directory.  You can try this program, to make sure
      it works:
 
 		 src/emacs -Q
 
-  7. Assuming that the program `src/emacs' starts and displays its
+  6. Assuming that the program `src/emacs' starts and displays its
      opening screen, you can install the program and its auxiliary
      files into their installation directories:
 
@@ -101,6 +94,10 @@ sections if you need to.
 
   You can delete the entire build directory if you do not plan to
   build Emacs again, but it can be useful to keep for debugging.
+  If you want to build Emacs again with different configure options,
+  first clean the source directories:
+
+		make distclean
 
   Note that the install automatically saves space by compressing
   (provided you have the `gzip' program) those installed Lisp source (.el)
@@ -326,14 +323,15 @@ equivalent to --without-sound --without-dbus --without-libotf
 --without-selinux --without-xft --without-gsettings --without-gnutls
 --without-rsvg --without-xml2 --without-gconf --without-imagemagick
 --without-m17n-flt --without-jpeg --without-tiff --without-gif
---without-png --without-gpm.  Note that --without-all leaves X support
-enabled, and using the GTK2 or GTK3 toolkit creates a lot of library
-dependencies.  So if you want to build a small executable with very basic
-X support, use --without-all --with-x-toolkit=no.  For the smallest possible
-executable without X, use --without-all --without-x.  If you want to build
-with just a few features enabled, you can combine --without-all with
---with-FEATURE.  For example, you can use --without-all --with-dbus
-to build with DBus support and nothing more.
+--without-png --without-gpm --without-file-notification.  Note that
+--without-all leaves X support enabled, and using the GTK2 or GTK3
+toolkit creates a lot of library dependencies.  So if you want to
+build a small executable with very basic X support, use --without-all
+--with-x-toolkit=no.  For the smallest possible executable without X,
+use --without-all --without-x.  If you want to build with just a few
+features enabled, you can combine --without-all with --with-FEATURE.
+For example, you can use --without-all --with-dbus to build with DBus
+support and nothing more.
 
 Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a

@@ -654,7 +654,7 @@ x_reply_selection_request (struct input_event *event,
     if (cs->wait_object)
       {
 	int format_bytes = cs->format / 8;
-	int had_errors = x_had_errors_p (display);
+	bool had_errors_p = x_had_errors_p (display);
 	unblock_input ();
 
 	bytes_remaining = cs->size;
@@ -662,7 +662,7 @@ x_reply_selection_request (struct input_event *event,
 
 	/* Wait for the requestor to ack by deleting the property.
 	   This can run Lisp code (process handlers) or signal.  */
-	if (! had_errors)
+	if (! had_errors_p)
 	  {
 	    TRACE1 ("Waiting for ACK (deletion of %s)",
 		    XGetAtomName (display, cs->property));
@@ -694,10 +694,10 @@ x_reply_selection_request (struct input_event *event,
 	    cs->data += i * ((cs->format == 32) ? sizeof (long)
 			     : format_bytes);
 	    XFlush (display);
-	    had_errors = x_had_errors_p (display);
+	    had_errors_p = x_had_errors_p (display);
 	    unblock_input ();
 
-	    if (had_errors) break;
+	    if (had_errors_p) break;
 
 	    /* Wait for the requestor to ack this chunk by deleting
 	       the property.  This can run Lisp code or signal.  */
@@ -993,7 +993,7 @@ x_handle_selection_event (struct input_event *event)
    We do this when about to delete a frame.  */
 
 void
-x_clear_frame_selections (FRAME_PTR f)
+x_clear_frame_selections (struct frame *f)
 {
   Lisp_Object frame;
   Lisp_Object rest;
@@ -2377,7 +2377,7 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
 /* Get the mouse position in frame relative coordinates.  */
 
 static void
-mouse_position_for_drop (FRAME_PTR f, int *x, int *y)
+mouse_position_for_drop (struct frame *f, int *x, int *y)
 {
   Window root, dummy_window;
   int dummy;
@@ -2427,17 +2427,17 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   Lisp_Object ret = Qnil;
   Display *dpy = FRAME_X_DISPLAY (f);
   Atom atom;
-  int had_errors;
+  bool had_errors_p;
 
   CONS_TO_INTEGER (value, Atom, atom);
 
   block_input ();
   x_catch_errors (dpy);
   name = atom ? XGetAtomName (dpy, atom) : empty;
-  had_errors = x_had_errors_p (dpy);
+  had_errors_p = x_had_errors_p (dpy);
   x_uncatch_errors ();
 
-  if (!had_errors)
+  if (!had_errors_p)
     ret = build_string (name);
 
   if (atom && name) XFree (name);
@@ -2628,6 +2628,8 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
   block_input ();
 
+  event.xclient.send_event = True;
+  event.xclient.serial = 0;
   event.xclient.message_type = message_type;
   event.xclient.display = dpyinfo->display;
 
@@ -2635,19 +2637,19 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
      when sending to the root window.  */
   event.xclient.window = to_root ? FRAME_OUTER_WINDOW (f) : wdest;
 
-
-  memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
+  memset (event.xclient.data.l, 0, sizeof (event.xclient.data.l));
   x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
                         event.xclient.format);
 
   /* If event mask is 0 the event is sent to the client that created
      the destination window.  But if we are sending to the root window,
-     there is no such client.  Then we set the event mask to 0xffff.  The
+     there is no such client.  Then we set the event mask to 0xffffff.  The
      event then goes to clients selecting for events on the root window.  */
   x_catch_errors (dpyinfo->display);
   {
     int propagate = to_root ? False : True;
-    unsigned mask = to_root ? 0xffff : 0;
+    long mask = to_root ? 0xffffff : 0;
+
     XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
     XFlush (dpyinfo->display);
   }

@@ -26,21 +26,15 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; ignore-errors
 (require 'tramp)
 
-;; Pacify byte-compiler.  The function is needed on XEmacs only.  I'm
-;; not sure at all that this is the right way to do it, but let's hope
-;; it works for now, and wait for a guru to point out the Right Way to
-;; achieve this.
-;;(eval-when-compile
-;;  (unless (fboundp 'dired-insert-set-properties)
-;;    (fset 'dired-insert-set-properties 'ignore)))
-;; Gerd suggests this:
-(eval-when-compile (require 'dired))
-;; Note that dired is required at run-time, too, when it is needed.
-;; It is only needed on XEmacs for the function
-;; `dired-insert-set-properties'.
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl)
+  (require 'dired))
+(defvar directory-sep-char)
+(defvar tramp-gw-tunnel-method)
+(defvar tramp-gw-socks-method)
 
 (defcustom tramp-inline-compress-start-size 4096
   "The minimum size of compressing where inline transfer.
@@ -801,74 +795,78 @@ existence, and file readability.  Input shall be read via
 here-document, otherwise the command could exceed maximum length
 of command line.")
 
-;; New handlers should be added here.  The following operations can be
-;; handled using the normal primitives: file-name-sans-versions,
-;; get-file-buffer.
+;; New handlers should be added here.
 (defconst tramp-sh-file-name-handler-alist
-  '((load . tramp-handle-load)
-    (make-symbolic-link . tramp-sh-handle-make-symbolic-link)
-    (file-name-as-directory . tramp-handle-file-name-as-directory)
-    (file-name-directory . tramp-handle-file-name-directory)
-    (file-name-nondirectory . tramp-handle-file-name-nondirectory)
-    (file-truename . tramp-sh-handle-file-truename)
-    (file-exists-p . tramp-sh-handle-file-exists-p)
-    (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
-    (file-directory-p . tramp-sh-handle-file-directory-p)
-    (file-executable-p . tramp-sh-handle-file-executable-p)
-    (file-readable-p . tramp-sh-handle-file-readable-p)
-    (file-regular-p . tramp-handle-file-regular-p)
-    (file-symlink-p . tramp-handle-file-symlink-p)
-    (file-writable-p . tramp-sh-handle-file-writable-p)
-    (file-ownership-preserved-p . tramp-sh-handle-file-ownership-preserved-p)
-    (file-newer-than-file-p . tramp-sh-handle-file-newer-than-file-p)
-    (file-attributes . tramp-sh-handle-file-attributes)
-    (file-modes . tramp-handle-file-modes)
+  '(;; `access-file' performed by default handler.
+    (add-name-to-file . tramp-sh-handle-add-name-to-file)
+    ;; `byte-compiler-base-file-name' performed by default handler.
+    (copy-directory . tramp-sh-handle-copy-directory)
+    (copy-file . tramp-sh-handle-copy-file)
+    (delete-directory . tramp-sh-handle-delete-directory)
+    (delete-file . tramp-sh-handle-delete-file)
+    ;; `diff-latest-backup-file' performed by default handler.
+    (directory-file-name . tramp-handle-directory-file-name)
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-sh-handle-directory-files-and-attributes)
-    (file-name-all-completions . tramp-sh-handle-file-name-all-completions)
-    (file-name-completion . tramp-handle-file-name-completion)
-    (add-name-to-file . tramp-sh-handle-add-name-to-file)
-    (copy-file . tramp-sh-handle-copy-file)
-    (copy-directory . tramp-sh-handle-copy-directory)
-    (rename-file . tramp-sh-handle-rename-file)
-    (set-file-modes . tramp-sh-handle-set-file-modes)
-    (set-file-times . tramp-sh-handle-set-file-times)
-    (make-directory . tramp-sh-handle-make-directory)
-    (delete-directory . tramp-sh-handle-delete-directory)
-    (delete-file . tramp-sh-handle-delete-file)
-    (directory-file-name . tramp-handle-directory-file-name)
-    ;; `executable-find' is not official yet.
-    (executable-find . tramp-sh-handle-executable-find)
-    (start-file-process . tramp-sh-handle-start-file-process)
-    (process-file . tramp-sh-handle-process-file)
-    (shell-command . tramp-handle-shell-command)
-    (insert-directory . tramp-sh-handle-insert-directory)
-    (expand-file-name . tramp-sh-handle-expand-file-name)
-    (substitute-in-file-name . tramp-handle-substitute-in-file-name)
-    (file-local-copy . tramp-sh-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
-    (insert-file-contents . tramp-handle-insert-file-contents)
-    (insert-file-contents-literally
-     . tramp-sh-handle-insert-file-contents-literally)
-    (write-region . tramp-sh-handle-write-region)
-    (find-backup-file-name . tramp-handle-find-backup-file-name)
-    (make-auto-save-file-name . tramp-sh-handle-make-auto-save-file-name)
-    (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
+    ;; `dired-call-process' performed by default handler.
     (dired-compress-file . tramp-sh-handle-dired-compress-file)
     (dired-recursive-delete-directory
      . tramp-sh-handle-dired-recursive-delete-directory)
     (dired-uncache . tramp-handle-dired-uncache)
-    (set-visited-file-modtime . tramp-sh-handle-set-visited-file-modtime)
-    (verify-visited-file-modtime . tramp-sh-handle-verify-visited-file-modtime)
-    (file-selinux-context . tramp-sh-handle-file-selinux-context)
-    (set-file-selinux-context . tramp-sh-handle-set-file-selinux-context)
+    (expand-file-name . tramp-sh-handle-expand-file-name)
+    (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-acl . tramp-sh-handle-file-acl)
-    (set-file-acl . tramp-sh-handle-set-file-acl)
-    (vc-registered . tramp-sh-handle-vc-registered)
+    (file-attributes . tramp-sh-handle-file-attributes)
+    (file-directory-p . tramp-sh-handle-file-directory-p)
+    ;; `file-equal-p' performed by default handler.
+    (file-executable-p . tramp-sh-handle-file-executable-p)
+    (file-exists-p . tramp-sh-handle-file-exists-p)
+    ;; `file-in-directory-p' performed by default handler.
+    (file-local-copy . tramp-sh-handle-file-local-copy)
+    (file-modes . tramp-handle-file-modes)
+    (file-name-all-completions . tramp-sh-handle-file-name-all-completions)
+    (file-name-as-directory . tramp-handle-file-name-as-directory)
+    (file-name-completion . tramp-handle-file-name-completion)
+    (file-name-directory . tramp-handle-file-name-directory)
+    (file-name-nondirectory . tramp-handle-file-name-nondirectory)
+    ;; `file-name-sans-versions' performed by default handler.
+    (file-newer-than-file-p . tramp-sh-handle-file-newer-than-file-p)
     (file-notify-add-watch . tramp-sh-handle-file-notify-add-watch)
-    (file-notify-rm-watch . tramp-sh-handle-file-notify-rm-watch)
-    (file-notify-supported-p . tramp-sh-handle-file-notify-supported-p))
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-ownership-preserved-p . tramp-sh-handle-file-ownership-preserved-p)
+    (file-readable-p . tramp-sh-handle-file-readable-p)
+    (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    (file-selinux-context . tramp-sh-handle-file-selinux-context)
+    (file-symlink-p . tramp-handle-file-symlink-p)
+    (file-truename . tramp-sh-handle-file-truename)
+    (file-writable-p . tramp-sh-handle-file-writable-p)
+    (find-backup-file-name . tramp-handle-find-backup-file-name)
+    ;; `find-file-noselect' performed by default handler.
+    ;; `get-file-buffer' performed by default handler.
+    (insert-directory . tramp-sh-handle-insert-directory)
+    (insert-file-contents . tramp-handle-insert-file-contents)
+    (insert-file-contents-literally
+     . tramp-sh-handle-insert-file-contents-literally)
+    (load . tramp-handle-load)
+    (make-auto-save-file-name . tramp-sh-handle-make-auto-save-file-name)
+    (make-directory . tramp-sh-handle-make-directory)
+    (make-symbolic-link . tramp-sh-handle-make-symbolic-link)
+    (process-file . tramp-sh-handle-process-file)
+    (rename-file . tramp-sh-handle-rename-file)
+    (set-file-acl . tramp-sh-handle-set-file-acl)
+    (set-file-modes . tramp-sh-handle-set-file-modes)
+    (set-file-selinux-context . tramp-sh-handle-set-file-selinux-context)
+    (set-file-times . tramp-sh-handle-set-file-times)
+    (set-visited-file-modtime . tramp-sh-handle-set-visited-file-modtime)
+    (shell-command . tramp-handle-shell-command)
+    (start-file-process . tramp-sh-handle-start-file-process)
+    (substitute-in-file-name . tramp-handle-substitute-in-file-name)
+    (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
+    (vc-registered . tramp-sh-handle-vc-registered)
+    (verify-visited-file-modtime . tramp-sh-handle-verify-visited-file-modtime)
+    (write-region . tramp-sh-handle-write-region))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
@@ -934,7 +932,7 @@ target of the symlink differ."
 	(tramp-shell-quote-argument l-localname))
        t))))
 
-(defun tramp-sh-handle-file-truename (filename &optional counter prev-dirs)
+(defun tramp-sh-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-make-tramp-file-name method user host
@@ -1236,14 +1234,14 @@ target of the symlink differ."
 
 ;; This function makes the same assumption as
 ;; `tramp-sh-handle-set-visited-file-modtime'.
-(defun tramp-sh-handle-verify-visited-file-modtime (buf)
+(defun tramp-sh-handle-verify-visited-file-modtime (&optional buf)
   "Like `verify-visited-file-modtime' for Tramp files.
 At the time `verify-visited-file-modtime' calls this function, we
 already know that the buffer is visiting a file and that
 `visited-file-modtime' does not return 0.  Do not call this
 function directly, unless those two cases are already taken care
 of."
-  (with-current-buffer buf
+  (with-current-buffer (or buf (current-buffer))
     (let ((f (buffer-file-name)))
       ;; There is no file visiting the buffer, or the buffer has no
       ;; recorded last modification time, or there is no established
@@ -1833,7 +1831,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
      'copy-file (list filename newname ok-if-already-exists keep-date)))))
 
 (defun tramp-sh-handle-copy-directory
-  (dirname newname &optional keep-date parents copy-contents)
+  (dirname newname &optional keep-date parents _copy-contents)
   "Like `copy-directory' for Tramp files."
   (let ((t1 (tramp-tramp-file-p dirname))
 	(t2 (tramp-tramp-file-p newname)))
@@ -1907,8 +1905,7 @@ file names."
 	(t2 (tramp-tramp-file-p newname))
 	(length (nth 7 (file-attributes (file-truename filename))))
 	(attributes (and preserve-extended-attributes
-			 (apply 'file-extended-attributes (list filename))))
-	pr tm)
+			 (apply 'file-extended-attributes (list filename)))))
 
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (when (and (not ok-if-already-exists) (file-exists-p newname))
@@ -2249,7 +2246,10 @@ The method used must be an out-of-band method."
 	      spec (format-spec-make
 		    ?t (tramp-get-connection-property
 			(tramp-get-connection-process v) "temp-file" ""))
-	      options (format-spec tramp-ssh-controlmaster-options spec)
+	      options (format-spec
+		       (if tramp-use-ssh-controlmaster-options
+			   tramp-ssh-controlmaster-options "")
+		       spec)
 	      spec (format-spec-make
 		    ?h host ?u user ?p port ?c options
 		    ?k (if keep-date " " ""))
@@ -2282,9 +2282,7 @@ The method used must be an out-of-band method."
 		(tramp-get-method-parameter method 'tramp-copy-env))))
 
 	;; Check for program.
-	(unless (let ((default-directory
-			(tramp-compat-temporary-file-directory)))
-		  (executable-find copy-program))
+	(unless (executable-find copy-program)
 	  (tramp-error
 	   v 'file-error "Cannot find copy program: %s" copy-program))
 
@@ -2428,7 +2426,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	 (tramp-error
 	  v 'file-error "Failed to recursively delete %s" filename))))
 
-(defun tramp-sh-handle-dired-compress-file (file &rest ok-flag)
+(defun tramp-sh-handle-dired-compress-file (file &rest _ok-flag)
   "Like `dired-compress-file' for Tramp files."
   ;; OK-FLAG is valid for XEmacs only, but not implemented.
   ;; Code stolen mainly from dired-aux.el.
@@ -2664,11 +2662,6 @@ the result will be a local, non-Tramp, filename."
 	 hop)))))
 
 ;;; Remote commands:
-
-(defun tramp-sh-handle-executable-find (command)
-  "Like `executable-find' for Tramp files."
-  (with-parsed-tramp-file-name default-directory nil
-    (tramp-find-executable v command (tramp-get-remote-path v) t)))
 
 (defun tramp-process-sentinel (proc event)
   "Flush file caches."
@@ -2978,7 +2971,7 @@ the result will be a local, non-Tramp, filename."
 	(inhibit-file-name-operation 'insert-file-contents))
     (unwind-protect
 	(progn
-	  (fset 'find-buffer-file-type (lambda (filename) t))
+	  (fset 'find-buffer-file-type (lambda (_filename) t))
 	  (insert-file-contents filename visit beg end replace))
       ;; Save exit.
       (if find-buffer-file-type-function
@@ -3383,7 +3376,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	 ;; Default file name handlers, we don't care.
 	 (t (tramp-run-real-handler operation args)))))))
 
-(defun tramp-sh-handle-file-notify-add-watch (file-name flags callback)
+(defun tramp-sh-handle-file-notify-add-watch (file-name flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
@@ -3428,8 +3421,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   (file-remote-p default-directory)))
 	(rest-string (tramp-compat-process-get proc 'rest-string)))
     (when rest-string
-      (tramp-message proc 10 (format "Previous string:\n%s" rest-string)))
-    (tramp-message proc 6 (format "%S\n%s" proc string))
+      (tramp-message proc 10 "Previous string:\n%s" rest-string))
+    (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
 	  ;; Attribute change is returned in unused wording.
 	  string (replace-regexp-in-string
@@ -3461,12 +3454,12 @@ Fall back to normal file name handler if no Tramp handler exists."
 
     ;; Save rest of the string.
     (when (zerop (length string)) (setq string nil))
-    (when string (tramp-message proc 10 (format "Rest string:\n%s" string)))
+    (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (tramp-compat-process-put proc 'rest-string string)))
 
 (defun tramp-sh-file-inotifywait-process-filter (proc string)
   "Read output from \"inotifywait\" and add corresponding file-notify events."
-  (tramp-message proc 6 (format "%S\n%s" proc string))
+  (tramp-message proc 6 "%S\n%s" proc string)
   (dolist (line (split-string string "[\n\r]+" 'omit-nulls))
     ;; Check, whether there is a problem.
     (unless
@@ -3489,22 +3482,6 @@ Fall back to normal file name handler if no Tramp handler exists."
       ;; `unread-command-events' does not accept several events at
       ;; once.  Therefore, we apply the callback directly.
       (tramp-compat-funcall 'file-notify-callback object))))
-
-(defvar file-notify-descriptors)
-(defun tramp-sh-handle-file-notify-rm-watch (proc)
-  "Like `file-notify-rm-watch' for Tramp files."
-  ;; The descriptor must be a process object.
-  (unless (and (processp proc) (gethash proc file-notify-descriptors))
-    (tramp-error proc 'file-notify-error "Not a valid descriptor %S" proc))
-  (tramp-message proc 6 (format "Kill %S" proc))
-  (kill-process proc))
-
-(defun tramp-sh-handle-file-notify-supported-p (file-name)
-  "Like `file-notify-supported-p' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name file-name) nil
-    (and (or (tramp-get-remote-gvfs-monitor-dir v)
-	     (tramp-get-remote-inotifywait v))
-	 t)))
 
 ;;; Internal Functions:
 
@@ -3623,7 +3600,7 @@ This function expects to be in the right *tramp* buffer."
 I.e., for each directory in `tramp-remote-path', it is tested
 whether it exists and if so, it is added to the environment
 variable PATH."
-  (tramp-message vec 5 (format "Setting $PATH environment variable"))
+  (tramp-message vec 5 "Setting $PATH environment variable")
   (tramp-send-command
    vec (format "PATH=%s; export PATH"
 	       (mapconcat 'identity (tramp-get-remote-path vec) ":"))))
@@ -3765,7 +3742,7 @@ file exists and nonzero exit status otherwise."
 Looks at process PROC to see if a shell prompt appears in TIMEOUT
 seconds.  If not, it produces an error message with the given ERROR-ARGS."
   (let ((vec (tramp-get-connection-property proc "vector" nil)))
-    (condition-case err
+    (condition-case nil
 	(tramp-wait-for-regexp
 	 proc timeout
 	 (format
@@ -4220,9 +4197,6 @@ Goes through the list `tramp-inline-compress-commands'."
 	(tramp-message
 	 vec 2 "Couldn't find an inline transfer compress command")))))
 
-(defvar tramp-gw-tunnel-method)
-(defvar tramp-gw-socks-method)
-
 (defun tramp-compute-multi-hops (vec)
   "Expands VEC according to `tramp-default-proxies-alist'.
 Gateway hops are already opened."
@@ -4352,6 +4326,8 @@ Gateway hops are already opened."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  (tramp-check-proper-host vec)
+
   (catch 'uname-changed
     (let ((p (tramp-get-connection-process vec))
 	  (process-name (tramp-get-connection-property vec "process-name" nil))
@@ -4424,7 +4400,8 @@ connection if a previous connection has died for some reason."
 	      (let* ((target-alist (tramp-compute-multi-hops vec))
 		     ;; We will apply `tramp-ssh-controlmaster-options'
 		     ;; only for the first hop.
-		     (options tramp-ssh-controlmaster-options)
+		     (options (if tramp-use-ssh-controlmaster-options
+				  tramp-ssh-controlmaster-options ""))
 		     (process-connection-type tramp-process-connection-type)
 		     (process-adaptive-read-buffering nil)
 		     (coding-system-for-read nil)

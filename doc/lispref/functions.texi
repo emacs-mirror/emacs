@@ -580,6 +580,7 @@ redefinition from unintentional redefinition.
 @end defmac
 
 @cindex function aliases
+@cindex alias, for functions
 @defun defalias name definition &optional doc
 @anchor{Definition of defalias}
 This function defines the symbol @var{name} as a function, with

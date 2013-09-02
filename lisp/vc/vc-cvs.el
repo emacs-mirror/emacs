@@ -1226,6 +1226,27 @@ is non-nil."
                    table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
+(defun vc-cvs-ignore (file)
+  "Ignore FILE under CVS."
+  (cvs-append-to-ignore (file-name-directory file) file))
+
+(defun cvs-append-to-ignore (dir str &optional old-dir)
+  "In DIR, add STR to the .cvsignore file.
+If OLD-DIR is non-nil, then this is a directory that we don't want
+to hear about anymore."
+  (with-current-buffer
+      (find-file-noselect (expand-file-name ".cvsignore" dir))
+    (when (ignore-errors
+	    (and buffer-read-only
+		 (eq 'CVS (vc-backend buffer-file-name))
+		 (not (vc-editable-p buffer-file-name))))
+      ;; CVSREAD=on special case
+      (vc-checkout buffer-file-name t))
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))
+    (insert str (if old-dir "/\n" "\n"))
+    (if cvs-sort-ignore-file (sort-lines nil (point-min) (point-max)))
+    (save-buffer)))
 
 (provide 'vc-cvs)
 

@@ -648,7 +648,7 @@ Your @file{.emacs} File
 * Default Configuration::
 * Site-wide Init::              You can write site-wide init files.
 * defcustom::                   Emacs will write code for you.
-* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Beginning init File::         How to write a @file{.emacs} init file.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
@@ -954,7 +954,12 @@ encouragement.  My mistakes are my own.
 
 @flushright
 Robert J. Chassell
+@ifnothtml
 @email{bob@@gnu.org}
+@end ifnothtml
+@ifhtml
+bob@@gnu.org
+@end ifhtml
 @end flushright
 
 @c ================ Beginning of main text ================
@@ -3260,7 +3265,7 @@ line that follows a semicolon is a comment.  The end of the line is the
 end of the comment.  To stretch a comment over two or more lines, begin
 each line with a semicolon.
 
-@xref{Beginning a .emacs File, , Beginning a @file{.emacs}
+@xref{Beginning init File, , Beginning a @file{.emacs}
 File}, and @ref{Comments, , Comments, elisp, The GNU Emacs Lisp
 Reference Manual}, for more about comments.
 
@@ -6318,7 +6323,7 @@ and avoids clobbering the mark."
                         (/ (+ 10 (* size (prefix-numeric-value arg)))
                            10)))
                  (point-min))))
-  (if arg (forward-line 1)))
+  (if (and arg (not (consp arg))) (forward-line 1)))
 @end group
 @end smallexample
 
@@ -6385,7 +6390,7 @@ to move point to the beginning of the next line if the command is
 invoked with an argument:
 
 @smallexample
-(if arg (forward-line 1)))
+(if (and arg (not (consp arg))) (forward-line 1))
 @end smallexample
 
 @noindent
@@ -6394,14 +6399,10 @@ appropriate tenths position in the buffer.  This is a flourish that
 means that the cursor is always located @emph{at least} the requested
 tenths of the way through the buffer, which is a nicety that is,
 perhaps, not necessary, but which, if it did not occur, would be sure
-to draw complaints.
-
-On the other hand, it also means that if you specify the command with
-a @kbd{C-u}, but without a number, that is to say, if the `raw prefix
-argument' is simply a cons cell, then the command puts you at the
-beginning of the second line @dots{}  I don't know whether this is
-intended or whether no one has dealt with the code to avoid this
-happening.
+to draw complaints.  (The @code{(not (consp arg))} portion is so that
+if you specify the command with a @kbd{C-u}, but without a number,
+that is to say, if the `raw prefix argument' is simply a cons cell,
+the command does not put you at the beginning of the second line.)
 
 @node Second Buffer Related Review
 @section Review
@@ -7537,20 +7538,7 @@ retrieved.  @xref{Yanking, , Yanking Text Back}.
 @section @code{zap-to-char}
 @findex zap-to-char
 
-@c FIXME remove obsolete stuff
-The @code{zap-to-char} function changed little between GNU Emacs
-version 19 and GNU Emacs version 22.  However, @code{zap-to-char}
-calls another function, @code{kill-region}, which enjoyed a major
-rewrite.
-
-The @code{kill-region} function in Emacs 19 is complex, but does not
-use code that is important at this time.  We will skip it.
-
-The @code{kill-region} function in Emacs 22 is easier to read than the
-same function in Emacs 19 and introduces a very important concept,
-that of error handling.  We will walk through the function.
-
-But first, let us look at the interactive @code{zap-to-char} function.
+Let us look at the interactive @code{zap-to-char} function.
 
 @menu
 * Complete zap-to-char::        The complete implementation.
@@ -8325,7 +8313,7 @@ As usual, this function can be divided into its component parts:
 
 The arguments are @code{beg} and @code{end} and the function is
 interactive with @code{"r"}, so the two arguments must refer to the
-beginning and end of the region.  If you have been reading though this
+beginning and end of the region.  If you have been reading through this
 document from the beginning, understanding these parts of a function is
 almost becoming routine.
 
@@ -16719,7 +16707,7 @@ expressions in Emacs Lisp you can change or extend Emacs.
 * Default Configuration::
 * Site-wide Init::              You can write site-wide init files.
 * defcustom::                   Emacs will write code for you.
-* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Beginning init File::         How to write a @file{.emacs} init file.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
@@ -16990,7 +16978,7 @@ intent is that neither programs nor users should ever change a value
 set by @code{defconst}.  (You can change it; the value set is a
 variable; but please do not.)
 
-@node Beginning a .emacs File
+@node Beginning init File
 @section Beginning a @file{.emacs} File
 @cindex @file{.emacs} file, beginning of
 

@@ -41,6 +41,11 @@ specially.
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
+** Emacs can be compiled with zlib support.  If this library is present
+(which it normally is on most systems), the function
+`zlib-decompress-region' becomes available, which can decompress gzip-
+and zlib-format compressed data.
+
 ---
 ** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.
 pkg-config is required to find ImageMagick libraries.
@@ -52,6 +57,10 @@ pkg-config is required to find ImageMagick libraries.
 * Changes in Emacs 24.4
 
 ** Key ? also describes prefix bindings like C-h.
+
++++
+** `cache-long-line-scans' has been renamed to `cache-long-scans'
+because it affects caching of paragraph scanning results as well.
 
 +++
 ** `apropos-variable' is now `apropos-user-option'
@@ -127,6 +136,11 @@ You can change the default by customizing the variable blink-cursor-blinks.
 Also timers for blinking are stopped when no blinking is done, so Emacs does
 not consume CPU cycles.
 
+** New command `frameset-to-register' is now bound to `C-x r f', replacing
+`frame-configuration-to-register'.  It offers similar functionality, plus
+some enhancements, like the ability to restore deleted frames.  Command
+`frame-configuration-to-register' is still available, but unbound.
+
 
 * Editing Changes in Emacs 24.4
 
@@ -158,6 +172,10 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** The debugger's `e' command evaluates the code in the context at point.
+This includes using the lexical environment at point, which means that
+`e' now lets you access lexical variables as well.
+
 ** `eshell' now supports visual subcommands and options
 Eshell has been able to handle "visual" commands (interactive,
 non-line oriented commands such as top that require display
@@ -179,9 +197,6 @@ You can use the new function `remember-store-in-files' within the
 
 See `remember-data-directory' and `remember-directory-file-name-format'
 for new options related to this function.
-
-** `ido-use-virtual-buffers' takes a new value 'auto.
-** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
@@ -228,9 +243,27 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 ** Calendar and Diary
 
+*** New faces: `calendar-weekday-header', `calendar-weekend-header',
+`calendar-month-header'.
+
+*** New option `calendar-day-header-array'.
+
+*** The variable `calendar-font-lock-keywords' is obsolete.
+
 +++
 *** New variable `diary-from-outlook-function', used by the command
 `diary-from-outlook'.
+
+** VC and related modes
+
+*** In VC directory mode, `D' displays diffs between VC-controlled
+whole tree revisions.
+
+*** In VC directory mode, `L' lists the change log for the current VC
+controlled tree in a window.
+
+*** `C-x v G' (globally) and `G' (in VC directory mode) ignores a
+file under current version control system.
 
 ** cl-lib
 
@@ -261,9 +294,9 @@ on the given date.
 auto-saves of the desktop.
 
 *** `desktop-restore-frames', enabled by default, allows saving and
-restoring the window/frame configuration.  Additional options
-`desktop-restore-in-current-display' and
-`desktop-restoring-reuses-frames' allow further customization.
+restoring the frame/window configuration (frameset).  Additional options
+`desktop-restore-in-current-display', `desktop-restore-reuses-frames'
+and `desktop-restore-forces-onscreen' offer further customization.
 
 ** Dired
 
@@ -275,6 +308,22 @@ restoring the window/frame configuration.  Additional options
 If set to a number, this can be used to avoid accidentally paste large
 amounts of data into the ERC input.
 
+** EPA
+
+*** New option `epa-mail-aliases'.
+
+You can set this to a list of alias expansions for keys to use
+in `epa-mail-encrypt'.
+
+If one element of the variable's value is ("foo@bar.com" "foo@hello.org"),
+that means: when one of the recipients of the message being encrypted
+is `foo@bar.com', encrypt the message for `foo@hello.org' instead.
+
+If one element of the variable's value is ("foo@bar.com"),
+that means: when one of the recipients of the message being encrypted
+is `foo@bar.com', ignore that name as regards encryption.
+This is useful to avoid a query when you have no key for that name.
+
 ---
 ** New F90 mode option `f90-smart-end-names'.
 
@@ -282,6 +331,11 @@ amounts of data into the ERC input.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
+
+** Ido
+*** Ido has a manual now.
+*** `ido-use-virtual-buffers' takes a new value 'auto.
+*** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** Image mode
 
@@ -292,6 +346,8 @@ directory, respectively.
 *** New commands to show specific frames of multi-frame images.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
+
+*** New commands to speed up, slow down, or reverse animation.
 
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
@@ -395,6 +451,7 @@ New features include:
   archive files, undoing or unarchiving done items;
 - reprioritizing items by inputting a numerical priority;
 - extensive customizability of operation and display, including numerous faces.
+The Todo mode user manual describes all commands and most user options.
 To support some of these features, a new file format is used, which is
 incompatible with the old format; however, you can convert old todo and done
 item files to the new format on initializing the first new todo file, or at any
@@ -483,12 +540,21 @@ It is layered as:
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
 
-** The package file-notify.el provides an interface for file system
+** New frameset.el package.
+It provides a set of operations to save a frameset (the state of all
+or a subset of the existing frames and windows, somewhat similar to a
+frame configuration), both in-session and persistently, and restore it
+at some point in the future.
+
++++
+** The package filenotify.el provides an interface for file system
 notifications.  It requires, that Emacs is compiled with one of the
 low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 
 * Incompatible Lisp Changes in Emacs 24.4
+
+** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
 ** The syntax of ?» and ?« is now punctuation instead of matched parens.
 Some languages match those as »...« and others as «...» so better stay neutral.
@@ -539,6 +605,9 @@ Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
 in the presence of files with negative time stamps.
 
 * Lisp Changes in Emacs 24.4
+
++++
+** New function `define-error'.
 
 ** New hook `tty-setup-hook'.
 
@@ -616,6 +685,8 @@ Emacs uses `image-default-frame-delay'.
 *** New functions `image-current-frame' and `image-show-frame' for getting
 and setting the current frame of a multi-frame image.
 
+*** You can change the speed of animated images.
+
 ** Changes in encoding and decoding of text
 
 ---
@@ -649,7 +720,7 @@ These attributes are only meaningful for coding-systems of type
 with the same interpretation as the returned value of `visited-file-modtime'.
 
 ** time-to-seconds is not obsolete any more.
-** New function special-form-p.
+** New functions special-form-p and macrop.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
 
@@ -691,12 +762,10 @@ meant to be used by other packages.
 
 * Changes in Emacs 24.4 on Non-Free Operating Systems
 
-** Emacs for MS-Windows can now be built by running the configure script
-using the MSYS environment and MinGW development tools.
-This is from now on the preferred method of building Emacs on
-MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
-files are deprecated.  See the file nt/INSTALL.MSYS for detailed
-instructions.
+** The procedure for building Emacs on MS-Windows has changed.
+It is now built by running the same configure script as on all other
+platforms.  This requires the MSYS environment and MinGW development
+tools.  See the updated instructions in nt/INSTALL for details.
 
 Using the Posix configure script and Makefile's also means a change in
 the directory structure of the Emacs installation on Windows.  It is
@@ -828,6 +897,10 @@ treated as images.
 
 *** ImageMagick images now support the :max-width and :max-height
 keywords.
+
+*** Some data types aren't auto-detected by ImageMagick.  Adding
+:format to `create-image' may help if the content type is in the
+new variable `image-format-suffixes'.
 
 ** Minibuffer
 

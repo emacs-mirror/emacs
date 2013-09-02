@@ -285,7 +285,7 @@ Explicaremos después como usar múltiples ventanas.  Ahora mismo
 queremos explicar cómo deshacerse de ventanas adicionales y volver a
 la edición básica en una ventana.  Es sencillo:
 
-	C-x 1 	Una ventana (p.ej.,  elimina todas las otras ventanas).
+	C-x 1 	Una ventana (es decir, elimina todas las demás ventanas).
 
 Esto es CONTROL-x seguido por el dígito 1.  C-x 1 expande la ventana que
 contiene el cursor, para ocupar toda la pantalla.  Esto borra todas las
@@ -374,7 +374,7 @@ resumen de las operaciones de borrado:
 Note que <DEL> y C-d, comparados con M-<DEL> y M-d, extienden el
 paralelismo iniciado por C-f y M-f (bien, <DEL> no es realmente una
 tecla de control, pero no nos preocuparemos de eso ahora).  C-k y M-k,
-en ciertas forma, son como C-e y M-e, en que las líneas de unos
+en cierta forma, son como C-e y M-e, en que las líneas de unos
 corresponden a sentencias en los otros.
 
 También puede eliminar un segmento contiguo de texto con un método
@@ -974,7 +974,7 @@ diferentes:
 
 >> Teclee C-x 4 C-f seguido del nombre de uno de sus archivos.
    Finalice con <Return>.  Vea que el archivo especificado aparece en
-   la ventana inferior.  El cursor vá allá también.
+   la ventana inferior.  El cursor va allá también.
 
 >> Teclee C-x o para regresar a la ventana superior, y C-x 1 para
    borrar la ventana inferior.

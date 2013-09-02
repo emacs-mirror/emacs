@@ -47,7 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef fopen
 #undef link
 #undef mkdir
-#undef mktemp
 #undef open
 #undef rename
 #undef rmdir
@@ -89,6 +88,21 @@ typedef struct _MEMORY_STATUS_EX {
   DWORDLONG ullAvailVirtual;
   DWORDLONG ullAvailExtendedVirtual;
 } MEMORY_STATUS_EX,*LPMEMORY_STATUS_EX;
+
+/* These are here so that GDB would know about these data types.  This
+   allows to attach GDB to Emacs when a fatal exception is triggered
+   and Windows pops up the "application needs to be closed" dialog.
+   At that point, _gnu_exception_handler, the top-level exception
+   handler installed by the MinGW startup code, is somewhere on the
+   call-stack of the main thread, so going to that call frame and
+   looking at the argument to _gnu_exception_handler, which is a
+   PEXCEPTION_POINTERS pointer, can reveal the exception code
+   (excptr->ExceptionRecord->ExceptionCode) and the address where the
+   exception happened (excptr->ExceptionRecord->ExceptionAddress), as
+   well as some additional information specific to the exception.  */
+PEXCEPTION_POINTERS excptr;
+PEXCEPTION_RECORD excprec;
+PCONTEXT ctxrec;
 
 #include <lmcons.h>
 #include <shlobj.h>
@@ -233,7 +247,7 @@ static BOOL WINAPI revert_to_self (void);
 extern int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       EMACS_TIME *, void *);
+		       struct timespec *, void *);
 extern int sys_dup (int);
 
 
@@ -2489,8 +2503,6 @@ gettimeofday (struct timeval *__restrict tv, struct timezone *__restrict tz)
 int
 fdutimens (int fd, char const *file, struct timespec const timespec[2])
 {
-  struct _utimbuf ut;
-
   if (!timespec)
     {
       errno = ENOSYS;
@@ -2501,12 +2513,28 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       errno = EBADF;
       return -1;
     }
-  ut.actime = timespec[0].tv_sec;
-  ut.modtime = timespec[1].tv_sec;
+  /* _futime's prototype defines 2nd arg as having the type 'struct
+     _utimbuf', while utime needs to accept 'struct utimbuf' for
+     compatibility with Posix.  So we need to use 2 different (but
+     equivalent) types to avoid compiler warnings, sigh.  */
   if (fd >= 0)
-    return _futime (fd, &ut);
+    {
+      struct _utimbuf _ut;
+
+      _ut.actime = timespec[0].tv_sec;
+      _ut.modtime = timespec[1].tv_sec;
+      return _futime (fd, &_ut);
+    }
   else
-    return _utime (file, &ut);
+    {
+      struct utimbuf ut;
+
+      ut.actime = timespec[0].tv_sec;
+      ut.modtime = timespec[1].tv_sec;
+      /* Call 'utime', which is implemented below, not the MS library
+	 function, which fails on directories.  */
+      return utime (file, &ut);
+    }
 }
 
 
@@ -3414,56 +3442,6 @@ sys_mkdir (const char * path)
   return _mkdir (map_w32_filename (path, NULL));
 }
 
-/* Because of long name mapping issues, we need to implement this
-   ourselves.  Also, MSVC's _mktemp returns NULL when it can't generate
-   a unique name, instead of setting the input template to an empty
-   string.
-
-   Standard algorithm seems to be use pid or tid with a letter on the
-   front (in place of the 6 X's) and cycle through the letters to find a
-   unique name.  We extend that to allow any reasonable character as the
-   first of the 6 X's.  */
-char *
-sys_mktemp (char * template)
-{
-  char * p;
-  int i;
-  unsigned uid = GetCurrentThreadId ();
-  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
-
-  if (template == NULL)
-    return NULL;
-  p = template + strlen (template);
-  i = 5;
-  /* replace up to the last 5 X's with uid in decimal */
-  while (--p >= template && p[0] == 'X' && --i >= 0)
-    {
-      p[0] = '0' + uid % 10;
-      uid /= 10;
-    }
-
-  if (i < 0 && p[0] == 'X')
-    {
-      i = 0;
-      do
-	{
-	  int save_errno = errno;
-	  p[0] = first_char[i];
-	  if (faccessat (AT_FDCWD, template, F_OK, AT_EACCESS) < 0)
-	    {
-	      errno = save_errno;
-	      return template;
-	    }
-	}
-      while (++i < sizeof (first_char));
-    }
-
-  /* Template is badly formed or else we can't generate a unique name,
-     so return empty string */
-  template[0] = 0;
-  return template;
-}
-
 int
 sys_open (const char * path, int oflag, int mode)
 {
@@ -3479,6 +3457,61 @@ sys_open (const char * path, int oflag, int mode)
     res = _open (mpath, oflag | _O_NOINHERIT, mode);
 
   return res;
+}
+
+/* Implementation of mkostemp for MS-Windows, to avoid race conditions
+   when using mktemp.
+
+   Standard algorithm for generating a temporary file name seems to be
+   use pid or tid with a letter on the front (in place of the 6 X's)
+   and cycle through the letters to find a unique name.  We extend
+   that to allow any reasonable character as the first of the 6 X's,
+   so that the number of simultaneously used temporary files will be
+   greater.  */
+
+int
+mkostemp (char * template, int flags)
+{
+  char * p;
+  int i, fd = -1;
+  unsigned uid = GetCurrentThreadId ();
+  int save_errno = errno;
+  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
+
+  errno = EINVAL;
+  if (template == NULL)
+    return -1;
+
+  p = template + strlen (template);
+  i = 5;
+  /* replace up to the last 5 X's with uid in decimal */
+  while (--p >= template && p[0] == 'X' && --i >= 0)
+    {
+      p[0] = '0' + uid % 10;
+      uid /= 10;
+    }
+
+  if (i < 0 && p[0] == 'X')
+    {
+      i = 0;
+      do
+	{
+	  p[0] = first_char[i];
+	  if ((fd = sys_open (template,
+			      flags | _O_CREAT | _O_EXCL | _O_RDWR,
+			      S_IRUSR | S_IWUSR)) >= 0
+	      || errno != EEXIST)
+	    {
+	      if (fd >= 0)
+		errno = save_errno;
+	      return fd;
+	    }
+	}
+      while (++i < sizeof (first_char));
+    }
+
+  /* Template is badly formed or else we can't generate a unique name.  */
+  return -1;
 }
 
 int
@@ -4481,6 +4514,9 @@ fstat (int desc, struct stat * buf)
 
   return 0;
 }
+
+/* A version of 'utime' which handles directories as well as
+   files.  */
 
 int
 utime (const char *name, struct utimbuf *times)
@@ -5750,8 +5786,8 @@ system_process_attributes (Lisp_Object pid)
 		{
 		  /* Decode the command name from locale-specific
 		     encoding.  */
-		  cmd_str = make_unibyte_string (pe.szExeFile,
-						 strlen (pe.szExeFile));
+		  cmd_str = build_unibyte_string (pe.szExeFile);
+
 		  decoded_cmd =
 		    code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
@@ -6056,6 +6092,7 @@ term_winsock (void)
 {
   if (winsock_lib != NULL && winsock_inuse == 0)
     {
+      release_listen_threads ();
       /* Not sure what would cause WSAENETDOWN, or even if it can happen
 	 after WSAStartup returns successfully, but it seems reasonable
 	 to allow unloading winsock anyway in that case. */
@@ -7040,7 +7077,12 @@ _sys_wait_accept (int fd)
   rc = pfn_WSAEventSelect (SOCK_HANDLE (fd), hEv, FD_ACCEPT);
   if (rc != SOCKET_ERROR)
     {
-      rc = WaitForSingleObject (hEv, INFINITE);
+      do {
+	rc = WaitForSingleObject (hEv, 500);
+	Sleep (5);
+      } while (rc == WAIT_TIMEOUT
+	       && cp->status != STATUS_READ_ERROR
+	       && cp->char_avail);
       pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
       if (rc == WAIT_OBJECT_0)
 	cp->status = STATUS_READ_SUCCEEDED;
@@ -7903,7 +7945,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, err;
   SELECT_TYPE fdset;
-  EMACS_TIME timeout;
+  struct timespec timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 

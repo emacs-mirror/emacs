@@ -1,4 +1,4 @@
-# Makefile for leim subdirectory in GNU Emacs.
+### @configure_input@
 
 # Copyright (C) 1997-2013 Free Software Foundation, Inc.
 # Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
@@ -21,10 +21,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# Avoid trouble on systems where the `SHELL' variable might be
-# inherited from the environment.
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 # Here are the things that we expect ../configure to edit.
 srcdir=@srcdir@

@@ -179,7 +179,7 @@ on third call it again advances points to the next difference and so on."
                            'compare-windows-sync-regexp
                          compare-windows-sync)))
     (setq p1 (point) b1 (current-buffer))
-    (setq w2 (next-window (selected-window)))
+    (setq w2 (next-window))
     (if (eq w2 (selected-window))
 	(setq w2 (next-window (selected-window) nil 'visible)))
     (if (eq w2 (selected-window))

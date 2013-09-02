@@ -1770,7 +1770,7 @@ to the left margin, if they are in windows."
 		(setq lines (1+ lines)))
 	      ;; And position the beginning on the right line
 	      (goto-char beg)
-	      (recenter (/ (1+ (- (1- (window-height (selected-window)))
+	      (recenter (/ (1+ (- (1- (window-height))
 				  lines))
 			   2))))))
   (goto-char pos))

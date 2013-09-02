@@ -52,12 +52,12 @@
 ;; Extra functions `python-nav-forward-statement',
 ;; `python-nav-backward-statement',
 ;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
-;; `python-nav-beginning-of-block' and `python-nav-end-of-block' are
-;; included but no bound to any key.  At last but not least the
-;; specialized `python-nav-forward-sexp' allows easy navigation
-;; between code blocks.  If you prefer `cc-mode'-like `forward-sexp'
-;; movement, setting `forward-sexp-function' to nil is enough, You can
-;; do that using the `python-mode-hook':
+;; `python-nav-beginning-of-block', `python-nav-end-of-block' and
+;; `python-nav-if-name-main' are included but no bound to any key.  At
+;; last but not least the specialized `python-nav-forward-sexp' allows
+;; easy navigation between code blocks.  If you prefer `cc-mode'-like
+;; `forward-sexp' movement, setting `forward-sexp-function' to nil is
+;; enough, You can do that using the `python-mode-hook':
 
 ;; (add-hook 'python-mode-hook
 ;;           (lambda () (setq forward-sexp-function nil)))
@@ -501,29 +501,24 @@ The type returned can be `comment', `string' or `paren'."
     (,(lambda (limit)
         (let ((re (python-rx (group (+ (any word ?. ?_)))
                              (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
-                             assignment-operator)))
-          (when (re-search-forward re limit t)
-            (while (and (python-syntax-context 'paren)
-                        (re-search-forward re limit t)))
-            (if (not (or (python-syntax-context 'paren)
-                         (equal (char-after (point-marker)) ?=)))
-                t
-              (set-match-data nil)))))
+                             assignment-operator))
+              (res nil))
+          (while (and (setq res (re-search-forward re limit t))
+                      (or (python-syntax-context 'paren)
+                          (equal (char-after (point-marker)) ?=))))
+          res))
      (1 font-lock-variable-name-face nil nil))
     ;; support for a, b, c = (1, 2, 3)
     (,(lambda (limit)
         (let ((re (python-rx (group (+ (any word ?. ?_))) (* space)
                              (* ?, (* space) (+ (any word ?. ?_)) (* space))
                              ?, (* space) (+ (any word ?. ?_)) (* space)
-                             assignment-operator)))
-          (when (and (re-search-forward re limit t)
-                     (goto-char (nth 3 (match-data))))
-            (while (and (python-syntax-context 'paren)
-                        (re-search-forward re limit t))
-              (goto-char (nth 3 (match-data))))
-            (if (not (python-syntax-context 'paren))
-                t
-              (set-match-data nil)))))
+                             assignment-operator))
+              (res nil))
+          (while (and (setq res (re-search-forward re limit t))
+                      (goto-char (match-end 1))
+                      (python-syntax-context 'paren)))
+          res))
      (1 font-lock-variable-name-face nil nil))))
 
 (defconst python-syntax-propertize-function
@@ -1588,6 +1583,29 @@ This command assumes point is not in a string or comment."
   (or arg (setq arg 1))
   (python-nav-up-list (- arg)))
 
+(defun python-nav-if-name-main ()
+  "Move point at the beginning the __main__ block.
+When \"if __name__ == '__main__':\" is found returns its
+position, else returns nil."
+  (interactive)
+  (let ((point (point))
+        (found (catch 'found
+                 (goto-char (point-min))
+                 (while (re-search-forward
+                         (python-rx line-start
+                                    "if" (+ space)
+                                    "__name__" (+ space)
+                                    "==" (+ space)
+                                    (group-n 1 (or ?\" ?\'))
+                                    "__main__" (backref 1) (* space) ":")
+                         nil t)
+                   (when (not (python-syntax-context-type))
+                     (beginning-of-line)
+                     (throw 'found t))))))
+    (if found
+        (point)
+      (ignore (goto-char point)))))
+
 
 ;;; Shell integration
 
@@ -2119,17 +2137,58 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (define-obsolete-function-alias
   'python-send-string 'python-shell-internal-send-string "24.3")
 
+(defun python-shell-buffer-substring (start end &optional nomain)
+  "Send buffer substring from START to END formatted for shell.
+This is a wrapper over `buffer-substring' that takes care of
+different transformations for the code sent to be evaluated in
+the python shell:
+  1. When Optional Argument NOMAIN is non-nil everything under an
+     \"if __name__ == '__main__'\" block will be removed.
+  2. When a subregion of the buffer is sent, it takes care of
+     appending extra whitelines so tracebacks are correct.
+  3. Wraps indented regions under an \"if True:\" block so the
+     interpreter evaluates them correctly."
+  (let ((substring (buffer-substring-no-properties start end))
+        (fillstr (make-string (1- (line-number-at-pos start)) ?\n))
+        (toplevel-block-p (save-excursion
+                            (goto-char start)
+                            (or (zerop (line-number-at-pos start))
+                                (progn
+                                  (python-util-forward-comment 1)
+                                  (zerop (current-indentation)))))))
+    (with-temp-buffer
+      (python-mode)
+      (insert fillstr)
+      (insert substring)
+      (goto-char (point-min))
+      (when (not toplevel-block-p)
+        (insert "if True:")
+        (delete-region (point) (line-end-position)))
+      (when nomain
+        (let* ((if-name-main-start-end
+                (and nomain
+                     (save-excursion
+                       (when (python-nav-if-name-main)
+                         (cons (point)
+                               (progn (python-nav-forward-sexp)
+                                      (point)))))))
+               ;; Oh destructuring bind, how I miss you.
+               (if-name-main-start (car if-name-main-start-end))
+               (if-name-main-end (cdr if-name-main-start-end)))
+          (when if-name-main-start-end
+            (goto-char if-name-main-start)
+            (delete-region if-name-main-start if-name-main-end)
+            (insert
+             (make-string
+              (- (line-number-at-pos if-name-main-end)
+                 (line-number-at-pos if-name-main-start)) ?\n)))))
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
   (python-shell-send-string
-   (concat
-    (let ((line-num (line-number-at-pos start)))
-      ;; When sending a region, add blank lines for non sent code so
-      ;; backtraces remain correct.
-      (make-string (1- line-num) ?\n))
-    (buffer-substring start end))
-   nil t))
+   (python-shell-buffer-substring start end) nil t))
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
@@ -2138,13 +2197,9 @@ by \"if __name__== '__main__':\""
   (interactive "P")
   (save-restriction
     (widen)
-    (let ((str (buffer-substring (point-min) (point-max))))
-      (and
-       (not arg)
-       (setq str (replace-regexp-in-string
-                  (python-rx if-name-main)
-                  "if __name__ == '__main__ ':" str)))
-      (python-shell-send-string str))))
+    (python-shell-send-string
+     (python-shell-buffer-substring
+      (point-min) (point-max) (not arg)))))
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
@@ -2271,13 +2326,17 @@ and use the following as the value of this variable:
 LINE is used to detect the context on how to complete given
 INPUT."
   (let* ((prompt
-          ;; Get the last prompt for the inferior process
-          ;; buffer. This is used for the completion code selection
-          ;; heuristic.
+          ;; Get last prompt of the inferior process buffer (this
+          ;; intentionally avoids using `comint-last-prompt' because
+          ;; of incompatibilities with Emacs 24.x).
           (with-current-buffer (process-buffer process)
-            (buffer-substring-no-properties
-             (overlay-start comint-last-prompt-overlay)
-             (overlay-end comint-last-prompt-overlay))))
+            (save-excursion
+              (buffer-substring-no-properties
+               (- (point) (length line))
+               (progn
+                 (re-search-backward "^")
+                 (python-util-forward-comment)
+                 (point))))))
          (completion-context
           ;; Check whether a prompt matches a pdb string, an import
           ;; statement or just the standard prompt and use the
@@ -3042,32 +3101,22 @@ It must be a function with two arguments: TYPE and NAME.")
       "*class definition*"
     "*function definition*"))
 
-(defun python-imenu--put-parent (type name pos num-children tree &optional root)
-  "Add the parent with TYPE, NAME, POS and NUM-CHILDREN to TREE.
-Optional Argument ROOT must be non-nil when the node being
-processed is the root of the TREE."
+(defun python-imenu--put-parent (type name pos tree)
+  "Add the parent with TYPE, NAME and POS to TREE."
   (let ((label
          (funcall python-imenu-format-item-label-function type name))
         (jump-label
          (funcall python-imenu-format-parent-item-jump-label-function type name)))
-    (if root
-        ;; This is the root, everything is a children.
-        (cons label (cons (cons jump-label pos) tree))
-      ;; This is node a which may contain some children.
-      (cons
-       (cons label (cons (cons jump-label pos)
-                         ;; Append all the children
-                         (python-util-popn tree num-children)))
-       ;; All previous non-children nodes.
-       (nthcdr num-children tree)))))
+    (if (not tree)
+        (cons label pos)
+      (cons label (cons (cons jump-label pos) tree)))))
 
-(defun python-imenu--build-tree (&optional min-indent prev-indent num-children tree)
+(defun python-imenu--build-tree (&optional min-indent prev-indent tree)
   "Recursively build the tree of nested definitions of a node.
-Arguments MIN-INDENT PREV-INDENT NUM-CHILDREN and TREE are
-internal and should not be passed explicitly unless you know what
-you are doing."
-  (setq num-children (or num-children 0)
-        min-indent (or min-indent 0))
+Arguments MIN-INDENT PREV-INDENT and TREE are internal and should
+not be passed explicitly unless you know what you are doing."
+  (setq min-indent (or min-indent 0)
+        prev-indent (or prev-indent python-indent-offset))
   (let* ((pos (python-nav-backward-defun))
          (type)
          (name (when (and pos (looking-at python-nav-beginning-of-defun-regexp))
@@ -3076,73 +3125,33 @@ you are doing."
                    (cadr split))))
          (label (when name
                   (funcall python-imenu-format-item-label-function type name)))
-         (indent (current-indentation)))
+         (indent (current-indentation))
+         (children-indent-limit (+ python-indent-offset min-indent)))
     (cond ((not pos)
-           ;; No defun found, nothing to add.
-           tree)
-          ((equal indent 0)
-           (if (> num-children 0)
-               ;; Append it as the parent of everything collected to
-               ;; this point.
-               (python-imenu--put-parent type name pos num-children tree t)
-             ;; There are no children, this is a lonely defun.
-             (cons label pos)))
-          ((equal min-indent indent)
-           ;; Stop collecting nodes after moving to a position with
-           ;; indentation equaling min-indent. This is specially
-           ;; useful for navigating nested definitions recursively.
-           (if (> num-children 0)
-               tree
-             ;; When there are no children, the collected tree is a
-             ;; single node intended to be added in the list of defuns
-             ;; of its parent.
-             (car tree)))
+           ;; Nothing found, probably near to bobp.
+           nil)
+          ((<= indent min-indent)
+           ;; The current indentation points that this is a parent
+           ;; node, add it to the tree and stop recursing.
+           (python-imenu--put-parent type name pos tree))
           (t
            (python-imenu--build-tree
             min-indent
             indent
-            ;; Add another children, either when this is the
-            ;; first call or when indentation is
-            ;; less-or-equal than previous. And do not
-            ;; discard the number of children, because the
-            ;; way code is scanned, all children are
-            ;; collected until a root node yet to be found
-            ;; appears.
-            (if (or (not prev-indent)
-                    (and
-                     (> indent min-indent)
-                     (<= indent prev-indent)))
-                (1+ num-children)
-              num-children)
-            (cond ((not prev-indent)
-                   ;; First call to the function: append this
-                   ;; defun to the index.
-                   (list (cons label pos)))
-                  ((= indent prev-indent)
-                   ;; Add another defun with the same depth
-                   ;; as the previous.
-                   (cons (cons label pos) tree))
-                  ((and (< indent prev-indent)
-                        (< 0 num-children))
-                   ;; There are children to be appended and
-                   ;; the previous defun had more
-                   ;; indentation, the current one must be a
-                   ;; parent.
-                   (python-imenu--put-parent type name pos num-children tree))
-                  ((> indent prev-indent)
-                   ;; There are children defuns deeper than
-                   ;; current depth. Fear not, we already
-                   ;; know how to treat them.
-                   (cons
-                    (prog1
-                        (python-imenu--build-tree
-                         prev-indent indent 0 (list (cons label pos)))
-                      ;; Adjustment: after scanning backwards
-                      ;; for all deeper children, we need to
-                      ;; continue our scan for a parent from
-                      ;; the current defun we are looking at.
-                      (python-nav-forward-defun))
-                    tree))))))))
+            (if (<= indent children-indent-limit)
+                ;; This lies within the children indent offset range,
+                ;; so it's a normal child of its parent (i.e., not
+                ;; a child of a child).
+                (cons (cons label pos) tree)
+              ;; Oh no, a child of a child?!  Fear not, we
+              ;; know how to roll.  We recursively parse these by
+              ;; swapping prev-indent and min-indent plus adding this
+              ;; newly found item to a fresh subtree.  This works, I
+              ;; promise.
+              (cons
+               (python-imenu--build-tree
+                prev-indent indent (list (cons label pos)))
+               tree)))))))
 
 (defun python-imenu-create-index ()
   "Return tree Imenu alist for the current python buffer.

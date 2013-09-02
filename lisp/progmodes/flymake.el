@@ -353,7 +353,7 @@ Return nil if we cannot, non-nil if we can."
       'flymake-simple-cleanup))
 
 (defun flymake-get-real-file-name-function (file-name)
-  (or (nth 4 (flymake-get-file-name-mode-and-masks file-name))
+  (or (nth 2 (flymake-get-file-name-mode-and-masks file-name))
       'flymake-get-real-file-name))
 
 (defvar flymake-find-buildfile-cache (flymake-makehash 'equal))

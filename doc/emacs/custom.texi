@@ -1166,7 +1166,10 @@ conversion of this file.  @xref{Coding Systems}.
 
 @item
 @code{unibyte} says to load or compile a file of Emacs Lisp in unibyte
-mode, if the value is @code{t}.  @xref{Disabling Multibyte}.
+mode, if the value is @code{t}.  @xref{Disabling Multibyte, ,
+Disabling Multibyte Characters, elisp, GNU Emacs Lisp Reference
+Manual}.
+
 @end itemize
 
 @noindent

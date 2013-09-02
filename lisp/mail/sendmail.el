@@ -1114,6 +1114,7 @@ external program defined by `sendmail-program'."
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " sendmail errors")
 		  0))
+        (error nil)
 	(tembuf (generate-new-buffer " sendmail temp"))
 	(multibyte enable-multibyte-characters)
 	(case-fold-search nil)
@@ -1278,10 +1279,13 @@ external program defined by `sendmail-program'."
 		     (exit-value (apply 'call-process-region args)))
 		(cond ((or (null exit-value) (eq 0 exit-value)))
 		      ((numberp exit-value)
+                       (setq error t)
 		       (error "Sending...failed with exit value %d" exit-value))
 		      ((stringp exit-value)
+                       (setq error t)
 		       (error "Sending...terminated by signal: %s" exit-value))
 		      (t
+                       (setq error t)
 		       (error "SENDMAIL-SEND-IT -- fall through: %S" exit-value))))
 	    (or fcc-was-found
 		(error "No recipients")))
@@ -1290,12 +1294,15 @@ external program defined by `sendmail-program'."
 		(goto-char (point-min))
 		(while (re-search-forward "\n\n* *" nil t)
 		  (replace-match "; "))
-		(if (not (zerop (buffer-size)))
-		    (error "Sending...failed to %s"
-			   (buffer-substring (point-min) (point-max)))))))
+		(unless (zerop (buffer-size))
+                  (setq error t)
+                  (error "Sending...failed to %s"
+                         (buffer-substring (point-min) (point-max)))))))
       (kill-buffer tembuf)
-      (if (bufferp errbuf)
-	  (kill-buffer errbuf)))))
+      (if (and (bufferp errbuf)
+               (not error))
+          (kill-buffer errbuf)
+        (switch-to-buffer-other-window errbuf)))))
 
 (autoload 'rmail-output-to-rmail-buffer "rmailout")
 

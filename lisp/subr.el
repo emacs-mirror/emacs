@@ -312,6 +312,26 @@ result of an actual problem."
   (while t
     (signal 'user-error (list (apply #'format format args)))))
 
+(defun define-error (name message &optional parent)
+  "Define NAME as a new error signal.
+MESSAGE is a string that will be output to the echo area if such an error
+is signaled without being caught by a `condition-case'.
+PARENT is either a signal or a list of signals from which it inherits.
+Defaults to `error'."
+  (unless parent (setq parent 'error))
+  (let ((conditions
+         (if (consp parent)
+             (apply #'nconc
+                    (mapcar (lambda (parent)
+                              (cons parent
+                                    (or (get parent 'error-conditions)
+                                        (error "Unknown signal `%s'" parent))))
+                            parent))
+           (cons parent (get parent 'error-conditions)))))
+    (put name 'error-conditions
+         (delete-dups (copy-sequence (cons name conditions))))
+    (when message (put name 'error-message message))))
+
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
 (defun frame-configuration-p (object)
@@ -1498,9 +1518,10 @@ other hooks, such as major mode hooks, can do the job."
       ;; FIXME: Something like this could be used for `set' as well.
       (if (or (not (eq 'quote (car-safe list-var)))
               (special-variable-p (cadr list-var))
-              (and append compare-fn))
+              (not (macroexp-const-p append)))
           exp
         (let* ((sym (cadr list-var))
+               (append (eval append))
                (msg (format "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
                             sym))
                ;; Big ugly hack so we only output a warning during
@@ -1513,13 +1534,17 @@ other hooks, such as major mode hooks, can do the job."
                           (when (assq sym byte-compile--lexical-environment)
                             (byte-compile-log-warning msg t :error))))
                (code
-                (if append
-                    (macroexp-let2 macroexp-copyable-p x element
-                    `(unless (member ,x ,sym)
-                       (setq ,sym (append ,sym (list ,x)))))
-                  (require 'cl-lib)
-                  `(cl-pushnew ,element ,sym
-                               :test ,(or compare-fn '#'equal)))))
+                (macroexp-let2 macroexp-copyable-p x element
+                  `(unless ,(if compare-fn
+                                (progn
+                                  (require 'cl-lib)
+                                  `(cl-member ,x ,sym :test ,compare-fn))
+                              ;; For bootstrapping reasons, don't rely on
+                              ;; cl--compiler-macro-member for the base case.
+                              `(member ,x ,sym))
+                     ,(if append
+                          `(setq ,sym (append ,sym (list ,x)))
+                        `(push ,x ,sym))))))
           (if (not (macroexp--compiling-p))
               code
             `(progn
@@ -2521,11 +2546,6 @@ When the hook runs, the temporary buffer is current.
 This hook is normally set up with a function to put the buffer in Help
 mode.")
 
-;; The `assert' macro from the cl package signals
-;; `cl-assertion-failed' at runtime so always define it.
-(put 'cl-assertion-failed 'error-conditions '(error))
-(put 'cl-assertion-failed 'error-message (purecopy "Assertion failed"))
-
 (defconst user-emacs-directory
   (if (eq system-type 'ms-dos)
       ;; MS-DOS cannot have initial dot.
@@ -2744,6 +2764,13 @@ Otherwise, return nil."
   (if (and (symbolp object) (fboundp object))
       (setq object (indirect-function object t)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
+
+(defun macrop (object)
+  "Non-nil if and only if OBJECT is a macro."
+  (let ((def (indirect-function object t)))
+    (when (consp def)
+      (or (eq 'macro (car def))
+          (and (autoloadp def) (memq (nth 4 def) '(macro t)))))))
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
@@ -4045,10 +4072,14 @@ backwards ARG times if negative."
 
 ;;;; Text clones
 
-(defun text-clone-maintain (ol1 after beg end &optional _len)
+(defvar text-clone--maintaining nil)
+
+(defun text-clone--maintain (ol1 after beg end &optional _len)
   "Propagate the changes made under the overlay OL1 to the other clones.
 This is used on the `modification-hooks' property of text clones."
-  (when (and after (not undo-in-progress) (overlay-start ol1))
+  (when (and after (not undo-in-progress)
+             (not text-clone--maintaining)
+             (overlay-start ol1))
     (let ((margin (if (overlay-get ol1 'text-clone-spreadp) 1 0)))
       (setq beg (max beg (+ (overlay-start ol1) margin)))
       (setq end (min end (- (overlay-end ol1) margin)))
@@ -4079,7 +4110,7 @@ This is used on the `modification-hooks' property of text clones."
 		(tail (- (overlay-end ol1) end))
 		(str (buffer-substring beg end))
 		(nothing-left t)
-		(inhibit-modification-hooks t))
+		(text-clone--maintaining t))
 	    (dolist (ol2 (overlay-get ol1 'text-clones))
 	      (let ((oe (overlay-end ol2)))
 		(unless (or (eq ol1 ol2) (null oe))
@@ -4090,7 +4121,7 @@ This is used on the `modification-hooks' property of text clones."
 		    (unless (> mod-beg (point))
 		      (save-excursion (insert str))
 		      (delete-region mod-beg (point)))
-		    ;;(overlay-put ol2 'modification-hooks '(text-clone-maintain))
+		    ;;(overlay-put ol2 'modification-hooks '(text-clone--maintain))
 		    ))))
 	    (if nothing-left (delete-overlay ol1))))))))
 
@@ -4121,17 +4152,18 @@ clone should be incorporated in the clone."
 			     (>= pt-end (point-max))
   			     (>= start (point-max)))
   			 0 1))
+         ;; FIXME: Reuse overlays at point to extend dups!
   	 (ol1 (make-overlay (- start start-margin) (+ end end-margin) nil t))
   	 (ol2 (make-overlay (- (point) start-margin) (+ pt-end end-margin) nil t))
 	 (dups (list ol1 ol2)))
-    (overlay-put ol1 'modification-hooks '(text-clone-maintain))
+    (overlay-put ol1 'modification-hooks '(text-clone--maintain))
     (when spreadp (overlay-put ol1 'text-clone-spreadp t))
     (when syntax (overlay-put ol1 'text-clone-syntax syntax))
     ;;(overlay-put ol1 'face 'underline)
     (overlay-put ol1 'evaporate t)
     (overlay-put ol1 'text-clones dups)
     ;;
-    (overlay-put ol2 'modification-hooks '(text-clone-maintain))
+    (overlay-put ol2 'modification-hooks '(text-clone--maintain))
     (when spreadp (overlay-put ol2 'text-clone-spreadp t))
     (when syntax (overlay-put ol2 'text-clone-syntax syntax))
     ;;(overlay-put ol2 'face 'underline)
@@ -4186,22 +4218,6 @@ I is the index of the frame after FRAME2.  It should return nil
 if those frames don't seem special and otherwise, it should return
 the number of frames to skip (minus 1).")
 
-(defmacro internal--called-interactively-p--get-frame (n)
-  ;; `sym' will hold a global variable, which will be used kind of like C's
-  ;; "static" variables.
-  (let ((sym (make-symbol "base-index")))
-    `(progn
-       (defvar ,sym)
-       (unless (boundp ',sym)
-         (let ((i 1))
-           (while (not (eq (indirect-function (nth 1 (backtrace-frame i)) t)
-                           (indirect-function 'called-interactively-p)))
-             (setq i (1+ i)))
-           (setq ,sym i)))
-       ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)
-       ;;   (error "called-interactively-p: %s is out-of-sync!" ,sym))
-       (backtrace-frame (+ ,sym ,n)))))
-
 (defun called-interactively-p (&optional kind)
   "Return t if the containing function was called by `call-interactively'.
 If KIND is `interactive', then only return t if the call was made
@@ -4236,7 +4252,7 @@ command is called from a keyboard macro?"
            (get-next-frame
             (lambda ()
               (setq frame nextframe)
-              (setq nextframe (internal--called-interactively-p--get-frame i))
+              (setq nextframe (backtrace-frame i 'called-interactively-p))
               ;; (message "Frame %d = %S" i nextframe)
               (setq i (1+ i)))))
       (funcall get-next-frame) ;; Get the first frame.

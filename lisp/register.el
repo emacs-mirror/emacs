@@ -137,11 +137,11 @@ Argument is a character, naming the register."
   "Move point to location stored in a register.
 If the register contains a file name, find that file.
 \(To put a file name in a register, you must use `set-register'.)
-If the register contains a window configuration (one frame) or a frame
-configuration (all frames), restore that frame or all frames accordingly.
+If the register contains a window configuration (one frame) or a frameset
+\(all frames), restore that frame or all frames accordingly.
 First argument is a character, naming the register.
 Optional second arg non-nil (interactively, prefix argument) says to
-delete any existing frames that the frame configuration doesn't mention.
+delete any existing frames that the frameset doesn't mention.
 \(Otherwise, these frames are iconified.)"
   (interactive "cJump to register: \nP")
   (let ((val (get-register register)))

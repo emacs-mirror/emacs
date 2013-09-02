@@ -268,7 +268,7 @@ The format is (FUNCTION ARGS...).")
 
 (define-button-type 'help-dir-local-var-def
   :supertype 'help-xref
-  'help-function (lambda (var &optional file)
+  'help-function (lambda (_var &optional file)
 		   ;; FIXME: this should go to the point where the
 		   ;; local variable was defined.
 		   (find-file file))
@@ -541,7 +541,7 @@ that."
                       (while
                           (and (not (eobp))
                                ;; Stop at a pair of blank lines.
-                               (not (looking-at "\n\\s-*\n")))
+                               (not (looking-at-p "\n\\s-*\n")))
                         ;; Skip a single blank line.
                         (and (eolp) (forward-line))
                         (end-of-line)
@@ -605,26 +605,25 @@ See `help-make-xrefs'."
 	(save-restriction
 	  (narrow-to-region from to)
 	  (goto-char (point-min))
-	  (condition-case nil
-	      (while (not (eobp))
-		(cond
-		 ((looking-at "\"") (forward-sexp 1))
-		 ((looking-at "#<") (search-forward ">" nil 'move))
-		 ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
-		  (let* ((sym (intern-soft (match-string 1)))
-			 (type (cond ((fboundp sym) 'help-function)
-				     ((or (memq sym '(t nil))
-					  (keywordp sym))
-				      nil)
-				     ((and sym
-					   (or (boundp sym)
-					       (get sym
-						    'variable-documentation)))
-				      'help-variable))))
-		    (when type (help-xref-button 1 type sym)))
-		  (goto-char (match-end 1)))
-		 (t (forward-char 1))))
-	    (error nil)))))))
+	  (ignore-errors
+	    (while (not (eobp))
+	      (cond
+	       ((looking-at-p "\"") (forward-sexp 1))
+	       ((looking-at-p "#<") (search-forward ">" nil 'move))
+	       ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
+		(let* ((sym (intern-soft (match-string 1)))
+		       (type (cond ((fboundp sym) 'help-function)
+				   ((or (memq sym '(t nil))
+					(keywordp sym))
+				    nil)
+				   ((and sym
+					 (or (boundp sym)
+					     (get sym
+						  'variable-documentation)))
+				    'help-variable))))
+		  (when type (help-xref-button 1 type sym)))
+		(goto-char (match-end 1)))
+	       (t (forward-char 1))))))))))
 
 
 ;; Additional functions for (re-)creating types of help buffers.

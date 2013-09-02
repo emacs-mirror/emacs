@@ -482,7 +482,7 @@ non-nil in a repeated invocation of this function."
     (cancel-timer jit-lock-stealth-repeat-timer))
   (unless (or executing-kbd-macro
 	      memory-full
-	      (window-minibuffer-p (selected-window))
+	      (window-minibuffer-p)
 	      ;; For first invocation set up `jit-lock-stealth-buffers'.
 	      ;; In repeated invocations it's already been set up.
 	      (null (if repeat

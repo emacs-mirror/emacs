@@ -2244,8 +2244,9 @@ window and defaults to the selected one.
 
 Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
-the window, @var{window-start} is the window start position when that
-buffer was last shown, and @var{window-pos} is the point position when
+the window, @var{window-start} is the window start position
+(@pxref{Window Start and End}) when that buffer was last shown, and
+@var{window-pos} is the point position (@pxref{Window Point}) when
 that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
@@ -2328,10 +2329,11 @@ same frame.  The following option can be used to override this behavior.
 @defopt switch-to-visible-buffer
 If this variable is non-@code{nil}, @code{switch-to-prev-buffer} and
 @code{switch-to-next-buffer} may switch to a buffer that is already
-visible on the same frame, provided the buffer was shown in the relevant
-window before.  If it is @code{nil}, @code{switch-to-prev-buffer} and
-@code{switch-to-next-buffer} always try to avoid switching to a buffer
-that is already visible in another window on the same frame.
+visible on the same frame, provided the buffer was shown in the
+relevant window before.  If it is @code{nil},
+@code{switch-to-prev-buffer} and @code{switch-to-next-buffer} always
+try to avoid switching to a buffer that is already visible in another
+window on the same frame.  The default is @code{t}.
 @end defopt
 
 
@@ -2362,6 +2364,7 @@ showing another buffer in that frame's only window.  The function
 @code{replace-buffer-in-windows} (@pxref{Buffers and Windows}) which is
 called when a buffer gets killed, deletes the window in case (1) and
 behaves like @code{delete-windows-on} otherwise.
+@c FIXME: Does replace-buffer-in-windows _delete_ a window in case (1)?
 
    When @code{bury-buffer} (@pxref{The Buffer List}) operates on the
 selected window (which shows the buffer that shall be buried), it
@@ -2566,6 +2569,7 @@ so @code{window-point} will stay behind text inserted there.
 @node Window Start and End
 @section The Window Start and End Positions
 @cindex window start position
+@cindex display-start position
 
   Each window maintains a marker used to keep track of a buffer position
 that specifies where in the buffer display should start.  This position
@@ -3191,6 +3195,7 @@ The value returned is @var{columns}.
    Here is how you can determine whether a given position @var{position}
 is off the screen due to horizontal scrolling:
 
+@c FIXME: Maybe hscroll-on-screen-p is a better name?
 @example
 @group
 (defun hscroll-on-screen (window position)

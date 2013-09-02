@@ -199,7 +199,9 @@ word(s) will be searched for via `eww-search-prefix'."
 
 (defun eww-display-html (charset url)
   (unless (eq charset 'utf8)
-    (decode-coding-region (point) (point-max) charset))
+    (condition-case nil
+	(decode-coding-region (point) (point-max) charset)
+      (coding-system-error nil)))
   (let ((document
 	 (list
 	  'base (list (cons 'href url))
@@ -302,14 +304,14 @@ word(s) will be searched for via `eww-search-prefix'."
     (goto-char (point-min))))
 
 (defun eww-display-image ()
-  (let ((data (buffer-substring (point) (point-max))))
+  (let ((data (shr-parse-image-data)))
     (eww-setup-buffer)
     (let ((inhibit-read-only t))
       (shr-put-image data nil))
     (goto-char (point-min))))
 
 (defun eww-setup-buffer ()
-  (pop-to-buffer (get-buffer-create "*eww*"))
+  (switch-to-buffer (get-buffer-create "*eww*"))
   (let ((inhibit-read-only t))
     (remove-overlays)
     (erase-buffer))
@@ -343,7 +345,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map [(meta p)] 'eww-previous-bookmark)
 
     (easy-menu-define nil map ""
-      '("eww"
+      '("Eww"
 	["Quit" eww-quit t]
 	["Reload" eww-reload t]
 	["Back to previous page" eww-back-url

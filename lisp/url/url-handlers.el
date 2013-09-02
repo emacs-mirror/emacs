@@ -311,11 +311,17 @@ They count bytes from the beginning of the body."
 (put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 
 (defun url-file-name-completion (url directory &optional predicate)
-  (error "Unimplemented"))
+  ;; Even if it's not implemented, it's not an error to ask for completion,
+  ;; in case it's available (bug#14806).
+  ;; (error "Unimplemented")
+  url)
 (put 'file-name-completion 'url-file-handlers 'url-file-name-completion)
 
 (defun url-file-name-all-completions (file directory)
-  (error "Unimplemented"))
+  ;; Even if it's not implemented, it's not an error to ask for completion,
+  ;; in case it's available (bug#14806).
+  ;; (error "Unimplemented")
+  nil)
 (put 'file-name-all-completions
      'url-file-handlers 'url-file-name-all-completions)
 

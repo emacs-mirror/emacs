@@ -1406,7 +1406,7 @@ for buffer selection."
 	  (select-window active-window)
 	(bs--restore-window-config)
 	(setq bs--window-config-coming-from (current-window-configuration))
-	(when (> (window-height (selected-window)) 7)
+	(when (> (window-height) 7)
           ;; Errors would mess with the window configuration (bug#10882).
           (ignore-errors (select-window (split-window-below)))))
       (bs-show-in-buffer liste)

@@ -591,7 +591,7 @@ means list those buffers and no others."
   (select-window (posn-window (event-end event)))
   (let ((buffer (tabulated-list-get-id (posn-point (event-end event)))))
     (when (buffer-live-p buffer)
-      (if (and (window-dedicated-p (selected-window))
+      (if (and (window-dedicated-p)
 	       (eq (selected-window) (frame-root-window)))
 	  (switch-to-buffer-other-frame buffer)
 	(switch-to-buffer buffer)))))
