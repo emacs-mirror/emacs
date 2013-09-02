@@ -1120,6 +1120,12 @@ calling HANDLER.")
 
 ;;; Internal functions which must come first:
 
+(defsubst tramp-user-error (vec-or-proc format &rest args)
+  "Signal a pilot error."
+  (apply
+   'tramp-error vec-or-proc
+   (if (fboundp 'user-error) 'user-error 'error) format args))
+
 ;; Conversion functions between external representation and
 ;; internal data structure.  Convenience functions for internal
 ;; data structure.
@@ -1232,9 +1238,9 @@ their replacement."
 	(if noninteractive
 	    (warn "Method %s is obsolete, using %s"
 		  result (substring result 0 -1))
-	  (unless (y-or-n-p (format "Method %s is obsolete, use %s? "
+	  (unless (y-or-n-p (format "Method \"%s\" is obsolete, use \"%s\"? "
 				    result (substring result 0 -1)))
-	    (tramp-compat-user-error "Method \"%s\" not supported" result)))
+	    (tramp-user-error nil "Method \"%s\" not supported" result)))
 	(add-to-list 'tramp-warned-obsolete-methods result))
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
@@ -1289,8 +1295,8 @@ This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
 	       (or (null method) (get-text-property 0 'tramp-default method))
 	       (or (null user) (get-text-property 0 'tramp-default user))
 	       (member host (mapcar 'car tramp-methods)))
-      (tramp-compat-user-error
-       "Host name must not match method `%s'" host))))
+      (tramp-cleanup-connection vec)
+      (tramp-user-error vec "Host name must not match method \"%s\"" host))))
 
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure.
@@ -1300,7 +1306,7 @@ non-nil, the file name parts are not expanded to their default
 values."
   (save-match-data
     (let ((match (string-match (nth 0 tramp-file-name-structure) name)))
-      (unless match (tramp-compat-user-error "Not a Tramp file name: %s" name))
+      (unless match (tramp-user-error nil "Not a Tramp file name: \"%s\"" name))
       (let ((method    (match-string (nth 1 tramp-file-name-structure) name))
 	    (user      (match-string (nth 2 tramp-file-name-structure) name))
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
@@ -1485,7 +1491,8 @@ ARGUMENTS to actually emit the message (if applicable)."
 			 "tramp-debug-message"
 			 "tramp-error"
 			 "tramp-error-with-buffer"
-			 "tramp-message")
+			 "tramp-message"
+			 "tramp-user-error")
 		       t)
 		      "$")
 		     fn)))
@@ -3236,7 +3243,7 @@ User is always nil."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(tramp-compat-user-error "Shell command in progress")))
+	(tramp-user-error p "Shell command in progress")))
 
     (if current-buffer-p
 	(progn

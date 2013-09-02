@@ -490,7 +490,7 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
   (unless tramp-gvfs-enabled
-    (tramp-compat-user-error "Package `tramp-gvfs' not supported"))
+    (tramp-user-error nil "Package `tramp-gvfs' not supported"))
   (let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
     (if fn
 	(save-match-data (apply (cdr fn) args))

@@ -285,6 +285,11 @@ KEY identifies the connection, it is either a process or a vector."
     (let (result)
       (maphash
        (lambda (key value)
+	 ;; Remove text properties from KEY.
+	 (when (vectorp key)
+	   (dotimes (i (length key))
+	     (when (stringp (aref key i))
+	       (aset key i (substring-no-properties (aref key i))))))
 	 (let ((tmp (format
 		     "(%s %s)"
 		     (if (processp key)

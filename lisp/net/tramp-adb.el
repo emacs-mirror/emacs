@@ -874,7 +874,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(tramp-compat-user-error "Shell command in progress")))
+	(tramp-user-error p "Shell command in progress")))
 
     (if current-buffer-p
 	(progn
