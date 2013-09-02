@@ -1,5 +1,16 @@
 2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use XGetMotionEvents to ask the last mouse motion time from X server.
+	* xterm.c (X_MOTION_HISTORY): Default to 1.
+	(x_last_mouse_movement_time) [X_MOTION_HISTORY]: New function.
+	(x_last_mouse_movement_time) [!X_MOTION_HISTORY]: Legacy version.
+	(note_mouse_movement, x_scroll_bar_note_movement) [!X_MOTION_HISTORY]:
+	Ifdef away legacy code.
+	(XTmouse_position, x_scroll_bar_report_motion):
+	Use x_last_mouse_movement_time.
+
+2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* msdos.c (last_mouse_window): Move to...
 	(dos_rawgetc): ...this function and adjust comment.
 	* nsterm.m (last_window): Rename to last_mouse_window, move to...
