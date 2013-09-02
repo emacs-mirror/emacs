@@ -3727,11 +3727,15 @@ x_last_mouse_movement_time (struct frame *f)
 {
   Time t;
   int nevents;
-  XTimeCoord *xtc = XGetMotionEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				      1, last_user_time, &nevents);
+  XTimeCoord *xtc;
+
+  block_input ();
+  xtc = XGetMotionEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			  1, last_user_time, &nevents);
   eassert (xtc && nevents > 0);
   t = xtc[nevents - 1].time;
   XFree (xtc);
+  unblock_input ();
   return t;
 }
 
