@@ -6183,7 +6183,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
     case UnmapNotify:
       /* Redo the mouse-highlight after the tooltip has gone.  */
-      if (event.xmap.window == tip_window)
+      if (event.xunmap.window == tip_window)
         {
           tip_window = 0;
           redo_mouse_highlight ();

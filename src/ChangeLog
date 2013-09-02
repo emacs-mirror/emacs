@@ -8,6 +8,8 @@
 	Ifdef away legacy code.
 	(XTmouse_position, x_scroll_bar_report_motion):
 	Use x_last_mouse_movement_time.
+	(handle_one_xevent): Use event.xunmap and not event.xmap when handling
+	UnmapNotify event.
 
 2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
