@@ -464,7 +464,8 @@ Return the max version (as a string) if the package is held at a lower version."
 	     (package-desc-full-name pkg-desc)))
     ;; Add to load path, add autoloads, and activate the package.
     (let ((old-lp load-path))
-      (load (expand-file-name (format "%s-autoloads" name) pkg-dir) nil t)
+      (with-demoted-errors
+        (load (expand-file-name (format "%s-autoloads" name) pkg-dir) nil t))
       (when (and (eq old-lp load-path)
                  (not (or (member pkg-dir load-path)
                           (member pkg-dir-dir load-path))))

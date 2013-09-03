@@ -1,7 +1,10 @@
 2013-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/package.el (package-activate-1): Don't let a missing
+	<pkg>-autoloads.el file stop us.
+
 	* net/tramp.el (with-parsed-tramp-file-name): Silence compiler
-	warnings, and factor our common code.
+	warnings, and factor out common code.
 
 2013-09-03  Dmitry Gutov  <dgutov@yandex.ru>
 
