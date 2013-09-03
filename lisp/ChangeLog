@@ -1,3 +1,9 @@
+2013-09-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-calculate-indent): Consider
+	two-character operators and whether the character preceding them
+	changes their meaning (Bug#15208).
+
 2013-09-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Format code sent to Python shell for robustness.

@@ -137,6 +137,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 
 (defconst ruby-symbol-chars "a-zA-Z0-9_"
   "List of characters that symbol names may contain.")
+
 (defconst ruby-symbol-re (concat "[" ruby-symbol-chars "]")
   "Regexp to match symbols.")
 
@@ -935,6 +936,10 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                       (not (looking-at "[a-z_]"))))
                (and (looking-at ruby-operator-re)
                     (not (ruby-special-char-p))
+                    (save-excursion
+                      (forward-char -1)
+                      (or (not (looking-at ruby-operator-re))
+                          (not (eq (char-before) ?:))))
                     ;; Operator at the end of line.
                     (let ((c (char-after (point))))
                       (and
