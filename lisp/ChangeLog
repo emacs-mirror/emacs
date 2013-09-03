@@ -1,5 +1,12 @@
 2013-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/eww.el (eww-display-raw): Remove unused argument `charset'.
+	Update call to it.
+	(eww-change-select): Remove unused var `properties'.
+	(eww-make-unique-file-name): Remove unused var `base'.
+
+	* finder.el (finder-compile-keywords): Don't mess with windows.
+
 	* calculator.el (calculator-funcall): Fix typo in last change.
 
 	* vc/vc-git.el (vc-git-checkin): Make it possible to commit a merge.

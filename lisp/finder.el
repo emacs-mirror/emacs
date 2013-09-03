@@ -225,8 +225,8 @@ from; the default is `load-path'."
 	      (lambda (a b) (string< (symbol-name (car a))
 				     (symbol-name (car b))))))
 
-  (save-excursion
-    (find-file generated-finder-keywords-file)
+  (with-current-buffer
+      (find-file-noselect generated-finder-keywords-file)
     (setq buffer-undo-list t)
     (erase-buffer)
     (insert (autoload-rubric generated-finder-keywords-file
