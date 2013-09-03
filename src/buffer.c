@@ -888,8 +888,8 @@ drop_overlay (struct buffer *b, struct Lisp_Overlay *ov)
   eassert (b == XBUFFER (Fmarker_buffer (ov->start)));
   modify_overlay (b, marker_position (ov->start),
 		  marker_position (ov->end));
-  Fset_marker (ov->start, Qnil, Qnil);
-  Fset_marker (ov->end, Qnil, Qnil);
+  unchain_marker (XMARKER (ov->start));
+  unchain_marker (XMARKER (ov->end));
 
 }
 

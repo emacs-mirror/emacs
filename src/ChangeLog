@@ -1,5 +1,11 @@
 2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* buffer.c (drop_overlay):
+	* fileio.c (restore_point_unwind): Prefer unchain_marker to
+	Fset_marker (X, Qnil, ...) (which is the same but a bit slower).
+
+2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* buffer.c (Fmake_overlay, Fmove_overlay):
 	* intervals.c (set_point_from_marker):
 	* print.c (PRINTPREPARE): Prefer signal_error
