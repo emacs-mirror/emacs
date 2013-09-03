@@ -1632,18 +1632,19 @@ Remaining args are Lisp expressions to be evaluated (inside an implicit
 
 If VAR is nil, then we bind `v' to the structure and `method', `user',
 `host', `localname', `hop' to the components."
-  `(let* ((,(or var 'v) (tramp-dissect-file-name ,filename))
-	  (,(if var (intern (concat (symbol-name var) "-method")) 'method)
-	   (tramp-file-name-method ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-user")) 'user)
-	   (tramp-file-name-user ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-host")) 'host)
-	   (tramp-file-name-host ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-localname")) 'localname)
-	   (tramp-file-name-localname ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-hop")) 'hop)
-	   (tramp-file-name-hop ,(or var 'v))))
-     ,@body))
+  (let ((bindings
+         (mapcar (lambda (elem)
+                   `(,(if var (intern (format "%s-%s" var elem)) elem)
+                     (,(intern (format "tramp-file-name-%s" elem))
+                      ,(or var 'v))))
+                 '(method user host localname hop))))
+    `(let* ((,(or var 'v) (tramp-dissect-file-name ,filename))
+            ,@bindings)
+       ;; We don't know which of those vars will be used, so we bind them all,
+       ;; and then add here a dummy use of all those variables, so we don't get
+       ;; flooded by warnings about those vars `body' didn't use.
+       (ignore ,@(mapcar #'car bindings))
+       ,@body)))
 
 (put 'with-parsed-tramp-file-name 'lisp-indent-function 2)
 (put 'with-parsed-tramp-file-name 'edebug-form-spec '(form symbolp body))

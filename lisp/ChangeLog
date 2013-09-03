@@ -1,3 +1,8 @@
+2013-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/tramp.el (with-parsed-tramp-file-name): Silence compiler
+	warnings, and factor our common code.
+
 2013-09-03  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-calculate-indent): Consider
@@ -7,8 +12,8 @@
 2013-09-02  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Format code sent to Python shell for robustness.
-	* progmodes/python.el (python-shell-buffer-substring): New
-	function.
+	* progmodes/python.el (python-shell-buffer-substring):
+	New function.
 	(python-shell-send-region, python-shell-send-buffer): Use it.
 
 2013-09-02  Michael Albinus  <michael.albinus@gmx.de>
