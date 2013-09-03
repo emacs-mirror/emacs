@@ -2,13 +2,15 @@
 
 	* xterm.h (struct scroll_bar): Prefer int to Lisp_Object
 	for 'dragging' member.
+	(struct x_output): Remove set-but-unused leftovers
+	'left_before_move' and 'top_before_move'.
 	* gtkutil.c (xg_set_toolkit_scroll_bar_thumb):
 	* xterm.c (xt_action_hook, xm_scroll_callback, xg_scroll_callback)
 	(xg_end_scroll_callback, xaw_jump_callback, xaw_scroll_callback)
 	(x_set_toolkit_scroll_bar_thumb, x_scroll_bar_create)
 	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar)
 	(x_scroll_bar_handle_click, x_scroll_bar_note_movement)
-	(x_scroll_bar_report_motion): Related users changed.
+	(x_scroll_bar_report_motion, x_set_offset): Related users changed.
 
 2013-09-03  Jan Djärv  <jan.h.d@swipnet.se>
 

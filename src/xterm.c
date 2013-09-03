@@ -8116,9 +8116,6 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
 
   if (change_gravity > 0)
     {
-      FRAME_X_OUTPUT (f)->left_before_move = f->left_pos;
-      FRAME_X_OUTPUT (f)->top_before_move = f->top_pos;
-
       f->top_pos = yoff;
       f->left_pos = xoff;
       f->size_hint_flags &= ~ (XNegative | YNegative);

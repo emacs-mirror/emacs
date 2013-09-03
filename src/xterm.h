@@ -626,11 +626,6 @@ struct x_output
   int move_offset_top;
   int move_offset_left;
 
-  /* The frame's left/top offsets before we call XMoveWindow.  See
-     x_check_expected_move.  */
-  int left_before_move;
-  int top_before_move;
-
   /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
   unsigned net_wm_state_hidden_seen : 1;
 };
