@@ -1,5 +1,7 @@
 2013-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calculator.el (calculator-funcall): Fix typo in last change.
+
 	* vc/vc-git.el (vc-git-checkin): Make it possible to commit a merge.
 
 	* emacs-lisp/package.el (package-activate-1): Don't let a missing
