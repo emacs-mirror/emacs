@@ -3783,7 +3783,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
-  if (wscroll && NILP (bar->dragging))
+  if (wscroll && bar->dragging == -1)
     {
       GtkAdjustment *adj;
       gdouble shown;

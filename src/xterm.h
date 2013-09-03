@@ -806,8 +806,8 @@ struct scroll_bar
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
      place where the user grabbed it.  If the handle isn't currently
-     being dragged, this is Qnil.  */
-  Lisp_Object dragging;
+     being dragged, this is -1.  */
+  int dragging;
 
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
