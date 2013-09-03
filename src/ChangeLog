@@ -1,5 +1,12 @@
 2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* buffer.c (Fmake_overlay, Fmove_overlay):
+	* intervals.c (set_point_from_marker):
+	* print.c (PRINTPREPARE): Prefer signal_error
+	to plain error and report unsuitable marker too.
+
+2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.h (struct scroll_bar): Prefer int to Lisp_Object
 	for 'dragging' member.
 	(struct x_output): Remove set-but-unused leftovers
