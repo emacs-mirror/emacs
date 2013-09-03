@@ -11,6 +11,7 @@
 	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar)
 	(x_scroll_bar_handle_click, x_scroll_bar_note_movement)
 	(x_scroll_bar_report_motion, x_set_offset): Related users changed.
+	* xfns.c, image.c (XLIB_ILLEGAL_ACCESS): No longer needed.
 
 2013-09-03  Jan Djärv  <jan.h.d@swipnet.se>
 

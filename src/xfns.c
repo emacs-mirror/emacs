@@ -22,10 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <unistd.h>
 
-/* This makes the fields of a Display accessible, in Xlib header files.  */
-
-#define XLIB_ILLEGAL_ACCESS
-
 #include "lisp.h"
 #include "xterm.h"
 #include "frame.h"
