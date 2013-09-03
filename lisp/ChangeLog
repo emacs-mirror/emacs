@@ -1,5 +1,10 @@
 2013-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/tramp-gvfs.el (tramp-gvfs-mount-spec, tramp-synce-list-devices): 
+	* net/tramp-smb.el (tramp-smb-get-file-entries):
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory)
+	(tramp-compute-multi-hops): Fix misuses of `add-to-list'.
+
 	* net/eww.el (eww-display-raw): Remove unused argument `charset'.
 	Update call to it.
 	(eww-change-select): Remove unused var `properties'.

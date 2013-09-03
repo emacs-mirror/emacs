@@ -1364,14 +1364,14 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 	      (while (not (eobp))
 		(setq entry (tramp-smb-read-file-entry share))
 		(forward-line)
-		(when entry (add-to-list 'res entry))))
+		(when entry (pushnew entry res :test #'equal))))
 
 	    ;; Cache share entries.
 	    (unless share
 	      (tramp-set-connection-property v "share-cache" res)))
 
 	  ;; Add directory itself.
-	  (add-to-list 'res '("" "drwxrwxrwx" 0 (0 0)))
+	  (pushnew '("" "drwxrwxrwx" 0 (0 0)) res :test #'equal)
 
 	  ;; There's a very strange error (debugged with XEmacs 21.4.14)
 	  ;; If there's no short delay, it returns nil.  No idea about.
