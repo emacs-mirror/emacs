@@ -1,3 +1,9 @@
+2013-09-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (INVALID_GLYPH): New define.
+	(nsfont_encode_char): Use INVALID_GLYPH.
+	(ns_uni_to_glyphs): Ditto, check for NSNullGlyph (Bug#15138).
+
 2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (x_last_mouse_movement_time): Revert last change.
