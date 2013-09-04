@@ -10170,9 +10170,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
-
-  connection = ConnectionNumber (dpyinfo->display);
-  dpyinfo->connection = connection;
   dpyinfo->gray
     = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				   gray_bits, gray_width, gray_height,
@@ -10183,6 +10180,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
   xsettings_initialize (dpyinfo);
+
+  connection = ConnectionNumber (dpyinfo->display);
 
   /* This is only needed for distinguishing keyboard and process input.  */
   if (connection != 0)
@@ -10283,8 +10282,6 @@ x_delete_display (struct x_display_info *dpyinfo)
         delete_terminal (t);
         break;
       }
-
-  delete_keyboard_wait_descriptor (dpyinfo->connection);
 
   /* Discard this display from x_display_name_list and x_display_list.
      We can't use Fdelq because that can quit.  */
@@ -10413,6 +10410,7 @@ void
 x_delete_terminal (struct terminal *terminal)
 {
   struct x_display_info *dpyinfo = terminal->display_info.x;
+  int connection = -1;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -10431,6 +10429,8 @@ x_delete_terminal (struct terminal *terminal)
      and dpyinfo->display was set to 0 to indicate that.  */
   if (dpyinfo->display)
     {
+      connection = ConnectionNumber (dpyinfo->display);
+
       x_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
@@ -10470,6 +10470,10 @@ x_delete_terminal (struct terminal *terminal)
 #endif
 #endif /* ! USE_GTK */
     }
+
+  /* No more input on this descriptor.  */
+  if (connection != -1)
+    delete_keyboard_wait_descriptor (connection);
 
   /* Mark as dead. */
   dpyinfo->display = NULL;

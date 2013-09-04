@@ -1,3 +1,10 @@
+2013-09-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_display_info): Do not track X connection
+	fd separately because it is always available from Display.
+	* xterm.c (x_term_init, x_delete_terminal, x_delete_display):
+	Adjust users.
+
 2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.c (drop_overlay):

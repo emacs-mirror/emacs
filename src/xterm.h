@@ -138,9 +138,6 @@ struct x_display_info
   /* The generic display parameters corresponding to this X display. */
   struct terminal *terminal;
 
-  /* Connection number (normally a file descriptor number).  */
-  int connection;
-
   /* This says how to access this display in Xlib.  */
   Display *display;
 
