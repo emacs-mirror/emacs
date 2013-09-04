@@ -1,3 +1,10 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (lib): Depend on am--refresh, to avoid a race.
+	(src): Remove duplicate dependency on FRC.
+	Invoke just one submake, not two.  Avoid the need for 'pwd'.
+
 2013-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Add ns_check_file.

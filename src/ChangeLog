@@ -1,3 +1,11 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (config.status): Don't use double-colon rules, as
+	they are not portable according to POSIX.  Fix shell typo with `;
+	I guess this rule has never been tested?
+	(VCSWITNESS): New macro, to override any environment var.
+
 2013-09-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.h (struct x_display_info): Do not track X connection

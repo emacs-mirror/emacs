@@ -352,9 +352,13 @@ epaths-force-w32: FRC
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
+# If lib/Makefile would build files in '.', then build them before
+# building 'lib', to avoid races with parallel makes.
+lib: am--refresh
+
 lib-src src: $(NTDIR) lib
 
-src:	lib-src FRC
+src: lib-src
 
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'
 # and `leim'.
@@ -376,18 +380,15 @@ lib lib-src lisp leim nt: Makefile FRC
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
 src: Makefile FRC
-	boot=bootstrap-emacs$(EXEEXT);                         \
-	if [ ! -x "src/$$boot" ]; then                                     \
-	    cd $@; $(MAKE) all $(MFLAGS)                                   \
-	      CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'         \
-	      LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"; \
-	fi;
-	if [ -r .bzr/checkout/dirstate ]; then 			\
-	    vcswitness="`pwd`/.bzr/checkout/dirstate"; 	\
-	fi; 							\
-	cd $@; $(MAKE) all $(MFLAGS)                           \
-	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""	\
+	dirstate='.bzr/checkout/dirstate';				\
+	vcswitness='$$(srcdir)/../'$$dirstate;				\
+	[ -r "$(srcdir)/$$dirstate" ] || vcswitness='';			\
+	cd $@ || exit;							\
+	boot=bootstrap-emacs$(EXEEXT);					\
+	[ ! -x "$$boot" ] || boot='';					\
+	$(MAKE) all $(MFLAGS)						\
+	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'		\
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"	\
 	  VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src FRC
