@@ -1,3 +1,7 @@
+2013-09-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (VC Ignore): Mention `vc-ignore' with prefix argument.
+
 2013-08-31  Ulrich Müller  <ulm@gentoo.org>
 
 	* xresources.texi (Motif Resources):

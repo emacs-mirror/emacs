@@ -354,8 +354,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-ignore (file &optional directory remove)
   "Ignore FILE under Subversion.
-If DIRECTORY is non-nil, the repository to use will be deduced by
-DIRECTORY; if REMOVE is non-nil, remove FILE from ignored files."
+FILE is a file wildcard, relative to the root directory of DIRECTORY."
   (vc-svn-command t 0 file "propedit" "svn:ignore"))
 
 (defun vc-svn-ignore-completion-table (file)
