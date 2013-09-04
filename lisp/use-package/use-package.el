@@ -661,9 +661,9 @@ For full documentation. please see commentary.
 (put 'use-package 'lisp-indent-function 1)
 
 (defconst use-package-font-lock-keywords
-  '(("(\\(use-package\\)\\_>[\n[:space:]]+\\(\\(?:\\s_\\|\\sw\\)+\\)"
+  '(("(\\(use-package\\)\\_>[ \t']*\\(\\sw+\\)?"
      (1 font-lock-keyword-face)
-     (2 font-lock-constant-face))))
+     (2 font-lock-constant-face nil t))))
 
 (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
 
