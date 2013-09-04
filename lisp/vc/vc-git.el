@@ -477,8 +477,8 @@ or an empty string if none."
     (`diff-index
      (vc-git-command (current-buffer) 'async files
                      "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
-  (vc-exec-after
-   `(vc-git-after-dir-status-stage ',stage  ',files ',update-function)))
+  (vc-run-delayed
+   (vc-git-after-dir-status-stage stage files update-function)))
 
 (defun vc-git-dir-status (_dir update-function)
   "Return a list of (FILE STATE EXTRA) entries for DIR."
@@ -726,7 +726,7 @@ for the Git command to run."
 	    command     (cadr args)
 	    args        (cddr args)))
     (apply 'vc-do-async-command buffer root git-program command args)
-    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'git)))
+    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))
 
 (defun vc-git-merge-branch ()
@@ -746,7 +746,7 @@ This prompts for a branch to merge from."
 			   nil t)))
     (apply 'vc-do-async-command buffer root vc-git-program "merge"
 	   (list merge-source))
-    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'git)))
+    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))
 
 ;;; HISTORY FUNCTIONS

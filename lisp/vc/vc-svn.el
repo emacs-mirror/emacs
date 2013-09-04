@@ -1,4 +1,4 @@
-;;; vc-svn.el --- non-resident support for Subversion version-control
+;;; vc-svn.el --- non-resident support for Subversion version-control  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
@@ -115,7 +115,7 @@ If you want to force an empty list of arguments, use t."
 ;;; Properties of the backend
 
 (defun vc-svn-revision-granularity () 'repository)
-(defun vc-svn-checkout-model (files) 'implicit)
+(defun vc-svn-checkout-model (_files) 'implicit)
 
 ;;;
 ;;; State-querying functions
@@ -231,13 +231,13 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 	 (remote (or t (not local) (eq local 'only-file))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
-  (vc-exec-after
-     `(vc-svn-after-dir-status (quote ,callback) ,remote))))
+  (vc-run-delayed
+   (vc-svn-after-dir-status callback remote))))
 
-(defun vc-svn-dir-status-files (dir files default-state callback)
+(defun vc-svn-dir-status-files (dir files _default-state callback)
   (apply 'vc-svn-command (current-buffer) 'async nil "status" files)
-  (vc-exec-after
-   `(vc-svn-after-dir-status (quote ,callback))))
+  (vc-run-delayed
+   (vc-svn-after-dir-status callback)))
 
 (defun vc-svn-dir-extra-headers (dir)
   "Generate extra status headers for a Subversion working copy."
@@ -268,7 +268,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 ;; vc-svn-mode-line-string doesn't exist because the default implementation
 ;; works just fine.
 
-(defun vc-svn-previous-revision (file rev)
+(defun vc-svn-previous-revision (_file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (< 0 newrev)
       (number-to-string newrev))))
@@ -298,7 +298,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 
 (autoload 'vc-switches "vc")
 
-(defun vc-svn-register (files &optional rev comment)
+(defun vc-svn-register (files &optional _rev _comment)
   "Register FILES into the SVN version-control system.
 The COMMENT argument is ignored  This does an add but not a commit.
 Passes either `vc-svn-register-switches' or `vc-register-switches'
@@ -314,7 +314,7 @@ to the SVN command."
   "Return non-nil if FILE could be registered in SVN.
 This is only possible if SVN is responsible for FILE's directory.")
 
-(defun vc-svn-checkin (files rev comment &optional extra-args-ignored)
+(defun vc-svn-checkin (files rev comment &optional _extra-args-ignored)
   "SVN-specific version of `vc-backend-checkin'."
   (if rev (error "Committing to a specific revision is unsupported in SVN"))
   (let ((status (apply
@@ -357,7 +357,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 FILE is a file wildcard, relative to the root directory of DIRECTORY."
   (vc-svn-command t 0 file "propedit" "svn:ignore"))
 
-(defun vc-svn-ignore-completion-table (file)
+(defun vc-svn-ignore-completion-table (_file)
   "Return the list of ignored files."
   )
 
@@ -368,7 +368,7 @@ FILE is a file wildcard, relative to the root directory of DIRECTORY."
   (vc-mode-line file 'SVN)
   (message "Checking out %s...done" file))
 
-(defun vc-svn-update (file editable rev switches)
+(defun vc-svn-update (file _editable rev switches)
   (if (and (file-exists-p file) (not rev))
       ;; If no revision was specified, there's nothing to do.
       nil
@@ -457,7 +457,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
             (error "Couldn't analyze svn update result")))
       (message "Merging changes into %s...done" file))))
 
-(defun vc-svn-modify-change-comment (files rev comment)
+(defun vc-svn-modify-change-comment (_files rev comment)
   "Modify the change comments for a specified REV.
 You must have ssh access to the repository host, and the directory Emacs
 uses locally for temp files must also be writable by you on that host.
@@ -509,7 +509,7 @@ or svn+ssh://."
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 
-(defun vc-svn-print-log (files buffer &optional shortlog start-revision limit)
+(defun vc-svn-print-log (files buffer &optional _shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 SHORTLOG is ignored.
 If START-REVISION is non-nil, it is the newest revision to show.

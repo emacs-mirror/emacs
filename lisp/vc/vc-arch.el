@@ -321,8 +321,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   (let ((default-directory dir))
     (vc-arch-command t 'async nil "changes"))
   ;; The updating could be done asynchronously.
-  (vc-exec-after
-   `(vc-arch-after-dir-status ',callback)))
+  (vc-run-delayed
+   (vc-arch-after-dir-status callback)))
 
 (defun vc-arch-after-dir-status (callback)
   (let* ((state-map '(("M " . edited)
