@@ -1,3 +1,14 @@
+2013-09-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc.el (vc-ignore): Rewrite.
+	(vc-default-ignore): New function.
+	(vc-default-ignore-completion-table): Use find-ignore-file.
+
+	* vc/vc-bzr.el (vc-bzr-ignore, vc-bzr-ignore-completion-table):
+	* vc/vc-git.el (vc-git-ignore, vc-git-ignore-completion-table):
+	* vc/vc-hg.el (vc-hg-ignore, vc-hg-ignore-completion-table):
+	Remove.  Most code moved to vc.el.
+
 2013-08-04  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc.el (vc-ignore): Rewrite.

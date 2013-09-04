@@ -1,3 +1,7 @@
+2013-09-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (VC Ignore): Mention `vc-ignore' with prefix argument.
+
 2013-07-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.texi (Top): Remove menu item for the removed "Disabling

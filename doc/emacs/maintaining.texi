@@ -1043,12 +1043,14 @@ Ignore a file under current version control system.  (@code{vc-ignore}).
 
 @kindex C-x v G
 @findex vc-ignore
-  Many source trees contain some files that do not need to be versioned,
-such as editor backups, object or bytecode files, and built programs.
-You can simply not add them, but then they’ll always crop up as
-unknown files.  You can also tell the version control system to ignore
-these files by adding them to the ignore file at the top of the tree.
-@kbd{C-x v G} (@code{vc-ignore}) can help you do this.
+  Many source trees contain some files that do not need to be
+versioned, such as editor backups, object or bytecode files, and built
+programs.  You can simply not add them, but then they’ll always crop
+up as unknown files.  You can also tell the version control system to
+ignore these files by adding them to the ignore file at the top of the
+tree.  @kbd{C-x v G} (@code{vc-ignore}) can help you do this.  When
+called with a prefix argument, you can remove a file from the ignored
+file list.
 
 @node VC Directory Mode
 @subsection VC Directory Mode

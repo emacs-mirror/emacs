@@ -497,17 +497,19 @@
 ;;   This function is used in `vc-stay-local-p' which backends can use
 ;;   for their convenience.
 ;;
-;; - ignore (file &optional remove)
+;; - ignore (file &optional directory)
 ;;
-;;   Ignore FILE under the current VCS.  When called interactively and
-;;   with a prefix argument, remove an ignored file.  When called from
-;;   Lisp code, if REMOVE is non-nil, remove FILE from ignored files."
+;;   Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
+;;   FILE is a file wildcard.
+;;   When called interactively and with a prefix argument, remove FILE
+;;   from ignored files.
+;;   When called from Lisp code, if DIRECTORY is non-nil, the
+;;   repository to use will be deduced by DIRECTORY.
 ;; 
 ;; - ignore-completion-table
 ;; 
-;;   Return the completion table for files ignored by the current
-;;   version control system, e.g., the entries in `.gitignore' and
-;;   `.bzrignore'.
+;;   Return the completion table for files ignored by the version
+;;   control system in `default-directory'.
 ;; 
 ;; - previous-revision (file rev)
 ;;
@@ -1342,33 +1344,44 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
-(defun vc-ignore (file &optional directory remove)
+(defun vc-ignore (file &optional directory)
   "Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
+FILE is a file wildcard.
 When called interactively and with a prefix argument, remove FILE
 from ignored files.
 When called from Lisp code, if DIRECTORY is non-nil, the
-repository to use will be deduced by DIRECTORY; if REMOVE is
-non-nil, remove FILE from ignored files."
+repository to use will be deduced by DIRECTORY."
   (interactive
-   (if (null current-prefix-arg)
-       (list (read-file-name "The file to ignore: "))
-     (list
-      (completing-read
-       "The file to remove: "
-       (vc-call-backend
-	(vc-backend default-directory)
-	'ignore-completion-table default-directory)))))
-  (let (backend)
-    (if directory
-	(progn (setq backend (vc-backend default-directory))
-	       (vc-call-backend backend 'ignore file directory remove))
-      (setq backend (vc-backend directory))
-      (vc-call-backend backend 'ignore file default-directory remove))))
+   (list (read-file-name "The file to ignore: ")
+	 (completing-read
+	  "The file to remove: "
+	  (vc-call-backend
+	   (vc-backend default-directory)
+	   'ignore-completion-table default-directory))))
+  (let* ((directory (or directory default-directory))
+	 (backend (vc-backend default-directory))
+	 (remove current-prefix-arg))
+    (vc-call-backend backend 'ignore file directory remove)))
 
-(defun vc-default-ignore-completion-table (file)
-  "Return the list of ignored files."
-  ;; Unused lexical argument `file'
-  nil)
+(defun vc-default-ignore (backend file &optional directory remove)
+  "Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
+FILE is a file wildcard, relative to the root directory of DIRECTORY.
+When called from Lisp code, if DIRECTORY is non-nil, the
+repository to use will be deduced by DIRECTORY; if REMOVE is
+non-nil, remove FILE from ignored files.
+Argument BACKEND is the backend you are using."
+  (let ((ignore
+	 (vc-call-backend backend 'find-ignore-file (or directory default-directory)))
+	(pattern (file-relative-name
+		  (expand-file-name file) (file-name-directory file))))
+    (if remove
+	(vc--remove-regexp pattern ignore)
+      (vc--add-line pattern ignore))))
+
+(defun vc-default-ignore-completion-table (backend file)
+  "Return the list of ignored files under BACKEND."
+  (vc--read-lines
+   (vc-call-backend backend 'find-ignore-file file)))
 
 (defun vc--read-lines (file)
   "Return a list of lines of FILE."
