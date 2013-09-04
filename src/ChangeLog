@@ -1,3 +1,8 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (make_event_array): First arg is now ptrdiff_t, not int.
+	This fixes a type error on hosts where ptrdiff_t is wider than int.
+
 2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_key_sequence_vs): New function.
