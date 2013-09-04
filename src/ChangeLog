@@ -1,3 +1,7 @@
+2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): Always return a vector for 'K'.
+
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Makefile improvements.
