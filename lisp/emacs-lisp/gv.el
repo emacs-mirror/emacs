@@ -102,7 +102,9 @@ DO must return an Elisp expression."
               ;; Follow aliases.
               (setq me (cons (symbol-function head) (cdr place))))
           (if (eq me place)
-              (error "%S is not a valid place expression" place)
+              (if (and (symbolp head) (get head 'setf-method))
+                  (error "Incompatible place needs recompilation: %S" head)
+                (error "%S is not a valid place expression" place))
             (gv-get me do)))))))
 
 ;;;###autoload
