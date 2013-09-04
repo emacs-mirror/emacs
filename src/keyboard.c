@@ -9712,54 +9712,11 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   return t;
 }
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
-       doc: /* Read a sequence of keystrokes and return as a string or vector.
-The sequence is sufficient to specify a non-prefix command in the
-current local and global maps.
-
-First arg PROMPT is a prompt string.  If nil, do not prompt specially.
-Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos
-as a continuation of the previous key.
-
-The third (optional) arg DONT-DOWNCASE-LAST, if non-nil, means do not
-convert the last event to lower case.  (Normally any upper case event
-is converted to lower case if the original event is undefined and the lower
-case equivalent is defined.)  A non-nil value is appropriate for reading
-a key sequence to be defined.
-
-A C-g typed while in this function is treated like any other character,
-and `quit-flag' is not set.
-
-If the key sequence starts with a mouse click, then the sequence is read
-using the keymaps of the buffer of the window clicked in, not the buffer
-of the selected window as normal.
-
-`read-key-sequence' drops unbound button-down events, since you normally
-only care about the click or drag events which follow them.  If a drag
-or multi-click event is unbound, but the corresponding click event would
-be bound, `read-key-sequence' turns the event into a click event at the
-drag's starting position.  This means that you don't have to distinguish
-between click and drag, double, or triple events unless you want to.
-
-`read-key-sequence' prefixes mouse events on mode lines, the vertical
-lines separating windows, and scroll bars with imaginary keys
-`mode-line', `vertical-line', and `vertical-scroll-bar'.
-
-Optional fourth argument CAN-RETURN-SWITCH-FRAME non-nil means that this
-function will process a switch-frame event if the user switches frames
-before typing anything.  If the user switches frames in the middle of a
-key sequence, or at the start of the sequence but CAN-RETURN-SWITCH-FRAME
-is nil, then the event will be put off until after the current key sequence.
-
-`read-key-sequence' checks `function-key-map' for function key
-sequences, where they wouldn't conflict with ordinary bindings.  See
-`function-key-map' for more details.
-
-The optional fifth argument CMD-LOOP, if non-nil, means
-that this key sequence is being read by something that will
-read commands one after another.  It should be nil if the caller
-will read just one key sequence.  */)
-  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop)
+static Lisp_Object
+read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
+		      Lisp_Object dont_downcase_last,
+		      Lisp_Object can_return_switch_frame,
+		      Lisp_Object cmd_loop, bool allow_string)
 {
   Lisp_Object keybuf[30];
   register int i;
@@ -9810,7 +9767,62 @@ will read just one key sequence.  */)
       QUIT;
     }
   UNGCPRO;
-  return unbind_to (count, make_event_array (i, keybuf));
+  return unbind_to (count,
+		    ((allow_string ? make_event_array : Fvector)
+		     (i, keybuf)));
+}
+
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
+       doc: /* Read a sequence of keystrokes and return as a string or vector.
+The sequence is sufficient to specify a non-prefix command in the
+current local and global maps.
+
+First arg PROMPT is a prompt string.  If nil, do not prompt specially.
+Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos
+as a continuation of the previous key.
+
+The third (optional) arg DONT-DOWNCASE-LAST, if non-nil, means do not
+convert the last event to lower case.  (Normally any upper case event
+is converted to lower case if the original event is undefined and the lower
+case equivalent is defined.)  A non-nil value is appropriate for reading
+a key sequence to be defined.
+
+A C-g typed while in this function is treated like any other character,
+and `quit-flag' is not set.
+
+If the key sequence starts with a mouse click, then the sequence is read
+using the keymaps of the buffer of the window clicked in, not the buffer
+of the selected window as normal.
+
+`read-key-sequence' drops unbound button-down events, since you normally
+only care about the click or drag events which follow them.  If a drag
+or multi-click event is unbound, but the corresponding click event would
+be bound, `read-key-sequence' turns the event into a click event at the
+drag's starting position.  This means that you don't have to distinguish
+between click and drag, double, or triple events unless you want to.
+
+`read-key-sequence' prefixes mouse events on mode lines, the vertical
+lines separating windows, and scroll bars with imaginary keys
+`mode-line', `vertical-line', and `vertical-scroll-bar'.
+
+Optional fourth argument CAN-RETURN-SWITCH-FRAME non-nil means that this
+function will process a switch-frame event if the user switches frames
+before typing anything.  If the user switches frames in the middle of a
+key sequence, or at the start of the sequence but CAN-RETURN-SWITCH-FRAME
+is nil, then the event will be put off until after the current key sequence.
+
+`read-key-sequence' checks `function-key-map' for function key
+sequences, where they wouldn't conflict with ordinary bindings.  See
+`function-key-map' for more details.
+
+The optional fifth argument CMD-LOOP, if non-nil, means
+that this key sequence is being read by something that will
+read commands one after another.  It should be nil if the caller
+will read just one key sequence.  */)
+  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop)
+{
+  return read_key_sequence_vs (prompt, continue_echo, dont_downcase_last,
+			       can_return_switch_frame, cmd_loop, true);
 }
 
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
@@ -9818,52 +9830,8 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
        doc: /* Like `read-key-sequence' but always return a vector.  */)
   (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object cmd_loop)
 {
-  Lisp_Object keybuf[30];
-  register int i;
-  struct gcpro gcpro1;
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  if (!NILP (prompt))
-    CHECK_STRING (prompt);
-  QUIT;
-
-  specbind (Qinput_method_exit_on_first_char,
-	    (NILP (cmd_loop) ? Qt : Qnil));
-  specbind (Qinput_method_use_echo_area,
-	    (NILP (cmd_loop) ? Qt : Qnil));
-
-  memset (keybuf, 0, sizeof keybuf);
-  GCPRO1 (keybuf[0]);
-  gcpro1.nvars = (sizeof keybuf / sizeof (keybuf[0]));
-
-  if (NILP (continue_echo))
-    {
-      this_command_key_count = 0;
-      this_command_key_count_reset = 0;
-      this_single_command_key_start = 0;
-    }
-
-#ifdef HAVE_WINDOW_SYSTEM
-  if (display_hourglass_p)
-    cancel_hourglass ();
-#endif
-
-  i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])),
-			 prompt, ! NILP (dont_downcase_last),
-			 ! NILP (can_return_switch_frame), 0);
-
-#ifdef HAVE_WINDOW_SYSTEM
-  if (display_hourglass_p)
-    start_hourglass ();
-#endif
-
-  if (i == -1)
-    {
-      Vquit_flag = Qt;
-      QUIT;
-    }
-  UNGCPRO;
-  return unbind_to (count, Fvector (i, keybuf));
+  return read_key_sequence_vs (prompt, continue_echo, dont_downcase_last,
+			       can_return_switch_frame, cmd_loop, false);
 }
 
 /* Return true if input events are pending.  */

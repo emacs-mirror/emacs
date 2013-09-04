@@ -1,5 +1,9 @@
 2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (read_key_sequence_vs): New function.
+	(Fread_key_sequence_vector, Fread_key_sequence): Use it to factor out
+	common code.
+
 	* callint.c (Fcall_interactively): Always return a vector for 'K'.
 
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
