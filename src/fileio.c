@@ -233,7 +233,7 @@ void
 restore_point_unwind (Lisp_Object location)
 {
   Fgoto_char (location);
-  Fset_marker (location, Qnil, Qnil);
+  unchain_marker (XMARKER (location));
 }
 
 

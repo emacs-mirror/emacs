@@ -61,6 +61,7 @@ static void ns_uni_to_glyphs (struct nsfont_info *font_info,
 static void ns_glyph_metrics (struct nsfont_info *font_info,
                               unsigned char block);
 
+#define INVALID_GLYPH 0xFFFF
 
 /* ==========================================================================
 
@@ -981,7 +982,7 @@ nsfont_encode_char (struct font *font, int c)
     ns_uni_to_glyphs (font_info, high);
 
   g = font_info->glyphs[high][low];
-  return g == 0xFFFF ? FONT_INVALID_CODE : g;
+  return g == INVALID_GLYPH ? FONT_INVALID_CODE : g;
 }
 
 
@@ -1354,8 +1355,8 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 #else
         g = glyphStorage->cglyphs[i];
         /* TODO: is this a good check?  maybe need to use coveredChars.. */
-        if (g > numGlyphs)
-          g = 0xFFFF; /* hopefully unused... */
+        if (g > numGlyphs || g == NSNullGlyph)
+          g = INVALID_GLYPH; /* hopefully unused... */
 #endif
         *glyphs = g;
       }
@@ -1483,7 +1484,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
         characterIndex: (NSUInteger)charIndex
 {
   len = glyphIndex+length;
-  for (i =glyphIndex; i<len; i++)
+  for (i =glyphIndex; i<len; i++) 
     cglyphs[i] = glyphs[i-glyphIndex];
   if (len > maxGlyph)
     maxGlyph = len;

@@ -262,8 +262,9 @@ whole tree revisions.
 *** In VC directory mode, `L' lists the change log for the current VC
 controlled tree in a window.
 
-*** `C-x v G' (globally) and `G' (in VC directory mode) ignores a
-file under current version control system.
+*** `C-x v G' (globally) and `G' (in VC directory mode) ignores a file
+under current version control system.  When called with a prefix
+argument, you can remove a file from the ignored file list.
 
 ** cl-lib
 

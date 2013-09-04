@@ -649,11 +649,18 @@ If toggling on, also insert its message into the buffer."
 It is based on `log-edit-mode', and has Git-specific extensions.")
 
 (defun vc-git-checkin (files _rev comment)
-  (let ((coding-system-for-write vc-git-commits-coding-system))
+  (let* ((file1 (or (car files) default-directory))
+         (root (vc-git-root file1))
+         (default-directory (expand-file-name root))
+         (only (or (cdr files)
+                   (not (equal root (abbreviate-file-name file1)))))
+         (coding-system-for-write vc-git-commits-coding-system))
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
-      (apply 'vc-git-command nil 0 files
+      ;; When operating on the whole tree, better pass nil than ".", since "."
+      ;; fails when we're committing a merge.
+      (apply 'vc-git-command nil 0 (if only files)
              (nconc (list "commit" "-m")
                     (log-edit-extract-headers
                      `(("Author" . "--author")
@@ -661,7 +668,7 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
                        ("Amend" . ,(boolean-arg-fn "--amend"))
                        ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
                      comment)
-                    (list "--only" "--"))))))
+                    (if only (list "--only" "--")))))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -679,22 +686,6 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
      buffer 0
      nil
      "cat-file" "blob" (concat (if rev rev "HEAD") ":" fullname))))
-
-(defun vc-git-ignore (file &optional directory remove)
-  "Ignore FILE under Git.
-If DIRECTORY is non-nil, the repository to use will be deduced by
-DIRECTORY; if REMOVE is non-nil, remove FILE from ignored files."
-  (let (gitignore)
-    (if directory
-	(setq gitignore (vc-git-find-ignore-file directory))
-      (setq gitignore (vc-git-find-ignore-file default-directory)))
-    (if remove
-	(vc--remove-regexp file gitignore)
-      (vc--add-line file gitignore))))
-
-(defun vc-git-ignore-completion-table (file)
-  "Return the list of ignored files."
-  (vc--read-lines (vc-git-find-ignore-file file)))
 
 (defun vc-git-find-ignore-file (file)
   "Return the root directory of the repository of FILE."

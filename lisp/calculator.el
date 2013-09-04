@@ -1287,7 +1287,7 @@ arguments."
                     ((symbol-function 'D)
                      (lambda (x) (if calculator-deg (/ (* x 180) float-pi) x))))
             (eval f `((X . ,X)
-                      (Y . ,X)
+                      (Y . ,Y)
                       (TX . ,TX)
                       (TY . ,TY)
                       (DX . ,DX)

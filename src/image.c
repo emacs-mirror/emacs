@@ -30,12 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <setjmp.h>
-
 #include <c-ctype.h>
-
-/* This makes the fields of a Display accessible, in Xlib header files.  */
-
-#define XLIB_ILLEGAL_ACCESS
 
 #include "lisp.h"
 #include "frame.h"

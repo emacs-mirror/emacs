@@ -1,3 +1,9 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (all): Put this first.  Don't use double-colon
+	rules, as they are not portable according to POSIX.  Mark as phony.
+
 2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.

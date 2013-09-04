@@ -2500,8 +2500,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 			'file-name-nondirectory (list localname)))
         (setq localname (tramp-run-real-handler
 			 'file-name-directory (list localname))))
-      (unless full-directory-p
-        (setq switches (add-to-list 'switches "-d" 'append)))
+      (unless (or full-directory-p (member "-d" switches))
+        (setq switches (append switches '("-d"))))
       (setq switches (mapconcat 'tramp-shell-quote-argument switches " "))
       (when wildcard
 	(setq switches (concat switches " " wildcard)))
@@ -4252,7 +4252,7 @@ Gateway hops are already opened."
 		  ?h (or (tramp-file-name-host (car target-alist)) ""))))
 	  (with-parsed-tramp-file-name proxy l
 	    ;; Add the hop.
-	    (add-to-list 'target-alist l)
+	    (pushnew l target-alist :test #'equal)
 	    ;; Start next search.
 	    (setq choices tramp-default-proxies-alist)))))
 
@@ -4270,11 +4270,11 @@ Gateway hops are already opened."
 	   vec 'file-error
 	   "Connection `%s' is not supported for gateway access." hop))
 	;; Open the gateway connection.
-	(add-to-list
-	 'target-alist
+	(pushnew
 	 (vector
 	  (tramp-file-name-method hop) (tramp-file-name-user hop)
-	  (tramp-compat-funcall 'tramp-gw-open-connection vec gw hop) nil nil))
+	  (tramp-compat-funcall 'tramp-gw-open-connection vec gw hop) nil nil)
+	 target-alist :test #'equal)
 	;; For the password prompt, we need the correct values.
 	;; Therefore, we must remember the gateway vector.  But we
 	;; cannot do it as connection property, because it shouldn't

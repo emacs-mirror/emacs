@@ -1078,6 +1078,19 @@ Otherwise, include all frames.  */)
   CHECK_LIVE_FRAME (frame);
   return prev_frame (frame, miniframe);
 }
+
+DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
+       Slast_nonminibuf_frame, 0, 0, 0,
+       doc: /* Return last non-minibuffer frame selected. */)
+  (void)
+{
+  Lisp_Object frame = Qnil;
+
+  if (last_nonminibuf_frame)
+    XSETFRAME (frame, last_nonminibuf_frame);
+
+  return frame;
+}
 
 /* Return 1 if it is ok to delete frame F;
    0 if all frames aside from F are invisible.
@@ -4492,6 +4505,7 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
+  defsubr (&Slast_nonminibuf_frame);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
   defsubr (&Smouse_pixel_position);

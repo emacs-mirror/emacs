@@ -133,9 +133,6 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #include <X11/XKBlib.h>
 #endif
 
-/* Default to using XGetMotionEvents.  */
-#define X_MOTION_HISTORY 1
-
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
@@ -223,6 +220,15 @@ static struct frame *last_mouse_glyph_frame;
    event.  */
 
 static Lisp_Object last_mouse_scroll_bar;
+
+/* This is a hack.  We would really prefer that XTmouse_position would
+   return the time associated with the position it returns, but there
+   doesn't seem to be any way to wrest the time-stamp from the server
+   along with the position query.  So, we just keep track of the time
+   of the last movement we received, and return that in hopes that
+   it's somewhat accurate.  */
+
+static Time last_mouse_movement_time;
 
 /* Time for last user interaction as returned in X events.  */
 
@@ -3716,48 +3722,6 @@ construct_mouse_click (struct input_event *result, XButtonEvent *event, struct f
   return Qnil;
 }
 
-#ifdef X_MOTION_HISTORY
-
-/* Here we assume that X server supports XGetMotionEvents.  If you hit
-   eassert in the function below, most probably your X server is too
-   old and/or buggy.  Undef X_MOTION_HISTORY to enable legacy code.  */
-
-static Time
-x_last_mouse_movement_time (struct frame *f)
-{
-  Time t;
-  int nevents;
-  XTimeCoord *xtc;
-
-  block_input ();
-  xtc = XGetMotionEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  1, last_user_time, &nevents);
-  eassert (xtc && nevents > 0);
-  t = xtc[nevents - 1].time;
-  XFree (xtc);
-  unblock_input ();
-  return t;
-}
-
-#else /* no X_MOTION_HISTORY */
-
-/* This is a hack.  We would really prefer that XTmouse_position would
-   return the time associated with the position it returns, but there
-   doesn't seem to be any way to wrest the time-stamp from the server
-   along with the position query.  So, we just keep track of the time
-   of the last movement we received, and return that in hopes that
-   it's somewhat accurate.  */
-
-static Time last_mouse_movement_time;
-
-static Time
-x_last_mouse_movement_time (struct frame *f)
-{
-  return last_mouse_movement_time;
-}
-
-#endif /* X_MOTION_HISTORY */
-
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
 
@@ -3772,9 +3736,7 @@ static Lisp_Object last_mouse_motion_frame;
 static int
 note_mouse_movement (struct frame *frame, XMotionEvent *event)
 {
-#ifndef X_MOTION_HISTORY
   last_mouse_movement_time = event->time;
-#endif /* legacy */
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
 
@@ -4030,7 +3992,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	    *fp = f1;
 	    XSETINT (*x, win_x);
 	    XSETINT (*y, win_y);
-	    *timestamp = x_last_mouse_movement_time (f1);
+	    *timestamp = last_mouse_movement_time;
 	  }
       }
     }
@@ -4179,9 +4141,9 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
 			       scroll_bar_end_scroll, 0, 0);
       w = XWINDOW (window_being_scrolled);
 
-      if (!NILP (XSCROLL_BAR (w->vertical_scroll_bar)->dragging))
+      if (XSCROLL_BAR (w->vertical_scroll_bar)->dragging != -1)
 	{
-	  XSCROLL_BAR (w->vertical_scroll_bar)->dragging = Qnil;
+	  XSCROLL_BAR (w->vertical_scroll_bar)->dragging = -1;
 	  /* The thumb size is incorrect while dragging: fix it.  */
 	  set_vertical_scroll_bar (w);
 	}
@@ -4319,32 +4281,32 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   switch (cs->reason)
     {
     case XmCR_DECREMENT:
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       part = scroll_bar_up_arrow;
       break;
 
     case XmCR_INCREMENT:
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       part = scroll_bar_down_arrow;
       break;
 
     case XmCR_PAGE_DECREMENT:
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       part = scroll_bar_above_handle;
       break;
 
     case XmCR_PAGE_INCREMENT:
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       part = scroll_bar_below_handle;
       break;
 
     case XmCR_TO_TOP:
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       part = scroll_bar_to_top;
       break;
 
     case XmCR_TO_BOTTOM:
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       part = scroll_bar_to_bottom;
       break;
 
@@ -4360,7 +4322,7 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 	whole = XM_SB_MAX - slider_size;
 	portion = min (cs->value, whole);
 	part = scroll_bar_handle;
-	bar->dragging = make_number (cs->value);
+	bar->dragging = cs->value;
       }
       break;
 
@@ -4408,24 +4370,24 @@ xg_scroll_callback (GtkRange     *range,
           whole = gtk_adjustment_get_upper (adj) -
             gtk_adjustment_get_page_size (adj);
           portion = min ((int)position, whole);
-          bar->dragging = make_number ((int)portion);
+          bar->dragging = portion;
         }
       break;
     case GTK_SCROLL_STEP_BACKWARD:
       part = scroll_bar_up_arrow;
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       break;
     case GTK_SCROLL_STEP_FORWARD:
       part = scroll_bar_down_arrow;
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       break;
     case GTK_SCROLL_PAGE_BACKWARD:
       part = scroll_bar_above_handle;
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       break;
     case GTK_SCROLL_PAGE_FORWARD:
       part = scroll_bar_below_handle;
-      bar->dragging = Qnil;
+      bar->dragging = -1;
       break;
     }
 
@@ -4439,7 +4401,7 @@ xg_scroll_callback (GtkRange     *range,
   return FALSE;
 }
 
-/* Callback for button release. Sets dragging to Qnil when dragging is done.  */
+/* Callback for button release. Sets dragging to -1 when dragging is done.  */
 
 static gboolean
 xg_end_scroll_callback (GtkWidget *widget,
@@ -4447,7 +4409,7 @@ xg_end_scroll_callback (GtkWidget *widget,
                         gpointer user_data)
 {
   struct scroll_bar *bar = user_data;
-  bar->dragging = Qnil;
+  bar->dragging = -1;
   if (WINDOWP (window_being_scrolled))
     {
       x_send_scroll_bar_event (window_being_scrolled,
@@ -4495,7 +4457,7 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
     part = scroll_bar_handle;
 
   window_being_scrolled = bar->window;
-  bar->dragging = make_number (portion);
+  bar->dragging = portion;
   last_scroll_bar_part = part;
   x_send_scroll_bar_event (bar->window, part, portion, whole);
 }
@@ -4534,7 +4496,7 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
     part = scroll_bar_move_ratio;
 
   window_being_scrolled = bar->window;
-  bar->dragging = Qnil;
+  bar->dragging = -1;
   last_scroll_bar_part = part;
   x_send_scroll_bar_event (bar->window, part, position, height);
 }
@@ -4810,7 +4772,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
       shown = (float) portion / whole;
     }
 
-  if (NILP (bar->dragging))
+  if (bar->dragging == -1)
     {
       int size, value;
 
@@ -4845,7 +4807,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
 		   NULL);
 
     /* Massage the top+shown values.  */
-    if (NILP (bar->dragging) || last_scroll_bar_part == scroll_bar_down_arrow)
+    if (bar->dragging == -1 || last_scroll_bar_part == scroll_bar_down_arrow)
       top = max (0, min (1, top));
     else
       top = old_top;
@@ -4857,7 +4819,7 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
        for `NARROWPROTO'.  See s/freebsd.h for an example.  */
     if (top != old_top || shown != old_shown)
       {
-	if (NILP (bar->dragging))
+	if (bar->dragging == -1)
 	  XawScrollbarSetThumb (widget, top, shown);
 	else
 	  {
@@ -4948,7 +4910,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   bar->height = height;
   bar->start = 0;
   bar->end = 0;
-  bar->dragging = Qnil;
+  bar->dragging = -1;
   bar->fringe_extended_p = 0;
 
   /* Add bar to its frame's list of scroll bars.  */
@@ -5006,7 +4968,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
 static void
 x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild)
 {
-  int dragging = ! NILP (bar->dragging);
+  bool dragging = bar->dragging != -1;
   Window w = bar->x_window;
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
@@ -5299,7 +5261,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   /* Set the scroll bar's current state, unless we're currently being
      dragged.  */
-  if (NILP (bar->dragging))
+  if (bar->dragging == -1)
     {
       int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height);
 
@@ -5509,14 +5471,13 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
     /* If the user has released the handle, set it to its final position.  */
-    if (event->type == ButtonRelease
-	&& ! NILP (bar->dragging))
+    if (event->type == ButtonRelease && bar->dragging != -1)
       {
 	int new_start = y - XINT (bar->dragging);
 	int new_end = new_start + bar->end - bar->start;
 
 	x_scroll_bar_set_handle (bar, new_start, new_end, 0);
-	bar->dragging = Qnil;
+	bar->dragging = -1;
       }
 #endif
 
@@ -5533,20 +5494,20 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
    mark bits.  */
 
 static void
-x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
+x_scroll_bar_note_movement (struct scroll_bar *bar, XMotionEvent *event)
 {
   struct frame *f = XFRAME (XWINDOW (bar->window)->frame);
-#ifndef X_MOTION_HISTORY
-  last_mouse_movement_time = event->xmotion.time;
-#endif /* legacy */
+
+  last_mouse_movement_time = event->time;
+
   f->mouse_moved = 1;
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
-  if (! NILP (bar->dragging))
+  if (bar->dragging != -1)
     {
       /* Where should the handle be now?  */
-      int new_start = event->xmotion.y - XINT (bar->dragging);
+      int new_start = event->y - bar->dragging;
 
       if (new_start != bar->start)
 	{
@@ -5598,8 +5559,8 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 
       win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
 
-      if (! NILP (bar->dragging))
-	win_y -= XINT (bar->dragging);
+      if (bar->dragging != -1)
+	win_y -= bar->dragging;
 
       if (win_y < 0)
 	win_y = 0;
@@ -5609,7 +5570,7 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
       *fp = f;
       *bar_window = bar->window;
 
-      if (! NILP (bar->dragging))
+      if (bar->dragging != -1)
 	*part = scroll_bar_handle;
       else if (win_y < bar->start)
 	*part = scroll_bar_above_handle;
@@ -5623,8 +5584,9 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 
       f->mouse_moved = 0;
       last_mouse_scroll_bar = Qnil;
-      *timestamp = x_last_mouse_movement_time (f);
     }
+
+  *timestamp = last_mouse_movement_time;
 
   unblock_input ();
 }
@@ -6722,7 +6684,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                                         event.xmotion.window);
 
             if (bar)
-              x_scroll_bar_note_movement (bar, &event);
+              x_scroll_bar_note_movement (bar, &event.xmotion);
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
             /* If we move outside the frame, then we're
@@ -8154,9 +8116,6 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
 
   if (change_gravity > 0)
     {
-      FRAME_X_OUTPUT (f)->left_before_move = f->left_pos;
-      FRAME_X_OUTPUT (f)->top_before_move = f->top_pos;
-
       f->top_pos = yoff;
       f->left_pos = xoff;
       f->size_hint_flags &= ~ (XNegative | YNegative);
@@ -10211,9 +10170,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
-
-  connection = ConnectionNumber (dpyinfo->display);
-  dpyinfo->connection = connection;
   dpyinfo->gray
     = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				   gray_bits, gray_width, gray_height,
@@ -10224,6 +10180,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
   xsettings_initialize (dpyinfo);
+
+  connection = ConnectionNumber (dpyinfo->display);
 
   /* This is only needed for distinguishing keyboard and process input.  */
   if (connection != 0)
@@ -10324,8 +10282,6 @@ x_delete_display (struct x_display_info *dpyinfo)
         delete_terminal (t);
         break;
       }
-
-  delete_keyboard_wait_descriptor (dpyinfo->connection);
 
   /* Discard this display from x_display_name_list and x_display_list.
      We can't use Fdelq because that can quit.  */
@@ -10454,6 +10410,7 @@ void
 x_delete_terminal (struct terminal *terminal)
 {
   struct x_display_info *dpyinfo = terminal->display_info.x;
+  int connection = -1;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -10472,6 +10429,8 @@ x_delete_terminal (struct terminal *terminal)
      and dpyinfo->display was set to 0 to indicate that.  */
   if (dpyinfo->display)
     {
+      connection = ConnectionNumber (dpyinfo->display);
+
       x_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
@@ -10511,6 +10470,10 @@ x_delete_terminal (struct terminal *terminal)
 #endif
 #endif /* ! USE_GTK */
     }
+
+  /* No more input on this descriptor.  */
+  if (connection != -1)
+    delete_keyboard_wait_descriptor (connection);
 
   /* Mark as dead. */
   dpyinfo->display = NULL;

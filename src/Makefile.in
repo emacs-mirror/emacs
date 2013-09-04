@@ -538,14 +538,9 @@ stamp-oldxmenu: $(OLDXMENU_DEPS)
 
 $(OLDXMENU): $(OLDXMENU_TARGET)
 
-../config.status:: epaths.in
-	@echo "The file epaths.h needs to be set up from epaths.in."
-	@echo "Please run the `configure' script again."
-	exit 1
-
-../config.status:: config.in
-	@echo "The file config.h needs to be set up from config.in."
-	@echo "Please run the `configure' script again."
+../config.status: config.in epaths.in
+	@echo "The file ${?:.in=.h} needs to be set up from $?."
+	@echo "Please run the 'configure' script again."
 	exit 1
 
 doc.o: buildobj.h
@@ -658,6 +653,9 @@ $(lisp): $(BOOTSTRAPEMACS)
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.
+## If empty it is ignored; the parent makefile can set it to some other value.
+VCSWITNESS =
+
 $(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=$(bootstrap_exe)
 

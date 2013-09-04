@@ -85,7 +85,8 @@ OBJS =  Activate.o \
 	SetSel.o \
       XDelAssoc.o XLookAssoc.o XCrAssoc.o XDestAssoc.o XMakeAssoc.o
 
-all:: libXMenu11.a
+all: libXMenu11.a
+.PHONY: all
 
 ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
   $(C_SWITCH_X_SITE) \
@@ -139,5 +140,6 @@ distclean: clean
 	rm -f Makefile
 maintainer-clean: distclean
 
-tags::
+tags:
 	$(TAGS) -t *.[ch]
+.PHONY: tags

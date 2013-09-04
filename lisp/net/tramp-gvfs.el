@@ -1417,47 +1417,36 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 	 (port (tramp-file-name-port vec))
 	 (localname (tramp-file-name-localname vec))
 	 (ssl (if (string-match "^davs" method) "true" "false"))
-	 (mount-spec '(:array))
-	 (mount-pref "/"))
-
-    (setq
-     mount-spec
-     (append
-      mount-spec
-      (cond
-       ((string-equal "smb" method)
-	(string-match "^/?\\([^/]+\\)" localname)
-	(list (tramp-gvfs-mount-spec-entry "type" "smb-share")
-	      (tramp-gvfs-mount-spec-entry "server" host)
-	      (tramp-gvfs-mount-spec-entry "share" (match-string 1 localname))))
-       ((string-equal "obex" method)
-	(list (tramp-gvfs-mount-spec-entry "type" method)
-	      (tramp-gvfs-mount-spec-entry
-	       "host" (concat "[" (tramp-bluez-address host) "]"))))
-       ((string-match "^dav" method)
-	(list (tramp-gvfs-mount-spec-entry "type" "dav")
-	      (tramp-gvfs-mount-spec-entry "host" host)
-	      (tramp-gvfs-mount-spec-entry "ssl" ssl)))
-       (t
-	(list (tramp-gvfs-mount-spec-entry "type" method)
-	      (tramp-gvfs-mount-spec-entry "host" host))))))
-
-    (when user
-      (add-to-list
-       'mount-spec (tramp-gvfs-mount-spec-entry "user" user) 'append))
-
-    (when domain
-      (add-to-list
-       'mount-spec (tramp-gvfs-mount-spec-entry "domain" domain) 'append))
-
-    (when port
-      (add-to-list
-       'mount-spec (tramp-gvfs-mount-spec-entry "port" (number-to-string port))
-       'append))
-
-    (when (and (string-match "^dav" method)
-	       (string-match "^/?[^/]+" localname))
-      (setq mount-pref (match-string 0 localname)))
+	 (mount-spec
+          `(:array
+            ,@(cond
+               ((string-equal "smb" method)
+                (string-match "^/?\\([^/]+\\)" localname)
+                (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
+                      (tramp-gvfs-mount-spec-entry "server" host)
+                      (tramp-gvfs-mount-spec-entry "share" (match-string 1 localname))))
+               ((string-equal "obex" method)
+                (list (tramp-gvfs-mount-spec-entry "type" method)
+                      (tramp-gvfs-mount-spec-entry
+                       "host" (concat "[" (tramp-bluez-address host) "]"))))
+               ((string-match "\\`dav" method)
+                (list (tramp-gvfs-mount-spec-entry "type" "dav")
+                      (tramp-gvfs-mount-spec-entry "host" host)
+                      (tramp-gvfs-mount-spec-entry "ssl" ssl)))
+               (t
+                (list (tramp-gvfs-mount-spec-entry "type" method)
+                      (tramp-gvfs-mount-spec-entry "host" host))))
+            ,@(when user
+                (list (tramp-gvfs-mount-spec-entry "user" user)))
+            ,@(when domain
+                (list (tramp-gvfs-mount-spec-entry "domain" domain)))
+            ,@(when port
+                (list (tramp-gvfs-mount-spec-entry "port" (number-to-string port))))))
+	 (mount-pref
+          (if (and (string-match "\\`dav" method)
+                   (string-match "^/?[^/]+" localname))
+              (match-string 0 localname)
+            "/")))
 
     ;; Return.
     `(:struct ,(tramp-gvfs-dbus-string-to-byte-array mount-pref) ,mount-spec)))
@@ -1718,11 +1707,11 @@ They are retrieved from the hal daemon."
       (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
 	      :system tramp-hal-service device tramp-hal-interface-device
 	      "PropertyExists" "sync.plugin")
-	(add-to-list
-	 'tramp-synce-devices
+	(pushnew
 	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
 	   :system tramp-hal-service device tramp-hal-interface-device
-	   "GetPropertyString" "pda.pocketpc.name"))))
+	   "GetPropertyString" "pda.pocketpc.name")
+         tramp-synce-devices :test #'equal)))
     (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
     tramp-synce-devices))
 

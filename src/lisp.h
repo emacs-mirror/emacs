@@ -2630,19 +2630,6 @@ typedef jmp_buf sys_jmp_buf;
    they are bound by a function application or a let form, stores the
    code to be executed for unwind-protect forms.
 
-   If func is non-zero, undoing this binding applies func to old_value;
-      This implements record_unwind_protect.
-
-   Otherwise, the element is a variable binding.
-
-   If the symbol field is a symbol, it is an ordinary variable binding.
-
-   Otherwise, it should be a structure (SYMBOL WHERE . CURRENT-BUFFER),
-   which means having bound a local value while CURRENT-BUFFER was active.
-   If WHERE is nil this means we saw the default value when binding SYMBOL.
-   WHERE being a buffer or frame means we saw a buffer-local or frame-local
-   value.  Other values of WHERE mean an internal error.
-
    NOTE: The specbinding union is defined here, because SPECPDL_INDEX is
    used all over the place, needs to be fast, and needs to know the size of
    union specbinding.  But only eval.c should access it.  */

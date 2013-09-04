@@ -138,9 +138,6 @@ struct x_display_info
   /* The generic display parameters corresponding to this X display. */
   struct terminal *terminal;
 
-  /* Connection number (normally a file descriptor number).  */
-  int connection;
-
   /* This says how to access this display in Xlib.  */
   Display *display;
 
@@ -626,11 +623,6 @@ struct x_output
   int move_offset_top;
   int move_offset_left;
 
-  /* The frame's left/top offsets before we call XMoveWindow.  See
-     x_check_expected_move.  */
-  int left_before_move;
-  int top_before_move;
-
   /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
   unsigned net_wm_state_hidden_seen : 1;
 };
@@ -806,8 +798,8 @@ struct scroll_bar
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
      place where the user grabbed it.  If the handle isn't currently
-     being dragged, this is Qnil.  */
-  Lisp_Object dragging;
+     being dragged, this is -1.  */
+  int dragging;
 
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */

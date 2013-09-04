@@ -1,3 +1,9 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (all, tags): Don't use double-colon rules, as they
+	are not portable according to POSIX.  Mark as phony.
+
 2012-12-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Include <config.h> uniformly in oldXMenu sources.

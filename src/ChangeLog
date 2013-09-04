@@ -1,7 +1,66 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (config.status): Don't use double-colon rules, as
+	they are not portable according to POSIX.  Fix shell typo with `;
+	I guess this rule has never been tested?
+	(VCSWITNESS): New macro, to override any environment var.
+
+2013-09-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_display_info): Do not track X connection
+	fd separately because it is always available from Display.
+	* xterm.c (x_term_init, x_delete_terminal, x_delete_display):
+	Adjust users.
+
+2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (drop_overlay):
+	* fileio.c (restore_point_unwind): Prefer unchain_marker to
+	Fset_marker (X, Qnil, ...) (which is the same but a bit slower).
+
+2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Fmake_overlay, Fmove_overlay):
+	* intervals.c (set_point_from_marker):
+	* print.c (PRINTPREPARE): Prefer signal_error
+	to plain error and report unsuitable marker too.
+
+2013-09-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct scroll_bar): Prefer int to Lisp_Object
+	for 'dragging' member.
+	(struct x_output): Remove set-but-unused leftovers
+	'left_before_move' and 'top_before_move'.
+	* gtkutil.c (xg_set_toolkit_scroll_bar_thumb):
+	* xterm.c (xt_action_hook, xm_scroll_callback, xg_scroll_callback)
+	(xg_end_scroll_callback, xaw_jump_callback, xaw_scroll_callback)
+	(x_set_toolkit_scroll_bar_thumb, x_scroll_bar_create)
+	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar)
+	(x_scroll_bar_handle_click, x_scroll_bar_note_movement)
+	(x_scroll_bar_report_motion, x_set_offset): Related users changed.
+	* xfns.c, image.c (XLIB_ILLEGAL_ACCESS): No longer needed.
+
+2013-09-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (INVALID_GLYPH): New define.
+	(nsfont_encode_char): Use INVALID_GLYPH.
+	(ns_uni_to_glyphs): Ditto, check for NSNullGlyph (Bug#15138).
+
+2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_last_mouse_movement_time): Revert last change.
+	This code should use XDisplayMotionBufferSize to check display's
+	motion history first, and there are few other issues as well.
+	(x_scroll_bar_note_movement): Pass XMotionEvent rather than XEvent.
+	(handle_one_xevent): Adjust user.
+
 2013-09-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* frame.c (check_minibuf_window): Don't abort if no window was
-	found (Bug#15247).
+	* dispnew.c (Flast_nonminibuf_frame): Move from here ...
+	* frame.c (Flast_nonminibuf_frame): ... to here.
+	(check_minibuf_window): Don't abort if no window was found
+	(Bug#15247).
 
 2013-09-02  Dmitry Antipov  <dmantipov@yandex.ru>
 

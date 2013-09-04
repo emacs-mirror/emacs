@@ -1827,7 +1827,7 @@ void
 set_point_from_marker (Lisp_Object marker)
 {
   if (XMARKER (marker)->buffer != current_buffer)
-    error ("Marker points into wrong buffer");
+    signal_error ("Marker points into wrong buffer", marker);
   set_point_both
     (clip_to_bounds (BEGV, marker_position (marker), ZV),
      clip_to_bounds (BEGV_BYTE, marker_byte_position (marker), ZV_BYTE));
