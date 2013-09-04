@@ -20,7 +20,7 @@
 ### Commentary:
 
 ### Code:
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 EXEEXT = @EXEEXT@
@@ -31,8 +31,9 @@ MKDIR_P = @MKDIR_P@
 ns_appdir = @ns_appdir@
 ns_appbindir = @ns_appbindir@
 ns_appsrc = @ns_appsrc@
+ns_check_file = @ns_appdir@/@ns_check_file@
 
-${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
+${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	rm -rf ${ns_appdir}
 	${MKDIR_P} ${ns_appdir}
 	( cd ${srcdir}/${ns_appsrc} ; tar cfh - . ) | \
@@ -42,7 +43,7 @@ ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	    ( cd ${ns_appdir} ; umask 022; tar xf - )
 	touch ${ns_appdir}
 
-${ns_appbindir}/Emacs: ${ns_appdir} ../src/emacs${EXEEXT}
+${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} ${ns_appbindir}/Emacs
 

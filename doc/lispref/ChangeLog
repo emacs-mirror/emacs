@@ -1,3 +1,113 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (File Local Variables): Don't recommend quoting!  Ever!
+
+2013-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Information about Files): Mention file names with
+	trailing blanks on MS-Windows.  (Bug#15130)
+
+2013-08-18  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* positions.texi (Positions): Improve indexing.
+
+2013-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* markers.texi (The Region): Improve indexing.
+
+2013-08-17  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* modes.texi (SMIE, SMIE Grammar, SMIE Indentation): Add some indexes.
+
+	* text.texi (Maintaining Undo): Mention interactive call of
+	buffer-disable-undo.
+	(Filling): Add cross-reference for hard newlines.
+	(Sorting): Fix indentation.
+	(Columns): Comment out undefined behavior.
+	(Case Changes): Fix an `args-out-of-range' error in the example.
+
+2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* text.texi (Insertion): Refine.
+	(Margins): Add an index.
+	(Undo): Doc fix for `buffer-undo-list'.
+
+	* positions.texi (Character Motion):
+	* markers.texi (Moving Markers):
+	(Creating Markers): Comment out undefined behavior.
+
+2013-08-15  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* markers.texi (The Region): Add/move indexes.
+
+2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (ImageMagick Images): Mention :content-type and
+	`image-content-type-suffixes'.
+
+2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* positions.texi (Word Motion): Remove redundant sentence.
+
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* lists.texi (List Elements):
+	Undocument behavior of nth and nthcdr with n < 0.  (Bug#15059)
+
+2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* frames.texi (Display Feature Testing): Add indexes.
+
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
+	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
+	(INSTALL_DATA): New, set by configure.
+	(HTML_OPTS, DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS):
+	New variables.
+	(.SUFFIXES): Add .ps and .dvi.
+	(.dvi.ps): New suffix rule.
+	(dvi, html, pdf, ps): Use *_TARGETS variables.
+	(elisp.html): Use HTML_OPTS.
+	(elisp.ps): Remove explicit rule.
+	(.PHONY): install-dvi, install-html, install-pdf, install-ps
+	,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	uninstall-ps, and uninstall-doc.
+	(install-dvi, install-html, install-pdf, install-ps, install-doc)
+	(uninstall-dvi, uninstall-html, uninstall-ps, uninstall-pdf)
+	(uninstall-doc): New rules.
+	(clean): Use DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS.
+
+2013-08-10  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* edebug.texi (Instrumenting Macro Calls): Use @defmac for macros.
+
+2013-08-09  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* control.texi (Error Symbols): Minor fix for previous change.
+
+2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* errors.texi (Standard Errors): Don't refer to `error-conditions'.
+
+	* control.texi (Signaling Errors): Refer to define-error.
+	(Error Symbols): Add `define-error'.
+
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* positions.texi (Motion by Screen Lines):
+	* display.texi (Truncation): Rename `cache-long-line-scans'
+	to `cache-long-scans'.
+
+2013-08-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* windows.texi (Window Start and End): Add an index.
+
 2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* display.texi (Face Functions): Add an index.

@@ -1499,7 +1499,7 @@ With optional NODE, goes to that node."
 	  (if node
 	      (Info-goto-node node)
 	    (message "Type `i' to search for a specific topic"))
-	  (raise-frame (selected-frame)))
+	  (raise-frame))
       (error (beep 1)
 	     (with-output-to-temp-buffer ediff-msg-buffer
 	       (ediff-with-current-buffer standard-output

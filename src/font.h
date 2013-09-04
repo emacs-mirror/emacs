@@ -56,11 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
-
-struct font_driver;
-struct font;
-struct glyph_string;
-
 /* An enumerator for each font property.  This is used as an index to
    the vector of FONT-SPEC and FONT-ENTITY.
 
@@ -487,8 +482,6 @@ struct font_bitmap
    this value.  */
 #define FONT_PIXEL_SIZE_QUANTUM 1
 
-struct face;
-
 #define FONT_INVALID_CODE 0xFFFFFFFF
 
 /* Font driver.  Members specified as "optional" can be NULL.  */
@@ -760,6 +753,7 @@ extern Lisp_Object font_load_for_lface (struct frame *f, Lisp_Object *lface,
                                         Lisp_Object spec);
 extern void font_prepare_for_face (struct frame *f, struct face *face);
 extern void font_done_for_face (struct frame *f, struct face *face);
+extern void clear_font_cache (struct frame *);
 
 extern Lisp_Object font_open_by_spec (struct frame *f, Lisp_Object spec);
 extern Lisp_Object font_open_by_name (struct frame *f, Lisp_Object name);

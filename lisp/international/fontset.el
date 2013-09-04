@@ -357,7 +357,7 @@
     (dolist (elt cjk)
       (let ((mask (lsh 1 i)))
 	(map-charset-chars
-	 #'(lambda (range arg)
+	 #'(lambda (range _arg)
 	     (let ((from (car range)) (to (cdr range)))
 	       (if (< to #x110000)
 		   (while (<= from to)
@@ -876,7 +876,7 @@ Return nil if PATTERN doesn't conform to XLFD."
 	      (aset xlfd-fields i nil)))
 	xlfd-fields)))
 
-(defun x-compose-font-name (fields &optional reduce)
+(defun x-compose-font-name (fields &optional _reduce)
   "Compose X fontname from FIELDS.
 FIELDS is a vector of XLFD fields, of length 12.
 If a field is nil, wild-card letter `*' is embedded.
@@ -954,7 +954,7 @@ Done when `mouse-set-font' is called."
 	(let ((family (aref xlfd-fields xlfd-regexp-family-subnum))
 	      (weight (aref xlfd-fields xlfd-regexp-weight-subnum))
 	      (slant  (aref xlfd-fields xlfd-regexp-slant-subnum))
-	      (swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
+	      ;(swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
 	      (size   (aref xlfd-fields xlfd-regexp-pixelsize-subnum))
 	      (nickname (aref xlfd-fields xlfd-regexp-registry-subnum))
 	      name)
@@ -1039,7 +1039,7 @@ This alist is used by the function `create-fontset-from-fontset-spec'
 to map charsets to scripts.")
 
 (defun create-fontset-from-fontset-spec (fontset-spec
-					 &optional style-variant noerror)
+					 &optional _style-variant _noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
 	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...

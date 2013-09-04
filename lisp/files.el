@@ -1603,13 +1603,16 @@ killed."
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
 otherwise a string <2> or <3> or ... is appended to get an unused name.
-Spaces at the start of FILENAME (sans directory) are removed."
+
+Emacs treats buffers whose names begin with a space as internal buffers.
+To avoid confusion when visiting a file whose name begins with a space,
+this function prepends a \"|\" to the final result if necessary."
   (let ((lastname (file-name-nondirectory filename)))
     (if (string= lastname "")
 	(setq lastname filename))
-    (save-match-data
-      (string-match "^ *\\(.*\\)" lastname)
-      (generate-new-buffer (match-string 1 lastname)))))
+    (generate-new-buffer (if (string-match-p "\\` " lastname)
+			     (concat "|" lastname)
+			   lastname))))
 
 (defun generate-new-buffer (name)
   "Create and return a buffer with a name based on NAME.
@@ -2272,8 +2275,8 @@ since only a single case-insensitive search through the alist is made."
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
      ("\\.bash\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(bash_logout\\|shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
+     ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
+     ("\\(/\\|\\`\\)\\.\\(shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
      ("\\.m?spec\\'" . sh-mode)
      ("\\.m[mes]\\'" . nroff-mode)
@@ -2451,6 +2454,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("wishx" . tcl-mode)
      ("tcl" . tcl-mode)
      ("tclsh" . tcl-mode)
+     ("expect" . tcl-mode)
      ("scm" . scheme-mode)
      ("ash" . sh-mode)
      ("bash" . sh-mode)
@@ -6690,7 +6694,9 @@ based on existing mode bits, as in \"og+rX-w\"."
 	  (string-to-number value 8)
 	(file-modes-symbolic-to-number value modes)))))
 
-
+(define-obsolete-variable-alias 'cache-long-line-scans
+  'cache-long-scans "24.4")
+
 ;; Trashcan handling.
 (defcustom trash-directory nil
   "Directory for `move-file-to-trash' to move files and directories to.

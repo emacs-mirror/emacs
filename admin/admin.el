@@ -195,19 +195,21 @@ Root must be the root of an Emacs source tree."
 
 (defun manual-misc-manuals (root)
   "Return doc/misc manuals as list of strings."
-  ;; Like `make -C doc/misc echo-info', but works if unconfigured.
+  ;; Similar to `make -C doc/misc echo-info', but works if unconfigured,
+  ;; and for INFO_TARGETS rather than INFO_INSTALL.
   (with-temp-buffer
     (insert-file-contents (expand-file-name "doc/misc/Makefile.in" root))
-    (search-forward "INFO_TARGETS = ")
-    (let ((start (point))
-	  res)
+    ;; Should really use expanded value of INFO_TARGETS.
+    (search-forward "INFO_COMMON = ")
+    (let ((start (point)))
       (end-of-line)
       (while (and (looking-back "\\\\")
 		  (zerop (forward-line 1)))
 	(end-of-line))
-      (split-string (replace-regexp-in-string
-		     "\\(\\\\\\|\\.info\\)" ""
-		     (buffer-substring start (point)))))))
+      (append (split-string (replace-regexp-in-string
+			     "\\(\\\\\\|\\.info\\)" ""
+			     (buffer-substring start (point))))
+	      '("efaq-w32")))))
 
 (defun make-manuals (root &optional type)
   "Generate the web manuals for the Emacs webpage.
@@ -287,9 +289,8 @@ Optional argument TYPE is type of output (nil means all)."
 
 (defun manual-misc-html (name root html-node-dir html-mono-dir)
   ;; Hack to deal with the cases where .texi creates a different .info.
-  ;; Blech.  TODO Why not just rename the .texi files?
+  ;; Blech.  TODO Why not just rename the .texi (or .info) files?
   (let* ((texiname (cond ((equal name "ccmode") "cc-mode")
-			 ((equal name "efaq") "faq")
 			 (t name)))
 	 (texi (expand-file-name (format "doc/misc/%s.texi" texiname) root)))
     (manual-html-node texi (expand-file-name name html-node-dir))

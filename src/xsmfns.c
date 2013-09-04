@@ -107,8 +107,7 @@ x_session_check_input (int fd, void *data)
      will be called.  */
   emacs_event.kind = NO_EVENT;
 
-  ret = IceProcessMessages (SmcGetIceConnection (smc_conn),
-                            (IceReplyWaitInfo *)0, (Bool *)0);
+  ret = IceProcessMessages (SmcGetIceConnection (smc_conn), 0, 0);
   if (ret != IceProcessMessagesSuccess)
     {
       /* Either IO error or Connection closed.  */

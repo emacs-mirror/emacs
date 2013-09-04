@@ -217,9 +217,9 @@ over the @code{line-prefix} variable.  @xref{Special Properties}.
 continuation to display them, computing the continuation lines can
 make redisplay slow.  The column computation and indentation functions
 also become slow.  Then you might find it advisable to set
-@code{cache-long-line-scans} to @code{t}.
+@code{cache-long-scans} to @code{t}.
 
-@defvar cache-long-line-scans
+@defvar cache-long-scans
 If this variable is non-@code{nil}, various indentation and motion
 functions, and Emacs redisplay, cache the results of scanning the
 buffer, and consult the cache to avoid rescanning regions of the buffer
@@ -1243,6 +1243,7 @@ Type RET when done reading
 @node Overlays
 @section Overlays
 @cindex overlays
+@c FIXME: mention intervals in this section?
 
 You can use @dfn{overlays} to alter the appearance of a buffer's text on
 the screen, for the sake of presentation features.  An overlay is an
@@ -4662,6 +4663,14 @@ and if @code{:height} is set it will have precedence over
 @code{max-height}, but you can otherwise mix these keywords as you
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
+
+@item :format
+ImageMagick tries to auto-detect the image type, but it isn't always
+able to.  By using @code{:format-type}, we can give ImageMagick a hint
+to try to help it.  It's used in conjunction with the
+@code{image-format-suffixes} variable, which provides a mapping from
+content types to file name suffixes.  This is then given to
+ImageMagick as a file name hint.
 
 @item :rotation
 Specifies a rotation angle in degrees.

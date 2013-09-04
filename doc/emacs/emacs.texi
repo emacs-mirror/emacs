@@ -1189,7 +1189,7 @@ X Options and Resources
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
 * Lucid Resources::     X resources for Lucid menus.
-* LessTif Resources::   X resources for LessTif and Motif menus.
+* Motif Resources::     X resources for Motif and LessTif menus.
 * GTK resources::       Resources for GTK widgets.
 
 GTK resources

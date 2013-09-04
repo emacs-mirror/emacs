@@ -407,8 +407,10 @@ sending immediately.  For any other non-nil value, prompt in both
 cases.  You can give a timeout for the prompt; see variable
 `feedmail-confirm-outgoing-timeout'."
   :group 'feedmail-misc
-  :type 'boolean
-  )
+  :type '(choice (const nil)
+		 (const queued)
+		 (const immediate)
+		 (other t)))
 
 
 (defcustom feedmail-display-full-frame 'queued
@@ -425,8 +427,10 @@ it can still be interesting to see a lot about them as they are
 shuttled robotically onward."
   :version "24.1"
   :group 'feedmail-misc
-  :type 'boolean
-  )
+  :type '(choice (const nil)
+		 (const queued)
+		 (const immediate)
+		 (other t)))
 
 
 (defcustom feedmail-confirm-outgoing-timeout nil
@@ -483,8 +487,9 @@ and serially, so slow SMTP conversations can add up to a delay.  There
 is an option for either 'first or 'last because you might have a
 delivery agent that processes the addresses backwards."
   :group 'feedmail-headers
-  :type 'boolean
-  )
+  :type '(choice (const nil)
+		 (const first)
+		 (const last)))
 
 
 (defcustom feedmail-fill-to-cc t

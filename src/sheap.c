@@ -26,10 +26,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #ifdef __x86_64__
+#ifdef ENABLE_CHECKING
+#define STATIC_HEAP_SIZE	(28 * 1024 * 1024)
+#else
+#define STATIC_HEAP_SIZE	(19 * 1024 * 1024)
+#endif
+#else  /* x86 */
+#ifdef ENABLE_CHECKING
 #define STATIC_HEAP_SIZE	(18 * 1024 * 1024)
 #else
 #define STATIC_HEAP_SIZE	(13 * 1024 * 1024)
 #endif
+#endif	/* x86 */
 
 int debug_sheap = 0;
 
@@ -37,6 +45,7 @@ int debug_sheap = 0;
 
 char bss_sbrk_buffer[STATIC_HEAP_SIZE];
 char *bss_sbrk_ptr;
+char *max_bss_sbrk_ptr;
 int bss_sbrk_did_unexec;
 
 void *
@@ -44,7 +53,7 @@ bss_sbrk (ptrdiff_t request_size)
 {
   if (!bss_sbrk_ptr)
     {
-      bss_sbrk_ptr = bss_sbrk_buffer;
+      max_bss_sbrk_ptr = bss_sbrk_ptr = bss_sbrk_buffer;
 #ifdef CYGWIN
       sbrk (BLOCKSIZE);		/* force space for fork to work */
 #endif
@@ -85,6 +94,8 @@ bss_sbrk (ptrdiff_t request_size)
       if (debug_sheap)
 	printf ("allocated 0x%08x size %d\n", ret, request_size);
       bss_sbrk_ptr += (int) request_size;
+      if (bss_sbrk_ptr > max_bss_sbrk_ptr)
+	max_bss_sbrk_ptr = bss_sbrk_ptr;
       return ret;
     }
 }
@@ -93,8 +104,8 @@ void
 report_sheap_usage (int die_if_pure_storage_exceeded)
 {
   char buf[200];
-  sprintf (buf, "Static heap usage: %d of %d bytes",
-	   bss_sbrk_ptr - bss_sbrk_buffer, STATIC_HEAP_SIZE);
+  sprintf (buf, "Maximum static heap usage: %d of %d bytes",
+	   max_bss_sbrk_ptr - bss_sbrk_buffer, STATIC_HEAP_SIZE);
   /* Don't log messages, cause at this point, we're not allowed to create
      buffers.  */
   message1_nolog (buf);

@@ -124,7 +124,8 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
          set_buffer_internal (XMARKER (printcharfun)->buffer);		\
        marker_pos = marker_position (printcharfun);			\
        if (marker_pos < BEGV || marker_pos > ZV)			\
-	 error ("Marker is outside the accessible part of the buffer"); \
+	 signal_error ("Marker is outside the accessible "		\
+		       "part of the buffer", printcharfun);		\
        old_point = PT;							\
        old_point_byte = PT_BYTE;					\
        SET_PT_BOTH (marker_pos,						\
@@ -136,10 +137,10 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    if (NILP (printcharfun))						\
      {									\
        Lisp_Object string;						\
-       if (NILP (BVAR (current_buffer, enable_multibyte_characters))		\
+       if (NILP (BVAR (current_buffer, enable_multibyte_characters))	\
 	   && ! print_escape_multibyte)					\
          specbind (Qprint_escape_multibyte, Qt);			\
-       if (! NILP (BVAR (current_buffer, enable_multibyte_characters))		\
+       if (! NILP (BVAR (current_buffer, enable_multibyte_characters))	\
 	   && ! print_escape_nonascii)					\
          specbind (Qprint_escape_nonascii, Qt);				\
        if (print_buffer != 0)						\
@@ -166,7 +167,7 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    if (NILP (printcharfun))						\
      {									\
        if (print_buffer_pos != print_buffer_pos_byte			\
-	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
+	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))\
 	 {								\
 	   unsigned char *temp = alloca (print_buffer_pos + 1);		\
 	   copy_text ((unsigned char *) print_buffer, temp,		\

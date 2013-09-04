@@ -293,20 +293,7 @@ A lambda list keyword is a symbol that starts with `&'."
   "Return t if there are two windows."
   (and (not (one-window-p))
        (eq (selected-window)
-	   (next-window (next-window (selected-window))))))
-
-(defsubst edebug-lookup-function (object)
-  (while (and (symbolp object) (fboundp object))
-    (setq object (symbol-function object)))
-  object)
-
-(defun edebug-macrop (object)
-  "Return the macro named by OBJECT, or nil if it is not a macro."
-  (setq object (edebug-lookup-function object))
-  (if (and (listp object)
-	   (eq 'macro (car object))
-	   (functionp (cdr object)))
-      object))
+	   (next-window (next-window)))))
 
 (defun edebug-sort-alist (alist function)
   ;; Return the ALIST sorted with comparison function FUNCTION.
@@ -347,7 +334,7 @@ Return the result of the last expression in BODY."
 	 ((and (edebug-window-live-p window)
 	       (eq (window-buffer window) buffer))
 	  window)
-	 ((eq (window-buffer (selected-window)) buffer)
+	 ((eq (window-buffer) buffer)
 	  ;; Selected window already displays BUFFER.
 	  (selected-window))
 	 ((get-buffer-window buffer 0))
@@ -1416,7 +1403,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 					; but leave it in for compatibility.
        ))
      ;; No edebug-form-spec provided.
-     ((edebug-macrop head)
+     ((macrop head)
       (if edebug-eval-macro-args
 	  (edebug-forms cursor)
 	(edebug-sexps cursor)))
@@ -2327,8 +2314,7 @@ MSG is printed after `::::} '."
 	    (if edebug-global-break-condition
 		(condition-case nil
 		    (setq edebug-global-break-result
-                          ;; FIXME: lexbind.
-			  (eval edebug-global-break-condition))
+			  (edebug-eval edebug-global-break-condition))
 		  (error nil))))
 	   (edebug-break))
 
@@ -2339,8 +2325,7 @@ MSG is printed after `::::} '."
 		(and edebug-break-data
 		     (or (not edebug-break-condition)
 			 (setq edebug-break-result
-                               ;; FIXME: lexbind.
-			       (eval edebug-break-condition))))))
+			       (edebug-eval edebug-break-condition))))))
       (if (and edebug-break
 	       (nth 2 edebug-break-data)) ; is it temporary?
 	  ;; Delete the breakpoint.

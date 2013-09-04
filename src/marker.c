@@ -534,9 +534,9 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
 }
 
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
-       doc: /* Position MARKER before character number POSITION in BUFFER,
-which defaults to the current buffer.  If POSITION is nil,
-makes marker point nowhere so it no longer slows down
+       doc: /* Position MARKER before character number POSITION in BUFFER.
+If BUFFER is omitted or nil, it defaults to the current buffer.  If
+POSITION is nil, makes marker point nowhere so it no longer slows down
 editing in any buffer.  Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {

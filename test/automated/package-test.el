@@ -85,9 +85,6 @@
   (expand-file-name "archive-contents" package-test-data-dir)
   "Path to a static copy of \"archive-contents\".")
 
-(defvar package-test-built-file-suffixes '(".tar" "/dir" "/*.info")
-  "Remove these files when cleaning up a built package.")
-
 (cl-defmacro with-package-test ((&optional &key file
                                            basedir
                                            install
@@ -142,33 +139,6 @@
     (let ((help-xref-following t))
       ,@body)))
 
-(autoload 'makeinfo-buffer "makeinfo")
-(defvar compilation-in-progress)
-
-(defun package-test-install-texinfo (file)
-  "Install from texinfo FILE.
-
-FILE should be a .texinfo file relative to the current
-`default-directory'"
-  (require 'info)
-  (let* ((full-file (expand-file-name file))
-         (info-file (replace-regexp-in-string "\\.texi\\'" ".info" full-file))
-         (old-info-defn (symbol-function 'Info-revert-find-node)))
-    (require 'info)
-    (setf (symbol-function 'Info-revert-find-node) #'ignore)
-    (with-current-buffer (find-file-literally full-file)
-      (unwind-protect
-          (progn
-            (makeinfo-buffer)
-            ;; Give `makeinfo-buffer' a chance to finish
-            (while compilation-in-progress
-              (sit-for 0.1))
-            (call-process "ginstall-info" nil nil nil
-                          (format "--info-dir=%s" default-directory)
-                          (format "%s" info-file)))
-        (kill-buffer)
-        (setf (symbol-function 'Info-revert-find-node) old-info-defn)))))
-
 (defun package-test-strip-version (dir)
   (replace-regexp-in-string "-pkg\\.el\\'" "" (package--description-file dir)))
 
@@ -177,14 +147,6 @@ FILE should be a .texinfo file relative to the current
   (cl-mapcan
    '(lambda (item) (file-expand-wildcards (concat base item)))
    suffix-list))
-
-(defun package-test-cleanup-built-files (dir)
-  "Remove files which were the result of creating a tar archive.
-
-DIR is the base name of the package directory, without the trailing slash"
-  (let* ((pkg-dirname (file-name-nondirectory dir)))
-    (dolist (file (package-test-suffix-matches dir package-test-built-file-suffixes))
-      (delete-file file))))
 
 (defvar tar-parse-info)
 (declare-function tar-header-name "tar-mode" (cl-x) t) ; defstruct

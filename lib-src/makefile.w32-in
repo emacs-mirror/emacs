@@ -251,6 +251,7 @@ lisp2 = \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
 	$(lispsource)simple.elc \
+	$(lispsource)emacs-lisp/nadvice.elc \
 	$(lispsource)minibuffer.elc \
 	$(lispsource)startup.elc \
 	$(lispsource)subr.elc \

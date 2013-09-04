@@ -27,8 +27,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; block, return
 (require 'tramp)
+
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl))
 
 ;; Define SMB method ...
 ;;;###tramp-autoload
@@ -355,7 +358,7 @@ pass to the OPERATION."
 	(throw 'tramp-action 'ok)))))
 
 (defun tramp-smb-handle-copy-directory
-  (dirname newname &optional keep-date parents copy-contents)
+  (dirname newname &optional keep-date parents _copy-contents)
   "Like `copy-directory' for Tramp files."
   (setq dirname (expand-file-name dirname)
 	newname (expand-file-name newname))
@@ -492,7 +495,7 @@ pass to the OPERATION."
 
 (defun tramp-smb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-extended-attributes)
+	    _preserve-uid-gid _preserve-extended-attributes)
   "Like `copy-file' for Tramp files.
 KEEP-DATE has no effect in case NEWNAME resides on an SMB server.
 PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
@@ -571,7 +574,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (tramp-error
 	   v 'file-error "%s `%s'" (match-string 0) directory))))))
 
-(defun tramp-smb-handle-delete-file (filename &optional trash)
+(defun tramp-smb-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (when (file-exists-p filename)
@@ -1361,14 +1364,14 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 	      (while (not (eobp))
 		(setq entry (tramp-smb-read-file-entry share))
 		(forward-line)
-		(when entry (add-to-list 'res entry))))
+		(when entry (pushnew entry res :test #'equal))))
 
 	    ;; Cache share entries.
 	    (unless share
 	      (tramp-set-connection-property v "share-cache" res)))
 
 	  ;; Add directory itself.
-	  (add-to-list 'res '("" "drwxrwxrwx" 0 (0 0)))
+	  (pushnew '("" "drwxrwxrwx" 0 (0 0)) res :test #'equal)
 
 	  ;; There's a very strange error (debugged with XEmacs 21.4.14)
 	  ;; If there's no short delay, it returns nil.  No idea about.
@@ -1497,7 +1500,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 		    "%s%s"
 		    (if (string-match "D" mode) "d" "-")
 		    (mapconcat
-		     (lambda (x) "") "    "
+		     (lambda (_x) "") "    "
 		     (concat "r" (if (string-match "R" mode) "-" "w") "x"))))
 	     line (substring line 0 -6))
 	  (return))
@@ -1561,6 +1564,8 @@ Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason.
 If ARGUMENT is non-nil, use it as argument for
 `tramp-smb-winexe-program', and suppress any checks."
+  (tramp-check-proper-host vec)
+
   (let* ((share (tramp-smb-get-share vec))
 	 (buf (tramp-get-connection-buffer vec))
 	 (p (get-buffer-process buf)))

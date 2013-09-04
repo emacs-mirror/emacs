@@ -139,6 +139,7 @@
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
+(load "emacs-lisp/nadvice")
 (load "minibuffer")
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")

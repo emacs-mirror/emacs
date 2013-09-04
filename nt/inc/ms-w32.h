@@ -207,8 +207,6 @@ extern struct tm * sys_localtime (const time_t *);
 #define link    sys_link
 #define localtime sys_localtime
 #define mkdir   sys_mkdir
-#undef mktemp
-#define mktemp  sys_mktemp
 #undef open
 #define open    sys_open
 #undef read
@@ -449,6 +447,8 @@ extern int getloadavg (double *, int);
 extern int getpagesize (void);
 
 extern void * memrchr (void const *, int, size_t);
+
+extern int mkostemp (char *, int);
 
 
 #if defined (__MINGW32__)

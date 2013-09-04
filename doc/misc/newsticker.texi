@@ -169,9 +169,9 @@ single buffer, called @samp{*newsticker*}.  The modeline in the
 @samp{*newsticker*} buffer informs you whenever new headlines have
 arrived.
 @end itemize
-In both views clicking mouse-button 2 or pressing RET on a headline
-will call @code{browse-url} to load the corresponding news story in
-your favorite web browser.
+In both views clicking mouse-button 2 or pressing @key{RET} on a
+headline will call @code{browse-url} to load the corresponding news
+story in your favorite web browser.
 
 @findex newsticker-start-ticker
 @findex newsticker-stop-ticker

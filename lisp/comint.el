@@ -636,7 +636,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq-local comint-last-input-start (point-min-marker))
   (setq-local comint-last-input-end (point-min-marker))
   (setq-local comint-last-output-start (make-marker))
-  (make-local-variable 'comint-last-prompt-overlay)
+  (make-local-variable 'comint-last-prompt)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
   (make-local-variable 'comint-input-ring)
@@ -1562,8 +1562,9 @@ or to the last history element for a backward search."
   "Save a function restoring the state of input history search.
 Save `comint-input-ring-index' to the additional state parameter
 in the search status stack."
-  `(lambda (cmd)
-     (comint-history-isearch-pop-state cmd ,comint-input-ring-index)))
+  (let ((index comint-input-ring-index))
+    (lambda (cmd)
+      (comint-history-isearch-pop-state cmd index))))
 
 (defun comint-history-isearch-pop-state (_cmd hist-pos)
   "Restore the input history search state.
@@ -1902,21 +1903,24 @@ either globally or locally.")
   "If nil, Comint will interpret `carriage control' characters in output.
 See `comint-carriage-motion' for details.")
 
-;; When non-nil, this is an overlay over the last recognized prompt in
-;; the buffer; it is used when highlighting the prompt.
-(defvar comint-last-prompt-overlay nil)
+(defvar comint-last-prompt nil
+  "Markers pointing to the last prompt.
+If non-nil, a cons cell containing markers.  The car points to
+the start, the cdr to the end of the last prompt recognized.")
 
 (defun comint-snapshot-last-prompt ()
-  "`snapshot' any current `comint-last-prompt-overlay'.
-Freeze its attributes in place, even when more input comes along
-and moves the prompt overlay."
-  (when comint-last-prompt-overlay
-    (let ((inhibit-read-only t))
-      (with-silent-modifications
-        (add-text-properties
-         (overlay-start comint-last-prompt-overlay)
-         (overlay-end comint-last-prompt-overlay)
-         (overlay-properties comint-last-prompt-overlay))))))
+  "Snapshot the current `comint-last-prompt'.
+Freezes the `font-lock-face' text property in place."
+  (when comint-last-prompt
+    (with-silent-modifications
+      (add-text-properties
+       (car comint-last-prompt)
+       (cdr comint-last-prompt)
+       '(font-lock-face comint-highlight-prompt)))
+    ;; Reset comint-last-prompt so later on comint-output-filter does
+    ;; not remove the font-lock-face text property of the previous
+    ;; (this) prompt.
+    (setq comint-last-prompt nil)))
 
 (defun comint-carriage-motion (start end)
   "Interpret carriage control characters in the region from START to END.
@@ -2063,20 +2067,15 @@ Make backspaces delete the previous character."
                   (add-text-properties
                    prompt-start (point)
                    '(read-only t rear-nonsticky t front-sticky (read-only)))))
-	      (unless (and (bolp) (null comint-last-prompt-overlay))
-		;; Need to create or move the prompt overlay (in the case
-		;; where there is no prompt ((bolp) == t), we still do
-		;; this if there's already an existing overlay).
-		(if comint-last-prompt-overlay
-		    ;; Just move an existing overlay
-		    (move-overlay comint-last-prompt-overlay
-				  prompt-start (point))
-		  ;; Need to create the overlay
-		  (setq comint-last-prompt-overlay
-			(make-overlay prompt-start (point)))
-		  (overlay-put comint-last-prompt-overlay
-			       'font-lock-face 'comint-highlight-prompt))))
-
+	      (when comint-last-prompt
+		(remove-text-properties (car comint-last-prompt)
+					(cdr comint-last-prompt)
+					'(font-lock-face)))
+	      (setq comint-last-prompt
+		    (cons (copy-marker prompt-start) (point-marker)))
+	      (add-text-properties (car comint-last-prompt)
+				   (cdr comint-last-prompt)
+				   '(font-lock-face comint-highlight-prompt)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
@@ -2296,7 +2295,7 @@ Security bug: your string can still be temporarily recovered with
   (interactive "P")			; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer)))
 	(prefix
-	 (if (eq (window-buffer (selected-window)) (current-buffer))
+	 (if (eq (window-buffer) (current-buffer))
 	     ""
 	   (format "(In buffer %s) "
 		   (current-buffer)))))
@@ -3108,7 +3107,7 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 Returns t if successful."
   (interactive)
   (when (comint--match-partial-filename)
-    (unless (window-minibuffer-p (selected-window))
+    (unless (window-minibuffer-p)
       (message "Completing file name..."))
     (let ((data (comint--complete-file-name-data)))
       (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
@@ -3211,7 +3210,7 @@ Return `listed' if a completion listing was shown.
 See also `comint-dynamic-complete-filename'."
   (declare (obsolete completion-in-region "24.1"))
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
-	 (minibuffer-p (window-minibuffer-p (selected-window)))
+	 (minibuffer-p (window-minibuffer-p))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
@@ -3308,7 +3307,7 @@ Typing SPC flushes the completions buffer."
 	    (current-window-configuration))
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list completions common-substring))
-      (if (window-minibuffer-p (selected-window))
+      (if (window-minibuffer-p)
 	  (minibuffer-message "Type space to flush; repeat completion command to scroll")
 	(message "Type space to flush; repeat completion command to scroll")))
 

@@ -18,10 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# Avoid trouble on systems where the `SHELL' variable might be
-# inherited from the environment.
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 # Following ../lisp/Makefile.in.
 EMACS = ../src/emacs
@@ -40,6 +37,7 @@ C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
 WARN_CFLAGS = @WARN_CFLAGS@
 WERROR_CFLAGS = @WERROR_CFLAGS@
+UPDATE_MANIFEST = @UPDATE_MANIFEST@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@
@@ -132,7 +130,7 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
-SCRIPTS= rcs2log
+SCRIPTS= rcs2log $(UPDATE_MANIFEST)
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}

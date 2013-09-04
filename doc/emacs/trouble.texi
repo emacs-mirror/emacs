@@ -658,7 +658,13 @@ absolutely sure it is best to leave it, so that the developers can
 decide for themselves.
 
 When you have finished writing your report, type @kbd{C-c C-c} and it
-will be sent to the Emacs maintainers at @email{bug-gnu-emacs@@gnu.org}.
+will be sent to the Emacs maintainers at
+@ifnothtml
+@email{bug-gnu-emacs@@gnu.org}.
+@end ifnothtml
+@ifhtml
+@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}.
+@end ifhtml
 (If you want to suggest an improvement or new feature, use the same
 address.)  If you cannot send mail from inside Emacs, you can copy the
 text of your report to your normal mail client (if your system
@@ -1138,15 +1144,26 @@ form that is clearly safe to install.
 @section Contributing to Emacs Development
 @cindex contributing to Emacs
 
-If you would like to work on improving Emacs, please contact
-the maintainers at @email{emacs-devel@@gnu.org}.  You can ask for
-suggested projects or suggest your own ideas.
+If you would like to work on improving Emacs, please contact the maintainers at
+@ifnothtml
+@email{emacs-devel@@gnu.org}.
+@end ifnothtml
+@ifhtml
+@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, the
+emacs-devel mailing list}.
+@end ifhtml
+You can ask for suggested projects or suggest your own ideas.
 
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact
-@email{emacs-devel@@gnu.org} before you start; it might be
-possible to suggest ways to make your extension fit in better with the
-rest of Emacs.
+@ifnothtml
+@email{emacs-devel@@gnu.org}
+@end ifnothtml
+@ifhtml
+@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, emacs-devel}
+@end ifhtml
+before you start; it might be possible to suggest ways to make your
+extension fit in better with the rest of Emacs.
 
 The development version of Emacs can be downloaded from the
 repository where it is actively maintained by a group of developers.
@@ -1164,10 +1181,17 @@ ways to find it:
 
 @itemize @bullet
 @item
-Send a message to the mailing list
-@email{help-gnu-emacs@@gnu.org}, or post your request on
-newsgroup @code{gnu.emacs.help}.  (This mailing list and newsgroup
-interconnect, so it does not matter which one you use.)
+Send a message to
+@ifnothtml
+the mailing list @email{help-gnu-emacs@@gnu.org},
+@end ifnothtml
+@ifhtml
+@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
+help-gnu-emacs mailing list},
+@end ifhtml
+or post your request on newsgroup @code{gnu.emacs.help}.  (This
+mailing list and newsgroup interconnect, so it does not matter which
+one you use.)
 
 @item
 Look in the service directory for someone who might help you for a fee.

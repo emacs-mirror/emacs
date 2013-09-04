@@ -57,8 +57,16 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; ignore-errors
 (require 'tramp-compat)
+
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl))
+(defvar bkup-backup-directory-info)
+(defvar directory-sep-char)
+(defvar eshell-path-env)
+(defvar file-notify-descriptors)
+(defvar outline-regexp)
 
 ;;; User Customizable Internal Variables:
 
@@ -1112,6 +1120,12 @@ calling HANDLER.")
 
 ;;; Internal functions which must come first:
 
+(defsubst tramp-user-error (vec-or-proc format &rest args)
+  "Signal a pilot error."
+  (apply
+   'tramp-error vec-or-proc
+   (if (fboundp 'user-error) 'user-error 'error) format args))
+
 ;; Conversion functions between external representation and
 ;; internal data structure.  Convenience functions for internal
 ;; data structure.
@@ -1224,30 +1238,38 @@ their replacement."
 	(if noninteractive
 	    (warn "Method %s is obsolete, using %s"
 		  result (substring result 0 -1))
-	  (unless (y-or-n-p (format "Method %s is obsolete, use %s? "
+	  (unless (y-or-n-p (format "Method \"%s\" is obsolete, use \"%s\"? "
 				    result (substring result 0 -1)))
-	    (tramp-compat-user-error "Method \"%s\" not supported" result)))
+	    (tramp-user-error nil "Method \"%s\" not supported" result)))
 	(add-to-list 'tramp-warned-obsolete-methods result))
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
       (setq result (substring result 0 -1)))
-    result))
+    ;; We must mark, whether a default value has been used.
+    (if (or method (null result))
+	result
+      (propertize result 'tramp-default t))))
 
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
 This is USER, if non-nil. Otherwise, do a lookup in
 `tramp-default-user-alist'."
-  (or user
-      (let ((choices tramp-default-user-alist)
-	    luser item)
-	(while choices
-	  (setq item (pop choices))
-	  (when (and (string-match (or (nth 0 item) "") (or method ""))
-		     (string-match (or (nth 1 item) "") (or host "")))
-	    (setq luser (nth 2 item))
-	    (setq choices nil)))
-	luser)
-      tramp-default-user))
+  (let ((result
+	 (or user
+	     (let ((choices tramp-default-user-alist)
+		   luser item)
+	       (while choices
+		 (setq item (pop choices))
+		 (when (and (string-match (or (nth 0 item) "") (or method ""))
+			    (string-match (or (nth 1 item) "") (or host "")))
+		   (setq luser (nth 2 item))
+		   (setq choices nil)))
+	       luser)
+	     tramp-default-user)))
+    ;; We must mark, whether a default value has been used.
+    (if (or user (null result))
+	result
+      (propertize result 'tramp-default t))))
 
 (defun tramp-find-host (method user host)
   "Return the right host string to use.
@@ -1264,6 +1286,18 @@ This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
 	lhost)
       tramp-default-host))
 
+(defun tramp-check-proper-host (vec)
+  "Check host name of VEC."
+  (let ((method (tramp-file-name-method vec))
+	(user (tramp-file-name-user vec))
+	(host (tramp-file-name-host vec)))
+    (when (and (equal tramp-syntax 'ftp) host
+	       (or (null method) (get-text-property 0 'tramp-default method))
+	       (or (null user) (get-text-property 0 'tramp-default user))
+	       (member host (mapcar 'car tramp-methods)))
+      (tramp-cleanup-connection vec)
+      (tramp-user-error vec "Host name must not match method \"%s\"" host))))
+
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure.
 The structure consists of remote method, remote user, remote host
@@ -1272,7 +1306,7 @@ non-nil, the file name parts are not expanded to their default
 values."
   (save-match-data
     (let ((match (string-match (nth 0 tramp-file-name-structure) name)))
-      (unless match (tramp-compat-user-error "Not a Tramp file name: %s" name))
+      (unless match (tramp-user-error nil "Not a Tramp file name: \"%s\"" name))
       (let ((method    (match-string (nth 1 tramp-file-name-structure) name))
 	    (user      (match-string (nth 2 tramp-file-name-structure) name))
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
@@ -1282,12 +1316,7 @@ values."
 	  (when (string-match tramp-prefix-ipv6-regexp host)
 	    (setq host (replace-match "" nil t host)))
 	  (when (string-match tramp-postfix-ipv6-regexp host)
-	    (setq host (replace-match "" nil t host)))
-	  (when (and (equal tramp-syntax 'ftp) (null method) (null user)
-		     (member host (mapcar 'car tramp-methods))
-		     (not (tramp-completion-mode-p)))
-	    (tramp-compat-user-error
-	     "Host name must not match method `%s'" host)))
+	    (setq host (replace-match "" nil t host))))
 	(if nodefault
 	    (vector method user host localname hop)
 	  (vector
@@ -1417,10 +1446,10 @@ The outline level is equal to the verbosity of the Tramp message."
       (set (make-local-variable 'outline-level) 'tramp-debug-outline-level))
     (current-buffer)))
 
-(defsubst tramp-debug-message (vec fmt-string &rest args)
+(defsubst tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer.
 Message is formatted with FMT-STRING as control string and the remaining
-ARGS to actually emit the message (if applicable)."
+ARGUMENTS to actually emit the message (if applicable)."
   (when (get-buffer (tramp-buffer-name vec))
     (with-current-buffer (tramp-get-debug-buffer vec)
       (goto-char (point-max))
@@ -1462,7 +1491,8 @@ ARGS to actually emit the message (if applicable)."
 			 "tramp-debug-message"
 			 "tramp-error"
 			 "tramp-error-with-buffer"
-			 "tramp-message")
+			 "tramp-message"
+			 "tramp-user-error")
 		       t)
 		      "$")
 		     fn)))
@@ -1480,14 +1510,14 @@ ARGS to actually emit the message (if applicable)."
 ;	      (1+ (count-lines (point-min) (cdr ffn)))))))
 	(insert (format "%s " fn)))
       ;; The message.
-      (insert (apply 'format fmt-string args)))))
+      (insert (apply 'format fmt-string arguments)))))
 
 (defvar tramp-message-show-message t
   "Show Tramp message in the minibuffer.
 This variable is used to disable messages from `tramp-error'.
 The messages are visible anyway, because an error is raised.")
 
-(defsubst tramp-message (vec-or-proc level fmt-string &rest args)
+(defsubst tramp-message (vec-or-proc level fmt-string &rest arguments)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
 vector or a process.  LEVEL says to be quiet if `tramp-verbose' is
@@ -1498,7 +1528,7 @@ The message is also logged into the debug buffer when `tramp-verbose'
 is greater than or equal 4.
 
 Calls functions `message' and `tramp-debug-message' with FMT-STRING as
-control string and the remaining ARGS to actually emit the message (if
+control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
   (ignore-errors
     (when (<= level tramp-verbose)
@@ -1514,7 +1544,7 @@ applicable)."
 		   ((= level 2) "Warning: ")
 		   (t           "Tramp: "))
 		  fmt-string)
-		 args))
+		 arguments))
 	;; Log only when there is a minimum level.
 	(when (>= tramp-verbose 4)
 	  (when (and vec-or-proc
@@ -1527,17 +1557,21 @@ applicable)."
 	    (apply 'tramp-debug-message
 		   vec-or-proc
 		   (concat (format "(%d) # " level) fmt-string)
-		   args)))))))
+		   arguments)))))))
 
-(defsubst tramp-backtrace (vec-or-proc)
+(defsubst tramp-backtrace (&optional vec-or-proc)
   "Dump a backtrace into the debug buffer.
-This function is meant for debugging purposes."
-  (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace))))
+If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  This
+function is meant for debugging purposes."
+  (if vec-or-proc
+      (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
+    (if (<= 10 tramp-verbose)
+	(with-output-to-temp-buffer "*debug tramp*" (backtrace)))))
 
-(defsubst tramp-error (vec-or-proc signal fmt-string &rest args)
+(defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
-signal identifier to be raised, remaining args passed to
+signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised."
   (let (tramp-message-show-message)
     (tramp-backtrace vec-or-proc)
@@ -1546,16 +1580,16 @@ signal identifier to be raised, remaining args passed to
      (error-message-string
       (list signal
 	    (get signal 'error-message)
-	    (apply 'format fmt-string args))))
-    (signal signal (list (apply 'format fmt-string args)))))
+	    (apply 'format fmt-string arguments))))
+    (signal signal (list (apply 'format fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
-  (buffer vec-or-proc signal fmt-string &rest args)
-  "Emit an error, and show BUFFER.
-If BUFFER is nil, show the connection buffer.  Wait for 30\", or until
+  (buf vec-or-proc signal fmt-string &rest arguments)
+  "Emit an error, and show BUF.
+If BUF is nil, show the connection buf.  Wait for 30\", or until
 an input event arrives.  The other arguments are passed to `tramp-error'."
   (save-window-excursion
-    (let* ((buf (or (and (bufferp buffer) buffer)
+    (let* ((buf (or (and (bufferp buf) buf)
 		    (and (processp vec-or-proc) (process-buffer vec-or-proc))
 		    (and (vectorp vec-or-proc)
 			 (tramp-get-connection-buffer vec-or-proc))))
@@ -1563,7 +1597,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 		    (and buf (with-current-buffer buf
 			       (tramp-dissect-file-name default-directory))))))
       (unwind-protect
-	  (apply 'tramp-error vec-or-proc signal fmt-string args)
+	  (apply 'tramp-error vec-or-proc signal fmt-string arguments)
 	;; Save exit.
 	(when (and buf
 		   tramp-message-show-message
@@ -1572,7 +1606,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	  (let ((enable-recursive-minibuffers t))
 	    ;; `tramp-error' does not show messages.  So we must do it
 	    ;; ourselves.
-	    (message fmt-string args)
+	    (message fmt-string arguments)
 	    ;; Show buffer.
 	    (pop-to-buffer buf)
 	    (discard-input)
@@ -1598,18 +1632,19 @@ Remaining args are Lisp expressions to be evaluated (inside an implicit
 
 If VAR is nil, then we bind `v' to the structure and `method', `user',
 `host', `localname', `hop' to the components."
-  `(let* ((,(or var 'v) (tramp-dissect-file-name ,filename))
-	  (,(if var (intern (concat (symbol-name var) "-method")) 'method)
-	   (tramp-file-name-method ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-user")) 'user)
-	   (tramp-file-name-user ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-host")) 'host)
-	   (tramp-file-name-host ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-localname")) 'localname)
-	   (tramp-file-name-localname ,(or var 'v)))
-	  (,(if var (intern (concat (symbol-name var) "-hop")) 'hop)
-	   (tramp-file-name-hop ,(or var 'v))))
-     ,@body))
+  (let ((bindings
+         (mapcar (lambda (elem)
+                   `(,(if var (intern (format "%s-%s" var elem)) elem)
+                     (,(intern (format "tramp-file-name-%s" elem))
+                      ,(or var 'v))))
+                 '(method user host localname hop))))
+    `(let* ((,(or var 'v) (tramp-dissect-file-name ,filename))
+            ,@bindings)
+       ;; We don't know which of those vars will be used, so we bind them all,
+       ;; and then add here a dummy use of all those variables, so we don't get
+       ;; flooded by warnings about those vars `body' didn't use.
+       (ignore ,@(mapcar #'car bindings))
+       ,@body)))
 
 (put 'with-parsed-tramp-file-name 'lisp-indent-function 2)
 (put 'with-parsed-tramp-file-name 'edebug-form-spec '(form symbolp body))
@@ -1627,24 +1662,27 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
 If LEVEL does not fit for visible messages, there are only traces
 without a visible progress reporter."
   (declare (indent 3) (debug t))
-  `(let ((result "failed")
-	 pr tm)
+  `(progn
      (tramp-message ,vec ,level "%s..." ,message)
-     ;; We start a pulsing progress reporter after 3 seconds.  Feature
-     ;; introduced in Emacs 24.1.
-     (when (and tramp-message-show-message
-		;; Display only when there is a minimum level.
-		(<= ,level (min tramp-verbose 3)))
-       (ignore-errors
-	 (setq pr (tramp-compat-funcall 'make-progress-reporter ,message)
-	       tm (when pr
-		    (run-at-time 3 0.1 'tramp-progress-reporter-update pr)))))
-     (unwind-protect
-	 ;; Execute the body.
-	 (prog1 (progn ,@body) (setq result "done"))
-       ;; Stop progress reporter.
-       (if tm (tramp-compat-funcall 'cancel-timer tm))
-       (tramp-message ,vec ,level "%s...%s" ,message result))))
+     (let ((result "failed")
+           (tm
+            ;; We start a pulsing progress reporter after 3 seconds.  Feature
+            ;; introduced in Emacs 24.1.
+            (when (and tramp-message-show-message
+                       ;; Display only when there is a minimum level.
+                       (<= ,level (min tramp-verbose 3)))
+              (ignore-errors
+                (let ((pr (tramp-compat-funcall
+                           #'make-progress-reporter ,message)))
+                  (when pr
+                    (run-at-time 3 0.1
+                                 #'tramp-progress-reporter-update pr)))))))
+       (unwind-protect
+           ;; Execute the body.
+           (prog1 (progn ,@body) (setq result "done"))
+         ;; Stop progress reporter.
+         (if tm (tramp-compat-funcall 'cancel-timer tm))
+         (tramp-message ,vec ,level "%s...%s" ,message result)))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
@@ -3206,7 +3244,7 @@ User is always nil."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(tramp-compat-user-error "Shell command in progress")))
+	(tramp-user-error p "Shell command in progress")))
 
     (if current-buffer-p
 	(progn
@@ -3281,7 +3319,7 @@ beginning of local filename are not substituted."
 	  (setq filename (concat filename "/"))))
       (tramp-run-real-handler 'substitute-in-file-name (list filename)))))
 
-(defun tramp-handle-unhandled-file-name-directory (filename)
+(defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."
   ;; With Emacs 23, we could simply return `nil'.  But we must keep it
   ;; for backward compatibility.
@@ -3341,7 +3379,7 @@ of."
 	     ;; only if that agrees with the buffer's record.
 	     (t (equal mt '(-1 65535))))))))))
 
-(defun tramp-handle-file-notify-add-watch (filename flags callback)
+(defun tramp-handle-file-notify-add-watch (filename _flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
   ;; This is the default handler.  tramp-gvfs.el and tramp-sh.el have
   ;; its own one.
@@ -3350,7 +3388,6 @@ of."
     (tramp-error
      v 'file-notify-error "File notification not supported for `%s'" filename)))
 
-(defvar file-notify-descriptors)
 (defun tramp-handle-file-notify-rm-watch (proc)
   "Like `file-notify-rm-watch' for Tramp files."
   ;; The descriptor must be a process object.
@@ -3365,7 +3402,7 @@ of."
 ;; prompts from the remote host.  See the variable
 ;; `tramp-actions-before-shell' for usage of these functions.
 
-(defun tramp-action-login (proc vec)
+(defun tramp-action-login (_proc vec)
   "Send the login name."
   (when (not (stringp tramp-current-user))
     (setq tramp-current-user
@@ -3392,11 +3429,11 @@ of."
       ;; Hide password prompt.
       (narrow-to-region (point-max) (point-max)))))
 
-(defun tramp-action-succeed (proc vec)
+(defun tramp-action-succeed (_proc _vec)
   "Signal success in finding shell prompt."
   (throw 'tramp-action 'ok))
 
-(defun tramp-action-permission-denied (proc vec)
+(defun tramp-action-permission-denied (proc _vec)
   "Signal permission denied."
   (kill-process proc)
   (throw 'tramp-action 'permission-denied))
@@ -3429,7 +3466,7 @@ See also `tramp-action-yesno'."
 	(tramp-message vec 6 "\n%s" (buffer-string)))
       (tramp-send-string vec (concat "y" tramp-local-end-of-line)))))
 
-(defun tramp-action-terminal (proc vec)
+(defun tramp-action-terminal (_proc vec)
   "Tell the remote host which terminal type to use.
 The terminal type can be configured with `tramp-terminal-type'."
   (tramp-message vec 5 "Setting `%s' as terminal type." tramp-terminal-type)
@@ -3437,7 +3474,7 @@ The terminal type can be configured with `tramp-terminal-type'."
     (tramp-message vec 6 "\n%s" (buffer-string)))
   (tramp-send-string vec (concat tramp-terminal-type tramp-local-end-of-line)))
 
-(defun tramp-action-process-alive (proc vec)
+(defun tramp-action-process-alive (proc _vec)
   "Check, whether a process has finished."
   (unless (memq (process-status proc) '(run open))
     (throw 'tramp-action 'process-died)))
@@ -4181,9 +4218,6 @@ Only works for Bourne-like shells."
 	result))))
 
 ;;; Integration of eshell.el:
-
-(eval-when-compile
-  (defvar eshell-path-env))
 
 ;; eshell.el keeps the path in `eshell-path-env'.  We must change it
 ;; when `default-directory' points to another host.

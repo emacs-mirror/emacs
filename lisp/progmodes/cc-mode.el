@@ -217,12 +217,16 @@ control).  See \"cc-mode.el\" for more info."
      (t (error "CC Mode is incompatible with this version of Emacs")))
     map))
 
-(defun c-define-abbrev-table (name defs)
+(defun c-define-abbrev-table (name defs &optional doc)
   ;; Compatibility wrapper for `define-abbrev' which passes a non-nil
   ;; sixth argument for SYSTEM-FLAG in emacsen that support it
   ;; (currently only Emacs >= 21.2).
-  (let ((table (or (symbol-value name)
-		   (progn (define-abbrev-table name nil)
+  (let ((table (or (and (boundp name) (symbol-value name))
+		   (progn (condition-case nil
+                              (define-abbrev-table name nil doc)
+                            (wrong-number-of-arguments ;E.g. Emacs<23.
+                             (eval `(defvar ,name nil ,doc))
+                             (define-abbrev-table name nil)))
 			  (symbol-value name)))))
     (while defs
       (condition-case nil
@@ -1235,27 +1239,22 @@ This function is called from `c-common-init', once per mode initialization."
 
 ;; Support for C
 
-;;;###autoload
-(defvar c-mode-syntax-table nil
+(defvar c-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table c))
   "Syntax table used in c-mode buffers.")
-(or c-mode-syntax-table
-    (setq c-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table c))))
 
-(defvar c-mode-abbrev-table nil
-  "Abbreviation table used in c-mode buffers.")
 (c-define-abbrev-table 'c-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+    ("while" "while" c-electric-continued-statement 0))
+  "Abbreviation table used in c-mode buffers.")
 
-(defvar c-mode-map ()
+(defvar c-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Add bindings which are only useful for C.
+    (define-key map "\C-c\C-e"  'c-macro-expand)
+    map)
   "Keymap used in c-mode buffers.")
-(if c-mode-map
-    nil
-  (setq c-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for C
-  (define-key c-mode-map "\C-c\C-e"  'c-macro-expand)
-  )
+
 
 (easy-menu-define c-c-menu c-mode-map "C Mode Commands"
 		  (cons "C" (c-lang-const c-mode-menu c)))
@@ -1320,30 +1319,25 @@ Key bindings:
 
 ;; Support for C++
 
-;;;###autoload
-(defvar c++-mode-syntax-table nil
+(defvar c++-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table c++))
   "Syntax table used in c++-mode buffers.")
-(or c++-mode-syntax-table
-    (setq c++-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table c++))))
 
-(defvar c++-mode-abbrev-table nil
-  "Abbreviation table used in c++-mode buffers.")
 (c-define-abbrev-table 'c++-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
     ("while" "while" c-electric-continued-statement 0)
-    ("catch" "catch" c-electric-continued-statement 0)))
+    ("catch" "catch" c-electric-continued-statement 0))
+  "Abbreviation table used in c++-mode buffers.")
 
-(defvar c++-mode-map ()
+(defvar c++-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Add bindings which are only useful for C++.
+    (define-key map "\C-c\C-e" 'c-macro-expand)
+    (define-key map "\C-c:"    'c-scope-operator)
+    (define-key map "<"        'c-electric-lt-gt)
+    (define-key map ">"        'c-electric-lt-gt)
+    map)
   "Keymap used in c++-mode buffers.")
-(if c++-mode-map
-    nil
-  (setq c++-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for C++
-  (define-key c++-mode-map "\C-c\C-e" 'c-macro-expand)
-  (define-key c++-mode-map "\C-c:"    'c-scope-operator)
-  (define-key c++-mode-map "<"        'c-electric-lt-gt)
-  (define-key c++-mode-map ">"        'c-electric-lt-gt))
 
 (easy-menu-define c-c++-menu c++-mode-map "C++ Mode Commands"
 		  (cons "C++" (c-lang-const c-mode-menu c++)))
@@ -1380,26 +1374,21 @@ Key bindings:
 
 ;; Support for Objective-C
 
-;;;###autoload
-(defvar objc-mode-syntax-table nil
+(defvar objc-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table objc))
   "Syntax table used in objc-mode buffers.")
-(or objc-mode-syntax-table
-    (setq objc-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table objc))))
 
-(defvar objc-mode-abbrev-table nil
-  "Abbreviation table used in objc-mode buffers.")
 (c-define-abbrev-table 'objc-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+    ("while" "while" c-electric-continued-statement 0))
+  "Abbreviation table used in objc-mode buffers.")
 
-(defvar objc-mode-map ()
+(defvar objc-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Add bindings which are only useful for Objective-C.
+    (define-key map "\C-c\C-e" 'c-macro-expand)
+    map)
   "Keymap used in objc-mode buffers.")
-(if objc-mode-map
-    nil
-  (setq objc-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for Objective-C
-  (define-key objc-mode-map "\C-c\C-e" 'c-macro-expand))
 
 (easy-menu-define c-objc-menu objc-mode-map "ObjC Mode Commands"
 		  (cons "ObjC" (c-lang-const c-mode-menu objc)))
@@ -1438,28 +1427,22 @@ Key bindings:
 
 ;; Support for Java
 
-;;;###autoload
-(defvar java-mode-syntax-table nil
+(defvar java-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table java))
   "Syntax table used in java-mode buffers.")
-(or java-mode-syntax-table
-    (setq java-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table java))))
 
-(defvar java-mode-abbrev-table nil
-  "Abbreviation table used in java-mode buffers.")
 (c-define-abbrev-table 'java-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
     ("while" "while" c-electric-continued-statement 0)
     ("catch" "catch" c-electric-continued-statement 0)
-    ("finally" "finally" c-electric-continued-statement 0)))
+    ("finally" "finally" c-electric-continued-statement 0))
+  "Abbreviation table used in java-mode buffers.")
 
-(defvar java-mode-map ()
+(defvar java-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Add bindings which are only useful for Java.
+    map)
   "Keymap used in java-mode buffers.")
-(if java-mode-map
-    nil
-  (setq java-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for Java
-  )
 
 ;; Regexp trying to describe the beginning of a Java top-level
 ;; definition.  This is not used by CC Mode, nor is it maintained
@@ -1504,24 +1487,18 @@ Key bindings:
 
 ;; Support for CORBA's IDL language
 
-;;;###autoload
-(defvar idl-mode-syntax-table nil
+(defvar idl-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table idl))
   "Syntax table used in idl-mode buffers.")
-(or idl-mode-syntax-table
-    (setq idl-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table idl))))
 
-(defvar idl-mode-abbrev-table nil
+(c-define-abbrev-table 'idl-mode-abbrev-table nil
   "Abbreviation table used in idl-mode buffers.")
-(c-define-abbrev-table 'idl-mode-abbrev-table nil)
 
-(defvar idl-mode-map ()
+(defvar idl-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Add bindings which are only useful for IDL.
+    map)
   "Keymap used in idl-mode buffers.")
-(if idl-mode-map
-    nil
-  (setq idl-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for IDL
-  )
 
 (easy-menu-define c-idl-menu idl-mode-map "IDL Mode Commands"
 		  (cons "IDL" (c-lang-const c-mode-menu idl)))
@@ -1558,26 +1535,21 @@ Key bindings:
 
 ;; Support for Pike
 
-;;;###autoload
-(defvar pike-mode-syntax-table nil
+(defvar pike-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table pike))
   "Syntax table used in pike-mode buffers.")
-(or pike-mode-syntax-table
-    (setq pike-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table pike))))
 
-(defvar pike-mode-abbrev-table nil
-  "Abbreviation table used in pike-mode buffers.")
 (c-define-abbrev-table 'pike-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+    ("while" "while" c-electric-continued-statement 0))
+  "Abbreviation table used in pike-mode buffers.")
 
-(defvar pike-mode-map ()
+(defvar pike-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Additional bindings.
+    (define-key map "\C-c\C-e" 'c-macro-expand)
+    map)
   "Keymap used in pike-mode buffers.")
-(if pike-mode-map
-    nil
-  (setq pike-mode-map (c-make-inherited-keymap))
-  ;; additional bindings
-  (define-key pike-mode-map "\C-c\C-e" 'c-macro-expand))
 
 (easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
@@ -1626,28 +1598,26 @@ Key bindings:
 ;;; autoload form instead.
 ;;;###autoload (autoload 'awk-mode "cc-mode" "Major mode for editing AWK code." t)
 
-(defvar awk-mode-abbrev-table nil
-  "Abbreviation table used in awk-mode buffers.")
 (c-define-abbrev-table 'awk-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
-    ("while" "while" c-electric-continued-statement 0)))
+    ("while" "while" c-electric-continued-statement 0))
+  "Abbreviation table used in awk-mode buffers.")
 
-(defvar awk-mode-map ()
+(defvar awk-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    ;; Add bindings which are only useful for awk.
+    (define-key map "#" 'self-insert-command)
+    (define-key map "/" 'self-insert-command)
+    (define-key map "*" 'self-insert-command)
+    (define-key map "\C-c\C-n" 'undefined) ; #if doesn't exist in awk.
+    (define-key map "\C-c\C-p" 'undefined)
+    (define-key map "\C-c\C-u" 'undefined)
+    (define-key map "\M-a" 'c-beginning-of-statement) ; 2003/10/7
+    (define-key map "\M-e" 'c-end-of-statement)       ; 2003/10/7
+    (define-key map "\C-\M-a" 'c-awk-beginning-of-defun)
+    (define-key map "\C-\M-e" 'c-awk-end-of-defun)
+    map)
   "Keymap used in awk-mode buffers.")
-(if awk-mode-map
-    nil
-  (setq awk-mode-map (c-make-inherited-keymap))
-  ;; add bindings which are only useful for awk.
-  (define-key awk-mode-map "#" 'self-insert-command)
-  (define-key awk-mode-map "/" 'self-insert-command)
-  (define-key awk-mode-map "*" 'self-insert-command)
-  (define-key awk-mode-map "\C-c\C-n" 'undefined) ; #if doesn't exist in awk.
-  (define-key awk-mode-map "\C-c\C-p" 'undefined)
-  (define-key awk-mode-map "\C-c\C-u" 'undefined)
-  (define-key awk-mode-map "\M-a" 'c-beginning-of-statement) ; 2003/10/7
-  (define-key awk-mode-map "\M-e" 'c-end-of-statement) ; 2003/10/7
-  (define-key awk-mode-map "\C-\M-a" 'c-awk-beginning-of-defun)
-  (define-key awk-mode-map "\C-\M-e" 'c-awk-end-of-defun))
 
 (easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands"
 		  (cons "AWK" (c-lang-const c-mode-menu awk)))

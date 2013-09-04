@@ -457,19 +457,27 @@ Return the max version (as a string) if the package is held at a lower version."
 
 (defun package-activate-1 (pkg-desc)
   (let* ((name (package-desc-name pkg-desc))
-	 (pkg-dir (package-desc-dir pkg-desc)))
+	 (pkg-dir (package-desc-dir pkg-desc))
+         (pkg-dir-dir (file-name-as-directory pkg-dir)))
     (unless pkg-dir
       (error "Internal error: unable to find directory for `%s'"
 	     (package-desc-full-name pkg-desc)))
+    ;; Add to load path, add autoloads, and activate the package.
+    (let ((old-lp load-path))
+      (with-demoted-errors
+        (load (expand-file-name (format "%s-autoloads" name) pkg-dir) nil t))
+      (when (and (eq old-lp load-path)
+                 (not (or (member pkg-dir load-path)
+                          (member pkg-dir-dir load-path))))
+        ;; Old packages don't add themselves to the `load-path', so we have to
+        ;; do it ourselves.
+        (push pkg-dir load-path)))
     ;; Add info node.
     (when (file-exists-p (expand-file-name "dir" pkg-dir))
       ;; FIXME: not the friendliest, but simple.
       (require 'info)
       (info-initialize)
       (push pkg-dir Info-directory-list))
-    ;; Add to load path, add autoloads, and activate the package.
-    (push pkg-dir load-path)
-    (load (expand-file-name (format "%s-autoloads" name) pkg-dir) nil t)
     (push name package-activated-list)
     ;; Don't return nil.
     t))
@@ -981,7 +989,7 @@ error.  If there is a package, narrow the buffer to the file's
 boundaries."
   (goto-char (point-min))
   (unless (re-search-forward "^;;; \\([^ ]*\\)\\.el ---[ \t]*\\(.*?\\)[ \t]*\\(-\\*-.*-\\*-[ \t]*\\)?$" nil t)
-    (error "Packages lacks a file header"))
+    (error "Package lacks a file header"))
   (let ((file-name (match-string-no-properties 1))
 	(desc      (match-string-no-properties 2))
 	(start     (line-beginning-position)))

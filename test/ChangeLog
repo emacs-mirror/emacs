@@ -1,7 +1,51 @@
+2013-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Avoid leading space in $wins.
+	Otherwise the sed command used by eg compile-main ends up
+	containing "/*.el".  (Bug#15170)
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-21  David Engster  <deng@randomsample.de>
+
+	* automated/eieio-tests.el, automated/eieio-test-persist.el:
+	* automated/eieio-test-methodinvoke.el: EIEIO tests from CEDET
+	upstream.  Changed to use ERT.
+
+2013-08-14  Daniel Hackney  <dan@haxney.org>
+
+	* package-test.el: Remove tar-package-building functions.  Tar file
+	used for testing is included in the repository.
+	(package-test-install-texinfo, package-test-cleanup-built-files):
+	Remove.
+
+2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-4)
+	(python-imenu-create-flat-index-2): New tests.
+
+2013-08-05  Glenn Morris  <rgm@gnu.org>
+
+	* automated/mule-util.el: New file, with tests extracted from
+	lisp/international/mule-util.el.
+
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el (advice-tests-nadvice): Test removal
+	before definition.
+	(advice-tests-macroaliases): New test.
+
 2013-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ert-tests.el: Disable failing test that no-one seems
+	to know how to fix.  (Bug#13064)
 
 	* automated/icalendar-tests.el (icalendar-tests--test-export)
 	(icalendar-tests--test-import): Try more precise TZ specification.
+	Remove debug messages.
 
 2013-08-03  Glenn Morris  <rgm@gnu.org>
 

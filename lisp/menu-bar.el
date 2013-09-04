@@ -1307,26 +1307,6 @@ mail status in mode line"))
 
 ;; The "Tools" menu items
 
-(defun send-mail-item-name ()
-  (let* ((known-send-mail-commands '((sendmail-user-agent . "sendmail")
-				     (mh-e-user-agent . "MH")
-				     (message-user-agent . "Gnus Message")
-				     (gnus-user-agent . "Gnus")))
-	 (name (assq mail-user-agent known-send-mail-commands)))
-    (if name
-	(setq name (cdr name))
-      (setq name (symbol-name mail-user-agent))
-      (if (string-match "\\(.+\\)-user-agent" name)
-	  (setq name (match-string 1 name))))
-    name))
-
-(defun read-mail-item-name ()
-  (let* ((known-rmail-commands '((rmail . "RMAIL")
-				 (mh-rmail . "MH")
-				 (gnus . "Gnus")))
-	 (known (assq read-mail-command known-rmail-commands)))
-    (if known (cdr known) (symbol-name read-mail-command))))
-
 (defvar menu-bar-games-menu
   (let ((menu (make-sparse-keymap "Games")))
 
@@ -1473,18 +1453,17 @@ mail status in mode line"))
     (bindings--define-key menu [directory-search]
       '(menu-item "Directory Search" eudc-tools-menu))
     (bindings--define-key menu [compose-mail]
-      '(menu-item (format "Send Mail (with %s)" (send-mail-item-name)) compose-mail
+      '(menu-item "Compose New Mail" compose-mail
                   :visible (and mail-user-agent (not (eq mail-user-agent 'ignore)))
-                  :help "Send a mail message"))
+                  :help "Start writing a new mail message"))
     (bindings--define-key menu [rmail]
-      '(menu-item (format "Read Mail (with %s)" (read-mail-item-name))
-                  menu-bar-read-mail
+      '(menu-item "Read Mail" menu-bar-read-mail
                   :visible (and read-mail-command
                                 (not (eq read-mail-command 'ignore)))
-                  :help "Read your mail and reply to it"))
+                  :help "Read your mail"))
 
     (bindings--define-key menu [gnus]
-      '(menu-item "Read Net News (Gnus)" gnus
+      '(menu-item "Read Net News" gnus
                   :help "Read network news groups"))
 
     (bindings--define-key menu [separator-vc]

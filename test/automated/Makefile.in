@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -52,7 +52,7 @@ emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | ./data* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 

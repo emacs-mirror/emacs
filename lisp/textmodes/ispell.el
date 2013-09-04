@@ -2218,7 +2218,7 @@ Global `ispell-quit' set to start location to continue spell session."
 	(window-min-height (min window-min-height
 				ispell-choices-win-default-height))
 	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
-	(dedicated (window-dedicated-p (selected-window)))
+	(dedicated (window-dedicated-p))
 	(skipped 0)
 	char num result textwin dedicated-win)
 

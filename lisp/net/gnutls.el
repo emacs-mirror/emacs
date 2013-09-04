@@ -111,11 +111,7 @@ trust and key files, and priority string."
                     :type 'gnutls-x509pki
                     :hostname host))
 
-(put 'gnutls-error
-     'error-conditions
-     '(error gnutls-error))
-(put 'gnutls-error
-     'error-message "GnuTLS error")
+(define-error 'gnutls-error "GnuTLS error")
 
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))

@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2013
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1224,6 +1224,24 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (format "%d" (car signature)))
 	(t (format "%d-%d" (car signature) (cdr signature)))))
 
+(defun byte-compile-function-warn (f nargs def)
+  (when (get f 'byte-obsolete-info)
+    (byte-compile-warn-obsolete f))
+
+  ;; Check to see if the function will be available at runtime
+  ;; and/or remember its arity if it's unknown.
+  (or (and (or def (fboundp f))         ; might be a subr or autoload.
+           (not (memq f byte-compile-noruntime-functions)))
+      (eq f byte-compile-current-form)  ; ## This doesn't work
+                                        ; with recursion.
+      ;; It's a currently-undefined function.
+      ;; Remember number of args in call.
+      (let ((cons (assq f byte-compile-unresolved-functions)))
+        (if cons
+            (or (memq nargs (cdr cons))
+                (push nargs (cdr cons)))
+          (push (list f nargs)
+                byte-compile-unresolved-functions)))))
 
 ;; Warn if the form is calling a function with the wrong number of arguments.
 (defun byte-compile-callargs-warn (form)
@@ -1261,21 +1279,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	     "accepts only")
 	   (byte-compile-arglist-signature-string sig))))
     (byte-compile-format-warn form)
-    ;; Check to see if the function will be available at runtime
-    ;; and/or remember its arity if it's unknown.
-    (or (and (or def (fboundp (car form))) ; might be a subr or autoload.
-	     (not (memq (car form) byte-compile-noruntime-functions)))
-	(eq (car form) byte-compile-current-form) ; ## This doesn't work
-                                                  ; with recursion.
-	;; It's a currently-undefined function.
-	;; Remember number of args in call.
-	(let ((cons (assq (car form) byte-compile-unresolved-functions))
-	      (n (length (cdr form))))
-	  (if cons
-	      (or (memq n (cdr cons))
-		  (setcdr cons (cons n (cdr cons))))
-	    (push (list (car form) n)
-		  byte-compile-unresolved-functions))))))
+    (byte-compile-function-warn (car form) (length (cdr form)) def)))
 
 (defun byte-compile-format-warn (form)
   "Warn if FORM is `format'-like with inconsistent args.
@@ -1364,7 +1368,10 @@ extra args."
       ;; This is the first definition.  See if previous calls are compatible.
       (let ((calls (assq name byte-compile-unresolved-functions))
 	    nums sig min max)
-	(when calls
+        (setq byte-compile-unresolved-functions
+              (delq calls byte-compile-unresolved-functions))
+        (setq calls (delq t calls))  ;Ignore higher-order uses of the function.
+	(when (cdr calls)
           (when (and (symbolp name)
                      (eq (function-get name 'byte-optimizer)
                          'byte-compile-inline-expand))
@@ -1382,10 +1389,7 @@ extra args."
              name
              (byte-compile-arglist-signature-string sig)
              (if (equal sig '(1 . 1)) " arg" " args")
-             (byte-compile-arglist-signature-string (cons min max))))
-
-          (setq byte-compile-unresolved-functions
-                (delq calls byte-compile-unresolved-functions)))))))
+             (byte-compile-arglist-signature-string (cons min max)))))))))
 
 (defvar byte-compile-cl-functions nil
   "List of functions defined in CL.")
@@ -1589,14 +1593,14 @@ that already has a `.elc' file."
 	 (message "Checking %s..." directory)
          (dolist (file (directory-files directory))
            (let ((source (expand-file-name file directory)))
-             (if (and (not (member file '("RCS" "CVS")))
-                      (not (eq ?\. (aref file 0)))
-                      (file-directory-p source)
-                      (not (file-symlink-p source)))
-                 ;; This file is a subdirectory.  Handle them differently.
-                 (when (or (null arg) (eq 0 arg)
-                           (y-or-n-p (concat "Check " source "? ")))
-                   (setq directories (nconc directories (list source))))
+	     (if (file-directory-p source)
+		 (and (not (member file '("RCS" "CVS")))
+		      (not (eq ?\. (aref file 0)))
+		      (not (file-symlink-p source))
+		      ;; This file is a subdirectory.  Handle them differently.
+		      (or (null arg) (eq 0 arg)
+			  (y-or-n-p (concat "Check " source "? ")))
+		      (setq directories (nconc directories (list source))))
                ;; It is an ordinary file.  Decide whether to compile it.
                (if (and (string-match emacs-lisp-file-regexp source)
 			;; The next 2 tests avoid compiling lock files
@@ -2214,37 +2218,33 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-autoload (form)
   (and (let ((form form))
 	 (while (if (setq form (cdr form)) (macroexp-const-p (car form))))
-	 (null form))			;Constants only
+	 (null form))                        ;Constants only
        (memq (eval (nth 5 form)) '(t macro)) ;Macro
-       (eval form))			;Define the autoload.
+       (eval form))                          ;Define the autoload.
   ;; Avoid undefined function warnings for the autoload.
-  (when (and (consp (nth 1 form))
-	   (eq (car (nth 1 form)) 'quote)
-	   (consp (cdr (nth 1 form)))
-	   (symbolp (nth 1 (nth 1 form))))
-    ;; Don't add it if it's already defined.  Otherwise, it might
-    ;; hide the actual definition.  However, do remove any entry from
-    ;; byte-compile-noruntime-functions, in case we have an autoload
-    ;; of foo-func following an (eval-when-compile (require 'foo)).
-    (unless (fboundp (nth 1 (nth 1 form)))
-      (push (cons (nth 1 (nth 1 form))
-		  (cons 'autoload (cdr (cdr form))))
-	    byte-compile-function-environment))
-    ;; If an autoload occurs _before_ the first call to a function,
-    ;; byte-compile-callargs-warn does not add an entry to
-    ;; byte-compile-unresolved-functions.  Here we mimic the logic
-    ;; of byte-compile-callargs-warn so as not to warn if the
-    ;; autoload comes _after_ the function call.
-    ;; Alternatively, similar logic could go in
-    ;; byte-compile-warn-about-unresolved-functions.
-    (if (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
-	(setq byte-compile-noruntime-functions
-	      (delq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
-	      byte-compile-noruntime-functions)
-      (setq byte-compile-unresolved-functions
-	    (delq (assq (nth 1 (nth 1 form))
-			byte-compile-unresolved-functions)
-		  byte-compile-unresolved-functions))))
+  (pcase (nth 1 form)
+    (`',(and (pred symbolp) funsym)
+     ;; Don't add it if it's already defined.  Otherwise, it might
+     ;; hide the actual definition.  However, do remove any entry from
+     ;; byte-compile-noruntime-functions, in case we have an autoload
+     ;; of foo-func following an (eval-when-compile (require 'foo)).
+     (unless (fboundp funsym)
+       (push (cons funsym (cons 'autoload (cdr (cdr form))))
+             byte-compile-function-environment))
+     ;; If an autoload occurs _before_ the first call to a function,
+     ;; byte-compile-callargs-warn does not add an entry to
+     ;; byte-compile-unresolved-functions.  Here we mimic the logic
+     ;; of byte-compile-callargs-warn so as not to warn if the
+     ;; autoload comes _after_ the function call.
+     ;; Alternatively, similar logic could go in
+     ;; byte-compile-warn-about-unresolved-functions.
+     (if (memq funsym byte-compile-noruntime-functions)
+         (setq byte-compile-noruntime-functions
+               (delq funsym byte-compile-noruntime-functions)
+               byte-compile-noruntime-functions)
+       (setq byte-compile-unresolved-functions
+             (delq (assq funsym byte-compile-unresolved-functions)
+                   byte-compile-unresolved-functions)))))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.
@@ -2964,8 +2964,6 @@ That command is designed for interactive use only" fn))
               '(custom-declare-group custom-declare-variable
                                      custom-declare-face))
         (byte-compile-nogroup-warn form))
-    (when (get (car form) 'byte-obsolete-info)
-      (byte-compile-warn-obsolete (car form)))
     (byte-compile-callargs-warn form))
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
@@ -3574,10 +3572,15 @@ discarding."
 ;; and (funcall (function foo)) will lose with autoloads.
 
 (defun byte-compile-function-form (form)
-  (byte-compile-constant (if (eq 'lambda (car-safe (nth 1 form)))
-                             (byte-compile-lambda (nth 1 form))
-                           (nth 1 form))))
+  (let ((f (nth 1 form)))
+    (when (and (symbolp f)
+               (byte-compile-warning-enabled-p 'callargs))
+      (byte-compile-function-warn f t (byte-compile-fdefinition f nil)))
 
+    (byte-compile-constant (if (eq 'lambda (car-safe f))
+                               (byte-compile-lambda f)
+                             f))))
+  
 (defun byte-compile-indent-to (form)
   (let ((len (length form)))
     (cond ((= len 2)
@@ -4271,7 +4274,7 @@ binding slots have been popped."
   (if (and (eq (car-safe (car-safe (cdr-safe form))) 'quote)
            (byte-compile-warning-enabled-p 'make-local))
       (byte-compile-warn
-       "`make-variable-buffer-local' should be called at toplevel"))
+       "`make-variable-buffer-local' not called at toplevel"))
   (byte-compile-normal-call form))
 (put 'make-variable-buffer-local
      'byte-hunk-handler 'byte-compile-form-make-variable-buffer-local)

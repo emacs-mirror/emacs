@@ -41,9 +41,9 @@
 ;;
 ;; (if (eq window-system 'x)
 ;;     (mouse-avoidance-set-pointer-shape
-;;	     (eval (nth (random 4)
-;;			'(x-pointer-man x-pointer-spider
-;;			  x-pointer-gobbler x-pointer-gumby)))))
+;;	     (nth (random 4)
+;;		  (list x-pointer-man x-pointer-spider
+;;			x-pointer-gobbler x-pointer-gumby))))
 ;;
 ;; For completely random pointer shape, replace the setq above with:
 ;; (setq x-pointer-shape (mouse-avoidance-random-shape))
@@ -154,13 +154,15 @@ TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
 (defun mouse-avoidance-point-position ()
   "Return the position of point as (FRAME X . Y).
 Analogous to `mouse-position'."
-  (let ((edges (window-inside-edges))
-	(x-y (posn-x-y (posn-at-point))))
-    (cons (selected-frame)
-	  (cons (+ (car edges)
-		   (/ (car x-y) (frame-char-width)))
-		(+ (car (cdr edges))
-		   (/ (cdr x-y) (frame-char-height)))))))
+  (let* ((edges (window-inside-edges))
+	 (posn-at-point (posn-at-point))
+	 (x-y (and posn-at-point (posn-x-y posn-at-point))))
+    (when x-y
+      (cons (selected-frame)
+	    (cons (+ (car edges)
+		     (/ (car x-y) (frame-char-width)))
+		  (+ (car (cdr edges))
+		     (/ (cdr x-y) (frame-char-height))))))))
 
 ;(defun mouse-avoidance-point-position-test ()
 ;  (interactive)
@@ -185,19 +187,21 @@ MOUSE is the current mouse position as returned by `mouse-position'.
 Acceptable distance is defined by `mouse-avoidance-threshold'."
   (let* ((frame (car mouse))
 	 (mouse-y (cdr (cdr mouse)))
-	 (tool-bar-lines (frame-parameter nil 'tool-bar-lines)))
+	 (tool-bar-lines (frame-parameter nil 'tool-bar-lines))
+	 point)
     (or tool-bar-lines
 	(setq tool-bar-lines 0))
-    (if (and mouse-y (< mouse-y tool-bar-lines))
-	nil
-      (let ((point (mouse-avoidance-point-position))
-	    (mouse-x (car (cdr mouse))))
+    (cond
+     ((and mouse-y (< mouse-y tool-bar-lines))
+      nil)
+     ((setq point (mouse-avoidance-point-position))
+      (let ((mouse-x (car (cdr mouse))))
 	(and (eq frame (car point))
 	     (not (null mouse-x))
 	     (< (abs (- mouse-x (car (cdr point))))
 		mouse-avoidance-threshold)
 	     (< (abs (- mouse-y (cdr (cdr point))))
-		mouse-avoidance-threshold))))))
+		mouse-avoidance-threshold)))))))
 
 (defun mouse-avoidance-banish-destination ()
   "The position to which Mouse Avoidance mode `banish' moves the mouse.

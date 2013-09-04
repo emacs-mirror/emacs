@@ -890,9 +890,8 @@ argument @var{data} is a list of additional Lisp objects relevant to
 the circumstances of the error.
 
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
-bearing a property @code{error-conditions} whose value is a list of
-condition names.  This is how Emacs Lisp classifies different sorts of
-errors. @xref{Error Symbols}, for a description of error symbols,
+defined with @code{define-error}.  This is how Emacs Lisp classifies different
+sorts of errors. @xref{Error Symbols}, for a description of error symbols,
 error conditions and condition names.
 
 If the error is not handled, the two arguments are used in printing
@@ -1118,8 +1117,8 @@ Here are examples of handlers:
 @end example
 
 Each error that occurs has an @dfn{error symbol} that describes what
-kind of error it is.  The @code{error-conditions} property of this
-symbol is a list of condition names (@pxref{Error Symbols}).  Emacs
+kind of error it is, and which describes also a list of condition names
+(@pxref{Error Symbols}).  Emacs
 searches all the active @code{condition-case} forms for a handler that
 specifies one or more of these condition names; the innermost matching
 @code{condition-case} handles the error.  Within this
@@ -1259,6 +1258,7 @@ should be robust if one does occur.  Note that this macro uses
 @cindex condition name
 @cindex user-defined error
 @kindex error-conditions
+@kindex define-error
 
   When you signal an error, you specify an @dfn{error symbol} to specify
 the kind of error you have in mind.  Each error has one and only one
@@ -1275,42 +1275,38 @@ Thus, each error has one or more condition names: @code{error}, the
 error symbol if that is distinct from @code{error}, and perhaps some
 intermediate classifications.
 
-  In order for a symbol to be an error symbol, it must have an
-@code{error-conditions} property which gives a list of condition names.
-This list defines the conditions that this kind of error belongs to.
-(The error symbol itself, and the symbol @code{error}, should always be
-members of this list.)  Thus, the hierarchy of condition names is
-defined by the @code{error-conditions} properties of the error symbols.
-Because quitting is not considered an error, the value of the
-@code{error-conditions} property of @code{quit} is just @code{(quit)}.
+@defun define-error name message &optional parent
+  In order for a symbol to be an error symbol, it must be defined with
+@code{define-error} which takes a parent condition (defaults to @code{error}).
+This parent defines the conditions that this kind of error belongs to.
+The transitive set of parents always includes the error symbol itself, and the
+symbol @code{error}.  Because quitting is not considered an error, the set of
+parents of @code{quit} is just @code{(quit)}.
+@end defun
 
 @cindex peculiar error
-  In addition to the @code{error-conditions} list, the error symbol
-should have an @code{error-message} property whose value is a string to
-be printed when that error is signaled but not handled.  If the
-error symbol has no @code{error-message} property or if the
-@code{error-message} property exists, but is not a string, the error
-message @samp{peculiar error} is used.  @xref{Definition of signal}.
+  In addition to its parents, the error symbol has a @var{message} which
+is a string to be printed when that error is signaled but not handled.  If that
+message is not valid, the error message @samp{peculiar error} is used.
+@xref{Definition of signal}.
+
+Internally, the set of parents is stored in the @code{error-conditions}
+property of the error symbol and the message is stored in the
+@code{error-message} property of the error symbol.
 
   Here is how we define a new error symbol, @code{new-error}:
 
 @example
 @group
-(put 'new-error
-     'error-conditions
-     '(error my-own-errors new-error))
-@result{} (error my-own-errors new-error)
-@end group
-@group
-(put 'new-error 'error-message "A new error")
-@result{} "A new error"
+(define-error 'new-error "A new error" 'my-own-errors)
 @end group
 @end example
 
 @noindent
-This error has three condition names: @code{new-error}, the narrowest
+This error has several condition names: @code{new-error}, the narrowest
 classification; @code{my-own-errors}, which we imagine is a wider
-classification; and @code{error}, which is the widest of all.
+classification; and all the conditions of @code{my-own-errors} which should
+include @code{error}, which is the widest of all.
 
   The error string should start with a capital letter but it should
 not end with a period.  This is for consistency with the rest of Emacs.
@@ -1326,7 +1322,7 @@ your code can do this:
 @end group
 @end example
 
-  This error can be handled through any of the three condition names.
+  This error can be handled through any of its condition names.
 This example handles @code{new-error} and any other errors in the class
 @code{my-own-errors}:
 

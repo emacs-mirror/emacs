@@ -190,7 +190,7 @@ individually should stay local."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
-(defun vc-mode (&optional arg)
+(defun vc-mode (&optional _arg)
   ;; Dummy function for C-h m
   "Version Control minor mode.
 This minor mode is automatically activated whenever you visit a file under
@@ -631,7 +631,7 @@ this function."
 (define-obsolete-function-alias
   'vc-toggle-read-only 'toggle-read-only "24.1")
 
-(defun vc-default-make-version-backups-p (backend file)
+(defun vc-default-make-version-backups-p (_backend _file)
   "Return non-nil if unmodified versions should be backed up locally.
 The default is to switch off this feature."
   nil)
@@ -834,7 +834,7 @@ current, and kill the buffer that visits the link."
       (set-buffer true-buffer)
       (kill-buffer this-buffer))))
 
-(defun vc-default-find-file-hook (backend)
+(defun vc-default-find-file-hook (_backend)
   nil)
 
 (defun vc-find-file-hook ()
@@ -1033,7 +1033,7 @@ current, and kill the buffer that visits the link."
 	      '((ext-menu-separator "--"))
               ext-binding))))
 
-(defun vc-default-extra-menu (backend)
+(defun vc-default-extra-menu (_backend)
   nil)
 
 (provide 'vc-hooks)

@@ -2233,8 +2233,7 @@ get_named_tty (const char *name)
 {
   struct terminal *t;
 
-  if (!name)
-    emacs_abort ();
+  eassert (name);
 
   for (t = terminal_list; t; t = t->next_terminal)
     {
@@ -2786,8 +2785,7 @@ create_tty_output (struct frame *f)
 {
   struct tty_output *t = xzalloc (sizeof *t);
 
-  if (! FRAME_TERMCAP_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -2799,8 +2797,7 @@ create_tty_output (struct frame *f)
 static void
 tty_free_frame_resources (struct frame *f)
 {
-  if (! FRAME_TERMCAP_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f));
 
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
@@ -2815,8 +2812,7 @@ tty_free_frame_resources (struct frame *f)
 static void
 tty_free_frame_resources (struct frame *f)
 {
-  if (! FRAME_TERMCAP_P (f) && ! FRAME_MSDOS_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
 
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
@@ -2938,9 +2934,12 @@ dissociate_if_controlling_tty (int fd)
 struct terminal *
 init_tty (const char *name, const char *terminal_type, bool must_succeed)
 {
-  char *area = NULL;
+#ifdef TERMINFO
+  char **address = 0;
+#else
+  char *area;
   char **address = &area;
-  int buffer_size = 4096;
+#endif
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
@@ -3028,12 +3027,16 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
 
   Wcm_clear (tty);
 
-  tty->termcap_term_buffer = xmalloc (buffer_size);
-
   /* On some systems, tgetent tries to access the controlling
      terminal.  */
   block_tty_out_signal ();
+#ifdef TERMINFO
+  status = tgetent (0, terminal_type);
+#else
   status = tgetent (tty->termcap_term_buffer, terminal_type);
+  if (tty->termcap_term_buffer[TERMCAP_BUFFER_SIZE - 1])
+    emacs_abort ();
+#endif
   unblock_tty_out_signal ();
 
   if (status < 0)
@@ -3065,11 +3068,8 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     }
 
 #ifndef TERMINFO
-  if (strlen (tty->termcap_term_buffer) >= buffer_size)
-    emacs_abort ();
-  buffer_size = strlen (tty->termcap_term_buffer);
+  area = tty->termcap_strings_buffer;
 #endif
-  tty->termcap_strings_buffer = area = xmalloc (buffer_size);
   tty->TS_ins_line = tgetstr ("al", address);
   tty->TS_ins_multi_lines = tgetstr ("AL", address);
   tty->TS_bell = tgetstr ("bl", address);
@@ -3443,8 +3443,7 @@ delete_tty (struct terminal *terminal)
   if (!terminal->name)
     return;
 
-  if (terminal->type != output_termcap)
-    emacs_abort ();
+  eassert (terminal->type == output_termcap);
 
   tty = terminal->display_info.tty;
 
@@ -3486,9 +3485,6 @@ delete_tty (struct terminal *terminal)
 
   xfree (tty->old_tty);
   xfree (tty->Wcm);
-  xfree (tty->termcap_strings_buffer);
-  xfree (tty->termcap_term_buffer);
-
   xfree (tty);
 }
 

@@ -523,8 +523,8 @@ window with completion alternatives, or `ido-next-match' or
 
 
 (defcustom ido-record-commands t
-  "Non-nil means that `ido' will record commands in command history.
-Note that the non-ido equivalent command is recorded."
+  "Non-nil means that Ido will record commands in command history.
+Note that the non-Ido equivalent command is recorded."
   :type 'boolean
   :group 'ido)
 
@@ -1789,10 +1789,10 @@ This function also adds a hook to the minibuffer."
   (ido-set-current-directory (expand-file-name (or dir "~/"))))
 
 (defun ido-record-command (command arg)
-  ;; Add (command arg) to command-history if ido-record-commands is t
-  (if ido-record-commands
+  "Add (COMMAND ARG) to `command-history' if `ido-record-commands' is non-nil."
+  (if ido-record-commands		; FIXME: use `when' instead of `if'?
       (let ((cmd (list command arg)))
-	(if (or (not command-history)
+	(if (or (not command-history)	; FIXME: ditto
 		(not (equal cmd (car command-history))))
 	    (setq command-history (cons cmd command-history))))))
 
@@ -3972,12 +3972,11 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
 	    (if (featurep 'xemacs)
 		;; XEmacs extents are put on by default, doesn't seem to be
 		;; any way of switching them off.
-		;; This obscure code avoids a byte compiler warning in Emacs.
-		(let ((f 'display-completion-list))
-		  (funcall f completion-list
-			   :help-string "ido "
-			   :activate-callback
-			   (lambda (x y z) (message "Doesn't work yet, sorry!"))))
+                (display-completion-list
+                 completion-list
+                 :help-string "ido "
+                 :activate-callback
+                 (lambda (&rest _) (message "Doesn't work yet, sorry!")))
 	      ;; else running Emacs
 	      ;;(add-hook 'completion-setup-hook 'completion-setup-function)
 	      (display-completion-list completion-list)))))))

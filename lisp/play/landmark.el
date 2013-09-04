@@ -843,13 +843,13 @@ If the game is finished, this command requests for another game."
 
 (defun landmark-max-width ()
   "Largest possible board width for the current window."
-  (1+ (/ (- (window-width (selected-window))
+  (1+ (/ (- (window-width)
 	    landmark-x-offset landmark-x-offset 1)
 	 landmark-square-width)))
 
 (defun landmark-max-height ()
   "Largest possible board height for the current window."
-  (1+ (/ (- (window-height (selected-window))
+  (1+ (/ (- (window-height)
 	    landmark-y-offset landmark-y-offset 2)
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
 	 landmark-square-height)))

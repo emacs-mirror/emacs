@@ -165,6 +165,8 @@ HIST, if non-nil, specifies a history list as with `completing-read'."
     (setq string (substring string 0 -1)))
   string)
 
+(define-error 'rng-error nil)
+
 (provide 'rng-util)
 
 ;;; rng-util.el ends here

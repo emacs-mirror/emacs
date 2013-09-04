@@ -156,7 +156,7 @@ Keep the cursor on the screen as needed."
   "Determine if it's wise to enable col-scrolling for the current window.
 Basically, we check for existing horizontal scrolling."
   (or truncate-lines
-      (> (window-hscroll (selected-window)) 0)
+      (> (window-hscroll) 0)
       (not (window-full-width-p))
       (and
        mouse-drag-electric-col-scrolling

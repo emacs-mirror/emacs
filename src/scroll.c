@@ -652,8 +652,7 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 
   /* A queue of deletions and insertions to be performed.  */
   struct alt_queue { int count, pos, window; };
-  struct alt_queue *queue_start = (struct alt_queue *)
-    alloca (window_size * sizeof *queue_start);
+  struct alt_queue *queue_start = alloca (window_size * sizeof *queue_start);
   struct alt_queue *queue = queue_start;
 
   /* True if a terminal window has been set with set_terminal_window.  */
@@ -797,9 +796,8 @@ scrolling_1 (struct frame *frame, int window_size, int unchanged_at_top,
 	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
 	     int *old_hash, int *new_hash, int free_at_end)
 {
-  struct matrix_elt *matrix;
-  matrix = ((struct matrix_elt *)
-	    alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix));
+  struct matrix_elt *matrix
+    = alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix);
 
   if (FRAME_SCROLL_REGION_OK (frame))
     {

@@ -1271,6 +1271,9 @@ comment at the start of cc-engine.el for more info."
 	      (throw 'done (point)))))
 	  ;; In trailing space after an as yet undetected virtual semicolon?
 	  (c-backward-syntactic-ws from)
+	  (when (and (bolp) (not (bobp))) ; Can happen in AWK Mode with an
+					  ; unterminated string/regexp.
+	    (backward-char))
 	  (if (and (< (point) to)
 		   (c-at-vsemi-p))
 	      (point)
@@ -6476,6 +6479,15 @@ comment at the start of cc-engine.el for more info."
 	   (c-go-list-forward)
          t)))
 
+(defmacro c-pull-open-brace (ps)
+  ;; Pull the next open brace from PS (which has the form of paren-state),
+  ;; skipping over any brace pairs.  Returns NIL when PS is exhausted.
+  `(progn
+     (while (consp (car ,ps))
+       (setq ,ps (cdr ,ps)))
+     (prog1 (car ,ps)
+       (setq ,ps (cdr ,ps)))))
+
 (defun c-back-over-member-initializers ()
   ;; Test whether we are in a C++ member initializer list, and if so, go back
   ;; to the introducing ":", returning the position of the opening paren of
@@ -8400,15 +8412,6 @@ comment at the start of cc-engine.el for more info."
 	  (back-to-indentation)
 	  (vector (point) open-paren-pos))))))
 
-(defmacro c-pull-open-brace (ps)
-  ;; Pull the next open brace from PS (which has the form of paren-state),
-  ;; skipping over any brace pairs.  Returns NIL when PS is exhausted.
-  `(progn
-     (while (consp (car ,ps))
-       (setq ,ps (cdr ,ps)))
-     (prog1 (car ,ps)
-       (setq ,ps (cdr ,ps)))))
-
 (defun c-most-enclosing-decl-block (paren-state)
   ;; Return the buffer position of the most enclosing decl-block brace (in the
   ;; sense of c-looking-at-decl-block) in the PAREN-STATE structure, or nil if
@@ -8473,10 +8476,10 @@ comment at the start of cc-engine.el for more info."
 	    ;; check for the class key here.
 	    (and (c-major-mode-is 'pike-mode)
 		 c-decl-block-key))
-	   bufpos braceassignp lim next-containing)
+	   bufpos braceassignp lim next-containing macro-start)
        (while (and (not bufpos)
 		   containing-sexp)
-	   (when paren-state
+	 (when paren-state
 	     (if (consp (car paren-state))
 		 (setq lim (cdr (car paren-state))
 		       paren-state (cdr paren-state))
@@ -8557,22 +8560,38 @@ comment at the start of cc-engine.el for more info."
 					  ))))
 				nil)
 			       (t t))))))
-	       (if (and (eq braceassignp 'dontknow)
-			(/= (c-backward-token-2 1 t lim) 0))
-		   (setq braceassignp nil)))
-	     (if (not braceassignp)
-		 (if (eq (char-after) ?\;)
-		     ;; Brace lists can't contain a semicolon, so we're done.
-		     (setq containing-sexp nil)
-		   ;; Go up one level.
-		   (setq containing-sexp next-containing
-			 lim nil
-			 next-containing nil))
-	       ;; we've hit the beginning of the aggregate list
-	       (c-beginning-of-statement-1
-		(c-most-enclosing-brace paren-state))
-	       (setq bufpos (point))))
-	   )
+	     (if (and (eq braceassignp 'dontknow)
+		      (/= (c-backward-token-2 1 t lim) 0))
+		 (setq braceassignp nil)))
+	   (cond
+	    (braceassignp
+	     ;; We've hit the beginning of the aggregate list.
+	     (c-beginning-of-statement-1
+	      (c-most-enclosing-brace paren-state))
+	     (setq bufpos (point)))
+	    ((eq (char-after) ?\;)
+	     ;; Brace lists can't contain a semicolon, so we're done.
+	     (setq containing-sexp nil))
+	    ((and (setq macro-start (point))
+		  (c-forward-to-cpp-define-body)
+		  (eq (point) containing-sexp))
+	     ;; We've a macro whose expansion starts with the '{'.
+	     ;; Heuristically, if we have a ';' in it we've not got a
+	     ;; brace list, otherwise we have.
+	     (let ((macro-end (progn (c-end-of-macro) (point))))
+	       (goto-char containing-sexp)
+	       (forward-char)
+	       (if (and (c-syntactic-re-search-forward "[;,]" macro-end t t)
+			(eq (char-before) ?\;))
+		   (setq bufpos nil
+			 containing-sexp nil)
+		 (setq bufpos macro-start))))
+	    (t
+	     ;; Go up one level
+	     (setq containing-sexp next-containing
+		   lim nil
+		   next-containing nil)))))
+
        bufpos))
    ))
 
@@ -9796,12 +9815,12 @@ comment at the start of cc-engine.el for more info."
 			      (not (eq (char-after) ?:))
 			      )))
 		   (save-excursion
-		     (c-backward-syntactic-ws lim)
-		     (if (eq char-before-ip ?:)
-			 (progn
-			   (forward-char -1)
-			   (c-backward-syntactic-ws lim)))
-		     (back-to-indentation)
+		     (c-beginning-of-statement-1 lim)
+		     (when (looking-at c-opt-<>-sexp-key)
+		       (goto-char (match-end 1))
+		       (c-forward-syntactic-ws)
+		       (c-forward-<>-arglist nil)
+		       (c-forward-syntactic-ws))
 		     (looking-at c-class-key)))
 	      ;; for Java
 	      (and (c-major-mode-is 'java-mode)

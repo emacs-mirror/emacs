@@ -1007,9 +1007,9 @@ supported at a time.
 				 ;; with the selected frame.
 				 (list 'parent (selected-frame)))
 		       speedbar-frame-parameters)
-		     speedbar-before-delete-hook
-		     speedbar-before-popup-hook
-		     speedbar-after-create-hook)
+		     'speedbar-before-delete-hook
+		     'speedbar-before-popup-hook
+		     'speedbar-after-create-hook)
   ;; Start up the timer
   (if (not speedbar-frame)
       (speedbar-set-timer nil)
@@ -2648,7 +2648,7 @@ Also resets scanner functions."
 	      (dframe-select-attached-frame speedbar-frame)
 	      ;; make sure we at least choose a window to
 	      ;; get a good directory from
-	      (if (window-minibuffer-p (selected-window))
+	      (if (window-minibuffer-p)
 		  nil
 		;; Check for special modes
 		(speedbar-maybe-add-localized-support (current-buffer))
@@ -3512,7 +3512,7 @@ interested in."
     (set-buffer speedbar-buffer)
 
     (if (<= (count-lines (point-min) (point-max))
-	    (1- (window-height (selected-window))))
+	    (1- (window-height)))
 	;; whole buffer fits
 	(let ((cp (point)))
 
@@ -3545,7 +3545,7 @@ interested in."
 	      (setq end (point-max)))))
 	;; Now work out the details of centering
 	(let ((nl (count-lines start end))
-              (wl (1- (window-height (selected-window))))
+              (wl (1- (window-height)))
 	      (cp (point)))
 	  (if (> nl wl)
 	      ;; We can't fit it all, so just center on cursor
@@ -3558,12 +3558,12 @@ interested in."
 		nil
 	      ;; we need to do something...
 	      (goto-char start)
-	      (let ((newcent (/ (- (window-height (selected-window)) nl) 2))
+	      (let ((newcent (/ (- (window-height) nl) 2))
 		    (lte (count-lines start (point-max))))
-		(if (and (< (+ newcent lte) (window-height (selected-window)))
-			 (> (- (window-height (selected-window)) lte 1)
+		(if (and (< (+ newcent lte) (window-height))
+			 (> (- (window-height) lte 1)
 			    newcent))
-		    (setq newcent (- (window-height (selected-window))
+		    (setq newcent (- (window-height)
 				     lte 1)))
 		(recenter newcent))))
           (goto-char cp))))))
@@ -3997,7 +3997,7 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 
 (defun speedbar-recenter ()
   "Recenter the current buffer so point is in the center of the window."
-  (recenter (/ (window-height (selected-window)) 2)))
+  (recenter (/ (window-height) 2)))
 
 
 ;;; Color loading section.

@@ -127,8 +127,7 @@ after OUT-BUFFER-NAME."
   "Evaluate EXPRESSION and pretty-print its value.
 Also add the value to the front of the list in the variable `values'."
   (interactive
-   (list (read-from-minibuffer "Eval: " nil read-expression-map t
-			       'read-expression-history)))
+   (list (read--expression "Eval: ")))
   (message "Evaluating...")
   (setq values (cons (eval expression) values))
   (pp-display-expression (car values) "*Pp Eval Output*"))
@@ -137,8 +136,7 @@ Also add the value to the front of the list in the variable `values'."
 (defun pp-macroexpand-expression (expression)
   "Macroexpand EXPRESSION and pretty-print its value."
   (interactive
-   (list (read-from-minibuffer "Macroexpand: " nil read-expression-map t
-			       'read-expression-history)))
+   (list (read--expression "Macroexpand: ")))
   (pp-display-expression (macroexpand expression) "*Pp Macroexpand Output*"))
 
 (defun pp-last-sexp ()

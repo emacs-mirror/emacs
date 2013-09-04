@@ -187,21 +187,15 @@ or to the end of the buffer for a backward search.")
   "Function to save a function restoring the mode-specific Isearch state
 to the search status stack.")
 
-(defvar isearch-filter-predicates nil
-  "Predicates that filter the search hits that would normally be available.
-Search hits that dissatisfy the list of predicates are skipped.
-Each function in this list has two arguments: the positions of
-start and end of text matched by the search.
-The search loop uses `run-hook-with-args-until-failure' to call
-each predicate in order, and when one of the predicates returns nil,
-skips this match and continues searching for the next match.
-When the list of predicates is empty, `run-hook-with-args-until-failure'
-returns non-nil that means that the found match is accepted.
-The property `isearch-message-prefix' put on the predicate's symbol
-specifies the prefix string displayed in the search message.")
-(define-obsolete-variable-alias 'isearch-filter-predicate
-                                'isearch-filter-predicates
-                                "24.4")
+(defvar isearch-filter-predicate #'isearch-filter-visible
+  "Predicate that filter the search hits that would normally be available.
+Search hits that dissatisfy the predicate are skipped.  The function
+has two arguments: the positions of start and end of text matched by
+the search.  If this function returns nil, continue searching without
+stopping at this match.
+If you use `add-function' to modify this variable, you can use the
+`isearch-message-prefix' advice property to specify the prefix string
+displayed in the search message.")
 
 ;; Search ring.
 
@@ -783,7 +777,7 @@ See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
 
-(defun isearch-forward-symbol (&optional not-symbol no-recursive-edit)
+(defun isearch-forward-symbol (&optional _not-symbol no-recursive-edit)
   "Do incremental search forward for a symbol.
 The prefix argument is currently unused.
 Like ordinary incremental search except that your input is treated
@@ -1015,7 +1009,7 @@ NOPUSH is t and EDIT is t."
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight)
   (lazy-highlight-cleanup lazy-highlight-cleanup)
-  (let ((found-start (window-start (selected-window)))
+  (let ((found-start (window-start))
 	(found-point (point)))
     (when isearch-window-configuration
       (set-window-configuration isearch-window-configuration)
@@ -2255,7 +2249,9 @@ the bottom."
 Return the key sequence as a string/vector."
   (isearch-unread-key-sequence keylist)
   (let (overriding-terminal-local-map)
-    (read-key-sequence nil)))  ; This will go through function-key-map, if nec.
+    ;; This will go through function-key-map, if nec.
+    ;; The arg DONT-DOWNCASE-LAST prevents premature shift-translation.
+    (read-key-sequence nil nil t)))
 
 (defun isearch-lookup-scroll-key (key-seq)
   "If KEY-SEQ is bound to a scrolling command, return it as a symbol.
@@ -2313,6 +2309,16 @@ Isearch mode."
 		    (lookup-key local-function-key-map key)))
 	     (while keylist
 	       (setq key (car keylist))
+	       ;; Handle an undefined shifted printing character
+	       ;; by downshifting it if that makes it printing.
+	       ;; (As read-key-sequence would normally do,
+	       ;; if we didn't have a default definition.)
+	       (if (and (integerp key)
+			(memq 'shift (event-modifiers key))
+			(>= key (+ ?\s (- ?\S-a ?a)))
+			(/= key (+ 127 (- ?\S-a ?a)))
+			(<  key (+ 256 (- ?\S-a ?a))))
+		   (setq key (- key (- ?\S-a ?a))))
 	       ;; If KEY is a printing char, we handle it here
 	       ;; directly to avoid the input method and keyboard
 	       ;; coding system translating it.
@@ -2392,6 +2398,13 @@ Isearch mode."
              (isearch-unread-key-sequence keylist)
              (setq main-event (car unread-command-events))
 
+	     ;; Don't store special commands in the keyboard macro.
+	     (let (overriding-terminal-local-map)
+	       (when (memq (key-binding key)
+			   '(kmacro-start-macro
+			     kmacro-end-macro kmacro-end-and-call-macro))
+		 (cancel-kbd-macro-events)))
+
 	     ;; If we got a mouse click event, that event contains the
 	     ;; window clicked on. maybe it was read with the buffer
 	     ;; it was clicked on.  If so, that buffer, not the current one,
@@ -2436,10 +2449,14 @@ With argument, add COUNT copies of the character."
 	(if (subregexp-context-p isearch-string (length isearch-string))
 	    (isearch-process-search-string "[ ]" " ")
 	  (isearch-process-search-char char count))
-      (and enable-multibyte-characters
-	   (>= char ?\200)
-	   (<= char ?\377)
-	   (setq char (unibyte-char-to-multibyte char)))
+      ;; This used to assume character codes 0240 - 0377 stand for
+      ;; characters in some single-byte character set, and converted them
+      ;; to Emacs characters.  But in 23.1 this feature is deprecated
+      ;; in favor of inserting the corresponding Unicode characters.
+      ;; (and enable-multibyte-characters
+      ;;      (>= char ?\200)
+      ;;      (<= char ?\377)
+      ;;      (setq char (unibyte-char-to-multibyte char)))
       (isearch-process-search-char char count))))
 
 (defun isearch-printing-char (&optional char count)
@@ -2614,13 +2631,13 @@ If there is no completion possible, say so and continue searching."
 			      (< (point) isearch-opoint)))
 		       "over")
 		   (if isearch-wrapped "wrapped ")
-		   (mapconcat (lambda (s)
-				(and (symbolp s)
-				     (get s 'isearch-message-prefix)))
-			      (if (consp isearch-filter-predicates)
-				  isearch-filter-predicates
-				(list isearch-filter-predicates))
-			      "")
+                   (let ((prefix ""))
+                     (advice-function-mapc
+                      (lambda (_ props)
+                        (let ((np (cdr (assq 'isearch-message-prefix props))))
+                          (if np (setq prefix (concat np prefix)))))
+                      isearch-filter-predicate)
+		     prefix)
 		   (if isearch-word
 		       (or (and (symbolp isearch-word)
 				(get isearch-word 'isearch-message-prefix))
@@ -2766,15 +2783,8 @@ update the match data, and return point."
 	  (if (or (not isearch-success)
 		  (bobp) (eobp)
 		  (= (match-beginning 0) (match-end 0))
-		  ;; When one of filter predicates returns nil,
-		  ;; retry the search.  Otherwise, act according
-		  ;; to search-invisible (open overlays, etc.)
-		  (and (run-hook-with-args-until-failure
-			'isearch-filter-predicates
-			(match-beginning 0) (match-end 0))
-		       (or (eq search-invisible t)
-			   (not (isearch-range-invisible
-				 (match-beginning 0) (match-end 0))))))
+		  (funcall isearch-filter-predicate
+			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
 	(if isearch-success
@@ -2786,10 +2796,18 @@ update the match data, and return point."
 
     (invalid-regexp
      (setq isearch-error (car (cdr lossage)))
-     (if (string-match
-	  "\\`Premature \\|\\`Unmatched \\|\\`Invalid "
-	  isearch-error)
-	 (setq isearch-error "incomplete input")))
+     (cond
+      ((string-match
+	"\\`Premature \\|\\`Unmatched \\|\\`Invalid "
+	isearch-error)
+       (setq isearch-error "incomplete input"))
+      ((and (not isearch-regexp)
+	    (string-match "\\`Regular expression too big" isearch-error))
+       (cond
+	(isearch-word
+	 (setq isearch-error "Too many words"))
+	((and isearch-lax-whitespace search-whitespace-regexp)
+	 (setq isearch-error "Too many spaces for whitespace matching"))))))
 
     (search-failed
      (setq isearch-success nil)
@@ -2951,7 +2969,6 @@ determined by `isearch-range-invisible' unless invisible text can be
 searched too when `search-invisible' is t."
   (or (eq search-invisible t)
       (not (isearch-range-invisible beg end))))
-(make-obsolete 'isearch-filter-visible 'isearch-invisible "24.4")
 
 
 ;; General utilities
@@ -3177,11 +3194,8 @@ Attempt to do the search exactly the way the pending Isearch would."
 	  (if (or (not success)
 		  (= (point) bound) ; like (bobp) (eobp) in `isearch-search'.
 		  (= (match-beginning 0) (match-end 0))
-		  (and (run-hook-with-args-until-failure
-			'isearch-filter-predicates
-			(match-beginning 0) (match-end 0))
-		       (not (isearch-range-invisible
-			     (match-beginning 0) (match-end 0)))))
+		  (funcall isearch-filter-predicate
+			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	success)
     (error nil)))

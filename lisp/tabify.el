@@ -28,7 +28,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun untabify (start end &optional arg)
+(defun untabify (start end &optional _arg)
   "Convert all tabs in region to multiple spaces, preserving columns.
 If called interactively with prefix ARG, convert for the entire
 buffer.
@@ -61,7 +61,7 @@ Usually this will be \" [ \\t]+\" to match a space followed by whitespace.
 \"^\\t* [ \\t]+\" is also useful, for tabifying only initial whitespace.")
 
 ;;;###autoload
-(defun tabify (start end &optional arg)
+(defun tabify (start end &optional _arg)
   "Convert multiple spaces in region to tabs when possible.
 A group of spaces is partially replaced by tabs
 when this can be done without changing the column they end at.

@@ -322,7 +322,7 @@ own View-like bindings."
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
-(defun view-buffer-other-window (buffer &optional not-return exit-action)
+(defun view-buffer-other-window (buffer &optional _not-return exit-action)
   "View BUFFER in View mode in another window.
 Emacs commands editing the buffer contents are not available;
 instead, a special set of commands (mostly letters and
@@ -349,7 +349,7 @@ own View-like bindings."
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
-(defun view-buffer-other-frame (buffer &optional not-return exit-action)
+(defun view-buffer-other-frame (buffer &optional _not-return exit-action)
   "View BUFFER in View mode in another frame.
 Emacs commands editing the buffer contents are not available;
 instead, a special set of commands (mostly letters and

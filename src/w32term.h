@@ -451,9 +451,11 @@ struct scroll_bar {
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
 
-  /* t if the background of the fringe that is adjacent to a scroll
+  /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
-  Lisp_Object fringe_extended_p;
+  /* Note: this could be a bit field, but we need to take its address
+     in ALLOCATE_PSEUDOVECTOR (see x_scroll_bar_create).  */
+  bool fringe_extended_p;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */

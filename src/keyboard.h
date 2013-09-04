@@ -17,8 +17,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "systime.h"		/* for EMACS_TIME, Time */
+#include "systime.h"		/* for struct timespec, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
+#include "termhooks.h"
 
 INLINE_HEADER_BEGIN
 #ifndef KEYBOARD_INLINE
@@ -466,9 +467,9 @@ extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
 /* True while doing kbd input.  */
 extern bool waiting_for_input;
 
-/* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
+/* Address (if not 0) of struct timespec to zero out if a SIGIO interrupt
    happens.  */
-extern EMACS_TIME *input_available_clear_time;
+extern struct timespec *input_available_clear_time;
 
 #if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern bool ignore_mouse_drag_p;
@@ -477,13 +478,10 @@ extern bool ignore_mouse_drag_p;
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
 
-/* Forward declaration for prototypes.  */
-struct input_event;
-
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
 extern Lisp_Object read_char (int, Lisp_Object, Lisp_Object,
-                              bool *, EMACS_TIME *);
+                              bool *, struct timespec *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -549,7 +547,7 @@ extern bool kbd_buffer_events_waiting (void);
 extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, struct input_event *);
-extern EMACS_TIME timer_check (void);
+extern struct timespec timer_check (void);
 extern void mark_kboards (void);
 
 #ifdef HAVE_NTGUI

@@ -23,7 +23,7 @@
 # script may need modifying in sync with changes made here.  Try to
 # avoid shell-ism because the DOS build has to use the DOS shell.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
@@ -243,6 +243,8 @@ IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
+LIBZ = @LIBZ@
+
 XRANDR_LIBS = @XRANDR_LIBS@
 XRANDR_CFLAGS = @XRANDR_CFLAGS@
 
@@ -374,7 +376,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
-	profiler.o \
+	profiler.o decompress.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
@@ -429,7 +431,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
-   $(GFILENOTIFY_LIBS) $(LIB_MATH)
+   $(GFILENOTIFY_LIBS) $(LIB_MATH) $(LIBZ)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all

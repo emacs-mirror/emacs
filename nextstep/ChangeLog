@@ -1,3 +1,13 @@
+2013-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (${ns_check_file}): Add so Emacs.app gets properly
+	updated when doing parallel make install.
+
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
 2013-06-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* templates/Info-gnustep.plist.in: Add NSDocumentClass EmacsDocument.

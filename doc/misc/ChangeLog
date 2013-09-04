@@ -1,3 +1,168 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try to reduce redundancy in doc/misc/Makefile.in.
+	* Makefile.in (DOCMISC_W32): New var to replace DOCMISC_*_W32.
+	(TARGETS): New intermediate variable.
+	(DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS): Use it.
+
+2013-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Emacs for MS-Windows): Update location of MS FAQ.
+
+	* efaq.texi: Rename from faq.texi, to match its output files.
+	* Makefile.in: Update for faq.texi name change.
+
+	* efaq-w32.texi (EMACSVER): Get it from emacsver.texi.
+
+	* Makefile.in (webhack): Remove; it's nothing to do with Emacs.
+
+	* efaq-w32.texi: Move here from the web-pages repository.
+	* Makefile.in (DOCMISC_DVI_W32, DOCMISC_HTML_W32, DOCMISC_INFO_W32)
+	(DOCMISC_PDF_W32, DOCMISC_PS_W32): New configure output variables.
+	(INFO_COMMON, INFO_INSTALL): New derivations of INFO_TARGETS.
+	(DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS):
+	Add DOCMISC_*_W32 variables.
+	(echo-info): Use INFO_INSTALL rather than INFO_TARGETS.
+	(efaq_w32_deps): New variable.
+	(efaq-w32, $(buildinfodir)/efaq-w32$(INFO_EXT), efaq-w32.dvi)
+	(efaq-w32.pdf, efaq-w32.html): New rules.
+	(clean): Remove efaq-w32 products.
+
+2013-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Encoding Customization): Exclude iso-2022-jp-2 and
+	shift_jis from the default value set to mm-coding-system-priorities for
+	Japanese users.
+
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* reftex.texi (LaTeX xr Package, Options - Table of Contents)
+	(Options - Defining Label Environments, Options - Creating Labels)
+	(Options - Referencing Labels, Options - Creating Citations)
+	(Options - Index Support, Options - Viewing Cross-References)
+	(Options - Finding Files, Options - Optimizations)
+	(Options - Fontification, Options - Misc):
+	* cc-mode.texi (Sample Init File):
+	* edt.texi (Init file):
+	* epa.texi (Encrypting/decrypting gpg files):
+	* mairix-el.texi (About, Setting up the mairix interface, Using)
+	(Extending):
+	Rename nodes to avoid characters that can cause Texinfo problems.
+
+2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail Source Specifiers): Fix description for pop3's :leave.
+
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ada_mode_deps, auth_deps, autotype_deps)
+	(bovine_deps, calc_deps, ccmode_deps, cl_deps, dbus_deps)
+	(dired_x_deps, ebrowse_deps, ede_deps, ediff_deps, edt_deps)
+	(eieio_deps, emacs_gnutls_deps, emacs_mime_deps, epa_deps)
+	(erc_deps, ert_deps, eshell_deps, eudc_deps, faq_deps)
+	(flymake_deps, forms_deps, gnus_deps, htmlfontify_deps)
+	(idlwave_deps, ido_deps, info_deps, mairix_el_deps, message_deps)
+	(mh_e_deps, newsticker_deps, nxml_mode_deps, org_deps)
+	(pcl_cvs_deps, pgg_deps, rcirc_deps, reftex_deps, remember_deps)
+	(sasl_deps, sc_deps, semantic_deps, ses_deps, sieve_deps)
+	(smtpmail_deps, speedbar_deps, srecode_deps, todo_mode_deps)
+	(tramp_deps, url_deps, vip_deps, viper_deps, widget_deps)
+	(wisent_deps, woman_deps): New variables.  Use to reduce duplication.
+
+	* woman.texi (Top): Avoid mailto: in html output.
+
+	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
+	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
+	(INSTALL_DATA): New, set by configure.
+	(HTML_OPTS, HTML_TARGETS, PS_TARGETS, DVIPS): New variables.
+	(.PHONY): Add html, ps, install-dvi, install-html, install-pdf,
+	install-ps ,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	uninstall-ps, and uninstall-doc.
+	(.SUFFIXES): Add .ps and .dvi.
+	(.dvi.ps): New suffix rule.
+	(html, ps, ada-mode.html, auth.html, autotype.html, bovine.html)
+	(calc.html, cc-mode.html, cl.html, dbus.html, dired-x.html)
+	(ebrowse.html, ede.html, ediff.html, edt.html, eieio.html)
+	(emacs-gnutls.html, emacs-mime.html, epa.html, erc.html)
+	(ert.html, eshell.html, eudc.html, faq.html, flymake.html)
+	(forms.html, gnus.html, htmlfontify.html, idlwave.html)
+	(ido.html, mairix-el.html, message.html, mh-e.html)
+	(newsticker.html, nxml-mode.html, org.html, pgg.html)
+	(rcirc.html, reftex.html, remember.html, sasl.html, sc.html)
+	(semantic.html, sieve.html, smtpmail.html, speedbar.html)
+	(srecode.html, todo-mode.html, tramp.html, url.html, vip.html)
+	(viper.html, widget.html, wisent.html, woman.html, install-dvi)
+	(install-html, install-pdf, install-ps, install-doc, uninstall-dvi)
+	(uninstall-html, uninstall-ps, uninstall-pdf, uninstall-doc):
+	New rules.
+	(clean): Remove HTML_TARGETS and PS_TARGETS.
+
+2013-08-10  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.texi (Working Directories):
+	(Flexible Matching, Regexp Matching, Find File At Point)
+	(Ignoring, Misc Customization): Use @defopt for user options.
+
+2013-08-09  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* htmlfontify.texi (Customization): Remove documentation of
+	`hfy-fast-lock-save'.  Minor fixes.
+
+2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.texi (Top): Insert node "Working Directories" in menu.
+	(Working Directories): New node.
+	(Misc Customization): Add documentation of
+	`ido-confirm-unique-completion' and some other user options.
+
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* todo-mode.texi: Update @dircategory.
+	(Overview, Todo Items as Diary Entries, Todo Mode Entry Points)
+	(File Editing, Marked Items, Item Prefix): Fix usage of @xref and
+	@ref.
+
+2013-08-07  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* sc.texi (Introduction): Fix index.
+	(Usage Overview):
+	(Citations, Citation Elements, Recognizing Citations)
+	(Information Keys and the Info Alist, Reference Headers)
+	(The Built-in Header Rewrite Functions)
+	(Electric References, Reply Buffer Initialization)
+	(Filling Cited Text, Selecting an Attribution)
+	(Attribution Preferences)
+	(Anonymous Attributions, Author Names)
+	(Using Regi, Post-yank Formatting Commands)
+	(Citing Commands, Insertion Commands)
+	(Mail Field Commands)
+	(Hints to MUA Authors, Thanks and History): Change from one space
+	between sentences to two.
+	(What Supercite Does): Typo fix.
+
+	* newsticker.texi (Usage): Use @key for RET.
+
+	* cl.texi (Argument Lists):
+	(For Clauses):
+	(Macros): Add indexes.
+
+2013-08-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* cl.texi (Blocks and Exits): Add an index.
+
+2013-08-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add todo-mode.
+	(todo-mode, $(buildinfodir)/todo-mode$(INFO_EXT)):
+	(todo-mode.dvi, todo-mode.pdf): New rules.
+
+	* todo-mode.texi: New file.
+
 2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Basic Usage): Mention that warp means jump here.
@@ -185,7 +350,7 @@
 
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* flymake.texi: Changing from one space between sentences to two.
+	* flymake.texi: Change from one space between sentences to two.
 
 2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 

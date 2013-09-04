@@ -59,7 +59,7 @@
 			Helper-return-blurb)
 		   "return")))
     (save-window-excursion
-      (goto-char (window-start (selected-window)))
+      (goto-char (window-start))
       (if (get-buffer-window "*Help*")
 	  (pop-to-buffer "*Help*")
 	(switch-to-buffer "*Help*"))

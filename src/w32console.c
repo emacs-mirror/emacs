@@ -53,7 +53,6 @@ static void w32con_write_glyphs (struct frame *f, struct glyph *string, int len)
 static void w32con_delete_glyphs (struct frame *f, int n);
 static void w32con_reset_terminal_modes (struct terminal *t);
 static void w32con_set_terminal_modes (struct terminal *t);
-static void w32con_set_terminal_window (struct frame *f, int size);
 static void w32con_update_begin (struct frame * f);
 static void w32con_update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
@@ -497,11 +496,6 @@ w32con_update_end (struct frame * f)
   SetConsoleCursorPosition (cur_screen, cursor_coords);
 }
 
-static void
-w32con_set_terminal_window (struct frame *f, int size)
-{
-}
-
 /***********************************************************************
 			stubs from termcap.c
  ***********************************************************************/
@@ -619,7 +613,7 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   term->ring_bell_hook		= w32_sys_ring_bell;
   term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 
@@ -636,13 +630,7 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   term->frame_up_to_date_hook = 0;
 
   /* Initialize the mouse-highlight data.  */
-  hlinfo = &term->display_info.tty->mouse_highlight;
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  hlinfo->mouse_face_mouse_frame = NULL;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_hidden = 0;
+  reset_mouse_highlight (&term->display_info.tty->mouse_highlight);
 
   /* Initialize interrupt_handle.  */
   init_crit ();

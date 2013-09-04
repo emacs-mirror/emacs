@@ -74,8 +74,6 @@ typedef struct xg_menu_item_cb_data_
 
 } xg_menu_item_cb_data;
 
-struct _widget_value;
-
 extern struct _widget_value *malloc_widget_value (void);
 extern void free_widget_value (struct _widget_value *);
 

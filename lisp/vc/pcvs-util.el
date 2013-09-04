@@ -97,7 +97,7 @@ try to split a new window instead."
 BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
   (interactive (list (current-buffer)))
   (save-current-buffer
-    (let ((win (if (eq buf (window-buffer (selected-window))) (selected-window)
+    (let ((win (if (eq buf (window-buffer)) (selected-window)
 		 (get-buffer-window buf t))))
       (when win
 	(if (window-dedicated-p win)
@@ -111,8 +111,8 @@ BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
 ;;; 	      )
 	  )))
     (with-current-buffer buf
-      (bury-buffer (unless (and (eq buf (window-buffer (selected-window)))
-				(not (window-dedicated-p (selected-window))))
+      (bury-buffer (unless (and (eq buf (window-buffer))
+				(not (window-dedicated-p)))
 		     buf)))
     (when mainbuf
       (let ((mainwin (or (get-buffer-window mainbuf)

@@ -406,7 +406,7 @@ tgetent (char *bp, const char *name)
 
   if (termcap_name && !filep && !strcmp (name, getenv ("TERM")))
     {
-      indirect = tgetst1 (find_capability (termcap_name, "tc"), (char **) 0);
+      indirect = tgetst1 (find_capability (termcap_name, "tc"), 0);
       if (!indirect)
 	{
 	  if (!bp)
@@ -490,7 +490,7 @@ tgetent (char *bp, const char *name)
       /* Does this entry refer to another terminal type's entry?
 	 If something is found, copy it into heap and null-terminate it.  */
       tc_search_point = find_capability (tc_search_point, "tc");
-      term = tgetst1 (tc_search_point, (char **) 0);
+      term = tgetst1 (tc_search_point, 0);
     }
 
   emacs_close (fd);

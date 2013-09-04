@@ -104,7 +104,7 @@ Returns nil if unable to find this information."
              (looking-at "[0-9]+\0\\([^\0\n]+\\)\0")
              (match-string 1))))))
 
-(defun emacs-bzr-version-bzr (dir)
+(defun emacs-bzr-version-bzr (_dir)
   "Ask bzr itself for the version information for directory DIR."
   ;; Comments on `bzr version-info':
   ;; i) Unknown files also cause clean != 1.

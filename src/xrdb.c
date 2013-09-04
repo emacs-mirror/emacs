@@ -75,17 +75,8 @@ x_get_customization_string (XrmDatabase db, const char *name,
   sprintf (full_class, "%s.%s", class, "Customization");
 
   result = x_get_string_resource (db, full_name, full_class);
-
-  if (result)
-    {
-      char *copy = xmalloc (strlen (result) + 1);
-      strcpy (copy, result);
-      return copy;
-    }
-  else
-    return 0;
+  return result ? xstrdup (result) : NULL;
 }
-
 
 /* Expand all the Xt-style %-escapes in STRING, whose length is given
    by STRING_LEN.  Here are the escapes we're supposed to recognize:
@@ -605,7 +596,7 @@ x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
   if (x_get_resource (rdb, name, class, x_rm_string, &value))
     return (char *) value.addr;
 
-  return (char *) 0;
+  return 0;
 }
 
 /* Stand-alone test facilities.  */
@@ -655,10 +646,7 @@ main (int argc, char **argv)
     displayname = "localhost:0.0";
 
   lp = member ("-xrm", arg_list);
-  if (! NIL (lp))
-    resource_string = car (cdr (lp));
-  else
-    resource_string = (char *) 0;
+  resource_string = NIL (lp) ? 0 : car (cdr (lp));
 
   lp = member ("-c", arg_list);
   if (! NIL (lp))

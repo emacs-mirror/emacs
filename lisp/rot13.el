@@ -101,9 +101,9 @@ See also `toggle-rot13-mode'."
 (defun toggle-rot13-mode ()
   "Toggle the use of ROT13 encoding for the current window."
   (interactive)
-  (if (eq (window-display-table (selected-window)) rot13-display-table)
+  (if (eq (window-display-table) rot13-display-table)
       (set-window-display-table (selected-window) nil)
-    (if (null (window-display-table (selected-window)))
+    (if (null (window-display-table))
 	(set-window-display-table (selected-window) rot13-display-table))))
 
 (provide 'rot13)

@@ -4226,36 +4226,38 @@ the consecutive wildcards are folded into one.  */)
   return make_string (name, namelen);
 }
 
+void
+clear_font_cache (struct frame *f)
+{
+  struct font_driver_list *driver_list = f->font_driver_list;
+
+  for (; driver_list; driver_list = driver_list->next)
+    if (driver_list->on)
+      {
+	Lisp_Object val, tmp, cache = driver_list->driver->get_cache (f);
+
+	val = XCDR (cache);
+	while (! NILP (val)
+	       && ! EQ (XCAR (XCAR (val)), driver_list->driver->type))
+	  val = XCDR (val);
+	eassert (! NILP (val));
+	tmp = XCDR (XCAR (val));
+	if (XINT (XCAR (tmp)) == 0)
+	  {
+	    font_clear_cache (f, XCAR (val), driver_list->driver);
+	    XSETCDR (cache, XCDR (val));
+	  }
+      }
+}
+
 DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
-       doc: /* Clear font cache.  */)
+       doc: /* Clear font cache of each frame.  */)
   (void)
 {
   Lisp_Object list, frame;
 
   FOR_EACH_FRAME (list, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      struct font_driver_list *driver_list = f->font_driver_list;
-
-      for (; driver_list; driver_list = driver_list->next)
-	if (driver_list->on)
-	  {
-	    Lisp_Object cache = driver_list->driver->get_cache (f);
-	    Lisp_Object val, tmp;
-
-	    val = XCDR (cache);
-	    while (! NILP (val)
-		   && ! EQ (XCAR (XCAR (val)), driver_list->driver->type))
-	      val = XCDR (val);
-	    eassert (! NILP (val));
-	    tmp = XCDR (XCAR (val));
-	    if (XINT (XCAR (tmp)) == 0)
-	      {
-		font_clear_cache (f, XCAR (val), driver_list->driver);
-		XSETCDR (cache, XCDR (val));
-	      }
-	  }
-    }
+    clear_font_cache (XFRAME (frame));
 
   return Qnil;
 }

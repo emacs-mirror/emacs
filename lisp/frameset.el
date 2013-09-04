@@ -41,155 +41,560 @@
 (require 'cl-lib)
 
 
-;; Framesets have two fields:
-;; - properties: a property list to store both frameset-specific and
-;;   user-defined serializable data.  Currently defined properties
-;;   include:
-;;     :version ID  - Identifies the version of the frameset struct;
-;;                    this is the only property always present and
-;;                    must not be modified.
-;;     :app APPINFO - Freeform.  Can be used by applications and
-;;                    packages to indicate the intended (but by no
-;;                    means exclusive) use of the frameset.  For
-;;                    example, currently desktop.el sets :app to
-;;                    `(desktop . ,desktop-file-version).
-;;     :name NAME   - The name of the frameset instance; a string.
-;;     :desc TEXT   - A description for user consumption (to choose
-;; 		      among framesets, etc.); a string.
-;; - states: an alist of items (FRAME-PARAMETERS . WINDOW-STATE) in
-;;   no particular order.  Each item represents a frame to be
-;;   restored.
+(cl-defstruct (frameset (:type vector) :named
+                        (:constructor frameset--make)
+			;; Copier is defined below.
+			(:copier nil))
 
-(cl-defstruct (frameset (:type list) :named
-			(:copier nil)
-			(:predicate nil))
-  properties   ;; property list
-  states)      ;; list of conses (frame-state . window-state)
+  "A frameset encapsulates a serializable view of a set of frames and windows.
 
-(defun copy-frameset (frameset)
-  "Return a copy of FRAMESET.
-This is a deep copy done with `copy-tree'."
+It contains the following slots, which can be accessed with
+\(frameset-SLOT fs) and set with (setf (frameset-SLOT fs) VALUE):
+
+  version      A read-only version number, identifying the format
+		 of the frameset struct.  Currently its value is 1.
+  timestamp    A read-only timestamp, the output of `current-time'.
+  app          A symbol, or a list whose first element is a symbol, which
+		 identifies the creator of the frameset and related info;
+		 for example, desktop.el sets this slot to a list
+		 `(desktop . ,desktop-file-version).
+  name         A string, the name of the frameset instance.
+  description  A string, a description for user consumption (to show in
+		 menus, messages, etc).
+  properties   A property list, to store both frameset-specific and
+		 user-defined serializable data.
+  states       A list of items (FRAME-PARAMETERS . WINDOW-STATE), in no
+		 particular order.  Each item represents a frame to be
+		 restored.  FRAME-PARAMETERS is a frame's parameter alist,
+		 extracted with (frame-parameters FRAME) and filtered
+		 through `frameset-filter-params'.
+		 WINDOW-STATE is the output of `window-state-get' applied
+		 to the root window of the frame.
+
+To avoid collisions, it is recommended that applications wanting to add
+private serializable data to `properties' either store all info under a
+single, distinctive name, or use property names with a well-chosen prefix.
+
+A frameset is intended to be used through the following simple API:
+
+ - `frameset-save', the type's constructor, captures all or a subset of the
+   live frames, and returns a serializable snapshot of them (a frameset).
+ - `frameset-restore' takes a frameset, and restores the frames and windows
+   it describes, as faithfully as possible.
+ - `frameset-p' is the predicate for the frameset type.
+ - `frameset-valid-p' checks a frameset's validity.
+ - `frameset-copy' returns a deep copy of a frameset.
+ - `frameset-prop' is a `setf'able accessor for the contents of the
+   `properties' slot.
+ - The `frameset-SLOT' accessors described above."
+
+  (version     1              :read-only t)
+  (timestamp   (current-time) :read-only t)
+  (app         nil)
+  (name        nil)
+  (description nil)
+  (properties  nil)
+  (states      nil))
+
+;; Add nicer docstrings for built-in predicate and accessors.
+(put 'frameset-p 'function-documentation
+     "Return non-nil if OBJECT is a frameset, nil otherwise.\n\n(fn OBJECT)")
+(put 'frameset-version 'function-documentation
+     "Return the version number of FRAMESET.\n
+It is an integer that identifies the format of the frameset struct.
+This slot cannot be modified.\n\n(fn FRAMESET)")
+(put 'frameset-timestamp 'function-documentation
+     "Return the creation timestamp of FRAMESET.\n
+The value is in the format returned by `current-time'.
+This slot cannot be modified.\n\n(fn FRAMESET)")
+(put 'frameset-app 'function-documentation
+     "Return the application identifier for FRAMESET.\n
+The value is either a symbol, like `my-app', or a list
+\(my-app ADDITIONAL-DATA...).\n\n(fn FRAMESET)")
+(put 'frameset-name 'function-documentation
+     "Return the name of FRAMESET (a string).\n\n(fn FRAMESET)")
+(put 'frameset-description 'function-documentation
+     "Return the description of FRAMESET (a string).\n\n(fn FRAMESET)")
+(put 'frameset-properties 'function-documentation
+     "Return the property list of FRAMESET.\n
+This list is useful to store both frameset-specific and user-defined
+serializable data.  The simplest way to access and modify it is
+through `frameset-prop' (which see).\n\n(fn FRAMESET)")
+(put 'frameset-states 'function-documentation
+     "Return the list of frame states of FRAMESET.\n
+A frame state is a pair (FRAME-PARAMETERS . WINDOW-STATE), where
+FRAME-PARAMETERS is a frame's parameter alist, extracted with
+\(frame-parameters FRAME) and filtered through `frameset-filter-params',
+and WINDOW-STATE is the output of `window-state-get' applied to the
+root window of the frame.\n
+IMPORTANT: Modifying this slot may cause frameset functions to fail,
+unless the type constraints defined above are respected.\n\n(fn FRAMESET)")
+
+;; We autoloaded this for use in register.el, but now that we use registerv
+;; objects, this autoload is not useful any more.
+;; ;;;###autoload (autoload 'frameset-p "frameset"
+;; ;;;###autoload   "Return non-nil if OBJECT is a frameset, nil otherwise." nil)
+
+(defun frameset-copy (frameset)
+  "Return a deep copy of FRAMESET.
+FRAMESET is copied with `copy-tree'."
   (copy-tree frameset t))
 
-;;;###autoload
-(defun frameset-p (frameset)
-  "If FRAMESET is a frameset, return its :version.
-Else return nil."
-  (and (eq (car-safe frameset) 'frameset)
-       (plist-get (cl-second frameset) :version)))
+(defun frameset-valid-p (object)
+  "Return non-nil if OBJECT is a valid frameset, nil otherwise."
+  (and (frameset-p object)
+       (integerp (frameset-version object))
+       (consp (frameset-timestamp object))
+       (let ((app (frameset-app object)))
+	 (or (null app)                   ; APP is nil
+	     (symbolp app)                ; or a symbol
+	     (and (consp app)             ; or a list
+		  (symbolp (car app)))))  ; starting with a symbol
+       (stringp (or (frameset-name object) ""))
+       (stringp (or (frameset-description object) ""))
+       (listp (frameset-properties object))
+       (let ((states (frameset-states object)))
+         (and (listp states)
+              (cl-every #'consp (frameset-states object))))
+       (frameset-version object)))        ; And VERSION is non-nil.
+
+(defun frameset--prop-setter (frameset property value)
+  "Setter function for `frameset-prop'.  Internal use only."
+  (setf (frameset-properties frameset)
+	(plist-put (frameset-properties frameset) property value))
+  value)
 
 ;; A setf'able accessor to the frameset's properties
-(defun frameset-prop (frameset prop)
-  "Return the value of the PROP property of FRAMESET.
+(defun frameset-prop (frameset property)
+  "Return the value for FRAMESET of PROPERTY.
 
-Properties other than :version can be set with
+Properties can be set with
 
-  (setf (frameset-prop FRAMESET PROP) NEW-VALUE)"
-  (plist-get (frameset-properties frameset) prop))
-
-(gv-define-setter frameset-prop (val fs prop)
-  (macroexp-let2 nil v val
-    `(progn
-       (cl-assert (not (eq ,prop :version)) t ":version can not be set")
-       (setf (frameset-properties ,fs)
-	     (plist-put (frameset-properties ,fs) ,prop ,v))
-       ,v)))
+  (setf (frameset-prop FRAMESET PROPERTY) NEW-VALUE)"
+  (declare (gv-setter frameset--prop-setter))
+  (plist-get (frameset-properties frameset) property))
 
 
 ;; Filtering
 
-(defvar frameset-filter-alist
-  '((background-color	 . frameset-filter-sanitize-color)
-    (buffer-list	 . t)
-    (buffer-predicate	 . t)
-    (buried-buffer-list	 . t)
-    (font		 . frameset-filter-save-parm)
-    (foreground-color	 . frameset-filter-sanitize-color)
-    (fullscreen		 . frameset-filter-save-parm)
-    (GUI:font		 . frameset-filter-restore-parm)
-    (GUI:fullscreen	 . frameset-filter-restore-parm)
-    (GUI:height		 . frameset-filter-restore-parm)
-    (GUI:width		 . frameset-filter-restore-parm)
-    (height		 . frameset-filter-save-parm)
-    (left		 . frameset-filter-iconified)
-    (minibuffer		 . frameset-filter-minibuffer)
-    (top		 . frameset-filter-iconified)
-    (width		 . frameset-filter-save-parm))
+;; What's the deal with these "filter alists"?
+;;
+;; Let's say that Emacs' frame parameters were never designed as a tool to
+;; precisely record (or restore) a frame's state.  They grew organically,
+;; and their uses and behaviors reflect their history.  In using them to
+;; implement framesets, the unwary implementer, or the prospective package
+;; writer willing to use framesets in their code, might fall victim of some
+;; unexpected... oddities.
+;;
+;; You can find frame parameters that:
+;;
+;; - can be used to get and set some data from the frame's current state
+;;   (`height', `width')
+;; - can be set at creation time, and setting them afterwards has no effect
+;;   (`window-state', `minibuffer')
+;; - can be set at creation time, and setting them afterwards will fail with
+;;   an error, *unless* you set it to the same value, a noop (`border-width')
+;; - act differently when passed at frame creation time, and when set
+;;   afterwards (`height')
+;; - affect the value of other parameters (`name', `visibility')
+;; - can be ignored by window managers (most positional args, like `height',
+;;   `width', `left' and `top', and others, like `auto-raise', `auto-lower')
+;; - can be set externally in X resources or Window registry (again, most
+;;   positional parameters, and also `toolbar-lines', `menu-bar-lines' etc.)
+;, - can contain references to live objects (`buffer-list', `minibuffer') or
+;;   code (`buffer-predicate')
+;; - are set automatically, and cannot be changed (`window-id', `parent-id'),
+;;   but setting them produces no error
+;; - have a noticeable effect in some window managers, and are ignored in
+;;   others (`menu-bar-lines')
+;; - can not be safely set in a tty session and then copied back to a GUI
+;;   session (`font', `background-color', `foreground-color')
+;;
+;; etc etc.
+;;
+;; Which means that, in order to save a parameter alist to disk and read it
+;; back later to reconstruct a frame, some processing must be done.  That's
+;; what `frameset-filter-params' and the `frameset-*-filter-alist' variables
+;; are for.
+;;
+;; First, a clarification.  The word "filter" in these names refers to both
+;; common meanings of filter: to filter out (i.e., to remove), and to pass
+;; through a transformation function (think `filter-buffer-substring').
+;;
+;; `frameset-filter-params' takes a parameter alist PARAMETERS, a filtering
+;; alist FILTER-ALIST, and a flag SAVING to indicate whether we are filtering
+;; parameters with the intent of saving a frame or restoring it.  It then
+;; accumulates an output alist, FILTERED, by checking each parameter in
+;; PARAMETERS against FILTER-ALIST and obeying any rule found there.  The
+;; absence of a rule just means the parameter/value pair (called CURRENT in
+;; filtering functions) is copied to FILTERED as is.  Keyword values :save,
+;; :restore and :never tell the function to copy CURRENT to FILTERED in the
+;; respective situations, that is, when saving, restoring, or never at all.
+;; Values :save and :restore are not used in this package, because usually if
+;; you don't want to save a parameter, you don't want to restore it either.
+;; But they can be useful, for example, if you already have a saved frameset
+;; created with some intent, and want to reuse it for a different objective
+;; where the expected parameter list has different requirements.
+;;
+;; Finally, the value can also be a filtering function, or a filtering
+;; function plus some arguments.  The function is called for each matching
+;; parameter, and receives CURRENT (the parameter/value pair being processed),
+;; FILTERED (the output alist so far), PARAMETERS (the full parameter alist),
+;; SAVING (the save/restore flag), plus any additional ARGS set along the
+;; function in the `frameset-*-filter-alist' entry.  The filtering function
+;; then has the possibility to pass along CURRENT, or reject it altogether,
+;; or pass back a (NEW-PARAM . NEW-VALUE) pair, which does not even need to
+;; refer to the same parameter (so you can filter `width' and return `height'
+;; and vice versa, if you're feeling silly and want to mess with the user's
+;; mind).  As a help in deciding what to do, the filtering function has
+;; access to PARAMETERS, but must not change it in any way.  It also has
+;; access to FILTERED, which can be modified at will.  This allows two or
+;; more filters to coordinate themselves, because in general there's no way
+;; to predict the order in which they will be run.
+;;
+;; So, which parameters are filtered by default, and why? Let's see.
+;;
+;; - `buffer-list', `buried-buffer-list', `buffer-predicate': They contain
+;;   references to live objects, or in the case of `buffer-predicate', it
+;;   could also contain an fbound symbol (a predicate function) that could
+;;   not be defined in a later session.
+;;
+;; - `window-id', `outer-window-id', `parent-id': They are assigned
+;;   automatically and cannot be set, so keeping them is harmless, but they
+;;   add clutter.  `window-system' is similar: it's assigned at frame
+;;   creation, and does not serve any useful purpose later.
+;;
+;; - `left', `top': Only problematic when saving an iconified frame, because
+;;   when the frame is iconified they are set to (- 32000), which doesn't
+;;   really help in restoring the frame.  Better to remove them and let the
+;;   window manager choose a default position for the frame.
+;;
+;; - `background-color', `foreground-color': In tty frames they can be set
+;;   to "unspecified-bg" and "unspecified-fg", which aren't understood on
+;;   GUI sessions.  They have to be filtered out when switching from tty to
+;;   a graphical display.
+;;
+;; - `tty', `tty-type': These are tty-specific.  When switching to a GUI
+;;   display they do no harm, but they clutter the parameter alist.
+;;
+;; - `minibuffer': It can contain a reference to a live window, which cannot
+;;   be serialized.  Because of Emacs' idiosyncratic treatment of this
+;;   parameter, frames created with (minibuffer . t) have a parameter
+;;   (minibuffer . #<window...>), while frames created with
+;;   (minibuffer . #<window...>) have (minibuffer . nil), which is madness
+;;   but helps to differentiate between minibufferless and "normal" frames.
+;;   So, changing (minibuffer . #<window...>) to (minibuffer . t) allows
+;;   Emacs to set up the new frame correctly.  Nice, uh?
+;;
+;; - `name': If this parameter is directly set, `explicit-name' is
+;;   automatically set to t, and then `name' no longer changes dynamically.
+;;   So, in general, not saving `name' is the right thing to do, though
+;;   surely there are applications that will want to override this filter.
+;;
+;; - `font', `fullscreen', `height' and `width': These parameters suffer
+;;   from the fact that they are badly mangled when going through a
+;;   tty session, though not all in the same way.  When saving a GUI frame
+;;   and restoring it in a tty, the height and width of the new frame are
+;;   those of the tty screen (let's say 80x25, for example); going back
+;;   to a GUI session means getting frames of the tty screen size (so all
+;;   your frames are 80 cols x 25 rows).  For `fullscreen' there's a
+;;   similar problem, because a tty frame cannot really be fullscreen or
+;;   maximized, so the state is lost.  The problem with `font' is a bit
+;;   different, because a valid GUI font spec in `font' turns into
+;;   (font . "tty") in a tty frame, and when read back into a GUI session
+;;   it fails because `font's value is no longer a valid font spec.
+;;
+;; In most cases, the filtering functions just do the obvious thing: remove
+;; CURRENT when it is meaningless to keep it, or pass a modified copy if
+;; that helps (as in the case of `minibuffer').
+;;
+;; The exception are the parameters in the last set, which should survive
+;; the roundtrip though tty-land.  The answer is to add "stashing
+;; parameters", working in pairs, to shelve the GUI-specific contents and
+;; restore it once we're back in pixel country.  That's what functions
+;; `frameset-filter-shelve-param' and `frameset-filter-unshelve-param' do.
+;;
+;; Basically, if you set `frameset-filter-shelve-param' as the filter for
+;; a parameter P, it will detect when it is restoring a GUI frame into a
+;; tty session, and save P's value in the custom parameter X:P, but only
+;; if X:P does not exist already (so it is not overwritten if you enter
+;; the tty session more than once).  If you're not switching to a tty
+;; frame, the filter just passes CURRENT along.
+;;
+;; The parameter X:P, on the other hand, must have been setup to be
+;; filtered by `frameset-filter-unshelve-param', which unshelves the
+;; value: if we're entering a GUI session, returns P instead of CURRENT,
+;; while in other cases it just passes it along.
+;;
+;; The only additional trick is that `frameset-filter-shelve-param' does
+;; not set P if switching back to GUI and P already has a value, because
+;; it assumes that `frameset-filter-unshelve-param' did set it up.  And
+;; `frameset-filter-unshelve-param', when unshelving P, must look into
+;; FILTERED to determine if P has already been set and if so, modify it;
+;; else just returns P.
+;;
+;; Currently, the value of X in X:P is `GUI', but you can use any prefix,
+;; by passing its symbol as argument in the filter:
+;;
+;;   (my-parameter frameset-filter-shelve-param MYPREFIX)
+;;
+;; instead of
+;;
+;;   (my-parameter . frameset-filter-shelve-param)
+;;
+;; Note that `frameset-filter-unshelve-param' does not need MYPREFIX
+;; because it is available from the parameter name in CURRENT.  Also note
+;; that the colon between the prefix and the parameter name is hardcoded.
+;; The reason is that X:P is quite readable, and that the colon is a
+;; very unusual character in symbol names, other than in initial position
+;; in keywords (emacs -Q has only two such symbols, and one of them is a
+;; URL).  So the probability of a collision with existing or future
+;; symbols is quite insignificant.
+;;
+;; Now, what about the filter alist variables? There are three of them,
+;; though only two sets of parameters:
+;;
+;; - `frameset-session-filter-alist' contains these filters that allow to
+;;   save and restore framesets in-session, without the need to serialize
+;;   the frameset or save it to disk (for example, to save a frameset in a
+;;   register and restore it later).  Filters in this list do not remove
+;;   live objects, except in `minibuffer', which is dealt especially by
+;;   `frameset-save' / `frameset-restore'.
+;;
+;; - `frameset-persistent-filter-alist' is the whole deal.  It does all
+;;   the filtering described above, and the result is ready to be saved on
+;;   disk without loss of information.  That's the format used by the
+;;   desktop.el package, for example.
+;;
+;; IMPORTANT: These variables share structure and should NEVER be modified.
+;;
+;; - `frameset-filter-alist': The value of this variable is the default
+;;   value for the FILTERS arguments of `frameset-save' and
+;;   `frameset-restore'.  It is set to `frameset-persistent-filter-alist',
+;;   though it can be changed by specific applications.
+;;
+;; How to use them?
+;;
+;; The simplest way is just do nothing.  The default should work
+;; reasonably and sensibly enough.  But, what if you really need a
+;; customized filter alist?  Then you can create your own variable
+;;
+;;   (defvar my-filter-alist
+;;     '((my-param1 . :never)
+;;       (my-param2 . :save)
+;;       (my-param3 . :restore)
+;;       (my-param4 . my-filtering-function-without-args)
+;;       (my-param5   my-filtering-function-with arg1 arg2)
+;;       ;;; many other parameters
+;;       )
+;;     "My customized parameter filter alist.")
+;;
+;; or, if you're only changing a few items,
+;;
+;;   (defvar my-filter-alist
+;;     (nconc '((my-param1 . :never)
+;;              (my-param2 . my-filtering-function))
+;;            frameset-filter-alist)
+;;     "My brief customized parameter filter alist.")
+;;
+;; and pass it to the FILTER arg of the save/restore functions,
+;; ALWAYS taking care of not modifying the original lists; if you're
+;; going to do any modifying of my-filter-alist, please use
+;;
+;;   (nconc '((my-param1 . :never) ...)
+;;          (copy-sequence frameset-filter-alist))
+;;
+;; One thing you shouldn't forget is that they are alists, so searching
+;; in them is sequential.  If you just want to change the default of
+;; `name' to allow it to be saved, you can set (name . nil) in your
+;; customized filter alist; it will take precedence over the latter
+;; setting.  In case you decide that you *always* want to save `name',
+;; you can add it to `frameset-filter-alist':
+;;
+;;   (push '(name . nil) frameset-filter-alist)
+;;
+;; In certain applications, having a parameter filtering function like
+;; `frameset-filter-params' can be useful, even if you're not using
+;; framesets.  The interface of `frameset-filter-params' is generic
+;; and does not depend of global state, with one exception: it uses
+;; the internal variable `frameset--target-display' to decide if, and
+;; how, to modify the `display' parameter of FILTERED.  But that
+;; should not represent any problem, because it's only meaningful
+;; when restoring, and customized uses of `frameset-filter-params'
+;; are likely to use their own filter alist and just call
+;;
+;;   (setq my-filtered (frameset-filter-params my-params my-filters t))
+;;
+;; In case you want to use it with the standard filters, you can
+;; wrap the call to `frameset-filter-params' in a let form to bind
+;; `frameset--target-display' to nil or the desired value.
+;;
+
+;;;###autoload
+(defvar frameset-session-filter-alist
+  '((name            . :never)
+    (left            . frameset-filter-iconified)
+    (minibuffer      . frameset-filter-minibuffer)
+    (top             . frameset-filter-iconified))
+  "Minimum set of parameters to filter for live (on-session) framesets.
+DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
+
+;;;###autoload
+(defvar frameset-persistent-filter-alist
+  (nconc
+   '((background-color   . frameset-filter-sanitize-color)
+     (buffer-list        . :never)
+     (buffer-predicate   . :never)
+     (buried-buffer-list . :never)
+     (font               . frameset-filter-shelve-param)
+     (foreground-color   . frameset-filter-sanitize-color)
+     (fullscreen         . frameset-filter-shelve-param)
+     (GUI:font           . frameset-filter-unshelve-param)
+     (GUI:fullscreen     . frameset-filter-unshelve-param)
+     (GUI:height         . frameset-filter-unshelve-param)
+     (GUI:width          . frameset-filter-unshelve-param)
+     (height             . frameset-filter-shelve-param)
+     (outer-window-id    . :never)
+     (parent-id          . :never)
+     (tty                . frameset-filter-tty-to-GUI)
+     (tty-type           . frameset-filter-tty-to-GUI)
+     (width              . frameset-filter-shelve-param)
+     (window-id          . :never)
+     (window-system      . :never))
+   frameset-session-filter-alist)
+  "Parameters to filter for persistent framesets.
+DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
+
+;;;###autoload
+(defvar frameset-filter-alist frameset-persistent-filter-alist
   "Alist of frame parameters and filtering functions.
 
-Each element is a cons (PARAM . ACTION), where PARAM is a parameter
-name (a symbol identifying a frame parameter), and ACTION can be:
+This alist is the default value of the FILTERS argument of
+`frameset-save' and `frameset-restore' (which see).
 
- t         The parameter is always removed from the parameter list.
- :save     The parameter is removed when saving the frame.
- :restore  The parameter is removed when restoring the frame.
+Initially, `frameset-filter-alist' is set to, and shares the value of,
+`frameset-persistent-filter-alist'.  You can override any item in
+this alist by `push'ing a new item onto it.  If, for some reason, you
+intend to modify existing values, do
+
+  (setq frameset-filter-alist (copy-tree frameset-filter-alist))
+
+before changing anything.
+
+On saving, PARAMETERS is the parameter alist of each frame processed,
+and FILTERED is the parameter alist that gets saved to the frameset.
+
+On restoring, PARAMETERS is the parameter alist extracted from the
+frameset, and FILTERED is the resulting frame parameter alist used
+to restore the frame.
+
+Elements of `frameset-filter-alist' are conses (PARAM . ACTION),
+where PARAM is a parameter name (a symbol identifying a frame
+parameter), and ACTION can be:
+
+ nil       The parameter is copied to FILTERED.
+ :never    The parameter is never copied to FILTERED.
+ :save     The parameter is copied only when saving the frame.
+ :restore  The parameter is copied only when restoring the frame.
  FILTER    A filter function.
 
 FILTER can be a symbol FILTER-FUN, or a list (FILTER-FUN ARGS...).
-It will be called with four arguments CURRENT, FILTERED, PARAMETERS
-and SAVING, plus any additional ARGS:
+FILTER-FUN is invoked with
+
+  (apply FILTER-FUN CURRENT FILTERED PARAMETERS SAVING ARGS)
+
+where
 
  CURRENT     A cons (PARAM . VALUE), where PARAM is the one being
-             filtered and VALUE is its current value.
- FILTERED    The alist of parameters filtered so far.
+	     filtered and VALUE is its current value.
+ FILTERED    The resulting alist (so far).
  PARAMETERS  The complete alist of parameters being filtered,
- SAVING      Non-nil if filtering before saving state, nil otherwise.
+ SAVING      Non-nil if filtering before saving state, nil if filtering
+	       before restoring it.
+ ARGS        Any additional arguments specified in the ACTION.
 
-The FILTER-FUN function must return:
- nil                  CURRENT is removed from the list.
- t                    CURRENT is left as is.
- (PARAM' . VALUE')    Replace CURRENT with this.
+FILTER-FUN is allowed to modify items in FILTERED, but no other arguments.
+It must return:
+ nil                      Skip CURRENT (do not add it to FILTERED).
+ t                        Add CURRENT to FILTERED as is.
+ (NEW-PARAM . NEW-VALUE)  Add this to FILTERED instead of CURRENT.
 
-Frame parameters not on this list are passed intact.")
+Frame parameters not on this alist are passed intact, as if they were
+defined with ACTION = nil.")
+
 
 (defvar frameset--target-display nil
   ;; Either (minibuffer . VALUE) or nil.
   ;; This refers to the current frame config being processed inside
-  ;; `frame--restore-frames' and its auxiliary functions (like filtering).
+  ;; `frameset-restore' and its auxiliary functions (like filtering).
   ;; If nil, there is no need to change the display.
   ;; If non-nil, display parameter to use when creating the frame.
   "Internal use only.")
 
 (defun frameset-switch-to-gui-p (parameters)
   "True when switching to a graphic display.
-Return t if PARAMETERS describes a text-only terminal and
-the target is a graphic display; otherwise return nil.
-Only meaningful when called from a filtering function in
-`frameset-filter-alist'."
-  (and frameset--target-display			    ; we're switching
-       (null (cdr (assq 'display parameters)))	    ; from a tty
-       (cdr frameset--target-display)))		    ; to a GUI display
+Return non-nil if the parameter alist PARAMETERS describes a frame on a
+text-only terminal, and the frame is being restored on a graphic display;
+otherwise return nil.  Only meaningful when called from a filtering
+function in `frameset-filter-alist'."
+  (and frameset--target-display                   ; we're switching
+       (null (cdr (assq 'display parameters)))    ; from a tty
+       (cdr frameset--target-display)))           ; to a GUI display
 
 (defun frameset-switch-to-tty-p (parameters)
   "True when switching to a text-only terminal.
-Return t if PARAMETERS describes a graphic display and
-the target is a text-only terminal; otherwise return nil.
-Only meaningful when called from a filtering function in
-`frameset-filter-alist'."
-  (and frameset--target-display			  ; we're switching
-       (cdr (assq 'display parameters))	          ; from a GUI display
-       (null (cdr frameset--target-display))))	  ; to a tty
+Return non-nil if the parameter alist PARAMETERS describes a frame on a
+graphic display, and the frame is being restored on a text-only terminal;
+otherwise return nil.  Only meaningful when called from a filtering
+function in `frameset-filter-alist'."
+  (and frameset--target-display                   ; we're switching
+       (cdr (assq 'display parameters))           ; from a GUI display
+       (null (cdr frameset--target-display))))    ; to a tty
+
+(defun frameset-filter-tty-to-GUI (_current _filtered parameters saving)
+  "Remove CURRENT when switching from tty to a graphic display.
+
+For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
+see `frameset-filter-alist'."
+  (or saving
+      (not (frameset-switch-to-gui-p parameters))))
 
 (defun frameset-filter-sanitize-color (current _filtered parameters saving)
   "When switching to a GUI frame, remove \"unspecified\" colors.
-Useful as a filter function for tty-specific parameters."
+Useful as a filter function for tty-specific parameters.
+
+For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
+see `frameset-filter-alist'."
   (or saving
       (not (frameset-switch-to-gui-p parameters))
       (not (stringp (cdr current)))
       (not (string-match-p "^unspecified-[fb]g$" (cdr current)))))
 
-(defun frameset-filter-minibuffer (current _filtered _parameters saving)
-  "When saving, convert (minibuffer . #<window>) parameter to (minibuffer . t)."
-  (or (not saving)
-      (if (windowp (cdr current))
-	  '(minibuffer . t)
-	t)))
+(defun frameset-filter-minibuffer (current filtered _parameters saving)
+  "Force the minibuffer parameter to have a sensible value.
 
-(defun frameset-filter-save-parm (current _filtered parameters saving
-					  &optional prefix)
+When saving, convert (minibuffer . #<window>) to (minibuffer . t).
+When restoring, if there are two copies, keep the one pointing to
+a live window.
+
+For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
+see `frameset-filter-alist'."
+  (let ((value (cdr current)) mini)
+    (cond (saving
+	   (if (windowp value) '(minibuffer . t) t))
+	  ((setq mini (assq 'minibuffer filtered))
+	   (when (windowp value) (setcdr mini value))
+	   nil)
+	  (t t))))
+
+(defun frameset-filter-shelve-param (current _filtered parameters saving
+					     &optional prefix)
   "When switching to a tty frame, save parameter P as PREFIX:P.
-The parameter can be later restored with `frameset-filter-restore-parm'.
-PREFIX defaults to `GUI'."
+The parameter can be later restored with `frameset-filter-unshelve-param'.
+PREFIX defaults to `GUI'.
+
+For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
+see `frameset-filter-alist'."
   (unless prefix (setq prefix 'GUI))
   (cond (saving t)
 	((frameset-switch-to-tty-p parameters)
@@ -201,9 +606,12 @@ PREFIX defaults to `GUI'."
 	 (not (assq (intern (format "%s:%s" prefix (car current))) parameters)))
 	(t t)))
 
-(defun frameset-filter-restore-parm (current filtered parameters saving)
+(defun frameset-filter-unshelve-param (current filtered parameters saving)
   "When switching to a GUI frame, restore PREFIX:P parameter as P.
-CURRENT must be of the form (PREFIX:P . value)."
+CURRENT must be of the form (PREFIX:P . value).
+
+For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
+see `frameset-filter-alist'."
   (or saving
       (not (frameset-switch-to-gui-p parameters))
       (let* ((prefix:p (symbol-name (car current)))
@@ -218,38 +626,40 @@ CURRENT must be of the form (PREFIX:P . value)."
 
 (defun frameset-filter-iconified (_current _filtered parameters saving)
   "Remove CURRENT when saving an iconified frame.
-This is used for positions parameters `left' and `top', which are
+This is used for positional parameters `left' and `top', which are
 meaningless in an iconified frame, so the frame is restored in a
-default position."
+default position.
+
+For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
+see `frameset-filter-alist'."
   (not (and saving (eq (cdr (assq 'visibility parameters)) 'icon))))
 
-(defun frameset-keep-original-display-p (force-display)
-  "True if saved frames' displays should be honored."
-  (cond ((daemonp) t)
-	((eq system-type 'windows-nt) nil)
-	(t (null force-display))))
-
 (defun frameset-filter-params (parameters filter-alist saving)
-  "Filter parameter list PARAMETERS and return a filtered list.
+  "Filter parameter alist PARAMETERS and return a filtered alist.
 FILTER-ALIST is an alist of parameter filters, in the format of
 `frameset-filter-alist' (which see).
 SAVING is non-nil while filtering parameters to save a frameset,
 nil while the filtering is done to restore it."
   (let ((filtered nil))
     (dolist (current parameters)
+      ;; When saving, the parameter alist is temporary, so modifying it
+      ;; is not a problem.  When restoring, the parameter alist is part
+      ;; of a frameset, so we must copy parameters to avoid inadvertent
+      ;; modifications.
       (pcase (cdr (assq (car current) filter-alist))
 	(`nil
-	 (push current filtered))
-	(`t
+	 (push (if saving current (copy-tree current)) filtered))
+	(:never
 	 nil)
-	(:save
-	 (unless saving (push current filtered)))
 	(:restore
+	 (unless saving (push (copy-tree current) filtered)))
+	(:save
 	 (when saving (push current filtered)))
 	((or `(,fun . ,args) (and fun (pred fboundp)))
-	 (let ((this (apply fun current filtered parameters saving args)))
-	   (when this
-	     (push (if (eq this t) current this) filtered))))
+	 (let* ((this (apply fun current filtered parameters saving args))
+		(val (if (eq this t) current this)))
+	   (when val
+	     (push (if saving val (copy-tree val)) filtered))))
 	(other
 	 (delay-warning 'frameset (format "Unknown filter %S" other) :error))))
     ;; Set the display parameter after filtering, so that filter functions
@@ -262,21 +672,48 @@ nil while the filtering is done to restore it."
     filtered))
 
 
-;; Saving framesets
+;; Frame ids
 
 (defun frameset--set-id (frame)
-  "Set FRAME's `frameset-id' if not yet set.
+  "Set FRAME's id if not yet set.
 Internal use only."
-  (unless (frame-parameter frame 'frameset-id)
+  (unless (frame-parameter frame 'frameset--id)
     (set-frame-parameter frame
-			 'frameset-id
+			 'frameset--id
 			 (mapconcat (lambda (n) (format "%04X" n))
 				    (cl-loop repeat 4 collect (random 65536))
 				    "-"))))
+;;;###autoload
+(defun frameset-frame-id (frame)
+  "Return the frame id of FRAME, if it has one; else, return nil.
+A frame id is a string that uniquely identifies a frame.
+It is persistent across `frameset-save' / `frameset-restore'
+invocations, and once assigned is never changed unless the same
+frame is duplicated (via `frameset-restore'), in which case the
+newest frame keeps the id and the old frame's is set to nil."
+  (frame-parameter frame 'frameset--id))
 
-(defun frameset--process-minibuffer-frames (frame-list)
+;;;###autoload
+(defun frameset-frame-id-equal-p (frame id)
+  "Return non-nil if FRAME's id matches ID."
+  (string= (frameset-frame-id frame) id))
+
+;;;###autoload
+(defun frameset-frame-with-id (id &optional frame-list)
+  "Return the live frame with id ID, if exists; else nil.
+If FRAME-LIST is a list of frames, check these frames only.
+If nil, check all live frames."
+  (cl-find-if (lambda (f)
+		(and (frame-live-p f)
+		     (frameset-frame-id-equal-p f id)))
+	      (or frame-list (frame-list))))
+
+
+;; Saving framesets
+
+(defun frameset--record-minibuffer-relationships (frame-list)
   "Process FRAME-LIST and record minibuffer relationships.
-FRAME-LIST is a list of frames."
+FRAME-LIST is a list of frames.  Internal use only."
   ;; Record frames with their own minibuffer
   (dolist (frame (minibuffer-frame-list))
     (when (memq frame frame-list)
@@ -291,73 +728,106 @@ FRAME-LIST is a list of frames."
   (dolist (frame frame-list)
     (unless (frame-parameter frame 'frameset--mini)
       (frameset--set-id frame)
-      (let* ((mb-frame (window-frame (minibuffer-window frame)))
-	     (id (and mb-frame (frame-parameter mb-frame 'frameset-id))))
-	(if (null id)
-	    (error "Minibuffer frame %S for %S is excluded" mb-frame frame)
-	  ;; For minibufferless frames, frameset--mini is a cons
-	  ;; (nil . FRAME-ID), where FRAME-ID is the frameset-id of
-	  ;; the frame containing its minibuffer window.
-	  (set-frame-parameter frame
-			       'frameset--mini
-			       (cons nil id)))))))
+      (let ((mb-frame (window-frame (minibuffer-window frame))))
+	;; For minibufferless frames, frameset--mini is a cons
+	;; (nil . FRAME-ID), where FRAME-ID is the frameset--id of
+	;; the frame containing its minibuffer window.
+	;; FRAME-ID can be set to nil, if FRAME-LIST doesn't contain
+	;; the minibuffer frame of a minibufferless frame; we allow
+	;; it without trying to second-guess the user.
+	(set-frame-parameter frame
+			     'frameset--mini
+			     (cons nil
+				   (and mb-frame
+					(frameset-frame-id mb-frame))))))))
 
 ;;;###autoload
-(cl-defun frameset-save (frame-list &key filters predicate properties)
-  "Return the frameset of FRAME-LIST, a list of frames.
-If nil, FRAME-LIST defaults to all live frames.
-FILTERS is an alist of parameter filters; defaults to `frameset-filter-alist'.
+(cl-defun frameset-save (frame-list
+			 &key app name description
+			      filters predicate properties)
+  "Return a frameset for FRAME-LIST, a list of frames.
+Dead frames and non-frame objects are silently removed from the list.
+If nil, FRAME-LIST defaults to the output of `frame-list' (all live frames).
+APP, NAME and DESCRIPTION are optional data; see the docstring of the
+`frameset' defstruct for details.
+FILTERS is an alist of parameter filters; if nil, the value of the variable
+`frameset-filter-alist' is used instead.
 PREDICATE is a predicate function, which must return non-nil for frames that
-should be saved; it defaults to saving all frames from FRAME-LIST.
+should be saved; if PREDICATE is nil, all frames from FRAME-LIST are saved.
 PROPERTIES is a user-defined property list to add to the frameset."
-  (let ((frames (cl-delete-if-not #'frame-live-p
-				  (cl-delete-if-not (or predicate #'framep)
-						    (or (copy-sequence frame-list)
-							(frame-list))))))
-    (frameset--process-minibuffer-frames frames)
-    (make-frameset :properties (append '(:version 1) properties)
-		   :states (mapcar
-			    (lambda (frame)
-			      (cons
-			       (frameset-filter-params (frame-parameters frame)
-						       (or filters
-							   frameset-filter-alist)
-						       t)
-			       (window-state-get (frame-root-window frame) t)))
-			    frames))))
+  (let* ((list (or (copy-sequence frame-list) (frame-list)))
+	 (frames (cl-delete-if-not #'frame-live-p
+				   (if predicate
+				       (cl-delete-if-not predicate list)
+				     list)))
+	 fs)
+    (frameset--record-minibuffer-relationships frames)
+    (setq fs (frameset--make
+	      :app app
+	      :name name
+	      :description description
+	      :properties properties
+	      :states (mapcar
+		       (lambda (frame)
+			 (cons
+			  (frameset-filter-params (frame-parameters frame)
+						  (or filters
+						      frameset-filter-alist)
+						  t)
+			  (window-state-get (frame-root-window frame) t)))
+		       frames)))
+    (cl-assert (frameset-valid-p fs))
+    fs))
 
 
 ;; Restoring framesets
 
 (defvar frameset--reuse-list nil
-  "Internal use only.")
+  "The list of frames potentially reusable.
+Its value is only meaningful during execution of `frameset-restore'.
+Internal use only.")
 
-(defun frameset--compute-pos (value left/top right/bottom)
+(defun frameset-compute-pos (value left/top right/bottom)
+  "Return an absolute positioning value for a frame.
+VALUE is the value of a positional frame parameter (`left' or `top').
+If VALUE is relative to the screen edges (like (+ -35) or (-200), it is
+converted to absolute by adding it to the corresponding edge; if it is
+an absolute position, it is returned unmodified.
+LEFT/TOP and RIGHT/BOTTOM indicate the dimensions of the screen in
+pixels along the relevant direction: either the position of the left
+and right edges for a `left' positional parameter, or the position of
+the top and bottom edges for a `top' parameter."
   (pcase value
     (`(+ ,val) (+ left/top val))
     (`(- ,val) (+ right/bottom val))
     (val val)))
 
-(defun frameset--move-onscreen (frame force-onscreen)
+(defun frameset-move-onscreen (frame force-onscreen)
   "If FRAME is offscreen, move it back onscreen and, if necessary, resize it.
 For the description of FORCE-ONSCREEN, see `frameset-restore'.
 When forced onscreen, frames wider than the monitor's workarea are converted
 to fullwidth, and frames taller than the workarea are converted to fullheight.
-NOTE: This only works for non-iconified frames.  Internal use only."
+NOTE: This only works for non-iconified frames."
   (pcase-let* ((`(,left ,top ,width ,height) (cl-cdadr (frame-monitor-attributes frame)))
-  	       (right (+ left width -1))
-  	       (bottom (+ top height -1))
-  	       (fr-left (frameset--compute-pos (frame-parameter frame 'left) left right))
-  	       (fr-top (frameset--compute-pos (frame-parameter frame 'top) top bottom))
+	       (right (+ left width -1))
+	       (bottom (+ top height -1))
+	       (fr-left (frameset-compute-pos (frame-parameter frame 'left) left right))
+	       (fr-top (frameset-compute-pos (frame-parameter frame 'top) top bottom))
 	       (ch-width (frame-char-width frame))
 	       (ch-height (frame-char-height frame))
-  	       (fr-width (max (frame-pixel-width frame) (* ch-width (frame-width frame))))
-  	       (fr-height (max (frame-pixel-height frame) (* ch-height (frame-height frame))))
-  	       (fr-right (+ fr-left fr-width -1))
-  	       (fr-bottom (+ fr-top fr-height -1)))
+	       (fr-width (max (frame-pixel-width frame) (* ch-width (frame-width frame))))
+	       (fr-height (max (frame-pixel-height frame) (* ch-height (frame-height frame))))
+	       (fr-right (+ fr-left fr-width -1))
+	       (fr-bottom (+ fr-top fr-height -1)))
     (when (pcase force-onscreen
+	    ;; A predicate.
+	    ((pred functionp)
+	     (funcall force-onscreen
+		      frame
+		      (list fr-left fr-top fr-width fr-height)
+		      (list left top width height)))
 	    ;; Any corner is outside the screen.
-	    (`all (or (< fr-bottom top)  (> fr-bottom bottom)
+	    (:all (or (< fr-bottom top)  (> fr-bottom bottom)
 		      (< fr-left   left) (> fr-left   right)
 		      (< fr-right  left) (> fr-right  right)
 		      (< fr-top    top)  (> fr-top    bottom)))
@@ -396,7 +866,7 @@ NOTE: This only works for non-iconified frames.  Internal use only."
 	(when params
 	  (modify-frame-parameters frame params))))))
 
-(defun frameset--find-frame (predicate display &rest args)
+(defun frameset--find-frame-if (predicate display &rest args)
   "Find a frame in `frameset--reuse-list' satisfying PREDICATE.
 Look through available frames whose display property matches DISPLAY
 and return the first one for which (PREDICATE frame ARGS) returns t.
@@ -407,10 +877,10 @@ If PREDICATE is nil, it is always satisfied.  Internal use only."
 			 (apply predicate frame args))))
 	      frameset--reuse-list))
 
-(defun frameset--reuse-frame (display frame-cfg)
-  "Look for an existing frame to reuse.
-DISPLAY is the display where the frame will be shown, and FRAME-CFG
-is the parameter list of the frame being restored.  Internal use only."
+(defun frameset--reuse-frame (display parameters)
+  "Return an existing frame to reuse, or nil if none found.
+DISPLAY is the display where the frame will be shown, and PARAMETERS
+is the parameter alist of the frame being restored.  Internal use only."
   (let ((frame nil)
 	mini)
     ;; There are no fancy heuristics there.  We could implement some
@@ -423,19 +893,19 @@ is the parameter list of the frame being restored.  Internal use only."
     ;; will usually have only one frame, and should already work.
     (cond ((null display)
 	   ;; When the target is tty, every existing frame is reusable.
-	   (setq frame (frameset--find-frame nil display)))
-	  ((car (setq mini (cdr (assq 'frameset--mini frame-cfg))))
+	   (setq frame (frameset--find-frame-if nil display)))
+	  ((car (setq mini (cdr (assq 'frameset--mini parameters))))
 	   ;; If the frame has its own minibuffer, let's see whether
 	   ;; that frame has already been loaded (which can happen after
 	   ;; M-x desktop-read).
-	   (setq frame (frameset--find-frame
+	   (setq frame (frameset--find-frame-if
 			(lambda (f id)
-			  (string= (frame-parameter f 'frameset-id) id))
-			display (cdr mini)))
+			  (frameset-frame-id-equal-p f id))
+			display (cdr (assq 'frameset--id parameters))))
 	   ;; If it has not been loaded, and it is not a minibuffer-only frame,
 	   ;; let's look for an existing non-minibuffer-only frame to reuse.
-	   (unless (or frame (eq (cdr (assq 'minibuffer frame-cfg)) 'only))
-	     (setq frame (frameset--find-frame
+	   (unless (or frame (eq (cdr (assq 'minibuffer parameters)) 'only))
+	     (setq frame (frameset--find-frame-if
 			  (lambda (f)
 			    (let ((w (frame-parameter f 'minibuffer)))
 			      (and (window-live-p w)
@@ -445,29 +915,40 @@ is the parameter list of the frame being restored.  Internal use only."
 	  (mini
 	   ;; For minibufferless frames, check whether they already exist,
 	   ;; and that they are linked to the right minibuffer frame.
-	   (setq frame (frameset--find-frame
-	   		(lambda (f id mini-id)
-	   		  (and (string= (frame-parameter f 'frameset-id) id)
-	   		       (string= (frame-parameter (window-frame (minibuffer-window f))
-	   						 'frameset-id)
-	   				mini-id)))
-	   		display (cdr (assq 'frameset-id frame-cfg)) (cdr mini))))
+	   (setq frame (frameset--find-frame-if
+			(lambda (f id mini-id)
+			  (and (frameset-frame-id-equal-p f id)
+			       (or (null mini-id) ; minibuffer frame not saved
+				   (frameset-frame-id-equal-p
+				    (window-frame (minibuffer-window f))
+				    mini-id))))
+			display
+			(cdr (assq 'frameset--id parameters)) (cdr mini))))
 	  (t
 	   ;; Default to just finding a frame in the same display.
-	   (setq frame (frameset--find-frame nil display))))
+	   (setq frame (frameset--find-frame-if nil display))))
     ;; If found, remove from the list.
     (when frame
       (setq frameset--reuse-list (delq frame frameset--reuse-list)))
     frame))
 
-(defun frameset--get-frame (frame-cfg window-cfg filters force-onscreen)
+(defun frameset--initial-params (parameters)
+  "Return a list of PARAMETERS that must be set when creating the frame.
+Setting position and size parameters as soon as possible helps reducing
+flickering; other parameters, like `minibuffer' and `border-width', can
+not be changed once the frame has been created.  Internal use only."
+  (cl-loop for param in '(left top with height border-width minibuffer)
+	   collect (assq param parameters)))
+
+(defun frameset--restore-frame (parameters window-state filters force-onscreen)
   "Set up and return a frame according to its saved state.
 That means either reusing an existing frame or creating one anew.
-FRAME-CFG is the frame's parameter list; WINDOW-CFG is its window state.
-For the meaning of FORCE-ONSCREEN, see `frameset-restore'."
-  (let* ((fullscreen (cdr (assq 'fullscreen frame-cfg)))
-	 (lines (assq 'tool-bar-lines frame-cfg))
-	 (filtered-cfg (frameset-filter-params frame-cfg filters nil))
+PARAMETERS is the frame's parameter alist; WINDOW-STATE is its window state.
+For the meaning of FILTERS and FORCE-ONSCREEN, see `frameset-restore'.
+Internal use only."
+  (let* ((fullscreen (cdr (assq 'fullscreen parameters)))
+	 (lines (assq 'tool-bar-lines parameters))
+	 (filtered-cfg (frameset-filter-params parameters filters nil))
 	 (display (cdr (assq 'display filtered-cfg))) ;; post-filtering
 	 alt-cfg frame)
 
@@ -502,14 +983,12 @@ For the meaning of FORCE-ONSCREEN, see `frameset-restore'."
     ;; If a frame needs to be created and it falls partially or fully offscreen,
     ;; sometimes it gets "pushed back" onscreen; however, moving it afterwards is
     ;; allowed.  So we create the frame as invisible and then reapply the full
-    ;; parameter list (including position and size parameters).
+    ;; parameter alist (including position and size parameters).
     (setq frame (or (and frameset--reuse-list
 			 (frameset--reuse-frame display filtered-cfg))
 		    (make-frame-on-display display
 					   (cons '(visibility)
-						 (cl-loop
-						  for param in '(left top width height minibuffer)
-						  collect (assq param filtered-cfg))))))
+						 (frameset--initial-params filtered-cfg)))))
     (modify-frame-parameters frame
 			     (if (eq (frame-parameter frame 'fullscreen) fullscreen)
 				 ;; Workaround for bug#14949
@@ -521,76 +1000,102 @@ For the meaning of FORCE-ONSCREEN, see `frameset-restore'."
 	       ;; FIXME: iconified frames should be checked too,
 	       ;; but it is impossible without deiconifying them.
 	       (not (eq (frame-parameter frame 'visibility) 'icon)))
-      (frameset--move-onscreen frame force-onscreen))
+      (frameset-move-onscreen frame force-onscreen))
 
     ;; Let's give the finishing touches (visibility, tool-bar, maximization).
     (when lines (push lines alt-cfg))
     (when alt-cfg (modify-frame-parameters frame alt-cfg))
     ;; Now restore window state.
-    (window-state-put window-cfg (frame-root-window frame) 'safe)
+    (window-state-put window-state (frame-root-window frame) 'safe)
     frame))
 
-(defun frameset--sort-states (state1 state2)
-  "Predicate to sort frame states in a suitable order to be created.
-It sorts minibuffer-owning frames before minibufferless ones."
+(defun frameset--minibufferless-last-p (state1 state2)
+  "Predicate to sort frame states in an order suitable for creating frames.
+It sorts minibuffer-owning frames before minibufferless ones.
+Internal use only."
   (pcase-let ((`(,hasmini1 ,id-def1) (assq 'frameset--mini (car state1)))
 	      (`(,hasmini2 ,id-def2) (assq 'frameset--mini (car state2))))
     (cond ((eq id-def1 t) t)
 	  ((eq id-def2 t) nil)
 	  ((not (eq hasmini1 hasmini2)) (eq hasmini1 t))
-	  ((eq hasmini1 nil) (string< id-def1 id-def2))
+	  ((eq hasmini1 nil) (or id-def1 id-def2))
 	  (t t))))
 
-(defun frameset-sort-frames-for-deletion (frame1 _frame2)
-  "Predicate to sort live frames for deletion.
-Minibufferless frames must go first to avoid errors when attempting
-to delete a frame whose minibuffer window is used by another frame."
+(defun frameset-keep-original-display-p (force-display)
+  "True if saved frames' displays should be honored.
+For the meaning of FORCE-DISPLAY, see `frameset-restore'."
+  (cond ((daemonp) t)
+	((eq system-type 'windows-nt) nil) ;; Does ns support more than one display?
+	(t (not force-display))))
+
+(defun frameset-minibufferless-first-p (frame1 _frame2)
+  "Predicate to sort minibufferless frames before other frames."
   (not (frame-parameter frame1 'minibuffer)))
 
 ;;;###autoload
-(cl-defun frameset-restore (frameset &key filters reuse-frames force-display force-onscreen)
+(cl-defun frameset-restore (frameset
+			    &key predicate filters reuse-frames
+				 force-display force-onscreen)
   "Restore a FRAMESET into the current display(s).
 
-FILTERS is an alist of parameter filters; defaults to `frameset-filter-alist'.
+PREDICATE is a function called with two arguments, the parameter alist
+and the window-state of the frame being restored, in that order (see
+the docstring of the `frameset' defstruct for additional details).
+If PREDICATE returns nil, the frame described by that parameter alist
+and window-state is not restored.
 
-REUSE-FRAMES describes how to reuse existing frames while restoring a frameset:
-  t       Reuse any existing frame if possible; delete leftover frames.
-  nil     Restore frameset in new frames and delete existing frames.
-  keep    Restore frameset in new frames and keep the existing ones.
-  LIST    A list of frames to reuse; only these will be reused, if possible,
-            and any leftover one will be deleted; other frames not on this
-            list will be kept.
+FILTERS is an alist of parameter filters; if nil, the value of
+`frameset-filter-alist' is used instead.
+
+REUSE-FRAMES selects the policy to use to reuse frames when restoring:
+  t        Reuse existing frames if possible, and delete those not reused.
+  nil      Restore frameset in new frames and delete existing frames.
+  :keep    Restore frameset in new frames and keep the existing ones.
+  LIST     A list of frames to reuse; only these are reused (if possible).
+	     Remaining frames in this list are deleted; other frames not
+	     included on the list are left untouched.
 
 FORCE-DISPLAY can be:
-  t       Frames will be restored in the current display.
-  nil     Frames will be restored, if possible, in their original displays.
-  delete  Frames in other displays will be deleted instead of restored.
+  t        Frames are restored in the current display.
+  nil      Frames are restored, if possible, in their original displays.
+  :delete  Frames in other displays are deleted instead of restored.
+  PRED     A function called with two arguments, the parameter alist and
+	     the window state (in that order).  It must return t, nil or
+	     `:delete', as above but affecting only the frame that will
+	     be created from that parameter alist.
 
 FORCE-ONSCREEN can be:
-  all     Force onscreen any frame fully or partially offscreen.
-  t	  Force onscreen only those frames that are fully offscreen.
-  nil	  Do not force any frame back onscreen.
+  t        Force onscreen only those frames that are fully offscreen.
+  nil      Do not force any frame back onscreen.
+  :all     Force onscreen any frame fully or partially offscreen.
+  PRED     A function called with three arguments,
+	   - the live frame just restored,
+	   - a list (LEFT TOP WIDTH HEIGHT), describing the frame,
+	   - a list (LEFT TOP WIDTH HEIGHT), describing the workarea.
+	   It must return non-nil to force the frame onscreen, nil otherwise.
 
-All keywords default to nil."
+Note the timing and scope of the operations described above: REUSE-FRAMES
+affects existing frames; PREDICATE, FILTERS and FORCE-DISPLAY affect the frame
+being restored before that happens; and FORCE-ONSCREEN affects the frame once
+it has been restored.
 
-  (cl-assert (frameset-p frameset))
+All keyword parameters default to nil."
 
-  (let* ((delete-saved (eq force-display 'delete))
-	 (forcing (not (frameset-keep-original-display-p force-display)))
-	 (target (and forcing (cons 'display (frame-parameter nil 'display))))
-	 other-frames)
+  (cl-assert (frameset-valid-p frameset))
+
+  (let (other-frames)
 
     ;; frameset--reuse-list is a list of frames potentially reusable.  Later we
     ;; will decide which ones can be reused, and how to deal with any leftover.
     (pcase reuse-frames
-      ((or `nil `keep)
+      ((or `nil `:keep)
        (setq frameset--reuse-list nil
 	     other-frames (frame-list)))
       ((pred consp)
        (setq frameset--reuse-list (copy-sequence reuse-frames)
 	     other-frames (cl-delete-if (lambda (frame)
-					   (memq frame frameset--reuse-list))
-					 (frame-list))))
+					  (memq frame frameset--reuse-list))
+					(frame-list))))
       (_
        (setq frameset--reuse-list (frame-list)
 	     other-frames nil)))
@@ -598,95 +1103,139 @@ All keywords default to nil."
     ;; Sort saved states to guarantee that minibufferless frames will be created
     ;; after the frames that contain their minibuffer windows.
     (dolist (state (sort (copy-sequence (frameset-states frameset))
-			 #'frameset--sort-states))
-      (condition-case-unless-debug err
-	  (pcase-let* ((`(,frame-cfg . ,window-cfg) state)
-		       ((and d-mini `(,hasmini . ,mb-id))
-			(cdr (assq 'frameset--mini frame-cfg)))
-		       (default (and (booleanp mb-id) mb-id))
-		       (frame nil) (to-tty nil))
-	    ;; Only set target if forcing displays and the target display is different.
-	    (if (or (not forcing)
-		    (equal target (or (assq 'display frame-cfg) '(display . nil))))
-		(setq frameset--target-display nil)
-	      (setq frameset--target-display target
-		    to-tty (null (cdr target))))
-	    ;; If keeping non-reusable frames, and the frame-id of one of them
-	    ;; matches the frame-id of a frame being restored (because, for example,
-	    ;; the frameset has already been read in the same session), remove the
-	    ;; frame-id from the non-reusable frame, which is not useful anymore.
-	    (when (and other-frames
-		       (or (eq reuse-frames 'keep) (consp reuse-frames)))
-	      (let ((dup (cl-find (cdr (assq 'frameset-frame-id frame-cfg))
-				  other-frames
-				  :key (lambda (frame)
-					 (frame-parameter frame 'frameset-frame-id))
-				  :test #'string=)))
-		(when dup
-		  (set-frame-parameter dup 'frameset-frame-id nil))))
-	    ;; Time to restore frames and set up their minibuffers as they were.
-	    ;; We only skip a frame (thus deleting it) if either:
-	    ;; - we're switching displays, and the user chose the option to delete, or
-	    ;; - we're switching to tty, and the frame to restore is minibuffer-only.
-	    (unless (and frameset--target-display
-			 (or delete-saved
-			     (and to-tty
-				  (eq (cdr (assq 'minibuffer frame-cfg)) 'only))))
-
-	      ;; Restore minibuffers.  Some of this stuff could be done in a filter
-	      ;; function, but it would be messy because restoring minibuffers affects
-	      ;; global state; it's best to do it here than add a bunch of global
-	      ;; variables to pass info back-and-forth to/from the filter function.
-	      (cond
-	       ((null d-mini)) ;; No frameset--mini.  Process as normal frame.
-	       (to-tty) ;; Ignore minibuffer stuff and process as normal frame.
-	       (hasmini ;; Frame has minibuffer (or it is minibuffer-only).
-		(when (eq (cdr (assq 'minibuffer frame-cfg)) 'only)
-		  (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
-					  frame-cfg))))
-	       (t ;; Frame depends on other frame's minibuffer window.
-		(let* ((mb-frame (or (cl-find-if
-				      (lambda (f)
-					(string= (frame-parameter f 'frameset-id)
-						 mb-id))
-				      (frame-list))
-				     (error "Minibuffer frame %S not found" mb-id)))
-		       (mb-param (assq 'minibuffer frame-cfg))
-		       (mb-window (minibuffer-window mb-frame)))
-		  (unless (and (window-live-p mb-window)
-			       (window-minibuffer-p mb-window))
-		    (error "Not a minibuffer window %s" mb-window))
-		  (if mb-param
-		      (setcdr mb-param mb-window)
-		    (push (cons 'minibuffer mb-window) frame-cfg))))))
-	    ;; OK, we're ready at last to create (or reuse) a frame and
-	    ;; restore the window config.
-	    (setq frame (frameset--get-frame frame-cfg window-cfg
-					     (or filters frameset-filter-alist)
-					     force-onscreen))
-	    ;; Set default-minibuffer if required.
-	    (when default (setq default-minibuffer-frame frame)))
-	(error
-	 (delay-warning 'frameset (error-message-string err) :error))))
+			 #'frameset--minibufferless-last-p))
+      (pcase-let ((`(,frame-cfg . ,window-cfg) state))
+	(when (or (null predicate) (funcall predicate frame-cfg window-cfg))
+	  (condition-case-unless-debug err
+	      (let* ((d-mini (cdr (assq 'frameset--mini frame-cfg)))
+		     (mb-id (cdr d-mini))
+		     (default (and (car d-mini) mb-id))
+		     (force-display (if (functionp force-display)
+					(funcall force-display frame-cfg window-cfg)
+				      force-display))
+		     frame to-tty)
+		;; Only set target if forcing displays and the target display is different.
+		(cond ((frameset-keep-original-display-p force-display)
+		       (setq frameset--target-display nil))
+		      ((eq (frame-parameter nil 'display) (cdr (assq 'display frame-cfg)))
+		       (setq frameset--target-display nil))
+		      (t
+		       (setq frameset--target-display (cons 'display
+							    (frame-parameter nil 'display))
+			     to-tty (null (cdr frameset--target-display)))))
+		;; Time to restore frames and set up their minibuffers as they were.
+		;; We only skip a frame (thus deleting it) if either:
+		;; - we're switching displays, and the user chose the option to delete, or
+		;; - we're switching to tty, and the frame to restore is minibuffer-only.
+		(unless (and frameset--target-display
+			     (or (eq force-display :delete)
+				 (and to-tty
+				      (eq (cdr (assq 'minibuffer frame-cfg)) 'only))))
+		  ;; If keeping non-reusable frames, and the frameset--id of one of them
+		  ;; matches the id of a frame being restored (because, for example, the
+		  ;; frameset has already been read in the same session), remove the
+		  ;; frameset--id from the non-reusable frame, which is not useful anymore.
+		  (when (and other-frames
+			     (or (eq reuse-frames :keep) (consp reuse-frames)))
+		    (let ((dup (frameset-frame-with-id (cdr (assq 'frameset--id frame-cfg))
+						       other-frames)))
+		      (when dup
+			(set-frame-parameter dup 'frameset--id nil))))
+		  ;; Restore minibuffers.  Some of this stuff could be done in a filter
+		  ;; function, but it would be messy because restoring minibuffers affects
+		  ;; global state; it's best to do it here than add a bunch of global
+		  ;; variables to pass info back-and-forth to/from the filter function.
+		  (cond
+		   ((null d-mini)) ;; No frameset--mini.  Process as normal frame.
+		   (to-tty) ;; Ignore minibuffer stuff and process as normal frame.
+		   ((car d-mini) ;; Frame has minibuffer (or it is minibuffer-only).
+		    (when (eq (cdr (assq 'minibuffer frame-cfg)) 'only)
+		      (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
+					      frame-cfg))))
+		   (t ;; Frame depends on other frame's minibuffer window.
+		    (when mb-id
+		      (let ((mb-frame (frameset-frame-with-id mb-id))
+			    (mb-window nil))
+			(if (not mb-frame)
+			    (delay-warning 'frameset
+					   (format "Minibuffer frame %S not found" mb-id)
+					   :warning)
+			  (setq mb-window (minibuffer-window mb-frame))
+			  (unless (and (window-live-p mb-window)
+				       (window-minibuffer-p mb-window))
+			    (delay-warning 'frameset
+					   (format "Not a minibuffer window %s" mb-window)
+					   :warning)
+			    (setq mb-window nil)))
+			(when mb-window
+			  (push (cons 'minibuffer mb-window) frame-cfg))))))
+		  ;; OK, we're ready at last to create (or reuse) a frame and
+		  ;; restore the window config.
+		  (setq frame (frameset--restore-frame frame-cfg window-cfg
+						       (or filters frameset-filter-alist)
+						       force-onscreen))
+		  ;; Set default-minibuffer if required.
+		  (when default (setq default-minibuffer-frame frame))))
+	    (error
+	     (delay-warning 'frameset (error-message-string err) :error))))))
 
     ;; In case we try to delete the initial frame, we want to make sure that
     ;; other frames are already visible (discussed in thread for bug#14841).
     (sit-for 0 t)
 
     ;; Delete remaining frames, but do not fail if some resist being deleted.
-    (unless (eq reuse-frames 'keep)
+    (unless (eq reuse-frames :keep)
       (dolist (frame (sort (nconc (if (listp reuse-frames) nil other-frames)
 				  frameset--reuse-list)
-			   #'frameset-sort-frames-for-deletion))
+			   ;; Minibufferless frames must go first to avoid
+			   ;; errors when attempting to delete a frame whose
+			   ;; minibuffer window is used by another frame.
+			   #'frameset-minibufferless-first-p))
 	(condition-case err
 	    (delete-frame frame)
 	  (error
 	   (delay-warning 'frameset (error-message-string err))))))
-    (setq frameset--reuse-list nil)
+    (setq frameset--reuse-list nil
+	  frameset--target-display nil)
 
     ;; Make sure there's at least one visible frame.
     (unless (or (daemonp) (visible-frame-list))
       (make-frame-visible (car (frame-list))))))
+
+
+;; Register support
+
+(defun frameset--jump-to-register (data)
+  "Restore frameset from DATA stored in register.
+Called from `jump-to-register'.  Internal use only."
+  (let* ((delete (and current-prefix-arg t))
+	 (iconify-list (if delete nil (frame-list))))
+    (frameset-restore (aref data 0)
+		      :filters frameset-session-filter-alist
+		      :reuse-frames (if delete t :keep))
+    (mapc #'iconify-frame iconify-list)
+    (let ((frame (frameset-frame-with-id (aref data 1))))
+      (when frame
+	(select-frame-set-input-focus frame)
+	(goto-char (aref data 2))))))
+
+;;;###autoload
+(defun frameset-to-register (register &optional _arg)
+  "Store the current frameset in register REGISTER.
+Use \\[jump-to-register] to restore the frameset.
+Argument is a character, naming the register."
+  (interactive "cFrameset to register: \nP")
+  (set-register register
+		(registerv-make
+		 (vector (frameset-save nil
+					:app 'register
+					:filters frameset-session-filter-alist)
+			 ;; frameset-save does not include the value of point
+			 ;; in the current buffer, so record that separately.
+			 (frameset-frame-id nil)
+			 (point-marker))
+		 :print-func (lambda (_data) (princ "a frameset."))
+		 :jump-func #'frameset--jump-to-register)))
 
 (provide 'frameset)
 

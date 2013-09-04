@@ -439,6 +439,8 @@ Also, initial position is at last record."
 (defvar forms--rw-face nil
   "Face used to represent read-write data on the screen.")
 
+(defvar read-file-filter) ; bound in forms--intuit-from-file
+
 ;;;###autoload
 (defun forms-mode (&optional primary)
   "Major mode to visit files in a field-structured manner using a form.
@@ -913,7 +915,7 @@ Commands:                        Equivalent keys in read-only mode:
 	 `(lambda (arg)
 	    (let ((inhibit-read-only t))
 	      ,@(apply 'append
-		       (mapcar 'forms--make-format-elt-using-text-properties
+		       (mapcar #'forms--make-format-elt-using-text-properties
 			       forms-format-list))
 	      ;; Prevent insertion before the first text.
 	      ,@(if (numberp (car forms-format-list))
@@ -926,7 +928,7 @@ Commands:                        Equivalent keys in read-only mode:
 	    (setq forms--iif-start nil))
        `(lambda (arg)
 	  ,@(apply 'append
-		   (mapcar 'forms--make-format-elt forms-format-list)))))
+		   (mapcar #'forms--make-format-elt forms-format-list)))))
 
     ;; We have tallied the number of markers and dynamic texts,
     ;; so we can allocate the arrays now.
@@ -1098,7 +1100,7 @@ Commands:                        Equivalent keys in read-only mode:
 	    (goto-char (point-min))
 	    ,@(apply 'append
 		     (mapcar
-		      'forms--make-parser-elt
+		      #'forms--make-parser-elt
 		      (append forms-format-list (list nil)))))))))
 
   (forms--debug 'forms--parser))
@@ -1198,8 +1200,6 @@ Commands:                        Equivalent keys in read-only mode:
       (setq forms--field nil)))
    ))
 
-(defvar read-file-filter) ; bound in forms--intuit-from-file
-
 (defun forms--intuit-from-file ()
   "Get number of fields and a default form using the data file."
 
@@ -1569,10 +1569,10 @@ As a side effect: sets `forms--the-record-list'."
     ;; Build new record.
     (setq forms--the-record-list (forms--parse-form))
     (setq the-record
-	  (mapconcat 'identity forms--the-record-list forms-field-sep))
+	  (mapconcat #'identity forms--the-record-list forms-field-sep))
 
-    (if (string-match (regexp-quote forms-field-sep)
-		      (mapconcat 'identity forms--the-record-list ""))
+    (if (string-match-p (regexp-quote forms-field-sep)
+			(mapconcat #'identity forms--the-record-list ""))
 	(error "Field separator occurs in record - update refused"))
 
     ;; Handle multi-line fields, if allowed.
@@ -1580,7 +1580,7 @@ As a side effect: sets `forms--the-record-list'."
 	(forms--trans the-record "\n" forms-multi-line))
 
     ;; A final sanity check before updating.
-    (if (string-match "\n" the-record)
+    (if (string-match-p "\n" the-record)
 	(error "Multi-line fields in this record - update refused"))
 
     (with-current-buffer forms--file-buffer
@@ -1779,11 +1779,7 @@ after the current record."
 	  (setq the-list (cdr (append the-fields nil))))
       (setq the-list (make-list forms-number-of-fields "")))
 
-    (setq the-record
-	  (mapconcat
-	  'identity
-	  the-list
-	  forms-field-sep))
+    (setq the-record (mapconcat #'identity the-list forms-field-sep))
 
     (with-current-buffer forms--file-buffer
       (forms--goto-record ln)

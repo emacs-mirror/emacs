@@ -257,15 +257,10 @@ xrealloc (void *block, size_t size)
 enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
 /* Dummy macros for non-Emacs environments.  */
-# define CHAR_CHARSET(c) 0
-# define CHARSET_LEADING_CODE_BASE(c) 0
 # define MAX_MULTIBYTE_LENGTH 1
 # define RE_MULTIBYTE_P(x) 0
 # define RE_TARGET_MULTIBYTE_P(x) 0
 # define WORD_BOUNDARY_P(c1, c2) (0)
-# define CHAR_HEAD_P(p) (1)
-# define SINGLE_BYTE_CHAR_P(c) (1)
-# define SAME_CHARSET_P(c1, c2) (1)
 # define BYTES_BY_CHAR_HEAD(p) (1)
 # define PREV_CHAR_BOUNDARY(p, limit) ((p)--)
 # define STRING_CHAR(p) (*(p))
@@ -279,8 +274,6 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
   (c = ((p) == (str2) ? *((end1) - 1) : *((p) - 1)))
 # define GET_CHAR_AFTER(c, p, len)	\
   (c = *p, len = 1)
-# define MAKE_CHAR(charset, c1, c2) (c1)
-# define BYTE8_TO_CHAR(c) (c)
 # define CHAR_BYTE8_P(c) (0)
 # define CHAR_LEADING_CODE(c) (c)
 
@@ -468,7 +461,7 @@ init_syntax_once (void)
 
 /* Assumes a `char *destination' variable.  */
 # define REGEX_REALLOCATE(source, osize, nsize)				\
-  (destination = (char *) alloca (nsize),				\
+  (destination = alloca (nsize),					\
    memcpy (destination, source, osize))
 
 /* No need to do anything to free, after alloca.  */
@@ -775,10 +768,12 @@ extract_number_and_incr (re_char **source)
    and the 2 bytes of flags at the start of the range table.  */
 #define CHARSET_RANGE_TABLE(p) (&(p)[4 + CHARSET_BITMAP_SIZE (p)])
 
+#ifdef emacs
 /* Extract the bit flags that start a range table.  */
 #define CHARSET_RANGE_TABLE_BITS(p)		\
   ((p)[2 + CHARSET_BITMAP_SIZE (p)]		\
    + (p)[3 + CHARSET_BITMAP_SIZE (p)] * 0x100)
+#endif
 
 /* Return the address of end of RANGE_TABLE.  COUNT is number of
    ranges (which is a pair of (start, end)) in the RANGE_TABLE.  `* 2'
@@ -1238,12 +1233,12 @@ re_set_syntax (reg_syntax_t syntax)
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
 /* Regexp to use to replace spaces, or NULL meaning don't.  */
-static re_char *whitespace_regexp;
+static const_re_char *whitespace_regexp;
 
 void
 re_set_whitespace_regexp (const char *regexp)
 {
-  whitespace_regexp = (re_char *) regexp;
+  whitespace_regexp = (const_re_char *) regexp;
 }
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
@@ -1830,6 +1825,8 @@ struct range_table_work_area
   int bits;			/* flag to record character classes */
 };
 
+#ifdef emacs
+
 /* Make sure that WORK_AREA can hold more N multibyte characters.
    This is used only in set_image_of_range and set_image_of_range_1.
    It expects WORK_AREA to be a pointer.
@@ -1848,15 +1845,6 @@ struct range_table_work_area
 #define SET_RANGE_TABLE_WORK_AREA_BIT(work_area, bit)		\
   (work_area).bits |= (bit)
 
-/* Bits used to implement the multibyte-part of the various character classes
-   such as [:alnum:] in a charset's range table.  */
-#define BIT_WORD	0x1
-#define BIT_LOWER	0x2
-#define BIT_PUNCT	0x4
-#define BIT_SPACE	0x8
-#define BIT_UPPER	0x10
-#define BIT_MULTIBYTE	0x20
-
 /* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
 #define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
   do {									\
@@ -1864,6 +1852,8 @@ struct range_table_work_area
     (work_area).table[(work_area).used++] = (range_start);		\
     (work_area).table[(work_area).used++] = (range_end);		\
   } while (0)
+
+#endif /* emacs */
 
 /* Free allocated memory for WORK_AREA.  */
 #define FREE_RANGE_TABLE_WORK_AREA(work_area)	\
@@ -1876,6 +1866,15 @@ struct range_table_work_area
 #define RANGE_TABLE_WORK_USED(work_area) ((work_area).used)
 #define RANGE_TABLE_WORK_BITS(work_area) ((work_area).bits)
 #define RANGE_TABLE_WORK_ELT(work_area, i) ((work_area).table[i])
+
+/* Bits used to implement the multibyte-part of the various character classes
+   such as [:alnum:] in a charset's range table.  */
+#define BIT_WORD	0x1
+#define BIT_LOWER	0x2
+#define BIT_PUNCT	0x4
+#define BIT_SPACE	0x8
+#define BIT_UPPER	0x10
+#define BIT_MULTIBYTE	0x20
 
 
 /* Set the bit for character C in a list.  */
@@ -4208,7 +4207,7 @@ re_set_registers (struct re_pattern_buffer *bufp, struct re_registers *regs, uns
     {
       bufp->regs_allocated = REGS_UNALLOCATED;
       regs->num_regs = 0;
-      regs->start = regs->end = (regoff_t *) 0;
+      regs->start = regs->end = 0;
     }
 }
 WEAK_ALIAS (__re_set_registers, re_set_registers)
@@ -6395,8 +6394,7 @@ weak_function
 re_exec (const char *s)
 {
   const size_t len = strlen (s);
-  return (re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0)
-	  >= 0);
+  return re_search (&re_comp_buf, s, len, 0, len, 0) >= 0;
 }
 #endif /* _REGEX_RE_COMP */
 
@@ -6560,7 +6558,7 @@ regexec (const regex_t *_Restrict_ preg, const char *_Restrict_ string,
   /* Perform the searching operation.  */
   ret = re_search (&private_preg, string, len,
 		   /* start: */ 0, /* range: */ len,
-		   want_reg_info ? &regs : (struct re_registers *) 0);
+		   want_reg_info ? &regs : 0);
 
   /* Copy the register information to the POSIX structure.  */
   if (want_reg_info)

@@ -360,7 +360,7 @@ Lisp_Object Qmenu_bar;
 static void recursive_edit_unwind (Lisp_Object buffer);
 static Lisp_Object command_loop (void);
 static Lisp_Object Qcommand_execute;
-EMACS_TIME timer_check (void);
+struct timespec timer_check (void);
 
 static void echo_now (void);
 static ptrdiff_t echo_length (void);
@@ -370,9 +370,9 @@ static Lisp_Object Qpolling_period;
 /* Incremented whenever a timer is run.  */
 unsigned timers_run;
 
-/* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
+/* Address (if not 0) of struct timespec to zero out if a SIGIO interrupt
    happens.  */
-EMACS_TIME *input_available_clear_time;
+struct timespec *input_available_clear_time;
 
 /* True means use SIGIO interrupts; false means use CBREAK mode.
    Default is true if INTERRUPT_INPUT is defined.  */
@@ -389,12 +389,12 @@ bool interrupts_deferred;
 
 /* The time when Emacs started being idle.  */
 
-static EMACS_TIME timer_idleness_start_time;
+static struct timespec timer_idleness_start_time;
 
 /* After Emacs stops being idle, this saves the last value
    of timer_idleness_start_time from when it was idle.  */
 
-static EMACS_TIME timer_last_idleness_start_time;
+static struct timespec timer_last_idleness_start_time;
 
 
 /* Global variable declarations.  */
@@ -1986,10 +1986,10 @@ start_polling (void)
       /* If poll timer doesn't exist, are we need one with
 	 a different interval, start a new one.  */
       if (poll_timer == NULL
-	  || EMACS_SECS (poll_timer->interval) != polling_period)
+	  || poll_timer->interval.tv_sec != polling_period)
 	{
 	  time_t period = max (1, min (polling_period, TYPE_MAXIMUM (time_t)));
-	  EMACS_TIME interval = make_emacs_time (period, 0);
+	  struct timespec interval = make_timespec (period, 0);
 
 	  if (poll_timer)
 	    cancel_atimer (poll_timer);
@@ -2182,7 +2182,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 /* Input of single characters from keyboard */
 
 static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, bool *used_mouse_menu,
-					 EMACS_TIME *end_time);
+					 struct timespec *end_time);
 static void record_char (Lisp_Object c);
 
 static Lisp_Object help_form_saved_window_configs;
@@ -2204,7 +2204,7 @@ do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = 0; } while (0)
 
 static Lisp_Object
-read_event_from_main_queue (EMACS_TIME *end_time,
+read_event_from_main_queue (struct timespec *end_time,
                             sys_jmp_buf local_getcjmp,
                             bool *used_mouse_menu)
 {
@@ -2217,7 +2217,7 @@ read_event_from_main_queue (EMACS_TIME *end_time,
   /* Read from the main queue, and if that gives us something we can't use yet,
      we put it on the appropriate side queue and try again.  */
 
-  if (end_time && EMACS_TIME_LE (*end_time, current_emacs_time ()))
+  if (end_time && timespec_cmp (*end_time, current_timespec ()) <= 0)
     return c;
 
   /* Actually read a character, waiting if necessary.  */
@@ -2278,7 +2278,7 @@ read_event_from_main_queue (EMACS_TIME *end_time,
 /* Like `read_event_from_main_queue' but applies keyboard-coding-system
    to tty input.  */
 static Lisp_Object
-read_decoded_event_from_main_queue (EMACS_TIME *end_time,
+read_decoded_event_from_main_queue (struct timespec *end_time,
                                     sys_jmp_buf local_getcjmp,
                                     Lisp_Object prev_event,
                                     bool *used_mouse_menu)
@@ -2376,7 +2376,7 @@ read_decoded_event_from_main_queue (EMACS_TIME *end_time,
    Value is -2 when we find input on another keyboard.  A second call
    to read_char will read it.
 
-   If END_TIME is non-null, it is a pointer to an EMACS_TIME
+   If END_TIME is non-null, it is a pointer to a struct timespec
    specifying the maximum time to wait until.  If no input arrives by
    that time, stop waiting and return nil.
 
@@ -2385,7 +2385,7 @@ read_decoded_event_from_main_queue (EMACS_TIME *end_time,
 Lisp_Object
 read_char (int commandflag, Lisp_Object map,
 	   Lisp_Object prev_event,
-	   bool *used_mouse_menu, EMACS_TIME *end_time)
+	   bool *used_mouse_menu, struct timespec *end_time)
 {
   Lisp_Object c;
   ptrdiff_t jmpcount;
@@ -2877,7 +2877,7 @@ read_char (int commandflag, Lisp_Object map,
     {
       c = read_decoded_event_from_main_queue (end_time, local_getcjmp,
                                               prev_event, used_mouse_menu);
-      if (end_time && EMACS_TIME_LE (*end_time, current_emacs_time ()))
+      if (end_time && timespec_cmp (*end_time, current_timespec ()) <= 0)
         goto exit;
       if (EQ (c, make_number (-2)))
         {
@@ -3798,7 +3798,7 @@ clear_event (struct input_event *event)
 static Lisp_Object
 kbd_buffer_get_event (KBOARD **kbp,
                       bool *used_mouse_menu,
-                      EMACS_TIME *end_time)
+                      struct timespec *end_time)
 {
   Lisp_Object obj;
 
@@ -3856,15 +3856,15 @@ kbd_buffer_get_event (KBOARD **kbp,
 	break;
       if (end_time)
 	{
-	  EMACS_TIME now = current_emacs_time ();
-	  if (EMACS_TIME_LE (*end_time, now))
+	  struct timespec now = current_timespec ();
+	  if (timespec_cmp (*end_time, now) <= 0)
 	    return Qnil;	/* Finished waiting.  */
 	  else
 	    {
-	      EMACS_TIME duration = sub_emacs_time (*end_time, now);
-	      wait_reading_process_output (min (EMACS_SECS (duration),
+	      struct timespec duration = timespec_sub (*end_time, now);
+	      wait_reading_process_output (min (duration.tv_sec,
 						WAIT_READING_MAX),
-					   EMACS_NSECS (duration),
+					   duration.tv_nsec,
 					   -1, 1, Qnil, NULL, 0);
 	    }
 	}
@@ -4295,10 +4295,10 @@ static void
 timer_start_idle (void)
 {
   /* If we are already in the idle state, do nothing.  */
-  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
+  if (timespec_valid_p (timer_idleness_start_time))
     return;
 
-  timer_idleness_start_time = current_emacs_time ();
+  timer_idleness_start_time = current_timespec ();
   timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
@@ -4310,7 +4310,7 @@ timer_start_idle (void)
 static void
 timer_stop_idle (void)
 {
-  timer_idleness_start_time = invalid_emacs_time ();
+  timer_idleness_start_time = invalid_timespec ();
 }
 
 /* Resume idle timer from last idle start time.  */
@@ -4318,7 +4318,7 @@ timer_stop_idle (void)
 static void
 timer_resume_idle (void)
 {
-  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
+  if (timespec_valid_p (timer_idleness_start_time))
     return;
 
   timer_idleness_start_time = timer_last_idleness_start_time;
@@ -4334,7 +4334,7 @@ Lisp_Object pending_funcalls;
 
 /* Return true if TIMER is a valid timer, placing its value into *RESULT.  */
 static bool
-decode_timer (Lisp_Object timer, EMACS_TIME *result)
+decode_timer (Lisp_Object timer, struct timespec *result)
 {
   Lisp_Object *vector;
 
@@ -4361,16 +4361,16 @@ decode_timer (Lisp_Object timer, EMACS_TIME *result)
    In that case we return 0 to indicate that a new timer_check_2 call
    should be done.  */
 
-static EMACS_TIME
+static struct timespec
 timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 {
-  EMACS_TIME nexttime;
-  EMACS_TIME now;
-  EMACS_TIME idleness_now;
+  struct timespec nexttime;
+  struct timespec now;
+  struct timespec idleness_now;
   Lisp_Object chosen_timer;
   struct gcpro gcpro1;
 
-  nexttime = invalid_emacs_time ();
+  nexttime = invalid_timespec ();
 
   chosen_timer = Qnil;
   GCPRO1 (chosen_timer);
@@ -4385,19 +4385,19 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 
   if (CONSP (timers) || CONSP (idle_timers))
     {
-      now = current_emacs_time ();
-      idleness_now = (EMACS_TIME_VALID_P (timer_idleness_start_time)
-		      ? sub_emacs_time (now, timer_idleness_start_time)
-		      : make_emacs_time (0, 0));
+      now = current_timespec ();
+      idleness_now = (timespec_valid_p (timer_idleness_start_time)
+		      ? timespec_sub (now, timer_idleness_start_time)
+		      : make_timespec (0, 0));
     }
 
   while (CONSP (timers) || CONSP (idle_timers))
     {
       Lisp_Object timer = Qnil, idle_timer = Qnil;
-      EMACS_TIME timer_time, idle_timer_time;
-      EMACS_TIME difference;
-      EMACS_TIME timer_difference = invalid_emacs_time ();
-      EMACS_TIME idle_timer_difference = invalid_emacs_time ();
+      struct timespec timer_time, idle_timer_time;
+      struct timespec difference;
+      struct timespec timer_difference = invalid_timespec ();
+      struct timespec idle_timer_difference = invalid_timespec ();
       bool ripe, timer_ripe = 0, idle_timer_ripe = 0;
 
       /* Set TIMER and TIMER_DIFFERENCE
@@ -4414,10 +4414,10 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	      continue;
 	    }
 
-	  timer_ripe = EMACS_TIME_LE (timer_time, now);
+	  timer_ripe = timespec_cmp (timer_time, now) <= 0;
 	  timer_difference = (timer_ripe
-			      ? sub_emacs_time (now, timer_time)
-			      : sub_emacs_time (timer_time, now));
+			      ? timespec_sub (now, timer_time)
+			      : timespec_sub (timer_time, now));
 	}
 
       /* Likewise for IDLE_TIMER and IDLE_TIMER_DIFFERENCE
@@ -4431,26 +4431,27 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	      continue;
 	    }
 
-	  idle_timer_ripe = EMACS_TIME_LE (idle_timer_time, idleness_now);
+	  idle_timer_ripe = timespec_cmp (idle_timer_time, idleness_now) <= 0;
 	  idle_timer_difference
 	    = (idle_timer_ripe
-	       ? sub_emacs_time (idleness_now, idle_timer_time)
-	       : sub_emacs_time (idle_timer_time, idleness_now));
+	       ? timespec_sub (idleness_now, idle_timer_time)
+	       : timespec_sub (idle_timer_time, idleness_now));
 	}
 
       /* Decide which timer is the next timer,
 	 and set CHOSEN_TIMER, DIFFERENCE, and RIPE accordingly.
 	 Also step down the list where we found that timer.  */
 
-      if (EMACS_TIME_VALID_P (timer_difference)
-	  && (! EMACS_TIME_VALID_P (idle_timer_difference)
+      if (timespec_valid_p (timer_difference)
+	  && (! timespec_valid_p (idle_timer_difference)
 	      || idle_timer_ripe < timer_ripe
 	      || (idle_timer_ripe == timer_ripe
-		  && (timer_ripe
-		      ? EMACS_TIME_LT (idle_timer_difference,
+		  && ((timer_ripe
+		       ? timespec_cmp (idle_timer_difference,
 				       timer_difference)
-		      : EMACS_TIME_LT (timer_difference,
-				       idle_timer_difference)))))
+		       : timespec_cmp (timer_difference,
+				       idle_timer_difference))
+		      < 0))))
 	{
 	  chosen_timer = timer;
 	  timers = XCDR (timers);
@@ -4490,7 +4491,7 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
                  return 0 to indicate that.  */
 	    }
 
-	  nexttime = make_emacs_time (0, 0);
+	  nexttime = make_timespec (0, 0);
           break;
 	}
       else
@@ -4518,10 +4519,10 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 
    As long as any timer is ripe, we run it.  */
 
-EMACS_TIME
+struct timespec
 timer_check (void)
 {
-  EMACS_TIME nexttime;
+  struct timespec nexttime;
   Lisp_Object timers, idle_timers;
   struct gcpro gcpro1, gcpro2;
 
@@ -4535,7 +4536,7 @@ timer_check (void)
   /* Always consider the ordinary timers.  */
   timers = Fcopy_sequence (Vtimer_list);
   /* Consider the idle timers only if Emacs is idle.  */
-  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
+  if (timespec_valid_p (timer_idleness_start_time))
     idle_timers = Fcopy_sequence (Vtimer_idle_list);
   else
     idle_timers = Qnil;
@@ -4548,7 +4549,7 @@ timer_check (void)
     {
       nexttime = timer_check_2 (timers, idle_timers);
     }
-  while (EMACS_SECS (nexttime) == 0 && EMACS_NSECS (nexttime) == 0);
+  while (nexttime.tv_sec == 0 && nexttime.tv_nsec == 0);
 
   UNGCPRO;
   return nexttime;
@@ -4564,9 +4565,9 @@ The value when Emacs is not idle is nil.
 PSEC is a multiple of the system clock resolution.  */)
   (void)
 {
-  if (EMACS_TIME_VALID_P (timer_idleness_start_time))
-    return make_lisp_time (sub_emacs_time (current_emacs_time (),
-					   timer_idleness_start_time));
+  if (timespec_valid_p (timer_idleness_start_time))
+    return make_lisp_time (timespec_sub (current_timespec (),
+					 timer_idleness_start_time));
 
   return Qnil;
 }
@@ -7126,7 +7127,7 @@ handle_input_available_signal (int sig)
   pending_signals = 1;
 
   if (input_available_clear_time)
-    *input_available_clear_time = make_emacs_time (0, 0);
+    *input_available_clear_time = make_timespec (0, 0);
 }
 
 static void
@@ -7213,7 +7214,7 @@ handle_user_signal (int sig)
 	    /* Tell wait_reading_process_output that it needs to wake
 	       up and look around.  */
 	    if (input_available_clear_time)
-	      *input_available_clear_time = make_emacs_time (0, 0);
+	      *input_available_clear_time = make_timespec (0, 0);
 	  }
 	break;
       }
@@ -8431,7 +8432,7 @@ read_char_minibuf_menu_prompt (int commandflag,
     return Qnil;
 
 #define PUSH_C_STR(str, listvar) \
-  listvar = Fcons (make_unibyte_string (str, strlen (str)), listvar)
+  listvar = Fcons (build_unibyte_string (str), listvar)
 
   /* Prompt string always starts with map's prompt, and a space.  */
   prompt_strings = Fcons (name, prompt_strings);
@@ -10124,8 +10125,6 @@ Also end any kbd macro being defined.  */)
       end_kbd_macro ();
     }
 
-  update_mode_lines++;
-
   Vunread_command_events = Qnil;
 
   discard_tty_input ();
@@ -10237,7 +10236,7 @@ stuff_buffered_input (Lisp_Object stuffstring)
 }
 
 void
-set_waiting_for_input (EMACS_TIME *time_to_clear)
+set_waiting_for_input (struct timespec *time_to_clear)
 {
   input_available_clear_time = time_to_clear;
 
@@ -10848,7 +10847,7 @@ init_keyboard (void)
   immediate_quit = 0;
   quit_char = Ctl ('g');
   Vunread_command_events = Qnil;
-  timer_idleness_start_time = invalid_emacs_time ();
+  timer_idleness_start_time = invalid_timespec ();
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;

@@ -156,7 +156,7 @@ options:
                           " RET instead."))
               (insert "\n\nWith your current key bindings"
                       " you can use "
-                      (if (string-match "^the .*menus?$" where)
+                      (if (string-match-p "^the .*menus?$" where)
                           ""
                         "the key")
                       where
@@ -346,10 +346,8 @@ from the Emacs default:\n\n" )
                    (def-fun-txt (nth 2 tk))
                    (where       (nth 3 tk))
                    (remark      (nth 4 tk))
-                   (rem-fun (command-remapping def-fun))
                    (key-txt (key-description key))
-                   (key-fun (with-current-buffer tutorial-buffer (key-binding key)))
-                   tot-len)
+                   (key-fun (with-current-buffer tutorial-buffer (key-binding key))))
               (unless (eq def-fun key-fun)
                 ;; Insert key binding description:
                 (when (string= key-txt explain-key-desc)
@@ -723,9 +721,7 @@ See `tutorial--save-tutorial' for more information."
                            saved-file
                            (error-message-string err))))
             ;; An error is raised here?? Is this a bug?
-            (condition-case nil
-                (undo-only)
-              (error nil))
+            (ignore-errors (undo-only))
             ;; Restore point
             (goto-char old-point)
             (if save-err
@@ -881,7 +877,7 @@ Run the Viper tutorial? "))
           ;; or just delete the <<...>> line if a [...] line follows.
           (cond ((save-excursion
                    (forward-line 1)
-                   (looking-at "\\["))
+                   (looking-at-p "\\["))
                  (delete-region (point) (progn (forward-line 1) (point))))
                 ((looking-at "<<Blank lines inserted.*>>")
                  (replace-match "[Middle of page left blank for didactic purposes.   Text continues below]"))
@@ -896,7 +892,7 @@ Run the Viper tutorial? "))
           ;; inserted at the start of the buffer, the "type C-v to
           ;; move to the next screen" might not be visible on the
           ;; first screen (n < 0).  How will the novice know what to do?
-          (let ((n (- (window-height (selected-window))
+          (let ((n (- (window-height)
                       (count-lines (point-min) (point))
                       6)))
             (if (< n 8)

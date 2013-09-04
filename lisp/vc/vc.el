@@ -486,7 +486,7 @@
 ;;   default implementation always returns nil.
 ;;
 ;; - root (file)
-;; 
+;;
 ;;   Return the root of the VC controlled hierarchy for file.
 ;;
 ;; - repository-hostname (dirname)
@@ -505,12 +505,13 @@
 ;;   from ignored files.
 ;;   When called from Lisp code, if DIRECTORY is non-nil, the
 ;;   repository to use will be deduced by DIRECTORY.
-;; 
+;;
 ;; - ignore-completion-table
-;; 
-;;   Return the completion table for files ignored by the version
-;;   control system in `default-directory'.
-;; 
+;;
+;;   Return the completion table for files ignored by the current
+;;   version control system, e.g., the entries in `.gitignore' and
+;;   `.bzrignore'.
+;;
 ;; - previous-revision (file rev)
 ;;
 ;;   Return the revision number that precedes REV for FILE, or nil if no such

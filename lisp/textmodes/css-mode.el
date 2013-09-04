@@ -263,6 +263,48 @@
 (defvar css-font-lock-defaults
   '(css-font-lock-keywords nil t))
 
+(defcustom css-indent-offset 4
+  "Basic size of one indentation step."
+  :version "22.2"
+  :type 'integer)
+
+(require 'smie)
+
+(defconst css-smie-grammar
+  (smie-prec2->grammar
+   (smie-precs->prec2 '((assoc ";") (assoc ",") (left ":")))))
+
+(defun css-smie--forward-token ()
+  (cond
+   ((and (eq (char-before) ?\})
+         ;; FIXME: If the next char is not whitespace, what should we do?
+         (or (memq (char-after) '(?\s ?\t ?\n))
+             (looking-at comment-start-skip)))
+    (if (memq (char-after) '(?\s ?\t ?\n))
+        (forward-char 1) (forward-comment 1))
+    ";")
+   ((progn (forward-comment (point-max))
+           (looking-at "[;,:]"))
+    (forward-char 1) (match-string 0))
+   (t (smie-default-forward-token))))
+
+(defun css-smie--backward-token ()
+  (let ((pos (point)))
+    (forward-comment (- (point)))
+    (cond
+     ;; FIXME: If the next char is not whitespace, what should we do?
+     ((and (eq (char-before) ?\}) (> pos (point))) ";")
+     ((memq (char-before) '(?\; ?\, ?\:))
+      (forward-char -1) (string (char-after)))
+     (t (smie-default-backward-token)))))
+
+(defun css-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) css-indent-offset)
+    (`(:elem . arg) 0)
+    (`(:before . "{") (if (smie-rule-hanging-p)
+                         (smie-rule-parent 0)))))
+
 ;;;###autoload
 (define-derived-mode css-mode fundamental-mode "CSS"
   "Major mode to edit Cascading Style Sheets."
@@ -271,11 +313,13 @@
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
-  (setq-local forward-sexp-function 'css-forward-sexp)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local indent-line-function 'css-indent-line)
   (setq-local fill-paragraph-function 'css-fill-paragraph)
   (setq-local add-log-current-defun-function #'css-current-defun-name)
+  (smie-setup css-smie-grammar #'css-smie-rules
+              :forward-token #'css-smie--forward-token
+              :backward-token #'css-smie--backward-token)
   (when css-electric-keys
     (let ((fc (make-char-table 'auto-fill-chars)))
       (set-char-table-parent fc auto-fill-chars)
@@ -354,132 +398,6 @@
             (indent-region (line-beginning-position 2) end)
             ;; Don't use the default filling code.
             t)))))))
-
-;;; Navigation and indentation.
-
-(defconst css-navigation-syntax-table
-  (let ((st (make-syntax-table css-mode-syntax-table)))
-    (map-char-table (lambda (c v)
-                      ;; Turn punctuation (code = 1) into symbol (code = 1).
-                      (if (eq (car-safe v) 1)
-                          (set-char-table-range st c (cons 3 (cdr v)))))
-                    st)
-    st))
-
-(defun css-backward-sexp (n)
-  (let ((forward-sexp-function nil))
-    (if (< n 0) (css-forward-sexp (- n))
-      (while (> n 0)
-        (setq n (1- n))
-        (forward-comment (- (point-max)))
-        (if (not (eq (char-before) ?\;))
-            (backward-sexp 1)
-          (while (progn (backward-sexp 1)
-                        (save-excursion
-                          (forward-comment (- (point-max)))
-                          ;; FIXME: We should also skip punctuation.
-                          (not (or (bobp) (memq (char-before) '(?\; ?\{))))))))))))
-
-(defun css-forward-sexp (n)
-  (let ((forward-sexp-function nil))
-    (if (< n 0) (css-backward-sexp (- n))
-      (while (> n 0)
-        (setq n (1- n))
-        (forward-comment (point-max))
-        (if (not (eq (char-after) ?\;))
-            (forward-sexp 1)
-          (while (progn (forward-sexp 1)
-                        (save-excursion
-                          (forward-comment (point-max))
-                          ;; FIXME: We should also skip punctuation.
-                          (not (memq (char-after) '(?\; ?\})))))))))))
-
-(defun css-indent-calculate-virtual ()
-  (if (or (save-excursion (skip-chars-backward " \t") (bolp))
-          (if (looking-at "\\s(")
-              (save-excursion
-                (forward-char 1) (skip-chars-forward " \t")
-                (not (or (eolp) (looking-at comment-start-skip))))))
-      (current-column)
-    (css-indent-calculate)))
-
-(defcustom css-indent-offset 4
-  "Basic size of one indentation step."
-  :version "22.2"
-  :type 'integer
-  :group 'css)
-
-(defun css-indent-calculate ()
-  (let ((ppss (syntax-ppss))
-        pos)
-    (with-syntax-table css-navigation-syntax-table
-      (save-excursion
-        (cond
-         ;; Inside a string.
-         ((nth 3 ppss) 'noindent)
-         ;; Inside a comment.
-         ((nth 4 ppss)
-          (setq pos (point))
-          (forward-line -1)
-          (skip-chars-forward " \t")
-          (if (>= (nth 8 ppss) (point))
-              (progn
-                (goto-char (nth 8 ppss))
-                (if (eq (char-after pos) ?*)
-                    (forward-char 1)
-                  (if (not (looking-at comment-start-skip))
-                      (error "Internal css-mode error")
-                    (goto-char (match-end 0))))
-                (current-column))
-            (if (and (eq (char-after pos) ?*) (eq (char-after) ?*))
-                (current-column)
-              ;; 'noindent
-              (current-column)
-              )))
-         ;; In normal code.
-         (t
-          (or
-           (when (looking-at "\\s)")
-             (forward-char 1)
-             (backward-sexp 1)
-             (css-indent-calculate-virtual))
-           (when (looking-at comment-start-skip)
-             (forward-comment (point-max))
-             (css-indent-calculate))
-           (when (save-excursion (forward-comment (- (point-max)))
-                                 (setq pos (point))
-                                 (eq (char-syntax (preceding-char)) ?\())
-             (goto-char (1- pos))
-             (if (not (looking-at "\\s([ \t]*"))
-                 (error "Internal css-mode error")
-               (if (or (memq (char-after (match-end 0)) '(?\n nil))
-                       (save-excursion (goto-char (match-end 0))
-                                       (looking-at comment-start-skip)))
-                   (+ (css-indent-calculate-virtual) css-indent-offset)
-                 (progn (goto-char (match-end 0)) (current-column)))))
-           (progn
-             (css-backward-sexp 1)
-             (if (looking-at "\\s(")
-                 (css-indent-calculate)
-               (css-indent-calculate-virtual))))))))))
-
-
-(defun css-indent-line ()
-  "Indent current line according to CSS indentation rules."
-  (interactive)
-  (let* ((savep (point))
-         (forward-sexp-function nil)
-	 (indent (condition-case nil
-		     (save-excursion
-		       (forward-line 0)
-		       (skip-chars-forward " \t")
-		       (if (>= (point) savep) (setq savep nil))
-		       (css-indent-calculate))
-		   (error nil))))
-    (if (not (numberp indent)) 'noindent
-      (if savep
-          (save-excursion (indent-line-to indent))
-        (indent-line-to indent)))))
 
 (defun css-current-defun-name ()
   "Return the name of the CSS section at point, or nil."

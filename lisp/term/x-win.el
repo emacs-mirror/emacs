@@ -87,7 +87,7 @@
 (defvar x-session-id)
 (defvar x-session-previous-id)
 
-(defun x-handle-no-bitmap-icon (switch)
+(defun x-handle-no-bitmap-icon (_switch)
   (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
 
 ;; Handle the --parent-id option.

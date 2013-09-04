@@ -57,7 +57,6 @@
 
 (defcustom smerge-diff-buffer-name "*vc-diff*"
   "Buffer name to use for displaying diffs."
-  :group 'smerge
   :type '(choice
 	  (const "*vc-diff*")
 	  (const "*cvs-diff*")
@@ -69,12 +68,10 @@
 	  (if (listp diff-switches) diff-switches (list diff-switches)))
   "A list of strings specifying switches to be passed to diff.
 Used in `smerge-diff-base-mine' and related functions."
-  :group 'smerge
   :type '(repeat string))
 
 (defcustom smerge-auto-leave t
   "Non-nil means to leave `smerge-mode' when the last conflict is resolved."
-  :group 'smerge
   :type 'boolean)
 
 (defface smerge-mine
@@ -84,8 +81,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#553333")
     (((class color))
      :foreground "red"))
-  "Face for your code."
-  :group 'smerge)
+  "Face for your code.")
 (define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
 (defvar smerge-mine-face 'smerge-mine)
 
@@ -96,8 +92,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#335533")
     (((class color))
      :foreground "green"))
-  "Face for the other code."
-  :group 'smerge)
+  "Face for the other code.")
 (define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
 (defvar smerge-other-face 'smerge-other)
 
@@ -108,8 +103,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#888833")
     (((class color))
      :foreground "yellow"))
-  "Face for the base code."
-  :group 'smerge)
+  "Face for the base code.")
 (define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
 (defvar smerge-base-face 'smerge-base)
 
@@ -118,15 +112,13 @@ Used in `smerge-diff-base-mine' and related functions."
      (:background "grey85"))
     (((background dark))
      (:background "grey30")))
-  "Face for the conflict markers."
-  :group 'smerge)
+  "Face for the conflict markers.")
 (define-obsolete-face-alias 'smerge-markers-face 'smerge-markers "22.1")
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-change
   '((t nil))
-  "Face used for char-based changes shown by `smerge-refine'."
-  :group 'smerge)
+  "Face used for char-based changes shown by `smerge-refine'.")
 
 (defface smerge-refined-removed
   '((default
@@ -137,7 +129,6 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#aa2222")
     (t :inverse-video t))
   "Face used for removed characters shown by `smerge-refine'."
-  :group 'smerge
   :version "24.3")
 
 (defface smerge-refined-added
@@ -149,7 +140,6 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#22aa22")
     (t :inverse-video t))
   "Face used for added characters shown by `smerge-refine'."
-  :group 'smerge
   :version "24.3")
 
 (easy-mmode-defmap smerge-basic-map
@@ -172,7 +162,6 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
-  :group 'smerge
   :type '(choice (const :tag "ESC"   "\e")
 		 (const :tag "C-c ^" "\C-c^" )
 		 (const :tag "none"  "")

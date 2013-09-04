@@ -331,12 +331,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* If SPECS is set to a string, use it as an interactive prompt.  */
   if (STRINGP (specs))
-    {
-      /* Make a copy of string so that if a GC relocates specs,
-	 `string' will still be valid.  */
-      string = alloca (SBYTES (specs) + 1);
-      memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
-    }
+    /* Make a copy of string so that if a GC relocates specs,
+       `string' will still be valid.  */
+    string = xlispstrdupa (specs);
   else
     {
       Lisp_Object input;
@@ -529,7 +526,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 			      make_number (SCHARS (callint_message)),
 			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
-	  message1_nolog ((char *) 0);
+	  message1_nolog (0);
 	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = args[i];
 	  /* See bug#8479.  */

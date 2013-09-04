@@ -1,4 +1,4 @@
-# serial 19
+# serial 20
 
 # Copyright (C) 2000-2001, 2004-2013 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -16,14 +16,19 @@ dnl we have to grub around in the FILE struct.
 AC_DEFUN([gl_FUNC_FPENDING],
 [
   AC_CHECK_HEADERS_ONCE([stdio_ext.h])
-  AC_CHECK_FUNCS_ONCE([__fpending])
-  fp_headers='
-#     include <stdio.h>
-#     if HAVE_STDIO_EXT_H
-#      include <stdio_ext.h>
-#     endif
-'
-  AC_CHECK_DECLS([__fpending], , , $fp_headers)
+  AC_CACHE_CHECK([for __fpending], [gl_cv_func___fpending],
+    [
+      AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM(
+           [[#include <stdio.h>
+             #if HAVE_STDIO_EXT_H
+             # include <stdio_ext.h>
+             #endif
+           ]],
+           [[return ! __fpending (stdin);]])],
+        [gl_cv_func___fpending=yes],
+        [gl_cv_func___fpending=no])
+    ])
 ])
 
 AC_DEFUN([gl_PREREQ_FPENDING],

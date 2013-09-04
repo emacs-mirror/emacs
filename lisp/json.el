@@ -177,36 +177,14 @@ without indentation.")
 
 ;; Error conditions
 
-(put 'json-error 'error-message "Unknown JSON error")
-(put 'json-error 'error-conditions '(json-error error))
-
-(put 'json-readtable-error 'error-message "JSON readtable error")
-(put 'json-readtable-error 'error-conditions
-     '(json-readtable-error json-error error))
-
-(put 'json-unknown-keyword 'error-message "Unrecognized keyword")
-(put 'json-unknown-keyword 'error-conditions
-     '(json-unknown-keyword json-error error))
-
-(put 'json-number-format 'error-message "Invalid number format")
-(put 'json-number-format 'error-conditions
-     '(json-number-format json-error error))
-
-(put 'json-string-escape 'error-message "Bad Unicode escape")
-(put 'json-string-escape 'error-conditions
-     '(json-string-escape json-error error))
-
-(put 'json-string-format 'error-message "Bad string format")
-(put 'json-string-format 'error-conditions
-     '(json-string-format json-error error))
-
-(put 'json-key-format 'error-message "Bad JSON object key")
-(put 'json-key-format 'error-conditions
-     '(json-key-format json-error error))
-
-(put 'json-object-format 'error-message "Bad JSON object")
-(put 'json-object-format 'error-conditions
-     '(json-object-format json-error error))
+(define-error 'json-error "Unknown JSON error")
+(define-error 'json-readtable-error "JSON readtable error" 'json-error)
+(define-error 'json-unknown-keyword "Unrecognized keyword" 'json-error)
+(define-error 'json-number-format "Invalid number format" 'json-error)
+(define-error 'json-string-escape "Bad Unicode escape" 'json-error)
+(define-error 'json-string-format "Bad string format" 'json-error)
+(define-error 'json-key-format "Bad JSON object key" 'json-error)
+(define-error 'json-object-format "Bad JSON object" 'json-error)
 
 
 

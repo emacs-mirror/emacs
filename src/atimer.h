@@ -19,8 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_ATIMER_H
 #define EMACS_ATIMER_H
 
-#include "systime.h"		/* for EMACS_TIME */
 #include <stdbool.h>
+#include <time.h>
 
 /* Forward declaration.  */
 
@@ -52,10 +52,10 @@ struct atimer
   enum atimer_type type;
 
   /* Time when this timer is ripe.  */
-  EMACS_TIME expiration;
+  struct timespec expiration;
 
   /* Interval of this timer.  */
-  EMACS_TIME interval;
+  struct timespec interval;
 
   /* Function to call when timer is ripe.  Interrupt input is
      guaranteed to not be blocked when this function is called.  */
@@ -70,7 +70,7 @@ struct atimer
 
 /* Function prototypes.  */
 
-struct atimer *start_atimer (enum atimer_type, EMACS_TIME,
+struct atimer *start_atimer (enum atimer_type, struct timespec,
                              atimer_callback, void *);
 void cancel_atimer (struct atimer *);
 void do_pending_atimers (void);

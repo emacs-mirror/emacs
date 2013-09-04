@@ -1,3 +1,41 @@
+2013-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.pdf, refcards/cs-dired-ref.pdf:
+	* refcards/cs-refcard.pdf, refcards/de-refcard.pdf:
+	* refcards/dired-ref.pdf, refcards/fr-dired-ref.pdf:
+	* refcards/fr-refcard.pdf, refcards/gnus-booklet.pdf:
+	* refcards/gnus-refcard.pdf, refcards/orgcard.pdf:
+	* refcards/pl-refcard.pdf, refcards/pt-br-refcard.pdf:
+	* refcards/refcard.pdf, refcards/ru-refcard.pdf:
+	* refcards/sk-dired-ref.pdf, refcards/sk-refcard.pdf:
+	Remove generated files from repository.
+
+	* refcards/Makefile: Rewrite to use portable Makefile syntax.
+	Add language-specific targets.
+	(distclean, extraclean): New rules.
+
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/Makefile (all_pdf, all_ps, fr-survival.ps, dist):
+	New rules.
+	(SURVIVAL_CARDS_PDF): Add fr_survival.pdf.
+
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention -lz and `decompress-gzipped-region'.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new keybinding of `C-x r f' to frameset-to-register.
+
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention `cache-long-scans'.
+
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typo (bug#15027).
+
 2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Document new package frameset.el.

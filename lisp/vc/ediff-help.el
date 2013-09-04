@@ -253,7 +253,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 
 
 (defun ediff-indent-help-message ()
-  (let* ((shift (/ (max 0 (- (window-width (selected-window))
+  (let* ((shift (/ (max 0 (- (window-width)
 			     (ediff-help-message-line-length)))
 		   2))
 	 (str (make-string shift ?\ )))

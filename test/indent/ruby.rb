@@ -66,3 +66,8 @@ end
 Given /toto/ do
   print "hello"
 end
+
+# Bug#15208
+if something == :==
+  do_something
+end

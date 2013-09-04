@@ -198,7 +198,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 (defun global-hl-line-highlight ()
   "Highlight the current line in the current window."
   (when global-hl-line-mode	; Might be changed outside the mode function.
-    (unless (window-minibuffer-p (selected-window))
+    (unless (window-minibuffer-p)
       (unless global-hl-line-overlay
         (setq global-hl-line-overlay (make-overlay 1 1)) ; to be moved
         (overlay-put global-hl-line-overlay 'face hl-line-face))

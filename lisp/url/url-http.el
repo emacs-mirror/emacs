@@ -851,10 +851,24 @@ should be shown to the user."
        (error "Unknown class of HTTP response code: %d (%d)"
 	      class url-http-response-status)))
     (if (not success)
-	(url-mark-buffer-as-dead buffer))
+	(url-mark-buffer-as-dead buffer)
+      (url-handle-content-transfer-encoding))
     (url-http-debug "Finished parsing HTTP headers: %S" success)
     (widen)
+    (goto-char (point-min))
     success))
+
+(defun url-handle-content-transfer-encoding ()
+  (let ((encoding (mail-fetch-field "content-encoding")))
+    (when (and encoding
+	       (fboundp 'zlib-decompress-region)
+	       (zlib-available-p)
+	       (equal (downcase encoding) "gzip"))
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(when (search-forward "\n\n")
+	  (zlib-decompress-region (point) (point-max)))))))
 
 ;; Miscellaneous
 (defun url-http-activate-callback ()

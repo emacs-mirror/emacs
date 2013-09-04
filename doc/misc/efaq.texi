@@ -3452,8 +3452,9 @@ lack certain features, such as the Emacs Lisp extension language.
 @cindex Emacs for MS-Windows
 @cindex Microsoft Windows, Emacs for
 
-There is a @uref{http://www.gnu.org/software/emacs/windows/ntemacs.html,
-separate FAQ} for Emacs on MS-Windows.  For MS-DOS, @pxref{Emacs for MS-DOS}.
+There is a separate FAQ for Emacs on MS-Windows,
+@pxref{Top,,,efaq-w32,FAQ for Emacs on MS Windows}.
+For MS-DOS, @pxref{Emacs for MS-DOS}.
 
 
 @node Emacs for GNUstep

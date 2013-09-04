@@ -606,7 +606,7 @@ We run the first FUNCTION whose STRING matches the input events."
   (add-hook 'delete-terminal-functions 'xterm-remove-modify-other-keys)
   ;; Add the selected frame to the list of frames that
   ;; need to deal with modify-other-keys.
-  (push (frame-terminal (selected-frame))
+  (push (frame-terminal)
       xterm-modify-other-keys-terminal-list)
   (xterm-turn-on-modify-other-keys))
 
@@ -728,7 +728,7 @@ versions of xterm."
 
 (defun xterm-turn-on-modify-other-keys ()
   "Turn the modifyOtherKeys feature of xterm back on."
-  (let ((terminal (frame-terminal (selected-frame))))
+  (let ((terminal (frame-terminal)))
     (when (and (terminal-live-p terminal)
 	       (memq terminal xterm-modify-other-keys-terminal-list))
       (send-string-to-terminal "\e[>4;1m" terminal))))
@@ -742,7 +742,7 @@ versions of xterm."
 
 (defun xterm-remove-modify-other-keys (&optional terminal)
   "Turn off the modifyOtherKeys feature of xterm for good."
-  (setq terminal (or terminal (frame-terminal (selected-frame))))
+  (setq terminal (or terminal (frame-terminal)))
   (when (and (terminal-live-p terminal)
 	     (memq terminal xterm-modify-other-keys-terminal-list))
     (setq xterm-modify-other-keys-terminal-list

@@ -703,7 +703,6 @@ for this spreadsheet."
     (and (string-match "\\`\\([A-Z]+\\)\\([0-9]+\\)\\'" str)
 	 (let* ((col-str (match-string-no-properties 1 str))
 	       (col 0)
-	       (col-offset 0)
 	       (col-base 1)
 	       (col-idx (1- (length col-str)))
 	       (row (1- (string-to-number (match-string-no-properties 2 str)))))
@@ -740,7 +739,7 @@ row and column of the cell, with numbering starting from 0.
 Return nil in case of failure."
   (unless (local-variable-p sym)
     (make-local-variable  sym)
-    (if (let (case-fold-search) (string-match "\\`[A-Z]+[0-9]+\\'" (symbol-name sym)))
+    (if (let (case-fold-search) (string-match-p "\\`[A-Z]+[0-9]+\\'" (symbol-name sym)))
 	(put sym 'ses-cell (cons row col))
       (put sym 'ses-cell :ses-named)
       (setq ses--named-cell-hashmap (or ses--named-cell-hashmap (make-hash-table :test 'eq)))
@@ -1474,7 +1473,7 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
   (let (rowcol result)
     (if (or (atom formula) (eq (car formula) 'quote))
 	(if (and (setq rowcol (ses-sym-rowcol formula))
-		 (string-match "\\`[A-Z]+[0-9]+\\'" (symbol-name formula)))
+		 (string-match-p "\\`[A-Z]+[0-9]+\\'" (symbol-name formula)))
 	    (ses-relocate-symbol formula rowcol
 				 startrow startcol rowincr colincr)
 	  formula) ; Pass through as-is.
@@ -1735,7 +1734,7 @@ Does not execute cell formulas or print functions."
   (search-backward ";; Local Variables:\n" nil t)
   (backward-list 1)
   (setq ses--params-marker (point-marker))
-  (let ((params (condition-case nil (read (current-buffer)) (error nil))))
+  (let ((params (ignore-errors (read (current-buffer)))))
     (or (and (= (safe-length params) 3)
 	     (numberp (car params))
 	     (numberp (cadr params))
@@ -1761,7 +1760,7 @@ Does not execute cell formulas or print functions."
   ;; Skip over print area, which we assume is correct.
   (goto-char (point-min))
   (forward-line ses--numrows)
-  (or (looking-at ses-print-data-boundary)
+  (or (looking-at-p ses-print-data-boundary)
       (error "Missing marker between print and data areas"))
   (forward-char 1)
   (setq ses--data-marker (point-marker))
@@ -1774,12 +1773,12 @@ Does not execute cell formulas or print functions."
     (dotimes (col ses--numcols)
       (let* ((x      (read (current-buffer)))
 	     (sym  (car-safe (cdr-safe x))))
-	(or (and (looking-at "\n")
+	(or (and (looking-at-p "\n")
 		 (eq (car-safe x) 'ses-cell)
 		 (ses-create-cell-variable sym row col))
 	    (error "Cell-def error"))
 	(eval x)))
-    (or (looking-at "\n\n")
+    (or (looking-at-p "\n\n")
 	(error "Missing blank line between rows")))
   ;; Load global parameters.
   (let ((widths      (read (current-buffer)))
@@ -1805,8 +1804,8 @@ Does not execute cell formulas or print functions."
     (1value (eval head-row)))
   ;; Should be back at global-params.
   (forward-char 1)
-  (or (looking-at (replace-regexp-in-string "1" "[0-9]+"
-					    ses-initial-global-parameters))
+  (or (looking-at-p (replace-regexp-in-string "1" "[0-9]+"
+					      ses-initial-global-parameters))
       (error "Problem with column-defs or global-params"))
   ;; Check for overall newline count in definitions area.
   (forward-line 3)
@@ -2077,9 +2076,8 @@ Based on the current set of columns and `window-hscroll' position."
 
 (defun ses-jump-safe (cell)
   "Like `ses-jump', but no error if invalid cell."
-  (condition-case nil
-      (ses-jump cell)
-    (error)))
+  (ignore-errors
+    (ses-jump cell)))
 
 (defun ses-reprint-all (&optional nonarrow)
   "Recreate the display area.  Calls all printer functions.  Narrows to
@@ -2789,7 +2787,7 @@ We clear the killed cells instead of deleting them."
   ;; For some reason, the text-read-only error is not caught by `delete-region',
   ;; so we have to use subterfuge.
   (let ((buffer-read-only t))
-    (1value (condition-case x
+    (1value (condition-case nil
 		(noreturn (funcall (lookup-key (current-global-map)
 					       (this-command-keys))
 				   beg end))
@@ -3014,13 +3012,13 @@ spot, or error signal if user requests cancel."
 			     (ses-col-printer (1- ses--numcols)))))
     rowcol))
 
-(defun ses-export-tsv (beg end)
+(defun ses-export-tsv (_beg _end)
   "Export values from the current range, with tabs between columns and
 newlines between rows.  Result is placed in kill ring."
   (interactive "r")
   (ses-export-tab nil))
 
-(defun ses-export-tsf (beg end)
+(defun ses-export-tsf (_beg _end)
   "Export formulas from the current range, with tabs between columns and
 newlines between rows.  Result is placed in kill ring."
   (interactive "r")
@@ -3298,7 +3296,7 @@ highlighted range in the spreadsheet."
       (let* ((x (ses-sym-rowcol ref))
 	     (xcell (ses-get-cell (car x) (cdr x))))
 	(ses-cell-references-aset xcell
-				  (cons new-name (delq sym 
+				  (cons new-name (delq sym
 						       (ses-cell-references xcell))))))
     (push new-name ses--renamed-cell-symb-list)
     (set new-name (symbol-value sym))
@@ -3579,7 +3577,7 @@ current column and continues until the next nonblank column."
 current column and continues until the next nonblank column."
   (ses-center-span value ?~))
 
-(defun ses-unsafe (value)
+(defun ses-unsafe (_value)
   "Substitute for an unsafe formula or printer."
   (error "Unsafe formula or printer"))
 

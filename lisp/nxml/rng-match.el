@@ -1541,14 +1541,7 @@ nullable and y1 isn't, return a choice
   (signal 'rng-compile-error
 	  (list (apply 'format args))))
 
-(put 'rng-compile-error
-     'error-conditions
-     '(error rng-error rng-compile-error))
-
-(put 'rng-compile-error
-     'error-message
-     "Incorrect schema")
-
+(define-error 'rng-compile-error "Incorrect schema" 'rng-error)
 
 ;;; External API
 

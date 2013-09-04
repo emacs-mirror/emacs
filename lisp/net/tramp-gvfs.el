@@ -97,17 +97,18 @@
 ;; option "--without-dbus".  Declare used subroutines and variables.
 (declare-function dbus-get-unique-name "dbusbind.c")
 
-;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom))
-
 (require 'tramp)
 
 (require 'dbus)
 (require 'url-parse)
 (require 'url-util)
 (require 'zeroconf)
+
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl)
+  (require 'custom))
+(defvar ls-lisp-use-insert-directory-program)
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
@@ -489,7 +490,7 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
   (unless tramp-gvfs-enabled
-    (tramp-compat-user-error "Package `tramp-gvfs' not supported"))
+    (tramp-user-error nil "Package `tramp-gvfs' not supported"))
   (let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
     (if fn
 	(save-match-data (apply (cdr fn) args))
@@ -923,7 +924,7 @@ is no information where to trace the message.")
             v (concat localname filename)
 	    "file-name-all-completions" result))))))))
 
-(defun tramp-gvfs-handle-file-notify-add-watch (file-name flags callback)
+(defun tramp-gvfs-handle-file-notify-add-watch (file-name _flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
@@ -1093,7 +1094,7 @@ is no information where to trace the message.")
 	  (tramp-flush-file-property v localname))))))
 
 (defun tramp-gvfs-handle-write-region
-  (start end filename &optional append visit lockname confirm)
+  (start end filename &optional _append visit _lockname confirm)
   "Like `write-region' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
@@ -1416,47 +1417,36 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 	 (port (tramp-file-name-port vec))
 	 (localname (tramp-file-name-localname vec))
 	 (ssl (if (string-match "^davs" method) "true" "false"))
-	 (mount-spec '(:array))
-	 (mount-pref "/"))
-
-    (setq
-     mount-spec
-     (append
-      mount-spec
-      (cond
-       ((string-equal "smb" method)
-	(string-match "^/?\\([^/]+\\)" localname)
-	(list (tramp-gvfs-mount-spec-entry "type" "smb-share")
-	      (tramp-gvfs-mount-spec-entry "server" host)
-	      (tramp-gvfs-mount-spec-entry "share" (match-string 1 localname))))
-       ((string-equal "obex" method)
-	(list (tramp-gvfs-mount-spec-entry "type" method)
-	      (tramp-gvfs-mount-spec-entry
-	       "host" (concat "[" (tramp-bluez-address host) "]"))))
-       ((string-match "^dav" method)
-	(list (tramp-gvfs-mount-spec-entry "type" "dav")
-	      (tramp-gvfs-mount-spec-entry "host" host)
-	      (tramp-gvfs-mount-spec-entry "ssl" ssl)))
-       (t
-	(list (tramp-gvfs-mount-spec-entry "type" method)
-	      (tramp-gvfs-mount-spec-entry "host" host))))))
-
-    (when user
-      (add-to-list
-       'mount-spec (tramp-gvfs-mount-spec-entry "user" user) 'append))
-
-    (when domain
-      (add-to-list
-       'mount-spec (tramp-gvfs-mount-spec-entry "domain" domain) 'append))
-
-    (when port
-      (add-to-list
-       'mount-spec (tramp-gvfs-mount-spec-entry "port" (number-to-string port))
-       'append))
-
-    (when (and (string-match "^dav" method)
-	       (string-match "^/?[^/]+" localname))
-      (setq mount-pref (match-string 0 localname)))
+	 (mount-spec
+          `(:array
+            ,@(cond
+               ((string-equal "smb" method)
+                (string-match "^/?\\([^/]+\\)" localname)
+                (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
+                      (tramp-gvfs-mount-spec-entry "server" host)
+                      (tramp-gvfs-mount-spec-entry "share" (match-string 1 localname))))
+               ((string-equal "obex" method)
+                (list (tramp-gvfs-mount-spec-entry "type" method)
+                      (tramp-gvfs-mount-spec-entry
+                       "host" (concat "[" (tramp-bluez-address host) "]"))))
+               ((string-match "\\`dav" method)
+                (list (tramp-gvfs-mount-spec-entry "type" "dav")
+                      (tramp-gvfs-mount-spec-entry "host" host)
+                      (tramp-gvfs-mount-spec-entry "ssl" ssl)))
+               (t
+                (list (tramp-gvfs-mount-spec-entry "type" method)
+                      (tramp-gvfs-mount-spec-entry "host" host))))
+            ,@(when user
+                (list (tramp-gvfs-mount-spec-entry "user" user)))
+            ,@(when domain
+                (list (tramp-gvfs-mount-spec-entry "domain" domain)))
+            ,@(when port
+                (list (tramp-gvfs-mount-spec-entry "port" (number-to-string port))))))
+	 (mount-pref
+          (if (and (string-match "\\`dav" method)
+                   (string-match "^/?[^/]+" localname))
+              (match-string 0 localname)
+            "/")))
 
     ;; Return.
     `(:struct ,(tramp-gvfs-dbus-string-to-byte-array mount-pref) ,mount-spec)))
@@ -1468,6 +1458,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  (tramp-check-proper-host vec)
 
   ;; We set the file name, in case there are incoming D-Bus signals or
   ;; D-Bus errors.
@@ -1653,7 +1644,7 @@ be used."
  :system nil nil tramp-bluez-interface-adapter "DeviceFound"
  'tramp-bluez-device-found)
 
-(defun tramp-bluez-parse-device-names (ignore)
+(defun tramp-bluez-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (mapcar
    (lambda (x) (list nil (car x)))
@@ -1667,14 +1658,14 @@ be used."
 
 ;; D-Bus zeroconf functions.
 
-(defun tramp-zeroconf-parse-workstation-device-names (ignore)
+(defun tramp-zeroconf-parse-workstation-device-names (_ignore)
   "Return a list of (user host) tuples allowed to access."
   (mapcar
    (lambda (x)
      (list nil (zeroconf-service-host x)))
    (zeroconf-list-services "_workstation._tcp")))
 
-(defun tramp-zeroconf-parse-webdav-device-names (ignore)
+(defun tramp-zeroconf-parse-webdav-device-names (_ignore)
   "Return a list of (user host) tuples allowed to access."
   (mapcar
    (lambda (x)
@@ -1716,15 +1707,15 @@ They are retrieved from the hal daemon."
       (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
 	      :system tramp-hal-service device tramp-hal-interface-device
 	      "PropertyExists" "sync.plugin")
-	(add-to-list
-	 'tramp-synce-devices
+	(pushnew
 	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
 	   :system tramp-hal-service device tramp-hal-interface-device
-	   "GetPropertyString" "pda.pocketpc.name"))))
+	   "GetPropertyString" "pda.pocketpc.name")
+         tramp-synce-devices :test #'equal)))
     (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
     tramp-synce-devices))
 
-(defun tramp-synce-parse-device-names (ignore)
+(defun tramp-synce-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (mapcar
    (lambda (x) (list nil x))

@@ -602,11 +602,7 @@ dos_set_window_size (int *rows, int *cols)
       Lisp_Object window = hlinfo->mouse_face_window;
 
       if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
-	{
-	  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-	  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-	  hlinfo->mouse_face_window = Qnil;
-	}
+	reset_mouse_highlight (hlinfo);
     }
 
   /* Enable bright background colors.  */
@@ -950,9 +946,6 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 			  Mouse Highlight (and friends..)
  ************************************************************************/
 
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_mouse_window;
-
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 int
@@ -1276,14 +1269,9 @@ IT_update_begin (struct frame *f)
 	}
     }
   else if (mouse_face_frame && !FRAME_LIVE_P (mouse_face_frame))
-    {
-      /* If the frame with mouse highlight was deleted, invalidate the
-	 highlight info.  */
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_mouse_frame = NULL;
-    }
+    /* If the frame with mouse highlight was deleted, invalidate the
+       highlight info.  */
+    reset_mouse_highlight (hlinfo);
 
   unblock_input ();
 }
@@ -1553,11 +1541,6 @@ IT_reset_terminal_modes (struct terminal *term)
   startup_screen_buffer = NULL;
 
   term_setup_done = 0;
-}
-
-static void
-IT_set_terminal_window (struct frame *f, int foo)
-{
 }
 
 /* Remember the screen colors of the current frame, to serve as the
@@ -1843,17 +1826,8 @@ internal_terminal_init (void)
 	  if (colors[1] >= 0 && colors[1] < 16)
 	    FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
 	}
-      the_only_display_info.mouse_highlight.mouse_face_mouse_frame = NULL;
-      the_only_display_info.mouse_highlight.mouse_face_beg_row =
-	the_only_display_info.mouse_highlight.mouse_face_beg_col = -1;
-      the_only_display_info.mouse_highlight.mouse_face_end_row =
-	the_only_display_info.mouse_highlight.mouse_face_end_col = -1;
-      the_only_display_info.mouse_highlight.mouse_face_face_id = DEFAULT_FACE_ID;
-      the_only_display_info.mouse_highlight.mouse_face_window = Qnil;
-      the_only_display_info.mouse_highlight.mouse_face_mouse_x =
-	the_only_display_info.mouse_highlight.mouse_face_mouse_y = 0;
-      the_only_display_info.mouse_highlight.mouse_face_defer = 0;
-      the_only_display_info.mouse_highlight.mouse_face_hidden = 0;
+
+      reset_mouse_highlight (&the_only_display_info.mouse_highlight);
 
       if (have_mouse)	/* detected in dos_ttraw, which see */
 	{
@@ -1889,7 +1863,7 @@ initialize_msdos_display (struct terminal *term)
   term->ring_bell_hook = IT_ring_bell;
   term->reset_terminal_modes_hook = IT_reset_terminal_modes;
   term->set_terminal_modes_hook = IT_set_terminal_modes;
-  term->set_terminal_window_hook = IT_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook = IT_update_begin;
   term->update_end_hook = IT_update_end;
   term->frame_up_to_date_hook = IT_frame_up_to_date;
@@ -2691,10 +2665,10 @@ dos_rawgetc (void)
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
-	      mouse_window = window_from_coordinates (SELECTED_FRAME (),
-						      mouse_last_x,
-						      mouse_last_y,
-						      0, 0);
+	      static Lisp_Object last_mouse_window;
+
+	      mouse_window = window_from_coordinates
+		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -2709,10 +2683,9 @@ dos_rawgetc (void)
 		  event.timestamp = event_timestamp ();
 		  kbd_buffer_store_event (&event);
 		}
+	      /* Remember the last window where we saw the mouse.  */
 	      last_mouse_window = mouse_window;
 	    }
-	  else
-	    last_mouse_window = Qnil;
 
 	  previous_help_echo_string = help_echo_string;
 	  help_echo_string = help_echo_object = help_echo_window = Qnil;
@@ -4073,7 +4046,7 @@ dos_yield_time_slice (void)
    because wait_reading_process_output takes care of that.  */
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout, void *ignored)
+	    struct timespec *timeout, void *ignored)
 {
   int check_input;
   struct timespec t;
@@ -4103,20 +4076,20 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     }
   else
     {
-      EMACS_TIME clnow, cllast, cldiff;
+      struct timespec clnow, cllast, cldiff;
 
       gettime (&t);
-      cllast = make_emacs_time (t.tv_sec, t.tv_nsec);
+      cllast = make_timespec (t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  clnow = make_emacs_time (t.tv_sec, t.tv_nsec);
-	  cldiff = sub_emacs_time (clnow, cllast);
-	  *timeout = sub_emacs_time (*timeout, cldiff);
+	  clnow = make_timespec (t.tv_sec, t.tv_nsec);
+	  cldiff = timespec_sub (clnow, cllast);
+	  *timeout = timespec_sub (*timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
-	  if (EMACS_TIME_SIGN (*timeout) <= 0)
+	  if (timespec_sign (*timeout) <= 0)
 	    return 0;
 	  cllast = clnow;
 	  dos_yield_time_slice ();

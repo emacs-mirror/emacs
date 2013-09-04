@@ -248,6 +248,7 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
+@c FIXME: Should `@var{character}' be `@var{byte}'?
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
@@ -401,6 +402,8 @@ specifies how the character behaves and how it should be handled
 during text processing and display.  Thus, character properties are an
 important part of specifying the character's semantics.
 
+@c FIXME: Use the latest URI of this chapter?
+@c http://www.unicode.org/versions/latest/ch04.pdf
   On the whole, Emacs follows the Unicode Standard in its implementation
 of character properties.  In particular, Emacs supports the
 @uref{http://www.unicode.org/reports/tr23/, Unicode Character Property

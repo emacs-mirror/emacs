@@ -21,10 +21,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# Avoid trouble on systems where the `SHELL' variable might be
-# inherited from the environment.
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 # Here are the things that we expect ../configure to edit.
 srcdir=@srcdir@

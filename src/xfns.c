@@ -22,10 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <unistd.h>
 
-/* This makes the fields of a Display accessible, in Xlib header files.  */
-
-#define XLIB_ILLEGAL_ACCESS
-
 #include "lisp.h"
 #include "xterm.h"
 #include "frame.h"
@@ -1053,11 +1049,8 @@ static void
 x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
-
-  /* Make sure the cursor gets redrawn.  */
-  cursor_type_changed = 1;
 }
-
+
 static void
 x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -1189,7 +1182,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 	  block_input ();
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			0, y, width, height, False);
+			0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -1200,7 +1193,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 	  block_input ();
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			0, y, width, height, False);
+			0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -1298,8 +1291,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       if (height > 0 && width > 0)
 	{
           block_input ();
-          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                        0, y, width, height, False);
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			0, y, width, height);
           unblock_input ();
         }
 
@@ -2313,12 +2306,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      for the window manager, so GC relocation won't bother it.
 
      Elsewhere we specify the window name for the window manager.  */
-
-  {
-    char *str = SSDATA (Vx_resource_name);
-    f->namebuf = xmalloc (strlen (str) + 1);
-    strcpy (f->namebuf, str);
-  }
+  f->namebuf = xstrdup (SSDATA (Vx_resource_name));
 
   ac = 0;
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
@@ -2336,12 +2324,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   /* maybe_set_screen_title_format (shell_widget); */
 
   pane_widget = lw_create_widget ("main", "pane", widget_id_tick++,
-				  (widget_value *) NULL,
-				  shell_widget, False,
-				  (lw_callback) NULL,
-				  (lw_callback) NULL,
-				  (lw_callback) NULL,
-				  (lw_callback) NULL);
+				  NULL, shell_widget, False,
+				  NULL, NULL, NULL, NULL);
 
   ac = 0;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
@@ -2488,8 +2472,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      */
   XChangeProperty (XtDisplay (frame_widget), XtWindow (frame_widget),
 		   FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
-		   XA_ATOM, 32, PropModeAppend,
-		   (unsigned char*) NULL, 0);
+		   XA_ATOM, 32, PropModeAppend, NULL, 0);
 
   /* Make all the standard events reach the Emacs frame.  */
   attributes.event_mask = STANDARD_EVENT_SET;
@@ -4014,7 +3997,7 @@ x_get_monitor_attributes_xinerama (struct x_display_info *dpyinfo)
 			/ x_display_pixel_width (dpyinfo));
   mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
-  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+  monitors = xzalloc (n_monitors * sizeof *monitors);
   for (i = 0; i < n_monitors; ++i)
     {
       struct MonitorInfo *mi = &monitors[i];
@@ -4074,7 +4057,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
       return Qnil;
     }
   n_monitors = resources->noutput;
-  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+  monitors = xzalloc (n_monitors * sizeof *monitors);
 
 #ifdef HAVE_XRRGETOUTPUTPRIMARY
   pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
@@ -4230,7 +4213,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
   monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
-  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+  monitors = xzalloc (n_monitors * sizeof *monitors);
 
   FOR_EACH_FRAME (rest, frame)
     {
@@ -4468,8 +4451,7 @@ x_display_info_for_name (Lisp_Object name)
 
   validate_x_resource_name ();
 
-  dpyinfo = x_term_init (name, (char *)0,
-			 SSDATA (Vx_resource_name));
+  dpyinfo = x_term_init (name, 0, SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     error ("Cannot connect to X server %s", SDATA (name));
@@ -4502,10 +4484,7 @@ terminate Emacs if we can't open the connection.
     error ("Not using X Windows"); /* That doesn't stop us anymore. */
 #endif
 
-  if (! NILP (xrm_string))
-    xrm_option = SSDATA (xrm_string);
-  else
-    xrm_option = (char *) 0;
+  xrm_option = NILP (xrm_string) ? 0 : SSDATA (xrm_string);
 
   validate_x_resource_name ();
 
@@ -5729,8 +5708,8 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
 static void
 file_dialog_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  int *result = (int *) client_data;
-  XmAnyCallbackStruct *cb = (XmAnyCallbackStruct *) call_data;
+  int *result = client_data;
+  XmAnyCallbackStruct *cb = call_data;
   *result = cb->reason;
 }
 
@@ -5743,7 +5722,7 @@ file_dialog_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 static void
 file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  int *result = (int *) client_data;
+  int *result = client_data;
   *result = XmCR_CANCEL;
 }
 

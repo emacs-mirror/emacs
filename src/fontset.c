@@ -944,6 +944,19 @@ face_for_char (struct frame *f, struct face *face, int c, int pos, Lisp_Object o
   if (ASCII_CHAR_P (c) || face->fontset < 0)
     return face->ascii_face->id;
 
+#ifdef HAVE_NS
+  if (face->font)
+    {
+      /* Fonts often have characters in other scripts, like symbol, even if they
+         don't match script: symbol.  So check if the character is present
+         in the current face first.  Only enable for NS for now, but should
+         perhaps be general?  */
+      Lisp_Object font_object;
+      XSETFONT (font_object, face->font);
+      if (font_has_char (f, font_object, c)) return face->id;
+    }
+#endif
+
   eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
   eassert (!BASE_FONTSET_P (fontset));

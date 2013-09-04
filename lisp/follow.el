@@ -515,7 +515,7 @@ Works like `scroll-up' when not in Follow mode."
 (declare-function comint-adjust-point "comint" (window))
 (defvar comint-scroll-show-maximum-output)
 
-(defun follow-comint-scroll-to-bottom (&optional window)
+(defun follow-comint-scroll-to-bottom (&optional _window)
   "Scroll the bottom-most window in the current Follow chain.
 This is to be called by `comint-postoutput-scroll-to-bottom'."
   (let* ((buffer (current-buffer))
@@ -572,7 +572,7 @@ selected if the original window is the first one in the frame."
   (interactive "P")
   (let ((other (or (and (null arg)
 			(not (eq (selected-window)
-				 (frame-first-window (selected-frame)))))
+				 (frame-first-window))))
 		   (and arg
 			(< (prefix-numeric-value arg) 0))))
 	(start (window-start)))
@@ -883,15 +883,14 @@ returned by `follow-windows-start-end'."
 (defun follow-select-if-visible (dest win-start-end)
   "Select and return a window, if DEST is visible in it.
 Return the selected window."
-  (let (win win-end wse)
+  (let (win wse)
     (while (and (not win) win-start-end)
       ;; Don't select a window that was just moved. This makes it
       ;; possible to later select the last window after a
       ;; `end-of-buffer' command.
       (setq wse (car win-start-end))
       (when (follow-pos-visible dest (car wse) win-start-end)
-	(setq win (car wse)
-	      win-end (nth 2 wse))
+	(setq win (car wse))
 	(select-window win))
       (setq win-start-end (cdr win-start-end)))
     win))
@@ -1083,7 +1082,7 @@ should be a member of WINDOWS, starts at position START."
 This is done by reading and rewriting the start position of
 non-first windows in Follow mode."
   (let* ((orig-buffer (current-buffer))
-	 (top (frame-first-window (selected-frame)))
+	 (top (frame-first-window))
 	 (win top)
 	 who) ; list of (buffer . frame)
     ;; If the only window in the frame is a minibuffer
@@ -1260,6 +1259,8 @@ non-first windows in Follow mode."
 
 	;; If the region is visible, make it look good when spanning
 	;; multiple windows.
+
+	;; FIXME: Why not use `use-region-p' here?
 	(when (region-active-p)
 	  (follow-maximize-region
 	   (selected-window) windows win-start-end)))

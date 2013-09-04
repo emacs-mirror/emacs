@@ -227,8 +227,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
       (set-window-configuration winconf))
     (cond
      ((window-live-p chosen) (select-window chosen))
-     ((window-minibuffer-p (selected-window))
-      (other-window 1)))
+     ((window-minibuffer-p) (other-window 1)))
     (when (/= minisize (window-height miniwin))
       (with-selected-window miniwin
         (setf (window-height) minisize)))))
@@ -381,7 +380,7 @@ In other words, \"undo\" changes in window configuration."
  	(setq winner-undone-data (list (winner-win-data))))
       (cl-incf winner-undo-counter)	; starting at 1
       (when (and (winner-undo-this)
- 		 (not (window-minibuffer-p (selected-window))))
+ 		 (not (window-minibuffer-p)))
  	(message "Winner undo (%d / %d)"
  		 winner-undo-counter
  		 (1- (ring-length winner-pending-undo-ring)))))))

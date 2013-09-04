@@ -500,10 +500,7 @@ See help of `modify-frame-parameters' for more information."
   "Return some frame other than the current frame.
 Create one if necessary.  Note that the minibuffer frame, if separate,
 is not considered (see `next-frame')."
-  (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
-	       (make-frame)
-	     (next-frame (selected-frame)))))
-    s))
+  (if (equal (next-frame) (selected-frame)) (make-frame) (next-frame)))
 
 (defun next-multiframe-window ()
   "Select the next window, regardless of which frame it is on."
@@ -875,8 +872,11 @@ If there is no frame by that name, signal an error."
   "The brightness of the background.
 Set this to the symbol `dark' if your background color is dark,
 `light' if your background is light, or nil (automatic by default)
-if you want Emacs to examine the brightness for you.  Don't set this
-variable with `setq'; this won't have the expected effect."
+if you want Emacs to examine the brightness for you.
+
+If you change this without using customize, you should use
+`frame-set-background-mode' to update existing frames;
+e.g. (mapc 'frame-set-background-mode (frame-list))."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
@@ -1278,9 +1278,6 @@ keys and their meanings."
 
 
 ;;;; Frame/display capabilities.
-(defun selected-terminal ()
-  "Return the terminal that is now selected."
-  (frame-terminal (selected-frame)))
 
 (declare-function msdos-mouse-p "dosfns.c")
 
@@ -1448,6 +1445,8 @@ monitor, use `display-monitor-attributes-list'."
 
 (declare-function x-display-backing-store "xfns.c" (&optional terminal))
 
+;; In NS port, the return value may be `buffered', `retained', or
+;; `non-retained'.  See src/nsfns.m.
 (defun display-backing-store (&optional display)
   "Return the backing store capability of DISPLAY's screen.
 The value may be `always', `when-mapped', `not-useful', or nil if

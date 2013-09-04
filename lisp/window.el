@@ -477,7 +477,8 @@ WINDOW must be an internal window.  Return WINDOW."
       (error "Window %s is not an internal window" window)
     (walk-window-subtree
      (lambda (window)
-       (set-window-parameter window 'window-atom t))
+       (unless (window-parameter window 'window-atom)
+	 (set-window-parameter window 'window-atom t)))
      window t)
     window))
 
@@ -498,24 +499,39 @@ following symbols can be used.
   sibling of an atomic window's root.  If an internal window is
   specified here, all children of that window become part of the
   atomic window too.  If no window is specified, the new window
-  becomes a sibling of the selected window.
+  becomes a sibling of the selected window.  By default, the
+  `window-atom' parameter of the existing window is set to `main'
+  provided it is live and was not set before.
 
 `side' denotes the side of the existing window where the new
   window shall be located.  Valid values are `below', `right',
-  `above' and `left'.  The default is `below'.
+  `above' and `left'.  The default is `below'.  By default, the
+  `window-atom' parameter of the new window is set to this value.
 
 The return value is the new window, nil when creating that window
 failed."
-  (let ((ignore-window-parameters t)
-	(window-combination-limit t)
-	(window (cdr (assq 'window alist)))
-	(side (cdr (assq 'side alist)))
-	new)
+  (let* ((ignore-window-parameters t)
+	 (window-combination-limit t)
+	 (window-combination-resize 'atom)
+	 (window (cdr (assq 'window alist)))
+	 (side (cdr (assq 'side alist)))
+	 (atom (when window (window-parameter window 'window-atom)))
+	 root new)
     (setq window (window-normalize-window window))
-    ;; Split off new window
+    (setq root (window-atom-root window))
+    ;; Split off new window.
     (when (setq new (split-window window nil side))
-      ;; Make sure we have a valid atomic window.
-      (window-make-atom (window-parent window))
+      (window-make-atom
+       (if (and root (not (eq root window)))
+	   ;; When WINDOW was part of an atomic window and we did not
+	   ;; split its root, root atomic window at old root.
+	   root
+	 ;; Otherwise, root atomic window at WINDOW's new parent.
+	 (window-parent window)))
+      ;; Assign `window-atom' parameters, if needed.
+      (when (and (not atom) (window-live-p window))
+	(set-window-parameter window 'window-atom 'main))
+      (set-window-parameter new 'window-atom side)
       ;; Display BUFFER in NEW and return NEW.
       (window--display-buffer
        buffer new 'window alist display-buffer-mark-dedicated))))
@@ -631,7 +647,7 @@ its root window."
 		(and (setq sibling (window-next-sibling window))
 		     (window-parameter sibling 'window-side)))
 	    (setq major window)))
-     frame t)
+     frame t 'nomini)
     (or major (frame-root-window frame))))
 
 (defun window--major-side-window (side)
@@ -685,10 +701,8 @@ symbols and values as passed to `display-buffer-in-side-window'.
 This function may be called only if no window on SIDE exists yet.
 The new window automatically becomes the \"major\" side window on
 SIDE.  Return the new window, nil if its creation window failed."
-  (let* ((root (frame-root-window))
-	 (left-or-right (memq side '(left right)))
+  (let* ((left-or-right (memq side '(left right)))
 	 (major (window--major-side-window side))
-	 (selected-window (selected-window))
 	 (on-side (cond
 		   ((eq side 'top) 'above)
 		   ((eq side 'bottom) 'below)
@@ -698,8 +712,7 @@ SIDE.  Return the new window, nil if its creation window failed."
 	 ;; parent window unless needed.
 	 (window-combination-resize 'side)
 	 (window-combination-limit nil)
-	 (new (split-window major nil on-side))
-	 fun)
+	 (new (split-window major nil on-side)))
     (when new
       ;; Initialize `window-side' parameter of new window to SIDE.
       (set-window-parameter new 'window-side side)
@@ -749,8 +762,7 @@ following symbols can be used:
   A positive value means use a slot following (that is, below or
   on the right of) the middle slot.  The default is zero."
   (let ((side (or (cdr (assq 'side alist)) 'bottom))
-	(slot (or (cdr (assq 'slot alist)) 0))
-	new)
+	(slot (or (cdr (assq 'slot alist)) 0)))
     (cond
      ((not (memq side '(top bottom left right)))
       (error "Invalid side %s specified" side))
@@ -766,7 +778,8 @@ following symbols can be used:
 		(walk-window-tree
 		 (lambda (window)
 		   (when (eq (window-parameter window 'window-side) side)
-		     (setq windows (cons window windows)))))
+		     (setq windows (cons window windows))))
+		 nil nil 'nomini)
 		(nreverse windows))))
 	   (slots (when major (max 1 (window-child-count major))))
 	   (max-slots
@@ -776,9 +789,8 @@ following symbols can be used:
 		  ((eq side 'right) 2)
 		  ((eq side 'bottom) 3))
 		 window-sides-slots))
-	   (selected-window (selected-window))
 	   window this-window this-slot prev-window next-window
-	   best-window best-slot abs-slot new-window)
+	   best-window best-slot abs-slot)
 
       (cond
        ((and (numberp max-slots) (<= max-slots 0))
@@ -924,14 +936,14 @@ of all windows on FRAME to nil."
 		     (if bottom (throw 'reset t) (setq bottom t)))
 		    (t
 		     (throw 'reset t))))
-		 frame t))
+		 frame t 'nomini))
 	      ;; If there's a side window, there must be at least one
 	      ;; non-side window.
 	      (and (or left top right bottom) (not none)))
       (walk-window-tree
        (lambda (window)
 	 (set-window-parameter window 'window-side nil))
-       frame t))))
+       frame t 'nomini))))
 
 (defun window--check (&optional frame)
   "Check atomic and side windows on FRAME.
@@ -985,8 +997,8 @@ means ignore all of the above restrictions for all windows."
 		(setq value (+ value
 			       (window--min-size-1 sub horizontal ignore)))
 		(setq sub (window-right sub)))
-	    ;; The minimum size of an ortho-combination is the maximum of
-	    ;; the minimum sizes of its child windows.
+	    ;; The minimum size of an ortho-combination is the maximum
+	    ;; of the minimum sizes of its child windows.
 	    (while sub
 	      (setq value (max value
 			       (window--min-size-1 sub horizontal ignore)))
@@ -1486,7 +1498,7 @@ This function changes neither the order of recently selected
 windows nor the buffer list."
   ;; If we start from the minibuffer window, don't fail to come
   ;; back to it.
-  (when (window-minibuffer-p (selected-window))
+  (when (window-minibuffer-p)
     (setq minibuf t))
   ;; Make sure to not mess up the order of recently selected
   ;; windows.  Use `save-selected-window' and `select-window'
@@ -2813,10 +2825,11 @@ and no others."
 (defun window-deletable-p (&optional window)
   "Return t if WINDOW can be safely deleted from its frame.
 WINDOW must be a valid window and defaults to the selected one.
-Return `frame' if deleting WINDOW should also delete its frame."
+Return 'frame if deleting WINDOW should also delete its frame."
   (setq window (window-normalize-window window))
 
-  (unless ignore-window-parameters
+  (unless (or ignore-window-parameters
+	      (eq (window-parameter window 'delete-window) t)) 
     ;; Handle atomicity.
     (when (window-parameter window 'window-atom)
       (setq window (window-atom-root window))))
@@ -2828,6 +2841,14 @@ Return `frame' if deleting WINDOW should also delete its frame."
       ;; on the same terminal, and it does not contain the active
       ;; minibuffer.
       (unless (or (eq frame (next-frame frame 0))
+		  ;; We can delete our frame only if no other frame
+		  ;; currently uses our minibuffer window.
+		  (catch 'other
+		    (dolist (other (frame-list))
+		      (when (and (not (eq other frame))
+				 (eq (window-frame (minibuffer-window other))
+				     frame))
+			(throw 'other t))))
 		  (let ((minibuf (active-minibuffer-window)))
 		    (and minibuf (eq frame (window-frame minibuf)))))
 	'frame))
@@ -3065,7 +3086,9 @@ WINDOW must be a live window and defaults to the selected one."
 			       ;; (Bug#12588).
 			       point window-point-insertion-type)))))
 	  (set-window-prev-buffers
-	   window (cons entry (window-prev-buffers window))))))))
+	   window (cons entry (window-prev-buffers window)))))
+
+      (run-hooks 'buffer-list-update-hook))))
 
 (defun unrecord-window-buffer (&optional window buffer)
   "Unrecord BUFFER in WINDOW.
@@ -3899,7 +3922,8 @@ frame.  The selected window is not changed by this function."
 
 	(let* ((new (split-window-internal window new-size side new-normal)))
 	  ;; Assign window-side parameters, if any.
-	  (when (eq window-combination-resize 'side)
+	  (cond
+	   ((eq window-combination-resize 'side)
 	    (let ((window-side
 		   (cond
 		    (window-side window-side)
@@ -3913,6 +3937,14 @@ frame.  The selected window is not changed by this function."
 		;; new parent the same window-side parameter.
 		(set-window-parameter
 		 (window-parent new) 'window-side window-side))))
+	   ((eq window-combination-resize 'atom)
+	    ;; Make sure `window--check-frame' won't destroy an existing
+	    ;; atomic window in case the new window gets nested inside.
+	    (unless (window-parameter window 'window-atom)
+	      (set-window-parameter window 'window-atom t))
+	    (when new-parent
+	      (set-window-parameter (window-parent new) 'window-atom t))
+	    (set-window-parameter new 'window-atom t)))
 
 	  (run-window-configuration-change-hook frame)
 	  (window--check frame)
@@ -5610,7 +5642,10 @@ new frame."
 	 (fun pop-up-frame-function)
 	 frame window)
     (when (and fun
-	       (setq frame (funcall fun))
+	       ;; Make BUFFER current so `make-frame' will use it as the
+	       ;; new frame's buffer (Bug#15133).
+	       (with-current-buffer buffer
+		 (setq frame (funcall fun)))
 	       (setq window (frame-selected-window frame)))
       (prog1 (window--display-buffer
 	      buffer window 'frame alist display-buffer-mark-dedicated)
@@ -5681,7 +5716,8 @@ This either splits the window at the bottom of the frame or the
 frame's root window, or reuses an existing window at the bottom
 of the selected frame."
   (let (bottom-window window)
-    (walk-window-tree (lambda (window) (setq bottom-window window)))
+    (walk-window-tree
+     (lambda (window) (setq bottom-window window)) nil nil 'nomini)
     (or (and (not (frame-parameter nil 'unsplittable))
 	     (setq window (window--try-to-split-window bottom-window alist))
 	     (window--display-buffer
@@ -5689,7 +5725,7 @@ of the selected frame."
 	(and (not (frame-parameter nil 'unsplittable))
 	     (setq window
 		   (condition-case nil
-		       (split-window (frame-root-window))
+		       (split-window (window--major-non-side-window))
 		     (error nil)))
 	     (window--display-buffer
 	      buffer window 'window alist display-buffer-mark-dedicated))
@@ -5730,7 +5766,7 @@ above, even if that window never showed BUFFER before."
 		   0)
 		  (display-buffer-reuse-frames 0)
 		  (t (last-nonminibuffer-frame))))
-	 entry best-window second-best-window window)
+	 best-window second-best-window window)
     ;; Scan windows whether they have shown the buffer recently.
     (catch 'best
       (dolist (window (window-list-1 (frame-first-window) 'nomini frames))
@@ -5777,7 +5813,7 @@ that frame."
 		(unless (and not-this-window
 			     (eq window (selected-window)))
 		  window))
-	      (get-largest-window 0 not-this-window))))
+	      (get-largest-window 0 nil not-this-window))))
     (when (window-live-p window)
       (prog1
 	  (window--display-buffer buffer window 'reuse alist)
@@ -5808,7 +5844,8 @@ at the front of the list of recently selected ones."
   (interactive (list (read-buffer "Pop to buffer: " (other-buffer))
 		     (if current-prefix-arg t)))
   (setq buffer (window-normalize-buffer-to-switch-to buffer))
-  (set-buffer buffer)
+  ;; This should be done by `select-window' below.
+  ;; (set-buffer buffer)
   (let* ((old-frame (selected-frame))
 	 (window (display-buffer buffer action))
 	 (frame (window-frame window)))
@@ -6646,9 +6683,12 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
      (cond
       ((or (menu-or-popup-active-p)
 	   (and window
-		(not (coordinates-in-window-p (cdr mouse-position) window))))
-       ;; A menu / popup dialog is active or the mouse is on the scroll-bar
-       ;; of WINDOW, temporarily suspend delayed autoselection.
+		(let ((coords (coordinates-in-window-p
+			       (cdr mouse-position) window)))
+		  (and (not (consp coords))
+		       (not (memq coords '(left-margin right-margin)))))))
+       ;; A menu / popup dialog is active or the mouse is not on the
+       ;; text region of WINDOW: Suspend autoselection temporarily.
        (mouse-autoselect-window-start mouse-position nil t))
       ((eq mouse-autoselect-window-state 'suspend)
        ;; Delayed autoselection was temporarily suspended, reenable it.
@@ -6676,7 +6716,7 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
        ;; minibuffer.  Use `unread-command-events' in order to execute pre-
        ;; and post-command hooks and trigger idle timers.  To avoid delaying
        ;; autoselection again, set `mouse-autoselect-window-state'."
-       (unless (window-minibuffer-p (selected-window))
+       (unless (window-minibuffer-p)
 	 (setq mouse-autoselect-window-state 'select)
 	 (setq unread-command-events
 	       (cons (list 'select-window (list window))
@@ -6702,7 +6742,7 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
 		;; minibuffer gets unselected unexpectedly, and where
 		;; you then have to move your mouse all the way down to
 		;; the minibuffer to select it.
-		(window-minibuffer-p (selected-window))
+		(window-minibuffer-p)
 		;; Don't switch to minibuffer window unless it's active.
 		(and (window-minibuffer-p window)
 		     (not (minibuffer-window-active-p window)))

@@ -3256,7 +3256,7 @@ inserted using a single call to `verilog-insert'."
 (defun verilog-point-text (&optional pointnum)
   "Return text describing where POINTNUM or current point is (for errors).
 Use filename, if current buffer being edited shorten to just buffer name."
-  (concat (or (and (equal (window-buffer (selected-window)) (current-buffer))
+  (concat (or (and (equal (window-buffer) (current-buffer))
 		   (buffer-name))
 	      buffer-file-name
 	      (buffer-name))

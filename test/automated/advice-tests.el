@@ -25,7 +25,12 @@
 
 (ert-deftest advice-tests-nadvice ()
   "Test nadvice code."
+  (advice-add 'sm-test1 :around (lambda (f y) (* (funcall f y) 5)))
+  (advice-add 'sm-test1 :around (lambda (f y) (* (funcall f y) 2)))
+  (advice-remove 'sm-test1 (lambda (f y) (* (funcall f y) 5)))
   (defun sm-test1 (x) (+ x 4))
+  (should (equal (sm-test1 6) 20))
+  (advice-remove 'sm-test1 (lambda (f y) (* (funcall f y) 2)))
   (should (equal (sm-test1 6) 10))
   (advice-add 'sm-test1 :around (lambda (f y) (* (funcall f y) 5)))
   (should (equal (sm-test1 6) 50))
@@ -41,6 +46,18 @@
               '((name . wrap-with-toto)))
   (defmacro sm-test3 (x) `(call-test3 ,x))
   (should (equal (macroexpand '(sm-test3 56)) '(toto (call-test3 56)))))
+
+(ert-deftest advice-tests-macroaliases ()
+  "Test nadvice code on aliases to macros."
+  (defmacro sm-test1 (a) `(list ',a))
+  (defalias 'sm-test1-alias 'sm-test1)
+  (should (equal (macroexpand '(sm-test1-alias 5)) '(list '5)))
+  (advice-add 'sm-test1-alias :around
+              (lambda (f &rest args) `(cons 1 ,(apply f args))))
+  (should (equal (macroexpand '(sm-test1-alias 5)) '(cons 1 (list '5))))
+  (defmacro sm-test1 (a) `(list 0 ',a))
+  (should (equal (macroexpand '(sm-test1-alias 5)) '(cons 1 (list 0 '5)))))
+
 
 (ert-deftest advice-tests-advice ()
   "Test advice code."

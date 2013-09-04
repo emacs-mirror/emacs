@@ -18,8 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <sys/types.h> /* for off_t, time_t */
-#include "systime.h" /* for EMACS_TIME */
+#include <sys/types.h>
+#include <time.h>
 
 INLINE_HEADER_BEGIN
 #ifndef BUFFER_INLINE
@@ -249,6 +249,7 @@ extern void temp_set_point (struct buffer *, ptrdiff_t);
 extern void set_point_both (ptrdiff_t, ptrdiff_t);
 extern void temp_set_point_both (struct buffer *,
 				 ptrdiff_t, ptrdiff_t);
+extern void set_point_from_marker (Lisp_Object);
 extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 
 
@@ -632,9 +633,9 @@ struct buffer
   /* List of symbols naming the file format used for auto-save file.  */
   Lisp_Object INTERNAL_FIELD (auto_save_file_format);
 
-  /* True if the newline position cache and width run cache are
-     enabled.  See search.c and indent.c.  */
-  Lisp_Object INTERNAL_FIELD (cache_long_line_scans);
+  /* True if the newline position cache, width run cache and BIDI paragraph
+     cache are enabled.  See search.c, indent.c and bidi.c for details.  */
+  Lisp_Object INTERNAL_FIELD (cache_long_scans);
 
   /* If the width run cache is enabled, this table contains the
      character widths width_run_cache (see above) assumes.  When we
@@ -794,13 +795,13 @@ struct buffer
   char local_flags[MAX_PER_BUFFER_VARS];
 
   /* Set to the modtime of the visited file when read or written.
-     EMACS_NSECS (modtime) == NONEXISTENT_MODTIME_NSECS means
-     visited file was nonexistent.  EMACS_NSECS (modtime) ==
+     modtime.tv_nsec == NONEXISTENT_MODTIME_NSECS means
+     visited file was nonexistent.  modtime.tv_nsec ==
      UNKNOWN_MODTIME_NSECS means visited file modtime unknown;
      in no case complain about any mismatch on next save attempt.  */
 #define NONEXISTENT_MODTIME_NSECS (-1)
 #define UNKNOWN_MODTIME_NSECS (-2)
-  EMACS_TIME modtime;
+  struct timespec modtime;
 
   /* Size of the file when modtime was set.  This is used to detect the
      case where the file grew while we were reading it, so the modtime
@@ -839,9 +840,12 @@ struct buffer
      the character's width; if it maps a character to zero, we don't
      know what its width is.  This allows compute_motion to process
      such regions very quickly, using algebra instead of inspecting
-     each character.   See also width_table, below.  */
+     each character.   See also width_table, below.
+
+     The latter cache is used to speedup bidi_find_paragraph_start.  */
   struct region_cache *newline_cache;
   struct region_cache *width_run_cache;
+  struct region_cache *bidi_paragraph_cache;
 
   /* Non-zero means don't use redisplay optimizations for
      displaying this buffer.  */
@@ -1120,9 +1124,17 @@ record_unwind_current_buffer (void)
       }									\
   } while (0)
 
+extern Lisp_Object Vbuffer_alist;
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
+extern Lisp_Object Qpriority, Qbefore_string, Qafter_string;
+
+/* FOR_EACH_LIVE_BUFFER (LIST_VAR, BUF_VAR) followed by a statement is
+   a `for' loop which iterates over the buffers from Vbuffer_alist.  */
+
+#define FOR_EACH_LIVE_BUFFER(list_var, buf_var)			\
+  FOR_EACH_ALIST_VALUE (Vbuffer_alist, list_var, buf_var)
 
 /* Get text properties of B.  */
 

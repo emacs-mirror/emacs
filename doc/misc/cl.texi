@@ -461,6 +461,7 @@ matter of stylistic taste:
     @var{body}))
 @end example
 
+@cindex destructuring, in argument list
 Argument lists support @dfn{destructuring}.  In Common Lisp,
 destructuring is only allowed with @code{defmacro}; this package
 allows it with @code{cl-defun} and other argument lists as well.
@@ -1492,6 +1493,7 @@ simply returning @code{nil}.
 
 @node Blocks and Exits
 @section Blocks and Exits
+@cindex block 
 
 @noindent
 Common Lisp @dfn{blocks} provide a non-local exit mechanism very
@@ -2139,6 +2141,7 @@ that was just set by the previous clause; in the second loop,
 based on the value of @code{x} left over from the previous time
 through the loop.
 
+@cindex destructuring, in cl-loop
 Another feature of the @code{cl-loop} macro is @emph{destructuring},
 similar in concept to the destructuring provided by @code{defmacro}
 (@pxref{Argument Lists}).
@@ -2503,6 +2506,8 @@ if @var{expr} returns a list of the wrong number of arguments
 or with incorrect keyword arguments.
 @end defmac
 
+@cindex compiler macros
+@cindex define compiler macros
 This package also includes the Common Lisp @code{define-compiler-macro}
 facility, which allows you to define compile-time expansions and
 optimizations for your functions.

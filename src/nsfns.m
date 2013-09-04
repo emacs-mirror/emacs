@@ -860,11 +860,7 @@ static void
 x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
-
-  /* Make sure the cursor gets redrawn.  */
-  cursor_type_changed = 1;
 }
-
 
 /* called to set mouse pointer color, but all other terms use it to
    initialize pointer types (and don't set the color ;) */
@@ -2035,13 +2031,17 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
 /* TODO: If GNUstep ever implements precomposedStringWithCanonicalMapping,
          remove this. */
   NSString *utfStr;
+  Lisp_Object ret;
 
   CHECK_STRING (str);
-  utfStr = [NSString stringWithUTF8String: SSDATA (str)];
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+ utfStr = [NSString stringWithUTF8String: SSDATA (str)];
 #ifdef NS_IMPL_COCOA
-    utfStr = [utfStr precomposedStringWithCanonicalMapping];
+  utfStr = [utfStr precomposedStringWithCanonicalMapping];
 #endif
-  return build_string ([utfStr UTF8String]);
+  ret = build_string ([utfStr UTF8String]);
+  [pool release];
+  return ret;
 }
 
 
@@ -2447,7 +2447,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   if (n_monitors == 0)
     return Qnil;
 
-  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+  monitors = xzalloc (n_monitors * sizeof *monitors);
 
   for (i = 0; i < [screens count]; ++i)
     {

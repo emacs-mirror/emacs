@@ -1821,6 +1821,18 @@ set_point (ptrdiff_t charpos)
   set_point_both (charpos, buf_charpos_to_bytepos (current_buffer, charpos));
 }
 
+/* Set PT from MARKER's clipped position.  */
+
+void
+set_point_from_marker (Lisp_Object marker)
+{
+  if (XMARKER (marker)->buffer != current_buffer)
+    signal_error ("Marker points into wrong buffer", marker);
+  set_point_both
+    (clip_to_bounds (BEGV, marker_position (marker), ZV),
+     clip_to_bounds (BEGV_BYTE, marker_byte_position (marker), ZV_BYTE));
+}
+
 /* If there's an invisible character at position POS + TEST_OFFS in the
    current buffer, and the invisible property has a `stickiness' such that
    inserting a character at position POS would inherit the property it,

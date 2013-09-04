@@ -593,9 +593,7 @@ xfont_match (struct frame *f, Lisp_Object spec)
     {
       if (XGetFontProperty (xfont, XA_FONT, &value))
 	{
-	  char *s;
-
-	  s = (char *) XGetAtomName (display, (Atom) value);
+	  char *s = XGetAtomName (display, (Atom) value);
 
 	  /* If DXPC (a Differential X Protocol Compressor)
 	     Ver.3.7 is running, XGetAtomName will return null
@@ -760,7 +758,7 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       char *p0, *p;
       int dashes = 0;
 
-      p0 = p = (char *) XGetAtomName (FRAME_X_DISPLAY (f), (Atom) value);
+      p0 = p = XGetAtomName (FRAME_X_DISPLAY (f), (Atom) value);
       /* Count the number of dashes in the "full name".
 	 If it is too few, this isn't really the font's full name,
 	 so don't use it.

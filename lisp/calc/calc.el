@@ -921,15 +921,12 @@ Used by `calc-user-invocation'.")
 (put 'calc-mode 'mode-class 'special)
 (put 'calc-trail-mode 'mode-class 'special)
 
-;; Define "inexact-result" as an e-lisp error symbol.
-(put 'inexact-result 'error-conditions '(error inexact-result calc-error))
-(put 'inexact-result 'error-message "Calc internal error (inexact-result)")
+(define-error 'calc-error "Calc internal error")
+(define-error 'inexact-result
+  "Calc internal error (inexact-result)" 'calc-error)
 
-;; Define "math-overflow" and "math-underflow" as e-lisp error symbols.
-(put 'math-overflow 'error-conditions '(error math-overflow calc-error))
-(put 'math-overflow 'error-message "Floating-point overflow occurred")
-(put 'math-underflow 'error-conditions '(error math-underflow calc-error))
-(put 'math-underflow 'error-message "Floating-point underflow occurred")
+(define-error 'math-overflow "Floating-point overflow occurred" 'calc-error)
+(define-error 'math-underflow "Floating-point underflow occurred" 'calc-error)
 
 (defvar calc-trail-pointer nil
   "The \"current\" entry in trail buffer.")
@@ -1441,7 +1438,7 @@ commands given here will actually operate on the *Calculator* stack."
 	    (calc-keypad))))
     (when (get-buffer-window "*Calc Keypad*")
       (calc-keypad)
-      (set-buffer (window-buffer (selected-window))))
+      (set-buffer (window-buffer)))
     (if (eq major-mode 'calc-mode)
 	(calc-quit)
       (let ((oldbuf (current-buffer)))

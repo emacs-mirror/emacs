@@ -1,3 +1,54 @@
+2013-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-temp-files-delete): Fix file deletion logic.
+
+2013-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Exclude iso-2022-jp-2 and
+	shift_jis from the default value set for Japanese users.
+
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-icalendar.el (gnus-icalendar-org-capture-file): Fix type.
+
+	* gnus.el (gnus-valid-select-methods): Fix type.
+
+	* nnimap.el (nnimap-request-articles-find-limit): Fix type, version.
+
+2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Run a timer for the temp files
+	deletion after a viewer exits; add a deletion timer for the needsterm
+	case, too.
+
+	* mm-decode.el (mm-display-external): Try to delete temporary files by
+	using a 1-min. timer.
+
+2013-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-temp-files-to-be-deleted, mm-temp-files-cache-file):
+	New internal variables.
+	(mm-temp-files-delete): New function; add it to gnus-exit-gnus-hook.
+	(mm-display-external): Use it to delete temporary files instead of
+	using timers.
+
+2013-08-06  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event-from-ical): Replace pcase
+	with cond for backwards compatability.
+
+2013-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Bind process-connection-type to
+	nil; don't delete a temp file immediately even if a viewer finishes,
+	since it may be a shell script, like xdg-open, that launches a real
+	viewer program belatedly.
+
+2013-08-05  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-int.el (gnus-warp-to-article): Allow warping in all groups so
+	that we can create nndoc groups that excerpt other groups.
+
 2013-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-delay.el (gnus-delay-article): Fix typo.

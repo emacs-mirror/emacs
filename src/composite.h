@@ -25,6 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
 
+#include "font.h"
+
 INLINE_HEADER_BEGIN
 #ifndef COMPOSITE_INLINE
 # define COMPOSITE_INLINE INLINE
@@ -311,10 +313,6 @@ enum lglyph_indices
 			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)) : 0)
 #define LGLYPH_WADJUST(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
 			   ? XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)) : 0)
-
-struct composition_it;
-struct face;
-struct font_metrics;
 
 extern Lisp_Object composition_gstring_put_cache (Lisp_Object, ptrdiff_t);
 extern Lisp_Object composition_gstring_from_id (ptrdiff_t);

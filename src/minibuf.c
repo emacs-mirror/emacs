@@ -568,22 +568,15 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     bset_directory (current_buffer, ambient_dir);
   else
     {
-      Lisp_Object buf_list;
+      Lisp_Object tail, buf;
 
-      for (buf_list = Vbuffer_alist;
-	   CONSP (buf_list);
-	   buf_list = XCDR (buf_list))
-	{
-	  Lisp_Object other_buf;
-
-	  other_buf = XCDR (XCAR (buf_list));
-	  if (STRINGP (BVAR (XBUFFER (other_buf), directory)))
-	    {
-	      bset_directory (current_buffer,
-			      BVAR (XBUFFER (other_buf), directory));
-	      break;
-	    }
-	}
+      FOR_EACH_LIVE_BUFFER (tail, buf)
+	if (STRINGP (BVAR (XBUFFER (buf), directory)))
+	  {
+	    bset_directory (current_buffer,
+			    BVAR (XBUFFER (buf), directory));
+	    break;
+	  }
     }
 
   if (!EQ (mini_frame, selected_frame))
@@ -877,10 +870,8 @@ read_minibuf_unwind (void)
   if (minibuf_level == 0)
     resize_mini_window (XWINDOW (window), 0);
 
-  /* Make sure minibuffer window is erased, not ignored.  */
+  /* Enforce full redisplay.  FIXME: make it more selective.  */
   windows_or_buffers_changed++;
-  XWINDOW (window)->last_modified = 0;
-  XWINDOW (window)->last_overlay_modified = 0;
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,

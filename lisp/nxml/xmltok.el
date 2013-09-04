@@ -1435,13 +1435,8 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 (defun xmltok-current-token-string ()
   (buffer-substring-no-properties xmltok-start (point)))
 
-(put 'xmltok-markup-declaration-parse-error
-     'error-conditions
-     '(error xmltok-markup-declaration-parse-error))
-
-(put 'xmltok-markup-declaration-parse-error
-     'error-message
-     "Syntax error in markup declaration")
+(define-error 'xmltok-markup-declaration-parse-error
+  "Syntax error in markup declaration")
 
 (defun xmltok-markup-declaration-parse-error ()
   (signal 'xmltok-markup-declaration-parse-error nil))

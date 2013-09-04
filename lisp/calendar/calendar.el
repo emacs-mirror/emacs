@@ -259,6 +259,23 @@ See `calendar-holiday-marker'."
 
 (define-obsolete-face-alias 'holiday-face 'holiday "22.1")
 
+(defface calendar-weekday-header '((t :inherit font-lock-constant-face))
+  "Face used for weekday column headers in the calendar.
+See also the face `calendar-weekend-header'."
+  :version "24.4"
+  :group 'calendar-faces)
+
+(defface calendar-weekend-header '((t :inherit font-lock-comment-face))
+  "Face used for weekend column headers in the calendar.
+See also the face `calendar-weekday-header'."
+  :version "24.4"
+  :group 'calendar-faces)
+
+(defface calendar-month-header '((t :inherit font-lock-function-name-face))
+  "Face used for month headers in the calendar."
+  :version "24.4"
+  :group 'calendar-faces)
+
 ;; These briefly checked font-lock-mode, but that is broken, since it
 ;; is a buffer-local variable, and which buffer happens to be current
 ;; when this file is loaded shouldn't make a difference.  One could
@@ -447,7 +464,6 @@ rightmost column."
     (push (cons i (calendar-month-edges i)) calendar-month-edges))
   (setq calendar-month-edges (reverse calendar-month-edges)))
 
-;; FIXME add font-lock-keywords.
 (defun calendar-set-layout-variable (symbol value &optional minmax)
   "Set SYMBOL's value to VALUE, an integer.
 A positive/negative MINMAX enforces a minimum/maximum value.
@@ -491,12 +507,25 @@ Then redraw the calendar, if necessary."
   :type 'integer
   :version "23.1")
 
+(defun calendar-day-header-construct (&optional width)
+  "Return the default value for `calendar-day-header-array'.
+WIDTH defaults to `calendar-day-header-width'."
+  (or width (setq width calendar-day-header-width))
+  (calendar-abbrev-construct (if (<= width calendar-abbrev-length)
+                                 calendar-day-abbrev-array
+                               calendar-day-name-array)
+                             width))
+
+;; FIXME better to use a format spec?
 (defcustom calendar-day-header-width 2
   "Width of the day column headers in the calendar.
 Must be at least one less than `calendar-column-width'."
   :group 'calendar
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
+         (or (calendar-customized-p 'calendar-day-header-array)
+             (setq calendar-day-header-array
+                   (calendar-day-header-construct val)))
          (calendar-set-layout-variable sym val (- 1 calendar-column-width)))
   :type 'integer
   :version "23.1")
@@ -924,33 +953,33 @@ styles."
 
 (defcustom calendar-american-month-header
   '(propertize (format "%s %d" (calendar-month-name month) year)
-               'font-lock-face 'font-lock-function-name-face)
+               'font-lock-face 'calendar-month-header)
   "Default format for calendar month headings with the American date style.
 Normally you should not customize this, but `calender-month-header'."
   :group 'calendar
   :risky t
   :type 'sexp
-  :version "24.3")
+  :version "24.4") ; font-lock-function-name-face -> calendar-month-header
 
 (defcustom calendar-european-month-header
   '(propertize (format "%s %d" (calendar-month-name month) year)
-               'font-lock-face 'font-lock-function-name-face)
+               'font-lock-face 'calendar-month-header)
   "Default format for calendar month headings with the European date style.
 Normally you should not customize this, but `calender-month-header'."
   :group 'calendar
   :risky t
   :type 'sexp
-  :version "24.3")
+  :version "24.4") ; font-lock-function-name-face -> calendar-month-header
 
 (defcustom calendar-iso-month-header
   '(propertize (format "%d %s" year (calendar-month-name month))
-               'font-lock-face 'font-lock-function-name-face)
+               'font-lock-face 'calendar-month-header)
   "Default format for calendar month headings with the ISO date style.
 Normally you should not customize this, but `calender-month-header'."
   :group 'calendar
   :risky t
   :type 'sexp
-  :version "24.3")
+  :version "24.4") ; font-lock-function-name-face -> calendar-month-header
 
 (defcustom calendar-month-header
   (cond ((eq calendar-date-style 'iso)
@@ -1422,7 +1451,7 @@ Optional integers MON and YR are used instead of today's date."
          (year (calendar-extract-year today))
          (today-visible (or (not mon)
                             (<= (abs (calendar-interval mon yr month year)) 1)))
-         (in-calendar-window (eq (window-buffer (selected-window))
+         (in-calendar-window (eq (window-buffer)
                                  (get-buffer calendar-buffer))))
     (calendar-generate (or mon month) (or yr year))
     (calendar-update-mode-line)
@@ -1517,8 +1546,7 @@ line."
          (last (calendar-last-day-of-month month year))
          (trunc (min calendar-intermonth-spacing
                      (1- calendar-left-margin)))
-         (day 1)
-         string)
+         (day 1))
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
@@ -1526,15 +1554,16 @@ line."
                             ?\s calendar-month-digit-width))
    (calendar-ensure-newline)
    (calendar-insert-at-column indent calendar-intermonth-header trunc)
-   ;; Use the first two characters of each day to head the columns.
+   ;; Use the first N characters of each day to head the columns.
    (dotimes (i 7)
      (insert
-      (progn
-        (setq string
-              (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t))
-        (if enable-multibyte-characters
-            (truncate-string-to-width string calendar-day-header-width)
-          (substring string 0 calendar-day-header-width)))
+      (truncate-string-to-width
+       (propertize (calendar-day-name (mod (+ calendar-week-start-day i) 7)
+                                      'header t)
+                   'font-lock-face (if (memq i '(0 6))
+                                       'calendar-weekend-header
+                                     'calendar-weekday-header))
+       calendar-day-header-width nil ?\s)
       (make-string (- calendar-column-width calendar-day-header-width) ?\s)))
    (calendar-ensure-newline)
    (calendar-insert-at-column indent calendar-intermonth-text trunc)
@@ -1544,15 +1573,15 @@ line."
    (dotimes (i last)
      (setq day (1+ i))
      ;; TODO should numbers be left-justified, centered...?
-     (insert (format (format "%%%dd%%s" calendar-day-digit-width) day
-                     (make-string
-                      (- calendar-column-width calendar-day-digit-width) ?\s)))
-     ;; 'date property prevents intermonth text confusing re-searches.
-     ;; (Tried intangible, it did not really work.)
-     (set-text-properties
-      (- (point) (1+ calendar-day-digit-width)) (1- (point))
-      `(mouse-face highlight help-echo ,(eval calendar-date-echo-text)
-                   date t))
+     (insert (propertize
+              (format (format "%%%dd" calendar-day-digit-width) day)
+              'mouse-face 'highlight
+              'help-echo (eval calendar-date-echo-text)
+              ;; 'date property prevents intermonth text confusing re-searches.
+              ;; (Tried intangible, it did not really work.)
+              'date t)
+             (make-string
+              (- calendar-column-width calendar-day-digit-width) ?\s))
      (when (and (zerop (mod (+ day blank-days) 7))
                 (/= day last))
        (calendar-ensure-newline)
@@ -1810,8 +1839,9 @@ For a complete description, see the info node `Calendar/Diary'.
   ;; soon in calendar-generate, but better safe than sorry.
   (unless (boundp 'displayed-month) (setq displayed-month 1))
   (unless (boundp 'displayed-year)  (setq displayed-year  2001))
-  (set (make-local-variable 'font-lock-defaults)
-       '(calendar-font-lock-keywords t)))
+  (if (bound-and-true-p calendar-font-lock-keywords)
+      (set (make-local-variable 'font-lock-defaults)
+           '(calendar-font-lock-keywords t))))
 
 (defun calendar-string-spread (strings char length)
   "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.
@@ -2081,33 +2111,41 @@ is a string to insert in the minibuffer before reading."
          (and standard
               (not (equal (eval (car standard)) (default-value symbol)))))))
 
-(defun calendar-abbrev-construct (full)
+(defun calendar-abbrev-construct (full &optional maxlen)
   "From sequence FULL, return a vector of abbreviations.
-Each abbreviation is no longer than `calendar-abbrev-length' characters."
+Each abbreviation is no longer than MAXLEN (default `calendar-abbrev-length')
+characters."
+  (or maxlen (setq maxlen calendar-abbrev-length))
   (apply 'vector (mapcar
                   (lambda (f)
-                    (substring f 0 (min calendar-abbrev-length (length f))))
+                    ;; TODO? truncate-string-to-width?
+                    (substring f 0 (min maxlen (length f))))
                   full)))
 
 (defcustom calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
   "Array of capitalized strings giving, in order from Sunday, the day names.
-The first two characters of each string will be used to head the
-day columns in the calendar.
 If you change this without using customize after the calendar has loaded,
-then you may also want to change `calendar-day-abbrev-array'."
+then you may also want to change `calendar-day-abbrev-array'
+and `calendar-day-header-array'."
   :group 'calendar
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
          (let ((dcustomized (calendar-customized-p 'calendar-day-abbrev-array))
-               (hcustomized (calendar-customized-p 'cal-html-day-abbrev-array)))
+               (hcustomized (calendar-customized-p 'cal-html-day-abbrev-array))
+               (ccustomized (calendar-customized-p 'calendar-day-header-array)))
            (set symbol value)
            (or dcustomized
                (setq calendar-day-abbrev-array
                      (calendar-abbrev-construct calendar-day-name-array)))
            (and (not hcustomized)
                 (boundp 'cal-html-day-abbrev-array)
-                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))))
+                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))
+           (or ccustomized
+               (equal calendar-day-header-array
+                      (setq calendar-day-header-array
+                            (calendar-day-header-construct)))
+               (calendar-redraw))))
   :type '(vector (string :tag "Sunday")
                  (string :tag "Monday")
                  (string :tag "Tuesday")
@@ -2127,7 +2165,8 @@ then you may also want to change `calendar-day-abbrev-array' and
          (let ((dcustomized (calendar-customized-p 'calendar-day-abbrev-array))
                (mcustomized (calendar-customized-p
                              'calendar-month-abbrev-array))
-               (hcustomized (calendar-customized-p 'cal-html-day-abbrev-array)))
+               (hcustomized (calendar-customized-p 'cal-html-day-abbrev-array))
+               (ccustomized (calendar-customized-p 'calendar-day-header-array)))
            (set symbol value)
            (or dcustomized
                (setq calendar-day-abbrev-array
@@ -2137,7 +2176,12 @@ then you may also want to change `calendar-day-abbrev-array' and
                      (calendar-abbrev-construct calendar-month-name-array)))
            (and (not hcustomized)
                 (boundp 'cal-html-day-abbrev-array)
-                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))))
+                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))
+           (or ccustomized
+               (equal calendar-day-header-array
+                      (setq calendar-day-header-array
+                            (calendar-day-header-construct)))
+               (calendar-redraw))))
   :type 'integer)
 
 (defcustom calendar-day-abbrev-array
@@ -2154,11 +2198,17 @@ full name."
   :initialize 'custom-initialize-default
   :set-after '(calendar-abbrev-length calendar-day-name-array)
   :set (lambda (symbol value)
-         (let ((hcustomized (calendar-customized-p 'cal-html-day-abbrev-array)))
+         (let ((hcustomized (calendar-customized-p 'cal-html-day-abbrev-array))
+               (ccustomized (calendar-customized-p 'calendar-day-header-array)))
            (set symbol value)
            (and (not hcustomized)
                 (boundp 'cal-html-day-abbrev-array)
-                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))))
+                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))
+           (or ccustomized
+               (equal calendar-day-header-array
+                      (setq calendar-day-header-array
+                            (calendar-day-header-construct)))
+               (calendar-redraw))))
   :type '(vector (string :tag "Sun")
                  (string :tag "Mon")
                  (string :tag "Tue")
@@ -2168,6 +2218,33 @@ full name."
                  (string :tag "Sat"))
   ;; Made defcustom, changed defaults from nil nil...
   :version "24.1")
+
+(defcustom calendar-day-header-array (calendar-day-header-construct)
+  "Array of strings to use for the headers of the calendar's day columns.
+The order should be the same as in `calendar-day-name-array'.
+In use, the calendar truncates elements to no more than
+`calendar-day-header-width' columns wide.
+Emacs constructs the default from either `calendar-day-name-array'
+\(if `calendar-day-header-width' is more than `calendar-abbrev-length'),
+or from `calendar-day-abbrev-array' (assuming that the abbreviated
+name are more likely to be unique when truncated)."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set-after '(calendar-day-header-width
+               calendar-abbrev-length calendar-day-name-array
+               calendar-day-abbrev-array)
+  :set (lambda (symbol value)
+         (or (equal calendar-day-header-array
+                    (set symbol value))
+             (calendar-redraw)))
+  :type '(vector (string :tag "Su")
+                 (string :tag "Mo")
+                 (string :tag "Tu")
+                 (string :tag "We")
+                 (string :tag "Th")
+                 (string :tag "Fr")
+                 (string :tag "Sa"))
+  :version "24.4")
 
 (defcustom calendar-month-name-array
   ["January" "February" "March"     "April"   "May"      "June"
@@ -2283,25 +2360,12 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
-(defvar calendar-font-lock-keywords
-  ;; Month and year.  Not really needed now that calendar-month-header
-  ;; contains propertize, and not correct for non-american forms
-  ;; of that variable.
-  `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
-              " -?[0-9]+")
-     . font-lock-function-name-face)
-    (,(regexp-opt
-       (list (substring (aref calendar-day-name-array 6)
-                        0 calendar-day-header-width)
-             (substring (aref calendar-day-name-array 0)
-                        0 calendar-day-header-width)))
-     ;; Saturdays and Sundays are highlighted differently.
-     . font-lock-comment-face)
-    ;; First two chars of each day are used in the calendar.
-    (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
-                          calendar-day-name-array))
-     . font-lock-constant-face))
+(defvar calendar-font-lock-keywords nil
   "Default keywords to highlight in Calendar mode.")
+
+(make-obsolete-variable 'calendar-font-lock-keywords
+                        "set font-lock keywords in `calendar-mode-hook', \
+or customize calendar faces." "24.4")
 
 (defun calendar-day-name (date &optional abbrev absolute)
   "Return a string with the name of the day of the week of DATE.
@@ -2309,9 +2373,12 @@ DATE should be a list in the format (MONTH DAY YEAR), unless the
 optional argument ABSOLUTE is non-nil, in which case DATE should
 be an integer in the range 0 to 6 corresponding to the day of the
 week.  Day names are taken from the variable `calendar-day-name-array',
-unless the optional argument ABBREV is non-nil, in which case
-the variable `calendar-day-abbrev-array' is used."
-  (aref (if abbrev calendar-day-abbrev-array calendar-day-name-array)
+unless the optional argument ABBREV is non-nil:
+`header' means to use `calendar-day-header-array';
+t to use `calendar-day-abbrev-array'."
+  (aref (cond ((eq abbrev 'header) calendar-day-header-array)
+              (abbrev calendar-day-abbrev-array)
+              (t calendar-day-name-array))
         (if absolute date (calendar-day-of-week date))))
 
 (defun calendar-month-name (month &optional abbrev)
