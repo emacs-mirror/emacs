@@ -1283,17 +1283,21 @@ like an INI file.  You can add this hook to `find-file-hook'."
     "WIN32SMINOR")
   "Function argument constants used in InstallShield 3 and 5."))
 
-(defvar rul-generic-mode-syntax-table nil
+;; c++-mode-syntax-table used to be autoloaded, with an initial nil value.
+;; This file did not load cc-mode, and therefore rul-generic-mode-syntax-table
+;; would have different values according to whether or not cc-mode
+;; happened to be loaded before this file was.
+(require 'cc-mode)
+(defvar c++-mode-syntax-table)
+
+(defvar rul-generic-mode-syntax-table
+  (let ((table (make-syntax-table c++-mode-syntax-table)))
+    (modify-syntax-entry ?\r "> b" table)
+    (modify-syntax-entry ?\n "> b" table)
+    (modify-syntax-entry ?/  ". 124b" table)
+    (modify-syntax-entry ?*  ". 23" table)
+    table)
   "Syntax table to use in `rul-generic-mode' buffers.")
-
-(setq rul-generic-mode-syntax-table
-      (make-syntax-table c++-mode-syntax-table))
-
-(modify-syntax-entry ?\r "> b" rul-generic-mode-syntax-table)
-(modify-syntax-entry ?\n "> b" rul-generic-mode-syntax-table)
-
-(modify-syntax-entry ?/  ". 124b" rul-generic-mode-syntax-table)
-(modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
 
 ;; here manually instead
 (defun generic-rul-mode-setup-function ()

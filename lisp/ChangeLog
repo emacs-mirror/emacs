@@ -1,3 +1,9 @@
+2013-09-04  Glenn Morris  <rgm@gnu.org>
+
+	* generic-x.el [rul-generic-mode]: Require cc-mode.
+	(c++-mode-syntax-table): Declare.
+	(rul-generic-mode-syntax-table): Init in the defvar.
+
 2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autorevert.el (auto-revert-notify-handler): Explicitly ignore
