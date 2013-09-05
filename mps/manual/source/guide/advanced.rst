@@ -49,7 +49,7 @@ in ``make_port``:
         mps_addr_t port_ref;
         obj_t obj;
         mps_addr_t addr;
-        size_t size = ALIGN(sizeof(port_s));
+        size_t size = ALIGN_OBJ(sizeof(port_s));
         do {
             mps_res_t res = mps_reserve(&addr, obj_ap, size);
             if (res != MPS_RES_OK) error("out of memory in make_port");
@@ -262,7 +262,7 @@ For example:
     {
         obj_t obj;
         mps_addr_t addr;
-        size_t l, size = ALIGN(sizeof(table_s));
+        size_t l, size = ALIGN_OBJ(sizeof(table_s));
         do {
             mps_res_t res = mps_reserve(&addr, obj_ap, size);
             if (res != MPS_RES_OK) error("out of memory in make_table");
@@ -555,8 +555,8 @@ going to have the following structure. (See below for the actual code.) ::
                     }
                 }
                 base = (char *)base +
-                    ALIGN(offsetof(buckets_s, bucket) +
-                          length * sizeof(buckets->bucket[0]));
+                    ALIGN_OBJ(offsetof(buckets_s, bucket) +
+                              length * sizeof(buckets->bucket[0]));
             }
         } MPS_SCAN_END(ss);
         return MPS_RES_OK;
@@ -641,8 +641,8 @@ code highlighted:
                         buckets->bucket[i] = p;
                     }
                 }
-                base = (char *)base + ALIGN(offsetof(buckets_s, bucket) +
-                                            length * sizeof(buckets->bucket[0]));
+                base = (char *)base + ALIGN_OBJ(offsetof(buckets_s, bucket) +
+                                                length * sizeof(buckets->bucket[0]));
             }
         } MPS_SCAN_END(ss);
         return MPS_RES_OK;
@@ -670,8 +670,8 @@ The :term:`skip method` is straightforward::
     {
         buckets_t buckets = base;
         size_t length = UNTAG_SIZE(buckets->length);
-        return (char *)base + ALIGN(offsetof(buckets_s, bucket) +
-                                    length * sizeof(buckets->bucket[0]));
+        return (char *)base + ALIGN_OBJ(offsetof(buckets_s, bucket) +
+                                        length * sizeof(buckets->bucket[0]));
     }
 
 Now we can create the object format, the pool and the allocation

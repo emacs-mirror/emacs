@@ -112,7 +112,7 @@ might have forgotten to fix the first element of a pair:
     case TYPE_PAIR:
       /* oops, forgot: FIX(CAR(obj)); */
       FIX(CDR(obj));
-      base = (char *)base + ALIGN(sizeof(pair_s));
+      base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
       break;
 
 This means that as far as the MPS is concerned, the first element of
@@ -231,7 +231,7 @@ leading to the allocation of string objects with the wrong size:
     {
       obj_t obj;
       mps_addr_t addr;
-      size_t size = ALIGN(offsetof(string_s, string) + length/* oops, forgot: +1 */);
+      size_t size = ALIGN_OBJ(offsetof(string_s, string) + length/* oops, forgot: +1 */);
       do {
         mps_res_t res = mps_reserve(&addr, obj_ap, size);
         if (res != MPS_RES_OK) error("out of memory in make_string");
@@ -299,7 +299,7 @@ And here's how it shows up in the debugger:
     (gdb) list
     2935	    break;
     2936	  case TYPE_PAD1:
-    2937	    base = (char *)base + ALIGN(sizeof(pad1_s));
+    2937	    base = (char *)base + ALIGN_OBJ(sizeof(pad1_s));
     2938	    break;
     2939	  default:
     2940	    assert(0);

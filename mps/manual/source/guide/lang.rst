@@ -339,10 +339,10 @@ Here's the scan method for the toy Scheme interpreter::
                 case TYPE_PAIR:
                     FIX(CAR(obj));
                     FIX(CDR(obj));
-                    base = (char *)base + ALIGN(sizeof(pair_s));
+                    base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
                     break;
                 case TYPE_INTEGER:
-                    base = (char *)base + ALIGN(sizeof(integer_s));
+                    base = (char *)base + ALIGN_OBJ(sizeof(integer_s));
                     break;
                 /* ... and so on for the other types ... */
                 default:
@@ -430,10 +430,10 @@ Here's the skip method for the toy Scheme interpreter::
         obj_t obj = base;
         switch (TYPE(obj)) {
         case TYPE_PAIR:
-            base = (char *)base + ALIGN(sizeof(pair_s));
+            base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
             break;
         case TYPE_INTEGER:
-            base = (char *)base + ALIGN(sizeof(integer_s));
+            base = (char *)base + ALIGN_OBJ(sizeof(integer_s));
             break;
         /* ... and so on for the other types ... */
         default:
@@ -516,8 +516,8 @@ Here's the forward method for the toy Scheme interpreter::
         obj_t obj = old;
         mps_addr_t limit = obj_skip(old);
         size_t size = (char *)limit - (char *)old;
-        assert(size >= ALIGN_UP(sizeof(fwd2_s)));
-        if (size == ALIGN_UP(sizeof(fwd2_s))) {
+        assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
+        if (size == ALIGN_WORD(sizeof(fwd2_s))) {
             TYPE(obj) = TYPE_FWD2;
             obj->fwd2.fwd = new;
         } else {
@@ -534,10 +534,10 @@ The forwarding objects must be scannable and skippable, so the
 following code must be added to ``obj_scan`` and ``obj_skip``::
 
     case TYPE_FWD:
-        base = (char *)base + ALIGN_UP(obj->fwd.size);
+        base = (char *)base + ALIGN_WORD(obj->fwd.size);
         break;
     case TYPE_FWD2:
-        base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
+        base = (char *)base + ALIGN_WORD(sizeof(fwd2_s));
         break;
 
 .. note::
@@ -646,8 +646,8 @@ Here's the padding method::
     static void obj_pad(mps_addr_t addr, size_t size)
     {
         obj_t obj = addr;
-        assert(size >= ALIGN(sizeof(pad1_s)));
-        if (size == ALIGN(sizeof(pad1_s))) {
+        assert(size >= ALIGN_OBJ(sizeof(pad1_s)));
+        if (size == ALIGN_OBJ(sizeof(pad1_s))) {
             TYPE(obj) = TYPE_PAD1;
         } else {
             TYPE(obj) = TYPE_PAD;
@@ -661,10 +661,10 @@ The padding objects must be scannable and skippable, so the following
 code must be added to ``obj_scan`` and ``obj_skip``::
 
     case TYPE_PAD:
-        base = (char *)base + ALIGN(obj->pad.size);
+        base = (char *)base + ALIGN_OBJ(obj->pad.size);
         break;
     case TYPE_PAD1:
-        base = (char *)base + ALIGN(sizeof(pad1_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(pad1_s));
         break;
 
 .. topics::
@@ -1100,7 +1100,7 @@ And then the constructor can be implemented like this::
     {
         obj_t obj;
         mps_addr_t addr;
-        size_t size = ALIGN(sizeof(pair_s));
+        size_t size = ALIGN_OBJ(sizeof(pair_s));
         do {
             mps_res_t res = mps_reserve(&addr, obj_ap, size);
             if (res != MPS_RES_OK) error("out of memory in make_pair");
