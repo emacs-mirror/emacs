@@ -1,3 +1,26 @@
+2013-09-05  Daniel Hackney  <dan@haxney.org>
+
+	* dired-x.el:
+	* net/ange-ftp.el:
+	* net/browse-url.el:
+	* net/dbus.el:
+	* net/eudc.el:
+	* net/eudcb-ldap.el:
+	* net/eww.el:
+	* net/imap.el:
+	* printing.el:
+	* vc/ediff-diff.el:
+	* vc/ediff-init.el:
+	* vc/ediff-merg.el:
+	* vc/ediff-mult.el:
+	* vc/ediff-util.el:
+	* vc/ediff-wind.el:
+	* vc/ediff.el:
+	* vc/emerge.el:
+	* vc/pcvs.el:
+	* vc/vc-annotate.el: Prefix unused arguments with `_' to silence
+	byte compiler.  Remove some unused let-bound variables.
+
 2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el: Use `car-safe' rather than `car' to access

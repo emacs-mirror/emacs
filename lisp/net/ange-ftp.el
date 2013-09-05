@@ -3733,7 +3733,7 @@ so return the size on the remote host exactly. See RFC 3659."
 ;; next part of copying routine.
 (defun ange-ftp-cf1 (result line
 			    filename newname binary msg
-			    f-parsed f-host f-user f-name f-abbr
+			    f-parsed f-host f-user _f-name f-abbr
 			    t-parsed t-host t-user t-name t-abbr
 			    temp1 temp2 cont nowait)
   (if line
@@ -3835,7 +3835,7 @@ so return the size on the remote host exactly. See RFC 3659."
 
 (defun ange-ftp-copy-file (filename newname &optional ok-if-already-exists
 				    keep-date preserve-uid-gid
-				    preserve-selinux-context)
+				    _preserve-selinux-context)
   (interactive "fCopy file: \nFCopy %s to file: \np")
   (ange-ftp-copy-file-internal filename
 			       newname
@@ -4200,7 +4200,7 @@ directory, so that Emacs will know its current contents."
 	(while (and tryfiles (not copy))
 	  (catch 'ftp-error
 	    (let ((ange-ftp-waiting-flag t))
-	      (condition-case error
+	      (condition-case _error
 		  (setq copy (ange-ftp-file-local-copy (car tryfiles)))
 		(ftp-error nil))))
 	  (setq tryfiles (cdr tryfiles)))
@@ -4214,7 +4214,7 @@ directory, so that Emacs will know its current contents."
     (ange-ftp-real-load file noerror nomessage nosuffix)))
 
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
-(defun ange-ftp-unhandled-file-name-directory (filename)
+(defun ange-ftp-unhandled-file-name-directory (_filename)
   nil)
 
 
@@ -4605,7 +4605,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-shell-command (command &optional output-buffer error-buffer)
   (let* ((parsed (ange-ftp-ftp-name default-directory))
 	 (host (nth 0 parsed))
-	 (user (nth 1 parsed))
 	 (name (nth 2 parsed)))
     (if (not parsed)
 	(ange-ftp-real-shell-command command output-buffer error-buffer)
@@ -5176,7 +5175,7 @@ Other orders of $ and _ seem to all work just fine.")
 		    ;; versions left. If not, then delete the
 		    ;; root entry.
 		    (maphash
-		     (lambda (key val)
+		     (lambda (key _val)
 		       (and (string-match regexp key)
 			    (setq versions t)))
 		     files)
@@ -5358,7 +5357,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;; compressed files. Instead, we turn "FILE.TYPE" into
 ;; "FILE.TYPE-Z". Hope that this is a reasonable thing to do.
 
-(defun ange-ftp-vms-make-compressed-filename (name &optional reverse)
+(defun ange-ftp-vms-make-compressed-filename (name &optional _reverse)
   (cond
    ((string-match "-Z;[0-9]+\\'" name)
     (list nil (substring name 0 (match-beginning 0))))
@@ -5399,7 +5398,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;	  (cons '(vms . ange-ftp-dired-vms-ls-trim)
 ;;		ange-ftp-dired-ls-trim-alist)))
 
-(defun ange-ftp-vms-sans-version (name &rest args)
+(defun ange-ftp-vms-sans-version (name &rest _args)
   (save-match-data
     (if (string-match ";[0-9]+\\'" name)
 	(substring name 0 (match-beginning 0))
@@ -5920,7 +5919,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;	  (cons '(cms . ange-ftp-dired-cms-move-to-end-of-filename)
 ;;		ange-ftp-dired-move-to-end-of-filename-alist)))
 
-(defun ange-ftp-cms-make-compressed-filename (name &optional reverse)
+(defun ange-ftp-cms-make-compressed-filename (name &optional _reverse)
   (if (string-match "-Z\\'" name)
       (list nil (substring name 0 -2))
     (list t (concat name "-Z"))))

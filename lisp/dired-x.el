@@ -1185,7 +1185,7 @@ results in
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:
-        (dotimes (_n count)
+        (dotimes (n count)
           (setq name1 (concat "../" name1)))))
     (make-symbolic-link
      (directory-file-name name1)        ; must not link to foo/

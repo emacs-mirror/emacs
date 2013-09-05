@@ -4627,21 +4627,21 @@ bottom."
 
 
 ;;;###autoload
-(defun pr-customize (&rest ignore)
+(defun pr-customize (&rest _ignore)
   "Customization of the `printing' group."
   (interactive)
   (customize-group 'printing))
 
 
 ;;;###autoload
-(defun lpr-customize (&rest ignore)
+(defun lpr-customize (&rest _ignore)
   "Customization of the `lpr' group."
   (interactive)
   (customize-group 'lpr))
 
 
 ;;;###autoload
-(defun pr-help (&rest ignore)
+(defun pr-help (&rest _ignore)
   "Help for the printing package."
   (interactive)
   (pr-show-setup pr-help-message "*Printing Help*"))
@@ -4675,21 +4675,21 @@ bottom."
 
 
 ;;;###autoload
-(defun pr-show-ps-setup (&rest ignore)
+(defun pr-show-ps-setup (&rest _ignore)
   "Show current ps-print settings."
   (interactive)
   (pr-show-setup (ps-setup) "*PS Setup*"))
 
 
 ;;;###autoload
-(defun pr-show-pr-setup (&rest ignore)
+(defun pr-show-pr-setup (&rest _ignore)
   "Show current printing settings."
   (interactive)
   (pr-show-setup (pr-setup) "*PR Setup*"))
 
 
 ;;;###autoload
-(defun pr-show-lpr-setup (&rest ignore)
+(defun pr-show-lpr-setup (&rest _ignore)
   "Show current lpr settings."
   (interactive)
   (pr-show-setup (lpr-setup) "*LPR Setup*"))
@@ -6125,7 +6125,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
        (pr-insert-checkbox
 	"\n               "
 	'pr-i-region
-	#'(lambda (widget &rest ignore)
+	#'(lambda (widget &rest _ignore)
 	    (let ((region-p (pr-interface-save
 			     (ps-mark-active-p))))
 	      (cond ((null (widget-value widget)) ; widget is nil
@@ -6146,7 +6146,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
        (pr-insert-checkbox
 	"    "
 	'pr-i-mode
-	#'(lambda (widget &rest ignore)
+	#'(lambda (widget &rest _ignore)
 	    (let ((mode-p (pr-interface-save
 			   (pr-mode-alist-p))))
 	      (cond
@@ -6182,7 +6182,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (widget-create 'regexp
 		 :size 58
 		 :format "\n      File Regexp : %v\n"
-		 :notify (lambda (widget &rest ignore)
+		 :notify (lambda (widget &rest _ignore)
 			   (setq pr-i-regexp (widget-value widget)))
 		 pr-i-regexp)
   ;;    1b. Directory: List Directory Entry
@@ -6222,7 +6222,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
        (pr-insert-checkbox
 	"    "
 	'pr-i-despool
-	#'(lambda (widget &rest ignore)
+	#'(lambda (widget &rest _ignore)
 	    (if pr-spool-p
 		(setq pr-i-despool (not pr-i-despool))
 	      (ding)
@@ -6259,7 +6259,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
    'integer
    :size 3
    :format "\n  N-Up : %v"
-   :notify (lambda (widget &rest ignore)
+   :notify (lambda (widget &rest _ignore)
 	     (let ((value (if (string= (widget-apply widget :value-get) "")
 			      0
 			    (widget-value widget))))
@@ -6288,7 +6288,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; 4. Settings:
   ;; 4. Settings: Landscape             Auto Region    Verbose
   (pr-insert-checkbox "\n\n  " 'ps-landscape-mode
-		      #'(lambda (&rest ignore)
+		      #'(lambda (&rest _ignore)
 			  (setq ps-landscape-mode (not ps-landscape-mode)
 				pr-file-landscape ps-landscape-mode))
 		      " Landscape             ")
@@ -6310,7 +6310,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (pr-insert-toggle 'ps-zebra-stripes " Zebra Stripes")
   (pr-insert-checkbox "         "
 		      'pr-spool-p
-		      #'(lambda (&rest ignore)
+		      #'(lambda (&rest _ignore)
 			  (setq pr-spool-p (not pr-spool-p))
 			  (unless pr-spool-p
 			    (setq pr-i-despool nil)
@@ -6320,7 +6320,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; 4. Settings: Duplex                Print with faces
   (pr-insert-checkbox "\n  "
 		      'ps-spool-duplex
-		      #'(lambda (&rest ignore)
+		      #'(lambda (&rest _ignore)
 			  (setq ps-spool-duplex (not ps-spool-duplex)
 				pr-file-duplex  ps-spool-duplex))
 		      " Duplex                ")
@@ -6329,7 +6329,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; 4. Settings: Tumble                Print via Ghostscript
   (pr-insert-checkbox "\n  "
 		      'ps-spool-tumble
-		      #'(lambda (&rest ignore)
+		      #'(lambda (&rest _ignore)
 			  (setq ps-spool-tumble (not ps-spool-tumble)
 				pr-file-tumble  ps-spool-tumble))
 		      " Tumble                ")
@@ -6352,7 +6352,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; 5. Customize:
   (pr-insert-italic "\n\nCustomize     :   " 2 11)
   (pr-insert-button 'pr-customize "printing" "   ")
-  (pr-insert-button #'(lambda (&rest ignore) (ps-print-customize))
+  (pr-insert-button #'(lambda (&rest _ignore) (ps-print-customize))
 		    "ps-print" "   ")
   (pr-insert-button 'lpr-customize "lpr"))
 
@@ -6374,7 +6374,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (pr-insert-button 'pr-kill-help "Kill All Printing Help Buffer"))
 
 
-(defun pr-kill-help (&rest ignore)
+(defun pr-kill-help (&rest _ignore)
   "Kill all printing help buffer."
   (interactive)
   (let ((help '("*Printing Interface Help*" "*Printing Help*"
@@ -6388,20 +6388,20 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (recenter (- (window-height) 2)))
 
 
-(defun pr-interface-quit (&rest ignore)
+(defun pr-interface-quit (&rest _ignore)
   "Kill the printing buffer interface and quit."
   (interactive)
   (kill-buffer pr-buffer-name)
   (set-window-configuration pr-i-window-configuration))
 
 
-(defun pr-interface-help (&rest ignore)
+(defun pr-interface-help (&rest _ignore)
   "printing buffer interface help."
   (interactive)
   (pr-show-setup pr-interface-help-message "*Printing Interface Help*"))
 
 
-(defun pr-interface-txt-print (&rest ignore)
+(defun pr-interface-txt-print (&rest _ignore)
   "Print using lpr package."
   (interactive)
   (condition-case data
@@ -6433,7 +6433,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
      (message "%s" (error-message-string data)))))
 
 
-(defun pr-interface-printify (&rest ignore)
+(defun pr-interface-printify (&rest _ignore)
   "Printify a buffer."
   (interactive)
   (condition-case data
@@ -6458,7 +6458,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
      (message "%s" (error-message-string data)))))
 
 
-(defun pr-interface-ps-print (&rest ignore)
+(defun pr-interface-ps-print (&rest _ignore)
   "Print using ps-print package."
   (interactive)
   (pr-interface-ps 'pr-despool-ps-print 'pr-ps-directory-ps-print
@@ -6467,7 +6467,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 		   'pr-ps-buffer-ps-print))
 
 
-(defun pr-interface-preview (&rest ignore)
+(defun pr-interface-preview (&rest _ignore)
   "Preview a PostScript file."
   (interactive)
   (pr-interface-ps 'pr-despool-preview 'pr-ps-directory-preview
@@ -6548,7 +6548,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
       (error "Please specify be a readable directory")))
 
 
-(defun pr-interface-directory (widget &rest ignore)
+(defun pr-interface-directory (widget &rest _ignore)
   (and pr-buffer-verbose
        (message "You can use M-TAB or ESC TAB for file completion"))
   (let ((dir (widget-value widget)))
@@ -6557,7 +6557,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	 (setq pr-i-directory dir))))
 
 
-(defun pr-interface-infile (widget &rest ignore)
+(defun pr-interface-infile (widget &rest _ignore)
   (and pr-buffer-verbose
        (message "You can use M-TAB or ESC TAB for file completion"))
   (let ((file (widget-value widget)))
@@ -6566,7 +6566,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	 (setq pr-i-ps-file file))))
 
 
-(defun pr-interface-outfile (widget &rest ignore)
+(defun pr-interface-outfile (widget &rest _ignore)
   (setq pr-i-answer-yes nil)
   (and pr-buffer-verbose
        (message "You can use M-TAB or ESC TAB for file completion"))
@@ -6602,7 +6602,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 (defun pr-insert-toggle (var-sym label)
   (widget-create 'checkbox
-		 :notify `(lambda (&rest ignore)
+		 :notify `(lambda (&rest _ignore)
 			    (setq ,var-sym (not ,var-sym)))
 		 (symbol-value var-sym))
   (widget-insert label))
@@ -6623,7 +6623,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 			:format "%v"
 			:inline t
 			:value ,var-sym
-			:notify (lambda (widget &rest ignore)
+			:notify (lambda (widget &rest _ignore)
 				  (setq ,var-sym (widget-value widget))
 				  ,@body)
 			:void '(choice-item :format "%[%t%]"
@@ -6639,7 +6639,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 		     'radio-button
 		     :format "  %[%v%]"
 		     :value (eq ,var-sym (quote ,sym))
-		     :notify (lambda (&rest ignore)
+		     :notify (lambda (&rest _ignore)
 			       (setq ,var-sym (quote ,sym))
 			       (pr-update-radio-button (quote ,var-sym)))))))
     (put var-sym 'pr-widget-list (cons (cons wid sym) wid-list))))
