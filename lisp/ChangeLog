@@ -1,3 +1,8 @@
+2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el: Use `car-safe' rather than `car' to access
+	a "ref-cell", since it gets better optimized (bug#14883).
+
 2013-09-05  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-awk.el (c-forward-sws): Declare.

@@ -224,8 +224,7 @@ Another is that undo information is not kept."
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
 Else, add CODE to the process' sentinel.
-CODE can be either a function of no arguments, or an expression
-to evaluate."
+CODE should be a function of no arguments."
   (let ((proc (get-buffer-process (current-buffer))))
     (cond
      ;; If there's no background process, just execute the code.
