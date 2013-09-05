@@ -10340,6 +10340,118 @@ fi
 ## $window_system is now set to the window system we will
 ## ultimately use.
 
+if test "$window_system" = none && test "$gl_gcc_warnings" = yes; then
+   # Too many warnings for now.
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-variable" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-variable... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_variable+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-variable"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_variable=yes
+else
+  gl_cv_warn_c__Wno_unused_variable=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_variable" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_variable" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_variable" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-variable"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-but-set-variable" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-but-set-variable... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_but_set_variable+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-but-set-variable"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_but_set_variable=yes
+else
+  gl_cv_warn_c__Wno_unused_but_set_variable=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_but_set_variable" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_but_set_variable" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_but_set_variable" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-but-set-variable"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-but-set-parameter" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-but-set-parameter... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_but_set_parameter+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-but-set-parameter"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_but_set_parameter=yes
+else
+  gl_cv_warn_c__Wno_unused_but_set_parameter=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_but_set_parameter" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_but_set_parameter" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_but_set_parameter" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-but-set-parameter"
+fi
+
+
+fi
+
 term_header=
 HAVE_X_WINDOWS=no
 HAVE_X11=no
