@@ -1133,6 +1133,8 @@ check_minibuf_window (Lisp_Object frame, int select)
 {
   struct frame *f = decode_live_frame (frame);
 
+  XSETFRAME (frame, f);
+
   if (WINDOWP (minibuf_window) && EQ (f->minibuffer_window, minibuf_window))
     {
       Lisp_Object frames, this, window = make_number (0);

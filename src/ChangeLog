@@ -1,3 +1,9 @@
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (check_minibuf_window): Update 'frame' with frame pointer.
+	* xterm.c (x_scroll_bar_handle_click) [!USE_TOOLKIT_SCROLL_BARS]:
+	Don't pass C integer to XINT (tiny fix for 2013-09-03 change).
+
 2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cmds.c (Fself_insert_command): Don't pass a non-integer to XINT.
