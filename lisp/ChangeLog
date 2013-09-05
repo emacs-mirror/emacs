@@ -1,3 +1,7 @@
+2013-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-awk.el (c-forward-sws): Declare.
+
 2013-09-04  Glenn Morris  <rgm@gnu.org>
 
 	* generic-x.el [rul-generic-mode]: Require cc-mode.
