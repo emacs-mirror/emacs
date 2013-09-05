@@ -1,3 +1,24 @@
+2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (pop): Use `car-safe'.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Remove hack
+	to detect unused `pop' return value.
+
+	* progmodes/python.el (python-nav-beginning-of-block): Remove unused
+	var `block-regexp'.
+	(python-nav--forward-sexp): Remove unused var `re-search-fn'.
+	(python-fill-string): Remove unused var `marker'.
+	(python-skeleton-add-menu-items): Remove unused var `items'.
+
+	* international/mule-cmds.el: Require CL.
+	(find-coding-systems-for-charsets): Avoid add-to-list.
+	(sanitize-coding-system-list): New function, extracted from
+	select-safe-coding-system-interactively.
+	(select-safe-coding-system-interactively): Use it.
+	(read-input-method-name): Accept symbols for `default'.
+
+	* emacs-lisp/advice.el (defadvice): Add indent rule.
+
 2013-09-05  Daniel Hackney  <dan@haxney.org>
 
 	* dired-x.el:

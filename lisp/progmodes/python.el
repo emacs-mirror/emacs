@@ -1327,9 +1327,7 @@ backward to previous statement."
 (defun python-nav-beginning-of-block ()
   "Move to start of current block."
   (interactive "^")
-  (let ((starting-pos (point))
-        (block-regexp (python-rx
-                       line-start (* whitespace) block-start)))
+  (let ((starting-pos (point)))
     (if (progn
           (python-nav-beginning-of-statement)
           (looking-at (python-rx block-start)))
@@ -1422,9 +1420,6 @@ backwards."
     (let* ((forward-p (if (> dir 0)
                           (and (setq dir 1) t)
                         (and (setq dir -1) nil)))
-           (re-search-fn (if forward-p
-                             're-search-forward
-                           're-search-backward))
            (context-type (python-syntax-context-type)))
       (cond
        ((memq context-type '(string comment))
@@ -2666,8 +2661,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 (defun python-fill-string (&optional justify)
   "String fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
-  (let* ((marker (point-marker))
-         (str-start-pos
+  (let* ((str-start-pos
           (set-marker
            (make-marker)
            (or (python-syntax-context 'string)
@@ -2733,7 +2727,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
              ;; Again indent only if a newline is added.
              (indent-according-to-mode))))) t)
 
-(defun python-fill-decorator (&optional justify)
+(defun python-fill-decorator (&optional _justify)
   "Decorator fill function for `python-fill-paragraph'.
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   t)
@@ -2895,8 +2889,7 @@ The skeleton will be bound to python-skeleton-NAME."
 
 (defun python-skeleton-add-menu-items ()
   "Add menu items to Python->Skeletons menu."
-  (let ((skeletons (sort python-skeleton-available 'string<))
-        (items))
+  (let ((skeletons (sort python-skeleton-available 'string<)))
     (dolist (skeleton skeletons)
       (easy-menu-add-item
        nil '("Python" "Skeletons")
@@ -2984,7 +2977,7 @@ Runs COMMAND, a shell command, as if by `compile'.  See
   (let ((process-environment (python-shell-calculate-process-environment))
         (exec-path (python-shell-calculate-exec-path)))
     (compilation-start command nil
-                       (lambda (mode-name)
+                       (lambda (_modename)
                          (format python-check-buffer-name command)))))
 
 
@@ -3095,7 +3088,7 @@ It must be a function with two arguments: TYPE and NAME.")
   "Return imenu label for parent node using TYPE and NAME."
   (format "%s..." (python-imenu-format-item-label type name)))
 
-(defun python-imenu-format-parent-item-jump-label (type name)
+(defun python-imenu-format-parent-item-jump-label (type _name)
   "Return imenu label for parent node jump using TYPE and NAME."
   (if (string= type "class")
       "*class definition*"
@@ -3209,7 +3202,7 @@ To this:
                 (cons name (cdar pos))
                 (python-imenu-create-flat-index (cddr item) name))))))
     (or alist
-        (let* ((fn (lambda (type name) name))
+        (let* ((fn (lambda (_type name) name))
                (python-imenu-format-item-label-function fn)
               (python-imenu-format-parent-item-label-function fn)
               (python-imenu-format-parent-item-jump-label-function fn))
@@ -3614,7 +3607,7 @@ if that value is non-nil."
 
   (add-to-list 'hs-special-modes-alist
                `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
-                             ,(lambda (arg)
+                             ,(lambda (_arg)
                                 (python-nav-end-of-defun)) nil))
 
   (set (make-local-variable 'mode-require-final-newline) t)

@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defvar dos-codepage)
 (autoload 'widget-value "wid-edit")
 
@@ -548,7 +550,7 @@ Emacs, but is unlikely to be what you really want now."
 				     (coding-system-charset-list cs)))
 		   (charsets charsets))
 	       (if (coding-system-get cs :ascii-compatible-p)
-		   (add-to-list 'cs-charsets 'ascii))
+		   (cl-pushnew 'ascii cs-charsets))
 	       (if (catch 'ok
 		     (when cs-charsets
 		       (while charsets
@@ -636,6 +638,36 @@ The meaning is the same as the argument ACCEPT-DEFAULT-P of the
 function `select-safe-coding-system' (which see).  This variable
 overrides that argument.")
 
+(defun sanitize-coding-system-list (codings)
+  "Return a list of coding systems presumably more user-friendly than CODINGS."
+  ;; Change each safe coding system to the corresponding
+  ;; mime-charset name if it is also a coding system.  Such a name
+  ;; is more friendly to users.
+  (setq codings
+        (mapcar (lambda (cs)
+                  (let ((mime-charset (coding-system-get cs 'mime-charset)))
+                    (if (and mime-charset (coding-system-p mime-charset)
+                             (coding-system-equal cs mime-charset))
+                        mime-charset cs)))
+                codings))
+
+  ;; Don't offer variations with locking shift, which you
+  ;; basically never want.
+  (let (l)
+    (dolist (elt codings (setq codings (nreverse l)))
+      (unless (or (eq 'coding-category-iso-7-else
+		      (coding-system-category elt))
+		  (eq 'coding-category-iso-8-else
+		      (coding-system-category elt)))
+	(push elt l))))
+
+  ;; Remove raw-text, emacs-mule and no-conversion unless nothing
+  ;; else is available.
+  (or (delq 'raw-text
+            (delq 'emacs-mule
+                  (delq 'no-conversion (copy-sequence codings))))
+      codings))
+
 (defun select-safe-coding-system-interactively (from to codings unsafe
 						&optional rejected default)
   "Select interactively a coding system for the region FROM ... TO.
@@ -667,35 +699,7 @@ DEFAULT is the coding system to use by default in the query."
 					 from to coding 11)))))
 		    unsafe)))
 
-  ;; Change each safe coding system to the corresponding
-  ;; mime-charset name if it is also a coding system.  Such a name
-  ;; is more friendly to users.
-  (let ((l codings)
-	mime-charset)
-    (while l
-      (setq mime-charset (coding-system-get (car l) :mime-charset))
-      (if (and mime-charset (coding-system-p mime-charset)
-	       (coding-system-equal (car l) mime-charset))
-	  (setcar l mime-charset))
-      (setq l (cdr l))))
-
-  ;; Don't offer variations with locking shift, which you
-  ;; basically never want.
-  (let (l)
-    (dolist (elt codings (setq codings (nreverse l)))
-      (unless (or (eq 'coding-category-iso-7-else
-		      (coding-system-category elt))
-		  (eq 'coding-category-iso-8-else
-		      (coding-system-category elt)))
-	(push elt l))))
-
-  ;; Remove raw-text, emacs-mule and no-conversion unless nothing
-  ;; else is available.
-  (setq codings
-	(or (delq 'raw-text
-		  (delq 'emacs-mule
-			(delq 'no-conversion codings)))
-	    '(raw-text emacs-mule no-conversion)))
+  (setq codings (sanitize-coding-system-list codings))
 
   (let ((window-configuration (current-window-configuration))
 	(bufname (buffer-name))
@@ -1421,7 +1425,9 @@ The return value is a string."
 	 ;; buffer local.
 	 (input-method (completing-read prompt input-method-alist
 					nil t nil 'input-method-history
-					default)))
+					(if (and default (symbolp default))
+                                            (symbol-name default)
+                                          default))))
     (if (and input-method (symbolp input-method))
 	(setq input-method (symbol-name input-method)))
     (if (> (length input-method) 0)

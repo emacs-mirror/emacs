@@ -3190,7 +3190,7 @@ See Info node `(elisp)Advising Functions' for comprehensive documentation.
 usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
           [DOCSTRING] [INTERACTIVE-FORM]
           BODY...)"
-  (declare (doc-string 3)
+  (declare (doc-string 3) (indent 2)
            (debug (&define name  ;; thing being advised.
                            (name ;; class is [&or "before" "around" "after"
                                  ;;               "activation" "deactivation"]
