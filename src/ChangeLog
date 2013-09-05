@@ -1,5 +1,26 @@
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Make --without-x compatible with --enable-gcc-warnings.
+	* font.c (register_font_driver): Move check under HAVE_WINDOW_SYSTEM.
+	* font.h (struct font_driver): Move draw, get_bitmap and free_bitmap
+	members under HAVE_WINDOW_SYSTEM.
+	* keyboard.c (make_lispy_focus_out): Likewise.
+	(record_menu_key): Move under HAVE_MENUS.
+	* xdisp.c (toplevel): Move hourglass_shown_p, hourglass_atimer and
+	THIN_SPACE_WIDTH under HAVE_WINDOW_SYSTEM.
+	(syms_of_xdisp): Adjust user.
+	(window_box_edges): Define only if HAVE_WINDOW_SYSTEM.
+	(start_hourglass, cancel_hourglass):
+	* xfaces.c (toplevel): Likewise with PT_PER_INCH,
+	clear_font_table_count, CLEAR_FONT_TABLE_COUNT
+	and CLEAR_FONT_TABLE_NFONTS.
+	(set_font_frame_param, clear_face_gcs, realize_non_ascii_face):
+	Declare only if HAVE_WINDOW_SYSTEM.
+	(lface_same_font_attributes_p, clear_face_gcs): Define only
+	if HAVE_WINDOW_SYSTEM.
+
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.c (check_minibuf_window): Update 'frame' with frame pointer.
 	* xterm.c (x_scroll_bar_handle_click) [!USE_TOOLKIT_SCROLL_BARS]:
 	Don't pass C integer to XINT (tiny fix for 2013-09-03 change).

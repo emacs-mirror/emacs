@@ -1775,6 +1775,13 @@ fi
 ## $window_system is now set to the window system we will
 ## ultimately use.
 
+if test "$window_system" = none && test "$gl_gcc_warnings" = yes; then
+   # Too many warnings for now.
+   gl_WARN_ADD([-Wno-unused-variable])
+   gl_WARN_ADD([-Wno-unused-but-set-variable])
+   gl_WARN_ADD([-Wno-unused-but-set-parameter])
+fi
+
 term_header=
 HAVE_X_WINDOWS=no
 HAVE_X11=no

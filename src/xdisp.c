@@ -760,12 +760,16 @@ Lisp_Object previous_help_echo_string;
 
 /* Platform-independent portion of hourglass implementation. */
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Non-zero means an hourglass cursor is currently shown.  */
 int hourglass_shown_p;
 
 /* If non-null, an asynchronous timer that, when it expires, displays
    an hourglass cursor on all frames.  */
 struct atimer *hourglass_atimer;
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Name of the face used to display glyphless characters.  */
 Lisp_Object Qglyphless_char;
@@ -776,14 +780,17 @@ static Lisp_Object Qglyphless_char_display;
 /* Method symbols for Vglyphless_char_display.  */
 static Lisp_Object Qhex_code, Qempty_box, Qthin_space, Qzero_width;
 
-/* Default pixel width of `thin-space' display method.  */
-#define THIN_SPACE_WIDTH 1
-
 /* Default number of seconds to wait before displaying an hourglass
    cursor.  */
 #define DEFAULT_HOURGLASS_DELAY 1
 
-
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Default pixel width of `thin-space' display method.  */
+#define THIN_SPACE_WIDTH 1
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Function prototypes.  */
 
 static void setup_for_ellipsis (struct it *, int);
@@ -1145,6 +1152,7 @@ window_box (struct window *w, enum glyph_row_area area, int *box_x,
     }
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Get the bounding box of the display area AREA of window W, without
    mode lines and both fringes of the window.  Return in *TOP_LEFT_X
@@ -1163,8 +1171,8 @@ window_box_edges (struct window *w, int *top_left_x, int *top_left_y,
   *bottom_right_y += *top_left_y;
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
-
 /***********************************************************************
 			      Utilities
  ***********************************************************************/
@@ -29643,8 +29651,10 @@ cursor shapes.  */);
 	       doc: /* Seconds to wait before displaying an hourglass pointer when Emacs is busy.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
+#ifdef HAVE_WINDOW_SYSTEM
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
+#endif /* HAVE_WINDOW_SYSTEM */
 
   DEFSYM (Qglyphless_char, "glyphless-char");
   DEFSYM (Qhex_code, "hex-code");
@@ -29731,13 +29741,14 @@ init_xdisp (void)
   help_echo_showing_p = 0;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Platform-independent portion of hourglass implementation.  */
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 void
 start_hourglass (void)
 {
-#if defined (HAVE_WINDOW_SYSTEM)
   struct timespec delay;
 
   cancel_hourglass ();
@@ -29762,7 +29773,6 @@ start_hourglass (void)
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);
-#endif
 }
 
 
@@ -29771,7 +29781,6 @@ start_hourglass (void)
 void
 cancel_hourglass (void)
 {
-#if defined (HAVE_WINDOW_SYSTEM)
   if (hourglass_atimer)
     {
       cancel_atimer (hourglass_atimer);
@@ -29780,5 +29789,6 @@ cancel_hourglass (void)
 
   if (hourglass_shown_p)
     hide_hourglass ();
-#endif
 }
+
+#endif /* HAVE_WINDOW_SYSTEM */

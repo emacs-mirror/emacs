@@ -1,3 +1,10 @@
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Make --without-x compatible with --enable-gcc-warnings.
+	* configure.ac: If both --without-x and --enable-gcc-warnings are
+	specified, use -Wno-unused-variable, -Wno-unused-but-set-variable
+	and -Wno-unused-but-set-parameter.
+
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Makefile improvements.

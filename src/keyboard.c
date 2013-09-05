@@ -422,7 +422,9 @@ static Lisp_Object modify_event_symbol (ptrdiff_t, int, Lisp_Object,
                                         Lisp_Object *, ptrdiff_t);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static Lisp_Object make_lispy_focus_in (Lisp_Object);
+#ifdef HAVE_WINDOW_SYSTEM
 static Lisp_Object make_lispy_focus_out (Lisp_Object);
+#endif /* HAVE_WINDOW_SYSTEM */
 static bool help_char_p (Lisp_Object);
 static void save_getcjmp (sys_jmp_buf);
 static void restore_getcjmp (sys_jmp_buf);
@@ -3210,6 +3212,8 @@ read_char (int commandflag, Lisp_Object map,
   RETURN_UNGCPRO (c);
 }
 
+#ifdef HAVE_MENUS
+
 /* Record a key that came from a mouse menu.
    Record it for echoing, for this-command-keys, and so on.  */
 
@@ -3244,6 +3248,8 @@ record_menu_key (Lisp_Object c)
   last_input_event = c;
   num_input_events++;
 }
+
+#endif /* HAVE_MENUS */
 
 /* Return true if should recognize C as "the help character".  */
 
@@ -6069,12 +6075,17 @@ make_lispy_focus_in (Lisp_Object frame)
 {
   return list2 (Qfocus_in, frame);
 }
+
+#ifdef HAVE_WINDOW_SYSTEM
+
 static Lisp_Object
 make_lispy_focus_out (Lisp_Object frame)
 {
   return list2 (Qfocus_out, frame);
 }
-
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Manipulating modifiers.  */
 
 /* Parse the name of SYMBOL, and return the set of modifiers it contains.
