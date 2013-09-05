@@ -67,6 +67,14 @@ and Italian.")))
 	    (sample-text . "Arabic	السّلام عليكم")
 	    (documentation . "Bidirectional editing is supported.")))
 
+(set-language-info-alist
+ "Persian" '((charset unicode)
+	    (coding-system utf-8 iso-8859-6 windows-1256)
+	    (coding-priority utf-8 iso-8859-6 windows-1256)
+	    (input-method . "farsi-transliterate-banan")
+	    (sample-text . "Persian	فارسی")
+	    (documentation . "Bidirectional editing is supported.")))
+
 (set-char-table-range
  composition-function-table
  '(#x600 . #x6FF)

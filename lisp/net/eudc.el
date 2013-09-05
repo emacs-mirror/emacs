@@ -1,9 +1,9 @@
-;;; eudc.el --- Emacs Unified Directory Client
+;;; eudc.el --- Emacs Unified Directory Client -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: Pavel JanÃ­k <Pavel@Janik.cz>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -48,9 +48,7 @@
 
 (eval-and-compile
   (if (not (fboundp 'make-overlay))
-      (require 'overlay))
-  (if (not (fboundp 'unless))
-      (require 'cl)))
+      (require 'overlay)))
 
 (unless (fboundp 'custom-menu-create)
   (autoload 'custom-menu-create "cus-edit"))
@@ -520,12 +518,12 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 	   precords))
 	(insert "\n")
 	(widget-create 'push-button
-		       :notify (lambda (&rest ignore)
+		       :notify (lambda (&rest _ignore)
 				 (eudc-query-form))
 		       "New query")
 	(widget-insert " ")
 	(widget-create 'push-button
-		       :notify (lambda (&rest ignore)
+		       :notify (lambda (&rest _ignore)
 				 (kill-this-buffer))
 		       "Quit")
 	(eudc-mode)
@@ -997,17 +995,17 @@ queries the server for the existing fields and displays a corresponding form."
 	  fields)
     (widget-insert "\n\n")
     (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
+		   :notify (lambda (&rest _ignore)
 			     (eudc-process-form))
 		   "Query Server")
     (widget-insert " ")
     (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
+		   :notify (lambda (&rest _ignore)
 			     (eudc-query-form))
 		   "Reset Form")
     (widget-insert " ")
     (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
+		   :notify (lambda (&rest _ignore)
 			     (kill-this-buffer))
 		   "Quit")
     (goto-char pt)
@@ -1213,7 +1211,7 @@ queries the server for the existing fields and displays a corresponding form."
 ;;; Load the options file
 (if (and (not noninteractive)
 	 (and (locate-library eudc-options-file)
-	      (progn (message "") t))   ; Remove modeline message
+	      (progn (message "") t))   ; Remove mode line message
 	 (not (featurep 'eudc-options-file)))
     (load eudc-options-file))
 

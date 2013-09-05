@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
 
-Copyright (C) 2009-2012  Free Software Foundation, Inc.
+Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,61 +15,58 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include <setjmp.h>
 #include "xgselect.h"
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 
 #include <glib.h>
 #include <errno.h>
-#include <setjmp.h>
-#include "xterm.h"
-
-static GPollFD *gfds;
-static ptrdiff_t gfds_size;
+#include <timespec.h>
+#include "frame.h"
 
 int
-xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	   EMACS_TIME *timeout)
+xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
+	   struct timespec const *timeout, sigset_t const *sigmask)
 {
-  SELECT_TYPE all_rfds, all_wfds;
-  EMACS_TIME tmo, *tmop = timeout;
+  fd_set all_rfds, all_wfds;
+  struct timespec tmo;
+  struct timespec const *tmop = timeout;
 
   GMainContext *context;
   int have_wfds = wfds != NULL;
-  int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
+  GPollFD gfds_buf[128];
+  GPollFD *gfds = gfds_buf;
+  int gfds_size = sizeof gfds_buf / sizeof *gfds_buf;
+  int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec;
+  USE_SAFE_ALLOCA;
 
-  if (!x_in_use)
-    return select (fds_lim, rfds, wfds, efds, timeout);
+  /* Do not try to optimize with an initial check with g_main_context_pending
+     and a call to pselect if it returns false.  If Gdk has a timeout for 0.01
+     second, and Emacs has a timeout for 1 second, g_main_context_pending will
+     return false, but the timeout will be 1 second, thus missing the gdk
+     timeout with a lot.  */
 
-  if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
+  context = g_main_context_default ();
+
+  if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
-  if (wfds) memcpy (&all_wfds, wfds, sizeof (all_rfds));
+  if (wfds) all_wfds = *wfds;
   else FD_ZERO (&all_wfds);
 
-  /* Update event sources in GLib. */
-  context = g_main_context_default ();
-  g_main_context_pending (context);
-
-  do {
-    if (n_gfds > gfds_size)
-      {
-        xfree (gfds);
-	gfds = xpalloc (0, &gfds_size, n_gfds - gfds_size, INT_MAX,
-			sizeof *gfds);
-      }
-
-    n_gfds = g_main_context_query (context,
-                                   G_PRIORITY_LOW,
-                                   &tmo_in_millisec,
-                                   gfds,
-                                   gfds_size);
-  } while (n_gfds > gfds_size);
+  n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
+				 gfds, gfds_size);
+  if (gfds_size < n_gfds)
+    {
+      SAFE_NALLOCA (gfds, sizeof *gfds, n_gfds);
+      gfds_size = n_gfds;
+      n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
+				     gfds, gfds_size);
+    }
 
   for (i = 0; i < n_gfds; ++i)
     {
@@ -86,24 +83,19 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
         }
     }
 
+  SAFE_FREE ();
+
   if (tmo_in_millisec >= 0)
     {
-      EMACS_SET_SECS_USECS (tmo, tmo_in_millisec/1000,
-                            1000 * (tmo_in_millisec % 1000));
-      if (!timeout) our_tmo = 1;
-      else
-        {
-          EMACS_TIME difference;
-
-          EMACS_SUB_TIME (difference, tmo, *timeout);
-          if (EMACS_TIME_NEG_P (difference)) our_tmo = 1;
-        }
-
-      if (our_tmo) tmop = &tmo;
+      tmo = make_timespec (tmo_in_millisec / 1000,
+			   1000 * 1000 * (tmo_in_millisec % 1000));
+      if (!timeout || timespec_cmp (tmo, *timeout) < 0)
+	tmop = &tmo;
     }
 
   fds_lim = max_fds + 1;
-  nfds = select (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL, efds, tmop);
+  nfds = pselect (fds_lim, &all_rfds, have_wfds ? &all_wfds : NULL,
+		  efds, tmop, sigmask);
 
   if (nfds < 0)
     retval = nfds;
@@ -132,7 +124,7 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
         }
     }
 
-  if (our_fds > 0 || (nfds == 0 && our_tmo))
+  if (our_fds > 0 || (nfds == 0 && tmop == &tmo))
     {
 
       /* If Gtk+ is in use eventually gtk_main_iteration will be called,
@@ -153,13 +145,4 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   return retval;
 }
-#endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
-
-void
-xgselect_initialize (void)
-{
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-  gfds_size = 128;
-  gfds = xmalloc (sizeof (*gfds)*gfds_size);
-#endif
-}
+#endif /* HAVE_GLIB */

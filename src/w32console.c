@@ -1,5 +1,5 @@
-/* Terminal hooks for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1999, 2001-2012  Free Software Foundation, Inc.
+/* Terminal hooks for GNU Emacs on the Microsoft Windows API.
+   Copyright (C) 1992, 1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <windows.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -37,6 +36,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "termchar.h"
 #include "dispextern.h"
+#include "w32term.h"
+#include "w32common.h" /* for os_subtype */
 #include "w32inevt.h"
 
 /* from window.c */
@@ -52,7 +53,6 @@ static void w32con_write_glyphs (struct frame *f, struct glyph *string, int len)
 static void w32con_delete_glyphs (struct frame *f, int n);
 static void w32con_reset_terminal_modes (struct terminal *t);
 static void w32con_set_terminal_modes (struct terminal *t);
-static void w32con_set_terminal_window (struct frame *f, int size);
 static void w32con_update_begin (struct frame * f);
 static void w32con_update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
@@ -67,6 +67,7 @@ static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
 HANDLE  keyboard_handle;
+int w32_console_unicode_input;
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
@@ -429,53 +430,6 @@ w32con_delete_glyphs (struct frame *f, int n)
   scroll_line (f, n, LEFT);
 }
 
-static unsigned int sound_type = 0xFFFFFFFF;
-#define MB_EMACS_SILENT (0xFFFFFFFF - 1)
-
-void
-w32_sys_ring_bell (struct frame *f)
-{
-  if (sound_type == 0xFFFFFFFF)
-    {
-      Beep (666, 100);
-    }
-  else if (sound_type == MB_EMACS_SILENT)
-    {
-      /* Do nothing.  */
-    }
-  else
-    MessageBeep (sound_type);
-}
-
-DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
-       doc: /* Set the sound generated when the bell is rung.
-SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
-to use the corresponding system sound for the bell.  The 'silent sound
-prevents Emacs from making any sound at all.
-SOUND is nil to use the normal beep.  */)
-  (Lisp_Object sound)
-{
-  CHECK_SYMBOL (sound);
-
-  if (NILP (sound))
-      sound_type = 0xFFFFFFFF;
-  else if (EQ (sound, intern ("asterisk")))
-      sound_type = MB_ICONASTERISK;
-  else if (EQ (sound, intern ("exclamation")))
-      sound_type = MB_ICONEXCLAMATION;
-  else if (EQ (sound, intern ("hand")))
-      sound_type = MB_ICONHAND;
-  else if (EQ (sound, intern ("question")))
-      sound_type = MB_ICONQUESTION;
-  else if (EQ (sound, intern ("ok")))
-      sound_type = MB_OK;
-  else if (EQ (sound, intern ("silent")))
-      sound_type = MB_EMACS_SILENT;
-  else
-      sound_type = 0xFFFFFFFF;
-
-  return sound;
-}
 
 static void
 w32con_reset_terminal_modes (struct terminal *t)
@@ -513,7 +467,7 @@ w32con_set_terminal_modes (struct terminal *t)
 {
   CONSOLE_CURSOR_INFO cci;
 
-  /* make cursor big and visible (100 on Win95 makes it disappear)  */
+  /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
   cci.dwSize = 99;
   cci.bVisible = TRUE;
   (void) SetConsoleCursorInfo (cur_screen, &cci);
@@ -540,11 +494,6 @@ static void
 w32con_update_end (struct frame * f)
 {
   SetConsoleCursorPosition (cur_screen, cursor_coords);
-}
-
-static void
-w32con_set_terminal_window (struct frame *f, int size)
-{
 }
 
 /***********************************************************************
@@ -631,7 +580,7 @@ w32_face_attributes (struct frame *f, int face_id)
   WORD char_attr;
   struct face *face = FACE_FROM_ID (f, face_id);
 
-  xassert (face != NULL);
+  eassert (face != NULL);
 
   char_attr = char_attr_normal;
 
@@ -661,7 +610,7 @@ w32_face_attributes (struct frame *f, int face_id)
 }
 
 void
-initialize_w32_display (struct terminal *term)
+initialize_w32_display (struct terminal *term, int *width, int *height)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
   Mouse_HLInfo *hlinfo;
@@ -679,7 +628,7 @@ initialize_w32_display (struct terminal *term)
   term->ring_bell_hook		= w32_sys_ring_bell;
   term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 
@@ -696,13 +645,7 @@ initialize_w32_display (struct terminal *term)
   term->frame_up_to_date_hook = 0;
 
   /* Initialize the mouse-highlight data.  */
-  hlinfo = &term->display_info.tty->mouse_highlight;
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  hlinfo->mouse_face_mouse_frame = NULL;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_hidden = 0;
+  reset_mouse_highlight (&term->display_info.tty->mouse_highlight);
 
   /* Initialize interrupt_handle.  */
   init_crit ();
@@ -782,24 +725,30 @@ initialize_w32_display (struct terminal *term)
 	      || info.srWindow.Right - info.srWindow.Left < 40
 	      || info.srWindow.Right - info.srWindow.Left > 100)))
     {
-      FRAME_LINES (SELECTED_FRAME ()) = 25;
-      SET_FRAME_COLS (SELECTED_FRAME (), 80);
+      *height = 25;
+      *width = 80;
     }
 
   else if (w32_use_full_screen_buffer)
     {
-      FRAME_LINES (SELECTED_FRAME ()) = info.dwSize.Y;	/* lines per page */
-      SET_FRAME_COLS (SELECTED_FRAME (), info.dwSize.X);  /* characters per line */
+      *height = info.dwSize.Y;	/* lines per page */
+      *width = info.dwSize.X;	/* characters per line */
     }
   else
     {
       /* Lines per page.  Use buffer coords instead of buffer size.  */
-      FRAME_LINES (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom -
-	info.srWindow.Top;
+      *height = 1 + info.srWindow.Bottom - info.srWindow.Top;
       /* Characters per line.  Use buffer coords instead of buffer size.  */
-      SET_FRAME_COLS (SELECTED_FRAME (), 1 + info.srWindow.Right -
-		       info.srWindow.Left);
+      *width = 1 + info.srWindow.Right - info.srWindow.Left;
     }
+
+  if (os_subtype == OS_NT)
+    w32_console_unicode_input = 1;
+  else
+    w32_console_unicode_input = 0;
+
+  /* This is needed by w32notify.c:send_notifications.  */
+  dwMainThreadId = GetCurrentThreadId ();
 
   /* Setup w32_display_info structure for this frame. */
 
@@ -859,5 +808,4 @@ scroll-back buffer.  */);
   defsubr (&Sset_screen_color);
   defsubr (&Sget_screen_color);
   defsubr (&Sset_cursor_size);
-  defsubr (&Sset_message_beep);
 }

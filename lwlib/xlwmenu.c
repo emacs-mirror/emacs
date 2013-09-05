@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994-1995, 1997, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -16,21 +16,16 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to the
-Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Created by devin@lucid.com */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <setjmp.h>
 #include <lisp.h>
 
 #include <stdio.h>
-#include <ctype.h>
 
 #include <sys/types.h>
 #if (defined __sun) && !(defined SUNOS41)
@@ -190,7 +185,6 @@ static void Key(Widget w, XEvent *ev, String *params, Cardinal *num_params);
 static void Nothing(Widget w, XEvent *ev, String *params, Cardinal *num_params);
 static int separator_height (enum menu_separator);
 static void pop_up_menu (XlwMenuWidget, XButtonPressedEvent *);
-static void abort_gracefully (Widget w) NO_RETURN;
 
 static XtActionsRec
 xlwMenuActionsList [] =
@@ -273,7 +267,7 @@ ungrab_all (Widget w, Time ungrabtime)
 
 /* Like abort, but remove grabs from widget W before.  */
 
-static void
+static _Noreturn void
 abort_gracefully (Widget w)
 {
   if (XtIsShell (XtParent (w)))
@@ -1861,7 +1855,7 @@ openXftFont (XlwMenuWidget mw)
       int screen = XScreenNumberOfScreen (mw->core.screen);
       int len = strlen (fname), i = len-1;
       /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
-      while (i > 0 && isdigit (fname[i]))
+      while (i > 0 && '0' <= fname[i] && fname[i] <= '9')
         --i;
       if (fname[i] == ' ')
         {

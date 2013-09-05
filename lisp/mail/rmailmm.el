@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
-;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -389,13 +389,13 @@ Use `raw' for raw mode, and any other non-nil value for decoded mode."
 	;; Enter the raw mode.
 	(rmail-mime-raw-mode entity)
       ;; Enter the shown mode.
-      (rmail-mime-shown-mode entity))
-    (let ((inhibit-read-only t)
-	  (modified (buffer-modified-p)))
-      (save-excursion
-	(goto-char (aref segment 1))
-	(rmail-mime-insert entity)
-	(restore-buffer-modified-p modified)))))
+      (rmail-mime-shown-mode entity)
+      (let ((inhibit-read-only t)
+	    (modified (buffer-modified-p)))
+	(save-excursion
+	  (goto-char (aref segment 1))
+	  (rmail-mime-insert entity)
+	  (restore-buffer-modified-p modified))))))
 
 (defun rmail-mime-toggle-hidden ()
   "Hide or show the body of the MIME-entity at point."
@@ -832,7 +832,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
   (let ((boundary (cdr (assq 'boundary content-type)))
 	(subtype (cadr (split-string (car content-type) "/")))
 	(index 0)
-	beg end next entities truncated)
+	beg end next entities truncated last)
     (unless boundary
       (rmail-mm-get-boundary-error-message
        "No boundary defined" content-type content-disposition
@@ -867,7 +867,13 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	       ;; Handle the rest of the truncated message
 	       ;; (if it isn't empty) by pretending that the boundary
 	       ;; appears at the end of the message.
-	       (and (save-excursion
+	       ;; We use `last' to distinguish this from the more
+	       ;; likely situation of there being an epilogue
+	       ;; after the last boundary, which should be ignored.
+	       ;; See rmailmm-test-multipart-handler for an example,
+	       ;; and also bug#10101.
+	       (and (not last)
+		    (save-excursion
 		      (skip-chars-forward "\n")
 		      (> (point-max) (point)))
 		    (setq truncated t end (point-max))))
@@ -875,7 +881,8 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
       ;; epilogue, else hide the boundary only.  Use a marker for
       ;; `next' because `rmail-mime-show' may change the buffer.
       (cond ((looking-at "--[ \t]*$")
-	     (setq next (point-max-marker)))
+	     (setq next (point-max-marker)
+		   last t))
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0) t)))
 	    (truncated
@@ -1212,7 +1219,7 @@ available."
 	  (if (rmail-mime-display-header current)
 	      (delete-char (- (aref segment 2) (aref segment 1))))
 	  (insert-buffer-substring rmail-mime-mbox-buffer
-				     (aref header 0) (aref header 1)))
+				   (aref header 0) (aref header 1)))
 	;; tagline
 	(if (rmail-mime-display-tagline current)
 	    (delete-char (- (aref segment 3) (aref segment 2))))
@@ -1261,14 +1268,17 @@ The arguments ARG and STATE have no effect in this case."
   (interactive (list current-prefix-arg nil))
   (if rmail-enable-mime
       (with-current-buffer rmail-buffer
-	(if (rmail-mime-message-p)
-	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
-		  (rmail-mime-view-buffer rmail-buffer)
-		  (entity (get-text-property
-			   (progn
-			     (or arg (goto-char (point-min)))
-			     (point)) 'rmail-mime-entity)))
-	      (if (or (not arg) entity) (rmail-mime-toggle-raw state)))
+	(if (or (rmail-mime-message-p)
+		(get-text-property (point-min) 'rmail-mime-hidden))
+	    (let* ((hidden (get-text-property (point-min) 'rmail-mime-hidden))
+		   (desired-hidden (if state (eq state 'raw) (not hidden))))
+	      (unless (eq hidden desired-hidden)
+		(if (not desired-hidden)
+		    (rmail-show-message rmail-current-message)
+		  (let ((rmail-enable-mime nil)
+			(inhibit-read-only t))
+		    (rmail-show-message rmail-current-message)
+		    (add-text-properties (point-min) (point-max) '(rmail-mime-hidden t))))))
 	  (message "Not a MIME message, just toggling headers")
 	  (rmail-toggle-header)))
     (let* ((data (rmail-apply-in-message rmail-current-message 'buffer-string))
@@ -1355,14 +1365,15 @@ The arguments ARG and STATE have no effect in this case."
 (defun rmail-insert-mime-forwarded-message (forward-buffer)
   "Insert the message in FORWARD-BUFFER as a forwarded message.
 This is the usual value of `rmail-insert-mime-forwarded-message-function'."
-  (let ((message-buffer
-	 (with-current-buffer forward-buffer
-	   (if rmail-buffer-swapped
-	       forward-buffer
-	     rmail-view-buffer))))
-    (save-restriction
-      (narrow-to-region (point) (point))
-      (message-forward-make-body-mime message-buffer))))
+  (let (contents-buffer start end)
+    (with-current-buffer forward-buffer
+      (setq contents-buffer
+	    (if rmail-buffer-swapped
+		rmail-view-buffer
+	      forward-buffer)
+	    start (rmail-msgbeg rmail-current-message)
+	    end (rmail-msgend rmail-current-message)))
+    (message-forward-make-body-mime contents-buffer start end)))
 
 (setq rmail-insert-mime-forwarded-message-function
       'rmail-insert-mime-forwarded-message)

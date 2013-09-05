@@ -1,9 +1,9 @@
-;;; prolog.el --- major mode for editing and running Prolog (and Mercury) code
+;;; prolog.el --- major mode for Prolog (and Mercury) -*- coding: utf-8 -*-
 
-;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2013 Free
+;; Software Foundation, Inc.
 
-;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
+;; Authors: Emil Ã…strÃ¶m <emil_astrom(at)hotmail(dot)com>
 ;;          Milan Zamazal <pdm(at)freesoft(dot)cz>
 ;;          Stefan Bruda <stefan(at)bruda(dot)ca>
 ;;          * See below for more details
@@ -31,7 +31,7 @@
 ;; Original author: Masanobu UMEDA <umerin(at)mse(dot)kyutech(dot)ac(dot)jp>
 ;; Parts of this file was taken from a modified version of the original
 ;; by Johan Andersson, Peter Olin, Mats Carlsson, Johan Bevemyr, Stefan
-;; Andersson, and Per Danielsson (all SICS people), and Henrik Båkman
+;; Andersson, and Per Danielsson (all SICS people), and Henrik BÃ¥kman
 ;; at Uppsala University, Sweden.
 ;;
 ;; Some ideas and also a few lines of code have been borrowed (not stolen ;-)
@@ -60,9 +60,7 @@
 
 ;;; Installation:
 ;;
-;; Insert the following lines in your init file--typically ~/.emacs
-;; (GNU Emacs and XEmacs <21.4), or ~/.xemacs/init.el (XEmacs
-;; 21.4)--to use this mode when editing Prolog files under Emacs:
+;; Insert the following lines in your init file:
 ;;
 ;; (setq load-path (cons "/usr/lib/xemacs/site-lisp" load-path))
 ;; (autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
@@ -280,16 +278,16 @@
 
 ;;; Code:
 
+(require 'comint)
+
 (eval-when-compile
   (require 'font-lock)
   ;; We need imenu everywhere because of the predicate index!
   (require 'imenu)
   ;)
-  (require 'info)
   (require 'shell)
   )
 
-(require 'comint)
 (require 'easymenu)
 (require 'align)
 
@@ -774,6 +772,8 @@ Relevant only when `prolog-imenu-flag' is non-nil."
   :version "24.1"
   :group 'prolog-other
   :type 'boolean)
+(make-obsolete-variable 'prolog-underscore-wordchar-flag
+                        'superword-mode "24.4")
 
 (defcustom prolog-use-sicstus-sd nil
   "If non-nil, use the source level debugger of SICStus 3#7 and later."
@@ -787,6 +787,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   :version "24.1"
   :group 'prolog-other
   :type 'boolean)
+(make-obsolete-variable 'prolog-char-quote-workaround nil "24.1")
 
 
 ;;-------------------------------------------------------------------
@@ -804,10 +805,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   ;; - In atoms \x<hex> sometimes needs a terminating \ (ISO-style)
   ;;   and sometimes not.
   (let ((table (make-syntax-table)))
-    (if prolog-underscore-wordchar-flag
-        (modify-syntax-entry ?_ "w" table)
-      (modify-syntax-entry ?_ "_" table))
-
+    (modify-syntax-entry ?_ (if prolog-underscore-wordchar-flag "w" "_") table)
     (modify-syntax-entry ?+ "." table)
     (modify-syntax-entry ?- "." table)
     (modify-syntax-entry ?= "." table)
@@ -817,7 +815,8 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
     (modify-syntax-entry ?\' "\"" table)
 
     ;; Any better way to handle the 0'<char> construct?!?
-    (when prolog-char-quote-workaround
+    (when (and prolog-char-quote-workaround
+               (not (fboundp 'syntax-propertize-rules)))
       (modify-syntax-entry ?0 "\\" table))
 
     (modify-syntax-entry ?% "<" table)
@@ -1150,11 +1149,7 @@ VERSION is of the format (Major . Minor)"
   (set (make-local-variable 'comment-start) "%")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-add) 1)
-  (set (make-local-variable 'comment-start-skip)
-       ;; This complex regexp makes sure that comments cannot start
-       ;; inside quoted atoms or strings
-       (format "^\\(\\(%s\\|%s\\|[^\n\'\"%%]\\)*\\)\\(/\\*+ *\\|%%+ *\\)"
-               prolog-quoted-atom-regexp prolog-string-regexp))
+  (set (make-local-variable 'comment-start-skip) "\\(?:/\\*+ *\\|%%+ *\\)")
   (set (make-local-variable 'parens-require-spaces) nil)
   ;; Initialize Prolog system specific variables
   (dolist (var '(prolog-keywords prolog-types prolog-mode-specificators
@@ -1740,8 +1735,7 @@ This function must be called from the source code buffer."
          (real-file buffer-file-name)
          (command-string (prolog-build-prolog-command compilep file
                                                       real-file first-line))
-         (process (get-process "prolog"))
-         (old-filter (process-filter process)))
+         (process (get-process "prolog")))
     (with-current-buffer buffer
       (delete-region (point-min) (point-max))
       ;; FIXME: Wasn't this supposed to use prolog-inferior-mode?
@@ -1760,8 +1754,7 @@ This function must be called from the source code buffer."
                'prolog-parse-sicstus-compilation-errors))
       (setq buffer-read-only nil)
       (insert command-string "\n"))
-    (save-selected-window
-      (pop-to-buffer buffer))
+    (display-buffer buffer)
     (setq prolog-process-flag t
           prolog-consult-compile-output ""
           prolog-consult-compile-first-line (if first-line (1- first-line) 0)
@@ -1772,7 +1765,8 @@ This function must be called from the source code buffer."
                                              real-file))
     (with-current-buffer buffer
       (goto-char (point-max))
-      (set-process-filter process 'prolog-consult-compile-filter)
+      (add-function :override (process-filter process)
+                    #'prolog-consult-compile-filter)
       (process-send-string "prolog" command-string)
       ;; (prolog-build-prolog-command compilep file real-file first-line))
       (while (and prolog-process-flag
@@ -1783,7 +1777,8 @@ This function must be called from the source code buffer."
       (insert (if compilep
                   "\nCompilation finished.\n"
                 "\nConsulted.\n"))
-      (set-process-filter process old-filter))))
+      (remove-function (process-filter process)
+                       #'prolog-consult-compile-filter))))
 
 (defvar compilation-error-list)
 
@@ -1953,20 +1948,6 @@ If COMPILEP is non-nil, compile, otherwise consult."
 ;;-------------------------------------------------------------------
 
 ;; Auxiliary functions
-(defun prolog-make-keywords-regexp (keywords &optional protect)
-  "Create regexp from the list of strings KEYWORDS.
-If PROTECT is non-nil, surround the result regexp by word breaks."
-  (let ((regexp
-         (if (fboundp 'regexp-opt)
-             ;; Emacs 20
-             ;; Avoid compile warnings under earlier versions by using eval
-             (eval '(regexp-opt keywords))
-           ;; Older Emacsen
-           (concat (mapconcat 'regexp-quote keywords "\\|")))
-         ))
-    (if protect
-        (concat "\\<\\(" regexp "\\)\\>")
-      regexp)))
 
 (defun prolog-font-lock-object-matcher (bound)
   "Find SICStus objects method name for font lock.
@@ -2083,20 +2064,16 @@ Argument BOUND is a buffer position limiting searching."
             (if (eq prolog-system 'mercury)
                 (concat
                  "\\<\\("
-                 (prolog-make-keywords-regexp prolog-keywords-i)
+                 (regexp-opt prolog-keywords-i)
                  "\\|"
-                 (prolog-make-keywords-regexp
+                 (regexp-opt
                   prolog-determinism-specificators-i)
                  "\\)\\>")
               (concat
                "^[?:]- *\\("
-               (prolog-make-keywords-regexp prolog-keywords-i)
+               (regexp-opt prolog-keywords-i)
                "\\)\\>"))
               1 prolog-builtin-face))
-          (quoted_atom (list prolog-quoted-atom-regexp
-                             2 'font-lock-string-face 'append))
-          (string (list prolog-string-regexp
-                        1 'font-lock-string-face 'append))
           ;; SICStus specific patterns
           (sicstus-object-methods
            (if (eq prolog-system 'sicstus)
@@ -2106,17 +2083,17 @@ Argument BOUND is a buffer position limiting searching."
           (types
            (if (eq prolog-system 'mercury)
                (list
-                (prolog-make-keywords-regexp prolog-types-i t)
+                (regexp-opt prolog-types-i 'words)
                 0 'font-lock-type-face)))
           (modes
            (if (eq prolog-system 'mercury)
                (list
-                (prolog-make-keywords-regexp prolog-mode-specificators-i t)
-                0 'font-lock-reference-face)))
+                (regexp-opt prolog-mode-specificators-i 'words)
+                0 'font-lock-constant-face)))
           (directives
            (if (eq prolog-system 'mercury)
                (list
-                (prolog-make-keywords-regexp prolog-directives-i t)
+                (regexp-opt prolog-directives-i 'words)
                 0 'prolog-warning-face)))
           ;; Inferior mode specific patterns
           (prompt
@@ -2210,8 +2187,6 @@ Argument BOUND is a buffer position limiting searching."
          (list
           head-predicates
           head-predicates-1
-          quoted_atom
-          string
           variables
           important-elements
           important-elements-1
@@ -3029,11 +3004,14 @@ The rest of the elements are undefined."
         (error "Sorry, no help method defined for this Prolog system."))))
    ))
 
+
+(autoload 'Info-goto-node "info" nil t)
+(declare-function Info-follow-nearest-node "info" (&optional FORK))
+
 (defun prolog-help-info (predicate)
   (let ((buffer (current-buffer))
         oldp
         (str (concat "^\\* " (regexp-quote predicate) " */")))
-    (require 'info)
     (pop-to-buffer nil)
     (Info-goto-node prolog-info-predicate-index)
     (if (not (re-search-forward str nil t))
@@ -3122,7 +3100,6 @@ Only for internal use by `prolog-find-documentation'")
 (defun prolog-goto-predicate-info (predicate)
   "Go to the info page for PREDICATE, which is a PredSpec."
   (interactive)
-  (require 'info)
   (string-match "\\(.*\\)/\\([0-9]+\\).*$" predicate)
   (let ((buffer (current-buffer))
         (name (match-string 1 predicate))

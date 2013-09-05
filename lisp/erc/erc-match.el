@@ -1,8 +1,9 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
+;; Maintainer: FSF
 ;; Keywords: comm, faces
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcMatch
 
@@ -29,12 +30,11 @@
 ;; customizable variables.
 
 ;; Usage:
-;; Put (erc-match-mode 1) into your ~/.emacs file.
+;; Put (erc-match-mode 1) into your init file.
 
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 ;; Customization:
 
@@ -232,6 +232,14 @@ current-nick, keyword, pal, dangerous-host, fool"
   :group 'erc-match
   :type 'hook)
 
+(defcustom erc-match-exclude-server-buffer nil
+  "If true, don't perform match on the server buffer; this is
+useful for excluding all the things like MOTDs from the server
+and other miscellaneous functions."
+  :group 'erc-match
+  :version "24.3"
+  :type 'boolean)
+
 ;; Internal variables:
 
 ;; This is exactly the same as erc-button-syntax-table.  Should we
@@ -258,26 +266,26 @@ constituents.")
 
 ;; Faces:
 
-(defface erc-current-nick-face '((t (:bold t :foreground "DarkTurquoise")))
+(defface erc-current-nick-face '((t :weight bold :foreground "DarkTurquoise"))
   "ERC face for occurrences of your current nickname."
   :group 'erc-faces)
 
-(defface erc-dangerous-host-face '((t (:foreground "red")))
+(defface erc-dangerous-host-face '((t :foreground "red"))
   "ERC face for people on dangerous hosts.
 See `erc-dangerous-hosts'."
   :group 'erc-faces)
 
-(defface erc-pal-face '((t (:bold t :foreground "Magenta")))
+(defface erc-pal-face '((t :weight bold :foreground "Magenta"))
   "ERC face for your pals.
 See `erc-pals'."
   :group 'erc-faces)
 
-(defface erc-fool-face '((t (:foreground "dim gray")))
+(defface erc-fool-face '((t :foreground "dim gray"))
   "ERC face for fools on the channel.
 See `erc-fools'."
   :group 'erc-faces)
 
-(defface erc-keyword-face '((t (:bold t :foreground "pale green")))
+(defface erc-keyword-face '((t :weight bold :foreground "pale green"))
   "ERC face for your keywords.
 Note that this is the default face to use if
 `erc-keywords' does not specify another."
@@ -444,12 +452,22 @@ Use this defun with `erc-insert-modify-hook'."
 			(match-beginning 0)))
 	 (nick-end (when nick-beg
 		     (match-end 0)))
-	 (message (buffer-substring (if (and nick-end
-					     (<= (+ 2 nick-end) (point-max)))
-					(+ 2 nick-end)
-				      (point-min))
-				    (point-max))))
-    (when vector
+	 (message (buffer-substring
+		   (if (and nick-end
+			    (<= (+ 2 nick-end) (point-max)))
+		       ;; Message starts 2 characters after the nick
+		       ;; except for CTCP ACTION messages.  Nick
+		       ;; surrounded by angle brackets only in normal
+		       ;; messages.
+		       (+ nick-end
+			  (if (eq ?> (char-after nick-end))
+			      2
+			    1))
+		     (point-min))
+		   (point-max))))
+    (when (and vector
+	       (not (and erc-match-exclude-server-buffer
+			 (erc-server-buffer-p))))
       (mapc
        (lambda (match-type)
 	 (goto-char (point-min))

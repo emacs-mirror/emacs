@@ -1,6 +1,6 @@
-/* MS-DOS specific C utilities.          -*- coding: raw-text -*-
+/* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +20,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Contributed by Morten Welinder */
 /* New display, keyboard, and mouse control by Kim F. Storm */
 
+/* Note: This file MUST use a unibyte encoding, to both display the
+   keys on the non-US keyboard layout as their respective labels, and
+   provide the correct byte values for the keyboard input to inject
+   into Emacs.  See 'struct dos_keyboard_map' below.  As long as there
+   are only European keyboard layouts here, we are OK with DOS
+   codepage 850 encoding.  */
+
 /* Note: some of the stuff here was taken from end of sysdep.c in demacs. */
 
 #include <config.h>
@@ -31,7 +38,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
+/* gettime and settime in dos.h clash with their namesakes from
+   gnulib, so we move out of our way the prototypes in dos.h.  */
+#define gettime dos_h_gettime_
+#define settime dos_h_settime_
 #include <dos.h>
+#undef gettime
+#undef settime
 #include <errno.h>
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
@@ -103,18 +116,18 @@ int _crt0_startup_flags = (_CRT0_FLAG_UNIX_SBRK | _CRT0_FLAG_FILL_SBRK_MEMORY);
 
 #endif /* not SYSTEM_MALLOC */
 
+/* Return the current timestamp in milliseconds since midnight.  */
 static unsigned long
 event_timestamp (void)
 {
-  struct time t;
+  struct timespec t;
   unsigned long s;
 
   gettime (&t);
-  s = t.ti_min;
-  s *= 60;
-  s += t.ti_sec;
+  s = t.tv_sec;
+  s %= 86400;
   s *= 1000;
-  s += t.ti_hund * 10;
+  s += t.tv_nsec * 1000000;
 
   return s;
 }
@@ -285,7 +298,7 @@ mouse_button_depressed (int b, int *xp, int *yp)
 }
 
 void
-mouse_get_pos (FRAME_PTR *f, int insist, Lisp_Object *bar_window,
+mouse_get_pos (struct frame **f, int insist, Lisp_Object *bar_window,
 	       enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 	       Time *time)
 {
@@ -514,8 +527,10 @@ dos_set_window_size (int *rows, int *cols)
 
   /* If the user specified a special video mode for these dimensions,
      use that mode.  */
-  sprintf (video_name, "screen-dimensions-%dx%d", *rows, *cols);
-  video_mode = Fsymbol_value (Fintern_soft (build_string (video_name), Qnil));
+  video_mode
+    = Fsymbol_value (Fintern_soft (make_formatted_string
+				   (video_name, "screen-dimensions-%dx%d",
+				    *rows, *cols), Qnil));
 
   if (INTEGERP (video_mode)
       && (video_mode_value = XINT (video_mode)) > 0)
@@ -587,11 +602,7 @@ dos_set_window_size (int *rows, int *cols)
       Lisp_Object window = hlinfo->mouse_face_window;
 
       if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
-	{
-	  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-	  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-	  hlinfo->mouse_face_window = Qnil;
-	}
+	reset_mouse_highlight (hlinfo);
     }
 
   /* Enable bright background colors.  */
@@ -788,7 +799,7 @@ IT_set_face (int face)
       /* The default face for the frame should always be realized and
 	 cached.  */
       if (!fp)
-	abort ();
+	emacs_abort ();
     }
   screen_face = face;
   fg = fp->foreground;
@@ -935,9 +946,6 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 			  Mouse Highlight (and friends..)
  ************************************************************************/
 
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_mouse_window;
-
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 int
@@ -1021,7 +1029,6 @@ IT_clear_end_of_line (struct frame *f, int first_unused)
 {
   char *spaces, *sp;
   int i, j, offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
-  extern int fatal_error_in_progress;
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (new_pos_X >= first_unused || fatal_error_in_progress)
@@ -1144,7 +1151,7 @@ IT_display_cursor (int on)
    to put the cursor at the end of the text displayed there.  */
 
 static void
-IT_cmgoto (FRAME_PTR f)
+IT_cmgoto (struct frame *f)
 {
   /* Only set the cursor to where it should be if the display is
      already in sync with the window contents.  */
@@ -1222,7 +1229,7 @@ IT_update_begin (struct frame *f)
   if (display_info->termscript)
     fprintf (display_info->termscript, "\n\n<UPDATE_BEGIN");
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (f && f == mouse_face_frame)
     {
@@ -1247,7 +1254,7 @@ IT_update_begin (struct frame *f)
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
-	  if (NILP (w->buffer))
+	  if (NILP (w->contents))
 	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
@@ -1257,22 +1264,16 @@ IT_update_begin (struct frame *f)
 		  break;
 	    }
 
-	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
+	  if (NILP (w->contents) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (hlinfo);
 	}
     }
   else if (mouse_face_frame && !FRAME_LIVE_P (mouse_face_frame))
-    {
-      /* If the frame with mouse highlight was deleted, invalidate the
-	 highlight info.  */
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_deferred_gc = 0;
-      hlinfo->mouse_face_mouse_frame = NULL;
-    }
+    /* If the frame with mouse highlight was deleted, invalidate the
+       highlight info.  */
+    reset_mouse_highlight (hlinfo);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static void
@@ -1288,21 +1289,10 @@ IT_update_end (struct frame *f)
 static void
 IT_frame_up_to_date (struct frame *f)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   Lisp_Object new_cursor, frame_desired_cursor;
   struct window *sw;
 
-  if (hlinfo->mouse_face_deferred_gc
-      || (f && f == hlinfo->mouse_face_mouse_frame))
-    {
-      BLOCK_INPUT;
-      if (hlinfo->mouse_face_mouse_frame)
-	note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-			      hlinfo->mouse_face_mouse_x,
-			      hlinfo->mouse_face_mouse_y);
-      hlinfo->mouse_face_deferred_gc = 0;
-      UNBLOCK_INPUT;
-    }
+  FRAME_MOUSE_UPDATE (f);
 
   /* Set the cursor type to whatever they wanted.  In a minibuffer
      window, we want the cursor to appear only if we are reading input
@@ -1319,7 +1309,7 @@ IT_frame_up_to_date (struct frame *f)
     new_cursor = frame_desired_cursor;
   else
     {
-      struct buffer *b = XBUFFER (sw->buffer);
+      struct buffer *b = XBUFFER (sw->contents);
 
       if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
@@ -1386,7 +1376,7 @@ IT_insert_glyphs (struct frame *f, struct glyph *start, int len)
 static void
 IT_delete_glyphs (struct frame *f, int n)
 {
-  abort ();
+  emacs_abort ();
 }
 
 /* This was copied from xfaces.c  */
@@ -1546,11 +1536,6 @@ IT_reset_terminal_modes (struct terminal *term)
   term_setup_done = 0;
 }
 
-static void
-IT_set_terminal_window (struct frame *f, int foo)
-{
-}
-
 /* Remember the screen colors of the current frame, to serve as the
    default colors for newly-created frames.  */
 DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
@@ -1579,9 +1564,9 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   Lisp_Object tail;
   int i, j, length = XINT (Flength (alist));
   Lisp_Object *parms
-    = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+    = (Lisp_Object *) alloca (length * word_size);
   Lisp_Object *values
-    = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+    = (Lisp_Object *) alloca (length * word_size);
   /* Do we have to reverse the foreground and background colors?  */
   int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
   int redraw = 0, fg_set = 0, bg_set = 0;
@@ -1603,11 +1588,9 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object elt;
-
-      elt = Fcar (tail);
+      Lisp_Object elt = XCAR (tail);
       parms[i] = Fcar (elt);
       CHECK_SYMBOL (parms[i]);
       values[i] = Fcdr (elt);
@@ -1753,7 +1736,7 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
     }
 }
 
-extern void init_frame_faces (FRAME_PTR);
+extern void init_frame_faces (struct frame *);
 
 #endif /* !HAVE_X_WINDOWS */
 
@@ -1788,7 +1771,7 @@ internal_terminal_init (void)
     }
 
   tty = FRAME_TTY (sf);
-  KVAR (current_kboard, Vwindow_system) = Qpc;
+  kset_window_system (current_kboard, Qpc);
   sf->output_method = output_msdos_raw;
   if (init_needed)
     {
@@ -1836,18 +1819,8 @@ internal_terminal_init (void)
 	  if (colors[1] >= 0 && colors[1] < 16)
 	    FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
 	}
-      the_only_display_info.mouse_highlight.mouse_face_mouse_frame = NULL;
-      the_only_display_info.mouse_highlight.mouse_face_deferred_gc = 0;
-      the_only_display_info.mouse_highlight.mouse_face_beg_row =
-	the_only_display_info.mouse_highlight.mouse_face_beg_col = -1;
-      the_only_display_info.mouse_highlight.mouse_face_end_row =
-	the_only_display_info.mouse_highlight.mouse_face_end_col = -1;
-      the_only_display_info.mouse_highlight.mouse_face_face_id = DEFAULT_FACE_ID;
-      the_only_display_info.mouse_highlight.mouse_face_window = Qnil;
-      the_only_display_info.mouse_highlight.mouse_face_mouse_x =
-	the_only_display_info.mouse_highlight.mouse_face_mouse_y = 0;
-      the_only_display_info.mouse_highlight.mouse_face_defer = 0;
-      the_only_display_info.mouse_highlight.mouse_face_hidden = 0;
+
+      reset_mouse_highlight (&the_only_display_info.mouse_highlight);
 
       if (have_mouse)	/* detected in dos_ttraw, which see */
 	{
@@ -1883,7 +1856,7 @@ initialize_msdos_display (struct terminal *term)
   term->ring_bell_hook = IT_ring_bell;
   term->reset_terminal_modes_hook = IT_reset_terminal_modes;
   term->set_terminal_modes_hook = IT_set_terminal_modes;
-  term->set_terminal_window_hook = IT_set_terminal_window;
+  term->set_terminal_window_hook = NULL;
   term->update_begin_hook = IT_update_begin;
   term->update_end_hook = IT_update_end;
   term->frame_up_to_date_hook = IT_frame_up_to_date;
@@ -1914,7 +1887,7 @@ dos_get_saved_screen (char **screen, int *rows, int *cols)
 
 /* We are not X, but we can emulate it well enough for our needs... */
 void
-check_x (void)
+check_window_system (void)
 {
   if (! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Not running under a window system");
@@ -1966,10 +1939,10 @@ struct dos_keyboard_map
 
 static struct dos_keyboard_map us_keyboard = {
 /* 0         1         2         3         4         5      */
-/* 01234567890123456789012345678901234567890 12345678901234 */
-  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\   zxcvbnm,./  ",
+/* 01234567890123456789012345678901234567890 123 45678901234 */
+  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\  \\zxcvbnm,./  ",
 /* 0123456789012345678901234567890123456789 012345678901234 */
-  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|   ZXCVBNM<>?  ",
+  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|  |ZXCVBNM<>?  ",
   0,				/* no Alt-Gr key */
   0				/* no translate table */
 };
@@ -1977,9 +1950,9 @@ static struct dos_keyboard_map us_keyboard = {
 static struct dos_keyboard_map fr_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 012 3456789012345678901234567890123456789012345678901234 */
-  "˝&Ç\",(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*   wxcvbnm;:!  ",
+  "˝&Ç\"'(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*  <wxcvbn,;:!  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
-  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê   WXCVBN?./ı  ",
+  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê  >WXCVBN?./ı  ",
 /* 01234567 89012345678901234567890123456789012345678901234 */
   "  ~#{[|`\\^@]}             œ                              ",
   0				/* no translate table */
@@ -2001,9 +1974,9 @@ static struct kbd_translate it_kbd_translate_table[] = {
 static struct dos_keyboard_map it_keyboard = {
 /* 0          1         2         3         4         5     */
 /* 0 123456789012345678901234567890123456789012345678901234 */
-  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó   zxcvbnm,.-  ",
+  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
+  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "        {}~`             []             @#               ",
   it_kbd_translate_table
@@ -2012,9 +1985,9 @@ static struct dos_keyboard_map it_keyboard = {
 static struct dos_keyboard_map dk_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 0123456789012345678901234567890123456789012345678901234 */
-  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'   zxcvbnm,.-  ",
+  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*   ZXCVBNM;:_  ",
+  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "  @ú$  {[]} |                                             ",
   0				/* no translate table */
@@ -2421,10 +2394,10 @@ and then the scan code.  */)
   else
     {
       val = Fvector (NUM_RECENT_DOSKEYS, keys);
-      memcpy (XVECTOR (val)->contents, keys + recent_doskeys_index,
-	      (NUM_RECENT_DOSKEYS - recent_doskeys_index) * sizeof (Lisp_Object));
-      memcpy (XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
-	      keys, recent_doskeys_index * sizeof (Lisp_Object));
+      vcopy (val, 0, keys + recent_doskeys_index,
+	     NUM_RECENT_DOSKEYS - recent_doskeys_index);
+      vcopy (val, NUM_RECENT_DOSKEYS - recent_doskeys_index,
+	     keys, recent_doskeys_index);
       return val;
     }
 }
@@ -2459,12 +2432,12 @@ dos_rawgetc (void)
       sc = regs.h.ah;
 
       total_doskeys += 2;
-      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
-	= make_number (c);
+      ASET (recent_doskeys, recent_doskeys_index, make_number (c));
+      recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
-      XVECTOR (recent_doskeys)->contents[recent_doskeys_index++]
-	= make_number (sc);
+      ASET (recent_doskeys, recent_doskeys_index, make_number (sc));
+      recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
 
@@ -2685,10 +2658,10 @@ dos_rawgetc (void)
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
-	      mouse_window = window_from_coordinates (SELECTED_FRAME (),
-						      mouse_last_x,
-						      mouse_last_y,
-						      0, 0);
+	      static Lisp_Object last_mouse_window;
+
+	      mouse_window = window_from_coordinates
+		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -2703,10 +2676,9 @@ dos_rawgetc (void)
 		  event.timestamp = event_timestamp ();
 		  kbd_buffer_store_event (&event);
 		}
+	      /* Remember the last window where we saw the mouse.  */
 	      last_mouse_window = mouse_window;
 	    }
-	  else
-	    last_mouse_window = Qnil;
 
 	  previous_help_echo_string = help_echo_string;
 	  help_echo_string = help_echo_object = help_echo_window = Qnil;
@@ -2815,7 +2787,7 @@ IT_menu_create (void)
 {
   XMenu *menu;
 
-  menu = (XMenu *) xmalloc (sizeof (XMenu));
+  menu = xmalloc (sizeof (XMenu));
   menu->allocated = menu->count = menu->panecount = menu->width = 0;
   return menu;
 }
@@ -2829,10 +2801,10 @@ IT_menu_make_room (XMenu *menu)
   if (menu->allocated == 0)
     {
       int count = menu->allocated = 10;
-      menu->text = (char **) xmalloc (count * sizeof (char *));
-      menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
-      menu->panenumber = (int *) xmalloc (count * sizeof (int));
-      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
+      menu->text = xmalloc (count * sizeof (char *));
+      menu->submenu = xmalloc (count * sizeof (XMenu *));
+      menu->panenumber = xmalloc (count * sizeof (int));
+      menu->help_text = xmalloc (count * sizeof (char *));
     }
   else if (menu->allocated == menu->count)
     {
@@ -2913,7 +2885,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
   width = menu->width;
   /* We multiply width by 2 to account for possible control characters.
      FIXME: cater to non-ASCII characters in menus.  */
-  text = (struct glyph *) xmalloc ((width * 2 + 2) * sizeof (struct glyph));
+  text = xmalloc ((width * 2 + 2) * sizeof (struct glyph));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
   IT_update_begin (sf);
@@ -2977,11 +2949,6 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 
 /* --------------------------- X Menu emulation ---------------------- */
 
-/* Report availability of menus.  */
-
-int
-have_menus_p (void) {  return 1; }
-
 /* Create a brand new menu structure.  */
 
 XMenu *
@@ -3001,7 +2968,7 @@ XMenuAddPane (Display *foo, XMenu *menu, const char *txt, int enable)
   const char *p;
 
   if (!enable)
-    abort ();
+    emacs_abort ();
 
   IT_menu_make_room (menu);
   menu->submenu[menu->count] = IT_menu_create ();
@@ -3282,10 +3249,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      erasing it works correctly...  */
   if (! NILP (saved_echo_area_message))
     message_with_string ("%s", saved_echo_area_message, 0);
-  message (0);
+  message1 (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
-  IT_display_cursor (1);	/* turn cursor back on */
+  IT_display_cursor (1);	/* Turn cursor back on.  */
   /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button
@@ -3293,7 +3260,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      Emacs will process them after we return and surprise the user.  */
   discard_mouse_events ();
   mouse_clear_clicks ();
-  if (!kbd_buffer_events_waiting (1))
+  if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
   /* Allow mouse events generation by dos_rawgetc.  */
   mouse_preempted--;
@@ -3319,18 +3286,6 @@ XMenuDestroy (Display *foo, XMenu *menu)
   xfree (menu);
   menu_help_message = prev_menu_help_message = NULL;
 }
-
-int
-x_pixel_width (struct frame *f)
-{
-  return FRAME_COLS (f);
-}
-
-int
-x_pixel_height (struct frame *f)
-{
-  return FRAME_LINES (f);
-}
 #endif /* !HAVE_X_WINDOWS */
 
 /* ----------------------- DOS / UNIX conversion --------------------- */
@@ -3340,7 +3295,7 @@ void msdos_downcase_filename (unsigned char *);
 /* Destructively turn backslashes into slashes.  */
 
 void
-dostounix_filename (char *p)
+dostounix_filename (char *p, int ignore)
 {
   msdos_downcase_filename (p);
 
@@ -3604,7 +3559,7 @@ init_environment (int argc, char **argv, int skip_args)
   if (!s) s = "c:/command.com";
   t = alloca (strlen (s) + 1);
   strcpy (t, s);
-  dostounix_filename (t);
+  dostounix_filename (t, 0);
   setenv ("SHELL", t, 0);
 
   /* PATH is also downcased and backslashes mirrored.  */
@@ -3614,7 +3569,7 @@ init_environment (int argc, char **argv, int skip_args)
   /* Current directory is always considered part of MsDos's path but it is
      not normally mentioned.  Now it is.  */
   strcat (strcpy (t, ".;"), s);
-  dostounix_filename (t); /* Not a single file name, but this should work.  */
+  dostounix_filename (t, 0); /* Not a single file name, but this should work.  */
   setenv ("PATH", t, 1);
 
   /* In some sense all dos users have root privileges, so...  */
@@ -3915,8 +3870,10 @@ croak (char *badfunc)
 /*
  * A few unimplemented functions that we silently ignore.
  */
-int setpgrp (void) {return 0; }
+pid_t tcgetpgrp (int fd) { return 0; }
+int setpgid (int pid, int pgid) { return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+pid_t setsid (void) { return 0; }
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
 ssize_t
@@ -3954,14 +3911,6 @@ careadlinkat (int fd, char const *filename,
 	buffer[len + 1] = '\0';
     }
   return buffer;
-}
-
-ssize_t
-careadlinkatcwd (int fd, char const *filename, char *buffer,
-                 size_t buffer_size)
-{
-  (void) fd;
-  return readlink (filename, buffer, buffer_size);
 }
 
 
@@ -4065,13 +4014,6 @@ sigprocmask (int how, const sigset_t *new_set, sigset_t *old_set)
 #ifndef HAVE_SELECT
 #include "sysselect.h"
 
-#ifndef EMACS_TIME_ZERO_OR_NEG_P
-#define EMACS_TIME_ZERO_OR_NEG_P(time)	\
-  ((long)(time).tv_sec < 0		\
-   || ((time).tv_sec == 0		\
-       && (long)(time).tv_usec <= 0))
-#endif
-
 /* This yields the rest of the current time slice to the task manager.
    It should be called by any code which knows that it has nothing
    useful to do except idle.
@@ -4097,10 +4039,10 @@ dos_yield_time_slice (void)
    because wait_reading_process_output takes care of that.  */
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
+	    struct timespec *timeout, void *ignored)
 {
   int check_input;
-  struct time t;
+  struct timespec t;
 
   check_input = 0;
   if (rfds)
@@ -4114,7 +4056,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     FD_ZERO (efds);
 
   if (nfds != 1)
-    abort ();
+    emacs_abort ();
 
   /* If we are looking only for the terminal, with no timeout,
      just read it and wait -- that's more efficient.  */
@@ -4127,25 +4069,20 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     }
   else
     {
-      EMACS_TIME clnow, cllast, cldiff;
+      struct timespec clnow, cllast, cldiff;
 
       gettime (&t);
-      EMACS_SET_SECS_USECS (cllast, t.ti_sec, t.ti_hund * 10000L);
+      cllast = make_timespec (t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  EMACS_SET_SECS_USECS (clnow, t.ti_sec, t.ti_hund * 10000L);
-	  EMACS_SUB_TIME (cldiff, clnow, cllast);
-
-	  /* When seconds wrap around, we assume that no more than
-	     1 minute passed since last `gettime'.  */
-	  if (EMACS_TIME_NEG_P (cldiff))
-	    EMACS_SET_SECS (cldiff, EMACS_SECS (cldiff) + 60);
-	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
+	  clnow = make_timespec (t.tv_sec, t.tv_nsec);
+	  cldiff = timespec_sub (clnow, cllast);
+	  *timeout = timespec_sub (*timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
-	  if (EMACS_TIME_ZERO_OR_NEG_P (*timeout))
+	  if (timespec_sign (*timeout) <= 0)
 	    return 0;
 	  cllast = clnow;
 	  dos_yield_time_slice ();
@@ -4214,26 +4151,8 @@ init_gettimeofday (void)
 }
 #endif
 
-#ifdef abort
-#undef abort
-void
-dos_abort (char *file, int line)
-{
-  char buffer1[200], buffer2[400];
-  int i, j;
-
-  sprintf (buffer1, "<EMACS FATAL ERROR IN %s LINE %d>", file, line);
-  for (i = j = 0; buffer1[i]; i++) {
-    buffer2[j++] = buffer1[i];
-    buffer2[j++] = 0x70;
-  }
-  dosmemput (buffer2, j, (int)ScreenPrimary);
-  ScreenSetCursor (2, 0);
-  abort ();
-}
-#else
-void
-abort (void)
+static void
+msdos_abort (void)
 {
   dos_ttcooked ();
   ScreenSetCursor (10, 0);
@@ -4249,7 +4168,15 @@ abort (void)
 #endif /* __DJGPP_MINOR__ >= 2 */
   exit (2);
 }
-#endif
+
+void
+msdos_fatal_signal (int sig)
+{
+  if (sig == SIGABRT)
+    msdos_abort ();
+  else
+    raise (sig);
+}
 
 void
 syms_of_msdos (void)

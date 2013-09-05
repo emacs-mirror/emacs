@@ -1,15 +1,30 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 2001-2013 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
 If you are ready to start working on any of these TODO items, we
 appreciate your help; please write to emacs-devel@gnu.org so we can be
 aware that the problem is being addressed, and talk with you how to do
-it best.  Since Emacs is an FSF-copyrighted package, please be
-prepared to sign legal papers to transfer the copyright on your work
-to the FSF.
+it best.  Also to check that it hasn't been done already, since we
+don't always remember to update this file!  It is best to consult
+the latest version of this file in the Emacs source code repository.
+
+Since Emacs is an FSF-copyrighted package, please be prepared to sign
+legal papers to transfer the copyright on your work to the FSF.
+For more details on this, see the section "Copyright Assignment"
+in etc/CONTRIBUTE.  That file also contains some more practical
+details about getting involved.
+
+As well as the issues listed here, there are bug reports at
+<http://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for
+beginners to work on, but unfortunately we are not very good at using
+this tag.  Bugs tagged "help" are ones where assistance is required,
+but may be difficult to fix.  Bugs with severity "important" or higher
+are the ones we consider more important, but these also may be
+difficult to fix.  Bugs with severity "minor" may be simpler, but this
+is not always true.
 
 * Tentative plan for Emacs-24
 
@@ -18,7 +33,7 @@ to the FSF.
   "which form of concurrency" we'll want.
 ** Overhaul of customize: sounds wonderful.
 ** better support for dynamic embedded graphics: I like this idea (my
-  mpc.el code could use it for the volume widget), tho I wonder if the
+  mpc.el code could use it for the volume widget), though I wonder if the
   resulting efficiency will be sufficient.
 ** Spread Semantic.
 ** Improve the "code snippets" support: consolidate skeleton.el, tempo.el,
@@ -62,6 +77,7 @@ to use it.
 of appropriate :type and :group.
 
 ** Remove any leading `*'s from defcustom doc-strings.
+[done?] [A lot of them are in CC Mode.]
 
 ** Remove unnecessary autoload cookies from defcustoms.
 This needs a bit of care, since often people have become used to
@@ -91,8 +107,6 @@ for users to customize.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
-
-** buffer-offer-save should be a permanent local.
 
 ** revert-buffer should eliminate overlays and the mark.
    For related problems consult the thread starting with
@@ -163,6 +177,15 @@ where <device> is the network device found under the first key.
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
+*** Related functions:
+**** gnus-bug
+**** report-calc-bug
+**** org-submit-bug-report
+**** lm-report-bug
+**** tramp-bug
+**** c-submit-bug-report
+**** ffap-bug and ffap-submit-bug (obsoleted)
+[Do all of them need changing?]
 
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 
@@ -267,19 +290,15 @@ specified filters, specified timers, and specified hooks.
 ** Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
 
-* Other features we would like:
+** The GNUstep port needs some serious attention, ideally from someone
+familiar with GNUstep and Objective C.
 
-** Make longlines-mode wrap lines based on screen position instead
-   of character position, so that variable-width fonts can be handled
-   properly.
+* Other features we would like:
 
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
 ** Remove the default toggling behavior of minor modes when called from elisp
 rather than interactively.  This a trivial one-liner in easy-mode.el.
-
-** Create a category of errors called `user-error' for errors which are
-typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Give Tar mode all the features of Archive mode.
 
@@ -406,14 +425,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   Check the assignments file for other packages which might go in and
   have been missed.
 
-** Possibly install python-mode in place of python.el, or combine the two.
-Someone needs to do the work of figuring out who all the non-trivial
-python-mode.el contributors are and getting assignments.
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02156.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02201.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02489.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
-
 ** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
   multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
@@ -423,7 +434,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
   an example how to do part of this; see the XMenu* functions on msdos.c.
 
 ** Implement popular parts of the rest of the CL functions as compiler
-  macros in cl-macs.
+  macros in cl-macs.  [Is this still relevant now that cl-lib exists?]
 
 ** Make compiler warnings about functions that might be undefined at run time
  smarter, so that they know which files are required by the file being
@@ -464,7 +475,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 
 ** Allow unknown image types to be rendered via an external program
   converting them to, say, PBM (in the same way as PostScript?). [does
-  doc-view.el do this, or could it be extended to do this?]
+  doc-view.el do this, or could it be extended to do this?
+  Does ImageMagick obsolete this idea?]
 
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
@@ -522,15 +534,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
   artist, ansi-color, array, battery, calculator, cdl, cmuscheme,
   completion, cua, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
-  generic/generic-x [various modes], kermit, log-edit, ledit
-  [obsolete?], makesum, midnight [other than in Kill Buffer node],
+  generic/generic-x [various modes], kermit, log-edit,
+  makesum, midnight [other than in Kill Buffer node],
   mouse-copy [?], mouse-drag, mouse-sel, net-utils, rcompile,
   snmp-mode [?], soundex [should be interactive?], strokes [start from
   the web page], talk, thingatpt [interactive functions?], type-break,
-  vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt, iso-swed,
-  swedish, feedmail [?], uce, bruce, gametree, meese, page-ext,
+  vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
+  feedmail [?], uce, gametree, meese, page-ext,
   refbib, refer, scribe, sgml-mode, spell, texinfo, underline,
-  cmacexp, hideif, mantemp [obsolete?], pcomplete, assoc, xml,
+  cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
@@ -613,6 +625,14 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 ** NeXTstep port
 
 *** Bugs
+
+**** The event loop does not redraw.
+     A problem is that redraw don't happen during resize,
+     because we can't break out from the NSapp loop during resize.
+     There was a special trick to detect mouse press in the lower right
+     corner and track mouse movements, but this did not work well, and was
+     not scalable to the new Lion "resize on every window edge" behavior.
+     [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
 
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
 up on top of all others
@@ -718,12 +738,6 @@ images with lower bit depth.
 
 *** Decide what to do with some uncommitted imagemagick support
 functions for image size etc.
-
-*** Test with more systems.
-Tested on Fedora 12, 14, and the libmagick that ships with it.
-I also tried using an ImageMagick compiled from their SVN, in
-parallel with the one packaged by Fedora, it worked well.
-Ubuntu 8.04 was tested, but it seems it ships a broken ImageMagick.
 
 ** nxml mode
 
@@ -1211,6 +1225,8 @@ systems for HTML/XML files automatically."
    this.]
 
 ** Rewrite make-docfile to be clean and maintainable.
+   It might be better to replace it with Lisp, using the byte compiler.
+   http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00037.html
 
 ** Add an inferior-comint-minor-mode to capture the common set of operations
    offered by major modes that offer an associated inferior
@@ -1218,17 +1234,19 @@ systems for HTML/XML files automatically."
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
 
-** Make SYNC_INPUT the default. [true since 2008-03-11]
-   All loops using immediate_quit need to be checked to ensure that
-   C-g can interrupt them, in case of an infinite loop.  Once we
-   switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
-   allocation functions (allocate_string etc.) without worrying about
-   data munging.
-
 ** Add "link" button class
    Add a standard button-class named "link", and make all other link-like
    button classes inherit from it.  Set the default face of the "link" button
    class to the standard "link" face.
+
+* Wishlist items:
+
+** Maybe replace etags.c with a Lisp implementation.
+http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00354.html
+
+** Maybe replace lib-src/rcs2log with a Lisp implementation.
+It wouldn't have to be a complete replacement, just enough
+for vc-rcs-update-changelog.
 
 * Other known bugs:
 

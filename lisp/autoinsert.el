@@ -1,7 +1,7 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
@@ -36,7 +36,7 @@
 ;;     setq auto-insert-directory to an appropriate slash-terminated value
 ;;
 ;;  You can also customize the variable `auto-insert-mode' to load the
-;;  package.  Alternatively, add the following to your .emacs file:
+;;  package.  Alternatively, add the following to your init file:
 ;;  (auto-insert-mode 1)
 ;;
 ;;  Author:  Charlie Martin
@@ -140,14 +140,14 @@ If this contains a %s, that will be replaced by the matching rule."
      "
 .\\\" You may distribute this file under the terms of the GNU Free
 .\\\" Documentation License.
-.TH " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+.TH " (file-name-base)
      " " (file-name-extension (buffer-file-name))
      " " (format-time-string "%Y-%m-%d ")
      "\n.SH NAME\n"
-     (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+     (file-name-base)
      " \\- " str
      "\n.SH SYNOPSIS
-.B " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+.B " (file-name-base)
      "\n"
      _
      "
@@ -164,7 +164,10 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (("\\.el\\'" . "Emacs Lisp header")
      "Short description: "
-     ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
+     ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str
+     (make-string (max 2 (- 80 (current-column) 27)) ?\s)
+     "-*- lexical-binding: t; -*-"
+     "
 
 ;; Copyright (C) " (format-time-string "%Y") "  "
  (getenv "ORGANIZATION") | (progn user-full-name) "
@@ -207,7 +210,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
 
 \(provide '"
-       (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+       (file-name-base)
        ")
 \;;; " (file-name-nondirectory (buffer-file-name)) " ends here\n")
     (("\\.texi\\(nfo\\)?\\'" . "Texinfo file skeleton")
@@ -215,8 +218,7 @@ If this contains a %s, that will be replaced by the matching rule."
      "\\input texinfo   @c -*-texinfo-*-
 @c %**start of header
 @setfilename "
-     (file-name-sans-extension
-      (file-name-nondirectory (buffer-file-name))) ".info\n"
+     (file-name-base) ".info\n"
       "@settitle " str "
 @c %**end of header
 @copying\n"

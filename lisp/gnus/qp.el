@@ -1,6 +1,6 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -65,12 +65,24 @@ them into characters should be done separately."
 		    (not (eobp)))
 	  (cond ((eq (char-after (1+ (point))) ?\n)
 		 (delete-char 2))
-		((looking-at "=[0-9A-F][0-9A-F]")
-		 (let ((byte (string-to-number (buffer-substring (1+ (point))
-							      (+ 3 (point)))
-					    16)))
-		   (mm-insert-byte byte 1)
-		   (delete-char 3)))
+		((looking-at "\\(=[0-9A-F][0-9A-F]\\)+")
+		 ;; Decode this sequence at once; i.e. by a single
+		 ;; deletion and insertion.
+		 (let* ((n (/ (- (match-end 0) (point)) 3))
+			(str (make-string n 0)))
+		   (dotimes (i n)
+                     (let ((n1 (char-after (1+ (point))))
+                           (n2 (char-after (+ 2 (point)))))
+                       (aset str i
+                             (+ (* 16 (- n1 (if (<= n1 ?9) ?0
+                                              (if (<= n1 ?F) (- ?A 10)
+                                                (- ?a 10)))))
+                                (- n2 (if (<= n2 ?9) ?0
+                                        (if (<= n2 ?F) (- ?A 10)
+                                          (- ?a 10)))))))
+		     (forward-char 3))
+		   (delete-region (match-beginning 0) (match-end 0))
+		   (insert str)))
 		(t
 		 (message "Malformed quoted-printable text")
 		 (forward-char)))))

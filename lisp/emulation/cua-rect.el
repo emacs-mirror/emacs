@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -21,7 +21,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Acknowledgements
+;;; Acknowledgments
 
 ;; The rectangle handling and display code borrows from the standard
 ;; GNU emacs rect.el package and the rect-mark.el package by Rick
@@ -31,8 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cua-base))
+(require 'cua-base)
 
 ;;; Rectangle support
 
@@ -1423,7 +1422,9 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap set-mark-command]    'cua-toggle-rectangle-mark)
 
   (define-key cua--rectangle-keymap [remap forward-char]        'cua-resize-rectangle-right)
+  (define-key cua--rectangle-keymap [remap right-char]          'cua-resize-rectangle-right)
   (define-key cua--rectangle-keymap [remap backward-char]       'cua-resize-rectangle-left)
+  (define-key cua--rectangle-keymap [remap left-char]           'cua-resize-rectangle-left)
   (define-key cua--rectangle-keymap [remap next-line]           'cua-resize-rectangle-down)
   (define-key cua--rectangle-keymap [remap previous-line]       'cua-resize-rectangle-up)
   (define-key cua--rectangle-keymap [remap end-of-line]         'cua-resize-rectangle-eol)

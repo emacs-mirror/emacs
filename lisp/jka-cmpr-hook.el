@@ -1,7 +1,7 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -109,6 +109,7 @@ Otherwise, it is nil.")
   "Return information about the compression scheme of FILENAME.
 The determination as to which compression scheme, if any, to use is
 based on the filename itself and `jka-compr-compression-info-list'."
+  (setq filename (file-name-sans-versions filename))
   (catch 'compression-info
     (let ((case-fold-search nil))
       (dolist (x jka-compr-compression-info-list)
@@ -191,19 +192,6 @@ options through Custom does this automatically."
 
 ;; I have this defined so that .Z files are assumed to be in unix
 ;; compress format; and .gz files, in gzip format, and .bz2 files in bzip fmt.
-
-;; FIXME? It seems ugly that one has to add "\\(~\\|\\.~[0-9]+~\\)?" to
-;; all the regexps here, in order to match backup files etc.
-;; It's trivial to modify jka-compr-get-compression-info to match
-;; regexps against file-name-sans-versions, but this regexp is also
-;; used to build a file-name-handler-alist entry.
-;; find-file-name-handler does not use file-name-sans-versions.
-;; Perhaps it should,
-;; http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00812.html,
-;; but it's used all over the place and there are probably other ramifications.
-;; One could modify jka-compr-build-file-regexp to add the backup regexp,
-;; but jka-compr-compression-info-list is a defcustom to which
-;; anything could be added, so it's easiest to leave things as they are.
 (defcustom jka-compr-compression-info-list
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
@@ -246,6 +234,10 @@ options through Custom does this automatically."
      "XZ compressing"     "xz"           ("-c" "-q")
      "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
      t t "\3757zXZ\0"]
+    ["\\.txz\\'"
+     "XZ compressing"     "xz"           ("-c" "-q")
+     "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
+     t nil "\3757zXZ\0"]
     ;; dzip is gzip with random access.  Its compression program can't
     ;; read/write stdin/out, so .dz files can only be viewed without
     ;; saving, having their contents decompressed with gzip.
@@ -310,10 +302,13 @@ variables.  Setting this through Custom does that automatically."
 			 (boolean :tag "Strip Extension")
 			 (string :tag "Magic Bytes")))
   :set 'jka-compr-set
+  :version "24.1"			; removed version extension piece
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
-  (list (cons (purecopy "\\.tgz\\'") 'tar-mode) (cons (purecopy "\\.tbz2?\\'") 'tar-mode))
+  (purecopy '(("\\.tgz\\'" . tar-mode)
+              ("\\.tbz2?\\'" . tar-mode)
+              ("\\.txz\\'" . tar-mode)))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.
@@ -323,10 +318,11 @@ already enabled \(as it is by default), you have to call
 `jka-compr-update' after setting it to properly update other
 variables.  Setting this through Custom does that automatically."
   :type '(repeat (cons string symbol))
+  :version "24.4"			; add txz
   :set 'jka-compr-set
   :group 'jka-compr)
 
-(defcustom jka-compr-load-suffixes (list (purecopy ".gz"))
+(defcustom jka-compr-load-suffixes (purecopy '(".gz"))
   "List of compression related suffixes to try when loading files.
 Enabling Auto Compression mode appends this list to `load-file-rep-suffixes',
 which see.  Disabling Auto Compression mode removes all suffixes

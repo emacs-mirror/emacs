@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -114,25 +114,6 @@
 ;; Davidson), although "W" appears to be really unused.  The `dired-x'
 ;; package will over-write the WoMan binding to "w", whereas (by
 ;; default) WoMan will not overwrite the `dired-x' binding.)
-
-;; The following is based on suggestions by Guy Gascoigne-Piggford and
-;; Juanma Barranquero.  If you really want to square the man-woman
-;; circle then you might care to define the following bash function in
-;; .bashrc:
-
-;;   man() { gnudoit -q '(raise-frame (selected-frame)) (woman' \"$1\" ')' ; }
-
-;; If you use Microsoft COMMAND.COM then you can create a file called
-;; man.bat somewhere in your path containing the two lines:
-
-;;   @echo off
-;;   gnudoit -q (raise-frame (selected-frame)) (woman \"%1\")
-
-;; and then (e.g. from a command prompt or the Run... option in the
-;; Start menu) just execute
-
-;;   man man_page_name
-
 
 ;; Using the word at point as the default topic
 ;; ============================================
@@ -368,8 +349,8 @@
 ;; http://cm.bell-labs.com/7thEdMan/
 
 
-;; Acknowledgements
-;; ================
+;; Acknowledgments
+;; ===============
 
 ;; For Heather, Kathryn and Madelyn, the women in my life
 ;; (although they will probably never use it)!
@@ -435,7 +416,7 @@
 
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)
-  (require 'cl)
+  (require 'cl-lib)
   (require 'apropos))
 
 (defun woman-mapcan (fn x)
@@ -457,7 +438,7 @@ As a special case, if PATHS is nil then replace it by calling
   (if (memq system-type '(windows-nt ms-dos))
       (cond ((null paths)
 	     (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf)))
-	    ((string-match ";" paths)
+	    ((string-match-p ";" paths)
 	     ;; Assume DOS-style path-list...
 	     (woman-mapcan		; splice list into list
 	      (lambda (x)
@@ -465,7 +446,7 @@ As a special case, if PATHS is nil then replace it by calling
 		    (list x)
 		  (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf))))
 	      (parse-colon-path paths)))
-	    ((string-match "\\`[a-zA-Z]:" paths)
+	    ((string-match-p "\\`[a-zA-Z]:" paths)
 	     ;; Assume single DOS-style path...
 	     (list paths))
 	    (t
@@ -968,6 +949,7 @@ or different fonts."
 
 (defun woman-default-faces ()
   "Set foreground colors of italic and bold faces to their default values."
+  (declare (obsolete choose-completion-guess-base-position "23.2"))
   (interactive)
   (face-spec-set 'woman-italic (face-user-default-spec 'woman-italic))
   (face-spec-set 'woman-bold (face-user-default-spec 'woman-bold)))
@@ -975,6 +957,7 @@ or different fonts."
 (defun woman-monochrome-faces ()
   "Set foreground colors of italic and bold faces to that of the default face.
 This is usually either black or white."
+  (declare (obsolete choose-completion-guess-base-position "23.2"))
   (interactive)
   (set-face-foreground 'woman-italic 'unspecified)
   (set-face-foreground 'woman-bold 'unspecified))
@@ -991,7 +974,7 @@ This is usually either black or white."
     ;; With NTEmacs 20.5, the PATTERN option to `x-list-fonts' does
     ;; not seem to work and fonts may be repeated, so ...
     (dolist (font fonts)
-      (and (string-match "-Symbol-" font)
+      (and (string-match-p "-Symbol-" font)
 	   (not (member font symbol-fonts))
 	   (setq symbol-fonts (cons font symbol-fonts))))
     symbol-fonts))
@@ -1190,7 +1173,7 @@ Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching."
   (interactive (list nil current-prefix-arg))
   ;; The following test is for non-interactive calls via gnudoit etc.
-  (if (or (not (stringp topic)) (string-match "\\S " topic))
+  (if (or (not (stringp topic)) (string-match-p "\\S " topic))
       (let ((file-name (woman-file-name topic re-cache)))
 	(if file-name
 	    (woman-find-file file-name)
@@ -1322,12 +1305,12 @@ cache to be re-read."
        ((null (cdr files)) (car (car files))) ; only 1 file for topic.
        (t
 	;; Multiple files for topic, so must select 1.
-	;; Unread the command event (TAB = ?\t = 9) that runs the command
-	;; `minibuffer-complete' in order to automatically complete the
-	;; minibuffer contents as far as possible.
-	(setq unread-command-events '(9)) ; and delete any type-ahead!
-	(completing-read "Manual file: " files nil 1
-			 (try-completion "" files) 'woman-file-history))))))
+	;; Run the command `minibuffer-complete' in order to automatically
+	;; complete the minibuffer contents as far as possible.
+        (minibuffer-with-setup-hook
+            (lambda () (let ((this-command this-command)) (minibuffer-complete)))
+          (completing-read "Manual file: " files nil 1
+                           (try-completion "" files) 'woman-file-history)))))))
 
 (defun woman-select (predicate list)
   "Select unique elements for which PREDICATE is true in LIST.
@@ -1569,11 +1552,13 @@ Also make each path-info component into a list.
     (woman-dired-define-keys)
   (add-hook 'dired-mode-hook 'woman-dired-define-keys))
 
+(declare-function dired-get-filename "dired"
+                  (&optional localp no-error-if-not-filep))
+
 ;;;###autoload
 (defun woman-dired-find-file ()
   "In dired, run the WoMan man-page browser on this file."
   (interactive)
-  ;; dired-get-filename is defined in dired.el
   (woman-find-file (dired-get-filename)))
 
 
@@ -1629,7 +1614,7 @@ decompress the file if appropriate.  See the documentation for the
 	(let* ((bufname (file-name-nondirectory file-name))
 	       (case-fold-search t)
 	       (compressed
-		(not (not (string-match woman-file-compression-regexp bufname)))))
+		(and (string-match-p woman-file-compression-regexp bufname) t)))
 	  (if compressed
 	      (setq bufname (file-name-sans-extension bufname)))
 	  (setq bufname (if exists
@@ -1771,7 +1756,7 @@ Leave point at end of new text.  Return length of inserted text."
       ;; Co-operate with auto-compression mode:
       (if (and compressed
 	       (or (eq compressed t)
-		   (string-match woman-file-compression-regexp filename))
+		   (string-match-p woman-file-compression-regexp filename))
 	       ;; (not auto-compression-mode)
 	       (not (rassq 'jka-compr-handler file-name-handler-alist)) )
 	  ;; (error "Compressed file requires Auto File Decompression turned on")
@@ -1845,8 +1830,6 @@ Argument EVENT is the invoking mouse event."
    ["Use Full Frame Width" woman-toggle-fill-frame
     :active t :style toggle :selected woman-fill-frame]
    ["Reformat Last Man Page" woman-reformat-last-file t]
-   ["Use Monochrome Main Faces" woman-monochrome-faces t]
-   ["Use Default Main Faces" woman-default-faces t]
    ["Make Contents Menu" (woman-imenu t) (not woman-imenu-done)]
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
@@ -1965,6 +1948,9 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (setq woman-fill-frame (not woman-fill-frame))
   (message "Woman fill column set to %s."
 	   (if woman-fill-frame "frame width" woman-fill-column)))
+
+(declare-function apropos-print "apropos"
+                  (do-keys spacing &optional text nosubst))
 
 (defun woman-mini-help ()
   "Display WoMan commands and user options in an `apropos' buffer."
@@ -2206,11 +2192,11 @@ To be called on original buffer and any .so insertions."
   (let ((face-list (face-list)))
     (dolist (face face-list)
       (let ((face-name (symbol-name face)))
-	(if (and (string-match "\\`woman-" face-name)
+	(if (and (string-match-p "\\`woman-" face-name)
 		 (face-underline-p face))
 	    (let ((face-no-ul (intern (concat face-name "-no-ul"))))
 	      (copy-face face face-no-ul)
-	      (set-face-underline-p face-no-ul nil)))))))
+	      (set-face-underline face-no-ul nil)))))))
 
 ;; Preprocessors
 ;; =============
@@ -2272,7 +2258,9 @@ Currently set only from '\" t in the first line of the source file.")
 	 (set-face-font 'woman-symbol woman-symbol-font
 			(and (frame-live-p woman-frame) woman-frame)))
 
-    ;; Set syntax and display tables:
+    (setq-local adaptive-fill-mode nil) ; No special "%" "#" etc filling.
+
+        ;; Set syntax and display tables:
     (set-syntax-table woman-syntax-table)
     (woman-set-buffer-display-table)
 
@@ -2385,20 +2373,20 @@ Currently set only from '\" t in the first line of the source file.")
     (if woman-negative-vertical-space
 	(woman-negative-vertical-space from))
 
-    (if woman-preserve-ascii
-	;; Re-instate escaped escapes to just `\' and unpaddable
-	;; spaces to just `space', without inheriting any text
-	;; properties.  This is not necessary, UNLESS the buffer is to
-	;; be saved as ASCII.
-	(progn
-	  (goto-char from)
-	  (while (search-forward woman-escaped-escape-string nil t)
-	    (delete-char -1)
-	    (insert ?\\))
-	  (goto-char from)
-	  (while (search-forward woman-unpadded-space-string nil t)
-	    (delete-char -1)
-	    (insert ?\s))))
+    (when woman-preserve-ascii
+      ;; Re-instate escaped escapes to just `\' and unpaddable spaces
+      ;; to just `space'.  This is not necessary for display since
+      ;; there are display table entries for the escaped chars, but it
+      ;; is necessary if the buffer might be saved as ASCII.
+      ;;
+      ;; `subst-char-in-region' preserves text properties on the
+      ;; characters, which is necessary for bold, underline, etc on
+      ;; \e.  There's usually no face on spaces, but if there is then
+      ;; it's good to keep that too.
+      (subst-char-in-region from (point-max)
+			    woman-escaped-escape-char ?\\)
+      (subst-char-in-region from (point-max)
+			    woman-unpadded-space-char ?\s))
 
     ;; Must return the new end of file if used in format-alist.
     (point-max)))
@@ -2550,7 +2538,8 @@ REQUEST is the invoking directive without the leading dot."
     (cond
      ;; ((looking-at "[no]") (setq c t))     ; accept n(roff) and o(dd page)
      ;; ((looking-at "[te]") (setq c nil))   ; reject t(roff) and e(ven page)
-     ((looking-at "[ntoe]")
+     ;; Per groff ".if v" is recognized as false (it means -Tversatec).
+     ((looking-at "[ntoev]")
       (setq c (memq (following-char) woman-if-conditions-true)))
      ;; Unrecognized letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
@@ -2679,8 +2668,7 @@ If DELETE is non-nil then delete from point."
 	;; then use the WoMan search mechanism to find the filename ...
 	(setq filename
 	      (woman-file-name
-	       (file-name-sans-extension
-		(file-name-nondirectory name))))
+	       (file-name-base name)))
 	;; Cannot find the file, so ...
 	(kill-buffer (current-buffer))
 	(error "File `%s' not found" name))
@@ -2866,15 +2854,18 @@ interpolated by `\*x' and `\*(xx' escapes."
 	     (re-search-forward "[^ \t\n]+")
 	     (let ((string (match-string 0)))
 	       (skip-chars-forward " \t")
-;		 (setq string
-;		       (cons string
-;			     ;; hack (?) for CGI.man!
-;			     (cond ((looking-at "\"\"") "\"")
-;				   ((looking-at ".*") (match-string 0)))
-;			     ))
-	       ;; Above hack causes trouble in arguments!
-	       (looking-at ".*")
-	       (setq string (cons string (match-string 0)))
+	       (if (= ?\" (following-char))
+		   ;; Double-quote starts a string, eg.
+		   ;;   .ds foo "blah...
+		   ;; is value blah... through to newline.  There's no
+		   ;; closing " (per the groff manual), but rather any
+		   ;; further " is included literally in the string.  Eg.
+		   ;;   .ds foo ""
+		   ;; sets foo to a single " character.
+		   (forward-char))
+	       (setq string (cons string
+				  (buffer-substring (point)
+						    (line-end-position))))
 	       ;; This should be an update, but consing a new string
 	       ;; onto the front of the alist has the same effect:
 	       (setq woman-string-alist (cons string woman-string-alist))
@@ -3038,6 +3029,8 @@ Leave point at TO (which should be a marker)."
   "Delete any double-quote characters up to the end of the line."
   (woman-unquote (save-excursion (end-of-line) (point-marker))))
 
+(defvar woman1-unquote)          ; bound locally by woman1-roff-buffer
+
 (defun woman1-roff-buffer ()
   "Process non-breaking requests."
   (let ((case-fold-search t)
@@ -3077,8 +3070,6 @@ Leave point at TO (which should be a marker)."
 (defun woman1-I ()
   ".I -- Set words of current line in italic font."
   (woman1-B-or-I ".ft I\n"))
-
-(defvar woman1-unquote)          ; bound locally by woman1-roff-buffer
 
 (defun woman1-B-or-I (B-or-I)
   ".B/I -- Set words of current line in bold/italic font.
@@ -3586,7 +3577,7 @@ expression in parentheses.  Leaves point after the value."
       (let (n)
 	(forward-char)
 	(setq n (woman-parse-numeric-arg))
-	(skip-syntax-forward " ")
+	(skip-syntax-forward " " (line-end-position))
 	(if (eq (following-char) ?\))
 	    (forward-char)
 	  (WoMan-warn "Parenthesis confusion in numeric expression!"))
@@ -3638,7 +3629,7 @@ expression in parentheses.  Leaves point after the value."
 			(buffer-substring
 			 (point)
 			 (line-end-position)))
-	    (skip-syntax-forward "^ ")
+	    (skip-syntax-forward "^ " (line-end-position))
 	    0)
 	(goto-char (match-end 0))
 	;; Check for scale factor:
@@ -3648,7 +3639,9 @@ expression in parentheses.  Leaves point after the value."
 	     ((looking-at "[mnuv]"))	; ignore for now
 	     ((looking-at "i") (setq n (* n 10))) ; inch
 	     ((looking-at "c") (setq n (* n 3.9))) ; cm
-	     ((looking-at "P") (setq n (* n 1.7))) ; Pica
+	     ((let ((case-fold-search nil))
+		(looking-at "P"))
+	      (setq n (* n 1.7))) ; Pica
 	     ((looking-at "p") (setq n (* n 0.14))) ; point
 	     ;; NB: May be immediately followed by + or -, etc.,
 	     ;; in which case do nothing and return nil.
@@ -3922,7 +3915,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 (defun woman2-process-escapes (to &optional numeric)
   "Process remaining escape sequences up to marker TO, preserving point.
 Optional argument NUMERIC, if non-nil, means the argument is numeric."
-  (assert (and (markerp to) (marker-insertion-type to)))
+  (cl-assert (and (markerp to) (marker-insertion-type to)))
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots
@@ -3930,7 +3923,9 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     (while (re-search-forward "\\\\[&|^]" to t)
       (woman-delete-match 0)
       ;; If on a line by itself, consume newline as well (Bug#3651).
-      (and (eq (char-before (match-beginning 0)) ?\n)
+      ;; But not in a .nf region, preserve all newlines in that case.
+      (and (not woman-nofill)
+	   (eq (char-before (match-beginning 0)) ?\n)
 	   (eq (char-after (match-beginning 0)) ?\n)
 	   (delete-char 1)))
 

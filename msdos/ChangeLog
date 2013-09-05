@@ -1,3 +1,135 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sed1x.inp: Don't rewrite DOC any more.
+
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_SECURE_GETENV, GNULIB_SECURE_GETENV): Edit to appropriate values.
+
+2012-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (TEMACS_LDFLAGS2): Remove editing.
+	(LIBS_GNUSTEP): Edit to empty.
+
+2012-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: Dump emacs.exe and copy to b-emacs.exe before
+	generating leim-list.el.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* sed2v2.inp (HAVE_MOUSE): Remove.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_DECL_ENVIRON, GNULIB_ENVIRON): Edit to require declaration
+	through lib/unistd.h.
+
+	* sed1v2.inp: Sync with changes in src/Makefile.in.
+
+	* sed2v2.inp: Sync with changes in src/config.in.
+
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (W32_LIBS, W32_OBJ): Edit to empty.
+
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* msdos/sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* sed1v2.inp, sed3v2.inp (LIB_TIMER_TIME): New macro.
+
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (allocator.$(OBJEXT), careadlinkat.$(OBJEXT)): Fix
+	editing out.
+
+	* sed2v2.inp (IS_DEVICE_SEP): Edit to match ':'.
+	(IS_DIRECTORY_SEP, INTERNAL_TERMINAL): Fix Sed command syntax.
+	(MSDOS): Define only if undefined, as MSDOS is a built-in macro,
+	unless some std= switch to GCC is used.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (HAVE_WCHAR_H): Fix typo.
+
+	* sed2v2.inp (MSDOS, DOS_NT, FLOAT_CHECK_DOMAIN)
+	(HAVE_INVERSE_HYPERBOLIC, DEVICE_SEP, IS_DIRECTORY_SEP, IS_ANY_SEP)
+	(INTERNAL_TERMINAL, NULL_DEVICE, SEPCHAR, USER_FULL_NAME)
+	(_setjmp, _longjmp): Move here from src/s/msdos.h.
+	(config_opsysfile, config_machfile): Remove.
+	* sed1v2.inp (M_FILE, S_FILE): Remove.
+	* mainmake.v2 (TAGS, tags): Remove src/s/msdos.h.
+
+2012-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (S_FILE): Update for format change.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* sed2v2.inp (HAVE_ATTRIBUTE_ALIGNED): Remove edit.
+	* sedlibmk.inp (STDALIGN_H, @GL_GENERATE_STDALIGN_H_TRUE@)
+	(GL_GENERATE_STDALIGN_H_FALSE): New edits.
+
+2012-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: In the recipe for $(leimdir)/leim-list.el, edit the
+	prerequisites to be "temacs$(EXEEXT) $(BOOTSTRAPEMACS)", to avoid
+	the need to rebuild $(bootstrap_exe), which requires a Unixy shell
+	via lisp/Makefile.in's "update-subdirs" command.
+
+	* sedlibmk.inp (am_libgnu_a_OBJECTS): Adjust the removal of
+	careadlinkat.$(OBJEXT) to the changes in lib/Makefile.in.
+
+	* sed2v2.inp (DATA_START, GC_SETJMP_WORKS, HAVE_MENUS)
+	(HAVE_MOUSE): Edit for DJGPP, according to what was previously
+	done on src/s/msdos.h.
+
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (bootstrap-clean): Do a maintainer-clean in lib, not
+	bootstrap-clean (which doesn't exist).
+
+	* inttypes.h (PRIuMAX) [__DJGPP__ < 2.04]: Define to "llu".
+
+	* sedleim.inp (MKDIR_P): Edit to DOS "md" command.
+
+	* sed1v2.inp (LIB_CLOCK_GETTIME): Edit to empty.
+	Remove lines that invoke PAXCTL.
+	(clean): Fix recipe not to run Unixy shell commands.
+
+	* sed2v2.inp (GETTIMEOFDAY_TIMEZONE): Edit to 'struct timezone'.
+	(HAVE_STRNCASECMP): Edit to 1.
+
+	* sed3v2.inp (LIB_CLOCK_GETTIME): Edit to empty.
+	(C_SWITCH_SYSTEM): Add "-I../msdos".
+
+	* sedlibmk.inp (GNULIB_GETTIMEOFDAY, GNULIB_PSELECT)
+	(GNULIB_SELECT, HAVE_STRUCT_TIMEVAL, HAVE_SYS_SELECT_H)
+	(HAVE_SYS_TIME_H, NEXT_AS_FIRST_DIRECTIVE_SYS_SELECT_H)
+	(NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H, NEXT_SYS_SELECT_H)
+	(NEXT_SYS_TIME_H, REPLACE_GETTIMEOFDAY, REPLACE_PSELECT)
+	(REPLACE_STRUCT_TIMEVAL): Edit to appropriate values.
+	(BUILT_SOURCES): Edit out sys/select.h and sys/time.h.
+	(mostlyclean-local, distclean-generic): Fix recipe not to run
+	Unixy shell commands.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* sedlibmk.inp (DEFS): Don't add -DHAVE_CONFIG_H.
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (SYSTEM_TYPE): Set it.
+
 2012-05-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (GNULIB_GL_UNISTD_H_GETOPT, GNULIB_POSIX_OPENPT)
@@ -1362,7 +1494,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1994-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

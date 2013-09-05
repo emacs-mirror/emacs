@@ -1,6 +1,7 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985-1986, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1994, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
 ;; Maintainer: FSF
@@ -121,9 +122,10 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
       (setq buffer (list-buffers-noselect arg))
       (Electric-pop-up-window buffer)
       (unwind-protect
-	  (progn
+	  (let ((header header-line-format))
 	    (set-buffer buffer)
 	    (electric-buffer-menu-mode)
+	    (setq header-line-format header)
 	    (goto-char (point-min))
 	    (if (search-forward "\n." nil t)
 		(forward-char -1))
@@ -200,7 +202,7 @@ See the documentation of `electric-buffer-list' for details."
        "return to buffer editing"))
 
 (define-obsolete-function-alias 'Electric-buffer-menu-mode
-  'electric-buffer-menu-mode "24.2")
+  'electric-buffer-menu-mode "24.3")
 
 ;; generally the same as Buffer-menu-mode-map
 ;;  (except we don't indirect to global-map)
@@ -225,7 +227,7 @@ Select buffer at point and display buffers marked \">\" in other windows."
 (defun Electric-buffer-menu-mouse-select (event)
   (interactive "e")
   (select-window (posn-window (event-end event)))
-  (set-buffer (window-buffer (selected-window)))
+  (set-buffer (window-buffer))
   (goto-char (posn-point (event-end event)))
   (throw 'electric-buffer-menu-select (point)))
 

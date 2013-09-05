@@ -1,10 +1,11 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
 @cindex position (in buffer)
+@cindex buffer position
 
   A @dfn{position} is the index of a character in the text of a buffer.
 More precisely, a position identifies the place between two characters
@@ -146,9 +147,13 @@ that.
 
 @deffn Command goto-char position
 This function sets point in the current buffer to the value
-@var{position}.  If @var{position} is less than 1, it moves point to the
-beginning of the buffer.  If @var{position} is greater than the length
-of the buffer, it moves point to the end.
+@var{position}.
+@c This behavior used to be documented until 2013/08.
+@ignore
+If @var{position} is less than 1, it moves point to the beginning of
+the buffer.  If @var{position} is greater than the length of the
+buffer, it moves point to the end.
+@end ignore
 
 If narrowing is in effect, @var{position} still counts from the
 beginning of the buffer, but point cannot go outside the accessible
@@ -191,8 +196,8 @@ whether a given character is part of a word.  @xref{Syntax Tables}.
 
 @deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
-@var{count} is negative).  If @var{count} is @code{nil}, it moves
-forward one word.
+@var{count} is negative).  If @var{count} is omitted or @code{nil}, it
+defaults to 1.
 
 ``Moving one word'' means moving until point crosses a
 word-constituent character and then encounters a word-separator
@@ -210,7 +215,7 @@ If @code{inhibit-field-text-motion} is non-@code{nil},
 this function ignores field boundaries.
 
 In an interactive call, @var{count} is specified by the numeric prefix
-argument.  If @var{count} is omitted or @code{nil}, it defaults to 1.
+argument.
 @end deffn
 
 @deffn Command backward-word &optional count
@@ -483,7 +488,7 @@ Display}.
   These functions scan text to determine where screen lines break, and
 thus take time proportional to the distance scanned.  If you intend to
 use them heavily, Emacs provides caches which may improve the
-performance of your code.  @xref{Truncation, cache-long-line-scans}.
+performance of your code.  @xref{Truncation, cache-long-scans}.
 
 @defun vertical-motion count &optional window
 This function moves point to the start of the screen line @var{count}
@@ -748,7 +753,7 @@ terminate it, and @samp{\} quotes @samp{^}, @samp{-} or @samp{\}.
 Thus, @code{"a-zA-Z"} skips over all letters, stopping before the
 first nonletter, and @code{"^a-zA-Z"} skips nonletters stopping before
 the first letter.  See @xref{Regular Expressions}.  Character classes
-can also be used, e.g. @code{"[:alnum:]"}.  See @pxref{Char Classes}.
+can also be used, e.g., @code{"[:alnum:]"}.  See @pxref{Char Classes}.
 
 If @var{limit} is supplied (it must be a number or a marker), it
 specifies the maximum position in the buffer that point can be skipped
@@ -805,7 +810,7 @@ thousands of times in the Lisp sources of Emacs.
 buffer, use @code{save-current-buffer} or @code{with-current-buffer}
 instead (@pxref{Current Buffer}).  If you need to save or restore
 window configurations, see the forms described in @ref{Window
-Configurations} and in @ref{Frame Configurations}.
+Configurations} and in @ref{Frame Configurations}. @c frameset?
 
 @defspec save-excursion body@dots{}
 @cindex mark excursion
@@ -828,7 +833,8 @@ consequences, so the byte compiler warns if you call @code{set-buffer}
 during an excursion:
 
 @example
-Warning: Use `with-current-buffer' rather than save-excursion+set-buffer
+Warning: Use `with-current-buffer' rather than
+         save-excursion+set-buffer
 @end example
 
 @noindent
@@ -849,9 +855,6 @@ after setting the desired current buffer, as in the following example:
 @cindex window excursions
   Likewise, @code{save-excursion} does not restore window-buffer
 correspondences altered by functions such as @code{switch-to-buffer}.
-One way to restore these correspondences, and the selected window, is to
-use @code{save-window-excursion} inside @code{save-excursion}
-(@pxref{Window Configurations}).
 
   @strong{Warning:} Ordinary insertion of text adjacent to the saved
 point value relocates the saved value, just as it relocates all
@@ -876,18 +879,18 @@ commands to a limited range of characters in a buffer.  The text that
 remains addressable is called the @dfn{accessible portion} of the
 buffer.
 
-  Narrowing is specified with two buffer positions which become the
-beginning and end of the accessible portion.  For most editing commands
-and most Emacs primitives, these positions replace the values of the
-beginning and end of the buffer.  While narrowing is in effect, no text
-outside the accessible portion is displayed, and point cannot move
-outside the accessible portion.
+  Narrowing is specified with two buffer positions, which become the
+beginning and end of the accessible portion.  For most editing
+commands and primitives, these positions replace the values of the
+beginning and end of the buffer.  While narrowing is in effect, no
+text outside the accessible portion is displayed, and point cannot
+move outside the accessible portion.  Note that narrowing does not
+alter actual buffer positions (@pxref{Point}); it only determines
+which positions are considered the accessible portion of the buffer.
+Most functions refuse to operate on text that is outside the
+accessible portion.
 
-  Values such as positions or line numbers, which usually count from the
-beginning of the buffer, do so despite narrowing, but the functions
-which use them refuse to operate on text that is inaccessible.
-
-  The commands for saving buffers are unaffected by narrowing; they save
+  Commands for saving buffers are unaffected by narrowing; they save
 the entire buffer regardless of any narrowing.
 
   If you need to display in a single buffer several very different
@@ -925,6 +928,11 @@ It is equivalent to the following expression:
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
 @end deffn
+
+@defun buffer-narrowed-p
+This function returns non-@code{nil} if the buffer is narrowed, and
+@code{nil} otherwise.
+@end defun
 
 @defspec save-restriction body@dots{}
 This special form saves the current bounds of the accessible portion,

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -13,6 +13,7 @@ how they are stored in strings and buffers.
 
 @menu
 * Text Representations::    How Emacs represents text.
+* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Converting Representations::  Converting unibyte to multibyte and vice versa.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
@@ -124,7 +125,8 @@ belong to the same character.
 
 @defun multibyte-string-p string
 Return @code{t} if @var{string} is a multibyte string, @code{nil}
-otherwise.
+otherwise.  This function also returns @code{nil} if @var{string} is
+some object other than a string.
 @end defun
 
 @defun string-bytes string
@@ -138,6 +140,55 @@ If @var{string} is a multibyte string, this can be greater than
 This function concatenates all its argument @var{bytes} and makes the
 result a unibyte string.
 @end defun
+
+@node Disabling Multibyte
+@section Disabling Multibyte Characters
+@cindex disabling multibyte
+
+  By default, Emacs starts in multibyte mode: it stores the contents
+of buffers and strings using an internal encoding that represents
+non-@acronym{ASCII} characters using multi-byte sequences.  Multibyte
+mode allows you to use all the supported languages and scripts without
+limitations.
+
+@cindex turn multibyte support on or off
+  Under very special circumstances, you may want to disable multibyte
+character support, for a specific buffer.
+When multibyte characters are disabled in a buffer, we call
+that @dfn{unibyte mode}.  In unibyte mode, each character in the
+buffer has a character code ranging from 0 through 255 (0377 octal); 0
+through 127 (0177 octal) represent @acronym{ASCII} characters, and 128
+(0200 octal) through 255 (0377 octal) represent non-@acronym{ASCII}
+characters.
+
+  To edit a particular file in unibyte representation, visit it using
+@code{find-file-literally}.  @xref{Visiting Functions}.  You can
+convert a multibyte buffer to unibyte by saving it to a file, killing
+the buffer, and visiting the file again with
+@code{find-file-literally}.  Alternatively, you can use @kbd{C-x
+@key{RET} c} (@code{universal-coding-system-argument}) and specify
+@samp{raw-text} as the coding system with which to visit or save a
+file.  @xref{Text Coding, , Specifying a Coding System for File Text,
+emacs, GNU Emacs Manual}.  Unlike @code{find-file-literally}, finding
+a file as @samp{raw-text} doesn't disable format conversion,
+uncompression, or auto mode selection.
+
+@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@vindex enable-multibyte-characters
+The buffer-local variable @code{enable-multibyte-characters} is
+non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
+The mode line also indicates whether a buffer is multibyte or not.
+With a graphical display, in a multibyte buffer, the portion of the
+mode line that indicates the character set has a tooltip that (amongst
+other things) says that the buffer is multibyte.  In a unibyte buffer,
+the character set indicator is absent.  Thus, in a unibyte buffer
+(when using a graphical display) there is normally nothing before the
+indication of the visited file's end-of-line convention (colon,
+backslash, etc.), unless you are using an input method.
+
+@findex toggle-enable-multibyte-characters
+You can turn off multibyte support in a specific buffer by invoking the
+command @code{toggle-enable-multibyte-characters} in that buffer.
 
 @node Converting Representations
 @section Converting Text Representations
@@ -197,6 +248,7 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
+@c FIXME: Should `@var{character}' be `@var{byte}'?
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
@@ -241,8 +293,12 @@ representation is in use.  It also adjusts various data in the buffer
 (including overlays, text properties and markers) so that they cover the
 same text as they did before.
 
-You cannot use @code{set-buffer-multibyte} on an indirect buffer,
-because indirect buffers always inherit the representation of the
+This function signals an error if the buffer is narrowed, since the
+narrowing might have occurred in the middle of multibyte character
+sequences.
+
+This function also signals an error if the buffer is an indirect
+buffer.  An indirect buffer always inherits the representation of its
 base buffer.
 @end defun
 
@@ -346,6 +402,8 @@ specifies how the character behaves and how it should be handled
 during text processing and display.  Thus, character properties are an
 important part of specifying the character's semantics.
 
+@c FIXME: Use the latest URI of this chapter?
+@c http://www.unicode.org/versions/latest/ch04.pdf
   On the whole, Emacs follows the Unicode Standard in its implementation
 of character properties.  In particular, Emacs supports the
 @uref{http://www.unicode.org/reports/tr23/, Unicode Character Property
@@ -408,16 +466,15 @@ codepoint belongs: most unassigned codepoints get the value of
 or @code{R} (strong R).
 
 @item decomposition
-Corresponds to the Unicode @code{Decomposition_Type} and
-@code{Decomposition_Value} properties.  The value is a list, whose
-first element may be a symbol representing a compatibility formatting
-tag, such as @code{small}@footnote{The Unicode specification writes
-these tag names inside @samp{<..>} brackets, but the tag names in
-Emacs do not include the brackets; e.g.@: Unicode specifies
-@samp{<small>} where Emacs uses @samp{small}.  }; the other elements
-are characters that give the compatibility decomposition sequence of
-this character.  For unassigned codepoints, the value is the character
-itself.
+Corresponds to the Unicode properties @code{Decomposition_Type} and
+@code{Decomposition_Value}.  The value is a list, whose first element
+may be a symbol representing a compatibility formatting tag, such as
+@code{small}@footnote{The Unicode specification writes these tag names
+inside @samp{<..>} brackets, but the tag names in Emacs do not include
+the brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
+@samp{small}.  }; the other elements are characters that give the
+compatibility decomposition sequence of this character.  For
+unassigned codepoints, the value is the character itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
@@ -607,7 +664,7 @@ The value is a list of all defined character set names.
 @end defvar
 
 @defun charset-priority-list &optional highestp
-This functions returns a list of all defined character sets ordered by
+This function returns a list of all defined character sets ordered by
 their priority.  If @var{highestp} is non-@code{nil}, the function
 returns a single character set of the highest priority.
 @end defun
@@ -822,7 +879,7 @@ a complex translation table rather than a simple one-to-one mapping.
 Each element of @var{alist} is of the form @code{(@var{from}
 . @var{to})}, where @var{from} and @var{to} are either characters or
 vectors specifying a sequence of characters.  If @var{from} is a
-character, that character is translated to @var{to} (i.e.@: to a
+character, that character is translated to @var{to} (i.e., to a
 character or a character sequence).  If @var{from} is a vector of
 characters, that sequence is translated to @var{to}.  The returned
 table has a translation table for reverse mapping in the first extra
@@ -852,8 +909,6 @@ documented here.
                                     for a single file operation.
 * Explicit Encoding::           Encoding or decoding text without doing I/O.
 * Terminal I/O Encoding::       Use of encoding for terminal I/O.
-* MS-DOS File Types::           How DOS "text" and "binary" files
-                                    relate to coding systems.
 @end menu
 
 @node Coding System Basics
@@ -960,6 +1015,7 @@ The value of the @code{:mime-charset} property is also defined
 as an alias for the coding system.
 @end defun
 
+@cindex alias, for coding systems
 @defun coding-system-aliases coding-system
 This function returns the list of aliases of @var{coding-system}.
 @end defun
@@ -1168,7 +1224,7 @@ positions.
 @defun detect-coding-region start end &optional highest
 This function chooses a plausible coding system for decoding the text
 from @var{start} to @var{end}.  This text should be a byte sequence,
-i.e.@: unibyte text or multibyte text with only @acronym{ASCII} and
+i.e., unibyte text or multibyte text with only @acronym{ASCII} and
 eight-bit characters (@pxref{Explicit Encoding}).
 
 Normally this function returns a list of coding systems that could
@@ -1771,62 +1827,6 @@ for encoding terminal output from @var{terminal}.  If
 @var{terminal} is a frame, it means that frame's terminal; if it is
 @code{nil}, that means the currently selected frame's terminal.
 @end deffn
-
-@node MS-DOS File Types
-@subsection MS-DOS File Types
-@cindex DOS file types
-@cindex MS-DOS file types
-@cindex Windows file types
-@cindex file types on MS-DOS and Windows
-@cindex text files and binary files
-@cindex binary files and text files
-
-  On MS-DOS and Microsoft Windows, Emacs guesses the appropriate
-end-of-line conversion for a file by looking at the file's name.  This
-feature classifies files as @dfn{text files} and @dfn{binary files}.  By
-``binary file'' we mean a file of literal byte values that are not
-necessarily meant to be characters; Emacs does no end-of-line conversion
-and no character code conversion for them.  On the other hand, the bytes
-in a text file are intended to represent characters; when you create a
-new file whose name implies that it is a text file, Emacs uses DOS
-end-of-line conversion.
-
-@defvar buffer-file-type
-This variable, automatically buffer-local in each buffer, records the
-file type of the buffer's visited file.  When a buffer does not specify
-a coding system with @code{buffer-file-coding-system}, this variable is
-used to determine which coding system to use when writing the contents
-of the buffer.  It should be @code{nil} for text, @code{t} for binary.
-If it is @code{t}, the coding system is @code{no-conversion}.
-Otherwise, @code{undecided-dos} is used.
-
-Normally this variable is set by visiting a file; it is set to
-@code{nil} if the file was visited without any actual conversion.
-
-Its default value is used to decide how to handle files for which
-@code{file-name-buffer-file-type-alist} says nothing about the type:
-If the default value is non-@code{nil}, then these files are treated as
-binary: the coding system @code{no-conversion} is used.  Otherwise,
-nothing special is done for them---the coding system is deduced solely
-from the file contents, in the usual Emacs fashion.
-@end defvar
-
-@defopt file-name-buffer-file-type-alist
-This variable holds an alist for recognizing text and binary files.
-Each element has the form (@var{regexp} . @var{type}), where
-@var{regexp} is matched against the file name, and @var{type} may be
-@code{nil} for text, @code{t} for binary, or a function to call to
-compute which.  If it is a function, then it is called with a single
-argument (the file name) and should return @code{t} or @code{nil}.
-
-When running on MS-DOS or MS-Windows, Emacs checks this alist to decide
-which coding system to use when reading a file.  For a text file,
-@code{undecided-dos} is used.  For a binary file, @code{no-conversion}
-is used.
-
-If no element in this alist matches a given file name, then
-the default value of @code{buffer-file-type} says how to treat the file.
-@end defopt
 
 @node Input Methods
 @section Input Methods

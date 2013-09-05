@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2013 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -97,7 +97,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup tar nil
   "Simple editing of tar files."
@@ -133,8 +133,10 @@ This information is useful, but it takes screen space away from file names."
   :group 'tar)
 
 (defvar tar-parse-info nil)
-(defvar tar-superior-buffer nil)
-(defvar tar-superior-descriptor nil)
+(defvar tar-superior-buffer nil
+  "Buffer containing the tar archive from which a member was extracted.")
+(defvar tar-superior-descriptor nil
+  "Tar descriptor for a member extracted from an archive.")
 (defvar tar-file-name-coding-system nil)
 
 (put 'tar-superior-buffer 'permanent-local t)
@@ -168,7 +170,7 @@ This information is useful, but it takes screen space away from file names."
        ;; state correctly: the raw data is expected to be always larger than
        ;; the summary.
        (progn
-	 (assert (or (= (buffer-size tar-data-buffer) (buffer-size))
+	 (cl-assert (or (= (buffer-size tar-data-buffer) (buffer-size))
                      (eq tar-data-swapped
                          (> (buffer-size tar-data-buffer) (buffer-size)))))
 	 tar-data-swapped)))
@@ -186,7 +188,7 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 
 ;;; down to business.
 
-(defstruct (tar-header
+(cl-defstruct (tar-header
             (:constructor nil)
             (:type vector)
             :named
@@ -226,8 +228,8 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
   (if (> (+ pos 512) (point-max)) (error "Malformed Tar header"))
-  (assert (zerop (mod (- pos (point-min)) 512)))
-  (assert (not enable-multibyte-characters))
+  (cl-assert (zerop (mod (- pos (point-min)) 512)))
+  (cl-assert (not enable-multibyte-characters))
   (let ((string (buffer-substring pos (setq pos (+ pos 512)))))
     (when      ;(some 'plusp string)		 ; <-- oops, massive cycle hog!
         (or (not (= 0 (aref string 0))) ; This will do.
@@ -325,13 +327,10 @@ write-date, checksum, link-type, and link-name."
 (defun tar-header-data-end (descriptor)
   (let* ((data-start (tar-header-data-start descriptor))
          (link-type (tar-header-link-type descriptor))
-         (size (tar-header-size descriptor))
-         (fudge (cond
-                 ;; Foo.  There's an extra empty block after these.
-                 ((memq link-type '(20 55)) 512)
-                 (t 0))))
-    (+ data-start fudge
-       (if (and (null link-type) (> size 0))
+         (size (tar-header-size descriptor)))
+    (+ data-start
+       ;; Ignore size for files of type 1-6
+       (if (and (not (memq link-type '(1 2 3 4 5 6))) (> size 0))
            (tar-roundup-512 size)
          0))))
 
@@ -373,7 +372,7 @@ write-date, checksum, link-type, and link-name."
 
 (defun tar-header-block-checksum (string)
   "Compute and return a tar-acceptable checksum for this block."
-  (assert (not (multibyte-string-p string)))
+  (cl-assert (not (multibyte-string-p string)))
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
 	 (sum 0)
@@ -445,7 +444,8 @@ MODE should be an integer which is a file mode value."
 		  ((eq type 29) ?M)	; multivolume continuation
 		  ((eq type 35) ?S)	; sparse
 		  ((eq type 38) ?V)	; volume header
-		  ((eq type 55) ?H)	; extended pax header
+		  ((eq type 55) ?H)	; pax global extended header
+		  ((eq type 72) ?X)	; pax extended header
 		  (t ?\s)
 		  )
 	    (tar-grind-file-mode mode)
@@ -486,7 +486,7 @@ MODE should be an integer which is a file mode value."
 
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer."
-  (assert (tar-data-swapped-p))
+  (cl-assert (tar-data-swapped-p))
   (let* ((modified (buffer-modified-p))
          (result '())
          (pos (point-min))
@@ -520,12 +520,13 @@ MODE should be an integer which is a file mode value."
         (progress-reporter-done progress-reporter)
       (message "Warning: premature EOF parsing tar file"))
     (goto-char (point-min))
-    (let ((inhibit-read-only t)
+    (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+	  (inhibit-read-only t)
           (total-summaries
            (mapconcat 'tar-header-block-summarize tar-parse-info "\n")))
-      (insert total-summaries "\n"))
-    (goto-char (point-min))
-    (restore-buffer-modified-p modified)))
+      (insert total-summaries "\n")
+      (goto-char (point-min))
+      (restore-buffer-modified-p modified))))
 
 (defvar tar-mode-map
   (let ((map (make-keymap)))
@@ -654,7 +655,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (widen)
   ;; Now move the Tar data into an auxiliary buffer, so we can use the main
   ;; buffer for the summary.
-  (assert (not (tar-data-swapped-p)))
+  (cl-assert (not (tar-data-swapped-p)))
   (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
   ;; We started using write-contents-functions, but this hook is not
   ;; used during auto-save, so we now use
@@ -739,10 +740,8 @@ tar-file's buffer."
 	  nil
 	  (error "This line does not describe a tar-file entry"))))
 
-(defun tar-get-descriptor ()
-  (let* ((descriptor (tar-current-descriptor))
-	 (size (tar-header-size descriptor))
-	 (link-p (tar-header-link-type descriptor)))
+(defun tar--check-descriptor (descriptor)
+  (let ((link-p (tar-header-link-type descriptor)))
     (if link-p
 	(error "This is %s, not a real file"
 	       (cond ((eq link-p 5) "a directory")
@@ -751,10 +750,25 @@ tar-file's buffer."
 		     ((eq link-p 29) "a multivolume-continuation")
 		     ((eq link-p 35) "a sparse entry")
 		     ((eq link-p 38) "a volume header")
-		     ((eq link-p 55) "an extended pax header")
-		     (t "a link"))))
+		     ((eq link-p 55) "a pax global extended header")
+		     ((eq link-p 72) "a pax extended header")
+		     (t "a link"))))))
+
+(defun tar-get-descriptor ()
+  (let* ((descriptor (tar-current-descriptor))
+	 (size (tar-header-size descriptor)))
+    (tar--check-descriptor descriptor)
     (if (zerop size) (message "This is a zero-length file"))
     descriptor))
+
+(defun tar-get-file-descriptor (file)
+  ;; Used by package.el.
+  (let ((desc ()))
+    (dolist (hdr tar-parse-info)
+      (when (equal file (tar-header-name hdr))
+        (setq desc hdr)))
+    (tar--check-descriptor desc)
+    desc))
 
 (defun tar-mouse-extract (event)
   "Extract a file whose tar directory line you click on."
@@ -774,96 +788,99 @@ tar-file's buffer."
       (let ((file-name-handler-alist nil))
 	(apply op args))))
 
+(defun tar--extract (descriptor)
+  "Extract this entry of the tar file into its own buffer."
+  (let* ((name (tar-header-name descriptor))
+	 (size (tar-header-size descriptor))
+	 (start (tar-header-data-start descriptor))
+	 (end (+ start size))
+         (tarname (buffer-name))
+         (bufname (concat (file-name-nondirectory name)
+                          " ("
+                          tarname
+                          ")"))
+         (buffer (generate-new-buffer bufname)))
+    (with-current-buffer buffer
+      (setq buffer-undo-list t))
+    (with-current-buffer tar-data-buffer
+      (let (coding)
+        (narrow-to-region start end)
+        (goto-char start)
+        (setq coding (or coding-system-for-read
+                         (and set-auto-coding-function
+                              (funcall set-auto-coding-function
+                                       name (- end start)))
+                         ;; The following binding causes
+                         ;; find-buffer-file-type-coding-system
+                         ;; (defined on dos-w32.el) to act as if
+                         ;; the file being extracted existed, so
+                         ;; that the file's contents' encoding and
+                         ;; EOL format are auto-detected.
+                         (let ((file-name-handler-alist
+                                '(("" . tar-file-name-handler))))
+                           (car (find-operation-coding-system
+                                 'insert-file-contents
+                                 (cons name (current-buffer)) t)))))
+        (if (or (not coding)
+                (eq (coding-system-type coding) 'undecided))
+            (setq coding (detect-coding-region start end t)))
+        (if (and (default-value 'enable-multibyte-characters)
+                 (coding-system-get coding :for-unibyte))
+            (with-current-buffer buffer
+              (set-buffer-multibyte nil)))
+        (widen)
+        (decode-coding-region start end coding buffer)))
+    buffer))
+
 (defun tar-extract (&optional other-window-p)
   "In Tar mode, extract this entry of the tar file into its own buffer."
   (interactive)
   (let* ((view-p (eq other-window-p 'view))
 	 (descriptor (tar-get-descriptor))
 	 (name (tar-header-name descriptor))
-	 (size (tar-header-size descriptor))
-	 (start (tar-header-data-start descriptor))
-	 (end (+ start size)))
-    (let* ((tar-buffer (current-buffer))
-	   (tarname (buffer-name))
-	   (bufname (concat (file-name-nondirectory name)
-			    " ("
-			     tarname
-			     ")"))
-	   (read-only-p (or buffer-read-only view-p))
-	   (new-buffer-file-name (expand-file-name
-				  ;; `:' is not allowed on Windows
-                                  (concat tarname "!"
-                                          (if (string-match "/" name)
-                                              name
-                                            ;; Make sure `name' contains a /
-                                            ;; so set-auto-mode doesn't try
-                                            ;; to look at `tarname' for hints.
-                                            (concat "./" name)))))
-	   (buffer (get-file-buffer new-buffer-file-name))
-	   (just-created nil)
-	   undo-list)
-      (unless buffer
-	(setq buffer (generate-new-buffer bufname))
-	(with-current-buffer buffer
-	  (setq undo-list buffer-undo-list
-		buffer-undo-list t))
-	(setq bufname (buffer-name buffer))
-	(setq just-created t)
-	(with-current-buffer tar-data-buffer
-          (let (coding)
-            (narrow-to-region start end)
-            (goto-char start)
-            (setq coding (or coding-system-for-read
-                             (and set-auto-coding-function
-                                  (funcall set-auto-coding-function
-                                           name (- end start)))
-                             ;; The following binding causes
-                             ;; find-buffer-file-type-coding-system
-                             ;; (defined on dos-w32.el) to act as if
-                             ;; the file being extracted existed, so
-                             ;; that the file's contents' encoding and
-                             ;; EOL format are auto-detected.
-                             (let ((file-name-handler-alist
-                                    '(("" . tar-file-name-handler))))
-                               (car (find-operation-coding-system
-                                     'insert-file-contents
-                                     (cons name (current-buffer)) t)))))
-            (if (or (not coding)
-                    (eq (coding-system-type coding) 'undecided))
-                (setq coding (detect-coding-region start end t)))
-            (if (and (default-value 'enable-multibyte-characters)
-                     (coding-system-get coding :for-unibyte))
-                (with-current-buffer buffer
-                  (set-buffer-multibyte nil)))
-            (widen)
-            (decode-coding-region start end coding buffer)))
-        (with-current-buffer buffer
-          (goto-char (point-min))
-          (setq buffer-file-name new-buffer-file-name)
-          (setq buffer-file-truename
-                (abbreviate-file-name buffer-file-name))
-          ;; Force buffer-file-coding-system to what
-          ;; decode-coding-region actually used.
-          (set-buffer-file-coding-system last-coding-system-used t)
-          ;; Set the default-directory to the dir of the
-          ;; superior buffer.
-          (setq default-directory
-                (with-current-buffer tar-buffer
-                  default-directory))
-          (rename-buffer bufname)
-          (set-buffer-modified-p nil)
-          (setq buffer-undo-list undo-list)
-          (normal-mode)  ; pick a mode.
-          (set (make-local-variable 'tar-superior-buffer) tar-buffer)
-          (set (make-local-variable 'tar-superior-descriptor) descriptor)
-          (setq buffer-read-only read-only-p)
-          (tar-subfile-mode 1)))
-      (cond
-       (view-p
-	(view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
-       ((eq other-window-p 'display) (display-buffer buffer))
-       (other-window-p (switch-to-buffer-other-window buffer))
-       (t (switch-to-buffer buffer))))))
+         (tar-buffer (current-buffer))
+         (tarname (buffer-name))
+         (read-only-p (or buffer-read-only view-p))
+         (new-buffer-file-name (expand-file-name
+                                ;; `:' is not allowed on Windows
+                                (concat tarname "!"
+                                        (if (string-match "/" name)
+                                            name
+                                          ;; Make sure `name' contains a /
+                                          ;; so set-auto-mode doesn't try
+                                          ;; to look at `tarname' for hints.
+                                          (concat "./" name)))))
+         (buffer (get-file-buffer new-buffer-file-name))
+         (just-created nil))
+    (unless buffer
+      (setq buffer (tar--extract descriptor))
+      (setq just-created t)
+      (with-current-buffer buffer
+        (goto-char (point-min))
+        (setq buffer-file-name new-buffer-file-name)
+        (setq buffer-file-truename
+              (abbreviate-file-name buffer-file-name))
+        ;; Force buffer-file-coding-system to what
+        ;; decode-coding-region actually used.
+        (set-buffer-file-coding-system last-coding-system-used t)
+        ;; Set the default-directory to the dir of the
+        ;; superior buffer.
+        (setq default-directory
+              (with-current-buffer tar-buffer
+                default-directory))
+        (set-buffer-modified-p nil)
+        (setq buffer-undo-list t)
+        (normal-mode)                   ; pick a mode.
+        (set (make-local-variable 'tar-superior-buffer) tar-buffer)
+        (set (make-local-variable 'tar-superior-descriptor) descriptor)
+        (setq buffer-read-only read-only-p)
+        (tar-subfile-mode 1)))
+    (cond
+     (view-p
+      (view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
+     ((eq other-window-p 'display) (display-buffer buffer))
+     (other-window-p (switch-to-buffer-other-window buffer))
+     (t (switch-to-buffer buffer)))))
 
 
 (defun tar-extract-other-window ()
@@ -1119,15 +1136,15 @@ for this to be permanent."
                      (insert (tar-header-block-summarize descriptor) "\n")))
     (forward-line -1) (move-to-column col))
 
-  (assert (tar-data-swapped-p))
+  (cl-assert (tar-data-swapped-p))
   (with-current-buffer tar-data-buffer
     (let* ((start (- (tar-header-data-start descriptor) 512)))
         ;;
         ;; delete the old field and insert a new one.
         (goto-char (+ start data-position))
         (delete-region (point) (+ (point) (length new-data-string))) ; <--
-        (assert (not (or enable-multibyte-characters
-                         (multibyte-string-p new-data-string))))
+        (cl-assert (not (or enable-multibyte-characters
+                            (multibyte-string-p new-data-string))))
         (insert new-data-string)
         ;;
         ;; compute a new checksum and insert it.

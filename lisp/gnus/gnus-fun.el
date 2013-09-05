@@ -1,6 +1,6 @@
 ;;; gnus-fun.el --- various frivolous extension functions to Gnus
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -84,13 +84,6 @@ PNG format."
   (with-output-to-string
     (call-process shell-file-name nil (list standard-output nil)
 		  nil shell-command-switch command)))
-
-(defun gnus-shell-command-on-region (start end command)
-  "A simplified `shell-command-on-region'.
-Output to the current buffer, replace text, and don't mingle error."
-  (call-process-region start end shell-file-name t
-		       (list (current-buffer) nil)
-		       nil shell-command-switch command))
 
 ;;;###autoload
 (defun gnus-random-x-face ()
@@ -284,6 +277,10 @@ colors of the displayed X-Faces."
     (push (format format i i i i i i)
 	  values))
   (mapconcat 'identity values " ")))
+
+(defun gnus-funcall-no-warning (function &rest args)
+  (when (fboundp function)
+    (apply function args)))
 
 (provide 'gnus-fun)
 

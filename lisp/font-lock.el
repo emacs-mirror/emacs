@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -37,7 +37,7 @@
 ;; When this minor mode is on, the faces of the current line are updated with
 ;; every insertion or deletion.
 ;;
-;; To turn Font Lock mode on automatically, add this to your ~/.emacs file:
+;; To turn Font Lock mode on automatically, add this to your init file:
 ;;
 ;;  (add-hook 'emacs-lisp-mode-hook 'turn-on-font-lock)
 ;;
@@ -146,8 +146,8 @@
 ;; fontified automagically.  In your ~/.emacs there could be:
 ;;
 ;;  (defvar foo-font-lock-keywords
-;;    '(("\\<\\(one\\|two\\|three\\)\\>" . font-lock-keyword-face)
-;;      ("\\<\\(four\\|five\\|six\\)\\>" . font-lock-type-face))
+;;    '(("\\<\\(one\\|two\\|three\\)\\>" . 'font-lock-keyword-face)
+;;      ("\\<\\(four\\|five\\|six\\)\\>" . 'font-lock-type-face))
 ;;    "Default expressions to highlight in Foo mode.")
 ;;
 ;;  (add-hook 'foo-mode-hook
@@ -167,8 +167,8 @@
 ;; could be:
 ;;
 ;;  (defvar bar-font-lock-keywords
-;;    '(("\\<\\(uno\\|due\\|tre\\)\\>" . font-lock-keyword-face)
-;;      ("\\<\\(quattro\\|cinque\\|sei\\)\\>" . font-lock-type-face))
+;;    '(("\\<\\(uno\\|due\\|tre\\)\\>" . 'font-lock-keyword-face)
+;;      ("\\<\\(quattro\\|cinque\\|sei\\)\\>" . 'font-lock-type-face))
 ;;    "Default expressions to highlight in Bar mode.")
 ;;
 ;; and within `bar-mode' there could be:
@@ -207,7 +207,7 @@
 ;;; Code:
 
 (require 'syntax)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Define core `font-lock' group.
 (defgroup font-lock '((jit-lock custom-group))
@@ -340,8 +340,8 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 (defvar font-lock-preprocessor-face	'font-lock-preprocessor-face
   "Face name to use for preprocessor directives.")
 
-(defvar font-lock-reference-face	'font-lock-constant-face)
-(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face "20.3")
+(define-obsolete-variable-alias
+  'font-lock-reference-face 'font-lock-constant-face "20.3")
 
 ;; Fontification variables:
 
@@ -469,7 +469,7 @@ optimized.")
   "Alist of additional `font-lock-keywords' elements for major modes.
 
 Each element has the form (MODE KEYWORDS . HOW).
-`font-lock-set-defaults' adds the elements in the list KEYWORDS to
+Function `font-lock-set-defaults' adds the elements in the list KEYWORDS to
 `font-lock-keywords' when Font Lock is turned on in major mode MODE.
 
 If HOW is nil, KEYWORDS are added at the beginning of
@@ -484,7 +484,7 @@ This is normally set via `font-lock-add-keywords' and
 (defvar font-lock-removed-keywords-alist nil
   "Alist of `font-lock-keywords' elements to be removed for major modes.
 
-Each element has the form (MODE . KEYWORDS).  `font-lock-set-defaults'
+Each element has the form (MODE . KEYWORDS).  Function `font-lock-set-defaults'
 removes the elements in the list KEYWORDS from `font-lock-keywords'
 when Font Lock is turned on in major mode MODE.
 
@@ -614,9 +614,6 @@ Major/minor modes can set this variable if they know which option applies.")
 
 (eval-when-compile
   ;;
-  ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl)
-  ;;
   ;; Borrowed from lazy-lock.el.
   ;; We use this to preserve or protect things when modifying text properties.
   (defmacro save-buffer-state (&rest body)
@@ -682,8 +679,8 @@ end of the current highlighting list.
 For example:
 
  (font-lock-add-keywords 'c-mode
-  '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 font-lock-warning-face prepend)
-    (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" . font-lock-keyword-face)))
+  '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 'font-lock-warning-face prepend)
+    (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" . 'font-lock-keyword-face)))
 
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.
@@ -697,9 +694,9 @@ For example:
  (add-hook 'c-mode-hook
   (lambda ()
    (font-lock-add-keywords nil
-    '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 font-lock-warning-face prepend)
+    '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 'font-lock-warning-face prepend)
       (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" .
-       font-lock-keyword-face)))))
+       'font-lock-keyword-face)))))
 
 The above procedure may fail to add keywords to derived modes if
 some involved major mode does not follow the standard conventions.
@@ -917,10 +914,10 @@ The value of this variable is used when Font Lock mode is turned on."
 (declare-function lazy-lock-mode "lazy-lock")
 
 (defun font-lock-turn-on-thing-lock ()
-  (case (font-lock-value-in-major-mode font-lock-support-mode)
-    (fast-lock-mode (fast-lock-mode t))
-    (lazy-lock-mode (lazy-lock-mode t))
-    (jit-lock-mode
+  (pcase (font-lock-value-in-major-mode font-lock-support-mode)
+    (`fast-lock-mode (fast-lock-mode t))
+    (`lazy-lock-mode (lazy-lock-mode t))
+    (`jit-lock-mode
      ;; Prepare for jit-lock
      (remove-hook 'after-change-functions
                   'font-lock-after-change-function t)
@@ -1654,7 +1651,7 @@ LOUDLY, if non-nil, allows progress-meter bar."
     ;; Fontify each item in `font-lock-keywords' from `start' to `end'.
     (while keywords
       (if loudly (message "Fontifying %s... (regexps..%s)" bufname
-			  (make-string (incf count) ?.)))
+			  (make-string (cl-incf count) ?.)))
       ;;
       ;; Find an occurrence of `matcher' from `start' to `end'.
       (setq keyword (car keywords) matcher (car keyword))
@@ -1877,22 +1874,22 @@ Sets various variables using `font-lock-defaults' and
 ;; `custom-declare-face'.
 (defface font-lock-comment-face
   '((((class grayscale) (background light))
-     (:foreground "DimGray" :weight bold :slant italic))
+     :foreground "DimGray" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "LightGray" :weight bold :slant italic))
+     :foreground "LightGray" :weight bold :slant italic)
     (((class color) (min-colors 88) (background light))
-     (:foreground "Firebrick"))
+     :foreground "Firebrick")
     (((class color) (min-colors 88) (background dark))
-     (:foreground "chocolate1"))
+     :foreground "chocolate1")
     (((class color) (min-colors 16) (background light))
-     (:foreground "red"))
+     :foreground "red")
     (((class color) (min-colors 16) (background dark))
-     (:foreground "red1"))
+     :foreground "red1")
     (((class color) (min-colors 8) (background light))
-     (:foreground "red"))
+     :foreground "red")
     (((class color) (min-colors 8) (background dark))
-     (:foreground "yellow"))
-    (t (:weight bold :slant italic)))
+     :foreground "yellow")
+    (t :weight bold :slant italic))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-faces)
 
@@ -1902,14 +1899,14 @@ Sets various variables using `font-lock-defaults' and
   :group 'font-lock-faces)
 
 (defface font-lock-string-face
-  '((((class grayscale) (background light)) (:foreground "DimGray" :slant italic))
-    (((class grayscale) (background dark)) (:foreground "LightGray" :slant italic))
-    (((class color) (min-colors 88) (background light)) (:foreground "VioletRed4"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightSalmon"))
-    (((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
-    (((class color) (min-colors 8)) (:foreground "green"))
-    (t (:slant italic)))
+  '((((class grayscale) (background light)) :foreground "DimGray" :slant italic)
+    (((class grayscale) (background dark))  :foreground "LightGray" :slant italic)
+    (((class color) (min-colors 88) (background light)) :foreground "VioletRed4")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSalmon")
+    (((class color) (min-colors 16) (background light)) :foreground "RosyBrown")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightSalmon")
+    (((class color) (min-colors 8)) :foreground "green")
+    (t :slant italic))
   "Font Lock mode face used to highlight strings."
   :group 'font-lock-faces)
 
@@ -1919,76 +1916,76 @@ Sets various variables using `font-lock-defaults' and
   :group 'font-lock-faces)
 
 (defface font-lock-keyword-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan1"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
-    (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
-    (t (:weight bold)))
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Purple")
+    (((class color) (min-colors 88) (background dark))  :foreground "Cyan1")
+    (((class color) (min-colors 16) (background light)) :foreground "Purple")
+    (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
+    (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
+    (t :weight bold))
   "Font Lock mode face used to highlight keywords."
   :group 'font-lock-faces)
 
 (defface font-lock-builtin-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "dark slate blue"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightSteelBlue"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))
-    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
-    (t (:weight bold)))
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "dark slate blue")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSteelBlue")
+    (((class color) (min-colors 16) (background light)) :foreground "Orchid")
+    (((class color) (min-colors 16) (background dark)) :foreground "LightSteelBlue")
+    (((class color) (min-colors 8)) :foreground "blue" :weight bold)
+    (t :weight bold))
   "Font Lock mode face used to highlight builtins."
   :group 'font-lock-faces)
 
 (defface font-lock-function-name-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
-    (t (:inverse-video t :weight bold)))
+  '((((class color) (min-colors 88) (background light)) :foreground "Blue1")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 16) (background light)) :foreground "Blue")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 8)) :foreground "blue" :weight bold)
+    (t :inverse-video t :weight bold))
   "Font Lock mode face used to highlight function names."
   :group 'font-lock-faces)
 
 (defface font-lock-variable-name-face
   '((((class grayscale) (background light))
-     (:foreground "Gray90" :weight bold :slant italic))
+     :foreground "Gray90" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "DimGray" :weight bold :slant italic))
-    (((class color) (min-colors 88) (background light)) (:foreground "sienna"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightGoldenrod"))
-    (((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
-    (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
-    (t (:weight bold :slant italic)))
+     :foreground "DimGray" :weight bold :slant italic)
+    (((class color) (min-colors 88) (background light)) :foreground "sienna")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightGoldenrod")
+    (((class color) (min-colors 16) (background light)) :foreground "DarkGoldenrod")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightGoldenrod")
+    (((class color) (min-colors 8)) :foreground "yellow" :weight light)
+    (t :weight bold :slant italic))
   "Font Lock mode face used to highlight variable names."
   :group 'font-lock-faces)
 
 (defface font-lock-type-face
-  '((((class grayscale) (background light)) (:foreground "Gray90" :weight bold))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "ForestGreen"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
-    (((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
-    (((class color) (min-colors 8)) (:foreground "green"))
-    (t (:weight bold :underline t)))
+  '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 88) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 16) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 16) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 8)) :foreground "green")
+    (t :weight bold :underline t))
   "Font Lock mode face used to highlight type and classes."
   :group 'font-lock-faces)
 
 (defface font-lock-constant-face
   '((((class grayscale) (background light))
-     (:foreground "LightGray" :weight bold :underline t))
+     :foreground "LightGray" :weight bold :underline t)
     (((class grayscale) (background dark))
-     (:foreground "Gray50" :weight bold :underline t))
-    (((class color) (min-colors 88) (background light)) (:foreground "dark cyan"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Aquamarine"))
-    (((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
-    (((class color) (min-colors 8)) (:foreground "magenta"))
-    (t (:weight bold :underline t)))
+     :foreground "Gray50" :weight bold :underline t)
+    (((class color) (min-colors 88) (background light)) :foreground "dark cyan")
+    (((class color) (min-colors 88) (background dark))  :foreground "Aquamarine")
+    (((class color) (min-colors 16) (background light)) :foreground "CadetBlue")
+    (((class color) (min-colors 16) (background dark))  :foreground "Aquamarine")
+    (((class color) (min-colors 8)) :foreground "magenta")
+    (t :weight bold :underline t))
   "Font Lock mode face used to highlight constants and labels."
   :group 'font-lock-faces)
 
@@ -2259,13 +2256,13 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		"method-combination\\|setf-expander\\|skeleton\\|widget\\|"
 		"function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
 		;; Variable declarations.
-		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\)\\|"
+		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\(?:-local\\)?\\)\\|"
 		;; Structure declarations.
 		"\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
-		"\\)\\)\\>"
+		"\\)\\)\\_>"
 		;; Any whitespace and defined object.
 		"[ \t'\(]*"
-		"\\(setf[ \t]+\\sw+\\|\\sw+\\)?")
+		"\\(setf[ \t]+\\(?:\\sw\\|\\s_\\)+\\|\\(?:\\sw\\|\\s_\\)+\\)?")
        (1 font-lock-keyword-face)
        (9 (cond ((match-beginning 3) font-lock-function-name-face)
 		((match-beginning 6) font-lock-variable-name-face)
@@ -2293,16 +2290,16 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "condition-case" "condition-case-unless-debug"
 		 "track-mouse" "eval-after-load" "eval-and-compile"
 		 "eval-when-compile" "eval-when" "eval-next-after-load"
-		 "with-case-table" "with-category-table"
+		 "with-case-table" "with-category-table" "with-coding-priority"
 		 "with-current-buffer" "with-demoted-errors"
-		 "with-electric-help"
+		 "with-electric-help" "with-eval-after-load"
 		 "with-local-quit" "with-no-warnings"
 		 "with-output-to-string" "with-output-to-temp-buffer"
 		 "with-selected-window" "with-selected-frame"
 		 "with-silent-modifications" "with-syntax-table"
 		 "with-temp-buffer" "with-temp-file" "with-temp-message"
-		 "with-timeout" "with-timeout-handler" "with-wrapper-hook") t)
-	  "\\>")
+		 "with-timeout" "with-timeout-handler") t)
+	  "\\_>")
 	  .  1)
        ;; Control structures.  Common Lisp forms.
        (,(concat
@@ -2323,23 +2320,25 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-open-stream" "with-output-to-string"
 		 "with-package-iterator" "with-simple-restart"
 		 "with-slots" "with-standard-io-syntax") t)
-	  "\\>")
+	  "\\_>")
 	  . 1)
        ;; Exit/Feature symbols as constants.
-       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\>"
-		 "[ \t']*\\(\\sw+\\)?")
+       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
+		 "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
 	(1 font-lock-keyword-face)
 	(2 font-lock-constant-face nil t))
        ;; Erroneous structures.
-       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
+       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|\\(?:user-\\)?error\\|signal\\)\\_>" 1 font-lock-warning-face)
        ;; Words inside \\[] tend to be for `substitute-command-keys'.
-       ("\\\\\\\\\\[\\(\\sw+\\)\\]" 1 font-lock-constant-face prepend)
+       ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
+        (1 font-lock-constant-face prepend))
        ;; Words inside `' tend to be symbol names.
-       ("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
+       ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+        (1 font-lock-constant-face prepend))
        ;; Constant values.
-       ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
+       ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
-       ("\\<\\&\\sw+\\>" . font-lock-type-face)
+       ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
        ;; ELisp regexp grouping constructs
        ((lambda (bound)
           (catch 'found
@@ -2356,11 +2355,11 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
                     (throw 'found t)))))))
         (1 'font-lock-regexp-grouping-backslash prepend)
         (3 'font-lock-regexp-grouping-construct prepend))
-;;;  This is too general -- rms.
-;;;  A user complained that he has functions whose names start with `do'
-;;;  and that they get the wrong color.
-;;;      ;; CL `with-' and `do-' constructs
-;;;      ("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       ;; This is too general -- rms.
+       ;; A user complained that he has functions whose names start with `do'
+       ;; and that they get the wrong color.
+       ;; ;; CL `with-' and `do-' constructs
+       ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 

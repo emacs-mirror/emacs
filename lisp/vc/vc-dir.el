@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -43,8 +43,7 @@
 (require 'ewoc)
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defcustom vc-dir-mode-hook nil
   "Normal hook run by `vc-dir-mode'.
@@ -54,7 +53,7 @@ See `run-hooks'."
 
 ;; Used to store information for the files displayed in the directory buffer.
 ;; Each item displayed corresponds to one of these defstructs.
-(defstruct (vc-dir-fileinfo
+(cl-defstruct (vc-dir-fileinfo
             (:copier nil)
             (:type list)            ;So we can use `member' on lists of FIs.
             (:constructor
@@ -92,13 +91,13 @@ See `run-hooks'."
   (let* ;; Look for another buffer name BNAME visiting the same directory.
       ((buf (save-excursion
               (unless create-new
-                (dolist (buffer vc-dir-buffers)
+                (cl-dolist (buffer vc-dir-buffers)
                   (when (buffer-live-p buffer)
                     (set-buffer buffer)
                     (when (and (derived-mode-p 'vc-dir-mode)
                                (eq vc-dir-backend backend)
                                (string= default-directory dir))
-                      (return buffer))))))))
+                      (cl-return buffer))))))))
     (or buf
         ;; Create a new buffer named BNAME.
 	;; We pass a filename to create-file-buffer because it is what
@@ -216,6 +215,9 @@ See `run-hooks'."
     (define-key map [register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into the version control system"))
+    (define-key map [ignore]
+      '(menu-item "Ignore Current File" vc-dir-ignore
+		  :help "Ignore the current file under current version control system"))
     map)
   "Menu for VC dir.")
 
@@ -238,9 +240,11 @@ See `run-hooks'."
     ;; VC commands
     (define-key map "v" 'vc-next-action)   ;; C-x v v
     (define-key map "=" 'vc-diff)	   ;; C-x v =
+    (define-key map "D" 'vc-root-diff)	   ;; C-x v D
     (define-key map "i" 'vc-register)	   ;; C-x v i
     (define-key map "+" 'vc-update)	   ;; C-x v +
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
+    (define-key map "L" 'vc-print-root-log) ;; C-x v L
     ;; More confusing than helpful, probably
     ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer
@@ -278,6 +282,7 @@ See `run-hooks'."
     (define-key map "Q" 'vc-dir-query-replace-regexp)
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
+    (define-key map "G" 'vc-dir-ignore)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -790,6 +795,11 @@ with the command \\[tags-loop-continue]."
   (tags-query-replace from to delimited
 		      '(mapcar 'car (vc-dir-marked-only-files-and-states))))
 
+(defun vc-dir-ignore ()
+  "Ignore the current file."
+  (interactive)
+  (vc-ignore (vc-dir-current-file)))
+
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))
     (unless node
@@ -968,6 +978,8 @@ the *vc-dir* buffer.
 
 \\{vc-dir-mode-map}"
   (set (make-local-variable 'vc-dir-backend) use-vc-backend)
+  (set (make-local-variable 'desktop-save-buffer)
+       'vc-dir-desktop-buffer-misc-data)
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
@@ -1107,9 +1119,22 @@ outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
-(defun vc-dir-hide-up-to-date ()
-  "Hide up-to-date items from display."
-  (interactive)
+(defun vc-dir-hide-state (&optional state)
+  "Hide items that are in STATE from display.
+See `vc-state' for valid values of STATE.
+
+If STATE is nil, default it to up-to-date.
+
+Interactively, if `current-prefix-arg' is non-nil, set STATE to
+state of item at point.  Otherwise, set STATE to up-to-date."
+  (interactive (list
+		(and current-prefix-arg
+		     ;; Command is prefixed.  Infer STATE from point.
+		     (let ((node (ewoc-locate vc-ewoc)))
+		       (and node (vc-dir-fileinfo->state (ewoc-data node)))))))
+  ;; If STATE is un-specified, use up-to-date.
+  (setq state (or state 'up-to-date))
+  (message "Hiding items in state \"%s\"" state)
   (let ((crt (ewoc-nth vc-ewoc -1))
 	(first (ewoc-nth vc-ewoc 0)))
     ;; Go over from the last item to the first and remove the
@@ -1121,18 +1146,21 @@ outside of VC) and one wants to do some operation on it."
 	     (prev (ewoc-prev vc-ewoc crt))
 	     ;; ewoc-delete does not work without this...
 	     (inhibit-read-only t))
-	  (when (or
-		 ;; Remove directories with no child files.
-		 (and dir
-		      (or
-		       ;; Nothing follows this directory.
-		       (not next)
-		       ;; Next item is a directory.
-		       (vc-dir-fileinfo->directory (ewoc-data next))))
-		 ;; Remove files in the up-to-date state.
-		 (eq (vc-dir-fileinfo->state data) 'up-to-date))
-	    (ewoc-delete vc-ewoc crt))
-	  (setq crt prev)))))
+	(when (or
+	       ;; Remove directories with no child files.
+	       (and dir
+		    (or
+		     ;; Nothing follows this directory.
+		     (not next)
+		     ;; Next item is a directory.
+		     (vc-dir-fileinfo->directory (ewoc-data next))))
+	       ;; Remove files in specified STATE.  STATE can be a
+	       ;; symbol or a user-name.
+	       (equal (vc-dir-fileinfo->state data) state))
+	  (ewoc-delete vc-ewoc crt))
+	(setq crt prev)))))
+
+(defalias 'vc-dir-hide-up-to-date 'vc-dir-hide-state)
 
 (defun vc-dir-kill-line ()
   "Remove the current line from display."
@@ -1273,6 +1301,33 @@ These are the commands available for use in the file status buffer:
   "Default absence of extra information returned for a file."
   nil)
 
+
+;;; Support for desktop.el (adapted from what dired.el does).
+
+(declare-function desktop-file-name "desktop" (filename dirname))
+
+(defun vc-dir-desktop-buffer-misc-data (dirname)
+  "Auxiliary information to be saved in desktop file."
+  (cons (desktop-file-name default-directory dirname) vc-dir-backend))
+
+(defvar desktop-missing-file-warning)
+
+(defun vc-dir-restore-desktop-buffer (_filename _buffername misc-data)
+  "Restore a `vc-dir' buffer specified in a desktop file."
+  (let ((dir (car misc-data))
+	(backend (cdr misc-data)))
+    (if (file-directory-p dir)
+	(progn
+	  (vc-dir dir backend)
+	  (current-buffer))
+      (message "Desktop: Directory %s no longer exists." dir)
+      (when desktop-missing-file-warning (sit-for 1))
+      nil)))
+
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(vc-dir-mode . vc-dir-restore-desktop-buffer))
+
+
 (provide 'vc-dir)
 
 ;;; vc-dir.el ends here

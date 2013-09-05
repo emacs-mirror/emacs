@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -24,12 +24,32 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-(defvar url-http-extra-headers)
-(defvar url-http-target-url)
-(defvar url-http-no-retry)
-(defvar url-http-proxy)
+(eval-when-compile (require 'cl-lib))
+
+(defvar url-callback-arguments)
+(defvar url-callback-function)
+(defvar url-current-object)
+(defvar url-http-after-change-function)
+(defvar url-http-chunked-counter)
+(defvar url-http-chunked-length)
+(defvar url-http-chunked-start)
 (defvar url-http-connection-opened)
+(defvar url-http-content-length)
+(defvar url-http-content-type)
+(defvar url-http-data)
+(defvar url-http-end-of-headers)
+(defvar url-http-extra-headers)
+(defvar url-http-method)
+(defvar url-http-no-retry)
+(defvar url-http-process)
+(defvar url-http-proxy)
+(defvar url-http-response-status)
+(defvar url-http-response-version)
+(defvar url-http-target-url)
+(defvar url-http-transfer-encoding)
+(defvar url-http-end-of-headers)
+(defvar url-show-status)
+
 (require 'url-gw)
 (require 'url-util)
 (require 'url-parse)
@@ -195,23 +215,14 @@ request.")
 	  (and (listp url-privacy-level)
 	       (memq 'agent url-privacy-level)))
       ""
-    (format "User-Agent: %sURL/%s%s\r\n"
+    (format "User-Agent: %sURL/%s\r\n"
 	    (if url-package-name
 		(concat url-package-name "/" url-package-version " ")
 	      "")
-	    url-version
-	    (cond
-	     ((and url-os-type url-system-type)
-	      (concat " (" url-os-type "; " url-system-type ")"))
-	     ((or url-os-type url-system-type)
-	      (concat " (" (or url-system-type url-os-type) ")"))
-	     (t "")))))
+	    url-version)))
 
 (defun url-http-create-request (&optional ref-url)
   "Create an HTTP request for `url-http-target-url', referred to by REF-URL."
-  (declare (special proxy-info
-		    url-http-method url-http-data
-		    url-http-extra-headers))
   (let* ((extra-headers)
 	 (request nil)
 	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
@@ -222,7 +233,7 @@ request.")
 			 nil
 		       (let ((url-basic-auth-storage
 			      'url-http-proxy-basic-auth-storage))
-			 (url-get-authentication url-http-target-url nil 'any nil))))
+			 (url-get-authentication url-http-proxy nil 'any nil))))
 	 (real-fname (url-filename url-http-target-url))
 	 (host (url-host url-http-target-url))
 	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
@@ -358,7 +369,6 @@ request.")
   "Remove trailing \r from header lines.
 This allows us to use `mail-fetch-field', etc.
 Return the number of characters removed."
-  (declare (special url-http-end-of-headers))
   (let ((end (marker-position url-http-end-of-headers)))
     (goto-char (point-min))
     (while (re-search-forward "\r$" url-http-end-of-headers t)
@@ -366,8 +376,6 @@ Return the number of characters removed."
     (- end url-http-end-of-headers)))
 
 (defun url-http-handle-authentication (proxy)
-  (declare (special status success url-http-method url-http-data
-		    url-callback-function url-callback-arguments))
   (url-http-debug "Handling %s authentication" (if proxy "proxy" "normal"))
   (let ((auths (or (nreverse
 		    (mail-fetch-field
@@ -393,9 +401,9 @@ Return the number of characters removed."
 		       (url-strip-leading-spaces
 			this-auth)))
       (let* ((this-type
-	      (if (string-match "[ \t]" this-auth)
-		  (downcase (substring this-auth 0 (match-beginning 0)))
-		(downcase this-auth)))
+	      (downcase (if (string-match "[ \t]" this-auth)
+                            (substring this-auth 0 (match-beginning 0))
+                          this-auth)))
 	     (registered (url-auth-registered this-type))
 	     (this-strength (cddr registered)))
 	(when (and registered (> this-strength strength))
@@ -410,25 +418,29 @@ Return the number of characters removed."
 	  (insert "<hr>Sorry, but I do not know how to handle " type
 		  " authentication.  If you'd like to write it,"
 		  " send it to " url-bug-address ".<hr>")
-	  (setq status t))
+          ;; We used to set a `status' var (declared "special") but I can't
+          ;; find the corresponding let-binding, so it's probably an error.
+          ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?
+          ;; (setq status t)
+          nil) ;; Not success yet.
+
       (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
 	     (auth (url-get-authentication auth-url
 					   (cdr-safe (assoc "realm" args))
 					   type t args)))
 	(if (not auth)
-	    (setq success t)
+            t                           ;Success.
 	  (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
 		url-http-extra-headers)
 	  (let ((url-request-method url-http-method)
 		(url-request-data url-http-data)
 		(url-request-extra-headers url-http-extra-headers))
 	    (url-retrieve-internal url url-callback-function
-				   url-callback-arguments)))))))
+				   url-callback-arguments))
+          nil))))) ;; Not success yet.
 
 (defun url-http-parse-response ()
   "Parse just the response code."
-  (declare (special url-http-end-of-headers url-http-response-status
-		    url-http-response-version))
   (if (not url-http-end-of-headers)
       (error "Trying to parse HTTP response code in odd buffer: %s" (buffer-name)))
   (url-http-debug "url-http-parse-response called in (%s)" (buffer-name))
@@ -463,11 +475,6 @@ Return t if and only if the current buffer is still active and
 should be shown to the user."
   ;; The comments after each status code handled are taken from RFC
   ;; 2616 (HTTP/1.1)
-  (declare (special url-http-end-of-headers url-http-response-status
-		    url-http-response-version
-		    url-http-method url-http-data url-http-process
-		    url-callback-function url-callback-arguments))
-
   (url-http-mark-connection-as-free (url-host url-current-object)
 				    (url-port url-current-object)
 				    url-http-process)
@@ -494,21 +501,17 @@ should be shown to the user."
       (when (and connection
 		 (string= (downcase connection) "close"))
 	(delete-process url-http-process)))))
-  (let ((buffer (current-buffer))
-	(class nil)
-	(success nil)
-	;; other status symbols: jewelry and luxury cars
-	(status-symbol (cadr (assq url-http-response-status url-http-codes)))
-	;; The filename part of a URL could be in remote file syntax,
-	;; see Bug#6717 for an example.  We disable file name
-	;; handlers, therefore.
-	(file-name-handler-alist nil))
-    (setq class (/ url-http-response-status 100))
-    (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
+  (let* ((buffer (current-buffer))
+         (class (/ url-http-response-status 100))
+         (success nil)
+         ;; other status symbols: jewelry and luxury cars
+         (status-symbol (cadr (assq url-http-response-status url-http-codes))))
+    (url-http-debug "Parsed HTTP headers: class=%d status=%d"
+                    class url-http-response-status)
     (when (url-use-cookies url-http-target-url)
       (url-http-handle-cookies))
 
-    (case class
+    (pcase class
       ;; Classes of response codes
       ;;
       ;; 5xx = Server Error
@@ -521,7 +524,8 @@ should be shown to the user."
        ;; 101 = Switching protocols
        ;; 102 = Processing (Added by DAV)
        (url-mark-buffer-as-dead buffer)
-       (error "HTTP responses in class 1xx not supported (%d)" url-http-response-status))
+       (error "HTTP responses in class 1xx not supported (%d)"
+              url-http-response-status))
       (2				; Success
        ;; 200 Ok
        ;; 201 Created
@@ -531,18 +535,17 @@ should be shown to the user."
        ;; 205 Reset content
        ;; 206 Partial content
        ;; 207 Multi-status (Added by DAV)
-       (case status-symbol
-	 ((no-content reset-content)
+       (pcase status-symbol
+	 ((or `no-content `reset-content)
 	  ;; No new data, just stay at the same document
-	  (url-mark-buffer-as-dead buffer)
-	  (setq success t))
-	 (otherwise
+	  (url-mark-buffer-as-dead buffer))
+	 (_
 	  ;; Generic success for all others.  Store in the cache, and
 	  ;; mark it as successful.
 	  (widen)
 	  (if (and url-automatic-caching (equal url-http-method "GET"))
-	      (url-store-in-cache buffer))
-	  (setq success t))))
+	      (url-store-in-cache buffer))))
+       (setq success t))
       (3				; Redirection
        ;; 300 Multiple choices
        ;; 301 Moved permanently
@@ -553,8 +556,8 @@ should be shown to the user."
        ;; 307 Temporary redirect
        (let ((redirect-uri (or (mail-fetch-field "Location")
 			       (mail-fetch-field "URI"))))
-	 (case status-symbol
-	   (multiple-choices	    ; 300
+	 (pcase status-symbol
+	   (`multiple-choices	    ; 300
 	    ;; Quoth the spec (section 10.3.1)
 	    ;; -------------------------------
 	    ;; The requested resource corresponds to any one of a set of
@@ -571,7 +574,7 @@ should be shown to the user."
 	    ;; We do not support agent-driven negotiation, so we just
 	    ;; redirect to the preferred URI if one is provided.
 	    nil)
-	   ((moved-permanently found temporary-redirect) ; 301 302 307
+	   ((or `moved-permanently `found `temporary-redirect) ; 301 302 307
 	    ;; If the 301|302 status code is received in response to a
 	    ;; request other than GET or HEAD, the user agent MUST NOT
 	    ;; automatically redirect the request unless it can be
@@ -579,20 +582,20 @@ should be shown to the user."
 	    ;; conditions under which the request was issued.
 	    (unless (member url-http-method '("HEAD" "GET"))
 	      (setq redirect-uri nil)))
-	   (see-other			; 303
+	   (`see-other			; 303
 	    ;; The response to the request can be found under a different
 	    ;; URI and SHOULD be retrieved using a GET method on that
 	    ;; resource.
 	    (setq url-http-method "GET"
 		  url-http-data nil))
-	   (not-modified		; 304
+	   (`not-modified		; 304
 	    ;; The 304 response MUST NOT contain a message-body.
 	    (url-http-debug "Extracting document from cache... (%s)"
 			    (url-cache-create-filename (url-view-url t)))
 	    (url-cache-extract (url-cache-create-filename (url-view-url t)))
 	    (setq redirect-uri nil
 		  success t))
-	   (use-proxy			; 305
+	   (`use-proxy			; 305
 	    ;; The requested resource MUST be accessed through the
 	    ;; proxy given by the Location field.  The Location field
 	    ;; gives the URI of the proxy.  The recipient is expected
@@ -600,7 +603,7 @@ should be shown to the user."
 	    ;; responses MUST only be generated by origin servers.
 	    (error "Redirection thru a proxy server not supported: %s"
 		   redirect-uri))
-	   (otherwise
+	   (_
 	    ;; Treat everything like '300'
 	    nil))
 	 (when redirect-uri
@@ -682,106 +685,107 @@ should be shown to the user."
        ;; 422 Unprocessable Entity (Added by DAV)
        ;; 423 Locked
        ;; 424 Failed Dependency
-       (case status-symbol
-	 (unauthorized			; 401
-	  ;; The request requires user authentication.  The response
-	  ;; MUST include a WWW-Authenticate header field containing a
-	  ;; challenge applicable to the requested resource.  The
-	  ;; client MAY repeat the request with a suitable
-	  ;; Authorization header field.
-	  (url-http-handle-authentication nil))
-	 (payment-required              ; 402
-	  ;; This code is reserved for future use
-	  (url-mark-buffer-as-dead buffer)
-	  (error "Somebody wants you to give them money"))
-	 (forbidden			; 403
-	  ;; The server understood the request, but is refusing to
-	  ;; fulfill it.  Authorization will not help and the request
-	  ;; SHOULD NOT be repeated.
-	  (setq success t))
-	 (not-found			; 404
-	  ;; Not found
-	  (setq success t))
-	 (method-not-allowed		; 405
-	  ;; The method specified in the Request-Line is not allowed
-	  ;; for the resource identified by the Request-URI.  The
-	  ;; response MUST include an Allow header containing a list of
-	  ;; valid methods for the requested resource.
-	  (setq success t))
-	 (not-acceptable		; 406
-	  ;; The resource identified by the request is only capable of
-	  ;; generating response entities which have content
-	  ;; characteristics not acceptable according to the accept
-	  ;; headers sent in the request.
-	  (setq success t))
-	 (proxy-authentication-required ; 407
-	  ;; This code is similar to 401 (Unauthorized), but indicates
-	  ;; that the client must first authenticate itself with the
-	  ;; proxy.  The proxy MUST return a Proxy-Authenticate header
-	  ;; field containing a challenge applicable to the proxy for
-	  ;; the requested resource.
-	  (url-http-handle-authentication t))
-	 (request-timeout		; 408
-	  ;; The client did not produce a request within the time that
-	  ;; the server was prepared to wait.  The client MAY repeat
-	  ;; the request without modifications at any later time.
-	  (setq success t))
-	 (conflict			; 409
-	  ;; The request could not be completed due to a conflict with
-	  ;; the current state of the resource.  This code is only
-	  ;; allowed in situations where it is expected that the user
-	  ;; might be able to resolve the conflict and resubmit the
-	  ;; request.  The response body SHOULD include enough
-	  ;; information for the user to recognize the source of the
-	  ;; conflict.
-	  (setq success t))
-	 (gone                          ; 410
-	  ;; The requested resource is no longer available at the
-	  ;; server and no forwarding address is known.
-	  (setq success t))
-	 (length-required		; 411
-	  ;; The server refuses to accept the request without a defined
-	  ;; Content-Length.  The client MAY repeat the request if it
-	  ;; adds a valid Content-Length header field containing the
-	  ;; length of the message-body in the request message.
-	  ;;
-	  ;; NOTE - this will never happen because
-	  ;; `url-http-create-request' automatically calculates the
-	  ;; content-length.
-	  (setq success t))
-	 (precondition-failed		; 412
-	  ;; The precondition given in one or more of the
-	  ;; request-header fields evaluated to false when it was
-	  ;; tested on the server.
-	  (setq success t))
-	 ((request-entity-too-large request-uri-too-large) ; 413 414
-	  ;; The server is refusing to process a request because the
-	  ;; request entity|URI is larger than the server is willing or
-	  ;; able to process.
-	  (setq success t))
-	 (unsupported-media-type	; 415
-	  ;; The server is refusing to service the request because the
-	  ;; entity of the request is in a format not supported by the
-	  ;; requested resource for the requested method.
-	  (setq success t))
-	 (requested-range-not-satisfiable ; 416
-	  ;; A server SHOULD return a response with this status code if
-	  ;; a request included a Range request-header field, and none
-	  ;; of the range-specifier values in this field overlap the
-	  ;; current extent of the selected resource, and the request
-	  ;; did not include an If-Range request-header field.
-	  (setq success t))
-	 (expectation-failed		; 417
-	  ;; The expectation given in an Expect request-header field
-	  ;; could not be met by this server, or, if the server is a
-	  ;; proxy, the server has unambiguous evidence that the
-	  ;; request could not be met by the next-hop server.
-	  (setq success t))
-	 (otherwise
-	  ;; The request could not be understood by the server due to
-	  ;; malformed syntax.  The client SHOULD NOT repeat the
-	  ;; request without modifications.
-	  (setq success t)))
+       (setq success
+             (pcase status-symbol
+               (`unauthorized			; 401
+                ;; The request requires user authentication.  The response
+                ;; MUST include a WWW-Authenticate header field containing a
+                ;; challenge applicable to the requested resource.  The
+                ;; client MAY repeat the request with a suitable
+                ;; Authorization header field.
+                (url-http-handle-authentication nil))
+               (`payment-required              ; 402
+                ;; This code is reserved for future use
+                (url-mark-buffer-as-dead buffer)
+                (error "Somebody wants you to give them money"))
+               (`forbidden			; 403
+                ;; The server understood the request, but is refusing to
+                ;; fulfill it.  Authorization will not help and the request
+                ;; SHOULD NOT be repeated.
+                t)
+               (`not-found			; 404
+                ;; Not found
+                t)
+               (`method-not-allowed		; 405
+                ;; The method specified in the Request-Line is not allowed
+                ;; for the resource identified by the Request-URI.  The
+                ;; response MUST include an Allow header containing a list of
+                ;; valid methods for the requested resource.
+                t)
+               (`not-acceptable		; 406
+                ;; The resource identified by the request is only capable of
+                ;; generating response entities which have content
+                ;; characteristics not acceptable according to the accept
+                ;; headers sent in the request.
+                t)
+               (`proxy-authentication-required ; 407
+                ;; This code is similar to 401 (Unauthorized), but indicates
+                ;; that the client must first authenticate itself with the
+                ;; proxy.  The proxy MUST return a Proxy-Authenticate header
+                ;; field containing a challenge applicable to the proxy for
+                ;; the requested resource.
+                (url-http-handle-authentication t))
+               (`request-timeout		; 408
+                ;; The client did not produce a request within the time that
+                ;; the server was prepared to wait.  The client MAY repeat
+                ;; the request without modifications at any later time.
+                t)
+               (`conflict			; 409
+                ;; The request could not be completed due to a conflict with
+                ;; the current state of the resource.  This code is only
+                ;; allowed in situations where it is expected that the user
+                ;; might be able to resolve the conflict and resubmit the
+                ;; request.  The response body SHOULD include enough
+                ;; information for the user to recognize the source of the
+                ;; conflict.
+                t)
+               (`gone                          ; 410
+                ;; The requested resource is no longer available at the
+                ;; server and no forwarding address is known.
+                t)
+               (`length-required		; 411
+                ;; The server refuses to accept the request without a defined
+                ;; Content-Length.  The client MAY repeat the request if it
+                ;; adds a valid Content-Length header field containing the
+                ;; length of the message-body in the request message.
+                ;;
+                ;; NOTE - this will never happen because
+                ;; `url-http-create-request' automatically calculates the
+                ;; content-length.
+                t)
+               (`precondition-failed		; 412
+                ;; The precondition given in one or more of the
+                ;; request-header fields evaluated to false when it was
+                ;; tested on the server.
+                t)
+               ((or `request-entity-too-large `request-uri-too-large) ; 413 414
+                ;; The server is refusing to process a request because the
+                ;; request entity|URI is larger than the server is willing or
+                ;; able to process.
+                t)
+               (`unsupported-media-type	; 415
+                ;; The server is refusing to service the request because the
+                ;; entity of the request is in a format not supported by the
+                ;; requested resource for the requested method.
+                t)
+               (`requested-range-not-satisfiable ; 416
+                ;; A server SHOULD return a response with this status code if
+                ;; a request included a Range request-header field, and none
+                ;; of the range-specifier values in this field overlap the
+                ;; current extent of the selected resource, and the request
+                ;; did not include an If-Range request-header field.
+                t)
+               (`expectation-failed		; 417
+                ;; The expectation given in an Expect request-header field
+                ;; could not be met by this server, or, if the server is a
+                ;; proxy, the server has unambiguous evidence that the
+                ;; request could not be met by the next-hop server.
+                t)
+               (_
+                ;; The request could not be understood by the server due to
+                ;; malformed syntax.  The client SHOULD NOT repeat the
+                ;; request without modifications.
+                t)))
        ;; Tell the callback that an error occurred, and what the
        ;; status code was.
        (when success
@@ -797,17 +801,17 @@ should be shown to the user."
        ;; 505 HTTP version not supported
        ;; 507 Insufficient storage
        (setq success t)
-       (case url-http-response-status
-	 (not-implemented		; 501
+       (pcase url-http-response-status
+	 (`not-implemented		; 501
 	  ;; The server does not support the functionality required to
 	  ;; fulfill the request.
 	  nil)
-	 (bad-gateway			; 502
+	 (`bad-gateway			; 502
 	  ;; The server, while acting as a gateway or proxy, received
 	  ;; an invalid response from the upstream server it accessed
 	  ;; in attempting to fulfill the request.
 	  nil)
-	 (service-unavailable		; 503
+	 (`service-unavailable		; 503
 	  ;; The server is currently unable to handle the request due
 	  ;; to a temporary overloading or maintenance of the server.
 	  ;; The implication is that this is a temporary condition
@@ -816,19 +820,19 @@ should be shown to the user."
 	  ;; header.  If no Retry-After is given, the client SHOULD
 	  ;; handle the response as it would for a 500 response.
 	  nil)
-	 (gateway-timeout		; 504
+	 (`gateway-timeout		; 504
 	  ;; The server, while acting as a gateway or proxy, did not
 	  ;; receive a timely response from the upstream server
 	  ;; specified by the URI (e.g. HTTP, FTP, LDAP) or some other
 	  ;; auxiliary server (e.g. DNS) it needed to access in
 	  ;; attempting to complete the request.
 	  nil)
-	 (http-version-not-supported	; 505
+	 (`http-version-not-supported	; 505
 	  ;; The server does not support, or refuses to support, the
 	  ;; HTTP protocol version that was used in the request
 	  ;; message.
 	  nil)
-	 (insufficient-storage		; 507 (DAV)
+	 (`insufficient-storage		; 507 (DAV)
 	  ;; The method could not be performed on the resource
 	  ;; because the server is unable to store the representation
 	  ;; needed to successfully complete the request.  This
@@ -843,21 +847,32 @@ should be shown to the user."
 	 (setf (car url-callback-arguments)
 	       (nconc (list :error (list 'error 'http url-http-response-status))
 		      (car url-callback-arguments)))))
-      (otherwise
+      (_
        (error "Unknown class of HTTP response code: %d (%d)"
 	      class url-http-response-status)))
     (if (not success)
-	(url-mark-buffer-as-dead buffer))
+	(url-mark-buffer-as-dead buffer)
+      (url-handle-content-transfer-encoding))
     (url-http-debug "Finished parsing HTTP headers: %S" success)
     (widen)
+    (goto-char (point-min))
     success))
+
+(defun url-handle-content-transfer-encoding ()
+  (let ((encoding (mail-fetch-field "content-encoding")))
+    (when (and encoding
+	       (fboundp 'zlib-decompress-region)
+	       (zlib-available-p)
+	       (equal (downcase encoding) "gzip"))
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(when (search-forward "\n\n")
+	  (zlib-decompress-region (point) (point-max)))))))
 
 ;; Miscellaneous
 (defun url-http-activate-callback ()
   "Activate callback specified when this buffer was created."
-  (declare (special url-http-process
-		    url-callback-function
-		    url-callback-arguments))
   (url-http-mark-connection-as-free (url-host url-current-object)
 				    (url-port url-current-object)
 				    url-http-process)
@@ -891,15 +906,17 @@ should be shown to the user."
 		 (url-http-activate-callback)
 	       ;; Call `url-http' again if our connection expired.
 	       (erase-buffer)
-	       (url-http url-current-object url-callback-function
-			 url-callback-arguments (current-buffer))))
+               (let ((url-request-method url-http-method)
+                     (url-request-extra-headers url-http-extra-headers)
+                     (url-request-data url-http-data))
+                 (url-http url-current-object url-callback-function
+                           url-callback-arguments (current-buffer)))))
 	    ((url-http-parse-headers)
 	     (url-http-activate-callback))))))
 
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
   ;; Just _very_ simple 'downloaded %d' type of info.
-  (declare (special url-http-end-of-headers))
   (url-lazy-message "Reading %s..." (url-pretty-length nd)))
 
 (defun url-http-content-length-after-change-function (st nd length)
@@ -907,11 +924,6 @@ should be shown to the user."
 More sophisticated percentage downloaded, etc.
 Also does minimal parsing of HTTP headers and will actually cause
 the callback to be triggered."
-  (declare (special url-current-object
-		    url-http-end-of-headers
-		    url-http-content-length
-		    url-http-content-type
-		    url-http-process))
   (if url-http-content-type
       (url-display-percentage
        "Reading [%s]... %s of %s (%d%%)"
@@ -944,12 +956,6 @@ the callback to be triggered."
 Cannot give a sophisticated percentage, but we need a different
 function to look for the special 0-length chunk that signifies
 the end of the document."
-  (declare (special url-current-object
-		    url-http-end-of-headers
-		    url-http-content-type
-		    url-http-chunked-length
-		    url-http-chunked-counter
-		    url-http-process url-http-chunked-start))
   (save-excursion
     (goto-char st)
     (let ((read-next-chunk t)
@@ -1035,17 +1041,6 @@ the end of the document."
 (defun url-http-wait-for-headers-change-function (st nd length)
   ;; This will wait for the headers to arrive and then splice in the
   ;; next appropriate after-change-function, etc.
-  (declare (special url-current-object
-		    url-http-end-of-headers
-		    url-http-content-type
-		    url-http-content-length
-		    url-http-transfer-encoding
-		    url-callback-function
-		    url-callback-arguments
-		    url-http-process
-		    url-http-method
-		    url-http-after-change-function
-		    url-http-response-status))
   (url-http-debug "url-http-wait-for-headers-change-function (%s)"
 		  (buffer-name))
   (let ((end-of-headers nil)
@@ -1061,7 +1056,9 @@ the end of the document."
 	  (setq end-of-headers t
 		url-http-end-of-headers 0
 		old-http t)
-	(when (re-search-forward "^\r*$" nil t)
+	;; Blank line at end of headers.
+	(when (re-search-forward "^\r?\n" nil t)
+	  (backward-char 1)
 	  ;; Saw the end of the headers
 	  (url-http-debug "Saw end of headers... (%s)" (buffer-name))
 	  (setq url-http-end-of-headers (set-marker (make-marker)
@@ -1171,37 +1168,25 @@ the end of the document."
     (when (eq process-buffer (current-buffer))
       (goto-char (point-max)))))
 
-;;;###autoload
 (defun url-http (url callback cbargs &optional retry-buffer)
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
-When retrieval is completed, the function CALLBACK is executed with
-CBARGS as the arguments.
+
+When retrieval is completed, execute the function CALLBACK, using
+the arguments listed in CBARGS.  The first element in CBARGS
+should be a plist describing what has happened so far during the
+request, as described in the docstring of `url-retrieve' (if in
+doubt, specify nil).
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
 previous `url-http' call, which is being re-attempted."
-  (check-type url vector "Need a pre-parsed URL.")
-  (declare (special url-current-object
-		    url-http-end-of-headers
-		    url-http-content-type
-		    url-http-content-length
-		    url-http-transfer-encoding
-		    url-http-after-change-function
-		    url-callback-function
-		    url-callback-arguments
-		    url-show-status
-		    url-http-method
-		    url-http-extra-headers
-		    url-http-data
-		    url-http-chunked-length
-		    url-http-chunked-start
-		    url-http-chunked-counter
-		    url-http-process))
+  (cl-check-type url vector "Need a pre-parsed URL.")
   (let* ((host (url-host (or url-using-proxy url)))
 	 (port (url-port (or url-using-proxy url)))
 	 (connection (url-http-find-free-connection host port))
 	 (buffer (or retry-buffer
-		     (generate-new-buffer (format " *http %s:%d*" host port)))))
+		     (generate-new-buffer
+                      (format " *http %s:%d*" host port)))))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
@@ -1253,21 +1238,20 @@ previous `url-http' call, which is being re-attempted."
 
 	(set-process-buffer connection buffer)
 	(set-process-filter connection 'url-http-generic-filter)
-	(let ((status (process-status connection)))
-	  (cond
-	   ((eq status 'connect)
-	    ;; Asynchronous connection
-	    (set-process-sentinel connection 'url-http-async-sentinel))
-	   ((eq status 'failed)
-	    ;; Asynchronous connection failed
-	    (error "Could not create connection to %s:%d" host port))
-	   (t
-	    (set-process-sentinel connection 'url-http-end-of-document-sentinel)
-	    (process-send-string connection (url-http-create-request)))))))
+	(pcase (process-status connection)
+          (`connect
+           ;; Asynchronous connection
+           (set-process-sentinel connection 'url-http-async-sentinel))
+          (`failed
+           ;; Asynchronous connection failed
+           (error "Could not create connection to %s:%d" host port))
+          (_
+           (set-process-sentinel connection
+                                 'url-http-end-of-document-sentinel)
+           (process-send-string connection (url-http-create-request))))))
     buffer))
 
 (defun url-http-async-sentinel (proc why)
-  (declare (special url-callback-arguments))
   ;; We are performing an asynchronous connection, and a status change
   ;; has occurred.
   (when (buffer-name (process-buffer proc))
@@ -1302,7 +1286,6 @@ previous `url-http' call, which is being re-attempted."
   ;; Sometimes we get a zero-length data chunk after the process has
   ;; been changed to 'free', which means it has no buffer associated
   ;; with it.  Do nothing if there is no buffer, or 0 length data.
-  (declare (special url-http-after-change-function))
   (and (process-buffer proc)
        (/= (length data) 0)
        (with-current-buffer (process-buffer proc)
@@ -1333,21 +1316,16 @@ previous `url-http' call, which is being re-attempted."
 	(url-request-data nil))
     (url-retrieve-synchronously url)))
 
-;;;###autoload
 (defun url-http-file-exists-p (url)
-  (let ((status nil)
-	(exists nil)
-	(buffer (url-http-head url)))
-    (if (not buffer)
-	(setq exists nil)
-      (setq status (url-http-symbol-value-in-buffer 'url-http-response-status
-						    buffer 500)
-	    exists (and (integerp status)
-			(>= status 200) (< status 300)))
-      (kill-buffer buffer))
-    exists))
+  (let ((buffer (url-http-head url)))
+    (when buffer
+      (let ((status (url-http-symbol-value-in-buffer 'url-http-response-status
+                                                     buffer 500)))
+        (prog1
+            (and (integerp status)
+                 (>= status 200) (< status 300))
+          (kill-buffer buffer))))))
 
-;;;###autoload
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 
 (defun url-http-head-file-attributes (url &optional id-format)
@@ -1367,13 +1345,11 @@ previous `url-http' call, which is being re-attempted."
 
 (declare-function url-dav-file-attributes "url-dav" (url &optional id-format))
 
-;;;###autoload
 (defun url-http-file-attributes (url &optional id-format)
   (if (url-dav-supported-p url)
       (url-dav-file-attributes url id-format)
     (url-http-head-file-attributes url id-format)))
 
-;;;###autoload
 (defun url-http-options (url)
   "Return a property list describing options available for URL.
 This list is retrieved using the `OPTIONS' HTTP method.
@@ -1451,9 +1427,7 @@ p3p
 ;; with url-http.el on systems with 8-character file names.
 (require 'tls)
 
-;;;###autoload
 (defconst url-https-default-port 443 "Default HTTPS port.")
-;;;###autoload
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
 
 ;; FIXME what is the point of this alias being an autoload?

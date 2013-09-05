@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
 @chapter Major and Minor Modes
@@ -70,9 +71,9 @@ called.  You can use @code{add-hook} to add a function to an abnormal
 hook, but you must write the function to follow the hook's calling
 convention.
 
-  By convention, abnormal hook names end in @samp{-functions} or
-@samp{-hooks}.  If the variable's name ends in @samp{-function}, then
-its value is just a single function, not a list of functions.
+  By convention, abnormal hook names end in @samp{-functions}.  If the
+variable's name ends in @samp{-function}, then its value is just a single
+function, not a list of functions.
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -612,7 +613,7 @@ variables section specifying a mode for that particular file.  This
 should not be applied to the containing tar file.  Similarly, a tiff
 image file might just happen to contain a first line that seems to
 match the @w{@samp{-*-}} pattern.  For these reasons, both these file
-extensions are members of the list @var{inhibit-local-variables-regexps}.
+extensions are members of the list @code{inhibit-local-variables-regexps}.
 Add patterns to this list to prevent Emacs searching them for local
 variables of any kind (not just mode specifiers).
 
@@ -865,7 +866,7 @@ derived from any of the major modes given by the symbols @var{modes}.
 
   Apart from Fundamental mode, there are three major modes that other
 major modes commonly derive from: Text mode, Prog mode, and Special
-mode.  While Text mode is useful in its own right (e.g. for editing
+mode.  While Text mode is useful in its own right (e.g., for editing
 files ending in @file{.txt}), Prog mode and Special mode exist mainly to
 let other modes derive from them.
 
@@ -873,8 +874,8 @@ let other modes derive from them.
   As far as possible, new major modes should be derived, either directly
 or indirectly, from one of these three modes.  One reason is that this
 allows users to customize a single mode hook
-(e.g. @code{prog-mode-hook}) for an entire family of relevant modes
-(e.g. all programming language modes).
+(e.g., @code{prog-mode-hook}) for an entire family of relevant modes
+(e.g., all programming language modes).
 
 @deffn Command text-mode
 Text mode is a major mode for editing human languages.  It defines the
@@ -904,9 +905,8 @@ modes derived from Special mode are given a @code{mode-class} property
 of @code{special} (@pxref{Major Mode Conventions}).
 
 Special mode sets the buffer to read-only.  Its keymap defines several
-common bindings, including @kbd{q} for @code{quit-window}, @kbd{z} for
-@code{kill-this-buffer}, and @kbd{g} for @code{revert-buffer}
-(@pxref{Reverting}).
+common bindings, including @kbd{q} for @code{quit-window} and @kbd{g}
+for @code{revert-buffer} (@pxref{Reverting}).
 
 An example of a major mode derived from Special mode is Buffer Menu
 mode, which is used by the @file{*Buffer List*} buffer.  @xref{List
@@ -981,7 +981,7 @@ very end of every properly-written major mode command.
 @cindex Tabulated List mode
 
   Tabulated List mode is a major mode for displaying tabulated data,
-i.e.@: data consisting of @dfn{entries}, each entry occupying one row of
+i.e., data consisting of @dfn{entries}, each entry occupying one row of
 text with its contents divided into columns.  Tabulated List mode
 provides facilities for pretty-printing rows and columns, and sorting
 the rows according to the values in each column.  It is derived from
@@ -1002,7 +1002,7 @@ function @code{tabulated-list-init-header} to initialize the header
 line.
 
   The derived mode should also define a @dfn{listing command}.  This,
-not the mode command, is what the user calls (e.g.@: @kbd{M-x
+not the mode command, is what the user calls (e.g., @kbd{M-x
 list-processes}).  The listing command should create or switch to a
 buffer, turn on the derived mode, specify the tabulated data, and
 finally call @code{tabulated-list-print} to populate the buffer.
@@ -1234,8 +1234,8 @@ each calls the following function to set various variables:
 
 @smallexample
 @group
-(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
-  (when lisp-syntax
+(defun lisp-mode-variables (&optional syntax keywords-case-insensitive)
+  (when syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
   @dots{}
@@ -1308,9 +1308,9 @@ or to switch back to an existing one.
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
   (lisp-mode-variables nil t)
-  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip
+  (set (make-local-variable 'find-tag-default-function)
+       'lisp-find-tag-default)
+  (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 @end group
@@ -1360,7 +1360,7 @@ follow them is to use the macro @code{define-minor-mode}.
 @cindex mode variable
 Define a variable whose name ends in @samp{-mode}.  We call this the
 @dfn{mode variable}.  The minor mode command should set this variable.
-The value will be @code{nil} is the mode is disabled, and non-@code{nil}
+The value will be @code{nil} if the mode is disabled, and non-@code{nil}
 if the mode is enabled.  The variable should be buffer-local if the
 minor mode is buffer-local.
 
@@ -1378,11 +1378,11 @@ the mode's features.
 
 The mode command should accept one optional argument.  If called
 interactively with no prefix argument, it should toggle the mode
-(i.e.@: enable if it is disabled, and disable if it is enabled).  If
+(i.e., enable if it is disabled, and disable if it is enabled).  If
 called interactively with a prefix argument, it should enable the mode
 if the argument is positive and disable it otherwise.
 
-If the mode command is called from Lisp (i.e.@: non-interactively), it
+If the mode command is called from Lisp (i.e., non-interactively), it
 should enable the mode if the argument is omitted or @code{nil}; it
 should toggle the mode if the argument is the symbol @code{toggle};
 otherwise it should treat the argument in the same way as for an
@@ -1595,7 +1595,7 @@ of the mode.  If you specify this, the @var{mode} variable is not
 defined, and any @var{init-value} argument is unused.  @var{place}
 can be a different named variable (which you must define yourself), or
 anything that can be used with the @code{setf} function
-(@pxref{Generalized Variables,,, cl, Common Lisp Extensions}).
+(@pxref{Generalized Variables}).
 @var{place} can also be a cons @code{(@var{get} . @var{set})},
 where @var{get} is an expression that returns the current state,
 and @var{set} is a function of one argument (a state) that sets it.
@@ -1800,7 +1800,7 @@ display of the text just as they would text in the buffer.  Any
 characters which have no @code{face} properties are displayed, by
 default, in the face @code{mode-line} or @code{mode-line-inactive}
 (@pxref{Standard Faces,,, emacs, The GNU Emacs Manual}).  The
-@code{help-echo} and @code{local-map} properties in @var{string} have
+@code{help-echo} and @code{keymap} properties in @var{string} have
 special meanings.  @xref{Properties in Mode}.
 
 @item @var{symbol}
@@ -1843,9 +1843,9 @@ properties specified by @var{props} to the result.  The argument
 A list whose first element is a symbol that is not a keyword specifies
 a conditional.  Its meaning depends on the value of @var{symbol}.  If
 @var{symbol} has a non-@code{nil} value, the second element,
-@var{then}, is processed recursively as a mode line element.
+@var{then}, is processed recursively as a mode line construct.
 Otherwise, the third element, @var{else}, is processed recursively.
-You may omit @var{else}; then the mode line element displays nothing
+You may omit @var{else}; then the mode line construct displays nothing
 if the value of @var{symbol} is @code{nil} or void.
 
 @item (@var{width} @var{rest}@dots{})
@@ -2086,11 +2086,16 @@ specifies addition of text properties.
 @subsection @code{%}-Constructs in the Mode Line
 
   Strings used as mode line constructs can use certain
-@code{%}-constructs to substitute various kinds of data.  Here is a
-list of the defined @code{%}-constructs, and what they mean.  In any
-construct except @samp{%%}, you can add a decimal integer after the
-@samp{%} to specify a minimum field width.  If the width is less, the
-field is padded with spaces to the right.
+@code{%}-constructs to substitute various kinds of data.  The
+following is a list of the defined @code{%}-constructs, and what they
+mean.
+
+  In any construct except @samp{%%}, you can add a decimal integer
+after the @samp{%} to specify a minimum field width.  If the width is
+less, the field is padded to that width.  Purely numeric constructs
+(@samp{c}, @samp{i}, @samp{I}, and @samp{l}) are padded by inserting
+spaces to the left, and others are padded by inserting spaces to the
+right.
 
 @table @code
 @item %b
@@ -2143,11 +2148,6 @@ visible on screen; or @samp{Bottom} or @samp{All}.
 @item %s
 The status of the subprocess belonging to the current buffer, obtained with
 @code{process-status}.  @xref{Process Information}.
-
-@item %t
-Whether the visited file is a text file or a binary file.  This is a
-meaningful distinction only on certain operating systems (@pxref{MS-DOS
-File Types}).
 
 @item %z
 The mnemonics of keyboard, terminal, and buffer coding systems.
@@ -2205,7 +2205,7 @@ The value of @code{global-mode-string}.
   Certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
 @code{help-echo} property associates help strings with the text, and
-@code{local-map} can make the text mouse-sensitive.
+@code{keymap} can make the text mouse-sensitive.
 
   There are four ways to specify text properties for text in the mode
 line:
@@ -2229,7 +2229,7 @@ structure, and make @var{form} evaluate to a string that has a text
 property.
 @end enumerate
 
-  You can use the @code{local-map} property to specify a keymap.  This
+  You can use the @code{keymap} property to specify a keymap.  This
 keymap only takes real effect for mouse clicks; binding character keys
 and function keys to it has no effect, since it is impossible to move
 point into the mode line.
@@ -3080,7 +3080,7 @@ for comments.
 
 @item font-lock-comment-delimiter-face
 @vindex font-lock-comment-delimiter-face
-for comments delimiters, like @samp{/*} and @samp{*/} in C.  On most
+for comments delimiters, like @samp{/*} and @samp{*/} in C@.  On most
 terminals, this inherits from @code{font-lock-comment-face}.
 
 @item font-lock-type-face
@@ -3158,7 +3158,7 @@ outside of any comment, string, or sexp (@pxref{Position Parse}).
 
 This variable is semi-obsolete; we usually recommend setting
 @code{syntax-begin-function} instead.  One of its uses is to tune the
-behavior of syntactic fontification, e.g.@: to ensure that different
+behavior of syntactic fontification, e.g., to ensure that different
 kinds of strings or comments are highlighted differently.
 
 The specified function is called with no arguments.  It should leave
@@ -3381,6 +3381,7 @@ of Lisp sexps and adapts it to non-Lisp languages.
 
 @node SMIE
 @subsection Simple Minded Indentation Engine
+@cindex SMIE
 
 SMIE is a package that provides a generic navigation and indentation
 engine.  Based on a very simple parser using an ``operator precedence
@@ -3534,7 +3535,7 @@ T1 = T2, or T1 > T2.
 @item
 A token can be an @code{opener} (something similar to an open-paren),
 a @code{closer} (like a close-paren), or @code{neither} of the two
-(e.g. an infix operator, or an inner token like @code{"else"}).
+(e.g., an infix operator, or an inner token like @code{"else"}).
 @end itemize
 
 Precedence conflicts can be resolved via @var{resolvers}, which
@@ -3548,6 +3549,8 @@ simply ignored.
 
 @node SMIE Grammar
 @subsubsection Defining the Grammar of a Language
+@cindex SMIE grammar
+@cindex grammar, SMIE
 
 The usual way to define the SMIE grammar of a language is by
 defining a new global variable that holds the precedence table by
@@ -3623,6 +3626,8 @@ formally as left associative.
 
 @node SMIE Lexer
 @subsubsection Defining Tokens
+@cindex SMIE lexer
+@cindex defining tokens, SMIE
 
 SMIE comes with a predefined lexical analyzer which uses syntax tables
 in the following way: any sequence of characters that have word or
@@ -3747,7 +3752,7 @@ Finally, in many cases some conflicts will remain despite all efforts to
 restructure the grammar.  Do not despair: while the parser cannot be
 made more clever, you can make the lexer as smart as you want.  So, the
 solution is then to look at the tokens involved in the conflict and to
-split one of those tokens into 2 (or more) different tokens.  E.g. if
+split one of those tokens into 2 (or more) different tokens.  E.g., if
 the grammar needs to distinguish between two incompatible uses of the
 token @code{"begin"}, make the lexer return different tokens (say
 @code{"begin-fun"} and @code{"begin-plain"}) depending on which kind of
@@ -3757,6 +3762,7 @@ surrounding text to find ad-hoc clues.
 
 @node SMIE Indentation
 @subsubsection Specifying Indentation Rules
+@cindex indentation rules, SMIE
 
 Based on the provided grammar, SMIE will be able to provide automatic
 indentation without any extra effort.  But in practice, this default
@@ -3878,7 +3884,7 @@ Indent current token as a @emph{separator}.
 
 By @emph{separator}, we mean here a token whose sole purpose is to
 separate various elements within some enclosing syntactic construct, and
-which does not have any semantic significance in itself (i.e. it would
+which does not have any semantic significance in itself (i.e., it would
 typically not exist as a node in an abstract syntax tree).
 
 Such a token is expected to have an associative syntax and be closely
@@ -4034,4 +4040,3 @@ and it should return the restored buffer.
 Here @var{desktop-buffer-misc} is the value returned by the function
 optionally bound to @code{desktop-save-buffer}.
 @end defvar
-

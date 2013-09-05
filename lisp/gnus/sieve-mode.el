@@ -1,6 +1,6 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs
 
-;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -131,14 +131,17 @@
   (eval-when-compile
     (list
      ;; control commands
-     (cons (regexp-opt '("require" "if" "else" "elsif" "stop"))
+     (cons (regexp-opt '("require" "if" "else" "elsif" "stop")
+                       'words)
 	   'sieve-control-commands-face)
      ;; action commands
-     (cons (regexp-opt '("fileinto" "redirect" "reject" "keep" "discard"))
+     (cons (regexp-opt '("fileinto" "redirect" "reject" "keep" "discard")
+                       'words)
 	   'sieve-action-commands-face)
      ;; test commands
      (cons (regexp-opt '("address" "allof" "anyof" "exists" "false"
-			 "true" "header" "not" "size" "envelope"))
+			 "true" "header" "not" "size" "envelope")
+                       'words)
 	   'sieve-test-commands-face)
      (cons "\\Sw+:\\sw+"
 	   'sieve-tagged-arguments-face))))
@@ -173,7 +176,7 @@
 (defvar sieve-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-l" 'sieve-upload)
-    (define-key map "\C-c\C-c" 'sieve-upload-and-bury)
+    (define-key map "\C-c\C-c" 'sieve-upload-and-kill)
     (define-key map "\C-c\C-m" 'sieve-manage)
     map)
   "Key map used in sieve mode.")

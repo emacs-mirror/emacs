@@ -1,6 +1,6 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990, 1991, 1992, 1993, 1995, 1996, 1999, 2002, 2003, 2004,
-                 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013 Free
+   Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
@@ -14,16 +14,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifdef	HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifdef HAVE_PTHREAD
 #define USE_PTHREAD
@@ -36,6 +32,10 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 
 #ifdef USE_PTHREAD
 #include <pthread.h>
+#endif
+
+#ifdef WINDOWSNT
+#include <w32heap.h>	/* for sbrk */
 #endif
 
 #ifdef	__cplusplus
@@ -290,9 +290,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -462,7 +460,7 @@ get_contiguous_space (ptrdiff_t size, void *position)
 /* This is called when `_heapinfo' and `heapsize' have just
    been set to describe a new info table.  Set up the table
    to describe itself and account for it in the statistics.  */
-static inline void
+static void
 register_heapinfo (void)
 {
   size_t block, blocks;
@@ -970,9 +968,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1284,14 +1280,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
+#ifndef min
 #define min(A, B) ((A) < (B) ? (A) : (B))
+#endif
 
 /* On Cygwin the dumped emacs may try to realloc storage allocated in
    the static heap.  We just malloc space in the new heap and copy the
@@ -1483,9 +1479,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1516,9 +1510,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the GNU C Library; see the file COPYING.  If not, write to
-the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.  */
+along with the GNU C Library.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* uClibc defines __GNU_LIBRARY__, but it is not completely
    compatible.  */
@@ -1562,9 +1554,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.  */
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.  */
 
 void *(*__memalign_hook) (size_t size, size_t alignment);
 
@@ -1618,7 +1608,7 @@ memalign (size_t alignment, size_t size)
 	  break;
       if (l == NULL)
 	{
-	  l = malloc (sizeof (struct alignlist));
+	  l = malloc (sizeof *l);
 	  if (l != NULL)
 	    {
 	      l->next = _aligned_blocks;
@@ -1640,14 +1630,6 @@ memalign (size_t alignment, size_t size)
 
   return result;
 }
-
-#ifndef ENOMEM
-#define ENOMEM 12
-#endif
-
-#ifndef EINVAL
-#define EINVAL 22
-#endif
 
 int
 posix_memalign (void **memptr, size_t alignment, size_t size)
@@ -1682,17 +1664,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
-
-/* Emacs defines GMALLOC_INHIBIT_VALLOC to avoid this definition
-   on MSDOS, where it conflicts with a system header file.  */
-
-#ifndef	GMALLOC_INHIBIT_VALLOC
 
 /* Allocate SIZE bytes on a page boundary.  */
 extern void *valloc (size_t);
@@ -1714,8 +1689,6 @@ valloc (size_t size)
   return memalign (pagesize, size);
 }
 
-#endif	/* Not ELIDE_VALLOC.  */
-
 #ifdef GC_MCHECK
 
 /* Standard debugging hooks for `malloc'.
@@ -1733,9 +1706,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1813,7 +1784,7 @@ mallochook (size_t size)
   struct hdr *hdr;
 
   __malloc_hook = old_malloc_hook;
-  hdr = malloc (sizeof (struct hdr) + size + 1);
+  hdr = malloc (sizeof *hdr + size + 1);
   __malloc_hook = mallochook;
   if (hdr == NULL)
     return NULL;
@@ -1844,7 +1815,7 @@ reallochook (void *ptr, size_t size)
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;
-  hdr = realloc (hdr, sizeof (struct hdr) + size + 1);
+  hdr = realloc (hdr, sizeof *hdr + size + 1);
   __free_hook = freehook;
   __malloc_hook = mallochook;
   __realloc_hook = reallochook;

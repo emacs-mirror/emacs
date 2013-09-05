@@ -1,6 +1,7 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
 
-;; Copyright (C) 1988, 1994, 1997, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1997, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: FSF
@@ -169,22 +170,22 @@ The following commands are available:
 
 A Scheme process can be fired up with M-x run-scheme.
 
-Customization: Entry to this mode runs the hooks on comint-mode-hook and
-inferior-scheme-mode-hook (in that order).
+Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
+`inferior-scheme-mode-hook' (in that order).
 
 You can send text to the inferior Scheme process from other buffers containing
 Scheme source.
-    switch-to-scheme switches the current buffer to the Scheme process buffer.
-    scheme-send-definition sends the current definition to the Scheme process.
-    scheme-compile-definition compiles the current definition.
-    scheme-send-region sends the current region to the Scheme process.
-    scheme-compile-region compiles the current region.
+    `switch-to-scheme' switches the current buffer to the Scheme process buffer.
+    `scheme-send-definition' sends the current definition to the Scheme process.
+    `scheme-compile-definition' compiles the current definition.
+    `scheme-send-region' sends the current region to the Scheme process.
+    `scheme-compile-region' compiles the current region.
 
-    scheme-send-definition-and-go, scheme-compile-definition-and-go,
-        scheme-send-region-and-go, and scheme-compile-region-and-go
+    `scheme-send-definition-and-go', `scheme-compile-definition-and-go',
+        `scheme-send-region-and-go', and `scheme-compile-region-and-go'
         switch to the Scheme process buffer after sending their text.
 For information on running multiple processes in multiple buffers, see
-documentation for variable scheme-buffer.
+documentation for variable `scheme-buffer'.
 
 Commands:
 Return after the end of the process' output sends the text from the
@@ -213,7 +214,7 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
 
 (defun scheme-input-filter (str)
   "Don't save anything matching `inferior-scheme-filter-regexp'."
-  (not (string-match inferior-scheme-filter-regexp str)))
+  (not (string-match-p inferior-scheme-filter-regexp str)))
 
 (defun scheme-get-old-input ()
   "Snarf the sexp ending at point."
@@ -232,7 +233,7 @@ If the file `~/.emacs_SCHEMENAME' or `~/.emacs.d/init_SCHEMENAME.scm' exists,
 it is given as initial input.
 Note that this may lose due to a timing error if the Scheme processor
 discards input when it starts up.
-Runs the hook `inferior-scheme-mode-hook' \(after the `comint-mode-hook'
+Runs the hook `inferior-scheme-mode-hook' (after the `comint-mode-hook'
 is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
@@ -250,8 +251,8 @@ is run).
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.
-Search in the directories \"~\" and \"~/.emacs.d\", in this
-order.  Return nil if no start file found."
+Search in the directories \"~\" and `user-emacs-directory',
+in this order.  Return nil if no start file found."
   (let* ((progname (file-name-nondirectory prog))
 	 (start-file (concat "~/.emacs_" progname))
 	 (alt-start-file (concat user-emacs-directory "init_" progname ".scm")))
@@ -366,7 +367,7 @@ For Scheme 48 and Scsh use \",expand %s\"."
         (scheme-form-at-point)))))
 
 (defun switch-to-scheme (eob-p)
-  "Switch to the scheme process buffer.
+  "Switch to the Scheme process buffer.
 With argument, position cursor at end of buffer."
   (interactive "P")
   (if (or (and scheme-buffer (get-buffer scheme-buffer))
@@ -446,7 +447,7 @@ in the next one.")
 					    "\"\)\n")))
 
 
-(defvar scheme-buffer nil "*The current scheme process buffer.
+(defvar scheme-buffer nil "The current scheme process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
@@ -477,8 +478,8 @@ This process selection is performed by function `scheme-proc'.
 
 Whenever \\[run-scheme] fires up a new process, it resets `scheme-buffer'
 to be the new process's buffer.  If you only run one process, this will
-do the right thing.  If you run multiple processes, you can change
-`scheme-buffer' to another process buffer with \\[set-variable].
+do the right thing.  If you run multiple processes, you might need to
+set `scheme-buffer' to whichever process buffer you want to use.
 
 More sophisticated approaches are, of course, possible.  If you find yourself
 needing to switch back and forth between multiple processes frequently,

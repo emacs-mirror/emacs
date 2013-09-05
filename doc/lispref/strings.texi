@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
 @chapter Strings and Characters
@@ -35,28 +35,31 @@ keyboard character events.
 @node String Basics
 @section String and Character Basics
 
-  Characters are represented in Emacs Lisp as integers;
-whether an integer is a character or not is determined only by how it is
-used.  Thus, strings really contain integers.  @xref{Character Codes},
-for details about character representation in Emacs.
+  A character is a Lisp object which represents a single character of
+text.  In Emacs Lisp, characters are simply integers; whether an
+integer is a character or not is determined only by how it is used.
+@xref{Character Codes}, for details about character representation in
+Emacs.
 
-  The length of a string (like any array) is fixed, and cannot be
-altered once the string exists.  Strings in Lisp are @emph{not}
-terminated by a distinguished character code.  (By contrast, strings in
-C are terminated by a character with @acronym{ASCII} code 0.)
+  A string is a fixed sequence of characters.  It is a type of
+sequence called a @dfn{array}, meaning that its length is fixed and
+cannot be altered once it is created (@pxref{Sequences Arrays
+Vectors}).  Unlike in C, Emacs Lisp strings are @emph{not} terminated
+by a distinguished character code.
 
   Since strings are arrays, and therefore sequences as well, you can
-operate on them with the general array and sequence functions.
-(@xref{Sequences Arrays Vectors}.)  For example, you can access or
-change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).  However, note that
-@code{length} should @emph{not} be used for computing the width of a
-string on display; use @code{string-width} (@pxref{Width}) instead.
+operate on them with the general array and sequence functions
+documented in @ref{Sequences Arrays Vectors}.  For example, you can
+access or change individual characters in a string using the functions
+@code{aref} and @code{aset} (@pxref{Array Functions}).  However, note
+that @code{length} should @emph{not} be used for computing the width
+of a string on display; use @code{string-width} (@pxref{Width})
+instead.
 
-  There are two text representations for non-@acronym{ASCII} characters in
-Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  For most Lisp programming, you don't need to be
-concerned with these two representations.
+  There are two text representations for non-@acronym{ASCII}
+characters in Emacs strings (and in buffers): unibyte and multibyte.
+For most Lisp programming, you don't need to be concerned with these
+two representations.  @xref{Text Representations}, for details.
 
   Sometimes key sequences are represented as unibyte strings.  When a
 unibyte string is a key sequence, string elements in the range 128 to
@@ -88,7 +91,7 @@ for information about the syntax of characters and strings.
 representations and to encode and decode character codes.
 
 @node Predicates for Strings
-@section The Predicates for Strings
+@section Predicates for Strings
 
 For more information about general sequence and array predicates,
 see @ref{Sequences Arrays Vectors}, and @ref{Arrays}.
@@ -514,25 +517,29 @@ comparison ignores case differences.
 @end defun
 
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
-This function compares the specified part of @var{string1} with the
+This function compares a specified part of @var{string1} with a
 specified part of @var{string2}.  The specified part of @var{string1}
-runs from index @var{start1} up to index @var{end1} (@code{nil} means
-the end of the string).  The specified part of @var{string2} runs from
-index @var{start2} up to index @var{end2} (@code{nil} means the end of
-the string).
+runs from index @var{start1} (inclusive) up to index @var{end1}
+(exclusive); @code{nil} for @var{start1} means the start of the
+string, while @code{nil} for @var{end1} means the length of the
+string.  Likewise, the specified part of @var{string2} runs from index
+@var{start2} up to index @var{end2}.
 
-The strings are both converted to multibyte for the comparison
-(@pxref{Text Representations}) so that a unibyte string and its
-conversion to multibyte are always regarded as equal.  If
-@var{ignore-case} is non-@code{nil}, then case is ignored, so that
-upper case letters can be equal to lower case letters.
+The strings are compared by the numeric values of their characters.
+For instance, @var{str1} is considered ``smaller than'' @var{str2} if
+its first differing character has a smaller numeric value.  If
+@var{ignore-case} is non-@code{nil}, characters are converted to
+lower-case before comparing them.  Unibyte strings are converted to
+multibyte for comparison (@pxref{Text Representations}), so that a
+unibyte string and its conversion to multibyte are always regarded as
+equal.
 
 If the specified portions of the two strings match, the value is
 @code{t}.  Otherwise, the value is an integer which indicates how many
-leading characters agree, and which string is less.  Its absolute value
-is one plus the number of characters that agree at the beginning of the
-two strings.  The sign is negative if @var{string1} (or its specified
-portion) is less.
+leading characters agree, and which string is less.  Its absolute
+value is one plus the number of characters that agree at the beginning
+of the two strings.  The sign is negative if @var{string1} (or its
+specified portion) is less.
 @end defun
 
 @defun assoc-string key alist &optional case-fold

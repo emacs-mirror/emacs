@@ -1,7 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -38,12 +38,17 @@
 ;; doc strings in the dumped Emacs.)  Because of this:
 
 ;; ii) If the file is loaded uncompiled, it should (where possible)
-;; obey the doc-string conventions expected by make-docfile.
+;; obey the doc-string conventions expected by make-docfile.  It
+;; should also be added to the uncompiled[] list in make-docfile.c.
 
 ;;; Code:
 
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
+;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
+;; Note that we reset load-path below just before dumping,
+;; since lread.c:init_lread checks for changes to load-path
+;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
 	(equal (nth 3 command-line-args) "unidata-gen.el")
@@ -61,7 +66,7 @@
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
-    (setq purify-flag (make-hash-table :test 'equal)))
+    (setq purify-flag (make-hash-table :test 'equal :size 70000)))
 
 (message "Using load-path %s" load-path)
 
@@ -98,18 +103,43 @@
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
+;; Load-time macro-expansion can only take effect after setting
+;; load-source-file-function because of where it is called in lread.c.
+(load "emacs-lisp/macroexp")
+(if (byte-code-function-p (symbol-function 'macroexpand-all))
+    nil
+  ;; Since loaddefs is not yet loaded, macroexp's uses of pcase will simply
+  ;; fail until pcase is explicitly loaded.  This also means that we have to
+  ;; disable eager macro-expansion while loading pcase.
+  (let ((macroexp--pending-eager-loads '(skip)))
+    (load "emacs-lisp/pcase"))
+  ;; Re-load macroexp so as to eagerly macro-expand its uses of pcase.
+  (load "emacs-lisp/macroexp"))
+
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
 
 (load "button")
 (load "startup")
 
+;; We don't want to store loaddefs.el in the repository because it is
+;; a generated file; but it is required in order to compile the lisp files.
+;; When bootstrapping, we cannot generate loaddefs.el until an
+;; emacs binary has been built.  We therefore compromise and keep
+;; ldefs-boot.el in the repository.  This does not need to be updated
+;; as often as the real loaddefs.el would.  Bootstrap should always
+;; work with ldefs-boot.el.  Therefore, Whenever a new autoload cookie
+;; gets added that is necessary during bootstrapping, ldefs-boot.el
+;; should be updated by overwriting it with an up-to-date copy of
+;; loaddefs.el that is uncorrupted by local changes.
+;; autogen/update_autogen can be used to periodically update ldefs-boot.
 (condition-case nil
     ;; Don't get confused if someone compiled this by mistake.
     (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
+(load "emacs-lisp/nadvice")
 (load "minibuffer")
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
@@ -177,11 +207,11 @@
 (load "rfn-eshadow")
 
 (load "menu-bar")
-(load "paths")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
+(load "progmodes/prog-mode")
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
@@ -210,15 +240,18 @@
       (load "term/common-win")
       (load "term/x-win")))
 
-(if (eq system-type 'windows-nt)
+(if (or (eq system-type 'windows-nt)
+        (featurep 'w32))
     (progn
-      (load "w32-vars")
       (load "term/common-win")
+      (load "w32-vars")
       (load "term/w32-win")
-      (load "ls-lisp")
       (load "disp-table")
-      (load "dos-w32")
-      (load "w32-fns")))
+      (load "w32-common-fns")
+      (when (eq system-type 'windows-nt)
+        (load "w32-fns")
+        (load "ls-lisp")
+        (load "dos-w32"))))
 (if (eq system-type 'ms-dos)
     (progn
       (load "dos-w32")
@@ -226,6 +259,7 @@
       (load "dos-vars")
       ;; Don't load term/common-win: it isn't appropriate for the `pc'
       ;; ``window system'', which generally behaves like a terminal.
+      (load "term/internal")
       (load "term/pc-win")
       (load "ls-lisp")
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
@@ -258,9 +292,12 @@
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
+	   (exelen (if (eq system-type 'windows-nt) -4))
 	   (files (file-name-all-completions base default-directory))
-	   (versions (mapcar (function (lambda (name)
-					 (string-to-number (substring name (length base)))))
+	   (versions (mapcar (function
+			      (lambda (name)
+				(string-to-number
+				 (substring name (length base) exelen))))
 			     files)))
       (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
                               (error nil)))
@@ -273,22 +310,10 @@
 (message "Finding pointers to doc strings...")
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))
-    (let ((name emacs-version))
-      (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			   "-"
-			   (substring name (match-end 0)))))
-      (if (memq system-type '(ms-dos windows-nt))
-	  (setq name (expand-file-name
-		      (if (fboundp 'x-create-frame) "DOC-X" "DOC") "../etc"))
-	(setq name (concat (expand-file-name "../etc/DOC-") name))
-	(if (file-exists-p name)
-	    (delete-file name))
-	(copy-file (expand-file-name "../etc/DOC") name t))
-      (Snarf-documentation (file-name-nondirectory name)))
-    (condition-case nil
-	(Snarf-documentation "DOC")
-      (error nil)))
+    (Snarf-documentation "DOC")
+  (condition-case nil
+      (Snarf-documentation "DOC")
+    (error nil)))
 (message "Finding pointers to doc strings...done")
 
 ;; Note: You can cause additional libraries to be preloaded
@@ -321,6 +346,7 @@
 (when (hash-table-p purify-flag)
   (let ((strings 0)
         (vectors 0)
+        (bytecodes 0)
         (conses 0)
         (others 0))
     (maphash (lambda (k v)
@@ -328,10 +354,11 @@
                 ((stringp k) (setq strings (1+ strings)))
                 ((vectorp k) (setq vectors (1+ vectors)))
                 ((consp k)   (setq conses  (1+ conses)))
+                ((byte-code-function-p v) (setq bytecodes (1+ bytecodes)))
                 (t           (setq others  (1+ others)))))
              purify-flag)
-    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d others"
-             strings vectors conses others)))
+    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d bytecodes, %d others"
+             strings vectors conses bytecodes others)))
 
 ;; Avoid error if user loads some more libraries now and make sure the
 ;; hash-consing hash table is GC'd.
@@ -343,9 +370,7 @@
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (progn
-      (if (memq system-type '(ms-dos windows-nt cygwin))
-          (message "Dumping under the name emacs")
-        (message "Dumping under the name emacs"))
+      (message "Dumping under the name emacs")
       (condition-case ()
 	  (delete-file "emacs")
 	(file-error nil))
@@ -356,18 +381,25 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt))
+      (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")
                    (equal (nth 4 command-line-args) "bootstrap")))
-	  (let ((name (concat "emacs-" emacs-version)))
+	  (let ((name (concat "emacs-" emacs-version))
+		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
+	    (setq name (concat name exe))
             (message "Adding name %s" name)
-	    (add-name-to-file "emacs" name t)))
+	    ;; When this runs on Windows, invocation-directory is not
+	    ;; necessarily the current directory.
+	    (add-name-to-file (expand-file-name (concat "emacs" exe)
+						invocation-directory)
+			      (expand-file-name name invocation-directory)
+			      t)))
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,

@@ -1,7 +1,7 @@
 ;;; appt.el --- appointment notification functions
 
-;; Copyright (C) 1989-1990, 1994, 1998, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1989-1990, 1994, 1998, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -472,7 +472,7 @@ separate appointment."
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
     (setq buffer-read-only t)
-    (raise-frame (selected-frame))
+    (raise-frame)
     (select-window this-window)))
 
 (defun appt-delete-window ()

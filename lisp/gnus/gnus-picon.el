@@ -1,6 +1,6 @@
 ;;; gnus-picon.el --- displaying pretty icons in Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news xpm annotation glyph faces
@@ -73,6 +73,12 @@ Some people may want to add \"unknown\" to this list."
     types)
   "*List of suffixes on picon file names to try."
   :type '(repeat string)
+  :group 'gnus-picon)
+
+(defcustom gnus-picon-properties '(:color-symbols (("None" . "white")))
+  "List of image properties applied to picons."
+  :type 'sexp
+  :version "24.3"
   :group 'gnus-picon)
 
 (defcustom gnus-picon-style 'inline
@@ -157,9 +163,9 @@ replacement is added."
 
 (defun gnus-picon-create-glyph (file)
   (or (cdr (assoc file gnus-picon-glyph-alist))
-      (cdar (push (cons file (gnus-create-image
-			      file nil nil
-			      :color-symbols '(("None" . "white"))))
+      (cdar (push (cons file (apply 'gnus-create-image
+				    file nil nil
+				    gnus-picon-properties))
 		  gnus-picon-glyph-alist))))
 
 ;;; Functions that does picon transformations:

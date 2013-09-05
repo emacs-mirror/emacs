@@ -1,6 +1,6 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -74,6 +74,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'ange-ftp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -180,15 +181,6 @@ created by `shadow-define-regexp-group'.")
     (setq list (cdr list)))
   (car list))
 
-(defun shadow-remove-if (func list)
-  "Remove elements satisfying FUNC from LIST.
-Nondestructive; actually returns a copy of the list with the elements removed."
-  (if list
-      (if (funcall func (car list))
-	  (shadow-remove-if func (cdr list))
-	(cons (car list) (shadow-remove-if func (cdr list))))
-    nil))
-
 (defun shadow-regexp-superquote (string)
   "Like `regexp-quote', but includes the ^ and $.
 This makes sure regexp matches nothing but STRING."
@@ -238,9 +230,8 @@ instead."
 Replace old definition, if any.  PRIMARY and REGEXP are the
 information defining the cluster.  For interactive use, call
 `shadow-define-cluster' instead."
-  (let ((rest (shadow-remove-if
-	       (function (lambda (x) (equal name (car x))))
-	       shadow-clusters)))
+  (let ((rest (cl-remove-if (lambda (x) (equal name (car x)))
+			    shadow-clusters)))
     (setq shadow-clusters
 	  (cons (shadow-make-cluster name primary regexp)
 		rest))))
@@ -602,9 +593,8 @@ and to are absolute file names."
 Consider them as regular expressions if third arg REGEXP is true."
   (if groups
       (let ((nonmatching
-	     (shadow-remove-if
-	      (function (lambda (x) (shadow-file-match x file regexp)))
-	      (car groups))))
+	     (cl-remove-if (lambda (x) (shadow-file-match x file regexp))
+			   (car groups))))
 	(append (cond ((equal nonmatching (car groups)) nil)
 		      (regexp
 		       (let ((realname (nth 2 (shadow-parse-fullname file))))
@@ -635,8 +625,7 @@ Consider them as regular expressions if third arg REGEXP is true."
   "Remove PAIR from `shadow-files-to-copy'.
 PAIR must be `eq' to one of the elements of that list."
   (setq shadow-files-to-copy
-	(shadow-remove-if (function (lambda (s) (eq s pair)))
-			  shadow-files-to-copy)))
+	(cl-remove-if (lambda (s) (eq s pair)) shadow-files-to-copy)))
 
 (defun shadow-read-files ()
   "Visit and load `shadow-info-file' and `shadow-todo-file'.
@@ -651,7 +640,7 @@ Return t unless files were locked; then return nil."
 	(beep)
 	(sit-for 3)
 	nil)
-    (save-excursion
+    (save-current-buffer
       (when shadow-info-file
 	(set-buffer (setq shadow-info-buffer
 			  (find-file-noselect shadow-info-file)))
@@ -683,7 +672,7 @@ Also clear `shadow-hashtable', since when there are new shadows
 defined, the old hashtable info is invalid."
   (shadow-invalidate-hashtable)
   (if shadow-info-file
-      (save-excursion
+      (save-current-buffer
 	(if (not shadow-info-buffer)
 	    (setq shadow-info-buffer (find-file-noselect shadow-info-file)))
 	(set-buffer shadow-info-buffer)
@@ -802,11 +791,13 @@ look for files that have been changed and need to be copied to other systems."
 	    (file-name-as-directory (shadow-expand-file-name "~"))))
   (if (null shadow-info-file)
       (setq shadow-info-file
-	    (shadow-expand-file-name (convert-standard-filename "~/.shadows"))))
+            ;; FIXME: Move defaults to their defcustom.
+	    (shadow-expand-file-name
+             (locate-user-emacs-file "shadows" ".shadows"))))
   (if (null shadow-todo-file)
       (setq shadow-todo-file
 	    (shadow-expand-file-name
-	     (convert-standard-filename "~/.shadow_todo"))))
+	     (locate-user-emacs-file "shadow_todo" ".shadow_todo"))))
   (if (not (shadow-read-files))
       (progn
 	(message "Shadowfile information files not found - aborting")

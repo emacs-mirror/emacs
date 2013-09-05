@@ -13203,7 +13203,7 @@
 	* w32.c (stat): GetFileInformationByHandle can legitimately fail,
 	so don't rely on it succeeding.
 
-	* w32fns.c (x_to_w32_font): Specify DEFAULT_CHARSET in the w32
+	* w32fns.c (x_to_w32_font): Specify DEFAULT_CHARSET in the Windows
 	LOGFONT struct if x font doesn't specify the charset.
 	(x_to_w32_charset): Change >= to == when testing results of
 	stricmp.
@@ -13979,7 +13979,7 @@
 
 See ChangeLog.7 for earlier changes.
 
-  Copyright (C) 1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

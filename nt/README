@@ -1,6 +1,6 @@
 	     Emacs for Windows NT/2000 and Windows 95/98/ME
 
-  Copyright (C) 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 2001-2013 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
   This directory contains support for compiling and running GNU Emacs on
@@ -51,7 +51,12 @@
   + ebrowse.exe - A tool for generating C++ browse information.  See the
     `Ebrowse' manual.
 
-  + ddeclient.exe - A tool for interacting with DDE servers.
+  + ddeclient.exe - A tool for interacting with DDE servers.  To be
+    invoked as "ddeclient SERVER [TOPIC]", where SERVER is the DDE
+    server name, and sends each line of its standard input to the DDE
+    server using the DdeClientTransaction API.  This program is
+    supposed to be invoked via the 'call-process-region' Emacs
+    primitive.
 
   + hexl.exe - A tool for converting files to hex dumps.  See the
     `Editing Binary Files' node of the Emacs manual.
@@ -62,10 +67,10 @@
 
 * Further information
 
-  There is a web page that serves as a FAQ for the Windows port of
-  Emacs (a.k.a. NTEmacs) at:
+  The FAQ for the MS Windows port of Emacs is distributed with Emacs
+  (info manual "efaq-w32"), and also available at
 
-	http://www.gnu.org/software/emacs/windows/ntemacs.html
+        http://www.gnu.org/software/emacs/manual/efaq-w32.html
 
   There is also a mailing list for discussing issues related to this
   port of Emacs.  For information about the list, see this Web page:
@@ -103,11 +108,7 @@
 
   Use the built in bug reporting functionality in Emacs so that it
   will be seen by the right people.  You can use the command M-x
-  report-emacs-bug to create and send the bug report, but in some
-  cases there is a function to report bugs in a specific package;
-  e.g. M-x gnus-bug for Gnus, M-x c-submit-bug-report for C/C++/Java
-  mode, etc.
-
+  report-emacs-bug to create and send the bug report.
 
 This file is part of GNU Emacs.
 

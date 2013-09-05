@@ -1,6 +1,6 @@
 ;;; vt100-led.el --- functions for LED control on VT-100 terminals & clones
 
-;; Copyright (C) 1988, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

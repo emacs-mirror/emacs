@@ -1,3 +1,31 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (all, tags): Don't use double-colon rules, as they
+	are not portable according to POSIX.  Mark as phony.
+
+2012-12-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include <config.h> uniformly in oldXMenu sources.
+	* Activate.c, AddPane.c, AddSel.c, ChgPane.c, ChgSel.c, Create.c:
+	* InsPane.c, InsSel.c, Internal.c, XMakeAssoc.c:
+	Do not include <config.h>, since XMenuInt.h does that now.
+	* XLookAssoc.c, XMenuInt.h: Include <config.h>.
+	This avoids a build failure when configuring on Fedora 17
+	--with-x-toolkit=no, reported by Dmitry Andropov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00078.html>.
+
+2012-10-06  Ulrich Müller  <ulm@gentoo.org>
+
+	* Makefile.in (AR, ARFLAGS): Get values from configure.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ALL_CFLAGS): Add -I../lib -I${srcdir}/../lib.
+	This is needed for hosts that lack <alloca.h>, when Emacs is
+	configured --with-x-toolkit=no.  Problem reported by Herbert
+	J. Skuhra for FreeBSD.
+
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	configure: new option --enable-gcc-warnings (Bug#11207)
@@ -605,7 +633,7 @@
 
 	* copyright.h: New file (copied from X11R4 distribution)
 	* All files: Replaced occurrences of #include <X11/copyright.h>
-	with #include "copyright.h"
+	with #include "copyright.h".
 
 1991-10-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -627,7 +655,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

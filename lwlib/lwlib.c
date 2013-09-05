@@ -1,7 +1,7 @@
 /* A general interface to the widgets of different toolkits.
 
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994-1996, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -16,20 +16,16 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <setjmp.h>
 #include <lisp.h>
+#include <c-strcase.h>
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <ctype.h>
 #include "lwlib-int.h"
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>
@@ -75,7 +71,6 @@ static widget_value *merge_widget_value (widget_value *,
                                          widget_value *,
                                          int, int *);
 static void instantiate_widget_instance (widget_instance *);
-static int my_strcasecmp (const char *, const char *);
 static void safe_free_str (char *);
 static void free_widget_value_tree (widget_value *);
 static widget_value *copy_widget_value_tree (widget_value *,
@@ -113,26 +108,6 @@ safe_strdup (const char *s)
   result = (char *) xmalloc (strlen (s) + 1);
   strcpy (result, s);
   return result;
-}
-
-/* Like strcmp but ignore differences in case.  */
-
-static int
-my_strcasecmp (const char *s1, const char *s2)
-{
-  while (1)
-    {
-      int c1 = *s1++;
-      int c2 = *s2++;
-      if (isupper (c1))
-	c1 = tolower (c1);
-      if (isupper (c2))
-	c2 = tolower (c2);
-      if (c1 != c2)
-	return (c1 > c2 ? 1 : -1);
-      if (c1 == 0)
-	return 0;
-    }
 }
 
 static void
@@ -731,7 +706,7 @@ find_in_table (const char *type, const widget_creation_entry *table)
 {
   const widget_creation_entry* cur;
   for (cur = table; cur->type; cur++)
-    if (!my_strcasecmp (type, cur->type))
+    if (!c_strcasecmp (type, cur->type))
       return cur->function;
   return NULL;
 }

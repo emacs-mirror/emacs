@@ -1,6 +1,7 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985-1986, 1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -37,8 +38,6 @@
 ;;   electric key behavior.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is
@@ -303,43 +302,80 @@ This can be convenient for people who find it easier to hit ) than C-f."
   :version "24.1"
   :type 'boolean)
 
+(defcustom electric-pair-inhibit-predicate
+  #'electric-pair-default-inhibit
+  "Predicate to prevent insertion of a matching pair.
+The function is called with a single char (the opening char just inserted).
+If it returns non-nil, then `electric-pair-mode' will not insert a matching
+closer."
+  :version "24.4"
+  :type '(choice
+          (const :tag "Default" electric-pair-default-inhibit)
+          (const :tag "Always pair" ignore)
+          function))
+
+(defun electric-pair-default-inhibit (char)
+  (or
+   ;; I find it more often preferable not to pair when the
+   ;; same char is next.
+   (eq char (char-after))
+   ;; Don't pair up when we insert the second of "" or of ((.
+   (and (eq char (char-before))
+	(eq char (char-before (1- (point)))))
+   ;; I also find it often preferable not to pair next to a word.
+   (eq (char-syntax (following-char)) ?w)))
+
+(defun electric-pair-syntax (command-event)
+  (let ((x (assq command-event electric-pair-pairs)))
+    (cond
+     (x (if (eq (car x) (cdr x)) ?\" ?\())
+     ((rassq command-event electric-pair-pairs) ?\))
+     ((nth 8 (syntax-ppss))
+      (with-syntax-table text-mode-syntax-table (char-syntax command-event)))
+     (t (char-syntax command-event)))))
+
+(defun electric-pair--insert (char)
+  (let ((last-command-event char)
+	(blink-matching-paren nil)
+	(electric-pair-mode nil))
+    (self-insert-command 1)))
+
 (defun electric-pair-post-self-insert-function ()
-  (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-                      electric-pair-mode
-                      (let ((x (assq last-command-event electric-pair-pairs)))
-                        (cond
-                         (x (if (eq (car x) (cdr x)) ?\" ?\())
-                         ((rassq last-command-event electric-pair-pairs) ?\))
-                         (t (char-syntax last-command-event))))))
-         ;; FIXME: when inserting the closer, we should maybe use
-         ;; self-insert-command, although it may prove tricky running
-         ;; post-self-insert-hook recursively, and we wouldn't want to trigger
-         ;; blink-matching-open.
+  (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
+	 (syntax (and pos (electric-pair-syntax last-command-event)))
          (closer (if (eq syntax ?\()
                      (cdr (or (assq last-command-event electric-pair-pairs)
                               (aref (syntax-table) last-command-event)))
                    last-command-event)))
     (cond
+     ((null pos) nil)
      ;; Wrap a pair around the active region.
      ((and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
-      (if (> (mark) (point))
+      ;; FIXME: To do this right, we'd need a post-self-insert-function
+      ;; so we could add-function around it and insert the closer after
+      ;; all the rest of the hook has run.
+      (if (>= (mark) (point))
+	  (goto-char (mark))
+	;; We already inserted the open-paren but at the end of the
+	;; region, so we have to remove it and start over.
+	(delete-region (1- pos) (point))
+	(save-excursion
           (goto-char (mark))
-        ;; We already inserted the open-paren but at the end of the region,
-        ;; so we have to remove it and start over.
-        (delete-char -1)
-        (save-excursion
-          (goto-char (mark))
-          (insert last-command-event)))
+          (electric-pair--insert last-command-event)))
+      ;; Since we're right after the closer now, we could tell the rest of
+      ;; post-self-insert-hook that we inserted `closer', but then we'd get
+      ;; blink-paren to kick in, which is annoying.
+      ;;(setq last-command-event closer)
       (insert closer))
      ;; Backslash-escaped: no pairing, no skipping.
      ((save-excursion
-        (goto-char (1- (point)))
+        (goto-char (1- pos))
         (not (zerop (% (skip-syntax-backward "\\") 2))))
       nil)
      ;; Skip self.
      ((and (memq syntax '(?\) ?\" ?\$))
            electric-pair-skip-self
-           (eq (char-after) last-command-event))
+           (eq (char-after pos) last-command-event))
       ;; This is too late: rather than insert&delete we'd want to only skip (or
       ;; insert in overwrite mode).  The difference is in what goes in the
       ;; undo-log and in the intermediate state which might be visible to other
@@ -348,13 +384,12 @@ This can be convenient for people who find it easier to hit ) than C-f."
      ;; Insert matching pair.
      ((not (or (not (memq syntax `(?\( ?\" ?\$)))
                overwrite-mode
-               ;; I find it more often preferable not to pair when the
-               ;; same char is next.
-               (eq last-command-event (char-after))
-               (eq last-command-event (char-before (1- (point))))
-               ;; I also find it often preferable not to pair next to a word.
-               (eq (char-syntax (following-char)) ?w)))
-      (save-excursion (insert closer))))))
+               (funcall electric-pair-inhibit-predicate last-command-event)))
+      (save-excursion (electric-pair--insert closer))))))
+
+(defun electric-pair-will-use-region ()
+  (and (use-region-p)
+       (memq (electric-pair-syntax last-command-event) '(?\( ?\" ?\$))))
 
 ;;;###autoload
 (define-minor-mode electric-pair-mode
@@ -371,10 +406,15 @@ See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
   :group 'electricity
   (if electric-pair-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-pair-post-self-insert-function)
+      (progn
+	(add-hook 'post-self-insert-hook
+		  #'electric-pair-post-self-insert-function)
+	(add-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region))
     (remove-hook 'post-self-insert-hook
-                 #'electric-pair-post-self-insert-function)))
+                 #'electric-pair-post-self-insert-function)
+    (remove-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region)))
 
 ;; Automatically add newlines after/before/around some chars.
 
@@ -394,16 +434,16 @@ arguments that returns one of those symbols.")
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
       (let ((end (copy-marker (point) t)))
         (goto-char pos)
-        (case (if (functionp rule) (funcall rule) rule)
+        (pcase (if (functionp rule) (funcall rule) rule)
           ;; FIXME: we used `newline' down here which called
           ;; self-insert-command and ran post-self-insert-hook recursively.
           ;; It happened to make electric-indent-mode work automatically with
           ;; electric-layout-mode (at the cost of re-indenting lines
           ;; multiple times), but I'm not sure it's what we want.
-          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+          (`before (goto-char (1- pos)) (skip-chars-backward " \t")
                   (unless (bolp) (insert "\n")))
-          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
-          (around (save-excursion
+          (`after  (insert "\n"))      ; FIXME: check eolp before inserting \n?
+          (`around (save-excursion
                     (goto-char (1- pos)) (skip-chars-backward " \t")
                     (unless (bolp) (insert "\n")))
                   (insert "\n")))      ; FIXME: check eolp before inserting \n?

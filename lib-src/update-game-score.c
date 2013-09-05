@@ -1,6 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002-2012  Free Software Foundation, Inc.
+Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -42,13 +42,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <pwd.h>
 #include <ctype.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 #include <sys/stat.h>
 #include <getopt.h>
 
-static int usage (int err) NO_RETURN;
+#ifdef WINDOWSNT
+#include "ntlib.h"
+#endif
 
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
@@ -59,7 +59,7 @@ static int usage (int err) NO_RETURN;
 #define difftime(t1, t0) (double)((t1) - (t0))
 #endif
 
-static int
+static _Noreturn void
 usage (int err)
 {
   fprintf (stdout, "Usage: update-game-score [-m MAX] [-r] [-d DIR] game/scorefile SCORE DATA\n");
@@ -89,34 +89,14 @@ static void sort_scores (struct score_entry *scores, int count, int reverse);
 static int write_scores (const char *filename,
 			 const struct score_entry *scores, int count);
 
-static void lose (const char *msg) NO_RETURN;
-
-static void
+static _Noreturn void
 lose (const char *msg)
 {
   fprintf (stderr, "%s\n", msg);
   exit (EXIT_FAILURE);
 }
 
-static void lose_syserr (const char *msg) NO_RETURN;
-
-/* Taken from sysdep.c.  */
-#ifndef HAVE_STRERROR
-#ifndef WINDOWSNT
-char *
-strerror (int errnum)
-{
-  extern char *sys_errlist[];
-  extern int sys_nerr;
-
-  if (errnum >= 0 && errnum < sys_nerr)
-    return sys_errlist[errnum];
-  return (char *) "Unknown error";
-}
-#endif /* not WINDOWSNT */
-#endif /* ! HAVE_STRERROR */
-
-static void
+static _Noreturn void
 lose_syserr (const char *msg)
 {
   fprintf (stderr, "%s: %s\n", msg, strerror (errno));
@@ -248,10 +228,11 @@ static int
 read_score (FILE *f, struct score_entry *score)
 {
   int c;
+  if ((c = getc (f)) != EOF)
+    ungetc (c, f);
   if (feof (f))
     return 1;
-  while ((c = getc (f)) != EOF
-	 && isdigit (c))
+  for (score->score = 0; (c = getc (f)) != EOF && isdigit (c); )
     {
       score->score *= 10;
       score->score += (c-48);
@@ -331,34 +312,38 @@ read_score (FILE *f, struct score_entry *score)
 static int
 read_scores (const char *filename, struct score_entry **scores, int *count)
 {
-  int readval, scorecount, cursize;
+  int readval = -1, scorecount, cursize;
   struct score_entry *ret;
   FILE *f = fopen (filename, "r");
+  int retval = -1;
   if (!f)
     return -1;
   scorecount = 0;
   cursize = 16;
   ret = (struct score_entry *) malloc (sizeof (struct score_entry) * cursize);
-  if (!ret)
-    return -1;
-  while ((readval = read_score (f, &ret[scorecount])) == 0)
+  if (ret)
     {
-      /* We encountered an error.  */
-      if (readval < 0)
-	return -1;
-      scorecount++;
-      if (scorecount >= cursize)
+      while ((readval = read_score (f, &ret[scorecount])) == 0)
 	{
-	  cursize *= 2;
-	  ret = (struct score_entry *)
-	    realloc (ret, (sizeof (struct score_entry) * cursize));
-	  if (!ret)
-	    return -1;
+	  scorecount++;
+	  if (scorecount >= cursize)
+	    {
+	      cursize *= 2;
+	      ret = (struct score_entry *)
+		realloc (ret, (sizeof (struct score_entry) * cursize));
+	      if (!ret)
+		break;
+	    }
 	}
     }
-  *count = scorecount;
-  *scores = ret;
-  return 0;
+  if (readval > 0)
+    {
+      *count = scorecount;
+      *scores = ret;
+      retval = 0;
+    }
+  fclose (f);
+  return retval;
 }
 
 static int
@@ -403,6 +388,7 @@ sort_scores (struct score_entry *scores, int count, int reverse)
 static int
 write_scores (const char *filename, const struct score_entry *scores, int count)
 {
+  int fd;
   FILE *f;
   int i;
   char *tempfile = malloc (strlen (filename) + strlen (".tempXXXXXX") + 1);
@@ -410,12 +396,11 @@ write_scores (const char *filename, const struct score_entry *scores, int count)
     return -1;
   strcpy (tempfile, filename);
   strcat (tempfile, ".tempXXXXXX");
-#ifdef HAVE_MKSTEMP
-  if (mkstemp (tempfile) < 0
-#else
-  if (mktemp (tempfile) != tempfile
-#endif
-      || !(f = fopen (tempfile, "w")))
+  fd = mkostemp (tempfile, 0);
+  if (fd < 0)
+    return -1;
+  f = fdopen (fd, "w");
+  if (! f)
     return -1;
   for (i = 0; i < count; i++)
     if (fprintf (f, "%ld %s %s\n", scores[i].score, scores[i].username,
@@ -480,6 +465,5 @@ unlock_file (const char *filename, void *state)
   errno = saved_errno;
   return ret;
 }
-
 
 /* update-game-score.c ends here */

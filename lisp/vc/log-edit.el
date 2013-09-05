@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -29,7 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)
@@ -105,13 +104,7 @@ If 'changed, only request confirmation if the list of files has
   :group 'log-edit
   :type 'boolean)
 
-(defvar cvs-commit-buffer-require-final-newline t)
-(make-obsolete-variable 'cvs-commit-buffer-require-final-newline
-                        'log-edit-require-final-newline
-			"21.1")
-
-(defcustom log-edit-require-final-newline
-  cvs-commit-buffer-require-final-newline
+(defcustom log-edit-require-final-newline t
   "Enforce a newline at the end of commit log messages.
 Enforce it silently if t, query if non-nil and don't do anything if nil."
   :group 'log-edit
@@ -155,12 +148,7 @@ can be obtained from `log-edit-files'."
   :group 'log-edit
   :version "24.1")
 
-(defvar cvs-changelog-full-paragraphs t)
-(make-obsolete-variable 'cvs-changelog-full-paragraphs
-                        'log-edit-changelog-full-paragraphs
-			"21.1")
-
-(defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
+(defvar log-edit-changelog-full-paragraphs t
   "If non-nil, include full ChangeLog paragraphs in the log.
 This may be set in the ``local variables'' section of a ChangeLog, to
 indicate the policy for that ChangeLog.
@@ -190,6 +178,9 @@ when this variable is set to nil.")
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)
+
+(defvar log-edit-vc-backend nil
+  "VC fileset corresponding to the current log.")
 
 ;;; Originally taken from VC-Log mode
 
@@ -328,7 +319,9 @@ automatically."
   "AList of known headers and the face to use to highlight them.")
 
 (defconst log-edit-header-contents-regexp
-  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
+  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?"
+  "Regular expression matching a header field.
+The first subexpression is the actual text of the field.")
 
 (defun log-edit-match-to-eoh (_limit)
   ;; FIXME: copied from message-match-to-eoh.
@@ -350,16 +343,19 @@ automatically."
 (defvar log-edit-font-lock-keywords
   ;; Copied/inspired by message-font-lock-keywords.
   `((log-edit-match-to-eoh
-     (,(concat "^\\(\\([[:alpha:]]+\\):\\)" log-edit-header-contents-regexp)
+     (,(concat "^\\(\\([[:alpha:]-]+\\):\\)" log-edit-header-contents-regexp)
       (progn (goto-char (match-beginning 0)) (match-end 0)) nil
-      (1 (if (assoc (match-string 2) log-edit-headers-alist)
+      (1 (if (assoc-string (match-string 2) log-edit-headers-alist t)
              'log-edit-header
            'log-edit-unknown-header)
          nil lax)
       ;; From `log-edit-header-contents-regexp':
-      (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
+      (3 (or (cdr (assoc-string (match-string 2) log-edit-headers-alist t))
              'log-edit-header)
-         nil lax)))))
+         nil lax))
+     ("^\n"
+      (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
+      (0 '(:height 0.1 :inverse-video t))))))
 
 (defvar log-edit-font-lock-gnu-style nil
   "If non-nil, highlight common failures to follow the GNU coding standards.")
@@ -406,23 +402,27 @@ automatically."
 ;;;###autoload
 (defun log-edit (callback &optional setup params buffer mode &rest _ignore)
   "Setup a buffer to enter a log message.
-\\<log-edit-mode-map>The buffer will be put in mode MODE or `log-edit-mode'
-if MODE is nil.
-If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
-Mark and point will be set around the entire contents of the buffer so
-that it is easy to kill the contents of the buffer with \\[kill-region].
-Once you're done editing the message, pressing \\[log-edit-done] will call
-`log-edit-done' which will end up calling CALLBACK to do the actual commit.
+The buffer is put in mode MODE or `log-edit-mode' if MODE is nil.
+\\<log-edit-mode-map>
+If SETUP is non-nil, erase the buffer and run `log-edit-hook'.
+Set mark and point around the entire contents of the buffer, so
+that it is easy to kill the contents of the buffer with
+\\[kill-region].  Once the user is done editing the message,
+invoking the command \\[log-edit-done] (`log-edit-done') will
+call CALLBACK to do the actual commit.
 
-PARAMS if non-nil is an alist.  Possible keys and associated values:
+PARAMS if non-nil is an alist of variables and buffer-local
+values to give them in the Log Edit buffer.  Possible keys and
+associated values:
  `log-edit-listfun' -- function taking no arguments that returns the list of
  files that are concerned by the current operation (using relative names);
  `log-edit-diff-function' -- function taking no arguments that
  displays a diff of the files concerned by the current operation.
+ `vc-log-fileset' -- the VC fileset to be committed (if any).
 
-If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
-log message and go back to the current buffer when done.  Otherwise, it
-uses the current buffer."
+If BUFFER is non-nil `log-edit' will jump to that buffer, use it
+to edit the log message and go back to the current buffer when
+done.  Otherwise, it uses the current buffer."
   (let ((parent (current-buffer)))
     (if buffer (pop-to-buffer buffer))
     (when (and log-edit-setup-invert (not (eq setup 'force)))
@@ -579,7 +579,7 @@ If you want to abort the commit, simply delete the buffer."
   (or (= (point-min) (point-max))
       (save-excursion
         (goto-char (point-min))
-        (while (and (looking-at "^\\([a-zA-Z]+: \\)?$")
+        (while (and (looking-at "^\\([a-zA-Z]+: ?\\)?$")
                     (zerop (forward-line 1))))
         (eobp))))
 
@@ -812,7 +812,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                  change-log-default-name)
              ;; `find-change-log' uses `change-log-default-name' if set
              ;; and sets it before exiting, so we need to work around
-             ;; that memoizing which is undesired here
+             ;; that memoizing which is undesired here.
              (setq change-log-default-name nil)
              (find-change-log)))))
     (with-current-buffer (find-file-noselect changelog-file-name)
@@ -902,14 +902,44 @@ Rename relative filenames in the ChangeLog entry as FILES."
       (insert "\n"))
     log-edit-author))
 
+(defun log-edit-toggle-header (header value)
+  "Toggle a boolean-type header in the current buffer.
+If the value of HEADER is VALUE, clear it.  Otherwise, add the
+header if it's not present and set it to VALUE.  Then make sure
+there is an empty line after the headers.  Return t if toggled
+on, otherwise nil."
+  (let ((val t)
+        (line (concat header ": " value "\n")))
+    (save-excursion
+      (save-restriction
+        (rfc822-goto-eoh)
+        (narrow-to-region (point-min) (point))
+        (goto-char (point-min))
+        (if (re-search-forward (concat "^" header ":"
+                                       log-edit-header-contents-regexp)
+                               nil t)
+            (if (setq val (not (string= (match-string 1) value)))
+                (replace-match line t t)
+              (replace-match "" t t nil 1))
+          (insert line)))
+      (rfc822-goto-eoh)
+      (delete-horizontal-space)
+      (unless (looking-at "\n")
+        (insert "\n")))
+    val))
+
 (defun log-edit-extract-headers (headers comment)
   "Extract headers from COMMENT to form command line arguments.
-HEADERS should be an alist with elements of the form (HEADER . CMDARG)
-associating header names to the corresponding cmdline option name and the
-result is then a list of the form (MSG CMDARG1 HDRTEXT1 CMDARG2 HDRTEXT2...).
-where MSG is the remaining text from STRING.
-If \"Summary\" is not in HEADERS, then the \"Summary\" header is extracted
-anyway and put back as the first line of MSG."
+HEADERS should be an alist with elements (HEADER . CMDARG)
+or (HEADER . FUNCTION) associating headers to command line
+options and the result is then a list of the form (MSG ARGUMENTS...)
+where MSG is the remaining text from COMMENT.
+FUNCTION should be a function of one argument that takes the
+header value and returns the list of strings to be appended to
+ARGUMENTS.  CMDARG will be added to ARGUMENTS followed by the
+header value.  If \"Summary\" is not in HEADERS, then the
+\"Summary\" header is extracted anyway and put back as the first
+line of MSG."
   (with-temp-buffer
     (insert comment)
     (rfc822-goto-eoh)
@@ -923,11 +953,14 @@ anyway and put back as the first line of MSG."
         (while (re-search-forward (concat "^" (car header)
                                           ":" log-edit-header-contents-regexp)
                                   nil t)
-          (if (eq t (cdr header))
-              (setq summary (match-string 1))
-            (push (match-string 1) res)
-            (push (or (cdr header) (car header)) res))
-          (replace-match "" t t)))
+          (let ((txt (match-string 1)))
+            (replace-match "" t t)
+            (if (eq t (cdr header))
+                (setq summary txt)
+              (if (functionp (cdr header))
+                  (setq res (nconc res (funcall (cdr header) txt)))
+                (push txt res)
+                (push (or (cdr header) (car header)) res))))))
       ;; Remove header separator if the header is empty.
       (widen)
       (goto-char (point-min))

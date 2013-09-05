@@ -1,7 +1,7 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1009,10 +1009,11 @@ be set in `.emacs' instead."
     (purp "#9999cc" "#666699")
     (no "#ff0000" "#ffff00")
     (neutral "#b4b4b4" "#878787")
+    (ma "#2020e0" "#8080ff")
     (september "#bf9900" "#ffcc00"))
   "Color alist used for the Gnus logo.")
 
-(defcustom gnus-logo-color-style 'no
+(defcustom gnus-logo-color-style 'ma
   "*Color styles used for the Gnus logo."
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
 			   gnus-logo-color-alist))
@@ -1627,7 +1628,7 @@ slower."
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
-    ("nnrss" none)
+    ("nnrss" none global)
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
@@ -1646,12 +1647,14 @@ this variable.  I think."
 					     (const :format "%v " mail)
 					     (const :format "%v " none)
 					     (const post-mail))
-			(checklist :inline t
+			(checklist :inline t :greedy t
 				   (const :format "%v " address)
+				   (const global)
 				   (const :format "%v " prompt-address)
 				   (const :format "%v " physical-address)
-				   (const :format "%v " virtual)
-				   (const respool))))
+				   (const virtual)
+				   (const :format "%v " respool)
+				   (const server-marks))))
   :version "24.1")
 
 (defun gnus-redefine-select-method-widget ()
@@ -2493,9 +2496,19 @@ Disabling the agent may result in noticeable loss of performance."
   :type 'boolean)
 
 (defcustom gnus-other-frame-function 'gnus
-  "Function called by the command `gnus-other-frame'."
+  "Function called by the command `gnus-other-frame' when starting Gnus."
   :group 'gnus-start
   :type '(choice (function-item gnus)
+		 (function-item gnus-no-server)
+		 (function-item gnus-slave)
+		 (function-item gnus-slave-no-server)))
+
+(defcustom gnus-other-frame-resume-function 'gnus-group-get-new-news
+  "Function called by the command `gnus-other-frame' when resuming Gnus."
+  :version "24.4"
+  :group 'gnus-start
+  :type '(choice (function-item gnus)
+		 (function-item gnus-group-get-new-news)
 		 (function-item gnus-no-server)
 		 (function-item gnus-slave)
 		 (function-item gnus-slave-no-server)))
@@ -2624,10 +2637,11 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (seen . seen)))
+    (seen . seen) (unexist . unexist)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
+    (unexist range)
     (killed range)
     (bookmark tuple)
     (uid tuple)
@@ -2642,7 +2656,7 @@ a string, be sure to use a valid format, see RFC 2616."
 ;; `score' is not a proper mark
 ;; `bookmark': don't propagated it, or fix the bug in update-mark.
 (defconst gnus-article-unpropagated-mark-lists
-  '(seen cache download unsend score bookmark)
+  '(seen cache download unsend score bookmark unexist)
   "Marks that shouldn't be propagated to back ends.
 Typical marks are those that make no sense in a standalone back end,
 such as a mark that says whether an article is stored in the cache
@@ -2803,6 +2817,8 @@ gnus-registry.el will populate this if it's loaded.")
      ("gnus-kill" gnus-kill gnus-apply-kill-file-internal
       gnus-kill-file-edit-file gnus-kill-file-raise-followups-to-author
       gnus-execute gnus-expunge gnus-batch-kill gnus-batch-score)
+     ("gnus-registry" gnus-try-warping-via-registry
+      gnus-registry-handle-action)
      ("gnus-cache" gnus-cache-possibly-enter-article gnus-cache-save-buffers
       gnus-cache-possibly-remove-articles gnus-cache-request-article
       gnus-cache-retrieve-headers gnus-cache-possibly-alter-active
@@ -2992,7 +3008,7 @@ with some simple extensions.
             summary just like information from any other summary
             specifier.
 &user-date; Age sensitive date format. Various date format is
-            defined in `gnus-summary-user-date-format-alist'.
+            defined in `gnus-user-date-format-alist'.
 
 
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
@@ -3231,9 +3247,9 @@ If ARG, insert string at point."
 		    0))
       (string-to-number
        (if (zerop major)
-	     (format "%s00%02d%02d"
+	     (format "%1.2f00%02d%02d"
 		     (if (member alpha '("(ding)" "d"))
-			 "4.99"
+			 4.99
 		       (+ 5 (* 0.02
 			       (abs
 				(- (mm-char-int (aref (downcase alpha) 0))
@@ -3408,15 +3424,6 @@ that that variable is buffer-local to the summary buffers."
 	 nil)				;we don't know, guess mail.
 	(t				;Has positive number
 	 (eq (gnus-request-type group article) 'news)))) ;use it.
-
-;; Returns a list of writable groups.
-(defun gnus-writable-groups ()
-  (let ((alist gnus-newsrc-alist)
-	groups group)
-    (while (setq group (car (pop alist)))
-      (unless (gnus-group-read-only-p group)
-	(push group groups)))
-    (nreverse groups)))
 
 ;; Check whether to use long file names.
 (defun gnus-use-long-file-name (symbol)
@@ -3693,20 +3700,9 @@ server is native)."
       group
     (concat (gnus-method-to-server-name method) ":" group)))
 
-(defun gnus-group-guess-prefixed-name (group)
-  "Guess the whole name from GROUP and METHOD."
-  (gnus-group-prefixed-name group (gnus-find-method-for-group
-			       group)))
-
 (defun gnus-group-full-name (group method)
   "Return the full name from GROUP and METHOD, even if the method is native."
   (gnus-group-prefixed-name group method t))
-
-(defun gnus-group-guess-full-name (group)
-  "Guess the full name from GROUP, even if the method is native."
-  (if (gnus-group-prefixed-p group)
-      group
-    (gnus-group-full-name group (gnus-find-method-for-group group))))
 
 (defun gnus-group-guess-full-name-from-command-method (group)
   "Guess the full name from GROUP, even if the method is native."
@@ -3840,12 +3836,28 @@ You should probably use `gnus-find-method-for-group' instead."
   "Go through PARAMETERS and expand them according to the match data."
   (let (new)
     (dolist (elem parameters)
-      (if (and (stringp (cdr elem))
-	       (string-match "\\\\[0-9&]" (cdr elem)))
-	  (push (cons (car elem)
-		      (gnus-expand-group-parameter match (cdr elem) group))
-		new)
-	(push elem new)))
+      (cond
+       ((and (stringp (cdr elem))
+             (string-match "\\\\[0-9&]" (cdr elem)))
+        (push (cons (car elem)
+                    (gnus-expand-group-parameter match (cdr elem) group))
+              new))
+       ;; For `sieve' group parameters, perform substitutions for every
+       ;; string within the match rule.  This allows for parameters such
+       ;; as:
+       ;;  ("list\\.\\(.*\\)"
+       ;;   (sieve header :is "list-id" "<\\1.domain.org>"))
+       ((eq 'sieve (car elem))
+        (push (mapcar (lambda (sieve-elem)
+                        (if (and (stringp sieve-elem)
+                                 (string-match "\\\\[0-9&]" sieve-elem))
+                            (gnus-expand-group-parameter match sieve-elem
+                                                         group)
+                          sieve-elem))
+                      (cdr elem))
+              new))
+       (t
+	(push elem new))))
     new))
 
 (defun gnus-group-fast-parameter (group symbol &optional allow-list)
@@ -3877,9 +3889,20 @@ The function `gnus-group-find-parameter' will do that for you."
 	      (when this-result
 		(setq result (car this-result))
 		;; Expand if necessary.
-		(if (and (stringp result) (string-match "\\\\[0-9&]" result))
-		    (setq result (gnus-expand-group-parameter
-				  (car head) result group)))))))
+		(cond
+                 ((and (stringp result) (string-match "\\\\[0-9&]" result))
+                  (setq result (gnus-expand-group-parameter
+                                (car head) result group)))
+                 ;; For `sieve' group parameters, perform substitutions
+                 ;; for every string within the match rule (see above).
+                 ((eq symbol 'sieve)
+                  (setq result
+                        (mapcar (lambda (elem)
+                                  (if (stringp elem)
+                                      (gnus-expand-group-parameter (car head)
+                                                                   elem group)
+                                    elem))
+                                result))))))))
 	;; Done.
 	result))))
 
@@ -4222,8 +4245,7 @@ parameters."
       (setq valids (cdr valids)))
     outs))
 
-(eval-and-compile
-  (autoload 'message-y-or-n-p "message" nil nil 'macro))
+(autoload 'message-y-or-n-p "message" nil nil 'macro)
 
 (defun gnus-read-group (prompt &optional default)
   "Prompt the user for a group name.
@@ -4337,13 +4359,22 @@ server."
   (interactive "P")
   (gnus arg nil 'slave))
 
+(defun gnus-delete-gnus-frame ()
+  "Delete gnus frame unless it is the only one.
+Used for `gnus-exit-gnus-hook' in `gnus-other-frame'."
+  (when (and (frame-live-p gnus-other-frame-object)
+             (cdr (frame-list)))
+    (delete-frame gnus-other-frame-object))
+  (setq gnus-other-frame-object nil))
+
 ;;;###autoload
 (defun gnus-other-frame (&optional arg display)
   "Pop up a frame to read news.
 This will call one of the Gnus commands which is specified by the user
 option `gnus-other-frame-function' (default `gnus') with the argument
-ARG if Gnus is not running, otherwise just pop up a Gnus frame.  The
-optional second argument DISPLAY should be a standard display string
+ARG if Gnus is not running, otherwise pop up a Gnus frame and run the
+command specified by `gnus-other-frame-resume-function'.
+The optional second argument DISPLAY should be a standard display string
 such as \"unix:0\" to specify where to pop up a frame.  If DISPLAY is
 omitted or the function `make-frame-on-display' is not available, the
 current display is used."
@@ -4375,14 +4406,16 @@ current display is used."
 		 (make-frame-on-display display gnus-other-frame-parameters)
 	       (make-frame gnus-other-frame-parameters))))
       (if alive
-	  (switch-to-buffer gnus-group-buffer)
+	  (progn (switch-to-buffer gnus-group-buffer)
+		 (funcall gnus-other-frame-resume-function arg))
 	(funcall gnus-other-frame-function arg)
-	(add-hook 'gnus-exit-gnus-hook
-		  (lambda nil
-                    (when (and (frame-live-p gnus-other-frame-object)
-                               (cdr (frame-list)))
-                      (delete-frame gnus-other-frame-object))
-                    (setq gnus-other-frame-object nil)))))))
+	(add-hook 'gnus-exit-gnus-hook 'gnus-delete-gnus-frame)
+  ;; One might argue that `gnus-delete-gnus-frame' should not be called
+  ;; from `gnus-suspend-gnus-hook', but, on the other hand, one might
+  ;; argue that it should.  No matter what you think, for the sake of
+  ;; those who want it to be called from it, please keep (defun
+  ;; gnus-delete-gnus-frame) even if you remove the next `add-hook'.
+  (add-hook 'gnus-suspend-gnus-hook 'gnus-delete-gnus-frame)))))
 
 ;;;###autoload
 (defun gnus (&optional arg dont-connect slave)
@@ -4402,12 +4435,13 @@ prompt the user for the name of an NNTP server to use."
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
 
-(eval-and-compile
-  (unless (fboundp 'debbugs-gnu)
-    (autoload 'debbugs-gnu "debbugs-gnu" "List all outstanding Emacs bugs." t)))
+(declare-function debbugs-gnu "ext:debbugs-gnu"
+		  (severities &optional packages archivedp suppress tags))
+
 (defun gnus-list-debbugs ()
   "List all open Gnus bug reports."
   (interactive)
+  (require 'debbugs-gnu)
   (debbugs-gnu nil "gnus"))
 
 ;; Allow redefinition of Gnus functions.

@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -33,10 +33,13 @@
 
 (provide 'esh-ext)
 
-(eval-when-compile
-  (require 'cl)
-  (require 'esh-cmd))
 (require 'esh-util)
+
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'esh-io)
+  (require 'esh-cmd))
+(require 'esh-opt)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -102,6 +105,8 @@ wholly ignored."
   :type '(choice file (const nil))
   :group 'eshell-ext)
 
+(autoload 'eshell-parse-command "esh-cmd")
+
 (defsubst eshell-invoke-batch-file (&rest args)
   "Invoke a .BAT or .CMD file on DOS/Windows systems."
   ;; since CMD.EXE can't handle forward slashes in the initial
@@ -120,9 +125,10 @@ Each member is a cons cell of the form:
 
   (MATCH . INTERPRETER)
 
-MATCH should be a regexp, which is matched against the command name,
-or a function.  If either returns a non-nil value, then INTERPRETER
-will be used for that command.
+MATCH should be a regexp, which is matched against the command
+name, or a function of arity 2 receiving the COMMAND and its
+ARGS (a list).  If either returns a non-nil value, then
+INTERPRETER will be used for that command.
 
 If INTERPRETER is a string, it will be called as the command name,
 with the original command name passed as the first argument, with all
@@ -178,6 +184,8 @@ This bypasses all Lisp functions and aliases."
 	(error "%s: external command not found"
 	       (substring command 1))))))
 
+(autoload 'eshell-close-handles "esh-io")
+
 (defun eshell-remote-command (command args)
   "Insert output from a remote COMMAND, using ARGS.
 A remote command is something that executes on a different machine.
@@ -188,6 +196,7 @@ all the output from the remote command, and sends it all at once,
 causing the user to wonder if anything's really going on..."
   (let ((outbuf (generate-new-buffer " *eshell remote output*"))
 	(errbuf (generate-new-buffer " *eshell remote error*"))
+	(command (or (file-remote-p command 'localname) command))
 	(exitcode 1))
     (unwind-protect
 	(progn
@@ -205,10 +214,16 @@ causing the user to wonder if anything's really going on..."
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (if (file-remote-p default-directory)
-      (eshell-remote-command command args))
-  (let ((interp (eshell-find-interpreter command)))
-    (assert interp)
+  (let ((interp (eshell-find-interpreter
+		 command
+		 args
+		 ;; `eshell-find-interpreter' does not work correctly
+		 ;; for Tramp file name syntax.  But we don't need to
+		 ;; know the interpreter in that case, therefore the
+		 ;; check is suppressed.
+		 (or (and (stringp command) (file-remote-p command))
+		     (file-remote-p default-directory)))))
+    (cl-assert interp)
     (if (functionp (car interp))
 	(apply (car interp) (append (cdr interp) args))
       (eshell-gather-process-output
@@ -224,20 +239,15 @@ causing the user to wonder if anything's really going on..."
 Adds the given PATH to $PATH.")
    (if args
        (progn
-	 (if prepend
-	     (setq args (nreverse args)))
-	 (while args
-	   (setenv "PATH"
-		   (if prepend
-		       (concat (car args) path-separator
-			       (getenv "PATH"))
-		     (concat (getenv "PATH") path-separator
-			     (car args))))
-	   (setq args (cdr args))))
-     (let ((paths (parse-colon-path (getenv "PATH"))))
-       (while paths
-	 (eshell-printn (car paths))
-	 (setq paths (cdr paths)))))))
+	 (setq eshell-path-env (getenv "PATH")
+	       args (mapconcat 'identity args path-separator)
+	       eshell-path-env
+	       (if prepend
+		   (concat args path-separator eshell-path-env)
+		 (concat eshell-path-env path-separator args)))
+	 (setenv "PATH" eshell-path-env))
+     (dolist (dir (parse-colon-path (getenv "PATH")))
+       (eshell-printn dir)))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
 
@@ -259,7 +269,7 @@ Return nil, or a list of the form:
 		(list (match-string 1)
 		      file)))))))
 
-(defun eshell-find-interpreter (file &optional no-examine-p)
+(defun eshell-find-interpreter (file args &optional no-examine-p)
   "Find the command interpreter with which to execute FILE.
 If NO-EXAMINE-P is non-nil, FILE will not be inspected for a script
 line of the form #!<interp>."
@@ -269,8 +279,9 @@ line of the form #!<interp>."
 	    (dolist (possible eshell-interpreter-alist)
 	      (cond
 	       ((functionp (car possible))
-		(and (funcall (car possible) file)
-		     (throw 'found (cdr possible))))
+		(let ((fn (car possible)))
+		  (and (funcall fn file args)
+		       (throw 'found (cdr possible)))))
 	       ((stringp (car possible))
 		(and (string-match (car possible) file)
 		     (throw 'found (cdr possible))))
@@ -304,7 +315,7 @@ line of the form #!<interp>."
 	    (setq interp (eshell-script-interpreter fullname))
 	    (if interp
 		(setq interp
-		      (cons (car (eshell-find-interpreter (car interp) t))
+		      (cons (car (eshell-find-interpreter (car interp) args t))
 			    (cdr interp)))))
 	  (or interp (list fullname)))))))
 

@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -56,7 +56,7 @@
 
 (autoload 'gnus-group-make-nnir-group "nnir")
 
-(defcustom gnus-no-groups-message "No Gnus is good news"
+(defcustom gnus-no-groups-message "No news is good news"
   "*Message displayed by Gnus when no groups are available."
   :group 'gnus-start
   :type 'string)
@@ -1667,7 +1667,7 @@ and ends at END."
   (let ((face (cdar (gnus-group-update-eval-form
                       group
                       gnus-group-highlight))))
-    (unless (eq face (get-text-property beg 'face))
+    (unless (eq face (gnus-get-text-property-excluding-characters-with-faces beg 'face))
       (let ((inhibit-read-only t))
         (gnus-put-text-property-excluding-characters-with-faces
          beg end 'face
@@ -2290,9 +2290,12 @@ Return the name of the group if selection was successful."
     ;; (gnus-read-group "Group name: ")
     (gnus-group-completing-read)
     (gnus-read-method "From method")))
-  ;; Transform the select method into a unique server.
   (unless (gnus-alive-p)
-    (gnus-no-server))
+    (nnheader-init-server-buffer)
+    ;; Necessary because of funky inlining.
+    (require 'gnus-cache)
+    (setq gnus-newsrc-hashtb (gnus-make-hashtable)))
+  ;; Transform the select method into a unique server.
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
   (let ((address-slot
@@ -2307,23 +2310,28 @@ Return the name of the group if selection was successful."
   (let ((group (if (gnus-group-foreign-p group) group
 		 (gnus-group-prefixed-name (gnus-group-real-name group)
 					   method))))
+    (gnus-set-active group nil)
     (gnus-sethash
      group
      `(-1 nil (,group
 	       ,gnus-level-default-subscribed nil nil ,method
 	       ,(cons
-		 (cond
-		  (quit-config
-		   (cons 'quit-config quit-config))
-		  ((assq gnus-current-window-configuration
-			 gnus-buffer-configuration)
-		   (cons 'quit-config
+		 (cons 'quit-config
+		       (cond
+			(quit-config
+			 quit-config)
+			((assq gnus-current-window-configuration
+			       gnus-buffer-configuration)
 			 (cons gnus-summary-buffer
-			       gnus-current-window-configuration))))
+			       gnus-current-window-configuration))
+			(t
+			 (cons (current-buffer)
+			       (current-window-configuration)))))
 		 parameters)))
      gnus-newsrc-hashtb)
     (push method gnus-ephemeral-servers)
-    (set-buffer gnus-group-buffer)
+    (when (gnus-buffer-live-p gnus-group-buffer)
+      (set-buffer gnus-group-buffer))
     (unless (gnus-check-server method)
       (error "Unable to contact server: %s" (gnus-status-message method)))
     (when activate
@@ -2381,7 +2389,7 @@ specified by `gnus-gmane-group-download-format'."
 	       group start (+ start range)))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       (format "%s.start-%s.range-%s" group start range)
+       (format "nndoc+ephemeral:%s.start-%s.range-%s" group start range)
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))))
     (delete-file tmpfile)))
@@ -2434,7 +2442,7 @@ Valid input formats include:
     (gnus-read-ephemeral-gmane-group group start range)))
 
 (defcustom gnus-bug-group-download-format-alist
-  '((emacs . "http://debbugs.gnu.org/%s;mboxmaint=yes;mboxstat=yes")
+  '((emacs . "http://debbugs.gnu.org/cgi/bugreport.cgi?bug=%s;mboxmaint=yes;mboxstat=yes")
     (debian
      . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
@@ -2474,7 +2482,8 @@ the bug number, and browsing the URL must return mbox output."
 			 "/.*$" ""))))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       "gnus-read-ephemeral-bug"
+       (format "nndoc+ephemeral:bug#%s"
+	       (mapconcat 'number-to-string ids ","))
        `(nndoc ,tmpfile
 	       (nndoc-article-type mbox))
        nil window-conf))
@@ -2787,14 +2796,21 @@ server."
 	(lambda (group)
 	  (gnus-group-delete-group group nil t))))))
 
-(defun gnus-group-delete-articles (group)
-  "Delete all articles in the current group."
-  (interactive (list (gnus-group-group-name)))
+(defun gnus-group-delete-articles (group &optional oldp)
+  "Delete all articles in the current group.
+If OLDP (the prefix), only delete articles that are \"old\",
+according to the expiry settings.  Note that this will delete old
+not-expirable articles, too."
+  (interactive (list (gnus-group-group-name)
+		     current-prefix-arg))
   (let ((articles (gnus-uncompress-range (gnus-active group))))
     (when (gnus-yes-or-no-p
 	   (format "Do you really want to delete these %d articles forever? "
 		   (length articles)))
-      (gnus-request-expire-articles articles group 'force))))
+      (gnus-request-expire-articles articles group
+				    (if current-prefix-arg
+					nil
+				      'force)))))
 
 (defun gnus-group-delete-group (group &optional force no-prompt)
   "Delete the current group.  Only meaningful with editable groups.
@@ -3582,6 +3598,8 @@ Cross references (Xref: header) of articles are ignored."
   (interactive "P")
   (gnus-group-catchup-current n 'all))
 
+(declare-function gnus-sequence-of-unread-articles "gnus-sum" (group))
+
 (defun gnus-group-catchup (group &optional all)
   "Mark all articles in GROUP as read.
 If ALL is non-nil, all articles are marked as read.
@@ -3643,6 +3661,10 @@ Uses the process/prefix convention."
 	   (expirable (if (gnus-group-total-expirable-p group)
 			  (cons nil (gnus-list-of-read-articles group))
 			(assq 'expire (gnus-info-marks info))))
+	   (articles-to-expire
+	    (gnus-list-range-difference
+	     (gnus-uncompress-sequence (cdr expirable))
+	     (cdr (assq 'unexist (gnus-info-marks info)))))
 	   (expiry-wait (gnus-group-find-parameter group 'expiry-wait))
 	   (nnmail-expiry-target
 	    (or (gnus-group-find-parameter group 'expiry-target)
@@ -3657,11 +3679,9 @@ Uses the process/prefix convention."
 	      ;; parameter.
 	      (let ((nnmail-expiry-wait-function nil)
 		    (nnmail-expiry-wait expiry-wait))
-		(gnus-request-expire-articles
-		 (gnus-uncompress-sequence (cdr expirable)) group))
+		(gnus-request-expire-articles articles-to-expire group))
 	    ;; Just expire using the normal expiry values.
-	    (gnus-request-expire-articles
-	     (gnus-uncompress-sequence (cdr expirable)) group))))
+	    (gnus-request-expire-articles articles-to-expire group))))
 	(gnus-close-group group))
       (gnus-message 6 "Expiring articles in %s...done"
 		    (gnus-group-decoded-name group))
@@ -4014,11 +4034,13 @@ entail asking the server for the groups."
 	(gnus-activate-foreign-newsgroups level))
     (gnus-group-get-new-news)))
 
-(defun gnus-group-get-new-news (&optional arg)
+(defun gnus-group-get-new-news (&optional arg one-level)
   "Get newly arrived articles.
 If ARG is a number, it specifies which levels you are interested in
 re-scanning.  If ARG is non-nil and not a number, this will force
-\"hard\" re-reading of the active files from all servers."
+\"hard\" re-reading of the active files from all servers.
+If ONE-LEVEL is not nil, then re-scan only the specified level,
+otherwise all levels below ARG will be scanned too."
   (interactive "P")
   (require 'nnmail)
   (let ((gnus-inhibit-demon t)
@@ -4032,7 +4054,8 @@ re-scanning.  If ARG is non-nil and not a number, this will force
     (unless gnus-slave
       (gnus-master-read-slave-newsrc))
 
-    (gnus-get-unread-articles arg)
+    (gnus-get-unread-articles (gnus-group-default-level arg t)
+			      nil one-level)
 
     ;; If the user wants it, we scan for new groups.
     (when (eq gnus-check-new-newsgroups 'always)
@@ -4365,7 +4388,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
 (defun gnus-group-browse-foreign-server (method)
   "Browse a foreign news server.
 If called interactively, this function will ask for a select method
- (nntp, nnspool, etc.) and a server address (eg. nntp.some.where).
+ (nntp, nnspool, etc.) and a server address (e.g., nntp.some.where).
 If not, METHOD should be a list where the first element is the method
 and the second element is the address."
   (interactive
@@ -4440,12 +4463,6 @@ and the second element is the address."
 			     (gnus-list-of-unread-articles (car info))))))
 	(error "No such group: %s" (gnus-info-group info))))))
 
-(defun gnus-group-set-method-info (group select-method)
-  (gnus-group-set-info select-method group 'method))
-
-(defun gnus-group-set-params-info (group params)
-  (gnus-group-set-info params group 'params))
-
 ;; Ad-hoc function for inserting data from a different newsrc.eld
 ;; file.  Use with caution, if at all.
 (defun gnus-import-other-newsrc-file (file)
@@ -4486,6 +4503,8 @@ and the second element is the address."
 	  (setcdr m (gnus-compress-sequence
 		     (sort (nconc (gnus-uncompress-range (cdr m))
 				  (copy-sequence articles)) '<) t))))))
+
+(declare-function gnus-summary-add-mark "gnus-sum" (article type))
 
 (defun gnus-add-mark (group mark article)
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
@@ -4651,6 +4670,9 @@ you the groups that have both dormant articles and cached articles."
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))
 
+(declare-function gnus-mark-article-as-read "gnus-sum" (article &optional mark))
+(declare-function gnus-group-make-articles-read "gnus-sum" (group articles))
+
 (defun gnus-group-mark-article-read (group article)
   "Mark ARTICLE read."
   (let ((buffer (gnus-summary-buffer-name group))
@@ -4666,6 +4688,8 @@ you the groups that have both dormant articles and cached articles."
 	      (setq mark gnus-expirable-mark))
 	    (setq mark (gnus-request-update-mark
 			group article mark))
+	    (gnus-request-set-mark
+	     group (list (list (list article) 'add '(read))))
 	    (gnus-mark-article-as-read article mark)
 	    (setq gnus-newsgroup-active (gnus-active group))
 	    (when active

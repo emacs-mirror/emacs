@@ -1,6 +1,6 @@
 ;;; smime.el --- S/MIME support library
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -214,7 +214,7 @@ Enabling this will have OpenSSL check the signers certificate
 against a certificate revocation list (CRL).
 
 For this to work the CRL must be up-to-date and since they are
-normally updated quite often (ie. several times a day) you
+normally updated quite often (i.e., several times a day) you
 probably need some tool to keep them up-to-date. Unfortunately
 Gnus cannot do this for you.
 
@@ -678,7 +678,7 @@ The following commands are available:
 		  "x509" "-in" (expand-file-name certfile) "-text")
     (fundamental-mode)
     (set-buffer-modified-p nil)
-    (toggle-read-only t)
+    (setq buffer-read-only t)
     (goto-char (point-min))))
 
 (defun smime-draw-buffer ()

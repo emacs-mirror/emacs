@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -110,7 +110,7 @@ ask the servers (primary, secondary, and archive servers) to list new
 groups since the last time it checked:
   1. This variable is `ask-server'.
   2. This variable is a list of select methods (see below).
-  3. `gnus-read-active-file' is nil or `some'.
+  3. Option `gnus-read-active-file' is nil or `some'.
   4. A prefix argument is given to `gnus-find-new-newsgroups' interactively.
 
 Thus, if this variable is `ask-server' or a list of select methods or
@@ -121,7 +121,7 @@ This variable can be a list of select methods which Gnus will query with
 the `ask-server' method in addition to the primary, secondary, and archive
 servers.
 
-Eg.
+E.g.:
   (setq gnus-check-new-newsgroups
 	'((nntp \"some.server\") (nntp \"other.server\")))
 
@@ -291,7 +291,9 @@ claim them."
 		function
 		(repeat function)))
 
-(defcustom gnus-subscribe-newsgroup-hooks nil
+(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
+  'gnus-subscribe-newsgroup-functions "24.3")
+(defcustom gnus-subscribe-newsgroup-functions nil
   "*Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
@@ -393,7 +395,16 @@ This hook is called after Gnus is connected to the NNTP server."
 
 (defcustom gnus-before-startup-hook nil
   "A hook called before startup.
-This hook is called as the first thing when Gnus is started."
+This hook is called as the first thing when Gnus is started.
+See also `gnus-before-resume-hook'."
+  :group 'gnus-start
+  :type 'hook)
+
+(defcustom gnus-before-resume-hook nil
+  "A hook called before resuming Gnus after suspend.
+This hook is called as the first thing when Gnus is resumed after a suspend.
+See also `gnus-before-startup-hook'."
+  :version "24.4"
   :group 'gnus-start
   :type 'hook)
 
@@ -639,7 +650,7 @@ the first newsgroup."
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
-    (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
+    (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
     t))
 
 (defun gnus-read-active-file-p ()
@@ -747,6 +758,7 @@ prompt the user for the name of an NNTP server to use."
 
   (if (gnus-alive-p)
       (progn
+	(gnus-run-hooks 'gnus-before-resume-hook)
 	(switch-to-buffer gnus-group-buffer)
 	(gnus-group-get-new-news
 	 (and (numberp arg)
@@ -932,7 +944,8 @@ If REGEXP is given, lines that match it will be deleted."
   (when (and gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (with-current-buffer gnus-dribble-buffer
-      (save-buffer))))
+      (when (> (buffer-size) 0)
+	(save-buffer)))))
 
 (defun gnus-dribble-clear ()
   (when (gnus-buffer-exists-p gnus-dribble-buffer)
@@ -1369,11 +1382,6 @@ for new groups, and subscribe the new groups as zombies."
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
 
-(defun gnus-kill-newsgroup (newsgroup)
-  "Obsolete function.  Kills a newsgroup."
-  (gnus-group-change-level
-   (gnus-group-entry newsgroup) gnus-level-killed))
-
 (defun gnus-check-bogus-newsgroups (&optional confirm)
   "Remove bogus newsgroups.
 If CONFIRM is non-nil, the user has to confirm the deletion of every
@@ -1504,8 +1512,6 @@ backend check whether the group actually exists."
 	     ;; Return the new active info.
 	     active)))))
 
-(defvar gnus-propagate-marks)		; gnus-sum
-
 (defun gnus-get-unread-articles-in-group (info active &optional update)
   (when (and info active)
     ;; Allow the backend to update the info in the group.
@@ -1514,13 +1520,6 @@ backend check whether the group actually exists."
 		info (inline (gnus-find-method-for-group
 			      (gnus-info-group info)))))
       (gnus-activate-group (gnus-info-group info) nil t))
-
-    ;; Allow backends to update marks,
-    (when gnus-propagate-marks
-      (let ((method (inline (gnus-find-method-for-group
-			     (gnus-info-group info)))))
-	(when (gnus-check-backend-function 'request-marks (car method))
-	  (gnus-request-marks info method))))
 
     (let* ((range (gnus-info-read info))
 	   (num 0))
@@ -1610,7 +1609,7 @@ backend check whether the group actually exists."
 
 ;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
 ;; and compute how many unread articles there are in each group.
-(defun gnus-get-unread-articles (&optional level dont-connect)
+(defun gnus-get-unread-articles (&optional level dont-connect one-level)
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1667,7 +1666,7 @@ backend check whether the group actually exists."
 	(push (setq method-group-list (list method method-type nil nil))
 	      type-cache))
       ;; Only add groups that need updating.
-      (if (<= (gnus-info-level info)
+      (if (funcall (if one-level #'= #'<=) (gnus-info-level info)
 	      (if (eq (cadr method-group-list) 'foreign)
 		  foreign-level
 		alevel))
@@ -1809,6 +1808,9 @@ backend check whether the group actually exists."
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
+      ;; We may have altered the data now, so mark the dribble buffer
+      ;; as dirty so that it gets saved.
+      (gnus-dribble-touch)
       (gnus-agent-save-active method))
      ;; Most backends have -retrieve-groups.
      ((gnus-check-backend-function 'retrieve-groups (car method))
@@ -2230,7 +2232,7 @@ backend check whether the group actually exists."
 	     (gnus-online method)
 	     (gnus-agent-method-p method))
 	(progn
-	  (gnus-agent-save-active method)
+	  (gnus-agent-save-active method t)
 	  (gnus-active-to-gnus-format method hashtb nil real-active))
 
       (goto-char (point-min))
@@ -2303,7 +2305,12 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-message 5 "Reading %s...done" newsrc-file)))
 
       ;; Convert old to new.
-      (gnus-convert-old-newsrc))))
+      (gnus-convert-old-newsrc)
+      (gnus-clean-old-newsrc))))
+
+(defun gnus-clean-old-newsrc (&optional force)
+  ;; Currently no cleanups.
+  )
 
 (defun gnus-convert-old-newsrc ()
   "Convert old newsrc formats into the current format, if needed."

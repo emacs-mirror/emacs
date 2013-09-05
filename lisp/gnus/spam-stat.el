@@ -1,6 +1,6 @@
 ;;; spam-stat.el --- detecting spam based on statistics
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
@@ -412,8 +412,7 @@ With a prefix argument save unconditionally."
   (when (or force spam-stat-dirty)
     (let ((coding-system-for-write spam-stat-coding-system))
       (with-temp-file spam-stat-file
-	(let ((standard-output (current-buffer))
-	      (font-lock-maximum-size 0))
+	(let ((standard-output (current-buffer)))
 	  (insert (format ";-*- coding: %s; -*-\n" spam-stat-coding-system))
 	  (insert (format "(setq spam-stat-ngood %d spam-stat-nbad %d
 spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
@@ -494,6 +493,18 @@ where DIFF is the difference between SCORE and 0.5."
     (setcdr (nthcdr 14 result) nil)
     result))
 
+(eval-when-compile
+  (defmacro spam-stat-called-interactively-p (kind)
+    (condition-case nil
+	(progn
+	  (eval '(called-interactively-p 'any))
+	  ;; Emacs >=23.2
+	  `(called-interactively-p ,kind))
+      ;; Emacs <23.2
+      (wrong-number-of-arguments '(called-interactively-p))
+      ;; XEmacs
+      (void-function '(interactive-p)))))
+
 (defun spam-stat-score-buffer ()
   "Return a score describing the spam-probability for this buffer.
 Add user supplied modifications if supplied."
@@ -511,7 +522,7 @@ Add user supplied modifications if supplied."
 	    (error nil)))
 	 (ans
 	  (if score1s (+ score0 score1s) score0)))
-    (when (interactive-p)
+    (when (spam-stat-called-interactively-p 'any)
       (message "%S" ans))
     ans))
 

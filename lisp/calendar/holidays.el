@@ -1,7 +1,7 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -250,7 +250,7 @@ See the documentation for `calendar-holidays' for details."
     (if calendar-christian-all-holidays-flag
         (append
          (holiday-fixed 1 6 "Epiphany")
-         (holiday-julian 12 25 "Eastern Orthodox Christmas")
+         (holiday-julian 12 25 "Christmas (Julian calendar)")
          (holiday-greek-orthodox-easter)
          (holiday-fixed 8 15 "Assumption")
          (holiday-advent 0 "Advent")))))
@@ -343,12 +343,12 @@ See the documentation for `calendar-holidays' for details."
   "List of notable days for the command \\[holidays].
 
 Additional holidays are easy to add to the list, just put them in the
-list `holiday-other-holidays' in your .emacs file.  Similarly, by setting
+list `holiday-other-holidays' in your init file.  Similarly, by setting
 any of `holiday-general-holidays', `holiday-local-holidays',
 `holiday-christian-holidays', `holiday-hebrew-holidays',
 `holiday-islamic-holidays', `holiday-bahai-holidays',
 `holiday-oriental-holidays', or `holiday-solar-holidays' to nil in your
-.emacs file, you can eliminate unwanted categories of holidays.
+init file, you can eliminate unwanted categories of holidays.
 
 The aforementioned variables control the holiday choices offered
 by the function `holiday-list' when it is called interactively.
@@ -458,17 +458,20 @@ with descriptive strings such as
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (let (res h)
+  (let (res h err)
     (sort
      (dolist (p calendar-holidays res)
        (if (setq h (if calendar-debug-sexp
                        (let ((debug-on-error t))
                          (eval p))
-                     (condition-case nil
+                     (condition-case err
                          (eval p)
-                       (error (beep)
-                              (message "Bad holiday list item: %s" p)
-                              (sleep-for 2)))))
+                       (error
+                        (display-warning
+                         :error
+                         (format "Bad holiday list item: %s\nError: %s\n"
+                                 p err))
+                        nil))))
            (setq res (append h res))))
      'calendar-date-compare)))
 
@@ -520,7 +523,7 @@ use instead of point."
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in a init file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)

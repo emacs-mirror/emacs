@@ -1,6 +1,7 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
-;; Copyright (C) 1985-1987, 1992, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
 ;; Adapted-By: ESR
@@ -93,11 +94,13 @@
   (define-key map (vector 'remap oldfun) newfun))
 
 
-(defvar blackbox-mode-map 
+(defvar blackbox-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
     (blackbox-redefine-key map 'backward-char 'bb-left)
+    (blackbox-redefine-key map 'left-char 'bb-left)
     (blackbox-redefine-key map 'forward-char 'bb-right)
+    (blackbox-redefine-key map 'right-char 'bb-right)
     (blackbox-redefine-key map 'previous-line 'bb-up)
     (blackbox-redefine-key map 'next-line 'bb-down)
     (blackbox-redefine-key map 'move-end-of-line 'bb-eol)
@@ -257,7 +260,6 @@ a reflection."
   (bb-goto (cons bb-x bb-y)))
 
 (defun bb-init-board (num-balls)
-  (random t)
   (let (board pos)
     (while (>= (setq num-balls (1- num-balls)) 0)
       (while

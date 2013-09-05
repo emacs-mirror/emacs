@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -30,11 +30,13 @@
 
 (require 'tramp)
 
+;; Pacify byte-compiler.
 (eval-when-compile
-
-  ;; Pacify byte-compiler.
   (require 'cl)
   (require 'custom))
+(defvar ange-ftp-ftp-name-arg)
+(defvar ange-ftp-ftp-name-res)
+(defvar ange-ftp-name-format)
 
 ;; Disable Ange-FTP from file-name-handler-alist.
 ;; To handle EFS, the following functions need to be dealt with:
@@ -49,9 +51,8 @@
 (defun tramp-disable-ange-ftp ()
   "Turn Ange-FTP off.
 This is useful for unified remoting.  See
-`tramp-file-name-structure-unified' and
-`tramp-file-name-structure-separate' for details.  Requests suitable
-for Ange-FTP will be forwarded to Ange-FTP.  Also see the variables
+`tramp-file-name-structure' for details.  Requests suitable for
+Ange-FTP will be forwarded to Ange-FTP.  Also see the variables
 `tramp-ftp-method', `tramp-default-method', and
 `tramp-default-method-alist'.
 
@@ -201,11 +202,13 @@ pass to the OPERATION."
 		 (inhibit-file-name-operation operation))
 	    (apply 'ange-ftp-hook-function operation args)))))))
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."
-  (let ((v (tramp-dissect-file-name filename)))
-    (string= (tramp-file-name-method v) tramp-ftp-method)))
+  (string= (tramp-file-name-method (tramp-dissect-file-name filename))
+	   tramp-ftp-method))
 
 ;;;###tramp-autoload
 (unless (featurep 'xemacs)

@@ -1,6 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1992, 1994-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -81,7 +82,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup server nil
   "Emacs running as a server process."
@@ -94,7 +95,6 @@
              (setq val t)
              (unless load-in-progress
                (message "Local sockets unsupported, using TCP sockets")))
-           (when val (random t))
            (set-default sym val))
   :group 'server
   :type 'boolean
@@ -102,7 +102,12 @@
 
 (defcustom server-host nil
   "The name or IP address to use as host address of the server process.
-If set, the server accepts remote connections; otherwise it is local."
+If set, the server accepts remote connections; otherwise it is local.
+
+DO NOT give this a non-nil value unless you know what you are
+doing!  On unsecured networks, accepting remote connections is
+very dangerous, because server-client communication (including
+session authentication) is not encrypted."
   :group 'server
   :type '(choice
           (string :tag "Name or IP address")
@@ -141,29 +146,31 @@ directory residing in a NTFS partition instead."
 
 (defcustom server-auth-key nil
   "Server authentication key.
+This is only used if `server-use-tcp' is non-nil.
 
 Normally, the authentication key is randomly generated when the
-server starts, which guarantees some level of security.  It is
-recommended to leave it that way.  Using a long-lived shared key
-will decrease security (especially since the key is transmitted as
-plain text).
+server starts.  It is recommended to leave it that way.  Using a
+long-lived shared key will decrease security (especially since
+the key is transmitted as plain-text).
 
 In some situations however, it can be difficult to share randomly
-generated passwords with remote hosts (eg. no shared directory),
+generated passwords with remote hosts (e.g., no shared directory),
 so you can set the key with this variable and then copy the
 server file to the remote host (with possible changes to IP
 address and/or port if that applies).
 
-The key must consist of 64 ASCII printable characters except for
-space (this means characters from ! to ~; or from code 33 to 126).
+Note that the usual security risks of using the server over
+remote TCP, arising from the fact that client-server
+communications are unencrypted, still apply.
 
-You can use \\[server-generate-key] to get a random authentication
-key."
+The key must consist of 64 ASCII printable characters except for
+space (this means characters from ! to ~; or from code 33 to
+126).  You can use \\[server-generate-key] to get a random key."
   :group 'server
   :type '(choice
 	  (const :tag "Random" nil)
 	  (string :tag "Password"))
-  :version "24.2")
+  :version "24.3")
 
 (defcustom server-raise-frame t
   "If non-nil, raise frame when switching to a buffer."
@@ -354,7 +361,7 @@ Updates `server-clients'."
 
 (defconst server-buffer " *server*"
   "Buffer used internally by Emacs's server.
-One use is to log the I/O for debugging purposes (see `server-log'),
+One use is to log the I/O for debugging purposes (see option `server-log'),
 the other is to provide a current buffer in which the process filter can
 safely let-bind buffer-local variables like `default-directory'.")
 
@@ -362,7 +369,7 @@ safely let-bind buffer-local variables like `default-directory'.")
   "If non-nil, log the server's inputs and outputs in the `server-buffer'.")
 
 (defun server-log (string &optional client)
-  "If `server-log' is non-nil, log STRING to `server-buffer'.
+  "If option `server-log' is non-nil, log STRING to `server-buffer'.
 If CLIENT is non-nil, add a description of it to the logged message."
   (when server-log
     (with-current-buffer (get-buffer-create server-buffer)
@@ -478,11 +485,11 @@ If CLIENT is non-nil, add a description of it to the logged message."
 See `server-quote-arg' and `server-process-filter'."
   (replace-regexp-in-string
    "&." (lambda (s)
-	  (case (aref s 1)
+	  (pcase (aref s 1)
 	    (?& "&")
 	    (?- "-")
 	    (?n "\n")
-	    (t " ")))
+	    (_ " ")))
    arg t t))
 
 (defun server-quote-arg (arg)
@@ -493,7 +500,7 @@ contains a space.
 See `server-unquote-arg' and `server-process-filter'."
   (replace-regexp-in-string
    "[-&\n ]" (lambda (s)
-	       (case (aref s 0)
+	       (pcase (aref s 0)
 		 (?& "&&")
 		 (?- "&-")
 		 (?\n "&n")
@@ -514,7 +521,7 @@ Creates the directory if necessary and makes sure:
   (setq dir (directory-file-name dir))
   (let ((attrs (file-attributes dir 'integer)))
     (unless attrs
-      (letf (((default-file-modes) ?\700)) (make-directory dir t))
+      (cl-letf (((default-file-modes) ?\700)) (make-directory dir t))
       (setq attrs (file-attributes dir 'integer)))
 
     ;; Check that it's safe for use.
@@ -550,9 +557,9 @@ The key is a 64-byte string of random chars in the range `!'..`~'.
 If called interactively, also inserts it into current buffer."
   (interactive)
   (let ((auth-key
-	 (loop repeat 64
-	       collect (+ 33 (random 94)) into auth
-	       finally return (concat auth))))
+	 (cl-loop repeat 64
+                  collect (+ 33 (random 94)) into auth
+                  finally return (concat auth))))
     (if (called-interactively-p 'interactive)
 	(insert auth-key))
     auth-key))
@@ -632,11 +639,13 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	(server-ensure-safe-dir server-dir)
 	(when server-process
 	  (server-log (message "Restarting server")))
-	(letf (((default-file-modes) ?\700))
+	(cl-letf (((default-file-modes) ?\700))
 	  (add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
-	  (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
-	  (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+	  (add-hook 'kill-buffer-query-functions
+                    'server-kill-buffer-query-function)
+	  (add-hook 'kill-emacs-query-functions
+                    'server-kill-emacs-query-function)
 	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
@@ -825,35 +834,49 @@ This handles splitting the command if it would be bigger than
 
 (defun server-create-window-system-frame (display nowait proc parent-id
 						  &optional parameters)
-  (add-to-list 'frame-inherited-parameters 'client)
-  (if (not (fboundp 'make-frame-on-display))
-      (progn
-        ;; This emacs does not support X.
-        (server-log "Window system unsupported" proc)
-        (server-send-string proc "-window-system-unsupported \n")
-        nil)
-    ;; Flag frame as client-created, but use a dummy client.
-    ;; This will prevent the frame from being deleted when
-    ;; emacsclient quits while also preventing
-    ;; `server-save-buffers-kill-terminal' from unexpectedly
-    ;; killing emacs on that frame.
-    (let* ((params `((client . ,(if nowait 'nowait proc))
-                     ;; This is a leftover, see above.
-                     (environment . ,(process-get proc 'env))
-                     ,@parameters))
-	   (display (or display
-			(frame-parameter nil 'display)
-			(getenv "DISPLAY")
-			(error "Please specify display")))
-	   frame)
-      (if parent-id
-	  (push (cons 'parent-id (string-to-number parent-id)) params))
-      (setq frame (make-frame-on-display display params))
-      (server-log (format "%s created" frame) proc)
-      (select-frame frame)
-      (process-put proc 'frame frame)
-      (process-put proc 'terminal (frame-terminal frame))
-      frame)))
+  (let* ((display (or display
+                      (frame-parameter nil 'display)
+                      (error "Please specify display.")))
+         (w (or (cdr (assq 'window-system parameters))
+                (window-system-for-display display))))
+
+    (unless (assq w window-system-initialization-alist)
+      (setq w nil))
+
+    ;; Special case for ns.  This is because DISPLAY may not be set at all
+    ;; which in the ns case isn't an error.  The variable display then becomes
+    ;; the fully qualified hostname, which make-frame-on-display below
+    ;; does not understand and throws an error.
+    ;; It may also be a valid X display, but if Emacs is compiled for ns, it
+    ;; can not make X frames.
+    (if (featurep 'ns-win)
+	(setq w 'ns display "ns"))
+
+    (cond (w
+           ;; Flag frame as client-created, but use a dummy client.
+           ;; This will prevent the frame from being deleted when
+           ;; emacsclient quits while also preventing
+           ;; `server-save-buffers-kill-terminal' from unexpectedly
+           ;; killing emacs on that frame.
+           (let* ((params `((client . ,(if nowait 'nowait proc))
+                            ;; This is a leftover, see above.
+                            (environment . ,(process-get proc 'env))
+                            ,@parameters))
+                  frame)
+             (if parent-id
+                 (push (cons 'parent-id (string-to-number parent-id)) params))
+             (add-to-list 'frame-inherited-parameters 'client)
+             (setq frame (make-frame-on-display display params))
+             (server-log (format "%s created" frame) proc)
+             (select-frame frame)
+             (process-put proc 'frame frame)
+             (process-put proc 'terminal (frame-terminal frame))
+             frame))
+
+          (t
+           (server-log "Window system unsupported" proc)
+           (server-send-string proc "-window-system-unsupported \n")
+           nil))))
 
 (defun server-goto-toplevel (proc)
   (condition-case nil
@@ -886,7 +909,7 @@ This handles splitting the command if it would be bigger than
     (process-put proc 'continuation nil)
     (if continuation (ignore-errors (funcall continuation)))))
 
-(defun* server-process-filter (proc string)
+(cl-defun server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  STRING consists of a sequence of
 commands prefixed by a dash.  Some commands have arguments;
@@ -1001,8 +1024,8 @@ The following commands are accepted by the client:
       ;; receive the error string and shut down on its own.
       (sit-for 1)
       (delete-process proc)
-      ;; We return immediately
-      (return-from server-process-filter)))
+      ;; We return immediately.
+      (cl-return-from server-process-filter)))
   (let ((prev (process-get proc 'previous-string)))
     (when prev
       (setq string (concat prev string))
@@ -1021,7 +1044,7 @@ The following commands are accepted by the client:
           ;; In earlier versions of server.el (where we used an `emacsserver'
           ;; process), there could be multiple lines.  Nowadays this is not
           ;; supported any more.
-          (assert (eq (match-end 0) (length string)))
+          (cl-assert (eq (match-end 0) (length string)))
 	  (let ((request (substring string 0 (match-beginning 0)))
 		(coding-system (and (default-value 'enable-multibyte-characters)
 				    (or file-name-coding-system
@@ -1113,9 +1136,13 @@ The following commands are accepted by the client:
                        tty-type (pop args-left)
                        dontkill (or dontkill
                                     (not use-current-frame)))
-                 ;; On Windows, emacsclient always asks for a tty frame.
-                 ;; If running a GUI server, force the frame type to GUI.
-                 (when (eq window-system 'w32)
+                 ;; On Windows, emacsclient always asks for a tty
+                 ;; frame.  If running a GUI server, force the frame
+                 ;; type to GUI.  (Cygwin is perfectly happy with
+                 ;; multi-tty support, so don't override the user's
+                 ;; choice there.)
+                 (when (and (eq system-type 'windows-nt)
+                            (eq window-system 'w32))
                    (push "-window-system" args-left)))
 
                 ;; -position LINE[:COLUMN]:  Set point to the given
@@ -1164,7 +1191,8 @@ The following commands are accepted by the client:
                  (setq dir (pop args-left))
                  (if coding-system
                      (setq dir (decode-coding-string dir coding-system)))
-                 (setq dir (command-line-normalize-file-name dir)))
+                 (setq dir (command-line-normalize-file-name dir))
+                 (process-put proc 'server-client-directory dir))
 
                 ;; Unknown command.
                 (arg (error "Unknown command: %s" arg))))
@@ -1229,12 +1257,17 @@ The following commands are accepted by the client:
           (mapc 'funcall (nreverse commands))
 
 	  ;; If we were told only to open a new client, obey
-	  ;; `initial-buffer-choice' if it specifies a file.
-	  (unless (or files commands)
-	    (if (stringp initial-buffer-choice)
-		(find-file initial-buffer-choice)
-	      (switch-to-buffer (get-buffer-create "*scratch*")
-				'norecord)))
+	  ;; `initial-buffer-choice' if it specifies a file
+          ;; or a function.
+          (unless (or files commands)
+            (let ((buf
+                   (cond ((stringp initial-buffer-choice)
+			  (find-file-noselect initial-buffer-choice))
+			 ((functionp initial-buffer-choice)
+			  (funcall initial-buffer-choice)))))
+	      (switch-to-buffer
+	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	       'norecord)))
 
           ;; Delete the client if necessary.
           (cond
@@ -1524,7 +1557,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		(setq next-buffer (car (process-get proc 'buffers))))
 	      (setq rest (cdr rest)))))
 	(and next-buffer (server-switch-buffer next-buffer killed-one))
-	(unless (or next-buffer killed-one (window-dedicated-p (selected-window)))
+	(unless (or next-buffer killed-one (window-dedicated-p))
 	  ;; (switch-to-buffer (other-buffer))
 	  (message "No server buffers remain to edit")))
     (if (not (buffer-live-p next-buffer))
@@ -1551,16 +1584,16 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		   (unless (frame-live-p server-window)
 		     (setq server-window (make-frame)))
 		   (select-window (frame-selected-window server-window))))
-	    (when (window-minibuffer-p (selected-window))
+	    (when (window-minibuffer-p)
 	      (select-window (next-window nil 'nomini 0)))
 	    ;; Move to a non-dedicated window, if we have one.
-	    (when (window-dedicated-p (selected-window))
+	    (when (window-dedicated-p)
 	      (select-window
 	       (get-window-with-predicate
 		(lambda (w)
 		  (and (not (window-dedicated-p w))
 		       (equal (frame-terminal (window-frame w))
-			      (frame-terminal (selected-frame)))))
+			      (frame-terminal))))
 		'nomini 'visible (selected-window))))
 	    (condition-case nil
 		(switch-to-buffer next-buffer)
@@ -1568,7 +1601,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 	      ;; a minibuffer/dedicated-window (if there's no other).
 	      (error (pop-to-buffer next-buffer)))))))
     (when server-raise-frame
-      (select-frame-set-input-focus (window-frame (selected-window))))))
+      (select-frame-set-input-focus (window-frame)))))
 
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (arg)
@@ -1578,7 +1611,7 @@ With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  (let ((proc (frame-parameter (selected-frame) 'client)))
+  (let ((proc (frame-parameter nil 'client)))
     (cond ((eq proc 'nowait)
 	   ;; Nowait frames have no client buffer list.
 	   (if (cdr (frame-list))

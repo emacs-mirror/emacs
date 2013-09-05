@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2013 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -30,22 +30,9 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Customization Variables (the rest is in vc.el)
-
-(defvar vc-ignore-vc-files nil)
-(make-obsolete-variable 'vc-ignore-vc-files
-                        "set `vc-handled-backends' to nil to disable VC."
-			"21.1")
-
-(defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates
- "to define master templates for a given BACKEND, use
-vc-BACKEND-master-templates.  To enable or disable VC for a given
-BACKEND, use `vc-handled-backends'."
- "21.1")
 
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
@@ -102,7 +89,7 @@ visited and a warning displayed."
   :group 'vc)
 
 (defcustom vc-display-status t
-  "If non-nil, display revision number and lock status in modeline.
+  "If non-nil, display revision number and lock status in mode line.
 Otherwise, not displayed."
   :type 'boolean
   :group 'vc)
@@ -120,10 +107,12 @@ control systems."
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-mistrust-permissions nil
+;; If you fix bug#11490, probably you can set this back to nil.
+(defcustom vc-mistrust-permissions t
   "If non-nil, don't assume permissions/ownership track version-control status.
 If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
+  :version "24.3"                       ; nil->t, bug#11490
   :type 'boolean
   :group 'vc)
 
@@ -139,7 +128,7 @@ See also variable `vc-consult-headers'."
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
-If value is the symbol `only-file' `vc-dir' will connect to the
+If value is the symbol `only-file', `vc-dir' will connect to the
 server, but heuristics will be used to determine the status for
 all other VC operations.
 
@@ -201,7 +190,7 @@ individually should stay local."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
-(defun vc-mode (&optional arg)
+(defun vc-mode (&optional _arg)
   ;; Dummy function for C-h m
   "Version Control minor mode.
 This minor mode is automatically activated whenever you visit a file under
@@ -237,6 +226,8 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
+  (if (boundp 'vc-parent-buffer)
+      (kill-local-variable 'vc-parent-buffer))
   (setplist (intern file vc-file-prop-obarray) nil))
 
 
@@ -311,7 +302,7 @@ non-nil if FILE exists and its contents were successfully inserted."
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
-			     file nil filepos (incf filepos blocksize))))
+			     file nil filepos (cl-incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
                           (when pos (delete-region (match-beginning 0)
@@ -447,8 +438,8 @@ For registered files, the possible values are:
 (defun vc-state (file &optional backend)
   "Return the version control state of FILE.
 
-If FILE is not registered, this function always returns nil.
-For registered files, the value returned is one of:
+A return of nil from this function means we have no information on the
+status of this file.  Otherwise, the value returned is one of:
 
   'up-to-date        The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
@@ -500,10 +491,8 @@ For registered files, the value returned is one of:
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file is not under version control.
+  'unregistered      The file is not under version control."
 
-A return of nil from this function means we have no information on the
-status of this file."
   ;; Note: in Emacs 22 and older, return of nil meant the file was
   ;; unregistered.  This is potentially a source of
   ;; backward-compatibility bugs.
@@ -561,7 +550,7 @@ Return non-nil if FILE is unchanged."
             (if (or (not (eq (cadr err)
                              (indirect-function
                               (vc-find-backend-function backend 'diff))))
-                    (not (eq (caddr err) 4)))
+                    (not (eq (cl-caddr err) 4)))
                 (signal (car err) (cdr err))
               (vc-call-backend backend 'diff (list file)))))))
 
@@ -587,16 +576,7 @@ If FILE is not registered, this function always returns nil."
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
   (let ((sym (vc-make-backend-sym backend 'master-templates)))
     (unless (get backend 'vc-templates-grabbed)
-      (put backend 'vc-templates-grabbed t)
-      (set sym (append (delq nil
-			     (mapcar
-			      (lambda (template)
-				(and (consp template)
-				     (eq (cdr template) backend)
-				     (car template)))
-                              (with-no-warnings
-                               vc-master-templates)))
-		       (symbol-value sym))))
+      (put backend 'vc-templates-grabbed t))
     (let ((result (vc-check-master-templates file (symbol-value sym))))
       (if (stringp result)
 	  (vc-file-setprop file 'vc-name result)
@@ -651,7 +631,7 @@ this function."
 (define-obsolete-function-alias
   'vc-toggle-read-only 'toggle-read-only "24.1")
 
-(defun vc-default-make-version-backups-p (backend file)
+(defun vc-default-make-version-backups-p (_backend _file)
   "Return non-nil if unmodified versions should be backed up locally.
 The default is to switch off this feature."
   nil)
@@ -704,6 +684,8 @@ Before doing that, check if there are any old backups and get rid of them."
   (let ((file buffer-file-name)
         backend)
     (ignore-errors               ;Be careful not to prevent saving the file.
+      (unless (file-exists-p file)
+        (vc-file-clearprops file))
       (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
            (eq (vc-checkout-model backend (list file)) 'implicit)
@@ -721,19 +703,21 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; the state to 'edited and redisplay the mode line.
   (let* ((file buffer-file-name)
          (backend (vc-backend file)))
-    (and backend
-	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
-			 (nth 5 (file-attributes file)))
-		  ;; File has been saved in the same second in which
-		  ;; it was checked out.  Clear the checkout-time
-		  ;; to avoid confusion.
-		  (vc-file-setprop file 'vc-checkout-time nil))
-	     t)
-         (eq (vc-checkout-model backend (list file)) 'implicit)
-         (vc-state-refresh file backend)
-	 (vc-mode-line file backend))
-    ;; Try to avoid unnecessary work, a *vc-dir* buffer is
-    ;; present if this is true.
+    (cond
+     ((null backend))
+     ((eq (vc-checkout-model backend (list file)) 'implicit)
+      ;; If the file was saved in the same second in which it was
+      ;; checked out, clear the checkout-time to avoid confusion.
+      (if (equal (vc-file-getprop file 'vc-checkout-time)
+		 (nth 5 (file-attributes file)))
+	  (vc-file-setprop file 'vc-checkout-time nil))
+      (if (vc-state-refresh file backend)
+	  (vc-mode-line file backend)))
+     ;; If we saved an unlocked file on a locking based VCS, that
+     ;; file is not longer up-to-date.
+     ((eq (vc-file-getprop file 'vc-state) 'up-to-date)
+      (vc-file-setprop file 'vc-state nil)))
+    ;; Resynch *vc-dir* buffers, if any are present.
     (when vc-dir-buffers
       (vc-dir-resynch-file file))))
 
@@ -790,7 +774,7 @@ If BACKEND is passed use it as the VC backend when computing the result."
   backend)
 
 (defun vc-default-mode-line-string (backend file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Format:
 
   \"BACKEND-REV\"        if the file is up-to-date
@@ -850,7 +834,7 @@ current, and kill the buffer that visits the link."
       (set-buffer true-buffer)
       (kill-buffer this-buffer))))
 
-(defun vc-default-find-file-hook (backend)
+(defun vc-default-find-file-hook (_backend)
   nil)
 
 (defun vc-find-file-hook ()
@@ -866,7 +850,7 @@ current, and kill the buffer that visits the link."
     (let (backend)
       (cond
        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-	;; Compute the state and put it in the modeline.
+	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
@@ -874,13 +858,23 @@ current, and kill the buffer that visits the link."
 	  (set (make-local-variable 'backup-inhibited) t))
 	;; Let the backend setup any buffer-local things he needs.
 	(vc-call-backend backend 'find-file-hook))
-       ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
-			      (vc-backend buffer-file-truename))))
+       ((let* ((truename (and buffer-file-truename
+			      (expand-file-name buffer-file-truename)))
+	       (link-type (and truename
+			       (not (equal buffer-file-name truename))
+			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
 		((eq vc-follow-symlinks nil)
 		 (message
 		  "Warning: symbolic link to %s-controlled source file" link-type))
 		((or (not (eq vc-follow-symlinks 'ask))
+		     ;; Assume we cannot ask, default to yes.
+		     noninteractive
+		     ;; Copied from server-start.  Seems like there should
+		     ;; be a better way to ask "can we get user input?"...
+		     (and (daemonp)
+			  (null (cdr (frame-list)))
+			  (eq (selected-frame) terminal-frame))
 		     ;; If we already visited this file by following
 		     ;; the link, don't ask again if we try to visit
 		     ;; it again.  GUD does that, and repeated questions
@@ -924,6 +918,7 @@ current, and kill the buffer that visits the link."
     (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
+    (define-key map "G" 'vc-ignore)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
@@ -947,66 +942,73 @@ current, and kill the buffer that visits the link."
   (let ((map (make-sparse-keymap "Version Control")))
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
-    (define-key map [vc-retrieve-tag]
-      `(menu-item ,(purecopy "Retrieve Tag") vc-retrieve-tag
-		  :help ,(purecopy "Retrieve tagged version or branch")))
-    (define-key map [vc-create-tag]
-      `(menu-item ,(purecopy "Create Tag") vc-create-tag
-		  :help ,(purecopy "Create version tag")))
-    (define-key map [separator1] menu-bar-separator)
-    (define-key map [vc-annotate]
-      `(menu-item ,(purecopy "Annotate") vc-annotate
-		  :help ,(purecopy "Display the edit history of the current file using colors")))
-    (define-key map [vc-rename-file]
-      `(menu-item ,(purecopy "Rename File") vc-rename-file
-		  :help ,(purecopy "Rename file")))
-    (define-key map [vc-revision-other-window]
-      `(menu-item ,(purecopy "Show Other Version") vc-revision-other-window
-		  :help ,(purecopy "Visit another version of the current file in another window")))
-    (define-key map [vc-diff]
-      `(menu-item ,(purecopy "Compare with Base Version") vc-diff
-		  :help ,(purecopy "Compare file set with the base version")))
-    (define-key map [vc-root-diff]
-      `(menu-item ,(purecopy "Compare Tree with Base Version") vc-root-diff
-		  :help ,(purecopy "Compare current tree with the base version")))
-    (define-key map [vc-update-change-log]
-      `(menu-item ,(purecopy "Update ChangeLog") vc-update-change-log
-		  :help ,(purecopy "Find change log file and add entries from recent version control logs")))
-    (define-key map [vc-log-out]
-      `(menu-item ,(purecopy "Show Outgoing Log") vc-log-outgoing
-		  :help ,(purecopy "Show a log of changes that will be sent with a push operation")))
-    (define-key map [vc-log-in]
-      `(menu-item ,(purecopy "Show Incoming Log") vc-log-incoming
-		  :help ,(purecopy "Show a log of changes that will be received with a pull operation")))
-    (define-key map [vc-print-log]
-      `(menu-item ,(purecopy "Show History") vc-print-log
-		  :help ,(purecopy "List the change log of the current file set in a window")))
-    (define-key map [vc-print-root-log]
-      `(menu-item ,(purecopy "Show Top of the Tree History ") vc-print-root-log
-		  :help ,(purecopy "List the change log for the current tree in a window")))
-    (define-key map [separator2] menu-bar-separator)
-    (define-key map [vc-insert-header]
-      `(menu-item ,(purecopy "Insert Header") vc-insert-headers
-		  :help ,(purecopy "Insert headers into a file for use with a version control system.
-")))
-    (define-key map [undo]
-      `(menu-item ,(purecopy "Undo Last Check-In") vc-rollback
-		  :help ,(purecopy "Remove the most recent changeset committed to the repository")))
-    (define-key map [vc-revert]
-      `(menu-item ,(purecopy "Revert to Base Version") vc-revert
-		  :help ,(purecopy "Revert working copies of the selected file set to their repository contents")))
-    (define-key map [vc-update]
-      `(menu-item ,(purecopy "Update to Latest Version") vc-update
-		  :help ,(purecopy "Update the current fileset's files to their tip revisions")))
-    (define-key map [vc-next-action]
-      `(menu-item ,(purecopy "Check In/Out")  vc-next-action
-		  :help ,(purecopy "Do the next logical version control operation on the current fileset")))
-    (define-key map [vc-register]
-      `(menu-item ,(purecopy "Register") vc-register
-		  :help ,(purecopy "Register file set into a version control system")))
-    (define-key map [vc-dir]
-      `(menu-item ,(purecopy "VC Dir")  vc-dir
-		  :help ,(purecopy "Show the VC status of files in a directory")))
+    (bindings--define-key map [vc-retrieve-tag]
+      '(menu-item "Retrieve Tag" vc-retrieve-tag
+		  :help "Retrieve tagged version or branch"))
+    (bindings--define-key map [vc-create-tag]
+      '(menu-item "Create Tag" vc-create-tag
+		  :help "Create version tag"))
+    (bindings--define-key map [separator1] menu-bar-separator)
+    (bindings--define-key map [vc-annotate]
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (bindings--define-key map [vc-rename-file]
+      '(menu-item "Rename File" vc-rename-file
+		  :help "Rename file"))
+    (bindings--define-key map [vc-revision-other-window]
+      '(menu-item "Show Other Version" vc-revision-other-window
+		  :help "Visit another version of the current file in another window"))
+    (bindings--define-key map [vc-diff]
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (bindings--define-key map [vc-root-diff]
+      '(menu-item "Compare Tree with Base Version" vc-root-diff
+		  :help "Compare current tree with the base version"))
+    (bindings--define-key map [vc-update-change-log]
+      '(menu-item "Update ChangeLog" vc-update-change-log
+		  :help "Find change log file and add entries from recent version control logs"))
+    (bindings--define-key map [vc-log-out]
+      '(menu-item "Show Outgoing Log" vc-log-outgoing
+		  :help "Show a log of changes that will be sent with a push operation"))
+    (bindings--define-key map [vc-log-in]
+      '(menu-item "Show Incoming Log" vc-log-incoming
+		  :help "Show a log of changes that will be received with a pull operation"))
+    (bindings--define-key map [vc-print-log]
+      '(menu-item "Show History" vc-print-log
+		  :help "List the change log of the current file set in a window"))
+    (bindings--define-key map [vc-print-root-log]
+      '(menu-item "Show Top of the Tree History " vc-print-root-log
+		  :help "List the change log for the current tree in a window"))
+    (bindings--define-key map [separator2] menu-bar-separator)
+    (bindings--define-key map [vc-insert-header]
+      '(menu-item "Insert Header" vc-insert-headers
+		  :help "Insert headers into a file for use with a version control system.
+"))
+    (bindings--define-key map [undo]
+      '(menu-item "Undo Last Check-In" vc-rollback
+                  :enable (let ((backend (if buffer-file-name
+                                             (vc-backend buffer-file-name))))
+                            (or (not backend)
+                                (vc-find-backend-function backend 'rollback)))
+		  :help "Remove the most recent changeset committed to the repository"))
+    (bindings--define-key map [vc-revert]
+      '(menu-item "Revert to Base Version" vc-revert
+		  :help "Revert working copies of the selected file set to their repository contents"))
+    (bindings--define-key map [vc-update]
+      '(menu-item "Update to Latest Version" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
+    (bindings--define-key map [vc-next-action]
+      '(menu-item "Check In/Out" vc-next-action
+		  :help "Do the next logical version control operation on the current fileset"))
+    (bindings--define-key map [vc-register]
+      '(menu-item "Register" vc-register
+		  :help "Register file set into a version control system"))
+    (bindings--define-key map [vc-ignore]
+      '(menu-item "Ignore File..." vc-ignore
+		  :help "Ignore a file under current version control system"))
+    (bindings--define-key map [vc-dir]
+      '(menu-item "VC Dir"  vc-dir
+		  :help "Show the VC status of files in a directory"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)
@@ -1031,7 +1033,7 @@ current, and kill the buffer that visits the link."
 	      '((ext-menu-separator "--"))
               ext-binding))))
 
-(defun vc-default-extra-menu (backend)
+(defun vc-default-extra-menu (_backend)
   nil)
 
 (provide 'vc-hooks)

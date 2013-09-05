@@ -1,5 +1,5 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006-2012 Free Software Foundation, Inc.
+   Copyright (C) 2006-2013 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 #include <X11/Xlib.h>
 
 #include "lisp.h"
@@ -43,14 +42,6 @@ static
 #endif
 struct font_driver ftxfont_driver;
 
-/* Prototypes for helper function.  */
-static GC *ftxfont_get_gcs (FRAME_PTR, unsigned long, unsigned long);
-static int ftxfont_draw_bitmap (FRAME_PTR, GC, GC *, struct font *,
-                                unsigned, int, int, XPoint *, int, int *,
-                                int);
-static void ftxfont_draw_background (FRAME_PTR, struct font *, GC,
-				     int, int, int);
-
 struct ftxfont_frame_data
 {
   /* Background and foreground colors.  */
@@ -66,7 +57,7 @@ struct ftxfont_frame_data
 /* Return an array of 6 GCs for antialiasing.  */
 
 static GC *
-ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int background)
+ftxfont_get_gcs (struct frame *f, long unsigned int foreground, long unsigned int background)
 {
   XColor color;
   XGCValues xgcv;
@@ -90,7 +81,7 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
 	}
     }
 
-  new = malloc (sizeof (struct ftxfont_frame_data));
+  new = malloc (sizeof *new);
   if (! new)
     return NULL;
   new->next = this;
@@ -107,7 +98,7 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
   new->colors[0].pixel = background;
   new->colors[1].pixel = foreground;
 
-  BLOCK_INPUT;
+  block_input ();
   XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), new->colors, 2);
   for (i = 1; i < 7; i++)
     {
@@ -124,14 +115,14 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
       new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				   GCForeground, &xgcv);
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (i < 7)
     {
-      BLOCK_INPUT;
+      block_input ();
       for (i--; i >= 0; i--)
 	XFreeGC (FRAME_X_DISPLAY (f), new->gcs[i]);
-      UNBLOCK_INPUT;
+      unblock_input ();
       if (prev)
 	prev->next = new->next;
       else if (data)
@@ -143,7 +134,9 @@ ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int ba
 }
 
 static int
-ftxfont_draw_bitmap (FRAME_PTR f, GC gc_fore, GC *gcs, struct font *font, unsigned int code, int x, int y, XPoint *p, int size, int *n, int flush)
+ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
+                     unsigned int code, int x, int y, XPoint *p, int size,
+                     int *n, bool flush)
 {
   struct font_bitmap bitmap;
   unsigned char *b;
@@ -219,7 +212,7 @@ ftxfont_draw_bitmap (FRAME_PTR f, GC gc_fore, GC *gcs, struct font *font, unsign
 }
 
 static void
-ftxfont_draw_background (FRAME_PTR f, struct font *font, GC gc, int x, int y,
+ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y,
 			 int width)
 {
   XGCValues xgcv;
@@ -232,17 +225,10 @@ ftxfont_draw_background (FRAME_PTR f, struct font *font, GC gc, int x, int y,
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 }
 
-/* Prototypes for font-driver methods.  */
-static Lisp_Object ftxfont_list (Lisp_Object, Lisp_Object);
-static Lisp_Object ftxfont_match (Lisp_Object, Lisp_Object);
-static Lisp_Object ftxfont_open (FRAME_PTR, Lisp_Object, int);
-static void ftxfont_close (FRAME_PTR, struct font *);
-static int ftxfont_draw (struct glyph_string *, int, int, int, int, int);
-
 static Lisp_Object
-ftxfont_list (Lisp_Object frame, Lisp_Object spec)
+ftxfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (frame, spec), tail;
+  Lisp_Object list = ftfont_driver.list (f, spec), tail;
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
@@ -250,9 +236,9 @@ ftxfont_list (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftxfont_match (Lisp_Object frame, Lisp_Object spec)
+ftxfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (frame, spec);
+  Lisp_Object entity = ftfont_driver.match (f, spec);
 
   if (VECTORP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qftx);
@@ -260,7 +246,7 @@ ftxfont_match (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftxfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
+ftxfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
   Lisp_Object font_object;
   struct font *font;
@@ -274,15 +260,16 @@ ftxfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-ftxfont_close (FRAME_PTR f, struct font *font)
+ftxfont_close (struct frame *f, struct font *font)
 {
   ftfont_driver.close (f, font);
 }
 
 static int
-ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
+ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+              bool with_background)
 {
-  FRAME_PTR f = s->f;
+  struct frame *f = s->f;
   struct face *face = s->face;
   struct font *font = s->font;
   XPoint p[0x700];
@@ -295,7 +282,7 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
 
   n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = 0;
 
-  BLOCK_INPUT;
+  block_input ();
   if (with_background)
     ftxfont_draw_background (f, font, s->gc, x, y, s->width);
   code = alloca (sizeof (unsigned) * len);
@@ -345,17 +332,17 @@ ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
 	}
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return len;
 }
 
 static int
-ftxfont_end_for_frame (FRAME_PTR f)
+ftxfont_end_for_frame (struct frame *f)
 {
   struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
 
-  BLOCK_INPUT;
+  block_input ();
   while (data)
     {
       struct ftxfont_frame_data *next = data->next;
@@ -366,7 +353,7 @@ ftxfont_end_for_frame (FRAME_PTR f)
       free (data);
       data = next;
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
   font_put_frame_data (f, &ftxfont_driver, NULL);
   return 0;
 }

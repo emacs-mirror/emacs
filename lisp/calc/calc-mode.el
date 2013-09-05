@@ -1,6 +1,6 @@
 ;;; calc-mode.el --- calculator modes for Calc
 
-;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -497,37 +497,40 @@
 
 (defun calc-set-simplify-mode (mode arg msg)
   (calc-change-mode 'calc-simplify-mode
-		    (if arg
-			(and (> (prefix-numeric-value arg) 0)
-			     mode)
-		      (and (not (eq calc-simplify-mode mode))
-			   mode)))
+                    (cond
+                     (arg mode)
+                     ((eq calc-simplify-mode mode)
+                      'alg)
+                     (t mode)))
   (message "%s" (if (eq calc-simplify-mode mode)
 	       msg
-	     "Default simplifications enabled")))
+	     "Algebraic simplification occurs by default")))
 
 (defun calc-no-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'none arg
-			   "All default simplifications are disabled")))
+			   "Simplification is disabled")))
 
 (defun calc-num-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'num arg
-			   "Default simplifications apply only if arguments are numeric")))
+			   "Basic simplifications apply only if arguments are numeric")))
 
 (defun calc-default-simplify-mode (arg)
-  (interactive "p")
-  (cond ((= arg 1)
+  (interactive "P")
+  (cond ((or (not arg) (= arg 3))
+         (calc-wrapper
+	  (calc-set-simplify-mode
+	   'alg nil "Algebraic simplification occurs by default")))
+         ((= arg 1)
 	 (calc-wrapper
 	  (calc-set-simplify-mode
-	   nil nil "Usual default simplifications are enabled")))
+	   nil nil "Only basic simplifications occur by default")))
 	((= arg 0) (calc-num-simplify-mode 1))
 	((< arg 0) (calc-no-simplify-mode 1))
 	((= arg 2) (calc-bin-simplify-mode 1))
-	((= arg 3) (calc-alg-simplify-mode 1))
 	((= arg 4) (calc-ext-simplify-mode 1))
 	((= arg 5) (calc-units-simplify-mode 1))
 	(t (error "Prefix argument out of range"))))
@@ -538,6 +541,12 @@
    (calc-set-simplify-mode 'binary arg
 			   (format "Binary simplification occurs by default (word size=%d)"
 				   calc-word-size))))
+
+(defun calc-basic-simplify-mode (arg)
+  (interactive "P")
+  (calc-wrapper
+   (calc-set-simplify-mode nil arg
+			   "Only basic simplifications occur by default")))
 
 (defun calc-alg-simplify-mode (arg)
   (interactive "P")

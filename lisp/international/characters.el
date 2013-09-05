@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -226,7 +226,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 (map-charset-chars #'modify-syntax-entry 'japanese-jisx0208 "_" #x2821 #x287E)
 (let ((chars '(?ー ?゛ ?゜ ?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
   (dolist (elt chars)
-    (modify-syntax-entry (car chars) "w")))
+    (modify-syntax-entry elt "w")))
 
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?A #x2321 #x237E)
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?H #x2421 #x247E)
@@ -234,12 +234,6 @@ with L, LRE, or LRO Unicode bidi character type.")
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?G #x2621 #x267E)
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?Y #x2721 #x277E)
 (map-charset-chars #'modify-category-entry 'japanese-jisx0208 ?C #x3021 #x7E7E)
-(modify-category-entry ?ー ?K)
-(let ((chars '(?゛ ?゜)))
-  (while chars
-    (modify-category-entry (car chars) ?K)
-    (modify-category-entry (car chars) ?H)
-    (setq chars (cdr chars))))
 (let ((chars '(?仝 ?々 ?〆 ?〇)))
   (while chars
     (modify-category-entry (car chars) ?C)
@@ -518,7 +512,13 @@ with L, LRE, or LRO Unicode bidi character type.")
   (set-case-syntax ?¦ "_" tbl)
   (set-case-syntax ?§ "." tbl)
   (set-case-syntax ?© "_" tbl)
-  (set-case-syntax-delims 171 187 tbl)	; « »
+  ;; French wants
+  ;;   (set-case-syntax-delims ?« ?» tbl)
+  ;; And German wants
+  ;;   (set-case-syntax-delims ?» ?« tbl)
+  ;; So let's stay neutral and let users set these up if/when they want to.
+  (set-case-syntax ?« "." tbl)
+  (set-case-syntax ?» "." tbl)
   (set-case-syntax ?¬ "_" tbl)
   (set-case-syntax ?­ "_" tbl)
   (set-case-syntax ?® "_" tbl)
@@ -1078,10 +1078,10 @@ with L, LRE, or LRO Unicode bidi character type.")
 ;;  (lambda (range ignore) (set-char-table-range char-width-table range 2))
 ;; 'tibetan)
 (map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'indian-2-column)
 (map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
 ;; Internal use only.
@@ -1110,8 +1110,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 (defun use-cjk-char-width-table (locale-name)
   (while (char-table-parent char-width-table)
     (setq char-width-table (char-table-parent char-width-table)))
-  (let ((slot (assq locale-name cjk-char-width-table-list))
-	table)
+  (let ((slot (assq locale-name cjk-char-width-table-list)))
     (or slot (error "Unknown locale for CJK language environment: %s"
 		    locale-name))
     (unless (nth 1 slot)
@@ -1119,7 +1118,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	(dolist (charset-info (nthcdr 2 slot))
 	  (let ((charset (car charset-info)))
 	    (dolist (code-range (cdr charset-info))
-	      (map-charset-chars #'(lambda (range arg)
+	      (map-charset-chars #'(lambda (range _arg)
 				     (set-char-table-range table range 2))
 				 charset nil
 				 (car code-range) (cdr code-range)))))
@@ -1326,7 +1325,7 @@ Setup char-width-table appropriate for non-CJK language environment."
   (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))
 
 (map-charset-chars
- #'(lambda (range ignore)
+ #'(lambda (range _ignore)
      (set-char-table-range char-script-table range 'tibetan))
  'tibetan)
 
@@ -1416,16 +1415,16 @@ This function updates the char-table `glyphless-char-display'."
       (or (memq method '(zero-width thin-space empty-box acronym hex-code))
 	  (error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
-	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
-				   method)
+	     (glyphless-set-char-table-range glyphless-char-display
+					     #x00 #x1F method)
 	     ;; Users will not expect their newlines and TABs be
 	     ;; displayed as anything but themselves, so exempt those
 	     ;; two characters from c0-control.
 	     (set-char-table-range glyphless-char-display #x9 nil)
 	     (set-char-table-range glyphless-char-display #xa nil))
 	    ((eq target 'c1-control)
-	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
-				   method))
+	     (glyphless-set-char-table-range glyphless-char-display
+					     #x80 #x9F method))
 	    ((eq target 'format-control)
 	     (map-char-table
 	      #'(lambda (char category)
@@ -1448,6 +1447,14 @@ This function updates the char-table `glyphless-char-display'."
 	     (set-char-table-extra-slot glyphless-char-display 0 method))
 	    (t
 	     (error "Invalid glyphless character group: %s" target))))))
+
+(defun glyphless-set-char-table-range (chartable from to method)
+  (if (eq method 'acronym)
+      (let ((i from))
+	(while (<= i to)
+	  (set-char-table-range chartable i (aref char-acronym-table i))
+	  (setq i (1+ i))))
+    (set-char-table-range chartable (cons from to) method)))
 
 ;;; Control of displaying glyphless characters.
 (defcustom glyphless-char-display-control

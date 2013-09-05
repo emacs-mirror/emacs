@@ -1,6 +1,6 @@
 /* The lwlib interface to Motif widgets.
 
-Copyright (C) 1994-1997, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1994-1997, 1999-2013 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -16,13 +16,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <unistd.h>
 #include <stdio.h>
@@ -492,7 +488,6 @@ make_menu_in_widget (widget_instance* instance,
   int child_index;
   widget_value* cur;
   Widget button = 0;
-  Widget title = 0;
   Widget menu;
   Arg al [256];
   int ac;
@@ -556,7 +551,7 @@ make_menu_in_widget (widget_instance* instance,
 	{
 	  ac = 0;
 	  XtSetArg (al[ac], XmNalignment, XmALIGNMENT_CENTER); ac++;
-	  title = button = XmCreateLabel (widget, cur->name, al, ac);
+	  button = XmCreateLabel (widget, cur->name, al, ac);
 	}
       else if (lw_separator_p (cur->name, &separator, 1))
 	{

@@ -1,8 +1,9 @@
 ;;; erc-netsplit.el --- Reduce JOIN/QUIT messages on netsplits
 
-;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -23,14 +24,13 @@
 ;;; Commentary:
 
 ;; This module hides quit/join messages if a netsplit occurs.
-;; To enable, add the following to your ~/.emacs:
+;; To enable, add the following to your init file:
 ;; (require 'erc-netsplit)
 ;; (erc-netsplit-mode 1)
 
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-netsplit nil
   "Netsplit detection tries to automatically figure when a
@@ -106,7 +106,7 @@ join from that split has been detected or not.")
     (dolist (elt erc-netsplit-list)
       (if (member nick (nthcdr 3 elt))
 	  (progn
-	    (if (not (caddr elt))
+	    (if (not (nth 2 elt))
 		(progn
 		  (erc-display-message
 		   parsed 'notice (process-buffer proc)
@@ -148,7 +148,7 @@ join from that split has been detected or not.")
 	  ;; element for this netsplit exists already
 	  (progn
 	    (setcdr (nthcdr 2 ass) (cons nick (nthcdr 3 ass)))
-	    (when (caddr ass) 
+	    (when (nth 2 ass)
 	      ;; There was already a netjoin for this netsplit, it
 	      ;; seems like the old one didn't get finished...
 	      (erc-display-message 
@@ -193,7 +193,7 @@ join from that split has been detected or not.")
 	 nil 'notice 'active
 	 'netsplit-wholeft ?s (car elt)
 	 ?n (mapconcat 'erc-extract-nick (nthcdr 3 elt) " ")
-	 ?t (if (caddr elt)
+	 ?t (if (nth 2 elt)
 		"(joining)"
 	      "")))))
   t)

@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <setjmp.h>
 #include <limits.h>
 
 #include "lisp.h"
@@ -61,7 +60,7 @@ static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
-  (XHASH_TABLE (XCDR (XVECTOR (Vtranslation_hash_table_vector)->contents[(id)])))
+  (XHASH_TABLE (XCDR (AREF (Vtranslation_hash_table_vector, (id)))))
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -1729,14 +1728,14 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
       switch (ccl->status)
 	{
 	case CCL_STAT_INVALID_CMD:
-	  sprintf (msg, "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
-                   code & 0x1F, code, this_ic);
+	  msglen = sprintf (msg,
+			    "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
+			    code & 0x1F, code, this_ic);
 #ifdef CCL_DEBUG
 	  {
 	    int i = ccl_backtrace_idx - 1;
 	    int j;
 
-	    msglen = strlen (msg);
 	    if (dst + msglen <= (dst_bytes ? dst_end : src))
 	      {
 		memcpy (dst, msg, msglen);
@@ -1748,8 +1747,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		if (i < 0) i = CCL_DEBUG_BACKTRACE_LEN - 1;
 		if (ccl_backtrace_table[i] == 0)
 		  break;
-		sprintf (msg, " %d", ccl_backtrace_table[i]);
-		msglen = strlen (msg);
+		msglen = sprintf (msg, " %d", ccl_backtrace_table[i]);
 		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
 		memcpy (dst, msg, msglen);
@@ -1761,15 +1759,13 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  break;
 
 	case CCL_STAT_QUIT:
-	  if (! ccl->quit_silently)
-	    sprintf (msg, "\nCCL: Quitted.");
+	  msglen = ccl->quit_silently ? 0 : sprintf (msg, "\nCCL: Quitted.");
 	  break;
 
 	default:
-	  sprintf (msg, "\nCCL: Unknown error type (%d)", ccl->status);
+	  msglen = sprintf (msg, "\nCCL: Unknown error type (%d)", ccl->status);
 	}
 
-      msglen = strlen (msg);
       if (msglen <= dst_end - dst)
 	{
 	  for (i = 0; i < msglen; i++)
@@ -2101,7 +2097,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   outbufsize = (ccl.buf_magnification
 		? str_bytes * ccl.buf_magnification + 256
 		: str_bytes + 256);
-  outp = outbuf = (unsigned char *) xmalloc (outbufsize);
+  outp = outbuf = xmalloc (outbufsize);
 
   consumed_chars = consumed_bytes = 0;
   produced_chars = 0;
@@ -2134,7 +2130,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  offset = outp - outbuf;
 	  shortfall = ccl.produced * max_expansion - (outbufsize - offset);
-	  if (0 < shortfall)
+	  if (shortfall > 0)
 	    {
 	      outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 	      outp = outbuf + offset;
@@ -2232,9 +2228,8 @@ Return index number of the registered CCL program.  */)
     Vccl_program_table = larger_vector (Vccl_program_table, 1, -1);
 
   {
-    Lisp_Object elt;
+    Lisp_Object elt = make_uninit_vector (4);
 
-    elt = Fmake_vector (make_number (4), Qnil);
     ASET (elt, 0, name);
     ASET (elt, 1, ccl_prog);
     ASET (elt, 2, resolved);

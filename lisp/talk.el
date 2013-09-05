@@ -1,6 +1,6 @@
 ;;; talk.el --- allow several users to talk to each other through Emacs
 
-;; Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: comm, frames
@@ -50,7 +50,7 @@ Each element has the form (DISPLAY FRAME BUFFER).")
   (let ((type (frame-live-p (selected-frame))))
     (if (or (eq type t) (eq type 'x))
 	(talk-add-display
-	 (terminal-name (frame-terminal (selected-frame))))
+	 (terminal-name (frame-terminal)))
       (error "Unknown frame type")))
   (talk-update-buffers))
 

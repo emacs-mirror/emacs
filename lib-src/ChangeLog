@@ -1,3 +1,583 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-08-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.exe.manifest: New file.
+
+	* Makefile.in (UPDATE_MANIFEST): New variable.
+	(SCRIPTS): Add $(UPDATE_MANIFEST).
+
+2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (lisp2): Add nadvice.elc.
+
+2013-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c (read_score): Try reading a character before
+	probing the stream for EOF.  Initialize score->score to zero,
+	before reading and accumulating the score.
+	(read_scores): Fix logic that determines which value to return.
+	Close the input stream when finished reading the scores (avoids
+	failures in overwriting the file with a new one on MS-Windows,
+	since a file that is open cannot be deleted).
+
+	* ntlib.h (rename): Don't undefine.
+
+	* ntlib.c (sys_rename): New function, needed for
+	update-game-score.
+
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.h: Include fcntl.h.
+	(mkostemp): Declare prototype.
+	(mktemp): Don't redefine.
+
+	* ntlib.c (mkostemp): New function.  (Bug#15015)
+
+2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor races in hosts lacking mkostemp (Bug#15015).
+	* movemail.c (main):
+	* update-game-score.c (write_scores):
+	Use mkostemp (which now works on all platforms, due to changes
+	in the portability layer) rather than mktemp (which has a race)
+	or mkstemp (which we no longer bother with).
+
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C89.
+	* ebrowse.c (USAGE): Remove macro with too-long string literal ...
+	(usage_message): ... and replace it with this new static constant
+	containing multiple literals.  All uses changed.
+	* emacsclient.c (print_help_and_exit):
+	Rewrite to avoid string literals longer than the C89 limits.
+	(start_daemon_and_retry_set_socket):
+	Rewrite to avoid non-constant array initializer.
+	* make-docfile.c (enum global_type): Omit trailing comma.
+
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer plain 'static' to 'static inline' (Bug#12541).
+	I missed these instances of 'static inline' in an earlier sweep.
+	* ebrowse.c (putstr):
+	* etags.c (hash):
+	* make-docfile.c (put_char): No longer inline.
+	* etags.c (hash): Prefer int to unsigned when either will do.
+
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style flexible array members if available.
+	* ebrowse.c: Include <stddef.h>, for offsetof.
+	(struct member, struct alias, struct sym):
+	Use FLEXIBLE_ARRAY_MEMBER.
+	(add_sym, add_member, make_namespace, register_namespace_alias):
+	Use offsetof (struct, flex_array_member), not sizeof (struct), as
+	that ports better to pre-C99 non-GCC.
+
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (mostlyclean): Remove *.res files.
+
+2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-gcc-warnings to clang.
+	* etags.c: Omit unnecessary forward decls.
+	(print_version, print_help): Declare _Noreturn.
+	* pop.c (socket_connection) [HAVE_GETADDRINFO]: Simplify.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c [WINDOWSNT]: Include "ntlib.h".
+
+	* ntlib.h (sleep): Update prototype.
+	(geteuid): Add prototype.
+
+	* ntlib.c (sleep): Now returns an unsigned value.
+	(getgid): New function.
+
+	* Makefile.in (CLIENTW, LIB_WSOCK32, LIBS_ECLIENT, NTLIB)
+	(CLIENTRES, WINDRES, NTINC, NTDEPS): New variables.
+	(INSTALLABLES): Add $(CLIENTW).
+	(LIBS_MOVE): Use $(LIB_WSOCK32).
+	($(DESTDIR)${archlibdir}): Use $(EXEEXT) on update-game-score.
+	(test-distrib${EXEEXT}): Use $(EXEEXT) on test-distrib.
+	(etags${EXEEXT}, ebrowse${EXEEXT}, ctags${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(emacsclient${EXEEXT}, hexl${EXEEXT}, update-game-score${EXEEXT}):
+	Add $(NTLIB) to prerequisites.  Use $(EXEEXT).
+	(pop.o): Add pop.h to prerequisites.
+	(emacsclientw${EXEEXT}, ntlib.o): New targets.
+	(emacsclient.res): New target.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in ($(DOC)): Use DOC rather than DOC-X.
+
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (search_lisp_doc_at_eol) [DEBUG]: Fix typo,
+	by removing references to no-longer-existing locals.
+
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers.
+	* ntlib.c (struct timespec) [!_TIMEZONE_DEFINED]: Define the
+	struct only if _TIMEZONE_DEFINED is not defined.
+
+2013-03-23  cg  <chengang31@gmail.com>  (tiny change)
+
+	* makefile.w32-in (LIB_SRC): Move before first use.
+
+2013-03-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pop.c: Fix ERRMAX typo (Bug#13925).
+	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
+	Use ERROR_MAX, not ERRMAX.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* Makefile.in (LIB_FDATASYNC): New macro.
+	(emacsclient${EXEEXT}): Use it.
+	* emacsclient.c (main): Use fdatasync, not fsync, since we don't
+	care about metadata.  Keep trying if interrupted.
+	* movemail.c (main, popmail): Don't worry about BSD_SYSTEM, since
+	fsync is available everywhere (or there is a substitute).
+	Don't report an error if fsync returns EINVAL.
+
+	Static checking by Sun C 5.12.
+	* etags.c (analyse_regex): Omit unreachable code.
+
+	* movemail.c (main): Call umask on all systems.
+	This is OK since Emacs already assumes umask elsewhere.
+	Don't grant more read permissions than necessary.
+	The old 0333 dates back to before we called setuid,
+	so it was needed back then to ensure user-readability,
+	but 0377 should suffice now.
+
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c (getenv): Remove decl (unused since 1994).
+
+2013-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (write_globals): Make it a bit clearer (Bug#13448).
+	This pacifies GCC 4.7.2 when Emacs is configured with
+	--enable-link-time-optimization and --enable-gcc-warnings.
+
+2013-01-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (lisp1): Add macroexp.elc (bug#13320).
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): Update dependencies.
+
+2012-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add w32notify.o.  Add missing X and Unix
+	sources.
+
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.c (Lisp_functions): Skip (defvar foo) declarations unless
+	the --declarations flag is enabled (Bug#5600).
+	(Lisp_help): Update.
+	(skip_name): New function.
+
+2012-12-01  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.c (Perl_functions): Support "use constant" (Bug#5055).
+
+2012-11-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for errno.h (Bug#12968).
+	* movemail.c (main): Assume EAGAIN and EBUSY.
+
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	movemail: treat EACCES etc. failures as permanent
+	* movemail.c (main): Treat any link failure other than EEXIST as a
+	permanent failure, not just EPERM.  EACCES, for example.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* emacsclient.c (getcwd): Remove decl.
+	(get_current_dir_name): Assume getcwd exists.
+	* etags.c (HAVE_GETCWD): Remove.
+	(getcwd): Remove decl.
+	(NO_LONG_OPTIONS): Remove this.  All uses removed.
+	Emacs always has GNU getopt.
+	(etags_getcwd): Assume getcwd exists.
+	* movemail.c (F_OK, X_OK, W_OK, R_OK): Remove.
+
+2012-11-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsclient.c (handle_sigcont, handle_sigtstp): Use raise (sig)
+	rather than kill (getpid (), sig), as it's simpler and safer.
+
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): New macro.
+	($(BLD)/movemail.$(O)): Update dependencies.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* movemail.c, update-game-score.c: Assume <fcntl.h> exists.
+
+2012-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (uninstall): No INSTALLABLES live in archlibdir.
+
+	* Makefile.in (install, uninstall): Transformations should not be
+	applied to $EXEEXT.
+
+2012-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp2): Add cp51932.el and eucjp-ms.el, to
+	follow src/lisp.mk.
+
+2012-10-21  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (scan_lisp_file): Add cp51932.el and eucjp-ms.el.
+
+2012-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-docfile.c (IS_SLASH, DEF_ELISP_FILE): New macros.
+	(scan_lisp_file): Only pass a .el file if its basename matches a
+	known file in its entirety.  Use IS_SLASH and DEF_ELISP_FILE.
+
+2012-10-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (scan_lisp_file): Add bounds checking.
+
+2012-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Prevent silent omission of doc strings from uncompiled Lisp files.
+	* make-docfile.c (scan_lisp_file): Barf if called with a .el file
+	other than one of a small list of supported un-compiled files.
+
+	* makefile.w32-in (lisp1, lisp2): Name .elc files wherever they
+	exist.  (Bug#12395)
+
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c: Include <mbstring.h>, to avoid compiler warning about
+	_mbspbrk.
+
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add cygw32.o.
+
+2012-10-08  Daniel Colascione  <dancol@dancol.org>
+
+	* emacsclient.c: Include windows.h when HAVE_NTGUI.
+	(alt_display): New variable.  We send the display held by this
+	variable when the primary display is either unsupported or not
+	present.
+	(longopts): Allow display everywhere.
+	(w32_set_user_model_id): Move lower in file, inside HAVE_NTGUI
+	section.
+	(decode_options): Use alt_display.  Explain why.
+	(main): Retry connection with alt_display if connection with main
+	display fails.
+
+2012-10-01  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* make-docfile.c (write_globals): Special-case
+	Fexit_recursive_edit and Fabort_recursive_edit as well, as
+	functions that are _Noreturn, to be consistent with
+	src/keyboard.c.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c (gettimeofday): Copy from src/w32.c.  lib/gettime.c
+	needs this function.
+
+2012-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Add profiler.o.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version):
+	* etags.c (print_version): Use COPYRIGHT.
+
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pop.c (socket_connection) [HAVE_GETADDRINFO]:
+	Prefer assignment to memcpy when either will do.
+
+2012-08-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* etags.c (consider_token): Always zero-terminate token buffer.
+	(Bug#12306)
+
+2012-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rely on <config.h> + <unistd.h> to declare 'environ'.
+	* emacsclient.c (environ): Remove decl.
+
+2012-08-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/regex.$(O)): Update dependencies.
+
+2012-08-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (Pascal_functions): Fix parenthesization typo.
+
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (enum global_type): Sort values roughly in
+	decreasing alignment, except put functions last.
+	(compare_globals): Use this new property of enum global_type.
+	(write_globals): Use bool, not int, for booleans.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (IF_LINT):
+	* emacsclient.c (IF_LINT): Remove (in config.h now).
+
+	* make-docfile.c (main):
+	(fopen) [!WINDOWSNT]:
+	(chdir) [!DOS_NT]: No more need to undef.
+
+	* movemail.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
+	* make-docfile.c (DIRECTORY_SEP, IS_DIRECTORY_SEP):
+	* emacsclient.c (DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP):
+	Remove (they are in config.h now).
+
+	* ebrowse.c (PATH_LIST_SEPARATOR):
+	Remove, and replace with SEPCHAR from config.h.
+
+2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (LOCAL_FLAGS): Remove WINDOWSNT and DOS_NT,
+	they are always defined in config.h.
+
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c (lstat): New function, calls 'stat'.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style 'extern inline' if available.
+	* profile.c (SYSTIME_INLINE): Define.
+
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (MS_W32_H): Update for new ms-w32.h location.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (config_h): New variable.
+	Use throughout in place of ../src/config.h.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CONFIG_H): Update dependencies.
+	(CONF_POST_H): New macro.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, need-blessmail, maybe-blessmail,
+	install, uninstall, mostlyclean, clean, distclean,
+	maintainer-clean, extraclean, check, tags.
+
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/profile.$(O)): Depend on stamp_BLD.
+
+2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c: Add missing 'defined'.
+	Suggested by Sven Joachim in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00218.html>.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port 'movemail' again to Solaris and similar hosts.
+	See Susan Cragin's report in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00199.html>.
+	* movemail.c (xmalloc): Also define if !DISABLE_DIRECT_ACCESS &&
+	!MAIL_USE_MMDF && !MAIL_USE_SYSTEM_LOCK.  Move up, so it doesn't
+	need a forward declaration.
+	(main): Rewrite to avoid no-longer-present function 'concat', if
+	!DISABLE_DIRECT_ACCESS && !MAIL_USE_MMDF && !MAIL_USE_SYSTEM_LOCK.
+
+	Assume strerror.
+	* emacsclient.c, movemail.c, update-game-score.c (strerror)
+	[!HAVE_STRERROR]: Remove.
+
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	EMACS_TIME simplification (Bug#11875).
+	* profile.c (TV2): Remove no-longer-needed static var.
+
+	Simplify by avoiding confusing use of strncpy etc.
+	* etags.c (write_classname, C_entries):
+	Use sprintf rather than strncpy or strncat.
+	* etags.c (consider_token, C_entries, HTML_labels, Prolog_functions)
+	(Erlang_functions, substitute, readline_internal, savenstr):
+	* movemail.c (mail_spool_name):
+	Use memcpy rather than strncpy or strncat when either will do.
+	* make-docfile.c (write_c_args):
+	Use memcmp rather than strncmp when either will do.
+	* movemail.c (pop_retr):
+	* pop.c (pop_stat, pop_list, pop_multi_first, pop_last)
+	(socket_connection, pop_getline, sendline, getok):
+	Use snprintf rather than strncpy or strncat.
+	* movemail.c (concat): Remove; no longer needed.
+	(xmalloc): Define only if needed, now that concat has gone away.
+	Return void *.  All uses changed.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* etags.c (number_len): Add ATTRIBUTE_CONST.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_execvp): Declare execvp to silence the compiler.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/test-distrib.exe): Use LIB_SRC, not SRC.
+	(LIB_SRC, NT_INC, GNU_LIB, MS_W32_H, CONFIG_H, INTTYPES_H, NTLIB_H)
+	(SYSTIME_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/ctags.$(O), $(BLD)/ebrowse.$(O), $(BLD)/emacsclient.$(O))
+	($(BLD)/etags.$(O), $(BLD)/hexl.$(O), $(BLD)/make-docfile.$(O))
+	($(BLD)/movemail.$(O), $(BLD)/ntlib.$(O), $(BLD)/pop.$(O))
+	($(BLD)/profile.$(O), $(BLD)/test-distrib.$(O)): Update dependencies.
+	($(BLD)/regex.$(O)): New dependency.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (ALL): Add profile.exe.
+	(PROFILEOBJS): New macro.
+	($(BLD)/profile.exe): New target.
+	(install): Copy profile.exe.
+	($(BLD)/alloca.$(O), $(BLD)/tcp.$(O)): Remove, obsolete.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/etags.$(O)):
+	Update dependencies.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* etags.c: Include c-strcase.h.
+	(etags_strcasecmp, etags_strncasecmp): Remove.
+	All uses replaced with c_strcasecmp and c_strncasecmp.
+
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (write_globals): Warn about duplicate function
+	definitions with differing signatures.
+
+2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (scan_c_file): Suppress GCC warning.
+
+2012-06-29  Tom Tromey  <tromey@redhat.com>
+
+	* make-docfile.c (enum global_type) <FUNCTION>: New constant.
+	(struct global) <value>: New field.
+	(add_global): Add 'value' argument.
+	(compare_globals): Sort functions at the end.
+	(close_emacs_globals): New function.
+	(write_globals): Handle functions.
+	(scan_c_file): Call add_global for DEFUN.
+
+2012-06-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (CTAGS_CFLAGS): Remove EMACS_NAME;
+	already defined in ETAGS_CFLAGS.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (lisp2): Remove paths.el.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (BASE_CFLAGS):
+	* makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+	* etags.c, hexl.c, pop.c: Include <config.h> unconditionally.
+	* etags.c (DOS_NT):
+	* pop.c (MAIL_USE_POP, h_errno):
+	Remove code that was conditioned on !HAVE_CONFIG_H.
+
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* etags.c (etags_strcasecmp, etags_strncasecmp): Define to
+	library functions strcasecmp and strncasecmp if available.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* ebrowse.c (usage, version):
+	* emacsclient.c (print_help_and_exit, fail):
+	* etags.c (suggest_asking_for_help, fatal, pfatal):
+	* hexl.c (usage):
+	* make-docfile.c (fatal):
+	* movemail.c (fatal, pfatal_with_name, pfatal_and_delete):
+	* update-game-score.c (usage):
+	* ebrowse.c (usage, version):
+	* emacsclient.c (print_help_and_exit, fail):
+	Use _Noreturn rather than NO_RETURN.
+	No need for separate decl merely because of _Noreturn.
+
+2012-06-24  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+
+	* emacsclient.c (set_local_socket): Fix compiler warning (Bug#7838).
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* Makefile.in (LIB_CLOCK_GETTIME): New macro.
+	(profile${EXEEXT}): Use it.
+	* profile.c: Include inttypes.h, intprops.h.
+	(time_string): Size conservatively; do not guess size.
+	(get_time): Now prints nanoseconds.
+	(gettimeofday): Remove replacement function; gnulib now does this.
+
+2012-06-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (search_lisp_doc_at_eol): Unget last read
+	character.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPTS, insrcdir)
+	(stamp-rcs2log, stamp-grep-changelog): Remove.
+	(all, clean): Remove references to stamps.
+
+	* vcdiff: Remove file.
+	* Makefile.in (SCRIPTS, STAMP_SCRIPTS): Remove vcdiff.
+	(stamp-vcdiff): Remove.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in ($(BLD)/getdate.$(O), $(BLD)/leditcfns.$(O)):
+	($(BLD)/make-path.$(O), $(BLD)/qsort.$(O)):
+	($(BLD)/timer.$(O)): Remove cruft.
+
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* rcs-checkin: Remove file.
+	* Makefile.in (INSTALLABLE_SCRIPTS, STAMP_INST_SCRIPTS):
+	Remove rcs-checkin.
+	(stamp-rcs-checkin): Remove.
+
 2012-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/emacsclientw.exe): Use $(MWINDOWS)
@@ -216,7 +796,7 @@
 	to avoid potential buffer overflow issues on typical 64-bit hosts.
 	(whatlen_max): New static var.
 	(main): Avoid buffer overflow if subsidiary command length is
-	greater than BUFSIZ or 2*BUFSIZ + 20. Do not use sprintf when its
+	greater than BUFSIZ or 2*BUFSIZ + 20.  Do not use sprintf when its
 	result might not fit in 'int'.
 
 	* movemail.c (main): Do not use sprintf when its result might not fit
@@ -763,7 +1343,7 @@
 	(Asm_help, default_C_suffixes, default_C_help, Cplusplus_suffixes)
 	(Cplusplus_help, Cjava_suffixes, Cobol_suffixes, Cstar_suffixes)
 	(Erlang_suffixes, Erlang_help, Forth_suffixes, Forth_help)
-	(Fortran_suffixes, Fortran_help, HTML_suffixes,  HTML_help)
+	(Fortran_suffixes, Fortran_help, HTML_suffixes, HTML_help)
 	(Lisp_suffixes, Lisp_help, Lua_suffixes, Lua_help)
 	(Makefile_filenames, Makefile_help, Objc_suffixes, Objc_help)
 	(Pascal_suffixes, Pascal_help, Perl_suffixes, Perl_interpreters)
@@ -3267,7 +3847,7 @@
 
 2002-03-05  Francesco Potortì  <pot@gnu.org>
 
-	* etags.c: Honour #line directives.
+	* etags.c: Honor #line directives.
 	(no_line_directive): New global var; set it for old behavior.
 	(main): Remove some #ifdef in the getopt switch.
 	(add_node, put_entries): Code added to merge different chunks of
@@ -4741,7 +5321,7 @@
 	(longopts): New long options without short counterpart are
 	globals, members, no-globals, no-members.  Regexp options are now
 	defined  conditionally to ETAGS_REGEXPS.
-	(print_help): Updated.
+	(print_help): Update.
 
 1997-05-22  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
@@ -5614,7 +6194,7 @@
 
 1995-06-13  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* etags.c (process_file,absolute_filename): Handle filenames
+	* etags.c (process_file, absolute_filename): Handle filenames
 	starting with a drive letter.
 
 	* makefile.nt (install): Copy wakeup.exe properly.
@@ -5641,12 +6221,12 @@
 1995-05-25  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt (LIBS): Use BASE_LIBS.
-	(make-docfile.exe,hexl.exe,wakeup.exe,etags.exe): Don't depend
+	(make-docfile.exe, hexl.exe, wakeup.exe, etags.exe): Don't depend
 	upon LIBS.
 	(DOC): Use del instead of rm.
 	(DOC) [WINDOWS95]: Use DOC.
 	(clean): Handle MSVC aux files.
-	(config.h,paths.h): Use $(CP) instead of cp.
+	(config.h, paths.h): Use $(CP) instead of cp.
 	(config.h): Use $(CONFIG_H)
 	(make-docfile.obj): Depend upon config.h.
 	Clean up comments.
@@ -7907,7 +8487,7 @@
 
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
-	* env.c: Add decl for my-index
+	* env.c: Add decl for my-index.
 	* etags.c (file-entries): .oak => scheme.
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -8073,7 +8653,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1988-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1988-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

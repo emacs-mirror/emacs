@@ -1,6 +1,6 @@
 /* Read symbolic links into a buffer without size limitation, relative to fd.
 
-   Copyright (C) 2011-2012 Free Software Foundation, Inc.
+   Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,21 +52,16 @@ char *careadlinkat (int fd, char const *filename,
                     ssize_t (*preadlinkat) (int, char const *,
                                             char *, size_t));
 
-/* Suitable values for careadlinkat's FD and PREADLINKAT arguments,
-   when doing a plain readlink:
-   Pass FD = AT_FDCWD and PREADLINKAT = careadlinkatcwd.  */
+/* Suitable value for careadlinkat's FD argument.  */
 #if HAVE_READLINKAT
 /* AT_FDCWD is declared in <fcntl.h>.  */
 #else
 /* Define AT_FDCWD independently, so that the careadlinkat module does
-   not depend on the fcntl-h module.  The value does not matter, since
-   careadlinkatcwd ignores it, but we might as well use the same value
+   not depend on the fcntl-h module.  We might as well use the same value
    as fcntl-h.  */
 # ifndef AT_FDCWD
 #  define AT_FDCWD (-3041965)
 # endif
 #endif
-ssize_t careadlinkatcwd (int fd, char const *filename,
-                         char *buffer, size_t buffer_size);
 
 #endif /* _GL_CAREADLINKAT_H */

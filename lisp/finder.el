@@ -1,6 +1,7 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997-1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997-1999, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -205,7 +206,8 @@ from; the default is `load-path'."
 	      (setq version (ignore-errors (version-to-list version)))
 	      (setq entry (assq package package--builtins))
 	      (cond ((null entry)
-		     (push (cons package (vector version nil summary))
+		     (push (cons package
+                                 (package-make-builtin version summary))
 			   package--builtins))
 		    ((eq base-name package)
 		     (setq desc (cdr entry))
@@ -223,13 +225,16 @@ from; the default is `load-path'."
 	      (lambda (a b) (string< (symbol-name (car a))
 				     (symbol-name (car b))))))
 
-  (save-excursion
-    (find-file generated-finder-keywords-file)
+  (with-current-buffer
+      (find-file-noselect generated-finder-keywords-file)
     (setq buffer-undo-list t)
     (erase-buffer)
     (insert (autoload-rubric generated-finder-keywords-file
                              "keyword-to-package mapping" t))
     (search-backward "")
+    ;; FIXME: Now that we have package--builtin-versions, package--builtins is
+    ;; only needed to get the list of unversioned packages and to get the
+    ;; summary description of each package.
     (insert "(setq package--builtins '(\n")
     (dolist (package package--builtins)
       (insert "  ")

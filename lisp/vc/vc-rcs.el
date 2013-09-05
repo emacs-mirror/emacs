@@ -1,6 +1,6 @@
-;;; vc-rcs.el --- support for RCS version-control
+;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -38,7 +38,7 @@
 ;;;
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'vc))
 
 (defgroup vc-rcs nil
@@ -89,6 +89,9 @@ to use --brief and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
   :group 'vc-rcs)
 
+;; This needs to be autoloaded because vc-rcs-registered uses it (via
+;; vc-default-registered), and vc-hooks needs to be able to check
+;; for a registered backend without loading every backend.
 ;;;###autoload
 (defcustom vc-rcs-master-templates
   (purecopy '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
@@ -197,6 +200,8 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
 
+(autoload 'vc-expand-dirs "vc")
+
 (defun vc-rcs-dir-status (dir update-function)
   ;; FIXME: this function should be rewritten or `vc-expand-dirs'
   ;; should be changed to take a backend parameter.  Using
@@ -266,6 +271,8 @@ When VERSION is given, perform check for that version."
   "Create a new RCS repository."
   ;; RCS is totally file-oriented, so all we have to do is make the directory.
   (make-directory "RCS"))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-rcs-register (files &optional rev comment)
   "Register FILES into the RCS version-control system.
@@ -513,7 +520,7 @@ expanded to all registered subfiles in them."
 			 ;; No, it was some other error: re-signal it.
 			 (signal (car err) (cdr err)))))))))
 
-(defun vc-rcs-revert (file &optional contents-done)
+(defun vc-rcs-revert (file &optional _contents-done)
   "Revert FILE to the version it was based on.  If FILE is a directory,
 revert all registered files beneath it."
   (if (file-directory-p file)
@@ -564,10 +571,14 @@ directory the operation is applied to all registered files beneath it."
     (when (looking-at "[\b\t\n\v\f\r ]+")
       (delete-char (- (match-end 0) (match-beginning 0))))))
 
-(defun vc-rcs-print-log (files buffer &optional shortlog start-revision-ignored limit)
-  "Get change log associated with FILE.  If FILE is a
-directory the operation is applied to all registered files beneath it."
-  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
+(defun vc-rcs-print-log (files buffer &optional _shortlog
+                               _start-revision-ignored limit)
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored.
+If FILE is a directory the operation is applied to all registered
+files beneath it."
+  (vc-do-command (or buffer "*vc*") 0 "rlog"
+                 (mapcar 'vc-name (vc-expand-dirs files)))
   (with-current-buffer (or buffer "*vc*")
     (vc-rcs-print-log-cleanup))
   (when limit 'limit-unsupported))
@@ -679,9 +690,9 @@ Optional arg REVISION is a revision to annotate from."
     ;; Apply reverse-chronological edits on the trunk, computing and
     ;; accumulating forward-chronological edits after some point, for
     ;; later.
-    (flet ((r/d/a () (vector pre
-                             (cdr (assq 'date meta))
-                             (cdr (assq 'author meta)))))
+    (cl-flet ((r/d/a () (vector pre
+                                (cdr (assq 'date meta))
+                                (cdr (assq 'author meta)))))
       (while (when (setq pre cur cur (cdr (assq 'next meta)))
                (not (string= "" cur)))
         (setq
@@ -705,17 +716,17 @@ Optional arg REVISION is a revision to annotate from."
           (goto-char (point-min))
           (forward-line (1- (pop insn)))
           (setq p (point))
-          (case (pop insn)
-            (k (setq s (buffer-substring-no-properties
-                        p (progn (forward-line (car insn))
-                                 (point))))
-               (when prda
-                 (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
-               (delete-region p (point)))
-            (i (setq s (car insn))
-               (when prda
-                 (push `(,p . ,(length s)) path))
-               (insert s)))))
+          (pcase (pop insn)
+            (`k (setq s (buffer-substring-no-properties
+                         p (progn (forward-line (car insn))
+                                  (point))))
+                (when prda
+                  (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
+                (delete-region p (point)))
+            (`i (setq s (car insn))
+                (when prda
+                  (push `(,p . ,(length s)) path))
+                (insert s)))))
       ;; For the initial revision, setting `:vc-rcs-r/d/a' directly is
       ;; equivalent to pushing an insert instruction (of the entire buffer
       ;; contents) onto `path' then erasing the buffer, but less wasteful.
@@ -737,14 +748,14 @@ Optional arg REVISION is a revision to annotate from."
                  (dolist (insn (cdr (assq :insn meta)))
                    (goto-char (point-min))
                    (forward-line (1- (pop insn)))
-                   (case (pop insn)
-                     (k (delete-region
-                         (point) (progn (forward-line (car insn))
-                                        (point))))
-                     (i (insert (propertize
-                                 (car insn)
-                                 :vc-rcs-r/d/a
-                                 (or prda (setq prda (r/d/a))))))))
+                   (pcase (pop insn)
+                     (`k (delete-region
+                          (point) (progn (forward-line (car insn))
+                                         (point))))
+                     (`i (insert (propertize
+                                  (car insn)
+                                  :vc-rcs-r/d/a
+                                  (or prda (setq prda (r/d/a))))))))
                  (prog1 (not (string= (if nbls (caar nbls) revision) pre))
                    (setq pre (cdr (assq 'next meta)))))))))
   ;; Lastly, for each line, insert at bol nicely-formatted history info.
@@ -769,16 +780,16 @@ Optional arg REVISION is a revision to annotate from."
                  ht)
         (setq maxw (max w maxw))))
     (let ((padding (make-string maxw 32)))
-      (flet ((pad (w) (substring-no-properties padding w))
-             (render (rda &rest ls)
-                     (propertize
-                      (apply 'concat
-                             (format-time-string "%Y-%m-%d" (aref rda 1))
-                             "  "
-                             (aref rda 0)
-                             ls)
-                      :vc-annotate-prefix t
-                      :vc-rcs-r/d/a rda)))
+      (cl-flet ((pad (w) (substring-no-properties padding w))
+                (render (rda &rest ls)
+                        (propertize
+                         (apply 'concat
+                                (format-time-string "%Y-%m-%d" (aref rda 1))
+                                "  "
+                                (aref rda 0)
+                                ls)
+                         :vc-annotate-prefix t
+                         :vc-rcs-r/d/a rda)))
         (maphash
          (if all-me
              (lambda (rda w)
@@ -814,6 +825,9 @@ systime, or nil if there is none.  Also, reposition point."
 ;;; Tag system
 ;;;
 
+(autoload 'vc-tag-precondition "vc")
+(declare-function vc-file-tree-walk "vc" (dirname func &rest args))
+
 (defun vc-rcs-create-tag (dir name branchp)
   (when branchp
     (error "RCS backend does not support module branches"))
@@ -839,7 +853,7 @@ systime, or nil if there is none.  Also, reposition point."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
 
-(defun vc-rcs-previous-revision (file rev)
+(defun vc-rcs-previous-revision (_file rev)
   "Return the revision number immediately preceding REV for FILE,
 or nil if there is no previous revision.  This default
 implementation works for MAJOR.MINOR-style revision numbers as
@@ -867,6 +881,25 @@ and CVS."
     (let ((branch (vc-branch-part rev))
 	  (minor-num (string-to-number (vc-rcs-minor-part rev))))
       (concat branch "." (number-to-string (1+ minor-num))))))
+
+;; Note that most GNU/Linux distributions seem to supply rcs2log in a
+;; standard bin directory.  Eg both Red Hat and Debian include it in
+;; their cvs packages.  It's not obvious why Emacs still needs to
+;; provide it as well...
+(defvar vc-rcs-rcs2log-program
+  (let (exe)
+    (cond ((file-executable-p
+            (setq exe (expand-file-name "rcs2log" exec-directory)))
+           exe)
+          ;; In the unlikely event that someone is running an
+          ;; uninstalled Emacs and wants to do something RCS-related.
+          ((file-executable-p
+            (setq exe (expand-file-name "lib-src/rcs2log" source-directory)))
+           exe)
+          (t "rcs2log")))
+  "Path to the `rcs2log' program (normally in `exec-directory').")
+
+(autoload 'vc-buffer-sync "vc-dispatcher")
 
 (defun vc-rcs-update-changelog (files)
   "Default implementation of update-changelog.
@@ -898,9 +931,7 @@ Uses `rcs2log' which only works for RCS and CVS."
 	     (unwind-protect
 		 (progn
 		   (setq default-directory odefault)
-		   (if (eq 0 (apply 'call-process
-                                    (expand-file-name "rcs2log"
-                                                      exec-directory)
+		   (if (eq 0 (apply 'call-process vc-rcs-rcs2log-program
                                     nil (list t tempfile) nil
                                     "-c" changelog
                                     "-u" (concat login-name
@@ -935,6 +966,8 @@ Uses `rcs2log' which only works for RCS and CVS."
                     "RCSfile\\|Revision\\|Source\\|State\\): [^$\n]+\\$")
             nil t)
       (replace-match "$\\1$"))))
+
+(autoload 'vc-rename-master "vc")
 
 (defun vc-rcs-rename-file (old new)
   ;; Just move the master file (using vc-rcs-master-templates).
@@ -1291,50 +1324,51 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
         ;; to "de-@@-format" the printed representation as the first step
         ;; to translating it into some value.  See internal func `gather'.
         @-holes)
-    (flet ((sw () (skip-chars-forward " \t\n")) ; i.e., `[:space:]'
-           (at (tag) (save-excursion (eq tag (read buffer))))
-           (to-eol () (buffer-substring-no-properties
-                       (point) (progn (forward-line 1)
-                                      (1- (point)))))
-           (to-semi () (setq b (point)
-                             e (progn (search-forward ";")
-                                      (1- (point)))))
-           (to-one@ () (setq @-holes nil
-                             b (progn (search-forward "@") (point))
-                             e (progn (while (and (search-forward "@")
-                                                  (= ?@ (char-after))
-                                                  (progn
-                                                    (push (point) @-holes)
-                                                    (forward-char 1)
-                                                    (push (point) @-holes))))
-                                      (1- (point)))))
-           (tok+val (set-b+e name &optional proc)
-                    (unless (eq name (setq tok (read buffer)))
-                      (error "Missing `%s' while parsing %s" name context))
-                    (sw)
-                    (funcall set-b+e)
-                    (cons tok (if proc
-                                  (funcall proc)
-                                (buffer-substring-no-properties b e))))
-           (k-semi (name &optional proc) (tok+val 'to-semi name proc))
-           (gather () (let ((pairs `(,e ,@@-holes ,b))
-                            acc)
-                        (while pairs
-                          (push (buffer-substring-no-properties
-                                 (cadr pairs) (car pairs))
-                                acc)
-                          (setq pairs (cddr pairs)))
-                        (apply 'concat acc)))
-           (k-one@ (name &optional later) (tok+val 'to-one@ name
-                                                   (if later
-                                                       (lambda () t)
-                                                     'gather))))
+    (cl-flet*
+        ((sw () (skip-chars-forward " \t\n")) ; i.e., `[:space:]'
+         (at (tag) (save-excursion (eq tag (read buffer))))
+         (to-eol () (buffer-substring-no-properties
+                     (point) (progn (forward-line 1)
+                                    (1- (point)))))
+         (to-semi () (setq b (point)
+                           e (progn (search-forward ";")
+                                    (1- (point)))))
+         (to-one@ () (setq @-holes nil
+                           b (progn (search-forward "@") (point))
+                           e (progn (while (and (search-forward "@")
+                                                (= ?@ (char-after))
+                                                (progn
+                                                  (push (point) @-holes)
+                                                  (forward-char 1)
+                                                  (push (point) @-holes))))
+                                    (1- (point)))))
+         (tok+val (set-b+e name &optional proc)
+                  (unless (eq name (setq tok (read buffer)))
+                    (error "Missing `%s' while parsing %s" name context))
+                  (sw)
+                  (funcall set-b+e)
+                  (cons tok (if proc
+                                (funcall proc)
+                              (buffer-substring-no-properties b e))))
+         (k-semi (name &optional proc) (tok+val #'to-semi name proc))
+         (gather () (let ((pairs `(,e ,@@-holes ,b))
+                          acc)
+                      (while pairs
+                        (push (buffer-substring-no-properties
+                               (cadr pairs) (car pairs))
+                              acc)
+                        (setq pairs (cddr pairs)))
+                      (apply 'concat acc)))
+         (k-one@ (name &optional later) (tok+val #'to-one@ name
+                                                 (if later
+                                                     (lambda () t)
+                                                   #'gather))))
       (save-excursion
         (goto-char (point-min))
         ;; headers
         (setq context 'headers)
-        (flet ((hpush (name &optional proc)
-                      (push (k-semi name proc) headers)))
+        (cl-flet ((hpush (name &optional proc)
+                         (push (k-semi name proc) headers)))
           (hpush 'head)
           (when (at 'branch)
             (hpush 'branch))
@@ -1376,7 +1410,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                                (when (< (car ls) 100)
                                  (setcar ls (+ 1900 (car ls))))
                                (apply 'encode-time (nreverse ls)))))
-                  ,@(mapcar 'k-semi '(author state))
+                  ,@(mapcar #'k-semi '(author state))
                   ,(k-semi 'branches
                            (lambda ()
                              (split-string
@@ -1406,16 +1440,17 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; only the former since it behaves identically to the
               ;; latter in the absence of "@@".)
               sub)
-          (flet ((incg (beg end) (let ((b beg) (e end) @-holes)
-                                   (while (and asc (< (car asc) e))
-                                     (push (pop asc) @-holes))
-                                   ;; Self-deprecate when work is done.
-                                   ;; Folding many dimensions into one.
-                                   ;; Thanks B.Mandelbrot, for complex sum.
-                                   ;; O beauteous math! --the Unvexed Bum
-                                   (unless asc
-                                     (setq sub 'buffer-substring-no-properties))
-                                   (gather))))
+          (cl-flet ((incg (_beg end)
+                          (let ((e end) @-holes)
+                            (while (and asc (< (car asc) e))
+                              (push (pop asc) @-holes))
+                            ;; Self-deprecate when work is done.
+                            ;; Folding many dimensions into one.
+                            ;; Thanks B.Mandelbrot, for complex sum.
+                            ;; O beauteous math! --the Unvexed Bum
+                            (unless asc
+                              (setq sub #'buffer-substring-no-properties))
+                            (gather))))
             (while (and (sw)
                         (not (eobp))
                         (setq context (to-eol)
@@ -1434,8 +1469,8 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                   (setcdr (cadr rev) (gather))
                 (if @-holes
                     (setq asc (nreverse @-holes)
-                          sub 'incg)
-                  (setq sub 'buffer-substring-no-properties))
+                          sub #'incg)
+                  (setq sub #'buffer-substring-no-properties))
                 (goto-char b)
                 (setq acc nil)
                 (while (< (point) e)
@@ -1444,7 +1479,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                         start (read (current-buffer))
                         act (read (current-buffer)))
                   (forward-char 1)
-                  (push (case cmd
+                  (push (pcase cmd
                           (?d
                            ;; `d' means "delete lines".
                            ;; For Emacs spirit, we use `k' for "kill".
@@ -1458,7 +1493,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                            `(,(1+ start) i
                              ,(funcall sub (point) (progn (forward-line act)
                                                           (point)))))
-                          (t (error "Bad command `%c' in `text' for rev `%s'"
+                          (_ (error "Bad command `%c' in `text' for rev `%s'"
                                     cmd context)))
                         acc))
                 (goto-char (1+ e))

@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -43,7 +43,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'diff-mode)                    ;For diff-auto-refine-mode.
 (require 'newcomment)
 
@@ -57,7 +57,6 @@
 
 (defcustom smerge-diff-buffer-name "*vc-diff*"
   "Buffer name to use for displaying diffs."
-  :group 'smerge
   :type '(choice
 	  (const "*vc-diff*")
 	  (const "*cvs-diff*")
@@ -69,12 +68,10 @@
 	  (if (listp diff-switches) diff-switches (list diff-switches)))
   "A list of strings specifying switches to be passed to diff.
 Used in `smerge-diff-base-mine' and related functions."
-  :group 'smerge
   :type '(repeat string))
 
 (defcustom smerge-auto-leave t
   "Non-nil means to leave `smerge-mode' when the last conflict is resolved."
-  :group 'smerge
   :type 'boolean)
 
 (defface smerge-mine
@@ -84,8 +81,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#553333")
     (((class color))
      :foreground "red"))
-  "Face for your code."
-  :group 'smerge)
+  "Face for your code.")
 (define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
 (defvar smerge-mine-face 'smerge-mine)
 
@@ -96,8 +92,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#335533")
     (((class color))
      :foreground "green"))
-  "Face for the other code."
-  :group 'smerge)
+  "Face for the other code.")
 (define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
 (defvar smerge-other-face 'smerge-other)
 
@@ -108,8 +103,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#888833")
     (((class color))
      :foreground "yellow"))
-  "Face for the base code."
-  :group 'smerge)
+  "Face for the base code.")
 (define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
 (defvar smerge-base-face 'smerge-base)
 
@@ -118,27 +112,24 @@ Used in `smerge-diff-base-mine' and related functions."
      (:background "grey85"))
     (((background dark))
      (:background "grey30")))
-  "Face for the conflict markers."
-  :group 'smerge)
+  "Face for the conflict markers.")
 (define-obsolete-face-alias 'smerge-markers-face 'smerge-markers "22.1")
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-change
   '((t nil))
-  "Face used for char-based changes shown by `smerge-refine'."
-  :group 'smerge)
+  "Face used for char-based changes shown by `smerge-refine'.")
 
 (defface smerge-refined-removed
   '((default
      :inherit smerge-refined-change)
     (((class color) (min-colors 88) (background light))
-     :background "#ffaaaa")
+     :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
      :background "#aa2222")
     (t :inverse-video t))
   "Face used for removed characters shown by `smerge-refine'."
-  :group 'smerge
-  :version "24.2")
+  :version "24.3")
 
 (defface smerge-refined-added
   '((default
@@ -149,8 +140,7 @@ Used in `smerge-diff-base-mine' and related functions."
      :background "#22aa22")
     (t :inverse-video t))
   "Face used for added characters shown by `smerge-refine'."
-  :group 'smerge
-  :version "24.2")
+  :version "24.3")
 
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
@@ -172,7 +162,6 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
-  :group 'smerge
   :type '(choice (const :tag "ESC"   "\e")
 		 (const :tag "C-c ^" "\C-c^" )
 		 (const :tag "none"  "")
@@ -716,7 +705,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
     (while (or (not (match-end i))
 	       (< (point) (match-beginning i))
 	       (>= (point) (match-end i)))
-      (decf i))
+      (cl-decf i))
     i))
 
 (defun smerge-keep-current ()
@@ -779,7 +768,7 @@ An error is raised if not inside a conflict."
 	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
-	       (_ (assert (< orig-point (match-end 0))))
+	       (_ (cl-assert (< orig-point (match-end 0))))
 
 	       (other-end (match-beginning 0))
 	       (end (match-end 0))
@@ -1073,12 +1062,12 @@ used to replace chars to try and eliminate some spurious differences."
               (forward-line 1)                            ;Skip hunk header.
               (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
                    (goto-char (match-beginning 0))))
-            ;; (assert (or (null last1) (< (overlay-start last1) end1)))
-            ;; (assert (or (null last2) (< (overlay-start last2) end2)))
+            ;; (cl-assert (or (null last1) (< (overlay-start last1) end1)))
+            ;; (cl-assert (or (null last2) (< (overlay-start last2) end2)))
             (if smerge-refine-weight-hack
                 (progn
-                  ;; (assert (or (null last1) (<= (overlay-end last1) end1)))
-                  ;; (assert (or (null last2) (<= (overlay-end last2) end2)))
+                  ;; (cl-assert (or (null last1) (<= (overlay-end last1) end1)))
+                  ;; (cl-assert (or (null last2) (<= (overlay-end last2) end2)))
                   )
               ;; smerge-refine-forward-function when calling in chopup may
               ;; have stopped because it bumped into EOB whereas in
@@ -1290,8 +1279,8 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
          (progn (pop-mark) (mark))
          (when current-prefix-arg (pop-mark) (mark))))
   ;; Start from the end so as to avoid problems with pos-changes.
-  (destructuring-bind (pt1 pt2 pt3 &optional pt4)
-      (sort (list* pt1 pt2 pt3 (if pt4 (list pt4))) '>=)
+  (pcase-let ((`(,pt1 ,pt2 ,pt3 ,pt4)
+               (sort `(,pt1 ,pt2 ,pt3 ,@(if pt4 (list pt4))) '>=)))
     (goto-char pt1) (beginning-of-line)
     (insert ">>>>>>> OTHER\n")
     (goto-char pt2) (beginning-of-line)

@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -234,7 +234,8 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 
 
 (defun regexp-opt-charset (chars)
-  "Return a regexp to match a character in CHARS."
+  "Return a regexp to match a character in CHARS.
+CHARS should be a list of characters."
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;

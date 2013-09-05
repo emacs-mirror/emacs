@@ -1,6 +1,6 @@
 ;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
 
-;; Copyright (C) 1994-1995, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -61,7 +61,7 @@
 
 ;;    emacs -q -l edt-mapper.el
 
-;;  The "-q" option prevents loading of your .emacs file (commands
+;;  The "-q" option prevents loading of your init file (commands
 ;;  therein might confuse this program).
 
 ;;  An instruction screen showing the typical LK-201 terminal
@@ -74,7 +74,7 @@
 ;;  and loaded automatically when the EDT emulation is started.  If
 ;;  you specify a different file name, you will need to set the
 ;;  variable "edt-keys-file" before starting the EDT emulation.
-;;  Here's how you might go about doing that in your .emacs file.
+;;  Here's how you might go about doing that in your init file:
 
 ;;    (setq edt-keys-file (expand-file-name "~/.my-emacs-keys"))
 
@@ -95,6 +95,10 @@
 ;;  Version 4.0    2000    Added 2 New Features
 
 ;;; Code:
+
+;; Otherwise it just hangs.  This seems preferable.
+(if noninteractive
+    (error "edt-mapper cannot be loaded in batch mode"))
 
 ;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).

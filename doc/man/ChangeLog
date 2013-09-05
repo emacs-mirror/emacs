@@ -1,3 +1,19 @@
+2013-08-31  Ulrich Müller  <ulm@gentoo.org>
+
+	* emacs.1: Update manual links.
+
+2013-04-20  Petr Hracek  <phracek@redhat.com>  (tiny change)
+
+	* emacs.1: Add some more command-line options.  (Bug#14165)
+
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.1: Mention effect of --declarations in Lisp.
+
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* rcs-checkin.1: Remove.
+
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.1: Bump version to 24.1.50.
@@ -134,11 +150,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; fill-column: 79
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007-2012  Free Software Foundation, Inc.
+  Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

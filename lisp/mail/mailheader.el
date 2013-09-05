@@ -1,6 +1,6 @@
 ;;; mailheader.el --- mail header parsing, merging, formatting
 
-;; Copyright (C) 1996, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news
@@ -44,9 +44,6 @@
 ;; headers bound to their respective values.
 
 ;;; Code:
-
-(eval-when-compile
-  (require 'cl))
 
 (defun mail-header-extract ()
   "Extract headers from current buffer after point.
@@ -110,6 +107,8 @@ If the value is a string, it is the original value of the header.  If the
 value is a list, its first element is the original value of the header,
 with any subsequent elements being the result of parsing the value.
 If HEADER-ALIST is nil, the dynamically bound variable `headers' is used."
+  (declare (gv-setter (lambda (value)
+                        `(mail-header-set ,header ,value ,header-alist))))
   (cdr (assq header (or header-alist headers))))
 
 (defun mail-header-set (header value &optional header-alist)
@@ -122,9 +121,6 @@ See `mail-header' for the semantics of VALUE."
 	(setf (cdr entry) value)
 	(nconc alist (list (cons header value)))))
   value)
-
-(defsetf mail-header (header &optional header-alist) (value)
-  `(mail-header-set ,header ,value ,header-alist))
 
 (defun mail-header-merge (merge-rules headers)
   "Return a new header alist with MERGE-RULES applied to HEADERS.

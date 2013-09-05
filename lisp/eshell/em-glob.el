@@ -1,6 +1,6 @@
 ;;; em-glob.el --- extended file name globbing
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -49,15 +49,16 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'eshell))
 (require 'esh-util)
+(eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-glob nil
+(progn
+(defgroup eshell-glob nil
   "This module provides extended globbing syntax, similar what is used
 by zsh for filename generation."
   :tag "Extended filename globbing"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -118,7 +119,8 @@ This option slows down recursive glob processing by quite a bit."
 			     "*" "+")) (+ pos 2))
 	       (cons "*" (1+ pos))))))
   "An alist for translation of extended globbing characters."
-  :type '(repeat (cons character (choice regexp function)))
+  :type '(alist :key-type character
+		:value-type (choice string function))
   :group 'eshell-glob)
 
 ;;; Functions:

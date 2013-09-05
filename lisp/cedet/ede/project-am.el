@@ -1,7 +1,7 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998-2000, 2003, 2005, 2007-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2003, 2005, 2007-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.0.3
@@ -55,7 +55,7 @@
 (defcustom project-am-compile-project-command nil
   "*Default command used to compile a project."
   :group 'project-am
-  :type 'string)
+  :type '(choice (const nil) string))
 
 (defcustom project-am-compile-target-command (concat ede-make-command " -k %s")
   "*Default command used to compile a project."
@@ -205,7 +205,7 @@ OT is the object target.  DIR is the directory to start in."
 							 (oref amf targets))
 				      nil t))))
 	 ;; The input target might be new.  See if we can find it.
-	 (amf (ede-load-project-file (oref ot path)))
+	 (amf (ede-target-parent ot))
 	 (ot (object-assoc target 'name (oref amf targets)))
 	 (ofn (file-name-nondirectory (buffer-file-name))))
     (if (not ot)
@@ -896,10 +896,10 @@ files in the project."
     out))
 
 
-;;; Configure.in queries.
+;;; Configure.ac queries.
 ;;
 (defvar project-am-autoconf-file-options
-  '("configure.in" "configure.ac")
+  '("configure.ac" "configure.in")
   "List of possible configure files to look in for project info.")
 
 (defun project-am-autoconf-file (dir)
@@ -948,7 +948,7 @@ Kill the Configure buffer if it was not already in a buffer."
 	(configfiles nil)
 	)
     (cond
-     ;; Try configure.in or configure.ac
+     ;; Try configure.ac or configure.in
      (conf-in
       (project-am-with-config-current conf-in
 	(let ((aci (autoconf-parameters-for-macro "AC_INIT"))
@@ -1013,5 +1013,9 @@ per file or in .dir-locals.el or similar."
 
 
 (provide 'ede/project-am)
+
+;; Local variables:
+;; generated-autoload-load-name: "ede/project-am"
+;; End:
 
 ;;; ede/project-am.el ends here

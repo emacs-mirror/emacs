@@ -1,6 +1,6 @@
 ;;; rfc2368.el --- support for rfc2368
 
-;; Copyright (C) 1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: mail
@@ -33,7 +33,7 @@
 ;;
 ;;   this is intended as a replacement for mailto.el
 ;;
-;; acknowledgements:
+;; acknowledgments:
 ;;
 ;;   the functions that deal w/ unhexifying in this file were basically
 ;; taken from w3 -- i hope to replace them w/ something else soon OR

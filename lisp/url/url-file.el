@@ -1,6 +1,6 @@
 ;;; url-file.el --- File retrieval code
 
-;; Copyright (C) 1996-1999, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'mailcap)
 (require 'url-vars)
 (require 'url-parse)
@@ -41,7 +40,7 @@ can do automatic decompression for them, and won't find 'foo' if
 'foo.gz' exists, even though the FTP server would happily serve it up
 to them."
   (let ((scratch nil)
-	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2"))
+	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2" ".xz"))
 	(found nil))
     (while (and compressed-extensions (not found))
       (if (file-exists-p (setq scratch (concat fname (pop compressed-extensions))))
@@ -167,18 +166,21 @@ to them."
     (or filename (error "File does not exist: %s" (url-recreate-url url)))
     ;; Need to figure out the content-type from the real extension,
     ;; not the compressed one.
+    ;; FIXME should this regexp not include more extensions; basically
+    ;; everything that url-file-find-possibly-compressed-file does?
     (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)
 				    (substring filename 0 (match-beginning 0))
 				  filename))
     (setq content-type (mailcap-extension-to-mime
 			(url-file-extension uncompressed-filename))
-	  content-encoding (case (intern (url-file-extension filename))
-			     ((\.z \.gz) "gzip")
-			     (\.Z "compress")
-			     (\.uue "x-uuencoded")
-			     (\.hqx "x-hqx")
-			     (\.bz2 "x-bzip2")
-			     (otherwise nil)))
+	  content-encoding (pcase (url-file-extension filename)
+			     ((or ".z" ".gz") "gzip")
+			     (".Z" "compress")
+			     (".uue" "x-uuencoded")
+			     (".hqx" "x-hqx")
+			     (".bz2" "x-bzip2")
+			     (".xz" "x-xz")
+			     (_ nil)))
 
     (if (file-directory-p filename)
 	;; A directory is done the same whether we are local or remote

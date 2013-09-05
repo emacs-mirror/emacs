@@ -1,6 +1,7 @@
 ;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals
 
-;; Copyright (C) 1987, 1995, 1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1995, 1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -32,7 +33,6 @@
 ;;; Code:
 
 (require 'disp-table)
-(eval-when-compile (require 'cl))
 
 (defgroup iso-ascii nil
   "Set up char tables for ISO 8859/1 on ASCII terminals."
@@ -167,9 +167,14 @@
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
-  :variable (eq standard-display-table iso-ascii-display-table)
-  (unless standard-display-table
-    (setq standard-display-table iso-ascii-standard-display-table)))
+  :variable ((eq standard-display-table iso-ascii-display-table)
+             . (lambda (v)
+                 (setq standard-display-table
+                       (cond
+                        (v iso-ascii-display-table)
+                        ((eq standard-display-table iso-ascii-display-table)
+                         iso-ascii-standard-display-table)
+                        (t standard-display-table))))))
 
 (provide 'iso-ascii)
 

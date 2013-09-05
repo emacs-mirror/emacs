@@ -1,6 +1,6 @@
 /*
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1994, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -15,9 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #ifndef LWLIB_H
@@ -173,9 +171,15 @@ void lw_refigure_widget (Widget w, Boolean doit);
 Boolean lw_window_is_in_menubar (Window win, Widget menubar_widget);
 
 /* Manage resizing: TRUE permits resizing widget w; FALSE disallows it. */
+#ifndef USE_MOTIF
+ATTRIBUTE_CONST
+#endif
 void lw_allow_resizing (Widget w, Boolean flag);
 
 /* Set up the main window. */
+#ifndef USE_MOTIF
+ATTRIBUTE_CONST
+#endif
 void lw_set_main_areas (Widget parent,
                         Widget menubar,
                         Widget work_area);
@@ -189,4 +193,3 @@ int lw_separator_p (const char *label, enum menu_separator *type,
                     int motif_p);
 
 #endif /* LWLIB_H */
-

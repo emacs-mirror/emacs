@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support
 
-;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -248,7 +248,17 @@ two markers or an overlay.  Otherwise, it is nil."
 				    (setq non-unicode t)
 				  (setq eight-bit t)))))
 		      str)
-		(setq type (if non-unicode 'COMPOUND_TEXT
+		(setq type (if (or non-unicode
+				   (and
+				    non-latin-1
+				    ;; If a coding is specified for
+				    ;; selection, and that is
+				    ;; compatible with COMPOUND_TEXT,
+				    ;; use it.
+				    coding
+				    (eq (coding-system-get coding :mime-charset)
+					'x-ctext)))
+			       'COMPOUND_TEXT
 			     (if non-latin-1 'UTF8_STRING
 			       (if eight-bit 'C_STRING
 				 'STRING))))))))

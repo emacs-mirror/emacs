@@ -1,6 +1,6 @@
 ;;; org-mew.el --- Support for links to Mew messages from within Org-mode
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Tokuya Kameshima <kames at fa2 dot so-net dot ne dot jp>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -103,8 +103,7 @@
 			    :date-timestamp-inactive date-ts-ia))
       (setq message-id (org-remove-angle-brackets message-id))
       (setq desc (org-email-link-description))
-      (setq link (org-make-link "mew:" folder-name
-				"#" message-id))
+      (setq link (concat "mew:" folder-name "#" message-id))
       (org-add-link-props :link link :description desc)
       link)))
 

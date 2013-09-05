@@ -1,6 +1,6 @@
-@c This is part of the Emacs manual.  -*- coding: iso-latin-1 -*-
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c This is part of the Emacs manual.  -*- coding: utf-8 -*-
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
 @chapter The Calendar and the Diary
@@ -245,10 +245,10 @@ Scroll calendar one month forward (@code{calendar-scroll-left}).
 Scroll calendar one month backward (@code{calendar-scroll-right}).
 @item C-v
 @itemx @key{next}
-Scroll three months forward (@code{calendar-scroll-left-three-months}).
+Scroll forward by three months (@code{calendar-scroll-left-three-months}).
 @item M-v
 @itemx @key{prior}
-Scroll three months backward (@code{calendar-scroll-right-three-months}).
+Scroll backward by three months (@code{calendar-scroll-right-three-months}).
 @end table
 
 @kindex > @r{(Calendar mode)}
@@ -349,11 +349,12 @@ calendar deletes or iconifies that frame depending on the value of
 
 @cindex calendar and HTML
   The Calendar HTML commands produce files of HTML code that contain
-calendar and diary entries.  Each file applies to one month, and has a
-name of the format @file{@var{yyyy}-@var{mm}.html}, where @var{yyyy} and
-@var{mm} are the four-digit year and two-digit month, respectively.  The
-variable @code{cal-html-directory} specifies the default output
-directory for the HTML files.
+calendar, holiday, and diary entries.  Each file applies to one month,
+and has a name of the format @file{@var{yyyy}-@var{mm}.html}, where
+@var{yyyy} and @var{mm} are the four-digit year and two-digit month,
+respectively.  The variable @code{cal-html-directory} specifies the
+default output directory for the HTML files.  To prevent holidays
+from being shown, customize @code{cal-html-holidays}.
 
 @vindex cal-html-css-default
   Diary entries enclosed by @code{<} and @code{>} are interpreted as
@@ -371,7 +372,7 @@ Generate a one-month calendar (@code{cal-html-cursor-month}).
 @item H y
 Generate a calendar file for each month of a year, as well as an index
 page (@code{cal-html-cursor-year}).  By default, this command writes
-files to a @var{yyyy} subdirectory - if this is altered some hyperlinks
+files to a @var{yyyy} subdirectory---if this is altered some hyperlinks
 between years will not work.
 @end table
 
@@ -396,17 +397,20 @@ Generate a sideways-printing one-month calendar
 Generate a one-day calendar
 (@code{cal-tex-cursor-day}).
 @item t w 1
-Generate a one-page calendar for one week
+Generate a one-page calendar for one week, with hours
 (@code{cal-tex-cursor-week}).
 @item t w 2
-Generate a two-page calendar for one week
+Generate a two-page calendar for one week, with hours
 (@code{cal-tex-cursor-week2}).
 @item t w 3
-Generate an ISO-style calendar for one week
+Generate an ISO-style calendar for one week, without hours
 (@code{cal-tex-cursor-week-iso}).
 @item t w 4
-Generate a calendar for one Monday-starting week
+Generate a calendar for one Monday-starting week, with hours
 (@code{cal-tex-cursor-week-monday}).
+@item t w W
+Generate a two-page calendar for one week, without hours
+(@code{cal-tex-cursor-week2-summary}).
 @item t f w
 Generate a Filofax-style two-weeks-at-a-glance calendar
 (@code{cal-tex-cursor-filofax-2week}).
@@ -518,7 +522,7 @@ holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Bah·'Ì, Chinese, Christian, Islamic, and Jewish holidays; also the
+major Bah√°'√≠, Chinese, Christian, Islamic, and Jewish holidays; also the
 solstices and equinoxes.
 
 @findex list-holidays
@@ -674,7 +678,6 @@ and from several other calendars.
                              (aside from Gregorian).
 * To Other Calendar::      Converting the selected date to various calendars.
 * From Other Calendar::    Moving to a date specified in another calendar.
-* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 @end menu
 
 @c FIXME perhaps most of the details should be moved to cal-xtra.
@@ -756,8 +759,8 @@ days are named by combining one of ten ``celestial stems'' with one of
 twelve ``terrestrial branches'' for a total of sixty names that are
 repeated in a cycle of sixty.
 
-@cindex Bah·'Ì calendar
-  The Bah·'Ì calendar system is based on a solar cycle of 19 months with
+@cindex Bah√°'√≠ calendar
+  The Bah√°'√≠ calendar system is based on a solar cycle of 19 months with
 19 days each.  The four remaining ``intercalary'' days are placed
 between the 18th and 19th months.
 
@@ -797,7 +800,7 @@ Display French Revolutionary date for selected day
 (@code{calendar-french-print-date}).
 @findex calendar-bahai-print-date
 @item p b
-Display Bah·'Ì date for selected day
+Display Bah√°'√≠ date for selected day
 (@code{calendar-bahai-print-date}).
 @findex calendar-chinese-print-date
 @item p C
@@ -865,7 +868,7 @@ Move to a date specified in the Julian calendar
 Move to a date specified with an astronomical (Julian) day number
 (@code{calendar-astro-goto-day-number}).
 @item g b
-Move to a date specified in the Bah·'Ì calendar
+Move to a date specified in the Bah√°'√≠ calendar
 (@code{calendar-bahai-goto-date}).
 @item g h
 Move to a date specified in the Hebrew calendar
@@ -908,93 +911,6 @@ a range of years and then displays a list of the yahrzeit dates for those
 years for the date given by point.  If you are not in the calendar,
 this command first asks you for the date of death and the range of
 years, and then displays the list of yahrzeit dates.
-
-@c FIXME move to emacs-xtra.
-@node Mayan Calendar
-@subsection Converting from the Mayan Calendar
-
-  Here are the commands to select dates based on the Mayan calendar:
-
-@table @kbd
-@item g m l
-Move to a date specified by the long count calendar
-(@code{calendar-mayan-goto-long-count-date}).
-@item g m n t
-Move to the next occurrence of a place in the
-tzolkin calendar (@code{calendar-mayan-next-tzolkin-date}).
-@item g m p t
-Move to the previous occurrence of a place in the
-tzolkin calendar (@code{calendar-mayan-previous-tzolkin-date}).
-@item g m n h
-Move to the next occurrence of a place in the
-haab calendar (@code{calendar-mayan-next-haab-date}).
-@item g m p h
-Move to the previous occurrence of a place in the
-haab calendar (@code{calendar-mayan-previous-haab-date}).
-@item g m n c
-Move to the next occurrence of a place in the
-calendar round (@code{calendar-mayan-next-calendar-round-date}).
-@item g m p c
-Move to the previous occurrence of a place in the
-calendar round (@code{calendar-mayan-previous-calendar-round-date}).
-@end table
-
-@cindex Mayan long count
-  To understand these commands, you need to understand the Mayan calendars.
-The @dfn{long count} is a counting of days with these units:
-
-@display
-1 kin = 1 day@ @ @ 1 uinal = 20 kin@ @ @ 1 tun = 18 uinal
-1 katun = 20 tun@ @ @ 1 baktun = 20 katun
-@end display
-
-@kindex g m @r{(Calendar mode)}
-@findex calendar-mayan-goto-long-count-date
-@noindent
-Thus, the long count date 12.16.11.16.6 means 12 baktun, 16 katun, 11
-tun, 16 uinal, and 6 kin.  The Emacs calendar can handle Mayan long
-count dates as early as 7.17.18.13.3, but no earlier.  When you use the
-@kbd{g m l} command, type the Mayan long count date with the baktun,
-katun, tun, uinal, and kin separated by periods.
-
-@findex calendar-mayan-previous-tzolkin-date
-@findex calendar-mayan-next-tzolkin-date
-@cindex Mayan tzolkin calendar
-  The Mayan tzolkin calendar is a cycle of 260 days formed by a pair of
-independent cycles of 13 and 20 days.  Since this cycle repeats
-endlessly, Emacs provides commands to move backward and forward to the
-previous or next point in the cycle.  Type @kbd{g m p t} to go to the
-previous tzolkin date; Emacs asks you for a tzolkin date and moves point
-to the previous occurrence of that date.  Similarly, type @kbd{g m n t}
-to go to the next occurrence of a tzolkin date.
-
-@findex calendar-mayan-previous-haab-date
-@findex calendar-mayan-next-haab-date
-@cindex Mayan haab calendar
-  The Mayan haab calendar is a cycle of 365 days arranged as 18 months
-of 20 days each, followed by a 5-day monthless period.  Like the tzolkin
-cycle, this cycle repeats endlessly, and there are commands to move
-backward and forward to the previous or next point in the cycle.  Type
-@kbd{g m p h} to go to the previous haab date; Emacs asks you for a haab
-date and moves point to the previous occurrence of that date.
-Similarly, type @kbd{g m n h} to go to the next occurrence of a haab
-date.
-
-@c This is omitted because it is too long for smallbook format.
-@c @findex calendar-mayan-previous-calendar-round-date
-@findex calendar-mayan-next-calendar-round-date
-@cindex Mayan calendar round
-  The Maya also used the combination of the tzolkin date and the haab
-date.  This combination is a cycle of about 52 years called a
-@emph{calendar round}.  If you type @kbd{g m p c}, Emacs asks you for
-both a haab and a tzolkin date and then moves point to the previous
-occurrence of that combination.  Use @kbd{g m n c} to move point to the
-next occurrence of a combination.  These commands signal an error if the
-haab/tzolkin date combination you have typed is impossible.
-
-  Emacs uses strict completion (@pxref{Completion Exit}) whenever it
-asks you to type a Mayan name, so you don't have to worry about
-spelling.
 
 @node Diary
 @section The Diary
@@ -1538,7 +1454,8 @@ variety of other formats.
 messages.  While viewing such a message in Rmail or Gnus, do @kbd{M-x
 diary-from-outlook} to import the entry.  You can make this command
 recognize additional appointment message formats by customizing the
-variable @code{diary-outlook-formats}.
+variable @code{diary-outlook-formats}.  Other mail clients can set
+@code{diary-from-outlook-function} to an appropriate value.
 
 @c FIXME the name of the RFC is hardly very relevant.
 @cindex iCalendar support
@@ -1547,7 +1464,7 @@ diary file and iCalendar files, which are defined in ``RFC
 2445---Internet Calendaring and Scheduling Core Object Specification
 (iCalendar)'' (as well as the earlier vCalendar format).
 
-@c  Importing works for ``ordinary'' (i.e. non-recurring) events, but
+@c  Importing works for ``ordinary'' (i.e., non-recurring) events, but
 @c (at present) may not work correctly (if at all) for recurring events.
 @c Exporting of diary files into iCalendar files should work correctly
 @c for most diary entries.  This feature is a work in progress, so the

@@ -1,6 +1,6 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
 
@@ -509,6 +509,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	  (if (and (equal (cdadr m) "")
 		   (equal (cdar m) (cdaddr m))
 		   (goto-char (caadr m))
+		   (looking-at "[ \t]*$")
 		   (forward-line 1)
 		   (= (point) (caaddr m)))
 	      (setcdr m (cdddr m))
@@ -744,28 +745,14 @@ See also the documentation for `gnus-article-highlight-citation'."
 	  (gnus-article-search-signature)
 	  (setq total (count-lines start (point)))
 	  (while atts
-	    (setq hidden (+ hidden (length (cdr (assoc (cdar atts)
-						       gnus-cite-prefix-alist))))
+	    (setq hidden (+ hidden (length
+				    (cdr (assoc (cdar atts)
+						gnus-cite-prefix-alist))))
 		  atts (cdr atts)))
 	  (when (or force
 		    (and (> (* 100 hidden) (* gnus-cite-hide-percentage total))
 			 (> hidden gnus-cite-hide-absolute)))
-	    (gnus-add-wash-type 'cite)
-	    (setq atts gnus-cite-attribution-alist)
-	    (while atts
-	      (setq total (cdr (assoc (cdar atts) gnus-cite-prefix-alist))
-		    atts (cdr atts))
-	      (while total
-		(setq hidden (car total)
-		      total (cdr total))
-		(goto-char (point-min))
-		(forward-line (1- hidden))
-		(unless (assq hidden gnus-cite-attribution-alist)
-		  (gnus-add-text-properties
-		   (point) (progn (forward-line 1) (point))
-		   (nconc (list 'article-type 'cite)
-			  gnus-hidden-properties)))))))))
-    (gnus-set-mode-line 'article)))
+	    (gnus-article-hide-citation)))))))
 
 (defun gnus-article-hide-citation-in-followups ()
   "Hide cited text in non-root articles."
@@ -1163,18 +1150,6 @@ See also the documentation for `gnus-article-highlight-citation'."
     (while vars
       (make-local-variable (pop vars)))))
 
-(defun gnus-cited-line-p ()
-  "Say whether the current line is a cited line."
-  (save-excursion
-    (beginning-of-line)
-    (let ((found nil))
-      (dolist (prefix (mapcar 'car gnus-cite-prefix-alist))
-	(when (string= (buffer-substring (point) (+ (length prefix) (point)))
-		       prefix)
-	  (setq found t)))
-      found)))
-
-
 ;; Highlighting of different citation levels in message-mode.
 ;; - message-cite-prefix will be overridden if this is enabled.
 
@@ -1275,7 +1250,7 @@ When enabled, it automatically turns on `font-lock-mode'."
 (provide 'gnus-cite)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-cite.el ends here

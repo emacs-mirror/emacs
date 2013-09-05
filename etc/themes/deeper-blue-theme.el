@@ -1,6 +1,6 @@
 ;;; deeper-blue-theme.el --- Custom theme for faces
 
-;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Scott Frazer <frazer.scott@gmail.com>
 
@@ -35,6 +35,7 @@
    `(compilation-error ((,class (:foreground "Red1"))))
    `(compilation-info ((,class (:weight normal :foreground "LightSkyBlue"))))
    `(compilation-line-number ((,class (:foreground "LightGreen"))))
+   `(compilation-mode-line-exit ((,class (:foreground "blue4"))))
    `(cperl-array-face ((,class (:foreground "yellow2"))))
    `(cperl-hash-face ((,class (:foreground "coral1"))))
    `(cursor ((,class (:background "green"))))

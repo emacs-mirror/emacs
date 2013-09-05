@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -74,6 +74,14 @@ enum define_coding_ccl_arg_index
     coding_arg_ccl_encoder,
     coding_arg_ccl_valids,
     coding_arg_ccl_max
+  };
+
+enum define_coding_undecided_arg_index
+  {
+    coding_arg_undecided_inhibit_null_byte_detection = coding_arg_max,
+    coding_arg_undecided_inhibit_iso_escape_detection,
+    coding_arg_undecided_prefer_utf_8,
+    coding_arg_undecided_max
   };
 
 /* Hash table for all coding systems.  Keys are coding system symbols
@@ -158,6 +166,10 @@ enum coding_attr_index
 
     coding_attr_emacs_mule_full,
 
+    coding_attr_undecided_inhibit_null_byte_detection,
+    coding_attr_undecided_inhibit_iso_escape_detection,
+    coding_attr_undecided_prefer_utf_8,
+
     coding_attr_last_index
   };
 
@@ -177,7 +189,6 @@ enum coding_attr_index
 #define CODING_ATTR_PRE_WRITE(attrs)	AREF (attrs, coding_attr_pre_write)
 #define CODING_ATTR_DEFAULT_CHAR(attrs)	AREF (attrs, coding_attr_default_char)
 #define CODING_ATTR_FOR_UNIBYTE(attrs)	AREF (attrs, coding_attr_for_unibyte)
-#define CODING_ATTR_FLUSHING(attrs)	AREF (attrs, coding_attr_flushing)
 #define CODING_ATTR_PLIST(attrs)	AREF (attrs, coding_attr_plist)
 #define CODING_ATTR_CATEGORY(attrs)	AREF (attrs, coding_attr_category)
 #define CODING_ATTR_SAFE_CHARSETS(attrs)AREF (attrs, coding_attr_safe_charsets)
@@ -273,37 +284,31 @@ enum coding_result_code
     CODING_RESULT_SUCCESS,
     CODING_RESULT_INSUFFICIENT_SRC,
     CODING_RESULT_INSUFFICIENT_DST,
-    CODING_RESULT_INCONSISTENT_EOL,
     CODING_RESULT_INVALID_SRC,
-    CODING_RESULT_INTERRUPT,
-    CODING_RESULT_INSUFFICIENT_MEM
+    CODING_RESULT_INTERRUPT
   };
 
 
 /* Macros used for the member `mode' of the struct coding_system.  */
 
-/* If set, recover the original CR or LF of the already decoded text
-   when the decoding routine encounters an inconsistent eol format.  */
-#define CODING_MODE_INHIBIT_INCONSISTENT_EOL	0x01
-
 /* If set, the decoding/encoding routines treat the current data as
    the last block of the whole text to be converted, and do the
    appropriate finishing job.  */
-#define CODING_MODE_LAST_BLOCK			0x02
+#define CODING_MODE_LAST_BLOCK			0x01
 
 /* If set, it means that the current source text is in a buffer which
    enables selective display.  */
-#define CODING_MODE_SELECTIVE_DISPLAY		0x04
+#define CODING_MODE_SELECTIVE_DISPLAY		0x02
 
 /* This flag is used by the decoding/encoding routines on the fly.  If
    set, it means that right-to-left text is being processed.  */
-#define CODING_MODE_DIRECTION			0x08
+#define CODING_MODE_DIRECTION			0x04
 
-#define CODING_MODE_FIXED_DESTINATION		0x10
+#define CODING_MODE_FIXED_DESTINATION		0x08
 
 /* If set, it means that the encoding routines produces some safe
    ASCII characters (usually '?') for unsupported characters.  */
-#define CODING_MODE_SAFE_ENCODING		0x20
+#define CODING_MODE_SAFE_ENCODING		0x10
 
   /* For handling composition sequence.  */
 #include "composite.h"
@@ -322,7 +327,7 @@ struct composition_status
 {
   enum composition_state state;
   enum composition_method method;
-  int old_form;		  /* 0:pre-21 form, 1:post-21 form */
+  bool old_form;	  /* true if pre-21 form */
   int length;		  /* number of elements produced in charbuf */
   int nchars;		  /* number of characters composed */
   int ncomps;		  /* number of composition components */
@@ -351,18 +356,18 @@ struct iso_2022_spec
      there was an invalid designation previously.  */
   int current_designation[4];
 
-  /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
-     by single-shift while encoding.  */
-  int single_shifting;
-
-  /* Set to 1 temporarily only when processing at beginning of line.  */
-  int bol;
-
   /* If positive, we are now scanning CTEXT extended segment.  */
   int ctext_extended_segment_len;
 
-  /* If nonzero, we are now scanning embedded UTF-8 sequence.  */
-  int embedded_utf_8;
+  /* True temporarily only when graphic register 2 or 3 is invoked by
+     single-shift while encoding.  */
+  unsigned single_shifting : 1;
+
+  /* True temporarily only when processing at beginning of line.  */
+  unsigned bol : 1;
+
+  /* If true, we are now scanning embedded UTF-8 sequence.  */
+  unsigned embedded_utf_8 : 1;
 
   /* The current composition.  */
   struct composition_status cmp_status;
@@ -370,11 +375,21 @@ struct iso_2022_spec
 
 struct emacs_mule_spec
 {
-  int full_support;
   struct composition_status cmp_status;
 };
 
-struct ccl_spec;
+struct undecided_spec
+{
+  /* Inhibit null byte detection.  1 means always inhibit,
+     -1 means do not inhibit, 0 means rely on user variable.  */
+  int inhibit_nbd;
+
+  /* Inhibit ISO escape detection.  -1, 0, 1 as above.  */
+  int inhibit_ied;
+
+  /* Prefer UTF-8 when the input could be other encodings.  */
+  bool prefer_utf_8;
+};
 
 enum utf_bom_type
   {
@@ -433,6 +448,7 @@ struct coding_system
       struct utf_16_spec utf_16;
       enum utf_bom_type utf_8_bom;
       struct emacs_mule_spec emacs_mule;
+      struct undecided_spec undecided;
     } spec;
 
   int max_charset_id;
@@ -448,8 +464,14 @@ struct coding_system
   /* How may heading bytes we can skip for decoding.  This is set to
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
-     converted, we can skip the actual conversion process.  */
+     converted, we can skip the actual conversion process except for
+     the eol format.  */
   ptrdiff_t head_ascii;
+
+  ptrdiff_t detected_utf8_chars;
+
+  /* Used internally in coding.c.  See the comment of detect_ascii.  */
+  int eol_seen;
 
   /* The following members are set by encoding/decoding routine.  */
   ptrdiff_t produced, produced_char, consumed, consumed_char;
@@ -471,10 +493,6 @@ struct coding_system
   Lisp_Object dst_object;
   unsigned char *destination;
 
-  /* Set to 1 if the source of conversion is not in the member
-     `charbuf', but at `src_object'.  */
-  int chars_at_source;
-
   /* If an element is non-negative, it is a character code.
 
      If it is in the range -128..-1, it is a 8-bit character code
@@ -490,18 +508,21 @@ struct coding_system
   int *charbuf;
   int charbuf_size, charbuf_used;
 
+  /* True if the source of conversion is not in the member
+     `charbuf', but at `src_object'.  */
+  unsigned chars_at_source : 1;
+
   /* Set to 1 if charbuf contains an annotation.  */
-  int annotated;
+  unsigned annotated : 1;
 
   unsigned char carryover[64];
   int carryover_bytes;
 
   int default_char;
 
-  int (*detector) (struct coding_system *,
-                   struct coding_detection_info *);
+  bool (*detector) (struct coding_system *, struct coding_detection_info *);
   void (*decoder) (struct coding_system *);
-  int (*encoder) (struct coding_system *);
+  bool (*encoder) (struct coding_system *);
 };
 
 /* Meanings of bits in the member `common_flags' of the structure
@@ -649,10 +670,8 @@ struct coding_system
    for file names, if any.  */
 #define ENCODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
       : name))
 
@@ -661,10 +680,8 @@ struct coding_system
    for file names, if any.  */
 #define DECODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
@@ -673,7 +690,6 @@ struct coding_system
    for system functions, if any.  */
 #define ENCODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	   \
    : str)
 
@@ -681,7 +697,6 @@ struct coding_system
    for system functions, if any.  */
 #define DECODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
@@ -689,22 +704,20 @@ struct coding_system
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
-extern Lisp_Object code_conversion_save (int, int);
-extern int decoding_buffer_size (struct coding_system *, int);
-extern int encoding_buffer_size (struct coding_system *, int);
+extern Lisp_Object code_conversion_save (bool, bool);
 extern void setup_coding_system (Lisp_Object, struct coding_system *);
 extern Lisp_Object coding_charset_list (struct coding_system *);
 extern Lisp_Object coding_system_charset_list (Lisp_Object);
 extern Lisp_Object code_convert_string (Lisp_Object, Lisp_Object,
-                                        Lisp_Object, int, int, int);
+                                        Lisp_Object, bool, bool, bool);
 extern Lisp_Object code_convert_string_norecord (Lisp_Object, Lisp_Object,
-                                                 int);
+                                                 bool);
 extern Lisp_Object raw_text_coding_system (Lisp_Object);
 extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
 extern Lisp_Object complement_process_encoding_system (Lisp_Object);
 
-extern int decode_coding_gap (struct coding_system *,
-                              ptrdiff_t, ptrdiff_t);
+extern void decode_coding_gap (struct coding_system *,
+			       ptrdiff_t, ptrdiff_t);
 extern void decode_coding_object (struct coding_system *,
                                   Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
@@ -712,23 +725,32 @@ extern void encode_coding_object (struct coding_system *,
                                   Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
 
+#if defined (WINDOWSNT) || defined (CYGWIN)
+
+/* These functions use Lisp string objects to store the UTF-16LE
+   strings that modern versions of Windows expect.  These strings are
+   not particularly useful to Lisp, and all Lisp strings should be
+   native Emacs multibyte.  */
+
+/* Access the wide-character string stored in a Lisp string object.  */
+#define WCSDATA(x) ((wchar_t *) SDATA (x))
+
+/* Convert the multi-byte string in STR to UTF-16LE encoded unibyte
+   string, and store it in *BUF.  BUF may safely point to STR on entry.  */
+extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
+
+/* Convert STR, a UTF-16LE encoded string embedded in a unibyte string
+   object, to a multi-byte Emacs string and return it.  This function
+   calls code_convert_string_norecord internally and has all its
+   failure modes.  STR itself is not modified.  */
+extern Lisp_Object from_unicode (Lisp_Object str);
+
+/* Convert WSTR to an Emacs string.  */
+extern Lisp_Object from_unicode_buffer (const wchar_t* wstr);
+
+#endif /* WINDOWSNT || CYGWIN */
+
 /* Macros for backward compatibility.  */
-
-#define decode_coding_region(coding, from, to)		\
-  decode_coding_object (coding, Fcurrent_buffer (),	\
-			from, CHAR_TO_BYTE (from),	\
-			to, CHAR_TO_BYTE (to), Fcurrent_buffer ())
-
-
-#define encode_coding_region(coding, from, to)		\
-  encode_coding_object (coding, Fcurrent_buffer (),	\
-			from, CHAR_TO_BYTE (from),	\
-			to, CHAR_TO_BYTE (to), Fcurrent_buffer ())
-
-
-#define decode_coding_string(coding, string, nocopy)			\
-  decode_coding_object (coding, string, 0, 0, SCHARS (string),		\
-			SBYTES (string), Qt)
 
 #define encode_coding_string(coding, string, nocopy)			\
   (STRING_MULTIBYTE(string) ?						\
@@ -756,7 +778,7 @@ extern Lisp_Object Qcoding_system_p;
 extern Lisp_Object Qraw_text, Qemacs_mule, Qno_conversion, Qundecided;
 extern Lisp_Object Qbuffer_file_coding_system;
 
-extern Lisp_Object Qunix, Qdos, Qmac;
+extern Lisp_Object Qunix, Qdos;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
@@ -779,6 +801,5 @@ extern struct coding_system safe_terminal_coding;
 extern Lisp_Object Qcoding_system_error;
 
 extern char emacs_mule_bytes[256];
-extern int emacs_mule_string_char (unsigned char *);
 
 #endif /* EMACS_CODING_H */

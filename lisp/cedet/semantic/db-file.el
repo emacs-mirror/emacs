@@ -1,6 +1,6 @@
 ;;; semantic/db-file.el --- Save a semanticdb to a cache file.
 
-;;; Copyright (C) 2000-2005, 2007-2012  Free Software Foundation, Inc.
+;;; Copyright (C) 2000-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -25,9 +25,9 @@
 ;; A set of semanticdb classes for persistently saving caches on disk.
 ;;
 
-(require 'semantic)
 (require 'semantic/db)
 (require 'cedet-files)
+(require 'data-debug)
 
 (defvar semanticdb-file-version semantic-version
   "Version of semanticdb we are writing files to disk with.")
@@ -44,6 +44,8 @@
 (defcustom semanticdb-default-save-directory
   (locate-user-emacs-file "semanticdb" ".semanticdb")
   "Directory name where semantic cache files are stored.
+By default, it is either ~/.emacs.d/semanticdb, or ~/.semanticdb depending
+on which exists.
 If this value is nil, files are saved in the current directory.  If the value
 is a valid directory, then it overrides `semanticdb-default-file-name' and
 stores caches in a coded file name in this directory."
@@ -67,7 +69,9 @@ passes a list of predicates in `semanticdb-project-predicate-functions'."
   :group 'semanticdb
   :type nil)
 
-(defcustom semanticdb-save-database-hooks nil
+(define-obsolete-variable-alias 'semanticdb-save-database-hooks
+  'semanticdb-save-database-functions "24.3")
+(defcustom semanticdb-save-database-functions nil
   "Abnormal hook run after a database is saved.
 Each function is called with one argument, the object representing
 the database recently written."
@@ -140,7 +144,7 @@ If DIRECTORY doesn't exist, create a new one."
 			  directory))
 			"/")
 		:file fn :tables nil
-		:semantic-tag-version semantic-version
+		:semantic-tag-version semantic-tag-version
 		:semanticdb-version semanticdb-file-version)))
     ;; Set this up here.   We can't put it in the constructor because it
     ;; would be saved, and we want DB files to be portable.
@@ -154,7 +158,7 @@ If DIRECTORY doesn't exist, create a new one."
 (defun semanticdb-load-database (filename)
   "Load the database FILENAME."
   (condition-case foo
-      (let* ((r (eieio-persistent-read filename))
+      (let* ((r (eieio-persistent-read filename semanticdb-project-database-file))
 	     (c (semanticdb-get-database-tables r))
 	     (tv (oref r semantic-tag-version))
 	     (fv (oref r semanticdb-version))
@@ -248,7 +252,7 @@ If DB is not specified, then use the current database."
 	       (message "Save Error: %S: %s" (car (cdr foo))
 			objname)
 	     (error "%S" (car (cdr foo))))))))
-      (run-hook-with-args 'semanticdb-save-database-hooks
+      (run-hook-with-args 'semanticdb-save-database-functions
 			  (or DB semanticdb-current-database))
       ;;(message "Saving tag summary for %s...done" objname)
       )
@@ -314,7 +318,7 @@ Argument OBJ is the object to write."
 	 (data-debug-new-buffer (concat "*SEMANTICDB ERROR*"))
 	 (data-debug-insert-thing obj "*" "")
 	 (setq semanticdb-data-debug-on-write-error nil))
-       (message "Error Writing Table: %s" (object-name obj))
+       (message "Error Writing Table: %s" (eieio-object-name obj))
        (error "%S" (car (cdr tableerror)))))
 
     ;; Clear the dirty bit.

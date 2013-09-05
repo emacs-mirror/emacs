@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996-1997, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -56,7 +56,7 @@
 ;; concise problem description.
 
 ;;;_* Require
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;_* From Gomoku
 
@@ -843,13 +843,13 @@ If the game is finished, this command requests for another game."
 
 (defun landmark-max-width ()
   "Largest possible board width for the current window."
-  (1+ (/ (- (window-width (selected-window))
+  (1+ (/ (- (window-width)
 	    landmark-x-offset landmark-x-offset 1)
 	 landmark-square-width)))
 
 (defun landmark-max-height ()
   "Largest possible board height for the current window."
-  (1+ (/ (- (window-height (selected-window))
+  (1+ (/ (- (window-height)
 	    landmark-y-offset landmark-y-offset 2)
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
 	 landmark-square-height)))
@@ -1417,7 +1417,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
   (put 'z 't-1 (get 'z 't))
   (put 'z 't (calc-smell-internal 'landmark-tree))
   (if (= (- (get 'z 't) (get 'z 't-1)) 0.0)
-      (incf landmark-no-payoff)
+      (cl-incf landmark-no-payoff)
     (setf landmark-no-payoff 0)))
 
 (defun landmark-store-old-y_t ()
@@ -1464,7 +1464,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
 	    (landmark-e forward-char)
 	    (landmark-w backward-char)))
   (landmark-plot-square (landmark-point-square) 1)
-  (incf landmark-number-of-moves)
+  (cl-incf landmark-number-of-moves)
   (if landmark-output-moves
       (message "Moves made: %d" landmark-number-of-moves)))
 
@@ -1591,11 +1591,11 @@ If the game is finished, this command requests for another game."
 ; this a worka!
 ; (eval  (cons '+ list))
 ;;;_  - landmark-set-landmark-signal-strengths ()
-;;; on a screen higher than wide, I noticed that the robot would amble
-;;; left and right and not move forward. examining *landmark-blackbox*
-;;; revealed that there was no scent from the north and south
-;;; landmarks, hence, they need less factoring down of the effect of
-;;; distance on scent.
+;; on a screen higher than wide, I noticed that the robot would amble
+;; left and right and not move forward. examining *landmark-blackbox*
+;; revealed that there was no scent from the north and south
+;; landmarks, hence, they need less factoring down of the effect of
+;; distance on scent.
 
 (defun landmark-set-landmark-signal-strengths ()
   (setq landmark-tree-r (* (sqrt (+ (square landmark-cx) (square landmark-cy))) 1.5))
@@ -1682,8 +1682,6 @@ Use \\[describe-mode] for more info."
 ;;;Local variables:
 ;;;allout-layout: (0 : -1 -1 0)
 ;;;End:
-
-(random t)
 
 (provide 'landmark)
 

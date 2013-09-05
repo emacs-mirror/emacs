@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a bzr checkout
 
-## Copyright (C) 2011-2012  Free Software Foundation, Inc.
+## Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -34,10 +34,11 @@
 progs="autoconf automake"
 
 ## Minimum versions we need:
-autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.in`
+autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
 
-## FIXME how to determine this from the sources?
-automake_min=1.11
+## This will need improving if more options are ever added to the
+## AM_INIT_AUTOMAKE call.
+automake_min=`sed -n 's/^ *AM_INIT_AUTOMAKE(\([0-9\.]*\)).*/\1/p' configure.ac`
 
 
 ## $1 = program, eg "autoconf".
@@ -208,6 +209,10 @@ echo "Your system has the required tools, running autoreconf..."
 
 ## Let autoreconf figure out what, if anything, needs doing.
 autoreconf -i -I m4 || exit $?
+
+## Create a timestamp, so that './autogen.sh; make' doesn't
+## cause 'make' to needlessly run 'autoheader'.
+echo timestamp > src/stamp-h.in || exit
 
 echo "You can now run \`./configure'."
 

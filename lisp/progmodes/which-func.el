@@ -1,6 +1,7 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -68,7 +69,7 @@
   "String to display in the mode line when current function is unknown.")
 
 (defgroup which-func nil
-  "Display the current function name in the modeline."
+  "Display the current function name in the mode line."
   :group 'tools
   :version "20.3")
 
@@ -80,7 +81,7 @@
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
   :group 'which-func
-  :version "24.2"                       ; explicit list -> t
+  :version "24.3"                       ; explicit list -> t
   :type '(choice (const :tag "All modes" t)
 		 (repeat (symbol :tag "Major mode"))))
 
@@ -144,12 +145,13 @@ Zero means compute the Imenu menu regardless of size."
     (:propertize which-func-current
 		 local-map ,which-func-keymap
 		 face which-func
-		 ;;mouse-face highlight	; currently not evaluated :-(
+		 mouse-face mode-line-highlight
 		 help-echo "mouse-1: go to beginning\n\
 mouse-2: toggle rest visibility\n\
 mouse-3: go to end")
     "]")
   "Format for displaying the function in the mode line."
+  :version "24.2"                  ; added mouse-face; 24point2 is correct
   :group 'which-func
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
@@ -163,7 +165,7 @@ single string, the new name of the item.")
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
 The function is called with one argument, the string to display.
-Its return value is displayed in the modeline.
+Its return value is displayed in the mode line.
 If nil, no function is called.  The default value is nil.
 
 This feature can be useful if Imenu is set up to make more
@@ -181,7 +183,8 @@ and you want to simplify them for the mode line
 (defconst which-func-current
   '(:eval (replace-regexp-in-string
 	   "%" "%%"
-	   (gethash (selected-window) which-func-table which-func-unknown))))
+	   (or (gethash (selected-window) which-func-table)
+               which-func-unknown))))
 ;;;###autoload (put 'which-func-current 'risky-local-variable t)
 
 (defvar which-func-mode nil
@@ -233,9 +236,7 @@ It creates the Imenu index for the buffer, if necessary."
 	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
-(defun which-func-mode (&optional arg)
-  (which-function-mode arg))
-(make-obsolete 'which-func-mode 'which-function-mode "24.1")
+(define-obsolete-function-alias 'which-func-mode 'which-function-mode "24.1")
 
 (defvar which-func-update-timer nil)
 
@@ -289,7 +290,7 @@ If no function name is found, return nil."
     (when (and (null name)
 	       (boundp 'imenu--index-alist) (null imenu--index-alist)
 	       (null which-function-imenu-failed))
-      (imenu--make-index-alist t)
+      (ignore-errors (imenu--make-index-alist t))
       (unless imenu--index-alist
         (set (make-local-variable 'which-function-imenu-failed) t)))
     ;; If we have an index alist, use it.
@@ -318,7 +319,9 @@ If no function name is found, return nil."
                     namestack (cons (car pair) namestack)
                     alist     (cdr pair)))
 
-             ((number-or-marker-p (setq mark (cdr pair)))
+             ((or (number-or-marker-p (setq mark (cdr pair)))
+		  (and (overlayp mark)
+		       (setq mark (overlay-start mark))))
               (when (and (>= (setq offset (- (point) mark)) 0)
                          (< offset minoffset)) ; Find the closest item.
                 (setq minoffset offset
@@ -336,6 +339,26 @@ If no function name is found, return nil."
       (if which-func-cleanup-function
 	  (funcall which-func-cleanup-function name)
 	name))))
+
+
+;;; Integration with other packages
+
+(defvar ediff-window-A)
+(defvar ediff-window-B)
+(defvar ediff-window-C)
+
+(defun which-func-update-ediff-windows ()
+  "Update Which-Function mode display for Ediff windows.
+This function is meant to be called from `ediff-select-hook'."
+  (when (eq major-mode 'ediff-mode)
+    (when ediff-window-A
+      (which-func-update-1 ediff-window-A))
+    (when ediff-window-B
+      (which-func-update-1 ediff-window-B))
+    (when ediff-window-C
+      (which-func-update-1 ediff-window-C))))
+
+(add-hook 'ediff-select-hook 'which-func-update-ediff-windows)
 
 (provide 'which-func)
 

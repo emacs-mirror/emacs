@@ -1,8 +1,9 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects
 
-;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: irc
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoJoin
 
@@ -33,7 +34,6 @@
 
 (require 'erc)
 (require 'auth-source)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-autojoin nil
   "Enable autojoining."
@@ -84,8 +84,8 @@ identification, or after `erc-autojoin-delay' seconds.
 Any other value means the same as `connect'."
   :group 'erc-autojoin
   :version "24.1"
-  :type  '(choice (const :tag "On Connection" 'connect)
-		  (const :tag "When Identified" 'ident)))
+  :type  '(choice (const :tag "On Connection" connect)
+		  (const :tag "When Identified" ident)))
 
 (defcustom erc-autojoin-delay 30
   "Number of seconds to wait before attempting to autojoin channels.

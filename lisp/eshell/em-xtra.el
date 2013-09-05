@@ -1,6 +1,6 @@
 ;;; em-xtra.el --- extra alias functions
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -23,21 +23,25 @@
 
 ;;; Code:
 
+(require 'esh-util)
 (eval-when-compile
   (require 'eshell)
   (require 'pcomplete))
 (require 'compile)
 
 ;;;###autoload
-(eshell-defgroup eshell-xtra nil
+(progn
+(defgroup eshell-xtra nil
   "This module defines some extra alias functions which are entirely
 optional.  They can be viewed as samples for how to write Eshell alias
 functions, or as aliases which make some of Emacs's behavior more
 naturally accessible within Emacs."
   :tag "Extra alias functions"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; Functions:
+
+(autoload 'eshell-parse-command "esh-cmd")
 
 (defun eshell/expr (&rest args)
   "Implementation of expr, using the calc package."

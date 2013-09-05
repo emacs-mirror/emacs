@@ -1,6 +1,6 @@
-;;; cc-langs.el --- language specific settings for CC Mode
+;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -208,9 +208,10 @@ the evaluated constant value at compile time."
 
 ;; Suppress "might not be defined at runtime" warning.
 ;; This file is only used when compiling other cc files.
-(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys))
-(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest))
-(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
+;; These are defined in cl as aliases to the cl- versions.
+(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
+(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
+(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.
@@ -578,7 +579,7 @@ keyword.  It's unspecified how far it matches.	Does not contain a \\|
 operator at the top level."
   t    (concat "[" c-alpha "_]")
   java (concat "[" c-alpha "_@]")
-  objc (concat "[" c-alpha "@]")
+  objc (concat "[" c-alpha "_@]")
   pike (concat "[" c-alpha "_`]"))
 (c-lang-defvar c-symbol-start (c-lang-const c-symbol-start))
 
@@ -811,8 +812,8 @@ Assumed to not contain any submatches or \\| operators."
 (c-lang-defconst c-anchored-cpp-prefix
   "Regexp matching the prefix of a cpp directive anchored to BOL,
 in the languages that have a macro preprocessor."
-  t (if (c-lang-const c-opt-cpp-prefix)
-	(concat "^" (c-lang-const c-opt-cpp-prefix))))
+  t "^\\s *\\(#\\)\\s *"
+  (java awk) nil)
 (c-lang-defvar c-anchored-cpp-prefix (c-lang-const c-anchored-cpp-prefix))
 
 (c-lang-defconst c-opt-cpp-start
@@ -2162,8 +2163,7 @@ assumed to be set if this isn't nil."
 (c-lang-defconst c-opt-<>-sexp-key
   ;; Adorned regexp matching keywords that can be followed by an angle
   ;; bracket sexp.  Always set when `c-recognize-<>-arglists' is.
-  t (if (c-lang-const c-recognize-<>-arglists)
-	(c-make-keywords-re t (c-lang-const c-<>-sexp-kwds))))
+  t (c-make-keywords-re t (c-lang-const c-<>-sexp-kwds)))
 (c-lang-defvar c-opt-<>-sexp-key (c-lang-const c-opt-<>-sexp-key))
 
 (c-lang-defconst c-brace-id-list-kwds
@@ -2185,6 +2185,18 @@ identifiers that follows the type in a normal declaration."
   ;; substatement (doesn't match a bare block, however).
   t (c-make-keywords-re t (c-lang-const c-block-stmt-1-kwds)))
 (c-lang-defvar c-block-stmt-1-key (c-lang-const c-block-stmt-1-key))
+
+(c-lang-defconst c-block-stmt-1-2-kwds
+  "Statement keywords optionally followed by a paren sexp.
+Keywords here should also be in `c-block-stmt-1-kwds'."
+  t nil
+  java '("try"))
+
+(c-lang-defconst c-block-stmt-1-2-key
+  ;; Regexp matching the start of a statement which may be followed by a
+  ;; paren sexp and will then be followed by a substatement.
+  t (c-make-keywords-re t (c-lang-const c-block-stmt-1-2-kwds)))
+(c-lang-defvar c-block-stmt-1-2-key (c-lang-const c-block-stmt-1-2-key))
 
 (c-lang-defconst c-block-stmt-2-kwds
   "Statement keywords followed by a paren sexp and then by a substatement."
@@ -2818,7 +2830,7 @@ undefined whether identifier syntax (see `c-identifier-syntax-table')
 is in effect or not.
 
 Note that it's used in cases like after \"foo (bar)\" so it should
-only match when it's certain that it's a declaration, e.g \"{\" but
+only match when it's certain that it's a declaration, e.g., \"{\" but
 not \",\" or \";\"."
   t "{"
   ;; If K&R style declarations should be recognized then one could
@@ -2906,7 +2918,7 @@ is in effect or not."
 
 (c-lang-defconst c-special-brace-lists
 "List of open- and close-chars that makes up a pike-style brace list,
-i.e. for a ([ ]) list there should be a cons (?\\[ . ?\\]) in this
+i.e. for a ([Â ]) list there should be a cons (?\\[ . ?\\]) in this
 list."
   t    nil
   pike '((?{ . ?}) (?\[ . ?\]) (?< . ?>)))
@@ -2937,7 +2949,8 @@ identifier or one of the keywords on `c-<>-type-kwds' or
 `c-<>-arglist-kwds'.  If there's an identifier before then the whole
 expression is considered to be a type."
   t (or (consp (c-lang-const c-<>-type-kwds))
-	(consp (c-lang-const c-<>-arglist-kwds))))
+	(consp (c-lang-const c-<>-arglist-kwds)))
+  java t)
 (c-lang-defvar c-recognize-<>-arglists (c-lang-const c-recognize-<>-arglists))
 
 (c-lang-defconst c-enums-contain-decls

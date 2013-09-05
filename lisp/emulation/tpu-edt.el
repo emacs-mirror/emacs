@@ -1,6 +1,6 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -163,8 +163,8 @@
 ;;    and type `tpu-edt' followed by a carriage return.
 
 ;;    If you like TPU-edt and want to use it all the time, you can start
-;;    TPU-edt using the Emacs initialization file, .emacs.  Simply create
-;;    a .emacs file in your home directory containing the line:
+;;    TPU-edt using the Emacs initialization file, .emacs.  Simply add
+;;    the following line to your init file:
 
 ;;        (tpu-edt)
 
@@ -983,7 +983,7 @@ and the total number of lines in the buffer."
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
-  :global t
+  :global t :group 'tpu
   (if tpu-edt-mode (tpu-edt-on) (tpu-edt-off)))
 
 (defalias 'TPU-EDT-MODE 'tpu-edt-mode)
@@ -2440,7 +2440,7 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "76f06905db4c5bfb3b86491a51512a0e")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "ae3bca6f21640b5713a7c58c40f30847")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\

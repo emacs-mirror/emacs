@@ -1,6 +1,6 @@
 ;;; quickurl.el --- insert a URL based on text at point in buffer
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -81,8 +81,7 @@
 
 ;; Things we need:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'thingatpt)
 (require 'pp)
 (require 'browse-url)
@@ -95,7 +94,8 @@
   :group  'abbrev
   :prefix "quickurl-")
 
-(defcustom quickurl-url-file (convert-standard-filename "~/.quickurls")
+(defcustom quickurl-url-file
+  (locate-user-emacs-file "quickurls" ".quickurls")
   "File that contains the URL list."
   :type  'file
   :group 'quickurl)
@@ -165,7 +165,7 @@ To make use of this do something like:
 
   (setq quickurl-postfix quickurl-reread-hook-postfix)
 
-in your ~/.emacs (after loading/requiring quickurl).")
+in your init file (after loading/requiring quickurl).")
 
 ;; Non-customize variables.
 
@@ -206,46 +206,39 @@ in your ~/.emacs (after loading/requiring quickurl).")
       (list keyword url comment)
     (cons keyword url)))
 
-(defun quickurl-url-keyword (url)
+(defalias 'quickurl-url-keyword #'car
   "Return the keyword for the URL.
-
-Note that this function is a setfable place."
-  (car url))
-
-(defsetf quickurl-url-keyword (url) (store)
-  `(setf (car ,url) ,store))
+\n\(fn URL)")
 
 (defun quickurl-url-url (url)
   "Return the actual URL of the URL.
 
 Note that this function is a setfable place."
+  (declare (gv-setter (lambda (store)
+                        `(setf (if (quickurl-url-commented-p ,url)
+                                   (cadr ,url)
+                                 (cdr ,url))
+                               ,store))))
   (if (quickurl-url-commented-p url)
       (cadr url)
     (cdr url)))
-
-(defsetf quickurl-url-url (url) (store)
-  `
-  (if (quickurl-url-commented-p ,url)
-      (setf (cadr ,url) ,store)
-    (setf (cdr ,url) ,store)))
 
 (defun quickurl-url-comment (url)
   "Get the comment from a URL.
 
 If the URL has no comment an empty string is returned. Also note that this
 function is a setfable place."
+  (declare
+   (gv-setter (lambda (store)
+                `(if (quickurl-url-commented-p ,url)
+                     (if (zerop (length ,store))
+                         (setf (cdr ,url) (cadr ,url))
+                       (setf (nth 2 ,url) ,store))
+                   (unless (zerop (length ,store))
+                     (setf (cdr ,url) (list (cdr ,url) ,store)))))))
   (if (quickurl-url-commented-p url)
       (nth 2 url)
     ""))
-
-(defsetf quickurl-url-comment (url) (store)
-  `
-  (if (quickurl-url-commented-p ,url)
-      (if (zerop (length ,store))
-          (setf (cdr ,url) (cadr ,url))
-        (setf (nth 2 ,url) ,store))
-    (unless (zerop (length ,store))
-      (setf (cdr ,url) (list (cdr ,url) ,store)))))
 
 (defun quickurl-url-description (url)
   "Return a description for the URL.
@@ -259,14 +252,14 @@ returned."
 
 ;; Main code:
 
-(defun* quickurl-read (&optional buffer)
+(cl-defun quickurl-read (&optional buffer)
   "`read' the URL list from BUFFER into `quickurl-urls'.
 
 BUFFER, if nil, defaults to current buffer.
 Note that this function moves point to `point-min' before doing the `read'
 It also restores point after the `read'."
   (save-excursion
-    (setf (point) (point-min))
+    (goto-char (point-min))
     (setq quickurl-urls (funcall quickurl-sort-function
                                  (read (or buffer (current-buffer)))))))
 
@@ -280,7 +273,8 @@ It also restores point after the `read'."
 (defun quickurl-save-urls ()
   "Save the contents of `quickurl-urls' to `quickurl-url-file'."
   (with-temp-buffer
-    (let ((standard-output (current-buffer)))
+    (let ((standard-output (current-buffer))
+          (print-length nil))
       (princ quickurl-prefix)
       (pp quickurl-urls)
       (princ quickurl-postfix)
@@ -303,7 +297,7 @@ Also display a `message' saying what the URL was unless SILENT is non-nil."
     (message "Found %s" (quickurl-url-url url))))
 
 ;;;###autoload
-(defun* quickurl (&optional lookup)
+(cl-defun quickurl (&optional lookup)
   "Insert a URL based on LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the current
@@ -464,20 +458,21 @@ The key bindings for `quickurl-list-mode' are:
 (defun quickurl-list-populate-buffer ()
   "Populate the `quickurl-list' buffer."
   (with-current-buffer (get-buffer quickurl-list-buffer-name)
-    (let ((buffer-read-only nil)
-          (fmt (format "%%-%ds %%s\n"
-                       (apply #'max (or (loop for url in quickurl-urls
-                                              collect (length (quickurl-url-description url)))
-                                        (list 20))))))
-      (setf (buffer-string) "")
-      (loop for url in quickurl-urls
-            do (let ((start (point)))
-                 (insert (format fmt (quickurl-url-description url)
-                                 (quickurl-url-url url)))
-                 (add-text-properties start (1- (point))
-                                    '(mouse-face highlight
-				      help-echo "mouse-2: insert this URL"))))
-      (setf (point) (point-min)))))
+    (let* ((sizes (or (cl-loop for url in quickurl-urls
+                               collect (length (quickurl-url-description url)))
+                      (list 20)))
+           (fmt (format "%%-%ds %%s\n" (apply #'max sizes)))
+           (inhibit-read-only t))
+      (erase-buffer)
+      (cl-loop for url in quickurl-urls
+               do (let ((start (point)))
+                    (insert (format fmt (quickurl-url-description url)
+                                    (quickurl-url-url url)))
+                    (add-text-properties
+                     start (1- (point))
+                     '(mouse-face highlight
+                       help-echo "mouse-2: insert this URL"))))
+      (goto-char (point-min)))))
 
 (defun quickurl-list-add-url (word url comment)
   "Wrapper for `quickurl-add-url' that doesn't guess the parameters."
@@ -494,7 +489,7 @@ The key bindings for `quickurl-list-mode' are:
 (defun quickurl-list-mouse-select (event)
   "Select the URL under the mouse click."
   (interactive "e")
-  (setf (point) (posn-point (event-end event)))
+  (goto-char (posn-point (event-end event)))
   (quickurl-list-insert-url))
 
 (defun quickurl-list-insert (type)
@@ -510,16 +505,16 @@ TYPE dictates what will be inserted, options are:
     (if url
         (with-current-buffer quickurl-list-last-buffer
           (insert
-           (case type
-             (url         (funcall quickurl-format-function url))
-             (naked-url   (quickurl-url-url url))
-             (with-lookup (format "%s <URL:%s>"
+           (pcase type
+             (`url         (funcall quickurl-format-function url))
+             (`naked-url   (quickurl-url-url url))
+             (`with-lookup (format "%s <URL:%s>"
                                    (quickurl-url-keyword url)
                                    (quickurl-url-url url)))
-             (with-desc   (format "%S <URL:%s>"
+             (`with-desc   (format "%S <URL:%s>"
                                    (quickurl-url-description url)
                                    (quickurl-url-url url)))
-             (lookup      (quickurl-url-keyword url)))))
+             (`lookup      (quickurl-url-keyword url)))))
       (error "No URL details on that line"))
     url))
 

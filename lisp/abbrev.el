@@ -1,6 +1,7 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -31,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
@@ -531,7 +532,7 @@ This is the first thing that `expand-abbrev' does, and so this may change
 the current abbrev table before abbrev lookup happens."
   :type 'hook
   :group 'abbrev-mode)
-(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-functions "23.1")
+(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-function "23.1")
 
 (defun clear-abbrev-table (table)
   "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
@@ -540,7 +541,7 @@ the current abbrev table before abbrev lookup happens."
     (dotimes (i (length table))
       (aset table i 0))
     ;; Preserve the table's properties.
-    (assert sym)
+    (cl-assert sym)
     (let ((newsym (intern "" table)))
       (set newsym nil)	     ; Make sure it won't be confused for an abbrev.
       (setplist newsym (symbol-plist sym)))
@@ -583,8 +584,8 @@ An obsolete but still supported calling form is:
 \(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM)."
   (when (and (consp props) (or (null (car props)) (numberp (car props))))
     ;; Old-style calling convention.
-    (setq props (list* :count (car props)
-                       (if (cadr props) (list :system (cadr props))))))
+    (setq props `(:count ,(car props)
+                  ,@(if (cadr props) (list :system (cadr props))))))
   (unless (plist-get props :count)
     (setq props (plist-put props :count 0)))
   (let ((system-flag (plist-get props :system))
@@ -621,7 +622,7 @@ current (if global is nil) or standard syntax table."
       (let ((badchars ())
             (pos 0))
         (while (string-match "\\W" abbrev pos)
-          (pushnew (aref abbrev (match-beginning 0)) badchars)
+          (cl-pushnew (aref abbrev (match-beginning 0)) badchars)
           (setq pos (1+ pos)))
         (error "Some abbrev characters (%s) are not word constituents %s"
                (apply 'string (nreverse badchars))
@@ -668,6 +669,26 @@ either a single abbrev table or a list of abbrev tables."
       tables))))
 
 
+(defun abbrev--symbol (abbrev table)
+  "Return the symbol representing abbrev named ABBREV in TABLE.
+This symbol's name is ABBREV, but it is not the canonical symbol of that name;
+it is interned in the abbrev-table TABLE rather than the normal obarray.
+The value is nil if that abbrev is not defined."
+  (let* ((case-fold (not (abbrev-table-get table :case-fixed)))
+         ;; In case the table doesn't set :case-fixed but some of the
+         ;; abbrevs do, we have to be careful.
+         (sym
+          ;; First try without case-folding.
+          (or (intern-soft abbrev table)
+              (when case-fold
+                ;; We didn't find any abbrev, try case-folding.
+                (let ((sym (intern-soft (downcase abbrev) table)))
+                  ;; Only use it if it doesn't require :case-fixed.
+                  (and sym (not (abbrev-get sym :case-fixed))
+                       sym))))))
+    (if (symbol-value sym)
+        sym)))
+
 (defun abbrev-symbol (abbrev &optional table)
   "Return the symbol representing abbrev named ABBREV.
 This symbol's name is ABBREV, but it is not the canonical symbol of that name;
@@ -677,23 +698,11 @@ Optional second arg TABLE is abbrev table to look it up in.
 The default is to try buffer's mode-specific abbrev table, then global table."
   (let ((tables (abbrev--active-tables table))
         sym)
-    (while (and tables (not (symbol-value sym)))
-      (let* ((table (pop tables))
-             (case-fold (not (abbrev-table-get table :case-fixed))))
+    (while (and tables (not sym))
+      (let* ((table (pop tables)))
         (setq tables (append (abbrev-table-get table :parents) tables))
-        ;; In case the table doesn't set :case-fixed but some of the
-        ;; abbrevs do, we have to be careful.
-        (setq sym
-              ;; First try without case-folding.
-              (or (intern-soft abbrev table)
-                  (when case-fold
-                    ;; We didn't find any abbrev, try case-folding.
-                    (let ((sym (intern-soft (downcase abbrev) table)))
-                      ;; Only use it if it doesn't require :case-fixed.
-                      (and sym (not (abbrev-get sym :case-fixed))
-                           sym)))))))
-    (if (symbol-value sym)
-        sym)))
+        (setq sym (abbrev--symbol abbrev table))))
+    sym))
 
 
 (defun abbrev-expansion (abbrev &optional table)
@@ -747,7 +756,7 @@ then ABBREV is looked up in that table only."
                            (setq start (match-beginning 1))
                            (setq end   (match-end 1)))))
                      (setq name  (buffer-substring start end))
-                     (let ((abbrev (abbrev-symbol name table)))
+                     (let ((abbrev (abbrev--symbol name table)))
                        (when abbrev
                          (setq enable-fun (abbrev-get abbrev :enable-function))
                          (and (or (not enable-fun) (funcall enable-fun))
@@ -823,10 +832,12 @@ see `define-abbrev' for details."
     value))
 
 (defvar abbrev-expand-functions nil
-  "Wrapper hook around `expand-abbrev'.
-The functions on this special hook are called with one argument:
-a function that performs the abbrev expansion.  It should return
-the abbrev symbol if expansion took place.")
+  "Wrapper hook around `expand-abbrev'.")
+(make-obsolete-variable 'abbrev-expand-functions 'abbrev-expand-function "24.4")
+
+(defvar abbrev-expand-function #'abbrev--default-expand
+  "Function to perform abbrev expansion.
+Takes no argument and should return the abbrev symbol if expansion took place.")
 
 (defun expand-abbrev ()
   "Expand the abbrev before point, if there is an abbrev there.
@@ -835,15 +846,17 @@ Returns the abbrev symbol, if expansion took place.  (The actual
 return value is that of `abbrev-insert'.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
+  (funcall abbrev-expand-function))
+
+(defun abbrev--default-expand ()
   (with-wrapper-hook abbrev-expand-functions ()
-    (destructuring-bind (&optional sym name wordstart wordend)
-        (abbrev--before-point)
+    (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym
         (let ((startpos (copy-marker (point) t))
               (endmark (copy-marker wordend t)))
           (unless (or ;; executing-kbd-macro
                    noninteractive
-                   (window-minibuffer-p (selected-window)))
+                   (window-minibuffer-p))
             ;; Add an undo boundary, in case we are doing this for
             ;; a self-inserting command which has avoided making one so far.
             (undo-boundary))

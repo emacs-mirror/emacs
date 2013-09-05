@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
@@ -69,7 +69,7 @@
 ;; This file requires Emacs-20.3, XEmacs-20.4 or higher and package cc-mode.
 
 ;; If antlr-mode is not part of your distribution, put this file into your
-;; load-path and the following into your ~/.emacs:
+;; load-path and the following into your init file:
 ;;   (autoload 'antlr-mode "antlr-mode" nil t)
 ;;   (setq auto-mode-alist (cons '("\\.g\\'" . antlr-mode) auto-mode-alist))
 ;;   (add-hook 'speedbar-load-hook  ; would be too late in antlr-mode.el
@@ -178,10 +178,6 @@
 		(set-buffer-modified-p nil)))))))
 (put 'save-buffer-state-x 'lisp-indent-function 0)
 
-;; get rid of byte-compile warnings
-(eval-when-compile
-  (require 'cc-mode))
-
 (defvar outline-level)
 (defvar imenu-use-markers)
 (defvar imenu-create-index-function)
@@ -235,11 +231,11 @@ MAJOR-MODE, the major mode of the code in the grammar's actions, is the
 value of `antlr-language' if the first group in the string matched by
 REGEXP in `antlr-language-limit-n-regexp' is one of the OPTION-VALUEs.
 An OPTION-VALUE of nil denotes the fallback element.  MODELINE-STRING is
-also displayed in the modeline next to \"Antlr\"."
+also displayed in the mode line next to \"Antlr\"."
   :group 'antlr
   :type '(repeat (group :value (java-mode "")
 			(function :tag "Major mode")
-			(string :tag "Modeline string")
+			(string :tag "Mode line string")
 			(repeat :tag "ANTLR language option" :inline t
 				(choice (const :tag "Default" nil)
 					string )))))

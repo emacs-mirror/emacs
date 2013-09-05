@@ -1,6 +1,6 @@
-;;; flymake.el -- a universal on-the-fly syntax checker
+;;; flymake.el --- a universal on-the-fly syntax checker
 
-;; Copyright (C) 2003-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Pavel Kobyakov <pk_at_work@yahoo.com>
@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (if (featurep 'xemacs) (require 'overlay))
 
 (defvar flymake-is-running nil
@@ -68,6 +68,9 @@
 
 ;;;; [[ cross-emacs compatibility routines
 (defsubst flymake-makehash (&optional test)
+  "Create and return a new hash table using TEST to compare keys.
+It uses the function `make-hash-table' to make a hash-table if
+you use GNU Emacs, otherwise it uses `makehash'."
   (if (fboundp 'make-hash-table)
       (if test (make-hash-table :test test) (make-hash-table))
     (with-no-warnings
@@ -106,10 +109,12 @@ Zero-length substrings at the beginning and end of the list are omitted."
     (lambda () temporary-file-directory)))
 
 (defun flymake-posn-at-point-as-event (&optional position window dx dy)
-  "Return pixel position of top left corner of glyph at POSITION,
-relative to top left corner of WINDOW, as a mouse-1 click
-event (identical to the event that would be triggered by clicking
-mouse button 1 at the top left corner of the glyph).
+  "Return pixel position of top left corner of glyph at POSITION.
+
+The position is relative to top left corner of WINDOW, as a
+mouse-1 click event (identical to the event that would be
+triggered by clicking mouse button 1 at the top left corner of
+the glyph).
 
 POSITION and WINDOW default to the position of point in the
 selected window.
@@ -164,7 +169,9 @@ See `x-popup-menu' for the menu specifier format."
 
 (if (featurep 'xemacs) (progn
 
-(defun flymake-nop ())
+(defun flymake-nop ()
+  "Do nothing."
+  nil)
 
 (defun flymake-make-xemacs-menu (menu-data)
   "Return a menu specifier using MENU-DATA."
@@ -187,6 +194,7 @@ See `x-popup-menu' for the menu specifier format."
     (count-lines (window-start) (point))))
 
 (defun flymake-selected-frame ()
+  "Return the frame that is now selected."
   (if (fboundp 'window-edges)
       (selected-frame)
     (selected-window)))
@@ -217,31 +225,41 @@ See `x-popup-menu' for the menu specifier format."
   :group 'flymake
   :type 'integer)
 
+
+;; (defcustom flymake-log-file-name "~/flymake.log"
+;;   "Where to put the flymake log if logging is enabled.
+;; 
+;;    See `flymake-log-level' if you want to control what is logged."
+;;   :group 'flymake
+;;   :type 'string)
+
 (defun flymake-log (level text &rest args)
   "Log a message at level LEVEL.
 If LEVEL is higher than `flymake-log-level', the message is
 ignored.  Otherwise, it is printed using `message'.
 TEXT is a format control string, and the remaining arguments ARGS
-are the string substitutions (see `format')."
+are the string substitutions (see the function `format')."
   (if (<= level flymake-log-level)
       (let* ((msg (apply 'format text args)))
 	(message "%s" msg)
 	;;(with-temp-buffer
 	;;    (insert msg)
 	;;   (insert "\n")
-	;;   (flymake-save-buffer-in-file "d:/flymake.log" t)  ; make log file name customizable
+	;;   (flymake-save-buffer-in-file "~/flymake.log")  ; make log file name customizable
 	;;)
 	)))
 
 (defun flymake-ins-after (list pos val)
-  "Insert VAL into LIST after position POS."
-  (let ((tmp (copy-sequence list)))	; (???)
+  "Insert VAL into LIST after position POS.
+POS counts from zero."
+  (let ((tmp (copy-sequence list)))
     (setcdr (nthcdr pos tmp) (cons val (nthcdr (1+ pos) tmp)))
     tmp))
 
 (defun flymake-set-at (list pos val)
-  "Set VAL at position POS in LIST."
-  (let ((tmp (copy-sequence list)))	; (???)
+  "Set VAL at position POS in LIST.
+POS counts from zero."
+  (let ((tmp (copy-sequence list)))
     (setcar (nthcdr pos tmp) val)
     tmp))
 
@@ -249,13 +267,19 @@ are the string substitutions (see `format')."
   "List of currently active flymake processes.")
 
 (defvar flymake-output-residual nil)
-
 (make-variable-buffer-local 'flymake-output-residual)
 
 (defgroup flymake nil
   "Universal on-the-fly syntax checker."
   :version "23.1"
   :group 'tools)
+
+(defcustom flymake-xml-program
+  (if (executable-find "xmlstarlet") "xmlstarlet" "xml")
+  "Program to use for XML validation."
+  :type 'file
+  :group 'flymake
+  :version "24.4")
 
 (defcustom flymake-allowed-file-name-masks
   '(("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'" flymake-simple-make-init)
@@ -279,16 +303,31 @@ are the string substitutions (see `format')."
     ;; ("[ \t]*\\input[ \t]*{\\(.*\\)\\(%s\\)}" 1 2 ))
     ;; ("\\.tex\\'" 1)
     )
-  "Files syntax checking is allowed for."
+  "Files syntax checking is allowed for.
+This is an alist with elements of the form:
+  REGEXP INIT [CLEANUP [NAME]]
+REGEXP is a regular expression that matches a file name.
+INIT is the init function to use.
+CLEANUP is the cleanup function to use, default `flymake-simple-cleanup'.
+NAME is the file name function to use, default `flymake-get-real-file-name'."
   :group 'flymake
-  :type '(repeat (string symbol symbol symbol)))
+  :type '(alist :key-type (regexp :tag "File regexp")
+                :value-type
+                (list :tag "Handler functions"
+                      (function :tag "Init function")
+                      (choice :tag "Cleanup function"
+                              (const :tag "flymake-simple-cleanup" nil)
+                              function)
+                      (choice :tag "Name function"
+                              (const :tag "flymake-get-real-file-name" nil)
+                              function))))
 
 (defun flymake-get-file-name-mode-and-masks (file-name)
   "Return the corresponding entry from `flymake-allowed-file-name-masks'."
   (unless (stringp file-name)
     (error "Invalid file-name"))
   (let ((fnm flymake-allowed-file-name-masks)
-	(mode-and-masks  nil))
+	(mode-and-masks nil))
     (while (and (not mode-and-masks) fnm)
       (if (string-match (car (car fnm)) file-name)
 	  (setq mode-and-masks (cdr (car fnm))))
@@ -320,12 +359,16 @@ Return nil if we cannot, non-nil if we can."
 (defvar flymake-find-buildfile-cache (flymake-makehash 'equal))
 
 (defun flymake-get-buildfile-from-cache (dir-name)
+  "Look up DIR-NAME in cache and return its associated value.
+If DIR-NAME is not found, return nil."
   (gethash dir-name flymake-find-buildfile-cache))
 
 (defun flymake-add-buildfile-to-cache (dir-name buildfile)
+  "Associate DIR-NAME with BUILDFILE in the buildfile cache."
   (puthash dir-name buildfile flymake-find-buildfile-cache))
 
 (defun flymake-clear-buildfile-cache ()
+  "Clear the buildfile cache."
   (clrhash flymake-find-buildfile-cache))
 
 (defun flymake-find-buildfile (buildfile-name source-dir-name)
@@ -372,9 +415,11 @@ Return t if so, nil if not."
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
   "Find (by name and location) all possible master files.
-Master files include .cpp and .c for .h.  Files are searched for
-starting from the .h directory and max max-level parent dirs.
-File contents are not checked."
+
+Name is specified by FILE-NAME and location is specified by
+MASTER-FILE-DIRS.  Master files include .cpp and .c for .h.
+Files are searched for starting from the .h directory and max
+max-level parent dirs.  File contents are not checked."
   (let* ((dirs master-file-dirs)
 	 (files  nil)
 	 (done   nil))
@@ -408,7 +453,7 @@ File contents are not checked."
 This function is used in sort to move most possible file names
 to the beginning of the list (File.h -> File.cpp moved to top)."
   (and (equal (file-name-sans-extension flymake-included-file-name)
-	      (file-name-sans-extension (file-name-nondirectory file-one)))
+	      (file-name-base file-one))
        (not (equal file-one file-two))))
 
 (defcustom flymake-check-file-limit 8192
@@ -571,6 +616,8 @@ Find master file, patch and save it."
 	nil))))
 
 (defun flymake-save-buffer-in-file (file-name)
+  "Save the entire buffer contents into file FILE-NAME.
+Create parent directories as needed."
   (make-directory (file-name-directory file-name) 1)
   (write-region nil nil file-name nil 566)
   (flymake-log 3 "saved buffer %s in file %s" (buffer-name) file-name))
@@ -684,7 +731,7 @@ It's flymake process filter."
 (defun flymake-er-get-line-err-info-list (err-info)
   (nth 1 err-info))
 
-(defstruct (flymake-ler
+(cl-defstruct (flymake-ler
             (:constructor nil)
             (:constructor flymake-ler-make-ler (file line type text &optional full-file)))
   file line type text full-file)
@@ -763,15 +810,63 @@ line number outside the file being compiled."
   "Determine whether overlay OV was created by flymake."
   (and (overlayp ov) (overlay-get ov 'flymake-overlay)))
 
-(defun flymake-make-overlay (beg end tooltip-text face mouse-face)
+(defcustom flymake-error-bitmap '(exclamation-mark error)
+  "Bitmap (a symbol) used in the fringe for indicating errors.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-warning-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
+  :group 'flymake
+  :version "24.3"
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
+
+(defcustom flymake-warning-bitmap 'question-mark
+  "Bitmap (a symbol) used in the fringe for indicating warnings.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
+  :group 'flymake
+  :version "24.3"
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
+
+(defcustom flymake-fringe-indicator-position 'left-fringe
+  "The position to put flymake fringe indicator.
+The value can be nil (do not use indicators), `left-fringe' or `right-fringe'.
+See `flymake-error-bitmap' and `flymake-warning-bitmap'."
+  :group 'flymake
+  :version "24.3"
+  :type '(choice (const left-fringe)
+		 (const right-fringe)
+		 (const :tag "No fringe indicators" nil)))
+
+(defun flymake-make-overlay (beg end tooltip-text face bitmap mouse-face)
   "Allocate a flymake overlay in range BEG and END."
   (when (not (flymake-region-has-flymake-overlays beg end))
-    (let ((ov (make-overlay beg end nil t t)))
+    (let ((ov (make-overlay beg end nil t t))
+	  (fringe (and flymake-fringe-indicator-position
+		       (propertize "!" 'display
+				   (cons flymake-fringe-indicator-position
+					 (if (listp bitmap)
+					     bitmap
+					   (list bitmap)))))))
       (overlay-put ov 'face           face)
       (overlay-put ov 'mouse-face     mouse-face)
       (overlay-put ov 'help-echo      tooltip-text)
       (overlay-put ov 'flymake-overlay  t)
       (overlay-put ov 'priority 100)
+      (overlay-put ov 'evaporate t)
+      (overlay-put ov 'before-string fringe)
       ;;+(flymake-log 3 "created overlay %s" ov)
       ov)
     (flymake-log 3 "created an overlay at (%d-%d)" beg end)))
@@ -796,17 +891,21 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     has-flymake-overlays))
 
 (defface flymake-errline
-  '((((class color) (background dark)) (:background "Firebrick4"))
-    (((class color) (background light)) (:background "LightPink"))
-    (t (:bold t)))
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "Red1"))
+    (t
+     :inherit error))
   "Face used for marking error lines."
+  :version "24.4"
   :group 'flymake)
 
 (defface flymake-warnline
-  '((((class color) (background dark)) (:background "DarkBlue"))
-    (((class color) (background light)) (:background "LightBlue2"))
-    (t (:bold t)))
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "DarkOrange"))
+    (t
+     :inherit warning))
   "Face used for marking warning lines."
+  :version "24.4"
   :group 'flymake)
 
 (defun flymake-highlight-line (line-no line-err-info-list)
@@ -819,7 +918,8 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
-	 (face     nil))
+	 (face     nil)
+	 (bitmap   nil))
 
     (goto-char line-beg)
     (while (looking-at "[ \t]")
@@ -843,10 +943,12 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
       (setq end (point)))
 
     (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-	(setq face 'flymake-errline)
-      (setq face 'flymake-warnline))
+	(setq face 'flymake-errline
+	      bitmap flymake-error-bitmap)
+      (setq face 'flymake-warnline
+	    bitmap flymake-warning-bitmap))
 
-    (flymake-make-overlay beg end tooltip-text face nil)))
+    (flymake-make-overlay beg end tooltip-text face bitmap nil)))
 
 (defun flymake-parse-err-lines (err-info-list lines)
   "Parse err LINES, store info in ERR-INFO-LIST."
@@ -947,6 +1049,13 @@ from compile.el")
 ;;   :type '(repeat (string number number number))
 ;;)
 
+(define-obsolete-variable-alias 'flymake-warning-re 'flymake-warning-predicate "24.4")
+(defvar flymake-warning-predicate "^[wW]arning"
+  "Predicate matching against error text to detect a warning.
+Takes a single argument, the error's text and should return non-nil
+if it's a warning.
+Instead of a function, it can also be a regular expression.")
+
 (defun flymake-parse-line (line)
   "Parse LINE to see if it is an error or warning.
 Return its components if so, nil otherwise."
@@ -962,16 +1071,22 @@ Return its components if so, nil otherwise."
 	       (line-idx (nth 2 (car patterns))))
 
 	  (setq raw-file-name (if file-idx (match-string file-idx line) nil))
-	  (setq line-no       (if line-idx (string-to-number (match-string line-idx line)) 0))
+	  (setq line-no       (if line-idx (string-to-number
+                                            (match-string line-idx line)) 0))
 	  (setq err-text      (if (> (length (car patterns)) 4)
 				  (match-string (nth 4 (car patterns)) line)
-				(flymake-patch-err-text (substring line (match-end 0)))))
-	  (or err-text (setq err-text "<no error text>"))
-	  (if (and err-text (string-match "^[wW]arning" err-text))
-	      (setq err-type "w")
-	    )
-	  (flymake-log 3 "parse line: file-idx=%s line-idx=%s file=%s line=%s text=%s" file-idx line-idx
-		       raw-file-name line-no err-text)
+				(flymake-patch-err-text
+                                 (substring line (match-end 0)))))
+	  (if (null err-text)
+              (setq err-text "<no error text>")
+            (when (cond ((stringp flymake-warning-predicate)
+                         (string-match flymake-warning-predicate err-text))
+                        ((functionp flymake-warning-predicate)
+                         (funcall flymake-warning-predicate err-text)))
+              (setq err-type "w")))
+	  (flymake-log
+           3 "parse line: file-idx=%s line-idx=%s file=%s line=%s text=%s"
+           file-idx line-idx raw-file-name line-no err-text)
 	  (setq matched t)))
       (setq patterns (cdr patterns)))
     (if matched
@@ -1499,10 +1614,11 @@ if ARG is omitted or nil."
     (error "Invalid file-name"))
   (or prefix
       (setq prefix "flymake"))
-  (let* ((temp-name   (concat (file-name-sans-extension file-name)
-			      "_" prefix
-			      (and (file-name-extension file-name)
-				   (concat "." (file-name-extension file-name))))))
+  (let* ((ext (file-name-extension file-name))
+	 (temp-name (file-truename
+		     (concat (file-name-sans-extension file-name)
+			     "_" prefix
+			     (and ext (concat "." ext))))))
     (flymake-log 3 "create-temp-inplace: file=%s temp=%s" file-name temp-name)
     temp-name))
 
@@ -1778,7 +1894,9 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; xml-specific init-cleanup routines
 (defun flymake-xml-init ()
-  (list "xml" (list "val" (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace))))
+  (list flymake-xml-program
+        (list "val" (flymake-init-create-temp-buffer-copy
+                     'flymake-create-temp-inplace))))
 
 (provide 'flymake)
 

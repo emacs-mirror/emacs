@@ -1,6 +1,7 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985-1987, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1994, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -33,8 +34,6 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
-(eval-when-compile (require 'cl))
-
 ;;;###autoload
 (define-obsolete-variable-alias 'disabled-command-hook
   'disabled-command-function "22.1")
@@ -51,7 +50,6 @@ If nil, the feature is disabled, i.e., all commands work normally.")
   (unless keys (setq keys (this-command-keys)))
   (let (char)
     (save-window-excursion
-      (help-setup-xref (list 'disabled-command-function cmd keys) nil)
       (with-output-to-temp-buffer "*Disabled Command*" ;; (help-buffer)
 	 (if (or (eq (aref keys 0)
 		     (if (stringp keys)
@@ -101,7 +99,7 @@ SPC to try the command just this once, but leave it disabled.
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (setq char (downcase char))
-    (case char
+    (pcase char
      (?\C-g (setq quit-flag t))
      (?! (setq disabled-command-function nil))
      (?y
@@ -161,8 +159,8 @@ to future sessions."
 (defun disable-command (command)
   "Require special confirmation to execute COMMAND from now on.
 COMMAND must be a symbol.
-This command alters the user's .emacs file so that this will apply
-to future sessions."
+This command alters your init file so that this choice applies to
+future sessions."
   (interactive "CDisable command: ")
   (en/disable-command command t))
 

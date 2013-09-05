@@ -1,6 +1,6 @@
 ;;; gravatar.el --- Get Gravatars
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: news
@@ -102,6 +102,8 @@ If no image available, return 'error."
     (if data
 	(gravatar-create-image data nil t)
       'error)))
+
+(autoload 'help-function-arglist "help-fns")
 
 ;;;###autoload
 (defun gravatar-retrieve (mail-address cb &optional cbargs)

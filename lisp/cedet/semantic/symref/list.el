@@ -1,6 +1,6 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -69,7 +69,7 @@ current project to find references to the input SYM.  The
 references are organized by file and the name of the function
 they are used in.
 Display the references in `semantic-symref-results-mode'."
-  (interactive (list (semantic-tag-name (semantic-complete-read-tag-buffer-deep
+  (interactive (list (semantic-tag-name (semantic-complete-read-tag-project
 					 "Symrefs for: "))))
   (semantic-fetch-tags)
   (let ((res nil)
@@ -120,6 +120,7 @@ Display the references in`semantic-symref-results-mode'."
 
 (defvar semantic-symref-results-mode-map
   (let ((km (make-sparse-keymap)))
+    (suppress-keymap km)
     (define-key km "\C-i" 'forward-button)
     (define-key km "\M-C-i" 'backward-button)
     (define-key km " " 'push-button)
@@ -177,12 +178,12 @@ Display the references in`semantic-symref-results-mode'."
 
 (defcustom semantic-symref-auto-expand-results nil
   "Non-nil to expand symref results on buffer creation."
-  :group 'semantic-symref
+  :group 'semantic-symref-results-mode
   :type 'boolean)
 
 (defcustom semantic-symref-results-mode-hook nil
   "Hook run when `semantic-symref-results-mode' starts."
-  :group 'semantic-symref
+  :group 'semantic-symref-results-mode
   :type 'hook)
 
 (defvar semantic-symref-current-results nil
@@ -216,7 +217,7 @@ RESULTS is an object of class `semantic-symref-results'."
 (defcustom semantic-symref-results-summary-function 'semantic-format-tag-prototype
   "*Function to use when creating items in Imenu.
 Some useful functions are found in `semantic-format-tag-functions'."
-  :group 'semantic-symref
+  :group 'semantic-symref-results-mode
   :type semantic-format-tag-custom-list)
 
 (defun semantic-symref-results-dump (results)

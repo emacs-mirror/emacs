@@ -1,6 +1,6 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -68,7 +68,7 @@
   "Value of `completion-styles' to use when completing."
   :version "24.1"
   :group 'gnus-meta
-  :type 'list)
+  :type '(repeat symbol))
 
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)
@@ -169,15 +169,6 @@ This is a compatibility function for different Emacsen."
   `(delete-region (point-at-bol)
 		  (progn (forward-line ,(or n 1)) (point))))
 
-(defun gnus-byte-code (func)
-  "Return a form that can be `eval'ed based on FUNC."
-  (let ((fval (indirect-function func)))
-    (if (byte-code-function-p fval)
-	(let ((flist (append fval nil)))
-	  (setcar flist 'byte-code)
-	  flist)
-      (cons 'progn (cddr fval)))))
-
 (defun gnus-extract-address-components (from)
   "Extract address components from a From header.
 Given an RFC-822 address FROM, extract full name and canonical address.
@@ -216,16 +207,6 @@ is slower."
 				   (match-end 0)))))
     (list (if (string= name "") nil name) (or address from))))
 
-(defun gnus-extract-address-component-name (from)
-  "Extract name from a From header.
-Uses `gnus-extract-address-components'."
-  (nth 0 (gnus-extract-address-components from)))
-
-(defun gnus-extract-address-component-email (from)
-  "Extract e-mail address from a From header.
-Uses `gnus-extract-address-components'."
-  (nth 1 (gnus-extract-address-components from)))
-
 (declare-function message-fetch-field "message" (header &optional not-all))
 
 (defun gnus-fetch-field (field)
@@ -244,7 +225,7 @@ Uses `gnus-extract-address-components'."
 
 
 (defun gnus-goto-colon ()
-  (beginning-of-line)
+  (move-beginning-of-line 1)
   (let ((eol (point-at-eol)))
     (goto-char (or (text-property-any (point) eol 'gnus-position t)
 		   (search-forward ":" eol t)
@@ -352,6 +333,13 @@ TIME defaults to the current time."
 
 (defmacro gnus-define-keys (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
+  ;; Convert the key [?\S-\ ] to [(shift space)] for XEmacs.
+  (when (featurep 'xemacs)
+    (let ((bindings plist))
+      (while bindings
+	(when (equal (car bindings) [?\S-\ ])
+	  (setcar bindings [(shift space)]))
+	(setq bindings (cddr bindings)))))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist)))
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
@@ -664,10 +652,6 @@ If N, return the Nth ancestor instead."
     ;; should be gnus-characterp, but this can't be called in XEmacs anyway
     (cons (and (numberp event) event) event)))
 
-(defun gnus-sortable-date (date)
-  "Make string suitable for sorting from DATE."
-  (gnus-time-iso8601 (date-to-time date)))
-
 (defun gnus-copy-file (file &optional to)
   "Copy FILE to TO."
   (interactive
@@ -852,28 +836,6 @@ If there's no subdirectory, delete DIRECTORY as well."
       (unless dir
 	(delete-directory directory)))))
 
-;; The following two functions are used in gnus-registry.
-;; They were contributed by Andreas Fuchs <asf@void.at>.
-(defun gnus-alist-to-hashtable (alist)
-  "Build a hashtable from the values in ALIST."
-  (let ((ht (make-hash-table
-	     :size 4096
-	     :test 'equal)))
-    (mapc
-     (lambda (kv-pair)
-       (puthash (car kv-pair) (cdr kv-pair) ht))
-     alist)
-     ht))
-
-(defun gnus-hashtable-to-alist (hash)
-  "Build an alist from the values in HASH."
-  (let ((list nil))
-    (maphash
-     (lambda (key value)
-       (setq list (cons (cons key value) list)))
-     hash)
-    list))
-
 (defun gnus-strip-whitespace (string)
   "Return STRING stripped of all whitespace."
   (while (string-match "[\r\n\t ]+" string)
@@ -911,18 +873,29 @@ If there's no subdirectory, delete DIRECTORY as well."
 	  (setq beg (point)))
 	(gnus-overlay-put (gnus-make-overlay beg (point)) prop val)))))
 
-(defun gnus-put-text-property-excluding-characters-with-faces (beg end
-								   prop val)
-  "The same as `put-text-property', but don't put props on characters with the `gnus-face' property."
-  (let ((b beg))
-    (while (/= b end)
-      (when (get-text-property b 'gnus-face)
-	(setq b (next-single-property-change b 'gnus-face nil end)))
-      (when (/= b end)
+(defun gnus-put-text-property-excluding-characters-with-faces (beg end prop val)
+  "The same as `put-text-property', except where `gnus-face' is set.
+If so, and PROP is `face', set the second element of its value to VAL.
+Otherwise, do nothing."
+  (while (< beg end)
+    ;; Property values are compared with `eq'.
+    (let ((stop (next-single-property-change beg 'face nil end)))
+      (if (get-text-property beg 'gnus-face)
+	  (when (eq prop 'face)
+	    (setcar (cdr (get-text-property beg 'face)) (or val 'default)))
 	(inline
-	  (gnus-put-text-property
-	   b (setq b (next-single-property-change b 'gnus-face nil end))
-	   prop val))))))
+	  (gnus-put-text-property beg stop prop val)))
+      (setq beg stop))))
+
+(defun gnus-get-text-property-excluding-characters-with-faces (pos prop)
+  "The same as `get-text-property', except where `gnus-face' is set.
+If so, and PROP is `face', return the second element of its value.
+Otherwise, return the value."
+  (let ((val (get-text-property pos prop)))
+    (if (and (get-text-property pos 'gnus-face)
+	     (eq prop 'face))
+	(cadr val)
+      (get-text-property pos prop))))
 
 (defmacro gnus-faces-at (position)
   "Return a list of faces at POSITION."
@@ -1052,6 +1025,15 @@ with potentially long computations."
 
 (declare-function mm-append-to-file "mm-util"
                   (start end filename &optional codesys inhibit))
+(declare-function rmail-swap-buffers-maybe "rmail" ())
+(declare-function rmail-maybe-set-message-counters "rmail" ())
+(declare-function rmail-count-new-messages "rmail" (&optional nomsg))
+(declare-function rmail-summary-exists "rmail" ())
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
+;; Macroexpansion of rmail-select-summary:
+(declare-function rmail-summary-displayed "rmail" ())
+(declare-function rmail-pop-to-buffer "rmail" (&rest args))
+(declare-function rmail-maybe-display-summary "rmail" ())
 
 (defun gnus-output-to-rmail (filename &optional ask)
   "Append the current article to an Rmail file named FILENAME.
@@ -1249,13 +1231,6 @@ This function saves the current buffer."
        (get-buffer gnus-group-buffer)
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
-
-(defun gnus-process-live-p (process)
-  "Returns non-nil if PROCESS is alive.
-A process is considered alive if its status is `run', `open',
-`listen', `connect' or `stop'."
-  (memq (process-status process)
-        '(run open listen connect stop)))
 
 (defun gnus-remove-if (predicate sequence &optional hash-table-p)
   "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
@@ -1583,9 +1558,15 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
     (completing-read prompt
-                     ;; Old XEmacs (at least 21.4) expect an alist for
-                     ;; collection.
-                     (mapcar 'list collection)
+		     (if (featurep 'xemacs)
+			 ;; Old XEmacs (at least 21.4) expect an alist,
+			 ;; in which the car of each element is a string,
+			 ;; for collection.
+			 (mapcar
+			  (lambda (elem)
+			    (list (format "%s" (or (car-safe elem) elem))))
+			  collection)
+		       collection)
                      nil require-match initial-input history def)))
 
 (autoload 'ido-completing-read "ido")
@@ -1927,6 +1908,19 @@ Sizes are in pixels."
                    image)))
       image)))
 
+(defun gnus-recursive-directory-files (dir)
+  "Return all regular files below DIR."
+  (let (files)
+    (dolist (file (directory-files dir t))
+      (when (and (not (member (file-name-nondirectory file) '("." "..")))
+		 (file-readable-p file))
+	(cond
+	 ((file-regular-p file)
+	  (push file files))
+	 ((file-directory-p file)
+	  (setq files (append (gnus-recursive-directory-files file) files))))))
+    files))
+
 (defun gnus-list-memq-of-list (elements list)
   "Return non-nil if any of the members of ELEMENTS are in LIST."
   (let ((found nil))
@@ -1965,31 +1959,27 @@ Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
 
-(eval-and-compile
-  (if (fboundp 'macroexpand-all)
-      (defalias 'gnus-macroexpand-all 'macroexpand-all)
-    (defun gnus-macroexpand-all (form &optional environment)
-      "Return result of expanding macros at all levels in FORM.
-If no macros are expanded, FORM is returned unchanged.
-The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation."
-      (if (consp form)
-	  (let ((idx 1)
-		(len (length (setq form (copy-sequence form))))
-		expanded)
-	    (while (< idx len)
-	      (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
-							      environment))
-	      (setq idx (1+ idx)))
-	    (if (eq (setq expanded (macroexpand form environment)) form)
-		form
-	      (gnus-macroexpand-all expanded environment)))
-	form))))
+(if (fboundp 'string-prefix-p)
+    (defalias 'gnus-string-prefix-p 'string-prefix-p)
+  (defun gnus-string-prefix-p (str1 str2 &optional ignore-case)
+    "Return non-nil if STR1 is a prefix of STR2.
+If IGNORE-CASE is non-nil, the comparison is done without paying attention
+to case differences."
+    (and (<= (length str1) (length str2))
+	 (let ((prefix (substring str2 0 (length str1))))
+	   (if ignore-case
+	       (string-equal (downcase str1) (downcase prefix))
+	     (string-equal str1 prefix))))))
 
 ;; Simple check: can be a macro but this way, although slow, it's really clear.
 ;; We don't use `bound-and-true-p' because it's not in XEmacs.
 (defun gnus-bound-and-true-p (sym)
   (and (boundp sym) (symbol-value sym)))
+
+(if (fboundp 'timer--function)
+    (defalias 'gnus-timer--function 'timer--function)
+  (defun gnus-timer--function (timer)
+    (elt timer 5)))
 
 (provide 'gnus-util)
 

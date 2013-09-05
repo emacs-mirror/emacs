@@ -1,6 +1,6 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers
 
-;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -144,13 +144,6 @@ See Info node `(gnus)Formatting Variables'."
 	      alist nil))
       (setq alist (cdr alist)))
     out))
-
-(defun gnus-group-parent-topic (group)
-  "Return the topic GROUP is member of by looking at the group buffer."
-  (with-current-buffer gnus-group-buffer
-    (if (gnus-group-goto-group group)
-	(gnus-current-topic)
-      (gnus-group-topic group))))
 
 (defun gnus-topic-goto-topic (topic)
   (when topic

@@ -1,5 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "dispextern.h"
+
 /* Each termcap frame points to its own struct tty_output object in
    the output_data.tty field.  The tty_output structure contains the
    information that is specific to termcap frames. */
@@ -27,6 +29,10 @@ struct tty_output
 
   /* There is nothing else here at the moment... */
 };
+
+#ifndef TERMINFO
+enum { TERMCAP_BUFFER_SIZE = 4096 };
+#endif
 
 /* Parameters that are shared between frames on the same tty device. */
 
@@ -50,8 +56,7 @@ struct tty_display_info
 
   struct emacs_tty *old_tty;    /* The initial tty mode bits */
 
-  int term_initted;             /* 1 if we have been through init_sys_modes. */
-
+  unsigned term_initted : 1;    /* 1 if we have been through init_sys_modes. */
 
   int reference_count;          /* Number of frames that are on this display. */
 
@@ -73,14 +78,15 @@ struct tty_display_info
      mouse-face.  */
   Mouse_HLInfo mouse_highlight;
 
+#ifndef TERMINFO
   /* Buffer used internally by termcap (see tgetent in the Termcap
-     manual).  Only init_tty and delete_tty should change this.  */
-  char *termcap_term_buffer;
+     manual).  Only init_tty should use this.  */
+  char termcap_term_buffer[TERMCAP_BUFFER_SIZE];
 
   /* Buffer storing terminal description strings (see tgetstr in the
-     Termcap manual).  Only init_tty and delete_tty should change
-     this.  */
-  char *termcap_strings_buffer;
+     Termcap manual).  Only init_tty should use this.  */
+  char termcap_strings_buffer[TERMCAP_BUFFER_SIZE];
+#endif
 
   /* Strings, numbers and flags taken from the termcap entry.  */
 
@@ -124,8 +130,8 @@ struct tty_display_info
                                    each as vpos and hpos) */
 
   const char *TS_enter_bold_mode; /* "md" -- turn on bold (extra bright mode).  */
+  const char *TS_enter_italic_mode; /* "ZH" -- turn on italics mode.  */
   const char *TS_enter_dim_mode; /* "mh" -- turn on half-bright mode.  */
-  const char *TS_enter_blink_mode; /* "mb" -- enter blinking mode.  */
   const char *TS_enter_reverse_mode; /* "mr" -- enter reverse video mode.  */
   const char *TS_exit_underline_mode; /* "us" -- start underlining.  */
   const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
@@ -164,17 +170,12 @@ struct tty_display_info
 
   int RPov;                     /* # chars to start a TS_repeat */
 
-  int delete_in_insert_mode;    /* delete mode == insert mode */
+  unsigned delete_in_insert_mode : 1;    /* delete mode == insert mode */
 
-  int se_is_so;                 /* 1 if same string both enters and leaves
-                                   standout mode */
+  unsigned costs_set : 1;       /* Nonzero if costs have been calculated. */
 
-  int costs_set;                /* Nonzero if costs have been calculated. */
-
-  int insert_mode;              /* Nonzero when in insert mode.  */
-  int standout_mode;            /* Nonzero when in standout mode.  */
-
-
+  unsigned insert_mode : 1;     /* Nonzero when in insert mode.  */
+  unsigned standout_mode : 1;   /* Nonzero when in standout mode.  */
 
   /* 1 if should obey 0200 bit in input chars as "Meta", 2 if should
      keep 0200 bit in input chars.  0 to ignore the 0200 bit.  */
@@ -192,11 +193,11 @@ struct tty_display_info
 
   /* Flag used in tty_show/hide_cursor.  */
 
-  int cursor_hidden;
+  unsigned cursor_hidden : 1;
 
   /* Nonzero means use ^S/^Q for flow control.  */
-  int flow_control;
 
+  unsigned flow_control : 1;
 };
 
 /* A chain of structures for all tty devices currently in use. */
@@ -207,6 +208,6 @@ extern struct tty_display_info *tty_list;
   (((f)->output_method == output_termcap	\
     || (f)->output_method == output_msdos_raw)	\
    ? (f)->terminal->display_info.tty            \
-   : (abort (), (struct tty_display_info *) 0))
+   : (emacs_abort (), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())

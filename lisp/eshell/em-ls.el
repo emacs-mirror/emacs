@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -26,21 +26,21 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'eshell))
+(require 'cl-lib)
 (require 'esh-util)
 (require 'esh-opt)
+(eval-when-compile (require 'eshell))
 
 ;;;###autoload
-(eshell-defgroup eshell-ls nil
+(progn
+(defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.  If it is
 passed any unrecognized command switches, it will revert to the
 operating system's version.  This version of \"ls\" uses text
 properties to colorize its output based on the setting of
 `eshell-ls-use-colors'."
   :tag "Implementation of `ls' in Lisp"
-  :group 'eshell-module)
+  :group 'eshell-module))
 
 ;;; User Variables:
 
@@ -311,7 +311,7 @@ instead."
   (let ((insert-func 'eshell-buffered-print)
 	(error-func 'eshell-error)
 	(flush-func 'eshell-flush))
-    (eshell-do-ls args)))
+    (apply 'eshell-do-ls args)))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
 
@@ -327,22 +327,27 @@ instead."
 (defvar numeric-uid-gid)
 (defvar reverse-list)
 (defvar show-all)
+(defvar show-almost-all)
 (defvar show-recursive)
 (defvar show-size)
 (defvar sort-method)
 (defvar ange-cache)
 (defvar dired-flag)
 
+(declare-function eshell-glob-regexp "em-glob" (pattern))
+
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
   (funcall flush-func -1)
-  ;; process the command arguments, and begin listing files
+  ;; Process the command arguments, and begin listing files.
   (eshell-eval-using-options
    "ls" (if eshell-ls-initial-args
 	    (list eshell-ls-initial-args args)
 	  args)
    `((?a "all" nil show-all
-	 "show all files in directory")
+	 "do not ignore entries starting with .")
+     (?A "almost-all" nil show-almost-all
+	 "do not list implied . and ..")
      (?c nil by-ctime sort-method
 	 "sort by last status change time")
      (?d "directory" nil dir-literal
@@ -462,7 +467,7 @@ name should be displayed as, etc.  Think of it as cooking a FILEINFO."
 	  (progn
 	    (setcdr fileinfo attr)
 	    (setcar fileinfo (eshell-ls-decorated-name fileinfo)))
-	(assert (eq listing-style 'long-listing))
+	(cl-assert (eq listing-style 'long-listing))
 	(setcar fileinfo
 		(concat (eshell-ls-decorated-name fileinfo) " -> "
 			(eshell-ls-decorated-name
@@ -549,7 +554,7 @@ relative to that directory."
 			       (expand-file-name dir)))
 			    (cdr dirinfo))) ":\n"))
 	(let ((entries (eshell-directory-files-and-attributes
-			dir nil (and (not show-all)
+			dir nil (and (not (or show-all show-almost-all))
 				     eshell-ls-exclude-hidden
 				     "\\`[^.]") t
 				     ;; Asking for UID and GID as
@@ -557,7 +562,15 @@ relative to that directory."
 				     ;; later when we are going to
 				     ;; display user and group names.
 				     (if numeric-uid-gid 'integer 'string))))
-	  (when (and (not show-all) eshell-ls-exclude-regexp)
+          (when (and show-almost-all
+                     (not show-all))
+            (setq entries
+                  (cl-remove-if
+                   (lambda (entry)
+                     (member (car entry) '("." "..")))
+                   entries)))
+	  (when (and (not (or show-all show-almost-all))
+                     eshell-ls-exclude-regexp)
 	    (while (and entries (string-match eshell-ls-exclude-regexp
 					      (caar entries)))
 	      (setq entries (cdr entries)))
@@ -697,7 +710,7 @@ Each member of FILES is either a string or a cons cell of the form
       (let* ((col-vals
 	      (if (eq listing-style 'by-columns)
 		  (eshell-ls-find-column-lengths display-files)
-		(assert (eq listing-style 'by-lines))
+		(cl-assert (eq listing-style 'by-lines))
 		(eshell-ls-find-column-widths display-files)))
 	     (col-widths (car col-vals))
 	     (display-files (cdr col-vals))

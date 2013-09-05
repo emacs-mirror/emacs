@@ -1,3 +1,63 @@
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile improvements.
+	* Makefile.in (all): Put this first.  Don't use double-colon
+	rules, as they are not portable according to POSIX.  Mark as phony.
+
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* lwlib-Xaw.h (xaw_update_one_value, xaw_popup_menu):
+	* lwlib-Xlw.h (xlw_update_one_value, xlw_pop_instance):
+	* lwlib.h (lw_allow_resizing, lw_set_main_areas) [!USE_MOTIF]:
+	Now const.
+
+2012-10-06  Ulrich Müller  <ulm@gentoo.org>
+
+	* Makefile.in (AR, ARFLAGS): Get values from configure.
+
+2012-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use ASCII tests for character types.
+	* lwlib-Xaw.c, lwlib.c, xlwmenu.c:
+	Don't include <ctype.h>; no longer needed.
+	* lwlib-Xaw.c (openFont):
+	* xlwmenu.c (openXftFont): Test just for ASCII digits.
+
+2012-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (config_h): Add conf_post.h.
+
+2012-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid unused variable warning if --with-x-toolkit=motif.
+	* lwlib-Xm.c (make_menu_in_widget): Remove unused variable.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* lwlib.c: Include c-strcase.h.
+	(lwlib_strcasecmp): Remove.  All uses replaced with c_strcasecmp.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (ALL_CFLAGS): Remove -DHAVE_CONFIG_H.
+	* lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib-utils.c, lwlib.c:
+	* xlwmenu.c: Include <config.h> unconditionally.
+
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lwlib.c (my_strcasecmp): Rename to lwlib_strcasecmp, which
+	may be defined to library function strcasecmp if available.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* xlwmenu.c (abort_gracefully):
+	Use _Noreturn rather than NO_RETURN.
+	No need for separate decl merely because of _Noreturn.
+
 2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove obsolete '#define static' cruft.
@@ -202,7 +262,7 @@
 	(xaw_update_one_widget): Reformat and remove dead code.
 	(xaw_scrollbar_scroll, xaw_scrollbar_jump, xaw_create_scrollbar)
 	(xaw_update_scrollbar): Remove (not used).
-	(make_dialog): Change from K&R to prototype. Remove dead code.
+	(make_dialog): Change from K&R to prototype.  Remove dead code.
 	(xaw_creation_table): Remove scrollbar entry.
 
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -311,7 +371,7 @@
 	(display_menu_item): Replace ws->window with ws->pixmap, remove
 	call to XftDrawRect.
 	(display_menu): Remove this and that argument.
-	Remove just_compute_this_one_p. Fill pixmap at start and copy it to
+	Remove just_compute_this_one_p.  Fill pixmap at start and copy it to
 	window at end.
 	(expose_cb): New function.
 	(make_windows_if_needed): Replace XCreateWindow with XtCreatePopup.
@@ -376,7 +436,7 @@
 	(make_windows_if_needed): Set max_rest_width and xft_draw
 	in windows[i].
 	(openXftFont): New.
-	(XlwMenuInitialize): Call openXftFont if HAVE_XFT. If mw->menu.font
+	(XlwMenuInitialize): Call openXftFont if HAVE_XFT.  If mw->menu.font
 	is not set, load font fixed and save it in xlwmenu_default_font.
 	(XlwMenuInitialize): Set max_rest_width and xft_draw in windows[0].
 	(XlwMenuClassInitialize): Initialize xlwmenu_default_font.
@@ -384,7 +444,7 @@
 	windows[0].xft_draw if xft_font is set.
 	(XlwMenuDestroy): Destroy all xft_draw and close xft_font.
 	(facename_changed): New.
-	(XlwMenuSetValues): Call facename_changed. If face name did change,
+	(XlwMenuSetValues): Call facename_changed.  If face name did change,
 	close old fonts and destroy xft_draw:s.  Then create new ones.
 
 	* xlwmenu.h (XtNfaceName, XtCFaceName, XtNdefaultFace,
@@ -582,7 +642,7 @@
 
 	* xlwmenuP.h (_XlwMenu_part): Add top_depth.
 
-	* xlwmenu.h: Removed declaration of pop_up_menu
+	* xlwmenu.h: Removed declaration of pop_up_menu.
 
 	* xlwmenu.c (Start): Get correct time if time in event is CurrentTime.
 	(find_first_selectable, find_next_selectable)
@@ -1775,7 +1835,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1995-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

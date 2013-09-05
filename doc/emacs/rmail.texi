@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail
 @chapter Reading Mail with Rmail
@@ -284,7 +284,7 @@ deleted remains current.  @kbd{d} with a prefix argument is equivalent
 to @kbd{C-d}.  Note that the Rmail summary versions of these commands
 behave slightly differently (@pxref{Rmail Summary Edit}).
 
-@c mention other hooks, eg show message hook?
+@c mention other hooks, e.g., show message hook?
 @vindex rmail-delete-message-hook
   Whenever Rmail deletes a message, it runs the hook
 @code{rmail-delete-message-hook}.  When the hook functions are invoked,
@@ -1274,6 +1274,17 @@ It reads the name of a coding system, and then redecodes the message
 using the coding system you specified.  If you specified the right
 coding system, the result should be readable.
 
+@vindex rmail-file-coding-system
+  When you get new mail in Rmail, each message is translated
+automatically from the coding system it is written in, as if it were a
+separate file.  This uses the priority list of coding systems that you
+have specified.  If a MIME message specifies a character set, Rmail
+obeys that specification.  For reading and saving Rmail files
+themselves, Emacs uses the coding system specified by the variable
+@code{rmail-file-coding-system}.  The default value is @code{nil},
+which means that Rmail files are not translated (they are read and
+written in the Emacs internal character code).
+
 @node Rmail Editing
 @section Editing Within a Message
 
@@ -1370,6 +1381,7 @@ mailboxes, etc.  It is able to access remote mailboxes using the POP3
 or IMAP4 protocol, and can retrieve mail from them using a TLS
 encrypted channel.  It also accepts mailbox arguments in @acronym{URL}
 form.  The detailed description of mailbox @acronym{URL}s can be found
+@c Note this node seems to be missing in some versions of mailutils.info?
 in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
 @acronym{URL} is:
 
@@ -1490,7 +1502,7 @@ the machine on which to look for the POP server.
 @c FIXME mention --with-hesiod "support Hesiod to get the POP server host"?
 
 @cindex IMAP mailboxes
-  Another method for accessing remote mailboxes is IMAP.  This method is
+  Another method for accessing remote mailboxes is IMAP@.  This method is
 supported only by the Mailutils @code{movemail}.  To specify an IMAP
 mailbox in the inbox list, use the following mailbox @acronym{URL}:
 @samp{imap://@var{username}[:@var{password}]@@@var{hostname}}.  The

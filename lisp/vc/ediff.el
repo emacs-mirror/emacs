@@ -1,6 +1,6 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
@@ -12,8 +12,8 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst ediff-version "2.81.4" "The current version of Ediff")
-(defconst ediff-date "December 7, 2009" "Date of last update")
+(defconst ediff-version "2.81.5" "The current version of Ediff")
+(defconst ediff-date "July 4, 2013" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -101,7 +101,7 @@
 ;;  and on any buffer.
 
 
-;;; Acknowledgements:
+;;; Acknowledgments:
 
 ;; Ediff was inspired by Dale R. Worley's <drw@math.mit.edu> emerge.el.
 ;; Ediff would not have been possible without the help and encouragement of
@@ -114,13 +114,9 @@
 
 ;; Compiler pacifier
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
 
-
-(eval-when-compile
-  (require 'dired)
-  (require 'ediff-util)
-  (require 'ediff-ptch))
+(require 'ediff-util)
 ;; end pacifier
 
 (require 'ediff-init)
@@ -152,7 +148,12 @@
 ;; Used as a startup hook to set `_orig' patch file read-only.
 (defun ediff-set-read-only-in-buf-A ()
   (ediff-with-current-buffer ediff-buffer-A
-    (toggle-read-only 1)))
+    (setq buffer-read-only t)))
+
+(declare-function dired-get-filename "dired"
+                  (&optional localp no-error-if-not-filep))
+(declare-function dired-get-marked-files "dired"
+                  (&optional localp arg filter distinguish-one-marked))
 
 ;; Return a plausible default for ediff's first file:
 ;; In dired, return the file number FILENO (or 0) in the list
@@ -491,12 +492,12 @@ If this file is a backup, `ediff' it with its original."
 	      (setq buf-B-file-name (file-name-nondirectory buf-B-file-name)))
 	  (if (stringp buf-C-file-name)
 	      (setq buf-C-file-name (file-name-nondirectory buf-C-file-name)))
-	  
+
 	  (setq file-A (ediff-make-temp-file buf-A buf-A-file-name)
 		file-B (ediff-make-temp-file buf-B buf-B-file-name))
 	  (if buf-C-is-alive
 	      (setq file-C (ediff-make-temp-file buf-C buf-C-file-name)))
-	  
+
 	  (ediff-setup (get-buffer buf-A) file-A
 		       (get-buffer buf-B) file-B
 		       (if buf-C-is-alive (get-buffer buf-C))
@@ -542,8 +543,8 @@ expression; only file names that match the regexp are considered."
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
      (list (setq f (read-directory-name
-		    "Directory A to compare:" dir-A nil 'must-match))
-	   (read-directory-name "Directory B to compare:"
+		    "Directory A to compare: " dir-A nil 'must-match))
+	   (read-directory-name "Directory B to compare: "
 			   (if ediff-use-last-dir
 			       ediff-last-dir-B
 			     (ediff-strip-last-dir f))
@@ -1072,7 +1073,7 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 	  (ediff-with-current-buffer buffer-B
 	    (setq beg-B (move-marker (make-marker) beg-B)
 		  end-B (move-marker (make-marker) end-B)))
-	  
+
 	  ;; make file-A
 	  (if word-mode
 	      (ediff-wordify beg-A end-A buffer-A tmp-buffer)
@@ -1084,7 +1085,7 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 	      (ediff-wordify beg-B end-B buffer-B tmp-buffer)
 	    (ediff-copy-to-buffer beg-B end-B buffer-B tmp-buffer))
 	  (setq file-B (ediff-make-temp-file tmp-buffer "regB"))
-	  
+
 	  (setq overl-A (ediff-make-bullet-proof-overlay beg-A end-A buffer-A))
 	  (setq overl-B (ediff-make-bullet-proof-overlay beg-B end-B buffer-B))
 	  (ediff-setup buffer-A file-A
@@ -1345,6 +1346,12 @@ buffer."
      rev1 rev2 ancestor-rev startup-hooks merge-buffer-file)))
 
 ;;; Apply patch
+(defvar ediff-last-dir-patch)
+(defvar ediff-patch-default-directory)
+(declare-function ediff-get-patch-buffer "ediff-ptch"
+                  (&optional arg patch-buf))
+(declare-function ediff-dispatch-file-patching-job "ediff-ptch"
+                  (patch-buf filename &optional startup-hooks))
 
 ;;;###autoload
 (defun ediff-patch-file (&optional arg patch-buf)
@@ -1372,6 +1379,9 @@ buffer. If odd -- assume it is in a file."
 	   ;; use an explicit initial file
 	   source-dir nil nil (ediff-get-default-file-name)))
     (ediff-dispatch-file-patching-job patch-buf source-file)))
+
+(declare-function ediff-patch-buffer-internal "ediff-ptch"
+                  (patch-buf buf-to-patch-name &optional startup-hooks))
 
 ;;;###autoload
 (defun ediff-patch-buffer (&optional arg patch-buf)
@@ -1464,9 +1474,9 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   "Return string describing the version of Ediff.
 When called interactively, displays the version."
   (interactive)
-  ;; called-interactively-p - not in XEmacs
-  ;; (if (called-interactively-p 'interactive)
-  (if (interactive-p)
+  (if (if (featurep 'xemacs)
+          (interactive-p)
+        (called-interactively-p 'interactive))
       (message "%s" (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
@@ -1489,7 +1499,7 @@ With optional NODE, goes to that node."
 	  (if node
 	      (Info-goto-node node)
 	    (message "Type `i' to search for a specific topic"))
-	  (raise-frame (selected-frame)))
+	  (raise-frame))
       (error (beep 1)
 	     (with-output-to-temp-buffer ediff-msg-buffer
 	       (ediff-with-current-buffer standard-output
@@ -1548,6 +1558,75 @@ With optional NODE, goes to that node."
                 "^There is no file to merge$"
                 "^Version control package .*.el not found. Use vc.el instead$"))
   (add-to-list 'debug-ignored-errors mess))
+
+
+
+;;; Command line interface
+
+;;;###autoload
+(defun ediff-files-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 2 command-line-args-left))
+    (ediff file-a file-b)))
+
+;;;###autoload
+(defun ediff3-files-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(file-c (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff3 file-a file-b file-c)))
+
+;;;###autoload
+(defun ediff-merge-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 2 command-line-args-left))
+    (ediff-merge-files file-a file-b)))
+
+;;;###autoload
+(defun ediff-merge-with-ancestor-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(ancestor (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff-merge-files-with-ancestor file-a file-b ancestor)))
+
+;;;###autoload
+(defun ediff-directories-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(regexp (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff-directories file-a file-b regexp)))
+
+;;;###autoload
+(defun ediff-directories3-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(file-c (nth 2 command-line-args-left))
+	(regexp (nth 3 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 4 command-line-args-left))
+    (ediff-directories3 file-a file-b file-c regexp)))
+
+;;;###autoload
+(defun ediff-merge-directories-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(regexp (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff-merge-directories file-a file-b regexp)))
+
+;;;###autoload
+(defun ediff-merge-directories-with-ancestor-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(ancestor (nth 2 command-line-args-left))
+	(regexp (nth 3 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 4 command-line-args-left))
+    (ediff-merge-directories-with-ancestor file-a file-b ancestor regexp)))
+
 
 
 (require 'ediff-util)

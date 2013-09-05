@@ -1,3 +1,117 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/croatian.el ("croatian-prefix"):
+	* quail/czech.el ("czech", "czech-qwerty"):
+	* quail/ipa-praat.el ("ipa-praat"):
+	* quail/ipa.el ("ipa-x-sampa"):
+	* quail/tibetan.el ("tibetan-wylie", "tibetan-tibkey"):
+	* quail/uni-input.el (ucs-input-activate): Fix typos in docstrings.
+
+2013-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (leim-list.el, check-declare):
+	Replace reveal-filename with unmsys--file-name.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (leim-list.el, check-declare): Use reveal-filename.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* quail/cyrillic.el, quail/czech.el, quail/ethiopic.el:
+	* quail/greek.el, quail/hanja.el, quail/hanja3.el, quail/hebrew.el:
+	* quail/lao.el, quail/lrt.el, quail/slovak.el, quail/symbol-ksc.el:
+	* quail/thai.el, quail/tibetan.el, quail/viqr.el, quail/vntelex.el:
+	* quail/vnvni.el, quail/welsh.el:
+	Switch from iso-2022-7bit to utf-8 or (if needed) utf-8-emacs.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): Use batch-skkdic-convert.
+
+2013-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(srcdir)/ja-dic/ja-dic.el): New target.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the build of ja-dic.el (Bug#13984).
+	ja-dic.el no longer needs to be in the repository: it's now
+	generated as part of the build from bzr.  Also, update SKK-JISYO.L to
+	match the upstream source exactly.
+	* ja-dic/ja-dic.el: Remove from repository.  It is still distributed
+	as part of the Emacs tarball.
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): New rule.
+	(compile-main): Depend on it.
+	* SKK-DIC/README: Update to reflect new build procedure.
+	* SKK-DIC/SKK-JISYO.L: Update to match source exactly.
+	This is now the annotated version, to match the upstream file name;
+	the unannotated one is built from it automatically.
+
+2013-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Resolve conflicts (bug#13950).
+	(latin-ltx--mark-map, latin-ltx--mark-re): New constants.
+	(latin-ltx--define-rules): Check for conflicts.  Eval `re's.
+	(rules): Use tighter regexps to avoid conflicts.
+	Consolidate the various rules for combining marks.
+
+2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Add greek superscripts.
+
+2012-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Avoid deprecated chars for \langle and \rangle.
+	Remove \rightparengtr and \leftparengtr for lack of consensus.
+	Suggested by Mattias Engdegård <mattiase@bredband.net> (bug#12948).
+
+2012-09-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/hebrew.el ("yiddish-royal"): Fix several bogus entries.
+
+2012-08-17  Daniel Bergey  <bergey@alum.mit.edu>  (tiny change)
+
+	* quail/indian.el (quail-define-inscript-package):
+	Set kbd-translate for all Inscript layouts.  It's a positional
+	layout: vowels should be on the left hand regardless of the
+	underlying characters produced by those keys.  (Bug#12072)
+
+2012-08-06  Mohsen BANAN  <libre@mohsen.1.banan.byname.net>
+
+	* quail/persian.el: Add some mappings.  (Bug#11812)
+	(farsi-isiri-9147, farsi-transliterate-banan): Doc fixes.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update .PHONY listings in makefiles.
+	* Makefile.in (.PHONY): Add all, compile-main, clean, mostlyclean,
+	bootstrap-clean, distclean, maintainer-clean, extraclean.
+
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* quail/uni-input.el (ucs-input-deactivate):
+	Rename from ucs-input-inactivate.
+	* quail/hangul.el (hangul-input-method-deactivate):
+	Rename from hangul-input-method-inactivate.
+
+2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/ipa.el: Use cl-lib.
+
+	* quail/hangul.el: Don't require CL.
+
+2012-06-12  Nguyen Thai Ngoc Duy  <pclouds@gmail.com>
+
+	* quail/vnvi.el: New file (Bug#4747).
+
 2012-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SUBDIRS): Remove variable and rule.
@@ -2096,7 +2210,7 @@
 
 	* quail/cyrillic.el: For each package, pass t for the SIMPLE
 	argument to quail-define-package.
-	* quail/cyril-jis.el: Likewise
+	* quail/cyril-jis.el: Likewise.
 	* quail/greek.el: Likewise.
 	* quail/ipa.el: Likewise.
 	* quail/lao.el: Likewise.
@@ -2326,7 +2440,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1997-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -2,7 +2,7 @@
 # Configuration script for leim/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1999-2012  Free Software Foundation, Inc.
+# Copyright (C) 1999-2013 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -34,6 +34,8 @@ s|\([ 	]\)echo|\1djecho|g
 /RUN_EMACS *=/,/^$/c\
 export EMACSLOADPATH=${buildlisppath}\
 RUN_EMACS = ${EMACS} -batch --no-site-file
+
+/^MKDIR_P *=/s,@MKDIR_P@,command.com /c md,
 
 /^	cd ../c\
 	${MAKE} -C ../src ${MFLAGS} emacs

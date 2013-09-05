@@ -1,6 +1,6 @@
 ;;; calc-alg.el --- algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger  <jay.p.belanger@gmail.com>
@@ -356,6 +356,8 @@
 ;; math-simplify-step, which is called by math-simplify.
 (defvar math-top-only)
 
+;; math-normalize-error is declared in calc.el.
+(defvar math-normalize-error)
 (defun math-simplify (top-expr)
   (let ((math-simplifying t)
 	(math-top-only (consp calc-simplify-mode))
@@ -383,10 +385,12 @@
       (calc-with-default-simplification
        (while (let ((r simp-rules))
 		(setq res (math-normalize top-expr))
-		(while r
-		  (setq res (math-rewrite res (car r))
-			r (cdr r)))
-		(not (equal top-expr (setq res (math-simplify-step res)))))
+                (if (not math-normalize-error)
+                    (progn
+                      (while r
+                        (setq res (math-rewrite res (car r))
+                              r (cdr r)))
+                      (not (equal top-expr (setq res (math-simplify-step res)))))))
 	 (setq top-expr res)))))
   top-expr)
 
@@ -530,7 +534,10 @@
                            (not (Math-realp (nth 1 math-simplify-expr))))
 		       (math-common-constant-factor (nth 1 math-simplify-expr))))
 	  (if (and (eq (car-safe nn) 'frac) (eq (nth 1 nn) 1) (not n))
-	      (progn
+	      (unless (and (eq (car-safe math-simplify-expr) 'calcFunc-eq)
+                           (eq (car-safe (nth 1 math-simplify-expr)) 'var)
+                           (not (math-expr-contains (nth 2 math-simplify-expr) 
+                                                    (nth 1 math-simplify-expr))))
 		(setcar (cdr math-simplify-expr)
                         (math-mul (nth 2 nn) (nth 1 math-simplify-expr)))
 		(setcar (cdr (cdr math-simplify-expr))

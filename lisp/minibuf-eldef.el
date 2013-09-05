@@ -1,6 +1,6 @@
-;;; minibuf-eldef.el --- Only show defaults in prompts when applicable
+;;; minibuf-eldef.el --- Only show defaults in prompts when applicable  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -33,16 +33,35 @@
 
 ;;; Code:
 
+(defvar minibuffer-eldef-shorten-default)
+
+(defun minibuffer-default--in-prompt-regexps ()
+  `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
+     1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
+    ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
+    ("\\( \\[.*\\]\\):? *\\'" 1)))
+
+(defcustom minibuffer-eldef-shorten-default nil
+  "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts."
+  :set (lambda (symbol value)
+         (set-default symbol value)
+	 (setq-default minibuffer-default-in-prompt-regexps
+		       (minibuffer-default--in-prompt-regexps)))
+  :type 'boolean
+  :group 'minibuffer
+  :version "24.3")
+
 (defvar minibuffer-default-in-prompt-regexps
-  '(("\\( (default\\>.*)\\):? \\'" . 1) ("\\( \\[.*\\]\\):? *\\'" . 1))
+  (minibuffer-default--in-prompt-regexps)
   "A list of regexps matching the parts of minibuffer prompts showing defaults.
 When `minibuffer-electric-default-mode' is active, these regexps are
 used to identify the portions of prompts to elide.
 
-Each entry is either a string, which should be a regexp matching the
-default portion of the prompt, or a cons cell, who's car is a regexp
-matching the default part of the prompt, and who's cdr indicates the
-regexp subexpression that matched.")
+Each entry is of the form (REGEXP MATCH-NUM &optional REWRITE),
+where REGEXP should match the default part of the prompt,
+MATCH-NUM is the subgroup that matched the actual default indicator,
+and REWRITE, if present, is a string to pass to `replace-match' that
+should be displayed in its place.")
 
 
 ;;; Internal variables
@@ -79,21 +98,42 @@ The prompt and initial input should already have been inserted."
 	(inhibit-point-motion-hooks t))
     (save-excursion
       (save-restriction
-	;; Narrow to only the prompt
+	;; Narrow to only the prompt.
 	(goto-char (point-min))
 	(narrow-to-region (point) (minibuffer-prompt-end))
-	;; See the prompt contains a default input indicator
+	;; See if the prompt contains a default input indicator.
 	(while regexps
 	  (setq match (pop regexps))
-	  (if (re-search-forward (if (stringp match) match (car match)) nil t)
-	      (setq regexps nil)
-	    (setq match nil)))))
+	  (cond
+           ((not (re-search-forward (if (stringp match) match (car match))
+                                    nil t))
+            ;; No match yet, try the next rule.
+	    (setq match nil))
+           ((and (consp (cdr-safe match)) (nth 2 match))
+            ;; Matched a replacement rule.
+            (let* ((inhibit-read-only t)
+                   (buffer-undo-list t)
+                   (submatch (nth 1 match))
+                   (replacement (nth 2 match))
+                   (props (text-properties-at (match-beginning submatch))))
+              (replace-match replacement nil nil nil submatch)
+              (set-text-properties (match-beginning submatch)
+                                   (match-end submatch)
+                                   props)
+              ;; Replacement done, now keep trying with subsequent rules.
+              (setq match nil)
+              (goto-char (point-min))))
+           ;; Matched a non-replacement (i.e. electric hide) rule, no need to
+           ;; keep trying.
+           (t (setq regexps nil))))))
     (if (not match)
-	;; Nope, so just make sure our post-command-hook isn't left around.
+	;; No match for electric hiding, so just make sure our
+	;; post-command-hook isn't left around.
 	(remove-hook 'post-command-hook #'minibuf-eldef-update-minibuffer t)
       ;; Yup; set things up so we can frob the prompt as the state of
       ;; the input string changes.
       (setq match (if (consp match) (cdr match) 0))
+      (setq match (if (consp match) (car match) match))
       (setq minibuf-eldef-overlay
 	    (make-overlay (match-beginning match) (match-end match)))
       (setq minibuf-eldef-showing-default-in-prompt t)
@@ -113,21 +153,13 @@ been set up by `minibuf-eldef-setup-minibuffer'."
 	      (and (= (point-max) minibuf-eldef-initial-buffer-length)
 		   (string-equal (minibuffer-contents-no-properties)
 				 minibuf-eldef-initial-input)))
-    ;; swap state
+    ;; Swap state.
     (setq minibuf-eldef-showing-default-in-prompt
 	  (not minibuf-eldef-showing-default-in-prompt))
-    (cond (minibuf-eldef-showing-default-in-prompt
-	   (overlay-put minibuf-eldef-overlay 'invisible nil)
-	   (overlay-put minibuf-eldef-overlay 'intangible nil))
-	  (t
-	   (overlay-put minibuf-eldef-overlay 'invisible t)
-	   (overlay-put minibuf-eldef-overlay 'intangible t)))))
+    (overlay-put minibuf-eldef-overlay 'invisible
+                 (not minibuf-eldef-showing-default-in-prompt))))
 
 
-;;; Note this definition must be at the end of the file, because
-;;; `define-minor-mode' actually calls the mode-function if the
-;;; associated variable is non-nil, which requires that all needed
-;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
 (define-minor-mode minibuffer-electric-default-mode
   "Toggle Minibuffer Electric Default mode.

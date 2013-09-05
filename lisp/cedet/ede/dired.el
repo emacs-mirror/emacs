@@ -1,6 +1,7 @@
 ;;; ede/dired.el --- EDE extensions to dired.
 
-;; Copyright (C) 1998-2000, 2003, 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2003, 2009-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.4
@@ -64,7 +65,7 @@ negative, force off."
     (setq ede-dired-minor-mode nil)
     (error "Not in DIRED mode"))
   (unless (or (ede-directory-project-p default-directory)
-              (interactive-p))
+              (called-interactively-p 'any))
     (setq ede-dired-minor-mode nil)))
 
 (defun ede-dired-add-to-target (target)

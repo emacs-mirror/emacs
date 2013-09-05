@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -347,8 +347,7 @@ in `load-path'."
     (if aliases
 	(message "%s" aliases))
     (let ((library
-	   (cond ((eq (car-safe def) 'autoload)
-		  (nth 1 def))
+	   (cond ((autoloadp def) (nth 1 def))
 		 ((subrp def)
 		  (if lisp-only
 		      (error "%s is a built-in function" function))

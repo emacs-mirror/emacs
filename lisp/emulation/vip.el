@@ -1,7 +1,7 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
 ;; Keywords: emulations
@@ -159,7 +159,7 @@ If nil then it is bound to `delete-backward-char'."
 
 (defvar vip-inhibit-startup-message nil)
 
-(defvar vip-startup-file (convert-standard-filename "~/.vip")
+(defvar vip-startup-file (locate-user-emacs-file "vip" ".vip")
   "Filename used as startup file for vip.")
 
 ;; key bindings
@@ -183,6 +183,7 @@ If nil then it is bound to `delete-backward-char'."
     (define-key map "\C-z" 'vip-change-mode-to-emacs)
     (define-key map "\e" 'vip-ESC)
 
+    (define-key map [?\S-\ ] 'vip-scroll-back)
     (define-key map " " 'vip-scroll)
     (define-key map "!" 'vip-command-argument)
     (define-key map "\"" 'vip-command-argument)
@@ -307,10 +308,10 @@ If nil then it is bound to `delete-backward-char'."
 
 (defmacro vip-loop (count body)
   "(COUNT BODY) Execute BODY COUNT times."
-  (list 'let (list (list 'count count))
-	(list 'while (list '> 'count 0)
-	      body
-	      (list 'setq 'count (list '1- 'count)))))
+  `(let ((count ,count))
+     (while (> count 0)
+       ,body
+       (setq count (1- count)))))
 
 (defun vip-push-mark-silent (&optional location)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
@@ -774,7 +775,7 @@ to vip-d-com for later use by vip-repeat"
 		  (if (= com ?!)
 		      (setq vip-last-shell-com (vip-read-string "!"))
 		    vip-last-shell-com)
-		  t)))
+		  t t)))
 	      ((= com ?=)
 	       (save-excursion
 		 (set-mark vip-com-point)
@@ -3041,7 +3042,7 @@ vip-s-string"
 	  (goto-char beg)
 	  (set-mark end)
 	  (vip-enlarge-region (point) (mark))
-	  (shell-command-on-region (point) (mark) command t))
+	  (shell-command-on-region (point) (mark) command t t))
 	(goto-char beg)))))
 
 (defun ex-line-no ()

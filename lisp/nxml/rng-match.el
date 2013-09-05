@@ -1,6 +1,6 @@
 ;;; rng-match.el --- matching of RELAX NG patterns against XML events
 
-;; Copyright (C) 2003, 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -1541,14 +1541,7 @@ nullable and y1 isn't, return a choice
   (signal 'rng-compile-error
 	  (list (apply 'format args))))
 
-(put 'rng-compile-error
-     'error-conditions
-     '(error rng-error rng-compile-error))
-
-(put 'rng-compile-error
-     'error-message
-     "Incorrect schema")
-
+(define-error 'rng-compile-error "Incorrect schema" 'rng-error)
 
 ;;; External API
 

@@ -1,6 +1,7 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -41,7 +42,7 @@
 ;;; Code:
 
 (require 'eldoc)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;
 ;; vars here
@@ -58,7 +59,7 @@
                  (const 32)
                  (const 64))
   :group 'hexl
-  :version "24.2")
+  :version "24.3")
 
 (defcustom hexl-program "hexl"
   "The program that will hexlify and dehexlify its stdin.
@@ -310,8 +311,8 @@ A sample format:
   000000c0: 7265 6769 6f6e 2e0a                      region..
 
 Movement is as simple as movement in a normal Emacs text buffer.  Most
-cursor movement bindings are the same (ie. Use \\[hexl-backward-char], \\[hexl-forward-char], \\[hexl-next-line], and \\[hexl-previous-line]
-to move the cursor left, right, down, and up).
+cursor movement bindings are the same: use \\[hexl-backward-char], \\[hexl-forward-char], \\[hexl-next-line], and \\[hexl-previous-line]
+to move the cursor left, right, down, and up.
 
 Advanced cursor movement commands (ala \\[hexl-beginning-of-line], \\[hexl-end-of-line], \\[hexl-beginning-of-buffer], and \\[hexl-end-of-buffer]) are
 also supported.
@@ -462,7 +463,7 @@ and edit the file in `hexl-mode'."
     (let ((completion-ignored-extensions nil))
       (read-file-name "Filename: " nil nil 'ret-must-match))))
   ;; Ignore the user's setting of default major-mode.
-  (letf (((default-value 'major-mode) 'fundamental-mode))
+  (cl-letf (((default-value 'major-mode) 'fundamental-mode))
     (find-file-literally filename))
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))

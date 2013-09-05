@@ -1,6 +1,7 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Francesco Potorti` <pot@gnu.org>
 ;; Adapted-By: ESR
@@ -49,7 +50,7 @@
 
 ;; INSTALLATION ======================================================
 
-;; Put the following in your ~/.emacs file.
+;; Put the following in your init file.
 
 ;; If you want the *Macroexpansion* window to be not higher than
 ;; necessary:
@@ -80,7 +81,7 @@
 ;;   making comments visible in the expansion.
 ;; - All work is done in core memory, no need for temporary files.
 
-;; ACKNOWLEDGEMENTS ==================================================
+;; ACKNOWLEDGMENTS ===================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug
 ;; reporting and suggestion of new features.  This work has been

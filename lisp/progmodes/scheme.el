@@ -1,7 +1,7 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode
 
-;; Copyright (C) 1986-1988, 1997-1998, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1988, 1997-1998, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -126,44 +126,44 @@
 (defun scheme-mode-variables ()
   (set-syntax-table scheme-mode-syntax-table)
   (setq local-abbrev-table scheme-mode-abbrev-table)
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'fill-paragraph-function) 'lisp-fill-paragraph)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
-  (set (make-local-variable 'adaptive-fill-mode) nil)
-  (set (make-local-variable 'indent-line-function) 'lisp-indent-line)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'outline-regexp) ";;; \\|(....")
-  (set (make-local-variable 'comment-start) ";")
-  (set (make-local-variable 'comment-add) 1)
+  (setq-local adaptive-fill-mode nil)
+  (setq-local indent-line-function 'lisp-indent-line)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local outline-regexp ";;; \\|(....")
+  (setq-local add-log-current-defun-function #'lisp-current-defun-name)
+  (setq-local comment-start ";")
+  (setq-local comment-add 1)
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
-  (set (make-local-variable 'font-lock-comment-start-skip) ";+ *")
-  (set (make-local-variable 'comment-column) 40)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'lisp-indent-function) 'scheme-indent-function)
+  (setq-local comment-start-skip
+	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
+  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-column 40)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
-  (set (make-local-variable 'imenu-case-fold-search) t)
+  (setq-local imenu-case-fold-search t)
   (setq imenu-generic-expression scheme-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist)
+  (setq-local imenu-syntax-alist
 	'(("+-*/.<>=?!$%_&~^:" . "w")))
-  (set (make-local-variable 'font-lock-defaults)
-       '((scheme-font-lock-keywords
-          scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-         nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
-         beginning-of-defun
-         (font-lock-mark-block-function . mark-defun)
-         (font-lock-syntactic-face-function
-          . scheme-font-lock-syntactic-face-function)
-         (parse-sexp-lookup-properties . t)
-         (font-lock-extra-managed-props syntax-table)))
-  (set (make-local-variable 'lisp-doc-string-elt-property)
-       'scheme-doc-string-elt))
+  (setq font-lock-defaults
+	'((scheme-font-lock-keywords
+	   scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
+	  nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
+	  beginning-of-defun
+	  (font-lock-mark-block-function . mark-defun)
+	  (font-lock-syntactic-face-function
+	   . scheme-font-lock-syntactic-face-function)
+	  (parse-sexp-lookup-properties . t)
+	  (font-lock-extra-managed-props syntax-table)))
+  (setq-local lisp-doc-string-elt-property 'scheme-doc-string-elt))
 
 (defvar scheme-mode-line-process "")
 
@@ -201,7 +201,7 @@ Editing commands are similar to those of `lisp-mode'.
 In addition, if an inferior Scheme process is running, some additional
 commands will be defined, for evaluating expressions and controlling
 the interpreter, and the state of the process will be displayed in the
-modeline of all Scheme buffers.  The names of commands that interact
+mode line of all Scheme buffers.  The names of commands that interact
 with the Scheme process start with \"xscheme-\" if you use the MIT
 Scheme-specific `xscheme' package; for more information see the
 documentation for `xscheme-interaction-mode'.  Use \\[run-scheme] to
@@ -310,8 +310,10 @@ See `run-hooks'."
 	"(" (regexp-opt
 	     '("begin" "call-with-current-continuation" "call/cc"
 	       "call-with-input-file" "call-with-output-file" "case" "cond"
-	       "do" "else" "for-each" "if" "lambda"
+	       "do" "else" "for-each" "if" "lambda" "λ"
 	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
+	       ;; R6RS library subforms.
+	       "export" "import"
 	       ;; SRFI 11 usage comes up often enough.
 	       "let-values" "let*-values"
 	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
@@ -330,6 +332,10 @@ See `run-hooks'."
       ;;
       ;; Scheme `:' and `#:' keywords as builtins.
       '("\\<#?:\\sw+\\>" . font-lock-builtin-face)
+      ;; R6RS library declarations.
+      '("(\\(\\<library\\>\\)\\s-*(?\\(\\sw+\\)?"
+	(1 font-lock-keyword-face)
+	(2 font-lock-type-face))
       )))
   "Gaudy expressions to highlight in Scheme modes.")
 
@@ -386,7 +392,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 Entering this mode runs the hooks `scheme-mode-hook' and then
 `dsssl-mode-hook' and inserts the value of `dsssl-sgml-declaration' if
 that variable's value is a string."
-  (set (make-local-variable 'page-delimiter) "^;;;") ; ^L not valid SGML char
+  (setq-local page-delimiter "^;;;") ; ^L not valid SGML char
   ;; Insert a suitable SGML declaration into an empty buffer.
   ;; FIXME: This should use `auto-insert-alist' instead.
   (and (zerop (buffer-size))
@@ -397,10 +403,10 @@ that variable's value is a string."
 			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
 			     beginning-of-defun
 			     (font-lock-mark-block-function . mark-defun)))
-  (set (make-local-variable 'imenu-case-fold-search) nil)
+  (setq-local add-log-current-defun-function #'lisp-current-defun-name)
+  (setq-local imenu-case-fold-search nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist)
-       '(("+-*/.<>=?$%_&~^:" . "w"))))
+  (setq-local imenu-syntax-alist '(("+-*/.<>=?$%_&~^:" . "w"))))
 
 ;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
 ;; shouldn't cause much trouble in scheme-mode.
@@ -410,6 +416,7 @@ that variable's value is a string."
 (put 'make 'scheme-indent-function 1)
 (put 'style 'scheme-indent-function 1)
 (put 'root 'scheme-indent-function 1)
+(put 'λ 'scheme-indent-function 1)
 
 (defvar dsssl-font-lock-keywords
   (eval-when-compile
@@ -535,6 +542,7 @@ indentation."
 (put 'letrec-syntax 'scheme-indent-function 1)
 (put 'syntax-rules 'scheme-indent-function 1)
 (put 'syntax-case 'scheme-indent-function 2) ; not r5rs
+(put 'library 'scheme-indent-function 1) ; R6RS
 
 (put 'call-with-input-file 'scheme-indent-function 1)
 (put 'with-input-from-file 'scheme-indent-function 1)

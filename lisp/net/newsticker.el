@@ -1,6 +1,6 @@
 ;;; newsticker.el --- A Newsticker for Emacs.
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker.el
@@ -87,7 +87,7 @@
 ;; If you are using Newsticker as part of GNU Emacs there is no need to
 ;; perform any installation steps in order to use Newsticker.  Otherwise
 ;; place Newsticker in a directory where Emacs can find it.  Add the
-;; following line to your Emacs startup file (`~/.emacs').
+;; following line to your init file:
 ;;   (add-to-list 'load-path "/path/to/newsticker/")
 ;;   (autoload 'newsticker-start "newsticker" "Emacs Newsticker" t)
 ;;   (autoload 'newsticker-show-news "newsticker" "Emacs Newsticker" t)
@@ -103,7 +103,7 @@
 ;; -----
 ;; The command newsticker-show-news will display all available headlines in
 ;; a special buffer, called `*newsticker*'.  It will also start the
-;; asynchronous download of headlines.  The modeline in the `*newsticker*'
+;; asynchronous download of headlines.  The mode line in the `*newsticker*'
 ;; buffer informs whenever new headlines have arrived.  Clicking
 ;; mouse-button 2 or pressing RET in this buffer on a headline will call
 ;; browse-url to load the corresponding news story in your favorite web

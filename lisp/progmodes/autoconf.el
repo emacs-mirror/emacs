@@ -1,6 +1,6 @@
-;;; autoconf.el --- mode for editing Autoconf configure.in files
+;;; autoconf.el --- mode for editing Autoconf configure.ac files
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -23,19 +23,17 @@
 ;;; Commentary:
 
 ;; Provides fairly minimal font-lock, imenu and indentation support
-;; for editing configure.in files.  Only Autoconf syntax is processed.
+;; for editing configure.ac files.  Only Autoconf syntax is processed.
 ;; There is no attempt to deal with shell text -- probably that will
 ;; always lose.
 
-;; This is specialized for configure.in files.  It doesn't inherit the
+;; This is specialized for configure.ac files.  It doesn't inherit the
 ;; general M4 stuff from M4 mode.
 
 ;; There is also an autoconf-mode.el in existence.  That appears to be
-;; for editing the Autoconf M4 source, rather than configure.in files.
+;; for editing the Autoconf M4 source, rather than configure.ac files.
 
 ;;; Code:
-
-(defvar font-lock-syntactic-keywords)
 
 (defvar autoconf-mode-map (make-sparse-keymap))
 
@@ -43,13 +41,13 @@
   "Hook run by `autoconf-mode'.")
 
 (defconst autoconf-definition-regexp
-  "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\[*\\(\\sw+\\)\\]*")
+  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\(?:\\sw\\|\\s_\\)+\\)\\]*")
 
 (defvar autoconf-font-lock-keywords
-  `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
+  `(("\\_<A[CHMS]_\\(?:\\sw\\|\\s_\\)+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
-     3 font-lock-function-name-face)
-    ;; Are any other M4 keywords really appropriate for configure.in,
+     1 font-lock-function-name-face)
+    ;; Are any other M4 keywords really appropriate for configure.ac,
     ;; given that we do `dnl'?
     ("changequote" . font-lock-keyword-face)))
 
@@ -61,7 +59,7 @@
     table))
 
 (defvar autoconf-imenu-generic-expression
-  (list (list nil autoconf-definition-regexp 3)))
+  (list (list nil autoconf-definition-regexp 1)))
 
 ;; It's not clear how best to implement this.
 (defun autoconf-current-defun-function ()
@@ -69,32 +67,27 @@
 This version looks back for an AC_DEFINE or AC_SUBST.  It will stop
 searching backwards at another AC_... command."
   (save-excursion
-    (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
-      (modify-syntax-entry ?_ "w")
-      (if (re-search-backward autoconf-definition-regexp
-			      (save-excursion (beginning-of-defun) (point))
-			      t)
-	  (match-string-no-properties 3)))))
+    (skip-syntax-forward "w_" (line-end-position))
+    (if (re-search-backward autoconf-definition-regexp
+                            (save-excursion (beginning-of-defun) (point))
+                            t)
+        (match-string-no-properties 1))))
 
 ;;;###autoload
 (define-derived-mode autoconf-mode prog-mode "Autoconf"
-  "Major mode for editing Autoconf configure.in files."
-  (set (make-local-variable 'parens-require-spaces) nil) ; for M4 arg lists
-  (set (make-local-variable 'defun-prompt-regexp)
-       "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
-  (set (make-local-variable 'comment-start) "dnl ")
-  (set (make-local-variable 'comment-start-skip)
-       "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
-  (set (make-local-variable 'syntax-propertize-function)
-       (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
-  (set (make-local-variable 'font-lock-defaults)
-       `(autoconf-font-lock-keywords nil nil (("_" . "w"))))
-  (set (make-local-variable 'imenu-generic-expression)
-       autoconf-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist) '(("_" . "w")))
-  (set (make-local-variable 'indent-line-function) #'indent-relative)
-  (set (make-local-variable 'add-log-current-defun-function)
-	#'autoconf-current-defun-function))
+  "Major mode for editing Autoconf configure.ac files."
+  (setq-local parens-require-spaces nil) ; for M4 arg lists
+  (setq-local defun-prompt-regexp "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
+  (setq-local comment-start "dnl ")
+  (setq-local comment-start-skip "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
+  (setq-local syntax-propertize-function
+	      (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
+  (setq-local font-lock-defaults
+	      `(autoconf-font-lock-keywords nil nil))
+  (setq-local imenu-generic-expression autoconf-imenu-generic-expression)
+  (setq-local indent-line-function #'indent-relative)
+  (setq-local add-log-current-defun-function
+	      #'autoconf-current-defun-function))
 
 (provide 'autoconf-mode)
 (provide 'autoconf)

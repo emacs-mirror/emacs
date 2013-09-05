@@ -1,6 +1,6 @@
 ;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Taichi Kawabata <kawabata.taichi@gmail.com>
 ;; Keywords: unicode, normalization
@@ -109,7 +109,7 @@
 
 (defconst ucs-normalize-version "1.2")
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function nfd "ucs-normalize" (char))
 
@@ -179,7 +179,7 @@
   (let ((char 0) ccc decomposition)
     (mapc
      (lambda (start-end)
-       (do ((char (car start-end) (+ char 1))) ((> char (cdr start-end)))
+       (cl-do ((char (car start-end) (+ char 1))) ((> char (cdr start-end)))
          (setq ccc (ucs-normalize-ccc char))
          (setq decomposition (get-char-code-property
                               char 'decomposition))
@@ -270,7 +270,7 @@ Note that Hangul are excluded.")
     (let (decomposition alist)
       (mapc
        (lambda (start-end)
-         (do ((char (car start-end) (+ char 1))) ((> char (cdr start-end)))
+         (cl-do ((char (car start-end) (+ char 1))) ((> char (cdr start-end)))
            (setq decomposition (funcall decomposition-function char))
            (if decomposition
                (setq alist (cons (cons char
@@ -391,7 +391,7 @@ decomposition."
     (let (entries decomposition composition)
       (mapc
        (lambda (start-end)
-         (do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
+         (cl-do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
            (setq decomposition
                  (string-to-list
                   (with-temp-buffer

@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -30,7 +30,7 @@
 ;; one-to-one communication.
 
 ;; Rcirc has simple defaults and clear and consistent behavior.
-;; Message arrival timestamps, activity notification on the modeline,
+;; Message arrival timestamps, activity notification on the mode line,
 ;; message filling, nick completion, and keepalive pings are all
 ;; enabled by default, but can easily be adjusted or turned off.  Each
 ;; discussion takes place in its own buffer and there is a single
@@ -300,7 +300,9 @@ See `rcirc-dim-nick' face."
   :type '(repeat string)
   :group 'rcirc)
 
-(defcustom rcirc-print-hooks nil
+(define-obsolete-variable-alias 'rcirc-print-hooks
+  'rcirc-print-functions "24.3")
+(defcustom rcirc-print-functions nil
   "Hook run after text is printed.
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
@@ -365,7 +367,7 @@ of a line.  The string is passed as the first argument to
   "When non-nil, kill channel buffers when the server buffer is killed.
 Only the channel buffers associated with the server in question
 will be killed."
-  :version "24.2"
+  :version "24.3"
   :type 'boolean
   :group 'rcirc)
 
@@ -394,7 +396,7 @@ will be killed."
   "List of buffers with unviewed activity.")
 
 (defvar rcirc-activity-string ""
-  "String displayed in modeline representing `rcirc-activity'.")
+  "String displayed in mode line representing `rcirc-activity'.")
 (put 'rcirc-activity-string 'risky-local-variable t)
 
 (defvar rcirc-server-buffer nil
@@ -404,7 +406,7 @@ will be killed."
   "The channel or user associated with this buffer.")
 
 (defvar rcirc-urls nil
-  "List of urls seen in the current buffer.")
+  "List of URLs seen in the current buffer and their start positions.")
 (put 'rcirc-urls 'permanent-local t)
 
 (defvar rcirc-timeout-seconds 600
@@ -623,7 +625,8 @@ last ping."
                                            (rcirc-float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
-    (cancel-timer rcirc-keepalive-timer)
+    (when (timerp rcirc-keepalive-timer)
+      (cancel-timer rcirc-keepalive-timer))
     (setq rcirc-keepalive-timer nil)))
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
@@ -647,7 +650,9 @@ is non-nil."
 	       "] "
 	       text)))))
 
-(defvar rcirc-sentinel-hooks nil
+(define-obsolete-variable-alias 'rcirc-sentinel-hooks
+  'rcirc-sentinel-functions "24.3")
+(defvar rcirc-sentinel-functions nil
   "Hook functions called when the process sentinel is called.
 Functions are called with PROCESS and SENTINEL arguments.")
 
@@ -664,7 +669,7 @@ Functions are called with PROCESS and SENTINEL arguments.")
 			       sentinel
 			       (process-status process)) (not rcirc-target))
 	  (rcirc-disconnect-buffer)))
-      (run-hook-with-args 'rcirc-sentinel-hooks process sentinel))))
+      (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
 
 (defun rcirc-disconnect-buffer (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -684,7 +689,9 @@ Functions are called with PROCESS and SENTINEL arguments.")
           (process-list))
     ps))
 
-(defvar rcirc-receive-message-hooks nil
+(define-obsolete-variable-alias 'rcirc-receive-message-hooks
+  'rcirc-receive-message-functions "24.3")
+(defvar rcirc-receive-message-functions nil
   "Hook functions run when a message is received from server.
 Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-filter (process output)
@@ -738,7 +745,7 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
         (if (not (fboundp handler))
             (rcirc-handler-generic process cmd sender args text)
           (funcall handler process sender args text))
-        (run-hook-with-args 'rcirc-receive-message-hooks
+        (run-hook-with-args 'rcirc-receive-message-functions
                             process cmd sender args text)))
     (message "UNHANDLED: %s" text)))
 
@@ -802,26 +809,36 @@ With no argument or nil as argument, use the current buffer."
 (defvar rcirc-max-message-length 420
   "Messages longer than this value will be split.")
 
+(defun rcirc-split-message (message)
+  "Split MESSAGE into chunks within `rcirc-max-message-length'."
+  ;; `rcirc-encode-coding-system' can have buffer-local value.
+  (let ((encoding rcirc-encode-coding-system))
+    (with-temp-buffer
+      (insert message)
+      (goto-char (point-min))
+      (let (result)
+	(while (not (eobp))
+	  (goto-char (or (byte-to-position rcirc-max-message-length)
+			 (point-max)))
+	  ;; max message length is 512 including CRLF
+	  (while (and (not (bobp))
+		      (> (length (encode-coding-region
+				  (point-min) (point) encoding t))
+			 rcirc-max-message-length))
+	    (forward-char -1))
+	  (push (delete-and-extract-region (point-min) (point)) result))
+	(nreverse result)))))
+
 (defun rcirc-send-message (process target message &optional noticep silent)
   "Send TARGET associated with PROCESS a privmsg with text MESSAGE.
 If NOTICEP is non-nil, send a notice instead of privmsg.
 If SILENT is non-nil, do not print the message in any irc buffer."
-  ;; max message length is 512 including CRLF
-  (let* ((response (if noticep "NOTICE" "PRIVMSG"))
-         (oversize (> (length message) rcirc-max-message-length))
-         (text (if oversize
-                   (substring message 0 rcirc-max-message-length)
-                 message))
-         (text (if (string= text "")
-                   " "
-                 text))
-         (more (if oversize
-                   (substring message rcirc-max-message-length))))
+  (let ((response (if noticep "NOTICE" "PRIVMSG")))
     (rcirc-get-buffer-create process target)
-    (rcirc-send-string process (concat response " " target " :" text))
-    (unless silent
-      (rcirc-print process (rcirc-nick process) response target text))
-    (when more (rcirc-send-message process target more noticep))))
+    (dolist (msg (rcirc-split-message message))
+      (rcirc-send-string process (concat response " " target " :" msg))
+      (unless silent
+	(rcirc-print process (rcirc-nick process) response target msg)))))
 
 (defvar rcirc-input-ring nil)
 (defvar rcirc-input-ring-index 0)
@@ -1314,7 +1331,7 @@ if ARG is omitted or nil."
   "Return a buffer for PROCESS, either the one selected or the process buffer."
   (if rcirc-always-use-server-buffer-flag
       (process-buffer process)
-    (let ((buffer (window-buffer (selected-window))))
+    (let ((buffer (window-buffer)))
       (if (and buffer
 	       (with-current-buffer buffer
 		 (and (eq major-mode 'rcirc-mode)
@@ -1599,7 +1616,7 @@ record activity."
 	  (buffer-disable-undo)
 	  (buffer-enable-undo))
 
-	;; record modeline activity
+	;; record mode line activity
 	(when (and activity
 		   (not rcirc-ignore-buffer-activity-flag)
 		   (not (and rcirc-dim-nicks sender
@@ -1615,7 +1632,7 @@ record activity."
 	  (rcirc-log process sender response target text))
 
 	(sit-for 0)			; displayed text before hook
-	(run-hook-with-args 'rcirc-print-hooks
+	(run-hook-with-args 'rcirc-print-functions
 			    process sender response target text)))))
 
 (defun rcirc-generate-log-filename (process target)
@@ -1917,7 +1934,9 @@ With prefix ARG, go to the next low priority buffer with activity."
 			  (key-description (this-command-keys))
 			  " for low priority activity."))))))))
 
-(defvar rcirc-activity-hooks nil
+(define-obsolete-variable-alias 'rcirc-activity-hooks
+  'rcirc-activity-functions "24.3")
+(defvar rcirc-activity-functions nil
   "Hook to be run when there is channel activity.
 
 Functions are called with a single argument, the buffer with the
@@ -1940,7 +1959,7 @@ activity.  Only run if the buffer is not visible and
 	(unless (and (equal rcirc-activity old-activity)
 		     (member type old-types))
 	  (rcirc-update-activity-string)))))
-  (run-hook-with-args 'rcirc-activity-hooks buffer))
+  (run-hook-with-args 'rcirc-activity-functions buffer))
 
 (defun rcirc-clear-activity (buffer)
   "Clear the BUFFER activity."
@@ -2003,7 +2022,7 @@ activity.  Only run if the buffer is not visible and
 	     buffers ","))
 
 (defun rcirc-short-buffer-name (buffer)
-  "Return a short name for BUFFER to use in the modeline indicator."
+  "Return a short name for BUFFER to use in the mode line indicator."
   (with-current-buffer buffer
     (or rcirc-short-buffer-name (buffer-name))))
 
@@ -2374,12 +2393,25 @@ keywords when no KEYWORD is given."
    "\\)")
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
+;; cf cl-remove-if-not
+(defun rcirc-condition-filter (condp lst)
+  "Remove all items not satisfying condition CONDP in list LST.
+CONDP is a function that takes a list element as argument and returns
+non-nil if that element should be included.  Returns a new list."
+  (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+
 (defun rcirc-browse-url (&optional arg)
-  "Prompt for URL to browse based on URLs in buffer."
+  "Prompt for URL to browse based on URLs in buffer before point.
+
+If ARG is given, opens the URL in a new browser window."
   (interactive "P")
-  (let ((completions (mapcar (lambda (x) (cons x nil)) rcirc-urls))
-        (initial-input (car rcirc-urls))
-        (history (cdr rcirc-urls)))
+  (let* ((point (point))
+         (filtered (rcirc-condition-filter
+                    (lambda (x) (>= point (cdr x)))
+                    rcirc-urls))
+         (completions (mapcar (lambda (x) (car x)) filtered))
+         (initial-input (caar filtered))
+         (history (mapcar (lambda (x) (car x)) (cdr filtered))))
     (browse-url (completing-read "rcirc browse-url: "
                                  completions nil nil initial-input 'history)
                 arg)))
@@ -2423,17 +2455,19 @@ keywords when no KEYWORD is given."
 (defun rcirc-markup-urls (sender response)
   (while (and rcirc-url-regexp ;; nil means disable URL catching
               (re-search-forward rcirc-url-regexp nil t))
-    (let ((start (match-beginning 0))
-	  (end (match-end 0))
-	  (url (match-string-no-properties 0)))
+    (let* ((start (match-beginning 0))
+           (end (match-end 0))
+           (url (match-string-no-properties 0))
+           (link-text (buffer-substring-no-properties start end)))
       (make-button start end
 		   'face 'rcirc-url
 		   'follow-link t
 		   'rcirc-url url
 		   'action (lambda (button)
 			     (browse-url (button-get button 'rcirc-url))))
-      ;; record the url
-      (push url rcirc-urls))))
+      ;; record the url if it is not already the latest stored url
+      (when (not (string= link-text (caar rcirc-urls)))
+        (push (cons link-text start) rcirc-urls)))))
 
 (defun rcirc-markup-keywords (sender response)
   (when (and (string= response "PRIVMSG")
@@ -2886,67 +2920,65 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   :group 'faces)
 
 (defface rcirc-my-nick			; font-lock-function-name-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
-    (t (:inverse-video t :weight bold)))
-  "The face used to highlight my messages."
+  '((((class color) (min-colors 88) (background light)) :foreground "Blue1")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 16) (background light)) :foreground "Blue")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 8)) :foreground "blue" :weight bold)
+    (t :inverse-video t :weight bold))
+  "Rcirc face for my messages."
   :group 'rcirc-faces)
 
 (defface rcirc-other-nick	     ; font-lock-variable-name-face
   '((((class grayscale) (background light))
-     (:foreground "Gray90" :weight bold :slant italic))
+     :foreground "Gray90" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "DimGray" :weight bold :slant italic))
-    (((class color) (min-colors 88) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "LightGoldenrod"))
-    (((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
-    (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
-    (t (:weight bold :slant italic)))
-  "The face used to highlight other messages."
+     :foreground "DimGray" :weight bold :slant italic)
+    (((class color) (min-colors 88) (background light)) :foreground "DarkGoldenrod")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightGoldenrod")
+    (((class color) (min-colors 16) (background light)) :foreground "DarkGoldenrod")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightGoldenrod")
+    (((class color) (min-colors 8)) :foreground "yellow" :weight light)
+    (t :weight bold :slant italic))
+  "Rcirc face for other users' messages."
   :group 'rcirc-faces)
 
 (defface rcirc-bright-nick
   '((((class grayscale) (background light))
-     (:foreground "LightGray" :weight bold :underline t))
+     :foreground "LightGray" :weight bold :underline t)
     (((class grayscale) (background dark))
-     (:foreground "Gray50" :weight bold :underline t))
-    (((class color) (min-colors 88) (background light)) (:foreground "CadetBlue"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Aquamarine"))
-    (((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
-    (((class color) (min-colors 8)) (:foreground "magenta"))
-    (t (:weight bold :underline t)))
-  "Face used for nicks matched by `rcirc-bright-nicks'."
+     :foreground "Gray50" :weight bold :underline t)
+    (((class color) (min-colors 88) (background light)) :foreground "CadetBlue")
+    (((class color) (min-colors 88) (background dark))  :foreground "Aquamarine")
+    (((class color) (min-colors 16) (background light)) :foreground "CadetBlue")
+    (((class color) (min-colors 16) (background dark))  :foreground "Aquamarine")
+    (((class color) (min-colors 8)) :foreground "magenta")
+    (t :weight bold :underline t))
+  "Rcirc face for nicks matched by `rcirc-bright-nicks'."
   :group 'rcirc-faces)
 
 (defface rcirc-dim-nick
   '((t :inherit default))
-  "Face used for nicks in `rcirc-dim-nicks'."
+  "Rcirc face for nicks in `rcirc-dim-nicks'."
   :group 'rcirc-faces)
 
 (defface rcirc-server			; font-lock-comment-face
   '((((class grayscale) (background light))
-     (:foreground "DimGray" :weight bold :slant italic))
+     :foreground "DimGray" :weight bold :slant italic)
     (((class grayscale) (background dark))
-     (:foreground "LightGray" :weight bold :slant italic))
+     :foreground "LightGray" :weight bold :slant italic)
     (((class color) (min-colors 88) (background light))
-     (:foreground "Firebrick"))
+     :foreground "Firebrick")
     (((class color) (min-colors 88) (background dark))
-     (:foreground "chocolate1"))
+     :foreground "chocolate1")
     (((class color) (min-colors 16) (background light))
-     (:foreground "red"))
+     :foreground "red")
     (((class color) (min-colors 16) (background dark))
-     (:foreground "red1"))
-    (((class color) (min-colors 8) (background light))
-     )
-    (((class color) (min-colors 8) (background dark))
-     )
-    (t (:weight bold :slant italic)))
-  "The face used to highlight server messages."
+     :foreground "red1")
+    (((class color) (min-colors 8) (background light)))
+    (((class color) (min-colors 8) (background dark)))
+    (t :weight bold :slant italic))
+  "Rcirc face for server messages."
   :group 'rcirc-faces)
 
 (defface rcirc-server-prefix	 ; font-lock-comment-delimiter-face
@@ -2957,57 +2989,53 @@ Passwords are stored in `rcirc-authinfo' (which see)."
      :foreground "red")
     (((class color) (min-colors 8) (background dark))
      :foreground "red1"))
-  "The face used to highlight server prefixes."
+  "Rcirc face for server prefixes."
   :group 'rcirc-faces)
 
 (defface rcirc-timestamp
-  '((t (:inherit default)))
-  "The face used to highlight timestamps."
+  '((t :inherit default))
+  "Rcirc face for timestamps."
   :group 'rcirc-faces)
 
 (defface rcirc-nick-in-message		; font-lock-keyword-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan1"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
-    (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
-    (t (:weight bold)))
-  "The face used to highlight instances of your nick within messages."
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
+    (((class grayscale) (background dark)) :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Purple")
+    (((class color) (min-colors 88) (background dark))  :foreground "Cyan1")
+    (((class color) (min-colors 16) (background light)) :foreground "Purple")
+    (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
+    (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
+    (t :weight bold))
+  "Rcirc face for instances of your nick within messages."
   :group 'rcirc-faces)
 
-(defface rcirc-nick-in-message-full-line
-  '((t (:bold t)))
-  "The face used emphasize the entire message when your nick is mentioned."
+(defface rcirc-nick-in-message-full-line '((t :weight bold))
+  "Rcirc face for emphasizing the entire message when your nick is mentioned."
   :group 'rcirc-faces)
 
 (defface rcirc-prompt			; comint-highlight-prompt
-  '((((min-colors 88) (background dark)) (:foreground "cyan1"))
-    (((background dark)) (:foreground "cyan"))
-    (t (:foreground "dark blue")))
-  "The face used to highlight prompts."
+  '((((min-colors 88) (background dark)) :foreground "cyan1")
+    (((background dark)) :foreground "cyan")
+    (t :foreground "dark blue"))
+  "Rcirc face for prompts."
   :group 'rcirc-faces)
 
 (defface rcirc-track-nick
-  '((((type tty)) (:inherit default))
-    (t (:inverse-video t)))
-  "The face used in the mode-line when your nick is mentioned."
+  '((((type tty)) :inherit default)
+    (t :inverse-video t))
+  "Rcirc face used in the mode-line when your nick is mentioned."
   :group 'rcirc-faces)
 
-(defface rcirc-track-keyword
-  '((t (:bold t )))
-  "The face used in the mode-line when keywords are mentioned."
+(defface rcirc-track-keyword '((t :weight bold))
+  "Rcirc face used in the mode-line when keywords are mentioned."
   :group 'rcirc-faces)
 
-(defface rcirc-url
-  '((t (:bold t)))
-  "The face used to highlight urls."
+(defface rcirc-url '((t :weight bold))
+  "Rcirc face used to highlight urls."
   :group 'rcirc-faces)
 
-(defface rcirc-keyword
-  '((t (:inherit highlight)))
-  "The face used to highlight keywords."
+(defface rcirc-keyword '((t :inherit highlight))
+  "Rcirc face used to highlight keywords."
   :group 'rcirc-faces)
 
 

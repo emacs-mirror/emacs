@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@ void dos_set_window_size (int *, int *);
 
 int getdefdir (int, char*);
 void unixtodos_filename (char *);
-void dostounix_filename (char *);
+void dostounix_filename (char *, int);
 char *rootrelativepath (char *);
 void init_environment (int, char **, int);
 void internal_terminal_init (void);
@@ -74,8 +74,6 @@ struct window;
 /* Defined in xfns.c; emulated on msdos.c */
 
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-extern int x_pixel_width (struct frame *);
-extern int x_pixel_height (struct frame *);
 
 #define XFreeGC (void)
 #define x_destroy_bitmap(p1,p2)

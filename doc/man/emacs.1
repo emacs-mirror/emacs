@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2007 April 13" "GNU Emacs 24.1.50"
+.TH EMACS 1 "2007 April 13" "GNU Emacs 24.3.50"
 .
 .
 .SH NAME
@@ -79,11 +79,21 @@ Go to the specified
 and
 .IR column .
 .TP
+.BI \-\-chdir " directory"
+Change to
+.IR directory .
+.TP
 .BR \-q ", " \-\-no\-init\-file
 Do not load an init file.
 .TP
+.BR \-nl ", " \-\-no\-shared\-memory
+Do not use shared memory.
+.TP
 .B \-\-no\-site\-file
 Do not load the site-wide startup file.
+.TP
+.BR \-nsl ", " \-\-no\-site\-lisp
+Do not add site-lisp directories to load-path.
 .TP
 .B \-\-no\-desktop
 Do not load a saved desktop.
@@ -325,6 +335,9 @@ in iconified state.
 .BR \-nbc ", " \-\-no\-blinking\-cursor
 Disable blinking cursor.
 .TP
+.BI \-\-parent-id " xid"
+Set parent window.
+.TP
 .BR \-nw ", " \-\-no\-window\-system
 Tell
 .I Emacs
@@ -432,7 +445,7 @@ Gives frames menu bars if
 .IR on ;
 don't have menu bars if
 .IR off .
-See the Emacs manual, sections "Lucid Resources" and "LessTif
+See the Emacs manual, sections "Lucid Resources" and "Motif
 Resources", for how to control the appearance of the menu bar
 if you have one.
 .TP
@@ -479,7 +492,7 @@ The scroll bar width in pixels, equivalent to the frame parameter
 Font name for pop-up menu items, in non-toolkit versions of
 .IR Emacs .
 (For toolkit versions, see the Emacs manual, sections
-"Lucid Resources" and "LessTif Resources".)
+"Lucid Resources" and "Motif Resources".)
 .TP
 .BR selectionTimeout " (class " SelectionTimeout )
 Number of milliseconds to wait for a selection reply.
@@ -634,7 +647,7 @@ Everyone will be free to use, copy, study and change the GNU system.
 .SH AUTHORS
 .I Emacs
 was written by Richard Stallman and the Free Software Foundation.
-For detailed credits and acknowledgements, see the GNU Emacs manual.
+For detailed credits and acknowledgments, see the GNU Emacs manual.
 .
 .
 .
@@ -642,7 +655,7 @@ For detailed credits and acknowledgements, see the GNU Emacs manual.
 Copyright
 .if t \(co
 .if n (C)
-1995, 1999-2012 Free Software Foundation, Inc.
+1995, 1999-2013 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
 @chapter Indentation
@@ -134,7 +134,7 @@ leftward).
 
 This command can be used to remove all indentation from the lines in
 the region, by invoking it with a large negative argument,
-e.g. @kbd{C-u -1000 C-x @key{TAB}}.
+e.g., @kbd{C-u -1000 C-x @key{TAB}}.
 @end table
 
 @node Tab Stops

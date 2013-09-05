@@ -1,7 +1,8 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993-1994, 1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1999, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
@@ -89,8 +90,6 @@
 ;; be used in place of (eq major-mode 'text-mode).
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;;; PRIVATE: defsubst must be defined before they are first used
 
@@ -183,22 +182,21 @@ See Info node `(elisp)Derived Modes' for more details."
 
     ;; Process the keyword args.
     (while (keywordp (car body))
-      (case (pop body)
-	(:group (setq group (pop body)))
-	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
-	(t (pop body))))
+      (pcase (pop body)
+	(`:group (setq group (pop body)))
+	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
 		     parent child docstring syntax abbrev))
 
     `(progn
-       (unless (get ',hook 'variable-documentation)
-	 (put ',hook 'variable-documentation
-	      (purecopy ,(format "Hook run when entering %s mode.
+       (defvar ,hook nil
+         ,(format "Hook run after entering %s mode.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-		       name))))
+                  name))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
        (with-no-warnings (defvar ,map (make-sparse-keymap)))
@@ -278,10 +276,10 @@ A mode's class is the first ancestor which is NOT a derived mode.
 Use the `derived-mode-parent' property of the symbol to trace backwards.
 Since major-modes might all derive from `fundamental-mode', this function
 is not very useful."
+  (declare (obsolete derived-mode-p "22.1"))
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
-(make-obsolete 'derived-mode-class 'derived-mode-p "22.1")
 
 
 ;;; PRIVATE
@@ -297,16 +295,32 @@ is not very useful."
       ;; Use a default docstring.
       (setq docstring
 	    (if (null parent)
-		(format "Major-mode.
-Uses keymap `%s', abbrev table `%s' and syntax-table `%s'." map abbrev syntax)
+		;; FIXME filling.
+		(format "Major-mode.\nUses keymap `%s'%s%s." map
+			(if abbrev (format "%s abbrev table `%s'"
+					   (if syntax "," " and") abbrev) "")
+			(if syntax (format " and syntax-table `%s'" syntax) ""))
 	      (format "Major mode derived from `%s' by `define-derived-mode'.
-It inherits all of the parent's attributes, but has its own keymap,
-abbrev table and syntax table:
+It inherits all of the parent's attributes, but has its own keymap%s:
 
-  `%s', `%s' and `%s'
+  `%s'%s
 
-which more-or-less shadow %s's corresponding tables."
-		      parent map abbrev syntax parent))))
+which more-or-less shadow%s %s's corresponding table%s."
+		      parent
+		      (cond ((and abbrev syntax)
+			     ",\nabbrev table and syntax table")
+			    (abbrev "\nand abbrev table")
+			    (syntax "\nand syntax table")
+			    (t ""))
+		      map
+		      (cond ((and abbrev syntax)
+			     (format ", `%s' and `%s'" abbrev syntax))
+			    ((or abbrev syntax)
+			     (format " and `%s'" (or abbrev syntax)))
+			    (t ""))
+		      (if (or abbrev syntax) "" "s")
+		      parent
+		      (if (or abbrev syntax) "s" "")))))
 
     (unless (string-match (regexp-quote (symbol-name hook)) docstring)
       ;; Make sure the docstring mentions the mode's hook.

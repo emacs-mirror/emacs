@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines
 ;;
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -94,7 +94,7 @@
 
 ;; Installation:
 ;;
-;; Put the following line in your `.emacs' file:
+;; Put the following line in your init file:
 ;;
 ;;     (windmove-default-keybindings)         ; shifted arrow keys
 ;;
@@ -118,7 +118,7 @@
 ;;     (setq windmove-window-distance-delta 2)
 ;;
 
-;; Acknowledgements:
+;; Acknowledgments:
 ;;
 ;; Special thanks to Julian Assange (proff@iq.org), whose
 ;; change-windows-intuitively.el predates Windmove, and provided the

@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker.
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -421,7 +421,7 @@ headline after it has been retrieved for the first time."
   "Name of the newsticker cache file."
   :type 'string
   :group 'newsticker-miscellaneous)
-(make-obsolete 'newsticker-cache-filename 'newsticker-dir "23.1")
+(make-obsolete-variable 'newsticker-cache-filename 'newsticker-dir "23.1")
 
 (defcustom newsticker-dir
   (locate-user-emacs-file "newsticker/" ".newsticker/")

@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows operating systems
-rem   Copyright (C) 1999-2012  Free Software Foundation, Inc.
+rem   Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -23,7 +23,7 @@ rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + MS Windows 95, NT or later
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with GNU make 3.75
-rem     or later) and the Mingw32 and W32 API headers and libraries.
+rem     or later) and the Mingw32 and Windows API headers and libraries.
 rem   + Visual Studio 2005 is not supported at this time.
 rem
 rem For reference, here is a list of which builds of GNU make are known to
@@ -58,7 +58,20 @@ rem    	look for "cygpath" near line 85 of gmake.defs.
 rem [7] not recommended; please report if you try this combination.
 rem [8] tested only on Windows XP.
 rem
+echo ****************************************************************
+echo *** THIS METHOD OF BUILDING EMACS IS NO LONGER SUPPORTED.     **
+echo *** INSTEAD, FOLLOW THE INSTRUCTIONS FROM INSTALL.            **
+echo ****************************************************************
+:confirm_continue
+set /p answer=Continue running this script at your own risks ? (Y/N)
+if x%answer% == xy (goto confirm_continue_y)
+if x%answer% == xY (goto confirm_continue_y)
+if x%answer% == xn (goto end)
+if x%answer% == xN (goto end)
+echo Please answer by Y or N
+goto confirm_continue
 
+:confirm_continue_y
 if exist config.log del config.log
 
 rem ----------------------------------------------------------------------
@@ -145,7 +158,7 @@ echo.   --with-gcc              use GCC to compile Emacs
 echo.   --with-msvc             use MSVC to compile Emacs
 echo.   --no-debug              exclude debug info from executables
 echo.   --no-opt                disable optimization
-echo.   --enable-checking       enable checks and assertions
+echo.   --enable-checking       enable additional run-time checks
 echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
@@ -174,6 +187,11 @@ echo. Note that this capability of processing parameters that include the =
 echo. character depends on command extensions.  This batch file attempts to
 echo. enable command extensions.  If command extensions cannot be enabled, a
 echo. warning message will be displayed.
+echo.
+echo. IMPORTANT: This method of building Emacs for MS-Windows is deprecated,
+echo. and could be removed in a future version of Emacs.  The preferred way
+echo  to build Emacs for MS-Windows from now on is using the MSYS environment
+echo. and MinGW development tools.  Please see nt/INSTALL for details.
 goto end
 
 rem ----------------------------------------------------------------------
@@ -426,10 +444,10 @@ rem   problem).  The gcc/mingw32 2.95.2 headers are okay, as are distros
 rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
 rem   Beginning with Emacs 23, we need usp10.h.
 rem
-echo Checking whether W32 API headers are too old...
+echo Checking whether Windows API headers are too old...
 echo #include "windows.h" >junk.c
 echo #include "usp10.h" >>junk.c
-echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
+echo void test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
 set cf=%usercflags%
@@ -469,7 +487,7 @@ goto end
 echo.
 echo Configure failed.
 echo To configure Emacs for Windows, you need to have either
-echo gcc-2.95 or later with Mingw32 and the W32 API headers,
+echo gcc-2.95 or later with Mingw32 and the Windows API headers,
 echo or MSVC 2.x or later.
 del junk.c
 goto end
@@ -627,7 +645,10 @@ rm -f junk.c junk.obj
 if (%gifsupport%) == (N) goto gifDone
 
 echo Checking for libgif...
-echo #include "gif_lib.h" >junk.c
+rem giflib-5.0.0 needs size_t defined before gif_lib.h is included
+rem redirection characters need to be protected from the shell
+echo #include ^<stddef.h^> >junk.c
+echo #include "gif_lib.h" >>junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
 echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
@@ -769,7 +790,6 @@ if not "(%mf%)" == "()" >>config.settings echo MCPU_FLAG=%mf%
 if not "(%dbginfo%)" == "()" >>config.settings echo DEBUG_INFO=%dbginfo%
 if (%nodebug%) == (Y) >>config.settings echo NODEBUG=1
 if (%noopt%) == (Y) >>config.settings echo NOOPT=1
-if (%enablechecking%) == (Y) >>config.settings echo ENABLECHECKS=1
 if (%profile%) == (Y) >>config.settings echo PROFILE=1
 if (%nocygwin%) == (Y) >>config.settings echo NOCYGWIN=1
 if not "(%prefix%)" == "()" >>config.settings echo INSTALL_DIR=%prefix%
@@ -794,6 +814,7 @@ rem   processing of compiler options in w32.c:get_emacs_configuration_options
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%" >>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%" >>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
+if (%enablechecking%) == (Y) echo #define ENABLE_CHECKING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
 if not "(%HAVE_LIBXML2%)" == "()" echo #define HAVE_LIBXML2 1 >>config.tmp
@@ -949,4 +970,6 @@ set HAVE_PNG=
 set HAVE_TIFF=
 set HAVE_XPM=
 set dbginfo=
+endlocal
+set use_extensions=
 

@@ -1,6 +1,6 @@
 ;;; savehist.el --- Save minibuffer history
 
-;; Copyright (C) 1997, 2005-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005-2013 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Maintainer: FSF
@@ -209,6 +209,7 @@ histories, which is probably undesirable."
 If `savehist-file' is in the old format that doesn't record
 the value of `savehist-minibuffer-history-variables', that
 value is deducted from the contents of the file."
+  (declare (obsolete savehist-mode "22.1"))
   (savehist-mode 1)
   ;; Old versions of savehist distributed with XEmacs didn't save
   ;; savehist-minibuffer-history-variables.  If that variable is nil
@@ -225,7 +226,6 @@ value is deducted from the contents of the file."
 		;; Collect VAR, i.e. (nth form 1).
                 (push (nth 1 form) vars))
               vars)))))
-(make-obsolete 'savehist-load 'savehist-mode "22.1")
 
 (defun savehist-install ()
   "Hook savehist into Emacs.
@@ -278,6 +278,13 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	  (print-level nil)
 	  (print-readably t)
 	  (print-quoted t))
+      ;; During the 24.3 development, read-passwd had a bug which resulted in
+      ;; the passwords being saved by savehist.  Trim them, retroactively.
+      ;; This code can be removed after the 24.3 release.
+      (dolist (sym savehist-minibuffer-history-variables)
+        (if (and (symbolp sym) (equal (symbol-name sym) "forget-history"))
+            (setq savehist-minibuffer-history-variables
+                  (delq sym savehist-minibuffer-history-variables))))
       ;; Save the minibuffer histories, along with the value of
       ;; savehist-minibuffer-history-variables itself.
       (when savehist-save-minibuffer-history

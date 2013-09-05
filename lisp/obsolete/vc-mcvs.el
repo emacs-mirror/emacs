@@ -1,6 +1,6 @@
 ;;; vc-mcvs.el --- VC backend for the Meta-CVS version-control system
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  None
@@ -189,6 +189,8 @@ This is only meaningful if you don't use the implicit checkout model
 ;;;
 ;;; State-changing functions
 ;;;
+(autoload 'vc-checkout "vc")
+(autoload 'vc-switches "vc")
 
 (defun vc-mcvs-register (files &optional rev comment)
   "Register FILES into the Meta-CVS version-control system.
@@ -329,7 +331,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	   (if vc-mcvs-use-edit
 	       (vc-mcvs-command nil 0 file "edit")
 	     (set-file-modes file (logior (file-modes file) 128))
-	     (if (equal file buffer-file-name) (toggle-read-only -1))))
+	     (if (equal file buffer-file-name) (read-only-mode -1))))
     ;; Check out a particular revision (or recreate the file).
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-mcvs-command nil 0 file
@@ -344,6 +346,8 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 
 (defun vc-mcvs-rename-file (old new)
   (vc-mcvs-command nil 0 new "move" (file-relative-name old)))
+
+(autoload 'vc-default-revert "vc")
 
 (defun vc-mcvs-revert (file &optional contents-done)
   "Revert FILE to the working revision it was based on."
@@ -477,6 +481,10 @@ workspace is immediately moved to that new branch)."
       (vc-mcvs-command nil 0 dir "tag" "-c" name)
     (vc-mcvs-command nil 0 dir "branch" name)
     (vc-mcvs-command nil 0 dir "switch" name)))
+
+;; vc-mcvs-command calls the autoloaded vc-do-command from vc-dispatcher.
+(declare-function vc-resynch-buffer "vc-dispatcher"
+		  (file &optional keep noquery reset-vc-info))
 
 (defun vc-mcvs-retrieve-tag (dir name update)
   "Retrieve a tag at and below DIR.

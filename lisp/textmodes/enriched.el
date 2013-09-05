@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format
 
-;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -437,7 +437,7 @@ Return value is \(begin end name positive-p), or nil if none was found."
 	      (progn (goto-char (match-beginning 0))
 		     (not (looking-at enriched-annotation-regexp))))
     (forward-char 1)
-    (if (= ?< (char-after (point)))
+    (if (eq ?< (char-after (point)))
 	(delete-char 1)
       ;; A single < that does not start an annotation is an error,
       ;; which we note and then ignore.

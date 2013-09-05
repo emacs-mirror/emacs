@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -101,66 +101,13 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 			    (propertize (string 8206) 'invisible t)
 			  ""))
 
-(defun gnus-summary-line-format-spec ()
-  (insert gnus-tmp-unread gnus-tmp-replied
-	  gnus-tmp-score-char gnus-tmp-indentation)
-  (gnus-put-text-property
-   (point)
-   (progn
-     (insert
-      (format "%c%4s: %-23s%c" gnus-tmp-opening-bracket gnus-tmp-lines
-	      (let ((val
-		     (inline
-		       (gnus-summary-from-or-to-or-newsgroups
-			gnus-tmp-header gnus-tmp-from))))
-		(if (> (length val) 23)
-		    (if (gnus-lrm-string-p val)
-			(concat (substring val 0 23) gnus-lrm-string)
-		      (substring val 0 23))
-		  val))
-	      gnus-tmp-closing-bracket))
-     (point))
-   gnus-mouse-face-prop gnus-mouse-face)
-  (insert " " gnus-tmp-subject-or-nil "\n"))
-
-(defvar gnus-summary-line-format-spec
-  (gnus-byte-code 'gnus-summary-line-format-spec))
-
-(defun gnus-summary-dummy-line-format-spec ()
-  (insert "*  ")
-  (gnus-put-text-property
-   (point)
-   (progn
-     (insert ":				 :")
-     (point))
-   gnus-mouse-face-prop gnus-mouse-face)
-  (insert " " gnus-tmp-subject "\n"))
-
-(defvar gnus-summary-dummy-line-format-spec
-  (gnus-byte-code 'gnus-summary-dummy-line-format-spec))
-
-(defun gnus-group-line-format-spec ()
-  (insert gnus-tmp-marked-mark gnus-tmp-subscribed
-	  gnus-tmp-process-marked
-	  gnus-group-indentation
-	  (format "%5s: " gnus-tmp-number-of-unread))
-  (gnus-put-text-property
-   (point)
-   (progn
-     (insert gnus-tmp-group "\n")
-     (1- (point)))
-   gnus-mouse-face-prop gnus-mouse-face))
-(defvar gnus-group-line-format-spec
-  (gnus-byte-code 'gnus-group-line-format-spec))
+(defvar gnus-summary-line-format-spec nil)
+(defvar gnus-summary-dummy-line-format-spec nil)
+(defvar gnus-group-line-format-spec nil)
 
 (defvar gnus-format-specs
   `((version . ,emacs-version)
-    (gnus-version . ,(gnus-continuum-version))
-    (group "%M\%S\%p\%P\%5y: %(%g%)\n" ,gnus-group-line-format-spec)
-    (summary-dummy "*  %(:                          :%) %S\n"
-		   ,gnus-summary-dummy-line-format-spec)
-    (summary "%U%R%z%I%(%[%4L: %-23,23f%]%) %s\n"
-	     ,gnus-summary-line-format-spec))
+    (gnus-version . ,(gnus-continuum-version)))
   "Alist of format specs.")
 
 (defvar gnus-default-format-specs gnus-format-specs)
@@ -214,15 +161,6 @@ Return a list of updated types."
 	    (not (equal emacs-version
 			(cdr (assq 'version gnus-format-specs)))))
     (setq gnus-format-specs nil))
-  ;; Flush the group format spec cache if there's the grouplens stuff
-  ;; or it doesn't support decoded group names.
-  (when (memq 'group types)
-    (let* ((spec (assq 'group gnus-format-specs))
-	   (sspec (gnus-prin1-to-string (nth 2 spec))))
-      (when (or (string-match " gnus-tmp-grouplens[ )]" sspec)
-		(not (string-match " gnus-tmp-decoded-group[ )]" sspec)))
-	(setq gnus-format-specs (delq spec gnus-format-specs)))))
-
   ;; Go through all the formats and see whether they need updating.
   (let (new-format entry type val updated)
     (while (setq type (pop types))
@@ -327,7 +265,14 @@ Return a list of updated types."
 (defun gnus-face-face-function (form type)
   `(gnus-add-text-properties
     (point) (progn ,@form (point))
-    '(gnus-face t face ,(symbol-value (intern (format "gnus-face-%d" type))))))
+    (cons 'face
+	  (cons
+	   ;; Delay consing the value of the `face' property until
+	   ;; `gnus-add-text-properties' runs, since it will be modified
+	   ;; by `gnus-put-text-property-excluding-characters-with-faces'.
+	   (list ',(symbol-value (intern (format "gnus-face-%d" type))) 'default)
+	   ;; Redundant now, but still convenient.
+	   '(gnus-face t)))))
 
 (defun gnus-balloon-face-function (form type)
   `(gnus-put-text-property
@@ -473,7 +418,7 @@ characters when given a pad value."
   ;; them will have the balloon-help text property.
   (let ((case-fold-search nil))
     (if (string-match
-	 "\\`\\(.*\\)%[0-9]?[{(«]\\(.*\\)%[0-9]?[»})]\\(.*\n?\\)\\'\\|%[-0-9]*=\\|%[-0-9]*\\*"
+	 "\\`\\(.*\\)%[0-9]?[{(Â«]\\(.*\\)%[0-9]?[Â»})]\\(.*\n?\\)\\'\\|%[-0-9]*=\\|%[-0-9]*\\*"
 	 format)
 	(gnus-parse-complex-format format spec-alist)
       ;; This is a simple format.
@@ -490,13 +435,13 @@ characters when given a pad value."
       (goto-char (point-min))
       (insert "(\"")
       ;; Convert all font specs into font spec lists.
-      (while (re-search-forward "%\\([0-9]+\\)?\\([«»{}()]\\)" nil t)
+      (while (re-search-forward "%\\([0-9]+\\)?\\([Â«Â»{}()]\\)" nil t)
 	(let ((number (if (match-beginning 1)
 			  (match-string 1) "0"))
 	      (delim (aref (match-string 2) 0)))
 	  (if (or (= delim ?\()
 		  (= delim ?\{)
-		  (= delim ?\«))
+		  (= delim 171)) ; Â«
 	      (replace-match (concat "\"("
 				     (cond ((= delim ?\() "mouse")
 					   ((= delim ?\{) "face")
@@ -778,36 +723,6 @@ If PROPS, insert the result."
 	(gnus-add-text-properties (point) (progn (eval form) (point)) props)
       (eval form))))
 
-(defun gnus-compile ()
-  "Byte-compile the user-defined format specs."
-  (interactive)
-  (require 'bytecomp)
-  (let ((entries gnus-format-specs)
-	(byte-compile-warnings '(unresolved callargs redefine))
-	entry gnus-tmp-func)
-    (save-excursion
-      (gnus-message 7 "Compiling format specs...")
-
-      (while entries
-	(setq entry (pop entries))
-	(if (memq (car entry) '(gnus-version version))
-	    (setq gnus-format-specs (delq entry gnus-format-specs))
-	  (let ((form (caddr entry)))
-	    (when (and (listp form)
-		       ;; Under GNU Emacs, it's (byte-code ...)
-		       (not (eq 'byte-code (car form)))
-		       ;; Under XEmacs, it's (funcall #<compiled-function ...>)
-		       (not (and (eq 'funcall (car form))
-				 (byte-code-function-p (cadr form)))))
-	      (defalias 'gnus-tmp-func `(lambda () ,form))
-	      (byte-compile 'gnus-tmp-func)
-	      (setcar (cddr entry) (gnus-byte-code 'gnus-tmp-func))))))
-
-      (push (cons 'version emacs-version) gnus-format-specs)
-      ;; Mark the .newsrc.eld file as "dirty".
-      (gnus-dribble-touch)
-      (gnus-message 7 "Compiling user specs...done"))))
-
 (defun gnus-set-format (type &optional insertable)
   (set (intern (format "gnus-%s-line-format-spec" type))
        (gnus-parse-format
@@ -818,7 +733,7 @@ If PROPS, insert the result."
 (provide 'gnus-spec)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-spec.el ends here

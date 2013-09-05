@@ -1,6 +1,7 @@
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 1985, 1994, 1997-1999, 2001-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,10 +20,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "commands.h"
 #include "syntax.h"
 #include "composite.h"
@@ -35,8 +36,8 @@ Lisp_Object Qidentity;
 static Lisp_Object
 casify_object (enum case_action flag, Lisp_Object obj)
 {
-  register int c, c1;
-  register int inword = flag == CASE_DOWN;
+  int c, c1;
+  bool inword = flag == CASE_DOWN;
 
   /* If the case table is flagged as modified, rescan it.  */
   if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
@@ -47,7 +48,8 @@ casify_object (enum case_action flag, Lisp_Object obj)
       int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
 		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
       int flags = XINT (obj) & flagbits;
-      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+      bool multibyte = ! NILP (BVAR (current_buffer,
+				     enable_multibyte_characters));
 
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
@@ -114,12 +116,11 @@ casify_object (enum case_action flag, Lisp_Object obj)
       ptrdiff_t i, i_byte, size = SCHARS (obj);
       int len;
       USE_SAFE_ALLOCA;
-      unsigned char *dst, *o;
       ptrdiff_t o_size = (size < STRING_BYTES_BOUND / MAX_MULTIBYTE_LENGTH
 			  ? size * MAX_MULTIBYTE_LENGTH
 			  : STRING_BYTES_BOUND);
-      SAFE_ALLOCA (dst, void *, o_size);
-      o = dst;
+      unsigned char *dst = SAFE_ALLOCA (o_size);
+      unsigned char *o = dst;
 
       for (i = i_byte = 0; i < size; i++, i_byte += len)
 	{
@@ -190,9 +191,9 @@ The argument object is not altered--the value is a copy.  */)
 static void
 casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
-  register int c;
-  register int inword = flag == CASE_DOWN;
-  register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  int c;
+  bool inword = flag == CASE_DOWN;
+  bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   ptrdiff_t start, end;
   ptrdiff_t start_byte;
 
@@ -213,7 +214,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   validate_region (&b, &e);
   start = XFASTINT (b);
   end = XFASTINT (e);
-  modify_region (current_buffer, start, end, 0);
+  modify_text (start, end);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
 

@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -53,7 +53,7 @@
 ;;; Code:
 
 (require 'help-mode)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup quail nil
   "Quail: multilingual input method."
@@ -540,32 +540,36 @@ non-Quail commands."
   (if (and (overlayp quail-conv-overlay) (overlay-start quail-conv-overlay))
       (delete-overlay quail-conv-overlay)))
 
-(defun quail-inactivate ()
-  "Inactivate Quail input method.
+(defun quail-deactivate ()
+  "Deactivate Quail input method.
 
-This function runs the normal hook `quail-inactivate-hook'."
+This function runs the normal hook `quail-deactivate-hook'."
   (interactive)
   (quail-activate -1))
+
+(define-obsolete-function-alias 'quail-inactivate 'quail-deactivate "24.3")
 
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
 With ARG, activate Quail input method if and only if arg is positive.
 
 This function runs `quail-activate-hook' if it activates the input
-method, `quail-inactivate-hook' if it deactivates it.
+method, `quail-deactivate-hook' if it deactivates it.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `quail-input-method'."
   (if (and arg
 	  (< (prefix-numeric-value arg) 0))
-      ;; Let's inactivate Quail input method.
+      ;; Let's deactivate Quail input method.
       (unwind-protect
 	  (progn
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil)
 	    (quail-hide-guidance)
 	    (remove-hook 'post-command-hook 'quail-show-guidance t)
-	    (run-hooks 'quail-inactivate-hook))
+	    (run-hooks
+	     'quail-inactivate-hook ; for backward compatibility
+	     'quail-deactivate-hook))
 	(kill-local-variable 'input-method-function))
     ;; Let's activate Quail input method.
     (if (null quail-current-package)
@@ -575,7 +579,7 @@ While this input method is active, the variable
 	      (setq name (car (car quail-package-alist)))
 	    (error "No Quail package loaded"))
 	  (quail-select-package name)))
-    (setq inactivate-current-input-method-function 'quail-inactivate)
+    (setq deactivate-current-input-method-function 'quail-deactivate)
     (setq describe-current-input-method-function 'quail-help)
     (quail-delete-overlays)
     (setq quail-guidance-str "")
@@ -589,8 +593,12 @@ While this input method is active, the variable
     (make-local-variable 'input-method-function)
     (setq input-method-function 'quail-input-method)))
 
+(define-obsolete-variable-alias
+  'quail-inactivate-hook
+  'quail-deactivate-hook "24.3")
+
 (defun quail-exit-from-minibuffer ()
-  (inactivate-input-method)
+  (deactivate-input-method)
   (if (<= (minibuffer-depth) 1)
       (remove-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)))
 
@@ -1293,7 +1301,7 @@ The returned value is a Quail map specific to KEY."
 	(setcdr map (funcall (cdr map) key len)))
     map))
 
-(put 'quail-error 'error-conditions '(quail-error error))
+(define-error 'quail-error nil)
 (defun quail-error (&rest args)
   (signal 'quail-error (apply 'format args)))
 
@@ -2395,10 +2403,10 @@ should be made by `quail-build-decode-map' (which see)."
                    (let ((last-col-elt (or (nth (1- (* (1+ col) newrows))
                                                 single-list)
                                            (car (last single-list)))))
-                     (incf width (+ (max 3 (length (car last-col-elt)))
-                                    1 single-trans-width 1))))
+                     (cl-incf width (+ (max 3 (length (car last-col-elt)))
+                                       1 single-trans-width 1))))
                  (< width window-width))
-          (incf cols))
+          (cl-incf cols))
         (setq rows (/ (+ len cols -1) cols)) ;Round up.
         (let ((key-width (max 3 (length (car (nth (1- rows) single-list))))))
           (insert "key")

@@ -1,6 +1,6 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013 Free
+   Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,13 +13,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
-#include <setjmp.h>
 #include <sys/file.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -153,7 +150,7 @@ tgetst1 (char *ptr, char **area)
       p = ptr;
       while ((c = *p++) && c != ':' && c != '\n')
 	;
-      ret = (char *) xmalloc (p - ptr + 1);
+      ret = xmalloc (p - ptr + 1);
     }
   else
     ret = *area;
@@ -216,8 +213,8 @@ tgetst1 (char *ptr, char **area)
      abbreviation expansion makes that effort a little more hairy than
      its worth; this is cleaner.  */
   {
-    register int last_p_param = 0;
-    int remove_p_params = 1;
+    int last_p_param = 0;
+    bool remove_p_params = 1;
     struct { char *beg; int len; } cut[11];
 
     for (cut[0].beg = p = ret; p < r - 3; p++)
@@ -321,26 +318,26 @@ struct termcap_buffer
     char *beg;
     ptrdiff_t size;
     char *ptr;
-    int ateof;
+    bool ateof;
     ptrdiff_t full;
   };
 
 /* Forward declarations of static functions.  */
 
-static int scan_file (char *str, int fd, register struct termcap_buffer *bufp);
-static char *gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end);
-static int compare_contin (register char *str1, register char *str2);
-static int name_match (char *line, char *name);
+static bool scan_file (char *, int, struct termcap_buffer *);
+static char *gobble_line (int, struct termcap_buffer *, char *);
+static bool compare_contin (char *, char *);
+static bool name_match (char *, char *);
 
-#ifdef MSDOS /* MW, May 1993 */
-static int
+static bool
 valid_filename_p (char *fn)
 {
+#ifdef MSDOS
   return *fn == '/' || fn[1] == ':';
-}
 #else
-#define valid_filename_p(fn) (*(fn) == '/')
+  return *fn == '/';
 #endif
+}
 
 /* Find the termcap entry data for terminal type NAME
    and store it in the block that BP points to.
@@ -363,10 +360,10 @@ tgetent (char *bp, const char *name)
   char *tc_search_point;
   char *term;
   ptrdiff_t malloc_size = 0;
-  register int c;
+  int c;
   char *tcenv = NULL;		/* TERMCAP value, if it contains :tc=.  */
   char *indirect = NULL;	/* Terminal type in :tc= in TERMCAP value.  */
-  int filep;
+  bool filep;
 
 #ifdef INTERNAL_TERMINAL
   /* For the internal terminal we don't want to read any termcap file,
@@ -377,7 +374,7 @@ tgetent (char *bp, const char *name)
       if (!bp)
 	{
 	  malloc_size = 1 + strlen (term);
-	  bp = (char *) xmalloc (malloc_size);
+	  bp = xmalloc (malloc_size);
 	}
       strcpy (bp, term);
       goto ret;
@@ -396,7 +393,7 @@ tgetent (char *bp, const char *name)
   if (termcap_name && (*termcap_name == '\\'
 		       || *termcap_name == '/'
 		       || termcap_name[1] == ':'))
-    dostounix_filename (termcap_name);
+    dostounix_filename (termcap_name, 0);
 #endif
 
   filep = termcap_name && valid_filename_p (termcap_name);
@@ -409,7 +406,7 @@ tgetent (char *bp, const char *name)
 
   if (termcap_name && !filep && !strcmp (name, getenv ("TERM")))
     {
-      indirect = tgetst1 (find_capability (termcap_name, "tc"), (char **) 0);
+      indirect = tgetst1 (find_capability (termcap_name, "tc"), 0);
       if (!indirect)
 	{
 	  if (!bp)
@@ -430,23 +427,19 @@ tgetent (char *bp, const char *name)
 
   /* Here we know we must search a file and termcap_name has its name.  */
 
-#ifdef MSDOS
-  fd = open (termcap_name, O_RDONLY|O_TEXT, 0);
-#else
-  fd = open (termcap_name, O_RDONLY, 0);
-#endif
+  fd = emacs_open (termcap_name, O_RDONLY | O_TEXT, 0);
   if (fd < 0)
     return -1;
 
   buf.size = BUFSIZE;
   /* Add 1 to size to ensure room for terminating null.  */
-  buf.beg = (char *) xmalloc (buf.size + 1);
+  buf.beg = xmalloc (buf.size + 1);
   term = indirect ? indirect : (char *)name;
 
   if (!bp)
     {
       malloc_size = indirect ? strlen (tcenv) + 1 : buf.size;
-      bp = (char *) xmalloc (malloc_size);
+      bp = xmalloc (malloc_size);
     }
   tc_search_point = bp1 = bp;
 
@@ -462,7 +455,7 @@ tgetent (char *bp, const char *name)
       /* Scan the file, reading it via buf, till find start of main entry.  */
       if (scan_file (term, fd, &buf) == 0)
 	{
-	  close (fd);
+	  emacs_close (fd);
 	  xfree (buf.beg);
 	  if (malloc_size)
 	    xfree (bp);
@@ -478,7 +471,7 @@ tgetent (char *bp, const char *name)
 	{
 	  ptrdiff_t offset1 = bp1 - bp, offset2 = tc_search_point - bp;
 	  malloc_size = offset1 + buf.size;
-	  bp = termcap_name = (char *) xrealloc (bp, malloc_size);
+	  bp = termcap_name = xrealloc (bp, malloc_size);
 	  bp1 = termcap_name + offset1;
 	  tc_search_point = termcap_name + offset2;
 	}
@@ -497,14 +490,14 @@ tgetent (char *bp, const char *name)
       /* Does this entry refer to another terminal type's entry?
 	 If something is found, copy it into heap and null-terminate it.  */
       tc_search_point = find_capability (tc_search_point, "tc");
-      term = tgetst1 (tc_search_point, (char **) 0);
+      term = tgetst1 (tc_search_point, 0);
     }
 
-  close (fd);
+  emacs_close (fd);
   xfree (buf.beg);
 
   if (malloc_size)
-    bp = (char *) xrealloc (bp, bp1 - bp + 1);
+    bp = xrealloc (bp, bp1 - bp + 1);
 
  ret:
   term_entry = bp;
@@ -517,10 +510,10 @@ tgetent (char *bp, const char *name)
    Return 1 if successful, with that line in BUFP,
    or 0 if no entry is found in the file.  */
 
-static int
-scan_file (char *str, int fd, register struct termcap_buffer *bufp)
+static bool
+scan_file (char *str, int fd, struct termcap_buffer *bufp)
 {
-  register char *end;
+  char *end;
 
   bufp->ptr = bufp->beg;
   bufp->full = 0;
@@ -551,13 +544,13 @@ scan_file (char *str, int fd, register struct termcap_buffer *bufp)
   return 0;
 }
 
-/* Return nonzero if NAME is one of the names specified
+/* Return true if NAME is one of the names specified
    by termcap entry LINE.  */
 
-static int
+static bool
 name_match (char *line, char *name)
 {
-  register char *tem;
+  char *tem;
 
   if (!compare_contin (line, name))
     return 1;
@@ -569,18 +562,18 @@ name_match (char *line, char *name)
   return 0;
 }
 
-static int
-compare_contin (register char *str1, register char *str2)
+static bool
+compare_contin (char *str1, char *str2)
 {
-  register int c1, c2;
   while (1)
     {
-      c1 = *str1++;
-      c2 = *str2++;
+      int c1 = *str1++;
+      int c2 = *str2++;
       while (c1 == '\\' && *str1 == '\n')
 	{
 	  str1++;
-	  while ((c1 = *str1++) == ' ' || c1 == '\t');
+	  while ((c1 = *str1++) == ' ' || c1 == '\t')
+	    continue;
 	}
       if (c2 == '\0')
 	{
@@ -654,57 +647,3 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
     }
   return end + 1;
 }
-
-#ifdef TEST
-
-#include <stdio.h>
-
-static void
-tprint (char *cap)
-{
-  char *x = tgetstr (cap, 0);
-  register char *y;
-
-  printf ("%s: ", cap);
-  if (x)
-    {
-      for (y = x; *y; y++)
-	if (*y <= ' ' || *y == 0177)
-	  printf ("\\%0o", *y);
-	else
-	  putchar (*y);
-      free (x);
-    }
-  else
-    printf ("none");
-  putchar ('\n');
-}
-
-int
-main (int argc, char **argv)
-{
-  char *term;
-  char *buf;
-
-  term = argv[1];
-  printf ("TERM: %s\n", term);
-
-  buf = (char *) tgetent (0, term);
-  if ((int) buf <= 0)
-    {
-      printf ("No entry.\n");
-      return 0;
-    }
-
-  printf ("Entry: %s\n", buf);
-
-  tprint ("cm");
-  tprint ("AL");
-
-  printf ("co: %d\n", tgetnum ("co"));
-  printf ("am: %d\n", tgetflag ("am"));
-
-  return 0;
-}
-
-#endif /* TEST */

@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -198,7 +198,7 @@
 ;; Variables
 
 (defconst artist-version "1.2.6")
-(defconst artist-maintainer-address "tab@lysator.liu.se")
+(defconst artist-maintainer-address "tab@lysator.liu.se, bug-gnu-emacs@gnu.org")
 
 (defvar x-pointer-crosshair)
 
@@ -1449,6 +1449,8 @@ Keymap summary
 	(message "")))
   (artist-mode-line-show-curr-operation artist-key-is-drawing))
 
+(declare-function picture-mode-exit "picture" (&optional nostrip))
+
 (defun artist-mode-exit ()
   "Exit Artist mode.  This will call the hook `artist-mode-hook'."
   (if (and artist-picture-compatibility (eq major-mode 'picture-mode))
@@ -1790,7 +1792,7 @@ info-variant-part."
 ;;
 (defmacro artist-funcall (fn &rest args)
   "Call function FN with ARGS, if FN is not nil."
-  (list 'if fn (cons 'funcall (cons fn args))))
+  `(if ,fn (funcall ,fn ,@args)))
 
 (defun artist-uniq (l)
   "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
@@ -2384,8 +2386,8 @@ in the coord."
 ;;
 (defmacro artist-put-pixel (point-list x y)
   "In POINT-LIST, store a ``pixel'' at coord X,Y."
-  (list 'setq point-list
-	(list 'append point-list (list 'list (list 'artist-new-coord x y)))))
+  `(setq ,point-list
+	 (append ,point-list (list (artist-new-coord ,x ,y)))))
 
 ;; Calculate list of points using eight point algorithm
 ;; return a list of coords

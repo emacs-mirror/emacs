@@ -1,6 +1,6 @@
 ;;; esh-util.el --- general utilities
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -84,7 +84,7 @@ Numeric form is tested using the regular expression
 NOTE: If you find that numeric conversions are interfering with the
 specification of filenames (for example, in calling `find-file', or
 some other Lisp function that deals with files, not numbers), add the
-following in your .emacs file:
+following in your init file:
 
   (put 'find-file 'eshell-no-numeric-conversions t)
 
@@ -229,6 +229,7 @@ If N or M is nil, it means the end of the list."
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"\), when
 `default-directory' points to a remote host.")
+(make-variable-buffer-local 'eshell-path-env)
 
 (defun eshell-parse-colon-path (path-env)
   "Split string with `parse-colon-path'.
@@ -275,15 +276,13 @@ Prepend remote identification of `default-directory', if any."
 
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list."
+  (declare (obsolete dolist "24.1"))
   (declare (indent 2))
   `(let ((list-iter ,for-list))
      (while list-iter
        (let ((,for-var (car list-iter)))
 	 ,@forms)
        (setq list-iter (cdr list-iter)))))
-
-
-(make-obsolete 'eshell-for 'dolist "24.1")
 
 (defun eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."
@@ -606,10 +605,16 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (autoload 'parse-time-string "parse-time"))
 
 (eval-when-compile
-  (require 'ange-ftp nil t)
-  (require 'tramp nil t))
+  (require 'ange-ftp nil t))		; ange-ftp-parse-filename
+
+(defvar tramp-file-name-structure)
+(declare-function ange-ftp-ls "ange-ftp"
+		  (file lsargs parse &optional no-error wildcard))
+(declare-function ange-ftp-file-modtime "ange-ftp" (file))
 
 (defun eshell-parse-ange-ls (dir)
+  (require 'ange-ftp)
+  (require 'tramp)
   (let ((ange-ftp-name-format
 	 (list (nth 0 tramp-file-name-structure)
 	       (nth 3 tramp-file-name-structure)

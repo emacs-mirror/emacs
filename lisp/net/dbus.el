@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -45,8 +45,7 @@
 (defvar dbus-registered-objects-table)
 
 ;; Pacify byte compiler.
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'xml)
 
@@ -153,7 +152,9 @@ Otherwise, return result of last form in BODY, or all other errors."
      (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<dbus-ignore-errors\\>"))
 
-(defvar dbus-event-error-hooks nil
+(define-obsolete-variable-alias 'dbus-event-error-hooks
+  'dbus-event-error-functions "24.3")
+(defvar dbus-event-error-functions nil
   "Functions to be called when a D-Bus error happens in the event handler.
 Every function must accept two arguments, the event and the error variable
 caught in `condition-case' by `dbus-error'.")
@@ -267,9 +268,12 @@ object is returned instead of a list containing this single Lisp object.
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
     ;; default 25".  Events which are not from D-Bus must be restored.
+    ;; `read-event' performs a redisplay.  This must be suppressed; it
+    ;; hurts when reading D-Bus events asynchronously.
     (with-timeout ((if timeout (/ timeout 1000.0) 25))
       (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(let ((event (let (unread-command-events) (read-event))))
+	(let ((event (let ((inhibit-redisplay t) unread-command-events)
+		       (read-event nil nil 0.1))))
 	  (when (and event (not (ignore-errors (dbus-check-event event))))
 	    (setq unread-command-events
 		  (append unread-command-events (list event)))))))
@@ -281,7 +285,7 @@ object is returned instead of a list containing this single Lisp object.
 
 ;; `dbus-call-method' works non-blocking now.
 (defalias 'dbus-call-method-non-blocking 'dbus-call-method)
-(make-obsolete 'dbus-call-method-non-blocking 'dbus-call-method "24.2")
+(make-obsolete 'dbus-call-method-non-blocking 'dbus-call-method "24.3")
 
 (defun dbus-call-method-asynchronously
  (bus service path interface method handler &rest args)
@@ -494,20 +498,20 @@ placed in the queue.
     (dolist (flag flags)
       (setq arg
 	    (+ arg
-	       (case flag
+	       (pcase flag
 		 (:allow-replacement 1)
 		 (:replace-existing 2)
 		 (:do-not-queue 4)
-		 (t (signal 'wrong-type-argument (list flag)))))))
+		 (_ (signal 'wrong-type-argument (list flag)))))))
     (setq reply (dbus-call-method
 		 bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
 		 "RequestName" service arg))
-    (case reply
+    (pcase reply
       (1 :primary-owner)
       (2 :in-queue)
       (3 :exists)
       (4 :already-owner)
-      (t (signal 'dbus-error (list "Could not register service" service))))))
+      (_ (signal 'dbus-error (list "Could not register service" service))))))
 
 (defun dbus-unregister-service (bus service)
   "Unregister all objects related to SERVICE from D-Bus BUS.
@@ -536,11 +540,11 @@ queue of this service."
   (let ((reply (dbus-call-method
 		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
 		"ReleaseName" service)))
-    (case reply
+    (pcase reply
       (1 :released)
       (2 :non-existent)
       (3 :not-owner)
-      (t (signal 'dbus-error (list "Could not unregister service" service))))))
+      (_ (signal 'dbus-error (list "Could not unregister service" service))))))
 
 (defun dbus-register-signal
   (bus service path interface signal handler &rest args)
@@ -803,7 +807,7 @@ association to the service from D-Bus."
 				;; Service.
 				(string-equal service (cadr e))
 				;; Non-empty object path.
-				(caddr e)
+				(cl-caddr e)
 				(throw :found t)))))
 			 dbus-registered-objects-table)
 			nil))))
@@ -948,7 +952,7 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
 	 (dbus-method-error-internal
 	  (nth 1 event) (nth 4 event) (nth 3 event) (cadr err))))
      ;; Propagate D-Bus error messages.
-     (run-hook-with-args 'dbus-event-error-hooks event err)
+     (run-hook-with-args 'dbus-event-error-functions event err)
      (when (or dbus-debug (= dbus-message-type-error (nth 2 event)))
        (signal (car err) (cdr err))))))
 
@@ -1383,7 +1387,7 @@ name of the property, and its value.  If there are no properties,
 		bus service path dbus-interface-properties
 		"GetAll" :timeout 500 interface)
 	       result)
-	(add-to-list 'result (cons (car dict) (caadr dict)) 'append)))))
+	(add-to-list 'result (cons (car dict) (cl-caadr dict)) 'append)))))
 
 (defun dbus-register-property
   (bus service path interface property access value
@@ -1581,7 +1585,7 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
 		(if (cadr entry2)
 		    ;; "sv".
 		    (dolist (entry3 (cadr entry2))
-		      (setcdr entry3 (caadr entry3)))
+		      (setcdr entry3 (cl-caadr entry3)))
 		  (setcdr entry2 nil)))))
 
 	;; Fallback: collect the information.  Slooow!
@@ -1605,7 +1609,6 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
 It will be registered for all objects created by `dbus-register-method'."
   (let* ((last-input-event last-input-event)
 	 (bus (dbus-event-bus-name last-input-event))
-	 (service (dbus-event-service-name last-input-event))
 	 (path (dbus-event-path-name last-input-event)))
     ;; "GetManagedObjects" returns "a{oa{sa{sv}}}".
     (let (interfaces result)
@@ -1621,8 +1624,7 @@ It will be registered for all objects created by `dbus-register-method'."
       ;; Check all registered object paths.
       (maphash
        (lambda (key val)
-	 (let ((object (or (nth 2 (car-safe val)) ""))
-	       (interface (nth 2 key)))
+	 (let ((object (or (nth 2 (car-safe val)) "")))
 	   (when (and (equal (butlast key 2) (list :method bus))
 		      (string-prefix-p path object))
 	     (dolist (interface (cons (nth 2 key) interfaces))

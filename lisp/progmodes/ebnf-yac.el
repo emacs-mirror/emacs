@@ -1,11 +1,11 @@
 ;;; ebnf-yac.el --- parser for Yacc/Bison
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.4
+;; Old-Version: 1.4
 ;; Package: ebnf2ps
 
 ;; This file is part of GNU Emacs.
@@ -73,8 +73,8 @@
 ;; example: this_is_a_valid.name, Another_EXAMPLE, mIxEd.CaSe.
 ;;
 ;;
-;; Acknowledgements
-;; ----------------
+;; Acknowledgments
+;; ---------------
 ;;
 ;; Thanks to Matthew K. Junker <junker@alum.mit.edu> for the suggestion to deal
 ;; with %right, %left and %prec pragmas.  His suggestion was extended to deal

@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -202,6 +202,7 @@ macro to be executed before appending to it."
     ;; naming and binding
     (define-key map "b"    'kmacro-bind-to-key)
     (define-key map "n"    'kmacro-name-last-macro)
+    (define-key map "x"    'kmacro-to-register)
     map)
   "Keymap for keyboard macro commands.")
 (defalias 'kmacro-keymap kmacro-keymap)
@@ -613,9 +614,10 @@ An argument of zero means repeat until error."
 
 
 ;;;###autoload
-(defun kmacro-call-macro (arg &optional no-repeat end-macro)
-  "Call the last keyboard macro that you defined with \\[kmacro-start-macro].
+(defun kmacro-call-macro (arg &optional no-repeat end-macro macro)
+  "Call the keyboard MACRO that you defined with \\[kmacro-start-macro].
 A prefix argument serves as a repeat count.  Zero means repeat until error.
+MACRO defaults to `last-kbd-macro'.
 
 When you call the macro, you can call the macro again by repeating
 just the last key in the key sequence that you used to call this
@@ -629,11 +631,11 @@ others, use \\[kmacro-name-last-macro]."
                                   (> (length (this-single-command-keys)) 1))
                              ;; Used when we're in the process of repeating.
                              (eq no-repeat 'repeating))
-			 last-input-event))
-	repeat-key-str)
+			 last-input-event)))
     (if end-macro
-	(kmacro-end-macro arg)
-      (call-last-kbd-macro arg #'kmacro-loop-setup-function))
+	(kmacro-end-macro arg)		; modifies last-kbd-macro
+      (let ((last-kbd-macro (or macro last-kbd-macro)))
+	(call-last-kbd-macro arg #'kmacro-loop-setup-function)))
     (when (consp arg)
       (setq arg (car arg)))
     (when (and (or (null arg) (> arg 0))
@@ -641,7 +643,13 @@ others, use \\[kmacro-name-last-macro]."
 		     (if (eq kmacro-call-repeat-key t)
 			 repeat-key
 		       kmacro-call-repeat-key)))
-      (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
+      ;; Issue a hint to the user, if the echo area isn't in use.
+      (unless (current-message)
+	(message "(Type %s to repeat macro%s)"
+		 (format-kbd-macro (vector repeat-key) nil)
+		 (if (and kmacro-call-repeat-with-arg
+			  arg (> arg 1))
+		     (format " %d times" arg) "")))
       ;; Can't use the `keep-pred' arg because this overlay keymap needs to be
       ;; removed during the next run of the kmacro (i.e. we need to add&remove
       ;; this overlay-map at each repetition).
@@ -650,7 +658,9 @@ others, use \\[kmacro-name-last-macro]."
          (define-key map (vector repeat-key)
            `(lambda () (interactive)
               (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
-                                 'repeating)))
+                                 'repeating nil ,(if end-macro
+						     last-kbd-macro
+						   (or macro last-kbd-macro)))))
          map)))))
 
 
@@ -829,6 +839,25 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
       (error "No command name given"))
   (fset symbol (kmacro-lambda-form (kmacro-ring-head)))
   (put symbol 'kmacro t))
+
+
+(defun kmacro-execute-from-register (k)
+  (kmacro-call-macro current-prefix-arg nil nil k))
+
+(defun kmacro-to-register (r)
+  "Store the last keyboard macro in register R."
+  (interactive
+   (progn
+     (or last-kbd-macro (error "No keyboard macro defined"))
+     (list (read-char "Save to register: "))))
+  (set-register r (registerv-make
+		   last-kbd-macro
+		   :jump-func 'kmacro-execute-from-register
+		   :print-func (lambda (k)
+				 (princ (format "a keyboard macro:\n   %s"
+						(format-kbd-macro k))))
+		   :insert-func (lambda (k)
+				  (insert (format-kbd-macro k))))))
 
 
 (defun kmacro-view-macro (&optional _arg)

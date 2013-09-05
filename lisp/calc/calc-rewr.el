@@ -1,6 +1,6 @@
 ;;; calc-rewr.el --- rewriting functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1439,21 +1439,19 @@
 (put 'calcFunc-vxor  'math-rewrite-default '(vec))
 
 (defmacro math-rwfail (&optional back)
-  (list 'setq 'pc
-	(list 'and
-	      (if back
-		  '(setq btrack (cdr btrack))
-		'btrack)
-	      ''((backtrack)))))
+  `(setq pc (and ,(if back
+		      '(setq btrack (cdr btrack))
+		    'btrack)
+		 '((backtrack)))))
 
 ;; This monstrosity is necessary because the use of static vectors of
 ;; registers makes rewrite rules non-reentrant.  Yucko!
 (defmacro math-rweval (form)
-  (list 'let '((orig (car rules)))
-	'(setcar rules (quote (nil nil nil no-phase)))
-	(list 'unwind-protect
-	      form
-	      '(setcar rules orig))))
+  `(let ((orig (car rules)))
+     (setcar rules '(nil nil nil no-phase))
+     (unwind-protect
+	 ,form
+       (setcar rules orig))))
 
 (defvar math-rewrite-phase 1)
 

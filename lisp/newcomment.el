@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -24,7 +24,13 @@
 
 ;;; Commentary:
 
-;; A replacement for simple.el's comment-related functions.
+;; This library contains functions and variables for commenting and
+;; uncommenting source code.
+
+;; Prior to calling any `comment-*' function, you should ensure that
+;; `comment-normalize-vars' is first called to set up the appropriate
+;; variables; except for the `comment-*' commands, which call
+;; `comment-normalize-vars' automatically as a subroutine.
 
 ;;; Bugs:
 
@@ -117,20 +123,20 @@ Comments might be indented to a different value in order not to go beyond
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
 at the place matched by the close of the first pair.")
 ;;;###autoload
-(put 'comment-start-skip 'safe-local-variable 'string-or-null-p)
+(put 'comment-start-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-end-skip nil
   "Regexp to match the end of a comment plus everything back to its body.")
 ;;;###autoload
-(put 'comment-end-skip 'safe-local-variable 'string-or-null-p)
+(put 'comment-end-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-end (purecopy "")
   "String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 ;;;###autoload
-(put 'comment-end 'safe-local-variable 'string-or-null-p)
+(put 'comment-end 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defvar comment-indent-function 'comment-indent-default
@@ -283,7 +289,7 @@ Python's PEP8 for example recommends two spaces, so you could do:
    (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
 
 See `comment-padding' for whole-line comments."
-  :version "24.2"
+  :version "24.3"
   :type 'integer
   :group 'comment)
 
@@ -326,10 +332,11 @@ terminated by the end of line (i.e. `comment-end' is empty)."
 
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
-  "Check and setup the variables needed by other commenting functions.
-Functions autoloaded from newcomment.el, being entry points, should call
-this function before any other, so the rest of the code can assume that
-the variables are properly set."
+  "Check and set up variables needed by other commenting functions.
+All the `comment-*' commands call this function to set up various
+variables, like `comment-start', to ensure that the commenting
+functions work correctly.  Lisp callers of any other `comment-*'
+function should first call this function explicitly."
   (unless (and (not comment-start) noerror)
     (unless comment-start
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
@@ -439,7 +446,9 @@ in strings will not confuse Emacs.")
   "Find a comment start between point and LIMIT.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil if NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil.
+
+Ensure that `comment-normalize-vars' has been called before you use this."
   (if (not comment-use-syntax)
       (if (re-search-forward comment-start-skip limit noerror)
 	  (or (match-end 1) (match-beginning 0))
@@ -477,7 +486,9 @@ and raises an error or returns nil if NOERROR is non-nil."
   "Find a comment start between LIMIT and point.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil if NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil.
+
+Ensure that `comment-normalize-vars' has been called before you use this."
   ;; FIXME: If a comment-start appears inside a comment, we may erroneously
   ;; stop there.  This can be rather bad in general, but since
   ;; comment-search-backward is only used to find the comment-column (in
@@ -1199,7 +1210,8 @@ changed with `comment-style'."
 (defun comment-box (beg end &optional arg)
   "Comment out the BEG .. END region, putting it inside a box.
 The numeric prefix ARG specifies how many characters to add to begin- and
-end- comment markers additionally to what `comment-add' already specifies."
+end- comment markers additionally to what variable `comment-add' already
+specifies."
   (interactive "*r\np")
   (comment-normalize-vars)
   (let ((comment-style (if (cadr (assoc comment-style comment-styles))

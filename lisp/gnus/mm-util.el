@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -845,17 +845,17 @@ Valid elements include:
 	   (not lang) nil)
 	  ;; In XEmacs 21.5 it may be the one like "Japanese (UTF-8)".
 	  ((string-match "\\`Japanese" lang)
-	   ;; Japanese users prefer iso-2022-jp to euc-japan or
-	   ;; shift_jis, however iso-8859-1 should be used when
-	   ;; there are only ASCII text and Latin-1 characters.
-	   '(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8))))
+	   ;; Japanese users prefer iso-2022-jp to others usually used
+	   ;; for `buffer-file-coding-system', however iso-8859-1 should
+	   ;; be used when there are only ASCII and Latin-1 characters.
+	   '(iso-8859-1 iso-2022-jp utf-8))))
   "Preferred coding systems for encoding outgoing messages.
 
 More than one suitable coding system may be found for some text.
 By default, the coding system with the highest priority is used
 to encode outgoing messages (see `sort-coding-systems').  If this
 variable is set, it overrides the default priority."
-  :version "21.2"
+  :version "24.4"
   :type '(repeat (symbol :tag "Coding system"))
   :group 'mime)
 
@@ -1508,8 +1508,8 @@ To make this function work with XEmacs, the APEL package is required."
 		      (fboundp 'coding-system-to-mime-charset)))
 	     (coding-system-to-mime-charset coding-system)))))
 
-(eval-when-compile
-  (require 'jka-compr))
+(defvar jka-compr-acceptable-retval-list)
+(declare-function jka-compr-make-temp-name "jka-compr" (&optional local))
 
 (defun mm-decompress-buffer (filename &optional inplace force)
   "Decompress buffer's contents, depending on jka-compr.
@@ -1592,7 +1592,7 @@ gzip, bzip2, etc. are allowed."
   (unless filename
     (setq filename buffer-file-name))
   (save-excursion
-    (let ((decomp (unless ;; No worth to examine charset of tar files.
+    (let ((decomp (unless ;; Not worth it to examine charset of tar files.
 		      (and filename
 			   (string-match
 			    "\\.\\(?:tar\\.[^.]+\\|tbz\\|tgz\\)\\'"

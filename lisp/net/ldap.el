@@ -1,6 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: FSF
@@ -34,7 +34,6 @@
 ;;; Code:
 
 (require 'custom)
-(eval-when-compile (require 'cl))
 
 (autoload 'auth-source-search "auth-source")
 
@@ -465,12 +464,12 @@ Additional search parameters can be specified through
       (error "No LDAP host specified"))
   (let ((host-plist (cdr (assoc host ldap-host-parameters-alist)))
 	result)
-    (setq result (ldap-search-internal (list* 'host host
-					      'filter filter
-					      'attributes attributes
-					      'attrsonly attrsonly
-					      'withdn withdn
-					      host-plist)))
+    (setq result (ldap-search-internal `(host ,host
+					 filter ,filter
+                                         attributes ,attributes
+                                         attrsonly ,attrsonly
+                                         withdn ,withdn
+                                         ,@host-plist)))
     (if ldap-ignore-attribute-codings
 	result
       (mapcar (lambda (record)
@@ -605,6 +604,7 @@ an alist of attribute/value pairs."
 	;; Skip error message when retrieving attribute list
 	(if (looking-at "Size limit exceeded")
 	    (forward-line 1))
+        (if (looking-at "version:") (forward-line 1)) ;bug#12724.
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))

@@ -1,6 +1,6 @@
 ;; icalendar-tests.el --- Test suite for icalendar.el
 
-;; Copyright (C) 2005, 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2013 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005
@@ -188,7 +188,7 @@ END:VTIMEZONE
     (should (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00"
                      (cdr result)))
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
-TZID:anothername
+TZID:anothername\, with a comma
 BEGIN:STANDARD
 DTSTART:16010101T040000
 TZOFFSETFROM:+0300
@@ -204,7 +204,7 @@ END:DAYLIGHT
 END:VTIMEZONE
 "))
     (setq result (icalendar--parse-vtimezone vtimezone))
-    (should (string= "anothername" (car result)))
+    (should (string= "anothername, with a comma" (car result)))
     (message (cdr result))
     (should (string= "STD-02:00DST-03:00,M3.2.1/03:00:00,M10.2.1/04:00:00"
                      (cdr result)))))
@@ -428,12 +428,16 @@ Argument EXPECTED-OUTPUT expected iCalendar result string.
 
 European style input data must use german month names.  American
 and ISO style input data must use english month names."
-  (let ((tz (cadr (current-time-zone)))
+  (let ((tz (getenv "TZ"))
 	(calendar-date-style 'iso)
 	(icalendar-recurring-start-year 2000))
     (unwind-protect
 	(progn
-	  (set-time-zone-rule "CET")
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
+;;;	  (message "Current time zone: %s" (current-time-zone))
 	  (when input-iso
 	    (let ((calendar-month-name-array
 		   ["January" "February" "March" "April" "May" "June" "July" "August"
@@ -461,8 +465,8 @@ and ISO style input data must use english month names."
 		    "Saturday"]))
 	      (setq calendar-date-style 'american)
 	      (icalendar-tests--do-test-export input-american expected-output))))
-      ;; restore time-zone if something went terribly wrong
-      (set-time-zone-rule tz))))
+      ;; restore time-zone even if something went terribly wrong
+      (setenv "TZ" tz))))
 
 (defun icalendar-tests--do-test-export (input expected-output)
   "Actually perform export test.
@@ -671,37 +675,43 @@ Argument INPUT icalendar event string.
 Argument EXPECTED-ISO expected iso style diary string.
 Argument EXPECTED-EUROPEAN expected european style diary string.
 Argument EXPECTED-AMERICAN expected american style diary string."
-  (let ((timezone (cadr (current-time-zone))))
-    (set-time-zone-rule "CET")
-    (with-temp-buffer
-      (if (string-match "^BEGIN:VCALENDAR" input)
-          (insert input)
-        (insert "BEGIN:VCALENDAR\nPRODID:-//Emacs//NONSGML icalendar.el//EN\n")
-        (insert "VERSION:2.0\nBEGIN:VEVENT\n")
-        (insert input)
-        (unless (eq (char-before) ?\n)
-          (insert "\n"))
-        (insert "END:VEVENT\nEND:VCALENDAR\n"))
-      (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
-            (icalendar-import-format-summary "%s")
-            (icalendar-import-format-location "\n Location: %s")
-            (icalendar-import-format-description "\n Desc: %s")
-            (icalendar-import-format-organizer "\n Organizer: %s")
-            (icalendar-import-format-status "\n Status: %s")
-            (icalendar-import-format-url "\n URL: %s")
-            (icalendar-import-format-class "\n Class: %s")
-            (icalendar-import-format-uid "\n UID: %s")
-            calendar-date-style)
-        (when expected-iso
-          (setq calendar-date-style 'iso)
-          (icalendar-tests--do-test-import input expected-iso))
-        (when expected-european
-          (setq calendar-date-style 'european)
-          (icalendar-tests--do-test-import input expected-european))
-        (when expected-american
-          (setq calendar-date-style 'american)
-          (icalendar-tests--do-test-import input expected-american))))
-    (set-time-zone-rule timezone)))
+  (let ((timezone (getenv "TZ")))
+    (unwind-protect
+	(progn
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
+	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  (with-temp-buffer
+	    (if (string-match "^BEGIN:VCALENDAR" input)
+		(insert input)
+	      (insert "BEGIN:VCALENDAR\nPRODID:-//Emacs//NONSGML icalendar.el//EN\n")
+	      (insert "VERSION:2.0\nBEGIN:VEVENT\n")
+	      (insert input)
+	      (unless (eq (char-before) ?\n)
+		(insert "\n"))
+	      (insert "END:VEVENT\nEND:VCALENDAR\n"))
+	    (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
+		  (icalendar-import-format-summary "%s")
+		  (icalendar-import-format-location "\n Location: %s")
+		  (icalendar-import-format-description "\n Desc: %s")
+		  (icalendar-import-format-organizer "\n Organizer: %s")
+		  (icalendar-import-format-status "\n Status: %s")
+		  (icalendar-import-format-url "\n URL: %s")
+		  (icalendar-import-format-class "\n Class: %s")
+		  (icalendar-import-format-uid "\n UID: %s")
+		  calendar-date-style)
+	      (when expected-iso
+		(setq calendar-date-style 'iso)
+		(icalendar-tests--do-test-import input expected-iso))
+	      (when expected-european
+		(setq calendar-date-style 'european)
+		(icalendar-tests--do-test-import input expected-european))
+	      (when expected-american
+		(setq calendar-date-style 'american)
+		(icalendar-tests--do-test-import input expected-american)))))
+      (setenv "TZ" timezone))))
 
 (defun icalendar-tests--do-test-import (input expected-output)
   "Actually perform import test.
@@ -1103,6 +1113,44 @@ DTEND;VALUE=DATE-TIME:20030919T113000"
    "&19/9/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"
    "&9/19/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"))
 
+(ert-deftest icalendar-import-with-timezone ()
+  ;; bug#11473
+  (icalendar-tests--test-import
+   "BEGIN:VCALENDAR
+BEGIN:VTIMEZONE
+TZID:fictional\, nonexistent\, arbitrary
+BEGIN:STANDARD
+DTSTART:20100101T000000
+TZOFFSETFROM:+0200
+TZOFFSETTO:-0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=01
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:20101201T000000
+TZOFFSETFROM:-0200
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=11
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+SUMMARY:standardtime
+DTSTART;TZID=\"fictional, nonexistent, arbitrary\":20120115T120000
+DTEND;TZID=\"fictional, nonexistent, arbitrary\":20120115T123000
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:daylightsavingtime
+DTSTART;TZID=\"fictional, nonexistent, arbitrary\":20121215T120000
+DTEND;TZID=\"fictional, nonexistent, arbitrary\":20121215T123000
+END:VEVENT
+END:VCALENDAR"
+   ;; "standardtime" begins first sunday in january and is 4 hours behind CET
+   ;; "daylightsavingtime" begins first sunday in november and is 1 hour before CET
+   "&2012/1/15 15:00-15:30 standardtime
+&2012/12/15 11:00-11:30 daylightsavingtime
+"
+   nil
+   nil)
+  )
 ;; ======================================================================
 ;; Cycle
 ;; ======================================================================
@@ -1156,8 +1204,7 @@ Argument INPUT icalendar event string."
 	      (should (string= org-input cycled)))))
       ;; clean up
       (kill-buffer (find-buffer-visiting temp-diary))
-      (save-excursion
-	(set-buffer (find-buffer-visiting temp-ics))
+      (with-current-buffer (find-buffer-visiting temp-ics)
 	(set-buffer-modified-p nil)
 	(kill-buffer (current-buffer)))
       (delete-file temp-diary)
@@ -1863,7 +1910,72 @@ DTEND;VALUE=DATE:19001102
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=11;BYMONTHDAY=1
 SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
 ")
-  )
+
+  ;; bug#11473
+  (icalendar-tests--test-import
+   "BEGIN:VCALENDAR
+METHOD:REQUEST
+PRODID:Microsoft Exchange Server 2007
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:(UTC+01:00) Amsterdam\, Berlin\, Bern\, Rome\, Stockholm\, Vienna
+BEGIN:STANDARD
+DTSTART:16010101T030000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010101T020000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=3
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+ORGANIZER;CN=\"A. Luser\":MAILTO:a.luser@foo.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"Luser, Oth
+ er\":MAILTO:other.luser@foo.com
+DESCRIPTION;LANGUAGE=en-US:\nWhassup?\n\n
+SUMMARY;LANGUAGE=en-US:Query
+DTSTART;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\"
+ :20120515T150000
+DTEND;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\":2
+ 0120515T153000
+UID:040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000
+ 010000000575268034ECDB649A15349B1BF240F15
+RECURRENCE-ID;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, V
+ ienna\":20120515T170000
+CLASS:PUBLIC
+PRIORITY:5
+DTSTAMP:20120514T153645Z
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+SEQUENCE:15
+LOCATION;LANGUAGE=en-US:phone
+X-MICROSOFT-CDO-APPT-SEQUENCE:15
+X-MICROSOFT-CDO-OWNERAPPTID:1907632092
+X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE
+X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+X-MICROSOFT-CDO-IMPORTANCE:1
+X-MICROSOFT-CDO-INSTTYPE:3
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:REMINDER
+TRIGGER;RELATED=START:-PT15M
+END:VALARM
+END:VEVENT
+END:VCALENDAR"
+   nil
+   "&15/5/2012 15:00-15:30 Query
+ Location: phone
+ Organizer: MAILTO:a.luser@foo.com
+ Status: CONFIRMED
+ Class: PUBLIC
+ UID: 040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000010000000575268034ECDB649A15349B1BF240F15
+"     nil)
+)
 
 (provide 'icalendar-tests)
 ;;; icalendar-tests.el ends here

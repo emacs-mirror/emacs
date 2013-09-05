@@ -1,6 +1,6 @@
 ;;; uni-input.el --- Hex Unicode input method
 
-;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -87,7 +87,7 @@
 
 (defun ucs-input-activate (&optional arg)
   "Activate UCS input method.
-With arg, activate UCS input method if and only if arg is positive.
+With ARG, activate UCS input method if and only if ARG is positive.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `ucs-input-method'."
@@ -99,7 +99,7 @@ While this input method is active, the variable
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil))
 	(kill-local-variable 'input-method-function))
-    (setq inactivate-current-input-method-function 'ucs-input-inactivate)
+    (setq deactivate-current-input-method-function 'ucs-input-deactivate)
     (setq describe-current-input-method-function 'ucs-input-help)
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
@@ -107,10 +107,14 @@ While this input method is active, the variable
     (set (make-local-variable 'input-method-function)
 	 'ucs-input-method)))
 
-(defun ucs-input-inactivate ()
-  "Inactivate UCS input method."
+(defun ucs-input-deactivate ()
+  "Deactivate UCS input method."
   (interactive)
   (ucs-input-activate -1))
+
+(define-obsolete-function-alias
+  'ucs-input-inactivate
+  'ucs-input-deactivate "24.3")
 
 (defun ucs-input-help ()
   (interactive)

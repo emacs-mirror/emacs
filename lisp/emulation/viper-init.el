@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -96,6 +96,10 @@ In all likelihood, you don't need to bother with this setting."
 ;;; Macros
 
 (defmacro viper-deflocalvar (var default-value &optional documentation)
+  "Define VAR as a buffer-local variable.
+DEFAULT-VALUE is the default value, and DOCUMENTATION is the
+docstring.  The variable becomes buffer-local whenever set."
+  (declare (indent defun))
   `(progn
     (defvar ,var ,default-value
       ,(format "%s\n\(buffer local\)" documentation))
@@ -103,6 +107,7 @@ In all likelihood, you don't need to bother with this setting."
 
 ;; (viper-loop COUNT BODY) Execute BODY COUNT times.
 (defmacro viper-loop (count &rest body)
+  (declare (indent defun))
   `(let ((count ,count))
     (while (> count 0)
       ,@body
@@ -316,7 +321,7 @@ Use `M-x viper-set-expert-level' to change this.")
     ))
 
 ;; viper hook to run on input-method deactivation
-(defun viper-inactivate-input-method-action ()
+(defun viper-deactivate-input-method-action ()
   (if (null viper-mule-hook-flag)
       ()
     (setq viper-special-input-method nil)
@@ -328,9 +333,9 @@ Use `M-x viper-set-expert-level' to change this.")
 			     (or current-input-method default-input-method))
 		   "")))))
 
-(defun viper-inactivate-input-method ()
-  (cond ((and (featurep 'emacs) (fboundp 'inactivate-input-method))
-	 (inactivate-input-method))
+(defun viper-deactivate-input-method ()
+  (cond ((and (featurep 'emacs) (fboundp 'deactivate-input-method))
+	 (deactivate-input-method))
 	((and (featurep 'xemacs) (boundp 'current-input-method))
 	 ;; XEmacs had broken quail-mode for some time, so we are working around
 	 ;; it here
@@ -339,7 +344,9 @@ Use `M-x viper-set-expert-level' to change this.")
 	     (quail-delete-overlays))
 	 (setq describe-current-input-method-function nil)
 	 (setq current-input-method nil)
-	 (run-hooks 'input-method-inactivate-hook)
+	 (run-hooks
+	  'input-method-inactivate-hook ; for backward compatibility
+	  'input-method-deactivate-hook)
 	 (force-mode-line-update))
 	))
 (defun viper-activate-input-method ()
@@ -356,7 +363,7 @@ Use `M-x viper-set-expert-level' to change this.")
 	   ;; activate input method
 	   (viper-activate-input-method))
 	  (t ; deactivate input method
-	   (viper-inactivate-input-method)))
+	   (viper-deactivate-input-method)))
     ))
 
 
@@ -417,7 +424,7 @@ delete the text being replaced, as in standard Vi."
 ;; (defcustom viper-emacs-state-cursor-color "Magenta"
 (defcustom viper-emacs-state-cursor-color nil
   "Cursor color when Viper is in Emacs state."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'viper)
 
 ;; internal var, used to remember the default cursor color of emacs frames
@@ -683,7 +690,7 @@ to a new place after repeating previous Vi command."
 the window will be scrolled up or down appropriately, to reveal context.
 If you want Viper search to behave as usual in Vi, set this variable to a
 negative number."
-  :type 'boolean
+  :type 'integer
   :group 'viper-search)
 
 (defcustom viper-re-query-replace t

@@ -1,6 +1,6 @@
 ;;; semantic/bovine/c-by.el --- Generated parser support file
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,17 +19,25 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from etc/grammars/c.by.
+;; This file was generated from admin/grammars/c.by.
 
 ;;; Code:
 
 (require 'semantic/lex)
 (eval-when-compile (require 'semantic/bovine))
-
-(declare-function semantic-c-reconstitute-token "semantic/bovine/c")
-(declare-function semantic-c-reconstitute-template "semantic/bovine/c")
-(declare-function semantic-expand-c-tag "semantic/bovine/c")
-
+
+;;; Prologue
+;;
+(declare-function semantic-c-reconstitute-token "semantic/bovine/c"
+		  (tokenpart declmods typedecl))
+(declare-function semantic-c-reconstitute-template "semantic/bovine/c"
+		  (tag specifier))
+(declare-function semantic-expand-c-tag "semantic/bovine/c" (tag))
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
+
+;;; Declarations
+;;
 (defconst semantic-c-by--keyword-table
   (semantic-lex-make-keyword-table
    '(("extern" . EXTERN)
@@ -42,6 +50,7 @@
      ("inline" . INLINE)
      ("virtual" . VIRTUAL)
      ("mutable" . MUTABLE)
+     ("explicit" . EXPLICIT)
      ("struct" . STRUCT)
      ("union" . UNION)
      ("enum" . ENUM)
@@ -124,6 +133,7 @@
      ("enum" summary "Enumeration Type Declaration: enum [name] { ... };")
      ("union" summary "Union Type Declaration: union [name] { ... };")
      ("struct" summary "Structure Type Declaration: struct [name] { ... };")
+     ("explicit" summary "Forbids implicit type conversion: explicit <constructor>")
      ("mutable" summary "Member Declaration Modifier: mutable <type> <name> ...")
      ("virtual" summary "Method Modifier: virtual <type> <name>(...) ...")
      ("inline" summary "Function Modifier: inline <return  type> <name>(...) {...};")
@@ -486,6 +496,12 @@
       )
      (template)
      (using)
+     (spp-include
+      ,(semantic-lambda
+	(semantic-tag
+	 (nth 0 vals)
+	 'include :inside-ns t))
+      )
      ( ;;EMPTY
       )
      ) ;; end namespacesubparts
@@ -1987,6 +2003,15 @@
 	  "*"
 	  (nth 2 vals))))
       )
+     (open-paren
+      "("
+      symbol
+      close-paren
+      ")"
+      ,(semantic-lambda
+	(list
+	 (nth 1 vals)))
+      )
      ) ;; end function-pointer
 
     (fun-or-proto-end
@@ -2186,6 +2211,10 @@
 	semantic-flex-keywords-obarray semantic-c-by--keyword-table
 	semantic-equivalent-major-modes '(c-mode c++-mode)
 	))
+
+
+;;; Analyzers
+;;
 
 ;;; Epilogue
 ;;

@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2013 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'vc))
+(eval-when-compile (require 'vc))
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -115,7 +115,7 @@ This is only meaningful if you don't use the implicit checkout model
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
-If value is the symbol `only-file' `vc-dir' will connect to the
+If value is the symbol `only-file', `vc-dir' will connect to the
 server, but heuristics will be used to determine the status for
 all other VC operations.
 
@@ -198,7 +198,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 ;;;###autoload   "Return non-nil if file F is registered with CVS."
 ;;;###autoload   (when (file-readable-p (expand-file-name
 ;;;###autoload 			  "CVS/Entries" (file-name-directory f)))
-;;;###autoload       (load "vc-cvs")
+;;;###autoload       (load "vc-cvs" nil t)
 ;;;###autoload       (vc-cvs-registered f)))
 
 (defun vc-cvs-registered (file)
@@ -256,7 +256,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-cvs-mode-line-string (file)
-  "Return string for placement into the modeline for FILE.
+  "Return a string for `vc-mode-line' to put in the mode line for FILE.
 Compared to the default implementation, this function does two things:
 Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
@@ -279,6 +279,8 @@ committed and support display of sticky tags."
 ;;;
 ;;; State-changing functions
 ;;;
+
+(autoload 'vc-switches "vc")
 
 (defun vc-cvs-register (files &optional _rev comment)
   "Register FILES into the CVS version-control system.
@@ -394,7 +396,7 @@ REV is the revision to check out."
              (if vc-cvs-use-edit
                  (vc-cvs-command nil 0 file "edit")
                (set-file-modes file (logior (file-modes file) 128))
-               (if (equal file buffer-file-name) (toggle-read-only -1))))
+               (if (equal file buffer-file-name) (read-only-mode -1))))
       ;; Check out a particular revision (or recreate the file).
       (vc-file-setprop file 'vc-working-revision nil)
       (apply 'vc-cvs-command nil 0 file
@@ -414,6 +416,8 @@ REV is the revision to check out."
 
 (defun vc-cvs-delete-file (file)
   (vc-cvs-command nil 0 file "remove" "-f"))
+
+(autoload 'vc-default-revert "vc")
 
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the working revision on which it was based."
@@ -501,9 +505,12 @@ Will fail unless you have administrative privileges on the repo."
 ;;;
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
+;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
 
 (defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
-  "Get change logs associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
   (vc-cvs-command
@@ -511,12 +518,15 @@ Will fail unless you have administrative privileges on the repo."
    (if (vc-stay-local-p files 'CVS) 'async 0)
    files "log")
   (with-current-buffer buffer
-    (vc-exec-after (vc-rcs-print-log-cleanup)))
+    (vc-run-delayed (vc-rcs-print-log-cleanup)))
   (when limit 'limit-unsupported))
 
 (defun vc-cvs-comment-history (file)
   "Get comment history of a file."
   (vc-call-backend 'RCS 'comment-history file))
+
+(autoload 'vc-version-backup-file "vc")
+(declare-function vc-coding-system-for-diff "vc" (file))
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
@@ -562,14 +572,13 @@ Will fail unless you have administrative privileges on the repo."
 
 (defconst vc-cvs-annotate-first-line-re "^[0-9]")
 
-(defun vc-cvs-annotate-process-filter (process string)
+(defun vc-cvs-annotate-process-filter (filter process string)
   (setq string (concat (process-get process 'output) string))
   (if (not (string-match vc-cvs-annotate-first-line-re string))
       ;; Still waiting for the first real line.
       (process-put process 'output string)
-    (let ((vc-filter (process-get process 'vc-filter)))
-      (set-process-filter process vc-filter)
-      (funcall vc-filter process (substring string (match-beginning 0))))))
+    (remove-function (process-filter process) #'vc-cvs-annotate-process-filter)
+    (funcall filter process (substring string (match-beginning 0)))))
 
 (defun vc-cvs-annotate-command (file buffer &optional revision)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
@@ -583,9 +592,8 @@ Optional arg REVISION is a revision to annotate from."
   (let ((proc (get-buffer-process buffer)))
     (if proc
         ;; If running asynchronously, use a process filter.
-        (progn
-          (process-put proc 'vc-filter (process-filter proc))
-          (set-process-filter proc 'vc-cvs-annotate-process-filter))
+        (add-function :around (process-filter proc)
+                      #'vc-cvs-annotate-process-filter)
       (with-current-buffer buffer
         (goto-char (point-min))
         (re-search-forward vc-cvs-annotate-first-line-re)
@@ -665,6 +673,10 @@ If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
   (vc-cvs-command nil 0 dir "tag" "-c" (if branchp "-b") name)
   (when branchp (vc-cvs-command nil 0 dir "update" "-r" name)))
+
+;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
+(declare-function vc-resynch-buffer "vc-dispatcher"
+                  (file &optional keep noquery reset-vc-info))
 
 (defun vc-cvs-retrieve-tag (dir name update)
   "Retrieve a tag at and below DIR.
@@ -790,7 +802,7 @@ For an empty string, nil is returned (invalid CVS root)."
            ((= len 3)
             ;; :METHOD:PATH or :METHOD:USER@HOSTNAME/PATH
             (cons (cadr root-list)
-                  (vc-cvs-parse-uhp (caddr root-list))))
+                  (vc-cvs-parse-uhp (nth 2 root-list))))
            (t
             ;; :METHOD:[USER@]HOST:PATH
             (cdr root-list)))))
@@ -1003,14 +1015,14 @@ state."
       ;; (vc-cvs-command (current-buffer) 'async
       ;; 		  (file-relative-name dir)
       ;; 		  "-f" "-n" "update" "-d" "-P")
-      (vc-exec-after
-       `(vc-cvs-after-dir-status (quote ,update-function))))))
+      (vc-run-delayed
+       (vc-cvs-after-dir-status update-function)))))
 
 (defun vc-cvs-dir-status-files (dir files _default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
-  (vc-exec-after
-   `(vc-cvs-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-cvs-after-dir-status update-function)))
 
 (defun vc-cvs-file-to-string (file)
   "Read the content of FILE and return it as a string."
@@ -1178,7 +1190,11 @@ is non-nil."
                                (parse-time-string (concat time " +0000")))))
       (cond ((and (not (string-match "\\+" time))
                   (car parsed-time)
-                  (equal mtime (apply 'encode-time parsed-time)))
+                  ;; Compare just the seconds part of the file time,
+                  ;; since CVS file time stamp resolution is just 1 second.
+                  (let ((ptime (apply 'encode-time parsed-time)))
+                    (and (eq (car mtime) (car ptime))
+                         (eq (cadr mtime) (cadr ptime)))))
              (vc-file-setprop file 'vc-checkout-time mtime)
              (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
             (t
@@ -1210,6 +1226,27 @@ is non-nil."
                    table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
+(defun vc-cvs-ignore (file)
+  "Ignore FILE under CVS."
+  (cvs-append-to-ignore (file-name-directory file) file))
+
+(defun cvs-append-to-ignore (dir str &optional old-dir)
+  "In DIR, add STR to the .cvsignore file.
+If OLD-DIR is non-nil, then this is a directory that we don't want
+to hear about anymore."
+  (with-current-buffer
+      (find-file-noselect (expand-file-name ".cvsignore" dir))
+    (when (ignore-errors
+	    (and buffer-read-only
+		 (eq 'CVS (vc-backend buffer-file-name))
+		 (not (vc-editable-p buffer-file-name))))
+      ;; CVSREAD=on special case
+      (vc-checkout buffer-file-name t))
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))
+    (insert str (if old-dir "/\n" "\n"))
+    (if cvs-sort-ignore-file (sort-lines nil (point-min) (point-max)))
+    (save-buffer)))
 
 (provide 'vc-cvs)
 

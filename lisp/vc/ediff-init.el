@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -753,6 +753,7 @@ to temp files in buffer jobs and when Ediff needs to find fine differences."
   "Check the current version against MAJOR and MINOR version numbers.
 The comparison uses operator OP, which may be any of: =, >, >=, <, <=.
 TYPE-OF-EMACS is either 'xemacs or 'emacs."
+  (declare (obsolete version< "23.1"))
   (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
 	     ((eq type-of-emacs 'emacs) (featurep 'emacs))
 	     (t))
@@ -766,9 +767,6 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 		     t)))
 	     (t
 	      (error "%S: Invalid op in ediff-check-version" op)))))
-
-;; ediff-check-version seems to be totally unused anyway.
-(make-obsolete 'ediff-check-version 'version< "23.1")
 
 (defun ediff-color-display-p ()
   (condition-case nil
@@ -812,7 +810,7 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
   (ediff-overlay-put extent 'face face)
   (ediff-overlay-put extent 'help-echo 'ediff-region-help-echo))
 
-(defun ediff-region-help-echo (extent-or-window &optional overlay point)
+(defun ediff-region-help-echo (extent-or-window &optional overlay _point)
   (unless overlay
     (setq overlay extent-or-window))
   (let ((is-current (ediff-overlay-get overlay 'ediff))
@@ -981,7 +979,7 @@ this variable represents.")
 (defface ediff-fine-diff-A
   (if (featurep 'emacs)
       '((((class color) (min-colors 88) (background light))
-	 :background "#ffaaaa")
+	 :background "#ffbbbb")
 	(((class color) (min-colors 88) (background dark))
 	 :background "#aa2222")
 	(((class color) (min-colors 16))
@@ -1770,7 +1768,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
   (or n (setq n ediff-current-difference))
   (and (>= n 0) (< n ediff-number-of-differences)))
 
-(defsubst ediff-show-all-diffs (n)
+(defsubst ediff-show-all-diffs (_n)
   "Don't skip difference regions."
   nil)
 

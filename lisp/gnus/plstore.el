@@ -1,5 +1,5 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
-;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -126,7 +126,7 @@ symmetric encryption will be used.")
 
 (defun plstore-passphrase-callback-function (_context _key-id plstore)
   (if plstore-cache-passphrase-for-symmetric-encryption
-      (let* ((file (file-truename (plstore--get-buffer plstore)))
+      (let* ((file (file-truename (plstore-get-file plstore)))
 	     (entry (assoc file plstore-passphrase-alist))
 	     passphrase)
 	(or (copy-sequence (cdr entry))

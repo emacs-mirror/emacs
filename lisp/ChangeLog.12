@@ -17355,7 +17355,7 @@
 
 	* calc/calc-embed.el (calc-do-embedded): Update help message.
 
-	* calc/calc-prog.el (calc-user-define-invokation): Update help message.
+	* calc/calc-prog.el (calc-user-define-invocation): Update help message.
 
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -33346,7 +33346,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2012 Free Software Foundation, Inc.
+    Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

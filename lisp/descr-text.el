@@ -1,6 +1,6 @@
-;;; descr-text.el --- describe text mode
+;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;;; Describe-Text Mode.
+;; Describe-Text Mode.
 
 ;;; Code:
 
@@ -36,8 +36,7 @@
   "Insert text to describe WIDGET in the current buffer."
   (insert-text-button
    (symbol-name (if (symbolp widget) widget (car widget)))
-   'action `(lambda (&rest ignore)
-	      (widget-browse ',widget))
+   'action (lambda (&rest _ignore) (widget-browse widget))
    'help-echo "mouse-2, RET: browse this widget")
   (insert " ")
   (insert-text-button
@@ -55,10 +54,10 @@
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
-       "[Show]" 'action `(lambda (&rest ignore)
-			   (with-output-to-temp-buffer
-			       "*Pp Eval Output*"
-			     (princ ',pp)))
+       "[Show]" 'action (lambda (&rest _ignore)
+                          (with-output-to-temp-buffer
+                              "*Pp Eval Output*"
+                            (princ pp)))
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
@@ -81,8 +80,8 @@ into help buttons that call `describe-text-category' or
       (cond ((eq key 'category)
 	     (insert-text-button
 	      (symbol-name value)
-	      'action `(lambda (&rest ignore)
-			 (describe-text-category ',value))
+	      'action (lambda (&rest _ignore)
+                        (describe-text-category value))
 	      'follow-link t
 	      'help-echo "mouse-2, RET: describe this category"))
             ((memq key '(face font-lock-face mouse-face))
@@ -140,7 +139,7 @@ otherwise."
 
 (defun describe-text-properties-1 (pos output-buffer)
   (let* ((properties (text-properties-at pos))
-	 (overlays (overlays-at pos))
+	 (overlays (overlays-in pos (1+ pos)))
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
@@ -354,7 +353,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; Return a string of CH with composition for padding on both sides.
 ;; It is displayed without overlapping with the left/right columns.
 (defsubst describe-char-padded-string (ch)
-  (if (internal-char-font nil ch)
+  (if (and (display-multi-font-p)
+	   (internal-char-font nil ch))
       (compose-string (string ch) 0 1 (format "\t%c\t" ch))
     (string ch)))
 
@@ -373,6 +373,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 			     c)))
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
+
+(declare-function quail-find-key "quail" (char))
 
 ;;;###autoload
 (defun describe-char (pos &optional buffer)
@@ -533,7 +535,7 @@ relevant to POS."
                        (col      (current-column)))
                   (if (or (/= beg 1)  (/= end (1+ total)))
                       (format "%d of %d (%d%%), restriction: <%d-%d>, column: %d%s"
-                              pos total percent col beg end hscroll)
+                              pos total percent beg end col hscroll)
                     (if (= pos end)
                         (format "%d of %d (EOB), column: %d%s" pos total col hscroll)
                       (format "%d of %d (%d%%), column: %d%s"
@@ -571,6 +573,9 @@ relevant to POS."
                         'help-echo
                         "mouse-2, RET: show this character in its character set")
                     str)))
+              ,@(let ((script (aref char-script-table char)))
+                  (if script
+                      (list (list "script" (symbol-name script)))))
               ("syntax"
                ,(let ((syntax (syntax-after pos)))
                   (with-temp-buffer
@@ -597,7 +602,10 @@ relevant to POS."
                                  `(insert-text-button
                                    ,current-input-method
                                    'type 'help-input-method
-                                   'help-args '(,current-input-method)))))))
+                                   'help-args '(,current-input-method))
+				 "input method")
+			 (list
+			  "type \"C-x 8 RET HEX-CODEPOINT\" or \"C-x 8 RET NAME\"")))))
               ("buffer code"
                ,(if multibyte-p
                     (encoded-string-description
@@ -654,7 +662,7 @@ relevant to POS."
                             ((and (< char 32) (not (memq char '(9 10))))
                              'escape-glyph)))))
                   (if face (list (list "hardcoded face"
-                                       `(insert-text-button
+                                       `(insert-text-button ;FIXME: Wrap in lambda!
                                          ,(symbol-name face)
                                          'type 'help-face
                                          'help-args '(,face))))))
@@ -676,23 +684,17 @@ relevant to POS."
               (when (cadr elt)
                 (insert (format formatter (car elt)))
                 (dolist (clm (cdr elt))
-                  (if (eq (car-safe clm) 'insert-text-button)
-                      (progn (insert " ") (eval clm))
-                    (when (>= (+ (current-column)
-                                 (or (string-match-p "\n" clm)
-                                     (string-width clm))
-                                 1)
-                              (window-width))
-                      (insert "\n")
-                      (indent-to (1+ max-width)))
-                    (unless (zerop (length clm))
-                      (insert " " clm))))
+		  (cond ((eq (car-safe clm) 'insert-text-button)
+			 (insert " ")
+			 (eval clm))
+			((not (zerop (length clm)))
+			 (insert " " clm))))
                 (insert "\n"))))
 
           (when overlays
             (save-excursion
               (goto-char (point-min))
-              (re-search-forward "character:[ \t\n]+")
+              (re-search-forward "(displayed as ")
               (let ((end (+ (point) (length char-description))))
                 (mapc (lambda (props)
                         (let ((o (make-overlay (point) end)))
@@ -750,7 +752,7 @@ relevant to POS."
                     (insert " by these characters:\n")
                     (while (and (<= from to)
                                 (setq glyph (lgstring-glyph gstring from)))
-                      (insert (format " %c (#x%d)\n"
+                      (insert (format " %c (#x%x)\n"
                                       (lglyph-char glyph) (lglyph-char glyph)))
                       (setq from (1+ from)))))
               (insert " by the rule:\n\t(")

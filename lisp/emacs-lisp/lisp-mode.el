@@ -1,6 +1,6 @@
-;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
+;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -110,24 +110,32 @@ It has `lisp-mode-abbrev-table' as its parent."
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
-				"defgeneric" "defmethod") t))
+				"defgeneric" "defmethod"
+				"cl-defun" "cl-defsubst" "cl-defmacro"
+				"cl-define-compiler-macro") t))
 			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
 			     (regexp-opt
-			      '("defvar" "defconst" "defconstant" "defcustom"
+			      '("defconst" "defconstant" "defcustom"
 				"defparameter" "define-symbol-macro") t))
 			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
+   ;; For `defvar', we ignore (defvar FOO) constructs.
+   (list (purecopy "Variables")
+	 (purecopy (concat "^\\s-*(defvar\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"
+			   "[[:space:]\n]+[^)]"))
+	 1)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
 			     (regexp-opt
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
-				"defface" "defpackage") t))
+				"defface" "defpackage" "cl-deftype"
+				"cl-defstruct") t))
 			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
@@ -158,7 +166,8 @@ It has `lisp-mode-abbrev-table' as its parent."
                                   (goto-char listbeg)
                                   (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
                                        (match-string 1)))))
-                 (docelt (and firstsym (get (intern-soft firstsym)
+                 (docelt (and firstsym
+                              (function-get (intern-soft firstsym)
                                             lisp-doc-string-elt-property))))
             (if (and docelt
                      ;; It's a string in a form that can have a docstring.
@@ -189,52 +198,43 @@ score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
 font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'lisp-fill-paragraph)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local fill-paragraph-function 'lisp-fill-paragraph)
   ;; Adaptive fill mode gets the fill wrong for a one-line paragraph made of
   ;; a single docstring.  Let's fix it here.
-  (set (make-local-variable 'adaptive-fill-function)
-       (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
+  (setq-local adaptive-fill-function
+	      (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
-  (make-local-variable 'outline-level)
-  (setq outline-level 'lisp-outline-level)
-  (make-local-variable 'comment-start)
-  (setq comment-start ";")
-  (make-local-variable 'comment-start-skip)
+  (setq-local indent-line-function 'lisp-indent-line)
+  (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
+  (setq-local outline-level 'lisp-outline-level)
+  (setq-local add-log-current-defun-function #'lisp-current-defun-name)
+  (setq-local comment-start ";")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
-  (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (make-local-variable 'font-lock-comment-start-skip)
+  (setq-local comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   ;; Font lock mode uses this only when it KNOWS a comment is starting.
-  (setq font-lock-comment-start-skip ";+ *")
-  (make-local-variable 'comment-add)
-  (setq comment-add 1)			;default to `;;' in comment-region
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
+  (setq-local font-lock-comment-start-skip ";+ *")
+  (setq-local comment-add 1)		;default to `;;' in comment-region
+  (setq-local comment-column 40)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
-  (set (make-local-variable 'comment-use-global-state) t)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression lisp-imenu-generic-expression)
-  (make-local-variable 'multibyte-syntax-as-symbol)
-  (setq multibyte-syntax-as-symbol t)
-  (set (make-local-variable 'syntax-begin-function) 'beginning-of-defun)
+  (setq-local comment-use-global-state t)
+  (setq-local imenu-generic-expression lisp-imenu-generic-expression)
+  (setq-local multibyte-syntax-as-symbol t)
+  (setq-local syntax-begin-function 'beginning-of-defun)
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
-	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
-	  nil ,keywords-case-insensitive (("+-*/.<>=!?$%_&~^:@" . "w")) nil
+	   lisp-font-lock-keywords-1
+           lisp-font-lock-keywords-2)
+	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
-	   . lisp-font-lock-syntactic-face-function))))
+	   . lisp-font-lock-syntactic-face-function)))
+  (setq-local prettify-symbols-alist lisp--prettify-symbols-alist))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -243,8 +243,35 @@ font-lock keywords will not be case sensitive."
 	1000
       len)))
 
+(defun lisp-current-defun-name ()
+  "Return the name of the defun at point, or nil."
+  (save-excursion
+    (let ((location (point)))
+      ;; If we are now precisely at the beginning of a defun, make sure
+      ;; beginning-of-defun finds that one rather than the previous one.
+      (or (eobp) (forward-char 1))
+      (beginning-of-defun)
+      ;; Make sure we are really inside the defun found, not after it.
+      (when (and (looking-at "\\s(")
+		 (progn (end-of-defun)
+			(< location (point)))
+		 (progn (forward-sexp -1)
+			(>= location (point))))
+	(if (looking-at "\\s(")
+	    (forward-char 1))
+	;; Skip the defining construct name, typically "defun" or
+	;; "defvar".
+	(forward-sexp 1)
+	;; The second element is usually a symbol being defined.  If it
+	;; is not, use the first symbol in it.
+	(skip-chars-forward " \t\n'(")
+	(buffer-substring-no-properties (point)
+					(progn (forward-sexp 1)
+					       (point)))))))
+
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map prog-mode-map)
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
     ;; This gets in the way when viewing a Lisp file in view-mode.  As
@@ -264,110 +291,127 @@ font-lock keywords will not be case sensitive."
     (define-key map "\e\t" 'completion-at-point)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
-    (define-key map [menu-bar emacs-lisp] (cons (purecopy "Emacs-Lisp") menu-map))
-    (define-key menu-map [eldoc]
-      `(menu-item ,(purecopy "Auto-Display Documentation Strings") eldoc-mode
+    (bindings--define-key map [menu-bar emacs-lisp]
+      (cons "Emacs-Lisp" menu-map))
+    (bindings--define-key menu-map [eldoc]
+      '(menu-item "Auto-Display Documentation Strings" eldoc-mode
 		  :button (:toggle . (bound-and-true-p eldoc-mode))
-		  :help ,(purecopy "Display the documentation string for the item under cursor")))
-    (define-key menu-map [checkdoc]
-      `(menu-item ,(purecopy "Check Documentation Strings") checkdoc
-		  :help ,(purecopy "Check documentation strings for style requirements")))
-    (define-key menu-map [re-builder]
-      `(menu-item ,(purecopy "Construct Regexp") re-builder
-		  :help ,(purecopy "Construct a regexp interactively")))
-    (define-key menu-map [tracing] (cons (purecopy "Tracing") tracing-map))
-    (define-key tracing-map [tr-a]
-      `(menu-item ,(purecopy "Untrace All") untrace-all
-		  :help ,(purecopy "Untrace all currently traced functions")))
-    (define-key tracing-map [tr-uf]
-      `(menu-item ,(purecopy "Untrace Function...") untrace-function
-		  :help ,(purecopy "Untrace function, and possibly activate all remaining advice")))
-    (define-key tracing-map [tr-sep] menu-bar-separator)
-    (define-key tracing-map [tr-q]
-      `(menu-item ,(purecopy "Trace Function Quietly...") trace-function-background
-		  :help ,(purecopy "Trace the function with trace output going quietly to a buffer")))
-    (define-key tracing-map [tr-f]
-      `(menu-item ,(purecopy "Trace Function...") trace-function
-		  :help ,(purecopy "Trace the function given as an argument")))
-    (define-key menu-map [profiling] (cons (purecopy "Profiling") prof-map))
-    (define-key prof-map [prof-restall]
-      `(menu-item ,(purecopy "Remove Instrumentation for All Functions") elp-restore-all
-		  :help ,(purecopy "Restore the original definitions of all functions being profiled")))
-    (define-key prof-map [prof-restfunc]
-      `(menu-item ,(purecopy "Remove Instrumentation for Function...") elp-restore-function
-		  :help ,(purecopy "Restore an instrumented function to its original definition")))
+		  :help "Display the documentation string for the item under cursor"))
+    (bindings--define-key menu-map [checkdoc]
+      '(menu-item "Check Documentation Strings" checkdoc
+		  :help "Check documentation strings for style requirements"))
+    (bindings--define-key menu-map [re-builder]
+      '(menu-item "Construct Regexp" re-builder
+		  :help "Construct a regexp interactively"))
+    (bindings--define-key menu-map [tracing] (cons "Tracing" tracing-map))
+    (bindings--define-key tracing-map [tr-a]
+      '(menu-item "Untrace All" untrace-all
+		  :help "Untrace all currently traced functions"))
+    (bindings--define-key tracing-map [tr-uf]
+      '(menu-item "Untrace Function..." untrace-function
+		  :help "Untrace function, and possibly activate all remaining advice"))
+    (bindings--define-key tracing-map [tr-sep] menu-bar-separator)
+    (bindings--define-key tracing-map [tr-q]
+      '(menu-item "Trace Function Quietly..." trace-function-background
+		  :help "Trace the function with trace output going quietly to a buffer"))
+    (bindings--define-key tracing-map [tr-f]
+      '(menu-item "Trace Function..." trace-function
+		  :help "Trace the function given as an argument"))
+    (bindings--define-key menu-map [profiling] (cons "Profiling" prof-map))
+    (bindings--define-key prof-map [prof-restall]
+      '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
+		  :help "Restore the original definitions of all functions being profiled"))
+    (bindings--define-key prof-map [prof-restfunc]
+      '(menu-item "Remove Instrumentation for Function..." elp-restore-function
+		  :help "Restore an instrumented function to its original definition"))
 
-    (define-key prof-map [sep-rem] menu-bar-separator)
-    (define-key prof-map [prof-resall]
-      `(menu-item ,(purecopy "Reset Counters for All Functions") elp-reset-all
-		  :help ,(purecopy "Reset the profiling information for all functions being profiled")))
-    (define-key prof-map [prof-resfunc]
-      `(menu-item ,(purecopy "Reset Counters for Function...") elp-reset-function
-		  :help ,(purecopy "Reset the profiling information for a function")))
-    (define-key prof-map [prof-res]
-      `(menu-item ,(purecopy "Show Profiling Results") elp-results
-		  :help ,(purecopy "Display current profiling results")))
-    (define-key prof-map [prof-pack]
-      `(menu-item ,(purecopy "Instrument Package...") elp-instrument-package
-		  :help ,(purecopy "Instrument for profiling all function that start with a prefix")))
-    (define-key prof-map [prof-func]
-      `(menu-item ,(purecopy "Instrument Function...") elp-instrument-function
-		  :help ,(purecopy "Instrument a function for profiling")))
-    (define-key menu-map [lint] (cons (purecopy "Linting") lint-map))
-    (define-key lint-map [lint-di]
-      `(menu-item ,(purecopy "Lint Directory...") elint-directory
-		  :help ,(purecopy "Lint a directory")))
-    (define-key lint-map [lint-f]
-      `(menu-item ,(purecopy "Lint File...") elint-file
-		  :help ,(purecopy "Lint a file")))
-    (define-key lint-map [lint-b]
-      `(menu-item ,(purecopy "Lint Buffer") elint-current-buffer
-		  :help ,(purecopy "Lint the current buffer")))
-    (define-key lint-map [lint-d]
-      `(menu-item ,(purecopy "Lint Defun") elint-defun
-		  :help ,(purecopy "Lint the function at point")))
-    (define-key menu-map [edebug-defun]
-      `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
-		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
-		  :keys ,(purecopy "C-u C-M-x")))
-    (define-key menu-map [separator-byte] menu-bar-separator)
-    (define-key menu-map [disas]
-      `(menu-item ,(purecopy "Disassemble Byte Compiled Object...") disassemble
-		  :help ,(purecopy "Print disassembled code for OBJECT in a buffer")))
-    (define-key menu-map [byte-recompile]
-      `(menu-item ,(purecopy "Byte-recompile Directory...") byte-recompile-directory
-		  :help ,(purecopy "Recompile every `.el' file in DIRECTORY that needs recompilation")))
-    (define-key menu-map [emacs-byte-compile-and-load]
-      `(menu-item ,(purecopy "Byte-compile and Load") emacs-lisp-byte-compile-and-load
-		  :help ,(purecopy "Byte-compile the current file (if it has changed), then load compiled code")))
-    (define-key menu-map [byte-compile]
-      `(menu-item ,(purecopy "Byte-compile This File") emacs-lisp-byte-compile
-		  :help ,(purecopy "Byte compile the file containing the current buffer")))
-    (define-key menu-map [separator-eval] menu-bar-separator)
-    (define-key menu-map [ielm]
-      `(menu-item ,(purecopy "Interactive Expression Evaluation") ielm
-		  :help ,(purecopy "Interactively evaluate Emacs Lisp expressions")))
-    (define-key menu-map [eval-buffer]
-      `(menu-item ,(purecopy "Evaluate Buffer") eval-buffer
-		  :help ,(purecopy "Execute the current buffer as Lisp code")))
-    (define-key menu-map [eval-region]
-      `(menu-item ,(purecopy "Evaluate Region") eval-region
-		  :help ,(purecopy "Execute the region as Lisp code")
+    (bindings--define-key prof-map [sep-rem] menu-bar-separator)
+    (bindings--define-key prof-map [prof-resall]
+      '(menu-item "Reset Counters for All Functions" elp-reset-all
+		  :help "Reset the profiling information for all functions being profiled"))
+    (bindings--define-key prof-map [prof-resfunc]
+      '(menu-item "Reset Counters for Function..." elp-reset-function
+		  :help "Reset the profiling information for a function"))
+    (bindings--define-key prof-map [prof-res]
+      '(menu-item "Show Profiling Results" elp-results
+		  :help "Display current profiling results"))
+    (bindings--define-key prof-map [prof-pack]
+      '(menu-item "Instrument Package..." elp-instrument-package
+		  :help "Instrument for profiling all function that start with a prefix"))
+    (bindings--define-key prof-map [prof-func]
+      '(menu-item "Instrument Function..." elp-instrument-function
+		  :help "Instrument a function for profiling"))
+    ;; Maybe this should be in a separate submenu from the ELP stuff?
+    (bindings--define-key prof-map [sep-natprof] menu-bar-separator)
+    (bindings--define-key prof-map [prof-natprof-stop]
+      '(menu-item "Stop Native Profiler" profiler-stop
+		  :help "Stop recording profiling information"
+		  :enable (and (featurep 'profiler)
+			       (profiler-running-p))))
+    (bindings--define-key prof-map [prof-natprof-report]
+      '(menu-item "Show Profiler Report" profiler-report
+		  :help "Show the current profiler report"
+		  :enable (and (featurep 'profiler)
+			       (profiler-running-p))))
+    (bindings--define-key prof-map [prof-natprof-start]
+      '(menu-item "Start Native Profiler..." profiler-start
+		  :help "Start recording profiling information"))
+
+    (bindings--define-key menu-map [lint] (cons "Linting" lint-map))
+    (bindings--define-key lint-map [lint-di]
+      '(menu-item "Lint Directory..." elint-directory
+		  :help "Lint a directory"))
+    (bindings--define-key lint-map [lint-f]
+      '(menu-item "Lint File..." elint-file
+		  :help "Lint a file"))
+    (bindings--define-key lint-map [lint-b]
+      '(menu-item "Lint Buffer" elint-current-buffer
+		  :help "Lint the current buffer"))
+    (bindings--define-key lint-map [lint-d]
+      '(menu-item "Lint Defun" elint-defun
+		  :help "Lint the function at point"))
+    (bindings--define-key menu-map [edebug-defun]
+      '(menu-item "Instrument Function for Debugging" edebug-defun
+		  :help "Evaluate the top level form point is in, stepping through with Edebug"
+		  :keys "C-u C-M-x"))
+    (bindings--define-key menu-map [separator-byte] menu-bar-separator)
+    (bindings--define-key menu-map [disas]
+      '(menu-item "Disassemble Byte Compiled Object..." disassemble
+		  :help "Print disassembled code for OBJECT in a buffer"))
+    (bindings--define-key menu-map [byte-recompile]
+      '(menu-item "Byte-recompile Directory..." byte-recompile-directory
+		  :help "Recompile every `.el' file in DIRECTORY that needs recompilation"))
+    (bindings--define-key menu-map [emacs-byte-compile-and-load]
+      '(menu-item "Byte-compile and Load" emacs-lisp-byte-compile-and-load
+		  :help "Byte-compile the current file (if it has changed), then load compiled code"))
+    (bindings--define-key menu-map [byte-compile]
+      '(menu-item "Byte-compile This File" emacs-lisp-byte-compile
+		  :help "Byte compile the file containing the current buffer"))
+    (bindings--define-key menu-map [separator-eval] menu-bar-separator)
+    (bindings--define-key menu-map [ielm]
+      '(menu-item "Interactive Expression Evaluation" ielm
+		  :help "Interactively evaluate Emacs Lisp expressions"))
+    (bindings--define-key menu-map [eval-buffer]
+      '(menu-item "Evaluate Buffer" eval-buffer
+		  :help "Execute the current buffer as Lisp code"))
+    (bindings--define-key menu-map [eval-region]
+      '(menu-item "Evaluate Region" eval-region
+		  :help "Execute the region as Lisp code"
 		  :enable mark-active))
-    (define-key menu-map [eval-sexp]
-      `(menu-item ,(purecopy "Evaluate Last S-expression") eval-last-sexp
-		  :help ,(purecopy "Evaluate sexp before point; print value in minibuffer")))
-    (define-key menu-map [separator-format] menu-bar-separator)
-    (define-key menu-map [comment-region]
-      `(menu-item ,(purecopy "Comment Out Region") comment-region
-		  :help ,(purecopy "Comment or uncomment each line in the region")
+    (bindings--define-key menu-map [eval-sexp]
+      '(menu-item "Evaluate Last S-expression" eval-last-sexp
+		  :help "Evaluate sexp before point; print value in echo area"))
+    (bindings--define-key menu-map [separator-format] menu-bar-separator)
+    (bindings--define-key menu-map [comment-region]
+      '(menu-item "Comment Out Region" comment-region
+		  :help "Comment or uncomment each line in the region"
 		  :enable mark-active))
-    (define-key menu-map [indent-region]
-      `(menu-item ,(purecopy "Indent Region") indent-region
-		  :help ,(purecopy "Indent each nonblank line in the region")
+    (bindings--define-key menu-map [indent-region]
+      '(menu-item "Indent Region" indent-region
+		  :help "Indent each nonblank line in the region"
 		  :enable mark-active))
-    (define-key menu-map [indent-line]
-      `(menu-item ,(purecopy "Indent Line") lisp-indent-line))
+    (bindings--define-key menu-map [indent-line]
+      '(menu-item "Indent Line" lisp-indent-line))
     map)
   "Keymap for Emacs Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
@@ -409,6 +453,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :type 'hook
   :group 'lisp)
 
+(defconst lisp--prettify-symbols-alist
+  '(("lambda"  . ?λ)))
+
 (define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
@@ -424,22 +471,77 @@ if that value is non-nil."
   (add-hook 'completion-at-point-functions
             'lisp-completion-at-point nil 'local))
 
+;;; Emacs Lisp Byte-Code mode
+
+(eval-and-compile
+  (defconst emacs-list-byte-code-comment-re
+    (concat "\\(#\\)@\\([0-9]+\\) "
+            ;; Make sure it's a docstring and not a lazy-loaded byte-code.
+            "\\(?:[^(]\\|([^\"]\\)")))
+
+(defun emacs-lisp-byte-code-comment (end &optional _point)
+  "Try to syntactically mark the #@NNN ....^_ docstrings in byte-code files."
+  (let ((ppss (syntax-ppss)))
+    (when (and (nth 4 ppss)
+               (eq (char-after (nth 8 ppss)) ?#))
+      (let* ((n (save-excursion
+                  (goto-char (nth 8 ppss))
+                  (when (looking-at emacs-list-byte-code-comment-re)
+                    (string-to-number (match-string 2)))))
+             ;; `maxdiff' tries to make sure the loop below terminates.
+             (maxdiff n))
+        (when n
+          (let* ((bchar (match-end 2))
+                 (b (position-bytes bchar)))
+            (goto-char (+ b n))
+            (while (let ((diff (- (position-bytes (point)) b n)))
+                     (unless (zerop diff)
+                       (when (> diff maxdiff) (setq diff maxdiff))
+                       (forward-char (- diff))
+                       (setq maxdiff (if (> diff 0) diff
+                                       (max (1- maxdiff) 1)))
+                       t))))
+          (if (<= (point) end)
+              (put-text-property (1- (point)) (point)
+                                 'syntax-table
+                                 (string-to-syntax "> b"))
+            (goto-char end)))))))
+
+(defun emacs-lisp-byte-code-syntax-propertize (start end)
+  (emacs-lisp-byte-code-comment end (point))
+  (funcall
+   (syntax-propertize-rules
+    (emacs-list-byte-code-comment-re
+     (1 (prog1 "< b" (emacs-lisp-byte-code-comment end (point))))))
+   start end))
+
+(add-to-list 'auto-mode-alist '("\\.elc\\'" . emacs-lisp-byte-code-mode))
+(define-derived-mode emacs-lisp-byte-code-mode emacs-lisp-mode
+  "Elisp-Byte-Code"
+  "Major mode for *.elc files."
+  ;; TODO: Add way to disassemble byte-code under point.
+  (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local syntax-propertize-function
+              #'emacs-lisp-byte-code-syntax-propertize))
+
+;;; Generic Lisp mode.
+
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Lisp")))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
-    (define-key map [menu-bar lisp] (cons (purecopy "Lisp") menu-map))
-    (define-key menu-map [run-lisp]
-      `(menu-item ,(purecopy "Run inferior Lisp") run-lisp
-		  :help ,(purecopy "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'")))
-    (define-key menu-map [ev-def]
-      `(menu-item ,(purecopy "Eval defun") lisp-eval-defun
-		  :help ,(purecopy "Send the current defun to the Lisp process made by M-x run-lisp")))
-    (define-key menu-map [ind-sexp]
-      `(menu-item ,(purecopy "Indent sexp") indent-sexp
-		  :help ,(purecopy "Indent each line of the list starting just after point")))
+    (bindings--define-key map [menu-bar lisp] (cons "Lisp" menu-map))
+    (bindings--define-key menu-map [run-lisp]
+      '(menu-item "Run inferior Lisp" run-lisp
+		  :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"))
+    (bindings--define-key menu-map [ev-def]
+      '(menu-item "Eval defun" lisp-eval-defun
+		  :help "Send the current defun to the Lisp process made by M-x run-lisp"))
+    (bindings--define-key menu-map [ind-sexp]
+      '(menu-item "Indent sexp" indent-sexp
+		  :help "Indent each line of the list starting just after point"))
     map)
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
@@ -457,10 +559,9 @@ or to switch back to an existing one.
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
   (lisp-mode-variables nil t)
-  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (setq-local find-tag-default-function 'lisp-find-tag-default)
+  (setq-local comment-start-skip
+	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
@@ -474,7 +575,7 @@ if that value is non-nil."
 (defalias 'common-lisp-mode 'lisp-mode)
 
 ;; This will do unless inf-lisp.el is loaded.
-(defun lisp-eval-defun (&optional and-go)
+(defun lisp-eval-defun (&optional _and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
   (interactive)
   (error "Process lisp does not exist"))
@@ -487,23 +588,24 @@ if that value is non-nil."
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map "\e\t" 'completion-at-point)
     (define-key map "\n" 'eval-print-last-sexp)
-    (define-key map [menu-bar lisp-interaction] (cons (purecopy "Lisp-Interaction") menu-map))
-    (define-key menu-map [eval-defun]
-      `(menu-item ,(purecopy "Evaluate Defun") eval-defun
-		  :help ,(purecopy "Evaluate the top-level form containing point, or after point")))
-    (define-key menu-map [eval-print-last-sexp]
-      `(menu-item ,(purecopy "Evaluate and Print") eval-print-last-sexp
-		  :help ,(purecopy "Evaluate sexp before point; print value into current buffer")))
-    (define-key menu-map [edebug-defun-lisp-interaction]
-      `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
-		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
-		  :keys ,(purecopy "C-u C-M-x")))
-    (define-key menu-map [indent-pp-sexp]
-      `(menu-item ,(purecopy "Indent or Pretty-Print") indent-pp-sexp
-		  :help ,(purecopy "Indent each line of the list starting just after point, or prettyprint it")))
-    (define-key menu-map [complete-symbol]
-      `(menu-item ,(purecopy "Complete Lisp Symbol") completion-at-point
-		  :help ,(purecopy "Perform completion on Lisp symbol preceding point")))
+    (bindings--define-key map [menu-bar lisp-interaction]
+      (cons "Lisp-Interaction" menu-map))
+    (bindings--define-key menu-map [eval-defun]
+      '(menu-item "Evaluate Defun" eval-defun
+		  :help "Evaluate the top-level form containing point, or after point"))
+    (bindings--define-key menu-map [eval-print-last-sexp]
+      '(menu-item "Evaluate and Print" eval-print-last-sexp
+		  :help "Evaluate sexp before point; print value into current buffer"))
+    (bindings--define-key menu-map [edebug-defun-lisp-interaction]
+      '(menu-item "Instrument Function for Debugging" edebug-defun
+		  :help "Evaluate the top level form point is in, stepping through with Edebug"
+		  :keys "C-u C-M-x"))
+    (bindings--define-key menu-map [indent-pp-sexp]
+      '(menu-item "Indent or Pretty-Print" indent-pp-sexp
+		  :help "Indent each line of the list starting just after point, or prettyprint it"))
+    (bindings--define-key menu-map [complete-symbol]
+      '(menu-item "Complete Lisp Symbol" completion-at-point
+		  :help "Perform completion on Lisp symbol preceding point"))
     map)
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
@@ -560,7 +662,7 @@ alternative printed representations that can be displayed."
 						printed-value)))))
 
 
-(defun last-sexp-toggle-display (&optional arg)
+(defun last-sexp-toggle-display (&optional _arg)
   "Toggle between abbreviated and unabbreviated printed representations."
   (interactive "P")
   (save-restriction
@@ -679,7 +781,7 @@ If CHAR is not a character, return nil."
 
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
-  "Evaluate sexp before point; print value in minibuffer.
+  "Evaluate sexp before point; print value in the echo area.
 With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     ;; Setup the lexical environment if lexical-binding is enabled.
@@ -715,6 +817,7 @@ With argument, print output into current buffer."
 (defun eval-sexp-add-defvars (exp &optional pos)
   "Prepend EXP with all the `defvar's that precede it in the buffer.
 POS specifies the starting position where EXP was found and defaults to point."
+  (setq exp (macroexpand-all exp))      ;Eager macro-expansion.
   (if (not lexical-binding)
       exp
     (save-excursion
@@ -722,15 +825,17 @@ POS specifies the starting position where EXP was found and defaults to point."
       (let ((vars ()))
         (goto-char (point-min))
         (while (re-search-forward
-                "^(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
+                "(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
                 pos t)
           (let ((var (intern (match-string 1))))
-            (unless (special-variable-p var)
+            (and (not (special-variable-p var))
+                 (save-excursion
+                   (zerop (car (syntax-ppss (match-beginning 0)))))
               (push var vars))))
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
-  "Evaluate sexp before point; print value in minibuffer.
+  "Evaluate sexp before point; print value in the echo area.
 Interactively, with prefix argument, print output into current buffer.
 Truncates long output according to the value of the variables
 `eval-expression-print-length' and `eval-expression-print-level'.
@@ -751,6 +856,7 @@ this command arranges for all errors to enter the debugger."
 (defun eval-defun-1 (form)
   "Treat some expressions specially.
 Reset the `defvar' and `defcustom' variables to the initial value.
+\(For `defcustom', use the :set function if there is one.)
 Reinitialize the face according to the `defface' specification."
   ;; The code in edebug-defun should be consistent with this, but not
   ;; the same, since this gets a macroexpanded form.
@@ -766,9 +872,19 @@ Reinitialize the face according to the `defface' specification."
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
 	      (default-boundp (eval (nth 1 form) lexical-binding)))
-	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form) lexical-binding)
-                      (eval (nth 1 (nth 2 form)) lexical-binding))
+	 ;; Force variable to be bound, using :set function if specified.
+	 (let ((setfunc (memq :set form)))
+	   (when setfunc
+	     (setq setfunc (car-safe (cdr-safe setfunc)))
+	     (or (functionp setfunc) (setq setfunc nil)))
+	   (funcall (or setfunc 'set-default)
+		    (eval (nth 1 form) lexical-binding)
+		    ;; The second arg is an expression that evaluates to
+		    ;; an expression.  The second evaluation is the one
+		    ;; normally performed not by normal execution but by
+		    ;; custom-initialize-set (for example), which does not
+		    ;; use lexical-binding.
+		    (eval (eval (nth 2 form) lexical-binding))))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
@@ -777,37 +893,22 @@ Reinitialize the face according to the `defface' specification."
 	   (setq face-new-frame-defaults
 		 (assq-delete-all face-symbol face-new-frame-defaults))
 	   (put face-symbol 'face-defface-spec nil)
-	   (put face-symbol 'face-documentation (nth 3 form))
-	   ;; Setting `customized-face' to the new spec after calling
-	   ;; the form, but preserving the old saved spec in `saved-face',
-	   ;; imitates the situation when the new face spec is set
-	   ;; temporarily for the current session in the customize
-	   ;; buffer, thus allowing `face-user-default-spec' to use the
-	   ;; new customized spec instead of the saved spec.
-	   ;; Resetting `saved-face' temporarily to nil is needed to let
-	   ;; `defface' change the spec, regardless of a saved spec.
-	   (prog1 `(prog1 ,form
-		     (put ,(nth 1 form) 'saved-face
-			  ',(get face-symbol 'saved-face))
-		     (put ,(nth 1 form) 'customized-face
-			  ,(nth 2 form)))
-	     (put face-symbol 'saved-face nil))))
+	   (put face-symbol 'face-override-spec nil))
+	 form)
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))
 
 (defun eval-defun-2 ()
   "Evaluate defun that point is in or before.
-The value is displayed in the minibuffer.
+The value is displayed in the echo area.
 If the current defun is actually a call to `defvar',
 then reset the variable using the initial value expression
 even if the variable already has some other value.
 \(Normally `defvar' does not change the variable's value
 if it already has a value.\)
 
-With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
-  (interactive "P")
   ;; FIXME: the print-length/level bindings should only be applied while
   ;; printing, not while evaluating.
   (let ((debug-on-error eval-expression-debug-on-error)
@@ -845,11 +946,12 @@ Return the result of evaluation."
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
-expression even if the variable already has some other value.
-\(Normally `defvar' and `defcustom' do not alter the value if there
-already is one.)  In an analogous way, evaluating a `defface'
-overrides any customizations of the face, so that it becomes
-defined exactly as the `defface' expression says.
+expression (using the defcustom's :set function if there is one), even
+if the variable already has some other value.  \(Normally `defvar' and
+`defcustom' do not alter the value if there already is one.)  In an
+analogous way, evaluating a `defface' overrides any customizations of
+the face, so that it becomes defined exactly as the `defface' expression
+says.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger.
@@ -857,11 +959,11 @@ this command arranges for all errors to enter the debugger.
 With a prefix argument, instrument the code for Edebug.
 
 If acting on a `defun' for FUNCTION, and the function was
-instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
+instrumented, `Edebug: FUNCTION' is printed in the echo area.  If not
 instrumented, just FUNCTION is printed.
 
 If not acting on a `defun', the result of evaluation is displayed in
-the minibuffer.  This display is controlled by the variables
+the echo area.  This display is controlled by the variables
 `eval-expression-print-length' and `eval-expression-print-level',
 which see."
   (interactive "P")
@@ -900,18 +1002,19 @@ function is `common-lisp-indent-function'."
   :type 'function
   :group 'lisp)
 
-(defun lisp-indent-line (&optional whole-exp)
+(defun lisp-indent-line (&optional _whole-exp)
   "Indent current line as Lisp code.
 With argument, indent any additional lines of the same expression
 rigidly along with this one."
   (interactive "P")
-  (let ((indent (calculate-lisp-indent)) shift-amt end
+  (let ((indent (calculate-lisp-indent)) shift-amt
 	(pos (- (point-max) (point)))
 	(beg (progn (beginning-of-line) (point))))
     (skip-chars-forward " \t")
     (if (or (null indent) (looking-at "\\s<\\s<\\s<"))
 	;; Don't alter indentation of a ;;; comment line
 	;; or a line that starts in a string.
+        ;; FIXME: inconsistency: comment-indent moves ;;; to column 0.
 	(goto-char (- (point-max) pos))
       (if (and (looking-at "\\s<") (not (looking-at "\\s<\\s<")))
 	  ;; Single-semicolon comment lines should be indented
@@ -926,18 +1029,7 @@ rigidly along with this one."
       ;; If initial point was within line's indentation,
       ;; position after the indentation.  Else stay at same point in text.
       (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos)))
-      ;; If desired, shift remaining lines of expression the same amount.
-      (and whole-exp (not (zerop shift-amt))
-	   (save-excursion
-	     (goto-char beg)
-	     (forward-sexp 1)
-	     (setq end (point))
-	     (goto-char beg)
-	     (forward-line 1)
-	     (setq beg (point))
-	     (> end beg))
-	   (indent-code-rigidly beg end shift-amt)))))
+	  (goto-char (- (point-max) pos))))))
 
 (defvar calculate-lisp-indent-last-sexp)
 
@@ -955,7 +1047,7 @@ is the buffer position of the start of the containing expression."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
-          state paren-depth
+          state
           ;; setting this to a number inhibits calling hook
           (desired-indent nil)
           (retry t)
@@ -969,7 +1061,7 @@ is the buffer position of the start of the containing expression."
       ;; Find innermost containing sexp
       (while (and retry
 		  state
-                  (> (setq paren-depth (elt state 0)) 0))
+                  (> (elt state 0) 0))
         (setq retry nil)
         (setq calculate-lisp-indent-last-sexp (elt state 2))
         (setq containing-sexp (elt state 1))
@@ -1089,7 +1181,7 @@ is the buffer position of the start of the containing expression."
 The function `calculate-lisp-indent' calls this to determine
 if the arguments of a Lisp function call should be indented specially.
 
-INDENT-POINT is the position where the user typed TAB, or equivalent.
+INDENT-POINT is the position at which the line being indented begins.
 Point is located at the point to indent under (for default indentation);
 STATE is the `parse-partial-sexp' state for that position.
 
@@ -1133,7 +1225,8 @@ Lisp function does not specify a special indentation."
       (let ((function (buffer-substring (point)
 					(progn (forward-sexp 1) (point))))
 	    method)
-	(setq method (or (get (intern-soft function) 'lisp-indent-function)
+	(setq method (or (function-get (intern-soft function)
+                                       'lisp-indent-function)
 			 (get (intern-soft function) 'lisp-indent-hook)))
 	(cond ((or (eq method 'defun)
 		   (and (null method)
@@ -1197,7 +1290,7 @@ Lisp function does not specify a special indentation."
           body-indent
           normal-indent))))
 
-(defun lisp-indent-defform (state indent-point)
+(defun lisp-indent-defform (state _indent-point)
   (goto-char (car (cdr state)))
   (forward-line 1)
   (if (> (point) (car (cdr (cdr state))))
@@ -1216,7 +1309,6 @@ Lisp function does not specify a special indentation."
 (put 'prog2 'lisp-indent-function 2)
 (put 'save-excursion 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
-(put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)
 (put 'let 'lisp-indent-function 1)
 (put 'let* 'lisp-indent-function 1)
@@ -1353,6 +1445,8 @@ Any non-integer value means do not use a different value of
   :type '(choice (integer)
                  (const :tag "Use the current `fill-column'" t))
   :group 'lisp)
+(put 'emacs-lisp-docstring-fill-column 'safe-local-variable
+     (lambda (x) (or (eq x t) (integerp x))))
 
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.

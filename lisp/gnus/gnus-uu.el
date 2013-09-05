@@ -1,7 +1,7 @@
 ;;; gnus-uu.el --- extract (uu)encoded files in Gnus
 
-;; Copyright (C) 1985-1987, 1993-1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Created: 2 Oct 1993
@@ -640,7 +640,7 @@ When called interactively, prompt for REGEXP."
     (let ((level (gnus-summary-thread-level)))
       (while (and (gnus-summary-set-process-mark
 		   (gnus-summary-article-number))
-		  (zerop (gnus-summary-next-subject 1 nil t))
+		  (zerop (forward-line 1))
 		  (> (gnus-summary-thread-level) level)))))
   (gnus-summary-position-point))
 
@@ -650,7 +650,7 @@ When called interactively, prompt for REGEXP."
   (let ((level (gnus-summary-thread-level)))
     (while (and (gnus-summary-remove-process-mark
 		 (gnus-summary-article-number))
-		(zerop (gnus-summary-next-subject 1))
+		(zerop (forward-line 1))
 		(> (gnus-summary-thread-level) level))))
   (gnus-summary-position-point))
 
@@ -1614,16 +1614,6 @@ Gnus might fail to display all of it.")
 	   (concat "cd " gnus-uu-work-dir " "
 		   gnus-shell-command-separator  " sh")))))
     state))
-
-;; Returns the name of what the shar file is going to unpack.
-(defun gnus-uu-find-name-in-shar ()
-  (let ((oldpoint (point))
-	res)
-    (goto-char (point-min))
-    (when (re-search-forward gnus-uu-shar-name-marker nil t)
-      (setq res (buffer-substring (match-beginning 1) (match-end 1))))
-    (goto-char oldpoint)
-    res))
 
 ;; `gnus-uu-choose-action' chooses what action to perform given the name
 ;; and `gnus-uu-file-action-list'.  Returns either nil if no action is

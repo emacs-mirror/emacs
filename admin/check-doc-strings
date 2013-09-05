@@ -17,7 +17,7 @@ formal parameters, docstrings, and lispref texi.
 This program is in the public domain.\n";
 
 die $usage if @ARGV;
-die $usage unless -r "src/alloc.c" && -d "CVS" && -d "lisp";
+die $usage unless -r "src/alloc.c" && -d ".bzr" && -d "lisp";
 
 my %texi_funtype;
 my %texi_arglist;
@@ -197,10 +197,8 @@ sub Check_function {
   Show_details $show_details, $function, "@parms", $docstring;
 }
 
-my $lisprefdir;
-if    (-d "man/lispref") { $lisprefdir = "man/lispref"; }
-elsif (-d "lispref") { $lisprefdir = "lispref"; }
-else { die "Can't find lispref texi directory.\n"; }
+my $lisprefdir = "doc/lispref";
+die "Can't find lispref texi directory.\n" unless -d $lisprefdir;
 
 open (FIND, "find $lisprefdir -name '*.texi' -print |") or die;
 while (my $file = <FIND>) {

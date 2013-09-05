@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -463,7 +463,7 @@ Must be set prior to enabling CUA."
 (defface cua-global-mark
   '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
     (((class color)) :foreground "black" :background "yellow")
-    (t :bold t))
+    (t :weight bold))
   "Font used by CUA for highlighting the global mark."
   :group 'cua)
 
@@ -1298,7 +1298,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 			     (mark t) (point) cua--explicit-region-start))))
 
   ;; Disable transient-mark-mode if rectangle active in current buffer.
-  (if (not (window-minibuffer-p (selected-window)))
+  (if (not (window-minibuffer-p))
       (setq transient-mark-mode (and (not cua--rectangle)
 				     (if cua-highlight-region-shift-only
 					 (not cua--explicit-region-start)

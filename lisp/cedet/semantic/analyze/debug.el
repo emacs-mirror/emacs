@@ -1,6 +1,6 @@
 ;;; semantic/analyze/debug.el --- Debug the analyzer
 
-;;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -443,7 +443,7 @@ or implementing a version specific to ")
 			     (semanticdb-file-table-object fileinner t))))
 	  (cond ((not fileinner)
 		 (setq unknown (1+ unknown)))
-		((number-or-marker-p (oref tableinner pointmax))
+		((and tableinner (number-or-marker-p (oref tableinner pointmax)))
 		 (setq ok (1+ ok)))
 		(t
 		 (setq unparsed (1+ unparsed))))))

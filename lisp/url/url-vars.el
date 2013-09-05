@@ -1,6 +1,7 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
+;; Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -152,7 +153,8 @@ variable."
 				    (".uue" . "x-uuencoded")
 				    (".hqx" . "x-hqx")
 				    (".Z"  . "x-compress")
-				    (".bz2"  . "x-bzip2"))
+				    (".bz2" . "x-bzip2")
+				    (".xz" . "x-xz"))
   "An alist of file extensions and appropriate content-transfer-encodings."
   :type '(repeat (cons :format "%v"
 		       (string :tag "Extension")
@@ -208,9 +210,13 @@ Should be an assoc list of headers/contents.")
 
 (defvar url-request-method nil "The method to use for the next request.")
 
-;; FIXME!!  (RFC 2616 gives examples like `compress, gzip'.)
-(defvar url-mime-encoding-string nil
+(defvar url-mime-encoding-string (and (fboundp 'zlib-decompress-region)
+				      (zlib-available-p)
+				      "gzip")
   "String to send in the Accept-encoding: field in HTTP requests.")
+
+(defvar mm-mime-mule-charset-alist)
+(declare-function mm-coding-system-p "mm-util" (cs))
 
 ;; Perhaps the first few should actually be given decreasing `q's and
 ;; the list should be trimmed significantly.
@@ -375,8 +381,10 @@ Currently supported methods:
 (modify-syntax-entry ?> ")<" url-parse-syntax-table)
 (modify-syntax-entry ?/ " " url-parse-syntax-table)
 
-(defvar url-load-hook nil
-  "Hooks to be run after initializing the URL library.")
+(defcustom url-load-hook nil
+  "Hook run after initializing the URL library."
+  :group 'url
+  :type 'hook)
 
 ;;; Make OS/2 happy - yeeks
 ;; (defvar	tcp-binary-process-input-services nil

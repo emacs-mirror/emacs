@@ -51,6 +51,7 @@
 
 #include <config.h>
 #include "unexec.h"
+#include "lisp.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -268,10 +269,10 @@ unexec (const char *new_name,      /* name of the new a.out file to be created *
      intact.  NOT implemented.  */
 
   /* Open the input and output a.out files */
-  old = open (old_name, O_RDONLY);
+  old = emacs_open (old_name, O_RDONLY, 0);
   if (old < 0)
     { perror (old_name); exit (1); }
-  new = open (new_name, O_CREAT|O_RDWR|O_TRUNC, 0777);
+  new = emacs_open (new_name, O_CREAT | O_RDWR | O_TRUNC, 0777);
   if (new < 0)
     { perror (new_name); exit (1); }
 
@@ -305,6 +306,6 @@ unexec (const char *new_name,      /* name of the new a.out file to be created *
   write_header (new, &hdr, &auxhdr);
 
   /* Close the binary file */
-  close (old);
-  close (new);
+  emacs_close (old);
+  emacs_close (new);
 }

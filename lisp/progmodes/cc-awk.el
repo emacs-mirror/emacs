@@ -1,6 +1,7 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode.
 
-;; Copyright (C) 1988, 1994, 1996, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
 ;; Maintainer: FSF
@@ -60,6 +61,7 @@
 (cc-bytecomp-defun c-backward-token-1)
 (cc-bytecomp-defun c-beginning-of-statement-1)
 (cc-bytecomp-defun c-backward-sws)
+(cc-bytecomp-defun c-forward-sws)
 
 (defvar awk-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -126,22 +128,29 @@
 ;; escaped EOL.
 
 ;; REGEXPS FOR "HARMLESS" STRINGS/LINES.
-(defconst c-awk-harmless-char-re "[^_#/\"\\\\\n\r]")
-;;   Matches any character but a _, #, /, ", \, or newline.  N.B. _" starts a
-;; localization string in gawk 3.1
 (defconst c-awk-harmless-_ "_\\([^\"]\\|\\'\\)")
 ;;   Matches an underline NOT followed by ".
+(defconst c-awk-harmless-char-re "[^_#/\"{}();\\\\\n\r]")
+;;   Matches any character not significant in the state machine applying
+;; syntax-table properties to "s and /s.
 (defconst c-awk-harmless-string*-re
   (concat "\\(" c-awk-harmless-char-re "\\|" c-awk-esc-pair-re "\\|" c-awk-harmless-_ "\\)*"))
-;;   Matches a (possibly empty) sequence of chars without unescaped /, ", \,
-;; #, or newlines.
+;;   Matches a (possibly empty) sequence of characters insignificant in the
+;; state machine applying syntax-table properties to "s and /s.
 (defconst c-awk-harmless-string*-here-re
   (concat "\\=" c-awk-harmless-string*-re))
-;; Matches the (possibly empty) sequence of chars without unescaped /, ", \,
-;; at point.
+;; Matches the (possibly empty) sequence of "insignificant" chars at point.
+
+(defconst c-awk-harmless-line-char-re "[^_#/\"\\\\\n\r]")
+;;   Matches any character but a _, #, /, ", \, or newline.  N.B. _" starts a
+;; localization string in gawk 3.1
+(defconst c-awk-harmless-line-string*-re
+  (concat "\\(" c-awk-harmless-line-char-re "\\|" c-awk-esc-pair-re "\\|" c-awk-harmless-_ "\\)*"))
+;;   Matches a (possibly empty) sequence of chars without unescaped /, ", \,
+;; #, or newlines.
 (defconst c-awk-harmless-line-re
-  (concat c-awk-harmless-string*-re
-          "\\(" c-awk-comment-without-nl "\\)?" c-awk-nl-or-eob))
+  (concat c-awk-harmless-line-string*-re
+	  "\\(" c-awk-comment-without-nl "\\)?" c-awk-nl-or-eob))
 ;;   Matches (the tail of) an AWK \"logical\" line not containing an unescaped
 ;; " or /.  "logical" means "possibly containing escaped newlines".  A comment
 ;; is matched as part of the line even if it contains a " or a /.  The End of
@@ -161,9 +170,9 @@
   (concat "\\=_?\"" c-awk-string-innards-re))
 ;;   Matches an AWK string at point up to, but not including, any terminator.
 ;; A gawk 3.1+ string may look like _"localizable string".
-(defconst c-awk-one-line-possibly-open-string-re
-  (concat "\"\\(" c-awk-string-ch-re "\\|" c-awk-non-eol-esc-pair-re "\\)*"
-	  "\\(\"\\|\\\\?$\\|\\'\\)"))
+(defconst c-awk-possibly-open-string-re
+  (concat "\"\\(" c-awk-string-ch-re "\\|" c-awk-esc-pair-re "\\)*"
+	  "\\(\"\\|$\\|\\'\\)"))
 
 ;; REGEXPS FOR AWK REGEXPS.
 (defconst c-awk-regexp-normal-re "[^[/\\\n\r]")
@@ -184,25 +193,13 @@
 	  "\\|" "[^]\n\r]" "\\)*" "\\(]\\|$\\)"))
 ;;   Matches a regexp char list, up to (but not including) EOL if the ] is
 ;;   missing.
-(defconst c-awk-regexp-one-line-possibly-open-char-list-re
-  (concat "\\[\\]?\\(" c-awk-non-eol-esc-pair-re "\\|" "[^]\n\r]" "\\)*"
-	  "\\(]\\|\\\\?$\\|\\'\\)"))
-;;   Matches the head (or all) of a regexp char class, up to (but not
-;;   including) the first EOL.
 (defconst c-awk-regexp-innards-re
   (concat "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-list-re
-          "\\|" c-awk-regexp-normal-re "\\)*"))
+	  "\\|" c-awk-regexp-normal-re "\\)*"))
 ;;   Matches the inside of an AWK regexp (i.e. without the enclosing /s)
 (defconst c-awk-regexp-without-end-re
   (concat "/" c-awk-regexp-innards-re))
 ;; Matches an AWK regexp up to, but not including, any terminating /.
-(defconst c-awk-one-line-possibly-open-regexp-re
-  (concat "/\\(" c-awk-non-eol-esc-pair-re
-	  "\\|" c-awk-regexp-one-line-possibly-open-char-list-re
-	  "\\|" c-awk-regexp-normal-re "\\)*"
-	  "\\(/\\|\\\\?$\\|\\'\\)"))
-;; Matches as much of the head of an AWK regexp which fits on one line,
-;; possibly all of it.
 
 ;; REGEXPS used for scanning an AWK buffer in order to decide IF A '/' IS A
 ;; REGEXP OPENER OR A DIVISION SIGN.  By "state" in the following is meant
@@ -210,11 +207,11 @@
 ;; division sign.
 (defconst c-awk-neutral-re
 ;  "\\([{}@` \t]\\|\\+\\+\\|--\\|\\\\.\\)+") ; changed, 2003/6/7
-  "\\([{}@` \t]\\|\\+\\+\\|--\\|\\\\.\\)")
+  "\\([}@` \t]\\|\\+\\+\\|--\\|\\\\\\(.\\|[\n\r]\\)\\)")
 ;;   A "neutral" char(pair).  Doesn't change the "state" of a subsequent /.
-;; This is space/tab, braces, an auto-increment/decrement operator or an
+;; This is space/tab, close brace, an auto-increment/decrement operator or an
 ;; escaped character.  Or one of the (invalid) characters @ or `.  But NOT an
-;; end of line (even if escaped).
+;; end of line (unless escaped).
 (defconst c-awk-neutrals*-re
   (concat "\\(" c-awk-neutral-re "\\)*"))
 ;;   A (possibly empty) string of neutral characters (or character pairs).
@@ -230,8 +227,8 @@
 ;; will only work when there won't be a preceding " or / before the sought /
 ;; to foul things up.
 (defconst c-awk-non-arith-op-bra-re
-  "[[\(&=:!><,?;'~|]")
-;;   Matches an opening BRAcket, round or square, or any operator character
+  "[[\({&=:!><,?;'~|]")
+;;   Matches an opening BRAcket (of any sort), or any operator character
 ;; apart from +,-,/,*,%.  For the purpose at hand (detecting a / which is a
 ;; regexp bracket) these arith ops are unnecessary and a pain, because of "++"
 ;; and "--".
@@ -241,18 +238,37 @@
 ;; bracket, in a context where an immediate / would be a division sign.  This
 ;; will only work when there won't be a preceding " or / before the sought /
 ;; to foul things up.
+(defconst c-awk-pre-exp-alphanum-kwd-re
+  (concat "\\(^\\|\\=\\|[^_\n\r]\\)\\<"
+	  (regexp-opt '("print" "return" "case") t)
+	  "\\>\\([^_\n\r]\\|$\\)"))
+;;   Matches all AWK keywords which can precede expressions (including
+;; /regexp/).
+(defconst c-awk-kwd-regexp-sign-re
+  (concat c-awk-pre-exp-alphanum-kwd-re c-awk-escaped-nls*-with-space* "/"))
+;;   Matches a piece of AWK buffer ending in <kwd> /, where <kwd> is a keyword
+;; which can precede an expression.
 
 ;; REGEXPS USED FOR FINDING THE POSITION OF A "virtual semicolon"
 (defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\\\n\r \t]")
-;; NEW VERSION!  (which will be restricted to the current line)
-(defconst c-awk-one-line-non-syn-ws*-re
-  (concat "\\([ \t]*"
-              "\\(" c-awk-_-harmless-nonws-char-re "\\|"
-	            c-awk-non-eol-esc-pair-re "\\|"
-		    c-awk-one-line-possibly-open-string-re "\\|"
-		    c-awk-one-line-possibly-open-regexp-re
-	      "\\)"
-          "\\)*"))
+(defconst c-awk-non-/-syn-ws*-re
+  (concat
+   "\\(" c-awk-escaped-nls*-with-space*
+         "\\(" c-awk-_-harmless-nonws-char-re "\\|"
+               c-awk-non-eol-esc-pair-re "\\|"
+	       c-awk-possibly-open-string-re
+         "\\)"
+   "\\)*"))
+(defconst c-awk-space*-/-re (concat c-awk-escaped-nls*-with-space* "/"))
+;; Matches optional whitespace followed by "/".
+(defconst c-awk-space*-regexp-/-re
+  (concat c-awk-escaped-nls*-with-space* "\\s\""))
+;; Matches optional whitespace followed by a "/" with string syntax (a matched
+;; regexp delimiter).
+(defconst c-awk-space*-unclosed-regexp-/-re
+  (concat c-awk-escaped-nls*-with-space* "\\s\|"))
+;; Matches optional whitespace followed by a "/" with string fence syntax (an
+;; unmatched regexp delimiter).
 
 
 ;; ACM, 2002/5/29:
@@ -531,10 +547,36 @@
 (defun c-awk-at-vsemi-p (&optional pos)
   ;; Is there a virtual semicolon at POS (or POINT)?
   (save-excursion
-    (let (nl-prop
-	  (pos-or-point (progn (if pos (goto-char pos)) (point))))
-      (forward-line 0)
-      (search-forward-regexp c-awk-one-line-non-syn-ws*-re)
+    (let* (nl-prop
+	   (pos-or-point (progn (if pos (goto-char pos)) (point)))
+	   (bol (c-point 'bol)) (eol (c-point 'eol)))
+      (c-awk-beginning-of-logical-line)
+      ;; Next `while' goes round one logical line (ending in, e.g. "\\") per
+      ;; iteration.  Such a line is rare, and can only be an open string
+      ;; ending in an escaped \.
+      (while
+	  (progn
+	    ;; Next `while' goes over a division sign or /regexp/ per iteration.
+	    (while
+		(and
+		 (< (point) eol)
+		 (progn
+		   (search-forward-regexp c-awk-non-/-syn-ws*-re eol)
+		   (looking-at c-awk-space*-/-re)))
+	      (cond
+	       ((looking-at c-awk-space*-regexp-/-re) ; /regexp/
+		(forward-sexp))
+	       ((looking-at c-awk-space*-unclosed-regexp-/-re) ; Unclosed /regexp
+		(condition-case nil
+		    (progn
+		      (forward-sexp)
+		      (backward-char))	; Move to end of (logical) line.
+		  (error (end-of-line)))) ; Happens at EOB.
+	       (t 			; division sign
+		(c-forward-syntactic-ws)
+		(forward-char))))
+	    (< (point) bol))
+	(forward-line))
       (and (eq (point) pos-or-point)
 	   (progn
 	     (while (and (eq (setq nl-prop (c-awk-get-NL-prop-cur-line)) ?\\)
@@ -720,9 +762,10 @@
     (goto-char anchor)
     ;; Analyze the line to find out what the / is.
     (if (if anchor-state-/div
-            (not (search-forward-regexp c-awk-regexp-sign-re (1+ /point) t))
-          (search-forward-regexp c-awk-div-sign-re (1+ /point) t))
-        ;; A division sign.
+	    (not (search-forward-regexp c-awk-regexp-sign-re (1+ /point) t))
+	  (and (not (search-forward-regexp c-awk-kwd-regexp-sign-re (1+ /point) t))
+	       (search-forward-regexp c-awk-div-sign-re (1+ /point) t)))
+	;; A division sign.
 	(progn (goto-char (1+ /point)) nil)
       ;; A regexp opener
       ;; Jump over the regexp innards, setting the match data.
@@ -775,12 +818,21 @@
              (< (point) lim))
       (setq anchor (point))
       (search-forward-regexp c-awk-harmless-string*-here-re nil t)
-      ;; We are now looking at either a " or a /.
-      ;; Do our thing on the string, regexp or division sign.
+      ;; We are now looking at either a " or a / or a brace/paren/semicolon.
+      ;; Do our thing on the string, regexp or division sign or update
+      ;; our state.
       (setq anchor-state-/div
-            (if (looking-at "_?\"")
-                (c-awk-syntax-tablify-string)
-              (c-awk-syntax-tablify-/ anchor anchor-state-/div))))
+	    (cond
+	     ((looking-at "_?\"")
+	      (c-awk-syntax-tablify-string))
+	     ((eq (char-after) ?/)
+	      (c-awk-syntax-tablify-/ anchor anchor-state-/div))
+	     ((memq (char-after) '(?{ ?} ?\( ?\;))
+	      (forward-char)
+	      nil)
+	     (t 			; ?\)
+	      (forward-char)
+	      t))))
     nil))
 
 ;; ACM, 2002/07/21: Thoughts: We need an AWK Mode after-change function to set

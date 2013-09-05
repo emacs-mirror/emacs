@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -19,10 +19,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 
 static Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table;
@@ -79,7 +79,7 @@ This is the one used for new buffers.  */)
   return Vascii_downcase_table;
 }
 
-static Lisp_Object set_case_table (Lisp_Object table, int standard);
+static Lisp_Object set_case_table (Lisp_Object, bool);
 
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
        doc: /* Select a new case table for the current buffer.
@@ -113,7 +113,7 @@ See `set-case-table' for more info on case tables.  */)
 }
 
 static Lisp_Object
-set_case_table (Lisp_Object table, int standard)
+set_case_table (Lisp_Object table, bool standard)
 {
   Lisp_Object up, canon, eqv;
 
@@ -128,13 +128,13 @@ set_case_table (Lisp_Object table, int standard)
       up = Fmake_char_table (Qcase_table, Qnil);
       map_char_table (set_identity, Qnil, table, up);
       map_char_table (shuffle, Qnil, table, up);
-      XCHAR_TABLE (table)->extras[0] = up;
+      set_char_table_extras (table, 0, up);
     }
 
   if (NILP (canon))
     {
       canon = Fmake_char_table (Qcase_table, Qnil);
-      XCHAR_TABLE (table)->extras[1] = canon;
+      set_char_table_extras (table, 1, canon);
       map_char_table (set_canon, Qnil, table, table);
     }
 
@@ -143,11 +143,11 @@ set_case_table (Lisp_Object table, int standard)
       eqv = Fmake_char_table (Qcase_table, Qnil);
       map_char_table (set_identity, Qnil, canon, eqv);
       map_char_table (shuffle, Qnil, canon, eqv);
-      XCHAR_TABLE (table)->extras[2] = eqv;
+      set_char_table_extras (table, 2, eqv);
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (canon)->extras[2] = eqv;
+  set_char_table_extras (canon, 2, eqv);
 
   if (standard)
     {
@@ -158,10 +158,10 @@ set_case_table (Lisp_Object table, int standard)
     }
   else
     {
-      BVAR (current_buffer, downcase_table) = table;
-      BVAR (current_buffer, upcase_table) = up;
-      BVAR (current_buffer, case_canon_table) = canon;
-      BVAR (current_buffer, case_eqv_table) = eqv;
+      bset_downcase_table (current_buffer, table);
+      bset_upcase_table (current_buffer, up);
+      bset_case_canon_table (current_buffer, canon);
+      bset_case_eqv_table (current_buffer, eqv);
     }
 
   return table;
@@ -246,21 +246,14 @@ void
 init_casetab_once (void)
 {
   register int i;
-  Lisp_Object down, up;
+  Lisp_Object down, up, eqv;
+
   DEFSYM (Qcase_table, "case-table");
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
-
-  /* Now we are ready to set up this property, so we can
-     create char tables.  */
   Fput (Qcase_table, Qchar_table_extra_slots, make_number (3));
 
   down = Fmake_char_table (Qcase_table, Qnil);
   Vascii_downcase_table = down;
-  XCHAR_TABLE (down)->purpose = Qcase_table;
+  set_char_table_purpose (down, Qcase_table);
 
   for (i = 0; i < 128; i++)
     {
@@ -268,20 +261,28 @@ init_casetab_once (void)
       CHAR_TABLE_SET (down, i, make_number (c));
     }
 
-  XCHAR_TABLE (down)->extras[1] = Fcopy_sequence (down);
+  set_char_table_extras (down, 1, Fcopy_sequence (down));
 
   up = Fmake_char_table (Qcase_table, Qnil);
-  XCHAR_TABLE (down)->extras[0] = up;
+  set_char_table_extras (down, 0, up);
 
   for (i = 0; i < 128; i++)
     {
-      int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
-	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
-		  : i));
+      int c = (i >= 'a' && i <= 'z') ? i + ('A' - 'a') : i;
       CHAR_TABLE_SET (up, i, make_number (c));
     }
 
-  XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
+  eqv = Fmake_char_table (Qcase_table, Qnil);
+
+   for (i = 0; i < 128; i++)
+     {
+      int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
+	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
+		  : i));
+      CHAR_TABLE_SET (eqv, i, make_number (c));
+    }
+
+  set_char_table_extras (down, 2, eqv);
 
   /* Fill in what isn't filled in.  */
   set_case_table (down, 1);

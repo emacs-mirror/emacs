@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2012 Free Software Foundation, Inc.
+   Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_DBUS
 #include <stdio.h>
 #include <dbus/dbus.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "frame.h"
 #include "termhooks.h"
@@ -30,6 +30,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef DBUS_NUM_MESSAGE_TYPES
 #define DBUS_NUM_MESSAGE_TYPES 5
+#endif
+
+
+/* Some platforms define the symbol "interface", but we want to use it
+ * as a variable name below.  */
+
+#ifdef interface
+#undef interface
 #endif
 
 
@@ -70,7 +78,7 @@ static Lisp_Object QCdbus_registered_signal;
 static Lisp_Object xd_registered_buses;
 
 /* Whether we are reading a D-Bus event.  */
-static int xd_in_read_queued_messages = 0;
+static bool xd_in_read_queued_messages = 0;
 
 
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because
@@ -134,7 +142,10 @@ static int xd_in_read_queued_messages = 0;
   } while (0)
 
 #else /* !DBUS_DEBUG */
-#define XD_DEBUG_MESSAGE(...)						\
+# if __STDC_VERSION__ < 199901
+#  define XD_DEBUG_MESSAGE (void) /* Pre-C99 compilers cannot debug.  */
+# else
+#  define XD_DEBUG_MESSAGE(...)						\
   do {									\
     if (!NILP (Vdbus_debug))						\
       {									\
@@ -143,10 +154,15 @@ static int xd_in_read_queued_messages = 0;
 	message ("%s: %s", __func__, s);				\
       }									\
   } while (0)
-#define XD_DEBUG_VALID_LISP_OBJECT_P(object)
+# endif
+# define XD_DEBUG_VALID_LISP_OBJECT_P(object)
 #endif
 
 /* Check whether TYPE is a basic DBusType.  */
+#ifdef HAVE_DBUS_TYPE_IS_VALID
+#define XD_BASIC_DBUS_TYPE(type)					\
+  (dbus_type_is_valid (type) && dbus_type_is_basic (type))
+#else
 #ifdef DBUS_TYPE_UNIX_FD
 #define XD_BASIC_DBUS_TYPE(type)					\
   ((type ==  DBUS_TYPE_BYTE)						\
@@ -176,6 +192,7 @@ static int xd_in_read_queued_messages = 0;
    || (type ==  DBUS_TYPE_STRING)					\
    || (type ==  DBUS_TYPE_OBJECT_PATH)					\
    || (type ==  DBUS_TYPE_SIGNATURE))
+#endif
 #endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for
@@ -256,6 +273,7 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 
 #define XD_DBUS_VALIDATE_BUS_ADDRESS(bus)				\
   do {									\
+    char const *session_bus_address = getenv ("DBUS_SESSION_BUS_ADDRESS"); \
     if (STRINGP (bus))							\
       {									\
 	DBusAddressEntry **entries;					\
@@ -267,6 +285,11 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 	/* Cleanup.  */							\
 	dbus_error_free (&derror);					\
 	dbus_address_entries_free (entries);				\
+	/* Canonicalize session bus address.  */			\
+	if ((session_bus_address != NULL)				\
+	    && (!NILP (Fstring_equal					\
+		       (bus, build_string (session_bus_address)))))	\
+	  bus = QCdbus_session_bus;					\
       }									\
 									\
     else								\
@@ -275,14 +298,13 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 	if (!(EQ (bus, QCdbus_system_bus) || EQ (bus, QCdbus_session_bus))) \
 	  XD_SIGNAL2 (build_string ("Wrong bus name"), bus);		\
 	/* We do not want to have an autolaunch for the session bus.  */ \
-	if (EQ (bus, QCdbus_session_bus)				\
-	    && getenv ("DBUS_SESSION_BUS_ADDRESS") == NULL)		\
+	if (EQ (bus, QCdbus_session_bus) && session_bus_address == NULL) \
 	  XD_SIGNAL2 (build_string ("No connection to bus"), bus);	\
       }									\
   } while (0)
 
-#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH \
-     || XD_DBUS_VALIDATE_OBJECT || HAVE_DBUS_VALIDATE_MEMBER)
+#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH		\
+     || HAVE_DBUS_VALIDATE_INTERFACE || HAVE_DBUS_VALIDATE_MEMBER)
 #define XD_DBUS_VALIDATE_OBJECT(object, func)				\
   do {									\
     if (!NILP (object))							\
@@ -524,7 +546,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 
 /* Convert X to a signed integer with bounds LO and HI.  */
 static intmax_t
-extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
+xd_extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 {
   CHECK_NUMBER_OR_FLOAT (x);
   if (INTEGERP (x))
@@ -552,7 +574,7 @@ extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 
 /* Convert X to an unsigned integer with bounds 0 and HI.  */
 static uintmax_t
-extract_unsigned (Lisp_Object x, uintmax_t hi)
+xd_extract_unsigned (Lisp_Object x, uintmax_t hi)
 {
   CHECK_NUMBER_OR_FLOAT (x);
   if (INTEGERP (x))
@@ -611,9 +633,10 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_INT16:
 	{
-	  dbus_int16_t val = extract_signed (object,
-					     TYPE_MINIMUM (dbus_int16_t),
-					     TYPE_MAXIMUM (dbus_int16_t));
+	  dbus_int16_t val =
+	    xd_extract_signed (object,
+			       TYPE_MINIMUM (dbus_int16_t),
+			       TYPE_MAXIMUM (dbus_int16_t));
 	  int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -623,8 +646,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_UINT16:
 	{
-	  dbus_uint16_t val = extract_unsigned (object,
-						TYPE_MAXIMUM (dbus_uint16_t));
+	  dbus_uint16_t val =
+	    xd_extract_unsigned (object,
+				 TYPE_MAXIMUM (dbus_uint16_t));
 	  unsigned int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -634,9 +658,10 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_INT32:
 	{
-	  dbus_int32_t val = extract_signed (object,
-					     TYPE_MINIMUM (dbus_int32_t),
-					     TYPE_MAXIMUM (dbus_int32_t));
+	  dbus_int32_t val =
+	    xd_extract_signed (object,
+			       TYPE_MINIMUM (dbus_int32_t),
+			       TYPE_MAXIMUM (dbus_int32_t));
 	  int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -649,8 +674,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_UNIX_FD:
 #endif
 	{
-	  dbus_uint32_t val = extract_unsigned (object,
-						TYPE_MAXIMUM (dbus_uint32_t));
+	  dbus_uint32_t val =
+	    xd_extract_unsigned (object,
+				 TYPE_MAXIMUM (dbus_uint32_t));
 	  unsigned int pval = val;
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -660,9 +686,10 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_INT64:
 	{
-	  dbus_int64_t val = extract_signed (object,
-					     TYPE_MINIMUM (dbus_int64_t),
-					     TYPE_MAXIMUM (dbus_int64_t));
+	  dbus_int64_t val =
+	    xd_extract_signed (object,
+			       TYPE_MINIMUM (dbus_int64_t),
+			       TYPE_MAXIMUM (dbus_int64_t));
 	  printmax_t pval = val;
 	  XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -672,8 +699,9 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
       case DBUS_TYPE_UINT64:
 	{
-	  dbus_uint64_t val = extract_unsigned (object,
-						TYPE_MAXIMUM (dbus_uint64_t));
+	  dbus_uint64_t val =
+	    xd_extract_unsigned (object,
+				 TYPE_MAXIMUM (dbus_uint64_t));
 	  uprintmax_t pval = val;
 	  XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
@@ -858,7 +886,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 #endif
       {
 	dbus_uint32_t val;
-	unsigned int pval = val;
+	unsigned int pval;
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
@@ -970,7 +998,7 @@ static int
 xd_find_watch_fd (DBusWatch *watch)
 {
 #if HAVE_DBUS_WATCH_GET_UNIX_FD
-  /* TODO: Reverse these on Win32, which prefers the opposite.  */
+  /* TODO: Reverse these on w32, which prefers the opposite.  */
   int fd = dbus_watch_get_unix_fd (watch);
   if (fd == -1)
     fd = dbus_watch_get_socket (watch);
@@ -981,8 +1009,7 @@ xd_find_watch_fd (DBusWatch *watch)
 }
 
 /* Prototype.  */
-static void
-xd_read_queued_messages (int fd, void *data, int for_read);
+static void xd_read_queued_messages (int fd, void *data);
 
 /* Start monitoring WATCH for possible I/O.  */
 static dbus_bool_t
@@ -1023,11 +1050,13 @@ xd_remove_watch (DBusWatch *watch, void *data)
     return;
 
   /* Unset session environment.  */
+#if 0
   if (XSYMBOL (QCdbus_session_bus) == data)
     {
-      //      XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
-      //      unsetenv ("DBUS_SESSION_BUS_ADDRESS");
+      XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
+      unsetenv ("DBUS_SESSION_BUS_ADDRESS");
     }
+#endif
 
   if (flags & DBUS_WATCH_WRITABLE)
     delete_write_fd (fd);
@@ -1060,19 +1089,19 @@ xd_close_bus (Lisp_Object bus)
   /* Retrieve bus address.  */
   connection = xd_get_connection_address (bus);
 
-  /* Close connection, if there isn't another shared application.  */
   if (xd_get_connection_references (connection) == 1)
     {
+      /* Close connection, if there isn't another shared application.  */
       XD_DEBUG_MESSAGE ("Close connection to bus %s",
 			XD_OBJECT_TO_STRING (bus));
       dbus_connection_close (connection);
+
+      xd_registered_buses = Fdelete (val, xd_registered_buses);
     }
 
-  /* Decrement reference count.  */
-  dbus_connection_unref (connection);
-
-  /* Remove bus from list of registered buses.  */
-  xd_registered_buses = Fdelete (val, xd_registered_buses);
+  else
+    /* Decrement reference count.  */
+    dbus_connection_unref (connection);
 
   /* Return.  */
   return;
@@ -1113,65 +1142,76 @@ this connection to those buses.  */)
   /* Close bus if it is already open.  */
   xd_close_bus (bus);
 
-  /* Initialize.  */
-  dbus_error_init (&derror);
-
-  /* Open the connection.  */
-  if (STRINGP (bus))
-    if (NILP (private))
-      connection = dbus_connection_open (SSDATA (bus), &derror);
-    else
-      connection = dbus_connection_open_private (SSDATA (bus), &derror);
+  /* Check, whether we are still connected.  */
+  val = Fassoc (bus, xd_registered_buses);
+  if (!NILP (val))
+    {
+      connection = xd_get_connection_address (bus);
+      dbus_connection_ref (connection);
+    }
 
   else
-    if (NILP (private))
-      connection = dbus_bus_get (EQ (bus, QCdbus_system_bus)
-				 ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION,
-				 &derror);
-    else
-      connection = dbus_bus_get_private (EQ (bus, QCdbus_system_bus)
-					 ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION,
-					 &derror);
+    {
+      /* Initialize.  */
+      dbus_error_init (&derror);
 
-  if (dbus_error_is_set (&derror))
-    XD_ERROR (derror);
+      /* Open the connection.  */
+      if (STRINGP (bus))
+	if (NILP (private))
+	  connection = dbus_connection_open (SSDATA (bus), &derror);
+	else
+	  connection = dbus_connection_open_private (SSDATA (bus), &derror);
 
-  if (connection == NULL)
-    XD_SIGNAL2 (build_string ("No connection to bus"), bus);
+      else
+	if (NILP (private))
+	  connection = dbus_bus_get (EQ (bus, QCdbus_system_bus)
+				     ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION,
+				     &derror);
+	else
+	  connection = dbus_bus_get_private (EQ (bus, QCdbus_system_bus)
+					     ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION,
+					     &derror);
 
-  /* If it is not the system or session bus, we must register
-     ourselves.  Otherwise, we have called dbus_bus_get, which has
-     configured us to exit if the connection closes - we undo this
-     setting.  */
-  if (STRINGP (bus))
-    dbus_bus_register (connection, &derror);
-  else
-    dbus_connection_set_exit_on_disconnect (connection, FALSE);
+      if (dbus_error_is_set (&derror))
+	XD_ERROR (derror);
 
-  if (dbus_error_is_set (&derror))
-    XD_ERROR (derror);
+      if (connection == NULL)
+	XD_SIGNAL2 (build_string ("No connection to bus"), bus);
 
-  /* Add the watch functions.  We pass also the bus as data, in order
-     to distinguish between the buses in xd_remove_watch.  */
-  if (!dbus_connection_set_watch_functions (connection,
-					    xd_add_watch,
-					    xd_remove_watch,
-                                            xd_toggle_watch,
-					    SYMBOLP (bus)
-					    ? (void *) XSYMBOL (bus)
-					    : (void *) XSTRING (bus),
-					    NULL))
-    XD_SIGNAL1 (build_string ("Cannot add watch functions"));
+      /* If it is not the system or session bus, we must register
+	 ourselves.  Otherwise, we have called dbus_bus_get, which has
+	 configured us to exit if the connection closes - we undo this
+	 setting.  */
+      if (STRINGP (bus))
+	dbus_bus_register (connection, &derror);
+      else
+	dbus_connection_set_exit_on_disconnect (connection, FALSE);
 
-  /* Add bus to list of registered buses.  */
-  XSETFASTINT (val, (intptr_t) connection);
-  xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
+      if (dbus_error_is_set (&derror))
+	XD_ERROR (derror);
 
-  /* We do not want to abort.  */
-  putenv ((char *) "DBUS_FATAL_WARNINGS=0");
+      /* Add the watch functions.  We pass also the bus as data, in
+	 order to distinguish between the buses in xd_remove_watch.  */
+      if (!dbus_connection_set_watch_functions (connection,
+						xd_add_watch,
+						xd_remove_watch,
+						xd_toggle_watch,
+						SYMBOLP (bus)
+						? (void *) XSYMBOL (bus)
+						: (void *) XSTRING (bus),
+						NULL))
+	XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
-  /* Cleanup.  */
-  dbus_error_free (&derror);
+      /* Add bus to list of registered buses.  */
+      XSETFASTINT (val, (intptr_t) connection);
+      xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
+
+      /* We do not want to abort.  */
+      xputenv ("DBUS_FATAL_WARNINGS=0");
+
+      /* Cleanup.  */
+      dbus_error_free (&derror);
+    }
 
   /* Return reference counter.  */
   refcount = xd_get_connection_references (connection);
@@ -1271,7 +1311,7 @@ usage: (dbus-message-internal &rest REST)  */)
     }
   else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
     {
-      serial = extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
+      serial = xd_extract_unsigned (args[3], TYPE_MAXIMUM (dbus_uint32_t));
       count = 4;
     }
 
@@ -1657,7 +1697,7 @@ xd_read_message (Lisp_Object bus)
 
 /* Callback called when something is ready to read or write.  */
 static void
-xd_read_queued_messages (int fd, void *data, int for_read)
+xd_read_queued_messages (int fd, void *data)
 {
   Lisp_Object busp = xd_registered_buses;
   Lisp_Object bus = Qnil;
@@ -1701,7 +1741,7 @@ syms_of_dbusbind (void)
   Fput (Qdbus_error, Qerror_conditions,
 	list2 (Qdbus_error, Qerror));
   Fput (Qdbus_error, Qerror_message,
-	make_pure_c_string ("D-Bus error"));
+	build_pure_c_string ("D-Bus error"));
 
   DEFSYM (QCdbus_system_bus, ":system");
   DEFSYM (QCdbus_session_bus, ":session");
@@ -1733,7 +1773,7 @@ syms_of_dbusbind (void)
 	       Vdbus_compiled_version,
     doc: /* The version of D-Bus Emacs is compiled against.  */);
 #ifdef DBUS_VERSION_STRING
-  Vdbus_compiled_version = make_pure_c_string (DBUS_VERSION_STRING);
+  Vdbus_compiled_version = build_pure_c_string (DBUS_VERSION_STRING);
 #else
   Vdbus_compiled_version = Qnil;
 #endif
@@ -1746,8 +1786,8 @@ syms_of_dbusbind (void)
     int major, minor, micro;
     char s[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
     dbus_get_version (&major, &minor, &micro);
-    sprintf (s, "%d.%d.%d", major, minor, micro);
-    Vdbus_runtime_version = build_string (s);
+    Vdbus_runtime_version
+      = make_formatted_string (s, "%d.%d.%d", major, minor, micro);
 #else
     Vdbus_runtime_version = Qnil;
 #endif

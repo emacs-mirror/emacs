@@ -1,6 +1,6 @@
 ;;; ede-pmake.el --- EDE Generic Project Makefile code generator.
 
-;; Copyright (C) 1998-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -265,12 +265,13 @@ Execute BODY in a location where a value can be placed."
   "Add VARNAME into the current Makefile if it doesn't exist.
 Execute BODY in a location where a value can be placed."
   `(let ((addcr t) (v ,varname))
-     (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
-       (insert v "=")
-       ,@body
-       (if addcr (insert "\n"))
-       (goto-char (point-max)))
-     ))
+       (unless
+	   (save-excursion
+	     (re-search-backward (concat "^" v "\\s-*=") nil t))
+	 (insert v "=")
+	 ,@body
+	 (when addcr (insert "\n"))
+	 (goto-char (point-max)))))
 (put 'ede-pmake-insert-variable-once 'lisp-indent-function 1)
 
 ;;; SOURCE VARIABLE NAME CONSTRUCTION

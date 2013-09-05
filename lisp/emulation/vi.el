@@ -28,7 +28,7 @@
 ;;                               (if (not (or (eq major-mode 'Info-mode)
 ;; 	                                     (eq major-mode 'vi-mode)))
 ;;                                   (vi-mode))))))
-;; 3) In your .emacs file you can define the command "vi-mode" to be "autoload"
+;; 3) In your init file you can define the command "vi-mode" to be "autoload"
 ;;    or you can execute the "load" command to load "vi" directly.
 ;; 4) Read the comments for command "vi-mode" before you start using it.
 
@@ -1148,7 +1148,8 @@ If char argument is given, it directs the output to a *temp* buffer."
       (cond ((null shell-command)
 	     (setq shell-command (read-string "!" nil))
 	     (setq vi-last-shell-command shell-command)))
-      (shell-command-on-region begin end shell-command (not (vi-prefix-char-value arg)))
+      (shell-command-on-region begin end shell-command (not (vi-prefix-char-value arg))
+			                               (not (vi-prefix-char-value arg)))
       t)))
 
 (defun vi-shift-op (motion-command arg amount)

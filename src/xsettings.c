@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2012  Free Software Foundation, Inc.
+Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <float.h>
 #include <limits.h>
-#include <setjmp.h>
 #include <fcntl.h>
 #include "lisp.h"
 #include "xterm.h"
@@ -30,7 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "termhooks.h"
-#include "termopts.h"
 
 #include <X11/Xproto.h>
 
@@ -159,8 +157,9 @@ store_tool_bar_style_changed (const char *newstyle,
                                 XCAR (dpyinfo->name_list_element));
 }
 
-
+#ifdef HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
+#endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
 
 enum {
@@ -171,7 +170,7 @@ enum {
   SEEN_HINTSTYLE  = 0x10,
   SEEN_DPI        = 0x20,
   SEEN_FONT       = 0x40,
-  SEEN_TB_STYLE   = 0x80,
+  SEEN_TB_STYLE   = 0x80
 };
 struct xsettings
 {
@@ -674,26 +673,21 @@ apply_xft_settings (struct x_display_info *dpyinfo,
   if ((settings->seen & SEEN_DPI) != 0 && oldsettings.dpi != settings->dpi
       && settings->dpi > 0)
     {
-      Lisp_Object frame, tail;
-
       FcPatternDel (pat, FC_DPI);
       FcPatternAddDouble (pat, FC_DPI, settings->dpi);
       ++changed;
       oldsettings.dpi = settings->dpi;
 
-      /* Change the DPI on this display and all frames on the display.  */
+      /* Changing the DPI on this display affects all frames on it.
+	 Check FRAME_RES_X and FRAME_RES_Y in frame.h to see how.  */
       dpyinfo->resy = dpyinfo->resx = settings->dpi;
-      FOR_EACH_FRAME (tail, frame)
-        if (FRAME_X_P (XFRAME (frame))
-            && FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
-          XFRAME (frame)->resy = XFRAME (frame)->resx = settings->dpi;
     }
 
   if (changed)
     {
       static char const format[] =
 	"Antialias: %d, Hinting: %d, RGBA: %d, LCDFilter: %d, "
-	"Hintstyle: %d, DPI: %lf";
+	"Hintstyle: %d, DPI: %f";
       enum
       {
 	d_formats = 5,
@@ -702,7 +696,7 @@ apply_xft_settings (struct x_display_info *dpyinfo,
 	max_f_integer_digits = DBL_MAX_10_EXP + 1,
 	f_precision = 6,
 	lf_growth = (sizeof "-." + max_f_integer_digits + f_precision
-		     - sizeof "%lf")
+		     - sizeof "%f")
       };
       char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
 
@@ -710,10 +704,12 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       if (send_event_p)
         store_config_changed_event (Qfont_render,
                                     XCAR (dpyinfo->name_list_element));
-      sprintf (buf, format, oldsettings.aa, oldsettings.hinting,
-	       oldsettings.rgba, oldsettings.lcdfilter,
-	       oldsettings.hintstyle, oldsettings.dpi);
-      Vxft_settings = build_string (buf);
+      Vxft_settings
+	= make_formatted_string (buf, format,
+				 oldsettings.aa, oldsettings.hinting,
+				 oldsettings.rgba, oldsettings.lcdfilter,
+				 oldsettings.hintstyle, oldsettings.dpi);
+
     }
   else
     FcPatternDestroy (pat);
@@ -760,8 +756,7 @@ read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
 void
 xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
 {
-  int check_window_p = 0;
-  int apply_settings = 0;
+  bool check_window_p = 0, apply_settings_p = 0;
 
   switch (event->type)
     {
@@ -781,7 +776,7 @@ xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
       if (event->xproperty.window == dpyinfo->xsettings_window
           && event->xproperty.state == PropertyNewValue
           && event->xproperty.atom == dpyinfo->Xatom_xsettings_prop)
-        apply_settings = 1;
+        apply_settings_p = 1;
       break;
     }
 
@@ -791,10 +786,10 @@ xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
       dpyinfo->xsettings_window = None;
       get_prop_window (dpyinfo);
       if (dpyinfo->xsettings_window != None)
-        apply_settings = 1;
+        apply_settings_p = 1;
     }
 
-  if (apply_settings)
+  if (apply_settings_p)
     read_and_apply_settings (dpyinfo, True);
 }
 
@@ -927,7 +922,7 @@ init_xsettings (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Select events so we can detect client messages sent when selection
      owner changes.  */
@@ -937,7 +932,7 @@ init_xsettings (struct x_display_info *dpyinfo)
   if (dpyinfo->xsettings_window != None)
     read_and_apply_settings (dpyinfo, False);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 void
@@ -1032,7 +1027,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
 
   DEFVAR_LISP ("xft-settings", Vxft_settings,
                doc: /* Font settings applied to Xft.  */);
-  Vxft_settings = make_string ("", 0);
+  Vxft_settings = empty_unibyte_string;
 
 #ifdef HAVE_XFT
   Fprovide (intern_c_string ("font-render-setting"), Qnil);

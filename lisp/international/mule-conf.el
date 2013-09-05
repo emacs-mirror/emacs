@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -1225,6 +1225,18 @@
 (define-coding-system-alias 'dos 'undecided-dos)
 (define-coding-system-alias 'mac 'undecided-mac)
 
+(define-coding-system 'prefer-utf-8
+  "Like `undecided' but prefer UTF-8 when appropriate.
+On decoding, if the source contains 8-bit codes and they all
+are valid UTF-8 sequences, detect the source as UTF-8 encoding
+regardless of the coding priority.
+On encoding, if the source contains non-ASCII characters, encode them
+by UTF-8."
+  :coding-type 'undecided
+  :mnemonic ?-
+  :charset-list '(emacs)
+  :prefer-utf-8 t)
+
 (define-coding-system 'raw-text
   "Raw text, which means text contains random 8-bit codes.
 Encoding text with this coding system produces the actual byte
@@ -1458,7 +1470,8 @@ for decoding and encoding files, process I/O, etc."
   :flags '(ascii-at-eol ascii-at-cntl long-form
 			designation locking-shift single-shift)
   :post-read-conversion 'ctext-post-read-conversion
-  :pre-write-conversion 'ctext-pre-write-conversion)
+  :pre-write-conversion 'ctext-pre-write-conversion
+  :mime-charset 'x-ctext)
 
 (define-coding-system-alias
   'x-ctext-with-extensions 'compound-text-with-extensions)
@@ -1507,6 +1520,7 @@ for decoding and encoding files, process I/O, etc."
 (setq file-coding-system-alist
       (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
       '(("\\.elc\\'" . utf-8-emacs)
+	("\\.el\\'" . prefer-utf-8)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
 	("\\.xml\\'" . xml-find-file-coding-system)
 	;; We use raw-text for reading loaddefs.el so that if it

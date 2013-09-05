@@ -1,5 +1,6 @@
-# Maintenance productions for the automated test directory
-# Copyright (C) 2010-2012 Free Software Foundation, Inc.
+### @configure_input@
+
+# Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -16,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -50,12 +51,12 @@ emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+	   case $$file in */.* | */.*/* | */=* | ./data* ) ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
-all: test
+all: check
 
 doit:
 

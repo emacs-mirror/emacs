@@ -1,7 +1,7 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix
@@ -28,8 +28,6 @@
 ;; variables include `printer-name', `lpr-switches' and `lpr-command'.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;;;###autoload
 (defvar lpr-windows-system
@@ -127,13 +125,18 @@ argument."
   "List of strings of options to request page headings in the printer program.
 If nil, we run `lpr-page-header-program' to make page headings
 and print the result."
-  :type '(repeat (string :tag "Argument"))
+  :type '(choice (const nil)
+		 (string :tag "Single argument")
+		 (repeat :tag "Multiple arguments" (string :tag "Argument")))
   :group 'lpr)
 
-(defcustom print-region-function nil
+(defcustom print-region-function
+  (if (memq system-type '(ms-dos windows-nt))
+      #'direct-print-region-function
+    #'call-process-region)
   "Function to call to print the region on a printer.
 See definition of `print-region-1' for calling conventions."
-  :type '(choice (const nil) function)
+  :type 'function
   :group 'lpr)
 
 (defcustom lpr-page-header-program "pr"
@@ -212,35 +215,24 @@ for further customization of the printer command."
   (print-region-1 start end lpr-switches t))
 
 (defun print-region-1 (start end switches page-headers)
+  (and page-headers lpr-headers-switches
+       ;; It's possible to use an lpr option to get page headers.
+       (setq switches (append (if (stringp lpr-headers-switches)
+                                  (list lpr-headers-switches)
+                                lpr-headers-switches)
+                              switches)))
   ;; On some MIPS system, having a space in the job name
   ;; crashes the printer demon.  But using dashes looks ugly
   ;; and it seems to annoying to do for that MIPS system.
-  (let ((name  (concat (buffer-name) " Emacs buffer"))
-	(title (concat (buffer-name) " Emacs buffer"))
-	;; Make pipes use the same coding system as
-	;; writing the buffer to a file would.
-	(coding-system-for-write (or coding-system-for-write
-				     buffer-file-coding-system))
-	(coding-system-for-read  (or coding-system-for-read
-				     buffer-file-coding-system))
-	(width tab-width)
-	nswitches
-	switch-string)
-    (save-excursion
-      (and page-headers lpr-headers-switches
-	   ;; It's possible to use an lpr option to get page headers.
-	   (setq switches (append (if (stringp lpr-headers-switches)
-				      (list lpr-headers-switches)
-				    lpr-headers-switches)
-				  switches)))
-      (setq nswitches     (lpr-flatten-list
-			   (mapcar 'lpr-eval-switch ; Dynamic evaluation
-				   switches))
-	    switch-string (if switches
-			      (concat " with options "
-				      (mapconcat 'identity switches " "))
-			    ""))
-      (message "Spooling%s..." switch-string)
+  (save-excursion
+    (let ((name  (concat (buffer-name) " Emacs buffer"))
+          ;; Make pipes use the same coding system as
+          ;; writing the buffer to a file would.
+          (coding-system-for-write (or coding-system-for-write
+                                       buffer-file-coding-system))
+          (coding-system-for-read  (or coding-system-for-read
+                                       buffer-file-coding-system))
+          (width tab-width))
       (if (/= tab-width 8)
 	  (let ((new-coords (print-region-new-buffer start end)))
 	    (setq start     (car new-coords)
@@ -258,34 +250,48 @@ for further customization of the printer command."
 	    (let ((new-coords (print-region-new-buffer start end)))
 	      (apply 'call-process-region (car new-coords) (cdr new-coords)
 		     lpr-page-header-program t t nil
-		     (mapcar (lambda (e) (format e title))
+		     (mapcar (lambda (e) (format e name))
 			     lpr-page-header-switches)))
 	    (setq start (point-min)
 		  end   (point-max))))
-      (let ((buf (current-buffer)))
-        (with-temp-buffer
-          (let ((tempbuf (current-buffer)))
-            (with-current-buffer buf
-              (apply (or print-region-function 'call-process-region)
-                     (nconc (list start end lpr-command
-                                  nil tempbuf nil)
-                            (and lpr-add-switches
-                                 (list "-J" name))
-                            ;; These belong in pr if we are using that.
-                            (and lpr-add-switches lpr-headers-switches
-                                 (list "-T" title))
-                            (and (stringp printer-name)
-                                 (list (concat lpr-printer-switch
-                                               printer-name)))
-                            nswitches))))
-          (if (markerp end)
-              (set-marker end nil))
-          (message "Spooling%s...done%s%s" switch-string
-                   (case (count-lines (point-min) (point-max))
-                     (0 "")
-                     (1 ": ")
-                     (t ":\n"))
-                   (buffer-string)))))))
+      (lpr-print-region start end switches name))))
+
+(defun lpr-print-region (start end switches name)
+  (let ((buf (current-buffer))
+        (nswitches (lpr-flatten-list
+                    (mapcar #'lpr-eval-switch ; Dynamic evaluation
+                            switches)))
+        (switch-string (if switches
+                           (concat " with options "
+                                   (mapconcat #'identity switches " "))
+                         "")))
+    (message "Spooling%s..." switch-string)
+    (with-temp-buffer
+      (let ((retval
+             (let ((tempbuf (current-buffer)))
+               (with-current-buffer buf
+                 (apply (or print-region-function 'call-process-region)
+                        start end lpr-command
+                        nil tempbuf nil
+                        (nconc (and name lpr-add-switches
+                                    (list "-J" name))
+                               ;; These belong in pr if we are using that.
+                               (and name lpr-add-switches lpr-headers-switches
+                                    (list "-T" name))
+                               (and (stringp printer-name)
+                                    (string< "" printer-name)
+                                    (list (concat lpr-printer-switch
+                                                  printer-name)))
+                               nswitches))))))
+        (if (markerp end)
+            (set-marker end nil))
+        (funcall (if (memq retval '(nil 0)) #'message #'user-error)
+                 "Spooling%s...done%s%s" switch-string
+                 (pcase (count-lines (point-min) (point-max))
+                   (0 "")
+                   (1 ": ")
+                   (_ ":\n"))
+                 (buffer-string))))))
 
 ;; This function copies the text between start and end
 ;; into a new buffer, makes that buffer current.
@@ -325,7 +331,7 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 ;; Dynamic evaluation
 (defun lpr-eval-switch (arg)
   (cond ((stringp arg) arg)
-	((functionp arg) (apply arg nil))
+	((functionp arg) (funcall arg))
 	((symbolp arg) (symbol-value arg))
 	((consp arg) (apply (car arg) (cdr arg)))
 	(t nil)))
@@ -342,7 +348,7 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 
 (defun lpr-flatten-list-1 (list)
   (cond
-   ((null list) (list))
+   ((null list) nil)
    ((consp list)
     (append (lpr-flatten-list-1 (car list))
 	    (lpr-flatten-list-1 (cdr list))))

@@ -1,5 +1,6 @@
-# Maintenance productions for the Lisp directory
-# Copyright (C) 2000-2012 Free Software Foundation, Inc.
+### @configure_input@
+
+# Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -16,13 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 abs_top_builddir = @abs_top_builddir@
 lisp = $(srcdir)
 VPATH = $(srcdir)
+
+# Empty for all systems except MinGW, where xargs needs an explicit
+# limitation.
+XARGS_LIMIT = @XARGS_LIMIT@
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -64,6 +69,7 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
+	emacs-lisp/cl-loaddefs.el \
 	calc/calc-loaddefs.el \
 	eshell/esh-groups.el \
 	cedet/semantic/loaddefs.el \
@@ -75,7 +81,6 @@ AUTOGENEL = loaddefs.el \
 AUTOGEN_VCS = \
 	ps-print.el \
 	emulation/tpu-edt.el \
-	emacs-lisp/cl-loaddefs.el \
 	mail/rmail.el \
 	dired.el \
 	ibuffer.el \
@@ -86,19 +91,23 @@ AUTOGEN_VCS = \
 # During bootstrapping the byte-compiler is run interpreted when compiling
 # itself, and uses more stack than usual.
 #
-BIG_STACK_DEPTH = 1200
+BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
 BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
-# speed up the bootstrap process.
+# speed up the bootstrap process.  They're ordered by size, so we use
+# the slowest-compiler on the smallest file and move to larger files as the
+# compiler gets faster.  `autoload.elc' comes last because it is not used by
+# the compiler (so its compilation does not speed up subsequent compilations),
+# it's only placed here so as to speed up generation of the loaddefs.el file.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/bytecomp.elc \
-	$(lisp)/emacs-lisp/byte-opt.elc \
 	$(lisp)/emacs-lisp/macroexp.elc \
-	$(lisp)/emacs-lisp/cconv.elc \
+	$(lisp)/emacs-lisp/cconv.elc    \
+	$(lisp)/emacs-lisp/byte-opt.elc \
+	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
@@ -109,7 +118,7 @@ emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -117,7 +126,7 @@ setwins=subdirs=`find . -type d -print`; \
 setwins_almost=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | */obsolete | */term ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -125,17 +134,17 @@ setwins_almost=subdirs=`find . -type d -print`; \
 setwins_for_subdirs=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */.* | */.*/* | */=* | */cedet* ) ;; \
-		*) wins="$$wins $$file" ;; \
+		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
-# `compile-main' tends to be slower than `recompile' but can be parallelized
-# with "make -j" and results in more deterministic compilation warnings.
 # cus-load and finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 
 doit:
+
+.PHONY: all doit custom-deps finder-data autoloads update-subdirs
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
@@ -156,21 +165,24 @@ $(lisp)/cus-load.el:
 custom-deps: doit
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
+	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(lisp)/cus-load.el"))' -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
+	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	$(emacs) -l autoload \
+	    --eval '(setq autoload-builtin-package-versions t)' \
+	    --eval '(setq generated-autoload-file (unmsys--file-name "$(lisp)/loaddefs.el"))' \
+	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
@@ -182,13 +194,18 @@ update-subdirs: doit
 	   $(top_srcdir)/build-aux/update-subdirs $$file; \
 	done;
 
+.PHONY: updates bzr-update update-authors
+
+# Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
 
-# This is useful after "bzr up".
-bzr-update: recompile autoloads finder-data custom-deps
-
-# For backwards compatibility:
-cvs-update: bzr-update
+# This is useful after "bzr up"; but it doesn't do anything that a
+# plain "make" at top-level doesn't.
+# The only difference between this and this directory's "all" rule
+# is that this runs "autoloads" as well (because it uses "compile"
+# rather than "compile-main").  In a bootstrap, $(lisp) in src/Makefile
+# triggers this directory's autoloads rule.
+bzr-update: compile finder-data custom-deps
 
 # Update the AUTHORS file.
 
@@ -196,8 +213,9 @@ update-authors:
 	$(emacs) -l authors -f batch-update-authors $(top_srcdir)/etc/AUTHORS $(top_srcdir)
 
 TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
-	${ETAGS} -o $@ $$els
+	rm -f $@; touch $@; \
+	 echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,," | \
+	xargs $(XARGS_LIMIT) ${ETAGS} -a -o $@
 
 # The src/Makefile.in has its own set of dependencies and when they decide
 # that one Lisp file needs to be re-compiled, we had better recompile it as
@@ -210,6 +228,7 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptags
 # src/Makefile.in to rebuild a particular Lisp file, no questions asked.
 # Use byte-compile-refresh-preloaded to try and work around some of
 # the most common problems of not bootstrapping from a clean state.
+.PHONY: compile-onefile
 compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
@@ -264,7 +283,7 @@ compile-main: compile-clean
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
 	  echo "$${el}c"; \
-	done | xargs echo) | \
+	done | xargs $(XARGS_LIMIT) echo) | \
 	while read chunk; do \
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
@@ -297,6 +316,8 @@ compile-always: doit
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
+.PHONY: compile-calc backup-compiled-files compile-after-backup
+
 compile-calc:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
@@ -314,19 +335,23 @@ backup-compiled-files:
 
 compile-after-backup: backup-compiled-files compile-always
 
-# Recompile all Lisp files which are newer than their .elc files and compile
-# new ones.
-# This has the same effect as compile-main.  recompile has some advantages:
-# i) It is faster (on a single processor), since it only has to start
-# Emacs once.  It was 33% faster on a test with a random 10% of the .el
-# files needing recompilation.
-# ii) The explicit cc-mode dependency.
-# recompile's disadvantages are:
-# i) Not parallelizable.
-# ii) Compiling multiple files in the same instance of Emacs is wrong,
-# since the environment of later files is affected by definitions in
-# earlier ones.
-recompile: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
+# This does the same job as the "compile" rule, but in a different way.
+# Rather than spawning a separate Emacs instance to compile each file,
+# it uses the same Emacs instance to compile everything.
+# This is faster on a single core, since it avoids the overhead of
+# starting Emacs many times (it was 33% faster on a test with a
+# random 10% of the .el files needing recompilation).
+# Unlike compile, this is not parallelizable; so if you have more than
+# one core and use make -j#, compile will be (much) faster.
+# This rule also produces less accurate compilation warnings.
+# The environment of later files is affected by definitions in
+# earlier ones, so it does not produce some warnings that it should.
+# It can also produces spurious warnings about "invalid byte code" if
+# files that use byte-compile-dynamic are updated.
+# There is no reason to use this rule unless you only have a single
+# core and CPU time is an issue.
+.PHONY: compile-one-process
+compile-one-process: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
@@ -348,11 +373,12 @@ MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
 	$(MH_E_DIR)/mh-tool-bar.el $(MH_E_DIR)/mh-utils.el    \
 	$(MH_E_DIR)/mh-xface.el
 
+.PHONY: mh-autoloads
 mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
 $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
 
@@ -360,17 +386,17 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 # an own subdirectory. OTOH, it does not hurt to keep them in
 # lisp/net.
 TRAMP_DIR = $(lisp)/net
-TRAMP_SRC = $(TRAMP_DIR)/tramp.el  $(TRAMP_DIR)/tramp-cache.el  \
-	$(TRAMP_DIR)/tramp-cmds.el $(TRAMP_DIR)/tramp-compat.el \
-	$(TRAMP_DIR)/tramp-ftp.el  $(TRAMP_DIR)/tramp-gvfs.el   \
-	$(TRAMP_DIR)/tramp-gw.el   $(TRAMP_DIR)/tramp-sh.el	\
-	$(TRAMP_DIR)/tramp-smb.el  $(TRAMP_DIR)/tramp-uu.el     \
-	$(TRAMP_DIR)/trampver.el
+TRAMP_SRC = $(TRAMP_DIR)/tramp.el    $(TRAMP_DIR)/tramp-adb.el	\
+	$(TRAMP_DIR)/tramp-cache.el  $(TRAMP_DIR)/tramp-cmds.el	\
+	$(TRAMP_DIR)/tramp-compat.el $(TRAMP_DIR)/tramp-ftp.el	\
+	$(TRAMP_DIR)/tramp-gvfs.el   $(TRAMP_DIR)/tramp-gw.el	\
+	$(TRAMP_DIR)/tramp-sh.el     $(TRAMP_DIR)/tramp-smb.el	\
+	$(TRAMP_DIR)/tramp-uu.el     $(TRAMP_DIR)/trampver.el
 
 $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(TRAMP_DIR)
 
@@ -392,42 +418,31 @@ CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-# Prepare a bootstrap in the lisp subdirectory.
-#
-# Build loaddefs.el to make sure it's up-to-date.  If it's not, that
-# might lead to errors during the bootstrap because something fails to
-# autoload as expected.  If there is no emacs binary, then we can't
-# build autoloads yet.  In that case we have to use ldefs-boot.el.
-# Bootstrap should always work with ldefs-boot.el.  Therefore,
-# whenever a new autoload cookie gets added that is necessary during
-# bootstrapping, ldefs-boot.el should be updated by overwriting it with
-# an up-to-date copy of loaddefs.el that is uncorrupted by
-# local changes.  (Because loaddefs.el is an automatically generated
-# file, we don't want to store it in the source repository).
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
 
 distclean:
-	-rm -f ./Makefile
+	-rm -f ./Makefile $(lisp)/loaddefs.el~
 
 maintainer-clean: distclean bootstrap-clean
 

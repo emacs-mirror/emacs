@@ -1,8 +1,9 @@
 ;;; erc-stamp.el --- Timestamping for ERC messages
 
-;; Copyright (C) 2002-2004, 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm, processes, timestamp
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcStamp
 
@@ -43,7 +44,7 @@ group provides settings related to the format and display
 of timestamp information in `erc-mode' buffer.
 
 For timestamping to be activated, you just need to load `erc-stamp'
-in your .emacs file or interactively using `load-library'."
+in your init file or interactively using `load-library'."
   :group 'erc)
 
 (defcustom erc-timestamp-format "[%H:%M]"
@@ -152,7 +153,7 @@ from entering them and instead jump over them."
   :group 'erc-stamp
   :type 'boolean)
 
-(defface erc-timestamp-face '((t (:bold t :foreground "green")))
+(defface erc-timestamp-face '((t :weight bold :foreground "green"))
   "ERC timestamp face."
   :group 'erc-faces)
 
@@ -352,8 +353,9 @@ Return the empty string if FORMAT is nil."
 			       'isearch-open-invisible 'timestamp ts)
 	;; N.B. Later use categories instead of this harmless, but
 	;; inelegant, hack. -- BPT
-	(when erc-timestamp-intangible
-	  (erc-put-text-property 0 (length ts) 'intangible t ts))
+	(and erc-timestamp-intangible
+	     (not erc-hide-timestamps)	; bug#11706
+	     (erc-put-text-property 0 (length ts) 'intangible t ts))
 	ts)
     ""))
 

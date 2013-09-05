@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
@@ -111,16 +111,12 @@ trust and key files, and priority string."
                     :type 'gnutls-x509pki
                     :hostname host))
 
-(put 'gnutls-error
-     'error-conditions
-     '(error gnutls-error))
-(put 'gnutls-error
-     'error-message "GnuTLS error")
+(define-error 'gnutls-error "GnuTLS error")
 
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))
 
-(defun* gnutls-negotiate
+(cl-defun gnutls-negotiate
     (&rest spec
            &key process type hostname priority-string
            trustfiles crlfiles keylist min-prime-bits

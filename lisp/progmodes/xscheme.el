@@ -1,7 +1,7 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1989-1990, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, lisp
@@ -35,7 +35,6 @@
 ;;;; Internal Variables
 
 (defvar xscheme-previous-mode)
-(defvar xscheme-previous-process-state)
 (defvar xscheme-last-input-end)
 
 (defvar xscheme-process-command-line nil
@@ -74,7 +73,7 @@ by the scheme process, so additional control-g's are to be ignored.")
 
 (defconst default-xscheme-runlight
   '(": " xscheme-runlight-string)
-  "Default global (shared) xscheme-runlight modeline format.")
+  "Default global (shared) xscheme-runlight mode line format.")
 
 (defvar xscheme-runlight "")
 (defvar xscheme-runlight-string nil)
@@ -326,7 +325,7 @@ buffer is not visible at that time, the value will also be displayed
 in the minibuffer.  If an error occurs, the process buffer will
 automatically pop up to show you the error message.
 
-While the Scheme process is running, the modelines of all buffers in
+While the Scheme process is running, the mode lines of all buffers in
 scheme-mode are modified to show the state of the process.  The
 possible states and their meanings are:
 
@@ -334,7 +333,7 @@ input		waiting for input
 run		evaluating
 gc		garbage collecting
 
-The process buffer's modeline contains additional information where
+The process buffer's mode line contains additional information where
 the buffer's name is normally displayed: the command interpreter level
 and type.
 
@@ -388,8 +387,6 @@ with no args, if that value is non-nil.
   (if (not preserve)
       (let ((previous-mode major-mode))
         (kill-all-local-variables)
-        (make-local-variable 'xscheme-process-name)
-        (make-local-variable 'xscheme-previous-process-state)
         (make-local-variable 'xscheme-runlight-string)
         (make-local-variable 'xscheme-runlight)
         (set (make-local-variable 'xscheme-previous-mode) previous-mode)
@@ -397,35 +394,29 @@ with no args, if that value is non-nil.
           (set (make-local-variable 'xscheme-buffer-name) (buffer-name buffer))
           (set (make-local-variable 'xscheme-last-input-end) (make-marker))
           (let ((process (get-buffer-process buffer)))
-            (if process
-                (progn
-                  (setq xscheme-process-name (process-name process))
-                  (setq xscheme-previous-process-state
-                        (cons (process-filter process)
-                              (process-sentinel process)))
-		  (xscheme-process-filter-initialize t)
-		  (xscheme-modeline-initialize xscheme-buffer-name)
-		  (set-process-sentinel process 'xscheme-process-sentinel)
-		  (set-process-filter process 'xscheme-process-filter))
-                (setq xscheme-previous-process-state (cons nil nil)))))))
+            (when process
+              (setq-local xscheme-process-name (process-name process))
+              ;; FIXME: Use add-function!
+              (xscheme-process-filter-initialize t)
+              (xscheme-mode-line-initialize xscheme-buffer-name)
+              (add-function :override (process-sentinel process)
+                            #'xscheme-process-sentinel)
+              (add-function :override (process-filter process)
+                            #'xscheme-process-filter))))))
   (scheme-interaction-mode-initialize)
   (scheme-mode-variables)
   (run-mode-hooks 'scheme-mode-hook 'scheme-interaction-mode-hook))
 
 (defun exit-scheme-interaction-mode ()
-  "Take buffer out of scheme interaction mode"
+  "Take buffer out of scheme interaction mode."
   (interactive)
   (if (not (derived-mode-p 'scheme-interaction-mode))
       (error "Buffer not in scheme interaction mode"))
-  (let ((previous-state xscheme-previous-process-state))
-    (funcall xscheme-previous-mode)
-    (let ((process (get-buffer-process (current-buffer))))
-      (if process
-	  (progn
-	    (if (eq (process-filter process) 'xscheme-process-filter)
-		(set-process-filter process (car previous-state)))
-	    (if (eq (process-sentinel process) 'xscheme-process-sentinel)
-		(set-process-sentinel process (cdr previous-state))))))))
+  (funcall xscheme-previous-mode)
+  (let ((process (get-buffer-process (current-buffer))))
+    (when process
+      (remove-function (process-sentinel process) #'xscheme-process-sentinel)
+      (remove-function (process-filter process) #'xscheme-process-filter))))
 
 (defvar scheme-interaction-mode-commands-alist nil)
 (defvar scheme-interaction-mode-map nil)
@@ -817,7 +808,7 @@ Control returns to the top level rep loop."
 			    xscheme-buffer-name)
 		   (set-marker (process-mark process) (point-max))
 		   (xscheme-process-filter-initialize t)
-		   (xscheme-modeline-initialize xscheme-buffer-name)
+		   (xscheme-mode-line-initialize xscheme-buffer-name)
 		   (set-process-sentinel process 'xscheme-process-sentinel)
 		   (set-process-filter process 'xscheme-process-filter)
 		   (run-hooks 'xscheme-start-hook)))))
@@ -951,7 +942,7 @@ the remaining input.")
   (if running-p
       (let ((name (buffer-name (current-buffer))))
 	(setq scheme-mode-line-process '(": " xscheme-runlight-string))
-	(xscheme-modeline-initialize name)
+	(xscheme-mode-line-initialize name)
 	(if (equal name (default-value 'xscheme-buffer-name))
 	    (setq-default xscheme-runlight default-xscheme-runlight))))
   (if (or (eq xscheme-runlight default-xscheme-runlight)
@@ -1059,7 +1050,7 @@ the remaining input.")
     (set-buffer (process-buffer process))
     (goto-char (process-mark process))))
 
-(defun xscheme-modeline-initialize (name)
+(defun xscheme-mode-line-initialize (name)
   (setq xscheme-runlight-string "")
   (if (equal name (default-value 'xscheme-buffer-name))
       (setq-default xscheme-runlight-string ""))

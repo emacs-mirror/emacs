@@ -1,6 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -59,7 +59,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -187,16 +187,39 @@ with name concatenation."
 
 ;;;###autoload
 (defvar imenu-generic-expression nil
-  "The regex pattern to use for creating a buffer index.
+  "List of definition matchers for creating an Imenu index.
+Each element of this list should have the form
+
+  (MENU-TITLE REGEXP INDEX [FUNCTION] [ARGUMENTS...])
+
+MENU-TITLE should be nil (in which case the matches for this
+element are put in the top level of the buffer index) or a
+string (which specifies the title of a submenu into which the
+matches are put).
+REGEXP is a regular expression matching a definition construct
+which is to be displayed in the menu.  REGEXP may also be a
+function, called without arguments.  It is expected to search
+backwards.  It must return true and set `match-data' if it finds
+another element.
+INDEX is an integer specifying which subexpression of REGEXP
+matches the definition's name; this subexpression is displayed as
+the menu item.
+FUNCTION, if present, specifies a function to call when the index
+item is selected by the user.  This function is called with
+arguments consisting of the item name, the buffer position, and
+the ARGUMENTS.
+
+The variable `imenu-case-fold-search' determines whether or not
+the regexp matches are case sensitive, and `imenu-syntax-alist'
+can be used to alter the syntax table for the search.
 
 If non-nil this pattern is passed to `imenu--generic-function' to
-create a buffer index.  Look there for the documentation of this
-pattern's structure.
+create a buffer index.
 
-For example, see the value of `fortran-imenu-generic-expression' used by
-`fortran-mode' with `imenu-syntax-alist' set locally to give the
-characters which normally have \"symbol\" syntax \"word\" syntax
-during matching.")
+For example, see the value of `fortran-imenu-generic-expression'
+used by `fortran-mode' with `imenu-syntax-alist' set locally to
+give the characters which normally have \"symbol\" syntax
+\"word\" syntax during matching.")
 ;;;###autoload(put 'imenu-generic-expression 'risky-local-variable t)
 
 ;;;###autoload
@@ -303,6 +326,7 @@ PREVPOS is the variable in which we store the last position displayed."
 (defun imenu-example--name-and-position ()
   "Return the current/previous sexp and its (beginning) location.
 Don't move point."
+  (declare (obsolete "use your own function instead." "23.2"))
   (save-excursion
     (forward-sexp -1)
     ;; [ydi] modified for imenu-use-markers
@@ -310,8 +334,6 @@ Don't move point."
 	  (end (progn (forward-sexp) (point))))
       (cons (buffer-substring beg end)
 	    beg))))
-(make-obsolete 'imenu-example--name-and-position
-	       "use your own function instead." "23.2")
 
 ;;;
 ;;; Lisp
@@ -320,6 +342,7 @@ Don't move point."
 (defun imenu-example--lisp-extract-index-name ()
   ;; Example of a candidate for `imenu-extract-index-name-function'.
   ;; This will generate a flat index of definitions in a lisp file.
+  (declare (obsolete nil "23.2"))
   (save-match-data
     (and (looking-at "(def")
 	 (condition-case nil
@@ -330,11 +353,11 @@ Don't move point."
 		     (end (progn (forward-sexp -1) (point))))
 		 (buffer-substring beg end)))
 	   (error nil)))))
-(make-obsolete 'imenu-example--lisp-extract-index-name "your own" "23.2")
 
 (defun imenu-example--create-lisp-index ()
   ;; Example of a candidate for `imenu-create-index-function'.
   ;; It will generate a nested index of definitions.
+  (declare (obsolete nil "23.2"))
   (let ((index-alist '())
 	(index-var-alist '())
 	(index-type-alist '())
@@ -378,19 +401,19 @@ Don't move point."
 	 (push (cons "Syntax-unknown" index-unknown-alist)
 	       index-alist))
     index-alist))
-(make-obsolete 'imenu-example--create-lisp-index "your own" "23.2")
 
 ;; Regular expression to find C functions
 (defvar imenu-example--function-name-regexp-c
   (concat
-   "^[a-zA-Z0-9]+[ \t]?"		; type specs; there can be no
+   "^[a-zA-Z0-9]+[ \t]?"		; Type specs; there can be no
    "\\([a-zA-Z0-9_*]+[ \t]+\\)?"	; more than 3 tokens, right?
    "\\([a-zA-Z0-9_*]+[ \t]+\\)?"
-   "\\([*&]+[ \t]*\\)?"			; pointer
-   "\\([a-zA-Z0-9_*]+\\)[ \t]*("	; name
+   "\\([*&]+[ \t]*\\)?"			; Pointer.
+   "\\([a-zA-Z0-9_*]+\\)[ \t]*("	; Name.
    ))
 
 (defun imenu-example--create-c-index (&optional regexp)
+  (declare (obsolete nil "23.2"))
   (let ((index-alist '())
 	char)
     (goto-char (point-min))
@@ -407,7 +430,6 @@ Don't move point."
 	(if (not (eq char ?\;))
 	    (push (imenu-example--name-and-position) index-alist))))
     (nreverse index-alist)))
-(make-obsolete 'imenu-example--create-c-index "your own" "23.2")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -425,6 +447,8 @@ Don't move point."
 Simple elements in the alist look like (INDEX-NAME . POSITION).
 POSITION is the buffer position of the item; to go to the item
 is simply to move point to that position.
+POSITION is passed to `imenu-default-goto-function', so it can be a non-number
+if that variable has been changed (e.g. Semantic uses overlays for POSITIONs).
 
 Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
 To \"go to\" a special element means applying FUNCTION
@@ -481,7 +505,7 @@ The returned list DOES NOT share structure with LIST."
 	(i 0))
     (while remain
       (push (pop remain) sublist)
-      (incf i)
+      (cl-incf i)
       (and (= i n)
 	   ;; We have finished a sublist
 	   (progn (push (nreverse sublist) result)
@@ -524,25 +548,21 @@ The returned alist DOES NOT share structure with MENULIST."
 Return a split and sorted copy of ALIST.  The returned alist DOES
 NOT share structure with ALIST."
   (mapcar (lambda (elt)
-            (if (and (consp elt)
-                     (stringp (car elt))
-                     (listp (cdr elt)))
+            (if (imenu--subalist-p elt)
                 (imenu--split-menu (cdr elt) (car elt))
               elt))
 	  alist))
 
 (defun imenu--truncate-items (menulist)
   "Truncate all strings in MENULIST to `imenu-max-item-length'."
-  (mapcar (lambda (item)
-            (cond
-             ((consp (cdr item))
-              (imenu--truncate-items (cdr item)))
-             ;; truncate if necessary
-             ((and (numberp imenu-max-item-length)
-                   (> (length (car item)) imenu-max-item-length))
-              (setcar item (substring (car item) 0 imenu-max-item-length)))))
-	  menulist))
-
+  (mapc (lambda (item)
+	  ;; Truncate if necessary.
+	  (when (and (numberp imenu-max-item-length)
+		     (> (length (car item)) imenu-max-item-length))
+	    (setcar item (substring (car item) 0 imenu-max-item-length)))
+	  (when (imenu--subalist-p item)
+	    (imenu--truncate-items (cdr item))))
+	menulist))
 
 (defun imenu--make-index-alist (&optional noerror)
   "Create an index alist for the definitions in the current buffer.
@@ -555,7 +575,7 @@ See `imenu--index-alist' for the format of the index alist."
 	   (or (not imenu-auto-rescan)
 	       (and imenu-auto-rescan
 		    (> (buffer-size)  imenu-auto-rescan-maxout))))
-      ;; Get the index; truncate if necessary
+      ;; Get the index; truncate if necessary.
       (progn
 	(setq imenu--index-alist
 	      (save-excursion
@@ -593,17 +613,17 @@ Non-nil arguments are in recursive calls."
     t))
 
 (defun imenu--create-keymap (title alist &optional cmd)
-  (list* 'keymap title
-	 (mapcar
-	  (lambda (item)
-	    (list* (car item) (car item)
-		   (cond
-		    ((imenu--subalist-p item)
-		     (imenu--create-keymap (car item) (cdr item) cmd))
-		    (t
-		     `(lambda () (interactive)
-			,(if cmd `(,cmd ',item) (list 'quote item)))))))
-	  alist)))
+  `(keymap ,title
+           ,@(mapcar
+              (lambda (item)
+                `(,(car item) ,(car item)
+                  ,@(cond
+                     ((imenu--subalist-p item)
+                      (imenu--create-keymap (car item) (cdr item) cmd))
+                     (t
+                      `(lambda () (interactive)
+                         ,(if cmd `(,cmd ',item) (list 'quote item)))))))
+              alist)))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."
@@ -656,19 +676,20 @@ The alternate method, which is the one most often used, is to call
   ;; in these major modes.  But save that change for later.
   (cond ((and imenu-prev-index-position-function
 	      imenu-extract-index-name-function)
-	 (let ((index-alist '()) (pos (point))
+	 (let ((index-alist '()) (pos (point-max))
 	       name)
-	   (goto-char (point-max))
+	   (goto-char pos)
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function)
-             (when (= pos (point))
+             (unless (< (point) pos)
                (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
              (setq pos (point))
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))
 	     (and (stringp name)
- 		  ;; [ydi] updated for imenu-use-markers
-		  (push (cons name (if imenu-use-markers (point-marker) (point)))
+ 		  ;; [ydi] Updated for imenu-use-markers.
+		  (push (cons name
+                              (if imenu-use-markers (point-marker) (point)))
 			index-alist)))
 	   index-alist))
 	;; Use generic expression if possible.
@@ -694,46 +715,16 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 ;; so it needs to be careful never to loop!
 (defun imenu--generic-function (patterns)
   "Return an index alist of the current buffer based on PATTERNS.
+PATTERNS should be an alist which has the same form as
+`imenu-generic-expression'.
 
-PATTERNS is an alist with elements that look like this:
- (MENU-TITLE REGEXP INDEX)
-or like this:
- (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
-with zero or more ARGUMENTS.  The former format creates a simple
-element in the index alist when it matches; the latter creates a
-special element of the form (INDEX-NAME POSITION-MARKER FUNCTION
-ARGUMENTS...) with FUNCTION and ARGUMENTS copied from PATTERNS.
-
-MENU-TITLE is a string used as the title for the submenu or nil
-if the entries are not nested.
-
-REGEXP is a regexp that should match a construct in the buffer
-that is to be displayed in the menu; i.e., function or variable
-definitions, etc.  It contains a substring which is the name to
-appear in the menu.  See the info section on Regexps for more
-information.  REGEXP may also be a function, called without
-arguments.  It is expected to search backwards.  It shall return
-true and set `match-data' if it finds another element.
-
-INDEX points to the substring in REGEXP that contains the
-name (of the function, variable or type) that is to appear in the
-menu.
-
-The variable `imenu-case-fold-search' determines whether or not the
-regexp matches are case sensitive, and `imenu-syntax-alist' can be
-used to alter the syntax table for the search.
-
-See `lisp-imenu-generic-expression' for an example of PATTERNS.
-
-Returns an index of the current buffer as an alist.  The elements in
-the alist look like:
+The return value is an alist of the form
  (INDEX-NAME . INDEX-POSITION)
-or like:
+or
  (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...)
-They may also be nested index alists like:
+The return value may also consist of nested index alists like:
  (INDEX-NAME . INDEX-ALIST)
 depending on PATTERNS."
-
   (let ((index-alist (list 'dummy))
         (case-fold-search (if (or (local-variable-p 'imenu-case-fold-search)
 				  (not (local-variable-p 'font-lock-defaults)))
@@ -751,12 +742,12 @@ depending on PATTERNS."
                 (modify-syntax-entry c (cdr syn) table))
               (car syn))))
     (goto-char (point-max))
-    (unwind-protect			; for syntax table
+    (unwind-protect			; For syntax table.
 	(save-match-data
 	  (set-syntax-table table)
 
-	  ;; map over the elements of imenu-generic-expression
-	  ;; (typically functions, variables ...)
+	  ;; Map over the elements of imenu-generic-expression
+	  ;; (typically functions, variables ...).
 	  (dolist (pat patterns)
 	    (let ((menu-title (car pat))
 		  (regexp (nth 1 pat))
@@ -1012,7 +1003,7 @@ The ignored args just make this function have the same interface as a
 function placed in a special index-item."
   (if (or (< position (point-min))
 	  (> position (point-max)))
-      ;; widen if outside narrowing
+      ;; Widen if outside narrowing.
       (widen))
   (goto-char position))
 
@@ -1026,7 +1017,7 @@ for more information."
   (if (stringp index-item)
       (setq index-item (assoc index-item (imenu--make-index-alist))))
   (when index-item
-    (push-mark)
+    (push-mark nil t)
     (let* ((is-special-item (listp (cdr index-item)))
 	   (function
 	    (if is-special-item

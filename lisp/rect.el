@@ -1,6 +1,6 @@
 ;;; rect.el --- rectangle functions for GNU Emacs
 
-;; Copyright (C) 1985, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal
@@ -28,16 +28,6 @@
 
 ;; ### NOTE: this file was almost completely rewritten by Didier Verna
 ;; <didier@xemacs.org> in July 1999.
-
-;;; Global key bindings
-
-;;;###autoload (define-key ctl-x-r-map "c" 'clear-rectangle)
-;;;###autoload (define-key ctl-x-r-map "k" 'kill-rectangle)
-;;;###autoload (define-key ctl-x-r-map "d" 'delete-rectangle)
-;;;###autoload (define-key ctl-x-r-map "y" 'yank-rectangle)
-;;;###autoload (define-key ctl-x-r-map "o" 'open-rectangle)
-;;;###autoload (define-key ctl-x-r-map "t" 'string-rectangle)
-;;;###autoload (define-key ctl-x-r-map "N" 'rectangle-number-lines)
 
 ;;; Code:
 
@@ -229,11 +219,21 @@ even beep.)"
   (condition-case nil
       (setq killed-rectangle (delete-extract-rectangle start end fill))
     ((buffer-read-only text-read-only)
+     (setq deactivate-mark t)
      (setq killed-rectangle (extract-rectangle start end))
      (if kill-read-only-ok
 	 (progn (message "Read only text copied to kill ring") nil)
        (barf-if-buffer-read-only)
        (signal 'text-read-only (list (current-buffer)))))))
+
+;;;###autoload
+(defun copy-rectangle-as-kill (start end)
+  "Copy the region-rectangle and save it as the last killed one."
+  (interactive "r")
+  (setq killed-rectangle (extract-rectangle start end))
+  (setq deactivate-mark t)
+  (if (called-interactively-p 'interactive)
+      (indicate-copied-region (length (car killed-rectangle)))))
 
 ;;;###autoload
 (defun yank-rectangle ()

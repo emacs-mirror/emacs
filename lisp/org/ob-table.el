@@ -1,6 +1,6 @@
 ;;; ob-table.el --- support for calling org-babel functions from tables
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -99,7 +99,7 @@ as shown in the example below.
 				      (prog1 nil (setq quote t))
 				    (prog1 (if quote
 					       (format "\"%s\"" el)
-					     (org-babel-clean-text-properties el))
+					     (org-no-properties el))
 				      (setq quote nil))))
 				(cdr var)))))
 	     variables)))

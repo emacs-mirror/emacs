@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008-2012 Free Software Foundation, Inc.
+   Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _WIN32_WINNT 0x500
 #include <windows.h>
 #include <usp10.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -70,28 +69,27 @@ memq_no_quit (Lisp_Object elt, Lisp_Object list)
 
 /* Font backend interface implementation.  */
 static Lisp_Object
-uniscribe_list (Lisp_Object frame, Lisp_Object font_spec)
+uniscribe_list (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 1);
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-list", font_spec, fonts);
   return fonts;
 }
 
 static Lisp_Object
-uniscribe_match (Lisp_Object frame, Lisp_Object font_spec)
+uniscribe_match (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object entity = w32font_match_internal (frame, font_spec, 1);
+  Lisp_Object entity = w32font_match_internal (f, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-match", font_spec, entity);
   return entity;
 }
 
 static Lisp_Object
-uniscribe_list_family (Lisp_Object frame)
+uniscribe_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   /* Limit enumerated fonts to outline fonts to save time.  */
@@ -108,7 +106,7 @@ uniscribe_list_family (Lisp_Object frame)
 }
 
 static Lisp_Object
-uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
+uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct uniscribe_font_info),
@@ -137,7 +135,7 @@ uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 }
 
 static void
-uniscribe_close (FRAME_PTR f, struct font *font)
+uniscribe_close (struct frame *f, struct font *font)
 {
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
@@ -231,7 +229,7 @@ uniscribe_shape (Lisp_Object lgstring)
   /* First we need to break up the glyph string into runs of glyphs that
      can be treated together.  First try a single run.  */
   max_items = 2;
-  items = (SCRIPT_ITEM *) xmalloc (sizeof (SCRIPT_ITEM) * max_items + 1);
+  items = xmalloc (sizeof (SCRIPT_ITEM) * max_items + 1);
 
   while ((result = ScriptItemize (chars, nchars, max_items, NULL, NULL,
 				  items, &nitems)) == E_OUTOFMEMORY)
@@ -320,7 +318,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	    }
           if (SUCCEEDED (result))
 	    {
-	      int j, from, to;
+	      int j, from, to, adj_offset = 0;
 
 	      from = 0;
 	      to = from;
@@ -334,7 +332,7 @@ uniscribe_shape (Lisp_Object lgstring)
 
 		  if (NILP (lglyph))
 		    {
-		      lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+		      lglyph = LGLYPH_NEW ();
 		      LGSTRING_SET_GLYPH (lgstring, lglyph_index, lglyph);
 		    }
 		  /* Copy to a 32-bit data type to shut up the
@@ -362,6 +360,32 @@ uniscribe_shape (Lisp_Object lgstring)
 				  to = k - 1;
 				  break;
 				}
+			    }
+			}
+
+		      /* For RTL text, the Uniscribe shaper prepares
+			 the values in ADVANCES array for layout in
+			 reverse order, whereby "advance width" is
+			 applied to move the pen in reverse direction
+			 and _before_ drawing the glyph.  Since we
+			 draw glyphs in their normal left-to-right
+			 order, we need to adjust the coordinates of
+			 each non-base glyph in a grapheme cluster via
+			 X-OFF component of the gstring's ADJUSTMENT
+			 sub-vector.  This loop computes, for each
+			 grapheme cluster, the initial value of the
+			 adjustment for the base character, which is
+			 then updated for each successive glyph in the
+			 grapheme cluster.  */
+		      if (items[i].a.fRTL)
+			{
+			  int j1 = j;
+
+			  adj_offset = 0;
+			  while (j1 < nglyphs && !attributes[j1].fClusterStart)
+			    {
+			      adj_offset += advances[j1];
+			      j1++;
 			    }
 			}
 		    }
@@ -392,9 +416,11 @@ uniscribe_shape (Lisp_Object lgstring)
 
 		  if (SUCCEEDED (result))
 		    {
-		      LGLYPH_SET_LBEARING (lglyph, char_metric.abcA);
-		      LGLYPH_SET_RBEARING (lglyph, (char_metric.abcA
-						    + char_metric.abcB));
+		      int lbearing = char_metric.abcA;
+		      int rbearing = char_metric.abcA + char_metric.abcB;
+
+		      LGLYPH_SET_LBEARING (lglyph, lbearing);
+		      LGLYPH_SET_RBEARING (lglyph, rbearing);
 		    }
 		  else
 		    {
@@ -402,18 +428,47 @@ uniscribe_shape (Lisp_Object lgstring)
 		      LGLYPH_SET_RBEARING (lglyph, advances[j]);
 		    }
 
-		  if (offsets[j].du || offsets[j].dv)
+		  if (offsets[j].du || offsets[j].dv
+		      /* For non-base glyphs of RTL grapheme clusters,
+			 adjust the X offset even if both DU and DV
+			 are zero.  */
+		      || (!attributes[j].fClusterStart && items[i].a.fRTL))
 		    {
-		      Lisp_Object vec;
-		      vec = Fmake_vector (make_number (3), Qnil);
-		      ASET (vec, 0, make_number (offsets[j].du));
-		      ASET (vec, 1, make_number (offsets[j].dv));
+		      Lisp_Object vec = make_uninit_vector (3);
+
+		      if (items[i].a.fRTL)
+			{
+			  /* Empirically, it looks like Uniscribe
+			     interprets DU in reverse direction for
+			     RTL clusters.  E.g., if we don't reverse
+			     the direction, the Hebrew point HOLAM is
+			     drawn above the right edge of the base
+			     consonant, instead of above the left edge.  */
+			  ASET (vec, 0, make_number (-offsets[j].du
+						     + adj_offset));
+			  /* Update the adjustment value for the width
+			     advance of the glyph we just emitted.  */
+			  adj_offset -= 2 * advances[j];
+			}
+		      else
+			ASET (vec, 0, make_number (offsets[j].du + adj_offset));
+		      /* In the font definition coordinate system, the
+			 Y coordinate points up, while in our screen
+			 coordinates Y grows downwards.  So we need to
+			 reverse the sign of Y-OFFSET here.  */
+		      ASET (vec, 1, make_number (-offsets[j].dv));
 		      /* Based on what ftfont.c does... */
 		      ASET (vec, 2, make_number (advances[j]));
 		      LGLYPH_SET_ADJUSTMENT (lglyph, vec);
 		    }
 		  else
-		    LGLYPH_SET_ADJUSTMENT (lglyph, Qnil);
+		    {
+		      LGLYPH_SET_ADJUSTMENT (lglyph, Qnil);
+		      /* Update the adjustment value to compensate for
+			 the width of the base character.  */
+		      if (items[i].a.fRTL)
+			adj_offset -= advances[j];
+		    }
 		}
 	    }
 	}
@@ -544,8 +599,8 @@ uniscribe_encode_char (struct font *font, int c)
                        int x, int y, int with_background);
 
    Unused:
-   int uniscribe_prepare_face (FRAME_PTR f, struct face *face);
-   void uniscribe_done_face (FRAME_PTR f, struct face *face);
+   int uniscribe_prepare_face (struct frame *f, struct face *face);
+   void uniscribe_done_face (struct frame *f, struct face *face);
    int uniscribe_get_bitmap (struct font *font, unsigned code,
                              struct font_bitmap *bitmap, int bits_per_pixel);
    void uniscribe_free_bitmap (struct font *font, struct font_bitmap *bitmap);
@@ -553,8 +608,8 @@ uniscribe_encode_char (struct font *font, int c)
    void uniscribe_free_outline (struct font *font, void *outline);
    int uniscribe_anchor_point (struct font *font, unsigned code,
                                int index, int *x, int *y);
-   int uniscribe_start_for_frame (FRAME_PTR f);
-   int uniscribe_end_for_frame (FRAME_PTR f);
+   int uniscribe_start_for_frame (struct frame *f);
+   int uniscribe_end_for_frame (struct frame *f);
 
 */
 

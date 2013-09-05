@@ -1,6 +1,6 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
 
-;; Copyright (C) 1996-1999, 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -25,11 +25,11 @@
 
 (require 'url-vars)
 (require 'auth-source)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'url-scheme-get-property "url-methods")
 
-(defstruct (url
+(cl-defstruct (url
             (:constructor nil)
             (:constructor url-parse-make-urlobj
                           (&optional type user password host portspec filename
@@ -39,16 +39,17 @@
   silent (use-cookies t))
 
 (defsubst url-port (urlobj)
-  "Return the port number for the URL specified by URLOBJ."
+  "Return the port number for the URL specified by URLOBJ.
+If the port spec is nil (i.e. URLOBJ specifies no port number),
+return the default port number for URLOBJ's scheme."
+  (declare (gv-setter (lambda (port) `(setf (url-portspec ,urlobj) ,port))))
   (or (url-portspec urlobj)
       (if (url-type urlobj)
           (url-scheme-get-property (url-type urlobj) 'default-port))))
 
-(defsetf url-port (urlobj) (port) `(setf (url-portspec ,urlobj) ,port))
-
 (defun url-path-and-query (urlobj)
   "Return the path and query components of URLOBJ.
-These two components are store together in the FILENAME slot of
+These two components are stored together in the FILENAME slot of
 the object.  The return value of this function is (PATH . QUERY),
 where each of PATH and QUERY are strings or nil."
   (let ((name (url-filename urlobj))
@@ -98,6 +99,7 @@ If the specified port number is the default, return nil."
 
 (defun url-recreate-url-attributes (urlobj)
   "Recreate the attributes of an URL string from the parsed URLOBJ."
+  (declare (obsolete nil "24.3"))
   (when (url-attributes urlobj)
     (concat ";"
 	    (mapconcat (lambda (x)
@@ -105,7 +107,6 @@ If the specified port number is the default, return nil."
                              (concat (car x) "=" (cdr x))
                            (car x)))
                        (url-attributes urlobj) ";"))))
-(make-obsolete 'url-recreate-url-attributes nil "24.2")
 
 ;;;###autoload
 (defun url-generic-parse-url (url)

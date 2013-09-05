@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'vc))
+(eval-when-compile (require 'vc))
 
 (defgroup vc-mtn nil
   "VC Monotone (mtn) backend."
@@ -72,7 +72,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;;###autoload (defun vc-mtn-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-mtn-admin-format)
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-mtn")
+;;;###autoload         (load "vc-mtn" nil t)
 ;;;###autoload         (vc-mtn-registered file))))
 
 (defun vc-mtn-revision-granularity () 'repository)
@@ -123,10 +123,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	     ((match-end 2) (push (list (match-string 3) 'added) result))))
     (funcall update-function result)))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-mtn-dir-status (dir update-function)
   (vc-mtn-command (current-buffer) 'async dir "status")
-  (vc-exec-after
-   `(vc-mtn-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-mtn-after-dir-status update-function)))
 
 (defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just
@@ -161,16 +164,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :group 'vc-mtn)
 
 (defun vc-mtn-mode-line-string (file)
-  "Return string for placement in modeline by `vc-mode-line' for FILE."
+  "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((branch (vc-mtn-workfile-branch file)))
     (dolist (rule vc-mtn-mode-line-rewrite)
       (if (string-match (car rule) branch)
 	  (setq branch (replace-match (cdr rule) t nil branch))))
     (format "Mtn%c%s"
-	    (case (vc-state file)
-	      ((up-to-date needs-update) ?-)
-	      (added ?@)
-	      (t ?:))
+	    (pcase (vc-state file)
+	      ((or `up-to-date `needs-update) ?-)
+	      (`added ?@)
+	      (_ ?:))
 	    branch)))
 
 (defun vc-mtn-register (files &optional _rev _comment)
@@ -202,6 +205,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;   )
 
 (defun vc-mtn-print-log (files buffer &optional _shortlog start-revision limit)
+  "Print commit logs associated with FILES into specified BUFFER.
+_SHORTLOG is ignored.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (apply 'vc-mtn-command buffer 0 files "log"
 	 (append
 	  (when start-revision (list "--from" (format "%s" start-revision)))
@@ -228,6 +235,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;; (defun vc-mtn-show-log-entry (revision)
 ;;   )
+
+(autoload 'vc-switches "vc")
 
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using monotone between two revisions of FILES."
@@ -305,29 +314,28 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       ids)))
 
 (defun vc-mtn-revision-completion-table (_files)
-  ;; TODO: Implement completion for selectors
-  ;; TODO: Implement completion for composite selectors.
   ;; What about using `files'?!?  --Stef
   (lambda (string pred action)
     (cond
+     ;; Special chars for composite selectors.
+     ((string-match ".*[^\\]\\(\\\\\\\\\\)*[/|;(]" string)
+      (completion-table-with-context (substring string 0 (match-end 0))
+                                     (vc-mtn-revision-completion-table nil)
+                                     (substring string (match-end 0))
+                                     pred action))
      ;; "Tag" selectors.
      ((string-match "\\`t:" string)
       (complete-with-action action
                             (mapcar (lambda (tag) (concat "t:" tag))
                                     (vc-mtn-list-tags))
                             string pred))
-     ;; "Branch" selectors.
-     ((string-match "\\`b:" string)
-      (complete-with-action action
-                            (mapcar (lambda (tag) (concat "b:" tag))
-                                    (vc-mtn-list-branches))
-                            string pred))
-     ;; "Head" selectors.  Not sure how they differ from "branch" selectors.
-     ((string-match "\\`h:" string)
-      (complete-with-action action
-                            (mapcar (lambda (tag) (concat "h:" tag))
-                                    (vc-mtn-list-branches))
-                            string pred))
+     ;; "Branch" or "Head" selectors.
+     ((string-match "\\`[hb]:" string)
+      (let ((prefix (match-string 0 string)))
+        (complete-with-action action
+                              (mapcar (lambda (tag) (concat prefix tag))
+                                      (vc-mtn-list-branches))
+                              string pred)))
      ;; "ID" selectors.
      ((string-match "\\`i:" string)
       (complete-with-action action
@@ -339,7 +347,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       (complete-with-action action
                             '("t:" "b:" "h:" "i:"
                               ;; Completion not implemented for these.
-                              "a:" "c:" "d:" "e:" "l:")
+                              "c:" "a:" "k:" "d:" "m:" "e:" "l:" "i:" "p:"
+                              ;; These have no arg to complete.
+                              "u:" "w:"
+                              ;; Selector functions.
+                              "difference(" "lca(" "max(" "ancestors("
+                              "descendants(" "parents(" "children("
+                              "pick(")
                             string pred)))))
 
 

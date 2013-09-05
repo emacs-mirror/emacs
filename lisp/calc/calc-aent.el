@@ -1,6 +1,6 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -42,7 +42,7 @@
 (declare-function math-simplify "calc-alg" (top-expr))
 (declare-function math-known-matrixp "calc-arith" (a))
 (declare-function math-parse-fortran-subscr "calc-lang" (sym args))
-(declare-function math-to-radians-2 "calc-math" (a))
+(declare-function math-to-radians-2 "calc-math" (a &optional force-symbolic))
 (declare-function math-read-string "calc-ext" ())
 (declare-function math-read-brackets "calc-vec" (space-sep math-rb-close))
 (declare-function math-read-angle-brackets "calc-forms" ())
@@ -286,8 +286,7 @@ The value t means abort and give an error message.")
 
 ;;;###autoload
 (defun calc-alg-entry (&optional initial prompt)
-  (let* ((sel-mode nil)
-	 (calc-dollar-values (mapcar 'calc-get-stack-element
+  (let* ((calc-dollar-values (mapcar #'calc-get-stack-element
 				     (nthcdr calc-stack-top calc-stack)))
 	 (calc-dollar-used 0)
 	 (calc-plain-entry t)

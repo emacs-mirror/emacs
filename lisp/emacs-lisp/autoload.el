@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -31,8 +31,9 @@
 ;;; Code:
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
+(require 'lisp-mnt)
 (require 'help-fns)			;for help-add-fundoc-usage.
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar generated-autoload-file nil
   "File into which to write autoload definitions.
@@ -52,7 +53,10 @@ FormFeed character.")
 
 (defvar generated-autoload-load-name nil
   "Load name for `autoload' statements generated from autoload cookies.
-If nil, this defaults to the file name, sans extension.")
+If nil, this defaults to the file name, sans extension.
+Typically, you need to set this when the directory containing the file
+is not in `load-path'.
+This also affects the generated cus-load.el file.")
 ;;;###autoload
 (put 'generated-autoload-load-name 'safe-local-variable 'stringp)
 
@@ -151,33 +155,35 @@ expression, in which case we want to handle forms differently."
 		   easy-mmode-define-global-mode define-global-minor-mode
 		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
-		   defun* defmacro* define-overloadable-function))
-      (let* ((macrop (memq car '(defmacro defmacro*)))
+		   cl-defun defun* cl-defmacro defmacro*
+                   define-overloadable-function))
+      (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
-	     (args (case car
-                     ((defun defmacro defun* defmacro*
-                        define-overloadable-function) (nth 2 form))
-                     ((define-skeleton) '(&optional str arg))
-                     ((define-generic-mode define-derived-mode
-                        define-compilation-mode) nil)
-                     (t)))
-	     (body (nthcdr (get car 'doc-string-elt) form))
+	     (args (pcase car
+                     ((or `defun `defmacro
+                          `defun* `defmacro* `cl-defun `cl-defmacro
+                          `define-overloadable-function) (nth 2 form))
+                     (`define-skeleton '(&optional str arg))
+                     ((or `define-generic-mode `define-derived-mode
+                          `define-compilation-mode) nil)
+                     (_ t)))
+	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
 	     (doc (if (stringp (car body)) (pop body))))
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
 	(when (listp args) (setq doc (help-add-fundoc-usage doc args)))
         ;; `define-generic-mode' quotes the name, so take care of that
-        (list 'autoload (if (listp name) name (list 'quote name))
-              file doc
-              (or (and (memq car '(define-skeleton define-derived-mode
-                                    define-generic-mode
-                                    easy-mmode-define-global-mode
-                                    define-global-minor-mode
-                                    define-globalized-minor-mode
-                                    easy-mmode-define-minor-mode
-                                    define-minor-mode)) t)
-                  (eq (car-safe (car body)) 'interactive))
-              (if macrop (list 'quote 'macro) nil))))
+        `(autoload ,(if (listp name) name (list 'quote name))
+           ,file ,doc
+           ,(or (and (memq car '(define-skeleton define-derived-mode
+                                  define-generic-mode
+                                  easy-mmode-define-global-mode
+                                  define-global-minor-mode
+                                  define-globalized-minor-mode
+                                  easy-mmode-define-minor-mode
+                                  define-minor-mode)) t)
+                (eq (car-safe (car body)) 'interactive))
+           ,(if macrop ''macro nil))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
@@ -226,7 +232,8 @@ expression, in which case we want to handle forms differently."
 (defun autoload-find-generated-file ()
   "Visit the autoload file for the current buffer, and return its buffer.
 If a buffer is visiting the desired autoload file, return it."
-  (let ((enable-local-variables :safe))
+  (let ((enable-local-variables :safe)
+	(enable-local-eval nil))
     ;; We used to use `raw-text' to read this file, but this causes
     ;; problems when the file contains non-ASCII characters.
     (find-file-noselect
@@ -275,7 +282,7 @@ put the output in."
    ;; Symbols at the toplevel are meaningless.
    ((symbolp form) nil)
    (t
-    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt))
+    (let ((doc-string-elt (function-get (car-safe form) 'doc-string-elt))
 	  (outbuf autoload-print-form-outbuf))
       (if (and doc-string-elt (stringp (nth doc-string-elt form)))
 	  ;; We need to hack the printing because the
@@ -354,7 +361,7 @@ not be relied upon."
   "Insert the section-header line,
 which lists the file name and which functions are in it, etc."
   (insert generate-autoload-section-header)
-  (prin1 (list 'autoloads autoloads load-name file time)
+  (prin1 `(autoloads ,autoloads ,load-name ,file ,time)
 	 outbuf)
   (terpri outbuf)
   ;; Break that line at spaces, to avoid very long lines.
@@ -380,7 +387,8 @@ which lists the file name and which functions are in it, etc."
     (emacs-lisp-mode)
     (setq default-directory (file-name-directory file))
     (insert-file-contents file nil)
-    (let ((enable-local-variables :safe))
+    (let ((enable-local-variables :safe)
+	  (enable-local-eval nil))
       (hack-local-variables))
     (current-buffer)))
 
@@ -428,6 +436,57 @@ Return non-nil in the case where no autoloads were added at point."
 
 (defvar print-readably)
 
+
+(defun autoload--setup-output (otherbuf outbuf absfile load-name)
+  (let ((outbuf
+         (or (if otherbuf
+                 ;; A file-local setting of
+                 ;; autoload-generated-file says we
+                 ;; should ignore OUTBUF.
+                 nil
+               outbuf)
+             (autoload-find-destination absfile load-name)
+             ;; The file has autoload cookies, but they're
+             ;; already up-to-date. If OUTFILE is nil, the
+             ;; entries are in the expected OUTBUF,
+             ;; otherwise they're elsewhere.
+             (throw 'done otherbuf))))
+    (with-current-buffer outbuf
+      (point-marker))))
+
+(defun autoload--print-cookie-text (output-start load-name file)
+  (let ((standard-output (marker-buffer output-start)))
+     (search-forward generate-autoload-cookie)
+     (skip-chars-forward " \t")
+     (if (eolp)
+         (condition-case-unless-debug err
+             ;; Read the next form and make an autoload.
+             (let* ((form (prog1 (read (current-buffer))
+                            (or (bolp) (forward-line 1))))
+                    (autoload (make-autoload form load-name)))
+               (if autoload
+                   nil
+                 (setq autoload form))
+               (let ((autoload-print-form-outbuf
+                      standard-output))
+                 (autoload-print-form autoload)))
+           (error
+            (message "Autoload cookie error in %s:%s %S"
+                     file (count-lines (point-min) (point)) err)))
+
+       ;; Copy the rest of the line to the output.
+       (princ (buffer-substring
+               (progn
+                 ;; Back up over whitespace, to preserve it.
+                 (skip-chars-backward " \f\t")
+                 (if (= (char-after (1+ (point))) ? )
+                     ;; Eat one space.
+                     (forward-char 1))
+                 (point))
+              (progn (forward-line 1) (point)))))))
+
+(defvar autoload-builtin-package-versions nil)
+
 ;; When called from `generate-file-autoloads' we should ignore
 ;; `generated-autoload-file' altogether.  When called from
 ;; `update-file-autoloads' we don't know `outbuf'.  And when called from
@@ -449,8 +508,7 @@ different from OUTFILE, then OUTBUF is ignored.
 Return non-nil if and only if FILE adds no autoloads to OUTFILE
 \(or OUTBUF if OUTFILE is nil)."
   (catch 'done
-    (let ((autoloads-done '())
-	  load-name
+    (let (load-name
           (print-length nil)
 	  (print-level nil)
           (print-readably t)           ; This does something in Lucid Emacs.
@@ -459,7 +517,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           (otherbuf nil)
           (absfile (expand-file-name file))
           ;; nil until we found a cookie.
-          output-start ostart)
+          output-start)
       (with-current-buffer (or visited
                                ;; It is faster to avoid visiting the file.
                                (autoload-find-file file))
@@ -480,6 +538,23 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           (save-excursion
             (save-restriction
               (widen)
+              (when autoload-builtin-package-versions
+                (let ((version (lm-header "version"))
+                      package)
+                  (and version
+                       (setq version (ignore-errors (version-to-list version)))
+                       (setq package (or (lm-header "package")
+                                         (file-name-sans-extension
+                                          (file-name-nondirectory file))))
+                       (setq output-start (autoload--setup-output
+                                           otherbuf outbuf absfile load-name))
+                       (let ((standard-output (marker-buffer output-start))
+                             (print-quoted t))
+                          (princ `(push (purecopy
+                                             ',(cons (intern package) version))
+                                        package--builtin-versions))
+                         (newline)))))
+
               (goto-char (point-min))
               (while (not (eobp))
                 (skip-chars-forward " \t\n\f")
@@ -487,51 +562,9 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                  ((looking-at (regexp-quote generate-autoload-cookie))
                   ;; If not done yet, figure out where to insert this text.
                   (unless output-start
-                    (let ((outbuf
-                           (or (if otherbuf
-                                   ;; A file-local setting of
-                                   ;; autoload-generated-file says we
-                                   ;; should ignore OUTBUF.
-                                   nil
-                                 outbuf)
-                               (autoload-find-destination absfile load-name)
-                               ;; The file has autoload cookies, but they're
-                               ;; already up-to-date. If OUTFILE is nil, the
-                               ;; entries are in the expected OUTBUF,
-                               ;; otherwise they're elsewhere.
-                               (throw 'done otherbuf))))
-                      (with-current-buffer outbuf
-                        (setq output-start (point-marker)
-                              ostart (point)))))
-                  (search-forward generate-autoload-cookie)
-                  (skip-chars-forward " \t")
-                  (if (eolp)
-                      (condition-case-unless-debug err
-                          ;; Read the next form and make an autoload.
-                          (let* ((form (prog1 (read (current-buffer))
-                                         (or (bolp) (forward-line 1))))
-                                 (autoload (make-autoload form load-name)))
-                            (if autoload
-                                (push (nth 1 form) autoloads-done)
-                              (setq autoload form))
-                            (let ((autoload-print-form-outbuf
-                                   (marker-buffer output-start)))
-                              (autoload-print-form autoload)))
-                        (error
-                         (message "Autoload cookie error in %s:%s %S"
-                                  file (count-lines (point-min) (point)) err)))
-
-                    ;; Copy the rest of the line to the output.
-                    (princ (buffer-substring
-                            (progn
-                              ;; Back up over whitespace, to preserve it.
-                              (skip-chars-backward " \f\t")
-                              (if (= (char-after (1+ (point))) ? )
-                                  ;; Eat one space.
-                                  (forward-char 1))
-                              (point))
-                            (progn (forward-line 1) (point)))
-                           (marker-buffer output-start))))
+                    (setq output-start (autoload--setup-output
+                                        otherbuf outbuf absfile load-name)))
+                  (autoload--print-cookie-text output-start load-name file))
                  ((looking-at ";")
                   ;; Don't read the comment.
                   (forward-line 1))
@@ -546,12 +579,11 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                 (save-excursion
                   ;; Insert the section-header line which lists the file name
                   ;; and which functions are in it, etc.
-                  (assert (= ostart output-start))
                   (goto-char output-start)
                   (let ((relfile (file-relative-name absfile)))
                     (autoload-insert-section-header
                      (marker-buffer output-start)
-                     autoloads-done load-name relfile
+                     () load-name relfile
                      (if secondary-autoloads-file-buf
                          ;; MD5 checksums are much better because they do not
                          ;; change unless the file changes (so they'll be

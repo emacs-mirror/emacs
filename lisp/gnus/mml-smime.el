@@ -1,6 +1,6 @@
 ;;; mml-smime.el --- S/MIME support for MML
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: Gnus, MIME, S/MIME, MML
@@ -73,6 +73,18 @@ Whether the passphrase is cached at all is controlled by
   "A list of your own key ID which will be used to sign a message."
   :group 'mime-security
   :type '(repeat (string :tag "Key ID")))
+
+(defcustom mml-smime-sign-with-sender nil
+  "If t, use message sender so find a key to sign with."
+  :group 'mime-security
+  :version "24.4"
+  :type 'boolean)
+
+(defcustom mml-smime-encrypt-to-self nil
+  "If t, add your own key ID to recipient list when encryption."
+  :group 'mime-security
+  :version "24.4"
+  :type 'boolean)
 
 (defun mml-smime-sign (cont)
   (let ((func (nth 1 (assq mml-smime-use mml-smime-function-alist))))
@@ -323,6 +335,7 @@ Whether the passphrase is cached at all is controlled by
   (autoload 'epg-encrypt-string "epg")
   (autoload 'epg-passphrase-callback-function "epg")
   (autoload 'epg-context-set-passphrase-callback "epg")
+  (autoload 'epg-sub-key-fingerprint "epg")
   (autoload 'epg-configuration "epg-config")
   (autoload 'epg-expand-group "epg-config")
   (autoload 'epa-select-keys "epa"))
@@ -366,6 +379,24 @@ Whether the passphrase is cached at all is controlled by
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
 
+;; XXX: since gpg --list-secret-keys does not return validity of each
+;; key, `mml-smime-epg-find-usable-key' defined above is not enough for
+;; secret keys.  The function `mml-smime-epg-find-usable-secret-key'
+;; below looks at appropriate public keys to check usability.
+(defun mml-smime-epg-find-usable-secret-key (context name usage)
+  (let ((secret-keys (epg-list-keys context name t))
+	secret-key)
+    (while (and (not secret-key) secret-keys)
+      (if (mml-smime-epg-find-usable-key
+	   (epg-list-keys context (epg-sub-key-fingerprint
+				   (car (epg-key-sub-key-list
+					 (car secret-keys)))))
+	   usage)
+	  (setq secret-key (car secret-keys)
+		secret-keys nil)
+	(setq secret-keys (cdr secret-keys))))
+    secret-key))
+
 (autoload 'mml-compute-boundary "mml")
 
 ;; We require mm-decode, which requires mm-bodies, which autoloads
@@ -376,29 +407,36 @@ Whether the passphrase is cached at all is controlled by
   (let* ((inhibit-redisplay t)
 	 (context (epg-make-context 'CMS))
 	 (boundary (mml-compute-boundary cont))
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml-smime-signers
+			   (if (and mml-smime-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
 	 signer-key
 	 (signers
 	  (or (message-options-get 'mml-smime-epg-signers)
 	      (message-options-set
-	      'mml-smime-epg-signers
-	      (if (eq mm-sign-option 'guided)
-		  (epa-select-keys context "\
+	       'mml-smime-epg-signers
+	       (if (eq mm-sign-option 'guided)
+		   (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				   mml-smime-signers t)
-		(if mml-smime-signers
-		    (mapcar
-		     (lambda (signer)
-		       (setq signer-key (mml-smime-epg-find-usable-key
-					 (epg-list-keys context signer t)
-					 'sign))
-		       (unless (or signer-key
-				   (y-or-n-p
-				    (format "No secret key for %s; skip it? "
+				    signer-names
+				    t)
+		 (if (or sender mml-smime-signers)
+		     (delq nil
+			   (mapcar
+			    (lambda (signer)
+			      (setq signer-key
+				    (mml-smime-epg-find-usable-secret-key
+				     context signer 'sign))
+			      (unless (or signer-key
+					  (y-or-n-p
+					   (format
+					    "No secret key for %s; skip it? "
 					    signer)))
-			 (error "No secret key for %s" signer))
-		       signer-key)
-		     mml-smime-signers))))))
+				(error "No secret key for %s" signer))
+			      signer-key)
+			    signer-names)))))))
 	 signature micalg)
     (epg-context-set-signers context signers)
     (if mml-smime-cache-passphrase
@@ -443,13 +481,17 @@ Content-Disposition: attachment; filename=smime.p7s
     (goto-char (point-max))))
 
 (defun mml-smime-epg-encrypt (cont)
-  (let ((inhibit-redisplay t)
-	(context (epg-make-context 'CMS))
-	(config (epg-configuration))
-	(recipients (message-options-get 'mml-smime-epg-recipients))
-	cipher signers
-	(boundary (mml-compute-boundary cont))
-	recipient-key)
+  (let* ((inhibit-redisplay t)
+	 (context (epg-make-context 'CMS))
+	 (config (epg-configuration))
+	 (recipients (message-options-get 'mml-smime-epg-recipients))
+	 cipher signers
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml-smime-signers
+			   (if (and mml-smime-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
+	 (boundary (mml-compute-boundary cont))
+	 recipient-key)
     (unless recipients
       (setq recipients
 	    (apply #'nconc
@@ -462,6 +504,10 @@ Content-Disposition: attachment; filename=smime.p7s
 			 (message-options-set 'message-recipients
 					      (read-string "Recipients: ")))
 		     "[ \f\t\n\r\v,]+"))))
+      (when mml-smime-encrypt-to-self
+	(unless signer-names
+	  (error "Neither message sender nor mml-smime-signers are set"))
+	(setq recipients (nconc recipients signer-names)))
       (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\

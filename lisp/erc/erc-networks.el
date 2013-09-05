@@ -1,8 +1,9 @@
 ;;; erc-networks.el --- IRC networks
 
-;; Copyright (C) 2002, 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -39,7 +40,7 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Variables
 
@@ -728,10 +729,10 @@ search for a match in `erc-networks-alist'."
     (or
      ;; Loop through `erc-networks-alist' looking for a match.
      (let ((server (or erc-server-announced-name erc-session-server)))
-       (loop for (name matcher) in erc-networks-alist
-	     when (and matcher
-		       (string-match (concat matcher "\\'") server))
-	     do (return name)))
+       (cl-loop for (name matcher) in erc-networks-alist
+		when (and matcher
+			  (string-match (concat matcher "\\'") server))
+		do (cl-return name)))
      'Unknown)))
 
 (defun erc-network ()
@@ -788,8 +789,8 @@ As an example:
       (cond ((numberp p)
 	     (push p result))
 	    ((listp p)
-	     (setq result (nconc (loop for i from (cadr p) downto (car p)
-				       collect i)
+	     (setq result (nconc (cl-loop for i from (cadr p) downto (car p)
+					  collect i)
 				 result)))))
     (nreverse result)))
 

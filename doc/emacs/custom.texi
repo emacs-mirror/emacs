@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
 @chapter Customization
@@ -345,7 +345,7 @@ hidden, nor on subgroups that are hidden or not visible in the buffer.
 @kindex C-x C-c @r{(customization buffer)}
 @findex Custom-set
 @findex Custom-save
-  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent using to
+  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent to using
 the @samp{[Set for Current Session]} button.  The command @kbd{C-x
 C-s} (@code{Custom-save}) is like using the @samp{[Save for Future
 Sessions]} button.
@@ -450,11 +450,14 @@ attribute; an empty checkbox, @samp{[ ]}, means that the face does not
 specify any special value for the attribute.  You can activate a
 checkbox to specify or unspecify its attribute.
 
-  Most faces only specify a few attributes (in the above example,
-@code{font-lock-comment-face} only specifies the foreground color).
-Emacs has a special face, @code{default}, whose attributes are all
-specified; it determines the attributes left unspecified by other
-faces.
+  A face does not have to specify every single attribute; in fact,
+most faces only specify a few attributes.  In the above example,
+@code{font-lock-comment-face} only specifies the foreground color.
+Any unspecified attribute is taken from the special face named
+@code{default}, whose attributes are all specified.  The
+@code{default} face is the face used to display any text that does not
+have an explicitly-assigned face; furthermore, its background color
+attribute serves as the background color of the frame.
 
   The @samp{Hide Unused Attributes} button, at the end of the
 attribute list, hides the unspecified attributes of the face.  When
@@ -552,7 +555,7 @@ or disabled as a unit.  You can use Custom themes to switch easily
 between various collections of settings, and to transfer such
 collections from one computer to another.
 
-  A Custom theme is stored an Emacs Lisp source file.  If the name of
+  A Custom theme is stored as an Emacs Lisp source file.  If the name of
 the Custom theme is @var{name}, the theme file is named
 @file{@var{name}-theme.el}.  @xref{Creating Custom Themes}, for the
 format of a theme file and how to make one.
@@ -607,10 +610,10 @@ always considered safe.
 @vindex custom-enabled-themes
   Setting or saving Custom themes actually works by customizing the
 variable @code{custom-enabled-themes}.  The value of this variable is
-a list of Custom theme names (as Lisp symbols, e.g.@: @code{tango}).
+a list of Custom theme names (as Lisp symbols, e.g., @code{tango}).
 Instead of using the @file{*Custom Themes*} buffer to set
 @code{custom-enabled-themes}, you can customize the variable using the
-usual customization interface, e.g.@: with @kbd{M-x customize-option}.
+usual customization interface, e.g., with @kbd{M-x customize-option}.
 Note that Custom themes are not allowed to set
 @code{custom-enabled-themes} themselves.
 
@@ -765,16 +768,14 @@ displays something like this:
 @example
 fill-column is a variable defined in `C source code'.
 fill-column's value is 70
-Local in buffer custom.texi; global value is 70
-Automatically becomes buffer-local when set in any fashion.
 
-  Automatically becomes buffer-local when set in any fashion.
-  This variable is safe as a file local variable if its value
-  satisfies the predicate `integerp'.
+Automatically becomes buffer-local when set.
+This variable is safe as a file local variable if its value
+satisfies the predicate `integerp'.
 
 Documentation:
-*Column beyond which automatic line-wrapping should happen.
-Interactively, you can set the buffer local value using C-x f.
+Column beyond which automatic line-wrapping should happen.
+Interactively, you can set the local value with C-x f.
 
 You can customize this variable.
 @end example
@@ -837,7 +838,8 @@ is a normal hook.
 
 @cindex abnormal hook
   A few hooks are @dfn{abnormal hooks}.  Their names end in
-@samp{-hooks} or @samp{-functions}, instead of @samp{-hook}.  What
+@samp{-functions}, instead of @samp{-hook} (some old code may also use
+the deprecated suffix @samp{-hooks}).  What
 makes these hooks abnormal is the way its functions are
 called---perhaps they are given arguments, or perhaps the values they
 return are used in some way.  For example,
@@ -1054,13 +1056,14 @@ pair with a colon and semicolon.  The special variable/value pair
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
 @findex copy-dir-locals-to-file-locals-prop-line
-  You can use the command @kbd{M-x add-file-local-variable-prop-line}
-instead of adding entries by hand.  It prompts for
-a variable and value, and adds them to the first line in the
-appropriate way.  @kbd{M-x delete-file-local-variable-prop-line}
-prompts for a variable, and deletes its entry from the line.  @kbd{M-x
-copy-dir-locals-to-file-locals-prop-line} copies directory-local
-variables to the first line (@pxref{Directory Variables}).
+  You can use @kbd{M-x add-file-local-variable-prop-line} instead of
+adding entries by hand.  This command prompts for a variable and
+value, and adds them to the first line in the appropriate way.
+@kbd{M-x delete-file-local-variable-prop-line} prompts for a variable,
+and deletes its entry from the line.  The command @kbd{M-x
+copy-dir-locals-to-file-locals-prop-line} copies the current
+directory-local variables to the first line (@pxref{Directory
+Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two
 variables with numeric values:
@@ -1163,7 +1166,10 @@ conversion of this file.  @xref{Coding Systems}.
 
 @item
 @code{unibyte} says to load or compile a file of Emacs Lisp in unibyte
-mode, if the value is @code{t}.  @xref{Disabling Multibyte}.
+mode, if the value is @code{t}.  @xref{Disabling Multibyte, ,
+Disabling Multibyte Characters, elisp, GNU Emacs Lisp Reference
+Manual}.
+
 @end itemize
 
 @noindent
@@ -1283,7 +1289,9 @@ specified in @file{.dir-locals.el}, as though they had been defined as
 file-local variables for that file (@pxref{File Variables}).  Emacs
 searches for @file{.dir-locals.el} starting in the directory of the
 visited file, and moving up the directory tree.  To avoid slowdown,
-this search is skipped for remote files.
+this search is skipped for remote files.  If needed, the search can be
+extended for remote files by setting the variable
+@code{enable-remote-dir-locals} to @code{t}.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
 list, which maps major mode names (symbols) to alists
@@ -1300,7 +1308,7 @@ files in that subdirectory.
 @example
 ((nil . ((indent-tabs-mode . t)
          (fill-column . 80)))
- (c-mode . ((c-file-style . "BSD")))
+ (c-mode . ((c-file-style . "BSD")
             (subdirs . nil)))
  ("src/imported"
   . ((nil . ((change-log-default-name
@@ -1643,7 +1651,7 @@ you can specify them in your initialization file by writing Lisp code.
 
 @findex kbd
   There are several ways to write a key binding using Lisp.  The
-simplest is to use the @code{kbd} macro, which converts a textual
+simplest is to use the @code{kbd} function, which converts a textual
 representation of a key sequence---similar to how we have written key
 sequences in this manual---into a form that can be passed as an
 argument to @code{global-set-key}.  For example, here's how to bind
@@ -1671,11 +1679,11 @@ and mouse events:
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
 @end example
 
-  Instead of using the @code{kbd} macro, you can use a Lisp string or
-vector to specify the key sequence.  Using a string is simpler, but
-only works for @acronym{ASCII} characters and Meta-modified
-@acronym{ASCII} characters.  For example, here's how to bind @kbd{C-x
-M-l} to @code{make-symbolic-link} (@pxref{Misc File Ops}):
+  Instead of using @code{kbd}, you can use a Lisp string or vector to
+specify the key sequence.  Using a string is simpler, but only works
+for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
+characters.  For example, here's how to bind @kbd{C-x M-l} to
+@code{make-symbolic-link} (@pxref{Misc File Ops}):
 
 @example
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
@@ -1731,11 +1739,11 @@ and @kbd{C-c p} in Texinfo mode:
 
 @example
 (add-hook 'texinfo-mode-hook
-          '(lambda ()
-             (define-key texinfo-mode-map "\C-cp"
-                         'backward-paragraph)
-             (define-key texinfo-mode-map "\C-cn"
-                         'forward-paragraph)))
+          (lambda ()
+            (define-key texinfo-mode-map "\C-cp"
+                        'backward-paragraph)
+            (define-key texinfo-mode-map "\C-cn"
+                        'forward-paragraph)))
 @end example
 
 @node Modifier Keys
@@ -2102,11 +2110,12 @@ loading of this library, use the option @samp{--no-site-file}.
 better to put them in @file{default.el}, so that users can more easily
 override them.
 
+@cindex site-lisp directories
   You can place @file{default.el} and @file{site-start.el} in any of
 the directories which Emacs searches for Lisp libraries.  The variable
 @code{load-path} (@pxref{Lisp Libraries}) specifies these directories.
-Many sites put these files in the @file{site-lisp} subdirectory of the
-Emacs installation directory, typically
+Many sites put these files in a subdirectory named @file{site-lisp} in
+the Emacs installation directory, such as
 @file{/usr/local/share/emacs/site-lisp}.
 
   Byte-compiling your init file is not recommended (@pxref{Byte
@@ -2323,7 +2332,7 @@ Here a full file name is used, so no searching is done.
 @cindex loading Lisp libraries automatically
 @cindex autoload Lisp libraries
 Tell Emacs to find the definition for the function @code{myfunction}
-by loading a Lisp library named @file{mypackage} (i.e.@: a file
+by loading a Lisp library named @file{mypackage} (i.e., a file
 @file{mypackage.elc} or @file{mypackage.el}):
 
 @example
@@ -2490,7 +2499,7 @@ editor customizations even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
 It gets your user name from the environment variables @env{LOGNAME} and
-@env{USER}; if neither of those exists, it uses effective user-ID.
+@env{USER}; if neither of those exists, it uses effective user-ID@.
 If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.

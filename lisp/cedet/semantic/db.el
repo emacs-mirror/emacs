@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -33,7 +33,14 @@
 (require 'eieio-base)
 (require 'semantic)
 
+(eval-when-compile
+  (require 'semantic/find))
+
 (declare-function semantic-lex-spp-save-table "semantic/lex-spp")
+
+;; Use autoload to avoid recursive require of semantic/db-ref
+(autoload 'semanticdb-refresh-references "semantic/db-ref"
+    "Refresh references to DBT in other files.")
 
 ;;; Variables:
 (defgroup semanticdb nil
@@ -80,6 +87,11 @@ same major mode as the current buffer.")
 	 :accessor semanticdb-get-tags
 	 :printer semantic-tag-write-list-slot-value
 	 :documentation "The tags belonging to this table.")
+   (db-refs :initform nil
+	    :documentation
+	    "List of `semanticdb-table' objects refering to this one.
+These aren't saved, but are instead recalculated after load.
+See the file semanticdb-ref.el for how this slot is used.")
    (index :type semanticdb-abstract-search-index
 	  :documentation "The search index.
 Used by semanticdb-find to store additional information about
@@ -148,13 +160,16 @@ them to convert TAG into a more complete form."
   (cons obj tag))
 
 (defmethod object-print ((obj semanticdb-abstract-table) &rest strings)
-  "Pretty printer extension for `semanticdb-table'.
+  "Pretty printer extension for `semanticdb-abstract-table'.
 Adds the number of tags in this file to the object print name."
-  (apply 'call-next-method obj
-	 (cons (format " (%d tags)"
-		       (length (semanticdb-get-tags obj))
-		       )
-	       strings)))
+  (if (or (not strings)
+	  (and (= (length strings) 1) (stringp (car strings))
+	       (string= (car strings) "")))
+      ;; Else, add a tags quantifier.
+      (call-next-method obj (format " (%d tags)" (length (semanticdb-get-tags obj))))
+    ;; Pass through.
+    (apply 'call-next-method obj strings)
+    ))
 
 ;;; Index Cache
 ;;
@@ -175,7 +190,7 @@ If one doesn't exist, create it."
       (oref obj index)
     (let ((idx nil))
       (setq idx (funcall semanticdb-default-find-index-class
-			 (concat (object-name obj) " index")
+			 (concat (eieio-object-name obj) " index")
 			 ;; Fill in the defaults
 		         :table obj
 			 ))
@@ -201,8 +216,7 @@ If one doesn't exist, create it."
 ;; a semanticdb-table associated with a file.
 ;;
 (defclass semanticdb-search-results-table (semanticdb-abstract-table)
-  (
-   )
+  ()
   "Table used for search results when there is no file or table association.
 Examples include search results from external sources such as from
 Emacs's own symbol table, or from external libraries.")
@@ -299,7 +313,8 @@ If OBJ's file is not loaded, read it in first."
   "Pretty printer extension for `semanticdb-table'.
 Adds the number of tags in this file to the object print name."
   (apply 'call-next-method obj
-	 (cons (if (oref obj dirty) ", DIRTY" "") strings)))
+	 (cons (format " (%d tags)" (length (semanticdb-get-tags obj)))
+	       (cons (if (oref obj dirty) ", DIRTY" "") strings))))
 
 ;;; DATABASE BASE CLASS
 ;;
@@ -324,7 +339,7 @@ so your cache will need to be recalculated at runtime.
 
 Note: This index will not be saved in a persistent file.")
    (tables :initarg :tables
-	   :type list
+	   :type semanticdb-abstract-table-list
 	   ;; Need this protection so apps don't try to access
 	   ;; the tables without using the accessor.
 	   :accessor semanticdb-get-database-tables
@@ -416,7 +431,7 @@ If FILENAME exists in the database already, return that.
 If there is no database for the table to live in, create one."
   (let ((cdb nil)
 	(tbl nil)
-	(dd (file-name-directory filename))
+	(dd (file-name-directory (file-truename filename)))
 	)
     ;; Allow a database override function
     (setq cdb (semanticdb-create-database semanticdb-new-database-class
@@ -454,7 +469,7 @@ other than :table."
   (let ((cache (oref table cache))
 	(obj nil))
     (while (and (not obj) cache)
-      (if (eq (object-class-fast (car cache)) desired-class)
+      (if (eq (eieio--object-class (car cache)) desired-class)
 	  (setq obj (car cache)))
       (setq cache (cdr cache)))
     (if obj
@@ -505,7 +520,7 @@ other than :table."
   (let ((cache (oref db cache))
 	(obj nil))
     (while (and (not obj) cache)
-      (if (eq (object-class-fast (car cache)) desired-class)
+      (if (eq (eieio--object-class (car cache)) desired-class)
 	  (setq obj (car cache)))
       (setq cache (cdr cache)))
     (if obj
@@ -555,7 +570,7 @@ This will call `semantic-fetch-tags' if that file is in memory."
     ;;        semanticdb-create-table-for-file-not-in-buffer
     (save-excursion
       (let ((buff (semantic-find-file-noselect
-		   (semanticdb-full-filename obj))))
+		   (semanticdb-full-filename obj) t)))
 	(set-buffer buff)
 	(semantic-fetch-tags)
 	;; Kill off the buffer if it didn't exist when we were called.
@@ -620,7 +635,7 @@ The file associated with OBJ does not need to be in a buffer."
     )
 
   ;; Update cross references
-  ;; (semanticdb-refresh-references table)
+  (semanticdb-refresh-references table)
   )
 
 (defmethod semanticdb-partial-synchronize ((table semanticdb-abstract-table)
@@ -650,8 +665,8 @@ The file associated with OBJ does not need to be in a buffer."
     )
 
   ;; Update cross references
-  ;;(when (semantic-find-tags-by-class 'include new-tags)
-  ;;  (semanticdb-refresh-references table))
+  (when (semantic-find-tags-by-class 'include new-tags)
+    (semanticdb-refresh-references table))
   )
 
 ;;; SAVE/LOAD
@@ -667,9 +682,11 @@ form."
 (defun semanticdb-save-current-db ()
   "Save the current tag database."
   (interactive)
-  (message "Saving current tag summaries...")
+  (unless noninteractive
+    (message "Saving current tag summaries..."))
   (semanticdb-save-db semanticdb-current-database)
-  (message "Saving current tag summaries...done"))
+  (unless noninteractive
+    (message "Saving current tag summaries...done")))
 
 ;; This prevents Semanticdb from querying multiple times if the users
 ;; answers "no" to creating the Semanticdb directory.
@@ -678,10 +695,12 @@ form."
 (defun semanticdb-save-all-db ()
   "Save all semantic tag databases."
   (interactive)
-  (message "Saving tag summaries...")
+  (unless noninteractive
+    (message "Saving tag summaries..."))
   (let ((semanticdb--inhibit-make-directory nil))
     (mapc 'semanticdb-save-db semanticdb-database-list))
-  (message "Saving tag summaries...done"))
+  (unless noninteractive
+    (message "Saving tag summaries...done")))
 
 (defun semanticdb-save-all-db-idle ()
   "Save all semantic tag databases from idle time.
@@ -880,7 +899,7 @@ If file does not have tags available, and DONTLOAD is nil,
 then load the tags for FILE, and create a new table object for it.
 DONTLOAD does not affect the creation of new database objects."
   ;; (message "Object Translate: %s" file)
-  (when (and file (file-exists-p file))
+  (when (and file (file-exists-p file) (file-regular-p file))
     (let* ((default-directory (file-name-directory file))
 	   (tab (semanticdb-file-table-object-from-hash file))
 	   (fullfile nil))

@@ -1,6 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -273,7 +273,9 @@ See the Gnus manual for an explanation of the syntax used.")
 	      (cond
                ((eq buf (window-buffer (selected-window)))
                 (set-buffer buf))
-               ((eq t (window-dedicated-p))
+               ((eq t (window-dedicated-p
+		       ;; XEmacs version of `window-dedicated-p' requires it.
+		       (selected-window)))
                 ;; If the window is hard-dedicated, we have a problem because
                 ;; we just can't do what we're asked.  But signaling an error,
                 ;; like `switch-to-buffer' would do, is not an option because

@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -41,9 +41,9 @@
 ;;
 ;; (if (eq window-system 'x)
 ;;     (mouse-avoidance-set-pointer-shape
-;;	     (eval (nth (random 4)
-;;			'(x-pointer-man x-pointer-spider
-;;			  x-pointer-gobbler x-pointer-gumby)))))
+;;	     (nth (random 4)
+;;		  (list x-pointer-man x-pointer-spider
+;;			x-pointer-gobbler x-pointer-gumby))))
 ;;
 ;; For completely random pointer shape, replace the setq above with:
 ;; (setq x-pointer-shape (mouse-avoidance-random-shape))
@@ -67,7 +67,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup avoid nil
   "Make mouse pointer stay out of the way of editing."
@@ -128,6 +128,7 @@ SIDE-POS: Distance from right or left edge of frame or window.
 TOP-OR-BOTTOM: banish the mouse to top or bottom of frame or window.
 TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
   :group   'avoid
+  :version "24.3"
   :type    '(alist :key-type symbol :value-type symbol)
   :options '(frame-or-window side (side-pos integer)
              top-or-bottom (top-or-bottom-pos integer)))
@@ -153,13 +154,15 @@ TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
 (defun mouse-avoidance-point-position ()
   "Return the position of point as (FRAME X . Y).
 Analogous to `mouse-position'."
-  (let ((edges (window-inside-edges))
-	(x-y (posn-x-y (posn-at-point))))
-    (cons (selected-frame)
-	  (cons (+ (car edges)
-		   (/ (car x-y) (frame-char-width)))
-		(+ (car (cdr edges))
-		   (/ (cdr x-y) (frame-char-height)))))))
+  (let* ((edges (window-inside-edges))
+	 (posn-at-point (posn-at-point))
+	 (x-y (and posn-at-point (posn-x-y posn-at-point))))
+    (when x-y
+      (cons (selected-frame)
+	    (cons (+ (car edges)
+		     (/ (car x-y) (frame-char-width)))
+		  (+ (car (cdr edges))
+		     (/ (cdr x-y) (frame-char-height))))))))
 
 ;(defun mouse-avoidance-point-position-test ()
 ;  (interactive)
@@ -184,19 +187,21 @@ MOUSE is the current mouse position as returned by `mouse-position'.
 Acceptable distance is defined by `mouse-avoidance-threshold'."
   (let* ((frame (car mouse))
 	 (mouse-y (cdr (cdr mouse)))
-	 (tool-bar-lines (frame-parameter nil 'tool-bar-lines)))
+	 (tool-bar-lines (frame-parameter nil 'tool-bar-lines))
+	 point)
     (or tool-bar-lines
 	(setq tool-bar-lines 0))
-    (if (and mouse-y (< mouse-y tool-bar-lines))
-	nil
-      (let ((point (mouse-avoidance-point-position))
-	    (mouse-x (car (cdr mouse))))
+    (cond
+     ((and mouse-y (< mouse-y tool-bar-lines))
+      nil)
+     ((setq point (mouse-avoidance-point-position))
+      (let ((mouse-x (car (cdr mouse))))
 	(and (eq frame (car point))
 	     (not (null mouse-x))
 	     (< (abs (- mouse-x (car (cdr point))))
 		mouse-avoidance-threshold)
 	     (< (abs (- mouse-y (cdr (cdr point))))
-		mouse-avoidance-threshold))))))
+		mouse-avoidance-threshold)))))))
 
 (defun mouse-avoidance-banish-destination ()
   "The position to which Mouse Avoidance mode `banish' moves the mouse.
@@ -206,30 +211,30 @@ If you want the mouse banished to a different corner set
   (let* ((fra-or-win         (assoc-default
                               'frame-or-window
                               mouse-avoidance-banish-position 'eq))
-         (list-values        (case fra-or-win
-                               (frame (list 0 0 (frame-width) (frame-height)))
-                               (window (window-edges))))
-         (alist              (loop for v in list-values
-                                   for k in '(left top right bottom)
-                                   collect (cons k v)))
+         (list-values        (pcase fra-or-win
+                               (`frame (list 0 0 (frame-width) (frame-height)))
+                               (`window (window-edges))))
+         (alist              (cl-loop for v in list-values
+                                      for k in '(left top right bottom)
+                                      collect (cons k v)))
          (side               (assoc-default
                               'side
-                              mouse-avoidance-banish-position 'eq))
+                              mouse-avoidance-banish-position #'eq))
          (side-dist          (assoc-default
                               'side-pos
-                              mouse-avoidance-banish-position 'eq))
+                              mouse-avoidance-banish-position #'eq))
          (top-or-bottom      (assoc-default
                               'top-or-bottom
-                              mouse-avoidance-banish-position 'eq))
+                              mouse-avoidance-banish-position #'eq))
          (top-or-bottom-dist (assoc-default
                               'top-or-bottom-pos
-                              mouse-avoidance-banish-position 'eq))
-         (side-fn            (case side
-                               (left '+)
-                               (right '-)))
-         (top-or-bottom-fn   (case top-or-bottom
-                               (top '+)
-                               (bottom '-))))
+                              mouse-avoidance-banish-position #'eq))
+         (side-fn            (pcase side
+                               (`left '+)
+                               (`right '-)))
+         (top-or-bottom-fn   (pcase top-or-bottom
+                               (`top '+)
+                               (`bottom '-))))
     (cons (funcall side-fn                        ; -/+
                    (assoc-default side alist 'eq) ; right or left
                    side-dist)                     ; distance from side

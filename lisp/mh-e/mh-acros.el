@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- macros used in MH-E
 
-;; Copyright (C) 2004, 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -233,7 +233,7 @@ preserved."
               (,original-window (selected-window))
               (,original-position (progn
                                    (set-buffer (window-buffer ,event-window))
-                                   (set-marker (make-marker) (point))))
+                                   (point-marker)))
               (,modified-flag (buffer-modified-p))
               (buffer-read-only nil))
          (unwind-protect (progn

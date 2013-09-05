@@ -1,6 +1,6 @@
 ;;; pcvs-util.el --- utility functions for PCL-CVS  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;;
 ;;;; list processing
@@ -63,7 +63,7 @@
 	(while (and l (> n 1))
 	  (setcdr nl (list (pop l)))
 	  (setq nl (cdr nl))
-	  (decf n))
+	  (cl-decf n))
 	ret))))
 
 (defun cvs-partition (p l)
@@ -97,7 +97,7 @@ try to split a new window instead."
 BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
   (interactive (list (current-buffer)))
   (save-current-buffer
-    (let ((win (if (eq buf (window-buffer (selected-window))) (selected-window)
+    (let ((win (if (eq buf (window-buffer)) (selected-window)
 		 (get-buffer-window buf t))))
       (when win
 	(if (window-dedicated-p win)
@@ -111,8 +111,8 @@ BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
 ;;; 	      )
 	  )))
     (with-current-buffer buf
-      (bury-buffer (unless (and (eq buf (window-buffer (selected-window)))
-				(not (window-dedicated-p (selected-window))))
+      (bury-buffer (unless (and (eq buf (window-buffer))
+				(not (window-dedicated-p)))
 		     buf)))
     (when mainbuf
       (let ((mainwin (or (get-buffer-window mainbuf)
@@ -130,10 +130,10 @@ If NOREUSE is non-nil, always return a new buffer."
            (if noreuse (generate-new-buffer name)
              (get-buffer-create name)))
       (unless noreuse
-	(dolist (buf (buffer-list))
+	(cl-dolist (buf (buffer-list))
 	  (with-current-buffer buf
 	    (when (equal name list-buffers-directory)
-	      (return buf)))))
+	      (cl-return buf)))))
       (with-current-buffer (create-file-buffer name)
 	(setq list-buffers-directory name)
 	(current-buffer))))
@@ -182,7 +182,7 @@ arguments.  If ARGS is not a list, no argument will be passed."
 			  (if oneline (line-end-position) (point-max))))
     (file-error nil)))
 
-(define-obsolete-function-alias 'cvs-string-prefix-p 'string-prefix-p "24.2")
+(define-obsolete-function-alias 'cvs-string-prefix-p 'string-prefix-p "24.3")
 
 ;;;;
 ;;;; file names
@@ -195,10 +195,10 @@ arguments.  If ARGS is not a list, no argument will be passed."
 ;;;; (interactive <foo>) support function
 ;;;;
 
-(defstruct (cvs-qtypedesc
-	    (:constructor nil) (:copier nil)
-	    (:constructor cvs-qtypedesc-create
-			  (str2obj obj2str &optional complete hist-sym require)))
+(cl-defstruct (cvs-qtypedesc
+               (:constructor nil) (:copier nil)
+               (:constructor cvs-qtypedesc-create
+                (str2obj obj2str &optional complete hist-sym require)))
   str2obj
   obj2str
   hist-sym
@@ -231,10 +231,10 @@ arguments.  If ARGS is not a list, no argument will be passed."
 ;;;; Flags handling
 ;;;;
 
-(defstruct (cvs-flags
-	    (:constructor nil)
-	    (:constructor -cvs-flags-make
-			  (desc defaults &optional qtypedesc hist-sym)))
+(cl-defstruct (cvs-flags
+               (:constructor nil)
+               (:constructor -cvs-flags-make
+                (desc defaults &optional qtypedesc hist-sym)))
   defaults persist desc qtypedesc hist-sym)
 
 (defmacro cvs-flags-define (sym defaults

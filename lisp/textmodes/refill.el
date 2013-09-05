@@ -1,6 +1,6 @@
 ;;; refill.el --- `auto-fill' by refilling paragraphs on changes
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>
@@ -83,11 +83,10 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
-(defgroup refill nil
-  "Refilling paragraphs on changes."
-  :group 'fill)
+;; Unused.
+;;; (defgroup refill nil
+;;;   "Refilling paragraphs on changes."
+;;;   :group 'fill)
 
 (defvar refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
@@ -169,8 +168,8 @@ complex processing.")
   "Post-command function to do refilling (conditionally)."
   (when refill-doit ; there was a change
     ;; There's probably scope for more special cases here...
-    (case this-command
-      (self-insert-command
+    (pcase this-command
+      (`self-insert-command
        ;; Treat self-insertion commands specially, since they don't
        ;; always reset `refill-doit' -- for self-insertion commands that
        ;; *don't* cause a refill, we want to leave it turned on so that
@@ -180,9 +179,9 @@ complex processing.")
 	 ;; newline, covered below).
 	 (refill-fill-paragraph-at refill-doit)
 	 (setq refill-doit nil)))
-      ((quoted-insert fill-paragraph fill-region) nil)
-      ((newline newline-and-indent open-line indent-new-comment-line
-	reindent-then-newline-and-indent)
+      ((or `quoted-insert `fill-paragraph `fill-region) nil)
+      ((or `newline `newline-and-indent `open-line `indent-new-comment-line
+           `reindent-then-newline-and-indent)
        ;; Don't zap what was just inserted.
        (save-excursion
 	 (beginning-of-line)		; for newline-and-indent
@@ -196,7 +195,7 @@ complex processing.")
 	 (save-restriction
 	   (narrow-to-region (line-beginning-position) (point-max))
 	   (refill-fill-paragraph-at refill-doit))))
-      (t
+      (_
        (refill-fill-paragraph-at refill-doit)))
     (setq refill-doit nil)))
 
@@ -224,7 +223,8 @@ characters only cause refilling if they would cause
 auto-filling.
 
 For true \"word wrap\" behavior, use `visual-line-mode' instead."
-  :group 'refill
+  ;; Not global, so no effect.
+;;;  :group 'refill
   :lighter " Refill"
   :keymap '(("\177" . backward-delete-char-untabify))
   ;; Remove old state if necessary

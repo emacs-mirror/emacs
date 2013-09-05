@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / MacOSX Cocoa selection processing for emacs.
-   Copyright (C) 1993-1994, 2005-2006, 2008-2012
-     Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2005-2006, 2008-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,7 +28,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
 #include <config.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "nsterm.h"
@@ -62,7 +61,7 @@ symbol_to_nsstring (Lisp_Object sym)
   if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
-  return [NSString stringWithUTF8String: SDATA (XSYMBOL (sym)->xname)];
+  return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (sym))];
 }
 
 static NSPasteboard *
@@ -118,7 +117,7 @@ clean_local_selection_data (Lisp_Object obj)
 
       if (size == 1)
         return clean_local_selection_data (AREF (obj, 0));
-      copy = Fmake_vector (make_number (size), Qnil);
+      copy = make_uninit_vector (size);
       for (i = 0; i < size; i++)
         ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
@@ -157,7 +156,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 
       CHECK_STRING (str);
 
-      utfStr = SDATA (str);
+      utfStr = SSDATA (str);
       nsStr = [[NSString alloc] initWithBytesNoCopy: utfStr
                                              length: SBYTES (str)
                                            encoding: NSUTF8StringEncoding
@@ -183,7 +182,7 @@ ns_get_local_selection (Lisp_Object selection_name,
                        Lisp_Object target_type)
 {
   Lisp_Object local_value;
-  Lisp_Object handler_fn, value, type, check;
+  Lisp_Object handler_fn, value, check;
   ptrdiff_t count;
 
   local_value = assq_no_quit (selection_name, Vselection_alist);
@@ -204,7 +203,6 @@ ns_get_local_selection (Lisp_Object selection_name,
   check = value;
   if (CONSP (value) && SYMBOLP (XCAR (value)))
     {
-      type = XCAR (value);
       check = XCDR (value);
     }
 
@@ -221,9 +219,10 @@ ns_get_local_selection (Lisp_Object selection_name,
     return value;
 
   // FIXME: Why `quit' rather than `error'?
-  Fsignal (Qquit, Fcons (build_string (
-      "invalid data returned by selection-conversion function"),
-                        Fcons (handler_fn, Fcons (value, Qnil))));
+  Fsignal (Qquit,
+	   list3 (build_string ("invalid data returned by"
+				" selection-conversion function"),
+		  handler_fn, value));
   // FIXME: Beware, `quit' can return!!
   return Qnil;
 }
@@ -258,8 +257,7 @@ ns_string_from_pasteboard (id pb)
   if (type == nil)
     {
       Fsignal (Qquit,
-              Fcons (build_string ("empty or unsupported pasteboard type"),
-                    Qnil));
+	       list1 (build_string ("empty or unsupported pasteboard type")));
     return Qnil;
     }
 
@@ -277,8 +275,8 @@ ns_string_from_pasteboard (id pb)
       else
         {
           Fsignal (Qquit,
-                  Fcons (build_string ("pasteboard doesn't contain valid data"),
-                        Qnil));
+		   list1 (build_string ("pasteboard doesn't contain"
+					" valid data")));
           return Qnil;
         }
     }
@@ -296,7 +294,7 @@ ns_string_from_pasteboard (id pb)
       utfStr = [mstr UTF8String];
       length = [mstr lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
 
-#if ! defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
+#if ! defined (NS_IMPL_COCOA)
       if (!utfStr)
         {
           utfStr = [mstr cString];
@@ -307,7 +305,7 @@ ns_string_from_pasteboard (id pb)
   NS_HANDLER
     {
       message1 ("ns_string_from_pasteboard: UTF8String failed\n");
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA)
       utfStr = "Conversion failed";
 #else
       utfStr = [str lossyCString];
@@ -355,8 +353,7 @@ On Nextstep, FRAME is unused.  */)
   Lisp_Object successful_p = Qnil, rest;
   Lisp_Object target_symbol, data;
 
-
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (NILP (value))
       error ("selection value may not be nil.");
@@ -365,7 +362,7 @@ On Nextstep, FRAME is unused.  */)
 
   ns_declare_pasteboard (pb);
   old_value = assq_no_quit (selection, Vselection_alist);
-  new_value = Fcons (selection, Fcons (value, Qnil));
+  new_value = list2 (selection, value);
 
   if (NILP (old_value))
     Vselection_alist = Fcons (new_value, Vselection_alist);
@@ -388,7 +385,7 @@ On Nextstep, FRAME is unused.  */)
       for (rest = Vns_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
         call3 (Fcar (rest), selection, target_symbol, successful_p);
     }
-  
+
   return value;
 }
 
@@ -410,7 +407,7 @@ On MS-DOS, all this does is return non-nil if we own the selection.  */)
   (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
 {
   id pb;
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (NILP (assq_no_quit (selection, Vselection_alist))) return Qnil;
 
@@ -437,13 +434,13 @@ On Nextstep, TERMINAL is unused.  */)
   id pb;
   NSArray *types;
 
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
   pb = ns_symbol_to_pb (selection);
   if (pb == nil) return Qnil;
-  
+
   types = [pb types];
   return ([types count] == 0) ? Qnil : Qt;
 }
@@ -465,7 +462,7 @@ frame's display, or the first available X display.
 On Nextstep, TERMINAL is unused.  */)
      (Lisp_Object selection, Lisp_Object terminal)
 {
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
@@ -493,7 +490,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
 {
   Lisp_Object val;
 
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection_name);
   CHECK_SYMBOL (target_type);
   val = ns_get_local_selection (selection_name, target_type);
@@ -517,7 +514,7 @@ SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
      (Lisp_Object selection)
 {
   id pb;
-  check_ns ();
+  check_window_system (NULL);
   pb = ns_symbol_to_pb (selection);
   return pb != nil ? ns_string_from_pasteboard (pb) : Qnil;
 }
@@ -530,7 +527,7 @@ SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
      (Lisp_Object selection, Lisp_Object string)
 {
   id pb;
-  check_ns ();
+  check_window_system (NULL);
   pb = ns_symbol_to_pb (selection);
   if (pb != nil) ns_string_to_pasteboard (pb, string);
   return Qnil;

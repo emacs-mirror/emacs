@@ -1,6 +1,6 @@
 ;;; cal-html.el --- functions for printing HTML calendars
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Anna M. Bigatti <bigatti@dima.unige.it>
 ;; Keywords: calendar
@@ -68,7 +68,7 @@
 
 (defcustom cal-html-holidays t
   "If non-nil, include holidays as well as diary entries."
-  :version "24.2"
+  :version "24.3"
   :type 'boolean
   :group 'calendar-html)
 
@@ -92,7 +92,7 @@
    "</STYLE>\n\n")
   "Default cal-html css style.  You can override this with a \"cal.css\" file."
   :type 'string
-  :version "24.2"                       ; added SPAN.HOLIDAY
+  :version "24.3"                       ; added SPAN.HOLIDAY
   :group 'calendar-html)
 
 ;;; End customizable variables.
@@ -396,7 +396,7 @@ holidays in HOLIDAY-LIST."
        ;; Diary entries.
        cal-html-b-tabledata-string
        (cal-html-htmlify-list holiday-list date t)
-       (and holiday-list diary-list "<BR>\n")
+       (if (and holiday-list diary-list) "<BR>\n" "")
        (cal-html-htmlify-list diary-list date)
        cal-html-e-tabledata-string
        cal-html-e-tablerow-string)

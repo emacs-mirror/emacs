@@ -1,6 +1,6 @@
 ;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
 
-;;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -31,14 +31,10 @@
 ;;
 
 (require 'semantic/db)
-
-(eval-when-compile
-  ;; For generic function searching.
-  (require 'eieio)
-  (require 'eieio-opt)
-  (require 'eieio-base))
+(require 'eieio-opt)
 
 (declare-function semantic-elisp-desymbolify "semantic/bovine/el")
+(declare-function semantic-tag-similar-p "semantic/tag-ls")
 
 ;;; Code:
 
@@ -57,6 +53,11 @@ It does not need refreshing."
   "Return nil, we never need a refresh."
   nil)
 
+(defmethod object-print ((obj semanticdb-table-emacs-lisp) &rest strings)
+  "Pretty printer extension for `semanticdb-table-emacs-lisp'.
+Adds the number of tags in this file to the object print name."
+  (apply 'call-next-method obj (cons " (proxy)" strings)))
+
 (defclass semanticdb-project-database-emacs-lisp
   (semanticdb-project-database eieio-singleton)
   ((new-table-class :initform semanticdb-table-emacs-lisp
@@ -65,6 +66,15 @@ It does not need refreshing."
 		    "New tables created for this database are of this class.")
    )
   "Database representing Emacs core.")
+
+(defmethod object-print ((obj semanticdb-project-database-emacs-lisp) &rest strings)
+  "Pretty printer extension for `semanticdb-table-emacs-lisp'.
+Adds the number of tags in this file to the object print name."
+  (let ((count 0))
+    (mapatoms (lambda (sym) (setq count (1+ count))))
+    (apply 'call-next-method obj (cons 
+				  (format " (%d known syms)" count)
+				  strings))))
 
 ;; Create the database, and add it to searchable databases for Emacs Lisp mode.
 (defvar-mode-local emacs-lisp-mode semanticdb-project-system-databases
@@ -159,44 +169,28 @@ If Emacs cannot resolve this symbol to a particular file, then return nil."
 	  (setq file (concat file ".gz"))))
 
       (let* ((tab (semanticdb-file-table-object file))
-	     (alltags (semanticdb-get-tags tab))
-	     (newtags (semanticdb-find-tags-by-name-method
-		       tab (semantic-tag-name tag)))
+	     (alltags (when tab (semanticdb-get-tags tab)))
+	     (newtags (when tab (semanticdb-find-tags-by-name-method
+				 tab (semantic-tag-name tag))))
 	     (match nil))
-	;; Find the best match.
-	(dolist (T newtags)
-	  (when (semantic-tag-similar-p T tag)
-	    (setq match T)))
-	;; Backup system.
-	(when (not match)
-	    (setq match (car newtags)))
+	;; We might not have a parsed tag in this file, because it
+	;; might be generated through a macro like defstruct.
+	(if (null newtags)
+	    (setq match tag)
+	  ;; Find the best match.
+	  (dolist (T newtags)
+	    (when (semantic-tag-similar-p T tag)
+	      (setq match T)))
+	  ;; Backup system.
+	  (when (not match)
+	    (setq match (car newtags))))
 	;; Return it.
-	(cons tab match)))))
+	(when tab (cons tab match))))))
 
-(defun semanticdb-elisp-sym-function-arglist (sym)
-  "Get the argument list for SYM.
-Deal with all different forms of function.
-This was snarfed out of eldoc."
-  (let* ((prelim-def
-	  (let ((sd (and (fboundp sym)
-			 (symbol-function sym))))
-	    (and (symbolp sd)
-		 (condition-case err
-		     (setq sd (indirect-function sym))
-		   (error (setq sd nil))))
-	    sd))
-         (def (if (eq (car-safe prelim-def) 'macro)
-                  (cdr prelim-def)
-                prelim-def))
-         (arglist (cond ((null def) nil)
-			((byte-code-function-p def)
-			 ;; This is an eieio compatibility function.
-			 ;; We depend on EIEIO, so use this.
-			 (eieio-compiled-function-arglist def))
-                        ((eq (car-safe def) 'lambda)
-                         (nth 1 def))
-                        (t nil))))
-    arglist))
+(autoload 'help-function-arglist "help-fns")
+(defalias 'semanticdb-elisp-sym-function-arglist 'help-function-arglist)
+(make-obsolete 'semanticdb-elisp-sym-function-arglist
+	       'help-function-arglist "CEDET 1.1")
 
 (defun semanticdb-elisp-sym->tag (sym &optional toktype)
   "Convert SYM into a semantic tag.
@@ -206,15 +200,18 @@ TOKTYPE is a hint to the type of tag desired."
   (when sym
     (cond ((and (eq toktype 'function) (fboundp sym))
 	   (require 'semantic/bovine/el)
-	   (semantic-tag-new-function
-	    (symbol-name sym)
-	    nil	;; return type
-	    (semantic-elisp-desymbolify
-	     (semanticdb-elisp-sym-function-arglist sym)) ;; arg-list
-	    :user-visible-flag (condition-case nil
-				   (interactive-form sym)
-				 (error nil))
-	    ))
+	   (let ((arglist (help-function-arglist sym)))
+	     (when (not (listp arglist))
+	       ;; Function might be autoloaded, in which case
+	       ;; the arglist is not available yet.
+	       (setq arglist nil))
+	     (semantic-tag-new-function
+	      (symbol-name sym)
+	      nil	;; return type
+	      (semantic-elisp-desymbolify arglist)
+	      :user-visible-flag (condition-case nil
+				     (interactive-form sym)
+				   (error nil)))))
 	  ((and (eq toktype 'variable) (boundp sym))
 	   (semantic-tag-new-variable
 	    (symbol-name sym)
@@ -226,9 +223,8 @@ TOKTYPE is a hint to the type of tag desired."
 	    (symbol-name sym)
 	    "class"
 	    (semantic-elisp-desymbolify
-	     (aref (class-v semanticdb-project-database)
-		   class-public-a)) ;; slots
-	    (semantic-elisp-desymbolify (class-parents sym)) ;; parents
+	     (eieio--class-public-a (class-v semanticdb-project-database))) ;; slots
+	    (semantic-elisp-desymbolify (eieio-class-parents sym)) ;; parents
 	    ))
 	  ((not toktype)
 	   ;; Figure it out on our own.

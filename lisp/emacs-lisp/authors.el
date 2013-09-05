@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -176,6 +176,7 @@ files.")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
     ("Tsugutomo Enami" "enami tsugutomo")
+    ("Ulrich Müller" "Ulrich Mueller")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
     ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
@@ -294,6 +295,14 @@ Changes to files matching one of the regexps in this list are not listed.")
     "calc/INSTALL" "calc/Makefile"
     "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
     "emacsver.texi.in"
+    "vpath.sed"
+    "Cocoa/Emacs.base/Contents/Info.plist"
+    "Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
+    "GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+    "GNUstep/Emacs.base/Resources/Emacs.desktop"
+    "Cocoa/Emacs.base/Contents/Resources/English.lproj"
+    ;; Only existed briefly, then deleted:
+    "coccinelle/overlay.cocci" "coccinelle/symbol.cocci"
     ;; MH-E stuff not in Emacs:
     "import-emacs" "release-utils"
     ;; Erc stuff not in Emacs:
@@ -398,7 +407,7 @@ Changes to files in this list are not listed.")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
-    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Paul Eggert" :wrote "rcs2log") ; "vcdiff"
     ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")
@@ -426,7 +435,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
     ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
      "systty.h" "unexcoff.c" "linux.h")
     ;; No longer distributed.
@@ -539,6 +548,7 @@ Changes to files in this list are not listed.")
     "makedist.bat"
     "makefile.def"
     "makefile.nt"
+    "ns.mk"
     "debug.bat.in" "emacs.bat.in"
     ".gdbinit-union"
     "alloca.s"
@@ -552,15 +562,17 @@ Changes to files in this list are not listed.")
     "ymakefile"
     "permute-index" "index.perm"
     "ibmrs6000.inp"
-    "b2m.c" "b2m.1" "b2m.pl"
+    "b2m.c" "b2m.1" "b2m.pl" "rcs-checkin.1"
     "emacs.bash" "emacs.csh" "ms-kermit"
     "emacs.ico"
     "emacs21.ico"
+    "emacs.py" "emacs2.py" "emacs3.py"
     "BABYL" "LPF" "LEDIT" "OTHER.EMACSES"
     "emacs16_mac.png" "emacs24_mac.png"
     "emacs256_mac.png" "emacs32_mac.png"
     "emacs48_mac.png" "emacs512_mac.png"
     "revdiff"				; admin/
+    "vcdiff" "rcs-checkin" "tindex.pl"
     "mainmake" "sed1.inp" "sed2.inp" "sed3.inp" ; msdos/
     "mac-fix-env.m"
     ;; Deleted vms stuff:
@@ -577,8 +589,11 @@ in the repository.")
     ("w32console.c" . "w32term.c")
     ("unexnt.c" . "unexw32.c")
     ("s/windowsnt.h" . "s/ms-w32.h")
+    ("s/ms-w32.h" . "inc/ms-w32.h")
     ("winnt.el" . "w32-fns.el")
+    ("emacs.manifest" . "emacs-x86.manifest")
     ("config.emacs" . "configure")
+    ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
     ("config.h-dist" . "config.in")
     ("config.h.in" . "config.in")
@@ -613,6 +628,8 @@ in the repository.")
     ("build-install" . "build-ins.in")
     ("build-install.in" . "build-ins.in")
     ("unidata/Makefile" . "unidata/Makefile.in")
+    ("move-if-change" . "build-aux/move-if-change")
+    ("update-subdirs" . "build-aux/update-subdirs")
     ;; Not renamed, but we only have the latter in the Emacs repo.
     ("trampver.texi.in" . "trampver.texi")
     ("e/eterm" . "e/eterm-color")
@@ -701,7 +718,7 @@ or is on the list of removed files.  Returns the non-directory part of
 the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
 to print a message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
-  ;; with a LOG-FILE.  Eg configure.in from src/ChangeLog is not the
+  ;; with a LOG-FILE.  Eg configure.ac from src/ChangeLog is not the
   ;; same as that from top-level/ChangeLog.
   (let* ((fullname (expand-file-name file (file-name-directory log-file)))
 	 (entry (assoc fullname authors-checked-files-alist))

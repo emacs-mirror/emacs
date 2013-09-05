@@ -16,9 +16,6 @@ maintainer has been found so far.
 1.
 ==============================================================================
 
-Richard Stallman
-	???
-
 Jason Rumney
 	W32
 
@@ -34,7 +31,6 @@ Eli Zaretskii
 	    src/msdos.[ch]
 	    src/dosfns.[ch]
 	    src/w16select.c
-	    src/s/msdos.h
 	    lisp/term/internal.el
 	    lisp/term/pc-win.el
 	    lisp/dos-fns.el
@@ -72,13 +68,6 @@ Jay Belanger
             etc/calccard.tex
             doc/misc/calc.texi
 
-Michael Olson
-        ERC
-            lisp/erc/*
-            etc/ERC-NEWS
-            doc/misc/erc.texi
-        lisp/emacs-lisp/tq.el
-
 Bastien Guerry
         Org
             lisp/org/*
@@ -87,9 +76,6 @@ Bastien Guerry
 ==============================================================================
 2.
 ==============================================================================
-
-Steven Tamm
-	MacOS
 
 Eli Zaretskii
     	doc/*
@@ -183,7 +169,6 @@ src/print.c
 src/process.c
 src/ralloc.c
 src/region-cache.c
-src/s/
 src/scroll.c
 src/search.c
 src/sound.c

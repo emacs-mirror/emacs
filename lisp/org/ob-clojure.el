@@ -1,6 +1,6 @@
 ;;; ob-clojure.el --- org-babel functions for clojure evaluation
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Joel Boehland
 ;;	Eric Schulte
@@ -45,7 +45,7 @@
 (add-to-list 'org-babel-tangle-lang-exts '("clojure" . "clj"))
 
 (defvar org-babel-default-header-args:clojure '())
-(defvar org-babel-header-arg-names:clojure '(package))
+(defvar org-babel-header-args:clojure '((package . :any)))
 
 (defun org-babel-expand-body:clojure (body params)
   "Expand BODY according to PARAMS, return the expanded body."

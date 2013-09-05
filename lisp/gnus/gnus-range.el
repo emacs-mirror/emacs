@@ -1,6 +1,6 @@
 ;;; gnus-range.el --- range and sequence functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -52,11 +52,13 @@ If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
 
 (defun gnus-set-difference (list1 list2)
   "Return a list of elements of LIST1 that do not appear in LIST2."
-  (let ((list1 (copy-sequence list1)))
-    (while list2
-      (setq list1 (delq (car list2) list1))
-      (setq list2 (cdr list2)))
-    list1))
+  (let ((hash2 (make-hash-table :test 'eq))
+        (result nil))
+    (dolist (elt list2) (puthash elt t hash2))
+    (dolist (elt list1)
+      (unless (gethash elt hash2)
+        (setq result (cons elt result))))
+    (nreverse result)))
 
 (defun gnus-range-nconcat (&rest ranges)
   "Return a range comprising all the RANGES, which are pre-sorted.
@@ -591,15 +593,6 @@ LIST is a sorted list."
       (dolist (x range sum)
 	(setq sum
 	      (+ sum (if (consp x) (- (cdr x) (car x) -1) 1))))))))
-
-(defun gnus-sublist-p (list sublist)
-  "Test whether all elements in SUBLIST are members of LIST."
-  (let ((sublistp t))
-    (while sublist
-      (unless (memq (pop sublist) list)
-	(setq sublistp nil
-	      sublist nil)))
-    sublistp))
 
 (defun gnus-range-add (range1 range2)
   "Add RANGE2 to RANGE1 (nondestructively)."

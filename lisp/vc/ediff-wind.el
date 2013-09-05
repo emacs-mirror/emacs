@@ -1,6 +1,6 @@
 ;;; ediff-wind.el --- window manipulation utilities
 
-;; Copyright (C) 1994-1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -40,19 +40,18 @@
 
 ;; declare-function does not exist in XEmacs
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
-
-(eval-when-compile
-  (require 'ediff-util)
-  (require 'ediff-help))
-;; end pacifier
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
 
 (require 'ediff-init)
+(require 'ediff-help)
+;; end pacifier
+
 
 ;; be careful with ediff-tbar
-(if (featurep 'xemacs)
-    (require 'ediff-tbar)
-  (defun ediff-compute-toolbar-width () 0))
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (require 'ediff-tbar)
+    (defun ediff-compute-toolbar-width () 0)))
 
 (defgroup ediff-window nil
   "Ediff window manipulation."
@@ -63,12 +62,10 @@
 
 ;; Determine which window setup function to use based on current window system.
 (defun ediff-choose-window-setup-function-automatically ()
+  (declare (obsolete ediff-setup-windows-default "24.3"))
   (if (ediff-window-display-p)
       'ediff-setup-windows-multiframe
     'ediff-setup-windows-plain))
-
-(make-obsolete 'ediff-choose-window-setup-function-automatically
-	       'ediff-setup-windows-default "24.2")
 
 (defcustom ediff-window-setup-function 'ediff-setup-windows-default
   "Function called to set up windows.
@@ -102,7 +99,7 @@ provided functions are written."
 		 (const :tag "Single Frame" ediff-setup-windows-plain)
 		 (function :tag "Other function"))
   :group 'ediff-window
-  :version "24.2")
+  :version "24.3")
 
 ;; indicates if we are in a multiframe setup
 (ediff-defvar-local ediff-multiframe nil "")
@@ -283,7 +280,7 @@ into icons, regardless of the window manager."
 
 ;;; Functions
 
-(defun ediff-get-window-by-clicking (wind prev-wind wind-number)
+(defun ediff-get-window-by-clicking (_wind _prev-wind wind-number)
   (let (event)
     (message
      "Select windows by clicking.  Please click on Window %d " wind-number)
@@ -292,9 +289,9 @@ into icons, regardless of the window manager."
 	  (beep 1))
       (message "Please click on Window %d " wind-number))
     (ediff-read-event) ; discard event
-    (setq wind (if (featurep 'xemacs)
-		   (event-window event)
-		 (posn-window (event-start event))))))
+    (if (featurep 'xemacs)
+        (event-window event)
+      (posn-window (event-start event)))))
 
 
 ;; Select the lowest window on the frame.
@@ -359,6 +356,8 @@ into icons, regardless of the window manager."
        buffer-A buffer-B buffer-C control-buffer)
     (ediff-setup-windows-plain-compare
      buffer-A buffer-B buffer-C control-buffer)))
+
+(autoload 'ediff-setup-control-buffer "ediff-util")
 
 (defun ediff-setup-windows-plain-merge (buf-A buf-B buf-C control-buffer)
   ;; skip dedicated and unsplittable frames
@@ -862,7 +861,7 @@ into icons, regardless of the window manager."
 ;; create a new splittable frame if none is found
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   (if (ediff-window-display-p)
-      (let ((wind-frame (window-frame (selected-window)))
+      (let ((wind-frame (window-frame))
 	     seen-windows)
 	(while (and (not (memq (selected-window) seen-windows))
 		    (or
@@ -878,7 +877,7 @@ into icons, regardless of the window manager."
 	  (setq seen-windows (cons (selected-window) seen-windows))
 	  ;; try new window
 	  (other-window 1 t)
-	  (setq wind-frame (window-frame (selected-window)))
+	  (setq wind-frame (window-frame))
 	  )
 	(if (memq (selected-window) seen-windows)
 	    ;; fed up, no appropriate frames
@@ -910,6 +909,8 @@ into icons, regardless of the window manager."
     (not (ediff-frame-has-dedicated-windows (window-frame wind)))
     )))
 
+(declare-function ediff-make-bottom-toolbar "ediff-util" (&optional frame))
+
 ;; Prepare or refresh control frame
 (defun ediff-setup-control-frame (ctl-buffer designated-minibuffer-frame)
   (let ((window-min-height 1)
@@ -938,7 +939,7 @@ into icons, regardless of the window manager."
 
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
-    (if (window-dedicated-p (selected-window))
+    (if (window-dedicated-p)
 	()
       (delete-other-windows)
       (switch-to-buffer ctl-buffer))
@@ -957,7 +958,7 @@ into icons, regardless of the window manager."
 	  (and (eq this-command 'ediff-toggle-help)
 	       dont-iconify-ctl-frame))
 
-    ;; 1 more line for the modeline
+    ;; 1 more line for the mode line
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
 	  fwidth (max (+ (ediff-help-message-line-length) 2)
@@ -1141,7 +1142,7 @@ It assumes that it is called from within the control buffer."
 
 
 ;; Revise the mode line to display which difference we have selected
-;; Also resets modelines of buffers A/B, since they may be clobbered by
+;; Also resets mode lines of buffers A/B, since they may be clobbered by
 ;; other invocations of Ediff.
 (defun ediff-refresh-mode-lines ()
   (let (buf-A-state-diff buf-B-state-diff buf-C-state-diff buf-C-state-merge)

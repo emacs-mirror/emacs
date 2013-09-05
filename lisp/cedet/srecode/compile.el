@@ -1,6 +1,6 @@
 ;;; srecode/compile --- Compilation of srecode template files.
 
-;; Copyright (C) 2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -199,9 +199,12 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 (defun srecode-compile-templates ()
   "Compile a semantic recode template file into a mode-local variable."
   (interactive)
+  (unless (semantic-active-p)
+    (error "You have to activate semantic-mode to compile SRecode templates"))
   (require 'srecode/insert)
-  (message "Compiling template %s..."
-	   (file-name-nondirectory (buffer-file-name)))
+  (when (called-interactively-p 'interactive)
+    (message "Compiling template %s..."
+	     (file-name-nondirectory (buffer-file-name))))
   (let ((tags (semantic-fetch-tags))
 	(tag nil)
 	(class nil)
@@ -210,6 +213,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 				       (buffer-file-name))))
 	(mode nil)
 	(application nil)
+	(framework nil)
 	(priority nil)
 	(project nil)
 	(vars nil)
@@ -253,6 +257,8 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 		     )
 		    ((string= name "application")
 		     (setq application (read firstvalue)))
+		    ((string= name "framework")
+		     (setq framework (read firstvalue)))
 		    ((string= name "priority")
 		     (setq priority (read firstvalue)))
 		    ((string= name "project")
@@ -283,10 +289,11 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
        )
       ;; Continue
       (setq tags (cdr tags)))
-
+    
     ;; MSG - Before install since nreverse whacks our list.
-    (message "%d templates compiled for %s"
-	     (length table) mode)
+    (when (called-interactively-p 'interactive)
+      (message "%d templates compiled for %s"
+	       (length table) mode))
 
     ;;
     ;; APPLY TO MODE
@@ -311,15 +318,17 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	    (if (stringp project)
 		(setq priority (+ 50 defaultdelta))
 	      (setq priority (+ 80 defaultdelta))))
-	  (message "Templates %s has estimated priority of %d"
-		   (file-name-nondirectory (buffer-file-name))
-		   priority))
-      (message "Compiling templates %s priority %d... done!"
-	       (file-name-nondirectory (buffer-file-name))
-	       priority))
+	  (when (called-interactively-p 'interactive)
+	    (message "Templates %s has estimated priority of %d"
+		     (file-name-nondirectory (buffer-file-name))
+		     priority)))
+      (when (called-interactively-p 'interactive)
+	(message "Compiling templates %s priority %d... done!"
+		 (file-name-nondirectory (buffer-file-name))
+		 priority)))
 
     ;; Save it up!
-    (srecode-compile-template-table table mode priority application project vars)
+    (srecode-compile-template-table table mode priority application framework project vars)
     )
 )
 
@@ -376,8 +385,8 @@ It is hard if the previous inserter is a newline object."
   (while (and comp (stringp (car comp)))
     (setq comp (cdr comp)))
   (or (not comp)
-      (require 'srecode/insert)
-      (srecode-template-inserter-newline-child-p (car comp))))
+      (progn (require 'srecode/insert)
+	     (srecode-template-inserter-newline-child-p (car comp)))))
 
 (defun srecode-compile-split-code (tag str STATE
 				       &optional end-name)
@@ -505,12 +514,12 @@ to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
       (apply 'srecode-template-inserter-variable name props)
-    (let ((classes (class-children srecode-template-inserter))
+    (let ((classes (eieio-class-children srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
       ;; create the correct inserter.
       (while (and (not new) classes)
-	(setq classes (append classes (class-children (car classes))))
+	(setq classes (append classes (eieio-class-children (car classes))))
 	;; Do we have a match?
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref (car classes) key) key))
@@ -522,12 +531,13 @@ to the inserter constructor."
       (if (not new) (error "SRECODE: Unknown macro code %S" key))
       new)))
 
-(defun srecode-compile-template-table (templates mode priority application project vars)
+(defun srecode-compile-template-table (templates mode priority application framework project vars)
   "Compile a list of TEMPLATES into an semantic recode table.
 The table being compiled is for MODE, or the string \"default\".
 PRIORITY is a numerical value that indicates this tables location
 in an ordered search.
 APPLICATION is the name of the application these templates belong to.
+FRAMEWORK is the name of the framework these templates belong to.
 PROJECT is a directory name which these templates scope to.
 A list of defined variables VARS provides a variable table."
   (let ((namehash (make-hash-table :test 'equal
@@ -569,6 +579,7 @@ A list of defined variables VARS provides a variable table."
 		   :major-mode mode
 		   :priority priority
 		   :application application
+		   :framework framework
 		   :project project))
 	   (tmpl (oref table templates)))
       ;; Loop over all the templates, and xref.
@@ -587,7 +598,7 @@ A list of defined variables VARS provides a variable table."
 (defmethod srecode-dump ((tmp srecode-template))
   "Dump the contents of the SRecode template tmp."
   (princ "== Template \"")
-  (princ (object-name-string tmp))
+  (princ (eieio-object-name-string tmp))
   (princ "\" in context ")
   (princ (oref tmp context))
   (princ "\n")
@@ -633,12 +644,12 @@ Argument INDENT specifies the indentation level for the list."
 (defmethod srecode-dump ((ins srecode-template-inserter) indent)
   "Dump the state of the SRecode template inserter INS."
   (princ "INS: \"")
-  (princ (object-name-string ins))
+  (princ (eieio-object-name-string ins))
   (when (oref ins :secondname)
     (princ "\" : \"")
     (princ (oref ins :secondname)))
   (princ "\" type \"")
-  (let* ((oc (symbol-name (object-class ins)))
+  (let* ((oc (symbol-name (eieio-object-class ins)))
 	 (junk (string-match "srecode-template-inserter-" oc))
 	 (on (if junk
 		 (substring oc (match-end 0))

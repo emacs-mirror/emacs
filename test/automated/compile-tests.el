@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for font parsing.
 
-;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -176,8 +176,10 @@
     ("foo.c:8.23: note: message" 1 23 8 "foo.c")
     ("foo.c:8.23: info: message" 1 23 8 "foo.c")
     ("foo.c:8:23:information: message" 1 23 8 "foo.c")
-    ("foo.c:8.23-45: Informational: message" 1 (23 . nil) (8 . 45) "foo.c")
+    ("foo.c:8.23-45: Informational: message" 1 (23 . 46) (8 . nil) "foo.c")
     ("foo.c:8-23: message" 1 nil (8 . 23) "foo.c")
+    ;; The next one is not in the GNU standards AFAICS.
+    ;; Here we seem to interpret it as LINE1-LINE2.COL2.
     ("foo.c:8-45.3: message" 1 (nil . 4) (8 . 45) "foo.c")
     ("foo.c:8.23-9.1: message" 1 (23 . 2) (8 . 9) "foo.c")
     ("jade:dbcommon.dsl:133:17:E: missing argument for function call"
@@ -215,6 +217,10 @@
      1 nil 23 "d:\\tmp\\test.c")
     ("d:\\tmp\\test.c(1145) : see declaration of 'nsRefPtr'"
      1 nil 1145 "d:\\tmp\\test.c")
+    ("1>test_main.cpp(29): error C2144: syntax error : 'int' should be preceded by ';'"
+     3 nil 29 "test_main.cpp")
+    ("1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int"
+     3 nil 29 "test_main.cpp")
     ;; watcom
     ("..\src\ctrl\lister.c(109): Error! E1009: Expecting ';' but found '{'"
      1 nil 109 "..\src\ctrl\lister.c")

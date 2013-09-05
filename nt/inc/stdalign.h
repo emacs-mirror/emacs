@@ -13,4 +13,13 @@
 #endif
 #define alignof _Alignof
 
+#if __GNUC__
+# define _Alignas(a) __attribute__ ((__aligned__ (a)))
+#elif 1300 <= _MSC_VER
+# define _Alignas(a) __declspec (align (a))
+#endif
+#ifdef _Alignas
+# define alignas _Alignas
+#endif
+
 #endif	/* _NT_STDALIGN_H_ */

@@ -1,6 +1,6 @@
 ;;; srecode/semantic.el --- Semantic specific extensions to SRecode.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -350,6 +350,12 @@ as `function' will leave point where code might be inserted."
 		(semantic-tag-get-attribute tag :constant-flag))
 	   (setq temp (srecode-semantic-find-template
 		       "variable-const" prototype ctxt))
+	   )
+
+	  ((and (semantic-tag-of-class-p tag 'include)
+		(semantic-tag-get-attribute tag :system-flag))
+	   (setq temp (srecode-semantic-find-template
+		       "system-include" prototype ctxt))
 	   )
 	  )
 

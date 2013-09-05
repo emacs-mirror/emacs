@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
@@ -56,7 +56,7 @@
 ;;; Code:
 
 (require 'unsafep)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 
 ;;----------------------------------------------------------------------------
@@ -278,6 +278,7 @@ default printer and then modify its output.")
       ses--default-printer
       ses--deferred-narrow ses--deferred-recalc
       ses--deferred-write ses--file-format
+      ses--named-cell-hashmap
       (ses--header-hscroll . -1) ; Flag for "initial recalc needed"
       ses--header-row ses--header-string ses--linewidth
       ses--numcols ses--numrows ses--symbolic-formulas
@@ -362,6 +363,10 @@ when to emit a progress message.")
   "From a CELL or a pair (ROW,COL), get the function that computes its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 1))
 
+(defmacro ses-cell-formula-aset (cell formula)
+  "From a CELL set the function that computes its value."
+  `(aset ,cell 1 ,formula))
+
 (defmacro ses-cell-printer (row &optional col)
   "From a CELL or a pair (ROW,COL), get the function that prints its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 2))
@@ -370,6 +375,19 @@ when to emit a progress message.")
   "From a CELL or a pair (ROW,COL), get the list of symbols for cells whose
 functions refer to its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 3))
+
+(defmacro ses-cell-references-aset (cell references)
+  "From a CELL set the list REFERENCES of symbols for cells the
+function of which refer to its value."
+  `(aset ,cell 3 ,references))
+
+(defun ses-cell-p (cell)
+  "Return non `nil' is CELL is a cell of current buffer."
+  (and (vectorp cell)
+       (= (length cell) 5)
+       (eq cell (let ((rowcol (ses-sym-rowcol (ses-cell-symbol cell))))
+		  (and (consp rowcol)
+		       (ses-get-cell (car rowcol) (cdr rowcol)))))))
 
 (defun ses-cell-property-get-fun (property-name cell)
   ;; To speed up property fetching, each time a property is found it is placed
@@ -494,9 +512,22 @@ PROPERTY-NAME."
   `(aref ses--col-printers ,col))
 
 (defmacro ses-sym-rowcol (sym)
-  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).
-Result is nil if SYM is not a symbol that names a cell."
-  `(and (symbolp ,sym) (get ,sym 'ses-cell)))
+  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).  Result
+is nil if SYM is not a symbol that names a cell."
+  `(let ((rc (and (symbolp ,sym) (get ,sym 'ses-cell))))
+     (if (eq rc :ses-named)
+	 (gethash ,sym ses--named-cell-hashmap)
+       rc)))
+
+(defun ses-is-cell-sym-p (sym)
+  "Check whether SYM point at a cell of this spread sheet."
+  (let ((rowcol (get sym 'ses-cell)))
+    (and rowcol
+	 (if (eq rowcol :ses-named)
+	     (and ses--named-cell-hashmap (gethash sym ses--named-cell-hashmap))
+	   (and (< (car rowcol) ses--numrows)
+		(< (cdr rowcol) ses--numcols)
+		(eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym))))))
 
 (defmacro ses-cell (sym value formula printer references)
   "Load a cell SYM from the spreadsheet file.  Does not recompute VALUE from
@@ -665,6 +696,27 @@ for this spreadsheet."
   "Produce a symbol that names the cell (ROW,COL).  (0,0) => 'A1."
   (intern (concat (ses-column-letter col) (number-to-string (1+ row)))))
 
+(defun ses-decode-cell-symbol (str)
+  "Decode a symbol \"A1\" => (0,0). Returns `nil' if STR is not a
+  canonical cell name. Does not save match data."
+  (let (case-fold-search)
+    (and (string-match "\\`\\([A-Z]+\\)\\([0-9]+\\)\\'" str)
+	 (let* ((col-str (match-string-no-properties 1 str))
+	       (col 0)
+	       (col-base 1)
+	       (col-idx (1- (length col-str)))
+	       (row (1- (string-to-number (match-string-no-properties 2 str)))))
+	   (and (>= row 0)
+		(progn
+		  (while
+		      (progn
+			(setq col (+ col (* (- (aref col-str col-idx) ?A) col-base))
+			      col-base (* col-base 26)
+			      col-idx (1- col-idx))
+			(and (>= col-idx 0)
+			     (setq col (+ col col-base)))))
+		  (cons row col)))))))
+
 (defun ses-create-cell-variable-range (minrow maxrow mincol maxcol)
   "Create buffer-local variables for cells.  This is undoable."
   (push `(apply ses-destroy-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
@@ -687,7 +739,11 @@ row and column of the cell, with numbering starting from 0.
 Return nil in case of failure."
   (unless (local-variable-p sym)
     (make-local-variable  sym)
-    (put sym 'ses-cell (cons row col))))
+    (if (let (case-fold-search) (string-match-p "\\`[A-Z]+[0-9]+\\'" (symbol-name sym)))
+	(put sym 'ses-cell (cons row col))
+      (put sym 'ses-cell :ses-named)
+      (setq ses--named-cell-hashmap (or ses--named-cell-hashmap (make-hash-table :test 'eq)))
+      (puthash sym (cons row col) ses--named-cell-hashmap))))
 
 ;; We do not delete the ses-cell properties for the cell-variables, in
 ;; case a formula that refers to this cell is in the kill-ring and is
@@ -1253,11 +1309,9 @@ when the width of cell (ROW,COL) has changed."
 ;; The data area
 ;;----------------------------------------------------------------------------
 
-(defun ses-narrowed-p () (/= (- (point-max) (point-min)) (buffer-size)))
-
 (defun ses-widen ()
   "Turn off narrowing, to be reenabled at end of command loop."
-  (if (ses-narrowed-p)
+  (if (buffer-narrowed-p)
       (setq ses--deferred-narrow t))
   (widen))
 
@@ -1419,7 +1473,7 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
   (let (rowcol result)
     (if (or (atom formula) (eq (car formula) 'quote))
 	(if (and (setq rowcol (ses-sym-rowcol formula))
-		 (string-match "\\`[A-Z]+[0-9]+\\'" (symbol-name formula)))
+		 (string-match-p "\\`[A-Z]+[0-9]+\\'" (symbol-name formula)))
 	    (ses-relocate-symbol formula rowcol
 				 startrow startcol rowincr colincr)
 	  formula) ; Pass through as-is.
@@ -1520,7 +1574,7 @@ if the range was altered."
 		 (funcall field (ses-sym-rowcol min))))
 	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
-      `(ses-range ,min ,max ,@(cdddr range)))))
+      `(ses-range ,min ,max ,@(cl-cdddr range)))))
 
 (defun ses-relocate-all (minrow mincol rowincr colincr)
   "Alter all cell values, symbols, formulas, and reference-lists to relocate
@@ -1680,7 +1734,7 @@ Does not execute cell formulas or print functions."
   (search-backward ";; Local Variables:\n" nil t)
   (backward-list 1)
   (setq ses--params-marker (point-marker))
-  (let ((params (condition-case nil (read (current-buffer)) (error nil))))
+  (let ((params (ignore-errors (read (current-buffer)))))
     (or (and (= (safe-length params) 3)
 	     (numberp (car params))
 	     (numberp (cadr params))
@@ -1706,7 +1760,7 @@ Does not execute cell formulas or print functions."
   ;; Skip over print area, which we assume is correct.
   (goto-char (point-min))
   (forward-line ses--numrows)
-  (or (looking-at ses-print-data-boundary)
+  (or (looking-at-p ses-print-data-boundary)
       (error "Missing marker between print and data areas"))
   (forward-char 1)
   (setq ses--data-marker (point-marker))
@@ -1719,12 +1773,12 @@ Does not execute cell formulas or print functions."
     (dotimes (col ses--numcols)
       (let* ((x      (read (current-buffer)))
 	     (sym  (car-safe (cdr-safe x))))
-	(or (and (looking-at "\n")
+	(or (and (looking-at-p "\n")
 		 (eq (car-safe x) 'ses-cell)
 		 (ses-create-cell-variable sym row col))
 	    (error "Cell-def error"))
 	(eval x)))
-    (or (looking-at "\n\n")
+    (or (looking-at-p "\n\n")
 	(error "Missing blank line between rows")))
   ;; Load global parameters.
   (let ((widths      (read (current-buffer)))
@@ -1750,8 +1804,8 @@ Does not execute cell formulas or print functions."
     (1value (eval head-row)))
   ;; Should be back at global-params.
   (forward-char 1)
-  (or (looking-at (replace-regexp-in-string "1" "[0-9]+"
-					    ses-initial-global-parameters))
+  (or (looking-at-p (replace-regexp-in-string "1" "[0-9]+"
+					      ses-initial-global-parameters))
       (error "Problem with column-defs or global-params"))
   ;; Check for overall newline count in definitions area.
   (forward-line 3)
@@ -1933,7 +1987,7 @@ narrows the buffer now."
 	  ;; do the narrowing.
 	  (narrow-to-region (point-min) ses--data-marker)
 	  (setq ses--deferred-narrow nil))
-	;; Update the modeline.
+	;; Update the mode line.
 	(let ((oldcell ses--curcell))
 	  (ses-set-curcell)
 	  (unless (eq ses--curcell oldcell)
@@ -2022,9 +2076,8 @@ Based on the current set of columns and `window-hscroll' position."
 
 (defun ses-jump-safe (cell)
   "Like `ses-jump', but no error if invalid cell."
-  (condition-case nil
-      (ses-jump cell)
-    (error)))
+  (ignore-errors
+    (ses-jump cell)))
 
 (defun ses-reprint-all (&optional nonarrow)
   "Recreate the display area.  Calls all printer functions.  Narrows to
@@ -2663,8 +2716,9 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
 ;; Cut and paste, import and export
 ;;----------------------------------------------------------------------------
 
-(defadvice copy-region-as-kill (around ses-copy-region-as-kill
-				activate preactivate)
+(defun ses--advice-copy-region-as-kill (crak-fun beg end &rest args)
+  ;; FIXME: Why doesn't it make sense to copy read-only or
+  ;; intangible attributes?  They're removed upon yank!
   "It doesn't make sense to copy read-only or intangible attributes into the
 kill ring.  It probably doesn't make sense to copy keymap properties.
 We'll assume copying front-sticky properties doesn't make sense, either.
@@ -2675,14 +2729,15 @@ hard to override how mouse-1 works."
     (let ((temp beg))
       (setq beg end
 	    end temp)))
-  (if (not (and (eq major-mode 'ses-mode)
+  (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property beg 'read-only) 'ses)
 		(eq (get-text-property (1- end) 'read-only) 'ses)))
-      ad-do-it ; Normal copy-region-as-kill.
+      (apply crak-fun beg end args) ; Normal copy-region-as-kill.
     (kill-new (ses-copy-region beg end))
     (if transient-mark-mode
 	(setq deactivate-mark t))
     nil))
+(advice-add 'copy-region-as-kill :around #'ses--advice-copy-region-as-kill)
 
 (defun ses-copy-region (beg end)
   "Treat the region as rectangular.  Convert the intangible attributes to
@@ -2732,7 +2787,7 @@ We clear the killed cells instead of deleting them."
   ;; For some reason, the text-read-only error is not caught by `delete-region',
   ;; so we have to use subterfuge.
   (let ((buffer-read-only t))
-    (1value (condition-case x
+    (1value (condition-case nil
 		(noreturn (funcall (lookup-key (current-global-map)
 					       (this-command-keys))
 				   beg end))
@@ -2746,7 +2801,7 @@ We clear the killed cells instead of deleting them."
     (ses-clear-cell row col))
   (ses-jump (car ses--curcell)))
 
-(defadvice yank (around ses-yank activate preactivate)
+(defun ses--advice-yank (yank-fun &optional arg &rest args)
   "In SES mode, the yanked text is inserted as cells.
 
 If the text contains 'ses attributes (meaning it went to the kill-ring from a
@@ -2764,9 +2819,9 @@ When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to
 explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
 as symbols."
-  (if (not (and (eq major-mode 'ses-mode)
+  (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property (point) 'keymap) 'ses-mode-print-map)))
-      ad-do-it ; Normal non-SES yank.
+      (apply yank-fun arg args) ; Normal non-SES yank.
     (ses-check-curcell 'end)
     (push-mark (point))
     (let ((text (current-kill (cond
@@ -2784,6 +2839,7 @@ as symbols."
 			arg)))
     (if (consp arg)
 	(exchange-point-and-mark))))
+(advice-add 'yank :around #'ses--advice-yank)
 
 (defun ses-yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
@@ -2956,13 +3012,13 @@ spot, or error signal if user requests cancel."
 			     (ses-col-printer (1- ses--numcols)))))
     rowcol))
 
-(defun ses-export-tsv (beg end)
+(defun ses-export-tsv (_beg _end)
   "Export values from the current range, with tabs between columns and
 newlines between rows.  Result is placed in kill ring."
   (interactive "r")
   (ses-export-tab nil))
 
-(defun ses-export-tsf (beg end)
+(defun ses-export-tsf (_beg _end)
   "Export formulas from the current range, with tabs between columns and
 newlines between rows.  Result is placed in kill ring."
   (interactive "r")
@@ -3193,39 +3249,60 @@ highlighted range in the spreadsheet."
 	(setq formula (cdr formula))))
     new-formula))
 
-(defun ses-rename-cell (new-name)
+(defun ses-rename-cell (new-name &optional cell)
   "Rename current cell."
   (interactive "*SEnter new name: ")
-  (ses-check-curcell)
   (or
    (and  (local-variable-p new-name)
-	 (ses-sym-rowcol new-name)
-	 ;; this test is needed because ses-cell property of deleted cells
-	 ;; is not deleted in case of subsequent undo
-	 (memq new-name ses--renamed-cell-symb-list)
+	 (ses-is-cell-sym-p new-name)
 	 (error "Already a cell name"))
    (and (boundp new-name)
 	(null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
 				   new-name)))
 	(error "Already a bound cell name")))
-  (let* ((rowcol (ses-sym-rowcol ses--curcell))
-	 (cell (ses-get-cell (car rowcol) (cdr rowcol))))
-    (put new-name 'ses-cell rowcol)
-    (dolist (reference (ses-cell-references (car rowcol) (cdr rowcol)))
-      (let* ((rowcol (ses-sym-rowcol reference))
-	     (cell  (ses-get-cell (car rowcol) (cdr rowcol))))
-	(ses-cell-set-formula (car rowcol)
-			      (cdr rowcol)
-			      (ses-replace-name-in-formula
-			       (ses-cell-formula cell)
-			       ses--curcell
-			       new-name))))
+  (let* (curcell
+	 (sym (if (ses-cell-p cell)
+		  (ses-cell-symbol cell)
+		(setq cell nil
+		      curcell t)
+		(ses-check-curcell)
+		ses--curcell))
+	 (rowcol (ses-sym-rowcol sym))
+	 (row (car rowcol))
+	 (col (cdr rowcol))
+	 new-rowcol old-name)
+    (setq cell (or cell (ses-get-cell row col))
+	  old-name (ses-cell-symbol cell)
+	  new-rowcol (ses-decode-cell-symbol (symbol-name new-name)))
+    (if new-rowcol
+	(if (equal new-rowcol rowcol)
+	  (put new-name 'ses-cell rowcol)
+	  (error "Not a valid name for this cell location"))
+      (setq ses--named-cell-hashmap (or ses--named-cell-hashmap (make-hash-table :test 'eq)))
+      (put new-name 'ses-cell :ses-named)
+      (puthash new-name rowcol ses--named-cell-hashmap))
+    (push `(ses-rename-cell ,old-name ,cell) buffer-undo-list)
+    ;; replace name by new name in formula of cells refering to renamed cell
+    (dolist (ref (ses-cell-references cell))
+      (let* ((x (ses-sym-rowcol ref))
+	     (xcell  (ses-get-cell (car x) (cdr x))))
+	(ses-cell-formula-aset xcell
+			       (ses-replace-name-in-formula
+				(ses-cell-formula xcell)
+				sym
+				new-name))))
+    ;; replace name by new name in reference list of cells to which renamed cell refers to
+    (dolist (ref (ses-formula-references (ses-cell-formula cell)))
+      (let* ((x (ses-sym-rowcol ref))
+	     (xcell (ses-get-cell (car x) (cdr x))))
+	(ses-cell-references-aset xcell
+				  (cons new-name (delq sym
+						       (ses-cell-references xcell))))))
     (push new-name ses--renamed-cell-symb-list)
-    (set new-name (symbol-value ses--curcell))
+    (set new-name (symbol-value sym))
     (aset cell 0 new-name)
-    (put ses--curcell 'ses-cell nil)
-    (makunbound ses--curcell)
-    (setq ses--curcell new-name)
+    (makunbound sym)
+    (and curcell (setq ses--curcell new-name))
     (let* ((pos (point))
 	   (inhibit-read-only t)
 	   (col (current-column))
@@ -3234,7 +3311,11 @@ highlighted range in the spreadsheet."
 		  (if (eolp)
 		      (+ pos (ses-col-width col) 1)
 		    (point)))))
-      (put-text-property pos end 'intangible new-name))) )
+      (put-text-property pos end 'intangible new-name))
+    ;; update mode line
+    (setq mode-line-process (list " cell "
+				  (symbol-name new-name)))
+    (force-mode-line-update)))
 
 ;;----------------------------------------------------------------------------
 ;; Checking formulas for safety
@@ -3345,19 +3426,20 @@ Use `math-format-value' as a printer for Calc objects."
     (push result-row result)
     (while rest
       (let ((x (pop rest)))
-	(case x
-	  ((>v) (setq transpose nil reorient-x nil reorient-y nil))
-	  ((>^)(setq transpose nil reorient-x nil reorient-y t))
-	  ((<^)(setq transpose nil reorient-x t reorient-y t))
-	  ((<v)(setq transpose nil reorient-x t reorient-y nil))
-	  ((v>)(setq transpose t reorient-x nil reorient-y t))
-	  ((^>)(setq transpose t reorient-x nil reorient-y nil))
-	  ((^<)(setq transpose t reorient-x t reorient-y nil))
-	  ((v<)(setq transpose t reorient-x t reorient-y t))
-	  ((* *2 *1) (setq vectorize x))
-	  ((!) (setq clean 'ses--clean-!))
-	  ((_) (setq clean `(lambda (&rest x) (ses--clean-_  x ,(if rest (pop rest) 0)))))
-	  (t
+	(pcase x
+	  (`>v (setq transpose nil reorient-x nil reorient-y nil))
+	  (`>^ (setq transpose nil reorient-x nil reorient-y t))
+	  (`<^ (setq transpose nil reorient-x t reorient-y t))
+	  (`<v (setq transpose nil reorient-x t reorient-y nil))
+	  (`v> (setq transpose t reorient-x nil reorient-y t))
+	  (`^> (setq transpose t reorient-x nil reorient-y nil))
+	  (`^< (setq transpose t reorient-x t reorient-y nil))
+	  (`v< (setq transpose t reorient-x t reorient-y t))
+	  ((or `* `*2 `*1) (setq vectorize x))
+	  (`! (setq clean 'ses--clean-!))
+	  (`_ (setq clean `(lambda (&rest x)
+                             (ses--clean-_  x ,(if rest (pop rest) 0)))))
+	  (_
 	   (cond
 					; shorthands one row
 	    ((and (null (cddr result)) (memq x '(> <)))
@@ -3380,21 +3462,23 @@ Use `math-format-value' as a printer for Calc objects."
 	    (setq iter (cdr iter))))
 	(setq result ret)))
 
-    (flet ((vectorize-*1
-	    (clean result)
-	    (cons clean (cons (quote 'vec) (apply 'append result))))
-	   (vectorize-*2
-	    (clean result)
-	    (cons clean (cons (quote 'vec) (mapcar (lambda (x)
-						     (cons  clean (cons (quote 'vec) x)))
-						   result)))))
-      (case vectorize
-	((nil) (cons clean (apply 'append result)))
-	((*1) (vectorize-*1 clean result))
-	((*2) (vectorize-*2 clean result))
-	((*) (if (cdr result)
-	       (vectorize-*2 clean result)
-	     (vectorize-*1 clean result)))))))
+    (cl-flet ((vectorize-*1
+               (clean result)
+               (cons clean (cons (quote 'vec) (apply 'append result))))
+              (vectorize-*2
+               (clean result)
+               (cons clean (cons (quote 'vec)
+                                 (mapcar (lambda (x)
+                                           (cons  clean (cons (quote 'vec) x)))
+                                         result)))))
+      (pcase vectorize
+	(`nil (cons clean (apply 'append result)))
+	(`*1 (vectorize-*1 clean result))
+	(`*2 (vectorize-*2 clean result))
+	(`* (funcall (if (cdr result)
+                         #'vectorize-*2
+                       #'vectorize-*1)
+                     clean result))))))
 
 (defun ses-delete-blanks (&rest args)
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."
@@ -3493,7 +3577,7 @@ current column and continues until the next nonblank column."
 current column and continues until the next nonblank column."
   (ses-center-span value ?~))
 
-(defun ses-unsafe (value)
+(defun ses-unsafe (_value)
   "Substitute for an unsafe formula or printer."
   (error "Unsafe formula or printer"))
 
@@ -3503,10 +3587,9 @@ current column and continues until the next nonblank column."
 
 (defun ses-unload-function ()
   "Unload the Simple Emacs Spreadsheet."
-  (dolist (fun '(copy-region-as-kill yank))
-    (ad-remove-advice fun 'around (intern (concat "ses-" (symbol-name fun))))
-    (ad-update fun))
-  ;; continue standard unloading
+  (advice-remove 'yank #'ses--advice-yank)
+  (advice-remove 'copy-region-as-kill #'ses--advice-copy-region-as-kill)
+  ;; Continue standard unloading.
   nil)
 
 (provide 'ses)

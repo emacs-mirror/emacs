@@ -1,6 +1,6 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
-;; Copyright (C) 1992-1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
@@ -259,9 +259,9 @@ if that value is non-nil.
 These buffers can be edited separately, for example with `fill-paragraph'.
 If you want to disable parallel scrolling temporarily, use  \\[2C-toggle-autoscroll] .
 
-If you include long lines, i.e which will span both columns (eg.
-source code), they should be in what will be the first column, with
-the associated buffer having empty lines next to them.
+If you include long lines that span both columns (e.g., source
+code), they should be in what will be the first column, with the
+associated buffer having empty lines next to them.
 
 Potential uses are writing bilingual texts, or editing the comments of a
 source code.  See the file lisp/two-column.el for detailed examples.
@@ -276,8 +276,9 @@ You have the following commands at your disposal:
 \\[2C-merge]   Merge both buffers
 \\[2C-dissociate]   Dissociate the two buffers
 
-These keybindings can be customized in your ~/.emacs by `2C-mode-map',
-`2C-minor-mode-map' and by binding `2C-command' to some prefix.
+These keybindings can be customized in your init file by
+`2C-mode-map', `2C-minor-mode-map' and by binding `2C-command' to
+some prefix.
 
 The appearance of the screen can be customized by the variables
 `2C-window-width', `2C-beyond-fill-column', `2C-mode-line-format' and

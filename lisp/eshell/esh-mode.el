@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -60,7 +60,7 @@
 
 (provide 'esh-mode)
 
-(eval-when-compile (require 'esh-util))
+(require 'esh-util)
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)
@@ -193,8 +193,11 @@ This is used by `eshell-watch-for-password-prompt'."
   :type '(choice (const nil) function)
   :group 'eshell-mode)
 
-(defcustom eshell-status-in-modeline t
-  "If non-nil, let the user know a command is running in the modeline."
+(define-obsolete-variable-alias 'eshell-status-in-modeline
+  'eshell-status-in-mode-line "24.3")
+
+(defcustom eshell-status-in-mode-line t
+  "If non-nil, let the user know a command is running in the mode line."
   :type 'boolean
   :group 'eshell-mode)
 
@@ -314,20 +317,17 @@ and the hook `eshell-exit-hook'."
   (setq eshell-mode-map (make-sparse-keymap))
   (use-local-map eshell-mode-map)
 
-  (when eshell-status-in-modeline
+  (when eshell-status-in-mode-line
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
       (make-local-variable 'mode-line-format)
       (setq mode-line-format fmt))
-    (let ((modeline (memq 'mode-line-modified mode-line-format)))
-      (if modeline
-	  (setcar modeline 'eshell-command-running-string))))
+    (let ((mode-line-elt (memq 'mode-line-modified mode-line-format)))
+      (if mode-line-elt
+	  (setcar mode-line-elt 'eshell-command-running-string))))
 
-  (define-key eshell-mode-map [return] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?m)] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?j)] 'eshell-send-input)
-  (define-key eshell-mode-map [(meta return)] 'eshell-queue-input)
-  (define-key eshell-mode-map [(meta control ?m)] 'eshell-queue-input)
+  (define-key eshell-mode-map "\r" 'eshell-send-input)
+  (define-key eshell-mode-map "\M-\r" 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
   (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 
@@ -434,7 +434,7 @@ and the hook `eshell-exit-hook'."
   (when eshell-scroll-show-maximum-output
     (set (make-local-variable 'scroll-conservatively) 1000))
 
-  (when eshell-status-in-modeline
+  (when eshell-status-in-mode-line
     (add-hook 'eshell-pre-command-hook 'eshell-command-started nil t)
     (add-hook 'eshell-post-command-hook 'eshell-command-finished nil t))
 
@@ -448,12 +448,12 @@ and the hook `eshell-exit-hook'."
 (put 'eshell-mode 'mode-class 'special)
 
 (defun eshell-command-started ()
-  "Indicate in the modeline that a command has started."
+  "Indicate in the mode line that a command has started."
   (setq eshell-command-running-string "**")
   (force-mode-line-update))
 
 (defun eshell-command-finished ()
-  "Indicate in the modeline that a command has finished."
+  "Indicate in the mode line that a command has finished."
   (setq eshell-command-running-string "--")
   (force-mode-line-update))
 
@@ -740,7 +740,7 @@ This is done after all necessary filtering has been done."
 	      (if (<= (point) oend)
 		  (setq oend (+ oend nchars)))
 	      (insert-before-markers string)
-	      (if (= (window-start (selected-window)) (point))
+	      (if (= (window-start) (point))
 		  (set-window-start (selected-window)
 				    (- (point) nchars)))
 	      (if (= (point) eshell-last-input-end)

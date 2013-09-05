@@ -1,3 +1,589 @@
+2013-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.pdf, refcards/cs-dired-ref.pdf:
+	* refcards/cs-refcard.pdf, refcards/de-refcard.pdf:
+	* refcards/dired-ref.pdf, refcards/fr-dired-ref.pdf:
+	* refcards/fr-refcard.pdf, refcards/gnus-booklet.pdf:
+	* refcards/gnus-refcard.pdf, refcards/orgcard.pdf:
+	* refcards/pl-refcard.pdf, refcards/pt-br-refcard.pdf:
+	* refcards/refcard.pdf, refcards/ru-refcard.pdf:
+	* refcards/sk-dired-ref.pdf, refcards/sk-refcard.pdf:
+	Remove generated files from repository.
+
+	* refcards/Makefile: Rewrite to use portable Makefile syntax.
+	Add language-specific targets.
+	(distclean, extraclean): New rules.
+
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/Makefile (all_pdf, all_ps, fr-survival.ps, dist):
+	New rules.
+	(SURVIVAL_CARDS_PDF): Add fr_survival.pdf.
+
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention -lz and `decompress-gzipped-region'.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new keybinding of `C-x r f' to frameset-to-register.
+
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention `cache-long-scans'.
+
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typo (bug#15027).
+
+2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new package frameset.el.
+
+2013-08-03  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* TODO: Adjust entry about bug reporting.
+
+2013-08-02  Bastien Guerry  <bzg@gnu.org>
+
+	* DEVEL.HUMOR: New entry.
+
+2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* tutorials/TUTORIAL: Remove a redundant sentence about yanking.
+
+	* tutorials/TUTORIAL.cn: Update; synchronize with TUTORIAL.
+
+	* tutorials/TUTORIAL.translators (Maintainer): Update the maintainer.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typos (bug#15000).
+
+2013-07-26  Micah Anderson  <micah@riseup.net>  (tiny change)
+
+	* spook.lines: Additions.  (Bug#14658)
+
+2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Document blink-cursor-blinks and blink timers stopped.
+
+2013-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Document prefer-utf-8 and the new attributes
+	:inhibit-null-byte-detection, :inhibit-iso-escape-detection, and
+	:prefer-utf-8.
+
+2013-07-13  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention new value for ido-use-virtual-buffers.
+
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Timestamp fixes for undo (Bug#14824).
+	* NEWS: Changes to visited-file-modtime, set-visited-file-modtime.
+
+2013-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: NS can be built with ImageMagick.
+
+2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new "generic commands" support.
+
+2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new Desktop option `desktop-save-windows'.
+
+2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* NEWS: Mention new version of todo-mode.el and obsoleting and
+	renaming of old version.
+
+2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention policy change with respect to locallisppath dirs.
+
+2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new Prettify Symbols mode.
+
+2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS (utf-8 for el): Move to the incompatible section.
+
+2013-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* DEBUG: Document -Og and -fno-omit-frame-pointer.
+
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Document new prog-mode symbol prettify support.
+
+2013-06-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* NEWS: Document eshell visual subcommands and options.
+
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/c.srt (header_guard): Add :c parameter so it works
+	standalone.
+
+2013-06-01  Alex Ott  <alexott@gmail.com>
+
+	* tutorials/TUTORIAL.ru: Fix incorrectly translated wording.
+
+2013-05-31  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Refine mode-line faces.
+
+2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* refcards/refcard.tex: Refine some entries.  (Bug#14087)
+
+	* refcards/dired-ref.tex: Refine some entries.  (Bug#14072)
+
+2013-05-24  Fabrice Niessen  <fni@missioncriticalit.com>
+
+	* themes/leuven-theme.el: Update theme.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Advertise the MSYS build on MS-Windows.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gitignore: Don't ignore DOC-* any more.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
+	* NEWS: Emacs is no longer limited to POSIX ACLs.  --disable-acl,
+	not --without-acl, since we're now using Gnulib's implementation.
+
+2013-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* NEWS: Mention multi-monitor support.
+
+2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).
+	* NEWS: Document this.
+
+2013-04-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Add ido faces and remove
+	:box from outline faces.
+
+2013-04-18  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention new key ? for describe-prefix-bindings.
+
+2013-04-15  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* NEWS: Mention separation of package descriptor and name of
+	internal symbols by two hyphens.
+
+2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* NEWS: Mention fixing `split-window' to be non-interactive.
+
+2013-04-09  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Add some more faces.
+
+2013-04-09  Masatake YAMATO  <yamato@redhat.com>
+
+	* NEWS: Mention `sh-mode' own `add-log-current-defun-function'.
+
+2013-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Mention Ubuntu warnings about libdbusmenu.
+
+2013-04-02  Fabrice Niessen  <fni@missioncriticalit.com>
+
+	* themes/leuven-theme.el: Update theme.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* tutorials/TUTORIAL.ko, tutorials/TUTORIAL.th:
+	Switch from iso-2022-7bit to utf-8.
+
+2013-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention `kmacro-to-register' and new eldoc feature.
+
+2013-03-29  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* NEWS (Eshell): New entry for em-tramp change in r112148
+
+2013-03-21  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/ede-autoconf.srt: Change Copyright to FSF.
+	(ede-empty): Change AC_INIT to use PROJECT_NAME, and
+	PROJECT_VERSION.
+
+	* srecode/ede-make.srt (ede-empty): Add a dependency on :project.
+	Add header comment specifying the project's relative path.
+
+	* srecode/c.srt (header_guard): Upcase the filename symbol.
+
+2013-03-21  Vladimir Kazanov  <vkazanov@inbox.ru>
+
+	* srecode/java.srt (empty-main): New.
+	(class-tag): Decapitalize class.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Emacs crashes with ImageMagick 6.8.2-3 through 6.8.3-9 (Bug#13867).
+	* PROBLEMS: Mention problem with ImageMagick 6.8.2-3 through 6.8.3-9.
+
+2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add coding tags for iso-2022-7bit files that are not already tagged.
+	* HELLO, tutorials/TUTORIAL.ko, tutorials/TUTORIAL.th:
+	Add coding tag.  For TUTORIAL.th this prevents Emacs from
+	misinterpreting the file.
+
+	Switch encodings of tutorials, thai-word to UTF-8 (Bug#13880).
+	* refcards/ru-refcard.tex:
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.bg, tutorials/TUTORIAL.cn:
+	* tutorials/TUTORIAL.cs, tutorials/TUTORIAL.de, tutorials/TUTORIAL.eo:
+	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.fr, tutorials/TUTORIAL.it:
+	* tutorials/TUTORIAL.nl, tutorials/TUTORIAL.pl, tutorials/TUTORIAL.pt_BR:
+	* tutorials/TUTORIAL.ro, tutorials/TUTORIAL.sk, tutorials/TUTORIAL.sv:
+	* tutorials/TUTORIAL.zh:
+	Switch to UTF-8.
+
+2013-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* refcards/calccard.tex: Remove incorrect entry.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* NEWS: Document this.
+
+2013-03-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.5.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.5.
+
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: The lock for FILE is now .#FILE or .#-FILE (Bug#13807).
+
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Fix Tramp "adb" entry.  Extend list of discontinued Tramp
+	methods.
+
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	* NEWS: Document removal of --with-crt-dir.
+	* PROBLEMS (LIBS_SYSTEM, LIBS_MACHINE, LIBS_STANDARD): Remove.
+	Remove legacy-systems section, as this stuff is no longer
+	applicable with current linking strategies.
+
+2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp methods "scpc" and "rsyncc" are discontinued.
+
+2013-02-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add autorevert changes.
+
+2013-02-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention ns-use-native-fullscreen.
+
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* CALC-NEWS: Move here from lisp/calc/README, README.prev.
+
+2012-12-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* TODO: Adjust entry about NS event loop.
+
+2012-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp implements `file-acl' and `set-file-acl'.
+
+2012-12-19  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Add customizations of
+	many new faces.
+
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
+	* NEWS: Document changes to file-attributes,
+	file-ownership-preserved-p.
+	Mention new functions group-gid, group-real-gid.
+
+2012-12-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* themes/leuven-theme.el: Convert to Unix format.
+
+2012-12-06  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: New theme.
+
+2012-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Mention new Tramp method "adb".
+
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.4.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.4.
+
+2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Document Calc changes for Gregorian calendar (Bug#12633).
+
+2012-10-26  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* refcards/orgcard.tex: Fix keybindings about
+	`org-show-todo-tree'.
+
+2012-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix outdated timestamp documentation in Elisp manual (bug#12706).
+	* NEWS: Document increased precision in undo list.
+
+2012-10-21  Glenn Morris  <rgm@gnu.org>
+
+	* images/icons/hicolor/32x32/apps/emacs22.png:
+	* images/icons/hicolor/16x16/apps/emacs22.png:
+	* images/icons/hicolor/48x48/apps/emacs22.png:
+	* images/icons/hicolor/24x24/apps/emacs22.png: Restore old icons.
+
+2012-10-14  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/JISC6226.map: Re-generated.
+
+2012-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* compilation.txt (msft): Add error messages in new Studio 2010
+	format.
+
+2012-10-11  Kenichi Handa  <handa@gnu.org>
+
+	* charsets/CNS-2.map, charsets/CNS-3.map, charsets/CNS-4.map:
+	* charsets/CNS-5.map, charsets/CNS-6.map, charsets/CNS-7.map:
+	* charsets/CP932-2BYTE.map, charsets/GB180302.map:
+	* charsets/GB180304.map, charsets/JISC6226.map:
+	* charsets/JISX2131.map, charsets/MIK.map, charsets/PTCP154.map:
+	* charsets/stdenc.map, charsets/symbol.map: Re-generate.
+
+2012-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS (NextStep/OSX port changes): OSX 10.4 or newer is required.
+
+2012-10-05  Douglas Lewan  <d_lewan2000@yahoo.com>  (tiny change)
+
+	* tutorials/TUTORIAL.pt_BR: Fix typo.  (Bug#12557)
+
+2012-10-01  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/c.srt, srecode/ede-autoconf.srt: New files.
+
+	* srecode/cpp.srt: Move parts to c.srt.
+
+	* srecode/ede-make.srt: Extra templates for Arduino Makefiles.
+
+2012-10-01  Ralf Mattes  <rm@mh-freiburg.de>  (tiny change)
+
+	* srecode/el.srt (variable-option): Add missing quote.
+
+2012-10-01  Chong Yidong  <cyd@gnu.org>
+
+	* images/icons/hicolor/32x32/apps/emacs22.png:
+	* images/icons/hicolor/16x16/apps/emacs22.png:
+	* images/icons/hicolor/48x48/apps/emacs22.png:
+	* images/icons/hicolor/24x24/apps/emacs22.png: Remove old icons
+	(Bug#12536).
+
+2012-10-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert the FOLLOW-SYMLINKS change for file-attributes.
+	* NEWS: Undo last change.
+
+2012-09-30  Bastien Guerry  <bzg@gnu.org>
+
+	* refcards/orgcard.tex: Update version number.
+
+2012-09-30  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org/OrgOdtContentTemplate.xml:
+	* org/OrgOdtStyles.xml: Add Listing-related entries.
+
+2012-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	file-attributes has a new optional arg FOLLOW-SYMLINKS.
+	* NEWS: Document the change.
+
+2012-09-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: The NS port supports fullscreen.
+	Mention that the file dialog is used on NS.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/emacsver.tex: New file.
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/emacsver.tex, refcards/fr-dired-ref.tex:
+	* refcards/fr-refcard.tex, refcards/fr-survival.tex:
+	* refcards/orgcard.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/sk-dired-ref.tex, refcards/sk-refcard.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	* refcards/vipcard.tex, refcards/viperCard.tex: Include emacsver.tex.
+	* refcards/calccard.tex (\emacsversionnumber):
+	Rename to \versionemacs, same as all the other refcards.
+	* refcards/Makefile (ENVADD): New variable.
+	(sk-dired-ref.pdf, sk-survival.pdf, pl-refcard.pdf)
+	(%.pdf, %,dvi, sk-dired-ref.dvi, sk-survival.dvi, pl-refcard.dvi):
+	Depend on emacsver.tex.  Add "." to TEXINPUTS for TeX commands.
+
+2012-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove configure's --without-sync-input option (Bug#12450).
+	* TODO (Make SYNC_INPUT the default): Remove, as the code now
+	behaves as if SYNC_INPUT is always true.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use a more backwards-compatible timer format (Bug#12430).
+	* NEWS: Document it, plus fix a typo.
+
+2012-09-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS (--with-x-toolkit): Mention that Gtk+ 3 is now default.
+
+2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Document timer format change (Bug#12430).
+
+2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, document, and port floating-point (Bug#12381).
+	* NEWS: Document NaNs versus signaling-error change.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Give more-useful info on a fatal error (Bug#12328).
+	* NEWS: Document the change.
+
+2012-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Better seeds for (random).
+	* NEWS: Document new behavior of (random), (random "string").
+
+2012-08-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/MULE-ethiopic.map: Fix typo in comment.
+	* charsets/MULE-ipa.map: Likewise.
+	* charsets/MULE-is13194.map: Likewise.
+	* charsets/MULE-lviscii.map: Likewise.
+	* charsets/MULE-sisheng.map: Likewise.
+	* charsets/MULE-tibetan.map: Likewise.
+	* charsets/MULE-uviscii.map: Likewise.
+
+2012-08-09  Chong Yidong  <cyd@gnu.org>
+
+	* images/splash.svg, images/splash.png: Tweak SVG paths to improve
+	legibility.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* NEWS: Mention --without-all and --enable-link-time-optimization.
+
+2012-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* TODO (NS port): Add text about event loop.
+
+2012-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	deactive->inactive, inactivate->deactivate spelling fixes (Bug#10150)
+	* NEWS: Document these changes.
+
+2012-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typo.
+
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify export of symbols to GDB.
+	* emacs-buffer.gdb ($tagmask, $valmask): Remove.
+	(ygetptr): Adjust to recent changes in lisp.h and emacs.c,
+	by using VALMASK instead of $valmask, CHECK_LISP_OBJECT_TYPE
+	instead of gdb_use_union, and DATA_SEG_BITS instead of
+	gdb_data_seg_bits.  Also, use $ptr.i rather than $ptr.u.val.
+
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Make the first sentence display correctly
+	in a left-to-right paragraph, such as what is shown on the fancy
+	splash screen.
+
+2012-07-15  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention exclamation-mark and flymake.
+
+2012-07-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Sync with changes in revno:108936.
+
+2012-07-07  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* tutorials/TUTORIAL: Copyedits (Bug#11689).
+
+2012-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.py, emacs2.py, emacs3.py: Remove files, no longer used.
+
+2012-06-24  Lawrence Mitchell  <wence@gmx.li>
+
+	* NEWS: Move and improve the defun/defalias changes (bug#11686).
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* NEWS: Mention addition of picoseconds to time stamp format.
+
+2012-06-13  Deniz Dogan  <deniz@dogan.se>
+
+	* tutorials/TUTORIAL.sv: Fix grammar and a couple of typos.
+
+2012-06-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* PROBLEMS (68000 C compiler problems): Remove obsolete section.
+	Not only are the compilers long-dead, the obsolete advice
+	typically doesn't apply to current Emacs sources.
+
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* themes/wheatgrass-theme.el:
+	* themes/deeper-blue-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/tsdh-dark-theme.el: Add compilation-mode-line-fail,
+	compilation-mode-line-run, and compilation-mode-line-exit faces.
+
+	* themes/manoj-dark-theme.el: Remove :family attributes.
+
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
+	* NEWS: Mention this.
+
 2012-06-01  Andrew Beals  <andrew.beals@gmail.com>  (tiny change)
 
 	* spook.lines: Additions.  (Bug#11598)
@@ -18,8 +604,8 @@
 
 2012-04-27  Jambunathan K  <kjambunathan@gmail.com>
 
-	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.  With
-	this change, in a description list, if the description paragraph
+	* org/OrgOdtStyles.xml (OrgDescriptionList): Modify style.
+	With this change, in a description list, if the description paragraph
 	spawns multiple lines then it will correctly indented.
 
 2012-04-20  Glenn Morris  <rgm@gnu.org>
@@ -39,10 +625,10 @@
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org/OrgOdtContentTemplate.xml (OrgIndentedSection-Level-*):
-	New section styles. These sections are indented to the same
+	New section styles.  These sections are indented to the same
 	level as the corresponding list entries.  These sections hold
-	tables that occur within a list.  (OrgTable): Increased
-	relative width from 90% to 96% for aesthetic reasons.
+	tables that occur within a list.  (OrgTable):
+	Increased relative width from 90% to 96% for aesthetic reasons.
 
 2012-03-16  Glenn Morris  <rgm@gnu.org>
 
@@ -100,8 +686,8 @@
 2012-01-10  Chong Yidong  <cyd@gnu.org>
 
 	* tutorials/TUTORIAL: Don't give instructions for old-style X
-	scrollbars.  Use DEL terminology instead of DelBack.  Improve
-	description of graphical continuation lines and mode-line.
+	scrollbars.  Use DEL terminology instead of DelBack.
+	Improve description of graphical continuation lines and mode-line.
 	Promote use of C-/ and C-SPC.  Remove discussion of flow control.
 
 2012-01-05  Glenn Morris  <rgm@gnu.org>
@@ -205,7 +791,7 @@
 
 2011-08-24  Steve Chapel  <schapel@laptop.stevechapel.com>  (tiny change)
 
-	* refcards/refcard.tex: Add a few more commands. (Bug#9343)
+	* refcards/refcard.tex: Add a few more commands.  (Bug#9343)
 
 2011-08-22  Juri Linkov  <juri@jurta.org>
 
@@ -474,11 +1060,11 @@
 	POSIX does not allow "-" in Makefile variable names.
 	Reported by Bruno Haible in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00990.html>.
-	* refcards/Makefile (DIRED_REFCARDS_PDF): Renamed from
+	* refcards/Makefile (DIRED_REFCARDS_PDF): Rename from
 	DIRED-REFCARDS_PDF.
-	(MISC_REFCARDS_PDF): Renamed from MISC-REFCARDS_PDF.
-	(SURVIVAL_CARDS_PDF): Renamed from SURVIVAL-CARDS_PDF.
-	(VIPER_CARDS_PDF): Renamed from VIPER-CARDS_PDF.
+	(MISC_REFCARDS_PDF): Rename from MISC-REFCARDS_PDF.
+	(SURVIVAL_CARDS_PDF): Rename from SURVIVAL-CARDS_PDF.
+	(VIPER_CARDS_PDF): Rename from VIPER-CARDS_PDF.
 
 2011-01-18  Glenn Morris  <rgm@gnu.org>
 
@@ -947,7 +1533,7 @@
 
 2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* NEWS: Mention new library imap-hash.el
+	* NEWS: Mention new library imap-hash.el.
 
 2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -991,7 +1577,7 @@
 2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* images/gud/all.xpm, images/gud/thread.xpm: New icons for
-	gdb-mi.el
+	gdb-mi.el.
 
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -1223,7 +1809,7 @@
 
 2009-01-27  Kenichi Handa  <handa@m17n.org>
 
-	* NEWS: New function `coding-sytem-from-name'.
+	* NEWS: New function `coding-system-from-name'.
 
 2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -1942,7 +2528,7 @@
 
 	* refcards/refcard.tex: Updates for printing.
 	(\versionyear): Update to 2007.
-	(\copyrightnotice): Modified or unmodified ok.
+	(\copyrightnotice): Modify or unmodified ok.
 	(Simple Customization): Don't use goto-line, since now it's bound.
 	Also, use now-preferred (kbd ...) syntax.
 
@@ -2027,7 +2613,7 @@
 
 2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: Version 5.01
+	* orgcard.tex: Version 5.01.
 
 2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2595,7 +3181,7 @@
 2006-09-15  Richard Stallman  <rms@gnu.org>
 
 	* THE-GNU-PROJECT: Update with the latest footnotes
-	from www.gnu.org/gnu/the-gnu-project.html
+	from www.gnu.org/gnu/the-gnu-project.html.
 
 2006-09-15  David Kastrup  <dak@gnu.org>
 
@@ -2616,7 +3202,7 @@
 
 2006-09-03  Diane Murray  <disumu@x3y2z1.net>
 
-	* erc.texi (Getting Started, Connecting): Changed erc-select to erc.
+	* erc.texi (Getting Started, Connecting): Change erc-select to erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
@@ -2733,8 +3319,8 @@
 
 2006-07-05  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Add a paragraph for non-ASCII examples at the head.  Add
-	Bulgarian and Hungarian.  Add more "hello"s to Danish and Swedish.
+	* HELLO: Add a paragraph for non-ASCII examples at the head.
+	Add Bulgarian and Hungarian.  Add more "hello"s to Danish and Swedish.
 
 2006-07-03  Bill Wohler  <wohler@newt.com>
 
@@ -2880,7 +3466,7 @@
 
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex (section{Motion}): Added the item navigation commands.
+	* orgcard.tex (section{Motion}): Add the item navigation commands.
 	(section{Publishing}): New section.
 	(section{Links}): Documented elisp and shell links.
 
@@ -3016,8 +3602,8 @@
 	New bitmaps for new images.
 
 	* images/refresh.xpm, images/sort-ascending.xpm,
-	* images/sort-descending.xpm: Update with GTK 2.x images.  Note
-	that the default GTK icons are not overridden by the GNOME theme
+	* images/sort-descending.xpm: Update with GTK 2.x images.
+	Note that the default GTK icons are not overridden by the GNOME theme
 	due to a bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in
 	wide circulation, then the GTK icons should be replaced with the
 	equivalent GNOME icons.  Until then, we should be consistent with
@@ -3221,7 +3807,7 @@
 
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: Version 3.20
+	* orgcard.tex: Version 3.20.
 
 2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -3405,7 +3991,7 @@
 
 2005-10-10  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* NEWS: -nb => -nbi
+	* NEWS: -nb => -nbi.
 
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -4287,8 +4873,8 @@
 
 2001-11-22  Colin Walters  <walters@debian.org>
 
-	* PROBLEMS: Remove already applied calc info patches.  Clarify
-	that there is no such thing as Debian GNU/Linux 2.4.3.  ftpd is
+	* PROBLEMS: Remove already applied calc info patches.
+	Clarify that there is no such thing as Debian GNU/Linux 2.4.3.  ftpd is
 	not handled by alternatives in Debian, the reporter surely meant
 	just "--config ftp".
 
@@ -4405,8 +4991,8 @@
 
 	* ps-prin1.ps: Footer implementation.  Doc fix.
 	(doLineNumber): Code fix for line number color.
-	(BeginPage, BeginSheet, HeaderFramePath, HeaderFrame, HeaderText): Code
-	fix for footer implementation.
+	(BeginPage, BeginSheet, HeaderFramePath, HeaderFrame, HeaderText):
+	Code fix for footer implementation.
 	(TextStart, SetFooterLines, FooterFrameStart, doFramePath)
 	(FooterFramePath, doFrame, FooterFrame, FooterStart)
 	(HeaderOrFooterTextLines, HeaderOrFooterText, FooterText): New funs.
@@ -4594,8 +5180,8 @@
 	* ps-prin0.ps: Insert a version number comment (5.2.2).
 	Indentation fix.
 
-	* ps-prin1.ps: Insert a version number comment (5.2.2).  Can
-	select page size with/without giving an error if PostScript
+	* ps-prin1.ps: Insert a version number comment (5.2.2).
+	Can select page size with/without giving an error if PostScript
 	printer doesn't have this kind of page size.  Zebra Stripe
 	continues or restarts on next page.  Indentation fix.
 	(BeginSheet): If necessary, rescale n-up to fit on the sheet of
@@ -4806,8 +5392,8 @@
 	* termcap.dat, termcap.ucb: Deleted and replaced.
 
 	* termcap: New termcap file from the ncurses project; bigger,
-	better, brighter, does away with waxy yellow buildup.  Email
-	me at terminfo@ccil.org if you have any trouble with this.
+	better, brighter, does away with waxy yellow buildup.
+	Email me at terminfo@ccil.org if you have any trouble with this.
 
 	* README: Changed to track above change.
 
@@ -4817,7 +5403,7 @@
 
 1995-04-26  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
-	* Makefile (maintainer-clean): Renamed from realclean.
+	* Makefile (maintainer-clean): Rename from realclean.
 
 1995-04-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -4972,7 +5558,7 @@
 
 1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* sex.6: Added 900-line support
+	* sex.6: Added 900-line support.
 
 	* NEWS: Added news about the package finder.
 
@@ -5014,8 +5600,8 @@
 	* DISTRIB: The actual domestic order form is now ORDERS.USA.
 	The DISTRIB text now mentions 19.
 
-	* ORDERS.USA: Created.  This is just the order form.  DISTRIB
-	has a pointer to it at the beginning.
+	* ORDERS.USA: Created.  This is just the order form.
+	DISTRIB has a pointer to it at the beginning.
 
 	* EUROPE: Renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
 	to it at the beginning.
@@ -5096,7 +5682,7 @@
 
 1992-04-06  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* etags.c (C_entries): Removed comment saying that \" in a string
+	* etags.c (C_entries): Remove comment saying that \" in a string
 	isn't recognized as magic, because it is correctly handled.
 
 	* getopt.c, getopt.h: New files, from GNU C library.
@@ -5106,8 +5692,8 @@
 	optind.
 	(main): Argument processing loop rewritten to call getopt to get
 	next option.  Options which take parameters (-o and -i) rewritten
-	to get parameter from optarg instead of argv[1].  Filename
-	preprocessing loop and update command changed similarly.
+	to get parameter from optarg instead of argv[1].
+	Filename preprocessing loop and update command changed similarly.
 	* Makefile (etags, ctags): Depend on and link with getopt.h,
 	getopt.o, and getopt1.o.
 	(getopt.o, getopt1.o): New targets for the GNU getopt routines.
@@ -5248,8 +5834,8 @@
 1991-01-25  Jim Blandy  (jimb@churchy.ai.mit.edu)
 
 	* make-docfile: Find the arguments to a C function correctly,
-	by not ignoring the character that read_c_string returns.  Don't
-	even try to find argument names for functions that take MANY
+	by not ignoring the character that read_c_string returns.
+	Don't even try to find argument names for functions that take MANY
 	or UNEVALLED arguments, since they're a figment of the docstring's
 	imagination.
 
@@ -5511,7 +6097,7 @@
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
 	* env.c: Add decl for my-index.
-	* etags.c (file-entries): .oak => scheme
+	* etags.c (file-entries): .oak => scheme.
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -5676,7 +6262,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

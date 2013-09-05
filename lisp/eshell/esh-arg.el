@@ -1,6 +1,6 @@
 ;;; esh-arg.el --- argument processing
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -27,7 +27,7 @@
 
 (provide 'esh-arg)
 
-(eval-when-compile (require 'eshell))
+(require 'esh-mode)
 
 (defgroup eshell-arg nil
   "Argument parsing involves transforming the arguments passed on the

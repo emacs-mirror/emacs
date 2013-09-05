@@ -25,6 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <verify.h>
 
+INLINE_HEADER_BEGIN
+#ifndef CHARACTER_INLINE
+# define CHARACTER_INLINE INLINE
+#endif
+
 /* character code	1st byte   byte sequence
    --------------	--------   -------------
         0-7F		00..7F	   0xxxxxxx
@@ -549,28 +554,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 
 
-/* If C is a character to be unified with a Unicode character, return
-   the unified Unicode character.  */
-
-#define MAYBE_UNIFY_CHAR(c)				\
-  do {							\
-    if (c > MAX_UNICODE_CHAR && c <= MAX_5_BYTE_CHAR)	\
-      {							\
-	Lisp_Object val;				\
-	val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
-	if (INTEGERP (val))				\
-	  c = XFASTINT (val);				\
-	else if (! NILP (val))				\
-	  c = maybe_unify_char (c, val);		\
-      }							\
-  } while (0)
-
-
 /* Return a non-outlandish value for the tab width.  */
 
 #define SANE_TAB_WIDTH(buf) \
   sanitize_tab_width (XFASTINT (BVAR (buf, tab_width)))
-static inline int
+CHARACTER_INLINE int
 sanitize_tab_width (EMACS_INT width)
 {
   return 0 < width && width <= 1000 ? width : 8;
@@ -591,7 +579,7 @@ sanitize_tab_width (EMACS_INT width)
 
 /* Return a non-outlandish value for a character width.  */
 
-static inline int
+CHARACTER_INLINE int
 sanitize_char_width (EMACS_INT width)
 {
   return 0 <= width && width <= 1000 ? width : 1000;
@@ -665,13 +653,12 @@ typedef enum {
   UNICODE_CATEGORY_Cn
 } unicode_category_t;
 
-extern EMACS_INT char_resolve_modifier_mask (EMACS_INT);
+extern EMACS_INT char_resolve_modifier_mask (EMACS_INT) ATTRIBUTE_CONST;
 extern int char_string (unsigned, unsigned char *);
 extern int string_char (const unsigned char *,
                         const unsigned char **, int *);
 
 extern int translate_char (Lisp_Object, int c);
-extern int char_printable_p (int c);
 extern void parse_str_as_multibyte (const unsigned char *,
 				    ptrdiff_t, ptrdiff_t *, ptrdiff_t *);
 extern ptrdiff_t count_size_as_multibyte (const unsigned char *, ptrdiff_t);
@@ -680,7 +667,7 @@ extern ptrdiff_t str_as_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t,
 extern ptrdiff_t str_to_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t);
 extern ptrdiff_t str_as_unibyte (unsigned char *, ptrdiff_t);
 extern ptrdiff_t str_to_unibyte (const unsigned char *, unsigned char *,
-                                 ptrdiff_t, int);
+                                 ptrdiff_t);
 extern ptrdiff_t strwidth (const char *, ptrdiff_t);
 extern ptrdiff_t c_string_width (const unsigned char *, ptrdiff_t, int,
 				 ptrdiff_t *, ptrdiff_t *);
@@ -694,5 +681,7 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
+
+INLINE_HEADER_END
 
 #endif /* EMACS_CHARACTER_H */

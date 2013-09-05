@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
 @chapter Documentation
@@ -58,11 +58,17 @@ use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
 are many other conventions for documentation strings; see
 @ref{Documentation Tips}.
 
-  Documentation strings can contain several special substrings, which
-stand for key bindings to be looked up in the current keymaps when the
-documentation is displayed.  This allows documentation strings to refer
-to the keys for related commands and be accurate even when a user
-rearranges the key bindings.  (@xref{Keys in Documentation}.)
+  Documentation strings can contain several special text sequences,
+referring to key bindings which are looked up in the current keymaps
+when the user views the documentation.  This allows the help commands
+to display the correct keys even if a user rearranges the default key
+bindings.  @xref{Keys in Documentation}.
+
+  In the documentation string of an autoloaded command
+(@pxref{Autoload}), these special text sequences have an additional
+special effect: they cause @kbd{C-h f} (@code{describe-function}) on
+the command to trigger autoloading.  (This is needed for correctly
+setting up the hyperlinks in the @file{*Help*} buffer).
 
 @vindex emacs-lisp-docstring-fill-column
   Emacs Lisp mode fills documentation strings to the width
@@ -87,13 +93,12 @@ When you define a variable with a @code{defvar} or related form
 (@pxref{Defining Variables}), the documentation is stored in the
 variable's @code{variable-documentation} property.
 
-@cindex @file{DOC-@var{version}} (documentation) file
+@cindex @file{DOC} (documentation) file
 @item
 To save memory, the documentation for preloaded functions and
 variables (including primitive functions and autoloaded functions) is
 not kept in memory, but in the file
-@file{emacs/etc/DOC-@var{version}}, where @var{version} is the Emacs
-version number (@pxref{Version Info}).
+@file{emacs/etc/DOC}).
 
 @item
 When a function or variable is loaded from a byte-compiled file during
@@ -120,7 +125,7 @@ customization groups (but for function documentation, use the
 @code{documentation} command, below).
 
 If the value recorded in the property list refers to a documentation
-string stored in a @file{DOC-@var{version}} file or a byte-compiled
+string stored in a @file{DOC} file or a byte-compiled
 file, it looks up that string and returns it.  If the property value
 isn't @code{nil}, isn't a string, and doesn't refer to text in a file,
 then it is evaluated as a Lisp expression to obtain a string.
@@ -290,12 +295,12 @@ memory in the function definitions and variable property lists.
 Emacs reads the file @var{filename} from the @file{emacs/etc} directory.
 When the dumped Emacs is later executed, the same file will be looked
 for in the directory @code{doc-directory}.  Usually @var{filename} is
-@code{"DOC-@var{version}"}.
+@code{"DOC"}.
 @end defun
 
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
-file @code{"DOC-@var{version}"} that contains documentation strings for
+file @code{"DOC"} that contains documentation strings for
 built-in and preloaded functions and variables.
 
 In most cases, this is the same as @code{data-directory}.  They may be
@@ -442,7 +447,7 @@ This function returns a string describing @var{event} in the standard
 Emacs notation for keyboard input.  A normal printing character
 appears as itself, but a control character turns into a string
 starting with @samp{C-}, a meta character turns into a string starting
-with @samp{M-}, and space, tab, etc.@: appear as @samp{SPC},
+with @samp{M-}, and space, tab, etc., appear as @samp{SPC},
 @samp{TAB}, etc.  A function key symbol appears inside angle brackets
 @samp{<@dots{}>}.  An event that is a list appears as the name of the
 symbol in the @sc{car} of the list, inside angle brackets.
@@ -722,4 +727,3 @@ If this variable is non-@code{nil}, commands defined with
 echo area at first, and display the longer @var{help-text} strings only
 if the user types the help character again.
 @end defopt
-

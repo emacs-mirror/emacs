@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2012  Free Software Foundation, Inc.
+   Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -42,7 +42,7 @@ typedef enum
   GNUTLS_STAGE_TRANSPORT_POINTERS_SET,
   GNUTLS_STAGE_HANDSHAKE_TRIED,
 
-  GNUTLS_STAGE_READY,
+  GNUTLS_STAGE_READY
 } gnutls_initstage_t;
 
 #define GNUTLS_EMACS_ERROR_NOT_LOADED GNUTLS_E_APPLICATION_ERROR_MIN + 1

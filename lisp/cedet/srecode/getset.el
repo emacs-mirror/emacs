@@ -1,6 +1,6 @@
 ;;; srecode/getset.el --- Package for inserting new get/set methods.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -298,10 +298,10 @@ Base selection on the field related to POINT."
   (let* ((kids (semantic-find-tags-by-class
 		'variable (semantic-tag-type-members class)))
 	 (sel (completing-read "Use Field: " kids))
-	 )
-
-    (or (semantic-find-tags-by-name sel kids)
-	sel)
+	 (fields (semantic-find-tags-by-name sel kids)))
+    (if fields
+        (car fields)
+      sel)
     ))
 
 (defun srecode-auto-choose-class (point)

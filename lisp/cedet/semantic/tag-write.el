@@ -1,6 +1,6 @@
 ;;; semantic/tag-write.el --- Write tags to a text stream
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -41,12 +41,12 @@ INDENT is the amount of indentation to use for this tag."
     (signal 'wrong-type-argument (list tag 'semantic-tag-p)))
   (when (not indent) (setq indent 0))
   ;(princ (make-string indent ? ))
-  (princ "(\"")
+  (princ "(")
   ;; Base parts
   (let ((name (semantic-tag-name tag))
 	(class (semantic-tag-class tag)))
-    (princ name)
-    (princ "\" ")
+    (prin1 name)
+    (princ " ")
     (princ (symbol-name class))
     )
   (let ((attr (semantic-tag-attributes tag))

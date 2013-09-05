@@ -1,6 +1,6 @@
 ;;; url-future.el --- general futures facility for url.el
 
-;; Copyright (C) 2011-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -40,9 +40,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
-(defstruct url-future callback errorback status value)
+(cl-defstruct url-future callback errorback status value)
 
 (defmacro url-future-done-p (url-future)
   `(url-future-status ,url-future))
@@ -84,7 +84,9 @@
             (setf (url-future-value url-future)
                   (funcall ff))
           (error (url-future-errored url-future catcher)))
-        (url-future-value url-future)))
+        ;; Unused return value.
+;;;        (url-future-value url-future)
+        ))
     (if (url-future-errored-p url-future)
         url-future
       (url-future-finish url-future))))

@@ -1,5 +1,5 @@
 /* Mark beginning of data space to dump as pure, for GNU Emacs.
-   Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,7 +27,6 @@ static char _my_begbss[1];
 char * my_begbss_static = _my_begbss;
 
 /* Add a dummy reference to ensure emacs.obj is linked in.  */
-extern int initialized;
-static int * dummy = &initialized;
+extern int main (int, char **);
+static int (*dummy) (int, char **) = main;
 #endif
-

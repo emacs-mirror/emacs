@@ -1,6 +1,6 @@
 ;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -26,7 +26,7 @@
 
 ;;  Use the functions defined here to customize TPU-edt to your tastes by
 ;;  setting scroll margins and/or turning on free cursor mode.  Here's an
-;;  example for your .emacs file.
+;;  example for your init file.
 
 ;;     (tpu-set-cursor-free)                   ; Set cursor free.
 ;;     (tpu-set-scroll-margins "10%" "15%")    ; Set scroll margins.
@@ -435,6 +435,8 @@ A repeat count means scroll that many sections."
   "Constrain the cursor to the flow of the text."
   (interactive)
   (tpu-cursor-free-mode -1))
+
+(provide 'tpu-extras)
 
 ;; Local Variables:
 ;; generated-autoload-file: "tpu-edt.el"

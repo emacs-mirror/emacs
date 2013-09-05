@@ -1,6 +1,6 @@
 ;;; info-xref.el --- check external references in an Info document
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs
@@ -45,8 +45,25 @@
 ;;; Code:
 
 (require 'info)
-(eval-when-compile
-  (require 'cl)) ;; for `incf'
+(eval-when-compile (require 'cl-lib))   ; for `cl-incf'
+
+(defgroup info-xref nil
+  "Check external cross-references in Info documents."
+  :group 'docs)                         ; FIXME right parent?
+
+;; Should this even be an option?
+(defcustom info-xref-case-fold nil
+  "Non-nil means node checks should ignore case.
+When following cross-references, the Emacs Info reader first tries a
+case-sensitive match, then if that fails a case-insensitive one.
+The standalone Info reader does not do this, nor does this work
+for links in the html versions of Texinfo manuals.  Therefore
+to ensure your cross-references work on the widest range of platforms,
+you should set this variable to nil."
+  :group 'info-xref
+  :type 'boolean
+  :version "24.4")
+
 
 ;;-----------------------------------------------------------------------------
 ;; vaguely generic
@@ -205,7 +222,8 @@ buffer's line and column of point."
                   (Info-goto-node node
                                   (when (get-buffer "*info*")
                                     (set-buffer "*info*")
-                                    "xref - temporary"))
+                                    "xref - temporary")
+                                  (not info-xref-case-fold))
                   t)
               (error nil))
           (unless (equal (current-buffer) oldbuf)
@@ -239,11 +257,11 @@ buffer's line and column of point."
 
         ;; if the file exists, try the node
         (cond ((not (cdr (assoc file info-xref-xfile-alist)))
-               (incf info-xref-unavail))
+               (cl-incf info-xref-unavail))
               ((info-xref-goto-node-p node)
-               (incf info-xref-good))
+               (cl-incf info-xref-good))
               (t
-               (incf info-xref-bad)
+               (cl-incf info-xref-bad)
                (info-xref-output-error "no such node: %s" node)))))))
 
 
@@ -368,13 +386,28 @@ in the path."
                     (forward-line)))
               (info-xref-check-buffer))))))))
 
+(defconst info-xref-node-re "\\(?1:\\(([^)]*)\\)[^.,]+\\)"
+  "Regexp with subexp 1 matching (manual)node.")
+
+;; "@xref{node,crossref,manual}." produces:
+;; texinfo 4 or 5:
+;; *Note crossref: (manual)node.
+;; "@xref{node,,manual}." produces:
+;; texinfo 4:
+;; *Note node: (manual)node.
+;; texinfo 5:
+;; *Note (manual)node::.
+(defconst info-xref-note-re
+  (concat "\\*[Nn]ote[ \n\t]+\\(?:"
+          "[^:]*:[ \n\t]+" info-xref-node-re "\\|"
+          info-xref-node-re "::\\)[.,]")
+  "Regexp matching a \"*note...\" link.")
+
 (defun info-xref-check-buffer ()
   "Check external references in the info file in the current buffer.
 This should be the raw file contents, not `Info-mode'."
   (goto-char (point-min))
-  (while (re-search-forward
-          "\\*[Nn]ote[ \n\t]+[^:]*:[ \n\t]+\\(\\(([^)]*)\\)[^.,]+\\)[.,]"
-          nil t)
+  (while (re-search-forward info-xref-note-re nil t)
     (save-excursion
       (goto-char (match-beginning 1)) ;; start of nodename as error position
       (info-xref-check-node (match-string 1)))))
@@ -447,8 +480,8 @@ and can take a long time."
           (if (eq :tag (cadr link))
               (setq link (cddr link)))
           (if (info-xref-goto-node-p (cadr link))
-              (incf info-xref-good)
-            (incf info-xref-bad)
+              (cl-incf info-xref-good)
+            (cl-incf info-xref-bad)
             ;; symbol-file gives nil for preloaded variables, would need
             ;; to copy what describe-variable does to show the right place
             (info-xref-output "Symbol `%s' (file %s): cannot goto node: %s"

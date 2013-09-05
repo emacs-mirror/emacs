@@ -1,6 +1,7 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
-;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -26,7 +27,6 @@
 
 (require 'url-parse)
 (require 'url-vars)
-(eval-when-compile (require 'cl))
 (autoload 'timezone-parse-date "timezone")
 (autoload 'timezone-make-date-arpa-standard "timezone")
 (autoload 'mail-header-extract "mailheader")
@@ -133,8 +133,8 @@ If a list, it is a list of the types of messages to be logged."
 (defun url-insert-entities-in-string (string)
   "Convert HTML markup-start characters to entity references in STRING.
 Also replaces the \" character, so that the result may be safely used as
-  an attribute value in a tag.  Returns a new string with the result of the
-  conversion.  Replaces these characters as follows:
+an attribute value in a tag.  Returns a new string with the result of the
+conversion.  Replaces these characters as follows:
     &  ==>  &amp;
     <  ==>  &lt;
     >  ==>  &gt;
@@ -248,8 +248,9 @@ Will not do anything if `url-show-status' is nil."
   (cond
    ((null file) "")
    ((string-match "\\?" file)
-    (file-name-directory (substring file 0 (match-beginning 0))))
-   (t (file-name-directory file))))
+    (url-file-directory (substring file 0 (match-beginning 0))))
+   ((string-match "\\(.*\\(/\\|%2[fF]\\)\\)" file)
+    (match-string 1 file))))
 
 ;;;###autoload
 (defun url-file-nondirectory (file)
@@ -257,8 +258,10 @@ Will not do anything if `url-show-status' is nil."
   (cond
    ((null file) "")
    ((string-match "\\?" file)
-    (file-name-nondirectory (substring file 0 (match-beginning 0))))
-   (t (file-name-nondirectory file))))
+    (url-file-nondirectory (substring file 0 (match-beginning 0))))
+   ((string-match ".*\\(?:/\\|%2[fF]\\)\\(.*\\)" file)
+    (match-string 1 file))
+   (t file)))
 
 ;;;###autoload
 (defun url-parse-query-string (query &optional downcase allow-newlines)
@@ -292,7 +295,7 @@ Given a QUERY in the form:
   (key2 val2)
   (key3 val1 val2)
   (key4)
-  (key5 ""))
+  (key5 \"\"))
 
 \(This is the same format as produced by `url-parse-query-string')
 
@@ -591,6 +594,7 @@ Has a preference for looking backward when not directly on a symbol."
 
 (defun url-generate-unique-filename (&optional fmt)
   "Generate a unique filename in `url-temporary-directory'."
+  (declare (obsolete make-temp-file "23.1"))
   ;; This variable is obsolete, but so is this function.
   (let ((tempdir (with-no-warnings url-temporary-directory)))
     (if (not fmt)
@@ -612,7 +616,6 @@ Has a preference for looking backward when not directly on a symbol."
 	  (setq x (1+ x)
 		fname (format fmt (concat base (int-to-string x)))))
 	(expand-file-name fname tempdir)))))
-(make-obsolete 'url-generate-unique-filename 'make-temp-file "23.1")
 
 (defun url-extract-mime-headers ()
   "Set `url-current-mime-headers' in current buffer."

@@ -1,7 +1,7 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright (C) 1989, 1993-1995, 1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993-1995, 1997, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@
 ;;     static char *ts = "sdmain.c Time-stamp: <2001-08-13 10:20:51 gildea>";
 ;; See the top of `time-stamp.el' for another example.
 
-;; To use time-stamping, add this line to your .emacs file:
+;; To use time-stamping, add this line to your init file:
 ;;     (add-hook 'before-save-hook 'time-stamp)
 ;; Now any time-stamp templates in your files will be updated automatically.
 
@@ -254,7 +254,7 @@ time-stamped file itself.")
 (defun time-stamp ()
   "Update the time stamp string(s) in the buffer.
 A template in a file can be automatically updated with a new time stamp
-every time you save the file.  Add this line to your .emacs file:
+every time you save the file.  Add this line to your init file:
     (add-hook 'before-save-hook 'time-stamp)
 or customize `before-save-hook' through Custom.
 Normally the template must appear in the first 8 lines of a file and

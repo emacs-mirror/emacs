@@ -1,6 +1,6 @@
 ;;; wid-browse.el --- functions for browsing widgets
 ;;
-;; Copyright (C) 1997, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
@@ -30,7 +30,6 @@
 (require 'easymenu)
 (require 'custom)
 (require 'wid-edit)
-(eval-when-compile (require 'cl))
 
 (defgroup widget-browse nil
   "Customization support for browsing widgets."

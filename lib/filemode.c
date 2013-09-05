@@ -1,6 +1,6 @@
 /* filemode.c -- make a string describing file modes
 
-   Copyright (C) 1985, 1990, 1993, 1998-2000, 2004, 2006, 2009-2012 Free
+   Copyright (C) 1985, 1990, 1993, 1998-2000, 2004, 2006, 2009-2013 Free
    Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -78,7 +78,7 @@ ftypelet (mode_t bits)
     return 'C';
   if (S_ISDOOR (bits))
     return 'D';
-  if (S_ISMPB (bits) || S_ISMPC (bits))
+  if (S_ISMPB (bits) || S_ISMPC (bits) || S_ISMPX (bits))
     return 'm';
   if (S_ISNWK (bits))
     return 'n';

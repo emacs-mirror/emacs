@@ -1,6 +1,6 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: W{\l}odek Bzyl
 ;;	   Ryszard Kubiak
@@ -224,13 +224,14 @@ The functions come in the following groups.
    ogonek-prefix-to-encoding      iso8859-2
 
  The above default values can be changed by placing appropriate settings
- in the '~/.emacs' file:
+ in your init file:
 
    (setq ogonek-prefix-char ?/)
    (setq ogonek-prefix-to-encoding \"iso8859-2\")
 
- Instead of loading the whole library `ogonek' it may be better to
- autoload the needed functions, for example by placing in `~/.emacs':
+ Instead of loading the whole library `ogonek' it may be better
+ to autoload the needed functions, for example by adding the
+ following lines to your init file:
 
    (autoload 'ogonek-how \"ogonek\")
    (autoload 'ogonek-recode-region \"ogonek\")

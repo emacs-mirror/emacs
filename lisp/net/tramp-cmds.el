@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -29,6 +29,10 @@
 ;;; Code:
 
 (require 'tramp)
+
+;; Pacify byte-compiler.
+(defvar reporter-eval-buffer)
+(defvar reporter-prompt-for-summary-p)
 
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
@@ -89,7 +93,9 @@ When called interactively, a Tramp connection has to be selected."
     (tramp-flush-directory-property vec "")
 
     ;; Flush connection cache.
-    (tramp-flush-connection-property (tramp-get-connection-process vec))
+    (when (processp (tramp-get-connection-process vec))
+      (delete-process (tramp-get-connection-process vec))
+      (tramp-flush-connection-property (tramp-get-connection-process vec)))
     (tramp-flush-connection-property vec)
 
     ;; Remove buffers.
@@ -184,7 +190,7 @@ This includes password cache, file cache, connection cache, buffers."
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       "\
+       (propertize "\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
 and what the local and remote machines are.
@@ -202,12 +208,12 @@ useful thing to do is to put
 
   (setq tramp-verbose 9)
 
-in the ~/.emacs file and to repeat the bug.  Then, include the
+in your init file and to repeat the bug.  Then, include the
 contents of the *tramp/foo* buffer and the *debug tramp/foo*
 buffer in your bug report.
 
 --bug report follows this line--
-"))))
+")))))
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM."
@@ -264,6 +270,7 @@ buffer in your bug report.
   (goto-char (point-max))
 
   ;; Dump buffer local variables.
+  (insert "\nlocal variables:\n================")
   (dolist (buffer
 	   (delq nil
 		 (mapcar
@@ -271,21 +278,23 @@ buffer in your bug report.
                     (when (string-match "\\*tramp/" (buffer-name b)) b))
 		  (buffer-list))))
     (let ((reporter-eval-buffer buffer)
-	  (buffer-name (buffer-name buffer))
 	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
       (with-current-buffer elbuf
 	(emacs-lisp-mode)
 	(erase-buffer)
-	(insert "\n(setq\n")
+	(insert (format "\n;; %s\n(setq-local\n" (buffer-name buffer)))
 	(lisp-indent-line)
-	(tramp-compat-funcall
-	 'reporter-dump-variable 'buffer-name (current-buffer))
-	(dolist (varsym-or-cons-cell (buffer-local-variables buffer))
-	  (let ((varsym (or (car-safe varsym-or-cons-cell)
-			    varsym-or-cons-cell)))
-	    (when (string-match "tramp" (symbol-name varsym))
-	      (tramp-compat-funcall
-	       'reporter-dump-variable varsym (current-buffer)))))
+	(dolist
+	    (varsym
+	     (sort
+	      (append
+	       (mapcar
+		'intern
+		(all-completions "tramp-" (buffer-local-variables buffer)))
+	       ;; Non-tramp variables of interest.
+	       '(default-directory))
+	      'string<))
+	    (tramp-compat-funcall 'reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
@@ -293,8 +302,9 @@ buffer in your bug report.
   ;; Dump load-path shadows.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
-    (mapc (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
-	  (split-string (list-load-path-shadows t) "\n")))
+    (mapc
+     (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+     (split-string (tramp-compat-funcall 'list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
   (when (and
@@ -345,10 +355,10 @@ the debug buffer(s).")
 	      (kill-buffer nil)
 	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
-	      (insert "\n\
+	      (insert (propertize "\n" 'display "\n\
 This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
-please ensure that the buffers are attached to your email.\n\n")
+please ensure that the buffers are attached to your email.\n\n"))
 	      (dolist (buffer buffer-list)
 		(tramp-compat-funcall
 		 'mml-insert-empty-tag 'part 'type "text/plain"

@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -35,7 +35,7 @@
 
 (eval-when-compile
   (require 'ibuf-macs)
-  (require 'cl))
+  (require 'cl-lib))
 
 ;;; Utility functions
 (defun ibuffer-delete-alist (key alist)
@@ -497,12 +497,12 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 (defun ibuffer-included-in-filter-p-1 (buf filter)
   (not
    (not
-    (case (car filter)
-      (or
+    (pcase (car filter)
+      (`or
        (memq t (mapcar #'(lambda (x)
 			   (ibuffer-included-in-filter-p buf x))
 		       (cdr filter))))
-      (saved
+      (`saved
        (let ((data
 	      (assoc (cdr filter)
 		     ibuffer-saved-filters)))
@@ -510,19 +510,13 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	   (ibuffer-filter-disable t)
 	   (error "Unknown saved filter %s" (cdr filter)))
 	 (ibuffer-included-in-filters-p buf (cadr data))))
-      (t
-       (let ((filterdat (assq (car filter)
-			      ibuffer-filtering-alist)))
-	 ;; filterdat should be like (TYPE DESCRIPTION FUNC)
-	 ;; just a sanity check
-	(unless filterdat
-	  (ibuffer-filter-disable t)
-	  (error "Undefined filter %s" (car filter)))
-	(not
-	 (not
-	  (funcall (caddr filterdat)
-		   buf
-		   (cdr filter))))))))))
+      (_
+       (pcase-let ((`(,_type ,_desc ,func)
+                    (assq (car filter) ibuffer-filtering-alist)))
+         (unless func
+           (ibuffer-filter-disable t)
+           (error "Undefined filter %s" (car filter)))
+         (funcall func buf (cdr filter))))))))
 
 (defun ibuffer-generate-filter-groups (bmarklist &optional noempty nodefault)
   (let ((filter-group-alist (if nodefault
@@ -536,14 +530,14 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	  (i 0))
       (dolist (filtergroup filter-group-alist)
 	(let ((filterset (cdr filtergroup)))
-	  (multiple-value-bind (hip-crowd lamers)
-	      (values-list
+	  (cl-multiple-value-bind (hip-crowd lamers)
+	      (cl-values-list
 	       (ibuffer-split-list (lambda (bufmark)
 				     (ibuffer-included-in-filters-p (car bufmark)
 								    filterset))
 				   bmarklist))
 	    (aset vec i hip-crowd)
-	    (incf i)
+	    (cl-incf i)
 	    (setq bmarklist lamers))))
       (let (ret)
 	(dotimes (j i ret)
@@ -689,7 +683,7 @@ See also `ibuffer-kill-filter-group'."
 		  (if (equal (car groups) group)
 		      (setq found t
 			    groups nil)
-		    (incf res)
+		    (cl-incf res)
 		    (setq groups (cdr groups))))
 		res)))
     (cond ((not found)
@@ -761,10 +755,16 @@ They are removed from `ibuffer-saved-filter-groups'."
 The value from `ibuffer-saved-filter-groups' is used."
   (interactive
    (list
-    (if (null ibuffer-saved-filter-groups)
-	(error "No saved filters")
-      (completing-read "Switch to saved filter group: "
-		       ibuffer-saved-filter-groups nil t))))
+    (cond ((null ibuffer-saved-filter-groups)
+           (error "No saved filters"))
+          ;; `ibuffer-saved-filter-groups' is a user variable that defaults
+          ;; to nil.  We assume that with one element in this list the user
+          ;; knows what she wants.  See bug#12331.
+          ((null (cdr ibuffer-saved-filter-groups))
+           (caar ibuffer-saved-filter-groups))
+          (t
+           (completing-read "Switch to saved filter group: "
+                            ibuffer-saved-filter-groups nil t)))))
   (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups))
 	ibuffer-hidden-filter-groups nil)
   (ibuffer-update nil t))
@@ -810,12 +810,12 @@ turned into two separate filters [name: foo] and [mode: bar-mode]."
   (when (null ibuffer-filtering-qualifiers)
     (error "No filters in effect"))
   (let ((lim (pop ibuffer-filtering-qualifiers)))
-    (case (car lim)
-      (or
+    (pcase (car lim)
+      (`or
        (setq ibuffer-filtering-qualifiers (append
 					  (cdr lim)
 					  ibuffer-filtering-qualifiers)))
-      (saved
+      (`saved
        (let ((data
 	      (assoc (cdr lim)
 		     ibuffer-saved-filters)))
@@ -825,10 +825,10 @@ turned into two separate filters [name: foo] and [mode: bar-mode]."
 	 (setq ibuffer-filtering-qualifiers (append
 					    (cadr data)
 					    ibuffer-filtering-qualifiers))))
-      (not
+      (`not
        (push (cdr lim)
 	     ibuffer-filtering-qualifiers))
-      (t
+      (_
        (error "Filter type %s is not compound" (car lim)))))
   (ibuffer-update nil t))
 
@@ -960,13 +960,13 @@ Interactively, prompt for NAME, and use the current filters."
     (ibuffer-format-qualifier-1 qualifier)))
 
 (defun ibuffer-format-qualifier-1 (qualifier)
-  (case (car qualifier)
-    (saved
+  (pcase (car qualifier)
+    (`saved
      (concat " [filter: " (cdr qualifier) "]"))
-    (or
+    (`or
      (concat " [OR" (mapconcat #'ibuffer-format-qualifier
 			       (cdr qualifier) "") "]"))
-    (t
+    (_
      (let ((type (assq (car qualifier) ibuffer-filtering-alist)))
        (unless qualifier
 	 (error "Ibuffer: bad qualifier %s" qualifier))
@@ -1050,7 +1050,7 @@ currently used by buffers."
   "Toggle current view to buffers with filename matching QUALIFIER."
   (:description "filename"
    :reader (read-from-minibuffer "Filter by filename (regexp): "))
-  (ibuffer-awhen (buffer-local-value 'buffer-file-name buf)
+  (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
@@ -1414,14 +1414,14 @@ You can then feed the file name(s) to other commands with \\[yank]."
 		 (concat ibuffer-copy-filename-as-kill-result
 			 (let ((name (buffer-file-name buf)))
 			   (if name
-			       (case type
-				 (full
+			       (pcase type
+				 (`full
 				  name)
-				 (relative
+				 (`relative
 				  (file-relative-name
 				   name (or ibuffer-default-directory
 					    default-directory)))
-				 (t
+				 (_
 				  (file-name-nondirectory name)))
 			     ""))
 			 " "))))
@@ -1523,7 +1523,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 
 ;;;###autoload
 (defun ibuffer-mark-help-buffers ()
-  "Mark buffers like *Help*, *Apropos*, *Info*."
+  "Mark buffers whose major mode is in variable `ibuffer-help-buffer-modes'."
   (interactive)
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
@@ -1550,13 +1550,8 @@ You can then feed the file name(s) to other commands with \\[yank]."
        (with-current-buffer buf
 	 ;; hacked from midnight.el
 	 (when buffer-display-time
-	   (let* ((tm (current-time))
-		  (now (+ (* (float (ash 1 16)) (car tm))
-			  (float (cadr tm)) (* 0.0000001 (caddr tm))))
-		  (then (+ (* (float (ash 1 16))
-			      (car buffer-display-time))
-			   (float (cadr buffer-display-time))
-			   (* 0.0000001 (caddr buffer-display-time)))))
+	   (let* ((now (float-time))
+		  (then (float-time buffer-display-time)))
 	     (> (- now then) (* 60 60 ibuffer-old-time))))))))
 
 ;;;###autoload

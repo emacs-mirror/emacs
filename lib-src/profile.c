@@ -1,5 +1,6 @@
 /* profile.c --- generate periodic events for profiling of Emacs Lisp code.
-   Copyright (C) 1992, 1994, 1999, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1994, 1999, 2001-2013 Free Software Foundation,
+   Inc.
 
 Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 
@@ -20,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /**
- **  To be run as an emacs process. Input string that starts with:
+ **  To be run as an emacs subprocess.  Input string that starts with:
  **    'z' -- resets the watch (to zero).
  **    'p' -- return time (on stdout) as string with format <sec>.<micro-sec>
  **    'q' -- exit.
@@ -29,53 +30,44 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  **  operations: reset_watch, get_time
  */
 #include <config.h>
+
+#define SYSTIME_INLINE EXTERN_INLINE
+
+#include <inttypes.h>
 #include <stdio.h>
+
+#include <intprops.h>
 #include <systime.h>
 
-static EMACS_TIME TV1, TV2;
+static struct timespec TV1;
 static int watch_not_started = 1; /* flag */
-static char time_string[30];
+static char time_string[INT_STRLEN_BOUND (uintmax_t) + sizeof "."
+			+ LOG10_TIMESPEC_RESOLUTION];
 
 /* Reset the stopwatch to zero.  */
 
 static void
 reset_watch (void)
 {
-  EMACS_GET_TIME (TV1);
+  TV1 = current_timespec ();
   watch_not_started = 0;
 }
 
 /* This call returns the time since the last reset_watch call.  The time
-   is returned as a string with the format  <seconds>.<micro-seconds>
+   is returned as a string with the format  <seconds>.<nanoseconds>
    If reset_watch was not called yet, exit.  */
 
 static char *
 get_time (void)
 {
+  struct timespec TV2 = timespec_sub (current_timespec (), TV1);
+  uintmax_t s = TV2.tv_sec;
+  int ns = TV2.tv_nsec;
   if (watch_not_started)
     exit (EXIT_FAILURE);  /* call reset_watch first ! */
-  EMACS_GET_TIME (TV2);
-  EMACS_SUB_TIME (TV2, TV2, TV1);
-  sprintf (time_string, "%lu.%06lu", (unsigned long)EMACS_SECS (TV2), (unsigned long)EMACS_USECS (TV2));
+  sprintf (time_string, "%"PRIuMAX".%0*d", s, LOG10_TIMESPEC_RESOLUTION, ns);
   return time_string;
 }
-
-#if ! defined (HAVE_GETTIMEOFDAY) && defined (HAVE_TIMEVAL)
-
-/* ARGSUSED */
-gettimeofday (tp, tzp)
-     struct timeval *tp;
-     struct timezone *tzp;
-{
-  extern long time ();
-
-  tp->tv_sec = time ((long *)0);
-  tp->tv_usec = 0;
-  if (tzp != 0)
-    tzp->tz_minuteswest = -1;
-}
-
-#endif
 
 int
 main (void)

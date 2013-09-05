@@ -1,6 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read
 
-;; Copyright (C) 1997, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -83,7 +83,7 @@
 ;; Useful settings for VM
 ;; vm-auto-get-new-mail should be t (the default).
 
-;; Acknowledgements
+;; Acknowledgments
 ;; Thanks to jond@mitre.org (Jonathan Doughty) for help with code for
 ;; setting up vm-spool-files.
 

@@ -1,6 +1,7 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999, 2001-2013 Free Software Foundation,
+;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -48,63 +49,66 @@ Users should not set it.")
 
 ;;; The `defcustom' Macro.
 
-(defun custom-initialize-default (symbol value)
-  "Initialize SYMBOL with VALUE.
+(defun custom-initialize-default (symbol exp)
+  "Initialize SYMBOL with EXP.
 This will do nothing if symbol already has a default binding.
 Otherwise, if symbol has a `saved-value' property, it will evaluate
 the car of that and use it as the default binding for symbol.
-Otherwise, VALUE will be evaluated and used as the default binding for
+Otherwise, EXP will be evaluated and used as the default binding for
 symbol."
-  (eval `(defvar ,symbol ,(if (get symbol 'saved-value)
-                              (car (get symbol 'saved-value))
-                            value))))
+  (eval `(defvar ,symbol ,(let ((sv (get symbol 'saved-value)))
+                            (if sv (car sv) exp)))))
 
-(defun custom-initialize-set (symbol value)
-  "Initialize SYMBOL based on VALUE.
+(defun custom-initialize-set (symbol exp)
+  "Initialize SYMBOL based on EXP.
 If the symbol doesn't have a default binding already,
 then set it using its `:set' function (or `set-default' if it has none).
 The value is either the value in the symbol's `saved-value' property,
-if any, or VALUE."
-  (unless (default-boundp symbol)
-    (funcall (or (get symbol 'custom-set) 'set-default)
-	     symbol
-	     (eval (if (get symbol 'saved-value)
-                       (car (get symbol 'saved-value))
-                     value)))))
+if any, or the value of EXP."
+  (condition-case nil
+      (default-toplevel-value symbol)
+    (error
+     (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+              symbol
+              (eval (let ((sv (get symbol 'saved-value)))
+                      (if sv (car sv) exp)))))))
 
-(defun custom-initialize-reset (symbol value)
-  "Initialize SYMBOL based on VALUE.
+(defun custom-initialize-reset (symbol exp)
+  "Initialize SYMBOL based on EXP.
 Set the symbol, using its `:set' function (or `set-default' if it has none).
 The value is either the symbol's current value
- \(as obtained using the `:get' function), if any,
+ (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
-or (last of all) VALUE."
-  (funcall (or (get symbol 'custom-set) 'set-default)
+or (last of all) the value of EXP."
+  (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
-           (cond ((default-boundp symbol)
-                  (funcall (or (get symbol 'custom-get) 'default-value)
-                           symbol))
-                 ((get symbol 'saved-value)
-                  (eval (car (get symbol 'saved-value))))
-                 (t
-                  (eval value)))))
+           (condition-case nil
+               (let ((def (default-toplevel-value symbol))
+                     (getter (get symbol 'custom-get)))
+                 (if getter (funcall getter symbol) def))
+             (error
+              (eval (let ((sv (get symbol 'saved-value)))
+                      (if sv (car sv) exp)))))))
 
-(defun custom-initialize-changed (symbol value)
-  "Initialize SYMBOL with VALUE.
+(defun custom-initialize-changed (symbol exp)
+  "Initialize SYMBOL with EXP.
 Like `custom-initialize-reset', but only use the `:set' function if
 not using the standard setting.
 For the standard setting, use `set-default'."
-  (cond ((default-boundp symbol)
-	 (funcall (or (get symbol 'custom-set) 'set-default)
-		  symbol
-		  (funcall (or (get symbol 'custom-get) 'default-value)
-			   symbol)))
-	((get symbol 'saved-value)
-	 (funcall (or (get symbol 'custom-set) 'set-default)
-		  symbol
-		  (eval (car (get symbol 'saved-value)))))
-	(t
-	 (set-default symbol (eval value)))))
+  (condition-case nil
+      (let ((def (default-toplevel-value symbol)))
+        (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+                 symbol
+                 (let ((getter (get symbol 'custom-get)))
+                   (if getter (funcall getter symbol) def))))
+    (error
+     (cond
+      ((get symbol 'saved-value)
+       (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+                symbol
+                (eval (car (get symbol 'saved-value)))))
+      (t
+       (set-default symbol (eval exp)))))))
 
 (defvar custom-delayed-init-variables nil
   "List of variables whose initialization is pending.")
@@ -120,7 +124,9 @@ the :set function.
 For variables in preloaded files, you can simply use this
 function for the :initialize property.  For autoloaded variables,
 you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property."
+function, and another one setting the standard-value property.
+Or you can wrap the defcustom in a progn, to force the autoloader
+to include all of it."		   ; see eg vc-sccs-search-project-dir
   ;; No longer true:
   ;; "See `send-mail-function' in sendmail.el for an example."
 
@@ -235,7 +241,7 @@ The following keywords are meaningful:
 	is `default-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
-	for this option, then when your `.emacs' file loads the value,
+	for this option, then when your init file loads the value,
 	it does (require VALUE) first.
 :set-after VARIABLES
 	Specifies that SYMBOL should be set after the list of variables
@@ -316,7 +322,7 @@ If SYMBOL has a local binding, then this form affects the local
 binding.  This is normally not what you want.  Thus, if you need
 to load a file defining variables with this form, or with
 `defvar' or `defconst', you should always load that file
-_outside_ any bindings for these variables.  \(`defvar' and
+_outside_ any bindings for these variables.  (`defvar' and
 `defconst' behave similarly in this respect.)
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
@@ -348,68 +354,62 @@ FACE does not need to be quoted.
 
 Third argument DOC is the face documentation.
 
-If FACE has been set with `custom-set-faces', set the face attributes
-as specified by that function, otherwise set the face attributes
-according to SPEC.
+If FACE has been set with `custom-set-faces', set the face
+attributes as specified by that function, otherwise set the face
+attributes according to SPEC.
 
-The remaining arguments should have the form
-
-   [KEYWORD VALUE]...
-
+The remaining arguments should have the form [KEYWORD VALUE]...
 For a list of valid keywords, see the common keywords listed in
 `defcustom'.
 
-SPEC should be an alist of the form ((DISPLAY ATTS)...).
+SPEC should be an alist of the form
 
-In the first element, DISPLAY can be `default'.  The ATTS in that
-element then act as defaults for all the following elements.
+   ((DISPLAY . ATTS)...)
 
-Aside from that, DISPLAY specifies conditions to match some or
-all frames.  For each frame, the first element of SPEC where the
-DISPLAY conditions are satisfied is the one that applies to that
-frame.  The ATTRs in this element take effect, and the following
-elements are ignored, on that frame.
+where DISPLAY is a form specifying conditions to match certain
+terminals and ATTS is a property list (ATTR VALUE ATTR VALUE...)
+specifying face attributes and values for frames on those
+terminals.  On each terminal, the first element with a matching
+DISPLAY specification takes effect, and the remaining elements in
+SPEC are disregarded.
 
-In the last element, DISPLAY can be t.  That element applies to a
-frame if none of the previous elements (except the `default' if
-any) did.
+As a special exception, in the first element of SPEC, DISPLAY can
+be the special value `default'.  Then the ATTS in that element
+act as defaults for all the following elements.
 
-ATTS is a list of face attributes followed by their values:
-  (ATTR VALUE ATTR VALUE...)
+For backward compatibility, elements of SPEC can be written
+as (DISPLAY ATTS) instead of (DISPLAY . ATTS).
 
-The possible attributes are `:family', `:width', `:height', `:weight',
-`:slant', `:underline', `:overline', `:strike-through', `:box',
-`:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
+Each DISPLAY can have the following values:
+ - `default' (only in the first element).
+ - The symbol t, which matches all terminals.
+ - An alist of conditions.  Each alist element must have the form
+   (REQ ITEM...).  A matching terminal must satisfy each
+   specified condition by matching one of its ITEMs.  Each REQ
+   must be one of the following:
+   - `type' (the terminal type).
+     Each ITEM must be one of the values returned by
+     `window-system'.  Under X, additional allowed values are
+     `motif', `lucid', `gtk' and `x-toolkit'.
+   - `class' (the terminal's color support).
+     Each ITEM should be one of `color', `grayscale', or `mono'.
+   - `background' (what color is used for the background text)
+     Each ITEM should be one of `light' or `dark'.
+   - `min-colors' (the minimum number of supported colors)
+     Each ITEM should be an integer, which is compared with the
+     result of `display-color-cells'.
+   - `supports' (match terminals supporting certain attributes).
+     Each ITEM should be a list of face attributes.  See
+     `display-supports-face-attributes-p' for more information on
+     exactly how testing is done.
 
-DISPLAY can be `default' (only in the first element), the symbol
-t (only in the last element) to match all frames, or an alist of
-conditions of the form \(REQ ITEM...).  For such an alist to
-match a frame, each of the conditions must be satisfied, meaning
-that the REQ property of the frame must match one of the
-corresponding ITEMs.  These are the defined REQ values:
+In the ATTS property list, possible attributes are `:family',
+`:width', `:height', `:weight', `:slant', `:underline',
+`:overline', `:strike-through', `:box', `:foreground',
+`:background', `:stipple', `:inverse-video', and `:inherit'.
 
-`type' (the value of `window-system')
-  Under X, in addition to the values `window-system' can take,
-  `motif', `lucid', `gtk' and `x-toolkit' are allowed, and match when
-  the Motif toolkit, Lucid toolkit, GTK toolkit or any X toolkit is in use.
-
-`class' (the frame's color support)
-  Should be one of `color', `grayscale', or `mono'.
-
-`background' (what color is used for the background text)
-  Should be one of `light' or `dark'.
-
-`min-colors' (the minimum number of colors the frame should support)
-  Should be an integer, it is compared with the result of
-  `display-color-cells'.
-
-`supports' (only match frames that support the specified face attributes)
-  Should be a list of face attributes.  See the documentation for
-  the function `display-supports-face-attributes-p' for more
-  information on exactly how testing is done.
-
-See Info node `(elisp) Customization' in the Emacs Lisp manual
-for more information."
+See Info node `(elisp) Faces' in the Emacs Lisp manual for more
+information."
   (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
@@ -544,8 +544,8 @@ Fourth argument TYPE is the custom option type."
 (defun custom-add-dependencies (symbol value)
   "To the custom option SYMBOL, add dependencies specified by VALUE.
 VALUE should be a list of symbols.  For each symbol in that list,
-this specifies that SYMBOL should be set after the specified symbol, if
-both appear in constructs like `custom-set-variables'."
+this specifies that SYMBOL should be set after the specified symbol,
+if both appear in constructs like `custom-set-variables'."
   (unless (listp value)
     (error "Invalid custom dependency `%s'" value))
   (let* ((deps (get symbol 'custom-dependencies))
@@ -609,7 +609,7 @@ property, or (ii) an alias for another customizable variable."
     (or (get variable 'standard-value)
 	(get variable 'custom-autoload))))
 
-(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.2")
+(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
@@ -650,7 +650,7 @@ The result is that the change is treated as having been made through Custom."
 		     (found nil))
 		 (dolist (loaded load-history)
 		   (and (stringp (car loaded))
-			(string-match regexp (car loaded))
+			(string-match-p regexp (car loaded))
 			(setq found t)))
 		 found))
 	      ;; Without this, we would load cus-edit recursively.
@@ -940,7 +940,7 @@ SYMBOL is the variable name, and EXP is an expression which
 evaluates to the customized value.  EXP will also be stored,
 without evaluating it, in SYMBOL's `saved-value' property, so
 that it can be restored via the Customize interface.  It is also
-added to the alist in SYMBOL's `theme-value' property \(by
+added to the alist in SYMBOL's `theme-value' property (by
 calling `custom-push-theme').
 
 NOW, if present and non-nil, means to install the variable's
@@ -952,7 +952,6 @@ prior to evaluating EXP).
 
 COMMENT is a comment string about SYMBOL."
   (custom-check-theme theme)
-
   ;; Process all the needed autoloads before anything else, so that the
   ;; subsequent code has all the info it needs (e.g. which var corresponds
   ;; to a minor mode), regardless of the ordering of the variables.
@@ -962,29 +961,7 @@ COMMENT is a comment string about SYMBOL."
                   (memq (get symbol 'custom-autoload) '(nil noset)))
         ;; This symbol needs to be autoloaded, even just for a `set'.
         (custom-load-symbol symbol))))
-
-  ;; Move minor modes and variables with explicit requires to the end.
-  (setq args
-	(sort args
-	      (lambda (a1 a2)
-		(let* ((sym1 (car a1))
-		       (sym2 (car a2))
-		       (1-then-2 (memq sym1 (get sym2 'custom-dependencies)))
-		       (2-then-1 (memq sym2 (get sym1 'custom-dependencies))))
-		  (cond ((and 1-then-2 2-then-1)
-			 (error "Circular custom dependency between `%s' and `%s'"
-				sym1 sym2))
-			(2-then-1 nil)
-			;; 1 is a dependency of 2, so needs to be set first.
-			(1-then-2)
-			;; Put minor modes and symbols with :require last.
-			;; Putting minor modes last ensures that the mode
-			;; function will see other customized values rather
-			;; than default values.
-			(t (or (nth 3 a2)
-                               (eq (get sym2 'custom-set)
-                                   'custom-set-minor-mode))))))))
-
+  (setq args (custom--sort-vars args))
   (dolist (entry args)
     (unless (listp entry)
       (error "Incompatible Custom theme spec"))
@@ -1017,6 +994,60 @@ COMMENT is a comment string about SYMBOL."
 	     (message "Error setting %s: %s" symbol data)))
 	  (and (or now (default-boundp symbol))
 	       (put symbol 'variable-comment comment)))))))
+
+(defvar custom--sort-vars-table)
+(defvar custom--sort-vars-result)
+
+(defun custom--sort-vars (vars)
+  "Sort VARS based on custom dependencies.
+VARS is a list whose elements have the same form as the ARGS
+arguments to `custom-theme-set-variables'.  Return the sorted
+list, in which A occurs before B if B was defined with a
+`:set-after' keyword specifying A (see `defcustom')."
+  (let ((custom--sort-vars-table (make-hash-table))
+	(dependants (make-hash-table))
+	(custom--sort-vars-result nil)
+	last)
+    ;; Construct a pair of tables keyed with the symbols of VARS.
+    (dolist (var vars)
+      (puthash (car var) (cons t var) custom--sort-vars-table)
+      (puthash (car var) var dependants))
+    ;; From the second table, remove symbols that are depended-on.
+    (dolist (var vars)
+      (dolist (dep (get (car var) 'custom-dependencies))
+	(remhash dep dependants)))
+    ;; If a variable is "stand-alone", put it last if it's a minor
+    ;; mode or has a :require flag.  This is not really necessary, but
+    ;; putting minor modes last helps ensure that the mode function
+    ;; sees other customized values rather than default values.
+    (maphash (lambda (sym var)
+	       (when (and (null (get sym 'custom-dependencies))
+			  (or (nth 3 var)
+			      (eq (get sym 'custom-set)
+				  'custom-set-minor-mode)))
+		 (remhash sym dependants)
+		 (push var last)))
+	     dependants)
+    ;; The remaining symbols depend on others but are not
+    ;; depended-upon.  Do a depth-first topological sort.
+    (maphash #'custom--sort-vars-1 dependants)
+    (nreverse (append last custom--sort-vars-result))))
+
+(defun custom--sort-vars-1 (sym &optional _ignored)
+  (let ((elt (gethash sym custom--sort-vars-table)))
+    ;; The car of the hash table value is nil if the variable has
+    ;; already been processed, `dependant' if it is a dependant in the
+    ;; current graph descent, and t otherwise.
+    (when elt
+      (cond
+       ((eq (car elt) 'dependant)
+	(error "Circular custom dependency on `%s'" sym))
+       ((car elt)
+	(setcar elt 'dependant)
+	(dolist (dep (get sym 'custom-dependencies))
+	  (custom--sort-vars-1 dep))
+	(setcar elt nil)
+	(push (cdr elt) custom--sort-vars-result))))))
 
 
 ;;; Defining themes.
@@ -1197,7 +1228,8 @@ Return t if THEME was successfully loaded, nil otherwise."
 			    (expand-file-name "themes/" data-directory)))
 		(member hash custom-safe-themes)
 		(custom-theme-load-confirm hash))
-	(let ((custom--inhibit-theme-enable t))
+	(let ((custom--inhibit-theme-enable t)
+              (buffer-file-name fn))    ;For load-history.
 	  (eval-buffer))
 	;; Optimization: if the theme changes the `default' face, put that
 	;; entry first.  This avoids some `frame-set-background-mode' rigmarole
@@ -1221,38 +1253,19 @@ Return t if THEME was successfully loaded, nil otherwise."
   "Query the user about loading a Custom theme that may not be safe.
 The theme should be in the current buffer.  If the user agrees,
 query also about adding HASH to `custom-safe-themes'."
-  (if noninteractive
-      nil
-    (let ((exit-chars '(?y ?n ?\s))
-	  window prompt char)
-      (save-window-excursion
-	(rename-buffer "*Custom Theme*" t)
-	(emacs-lisp-mode)
-	(setq window (display-buffer (current-buffer)))
-	(setq prompt
-	      (format "Loading a theme can run Lisp code.  Really load?%s"
-		      (if (and window
-			       (< (line-number-at-pos (point-max))
-				  (window-body-height)))
-			  " (y or n) "
-			(push ?\C-v exit-chars)
-			"\nType y or n, or C-v to scroll: ")))
-	(goto-char (point-min))
-	(while (null char)
-	  (setq char (read-char-choice prompt exit-chars))
-	  (when (eq char ?\C-v)
-	    (if window
-		(with-selected-window window
-		  (condition-case nil
-		      (scroll-up)
-		    (error (goto-char (point-min))))))
-	    (setq char nil)))
-	(when (memq char '(?\s ?y))
-	  ;; Offer to save to `custom-safe-themes'.
-	  (and (or custom-file user-init-file)
-	       (y-or-n-p "Treat this theme as safe in future sessions? ")
-	       (customize-push-and-save 'custom-safe-themes (list hash)))
-	  t)))))
+  (unless noninteractive
+    (save-window-excursion
+      (rename-buffer "*Custom Theme*" t)
+      (emacs-lisp-mode)
+      (pop-to-buffer (current-buffer))
+      (goto-char (point-min))
+      (prog1 (when (y-or-n-p "Loading a theme can run Lisp code.  Really load? ")
+	       ;; Offer to save to `custom-safe-themes'.
+	       (and (or custom-file user-init-file)
+		    (y-or-n-p "Treat this theme as safe in future sessions? ")
+		    (customize-push-and-save 'custom-safe-themes (list hash)))
+	       t)
+	(quit-window)))))
 
 (defun custom-theme-name-valid-p (name)
   "Return t if NAME is a valid name for a Custom theme, nil otherwise.

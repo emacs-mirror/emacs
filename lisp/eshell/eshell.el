@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -222,8 +222,7 @@
 ;; things up.
 
 (eval-when-compile
-  (require 'cl)
-  (require 'esh-util))
+  (require 'cl-lib))
 (require 'esh-util)
 (require 'esh-mode)
 
@@ -236,21 +235,19 @@ shells such as bash, zsh, rc, 4dos."
   :version "21.1"
   :group 'applications)
 
-;; This is hack to force make-autoload to put the whole definition
-;; into the autoload file (see esh-module.el).
-(defalias 'eshell-defgroup 'defgroup)
-
 ;;;_* User Options
 ;;
 ;; The following user options modify the behavior of Eshell overall.
 (defvar eshell-buffer-name)
 
-(defsubst eshell-add-to-window-buffer-names ()
+(defun eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (add-to-list 'same-window-buffer-names eshell-buffer-name))
 
-(defsubst eshell-remove-from-window-buffer-names ()
+(defun eshell-remove-from-window-buffer-names ()
   "Remove `eshell-buffer-name' from `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (setq same-window-buffer-names
 	(delete eshell-buffer-name same-window-buffer-names)))
 
@@ -259,23 +256,13 @@ shells such as bash, zsh, rc, 4dos."
   :type 'hook
   :group 'eshell)
 
-(defcustom eshell-unload-hook
-  '(eshell-remove-from-window-buffer-names
-    eshell-unload-all-modules)
+(defcustom eshell-unload-hook '(eshell-unload-all-modules)
   "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
 
 (defcustom eshell-buffer-name "*eshell*"
   "The basename used for Eshell buffers."
-  :set (lambda (symbol value)
-	 ;; remove the old value of `eshell-buffer-name', if present
-	 (if (boundp 'eshell-buffer-name)
-	     (eshell-remove-from-window-buffer-names))
-	 (set symbol value)
-	 ;; add the new value
-	 (eshell-add-to-window-buffer-names)
-	 value)
   :type 'string
   :group 'eshell)
 
@@ -302,7 +289,7 @@ switches to the session with that number, creating it if necessary.  A
 nonnumeric prefix arg means to create a new session.  Returns the
 buffer selected (or created)."
   (interactive "P")
-  (assert eshell-buffer-name)
+  (cl-assert eshell-buffer-name)
   (let ((buf (cond ((numberp arg)
 		    (get-buffer-create (format "%s<%d>"
 					       eshell-buffer-name
@@ -311,13 +298,8 @@ buffer selected (or created)."
 		    (generate-new-buffer eshell-buffer-name))
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
-    ;; Simply calling `pop-to-buffer' will not mimic the way that
-    ;; shell-mode buffers appear, since they always reuse the same
-    ;; window that that command was invoked from.  To achieve this,
-    ;; it's necessary to add `eshell-buffer-name' to the variable
-    ;; `same-window-buffer-names', which is done when Eshell is loaded
-    (assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer buf)
+    (cl-assert (and buf (buffer-live-p buf)))
+    (pop-to-buffer-same-window buf)
     (unless (eq major-mode 'eshell-mode)
       (eshell-mode))
     buf))
@@ -335,6 +317,8 @@ buffer selected (or created)."
 Modules should use this variable so that they don't clutter
 non-interactive sessions, such as when using `eshell-command'.")
 
+(declare-function eshell-add-input-to-history "em-hist" (input))
+
 ;;;###autoload
 (defun eshell-command (&optional command arg)
   "Execute the Eshell command string COMMAND.
@@ -350,7 +334,8 @@ With prefix ARG, insert output into the current buffer at point."
                                     (eshell-return-exits-minibuffer))
       (unless command
         (setq command (read-from-minibuffer "Emacs shell command: "))
-        (eshell-add-input-to-history command))))
+	(if (eshell-using-module 'eshell-hist)
+	    (eshell-add-input-to-history command)))))
   (unless command
     (error "No command specified!"))
   ;; redirection into the current buffer is achieved by adding an
@@ -384,11 +369,11 @@ With prefix ARG, insert output into the current buffer at point."
 	(when intr
 	  (if (eshell-interactive-process)
 	      (eshell-wait-for-process (eshell-interactive-process)))
-	  (assert (not (eshell-interactive-process)))
+	  (cl-assert (not (eshell-interactive-process)))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
-	(assert (and buf (buffer-live-p buf)))
+	(cl-assert (and buf (buffer-live-p buf)))
 	(unless arg
 	  (let ((len (if (not intr) 2
 		       (count-lines (point-min) (point-max)))))
@@ -428,7 +413,7 @@ corresponding to a successful execution."
 		       (list 'eshell-commands
 			     (list 'eshell-command-to-value
 				   (eshell-parse-command command))) t)))
-	  (assert (eq (car result) 'quote))
+	  (cl-assert (eq (car result) 'quote))
 	  (if (and status-var (symbolp status-var))
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))

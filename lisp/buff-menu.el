@@ -1,7 +1,7 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -55,25 +55,25 @@ If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'.
 If non-nil, the value of `Buffer-menu-name-width' is overridden;
 the name column is assigned width `Buffer-menu-buffer+size-width'
 minus `Buffer-menu-size-width'.  This use is deprecated."
-  :type 'number
+  :type '(choice (const nil) number)
   :group 'Buffer-menu
-  :version "24.2")
+  :version "24.3")
 
 (make-obsolete-variable 'Buffer-menu-buffer+size-width
-			"`Buffer-menu-name-width' and `Buffer-menu-size-width'"
-			"24.2")
+			"use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead."
+			"24.3")
 
 (defcustom Buffer-menu-name-width 19
-  "Width of buffer size column in the Buffer Menu."
-  :type 'number
-  :group 'Buffer-menu
-  :version "24.2")
-
-(defcustom Buffer-menu-size-width 7
   "Width of buffer name column in the Buffer Menu."
   :type 'number
   :group 'Buffer-menu
-  :version "24.2")
+  :version "24.3")
+
+(defcustom Buffer-menu-size-width 7
+  "Width of buffer size column in the Buffer Menu."
+  :type 'number
+  :group 'Buffer-menu
+  :version "24.3")
 
 (defcustom Buffer-menu-mode-width 16
   "Width of mode name column in the Buffer Menu."
@@ -129,73 +129,77 @@ commands.")
     (define-key map "T" 'Buffer-menu-toggle-files-only)
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
+    (define-key map (kbd "M-s a C-o") 'Buffer-menu-multi-occur)
 
     (define-key map [mouse-2] 'Buffer-menu-mouse-select)
     (define-key map [follow-link] 'mouse-face)
 
     (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer-Menu") menu-map))
-    (define-key menu-map [quit]
-      `(menu-item ,(purecopy "Quit") quit-window
-		 :help ,(purecopy "Remove the buffer menu from the display")))
-    (define-key menu-map [rev]
-      `(menu-item ,(purecopy "Refresh") revert-buffer
-		 :help ,(purecopy "Refresh the *Buffer List* buffer contents")))
-    (define-key menu-map [s0] menu-bar-separator)
-    (define-key menu-map [tf]
-      `(menu-item ,(purecopy "Show Only File Buffers") Buffer-menu-toggle-files-only
+    (bindings--define-key menu-map [quit]
+      '(menu-item "Quit" quit-window
+		 :help "Remove the buffer menu from the display"))
+    (bindings--define-key menu-map [rev]
+      '(menu-item "Refresh" revert-buffer
+		 :help "Refresh the *Buffer List* buffer contents"))
+    (bindings--define-key menu-map [s0] menu-bar-separator)
+    (bindings--define-key menu-map [tf]
+      '(menu-item "Show Only File Buffers" Buffer-menu-toggle-files-only
 		  :button (:toggle . Buffer-menu-files-only)
-		  :help ,(purecopy "Toggle whether the current buffer-menu displays only file buffers")))
-    (define-key menu-map [s1] menu-bar-separator)
+		  :help "Toggle whether the current buffer-menu displays only file buffers"))
+    (bindings--define-key menu-map [s1] menu-bar-separator)
     ;; FIXME: The "Select" entries could use better names...
-    (define-key menu-map [sel]
-      `(menu-item ,(purecopy "Select Marked") Buffer-menu-select
-		 :help ,(purecopy "Select this line's buffer; also display buffers marked with `>'")))
-    (define-key menu-map [bm2]
-      `(menu-item ,(purecopy "Select Two") Buffer-menu-2-window
-		 :help ,(purecopy "Select this line's buffer, with previous buffer in second window")))
-    (define-key menu-map [bm1]
-      `(menu-item ,(purecopy "Select Current") Buffer-menu-1-window
-		 :help ,(purecopy "Select this line's buffer, alone, in full frame")))
-    (define-key menu-map [ow]
-      `(menu-item ,(purecopy "Select in Other Window") Buffer-menu-other-window
-		 :help ,(purecopy "Select this line's buffer in other window, leaving buffer menu visible")))
-    (define-key menu-map [tw]
-      `(menu-item ,(purecopy "Select in Current Window") Buffer-menu-this-window
-		 :help ,(purecopy "Select this line's buffer in this window")))
-    (define-key menu-map [s2] menu-bar-separator)
-    (define-key menu-map [is]
-      `(menu-item ,(purecopy "Regexp Isearch Marked Buffers...") Buffer-menu-isearch-buffers-regexp
-		 :help ,(purecopy "Search for a regexp through all marked buffers using Isearch")))
-    (define-key menu-map [ir]
-      `(menu-item ,(purecopy "Isearch Marked Buffers...") Buffer-menu-isearch-buffers
-		 :help ,(purecopy "Search for a string through all marked buffers using Isearch")))
-    (define-key menu-map [s3] menu-bar-separator)
-    (define-key menu-map [by]
-      `(menu-item ,(purecopy "Bury") Buffer-menu-bury
-		 :help ,(purecopy "Bury the buffer listed on this line")))
-    (define-key menu-map [vt]
-      `(menu-item ,(purecopy "Set Unmodified") Buffer-menu-not-modified
-		 :help ,(purecopy "Mark buffer on this line as unmodified (no changes to save)")))
-    (define-key menu-map [ex]
-      `(menu-item ,(purecopy "Execute") Buffer-menu-execute
-		 :help ,(purecopy "Save and/or delete buffers marked with s or k commands")))
-    (define-key menu-map [s4] menu-bar-separator)
-    (define-key menu-map [delb]
-      `(menu-item ,(purecopy "Mark for Delete and Move Backwards") Buffer-menu-delete-backwards
-		 :help ,(purecopy "Mark buffer on this line to be deleted by x command and move up one line")))
-    (define-key menu-map [del]
-      `(menu-item ,(purecopy "Mark for Delete") Buffer-menu-delete
-		 :help ,(purecopy "Mark buffer on this line to be deleted by x command")))
+    (bindings--define-key menu-map [sel]
+      '(menu-item "Select Marked" Buffer-menu-select
+		 :help "Select this line's buffer; also display buffers marked with `>'"))
+    (bindings--define-key menu-map [bm2]
+      '(menu-item "Select Two" Buffer-menu-2-window
+		 :help "Select this line's buffer, with previous buffer in second window"))
+    (bindings--define-key menu-map [bm1]
+      '(menu-item "Select Current" Buffer-menu-1-window
+		 :help "Select this line's buffer, alone, in full frame"))
+    (bindings--define-key menu-map [ow]
+      '(menu-item "Select in Other Window" Buffer-menu-other-window
+		 :help "Select this line's buffer in other window, leaving buffer menu visible"))
+    (bindings--define-key menu-map [tw]
+      '(menu-item "Select in Current Window" Buffer-menu-this-window
+		 :help "Select this line's buffer in this window"))
+    (bindings--define-key menu-map [s2] menu-bar-separator)
+    (bindings--define-key menu-map [is]
+      '(menu-item "Regexp Isearch Marked Buffers..." Buffer-menu-isearch-buffers-regexp
+		 :help "Search for a regexp through all marked buffers using Isearch"))
+    (bindings--define-key menu-map [ir]
+      '(menu-item "Isearch Marked Buffers..." Buffer-menu-isearch-buffers
+		 :help "Search for a string through all marked buffers using Isearch"))
+    (bindings--define-key menu-map [mo]
+      '(menu-item "Multi Occur Marked Buffers..." Buffer-menu-multi-occur
+		 :help "Show lines matching a regexp in marked buffers using Occur"))
+    (bindings--define-key menu-map [s3] menu-bar-separator)
+    (bindings--define-key menu-map [by]
+      '(menu-item "Bury" Buffer-menu-bury
+		 :help "Bury the buffer listed on this line"))
+    (bindings--define-key menu-map [vt]
+      '(menu-item "Set Unmodified" Buffer-menu-not-modified
+		 :help "Mark buffer on this line as unmodified (no changes to save)"))
+    (bindings--define-key menu-map [ex]
+      '(menu-item "Execute" Buffer-menu-execute
+		 :help "Save and/or delete buffers marked with s or k commands"))
+    (bindings--define-key menu-map [s4] menu-bar-separator)
+    (bindings--define-key menu-map [delb]
+      '(menu-item "Mark for Delete and Move Backwards" Buffer-menu-delete-backwards
+		 :help "Mark buffer on this line to be deleted by x command and move up one line"))
+    (bindings--define-key menu-map [del]
+      '(menu-item "Mark for Delete" Buffer-menu-delete
+		 :help "Mark buffer on this line to be deleted by x command"))
 
-    (define-key menu-map [sv]
-      `(menu-item ,(purecopy "Mark for Save") Buffer-menu-save
-		 :help ,(purecopy "Mark buffer on this line to be saved by x command")))
-    (define-key menu-map [umk]
-      `(menu-item ,(purecopy "Unmark") Buffer-menu-unmark
-		 :help ,(purecopy "Cancel all requested operations on buffer on this line and move down")))
-    (define-key menu-map [mk]
-      `(menu-item ,(purecopy "Mark") Buffer-menu-mark
-		 :help ,(purecopy "Mark buffer on this line for being displayed by v command")))
+    (bindings--define-key menu-map [sv]
+      '(menu-item "Mark for Save" Buffer-menu-save
+		 :help "Mark buffer on this line to be saved by x command"))
+    (bindings--define-key menu-map [umk]
+      '(menu-item "Unmark" Buffer-menu-unmark
+		 :help "Cancel all requested operations on buffer on this line and move down"))
+    (bindings--define-key menu-map [mk]
+      '(menu-item "Mark" Buffer-menu-mark
+		 :help "Mark buffer on this line for being displayed by v command"))
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
@@ -204,31 +208,11 @@ commands.")
 
 (define-derived-mode Buffer-menu-mode tabulated-list-mode "Buffer Menu"
   "Major mode for Buffer Menu buffers.
-The Buffer Menu is invoked by the commands \\[list-buffers], \\[buffer-menu], and
-\\[buffer-menu-other-window].  See `buffer-menu' for details."
-  (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional _noconfirm) 'fast))
-  (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
+The Buffer Menu is invoked by the commands \\[list-buffers],
+\\[buffer-menu], and \\[buffer-menu-other-window].
+See `buffer-menu' for a description of its contents.
 
-(defun buffer-menu (&optional arg)
-  "Switch to the Buffer Menu.
-By default, all buffers are listed except those whose names start
-with a space (which are for internal use).  With prefix argument
-ARG, show only buffers that are visiting files.
-
-The first column (denoted \"C\") shows \".\" for the buffer from
-which you came.  It shows \">\" for buffers you mark to be
-displayed, and \"D\" for those you mark for deletion.
-
-The \"R\" column has a \"%\" if the buffer is read-only.
-The \"M\" column has a \"*\" if it is modified, or \"S\" if you
-have marked it for saving.
-
-After this come the buffer name, its size in characters, its
-major mode, and the visited file name (if any).
-
-
-In the Buffer Menu, the following commands are defined:
+In Buffer Menu mode, the following commands are defined:
 \\<Buffer-menu-mode-map>
 \\[quit-window]    Remove the Buffer Menu from the display.
 \\[Buffer-menu-this-window]  Select current line's buffer in place of the buffer menu.
@@ -244,8 +228,9 @@ In the Buffer Menu, the following commands are defined:
 \\[Buffer-menu-1-window]    Select that buffer in full-frame window.
 \\[Buffer-menu-2-window]    Select that buffer in one window, together with the
      buffer selected before this one in another window.
-\\[Buffer-menu-isearch-buffers]  Incremental search in the marked buffers.
+\\[Buffer-menu-isearch-buffers]    Incremental search in the marked buffers.
 \\[Buffer-menu-isearch-buffers-regexp]  Isearch for regexp in the marked buffers.
+\\[Buffer-menu-multi-occur] Show lines matching regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table]    visit-tags-table this buffer.
 \\[Buffer-menu-not-modified]    Clear modified-flag on that buffer.
 \\[Buffer-menu-save]    Mark that buffer to be saved, and move down.
@@ -259,6 +244,29 @@ In the Buffer Menu, the following commands are defined:
 \\[revert-buffer]    Update the list of buffers.
 \\[Buffer-menu-toggle-files-only]    Toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury]    Bury the buffer listed on this line."
+  (set (make-local-variable 'buffer-stale-function)
+       (lambda (&optional _noconfirm) 'fast))
+  (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
+
+(defun buffer-menu (&optional arg)
+  "Switch to the Buffer Menu.
+By default, the Buffer Menu lists all buffers except those whose
+names start with a space (which are for internal use).  With
+prefix argument ARG, show only buffers that are visiting files.
+
+In the Buffer Menu, the first column (denoted \"C\") shows \".\"
+for the buffer from which you came, \">\" for buffers you mark to
+be displayed, and \"D\" for those you mark for deletion.
+
+The \"R\" column has a \"%\" if the buffer is read-only.
+The \"M\" column has a \"*\" if it is modified, or \"S\" if you
+have marked it for saving.
+
+The remaining columns show the buffer name, the buffer size in
+characters, its major mode, and the visited file name (if any).
+
+See `Buffer-menu-mode' for the keybindings available the Buffer
+Menu."
   (interactive "P")
   (switch-to-buffer (list-buffers-noselect arg))
   (message
@@ -280,7 +288,7 @@ ARG, show only buffers that are visiting files."
 (defun list-buffers (&optional arg)
   "Display a list of existing buffers.
 The list is displayed in a buffer named \"*Buffer List*\".
-See `buffer-menu' for details about the Buffer Menu buffer.
+See `buffer-menu' for a description of the Buffer Menu.
 
 By default, all buffers are listed except those whose names start
 with a space (which are for internal use).  With prefix argument
@@ -377,7 +385,9 @@ buffers to delete; a negative ARG means to delete backwards."
 
 (defun Buffer-menu-delete-backwards (&optional arg)
   "Mark the buffer on this Buffer Menu line for deletion, and move up.
-Prefix ARG means move that many lines."
+A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]'
+command will delete the marked buffer.  Prefix ARG means move
+that many lines."
   (interactive "p")
   (Buffer-menu-delete (- (or arg 1))))
 
@@ -472,6 +482,11 @@ If UNMARK is non-nil, unmark them."
   (interactive)
   (multi-isearch-buffers-regexp (Buffer-menu-marked-buffers)))
 
+(defun Buffer-menu-multi-occur (regexp &optional nlines)
+  "Show all lines in marked buffers containing a match for a regexp."
+  (interactive (occur-read-primary-args))
+  (multi-occur (Buffer-menu-marked-buffers) regexp nlines))
+
 
 (defun Buffer-menu-visit-tags-table ()
   "Visit the tags table in the buffer on this line.  See `visit-tags-table'."
@@ -515,12 +530,13 @@ The current window remains selected."
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()
-  "Toggle read-only status of buffer on this line."
+  "Toggle read-only status of buffer on this line.
+This behaves like invoking \\[toggle-read-only] in that buffer."
   (interactive)
-  (let (read-only)
-    (with-current-buffer (Buffer-menu-buffer t)
-      (with-no-warnings (toggle-read-only))
-      (setq read-only buffer-read-only))
+  (let ((read-only
+         (with-current-buffer (Buffer-menu-buffer t)
+           (read-only-mode 'toggle)
+           buffer-read-only)))
     (tabulated-list-set-col 1 (if read-only "%" " ") t)))
 
 (defun Buffer-menu-bury ()
@@ -563,7 +579,8 @@ means list those buffers and no others."
 	(buffer (get-buffer-create "*Buffer List*")))
     (with-current-buffer buffer
       (Buffer-menu-mode)
-      (setq Buffer-menu-files-only (and files-only (>= files-only 0)))
+      (setq Buffer-menu-files-only
+	    (and files-only (>= (prefix-numeric-value files-only) 0)))
       (list-buffers--refresh buffer-list old-buffer)
       (tabulated-list-print))
     buffer))
@@ -574,7 +591,7 @@ means list those buffers and no others."
   (select-window (posn-window (event-end event)))
   (let ((buffer (tabulated-list-get-id (posn-point (event-end event)))))
     (when (buffer-live-p buffer)
-      (if (and (window-dedicated-p (selected-window))
+      (if (and (window-dedicated-p)
 	       (eq (selected-window) (frame-root-window)))
 	  (switch-to-buffer-other-frame buffer)
 	(switch-to-buffer buffer)))))

@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998, 2001-2013 Free Software Foundation,
+@c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
 @chapter Evaluation
@@ -40,6 +41,7 @@ interpreter.
 @cindex form
 @cindex expression
 @cindex S-expression
+@cindex sexp
   A Lisp object that is intended for evaluation is called a @dfn{form}
 or @dfn{expression}@footnote{It is sometimes also referred to as an
 @dfn{S-expression} or @dfn{sexp}, but we generally do not use this
@@ -430,6 +432,14 @@ do.
 and which are used without evaluation.  Whether a particular argument is
 evaluated may depend on the results of evaluating other arguments.
 
+  If an expression's first symbol is that of a special form, the
+expression should follow the rules of that special form; otherwise,
+Emacs's behavior is not well-defined (though it will not crash).  For
+example, @code{((lambda (x) x . 3) 4)} contains a subexpression that
+begins with @code{lambda} but is not a well-formed @code{lambda}
+expression, so Emacs may signal an error, or may return 3 or 4 or
+@code{nil}, or may behave in other ways.
+
   Here is a list, in alphabetical order, of all of the special forms in
 Emacs Lisp with a reference to where each is described.
 
@@ -449,12 +459,6 @@ Emacs Lisp with a reference to where each is described.
 @item defconst
 @pxref{Defining Variables}
 
-@item defmacro
-@pxref{Defining Macros}
-
-@item defun
-@pxref{Defining Functions}
-
 @item defvar
 @pxref{Defining Variables}
 
@@ -466,6 +470,9 @@ Emacs Lisp with a reference to where each is described.
 
 @item interactive
 @pxref{Interactive Call}
+
+@item lambda
+@pxref{Lambda Expressions}
 
 @item let
 @itemx let*
@@ -491,9 +498,6 @@ Emacs Lisp with a reference to where each is described.
 @item save-restriction
 @pxref{Narrowing}
 
-@item save-window-excursion
-@pxref{Window Configurations}
-
 @item setq
 @pxref{Setting Variables}
 
@@ -508,9 +512,6 @@ Emacs Lisp with a reference to where each is described.
 
 @item while
 @pxref{Iteration}
-
-@item with-output-to-temp-buffer
-@pxref{Temporary Displays}
 @end table
 
 @cindex CL note---special forms compared
@@ -518,8 +519,7 @@ Emacs Lisp with a reference to where each is described.
 @b{Common Lisp note:} Here are some comparisons of special forms in
 GNU Emacs Lisp and Common Lisp.  @code{setq}, @code{if}, and
 @code{catch} are special forms in both Emacs Lisp and Common Lisp.
-@code{defun} is a special form in Emacs Lisp, but a macro in Common
-Lisp.  @code{save-excursion} is a special form in Emacs Lisp, but
+@code{save-excursion} is a special form in Emacs Lisp, but
 doesn't exist in Common Lisp.  @code{throw} is a special form in
 Common Lisp (because it must be able to throw multiple values), but it
 is a function in Emacs Lisp (which doesn't have multiple

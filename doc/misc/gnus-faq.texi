@@ -1,10 +1,10 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 @c
-@setfilename gnus-faq.info
-@settitle Frequently Asked Questions
+@c @setfilename gnus-faq.info
+@c @settitle Frequently Asked Questions
 @c %**end of header
 @c
 
@@ -41,7 +41,7 @@ Please submit features and suggestions to the
 @email{ding@@gnus.org, ding list}.
 
 @node FAQ - Changes
-@subheading Changes
+@subsection Changes
 
 
 
@@ -57,7 +57,7 @@ reference to discontinued service.
 @end itemize
 
 @node FAQ - Introduction
-@subheading Introduction
+@subsection Introduction
 
 This is the Gnus Frequently Asked Questions list.
 
@@ -65,7 +65,7 @@ Gnus is a Usenet Newsreader and Electronic Mail User Agent implemented
 as a part of Emacs. It's been around in some form for almost a decade
 now, and has been distributed as a standard part of Emacs for much of
 that time. Gnus 5 is the latest (and greatest) incarnation. The
-original version was called GNUS, and was written by Masanobu UMEDA.
+original version was called GNUS, and was written by Masanobu UMEDA@.
 When autumn crept up in '94, Lars Magne Ingebrigtsen grew bored and
 decided to rewrite Gnus.
 
@@ -80,7 +80,7 @@ want.
 
 This FAQ was maintained by Justin Sheehy until March 2002. He
 would like to thank Steve Baur and Per Abrahamsen for doing a wonderful
-job with this FAQ before him. We would like to do the same - thanks,
+job with this FAQ before him. We would like to do the same: thanks,
 Justin!
 
 This version is much nicer than the unofficial hypertext
@@ -149,7 +149,7 @@ Anti Spam features.
 Message-utils now included in Gnus.
 
 @item
-New format specifiers for summary lines, e.g. %B for
+New format specifiers for summary lines, e.g., %B for
 a complex trn-style thread tree.
 @end itemize
 
@@ -162,7 +162,7 @@ Where and how to get Gnus?
 
 Gnus is released independent from releases of Emacs and XEmacs.
 Therefore, the version bundled with Emacs or the version in XEmacs's
-package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
+package system might not be up to date (e.g., Gnus 5.9 bundled with Emacs
 21 is outdated).
 You can get the latest released version of Gnus from
 @uref{http://www.gnus.org/dist/gnus.tar.gz}
@@ -181,7 +181,7 @@ Untar it via @samp{tar xvzf gnus.tar.gz} and do the common
 (under MS-Windows either get the Cygwin environment from
 @uref{http://www.cygwin.com}
 which allows you to do what's described above or unpack the
-tarball with some packer (e.g. Winace from
+tarball with some packer (e.g., Winace from
 @uref{http://www.winace.com})
 and use the batch-file make.bat included in the tarball to install
 Gnus.) If you don't want to (or aren't allowed to) install Gnus
@@ -222,10 +222,9 @@ Which version of Emacs do I need?
 
 @subsubheading Answer
 
-Gnus 5.10 requires an Emacs version that is greater than or equal
-to Emacs 20.7 or XEmacs 21.1.
-The development versions of Gnus (aka No Gnus) requires Emacs 21
-or XEmacs 21.4.
+Gnus 5.13 requires an Emacs version that is greater than or equal
+to Emacs 23.1 or XEmacs 21.1, although there are some features that
+only work on Emacs 24.
 
 @node FAQ 1-7
 @subsubheading Question 1.7
@@ -267,7 +266,7 @@ and how to prevent it?
 
 This message means that the last time you used Gnus, it
 wasn't properly exited and therefore couldn't write its
-information to disk (e.g. which messages you read), you
+information to disk (e.g., which messages you read), you
 are now asked if you want to restore that information
 from the auto-save file.
 
@@ -314,7 +313,7 @@ through them?
 @subsubheading Answer
 
 Gnus offers the topic mode, it allows you to sort your
-groups in, well, topics, e.g. all groups dealing with
+groups in, well, topics, e.g., all groups dealing with
 Linux under the topic linux, all dealing with music under
 the topic music and all dealing with scottish music under
 the topic scottish which is a subtopic of music.
@@ -406,8 +405,8 @@ directory Emacs chooses will most certainly not be what
 you want, so let's do it the correct way.
 The first thing you've got to do is to
 create a suitable directory (no blanks in directory name
-please) e.g. c:\myhome. Then you must set the environment
-variable HOME to this directory.  To do this under Win9x
+please), e.g., c:\myhome. Then you must set the environment
+variable HOME to this directory.  To do this under Windows 9x
 or Me include the line
 
 @example
@@ -556,7 +555,7 @@ these: 1: You want to read your mail from a pop3 server and
 send them directly to a SMTP Server 2: Some program like
 fetchmail retrieves your mail and stores it on disk from
 where Gnus shall read it. Outgoing mail is sent by
-Sendmail, Postfix or some other MTA. Sometimes, you even
+Sendmail, Postfix or some other MTA@. Sometimes, you even
 need a combination of the above cases.
 
 However, the first thing to do is to tell Gnus in which way
@@ -705,32 +704,9 @@ retrieves via POP3?
 
 @subsubheading Answer
 
-First of all, that's not the way POP3 is intended to work,
-if you have the possibility, you should use the IMAP
-Protocol if you want your messages to stay on the
-server. Nevertheless there might be situations where you
-need the feature, but sadly Gnus itself has no predefined
-functionality to do so.
-
-However this is Gnus county so there are possibilities to
-achieve what you want. The easiest way is to get an external
-program which retrieves copies of the mail and stores them
-on disk, so Gnus can read it from there. On Unix systems you
-could use e.g. fetchmail for this, on MS Windows you can use
-Hamster, an excellent local news and mail server.
-
-The other solution would be, to replace the method Gnus
-uses to get mail from POP3 servers by one which is capable
-of leaving the mail on the server. If you use XEmacs, get
-the package mail-lib, it includes an enhanced pop3.el,
-look in the file, there's documentation on how to tell
-Gnus to use it and not to delete the retrieved mail. For
-GNU Emacs look for the file epop3.el which can do the same
-(If you know the home of this file, please send me an
-e-mail). You can also tell Gnus to use an external program
-(e.g. fetchmail) to fetch your mail, see the info node
-"Mail Source Specifiers" in the Gnus manual on how to do
-it.
+Yes, if the POP3 server supports the UIDL control (maybe almost servers
+do it nowadays).  To do that, add a @code{:leave VALUE} pair to each
+POP3 mail source.  See @pxref{Mail Source Specifiers} for VALUE.
 
 @node FAQ 4 - Reading messages
 @subsection Reading messages
@@ -753,7 +729,7 @@ it.
 * FAQ 4-9::     Is there a way to automatically ignore posts by specific
                 authors or with specific words in the subject? And can I
                 highlight more interesting ones in some way?
-* FAQ 4-10::    How can I disable threading in some (e.g. mail-) groups,
+* FAQ 4-10::    How can I disable threading in some (e.g., mail-) groups,
                 or set other variables specific for some groups?
 * FAQ 4-11::    Can I highlight messages written by me and follow-ups to
                 those?
@@ -778,7 +754,7 @@ If you enter the group by saying
 @samp{RET}
 in group buffer with point over the group, only unread and ticked messages are loaded. Say
 @samp{C-u RET}
-instead to load all available messages. If you want only the e.g. 300 newest say
+instead to load all available messages. If you want only the 300 newest say
 @samp{C-u 300 RET}
 
 Loading only unread messages can be annoying if you have threaded view enabled, say
@@ -954,7 +930,7 @@ Hit either @samp{e} for an exact match or
 @samp{s} for substring-match and delete afterwards
 everything but the name to score down all authors with the given
 name no matter which email address is used. Now you need to tell
-Gnus when to apply the rule and how long it should last, hit e.g.
+Gnus when to apply the rule and how long it should last, hit
 @samp{p} to apply the rule now and let it last
 forever. If you want to raise the score instead of lowering it say
 @samp{I} instead of @samp{L}.
@@ -967,7 +943,7 @@ Gnus manual for the exact syntax, basically it's one big list
 whose elements are lists again. the first element of those lists
 is the header to score on, then one more list with what to match,
 which score to assign, when to expire the rule and how to do the
-matching. If you find me very interesting, you could e.g. add the
+matching. If you find me very interesting, you could add the
 following to your all.Score:
 
 @example
@@ -998,7 +974,7 @@ in ~/.gnus.el.
 @node FAQ 4-10
 @subsubheading Question 4.10
 
-How can I disable threading in some (e.g. mail-) groups, or
+How can I disable threading in some (e.g., mail-) groups, or
 set other variables specific for some groups?
 
 @subsubheading Answer
@@ -1038,7 +1014,7 @@ mail groups. Is this a bug?
 
 No, that's a matter of design of Gnus, fixing this would
 mean reimplementation of major parts of Gnus'
-back ends. Gnus thinks "highest-article-number -
+back ends. Gnus thinks "highest-article-number @minus{}
 lowest-article-number = total-number-of-articles". This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails. To cure the
@@ -1114,7 +1090,7 @@ tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
 
 Since 5.10, Gnus offers you some very nice new specifiers,
-e.g. %B which draws a thread-tree and %&user-date which
+e.g., %B which draws a thread-tree and %&user-date which
 gives you a date where the details are dependent of the
 articles age. Here's an example which uses both:
 
@@ -1218,7 +1194,7 @@ from using them):
                 messages?
 * FAQ 5-3::     How to set stuff like From, Organization, Reply-To,
                 signature...?
-* FAQ 5-4::     Can I set things like From, Signature etc group based on
+* FAQ 5-4::     Can I set things like From, Signature etc. group based on
                 the group I post too?
 * FAQ 5-5::     Is there a spell-checker? Perhaps even on-the-fly
                 spell-checking?
@@ -1541,8 +1517,9 @@ cat file.face | sed 's/\\/\\\\/g;s/\"/\\\"/g;' > file.face.quoted
 
 If you can't use compface, there's an online X-face converter at
 @uref{http://www.dairiki.org/xface/}.
-If you use MS Windows, you could also use the WinFace program from
-@uref{http://www.xs4all.nl/~walterln/winface/}.
+If you use MS Windows, you could also use the WinFace program,
+which used to be available from
+@indicateurl{http://www.xs4all.nl/~walterln/winface/}.
 Now you only have to tell Gnus to include the X-face in your postings by saying
 
 @example
@@ -1771,7 +1748,7 @@ snippet by Frank Haun <pille3003@@fhaun.de> in
 
 @example
 (defun my-archive-article (&optional n)
-  "Copies one or more article(s) to a corresponding `nnml:' group, e.g.
+  "Copies one or more article(s) to a corresponding `nnml:' group, e.g.,
 `gnus.ding' goes to `nnml:1.gnus.ding'. And `nnml:List-gnus.ding' goes
 to `nnml:1.List-gnus-ding'.
 
@@ -1835,15 +1812,20 @@ too.
 Of course you can also use grep to search through your
 local mail, but this is both slow for big archives and
 inconvenient since you are not displaying the found mail
-in Gnus. Here comes nnir into action. Nnir is a front end
+in Gnus.  Here nnir comes into action.  Nnir is a front end
 to search engines like swish-e or swish++ and
-others. You index your mail with one of those search
+others.  You index your mail with one of those search
 engines and with the help of nnir you can search through
 the indexed mail and generate a temporary group with all
-messages which met your search criteria. If this sound
-cool to you get nnir.el from
+messages which met your search criteria.  If this sounds
+cool to you, get nnir.el from
+@c FIXME Isn't this file in Gnus?
+@ignore
+@c Dead link 2013/7.
 @uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/}
-or @uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
+or
+@end ignore
+@uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
 Instructions on how to use it are at the top of the file.
 
 @node FAQ 6-4
@@ -1879,7 +1861,7 @@ some groups). How to do it?
 
 @subsubheading Answer
 
-If you want all read messages to be expired (e.g. in
+If you want all read messages to be expired (e.g., in
 mailing lists where there's an online archive), you've
 got two choices: auto-expire and
 total-expire. Auto-expire means, that every article
@@ -1924,7 +1906,7 @@ Say something like this in ~/.gnus.el:
 
 (If you want to change the value of nnmail-expiry-target
 on a per group basis see the question "How can I disable
-threading in some (e.g. mail-) groups, or set other
+threading in some (e.g., mail-) groups, or set other
 variables specific for some groups?")
 
 @node FAQ 7 - Gnus in a dial-up environment
@@ -1966,7 +1948,7 @@ the easiest solution is a small nntp server like
 @uref{http://infa.abo.fi/~patrik/sn/, sn},
 of course you can also install a full featured news
 server like
-@uref{http://www.isc.org/products/INN/, inn}.
+@uref{http://www.isc.org/software/inn/, inn}.
 Then you want to fetch your Mail, popular choices
 are @uref{http://www.catb.org/~esr/fetchmail/, fetchmail}
 and @uref{http://pyropus.ca/software/getmail/, getmail}.
@@ -1983,7 +1965,7 @@ On windows boxes I'd vote for
 it's a small freeware, open-source program which fetches
 your mail and news from remote servers and offers them
 to Gnus (or any other mail and/or news reader) via nntp
-respectively POP3 or IMAP. It also includes a smtp
+respectively POP3 or IMAP@. It also includes a smtp
 server for receiving mails from Gnus.
 
 @node FAQ 7-2
@@ -1996,7 +1978,7 @@ So what was this thing about the Agent?
 The Gnus agent is part of Gnus, it allows you to fetch
 mail and news and store them on disk for reading them
 later when you're offline. It kind of mimics offline
-newsreaders like e.g. Forte Agent. If you want to use
+newsreaders like Forte Agent. If you want to use
 the Agent place the following in ~/.gnus.el if you are
 still using 5.8.8 or 5.9 (it's the default since 5.10):
 
@@ -2075,7 +2057,7 @@ work, the agent must be active.
 
 @menu
 * FAQ 8-1::    How to find information and help inside Emacs?
-* FAQ 8-2::    I can't find anything in the Gnus manual about X (e.g.
+* FAQ 8-2::    I can't find anything in the Gnus manual about X (e.g.,
                attachments, PGP, MIME...), is it not documented?
 * FAQ 8-3::    Which websites should I know?
 * FAQ 8-4::    Which mailing lists and newsgroups are there?
@@ -2105,7 +2087,7 @@ apropos} searches the bound variables.
 @subsubheading Question 8.2
 
 I can't find anything in the Gnus manual about X
-(e.g. attachments, PGP, MIME...), is it not documented?
+(e.g., attachments, PGP, MIME...), is it not documented?
 
 @subsubheading Answer
 

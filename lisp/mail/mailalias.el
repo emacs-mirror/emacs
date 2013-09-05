@@ -1,7 +1,7 @@
 ;;; mailalias.el --- expand and complete mailing address aliases -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1995-1997, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1995-1997, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -209,7 +209,9 @@ removed from alias expansions."
 	    (if (re-search-forward "[ \t]*[\n,][ \t]*" end1 t)
 		(setq epos (match-beginning 0)
 		      seplen (- (point) epos))
-	      (setq epos (marker-position end1) seplen 0))
+	      ;; Handle the last name in this header field.
+	      ;; We already moved END1 back across whitespace after it.
+ 	      (setq epos (marker-position end1) seplen 0))
 	    (let ((string (buffer-substring-no-properties pos epos))
 		  translation)
 	      (if (and (not (assoc string disabled-aliases))
@@ -427,6 +429,7 @@ For use on `completion-at-point-functions'."
   "Perform completion on header field or word preceding point.
 Completable headers are according to `mail-complete-alist'.  If none matches
 current header, calls `mail-complete-function' and passes prefix ARG if any."
+  (declare (obsolete mail-completion-at-point-function "24.1"))
   (interactive "P")
   ;; Read the defaults first, if we have not done so.
   (sendmail-sync-aliases)
@@ -439,7 +442,6 @@ current header, calls `mail-complete-function' and passes prefix ARG if any."
     (if data
         (apply #'completion-in-region data)
       (funcall mail-complete-function arg))))
-(make-obsolete 'mail-complete 'mail-completion-at-point-function "24.1")
 
 (defun mail-completion-expand (table)
   "Build new completion table that expands aliases.

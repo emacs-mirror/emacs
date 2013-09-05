@@ -1,6 +1,6 @@
 ;;; smiley.el --- displaying smiley faces
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: news mail multimedia
@@ -59,7 +59,10 @@
 
 (defcustom smiley-style
   (if (or (and (fboundp 'face-attribute)
-	       (>= (face-attribute 'default :height) 160))
+	       ;; In batch mode, attributes can be unspecified.
+	       (condition-case nil
+		   (>= (face-attribute 'default :height) 160)
+		 (error nil)))
 	  (and (fboundp 'face-height)
 	       (>= (face-height 'default) 14)))
       'medium

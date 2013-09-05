@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -73,7 +73,7 @@ this version is not backward compatible to 0.14 or earlier.")
 ;; `speedbar-insert-generic-list'.  If you use
 ;; `speedbar-insert-generic-list', also read the doc for
 ;; `speedbar-tag-hierarchy-method' in case you wish to override it.
-;; The macro `speedbar-with-attached-buffer' brings you back to the
+;; The macro `dframe-with-attached-buffer' brings you back to the
 ;; buffer speedbar is displaying for.
 ;;
 ;; For those functions that make buttons, the "function" should be a
@@ -250,7 +250,7 @@ frame."
 
 (defcustom speedbar-query-confirmation-method 'all
   "Query control for file operations.
-The 'always flag means to always query before file operations.
+The 'all flag means to always query before file operations.
 The 'none-but-delete flag means to not query before any file
 operations, except before a file deletion."
   :group 'speedbar
@@ -706,7 +706,7 @@ will be stripped by a simplified optimizer when compiled into a
 singular expression.  This variable will be turned into
 `speedbar-file-regexp' for use with speedbar.  You should use the
 function `speedbar-add-supported-extension' to add a new extension at
-runtime, or use the configuration dialog to set it in your .emacs file.
+runtime, or use the configuration dialog to set it in your init file.
 If you add an extension to this list, and it does not appear, you may
 need to also modify `completion-ignored-extension' which will also help
 file completion."
@@ -763,7 +763,7 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
   "Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's directory.
 If you want to change this while speedbar is active, either use
-\\[customize] or call \\<speedbar-key-map> `\\[speedbar-toggle-updates]'."
+\\[customize] or call \\<speedbar-mode-map> `\\[speedbar-toggle-updates]'."
   :group 'speedbar
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
@@ -1007,9 +1007,9 @@ supported at a time.
 				 ;; with the selected frame.
 				 (list 'parent (selected-frame)))
 		       speedbar-frame-parameters)
-		     speedbar-before-delete-hook
-		     speedbar-before-popup-hook
-		     speedbar-after-create-hook)
+		     'speedbar-before-delete-hook
+		     'speedbar-before-popup-hook
+		     'speedbar-after-create-hook)
   ;; Start up the timer
   (if (not speedbar-frame)
       (speedbar-set-timer nil)
@@ -1083,7 +1083,7 @@ Return nil if it doesn't exist."
 
 (define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
-\\<speedbar-key-map>
+\\<speedbar-mode-map>
 The first line represents the default directory of the speedbar frame.
 Each directory segment is a button which jumps speedbar's default
 directory to that directory.  Buttons are activated by clicking `\\[speedbar-click]'.
@@ -1120,7 +1120,7 @@ category of tags.  Click the {+} to expand the category.  Jump-able
 tags start with >.  Click the name of the tag to go to that position
 in the selected file.
 
-\\{speedbar-key-map}"
+\\{speedbar-mode-map}"
   (save-excursion
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
@@ -1137,10 +1137,7 @@ in the selected file.
 	  dframe-mouse-position-function #'speedbar-position-cursor-on-line))
   speedbar-buffer)
 
-(defmacro speedbar-message (fmt &rest args)
-  "Like `message', but for use in the speedbar frame.
-Argument FMT is the format string, and ARGS are the arguments for message."
-  `(dframe-message ,fmt ,@args))
+(define-obsolete-function-alias 'speedbar-message 'dframe-message "24.4")
 
 (defsubst speedbar-y-or-n-p (prompt &optional deleting)
   "Like `y-or-n-p', but for use in the speedbar frame.
@@ -1157,8 +1154,10 @@ return true without a query."
   (dframe-select-attached-frame (speedbar-current-frame)))
 
 ;; Backwards compatibility
-(defalias 'speedbar-with-attached-buffer 'dframe-with-attached-buffer)
-(defalias 'speedbar-maybee-jump-to-attached-frame 'dframe-maybee-jump-to-attached-frame)
+(define-obsolete-function-alias 'speedbar-with-attached-buffer
+  'dframe-with-attached-buffer "24.4") ; macro
+(define-obsolete-function-alias 'speedbar-maybee-jump-to-attached-frame
+  'dframe-maybee-jump-to-attached-frame "24.4")
 
 (defun speedbar-set-mode-line-format ()
   "Set the format of the mode line based on the current speedbar environment.
@@ -1285,7 +1284,7 @@ and the existence of packages."
 	      (if (eq major-mode 'speedbar-mode)
 		  ;; XEmacs may let us get in here in other mode buffers.
 		  (speedbar-item-info)))
-	  (error (speedbar-message nil)))))))
+	  (error (dframe-message nil)))))))
 
 (defun speedbar-show-info-under-mouse ()
   "Call the info function for the line under the mouse."
@@ -1417,13 +1416,13 @@ Argument ARG represents to force a refresh past any caches that may exist."
             (delq (assoc d speedbar-directory-contents-alist)
                   speedbar-directory-contents-alist)))
     (if (<= 1 speedbar-verbosity-level)
-	(speedbar-message "Refreshing speedbar..."))
+	(dframe-message "Refreshing speedbar..."))
     (speedbar-update-contents)
     (speedbar-stealthy-updates)
     ;; Reset the timer in case it got really hosed for some reason...
     (speedbar-set-timer dframe-update-speed)
     (if (<= 1 speedbar-verbosity-level)
-	(speedbar-message "Refreshing speedbar...done"))))
+	(dframe-message "Refreshing speedbar...done"))))
 
 (defun speedbar-item-load ()
   "Load the item under the cursor or mouse if it is a Lisp file."
@@ -1467,7 +1466,7 @@ File style information is displayed with `speedbar-item-info'."
     ;; Skip items in "folder" type text characters.
     (if (looking-at "\\s-*[[<({].[]>)}] ") (goto-char (match-end 0)))
     ;; Get the text
-    (speedbar-message "Text: %s" (buffer-substring-no-properties
+    (dframe-message "Text: %s" (buffer-substring-no-properties
 				  (point) (line-end-position)))))
 
 (defun speedbar-item-info ()
@@ -1485,7 +1484,7 @@ Return nil if not applicable.  If FILENAME, then use that
 instead of reading it from the speedbar buffer."
   (let* ((item (or filename (speedbar-line-file)))
 	 (attr (if item (file-attributes item) nil)))
-    (if (and item attr) (speedbar-message "%s %-6d %s" (nth 8 attr)
+    (if (and item attr) (dframe-message "%s %-6d %s" (nth 8 attr)
 					  (nth 7 attr) item)
       nil)))
 
@@ -1506,14 +1505,14 @@ Return nil if not applicable."
 		(when (and (semantic-tag-overlay attr)
 			   (semantic-tag-buffer attr))
 		  (set-buffer (semantic-tag-buffer attr)))
-		(speedbar-message
+		(dframe-message
 		 (funcall semantic-sb-info-format-tag-function attr)
 		 )))
 	    (looking-at "\\([0-9]+\\):")
 	    (setq item (file-name-nondirectory (speedbar-line-directory)))
-	    (speedbar-message "Tag: %s  in %s" tag item)))
+	    (dframe-message "Tag: %s  in %s" tag item)))
       (if (re-search-forward "{[+-]} \\([^\n]+\\)$" (line-end-position) t)
-	  (speedbar-message "Group of tags \"%s\"" (match-string 1))
+	  (dframe-message "Group of tags \"%s\"" (match-string 1))
 	(if (re-search-forward " [+-]?[()|@] \\([^\n]+\\)$" nil t)
 	    (let* ((detailtext (match-string 1))
 		   (detail (or (speedbar-line-token) detailtext))
@@ -1532,18 +1531,18 @@ Return nil if not applicable."
 	      (if (featurep 'semantic)
 		  (with-no-warnings
 		    (if (semantic-tag-p detail)
-			(speedbar-message
+			(dframe-message
 			 (funcall semantic-sb-info-format-tag-function detail parent))
 		      (if parent
-			  (speedbar-message "Detail: %s of tag %s" detail
+			  (dframe-message "Detail: %s of tag %s" detail
 					    (if (semantic-tag-p parent)
 						(semantic-format-tag-name parent nil t)
 					      parent))
-			(speedbar-message "Detail: %s" detail))))
+			(dframe-message "Detail: %s" detail))))
 		;; Not using `semantic':
 		(if parent
-		    (speedbar-message "Detail: %s of tag %s" detail parent)
-		  (speedbar-message "Detail: %s" detail))))
+		    (dframe-message "Detail: %s of tag %s" detail parent)
+		  (dframe-message "Detail: %s" detail))))
 	  nil)))))
 
 (defun speedbar-files-item-info ()
@@ -1641,7 +1640,7 @@ Files can be renamed to new names or moved to new directories."
 	  (if (file-directory-p f)
 	      (delete-directory f t t)
 	    (delete-file f t))
-	  (speedbar-message "Okie dokie.")
+	  (dframe-message "Okie dokie.")
 	  (let ((p (point)))
 	    (speedbar-refresh)
 	    (goto-char p))
@@ -1706,9 +1705,9 @@ variable `speedbar-obj-alist'."
 
 (defmacro speedbar-with-writable (&rest forms)
   "Allow the buffer to be writable and evaluate FORMS."
-  (list 'let '((inhibit-read-only t))
-	(cons 'progn forms)))
-(put 'speedbar-with-writable 'lisp-indent-function 0)
+  (declare (indent 0))
+  `(let ((inhibit-read-only t))
+     ,@forms))
 
 (defun speedbar-insert-button (text face mouse function
 				    &optional token prevline)
@@ -1864,9 +1863,7 @@ of the special mode functions."
 	      ;; If it is autoloaded, we need to load it now so that
 	      ;; we have access to the variable -speedbar-menu-items.
 	      ;; Is this XEmacs safe?
-	      (let ((sf (symbol-function v)))
-		(if (and (listp sf) (eq (car sf) 'autoload))
-		    (load-library (car (cdr sf)))))
+              (autoload-do-load (symbol-function v) v)
 	      (setq speedbar-special-mode-expansion-list (list v))
 	      (setq v (intern-soft (concat ms "-speedbar-key-map")))
 	      (if (not v)
@@ -2439,7 +2436,7 @@ name will have the function FIND-FUN and not token."
 				     (car (car lst)) ;button name
 				     nil nil 'speedbar-tag-face
 				     (1+ level)))
-	    (t (speedbar-message "speedbar-insert-generic-list: malformed list!")
+	    (t (dframe-message "speedbar-insert-generic-list: malformed list!")
 	       ))
       (setq lst (cdr lst)))))
 
@@ -2494,14 +2491,14 @@ name will have the function FIND-FUN and not token."
 		      (expand-file-name default-directory))))
 	    nil
 	  (if (<= 1 speedbar-verbosity-level)
-	      (speedbar-message "Updating speedbar to: %s..."
+	      (dframe-message "Updating speedbar to: %s..."
 				default-directory))
 	  (speedbar-update-directory-contents)
 	  (if (<= 1 speedbar-verbosity-level)
 	      (progn
-		(speedbar-message "Updating speedbar to: %s...done"
+		(dframe-message "Updating speedbar to: %s...done"
 				  default-directory)
-		(speedbar-message nil))))
+		(dframe-message nil))))
       ;; Else, we can do a short cut.  No text cache.
       (let ((cbd (expand-file-name default-directory)))
 	(set-buffer speedbar-buffer)
@@ -2651,7 +2648,7 @@ Also resets scanner functions."
 	      (dframe-select-attached-frame speedbar-frame)
 	      ;; make sure we at least choose a window to
 	      ;; get a good directory from
-	      (if (window-minibuffer-p (selected-window))
+	      (if (window-minibuffer-p)
 		  nil
 		;; Check for special modes
 		(speedbar-maybe-add-localized-support (current-buffer))
@@ -2664,16 +2661,16 @@ Also resets scanner functions."
 		    ;;(eq (get major-mode 'mode-class 'special)))
 		    (progn
 		      (if (<= 2 speedbar-verbosity-level)
-			  (speedbar-message
+			  (dframe-message
 			   "Updating speedbar to special mode: %s..."
 			   major-mode))
 		      (speedbar-update-special-contents)
 		      (if (<= 2 speedbar-verbosity-level)
 			  (progn
-			    (speedbar-message
+			    (dframe-message
 			     "Updating speedbar to special mode: %s...done"
 			     major-mode)
-			    (speedbar-message nil))))
+			    (dframe-message nil))))
 
  		  ;; Update all the contents if directories change!
  		  (unless (and (or (member major-mode speedbar-ignored-modes)
@@ -2706,7 +2703,7 @@ interrupted by the user."
 	      (while (and l (funcall (car l)))
 		;;(sit-for 0)
 		(setq l (cdr l))))
-	  ;;(speedbar-message "Exit with %S" (car l))
+	  ;;(dframe-message "Exit with %S" (car l))
 	  ))))
 
 (defun speedbar-reset-scanners ()
@@ -2946,7 +2943,7 @@ the file being checked."
 			(point))))
 	 (fulln (concat f fn)))
     (if (<= 2 speedbar-verbosity-level)
-	(speedbar-message "Speedbar vc check...%s" fulln))
+	(dframe-message "Speedbar vc check...%s" fulln))
     (and (file-writable-p fulln)
 	 (speedbar-this-file-in-vc f fn))))
 
@@ -3018,7 +3015,7 @@ the file being checked."
 			(point))))
 	 (fulln (concat f fn)))
     (if (<= 2 speedbar-verbosity-level)
-	(speedbar-message "Speedbar obj check...%s" fulln))
+	(dframe-message "Speedbar obj check...%s" fulln))
     (let ((oa speedbar-obj-alist))
       (while (and oa (not (string-match (car (car oa)) fulln)))
 	(setq oa (cdr oa)))
@@ -3078,7 +3075,7 @@ a function if appropriate."
 				    (buffer-substring-no-properties
 				    (match-beginning 0) (match-end 0))
 				  "0")))))
-    ;;(speedbar-message "%S:%S:%S:%s" fn tok txt dent)
+    ;;(dframe-message "%S:%S:%S:%s" fn tok txt dent)
     (and fn (funcall fn txt tok dent)))
   (speedbar-position-cursor-on-line))
 
@@ -3515,7 +3512,7 @@ interested in."
     (set-buffer speedbar-buffer)
 
     (if (<= (count-lines (point-min) (point-max))
-	    (1- (window-height (selected-window))))
+	    (1- (window-height)))
 	;; whole buffer fits
 	(let ((cp (point)))
 
@@ -3548,7 +3545,7 @@ interested in."
 	      (setq end (point-max)))))
 	;; Now work out the details of centering
 	(let ((nl (count-lines start end))
-              (wl (1- (window-height (selected-window))))
+              (wl (1- (window-height)))
 	      (cp (point)))
 	  (if (> nl wl)
 	      ;; We can't fit it all, so just center on cursor
@@ -3561,12 +3558,12 @@ interested in."
 		nil
 	      ;; we need to do something...
 	      (goto-char start)
-	      (let ((newcent (/ (- (window-height (selected-window)) nl) 2))
+	      (let ((newcent (/ (- (window-height) nl) 2))
 		    (lte (count-lines start (point-max))))
-		(if (and (< (+ newcent lte) (window-height (selected-window)))
-			 (> (- (window-height (selected-window)) lte 1)
+		(if (and (< (+ newcent lte) (window-height))
+			 (> (- (window-height) lte 1)
 			    newcent))
-		    (setq newcent (- (window-height (selected-window))
+		    (setq newcent (- (window-height)
 				     lte 1)))
 		(recenter newcent))))
           (goto-char cp))))))
@@ -3610,6 +3607,7 @@ functions to do caching and flushing if appropriate."
     nil
 
 (eval-when-compile (condition-case nil (require 'imenu) (error nil)))
+(declare-function imenu--make-index-alist "imenu" (&optional no-error))
 
 (defun speedbar-fetch-dynamic-imenu (file)
   "Load FILE into a buffer, and generate tags using Imenu.
@@ -3698,14 +3696,14 @@ Each symbol will be associated with its line position in FILE."
 	  (if (get-buffer "*etags tmp*")
 	      (kill-buffer "*etags tmp*"))	;kill to clean it up
 	  (if (<= 1 speedbar-verbosity-level)
-	      (speedbar-message "Fetching etags..."))
+	      (dframe-message "Fetching etags..."))
 	  (set-buffer (get-buffer-create "*etags tmp*"))
 	  (apply 'call-process speedbar-fetch-etags-command nil
 		 (current-buffer) nil
 		 (append speedbar-fetch-etags-arguments (list file)))
 	  (goto-char (point-min))
 	  (if (<= 1 speedbar-verbosity-level)
-	      (speedbar-message "Fetching etags..."))
+	      (dframe-message "Fetching etags..."))
 	  (let ((expr
 		 (let ((exprlst speedbar-fetch-etags-parse-list)
 		       (ans nil))
@@ -3722,7 +3720,7 @@ Each symbol will be associated with its line position in FILE."
 		      (setq tnl (speedbar-extract-one-symbol expr)))
 		    (if tnl (setq newlist (cons tnl newlist)))
 		    (forward-line 1)))
-	      (speedbar-message
+	      (dframe-message
 	       "Sorry, no support for a file of that extension"))))
       )
     (if speedbar-sort-tags
@@ -3909,7 +3907,7 @@ Argument BUFFER is the buffer being tested."
       (let* ((item (speedbar-line-text))
 	     (buffer (if item (get-buffer item) nil)))
 	(and buffer
-	     (speedbar-message "%s%s %S %d %s"
+	     (dframe-message "%s%s %S %d %s"
 			       (if (buffer-modified-p buffer) "* " "")
 			       item
 			       (with-current-buffer buffer major-mode)
@@ -3999,79 +3997,74 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 
 (defun speedbar-recenter ()
   "Recenter the current buffer so point is in the center of the window."
-  (recenter (/ (window-height (selected-window)) 2)))
+  (recenter (/ (window-height) 2)))
 
 
 ;;; Color loading section.
 ;;
 (defface speedbar-button-face '((((class color) (background light))
-				 (:foreground "green4"))
+				 :foreground "green4")
 				(((class color) (background dark))
-				 (:foreground "green3")))
-  "Face used for +/- buttons."
+				 :foreground "green3"))
+  "Speedbar face for +/- buttons."
   :group 'speedbar-faces)
 
 (defface speedbar-file-face '((((class color) (background light))
-			       (:foreground "cyan4"))
+			       :foreground "cyan4")
 			      (((class color) (background dark))
-			       (:foreground "cyan"))
-			      (t (:bold t)))
-  "Face used for file names."
+			       :foreground "cyan")
+			      (t :weight bold))
+  "Speedbar face for file names."
   :group 'speedbar-faces)
 
 (defface speedbar-directory-face '((((class color) (background light))
-				    (:foreground "blue4"))
+				    :foreground "blue4")
 				   (((class color) (background dark))
-				    (:foreground "light blue")))
-  "Face used for directory names."
+				    :foreground "light blue"))
+  "Speedbar face for directory names."
   :group 'speedbar-faces)
+
 (defface speedbar-tag-face '((((class color) (background light))
-			      (:foreground "brown"))
+			      :foreground "brown")
 			     (((class color) (background dark))
-			      (:foreground "yellow")))
-  "Face used for displaying tags."
+			      :foreground "yellow"))
+  "Speedbar face for tags."
   :group 'speedbar-faces)
 
 (defface speedbar-selected-face '((((class color) (background light))
-				    (:foreground "red" :underline t))
+				   :foreground "red" :underline t)
 				  (((class color) (background dark))
-				   (:foreground "red" :underline t))
-				  (t (:underline t)))
-  "Face used to underline the file in the active window."
+				   :foreground "red" :underline t)
+				  (t :underline t))
+  "Speedbar face for the file in the active window."
   :group 'speedbar-faces)
 
 (defface speedbar-highlight-face '((((class color) (background light))
-				    (:background "green"))
+				    :background "green")
 				   (((class color) (background dark))
-				    (:background "sea green"))
-				   (((class grayscale monochrome)
-				     (background light))
-				    (:background "black"))
-				   (((class grayscale monochrome)
-				     (background dark))
-				    (:background "white")))
-  "Face used for highlighting buttons with the mouse."
+				    :background "sea green"))
+  "Speedbar face for highlighting buttons with the mouse."
   :group 'speedbar-faces)
 
 (defface speedbar-separator-face '((((class color) (background light))
-				    (:background "blue"
-				     :foreground "white"
-				     :overline "gray"))
+				    :background "blue"
+				    :foreground "white"
+				    :overline "gray")
 				   (((class color) (background dark))
-				    (:background "blue"
-				     :foreground "white"
-				     :overline "gray"))
+				    :background "blue"
+				    :foreground "white"
+				    :overline "gray")
 				   (((class grayscale monochrome)
 				     (background light))
-				    (:background "black"
-				     :foreground "white"
-				     :overline "white"))
+				    :background "black"
+				    :foreground "white"
+				    :overline "white")
 				   (((class grayscale monochrome)
 				     (background dark))
-				    (:background "white"
-				     :foreground "black"
-				     :overline "black")))
-  "Face used for separator labels in a display."
+				    :background "white"
+				    :foreground "black"
+				    :overline "black"))
+  "Speedbar face for separator labels in a display."
   :group 'speedbar-faces)
 
 ;; some edebug hooks

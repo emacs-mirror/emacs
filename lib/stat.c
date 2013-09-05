@@ -1,5 +1,5 @@
 /* Work around platform bugs in stat.
-   Copyright (C) 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 # if _GL_WINDOWS_64_BIT_ST_SIZE
+#  undef stat /* avoid warning on mingw64 with _FILE_OFFSET_BITS=64 */
 #  define stat _stati64
 #  define REPLACE_FUNC_STAT_DIR 1
 #  undef REPLACE_FUNC_STAT_FILE
@@ -41,7 +42,7 @@
 # endif
 #endif
 
-static inline int
+static int
 orig_stat (const char *filename, struct stat *buf)
 {
   return stat (filename, buf);

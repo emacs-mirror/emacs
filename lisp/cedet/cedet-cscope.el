@@ -1,6 +1,6 @@
 ;;; cedet-cscope.el --- CScope support for CEDET
 
-;;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet
@@ -28,7 +28,7 @@
 
 (declare-function inversion-check-version "inversion")
 
-(defvar cedet-cscope-min-version "16.0"
+(defvar cedet-cscope-min-version "15.7"
   "Minimum version of CScope required.")
 
 (defcustom cedet-cscope-command "cscope"

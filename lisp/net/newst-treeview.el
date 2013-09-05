@@ -1,6 +1,6 @@
 ;;; newst-treeview.el --- Treeview frontend for newsticker.
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-treeview.el
@@ -50,50 +50,36 @@
   :group 'newsticker-reader)
 
 (defface newsticker-treeview-face
-  '((((class color) (background dark))
-     (:family "sans" :foreground "white" :bold nil))
-    (((class color) (background light))
-     (:family "sans" :foreground "black" :bold nil)))
+  '((((class color) (background dark))  :foreground "white")
+    (((class color) (background light)) :foreground "black"))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-new-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face :bold t))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face :bold t)))
+  '((t :inherit newsticker-treeview-face :weight bold))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-old-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face)))
+  '((t :inherit newsticker-treeview-face))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-immortal-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face :foreground "orange" :italic t))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face :foreground "blue" :italic t)))
+  '((default :inherit newsticker-treeview-face :slant italic)
+    (((class color) (background dark))  :foreground "orange")
+    (((class color) (background light)) :foreground "blue"))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-obsolete-face
-  '((((class color) (background dark))
-     (:inherit newsticker-treeview-face :strike-through t))
-    (((class color) (background light))
-     (:inherit newsticker-treeview-face :strike-through t)))
+  '((t :inherit newsticker-treeview-face :strike-through t))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
 (defface newsticker-treeview-selection-face
-  '((((class color) (background dark))
-     (:background "#bbbbff"))
-    (((class color) (background light))
-     (:background "#bbbbff")))
+  '((((class color) (background dark))  :background "#bbbbff")
+    (((class color) (background light)) :background "#bbbbff"))
   "Face for newsticker selection."
   :group 'newsticker-treeview)
 
@@ -142,7 +128,7 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
   "Name of the newsticker groups settings file."
   :type 'string
   :group 'newsticker-treeview)
-(make-obsolete 'newsticker-groups-filename 'newsticker-dir "23.1")
+(make-obsolete-variable 'newsticker-groups-filename 'newsticker-dir "23.1")
 
 ;; ======================================================================
 ;;; internal variables
@@ -1736,7 +1722,7 @@ return a nested list."
 
 (defun newsticker-group-move-feed (name group-name &optional no-update)
   "Move feed NAME to group GROUP-NAME.
-Update teeview afterwards unless NO-UPDATE is non-nil."
+Update treeview afterwards unless NO-UPDATE is non-nil."
   (interactive
    (let ((completion-ignore-case t))
      (list (completing-read "Feed Name: "

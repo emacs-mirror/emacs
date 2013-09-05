@@ -1,6 +1,6 @@
-;;; filesets.el --- handle group of files
+;;; filesets.el --- handle group of files -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: FSF
@@ -35,7 +35,7 @@
 ;; inclusion group (i.e. a base file including other files).
 
 ;; Usage:
-;; 1. Put (require 'filesets) and (filesets-init) in your .emacs file.
+;; 1. Put (require 'filesets) and (filesets-init) in your init file.
 ;; 2. Type ;; M-x filesets-edit or choose "Edit Filesets" from the menu.
 ;; 3. Save your customizations.
 
@@ -88,9 +88,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
+(eval-when-compile (require 'cl-lib))
 
 ;;; Some variables
 
@@ -151,7 +149,7 @@ is loaded before custom.el, set this variable to t.")
 (defun filesets-filter-list (lst cond-fn)
   "Remove all elements not conforming to COND-FN from list LST.
 COND-FN takes one argument: the current element."
-;  (remove* 'dummy lst :test (lambda (dummy elt)
+;  (cl-remove 'dummy lst :test (lambda (dummy elt)
 ;			      (not (funcall cond-fn elt)))))
   (let ((rv nil))
     (dolist (elt lst rv)
@@ -177,7 +175,7 @@ Like `some', return the first value of FSS-PRED that is non-nil."
       (let ((fss-rv (funcall fss-pred fss-this)))
 	(when fss-rv
 	  (throw 'exit fss-rv))))))
-;(fset 'filesets-some 'some) ;; or use the cl function
+;(fset 'filesets-some 'cl-some) ;; or use the cl function
 
 (defun filesets-member (fsm-item fsm-lst &rest fsm-keys)
   "Find the first occurrence of FSM-ITEM in FSM-LST.
@@ -188,7 +186,7 @@ key is supported."
     (filesets-ormap (lambda (fsm-this)
 		      (funcall fsm-test fsm-item fsm-this))
 		    fsm-lst)))
-;(fset 'filesets-member 'member*) ;; or use the cl function
+;(fset 'filesets-member 'cl-member) ;; or use the cl function
 
 (defun filesets-sublist (lst beg &optional end)
   "Get the sublist of LST from BEG to END - 1."
@@ -216,8 +214,8 @@ key is supported."
 
 (defun filesets-which-command-p (cmd)
   "Call \"which CMD\" and return non-nil if the command was found."
-  (when (string-match (format "\\(/[^/]+\\)?/%s" cmd)
-		      (filesets-which-command cmd))
+  (when (string-match-p (format "\\(/[^/]+\\)?/%s" cmd)
+			(filesets-which-command cmd))
     cmd))
 
 (defun filesets-message (level &rest args)
@@ -405,8 +403,10 @@ Don't forget to check out `filesets-menu-ensure-use-cached'."
 		  (sexp :tag "Other" :value nil)))
   :group 'filesets)
 
-(defcustom filesets-cache-fill-content-hooks nil
-  "Hooks to run when writing the contents of filesets' cache file.
+(define-obsolete-variable-alias 'filesets-cache-fill-content-hooks
+  'filesets-cache-fill-content-hook "24.3")
+(defcustom filesets-cache-fill-content-hook nil
+  "Hook run when writing the contents of filesets' cache file.
 
 The hook is called with the cache file as current buffer and the cursor
 at the last position.  I.e. each hook has to make sure that the cursor is
@@ -805,8 +805,8 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:match-number 2)
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master file load-path))))))
-    ("^\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\)+\\)$" t
-     (((:pattern "\\<\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\)+\\)\\>")
+    ("^\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\)+\\)$" t
+     (((:pattern "\\<\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\)+\\)\\>")
        (:scan-depth 5)
        (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
        (:case-sensitive t)
@@ -1082,7 +1082,7 @@ defined in `filesets-ingroup-patterns'."
 
     (require 'easymenu)
 
-    (defun filesets-error (class &rest args)
+    (defun filesets-error (_class &rest args)
       "`error' wrapper."
       (error "%s" (mapconcat 'identity args " ")))
 
@@ -1093,10 +1093,10 @@ defined in `filesets-ingroup-patterns'."
 If NEGATIVE is non-nil, remove all directory names."
   (filesets-filter-list lst
 			(lambda (x)
-			  (and (not (string-match "^\\.+/$" x))
+			  (and (not (string-match-p "^\\.+/$" x))
 			       (if negative
-				   (not (string-match "[:/\\]$" x))
-				 (string-match "[:/\\]$" x))))))
+				   (not (string-match-p "[:/\\]$" x))
+				 (string-match-p "[:/\\]$" x))))))
 
 (defun filesets-conditional-sort (lst &optional access-fn)
   "Return a sorted copy of LST, LST being a list of strings.
@@ -1130,18 +1130,18 @@ Return full path if FULL-FLAG is non-nil."
 	  (dirs  nil))
       (dolist (this (file-name-all-completions "" dir))
 	(cond
-	 ((string-match "^\\.+/$" this)
+	 ((string-match-p "^\\.+/$" this)
 	  nil)
-	 ((string-match "[:/\\]$" this)
+	 ((string-match-p "[:/\\]$" this)
 	  (when (or (not match-dirs-flag)
 		    (not pattern)
-		    (string-match pattern this))
+		    (string-match-p pattern this))
 	    (filesets-message 5 "Filesets: matched dir %S with pattern %S"
 			      this pattern)
 	    (setq dirs (cons this dirs))))
 	 (t
 	  (when (or (not pattern)
-		    (string-match pattern this))
+		    (string-match-p pattern this))
 	    (filesets-message 5 "Filesets: matched file %S with pattern %S"
 			      this pattern)
 	    (setq files (cons (if full-flag
@@ -1249,7 +1249,7 @@ Return full path if FULL-FLAG is non-nil."
   (let ((filename (file-name-nondirectory file)))
     (filesets-some
      (lambda (entry)
-       (when (and (string-match (nth 0 entry) filename)
+       (when (and (string-match-p (nth 0 entry) filename)
 		  (filesets-eviewer-constraint-p entry))
 	 entry))
      filesets-external-viewers)))
@@ -1286,11 +1286,11 @@ on-close-all ... Not used"
 	      (or entry
 		  (filesets-get-external-viewer filename)))))
     (filesets-alist-get def
-			(case event
-			  ((on-open-all)       ':ignore-on-open-all)
-			  ((on-grep)           ':ignore-on-read-text)
-			  ((on-cmd) nil)
-			  ((on-close-all) nil))
+			(pcase event
+			  (`on-open-all       ':ignore-on-open-all)
+			  (`on-grep           ':ignore-on-read-text)
+			  (`on-cmd nil)
+			  (`on-close-all nil))
 			nil t)))
 
 (defun filesets-filetype-get-prop (property filename &optional entry)
@@ -1559,11 +1559,9 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
 
 (defun filesets-get-fileset-from-name (name &optional mode)
   "Get fileset definition for NAME."
-  (case mode
-    ((:ingroup :tree)
-     name)
-    (t
-     (assoc name filesets-data))))
+  (pcase mode
+    ((or `:ingroup `:tree) name)
+    (_ (assoc name filesets-data))))
 
 
 ;;; commands
@@ -1720,22 +1718,22 @@ Replace <file-name> or <<file-name>> with filename."
 Assume MODE (see `filesets-entry-mode'), if provided."
   (let* ((mode (or mode
 		   (filesets-entry-mode entry)))
-	 (fl (case mode
-	       ((:files)
+	 (fl (pcase mode
+	       (:files
 		(filesets-entry-get-files entry))
-	       ((:file)
+	       (:file
 		(list (filesets-entry-get-file entry)))
-	       ((:ingroup)
+	       (:ingroup
 		(let ((entry (expand-file-name
 			      (if (stringp entry)
 				  entry
 				(filesets-entry-get-master entry)))))
 		  (cons entry (filesets-ingroup-cache-get entry))))
-	       ((:tree)
+	       (:tree
 		(let ((dir  (nth 0 entry))
 		      (patt (nth 1 entry)))
 		  (filesets-directory-files dir patt ':files t)))
-	       ((:pattern)
+	       (:pattern
 		(let ((dirpatt (filesets-entry-get-pattern entry)))
 		  (if dirpatt
 		      (let ((dir (filesets-entry-get-pattern--dir dirpatt))
@@ -1904,12 +1902,12 @@ User will be queried, if no fileset name is provided."
       (let* ((result  nil)
 	     (factor (ceiling (/ (float bl)
 				 filesets-max-submenu-length))))
-	(do ((data  submenu-body (cdr data))
-	     (n     1            (+ n 1))
-	     (count 0            (+ count factor)))
+	(cl-do ((data  submenu-body (cdr data))
+                (n     1            (+ n 1))
+                (count 0            (+ count factor)))
 	    ((or (> count bl)
 		 (null data)))
-;	  (let ((sl (subseq submenu-body count
+	  ;; (let ((sl (subseq submenu-body count
 	  (let ((sl (filesets-sublist submenu-body count
 				      (let ((x (+ count factor)))
 					(if (>= bl x)
@@ -1926,7 +1924,7 @@ User will be queried, if no fileset name is provided."
 		       `((,(concat
 			    (filesets-get-shortcut n)
 			    (let ((rv ""))
-			      (do ((x sl (cdr x)))
+			      (cl-do ((x sl (cdr x)))
 				  ((null x))
 				(let ((y (concat (elt (car x) 0)
 						 (if (null (cdr x))
@@ -1952,8 +1950,8 @@ User will be queried, if no fileset name is provided."
   "Get submenu epilog for SOMETHING (usually a fileset).
 If mode is :tree or :ingroup, SOMETHING is some weird construct and
 LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
-  (case mode
-    ((:tree)
+  (pcase mode
+    (:tree
      `("---"
        ["Close all files" (filesets-close ',mode ',something ',lookup-name)]
        ["Run Command"     (filesets-run-cmd nil ',something ',mode)]
@@ -1962,14 +1960,14 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    ((:ingroup)
+    (:ingroup
      `("---"
        ["Close all files" (filesets-close ',mode ',something ',lookup-name)]
        ["Run Command"     (filesets-run-cmd nil ',something ',mode)]
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    ((:pattern)
+    (:pattern
      `("---"
        ["Close all files" (filesets-close ',mode ',something)]
        ["Run Command"     (filesets-run-cmd nil ',something ',mode)]
@@ -1986,7 +1984,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    ((:files)
+    (:files
      `("---"
        [,(concat "Close all files") (filesets-close ',mode ',something)]
        ["Run Command"               (filesets-run-cmd nil ',something ',mode)]
@@ -1997,7 +1995,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
        ,@(when rebuild-flag
 	   `(["Rebuild this submenu"
 	      (filesets-rebuild-this-submenu ',lookup-name)]))))
-    (t
+    (_
      (filesets-error 'error "Filesets: malformed definition of " something))))
 
 (defun filesets-ingroup-get-data (master pos &optional fun)
@@ -2006,7 +2004,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 	(fn (or fun (lambda (a b)
 		      (and (stringp a)
 			   (stringp b)
-			   (string-match a b))))))
+			   (string-match-p a b))))))
     (filesets-some (lambda (x)
 		     (if (funcall fn (car x) masterfile)
 			 (nth pos x)
@@ -2249,15 +2247,15 @@ Construct a shortcut from COUNT."
 	  (filesets-verbosity (filesets-entry-get-verbosity entry))
 	  (this-lookup-name (concat (filesets-get-shortcut count)
 				    lookup-name)))
-      (case mode
-	((:file)
+      (pcase mode
+	(:file
 	 (let* ((file (filesets-entry-get-file entry)))
 	   `[,this-lookup-name
 	     (filesets-file-open nil ',file ',lookup-name)]))
-	(t
+	(_
 	 `(,this-lookup-name
-	   ,@(case mode
-	       ((:pattern)
+	   ,@(pcase mode
+	       (:pattern
 		(let* ((files    (filesets-get-filelist entry mode 'on-ls))
 		       (dirpatt  (filesets-entry-get-pattern entry))
 		       (pattname (apply 'concat (cons "Pattern: " dirpatt)))
@@ -2276,7 +2274,7 @@ Construct a shortcut from COUNT."
 			files))
 		    ,@(filesets-get-menu-epilog lookup-name mode
 						lookup-name t))))
-	       ((:ingroup)
+	       (:ingroup
 		(let* ((master (filesets-entry-get-master entry)))
 		  ;;(filesets-message 3 "Filesets: parsing %S" master)
 		  `([,(concat "Inclusion Group: "
@@ -2288,12 +2286,12 @@ Construct a shortcut from COUNT."
 		    ,@(filesets-wrap-submenu
 		       (filesets-build-ingroup-submenu lookup-name master))
 		    ,@(filesets-get-menu-epilog master mode lookup-name t))))
-	       ((:tree)
+	       (:tree
 		(let* ((dirpatt (filesets-entry-get-tree entry))
 		       (dir     (car dirpatt))
 		       (patt    (cadr dirpatt)))
 		  (filesets-build-dir-submenu entry lookup-name dir patt)))
-	       ((:files)
+	       (:files
 		(let ((files (filesets-get-filelist entry mode 'on-open-all))
 		      (count 0))
 		  `([,(concat "Files: " lookup-name)
@@ -2331,9 +2329,9 @@ bottom up, set `filesets-submenus' to nil, first.)"
     (setq filesets-has-changed-flag nil)
     (setq filesets-updated-buffers nil)
     (setq filesets-update-cache-file-flag t)
-    (do ((data  (filesets-conditional-sort filesets-data (function car))
-		(cdr data))
-	 (count 1 (+ count 1)))
+    (cl-do ((data  (filesets-conditional-sort filesets-data (function car))
+                   (cdr data))
+            (count 1 (+ count 1)))
 	((null data))
       (let* ((this    (car data))
 	     (name    (filesets-data-get-name this))
@@ -2418,7 +2416,7 @@ fileset thinks this is necessary or not."
       (when filesets-cache-hostname-flag
 	(insert (format "(setq filesets-cache-hostname %S)" (system-name)))
 	(newline 2))
-      (run-hooks 'filesets-cache-fill-content-hooks)
+      (run-hooks 'filesets-cache-fill-content-hook)
       (write-file filesets-menu-cache-file))
     (setq filesets-has-changed-flag nil)
     (setq filesets-update-cache-file-flag nil)))

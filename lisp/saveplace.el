@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
@@ -56,20 +56,19 @@ This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
 This variable is automatically buffer-local.
 
-If you wish your place in any file to always be automatically saved,
-simply put this in your `~/.emacs' file:
+If you wish your place in any file to always be automatically
+saved, set this to t using the Customize facility, or put the
+following code in your init file:
 
 \(setq-default save-place t)
-\(require 'saveplace)
-
-or else use the Custom facility to set this option."
+\(require 'saveplace)"
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
 
 (make-variable-buffer-local 'save-place)
 
-(defcustom save-place-file (convert-standard-filename "~/.emacs-places")
+(defcustom save-place-file (locate-user-emacs-file "places" ".emacs-places")
   "Name of the file that records `save-place-alist' value."
   :type 'file
   :group 'save-place)
@@ -148,7 +147,8 @@ even in a later Emacs session.
 If called with a prefix arg, the mode is enabled if and only if
 the argument is positive.
 
-To save places automatically in all files, put this in your `.emacs' file:
+To save places automatically in all files, put this in your init
+file:
 
 \(setq-default save-place t\)"
   (interactive "P")
@@ -169,22 +169,24 @@ To save places automatically in all files, put this in your `.emacs' file:
   ;; file.  If not, do so, then feel free to modify the alist.  It
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))
-  (when (and buffer-file-name
-	     (or (not save-place-ignore-files-regexp)
-		 (not (string-match save-place-ignore-files-regexp
-				    buffer-file-name))))
-    (let ((cell (assoc buffer-file-name save-place-alist))
-	  (position (if (not (eq major-mode 'hexl-mode))
-			(point)
-		      (with-no-warnings
-			(1+ (hexl-current-address))))))
-      (if cell
-	  (setq save-place-alist (delq cell save-place-alist)))
-      (if (and save-place
-	       (not (= position 1)))  ;; Optimize out the degenerate case.
-	  (setq save-place-alist
-		(cons (cons buffer-file-name position)
-		      save-place-alist))))))
+  (let ((item (or buffer-file-name
+                  (and dired-directory (expand-file-name dired-directory)))))
+    (when (and item
+               (or (not save-place-ignore-files-regexp)
+                   (not (string-match save-place-ignore-files-regexp
+                                      item))))
+      (let ((cell (assoc item save-place-alist))
+            (position (if (not (eq major-mode 'hexl-mode))
+                          (point)
+                        (with-no-warnings
+                          (1+ (hexl-current-address))))))
+        (if cell
+            (setq save-place-alist (delq cell save-place-alist)))
+        (if (and save-place
+                 (not (= position 1)))  ;; Optimize out the degenerate case.
+            (setq save-place-alist
+                  (cons (cons item position)
+                        save-place-alist)))))))
 
 (defun save-place-forget-unreadable-files ()
   "Remove unreadable files from `save-place-alist'.
@@ -224,9 +226,7 @@ may have changed\) back to `save-place-alist'."
                       (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))
-        (pp (sort save-place-alist
-                  (lambda (a b) (string< (car a) (car b))))
-            (current-buffer)))
+        (pp save-place-alist (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)
@@ -302,6 +302,17 @@ may have changed\) back to `save-place-alist'."
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
 
+(defun save-place-dired-hook ()
+  "Position the point in a dired buffer."
+  (or save-place-loaded (load-save-place-alist-from-file))
+  (let ((cell (assoc (expand-file-name dired-directory) save-place-alist)))
+    (if cell
+        (progn
+          (or revert-buffer-in-progress-p
+              (goto-char (cdr cell)))
+          ;; and make sure it will be saved again for later
+          (setq save-place t)))))
+
 (defun save-place-kill-emacs-hook ()
   ;; First update the alist.  This loads the old save-place-file if nec.
   (save-places-to-alist)
@@ -312,6 +323,7 @@ may have changed\) back to `save-place-alist'."
 
 (add-hook 'find-file-hook 'save-place-find-file-hook t)
 
+(add-hook 'dired-initial-point-hook 'save-place-dired-hook)
 (unless noninteractive
   (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook))
 

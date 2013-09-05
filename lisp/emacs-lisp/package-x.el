@@ -1,19 +1,18 @@
 ;;; package-x.el --- Package extras
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
-;; Version: 0.9
 ;; Keywords: tools
 ;; Package: package
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -164,9 +161,11 @@ DESCRIPTION is the text of the news item."
 			       description
 			       archive-url))
 
-(defun package-upload-buffer-internal (pkg-info extension &optional archive-url)
+(declare-function lm-commentary "lisp-mnt" (&optional file))
+
+(defun package-upload-buffer-internal (pkg-desc extension &optional archive-url)
   "Upload a package whose contents are in the current buffer.
-PKG-INFO is the package info, see `package-buffer-info'.
+PKG-DESC is the `package-desc'.
 EXTENSION is the file extension, a string.  It can be either
 \"el\" or \"tar\".
 
@@ -198,32 +197,33 @@ if it exists."
 	(error "Aborted")))
     (save-excursion
       (save-restriction
-	(let* ((file-type (cond
-			   ((equal extension "el") 'single)
-			   ((equal extension "tar") 'tar)
-			   (t (error "Unknown extension `%s'" extension))))
-	       (file-name (aref pkg-info 0))
-	       (pkg-name (intern file-name))
-	       (requires (aref pkg-info 1))
-	       (desc (if (string= (aref pkg-info 2) "")
+	(let* ((file-type (package-desc-kind pkg-desc))
+	       (pkg-name (package-desc-name pkg-desc))
+	       (requires (package-desc-reqs pkg-desc))
+	       (desc (if (eq (package-desc-summary pkg-desc)
+                             package--default-summary)
 			 (read-string "Description of package: ")
-		       (aref pkg-info 2)))
-	       (pkg-version (aref pkg-info 3))
-	       (commentary (aref pkg-info 4))
-	       (split-version (version-to-list pkg-version))
+		       (package-desc-summary pkg-desc)))
+	       (split-version (package-desc-version pkg-desc))
+	       (commentary
+                (pcase file-type
+                  (`single (lm-commentary))
+                  (`tar nil))) ;; FIXME: Get it from the README file.
+	       (pkg-version (package-version-join split-version))
 	       (pkg-buffer (current-buffer)))
 
 	  ;; Get archive-contents from ARCHIVE-URL if it's non-nil, or
 	  ;; from `package-archive-upload-base' otherwise.
 	  (let ((contents (or (package--archive-contents-from-url archive-url)
 			      (package--archive-contents-from-file)))
-		(new-desc (vector split-version requires desc file-type)))
+		(new-desc (package-make-ac-desc
+                           split-version requires desc file-type)))
 	    (if (> (car contents) package-archive-version)
 		(error "Unrecognized archive version %d" (car contents)))
 	    (let ((elt (assq pkg-name (cdr contents))))
 	      (if elt
 		  (if (version-list-<= split-version
-				       (package-desc-vers (cdr elt)))
+				       (package--ac-desc-version (cdr elt)))
 		      (error "New package has smaller version: %s" pkg-version)
 		    (setcdr elt new-desc))
 		(setq contents (cons (car contents)
@@ -234,6 +234,7 @@ if it exists."
 	    ;; this and the package itself.  For now we assume ELPA is
 	    ;; writable via file primitives.
 	    (let ((print-level nil)
+                  (print-quoted t)
 		  (print-length nil))
 	      (write-region (concat (pp-to-string contents) "\n")
 			    nil
@@ -243,29 +244,29 @@ if it exists."
 	    ;; If there is a commentary section, write it.
 	    (when commentary
 	      (write-region commentary nil
-			    (expand-file-name
-			     (concat (symbol-name pkg-name) "-readme.txt")
-			     package-archive-upload-base)))
+	        	    (expand-file-name
+	        	     (concat (symbol-name pkg-name) "-readme.txt")
+	        	     package-archive-upload-base)))
 
 	    (set-buffer pkg-buffer)
 	    (write-region (point-min) (point-max)
 			  (expand-file-name
-			   (concat file-name "-" pkg-version "." extension)
+			   (format "%s-%s.%s" pkg-name pkg-version extension)
 			   package-archive-upload-base)
 			  nil nil nil 'excl)
 
 	    ;; Write a news entry.
 	    (and package-update-news-on-upload
 		 archive-url
-		 (package--update-news (concat file-name "." extension)
+		 (package--update-news (format "%s.%s" pkg-name extension)
 				       pkg-version desc archive-url))
 
 	    ;; special-case "package": write a second copy so that the
 	    ;; installer can easily find the latest version.
-	    (if (string= file-name "package")
+	    (if (eq pkg-name 'package)
 		(write-region (point-min) (point-max)
 			      (expand-file-name
-			       (concat file-name "." extension)
+			       (format "%s.%s" pkg-name extension)
 			       package-archive-upload-base)
 			      nil nil nil 'ask))))))))
 
@@ -277,8 +278,8 @@ destination, prompt for one."
   (save-excursion
     (save-restriction
       ;; Find the package in this buffer.
-      (let ((pkg-info (package-buffer-info)))
-	(package-upload-buffer-internal pkg-info "el")))))
+      (let ((pkg-desc (package-buffer-info)))
+	(package-upload-buffer-internal pkg-desc "el")))))
 
 (defun package-upload-file (file)
   "Upload the Emacs Lisp package FILE to the package archive.
@@ -289,13 +290,15 @@ If `package-archive-upload-base' does not specify a valid upload
 destination, prompt for one."
   (interactive "fPackage file name: ")
   (with-temp-buffer
-    (insert-file-contents-literally file)
-    (let ((info (cond
-		 ((string-match "\\.tar$" file) (package-tar-file-info file))
-		 ((string-match "\\.el$" file) (package-buffer-info))
-		 (t (error "Unrecognized extension `%s'"
-			   (file-name-extension file))))))
-      (package-upload-buffer-internal info (file-name-extension file)))))
+    (insert-file-contents file)
+    (let ((pkg-desc
+           (cond
+            ((string-match "\\.tar\\'" file)
+             (tar-mode) (package-tar-file-info))
+            ((string-match "\\.el\\'" file) (package-buffer-info))
+            (t (error "Unrecognized extension `%s'"
+                      (file-name-extension file))))))
+      (package-upload-buffer-internal pkg-desc (file-name-extension file)))))
 
 (defun package-gnus-summary-upload ()
   "Upload a package contained in the current *Article* buffer.

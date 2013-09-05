@@ -1,5 +1,5 @@
-# gnulib-common.m4 serial 32
-dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
+# gnulib-common.m4 serial 33
+dnl Copyright (C) 2007-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -30,7 +30,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 [/* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of
    earlier versions), but does not display it by setting __GNUC_STDC_INLINE__.
-   __APPLE__ && __MACH__ test for MacOS X.
+   __APPLE__ && __MACH__ test for Mac OS X.
    __APPLE_CC__ tests for the Apple compiler and its version.
    __STDC_VERSION__ tests for the C99 mode.  */
 #if defined __APPLE__ && defined __MACH__ && __APPLE_CC__ >= 5465 && !defined __cplusplus && __STDC_VERSION__ >= 199901L && !defined __GNUC_STDC_INLINE__
@@ -294,6 +294,8 @@ Amsterdam
 # for interoperability with automake-1.9.6 from autoconf-2.62.
 # Remove this macro when we can assume autoconf >= 2.62 or
 # autoconf >= 2.60 && automake >= 1.10.
+# AC_AUTOCONF_VERSION was introduced in 2.62, so use that as the witness.
+m4_ifndef([AC_AUTOCONF_VERSION],[
 m4_ifdef([AC_PROG_MKDIR_P], [
   dnl For automake-1.9.6 && autoconf < 2.62: Ensure MKDIR_P is AC_SUBSTed.
   m4_define([AC_PROG_MKDIR_P],
@@ -304,13 +306,15 @@ m4_ifdef([AC_PROG_MKDIR_P], [
     [AC_REQUIRE([AM_PROG_MKDIR_P])dnl defined by automake
      MKDIR_P='$(mkdir_p)'
      AC_SUBST([MKDIR_P])])])
+])
 
 # AC_C_RESTRICT
 # This definition overrides the AC_C_RESTRICT macro from autoconf 2.60..2.61,
 # so that mixed use of GNU C and GNU C++ and mixed use of Sun C and Sun C++
 # works.
 # This definition can be removed once autoconf >= 2.62 can be assumed.
-m4_if(m4_version_compare(m4_defn([m4_PACKAGE_VERSION]),[2.62]),[-1],[
+# AC_AUTOCONF_VERSION was introduced in 2.62, so use that as the witness.
+m4_ifndef([AC_AUTOCONF_VERSION],[
 AC_DEFUN([AC_C_RESTRICT],
 [AC_CACHE_CHECK([for C/C++ restrict keyword], [ac_cv_c_restrict],
   [ac_cv_c_restrict=no

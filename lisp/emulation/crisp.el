@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997-1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
@@ -44,17 +44,15 @@
 ;; by default run `save-buffers-kill-emacs' instead of the command
 ;; `execute-extended-command'.
 
-;; Finally, if you want to change the string displayed in the modeline
-;; when this mode is in effect, override the definition of
-;; `crisp-mode-modeline-string' in your .emacs.  The default value is
+;; Finally, if you want to change the string displayed in the mode
+;; line when this mode is in effect, override the definition of
+;; `crisp-mode-mode-line-string' in your .emacs.  The default value is
 ;; " *Crisp*" which may be a bit lengthy if you have a lot of things
 ;; being displayed there.
 
 ;; All these overrides should go *before* the (require 'crisp) statement.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 ;; local variables
 
@@ -173,8 +171,11 @@
 All the bindings are done here instead of globally to try and be
 nice to the world.")
 
-(defcustom crisp-mode-modeline-string " *CRiSP*"
-  "String to display in the modeline when CRiSP emulation mode is enabled."
+(define-obsolete-variable-alias 'crisp-mode-modeline-string
+  'crisp-mode-mode-line-string "24.3")
+
+(defcustom crisp-mode-mode-line-string " *CRiSP*"
+  "String to display in the mode line when CRiSP emulation mode is enabled."
   :type 'string
   :group 'crisp)
 
@@ -354,11 +355,11 @@ With a prefix argument ARG, enable CRiSP mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
   :keymap crisp-mode-map
-  :lighter crisp-mode-modeline-string
+  :lighter crisp-mode-mode-line-string
   (when crisp-mode
     ;; Make menu entries show M-u or f14 in preference to C-x u.
     (put 'undo :advertised-binding
-         (list* [?\M-u] [f14] (get 'undo :advertised-binding)))
+         `([?\M-u] [f14] ,@(get 'undo :advertised-binding)))
     ;; Force transient-mark-mode, so that the marking routines work as
     ;; expected.  If the user turns off transient mark mode, most
     ;; things will still work fine except the crisp-(copy|kill)

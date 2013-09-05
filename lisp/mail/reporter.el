@@ -1,6 +1,6 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993-1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
 ;; Maintainer:      FSF
@@ -341,10 +341,10 @@ mail-sending package is used for editing and sending the message."
     (mail-position-on-field "to")
     (insert address)
     ;; insert problem summary if available
-    (if (and reporter-prompt-for-summary-p problem pkgname)
-	(progn
-	  (mail-position-on-field "subject")
-	  (insert pkgname "; " problem)))
+    (when (and reporter-prompt-for-summary-p problem)
+      (mail-position-on-field "subject")
+      (if pkgname (insert pkgname "; "))
+      (insert problem))
     ;; move point to the body of the message
     (mail-text)
     (forward-line 1)

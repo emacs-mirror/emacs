@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Milan Zamazal <pdm@zamazal.org>
@@ -49,10 +49,6 @@
 ;; should call the function `glasses-set-overlay-properties' afterwards.
 
 ;;; Code:
-
-
-(eval-when-compile
-  (require 'cl))
 
 
 ;;; User variables
