@@ -292,7 +292,7 @@ static struct input_event * volatile kbd_store_ptr;
    at inopportune times.  */
 
 /* Symbols to head events.  */
-static Lisp_Object Qmouse_movement;
+Lisp_Object Qmouse_movement;
 static Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
 static Lisp_Object Qfocus_in, Qfocus_out;

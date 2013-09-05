@@ -139,7 +139,7 @@ struct cm
 #define MultiDownCost(tty)	(tty)->Wcm->cc_multidown
 #define MultiLeftCost(tty)	(tty)->Wcm->cc_multileft
 #define MultiRightCost(tty)	(tty)->Wcm->cc_multiright
-#endif
+#endif	/* NoCMShortHand */
 
 #define cmat(tty,row,col)	(curY(tty) = (row), curX(tty) = (col))
 #define cmplus(tty,n)					            \

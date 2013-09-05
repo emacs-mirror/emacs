@@ -20602,10 +20602,11 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
 {
   struct it it;
   struct frame *f = SELECTED_FRAME ();
+  struct window *w = XWINDOW (f->selected_window);
   int saved_used, saved_truncated, saved_width;
   struct glyph_row *row;
 
-  xassert (FRAME_TERMCAP_P (f));
+  eassert (FRAME_TERMCAP_P (f));
 
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows + y, MENU_FACE_ID);
   it.first_visible_x = 0;

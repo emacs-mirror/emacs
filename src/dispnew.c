@@ -3185,8 +3185,9 @@ void
 update_frame_with_menu (struct frame *f)
 {
   struct window *root_window = XWINDOW (f->root_window);
+  bool paused_p;
 
-  xassert (FRAME_TERMCAP_P (f));
+  eassert (FRAME_TERMCAP_P (f));
 
   /* We are working on frame matrix basis.  Set the frame on whose
      frame matrix we operate.  */

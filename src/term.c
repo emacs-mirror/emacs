@@ -2935,8 +2935,8 @@ tty_menu_display (tty_menu *menu, int y, int x, int pn, int *faces,
   menu_help_message = NULL;
 
   width = menu->width;
-  col = curX (tty);
-  row = curY (tty);
+  col = cursorX (tty);
+  row = cursorY (tty);
 #if 0
   IT_update_begin (sf);		/* FIXME: do we need an update_begin_hook? */
 #endif
@@ -2974,8 +2974,8 @@ have_menus_p (void) {  return 1; }
 
 /* Create a new pane and place it on the outer-most level.  */
 
-int
-tty_menu_add_pane (Display *foo, tty_menu *menu, const char *txt)
+static int
+tty_menu_add_pane (tty_menu *menu, const char *txt)
 {
   int len;
   const char *p;
@@ -3112,6 +3112,7 @@ free_saved_screen (struct glyph_matrix *saved)
   for (i = 0; i < saved->nrows; ++i)
     {
       struct glyph_row *from = saved->rows + i;
+      short nbytes;
 
       xfree (from->glyphs[TEXT_AREA]);
       nbytes = from->used[LEFT_MARGIN_AREA];
@@ -3145,7 +3146,7 @@ read_menu_input (int *x, int *y)
   while (1)
     {
       do {
-	c = read_char (-2, 0, NULL, Qnil, NULL, NULL);
+	c = read_char (-2, Qnil, Qnil, NULL, NULL);
       } while (BUFFERP (c) || (INTEGERP (c) && XINT (c) == -2));
 
       if (INTEGERP (c))
@@ -3188,6 +3189,38 @@ read_menu_input (int *x, int *y)
     }
 }
 
+/* FIXME */
+static bool mouse_visible;
+static void
+mouse_off (void)
+{
+  mouse_visible = false;
+}
+
+static void
+mouse_on (void)
+{
+  mouse_visible = true;
+}
+
+static bool
+mouse_pressed (int b, int *x, int *y)
+{
+  return false;
+}
+
+static bool
+mouse_button_depressed (int b, int *x, int *y)
+{
+  return false;
+}
+
+static bool
+mouse_released (int b, int *x, int *y)
+{
+  return true;
+}
+
 /* Display menu, wait for user's response, and return that response.  */
 int
 tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
@@ -3195,7 +3228,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		   void (*help_callback)(char const *, int, int))
 {
   struct tty_menu_state *state;
-  int statecount, x, y, i, b, screensize, leave, result, onepane;
+  int statecount, x, y, i, b, leave, result, onepane;
   int title_faces[4];		/* face to display the menu title */
   int faces[4], buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME ();
@@ -3208,12 +3241,13 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   if (y0 <= 0)
     y0 = 1;
 
+#if 0
   /* We will process all the mouse events directly.  */
   mouse_preempted++;
+#endif
 
   state = alloca (menu->panecount * sizeof (struct tty_menu_state));
   memset (state, 0, sizeof (*state));
-  screensize = screen_size * 2;
   faces[0]
     = lookup_derived_face (sf, intern ("tty-menu-disabled-face"),
 			   DEFAULT_FACE_ID, 1);
@@ -3287,6 +3321,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   leave = 0;
   while (!leave)
     {
+      int mouse_button_count = 3; /* FIXME */
+
       if (!mouse_visible) mouse_on ();
       read_menu_input (&x, &y);
       if (sf->mouse_moved)
@@ -3317,7 +3353,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			{
 			  statecount--;
 			  mouse_off (); /* FIXME */
-			  screen_update (state[statecount].screen_behind);
+			  screen_update (sf, state[statecount].screen_behind);
 			  state[statecount].screen_behind = NULL;
 			}
 		    if (i == statecount - 1 && state[i].menu->submenu[dy])
@@ -3412,11 +3448,15 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
      (which invoked the menu) too quickly.  If we don't remove these events,
      Emacs will process them after we return and surprise the user.  */
   discard_mouse_events ();
+#if 0
   mouse_clear_clicks ();
-  if (!kbd_buffer_events_waiting (1))
+#endif
+  if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
+#if 0
   /* Allow mouse events generation by dos_rawgetc.  */
   mouse_preempted--;
+#endif
   return result;
 }
 
@@ -3440,8 +3480,53 @@ tty_menu_destroy (tty_menu *menu)
   menu_help_message = prev_menu_help_message = NULL;
 }
 
+static struct frame *tty_menu_help_frame;
+
+/* Show help HELP_STRING, or clear help if HELP_STRING is null.
+
+   PANE is the pane number, and ITEM is the menu item number in
+   the menu (currently not used).
+
+   This cannot be done with generating a HELP_EVENT because
+   XMenuActivate contains a loop that doesn't let Emacs process
+   keyboard events.
+
+   FIXME: Do we need this in TTY menus?  */
+
+static void
+tty_menu_help_callback (char const *help_string, int pane, int item)
+{
+  Lisp_Object *first_item;
+  Lisp_Object pane_name;
+  Lisp_Object menu_object;
+
+  first_item = XVECTOR (menu_items)->contents;
+  if (EQ (first_item[0], Qt))
+    pane_name = first_item[MENU_ITEMS_PANE_NAME];
+  else if (EQ (first_item[0], Qquote))
+    /* This shouldn't happen, see xmenu_show.  */
+    pane_name = empty_unibyte_string;
+  else
+    pane_name = first_item[MENU_ITEMS_ITEM_NAME];
+
+  /* (menu-item MENU-NAME PANE-NUMBER)  */
+  menu_object = list3 (Qmenu_item, pane_name, make_number (pane));
+  show_help_echo (help_string ? build_string (help_string) : Qnil,
+ 		  Qnil, menu_object, make_number (item));
+}
+
+static void
+tty_pop_down_menu (Lisp_Object arg)
+{
+  tty_menu *menu = XSAVE_POINTER (arg, 0);
+
+  block_input ();
+  tty_menu_destroy (menu);
+  unblock_input ();
+}
+
 Lisp_Object
-tty_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	       Lisp_Object title, const char **error_name)
 {
   tty_menu *menu;
@@ -3457,7 +3542,7 @@ tty_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_TERMCAP_P (f))
-    abort ();
+    emacs_abort ();
 
   *error_name = 0;
   if (menu_items_n_panes == 0)
@@ -3631,15 +3716,13 @@ tty_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
   pane = selidx = 0;
 
-  record_unwind_protect (pop_down_menu,
-                         Fcons (make_save_value (f, 0),
-                                make_save_value (menu, 0)));
+  record_unwind_protect (tty_pop_down_menu, make_save_ptr (menu));
 
   /* Help display under X won't work because XMenuActivate contains
-     a loop that doesn't give Emacs a chance to process it.  */
-  menu_help_frame = f;
+     a loop that doesn't give Emacs a chance to process it.  FIXME.  */
+  tty_menu_help_frame = f;
   status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
-			      menu_help_callback);
+			      tty_menu_help_callback);
   entry = pane_prefix = Qnil;
 
   switch (status)

@@ -3460,6 +3460,7 @@ extern bool update_frame (struct frame *, bool, bool);
 extern void update_frame_with_menu (struct frame *);
 extern void bitch_at_user (void);
 void adjust_glyphs (struct frame *);
+struct glyph_matrix *save_current_matrix (struct frame *);
 void free_glyphs (struct frame *);
 void free_window_matrices (struct window *);
 void check_glyph_memory (void);
