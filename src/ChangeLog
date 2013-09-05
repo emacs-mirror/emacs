@@ -1,3 +1,7 @@
+2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Fself_insert_command): Don't pass a non-integer to XINT.
+
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (make_event_array): First arg is now ptrdiff_t, not int.

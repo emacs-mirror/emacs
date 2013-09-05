@@ -304,7 +304,7 @@ At the end, it runs `post-self-insert-hook'.  */)
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
     bitch_at_user ();
-  {
+  else {
     int character = translate_char (Vtranslation_table_for_input,
 				    XINT (last_command_event));
     int val = internal_self_insert (character, XFASTINT (n));
