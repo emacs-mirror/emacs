@@ -3227,7 +3227,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 				  faces[1], 1);
 
   /* Make sure the menu title is always displayed with
-     `msdos-menu-active-face', no matter where the mouse pointer is.  */
+     `tty-menu-selected-face', no matter where the mouse pointer is.  */
   for (i = 0; i < 4; i++)
     title_faces[i] = faces[3];
 
