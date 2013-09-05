@@ -2135,8 +2135,15 @@ terminal type to a different value."
 (defun tty-set-up-initial-frame-faces ()
   (let ((frame (selected-frame)))
     (frame-set-background-mode frame t)
-    (face-set-after-frame-default frame)))
-
+    (face-set-after-frame-default frame)
+    (make-face 'tty-menu-enabled-face)
+    (make-face 'tty-menu-disabled-face)
+    (make-face 'tty-menu-selected-face)
+    (set-face-foreground 'tty-menu-enabled-face "yellow")
+    (set-face-foreground 'tty-menu-disabled-face "white")
+    (set-face-background 'tty-menu-enabled-face "blue")
+    (set-face-background 'tty-menu-disabled-face "blue")
+    (set-face-background 'tty-menu-selected-face "red")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

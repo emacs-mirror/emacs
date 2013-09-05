@@ -1077,8 +1077,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   {
     bool get_current_pos_p = 0;
 
-    check_window_system (SELECTED_FRAME ());
-
     /* Decode the first argument: find the window and the coordinates.  */
     if (EQ (position, Qt)
 	|| (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
@@ -1193,11 +1191,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 			  INT_MAX - ypos);
     xpos += XINT (x);
     ypos += XINT (y);
-
-    /* FIXME: Find a more general check!  */
-    if (!(FRAME_X_P (f) || FRAME_MSDOS_P (f)
-	  || FRAME_W32_P (f) || FRAME_NS_P (f)))
-      error ("Can not put GUI menu on this terminal");
 
     XSETFRAME (Vmenu_updating_frame, f);
   }
