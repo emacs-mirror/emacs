@@ -59,6 +59,30 @@
 
 2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/vc-dispatcher.el (vc-run-delayed): New macro.
+	(vc-do-command, vc-set-async-update):
+	* vc/vc-mtn.el (vc-mtn-dir-status):
+	* vc/vc-hg.el (vc-hg-dir-status, vc-hg-dir-status-files)
+	(vc-hg-pull, vc-hg-merge-branch):
+	* vc/vc-git.el (vc-git-dir-status-goto-stage, vc-git-pull)
+	(vc-git-merge-branch):
+	* vc/vc-cvs.el (vc-cvs-print-log, vc-cvs-dir-status)
+	(vc-cvs-dir-status-files):
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch, vc-bzr-dir-status)
+	(vc-bzr-dir-status-files):
+	* vc/vc-arch.el (vc-arch-dir-status): Use vc-run-delayed.
+	* vc/vc-annotate.el: Use lexical-binding.
+	(vc-annotate-display-select, vc-annotate): Use vc-run-delayed.
+	(vc-sentinel-movepoint): Declare.
+	(vc-annotate): Don't use `goto-line'.
+	* vc/vc.el (vc-diff-internal): Prefer a closure to `(lambda...).
+	(vc-diff-internal, vc-log-internal-common): Use vc-run-delayed.
+	(vc-sentinel-movepoint): Declare.
+	* vc/vc-svn.el: Use lexical-binding.
+	(vc-svn-dir-status, vc-svn-dir-status-files): Use vc-run-delayed.
+	* vc/vc-sccs.el:
+	* vc/vc-rcs.el: Use lexical-binding.
+
 	* autorevert.el (auto-revert-notify-handler): Explicitly ignore
 	`deleted'.  Don't drop errors silently.
 
