@@ -433,15 +433,17 @@ static void error(char *format, ...)
 
 #define ALIGNMENT sizeof(mps_word_t)
 
-#define ALIGN_UP(size) \
+/* Align size upwards to the next multiple of the word size. */
+#define ALIGN_WORD(size) \
   (((size) + ALIGNMENT - 1) & ~(ALIGNMENT - 1))
 
-/* Align size upwards and ensure that it's big enough to store a
- * forwarding pointer. */
-#define ALIGN(size)                                \
-    (ALIGN_UP(size) >= ALIGN_UP(sizeof(fwd_s))     \
-     ? ALIGN_UP(size)                              \
-     : ALIGN_UP(sizeof(fwd_s)))
+/* Align size upwards to the next multiple of the word size, and
+ * additionally ensure that it's big enough to store a forwarding
+ * pointer. Evaluates its argument twice. */
+#define ALIGN_OBJ(size)                                \
+  (ALIGN_WORD(size) >= ALIGN_WORD(sizeof(fwd_s))       \
+   ? ALIGN_WORD(size)                                  \
+   : ALIGN_WORD(sizeof(fwd_s)))
 
 static obj_t make_bool(int condition)
 {
@@ -455,7 +457,7 @@ static obj_t make_pair(obj_t car, obj_t cdr)
   /* When using the allocation point protocol it is up to the client
      code to ensure that all requests are for aligned sizes, because in
      nearly all cases `mps_reserve` is just an increment to a pointer. */
-  size_t size = ALIGN(sizeof(pair_s));
+  size_t size = ALIGN_OBJ(sizeof(pair_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_pair");
@@ -478,7 +480,7 @@ static obj_t make_integer(long integer)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(integer_s));
+  size_t size = ALIGN_OBJ(sizeof(integer_s));
   do {
     mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_integer");
@@ -494,7 +496,7 @@ static obj_t make_symbol(obj_t name)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(symbol_s));
+  size_t size = ALIGN_OBJ(sizeof(symbol_s));
   assert(TYPE(name) == TYPE_STRING);
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
@@ -511,7 +513,7 @@ static obj_t make_string(size_t length, char string[])
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(offsetof(string_s, string) + length+1);
+  size_t size = ALIGN_OBJ(offsetof(string_s, string) + length+1);
   do {
     mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_string");
@@ -529,7 +531,7 @@ static obj_t make_special(char *string)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(special_s));
+  size_t size = ALIGN_OBJ(sizeof(special_s));
   do {
     mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_special");
@@ -547,7 +549,7 @@ static obj_t make_operator(char *name,
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(operator_s));
+  size_t size = ALIGN_OBJ(sizeof(operator_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_operator");
@@ -569,7 +571,7 @@ static obj_t make_port(obj_t name, FILE *stream)
   mps_addr_t port_ref;
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(port_s));
+  size_t size = ALIGN_OBJ(sizeof(port_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_port");
@@ -593,7 +595,7 @@ static obj_t make_character(char c)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(sizeof(character_s));
+  size_t size = ALIGN_OBJ(sizeof(character_s));
   do {
     mps_res_t res = mps_reserve(&addr, leaf_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_character");
@@ -609,7 +611,7 @@ static obj_t make_vector(size_t length, obj_t fill)
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t size = ALIGN(offsetof(vector_s, vector) + length * sizeof(obj_t));
+  size_t size = ALIGN_OBJ(offsetof(vector_s, vector) + length * sizeof(obj_t));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     size_t i;
@@ -629,7 +631,7 @@ static buckets_t make_buckets(size_t length, mps_ap_t ap)
   buckets_t buckets;
   mps_addr_t addr;
   size_t size;
-  size = ALIGN(offsetof(buckets_s, bucket) + length * sizeof(buckets->bucket[0]));
+  size = ALIGN_OBJ(offsetof(buckets_s, bucket) + length * sizeof(buckets->bucket[0]));
   do {
     mps_res_t res = mps_reserve(&addr, ap, size);
     size_t i;
@@ -651,7 +653,7 @@ static obj_t make_table(size_t length, hash_t hashf, cmp_t cmpf, int weak_key, i
 {
   obj_t obj;
   mps_addr_t addr;
-  size_t l, size = ALIGN(sizeof(table_s));
+  size_t l, size = ALIGN_OBJ(sizeof(table_s));
   do {
     mps_res_t res = mps_reserve(&addr, obj_ap, size);
     if (res != MPS_RES_OK) error("out of memory in make_table");
@@ -3934,35 +3936,35 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       case TYPE_PROMISE:
         FIX(CAR(obj));
         FIX(CDR(obj));
-        base = (char *)base + ALIGN(sizeof(pair_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
         break;
       case TYPE_INTEGER:
-        base = (char *)base + ALIGN(sizeof(integer_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(integer_s));
         break;
       case TYPE_SYMBOL:
         FIX(obj->symbol.name);
-        base = (char *)base + ALIGN(sizeof(symbol_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(symbol_s));
         break;
       case TYPE_SPECIAL:
-        base = (char *)base + ALIGN(sizeof(special_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(special_s));
         break;
       case TYPE_OPERATOR:
         FIX(obj->operator.arguments);
         FIX(obj->operator.body);
         FIX(obj->operator.env);
         FIX(obj->operator.op_env);
-        base = (char *)base + ALIGN(sizeof(operator_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(operator_s));
         break;
       case TYPE_STRING:
         base = (char *)base +
-               ALIGN(offsetof(string_s, string) + obj->string.length + 1);
+          ALIGN_OBJ(offsetof(string_s, string) + obj->string.length + 1);
         break;
       case TYPE_PORT:
         FIX(obj->port.name);
-        base = (char *)base + ALIGN(sizeof(port_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(port_s));
         break;
       case TYPE_CHARACTER:
-        base = (char *)base + ALIGN(sizeof(character_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(character_s));
         break;
       case TYPE_VECTOR:
         {
@@ -3971,25 +3973,25 @@ static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
             FIX(obj->vector.vector[i]);
         }
         base = (char *)base +
-               ALIGN(offsetof(vector_s, vector) +
-                     obj->vector.length * sizeof(obj->vector.vector[0]));
+          ALIGN_OBJ(offsetof(vector_s, vector) +
+                    obj->vector.length * sizeof(obj->vector.vector[0]));
         break;
       case TYPE_TABLE:
         FIX(obj->table.keys);
         FIX(obj->table.values);
-        base = (char *)base + ALIGN(sizeof(table_s));
+        base = (char *)base + ALIGN_OBJ(sizeof(table_s));
         break;
       case TYPE_FWD2:
-        base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
+        base = (char *)base + ALIGN_WORD(sizeof(fwd2_s));
         break;
       case TYPE_FWD:
-        base = (char *)base + ALIGN_UP(obj->fwd.size);
+        base = (char *)base + ALIGN_WORD(obj->fwd.size);
         break;
       case TYPE_PAD1:
-        base = (char *)base + ALIGN_UP(sizeof(pad1_s));
+        base = (char *)base + ALIGN_WORD(sizeof(pad1_s));
         break;
       case TYPE_PAD:
-        base = (char *)base + ALIGN_UP(obj->pad.size);
+        base = (char *)base + ALIGN_WORD(obj->pad.size);
         break;
       default:
         assert(0);
@@ -4018,49 +4020,49 @@ static mps_addr_t obj_skip(mps_addr_t base)
   switch (TYPE(obj)) {
   case TYPE_PAIR:
   case TYPE_PROMISE:
-    base = (char *)base + ALIGN(sizeof(pair_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(pair_s));
     break;
   case TYPE_INTEGER:
-    base = (char *)base + ALIGN(sizeof(integer_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(integer_s));
     break;
   case TYPE_SYMBOL:
-    base = (char *)base + ALIGN(sizeof(symbol_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(symbol_s));
     break;
   case TYPE_SPECIAL:
-    base = (char *)base + ALIGN(sizeof(special_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(special_s));
     break;
   case TYPE_OPERATOR:
-    base = (char *)base + ALIGN(sizeof(operator_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(operator_s));
     break;
   case TYPE_STRING:
     base = (char *)base +
-           ALIGN(offsetof(string_s, string) + obj->string.length + 1);
+      ALIGN_OBJ(offsetof(string_s, string) + obj->string.length + 1);
     break;
   case TYPE_PORT:
-    base = (char *)base + ALIGN(sizeof(port_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(port_s));
     break;
   case TYPE_CHARACTER:
-    base = (char *)base + ALIGN(sizeof(character_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(character_s));
     break;
   case TYPE_VECTOR:
     base = (char *)base +
-           ALIGN(offsetof(vector_s, vector) +
-                 obj->vector.length * sizeof(obj->vector.vector[0]));
+      ALIGN_OBJ(offsetof(vector_s, vector) +
+                obj->vector.length * sizeof(obj->vector.vector[0]));
     break;
   case TYPE_TABLE:
-    base = (char *)base + ALIGN(sizeof(table_s));
+    base = (char *)base + ALIGN_OBJ(sizeof(table_s));
     break;
   case TYPE_FWD2:
-    base = (char *)base + ALIGN_UP(sizeof(fwd2_s));
+    base = (char *)base + ALIGN_WORD(sizeof(fwd2_s));
     break;
   case TYPE_FWD:
-    base = (char *)base + ALIGN_UP(obj->fwd.size);
+    base = (char *)base + ALIGN_WORD(obj->fwd.size);
     break;
   case TYPE_PAD:
-    base = (char *)base + ALIGN_UP(obj->pad.size);
+    base = (char *)base + ALIGN_WORD(obj->pad.size);
     break;
   case TYPE_PAD1:
-    base = (char *)base + ALIGN_UP(sizeof(pad1_s));
+    base = (char *)base + ALIGN_WORD(sizeof(pad1_s));
     break;
   default:
     assert(0);
@@ -4106,8 +4108,8 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
   obj_t obj = old;
   mps_addr_t limit = obj_skip(old);
   size_t size = (char *)limit - (char *)old;
-  assert(size >= ALIGN_UP(sizeof(fwd2_s)));
-  if (size == ALIGN_UP(sizeof(fwd2_s))) {
+  assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
+  if (size == ALIGN_WORD(sizeof(fwd2_s))) {
     TYPE(obj) = TYPE_FWD2;
     obj->fwd2.fwd = new;
   } else {
@@ -4131,8 +4133,8 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
 static void obj_pad(mps_addr_t addr, size_t size)
 {
   obj_t obj = addr;
-  assert(size >= ALIGN_UP(sizeof(pad1_s)));
-  if (size == ALIGN_UP(sizeof(pad1_s))) {
+  assert(size >= ALIGN_WORD(sizeof(pad1_s)));
+  if (size == ALIGN_WORD(sizeof(pad1_s))) {
     TYPE(obj) = TYPE_PAD1;
   } else {
     TYPE(obj) = TYPE_PAD;
@@ -4171,8 +4173,8 @@ static mps_res_t buckets_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
           buckets->bucket[i] = p;
         }
       }
-      base = (char *)base + ALIGN(offsetof(buckets_s, bucket) +
-                                  length * sizeof(buckets->bucket[0]));
+      base = (char *)base + ALIGN_OBJ(offsetof(buckets_s, bucket) +
+                                      length * sizeof(buckets->bucket[0]));
     }
   } MPS_SCAN_END(ss);
   return MPS_RES_OK;
@@ -4186,8 +4188,8 @@ static mps_addr_t buckets_skip(mps_addr_t base)
 {
   buckets_t buckets = base;
   size_t length = UNTAG_COUNT(buckets->length);
-  return (char *)base + ALIGN(offsetof(buckets_s, bucket) +
-                              length * sizeof(buckets->bucket[0]));
+  return (char *)base + ALIGN_OBJ(offsetof(buckets_s, bucket) +
+                                  length * sizeof(buckets->bucket[0]));
 }
 
 
