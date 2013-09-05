@@ -211,13 +211,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "termhooks.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
 #include <Xm/XmStrDefs.h>
 #endif /* USE_MOTIF */
-#endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
 #include "dosfns.h"

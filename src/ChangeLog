@@ -1,5 +1,10 @@
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* fontset.c, window.c, xdisp.c (toplevel): Use TERM_HEADER.
+	* xfaces.c (toplevel) [HAVE_X_WINDOWS]: Do not include xterm.h twice.
+
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Make --without-x compatible with --enable-gcc-warnings.
 	* font.c (register_font_driver): Move check under HAVE_WINDOW_SYSTEM.
 	* font.h (struct font_driver): Move draw, get_bitmap and free_bitmap
