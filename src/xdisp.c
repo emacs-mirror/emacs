@@ -573,12 +573,6 @@ static int last_height;
 
 int help_echo_showing_p;
 
-/* If >= 0, computed, exact values of mode-line and header-line height
-   to use in the macros CURRENT_MODE_LINE_HEIGHT and
-   CURRENT_HEADER_LINE_HEIGHT.  */
-
-int current_mode_line_height, current_header_line_height;
-
 /* The maximum distance to look ahead for text properties.  Values
    that are too small let us call compute_char_face and similar
    functions too often which is expensive.  Values that are too large
@@ -1349,12 +1343,12 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 
   /* Compute exact mode line heights.  */
   if (WINDOW_WANTS_MODELINE_P (w))
-    current_mode_line_height
+    w->mode_line_height
       = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
 			   BVAR (current_buffer, mode_line_format));
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
-    current_header_line_height
+    w->header_line_height
       = display_mode_line (w, HEADER_LINE_FACE_ID,
 			   BVAR (current_buffer, header_line_format));
 
@@ -1646,8 +1640,6 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
-
-  current_header_line_height = current_mode_line_height = -1;
 
   if (visible_p && w->hscroll > 0)
     *x -=
@@ -16107,6 +16099,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  && CURRENT_MODE_LINE_HEIGHT (w) != DESIRED_MODE_LINE_HEIGHT (w))
 	{
 	  fonts_changed_p = 1;
+	  w->mode_line_height = -1;
 	  MATRIX_MODE_LINE_ROW (w->current_matrix)->height
 	    = DESIRED_MODE_LINE_HEIGHT (w);
 	}
@@ -16117,6 +16110,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  && CURRENT_HEADER_LINE_HEIGHT (w) != DESIRED_HEADER_LINE_HEIGHT (w))
 	{
 	  fonts_changed_p = 1;
+	  w->header_line_height = -1;
 	  MATRIX_HEADER_LINE_ROW (w->current_matrix)->height
 	    = DESIRED_HEADER_LINE_HEIGHT (w);
 	}
@@ -29686,8 +29680,6 @@ Its value should be an ASCII acronym string, `hex-code', `empty-box', or
 void
 init_xdisp (void)
 {
-  current_header_line_height = current_mode_line_height = -1;
-
   CHARPOS (this_line_start_pos) = 0;
 
   if (!noninteractive)

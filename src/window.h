@@ -264,6 +264,12 @@ struct window
        A value of -1 means use frame values.  */
     int scroll_bar_width;
 
+    /* Effective height of the mode line, or -1 if not known.  */
+    int mode_line_height;
+
+    /* Effective height of the header line, or -1 if not known.  */
+    int header_line_height;
+
     /* Z - the buffer position of the last glyph in the current
        matrix of W.  Only valid if window_end_valid is nonzero.  */
     ptrdiff_t window_end_pos;

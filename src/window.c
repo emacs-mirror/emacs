@@ -3419,6 +3419,7 @@ make_window (void)
      non-Lisp data, so do it only for slots which should not be zero.  */
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
   w->left_fringe_width = w->right_fringe_width = -1;
+  w->mode_line_height = w->header_line_height = -1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
   w->scroll_bar_width = -1;

@@ -1428,31 +1428,31 @@ struct glyph_string
 #define CURRENT_MODE_LINE_FACE_ID(W)		\
 	(CURRENT_MODE_LINE_FACE_ID_3((W), XWINDOW (selected_window), (W)))
 
-/* Return the current height of the mode line of window W.  If not
-   known from current_mode_line_height, look at W's current glyph
-   matrix, or return a default based on the height of the font of the
-   face `mode-line'.  */
+/* Return the current height of the mode line of window W.  If not known
+   from W->mode_line_height, look at W's current glyph matrix, or return
+   a default based on the height of the font of the face `mode-line'.  */
 
-#define CURRENT_MODE_LINE_HEIGHT(W)				\
-     (current_mode_line_height >= 0				\
-      ? current_mode_line_height				\
-      : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
-	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				      CURRENT_MODE_LINE_FACE_ID (W))))
+#define CURRENT_MODE_LINE_HEIGHT(W)					\
+  (W->mode_line_height >= 0						\
+   ? W->mode_line_height						\
+   : (W->mode_line_height						\
+      = (MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+	 ? MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+	 : estimate_mode_line_height					\
+	     (XFRAME (W->frame), CURRENT_MODE_LINE_FACE_ID (W)))))
 
-/* Return the current height of the header line of window W.  If not
-   known from current_header_line_height, look at W's current glyph
-   matrix, or return an estimation based on the height of the font of
-   the face `header-line'.  */
+/* Return the current height of the header line of window W.  If not known
+   from W->header_line_height, look at W's current glyph matrix, or return
+   an estimation based on the height of the font of the face `header-line'.  */
 
 #define CURRENT_HEADER_LINE_HEIGHT(W)				\
-      (current_header_line_height >= 0				\
-       ? current_header_line_height				\
-       : (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				       HEADER_LINE_FACE_ID)))
+  (W->header_line_height >= 0					\
+   ? W->header_line_height					\
+   : (W->header_line_height					\
+      = (MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)		\
+	 ? MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)	\
+	 : estimate_mode_line_height				\
+	     (XFRAME (W->frame), HEADER_LINE_FACE_ID))))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -3201,7 +3201,6 @@ int frame_mode_line_height (struct frame *);
 extern Lisp_Object Qtool_bar;
 extern bool redisplaying_p;
 extern int help_echo_showing_p;
-extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;

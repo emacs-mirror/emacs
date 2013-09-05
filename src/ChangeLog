@@ -1,5 +1,21 @@
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Cache current header and mode line height for each window.
+	* window.h (struct window): New fields mode_line_height
+	and header_line_height.
+	* window.c (make_window): Initialize them.
+	* dispextern.h (CURRENT_MODE_LINE_HEIGHT)
+	(CURRENT_HEADER_LINE_HEIGHT): Use them.  Adjust comment.
+	(current_mode_line_height, current_header_line_height):
+	Remove declaration.
+	* xdisp.c (current_mode_line_height, current_header_line_height):
+	Remove.
+	(pos_visible_p, init_xdisp): Adjust user.
+	(redisplay_window): Invalidate mode_line_height and
+	header_line_height if current and desired matrices do not agree.
+
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* fontset.c, window.c, xdisp.c (toplevel): Use TERM_HEADER.
 	* xfaces.c (toplevel) [HAVE_X_WINDOWS]: Do not include xterm.h twice.
 
