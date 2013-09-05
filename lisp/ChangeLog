@@ -1,3 +1,8 @@
+2013-09-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move "Perl-ish
+	keywords" below "here-doc beginnings" (Bug#15270).
+
 2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (pop): Use `car-safe'.
