@@ -1,3 +1,7 @@
+2013-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* replace.el (replace-string): Doc fix re start/end.  (Bug#15275)
+
 2013-09-05  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move "Perl-ish
