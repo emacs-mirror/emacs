@@ -5,7 +5,7 @@
 	* dispextern.h (fonts_changed_p, adjust_glyphs): Remove declaration.
 	(adjust_frame_glyphs): Add prototype.
 	* dispnew.c (fonts_changed_p): Remove.
-	(adjust_glyphs): Remove becase we do not
+	(adjust_glyphs): Remove because we do not
 	adjust matrices on all frames at once any more.
 	(adjust_frame_glyphs): Block and unblock input here.
 	(adjust_glyph_matrix): Use fonts_changed.
