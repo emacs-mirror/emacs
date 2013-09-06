@@ -1424,7 +1424,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                 (string-match "^/?\\([^/]+\\)" localname)
                 (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
                       (tramp-gvfs-mount-spec-entry "server" host)
-                      (tramp-gvfs-mount-spec-entry "share" (match-string 1 localname))))
+                      (tramp-gvfs-mount-spec-entry
+		       "share" (match-string 1 localname))))
                ((string-equal "obex" method)
                 (list (tramp-gvfs-mount-spec-entry "type" method)
                       (tramp-gvfs-mount-spec-entry
@@ -1441,7 +1442,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
             ,@(when domain
                 (list (tramp-gvfs-mount-spec-entry "domain" domain)))
             ,@(when port
-                (list (tramp-gvfs-mount-spec-entry "port" (number-to-string port))))))
+                (list (tramp-gvfs-mount-spec-entry
+		       "port" (number-to-string port))))))
 	 (mount-pref
           (if (and (string-match "\\`dav" method)
                    (string-match "^/?[^/]+" localname))
