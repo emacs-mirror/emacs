@@ -6666,17 +6666,59 @@ lookup_glyphless_char_display (int c, struct it *it)
   return glyphless_method;
 }
 
-/* Load IT's display element fields with information about the next
-   display element from the current position of IT.  Value is zero if
-   end of buffer (or C string) is reached.  */
+/* Merge escape glyph face and cache the result.  */
 
 static struct frame *last_escape_glyph_frame = NULL;
 static int last_escape_glyph_face_id = (1 << FACE_ID_BITS);
 static int last_escape_glyph_merged_face_id = 0;
 
-struct frame *last_glyphless_glyph_frame = NULL;
-int last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
-int last_glyphless_glyph_merged_face_id = 0;
+static int
+merge_escape_glyph_face (struct it *it)
+{
+  int face_id;
+
+  if (it->f == last_escape_glyph_frame
+      && it->face_id == last_escape_glyph_face_id)
+    face_id = last_escape_glyph_merged_face_id;
+  else
+    {
+      /* Merge the `escape-glyph' face into the current face.  */
+      face_id = merge_faces (it->f, Qescape_glyph, 0, it->face_id);
+      last_escape_glyph_frame = it->f;
+      last_escape_glyph_face_id = it->face_id;
+      last_escape_glyph_merged_face_id = face_id;
+    }
+  return face_id;
+}
+
+/* Likewise for glyphless glyph face.  */
+
+static struct frame *last_glyphless_glyph_frame = NULL;
+static int last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
+static int last_glyphless_glyph_merged_face_id = 0;
+
+int
+merge_glyphless_glyph_face (struct it *it)
+{
+  int face_id;
+
+  if (it->f == last_glyphless_glyph_frame
+      && it->face_id == last_glyphless_glyph_face_id)
+    face_id = last_glyphless_glyph_merged_face_id;
+  else
+    {
+      /* Merge the `glyphless-char' face into the current face.  */
+      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
+      last_glyphless_glyph_frame = it->f;
+      last_glyphless_glyph_face_id = it->face_id;
+      last_glyphless_glyph_merged_face_id = face_id;
+    }
+  return face_id;
+}
+
+/* Load IT's display element fields with information about the next
+   display element from the current position of IT.  Value is zero if
+   end of buffer (or C string) is reached.  */
 
 static int
 get_next_display_element (struct it *it)
@@ -6824,24 +6866,10 @@ get_next_display_element (struct it *it)
 		      g = GLYPH_CODE_CHAR (gc);
 		      lface_id = GLYPH_CODE_FACE (gc);
 		    }
-		  if (lface_id)
-		    {
-		      face_id = merge_faces (it->f, Qt, lface_id, it->face_id);
-		    }
-		  else if (it->f == last_escape_glyph_frame
-			   && it->face_id == last_escape_glyph_face_id)
-		    {
-		      face_id = last_escape_glyph_merged_face_id;
-		    }
-		  else
-		    {
-		      /* Merge the escape-glyph face into the current face.  */
-		      face_id = merge_faces (it->f, Qescape_glyph, 0,
-					     it->face_id);
-		      last_escape_glyph_frame = it->f;
-		      last_escape_glyph_face_id = it->face_id;
-		      last_escape_glyph_merged_face_id = face_id;
-		    }
+
+		  face_id = (lface_id
+			     ? merge_faces (it->f, Qt, lface_id, it->face_id)
+			     : merge_escape_glyph_face (it));
 
 		  XSETINT (it->ctl_chars[0], g);
 		  XSETINT (it->ctl_chars[1], c ^ 0100);
@@ -6873,27 +6901,10 @@ get_next_display_element (struct it *it)
 		  escape_glyph = GLYPH_CODE_CHAR (gc);
 		  lface_id = GLYPH_CODE_FACE (gc);
 		}
-	      if (lface_id)
-		{
-		  /* The display table specified a face.
-		     Merge it into face_id and also into escape_glyph.  */
-		  face_id = merge_faces (it->f, Qt, lface_id,
-					 it->face_id);
-		}
-	      else if (it->f == last_escape_glyph_frame
-		       && it->face_id == last_escape_glyph_face_id)
-		{
-		  face_id = last_escape_glyph_merged_face_id;
-		}
-	      else
-		{
-		  /* Merge the escape-glyph face into the current face.  */
-		  face_id = merge_faces (it->f, Qescape_glyph, 0,
-					 it->face_id);
-		  last_escape_glyph_frame = it->f;
-		  last_escape_glyph_face_id = it->face_id;
-		  last_escape_glyph_merged_face_id = face_id;
-		}
+
+	      face_id = (lface_id
+			 ? merge_faces (it->f, Qt, lface_id, it->face_id)
+			 : merge_escape_glyph_face (it));
 
 	      /* Draw non-ASCII hyphen with just highlighting: */
 
@@ -24895,21 +24906,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
   base_height = it->ascent + it->descent;
   base_width = font->average_width;
 
-  /* Get a face ID for the glyph by utilizing a cache (the same way as
-     done for `escape-glyph' in get_next_display_element).  */
-  if (it->f == last_glyphless_glyph_frame
-      && it->face_id == last_glyphless_glyph_face_id)
-    {
-      face_id = last_glyphless_glyph_merged_face_id;
-    }
-  else
-    {
-      /* Merge the `glyphless-char' face into the current face.  */
-      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
-      last_glyphless_glyph_frame = it->f;
-      last_glyphless_glyph_face_id = it->face_id;
-      last_glyphless_glyph_merged_face_id = face_id;
-    }
+  face_id = merge_glyphless_glyph_face (it);
 
   if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
     {

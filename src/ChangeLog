@@ -1,3 +1,16 @@
+2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
+	(last_glyphless_glyph_merged_face_id): Remove declarations.
+	* dispextern.h (merge_glyphless_glyph_face): Add prototype.
+	* xdisp.c (last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
+	(last_glyphless_glyph_merged_face_id): Now static.
+	(merge_escape_glyph_face): New function, refactored from...
+	(get_next_display_element): ...here.
+	(merge_glyphless_glyph_face): New function, refactored from...
+	(produce_glyphless_glyph): ...here...
+	* term.c (produce_glyphless_glyph): ...and here.
+
 2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (eval_sub): Only call Ffunction if necessary.
