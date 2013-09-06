@@ -1,3 +1,16 @@
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (edit-abbrevs-mode-map): Rename from edit-abbrevs-map.
+	(edit-abbrevs-mode): Use define-derived-mode.
+
+	* epa.el (epa--encode-coding-string, epa--decode-coding-string)
+	(epa--select-safe-coding-system, epa--derived-mode-p): Make it obvious
+	that it's defined.
+	(epa-key-list-mode, epa-key-mode, epa-info-mode):
+	Use define-derived-mode.
+
+	* epg.el (epg-start-encrypt): Minor CSE simplification.
+
 2013-09-06  William Xu  <william.xwl@gmail.com>
 
 	* arc-mode.el: Add support for 7za (bug#15264).
