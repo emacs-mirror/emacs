@@ -1,3 +1,11 @@
+2013-09-06  William Xu  <william.xwl@gmail.com>
+
+	* arc-mode.el: Add support for 7za (bug#15264).
+	(archive-7z-program): New var.
+	(archive-zip-extract, archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case, archive-7z-extract, archive-7z-expunge)
+	(archive-7z-update, archive-zip-extract, archive-7z-summarize): Use it.
+
 2013-09-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	Remove URL syntax.
