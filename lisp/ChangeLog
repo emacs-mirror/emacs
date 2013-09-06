@@ -1,5 +1,49 @@
 2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el: Make minibuffer-complete call completion-in-region
+	rather than other way around.
+	(completion--some, completion-pcm--find-all-completions):
+	Don't delay signals when debugging.
+	(minibuffer-completion-contents): Beware fields within the
+	minibuffer contents.
+	(completion-all-sorted-completions): Use defvar-local.
+	(completion--do-completion, completion--cache-all-sorted-completions)
+	(completion-all-sorted-completions, minibuffer-force-complete):
+	Add args `beg' and `end'.
+	(completion--in-region-1): New fun, extracted from minibuffer-complete.
+	(minibuffer-complete): Use completion-in-region.
+	(completion-complete-and-exit): New fun, extracted from
+	minibuffer-complete-and-exit.
+	(minibuffer-complete-and-exit): Use it.
+	(completion--complete-and-exit): Rename from
+	minibuffer--complete-and-exit.
+	(completion-in-region--single-word): New function, extracted from
+	minibuffer-complete-word.
+	(minibuffer-complete-word): Use it.
+	(display-completion-list): Make `common-substring' argument obsolete.
+	(completion--in-region): Call completion--in-region-1 instead of
+	minibuffer-complete.
+	(completion-help-at-point): Pass boundaries to
+	minibuffer-completion-help as args rather than via an overlay.
+	(completion-pcm--string->pattern): Use `any-delim'.
+	(completion-pcm--optimize-pattern): New function.
+	(completion-pcm--pattern->regex): Handle `any-delim'.
+	* icomplete.el (icomplete-forward-completions)
+	(icomplete-backward-completions, icomplete-completions):
+	Adjust calls to completion-all-sorted-completions and
+	completion--cache-all-sorted-completions.
+	(icomplete-with-completion-tables): Default to t.
+	* emacs-lisp/crm.el (crm--current-element): Rename from
+	crm--select-current-element.  Don't put an overlay but return the
+	boundaries instead.
+	(crm--completion-command): Take two new args to bind to the boundaries.
+	(crm-completion-help): Adjust accordingly.
+	(crm-complete): Use completion-in-region.
+	(crm-complete-word): Use completion-in-region--single-word.
+	(crm-complete-and-exit): Use completion-complete-and-exit.
+
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* dired-x.el (dired-mark-sexp): Bind the vars lexically rather
 	than dynamically.
 

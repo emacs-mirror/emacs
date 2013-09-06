@@ -158,11 +158,13 @@ minibuffer completion.")
 (add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
 
 ;;;_  = icomplete-with-completion-tables
-(defvar icomplete-with-completion-tables '(internal-complete-buffer)
+(defcustom icomplete-with-completion-tables t
   "Specialized completion tables with which icomplete should operate.
 
 Icomplete does not operate with any specialized completion tables
-except those on this list.")
+except those on this list."
+  :type '(choice (const :tag "All" t)
+          (repeat function)))
 
 (defvar icomplete-minibuffer-map
   (let ((map (make-sparse-keymap)))
@@ -177,24 +179,28 @@ except those on this list.")
 Second entry becomes the first and can be selected with
 `minibuffer-force-complete-and-exit'."
   (interactive)
-  (let* ((comps (completion-all-sorted-completions))
+  (let* ((beg (minibuffer-prompt-end))
+         (end (point-max))
+         (comps (completion-all-sorted-completions beg end))
 	 (last (last comps)))
     (when comps
       (setcdr last (cons (car comps) (cdr last)))
-      (completion--cache-all-sorted-completions (cdr comps)))))
+      (completion--cache-all-sorted-completions beg end (cdr comps)))))
 
 (defun icomplete-backward-completions ()
   "Step backward completions by one entry.
 Last entry becomes the first and can be selected with
 `minibuffer-force-complete-and-exit'."
   (interactive)
-  (let* ((comps (completion-all-sorted-completions))
+  (let* ((beg (minibuffer-prompt-end))
+         (end (point-max))
+         (comps (completion-all-sorted-completions beg end))
 	 (last-but-one (last comps 2))
 	 (last (cdr last-but-one)))
     (when (consp last)		      ; At least two elements in comps
       (setcdr last-but-one (cdr last))
       (push (car last) comps)
-      (completion--cache-all-sorted-completions comps))))
+      (completion--cache-all-sorted-completions beg end comps))))
 
 ;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
@@ -263,7 +269,8 @@ and `minibuffer-setup-hook'."
   "Insert icomplete completions display.
 Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
-  (when (and icomplete-mode (icomplete-simple-completing-p))
+  (when (and icomplete-mode
+             (icomplete-simple-completing-p)) ;Shouldn't be necessary.
     (save-excursion
       (goto-char (point-max))
                                         ; Insert the match-status information:
@@ -319,7 +326,8 @@ matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
   (let* ((md (completion--field-metadata (field-beginning)))
-	 (comps (completion-all-sorted-completions))
+	 (comps (completion-all-sorted-completions
+                 (minibuffer-prompt-end) (point-max)))
          (last (if (consp comps) (last comps)))
          (base-size (cdr last))
          (open-bracket (if require-match "(" "["))
