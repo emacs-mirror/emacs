@@ -1,3 +1,17 @@
+2013-09-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	Remove URL syntax.
+
+	* net/tramp.el (tramp-syntax, tramp-prefix-format)
+	(tramp-postfix-method-format, tramp-prefix-ipv6-format)
+	(tramp-postfix-ipv6-format, tramp-prefix-port-format)
+	(tramp-postfix-host-format, tramp-file-name-regexp)
+	(tramp-completion-file-name-regexp)
+	(tramp-completion-dissect-file-name)
+	(tramp-handle-substitute-in-file-name): Remove 'url case.
+	(tramp-file-name-regexp-url)
+	(tramp-completion-file-name-regexp-url): Remove constants.
+
 2013-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* replace.el (replace-string): Doc fix re start/end.  (Bug#15275)
