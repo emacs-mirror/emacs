@@ -1,5 +1,18 @@
 2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Attempt to make redisplay more selective when changing cursor type.
+	* frame.h (struct frame): New bitfield cursor_type_changed.
+	* xdisp.c (cursor_type_changed): Remove.
+	(try_cursor_movement, redisplay_window, try_window_id)
+	(set_frame_cursor_types, try_window_reusing_current_matrix):
+	Adjust to use per-frame bitfield.
+	(redisplay_internal): Look for cursor type change on each visible
+	frame and consider all frames if cursor type has been changed on
+	the frame other than selected.  If cursor type has been changed on
+	selected frame only, do not use fast update.
+
+2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Attempt to make redisplay more selective when changing fonts.
 	* frame.h (struct frame): New bitfield fonts_changed.
 	* dispextern.h (fonts_changed_p, adjust_glyphs): Remove declaration.

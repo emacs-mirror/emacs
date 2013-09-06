@@ -512,10 +512,6 @@ int update_mode_lines;
 
 int windows_or_buffers_changed;
 
-/* Nonzero means a frame's cursor type has been changed.  */
-
-static int cursor_type_changed;
-
 /* Nonzero after display_mode_line if %l was used and it displayed a
    line number.  */
 
@@ -13010,6 +13006,10 @@ redisplay_internal (void)
 	      adjust_frame_glyphs (f);
 	      f->fonts_changed = 0;
 	    }
+	  /* If cursor type has been changed on the frame
+	     other than selected, consider all frames.  */
+	  if (f != sf && f->cursor_type_changed)
+	    update_mode_lines++;
 	}
       clear_desired_matrices (f);
     }
@@ -13059,8 +13059,7 @@ redisplay_internal (void)
     }
 
   consider_all_windows_p = (update_mode_lines
-			    || buffer_shared_and_changed ()
-			    || cursor_type_changed);
+			    || buffer_shared_and_changed ());
 
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
@@ -13151,6 +13150,7 @@ redisplay_internal (void)
       && !current_buffer->prevent_redisplay_optimizations_p
       && FRAME_VISIBLE_P (XFRAME (w->frame))
       && !FRAME_OBSCURED_P (XFRAME (w->frame))
+      && !XFRAME (w->frame)->cursor_type_changed
       /* Make sure recorded data applies to current buffer, etc.  */
       && this_line_buffer == current_buffer
       && match_p
@@ -13419,6 +13419,7 @@ redisplay_internal (void)
 		  /* Update the display.  */
 		  set_window_update_flags (XWINDOW (f->root_window), 1);
 		  pending |= update_frame (f, 0, 0);
+		  f->cursor_type_changed = 0;
 		  f->updated_p = 1;
 		}
 	    }
@@ -13480,6 +13481,7 @@ redisplay_internal (void)
 
 	  XWINDOW (selected_window)->must_be_updated_p = 1;
 	  pending = update_frame (sf, 0, 0);
+	  sf->cursor_type_changed = 0;
 	}
 
       /* We may have called echo_area_display at the top of this
@@ -13494,6 +13496,7 @@ redisplay_internal (void)
 	{
 	  XWINDOW (mini_window)->must_be_updated_p = 1;
 	  pending |= update_frame (mini_frame, 0, 0);
+	  mini_frame->cursor_type_changed = 0;
 	  if (!pending && hscroll_windows (mini_window))
 	    goto retry;
 	}
@@ -13534,7 +13537,6 @@ redisplay_internal (void)
 
       update_mode_lines = 0;
       windows_or_buffers_changed = 0;
-      cursor_type_changed = 0;
     }
 
   /* Start SIGIO interrupts coming again.  Having them off during the
@@ -14976,7 +14978,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	 cases.  */
       && !update_mode_lines
       && !windows_or_buffers_changed
-      && !cursor_type_changed
+      && !f->cursor_type_changed
       /* Can't use this case if highlighting a region.  When a
          region exists, cursor movement has to do more than just
          set the cursor.  */
@@ -15972,7 +15974,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   /* Redisplay the window.  */
   if (!current_matrix_up_to_date_p
       || windows_or_buffers_changed
-      || cursor_type_changed
+      || f->cursor_type_changed
       /* Don't use try_window_reusing_current_matrix in this case
 	 because it can have changed the buffer.  */
       || !NILP (Vwindow_scroll_functions)
@@ -16351,7 +16353,7 @@ try_window_reusing_current_matrix (struct window *w)
       /* Don't try to reuse the display if windows have been split
 	 or such.  */
       || windows_or_buffers_changed
-      || cursor_type_changed)
+      || f->cursor_type_changed)
     return 0;
 
   /* Can't do this if region may have changed.  */
@@ -17122,7 +17124,7 @@ try_window_id (struct window *w)
     GIVE_UP (1);
 
   /* This flag is used to prevent redisplay optimizations.  */
-  if (windows_or_buffers_changed || cursor_type_changed)
+  if (windows_or_buffers_changed || f->cursor_type_changed)
     GIVE_UP (2);
 
   /* Verify that narrowing has not changed.
@@ -25948,7 +25950,7 @@ set_frame_cursor_types (struct frame *f, Lisp_Object arg)
     FRAME_BLINK_OFF_CURSOR (f) = DEFAULT_CURSOR;
 
   /* Make sure the cursor gets redrawn.  */
-  cursor_type_changed = 1;
+  f->cursor_type_changed = 1;
 }
 
 
