@@ -1195,12 +1195,6 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
       ((ROW)->phys_height - (ROW)->phys_ascent	\
        > (ROW)->height - (ROW)->ascent)
 
-/* True means that fonts have been loaded since the last glyph
-   matrix adjustments.  The function redisplay_internal adjusts glyph
-   matrices when this flag is true.  */
-
-extern bool fonts_changed_p;
-
 /* A glyph for a space.  */
 
 extern struct glyph space_glyph;
@@ -3454,7 +3448,7 @@ extern void cancel_line (int, struct frame *);
 extern void init_desired_glyphs (struct frame *);
 extern bool update_frame (struct frame *, bool, bool);
 extern void bitch_at_user (void);
-void adjust_glyphs (struct frame *);
+extern void adjust_frame_glyphs (struct frame *);
 void free_glyphs (struct frame *);
 void free_window_matrices (struct window *);
 void check_glyph_memory (void);

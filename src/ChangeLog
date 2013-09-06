@@ -1,3 +1,33 @@
+2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Attempt to make redisplay more selective when changing fonts.
+	* frame.h (struct frame): New bitfield fonts_changed.
+	* dispextern.h (fonts_changed_p, adjust_glyphs): Remove declaration.
+	(adjust_frame_glyphs): Add prototype.
+	* dispnew.c (fonts_changed_p): Remove.
+	(adjust_glyphs): Remove becase we do not
+	adjust matrices on all frames at once any more.
+	(adjust_frame_glyphs): Block and unblock input here.
+	(adjust_glyph_matrix): Use fonts_changed.
+	(change_frame_size_1): Use adjust_frame_glyphs.
+	* font.c (font_open_entity): Use fonts_changed.
+	* frame.c (set_menu_bar_lines, Fmake_terminal_frame):
+	* w32fns.c (x_set_menu_bar_lines, x_set_tool_bar_lines, Fx_show_tip):
+	* window.c (Fdelete_other_windows_internal, Fwindow_resize_apply)
+	(Fsplit_window_internal, Fdelete_window_internal, grow_mini_window)
+	(shrink_mini_window, Fresize_mini_window_internal)
+	(window_scroll_pixel_based, Fset_window_configuration)
+	(apply_window_adjustment, Fset_window_vscroll):
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines, Fx_show_tip):
+	Use adjust_frame_glyphs.
+	* xdisp.c (redisplay_tool_bar, redisplay_window, try_window)
+	(try_window_reusing_current_matrix, try_window_id, display_line)
+	(IT_EXPAND_MATRIX_WIDTH): Use fonts_changed.
+	(redisplay_internal): Consider fonts_changed and adjust frame
+	matrices for each frame only if the frame is visible.  If font
+	has been changed on some frame during full redisplay, retry
+	only visible frames where the font has been actually changed.
+
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cache current header and mode line height for each window.

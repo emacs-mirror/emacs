@@ -11985,7 +11985,7 @@ redisplay_tool_bar (struct frame *f)
 	  if (WINDOW_TOTAL_LINES (w) != old_height)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
-	      fonts_changed_p = 1;
+	      f->fonts_changed = 1;
 	      return 1;
 	    }
 	}
@@ -12086,7 +12086,7 @@ redisplay_tool_bar (struct frame *f)
 		{
 		  clear_glyph_matrix (w->desired_matrix);
 		  f->n_tool_bar_rows = nrows;
-		  fonts_changed_p = 1;
+		  f->fonts_changed = 1;
 		  return 1;
 		}
 	    }
@@ -12972,15 +12972,6 @@ redisplay_internal (void)
   last_glyphless_glyph_frame = NULL;
   last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
 
-  /* If new fonts have been loaded that make a glyph matrix adjustment
-     necessary, do it.  */
-  if (fonts_changed_p)
-    {
-      adjust_glyphs (NULL);
-      ++windows_or_buffers_changed;
-      fonts_changed_p = 0;
-    }
-
   /* If face_change_count is non-zero, init_iterator will free all
      realized faces, which includes the faces referenced from current
      matrices.  So, we can't reuse current matrices in this case.  */
@@ -13011,7 +13002,15 @@ redisplay_internal (void)
       struct frame *f = XFRAME (frame);
 
       if (FRAME_VISIBLE_P (f))
-	++number_of_visible_frames;
+	{
+	  ++number_of_visible_frames;
+	  /* Adjust matrices for visible frames only.  */
+	  if (f->fonts_changed)
+	    {
+	      adjust_frame_glyphs (f);
+	      f->fonts_changed = 0;
+	    }
+	}
       clear_desired_matrices (f);
     }
 
@@ -13095,9 +13094,7 @@ redisplay_internal (void)
       if (!display_last_displayed_message_p)
 	message_cleared_p = 0;
 
-      if (fonts_changed_p)
-	goto retry;
-      else if (window_height_changed_p)
+      if (window_height_changed_p)
 	{
 	  consider_all_windows_p = 1;
 	  ++update_mode_lines;
@@ -13372,6 +13369,8 @@ redisplay_internal (void)
 	      && !EQ (FRAME_TTY (f)->top_frame, frame))
 	    continue;
 
+	retry_frame:
+
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
 	      /* Mark all the scroll bars to be removed; we'll redeem
@@ -13391,20 +13390,22 @@ redisplay_internal (void)
 	      if (FRAME_TERMINAL (f)->judge_scroll_bars_hook)
 		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
-	      /* If fonts changed, display again.  */
-	      /* ??? rms: I suspect it is a mistake to jump all the way
-		 back to retry here.  It should just retry this frame.  */
-	      if (fonts_changed_p)
-		goto retry;
-
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		{
+		  /* If fonts changed on visible frame, display again.  */
+		  if (f->fonts_changed)
+		    {
+		      adjust_frame_glyphs (f);
+		      f->fonts_changed = 0;
+		      goto retry_frame;
+		    }
+
 		  /* See if we have to hscroll.  */
 		  if (!f->already_hscrolled_p)
 		    {
 		      f->already_hscrolled_p = 1;
 		      if (hscroll_windows (f->root_window))
-			goto retry;
+			goto retry_frame;
 		    }
 
 		  /* Prevent various kinds of signals during display
@@ -13462,7 +13463,7 @@ redisplay_internal (void)
 
     update:
       /* If fonts changed, display again.  */
-      if (fonts_changed_p)
+      if (sf->fonts_changed)
 	goto retry;
 
       /* Prevent various kinds of signals during display update.
@@ -15322,9 +15323,8 @@ set_vertical_scroll_bar (struct window *w)
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
    selected_window is redisplayed.
 
-   We can return without actually redisplaying the window if
-   fonts_changed_p.  In that case, redisplay_internal will
-   retry.  */
+   We can return without actually redisplaying the window if fonts has been
+   changed on window's frame.  In that case, redisplay_internal will retry.  */
 
 static void
 redisplay_window (Lisp_Object window, int just_this_one_p)
@@ -15709,7 +15709,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       debug_method_add (w, "try_window_id %d", tem);
 #endif
 
-      if (fonts_changed_p)
+      if (f->fonts_changed)
 	goto need_larger_matrices;
       if (tem > 0)
 	goto done;
@@ -15779,12 +15779,12 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  IF_DEBUG (debug_method_add (w, "1"));
 	  if (try_window (window, startp, TRY_WINDOW_CHECK_MARGINS) < 0)
 	    /* -1 means we need to scroll.
-	       0 means we need new matrices, but fonts_changed_p
+	       0 means we need new matrices, but fonts_changed
 	       is set in that case, so we will detect it below.  */
 	    goto try_to_scroll;
 	}
 
-      if (fonts_changed_p)
+      if (f->fonts_changed)
 	goto need_larger_matrices;
 
       if (w->cursor.vpos >= 0)
@@ -15985,7 +15985,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   /* If new fonts have been loaded (due to fontsets), give up.  We
      have to start a new redisplay since we need to re-adjust glyph
      matrices.  */
-  if (fonts_changed_p)
+  if (f->fonts_changed)
     goto need_larger_matrices;
 
   /* If cursor did not appear assume that the middle of the window is
@@ -16098,7 +16098,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       if (WINDOW_WANTS_MODELINE_P (w)
 	  && CURRENT_MODE_LINE_HEIGHT (w) != DESIRED_MODE_LINE_HEIGHT (w))
 	{
-	  fonts_changed_p = 1;
+	  f->fonts_changed = 1;
 	  w->mode_line_height = -1;
 	  MATRIX_MODE_LINE_ROW (w->current_matrix)->height
 	    = DESIRED_MODE_LINE_HEIGHT (w);
@@ -16109,13 +16109,13 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       if (WINDOW_WANTS_HEADER_LINE_P (w)
 	  && CURRENT_HEADER_LINE_HEIGHT (w) != DESIRED_HEADER_LINE_HEIGHT (w))
 	{
-	  fonts_changed_p = 1;
+	  f->fonts_changed = 1;
 	  w->header_line_height = -1;
 	  MATRIX_HEADER_LINE_ROW (w->current_matrix)->height
 	    = DESIRED_HEADER_LINE_HEIGHT (w);
 	}
 
-      if (fonts_changed_p)
+      if (f->fonts_changed)
 	goto need_larger_matrices;
     }
 
@@ -16180,8 +16180,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  /* We go to this label, with fonts_changed_p set,
-     if it is necessary to try again using larger glyph matrices.
+  /* We go to this label, with fonts_changed set, if it is
+     necessary to try again using larger glyph matrices.
      We have to redeem the scroll bar even in this case,
      because the loop in redisplay_internal expects that.  */
  need_larger_matrices:
@@ -16253,7 +16253,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
     {
       if (display_line (&it))
 	last_text_row = it.glyph_row - 1;
-      if (fonts_changed_p && !(flags & TRY_WINDOW_IGNORE_FONTS_CHANGE))
+      if (f->fonts_changed && !(flags & TRY_WINDOW_IGNORE_FONTS_CHANGE))
 	return 0;
     }
 
@@ -16399,8 +16399,7 @@ try_window_reusing_current_matrix (struct window *w)
       w->cursor.vpos = -1;
       last_text_row = last_reused_text_row = NULL;
 
-      while (it.current_y < it.last_visible_y
-	     && !fonts_changed_p)
+      while (it.current_y < it.last_visible_y && !f->fonts_changed)
 	{
 	  /* If we have reached into the characters in the START row,
 	     that means the line boundaries have changed.  So we
@@ -16611,7 +16610,7 @@ try_window_reusing_current_matrix (struct window *w)
       if (pt_row == NULL)
 	w->cursor.vpos = -1;
       last_text_row = NULL;
-      while (it.current_y < it.last_visible_y && !fonts_changed_p)
+      while (it.current_y < it.last_visible_y && !f->fonts_changed)
 	if (display_line (&it))
 	  last_text_row = it.glyph_row - 1;
 
@@ -17454,7 +17453,7 @@ try_window_id (struct window *w)
   last_text_row = NULL;
   overlay_arrow_seen = 0;
   while (it.current_y < it.last_visible_y
-	 && !fonts_changed_p
+	 && !f->fonts_changed
 	 && (first_unchanged_at_end_row == NULL
 	     || IT_CHARPOS (it) < stop_pos))
     {
@@ -17462,7 +17461,7 @@ try_window_id (struct window *w)
 	last_text_row = it.glyph_row - 1;
     }
 
-  if (fonts_changed_p)
+  if (f->fonts_changed)
     return -1;
 
 
@@ -17709,8 +17708,7 @@ try_window_id (struct window *w)
 
       /* Display the rest of the lines at the window end.  */
       it.glyph_row = MATRIX_ROW (desired_matrix, it.vpos);
-      while (it.current_y < it.last_visible_y
-	     && !fonts_changed_p)
+      while (it.current_y < it.last_visible_y && !f->fonts_changed)
 	{
 	  /* Is it always sure that the display agrees with lines in
 	     the current matrix?  I don't think so, so we mark rows
@@ -19246,7 +19244,7 @@ display_line (struct it *it)
       >= it->w->desired_matrix->nrows)
     {
       it->w->nrows_scale_factor++;
-      fonts_changed_p = 1;
+      it->f->fonts_changed = 1;
       return 0;
     }
 
@@ -23974,12 +23972,12 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 
 #define IT_EXPAND_MATRIX_WIDTH(it, area)		\
   {							\
-    if (!fonts_changed_p				\
+    if (!it->f->fonts_changed				\
 	&& (it->glyph_row->glyphs[area]			\
 	    < it->glyph_row->glyphs[area + 1]))		\
       {							\
 	it->w->ncols_scale_factor++;			\
-	fonts_changed_p = 1;				\
+	it->f->fonts_changed = 1;			\
       }							\
   }
 
