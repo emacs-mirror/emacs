@@ -1595,17 +1595,20 @@ escaped (\\\",\\\\)."
                                    ""))
                      (image (if (file-exists-p image-file)
                                 (create-image image-file)
-                              "[broken image]")))
+                              (or (cdr (assoc-string "text" parameter-alist))
+				  (and src (concat "[broken image:" src "]"))
+				  "[broken image]"))))
                 (if (not (get-text-property start 'display))
                     (add-text-properties
-                     start (point) `(display ,image rear-nonsticky (display)))))
+                     start (point)
+		     `(display ,image rear-nonsticky (display)
+		       help-echo ,(cdr (assoc-string "alt" parameter-alist))))))
             ;; text-only display, show alternative text if provided, or
             ;; otherwise a clue that there's meant to be a picture
             (delete-region start (point))
             (insert (or (cdr (assoc-string "text" parameter-alist))
                         (cdr (assoc-string "alt" parameter-alist))
-                        (and src
-                             (concat "[image:" src "]"))
+                        (and src (concat "[image:" src "]"))
                         "[image]"))))))
     (set-buffer-modified-p nil)))
 
