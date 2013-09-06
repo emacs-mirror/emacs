@@ -461,6 +461,8 @@ todo-mode.el has been made obsolete and renamed otodo-mode.el.
 
 ** Tramp
 
+*** The experimental url syntax for remote file names is withdrawn.
+
 +++
 *** New connection method "adb", which allows to access Android
 devices by the Android Debug Bridge.  The variable `tramp-adb-program'
