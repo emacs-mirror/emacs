@@ -1,3 +1,7 @@
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (eval_sub): Only call Ffunction if necessary.
+
 2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Attempt to make redisplay more selective when changing cursor type.

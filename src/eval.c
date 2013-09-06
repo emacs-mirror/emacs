@@ -2146,11 +2146,10 @@ eval_sub (Lisp_Object form)
 
   /* Optimize for no indirection.  */
   fun = original_fun;
-  if (SYMBOLP (fun) && !NILP (fun)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
-    fun = indirect_function (fun);
-  else
+  if (!SYMBOLP (fun))
     fun = Ffunction (Fcons (fun, Qnil));
+  else if (!NILP (fun) && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+    fun = indirect_function (fun);
 
   if (SUBRP (fun))
     {
