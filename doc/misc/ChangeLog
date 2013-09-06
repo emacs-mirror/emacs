@@ -1,3 +1,7 @@
+2013-09-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Alternative Syntax): Remove chapter.
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
