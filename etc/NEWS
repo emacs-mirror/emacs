@@ -172,10 +172,6 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
-** Icomplete-mode by defaults applies to all forms of minibuffer completion.
-(setq icomplete-with-completion-tables '(internal-complete-buffer))
-will revert to the old behavior.
-
 ** The debugger's `e' command evaluates the code in the context at point.
 This includes using the lexical environment at point, which means that
 `e' now lets you access lexical variables as well.
@@ -336,6 +332,10 @@ This is useful to avoid a query when you have no key for that name.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
+*** Icomplete-mode by defaults applies to all forms of minibuffer completion.
+(setq icomplete-with-completion-tables '(internal-complete-buffer))
+will revert to the old behavior.
+
 
 ** Ido
 *** Ido has a manual now.
