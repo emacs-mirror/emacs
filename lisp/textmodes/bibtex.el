@@ -468,7 +468,7 @@ alternatives, starting from zero."
      nil
      (("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator")
-      ("introduction") ("foreword") ("afterword") ("titleaddon")
+      ("introduction") ("foreword") ("afterword") ("subtitle") ("titleaddon")
       ("maintitle") ("mainsubtitle") ("maintitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
       ("series") ("number") ("note") ("publisher") ("location") ("isbn")
