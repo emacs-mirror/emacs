@@ -7656,6 +7656,13 @@ fi
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
 
+  # This part is merely for shortening the command line,
+  # since -Wno-FOO needs to be added below regardless.
+  nw="$nw -Wmissing-field-initializers"
+  nw="$nw -Wswitch"
+  nw="$nw -Wtype-limits"
+  nw="$nw -Wunused-parameter"
+
   # clang is unduly picky about some things.
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
 $as_echo_n "checking whether the compiler is clang... " >&6; }
@@ -10342,6 +10349,25 @@ fi
 
 if test "$window_system" = none && test "$gl_gcc_warnings" = yes; then
    # Too many warnings for now.
+   nw=
+   nw="$nw -Wsuggest-attribute=const"
+   nw="$nw -Wsuggest-attribute=noreturn"
+
+  gl_warn_set=
+  set x $WARN_CFLAGS; shift
+  for gl_warn_item
+  do
+    case " $nw " in
+      *" $gl_warn_item "*)
+        ;;
+      *)
+        gl_warn_set="$gl_warn_set $gl_warn_item"
+        ;;
+    esac
+  done
+  WARN_CFLAGS=$gl_warn_set
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-variable" >&5
 $as_echo_n "checking whether C compiler handles -Wno-unused-variable... " >&6; }
