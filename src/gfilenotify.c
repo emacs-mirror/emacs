@@ -249,7 +249,9 @@ WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.  */)
 void
 globals_of_gfilenotify (void)
 {
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
   g_type_init ();
+#endif
   watch_list = Qnil;
 }
 
