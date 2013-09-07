@@ -6905,32 +6905,38 @@ comment at the start of cc-engine.el for more info."
 
       ;; Skip over type decl prefix operators.  (Note similar code in
       ;; `c-font-lock-declarators'.)
-      (while (and (looking-at c-type-decl-prefix-key)
-		  (if (and (c-major-mode-is 'c++-mode)
-			   (match-beginning 3))
-		      ;; If the third submatch matches in C++ then
-		      ;; we're looking at an identifier that's a
-		      ;; prefix only if it specifies a member pointer.
-		      (when (setq got-identifier (c-forward-name))
-			(if (looking-at "\\(::\\)")
-			    ;; We only check for a trailing "::" and
-			    ;; let the "*" that should follow be
-			    ;; matched in the next round.
-			    (progn (setq got-identifier nil) t)
-			  ;; It turned out to be the real identifier,
-			  ;; so stop.
-			  nil))
-		    t))
-
-	(if (eq (char-after) ?\()
+      (if (and c-recognize-typeless-decls
+	       (equal c-type-decl-prefix-key "\\<\\>"))
+	  (when (eq (char-after) ?\()
 	    (progn
 	      (setq paren-depth (1+ paren-depth))
-	      (forward-char))
-	  (unless got-prefix-before-parens
-	    (setq got-prefix-before-parens (= paren-depth 0)))
-	  (setq got-prefix t)
-	  (goto-char (match-end 1)))
-	(c-forward-syntactic-ws))
+	      (forward-char)))
+	(while (and (looking-at c-type-decl-prefix-key)
+		    (if (and (c-major-mode-is 'c++-mode)
+			     (match-beginning 3))
+			;; If the third submatch matches in C++ then
+			;; we're looking at an identifier that's a
+			;; prefix only if it specifies a member pointer.
+			(when (setq got-identifier (c-forward-name))
+			  (if (looking-at "\\(::\\)")
+			      ;; We only check for a trailing "::" and
+			      ;; let the "*" that should follow be
+			      ;; matched in the next round.
+			      (progn (setq got-identifier nil) t)
+			    ;; It turned out to be the real identifier,
+			    ;; so stop.
+			    nil))
+		      t))
+
+	  (if (eq (char-after) ?\()
+	      (progn
+		(setq paren-depth (1+ paren-depth))
+		(forward-char))
+	    (unless got-prefix-before-parens
+	      (setq got-prefix-before-parens (= paren-depth 0)))
+	    (setq got-prefix t)
+	    (goto-char (match-end 1)))
+	  (c-forward-syntactic-ws)))
 
       (setq got-parens (> paren-depth 0))
 

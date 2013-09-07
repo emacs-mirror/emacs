@@ -2816,7 +2816,8 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     "\\>")
 		  "")
 		"\\)")
-  (java idl) "\\([\[\(]\\)")
+  java "\\([\[\(\)]\\)"
+  idl "\\([\[\(]\\)")
 (c-lang-defvar c-type-decl-suffix-key (c-lang-const c-type-decl-suffix-key)
   'dont-doc)
 
@@ -2937,7 +2938,7 @@ calls before a brace block.  This setting does not affect declarations
 that are preceded by a declaration starting keyword, so
 e.g. `c-typeless-decl-kwds' may still be used when it's set to nil."
   t nil
-  (c c++ objc) t)
+  (c c++ objc java) t)
 (c-lang-defvar c-recognize-typeless-decls
   (c-lang-const c-recognize-typeless-decls))
 

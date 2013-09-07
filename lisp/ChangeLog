@@ -1,3 +1,13 @@
+2013-09-07  Alan Mackenzie  <acm@muc.de>
+
+	Correctly fontify Java class constructors.
+	* progmodes/cc-langs.el (c-type-decl-suffix-key): Now matches ")"
+	in Java Mode.
+	(c-recognize-typeless-decls): Set the Java value to t.
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): While
+	handling a "(", add a check for, effectively, Java, and handle a
+	"typeless" declaration there.
+
 2013-09-07  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-biblatex-entry-alist): Add optional
