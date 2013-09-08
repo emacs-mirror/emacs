@@ -211,13 +211,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "termhooks.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
 #include <Xm/XmStrDefs.h>
 #endif /* USE_MOTIF */
-#endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
 #include "dosfns.h"
@@ -238,6 +235,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
+
+/* Number of pt per inch (from the TeXbook).  */
+
+#define PT_PER_INCH 72.27
+
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "buffer.h"
@@ -271,10 +273,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_X_WINDOWS */
 
 #include <c-ctype.h>
-
-/* Number of pt per inch (from the TeXbook).  */
-
-#define PT_PER_INCH 72.27
 
 /* Non-zero if face attribute ATTR is unspecified.  */
 
@@ -396,6 +394,8 @@ static Lisp_Object Qtty_color_desc, Qtty_color_by_index, Qtty_color_standard_val
 
 static Lisp_Object Qtty_color_alist;
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* Counter for calls to clear_face_cache.  If this counter reaches
    CLEAR_FONT_TABLE_COUNT, and a frame has more than
    CLEAR_FONT_TABLE_NFONTS load, unused fonts are freed.  */
@@ -403,6 +403,8 @@ static Lisp_Object Qtty_color_alist;
 static int clear_font_table_count;
 #define CLEAR_FONT_TABLE_COUNT	100
 #define CLEAR_FONT_TABLE_NFONTS	10
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Non-zero means face attributes have been changed since the last
    redisplay.  Used in redisplay_internal.  */
@@ -434,29 +436,27 @@ static int ngcs;
 
 static int menu_face_changed_default;
 
-
-/* Function prototypes.  */
-
-struct table_entry;
 struct named_merge_point;
 
-static void set_font_frame_param (Lisp_Object, Lisp_Object);
 static struct face *realize_face (struct face_cache *, Lisp_Object *,
 				  int);
-static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
-					    struct face *);
 static struct face *realize_x_face (struct face_cache *, Lisp_Object *);
 static struct face *realize_tty_face (struct face_cache *, Lisp_Object *);
 static bool realize_basic_faces (struct frame *);
 static bool realize_default_face (struct frame *);
 static void realize_named_face (struct frame *, Lisp_Object, int);
 static struct face_cache *make_face_cache (struct frame *);
-static void clear_face_gcs (struct face_cache *);
 static void free_face_cache (struct face_cache *);
 static int merge_face_ref (struct frame *, Lisp_Object, Lisp_Object *,
 			   int, struct named_merge_point *);
 
-
+#ifdef HAVE_WINDOW_SYSTEM
+static void set_font_frame_param (Lisp_Object, Lisp_Object);
+static void clear_face_gcs (struct face_cache *);
+static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
+					    struct face *);
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /***********************************************************************
 			      Utilities
  ***********************************************************************/
@@ -3983,6 +3983,7 @@ lface_hash (Lisp_Object *v)
 	  ^ XHASH (v[LFACE_HEIGHT_INDEX]));
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Return non-zero if LFACE1 and LFACE2 specify the same font (without
    considering charsets/registries).  They do if they specify the same
@@ -4011,8 +4012,8 @@ lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 	  );
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
-
 /***********************************************************************
 			    Realized Faces
  ***********************************************************************/
@@ -4171,6 +4172,7 @@ make_face_cache (struct frame *f)
   return c;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Clear out all graphics contexts for all realized faces, except for
    the basic faces.  This should be done from time to time just to avoid
@@ -4181,7 +4183,6 @@ clear_face_gcs (struct face_cache *c)
 {
   if (c && FRAME_WINDOW_P (c->f))
     {
-#ifdef HAVE_WINDOW_SYSTEM
       int i;
       for (i = BASIC_FACE_ID_SENTINEL; i < c->used; ++i)
 	{
@@ -4196,10 +4197,10 @@ clear_face_gcs (struct face_cache *c)
 	      unblock_input ();
 	    }
 	}
-#endif /* HAVE_WINDOW_SYSTEM */
     }
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Free all realized faces in face cache C, including basic faces.
    C may be null.  If faces are freed, make sure the frame's current

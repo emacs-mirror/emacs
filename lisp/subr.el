@@ -170,12 +170,16 @@ PLACE must be a generalized variable whose value is a list.
 If the value is nil, `pop' returns nil but does not actually
 change the list."
   (declare (debug (gv-place)))
-  (list 'car
-        (if (symbolp place)
-            ;; So we can use `pop' in the bootstrap before `gv' can be used.
-            (list 'prog1 place (list 'setq place (list 'cdr place)))
-          (gv-letplace (getter setter) place
-            `(prog1 ,getter ,(funcall setter `(cdr ,getter)))))))
+  ;; We use `car-safe' here instead of `car' because the behavior is the same
+  ;; (if it's not a cons cell, the `cdr' would have signaled an error already),
+  ;; but `car-safe' is total, so the byte-compiler can safely remove it if the
+  ;; result is not used.
+  `(car-safe
+    ,(if (symbolp place)
+         ;; So we can use `pop' in the bootstrap before `gv' can be used.
+         (list 'prog1 place (list 'setq place (list 'cdr place)))
+       (gv-letplace (getter setter) place
+         `(prog1 ,getter ,(funcall setter `(cdr ,getter)))))))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.

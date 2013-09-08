@@ -533,18 +533,6 @@
 	  ((and for-effect (setq tmp (get fn 'side-effect-free))
 		(or byte-compile-delete-errors
 		    (eq tmp 'error-free)
-		    ;; Detect the expansion of (pop foo).
-		    ;; There is no need to compile the call to `car' there.
-		    (and (eq fn 'car)
-			 (eq (car-safe (cadr form)) 'prog1)
-			 (let ((var (cadr (cadr form)))
-			       (last (nth 2 (cadr form))))
-			   (and (symbolp var)
-				(null (nthcdr 3 (cadr form)))
-				(eq (car-safe last) 'setq)
-				(eq (cadr last) var)
-				(eq (car-safe (nth 2 last)) 'cdr)
-				(eq (cadr (nth 2 last)) var))))
 		    (progn
 		      (byte-compile-warn "value returned from %s is unused"
 					 (prin1-to-string form))

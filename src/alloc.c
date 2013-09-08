@@ -3527,9 +3527,9 @@ free_marker (Lisp_Object marker)
    Any number of arguments, even zero arguments, are allowed.  */
 
 Lisp_Object
-make_event_array (register int nargs, Lisp_Object *args)
+make_event_array (ptrdiff_t nargs, Lisp_Object *args)
 {
-  int i;
+  ptrdiff_t i;
 
   for (i = 0; i < nargs; i++)
     /* The things that fit in a string

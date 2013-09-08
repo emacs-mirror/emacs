@@ -1609,7 +1609,6 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
 It will be registered for all objects created by `dbus-register-method'."
   (let* ((last-input-event last-input-event)
 	 (bus (dbus-event-bus-name last-input-event))
-	 (service (dbus-event-service-name last-input-event))
 	 (path (dbus-event-path-name last-input-event)))
     ;; "GetManagedObjects" returns "a{oa{sa{sv}}}".
     (let (interfaces result)
@@ -1625,8 +1624,7 @@ It will be registered for all objects created by `dbus-register-method'."
       ;; Check all registered object paths.
       (maphash
        (lambda (key val)
-	 (let ((object (or (nth 2 (car-safe val)) ""))
-	       (interface (nth 2 key)))
+	 (let ((object (or (nth 2 (car-safe val)) "")))
 	   (when (and (equal (butlast key 2) (list :method bus))
 		      (string-prefix-p path object))
 	     (dolist (interface (cons (nth 2 key) interfaces))

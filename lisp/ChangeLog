@@ -1,3 +1,69 @@
+2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (pop): Use `car-safe'.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Remove hack
+	to detect unused `pop' return value.
+
+	* progmodes/python.el (python-nav-beginning-of-block): Remove unused
+	var `block-regexp'.
+	(python-nav--forward-sexp): Remove unused var `re-search-fn'.
+	(python-fill-string): Remove unused var `marker'.
+	(python-skeleton-add-menu-items): Remove unused var `items'.
+
+	* international/mule-cmds.el: Require CL.
+	(find-coding-systems-for-charsets): Avoid add-to-list.
+	(sanitize-coding-system-list): New function, extracted from
+	select-safe-coding-system-interactively.
+	(select-safe-coding-system-interactively): Use it.
+	(read-input-method-name): Accept symbols for `default'.
+
+	* emacs-lisp/advice.el (defadvice): Add indent rule.
+
+2013-09-05  Daniel Hackney  <dan@haxney.org>
+
+	* dired-x.el:
+	* net/ange-ftp.el:
+	* net/browse-url.el:
+	* net/dbus.el:
+	* net/eudc.el:
+	* net/eudcb-ldap.el:
+	* net/eww.el:
+	* net/imap.el:
+	* printing.el:
+	* vc/ediff-diff.el:
+	* vc/ediff-init.el:
+	* vc/ediff-merg.el:
+	* vc/ediff-mult.el:
+	* vc/ediff-util.el:
+	* vc/ediff-wind.el:
+	* vc/ediff.el:
+	* vc/emerge.el:
+	* vc/pcvs.el:
+	* vc/vc-annotate.el: Prefix unused arguments with `_' to silence
+	byte compiler.  Remove some unused let-bound variables.
+
+2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el: Use `car-safe' rather than `car' to access
+	a "ref-cell", since it gets better optimized (bug#14883).
+
+2013-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-awk.el (c-forward-sws): Declare.
+
+2013-09-04  Glenn Morris  <rgm@gnu.org>
+
+	* generic-x.el [rul-generic-mode]: Require cc-mode.
+	(c++-mode-syntax-table): Declare.
+	(rul-generic-mode-syntax-table): Init in the defvar.
+
+2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autorevert.el (auto-revert-notify-handler): Explicitly ignore
+	`deleted'.  Don't drop errors silently.
+
+	* emacs-lisp/gv.el (gv-get): Warn about CL-compiled places.
+
 2013-09-04  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc.el (vc-ignore): Rewrite.
@@ -11,7 +77,7 @@
 
 2013-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* net/tramp-gvfs.el (tramp-gvfs-mount-spec, tramp-synce-list-devices): 
+	* net/tramp-gvfs.el (tramp-gvfs-mount-spec, tramp-synce-list-devices):
 	* net/tramp-smb.el (tramp-smb-get-file-entries):
 	* net/tramp-sh.el (tramp-sh-handle-insert-directory)
 	(tramp-compute-multi-hops): Fix misuses of `add-to-list'.

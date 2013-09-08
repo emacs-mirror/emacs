@@ -3463,7 +3463,7 @@ build_unibyte_string (const char *str)
 }
 
 extern Lisp_Object make_multibyte_string (const char *, ptrdiff_t, ptrdiff_t);
-extern Lisp_Object make_event_array (int, Lisp_Object *);
+extern Lisp_Object make_event_array (ptrdiff_t, Lisp_Object *);
 extern Lisp_Object make_uninit_string (EMACS_INT);
 extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
 extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);

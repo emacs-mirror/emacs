@@ -198,11 +198,11 @@ Another is that undo information is not kept."
           ;; Normally, we want async code such as sentinels to not move point.
           (save-excursion
             (goto-char m)
-                ;; Each sentinel may move point and the next one should be run
-                ;; at that new point.  We could get the same result by having
-                ;; each sentinel read&set process-mark, but since `cmd' needs
-                ;; to work both for async and sync processes, this would be
-                ;; difficult to achieve.
+            ;; Each sentinel may move point and the next one should be run
+            ;; at that new point.  We could get the same result by having
+            ;; each sentinel read&set process-mark, but since `cmd' needs
+            ;; to work both for async and sync processes, this would be
+            ;; difficult to achieve.
             (vc-exec-after code)
             (move-marker m (point)))
           ;; But sometimes the sentinels really want to move point.
@@ -224,8 +224,7 @@ Another is that undo information is not kept."
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
 Else, add CODE to the process' sentinel.
-CODE can be either a function of no arguments, or an expression
-to evaluate."
+CODE should be a function of no arguments."
   (let ((proc (get-buffer-process (current-buffer))))
     (cond
      ;; If there's no background process, just execute the code.
@@ -246,6 +245,10 @@ to evaluate."
         (add-function :after (process-sentinel proc) fun)))
      (t (error "Unexpected process state"))))
   nil)
+
+(defmacro vc-run-delayed (&rest body)
+  (declare (indent 0) (debug t))
+  `(vc-exec-after (lambda () ,@body)))
 
 (defvar vc-post-command-functions nil
   "Hook run at the end of `vc-do-command'.
@@ -328,8 +331,8 @@ case, and the process object in the asynchronous case."
 		(set-process-filter proc 'vc-process-filter)
 		(setq status proc)
 		(when vc-command-messages
-		  (vc-exec-after
-		   `(message "Running %s in background... done" ',full-command))))
+		  (vc-run-delayed
+		   (message "Running %s in background... done" full-command))))
 	    ;; Run synchronously
 	    (when vc-command-messages
 	      (message "Running %s in foreground..." full-command))
@@ -346,9 +349,9 @@ case, and the process object in the asynchronous case."
 		     (if (integerp status) (format "status %d" status) status)))
 	    (when vc-command-messages
 	      (message "Running %s...OK = %d" full-command status))))
-	(vc-exec-after
-	 `(run-hook-with-args 'vc-post-command-functions
-			      ',command ',file-or-list ',flags))
+	(vc-run-delayed
+	 (run-hook-with-args 'vc-post-command-functions
+                             command file-or-list flags))
 	status))))
 
 (defun vc-do-async-command (buffer root command &rest args)
@@ -408,17 +411,17 @@ If the current buffer is a Dired buffer, revert it."
     (cond
      ((derived-mode-p 'vc-dir-mode)
       (with-current-buffer process-buffer
-	(vc-exec-after
-	 `(if (buffer-live-p ,buf)
-	      (with-current-buffer ,buf
-		(vc-dir-refresh))))))
+	(vc-run-delayed
+	 (if (buffer-live-p buf)
+             (with-current-buffer buf
+               (vc-dir-refresh))))))
      ((derived-mode-p 'dired-mode)
       (with-current-buffer process-buffer
-	(vc-exec-after
-	 `(and (buffer-live-p ,buf)
-	       (= (buffer-modified-tick ,buf) ,tick)
-	       (with-current-buffer ,buf
-		 (revert-buffer)))))))))
+	(vc-run-delayed
+	 (and (buffer-live-p buf)
+              (= (buffer-modified-tick buf) tick)
+              (with-current-buffer buf
+                (revert-buffer)))))))))
 
 ;; These functions are used to ensure that the view the user sees is up to date
 ;; even if the dispatcher client mode has messed with file contents (as in,

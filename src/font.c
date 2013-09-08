@@ -3379,9 +3379,11 @@ register_font_driver (struct font_driver *driver, struct frame *f)
   struct font_driver_list *root = f ? f->font_driver_list : font_driver_list;
   struct font_driver_list *prev, *list;
 
+#ifdef HAVE_WINDOW_SYSTEM
   if (f && ! driver->draw)
     error ("Unusable font driver for a frame: %s",
 	   SDATA (SYMBOL_NAME (driver->type)));
+#endif /* HAVE_WINDOW_SYSTEM */
 
   for (prev = NULL, list = root; list; prev = list, list = list->next)
     if (EQ (list->driver->type, driver->type))

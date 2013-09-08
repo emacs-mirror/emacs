@@ -648,7 +648,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 			     done))))
 
 
-(defun cvs-sentinel (proc msg)
+(defun cvs-sentinel (proc _msg)
   "Sentinel for the cvs update process.
 This is responsible for parsing the output from the cvs update when
 it is finished."
@@ -981,7 +981,7 @@ The files are stored to DIR."
 ;;;;
 
 (defun-cvs-mode (cvs-mode-revert-buffer . SIMPLE)
-                (&optional ignore-auto noconfirm)
+                (&optional _ignore-auto _noconfirm)
   "Rerun `cvs-examine' on the current directory with the default flags."
   (interactive)
   (cvs-examine default-directory t))
@@ -995,7 +995,7 @@ If in a *cvs* buffer, don't prompt unless a prefix argument is given."
     (read-directory-name prompt nil default-directory nil)))
 
 ;;;###autoload
-(defun cvs-quickdir (dir &optional flags noshow)
+(defun cvs-quickdir (dir &optional _flags noshow)
   "Open a *cvs* buffer on DIR without running cvs.
 With a prefix argument, prompt for a directory to use.
 A prefix arg >8 (ex: \\[universal-argument] \\[universal-argument]),

@@ -123,8 +123,7 @@
 
 
   (defalias 'semantic-make-local-hook
-    (if (and (not (featurep 'xemacs))
-             (>= emacs-major-version 21))
+    (if (featurep 'emacs)
         #'identity  #'make-local-hook))
 
   (defalias 'semantic-mode-line-update

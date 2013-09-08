@@ -55,7 +55,7 @@
 ;;
 ;; If a variable is mutated (updated by setq), and it is used in a closure
 ;; we wrap its definition with list: (list val) and we also replace
-;; var => (car var) wherever this variable is used, and also
+;; var => (car-safe var) wherever this variable is used, and also
 ;; (setq var value) => (setcar var value) where it is updated.
 ;;
 ;; If defun argument is closure mutable, we letbind it and wrap it's
@@ -211,9 +211,9 @@ Returns a form where all lambdas don't have any free variables."
           ;; If `fv' is a variable that's wrapped in a cons-cell,
           ;; we want to put the cons-cell itself in the closure,
           ;; rather than just a copy of its current content.
-          (`(car ,iexp . ,_)
+          (`(car-safe ,iexp . ,_)
            (push iexp envector)
-           (push `(,fv . (car (internal-get-closed-var ,i))) new-env))
+           (push `(,fv . (car-safe (internal-get-closed-var ,i))) new-env))
           (_
            (push exp envector)
            (push `(,fv . (internal-get-closed-var ,i)) new-env))))
@@ -224,7 +224,7 @@ Returns a form where all lambdas don't have any free variables."
     (dolist (arg args)
       (if (not (member (cons (list arg) parentform) cconv-captured+mutated))
           (if (assq arg new-env) (push `(,arg) new-env))
-        (push `(,arg . (car ,arg)) new-env)
+        (push `(,arg . (car-safe ,arg)) new-env)
         (push `(,arg (list ,arg)) letbind)))
 
     (setq body-new (mapcar (lambda (form)
@@ -254,7 +254,7 @@ ENV is a lexical environment mapping variables to the expression
 used to get its value.  This is used for variables that are copied into
 closures, moved into cons cells, ...
 ENV is a list where each entry takes the shape either:
- (VAR . (car EXP)): VAR has been moved into the car of a cons-cell, and EXP
+ (VAR . (car-safe EXP)): VAR has been moved into the car of a cons-cell, and EXP
     is an expression that evaluates to this cons-cell.
  (VAR . (internal-get-closed-var N)): VAR has been copied into the closure
     environment's Nth slot.
@@ -320,9 +320,9 @@ places where they originally did not directly appear."
                      (push `(,var . (apply-partially ,var . ,fvs)) new-env)
                      (dolist (fv fvs)
                        (cl-pushnew fv new-extend)
-                       (if (and (eq 'car (car-safe (cdr (assq fv env))))
+                       (if (and (eq 'car-safe (car-safe (cdr (assq fv env))))
                                 (not (memq fv funargs)))
-                           (push `(,fv . (car ,fv)) funcbody-env)))
+                           (push `(,fv . (car-safe ,fv)) funcbody-env)))
                      `(function (lambda ,funcvars .
                                   ,(mapcar (lambda (form)
                                              (cconv-convert
@@ -332,7 +332,7 @@ places where they originally did not directly appear."
                   ;; Check if it needs to be turned into a "ref-cell".
                   ((member (cons binder form) cconv-captured+mutated)
                    ;; Declared variable is mutated and captured.
-                   (push `(,var . (car ,var)) new-env)
+                   (push `(,var . (car-safe ,var)) new-env)
                    `(list ,(cconv-convert value env extend)))
 
                   ;; Normal default case.
@@ -448,7 +448,7 @@ places where they originally did not directly appear."
                 (value (cconv-convert (pop forms) env extend)))
            (push (pcase sym-new
                    ((pred symbolp) `(setq ,sym-new ,value))
-                   (`(car ,iexp) `(setcar ,iexp ,value))
+                   (`(car-safe ,iexp) `(setcar ,iexp ,value))
                    ;; This "should never happen", but for variables which are
                    ;; mutated+captured+unused, we may end up trying to `setq'
                    ;; on a closed-over variable, so just drop the setq.
@@ -472,7 +472,7 @@ places where they originally did not directly appear."
                      ,@(mapcar (lambda (fv)
                                  (let ((exp (or (cdr (assq fv env)) fv)))
                                    (pcase exp
-                                     (`(car ,iexp . ,_) iexp)
+                                     (`(car-safe ,iexp . ,_) iexp)
                                      (_ exp))))
                                fvs)
                      ,@(mapcar (lambda (arg)

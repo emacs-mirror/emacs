@@ -518,12 +518,12 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 	   precords))
 	(insert "\n")
 	(widget-create 'push-button
-		       :notify (lambda (&rest ignore)
+		       :notify (lambda (&rest _ignore)
 				 (eudc-query-form))
 		       "New query")
 	(widget-insert " ")
 	(widget-create 'push-button
-		       :notify (lambda (&rest ignore)
+		       :notify (lambda (&rest _ignore)
 				 (kill-this-buffer))
 		       "Quit")
 	(eudc-mode)
@@ -995,17 +995,17 @@ queries the server for the existing fields and displays a corresponding form."
 	  fields)
     (widget-insert "\n\n")
     (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
+		   :notify (lambda (&rest _ignore)
 			     (eudc-process-form))
 		   "Query Server")
     (widget-insert " ")
     (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
+		   :notify (lambda (&rest _ignore)
 			     (eudc-query-form))
 		   "Reset Form")
     (widget-insert " ")
     (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
+		   :notify (lambda (&rest _ignore)
 			     (kill-this-buffer))
 		   "Quit")
     (goto-char pt)

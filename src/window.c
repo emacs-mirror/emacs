@@ -39,18 +39,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "intervals.h"
 #include "termhooks.h"		/* For FRAME_TERMINAL.  */
-
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif	/* HAVE_X_WINDOWS */
-#ifdef HAVE_NTGUI
-#include "w32term.h"
-#endif
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 #ifdef MSDOS
 #include "msdos.h"
-#endif
-#ifdef HAVE_NS
-#include "nsterm.h"
 #endif
 
 Lisp_Object Qwindowp, Qwindow_live_p;

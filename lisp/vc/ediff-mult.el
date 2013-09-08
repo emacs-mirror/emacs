@@ -1115,7 +1115,7 @@ behavior."
     (setq overl
 	  (if (featurep 'xemacs)
 	      (map-extents
-	       (lambda (ext maparg)
+	       (lambda (ext _maparg)
 		 (if (and
 		      (ediff-overlay-get ext 'ediff-meta-info)
 		      (eq (ediff-overlay-get ext 'ediff-meta-session-number)
@@ -1444,7 +1444,7 @@ Useful commands:
 
 
 ;; argument is ignored
-(defun ediff-redraw-registry-buffer (&optional ignore)
+(defun ediff-redraw-registry-buffer (&optional _ignore)
   (ediff-with-current-buffer ediff-registry-buffer
     (let ((point (point))
 	  elt bufAname bufBname bufCname cur-diff total-diffs pt

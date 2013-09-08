@@ -1,3 +1,52 @@
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fontset.c, window.c, xdisp.c (toplevel): Use TERM_HEADER.
+	* xfaces.c (toplevel) [HAVE_X_WINDOWS]: Do not include xterm.h twice.
+
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Make --without-x compatible with --enable-gcc-warnings.
+	* font.c (register_font_driver): Move check under HAVE_WINDOW_SYSTEM.
+	* font.h (struct font_driver): Move draw, get_bitmap and free_bitmap
+	members under HAVE_WINDOW_SYSTEM.
+	* keyboard.c (make_lispy_focus_out): Likewise.
+	(record_menu_key): Move under HAVE_MENUS.
+	* xdisp.c (toplevel): Move hourglass_shown_p, hourglass_atimer and
+	THIN_SPACE_WIDTH under HAVE_WINDOW_SYSTEM.
+	(syms_of_xdisp): Adjust user.
+	(window_box_edges): Define only if HAVE_WINDOW_SYSTEM.
+	(start_hourglass, cancel_hourglass):
+	* xfaces.c (toplevel): Likewise with PT_PER_INCH,
+	clear_font_table_count, CLEAR_FONT_TABLE_COUNT
+	and CLEAR_FONT_TABLE_NFONTS.
+	(set_font_frame_param, clear_face_gcs, realize_non_ascii_face):
+	Declare only if HAVE_WINDOW_SYSTEM.
+	(lface_same_font_attributes_p, clear_face_gcs): Define only
+	if HAVE_WINDOW_SYSTEM.
+
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (check_minibuf_window): Update 'frame' with frame pointer.
+	* xterm.c (x_scroll_bar_handle_click) [!USE_TOOLKIT_SCROLL_BARS]:
+	Don't pass C integer to XINT (tiny fix for 2013-09-03 change).
+
+2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Fself_insert_command): Don't pass a non-integer to XINT.
+
+2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (make_event_array): First arg is now ptrdiff_t, not int.
+	This fixes a type error on hosts where ptrdiff_t is wider than int.
+
+2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence_vs): New function.
+	(Fread_key_sequence_vector, Fread_key_sequence): Use it to factor out
+	common code.
+
+	* callint.c (Fcall_interactively): Always return a vector for 'K'.
+
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Makefile improvements.

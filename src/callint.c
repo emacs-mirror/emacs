@@ -616,8 +616,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    Fput_text_property (make_number (0),
 				make_number (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
-	    args[i] = Fread_key_sequence (callint_message,
-					  Qnil, Qt, Qnil, Qnil);
+	    args[i] = Fread_key_sequence_vector (callint_message,
+						 Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml, Qnil);
 	    unbind_to (speccount1, Qnil);

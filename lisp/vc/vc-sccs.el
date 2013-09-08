@@ -1,4 +1,4 @@
-;;; vc-sccs.el --- support for SCCS version-control
+;;; vc-sccs.el --- support for SCCS version-control  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
@@ -101,7 +101,7 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; Properties of the backend
 
 (defun vc-sccs-revision-granularity () 'file)
-(defun vc-sccs-checkout-model (files) 'locking)
+(defun vc-sccs-checkout-model (_files) 'locking)
 
 ;;;
 ;;; State-querying functions
@@ -321,7 +321,7 @@ are expanded to all version-controlled subfiles."
                                 (vc-name file) (concat "-r" discard))
 	    (vc-sccs-do-command nil 0 "get" (vc-name file) nil))))
 
-(defun vc-sccs-revert (file &optional contents-done)
+(defun vc-sccs-revert (file &optional _contents-done)
   "Revert FILE to the version it was based on. If FILE is a directory,
 revert all subfiles."
   (if (file-directory-p file)
@@ -353,7 +353,7 @@ revert all subfiles."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (files buffer &optional shortlog start-revision-ignored limit)
+(defun vc-sccs-print-log (files buffer &optional _shortlog _start-revision-ignored limit)
   "Print commit log associated with FILES into specified BUFFER.
 Remaining arguments are ignored."
   (setq files (vc-expand-dirs files))
@@ -362,6 +362,8 @@ Remaining arguments are ignored."
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 (autoload 'vc-delistify "vc-dispatcher")
+
+(defvar w32-quote-process-args)
 
 ;; FIXME use sccsdiff if present?
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)

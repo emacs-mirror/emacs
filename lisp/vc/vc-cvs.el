@@ -518,7 +518,7 @@ Remaining arguments are ignored."
    (if (vc-stay-local-p files 'CVS) 'async 0)
    files "log")
   (with-current-buffer buffer
-    (vc-exec-after (vc-rcs-print-log-cleanup)))
+    (vc-run-delayed (vc-rcs-print-log-cleanup)))
   (when limit 'limit-unsupported))
 
 (defun vc-cvs-comment-history (file)
@@ -1015,14 +1015,14 @@ state."
       ;; (vc-cvs-command (current-buffer) 'async
       ;; 		  (file-relative-name dir)
       ;; 		  "-f" "-n" "update" "-d" "-P")
-      (vc-exec-after
-       `(vc-cvs-after-dir-status (quote ,update-function))))))
+      (vc-run-delayed
+       (vc-cvs-after-dir-status update-function)))))
 
 (defun vc-cvs-dir-status-files (dir files _default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
-  (vc-exec-after
-   `(vc-cvs-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-cvs-after-dir-status update-function)))
 
 (defun vc-cvs-file-to-string (file)
   "Read the content of FILE and return it as a string."

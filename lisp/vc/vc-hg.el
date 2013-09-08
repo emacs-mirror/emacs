@@ -608,13 +608,13 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-dir-status (dir update-function)
   (vc-hg-command (current-buffer) 'async dir "status" "-C")
-  (vc-exec-after
-   `(vc-hg-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-status-files (dir files _default-state update-function)
   (apply 'vc-hg-command (current-buffer) 'async dir "status" "-C" files)
-  (vc-exec-after
-   `(vc-hg-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-hg-after-dir-status update-function)))
 
 (defun vc-hg-dir-extra-header (name &rest commands)
   (concat (propertize name 'face 'font-lock-type-face)
@@ -708,7 +708,8 @@ then attempts to update the working directory."
 		args       (cddr args)))
 	(apply 'vc-do-async-command buffer root hg-program
 	       command args)
-        (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'hg)))
+        (with-current-buffer buffer
+          (vc-run-delayed (vc-compilation-mode 'hg)))
 	(vc-set-async-update buffer)))))
 
 (defun vc-hg-merge-branch ()
@@ -717,7 +718,7 @@ This runs the command \"hg merge\"."
   (let* ((root (vc-hg-root default-directory))
 	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
     (apply 'vc-do-async-command buffer root vc-hg-program '("merge"))
-    (with-current-buffer buffer (vc-exec-after '(vc-compilation-mode 'hg)))
+    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'hg)))
     (vc-set-async-update buffer)))
 
 ;;; Internal functions

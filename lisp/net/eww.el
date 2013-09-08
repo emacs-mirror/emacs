@@ -381,7 +381,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	eww-history))
 
 ;;;###autoload
-(defun eww-browse-url (url &optional new-window)
+(defun eww-browse-url (url &optional _new-window)
   (when (and (equal major-mode 'eww-mode)
 	     eww-current-url)
     (eww-save-history))

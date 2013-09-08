@@ -1,4 +1,4 @@
-;;; vc-rcs.el --- support for RCS version-control
+;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
@@ -520,7 +520,7 @@ expanded to all registered subfiles in them."
 			 ;; No, it was some other error: re-signal it.
 			 (signal (car err) (cdr err)))))))))
 
-(defun vc-rcs-revert (file &optional contents-done)
+(defun vc-rcs-revert (file &optional _contents-done)
   "Revert FILE to the version it was based on.  If FILE is a directory,
 revert all registered files beneath it."
   (if (file-directory-p file)
@@ -571,8 +571,8 @@ directory the operation is applied to all registered files beneath it."
     (when (looking-at "[\b\t\n\v\f\r ]+")
       (delete-char (- (match-end 0) (match-beginning 0))))))
 
-(defun vc-rcs-print-log (files buffer &optional shortlog
-                               start-revision-ignored limit)
+(defun vc-rcs-print-log (files buffer &optional _shortlog
+                               _start-revision-ignored limit)
   "Print commit log associated with FILES into specified BUFFER.
 Remaining arguments are ignored.
 If FILE is a directory the operation is applied to all registered
@@ -853,7 +853,7 @@ systime, or nil if there is none.  Also, reposition point."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
 
-(defun vc-rcs-previous-revision (file rev)
+(defun vc-rcs-previous-revision (_file rev)
   "Return the revision number immediately preceding REV for FILE,
 or nil if there is no previous revision.  This default
 implementation works for MAJOR.MINOR-style revision numbers as
@@ -1440,8 +1440,8 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; only the former since it behaves identically to the
               ;; latter in the absence of "@@".)
               sub)
-          (cl-flet ((incg (beg end)
-                          (let ((b beg) (e end) @-holes)
+          (cl-flet ((incg (_beg end)
+                          (let ((e end) @-holes)
                             (while (and asc (< (car asc) e))
                               (push (pop asc) @-holes))
                             ;; Self-deprecate when work is done.

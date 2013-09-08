@@ -128,8 +128,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-mtn-dir-status (dir update-function)
   (vc-mtn-command (current-buffer) 'async dir "status")
-  (vc-exec-after
-   `(vc-mtn-after-dir-status (quote ,update-function))))
+  (vc-run-delayed
+   (vc-mtn-after-dir-status update-function)))
 
 (defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just

@@ -40,7 +40,7 @@
 (defvar ediff-after-quit-hook-internal nil)
 
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
 
 ;; end pacifier
 
@@ -1602,7 +1602,7 @@ the width of the A/B/C windows."
 ;;BEG, END show the region to be positioned.
 ;;JOB-NAME holds ediff-job-name.  The ediff-windows job positions regions
 ;;differently.
-(defun ediff-position-region (beg end pos job-name)
+(defun ediff-position-region (beg end pos _job-name)
   (if (> end (point-max))
       (setq end (point-max)))
   (if ediff-windows-job
@@ -1685,7 +1685,7 @@ the width of the A/B/C windows."
 			    'ediff-get-lines-to-region-start)
 			   ((eq op 'scroll-up)
 			    'ediff-get-lines-to-region-end)
-			   (t (lambda (a b c) 0))))
+			   (t (lambda (_a _b _c) 0))))
 	       (max-lines (max (funcall func 'A n ctl-buf)
 			       (funcall func 'B n ctl-buf)
 			       (if (ediff-buffer-live-p ediff-buffer-C)

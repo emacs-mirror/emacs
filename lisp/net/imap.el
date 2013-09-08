@@ -139,7 +139,7 @@
 (eval-when-compile (require 'cl))
 (eval-and-compile
   ;; For Emacs <22.2 and XEmacs.
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest _r)))
   (autoload 'starttls-open-stream "starttls")
   (autoload 'starttls-negotiate "starttls")
   (autoload 'sasl-find-mechanism "sasl")
@@ -661,7 +661,7 @@ sure of changing the value of `foo'."
 	      nil)))))
     done))
 
-(defun imap-ssl-p (buffer)
+(defun imap-ssl-p (_buffer)
   nil)
 
 (defun imap-ssl-open (name buffer server port)
@@ -711,7 +711,7 @@ sure of changing the value of `foo'."
       (message "imap: Opening SSL connection with `%s'...failed" cmd)
       nil)))
 
-(defun imap-tls-p (buffer)
+(defun imap-tls-p (_buffer)
   nil)
 
 (defun imap-tls-open (name buffer server port)
@@ -738,7 +738,7 @@ sure of changing the value of `foo'."
       (when (memq (process-status process) '(open run))
 	process))))
 
-(defun imap-network-p (buffer)
+(defun imap-network-p (_buffer)
   t)
 
 (defun imap-network-open (name buffer server port)
@@ -757,7 +757,7 @@ sure of changing the value of `foo'."
       (when (memq (process-status process) '(open run))
 	process))))
 
-(defun imap-shell-p (buffer)
+(defun imap-shell-p (_buffer)
   nil)
 
 (defun imap-shell-open (name buffer server port)
@@ -881,10 +881,10 @@ t if it successfully authenticates, nil otherwise."
       ;;		       passwd nil))))
       ret)))
 
-(defun imap-gssapi-auth-p (buffer)
+(defun imap-gssapi-auth-p (_buffer)
   (eq imap-stream 'gssapi))
 
-(defun imap-gssapi-auth (buffer)
+(defun imap-gssapi-auth (_buffer)
   (message "imap: Authenticating using GSSAPI...%s"
 	   (if (eq imap-stream 'gssapi) "done" "failed"))
   (eq imap-stream 'gssapi))
@@ -893,7 +893,7 @@ t if it successfully authenticates, nil otherwise."
   (and (imap-capability 'AUTH=KERBEROS_V4 buffer)
        (eq imap-stream 'kerberos4)))
 
-(defun imap-kerberos4-auth (buffer)
+(defun imap-kerberos4-auth (_buffer)
   (message "imap: Authenticating using Kerberos 4...%s"
 	   (if (eq imap-stream 'kerberos4) "done" "failed"))
   (eq imap-stream 'kerberos4))
@@ -947,7 +947,7 @@ t if it successfully authenticates, nil otherwise."
 						(imap-quote-specials passwd)
 						"\""))))))
 
-(defun imap-anonymous-p (buffer)
+(defun imap-anonymous-p (_buffer)
   t)
 
 (defun imap-anonymous-auth (buffer)
@@ -1838,7 +1838,7 @@ See `imap-enable-exchange-bug-workaround'."
 	    (and (imap-fetch-safe '("*" . "*:*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
-				    (lambda (uid prop) uid) 'UID))))
+				    (lambda (uid _prop) uid) 'UID))))
 	  (if old-mailbox
 	      (imap-mailbox-select old-mailbox (eq state 'examine))
 	    (imap-mailbox-unselect)))))))
@@ -1884,7 +1884,7 @@ first element.  The rest of list contains the saved articles' UIDs."
 	    (and (imap-fetch-safe '("*" . "*:*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
-				    (lambda (uid prop) uid) 'UID))))
+				    (lambda (uid _prop) uid) 'UID))))
 	  (if old-mailbox
 	      (imap-mailbox-select old-mailbox (eq state 'examine))
 	    (imap-mailbox-unselect)))))))
@@ -1893,7 +1893,7 @@ first element.  The rest of list contains the saved articles' UIDs."
   (with-current-buffer (or buffer (current-buffer))
     (imap-message-appenduid-1 (imap-utf7-encode mailbox))))
 
-(defun imap-message-append (mailbox article &optional flags date-time buffer)
+(defun imap-message-append (mailbox article &optional _flags _date-time buffer)
   "Append ARTICLE (a buffer) to MAILBOX on server in BUFFER.
 FLAGS and DATE-TIME is currently not used.  Return a cons holding
 uidvalidity of MAILBOX and UID the newly created article got, or nil

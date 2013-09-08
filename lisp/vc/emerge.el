@@ -849,7 +849,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 ;;; Functions to start Emerge on files
 
 ;;;###autoload
-(defun emerge-files (arg file-A file-B file-out &optional startup-hooks
+(defun emerge-files (_arg file-A file-B file-out &optional startup-hooks
 		     quit-hooks)
   "Run Emerge on two files."
   (interactive
@@ -869,7 +869,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    file-out))
 
 ;;;###autoload
-(defun emerge-files-with-ancestor (arg file-A file-B file-ancestor file-out
+(defun emerge-files-with-ancestor (_arg file-A file-B file-ancestor file-out
 				   &optional startup-hooks quit-hooks)
   "Run Emerge on two files, giving another file as the ancestor."
   (interactive
@@ -1063,7 +1063,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
        quit-hooks)))
 
 (defun emerge-revisions-internal (file revision-A revision-B &optional
-                                  startup-hooks quit-hooks output-file)
+                                  startup-hooks quit-hooks _output-file)
   (let ((buffer-A (get-buffer-create (format "%s,%s" file revision-A)))
 	(buffer-B (get-buffer-create (format "%s,%s" file revision-B)))
 	(emerge-file-A (emerge-make-temp-file "A"))
