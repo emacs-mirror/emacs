@@ -1,3 +1,8 @@
+2013-09-08  Kenichi Handa  <handa@gnu.org>
+
+	* international/characters.el: Set category "^"	(Combining) for
+	more characters.
+
 2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (pop): Use `car-safe'.
