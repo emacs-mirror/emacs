@@ -1862,11 +1862,11 @@ See `font-lock-syntax-table'.")
              "using")
            'symbols))
          1 'font-lock-builtin-face)
-   ;; Perl-ish keywords
-   "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
    ;; here-doc beginnings
    `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
                                'font-lock-string-face))
+   ;; Perl-ish keywords
+   "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
    ;; variables
    `(,(concat ruby-font-lock-keyword-beg-re
               "\\_<\\(nil\\|self\\|true\\|false\\)\\>")

@@ -225,7 +225,6 @@ Configuring @value{tramp} for use
 Using @value{tramp}
 
 * Filename Syntax::             @value{tramp} filename conventions.
-* Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
 * Remote processes::            Integration with other @value{emacsname} packages.
@@ -2356,7 +2355,6 @@ minute you have already forgotten that you hit that key!
 
 @menu
 * Filename Syntax::             @value{tramp} filename conventions.
-* Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
 * Remote processes::            Integration with other @value{emacsname} packages.
@@ -2451,46 +2449,6 @@ Finally, for some methods it is possible to specify a different port
 number than the default one, given by the method.  This is specified
 by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
 daniel, melancholia#42, .emacs}}.
-
-
-@node Alternative Syntax
-@section URL-like filename syntax
-@cindex filename syntax
-@cindex filename examples
-
-Additionally to the syntax described in the previous chapter, it is
-possible to use a URL-like syntax for @value{tramp}.  This can be
-switched on by customizing the variable @code{tramp-syntax}.  Please
-note that this feature is experimental for the time being.
-
-The variable @code{tramp-syntax} must be set before requiring @value{tramp}:
-
-@lisp
-(setq tramp-syntax 'url)
-(require 'tramp)
-@end lisp
-
-Then, a @value{tramp} filename would look like this:
-@file{/@var{method}://@var{user}@@@var{machine}:@var{port}/@var{path/to.file}}.
-@file{/@var{method}://} is mandatory, all other parts are optional.
-@file{:@var{port}} is useful for methods only who support this.
-
-The last example from the previous section would look like this:
-@file{/ssh://daniel@@melancholia/.emacs}.
-
-For the time being, @code{tramp-syntax} can have the following values:
-
-@itemize @w{}
-@ifset emacs
-@item @code{ftp}---That is the default syntax
-@item @code{url}---URL-like syntax
-@end ifset
-@ifset xemacs
-@item @code{sep}---That is the default syntax
-@item @code{url}---URL-like syntax
-@item @code{ftp}---EFS-like syntax
-@end ifset
-@end itemize
 
 
 @node Filename completion

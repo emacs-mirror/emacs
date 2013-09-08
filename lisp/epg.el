@@ -2415,9 +2415,8 @@ If you are unsure, use synchronous version of this function
 			 (list "--" (epg-data-file plain)))))
   ;; `gpgsm' does not read passphrase from stdin, so waiting is not needed.
   (unless (eq (epg-context-protocol context) 'CMS)
-    (if sign
-	(epg-wait-for-status context '("BEGIN_SIGNING"))
-      (epg-wait-for-status context '("BEGIN_ENCRYPTION"))))
+    (epg-wait-for-status context
+                         (if sign '("BEGIN_SIGNING") '("BEGIN_ENCRYPTION"))))
   (when (epg-data-string plain)
     (if (eq (process-status (epg-context-process context)) 'run)
 	(process-send-string (epg-context-process context)

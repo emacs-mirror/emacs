@@ -826,6 +826,13 @@ else
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
 
+  # This part is merely for shortening the command line,
+  # since -Wno-FOO needs to be added below regardless.
+  nw="$nw -Wmissing-field-initializers"
+  nw="$nw -Wswitch"
+  nw="$nw -Wtype-limits"
+  nw="$nw -Wunused-parameter"
+
   # clang is unduly picky about some things.
   AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
     [AC_COMPILE_IFELSE(
@@ -1777,6 +1784,11 @@ fi
 
 if test "$window_system" = none && test "$gl_gcc_warnings" = yes; then
    # Too many warnings for now.
+   nw=
+   nw="$nw -Wsuggest-attribute=const"
+   nw="$nw -Wsuggest-attribute=noreturn"
+   gl_MANYWARN_COMPLEMENT([WARN_CFLAGS], [$WARN_CFLAGS], [$nw])
+
    gl_WARN_ADD([-Wno-unused-variable])
    gl_WARN_ADD([-Wno-unused-but-set-variable])
    gl_WARN_ADD([-Wno-unused-but-set-parameter])

@@ -1800,26 +1800,9 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
 static void
 produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 {
-  int face_id;
-  int len;
+  int len, face_id = merge_glyphless_glyph_face (it);
   char buf[sizeof "\\x" + max (6, (sizeof it->c * CHAR_BIT + 3) / 4)];
   char const *str = "    ";
-
-  /* Get a face ID for the glyph by utilizing a cache (the same way as
-     done for `escape-glyph' in get_next_display_element).  */
-  if (it->f == last_glyphless_glyph_frame
-      && it->face_id == last_glyphless_glyph_face_id)
-    {
-      face_id = last_glyphless_glyph_merged_face_id;
-    }
-  else
-    {
-      /* Merge the `glyphless-char' face into the current face.  */
-      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
-      last_glyphless_glyph_frame = it->f;
-      last_glyphless_glyph_face_id = it->face_id;
-      last_glyphless_glyph_merged_face_id = face_id;
-    }
 
   if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
     {

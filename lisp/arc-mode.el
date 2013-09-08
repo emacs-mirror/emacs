@@ -218,9 +218,14 @@ Archive and member name will be added."
 ;; ------------------------------
 ;; Zip archive configuration
 
+(defvar archive-7z-program (let ((7z (or (executable-find "7z")
+                                         (executable-find "7za"))))
+                             (when 7z
+                               (file-name-nondirectory 7z))))
+
 (defcustom archive-zip-extract
   (cond ((executable-find "unzip")   '("unzip" "-qq" "-c"))
-	((executable-find "7z")      '("7z" "x" "-so"))
+	(archive-7z-program          `(,archive-7z-program "x" "-so"))
 	((executable-find "pkunzip") '("pkunzip" "-e" "-o-"))
 	(t                           '("unzip" "-qq" "-c")))
   "Program and its options to run in order to extract a zip file member.
@@ -239,7 +244,7 @@ be added."
 
 (defcustom archive-zip-expunge
   (cond ((executable-find "zip")     '("zip" "-d" "-q"))
-	((executable-find "7z")      '("7z" "d"))
+	(archive-7z-program          `(,archive-7z-program "d"))
 	((executable-find "pkzip")   '("pkzip" "-d"))
 	(t                           '("zip" "-d" "-q")))
   "Program and its options to run in order to delete zip file members.
@@ -252,7 +257,7 @@ Archive and member names will be added."
 
 (defcustom archive-zip-update
   (cond ((executable-find "zip")     '("zip" "-q"))
-	((executable-find "7z")      '("7z" "u"))
+	(archive-7z-program          `(,archive-7z-program "u"))
 	((executable-find "pkzip")   '("pkzip" "-u" "-P"))
 	(t                           '("zip" "-q")))
   "Program and its options to run in order to update a zip file member.
@@ -266,7 +271,7 @@ file.  Archive and member name will be added."
 
 (defcustom archive-zip-update-case
   (cond ((executable-find "zip")     '("zip" "-q" "-k"))
-	((executable-find "7z")      '("7z" "u"))
+	(archive-7z-program          `(,archive-7z-program "u"))
 	((executable-find "pkzip")   '("pkzip" "-u" "-P"))
 	(t                           '("zip" "-q" "-k")))
   "Program and its options to run in order to update a case fiddled zip member.
@@ -321,7 +326,7 @@ Archive and member name will be added."
 ;; 7z archive configuration
 
 (defcustom archive-7z-extract
-  '("7z" "x" "-so")
+  `(,archive-7z-program "x" "-so")
   "Program and its options to run in order to extract a 7z file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
@@ -333,7 +338,7 @@ be added."
   :group 'archive-7z)
 
 (defcustom archive-7z-expunge
-  '("7z" "d")
+  `(,archive-7z-program "d")
   "Program and its options to run in order to delete 7z file members.
 Archive and member names will be added."
   :version "24.1"
@@ -344,7 +349,7 @@ Archive and member names will be added."
   :group 'archive-7z)
 
 (defcustom archive-7z-update
-  '("7z" "u")
+  `(,archive-7z-program "u")
   "Program and its options to run in order to update a 7z file member.
 Options should ensure that specified directory will be put into the 7z
 file.  Archive and member name will be added."
@@ -1864,7 +1869,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (cond
    ((member-ignore-case (car archive-zip-extract) '("pkunzip" "pkzip"))
     (archive-*-extract archive name archive-zip-extract))
-   ((equal (car archive-zip-extract) "7z")
+   ((equal (car archive-zip-extract) archive-7z-program)
     (let ((archive-7z-extract archive-zip-extract))
       (archive-7z-extract archive name)))
    (t
@@ -2088,7 +2093,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(file buffer-file-name)
 	(files ()))
     (with-temp-buffer
-      (call-process "7z" nil t nil "l" "-slt" file)
+      (call-process archive-7z-program nil t nil "l" "-slt" file)
       (goto-char (point-min))
       ;; Four dashes start the meta info section that should be skipped.
       ;; Archive members start with more than four dashes.

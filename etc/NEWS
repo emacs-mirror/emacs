@@ -332,6 +332,10 @@ This is useful to avoid a query when you have no key for that name.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
+*** Icomplete-mode by defaults applies to all forms of minibuffer completion.
+(setq icomplete-with-completion-tables '(internal-complete-buffer))
+will revert to the old behavior.
+
 
 ** Ido
 *** Ido has a manual now.
@@ -460,6 +464,8 @@ later time with the provided conversion command.  The old version of
 todo-mode.el has been made obsolete and renamed otodo-mode.el.
 
 ** Tramp
+
+*** The experimental url syntax for remote file names is withdrawn.
 
 +++
 *** New connection method "adb", which allows to access Android
@@ -753,6 +759,11 @@ used in place of the 9th element of `file-attributes'.
 ** The 6th argument to `copy-file' has been renamed to
 `preserve-extended-attributes' as it now handles both SELinux context
 and ACL entries.
+
+** The `common-substring' argument of display-completion-list is obsolete.
+Either use `completion-all-completions' which already returns highlighted
+strings (including for partial or substring completion) or call
+`completion-hilit-commonality' to add the highlight.
 
 ** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
 

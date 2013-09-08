@@ -210,6 +210,13 @@ struct frame
   unsigned external_tool_bar : 1;
 #endif
 
+  /* Nonzero means that fonts have been loaded since the last glyph
+     matrix adjustments.  */
+  unsigned fonts_changed : 1;
+
+  /* Nonzero means that cursor type has been changed.  */
+  unsigned cursor_type_changed : 1;
+
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
 

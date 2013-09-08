@@ -490,12 +490,13 @@ If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
 
-In Transient Mark mode, if the mark is active, operate on the contents
-of the region.  Otherwise, operate from point to the end of the buffer.
-
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
-Fourth and fifth arg START and END specify the region to operate on.
+
+Operates on the region between START and END (if both are nil, from point
+to the end of the buffer).  Interactively, if Transient Mark mode is
+enabled and the mark is active, operates on the contents of the region;
+otherwise from point to the end of the buffer.
 
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search string to the minibuffer

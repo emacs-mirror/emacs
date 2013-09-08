@@ -2945,7 +2945,7 @@ window-start value is reasonable when this function is called.  */)
 	}
     }
 
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   unblock_input ();
 
   run_window_configuration_change_hook (f);
@@ -3419,6 +3419,7 @@ make_window (void)
      non-Lisp data, so do it only for slots which should not be zero.  */
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
   w->left_fringe_width = w->right_fringe_width = -1;
+  w->mode_line_height = w->header_line_height = -1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
   w->scroll_bar_width = -1;
@@ -3644,7 +3645,7 @@ be applied on the Elisp level.  */)
   windows_or_buffers_changed++;
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   unblock_input ();
 
   run_window_configuration_change_hook (f);
@@ -3914,7 +3915,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 
   block_input ();
   window_resize_apply (p, horflag);
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   /* Set buffer of NEW to buffer of reference window.  Don't run
      any hooks.  */
   set_window_buffer (new, r->contents, 0, 1);
@@ -4043,7 +4044,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  recombine_windows (sibling);
 	}
 
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
 
       if (!WINDOW_LIVE_P (FRAME_SELECTED_WINDOW (f)))
 	/* We deleted the frame's selected window.  */
@@ -4130,7 +4131,7 @@ grow_mini_window (struct window *w, int delta)
       w->total_lines -= XINT (value);
       /* Enforce full redisplay.  FIXME: make it more selective.  */
       windows_or_buffers_changed++;
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
       unblock_input ();
     }
 }
@@ -4164,7 +4165,7 @@ shrink_mini_window (struct window *w)
 	  w->total_lines = 1;
 	  /* Enforce full redisplay.  FIXME: make it more selective.  */
 	  windows_or_buffers_changed++;
-	  adjust_glyphs (f);
+	  adjust_frame_glyphs (f);
 	  unblock_input ();
 	}
       /* If the above failed for whatever strange reason we must make a
@@ -4205,7 +4206,7 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
 
       windows_or_buffers_changed++;
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
       unblock_input ();
 
       run_window_configuration_change_hook (f);
@@ -4476,7 +4477,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
 		 visible.  */
 	      w->vscroll = (it.last_visible_y
 			    - it.current_y + it.max_ascent + it.max_descent);
-	      adjust_glyphs (it.f);
+	      adjust_frame_glyphs (it.f);
 	    }
 	  else
 	    {
@@ -5753,7 +5754,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	    ++n;
 	}
 
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
       unblock_input ();
 
       /* Scan dead buffer windows.  */
@@ -6082,7 +6083,7 @@ apply_window_adjustment (struct window *w)
   clear_glyph_matrix (w->current_matrix);
   w->window_end_valid = 0;
   windows_or_buffers_changed++;
-  adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
+  adjust_frame_glyphs (XFRAME (WINDOW_FRAME (w)));
 }
 
 
@@ -6348,7 +6349,7 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
 	  /* Adjust glyph matrix of the frame if the virtual display
 	     area becomes larger than before.  */
 	  if (w->vscroll < 0 && w->vscroll < old_dy)
-	    adjust_glyphs (f);
+	    adjust_frame_glyphs (f);
 
 	  /* Prevent redisplay shortcuts.  */
 	  XBUFFER (w->contents)->prevent_redisplay_optimizations_p = 1;

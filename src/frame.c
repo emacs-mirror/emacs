@@ -224,7 +224,7 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       FRAME_MENU_BAR_LINES (f) = nlines;
       set_menu_bar_lines_1 (f->root_window, nlines - olines);
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
     }
 }
 
@@ -712,7 +712,7 @@ affects all frames on the same terminal device.  */)
     change_frame_size (f, height, width, 0, 0, 0);
   }
 
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
 

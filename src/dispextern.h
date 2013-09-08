@@ -1195,12 +1195,6 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
       ((ROW)->phys_height - (ROW)->phys_ascent	\
        > (ROW)->height - (ROW)->ascent)
 
-/* True means that fonts have been loaded since the last glyph
-   matrix adjustments.  The function redisplay_internal adjusts glyph
-   matrices when this flag is true.  */
-
-extern bool fonts_changed_p;
-
 /* A glyph for a space.  */
 
 extern struct glyph space_glyph;
@@ -1428,31 +1422,31 @@ struct glyph_string
 #define CURRENT_MODE_LINE_FACE_ID(W)		\
 	(CURRENT_MODE_LINE_FACE_ID_3((W), XWINDOW (selected_window), (W)))
 
-/* Return the current height of the mode line of window W.  If not
-   known from current_mode_line_height, look at W's current glyph
-   matrix, or return a default based on the height of the font of the
-   face `mode-line'.  */
+/* Return the current height of the mode line of window W.  If not known
+   from W->mode_line_height, look at W's current glyph matrix, or return
+   a default based on the height of the font of the face `mode-line'.  */
 
-#define CURRENT_MODE_LINE_HEIGHT(W)				\
-     (current_mode_line_height >= 0				\
-      ? current_mode_line_height				\
-      : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
-	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				      CURRENT_MODE_LINE_FACE_ID (W))))
+#define CURRENT_MODE_LINE_HEIGHT(W)					\
+  (W->mode_line_height >= 0						\
+   ? W->mode_line_height						\
+   : (W->mode_line_height						\
+      = (MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+	 ? MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+	 : estimate_mode_line_height					\
+	     (XFRAME (W->frame), CURRENT_MODE_LINE_FACE_ID (W)))))
 
-/* Return the current height of the header line of window W.  If not
-   known from current_header_line_height, look at W's current glyph
-   matrix, or return an estimation based on the height of the font of
-   the face `header-line'.  */
+/* Return the current height of the header line of window W.  If not known
+   from W->header_line_height, look at W's current glyph matrix, or return
+   an estimation based on the height of the font of the face `header-line'.  */
 
 #define CURRENT_HEADER_LINE_HEIGHT(W)				\
-      (current_header_line_height >= 0				\
-       ? current_header_line_height				\
-       : (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				       HEADER_LINE_FACE_ID)))
+  (W->header_line_height >= 0					\
+   ? W->header_line_height					\
+   : (W->header_line_height					\
+      = (MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)		\
+	 ? MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)	\
+	 : estimate_mode_line_height				\
+	     (XFRAME (W->frame), HEADER_LINE_FACE_ID))))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -3201,7 +3195,6 @@ int frame_mode_line_height (struct frame *);
 extern Lisp_Object Qtool_bar;
 extern bool redisplaying_p;
 extern int help_echo_showing_p;
-extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
@@ -3215,6 +3208,7 @@ extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
+extern int merge_glyphless_glyph_face (struct it *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3455,7 +3449,7 @@ extern void cancel_line (int, struct frame *);
 extern void init_desired_glyphs (struct frame *);
 extern bool update_frame (struct frame *, bool, bool);
 extern void bitch_at_user (void);
-void adjust_glyphs (struct frame *);
+extern void adjust_frame_glyphs (struct frame *);
 void free_glyphs (struct frame *);
 void free_window_matrices (struct window *);
 void check_glyph_memory (void);

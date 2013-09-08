@@ -77,7 +77,6 @@ struct dim
 static void update_frame_line (struct frame *, int);
 static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
-static void adjust_frame_glyphs (struct frame *);
 static void change_frame_size_1 (struct frame *, int, int, bool, bool, bool);
 static void increment_row_positions (struct glyph_row *, ptrdiff_t, ptrdiff_t);
 static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
@@ -151,16 +150,6 @@ static int glyph_pool_count;
    null, window matrices are worked on.  */
 
 static struct frame *frame_matrix_frame;
-
-/* True means that fonts have been loaded since the last glyph
-   matrix adjustments.  Redisplay must stop, and glyph matrices must
-   be adjusted when this flag becomes true during display.  The
-   reason fonts can be loaded so late is that fonts of fontsets are
-   loaded on demand.  Another reason is that a line contains many
-   characters displayed by zero width or very narrow glyphs of
-   variable-width fonts.  */
-
-bool fonts_changed_p;
 
 /* Convert vpos and hpos from frame to window and vice versa.
    This may only be used for terminal frames.  */
@@ -433,7 +422,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 				  || right != matrix->right_margin_glyphs);
 
       if (!marginal_areas_changed_p
-	  && !fonts_changed_p
+	  && !XFRAME (w->frame)->fonts_changed
 	  && !header_line_changed_p
 	  && matrix->window_left_col == WINDOW_LEFT_EDGE_COL (w)
 	  && matrix->window_top_line == WINDOW_TOP_EDGE_LINE (w)
@@ -1799,37 +1788,17 @@ allocate_matrices_for_window_redisplay (struct window *w)
     }
 }
 
-
-/* Re-allocate/ re-compute glyph matrices on frame F.  If F is null,
-   do it for all frames; otherwise do it just for the given frame.
-   This function must be called when a new frame is created, its size
-   changes, or its window configuration changes.  */
+/* Allocate/reallocate glyph matrices of a single frame F.
+   This function must be called when a new frame is created,
+   its size changes, or its window configuration changes.  */
 
 void
-adjust_glyphs (struct frame *f)
+adjust_frame_glyphs (struct frame *f)
 {
   /* Block input so that expose events and other events that access
      glyph matrices are not processed while we are changing them.  */
   block_input ();
 
-  if (f)
-    adjust_frame_glyphs (f);
-  else
-    {
-      Lisp_Object tail, lisp_frame;
-
-      FOR_EACH_FRAME (tail, lisp_frame)
-	adjust_frame_glyphs (XFRAME (lisp_frame));
-    }
-
-  unblock_input ();
-}
-
-/* Allocate/reallocate glyph matrices of a single frame F.  */
-
-static void
-adjust_frame_glyphs (struct frame *f)
-{
   if (FRAME_WINDOW_P (f))
     adjust_frame_glyphs_for_window_redisplay (f);
   else
@@ -1839,6 +1808,8 @@ adjust_frame_glyphs (struct frame *f)
   adjust_decode_mode_spec_buffer (f);
 
   f->glyphs_initialized_p = 1;
+
+  unblock_input ();
 }
 
 /* Return true if any window in the tree has nonzero window margins.  See
@@ -5546,7 +5517,7 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
       w->cursor.vpos = w->cursor.y = 0;
   }
 
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   calculate_costs (f);
   SET_FRAME_GARBAGED (f);
   f->resized_p = 1;

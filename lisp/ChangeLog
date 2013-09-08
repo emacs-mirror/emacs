@@ -3,6 +3,121 @@
 	* international/characters.el: Set category "^"	(Combining) for
 	more characters.
 
+2013-09-07  Alan Mackenzie  <acm@muc.de>
+
+	Correctly fontify Java class constructors.
+	* progmodes/cc-langs.el (c-type-decl-suffix-key): Now matches ")"
+	in Java Mode.
+	(c-recognize-typeless-decls): Set the Java value to t.
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): While
+	handling a "(", add a check for, effectively, Java, and handle a
+	"typeless" declaration there.
+
+2013-09-07  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-biblatex-entry-alist): Add optional
+	field subtitle for entry type book.
+
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el: Make minibuffer-complete call completion-in-region
+	rather than other way around.
+	(completion--some, completion-pcm--find-all-completions):
+	Don't delay signals when debugging.
+	(minibuffer-completion-contents): Beware fields within the
+	minibuffer contents.
+	(completion-all-sorted-completions): Use defvar-local.
+	(completion--do-completion, completion--cache-all-sorted-completions)
+	(completion-all-sorted-completions, minibuffer-force-complete):
+	Add args `beg' and `end'.
+	(completion--in-region-1): New fun, extracted from minibuffer-complete.
+	(minibuffer-complete): Use completion-in-region.
+	(completion-complete-and-exit): New fun, extracted from
+	minibuffer-complete-and-exit.
+	(minibuffer-complete-and-exit): Use it.
+	(completion--complete-and-exit): Rename from
+	minibuffer--complete-and-exit.
+	(completion-in-region--single-word): New function, extracted from
+	minibuffer-complete-word.
+	(minibuffer-complete-word): Use it.
+	(display-completion-list): Make `common-substring' argument obsolete.
+	(completion--in-region): Call completion--in-region-1 instead of
+	minibuffer-complete.
+	(completion-help-at-point): Pass boundaries to
+	minibuffer-completion-help as args rather than via an overlay.
+	(completion-pcm--string->pattern): Use `any-delim'.
+	(completion-pcm--optimize-pattern): New function.
+	(completion-pcm--pattern->regex): Handle `any-delim'.
+	* icomplete.el (icomplete-forward-completions)
+	(icomplete-backward-completions, icomplete-completions):
+	Adjust calls to completion-all-sorted-completions and
+	completion--cache-all-sorted-completions.
+	(icomplete-with-completion-tables): Default to t.
+	* emacs-lisp/crm.el (crm--current-element): Rename from
+	crm--select-current-element.  Don't put an overlay but return the
+	boundaries instead.
+	(crm--completion-command): Take two new args to bind to the boundaries.
+	(crm-completion-help): Adjust accordingly.
+	(crm-complete): Use completion-in-region.
+	(crm-complete-word): Use completion-in-region--single-word.
+	(crm-complete-and-exit): Use completion-complete-and-exit.
+
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired-x.el (dired-mark-sexp): Bind the vars lexically rather
+	than dynamically.
+
+2013-09-06  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-display-images-node): When image file doesn't exist
+	display text version of the image if it's provided in the Info file.
+	Otherwise, display the location of missing image from SRC attribute.
+	Add help-echo text property from ALT attribute.  (Bug#15279)
+
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (edit-abbrevs-mode-map): Rename from edit-abbrevs-map.
+	(edit-abbrevs-mode): Use define-derived-mode.
+
+	* epa.el (epa--encode-coding-string, epa--decode-coding-string)
+	(epa--select-safe-coding-system, epa--derived-mode-p): Make it obvious
+	that it's defined.
+	(epa-key-list-mode, epa-key-mode, epa-info-mode):
+	Use define-derived-mode.
+
+	* epg.el (epg-start-encrypt): Minor CSE simplification.
+
+2013-09-06  William Xu  <william.xwl@gmail.com>
+
+	* arc-mode.el: Add support for 7za (bug#15264).
+	(archive-7z-program): New var.
+	(archive-zip-extract, archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case, archive-7z-extract, archive-7z-expunge)
+	(archive-7z-update, archive-zip-extract, archive-7z-summarize): Use it.
+
+2013-09-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	Remove URL syntax.
+
+	* net/tramp.el (tramp-syntax, tramp-prefix-format)
+	(tramp-postfix-method-format, tramp-prefix-ipv6-format)
+	(tramp-postfix-ipv6-format, tramp-prefix-port-format)
+	(tramp-postfix-host-format, tramp-file-name-regexp)
+	(tramp-completion-file-name-regexp)
+	(tramp-completion-dissect-file-name)
+	(tramp-handle-substitute-in-file-name): Remove 'url case.
+	(tramp-file-name-regexp-url)
+	(tramp-completion-file-name-regexp-url): Remove constants.
+
+2013-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* replace.el (replace-string): Doc fix re start/end.  (Bug#15275)
+
+2013-09-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move "Perl-ish
+	keywords" below "here-doc beginnings" (Bug#15270).
+
 2013-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (pop): Use `car-safe'.
@@ -63,6 +178,30 @@
 	(rul-generic-mode-syntax-table): Init in the defvar.
 
 2013-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-dispatcher.el (vc-run-delayed): New macro.
+	(vc-do-command, vc-set-async-update):
+	* vc/vc-mtn.el (vc-mtn-dir-status):
+	* vc/vc-hg.el (vc-hg-dir-status, vc-hg-dir-status-files)
+	(vc-hg-pull, vc-hg-merge-branch):
+	* vc/vc-git.el (vc-git-dir-status-goto-stage, vc-git-pull)
+	(vc-git-merge-branch):
+	* vc/vc-cvs.el (vc-cvs-print-log, vc-cvs-dir-status)
+	(vc-cvs-dir-status-files):
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch, vc-bzr-dir-status)
+	(vc-bzr-dir-status-files):
+	* vc/vc-arch.el (vc-arch-dir-status): Use vc-run-delayed.
+	* vc/vc-annotate.el: Use lexical-binding.
+	(vc-annotate-display-select, vc-annotate): Use vc-run-delayed.
+	(vc-sentinel-movepoint): Declare.
+	(vc-annotate): Don't use `goto-line'.
+	* vc/vc.el (vc-diff-internal): Prefer a closure to `(lambda...).
+	(vc-diff-internal, vc-log-internal-common): Use vc-run-delayed.
+	(vc-sentinel-movepoint): Declare.
+	* vc/vc-svn.el: Use lexical-binding.
+	(vc-svn-dir-status, vc-svn-dir-status-files): Use vc-run-delayed.
+	* vc/vc-sccs.el:
+	* vc/vc-rcs.el: Use lexical-binding.
 
 	* autorevert.el (auto-revert-notify-handler): Explicitly ignore
 	`deleted'.  Don't drop errors silently.

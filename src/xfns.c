@@ -1201,7 +1201,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
     }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   run_window_configuration_change_hook (f);
 }
 
@@ -1264,7 +1264,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
   resize_frame_windows (f, FRAME_LINES (f), 0);
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
      the frame, below the menu bar or tool bar, is redrawn when the
@@ -5486,7 +5486,7 @@ Text larger than the specified size is clipped.  */)
     }
 
   FRAME_TOTAL_COLS (f) = w->total_cols;
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
@@ -5554,7 +5554,7 @@ Text larger than the specified size is clipped.  */)
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
       w->total_cols = width;
       FRAME_TOTAL_COLS (f) = width;
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
       clear_glyph_matrix (w->desired_matrix);
       clear_glyph_matrix (w->current_matrix);
       try_window (FRAME_ROOT_WINDOW (f), pos, 0);

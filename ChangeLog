@@ -1,3 +1,12 @@
+2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --without-x --enable-gcc-warnings to Fedora 19.
+	* configure.ac (WERROR_CFLAGS): Omit redundant use of
+	-Wmissing-field-initializers, -Wswitch, -Wtype-limits,
+	-Wunused-parameter.  If there is no window system, also omit
+	-Wsuggest-attribute=const and -Wsuggest-attribute=noreturn; this
+	is needed for Fedora 19.
+
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Make --without-x compatible with --enable-gcc-warnings.

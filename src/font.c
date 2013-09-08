@@ -2866,14 +2866,14 @@ font_open_entity (struct frame *f, Lisp_Object entity, int pixel_size)
     {
       FRAME_SMALLEST_CHAR_WIDTH (f) = min_width;
       FRAME_SMALLEST_FONT_HEIGHT (f) = height;
-      fonts_changed_p = 1;
+      f->fonts_changed = 1;
     }
   else
     {
       if (FRAME_SMALLEST_CHAR_WIDTH (f) > min_width)
-	FRAME_SMALLEST_CHAR_WIDTH (f) = min_width, fonts_changed_p = 1;
+	FRAME_SMALLEST_CHAR_WIDTH (f) = min_width, f->fonts_changed = 1;
       if (FRAME_SMALLEST_FONT_HEIGHT (f) > height)
-	FRAME_SMALLEST_FONT_HEIGHT (f) = height, fonts_changed_p = 1;
+	FRAME_SMALLEST_FONT_HEIGHT (f) = height, f->fonts_changed = 1;
     }
 #endif
 

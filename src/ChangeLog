@@ -1,3 +1,85 @@
+2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --without-x --enable-gcc-warnings to Fedora 19.
+	* gfilenotify.c (globals_of_gfilenotify):
+	Call g_type_init only if using an older glib version that needs it.
+
+2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
+	(last_glyphless_glyph_merged_face_id): Remove declarations.
+	* dispextern.h (merge_glyphless_glyph_face): Add prototype.
+	* xdisp.c (last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
+	(last_glyphless_glyph_merged_face_id): Now static.
+	(merge_escape_glyph_face): New function, refactored from...
+	(get_next_display_element): ...here.
+	(merge_glyphless_glyph_face): New function, refactored from...
+	(produce_glyphless_glyph): ...here...
+	* term.c (produce_glyphless_glyph): ...and here.
+
+2013-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (eval_sub): Only call Ffunction if necessary.
+
+2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Attempt to make redisplay more selective when changing cursor type.
+	* frame.h (struct frame): New bitfield cursor_type_changed.
+	* xdisp.c (cursor_type_changed): Remove.
+	(try_cursor_movement, redisplay_window, try_window_id)
+	(set_frame_cursor_types, try_window_reusing_current_matrix):
+	Adjust to use per-frame bitfield.
+	(redisplay_internal): Look for cursor type change on each visible
+	frame and consider all frames if cursor type has been changed on
+	the frame other than selected.  If cursor type has been changed on
+	selected frame only, do not use fast update.
+
+2013-09-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Attempt to make redisplay more selective when changing fonts.
+	* frame.h (struct frame): New bitfield fonts_changed.
+	* dispextern.h (fonts_changed_p, adjust_glyphs): Remove declaration.
+	(adjust_frame_glyphs): Add prototype.
+	* dispnew.c (fonts_changed_p): Remove.
+	(adjust_glyphs): Remove because we do not
+	adjust matrices on all frames at once any more.
+	(adjust_frame_glyphs): Block and unblock input here.
+	(adjust_glyph_matrix): Use fonts_changed.
+	(change_frame_size_1): Use adjust_frame_glyphs.
+	* font.c (font_open_entity): Use fonts_changed.
+	* frame.c (set_menu_bar_lines, Fmake_terminal_frame):
+	* w32fns.c (x_set_menu_bar_lines, x_set_tool_bar_lines, Fx_show_tip):
+	* window.c (Fdelete_other_windows_internal, Fwindow_resize_apply)
+	(Fsplit_window_internal, Fdelete_window_internal, grow_mini_window)
+	(shrink_mini_window, Fresize_mini_window_internal)
+	(window_scroll_pixel_based, Fset_window_configuration)
+	(apply_window_adjustment, Fset_window_vscroll):
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines, Fx_show_tip):
+	Use adjust_frame_glyphs.
+	* xdisp.c (redisplay_tool_bar, redisplay_window, try_window)
+	(try_window_reusing_current_matrix, try_window_id, display_line)
+	(IT_EXPAND_MATRIX_WIDTH): Use fonts_changed.
+	(redisplay_internal): Consider fonts_changed and adjust frame
+	matrices for each frame only if the frame is visible.  If font
+	has been changed on some frame during full redisplay, retry
+	only visible frames where the font has been actually changed.
+
+2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cache current header and mode line height for each window.
+	* window.h (struct window): New fields mode_line_height
+	and header_line_height.
+	* window.c (make_window): Initialize them.
+	* dispextern.h (CURRENT_MODE_LINE_HEIGHT)
+	(CURRENT_HEADER_LINE_HEIGHT): Use them.  Adjust comment.
+	(current_mode_line_height, current_header_line_height):
+	Remove declaration.
+	* xdisp.c (current_mode_line_height, current_header_line_height):
+	Remove.
+	(pos_visible_p, init_xdisp): Adjust user.
+	(redisplay_window): Invalidate mode_line_height and
+	header_line_height if current and desired matrices do not agree.
+
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fontset.c, window.c, xdisp.c (toplevel): Use TERM_HEADER.

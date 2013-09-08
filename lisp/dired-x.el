@@ -1,4 +1,4 @@
-;;; dired-x.el --- extra Dired functionality
+;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 1997, 2001-2013 Free Software Foundation,
 ;; Inc.
@@ -1185,7 +1185,7 @@ results in
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:
-        (dotimes (n count)
+        (dotimes (_ count)
           (setq name1 (concat "../" name1)))))
     (make-symbolic-link
      (directory-file-name name1)        ; must not link to foo/
@@ -1397,22 +1397,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;; Does anyone use this? - lrd 6/29/93.
 ;; Apparently people do use it. - lrd 12/22/97.
 
-(with-no-warnings
-  ;; Warnings are suppressed to avoid "global/dynamic var `X' lacks a prefix".
-  ;; This is unbearably ugly, but not more than having global variables
-  ;; named size, time, name or s, however practical it can be while writing
-  ;; `dired-mark-sexp' predicates.
-  (defvar inode)
-  (defvar s)
-  (defvar mode)
-  (defvar nlink)
-  (defvar uid)
-  (defvar gid)
-  (defvar size)
-  (defvar time)
-  (defvar name)
-  (defvar sym))
-
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
 With a prefix arg, unmark or unflag those files instead.
@@ -1505,7 +1489,17 @@ to mark all zero length files."
                                           (line-end-position))
                       ""))
           t)
-        (eval predicate)))
+        (eval predicate
+              `((inode . ,inode)
+                (s . ,s)
+                (mode . ,mode)
+                (nlink . ,nlink)
+                (uid . ,uid)
+                (gid . ,gid)
+                (size . ,size)
+                (time . ,time)
+                (name . ,name)
+                (sym . ,sym)))))
      (format "'%s file" predicate))))
 
 
