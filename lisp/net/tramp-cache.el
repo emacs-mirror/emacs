@@ -289,7 +289,12 @@ KEY identifies the connection, it is either a process or a vector."
 	 (when (vectorp key)
 	   (dotimes (i (length key))
 	     (when (stringp (aref key i))
-	       (aset key i (substring-no-properties (aref key i))))))
+	       (aset key i
+		     (funcall
+		      ;; `substring-no-properties' does not exist in XEmacs.
+		      (if (functionp 'substring-no-properties)
+			  'substring-no-properties 'identity)
+		      (aref key i))))))
 	 (let ((tmp (format
 		     "(%s %s)"
 		     (if (processp key)

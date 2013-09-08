@@ -850,7 +850,7 @@ of command line.")
     (insert-file-contents-literally
      . tramp-sh-handle-insert-file-contents-literally)
     (load . tramp-handle-load)
-    (make-auto-save-file-name . tramp-sh-handle-make-auto-save-file-name)
+    (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-sh-handle-make-directory)
     (make-symbolic-link . tramp-sh-handle-make-symbolic-link)
     (process-file . tramp-sh-handle-process-file)
@@ -2978,48 +2978,6 @@ the result will be a local, non-Tramp, filename."
 	  (fset 'find-buffer-file-type find-buffer-file-type-function)
 	(fmakunbound 'find-buffer-file-type)))))
 
-(defun tramp-sh-handle-make-auto-save-file-name ()
-  "Like `make-auto-save-file-name' for Tramp files.
-Returns a file name in `tramp-auto-save-directory' for autosaving this file."
-  (let ((tramp-auto-save-directory tramp-auto-save-directory)
-	(buffer-file-name
-	 (tramp-subst-strs-in-string
-	  '(("_" . "|")
-	    ("/" . "_a")
-	    (":" . "_b")
-	    ("|" . "__")
-	    ("[" . "_l")
-	    ("]" . "_r"))
-	  (buffer-file-name))))
-    ;; File name must be unique.  This is ensured with Emacs 22 (see
-    ;; UNIQUIFY element of `auto-save-file-name-transforms'); but for
-    ;; all other cases we must do it ourselves.
-    (when (boundp 'auto-save-file-name-transforms)
-      (mapc
-       (lambda (x)
-	 (when (and (string-match (car x) buffer-file-name)
-		    (not (car (cddr x))))
-	   (setq tramp-auto-save-directory
-		 (or tramp-auto-save-directory
-		     (tramp-compat-temporary-file-directory)))))
-       (symbol-value 'auto-save-file-name-transforms)))
-    ;; Create directory.
-    (when tramp-auto-save-directory
-      (setq buffer-file-name
-	    (expand-file-name buffer-file-name tramp-auto-save-directory))
-      (unless (file-exists-p tramp-auto-save-directory)
-	(make-directory tramp-auto-save-directory t)))
-    ;; Run plain `make-auto-save-file-name'.  There might be an advice when
-    ;; it is not a magic file name operation (since Emacs 22).
-    ;; We must deactivate it temporarily.
-    (if (not (ad-is-active 'make-auto-save-file-name))
-	(tramp-run-real-handler 'make-auto-save-file-name nil)
-      ;; else
-      (ad-deactivate 'make-auto-save-file-name)
-      (prog1
-       (tramp-run-real-handler 'make-auto-save-file-name nil)
-       (ad-activate 'make-auto-save-file-name)))))
-
 ;; CCC grok LOCKNAME
 (defun tramp-sh-handle-write-region
   (start end filename &optional append visit lockname confirm)
@@ -3425,7 +3383,7 @@ Fall back to normal file name handler if no Tramp handler exists."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
 	  ;; Attribute change is returned in unused wording.
-	  string (replace-regexp-in-string
+	  string (tramp-compat-replace-regexp-in-string
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
 
     (while (string-match
@@ -3439,7 +3397,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	     (list
 	      proc
 	      (intern-soft
-	       (replace-regexp-in-string
+	       (tramp-compat-replace-regexp-in-string
 		"_" "-" (downcase (match-string 4 string))))
 	      ;; File names are returned as absolute paths.  We must
 	      ;; add the remote prefix.
@@ -3475,7 +3433,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 	    proc
 	    (mapcar
 	     (lambda (x)
-	       (intern-soft (replace-regexp-in-string "_" "-" (downcase x))))
+	       (intern-soft
+		(tramp-compat-replace-regexp-in-string "_" "-" (downcase x))))
 	     (split-string (match-string 1 line) "," 'omit-nulls))
 	    (match-string 3 line))))
       ;; Usually, we would add an Emacs event now.  Unfortunately,
@@ -4252,7 +4211,7 @@ Gateway hops are already opened."
 		  ?h (or (tramp-file-name-host (car target-alist)) ""))))
 	  (with-parsed-tramp-file-name proxy l
 	    ;; Add the hop.
-	    (pushnew l target-alist :test #'equal)
+	    (push l target-alist)
 	    ;; Start next search.
 	    (setq choices tramp-default-proxies-alist)))))
 
@@ -4270,11 +4229,11 @@ Gateway hops are already opened."
 	   vec 'file-error
 	   "Connection `%s' is not supported for gateway access." hop))
 	;; Open the gateway connection.
-	(pushnew
+	(push
 	 (vector
 	  (tramp-file-name-method hop) (tramp-file-name-user hop)
 	  (tramp-compat-funcall 'tramp-gw-open-connection vec gw hop) nil nil)
-	 target-alist :test #'equal)
+	 target-alist)
 	;; For the password prompt, we need the correct values.
 	;; Therefore, we must remember the gateway vector.  But we
 	;; cannot do it as connection property, because it shouldn't

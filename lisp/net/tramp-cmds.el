@@ -190,7 +190,9 @@ This includes password cache, file cache, connection cache, buffers."
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       (propertize "\n" 'display "\
+       (funcall
+	(if (functionp 'propertize) 'propertize 'progn)
+	"\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
 and what the local and remote machines are.

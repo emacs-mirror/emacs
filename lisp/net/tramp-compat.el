@@ -313,13 +313,21 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
   "Like `copy-file' for Tramp files (compat function)."
   (cond
    (preserve-extended-attributes
-    (tramp-compat-funcall
-     'copy-file filename newname ok-if-already-exists keep-date
-     preserve-uid-gid preserve-extended-attributes))
+    (condition-case nil
+	(tramp-compat-funcall
+	 'copy-file filename newname ok-if-already-exists keep-date
+	 preserve-uid-gid preserve-extended-attributes)
+      (wrong-number-of-arguments
+       (tramp-compat-copy-file
+	filename newname ok-if-already-exists keep-date preserve-uid-gid))))
    (preserve-uid-gid
-    (tramp-compat-funcall
-     'copy-file filename newname ok-if-already-exists keep-date
-     preserve-uid-gid))
+    (condition-case nil
+	(tramp-compat-funcall
+	 'copy-file filename newname ok-if-already-exists keep-date
+	 preserve-uid-gid)
+      (wrong-number-of-arguments
+       (tramp-compat-copy-file
+	filename newname ok-if-already-exists keep-date))))
    (t
     (copy-file filename newname ok-if-already-exists keep-date))))
 
@@ -517,6 +525,58 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			eol-type
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
+
+;; `replace-regexp-in-string' does not exist in XEmacs.
+;; Implementation is taken from Emacs 24.
+(if (fboundp 'replace-regexp-in-string)
+    (defalias 'tramp-compat-replace-regexp-in-string 'replace-regexp-in-string)
+  (defun tramp-compat-replace-regexp-in-string
+    (regexp rep string &optional fixedcase literal subexp start)
+    "Replace all matches for REGEXP with REP in STRING.
+
+Return a new string containing the replacements.
+
+Optional arguments FIXEDCASE, LITERAL and SUBEXP are like the
+arguments with the same names of function `replace-match'.  If START
+is non-nil, start replacements at that index in STRING.
+
+REP is either a string used as the NEWTEXT arg of `replace-match' or a
+function.  If it is a function, it is called with the actual text of each
+match, and its value is used as the replacement text.  When REP is called,
+the match data are the result of matching REGEXP against a substring
+of STRING.
+
+To replace only the first match (if any), make REGEXP match up to \\'
+and replace a sub-expression, e.g.
+  (replace-regexp-in-string \"\\\\(foo\\\\).*\\\\'\" \"bar\" \" foo foo\" nil nil 1)
+    => \" bar foo\""
+
+    (let ((l (length string))
+	  (start (or start 0))
+	  matches str mb me)
+      (save-match-data
+	(while (and (< start l) (string-match regexp string start))
+	  (setq mb (match-beginning 0)
+		me (match-end 0))
+	  ;; If we matched the empty string, make sure we advance by one char
+	  (when (= me mb) (setq me (min l (1+ mb))))
+	  ;; Generate a replacement for the matched substring.
+	  ;; Operate only on the substring to minimize string consing.
+	  ;; Set up match data for the substring for replacement;
+	  ;; presumably this is likely to be faster than munging the
+	  ;; match data directly in Lisp.
+	  (string-match regexp (setq str (substring string mb me)))
+	  (setq matches
+		(cons (replace-match (if (stringp rep)
+					 rep
+				       (funcall rep (match-string 0 str)))
+				     fixedcase literal str subexp)
+		      (cons (substring string start mb) ; unmatched prefix
+			    matches)))
+	  (setq start me))
+	;; Reconstruct a string from the pieces.
+	(setq matches (cons (substring string start l) matches)) ; leftover
+	(apply #'concat (nreverse matches))))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
