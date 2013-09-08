@@ -266,13 +266,9 @@ AC_SUBST(cache_file)
 
 ## This is an option because I do not know if all info/man support
 ## compressed files, nor how to test if they do so.
-OPTION_DEFAULT_ON([compress-info],[don't compress the installed Info pages])
-if test $with_compress_info = yes; then
-   GZIP_INFO=yes
-else
-   GZIP_INFO=
-fi
-AC_SUBST(GZIP_INFO)
+OPTION_DEFAULT_ON([compress-install],
+  [don't compress some files (.el, .info, etc.) when installing.  Equivalent to:
+make GZIP_PROG= install])
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=FILENAME],
@@ -949,6 +945,9 @@ AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
+
+test $with_compress_install != yes && \
+   GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
 
 if test $opsys = gnu-linux; then
   AC_PATH_PROG(PAXCTL, paxctl,,

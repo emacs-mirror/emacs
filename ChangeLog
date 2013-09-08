@@ -1,5 +1,11 @@
 2013-09-08  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (--without-compress-install):
+	Rename from --without-compress-info.  (Bug#9789)
+	(GZIP_INFO): Remove.
+	(GZIP_PROG): Allow --without-compress-install to disable it.
+	* Makefile.in (GZIP_INFO): Remove all references.
+
 	* info/dir: Tweak emacs-gnutls entry.
 
 2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
