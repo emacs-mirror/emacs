@@ -1,3 +1,8 @@
+2013-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* saveplace.el (load-save-place-alist-from-file):
+	Demote errors.  (Bug#15305)
+
 2013-09-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	Improve compatibility with older Emacsen, and XEmacs.
