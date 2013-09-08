@@ -1,3 +1,8 @@
+2013-09-08  Kenichi Handa  <handa@gnu.org>
+
+	* international/characters.el: Set category "^"	(Combining) for
+	more characters.
+
 2013-09-07  Alan Mackenzie  <acm@muc.de>
 
 	Correctly fontify Java class constructors.

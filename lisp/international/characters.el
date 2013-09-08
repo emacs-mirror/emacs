@@ -792,7 +792,7 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; Combining diacritics
   (modify-category-entry '(#x300 . #x362) ?^)
   ;; Combining marks
-  (modify-category-entry '(#x20d0 . #x20e3) ?^)
+  (modify-category-entry '(#x20d0 . #x20ff) ?^)
 
   ;; Fixme: syntax for symbols &c
   )
