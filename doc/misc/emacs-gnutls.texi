@@ -25,7 +25,7 @@ modify this GNU manual.''
 
 @dircategory Emacs network features
 @direntry
-* GnuTLS: (emacs-gnutls).       The Emacs GnuTLS integration.
+* Emacs GnuTLS: (emacs-gnutls). The Emacs GnuTLS integration.
 @end direntry
 
 @titlepage

@@ -1,3 +1,7 @@
+2013-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Tweak emacs-gnutls entry.
+
 2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --without-x --enable-gcc-warnings to Fedora 19.

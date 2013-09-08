@@ -1,3 +1,7 @@
+2013-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-gnutls.texi: Tweak direntry.
+
 2013-09-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Alternative Syntax): Remove chapter.
