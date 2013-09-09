@@ -1013,7 +1013,7 @@ Par exemple: a` -> à   e' -> é.
 En doublant la frappe des diacritiques, ils s'isoleront de la lettre.
 Par exemple: e'' -> e'
 
-<e dans l'o> n'est pas disponible."
+Œ est produit par O/."
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1034,7 +1034,9 @@ Par exemple: e'' -> e'
  ("i^" ?î)
  ("i\"" ?ï)
  ("O^" ?Ô)
+ ("O/" ?Œ)
  ("o^" ?ô)
+ ("o/" ?œ)
  ("U`" ?Ù)
  ("U^" ?Û)
  ("U\"" ?Ü)
@@ -1063,7 +1065,9 @@ Par exemple: e'' -> e'
  ("i^^" ["i^"])
  ("i\"\"" ["i\""])
  ("O^^" ["O^"])
+ ("O//" ["O/"])
  ("o^^" ["o^"])
+ ("o//" ["o/"])
  ("U``" ["U`"])
  ("U^^" ["U^"])
  ("U\"\"" ["U\""])
@@ -2099,7 +2103,7 @@ of characters from a single Latin-N charset.
   dot        |    .    | z. -> ż
   stroke     |    /    | d/ -> đ
   nordic     |    /    | d/ -> ð   t/ -> þ   a/ -> å   e/ -> æ   o/ -> ø
-  others     |    /    | s/ -> ß   ?/ -> ¿   !/ -> ¡   // -> °
+  others     |    /    | s/ -> ß   ?/ -> ¿   !/ -> ¡   // -> °   o/ -> œ
              | various | << -> «   >> -> »   o_ -> º   a_ -> ª
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
