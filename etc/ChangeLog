@@ -1,3 +1,9 @@
+2013-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/Makefile (PS_ENGLISH, PS_CZECH, PS_FRENCH, PS_GERMAN)
+	(PS_POLISH, PS_PORTUGUESE, PS_RUSSIAN, PS_SLOVAKIAN, PS_TARGETS):
+	Use substitution refs.
+
 2013-08-15  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/calccard.pdf, refcards/cs-dired-ref.pdf:
