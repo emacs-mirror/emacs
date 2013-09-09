@@ -2140,7 +2140,7 @@ the python shell:
   1. When Optional Argument NOMAIN is non-nil everything under an
      \"if __name__ == '__main__'\" block will be removed.
   2. When a subregion of the buffer is sent, it takes care of
-     appending extra whitelines so tracebacks are correct.
+     appending extra empty lines so tracebacks are correct.
   3. Wraps indented regions under an \"if True:\" block so the
      interpreter evaluates them correctly."
   (let ((substring (buffer-substring-no-properties start end))
