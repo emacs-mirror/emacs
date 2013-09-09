@@ -1,5 +1,13 @@
 2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Do not populate pure Xism x_sync to other ports.
+	* frame.h (x_sync): Move under HAVE_X_WINDOWS.
+	* frame.c (other_visible_frames) [HAVE_X_WINDOWS]: Use as such.
+	* nsfns.m, w32xfns.c (x_sync): Remove no-op.
+	* w32term.h (x_sync): Remove prototype.
+
+2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Cleanup frame flushing.
 	* dispextern.h (struct redisplay_interface): Drop
 	flush_display_optional because flush_display is enough

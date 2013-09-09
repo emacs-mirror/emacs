@@ -2231,15 +2231,6 @@ x_get_focus_frame (struct frame *frame)
   return nsfocus;
 }
 
-void
-x_sync (struct frame *f)
-{
-  /* XXX Not implemented XXX */
-  return;
-}
-
-
-
 /* ==========================================================================
 
     Lisp definitions that, for whatever reason, we can't alias as 'ns-XXX'.

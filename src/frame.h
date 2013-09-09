@@ -1243,7 +1243,6 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
 extern void x_set_window_size (struct frame *f, int change_grav,
                               int cols, int rows);
-extern void x_sync (struct frame *);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 extern void x_set_mouse_position (struct frame *f, int h, int v);
 extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
@@ -1269,7 +1268,8 @@ extern void x_wm_set_icon_position (struct frame *, int, int);
 #if !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
 #endif
-#endif
+extern void x_sync (struct frame *);
+#endif /* HAVE_X_WINDOWS */
 
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
