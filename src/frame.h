@@ -1276,6 +1276,16 @@ extern void x_query_color (struct frame *f, XColor *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+
+FRAME_INLINE void
+flush_frame (struct frame *f)
+{
+  struct redisplay_interface *rif = FRAME_RIF (f);
+
+  if (rif && rif->flush_display)
+    rif->flush_display (f);
+}
+
 /***********************************************************************
 			Multimonitor data
  ***********************************************************************/

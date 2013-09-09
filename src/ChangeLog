@@ -1,3 +1,24 @@
+2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup frame flushing.
+	* dispextern.h (struct redisplay_interface): Drop
+	flush_display_optional because flush_display is enough
+	for X and flushing via RIF is just a no-op for others.
+	* frame.h (flush_frame): New function.
+	* dispnew.c (update_frame):
+	* minibuf.c (read_minibuf):
+	* xdisp.c (echo_area_display, redisplay_preserve_echo_area):
+	Use it.
+	* keyboard.c (detect_input_pending_run_timers): Do not flush
+	all frames but selected one in redisplay_preserve_echo_area.
+	* nsterm.m (ns_flush): Remove no-op.
+	(ns_redisplay_interface): Adjust user.
+	* w32term.h (x_flush): Remove no-op.
+	(w32_redisplay_interface): Adjust user.
+	* xterm.c (x_flush): Simplify because we do not flush all
+	frames at once any more.  Adjust comment.
+	(x_redisplay_interface): Adjust user.
+
 2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --without-x --enable-gcc-warnings to Fedora 19.

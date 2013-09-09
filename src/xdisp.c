@@ -10859,7 +10859,7 @@ echo_area_display (int update_frame_p)
 		 Can do with a display update of the echo area,
 		 unless we displayed some mode lines.  */
 	      update_single_window (w, 1);
-	      FRAME_RIF (f)->flush_display (f);
+	      flush_frame (f);
 	    }
 	  else
 	    update_frame (f, 1, 1);
@@ -13645,9 +13645,7 @@ redisplay_preserve_echo_area (int from_where)
   else
     redisplay_internal ();
 
-  if (FRAME_RIF (SELECTED_FRAME ()) != NULL
-      && FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
-    FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (NULL);
+  flush_frame (SELECTED_FRAME ());
 }
 
 

@@ -334,29 +334,19 @@ static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
 
-/* Flush display of frame F, or of all frames if F is null.  */
+/* Flush display of frame F.  */
 
 static void
 x_flush (struct frame *f)
 {
+  eassert (f && FRAME_X_P (f));
   /* Don't call XFlush when it is not safe to redisplay; the X
      connection may be broken.  */
   if (!NILP (Vinhibit_redisplay))
     return;
 
   block_input ();
-  if (f)
-    {
-      eassert (FRAME_X_P (f));
-      XFlush (FRAME_X_DISPLAY (f));
-    }
-  else
-    {
-      /* Flush all displays and so all frames on them.  */
-      struct x_display_info *xdi;
-      for (xdi = x_display_list; xdi; xdi = xdi->next)
-	XFlush (xdi->display);
-    }
+  XFlush (FRAME_X_DISPLAY (f));
   unblock_input ();
 }
 
@@ -7361,9 +7351,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 #endif
     }
 
-#ifndef XFlush
   XFlush (FRAME_X_DISPLAY (f));
-#endif
 }
 
 
@@ -10384,11 +10372,6 @@ static struct redisplay_interface x_redisplay_interface =
     x_update_window_begin,
     x_update_window_end,
     x_flush,
-#ifdef XFlush
-    x_flush,
-#else
-    0,  /* flush_display_optional */
-#endif
     x_clear_window_mouse_face,
     x_get_glyph_overhangs,
     x_fix_overlapping_area,

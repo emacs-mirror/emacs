@@ -801,18 +801,6 @@ ns_update_end (struct frame *f)
   NSTRACE (ns_update_end);
 }
 
-
-static void
-ns_flush (struct frame *f)
-/* --------------------------------------------------------------------------
-   external (RIF) call
-   NS impl is no-op since currently we flush in ns_update_end and elsewhere
-   -------------------------------------------------------------------------- */
-{
-    NSTRACE (ns_flush);
-}
-
-
 static void
 ns_focus (struct frame *f, NSRect *r, int n)
 /* --------------------------------------------------------------------------
@@ -3963,8 +3951,7 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_after_update_window_line,
   ns_update_window_begin,
   ns_update_window_end,
-  ns_flush,
-  0, /* flush_display_optional */
+  0, /* flush_display */
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,

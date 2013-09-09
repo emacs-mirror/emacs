@@ -9873,20 +9873,7 @@ detect_input_pending_run_timers (bool do_display)
     get_input_pending (READABLE_EVENTS_DO_TIMERS_NOW);
 
   if (old_timers_run != timers_run && do_display)
-    {
-      redisplay_preserve_echo_area (8);
-      /* The following fixes a bug when using lazy-lock with
-	 lazy-lock-defer-on-the-fly set to t, i.e.  when fontifying
-	 from an idle timer function.  The symptom of the bug is that
-	 the cursor sometimes doesn't become visible until the next X
-	 event is processed.  --gerd.  */
-      {
-        Lisp_Object tail, frame;
-        FOR_EACH_FRAME (tail, frame)
-          if (FRAME_RIF (XFRAME (frame)))
-            FRAME_RIF (XFRAME (frame))->flush_display (XFRAME (frame));
-      }
-    }
+    redisplay_preserve_echo_area (8);
 
   return input_pending;
 }

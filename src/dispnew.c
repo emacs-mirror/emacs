@@ -3068,7 +3068,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
  	 at least the fringes are not redrawn in a timely manner.  ++kfs */
       if (f->force_flush_display_p)
  	{
-     	  FRAME_RIF (f)->flush_display (f);
+     	  flush_frame (f);
  	  f->force_flush_display_p = 0;
  	}
     }

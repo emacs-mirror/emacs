@@ -6258,11 +6258,6 @@ w32_make_rdb (char *xrm_option)
   return buffer;
 }
 
-void
-x_flush (struct frame * f)
-{ /* Nothing to do */ }
-
-
 extern frame_parm_handler w32_frame_parm_handlers[];
 
 static struct redisplay_interface w32_redisplay_interface =
@@ -6276,8 +6271,7 @@ static struct redisplay_interface w32_redisplay_interface =
   x_after_update_window_line,
   x_update_window_begin,
   x_update_window_end,
-  x_flush,
-  0,  /* flush_display_optional */
+  0, /* flush_display */
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
