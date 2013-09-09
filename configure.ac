@@ -1026,10 +1026,13 @@ dnl (Don't use `-z nocombreloc' as -z takes no arg on Irix.)
 dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
-dnl Adding -znocombreloc to LDFLAGS rather than LD_SWITCH_SYSTEM_TEMACS is:
-dnl * inappropriate, as LDFLAGS is a build option but this is essential.  See:
+dnl For a long time, -znocombreloc was added to LDFLAGS rather than
+dnl LD_SWITCH_SYSTEM_TEMACS.  That is:
+dnl * inappropriate, as LDFLAGS is a user option but this is essential.
+dnl   Eg "make LDFLAGS=... all" could run into problems,
 dnl   http://bugs.debian.org/684788
-dnl * unnecessary, since temacs is the only thing that actually needs it.  See:
+dnl * unnecessary, since temacs is the only thing that actually needs it.
+dnl   Indeed this is where it was originally, prior to:
 dnl   http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-03/msg00170.html
 late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
