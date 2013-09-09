@@ -946,7 +946,7 @@ AC_PATH_PROG(INSTALL_INFO, install-info, :,
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
-test $with_compress_install != yes && \
+test $with_compress_install != yes && test -n "$GZIP_PROG" && \
    GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
 
 if test $opsys = gnu-linux; then
