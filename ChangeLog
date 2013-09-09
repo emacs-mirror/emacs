@@ -3,11 +3,6 @@
 	* configure.ac (LDFLAGS_NOCOMBRELOC): New variable.
 	(LDFLAGS): Move nocombreloc option from here...
 	(LD_SWITCH_SYSTEM_TEMACS): ... to here.
-	This is an essential option that should not be in LDFLAGS,
-	because the user may override that at build time; eg
-	http://bugs.debian.org/684788.  temacs is the only thing
-	that actually needs this option; this is where it was orginally:
-	http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-03/msg00170.html
 
 2013-09-08  Glenn Morris  <rgm@gnu.org>
 

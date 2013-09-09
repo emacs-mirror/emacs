@@ -1026,7 +1026,16 @@ dnl (Don't use `-z nocombreloc' as -z takes no arg on Irix.)
 dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
-late_LDFLAGS=$LDFLAGS
+dnl For a long time, this was added to LDFLAGS rather than
+dnl LD_SWITCH_SYSTEM_TEMACS.  That is: i) inappropriate, since
+dnl LDFLAGS is supposed to be a user option, and this flag is
+dnl essential.  It can leads to problems if the user overrides
+dnl LDFLAGS at _build_ time (make LDFLAGS=... all), eg
+dnl http://bugs.debian.org/684788.
+dnl ii) unnecessary, since temacs is the only thing
+dnl that actually needs this option - this is where it was orginally:
+dnl http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-03/msg00170.html
+late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
   LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
@@ -1041,7 +1050,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   LDFLAGS_NOCOMBRELOC=
   [AC_MSG_RESULT(no)])
 
-LDFLAGS=$late_LDFLAGS
+LDFLAGS="$late_LDFLAGS"
 
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
