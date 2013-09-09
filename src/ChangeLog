@@ -1,5 +1,16 @@
 2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Review and drop old frame resize hack.
+	* frame.h (struct frame): Remove force_flush_display_p.
+	* dispnew.c (update_frame): Adjust user and don't call
+	flush_frame here.  The comment has said that there was an issues
+	with redisplaying fringes, but I don't see any differences with
+	and without this hack.  Hopefully we can continue without it.
+	* xdisp.c (clear_garbaged_frames): Adjust user and do not clear
+	current frame matrices twice if resized_p is set.
+
+2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not populate pure Xism x_sync to other ports.
 	* frame.h (x_sync): Move under HAVE_X_WINDOWS.
 	* frame.c (other_visible_frames) [HAVE_X_WINDOWS]: Use as such.

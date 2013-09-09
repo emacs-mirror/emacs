@@ -10767,11 +10767,9 @@ clear_garbaged_frames (void)
 	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p)
-		{
-		  redraw_frame (f);
-		  f->force_flush_display_p = 1;
-		}
-	      clear_current_matrices (f);
+		redraw_frame (f);
+	      else
+		clear_current_matrices (f);
 	      changed_count++;
 	      f->garbaged = 0;
 	      f->resized_p = 0;

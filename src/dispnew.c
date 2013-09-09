@@ -3061,16 +3061,6 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
       /* Update windows.  */
       paused_p = update_window_tree (root_window, force_p);
       update_end (f);
-
-      /* This flush is a performance bottleneck under X,
- 	 and it doesn't seem to be necessary anyway (in general).
-         It is necessary when resizing the window with the mouse, or
- 	 at least the fringes are not redrawn in a timely manner.  ++kfs */
-      if (f->force_flush_display_p)
- 	{
-     	  flush_frame (f);
- 	  f->force_flush_display_p = 0;
- 	}
     }
   else
     {
