@@ -1028,17 +1028,20 @@ dnl if not built to support GNU ld.
 
 late_LDFLAGS=$LDFLAGS
 if test x$GCC = xyes; then
-  LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
-  LDFLAGS="$LDFLAGS -znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-znocombreloc"
 fi
+
+LDFLAGS="$LDFLAGS $LDFLAGS_NOCOMBRELOC"
 
 AC_MSG_CHECKING([for -znocombreloc])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
-  LDFLAGS=$late_LDFLAGS
+  LDFLAGS_NOCOMBRELOC=
   [AC_MSG_RESULT(no)])
 
+LDFLAGS=$late_LDFLAGS
 
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
@@ -4739,6 +4742,8 @@ if test x$ac_enable_profiling != x ; then
     *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
   esac
 fi
+
+LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
