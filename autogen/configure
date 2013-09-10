@@ -8779,7 +8779,7 @@ else
 fi
 
 
-late_LDFLAGS=$LDFLAGS
+late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
   LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
@@ -8812,7 +8812,7 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-LDFLAGS=$late_LDFLAGS
+LDFLAGS="$late_LDFLAGS"
 
 test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
 case "$opsys" in
