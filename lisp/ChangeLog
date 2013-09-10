@@ -1,3 +1,7 @@
+2013-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-mode.el (awk-mode): Remove duplicate autoload.
+
 2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el: Use set-temporary-overlay-map for universal-argument.
