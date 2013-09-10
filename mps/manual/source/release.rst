@@ -39,25 +39,25 @@ Interface changes
 
 3. Functions that take a variable number of arguments
    (:c:func:`mps_arena_create`, :c:func:`mps_pool_create`,
-   :c:func:`mps_fmt_create` and :c:func:`mps_ap_create`) are now
-   deprecated in favour of functions that use a :term:`keyword
+   :c:func:`mps_ap_create`, :c:func:`mps_fmt_create_A`) and their
+   ``va_list`` alternatives (:c:func:`mps_arena_create_v` etc.) are
+   now deprecated in favour of functions that use a :term:`keyword
    argument` interface (:c:func:`mps_arena_create_k`,
-   :c:func:`mps_pool_create_k`, :c:func:`mps_fmt_create_k` and
-   :c:func:`mps_ap_create_k`). The new interface provides better
+   :c:func:`mps_pool_create_k`, :c:func:`mps_ap_create_k`,
+   :c:func:`mps_fmt_create_k`). The new interface provides better
    reporting of errors, provides default values for arguments, and
    provides forward compatibility. See :ref:`topic-keyword`.
 
-   (The old interface continues to be supported, but new features will
-   become available through the keyword interface only.)
+   The old interface continues to be supported, but new features will
+   become available through the keyword interface only.
 
-4. :ref:`pool-mfs` no longer refuses to manage blocks that are smaller
-   than the platform alignment. It now rounds up smaller sizes
-   internally if necessary.
+4. :ref:`pool-mfs` pools no longer refuse to manage blocks that are
+   smaller than the platform alignment. They now round up smaller
+   sizes internally if necessary.
 
-5. :ref:`pool-mvt` now allows the client to specify the alignment of
-   blocks allocated from the pool. Use the keyword argument
-   :c:macro:`MPS_KEY_ALIGN` when creating a pool of class
-   :c:func:`mps_class_mvt`.
+5. :ref:`pool-mvt` pools now allow the client to specify the alignment
+   of blocks. Use the keyword argument :c:macro:`MPS_KEY_ALIGN` when
+   creating a pool of class :c:func:`mps_class_mvt`.
 
 6. On OS X, signals are no longer used for handling memory protection
    exceptions. This means that programs are free to handle ``SIGBUS``,
