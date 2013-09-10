@@ -1,5 +1,7 @@
 2013-09-10  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (read-minibuffer): Unbreak it.  (Bug#15318)
+
 	* dired-x.el (dired-mark-sexp): Unbreak for systems where ls
 	returns "alternate access method" in mode (eg "-rw-r--r--.").
 

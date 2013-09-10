@@ -1231,7 +1231,7 @@ is a string to insert in the minibuffer before reading.
 Such arguments are used as in `read-from-minibuffer'.)"
   ;; Used for interactive spec `x'.
   (read-from-minibuffer prompt initial-contents minibuffer-local-map
-                        t minibuffer-history))
+                        t 'minibuffer-history))
 
 (defun eval-minibuffer (prompt &optional initial-contents)
   "Return value of Lisp expression read using the minibuffer.
