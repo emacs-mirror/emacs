@@ -1,3 +1,21 @@
+2013-09-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-cleanup): Remove.  Functionality added to
+	`tramp-cleanup-connection'.
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Add optional
+	parameters KEEP-DEBUG and KEEP-PASSWORD.
+
+	* net/tramp.el (tramp-file-name-handler):
+	* net/tramp-adb.el (tramp-adb-maybe-open-connection):
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell)
+	(tramp-maybe-open-connection):
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Use
+	`tramp-cleanup-connection'.
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Catch
+	'uname-changed inside the progress reporter.
+
 2013-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (read-minibuffer): Unbreak it.  (Bug#15318)

@@ -3805,11 +3805,12 @@ process to set up.  VEC specifies the connection."
 	  vec "uname"
 	  (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
     (when (and (stringp old-uname) (not (string-equal old-uname new-uname)))
-      (tramp-cleanup vec)
       (tramp-message
        vec 3
        "Connection reset, because remote host changed from `%s' to `%s'"
        old-uname new-uname)
+      ;; We want to keep the password.
+      (tramp-cleanup-connection vec t t)
       (throw 'uname-changed (tramp-maybe-open-connection vec))))
 
   ;; Check whether the remote host suffers from buggy
@@ -4287,68 +4288,68 @@ Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
   (tramp-check-proper-host vec)
 
-  (catch 'uname-changed
-    (let ((p (tramp-get-connection-process vec))
-	  (process-name (tramp-get-connection-property vec "process-name" nil))
-	  (process-environment (copy-sequence process-environment))
-	  (pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
+  (let ((p (tramp-get-connection-process vec))
+	(process-name (tramp-get-connection-property vec "process-name" nil))
+	(process-environment (copy-sequence process-environment))
+	(pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
 
-      ;; If Tramp opens the same connection within a short time frame,
-      ;; there is a problem.  We shall signal this.
-      (unless (or (and p (processp p) (memq (process-status p) '(run open)))
-		  (not (equal (butlast (append vec nil) 2)
-			      (car tramp-current-connection)))
-		  (> (tramp-time-diff
-		      (current-time) (cdr tramp-current-connection))
-		     (or tramp-connection-min-time-diff 0)))
-	(throw 'suppress 'suppress))
+    ;; If Tramp opens the same connection within a short time frame,
+    ;; there is a problem.  We shall signal this.
+    (unless (or (and p (processp p) (memq (process-status p) '(run open)))
+		(not (equal (butlast (append vec nil) 2)
+			    (car tramp-current-connection)))
+		(> (tramp-time-diff
+		    (current-time) (cdr tramp-current-connection))
+		   (or tramp-connection-min-time-diff 0)))
+      (throw 'suppress 'suppress))
 
-      ;; If too much time has passed since last command was sent, look
-      ;; whether process is still alive.  If it isn't, kill it.  When
-      ;; using ssh, it can sometimes happen that the remote end has
-      ;; hung up but the local ssh client doesn't recognize this until
-      ;; it tries to send some data to the remote end.  So that's why
-      ;; we try to send a command from time to time, then look again
-      ;; whether the process is really alive.
-      (condition-case nil
-	  (when (and (> (tramp-time-diff
-			 (current-time)
-			 (tramp-get-connection-property
-			  p "last-cmd-time" '(0 0 0)))
-			60)
-		     p (processp p) (memq (process-status p) '(run open)))
-	    (tramp-send-command vec "echo are you awake" t t)
-	    (unless (and (memq (process-status p) '(run open))
-			 (tramp-wait-for-output p 10))
-	      ;; The error will be caught locally.
-	      (tramp-error vec 'file-error "Awake did fail")))
-	(file-error
-	 (tramp-cleanup vec)
-	 (setq p nil)))
+    ;; If too much time has passed since last command was sent, look
+    ;; whether process is still alive.  If it isn't, kill it.  When
+    ;; using ssh, it can sometimes happen that the remote end has hung
+    ;; up but the local ssh client doesn't recognize this until it
+    ;; tries to send some data to the remote end.  So that's why we
+    ;; try to send a command from time to time, then look again
+    ;; whether the process is really alive.
+    (condition-case nil
+	(when (and (> (tramp-time-diff
+		       (current-time)
+		       (tramp-get-connection-property
+			p "last-cmd-time" '(0 0 0)))
+		      60)
+		   p (processp p) (memq (process-status p) '(run open)))
+	  (tramp-send-command vec "echo are you awake" t t)
+	  (unless (and (memq (process-status p) '(run open))
+		       (tramp-wait-for-output p 10))
+	    ;; The error will be caught locally.
+	    (tramp-error vec 'file-error "Awake did fail")))
+      (file-error
+       (tramp-cleanup-connection vec t)
+       (setq p nil)))
 
-      ;; New connection must be opened.
-      (condition-case err
-	  (unless (and p (processp p) (memq (process-status p) '(run open)))
+    ;; New connection must be opened.
+    (condition-case err
+	(unless (and p (processp p) (memq (process-status p) '(run open)))
 
-	    ;; We call `tramp-get-buffer' in order to get a debug
-	    ;; buffer for messages from the beginning.
-	    (tramp-get-buffer vec)
+	  ;; We call `tramp-get-buffer' in order to get a debug buffer
+	  ;; for messages from the beginning.
+	  (tramp-get-buffer vec)
 
-	    ;; If `non-essential' is non-nil, don't reopen a new connection.
-	    (when (and (boundp 'non-essential) (symbol-value 'non-essential))
-	      (throw 'non-essential 'non-essential))
+	  ;; If `non-essential' is non-nil, don't reopen a new connection.
+	  (when (and (boundp 'non-essential) (symbol-value 'non-essential))
+	    (throw 'non-essential 'non-essential))
 
-	    (with-tramp-progress-reporter
-		vec 3
-		(if (zerop (length (tramp-file-name-user vec)))
-		    (format "Opening connection for %s using %s"
-			    (tramp-file-name-host vec)
-			    (tramp-file-name-method vec))
-		  (format "Opening connection for %s@%s using %s"
-			  (tramp-file-name-user vec)
+	  (with-tramp-progress-reporter
+	      vec 3
+	      (if (zerop (length (tramp-file-name-user vec)))
+		  (format "Opening connection for %s using %s"
 			  (tramp-file-name-host vec)
-			  (tramp-file-name-method vec)))
+			  (tramp-file-name-method vec))
+		(format "Opening connection for %s@%s using %s"
+			(tramp-file-name-user vec)
+			(tramp-file-name-host vec)
+			(tramp-file-name-method vec)))
 
+	    (catch 'uname-changed
 	      ;; Start new process.
 	      (when (and p (processp p))
 		(delete-process p))
@@ -4503,13 +4504,13 @@ connection if a previous connection has died for some reason."
 			target-alist (cdr target-alist)))
 
 		;; Make initial shell settings.
-		(tramp-open-connection-setup-interactive-shell p vec))))
+		(tramp-open-connection-setup-interactive-shell p vec)))))
 
-	;; When the user did interrupt, we must cleanup.
-	(quit
-	 (tramp-cleanup vec)
-	 ;; Propagate the quit signal.
-	 (signal (car err) (cdr err)))))))
+      ;; When the user did interrupt, we must cleanup.
+      (quit
+       (tramp-cleanup-connection vec t)
+       ;; Propagate the quit signal.
+       (signal (car err) (cdr err))))))
 
 (defun tramp-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC.

@@ -1712,19 +1712,6 @@ letter into the file name.  This function removes it."
 	(replace-match "/" nil t name)
       name)))
 
-(defun tramp-cleanup (vec)
-  "Cleanup connection VEC, but keep the debug buffer."
-  (with-current-buffer (tramp-get-debug-buffer vec)
-    ;; Keep the debug buffer.
-    (rename-buffer
-     (generate-new-buffer-name tramp-temp-buffer-name) 'unique)
-    (tramp-cleanup-connection vec)
-    (if (= (point-min) (point-max))
-	(kill-buffer nil)
-      (rename-buffer (tramp-debug-buffer-name vec) 'unique))
-    ;; We call `tramp-get-buffer' in order to keep the debug buffer.
-    (tramp-get-buffer vec)))
-
 ;;; Config Manipulation Functions:
 
 ;;;###tramp-autoload
@@ -2147,7 +2134,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 			  (tramp-message
 			   v 1 "Suppress received in operation %s"
 			   (append (list operation) args))
-			  (tramp-cleanup v)
+			  (tramp-cleanup-connection v t)
 			  (tramp-run-real-handler operation args)))
 		       (t result)))
 

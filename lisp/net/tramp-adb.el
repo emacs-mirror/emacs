@@ -1153,11 +1153,11 @@ connection if a previous connection has died for some reason."
 		      (read (current-buffer))))))
 	      (when (and (stringp old-getprop)
 			 (not (string-equal old-getprop new-getprop)))
-		(tramp-cleanup vec)
 		(tramp-message
 		 vec 3
 		 "Connection reset, because remote host changed from `%s' to `%s'"
 		 old-getprop new-getprop)
+		(tramp-cleanup-connection vec t)
 		(tramp-adb-maybe-open-connection vec)))
 
 	    ;; Change user if indicated.
