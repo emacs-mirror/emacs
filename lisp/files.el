@@ -2447,48 +2447,43 @@ and `magic-mode-alist', which determines modes based on file contents.")
   (mapcar
    (lambda (l)
      (cons (purecopy (car l)) (cdr l)))
-   '(("perl" . perl-mode)
-     ("perl5" . perl-mode)
-     ("miniperl" . perl-mode)
-     ("wish" . tcl-mode)
-     ("wishx" . tcl-mode)
-     ("tcl" . tcl-mode)
-     ("tclsh" . tcl-mode)
-     ("expect" . tcl-mode)
-     ("scm" . scheme-mode)
-     ("ash" . sh-mode)
-     ("bash" . sh-mode)
-     ("bash2" . sh-mode)
-     ("csh" . sh-mode)
-     ("dtksh" . sh-mode)
-     ("es" . sh-mode)
-     ("itcsh" . sh-mode)
-     ("jsh" . sh-mode)
-     ("ksh" . sh-mode)
-     ("oash" . sh-mode)
-     ("pdksh" . sh-mode)
-     ("rbash" . sh-mode)
-     ("rc" . sh-mode)
-     ("rpm" . sh-mode)
-     ("sh" . sh-mode)
-     ("sh5" . sh-mode)
-     ("tcsh" . sh-mode)
-     ("wksh" . sh-mode)
-     ("wsh" . sh-mode)
-     ("zsh" . sh-mode)
-     ("tail" . text-mode)
-     ("more" . text-mode)
-     ("less" . text-mode)
-     ("pg" . text-mode)
-     ("make" . makefile-gmake-mode)		; Debian uses this
-     ("guile" . scheme-mode)
-     ("clisp" . lisp-mode)
-     ("emacs" . emacs-lisp-mode)))
+   '(("\\`\\(mini\\)?perl5?\\'" . perl-mode)
+     ("\\`wishx?\\'" . tcl-mode)
+     ("\\`tcl\\(sh\\)?\\'" . tcl-mode)
+     ("\\`expect\\'" . tcl-mode)
+     ("\\`scm\\'" . scheme-mode)
+     ("\\`[acjkwz]sh\\'" . sh-mode)
+     ("\\`bash2?\\'" . sh-mode)
+     ("\\`dtksh\\'" . sh-mode)
+     ("\\`es\\'" . sh-mode)
+     ("\\`itcsh\\'" . sh-mode)
+     ("\\`oash\\'" . sh-mode)
+     ("\\`pdksh\\'" . sh-mode)
+     ("\\`rbash\\'" . sh-mode)
+     ("\\`rc\\'" . sh-mode)
+     ("\\`rpm\\'" . sh-mode)
+     ("\\`sh5?\\'" . sh-mode)
+     ("\\`tcsh\\'" . sh-mode)
+     ("\\`wksh\\'" . sh-mode)
+     ("\\`tail\\'" . text-mode)
+     ("\\`more\\'" . text-mode)
+     ("\\`less\\'" . text-mode)
+     ("\\`pg\\'" . text-mode)
+     ("\\`make\\'" . makefile-gmake-mode)		; Debian uses this
+     ("\\`guile\\'" . scheme-mode)
+     ("\\`clisp\\'" . lisp-mode)
+     ("\\`emacs\\'" . emacs-lisp-mode)))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
-Each element looks like (INTERPRETER . MODE).
-If INTERPRETER matches the name of the interpreter specified in the first line
-of a script, mode MODE is enabled.
+Each element looks like (REGEXP . MODE).
+If REGEXP matches the name (minus any directory part) of the interpreter
+specified in the first line of a script, enable major mode MODE.
+
+Emacs versions earlier than 24.4 treat the car of each element as a
+literal string that must match the entire name, rather than a regexp.
+For backwards compatibility, any REGEXP that does not begin with \"\\\\\"
+continues to be treated in this way.  This behavior may be removed in
+future and should not be relied upon.
 
 See also `auto-mode-alist'.")
 
@@ -2683,19 +2678,27 @@ we don't actually set it to the same mode the buffer already has."
     ;; If we didn't, look for an interpreter specified in the first line.
     ;; As a special case, allow for things like "#!/bin/env perl", which
     ;; finds the interpreter anywhere in $PATH.
-    (unless done
-      (setq mode (save-excursion
-		   (goto-char (point-min))
-		   (if (looking-at auto-mode-interpreter-regexp)
-		       (match-string 2)
-		     ""))
-	    ;; Map interpreter name to a mode, signaling we're done at the
-	    ;; same time.
-	    done (assoc (file-name-nondirectory mode)
-			interpreter-mode-alist))
-      ;; If we found an interpreter mode to use, invoke it now.
-      (if done
-	  (set-auto-mode-0 (cdr done) keep-mode-if-same)))
+    (and (not done)
+	 (setq mode (save-excursion
+		      (goto-char (point-min))
+		      (if (looking-at auto-mode-interpreter-regexp)
+			  (match-string 2))))
+	 ;; Map interpreter name to a mode, signaling we're done at the
+	 ;; same time.
+	 (setq done (assoc-default
+		     (file-name-nondirectory mode)
+		     ;; Backwards compat: if car of i-m-alist does not start
+		     ;; with "\\", treat as literal string.
+		     (mapcar (lambda (e)
+			       (if (string-match-p "\\`\\\\" (car e))
+				   e
+				 (cons
+				  (format "\\`%s\\'" (regexp-quote (car e)))
+				  (cdr e))))
+			     interpreter-mode-alist)
+		     #'string-match-p))
+	 ;; If we found an interpreter mode to use, invoke it now.
+	 (set-auto-mode-0 done keep-mode-if-same))
     ;; Next try matching the buffer beginning against magic-mode-alist.
     (unless done
       (if (setq done (save-excursion

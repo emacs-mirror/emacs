@@ -412,15 +412,15 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
  "use cperl-vc-rcs-header or cperl-vc-sccs-header instead."
  "22.1")
 
-(defcustom cperl-clobber-mode-lists
-  (not
-   (and
-    (boundp 'interpreter-mode-alist)
-    (assoc "miniperl" interpreter-mode-alist)
-    (assoc "\\.\\([pP][Llm]\\|al\\)$" auto-mode-alist)))
-  "*Whether to install us into `interpreter-' and `extension' mode lists."
-  :type 'boolean
-  :group 'cperl)
+;;; (defcustom cperl-clobber-mode-lists
+;;;   (not
+;;;    (and
+;;;     (boundp 'interpreter-mode-alist)
+;;;     (assoc "miniperl" interpreter-mode-alist)
+;;;     (assoc "\\.\\([pP][Llm]\\|al\\)$" auto-mode-alist)))
+;;;   "*Whether to install us into `interpreter-' and `extension' mode lists."
+;;;   :type 'boolean
+;;;   :group 'cperl)
 
 (defcustom cperl-info-on-command-no-prompt nil
   "*Not-nil (and non-null) means not to prompt on C-h f.

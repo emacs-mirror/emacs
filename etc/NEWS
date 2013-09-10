@@ -614,6 +614,14 @@ file using `set-file-extended-attributes'.
 ** `visited-file-modtime' now returns -1 for nonexistent files.
 Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
 in the presence of files with negative time stamps.
+
+** The cars of the elements in `interpreter-mode-alist' are now treated
+as regexps rather than literal strings.  For the time being, any
+element whose car does not start with "\\" is still treated as a
+literal string, so this change should not cause any incompatibilities
+if you have code that just adds elements to the list, only if you are
+actually using interpreter-mode-alist for something.
+
 
 * Lisp Changes in Emacs 24.4
 

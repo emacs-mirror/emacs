@@ -1,5 +1,15 @@
 2013-09-10  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (interpreter-mode-alist): Convert to regexps.
+	(set-auto-mode): Adapt for this.  (Bug#15306)
+	* progmodes/cperl-mode.el (cperl-clobber-mode-lists):
+	Comment out unused variable.
+	* progmodes/cc-mode.el (interpreter-mode-alist):
+	* progmodes/python.el (interpreter-mode-alist):
+	* progmodes/ruby-mode.el (interpreter-mode-alist): Convert to regexps.
+	* progmodes/sh-script.el (sh-set-shell):
+	No longer use interpreter-mode-alist to get list of shells.
+
 	* progmodes/cc-mode.el (awk-mode): Remove duplicate autoload.
 
 2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
