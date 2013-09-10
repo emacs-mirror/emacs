@@ -1,3 +1,7 @@
+2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-demoted-errors): Add `format' argument.
+
 2013-09-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-cleanup): Remove.  Functionality added to
@@ -10,11 +14,11 @@
 	* net/tramp-adb.el (tramp-adb-maybe-open-connection):
 	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell)
 	(tramp-maybe-open-connection):
-	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Use
-	`tramp-cleanup-connection'.
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Use `tramp-cleanup-connection'.
 
-	* net/tramp-sh.el (tramp-maybe-open-connection): Catch
-	'uname-changed inside the progress reporter.
+	* net/tramp-sh.el (tramp-maybe-open-connection):
+	Catch 'uname-changed inside the progress reporter.
 
 2013-09-10  Glenn Morris  <rgm@gnu.org>
 
@@ -34,15 +38,15 @@
 
 	* net/tramp.el (tramp-find-method, tramp-find-user): Call `propertize'
 	only if it is bound.  It isn't for XEmacs.
-	(with-tramp-progress-reporter): Do not let-bind `result'.  This
-	yields to scoping errors in XEmacs.
+	(with-tramp-progress-reporter): Do not let-bind `result'.
+	This yields to scoping errors in XEmacs.
 	(tramp-handle-make-auto-save-file-name): New function, moved from
 	tramp-sh.el.
 
 	* net/tramp-adb.el (tramp-adb-file-name-handler-alist): Add handler
 	for `make-auto-save-file-name'.
-	(tramp-adb--gnu-switches-to-ash): Use
-	`tramp-compat-replace-regexp-in-string'.
+	(tramp-adb--gnu-switches-to-ash):
+	Use `tramp-compat-replace-regexp-in-string'.
 
 	* net/tramp-cache.el (tramp-cache-print): Call
 	`substring-no-properties' only if it is bound.  It isn't for XEmacs.
@@ -50,8 +54,8 @@
 	* net/tramp-cmds.el (tramp-bug): Call `propertize' only if it is
 	bound.  It isn't for XEmacs.
 
-	* net/tramp-compat.el (tramp-compat-copy-file): Catch
-	`wrong-number-of-arguments' error.
+	* net/tramp-compat.el (tramp-compat-copy-file):
+	Catch `wrong-number-of-arguments' error.
 	(tramp-compat-replace-regexp-in-string): New defun.
 
 	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist): Add handler
@@ -62,21 +66,21 @@
 	(tramp-gvfs-file-name): Use `tramp-compat-replace-regexp-in-string'.
 	(tramp-synce-list-devices): Use `push' instead of `pushnew'.
 
-	* net/tramp-gw.el (tramp-gw-open-network-stream): Use
-	`tramp-compat-replace-regexp-in-string'.
+	* net/tramp-gw.el (tramp-gw-open-network-stream):
+	Use `tramp-compat-replace-regexp-in-string'.
 
-	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Call
-	`tramp-handle-make-auto-save-file-name'.
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	Call `tramp-handle-make-auto-save-file-name'.
 	(tramp-sh-handle-make-auto-save-file-name): Move to tramp.el.
 	(tramp-sh-file-gvfs-monitor-dir-process-filter)
-	(tramp-sh-file-inotifywait-process-filter): Use
-	`tramp-compat-replace-regexp-in-string'.
+	(tramp-sh-file-inotifywait-process-filter):
+	Use `tramp-compat-replace-regexp-in-string'.
 	(tramp-compute-multi-hops): Use `push' instead of `pushnew'.
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add handler
 	for `make-auto-save-file-name'.
-	(tramp-smb-handle-copy-directory): Call
-	`tramp-compat-replace-regexp-in-string'.
+	(tramp-smb-handle-copy-directory):
+	Call `tramp-compat-replace-regexp-in-string'.
 	(tramp-smb-get-file-entries): Use `push' instead of `pushnew'.
 	(tramp-smb-handle-copy-file): Improve error message.
 	(tramp-smb-handle-rename-file): Rename directly only in case
@@ -95,8 +99,8 @@
 	* progmodes/cc-langs.el (c-type-decl-suffix-key): Now matches ")"
 	in Java Mode.
 	(c-recognize-typeless-decls): Set the Java value to t.
-	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): While
-	handling a "(", add a check for, effectively, Java, and handle a
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1):
+	While handling a "(", add a check for, effectively, Java, and handle a
 	"typeless" declaration there.
 
 2013-09-07  Roland Winkler  <winkler@gnu.org>

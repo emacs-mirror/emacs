@@ -617,6 +617,9 @@ in the presence of files with negative time stamps.
 
 * Lisp Changes in Emacs 24.4
 
+** The second argument of `eval' can now be a lexical-environment.
+
+** `with-demoted-errors' takes an additional argument `format'.
 +++
 ** New function `define-error'.
 

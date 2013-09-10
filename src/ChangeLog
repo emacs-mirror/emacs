@@ -1,3 +1,7 @@
+2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Feval): Document the new use of `lexical'.
+
 2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Review and drop old frame resize hack.
@@ -20,8 +24,8 @@
 2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup frame flushing.
-	* dispextern.h (struct redisplay_interface): Drop
-	flush_display_optional because flush_display is enough
+	* dispextern.h (struct redisplay_interface):
+	Drop flush_display_optional because flush_display is enough
 	for X and flushing via RIF is just a no-op for others.
 	* frame.h (flush_frame): New function.
 	* dispnew.c (update_frame):
