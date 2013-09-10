@@ -1,3 +1,8 @@
+2013-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-mark-sexp): Unbreak for systems where ls
+	returns "alternate access method" in mode (eg "-rw-r--r--.").
+
 2013-09-08  Glenn Morris  <rgm@gnu.org>
 
 	* saveplace.el (load-save-place-alist-from-file):
