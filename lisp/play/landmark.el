@@ -233,7 +233,7 @@
 (put 'landmark-mode 'intangible 1)
 ;; This one is for when they set view-read-only to t: Landmark cannot
 ;; allow View Mode to be activated in its buffer.
-(define-derived-mode lm-mode special-mode "Lm"
+(define-derived-mode landmark-mode special-mode "Lm"
   "Major mode for playing Lm against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
@@ -245,7 +245,7 @@ Other useful commands:
 \\{landmark-mode-map}
 Entry to this mode calls the value of `landmark-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
-  (lm-display-statistics)
+  (landmark-display-statistics)
   (setq-local font-lock-defaults '(lm-font-lock-keywords t))
   (setq buffer-read-only t))
 

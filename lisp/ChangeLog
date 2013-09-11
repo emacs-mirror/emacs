@@ -1,5 +1,7 @@
 2013-09-11  Glenn Morris  <rgm@gnu.org>
 
+	* play/landmark.el (landmark-mode): Fix typos.
+
 	* vc/vc-cvs.el (cvs-append-to-ignore): Fix arg spec.
 	Check cvs-sort-ignore-file is bound.
 
