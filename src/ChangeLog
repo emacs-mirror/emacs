@@ -1,3 +1,8 @@
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (insert_from_buffer_1): Don't mark buffer as modified when
+	insert-buffer-substring an empty string.
+
 2013-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (Ftool_bar_lines_needed): Declare as 'const' if ifdeffed out,
