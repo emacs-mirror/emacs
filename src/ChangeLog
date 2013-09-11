@@ -1,3 +1,26 @@
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Ifdef away frame tool bar code when it is not really used.
+	* frame.h (struct frame) [HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS]:
+	Move tool_bar_window, desired_tool_bar_string, current_tool_bar_string
+	and minimize_tool_bar_window_p under the above.
+	(fset_current_tool_bar_string, fset_desired_tool_bar_string)
+	(fset_tool_bar_window): Likewise.
+	* dispnew.c (clear_current_matrices, clear_desired_matrices)
+	(adjust_frame_glyphs_for_window_redisplay, free_glyphs, update_frame)
+	(change_frame_size_1):
+	* window.c (window_from_coordinates, Frecenter): Adjust users.
+	* window.h (WINDOW_TOOL_BAR_P): Define to zero when frame tool bar
+	code is not really used.
+	* xdisp.c (build_desired_tool_bar_string, display_tool_bar_line)
+	(tool_bar_lines_needed, MAX_FRAME_TOOL_BAR_HEIGHT, tool_bar_item_info)
+	(get_tool_bar_item, handle_tool_bar_click, note_tool_bar_highlight)
+	[!USE_GTK && !HAVE_NS]: Define as such.
+	(Ftool_bar_lines_needed, redisplay_tool_bar, show_mouse_face)
+	(note_mouse_highlight, expose_frame):
+	* xfns.c (x_set_tool_bar_lines):
+	* xterm.c (handle_one_xevent): Adjust users.
+
 2013-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix corruption with multiple emacsclient -t instances (Bug#15222).

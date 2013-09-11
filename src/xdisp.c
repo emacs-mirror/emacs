@@ -913,11 +913,8 @@ static int in_ellipses_for_invisible_text_p (struct display_pos *,
 #ifdef HAVE_WINDOW_SYSTEM
 
 static void x_consider_frame_title (Lisp_Object);
-static int tool_bar_lines_needed (struct frame *, int *);
 static void update_tool_bar (struct frame *, int);
-static void build_desired_tool_bar_string (struct frame *f);
 static int redisplay_tool_bar (struct frame *);
-static void display_tool_bar_line (struct it *, int);
 static void notice_overwritten_cursor (struct window *,
                                        enum glyph_row_area,
                                        int, int, int, int);
@@ -11566,6 +11563,7 @@ update_tool_bar (struct frame *f, int save_match_data)
     }
 }
 
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
 
 /* Set F->desired_tool_bar_string to a Lisp string representing frame
    F's desired tool-bar contents.  F->tool_bar_items must have
@@ -11903,6 +11901,7 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
   return (it.current_y + FRAME_LINE_HEIGHT (f) - 1) / FRAME_LINE_HEIGHT (f);
 }
 
+#endif /* !USE_GTK && !HAVE_NS */
 
 DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
        0, 1, 0,
@@ -11910,9 +11909,10 @@ DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
 If FRAME is nil or omitted, use the selected frame.  */)
   (Lisp_Object frame)
 {
+  int nlines = 0;
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
   struct frame *f = decode_any_frame (frame);
   struct window *w;
-  int nlines = 0;
 
   if (WINDOWP (f->tool_bar_window)
       && (w = XWINDOW (f->tool_bar_window),
@@ -11925,7 +11925,7 @@ If FRAME is nil or omitted, use the selected frame.  */)
 	  nlines = tool_bar_lines_needed (f, NULL);
 	}
     }
-
+#endif
   return make_number (nlines);
 }
 
@@ -11936,15 +11936,17 @@ If FRAME is nil or omitted, use the selected frame.  */)
 static int
 redisplay_tool_bar (struct frame *f)
 {
-  struct window *w;
-  struct it it;
-  struct glyph_row *row;
-
 #if defined (USE_GTK) || defined (HAVE_NS)
+
   if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
   return 0;
-#endif
+
+#else /* !USE_GTK && !HAVE_NS */
+
+  struct window *w;
+  struct it it;
+  struct glyph_row *row;
 
   /* If frame hasn't a tool-bar window or if it is zero-height, don't
      do anything.  This means you must start with tool-bar-lines
@@ -12100,8 +12102,11 @@ redisplay_tool_bar (struct frame *f)
 
   f->minimize_tool_bar_window_p = 0;
   return 0;
+
+#endif /* USE_GTK || HAVE_NS */
 }
 
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
 
 /* Get information about the tool-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tool-bar item
@@ -12344,6 +12349,8 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   if (NILP (help_echo_string))
     help_echo_string = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_CAPTION);
 }
+
+#endif /* !USE_GTK && !HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -26691,10 +26698,13 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
   /* Change the mouse cursor.  */
   if (FRAME_WINDOW_P (f))
     {
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
       if (draw == DRAW_NORMAL_TEXT
 	  && !EQ (hlinfo->mouse_face_window, f->tool_bar_window))
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
-      else if (draw == DRAW_MOUSE_FACE)
+      else
+#endif
+      if (draw == DRAW_MOUSE_FACE)
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
       else
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
@@ -28032,7 +28042,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
   w = XWINDOW (window);
   frame_to_window_pixel_xy (w, &x, &y);
 
-#ifdef HAVE_WINDOW_SYSTEM
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   /* Handle tool-bar window differently since it doesn't display a
      buffer.  */
   if (EQ (window, f->tool_bar_window))
@@ -28945,9 +28955,11 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   TRACE ((stderr, "(%d, %d, %d, %d)\n", r.x, r.y, r.width, r.height));
   mouse_face_overwritten_p = expose_window_tree (XWINDOW (f->root_window), &r);
 
+#if ! defined (USE_GTK) && ! defined (HAVE_NS)
   if (WINDOWP (f->tool_bar_window))
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->tool_bar_window), &r);
+#endif
 
 #ifdef HAVE_X_WINDOWS
 #ifndef MSDOS

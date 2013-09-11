@@ -1215,8 +1215,11 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  int delta, nlines, root_height;
+  int nlines;
+#if ! defined (USE_GTK)
+  int delta, root_height;
   Lisp_Object root_window;
+#endif
 
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
@@ -1229,6 +1232,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
 #ifdef USE_GTK
+
   FRAME_TOOL_BAR_LINES (f) = 0;
   if (nlines)
     {
@@ -1245,8 +1249,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       FRAME_EXTERNAL_TOOL_BAR (f) = 0;
     }
 
-  return;
-#endif
+#else /* !USE_GTK */
 
      /* Make sure we redisplay all windows in this frame.  */
   ++windows_or_buffers_changed;
@@ -1301,7 +1304,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 
     run_window_configuration_change_hook (f);
-
+#endif /* USE_GTK */
 }
 
 
