@@ -1,3 +1,12 @@
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/grammar.el (semantic-grammar-mode): Use define-derived-mode.
+	(semantic-grammar-mode-syntax-table): Rename from
+	semantic-grammar-syntax-table.
+	(semantic-grammar-mode-map): Rename from semantic-grammar-map.
+	* data-debug.el (data-debug-mode-map): Rename from data-debug-map.
+	(data-debug-mode): Use define-derived-mode.
+
 2013-09-05  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/fw.el (semantic-make-local-hook):
@@ -15,15 +24,15 @@
 
 	* semantic/decorate/mode.el
 	(semantic-decoration-on-includes-p-default)
-        (semantic-decoration-on-includes-highlight-default): Declare for
+	(semantic-decoration-on-includes-highlight-default): Declare for
 	byte compiler.
 
 	* semantic/wisent/python.el (semantic/format): New require.
 
 2013-07-27  Eric Ludlam <zappo@gnu.org>
 
-	* lisp/cedet/semantic/edit.el (semantic-edits-splice-remove): Wrap
-	debug message removing middle tag in semantic-edits-verbose-flag
+	* lisp/cedet/semantic/edit.el (semantic-edits-splice-remove):
+	Wrap debug message removing middle tag in semantic-edits-verbose-flag
 	check.
 
 2013-07-27  David Engster <deng@randomsample.de>
@@ -69,8 +78,8 @@
 	`semantic/decorate/include' anymore.
 	(semantic-toggle-decoration-style): Error if an unknown decoration
 	style is toggled.
-	(define-semantic-decoration-style): Add new :load option.  When
-	:load is specified, add autoload tokens for the definition
+	(define-semantic-decoration-style): Add new :load option.
+	When :load is specified, add autoload tokens for the definition
 	functions so that code is loaded when the mode is used.
 	(semantic-decoration-on-includes): New autoload definition for
 	highlighting includes.
@@ -94,8 +103,8 @@
 	* semantic/ctxt.el (semantic-ctxt-end-of-symbol): New.
 	(semantic-ctxt-current-symbol-default): New.
 
-	* semantic/bovine/el.el (semantic-default-elisp-setup): Add
-	autoload cookie.  Explain existence.
+	* semantic/bovine/el.el (semantic-default-elisp-setup):
+	Add autoload cookie.  Explain existence.
 	(footer): Add local variable for loaddefs.
 
 	* semantic/db.el (semanticdb-file-table-object): Add new filter,
@@ -120,7 +129,7 @@
 	* ede/cpp-root.el (ede-preprocessor-map): Protect against init
 	problems.
 
-	* ede/proj.el (ede-proj-target): Added a new "custom" option for
+	* ede/proj.el (ede-proj-target): Add a new "custom" option for
 	custom symbols representing a compiler or linker instead of
 	restricting things to only the predefined compilers and linkers.
 
@@ -198,15 +207,15 @@
 2013-04-27  David Engster  <deng@randomsample.de>
 
 	* semantic/complete.el
-	(semantic-collector-calculate-completions-raw): If
-	`completionslist' is not set, refresh the cache if necessary and
+	(semantic-collector-calculate-completions-raw):
+	If `completionslist' is not set, refresh the cache if necessary and
 	use it for completions.  This fixes the
 	`semantic-collector-buffer-deep' collector (bug#14265).
 
 2013-03-26  Leo Liu  <sdl.web@gmail.com>
 
-	* semantic/senator.el (senator-copy-tag-to-register): Move
-	register handling logic from register.el.  (Bug#14052)
+	* semantic/senator.el (senator-copy-tag-to-register):
+	Move register handling logic from register.el.  (Bug#14052)
 
 2013-03-21  Eric Ludlam  <zappo@gnu.org>
 
@@ -223,17 +232,17 @@
 
 	* semantic/find.el (semantic-filter-tags-by-class): New function.
 
-	* semantic/tag-ls.el (semantic-tag-similar-p-default): Add
-	short-circuit in case tag1 and 2 are identical.
+	* semantic/tag-ls.el (semantic-tag-similar-p-default):
+	Add short-circuit in case tag1 and 2 are identical.
 
 	* semantic/analyze/fcn.el
-	(semantic-analyze-dereference-metatype-stack): Use
-	`semantic-tag-similar-p' instead of 'eq' when comparing two tags
+	(semantic-analyze-dereference-metatype-stack):
+	Use `semantic-tag-similar-p' instead of 'eq' when comparing two tags
 	during metatype evaluation in case they are the same, but not the
 	same node.  (Tweaked patch from Tomasz Gajewski) (Tiny change)
 
-	* semantic/db-find.el (semanticdb-partial-synchronize): Fix
-	require to semantic/db-typecache to be correct.
+	* semantic/db-find.el (semanticdb-partial-synchronize):
+	Fix require to semantic/db-typecache to be correct.
 	(semanticdb-find-tags-external-children-of-type): Make this a
 	brutish search by default.
 
@@ -243,19 +252,19 @@
 	input tag as the place to start searching for externally defined
 	methods.
 
-	* semantic/db-file.el (semanticdb-default-save-directory): Doc
-	fix: Add ref to default value.
+	* semantic/db-file.el (semanticdb-default-save-directory):
+	Doc fix: Add ref to default value.
 
-	* semantic/complete.el (semantic-complete-post-command-hook): When
-	detecting if cursor is outside completion area, do so if cursor
+	* semantic/complete.el (semantic-complete-post-command-hook):
+	When detecting if cursor is outside completion area, do so if cursor
 	moves before start of overlay, or the original starting location
 	of the overlay (i.e., if user deletes past beginning of the
 	overlay region).
 	(semantic-complete-inline-tag-engine): Initialize original start
 	of `semantic-complete-inline-overlay'.
 
-	* semantic/bovine/c.el (semantic-c-describe-environment): Update
-	some section titles.  Test semanticdb table before printing it.
+	* semantic/bovine/c.el (semantic-c-describe-environment):
+	Update some section titles.  Test semanticdb table before printing it.
 	(semantic-c-reset-preprocessor-symbol-map): Update
 	`semantic-lex-spp-macro-symbol-obarray' outside the loop over all
 	the files contributing to its value.
@@ -271,8 +280,8 @@
 	* srecode/cpp.el (srecode-semantic-handle-:c): Replace all
 	characters in FILENAME_SYMBOL that aren't valid CPP symbol chars.
 
-	* srecode/map.el (srecode-map-validate-file-for-mode): Force
-	semantic to load if it is not active in the template being added
+	* srecode/map.el (srecode-map-validate-file-for-mode):
+	Force semantic to load if it is not active in the template being added
 	to the map.
 
 	* srecode/srt.el: Add local variables for setting the autoload
@@ -287,7 +296,7 @@
 	has both a version variable and a Version: comment, always use
 	`call-next-method'.
 
-	* ede/cpp-root.el (ede-set-project-variables): Deleted.
+	* ede/cpp-root.el (ede-set-project-variables): Delete.
 	`ede-preprocessor-map' does the job this function was attempting
 	to do with :spp-table.
 	(ede-preprocessor-map): Update file tests to provide better
@@ -302,8 +311,8 @@
 2013-03-21  David Engster  <deng@randomsample.de>
 
 	* semantic/bovine/c.el (semantic-get-local-variables): Also add a
-	new variable 'this' if we are in an inline member function.  For
-	detecting this, we check overlays at point if there is a class
+	new variable 'this' if we are in an inline member function.
+	For detecting this, we check overlays at point if there is a class
 	spanning the current function.  Also, the variable 'this' has to
 	be a pointer.
 
@@ -350,14 +359,14 @@
 
 2013-03-21  Tomasz Gajewski  <tomga@wp.pl>  (tiny change)
 
-	* ede/cpp-root.el (ede-project-autoload, initialize-instance): Fix
-	EDE file symbol to match rename.  Fix ede-cpp-root symbol to
+	* ede/cpp-root.el (ede-project-autoload, initialize-instance):
+	Fix EDE file symbol to match rename.  Fix ede-cpp-root symbol to
 	include -project in name.
 
 2013-03-21  Alex Ott  <alexott@gmail.com>
 
-	* cedet-files.el (cedet-files-list-recursively): New.  Recursively
-	find files whose names are matching to given regex.
+	* cedet-files.el (cedet-files-list-recursively): New.
+	Recursively find files whose names are matching to given regex.
 
 	* ede.el (ede-current-project): Rewrite to avoid imperative style.
 

@@ -344,19 +344,13 @@ nil."
   (interactive)
   (kill-buffer mspools-buffer))
 
-(defun mspools-mode ()
+(define-derived-mode mspools-mode special-mode "MSpools"
   "Major mode for output from mspools-show.
 \\<mspools-mode-map>Move point to one of the items in this buffer, then use
 \\[mspools-visit-spool] to go to the spool that the current line refers to.
 \\[revert-buffer] to regenerate the list of spools.
 \\{mspools-mode-map}"
-  (kill-all-local-variables)
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'mspools-revert-buffer)
-  (use-local-map mspools-mode-map)
-  (setq major-mode 'mspools-mode)
-  (setq mode-name "MSpools")
-  (run-mode-hooks 'mspools-mode-hook))
+  (setq-local revert-buffer-function 'mspools-revert-buffer))
 
 (defun mspools-get-spool-files ()
   "Find the list of spool files and display them in *spools* buffer."

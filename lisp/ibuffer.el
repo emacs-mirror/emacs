@@ -156,7 +156,7 @@ elisp byte-compiler."
 	     (null buffer-file-name))
 	italic)
     (30 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
-    (35 (eq major-mode 'dired-mode) font-lock-function-name-face))
+    (35 (derived-mode-p 'dired-mode) font-lock-function-name-face))
   "An alist describing how to fontify buffers.
 Each element should be of the form (PRIORITY FORM FACE), where
 PRIORITY is an integer, FORM is an arbitrary form to evaluate in the
@@ -2358,7 +2358,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	;; We switch to the buffer's window in order to be able
 	;; to modify the value of point
 	(select-window (get-buffer-window buf 0))
-	(or (eq major-mode 'ibuffer-mode)
+	(or (derived-mode-p 'ibuffer-mode)
 	    (ibuffer-mode))
 	(setq ibuffer-restore-window-config-on-quit other-window-p)
 	(when shrink
@@ -2383,7 +2383,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	  (message "Commands: m, u, t, RET, g, k, S, D, Q; q to quit; h for help"))))))
 
 (put 'ibuffer-mode 'mode-class 'special)
-(defun ibuffer-mode ()
+(define-derived-mode ibuffer-mode special-mode "IBuffer"
   "A major mode for viewing a list of buffers.
 In Ibuffer, you can conveniently perform many operations on the
 currently open buffers, in addition to filtering your view to a
@@ -2564,10 +2564,6 @@ filter groups are displayed in this order of precedence.
 You may rearrange filter groups by using the regular
 '\\[ibuffer-kill-line]' and '\\[ibuffer-yank]' pair.  Yanked groups
 will be inserted before the group at point."
-  (kill-all-local-variables)
-  (use-local-map ibuffer-mode-map)
-  (setq major-mode 'ibuffer-mode)
-  (setq mode-name "Ibuffer")
   ;; Include state info next to the mode name.
   (set (make-local-variable 'mode-line-process)
         '(" by "
@@ -2627,13 +2623,12 @@ will be inserted before the group at point."
   (ibuffer-update-format)
   (when ibuffer-default-directory
     (setq default-directory ibuffer-default-directory))
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (run-mode-hooks 'ibuffer-mode-hook))
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t))
 
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "ibuf-ext" "ibuf-ext.el" "d06b2735a74954e0c6922a811de7608c")
+;;;### (autoloads nil "ibuf-ext" "ibuf-ext.el" "85795a4045d20654599b73b88e8e1bc9")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\

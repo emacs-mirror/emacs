@@ -652,7 +652,7 @@ Each copy is added a new field containing one of the values of FIELD."
     result))
 
 
-(defun eudc-mode ()
+(define-derived-mode eudc-mode special-mode "EUDC"
   "Major mode used in buffers displaying the results of directory queries.
 There is no sense in calling this command from a buffer other than
 one containing the results of a directory query.
@@ -663,15 +663,9 @@ These are the special commands of EUDC mode:
     n -- Move to next record.
     p -- Move to previous record.
     b -- Insert record at point into the BBDB database."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'eudc-mode)
-  (setq mode-name "EUDC")
-  (use-local-map eudc-mode-map)
   (if (not (featurep 'xemacs))
       (easy-menu-define eudc-emacs-menu eudc-mode-map "" (eudc-menu))
-    (setq mode-popup-menu (eudc-menu)))
-  (run-mode-hooks 'eudc-mode-hook))
+    (setq mode-popup-menu (eudc-menu))))
 
 ;;}}}
 
@@ -1084,7 +1078,7 @@ queries the server for the existing fields and displays a corresponding form."
 (defun eudc-move-to-next-record ()
   "Move to next record, in a buffer displaying directory query results."
   (interactive)
-  (if (not (eq major-mode 'eudc-mode))
+  (if (not (derived-mode-p 'eudc-mode))
       (error "Not in a EUDC buffer")
     (let ((pt (next-overlay-change (point))))
       (if (< pt (point-max))
@@ -1094,7 +1088,7 @@ queries the server for the existing fields and displays a corresponding form."
 (defun eudc-move-to-previous-record ()
   "Move to previous record, in a buffer displaying directory query results."
   (interactive)
-  (if (not (eq major-mode 'eudc-mode))
+  (if (not (derived-mode-p 'eudc-mode))
       (error "Not in a EUDC buffer")
     (let ((pt (previous-overlay-change (point))))
       (if (> pt (point-min))
@@ -1122,7 +1116,7 @@ queries the server for the existing fields and displays a corresponding form."
 	  (overlay-get (car (overlays-at (point))) 'eudc-record))
      :help "Insert record at point into the BBDB database"]
     ["Insert All Records into BBDB" eudc-batch-export-records-to-bbdb
-     (and (eq major-mode 'eudc-mode)
+     (and (derived-mode-p 'eudc-mode)
 	  (or (featurep 'bbdb)
 	      (prog1 (locate-library "bbdb") (message ""))))
      :help "Insert all the records returned by a directory query into BBDB"]

@@ -408,7 +408,7 @@ If FUNCTION is nil, includes all messages."
   (unless rmail-buffer
     (error "No RMAIL buffer found"))
   (let (mesg was-in-summary sumbuf)
-    (if (eq major-mode 'rmail-summary-mode)
+    (if (derived-mode-p 'rmail-summary-mode)
 	(setq was-in-summary t))
     (with-current-buffer rmail-buffer
       (setq rmail-summary-buffer (rmail-new-summary-1 desc redo function args)
@@ -1035,7 +1035,7 @@ Optional prefix ARG means undelete ARG previous messages."
 ;; Rmail Summary mode is suitable only for specially formatted data.
 (put 'rmail-summary-mode 'mode-class 'special)
 
-(defun rmail-summary-mode ()
+(define-derived-mode rmail-summary-mode special-mode "RMAIL Summary"
   "Rmail Summary Mode is invoked from Rmail Mode by using \\<rmail-mode-map>\\[rmail-summary].
 As commands are issued in the summary buffer, they are applied to the
 corresponding mail messages in the rmail buffer.
@@ -1058,10 +1058,6 @@ Commands for sorting the summary:
 \\[rmail-summary-sort-by-correspondent] Sort by correspondent.
 \\[rmail-summary-sort-by-lines] Sort by lines.
 \\[rmail-summary-sort-by-labels] Sort by labels."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'rmail-summary-mode)
-  (setq mode-name "RMAIL Summary")
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (set-syntax-table text-mode-syntax-table)
@@ -1074,8 +1070,7 @@ Commands for sorting the summary:
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
-  (rmail-summary-enable)
-  (run-mode-hooks 'rmail-summary-mode-hook))
+  (rmail-summary-enable))
 
 ;; Summary features need to be disabled during edit mode.
 (defun rmail-summary-disable ()

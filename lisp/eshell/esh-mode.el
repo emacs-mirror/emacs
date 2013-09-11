@@ -220,74 +220,66 @@ This is used by `eshell-watch-for-password-prompt'."
 (defvar eshell-last-output-end nil)
 
 (defvar eshell-currently-handling-window nil)
-(defvar eshell-mode-syntax-table nil)
-(defvar eshell-mode-abbrev-table nil)
 
 (define-abbrev-table 'eshell-mode-abbrev-table ())
 
-(if (not eshell-mode-syntax-table)
-    (let ((i 0))
-      (setq eshell-mode-syntax-table (make-syntax-table))
-      (while (< i ?0)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (setq i (1+ ?9))
-      (while (< i ?A)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (setq i (1+ ?Z))
-      (while (< i ?a)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (setq i (1+ ?z))
-      (while (< i 128)
-	(modify-syntax-entry i "_   " eshell-mode-syntax-table)
-	(setq i (1+ i)))
-      (modify-syntax-entry ?  "    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\t "    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\f "    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\n ">   " eshell-mode-syntax-table)
-      ;; Give CR the same syntax as newline, for selective-display.
-      (modify-syntax-entry ?\^m ">   " eshell-mode-syntax-table)
-;;;   (modify-syntax-entry ?\; "<   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?` "'   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?' "'   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?, "'   " eshell-mode-syntax-table)
-      ;; Used to be singlequote; changed for flonums.
-      (modify-syntax-entry ?. "_   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?- "_   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?| ".   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?# "'   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\" "\"    " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\\ "/   " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\( "()  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\) ")(  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\{ "(}  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\} "){  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\[ "(]  " eshell-mode-syntax-table)
-      (modify-syntax-entry ?\] ")[  " eshell-mode-syntax-table)
-      ;; All non-word multibyte characters should be `symbol'.
-      (if (featurep 'xemacs)
-	  (map-char-table
-	   (function
-	    (lambda (key val)
-	      (and (characterp key)
-		   (>= (char-int key) 256)
-		   (/= (char-syntax key) ?w)
-		   (modify-syntax-entry key "_   "
-					eshell-mode-syntax-table))))
-	   (standard-syntax-table))
-	(map-char-table
-	 (function
-	  (lambda (key val)
-	    (and (if (consp key)
-		     (and (>= (car key) 128)
-			  (/= (char-syntax (car key)) ?w))
-		   (and (>= key 256)
-			(/= (char-syntax key) ?w)))
-		 (modify-syntax-entry key "_   "
-				      eshell-mode-syntax-table))))
-	 (standard-syntax-table)))))
+(defvar eshell-mode-syntax-table
+  (let ((st (make-syntax-table))
+        (i 0))
+    (while (< i ?0)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?9))
+    (while (< i ?A)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?Z))
+    (while (< i ?a)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (setq i (1+ ?z))
+    (while (< i 128)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
+    (modify-syntax-entry ?  "    " st)
+    (modify-syntax-entry ?\t "    " st)
+    (modify-syntax-entry ?\f "    " st)
+    (modify-syntax-entry ?\n ">   " st)
+    ;; Give CR the same syntax as newline, for selective-display.
+    (modify-syntax-entry ?\^m ">   " st)
+    ;; (modify-syntax-entry ?\; "<   " st)
+    (modify-syntax-entry ?` "'   " st)
+    (modify-syntax-entry ?' "'   " st)
+    (modify-syntax-entry ?, "'   " st)
+    ;; Used to be singlequote; changed for flonums.
+    (modify-syntax-entry ?. "_   " st)
+    (modify-syntax-entry ?- "_   " st)
+    (modify-syntax-entry ?| ".   " st)
+    (modify-syntax-entry ?# "'   " st)
+    (modify-syntax-entry ?\" "\"    " st)
+    (modify-syntax-entry ?\\ "/   " st)
+    (modify-syntax-entry ?\( "()  " st)
+    (modify-syntax-entry ?\) ")(  " st)
+    (modify-syntax-entry ?\{ "(}  " st)
+    (modify-syntax-entry ?\} "){  " st)
+    (modify-syntax-entry ?\[ "(]  " st)
+    (modify-syntax-entry ?\] ")[  " st)
+    ;; All non-word multibyte characters should be `symbol'.
+    (map-char-table
+     (if (featurep 'xemacs)
+         (lambda (key val)
+           (and (characterp key)
+                (>= (char-int key) 256)
+                (/= (char-syntax key) ?w)
+                (modify-syntax-entry key "_   " st)))
+       (lambda (key val)
+         (and (if (consp key)
+                  (and (>= (car key) 128)
+                       (/= (char-syntax (car key)) ?w))
+                (and (>= key 256)
+                     (/= (char-syntax key) ?w)))
+              (modify-syntax-entry key "_   " st))))
+     (standard-syntax-table))))
 
 ;;; User Functions:
 
@@ -303,25 +295,18 @@ and the hook `eshell-exit-hook'."
   (run-hooks 'eshell-exit-hook))
 
 ;;;###autoload
-(defun eshell-mode ()
-  "Emacs shell interactive mode.
+(define-derived-mode eshell-mode fundamental-mode "EShell"
+  "Emacs shell interactive mode."
+  (setq-local eshell-mode t)
 
-\\{eshell-mode-map}"
-  (kill-all-local-variables)
-
-  (setq major-mode 'eshell-mode)
-  (setq mode-name "EShell")
-  (set (make-local-variable 'eshell-mode) t)
-
-  (make-local-variable 'eshell-mode-map)
-  (setq eshell-mode-map (make-sparse-keymap))
+  ;; FIXME: What the hell!?
+  (setq-local eshell-mode-map (make-sparse-keymap))
   (use-local-map eshell-mode-map)
 
   (when eshell-status-in-mode-line
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
-      (make-local-variable 'mode-line-format)
-      (setq mode-line-format fmt))
+      (setq-local mode-line-format fmt))
     (let ((mode-line-elt (memq 'mode-line-modified mode-line-format)))
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
@@ -331,11 +316,9 @@ and the hook `eshell-exit-hook'."
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
   (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 
-  (set (make-local-variable 'eshell-command-prefix)
-       (make-symbol "eshell-command-prefix"))
+  (setq-local eshell-command-prefix (make-symbol "eshell-command-prefix"))
   (fset eshell-command-prefix (make-sparse-keymap))
-  (set (make-local-variable 'eshell-command-map)
-       (symbol-function eshell-command-prefix))
+  (setq-local eshell-command-map (symbol-function eshell-command-prefix))
   (define-key eshell-mode-map [(control ?c)] eshell-command-prefix)
 
   ;; without this, find-tag complains about read-only text being
@@ -359,7 +342,6 @@ and the hook `eshell-exit-hook'."
   (define-key eshell-command-map [(control ?y)] 'eshell-repeat-argument)
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
-  (set-syntax-table eshell-mode-syntax-table)
 
   (set (make-local-variable 'dired-directory) default-directory)
   (set (make-local-variable 'list-buffers-directory)
@@ -442,7 +424,6 @@ and the hook `eshell-exit-hook'."
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))
-  (run-mode-hooks 'eshell-mode-hook)
   (run-hooks 'eshell-post-command-hook))
 
 (put 'eshell-mode 'mode-class 'special)

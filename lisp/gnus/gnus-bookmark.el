@@ -190,7 +190,7 @@ So the cdr of each bookmark is an alist too.")
   "Set a bookmark for this article."
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
-  (if (or (not (eq major-mode 'gnus-summary-mode))
+  (if (or (not (derived-mode-p 'gnus-summary-mode))
 	  (not gnus-article-current))
       (error "Please select an article in the Gnus summary buffer")
     (let* ((group (car gnus-article-current))
@@ -473,7 +473,7 @@ That is, all information but the name."
 ;; Been to lazy to use gnus-bookmark-save...
 (defalias 'gnus-bookmark-bmenu-save 'gnus-bookmark-write-file)
 
-(defun gnus-bookmark-bmenu-mode ()
+(define-derived-mode gnus-bookmark-bmenu-mode fundamental-mode "Bookmark Menu"
   "Major mode for editing a list of Gnus bookmarks.
 Each line describes one of the bookmarks in Gnus.
 Letters do not insert themselves; instead, they are commands.
@@ -497,13 +497,8 @@ Gnus bookmarks names preceded by a \"*\" have annotations.
   in another buffer.
 \\[gnus-bookmark-bmenu-show-all-annotations] -- show the annotations of all bookmarks in another buffer.
 \\[gnus-bookmark-bmenu-edit-annotation] -- edit the annotation for the current bookmark."
-  (kill-all-local-variables)
-  (use-local-map gnus-bookmark-bmenu-mode-map)
   (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (setq major-mode 'gnus-bookmark-bmenu-mode)
-  (setq mode-name "Bookmark Menu")
-  (gnus-run-mode-hooks 'gnus-bookmark-bmenu-mode-hook))
+  (setq buffer-read-only t))
 
 ;; avoid compilation warnings
 (defvar gnus-bookmark-bmenu-toggle-infos nil)

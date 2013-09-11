@@ -233,10 +233,8 @@
 (put 'landmark-mode 'intangible 1)
 ;; This one is for when they set view-read-only to t: Landmark cannot
 ;; allow View Mode to be activated in its buffer.
-(put 'landmark-mode 'mode-class 'special)
-
-(defun landmark-mode ()
-  "Major mode for playing Landmark against Emacs.
+(define-derived-mode lm-mode special-mode "Lm"
+  "Major mode for playing Lm against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
@@ -247,16 +245,9 @@ Other useful commands:
 \\{landmark-mode-map}
 Entry to this mode calls the value of `landmark-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'landmark-mode
-	mode-name "Landmark")
-  (landmark-display-statistics)
-  (use-local-map landmark-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(landmark-font-lock-keywords t)
-	buffer-read-only t)
-  (run-mode-hooks 'landmark-mode-hook))
+  (lm-display-statistics)
+  (setq-local font-lock-defaults '(lm-font-lock-keywords t))
+  (setq buffer-read-only t))
 
 
 ;;;_ +  THE SCORE TABLE.

@@ -88,7 +88,7 @@ The Custom feature is intended to make this obsolete."
 ;; Edit Options mode is suitable only for specially formatted data.
 (put 'Edit-options-mode 'mode-class 'special)
 
-(defun Edit-options-mode ()
+(define-derived-mode Edit-options-mode emacs-lisp-mode "Options"
   "\\<Edit-options-mode-map>\
 Major mode for editing Emacs user option settings.
 Special commands are:
@@ -100,17 +100,9 @@ Changed values made by these commands take effect immediately.
 
 Each variable description is a paragraph.
 For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph] move back and forward by paragraphs."
-  (kill-all-local-variables)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (use-local-map Edit-options-mode-map)
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate "[^\^@-\^?]")
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start "\t")
-  (setq truncate-lines t)
-  (setq major-mode 'Edit-options-mode)
-  (setq mode-name "Options")
-  (run-mode-hooks 'Edit-options-mode-hook))
+  (setq-local paragraph-separate "[^\^@-\^?]")
+  (setq-local paragraph-start "\t")
+  (setq-local truncate-lines t))
 
 (defun Edit-options-set () (interactive)
   (Edit-options-modify
