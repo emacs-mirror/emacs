@@ -6338,7 +6338,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
      terminal like X does.  */
   terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  kset_window_system (terminal->kboard, intern ("w32"));
+  kset_window_system (terminal->kboard, Qw32);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -6691,5 +6691,6 @@ With MS Windows or Nextstep, the value is t.  */);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  Fprovide (intern_c_string ("w32"), Qnil);
+  /* Tell Emacs about this window system.  */
+  Fprovide (Qw32, Qnil);
 }

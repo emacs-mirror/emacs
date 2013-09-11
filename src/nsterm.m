@@ -7433,6 +7433,6 @@ variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
-  /* Tell emacs about this window system. */
-  Fprovide (intern ("ns"), Qnil);
+  /* Tell Emacs about this window system.  */
+  Fprovide (Qns, Qnil);
 }

@@ -4434,11 +4434,6 @@ x_display_info_for_name (Lisp_Object name)
 
   CHECK_STRING (name);
 
-#if 0
-  if (! EQ (Vinitial_window_system, intern ("x")))
-    error ("Not using X Windows"); /* That doesn't stop us anymore. */
-#endif
-
   for (dpyinfo = x_display_list, names = x_display_name_list;
        dpyinfo;
        dpyinfo = dpyinfo->next, names = XCDR (names))
@@ -4481,11 +4476,6 @@ terminate Emacs if we can't open the connection.
   CHECK_STRING (display);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
-
-#if 0
-  if (! EQ (Vinitial_window_system, intern ("x")))
-    error ("Not using X Windows"); /* That doesn't stop us anymore. */
-#endif
 
   xrm_option = NILP (xrm_string) ? 0 : SSDATA (xrm_string);
 
@@ -6299,7 +6289,8 @@ Otherwise use Emacs own tooltip implementation.
 When using Gtk+ tooltips, the tooltip face is not used.  */);
   x_gtk_use_system_tooltips = 1;
 
-  Fprovide (intern_c_string ("x"), Qnil);
+  /* Tell Emacs about this window system.  */
+  Fprovide (Qx, Qnil);
 
 #ifdef USE_X_TOOLKIT
   Fprovide (intern_c_string ("x-toolkit"), Qnil);

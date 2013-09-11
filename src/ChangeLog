@@ -1,5 +1,11 @@
 2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* nsterm.m (syms_of_nsterm): Use Qns.
+	* w32fns.c (Fx_open_connection): Remove old '#if 0' code.
+	* w32term.c (w32_create_terminal, syms_of_w32term): Use Qw32.
+	* xfns.c (x_display_info_for_name, Fx_open_connection):
+	Remove old '#if 0' code.
+	(syms_of_xfns): Use Qx.
 	* termhooks.h (fullscreen_hook): Remove the leftover.
 	(struct terminal): Fix typo in comment.
 
