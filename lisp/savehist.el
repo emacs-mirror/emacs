@@ -49,7 +49,7 @@
 
 (require 'custom)
 (eval-when-compile
-  (require 'cl))
+  (if (featurep 'xemacs) (require 'cl)))
 
 ;; User variables
 

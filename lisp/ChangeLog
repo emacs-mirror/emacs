@@ -1,3 +1,7 @@
+2013-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* savehist.el: No need for cl when compiling on Emacs.
+
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/esh-mode.el (eshell-mode-syntax-table): Fix up initialization
