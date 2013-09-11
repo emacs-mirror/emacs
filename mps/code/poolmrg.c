@@ -50,17 +50,17 @@ enum {
 typedef struct LinkStruct *Link;
 typedef struct LinkStruct {
   int state;                     /* Free, Prefinal, Final */
-  union {
+  union LinkStructUnion {
     MessageStruct messageStruct; /* state = Final */
     RingStruct linkRing;         /* state one of {Free, Prefinal} */
   } the;
 } LinkStruct;
 
 #define linkOfMessage(message) \
-  PARENT(LinkStruct, the.messageStruct, (message))
+  PARENT(LinkStruct, the, PARENT(union LinkStructUnion, messageStruct, (message)))
 
 #define linkOfRing(ring) \
-  PARENT(LinkStruct, the.linkRing, (ring))
+  PARENT(LinkStruct, the, PARENT(union LinkStructUnion, linkRing, (ring)))
 
 
 /* RefPart -- Protectable part of guardian
