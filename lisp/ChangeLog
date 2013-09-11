@@ -1,3 +1,12 @@
+2013-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (interpreter-mode-alist): Remove \\` \\' parts.
+	(set-auto-mode): Don't regexp-quote elements.
+	* progmodes/python.el (interpreter-mode-alist): Remove \\` \\'.
+	* progmodes/cc-mode.el (interpreter-mode-alist):
+	* progmodes/ruby-mode.el (interpreter-mode-alist):
+	Revert previous change.
+
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* play/snake.el (snake-mode):

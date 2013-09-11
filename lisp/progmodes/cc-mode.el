@@ -1555,7 +1555,7 @@ Key bindings:
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(\\.in\\)?\\)\\'" . pike-mode))
-;;;###autoload (add-to-list 'interpreter-mode-alist '("\\`pike\\'" . pike-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload
 (define-derived-mode pike-mode prog-mode "Pike"
@@ -1589,7 +1589,10 @@ Key bindings:
 ;; Support for AWK
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.awk\\'" . awk-mode))
-;;;###autoload (add-to-list 'interpreter-mode-alist '("\\`[gmn]?awk\\'" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("awk" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("mawk" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("nawk" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("gawk" . awk-mode))
 
 (c-define-abbrev-table 'awk-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)

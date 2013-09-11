@@ -2447,43 +2447,34 @@ and `magic-mode-alist', which determines modes based on file contents.")
   (mapcar
    (lambda (l)
      (cons (purecopy (car l)) (cdr l)))
-   '(("\\`\\(mini\\)?perl5?\\'" . perl-mode)
-     ("\\`wishx?\\'" . tcl-mode)
-     ("\\`tcl\\(sh\\)?\\'" . tcl-mode)
-     ("\\`expect\\'" . tcl-mode)
-     ("\\`scm\\'" . scheme-mode)
-     ("\\`[acjkwz]sh\\'" . sh-mode)
-     ("\\`bash2?\\'" . sh-mode)
-     ("\\`dtksh\\'" . sh-mode)
-     ("\\`es\\'" . sh-mode)
-     ("\\`itcsh\\'" . sh-mode)
-     ("\\`oash\\'" . sh-mode)
-     ("\\`pdksh\\'" . sh-mode)
-     ("\\`rbash\\'" . sh-mode)
-     ("\\`rc\\'" . sh-mode)
-     ("\\`rpm\\'" . sh-mode)
-     ("\\`sh5?\\'" . sh-mode)
-     ("\\`tcsh\\'" . sh-mode)
-     ("\\`wksh\\'" . sh-mode)
-     ("\\`tail\\'" . text-mode)
-     ("\\`more\\'" . text-mode)
-     ("\\`less\\'" . text-mode)
-     ("\\`pg\\'" . text-mode)
-     ("\\`make\\'" . makefile-gmake-mode)		; Debian uses this
-     ("\\`guile\\'" . scheme-mode)
-     ("\\`clisp\\'" . lisp-mode)
-     ("\\`emacs\\'" . emacs-lisp-mode)))
+   '(("\\(mini\\)?perl5?" . perl-mode)
+     ("wishx?" . tcl-mode)
+     ("tcl\\(sh\\)?" . tcl-mode)
+     ("expect" . tcl-mode)
+     ("scm" . scheme-mode)
+     ("[acjkwz]sh" . sh-mode)
+     ("r?bash2?" . sh-mode)
+     ("\\(dt\\|pd\\|w\\)ksh" . sh-mode)
+     ("es" . sh-mode)
+     ("i?tcsh" . sh-mode)
+     ("oash" . sh-mode)
+     ("rc" . sh-mode)
+     ("rpm" . sh-mode)
+     ("sh5?" . sh-mode)
+     ("tail" . text-mode)
+     ("more" . text-mode)
+     ("less" . text-mode)
+     ("pg" . text-mode)
+     ("make" . makefile-gmake-mode)		; Debian uses this
+     ("guile" . scheme-mode)
+     ("clisp" . lisp-mode)
+     ("emacs" . emacs-lisp-mode)))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (REGEXP . MODE).
-If REGEXP matches the name (minus any directory part) of the interpreter
-specified in the first line of a script, enable major mode MODE.
-
-Emacs versions earlier than 24.4 treat the car of each element as a
-literal string that must match the entire name, rather than a regexp.
-For backwards compatibility, any REGEXP that does not begin with \"\\\\\"
-continues to be treated in this way.  This behavior may be removed in
-future and should not be relied upon.
+If \\\\`REGEXP\\\\' matches the name (minus any directory part) of
+the interpreter specified in the first line of a script, enable
+major mode MODE.
 
 See also `auto-mode-alist'.")
 
@@ -2687,13 +2678,11 @@ we don't actually set it to the same mode the buffer already has."
 	 ;; same time.
 	 (setq done (assoc-default
 		     (file-name-nondirectory mode)
-		     ;; Backwards compat: if car of i-m-alist does not start
-		     ;; with "\\", treat as literal string.
 		     (mapcar (lambda (e)
-			       (if (string-match-p "\\`\\\\" (car e))
+			       (if (string-match-p "\\`\\\\`" (car e))
 				   e
 				 (cons
-				  (format "\\`%s\\'" (regexp-quote (car e)))
+				  (format "\\`%s\\'" (car e))
 				  (cdr e))))
 			     interpreter-mode-alist)
 		     #'string-match-p))

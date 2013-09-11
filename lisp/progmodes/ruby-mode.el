@@ -1968,7 +1968,8 @@ The variable `ruby-indent-level' controls the amount of indentation.
                                      "\\)\\'")) 'ruby-mode))
 
 ;;;###autoload
-(add-to-list 'interpreter-mode-alist (cons (purecopy "\\`\\(rbx\\|j?ruby\\(1\\.[89]\\)?\\)\\'") 'ruby-mode))
+(dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))
+  (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
 
 (provide 'ruby-mode)
 
