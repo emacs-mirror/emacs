@@ -1031,7 +1031,7 @@ x_set_border_pixel (struct frame *f, int pix)
    Note: this is done in two routines because of the way X10 works.
 
    Note: under X11, this is normally the province of the window manager,
-   and so emacs' border colors may be overridden.  */
+   and so emacs's border colors may be overridden.  */
 
 static void
 x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)

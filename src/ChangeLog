@@ -1,3 +1,7 @@
+2013-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (usage_message): Possessive apostrophe tweak.
+
 2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* nsterm.m (syms_of_nsterm): Use Qns.
