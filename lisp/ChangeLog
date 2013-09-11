@@ -1,5 +1,8 @@
 2013-09-11  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-cvs.el (cvs-append-to-ignore): Fix arg spec.
+	Check cvs-sort-ignore-file is bound.
+
 	* savehist.el: No need for cl when compiling on Emacs.
 
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
