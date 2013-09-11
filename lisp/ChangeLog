@@ -1,3 +1,7 @@
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (set-auto-mode): Simplify a bit further.
+
 2013-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (interpreter-mode-alist): Remove \\` \\' parts.

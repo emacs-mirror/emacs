@@ -2679,11 +2679,9 @@ we don't actually set it to the same mode the buffer already has."
 	 (setq done (assoc-default
 		     (file-name-nondirectory mode)
 		     (mapcar (lambda (e)
-			       (if (string-match-p "\\`\\\\`" (car e))
-				   e
-				 (cons
-				  (format "\\`%s\\'" (car e))
-				  (cdr e))))
+                               (cons
+                                (format "\\`%s\\'" (car e))
+                                (cdr e)))
 			     interpreter-mode-alist)
 		     #'string-match-p))
 	 ;; If we found an interpreter mode to use, invoke it now.
