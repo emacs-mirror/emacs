@@ -246,7 +246,7 @@ Other useful commands:
 Entry to this mode calls the value of `landmark-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
   (landmark-display-statistics)
-  (setq-local font-lock-defaults '(lm-font-lock-keywords t))
+  (setq-local font-lock-defaults '(landmark-font-lock-keywords t))
   (setq buffer-read-only t))
 
 
