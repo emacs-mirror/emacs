@@ -166,9 +166,9 @@
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
-/* Linux on 64-bit Intel with GCC */
+/* Linux on 64-bit Intel with GCC or Clang */
 
-#elif defined(MPS_PF_LII6GC)
+#elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
 #include "lockli.c"     /* Linux locks */
 #include "thix.c"       /* Posix threading */
