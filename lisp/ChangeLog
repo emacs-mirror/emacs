@@ -1,5 +1,7 @@
 2013-09-11  Glenn Morris  <rgm@gnu.org>
 
+	* echistory.el (electric-command-history): Remove call to deleted func.
+
 	* play/landmark.el (landmark-mode): Fix typos.
 
 	* vc/vc-cvs.el (cvs-append-to-ignore): Fix arg spec.
@@ -61,6 +63,7 @@
 	* chistory.el (command-history-mode-map): Rename from
 	command-history-map.
 	(command-history-mode): Use define-derived-mode.
+	(Command-history-setup): Remove function.
 	* calc/calc.el (calc-trail-mode-map): New var.
 	(calc-trail-mode): Use define-derived-mode.
 	(calc-trail-buffer): Set calc-main-buffer manually.
