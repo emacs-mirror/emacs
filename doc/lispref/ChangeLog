@@ -1,3 +1,8 @@
+2013-09-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* nonascii.texi (Character Properties): Character properties fix
+	for decimal-digit-value and digit-value.
+
 2013-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* macros.texi (Defining Macros): Prefer "function" to "lambda

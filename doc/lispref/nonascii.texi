@@ -478,14 +478,14 @@ unassigned codepoints, the value is the character itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
-characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
-integer number.  For unassigned codepoints, the value is @code{nil},
-which means @acronym{NaN}, or ``not-a-number''.
+characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
+an integer number.  For unassigned codepoints, the value is
+@code{nil}, which means @acronym{NaN}, or ``not-a-number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
-characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
-an integer number.  Examples of such characters include compatibility
+characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
+integer number.  Examples of such characters include compatibility
 subscript and superscript digits, for which the value is the
 corresponding number.  For unassigned codepoints, the value is
 @code{nil}, which means @acronym{NaN}.
