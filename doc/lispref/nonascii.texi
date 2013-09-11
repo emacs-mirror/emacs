@@ -549,6 +549,8 @@ is @code{nil}, which means the character itself.
 @defun get-char-code-property char propname
 This function returns the value of @var{char}'s @var{propname} property.
 
+@c FIXME: Use ‘?\s’ instead of ‘? ’ for the space character in the
+@c first example?  --xfq
 @example
 @group
 (get-char-code-property ?  'general-category)

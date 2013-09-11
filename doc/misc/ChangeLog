@@ -1,3 +1,9 @@
+2013-09-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.texi (Interactive Substring Matching): Use @key{RET} instead
+	of @kbd{RET}.
+	(Prefix Matching): Add an index.
+
 2013-09-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-gnutls.texi: Tweak direntry.

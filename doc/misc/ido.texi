@@ -258,7 +258,7 @@ Buffer: 23@{123456 | 123@}
 At this point, you still have two matching buffers.  If you want the
 first buffer in the list, you can simply press @key{RET}.  If you want
 the second in the list, you can press @kbd{C-s} to move it to the top
-of the list and then press @kbd{RET} to select it.
+of the list and then press @key{RET} to select it.
 
 However, if you type @kbd{4}, you'll only have one match left:
 
@@ -366,6 +366,7 @@ users Ido offers in addition to the default substring matching method
 the only difference to the description of the substring matching
 above.
 
+@cindex toggle prefix matching
 You can toggle prefix matching with @kbd{C-p}
 (@code{ido-toggle-prefix}).
 
