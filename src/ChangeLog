@@ -1,3 +1,19 @@
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleaning up a few X scroll bar bits.
+	* termhooks.h (enum scroll_bar_part): Add scroll_bar_nowhere member.
+	* xterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS && USE_LUCID]:
+	New member last_seen_part, going to replace...
+	* xterm.c [USE_TOOLKIT_SCROLL_BARS]: ...global last_scroll_bar_part.
+	(xt_action_hook) [USE_LUCID]: Adjust user.
+	(xm_scroll_callback, xg_scroll_callback): Do not bloat with
+	Lucid-specific scroll bar support.
+	(xaw_jump_callback, xaw_scroll_callback): Prefer enum scroll_par_part
+	to int and adjust to use last_seen_part member.
+	(x_set_toolkit_scroll_bar_thumb) [USE_LUCID]: Adjust user.
+	(x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS && USE_LUCID]:
+	Initialize last_seen_part.
+
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* insdel.c (insert_from_buffer_1): Don't mark buffer as modified when

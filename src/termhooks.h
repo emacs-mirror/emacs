@@ -31,6 +31,7 @@ INLINE_HEADER_BEGIN
 #endif
 
 enum scroll_bar_part {
+  scroll_bar_nowhere = -1,
   scroll_bar_above_handle,
   scroll_bar_handle,
   scroll_bar_below_handle,
