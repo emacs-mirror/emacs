@@ -2917,12 +2917,8 @@ dissociate_if_controlling_tty (int fd)
 struct terminal *
 init_tty (const char *name, const char *terminal_type, bool must_succeed)
 {
-#ifdef TERMINFO
-  char **address = 0;
-#else
   char *area;
   char **address = &area;
-#endif
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
@@ -3013,13 +3009,9 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
   /* On some systems, tgetent tries to access the controlling
      terminal.  */
   block_tty_out_signal ();
-#ifdef TERMINFO
-  status = tgetent (0, terminal_type);
-#else
   status = tgetent (tty->termcap_term_buffer, terminal_type);
   if (tty->termcap_term_buffer[TERMCAP_BUFFER_SIZE - 1])
     emacs_abort ();
-#endif
   unblock_tty_out_signal ();
 
   if (status < 0)
@@ -3050,9 +3042,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
                    terminal_type);
     }
 
-#ifndef TERMINFO
   area = tty->termcap_strings_buffer;
-#endif
   tty->TS_ins_line = tgetstr ("al", address);
   tty->TS_ins_multi_lines = tgetstr ("AL", address);
   tty->TS_bell = tgetstr ("bl", address);

@@ -30,9 +30,7 @@ struct tty_output
   /* There is nothing else here at the moment... */
 };
 
-#ifndef TERMINFO
 enum { TERMCAP_BUFFER_SIZE = 4096 };
-#endif
 
 /* Parameters that are shared between frames on the same tty device. */
 
@@ -78,7 +76,6 @@ struct tty_display_info
      mouse-face.  */
   Mouse_HLInfo mouse_highlight;
 
-#ifndef TERMINFO
   /* Buffer used internally by termcap (see tgetent in the Termcap
      manual).  Only init_tty should use this.  */
   char termcap_term_buffer[TERMCAP_BUFFER_SIZE];
@@ -86,7 +83,6 @@ struct tty_display_info
   /* Buffer storing terminal description strings (see tgetstr in the
      Termcap manual).  Only init_tty should use this.  */
   char termcap_strings_buffer[TERMCAP_BUFFER_SIZE];
-#endif
 
   /* Strings, numbers and flags taken from the termcap entry.  */
 

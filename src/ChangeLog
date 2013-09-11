@@ -1,3 +1,14 @@
+2013-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix corruption with multiple emacsclient -t instances (Bug#15222).
+	This bug was introduced by my 2013-08-26 patch, which incorrectly
+	assumed that the terminfo implementation doesn't use termcap buffers.
+	* term.c (init_tty) [TERMINFO]: Remove optimization, as
+	these buffers apparently are used after all.
+	* termchar.h (TERMCAP_BUFFER_SIZE) [TERMINFO]: Define here too.
+	(struct tty_display_info): Define members termcap_term_buffer and
+	termcap_strings_buffer even if TERMINFO.
+
 2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix last change.
