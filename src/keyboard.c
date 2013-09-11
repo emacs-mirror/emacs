@@ -2597,7 +2597,7 @@ read_char (int commandflag, Lisp_Object map,
   if (/* There currently is something in the echo area.  */
       !NILP (echo_area_buffer[0])
       && (/* It's an echo from a different kboard.  */
-	  || echo_kboard != current_kboard
+	  echo_kboard != current_kboard
 	  /* Or we explicitly allow overwriting whatever there is.  */
 	  || ok_to_echo_at_next_pause == NULL))
     cancel_echoing ();
