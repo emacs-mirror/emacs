@@ -1,5 +1,12 @@
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eshell/esh-mode.el (eshell-mode-syntax-table): Fix up initialization
+	(bug#15338).
+	(eshell-self-insert-command, eshell-send-invisible): Remove
+	unused argument.
+	(eshell-handle-control-codes): Remove unused var `orig'.
+	Avoid delete-backward-char.
+
 	* files.el (set-auto-mode): Simplify a bit further.
 
 2013-09-11  Glenn Morris  <rgm@gnu.org>
@@ -74,7 +81,7 @@
 2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el: Use set-temporary-overlay-map for universal-argument.
-	(universal-argument-map): Don't use default-bindings.
+	(universal-argument-map): Don't use default-bindings (bug#15317).
 	Bind switch-frame explicitly.  Replace universal-argument-minus with
 	a conditional binding.
 	(universal-argument-num-events, saved-overriding-map): Remove.

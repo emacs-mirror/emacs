@@ -267,19 +267,20 @@ This is used by `eshell-watch-for-password-prompt'."
     ;; All non-word multibyte characters should be `symbol'.
     (map-char-table
      (if (featurep 'xemacs)
-         (lambda (key val)
+         (lambda (key _val)
            (and (characterp key)
                 (>= (char-int key) 256)
                 (/= (char-syntax key) ?w)
                 (modify-syntax-entry key "_   " st)))
-       (lambda (key val)
+       (lambda (key _val)
          (and (if (consp key)
                   (and (>= (car key) 128)
                        (/= (char-syntax (car key)) ?w))
                 (and (>= key 256)
                      (/= (char-syntax key) ?w)))
               (modify-syntax-entry key "_   " st))))
-     (standard-syntax-table))))
+     (standard-syntax-table))
+    st))
 
 ;;; User Functions:
 
@@ -451,8 +452,8 @@ and the hook `eshell-exit-hook'."
     (add-hook 'pre-command-hook 'eshell-intercept-commands t t)
     (message "Sending subprocess input directly")))
 
-(defun eshell-self-insert-command (N)
-  (interactive "i")
+(defun eshell-self-insert-command ()
+  (interactive)
   (process-send-string
    (eshell-interactive-process)
    (char-to-string (if (symbolp last-command-event)
@@ -925,10 +926,10 @@ a key."
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-truncate-buffer)
 
-(defun eshell-send-invisible (str)
+(defun eshell-send-invisible ()
   "Read a string without echoing.
 Then send it to the process running in the current buffer."
-  (interactive "P")                     ; Defeat snooping via C-x ESC ESC
+  (interactive) ; Don't pass str as argument, to avoid snooping via C-x ESC ESC
   (let ((str (read-passwd
 	      (format "%s Password: "
 		      (process-name (eshell-interactive-process))))))
@@ -950,7 +951,7 @@ This function could be in the list `eshell-output-filter-functions'."
       (beginning-of-line)
       (if (re-search-forward eshell-password-prompt-regexp
 			     eshell-last-output-end t)
-	  (eshell-send-invisible nil)))))
+	  (eshell-send-invisible)))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)
@@ -958,32 +959,30 @@ This function could be in the list `eshell-output-filter-functions'."
 (defun eshell-handle-control-codes ()
   "Act properly when certain control codes are seen."
   (save-excursion
-    (let ((orig (point)))
-      (goto-char eshell-last-output-block-begin)
-      (unless (eolp)
-	(beginning-of-line))
-      (while (< (point) eshell-last-output-end)
-	(let ((char (char-after)))
-	  (cond
-	   ((eq char ?\r)
-	    (if (< (1+ (point)) eshell-last-output-end)
-		(if (memq (char-after (1+ (point)))
-			  '(?\n ?\r))
-		    (delete-char 1)
-		  (let ((end (1+ (point))))
-		    (beginning-of-line)
-		    (delete-region (point) end)))
-	      (add-text-properties (point) (1+ (point))
-				   '(invisible t))
-	      (forward-char)))
-	   ((eq char ?\a)
-	    (delete-char 1)
-	    (beep))
-	   ((eq char ?\C-h)
-	    (delete-backward-char 1)
-	    (delete-char 1))
-	   (t
-	    (forward-char))))))))
+    (goto-char eshell-last-output-block-begin)
+    (unless (eolp)
+      (beginning-of-line))
+    (while (< (point) eshell-last-output-end)
+      (let ((char (char-after)))
+        (cond
+         ((eq char ?\r)
+          (if (< (1+ (point)) eshell-last-output-end)
+              (if (memq (char-after (1+ (point)))
+                        '(?\n ?\r))
+                  (delete-char 1)
+                (let ((end (1+ (point))))
+                  (beginning-of-line)
+                  (delete-region (point) end)))
+            (add-text-properties (point) (1+ (point))
+                                 '(invisible t))
+            (forward-char)))
+         ((eq char ?\a)
+          (delete-char 1)
+          (beep))
+         ((eq char ?\C-h)
+          (delete-region (1- (point)) (1+ (point))))
+         (t
+          (forward-char)))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-control-codes)
