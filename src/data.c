@@ -2321,21 +2321,24 @@ arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
 }
 
 DEFUN ("=", Feqlsign, Seqlsign, 1, MANY, 0,
-       doc: /* Return t if args, all numbers or markers, are equal.  */)
+       doc: /* Return t if args, all numbers or markers, are equal.
+usage: (= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arithcompare_driver (nargs, args, ARITH_EQUAL);
 }
 
 DEFUN ("<", Flss, Slss, 1, MANY, 0,
-       doc: /* Return t if each arg is less than the next arg.  All must be numbers or markers.  */)
+       doc: /* Return t if each arg is less than the next arg.  All must be numbers or markers.
+usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arithcompare_driver (nargs, args, ARITH_LESS);
 }
 
 DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
-       doc: /* Return t if each arg is greater than the next arg.  All must be numbers or markers.  */)
+       doc: /* Return t if each arg is greater than the next arg.  All must be numbers or markers.
+usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arithcompare_driver (nargs, args, ARITH_GRTR);
@@ -2343,7 +2346,8 @@ DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
 
 DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
        doc: /* Return t if each arg is less than or equal to the next arg.
-All must be numbers or markers.  */)
+All must be numbers or markers.
+usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arithcompare_driver (nargs, args, ARITH_LESS_OR_EQUAL);
@@ -2351,7 +2355,8 @@ All must be numbers or markers.  */)
 
 DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
        doc: /* Return t if each arg is greater than or equal to the next arg.
-All must be numbers or markers.  */)
+All must be numbers or markers.
+usage: (= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arithcompare_driver (nargs, args, ARITH_GRTR_OR_EQUAL);

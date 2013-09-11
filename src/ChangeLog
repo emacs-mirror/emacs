@@ -1,3 +1,18 @@
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix last change.
+	* data.c (Feqlsign, Flss, Fgtr, Fleq, Fgeq): Add convenient
+	'usage' docstring entry to pacify make-docfile.
+
+2013-09-11  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	Change comparison functions =, <, >, <=, >= to take many arguments.
+	* data.c: Change comparison functions' interface and implementation.
+	* lisp.h: Make arithcompare available for efficient two arg
+	comparisons.
+	* bytecode.c: Use arithcompare.
+	* fileio.c: Use new interface.
+
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_char): Don't break immediate_echo (bug#15332).
