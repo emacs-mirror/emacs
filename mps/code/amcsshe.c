@@ -104,7 +104,8 @@ static void report(mps_arena_t arena)
        * the test to fail sometimes (see job003432), so I've commented
        * out this feature.
        */
-      /*die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit")*/;
+      /*die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit")*/
+      NOOP;
   }
 }
 

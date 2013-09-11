@@ -58,7 +58,7 @@ typedef struct AMSTStruct {
 
 typedef struct AMSTStruct *AMST;
 
-#define Pool2AMST(pool) PARENT(AMSTStruct, amsStruct.poolStruct, (pool))
+#define Pool2AMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
 #define AMST2AMS(amst)  (&(amst)->amsStruct)
 
 
@@ -670,7 +670,7 @@ DEFINE_POOL_CLASS(AMSTPoolClass, this)
   INHERIT_CLASS(this, AMSPoolClass);
   this->name = "AMST";
   this->size = sizeof(AMSTStruct);
-  this->offset = offsetof(AMSTStruct, amsStruct.poolStruct);
+  this->offset = offsetof(AMSTStruct, amsStruct) + offsetof(AMSStruct, poolStruct);
   this->init = AMSTInit;
   this->finish = AMSTFinish;
   this->bufferFill = AMSTBufferFill;
