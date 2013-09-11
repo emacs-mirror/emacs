@@ -1,3 +1,7 @@
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_char): Don't break immediate_echo (bug#15332).
+
 2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Feval): Document the new use of `lexical'.
