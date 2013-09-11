@@ -43,11 +43,6 @@ enum scroll_bar_part {
   scroll_bar_move_ratio
 };
 
-/* If the value of the frame parameter changed, whis hook is called.
-   For example, if going from fullscreen to not fullscreen this hook
-   may do something OS dependent, like extended window manager hints on X11.  */
-extern void (*fullscreen_hook) (struct frame *f);
-
 /* Output method of a terminal (and frames on this terminal, respectively).  */
 
 enum output_method
@@ -499,7 +494,7 @@ struct terminal
      windows.  */
   void (*frame_raise_lower_hook) (struct frame *f, int raise_flag);
 
-  /* If the value of the frame parameter changed, whis hook is called.
+  /* If the value of the frame parameter changed, this hook is called.
      For example, if going from fullscreen to not fullscreen this hook
      may do something OS dependent, like extended window manager hints on X11.  */
   void (*fullscreen_hook) (struct frame *f);

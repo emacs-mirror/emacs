@@ -1,5 +1,10 @@
 2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* termhooks.h (fullscreen_hook): Remove the leftover.
+	(struct terminal): Fix typo in comment.
+
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Cleaning up a few X scroll bar bits.
 	* termhooks.h (enum scroll_bar_part): Add scroll_bar_nowhere member.
 	* xterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS && USE_LUCID]:
