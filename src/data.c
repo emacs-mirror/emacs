@@ -2255,10 +2255,8 @@ bool-vector.  IDX starts at 0.  */)
 
 /* Arithmetic functions */
 
-enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
-
-static Lisp_Object
-arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
+Lisp_Object
+arithcompare (Lisp_Object num1, Lisp_Object num2, enum Arith_Comparison comparison)
 {
   double f1 = 0, f2 = 0;
   bool floatp = 0;
@@ -2275,32 +2273,32 @@ arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 
   switch (comparison)
     {
-    case equal:
+    case ARITH_EQUAL:
       if (floatp ? f1 == f2 : XINT (num1) == XINT (num2))
 	return Qt;
       return Qnil;
 
-    case notequal:
+    case ARITH_NOTEQUAL:
       if (floatp ? f1 != f2 : XINT (num1) != XINT (num2))
 	return Qt;
       return Qnil;
 
-    case less:
+    case ARITH_LESS:
       if (floatp ? f1 < f2 : XINT (num1) < XINT (num2))
 	return Qt;
       return Qnil;
 
-    case less_or_equal:
+    case ARITH_LESS_OR_EQUAL:
       if (floatp ? f1 <= f2 : XINT (num1) <= XINT (num2))
 	return Qt;
       return Qnil;
 
-    case grtr:
+    case ARITH_GRTR:
       if (floatp ? f1 > f2 : XINT (num1) > XINT (num2))
 	return Qt;
       return Qnil;
 
-    case grtr_or_equal:
+    case ARITH_GRTR_OR_EQUAL:
       if (floatp ? f1 >= f2 : XINT (num1) >= XINT (num2))
 	return Qt;
       return Qnil;
@@ -2310,48 +2308,60 @@ arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
     }
 }
 
-DEFUN ("=", Feqlsign, Seqlsign, 2, 2, 0,
-       doc: /* Return t if two args, both numbers or markers, are equal.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+static Lisp_Object
+arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
+                     enum Arith_Comparison comparison)
 {
-  return arithcompare (num1, num2, equal);
+  for (ptrdiff_t argnum = 1; argnum < nargs; ++argnum)
+    {
+      if (EQ (Qnil, arithcompare (args[argnum-1], args[argnum], comparison)))
+        return Qnil;
+    }
+  return Qt;
 }
 
-DEFUN ("<", Flss, Slss, 2, 2, 0,
-       doc: /* Return t if first arg is less than second arg.  Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN ("=", Feqlsign, Seqlsign, 1, MANY, 0,
+       doc: /* Return t if args, all numbers or markers, are equal.  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, less);
+  return arithcompare_driver (nargs, args, ARITH_EQUAL);
 }
 
-DEFUN (">", Fgtr, Sgtr, 2, 2, 0,
-       doc: /* Return t if first arg is greater than second arg.  Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN ("<", Flss, Slss, 1, MANY, 0,
+       doc: /* Return t if each arg is less than the next arg.  All must be numbers or markers.  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, grtr);
+  return arithcompare_driver (nargs, args, ARITH_LESS);
 }
 
-DEFUN ("<=", Fleq, Sleq, 2, 2, 0,
-       doc: /* Return t if first arg is less than or equal to second arg.
-Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
+       doc: /* Return t if each arg is greater than the next arg.  All must be numbers or markers.  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, less_or_equal);
+  return arithcompare_driver (nargs, args, ARITH_GRTR);
 }
 
-DEFUN (">=", Fgeq, Sgeq, 2, 2, 0,
-       doc: /* Return t if first arg is greater than or equal to second arg.
-Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
+       doc: /* Return t if each arg is less than or equal to the next arg.
+All must be numbers or markers.  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, grtr_or_equal);
+  return arithcompare_driver (nargs, args, ARITH_LESS_OR_EQUAL);
+}
+
+DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
+       doc: /* Return t if each arg is greater than or equal to the next arg.
+All must be numbers or markers.  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  return arithcompare_driver (nargs, args, ARITH_GRTR_OR_EQUAL);
 }
 
 DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
        doc: /* Return t if first arg is not equal to second arg.  Both must be numbers or markers.  */)
   (register Lisp_Object num1, Lisp_Object num2)
 {
-  return arithcompare (num1, num2, notequal);
+  return arithcompare (num1, num2, ARITH_NOTEQUAL);
 }
 
 DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,

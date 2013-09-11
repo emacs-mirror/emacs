@@ -3160,6 +3160,16 @@ EXFUN (Fbyteorder, 0) ATTRIBUTE_CONST;
 /* Defined in data.c.  */
 extern Lisp_Object indirect_function (Lisp_Object);
 extern Lisp_Object find_symbol_value (Lisp_Object);
+enum Arith_Comparison {
+  ARITH_EQUAL,
+  ARITH_NOTEQUAL,
+  ARITH_LESS,
+  ARITH_GRTR,
+  ARITH_LESS_OR_EQUAL,
+  ARITH_GRTR_OR_EQUAL
+};
+extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
+                                 enum Arith_Comparison comparison);
 
 /* Convert the integer I to an Emacs representation, either the integer
    itself, or a cons of two or three integers, or if all else fails a float.

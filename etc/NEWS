@@ -625,6 +625,8 @@ actually using interpreter-mode-alist for something.
 
 * Lisp Changes in Emacs 24.4
 
+** Comparison functions =, <, >, <=, >= now take many arguments.
+
 ** The second argument of `eval' can now be a lexical-environment.
 
 ** `with-demoted-errors' takes an additional argument `format'.

@@ -1367,7 +1367,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = Fgtr (TOP, v1);
+	    TOP = arithcompare (TOP, v1, ARITH_GRTR);
 	    AFTER_POTENTIAL_GC ();
 	    NEXT;
 	  }
@@ -1377,7 +1377,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = Flss (TOP, v1);
+	    TOP = arithcompare (TOP, v1, ARITH_LESS);
 	    AFTER_POTENTIAL_GC ();
 	    NEXT;
 	  }
@@ -1387,7 +1387,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = Fleq (TOP, v1);
+	    TOP = arithcompare (TOP, v1, ARITH_LESS_OR_EQUAL);
 	    AFTER_POTENTIAL_GC ();
 	    NEXT;
 	  }
@@ -1397,7 +1397,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = Fgeq (TOP, v1);
+	    TOP = arithcompare (TOP, v1, ARITH_GRTR_OR_EQUAL);
 	    AFTER_POTENTIAL_GC ();
 	    NEXT;
 	  }
