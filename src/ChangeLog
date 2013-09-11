@@ -1,3 +1,8 @@
+2013-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (Ftool_bar_lines_needed): Declare as 'const' if ifdeffed out,
+	avoiding a GCC warning.
+
 2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Ifdef away frame tool bar code when it is not really used.
