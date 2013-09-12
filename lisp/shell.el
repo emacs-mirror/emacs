@@ -791,7 +791,7 @@ and `shell-pushd-dunique' control the behavior of the relevant command.
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
-      (condition-case nil
+      (with-demoted-errors "Couldn't cd: %s"
 	  (let ((start (progn (string-match
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
@@ -824,8 +824,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	      (setq start (progn (string-match shell-command-separator-regexp
 					       str end)
 				 ;; skip again
-				 (match-end 0)))))
-	(error "Couldn't cd"))))
+				 (match-end 0))))))))
 
 (defun shell-unquote-argument (string)
   "Remove all kinds of shell quoting from STRING."
@@ -907,7 +906,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	   (cond ((> num (length shell-dirstack))
 		  (message "Directory stack not that deep."))
 		 ((= num 0)
-		  (error (message "Couldn't cd")))
+		  (error "Couldn't cd"))
 		 (shell-pushd-dextract
 		  (let ((dir (nth (1- num) shell-dirstack)))
 		    (shell-process-popd arg)

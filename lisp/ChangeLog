@@ -1,5 +1,9 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* shell.el (shell-directory-tracker): Output error as a message
+	rather than just returning it as a string.
+	(shell-process-pushd): Remove useless use of message.
+
 	* dframe.el (dframe-timer-fn):
 	* files.el (dir-locals-read-from-file):
 	* mpc.el (mpc--status-timer-run, mpc--status-idle-timer-run)
