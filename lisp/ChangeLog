@@ -1,3 +1,8 @@
+2013-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (global-map): Remove binding for ispell-next,
+	deleted 1999-05-29.  (Bug#15357)
+
 2013-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* echistory.el (electric-command-history): Remove call to deleted func.
