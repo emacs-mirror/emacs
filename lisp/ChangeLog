@@ -1,3 +1,7 @@
+2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (abbrev--check-chars): Fix thinko (bug#15329).
+
 2013-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-buffer-info): Fix message typo.
