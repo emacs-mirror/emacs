@@ -1,5 +1,9 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* calc/calc-help.el (Info-goto-node):
+	* progmodes/cperl-mode.el (Info-find-node):
+	* vc/ediff.el (Info-goto-node): Update declarations.
+
 	* vc/vc-bzr.el (vc-exec-after): Remove unused declaration.
 	(vc-compilation-mode): Declare.
 	(vc-bzr-pull): Require vc-dispatcher.

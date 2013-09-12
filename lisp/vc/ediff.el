@@ -1481,7 +1481,7 @@ When called interactively, displays the version."
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
 ;; info is run first, and will autoload info.el.
-(declare-function Info-goto-node "info" (nodename &optional fork))
+(declare-function Info-goto-node "info" (nodename &optional fork strict-case))
 
 ;;;###autoload
 (defun ediff-documentation (&optional node)
