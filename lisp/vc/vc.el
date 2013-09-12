@@ -965,7 +965,8 @@ Within directories, only files already under version control are noticed."
   "Deduce a set of files and a backend to which to apply an operation.
 Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
 
-If we're in VC-dir mode, FILESET is the list of marked files.
+If we're in VC-dir mode, FILESET is the list of marked files,
+or the directory if no files are marked.
 Otherwise, if in a buffer visiting a version-controlled file,
 FILESET is a single-file fileset containing that file.
 Otherwise, if ALLOW-UNREGISTERED is non-nil and the visited file

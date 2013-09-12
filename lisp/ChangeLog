@@ -1,5 +1,7 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc.el (vc-deduce-fileset): Doc fix.
+
 	* calc/calc-help.el (Info-goto-node):
 	* progmodes/cperl-mode.el (Info-find-node):
 	* vc/ediff.el (Info-goto-node): Update declarations.
