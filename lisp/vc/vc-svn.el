@@ -593,7 +593,7 @@ NAME is assumed to be a URL."
   (vc-svn-command nil 0 dir "copy" name)
   (when branchp (vc-svn-retrieve-tag dir name nil)))
 
-(defun vc-svn-retrieve-tag (dir name update)
+(defun vc-svn-retrieve-tag (dir name _update)
   "Retrieve a tag at and below DIR.
 NAME is the name of the tag; if it is empty, do a `svn update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers.
