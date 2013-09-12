@@ -230,10 +230,6 @@ static Lisp_Object last_mouse_scroll_bar;
 
 static Time last_mouse_movement_time;
 
-/* Time for last user interaction as returned in X events.  */
-
-static Time last_user_time;
-
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
@@ -5979,7 +5975,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case SelectionNotify:
-      last_user_time = event.xselection.time;
+      dpyinfo->last_user_time = event.xselection.time;
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
         goto OTHER;
@@ -5988,7 +5984,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case SelectionClear:	/* Someone has grabbed ownership.  */
-      last_user_time = event.xselectionclear.time;
+      dpyinfo->last_user_time = event.xselectionclear.time;
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event.xselectionclear.window))
         goto OTHER;
@@ -6004,7 +6000,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case SelectionRequest:	/* Someone wants our selection.  */
-      last_user_time = event.xselectionrequest.time;
+      dpyinfo->last_user_time = event.xselectionrequest.time;
 #ifdef USE_X_TOOLKIT
       if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
         goto OTHER;
@@ -6023,7 +6019,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case PropertyNotify:
-      last_user_time = event.xproperty.time;
+      dpyinfo->last_user_time = event.xproperty.time;
       f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
       if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
         if (x_handle_net_wm_state (f, &event.xproperty)
@@ -6223,7 +6219,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
     case KeyPress:
 
-      last_user_time = event.xkey.time;
+      dpyinfo->last_user_time = event.xkey.time;
       ignore_next_mouse_click_timeout = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -6554,7 +6550,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 #endif
 
     case KeyRelease:
-      last_user_time = event.xkey.time;
+      dpyinfo->last_user_time = event.xkey.time;
 #ifdef HAVE_X_I18N
       /* Don't dispatch this event since XtDispatchEvent calls
          XFilterEvent, and two calls in a row may freeze the
@@ -6565,7 +6561,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 #endif
 
     case EnterNotify:
-      last_user_time = event.xcrossing.time;
+      dpyinfo->last_user_time = event.xcrossing.time;
       x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -6590,7 +6586,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       goto OTHER;
 
     case LeaveNotify:
-      last_user_time = event.xcrossing.time;
+      dpyinfo->last_user_time = event.xcrossing.time;
       x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -6624,7 +6620,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
     case MotionNotify:
       {
-        last_user_time = event.xmotion.time;
+        dpyinfo->last_user_time = event.xmotion.time;
         previous_help_echo_string = help_echo_string;
         help_echo_string = Qnil;
 
@@ -6767,9 +6763,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
            by the rest of Emacs, we put it here.  */
         bool tool_bar_p = 0;
 
-        memset (&compose_status, 0, sizeof (compose_status));
+	memset (&compose_status, 0, sizeof (compose_status));
 	last_mouse_glyph_frame = 0;
-        last_user_time = event.xbutton.time;
+	dpyinfo->last_user_time = event.xbutton.time;
 
         if (dpyinfo->grabbed
             && last_mouse_frame
@@ -8859,8 +8855,9 @@ x_ewmh_activate_frame (struct frame *f)
       Lisp_Object frame;
       XSETFRAME (frame, f);
       x_send_client_event (frame, make_number (0), frame,
-                           dpyinfo->Xatom_net_active_window,
-                           make_number (32), list2i (1, last_user_time));
+			   dpyinfo->Xatom_net_active_window,
+			   make_number (32),
+			   list2i (1, dpyinfo->last_user_time));
     }
 }
 

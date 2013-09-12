@@ -1,5 +1,11 @@
 2013-09-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xterm.h (x_display_info): New field last_user_time...
+	* xterm.c (toplevel): ...to replace static last_user_time.
+	(handle_one_xevent, x_ewmh_activate_frame): Adjust users.
+
+2013-09-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.c (x_set_scroll_bar_thumb) [USE_LUCID && !HAVE_XAW3D]: Clip
 	scroll bar values to prevent thumb from disappear and update comment.
 

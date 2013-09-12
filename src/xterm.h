@@ -301,6 +301,9 @@ struct x_display_info
      minibuffer.  */
   struct frame *x_highlight_frame;
 
+  /* Time of last user interaction as returned in X events on this display.  */
+  Time last_user_time;
+
   /* The gray pixmap.  */
   Pixmap gray;
 
