@@ -1,3 +1,10 @@
+2013-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-icalendar.el (gnus-icalendar-event--build-reply-event-body):
+	Avoid using `find', which i) might not be defined at runtime;
+	ii) does not work, since its default test is eql, not equal.
+	(gnus-mime-action-alist): Declare.
+
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* score-mode.el (gnus-score-mode-map): Move initialization
