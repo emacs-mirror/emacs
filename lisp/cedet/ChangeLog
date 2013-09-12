@@ -1,3 +1,8 @@
+2013-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/find.el (semantic-find-first-tag-by-name):
+	Replace obsolete function assoc-ignore-case with assoc-string.
+
 2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* semantic/grammar.el (semantic-grammar-mode): Use define-derived-mode.

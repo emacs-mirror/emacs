@@ -265,9 +265,9 @@ TABLE is a semantic tags table.  See `semantic-something-to-tag-table'."
   "Find the first tag with NAME in TABLE.
 NAME is a string.
 TABLE is a semantic tags table.  See `semantic-something-to-tag-table'.
-This routine uses `assoc' to quickly find the first matching entry."
-  (funcall (if semantic-case-fold 'assoc-ignore-case 'assoc)
-           name (semantic-something-to-tag-table table)))
+Respects `semantic-case-fold'."
+  (assoc-string name (semantic-something-to-tag-table table)
+		semantic-case-fold))
 
 (defmacro semantic-find-tags-by-name (name &optional table)
   "Find all tags with NAME in TABLE.
