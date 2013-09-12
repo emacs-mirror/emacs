@@ -2086,6 +2086,7 @@ newlines are used for filling.  The @key{RET} (@code{newline}) and
 commands, including Auto Fill (@pxref{Auto Fill}), insert only soft
 newlines and delete only soft newlines, leaving hard newlines alone.
 
+@c FIXME: I don't see ‘unfilled’ in that node.  --xfq
   Thus, when editing with Enriched mode, you should not use @key{RET}
 or @kbd{C-o} to break lines in the middle of filled paragraphs.  Use
 Auto Fill mode or explicit fill commands (@pxref{Fill Commands})
@@ -2294,13 +2295,13 @@ commands do nothing on text with this setting.  You can, however,
 still indent the left margin.
 @end table
 
-@c FIXME: We should explain the effect of these symbols.  --xfq
 @vindex default-justification
   You can also specify justification styles using the Justification
 submenu in the Text Properties menu.  The default justification style
 is specified by the per-buffer variable @code{default-justification}.
 Its value should be one of the symbols @code{left}, @code{right},
-@code{full}, @code{center}, or @code{none}.
+@code{full}, @code{center}, or @code{none}; their meanings correspond
+to the commands above.
 
 @node Enriched Properties
 @subsection Setting Other Text Properties
