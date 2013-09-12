@@ -268,6 +268,25 @@ scope during the evaluation of TEST-SEXP."
   :type '(repeat (cons function face))
   :group 'eshell-ls)
 
+(defvar block-size)
+(defvar dereference-links)
+(defvar dir-literal)
+(defvar error-func)
+(defvar flush-func)
+(defvar human-readable)
+(defvar ignore-pattern)
+(defvar insert-func)
+(defvar listing-style)
+(defvar numeric-uid-gid)
+(defvar reverse-list)
+(defvar show-all)
+(defvar show-almost-all)
+(defvar show-recursive)
+(defvar show-size)
+(defvar sort-method)
+(defvar ange-cache)
+(defvar dired-flag)
+
 ;;; Functions:
 
 (defun eshell-ls-insert-directory
@@ -314,25 +333,6 @@ instead."
     (apply 'eshell-do-ls args)))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
-
-(defvar block-size)
-(defvar dereference-links)
-(defvar dir-literal)
-(defvar error-func)
-(defvar flush-func)
-(defvar human-readable)
-(defvar ignore-pattern)
-(defvar insert-func)
-(defvar listing-style)
-(defvar numeric-uid-gid)
-(defvar reverse-list)
-(defvar show-all)
-(defvar show-almost-all)
-(defvar show-recursive)
-(defvar show-size)
-(defvar sort-method)
-(defvar ange-cache)
-(defvar dired-flag)
 
 (declare-function eshell-glob-regexp "em-glob" (pattern))
 

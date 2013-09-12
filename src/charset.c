@@ -2053,6 +2053,8 @@ CH in the charset.  */)
 
 DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 2, 0,
        doc: /* Return the charset of highest priority that contains CH.
+ASCII characters are an exception: for them, this function always
+returns `ascii'.
 If optional 2nd arg RESTRICTION is non-nil, it is a list of charsets
 from which to find the charset.  It may also be a coding system.  In
 that case, find the charset from what supported by that coding system.  */)

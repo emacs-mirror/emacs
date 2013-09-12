@@ -683,9 +683,9 @@ archive.
       ;; At present we cannot create archives from scratch
       (funcall (or (default-value 'major-mode) 'fundamental-mode))
     (if (and (not force) archive-files) nil
+      (kill-all-local-variables)
       (let* ((type (archive-find-type))
 	     (typename (capitalize (symbol-name type))))
-	(kill-all-local-variables)
 	(make-local-variable 'archive-subtype)
 	(setq archive-subtype type)
 
@@ -761,7 +761,7 @@ archive.
 	  ((looking-at "..-l[hz][0-9ds]-") 'lzh)
 	  ((looking-at "....................[\334]\247\304\375") 'zoo)
 	  ((and (looking-at "\C-z")	; signature too simple, IMHO
-		(string-match "\\.[aA][rR][cC]$"
+		(string-match "\\.[aA][rR][cC]\\'"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
           ;; This pattern modeled on the BSD/GNU+Linux `file' command.

@@ -58,42 +58,16 @@ PDF_SLOVAKIAN = \
 PDF_TARGETS = $(PDF_ENGLISH) $(PDF_CZECH) $(PDF_FRENCH) $(PDF_GERMAN) \
 	$(PDF_POLISH) $(PDF_PORTUGUESE) $(PDF_RUSSIAN) $(PDF_SLOVAKIAN)
 
-PS_ENGLISH = \
-	calccard.ps \
-	dired-ref.ps \
-	gnus-booklet.ps \
-	gnus-refcard.ps \
-	orgcard.ps \
-	refcard.ps \
-	survival.ps \
-	vipcard.ps \
-	viperCard.ps
+PS_ENGLISH = $(PDF_ENGLISH:.pdf=.ps)
+PS_CZECH = $(PDF_CZECH:.pdf=.ps)
+PS_FRENCH = $(PDF_FRENCH:.pdf=.ps)
+PS_GERMAN = $(PDF_GERMAN:.pdf=.ps)
+PS_POLISH = $(PDF_POLISH:.pdf=.ps)
+PS_PORTUGUESE = $(PDF_PORTUGUESE:.pdf=.ps)
+PS_RUSSIAN = $(PDF_RUSSIAN:.pdf=.ps)
+PS_SLOVAKIAN = $(PDF_SLOVAKIAN:.pdf=.ps)
 
-PS_CZECH = \
-	cs-dired-ref.ps \
-	cs-refcard.ps \
-	cs-survival.ps
-
-PS_FRENCH = \
-	fr-dired-ref.ps \
-	fr-refcard.ps \
-	fr-survival.ps \
-
-PS_GERMAN = de-refcard.ps
-
-PS_POLISH = pl-refcard.ps
-
-PS_PORTUGUESE = pt-br-refcard.ps
-
-PS_RUSSIAN = ru-refcard.ps
-
-PS_SLOVAKIAN = \
-	sk-dired-ref.ps \
-	sk-refcard.ps \
-	sk-survival.ps
-
-PS_TARGETS = $(PS_ENGLISH) $(PS_CZECH) $(PS_FRENCH) $(PS_GERMAN) \
-	$(PS_POLISH) $(PS_PORTUGUESE) $(PS_RUSSIAN) $(PS_SLOVAKIAN)
+PS_TARGETS = $(PDF_TARGETS:.pdf=.ps)
 
 
 ## For emacsver.tex.

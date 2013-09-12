@@ -2796,11 +2796,6 @@ struct redisplay_interface
   /* Flush the display of frame F.  For X, this is XFlush.  */
   void (*flush_display) (struct frame *f);
 
-  /* Flush the display of frame F if non-NULL.  This is called
-     during redisplay, and should be NULL on systems which flush
-     automatically before reading input.  */
-  void (*flush_display_optional) (struct frame *f);
-
   /* Clear the mouse highlight in window W, if there is any.  */
   void (*clear_window_mouse_face) (struct window *w);
 

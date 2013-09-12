@@ -3683,7 +3683,7 @@ function and want to see what the date was before converting."
 	(walk-windows
 	 (lambda (w)
 	   (set-buffer (window-buffer w))
-	   (when (eq major-mode 'gnus-article-mode)
+	   (when (derived-mode-p 'gnus-article-mode)
 	     (let ((old-line (count-lines (point-min) (point)))
 		   (old-column (- (point) (line-beginning-position)))
 		   (window-start (window-start w))
@@ -4455,7 +4455,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 (defvar bookmark-make-record-function)
 (defvar shr-put-image-function)
 
-(defun gnus-article-mode ()
+(define-derived-mode gnus-article-mode fundamental-mode "Article"
   "Major mode for displaying an article.
 
 All normal editing commands are switched off.
@@ -4470,13 +4470,8 @@ commands:
 \\[gnus-article-mail]\t Send a reply to the address near point
 \\[gnus-article-describe-briefly]\t Describe the current mode briefly
 \\[gnus-info-find-node]\t Go to the Gnus info node"
-  (interactive)
-  (kill-all-local-variables)
   (gnus-simplify-mode-line)
-  (setq mode-name "Article")
-  (setq major-mode 'gnus-article-mode)
   (make-local-variable 'minor-mode-alist)
-  (use-local-map gnus-article-mode-map)
   (when (gnus-visual-p 'article-menu 'menu)
     (gnus-article-make-menu-bar)
     (when gnus-summary-tool-bar-map
@@ -4504,9 +4499,7 @@ commands:
   (buffer-disable-undo)
   (setq buffer-read-only t
 	show-trailing-whitespace nil)
-  (set-syntax-table gnus-article-mode-syntax-table)
-  (mm-enable-multibyte)
-  (gnus-run-mode-hooks 'gnus-article-mode-hook))
+  (mm-enable-multibyte))
 
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
@@ -4554,7 +4547,7 @@ commands:
 	  (setq gnus-article-mime-handle-alist nil)
 	  (buffer-disable-undo)
 	  (setq buffer-read-only t)
-	  (unless (eq major-mode 'gnus-article-mode)
+	  (unless (derived-mode-p 'gnus-article-mode)
 	    (gnus-article-mode))
 	  (setq truncate-lines gnus-article-truncate-lines)
 	  (current-buffer))
@@ -4603,7 +4596,7 @@ If ARTICLE is an id, HEADER should be the article headers.
 If ALL-HEADERS is non-nil, no headers are hidden."
   (save-excursion
     ;; Make sure we start in a summary buffer.
-    (unless (eq major-mode 'gnus-summary-mode)
+    (unless (derived-mode-p 'gnus-summary-mode)
       (set-buffer gnus-summary-buffer))
     (setq gnus-summary-buffer (current-buffer))
     (let* ((gnus-article (if header (mail-header-number header) article))
@@ -4714,7 +4707,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
   (let ((gnus-article-buffer (current-buffer))
 	buffer-read-only
 	(inhibit-read-only t))
-    (unless (eq major-mode 'gnus-article-mode)
+    (unless (derived-mode-p 'gnus-article-mode)
       (gnus-article-mode))
     (setq buffer-read-only nil
 	  gnus-article-wash-types nil
@@ -4776,7 +4769,7 @@ If a prefix ARG is given, ask for a name for this sticky article buffer."
 	     "*"))
       (if (and (gnus-buffer-live-p new-art-buf-name)
 	       (with-current-buffer new-art-buf-name
-		 (eq major-mode 'gnus-sticky-article-mode)))
+		 (derived-mode-p 'gnus-sticky-article-mode)))
 	  (switch-to-buffer new-art-buf-name)
 	(setq new-art-buf-name (rename-buffer new-art-buf-name t)))
       (gnus-sticky-article-mode))
@@ -4792,7 +4785,7 @@ If none is given, assume the current buffer and kill it if it has
   (unless buffer
     (setq buffer (current-buffer)))
   (with-current-buffer buffer
-    (when (eq major-mode 'gnus-sticky-article-mode)
+    (when (derived-mode-p 'gnus-sticky-article-mode)
       (gnus-kill-buffer buffer))))
 
 (defun gnus-kill-sticky-article-buffers (arg)
@@ -4801,11 +4794,11 @@ If a prefix ARG is given, ask for confirmation."
   (interactive "P")
   (dolist (buf (gnus-buffers))
     (with-current-buffer buf
-      (when (eq major-mode 'gnus-sticky-article-mode)
-       (if (not arg)
-           (gnus-kill-buffer buf)
-         (when (yes-or-no-p (concat "Kill buffer " (buffer-name buf) "? "))
-           (gnus-kill-buffer buf)))))))
+      (when (derived-mode-p 'gnus-sticky-article-mode)
+	(if (not arg)
+	    (gnus-kill-buffer buf)
+	  (when (yes-or-no-p (concat "Kill buffer " (buffer-name buf) "? "))
+	    (gnus-kill-buffer buf)))))))
 
 ;;;
 ;;; Gnus MIME viewing functions
@@ -4893,7 +4886,7 @@ General format specifiers can also be used.  See Info node
 (defmacro gnus-bind-safe-url-regexp (&rest body)
   "Bind `mm-w3m-safe-url-regexp' according to `gnus-safe-html-newsgroups'."
   `(let ((mm-w3m-safe-url-regexp
-	  (let ((group (if (and (eq major-mode 'gnus-article-mode)
+	  (let ((group (if (and (derived-mode-p 'gnus-article-mode)
 				(gnus-buffer-live-p
 				 gnus-article-current-summary))
 			   (with-current-buffer gnus-article-current-summary
@@ -6477,7 +6470,7 @@ not have a face in `gnus-article-boring-faces'."
 
 (defun gnus-article-check-buffer ()
   "Beep if not in an article buffer."
-  (unless (equal major-mode 'gnus-article-mode)
+  (unless (derived-mode-p 'gnus-article-mode)
     (error "Command invoked outside of a Gnus article buffer")))
 
 (defun gnus-article-read-summary-keys (&optional arg key not-restore-window)
@@ -6592,7 +6585,7 @@ not have a face in `gnus-article-boring-faces'."
 			   new-sum-point
 			   (window-live-p win)
 			   (with-current-buffer (window-buffer win)
-			     (eq major-mode 'gnus-summary-mode)))
+			     (derived-mode-p 'gnus-summary-mode)))
 		  (set-window-point win new-sum-point)
 		  (set-window-start win new-sum-start)
 		  (set-window-hscroll win new-sum-hscroll))))

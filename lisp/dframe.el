@@ -758,9 +758,8 @@ who requested the timer.  NULL-ON-ERROR is ignored."
 Evaluates all cached timer functions in sequence."
   (let ((l dframe-client-functions))
     (while (and l (sit-for 0))
-      (condition-case er
-	  (funcall (car l))
-	(error (message "DFRAME TIMER ERROR: %S" er)))
+      (with-demoted-errors "DFRAME TIMER ERROR: %S"
+	(funcall (car l)))
       (setq l (cdr l)))))
 
 ;;; Menu hacking for mouse-3

@@ -1108,7 +1108,7 @@ other_visible_frames (struct frame *f)
 
       /* Verify that we can still talk to the frame's X window,
 	 and note any recent change in visibility.  */
-#ifdef HAVE_WINDOW_SYSTEM
+#ifdef HAVE_X_WINDOWS
       if (FRAME_WINDOW_P (XFRAME (this)))
 	x_sync (XFRAME (this));
 #endif

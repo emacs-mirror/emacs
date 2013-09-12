@@ -30,7 +30,7 @@
 (require 'calc-macs)
 
 ;; Declare functions which are defined elsewhere.
-(declare-function Info-goto-node "info" (nodename &optional fork))
+(declare-function Info-goto-node "info" (nodename &optional fork strict-case))
 (declare-function Info-last "info" ())
 
 

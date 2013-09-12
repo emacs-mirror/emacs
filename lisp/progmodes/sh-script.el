@@ -2170,11 +2170,18 @@ the visited file executable, and NO-QUERY-FLAG (the second argument)
 controls whether to query about making the visited file executable.
 
 Calls the value of `sh-set-shell-hook' if set."
-  (interactive (list (completing-read (format "Shell \(default %s\): "
- 					      sh-shell-file)
-  				      interpreter-mode-alist
- 				      (lambda (x) (eq (cdr x) 'sh-mode))
- 				      nil nil nil sh-shell-file)
+  (interactive (list (completing-read
+                      (format "Shell \(default %s\): "
+                              sh-shell-file)
+                      ;; This used to use interpreter-mode-alist, but that is
+                      ;; no longer appropriate now that uses regexps.
+                      ;; Maybe there could be a separate variable that lists
+                      ;; the shells, used here and to construct i-mode-alist.
+                      ;; But the following is probably good enough:
+                      (append (mapcar (lambda (e) (symbol-name (car e)))
+                                      sh-ancestor-alist)
+                              '("csh" "rc" "sh"))
+                      nil nil nil nil sh-shell-file)
 		     (eq executable-query 'function)
 		     t))
   (if (string-match "\\.exe\\'" shell)

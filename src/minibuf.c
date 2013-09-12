@@ -672,12 +672,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       XWINDOW (minibuf_window)->cursor.x = 0;
       XWINDOW (minibuf_window)->must_be_updated_p = 1;
       update_frame (XFRAME (selected_frame), 1, 1);
-      {
-        struct frame *f = XFRAME (XWINDOW (minibuf_window)->frame);
-        struct redisplay_interface *rif = FRAME_RIF (f);
-        if (rif && rif->flush_display)
-          rif->flush_display (f);
-      }
+      flush_frame (XFRAME (XWINDOW (minibuf_window)->frame));
     }
 
   /* Make minibuffer contents into a string.  */

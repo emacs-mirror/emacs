@@ -95,7 +95,7 @@
 ;;
 ;; (defadvice dired-make-relative (before set-no-error activate)
 ;;   "For locate mode and Windows, don't return errors"
-;;   (if (and (eq   major-mode  'locate-mode)
+;;   (if (and (derived-mode-p 'locate-mode)
 ;; 	   (memq system-type '(windows-nt ms-dos)))
 ;;       (ad-set-arg 2 t)
 ;;     ))
@@ -448,7 +448,7 @@ file name or is inside a subdirectory."
 ;; Define a mode for locate
 ;; Default directory is set to "/" so that dired commands, which
 ;; expect to be in a tree, will work properly
-(defun locate-mode ()
+(define-derived-mode locate-mode special-mode "Locate"
   "Major mode for the `*Locate*' buffer made by \\[locate].
 \\<locate-mode-map>\
 In that buffer, you can use almost all the usual dired bindings.
@@ -463,39 +463,31 @@ Specific `locate-mode' commands, such as \\[locate-find-directory],
 do not work in subdirectories.
 
 \\{locate-mode-map}"
-  ;; Not to be called interactively.
-  (kill-all-local-variables)
   ;; Avoid clobbering this variable
   (make-local-variable 'dired-subdir-alist)
-  (use-local-map             locate-mode-map)
-  (setq major-mode          'locate-mode
-        mode-name           "Locate"
-        default-directory   "/"
+  (setq default-directory   "/"
 	buffer-read-only    t
 	selective-display   t)
   (dired-alist-add-1 default-directory (point-min-marker))
   (set (make-local-variable 'dired-directory) "/")
   (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
   (setq dired-switches-alist nil)
-  (make-local-variable 'directory-listing-before-filename-regexp)
   ;; This should support both Unix and Windoze style names
-  (setq directory-listing-before-filename-regexp
-	(concat "^.\\("
-		(make-string (1- locate-filename-indentation) ?\s)
-		 "\\)\\|"
-		(default-value 'directory-listing-before-filename-regexp)))
-  (make-local-variable 'dired-actual-switches)
-  (setq dired-actual-switches "")
-  (make-local-variable 'dired-permission-flags-regexp)
-  (setq dired-permission-flags-regexp
-	(concat "^.\\("
-		(make-string (1- locate-filename-indentation) ?\s)
-		"\\)\\|"
-		(default-value 'dired-permission-flags-regexp)))
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'locate-update)
-  (set (make-local-variable 'page-delimiter) "\n\n")
-  (run-mode-hooks 'locate-mode-hook))
+  (setq-local directory-listing-before-filename-regexp
+              (concat "^.\\("
+                      (make-string (1- locate-filename-indentation) ?\s)
+                      "\\)\\|"
+                      (default-value
+                        'directory-listing-before-filename-regexp)))
+  (setq-local dired-actual-switches "")
+  (setq-local dired-permission-flags-regexp
+              (concat "^.\\("
+                      (make-string (1- locate-filename-indentation) ?\s)
+                      "\\)\\|"
+                      (default-value 'dired-permission-flags-regexp)))
+
+  (setq-local revert-buffer-function #'locate-update)
+  (setq-local page-delimiter "\n\n"))
 (put 'locate-mode 'derived-mode-parent 'dired-mode)
 
 (defun locate-do-setup (search-string)

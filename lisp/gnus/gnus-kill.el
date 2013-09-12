@@ -75,20 +75,20 @@ of time."
 ;;; Gnus Kill File Mode
 ;;;
 
-(defvar gnus-kill-file-mode-map nil)
+(defvar gnus-kill-file-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map emacs-lisp-mode-map)
+    (gnus-define-keymap map
+      "\C-c\C-k\C-s" gnus-kill-file-kill-by-subject
+      "\C-c\C-k\C-a" gnus-kill-file-kill-by-author
+      "\C-c\C-k\C-t" gnus-kill-file-kill-by-thread
+      "\C-c\C-k\C-x" gnus-kill-file-kill-by-xref
+      "\C-c\C-a" gnus-kill-file-apply-buffer
+      "\C-c\C-e" gnus-kill-file-apply-last-sexp
+      "\C-c\C-c" gnus-kill-file-exit)
+    map))
 
-(unless gnus-kill-file-mode-map
-  (gnus-define-keymap (setq gnus-kill-file-mode-map
-			    (copy-keymap emacs-lisp-mode-map))
-    "\C-c\C-k\C-s" gnus-kill-file-kill-by-subject
-    "\C-c\C-k\C-a" gnus-kill-file-kill-by-author
-    "\C-c\C-k\C-t" gnus-kill-file-kill-by-thread
-    "\C-c\C-k\C-x" gnus-kill-file-kill-by-xref
-    "\C-c\C-a" gnus-kill-file-apply-buffer
-    "\C-c\C-e" gnus-kill-file-apply-last-sexp
-    "\C-c\C-c" gnus-kill-file-exit))
-
-(defun gnus-kill-file-mode ()
+(define-derived-mode gnus-kill-file-mode emacs-lisp-mode "Kill"
   "Major mode for editing kill files.
 
 If you are using this mode - you probably shouldn't.  Kill files
@@ -151,15 +151,7 @@ which are marked as read in the previous Gnus sessions.  Marks other
 than `D' should be used for articles which should really be deleted.
 
 Entry to this mode calls emacs-lisp-mode-hook and
-gnus-kill-file-mode-hook with no arguments, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map gnus-kill-file-mode-map)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (setq major-mode 'gnus-kill-file-mode)
-  (setq mode-name "Kill")
-  (lisp-mode-variables nil)
-  (gnus-run-mode-hooks 'emacs-lisp-mode-hook 'gnus-kill-file-mode-hook))
+gnus-kill-file-mode-hook with no arguments, if that value is non-nil.")
 
 (defun gnus-kill-file-edit-file (newsgroup)
   "Begin editing a kill file for NEWSGROUP.
@@ -175,10 +167,10 @@ If NEWSGROUP is nil, the global kill file is selected."
     (let ((buffer (find-file-noselect file)))
       (cond ((get-buffer-window buffer)
 	     (pop-to-buffer buffer))
-	    ((eq major-mode 'gnus-group-mode)
+	    ((derived-mode-p 'gnus-group-mode)
 	     (gnus-configure-windows 'group) ;Take all windows.
 	     (pop-to-buffer buffer))
-	    ((eq major-mode 'gnus-summary-mode)
+	    ((derived-mode-p 'gnus-summary-mode)
 	     (gnus-configure-windows 'article)
 	     (pop-to-buffer gnus-article-buffer)
 	     (bury-buffer gnus-article-buffer)
@@ -201,7 +193,7 @@ If NEWSGROUP is nil, the global kill file is selected."
   ;; REGEXP: The string to kill.
   (save-excursion
     (let (string)
-      (unless (eq major-mode 'gnus-kill-file-mode)
+      (unless (derived-mode-p 'gnus-kill-file-mode)
 	(gnus-kill-set-kill-buffer))
       (unless dont-move
 	(goto-char (point-max)))
@@ -520,7 +512,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 		  (setq kill-list (cdr kill-list))))
 	    (gnus-execute field kill-list command nil (not all))))))
     (switch-to-buffer old-buffer)
-    (when (and (eq major-mode 'gnus-kill-file-mode) regexp (not silent))
+    (when (and (derived-mode-p 'gnus-kill-file-mode) regexp (not silent))
       (gnus-pp-gnus-kill
        (nconc (list 'gnus-kill field
 		    (if (consp regexp) (list 'quote regexp) regexp))

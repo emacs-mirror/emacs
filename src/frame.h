@@ -145,8 +145,14 @@ struct frame
   Lisp_Object menu_bar_window;
 #endif
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   /* A window used to display the tool-bar of a frame.  */
   Lisp_Object tool_bar_window;
+
+  /* Desired and current contents displayed in that window.  */
+  Lisp_Object desired_tool_bar_string;
+  Lisp_Object current_tool_bar_string;
+#endif
 
   /* Desired and current tool-bar items.  */
   Lisp_Object tool_bar_items;
@@ -154,10 +160,6 @@ struct frame
   /* Where tool bar is, can be left, right, top or bottom.  The native
      tool bar only supports top.  */
   Lisp_Object tool_bar_position;
-
-  /* Desired and current contents displayed in tool_bar_window.  */
-  Lisp_Object desired_tool_bar_string;
-  Lisp_Object current_tool_bar_string;
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
@@ -185,10 +187,6 @@ struct frame
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
 
-  /* Set to non-zero in when we want for force a flush_display in
-     update_frame, usually after resizing the frame.  */
-  unsigned force_flush_display_p : 1;
-
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
@@ -201,9 +199,11 @@ struct frame
   /* Set to non-zero when current redisplay has updated frame.  */
   unsigned updated_p : 1;
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   /* Set to non-zero to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
   unsigned minimize_tool_bar_window_p : 1;
+#endif
 
 #if defined (USE_GTK) || defined (HAVE_NS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
@@ -459,16 +459,6 @@ fset_condemned_scroll_bars (struct frame *f, Lisp_Object val)
   f->condemned_scroll_bars = val;
 }
 FRAME_INLINE void
-fset_current_tool_bar_string (struct frame *f, Lisp_Object val)
-{
-  f->current_tool_bar_string = val;
-}
-FRAME_INLINE void
-fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
-{
-  f->desired_tool_bar_string = val;
-}
-FRAME_INLINE void
 fset_face_alist (struct frame *f, Lisp_Object val)
 {
   f->face_alist = val;
@@ -540,11 +530,23 @@ fset_tool_bar_position (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_position = val;
 }
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 FRAME_INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_window = val;
 }
+FRAME_INLINE void
+fset_current_tool_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->current_tool_bar_string = val;
+}
+FRAME_INLINE void
+fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
+{
+  f->desired_tool_bar_string = val;
+}
+#endif /* HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS */
 
 #define NUMVAL(X) ((INTEGERP (X) || FLOATP (X)) ? XFLOATINT (X) : -1)
 
@@ -1243,7 +1245,6 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
 extern void x_set_window_size (struct frame *f, int change_grav,
                               int cols, int rows);
-extern void x_sync (struct frame *);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 extern void x_set_mouse_position (struct frame *f, int h, int v);
 extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
@@ -1269,13 +1270,24 @@ extern void x_wm_set_icon_position (struct frame *, int, int);
 #if !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
 #endif
-#endif
+extern void x_sync (struct frame *);
+#endif /* HAVE_X_WINDOWS */
 
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+
+FRAME_INLINE void
+flush_frame (struct frame *f)
+{
+  struct redisplay_interface *rif = FRAME_RIF (f);
+
+  if (rif && rif->flush_display)
+    rif->flush_display (f);
+}
+
 /***********************************************************************
 			Multimonitor data
  ***********************************************************************/

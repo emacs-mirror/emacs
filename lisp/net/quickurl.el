@@ -429,18 +429,12 @@ current buffer, this default action can be modified via
 (put 'quickurl-list-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun quickurl-list-mode ()
+(define-derived-mode quickurl-list-mode fundamental-mode "quickurl list"
   "A mode for browsing the quickurl URL list.
 
 The key bindings for `quickurl-list-mode' are:
 
 \\{quickurl-list-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map quickurl-list-mode-map)
-  (setq major-mode 'quickurl-list-mode
-        mode-name  "quickurl list")
-  (run-mode-hooks 'quickurl-list-mode-hook)
   (setq buffer-read-only t
         truncate-lines   t))
 

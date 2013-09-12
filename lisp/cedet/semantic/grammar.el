@@ -860,7 +860,7 @@ Lisp code."
       ;; Use Unix EOLs, so that the file is portable to all platforms.
       (setq buffer-file-coding-system 'raw-text-unix)
       (erase-buffer)
-      (unless (eq major-mode 'emacs-lisp-mode)
+      (unless (derived-mode-p 'emacs-lisp-mode)
         (emacs-lisp-mode))
 
 ;;;; Header + Prologue
@@ -1102,7 +1102,9 @@ END is the limit of the search."
 ;;;; Define major mode
 ;;;;
 
-(defvar semantic-grammar-syntax-table
+(define-obsolete-variable-alias 'semantic-grammar-syntax-table
+  'semantic-grammar-mode-syntax-table "24.1")
+(defvar semantic-grammar-mode-syntax-table
   (let ((table (make-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?\: "."     table) ;; COLON
     (modify-syntax-entry ?\> "."     table) ;; GT
@@ -1170,7 +1172,9 @@ END is the limit of the search."
   semantic-grammar-mode-keywords-1
   "Font Lock keywords used to highlight Semantic grammar buffers.")
 
-(defvar semantic-grammar-map
+(define-obsolete-variable-alias 'semantic-grammar-map
+  'semantic-grammar-mode-map "24.1")
+(defvar semantic-grammar-mode-map
   (let ((km (make-sparse-keymap)))
 
     (define-key km "|" 'semantic-grammar-electric-punctuation)
@@ -1271,22 +1275,17 @@ the change bounds to encompass the whole nonterminal tag."
                                (semantic-tag-start outer)
                                (semantic-tag-end outer)))))
 
-(defun semantic-grammar-mode ()
+(define-derived-mode semantic-grammar-mode
+  fundamental-mode "Semantic Grammar Framework"
   "Initialize a buffer for editing Semantic grammars.
 
-\\{semantic-grammar-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'semantic-grammar-mode
-        mode-name "Semantic Grammar Framework")
+\\{semantic-grammar-mode-map}"
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start) ";;")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (set-syntax-table semantic-grammar-syntax-table)
-  (use-local-map semantic-grammar-map)
   (set (make-local-variable 'indent-line-function)
        'semantic-grammar-indent)
   (set (make-local-variable 'fill-paragraph-function)
@@ -1335,15 +1334,14 @@ the change bounds to encompass the whole nonterminal tag."
   (semantic-make-local-hook 'semantic-edits-new-change-functions)
   (add-hook 'semantic-edits-new-change-functions
             'semantic-grammar-edits-new-change-hook-fcn
-            nil t)
-  (semantic-run-mode-hooks 'semantic-grammar-mode-hook))
+            nil t))
 
 ;;;;
 ;;;; Useful commands
 ;;;;
 
 (defvar semantic-grammar-skip-quoted-syntax-table
-  (let ((st (copy-syntax-table semantic-grammar-syntax-table)))
+  (let ((st (copy-syntax-table semantic-grammar-mode-syntax-table)))
     (modify-syntax-entry ?\' "$" st)
     st)
   "Syntax table to skip a whole quoted expression in grammar code.

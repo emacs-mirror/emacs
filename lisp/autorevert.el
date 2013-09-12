@@ -548,7 +548,7 @@ will use an up-to-date value of `auto-revert-interval'"
         (cl-assert (stringp file))
         (when (eq action 'renamed) (cl-assert (stringp file1)))
         ;; Loop over all buffers, in order to find the intended one.
-        (dolist (buffer buffers)
+        (cl-dolist (buffer buffers)
           (when (buffer-live-p buffer)
             (with-current-buffer buffer
               (when (and (stringp buffer-file-name)

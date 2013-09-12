@@ -1,3 +1,9 @@
+2013-09-05  Jean Haidouk  <haidouk@yandex.com>  (tiny change)
+
+	* quail/latin-alt.el ("french-alt-postfix", "latin-alt-postfix"):
+	* quail/latin-pre.el ("french-prefix"):
+	* quail/latin-post.el ("french-postfix"): Add `œ' and `Œ'.
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,

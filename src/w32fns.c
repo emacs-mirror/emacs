@@ -5201,11 +5201,6 @@ terminate Emacs if we can't open the connection.
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 
-#if 0
-  if (! EQ (Vwindow_system, intern ("w32")))
-    error ("Not using Microsoft Windows");
-#endif
-
   /* Allow color mapping to be defined externally; first look in user's
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
   {

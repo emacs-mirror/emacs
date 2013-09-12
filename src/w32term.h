@@ -211,7 +211,6 @@ extern void x_set_window_size (struct frame *f, int change_grav,
                               int cols, int rows);
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
-extern void x_sync (struct frame *);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 extern void x_set_mouse_position (struct frame *f, int h, int v);
 extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);

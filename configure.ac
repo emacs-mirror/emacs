@@ -266,13 +266,9 @@ AC_SUBST(cache_file)
 
 ## This is an option because I do not know if all info/man support
 ## compressed files, nor how to test if they do so.
-OPTION_DEFAULT_ON([compress-info],[don't compress the installed Info pages])
-if test $with_compress_info = yes; then
-   GZIP_INFO=yes
-else
-   GZIP_INFO=
-fi
-AC_SUBST(GZIP_INFO)
+OPTION_DEFAULT_ON([compress-install],
+  [don't compress some files (.el, .info, etc.) when installing.  Equivalent to:
+make GZIP_PROG= install])
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=FILENAME],
@@ -950,6 +946,9 @@ AC_PATH_PROG(INSTALL_INFO, install-info, :,
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
+test $with_compress_install != yes && test -n "$GZIP_PROG" && \
+   GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
+
 if test $opsys = gnu-linux; then
   AC_PATH_PROG(PAXCTL, paxctl,,
     [$PATH$PATH_SEPARATOR/sbin$PATH_SEPARATOR/usr/sbin])
@@ -1027,19 +1026,30 @@ dnl (Don't use `-z nocombreloc' as -z takes no arg on Irix.)
 dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
-late_LDFLAGS=$LDFLAGS
+dnl For a long time, -znocombreloc was added to LDFLAGS rather than
+dnl LD_SWITCH_SYSTEM_TEMACS.  That is:
+dnl * inappropriate, as LDFLAGS is a user option but this is essential.
+dnl   Eg "make LDFLAGS=... all" could run into problems,
+dnl   http://bugs.debian.org/684788
+dnl * unnecessary, since temacs is the only thing that actually needs it.
+dnl   Indeed this is where it was originally, prior to:
+dnl   http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-03/msg00170.html
+late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
-  LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
-  LDFLAGS="$LDFLAGS -znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-znocombreloc"
 fi
+
+LDFLAGS="$LDFLAGS $LDFLAGS_NOCOMBRELOC"
 
 AC_MSG_CHECKING([for -znocombreloc])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
-  LDFLAGS=$late_LDFLAGS
+  LDFLAGS_NOCOMBRELOC=
   [AC_MSG_RESULT(no)])
 
+LDFLAGS="$late_LDFLAGS"
 
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
@@ -4740,6 +4750,8 @@ if test x$ac_enable_profiling != x ; then
     *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
   esac
 fi
+
+LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 

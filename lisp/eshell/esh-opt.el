@@ -28,11 +28,11 @@
 (require 'esh-ext)
 
 ;; Unused.
-;;; (defgroup eshell-opt nil
-;;;   "The options processing code handles command argument parsing for
-;;; Eshell commands implemented in Lisp."
-;;;   :tag "Command options processing"
-;;;   :group 'eshell)
+;; (defgroup eshell-opt nil
+;;   "The options processing code handles command argument parsing for
+;; Eshell commands implemented in Lisp."
+;;   :tag "Command options processing"
+;;   :group 'eshell)
 
 ;;; User Functions:
 
@@ -103,32 +103,25 @@ interned variable `args' (created using a `let' form)."
 	       macro-args
 	     (list 'eshell-stringify-list
 		   (list 'eshell-flatten-list macro-args)))))
-     (let ,(append (delq nil (mapcar (lambda (opt)
+     (let ,(delq nil (mapcar (lambda (opt)
 				       (and (listp opt) (nth 3 opt)))
 				     (cadr options)))
-		   '(usage-msg last-value ext-command args))
        ;; FIXME: `options' ends up hiding some variable names under `quote',
        ;; which is incompatible with lexical scoping!!
-       (eshell-do-opt ,name ,options (lambda () ,@body-forms)))))
+       (eshell-do-opt ,name ,options (lambda (args) ,@body-forms) temp-args))))
 
 ;;; Internal Functions:
 
-(defvar temp-args)
-(defvar last-value)
-(defvar usage-msg)
-(defvar ext-command)
 ;; Documented part of the interface; see eshell-eval-using-options.
-(defvar args)
+(defvar eshell--args)
 
-(defun eshell-do-opt (name options body-fun)
+(defun eshell-do-opt (name options body-fun args)
   "Helper function for `eshell-eval-using-options'.
 This code doesn't really need to be macro expanded everywhere."
-  (setq args temp-args)
-  (if (setq
-       ext-command
+  (let* (last-value
+         (ext-command
        (catch 'eshell-ext-command
-	 (when (setq
-		usage-msg
+            (let ((usage-msg
 		(catch 'eshell-usage
 		  (setq last-value nil)
 		  (if (and (= (length args) 0)
@@ -136,12 +129,14 @@ This code doesn't really need to be macro expanded everywhere."
 		      (throw 'eshell-usage
 			     (eshell-show-usage name options)))
 		  (setq args (eshell-process-args name args options)
-			last-value (funcall body-fun))
-		  nil))
-	   (error "%s" usage-msg))))
+			last-value (funcall body-fun args))
+                     nil)))
+              (when usage-msg
+                (error "%s" usage-msg))))))
+    (if ext-command
       (throw 'eshell-external
              (eshell-external-command ext-command args))
-    last-value))
+      last-value)))
 
 (defun eshell-show-usage (name options)
   "Display the usage message for NAME, using OPTIONS."
@@ -197,12 +192,13 @@ will be modified."
   (if (not (nth 3 opt))
       (eshell-show-usage name options)
     (if (eq (nth 2 opt) t)
-	(if (> ai (length args))
+	(if (> ai (length eshell--args))
 	    (error "%s: missing option argument" name)
-	  (set (nth 3 opt) (nth ai args))
+	  (set (nth 3 opt) (nth ai eshell--args))
 	  (if (> ai 0)
-	      (setcdr (nthcdr (1- ai) args) (nthcdr (1+ ai) args))
-	    (setq args (cdr args))))
+	      (setcdr (nthcdr (1- ai) eshell--args)
+                      (nthcdr (1+ ai) eshell--args))
+	    (setq eshell--args (cdr eshell--args))))
       (set (nth 3 opt) (or (nth 2 opt) t)))))
 
 (defun eshell-process-option (name switch kind ai options)
@@ -232,14 +228,15 @@ switch is unrecognized."
 	  (setq extcmd (eshell-search-path (cadr extcmd)))
 	  (if extcmd
 	      (throw 'eshell-ext-command extcmd)
-	    (if (characterp switch)
-		(error "%s: unrecognized option -%c" name switch)
-	      (error "%s: unrecognized option --%s" name switch))))))))
+            (error (if (characterp switch) "%s: unrecognized option -%c"
+                     "%s: unrecognized option --%s")
+                   name switch)))))))
 
 (defun eshell-process-args (name args options)
   "Process the given ARGS using OPTIONS.
 This assumes that symbols have been intern'd by `eshell-eval-using-options'."
-  (let ((ai 0) arg)
+  (let ((ai 0) arg
+        (eshell--args args))
     (while (< ai (length args))
       (setq arg (nth ai args))
       (if (not (and (stringp arg)

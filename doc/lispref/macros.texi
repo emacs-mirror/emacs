@@ -191,8 +191,8 @@ During Compile}).
 @section Defining Macros
 
   A Lisp macro object is a list whose @sc{car} is @code{macro}, and
-whose @sc{cdr} is a lambda expression.  Expansion of the macro works
-by applying the lambda expression (with @code{apply}) to the list of
+whose @sc{cdr} is a function.  Expansion of the macro works
+by applying the function (with @code{apply}) to the list of
 @emph{unevaluated} arguments from the macro call.
 
   It is possible to use an anonymous Lisp macro just like an anonymous

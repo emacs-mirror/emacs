@@ -1226,10 +1226,11 @@ is non-nil."
                    table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
-(defun vc-cvs-ignore (file)
+(defun vc-cvs-ignore (file &optional _directory _remove)
   "Ignore FILE under CVS."
   (cvs-append-to-ignore (file-name-directory file) file))
 
+;; FIXME This should be in the vc-cvs- namespace if it is to live here.
 (defun cvs-append-to-ignore (dir str &optional old-dir)
   "In DIR, add STR to the .cvsignore file.
 If OLD-DIR is non-nil, then this is a directory that we don't want
@@ -1245,7 +1246,9 @@ to hear about anymore."
     (goto-char (point-max))
     (unless (bolp) (insert "\n"))
     (insert str (if old-dir "/\n" "\n"))
-    (if cvs-sort-ignore-file (sort-lines nil (point-min) (point-max)))
+    ;; FIXME this is a pcvs variable.
+    (if (bound-and-true-p cvs-sort-ignore-file)
+        (sort-lines nil (point-min) (point-max)))
     (save-buffer)))
 
 (provide 'vc-cvs)

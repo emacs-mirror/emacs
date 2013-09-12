@@ -264,6 +264,7 @@ Key translation rules are:
   diaeresis  |   \"    | \"i -> ï
    cedilla   | ~ or , | ~c -> ç   ,c -> ç
    symbol    |   ~    | ~> -> »   ~< -> «
+    misc     |   /    | /o -> œ
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -295,6 +296,9 @@ Key translation rules are:
  ("\"e" ?ë)
  ("\"i" ?ï)
  ("\" " ?\")
+ ("/o" ?œ)
+ ("/O" ?Œ)
+ ("/ " ?/)
  ("~<" ?\«)
  ("~>" ?\»)
  ("~C" ?Ç)

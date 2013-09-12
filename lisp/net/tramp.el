@@ -1222,10 +1222,11 @@ their replacement."
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
       (setq result (substring result 0 -1)))
-    ;; We must mark, whether a default value has been used.
-    (if (or method (null result))
+    ;; We must mark, whether a default value has been used.  Not
+    ;; applicable for XEmacs.
+    (if (or method (null result) (null (functionp 'propertize)))
 	result
-      (propertize result 'tramp-default t))))
+      (tramp-compat-funcall 'propertize result 'tramp-default t))))
 
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
@@ -1243,10 +1244,11 @@ This is USER, if non-nil. Otherwise, do a lookup in
 		   (setq choices nil)))
 	       luser)
 	     tramp-default-user)))
-    ;; We must mark, whether a default value has been used.
-    (if (or user (null result))
+    ;; We must mark, whether a default value has been used.  Not
+    ;; applicable for XEmacs.
+    (if (or user (null result) (null (functionp 'propertize)))
 	result
-      (propertize result 'tramp-default t))))
+      (tramp-compat-funcall 'propertize result 'tramp-default t))))
 
 (defun tramp-find-host (method user host)
   "Return the right host string to use.
@@ -1641,7 +1643,7 @@ without a visible progress reporter."
   (declare (indent 3) (debug t))
   `(progn
      (tramp-message ,vec ,level "%s..." ,message)
-     (let ((result "failed")
+     (let ((cookie "failed")
            (tm
             ;; We start a pulsing progress reporter after 3 seconds.  Feature
             ;; introduced in Emacs 24.1.
@@ -1656,10 +1658,10 @@ without a visible progress reporter."
                                  #'tramp-progress-reporter-update pr)))))))
        (unwind-protect
            ;; Execute the body.
-           (prog1 (progn ,@body) (setq result "done"))
+           (prog1 (progn ,@body) (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (tramp-compat-funcall 'cancel-timer tm))
-         (tramp-message ,vec ,level "%s...%s" ,message result)))))
+         (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
@@ -1709,19 +1711,6 @@ letter into the file name.  This function removes it."
     (if (string-match "\\`[a-zA-Z]:/" name)
 	(replace-match "/" nil t name)
       name)))
-
-(defun tramp-cleanup (vec)
-  "Cleanup connection VEC, but keep the debug buffer."
-  (with-current-buffer (tramp-get-debug-buffer vec)
-    ;; Keep the debug buffer.
-    (rename-buffer
-     (generate-new-buffer-name tramp-temp-buffer-name) 'unique)
-    (tramp-cleanup-connection vec)
-    (if (= (point-min) (point-max))
-	(kill-buffer nil)
-      (rename-buffer (tramp-debug-buffer-name vec) 'unique))
-    ;; We call `tramp-get-buffer' in order to keep the debug buffer.
-    (tramp-get-buffer vec)))
 
 ;;; Config Manipulation Functions:
 
@@ -2145,7 +2134,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 			  (tramp-message
 			   v 1 "Suppress received in operation %s"
 			   (append (list operation) args))
-			  (tramp-cleanup v)
+			  (tramp-cleanup-connection v t)
 			  (tramp-run-real-handler operation args)))
 		       (t result)))
 
@@ -3919,6 +3908,48 @@ Return the local name of the temporary file."
 			 'tramp-delete-temp-file-function)))
 
 ;;; Auto saving to a special directory:
+
+(defun tramp-handle-make-auto-save-file-name ()
+  "Like `make-auto-save-file-name' for Tramp files.
+Returns a file name in `tramp-auto-save-directory' for autosaving this file."
+  (let ((tramp-auto-save-directory tramp-auto-save-directory)
+	(buffer-file-name
+	 (tramp-subst-strs-in-string
+	  '(("_" . "|")
+	    ("/" . "_a")
+	    (":" . "_b")
+	    ("|" . "__")
+	    ("[" . "_l")
+	    ("]" . "_r"))
+	  (buffer-file-name))))
+    ;; File name must be unique.  This is ensured with Emacs 22 (see
+    ;; UNIQUIFY element of `auto-save-file-name-transforms'); but for
+    ;; all other cases we must do it ourselves.
+    (when (boundp 'auto-save-file-name-transforms)
+      (mapc
+       (lambda (x)
+	 (when (and (string-match (car x) buffer-file-name)
+		    (not (car (cddr x))))
+	   (setq tramp-auto-save-directory
+		 (or tramp-auto-save-directory
+		     (tramp-compat-temporary-file-directory)))))
+       (symbol-value 'auto-save-file-name-transforms)))
+    ;; Create directory.
+    (when tramp-auto-save-directory
+      (setq buffer-file-name
+	    (expand-file-name buffer-file-name tramp-auto-save-directory))
+      (unless (file-exists-p tramp-auto-save-directory)
+	(make-directory tramp-auto-save-directory t)))
+    ;; Run plain `make-auto-save-file-name'.  There might be an advice when
+    ;; it is not a magic file name operation (since Emacs 22).
+    ;; We must deactivate it temporarily.
+    (if (not (ad-is-active 'make-auto-save-file-name))
+	(tramp-run-real-handler 'make-auto-save-file-name nil)
+      ;; else
+      (ad-deactivate 'make-auto-save-file-name)
+      (prog1
+       (tramp-run-real-handler 'make-auto-save-file-name nil)
+       (ad-activate 'make-auto-save-file-name)))))
 
 (unless (tramp-exists-file-name-handler 'make-auto-save-file-name)
   (defadvice make-auto-save-file-name

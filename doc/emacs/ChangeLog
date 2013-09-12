@@ -1,3 +1,7 @@
+2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* text.texi (Enriched Justification): Explain values of default-justification.
+
 2013-09-04  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* maintaining.texi (VC Ignore): Mention `vc-ignore' with prefix argument.

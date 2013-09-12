@@ -257,9 +257,9 @@ status will be retrieved from the first matching attendee record."
                               ((string= key "ATTENDEE") (update-attendee-status line))
                               ((string= key "SUMMARY") (update-summary line))
                               ((string= key "DTSTAMP") (update-dtstamp))
-                              ((find key '("ORGANIZER" "DTSTART" "DTEND"
-                                           "LOCATION" "DURATION" "SEQUENCE"
-                                           "RECURRENCE-ID" "UID")) line)
+                              ((member key '("ORGANIZER" "DTSTART" "DTEND"
+                                             "LOCATION" "DURATION" "SEQUENCE"
+                                             "RECURRENCE-ID" "UID")) line)
                               (t nil))))
                        (when new-line
                          (push new-line reply-event-lines))))))
@@ -815,6 +815,8 @@ is searched."
   (interactive)
   (gnus-icalendar-show-org-agenda
    (with-current-buffer gnus-article-buffer gnus-icalendar-event)))
+
+(defvar gnus-mime-action-alist)         ; gnus-art
 
 (defun gnus-icalendar-setup ()
   (add-to-list 'mm-inlined-types "text/calendar")

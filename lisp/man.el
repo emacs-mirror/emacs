@@ -413,7 +413,7 @@ Otherwise, the value is whatever the function
 
 (defvar Man-topic-history nil "Topic read history.")
 
-(defvar man-mode-syntax-table
+(defvar Man-mode-syntax-table
   (let ((table (copy-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?. "w" table)
     (modify-syntax-entry ?_ "w" table)
@@ -1350,7 +1350,7 @@ manpage command."
 
 (put 'Man-mode 'mode-class 'special)
 
-(defun Man-mode ()
+(define-derived-mode Man-mode fundamental-mode "Man"
   "A mode for browsing Un*x manual pages.
 
 The following man commands are available in the buffer.  Try
@@ -1387,11 +1387,7 @@ The following variables may be of some use.  Try
 
 The following key bindings are currently in effect in the buffer:
 \\{Man-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'Man-mode
-	mode-name "Man"
-	buffer-auto-save-file-name nil
+  (setq buffer-auto-save-file-name nil
 	mode-line-buffer-identification
 	(list (default-value 'mode-line-buffer-identification)
 	      " {" 'Man-page-mode-string "}")
@@ -1399,8 +1395,6 @@ The following key bindings are currently in effect in the buffer:
 	buffer-read-only t)
   (buffer-disable-undo)
   (auto-fill-mode -1)
-  (use-local-map Man-mode-map)
-  (set-syntax-table man-mode-syntax-table)
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
   (set (make-local-variable 'outline-regexp) Man-heading-regexp)
   (set (make-local-variable 'outline-level) (lambda () 1))
@@ -1409,8 +1403,7 @@ The following key bindings are currently in effect in the buffer:
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
-  (Man-goto-page 1 t)
-  (run-mode-hooks 'Man-mode-hook))
+  (Man-goto-page 1 t))
 
 (defsubst Man-build-section-alist ()
   "Build the list of manpage sections."

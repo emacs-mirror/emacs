@@ -1594,10 +1594,6 @@ Key bindings:
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("nawk" . awk-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("gawk" . awk-mode))
 
-;;; Autoload directives must be on the top level, so we construct an
-;;; autoload form instead.
-;;;###autoload (autoload 'awk-mode "cc-mode" "Major mode for editing AWK code." t)
-
 (c-define-abbrev-table 'awk-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)
     ("while" "while" c-electric-continued-statement 0))

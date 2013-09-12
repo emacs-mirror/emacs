@@ -1459,6 +1459,9 @@ to mark all zero length files."
                   s nil))
           (setq mode (buffer-substring (point) (+ mode-len (point))))
           (forward-char mode-len)
+          ;; Skip any extended attributes marker ("." or "+").
+          (or (looking-at " ")
+              (forward-char 1))
           (setq nlink (read (current-buffer)))
           ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
           (setq uid (buffer-substring (1+ (point))

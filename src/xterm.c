@@ -230,10 +230,6 @@ static Lisp_Object last_mouse_scroll_bar;
 
 static Time last_mouse_movement_time;
 
-/* Time for last user interaction as returned in X events.  */
-
-static Time last_user_time;
-
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
@@ -334,29 +330,19 @@ static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
 
-/* Flush display of frame F, or of all frames if F is null.  */
+/* Flush display of frame F.  */
 
 static void
 x_flush (struct frame *f)
 {
+  eassert (f && FRAME_X_P (f));
   /* Don't call XFlush when it is not safe to redisplay; the X
      connection may be broken.  */
   if (!NILP (Vinhibit_redisplay))
     return;
 
   block_input ();
-  if (f)
-    {
-      eassert (FRAME_X_P (f));
-      XFlush (FRAME_X_DISPLAY (f));
-    }
-  else
-    {
-      /* Flush all displays and so all frames on them.  */
-      struct x_display_info *xdi;
-      for (xdi = x_display_list; xdi; xdi = xdi->next)
-	XFlush (xdi->display);
-    }
+  XFlush (FRAME_X_DISPLAY (f));
   unblock_input ();
 }
 
@@ -4091,10 +4077,6 @@ static void x_set_toolkit_scroll_bar_thumb (struct scroll_bar *,
 
 static Lisp_Object window_being_scrolled;
 
-/* Last scroll bar part sent in xm_scroll_callback.  */
-
-static int last_scroll_bar_part;
-
 /* Whether this is an Xaw with arrow-scrollbars.  This should imply
    that movements of 1/20 of the screen size are mapped to up/down.  */
 
@@ -4136,20 +4118,23 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
       && WINDOWP (window_being_scrolled))
     {
       struct window *w;
+      struct scroll_bar *bar;
 
       x_send_scroll_bar_event (window_being_scrolled,
 			       scroll_bar_end_scroll, 0, 0);
       w = XWINDOW (window_being_scrolled);
+      bar = XSCROLL_BAR (w->vertical_scroll_bar);
 
-      if (XSCROLL_BAR (w->vertical_scroll_bar)->dragging != -1)
+      if (bar->dragging != -1)
 	{
-	  XSCROLL_BAR (w->vertical_scroll_bar)->dragging = -1;
+	  bar->dragging = -1;
 	  /* The thumb size is incorrect while dragging: fix it.  */
 	  set_vertical_scroll_bar (w);
 	}
       window_being_scrolled = Qnil;
-      last_scroll_bar_part = -1;
-
+#if defined (USE_LUCID)
+      bar->last_seen_part = scroll_bar_nowhere;
+#endif
       /* Xt timeouts no longer needed.  */
       toolkit_scroll_bar_interaction = 0;
     }
@@ -4333,7 +4318,6 @@ xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   if (part >= 0)
     {
       window_being_scrolled = bar->window;
-      last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
     }
 }
@@ -4394,7 +4378,6 @@ xg_scroll_callback (GtkRange     *range,
   if (part >= 0)
     {
       window_being_scrolled = bar->window;
-      last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
     }
 
@@ -4436,7 +4419,7 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   float top = *top_addr;
   float shown;
   int whole, portion, height;
-  int part;
+  enum scroll_bar_part part;
 
   /* Get the size of the thumb, a value between 0 and 1.  */
   block_input ();
@@ -4458,7 +4441,7 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 
   window_being_scrolled = bar->window;
   bar->dragging = portion;
-  last_scroll_bar_part = part;
+  bar->last_seen_part = part;
   x_send_scroll_bar_event (bar->window, part, portion, whole);
 }
 
@@ -4478,7 +4461,7 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   /* The position really is stored cast to a pointer.  */
   int position = (intptr_t) call_data;
   Dimension height;
-  int part;
+  enum scroll_bar_part part;
 
   /* Get the height of the scroll bar.  */
   block_input ();
@@ -4497,7 +4480,7 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 
   window_being_scrolled = bar->window;
   bar->dragging = -1;
-  last_scroll_bar_part = part;
+  bar->last_seen_part = part;
   x_send_scroll_bar_event (bar->window, part, position, height);
 }
 
@@ -4807,16 +4790,25 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
 		   NULL);
 
     /* Massage the top+shown values.  */
-    if (bar->dragging == -1 || last_scroll_bar_part == scroll_bar_down_arrow)
+    if (bar->dragging == -1 || bar->last_seen_part == scroll_bar_down_arrow)
       top = max (0, min (1, top));
     else
       top = old_top;
+#if ! defined (HAVE_XAW3D)
+    /* With Xaw, 'top' values too closer to 1.0 may
+       cause the thumb to disappear.  Fix that.  */
+    top = min (top, 0.99f);
+#endif
     /* Keep two pixels available for moving the thumb down.  */
     shown = max (0, min (1 - top - (2.0f / height), shown));
+#if ! defined (HAVE_XAW3D)
+    /* Likewise with too small 'shown'.  */
+    shown = max (shown, 0.01f);
+#endif
 
-    /* If the call to XawScrollbarSetThumb below doesn't seem to work,
-       check that your system's configuration file contains a define
-       for `NARROWPROTO'.  See s/freebsd.h for an example.  */
+    /* If the call to XawScrollbarSetThumb below doesn't seem to
+       work, check that 'NARROWPROTO' is defined in src/config.h.
+       If this is not so, most likely you need to fix configure.  */
     if (top != old_top || shown != old_shown)
       {
 	if (bar->dragging == -1)
@@ -4912,6 +4904,9 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   bar->end = 0;
   bar->dragging = -1;
   bar->fringe_extended_p = 0;
+#if defined (USE_TOOLKIT_SCROLL_BARS) && defined (USE_LUCID)
+  bar->last_seen_part = scroll_bar_nowhere;
+#endif
 
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
@@ -5980,7 +5975,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case SelectionNotify:
-      last_user_time = event.xselection.time;
+      dpyinfo->last_user_time = event.xselection.time;
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
         goto OTHER;
@@ -5989,7 +5984,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case SelectionClear:	/* Someone has grabbed ownership.  */
-      last_user_time = event.xselectionclear.time;
+      dpyinfo->last_user_time = event.xselectionclear.time;
 #ifdef USE_X_TOOLKIT
       if (! x_window_to_frame (dpyinfo, event.xselectionclear.window))
         goto OTHER;
@@ -6005,7 +6000,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case SelectionRequest:	/* Someone wants our selection.  */
-      last_user_time = event.xselectionrequest.time;
+      dpyinfo->last_user_time = event.xselectionrequest.time;
 #ifdef USE_X_TOOLKIT
       if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
         goto OTHER;
@@ -6024,7 +6019,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       break;
 
     case PropertyNotify:
-      last_user_time = event.xproperty.time;
+      dpyinfo->last_user_time = event.xproperty.time;
       f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
       if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
         if (x_handle_net_wm_state (f, &event.xproperty)
@@ -6224,7 +6219,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
     case KeyPress:
 
-      last_user_time = event.xkey.time;
+      dpyinfo->last_user_time = event.xkey.time;
       ignore_next_mouse_click_timeout = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -6235,6 +6230,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
       f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
+#if ! defined (USE_GTK)
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
       if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
@@ -6244,6 +6240,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           clear_mouse_face (hlinfo);
           hlinfo->mouse_face_hidden = 1;
         }
+#endif
 
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
       if (f == 0)
@@ -6553,7 +6550,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 #endif
 
     case KeyRelease:
-      last_user_time = event.xkey.time;
+      dpyinfo->last_user_time = event.xkey.time;
 #ifdef HAVE_X_I18N
       /* Don't dispatch this event since XtDispatchEvent calls
          XFilterEvent, and two calls in a row may freeze the
@@ -6564,7 +6561,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 #endif
 
     case EnterNotify:
-      last_user_time = event.xcrossing.time;
+      dpyinfo->last_user_time = event.xcrossing.time;
       x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -6589,7 +6586,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       goto OTHER;
 
     case LeaveNotify:
-      last_user_time = event.xcrossing.time;
+      dpyinfo->last_user_time = event.xcrossing.time;
       x_detect_focus_change (dpyinfo, &event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
@@ -6623,7 +6620,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
     case MotionNotify:
       {
-        last_user_time = event.xmotion.time;
+        dpyinfo->last_user_time = event.xmotion.time;
         previous_help_echo_string = help_echo_string;
         help_echo_string = Qnil;
 
@@ -6766,9 +6763,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
            by the rest of Emacs, we put it here.  */
         bool tool_bar_p = 0;
 
-        memset (&compose_status, 0, sizeof (compose_status));
+	memset (&compose_status, 0, sizeof (compose_status));
 	last_mouse_glyph_frame = 0;
-        last_user_time = event.xbutton.time;
+	dpyinfo->last_user_time = event.xbutton.time;
 
         if (dpyinfo->grabbed
             && last_mouse_frame
@@ -6783,6 +6780,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 #endif
         if (f)
           {
+#if ! defined (USE_GTK)
             /* Is this in the tool-bar?  */
             if (WINDOWP (f->tool_bar_window)
                 && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
@@ -6795,13 +6793,11 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                 tool_bar_p = EQ (window, f->tool_bar_window);
 
                 if (tool_bar_p && event.xbutton.button < 4)
-                  {
-		    handle_tool_bar_click (f, x, y,
-					   event.xbutton.type == ButtonPress,
-					   x_x_to_emacs_modifiers (dpyinfo,
-								   event.xbutton.state));
-                  }
+		  handle_tool_bar_click
+		    (f, x, y, event.xbutton.type == ButtonPress,
+		     x_x_to_emacs_modifiers (dpyinfo, event.xbutton.state));
               }
+#endif /* !USE_GTK */
 
             if (!tool_bar_p)
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -7361,9 +7357,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 #endif
     }
 
-#ifndef XFlush
   XFlush (FRAME_X_DISPLAY (f));
-#endif
 }
 
 
@@ -8861,8 +8855,9 @@ x_ewmh_activate_frame (struct frame *f)
       Lisp_Object frame;
       XSETFRAME (frame, f);
       x_send_client_event (frame, make_number (0), frame,
-                           dpyinfo->Xatom_net_active_window,
-                           make_number (32), list2i (1, last_user_time));
+			   dpyinfo->Xatom_net_active_window,
+			   make_number (32),
+			   list2i (1, dpyinfo->last_user_time));
     }
 }
 
@@ -10384,11 +10379,6 @@ static struct redisplay_interface x_redisplay_interface =
     x_update_window_begin,
     x_update_window_end,
     x_flush,
-#ifdef XFlush
-    x_flush,
-#else
-    0,  /* flush_display_optional */
-#endif
     x_clear_window_mouse_face,
     x_get_glyph_overhangs,
     x_fix_overlapping_area,

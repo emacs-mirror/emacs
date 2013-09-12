@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup eshell-util nil
   "This is general utility code, meant for use by Eshell itself."
   :tag "General utilities"
@@ -484,12 +486,12 @@ list."
       (while (re-search-forward
 	      "^\\([^#[:space:]]+\\)\\s-+\\(\\S-+\\)\\(\\s-*\\(\\S-+\\)\\)?" nil t)
 	(if (match-string 1)
-	    (add-to-list 'hosts (match-string 1)))
+	    (cl-pushnew (match-string 1) hosts :test #'equal))
 	(if (match-string 2)
-	    (add-to-list 'hosts (match-string 2)))
+	    (cl-pushnew (match-string 2) hosts :test #'equal))
 	(if (match-string 4)
-	    (add-to-list 'hosts (match-string 4)))))
-    (sort hosts 'string-lessp)))
+	    (cl-pushnew (match-string 4) hosts :test #'equal))))
+    (sort hosts #'string-lessp)))
 
 (defun eshell-read-hosts (file result-var timestamp-var)
   "Read the contents of /etc/passwd for user names."

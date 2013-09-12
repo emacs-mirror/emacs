@@ -1,7 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -792,7 +791,7 @@ and `shell-pushd-dunique' control the behavior of the relevant command.
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
-      (condition-case nil
+      (with-demoted-errors "Couldn't cd: %s"
 	  (let ((start (progn (string-match
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
@@ -825,8 +824,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	      (setq start (progn (string-match shell-command-separator-regexp
 					       str end)
 				 ;; skip again
-				 (match-end 0)))))
-	(error "Couldn't cd"))))
+				 (match-end 0))))))))
 
 (defun shell-unquote-argument (string)
   "Remove all kinds of shell quoting from STRING."
@@ -908,7 +906,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	   (cond ((> num (length shell-dirstack))
 		  (message "Directory stack not that deep."))
 		 ((= num 0)
-		  (error (message "Couldn't cd")))
+		  (error "Couldn't cd"))
 		 (shell-pushd-dextract
 		  (let ((dir (nth (1- num) shell-dirstack)))
 		    (shell-process-popd arg)
@@ -1015,12 +1013,11 @@ command again."
 			 ds))
 	  (setq i (match-end 0)))
 	(let ((ds (nreverse ds)))
-	  (condition-case nil
-	      (progn (shell-cd (car ds))
-		     (setq shell-dirstack (cdr ds)
-			   shell-last-dir (car shell-dirstack))
-		     (shell-dirstack-message))
-	    (error (message "Couldn't cd"))))))
+	  (with-demoted-errors "Couldn't cd: %s"
+	    (shell-cd (car ds))
+	    (setq shell-dirstack (cdr ds)
+		  shell-last-dir (car shell-dirstack))
+	    (shell-dirstack-message)))))
     (if started-at-pmark (goto-char (marker-position pmark)))))
 
 ;; For your typing convenience:

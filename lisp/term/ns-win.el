@@ -104,7 +104,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-~] 'ns-prev-frame)
 (define-key global-map [?\s--] 'center-line)
 (define-key global-map [?\s-:] 'ispell)
-(define-key global-map [?\s-\;] 'ispell-next)
 (define-key global-map [?\s-?] 'info)
 (define-key global-map [?\s-^] 'kill-some-buffers)
 (define-key global-map [?\s-&] 'kill-this-buffer)

@@ -1231,7 +1231,7 @@ is a string to insert in the minibuffer before reading.
 Such arguments are used as in `read-from-minibuffer'.)"
   ;; Used for interactive spec `x'.
   (read-from-minibuffer prompt initial-contents minibuffer-local-map
-                        t minibuffer-history))
+                        t 'minibuffer-history))
 
 (defun eval-minibuffer (prompt &optional initial-contents)
   "Return value of Lisp expression read using the minibuffer.
@@ -3180,12 +3180,18 @@ see other processes running on the system, use `list-system-processes'."
   nil)
 
 (defvar universal-argument-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [t] 'universal-argument-other-key)
-    (define-key map (vector meta-prefix-char t) 'universal-argument-other-key)
-    (define-key map [switch-frame] nil)
+  (let ((map (make-sparse-keymap))
+        (universal-argument-minus
+         ;; For backward compatibility, minus with no modifiers is an ordinary
+         ;; command if digits have already been entered.
+         `(menu-item "" negative-argument
+                     :filter ,(lambda (cmd)
+                                (if (integerp prefix-arg) nil cmd)))))
+    (define-key map [switch-frame]
+      (lambda (e) (interactive "e")
+        (handle-switch-frame e) (universal-argument--mode)))
     (define-key map [?\C-u] 'universal-argument-more)
-    (define-key map [?-] 'universal-argument-minus)
+    (define-key map [?-] universal-argument-minus)
     (define-key map [?0] 'digit-argument)
     (define-key map [?1] 'digit-argument)
     (define-key map [?2] 'digit-argument)
@@ -3206,30 +3212,12 @@ see other processes running on the system, use `list-system-processes'."
     (define-key map [kp-7] 'digit-argument)
     (define-key map [kp-8] 'digit-argument)
     (define-key map [kp-9] 'digit-argument)
-    (define-key map [kp-subtract] 'universal-argument-minus)
+    (define-key map [kp-subtract] universal-argument-minus)
     map)
   "Keymap used while processing \\[universal-argument].")
 
-(defvar universal-argument-num-events nil
-  "Number of argument-specifying events read by `universal-argument'.
-`universal-argument-other-key' uses this to discard those events
-from (this-command-keys), and reread only the final command.")
-
-(defvar saved-overriding-map t
-  "The saved value of `overriding-terminal-local-map'.
-That variable gets restored to this value on exiting \"universal
-argument mode\".")
-
-(defun save&set-overriding-map (map)
-  "Set `overriding-terminal-local-map' to MAP."
-  (when (eq saved-overriding-map t)
-    (setq saved-overriding-map overriding-terminal-local-map)
-    (setq overriding-terminal-local-map map)))
-
-(defun restore-overriding-map ()
-  "Restore `overriding-terminal-local-map' to its saved value."
-  (setq overriding-terminal-local-map saved-overriding-map)
-  (setq saved-overriding-map t))
+(defun universal-argument--mode ()
+  (set-temporary-overlay-map universal-argument-map))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
@@ -3243,33 +3231,27 @@ which is different in effect from any particular numeric argument.
 These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive)
   (setq prefix-arg (list 4))
-  (setq universal-argument-num-events (length (this-command-keys)))
-  (save&set-overriding-map universal-argument-map))
+  (universal-argument--mode))
 
-;; A subsequent C-u means to multiply the factor by 4 if we've typed
-;; nothing but C-u's; otherwise it means to terminate the prefix arg.
 (defun universal-argument-more (arg)
+  ;; A subsequent C-u means to multiply the factor by 4 if we've typed
+  ;; nothing but C-u's; otherwise it means to terminate the prefix arg.
   (interactive "P")
-  (if (consp arg)
-      (setq prefix-arg (list (* 4 (car arg))))
-    (if (eq arg '-)
-	(setq prefix-arg (list -4))
-      (setq prefix-arg arg)
-      (restore-overriding-map)))
-  (setq universal-argument-num-events (length (this-command-keys))))
+  (setq prefix-arg (if (consp arg)
+                       (list (* 4 (car arg)))
+                     (if (eq arg '-)
+                         (list -4)
+                       arg)))
+  (when (consp prefix-arg) (universal-argument--mode)))
 
 (defun negative-argument (arg)
   "Begin a negative numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
-  (cond ((integerp arg)
-	 (setq prefix-arg (- arg)))
-	((eq arg '-)
-	 (setq prefix-arg nil))
-	(t
-	 (setq prefix-arg '-)))
-  (setq universal-argument-num-events (length (this-command-keys)))
-  (save&set-overriding-map universal-argument-map))
+  (setq prefix-arg (cond ((integerp arg) (- arg))
+                         ((eq arg '-) nil)
+                         (t '-)))
+  (universal-argument--mode))
 
 (defun digit-argument (arg)
   "Part of the numeric argument for the next command.
@@ -3279,37 +3261,15 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 		   last-command-event
 		 (get last-command-event 'ascii-character)))
 	 (digit (- (logand char ?\177) ?0)))
-    (cond ((integerp arg)
-	   (setq prefix-arg (+ (* arg 10)
-			       (if (< arg 0) (- digit) digit))))
-	  ((eq arg '-)
-	   ;; Treat -0 as just -, so that -01 will work.
-	   (setq prefix-arg (if (zerop digit) '- (- digit))))
-	  (t
-	   (setq prefix-arg digit))))
-  (setq universal-argument-num-events (length (this-command-keys)))
-  (save&set-overriding-map universal-argument-map))
-
-;; For backward compatibility, minus with no modifiers is an ordinary
-;; command if digits have already been entered.
-(defun universal-argument-minus (arg)
-  (interactive "P")
-  (if (integerp arg)
-      (universal-argument-other-key arg)
-    (negative-argument arg)))
-
-;; Anything else terminates the argument and is left in the queue to be
-;; executed as a command.
-(defun universal-argument-other-key (arg)
-  (interactive "P")
-  (setq prefix-arg arg)
-  (let* ((key (this-command-keys))
-	 (keylist (listify-key-sequence key)))
-    (setq unread-command-events
-	  (append (nthcdr universal-argument-num-events keylist)
-		  unread-command-events)))
-  (reset-this-command-lengths)
-  (restore-overriding-map))
+    (setq prefix-arg (cond ((integerp arg)
+                            (+ (* arg 10)
+			       (if (< arg 0) (- digit) digit)))
+                           ((eq arg '-)
+                            ;; Treat -0 as just -, so that -01 will work.
+                            (if (zerop digit) '- (- digit)))
+                           (t
+                            digit))))
+  (universal-argument--mode))
 
 
 (defvar filter-buffer-substring-functions nil

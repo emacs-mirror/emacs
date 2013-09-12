@@ -301,6 +301,9 @@ struct x_display_info
      minibuffer.  */
   struct frame *x_highlight_frame;
 
+  /* Time of last user interaction as returned in X events on this display.  */
+  Time last_user_time;
+
   /* The gray pixmap.  */
   Pixmap gray;
 
@@ -800,6 +803,11 @@ struct scroll_bar
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is -1.  */
   int dragging;
+
+#if defined (USE_TOOLKIT_SCROLL_BARS) && defined (USE_LUCID)
+  /* Last scroll bar part seen in xaw_jump_callback and xaw_scroll_callback.  */
+  enum scroll_bar_part last_seen_part;
+#endif
 
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */

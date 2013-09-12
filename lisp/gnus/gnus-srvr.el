@@ -244,6 +244,7 @@ For more in-depth information on this mode, read the manual
 The following commands are available:
 
 \\{gnus-server-mode-map}"
+  ;; FIXME: Use define-derived-mode.
   (interactive)
   (when (gnus-visual-p 'server-menu 'menu)
     (gnus-server-make-menu-bar))
@@ -869,7 +870,7 @@ claim them."
       (gnus-message 5 "Connecting to %s...done" (nth 1 method))
       t))))
 
-(defun gnus-browse-mode ()
+(define-derived-mode gnus-browse-mode fundamental-mode "Browse Server"
   "Major mode for browsing a foreign server.
 
 All normal editing commands are switched off.
@@ -884,20 +885,14 @@ buffer.
 2) `\\[gnus-browse-read-group]' to read a group ephemerally.
 
 3) `\\[gnus-browse-exit]' to return to the group buffer."
-  (interactive)
-  (kill-all-local-variables)
   (when (gnus-visual-p 'browse-menu 'menu)
     (gnus-browse-make-menu-bar))
   (gnus-simplify-mode-line)
-  (setq major-mode 'gnus-browse-mode)
-  (setq mode-name "Browse Server")
   (setq mode-line-process nil)
-  (use-local-map gnus-browse-mode-map)
   (buffer-disable-undo)
   (setq truncate-lines t)
   (gnus-set-default-directory)
-  (setq buffer-read-only t)
-  (gnus-run-mode-hooks 'gnus-browse-mode-hook))
+  (setq buffer-read-only t))
 
 (defun gnus-browse-read-group (&optional no-article number)
   "Enter the group at the current line.
@@ -1022,7 +1017,7 @@ doing the deletion."
 (defun gnus-browse-exit ()
   "Quit browsing and return to the group buffer."
   (interactive)
-  (when (eq major-mode 'gnus-browse-mode)
+  (when (derived-mode-p 'gnus-browse-mode)
     (gnus-kill-buffer (current-buffer)))
   ;; Insert the newly subscribed groups in the group buffer.
   (with-current-buffer gnus-group-buffer

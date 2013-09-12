@@ -180,6 +180,8 @@ interpretation."
 		(goto-char (1+ end))))))))))
 
 (defvar eshell-glob-chars-regexp nil)
+(defvar eshell-glob-matches)
+(defvar message-shown)
 
 (defun eshell-glob-regexp (pattern)
   "Convert glob-pattern PATTERN to a regular expression.
@@ -261,9 +263,6 @@ the form:
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
 	  glob))))
-
-(defvar eshell-glob-matches)
-(defvar message-shown)
 
 ;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)

@@ -525,10 +525,13 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #endif
 
 /* 1 if W is a tool bar window.  */
-
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 #define WINDOW_TOOL_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->tool_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->tool_bar_window))
+#else
+#define WINDOW_TOOL_BAR_P(W) (0)
+#endif
 
 /* Return the frame y-position at which window W starts.
    This includes a header line, if any.  */

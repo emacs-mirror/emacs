@@ -1,3 +1,156 @@
+2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* charset.c (char_charset): Document an exception for char-charset.
+
+2013-09-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (x_display_info): New field last_user_time...
+	* xterm.c (toplevel): ...to replace static last_user_time.
+	(handle_one_xevent, x_ewmh_activate_frame): Adjust users.
+
+2013-09-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_set_scroll_bar_thumb) [USE_LUCID && !HAVE_XAW3D]: Clip
+	scroll bar values to prevent thumb from disappear and update comment.
+
+2013-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (usage_message): Possessive apostrophe tweak.
+
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* nsterm.m (syms_of_nsterm): Use Qns.
+	* w32fns.c (Fx_open_connection): Remove old '#if 0' code.
+	* w32term.c (w32_create_terminal, syms_of_w32term): Use Qw32.
+	* xfns.c (x_display_info_for_name, Fx_open_connection):
+	Remove old '#if 0' code.
+	(syms_of_xfns): Use Qx.
+	* termhooks.h (fullscreen_hook): Remove the leftover.
+	(struct terminal): Fix typo in comment.
+
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleaning up a few X scroll bar bits.
+	* termhooks.h (enum scroll_bar_part): Add scroll_bar_nowhere member.
+	* xterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS && USE_LUCID]:
+	New member last_seen_part, going to replace...
+	* xterm.c [USE_TOOLKIT_SCROLL_BARS]: ...global last_scroll_bar_part.
+	(xt_action_hook) [USE_LUCID]: Adjust user.
+	(xm_scroll_callback, xg_scroll_callback): Do not bloat with
+	Lucid-specific scroll bar support.
+	(xaw_jump_callback, xaw_scroll_callback): Prefer enum scroll_par_part
+	to int and adjust to use last_seen_part member.
+	(x_set_toolkit_scroll_bar_thumb) [USE_LUCID]: Adjust user.
+	(x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS && USE_LUCID]:
+	Initialize last_seen_part.
+
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (insert_from_buffer_1): Don't mark buffer as modified when
+	insert-buffer-substring an empty string.
+
+2013-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (Ftool_bar_lines_needed): Declare as 'const' if ifdeffed out,
+	avoiding a GCC warning.
+
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Ifdef away frame tool bar code when it is not really used.
+	* frame.h (struct frame) [HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS]:
+	Move tool_bar_window, desired_tool_bar_string, current_tool_bar_string
+	and minimize_tool_bar_window_p under the above.
+	(fset_current_tool_bar_string, fset_desired_tool_bar_string)
+	(fset_tool_bar_window): Likewise.
+	* dispnew.c (clear_current_matrices, clear_desired_matrices)
+	(adjust_frame_glyphs_for_window_redisplay, free_glyphs, update_frame)
+	(change_frame_size_1):
+	* window.c (window_from_coordinates, Frecenter): Adjust users.
+	* window.h (WINDOW_TOOL_BAR_P): Define to zero when frame tool bar
+	code is not really used.
+	* xdisp.c (build_desired_tool_bar_string, display_tool_bar_line)
+	(tool_bar_lines_needed, MAX_FRAME_TOOL_BAR_HEIGHT, tool_bar_item_info)
+	(get_tool_bar_item, handle_tool_bar_click, note_tool_bar_highlight)
+	[!USE_GTK && !HAVE_NS]: Define as such.
+	(Ftool_bar_lines_needed, redisplay_tool_bar, show_mouse_face)
+	(note_mouse_highlight, expose_frame):
+	* xfns.c (x_set_tool_bar_lines):
+	* xterm.c (handle_one_xevent): Adjust users.
+
+2013-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix corruption with multiple emacsclient -t instances (Bug#15222).
+	This bug was introduced by my 2013-08-26 patch, which incorrectly
+	assumed that the terminfo implementation doesn't use termcap buffers.
+	* term.c (init_tty) [TERMINFO]: Remove optimization, as
+	these buffers apparently are used after all.
+	* termchar.h (TERMCAP_BUFFER_SIZE) [TERMINFO]: Define here too.
+	(struct tty_display_info): Define members termcap_term_buffer and
+	termcap_strings_buffer even if TERMINFO.
+
+2013-09-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix last change.
+	* data.c (Feqlsign, Flss, Fgtr, Fleq, Fgeq): Add convenient
+	'usage' docstring entry to pacify make-docfile.
+
+2013-09-11  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	Change comparison functions =, <, >, <=, >= to take many arguments.
+	* data.c: Change comparison functions' interface and implementation.
+	* lisp.h: Make arithcompare available for efficient two arg
+	comparisons.
+	* bytecode.c: Use arithcompare.
+	* fileio.c: Use new interface.
+
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_char): Don't break immediate_echo (bug#15332).
+
+2013-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Feval): Document the new use of `lexical'.
+
+2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Review and drop old frame resize hack.
+	* frame.h (struct frame): Remove force_flush_display_p.
+	* dispnew.c (update_frame): Adjust user and don't call
+	flush_frame here.  The comment has said that there was an issues
+	with redisplaying fringes, but I don't see any differences with
+	and without this hack.  Hopefully we can continue without it.
+	* xdisp.c (clear_garbaged_frames): Adjust user and do not clear
+	current frame matrices twice if resized_p is set.
+
+2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not populate pure Xism x_sync to other ports.
+	* frame.h (x_sync): Move under HAVE_X_WINDOWS.
+	* frame.c (other_visible_frames) [HAVE_X_WINDOWS]: Use as such.
+	* nsfns.m, w32xfns.c (x_sync): Remove no-op.
+	* w32term.h (x_sync): Remove prototype.
+
+2013-09-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup frame flushing.
+	* dispextern.h (struct redisplay_interface):
+	Drop flush_display_optional because flush_display is enough
+	for X and flushing via RIF is just a no-op for others.
+	* frame.h (flush_frame): New function.
+	* dispnew.c (update_frame):
+	* minibuf.c (read_minibuf):
+	* xdisp.c (echo_area_display, redisplay_preserve_echo_area):
+	Use it.
+	* keyboard.c (detect_input_pending_run_timers): Do not flush
+	all frames but selected one in redisplay_preserve_echo_area.
+	* nsterm.m (ns_flush): Remove no-op.
+	(ns_redisplay_interface): Adjust user.
+	* w32term.h (x_flush): Remove no-op.
+	(w32_redisplay_interface): Adjust user.
+	* xterm.c (x_flush): Simplify because we do not flush all
+	frames at once any more.  Adjust comment.
+	(x_redisplay_interface): Adjust user.
+
 2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --without-x --enable-gcc-warnings to Fedora 19.

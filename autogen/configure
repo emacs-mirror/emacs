@@ -1442,7 +1442,6 @@ build_vendor
 build_cpu
 build
 PROFILING_CFLAGS
-GZIP_INFO
 cache_file
 am__untar
 am__tar
@@ -1545,7 +1544,7 @@ with_gnutls
 with_zlib
 with_file_notification
 with_makeinfo
-with_compress_info
+with_compress_install
 with_pkg_config_prog
 with_gameuser
 with_gnustep_conf
@@ -2278,7 +2277,9 @@ Optional Packages:
                           use a file notification library (LIB one of: yes,
                           gfile, inotify, w32, no)
   --without-makeinfo      don't require makeinfo for building manuals
-  --without-compress-info don't compress the installed Info pages
+  --without-compress-install
+                          don't compress some files (.el, .info, etc.) when
+                          installing. Equivalent to: make GZIP_PROG= install
   --with-pkg-config-prog=FILENAME
                           file name of pkg-config for finding GTK and librsvg
   --with-gameuser=USER    user for shared game score files
@@ -4429,17 +4430,11 @@ fi
 ## This is an option because I do not know if all info/man support
 ## compressed files, nor how to test if they do so.
 
-# Check whether --with-compress-info was given.
-if test "${with_compress_info+set}" = set; then :
-  withval=$with_compress_info;
+# Check whether --with-compress-install was given.
+if test "${with_compress_install+set}" = set; then :
+  withval=$with_compress_install;
 else
-     with_compress_info=$with_features
-fi
-
-if test $with_compress_info = yes; then
-   GZIP_INFO=yes
-else
-   GZIP_INFO=
+     with_compress_install=$with_features
 fi
 
 
@@ -8618,6 +8613,9 @@ fi
 
 
 
+test $with_compress_install != yes && test -n "$GZIP_PROG" && \
+   GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
+
 if test $opsys = gnu-linux; then
   # Extract the first word of "paxctl", so it can be a program name with args.
 set dummy paxctl; ac_word=$2
@@ -8781,12 +8779,14 @@ else
 fi
 
 
-late_LDFLAGS=$LDFLAGS
+late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
-  LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
-  LDFLAGS="$LDFLAGS -znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-znocombreloc"
 fi
+
+LDFLAGS="$LDFLAGS $LDFLAGS_NOCOMBRELOC"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for -znocombreloc" >&5
 $as_echo_n "checking for -znocombreloc... " >&6; }
@@ -8805,13 +8805,14 @@ if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 else
-  LDFLAGS=$late_LDFLAGS
+  LDFLAGS_NOCOMBRELOC=
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
+LDFLAGS="$late_LDFLAGS"
 
 test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
 case "$opsys" in
@@ -29050,6 +29051,8 @@ if test x$ac_enable_profiling != x ; then
     *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
   esac
 fi
+
+LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 
 

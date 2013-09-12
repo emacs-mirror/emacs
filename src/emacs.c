@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2013
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -310,7 +310,7 @@ example, -batch as well as --batch.  You can use any unambiguous\n\
 abbreviation for a --option.\n\
 \n\
 Various environment variables and window system resources also affect\n\
-Emacs' operation.  See the main documentation.\n\
+the operation of Emacs.  See the main documentation.\n\
 \n\
 Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"

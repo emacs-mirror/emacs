@@ -1581,6 +1581,9 @@ code line."
   :group 'octave
   :version "24.4")
 
+;; Used in a mode derived from help-mode.
+(declare-function help-button-action "help-mode" (button))
+
 (define-button-type 'octave-help-file
   'follow-link t
   'action #'help-button-action

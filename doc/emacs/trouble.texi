@@ -1140,6 +1140,7 @@ Please help us keep up with the workload by designing the patch in a
 form that is clearly safe to install.
 @end itemize
 
+@c FIXME: Include the node above?
 @node Contributing
 @section Contributing to Emacs Development
 @cindex contributing to Emacs

@@ -6258,11 +6258,6 @@ w32_make_rdb (char *xrm_option)
   return buffer;
 }
 
-void
-x_flush (struct frame * f)
-{ /* Nothing to do */ }
-
-
 extern frame_parm_handler w32_frame_parm_handlers[];
 
 static struct redisplay_interface w32_redisplay_interface =
@@ -6276,8 +6271,7 @@ static struct redisplay_interface w32_redisplay_interface =
   x_after_update_window_line,
   x_update_window_begin,
   x_update_window_end,
-  x_flush,
-  0,  /* flush_display_optional */
+  0, /* flush_display */
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
@@ -6344,7 +6338,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
      terminal like X does.  */
   terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  kset_window_system (terminal->kboard, intern ("w32"));
+  kset_window_system (terminal->kboard, Qw32);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -6697,5 +6691,6 @@ With MS Windows or Nextstep, the value is t.  */);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  Fprovide (intern_c_string ("w32"), Qnil);
+  /* Tell Emacs about this window system.  */
+  Fprovide (Qw32, Qnil);
 }

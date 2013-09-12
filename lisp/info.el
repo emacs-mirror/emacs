@@ -790,7 +790,7 @@ See a list of available Info commands in `Info-mode'."
 
 (defun info-setup (file-or-node buffer)
   "Display Info node FILE-OR-NODE in BUFFER."
-  (if (and buffer (not (eq major-mode 'Info-mode)))
+  (if (and buffer (not (derived-mode-p 'Info-mode)))
       (Info-mode))
   (if file-or-node
       ;; If argument already contains parentheses, don't add another set
@@ -931,7 +931,7 @@ STRICT-CASE is non-nil)."
   (info-initialize)
   (setq filename (Info-find-file filename))
   ;; Go into Info buffer.
-  (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
+  (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
   ;; Record the node we are leaving, if we were in one.
   (and (not no-going-back)
        Info-current-file
@@ -961,7 +961,7 @@ otherwise, that defaults to `Top'."
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
 is preserved, if possible."
-  (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
+  (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
 	(window-selected (eq (selected-window) (get-buffer-window)))
@@ -1065,7 +1065,7 @@ is non-nil)."
 
 (defun Info-find-node-2 (filename nodename &optional no-going-back strict-case)
   (buffer-disable-undo (current-buffer))
-  (or (eq major-mode 'Info-mode)
+  (or (derived-mode-p 'Info-mode)
       (Info-mode))
   (widen)
   (setq Info-current-node nil)
@@ -2212,7 +2212,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
+    (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
     (Info-goto-node (Info-extract-pointer "next"))))
 
 (defun Info-prev ()
@@ -2220,7 +2220,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
+    (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
     (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous"))))
 
 (defun Info-up (&optional same-file)
@@ -2229,7 +2229,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
+    (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
     (let ((old-node Info-current-node)
 	  (old-file Info-current-file)
 	  (node (Info-extract-pointer "up")) p)
@@ -4082,7 +4082,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 (defun Info-menu-update ()
   "Update the Info menu for the current node."
   (condition-case nil
-      (if (or (not (eq major-mode 'Info-mode))
+      (if (or (not (derived-mode-p 'Info-mode))
 	      (equal (list Info-current-file Info-current-node)
 		     Info-menu-last-node))
 	  ()
@@ -4285,7 +4285,7 @@ Advanced commands:
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
 (defun Info-kill-buffer ()
-  (and (eq major-mode 'Info-mode)
+  (and (derived-mode-p 'Info-mode)
        Info-tag-table-buffer
        (kill-buffer Info-tag-table-buffer)))
 
@@ -4302,10 +4302,11 @@ Advanced commands:
 		  (copy-marker (marker-position m)))
 	      (make-marker))))))
 
-(defvar Info-edit-map (let ((map (make-sparse-keymap)))
-			(set-keymap-parent map text-mode-map)
-			(define-key map "\C-c\C-c" 'Info-cease-edit)
-			map)
+(define-obsolete-variable-alias 'Info-edit-map 'Info-edit-mode-map "24.1")
+(defvar Info-edit-mode-map (let ((map (make-sparse-keymap)))
+                             (set-keymap-parent map text-mode-map)
+                             (define-key map "\C-c\C-c" 'Info-cease-edit)
+                             map)
   "Local keymap used within `e' command of Info.")
 
 (make-obsolete-variable 'Info-edit-map
@@ -4315,19 +4316,14 @@ Advanced commands:
 ;; Info-edit mode is suitable only for specially formatted data.
 (put 'Info-edit-mode 'mode-class 'special)
 
-(defun Info-edit-mode ()
+(define-derived-mode Info-edit-mode text-mode "Info Edit"
   "Major mode for editing the contents of an Info node.
 Like text mode with the addition of `Info-cease-edit'
 which returns to Info mode for browsing.
 \\{Info-edit-map}"
-  (use-local-map Info-edit-map)
-  (setq major-mode 'Info-edit-mode)
-  (setq mode-name "Info Edit")
-  (kill-local-variable 'mode-line-buffer-identification)
   (setq buffer-read-only nil)
   (force-mode-line-update)
-  (buffer-enable-undo (current-buffer))
-  (run-mode-hooks 'Info-edit-mode-hook))
+  (buffer-enable-undo (current-buffer)))
 
 (make-obsolete 'Info-edit-mode
 	       "editing Info nodes by hand is not recommended." "24.4")
@@ -4352,11 +4348,7 @@ This feature will be removed in future.")
   (and (buffer-modified-p)
        (y-or-n-p "Save the file? ")
        (save-buffer))
-  (use-local-map Info-mode-map)
-  (setq major-mode 'Info-mode)
-  (setq mode-name "Info")
-  (Info-set-mode-line)
-  (setq buffer-read-only t)
+  (Info-mode)
   (force-mode-line-update)
   (and (marker-position Info-tag-table-marker)
        (buffer-modified-p)
@@ -4469,7 +4461,7 @@ COMMAND must be a symbol or string."
 	  ;; Get Info running, and pop to it in another window.
 	  (save-window-excursion
 	    (info))
-	  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+	  (or (derived-mode-p 'Info-mode) (pop-to-buffer "*info*"))
 	  ;; Bind Info-history to nil, to prevent the last Index node
 	  ;; visited by Info-find-emacs-command-nodes from being
 	  ;; pushed onto the history.
@@ -5133,7 +5125,7 @@ INDENT is the current indentation depth."
 NODESPEC is a string of the form: (file)node."
   ;; Set up a buffer we can use to fake-out Info.
   (with-current-buffer (get-buffer-create " *info-browse-tmp*")
-    (if (not (equal major-mode 'Info-mode))
+    (if (not (derived-mode-p 'Info-mode))
 	(Info-mode))
     ;; Get the node into this buffer
     (if (not (string-match "^(\\([^)]+\\))\\([^.]+\\)$" nodespec))

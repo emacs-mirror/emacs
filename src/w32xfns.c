@@ -333,9 +333,3 @@ drain_message_queue (void)
     }
   return retval;
 }
-
-/* x_sync is a no-op on W32.  */
-void
-x_sync (struct frame *f)
-{
-}

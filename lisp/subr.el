@@ -3350,16 +3350,22 @@ even if this catches the signal."
 (define-obsolete-function-alias 'condition-case-no-debug
   'condition-case-unless-debug "24.1")
 
-(defmacro with-demoted-errors (&rest body)
+(defmacro with-demoted-errors (format &rest body)
   "Run BODY and demote any errors to simple messages.
 If `debug-on-error' is non-nil, run BODY without catching its errors.
 This is to be used around code which is not expected to signal an error
-but which should be robust in the unexpected case that an error is signaled."
-  (declare (debug t) (indent 0))
-  (let ((err (make-symbol "err")))
+but which should be robust in the unexpected case that an error is signaled.
+For backward compatibility, if FORMAT is not a constant string, it
+is assumed to be part of BODY, in which case the message format
+used is \"Error: %S\"."
+  (declare (debug t) (indent 1))
+  (let ((err (make-symbol "err"))
+        (format (if (and (stringp format) body) format
+                  (prog1 "Error: %S"
+                    (if format (push format body))))))
     `(condition-case-unless-debug ,err
-         (progn ,@body)
-       (error (message "Error: %S" ,err) nil))))
+         ,(macroexp-progn body)
+       (error (message ,format ,err) nil))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
@@ -3901,12 +3907,27 @@ This function is called directly from the C code."
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
   (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
-    (run-with-timer 0 nil
-                    (lambda (file)
-                      (message "Package %s is obsolete!"
-                               (substring file 0
-                                          (string-match "\\.elc?\\>" file))))
-                    (file-name-nondirectory abs-file)))
+    ;; Maybe we should just use display-warning?  This seems yucky...
+    (let* ((file (file-name-nondirectory abs-file))
+	   (msg (format "Package %s is obsolete!"
+			(substring file 0
+				   (string-match "\\.elc?\\>" file)))))
+      ;; Cribbed from cl--compiling-file.
+      (if (and (boundp 'byte-compile--outbuffer)
+	       (bufferp (symbol-value 'byte-compile--outbuffer))
+	       (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
+		      " *Compiler Output*"))
+	  ;; Don't warn about obsolete files using other obsolete files.
+	  (unless (and (stringp byte-compile-current-file)
+		       (string-match-p "/obsolete/[^/]*\\'"
+				       (expand-file-name
+					byte-compile-current-file
+					byte-compile-root-dir)))
+	    (byte-compile-log-warning msg))
+	(run-with-timer 0 nil
+			(lambda (msg)
+			  (message "%s" msg)) msg))))
+
   ;; Finally, run any other hook.
   (run-hook-with-args 'after-load-functions abs-file))
 

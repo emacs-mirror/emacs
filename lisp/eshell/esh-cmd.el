@@ -650,7 +650,7 @@ For an external command, it means an exit code of 0."
 	   (looking-at eshell-lisp-regexp))
       (let* ((here (point))
 	     (obj
-	      (condition-case err
+	      (condition-case nil
 		  (read (current-buffer))
 		(end-of-file
 		 (throw 'eshell-incomplete ?\()))))

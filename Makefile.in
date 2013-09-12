@@ -259,8 +259,6 @@ LN_S_FILEONLY = @LN_S_FILEONLY@
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
-# If non-nil, gzip the installed Info and man pages.
-GZIP_INFO = @GZIP_INFO@
 
 # ============================= Targets ==============================
 
@@ -662,7 +660,7 @@ install-info: info
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	       (cd $${thisdir}; \
 	        ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f); \
-	        ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
+	        [ -n "${GZIP_PROG}" ] || continue ; \
 	        rm -f $(DESTDIR)${infodir}/$$f.gz; \
 	        ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
 	      done; \
@@ -684,7 +682,7 @@ install-man:
 	  dest=`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1; \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${dest}); \
-	  ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
+	  [ -n "${GZIP_PROG}" ] || continue ; \
 	  rm -f $(DESTDIR)${man1dir}/$${dest}.gz; \
 	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest} || true; \
 	done
@@ -754,12 +752,12 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd $${thisdir}; \
 	      $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	     if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	     if [ -n "${GZIP_PROG}" ]; then \
 	        ext=.gz; else ext=; fi; \
 	     rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
 	   done; \
 	 fi)
-	(if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	(if [ -n "${GZIP_PROG}" ]; then \
 	    ext=.gz; else ext=; fi; \
 	 if cd ${mansrcdir}; then \
 	   for page in *.1; do \

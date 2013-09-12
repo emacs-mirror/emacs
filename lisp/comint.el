@@ -3793,25 +3793,21 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;; comint-mode will take care of it. The following example, from shell.el,
 ;; is typical:
 ;;
-;; (defvar shell-mode-map '())
-;; (cond ((not shell-mode-map)
-;;        (setq shell-mode-map (copy-keymap comint-mode-map))
-;;        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
-;;        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
-;;        (define-key shell-mode-map "\t" 'completion-at-point)
-;;        (define-key shell-mode-map "\M-?"
-;;          'comint-dynamic-list-filename-completions)))
+;; (defvar shell-mode-map
+;;   (let ((map (make-sparse-keymap)))
+;;     (set-keymap-parent map comint-mode-map)
+;;     (define-key map "\C-c\C-f" 'shell-forward-command)
+;;     (define-key map "\C-c\C-b" 'shell-backward-command)
+;;     (define-key map "\t" 'completion-at-point)
+;;     (define-key map "\M-?"
+;;       'comint-dynamic-list-filename-completions)
+;;     map))
 ;;
-;; (defun shell-mode ()
-;;   (interactive)
-;;   (comint-mode)
+;; (define-derived-mode shell-mode comint-mode "Shell"
+;;   "Doc."
 ;;   (setq comint-prompt-regexp shell-prompt-pattern)
-;;   (setq major-mode 'shell-mode)
-;;   (setq mode-name "Shell")
-;;   (use-local-map shell-mode-map)
 ;;   (setq-local shell-directory-stack nil)
-;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
-;;   (run-mode-hooks 'shell-mode-hook))
+;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker))
 ;;
 ;;
 ;; Completion for comint-mode users

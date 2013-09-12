@@ -218,7 +218,7 @@ lock it at that."
 	(cdar bindings))
       (setq bindings (cdr bindings)))))
 
-(defun eshell-delete-backward-char (n &optional killflag)
+(defun eshell-delete-backward-char (n)
   "Delete the last character, unless it's part of the output."
   (interactive "P")
   (let ((count (prefix-numeric-value n)))
