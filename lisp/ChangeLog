@@ -1,3 +1,8 @@
+2013-09-12  Kenichi Handa  <handa@gnu.org>
+
+	* composite.el (compose-gstring-for-graphic): Handle enclosing
+	mark.
+
 2013-09-08  Kenichi Handa  <handa@gnu.org>
 
 	* international/characters.el: Set category "^"	(Combining) for
