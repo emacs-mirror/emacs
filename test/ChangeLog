@@ -1,7 +1,7 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* automated/eshell.el (with-temp-eshell): Avoid hangs in batch mode
-	due to "has a running proces; kill it?" prompts.
+	due to "has a running process; kill it?" prompts.
 
 2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
