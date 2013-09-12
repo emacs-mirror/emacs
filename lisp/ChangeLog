@@ -1,3 +1,8 @@
+2013-09-12  Kenichi Handa  <handa@gnu.org>
+
+	* composite.el (compose-gstring-for-graphic): Handle enclosing
+	mark.
+
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-dir-status-files, vc-svn-dir-extra-headers)

@@ -555,7 +555,11 @@ All non-spacing characters have this function in
 		 (rbearing (lglyph-rbearing glyph))
 		 (lbearing (lglyph-lbearing glyph))
 		 (center (/ (+ lbearing rbearing) 2))
+		 ;; Artificial vertical gap between the glyphs.
 		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1))))
+	    (if (= gap 0)
+		;; Assure at least 1 pixel vertical gap.
+		(setq gap 1))
 	    (dotimes (i nchars)
 	      (setq glyph (lgstring-glyph gstring i))
 	      (when (> i 0)
@@ -566,8 +570,10 @@ All non-spacing characters have this function in
 		       (as (lglyph-ascent glyph))
 		       (de (lglyph-descent glyph))
 		       (ce (/ (+ lb rb) 2))
+		       (w (lglyph-width glyph))
 		       xoff yoff)
-		  (when (and class (>= class 200) (<= class 240))
+		  (cond
+		   ((and class (>= class 200) (<= class 240))
 		    (setq xoff 0 yoff 0)
 		    (cond
 		     ((= class 200)
@@ -621,6 +627,38 @@ All non-spacing characters have this function in
 			  rb (+ lb xoff)
 			  as (- as yoff)
 			  de (+ de yoff)))
+		   ((and (= class 0)
+			 (eq (get-char-code-property (lglyph-char glyph)
+						     'general-category) 'Me))
+		    ;; Artificially layouting glyphs in an enclosing
+		    ;; mark is difficult.  All we can do is to adjust
+		    ;; the x-offset and width of the base glyph to
+		    ;; align it at the center of the glyph of the
+		    ;; enclosing mark hoping that the enclosing mark
+		    ;; is big enough.  We also have to adjust the
+		    ;; x-offset and width of the mark ifself properly
+		    ;; depending on how the glyph is designed
+
+		    ;; (non-spacing or not).  For instance, when we
+		    ;; have these glyphs:
+		    ;;   X position  |
+		    ;;   base:       <-*-> lbearing=0 rbearing=5 width=5
+		    ;;   mark: <----------.> lb=-11 rb=2 w=0
+		    ;; we get a correct layout by moving them as this:
+		    ;;   base:           <-*-> XOFF=4 WAD=9
+		    ;;   mark:       <----------.> xoff=2 wad=4
+		    ;; we have moved the base to the left by 4-pixel
+		    ;; and make its width 9-pixel, then move the mark
+		    ;; to the left 2-pixel and make its width 4-pixel.
+		    (let* (;; Adjustment for the base glyph
+			   (XOFF (/ (- rb lb width) 2))
+			   (WAD (+ width XOFF))
+			   ;; Adjustment for the enclosing mark glyph
+			   (xoff (- (+ lb WAD)))
+			   (wad (- rb lb WAD)))
+		      (lglyph-set-adjustment glyph xoff 0 wad)
+		      (setq glyph (lgstring-glyph gstring 0))
+		      (lglyph-set-adjustment glyph XOFF 0 WAD))))
 		  (if (< ascent as)
 		      (setq ascent as))
 		  (if (< descent de)
