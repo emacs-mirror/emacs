@@ -4798,12 +4798,21 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
       top = max (0, min (1, top));
     else
       top = old_top;
+#if ! defined (HAVE_XAW3D)
+    /* With Xaw, 'top' values too closer to 1.0 may
+       cause the thumb to disappear.  Fix that.  */
+    top = min (top, 0.99f);
+#endif
     /* Keep two pixels available for moving the thumb down.  */
     shown = max (0, min (1 - top - (2.0f / height), shown));
+#if ! defined (HAVE_XAW3D)
+    /* Likewise with too small 'shown'.  */
+    shown = max (shown, 0.01f);
+#endif
 
-    /* If the call to XawScrollbarSetThumb below doesn't seem to work,
-       check that your system's configuration file contains a define
-       for `NARROWPROTO'.  See s/freebsd.h for an example.  */
+    /* If the call to XawScrollbarSetThumb below doesn't seem to
+       work, check that 'NARROWPROTO' is defined in src/config.h.
+       If this is not so, most likely you need to fix configure.  */
     if (top != old_top || shown != old_shown)
       {
 	if (bar->dragging == -1)

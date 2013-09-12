@@ -1,3 +1,8 @@
+2013-09-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (x_set_scroll_bar_thumb) [USE_LUCID && !HAVE_XAW3D]: Clip
+	scroll bar values to prevent thumb from disappear and update comment.
+
 2013-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (usage_message): Possessive apostrophe tweak.
