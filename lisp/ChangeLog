@@ -1,5 +1,8 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-svn.el (vc-svn-parse-status): If there are multiple files
+	in the status output, assume `filename' is the first.  (Bug#15322)
+
 	* vc/vc.el (vc-deduce-fileset): Doc fix.
 
 	* calc/calc-help.el (Info-goto-node):

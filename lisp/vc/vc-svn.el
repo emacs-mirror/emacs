@@ -674,19 +674,23 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
 
 (defun vc-svn-parse-status (&optional filename)
   "Parse output of \"svn status\" command in the current buffer.
-Set file properties accordingly.  Unless FILENAME is non-nil, parse only
-information about FILENAME and return its status."
-  (let (file status propstat)
+Set file properties accordingly.  If FILENAME is non-nil, return its status."
+  (let (multifile file status propstat)
     (goto-char (point-min))
     (while (re-search-forward
             ;; Ignore the files with status X.
 	    "^\\(?:\\?\\|[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
-      (setq file (or filename
+      (setq file (or (unless multifile filename)
                      (expand-file-name
-                      (buffer-substring (point) (line-end-position)))))
-      (setq status (char-after (line-beginning-position))
+                      (buffer-substring (point) (line-end-position))))
+            ;; If we are parsing the result of running status on a directory,
+            ;; there could be multiple files in the output.
+            ;; We assume that filename, if supplied, applies to the first
+            ;; listed file (ie, the directory).  Bug#15322.
+            multifile t
+            status (char-after (line-beginning-position))
             ;; Status of the item's properties ([ MC]).
             propstat (char-after (1+ (line-beginning-position))))
       (if (eq status ??)
