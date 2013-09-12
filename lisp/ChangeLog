@@ -1,5 +1,8 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (do-after-load-evaluation): Also give compiler warnings
+	when obsolete files are used (except by obsolete files).
+
 	* vc/vc-svn.el (vc-svn-parse-status): If there are multiple files
 	in the status output, assume `filename' is the first.  (Bug#15322)
 

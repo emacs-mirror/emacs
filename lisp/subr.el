@@ -3907,12 +3907,27 @@ This function is called directly from the C code."
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
   (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
-    (run-with-timer 0 nil
-                    (lambda (file)
-                      (message "Package %s is obsolete!"
-                               (substring file 0
-                                          (string-match "\\.elc?\\>" file))))
-                    (file-name-nondirectory abs-file)))
+    ;; Maybe we should just use display-warning?  This seems yucky...
+    (let* ((file (file-name-nondirectory abs-file))
+	   (msg (format "Package %s is obsolete!"
+			(substring file 0
+				   (string-match "\\.elc?\\>" file)))))
+      ;; Cribbed from cl--compiling-file.
+      (if (and (boundp 'byte-compile--outbuffer)
+	       (bufferp (symbol-value 'byte-compile--outbuffer))
+	       (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
+		      " *Compiler Output*"))
+	  ;; Don't warn about obsolete files using other obsolete files.
+	  (unless (and (stringp byte-compile-current-file)
+		       (string-match-p "/obsolete/[^/]*\\'"
+				       (expand-file-name
+					byte-compile-current-file
+					byte-compile-root-dir)))
+	    (byte-compile-log-warning msg))
+	(run-with-timer 0 nil
+			(lambda (msg)
+			  (message "%s" msg)) msg))))
+
   ;; Finally, run any other hook.
   (run-hook-with-args 'after-load-functions abs-file))
 
