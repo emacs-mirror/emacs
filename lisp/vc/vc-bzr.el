@@ -320,11 +320,9 @@ in the repository root directory of FILE."
     ("^Using saved parent location: \\(.+\\)" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
 
-;; Follows vc-bzr-(async-)command, which uses vc-do-(async-)command
-;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
-;; Follows vc-exec-after.
+;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
+(declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.
@@ -354,6 +352,7 @@ prompt for the Bzr command to run."
       (setq vc-bzr-program (car  args)
 	    command        (cadr args)
 	    args           (cddr args)))
+    (require 'vc-dispatcher)
     (let ((buf (apply 'vc-bzr-async-command command args)))
       (with-current-buffer buf (vc-run-delayed (vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))

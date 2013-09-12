@@ -1,5 +1,11 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-bzr.el (vc-exec-after): Remove unused declaration.
+	(vc-compilation-mode): Declare.
+	(vc-bzr-pull): Require vc-dispatcher.
+	* vc/vc-git.el (vc-compilation-mode): Declare.
+	(vc-git-pull): Require vc-dispatcher.
+
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Declare.
 
 	* progmodes/octave.el (help-button-action): Declare.
