@@ -321,6 +321,7 @@ in the repository root directory of FILE."
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
 
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
