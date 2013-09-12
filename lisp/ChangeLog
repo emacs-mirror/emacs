@@ -15,6 +15,8 @@
 	* progmodes/cperl-mode.el (Info-find-node):
 	* vc/ediff.el (Info-goto-node): Update declarations.
 
+	* vc/vc-dispatcher.el (vc-dir-refresh): Declare.
+
 	* vc/vc-bzr.el (vc-compilation-mode): Declare.
 	(vc-bzr-pull): Require vc-dispatcher.
 	* vc/vc-git.el (vc-compilation-mode): Declare.
