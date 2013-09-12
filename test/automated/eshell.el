@@ -34,7 +34,8 @@
      (unwind-protect
          (with-current-buffer eshell-buffer
            ,@body)
-       (kill-buffer eshell-buffer))))
+       (let (kill-buffer-query-functions)
+         (kill-buffer eshell-buffer)))))
 
 (defun eshell-insert-command (text &optional func)
   "Insert a command at the end of the buffer."
