@@ -714,6 +714,8 @@ available..."
 	  (goto-char (point-min))
 	  (resize-temp-buffer-window))))))
 
+(defvar compilation-scroll-output)
+
 (defun eshell-grep (command args &optional maybe-use-occur)
   "Generic service function for the various grep aliases.
 It calls Emacs's grep utility if the command is not redirecting output,
@@ -989,7 +991,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	    (setq args nil)
 	  (setcdr (last args 3) nil))
 	(with-current-buffer
-	    (condition-case err
+	    (condition-case nil
 		(diff-no-select
 		 old new
 		 (nil-blank-string (eshell-flatten-and-stringify args)))
@@ -1013,6 +1015,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
   nil)
 
 (put 'eshell/diff 'eshell-no-numeric-conversions t)
+
+(defvar locate-history-list)
 
 (defun eshell/locate (&rest args)
   "Alias \"locate\" to call Emacs `locate' function."

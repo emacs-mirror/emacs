@@ -1,5 +1,33 @@
 2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Cleanup Eshell to rely less on dynamic scoping.
+	* eshell/esh-opt.el (eshell-eval-using-options): Don't bind usage-msg,
+	last-value, and ext-command here.  Bind `args' closer to `body'.
+	(temp-args, last-value, usage-msg, ext-command, args): Don't defvar.
+	(eshell--args): Declare new dynamic var.
+	(eshell-do-opt): Add argument `args'.  Bind our own usage-msg,
+	last-value, and ext-command.  Pass `args' to `body'.
+	(eshell-process-args): Bind eshell--args.
+	(eshell-set-option): Use eshell--args.
+	* eshell/eshell.el (eshell): Use derived-mode-p.
+	* eshell/esh-var.el (eshell-parse-variable): Use backquote.
+	(eshell-parse-variable-ref): Remove unused vars `end' and `err'.
+	(eshell-glob-function): Declare.
+	* eshell/esh-util.el: Require cl-lib.
+	(eshell-read-hosts-file): Avoid add-to-list.
+	* eshell/esh-cmd.el (eshell-parse-lisp-argument): Remove unused var
+	`err'.
+	* eshell/em-unix.el (compilation-scroll-output, locate-history-list):
+	Declare.
+	(eshell/diff): Remove unused var `err'.
+	* eshell/em-rebind.el (eshell-delete-backward-char): Remove unused arg
+	`killflag'.
+	* eshell/em-pred.el (eshell-parse-modifiers): Remove unused var `err'.
+	* eshell/em-ls.el (eshell-ls-highlight-alist): Move defvars before
+	first use.
+	* eshell/em-glob.el (eshell-glob-matches, message-shown):
+	Move declaration before first use.
+	* eshell/em-alias.el (eshell-maybe-replace-by-alias): Use backquotes.
 	* autorevert.el (auto-revert-notify-handler): Use `cl-dolist' since we
 	rely on cl-return.
 
