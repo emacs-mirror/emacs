@@ -1,4 +1,4 @@
-;;; em-hist.el --- history list management
+;;; em-hist.el --- history list management  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; em-term.el --- running visual commands
+;;; em-term.el --- running visual commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

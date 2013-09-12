@@ -1,4 +1,4 @@
-;;; em-unix.el --- UNIX command aliases
+;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

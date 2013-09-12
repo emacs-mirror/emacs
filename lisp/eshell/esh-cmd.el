@@ -1,4 +1,4 @@
-;;; esh-cmd.el --- command invocation
+;;; esh-cmd.el --- command invocation  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

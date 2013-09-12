@@ -1,4 +1,4 @@
-;;; em-cmpl.el --- completion using the TAB key
+;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -297,19 +297,16 @@ to writing a completion function."
   (define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol)
   (define-key eshell-mode-map [(meta control ?i)] 'eshell-complete-lisp-symbol)
   (define-key eshell-command-map [(meta ?h)] 'eshell-completion-help)
-  (define-key eshell-command-map [tab] 'pcomplete-expand-and-complete)
   (define-key eshell-command-map [(control ?i)]
     'pcomplete-expand-and-complete)
   (define-key eshell-command-map [space] 'pcomplete-expand)
   (define-key eshell-command-map [? ] 'pcomplete-expand)
-  (define-key eshell-mode-map [tab] 'eshell-pcomplete)
-  (define-key eshell-mode-map [(control ?i)] 'eshell-pcomplete)
+  (define-key eshell-mode-map [(control ?i)] 'pcomplete)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil t)
   ;; jww (1999-10-19): Will this work on anything but X?
-  (if (featurep 'xemacs)
-      (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
-    (define-key eshell-mode-map [backtab] 'pcomplete-reverse))
+  (define-key eshell-mode-map (if (featurep 'xemacs) [iso-left-tab] [backtab])
+    'pcomplete-reverse)
   (define-key eshell-mode-map [(meta ??)] 'pcomplete-list))
 
 (defun eshell-completion-command-name ()
@@ -458,16 +455,7 @@ to writing a completion function."
 			(all-completions filename obarray 'functionp))
 		   completions)))))))
 
-(defun eshell-pcomplete (&optional interactively)
-  "Eshell wrapper for `pcomplete'."
-  (interactive "p")
-  ;; Pretend to be pcomplete so that cycling works (bug#13293).
-  (setq this-command 'pcomplete)
-  (condition-case nil
-      (if interactively
-	  (call-interactively 'pcomplete)
-	(pcomplete))
-    (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
+(define-obsolete-function-alias 'eshell-pcomplete 'completion-at-point)
 
 (provide 'em-cmpl)
 

@@ -1,4 +1,4 @@
-;;; em-script.el --- Eshell script files
+;;; em-script.el --- Eshell script files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

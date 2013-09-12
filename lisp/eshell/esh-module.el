@@ -1,4 +1,4 @@
-;;; esh-module.el --- Eshell modules
+;;; esh-module.el --- Eshell modules  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2000, 2002-2013 Free Software Foundation, Inc.
 

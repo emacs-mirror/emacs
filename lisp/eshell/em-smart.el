@@ -1,4 +1,4 @@
-;;; em-smart.el --- smart display of output
+;;; em-smart.el --- smart display of output  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

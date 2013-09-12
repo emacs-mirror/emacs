@@ -1,4 +1,4 @@
-;;; esh-ext.el --- commands external to Eshell
+;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; em-prompt.el --- command prompts
+;;; em-prompt.el --- command prompts  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

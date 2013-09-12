@@ -1,4 +1,4 @@
-;;; esh-util.el --- general utilities
+;;; esh-util.el --- general utilities  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

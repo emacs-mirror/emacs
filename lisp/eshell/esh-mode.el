@@ -1,4 +1,4 @@
-;;; esh-mode.el --- user interface
+;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

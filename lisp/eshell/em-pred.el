@@ -1,4 +1,4 @@
-;;; em-pred.el --- argument predicates and modifiers (ala zsh)
+;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; esh-opt.el --- command options processing
+;;; esh-opt.el --- command options processing  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

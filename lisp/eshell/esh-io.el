@@ -1,4 +1,4 @@
-;;; esh-io.el --- I/O management
+;;; esh-io.el --- I/O management  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

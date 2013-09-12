@@ -1,4 +1,4 @@
-;;; em-rebind.el --- rebind keys when point is at current input
+;;; em-rebind.el --- rebind keys when point is at current input  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

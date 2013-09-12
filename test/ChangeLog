@@ -1,3 +1,8 @@
+2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/eshell.el: Rename from eshell.el.
+	(eshell-test/for-loop, eshell-test/for-name-loop): New tests (bug#15231).
+
 2013-09-01  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (setwins): Avoid leading space in $wins.
@@ -164,25 +169,25 @@
 2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el
-	(file-notify-test-remote-temporary-file-directory): Use
-	`null-device' on w32.
+	(file-notify-test-remote-temporary-file-directory):
+	Use `null-device' on w32.
 	(file-notify--test-tmpfile, file-notify--test-tmpfile1)
 	(file-notify--test-results, file-notify--test-event)
 	(file-notify--deftest-remote, file-notify--event-test)
 	(file-notify--test-event-handler)
-	(file-notify--test-make-temp-name): Renamed, in order to mark them
+	(file-notify--test-make-temp-name): Rename, in order to mark them
 	internal.
 	(tramp-message-show-message, tramp-read-passwd): Tweak them for
 	better fitting in noninteractive tests.
-	(file-notify-test00-availability): Renamed from `file-notify-test0'.
-	(file-notify-test01-add-watch): Renamed from `file-notify-test1'.
+	(file-notify-test00-availability): Rename from `file-notify-test0'.
+	(file-notify-test01-add-watch): Rename from `file-notify-test1'.
 	Use `temporary-file-directory '.
 	(file-notify-test01-add-watch-remote): New test.
-	(file-notify-test02-events): Renamed from `file-notify-test2'.
-	(file-notify-test02-events-remote): Renamed from `file-notify-test3'.
-	(file-notify-test03-autorevert): Renamed from
+	(file-notify-test02-events): Rename from `file-notify-test2'.
+	(file-notify-test02-events-remote): Rename from `file-notify-test3'.
+	(file-notify-test03-autorevert): Rename from
 	`file-notify-test4'.  Use timeouts.
-	(file-notify-test03-autorevert-remote): Renamed from
+	(file-notify-test03-autorevert-remote): Rename from
 	`file-notify-test5'.
 
 2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
@@ -192,7 +197,7 @@
 2013-06-28  Kenichi Handa  <handa@gnu.org>
 
 	* automated/decoder-tests.el (decoder-tests-gen-file): New arg FILE.
-	(decoder-tests-ao-gen-file): Renamed from decoder-tests-filename.
+	(decoder-tests-ao-gen-file): Rename from decoder-tests-filename.
 	Callers changed.
 	(decoder-tests-filename): New function.
 	(decoder-tests-prefer-utf-8-read)

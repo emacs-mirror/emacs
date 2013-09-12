@@ -1,4 +1,4 @@
-;;; esh-proc.el --- process management
+;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; em-ls.el --- implementation of ls in Lisp
+;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
