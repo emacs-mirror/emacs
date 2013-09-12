@@ -686,6 +686,7 @@ which case the returned charset must be supported by that coding
 system (@pxref{Coding Systems}).
 @end defun
 
+@c TODO: Explain the properties here and add indexes such as ‘charset property’.
 @defun charset-plist charset
 This function returns the property list of the character set
 @var{charset}.  Although @var{charset} is a symbol, this is not the
@@ -851,6 +852,8 @@ systems specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
+@c FIXME: This variable is obsolete since 23.1.  We should mention
+@c that here or simply remove this defvar.  --xfq
 @defvar translation-table-for-input
 Self-inserting characters are translated through this translation
 table before they are inserted.  Search commands also translate their
