@@ -1,5 +1,7 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/octave.el (help-button-action): Declare.
+
 	* shell.el (shell-directory-tracker): Output error as a message
 	rather than just returning it as a string.
 	(shell-process-pushd): Remove useless use of message.
