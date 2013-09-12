@@ -1,3 +1,7 @@
+2013-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.mk (lisp): Add w32-common-fns.elc.
+
 2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* charset.c (char_charset): Document an exception for char-charset.
