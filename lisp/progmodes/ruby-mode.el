@@ -1377,6 +1377,7 @@ If the result is do-end block, it will always be multiline."
 ;; Unusual code layout confuses the byte-compiler.
 (declare-function ruby-syntax-propertize-expansion "ruby-mode" ())
 (declare-function ruby-syntax-expansion-allowed-p "ruby-mode" (parse-state))
+(declare-function ruby-syntax-propertize-function "ruby-mode" (start end))
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.

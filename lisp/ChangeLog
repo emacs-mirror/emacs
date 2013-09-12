@@ -1,5 +1,7 @@
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Declare.
+
 	* progmodes/octave.el (help-button-action): Declare.
 
 	* shell.el (shell-directory-tracker): Output error as a message
