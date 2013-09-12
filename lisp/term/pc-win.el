@@ -1,7 +1,7 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2013
+;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF
@@ -238,9 +238,8 @@ is not used)."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
-	(condition-case c
-	    (setq text (w16-get-clipboard-data))
-	  (error (message "w16-get-clipboard-data:%s" c)))
+	(with-demoted-errors "w16-get-clipboard-data:%s"
+          (setq text (w16-get-clipboard-data)))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)

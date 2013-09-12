@@ -309,27 +309,26 @@ This variable is expected to be made buffer-local by modes (other than
 Emacs Lisp mode) that support ElDoc.")
 
 (defun eldoc-print-current-symbol-info ()
-  (condition-case err
-      (and (or (eldoc-display-message-p) eldoc-post-insert-mode)
-	   (if eldoc-documentation-function
-	       (eldoc-message (funcall eldoc-documentation-function))
-	     (let* ((current-symbol (eldoc-current-symbol))
-		    (current-fnsym  (eldoc-fnsym-in-current-sexp))
-		    (doc (cond
-			  ((null current-fnsym)
-			   nil)
-			  ((eq current-symbol (car current-fnsym))
-			   (or (apply 'eldoc-get-fnsym-args-string
-				      current-fnsym)
-			       (eldoc-get-var-docstring current-symbol)))
-			  (t
-			   (or (eldoc-get-var-docstring current-symbol)
-			       (apply 'eldoc-get-fnsym-args-string
-				      current-fnsym))))))
-	       (eldoc-message doc))))
-    ;; This is run from post-command-hook or some idle timer thing,
-    ;; so we need to be careful that errors aren't ignored.
-    (error (message "eldoc error: %s" err))))
+  ;; This is run from post-command-hook or some idle timer thing,
+  ;; so we need to be careful that errors aren't ignored.
+  (with-demoted-errors "eldoc error: %s"
+    (and (or (eldoc-display-message-p) eldoc-post-insert-mode)
+	 (if eldoc-documentation-function
+	     (eldoc-message (funcall eldoc-documentation-function))
+	   (let* ((current-symbol (eldoc-current-symbol))
+		  (current-fnsym  (eldoc-fnsym-in-current-sexp))
+		  (doc (cond
+			((null current-fnsym)
+			 nil)
+			((eq current-symbol (car current-fnsym))
+			 (or (apply 'eldoc-get-fnsym-args-string
+				    current-fnsym)
+			     (eldoc-get-var-docstring current-symbol)))
+			(t
+			 (or (eldoc-get-var-docstring current-symbol)
+			     (apply 'eldoc-get-fnsym-args-string
+				    current-fnsym))))))
+	     (eldoc-message doc))))))
 
 (defun eldoc-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.

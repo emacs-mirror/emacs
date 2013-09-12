@@ -269,16 +269,15 @@ file modes."
        (save-restriction
 	 (widen)
 	 (string= "#!" (buffer-substring (point-min) (+ 2 (point-min)))))
-       (condition-case nil
-           (let* ((current-mode (file-modes (buffer-file-name)))
-                  (add-mode (logand ?\111 (default-file-modes))))
-             (or (/= (logand ?\111 current-mode) 0)
-                 (zerop add-mode)
-                 (set-file-modes (buffer-file-name)
-                                 (logior current-mode add-mode))))
-         ;; Eg file-modes can return nil (bug#9879).  It should not,
-         ;; in this context, but we should handle it all the same.
-         (error (message "Unable to make file executable")))))
+       ;; Eg file-modes can return nil (bug#9879).  It should not,
+       ;; in this context, but we should handle it all the same.
+       (with-demoted-errors "Unable to make file executable: %s"
+         (let* ((current-mode (file-modes (buffer-file-name)))
+                (add-mode (logand ?\111 (default-file-modes))))
+           (or (/= (logand ?\111 current-mode) 0)
+               (zerop add-mode)
+               (set-file-modes (buffer-file-name)
+                               (logior current-mode add-mode)))))))
 
 (provide 'executable)
 

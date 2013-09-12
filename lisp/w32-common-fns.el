@@ -107,9 +107,8 @@ Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
-	(condition-case c
-	    (setq text (w32-get-clipboard-data))
-	  (error (message "w32-get-clipboard-data:%s" c)))
+	(with-demoted-errors "w32-get-clipboard-data:%s"
+	  (setq text (w32-get-clipboard-data)))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)

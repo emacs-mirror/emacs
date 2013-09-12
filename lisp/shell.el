@@ -1,7 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -1015,12 +1014,11 @@ command again."
 			 ds))
 	  (setq i (match-end 0)))
 	(let ((ds (nreverse ds)))
-	  (condition-case nil
-	      (progn (shell-cd (car ds))
-		     (setq shell-dirstack (cdr ds)
-			   shell-last-dir (car shell-dirstack))
-		     (shell-dirstack-message))
-	    (error (message "Couldn't cd"))))))
+	  (with-demoted-errors "Couldn't cd: %s"
+	    (shell-cd (car ds))
+	    (setq shell-dirstack (cdr ds)
+		  shell-last-dir (car shell-dirstack))
+	    (shell-dirstack-message)))))
     (if started-at-pmark (goto-char (marker-position pmark)))))
 
 ;; For your typing convenience:

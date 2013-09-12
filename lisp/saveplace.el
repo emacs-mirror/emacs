@@ -255,13 +255,9 @@ may have changed\) back to `save-place-alist'."
                 (insert-file-contents file)
                 (goto-char (point-min))
                 (setq save-place-alist
-                      ;; This is with-demoted-errors, but we want to
-                      ;; mention save-place in any error message.
-                      (condition-case err
+                      (with-demoted-errors "Error reading save-place-file: %S"
                         (car (read-from-string
-                              (buffer-substring (point-min) (point-max))))
-                        (error (message "Error reading save-place-file: %S" err)
-                               nil)))
+                              (buffer-substring (point-min) (point-max))))))
 
                 ;; If there is a limit, and we're over it, then we'll
                 ;; have to truncate the end of the list:

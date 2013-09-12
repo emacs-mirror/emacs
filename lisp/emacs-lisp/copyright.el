@@ -1,7 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991-1995, 1998, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1991-1995, 1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools
@@ -145,18 +144,17 @@ The header must match `copyright-regexp' and `copyright-names-regexp', if set.
 This function sets the match-data that `copyright-update-year' uses."
   (widen)
   (goto-char (copyright-start-point))
-  (condition-case err
-      ;; (1) Need the extra \\( \\) around copyright-regexp because we
-      ;; goto (match-end 1) below. See note (2) below.
-      (copyright-re-search (concat "\\(" copyright-regexp
-				   "\\)\\([ \t]*\n\\)?.*\\(?:"
-				   copyright-names-regexp "\\)")
-			   (copyright-limit)
-			   t)
-    ;; In case the regexp is rejected.  This is useful because
-    ;; copyright-update is typically called from before-save-hook where
-    ;; such an error is very inconvenient for the user.
-    (error (message "Can't update copyright: %s" err) nil)))
+  ;; In case the regexp is rejected.  This is useful because
+  ;; copyright-update is typically called from before-save-hook where
+  ;; such an error is very inconvenient for the user.
+  (with-demoted-errors "Can't update copyright: %s"
+    ;; (1) Need the extra \\( \\) around copyright-regexp because we
+    ;; goto (match-end 1) below. See note (2) below.
+    (copyright-re-search (concat "\\(" copyright-regexp
+				 "\\)\\([ \t]*\n\\)?.*\\(?:"
+				 copyright-names-regexp "\\)")
+			 (copyright-limit)
+			 t)))
 
 (defun copyright-find-end ()
   "Possibly adjust the search performed by `copyright-find-copyright'.

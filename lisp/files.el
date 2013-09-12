@@ -3637,21 +3637,17 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; This is with-demoted-errors, but we want to mention dir-locals
-    ;; in any error message.
-    (condition-case err
-        (progn
-          (insert-file-contents file)
-          (unless (zerop (buffer-size))
-            (let* ((dir-name (file-name-directory file))
-                   (class-name (intern dir-name))
-                   (variables (let ((read-circle nil))
-                                (read (current-buffer)))))
-              (dir-locals-set-class-variables class-name variables)
-              (dir-locals-set-directory-class dir-name class-name
-                                              (nth 5 (file-attributes file)))
-              class-name)))
-      (error (message "Error reading dir-locals: %S" err) nil))))
+    (with-demoted-errors "Error reading dir-locals: %S"
+      (insert-file-contents file)
+      (unless (zerop (buffer-size))
+        (let* ((dir-name (file-name-directory file))
+               (class-name (intern dir-name))
+               (variables (let ((read-circle nil))
+                            (read (current-buffer)))))
+          (dir-locals-set-class-variables class-name variables)
+          (dir-locals-set-directory-class dir-name class-name
+                                          (nth 5 (file-attributes file)))
+          class-name)))))
 
 (defcustom enable-remote-dir-locals nil
   "Non-nil means dir-local variables will be applied to remote files."

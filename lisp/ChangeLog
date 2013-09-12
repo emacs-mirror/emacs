@@ -1,3 +1,21 @@
+2013-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* dframe.el (dframe-timer-fn):
+	* files.el (dir-locals-read-from-file):
+	* mpc.el (mpc--status-timer-run, mpc--status-idle-timer-run)
+	(mpc-format):
+	* reveal.el (reveal-post-command):
+	* saveplace.el (load-save-place-alist-from-file):
+	* shell.el (shell-resync-dirs):
+	* w32-common-fns.el (x-get-selection-value):
+	* emacs-lisp/copyright.el (copyright-find-copyright):
+	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info):
+	* emulation/tpu-edt.el (tpu-copy-keyfile):
+	* play/bubbles.el (bubbles--mark-neighbourhood):
+	* progmodes/executable.el
+	(executable-make-buffer-file-executable-if-script-p):
+	* term/pc-win.el (x-get-selection-value): Use with-demoted-errors.
+
 2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Cleanup Eshell to rely less on dynamic scoping.
