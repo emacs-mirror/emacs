@@ -234,12 +234,12 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-run-delayed
    (vc-svn-after-dir-status callback remote))))
 
-(defun vc-svn-dir-status-files (dir files _default-state callback)
+(defun vc-svn-dir-status-files (_dir files _default-state callback)
   (apply 'vc-svn-command (current-buffer) 'async nil "status" files)
   (vc-run-delayed
    (vc-svn-after-dir-status callback)))
 
-(defun vc-svn-dir-extra-headers (dir)
+(defun vc-svn-dir-extra-headers (_dir)
   "Generate extra status headers for a Subversion working copy."
   (let (process-file-side-effects)
     (vc-svn-command "*vc*" 0 nil "info"))
@@ -352,7 +352,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 		(concat "-r" rev))
 	   (vc-switches 'SVN 'checkout))))
 
-(defun vc-svn-ignore (file &optional directory remove)
+(defun vc-svn-ignore (file &optional _directory _remove)
   "Ignore FILE under Subversion.
 FILE is a file wildcard, relative to the root directory of DIRECTORY."
   (vc-svn-command t 0 file "propedit" "svn:ignore"))
