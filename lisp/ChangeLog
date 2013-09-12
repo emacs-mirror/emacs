@@ -1,3 +1,8 @@
+2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autorevert.el (auto-revert-notify-handler): Use `cl-dolist' since we
+	rely on cl-return.
+
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (global-map): Remove binding for ispell-next,
@@ -18,8 +23,8 @@
 
 	* eshell/esh-mode.el (eshell-mode-syntax-table): Fix up initialization
 	(bug#15338).
-	(eshell-self-insert-command, eshell-send-invisible): Remove
-	unused argument.
+	(eshell-self-insert-command, eshell-send-invisible):
+	Remove unused argument.
 	(eshell-handle-control-codes): Remove unused var `orig'.
 	Avoid delete-backward-char.
 
