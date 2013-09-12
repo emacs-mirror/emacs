@@ -1,5 +1,8 @@
 2013-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/ns-win.el (parameters): Don't declare as dynamic.
+	(before-make-frame-hook): Don't add ineffective function.
+
 	* eshell/*.el: Use lexical-binding (bug#15231).
 
 2013-09-12  Kenichi Handa  <handa@gnu.org>

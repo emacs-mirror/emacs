@@ -556,29 +556,9 @@ unless the current buffer is a scratch buffer."
   (interactive)
   (other-frame -1))
 
-;; If no position specified, make new frame offset by 25 from current.
-;; You'd think this was a window manager's job, but apparently without
-;; this, new frames open exactly on top of old ones (?).
-;; http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg00988.html
-;; Note that AFAICS it is not documented that functions on
-;; before-make-frame-hook can access PARAMETERS.
-(defvar parameters)		     ; dynamically bound in make-frame
-(add-hook 'before-make-frame-hook
-          (lambda ()
-            (let ((left (cdr (assq 'left (frame-parameters))))
-                  (top (cdr (assq 'top (frame-parameters)))))
-              (if (consp left) (setq left (cadr left)))
-              (if (consp top) (setq top (cadr top)))
-              (cond
-               ((or (assq 'top parameters) (assq 'left parameters)))
-               ((or (not left) (not top)))
-               (t
-                (setq parameters (cons (cons 'left (+ left 25))
-                                       (cons (cons 'top (+ top 25))
-                                             parameters))))))))
-
-;; frame will be focused anyway, so select it
+;; Frame will be focused anyway, so select it
 ;; (if this is not done, mode line is dimmed until first interaction)
+;; FIXME: Sounds like we're working around a bug in the underlying code.
 (add-hook 'after-make-frame-functions 'select-frame)
 
 (defvar tool-bar-mode)
