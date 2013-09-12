@@ -1,3 +1,7 @@
+2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* charset.c (char_charset): Document an exception for char-charset.
+
 2013-09-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.h (x_display_info): New field last_user_time...
