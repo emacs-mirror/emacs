@@ -1,5 +1,7 @@
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-spec.el (gnus-xmas-format): Fix weird error call.
+
 	* gnus-html.el (declare-function): Add compat stub for ancient Emacs.
 	(image-size): Declare.
 
