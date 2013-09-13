@@ -1,3 +1,8 @@
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-user): Doc fix.
+	(dired-guess-default): Make `file' available in the env.  (Bug#15363)
+
 2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.el (x-focus-frame): Mark as declared in frame.c.
