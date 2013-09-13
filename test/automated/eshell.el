@@ -56,77 +56,83 @@
   (eshell-insert-command text func)
   (eshell-match-result regexp))
 
+(defun eshell-test-command-result (command)
+  "Like `eshell-command-result', but not using HOME."
+  (let ((eshell-directory-name (make-temp-file "eshell" t))
+        (eshell-history-file-name nil))
+    (eshell-command-result command)))
+
 ;;; Tests:
 
 (ert-deftest eshell-test/simple-command-result ()
   "Test `eshell-command-result' with a simple command."
-  (should (equal (eshell-command-result "+ 1 2") 3)))
+  (should (equal (eshell-test-command-result "+ 1 2") 3)))
 
 (ert-deftest eshell-test/lisp-command ()
   "Test `eshell-command-result' with an elisp command."
-  (should (equal (eshell-command-result "(+ 1 2)") 3)))
+  (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
 
 (ert-deftest eshell-test/for-loop ()
   "Test `eshell-command-result' with an elisp command."
-  (should (equal (eshell-command-result "for foo in 5 { echo $foo }") 5)))
+  (should (equal (eshell-test-command-result "for foo in 5 { echo $foo }") 5)))
 
 (ert-deftest eshell-test/for-name-loop () ;Bug#15231
   "Test `eshell-command-result' with an elisp command."
-  (should (equal (eshell-command-result "for name in 3 { echo $name }") 3)))
+  (should (equal (eshell-test-command-result "for name in 3 { echo $name }") 3)))
 
 (ert-deftest eshell-test/lisp-command-args ()
   "Test `eshell-command-result' with elisp and trailing args.
 Test that trailing arguments outside the S-expression are
 ignored.  e.g. \"(+ 1 2) 3\" => 3"
-  (should (equal (eshell-command-result "(+ 1 2) 3") 3)))
+  (should (equal (eshell-test-command-result "(+ 1 2) 3") 3)))
 
 (ert-deftest eshell-test/subcommand ()
   "Test `eshell-command-result' with a simple subcommand."
-  (should (equal (eshell-command-result "{+ 1 2}") 3)))
+  (should (equal (eshell-test-command-result "{+ 1 2}") 3)))
 
 (ert-deftest eshell-test/subcommand-args ()
   "Test `eshell-command-result' with a subcommand and trailing args.
 Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{+ 1 2} 3\" => 3"
-  (should (equal (eshell-command-result "{+ 1 2} 3") 3)))
+  (should (equal (eshell-test-command-result "{+ 1 2} 3") 3)))
 
 (ert-deftest eshell-test/subcommand-lisp ()
   "Test `eshell-command-result' with an elisp subcommand and trailing args.
 Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{(+ 1 2)} 3\" => 3"
-  (should (equal (eshell-command-result "{(+ 1 2)} 3") 3)))
+  (should (equal (eshell-test-command-result "{(+ 1 2)} 3") 3)))
 
 (ert-deftest eshell-test/interp-cmd ()
   "Interpolate command result"
-  (should (equal (eshell-command-result "+ ${+ 1 2} 3") 6)))
+  (should (equal (eshell-test-command-result "+ ${+ 1 2} 3") 6)))
 
 (ert-deftest eshell-test/interp-lisp ()
   "Interpolate Lisp form evaluation"
-  (should (equal (eshell-command-result "+ $(+ 1 2) 3") 6)))
+  (should (equal (eshell-test-command-result "+ $(+ 1 2) 3") 6)))
 
 (ert-deftest eshell-test/interp-concat ()
   "Interpolate and concat command"
-  (should (equal (eshell-command-result "+ ${+ 1 2}3 3") 36)))
+  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36)))
 
 (ert-deftest eshell-test/interp-concat-lisp ()
   "Interpolate and concat Lisp form"
-  (should (equal (eshell-command-result "+ $(+ 1 2)3 3") 36)))
+  (should (equal (eshell-test-command-result "+ $(+ 1 2)3 3") 36)))
 
 (ert-deftest eshell-test/interp-concat2 ()
   "Interpolate and concat two commands"
-  (should (equal (eshell-command-result "+ ${+ 1 2}${+ 1 2} 3") 36)))
+  (should (equal (eshell-test-command-result "+ ${+ 1 2}${+ 1 2} 3") 36)))
 
 (ert-deftest eshell-test/interp-concat-lisp2 ()
   "Interpolate and concat two Lisp forms"
-  (should (equal (eshell-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
+  (should (equal (eshell-test-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
 
 (ert-deftest eshell-test/window-height ()
   "$LINES should equal (window-height)"
-  (should (eshell-command-result "= $LINES (window-height)")))
+  (should (eshell-test-command-result "= $LINES (window-height)")))
 
 (ert-deftest eshell-test/window-width ()
   "$COLUMNS should equal (window-width)"
-  (should (eshell-command-result "= $COLUMNS (window-width)")))
+  (should (eshell-test-command-result "= $COLUMNS (window-width)")))
 
 (ert-deftest eshell-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"
