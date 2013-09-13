@@ -562,6 +562,8 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (substring string 0 sublen)
 	string)))
 
+(defvar ange-cache)
+
 (and (featurep 'xemacs)
      (not (fboundp 'directory-files-and-attributes))
      (defun directory-files-and-attributes (directory &optional full match nosort id-format)
@@ -578,8 +580,6 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	(lambda (file)
 	  (cons file (eshell-file-attributes (expand-file-name file directory)))))
        (directory-files directory full match nosort)))))
-
-(defvar ange-cache)
 
 (defun eshell-directory-files-and-attributes (dir &optional full match nosort id-format)
   "Make sure to use the handler for `directory-file-and-attributes'."
