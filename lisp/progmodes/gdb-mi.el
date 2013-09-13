@@ -3257,10 +3257,15 @@ line."
   gud-stop-subjob
   "Interrupt thread at current line.")
 
+;; Defined opaquely in M-x gdb via gud-def.
+(declare-function gud-cont "gdb-mi" (arg) t)
+
 (def-gdb-thread-buffer-gud-command
   gdb-continue-thread
   gud-cont
   "Continue thread at current line.")
+
+(declare-function gud-step "gdb-mi" (arg) t)
 
 (def-gdb-thread-buffer-gud-command
   gdb-step-thread
