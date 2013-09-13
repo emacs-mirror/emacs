@@ -1,3 +1,11 @@
+2013-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ls-lisp.el: Use advice-add.
+	(original-insert-directory): Remove.
+	(ls-lisp--insert-directory): Rename from insert-directory; add
+	`orig-fun' argument.
+	(insert-directory): Advise.
+
 2013-09-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.el (term-emulate-terminal): Decode the command string
