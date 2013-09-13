@@ -1,5 +1,7 @@
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-ext.el (eshell-search-path): Declare.
+
 	* eshell/em-prompt.el (eshell/pwd): Autoload it.
 	Otherwise an error occurs if eshell-dirs module not loaded.
 

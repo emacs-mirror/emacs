@@ -92,6 +92,10 @@ since nothing else but Eshell will be able to understand
 	(setq list (cdr list)))
       file)))
 
+;; This file provides itself then eval-when-compile loads files that require it.
+;; This causes spurious "might not be defined at runtime" warnings.
+(declare-function eshell-search-path "esh-ext" (name))
+
 (defcustom eshell-windows-shell-file
   (if (eshell-under-windows-p)
       (if (string-match "\\(cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
