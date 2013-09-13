@@ -1903,10 +1903,13 @@ See `redirect-frame-focus'.  */)
 
 DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Set the input focus to FRAME.
-FRAME nil means use the selected frame.  */)
+FRAME nil means use the selected frame.
+If there is no window system support, this function does nothing.  */)
   (Lisp_Object frame)
 {
+#ifdef HAVE_WINDOW_SYSTEM
   x_focus_frame (decode_window_system_frame (frame));
+#endif
   return Qnil;
 }
 
