@@ -1,3 +1,8 @@
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/ia.el (semantic-ia-complete-symbol-menu):
+	Comment it out, since it cannot work.  (Bug#14522)
+
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/find.el (semantic-find-first-tag-by-name):
