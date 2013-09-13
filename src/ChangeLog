@@ -1,5 +1,25 @@
 2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Unify Fx_focus_frame between all ports.
+	* frame.h (x_focus_frame): New prototype.
+	* xfns.c (Fx_focus_frame): Remove.
+	(syms_of_xfns): Do not defsubr it.
+	(x_focus_frame): X implementation.
+	* nsfns.m (Fx_focus_frame): Remove.
+	(syms_of_nsfns): Do not defsubr it.
+	(x_focus_frame): NS implementation.
+	* w32term.c (Fx_focus_frame): Remove.
+	(x_focus_on_frame): Rename to...
+	(x_focus_frame): W32 implementation.
+	* w32term.h (x_focus_on_frame): Remove prototype.
+	* w32fns.c (Fx_focus_frame): Remove.
+	(syms_of_w32fns): Do not defsubr it.
+	* frame.c (Fx_focus_frame): Define here.
+	(syms_of_frame): Defsubr here.
+	* gtkutil.c (xg_tool_bar_callback): Use x_focus_frame.
+
+2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Unify FRAME_window_system_DISPLAY_INFO macros between all ports.
 	All of them are replaced with FRAME_DISPLAY_INFO, defined in
 	each port to reference the port-specific window system data.

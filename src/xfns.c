@@ -3252,12 +3252,9 @@ x_get_focus_frame (struct frame *frame)
    policy.  But I think it's okay to use when it's clearly done
    following a user-command.  */
 
-DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
-       doc: /* Set the input focus to FRAME.
-FRAME nil means use the selected frame.  */)
-  (Lisp_Object frame)
+void
+x_focus_frame (struct frame *f)
 {
-  struct frame *f = decode_window_system_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
 
   block_input ();
@@ -3279,8 +3276,6 @@ FRAME nil means use the selected frame.  */)
 
   x_uncatch_errors ();
   unblock_input ();
-
-  return Qnil;
 }
 
 
@@ -6170,7 +6165,6 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
-  defsubr (&Sx_focus_frame);
   defsubr (&Sx_backspace_delete_keys_p);
 
   defsubr (&Sx_show_tip);

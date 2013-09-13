@@ -199,8 +199,6 @@ Lisp_Object display_x_get_resource (struct w32_display_info *,
                                     Lisp_Object, Lisp_Object,
                                     Lisp_Object, Lisp_Object);
 
-extern void x_focus_on_frame (struct frame *f);
-
 /* also defined in xterm.h XXX: factor out to common header */
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,

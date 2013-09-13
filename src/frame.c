@@ -1901,6 +1901,14 @@ See `redirect-frame-focus'.  */)
   return FRAME_FOCUS_FRAME (decode_live_frame (frame));
 }
 
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
+       doc: /* Set the input focus to FRAME.
+FRAME nil means use the selected frame.  */)
+  (Lisp_Object frame)
+{
+  x_focus_frame (decode_window_system_frame (frame));
+  return Qnil;
+}
 
 
 /* Return the value of frame parameter PROP in frame FRAME.  */
@@ -4524,6 +4532,7 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Svisible_frame_list);
   defsubr (&Sraise_frame);
   defsubr (&Slower_frame);
+  defsubr (&Sx_focus_frame);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);

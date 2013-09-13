@@ -4622,15 +4622,6 @@ x_get_focus_frame (struct frame *frame)
   return xfocus;
 }
 
-DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
-       doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
-  (Lisp_Object frame)
-{
-  x_focus_on_frame (decode_window_system_frame (frame));
-  return Qnil;
-}
-
-
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.
 \(Note that the Nextstep version of this function ignores FRAME.)  */)
@@ -7857,7 +7848,6 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
-  defsubr (&Sx_focus_frame);
 
   /* W32 specific functions */
 

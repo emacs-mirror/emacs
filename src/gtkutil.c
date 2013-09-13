@@ -3975,9 +3975,9 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   event.modifiers = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), mod);
   kbd_buffer_store_event (&event);
 
-   /* Return focus to the frame after we have clicked on a detached
-      tool bar button. */
-   Fx_focus_frame (frame);
+  /* Return focus to the frame after we have clicked on a detached
+     tool bar button. */
+  x_focus_frame (f);
 }
 
 /* Callback function invoked when a tool bar item is pressed in a detached

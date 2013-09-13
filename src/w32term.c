@@ -5806,7 +5806,7 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 /* focus shifting, raising and lowering.  */
 
 void
-x_focus_on_frame (struct frame *f)
+x_focus_frame (struct frame *f)
 {
   struct w32_display_info *dpyinfo = &one_w32_display_info;
 

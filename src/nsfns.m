@@ -1339,13 +1339,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   return unbind_to (count, frame);
 }
 
-
-DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
-       doc: /* Set the input focus to FRAME.
-FRAME nil means use the selected frame.  */)
-     (Lisp_Object frame)
+void
+x_focus_frame (struct frame *f)
 {
-  struct frame *f = decode_window_system_frame (frame);
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (dpyinfo->x_focus_frame != f)
@@ -1356,8 +1352,6 @@ FRAME nil means use the selected frame.  */)
       [[view window] makeKeyAndOrderFront: view];
       unblock_input ();
     }
-
-  return Qnil;
 }
 
 
@@ -2894,7 +2888,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_list_services);
   defsubr (&Sns_perform_service);
   defsubr (&Sns_convert_utf8_nfd_to_nfc);
-  defsubr (&Sx_focus_frame);
   defsubr (&Sns_popup_font_panel);
   defsubr (&Sns_popup_color_panel);
 
