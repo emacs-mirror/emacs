@@ -1,3 +1,8 @@
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (with-temp-eshell):
+	Use a temp directory for eshell-directory-name.
+
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* automated/eshell.el (with-temp-eshell): Avoid hangs in batch mode

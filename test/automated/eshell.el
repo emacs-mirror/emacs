@@ -30,12 +30,15 @@
 
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
-  `(let ((eshell-buffer (eshell t)))
+  `(let* ((eshell-directory-name (make-temp-file "eshell" t))
+          (eshell-history-file-name nil)
+          (eshell-buffer (eshell t)))
      (unwind-protect
          (with-current-buffer eshell-buffer
            ,@body)
        (let (kill-buffer-query-functions)
-         (kill-buffer eshell-buffer)))))
+         (kill-buffer eshell-buffer)
+         (delete-directory eshell-directory-name t)))))
 
 (defun eshell-insert-command (text &optional func)
   "Insert a command at the end of the buffer."
