@@ -2937,8 +2937,10 @@ See `term-prompt-regexp'."
 			  (let ((end (string-match "\r?$" str i)))
 			    (if end
 				(funcall term-command-hook
-					 (prog1 (substring str (1+ i) end)
-					   (setq i (match-end 0))))
+					 (decode-coding-string
+					  (prog1 (substring str (1+ i) end)
+					    (setq i (match-end 0)))
+					  locale-coding-system))
 			      (setq term-terminal-parameter (substring str i))
 			      (setq term-terminal-state 4)
 			      (setq i str-length))))

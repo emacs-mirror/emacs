@@ -1,3 +1,8 @@
+2013-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.el (term-emulate-terminal): Decode the command string
+	before passing it to term-command-hook.  (Bug#15337)
+
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-util.el (ange-cache): Move declaration earlier.
