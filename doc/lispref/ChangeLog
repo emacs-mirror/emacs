@@ -1,6 +1,11 @@
+2013-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Not Intervals): Minor wording fix.
+
 2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* functions.texi (Obsolete Functions): Add an index for obsolete functions.
+	* functions.texi (Obsolete Functions): Add an index for obsolete
+	functions.
 
 2013-09-11  Xue Fuqiao  <xfq.free@gmail.com>
 
