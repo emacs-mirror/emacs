@@ -4286,7 +4286,7 @@ Gateway hops are already opened."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
-  (tramp-check-proper-host vec)
+  (tramp-check-proper-method-and-host vec)
 
   (let ((p (tramp-get-connection-process vec))
 	(process-name (tramp-get-connection-property vec "process-name" nil))
