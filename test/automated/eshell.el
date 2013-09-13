@@ -60,7 +60,9 @@
   "Like `eshell-command-result', but not using HOME."
   (let ((eshell-directory-name (make-temp-file "eshell" t))
         (eshell-history-file-name nil))
-    (eshell-command-result command)))
+    (unwind-protect
+        (eshell-command-result command)
+      (delete-directory eshell-directory-name t))))
 
 ;;; Tests:
 
