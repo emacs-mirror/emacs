@@ -376,20 +376,6 @@ struct x_display_info
 extern int use_xim;
 #endif
 
-extern struct frame *x_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
-						XEvent *);
-extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
-
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
-						XEvent *);
-
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-#define x_any_window_to_frame x_window_to_frame
-#define x_top_window_to_frame x_window_to_frame
-#endif
-
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
@@ -400,7 +386,7 @@ extern struct x_display_info *x_display_list;
 extern Lisp_Object x_display_name_list;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
-
+extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
 extern bool x_display_ok (const char *);
 

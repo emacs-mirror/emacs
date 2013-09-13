@@ -1,3 +1,14 @@
+2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame): Remove prototypes.
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame, x_top_window_to_frame):
+	Move from here...
+	* xterm.c (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame, x_top_window_to_frame):
+	...to here and convert all but the last to static.
+
 2013-09-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.mk (lisp): Add w32-common-fns.elc.

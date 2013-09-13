@@ -3389,6 +3389,181 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
     }
 }
 
+/* Return the Emacs frame-object corresponding to an X window.
+   It could be the frame's main window or an icon window.  */
+
+static struct frame *
+x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+
+  if (wdesc == None)
+    return NULL;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
+      if (f->output_data.x->hourglass_window == wdesc)
+	return f;
+#ifdef USE_X_TOOLKIT
+      if ((f->output_data.x->edit_widget
+	   && XtWindow (f->output_data.x->edit_widget) == wdesc)
+	  /* A tooltip frame?  */
+	  || (!f->output_data.x->edit_widget
+	      && FRAME_X_WINDOW (f) == wdesc)
+          || f->output_data.x->icon_desc == wdesc)
+        return f;
+#else /* not USE_X_TOOLKIT */
+#ifdef USE_GTK
+      if (f->output_data.x->edit_widget)
+      {
+        GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
+        struct x_output *x = f->output_data.x;
+        if (gwdesc != 0 && gwdesc == x->edit_widget)
+          return f;
+      }
+#endif /* USE_GTK */
+      if (FRAME_X_WINDOW (f) == wdesc
+          || f->output_data.x->icon_desc == wdesc)
+        return f;
+#endif /* not USE_X_TOOLKIT */
+    }
+  return 0;
+}
+
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+
+/* Like x_window_to_frame but also compares the window with the widget's
+   windows.  */
+
+static struct frame *
+x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
+{
+  Lisp_Object tail, frame;
+  struct frame *f, *found = NULL;
+  struct x_output *x;
+
+  if (wdesc == None)
+    return NULL;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (found)
+        break;
+      f = XFRAME (frame);
+      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
+	{
+	  /* This frame matches if the window is any of its widgets.  */
+	  x = f->output_data.x;
+	  if (x->hourglass_window == wdesc)
+	    found = f;
+	  else if (x->widget)
+	    {
+#ifdef USE_GTK
+              GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
+              if (gwdesc != 0
+                  && gtk_widget_get_toplevel (gwdesc) == x->widget)
+                found = f;
+#else
+	      if (wdesc == XtWindow (x->widget)
+		  || wdesc == XtWindow (x->column_widget)
+		  || wdesc == XtWindow (x->edit_widget))
+		found = f;
+	      /* Match if the window is this frame's menubar.  */
+	      else if (lw_window_is_in_menubar (wdesc, x->menubar_widget))
+		found = f;
+#endif
+	    }
+	  else if (FRAME_X_WINDOW (f) == wdesc)
+	    /* A tooltip frame.  */
+	    found = f;
+	}
+    }
+
+  return found;
+}
+
+/* Likewise, but consider only the menu bar widget.  */
+
+static struct frame *
+x_menubar_window_to_frame (struct x_display_info *dpyinfo, XEvent *event)
+{
+  Window wdesc = event->xany.window;
+  Lisp_Object tail, frame;
+  struct frame *f;
+  struct x_output *x;
+
+  if (wdesc == None)
+    return NULL;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
+      x = f->output_data.x;
+#ifdef USE_GTK
+      if (x->menubar_widget && xg_event_is_for_menubar (f, event))
+        return f;
+#else
+      /* Match if the window is this frame's menubar.  */
+      if (x->menubar_widget
+	  && lw_window_is_in_menubar (wdesc, x->menubar_widget))
+	return f;
+#endif
+    }
+  return 0;
+}
+
+/* Return the frame whose principal (outermost) window is WDESC.
+   If WDESC is some other (smaller) window, we return 0.  */
+
+struct frame *
+x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+  struct x_output *x;
+
+  if (wdesc == None)
+    return NULL;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+	continue;
+      x = f->output_data.x;
+
+      if (x->widget)
+	{
+	  /* This frame matches if the window is its topmost widget.  */
+#ifdef USE_GTK
+          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
+          if (gwdesc == x->widget)
+            return f;
+#else
+	  if (wdesc == XtWindow (x->widget))
+	    return f;
+#endif
+	}
+      else if (FRAME_X_WINDOW (f) == wdesc)
+	/* Tooltip frame.  */
+	return f;
+    }
+  return 0;
+}
+
+#else /* !USE_X_TOOLKIT && !USE_GTK */
+
+#define x_any_window_to_frame(d, i) x_window_to_frame (d, i)
+#define x_top_window_to_frame(d, i) x_window_to_frame (d, i)
+
+#endif /* USE_X_TOOLKIT || USE_GTK */
+
 /* The focus may have changed.  Figure out if it is a real focus change,
    by checking both FocusIn/Out and Enter/LeaveNotify events.
 
