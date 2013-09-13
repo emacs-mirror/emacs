@@ -45,6 +45,8 @@ as is common with most shells."
   :type 'hook
   :group 'eshell-prompt)
 
+(autoload 'eshell/pwd "em-dirs")
+
 (defcustom eshell-prompt-function
   (function
    (lambda ()

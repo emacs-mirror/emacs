@@ -1,5 +1,8 @@
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-prompt.el (eshell/pwd): Autoload it.
+	Otherwise an error occurs if eshell-dirs module not loaded.
+
 	* progmodes/gdb-mi.el (gud-cont, gud-step): Declare.
 
 2013-09-13  Michael Albinus  <michael.albinus@gmx.de>
