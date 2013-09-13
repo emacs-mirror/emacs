@@ -1222,7 +1222,7 @@ IT_cmgoto (struct frame *f)
 static void
 IT_update_begin (struct frame *f)
 {
-  struct tty_display_info *display_info = FRAME_X_DISPLAY_INFO (f);
+  struct tty_display_info *display_info = FRAME_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = &display_info->mouse_highlight;
   struct frame *mouse_face_frame = hlinfo->mouse_face_mouse_frame;
 
@@ -1279,7 +1279,7 @@ IT_update_begin (struct frame *f)
 static void
 IT_update_end (struct frame *f)
 {
-  struct tty_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct tty_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (dpyinfo->termscript)
     fprintf (dpyinfo->termscript, "\n<UPDATE_END\n");

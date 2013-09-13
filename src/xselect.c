@@ -318,7 +318,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 {
   struct frame *f = XFRAME (frame);
   Window selecting_window = FRAME_X_WINDOW (f);
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
   Time timestamp = last_event_timestamp;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, selection_name);
@@ -997,7 +997,7 @@ x_clear_frame_selections (struct frame *f)
 {
   Lisp_Object frame;
   Lisp_Object rest;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   struct terminal *t = dpyinfo->terminal;
 
   XSETFRAME (frame, f);
@@ -1185,7 +1185,7 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 			 Lisp_Object time_stamp, Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
   Window requestor_window = FRAME_X_WINDOW (f);
   Time requestor_time = last_event_timestamp;
@@ -2009,7 +2009,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
     error ("X selection unavailable for this frame");
 
   val = x_get_local_selection (selection_symbol, target_type, 1,
-			       FRAME_X_DISPLAY_INFO (f));
+			       FRAME_DISPLAY_INFO (f));
 
   if (NILP (val) && FRAME_LIVE_P (f))
     {
@@ -2056,7 +2056,7 @@ On MS-DOS, all this does is return non-nil if we own the selection.  */)
   if (!f)
     return Qnil;
 
-  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
   CHECK_SYMBOL (selection);
 
   /* Don't disown the selection when we're not the owner.  */
@@ -2108,7 +2108,7 @@ On Nextstep, TERMINAL is unused.  */)
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
 
-  if (f && !NILP (LOCAL_SELECTION (selection, FRAME_X_DISPLAY_INFO (f))))
+  if (f && !NILP (LOCAL_SELECTION (selection, FRAME_DISPLAY_INFO (f))))
     return Qt;
   else
     return Qnil;
@@ -2141,7 +2141,7 @@ On Nextstep, TERMINAL is unused.  */)
   if (!f)
     return Qnil;
 
-  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (!NILP (LOCAL_SELECTION (selection, dpyinfo)))
     return Qt;
@@ -2162,7 +2162,7 @@ static Lisp_Object
 x_clipboard_manager_save (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Atom data = dpyinfo->Xatom_UTF8_STRING;
 
   XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -2212,7 +2212,7 @@ x_clipboard_manager_save_frame (Lisp_Object frame)
       && (f = XFRAME (frame), FRAME_X_P (f))
       && FRAME_LIVE_P (f))
     {
-      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
       Lisp_Object local_selection
 	= LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
 
@@ -2458,7 +2458,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   Atom x_atom;
   struct frame *f = decode_window_system_frame (frame);
   ptrdiff_t i;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
 
   if (SYMBOLP (atom))

@@ -477,7 +477,7 @@ w32_clear_window (struct frame *f)
 void
 x_set_frame_alpha (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   double alpha = 1.0;
   double alpha_min = 1.0;
   BYTE opac;
@@ -557,7 +557,7 @@ x_display_pixel_width (struct w32_display_info *dpyinfo)
 static void
 x_update_begin (struct frame *f)
 {
-  struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *display_info = FRAME_DISPLAY_INFO (f);
 
   if (! FRAME_W32_P (f))
     return;
@@ -1003,14 +1003,14 @@ x_set_cursor_gc (struct glyph_string *s)
       xgcv.font = s->font;
       mask = GCForeground | GCBackground | GCFont;
 
-      if (FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc)
-	XChangeGC (NULL, FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc,
+      if (FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc)
+	XChangeGC (NULL, FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc,
 		   mask, &xgcv);
       else
-	FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc
+	FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc
 	  = XCreateGC (NULL, s->window, mask, &xgcv);
 
-      s->gc = FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc;
+      s->gc = FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc;
     }
 }
 
@@ -1052,14 +1052,14 @@ x_set_mouse_face_gc (struct glyph_string *s)
       xgcv.font = s->font;
       mask = GCForeground | GCBackground | GCFont;
 
-      if (FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc)
-	XChangeGC (NULL, FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc,
+      if (FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc)
+	XChangeGC (NULL, FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc,
 		   mask, &xgcv);
       else
-	FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc
+	FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc
 	  = XCreateGC (NULL, s->window, mask, &xgcv);
 
-      s->gc = FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc;
+      s->gc = FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc;
     }
 
   eassert (s->gc != 0);
@@ -1623,7 +1623,7 @@ w32_setup_relief_color (struct frame *f, struct relief *relief, double factor,
   unsigned long mask = GCForeground;
   COLORREF pixel;
   COLORREF background = di->relief_background;
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   /* TODO: Free colors (if using palette)? */
 
@@ -2930,7 +2930,7 @@ w32_frame_rehighlight (struct frame *frame)
 {
   if (! FRAME_W32_P (frame))
     return;
-  x_frame_rehighlight (FRAME_W32_DISPLAY_INFO (frame));
+  x_frame_rehighlight (FRAME_DISPLAY_INFO (frame));
 }
 
 static void
@@ -3429,7 +3429,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       /* Now we have a position on the root; find the innermost window
 	 containing the pointer.  */
       {
-	if (FRAME_W32_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
+	if (FRAME_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
 	    && FRAME_LIVE_P (last_mouse_frame))
 	  {
 	    /* If mouse was grabbed on a frame, give coords for that frame
@@ -3439,7 +3439,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	else
 	  {
 	    /* Is window under mouse one of our frames?  */
-	    f1 = x_any_window_to_frame (FRAME_W32_DISPLAY_INFO (*fp),
+	    f1 = x_any_window_to_frame (FRAME_DISPLAY_INFO (*fp),
                                     WindowFromPoint (pt));
 	  }
 
@@ -5539,13 +5539,13 @@ x_calc_absolute_position (struct frame *f)
   /* Treat negative positions as relative to the rightmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->left_pos = (x_display_pixel_width (FRAME_W32_DISPLAY_INFO (f))
+    f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
 		   - FRAME_PIXEL_WIDTH (f)
 		   + f->left_pos
 		   - (left_right_borders_width - 1));
 
   if (flags & YNegative)
-    f->top_pos = (x_display_pixel_height (FRAME_W32_DISPLAY_INFO (f))
+    f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
 		  - FRAME_PIXEL_HEIGHT (f)
 		  + f->top_pos
 		  - (top_bottom_borders_height - 1));
@@ -6013,8 +6013,8 @@ void
 x_make_frame_invisible (struct frame *f)
 {
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
-    FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
+  if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   block_input ();
 
@@ -6039,8 +6039,8 @@ x_iconify_frame (struct frame *f)
   Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
-    FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
+  if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   if (FRAME_ICONIFIED_P (f))
     return;
@@ -6066,7 +6066,7 @@ x_iconify_frame (struct frame *f)
 void
 x_free_frame_resources (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
   block_input ();
@@ -6116,7 +6116,7 @@ x_free_frame_resources (struct frame *f)
 void
 x_destroy_window (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   x_free_frame_resources (f);
   dpyinfo->reference_count--;

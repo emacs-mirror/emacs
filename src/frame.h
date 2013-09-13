@@ -600,36 +600,6 @@ default_pixels_per_inch_y (void)
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
 
-/* Dots per inch of the screen the frame F is on.  */
-
-#ifdef HAVE_X_WINDOWS
-#define FRAME_RES_X(f)						\
-  (eassert (FRAME_X_P (f)), FRAME_X_DISPLAY_INFO (f)->resx)
-#define FRAME_RES_Y(f)						\
-  (eassert (FRAME_X_P (f)), FRAME_X_DISPLAY_INFO (f)->resy)
-#endif
-
-#ifdef HAVE_NTGUI
-#define FRAME_RES_X(f)						\
-  (eassert (FRAME_W32_P (f)), FRAME_W32_DISPLAY_INFO (f)->resx)
-#define FRAME_RES_Y(f)						\
-  (eassert (FRAME_W32_P (f)), FRAME_W32_DISPLAY_INFO (f)->resy)
-#endif
-
-#ifdef HAVE_NS
-#define FRAME_RES_X(f)						\
-  (eassert (FRAME_NS_P (f)), FRAME_NS_DISPLAY_INFO (f)->resx)
-#define FRAME_RES_Y(f)						\
-  (eassert (FRAME_NS_P (f)), FRAME_NS_DISPLAY_INFO (f)->resy)
-#endif
-
-/* Defaults when no window system available.  */
-
-#ifndef FRAME_RES_X
-#define FRAME_RES_X(f) default_pixels_per_inch_x ()
-#define FRAME_RES_Y(f) default_pixels_per_inch_y ()
-#endif
-
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
 
@@ -646,14 +616,32 @@ default_pixels_per_inch_y (void)
 #define FRAME_WINDOW_P(f) ((void) (f), 0)
 #endif
 
+/* Dots per inch of the screen the frame F is on.  */
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+#define FRAME_RES_X(f)						\
+  (eassert (FRAME_WINDOW_P (f)), FRAME_DISPLAY_INFO (f)->resx)
+#define FRAME_RES_Y(f)						\
+  (eassert (FRAME_WINDOW_P (f)), FRAME_DISPLAY_INFO (f)->resy)
+
+#else /* !HAVE_WINDOW_SYSTEM */
+
+/* Defaults when no window system available.  */
+
+#define FRAME_RES_X(f) default_pixels_per_inch_x ()
+#define FRAME_RES_Y(f) default_pixels_per_inch_y ()
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Return a pointer to the structure holding information about the
    region of text, if any, that is currently shown in mouse-face on
    frame F.  We need to define two versions because a TTY-only build
-   does not have FRAME_X_DISPLAY_INFO.  */
+   does not have FRAME_DISPLAY_INFO.  */
 #ifdef HAVE_WINDOW_SYSTEM
 # define MOUSE_HL_INFO(F)					\
   (FRAME_WINDOW_P(F)						\
-   ? &FRAME_X_DISPLAY_INFO(F)->mouse_highlight			\
+   ? &FRAME_DISPLAY_INFO(F)->mouse_highlight			\
    : &(F)->output_data.tty->display_info->mouse_highlight)
 #else
 # define MOUSE_HL_INFO(F)					\

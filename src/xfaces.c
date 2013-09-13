@@ -224,15 +224,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #include "fontset.h"
 #ifdef HAVE_NTGUI
-#undef FRAME_X_DISPLAY_INFO
-#define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
 #define GCGraphicsExposures 0
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-#undef FRAME_X_DISPLAY_INFO
-#define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
 
@@ -546,7 +542,7 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
 void
 x_free_colors (struct frame *f, long unsigned int *pixels, int npixels)
 {
-  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
+  int class = FRAME_DISPLAY_INFO (f)->visual->class;
 
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
@@ -767,7 +763,7 @@ clear_face_cache (int clear_fonts_p)
 	{
 	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f)
-	      && FRAME_X_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
+	      && FRAME_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
 	    {
 	      clear_font_cache (f);
 	      free_all_realized_faces (frame);
@@ -3400,7 +3396,7 @@ ordinary `x-get-resource' doesn't take a frame argument.  */)
   CHECK_STRING (class);
   f = decode_live_frame (frame);
   block_input ();
-  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (f),
+  value = display_x_get_resource (FRAME_DISPLAY_INFO (f),
 				  resource, class, Qnil, Qnil);
   unblock_input ();
   return value;
@@ -3490,7 +3486,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
 static void
 x_update_menu_appearance (struct frame *f)
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   XrmDatabase rdb;
 
   if (dpyinfo

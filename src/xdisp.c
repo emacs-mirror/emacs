@@ -12275,7 +12275,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
 {
   Lisp_Object window = f->tool_bar_window;
   struct window *w = XWINDOW (window);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos, vpos;
   struct glyph *glyph;
@@ -26005,7 +26005,7 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
 
   /* Detect a nonselected window or nonselected frame.  */
   else if (w != XWINDOW (f->selected_window)
-	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
+	   || f != FRAME_DISPLAY_INFO (f)->x_highlight_frame)
     {
       *active_cursor = 0;
 
@@ -27658,7 +27658,7 @@ define_frame_cursor1 (struct frame *f, Cursor cursor, Lisp_Object pointer)
 	cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
 #ifdef HAVE_X_WINDOWS
       else if (EQ (pointer, intern ("vdrag")))
-	cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
+	cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 #endif
       else if (EQ (pointer, intern ("hourglass")))
 	cursor = FRAME_X_OUTPUT (f)->hourglass_cursor;
@@ -27821,7 +27821,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
-	  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+	  dpyinfo = FRAME_DISPLAY_INFO (f);
 	  if (STRINGP (string))
 	    {
 	      cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
@@ -27843,7 +27843,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	    }
 	  else
 	    /* Default mode-line pointer.  */
-	    cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
+	    cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 	}
 #endif
     }

@@ -1007,7 +1007,7 @@ ns_frame_rehighlight (struct frame *frame)
      External (hook): called on things like window switching within frame
    -------------------------------------------------------------------------- */
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   struct frame *old_highlight = dpyinfo->x_highlight_frame;
 
   NSTRACE (ns_frame_rehighlight);
@@ -1104,7 +1104,7 @@ x_iconify_frame (struct frame *f)
   NSTRACE (x_iconify_frame);
   check_window_system (f);
   view = FRAME_NS_VIEW (f);
-  dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (dpyinfo->x_highlight_frame == f)
     dpyinfo->x_highlight_frame = 0;
@@ -1136,7 +1136,7 @@ x_free_frame_resources (struct frame *f)
   NSTRACE (x_free_frame_resources);
   check_window_system (f);
   view = FRAME_NS_VIEW (f);
-  dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
   hlinfo = MOUSE_HL_INFO (f);
 
   [(EmacsView *)view setWindowClosing: YES]; /* may not have been informed */
@@ -1356,7 +1356,7 @@ ns_fullscreen_hook (struct frame *f)
 NSColor *
 ns_lookup_indexed_color (unsigned long idx, struct frame *f)
 {
-  struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
   if (idx < 1 || idx >= color_table->avail)
     return nil;
   return color_table->colors[idx];
@@ -1366,7 +1366,7 @@ ns_lookup_indexed_color (unsigned long idx, struct frame *f)
 unsigned long
 ns_index_color (NSColor *color, struct frame *f)
 {
-  struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
   ptrdiff_t idx;
   ptrdiff_t i;
 
@@ -1416,7 +1416,7 @@ ns_free_indexed_color (unsigned long idx, struct frame *f)
   if (!f)
     return;
 
-  color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  color_table = FRAME_DISPLAY_INFO (f)->color_table;
 
   if (idx <= 0 || idx >= color_table->size) {
     message1 ("ns_free_indexed_color: Color index out of range.\n");
@@ -1651,7 +1651,7 @@ x_set_frame_alpha (struct frame *f)
      change the entire-frame transparency
    -------------------------------------------------------------------------- */
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   double alpha = 1.0;
   double alpha_min = 1.0;
 
@@ -1786,7 +1786,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       return;
     }
 
-  dpyinfo = FRAME_NS_DISPLAY_INFO (*fp);
+  dpyinfo = FRAME_DISPLAY_INFO (*fp);
 
   block_input ();
 
@@ -2877,7 +2877,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
               : FRAME_BACKGROUND_COLOR (s->f)) set];
           else
             {
-              struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (s->f);
+              struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
               [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
             }
 
@@ -5705,7 +5705,7 @@ if (cols > 0 && rows > 0)
 - (void)windowDidBecomeKey: (NSNotification *)notification
 /* cf. x_detect_focus_change(), x_focus_changed(), x_new_focus_frame() */
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   struct frame *old_focus = dpyinfo->x_focus_frame;
 
   NSTRACE (windowDidBecomeKey);
@@ -5726,7 +5726,7 @@ if (cols > 0 && rows > 0)
 - (void)windowDidResignKey: (NSNotification *)notification
 /* cf. x_detect_focus_change(), x_focus_changed(), x_new_focus_frame() */
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   BOOL is_focus_frame = dpyinfo->x_focus_frame == emacsframe;
   NSTRACE (windowDidResignKey);
 

@@ -662,7 +662,7 @@ struct font_driver nsfont_driver =
 static Lisp_Object
 nsfont_get_cache (struct frame *frame)
 {
-  Display_Info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   return (dpyinfo->name_list_element);
 }
 
@@ -1175,7 +1175,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
           : FRAME_BACKGROUND_COLOR (s->f)) set];
       else
         {
-          struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (s->f);
+          struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
           [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
         }
       NSRectFill (br);

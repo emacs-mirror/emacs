@@ -498,7 +498,7 @@ If FRAME is nil or not given, use the selected frame.  */)
       memset (&ev, 0, sizeof ev);
       ev.xbutton.display = FRAME_X_DISPLAY (f);
       ev.xbutton.window = XtWindow (menubar);
-      ev.xbutton.root = FRAME_X_DISPLAY_INFO (f)->root_window;
+      ev.xbutton.root = FRAME_DISPLAY_INFO (f)->root_window;
       ev.xbutton.time = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
       ev.xbutton.button = Button1;
       ev.xbutton.x = ev.xbutton.y = FRAME_MENUBAR_HEIGHT (f) / 2;
@@ -1367,7 +1367,7 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 {
   struct next_popup_x_y *data = user_data;
   GtkRequisition req;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (data->f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (data->f);
   int disp_width = x_display_pixel_width (dpyinfo);
   int disp_height = x_display_pixel_height (dpyinfo);
 
@@ -1449,7 +1449,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv, int x, int 
   if (for_click)
     {
       for (i = 0; i < 5; i++)
-        if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
+        if (FRAME_DISPLAY_INFO (f)->grabbed & (1 << i))
           break;
     }
 
@@ -1474,7 +1474,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv, int x, int 
 
   /* Must reset this manually because the button release event is not passed
      to Emacs event loop. */
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 }
 
 #else /* not USE_GTK */
@@ -1543,7 +1543,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   event->send_event = 0;
   event->display = FRAME_X_DISPLAY (f);
   event->time = CurrentTime;
-  event->root = FRAME_X_DISPLAY_INFO (f)->root_window;
+  event->root = FRAME_DISPLAY_INFO (f)->root_window;
   event->window = event->subwindow = event->root;
   event->x = x;
   event->y = y;
@@ -1558,7 +1558,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   event->state = 0;
   event->button = 0;
   for (i = 0; i < 5; i++)
-    if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
+    if (FRAME_DISPLAY_INFO (f)->grabbed & (1 << i))
       event->button = i;
 
   /* Don't allow any geometry request from the user.  */
@@ -1578,7 +1578,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
                                   make_number (menu_id & ~(-1 << (fact)))));
 
     /* Process events that apply to the menu.  */
-    popup_get_selection (0, FRAME_X_DISPLAY_INFO (f), menu_id, 1);
+    popup_get_selection (0, FRAME_DISPLAY_INFO (f), menu_id, 1);
 
     unbind_to (specpdl_count, Qnil);
   }
@@ -1962,7 +1962,7 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
                            Fcons (make_number (dialog_id >> (fact)),
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
-    popup_get_selection (0, FRAME_X_DISPLAY_INFO (f), dialog_id, 1);
+    popup_get_selection (0, FRAME_DISPLAY_INFO (f), dialog_id, 1);
 
     unbind_to (count, Qnil);
   }
@@ -2218,13 +2218,13 @@ pop_down_menu (Lisp_Object arg)
 #ifdef HAVE_X_WINDOWS
   /* Assume the mouse has moved out of the X window.
      If it has actually moved in, we will get an EnterNotify.  */
-  x_mouse_leave (FRAME_X_DISPLAY_INFO (f));
+  x_mouse_leave (FRAME_DISPLAY_INFO (f));
 
   /* State that no mouse buttons are now held.
      (The oldXMenu code doesn't track this info for us.)
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now.  */
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
 #endif /* HAVE_X_WINDOWS */
 

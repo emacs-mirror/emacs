@@ -678,9 +678,7 @@ struct x_output
 
 
 /* This gives the ns_display_info structure for the display F is on.  */
-#define FRAME_NS_DISPLAY_INFO(f) ((f)->output_data.ns->display_info)
-/* the primacy of X must be constantly worked with... */
-#define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.ns->display_info)
+#define FRAME_DISPLAY_INFO(f) ((f)->output_data.ns->display_info)
 #define FRAME_X_OUTPUT(f) ((f)->output_data.ns)
 #define FRAME_NS_WINDOW(f) ((f)->output_data.ns->window_desc)
 #define FRAME_X_WINDOW(f) ((f)->output_data.ns->window_desc)
@@ -689,12 +687,12 @@ struct x_output
 #define FRAME_NS_DISPLAY(f) (0)
 #define FRAME_X_DISPLAY(f) (0)
 #define FRAME_X_SCREEN(f) (0)
-#define FRAME_X_VISUAL(f) FRAME_NS_DISPLAY_INFO(f)->visual
+#define FRAME_X_VISUAL(f) FRAME_DISPLAY_INFO(f)->visual
 
 #define FRAME_FOREGROUND_COLOR(f) ((f)->output_data.ns->foreground_color)
 #define FRAME_BACKGROUND_COLOR(f) ((f)->output_data.ns->background_color)
 
-#define FRAME_X_IMAGE_CACHE(F) FRAME_NS_DISPLAY_INFO ((F))->image_cache
+#define FRAME_X_IMAGE_CACHE(F) FRAME_DISPLAY_INFO ((F))->image_cache
 
 #define NS_FACE_FOREGROUND(f) ((f)->foreground)
 #define NS_FACE_BACKGROUND(f) ((f)->background)
@@ -744,14 +742,14 @@ struct x_output
 #define NS_TOP_POS(f) ((f)->top_pos)
 #endif
 
-#define FRAME_NS_FONT_TABLE(f) (FRAME_NS_DISPLAY_INFO (f)->font_table)
+#define FRAME_NS_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
 
 #define FRAME_FONTSET(f) ((f)->output_data.ns->fontset)
 
 #define FRAME_SMALLEST_CHAR_WIDTH(f)  \
-  (FRAME_NS_DISPLAY_INFO (f)->smallest_char_width)
+  (FRAME_DISPLAY_INFO (f)->smallest_char_width)
 #define FRAME_SMALLEST_FONT_HEIGHT(f) \
-  (FRAME_NS_DISPLAY_INFO (f)->smallest_font_height)
+  (FRAME_DISPLAY_INFO (f)->smallest_font_height)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.ns->baseline_offset)
 #define BLACK_PIX_DEFAULT(f) 0x000000
 #define WHITE_PIX_DEFAULT(f) 0xFFFFFF

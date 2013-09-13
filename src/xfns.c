@@ -153,7 +153,7 @@ check_x_display_info (Lisp_Object object)
       struct frame *sf = XFRAME (selected_frame);
 
       if (FRAME_X_P (sf) && FRAME_LIVE_P (sf))
-	dpyinfo = FRAME_X_DISPLAY_INFO (sf);
+	dpyinfo = FRAME_DISPLAY_INFO (sf);
       else if (x_display_list != 0)
 	dpyinfo = x_display_list;
       else
@@ -173,7 +173,7 @@ check_x_display_info (Lisp_Object object)
   else
     {
       struct frame *f = decode_window_system_frame (object);
-      dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      dpyinfo = FRAME_DISPLAY_INFO (f);
     }
 
   return dpyinfo;
@@ -193,7 +193,7 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
   int rc, actual_format;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   long max_len = 400;
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned char *tmp_data = NULL;
@@ -256,7 +256,7 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
       XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 			     /* From-window, to-window.  */
-			     FRAME_X_DISPLAY_INFO (f)->root_window,
+			     FRAME_DISPLAY_INFO (f)->root_window,
                              FRAME_X_WINDOW (f),
 
 			     /* From-position, to-position.  */
@@ -275,7 +275,7 @@ x_real_positions (struct frame *f, int *xptr, int *yptr)
           XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
                                  /* From-window, to-window.  */
-                                 FRAME_X_DISPLAY_INFO (f)->root_window,
+                                 FRAME_DISPLAY_INFO (f)->root_window,
                                  FRAME_OUTER_WINDOW (f),
 
                                  /* From-position, to-position.  */
@@ -396,7 +396,7 @@ x_decode_color (struct frame *f, Lisp_Object color_name, int mono_color)
 #endif
 
   /* Return MONO_COLOR for monochrome frames.  */
-  if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
+  if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
     return mono_color;
 
   /* x_defined_color is responsible for coping with failures
@@ -589,7 +589,7 @@ make_invisible_cursor (struct frame *f)
   Cursor c = 0;
 
   x_catch_errors (dpy);
-  pix = XCreateBitmapFromData (dpy, FRAME_X_DISPLAY_INFO (f)->root_window,
+  pix = XCreateBitmapFromData (dpy, FRAME_DISPLAY_INFO (f)->root_window,
                                no_data, 1, 1);
   if (! x_had_errors_p (dpy) && pix != None)
     {
@@ -714,8 +714,8 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     XDefineCursor (dpy, FRAME_X_WINDOW (f),
                    f->output_data.x->current_cursor = cursor);
 
-  if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor == 0)
-    FRAME_X_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
+  if (FRAME_DISPLAY_INFO (f)->invisible_cursor == 0)
+    FRAME_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
 
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
@@ -1308,7 +1308,7 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp,
 				    &do_free_text_value);
 	text.encoding = (stringp ? XA_STRING
-			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+			 : FRAME_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
 	if (text.nitems != bytes)
@@ -1325,7 +1325,7 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
 					&bytes, &stringp, &do_free_icon_value);
 	    icon.encoding = (stringp ? XA_STRING
-			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+			     : FRAME_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
 	    if (icon.nitems != bytes)
@@ -1340,8 +1340,8 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 	XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_name,
-			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
+			 FRAME_DISPLAY_INFO (f)->Xatom_net_wm_name,
+			 FRAME_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
 			 SDATA (encoded_name),
 			 SBYTES (encoded_name));
@@ -1349,8 +1349,8 @@ x_set_name_internal (struct frame *f, Lisp_Object name)
 
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
 	XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_icon_name,
-			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
+			 FRAME_DISPLAY_INFO (f)->Xatom_net_wm_icon_name,
+			 FRAME_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
 			 8, PropModeReplace,
 			 SDATA (encoded_icon_name),
 			 SBYTES (encoded_icon_name));
@@ -1397,10 +1397,10 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
     {
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (!strcmp (FRAME_X_DISPLAY_INFO (f)->x_id_name,
+      if (!strcmp (FRAME_DISPLAY_INFO (f)->x_id_name,
 		   SSDATA (f->name)))
 	return;
-      name = build_string (FRAME_X_DISPLAY_INFO (f)->x_id_name);
+      name = build_string (FRAME_DISPLAY_INFO (f)->x_id_name);
     }
   else
     CHECK_STRING (name);
@@ -1496,7 +1496,7 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 				      const char *xprop, const char *xclass,
 				      int foreground_p)
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Lisp_Object tem;
 
   tem = x_get_arg (dpyinfo, alist, prop, xprop, xclass, RES_TYPE_STRING);
@@ -1562,7 +1562,7 @@ hack_wm_protocols (struct frame *f, Widget widget)
     unsigned long bytes_after;
 
     if ((XGetWindowProperty (dpy, w,
-			     FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
+			     FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
 			     (long)0, (long)100, False, XA_ATOM,
 			     &type, &format, &nitems, &bytes_after,
 			     &catoms)
@@ -1574,13 +1574,13 @@ hack_wm_protocols (struct frame *f, Widget widget)
 	  {
 	    nitems--;
 	    if (atoms[nitems]
-		== FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window)
+		== FRAME_DISPLAY_INFO (f)->Xatom_wm_delete_window)
 	      need_delete = 0;
 	    else if (atoms[nitems]
-		     == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_take_focus)
+		     == FRAME_DISPLAY_INFO (f)->Xatom_wm_take_focus)
 	      need_focus = 0;
 	    else if (atoms[nitems]
-		     == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself)
+		     == FRAME_DISPLAY_INFO (f)->Xatom_wm_save_yourself)
 	      need_save = 0;
 	  }
       }
@@ -1591,13 +1591,13 @@ hack_wm_protocols (struct frame *f, Widget widget)
     Atom props [10];
     int count = 0;
     if (need_delete)
-      props[count++] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window;
+      props[count++] = FRAME_DISPLAY_INFO (f)->Xatom_wm_delete_window;
     if (need_focus)
-      props[count++] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_take_focus;
+      props[count++] = FRAME_DISPLAY_INFO (f)->Xatom_wm_take_focus;
     if (need_save)
-      props[count++] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
+      props[count++] = FRAME_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
     if (count)
-      XChangeProperty (dpy, w, FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
+      XChangeProperty (dpy, w, FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
 		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
@@ -1792,7 +1792,7 @@ xic_create_xfontset (struct frame *f)
       struct frame *cf = XFRAME (frame);
 
       if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
-          && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+          && FRAME_DISPLAY_INFO (cf) == FRAME_DISPLAY_INFO (f)
 	  && FRAME_FONT (f)
 	  && FRAME_FONT (f)->pixel_size == pixel_size)
         {
@@ -1891,7 +1891,7 @@ xic_free_xfontset (struct frame *f)
     {
       struct frame *cf = XFRAME (frame);
       if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
-          && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+          && FRAME_DISPLAY_INFO (cf) == FRAME_DISPLAY_INFO (f)
           && FRAME_XIC_FONTSET (cf) == FRAME_XIC_FONTSET (f))
         {
           shared_p = 1;
@@ -2136,7 +2136,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
   XtSetArg (al[ac], XtNborderWidth, f->border_width); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
-  XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
+  XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
   shell_widget = XtAppCreateShell (f->namebuf, EMACS_CLASS,
 				   applicationShellWidgetClass,
@@ -2151,7 +2151,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   ac = 0;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
-  XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
+  XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
   XtSetArg (al[ac], XtNborderWidth, 0); ac++;
   XtSetValues (pane_widget, al, ac);
@@ -2167,7 +2167,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
   XtSetArg (al[ac], XtNemacsFrame, f); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
-  XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
+  XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
   XtSetArg (al[ac], XtNborderWidth, 0); ac++;
   frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass, pane_widget,
@@ -2293,7 +2293,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      be initialized to something relevant to the time we created the window.
      */
   XChangeProperty (XtDisplay (frame_widget), XtWindow (frame_widget),
-		   FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
+		   FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
 		   XA_ATOM, 32, PropModeAppend, NULL, 0);
 
   /* Make all the standard events reach the Emacs frame.  */
@@ -2453,8 +2453,8 @@ x_window (struct frame *f)
   /* Request "save yourself" and "delete window" commands from wm.  */
   {
     Atom protocols[2];
-    protocols[0] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window;
-    protocols[1] = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
+    protocols[0] = FRAME_DISPLAY_INFO (f)->Xatom_wm_delete_window;
+    protocols[1] = FRAME_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
     XSetWMProtocols (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), protocols, 2);
   }
 
@@ -2514,7 +2514,7 @@ x_icon (struct frame *f, Lisp_Object parms)
 {
   Lisp_Object icon_x, icon_y;
 #if 0
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
   /* Set the position of the icon.  Note that twm groups all
@@ -2598,7 +2598,7 @@ x_make_gc (struct frame *f)
      this must be done on a per-frame basis.  */
   f->output_data.x->border_tile
     = (XCreatePixmapFromBitmapData
-       (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
+       (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
 	gray_bits, gray_width, gray_height,
 	FRAME_FOREGROUND_PIXEL (f),
 	FRAME_BACKGROUND_PIXEL (f),
@@ -2664,7 +2664,7 @@ unwind_create_frame (Lisp_Object frame)
   if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if defined GLYPH_DEBUG && defined ENABLE_CHECKING
-      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
@@ -2696,7 +2696,7 @@ unwind_create_frame_1 (Lisp_Object val)
 static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
                                       RES_TYPE_STRING);
   Lisp_Object font = Qnil;
@@ -2890,9 +2890,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (! STRINGP (f->icon_name))
     fset_icon_name (f, Qnil);
 
-  FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+  FRAME_DISPLAY_INFO (f) = dpyinfo;
 
-  /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (do_unwind_create_frame, frame);
 
   /* These colors will be set anyway later, but it's important
@@ -2937,7 +2937,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
   else
     {
-      f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
+      f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
       f->output_data.x->explicit_parent = 0;
     }
 
@@ -3108,7 +3108,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Now consider the frame official.  */
   f->terminal->reference_count++;
-  FRAME_X_DISPLAY_INFO (f)->reference_count++;
+  FRAME_DISPLAY_INFO (f)->reference_count++;
   Vframe_list = Fcons (frame, Vframe_list);
 
   /* We need to do this after creating the X window, so that the
@@ -3233,7 +3233,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 Lisp_Object
 x_get_focus_frame (struct frame *frame)
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (frame);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   Lisp_Object xfocus;
   if (! dpyinfo->x_focus_frame)
     return Qnil;
@@ -3761,7 +3761,7 @@ x_make_monitor_attribute_list (struct MonitorInfo *monitors,
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+      if (FRAME_X_P (f) && FRAME_DISPLAY_INFO (f) == dpyinfo
 	  && !EQ (frame, tip_frame))
 	{
 	  int i = x_get_monitor_for_frame (f, monitors, n_monitors);
@@ -4041,7 +4041,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+      if (FRAME_X_P (f) && FRAME_DISPLAY_INFO (f) == dpyinfo
 	  && !EQ (frame, tip_frame))
 	{
 	  GdkWindow *gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
@@ -4542,7 +4542,7 @@ no value of TYPE (always string in the MS Windows case).  */)
     {
       CONS_TO_INTEGER (source, Window, target_window);
       if (! target_window)
-	target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
+	target_window = FRAME_DISPLAY_INFO (f)->root_window;
     }
 
   block_input ();
@@ -4838,8 +4838,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
   fset_icon_name (f, Qnil);
-  FRAME_X_DISPLAY_INFO (f) = dpyinfo;
-  f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
+  FRAME_DISPLAY_INFO (f) = dpyinfo;
+  f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
   f->output_data.x->explicit_parent = 0;
 
   /* These colors will be set anyway later, but it's important
@@ -4953,14 +4953,14 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      happen.  */
   init_frame_faces (f);
 
-  f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
+  f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
 
   x_figure_window_size (f, parms, 0);
 
   {
     XSetWindowAttributes attrs;
     unsigned long mask;
-    Atom type = FRAME_X_DISPLAY_INFO (f)->Xatom_net_window_type_tooltip;
+    Atom type = FRAME_DISPLAY_INFO (f)->Xatom_net_window_type_tooltip;
 
     block_input ();
     mask = CWBackPixel | CWOverrideRedirect | CWEventMask;
@@ -4978,7 +4978,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     tip_window
       = FRAME_X_WINDOW (f)
       = XCreateWindow (FRAME_X_DISPLAY (f),
-		       FRAME_X_DISPLAY_INFO (f)->root_window,
+		       FRAME_DISPLAY_INFO (f)->root_window,
 		       /* x, y, width, height */
 		       0, 0, 1, 1,
 		       /* Border.  */
@@ -4986,7 +4986,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 		       CopyFromParent, InputOutput, CopyFromParent,
 		       mask, &attrs);
     XChangeProperty (FRAME_X_DISPLAY (f), tip_window,
-                     FRAME_X_DISPLAY_INFO (f)->Xatom_net_window_type,
+                     FRAME_DISPLAY_INFO (f)->Xatom_net_window_type,
                      XA_ATOM, 32, PropModeReplace,
                      (unsigned char *)&type, 1);
     unblock_input ();
@@ -5021,10 +5021,10 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   {
     Lisp_Object disptype;
 
-    if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
+    if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
       disptype = intern ("mono");
-    else if (FRAME_X_DISPLAY_INFO (f)->visual->class == GrayScale
-             || FRAME_X_DISPLAY_INFO (f)->visual->class == StaticGray)
+    else if (FRAME_DISPLAY_INFO (f)->visual->class == GrayScale
+             || FRAME_DISPLAY_INFO (f)->visual->class == StaticGray)
       disptype = intern ("grayscale");
     else
       disptype = intern ("color");
@@ -5058,7 +5058,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   /* Now that the frame will be official, it counts as a reference to
      its display and terminal.  */
-  FRAME_X_DISPLAY_INFO (f)->reference_count++;
+  FRAME_DISPLAY_INFO (f)->reference_count++;
   f->terminal->reference_count++;
 
   /* It is now ok to make the frame official even if we get an error
@@ -5102,7 +5102,7 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
   if (!INTEGERP (left) || !INTEGERP (top))
     {
       block_input ();
-      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
+      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
 		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
       unblock_input ();
     }
@@ -5112,7 +5112,7 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
   else if (*root_y + XINT (dy) <= 0)
     *root_y = 0; /* Can happen for negative dy */
   else if (*root_y + XINT (dy) + height
-	   <= x_display_pixel_height (FRAME_X_DISPLAY_INFO (f)))
+	   <= x_display_pixel_height (FRAME_DISPLAY_INFO (f)))
     /* It fits below the pointer */
     *root_y += XINT (dy);
   else if (height + XINT (dy) <= *root_y)
@@ -5127,7 +5127,7 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
   else if (*root_x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
   else if (*root_x + XINT (dx) + width
-	   <= x_display_pixel_width (FRAME_X_DISPLAY_INFO (f)))
+	   <= x_display_pixel_width (FRAME_DISPLAY_INFO (f)))
     /* It fits to the right of the pointer.  */
     *root_x += XINT (dx);
   else if (width + XINT (dx) <= *root_x)
@@ -5276,7 +5276,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
-  frame = x_create_tip_frame (FRAME_X_DISPLAY_INFO (f), parms, string);
+  frame = x_create_tip_frame (FRAME_DISPLAY_INFO (f), parms, string);
   f = XFRAME (frame);
 
   /* Set up the frame's root window.  */
@@ -5476,7 +5476,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 	struct frame *f = SELECTED_FRAME ();
 	w = f->output_data.x->menubar_widget;
 
-	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
+	if (!DoesSaveUnders (FRAME_DISPLAY_INFO (f)->screen)
 	    && w != NULL)
 	  {
 	    block_input ();

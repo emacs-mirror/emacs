@@ -2207,7 +2207,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 	value = f->name;
 #ifdef HAVE_X_WINDOWS
       else if (EQ (parameter, Qdisplay) && FRAME_X_P (f))
-	value = XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element);
+	value = XCAR (FRAME_DISPLAY_INFO (f)->name_list_element);
 #endif /* HAVE_X_WINDOWS */
       else if (EQ (parameter, Qbackground_color)
 	       || EQ (parameter, Qforeground_color))
@@ -2598,7 +2598,7 @@ x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int
 {
   int newwidth = FRAME_COLS (f);
   int newheight = FRAME_LINES (f);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   *top_pos = f->top_pos;
   *left_pos = f->left_pos;
@@ -2973,9 +2973,9 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
   store_in_alist (alistptr, Qdisplay,
-		  XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
+		  XCAR (FRAME_DISPLAY_INFO (f)->name_list_element));
 
-  if (FRAME_X_OUTPUT (f)->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window)
+  if (FRAME_X_OUTPUT (f)->parent_desc == FRAME_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
   else
     tem = make_natnum ((uintptr_t) FRAME_X_OUTPUT (f)->parent_desc);
@@ -3631,7 +3631,7 @@ x_get_resource_string (const char *attribute, const char *class)
   esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
-  result = x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
+  result = x_get_string_resource (FRAME_DISPLAY_INFO (sf)->xrdb,
 				  name_key, class_key);
   SAFE_FREE ();
   return result;
@@ -3753,7 +3753,7 @@ x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
 		 const char *attribute, const char *class,
 		 enum resource_types type)
 {
-  return x_get_arg (FRAME_X_DISPLAY_INFO (f),
+  return x_get_arg (FRAME_DISPLAY_INFO (f),
 		    alist, param, attribute, class, type);
 }
 
@@ -3767,7 +3767,7 @@ x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist,
 {
   Lisp_Object value;
 
-  value = x_get_arg (FRAME_X_DISPLAY_INFO (f), alist, param,
+  value = x_get_arg (FRAME_DISPLAY_INFO (f), alist, param,
 		     attribute, class, type);
   if (! NILP (value) && ! EQ (value, Qunbound))
     store_frame_param (f, param, value);
@@ -3971,7 +3971,7 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, bool toolbar_p)
 {
   register Lisp_Object tem0, tem1, tem2;
   long window_prompting = 0;
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   /* Default values if we fall through.
      Actually, if that happens we should get

@@ -1,5 +1,22 @@
 2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Unify FRAME_window_system_DISPLAY_INFO macros between all ports.
+	All of them are replaced with FRAME_DISPLAY_INFO, defined in
+	each port to reference the port-specific window system data.
+	* msdos.h (FRAME_X_DISPLAY_INFO): Remove.
+	(FRAME_DISPLAY_INFO): Define.
+	* w32term.h (FRAME_W32_DISPLAY_INFO, FRAME_X_DISPLAY_INFO): Remove.
+	(FRAME_DISPLAY_INFO): Define.  Adjust users.
+	* xterm.h (FRAME_X_DISPLAY_INFO): Remove.
+	(FRAME_DISPLAY_INFO): Define.  Adjust users.
+	* frame.h (FRAME_RES_X, FRAME_RES_Y): Unify.
+	* font.c, frame.c, gtkutil.c, image.c, menu.c, msdos.c, nsfns.m:
+	* nsfont.m, nsterm.m, w32fns.c, w32font.c, w32menu.c, w32term.c:
+	* w32xfns.c, widget.c, xdisp.c, xfaces.c, xfns.c, xfont.c, xmenu.c:
+	* xselect.c, xterm.c: All related users changed.
+
+2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.h (x_window_to_frame, x_any_window_to_frame)
 	(x_menubar_window_to_frame): Remove prototypes.
 	* xfns.c (x_window_to_frame, x_any_window_to_frame)

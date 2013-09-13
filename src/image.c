@@ -161,13 +161,13 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 int
 x_bitmap_height (struct frame *f, ptrdiff_t id)
 {
-  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].height;
+  return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
 int
 x_bitmap_width (struct frame *f, ptrdiff_t id)
 {
-  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].width;
+  return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
@@ -175,7 +175,7 @@ ptrdiff_t
 x_bitmap_pixmap (struct frame *f, ptrdiff_t id)
 {
   /* HAVE_NTGUI needs the explicit cast here.  */
-  return (ptrdiff_t) FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
+  return (ptrdiff_t) FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 #endif
 
@@ -183,7 +183,7 @@ x_bitmap_pixmap (struct frame *f, ptrdiff_t id)
 int
 x_bitmap_mask (struct frame *f, ptrdiff_t id)
 {
-  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].mask;
+  return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].mask;
 }
 #endif
 
@@ -192,7 +192,7 @@ x_bitmap_mask (struct frame *f, ptrdiff_t id)
 static ptrdiff_t
 x_allocate_bitmap_record (struct frame *f)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   ptrdiff_t i;
 
   if (dpyinfo->bitmaps_last < dpyinfo->bitmaps_size)
@@ -213,7 +213,7 @@ x_allocate_bitmap_record (struct frame *f)
 void
 x_reference_bitmap (struct frame *f, ptrdiff_t id)
 {
-  ++FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
+  ++FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
 }
 
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
@@ -221,7 +221,7 @@ x_reference_bitmap (struct frame *f, ptrdiff_t id)
 ptrdiff_t
 x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsigned int height)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   ptrdiff_t id;
 
 #ifdef HAVE_X_WINDOWS
@@ -235,8 +235,8 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 #ifdef HAVE_NTGUI
   Pixmap bitmap;
   bitmap = CreateBitmap (width, height,
-			 FRAME_X_DISPLAY_INFO (XFRAME (frame))->n_planes,
-			 FRAME_X_DISPLAY_INFO (XFRAME (frame))->n_cbits,
+			 FRAME_DISPLAY_INFO (XFRAME (frame))->n_planes,
+			 FRAME_DISPLAY_INFO (XFRAME (frame))->n_cbits,
 			 bits);
   if (! bitmap)
     return -1;
@@ -280,7 +280,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 ptrdiff_t
 x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
 #ifdef HAVE_NTGUI
   return -1;  /* W32_TODO : bitmap support */
@@ -379,7 +379,7 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 void
 x_destroy_bitmap (struct frame *f, ptrdiff_t id)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (id > 0)
     {
@@ -454,7 +454,7 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
   unsigned long x, y, xp, xm, yp, ym;
   GC gc;
 
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (!(id > 0))
     return;
@@ -3421,7 +3421,7 @@ xpm_image_p (Lisp_Object object)
 ptrdiff_t
 x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   ptrdiff_t id;
   int rc;
   XpmAttributes attrs;
@@ -4325,7 +4325,7 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
      two orders of magnitude.  Freeing colors on TrueColor visuals is
      a nop, and pixel colors specify RGB values directly.  See also
      the Xlib spec, chapter 3.1.  */
-  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
   if (dpyinfo->red_bits > 0)
     {
       unsigned long pr, pg, pb;
@@ -4820,7 +4820,7 @@ x_edge_detection (struct frame *f, struct image *img, Lisp_Object matrix,
 static void
 x_disable_image (struct frame *f, struct image *img)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #ifdef HAVE_NTGUI
   int n_planes = dpyinfo->n_planes * dpyinfo->n_cbits;
 #else

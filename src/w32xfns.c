@@ -92,7 +92,7 @@ signal_quit (void)
 void
 select_palette (struct frame *f, HDC hdc)
 {
-  struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *display_info = FRAME_DISPLAY_INFO (f);
 
   if (!display_info->has_palette)
     return;

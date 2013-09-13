@@ -379,8 +379,7 @@ extern struct w32_output w32term_display;
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)
 
 /* This gives the w32_display_info structure for the display F is on.  */
-#define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
-#define FRAME_X_DISPLAY_INFO(f) (&one_w32_display_info)
+#define FRAME_DISPLAY_INFO(f) (&one_w32_display_info)
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (0)
@@ -388,12 +387,12 @@ extern struct w32_output w32term_display;
 /* Value is the smallest width of any character in any font on frame F.  */
 
 #define FRAME_SMALLEST_CHAR_WIDTH(F) \
-     FRAME_W32_DISPLAY_INFO(F)->smallest_char_width
+     FRAME_DISPLAY_INFO(F)->smallest_char_width
 
 /* Value is the smallest height of any font on frame F.  */
 
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
-     FRAME_W32_DISPLAY_INFO(F)->smallest_font_height
+     FRAME_DISPLAY_INFO(F)->smallest_font_height
 
 #define FRAME_NORMAL_PLACEMENT(F) ((F)->output_data.w32->normal_placement)
 #define FRAME_PREV_FSMODE(F)      ((F)->output_data.w32->prev_fsmode)

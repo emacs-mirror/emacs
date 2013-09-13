@@ -2861,8 +2861,8 @@ font_open_entity (struct frame *f, Lisp_Object entity, int pixel_size)
 	       : 1);
   height = (font->height ? font->height : 1);
 #ifdef HAVE_WINDOW_SYSTEM
-  FRAME_X_DISPLAY_INFO (f)->n_fonts++;
-  if (FRAME_X_DISPLAY_INFO (f)->n_fonts == 1)
+  FRAME_DISPLAY_INFO (f)->n_fonts++;
+  if (FRAME_DISPLAY_INFO (f)->n_fonts == 1)
     {
       FRAME_SMALLEST_CHAR_WIDTH (f) = min_width;
       FRAME_SMALLEST_FONT_HEIGHT (f) = height;
@@ -2894,8 +2894,8 @@ font_close_object (struct frame *f, Lisp_Object font_object)
   FONT_ADD_LOG ("close", font_object, Qnil);
   font->driver->close (f, font);
 #ifdef HAVE_WINDOW_SYSTEM
-  eassert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
-  FRAME_X_DISPLAY_INFO (f)->n_fonts--;
+  eassert (FRAME_DISPLAY_INFO (f)->n_fonts);
+  FRAME_DISPLAY_INFO (f)->n_fonts--;
 #endif
 }
 

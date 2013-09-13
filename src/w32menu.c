@@ -231,7 +231,7 @@ otherwise it is "Question". */)
     unblock_input ();
 
     discard_menu_items ();
-    FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+    FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
     if (error_name) error (error_name);
     return selection;
@@ -883,7 +883,7 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   /* Clean up extraneous mouse events which might have been generated
      during the call. */
   discard_mouse_events ();
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
@@ -1123,7 +1123,7 @@ w32_dialog_show (struct frame *f, int keymaps,
   lw_pop_up_all_widgets (dialog_id);
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
+  popup_get_selection ((XEvent *) 0, FRAME_DISPLAY_INFO (f), dialog_id);
 
   lw_destroy_all_widgets (dialog_id);
 
