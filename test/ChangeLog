@@ -4,6 +4,8 @@
 	Use a temp directory for eshell-directory-name.
 	(eshell-test-command-result): New, again using a temp directory.
 	Replace eshell-command-result with this throughout.
+	(eshell-test/for-loop, eshell-test/for-name-loop):
+	Ensure environment variables don't confuse us.
 
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
