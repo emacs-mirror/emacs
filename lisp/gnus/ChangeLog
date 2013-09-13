@@ -1,3 +1,8 @@
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-html.el (declare-function): Add compat stub for ancient Emacs.
+	(image-size): Declare.
+
 2013-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-icalendar.el (gnus-icalendar-event--build-reply-event-body):
