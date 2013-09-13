@@ -1,3 +1,7 @@
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (dbus-debug): Declare.
+
 2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el: Use lexical-binding.
