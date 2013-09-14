@@ -4219,7 +4219,7 @@ This function returns the width of the left and right margins of
 @var{window} as a cons cell of the form @w{@code{(@var{left}
 . @var{right})}}.  If one of the two marginal areas does not exist,
 its width is returned as @code{nil}; if none of the two margins exist,
-the function returns @code{nil}.  If @var{window} is @code{nil}, the
+the function returns @code{(nil)}.  If @var{window} is @code{nil}, the
 selected window is used.
 @end defun
 
