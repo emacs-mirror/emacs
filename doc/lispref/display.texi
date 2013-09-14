@@ -4189,13 +4189,15 @@ them a nonzero width.  The usual way to do that is to set these
 variables:
 
 @defvar left-margin-width
-This variable specifies the width of the left margin.
-It is buffer-local in all buffers.
+This variable specifies the width of the left margin, in character
+cell units.  It is buffer-local in all buffers.  A value of @code{nil}
+means no left marginal area.
 @end defvar
 
 @defvar right-margin-width
-This variable specifies the width of the right margin.
-It is buffer-local in all buffers.
+This variable specifies the width of the right margin, in character
+cell units.  It is buffer-local in all buffers.  A value of @code{nil}
+means no right marginal area.
 @end defvar
 
   Setting these variables does not immediately affect the window.  These
@@ -4206,15 +4208,19 @@ Thus, you can make changes take effect by calling
   You can also set the margin widths immediately.
 
 @defun set-window-margins window left &optional right
-This function specifies the margin widths for window @var{window}.
-The argument @var{left} controls the left margin and
-@var{right} controls the right margin (default @code{0}).
+This function specifies the margin widths for window @var{window}, in
+character cell (a.k.a.@: ``column''), units.  The argument @var{left}
+controls the left margin and @var{right} controls the right margin
+(default @code{0}).
 @end defun
 
 @defun window-margins &optional window
-This function returns the left and right margins of @var{window}
-as a cons cell of the form @code{(@var{left} . @var{right})}.
-If @var{window} is @code{nil}, the selected window is used.
+This function returns the width of the left and right margins of
+@var{window} as a cons cell of the form @w{@code{(@var{left}
+. @var{right})}}.  If one of the two marginal areas does not exist,
+its width is returned as @code{nil}; if none of the two margins exist,
+the function returns @code{nil}.  If @var{window} is @code{nil}, the
+selected window is used.
 @end defun
 
 @node Images

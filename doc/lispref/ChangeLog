@@ -1,3 +1,8 @@
+2013-09-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Display Margins): State the units of measuring
+	margin width.  (Bug#15375)
+
 2013-09-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (Not Intervals): Minor wording fix.
