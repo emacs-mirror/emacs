@@ -6189,7 +6189,7 @@ if `erc-away' is non-nil."
 		 ?m (erc-format-channel-modes)
 		 ?n (or (erc-current-nick) "")
 		 ?N (erc-format-network)
-		 ?o (erc-controls-strip erc-channel-topic)
+		 ?o (or (erc-controls-strip erc-channel-topic) "")
 		 ?p (erc-port-to-string erc-session-port)
 		 ?s (erc-format-target-and/or-server)
 		 ?S (erc-format-target-and/or-network)

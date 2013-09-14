@@ -1,3 +1,8 @@
+2013-09-14  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc.el (erc-update-mode-line-buffer):
+	Handle absent topic.  (Bug#15377)
+
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* erc-desktop-notifications.el (dbus-debug): Declare.
