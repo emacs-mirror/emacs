@@ -1,6 +1,6 @@
 2013-09-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* buffer.c (syms_of_buffer) <left-margin-width,	right-margin-width>:
+	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>:
 	Doc fix.  (Bug#15375)
 
 2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
