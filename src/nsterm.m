@@ -64,6 +64,12 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "process.h"
 #endif
 
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+#include "macfont.h"
+#endif
+#endif
+
 /* call tracing */
 #if 0
 int term_trace_num = 0;
@@ -198,8 +204,6 @@ static NSRect uRect;
 #endif
 static BOOL gsaved = NO;
 static BOOL ns_fake_keydown = NO;
-int ns_tmp_flags; /* FIXME */
-struct nsfont_info *ns_tmp_font; /* FIXME */
 #ifdef NS_IMPL_COCOA
 static BOOL ns_menu_bar_is_hidden = NO;
 #endif
@@ -2158,8 +2162,11 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
   else
     {
       s->left_overhang = 0;
-      s->right_overhang = ((struct nsfont_info *)font)->ital ?
-        FONT_HEIGHT (font) * 0.2 : 0;
+      if (EQ (font->driver->type, Qns))
+        s->right_overhang = ((struct nsfont_info *)font)->ital ?
+          FONT_HEIGHT (font) * 0.2 : 0;
+      else
+        s->right_overhang = 0;
     }
 }
 
@@ -3133,8 +3140,10 @@ ns_draw_glyph_string (struct glyph_string *s)
 {
   /* TODO (optimize): focus for box and contents draw */
   NSRect r[2];
-  int n;
+  int n, flags;
   char box_drawn_p = 0;
+  struct font *font = s->face->font;
+  if (! font) font = FRAME_FONT (s->f);
 
   NSTRACE (ns_draw_glyph_string);
 
@@ -3201,13 +3210,10 @@ ns_draw_glyph_string (struct glyph_string *s)
         ns_maybe_dumpglyphs_background
           (s, s->first_glyph->type == COMPOSITE_GLYPH);
 
-      ns_tmp_flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
-                    (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
-                     (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
-                      NS_DUMPGLYPH_NORMAL));
-      ns_tmp_font = (struct nsfont_info *)s->face->font;
-      if (ns_tmp_font == NULL)
-          ns_tmp_font = (struct nsfont_info *)FRAME_FONT (s->f);
+      flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
+        (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
+         (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
+          NS_DUMPGLYPH_NORMAL));
 
       if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
         {
@@ -3216,10 +3222,21 @@ ns_draw_glyph_string (struct glyph_string *s)
           NS_FACE_FOREGROUND (s->face) = tmp;
         }
 
-      ns_tmp_font->font.driver->draw
+      font->driver->draw
         (s, 0, s->nchars, s->x, s->y,
-         (ns_tmp_flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-         || ns_tmp_flags == NS_DUMPGLYPH_MOUSEFACE);
+         (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
+         || flags == NS_DUMPGLYPH_MOUSEFACE);
+
+      {
+        NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
+                        ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face),
+                                                   s->f)
+                        : FRAME_FOREGROUND_COLOR (s->f));
+        [col set];
+
+        /* Draw underline, overline, strike-through. */
+        ns_draw_text_decoration (s, s->face, col, s->width, s->x);
+      }
 
       if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
         {
@@ -3959,7 +3976,7 @@ static struct redisplay_interface ns_redisplay_interface =
   0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
   0, /* destroy_fringe_bitmap */
   ns_compute_glyph_string_overhangs,
-  ns_draw_glyph_string, /* interface to nsfont.m */
+  ns_draw_glyph_string,
   ns_define_frame_cursor,
   ns_clear_frame_area,
   ns_draw_window_cursor,
@@ -4809,17 +4826,26 @@ not_in_argv (NSString *arg)
 /* called on font panel selection */
 - (void)changeFont: (id)sender
 {
-  NSEvent *e =[[self window] currentEvent];
-  struct face *face =FRAME_DEFAULT_FACE (emacsframe);
+  NSEvent *e = [[self window] currentEvent];
+  struct face *face = FRAME_DEFAULT_FACE (emacsframe);
+  struct font *font = face->font;
   id newFont;
   CGFloat size;
+  NSFont *nsfont;
 
   NSTRACE (changeFont);
+
   if (!emacs_event)
     return;
 
-  if ((newFont = [sender convertFont:
-                           ((struct nsfont_info *)face->font)->nsfont]))
+  if (EQ (font->driver->type, Qns))
+    nsfont = ((struct nsfont_info *)font)->nsfont;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  else
+    nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
+
+  if ((newFont = [sender convertFont: nsfont]))
     {
       SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
 

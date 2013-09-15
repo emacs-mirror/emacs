@@ -54,6 +54,11 @@ and zlib-format compressed data.
 ** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.
 pkg-config is required to find ImageMagick libraries.
 
+** For OSX >= 10.5, the Core text based font backend from the Mac port is used.
+For GNUStep and OSX 10.4 the old backend is used.
+To use the old backend by default, do on the command line:
+% defaults write org.gnu.Emacs FontBackend ns
+
 
 * Startup Changes in Emacs 24.4
 

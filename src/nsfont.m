@@ -51,8 +51,6 @@ static Lisp_Object Qapple, Qroman, Qmedium;
 static Lisp_Object Qcondensed, Qexpanded;
 extern Lisp_Object Qappend;
 extern float ns_antialias_threshold;
-extern int ns_tmp_flags;
-extern struct nsfont_info *ns_tmp_font;
 
 
 /* font glyph and metrics caching functions, implemented at end */
@@ -798,6 +796,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 
   font_object = font_make_object (VECSIZE (struct nsfont_info),
                                   font_entity, pixel_size);
+  ASET (font_object, FONT_TYPE_INDEX, nsfont_driver.type);
   font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
   font = (struct font *) font_info;
   if (!font)
@@ -871,10 +870,11 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     font_info->size = font->pixel_size;
 
     /* max bounds */
-    font_info->max_bounds.ascent = lrint ([sfont ascender]);
+    font->ascent = font_info->max_bounds.ascent = lrint ([sfont ascender]);
     /* Descender is usually negative.  Use floor to avoid
        clipping descenders. */
-    font_info->max_bounds.descent = -lrint (floor(adjusted_descender));
+    font->descent =
+      font_info->max_bounds.descent = -lrint (floor(adjusted_descender));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -1051,16 +1051,26 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 #endif
   struct face *face;
   NSRect r;
-  struct nsfont_info *font = ns_tmp_font;
+  struct nsfont_info *font;
   NSColor *col, *bgCol;
   unsigned short *t = s->char2b;
-  int i, len;
+  int i, len, flags;
   char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
   int end = isComposite ? s->cmp_to : s->nchars;
 
   block_input ();
+
+  font = (struct nsfont_info *)s->face->font;
+  if (font == NULL)
+    font = (struct nsfont_info *)FRAME_FONT (s->f);
+
   /* Select face based on input flags */
-  switch (ns_tmp_flags)
+  flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
+    (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
+     (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
+      NS_DUMPGLYPH_NORMAL));
+
+  switch (flags)
     {
     case NS_DUMPGLYPH_CURSOR:
       face = s->face;
@@ -1188,8 +1198,8 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   col = (NS_FACE_FOREGROUND (face) != 0
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
          : FRAME_FOREGROUND_COLOR (s->f));
-  /* FIXME: find another way to pass this */
-  bgCol = (ns_tmp_flags != NS_DUMPGLYPH_FOREGROUND ? nil
+
+  bgCol = (flags != NS_DUMPGLYPH_FOREGROUND ? nil
            : (NS_FACE_BACKGROUND (face) != 0
               ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
               : FRAME_BACKGROUND_COLOR (s->f)));
@@ -1264,21 +1274,18 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
     CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
-                                    advances, len);
+                                     advances, len);
 
     if (face->overstrike)
       {
         CGContextSetTextPosition (gcontext, r.origin.x+0.5, r.origin.y);
         CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
-                                        advances, len);
+                                         advances, len);
       }
 
     CGContextRestoreGState (gcontext);
   }
 #endif  /* NS_IMPL_COCOA */
-
-  /* Draw underline, overline, strike-through. */
-  ns_draw_text_decoration (s, face, col, r.size.width, r.origin.x);
 
   unblock_input ();
   return to-from;

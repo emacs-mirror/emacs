@@ -1,3 +1,35 @@
+2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m: Include macfont.h.
+	(ns_tmp_flags, ns_tmp_font): Remove.
+	(ns_compute_glyph_string_overhangs): Check for driver Qns.
+	(ns_draw_glyph_string): Use local variables instead of ns_tmp_flags,
+	ns_tmp_font.  Call ns_draw_text_decoration here instead of nsfont.m.
+	(changeFont:): Fix code style.  Check for font driver type when
+	getiing font.
+
+	* nsterm.h (FONT_DESCENT, FONT_ASCENT): Define to (f)->ascent and
+	(f)->descent.
+
+	* nsfont.m (ns_tmp_flags, ns_tmp_font): Remove.
+	(nsfont_open): Set font driver type.
+	Set font->ascent and font->descent.  Figure out font instead of
+	ns_tmp_font, and flags instead of ns_tmp_flags.
+	Fix indentation. Remove call to ns_draw_text_decoration,
+	moved to nsterm.
+
+	* nsfns.m: Include macfont.h.
+	(Fx_create_frame): Register macfont driver, make a better default font.
+	(Fns_popup_font_panel): Get font from macfont driver, if used.
+
+	* macfont.m, macfont.h, maccuvs.h: New files.
+
+	* font.h: Declare syms_of_macfont.
+
+	* font.c (syms_of_font): Call syms_of_macfont.
+
+	* Makefile.in (NS_OBJ, SOME_MACHINE_OBJECTS): Add macfont.o.
+
 2013-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Drop VERTICAL_SCROLL_BAR_WIDTH_TRIM.  For X, it is zero since 1999,

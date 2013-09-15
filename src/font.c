@@ -5199,6 +5199,7 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
 #endif	/* HAVE_NTGUI */
 #ifdef HAVE_NS
   syms_of_nsfont ();
+  syms_of_macfont ();
 #endif	/* HAVE_NS */
 #endif	/* HAVE_WINDOW_SYSTEM */
 }

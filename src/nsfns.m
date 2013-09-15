@@ -46,6 +46,9 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #ifdef NS_IMPL_COCOA
 #include <IOKit/graphics/IOGraphicsLib.h>
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+#include "macfont.h"
+#endif
 #endif
 
 #if 0
@@ -1171,7 +1174,17 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
   block_input ();
+
+#ifdef NS_IMPL_GNUSTEP ||                               \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
   register_font_driver (&nsfont_driver, f);
+#else
+  if (CTGetCoreTextVersion != NULL
+      && CTGetCoreTextVersion () >= kCTVersionNumber10_5)
+    mac_register_font_driver (f);
+  register_font_driver (&nsfont_driver, f);
+#endif
+
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 			"fontBackend", "FontBackend", RES_TYPE_STRING);
 
@@ -1181,8 +1194,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
     x_default_parameter (f, parms, Qfontsize,
                                     make_number (0 /*(int)[font pointSize]*/),
                                     "fontSize", "FontSize", RES_TYPE_NUMBER);
+    // Remove ' Regular', not handled by backends.
+    char *fontname = xstrdup ([[font displayName] UTF8String]);
+    int len = strlen (fontname);
+    if (len > 8 && strcmp (fontname + len - 8, " Regular") == 0)
+      fontname[len-8] = '\0';
     x_default_parameter (f, parms, Qfont,
-                                 build_string ([[font fontName] UTF8String]),
+                                 build_string (fontname),
                                  "font", "Font", RES_TYPE_STRING);
   }
   unblock_input ();
@@ -1362,9 +1380,15 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
 {
   struct frame *f = decode_window_system_frame (frame);
   id fm = [NSFontManager sharedFontManager];
-
-  [fm setSelectedFont: ((struct nsfont_info *)f->output_data.ns->font)->nsfont
-           isMultiple: NO];
+  struct font *font = f->output_data.ns->font;
+  NSFont *nsfont;
+  if (EQ (font->driver->type, Qns))
+    nsfont = ((struct nsfont_info *)font)->nsfont;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  else
+    nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
+  [fm setSelectedFont: nsfont isMultiple: NO];
   [fm orderFrontFontPanel: NSApp];
   return Qnil;
 }

@@ -1,3 +1,7 @@
+2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Add check for OSX 10.5, required for macfont.o.
+
 2013-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (LDFLAGS_NOCOMBRELOC): New variable.

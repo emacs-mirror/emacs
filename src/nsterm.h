@@ -701,10 +701,8 @@ struct x_output
 
 #define FONT_WIDTH(f)	((f)->max_width)
 #define FONT_HEIGHT(f)	((f)->height)
-/*#define FONT_BASE(f)    ((f)->ascent) */
-#define FONT_BASE(f)    (((struct nsfont_info *)f)->max_bounds.ascent)
-/*#define FONT_DESCENT(f) ((f)->descent) */
-#define FONT_DESCENT(f) (((struct nsfont_info *)f)->max_bounds.descent)
+#define FONT_BASE(f)    ((f)->ascent)
+#define FONT_DESCENT(f) ((f)->descent)
 
 #define FRAME_DEFAULT_FACE(f) FACE_FROM_ID (f, DEFAULT_FACE_ID)
 

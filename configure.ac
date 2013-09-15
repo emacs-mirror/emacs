@@ -1623,7 +1623,10 @@ fail;
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
 
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
+  macfont_file=""
+  if test "${NS_IMPL_COCOA}" = "yes"; then
+    AC_MSG_CHECKING([for OSX 10.4 or newer])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
                                      [
 #ifdef MAC_OS_X_VERSION_MAX_ALLOWED
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
@@ -1635,13 +1638,33 @@ fail;
 		    ])],
 		    ns_osx_have_104=yes,
 		    ns_osx_have_104=no)
+    AC_MSG_RESULT([$ns_osx_have_104])
+
+    if test $ns_osx_have_104 = no; then
+       AC_MSG_ERROR([`OSX 10.4 or newer is required']);
+    fi
+    AC_MSG_CHECKING([for OSX 10.5 or newer])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
+                                     [
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+ ; /* OK */
+#else
+#error "OSX 10.5 not found"
+#endif
+#endif
+		    ])],
+		    ns_osx_have_105=yes,
+		    ns_osx_have_105=no)
+    AC_MSG_RESULT([$ns_osx_have_105])
+    if test $ns_osx_have_105 = yes; then
+      macfont_file="macfont.o"
+    fi
+  fi
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
 		    ns_have_nsinteger=yes,
 		    ns_have_nsinteger=no)
-  if test $ns_osx_have_104 = no; then
-     AC_MSG_ERROR([`OSX 10.4 or newer is required']);
-  fi
   if test $ns_have_nsinteger = yes; then
     AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
@@ -1677,7 +1700,8 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
+
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o $macfont_file"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"

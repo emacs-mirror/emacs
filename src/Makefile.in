@@ -266,7 +266,7 @@ MSDOS_OBJ =
 MSDOS_X_OBJ =
 
 NS_OBJ=@NS_OBJ@
-## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o if HAVE_NS.
+## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
@@ -388,7 +388,7 @@ obj = $(base_obj) $(NS_OBJC_OBJ)
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o cygw32.o \
-  nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
+  nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \

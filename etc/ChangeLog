@@ -1,3 +1,7 @@
+2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention the macfont backend.
+
 2013-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/Makefile (PS_ENGLISH, PS_CZECH, PS_FRENCH, PS_GERMAN)
