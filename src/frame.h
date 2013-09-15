@@ -1131,6 +1131,15 @@ extern Lisp_Object selected_frame;
   (FRAME_PIXEL_Y_TO_LINE (f, ((height) \
 			      - FRAME_INTERNAL_BORDER_WIDTH (f))))
 
+/* Value is the smallest width of any character in any font on frame F.  */
+
+#define FRAME_SMALLEST_CHAR_WIDTH(f)		\
+  FRAME_DISPLAY_INFO (f)->smallest_char_width
+
+/* Value is the smallest height of any font on frame F.  */
+
+#define FRAME_SMALLEST_FONT_HEIGHT(f)		\
+  FRAME_DISPLAY_INFO (f)->smallest_font_height
 
 /***********************************************************************
 				Frame Parameters

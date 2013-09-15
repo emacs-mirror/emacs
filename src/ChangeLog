@@ -2,6 +2,9 @@
 
 	* xterm.h (FRAME_X_SCREEN_NUMBER): Add comment.
 	(BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT): Use FRAME_X_SCREEN_NUMBER.
+	* frame.h (FRAME_SMALLEST_CHAR_WIDTH, FRAME_SMALLEST_FONT_HEIGHT):
+	Define once here...
+	* nsterm.h, w32term.h, xterm.h: ...and not here.
 
 2013-09-14  Eli Zaretskii  <eliz@gnu.org>
 

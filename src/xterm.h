@@ -734,16 +734,6 @@ enum
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
 
-/* Value is the smallest width of any character in any font on frame F.  */
-
-#define FRAME_SMALLEST_CHAR_WIDTH(F) \
-     FRAME_DISPLAY_INFO(F)->smallest_char_width
-
-/* Value is the smallest height of any font on frame F.  */
-
-#define FRAME_SMALLEST_FONT_HEIGHT(F) \
-     FRAME_DISPLAY_INFO(F)->smallest_font_height
-
 /* X-specific scroll bar stuff.  */
 
 /* We represent scroll bars as lisp vectors.  This allows us to place
