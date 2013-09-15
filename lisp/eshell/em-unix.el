@@ -284,18 +284,21 @@ Remove (unlink) the FILE(s).")
 					     entry)))))
 	   (eshell-funcalln 'unintern entry)))
 	((stringp entry)
-	 (if (and (file-directory-p entry)
-		  (not (file-symlink-p entry)))
-	     (if (or em-recursive
-		     eshell-rm-removes-directories)
-		 (if (or em-preview
-			 (not em-interactive)
-			 (y-or-n-p
-			  (format "rm: descend into directory `%s'? "
-				  entry)))
+	 ;; -f should silently ignore missing files (bug#15373).
+	 (unless (and force-removal
+		      (not (file-exists-p entry)))
+	   (if (and (file-directory-p entry)
+		    (not (file-symlink-p entry)))
+	       (if (or em-recursive
+		       eshell-rm-removes-directories)
+		   (if (or em-preview
+			   (not em-interactive)
+			   (y-or-n-p
+			    (format "rm: descend into directory `%s'? "
+				    entry)))
 		     (eshell-remove-entries nil (list entry) t))
-	       (eshell-error (format "rm: %s: is a directory\n" entry)))
-	   (eshell-remove-entries nil (list entry) t)))))
+		 (eshell-error (format "rm: %s: is a directory\n" entry)))
+	     (eshell-remove-entries nil (list entry) t))))))
      (setq args (cdr args)))
    nil))
 
