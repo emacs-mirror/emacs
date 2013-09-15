@@ -78,10 +78,11 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include "dispextern.h"
 #include "termhooks.h"
 
-#define BLACK_PIX_DEFAULT(f) BlackPixel (FRAME_X_DISPLAY (f), \
-					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
-#define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
-					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
+/* Black and white pixel values for the screen which frame F is on.  */
+#define BLACK_PIX_DEFAULT(f)					\
+  BlackPixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
+#define WHITE_PIX_DEFAULT(f)					\
+  WhitePixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
 
 #define FONT_WIDTH(f)	((f)->max_width)
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
@@ -707,6 +708,8 @@ enum
 
 /* This is the `Screen *' which frame F is on.  */
 #define FRAME_X_SCREEN(f) (FRAME_DISPLAY_INFO (f)->screen)
+
+/* This is the screen index number of screen which frame F is on.  */
 #define FRAME_X_SCREEN_NUMBER(f) XScreenNumberOfScreen (FRAME_X_SCREEN (f))
 
 /* This is the Visual which frame F is on.  */

@@ -1,3 +1,8 @@
+2013-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (FRAME_X_SCREEN_NUMBER): Add comment.
+	(BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT): Use FRAME_X_SCREEN_NUMBER.
+
 2013-09-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>:
