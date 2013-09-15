@@ -473,6 +473,8 @@ the second is ignored."
     arg))
 
 (defvar eshell-last-command-status)     ;Define in esh-io.el.
+(defvar eshell--local-vars nil
+  "List of locally bound vars that should take precedence over env-vars.")
 
 (defun eshell-rewrite-for-command (terms)
   "Rewrite a `for' command into its equivalent Eshell command form.
@@ -495,7 +497,9 @@ implemented via rewriting, rather than as a function."
 	       (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
 	   (while (car for-items)
-	     (let ((,(intern (cadr terms)) (car for-items)))
+	     (let ((,(intern (cadr terms)) (car for-items))
+		   (eshell--local-vars (cons ',(intern (cadr terms))
+					    eshell--local-vars)))
 	       (eshell-protect
 	   	,(eshell-invokify-arg body t)))
 	     (setcar for-items (cadr for-items))

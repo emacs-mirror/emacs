@@ -75,14 +75,20 @@
   (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
 
 (ert-deftest eshell-test/for-loop ()
-  "Test `eshell-command-result' with an elisp command."
+  "Test `eshell-command-result' with a for loop.."
   (let ((process-environment (cons "foo" process-environment)))
     (should (equal (eshell-test-command-result
                     "for foo in 5 { echo $foo }") 5))))
 
 (ert-deftest eshell-test/for-name-loop () ;Bug#15231
-  "Test `eshell-command-result' with an elisp command."
+  "Test `eshell-command-result' with a for loop using `name'."
   (let ((process-environment (cons "name" process-environment)))
+    (should (equal (eshell-test-command-result
+                    "for name in 3 { echo $name }") 3))))
+
+(ert-deftest eshell-test/for-name-shadow-loop () ; bug#15372
+  "Test `eshell-command-result' with a for loop using an env-var."
+  (let ((process-environment (cons "name=env-value" process-environment)))
     (should (equal (eshell-test-command-result
                     "for name in 3 { echo $name }") 3))))
 

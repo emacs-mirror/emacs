@@ -502,6 +502,7 @@ Possible options are:
 	 (let ((sym (intern-soft var)))
 	   (if (and sym (boundp sym)
 		    (or eshell-prefer-lisp-variables
+			(memq sym eshell--local-vars) ; bug#15372
 			(not (getenv var))))
 	       (symbol-value sym)
 	     (getenv var))))

@@ -1,3 +1,9 @@
+2013-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-cmd.el (eshell--local-vars): New variable.  (Bug#15372)
+	(eshell-rewrite-for-command): Add for loop vars to eshell--local-vars.
+	* eshell/esh-var.el (eshell-get-variable): Respect eshell--local-vars.
+
 2013-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-var.el (eshell-variable-aliases-list): Fix doc typo.

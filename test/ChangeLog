@@ -1,3 +1,9 @@
+2013-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (eshell-test/for-name-shadow-loop):
+	New test.  (Bug#15372)
+	(eshell-test/for-loop, eshell-test/for-name-loop): Doc fix.
+
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* automated/eshell.el (with-temp-eshell):
