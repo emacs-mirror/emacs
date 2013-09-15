@@ -1,3 +1,8 @@
+2013-09-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--state-put-2): Don't process buffer state
+	when buffer doesn't exist any more (Bug#15382).
+
 2013-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-unix.el (eshell/rm):
