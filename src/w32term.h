@@ -473,14 +473,6 @@ struct scroll_bar {
 #define SET_SCROLL_BAR_W32_WINDOW(ptr, id) \
   (SCROLL_BAR_UNPACK ((ptr)->w32_window_low, (ptr)->w32_window_high, (intptr_t) id))
 
-/* Extract the X widget of the scroll bar from a struct scroll_bar.  */
-#define SCROLL_BAR_X_WIDGET(ptr) \
-  ((Widget) SCROLL_BAR_PACK ((ptr)->x_widget_low, (ptr)->x_widget_high))
-
-/* Store a widget id in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_X_WIDGET(ptr, w) \
-  (SCROLL_BAR_UNPACK ((ptr)->x_widget_low, (ptr)->x_widget_high, (int) w))
-
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
 #define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f,width) \

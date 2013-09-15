@@ -796,6 +796,7 @@ struct scroll_bar
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
+#ifdef USE_X_TOOLKIT
 
 /* Extract the X widget of the scroll bar from a struct scroll_bar.
    XtWindowToWidget should be fast enough since Xt uses a hash table
@@ -812,6 +813,7 @@ struct scroll_bar
     ptr->x_window = window;			\
 } while (0)
 
+#endif /* USE_X_TOOLKIT */
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
