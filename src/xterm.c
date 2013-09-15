@@ -23,8 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 
-#ifdef HAVE_X_WINDOWS
-
 #include "lisp.h"
 #include "blockinput.h"
 #include "syssignal.h"
@@ -10865,5 +10863,3 @@ default is nil, which is the same as `super'.  */);
 				     make_float (DEFAULT_REHASH_THRESHOLD),
 				     Qnil);
 }
-
-#endif /* HAVE_X_WINDOWS */

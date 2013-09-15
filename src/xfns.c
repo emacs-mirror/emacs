@@ -42,8 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termchar.h"
 #include "font.h"
 
-#ifdef HAVE_X_WINDOWS
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -6186,5 +6184,3 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_select_font);
 #endif
 }
-
-#endif /* HAVE_X_WINDOWS */

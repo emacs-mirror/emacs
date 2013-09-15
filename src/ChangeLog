@@ -9,6 +9,8 @@
 	* nsterm.h, w32term.h, xterm.h: ...and not here.
 	* w32term.h (SCROLL_BAR_X_WIDGET, SET_SCROLL_BAR_X_WIDGET):
 	Remove unused Xisms.
+	* xterm.c, xfns.c (toplevel): Remove #ifdef HAVE_X_WINDOWS because
+	these modules are never compiled otherwise.
 
 2013-09-14  Eli Zaretskii  <eliz@gnu.org>
 
