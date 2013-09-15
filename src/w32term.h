@@ -478,8 +478,7 @@ struct scroll_bar {
 #define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f,width) \
   ((width) \
    - VERTICAL_SCROLL_BAR_LEFT_BORDER \
-   - VERTICAL_SCROLL_BAR_RIGHT_BORDER \
-   - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2)
+   - VERTICAL_SCROLL_BAR_RIGHT_BORDER)
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
@@ -516,11 +515,6 @@ struct scroll_bar {
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (vertical_scroll_bar_min_handle)
 
-/* Trimming off a few pixels from each side prevents
-   text from glomming up against the scroll bar */
-#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
-
-
 struct frame;  /* from frame.h */
 
 extern void w32_fill_rect (struct frame *, HDC, COLORREF, RECT *);

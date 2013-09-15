@@ -3866,8 +3866,7 @@ w32_set_vertical_scroll_bar (struct window *w,
           /* Make sure scroll bar is "visible" before moving, to ensure the
              area of the parent window now exposed will be refreshed.  */
           my_show_window (f, hwnd, SW_HIDE);
-          MoveWindow (hwnd, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		      top, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
+          MoveWindow (hwnd, sb_left, top, sb_width,
 		      max (height, 1), TRUE);
 
 	  si.cbSize = sizeof (si);

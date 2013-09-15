@@ -1,5 +1,19 @@
 2013-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Drop VERTICAL_SCROLL_BAR_WIDTH_TRIM.  For X, it is zero since 1999,
+	and it is always zero for others, so I assume that this is an ancient
+	leftover which nobody will want to change any more.
+	* xterm.h, w32term.h, nsterm.h (VERTICAL_SCROLL_BAR_WIDTH_TRIM): Remove.
+	(VERTICAL_SCROLL_BAR_INSIDE_WIDTH):
+	* frame.c (x_set_scroll_bar_width):
+	* w32fns.c (w32_createscrollbar):
+	* w32term.c (w32_set_vertical_scroll_bar):
+	* xfns.c (x_set_scroll_bar_default_width):
+	* xterm.c (XTflash, x_scroll_bar_create, XTset_vertical_scroll_bar)
+	(x_scroll_bar_expose): Related users changed.
+
+2013-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.h (FRAME_X_SCREEN_NUMBER): Add comment.
 	(BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT): Use FRAME_X_SCREEN_NUMBER.
 	(SCROLL_BAR_X_WIDGET, SET_SCROLL_BAR_X_WIDGET) [USE_X_TOOLKIT]:

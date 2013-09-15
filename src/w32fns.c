@@ -1890,16 +1890,11 @@ w32_init_class (HINSTANCE hinst)
 static HWND
 w32_createscrollbar (struct frame *f, struct scroll_bar * bar)
 {
-  return (CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
-			/* Position and size of scroll bar.  */
-			XINT (bar->left) + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                        XINT (bar->top),
-			XINT (bar->width) - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                        XINT (bar->height),
-			FRAME_W32_WINDOW (f),
-			NULL,
-			hinst,
-			NULL));
+  return CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
+		       /* Position and size of scroll bar.  */
+		       XINT (bar->left), XINT (bar->top),
+		       XINT (bar->width), XINT (bar->height),
+		       FRAME_W32_WINDOW (f), NULL, hinst, NULL);
 }
 
 static void

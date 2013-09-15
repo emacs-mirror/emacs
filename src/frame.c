@@ -3369,9 +3369,6 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (RANGED_INTEGERP (1, arg, INT_MAX)
 	   && XFASTINT (arg) != FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
     {
-      if (XFASTINT (arg) <= 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM)
-	XSETINT (arg, 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM + 1);
-
       FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = XFASTINT (arg);
       FRAME_CONFIG_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
       if (FRAME_X_WINDOW (f))

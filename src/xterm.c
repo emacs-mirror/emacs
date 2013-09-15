@@ -3019,26 +3019,7 @@ XTflash (struct frame *f)
       /* These will be the left and right margins of the rectangles.  */
       int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
       int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
-
-      int width;
-
-      /* Don't flash the area between a scroll bar and the frame
-	 edge it is next to.  */
-      switch (FRAME_VERTICAL_SCROLL_BAR_TYPE (f))
-	{
-	case vertical_scroll_bar_left:
-	  flash_left += VERTICAL_SCROLL_BAR_WIDTH_TRIM;
-	  break;
-
-	case vertical_scroll_bar_right:
-	  flash_right -= VERTICAL_SCROLL_BAR_WIDTH_TRIM;
-	  break;
-
-	default:
-	  break;
-	}
-
-      width = flash_right - flash_left;
+      int width = flash_right - flash_left;
 
       /* If window is tall, flash top and bottom line.  */
       if (height > 3 * FRAME_LINE_HEIGHT (f))
@@ -5053,12 +5034,9 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
-			    left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			    top,
-			    width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-			    height,
+			    left, top, width, height,
 			    /* Border width, depth, class, and visual.  */
-			     0,
+			    0,
 			    CopyFromParent,
 			    CopyFromParent,
 			    CopyFromParent,
@@ -5093,19 +5071,11 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
 #ifdef USE_TOOLKIT_SCROLL_BARS
   {
 #ifdef USE_GTK
-    xg_update_scrollbar_pos (f,
-                             bar->x_window,
-                             top,
-                             left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                             width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                             max (height, 1));
+    xg_update_scrollbar_pos (f, bar->x_window, top,
+			     left,width, max (height, 1));
 #else /* not USE_GTK */
     Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
-    XtConfigureWidget (scroll_bar,
-		       left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		       top,
-		       width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-		       max (height, 1), 0);
+    XtConfigureWidget (scroll_bar, left, top, width, max (height, 1), 0);
     XtMapWidget (scroll_bar);
 #endif /* not USE_GTK */
     }
@@ -5353,32 +5323,14 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 			      left, top, width, height);
 	    }
 #ifdef USE_GTK
-          xg_update_scrollbar_pos (f,
-                                   bar->x_window,
-                                   top,
-                                   sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                                   sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM *2,
-                                   max (height, 1));
+          xg_update_scrollbar_pos (f, bar->x_window, top,
+				   sb_left, sb_width, max (height, 1));
 #else /* not USE_GTK */
           XtConfigureWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar),
-                             sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                             top,
-                             sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                             max (height, 1), 0);
+                             sb_left, top, sb_width, max (height, 1), 0);
 #endif /* not USE_GTK */
 	}
 #else /* not USE_TOOLKIT_SCROLL_BARS */
-
-      /* Clear areas not covered by the scroll bar because of
-	 VERTICAL_SCROLL_BAR_WIDTH_TRIM.  */
-      if (VERTICAL_SCROLL_BAR_WIDTH_TRIM)
-	{
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM, height);
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			top, VERTICAL_SCROLL_BAR_WIDTH_TRIM, height);
-	}
 
       /* Clear areas not covered by the scroll bar because it's not as
 	 wide as the area reserved for it.  This makes sure a
@@ -5403,9 +5355,9 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	{
 	  XWindowChanges wc;
 
-	  wc.x = sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+	  wc.x = sb_left;
 	  wc.y = top;
-	  wc.width = sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2;
+	  wc.width = sb_width;
 	  wc.height = height;
 	  XConfigureWindow (FRAME_X_DISPLAY (f), bar->x_window,
 			    mask, &wc);
@@ -5568,7 +5520,6 @@ x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
   Window w = bar->x_window;
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
-  int width_trim = VERTICAL_SCROLL_BAR_WIDTH_TRIM;
 
   block_input ();
 
@@ -5581,11 +5532,8 @@ x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
 
   /* Draw a one-pixel border just inside the edges of the scroll bar.  */
   XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
-
 		  /* x, y, width, height */
-		  0, 0,
-		  bar->width - 1 - width_trim - width_trim,
-		  bar->height - 1);
+		  0, 0, bar->width - 1, bar->height - 1);
 
    /* Restore the foreground color of the GC if we changed it above.  */
    if (f->output_data.x->scroll_bar_foreground_pixel != -1)

@@ -900,8 +900,4 @@ extern char gnustep_base_version[];  /* version tracking */
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
 
-/* needed somewhere... */
-#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
-
-
 #endif	/* HAVE_NS */
