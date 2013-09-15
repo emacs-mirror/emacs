@@ -1,3 +1,9 @@
+2013-09-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-operator-re): Consider line
+	continuation character an operator, as far as indentation is
+	concerned (Bug#15369).
+
 2013-09-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-put-2): Don't process buffer state

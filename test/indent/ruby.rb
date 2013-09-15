@@ -71,3 +71,7 @@ end
 if something == :==
   do_something
 end
+
+# Bug#15369
+MSG = 'Separate every 3 digits in the integer portion of a number' \
+  'with underscores(_).'

@@ -132,7 +132,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
           ruby-block-end-re "\\|}\\|\\]\\)")
   "Regexp to match where the indentation gets shallower.")
 
-(defconst ruby-operator-re "[-,.+*/%&|^~=<>:]"
+(defconst ruby-operator-re "[-,.+*/%&|^~=<>:]\\|\\\\$"
   "Regexp to match operators.")
 
 (defconst ruby-symbol-chars "a-zA-Z0-9_"
