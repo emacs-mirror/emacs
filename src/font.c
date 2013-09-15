@@ -5199,7 +5199,9 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
 #endif	/* HAVE_NTGUI */
 #ifdef HAVE_NS
   syms_of_nsfont ();
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
   syms_of_macfont ();
+#endif
 #endif	/* HAVE_NS */
 #endif	/* HAVE_WINDOW_SYSTEM */
 }

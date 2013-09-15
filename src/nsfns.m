@@ -1175,15 +1175,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   block_input ();
 
-#ifdef NS_IMPL_GNUSTEP ||                               \
-  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
-  register_font_driver (&nsfont_driver, f);
-#else
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   if (CTGetCoreTextVersion != NULL
       && CTGetCoreTextVersion () >= kCTVersionNumber10_5)
     mac_register_font_driver (f);
-  register_font_driver (&nsfont_driver, f);
 #endif
+#endif
+  register_font_driver (&nsfont_driver, f);
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 			"fontBackend", "FontBackend", RES_TYPE_STRING);

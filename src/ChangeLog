@@ -1,5 +1,11 @@
 2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfns.m (Fx_create_frame): Fix font driver registration for
+	GNUStep.
+
+	* font.c (syms_of_font): Check MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+	for syms_of_macfont.
+
 	* nsterm.m: Include macfont.h.
 	(ns_tmp_flags, ns_tmp_font): Remove.
 	(ns_compute_glyph_string_overhangs): Check for driver Qns.
