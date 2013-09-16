@@ -1872,7 +1872,7 @@ This function makes or adds to an entry on `after-load-alist'."
 				      nil
 				    (remove-hook 'after-load-functions ',fun)
 				    ,',form)))
-		     (add-hook 'after-load-functions fun))
+		     (add-hook 'after-load-functions fun 'append))
 		 ;; Not being provided from a file, run form right now.
 		 ,form)))
       ;; Add FORM to the element unless it's already there.
