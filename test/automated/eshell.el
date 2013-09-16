@@ -51,6 +51,9 @@
   (goto-char eshell-last-input-end)
   (looking-at regexp))
 
+;; FIXME this does not return informative failure messages, just t or nil.
+;; It should return the expected buffer contents and the actual one,
+;; so that we can see what form ant failure took.
 (defun eshell-command-result-p (text regexp &optional func)
   "Insert a command at the end of the buffer."
   (eshell-insert-command text func)
@@ -89,10 +92,10 @@
 (ert-deftest eshell-test/for-name-shadow-loop () ; bug#15372
   "Test `eshell-command-result' with a for loop using an env-var."
   (let ((process-environment (cons "name=env-value" process-environment)))
-    (should (equal (eshell-test-command-result "echo $name") "env-value"))
-    (should (equal (eshell-test-command-result
-                    "for name in 3 { echo $name }") 3))
-    (should (equal (eshell-test-command-result "echo $name") "env-value"))))
+    (with-temp-eshell
+     (should
+      (eshell-command-result-p "echo $name; for name in 3 { echo $name }; echo $name"
+                               "env-value\n3\nenv-value\n")))))
 
 (ert-deftest eshell-test/lisp-command-args ()
   "Test `eshell-command-result' with elisp and trailing args.
