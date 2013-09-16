@@ -1,3 +1,8 @@
+2013-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-expand-group, message-completion-in-region):
+	Correct the order of start and end of a region.
+
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* mml2015.el (gnus-create-image): Autoload it.

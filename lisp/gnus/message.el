@@ -7982,12 +7982,12 @@ those headers."
 		 group)
 	       collection))
        gnus-active-hashtb))
-    (message-completion-in-region e b collection)))
+    (message-completion-in-region b e collection)))
 
 (defalias 'message-completion-in-region
   (if (fboundp 'completion-in-region)
       'completion-in-region
-    (lambda (e b hashtb)
+    (lambda (b e hashtb)
       (let* ((string (buffer-substring b e))
              (completions (all-completions string hashtb))
              comp)
