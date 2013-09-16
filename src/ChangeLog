@@ -1,3 +1,9 @@
+2013-09-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* font.c (syms_of_font): Move call to syms_of_(ns|mac)font ...
+
+	* nsterm.m (syms_of_nsterm): ... to here.
+
 2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (toolkit_scroll_bar_interaction): Use bool for boolean.

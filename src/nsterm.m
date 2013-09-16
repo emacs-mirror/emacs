@@ -7461,4 +7461,12 @@ baseline level.  The default value is nil.  */);
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);
+
+  syms_of_nsfont ();
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+  syms_of_macfont ();
+#endif
+#endif
+  
 }
