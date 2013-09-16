@@ -53,7 +53,7 @@
 
 ;; FIXME this does not return informative failure messages, just t or nil.
 ;; It should return the expected buffer contents and the actual one,
-;; so that we can see what form ant failure took.
+;; so that we can see what form any failure took.
 (defun eshell-command-result-p (text regexp &optional func)
   "Insert a command at the end of the buffer."
   (eshell-insert-command text func)
