@@ -1,3 +1,8 @@
+2013-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* automated/eshell.el (eshell-test/for-name-shadow-loop):
+	Test value before and after loop as well as during.
+
 2013-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* automated/eshell.el (eshell-test/for-name-shadow-loop):

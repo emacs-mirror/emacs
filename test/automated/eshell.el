@@ -89,8 +89,10 @@
 (ert-deftest eshell-test/for-name-shadow-loop () ; bug#15372
   "Test `eshell-command-result' with a for loop using an env-var."
   (let ((process-environment (cons "name=env-value" process-environment)))
+    (should (equal (eshell-test-command-result "echo $name") "env-value"))
     (should (equal (eshell-test-command-result
-                    "for name in 3 { echo $name }") 3))))
+                    "for name in 3 { echo $name }") 3))
+    (should (equal (eshell-test-command-result "echo $name") "env-value"))))
 
 (ert-deftest eshell-test/lisp-command-args ()
   "Test `eshell-command-result' with elisp and trailing args.
