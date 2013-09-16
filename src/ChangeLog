@@ -1,5 +1,8 @@
 2013-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xsettings.c (init_gconf, init_gsettings): Check for Glib 2.36.0
+	before calling g_type_init.
+
 	* font.c (syms_of_font): Move call to syms_of_(ns|mac)font ...
 
 	* nsterm.m (syms_of_nsterm): ... to here.

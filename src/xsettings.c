@@ -804,7 +804,9 @@ init_gsettings (void)
   int schema_found = 0;
 
 #ifdef HAVE_G_TYPE_INIT
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
   g_type_init ();
+#endif
 #endif
 
   schemas = g_settings_list_schemas ();
@@ -861,7 +863,9 @@ init_gconf (void)
   char *s;
 
 #ifdef HAVE_G_TYPE_INIT
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
   g_type_init ();
+#endif
 #endif
 
   gconf_client = gconf_client_get_default ();
