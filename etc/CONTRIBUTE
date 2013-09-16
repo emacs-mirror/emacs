@@ -60,6 +60,11 @@ answer any questions you may have (or point you to the people with the
 answers), at the emacs-devel@gnu.org mailing list.
 
 A copyright disclaimer is also a possibility, but we prefer an assignment.
+Note that the disclaimer, like an assignment, involves you sending
+signed paperwork to the FSF (simply saying "this is in the public domain"
+is not enough).  Also, a disclaimer cannot be applied to future work, it
+has to be repeated each time you want to send something new.
+
 We can accept small changes (roughly, fewer than 15 lines) without
 an assignment.  This is a cumulative limit (e.g. three separate 5 line
 patches) over all your contributions.
