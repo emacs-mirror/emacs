@@ -1,5 +1,8 @@
 2013-09-16  Glenn Morris  <rgm@gnu.org>
 
+	* automated/eshell.el (eshell-match-result):
+	Return a more informative failure than simply "false".  Update callers.
+
 	* automated/eshell.el (eshell-test/for-name-shadow-loop):
 	Test value before and after loop as well as during.
 

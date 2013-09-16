@@ -47,13 +47,11 @@
   (funcall (or func 'eshell-send-input)))
 
 (defun eshell-match-result (regexp)
-  "Insert a command at the end of the buffer."
+  "Check that text after `eshell-last-input-end' matches REGEXP."
   (goto-char eshell-last-input-end)
-  (looking-at regexp))
+  (should (string-match-p regexp (buffer-substring-no-properties
+                                  (point) (point-max)))))
 
-;; FIXME this does not return informative failure messages, just t or nil.
-;; It should return the expected buffer contents and the actual one,
-;; so that we can see what form any failure took.
 (defun eshell-command-result-p (text regexp &optional func)
   "Insert a command at the end of the buffer."
   (eshell-insert-command text func)
@@ -93,9 +91,8 @@
   "Test `eshell-command-result' with a for loop using an env-var."
   (let ((process-environment (cons "name=env-value" process-environment)))
     (with-temp-eshell
-     (should
-      (eshell-command-result-p "echo $name; for name in 3 { echo $name }; echo $name"
-                               "env-value\n3\nenv-value\n")))))
+     (eshell-command-result-p "echo $name; for name in 3 { echo $name }; echo $name"
+                              "env-value\n3\nenv-value\n"))))
 
 (ert-deftest eshell-test/lisp-command-args ()
   "Test `eshell-command-result' with elisp and trailing args.
@@ -154,23 +151,20 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 (ert-deftest eshell-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"
   (with-temp-eshell
-   (should
-    (eshell-command-result-p "+ 1 2; + $$ 2"
-                             "3\n5\n"))))
+   (eshell-command-result-p "+ 1 2; + $$ 2"
+                            "3\n5\n")))
 
 (ert-deftest eshell-test/last-result-var2 ()
   "Test using the \"last result\" ($$) variable twice"
   (with-temp-eshell
-   (should
-    (eshell-command-result-p "+ 1 2; + $$ $$"
-                             "3\n6\n"))))
+   (eshell-command-result-p "+ 1 2; + $$ $$"
+                             "3\n6\n")))
 
 (ert-deftest eshell-test/last-arg-var ()
   "Test using the \"last arg\" ($_) variable"
   (with-temp-eshell
-   (should
-    (eshell-command-result-p "+ 1 2; + $_ 4"
-                             "3\n6\n"))))
+   (eshell-command-result-p "+ 1 2; + $_ 4"
+                             "3\n6\n")))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
@@ -204,14 +198,14 @@ e.g. \"{(+ 1 2)} 3\" => 3"
                  (> count 0))
        (sit-for 1)
        (setq count (1- count))))
-   (should (eshell-match-result "alpha\n"))))
+   (eshell-match-result "alpha\n")))
 
 (ert-deftest eshell-test/flush-output ()
   "Test flushing of previous output"
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
    (eshell-kill-output)
-   (should (eshell-match-result (regexp-quote "*** output flushed ***\n")))
+   (eshell-match-result (regexp-quote "*** output flushed ***\n"))
    (should (forward-line))
    (should (= (point) eshell-last-output-start))))
 
