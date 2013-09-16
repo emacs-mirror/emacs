@@ -1,3 +1,19 @@
+2013-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-opt.el: Fix last change to set lexical-vars properly
+	(bug#15379).
+	(eshell--do-opts): Rename from eshell-do-opt, remove arg `body-fun',
+	return args and options.
+	(eshell-eval-using-options): Use the new return value of
+	eshell--do-opts to set the options's vars in their scope.
+	(eshell--set-option): Rename from eshell-set-option.
+	Add arg `opt-vals'.
+	(eshell--process-option): Rename from eshell-process-option.
+	Add arg `opt-vals'.
+	(eshell--process-args): Use an `opt-vals' alist to store the options's
+	values during their processing and return them additionally to the
+	remaining args.
+
 2013-09-15  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-operator-re): Consider line

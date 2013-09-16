@@ -144,7 +144,7 @@ function `string-to-number'."
 Otherwise, evaluates FORM with no error handling."
   (declare (indent 2))
   (if eshell-handle-errors
-      `(condition-case ,tag
+      `(condition-case-unless-debug ,tag
 	   ,form
 	 ,@handlers)
     form))
