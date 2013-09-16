@@ -10041,7 +10041,11 @@ fi
 
 
 
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  macfont_file=""
+  if test "${NS_IMPL_COCOA}" = "yes"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OSX 10.4 or newer" >&5
+$as_echo_n "checking for OSX 10.4 or newer... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <AppKit/AppKit.h>
 int
@@ -10066,6 +10070,45 @@ else
   ns_osx_have_104=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ns_osx_have_104" >&5
+$as_echo "$ns_osx_have_104" >&6; }
+
+    if test $ns_osx_have_104 = no; then
+       as_fn_error "\`OSX 10.4 or newer is required'" "$LINENO" 5;
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OSX 10.5 or newer" >&5
+$as_echo_n "checking for OSX 10.5 or newer... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <AppKit/AppKit.h>
+int
+main ()
+{
+
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+ ; /* OK */
+#else
+#error "OSX 10.5 not found"
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ns_osx_have_105=yes
+else
+  ns_osx_have_105=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ns_osx_have_105" >&5
+$as_echo "$ns_osx_have_105" >&6; }
+    if test $ns_osx_have_105 = yes; then
+      macfont_file="macfont.o"
+    fi
+  fi
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Foundation/NSObjCRuntime.h>
@@ -10083,9 +10126,6 @@ else
   ns_have_nsinteger=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  if test $ns_osx_have_104 = no; then
-     as_fn_error "\`OSX 10.4 or newer is required'" "$LINENO" 5;
-  fi
   if test $ns_have_nsinteger = yes; then
 
 $as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
@@ -10120,7 +10160,8 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
+
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o $macfont_file"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
