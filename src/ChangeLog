@@ -1,5 +1,11 @@
 2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xterm.c (toolkit_scroll_bar_interaction): Use bool for boolean.
+	(ignore_next_mouse_click_timeout): Use Time as X does.
+	(handle_one_xevent): Avoid cast and use unsigned comparison.
+
+2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not copy X event in handle_one_xevent except KeyPress case.
 	Wnen XEvent is processed, it is unlikely to be changed except
 	KeyPress case, so we can avoid copying and use const pointer to

@@ -160,20 +160,21 @@ Lisp_Object x_display_name_list;
 static struct frame *pending_autoraise_frame;
 
 #ifdef USE_X_TOOLKIT
+
 /* The application context for Xt use.  */
 XtAppContext Xt_app_con;
 static String Xt_default_resources[] = {0};
 
 /* Non-zero means user is interacting with a toolkit scroll bar.  */
+static bool toolkit_scroll_bar_interaction;
 
-static int toolkit_scroll_bar_interaction;
 #endif /* USE_X_TOOLKIT */
 
 /* Non-zero timeout value means ignore next mouse click if it arrives
    before that timeout elapses (i.e. as part of the same sequence of
    events resulting from clicking on a frame to select it).  */
 
-static unsigned long ignore_next_mouse_click_timeout;
+static Time ignore_next_mouse_click_timeout;
 
 /* Mouse movement.
 
@@ -6893,7 +6894,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                   if (ignore_next_mouse_click_timeout)
                     {
                       if (event->type == ButtonPress
-                          && (int)(event->xbutton.time - ignore_next_mouse_click_timeout) > 0)
+                          && event->xbutton.time > ignore_next_mouse_click_timeout)
                         {
                           ignore_next_mouse_click_timeout = 0;
                           construct_mouse_click (&inev.ie, &event->xbutton, f);
