@@ -1141,7 +1141,7 @@ wait_for_property_change (struct prop_location *location)
 /* Called from XTread_socket in response to a PropertyNotify event.  */
 
 void
-x_handle_property_notify (XPropertyEvent *event)
+x_handle_property_notify (const XPropertyEvent * const event)
 {
   struct prop_location *rest;
 
@@ -1888,7 +1888,7 @@ clean_local_selection_data (Lisp_Object obj)
    We store t there if the reply is successful, lambda if not.  */
 
 void
-x_handle_selection_notify (XSelectionEvent *event)
+x_handle_selection_notify (const XSelectionEvent * const event)
 {
   if (event->requestor != reading_selection_window)
     return;
@@ -2488,7 +2488,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 /* Convert an XClientMessageEvent to a Lisp event of type DRAG_N_DROP_EVENT.  */
 
 int
-x_handle_dnd_message (struct frame *f, XClientMessageEvent *event,
+x_handle_dnd_message (struct frame *f, const XClientMessageEvent * const event,
                       struct x_display_info *dpyinfo, struct input_event *bufp)
 {
   Lisp_Object vec;

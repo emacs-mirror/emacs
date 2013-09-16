@@ -888,11 +888,6 @@ struct selection_input_event
 #define SELECTION_EVENT_TIME(eventp)	\
   (((struct selection_input_event *) (eventp))->time)
 
-/* From xselect.c.  */
-
-void x_handle_selection_notify (XSelectionEvent *);
-void x_handle_property_notify (XPropertyEvent *);
-
 /* From xfns.c.  */
 
 extern void x_free_gcs (struct frame *);
@@ -946,8 +941,8 @@ extern void x_wait_for_event (struct frame *, int);
 
 /* Defined in xselect.c */
 
-extern void x_handle_property_notify (XPropertyEvent *);
-extern void x_handle_selection_notify (XSelectionEvent *);
+extern void x_handle_property_notify (const XPropertyEvent * const);
+extern void x_handle_selection_notify (const XSelectionEvent * const);
 extern void x_handle_selection_event (struct input_event *);
 extern void x_clear_frame_selections (struct frame *);
 
@@ -959,9 +954,9 @@ extern void x_send_client_event (Lisp_Object display,
                                  Lisp_Object values);
 
 extern int x_handle_dnd_message (struct frame *,
-                                 XClientMessageEvent *,
+                                 const XClientMessageEvent * const,
                                  struct x_display_info *,
-                                 struct input_event *bufp);
+                                 struct input_event *);
 extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,

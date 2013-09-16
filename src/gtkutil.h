@@ -105,7 +105,7 @@ extern void xg_modify_menubar_widgets (GtkWidget *menubar,
 
 extern void xg_update_frame_menubar (struct frame *f);
 
-extern bool xg_event_is_for_menubar (struct frame *f, XEvent *event);
+extern bool xg_event_is_for_menubar (struct frame *, const XEvent * const);
 
 extern bool xg_have_tear_offs (void);
 
@@ -129,7 +129,7 @@ extern void xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
                                              int portion,
                                              int position,
                                              int whole);
-extern bool xg_event_is_for_scrollbar (struct frame *f, XEvent *event);
+extern bool xg_event_is_for_scrollbar (struct frame *, const XEvent * const);
 extern int xg_get_default_scrollbar_width (void);
 
 extern void update_frame_tool_bar (struct frame *f);

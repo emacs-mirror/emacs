@@ -1,5 +1,26 @@
 2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Do not copy X event in handle_one_xevent except KeyPress case.
+	Wnen XEvent is processed, it is unlikely to be changed except
+	KeyPress case, so we can avoid copying and use const pointer to
+	const data to make sure that an event is not changed elsewhere.
+	* xterm.c (handle_one_xevent): Change 2nd arg to 'const XEvent *
+	const' and do not create local copy except for the KeyPress event.
+	Use casts to avoid a few glitches.  Adjust formatting.  Add comments.
+	(SET_SAVED_BUTTON_EVENT): Remove and move the code to the only user.
+	(x_handle_net_wm_state, x_menubar_window_to_frame)
+	(x_detect_focus_change, construct_mouse_click, note_mouse_movement)
+	(x_scroll_bar_to_input_event, x_scroll_bar_expose)
+	(x_scroll_bar_handle_click, x_scroll_bar_note_movement):
+	* gtkutil.c (xg_event_is_for_menubar, xg_event_is_for_scrollbar):
+	* xselect.c (x_handle_property_notify, x_handle_selection_notify)
+	(x_handle_dnd_message):
+	* xsettings.c (xft_settings_event):
+	Use 'const XEvent * const' where appropriate.
+	* xterm.h, gtkutil.h, xsettngs.h: Adjust related prototypes.
+
+2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fix X event waiting to handle multiple frames.
 	* frame.h (struct frame) [HAVE_X_WINDOWS]: New member wait_event_type.
 	* xterm.c (pending_event_wait): Remove.  Adjust users.

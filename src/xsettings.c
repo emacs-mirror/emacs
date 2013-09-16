@@ -754,7 +754,7 @@ read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
 /* Check if EVENT for the display in DPYINFO is XSettings related.  */
 
 void
-xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
+xft_settings_event (struct x_display_info *dpyinfo, const XEvent * const event)
 {
   bool check_window_p = 0, apply_settings_p = 0;
 

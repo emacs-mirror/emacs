@@ -3409,7 +3409,7 @@ free_frame_menubar (struct frame *f)
 }
 
 bool
-xg_event_is_for_menubar (struct frame *f, XEvent *event)
+xg_event_is_for_menubar (struct frame *f, const XEvent * const event)
 {
   struct x_output *x = f->output_data.x;
   GList *iter;
@@ -3861,7 +3861,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
    frame.  This function does additional checks.  */
 
 bool
-xg_event_is_for_scrollbar (struct frame *f, XEvent *event)
+xg_event_is_for_scrollbar (struct frame *f, const XEvent * const event)
 {
   bool retval = 0;
 
