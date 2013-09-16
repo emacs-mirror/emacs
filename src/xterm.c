@@ -159,13 +159,6 @@ Lisp_Object x_display_name_list;
 
 static struct frame *pending_autoraise_frame;
 
-/* This is a frame waiting for an event matching mask, within XTread_socket.  */
-
-static struct {
-  struct frame *f;
-  int eventtype;
-} pending_event_wait;
-
 #ifdef USE_X_TOOLKIT
 /* The application context for Xt use.  */
 XtAppContext Xt_app_con;
@@ -293,8 +286,6 @@ static void frame_unhighlight (struct frame *);
 static void x_new_focus_frame (struct x_display_info *, struct frame *);
 static void  x_focus_changed (int, int, struct x_display_info *,
                               struct frame *, struct input_event *);
-static void x_detect_focus_change (struct x_display_info *,
-                                   XEvent *, struct input_event *);
 static void XTframe_rehighlight (struct frame *);
 static void x_frame_rehighlight (struct x_display_info *);
 static void x_draw_hollow_cursor (struct window *, struct glyph_row *);
@@ -3549,12 +3540,10 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
    Returns FOCUS_IN_EVENT event in *BUFP. */
 
 static void
-x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct input_event *bufp)
+x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
+		       XEvent *event, struct input_event *bufp)
 {
-  struct frame *frame;
-
-  frame = x_any_window_to_frame (dpyinfo, event->xany.window);
-  if (! frame)
+  if (!frame)
     return;
 
   switch (event->type)
@@ -5883,7 +5872,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   int count = 0;
   int do_help = 0;
   ptrdiff_t nbytes = 0;
-  struct frame *f = NULL;
+  struct frame *any, *f = NULL;
   struct coding_system coding;
   XEvent event = *eventptr;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
@@ -5901,8 +5890,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  if (pending_event_wait.eventtype == event.type)
-    pending_event_wait.eventtype = 0; /* Indicates we got it.  */
+  any = x_any_window_to_frame (dpyinfo, event.xany.window);
+
+  if (any && any->wait_event_type == event.type)
+    any->wait_event_type = 0; /* Indicates we got it.  */
 
   switch (event.type)
     {
@@ -5915,10 +5906,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             if (event.xclient.data.l[0]
                 == dpyinfo->Xatom_wm_take_focus)
               {
-                /* Use x_any_window_to_frame because this
-                   could be the shell widget window
-                   if the frame has no title bar.  */
-                f = x_any_window_to_frame (dpyinfo, event.xclient.window);
+                /* Use the value returned by x_any_window_to_frame
+		   because this could be the shell widget window
+		   if the frame has no title bar.  */
+                f = any;
 #ifdef HAVE_X_I18N
                 /* Not quite sure this is needed -pd */
                 if (f && FRAME_XIC (f))
@@ -5995,8 +5986,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             if (event.xclient.data.l[0]
 		== dpyinfo->Xatom_wm_delete_window)
               {
-                f = x_any_window_to_frame (dpyinfo,
-                                           event.xclient.window);
+                f = any;
                 if (!f)
 		  goto OTHER; /* May be a dialog that is to be removed  */
 
@@ -6035,7 +6025,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         if (event.xclient.message_type
 	    == dpyinfo->Xatom_editres)
           {
-	    f = x_any_window_to_frame (dpyinfo, event.xclient.window);
+	    f = any;
 	    if (f)
               _XEditResCheckMessages (f->output_data.x->widget, NULL,
                                       &event, NULL);
@@ -6079,7 +6069,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           {
 	    enum xembed_message msg = event.xclient.data.l[1];
 	    if (msg == XEMBED_FOCUS_IN || msg == XEMBED_FOCUS_OUT)
-	      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+	      x_detect_focus_change (dpyinfo, any, &event, &inev.ie);
 
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
@@ -6087,7 +6077,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
         xft_settings_event (dpyinfo, &event);
 
-	f = x_any_window_to_frame (dpyinfo, event.xclient.window);
+	f = any;
 	if (!f)
 	  goto OTHER;
 	if (x_handle_dnd_message (f, &event.xclient, dpyinfo, &inev.ie))
@@ -6349,7 +6339,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif
 
-      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
+      f = any;
 
 #if ! defined (USE_GTK)
       /* If mouse-highlight is an integer, input clears out
@@ -6683,9 +6673,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 
     case EnterNotify:
       dpyinfo->last_user_time = event.xcrossing.time;
-      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+      x_detect_focus_change (dpyinfo, any, &event, &inev.ie);
 
-      f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
+      f = any;
 
       if (f && x_mouse_click_focus_ignore_position)
 	ignore_next_mouse_click_timeout = event.xmotion.time + 200;
@@ -6703,12 +6693,12 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       goto OTHER;
 
     case FocusIn:
-      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+      x_detect_focus_change (dpyinfo, any, &event, &inev.ie);
       goto OTHER;
 
     case LeaveNotify:
       dpyinfo->last_user_time = event.xcrossing.time;
-      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+      x_detect_focus_change (dpyinfo, any, &event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
       if (f)
@@ -6736,7 +6726,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       goto OTHER;
 
     case FocusOut:
-      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+      x_detect_focus_change (dpyinfo, any, &event, &inev.ie);
       goto OTHER;
 
     case MotionNotify:
@@ -6822,7 +6812,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
 #ifdef USE_GTK
       if (!f
-          && (f = x_any_window_to_frame (dpyinfo, event.xconfigure.window))
+          && (f = any)
           && event.xconfigure.window == FRAME_X_WINDOW (f))
         {
           xg_frame_resized (f, event.xconfigure.width,
@@ -8733,15 +8723,14 @@ x_wait_for_event (struct frame *f, int eventtype)
   struct timespec tmo, tmo_at, time_now;
   int fd = ConnectionNumber (FRAME_X_DISPLAY (f));
 
-  pending_event_wait.f = f;
-  pending_event_wait.eventtype = eventtype;
+  f->wait_event_type = eventtype;
 
   /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
   tmo = make_timespec (0, 100 * 1000 * 1000);
   tmo_at = timespec_add (current_timespec (), tmo);
 
-  while (pending_event_wait.eventtype)
+  while (f->wait_event_type)
     {
       pending_signals = 1;
       totally_unblock_input ();
@@ -8760,8 +8749,8 @@ x_wait_for_event (struct frame *f, int eventtype)
       if (pselect (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
         break; /* Timeout */
     }
-  pending_event_wait.f = 0;
-  pending_event_wait.eventtype = 0;
+
+  f->wait_event_type = 0;
 }
 
 
@@ -10684,8 +10673,6 @@ x_initialize (void)
 #endif
 
   pending_autoraise_frame = 0;
-  pending_event_wait.f = 0;
-  pending_event_wait.eventtype = 0;
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */

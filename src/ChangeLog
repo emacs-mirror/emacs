@@ -1,3 +1,13 @@
+2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix X event waiting to handle multiple frames.
+	* frame.h (struct frame) [HAVE_X_WINDOWS]: New member wait_event_type.
+	* xterm.c (pending_event_wait): Remove.  Adjust users.
+	(x_detect_focus_change): Pass frame arg.
+	(handle_one_xevent): Find related frame early and clear per-frame
+	wait_event_type only if this is an event for the relevant frame.
+	(x_wait_for_event): Use per-frame wait_event_type.
+
 2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_create_frame): Fix font driver registration for

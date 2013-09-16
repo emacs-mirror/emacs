@@ -328,6 +328,11 @@ struct frame
   unsigned int external_menu_bar : 1;
 #endif
 
+#if defined (HAVE_X_WINDOWS)
+  /* Used by x_wait_for_event when watching for an X event on this frame.  */
+  int wait_event_type;
+#endif
+
   /* Next two bitfields are mutually exclusive.  They might both be
      zero if the frame has been made invisible without an icon.  */
 
