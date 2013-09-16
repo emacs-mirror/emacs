@@ -637,7 +637,7 @@ For full documentation. please see commentary.
                    ,@form
                    ,init-body
                    ,(unless (null config-body)
-                      `(eval-after-load ,name-string
+                      `(eval-after-load ,(if (stringp name) name `',name)
                          `(,(lambda ()
                               (if ,requires-test
                                   ,(macroexpand-all
