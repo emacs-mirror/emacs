@@ -1837,10 +1837,10 @@ exit."
       ;; HACK: if the text we are completing is already in a field, we
       ;; want the completion field to take priority (e.g. Bug#6830).
       (when completion-in-region-mode-predicate
-        (completion-in-region-mode 1)
         (setq completion-in-region--data
-	      (list (if (markerp start) start (copy-marker start))
-                    (copy-marker end) collection)))
+	      `(,(if (markerp start) start (copy-marker start))
+                ,(copy-marker end t) ,collection ,predicate))
+        (completion-in-region-mode 1))
       (completion--in-region-1 start end))))
 
 (defvar completion-in-region-mode-map
@@ -1874,22 +1874,25 @@ exit."
 
 ;; (defalias 'completion-in-region--prech 'completion-in-region--postch)
 
+(defvar completion-in-region-mode nil)  ;Explicit defvar, i.s.o defcustom.
+
 (define-minor-mode completion-in-region-mode
-  "Transient minor mode used during `completion-in-region'.
-With a prefix argument ARG, enable the modemode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Transient minor mode used during `completion-in-region'."
   :global t
   :group 'minibuffer
-  (setq completion-in-region--data nil)
+  ;; Prevent definition of a custom-variable since it makes no sense to
+  ;; customize this variable.
+  :variable completion-in-region-mode
   ;; (remove-hook 'pre-command-hook #'completion-in-region--prech)
   (remove-hook 'post-command-hook #'completion-in-region--postch)
   (setq minor-mode-overriding-map-alist
         (delq (assq 'completion-in-region-mode minor-mode-overriding-map-alist)
               minor-mode-overriding-map-alist))
   (if (null completion-in-region-mode)
-      (unless (equal "*Completions*" (buffer-name (window-buffer)))
-	(minibuffer-hide-completions))
+      (progn
+        (setq completion-in-region--data nil)
+        (unless (equal "*Completions*" (buffer-name (window-buffer)))
+          (minibuffer-hide-completions)))
     ;; (add-hook 'pre-command-hook #'completion-in-region--prech)
     (cl-assert completion-in-region-mode-predicate)
     (setq completion-in-region-mode--predicate
@@ -2010,9 +2013,10 @@ The completion method is determined by `completion-at-point-functions'."
          ;; FIXME: We should somehow (ab)use completion-in-region-function or
          ;; introduce a corresponding hook (plus another for word-completion,
          ;; and another for force-completion, maybe?).
-         (completion-in-region-mode 1)
          (setq completion-in-region--data
-               (list start (copy-marker end) collection))
+               `(,start ,(copy-marker end t) ,collection
+                        ,(plist-get plist :predicate)))
+         (completion-in-region-mode 1)
          (minibuffer-completion-help start end)))
       (`(,hookfun . ,_)
        ;; The hook function already performed completion :-(

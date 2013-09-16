@@ -1,5 +1,19 @@
 2013-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* icomplete.el (icomplete-in-buffer): New var.
+	(icomplete-pre-command-hook, icomplete-post-command-hook): Remove those
+	vars and replace them with functions.
+	(icomplete-minibuffer-setup): Adjust accordingly.
+	(icomplete--completion-table, icomplete--completion-predicate)
+	(icomplete--field-string, icomplete--field-beg, icomplete--field-end):
+	New functions.
+	(icomplete-forward-completions, icomplete-backward-completions)
+	(icomplete-simple-completing-p, icomplete-exhibit)
+	(icomplete-completions): Use them.
+	(icomplete--in-region-buffer): New var.
+	(icomplete--in-region-setup): New function.
+	(icomplete-mode): Use it.
+
 	* eshell/esh-opt.el: Fix last change to set lexical-vars properly
 	(bug#15379).
 	(eshell--do-opts): Rename from eshell-do-opt, remove arg `body-fun',
