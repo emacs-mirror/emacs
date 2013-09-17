@@ -149,9 +149,6 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #define SM_CYVIRTUALSCREEN 79
 #endif
 
-/* This is a frame waiting to be autoraised, within w32_read_socket.  */
-struct frame *pending_autoraise_frame;
-
 /* The handle of the frame that currently owns the system caret.  */
 HWND w32_system_caret_hwnd;
 int w32_system_caret_height;
@@ -2823,9 +2820,9 @@ x_new_focus_frame (struct w32_display_info *dpyinfo, struct frame *frame)
 	x_lower_frame (old_focus);
 
       if (dpyinfo->w32_focus_frame && dpyinfo->w32_focus_frame->auto_raise)
-	pending_autoraise_frame = dpyinfo->w32_focus_frame;
+	dpyinfo->w32_pending_autoraise_frame = dpyinfo->w32_focus_frame;
       else
-	pending_autoraise_frame = 0;
+	dpyinfo->w32_pending_autoraise_frame = NULL;
     }
 
   x_frame_rehighlight (dpyinfo);
@@ -4981,12 +4978,11 @@ w32_read_socket (struct terminal *terminal,
     }
 
   /* If the focus was just given to an autoraising frame,
-     raise it now.  */
-  /* ??? This ought to be able to handle more than one such frame.  */
-  if (pending_autoraise_frame)
+     raise it now.  FIXME: handle more than one such frame.  */
+  if (dpyinfo->w32_pending_autoraise_frame)
     {
-      x_raise_frame (pending_autoraise_frame);
-      pending_autoraise_frame = 0;
+      x_raise_frame (dpyinfo->w32_pending_autoraise_frame);
+      dpyinfo->w32_pending_autoraise_frame = NULL;
     }
 
   /* Check which frames are still visible, if we have enqueued any user

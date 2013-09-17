@@ -179,6 +179,9 @@ struct w32_display_info
      frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
   struct frame *x_highlight_frame;
+
+  /* The frame waiting to be auto-raised in w32_read_socket.  */
+  struct frame *w32_pending_autoraise_frame;
 };
 
 /* This is a chain of structures for all the displays currently in use.  */

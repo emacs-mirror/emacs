@@ -1,3 +1,14 @@
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_display_info): New member
+	x_pending_autoraise_frame, going to replace...
+	* xterm.c (pending_autoraise_frame): ...static variable.
+	(x_new_focus_frame, XTread_socket): Adjust users.
+	* w32term.h (struct w32_display_info): New member
+	w32_pending_autoraise_frame, going to replace...
+	* w32term.c (pending_autoraise_frame): ...global variable.
+	(x_new_focus_frame, w32_read_socket): Adjust users.
+
 2013-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* xdisp.c (message_dolog): If we create *Messages*,

@@ -155,10 +155,6 @@ struct x_display_info *x_display_list;
 
 Lisp_Object x_display_name_list;
 
-/* This is a frame waiting to be auto-raised, within XTread_socket.  */
-
-static struct frame *pending_autoraise_frame;
-
 #ifdef USE_X_TOOLKIT
 
 /* The application context for Xt use.  */
@@ -3299,9 +3295,9 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
 	x_lower_frame (old_focus);
 
       if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
-	pending_autoraise_frame = dpyinfo->x_focus_frame;
+	dpyinfo->x_pending_autoraise_frame = dpyinfo->x_focus_frame;
       else
-	pending_autoraise_frame = 0;
+	dpyinfo->x_pending_autoraise_frame = NULL;
     }
 
   x_frame_rehighlight (dpyinfo);
@@ -7088,6 +7084,7 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
   int count = 0;
   int event_found = 0;
+  struct x_display_info *dpyinfo = terminal->display_info.x;
 
   block_input ();
 
@@ -7095,35 +7092,32 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
   input_signal_count++;
 
   /* For debugging, this gives a way to fake an I/O error.  */
-  if (terminal->display_info.x == XTread_socket_fake_io_error)
+  if (dpyinfo == XTread_socket_fake_io_error)
     {
       XTread_socket_fake_io_error = 0;
-      x_io_error_quitter (terminal->display_info.x->display);
+      x_io_error_quitter (dpyinfo->display);
     }
 
 #ifndef USE_GTK
-  while (XPending (terminal->display_info.x->display))
+  while (XPending (dpyinfo->display))
     {
       int finish;
       XEvent event;
 
-      XNextEvent (terminal->display_info.x->display, &event);
+      XNextEvent (dpyinfo->display, &event);
 
 #ifdef HAVE_X_I18N
       /* Filter events for the current X input method.  */
-      if (x_filter_event (terminal->display_info.x, &event))
+      if (x_filter_event (dpyinfo, &event))
         continue;
 #endif
       event_found = 1;
 
-      count += handle_one_xevent (terminal->display_info.x,
-                                  &event, &finish, hold_quit);
+      count += handle_one_xevent (dpyinfo, &event, &finish, hold_quit);
 
       if (finish == X_EVENT_GOTO_OUT)
-        goto out;
+	break;
     }
-
- out:;
 
 #else /* USE_GTK */
 
@@ -7174,12 +7168,11 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
     }
 
   /* If the focus was just given to an auto-raising frame,
-     raise it now.  */
-  /* ??? This ought to be able to handle more than one such frame.  */
-  if (pending_autoraise_frame)
+     raise it now.  FIXME: handle more than one such frame.  */
+  if (dpyinfo->x_pending_autoraise_frame)
     {
-      x_raise_frame (pending_autoraise_frame);
-      pending_autoraise_frame = 0;
+      x_raise_frame (dpyinfo->x_pending_autoraise_frame);
+      dpyinfo->x_pending_autoraise_frame = NULL;
     }
 
   unblock_input ();
@@ -10650,8 +10643,6 @@ x_initialize (void)
   xaw3d_pick_top = True;
 #endif
 #endif
-
-  pending_autoraise_frame = 0;
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */

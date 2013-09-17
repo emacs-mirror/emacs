@@ -302,6 +302,9 @@ struct x_display_info
      minibuffer.  */
   struct frame *x_highlight_frame;
 
+  /* The frame waiting to be auto-raised in XTread_socket.  */
+  struct frame *x_pending_autoraise_frame;
+
   /* Time of last user interaction as returned in X events on this display.  */
   Time last_user_time;
 
