@@ -962,7 +962,7 @@
 	(semantic-gcc-setup): If the first attempt at calling cpp fails,
 	try straight GCC.
 
-2012-10-01 Jan Moringen  <jan.moringen@uni-bielefeld.de>
+2012-10-01  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* semantic/idle.el
 	(semantic-idle-breadcrumbs--display-in-header-line):
