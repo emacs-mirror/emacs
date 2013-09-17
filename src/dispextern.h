@@ -3266,7 +3266,7 @@ extern int clear_mouse_face (Mouse_HLInfo *);
 extern int cursor_in_mouse_face_p (struct window *w);
 extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
-extern void display_tty_menu_item (const char *, int, int, int, int);
+extern void display_tty_menu_item (const char *, int, int, int, int, int);
 
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)

@@ -2942,9 +2942,11 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
 #endif
   for (i = 0; i < menu->count; i++)
     {
-      int max_width = width + 2;
+      int max_width = width + 2; /* +2 for padding blanks on each side */
 
       cursor_to (sf, y + i, x);
+      if (menu->submenu[i])
+	max_width += 2;	/* for displaying " >" after the item */
       enabled
 	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
       mousehere = (y + i == my && x <= mx && mx < x + max_width);
@@ -2958,7 +2960,7 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
 	  menu_help_paneno = pn - 1;
 	  menu_help_itemno = i;
 	}
-      display_tty_menu_item (menu->text[i], face, x, y + i,
+      display_tty_menu_item (menu->text[i], max_width, face, x, y + i,
 			     menu->submenu[i] != NULL);
     }
   update_frame_with_menu (sf);

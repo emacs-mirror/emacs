@@ -20576,6 +20576,40 @@ display_menu_bar (struct window *w)
 }
 
 #ifdef HAVE_MENUS
+/* Deep copy of a glyph row, including the glyphs.  */
+static void
+deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
+{
+  int area, i, sum_used = 0;
+  struct glyph *pointers[1 + LAST_AREA];
+
+  /* Save glyph pointers of TO.  */
+  memcpy (pointers, to->glyphs, sizeof to->glyphs);
+
+  /* Do a structure assignment.  */
+  *to = *from;
+
+  /* Restore original pointers of TO.  */
+  memcpy (to->glyphs, pointers, sizeof to->glyphs);
+
+  /* Count how many glyphs to copy and update glyph pointers.  */
+  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+    {
+      if (area > LEFT_MARGIN_AREA)
+	{
+	  eassert (from->glyphs[area] - from->glyphs[area - 1]
+		   == from->used[area - 1]);
+	  to->glyphs[area] = to->glyphs[area - 1] + to->used[area - 1];
+	}
+      sum_used += from->used[area];
+    }
+
+  /* Copy the glyphs.  */
+  eassert (sum_used <= to->glyphs[LAST_AREA] - to->glyphs[LEFT_MARGIN_AREA]);
+  for (i = 0; i < sum_used; i++)
+    to->glyphs[LEFT_MARGIN_AREA][i] = from->glyphs[LEFT_MARGIN_AREA][i];
+}
+
 /* Display one menu item on a TTY, by overwriting the glyphs in the
    desired glyph matrix with glyphs produced from the menu item text.
    Called from term.c to display TTY drop-down menus one item at a
@@ -20598,14 +20632,15 @@ display_menu_bar (struct window *w)
    item text.  */
 
 void
-display_tty_menu_item (const char *item_text, int face_id, int x, int y,
-		       int submenu)
+display_tty_menu_item (const char *item_text, int width, int face_id,
+		       int x, int y, int submenu)
 {
   struct it it;
   struct frame *f = SELECTED_FRAME ();
   struct window *w = XWINDOW (f->selected_window);
   int saved_used, saved_truncated, saved_width, saved_reversed;
   struct glyph_row *row;
+  size_t item_len = strlen (item_text);
 
   eassert (FRAME_TERMCAP_P (f));
 
@@ -20613,20 +20648,27 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_COLS (f);
   row = it.glyph_row;
-  /* Copy the row contents from the current matrix.  */
-  *row = f->current_matrix->rows[y];
+  /* Start with the row contents from the current matrix.  */
+  deep_copy_glyph_row (row, f->current_matrix->rows + y);
   saved_width = row->full_width_p;
   row->full_width_p = 1;
   saved_reversed = row->reversed_p;
   row->reversed_p = 0;
+  row->enabled_p = 1;
 
-  /* Arrange for the menu item glyphs to start at X and have the
+  /* We can only write over TEXT_AREA, as display_string cannot do
+     display margins.  */
+  x += row->used[LEFT_MARGIN_AREA];
+
+  /* Arrange for the menu item glyphs to start at (X,Y) and have the
      desired face.  */
   it.current_x = it.hpos = x;
+  it.current_y = it.vpos = y;
   saved_used = row->used[TEXT_AREA];
   saved_truncated = row->truncated_on_right_p;
   row->used[TEXT_AREA] = x - row->used[LEFT_MARGIN_AREA];
   it.face_id = face_id;
+  it.line_wrap = TRUNCATE;
 
   /* FIXME: This should be controlled by a user option.  See the
      comments in redisplay_tool_bar and display_mode_line about this.
@@ -20636,20 +20678,21 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
   it.paragraph_embedding = L2R;
 
   /* Pad with a space on the left.  */
-  display_string (" ", Qnil, Qnil, 0, 0, &it, 1, 0, 0, -1);
+  display_string (" ", Qnil, Qnil, 0, 0, &it, 1, 0, FRAME_COLS (f) - 1, -1);
+  width--;
+  /* Display the menu item, pad with spaces to WIDTH.  */
   if (submenu)
     {
-      /* Indicate with ">" that there's a submenu.  */
       display_string (item_text, Qnil, Qnil, 0, 0, &it,
-		      strlen (item_text), 0, FRAME_COLS (f) - 2, -1);
-      display_string (">", Qnil, Qnil, 0, 0, &it, 1, 0, 0, -1);
+		      item_len, 0, FRAME_COLS (f) - 1, -1);
+      width -= item_len;
+      /* Indicate with " >" that there's a submenu.  */
+      display_string (" >", Qnil, Qnil, 0, 0, &it, width, 0,
+		      FRAME_COLS (f) - 1, -1);
     }
   else
-    {
-      /* Display the menu item, pad with one space.  */
-      display_string (item_text, Qnil, Qnil, 0, 0, &it,
-		      strlen (item_text) + 1, 0, 0, -1);
-    }
+    display_string (item_text, Qnil, Qnil, 0, 0, &it,
+		    width, 0, FRAME_COLS (f) - 1, -1);
 
   row->used[TEXT_AREA] = saved_used;
   row->truncated_on_right_p = saved_truncated;
