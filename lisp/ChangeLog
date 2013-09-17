@@ -1,5 +1,9 @@
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/package.el (package-generate-autoloads): Remove `require'
+	which should not be needed any more.
+	(package-menu-refresh, package-menu-describe-package): Use user-error.
+
 	* eshell/esh-cmd.el (eshell-post-rewrite-command-function): New var.
 	(eshell-post-rewrite-command-hook): Make obsolete.
 	(eshell-parse-command): Simplify.
