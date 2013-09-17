@@ -1,5 +1,10 @@
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* play/life.el (life-mode): Use define-derived-mode.  Derive from
+	special-mode.
+	(life): Let-bind inhibit-read-only.
+	(life-setup): Avoid `setq'.  Use `life-mode'.
+
 	* emacs-lisp/package.el (package-generate-autoloads): Remove `require'
 	which should not be needed any more.
 	(package-menu-refresh, package-menu-describe-package): Use user-error.
