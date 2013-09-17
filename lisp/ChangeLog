@@ -1,5 +1,8 @@
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help-mode.el (help-mode-finish): Use derived-mode-p.
+	Remove obsolete highlighting.
+
 	* play/life.el (life-mode): Use define-derived-mode.  Derive from
 	special-mode.
 	(life): Let-bind inhibit-read-only.

@@ -295,16 +295,8 @@ Commands:
 
 ;;;###autoload
 (defun help-mode-finish ()
-  (when (eq major-mode 'help-mode)
+  (when (derived-mode-p 'help-mode)
     (setq buffer-read-only t)
-    (save-excursion
-      (goto-char (point-min))
-      (let ((inhibit-read-only t))
-	(when (re-search-forward "^This [^[:space:]]+ is advised.$" nil t)
-	  (put-text-property (match-beginning 0)
-			     (match-end 0)
-			     'face 'font-lock-warning-face))))
-
     (help-make-xrefs (current-buffer))))
 
 ;; Grokking cross-reference information in doc strings and
