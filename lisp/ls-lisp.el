@@ -27,11 +27,9 @@
 
 ;; OVERVIEW ==========================================================
 
-;; This file redefines the function `insert-directory' to implement it
-;; directly from Emacs lisp, without running ls in a subprocess.  It
-;; is useful if you cannot afford to fork Emacs on a real memory UNIX,
-;; or other non-UNIX platforms if you don't have the ls
-;; program, or if you want a different format from what ls offers.
+;; This file advises the function `insert-directory' to implement it
+;; directly from Emacs lisp, without running ls in a subprocess.
+;; This is useful if you don't have ls installed (ie, on MS Windows).
 
 ;; This function can use regexps instead of shell wildcards.  If you
 ;; enter regexps remember to double each $ sign.  For example, to
