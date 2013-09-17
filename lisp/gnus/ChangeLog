@@ -1,3 +1,15 @@
+2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-icalendar.el (gnus-icalendar-event--find-attendee)
+	(gnus-icalendar-event-from-ical)
+	(gnus-icalendar-event--build-reply-event-body)
+	(gnus-icalendar-event-reply-from-buffer)
+	(gnus-icalendar-find-org-event-file)
+	(gnus-icalendar-event->gnus-calendar, gnus-icalendar-reply)
+	(gnus-icalendar-mm-inline): Use gmm-labels instead of labels or flet.
+
+	* mm-util.el (mm-special-display-p): Isolate XEmacs stuff.
+
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-salt.el (gnus-tree-mode): Use define-derived-mode.
