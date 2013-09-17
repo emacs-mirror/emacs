@@ -6151,7 +6151,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       f = x_window_to_frame (dpyinfo, event->xexpose.window);
       if (f)
         {
-#ifdef USE_GTK
+#if ! GTK_CHECK_VERSION (2, 7, 0)
           /* This seems to be needed for GTK 2.6.  */
 	  x_clear_area (event->xexpose.display,
 			event->xexpose.window,
