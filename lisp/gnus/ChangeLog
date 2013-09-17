@@ -1,3 +1,54 @@
+2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-salt.el (gnus-tree-mode): Use define-derived-mode.
+	Use save-current-buffer.
+	(gnus-tree-mode-map): Initialize in the declaration.
+	(gnus-pick-mouse-pick-region): Remove unused var `fun'.
+	(scroll-in-place): Defvar it.
+	(gnus-tmp-*): Defvar them.
+	(gnus-get-tree-buffer): Use derived-mode-p.
+	(gnus--let-eval): New macro.
+	(gnus-tree-highlight-node): Use it to avoid dynamic binding of
+	non-prefixed variables.
+	(gnus-tree-open, gnus-tree-close): Remove unused arg `group'.
+
+	* gnus-sum.el (gnus-summary-highlight): Remove `below' from the list of
+	vars since it doesn't seem to be available.
+	(gnus-set-global-variables, gnus-summary-read-group-1)
+	(gnus-select-newsgroup, gnus-handle-ephemeral-exit)
+	(gnus-summary-display-article, gnus-summary-select-article)
+	(gnus-summary-next-article, gnus-offer-save-summaries)
+	(gnus-summary-generic-mark): Use derived-mode-p.
+	(gnus-summary-read-group-1, gnus-summary-exit)
+	(gnus-summary-exit-no-update, gnus-kill-or-deaden-summary):
+	Adjust calls to gnus-tree-close and gnus-tree-open.
+
+	* gnus-eform.el (gnus-edit-form-mode): Use define-derived-mode.
+
+	* gnus-agent.el (gnus-category-mode): Use define-derived-mode.
+	(gnus-agent-mode): Use derived-mode-p.
+	(gnus-agent-rename-group, gnus-agent-delete-group): Don't bind
+	gnus-command-method and *-command-method to nil, but bind
+	gnus-command-method to *-command-method instead!
+	(gnus-agent-fetch-articles): Remove unused var `id'.
+	(gnus-agent-fetch-headers): Remove unused arg `force'.
+	(gnus-agent-braid-nov): Remove unused arg `group'.  Adjust callers.
+	(gnus-agent-save-alist, gnus-agent-save-local): Remove unused `item'.
+	(gnus-agent-short-article, gnus-agent-long-article)
+	(gnus-agent-low-score, gnus-agent-high-score): Move declaration before
+	first use.
+	(gnus-agent-fetch-group-1): Remove unused vars `arts', `category',
+	`score-param'.
+	(gnus-tmp-name, gnus-tmp-groups): Defvar them.
+	(gnus-get-predicate): Push in front of the cache, rather than end.
+	(gnus-agent-expire-current-dirs, gnus-agent-expire-stats): Defvar them.
+	(gnus-agent-expire-group-1): Use push.  Don't abuse dyn-binding.
+	(gnus-agent-expire-unagentized-dirs): Don't rebind
+	gnus-agent-expire-current-dirs since the defvar silences the warning.
+	(gnus-agent-retrieve-headers): Remove unused var `cached-articles'.
+	(gnus-agent-regenerate-group): Remove unused vars `point' and `dl'.
+	(gnus-agent-regenerate): Simplify interactive spec and doc.
+
 2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-int.el (gnus-open-server): Silence compiler.
