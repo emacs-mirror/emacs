@@ -870,8 +870,8 @@ bidi_line_init (struct bidi_it *bidi_it)
    are zero-based character positions in S, BEGBYTE is byte position
    corresponding to BEG.  UNIBYTE means S is a unibyte string.  */
 static ptrdiff_t
-bidi_count_bytes (const unsigned char *s, const ptrdiff_t beg,
-		  const ptrdiff_t begbyte, const ptrdiff_t end, bool unibyte)
+bidi_count_bytes (const unsigned char *s, ptrdiff_t beg,
+		  ptrdiff_t begbyte, ptrdiff_t end, bool unibyte)
 {
   ptrdiff_t pos = beg;
   const unsigned char *p = s + begbyte, *start = p;

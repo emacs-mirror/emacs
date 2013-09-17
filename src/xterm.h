@@ -941,8 +941,8 @@ extern void x_wait_for_event (struct frame *, int);
 
 /* Defined in xselect.c */
 
-extern void x_handle_property_notify (const XPropertyEvent * const);
-extern void x_handle_selection_notify (const XSelectionEvent * const);
+extern void x_handle_property_notify (const XPropertyEvent *);
+extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct input_event *);
 extern void x_clear_frame_selections (struct frame *);
 
@@ -954,7 +954,7 @@ extern void x_send_client_event (Lisp_Object display,
                                  Lisp_Object values);
 
 extern int x_handle_dnd_message (struct frame *,
-                                 const XClientMessageEvent * const,
+                                 const XClientMessageEvent *,
                                  struct x_display_info *,
                                  struct input_event *);
 extern int x_check_property_data (Lisp_Object);

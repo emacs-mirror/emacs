@@ -1,3 +1,24 @@
+2013-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't overuse 'const' in types of locals.
+	* bidi.c (bidi_count_bytes):
+	* gtkutil.c, gtkutil.h (xg_event_is_for_menubar)
+	(xg_event_is_for_scrollbar):
+	* xselect.c (x_handle_property_notify)
+	(x_handle_selection_notify, x_handle_dnd_message):
+	* xsettings.c, xsettings.h (xft_settings_event):
+	* xterm.c (x_handle_net_wm_state, handle_one_event)
+	(x_menubar_window_to_frame, x_detect_focus_change)
+	(construct_mouse_click, note_mouse_movement)
+	(x_scroll_bar_to_input_event, x_scroll_bar_expose)
+	(x_scroll_bar_handle_click, x_scroll_bar_note_movement)
+	(handle_one_xevent, x_handle_net_wm_state):
+	* xterm.h (x_handle_property_notify, x_handle_selection_notify)
+	(x_handle_dnd_message):
+	Avoid unnecessary 'const', typically the second 'const' in
+	'const foo * const arg', a 'const' that does not affect the API
+	and doesn't significantly help the human reader.
+
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* image.c (fn_g_type_init) [WINDOWSNT]: Define and load

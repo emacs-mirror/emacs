@@ -303,12 +303,12 @@ static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
                                         enum scroll_bar_part *,
                                         Lisp_Object *, Lisp_Object *,
                                         Time *);
-static int x_handle_net_wm_state (struct frame *, const XPropertyEvent * const);
+static int x_handle_net_wm_state (struct frame *, const XPropertyEvent *);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *,
-			      const XEvent * const, int *,
+			      const XEvent *, int *,
 			      struct input_event *);
 #ifdef USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
@@ -3462,7 +3462,7 @@ x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
 static struct frame *
 x_menubar_window_to_frame (struct x_display_info *dpyinfo,
-			   const XEvent * const event)
+			   const XEvent *event)
 {
   Window wdesc = event->xany.window;
   Lisp_Object tail, frame;
@@ -3544,7 +3544,7 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
 static void
 x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
-		       const XEvent * const event, struct input_event *bufp)
+		       const XEvent *event, struct input_event *bufp)
 {
   if (!frame)
     return;
@@ -3835,7 +3835,7 @@ x_get_keysym_name (int keysym)
 
 static Lisp_Object
 construct_mouse_click (struct input_event *result,
-		       const XButtonEvent * const event,
+		       const XButtonEvent *event,
 		       struct frame *f)
 {
   /* Make the event type NO_EVENT; we'll change that when we decide
@@ -3868,7 +3868,7 @@ static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
 static int
-note_mouse_movement (struct frame *frame, const XMotionEvent * const event)
+note_mouse_movement (struct frame *frame, const XMotionEvent *event)
 {
   last_mouse_movement_time = event->time;
   last_mouse_motion_event = *event;
@@ -4359,7 +4359,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
    in *IEVENT.  */
 
 static void
-x_scroll_bar_to_input_event (const XEvent * const event,
+x_scroll_bar_to_input_event (const XEvent *event,
 			     struct input_event *ievent)
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
@@ -5504,7 +5504,7 @@ XTjudge_scroll_bars (struct frame *f)
    mark bits.  */
 
 static void
-x_scroll_bar_expose (struct scroll_bar *bar, const XEvent * const event)
+x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
 {
   Window w = bar->x_window;
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
@@ -5543,7 +5543,7 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent * const event)
 
 static void
 x_scroll_bar_handle_click (struct scroll_bar *bar,
-			   const XEvent * const event,
+			   const XEvent *event,
 			   struct input_event *emacs_event)
 {
   if (! WINDOWP (bar->window))
@@ -5602,7 +5602,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
 
 static void
 x_scroll_bar_note_movement (struct scroll_bar *bar,
-			    const XMotionEvent * const event)
+			    const XMotionEvent *event)
 {
   struct frame *f = XFRAME (XWINDOW (bar->window)->frame);
 
@@ -5853,7 +5853,7 @@ static void xembed_send_message (struct frame *f, Time,
 
 static int
 handle_one_xevent (struct x_display_info *dpyinfo,
-		   const XEvent * const event,
+		   const XEvent *event,
 		   int *finish, struct input_event *hold_quit)
 {
   union {
@@ -6078,7 +6078,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-        const XSelectionClearEvent * const eventp = &event->xselectionclear;
+        const XSelectionClearEvent *eventp = &event->xselectionclear;
 
         inev.ie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6094,7 +6094,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-	const XSelectionRequestEvent * const eventp = &event->xselectionrequest;
+	const XSelectionRequestEvent *eventp = &event->xselectionrequest;
 
 	inev.ie.kind = SELECTION_REQUEST_EVENT;
 	SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -8533,7 +8533,7 @@ XTfullscreen_hook (struct frame *f)
 
 
 static int
-x_handle_net_wm_state (struct frame *f, const XPropertyEvent * const event)
+x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
 {
   int value = FULLSCREEN_NONE;
   Lisp_Object lval;

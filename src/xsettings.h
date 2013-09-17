@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define XSETTINGS_H
 
 extern void xsettings_initialize (struct x_display_info *);
-extern void xft_settings_event (struct x_display_info *, const XEvent * const);
+extern void xft_settings_event (struct x_display_info *, const XEvent *);
 extern const char *xsettings_get_system_font (void);
 #ifdef USE_LUCID
 extern const char *xsettings_get_system_normal_font (void);
