@@ -4,10 +4,10 @@
 	(messages-buffer): New function.
 	* startup.el (normal-top-level): Switch mode of *Messages* buffer.
 	* emacs-lisp/ert.el (ert--force-message-log-buffer-truncation)
-	(ert-run-test): Use `message-buffer' function.
+	(ert-run-test): Use `messages-buffer' function.
 	(ert--force-message-log-buffer-truncation): Ignore read-only.
-	* help.el (view-echo-area-messages): Use `message-buffer' function.
-	* mail/emacsbug.el (report-emacs-bug): Use `message-buffer' function.
+	* help.el (view-echo-area-messages): Use `messages-buffer' function.
+	* mail/emacsbug.el (report-emacs-bug): Use `messages-buffer' function.
 
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
