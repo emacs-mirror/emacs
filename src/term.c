@@ -3596,7 +3596,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   lpane = TTYM_FAILURE;
   while (i < menu_items_used)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      if (EQ (AREF (menu_items, i), Qt))
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
@@ -3604,8 +3604,8 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 
           maxlines = max (maxlines, lines);
           lines = 0;
-	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
-	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
+	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 	  pane_string = (NILP (pane_name)
 			 ? "" : SSDATA (pane_name));
 	  if (keymaps && !NILP (prefix))
@@ -3625,7 +3625,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	  while (j < menu_items_used)
 	    {
 	      Lisp_Object item;
-	      item = XVECTOR (menu_items)->contents[j];
+	      item = AREF (menu_items, j);
 	      if (EQ (item, Qt))
 		break;
 	      if (NILP (item))
@@ -3642,7 +3642,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	}
       /* Ignore a nil in the item list.
 	 It's meaningful only for dialog boxes.  */
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+      else if (EQ (AREF (menu_items, i), Qquote))
 	i += 1;
       else
 	{
@@ -3651,11 +3651,10 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	  char *item_data;
 	  char const *help_string;
 
-	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
-	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
-	  descrip
-	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
-	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
+	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
+	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
+	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
+	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 	  help_string = STRINGP (help) ? SSDATA (help) : NULL;
 
 	  if (!NILP (descrip))
@@ -3753,11 +3752,11 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
       i = 0;
       while (i < menu_items_used)
 	{
-	  if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+	  if (EQ (AREF (menu_items, i), Qt))
 	    {
 	      if (pane == 0)
 		pane_prefix
-		  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+		  = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 	      pane--;
 	      i += MENU_ITEMS_PANE_LENGTH;
 	    }
@@ -3768,7 +3767,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 		  if (selidx == 0)
 		    {
 		      entry
-			= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
+			= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 		      if (keymaps != 0)
 			{
 			  entry = Fcons (entry, Qnil);
