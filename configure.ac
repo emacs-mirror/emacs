@@ -2389,7 +2389,6 @@ if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
     LIBS="$SETTINGS_LIBS $LIBS"
-    AC_CHECK_FUNCS([g_type_init])
     CFLAGS="$SAVE_CFLAGS"
     LIBS="$SAVE_LIBS"
 fi

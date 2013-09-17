@@ -1,3 +1,11 @@
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* image.c (fn_g_type_init) [WINDOWSNT]: Define and load
+	only if Glib < 2.36.0.
+	(fn_g_type_init) [!WINDOWSNT]: Define only if Glib < 2.36.0.
+	* xsettings.c (init_gconf, init_gsettings): Do not check
+	for g_type_init.
+
 2013-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (init_gconf, init_gsettings): Check for Glib 2.36.0

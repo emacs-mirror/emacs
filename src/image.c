@@ -8590,7 +8590,9 @@ DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels, (const GdkPixbuf *));
 DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha, (const GdkPixbuf *));
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample, (const GdkPixbuf *));
 
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
 DEF_IMGLIB_FN (void, g_type_init, (void));
+#endif
 DEF_IMGLIB_FN (void, g_object_unref, (gpointer));
 DEF_IMGLIB_FN (void, g_error_free, (GError *));
 
@@ -8622,7 +8624,9 @@ init_svg_functions (void)
   LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_has_alpha);
   LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_bits_per_sample);
 
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
   LOAD_IMGLIB_FN (gobject, g_type_init);
+#endif
   LOAD_IMGLIB_FN (gobject, g_object_unref);
   LOAD_IMGLIB_FN (glib, g_error_free);
 
@@ -8647,7 +8651,9 @@ init_svg_functions (void)
 #define fn_gdk_pixbuf_get_has_alpha	  gdk_pixbuf_get_has_alpha
 #define fn_gdk_pixbuf_get_bits_per_sample gdk_pixbuf_get_bits_per_sample
 
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
 #define fn_g_type_init                    g_type_init
+#endif
 #define fn_g_object_unref                 g_object_unref
 #define fn_g_error_free                   g_error_free
 #endif /* !WINDOWSNT  */
@@ -8732,9 +8738,12 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
   int x;
   int y;
 
-  /* g_type_init is a glib function that must be called prior to using
-     gnome type library functions.  */
+#if ! GLIB_CHECK_VERSION (2, 36, 0)
+  /* g_type_init is a glib function that must be called prior to
+     using gnome type library functions (obsolete since 2.36.0).  */
   fn_g_type_init ();
+#endif
+
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = fn_rsvg_handle_new ();
 

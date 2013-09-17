@@ -1,3 +1,10 @@
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac: Do not check for g_type_init because we
+	require glib >= 2.28 for GTK3, glib >= 2.10 for GTK2,
+	glib >= 2.26 for GSettings and glib >= 2.7.0 for GConf, so
+	suitable glib should provide g_type_init unconditionally.
+
 2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Add check for OSX 10.5, required for macfont.o.
