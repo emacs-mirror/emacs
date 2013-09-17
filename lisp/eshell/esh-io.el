@@ -179,8 +179,8 @@ not be added to this variable."
   (make-local-variable 'eshell-current-redirections)
   (add-hook 'eshell-pre-rewrite-command-hook
 	    'eshell-strip-redirections nil t)
-  (add-hook 'eshell-post-rewrite-command-hook
-	    'eshell-apply-redirections nil t))
+  (add-function :filter-return (local 'eshell-post-rewrite-command-function)
+                #'eshell--apply-redirections))
 
 (defun eshell-parse-redirection ()
   "Parse an output redirection, such as '2>'."
@@ -223,28 +223,27 @@ not be added to this variable."
     (setq eshell-current-redirections
 	  (cdr eshell-current-redirections))))
 
-(defun eshell-apply-redirections (cmdsym)
+(defun eshell--apply-redirections (cmd)
   "Apply any redirection which were specified for COMMAND."
   (if eshell-current-redirections
-      (set cmdsym
-	   (append (list 'progn)
-		   eshell-current-redirections
-		   (list (symbol-value cmdsym))))))
+      `(progn
+         ,@eshell-current-redirections
+         ,cmd)
+    cmd))
 
 (defun eshell-create-handles
-  (standard-output output-mode &optional standard-error error-mode)
+  (stdout output-mode &optional stderr error-mode)
   "Create a new set of file handles for a command.
 The default location for standard output and standard error will go to
-STANDARD-OUTPUT and STANDARD-ERROR, respectively.
+STDOUT and STDERR, respectively.
 OUTPUT-MODE and ERROR-MODE are either `overwrite', `append' or `insert';
 a nil value of mode defaults to `insert'."
   (let ((handles (make-vector eshell-number-of-handles nil))
-	(output-target (eshell-get-target standard-output output-mode))
-	(error-target (eshell-get-target standard-error error-mode)))
+	(output-target (eshell-get-target stdout output-mode))
+        (error-target (eshell-get-target stderr error-mode)))
     (aset handles eshell-output-handle (cons output-target 1))
-    (if standard-error
-	(aset handles eshell-error-handle (cons error-target 1))
-      (aset handles eshell-error-handle (cons output-target 1)))
+    (aset handles eshell-error-handle
+          (cons (if stderr error-target output-target) 1))
     handles))
 
 (defun eshell-protect-handles (handles)

@@ -1,3 +1,21 @@
+2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell-post-rewrite-command-function): New var.
+	(eshell-post-rewrite-command-hook): Make obsolete.
+	(eshell-parse-command): Simplify.
+	(eshell-structure-basic-command): Remove unused arg `vocal-test'.
+	(eshell--cmd): Declare.
+	(eshell-parse-pipeline): Remove unused var `final-p'.
+	Pass a dynvar to eshell-post-rewrite-command-hook.
+	Implement the new eshell-post-rewrite-command-function.
+	(eshell-invoke-directly): Remove unused arg `input'.
+	* eshell/esh-io.el (eshell-io-initialize):
+	Use eshell-post-rewrite-command-function (bug#15399).
+	(eshell--apply-redirections): Rename from eshell-apply-redirections;
+	adjust to new calling convention.
+	(eshell-create-handles): Rename args to avoid clashing with dynvar
+	`standard-output'.
+
 2013-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (messages-buffer-mode): New major mode.

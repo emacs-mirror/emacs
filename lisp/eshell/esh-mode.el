@@ -671,7 +671,7 @@ newline."
 		      (run-hooks 'eshell-input-filter-functions)
 		      (and (catch 'eshell-terminal
 			     (ignore
-			      (if (eshell-invoke-directly cmd input)
+			      (if (eshell-invoke-directly cmd)
 				  (eval cmd)
 				(eshell-eval-command cmd input))))
 			   (eshell-life-is-too-much)))))
