@@ -1,5 +1,7 @@
 2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mm-decode.el (mm-add-meta-html-tag): Fix regexp matching meta tag.
+
 	* message.el (message-display-completion-list): Abolish.
 	(message-completion-in-region): Use display-completion-list.
 
