@@ -22,7 +22,7 @@
 	* semantic/fw.el (semantic-make-local-hook):
 	Simplify by dropping Emacs <= 20.
 
-2013-07-29  David Engster <deng@randomsample.de>
+2013-07-29  David Engster  <deng@randomsample.de>
 
 	* lisp/cedet/cedet.el (cedet-packages): Remove speedbar since its
 	development does no longer happens in CEDET upstream but in Emacs
@@ -39,13 +39,13 @@
 
 	* semantic/wisent/python.el (semantic/format): New require.
 
-2013-07-27  Eric Ludlam <zappo@gnu.org>
+2013-07-27  Eric Ludlam  <zappo@gnu.org>
 
 	* lisp/cedet/semantic/edit.el (semantic-edits-splice-remove):
 	Wrap debug message removing middle tag in semantic-edits-verbose-flag
 	check.
 
-2013-07-27  David Engster <deng@randomsample.de>
+2013-07-27  David Engster  <deng@randomsample.de>
 
 	* semantic/bovine/el.el (semantic/db-el): New require.
 
