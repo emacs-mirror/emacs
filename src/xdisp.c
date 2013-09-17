@@ -20589,8 +20589,9 @@ display_menu_bar (struct window *w)
 
    X and Y are coordinates of the first glyph in the desired matrix to
    be overwritten by the menu item.  Since this is a TTY, Y is the
-   glyph row and X is the glyph number in the row, where to start
-   displaying the item.
+   zero-based number of the glyph row and X is the zero-based glyph
+   number in the row, starting from left, where to start displaying
+   the item.
 
    SUBMENU non-zero means this menu item drops down a submenu, which
    should be indicated by displaying a proper visual cue after the
@@ -20603,7 +20604,7 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
   struct it it;
   struct frame *f = SELECTED_FRAME ();
   struct window *w = XWINDOW (f->selected_window);
-  int saved_used, saved_truncated, saved_width;
+  int saved_used, saved_truncated, saved_width, saved_reversed;
   struct glyph_row *row;
 
   eassert (FRAME_TERMCAP_P (f));
@@ -20612,8 +20613,12 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_COLS (f);
   row = it.glyph_row;
+  /* Copy the row contents from the current matrix.  */
+  *row = f->current_matrix->rows[y];
   saved_width = row->full_width_p;
   row->full_width_p = 1;
+  saved_reversed = row->reversed_p;
+  row->reversed_p = 0;
 
   /* Arrange for the menu item glyphs to start at X and have the
      desired face.  */
@@ -20630,6 +20635,8 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
      term.c:append_glyph.  */
   it.paragraph_embedding = L2R;
 
+  /* Pad with a space on the left.  */
+  display_string (" ", Qnil, Qnil, 0, 0, &it, 1, 0, 0, -1);
   if (submenu)
     {
       /* Indicate with ">" that there's a submenu.  */
@@ -20646,8 +20653,9 @@ display_tty_menu_item (const char *item_text, int face_id, int x, int y,
 
   row->used[TEXT_AREA] = saved_used;
   row->truncated_on_right_p = saved_truncated;
-  row->hash - row_hash (row);
+  row->hash = row_hash (row);
   row->full_width_p = saved_width;
+  row->reversed_p = saved_reversed;
 }
 #endif	/* HAVE_MENUS */
 

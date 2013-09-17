@@ -1280,7 +1280,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #ifdef HAVE_MENUS
 #ifdef HAVE_WINDOW_SYSTEM
   /* Hide a previous tip, if any.  */
-  Fx_hide_tip ();
+  if (!FRAME_TERMCAP_P (f))
+    Fx_hide_tip ();
 #endif
 
 #ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
@@ -1289,7 +1290,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
      can occur if you press ESC or click outside a menu without selecting
      a menu item.
   */
-  if (current_popup_menu)
+  if (current_popup_menu && FRAME_W32_P (f))
     {
       discard_menu_items ();
       FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
@@ -1342,7 +1343,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #endif
 
 #ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+  if (FRAME_W32_P (f))
+    FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
 #endif
 
 #endif /* HAVE_MENUS */

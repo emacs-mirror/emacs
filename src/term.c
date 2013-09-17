@@ -2900,7 +2900,7 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 /* Display MENU at (X,Y) using FACES.  */
 
 static void
-tty_menu_display (tty_menu *menu, int y, int x, int pn, int *faces,
+tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
 		  int disp_help)
 {
   int i, face, width,  mx = -1, my = -1, enabled, mousehere, row, col;
@@ -2958,7 +2958,7 @@ tty_menu_display (tty_menu *menu, int y, int x, int pn, int *faces,
 	  menu_help_paneno = pn - 1;
 	  menu_help_itemno = i;
 	}
-      display_tty_menu_item (menu->text[i], face, y + i, x,
+      display_tty_menu_item (menu->text[i], face, x, y + i,
 			     menu->submenu[i] != NULL);
     }
   update_frame_with_menu (sf);
@@ -3139,9 +3139,16 @@ screen_update (struct frame *f, struct glyph_matrix *mtx)
    puts us.  We only consider mouse movement and click events and
    keyboard movement commands; the rest are ignored.  */
 static void
-read_menu_input (int *x, int *y)
+read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 {
   Lisp_Object c;
+
+  if (*first_time)
+    {
+      *first_time = false;
+      sf->mouse_moved = 1;
+      return;
+    }
 
   while (1)
     {
@@ -3174,7 +3181,10 @@ read_menu_input (int *x, int *y)
 	      break;
 	    }
 	  if (usable_input)
-	    return;
+	    {
+	      sf->mouse_moved = 1;
+	      return;
+	    }
 	}
 
       else if (EVENT_HAS_PARAMETERS (c))
@@ -3232,6 +3242,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   int title_faces[4];		/* face to display the menu title */
   int faces[4], buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME ();
+  bool first_time;
   Lisp_Object saved_echo_area_message, selectface;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
@@ -3298,8 +3309,11 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   show_cursor (0);	/* FIXME: need a new hook, for w32console.  */
 #endif
 
-  /* Display the menu title.  */
-  tty_menu_display (menu, y0 - 1, x0 - 1, 1, title_faces, 0);
+  /* Display the menu title.  We subtract 1 from x0 and y0 because we
+     want to interpret them as zero-based column and row coordinates,
+     and also because we want the first item of the menu, not its
+     title, to appear at x0,y0.  */
+  tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, 0);
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
   if ((onepane = menu->count == 1 && menu->submenu[0]))
@@ -3317,6 +3331,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 
   x = state[0].x;
   y = state[0].y;
+  first_time = true;
 
   leave = 0;
   while (!leave)
@@ -3324,7 +3339,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       int mouse_button_count = 3; /* FIXME */
 
       if (!mouse_visible) mouse_on ();
-      read_menu_input (&x, &y);
+      read_menu_input (sf, &x, &y, &first_time);
       if (sf->mouse_moved)
 	{
 	  sf->mouse_moved = 0;
@@ -3359,8 +3374,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		    if (i == statecount - 1 && state[i].menu->submenu[dy])
 		      {
 			tty_menu_display (state[i].menu,
-					  state[i].y,
 					  state[i].x,
+					  state[i].y,
 					  state[i].pane,
 					  faces, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
@@ -3376,8 +3391,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		  }
 	      }
 	  tty_menu_display (state[statecount - 1].menu,
-			    state[statecount - 1].y,
 			    state[statecount - 1].x,
+			    state[statecount - 1].y,
 			    state[statecount - 1].pane,
 			    faces, 1);
 	}
@@ -3413,6 +3428,9 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     }
 
   mouse_off ();			/* FIXME */
+  sf->mouse_moved = 0;
+  /* FIXME: Since we set the fram's garbaged flag, do we need this
+     call to screen_update?  */
   screen_update (sf, state[0].screen_behind);
   state[0].screen_behind = NULL;
 #if 0
@@ -3457,6 +3475,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   /* Allow mouse events generation by dos_rawgetc.  */
   mouse_preempted--;
 #endif
+  SET_FRAME_GARBAGED (sf);
   return result;
 }
 

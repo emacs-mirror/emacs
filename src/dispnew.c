@@ -3205,7 +3205,12 @@ update_frame_with_menu (struct frame *f)
   fflush (FRAME_TTY (f)->output);
   /* Check window matrices for lost pointers.  */
 #if GLYPH_DEBUG
+#if 0
+      /* We cannot possibly survive the matrix pointers check, since
+	 we have overwritten parts of the frame glyph matrix without
+	 making any updates to the window matrices.  */
   check_window_matrix_pointers (root_window);
+#endif
   add_frame_display_history (f, paused_p);
 #endif
 
