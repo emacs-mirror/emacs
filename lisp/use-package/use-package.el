@@ -438,6 +438,18 @@ Return the list of recognized keywords."
           (error "Unrecognized keyword: %s" keyword))))
     (plist-keys args)))
 
+(defun plist-get-sexp (plist prop)
+  (let ((sexp-or-function (plist-get plist prop)))
+    (if (functionp sexp-or-function)
+        (funcall sexp-or-function)
+      sexp-or-function)))
+
+(defun plist-get-value (plist prop)
+  (let ((value-or-symbol (plist-get plist prop)))
+    (if (symbolp value-or-symbol)
+        (symbol-value value-or-symbol)
+      value-or-symbol)))
+
 (defmacro use-package (name &rest args)
 "Use a package with configuration options.
 
@@ -464,15 +476,15 @@ For full documentation. please see commentary.
 :ensure loads package using package.el if necessary."
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
   (let* ((commands (plist-get args :commands))
-         (pre-init-body (plist-get args :pre-init))
-         (init-body (plist-get args :init))
-         (config-body (plist-get args :config))
+         (pre-init-body (plist-get-sexp args :pre-init))
+         (init-body (plist-get-sexp args :init))
+         (config-body (plist-get-sexp args :config))
          (diminish-var (plist-get args :diminish))
          (defines (plist-get args :defines))
-         (idle-body (plist-get args :idle))
-         (keybindings )
-         (mode-alist )
-         (interpreter-alist )
+         (idle-body (plist-get-sexp args :idle))
+         (keybindings-alist (plist-get-value args :bind))
+         (mode-alist (plist-get-value args :mode))
+         (interpreter-alist (plist-get-value args :interpreter))
          (predicate (plist-get args :if))
          (pkg-load-path (plist-get args :load-path))
          (defines-eval (if (null defines)
@@ -553,19 +565,19 @@ For full documentation. please see commentary.
                  #'(lambda (binding)
                      `(bind-key ,(car binding)
                                 (quote ,(cdr binding))))
-                 (plist-get args :bind))
+                 keybindings-alist)
 
         (funcall init-for-commands
                  #'(lambda (mode)
                      `(add-to-list 'auto-mode-alist
                                    (quote ,mode)))
-                 (plist-get args :mode))
+                 mode-alist)
 
         (funcall init-for-commands
                  #'(lambda (interpreter)
                      `(add-to-list 'interpreter-mode-alist
                                    (quote ,interpreter)))
-                 (plist-get args :interpreter)))
+                 interpreter-alist))
 
       `(progn
          ,@(mapcar
