@@ -1,3 +1,16 @@
+2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/symref/list.el (semantic-symref-results-mode):
+	Use define-derived-mode.
+	(semantic-symref-produce-list-on-results): Set up the results here
+	instead of in semantic-symref-results-mode.  Move after
+	semantic-symref-current-results's defvar now that it refers to that var.
+	(semantic-symref-auto-expand-results)
+	(semantic-symref-results-summary-function)
+	(semantic-symref-results-mode-hook): Remove redundant :group arg.
+	(semantic-symref, semantic-symref-symbol, semantic-symref-regexp):
+	Initialize directly in the let.
+
 2013-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/ia.el (semantic-ia-complete-symbol-menu):

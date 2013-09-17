@@ -188,6 +188,7 @@ we can tell font lock about them.")
 
 ;;;###autoload
 (define-derived-mode srecode-template-mode fundamental-mode "SRecode"
+  ;; FIXME: Shouldn't it derive from prog-mode?
   "Major-mode for writing SRecode macros."
   (set (make-local-variable 'comment-start) ";;")
   (set (make-local-variable 'comment-end) "")
