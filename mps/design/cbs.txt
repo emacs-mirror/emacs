@@ -251,9 +251,9 @@ if there is no suitable block.
 _`.impl.find-largest`: ``CBSFindLargest()`` simply finds out the size
 of the largest block in the CBS from the root of the tree, using
 ``SplayRoot()``, and does ``SplayFindFirst()`` for a block of that
-size. This is O(log *n*) in the size of the free list, so it's about
-the best you can do without maintaining a separate priority queue,
-just to do ``CBSFindLargest()``.
+size. This takes time proportional to the logarithm of the size of the
+free list, so it's about the best you can do without maintaining a
+separate priority queue, just to do ``CBSFindLargest()``.
 
 
 Low memory behaviour

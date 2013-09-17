@@ -29,7 +29,8 @@ situations, when memory is not available for the control structures
 needed by other allocators. In these situations the free list allocator
 ensures that memory is not lost, but with several disadvantages:
 
-1. operations on the free list are O(n) in the number of free blocks;
+1. operations on the free list take time proportional to the number of
+   free blocks;
 2. the data structures are stored in client memory and so are
    vulnerable to corruption;
 3. the data structures have poor locality (and thus potentially poor
