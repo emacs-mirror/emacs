@@ -3520,11 +3520,6 @@ validate_x_resource_name (void)
     }
 }
 
-
-extern char *x_get_string_resource (XrmDatabase, const char *, const char *);
-extern Display_Info *check_x_display_info (Lisp_Object);
-
-
 /* Get specified attribute from resource database RDB.
    See Fx_get_resource below for other parameters.  */
 

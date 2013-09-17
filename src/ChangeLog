@@ -1,5 +1,17 @@
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* dispextern.h (check_x_display_info, x_get_string_resource):
+	Declare here just once and unify the latter.
+	* frame.c (check_x_display_info, x_get_string_resource):
+	* nsterm.h (check_x_display_info):
+	* xrdb.c (x_get_string_resource):
+	* xterm.h (check_x_display_info): Remove prototypes.
+	* nsfns.m (x_get_string_resource): Likewise.  Adjust definition.
+	* w32reg.c (x_get_string_resource): Likewise.
+	(w32_get_rdb_resource): Adjust user.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.h (struct x_display_info): New member
 	x_pending_autoraise_frame, going to replace...
 	* xterm.c (pending_autoraise_frame): ...static variable.

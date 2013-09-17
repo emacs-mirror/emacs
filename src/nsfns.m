@@ -2211,17 +2211,13 @@ x_set_scroll_bar_default_width (struct frame *f)
                                       wid - 1) / wid;
 }
 
-
-extern const char *x_get_string_resource (XrmDatabase, char *, char *);
-
-
 /* terms impl this instead of x-get-resource directly */
-const char *
-x_get_string_resource (XrmDatabase rdb, char *name, char *class)
+char *
+x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
 {
   /* remove appname prefix; TODO: allow for !="Emacs" */
-  char *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
-  const char *res;
+  const char *res, *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
+
   check_window_system (NULL);
 
   if (inhibit_x_resources)
@@ -2229,9 +2225,9 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     return NULL;
 
   res = ns_get_defaults_value (toCheck);
-  return !res ? NULL :
-      (!c_strncasecmp (res, "YES", 3) ? "true" :
-          (!c_strncasecmp (res, "NO", 2) ? "false" : res));
+  return (!res ? NULL :
+	  (!c_strncasecmp (res, "YES", 3) ? "true" :
+	   (!c_strncasecmp (res, "NO", 2) ? "false" : (char *) res)));
 }
 
 

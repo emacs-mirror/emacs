@@ -61,6 +61,7 @@ xstrcasecmp (char const *a, char const *b)
 }
 
 #ifdef HAVE_X_WINDOWS
+#include <X11/Xresource.h> /* for XrmDatabase */
 typedef struct x_display_info Display_Info;
 typedef XImage * XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
@@ -3530,6 +3531,7 @@ enum resource_types
   RES_TYPE_BOOLEAN_NUMBER
 };
 
+extern Display_Info *check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,
                               enum resource_types);
@@ -3541,6 +3543,8 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
                                         const char *, const char *,
                                         enum resource_types);
+extern char *x_get_string_resource (XrmDatabase, const char *,
+				    const char *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

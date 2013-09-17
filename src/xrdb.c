@@ -48,10 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #endif
 
-char *x_get_string_resource (XrmDatabase rdb, const char *name,
-			     const char *class);
-
-
 /* X file search path processing.  */
 
 

@@ -605,8 +605,6 @@ extern struct ns_display_info *x_display_list;
 extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name (Lisp_Object name);
 
-struct ns_display_info *check_x_display_info (Lisp_Object frame);
-
 struct ns_output
 {
 #ifdef __OBJC__

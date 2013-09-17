@@ -975,7 +975,6 @@ extern void x_clipboard_manager_save_all (void);
 
 /* Defined in xfns.c */
 
-extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK
