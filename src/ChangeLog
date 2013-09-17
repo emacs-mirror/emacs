@@ -1,5 +1,11 @@
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* w32term.c (w32_read_socket): Avoid temporary
+	variables in a call to x_real_positions.
+	* xterm.c (handle_one_xevent): Likewise.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.h (x_set_bitmap_icon) [!HAVE_NS]: New function.
 	(x_icon_type): Remove prototype.
 	(x_bitmap_icon) [!HAVE_NS]: Declare as such.

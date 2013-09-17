@@ -6129,11 +6129,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       f = x_top_window_to_frame (dpyinfo, event->xreparent.window);
       if (f)
         {
-          int x, y;
           f->output_data.x->parent_desc = event->xreparent.parent;
-          x_real_positions (f, &x, &y);
-          f->left_pos = x;
-          f->top_pos = y;
+          x_real_positions (f, &f->left_pos, &f->top_pos);
 
           /* Perhaps reparented due to a WM restart.  Reset this.  */
           FRAME_DISPLAY_INFO (f)->wm_type = X_WMTYPE_UNKNOWN;
@@ -6827,9 +6824,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           if (FRAME_GTK_OUTER_WIDGET (f)
               && gtk_widget_get_mapped (FRAME_GTK_OUTER_WIDGET (f)))
 #endif
-            {
-	      x_real_positions (f, &f->left_pos, &f->top_pos);
-            }
+	    x_real_positions (f, &f->left_pos, &f->top_pos);
 
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))

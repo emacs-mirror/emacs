@@ -4687,13 +4687,7 @@ w32_read_socket (struct terminal *terminal,
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
 	  if (f && !FRAME_ICONIFIED_P (f))
-	    {
-	      int x, y;
-
-	      x_real_positions (f, &x, &y);
-	      f->left_pos = x;
-	      f->top_pos = y;
-	    }
+	    x_real_positions (f, &f->left_pos, &f->top_pos);
 
 	  check_visibility = 1;
 	  break;
@@ -4756,16 +4750,12 @@ w32_read_socket (struct terminal *terminal,
 
 		    if (iconified)
 		      {
-			int x, y;
-
 			/* Reset top and left positions of the Window
 			   here since Windows sends a WM_MOVE message
 			   BEFORE telling us the Window is minimized
 			   when the Window is iconified, with 3000,3000
 			   as the co-ords. */
-			x_real_positions (f, &x, &y);
-			f->left_pos = x;
-			f->top_pos = y;
+			x_real_positions (f, &f->left_pos, &f->top_pos);
 
 			inev.kind = DEICONIFY_EVENT;
 			XSETFRAME (inev.frame_or_window, f);
