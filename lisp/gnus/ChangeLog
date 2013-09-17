@@ -1,3 +1,8 @@
+2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-display-completion-list): Abolish.
+	(message-completion-in-region): Use display-completion-list.
+
 2013-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (gnus-message-with-timestamp-1):
