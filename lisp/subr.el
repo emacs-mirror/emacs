@@ -3878,7 +3878,7 @@ This function makes or adds to an entry on `after-load-alist'."
                                  (when (equal file lfn)
                                    (remove-hook 'after-load-functions fun)
                                    (funcall func))))
-                     (add-hook 'after-load-functions fun)))))))
+                     (add-hook 'after-load-functions fun 'append)))))))
         ;; Add FORM to the element unless it's already there.
         (unless (member delayed-func (cdr elt))
           (nconc elt (list delayed-func)))))))

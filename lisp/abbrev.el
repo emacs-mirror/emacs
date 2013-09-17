@@ -607,9 +607,9 @@ An obsolete but still supported calling form is:
   "Check if the characters in ABBREV have word syntax in either the
 current (if global is nil) or standard syntax table."
   (with-syntax-table
-      (cond ((null global) (standard-syntax-table))
+      (cond ((null global) (syntax-table))
             ;; ((syntax-table-p global) global)
-            (t (syntax-table)))
+            (t (standard-syntax-table)))
     (when (string-match "\\W" abbrev)
       (let ((badchars ())
             (pos 0))
