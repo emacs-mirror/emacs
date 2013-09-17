@@ -28,6 +28,7 @@
 	for g_type_init.
 	* xterm.c (handle_one_xevent): Do not call to x_clear_area
 	if GTK >= 2.7.0.
+	(toplevel) [USE_MOTIF]: Include xlwmenu.h to pacify GCC.
 
 2013-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 

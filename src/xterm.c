@@ -84,7 +84,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-#ifdef USE_LUCID
+#if defined (USE_LUCID) || defined (USE_MOTIF)
 #include "../lwlib/xlwmenu.h"
 #endif
 
