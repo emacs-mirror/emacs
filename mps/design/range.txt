@@ -17,20 +17,20 @@ Introduction
 _`.intro`: This is the design of the Range module, which implements
 objects representing address ranges.
 
-_`readership`: This document is intended for any MPS developer.
+_`.readership`: This document is intended for any MPS developer.
 
 
 Requirements
 ------------
 
-_`.req.range` A range object must be able to represent an arbitrary
+_`.req.range`: A range object must be able to represent an arbitrary
 range of addresses that does not include the top grain of the address
 space.
 
-_`.req.empty` A range object must be able to represent the empty
+_`.req.empty`: A range object must be able to represent the empty
 range.
 
-_`.req.stack-alloc` It must be possible to allocate range objects on
+_`.req.stack-alloc`: It must be possible to allocate range objects on
 the stack: that is, they do not require any heap resource.
 
 
