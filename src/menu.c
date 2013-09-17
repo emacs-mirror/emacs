@@ -50,10 +50,16 @@ extern HMENU current_popup_menu;
 
 #include "menu.h"
 
-/* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
+/* Return non-zero if menus can handle radio and toggle buttons.  */
+static bool
+have_boxes (void)
+{
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
-#define HAVE_BOXES 1
+  if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame)))
+    return 1;
 #endif
+  return 0;
+}
 
 Lisp_Object menu_items;
 
@@ -283,13 +289,14 @@ single_keymap_panes (Lisp_Object keymap, Lisp_Object pane_name,
 
   push_menu_pane (pane_name, prefix);
 
-#ifndef HAVE_BOXES
-  /* Remember index for first item in this pane so we can go back and
-     add a prefix when (if) we see the first button.  After that, notbuttons
-     is set to 0, to mark that we have seen a button and all non button
-     items need a prefix.  */
-  skp.notbuttons = menu_items_used;
-#endif
+  if (!have_boxes ())
+    {
+      /* Remember index for first item in this pane so we can go back
+	 and add a prefix when (if) we see the first button.  After
+	 that, notbuttons is set to 0, to mark that we have seen a
+	 button and all non button items need a prefix.  */
+      skp.notbuttons = menu_items_used;
+    }
 
   GCPRO1 (skp.pending_maps);
   map_keymap_canonical (keymap, single_menu_item, Qnil, &skp);
@@ -345,77 +352,72 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
       return;
     }
 
-#if defined (HAVE_X_WINDOWS) || defined (MSDOS)
-#ifndef HAVE_BOXES
   /* Simulate radio buttons and toggle boxes by putting a prefix in
      front of them.  */
-  {
-    Lisp_Object prefix = Qnil;
-    Lisp_Object type = AREF (item_properties, ITEM_PROPERTY_TYPE);
-    if (!NILP (type))
-      {
-	Lisp_Object selected
-	  = AREF (item_properties, ITEM_PROPERTY_SELECTED);
+  if (!have_boxes ())
+    {
+      Lisp_Object prefix = Qnil;
+      Lisp_Object type = AREF (item_properties, ITEM_PROPERTY_TYPE);
+      if (!NILP (type))
+	{
+	  Lisp_Object selected
+	    = AREF (item_properties, ITEM_PROPERTY_SELECTED);
 
-	if (skp->notbuttons)
-	  /* The first button. Line up previous items in this menu.  */
-	  {
-	    int idx = skp->notbuttons; /* Index for first item this menu.  */
-	    int submenu = 0;
-	    Lisp_Object tem;
-	    while (idx < menu_items_used)
-	      {
-		tem
-		  = AREF (menu_items, idx + MENU_ITEMS_ITEM_NAME);
-		if (NILP (tem))
-		  {
-		    idx++;
-		    submenu++;		/* Skip sub menu.  */
-		  }
-		else if (EQ (tem, Qlambda))
-		  {
-		    idx++;
-		    submenu--;		/* End sub menu.  */
-		  }
-		else if (EQ (tem, Qt))
-		  idx += 3;		/* Skip new pane marker. */
-		else if (EQ (tem, Qquote))
-		  idx++;		/* Skip a left, right divider. */
-		else
-		  {
-		    if (!submenu && SREF (tem, 0) != '\0'
-			&& SREF (tem, 0) != '-')
-		      ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
-                           concat2 (build_string ("    "), tem));
-		    idx += MENU_ITEMS_ITEM_LENGTH;
-		  }
-	      }
-	    skp->notbuttons = 0;
-	  }
+	  if (skp->notbuttons)
+	    /* The first button. Line up previous items in this menu.  */
+	    {
+	      int idx = skp->notbuttons; /* Index for first item this menu.  */
+	      int submenu = 0;
+	      Lisp_Object tem;
+	      while (idx < menu_items_used)
+		{
+		  tem
+		    = AREF (menu_items, idx + MENU_ITEMS_ITEM_NAME);
+		  if (NILP (tem))
+		    {
+		      idx++;
+		      submenu++;		/* Skip sub menu.  */
+		    }
+		  else if (EQ (tem, Qlambda))
+		    {
+		      idx++;
+		      submenu--;		/* End sub menu.  */
+		    }
+		  else if (EQ (tem, Qt))
+		    idx += 3;		/* Skip new pane marker. */
+		  else if (EQ (tem, Qquote))
+		    idx++;		/* Skip a left, right divider. */
+		  else
+		    {
+		      if (!submenu && SREF (tem, 0) != '\0'
+			  && SREF (tem, 0) != '-')
+			ASET (menu_items, idx + MENU_ITEMS_ITEM_NAME,
+			      concat2 (build_string ("    "), tem));
+		      idx += MENU_ITEMS_ITEM_LENGTH;
+		    }
+		}
+	      skp->notbuttons = 0;
+	    }
 
-	/* Calculate prefix, if any, for this item.  */
-	if (EQ (type, QCtoggle))
-	  prefix = build_string (NILP (selected) ? "[ ] " : "[X] ");
-	else if (EQ (type, QCradio))
-	  prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
-      }
-    /* Not a button. If we have earlier buttons, then we need a prefix.  */
-    else if (!skp->notbuttons && SREF (item_string, 0) != '\0'
-	     && SREF (item_string, 0) != '-')
-      prefix = build_string ("    ");
+	  /* Calculate prefix, if any, for this item.  */
+	  if (EQ (type, QCtoggle))
+	    prefix = build_string (NILP (selected) ? "[ ] " : "[X] ");
+	  else if (EQ (type, QCradio))
+	    prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
+	}
+      /* Not a button. If we have earlier buttons, then we need a prefix.  */
+      else if (!skp->notbuttons && SREF (item_string, 0) != '\0'
+	       && SREF (item_string, 0) != '-')
+	prefix = build_string ("    ");
 
-    if (!NILP (prefix))
-      item_string = concat2 (prefix, item_string);
+      if (!NILP (prefix))
+	item_string = concat2 (prefix, item_string);
   }
-#endif /* not HAVE_BOXES */
 
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-  if (!NILP (map))
+  if (FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
+      && !NILP (map))
     /* Indicate visually that this is a submenu.  */
     item_string = concat2 (item_string, build_string (" >"));
-#endif
-
-#endif /* HAVE_X_WINDOWS || MSDOS */
 
   push_menu_item (item_string, enabled, key,
 		  AREF (item_properties, ITEM_PROPERTY_DEF),
@@ -426,7 +428,8 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
   /* Display a submenu using the toolkit.  */
-  if (! (NILP (map) || NILP (enabled)))
+  if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame))
+      && ! (NILP (map) || NILP (enabled)))
     {
       push_submenu_start ();
       single_keymap_panes (map, Qnil, key, skp->maxdepth - 1);
