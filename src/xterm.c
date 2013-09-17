@@ -9008,7 +9008,6 @@ xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
 void
 x_make_frame_visible (struct frame *f)
 {
-  Lisp_Object type;
   int original_top, original_left;
   int retry_count = 2;
 
@@ -9016,9 +9015,7 @@ x_make_frame_visible (struct frame *f)
 
   block_input ();
 
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
+  x_set_bitmap_icon (f);
 
   if (! FRAME_VISIBLE_P (f))
     {
@@ -9225,7 +9222,6 @@ x_iconify_frame (struct frame *f)
 #ifdef USE_X_TOOLKIT
   int result;
 #endif
-  Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
@@ -9236,9 +9232,7 @@ x_iconify_frame (struct frame *f)
 
   block_input ();
 
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
+  x_set_bitmap_icon (f);
 
 #if defined (USE_GTK)
   if (FRAME_GTK_OUTER_WIDGET (f))

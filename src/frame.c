@@ -3381,22 +3381,6 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.x = 0;
 }
 
-
-
-/* Return non-nil if frame F wants a bitmap icon.  */
-
-Lisp_Object
-x_icon_type (struct frame *f)
-{
-  Lisp_Object tem;
-
-  tem = assq_no_quit (Qicon_type, f->param_alist);
-  if (CONSP (tem))
-    return XCDR (tem);
-  else
-    return Qnil;
-}
-
 void
 x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {

@@ -5915,13 +5915,9 @@ w32_frame_raise_lower (struct frame *f, int raise_flag)
 void
 x_make_frame_visible (struct frame *f)
 {
-  Lisp_Object type;
-
   block_input ();
 
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
+  x_set_bitmap_icon (f);
 
   if (! FRAME_VISIBLE_P (f))
     {
@@ -6031,8 +6027,6 @@ x_make_frame_invisible (struct frame *f)
 void
 x_iconify_frame (struct frame *f)
 {
-  Lisp_Object type;
-
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_DISPLAY_INFO (f)->x_highlight_frame = 0;
@@ -6042,9 +6036,7 @@ x_iconify_frame (struct frame *f)
 
   block_input ();
 
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
+  x_set_bitmap_icon (f);
 
   /* Simulate the user minimizing the frame.  */
   SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);

@@ -1,5 +1,15 @@
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.h (x_set_bitmap_icon) [!HAVE_NS]: New function.
+	(x_icon_type): Remove prototype.
+	(x_bitmap_icon) [!HAVE_NS]: Declare as such.
+	* frame.c (x_icon_type): Remove.
+	* w32term.c (x_make_frame_visible, x_iconify_frame):
+	* xterm.c (x_make_frame_visible, x_iconify_frame):
+	Use x_set_bitmap_icon to factor out common code.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* dispextern.h (check_x_display_info, x_get_string_resource):
 	Declare here just once and unify the latter.
 	* frame.c (check_x_display_info, x_get_string_resource):

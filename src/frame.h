@@ -1230,8 +1230,6 @@ extern void x_set_vertical_scroll_bars (struct frame *, Lisp_Object,
 extern void x_set_scroll_bar_width (struct frame *, Lisp_Object,
                                     Lisp_Object);
 
-extern Lisp_Object x_icon_type (struct frame *);
-
 extern long x_figure_window_size (struct frame *, Lisp_Object, bool);
 
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
@@ -1260,7 +1258,6 @@ extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object oldval);
 extern void x_activate_menubar (struct frame *);
 extern void x_real_positions (struct frame *, int *, int *);
-extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_set_menu_bar_lines (struct frame *,
                                   Lisp_Object,
                                   Lisp_Object);
@@ -1279,8 +1276,24 @@ extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_focus_frame (struct frame *);
 
+#ifndef HAVE_NS
+
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+
+/* Set F's bitmap icon, if specified among F's parameters.  */
+
+FRAME_INLINE void
+x_set_bitmap_icon (struct frame *f)
+{
+  Lisp_Object obj = assq_no_quit (Qicon_type, f->param_alist);
+
+  if (CONSP (obj))
+    x_bitmap_icon (f, XCDR (obj));
+}
+
+#endif /* !HAVE_NS */
+
 #endif /* HAVE_WINDOW_SYSTEM */
-
 
 FRAME_INLINE void
 flush_frame (struct frame *f)
