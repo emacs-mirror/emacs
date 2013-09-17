@@ -1,3 +1,8 @@
+2013-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (gnus-message-with-timestamp-1):
+	Use `message-buffer' function if available.  Ignore read-only.
+
 2013-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-expand-group, message-completion-in-region):

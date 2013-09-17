@@ -1,3 +1,8 @@
+2013-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* xdisp.c (message_dolog): If we create *Messages*,
+	switch it to messages-buffer-mode.
+
 2013-09-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't overuse 'const' in types of locals.

@@ -7344,6 +7344,18 @@ and setting it to nil."
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
 
+(define-derived-mode messages-buffer-mode special-mode "Messages"
+  "Major mode used in the \"*Messages*\" buffer.")
+
+(defun messages-buffer ()
+  "Return the \"*Messages*\" buffer.
+If it does not exist, create and it switch it to `messages-buffer-mode'."
+  (or (get-buffer "*Messages*")
+      (with-current-buffer (get-buffer-create "*Messages*")
+        (messages-buffer-mode)
+        (current-buffer))))
+
+
 ;; Minibuffer prompt stuff.
 
 ;;(defun minibuffer-prompt-modification (start end)

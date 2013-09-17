@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2013
+;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -160,7 +160,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
     (setq message-end-point
-	  (with-current-buffer (get-buffer-create "*Messages*")
+	  (with-current-buffer (messages-buffer)
 	    (point-max-marker)))
     (compose-mail report-emacs-bug-address topic)
     ;; The rest of this does not execute if the user was asked to

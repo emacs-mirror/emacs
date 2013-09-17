@@ -1,7 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -9538,7 +9537,20 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
-      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
+
+      /* Ensure the Messages buffer exists, and switch to it.
+         If we created it, set the major-mode.  */
+      {
+        int newbuffer = 0;
+        if (NILP (Fget_buffer (Vmessages_buffer_name))) newbuffer = 1;
+
+        Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
+
+        if (newbuffer &&
+            !NILP (Ffboundp (intern ("messages-buffer-mode"))))
+          call0 (intern ("messages-buffer-mode"));
+      }
+
       bset_undo_list (current_buffer, Qt);
 
       oldpoint = message_dolog_marker1;
