@@ -7344,6 +7344,12 @@ and setting it to nil."
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
 
+(defvar messages-buffer-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "g" nil)            ; nothing to revert
+    map))
+
 (define-derived-mode messages-buffer-mode special-mode "Messages"
   "Major mode used in the \"*Messages*\" buffer.")
 

@@ -1,3 +1,7 @@
+2013-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (messages-buffer-mode-map): Unbind "g".
+
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-mode.el (help-mode-finish): Use derived-mode-p.
