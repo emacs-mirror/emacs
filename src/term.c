@@ -2812,6 +2812,8 @@ static const char *menu_help_message, *prev_menu_help_message;
    last menu help message.  */
 static int menu_help_paneno, menu_help_itemno;
 
+static int menu_x, menu_y;
+
 typedef struct tty_menu_struct
 {
   int count;
@@ -2931,13 +2933,12 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
     }
   else
     {
-      mx = x;
-      my = y;
+      mx = menu_x;
+      my = menu_y;
     }
 #else
-  /* FIXME: need to set mx and my from cursor movement commands.  */
-  mx = x;
-  my = y;
+  mx = menu_x;
+  my = menu_y;
 #endif
 
   menu_help_message = NULL;
@@ -3218,6 +3219,8 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
       *y += dy;
       if (dx != 0 || dy != 0)
 	sf->mouse_moved = 1;
+      menu_x = *x;
+      menu_y = *y;
       Sleep (300);
       return st;
 #endif
