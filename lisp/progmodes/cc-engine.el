@@ -7408,7 +7408,11 @@ comment at the start of cc-engine.el for more info."
 	;; interactive refontification.
 	(c-put-c-type-property (point) 'c-decl-arg-start))
 
-      (when (and c-record-type-identifiers at-type (not (eq at-type t)))
+      (when (and c-record-type-identifiers at-type ;; (not (eq at-type t))
+		 ;; There seems no reason to exclude a token from
+		 ;; fontification just because it's "a known type that can't
+		 ;; be a name or other expression".  2013-09-18.
+		 )
 	(let ((c-promote-possible-types t))
 	  (save-excursion
 	    (goto-char type-start)
