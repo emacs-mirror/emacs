@@ -20656,17 +20656,13 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   row->reversed_p = 0;
   row->enabled_p = 1;
 
-  /* We can only write over TEXT_AREA, as display_string cannot do
-     display margins.  */
-  x += row->used[LEFT_MARGIN_AREA];
-
   /* Arrange for the menu item glyphs to start at (X,Y) and have the
      desired face.  */
   it.current_x = it.hpos = x;
   it.current_y = it.vpos = y;
   saved_used = row->used[TEXT_AREA];
   saved_truncated = row->truncated_on_right_p;
-  row->used[TEXT_AREA] = x - row->used[LEFT_MARGIN_AREA];
+  row->used[TEXT_AREA] = x;
   it.face_id = face_id;
   it.line_wrap = TRUNCATE;
 
@@ -20694,7 +20690,7 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
     display_string (item_text, Qnil, Qnil, 0, 0, &it,
 		    width, 0, FRAME_COLS (f) - 1, -1);
 
-  row->used[TEXT_AREA] = saved_used;
+  row->used[TEXT_AREA] = max (saved_used, row->used[TEXT_AREA]);
   row->truncated_on_right_p = saved_truncated;
   row->hash = row_hash (row);
   row->full_width_p = saved_width;
