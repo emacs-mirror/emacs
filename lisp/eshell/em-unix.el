@@ -461,6 +461,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 	   (eshell-parse-command
 	    (format "tar %s %s" tar-args archive) args))))
 
+(defvar ange-cache)			; XEmacs?  See esh-util
+
 ;; this is to avoid duplicating code...
 (defmacro eshell-mvcpln-template (command action func query-var
 					  force-var &optional preserve)

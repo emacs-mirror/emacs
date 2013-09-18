@@ -25,6 +25,9 @@
 
 	* custom.el (x-get-resource): Declare.
 
+	* eshell/em-glob.el (ange-cache):
+	* eshell/em-unix.el (ange-cache): Declare.
+
 	* faces.el (x-display-list, x-open-connection, x-get-resource):
 	Declare.
 
