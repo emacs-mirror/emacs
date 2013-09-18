@@ -3147,8 +3147,10 @@ screen_update (struct frame *f, struct glyph_matrix *mtx)
 
 /* Read user input and return X and Y coordinates where that input
    puts us.  We only consider mouse movement and click events and
-   keyboard movement commands; the rest are ignored.  */
-static void
+   keyboard movement commands; the rest are ignored.
+
+   Value is -1 if C-g was pressed, zero otherwise.  */
+static int
 read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 {
   Lisp_Object c;
@@ -3157,11 +3159,12 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
     {
       *first_time = false;
       sf->mouse_moved = 1;
-      return;
+      return 0;
     }
 
   while (1)
     {
+#if 0
       do {
 	c = read_char (-2, Qnil, Qnil, NULL, NULL);
       } while (BUFFERP (c) || (INTEGERP (c) && XINT (c) == -2));
@@ -3174,6 +3177,8 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 	  /* FIXME: Exceedingly primitive!  Can we support arrow keys?  */
 	  switch (ch && ~CHAR_MODIFIER_MASK)
 	    {
+	    case 7:	/* ^G */
+	      return -1;
 	    case 6:	/* ^F */
 	      *x += 1;
 	      break;
@@ -3191,10 +3196,8 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 	      break;
 	    }
 	  if (usable_input)
-	    {
-	      sf->mouse_moved = 1;
-	      return;
-	    }
+	    sf->mouse_moved = 1;
+	  break;
 	}
 
       else if (EVENT_HAS_PARAMETERS (c))
@@ -3206,7 +3209,20 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 	    {
 	    }
 	}
+#else
+      int volatile dx = 0;
+      int volatile dy = 0;
+      int volatile st = 0;
+
+      *x += dx;
+      *y += dy;
+      if (dx != 0 || dy != 0)
+	sf->mouse_moved = 1;
+      Sleep (300);
+      return st;
+#endif
     }
+  return 0;
 }
 
 /* FIXME */
@@ -3348,8 +3364,9 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       int mouse_button_count = 3; /* FIXME */
 
       if (!mouse_visible) mouse_on ();
-      read_menu_input (sf, &x, &y, &first_time);
-      if (sf->mouse_moved)
+      if (read_menu_input (sf, &x, &y, &first_time) == -1)
+	leave = 1;
+      else if (sf->mouse_moved)
 	{
 	  sf->mouse_moved = 0;
 	  result = TTYM_IA_SELECT;
