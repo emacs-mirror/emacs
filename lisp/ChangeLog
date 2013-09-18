@@ -29,6 +29,8 @@
 
 	* term/x-win.el (x-select-enable-clipboard): Declare.
 
+	* term/w32-win.el (create-default-fontset): Declare.
+
 	* window.el (x-display-pixel-height, tool-bar-lines-needed): Declare.
 	(fit-frame-to-buffer): Explicit error if --without-x.
 	(mouse-autoselect-window-select): Silence compiler.
