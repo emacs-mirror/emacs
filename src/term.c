@@ -304,7 +304,11 @@ tty_hide_cursor (struct tty_display_info *tty)
   if (tty->cursor_hidden == 0)
     {
       tty->cursor_hidden = 1;
+#ifdef WINDOWSNT
+      w32con_hide_cursor ();
+#else
       OUTPUT_IF (tty, tty->TS_cursor_invisible);
+#endif
     }
 }
 
@@ -317,9 +321,13 @@ tty_show_cursor (struct tty_display_info *tty)
   if (tty->cursor_hidden)
     {
       tty->cursor_hidden = 0;
+#ifdef WINDOWSNT
+      w32con_show_cursor ();
+#else
       OUTPUT_IF (tty, tty->TS_cursor_normal);
       if (visible_cursor)
         OUTPUT_IF (tty, tty->TS_cursor_visible);
+#endif
     }
 }
 
@@ -3244,6 +3252,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   int title_faces[4];		/* face to display the menu title */
   int faces[4], buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME ();
+  struct tty_display_info *tty = FRAME_TTY (sf);
   bool first_time;
   Lisp_Object saved_echo_area_message, selectface;
 
@@ -3307,9 +3316,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 
   /* Turn off the cursor.  Otherwise it shows through the menu
      panes, which is ugly.  */
-#if 0
-  show_cursor (0);	/* FIXME: need a new hook, for w32console.  */
-#endif
+  tty_hide_cursor (tty);
 
   /* Display the menu title.  We subtract 1 from x0 and y0 because we
      want to interpret them as zero-based column and row coordinates,
@@ -3405,9 +3412,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	    {
 	      help_callback (menu_help_message,
 			     menu_help_paneno, menu_help_itemno);
-#if 0
-	      show_cursor (0);	/* FIXME */
-#endif
+	      tty_hide_cursor (tty);
 	      prev_menu_help_message = menu_help_message;
 	    }
 	  /* We are busy-waiting for the mouse to move, so let's be nice
@@ -3459,10 +3464,9 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 #endif
   while (statecount--)
     free_saved_screen (state[statecount].screen_behind);
-#if 0
-  show_cursor (1);	/* turn cursor back on */
-#endif
-  /* Clean up any mouse events that are waiting inside Emacs event queue.
+  tty_show_cursor (tty);	/* turn cursor back on */
+
+/* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button
      (which invoked the menu) too quickly.  If we don't remove these events,
