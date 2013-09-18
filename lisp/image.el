@@ -291,6 +291,7 @@ be determined."
 	  (setq types (cdr types)))))
     (goto-char opoint)
     (and type
+	 (boundp 'image-types)
 	 (memq type image-types)
 	 type)))
 
