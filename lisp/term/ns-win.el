@@ -872,6 +872,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar ns-initialized nil
   "Non-nil if Nextstep windowing has been initialized.")
 
+(declare-function x-handle-args "common-win" (args))
 (declare-function ns-list-services "nsfns.m" ())
 (declare-function x-open-connection "nsfns.m"
                   (display &optional xrm-string must-succeed))

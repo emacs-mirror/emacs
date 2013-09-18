@@ -27,6 +27,8 @@
 	(x-last-selected-text-primary, x-last-selected-text-clipboard):
 	Declare.
 
+	* term/ns-win.el (x-handle-args): Declare.
+
 	* term/x-win.el (x-select-enable-clipboard): Declare.
 
 	* term/w32-win.el (create-default-fontset): Declare.
