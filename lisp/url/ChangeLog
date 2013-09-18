@@ -1,3 +1,7 @@
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (zlib-decompress-region): Declare.
+
 2013-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* url-misc.el (url-data): Avoid match-data mix-up with base64 case.

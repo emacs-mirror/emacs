@@ -858,6 +858,8 @@ should be shown to the user."
     (goto-char (point-min))
     success))
 
+(declare-function zlib-decompress-region "decompress.c" (start) (end))
+
 (defun url-handle-content-transfer-encoding ()
   (let ((encoding (mail-fetch-field "content-encoding")))
     (when (and encoding
