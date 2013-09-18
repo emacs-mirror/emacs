@@ -206,3 +206,15 @@ void acc_using()
   sn.//-18-
     ; //#18# ( "one" "two" )
 }
+
+// Check the same outside of function scope
+
+using namespace outer;
+using namespace inner;
+
+void acc_using2()
+{
+  StructNested sn;
+  sn.//-19-
+    ; //#19# ( "one" "two" )
+}
