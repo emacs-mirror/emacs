@@ -590,6 +590,8 @@ The functions are run with one arg, the newly created frame.")
   ;; FIXME: Shouldn't we add `font' here as well?
   "Parameters `make-frame' copies from the `selected-frame' to the new frame.")
 
+(defvar x-display-name)
+
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
 Optional argument PARAMETERS is an alist of frame parameters for

@@ -11,7 +11,7 @@
 	* faces.el (x-display-list, x-open-connection, x-get-resource):
 	Declare.
 
-	* frame.el (x-display-grayscale-p): Declare.
+	* frame.el (x-display-grayscale-p, x-display-name): Declare.
 
 	* simple.el (font-info): Declare.
 
