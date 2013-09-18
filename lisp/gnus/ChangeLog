@@ -1,3 +1,7 @@
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (image-size): Declare.
+
 2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-icalendar.el (gnus-icalendar-event--find-attendee)

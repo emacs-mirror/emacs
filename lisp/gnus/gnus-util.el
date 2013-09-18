@@ -1891,6 +1891,8 @@ empty directories from OLD-PATH."
             (get-char-table ,character ,display-table)))
     `(aref ,display-table ,character)))
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (defun gnus-rescale-image (image size)
   "Rescale IMAGE to SIZE if possible.
 SIZE is in format (WIDTH . HEIGHT). Return a new image.
