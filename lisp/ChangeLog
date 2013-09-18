@@ -27,6 +27,8 @@
 	(x-last-selected-text-primary, x-last-selected-text-clipboard):
 	Declare.
 
+	* term/x-win.el (x-select-enable-clipboard): Declare.
+
 	* window.el (x-display-pixel-height, tool-bar-lines-needed): Declare.
 	(fit-frame-to-buffer): Explicit error if --without-x.
 	(mouse-autoselect-window-select): Silence compiler.
