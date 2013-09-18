@@ -1,5 +1,8 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/chart.el (x-display-color-cells): Declare.
+	(chart-face-list): Drop Emacsen without display-color-p.
+
 	* net/eww.el (libxml-parse-html-region): Declare.
 	(eww-display-html): Explicit error if no libxml2 support.
 
