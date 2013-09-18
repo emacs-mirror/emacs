@@ -19,6 +19,10 @@
 	* faces.el (x-display-list, x-open-connection, x-get-resource):
 	Declare.
 
+	* follow.el (scroll-bar-toolkit-scroll, scroll-bar-drag)
+	(scroll-bar-scroll-up, scroll-bar-scroll-down, mwheel-scroll):
+	Declare.
+
 	* frame.el (x-display-grayscale-p, x-display-name): Declare.
 
 	* simple.el (font-info): Declare.

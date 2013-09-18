@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer
-;; Copyright (C) 1995-1997, 1999, 2001-2013 Free Software Foundation,
-;; Inc.
+
+;; Copyright (C) 1995-1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Maintainer: FSF (Anders' email bounces, Sep 2005)
@@ -1298,6 +1298,12 @@ non-first windows in Follow mode."
 
 ;; This handles the case where the user drags the scroll bar of a
 ;; non-selected window whose buffer is in Follow mode.
+
+(declare-function scroll-bar-toolkit-scroll "scroll-bar" (event))
+(declare-function scroll-bar-drag "scroll-bar" (event))
+(declare-function scroll-bar-scroll-up "scroll-bar" (event))
+(declare-function scroll-bar-scroll-down "scroll-bar" (event))
+(declare-function mwheel-scroll "mwheel" (event))
 
 (defun follow-scroll-bar-toolkit-scroll (event)
   (interactive "e")
