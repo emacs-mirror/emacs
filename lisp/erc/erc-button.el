@@ -267,7 +267,7 @@ specified by `erc-button-alist'."
             (inhibit-point-motion-hooks t)
             (inhibit-field-text-motion t)
             (alist erc-button-alist)
-            entry regexp data)
+            regexp)
         (erc-button-remove-old-buttons)
         (dolist (entry alist)
           (if (equal (car entry) (quote (quote nicknames)))

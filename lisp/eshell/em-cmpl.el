@@ -370,7 +370,7 @@ to writing a completion function."
     (cl-assert (= (length args) (length posns)))
     (let ((a args)
 	  (i 0)
-	  l final)
+	  l)
       (while a
 	(if (and (consp (car a))
 		 (eq (caar a) 'eshell-operator))

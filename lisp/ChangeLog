@@ -1,5 +1,14 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* dframe.el (x-sensitive-text-pointer-shape, x-pointer-shape): Declare.
+
+	* eshell/em-cmpl.el (eshell-complete-parse-arguments):
+	* eshell/em-hist.el (eshell/history, eshell-isearch-backward):
+	* eshell/em-pred.el (eshell-parse-modifiers, eshell-pred-file-time):
+	Remove unused local variables.
+
+	* eshell/esh-io.el (x-select-enable-clipboard): Declare.
+
 	* textmodes/two-column.el: Make 2C-split work for --without-x.
 	(scroll-bar-columns): Autoload.
 	(top-level): Require fringe when compiling.

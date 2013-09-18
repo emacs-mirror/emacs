@@ -118,6 +118,8 @@ from executing while Emacs is redisplaying."
   :type 'integer
   :group 'eshell-io)
 
+(defvar x-select-enable-clipboard)	; term/common-win
+
 (defcustom eshell-virtual-targets
   '(("/dev/eshell" eshell-interactive-print nil)
     ("/dev/kill" (lambda (mode)

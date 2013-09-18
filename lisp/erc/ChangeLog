@@ -1,3 +1,7 @@
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-add-buttons): Remove unused local vars.
+
 2013-09-14  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* erc.el (erc-update-mode-line-buffer):
