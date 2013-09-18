@@ -3860,18 +3860,19 @@ construct_mouse_click (struct input_event *result,
    the mainstream emacs code by setting mouse_moved.  If not, ask for
    another motion event, so we can check again the next time it moves.  */
 
-static XMotionEvent last_mouse_motion_event;
-static Lisp_Object last_mouse_motion_frame;
-
 static int
 note_mouse_movement (struct frame *frame, const XMotionEvent *event)
 {
-  last_mouse_movement_time = event->time;
-  last_mouse_motion_event = *event;
-  XSETFRAME (last_mouse_motion_frame, frame);
+  struct x_display_info *dpyinfo;
 
   if (!FRAME_X_OUTPUT (frame))
     return 0;
+
+  dpyinfo = FRAME_DISPLAY_INFO (frame);
+  last_mouse_movement_time = event->time;
+  dpyinfo->last_mouse_motion_frame = frame;
+  dpyinfo->last_mouse_motion_x = event->x;
+  dpyinfo->last_mouse_motion_y = event->y;
 
   if (event->window != FRAME_X_WINDOW (frame))
     {
@@ -3901,23 +3902,6 @@ note_mouse_movement (struct frame *frame, const XMotionEvent *event)
 
   return 0;
 }
-
-
-/************************************************************************
-			      Mouse Face
- ************************************************************************/
-
-static void
-redo_mouse_highlight (void)
-{
-  if (!NILP (last_mouse_motion_frame)
-      && FRAME_LIVE_P (XFRAME (last_mouse_motion_frame)))
-    note_mouse_highlight (XFRAME (last_mouse_motion_frame),
-			  last_mouse_motion_event.x,
-			  last_mouse_motion_event.y);
-}
-
-
 
 /* Return the current position of the mouse.
    *FP should be a frame which indicates which display to ask about.
@@ -6223,7 +6207,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (event->xunmap.window == tip_window)
         {
           tip_window = 0;
-          redo_mouse_highlight ();
+          x_redo_mouse_highlight (dpyinfo);
         }
 
       f = x_top_window_to_frame (dpyinfo, event->xunmap.window);
@@ -10704,9 +10688,6 @@ With MS Windows or Nextstep, the value is t.  */);
 #else
   Vx_toolkit_scroll_bars = Qnil;
 #endif
-
-  staticpro (&last_mouse_motion_frame);
-  last_mouse_motion_frame = Qnil;
 
   Qmodifier_value = intern_c_string ("modifier-value");
   Qalt = intern_c_string ("alt");

@@ -2564,6 +2564,7 @@ compute_tip_xy (struct frame *f,
 {
   Lisp_Object left, top;
   EmacsView *view = FRAME_NS_VIEW (f);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   NSPoint pt;
 
   /* Start with user-specified or mouse position.  */
@@ -2572,7 +2573,8 @@ compute_tip_xy (struct frame *f,
 
   if (!INTEGERP (left) || !INTEGERP (top))
     {
-      pt = last_mouse_motion_position;
+      pt.x = dpyinfo->last_mouse_motion_x;
+      pt.y = dpyinfo->last_mouse_motion_y;
       /* Convert to screen coordinates */
       pt = [view convertPoint: pt toView: nil];
       pt = [[view window] convertBaseToScreen: pt];

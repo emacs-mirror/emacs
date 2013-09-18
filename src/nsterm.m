@@ -191,10 +191,8 @@ Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
 /* display update */
-NSPoint last_mouse_motion_position;
 static NSRect last_mouse_glyph;
 static Time last_mouse_movement_time = 0;
-static Lisp_Object last_mouse_motion_frame;
 static EmacsScroller *last_mouse_scroll_bar = nil;
 static struct frame *ns_updating_frame;
 static NSView *focus_view = NULL;
@@ -1742,7 +1740,7 @@ note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
 {
 //  NSTRACE (note_mouse_movement);
 
-  XSETFRAME (last_mouse_motion_frame, frame);
+  FRAME_DISPLAY_INFO (frame)->last_mouse_motion_frame = frame;
 
   /* Note, this doesn't get called for enter/leave, since we don't have a
      position.  Those are taken care of in the corresponding NSView methods. */
@@ -5448,13 +5446,16 @@ not_in_argv (NSString *arg)
 - (void)mouseMoved: (NSEvent *)e
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (emacsframe);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   Lisp_Object frame;
+  NSPoint pt;
 
 //  NSTRACE (mouseMoved);
 
   last_mouse_movement_time = EV_TIMESTAMP (e);
-  last_mouse_motion_position
-    = [self convertPoint: [e locationInWindow] fromView: nil];
+  pt = [self convertPoint: [e locationInWindow] fromView: nil];
+  dpyinfo->last_mouse_motion_x = pt.x;
+  dpyinfo->last_mouse_motion_y = pt.y;
 
   /* update any mouse face */
   if (hlinfo->mouse_face_hidden)
@@ -5471,9 +5472,8 @@ not_in_argv (NSString *arg)
     {
       NSTRACE (mouse_autoselect_window);
       static Lisp_Object last_mouse_window;
-      Lisp_Object window = window_from_coordinates
-	(emacsframe, last_mouse_motion_position.x,
-	 last_mouse_motion_position.y, 0, 0);
+      Lisp_Object window
+	= window_from_coordinates (emacsframe, pt.x, pt.y, 0, 0);
 
       if (WINDOWP (window)
           && !EQ (window, last_mouse_window)
@@ -5491,8 +5491,7 @@ not_in_argv (NSString *arg)
       last_mouse_window = window;
     }
 
-  if (!note_mouse_movement (emacsframe, last_mouse_motion_position.x,
-                            last_mouse_motion_position.y))
+  if (!note_mouse_movement (emacsframe, pt.x, pt.y))
     help_echo_string = previous_help_echo_string;
 
   XSETFRAME (frame, emacsframe);
@@ -7415,9 +7414,6 @@ allowing it to be used at a lower level for accented character entry.");
 
   staticpro (&ns_display_name_list);
   ns_display_name_list = Qnil;
-
-  staticpro (&last_mouse_motion_frame);
-  last_mouse_motion_frame = Qnil;
 
   DEFVAR_LISP ("ns-auto-hide-menu-bar", ns_auto_hide_menu_bar,
                doc: /* Non-nil means that the menu bar is hidden, but appears when the mouse is near.

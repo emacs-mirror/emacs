@@ -3304,21 +3304,21 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
    the mainstream emacs code by setting mouse_moved.  If not, ask for
    another motion event, so we can check again the next time it moves.  */
 
-static MSG last_mouse_motion_event;
-static Lisp_Object last_mouse_motion_frame;
-
 static int
 note_mouse_movement (struct frame *frame, MSG *msg)
 {
+  struct w32_display_info *dpyinfo;
   int mouse_x = LOWORD (msg->lParam);
   int mouse_y = HIWORD (msg->lParam);
 
-  last_mouse_movement_time = msg->time;
-  memcpy (&last_mouse_motion_event, msg, sizeof (last_mouse_motion_event));
-  XSETFRAME (last_mouse_motion_frame, frame);
-
-  if (!FRAME_X_OUTPUT (frame))
+  if (!FRAME_W32_OUTPUT (frame))
     return 0;
+
+  dpyinfo = FRAME_DISPLAY_INFO (frame);
+  last_mouse_movement_time = msg->time;
+  dpyinfo->last_mouse_motion_frame = frame;
+  dpyinfo->last_mouse_motion_x = mouse_x;
+  dpyinfo->last_mouse_motion_y = mouse_y;
 
   if (msg->hwnd != FRAME_W32_WINDOW (frame))
     {
@@ -3362,16 +3362,6 @@ static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 					Lisp_Object *, Lisp_Object *,
 					unsigned long *);
 static void x_check_fullscreen (struct frame *);
-
-static void
-redo_mouse_highlight (void)
-{
-  if (!NILP (last_mouse_motion_frame)
-      && FRAME_LIVE_P (XFRAME (last_mouse_motion_frame)))
-    note_mouse_highlight (XFRAME (last_mouse_motion_frame),
-			  LOWORD (last_mouse_motion_event.lParam),
-			  HIWORD (last_mouse_motion_event.lParam));
-}
 
 static void
 w32_define_cursor (Window window, Cursor cursor)
@@ -4683,7 +4673,7 @@ w32_read_socket (struct terminal *terminal,
 	  if (!msg.msg.wParam && msg.msg.hwnd == tip_window)
 	    {
 	      tip_window = NULL;
-	      redo_mouse_highlight ();
+	      x_redo_mouse_highlight (dpyinfo);
 	    }
 
 	  /* If window has been obscured or exposed by another window
@@ -6648,9 +6638,6 @@ With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
 With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
-
-  staticpro (&last_mouse_motion_frame);
-  last_mouse_motion_frame = Qnil;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qw32, Qnil);

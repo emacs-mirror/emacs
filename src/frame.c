@@ -3442,6 +3442,19 @@ bool x_mouse_grabbed (Display_Info *dpyinfo)
 	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame));
 }
 
+/* Re-highlight something with mouse-face properties
+   on DPYINFO using saved frame and mouse position.  */
+
+void
+x_redo_mouse_highlight (Display_Info *dpyinfo)
+{
+  if (dpyinfo->last_mouse_motion_frame
+      && FRAME_LIVE_P (dpyinfo->last_mouse_motion_frame))
+    note_mouse_highlight (dpyinfo->last_mouse_motion_frame,
+			  dpyinfo->last_mouse_motion_x,
+			  dpyinfo->last_mouse_motion_y);
+}
+
 /* Subroutines of creating an X frame.  */
 
 /* Make sure that Vx_resource_name is set to a reasonable value.

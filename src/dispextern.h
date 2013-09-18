@@ -3545,6 +3545,7 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         enum resource_types);
 extern char *x_get_string_resource (XrmDatabase, const char *,
 				    const char *);
+extern void x_redo_mouse_highlight (Display_Info *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

@@ -600,6 +600,14 @@ struct ns_display_info
 
   /* The frame where the mouse was last time we reported a mouse event.  */
   struct frame *last_mouse_frame;
+
+  /* The frame where the mouse was last time we reported a mouse motion.  */
+  struct frame *last_mouse_motion_frame;
+
+  /* Position where the mouse was last time we reported a motion.
+     This is a position on last_mouse_motion_frame.  */
+  int last_mouse_motion_x;
+  int last_mouse_motion_y;
 };
 
 /* This is a chain of structures for all the NS displays currently in use.  */
@@ -869,7 +877,6 @@ extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 		      sigset_t const *sigmask);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
-extern NSPoint last_mouse_motion_position;
 
 /* From nsterm.m, needed in nsfont.m. */
 #ifdef __OBJC__

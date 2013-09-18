@@ -1,5 +1,28 @@
 2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.c (x_redo_mouse_highlight): New function
+	to factor out common code used in W32 and X ports.
+	* dispextern.h (x_redo_mouse_highlight): Add prototype.
+	* xterm.h (struct x_display_info):
+	* w32term.h (struct w32_display_info):
+	* nsterm.h (struct ns_display_info): New members
+	last_mouse_motion_frame, last_mouse_motion_x and
+	last_mouse_motion_y, going to replace static variables below.
+	* xterm.c (last_mouse_motion_event, last_mouse_motion_frame)
+	(redo_mouse_highlight): Remove.
+	(note_mouse_movement, syms_of_xterm): Adjust user.
+	(handle_one_xevent): Likewise.  Use x_redo_mouse_highlight.
+	* w32term.c (last_mouse_motion_event, last_mouse_motion_frame)
+	(redo_mouse_highlight): Remove.
+	(note_mouse_movement, syms_of_w32term): Adjust user.
+	(w32_read_socket): Likewise.  Use x_redo_mouse_highlight.
+	* nsterm.m (last_mouse_motion_position, last_mouse_motion_frame):
+	Remove.
+	(note_mouse_movement, mouseMoved, syms_of_nsterm):
+	* nsfns.m (compute_tip_xy): Adjust user.
+
+2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.c (x_mouse_grabbed): New function.
 	* dispextern.h (x_mouse_grabbed): Add prototype.
 	(last_mouse_frame): Remove declaration.

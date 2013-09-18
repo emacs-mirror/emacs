@@ -308,8 +308,16 @@ struct x_display_info
   /* The frame where the mouse was last time we reported a mouse event.  */
   struct frame *last_mouse_frame;
 
+  /* The frame where the mouse was last time we reported a mouse motion.  */
+  struct frame *last_mouse_motion_frame;
+
   /* Time of last user interaction as returned in X events on this display.  */
   Time last_user_time;
+
+  /* Position where the mouse was last time we reported a motion.
+     This is a position on last_mouse_motion_frame.  */
+  int last_mouse_motion_x;
+  int last_mouse_motion_y;
 
   /* The gray pixmap.  */
   Pixmap gray;
