@@ -33,6 +33,8 @@
 
 	* net/gnutls.el (gnutls-log-level): Declare.
 
+	* net/shr.el (image-size, image-animate): Declare.
+
 	* simple.el (font-info): Declare.
 
 	* subr.el (x-popup-dialog): Declare.
