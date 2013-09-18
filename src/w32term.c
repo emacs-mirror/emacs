@@ -3311,7 +3311,7 @@ note_mouse_movement (struct frame *frame, MSG *msg)
   int mouse_x = LOWORD (msg->lParam);
   int mouse_y = HIWORD (msg->lParam);
 
-  if (!FRAME_W32_OUTPUT (frame))
+  if (!FRAME_X_OUTPUT (frame))
     return 0;
 
   dpyinfo = FRAME_DISPLAY_INFO (frame);
