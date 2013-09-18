@@ -1,5 +1,8 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmailmm.el (rmail-mime-set-bulk-data):
+	Silence --without-x compilation.
+
 	* wdired.el (dired-backup-overwrite): Remove declaration.
 	(wdired-mode-map): Add doc string.
 
