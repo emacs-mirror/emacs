@@ -1,3 +1,7 @@
+2013-09-18  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (add-hook): Robustify to handle closure as well.
+
 2013-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (messages-buffer-mode-map): Unbind "g".
