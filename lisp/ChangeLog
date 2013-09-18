@@ -1,5 +1,7 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* doc-view.el (doc-view-mode): Silence --without-x compilation.
+
 	* image.el (image-type-from-buffer, image-multi-frame-p):
 	Remove --without-x warning/error.
 
