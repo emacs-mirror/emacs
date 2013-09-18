@@ -1,5 +1,8 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* wdired.el (dired-backup-overwrite): Remove declaration.
+	(wdired-mode-map): Add doc string.
+
 	* custom.el (x-get-resource): Declare.
 
 	* frame.el (x-display-grayscale-p): Declare.
