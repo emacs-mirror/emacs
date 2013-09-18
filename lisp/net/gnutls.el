@@ -115,6 +115,7 @@ trust and key files, and priority string."
 
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))
+(defvar gnutls-log-level)               ; gnutls.c
 
 (cl-defun gnutls-negotiate
     (&rest spec

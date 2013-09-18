@@ -31,6 +31,8 @@
 
 	* frame.el (x-display-grayscale-p, x-display-name): Declare.
 
+	* net/gnutls.el (gnutls-log-level): Declare.
+
 	* simple.el (font-info): Declare.
 
 	* subr.el (x-popup-dialog): Declare.
