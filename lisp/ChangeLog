@@ -8,6 +8,8 @@
 	* mouse.el (mouse-yank-primary):
 	Reorder to silence --without-x compilation.
 
+	* mpc.el (doc-view-mode): Silence --without-x compilation.
+
 	* mail/rmailmm.el (rmail-mime-set-bulk-data):
 	Silence --without-x compilation.
 
