@@ -1,5 +1,8 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* net/eww.el (libxml-parse-html-region): Declare.
+	(eww-display-html): Explicit error if no libxml2 support.
+
 	* doc-view.el (doc-view-mode): Silence --without-x compilation.
 
 	* image.el (image-type-from-buffer, image-multi-frame-p):
