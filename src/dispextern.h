@@ -3530,7 +3530,6 @@ enum resource_types
   RES_TYPE_BOOLEAN_NUMBER
 };
 
-extern bool x_mouse_grabbed (Display_Info *);
 extern Display_Info *check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,
@@ -3545,7 +3544,11 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         enum resource_types);
 extern char *x_get_string_resource (XrmDatabase, const char *,
 				    const char *);
+
+#ifndef HAVE_NS /* These both used on W32 and X only.  */
+extern bool x_mouse_grabbed (Display_Info *);
 extern void x_redo_mouse_highlight (Display_Info *);
+#endif /* HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

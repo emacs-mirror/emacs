@@ -3432,6 +3432,8 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   return;
 }
 
+#ifndef HAVE_NS
+
 /* Non-zero if mouse is grabbed on DPYINFO
    and we know the frame where it is.  */
 
@@ -3454,6 +3456,8 @@ x_redo_mouse_highlight (Display_Info *dpyinfo)
 			  dpyinfo->last_mouse_motion_x,
 			  dpyinfo->last_mouse_motion_y);
 }
+
+#endif /* HAVE_NS */
 
 /* Subroutines of creating an X frame.  */
 

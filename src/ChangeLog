@@ -1,5 +1,13 @@
 2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Ifdef away recent changes which aren't relevant to NS port.
+	* dispextern.h (x_mouse_grabbed, x_redo_mouse_highlight)
+	[!HAVE_NS]: Declare as such.
+	* frame.c (x_mouse_grabbed, x_redo_mouse_highlight)
+	[!HAVE_NS]: Define as such.
+
+2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.c (x_redo_mouse_highlight): New function
 	to factor out common code used in W32 and X ports.
 	* dispextern.h (x_redo_mouse_highlight): Add prototype.
