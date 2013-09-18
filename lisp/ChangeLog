@@ -1,6 +1,7 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
-	* image.el (image-type-from-buffer): Remove --without-x warning/error.
+	* image.el (image-type-from-buffer, image-multi-frame-p):
+	Remove --without-x warning/error.
 
 	* mouse.el (mouse-yank-primary):
 	Reorder to silence --without-x compilation.

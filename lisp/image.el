@@ -625,13 +625,14 @@ The actual return value is a cons (NIMAGES . DELAY), where NIMAGES is
 the number of frames (or sub-images) in the image and DELAY is the delay
 in seconds that the image specifies between each frame.  DELAY may be nil,
 in which case you might want to use `image-default-frame-delay'."
-  (let* ((metadata (image-metadata image))
-	 (images (plist-get metadata 'count))
-	 (delay (plist-get metadata 'delay)))
-    (when (and images (> images 1))
-      (if (or (not (numberp delay)) (< delay 0))
-	  (setq delay image-default-frame-delay))
-      (cons images delay))))
+  (when (fboundp 'image-metadata)
+    (let* ((metadata (image-metadata image))
+	   (images (plist-get metadata 'count))
+	   (delay (plist-get metadata 'delay)))
+      (when (and images (> images 1))
+	(if (or (not (numberp delay)) (< delay 0))
+	    (setq delay image-default-frame-delay))
+	(cons images delay)))))
 
 (defun image-animated-p (image)
   "Like `image-multi-frame-p', but returns nil if no delay is specified."
