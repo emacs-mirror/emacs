@@ -321,7 +321,7 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
       ;; Copy `gud-minor-mode' to the found buffer to turn on the menu.
       (with-current-buffer buf
 	(setq-local gud-minor-mode minor-mode)
-	(if (boundp 'tool-bar-map)
+	(if (boundp 'tool-bar-map)      ; not --without-x
 	    (setq-local tool-bar-map gud-tool-bar-map))
 	(when (and gud-tooltip-mode
 		   (eq gud-minor-mode 'gdbmi))
@@ -2482,7 +2482,8 @@ comint mode, which see."
   (setq mode-line-process '(":%s"))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (set (make-local-variable 'gud-last-frame) nil)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+  (if (boundp 'tool-bar-map)            ; not --without-x
+      (setq-local tool-bar-map gud-tool-bar-map))
   (make-local-variable 'comint-prompt-regexp)
   ;; Don't put repeated commands in command history many times.
   (set (make-local-variable 'comint-input-ignoredups) t)
@@ -3281,6 +3282,8 @@ Treats actions as defuns."
 ;;; tooltips for GUD
 
 ;;; Customizable settings
+
+(defvar tooltip-mode)
 
 ;;;###autoload
 (define-minor-mode gud-tooltip-mode

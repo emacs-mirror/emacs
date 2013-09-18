@@ -20,7 +20,9 @@
 	* mail/rmailmm.el (rmail-mime-set-bulk-data):
 	Silence --without-x compilation.
 
-	* progmodes/gud.el (gud-find-file): Silence --without-x compilation.
+	* progmodes/gud.el (gud-find-file, gud-mode):
+	Silence --without-x compilation.
+	(tooltip-mode): Declare.
 
 	* wdired.el (dired-backup-overwrite): Remove declaration.
 	(wdired-mode-map): Add doc string.
