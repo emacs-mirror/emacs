@@ -1,3 +1,8 @@
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/complete.el (tooltip-mode, tooltip-frame-parameters)
+	(tooltip-show): Declare.
+
 2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* semantic/symref/list.el (semantic-symref-results-mode):
