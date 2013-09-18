@@ -20646,7 +20646,7 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
 
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows + y, MENU_FACE_ID);
   it.first_visible_x = 0;
-  it.last_visible_x = FRAME_COLS (f);
+  it.last_visible_x = FRAME_COLS (f) - 1;
   row = it.glyph_row;
   /* Start with the row contents from the current matrix.  */
   deep_copy_glyph_row (row, f->current_matrix->rows + y);

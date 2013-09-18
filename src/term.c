@@ -3749,6 +3749,10 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   if (ulx < 0) x -= ulx;
   if (uly < 0) y -= uly;
 
+#if 0
+  /* This code doesn't make sense on a TTY, since it can easily annul
+     the adjustments above that carefully avoid truncation of the menu
+     items.  */
   if (! for_click)
     {
       /* If position was not given by a mouse click, adjust so upper left
@@ -3757,6 +3761,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
       x += width/2;
       y += 1.5*height/(maxlines+2);
     }
+#endif
 
   pane = selidx = 0;
 
