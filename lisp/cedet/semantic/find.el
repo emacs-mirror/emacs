@@ -457,13 +457,11 @@ TABLE is a tag table.  See `semantic-something-to-tag-table'."
   "Find a tag NAME within STREAMORBUFFER.  NAME is a string.
 If SEARCH-PARTS is non-nil, search children of tags.
 If SEARCH-INCLUDE was never implemented.
+Respects `semantic-case-fold'.
 
 Use `semantic-find-first-tag-by-name' instead."
   (let* ((stream (semantic-something-to-tag-table streamorbuffer))
-         (assoc-fun (if semantic-case-fold
-                        #'assoc-ignore-case
-                      #'assoc))
-	 (m (funcall assoc-fun name stream)))
+	 (m (assoc-string name stream semantic-case-fold)))
     (if m
 	m
       (let ((toklst stream)

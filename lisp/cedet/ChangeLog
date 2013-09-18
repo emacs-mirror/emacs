@@ -1,5 +1,8 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* semantic/find.el (semantic-brute-find-first-tag-by-name):
+	Replace obsolete function assoc-ignore-case with assoc-string.
+
 	* semantic/complete.el (tooltip-mode, tooltip-frame-parameters)
 	(tooltip-show): Declare.
 
