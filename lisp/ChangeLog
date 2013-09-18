@@ -6,6 +6,7 @@
 	Remove --without-x warning/error.
 
 	* mouse.el (mouse-yank-primary):
+	* term.el (term-mouse-paste):
 	Reorder to silence --without-x compilation.
 
 	* mpc.el (doc-view-mode): Silence --without-x compilation.
