@@ -5,6 +5,7 @@
 	* eshell/em-cmpl.el (eshell-complete-parse-arguments):
 	* eshell/em-hist.el (eshell/history, eshell-isearch-backward):
 	* eshell/em-pred.el (eshell-parse-modifiers, eshell-pred-file-time):
+	* eshell/esh-util.el (eshell-sublist):
 	Remove unused local variables.
 
 	* eshell/esh-io.el (x-select-enable-clipboard): Declare.
