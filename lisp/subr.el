@@ -2239,6 +2239,9 @@ floating point support."
 	    (push read unread-command-events)
 	    nil))))))
 
+;; Behind display-popup-menus-p test.
+(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
+
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".
 PROMPT is the string to display to ask the question.  It should

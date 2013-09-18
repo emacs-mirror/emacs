@@ -12,6 +12,8 @@
 
 	* simple.el (font-info): Declare.
 
+	* subr.el (x-popup-dialog): Declare.
+
 	* window.el (x-display-pixel-height, tool-bar-lines-needed): Declare.
 	(fit-frame-to-buffer): Explicit error if --without-x.
 	(mouse-autoselect-window-select): Silence compiler.
