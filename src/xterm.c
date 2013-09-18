@@ -3945,6 +3945,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		  Time *timestamp)
 {
   struct frame *f1;
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
 
   block_input ();
 
@@ -4004,22 +4005,24 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
 	x_catch_errors (FRAME_X_DISPLAY (*fp));
 
-	if (FRAME_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
-	    && FRAME_LIVE_P (last_mouse_frame))
+	if (x_mouse_grabbed (dpyinfo))
 	  {
 	    /* If mouse was grabbed on a frame, give coords for that frame
 	       even if the mouse is now outside it.  */
 	    XTranslateCoordinates (FRAME_X_DISPLAY (*fp),
 
-				   /* From-window, to-window.  */
-				   root, FRAME_X_WINDOW (last_mouse_frame),
+				   /* From-window.  */
+				   root,
+				   
+				   /* To-window.  */
+				   FRAME_X_WINDOW (dpyinfo->last_mouse_frame),
 
 				   /* From-position, to-position.  */
 				   root_x, root_y, &win_x, &win_y,
 
 				   /* Child of win.  */
 				   &child);
-	    f1 = last_mouse_frame;
+	    f1 = dpyinfo->last_mouse_frame;
 	  }
 	else
 	  {
@@ -4043,7 +4046,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		   want the edit window.  For non-Gtk+ the innermost
 		   window is the edit window.  For Gtk+ it might not
 		   be.  It might be the tool bar for example.  */
-		if (x_window_to_frame (FRAME_DISPLAY_INFO (*fp), win))
+		if (x_window_to_frame (dpyinfo, win))
 		  break;
 #endif
 		win = child;
@@ -4065,10 +4068,10 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 #ifdef USE_GTK
 	    /* We don't wan't to know the innermost window.  We
 	       want the edit window.  */
-	    f1 = x_window_to_frame (FRAME_DISPLAY_INFO (*fp), win);
+	    f1 = x_window_to_frame (dpyinfo, win);
 #else
 	    /* Is win one of our frames?  */
-	    f1 = x_any_window_to_frame (FRAME_DISPLAY_INFO (*fp), win);
+	    f1 = x_any_window_to_frame (dpyinfo, win);
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -6704,11 +6707,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         previous_help_echo_string = help_echo_string;
         help_echo_string = Qnil;
 
-        if (dpyinfo->grabbed && last_mouse_frame
-            && FRAME_LIVE_P (last_mouse_frame))
-          f = last_mouse_frame;
-        else
-          f = x_window_to_frame (dpyinfo, event->xmotion.window);
+	f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+	     : x_window_to_frame (dpyinfo, event->xmotion.window));
 
         if (hlinfo->mouse_face_hidden)
           {
@@ -6845,12 +6845,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	last_mouse_glyph_frame = 0;
 	dpyinfo->last_user_time = event->xbutton.time;
 
-        if (dpyinfo->grabbed
-            && last_mouse_frame
-            && FRAME_LIVE_P (last_mouse_frame))
-          f = last_mouse_frame;
-        else
-          f = x_window_to_frame (dpyinfo, event->xbutton.window);
+        f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+	     : x_window_to_frame (dpyinfo, event->xbutton.window));
 
 #ifdef USE_GTK
         if (f && xg_event_is_for_scrollbar (f, event))
@@ -6923,7 +6919,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         if (event->type == ButtonPress)
           {
             dpyinfo->grabbed |= (1 << event->xbutton.button);
-            last_mouse_frame = f;
+            dpyinfo->last_mouse_frame = f;
 
             if (!tool_bar_p)
               last_tool_bar_item = -1;

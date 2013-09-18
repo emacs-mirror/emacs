@@ -3194,7 +3194,6 @@ extern int help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
-extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
@@ -3531,6 +3530,7 @@ enum resource_types
   RES_TYPE_BOOLEAN_NUMBER
 };
 
+extern bool x_mouse_grabbed (Display_Info *);
 extern Display_Info *check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,

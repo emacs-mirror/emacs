@@ -305,6 +305,9 @@ struct x_display_info
   /* The frame waiting to be auto-raised in XTread_socket.  */
   struct frame *x_pending_autoraise_frame;
 
+  /* The frame where the mouse was last time we reported a mouse event.  */
+  struct frame *last_mouse_frame;
+
   /* Time of last user interaction as returned in X events on this display.  */
   Time last_user_time;
 

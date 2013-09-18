@@ -597,6 +597,9 @@ struct ns_display_info
 
   struct frame *x_highlight_frame;
   struct frame *x_focus_frame;
+
+  /* The frame where the mouse was last time we reported a mouse event.  */
+  struct frame *last_mouse_frame;
 };
 
 /* This is a chain of structures for all the NS displays currently in use.  */

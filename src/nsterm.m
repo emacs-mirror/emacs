@@ -1812,8 +1812,9 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
           XFRAME (frame)->mouse_moved = 0;
 
       last_mouse_scroll_bar = nil;
-      if (last_mouse_frame && FRAME_LIVE_P (last_mouse_frame))
-        f = last_mouse_frame;
+      if (dpyinfo->last_mouse_frame
+	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
+        f = dpyinfo->last_mouse_frame;
       else
         f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
                                     : SELECTED_FRAME ();
@@ -5362,6 +5363,7 @@ not_in_argv (NSString *arg)
 /* This is what happens when the user presses a mouse button.  */
 - (void)mouseDown: (NSEvent *)theEvent
 {
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
 
   NSTRACE (mouseDown);
@@ -5371,10 +5373,10 @@ not_in_argv (NSString *arg)
   if (!emacs_event)
     return;
 
-  last_mouse_frame = emacsframe;
+  dpyinfo->last_mouse_frame = emacsframe;
   /* appears to be needed to prevent spurious movement events generated on
      button clicks */
-  last_mouse_frame->mouse_moved = 0;
+  emacsframe->mouse_moved = 0;
 
   if ([theEvent type] == NSScrollWheel)
     {

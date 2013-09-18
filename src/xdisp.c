@@ -11454,10 +11454,6 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Where the mouse was last time we reported a mouse event.  */
-
-struct frame *last_mouse_frame;
-
 /* Tool-bar item index of the item on which a mouse button was pressed
    or -1.  */
 
@@ -12320,9 +12316,9 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   clear_mouse_face (hlinfo);
 
   /* Mouse is down, but on different tool-bar item?  */
-  mouse_down_p = (dpyinfo->grabbed
-		  && f == last_mouse_frame
-		  && FRAME_LIVE_P (f));
+  mouse_down_p = (x_mouse_grabbed (dpyinfo)
+		  && f == dpyinfo->last_mouse_frame);
+
   if (mouse_down_p
       && last_tool_bar_item != prop_idx)
     return;

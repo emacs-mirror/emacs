@@ -3404,6 +3404,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    unsigned long *time)
 {
   struct frame *f1;
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
 
   block_input ();
 
@@ -3426,19 +3427,11 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       /* Now we have a position on the root; find the innermost window
 	 containing the pointer.  */
       {
-	if (FRAME_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
-	    && FRAME_LIVE_P (last_mouse_frame))
-	  {
-	    /* If mouse was grabbed on a frame, give coords for that frame
-	       even if the mouse is now outside it.  */
-	    f1 = last_mouse_frame;
-	  }
-	else
-	  {
-	    /* Is window under mouse one of our frames?  */
-	    f1 = x_any_window_to_frame (FRAME_DISPLAY_INFO (*fp),
-                                    WindowFromPoint (pt));
-	  }
+	/* If mouse was grabbed on a frame, give coords for that
+	   frame even if the mouse is now outside it.  Otherwise
+	   check for window under mouse on one of our frames.  */
+	f1 = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+	      : x_any_window_to_frame (dpyinfo, WindowFromPoint (pt)));
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -4479,11 +4472,8 @@ w32_read_socket (struct terminal *terminal,
           previous_help_echo_string = help_echo_string;
 	  help_echo_string = Qnil;
 
-	  if (dpyinfo->grabbed && last_mouse_frame
-	      && FRAME_LIVE_P (last_mouse_frame))
-	    f = last_mouse_frame;
-	  else
-	    f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+	       : x_window_to_frame (dpyinfo, msg.msg.hwnd));
 
 	  if (hlinfo->mouse_face_hidden)
 	    {
@@ -4559,11 +4549,8 @@ w32_read_socket (struct terminal *terminal,
 	    int button;
 	    int up;
 
-	    if (dpyinfo->grabbed && last_mouse_frame
-		&& FRAME_LIVE_P (last_mouse_frame))
-	      f = last_mouse_frame;
-	    else
-	      f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+		 : x_window_to_frame (dpyinfo, msg.msg.hwnd));
 
 	    if (f)
 	      {
@@ -4602,7 +4589,7 @@ w32_read_socket (struct terminal *terminal,
 	    else
 	      {
 		dpyinfo->grabbed |= (1 << button);
-		last_mouse_frame = f;
+		dpyinfo->last_mouse_frame = f;
                 /* Ignore any mouse motion that happened
                    before this event; any subsequent mouse-movement
                    Emacs events should reflect only motion after
@@ -4619,11 +4606,8 @@ w32_read_socket (struct terminal *terminal,
 	case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
 	  {
-	    if (dpyinfo->grabbed && last_mouse_frame
-		&& FRAME_LIVE_P (last_mouse_frame))
-	      f = last_mouse_frame;
-	    else
-	      f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+		 : x_window_to_frame (dpyinfo, msg.msg.hwnd));
 
 	    if (f)
 	      {
@@ -4640,7 +4624,7 @@ w32_read_socket (struct terminal *terminal,
 		   ButtonPress.  */
 		f->mouse_moved = 0;
 	      }
-	    last_mouse_frame = f;
+	    dpyinfo->last_mouse_frame = f;
 	    last_tool_bar_item = -1;
 	  }
 	  break;

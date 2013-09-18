@@ -3432,7 +3432,16 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   return;
 }
 
-
+/* Non-zero if mouse is grabbed on DPYINFO
+   and we know the frame where it is.  */
+
+bool x_mouse_grabbed (Display_Info *dpyinfo)
+{
+  return (dpyinfo->grabbed
+	  && dpyinfo->last_mouse_frame
+	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame));
+}
+
 /* Subroutines of creating an X frame.  */
 
 /* Make sure that Vx_resource_name is set to a reasonable value.

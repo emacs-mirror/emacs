@@ -1,3 +1,19 @@
+2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (x_mouse_grabbed): New function.
+	* dispextern.h (x_mouse_grabbed): Add prototype.
+	(last_mouse_frame): Remove declaration.
+	* xterm.h (struct x_display_info):
+	* w32term.h (struct w32_display_info):
+	* nsterm.h (struct ns_display_info): New member
+	last_mouse_frame, going to replace...
+	* xdisp.c (last_mouse_frame): ...global variable.
+	(note_tool_bar_highlight):
+	* w32term.c (w32_mouse_position, w32_read_socket):
+	* xterm.c (XTmouse_position, handle_one_xevent):
+	Use x_mouse_grabbed.
+	* nsterm.m (ns_mouse_position, mouseDown): Adjust user.
+
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* w32term.c (w32_read_socket): Avoid temporary
