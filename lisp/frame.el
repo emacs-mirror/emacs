@@ -889,6 +889,9 @@ e.g. (mapc 'frame-set-background-mode (frame-list))."
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
 
+;; Only used if window-system is not null.
+(declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
+
 (defvar inhibit-frame-set-background-mode nil)
 
 (defun frame-set-background-mode (frame &optional keep-face-specs)

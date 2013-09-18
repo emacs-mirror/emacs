@@ -4714,6 +4714,9 @@ lines."
   :group 'editing-basics
   :version "23.1")
 
+;; Only used if display-graphic-p.
+(declare-function font-info "font.c" (name &optional frame))
+
 (defun default-font-height ()
   "Return the height in pixels of the current buffer's default face font."
   (let ((default-font (face-font 'default)))

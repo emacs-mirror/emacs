@@ -1,7 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-1997, 1999, 2001-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1415,6 +1414,10 @@ See `custom-enabled-themes' for a list of enabled themes."
 	(face-set-after-frame-default frame))
       (setq custom-enabled-themes
 	    (delq theme custom-enabled-themes)))))
+
+;; Only used if window-system not null.
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
 
 (defun custom--frame-color-default (frame attribute resource-attr resource-class
 					  tty-default x-default)

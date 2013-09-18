@@ -1,7 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992-1994, 2000-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -6153,6 +6152,9 @@ reduce this.  If it is thicker, you might want to increase this."
   :version "24.3"
   :group 'windows)
 
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+(declare-function tool-bar-lines-needed "xdisp.c" (&optional frame))
+
 (defun fit-frame-to-buffer (&optional frame max-height min-height)
   "Adjust height of FRAME to display its buffer contents exactly.
 FRAME can be any live frame and defaults to the selected one.
@@ -6163,6 +6165,8 @@ top line of FRAME, minus `fit-frame-to-buffer-bottom-margin'.
 Optional argument MIN-HEIGHT specifies the minimum height of FRAME.
 The default corresponds to `window-min-height'."
   (interactive)
+  (or (fboundp 'x-display-pixel-height)
+      (user-error "Cannot resize frame in non-graphic Emacs"))
   (setq frame (window-normalize-frame frame))
   (let* ((root (frame-root-window frame))
 	 (frame-min-height
@@ -6685,7 +6689,7 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
 	    (window-at (cadr mouse-position) (cddr mouse-position)
 		       (car mouse-position)))))
      (cond
-      ((or (menu-or-popup-active-p)
+      ((or (and (fboundp 'menu-or-popup-active-p) (menu-or-popup-active-p))
 	   (and window
 		(let ((coords (coordinates-in-window-p
 			       (cdr mouse-position) window)))
