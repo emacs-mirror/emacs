@@ -1,5 +1,8 @@
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* mouse.el (mouse-yank-primary):
+	Reorder to silence --without-x compilation.
+
 	* mail/rmailmm.el (rmail-mime-set-bulk-data):
 	Silence --without-x compilation.
 
