@@ -1,3 +1,9 @@
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/two-column.el: Make 2C-split work for --without-x.
+	(scroll-bar-columns): Autoload.
+	(top-level): Require fringe when compiling.
+
 2013-09-18  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (add-hook): Robustify to handle closure as well.

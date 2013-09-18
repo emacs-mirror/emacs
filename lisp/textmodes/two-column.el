@@ -349,6 +349,9 @@ accepting the proposed default buffer.
     (if b1 (setq 2C-window-width (- (frame-width) b1)))
     (2C-two-columns b2)))
 
+(autoload 'scroll-bar-columns "scroll-bar")
+(eval-when-compile
+  (require 'fringe))			; fringe-columns defsubst
 
 ;;;###autoload
 (defun 2C-split (arg)
