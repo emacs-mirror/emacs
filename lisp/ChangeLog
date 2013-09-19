@@ -1,3 +1,13 @@
+2013-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/em-ls.el: Use advice.  Remove redundant :group keywords.
+	(eshell-ls-orig-insert-directory): Remove.
+	(eshell-ls-unload-hook): Not a defcustom any more.  Use advice-remove.
+	(eshell-ls-use-in-dired): Use advice-add/remove.
+	(eshell-ls--insert-directory): Rename from eshell-ls-insert-directory.
+	Add `orig-fun' arg for use in :around advice.
+	Make it check (redundantly) eshell-ls-use-in-dired.
+
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (cl-defsubst): Remove unused local `pbody'.

@@ -44,125 +44,102 @@ properties to colorize its output based on the setting of
 
 ;;; User Variables:
 
-(defvar eshell-ls-orig-insert-directory
-  (symbol-function 'insert-directory)
-  "Preserve the original definition of `insert-directory'.")
-
-(defcustom eshell-ls-unload-hook
-  (list
-   (lambda () (fset 'insert-directory eshell-ls-orig-insert-directory)))
-  "When unloading `eshell-ls', restore the definition of `insert-directory'."
-  :type 'hook
-  :group 'eshell-ls)
-
 (defcustom eshell-ls-date-format "%Y-%m-%d"
   "How to display time information in `eshell-ls-file'.
 This is passed to `format-time-string' as a format string.
 To display the date using the current locale, use \"%b \%e\"."
   :version "24.1"
-  :type 'string
-  :group 'eshell-ls)
+  :type 'string)
 
 (defcustom eshell-ls-initial-args nil
   "If non-nil, this list of args is included before any call to `ls'.
 This is useful for enabling human-readable format (-h), for example."
-  :type '(repeat :tag "Arguments" string)
-  :group 'eshell-ls)
+  :type '(repeat :tag "Arguments" string))
 
 (defcustom eshell-ls-dired-initial-args nil
   "If non-nil, args is included before any call to `ls' in Dired.
 This is useful for enabling human-readable format (-h), for example."
-  :type '(repeat :tag "Arguments" string)
-  :group 'eshell-ls)
+  :type '(repeat :tag "Arguments" string))
 
-;; FIXME should use advice, like ls-lisp.el does now.
 (defcustom eshell-ls-use-in-dired nil
   "If non-nil, use `eshell-ls' to read directories in Dired.
 Changing this without using customize has no effect."
   :set (lambda (symbol value)
 	 (if value
-	     (or (bound-and-true-p eshell-ls-use-in-dired)
-		 (fset 'insert-directory 'eshell-ls-insert-directory))
-	   (and (fboundp 'eshell-ls-insert-directory) eshell-ls-use-in-dired
-		(fset 'insert-directory eshell-ls-orig-insert-directory)))
-	 (set symbol value))
+             (advice-add 'insert-directory :around
+                         #'eshell-ls--insert-directory)
+           (advice-remove 'insert-directory
+                          #'eshell-ls--insert-directory))
+         (set symbol value))
   :type 'boolean
-  :require 'em-ls
-  :group 'eshell-ls)
+  :require 'em-ls)
+(add-hook 'eshell-ls-unload-hook
+          (lambda () (advice-remove 'insert-directory
+                               #'eshell-ls--insert-directory)))
+
 
 (defcustom eshell-ls-default-blocksize 1024
   "The default blocksize to use when display file sizes with -s."
-  :type 'integer
-  :group 'eshell-ls)
+  :type 'integer)
 
 (defcustom eshell-ls-exclude-regexp nil
   "Unless -a is specified, files matching this regexp will not be shown."
-  :type '(choice regexp (const nil))
-  :group 'eshell-ls)
+  :type '(choice regexp (const nil)))
 
 (defcustom eshell-ls-exclude-hidden t
   "Unless -a is specified, files beginning with . will not be shown.
 Using this boolean, instead of `eshell-ls-exclude-regexp', is both
 faster and conserves more memory."
-  :type 'boolean
-  :group 'eshell-ls)
+  :type 'boolean)
 
 (defcustom eshell-ls-use-colors t
   "If non-nil, use colors in file listings."
-  :type 'boolean
-  :group 'eshell-ls)
+  :type 'boolean)
 
 (defface eshell-ls-directory
   '((((class color) (background light)) (:foreground "Blue" :weight bold))
     (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
     (t (:weight bold)))
-  "The face used for highlight directories."
-  :group 'eshell-ls)
+  "The face used for highlight directories.")
 (define-obsolete-face-alias 'eshell-ls-directory-face
   'eshell-ls-directory "22.1")
 
 (defface eshell-ls-symlink
   '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
-  "The face used for highlight symbolic links."
-  :group 'eshell-ls)
+  "The face used for highlight symbolic links.")
 (define-obsolete-face-alias 'eshell-ls-symlink-face 'eshell-ls-symlink "22.1")
 
 (defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
     (((class color) (background dark)) (:foreground "Green" :weight bold)))
-  "The face used for highlighting executables (not directories, though)."
-  :group 'eshell-ls)
+  "The face used for highlighting executables (not directories, though).")
 (define-obsolete-face-alias 'eshell-ls-executable-face
   'eshell-ls-executable "22.1")
 
 (defface eshell-ls-readonly
   '((((class color) (background light)) (:foreground "Brown"))
     (((class color) (background dark)) (:foreground "Pink")))
-  "The face used for highlighting read-only files."
-  :group 'eshell-ls)
+  "The face used for highlighting read-only files.")
 (define-obsolete-face-alias 'eshell-ls-readonly-face 'eshell-ls-readonly "22.1")
 
 (defface eshell-ls-unreadable
   '((((class color) (background light)) (:foreground "Grey30"))
     (((class color) (background dark)) (:foreground "DarkGrey")))
-  "The face used for highlighting unreadable files."
-  :group 'eshell-ls)
+  "The face used for highlighting unreadable files.")
 (define-obsolete-face-alias 'eshell-ls-unreadable-face
   'eshell-ls-unreadable "22.1")
 
 (defface eshell-ls-special
   '((((class color) (background light)) (:foreground "Magenta" :weight bold))
     (((class color) (background dark)) (:foreground "Magenta" :weight bold)))
-  "The face used for highlighting non-regular files."
-  :group 'eshell-ls)
+  "The face used for highlighting non-regular files.")
 (define-obsolete-face-alias 'eshell-ls-special-face 'eshell-ls-special "22.1")
 
 (defface eshell-ls-missing
   '((((class color) (background light)) (:foreground "Red" :weight bold))
     (((class color) (background dark)) (:foreground "Red" :weight bold)))
-  "The face used for highlighting non-existent file names."
-  :group 'eshell-ls)
+  "The face used for highlighting non-existent file names.")
 (define-obsolete-face-alias 'eshell-ls-missing-face 'eshell-ls-missing "22.1")
 
 (defcustom eshell-ls-archive-regexp
@@ -172,27 +149,23 @@ faster and conserves more memory."
 This typically includes both traditional archives and compressed
 files."
   :version "24.1"			; added xz
-  :type 'regexp
-  :group 'eshell-ls)
+  :type 'regexp)
 
 (defface eshell-ls-archive
   '((((class color) (background light)) (:foreground "Orchid" :weight bold))
     (((class color) (background dark)) (:foreground "Orchid" :weight bold)))
-  "The face used for highlighting archived and compressed file names."
-  :group 'eshell-ls)
+  "The face used for highlighting archived and compressed file names.")
 (define-obsolete-face-alias 'eshell-ls-archive-face 'eshell-ls-archive "22.1")
 
 (defcustom eshell-ls-backup-regexp
   "\\(\\`\\.?#\\|\\(\\.bak\\|~\\)\\'\\)"
   "A regular expression that matches names of backup files."
-  :type 'regexp
-  :group 'eshell-ls)
+  :type 'regexp)
 
 (defface eshell-ls-backup
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
-  "The face used for highlighting backup file names."
-  :group 'eshell-ls)
+  "The face used for highlighting backup file names.")
 (define-obsolete-face-alias 'eshell-ls-backup-face 'eshell-ls-backup "22.1")
 
 (defcustom eshell-ls-product-regexp
@@ -200,14 +173,12 @@ files."
   "A regular expression that matches names of product files.
 Products are files that get generated from a source file, and hence
 ought to be recreatable if they are deleted."
-  :type 'regexp
-  :group 'eshell-ls)
+  :type 'regexp)
 
 (defface eshell-ls-product
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
-  "The face used for highlighting files that are build products."
-  :group 'eshell-ls)
+  "The face used for highlighting files that are build products.")
 (define-obsolete-face-alias 'eshell-ls-product-face 'eshell-ls-product "22.1")
 
 (defcustom eshell-ls-clutter-regexp
@@ -215,14 +186,12 @@ ought to be recreatable if they are deleted."
   "A regular expression that matches names of junk files.
 These are mainly files that get created for various reasons, but don't
 really need to stick around for very long."
-  :type 'regexp
-  :group 'eshell-ls)
+  :type 'regexp)
 
 (defface eshell-ls-clutter
   '((((class color) (background light)) (:foreground "OrangeRed" :weight bold))
     (((class color) (background dark)) (:foreground "OrangeRed" :weight bold)))
-  "The face used for highlighting junk file names."
-  :group 'eshell-ls)
+  "The face used for highlighting junk file names.")
 (define-obsolete-face-alias 'eshell-ls-clutter-face 'eshell-ls-clutter "22.1")
 
 (defsubst eshell-ls-filetype-p (attrs type)
@@ -263,8 +232,7 @@ The format of the members of this alist is
 If TEST-SEXP evals to non-nil, that face will be used to highlight the
 name of the file.  The first match wins.  `file' and `attrs' are in
 scope during the evaluation of TEST-SEXP."
-  :type '(repeat (cons function face))
-  :group 'eshell-ls)
+  :type '(repeat (cons function face)))
 
 (defvar block-size)
 (defvar dereference-links)
@@ -287,8 +255,8 @@ scope during the evaluation of TEST-SEXP."
 
 ;;; Functions:
 
-(defun eshell-ls-insert-directory
-  (file switches &optional wildcard full-directory-p)
+(defun eshell-ls--insert-directory
+  (orig-fun file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
 SWITCHES may be a string of options, or a list of strings.
@@ -299,29 +267,31 @@ switches do not contain `d', so that a full listing is expected.
 This version of the function uses `eshell/ls'.  If any of the switches
 passed are not recognized, the operating system's version will be used
 instead."
-  (let ((handler (find-file-name-handler file 'insert-directory)))
-    (if handler
-	(funcall handler 'insert-directory file switches
-		 wildcard full-directory-p)
-      (if (stringp switches)
-	  (setq switches (split-string switches)))
-      (let (eshell-current-handles
-	    eshell-current-subjob-p
-	    font-lock-mode)
-	;; use the fancy highlighting in `eshell-ls' rather than font-lock
-	(when (and eshell-ls-use-colors
-		   (featurep 'font-lock))
-	  (font-lock-mode -1)
-	  (setq font-lock-defaults nil)
-	  (if (boundp 'font-lock-buffers)
-	      (set 'font-lock-buffers
-		   (delq (current-buffer)
-			 (symbol-value 'font-lock-buffers)))))
-	(let ((insert-func 'insert)
-	      (error-func 'insert)
-	      (flush-func 'ignore)
-	      eshell-ls-dired-initial-args)
-	  (eshell-do-ls (append switches (list file))))))))
+  (if (not eshell-ls-use-in-dired)
+      (funcall orig-fun file switches wildcard full-directory-p)
+    (let ((handler (find-file-name-handler file 'insert-directory)))
+      (if handler
+          (funcall handler 'insert-directory file switches
+                   wildcard full-directory-p)
+        (if (stringp switches)
+            (setq switches (split-string switches)))
+        (let (eshell-current-handles
+              eshell-current-subjob-p
+              font-lock-mode)
+          ;; use the fancy highlighting in `eshell-ls' rather than font-lock
+          (when (and eshell-ls-use-colors
+                     (featurep 'font-lock))
+            (font-lock-mode -1)
+            (setq font-lock-defaults nil)
+            (if (boundp 'font-lock-buffers)
+                (set 'font-lock-buffers
+                     (delq (current-buffer)
+                           (symbol-value 'font-lock-buffers)))))
+          (let ((insert-func 'insert)
+                (error-func 'insert)
+                (flush-func 'ignore)
+                eshell-ls-dired-initial-args)
+            (eshell-do-ls (append switches (list file)))))))))
 
 (defsubst eshell/ls (&rest args)
   "An alias version of `eshell-do-ls'."
