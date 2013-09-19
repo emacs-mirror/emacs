@@ -1971,7 +1971,7 @@ restore_current_matrix (struct frame *f, struct glyph_matrix *saved)
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       xfree (from->glyphs[TEXT_AREA]);
-      nbytes = from->used[LEFT_MARGIN_AREA];
+      nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
       if (nbytes)
 	{
 	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
@@ -1981,7 +1981,7 @@ restore_current_matrix (struct frame *f, struct glyph_matrix *saved)
 	}
       else
 	to->used[LEFT_MARGIN_AREA] = 0;
-      nbytes = from->used[RIGHT_MARGIN_AREA];
+      nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
       if (nbytes)
 	{
 	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
