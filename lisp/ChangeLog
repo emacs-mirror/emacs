@@ -1,3 +1,7 @@
+2013-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eieio.el (class-parent): Undo previous change.
+
 2013-09-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-get-remote-id): Do not raise an error.
