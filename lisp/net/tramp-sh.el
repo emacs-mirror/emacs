@@ -5000,7 +5000,8 @@ Return ATTR."
 		 (tramp-get-remote-uid-with-perl vec id-format))
 		((tramp-get-remote-python vec)
 		 (tramp-get-remote-uid-with-python vec id-format))
-		(t (tramp-error vec "Cannot determine remote uid")))))
+		(t (tramp-error
+		    vec 'file-error "Cannot determine remote uid")))))
       ;; The command might not always return a number.
       (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
 
@@ -5040,7 +5041,8 @@ Return ATTR."
 		 (tramp-get-remote-gid-with-perl vec id-format))
 		((tramp-get-remote-python vec)
 		 (tramp-get-remote-gid-with-python vec id-format))
-		(t (tramp-error vec "Cannot determine remote gid")))))
+		(t (tramp-error
+		    vec 'file-error "Cannot determine remote gid")))))
       ;; The command might not always return a number.
       (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
 
