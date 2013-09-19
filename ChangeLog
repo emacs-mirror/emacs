@@ -1,3 +1,12 @@
+2013-09-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-09-19 stdio: OS X port of putc_unlocked + extern inline
+	2013-09-19 signal: OS X port of sigaddset etc. + extern inline
+	2013-09-19 extern-inline: do not always suppress extern inline on OS X
+	2013-09-17 getgroups: statement without effect
+	2013-08-28 headers: check that _GL_INLINE_HEADER_BEGIN is defined
+
 2013-09-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac <srcdir> [MINGW32]: Make sure the value of 'srcdir'

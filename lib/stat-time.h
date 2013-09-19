@@ -23,6 +23,9 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#ifndef _GL_INLINE_HEADER_BEGIN
+ #error "Please include config.h first."
+#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_STAT_TIME_INLINE
 # define _GL_STAT_TIME_INLINE _GL_INLINE
