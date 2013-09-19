@@ -1,3 +1,11 @@
+2013-09-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use external array to process X scroll bar messages.
+	* xterm.c (scroll_bar_windows, scroll_bar_windows_size): Remove.
+	(x_send_scroll_bar_event): Pack window pointer into two slots
+	of XClientMessageEvent if we're 64-bit.  Adjust comment.
+	(x_scroll_bar_to_input_event): Unpack accordingly.
+
 2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Ifdef away recent changes which aren't relevant to NS port.

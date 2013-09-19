@@ -4266,13 +4266,6 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
 }
 #endif /* not USE_GTK */
 
-/* A vector of windows used for communication between
-   x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
-
-static struct window **scroll_bar_windows;
-static ptrdiff_t scroll_bar_windows_size;
-
-
 /* Send a client message with message type Xatom_Scrollbar for a
    scroll action to the frame of WINDOW.  PART is a value identifying
    the part of the scroll bar that was clicked on.  PORTION is the
@@ -4282,10 +4275,9 @@ static void
 x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 {
   XEvent event;
-  XClientMessageEvent *ev = (XClientMessageEvent *) &event;
+  XClientMessageEvent *ev = &event.xclient;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  ptrdiff_t i;
 
   block_input ();
 
@@ -4296,33 +4288,30 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
 
-  /* We can only transfer 32 bits in the XClientMessageEvent, which is
-     not enough to store a pointer or Lisp_Object on a 64 bit system.
-     So, store the window in scroll_bar_windows and pass the index
-     into that array in the event.  */
-  for (i = 0; i < scroll_bar_windows_size; ++i)
-    if (scroll_bar_windows[i] == NULL)
-      break;
+  /* 32-bit X client on a 64-bit X server can pass window pointer
+     as is.  64-bit client on a 32-bit X server is in trouble
+     because pointer does not fit and will be truncated while
+     passing through the server.  So we should use two slots
+     and hope that X12 will resolve such an issues someday.  */
 
-  if (i == scroll_bar_windows_size)
+  if (BITS_PER_LONG > 32)
     {
-      ptrdiff_t old_nbytes =
-	scroll_bar_windows_size * sizeof *scroll_bar_windows;
-      ptrdiff_t nbytes;
-      enum { XClientMessageEvent_MAX = 0x7fffffff };
-      scroll_bar_windows =
-	xpalloc (scroll_bar_windows, &scroll_bar_windows_size, 1,
-		 XClientMessageEvent_MAX, sizeof *scroll_bar_windows);
-      nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
-      memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
+      union {
+	int i[2];
+	void *v;
+      } val;
+      val.v = w;
+      ev->data.l[0] = val.i[0];
+      ev->data.l[1] = val.i[1];
     }
-
-  scroll_bar_windows[i] = w;
-  ev->data.l[0] = (long) i;
-  ev->data.l[1] = (long) part;
-  ev->data.l[2] = (long) 0;
-  ev->data.l[3] = (long) portion;
-  ev->data.l[4] = (long) whole;
+  else
+    {
+      ev->data.l[0] = 0;
+      ev->data.l[1] = (long) w;
+    }
+  ev->data.l[2] = part;
+  ev->data.l[3] = portion;
+  ev->data.l[4] = whole;
 
   /* Make Xt timeouts work while the scroll bar is active.  */
 #ifdef USE_X_TOOLKIT
@@ -4345,12 +4334,24 @@ static void
 x_scroll_bar_to_input_event (const XEvent *event,
 			     struct input_event *ievent)
 {
-  XClientMessageEvent *ev = (XClientMessageEvent *) event;
+  const XClientMessageEvent *ev = &event->xclient;
   Lisp_Object window;
   struct window *w;
 
-  w = scroll_bar_windows[ev->data.l[0]];
-  scroll_bar_windows[ev->data.l[0]] = NULL;
+  /* See the comment in the function above.  */
+
+  if (BITS_PER_LONG > 32)
+    {
+      union {
+	int i[2];
+	void *v;
+      } val;
+      val.i[0] = ev->data.l[0];
+      val.i[1] = ev->data.l[1];
+      w = val.v;
+    }
+  else
+    w = (void *) ev->data.l[1];
 
   XSETWINDOW (window, w);
 
@@ -4363,10 +4364,10 @@ x_scroll_bar_to_input_event (const XEvent *event,
   ievent->timestamp =
     XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (w->frame)));
 #endif
-  ievent->part = ev->data.l[1];
-  ievent->code = ev->data.l[2];
-  ievent->x = make_number ((int) ev->data.l[3]);
-  ievent->y = make_number ((int) ev->data.l[4]);
+  ievent->code = 0;
+  ievent->part = ev->data.l[2];
+  ievent->x = make_number (ev->data.l[3]);
+  ievent->y = make_number (ev->data.l[4]);
   ievent->modifiers = 0;
 }
 
