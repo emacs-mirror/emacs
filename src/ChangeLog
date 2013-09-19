@@ -1,5 +1,32 @@
 2013-09-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xterm.h (struct x_display_info): New members last_mouse_glyph_frame,
+	last_mouse_scroll_bar, last_mouse_glyph and last_mouse_movement_time,
+	going to replace static variables below.  Adjust comments.
+	* xterm.c (last_mouse_glyph, last_mouse_glyph_frame)
+	(last_mouse_scroll_bar, last_mouse_movement_time): Remove.
+	(note_mouse_movement, XTmouse_position, x_scroll_bar_note_movement)
+	(x_scroll_bar_report_motion, handle_one_xevent, syms_of_xterm):
+	Related users changed.
+	* w32term.h (struct w32_display_info): New members last_mouse_glyph_frame,
+	last_mouse_scroll_bar, last_mouse_scroll_bar_pos, last_mouse_glyph and
+	last_mouse_movement_time, going to replace static variables below.
+	Adjust comments.
+	* w32term.c (last_mouse_glyph_frame, last_mouse_scroll_bar)
+	(last_mouse_scroll_bar_pos, last_mouse_glyph, last_mouse_movement_time):
+	Remove.
+	(note_mouse_movement, w32_mouse_position, w32_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion, syms_of_w32term): Related users changed.
+	* nsterm.h (struct ns_display_info): New members last_mouse_glyph,
+	last_mouse_movement_time and last_mouse_scroll_bar, going to replace
+	static variables below.
+	* nsterm.m (last_mouse_glyph, last_mouse_movement_time)
+	(last_mouse_scroll_bar): Remove.
+	(note_mouse_movement, ns_mouse_position, mouseMoved, mouseEntered)
+	(mouseExited): Related users changed.
+
+2013-09-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not use external array to process X scroll bar messages.
 	* xterm.c (scroll_bar_windows, scroll_bar_windows_size): Remove.
 	(x_send_scroll_bar_event): Pack window pointer into two slots

@@ -172,52 +172,6 @@ static bool toolkit_scroll_bar_interaction;
 
 static Time ignore_next_mouse_click_timeout;
 
-/* Mouse movement.
-
-   Formerly, we used PointerMotionHintMask (in standard_event_mask)
-   so that we would have to call XQueryPointer after each MotionNotify
-   event to ask for another such event.  However, this made mouse tracking
-   slow, and there was a bug that made it eventually stop.
-
-   Simply asking for MotionNotify all the time seems to work better.
-
-   In order to avoid asking for motion events and then throwing most
-   of them away or busy-polling the server for mouse positions, we ask
-   the server for pointer motion hints.  This means that we get only
-   one event per group of mouse movements.  "Groups" are delimited by
-   other kinds of events (focus changes and button clicks, for
-   example), or by XQueryPointer calls; when one of these happens, we
-   get another MotionNotify event the next time the mouse moves.  This
-   is at least as efficient as getting motion events when mouse
-   tracking is on, and I suspect only negligibly worse when tracking
-   is off.  */
-
-/* Where the mouse was last time we reported a mouse event.  */
-
-static XRectangle last_mouse_glyph;
-static struct frame *last_mouse_glyph_frame;
-
-/* The scroll bar in which the last X motion event occurred.
-
-   If the last X motion event occurred in a scroll bar, we set this so
-   XTmouse_position can know whether to report a scroll bar motion or
-   an ordinary motion.
-
-   If the last X motion event didn't occur in a scroll bar, we set
-   this to Qnil, to tell XTmouse_position to return an ordinary motion
-   event.  */
-
-static Lisp_Object last_mouse_scroll_bar;
-
-/* This is a hack.  We would really prefer that XTmouse_position would
-   return the time associated with the position it returns, but there
-   doesn't seem to be any way to wrest the time-stamp from the server
-   along with the position query.  So, we just keep track of the time
-   of the last movement we received, and return that in hopes that
-   it's somewhat accurate.  */
-
-static Time last_mouse_movement_time;
-
 /* Incremented by XTread_socket whenever it really tries to read
    events.  */
 
@@ -3820,9 +3774,25 @@ x_get_keysym_name (int keysym)
   return value;
 }
 
+/* Mouse clicks and mouse movement.  Rah.
 
-
-/* Mouse clicks and mouse movement.  Rah.  */
+   Formerly, we used PointerMotionHintMask (in standard_event_mask)
+   so that we would have to call XQueryPointer after each MotionNotify
+   event to ask for another such event.  However, this made mouse tracking
+   slow, and there was a bug that made it eventually stop.
+
+   Simply asking for MotionNotify all the time seems to work better.
+
+   In order to avoid asking for motion events and then throwing most
+   of them away or busy-polling the server for mouse positions, we ask
+   the server for pointer motion hints.  This means that we get only
+   one event per group of mouse movements.  "Groups" are delimited by
+   other kinds of events (focus changes and button clicks, for
+   example), or by XQueryPointer calls; when one of these happens, we
+   get another MotionNotify event the next time the mouse moves.  This
+   is at least as efficient as getting motion events when mouse
+   tracking is on, and I suspect only negligibly worse when tracking
+   is off.  */
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
 
@@ -3863,13 +3833,14 @@ construct_mouse_click (struct input_event *result,
 static int
 note_mouse_movement (struct frame *frame, const XMotionEvent *event)
 {
+  XRectangle *r;
   struct x_display_info *dpyinfo;
 
   if (!FRAME_X_OUTPUT (frame))
     return 0;
 
   dpyinfo = FRAME_DISPLAY_INFO (frame);
-  last_mouse_movement_time = event->time;
+  dpyinfo->last_mouse_movement_time = event->time;
   dpyinfo->last_mouse_motion_frame = frame;
   dpyinfo->last_mouse_motion_x = event->x;
   dpyinfo->last_mouse_motion_y = event->y;
@@ -3877,26 +3848,25 @@ note_mouse_movement (struct frame *frame, const XMotionEvent *event)
   if (event->window != FRAME_X_WINDOW (frame))
     {
       frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, -1, -1);
-      last_mouse_glyph_frame = 0;
+      dpyinfo->last_mouse_glyph_frame = NULL;
       return 1;
     }
 
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (frame != last_mouse_glyph_frame
-      || event->x < last_mouse_glyph.x
-      || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
-      || event->y < last_mouse_glyph.y
-      || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
+  r = &dpyinfo->last_mouse_glyph;
+  if (frame != dpyinfo->last_mouse_glyph_frame
+      || event->x < r->x || event->x >= r->x + r->width
+      || event->y < r->y || event->y >= r->y + r->height)
     {
       frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
-      remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
-      last_mouse_glyph_frame = frame;
+      remember_mouse_glyph (frame, event->x, event->y, r);
+      dpyinfo->last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -3933,7 +3903,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   block_input ();
 
-  if (! NILP (last_mouse_scroll_bar) && insist == 0)
+  if (dpyinfo->last_mouse_scroll_bar && insist == 0)
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, timestamp);
   else
     {
@@ -3951,7 +3921,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
             && FRAME_X_DISPLAY (XFRAME (frame)) == FRAME_X_DISPLAY (*fp))
 	  XFRAME (frame)->mouse_moved = 0;
 
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
 
       /* Figure out which root window we're on.  */
       XQueryPointer (FRAME_X_DISPLAY (*fp),
@@ -4101,15 +4071,17 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-	    remember_mouse_glyph (f1, win_x, win_y, &last_mouse_glyph);
-	    last_mouse_glyph_frame = f1;
+	    /* FIXME: what if F1 is not an X frame?  */
+	    dpyinfo = FRAME_DISPLAY_INFO (f1);
+	    remember_mouse_glyph (f1, win_x, win_y, &dpyinfo->last_mouse_glyph);
+	    dpyinfo->last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
 	    *part = 0;
 	    *fp = f1;
 	    XSETINT (*x, win_x);
 	    XSETINT (*y, win_y);
-	    *timestamp = last_mouse_movement_time;
+	    *timestamp = dpyinfo->last_mouse_movement_time;
 	  }
       }
     }
@@ -5589,11 +5561,11 @@ x_scroll_bar_note_movement (struct scroll_bar *bar,
 			    const XMotionEvent *event)
 {
   struct frame *f = XFRAME (XWINDOW (bar->window)->frame);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  last_mouse_movement_time = event->time;
-
+  dpyinfo->last_mouse_movement_time = event->time;
+  dpyinfo->last_mouse_scroll_bar = bar;
   f->mouse_moved = 1;
-  XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
   if (bar->dragging != -1)
@@ -5620,7 +5592,8 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part, Lisp_Object *x,
 			    Lisp_Object *y, Time *timestamp)
 {
-  struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
+  struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;
   Window w = bar->x_window;
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int win_x, win_y;
@@ -5632,22 +5605,19 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 
   /* Get the mouse's position relative to the scroll bar window, and
      report that.  */
-  if (! XQueryPointer (FRAME_X_DISPLAY (f), w,
+  if (XQueryPointer (FRAME_X_DISPLAY (f), w,
 
-		       /* Root, child, root x and root y.  */
-		       &dummy_window, &dummy_window,
-		       &dummy_coord, &dummy_coord,
+		     /* Root, child, root x and root y.  */
+		     &dummy_window, &dummy_window,
+		     &dummy_coord, &dummy_coord,
 
-		       /* Position relative to scroll bar.  */
-		       &win_x, &win_y,
+		     /* Position relative to scroll bar.  */
+		     &win_x, &win_y,
 
-		       /* Mouse buttons and modifier keys.  */
-		       &dummy_mask))
-    ;
-  else
+		     /* Mouse buttons and modifier keys.  */
+		     &dummy_mask))
     {
-      int top_range
-	= VERTICAL_SCROLL_BAR_TOP_RANGE     (f, bar->height);
+      int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
 
       win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
 
@@ -5675,10 +5645,9 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
       XSETINT (*y, top_range);
 
       f->mouse_moved = 0;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
+      *timestamp = dpyinfo->last_mouse_movement_time;
     }
-
-  *timestamp = last_mouse_movement_time;
 
   unblock_input ();
 }
@@ -6644,8 +6613,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
       /* We may get an EnterNotify on the buttons in the toolbar.  In that
          case we moved out of any highlighted area and need to note this.  */
-      if (!f && last_mouse_glyph_frame)
-        note_mouse_movement (last_mouse_glyph_frame, &event->xmotion);
+      if (!f && dpyinfo->last_mouse_glyph_frame)
+        note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &event->xmotion);
 #endif
       goto OTHER;
 
@@ -6677,8 +6646,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         }
 #ifdef USE_GTK
       /* See comment in EnterNotify above */
-      else if (last_mouse_glyph_frame)
-        note_mouse_movement (last_mouse_glyph_frame, &event->xmotion);
+      else if (dpyinfo->last_mouse_glyph_frame)
+        note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &event->xmotion);
 #endif
       goto OTHER;
 
@@ -6827,7 +6796,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         bool tool_bar_p = 0;
 
 	memset (&compose_status, 0, sizeof (compose_status));
-	last_mouse_glyph_frame = 0;
+	dpyinfo->last_mouse_glyph_frame = NULL;
 	dpyinfo->last_user_time = event->xbutton.time;
 
         f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
@@ -10628,9 +10597,6 @@ syms_of_xterm (void)
 
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
-
-  staticpro (&last_mouse_scroll_bar);
-  last_mouse_scroll_bar = Qnil;
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");

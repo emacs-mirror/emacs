@@ -305,11 +305,17 @@ struct x_display_info
   /* The frame waiting to be auto-raised in XTread_socket.  */
   struct frame *x_pending_autoraise_frame;
 
-  /* The frame where the mouse was last time we reported a mouse event.  */
+  /* The frame where the mouse was last time we reported a ButtonPress event.  */
   struct frame *last_mouse_frame;
+
+  /* The frame where the mouse was last time we reported a mouse position.  */
+  struct frame *last_mouse_glyph_frame;
 
   /* The frame where the mouse was last time we reported a mouse motion.  */
   struct frame *last_mouse_motion_frame;
+
+  /* The scroll bar in which the last X motion event occurred.  */
+  struct scroll_bar *last_mouse_scroll_bar;
 
   /* Time of last user interaction as returned in X events on this display.  */
   Time last_user_time;
@@ -318,6 +324,18 @@ struct x_display_info
      This is a position on last_mouse_motion_frame.  */
   int last_mouse_motion_x;
   int last_mouse_motion_y;
+
+  /* Where the mouse was last time we reported a mouse position.
+     This is a rectangle on last_mouse_glyph_frame.  */
+  XRectangle last_mouse_glyph;
+
+  /* Time of last mouse movement on this display.  This is a hack because
+     we would really prefer that XTmouse_position would return the time
+     associated with the position it returns, but there doesn't seem to be
+     any way to wrest the time-stamp from the server along with the position
+     query.  So, we just keep track of the time of the last movement we
+     received, and return that in hopes that it's somewhat accurate.  */
+  Time last_mouse_movement_time;
 
   /* The gray pixmap.  */
   Pixmap gray;

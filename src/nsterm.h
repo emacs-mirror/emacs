@@ -608,6 +608,19 @@ struct ns_display_info
      This is a position on last_mouse_motion_frame.  */
   int last_mouse_motion_x;
   int last_mouse_motion_y;
+
+  /* Where the mouse was last time we reported a mouse position.  */
+  NSRect last_mouse_glyph;
+
+  /* Time of last mouse movement.  */
+  Time last_mouse_movement_time;
+
+  /* The scroll bar in which the last motion event occurred.  */
+#ifdef __OBJC__
+  EmacsScroller *last_mouse_scroll_bar;
+#else
+  void *last_mouse_scroll_bar;
+#endif
 };
 
 /* This is a chain of structures for all the NS displays currently in use.  */

@@ -191,9 +191,6 @@ Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
 /* display update */
-static NSRect last_mouse_glyph;
-static Time last_mouse_movement_time = 0;
-static EmacsScroller *last_mouse_scroll_bar = nil;
 static struct frame *ns_updating_frame;
 static NSView *focus_view = NULL;
 static int ns_window_num = 0;
@@ -1738,24 +1735,26 @@ note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
      known as last_mouse_glyph.
      ------------------------------------------------------------------------ */
 {
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
+  NSRect *r;
+
 //  NSTRACE (note_mouse_movement);
 
-  FRAME_DISPLAY_INFO (frame)->last_mouse_motion_frame = frame;
+  dpyinfo->last_mouse_motion_frame = frame;
+  r = &dpyinfo->last_mouse_glyph;
 
   /* Note, this doesn't get called for enter/leave, since we don't have a
      position.  Those are taken care of in the corresponding NSView methods. */
 
   /* has movement gone beyond last rect we were tracking? */
-  if (x < last_mouse_glyph.origin.x ||
-      x >= (last_mouse_glyph.origin.x + last_mouse_glyph.size.width) ||
-      y < last_mouse_glyph.origin.y ||
-      y >= (last_mouse_glyph.origin.y + last_mouse_glyph.size.height))
+  if (x < r->origin.x || x >= r->origin.x + r->size.width
+      || y < r->origin.y || y >= r->origin.y + r->size.height)
     {
-      ns_update_begin(frame);
+      ns_update_begin (frame);
       frame->mouse_moved = 1;
       note_mouse_highlight (frame, x, y);
-      remember_mouse_glyph (frame, x, y, &last_mouse_glyph);
-      ns_update_end(frame);
+      remember_mouse_glyph (frame, x, y, r);
+      ns_update_end (frame);
       return 1;
     }
 
@@ -1792,14 +1791,15 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   block_input ();
 
-  if (last_mouse_scroll_bar != nil && insist == 0)
+  if (dpyinfo->last_mouse_scroll_bar != nil && insist == 0)
     {
       /* TODO: we do not use this path at the moment because drag events will
            go directly to the EmacsScroller.  Leaving code in for now. */
-      [last_mouse_scroll_bar getMouseMotionPart: (int *)part window: bar_window
-                                              x: x y: y];
-      if (time) *time = last_mouse_movement_time;
-      last_mouse_scroll_bar = nil;
+      [dpyinfo->last_mouse_scroll_bar
+	  getMouseMotionPart: (int *)part window: bar_window x: x y: y];
+      if (time)
+	*time = dpyinfo->last_mouse_movement_time;
+      dpyinfo->last_mouse_scroll_bar = nil;
     }
   else
     {
@@ -1809,7 +1809,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
             && FRAME_NS_DISPLAY (XFRAME (frame)) == FRAME_NS_DISPLAY (*fp))
           XFRAME (frame)->mouse_moved = 0;
 
-      last_mouse_scroll_bar = nil;
+      dpyinfo->last_mouse_scroll_bar = nil;
       if (dpyinfo->last_mouse_frame
 	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
         f = dpyinfo->last_mouse_frame;
@@ -1823,7 +1823,8 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
           position = [[view window] mouseLocationOutsideOfEventStream];
           position = [view convertPoint: position fromView: nil];
-          remember_mouse_glyph (f, position.x, position.y, &last_mouse_glyph);
+          remember_mouse_glyph (f, position.x, position.y,
+				&dpyinfo->last_mouse_glyph);
 /*fprintf (stderr, "ns_mouse_position: %.0f, %.0f\n", position.x, position.y); */
 
           if (bar_window) *bar_window = Qnil;
@@ -1831,7 +1832,8 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
           if (x) XSETINT (*x, lrint (position.x));
           if (y) XSETINT (*y, lrint (position.y));
-          if (time) *time = last_mouse_movement_time;
+          if (time)
+	    *time = dpyinfo->last_mouse_movement_time;
           *fp = f;
         }
     }
@@ -5452,7 +5454,7 @@ not_in_argv (NSString *arg)
 
 //  NSTRACE (mouseMoved);
 
-  last_mouse_movement_time = EV_TIMESTAMP (e);
+  dpyinfo->last_mouse_movement_time = EV_TIMESTAMP (e);
   pt = [self convertPoint: [e locationInWindow] fromView: nil];
   dpyinfo->last_mouse_motion_x = pt.x;
   dpyinfo->last_mouse_motion_y = pt.y;
@@ -6336,7 +6338,9 @@ if (cols > 0 && rows > 0)
 - (void)mouseEntered: (NSEvent *)theEvent
 {
   NSTRACE (mouseEntered);
-  last_mouse_movement_time = EV_TIMESTAMP (theEvent);
+  if (emacsframe)
+    FRAME_DISPLAY_INFO (emacsframe)->last_mouse_movement_time
+      = EV_TIMESTAMP (theEvent);
 }
 
 
@@ -6349,7 +6353,8 @@ if (cols > 0 && rows > 0)
   if (!hlinfo)
     return;
 
-  last_mouse_movement_time = EV_TIMESTAMP (theEvent);
+  FRAME_DISPLAY_INFO (emacsframe)->last_mouse_movement_time
+    = EV_TIMESTAMP (theEvent);
 
   if (emacsframe == hlinfo->mouse_face_mouse_frame)
     {

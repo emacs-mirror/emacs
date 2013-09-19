@@ -171,31 +171,6 @@ int last_scroll_bar_drag_pos;
 /* Keyboard code page - may be changed by language-change events.  */
 int w32_keyboard_codepage;
 
-/* Mouse movement. */
-
-/* Where the mouse was last time we reported a mouse event.  */
-static RECT last_mouse_glyph;
-static struct frame *last_mouse_glyph_frame;
-
-/* The scroll bar in which the last motion event occurred.
-
-   If the last motion event occurred in a scroll bar, we set this
-   so w32_mouse_position can know whether to report a scroll bar motion or
-   an ordinary motion.
-
-   If the last motion event didn't occur in a scroll bar, we set this
-   to Qnil, to tell w32_mouse_position to return an ordinary motion event.  */
-static Lisp_Object last_mouse_scroll_bar;
-static int last_mouse_scroll_bar_pos;
-
-/* This is a hack.  We would really prefer that w32_mouse_position would
-   return the time associated with the position it returns, but there
-   doesn't seem to be any way to wrest the time-stamp from the server
-   along with the position query.  So, we just keep track of the time
-   of the last movement we received, and return that in hopes that
-   it's somewhat accurate.  */
-static Time last_mouse_movement_time;
-
 /* Incremented by w32_read_socket whenever it really tries to read
    events.  */
 static int volatile input_signal_count;
@@ -3310,12 +3285,13 @@ note_mouse_movement (struct frame *frame, MSG *msg)
   struct w32_display_info *dpyinfo;
   int mouse_x = LOWORD (msg->lParam);
   int mouse_y = HIWORD (msg->lParam);
+  RECT *r;
 
   if (!FRAME_X_OUTPUT (frame))
     return 0;
 
   dpyinfo = FRAME_DISPLAY_INFO (frame);
-  last_mouse_movement_time = msg->time;
+  dpyinfo->last_mouse_movement_time = msg->time;
   dpyinfo->last_mouse_motion_frame = frame;
   dpyinfo->last_mouse_motion_x = mouse_x;
   dpyinfo->last_mouse_motion_y = mouse_y;
@@ -3323,28 +3299,27 @@ note_mouse_movement (struct frame *frame, MSG *msg)
   if (msg->hwnd != FRAME_W32_WINDOW (frame))
     {
       frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, -1, -1);
-      last_mouse_glyph_frame = 0;
+      dpyinfo->last_mouse_glyph_frame = NULL;
       return 1;
     }
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (frame != last_mouse_glyph_frame
-      || mouse_x < last_mouse_glyph.left
-      || mouse_x >= last_mouse_glyph.right
-      || mouse_y < last_mouse_glyph.top
-      || mouse_y >= last_mouse_glyph.bottom)
+  r = &dpyinfo->last_mouse_glyph;
+  if (frame != dpyinfo->last_mouse_glyph_frame
+      || mouse_x < r->left || mouse_x >= r->right
+      || mouse_y < r->top  || mouse_y >= r->bottom)
     {
       frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, mouse_x, mouse_y);
       /* Remember the mouse position here, as w32_mouse_position only
 	 gets called when mouse tracking is enabled but we also need
 	 to keep track of the mouse for help_echo and highlighting at
 	 other times.  */
-      remember_mouse_glyph (frame, mouse_x, mouse_y, &last_mouse_glyph);
-      last_mouse_glyph_frame = frame;
+      remember_mouse_glyph (frame, mouse_x, mouse_y, r);
+      dpyinfo->last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -3398,7 +3373,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   block_input ();
 
-  if (! NILP (last_mouse_scroll_bar) && insist == 0)
+  if (dpyinfo->last_mouse_scroll_bar && insist == 0)
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, time);
   else
     {
@@ -3410,7 +3385,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       FOR_EACH_FRAME (tail, frame)
 	XFRAME (frame)->mouse_moved = 0;
 
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
 
       GetCursorPos (&pt);
 
@@ -3448,16 +3423,17 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
+	    dpyinfo = FRAME_DISPLAY_INFO (f1);
 	    ScreenToClient (FRAME_W32_WINDOW (f1), &pt);
-	    remember_mouse_glyph (f1, pt.x, pt.y, &last_mouse_glyph);
-	    last_mouse_glyph_frame = f1;
+	    remember_mouse_glyph (f1, pt.x, pt.y, &dpyinfo->last_mouse_glyph);
+	    dpyinfo->last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
 	    *part = 0;
 	    *fp = f1;
 	    XSETINT (*x, pt.x);
 	    XSETINT (*y, pt.y);
-	    *time = last_mouse_movement_time;
+	    *time = dpyinfo->last_mouse_movement_time;
 	  }
       }
     }
@@ -4005,6 +3981,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 
   {
     int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+    struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
     int y;
     int dragging = !NILP (bar->dragging);
     SCROLLINFO si;
@@ -4016,9 +3993,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
     y = si.nPos;
 
     bar->dragging = Qnil;
-
-
-    last_mouse_scroll_bar_pos = msg->msg.wParam;
+    FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
 
     switch (LOWORD (msg->msg.wParam))
       {
@@ -4101,7 +4076,8 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    Lisp_Object *x, Lisp_Object *y,
 			    unsigned long *time)
 {
-  struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
+  struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;
   Window w = SCROLL_BAR_W32_WINDOW (bar);
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int pos;
@@ -4120,13 +4096,13 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   pos = si.nPos;
   top_range = si.nMax - si.nPage + 1;
 
-  switch (LOWORD (last_mouse_scroll_bar_pos))
+  switch (LOWORD (dpyinfo->last_mouse_scroll_bar_pos))
   {
   case SB_THUMBPOSITION:
   case SB_THUMBTRACK:
       *part = scroll_bar_handle;
       if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height)) <= 0xffff)
-	  pos = HIWORD (last_mouse_scroll_bar_pos);
+	pos = HIWORD (dpyinfo->last_mouse_scroll_bar_pos);
       break;
   case SB_LINEDOWN:
       *part = scroll_bar_handle;
@@ -4141,9 +4117,9 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   XSETINT (*y, top_range);
 
   f->mouse_moved = 0;
-  last_mouse_scroll_bar = Qnil;
+  dpyinfo->last_mouse_scroll_bar = NULL;
 
-  *time = last_mouse_movement_time;
+  *time = dpyinfo->last_mouse_movement_time;
 
   unblock_input ();
 }
@@ -6552,9 +6528,6 @@ syms_of_w32term (void)
 {
   staticpro (&w32_display_name_list);
   w32_display_name_list = Qnil;
-
-  staticpro (&last_mouse_scroll_bar);
-  last_mouse_scroll_bar = Qnil;
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
 

@@ -189,10 +189,27 @@ struct w32_display_info
   /* The frame where the mouse was last time we reported a mouse motion.  */
   struct frame *last_mouse_motion_frame;
 
+  /* The frame where the mouse was last time we reported a mouse position.  */
+  struct frame *last_mouse_glyph_frame;
+
   /* Position where the mouse was last time we reported a motion.
      This is a position on last_mouse_motion_frame.  */
   int last_mouse_motion_x;
   int last_mouse_motion_y;
+
+  /* Where the mouse was last time we reported a mouse position.
+     This is a rectangle on last_mouse_glyph_frame.  */
+  RECT last_mouse_glyph;
+
+  /* The scroll bar in which the last motion event occurred.  */
+  struct scroll_bar *last_mouse_scroll_bar;
+
+  /* Mouse position on the scroll bar above.
+     FIXME: shouldn't it be a member of struct scroll_bar?  */
+  int last_mouse_scroll_bar_pos;
+
+  /* Time of last mouse movement.  */
+  Time last_mouse_movement_time;
 };
 
 /* This is a chain of structures for all the displays currently in use.  */
