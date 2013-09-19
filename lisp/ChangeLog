@@ -1,5 +1,9 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-proc.el (eshell-kill-process-function):
+	Remove eshell-reset-after-proc from eshell-kill-hook if present.
+	(eshell-reset-after-proc): Remove unused arg `proc'.
+
 	* eshell/esh-util.el (eshell-read-hosts-file): Use `filename' arg.
 	(directory-files-and-attributes): Mark unused arg.
 
@@ -14,8 +18,7 @@
 
 	* eshell/em-smart.el (eshell-smart-scroll-window)
 	(eshell-disable-after-change):
-	* eshell/em-term.el (eshell-term-sentinel):
-	* eshell/esh-proc.el (eshell-reset-after-proc): Mark unused arg.
+	* eshell/em-term.el (eshell-term-sentinel): Mark unused arg.
 
 2013-09-18  Alan Mackenzie  <acm@muc.de>
 
