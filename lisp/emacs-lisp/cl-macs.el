@@ -2701,8 +2701,10 @@ The function's arguments should be treated as immutable.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug cl-defun) (indent 2))
-  (let* ((argns (cl--arglist-args args)) (p argns)
-	 (pbody (cons 'progn body)))
+  (let* ((argns (cl--arglist-args args))
+         (p argns)
+         ;; (pbody (cons 'progn body))
+         )
     (while (and p (eq (cl--expr-contains args (car p)) 1)) (pop p))
     `(progn
        ,(if p nil   ; give up if defaults refer to earlier args
