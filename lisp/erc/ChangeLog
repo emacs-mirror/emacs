@@ -1,3 +1,11 @@
+2013-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-click-button, erc-button-press-button):
+	Mark unused arguments.
+
+	* erc.el (erc-open-server-buffer-p): Actually use the `buffer' arg.
+	* erc-backend.el (erc-server-process-alive): Take optional `buffer' arg.
+
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* erc-button.el (erc-button-add-buttons): Remove unused local vars.

@@ -1312,13 +1312,13 @@ If BUFFER is nil, the current buffer is used."
     (and (eq major-mode 'erc-mode)
 	 (null (erc-default-target)))))
 
-(defun erc-open-server-buffer-p (&optional buffer) ;FIXME: `buffer' is ignored!
+(defun erc-open-server-buffer-p (&optional buffer)
   "Return non-nil if argument BUFFER is an ERC server buffer that
 has an open IRC process.
 
 If BUFFER is nil, the current buffer is used."
-  (and (erc-server-buffer-p)
-       (erc-server-process-alive)))
+  (and (erc-server-buffer-p buffer)
+       (erc-server-process-alive buffer)))
 
 (defun erc-query-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC query buffer.
