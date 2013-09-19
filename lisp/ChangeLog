@@ -1,3 +1,16 @@
+2013-09-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-get-remote-id): Do not raise an error.
+	(tramp-get-remote-uid-with-id, tramp-get-remote-gid-with-id)
+	(tramp-get-remote-python): New defuns.
+	(tramp-get-remote-uid-with-perl)
+	(tramp-get-remote-gid-with-perl): New defuns.  Perl code
+	contributed by yary <not.com@gmail.com> (tiny change).
+	(tramp-get-remote-uid-with-python)
+	(tramp-get-remote-gid-with-python): New defuns.  Python code
+	contributed by Andrey Tykhonov <atykhonov@gmail.com> (tiny change).
+	(tramp-get-remote-uid, tramp-get-remote-gid): Use new defuns.
+
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eieio.el (class-parent): Don't use defalias with macros.

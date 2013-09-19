@@ -4950,38 +4950,97 @@ Return ATTR."
 (defun tramp-get-remote-id (vec)
   (with-tramp-connection-property vec "id"
     (tramp-message vec 5 "Finding POSIX `id' command")
-    (or
-     (catch 'id-found
-       (let ((dl (tramp-get-remote-path vec))
-	     result)
-	 (while (and dl (setq result (tramp-find-executable vec "id" dl t t)))
-	   ;; Check POSIX parameter.
-	   (when (tramp-send-command-and-check vec (format "%s -u" result))
-	     (throw 'id-found result))
-	   (setq dl (cdr dl)))))
-     (tramp-error vec 'file-error "Couldn't find a POSIX `id' command"))))
+    (catch 'id-found
+      (let ((dl (tramp-get-remote-path vec))
+	    result)
+	(while (and dl (setq result (tramp-find-executable vec "id" dl t t)))
+	  ;; Check POSIX parameter.
+	  (when (tramp-send-command-and-check vec (format "%s -u" result))
+	    (throw 'id-found result))
+	  (setq dl (cdr dl)))))))
+
+(defun tramp-get-remote-uid-with-id (vec id-format)
+  (tramp-send-command-and-read
+   vec
+   (format "%s -u%s %s"
+	   (tramp-get-remote-id vec)
+	   (if (equal id-format 'integer) "" "n")
+	   (if (equal id-format 'integer)
+	       "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/"))))
+
+(defun tramp-get-remote-uid-with-perl (vec id-format)
+  (tramp-send-command-and-read
+   vec
+   (format "%s -le '%s'"
+	   (tramp-get-remote-perl vec)
+	   (if (equal id-format 'integer)
+	       "print $>"
+	     "print \"\\\"\", scalar getpwuid($>), \"\\\"\""))))
+
+(defun tramp-get-remote-python (vec)
+  (with-tramp-connection-property vec "python"
+    (tramp-message vec 5 "Finding a suitable `python' command")
+    (tramp-find-executable vec "python" (tramp-get-remote-path vec))))
+
+(defun tramp-get-remote-uid-with-python (vec id-format)
+  (tramp-send-command-and-read
+   vec
+   (format "%s -c \"%s\""
+	   (tramp-get-remote-python vec)
+	   (if (equal id-format 'integer)
+	       "import os; print os.getuid()"
+	     "import os, pwd; print '\\\"' + pwd.getpwuid(os.getuid())[0] + '\\\"'"))))
 
 (defun tramp-get-remote-uid (vec id-format)
   (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (let ((res (tramp-send-command-and-read
-		vec
-		(format "%s -u%s %s"
-			(tramp-get-remote-id vec)
-			(if (equal id-format 'integer) "" "n")
-			(if (equal id-format 'integer)
-			    "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/")))))
+    (let ((res (cond
+		((tramp-get-remote-id vec)
+		 (tramp-get-remote-uid-with-id vec id-format))
+		((tramp-get-remote-perl vec)
+		 (tramp-get-remote-uid-with-perl vec id-format))
+		((tramp-get-remote-python vec)
+		 (tramp-get-remote-uid-with-python vec id-format))
+		(t (tramp-error vec "Cannot determine remote uid")))))
       ;; The command might not always return a number.
       (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
 
+(defun tramp-get-remote-gid-with-id (vec id-format)
+  (tramp-send-command-and-read
+   vec
+   (format "%s -g%s %s"
+	   (tramp-get-remote-id vec)
+	   (if (equal id-format 'integer) "" "n")
+	   (if (equal id-format 'integer)
+	       "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/"))))
+
+(defun tramp-get-remote-gid-with-perl (vec id-format)
+  (tramp-send-command-and-read
+   vec
+   (format "%s -le '%s'"
+	   (tramp-get-remote-perl vec)
+	   (if (equal id-format 'integer)
+	       "print ($)=~/(\\d+)/)"
+	     "print \"\\\"\", scalar getgrgid($)), \"\\\"\""))))
+
+(defun tramp-get-remote-gid-with-python (vec id-format)
+  (tramp-send-command-and-read
+   vec
+   (format "%s -c \"%s\""
+	   (tramp-get-remote-python vec)
+	   (if (equal id-format 'integer)
+	       "import os; print os.getgid()"
+	     "import os, grp; print '\\\"' + grp.getgrgid(os.getgid())[0] + '\\\"'"))))
+
 (defun tramp-get-remote-gid (vec id-format)
   (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (let ((res (tramp-send-command-and-read
-		vec
-		(format "%s -g%s %s"
-			(tramp-get-remote-id vec)
-			(if (equal id-format 'integer) "" "n")
-			(if (equal id-format 'integer)
-			    "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/")))))
+    (let ((res (cond
+		((tramp-get-remote-id vec)
+		 (tramp-get-remote-gid-with-id vec id-format))
+		((tramp-get-remote-perl vec)
+		 (tramp-get-remote-gid-with-perl vec id-format))
+		((tramp-get-remote-python vec)
+		 (tramp-get-remote-gid-with-python vec id-format))
+		(t (tramp-error vec "Cannot determine remote gid")))))
       ;; The command might not always return a number.
       (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
 
