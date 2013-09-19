@@ -3083,12 +3083,14 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
       struct glyph_row *to = f->desired_matrix->rows + i;
       ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
 
+      eassert (to->glyphs[TEXT_AREA] != from->glyphs[TEXT_AREA]);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       xfree (from->glyphs[TEXT_AREA]);
-      nbytes = from->used[LEFT_MARGIN_AREA];
+      nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
       if (nbytes)
 	{
+	  eassert (to->glyphs[LEFT_MARGIN_AREA] != from->glyphs[LEFT_MARGIN_AREA]);
 	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
 		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
 	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
@@ -3096,9 +3098,10 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
 	}
       else
 	to->used[LEFT_MARGIN_AREA] = 0;
-      nbytes = from->used[RIGHT_MARGIN_AREA];
+      nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
       if (nbytes)
 	{
+	  eassert (to->glyphs[RIGHT_MARGIN_AREA] != from->glyphs[RIGHT_MARGIN_AREA]);
 	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
 		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
 	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
@@ -3123,14 +3126,11 @@ free_saved_screen (struct glyph_matrix *saved)
   for (i = 0; i < saved->nrows; ++i)
     {
       struct glyph_row *from = saved->rows + i;
-      short nbytes;
 
       xfree (from->glyphs[TEXT_AREA]);
-      nbytes = from->used[LEFT_MARGIN_AREA];
-      if (nbytes)
+      if (from->used[LEFT_MARGIN_AREA])
 	xfree (from->glyphs[LEFT_MARGIN_AREA]);
-      nbytes = from->used[RIGHT_MARGIN_AREA];
-      if (nbytes)
+      if (from->used[RIGHT_MARGIN_AREA])
 	xfree (from->glyphs[RIGHT_MARGIN_AREA]);
     }
 
@@ -3159,6 +3159,9 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
   if (*first_time)
     {
       *first_time = false;
+      /* FIXME: Following 2 or 3 lines are temporary!  */
+      menu_x = *x;
+      menu_y = *y;
       sf->mouse_moved = 1;
       return 0;
     }
