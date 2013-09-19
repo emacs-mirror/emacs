@@ -2182,13 +2182,91 @@ See `menu-bar-mode' for more information."
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
 (declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
 
+(defun popup-menu (menu &optional position prefix)
+  "Popup the given menu and call the selected option.
+MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
+`x-popup-menu'.
+The menu is shown at the place where POSITION specifies. About
+the form of POSITION, see `popup-menu-normalize-position'.
+PREFIX is the prefix argument (if any) to pass to the command."
+  (let* ((map (cond
+	       ((keymapp menu) menu)
+	       ((and (listp menu) (keymapp (car menu))) menu)
+	       (t (let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
+			 (filter (when (symbolp map)
+				   (plist-get (get map 'menu-prop) :filter))))
+		    (if filter (funcall filter (symbol-function map)) map)))))
+	 event cmd
+	 (position (popup-menu-normalize-position position)))
+    ;; The looping behavior was taken from lmenu's popup-menu-popup
+    (while (and map (setq event
+			  ;; map could be a prefix key, in which case
+			  ;; we need to get its function cell
+			  ;; definition.
+			  (x-popup-menu position (indirect-function map))))
+      ;; Strangely x-popup-menu returns a list.
+      ;; mouse-major-mode-menu was using a weird:
+      ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
+      (setq cmd
+	    (if (and (not (keymapp map)) (listp map))
+		;; We were given a list of keymaps.  Search them all
+		;; in sequence until a first binding is found.
+		(let ((mouse-click (apply 'vector event))
+		      binding)
+		  (while (and map (null binding))
+		    (setq binding (lookup-key (car map) mouse-click))
+		    (if (numberp binding)	; `too long'
+			(setq binding nil))
+		    (setq map (cdr map)))
+		  binding)
+	      ;; We were given a single keymap.
+	      (lookup-key map (apply 'vector event))))
+      ;; Clear out echoing, which perhaps shows a prefix arg.
+      (message "")
+      ;; Maybe try again but with the submap.
+      (setq map (if (keymapp cmd) cmd)))
+    ;; If the user did not cancel by refusing to select,
+    ;; and if the result is a command, run it.
+    (when (and (null map) (commandp cmd))
+      (setq prefix-arg prefix)
+      ;; `setup-specified-language-environment', for instance,
+      ;; expects this to be set from a menu keymap.
+      (setq last-command-event (car (last event)))
+      ;; mouse-major-mode-menu was using `command-execute' instead.
+      (call-interactively cmd))))
+
+(defun popup-menu-normalize-position (position)
+  "Convert the POSITION to the form which `popup-menu' expects internally.
+POSITION can an event, a posn- value, a value having
+form ((XOFFSET YOFFSET) WINDOW), or nil.
+If nil, the current mouse position is used."
+  (pcase position
+    ;; nil -> mouse cursor position
+    (`nil
+     (let ((mp (mouse-pixel-position)))
+       (list (list (cadr mp) (cddr mp)) (car mp))))
+    ;; Value returned from `event-end' or `posn-at-point'.
+    ((pred posnp)
+     (let ((xy (posn-x-y position)))
+       (list (list (car xy) (cdr xy))
+	     (posn-window position))))
+    ;; Event.
+    ((pred eventp)
+     (popup-menu-normalize-position (event-end position)))
+    (t position)))
+
+;; FIXME: Make this a defcustom!
+(defvar tty-menu-open-use-tmm nil
+  "If non-nil, menu-bar-open on a TTY will invoke `tmm-menubar'.")
+
 (defun menu-bar-open (&optional frame)
   "Start key navigation of the menu bar in FRAME.
 
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
-`x-menu-bar-open'; on Windows, `w32-menu-bar-open' otherwise it
-calls `tmm-menubar'.
+`x-menu-bar-open'; on Windows, `w32-menu-bar-open'; otherwise it
+calls either `popup-menu' or `tmm-menubar' depending on whether
+\`tty-menu-open-use-tmm' is nil or not.
 
 If FRAME is nil or not given, use the selected frame."
   (interactive)
@@ -2196,6 +2274,8 @@ If FRAME is nil or not given, use the selected frame."
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
+     ((null tty-menu-open-use-tmm)
+      (popup-menu menu-bar-file-menu (posn-at-x-y 0 0 nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 
