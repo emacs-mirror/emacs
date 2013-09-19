@@ -1,3 +1,9 @@
+2013-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32reg.c (w32_get_string_resource): Make the first 2 arguments
+	'const char *' to avoid compiler warnings due to similar change in
+	the prototype of x_get_string_resource.
+
 2013-09-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.h (struct x_display_info): New members last_mouse_glyph_frame,

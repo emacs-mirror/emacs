@@ -74,7 +74,7 @@ w32_get_rdb_resource (char *rdb, const char *resource)
 }
 
 static LPBYTE
-w32_get_string_resource (char *name, char *class, DWORD dwexptype)
+w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
 {
   LPBYTE lpvalue = NULL;
   HKEY hrootkey = NULL;
@@ -92,7 +92,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
 
   if (RegOpenKeyEx (hive, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
-      char *keyname;
+      const char *keyname;
 
       if (RegQueryValueEx (hrootkey, name, NULL, &dwType, NULL, &cbData) == ERROR_SUCCESS
 	  && dwType == dwexptype)
