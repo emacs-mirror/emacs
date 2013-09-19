@@ -1,3 +1,12 @@
+2013-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac <srcdir> [MINGW32]: Make sure the value of 'srcdir'
+	is in the full /d/foo/bar form.  See the discussion in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00210.html,
+	and in particular
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00252.html
+	and its followups, for the details.
+
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac: Do not check for g_type_init because we
