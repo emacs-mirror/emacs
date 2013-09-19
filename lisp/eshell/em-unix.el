@@ -195,12 +195,12 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
       (Info-menu (car args))
       (setq args (cdr args)))))
 
-(defun eshell-remove-entries (files &optional top-level)
+(defun eshell-remove-entries (files &optional toplevel)
   "Remove all of the given FILES, perhaps interactively."
   (while files
     (if (string-match "\\`\\.\\.?\\'"
 		      (file-name-nondirectory (car files)))
-	(if top-level
+	(if toplevel
 	    (eshell-error "rm: cannot remove `.' or `..'\n"))
       (if (and (file-directory-p (car files))
 	       (not (file-symlink-p (car files))))

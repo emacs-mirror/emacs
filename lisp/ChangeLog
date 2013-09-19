@@ -1,5 +1,8 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-unix.el (eshell-remove-entries):
+	Rename argument to avoid name-clash with global `top-level'.
+
 	* eshell/esh-proc.el (eshell-kill-process-function):
 	Remove eshell-reset-after-proc from eshell-kill-hook if present.
 	(eshell-reset-after-proc): Remove unused arg `proc'.
