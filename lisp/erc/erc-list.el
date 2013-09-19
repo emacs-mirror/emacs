@@ -164,7 +164,8 @@
 
 ;; Handle a "322" response.  This response tells us about a single
 ;; channel.
-(defun erc-list-handle-322 (proc parsed)
+;; Called via erc-once-with-server-event with two arguments.
+(defun erc-list-handle-322 (_proc parsed)
   (let* ((args (cdr (erc-response.command-args parsed)))
 	 (channel (car args))
 	 (nusers (car (cdr args)))
