@@ -4159,6 +4159,12 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
+;; Behind display-selections-p.
+(declare-function x-selection-owner-p "xselect.c"
+                  (&optional selection terminal))
+(declare-function x-selection-exists-p "xselect.c"
+                  (&optional selection terminal))
+
 (defun deactivate-mark (&optional force)
   "Deactivate the mark.
 If Transient Mark mode is disabled, this function normally does

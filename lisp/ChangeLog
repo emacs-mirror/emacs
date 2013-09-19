@@ -1,5 +1,7 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (x-selection-owner-p, x-selection-exists-p): Declare.
+
 	* emacs-lisp/eieio.el (class-parent): Undo previous change.
 
 2013-09-19  Michael Albinus  <michael.albinus@gmx.de>
