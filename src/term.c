@@ -2893,7 +2893,7 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 {
   int i, h2, w2, maxsubwidth, maxheight;
 
-  maxsubwidth = 0;
+  maxsubwidth = menu->width;
   maxheight = menu->count;
   for (i = 0; i < menu->count; i++)
     {
@@ -2904,7 +2904,7 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 	  if (i + h2 > maxheight) maxheight = i + h2;
 	}
     }
-  *width = menu->width + maxsubwidth;
+  *width = maxsubwidth;
   *height = maxheight;
 }
 
