@@ -1,5 +1,8 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-hist.el (eshell-hist-parse-arguments):
+	Remove unused arg `silent'.  Update callers.
+
 	* eshell/em-ls.el (eshell-ls-use-in-dired): Use `symbol' arg.
 	Fix (f)boundp mix-up.
 

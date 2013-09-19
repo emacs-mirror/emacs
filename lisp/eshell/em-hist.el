@@ -531,7 +531,7 @@ See also `eshell-read-history'."
    ((string= "%" ref)
     (error "`%%' history word designator not yet implemented"))))
 
-(defun eshell-hist-parse-arguments (&optional silent b e)
+(defun eshell-hist-parse-arguments (&optional b e)
   "Parse current command arguments in a history-code-friendly way."
   (let ((end (or e (point)))
 	(begin (or b (save-excursion (eshell-bol) (point))))
@@ -571,7 +571,7 @@ See also `eshell-read-history'."
 
 (defun eshell-expand-history-references (beg end)
   "Parse and expand any history references in current input."
-  (let ((result (eshell-hist-parse-arguments t beg end)))
+  (let ((result (eshell-hist-parse-arguments beg end)))
     (when result
       (let ((textargs (nreverse (nth 0 result)))
 	    (posb (nreverse (nth 1 result)))
@@ -699,7 +699,7 @@ matched."
 	  (here (point))
 	  textargs)
       (insert hist)
-      (setq textargs (car (eshell-hist-parse-arguments nil here (point))))
+      (setq textargs (car (eshell-hist-parse-arguments here (point))))
       (delete-region here (point))
       (if (string= nth "*")
 	  (if mth
