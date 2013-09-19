@@ -50,9 +50,7 @@ properties to colorize its output based on the setting of
 
 (defcustom eshell-ls-unload-hook
   (list
-   (function
-    (lambda ()
-      (fset 'insert-directory eshell-ls-orig-insert-directory))))
+   (lambda () (fset 'insert-directory eshell-ls-orig-insert-directory)))
   "When unloading `eshell-ls', restore the definition of `insert-directory'."
   :type 'hook
   :group 'eshell-ls)
@@ -77,17 +75,17 @@ This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string)
   :group 'eshell-ls)
 
+;; FIXME should use advice, like ls-lisp.el does now.
 (defcustom eshell-ls-use-in-dired nil
-  "If non-nil, use `eshell-ls' to read directories in Dired."
+  "If non-nil, use `eshell-ls' to read directories in Dired.
+Changing this without using customize has no effect."
   :set (lambda (symbol value)
 	 (if value
-	     (unless (and (boundp 'eshell-ls-use-in-dired)
-			  eshell-ls-use-in-dired)
-	       (fset 'insert-directory 'eshell-ls-insert-directory))
-	   (when (and (boundp 'eshell-ls-insert-directory)
-		      eshell-ls-use-in-dired)
-	     (fset 'insert-directory eshell-ls-orig-insert-directory)))
-	 (setq eshell-ls-use-in-dired value))
+	     (or (bound-and-true-p eshell-ls-use-in-dired)
+		 (fset 'insert-directory 'eshell-ls-insert-directory))
+	   (and (fboundp 'eshell-ls-insert-directory) eshell-ls-use-in-dired
+		(fset 'insert-directory eshell-ls-orig-insert-directory)))
+	 (set symbol value))
   :type 'boolean
   :require 'em-ls
   :group 'eshell-ls)

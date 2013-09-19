@@ -1,3 +1,12 @@
+2013-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-ls.el (eshell-ls-use-in-dired): Use `symbol' arg.
+	Fix (f)boundp mix-up.
+
+	* eshell/em-smart.el (eshell-smart-scroll-window)
+	(eshell-disable-after-change):
+	* eshell/em-term.el (eshell-term-sentinel): Mark unused arg.
+
 2013-09-18  Alan Mackenzie  <acm@muc.de>
 
 	Fix fontification of type when followed by "const".

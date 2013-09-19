@@ -189,7 +189,8 @@ allowed."
 	  (term-set-escape-char ?\C-x))))
   nil)
 
-(defun eshell-term-sentinel (proc string)
+;; Process sentinels receive two arguments.
+(defun eshell-term-sentinel (proc _string)
   "Destroy the buffer visiting PROC."
   (let ((proc-buf (process-buffer proc)))
     (when (and proc-buf (buffer-live-p proc-buf)

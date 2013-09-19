@@ -194,7 +194,8 @@ The options are `begin', `after' or `end'."
       (add-hook 'eshell-post-command-hook
 		'eshell-smart-maybe-jump-to-end nil t))))
 
-(defun eshell-smart-scroll-window (wind start)
+;; This is called by window-scroll-functions with two arguments.
+(defun eshell-smart-scroll-window (wind _start)
   "Scroll the given Eshell window accordingly."
   (unless eshell-currently-handling-window
     (let ((inhibit-point-motion-hooks t)
@@ -237,7 +238,8 @@ The options are `begin', `after' or `end'."
   (add-hook 'pre-command-hook 'eshell-smart-display-move nil t)
   (eshell-refresh-windows))
 
-(defun eshell-disable-after-change (b e l)
+;; Called from after-change-functions with 3 arguments.
+(defun eshell-disable-after-change (_b _e _l)
   "Disable smart display mode if the buffer changes in any way."
   (when eshell-smart-command-done
     (remove-hook 'pre-command-hook 'eshell-smart-display-move t)
