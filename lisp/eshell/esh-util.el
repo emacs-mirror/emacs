@@ -477,10 +477,10 @@ list."
 (defalias 'eshell-user-name 'user-login-name)
 
 (defun eshell-read-hosts-file (filename)
-  "Read in the hosts from the /etc/hosts file."
+  "Read in the hosts from FILENAME, default `eshell-hosts-file'."
   (let (hosts)
     (with-temp-buffer
-      (insert-file-contents eshell-hosts-file)
+      (insert-file-contents (or filename eshell-hosts-file))
       (goto-char (point-min))
       (while (re-search-forward
 	      "^\\([^#[:space:]]+\\)\\s-+\\(\\S-+\\)\\(\\s-*\\(\\S-+\\)\\)?" nil t)
@@ -563,9 +563,11 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 (defvar ange-cache)
 
+;; Partial reimplementation of Emacs's builtin directory-files-and-attributes.
+;; id-format not implemented.
 (and (featurep 'xemacs)
      (not (fboundp 'directory-files-and-attributes))
-     (defun directory-files-and-attributes (directory &optional full match nosort id-format)
+     (defun directory-files-and-attributes (directory &optional full match nosort _id-format)
     "Return a list of names of files and their attributes in DIRECTORY.
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names

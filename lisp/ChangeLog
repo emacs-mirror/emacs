@@ -1,5 +1,8 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-util.el (eshell-read-hosts-file): Use `filename' arg.
+	(directory-files-and-attributes): Mark unused arg.
+
 	* eshell/em-unix.el (eshell-remove-entries):
 	Remove unused arg `path'.  Update callers.
 
