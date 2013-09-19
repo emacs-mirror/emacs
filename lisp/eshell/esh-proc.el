@@ -133,7 +133,11 @@ PROC and STATUS to both."
 ; (define-key eshell-command-map [(control ?z)]  'eshell-stop-process)
   (define-key eshell-command-map [(control ?\\)] 'eshell-quit-process))
 
-(defun eshell-reset-after-proc (proc status)
+;; This used to be on `eshell-kill-hook', which calls its functions
+;; with two arguments.  Nowadays we call it directly in
+;; `eshell-kill-process-function', but in case anyone still has it
+;; on `eshell-kill-hook', _proc has to stay.
+(defun eshell-reset-after-proc (_proc status)
   "Reset the command input location after a process terminates.
 The signals which will cause this to happen are matched by
 `eshell-reset-signals'."
