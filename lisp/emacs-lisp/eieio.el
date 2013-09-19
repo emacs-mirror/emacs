@@ -322,7 +322,10 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
 (defmacro eieio-class-parent (class)
   "Return first parent class to CLASS.  (overload of variable)."
   `(car (eieio-class-parents ,class)))
-(define-obsolete-function-alias 'class-parent #'eieio-class-parent "24.4")
+
+(defmacro class-parent (class)
+  (declare (obsolete eieio-class-parent "24.4"))
+  '(eieio-class-parent class))
 
 (defun same-class-p (obj class) "Return t if OBJ is of class-type CLASS."
   (eieio--check-type class-p class)

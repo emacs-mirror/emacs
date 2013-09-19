@@ -1,5 +1,7 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/eieio.el (class-parent): Don't use defalias with macros.
+
 	* eshell/em-unix.el (eshell-remove-entries):
 	Rename argument to avoid name-clash with global `top-level'.
 
