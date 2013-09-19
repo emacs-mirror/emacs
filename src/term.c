@@ -2791,11 +2791,12 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 /* TTY menu implementation and main ideas are borrowed from msdos.c.
 
    However, unlike on MSDOS, where the menu text is drawn directly to
-   the screen, on a TTY we use display_string (see xdisp.c) to put the
-   glyphs produced from the menu items into the desired_matrix glyph
-   matrix, and then call update_frame to deliver the results to the
-   glass.  The previous contents of the screen, in the form of the
-   current_matrix, is stashed away, and used to restore screen
+   the display video memory, on a TTY we use display_string (see
+   display_tty_menu_item in xdisp.c) to put the glyphs produced from
+   the menu items directly into the frame's 'desired_matrix' glyph
+   matrix, and then call update_frame_with_menu to deliver the results
+   to the glass.  The previous contents of the screen, in the form of
+   the current_matrix, is stashed away, and used to restore screen
    contents when the menu selection changes or when the final
    selection is made and the menu should be popped down.
 
@@ -3086,6 +3087,8 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
       eassert (to->glyphs[TEXT_AREA] != from->glyphs[TEXT_AREA]);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      to->enabled_p = from->enabled_p;
+      to->hash = from->hash;
       xfree (from->glyphs[TEXT_AREA]);
       nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
       if (nbytes)

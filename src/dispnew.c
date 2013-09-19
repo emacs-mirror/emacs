@@ -1930,6 +1930,8 @@ save_current_matrix (struct frame *f)
       to->glyphs[TEXT_AREA] = xmalloc (nbytes);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      to->enabled_p = from->enabled_p;
+      to->hash = from->hash;
       if (from->used[LEFT_MARGIN_AREA])
 	{
 	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
