@@ -1,5 +1,8 @@
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-unix.el (eshell-remove-entries):
+	Remove unused arg `path'.  Update callers.
+
 	* eshell/em-hist.el (eshell-hist-parse-arguments):
 	Remove unused arg `silent'.  Update callers.
 

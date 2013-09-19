@@ -195,8 +195,8 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
       (Info-menu (car args))
       (setq args (cdr args)))))
 
-(defun eshell-remove-entries (path files &optional top-level)
-  "From PATH, remove all of the given FILES, perhaps interactively."
+(defun eshell-remove-entries (files &optional top-level)
+  "Remove all of the given FILES, perhaps interactively."
   (while files
     (if (string-match "\\`\\.\\.?\\'"
 		      (file-name-nondirectory (car files)))
@@ -296,9 +296,9 @@ Remove (unlink) the FILE(s).")
 			   (y-or-n-p
 			    (format "rm: descend into directory `%s'? "
 				    entry)))
-		     (eshell-remove-entries nil (list entry) t))
+		     (eshell-remove-entries (list entry) t))
 		 (eshell-error (format "rm: %s: is a directory\n" entry)))
-	     (eshell-remove-entries nil (list entry) t))))))
+	     (eshell-remove-entries (list entry) t))))))
      (setq args (cdr args)))
    nil))
 
