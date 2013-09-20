@@ -1,3 +1,11 @@
+2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around performance bug on OS X 10.8 and earlier.
+	Perhaps Apple will fix this bug some day.
+	See the thread starting with Daniel Colascione's email in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00343.html
+	* configure.ac (FORTIFY_SOUR): New verbatim section.
+
 2013-09-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

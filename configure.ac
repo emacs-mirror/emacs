@@ -4703,6 +4703,24 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+dnl Call this 'FORTIFY_SOUR' so that it sorts before the 'FORTIFY_SOURCE'
+dnl verbatim defined above.  The tricky name is apropos, as this hack
+dnl makes Fortify go sour!
+AH_VERBATIM([FORTIFY_SOUR],
+[/* Without the following workaround, Emacs runs slowly on OS X 10.8.
+   The workaround disables some useful run-time checking, so it
+   should be conditional to the platforms with the performance bug.
+   Perhaps Apple will fix this some day; also see m4/extern-inline.m4.  */
+#if defined __APPLE__ && defined __GNUC__
+# ifndef _DONT_USE_CTYPE_INLINE_
+#  define _DONT_USE_CTYPE_INLINE_
+# endif
+# ifndef _FORTIFY_SOURCE
+#  define _FORTIFY_SOURCE 0
+# endif
+#endif
+])
+
 # Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
