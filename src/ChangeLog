@@ -1,3 +1,8 @@
+2013-09-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (handle_one_xevent): Revert part of 2013-09-17 change
+	to avoid Bug#15398.
+
 2013-09-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32reg.c (w32_get_string_resource): Make the first 2 arguments

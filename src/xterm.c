@@ -6101,13 +6101,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       f = x_window_to_frame (dpyinfo, event->xexpose.window);
       if (f)
         {
-#if ! GTK_CHECK_VERSION (2, 7, 0)
-          /* This seems to be needed for GTK 2.6.  */
-	  x_clear_area (event->xexpose.display,
-			event->xexpose.window,
-			event->xexpose.x, event->xexpose.y,
-			event->xexpose.width, event->xexpose.height);
-#endif
           if (!FRAME_VISIBLE_P (f))
             {
               SET_FRAME_VISIBLE (f, 1);
@@ -6116,8 +6109,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               SET_FRAME_GARBAGED (f);
             }
           else
-	    expose_frame (f, event->xexpose.x, event->xexpose.y,
-			  event->xexpose.width, event->xexpose.height);
+	    {
+#ifdef USE_GTK
+	      /* This seems to be needed for GTK 2.6 and later, see
+		 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
+	      x_clear_area (event->xexpose.display,
+			    event->xexpose.window,
+			    event->xexpose.x, event->xexpose.y,
+			    event->xexpose.width, event->xexpose.height);
+#endif
+	      expose_frame (f, event->xexpose.x, event->xexpose.y,
+			    event->xexpose.width, event->xexpose.height);
+	    }
         }
       else
         {
