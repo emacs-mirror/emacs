@@ -208,11 +208,8 @@ extern void _DebPrint (const char *fmt, ...);
       [#include any other .h files first.]
       ...
       INLINE_HEADER_BEGIN
-      #ifndef FOO_INLINE
-      # define FOO_INLINE INLINE
-      #endif
       ...
-      FOO_INLINE int
+      INLINE int
       incr (int i)
       {
         return i + 1;
@@ -220,19 +217,22 @@ extern void _DebPrint (const char *fmt, ...);
       ...
       INLINE_HEADER_END
 
-   The corresponding foo.c file should do this:
+   For every executable, exactly one file that includes the header
+   should do this:
 
-      #define FOO_INLINE EXTERN_INLINE
+      #define INLINE EXTERN_INLINE
 
-   before including any .h file other than config.h.
-   Other .c files should not define FOO_INLINE.
+   before including config.h or any other .h file.
+   Other .c files should not define INLINE.
 
    C99 compilers compile functions like 'incr' as C99-style extern
    inline functions.  Pre-C99 GCCs do something similar with
    GNU-specific keywords.  Pre-C99 non-GCC compilers use static
    functions, which bloats the code but is good enough.  */
 
-#define INLINE _GL_INLINE
+#ifndef INLINE
+# define INLINE _GL_INLINE
+#endif
 #define EXTERN_INLINE _GL_EXTERN_INLINE
 #define INLINE_HEADER_BEGIN _GL_INLINE_HEADER_BEGIN
 #define INLINE_HEADER_END _GL_INLINE_HEADER_END

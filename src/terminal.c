@@ -18,8 +18,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define TERMHOOKS_INLINE EXTERN_INLINE
-
 #include <stdio.h>
 
 #include "lisp.h"

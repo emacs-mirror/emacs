@@ -26,9 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <verify.h>
 
 INLINE_HEADER_BEGIN
-#ifndef CHARACTER_INLINE
-# define CHARACTER_INLINE INLINE
-#endif
 
 /* character code	1st byte   byte sequence
    --------------	--------   -------------
@@ -558,7 +555,7 @@ INLINE_HEADER_BEGIN
 
 #define SANE_TAB_WIDTH(buf) \
   sanitize_tab_width (XFASTINT (BVAR (buf, tab_width)))
-CHARACTER_INLINE int
+INLINE int
 sanitize_tab_width (EMACS_INT width)
 {
   return 0 < width && width <= 1000 ? width : 8;
@@ -579,7 +576,7 @@ sanitize_tab_width (EMACS_INT width)
 
 /* Return a non-outlandish value for a character width.  */
 
-CHARACTER_INLINE int
+INLINE int
 sanitize_char_width (EMACS_INT width)
 {
   return 0 <= width && width <= 1000 ? width : 1000;

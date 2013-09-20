@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define SYNTAX_INLINE EXTERN_INLINE
-
 #include <sys/types.h>
 
 #include "lisp.h"

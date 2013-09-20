@@ -1,3 +1,9 @@
+2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A simpler, centralized INLINE.
+	* profile.c (INLINE): New macro.
+	(SYSTIME_INLINE): Remove.
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,

@@ -1,3 +1,31 @@
+2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A simpler, centralized INLINE.
+	* conf_post.h (INLINE): Define only if not already defined.
+	This allows us to use a single INLINE, defined by one file
+	per executable.
+	* emacs.c (INLINE): Define it.
+	Also, include category.h, charset.h, composite.h, dispextern.h,
+	syntax.h, systime.h, so that their INLINE definitions are expanded
+	properly for Emacs.
+	* blockinput.h, keyboard.c (BLOCKINPUT_INLINE):
+	* buffer.h, buffer.c (BUFFER_INLINE):
+	* category.h, category.c (CATEGORY_INLINE):
+	* character.h, character.c (CHARACTER_INLINE):
+	* charset.h, charset.c (CHARSET_INLINE):
+	* composite.h, composite.c (COMPOSITE_INLINE):
+	* dispextern.h, dispnew.c (DISPEXTERN_INLINE):
+	* frame.h, frame.c (FRAME_INLINE):
+	* intervals.h, intervals.c (INTERVALS_INLINE):
+	* keyboard.h, keyboard.c (KEYBOARD_INLINE):
+	* lisp.h, alloc.c (LISP_INLINE):
+	* process.h, process.c (PROCESS_INLINE):
+	* syntax.h, syntax.c (SYNTAX_INLINE):
+	* systime.h, sysdep.c (SYSTIME_INLINE):
+	* termhooks.h, terminal.h (TERMHOOKS_INLINE):
+	* window.h, window.c (WINDOW_INLINE):
+	Remove.  All uses replaced with INLINE.
+
 2013-09-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (handle_one_xevent): Revert part of 2013-09-17 change

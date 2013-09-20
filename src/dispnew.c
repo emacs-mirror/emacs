@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define DISPEXTERN_INLINE EXTERN_INLINE
-
 #include "sysstdio.h"
 #include <unistd.h>
 

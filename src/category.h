@@ -54,9 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    But, for the moment, we are not using this slot.  */
 
 INLINE_HEADER_BEGIN
-#ifndef CATEGORY_INLINE
-# define CATEGORY_INLINE INLINE
-#endif
 
 #define CATEGORYP(x) RANGED_INTEGERP (0x20, x, 0x7E)
 
@@ -84,7 +81,7 @@ INLINE_HEADER_BEGIN
     >> ((category) % 8)) & 1)
 
 /* Return true if category set of CH contains CATEGORY.  */
-CATEGORY_INLINE bool
+INLINE bool
 CHAR_HAS_CATEGORY (int ch, int category)
 {
   Lisp_Object category_set = CATEGORY_SET (ch);

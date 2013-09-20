@@ -27,9 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 INLINE_HEADER_BEGIN
-#ifndef FRAME_INLINE
-# define FRAME_INLINE INLINE
-#endif
 
 enum vertical_scroll_bar_type
 {
@@ -448,105 +445,105 @@ struct frame
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
 
-FRAME_INLINE void
+INLINE void
 fset_buffer_list (struct frame *f, Lisp_Object val)
 {
   f->buffer_list = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_buried_buffer_list (struct frame *f, Lisp_Object val)
 {
   f->buried_buffer_list = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_condemned_scroll_bars (struct frame *f, Lisp_Object val)
 {
   f->condemned_scroll_bars = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_face_alist (struct frame *f, Lisp_Object val)
 {
   f->face_alist = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_focus_frame (struct frame *f, Lisp_Object val)
 {
   f->focus_frame = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_icon_name (struct frame *f, Lisp_Object val)
 {
   f->icon_name = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_menu_bar_items (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_items = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_menu_bar_vector (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_vector = val;
 }
 #if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-FRAME_INLINE void
+INLINE void
 fset_menu_bar_window (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_window = val;
 }
 #endif
-FRAME_INLINE void
+INLINE void
 fset_name (struct frame *f, Lisp_Object val)
 {
   f->name = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_param_alist (struct frame *f, Lisp_Object val)
 {
   f->param_alist = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_root_window (struct frame *f, Lisp_Object val)
 {
   f->root_window = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_scroll_bars (struct frame *f, Lisp_Object val)
 {
   f->scroll_bars = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_selected_window (struct frame *f, Lisp_Object val)
 {
   f->selected_window = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_title (struct frame *f, Lisp_Object val)
 {
   f->title = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_tool_bar_items (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_items = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_tool_bar_position (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_position = val;
 }
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
-FRAME_INLINE void
+INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_window = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_current_tool_bar_string (struct frame *f, Lisp_Object val)
 {
   f->current_tool_bar_string = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 {
   f->desired_tool_bar_string = val;
@@ -555,7 +552,7 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 
 #define NUMVAL(X) ((INTEGERP (X) || FLOATP (X)) ? XFLOATINT (X) : -1)
 
-FRAME_INLINE double
+INLINE double
 default_pixels_per_inch_x (void)
 {
   Lisp_Object v = (CONSP (Vdisplay_pixels_per_inch)
@@ -564,7 +561,7 @@ default_pixels_per_inch_x (void)
   return NUMVAL (v) > 0 ? NUMVAL (v) : 72.0;
 }
 
-FRAME_INLINE double
+INLINE double
 default_pixels_per_inch_y (void)
 {
   Lisp_Object v = (CONSP (Vdisplay_pixels_per_inch)
@@ -1282,7 +1279,7 @@ extern int x_bitmap_icon (struct frame *, Lisp_Object);
 
 /* Set F's bitmap icon, if specified among F's parameters.  */
 
-FRAME_INLINE void
+INLINE void
 x_set_bitmap_icon (struct frame *f)
 {
   Lisp_Object obj = assq_no_quit (Qicon_type, f->param_alist);
@@ -1295,7 +1292,7 @@ x_set_bitmap_icon (struct frame *f)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-FRAME_INLINE void
+INLINE void
 flush_frame (struct frame *f)
 {
   struct redisplay_interface *rif = FRAME_RIF (f);

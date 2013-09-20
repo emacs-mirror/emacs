@@ -19,9 +19,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
-#ifndef SYNTAX_INLINE
-# define SYNTAX_INLINE INLINE
-#endif
 
 extern void update_syntax_table (ptrdiff_t, EMACS_INT, bool, Lisp_Object);
 
@@ -89,7 +86,7 @@ extern struct gl_state_s gl_state;
    in syntax table TABLE, or from globally kept data (gl_state).
    Does inheritance.  */
 
-SYNTAX_INLINE Lisp_Object
+INLINE Lisp_Object
 SYNTAX_ENTRY (int c)
 {
 #ifdef SYNTAX_ENTRY_VIA_PROPERTY
@@ -104,14 +101,14 @@ SYNTAX_ENTRY (int c)
 /* Extract the information from the entry for character C
    in the current syntax table.  */
 
-SYNTAX_INLINE int
+INLINE int
 SYNTAX_WITH_FLAGS (int c)
 {
   Lisp_Object ent = SYNTAX_ENTRY (c);
   return CONSP (ent) ? XINT (XCAR (ent)) : Swhitespace;
 }
 
-SYNTAX_INLINE enum syntaxcode
+INLINE enum syntaxcode
 SYNTAX (int c)
 {
   return SYNTAX_WITH_FLAGS (c) & 0xff;
@@ -137,7 +134,7 @@ extern char const syntax_code_spec[16];
    The value is meant for use in code that does nothing when
    parse_sexp_lookup_properties is 0, so return 0 in that case, for speed.  */
 
-SYNTAX_INLINE ptrdiff_t
+INLINE ptrdiff_t
 SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
 {
   return (! parse_sexp_lookup_properties
@@ -157,7 +154,7 @@ SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
    currently good for a position before CHARPOS.  */
 
-SYNTAX_INLINE void
+INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
@@ -167,7 +164,7 @@ UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
    currently good for a position after CHARPOS.  */
 
-SYNTAX_INLINE void
+INLINE void
 UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos < gl_state.b_property)
@@ -176,7 +173,7 @@ UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t charpos)
 
 /* Make syntax table good for CHARPOS.  */
 
-SYNTAX_INLINE void
+INLINE void
 UPDATE_SYNTAX_TABLE (ptrdiff_t charpos)
 {
   UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
@@ -185,7 +182,7 @@ UPDATE_SYNTAX_TABLE (ptrdiff_t charpos)
 
 /* Set up the buffer-global syntax table.  */
 
-SYNTAX_INLINE void
+INLINE void
 SETUP_BUFFER_SYNTAX_TABLE (void)
 {
   gl_state.use_global = 0;

@@ -40,8 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define INTERVALS_INLINE EXTERN_INLINE
-
 #include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"

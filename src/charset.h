@@ -30,9 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <verify.h>
 
 INLINE_HEADER_BEGIN
-#ifndef CHARSET_INLINE
-# define CHARSET_INLINE INLINE
-#endif
 
 /* Index to arguments of Fdefine_charset_internal.  */
 
@@ -331,7 +328,7 @@ extern int emacs_mule_charset[256];
 #define CHARSET_DEUNIFIER(charset)	\
   (CHARSET_ATTR_DEUNIFIER (CHARSET_ATTRIBUTES (charset)))
 
-CHARSET_INLINE void
+INLINE void
 set_charset_attr (struct charset *charset, enum charset_attr_index idx,
 		  Lisp_Object val)
 {
