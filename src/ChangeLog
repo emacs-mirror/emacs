@@ -1,5 +1,10 @@
 2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port recent change to hosts where pointers aren't 'long'.
+	* xterm.c (x_send_scroll_bar_event, x_scroll_bar_to_input_event):
+	Don't assume that pointers are the same width as 'long'.
+	Add a compile-time check that a pointer fits into two X slots.
+
 	A simpler, centralized INLINE.
 	* conf_post.h (INLINE): Define only if not already defined.
 	This allows us to use a single INLINE, defined by one file

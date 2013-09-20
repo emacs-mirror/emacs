@@ -3967,7 +3967,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
 				   /* From-window.  */
 				   root,
-				   
+
 				   /* To-window.  */
 				   FRAME_X_WINDOW (dpyinfo->last_mouse_frame),
 
@@ -4250,6 +4250,10 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XClientMessageEvent *ev = &event.xclient;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
+  intptr_t iw = (intptr_t) w;
+  enum { BITS_PER_INTPTR = CHAR_BIT * sizeof iw };
+  verify (BITS_PER_INTPTR <= 64);
+  int sign_shift = BITS_PER_INTPTR - 32;
 
   block_input ();
 
@@ -4260,27 +4264,13 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
 
-  /* 32-bit X client on a 64-bit X server can pass window pointer
-     as is.  64-bit client on a 32-bit X server is in trouble
-     because pointer does not fit and will be truncated while
-     passing through the server.  So we should use two slots
-     and hope that X12 will resolve such an issues someday.  */
-
-  if (BITS_PER_LONG > 32)
-    {
-      union {
-	int i[2];
-	void *v;
-      } val;
-      val.v = w;
-      ev->data.l[0] = val.i[0];
-      ev->data.l[1] = val.i[1];
-    }
-  else
-    {
-      ev->data.l[0] = 0;
-      ev->data.l[1] = (long) w;
-    }
+  /* A 32-bit X client on a 64-bit X server can pass a window pointer
+     as-is.  A 64-bit client on a 32-bit X server is in trouble
+     because a pointer does not fit and would be truncated while
+     passing through the server.  So use two slots and hope that X12
+     will resolve such issues someday.  */
+  ev->data.l[0] = iw >> 31 >> 1;
+  ev->data.l[1] = sign_shift <= 0 ? iw : iw << sign_shift >> sign_shift;
   ev->data.l[2] = part;
   ev->data.l[3] = portion;
   ev->data.l[4] = whole;
@@ -4311,19 +4301,10 @@ x_scroll_bar_to_input_event (const XEvent *event,
   struct window *w;
 
   /* See the comment in the function above.  */
-
-  if (BITS_PER_LONG > 32)
-    {
-      union {
-	int i[2];
-	void *v;
-      } val;
-      val.i[0] = ev->data.l[0];
-      val.i[1] = ev->data.l[1];
-      w = val.v;
-    }
-  else
-    w = (void *) ev->data.l[1];
+  intptr_t iw0 = ev->data.l[0];
+  intptr_t iw1 = ev->data.l[1];
+  intptr_t iw = (iw0 << 31 << 1) + (iw1 & 0xffffffffu);
+  w = (struct window *) iw;
 
   XSETWINDOW (window, w);
 
