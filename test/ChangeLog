@@ -1,3 +1,9 @@
+2013-09-20  Ryan  <rct@thompsonclan.org>  (tiny change)
+
+	* automated/advice-tests.el (advice-test-called-interactively-p-around)
+	(advice-test-called-interactively-p-filter-args)
+	(advice-test-called-interactively-p-around): New tests.
+
 2013-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* automated/eshell.el (eshell-match-result):

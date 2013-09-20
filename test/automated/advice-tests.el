@@ -130,6 +130,38 @@
                 (cons (cons 2 (called-interactively-p)) (apply f args))))
   (should (equal (call-interactively 'sm-test7) '((2 . t) (1 . t) 11))))
 
+(ert-deftest advice-test-called-interactively-p-around ()
+  "Check interaction between around advice and called-interactively-p.
+
+This tests the currently broken case of the innermost advice to a
+function being an around advice."
+  :expected-result :failed
+  (defun sm-test7.2 () (interactive) (cons 1 (called-interactively-p)))
+  (advice-add 'sm-test7.2 :around
+              (lambda (f &rest args)
+                (list (cons 1 (called-interactively-p)) (apply f args))))
+  (should (equal (sm-test7.2) '((1 . nil) (1 . nil))))
+  (should (equal (call-interactively 'sm-test7.2) '((1 . t) (1 . t)))))
+
+(ert-deftest advice-test-called-interactively-p-filter-args ()
+  "Check interaction between filter-args advice and called-interactively-p."
+  :expected-result :failed
+  (defun sm-test7.3 () (interactive) (cons 1 (called-interactively-p)))
+  (advice-add 'sm-test7.3 :filter-args #'list)
+  (should (equal (sm-test7.3) '(1 . nil)))
+  (should (equal (call-interactively 'sm-test7.3) '(1 . t))))
+
+(ert-deftest advice-test-call-interactively ()
+  "Check interaction between advice on call-interactively and called-interactively-p."
+  (defun sm-test7.4 () (interactive) (cons 1 (called-interactively-p)))
+  (let ((old (symbol-function 'call-interactively)))
+    (unwind-protect
+        (progn
+          (advice-add 'call-interactively :before #'ignore)
+          (should (equal (sm-test7.4) '(1 . nil)))
+          (should (equal (call-interactively 'sm-test7.4) '(1 . t))))
+      (fset 'call-interactively old))))
+
 (ert-deftest advice-test-interactive ()
   "Check handling of interactive spec."
   (defun sm-test8 (a) (interactive "p") a)

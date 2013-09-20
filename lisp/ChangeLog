@@ -1,3 +1,8 @@
+2013-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal--call-interactively): New const.
+	(called-interactively-p): Use it (bug#3984).
+
 2013-09-20  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/pcvs.el (cvs-mode-ignore):
