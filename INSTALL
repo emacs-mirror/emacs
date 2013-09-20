@@ -176,7 +176,7 @@ does not provide them):
   . libpng for PNG:   http://www.libpng.org/
   . libz (for PNG):   http://www.zlib.net/
   . libjpeg for JPEG: http://www.ijg.org/
-  . libtiff for TIFF: http://www.libtiff.org/
+  . libtiff for TIFF: http://www.remotesensing.org/libtiff/
   . libgif for GIF:   http://sourceforge.net/projects/giflib/
 
 Emacs will configure itself to build with these libraries if the
