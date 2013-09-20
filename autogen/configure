@@ -17561,6 +17561,8 @@ fi
 
 
 
+
+
 # Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
