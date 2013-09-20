@@ -279,6 +279,9 @@ controlled tree in a window.
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
 
+*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
+because it is moved to vc-cvs.el.
+
 ** cl-lib
 
 *** New macro cl-tagbody.

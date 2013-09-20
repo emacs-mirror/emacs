@@ -1,3 +1,9 @@
+2013-09-20  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/pcvs.el (cvs-mode-ignore):
+	* vc/vc-cvs.el (vc-cvs-ignore, vc-cvs-append-to-ignore): Rename
+	cvs-append-to-ignore to vc-cvs-append-to-ignore.
+
 2013-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/em-ls.el: Use advice.  Remove redundant :group keywords.
