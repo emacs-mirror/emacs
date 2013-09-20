@@ -1,3 +1,9 @@
+2013-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* semantic.el (semantic-new-buffer-fcn-was-run, semantic-active-p):
+	Move from here...
+	* semantic/fw.el: ...to here.
+
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/find.el (semantic-brute-find-first-tag-by-name):
