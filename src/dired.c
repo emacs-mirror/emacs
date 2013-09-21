@@ -278,7 +278,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	      memcpy (SDATA (fullname) + directory_nbytes + needsep,
 		      SDATA (name), len);
 
-	      nchars = chars_in_text (SDATA (fullname), nbytes);
+	      nchars = multibyte_chars_in_text (SDATA (fullname), nbytes);
 
 	      /* Some bug somewhere.  */
 	      if (nchars > nbytes)

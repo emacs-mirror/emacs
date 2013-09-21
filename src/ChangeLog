@@ -1,3 +1,9 @@
+2013-09-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (directory_files_internal): Use multibyte_chars_in_text,
+	not chars_in_text, whose result depends on the multibyteness of
+	the current buffer.  (Bug#15426)
+
 2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port recent change to hosts where pointers aren't 'long'.
