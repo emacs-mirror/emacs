@@ -599,6 +599,7 @@ the buffer and commit the change, together with your log entry.
 @cindex Log Edit mode
 @cindex mode, Log Edit
 @vindex vc-log-mode-hook
+@c FIXME: Mention log-edit-mode-hook here?  --xfq
   The major mode for the @file{*vc-log*} buffer is Log Edit mode, a
 variant of Text mode (@pxref{Text Mode}).  On entering Log Edit mode,
 Emacs runs the hooks @code{text-mode-hook} and @code{vc-log-mode-hook}
