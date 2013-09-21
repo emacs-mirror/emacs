@@ -1,3 +1,7 @@
+2013-09-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* nonascii.texi (Coding System Basics): Add information about carriage-return.
+
 2013-09-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Display Margins): State the units of measuring
