@@ -1694,6 +1694,22 @@ command_loop_1 (void)
     }
 }
 
+Lisp_Object
+read_menu_command (void)
+{
+  Lisp_Object cmd;
+  Lisp_Object keybuf[30];
+  int i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
+			     Qnil, 0, 1, 1);
+
+  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
+    Fkill_emacs (Qnil);
+  if (i == 0 || i == -1)
+    return Qnil;
+
+  return read_key_sequence_cmd;
+}
+
 /* Adjust point to a boundary of a region that has such a property
    that should be treated intangible.  For the moment, we check
    `composition', `display' and `invisible' properties.

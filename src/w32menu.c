@@ -682,6 +682,8 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
       return Qnil;
     }
 
+  block_input ();
+
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
   wv = xmalloc_widget_value ();
@@ -940,6 +942,7 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 			if (!NILP (subprefix_stack[j]))
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
+		  unblock_input ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -947,9 +950,13 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	}
     }
   else if (!for_click)
-    /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    {
+      unblock_input ();
+      /* Make "Cancel" equivalent to C-g.  */
+      Fsignal (Qquit, Qnil);
+    }
 
+  unblock_input ();
   return Qnil;
 }
 

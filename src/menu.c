@@ -1328,7 +1328,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #endif
 
   /* Display them in a menu.  */
-  block_input ();
 
   /* FIXME: Use a terminal hook!  */
 #if defined HAVE_NTGUI
@@ -1357,8 +1356,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   if (FRAME_TERMCAP_P (f))
     selection = tty_menu_show (f, xpos, ypos, for_click,
 			       keymaps, title, &error_name);
-
-  unblock_input ();
 
 #ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);

@@ -1618,6 +1618,8 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       return Qnil;
     }
 
+  block_input ();
+
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
   wv = xmalloc_widget_value ();
@@ -1857,6 +1859,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 			if (!NILP (subprefix_stack[j]))
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
+		  unblock_input ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -1864,9 +1867,13 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	}
     }
   else if (!for_click)
-    /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    {
+      unblock_input ();
+      /* Make "Cancel" equivalent to C-g.  */
+      Fsignal (Qquit, Qnil);
+    }
 
+  unblock_input ();
   return Qnil;
 }
 
@@ -2261,6 +2268,8 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       return Qnil;
     }
 
+  block_input ();
+
   /* Figure out which root window F is on.  */
   XGetGeometry (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &root,
 		&dummy_int, &dummy_int, &dummy_uint, &dummy_uint,
@@ -2271,6 +2280,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   if (menu == NULL)
     {
       *error_name = "Can't create menu";
+      unblock_input ();
       return Qnil;
     }
 
@@ -2314,6 +2324,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't create pane";
+	      unblock_input ();
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
@@ -2378,6 +2389,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't add selection to menu";
+	      unblock_input ();
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -2504,10 +2516,14 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
 	 the menu was invoked with a mouse event as POSITION).  */
       if (! for_click)
-        Fsignal (Qquit, Qnil);
+	{
+	  unblock_input ();
+	  Fsignal (Qquit, Qnil);
+	}
       break;
     }
 
+  unblock_input ();
   unbind_to (specpdl_count, Qnil);
 
   return entry;

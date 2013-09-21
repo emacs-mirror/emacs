@@ -2815,6 +2815,9 @@ static int menu_help_paneno, menu_help_itemno;
 
 static int menu_x, menu_y;
 
+static Lisp_Object Qright_char, Qleft_char, Qforward_char, Qbackward_char;
+static Lisp_Object Qnext_line, Qprevious_line, Qnewline;
+
 typedef struct tty_menu_struct
 {
   int count;
@@ -3171,51 +3174,31 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 
   while (1)
     {
-#if 0
-      do {
-	c = read_char (-2, Qnil, Qnil, NULL, NULL);
-      } while (BUFFERP (c) || (INTEGERP (c) && XINT (c) == -2));
+#if 1
+      extern Lisp_Object read_menu_command (void);
+      Lisp_Object cmd = read_menu_command ();
+      int usable_input = 1;
+      int st = 0;
 
-      if (INTEGERP (c))
+      if (NILP (cmd))
+	return -1;
+      if (EQ (cmd, Qright_char) || EQ (cmd, Qforward_char))
+	*x += 1;
+      else if (EQ (cmd, Qleft_char) || EQ (cmd, Qbackward_char))
+	*x -= 1;
+      else if (EQ (cmd, Qnext_line))
+	*y += 1;
+      else if (EQ (cmd, Qprevious_line))
+	*y -= 1;
+      else if (EQ (cmd, Qnewline))
+	st = 1;
+      else
 	{
-	  int ch = XINT (c);
-	  int usable_input = 1;
-
-	  /* FIXME: Exceedingly primitive!  Can we support arrow keys?  */
-	  switch (ch && ~CHAR_MODIFIER_MASK)
-	    {
-	    case 7:	/* ^G */
-	      return -1;
-	    case 6:	/* ^F */
-	      *x += 1;
-	      break;
-	    case 2:	/* ^B */
-	      *x -= 1;
-	      break;
-	    case 14:	/* ^N */
-	      *y += 1;
-	      break;
-	    case 16:	/* ^P */
-	      *y -= 1;
-	      break;
-	    default:
-	      usable_input = 0;
-	      break;
-	    }
-	  if (usable_input)
-	    sf->mouse_moved = 1;
-	  break;
+	  usable_input = 0;
+	  st = -1;
 	}
-
-      else if (EVENT_HAS_PARAMETERS (c))
-	{
-	  if (EQ (EVENT_HEAD (c), Qmouse_movement))
-	    {
-	    }
-	  else if (EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_click))
-	    {
-	    }
-	}
+      if (usable_input)
+	sf->mouse_moved = 1;
 #else
       int volatile dx = 0;
       int volatile dy = 0;
@@ -3225,11 +3208,11 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
       *y += dy;
       if (dx != 0 || dy != 0)
 	sf->mouse_moved = 1;
+      Sleep (300);
+#endif
       menu_x = *x;
       menu_y = *y;
-      Sleep (300);
       return st;
-#endif
     }
   return 0;
 }
@@ -3371,10 +3354,16 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   while (!leave)
     {
       int mouse_button_count = 3; /* FIXME */
+      int input_status;
 
       if (!mouse_visible) mouse_on ();
-      if (read_menu_input (sf, &x, &y, &first_time) == -1)
-	leave = 1;
+      input_status = read_menu_input (sf, &x, &y, &first_time);
+      if (input_status)
+	{
+	  if (input_status == -1)
+	    result = TTYM_NO_SELECT;
+	  leave = 1;
+	}
       else if (sf->mouse_moved)
 	{
 	  sf->mouse_moved = 0;
@@ -4607,4 +4596,12 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
+
+  DEFSYM (Qright_char, "right-char");
+  DEFSYM (Qleft_char, "left-char");
+  DEFSYM (Qforward_char, "forward-char");
+  DEFSYM (Qbackward_char, "backward-char");
+  DEFSYM (Qprevious_line, "previous-line");
+  DEFSYM (Qnext_line, "next-line");
+  DEFSYM (Qnewline, "newline");
 }

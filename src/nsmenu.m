@@ -833,6 +833,8 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   widget_value *wv, *first_wv = 0;
 
+  block_input ();
+
   p.x = x; p.y = y;
 
   /* now parse stage 2 as in ns_update_menubar */
@@ -1035,6 +1037,7 @@ ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   popup_activated_flag = 0;
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
 
+  unblock_input ();
   return tem;
 }
 
