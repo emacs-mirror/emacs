@@ -2,6 +2,7 @@
 
 	* maintaining.texi (VC Directory Commands): Add keybinding for
 	vc-log-incoming in vc-dir.
+	(Log Buffer): Use @emph instead of @strong.
 
 2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
 
