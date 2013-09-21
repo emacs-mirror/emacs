@@ -1,3 +1,8 @@
+2013-09-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (VC Directory Commands): Add keybinding for
+	vc-log-incoming in vc-dir.
+
 2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* text.texi (Enriched Justification): Explain values of default-justification.
