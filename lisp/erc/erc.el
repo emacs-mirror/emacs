@@ -5541,8 +5541,7 @@ If ARG is non-nil, turn this mode off (-i).
 This command is sent even if excess flood is detected."
   (interactive "P")
   (erc-set-active-buffer (current-buffer))
-  (let ((tgt (erc-default-target))
-	(erc-force-send t))		;FIXME: Not used anywhere!
+  (let ((tgt (erc-default-target)))
     (cond ((or (not tgt) (not (erc-channel-p tgt)))
 	   (erc-display-message nil 'error (current-buffer) 'no-target))
 	  (arg (erc-load-irc-script-lines (list (concat "/mode " tgt " -i"))
@@ -5579,8 +5578,7 @@ If CHANNEL is non-nil, toggle MODE for that channel, otherwise use
 `erc-default-target'."
   (interactive "P")
   (erc-set-active-buffer (current-buffer))
-  (let ((tgt (or channel (erc-default-target)))
-	(erc-force-send t))		;FIXME: Not used anywhere!
+  (let ((tgt (or channel (erc-default-target))))
     (cond ((or (null tgt) (null (erc-channel-p tgt)))
 	   (erc-display-message nil 'error 'active 'no-target))
 	  ((member mode erc-channel-modes)

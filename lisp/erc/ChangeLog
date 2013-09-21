@@ -1,3 +1,8 @@
+2013-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode):
+	Remove unused local variable `erc-force-send'.
+
 2013-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* erc-button.el (erc-button-click-button, erc-button-press-button):
