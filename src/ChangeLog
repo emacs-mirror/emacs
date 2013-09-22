@@ -1,5 +1,10 @@
 2013-09-22  Daniel Colascione  <dancol@dancol.org>
 
+	* xfns.c (x_get_monitor_attributes): Suppress unused variable
+	warning when compiling without a window system.
+
+2013-09-22  Daniel Colascione  <dancol@dancol.org>
+
 	* data.c (Qbool_vector_p): New symbol.
 	(bool_vector_spare_mask,popcount_size_t_generic)
 	(popcount_size_t_msc,popcount_size_t_gcc)

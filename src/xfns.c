@@ -3949,6 +3949,8 @@ x_get_monitor_attributes (struct x_display_info *dpyinfo)
   Lisp_Object attributes_list = Qnil;
   Display *dpy = dpyinfo->display;
 
+  (void) dpy; /* Suppress unused variable warning.  */
+
 #ifdef HAVE_XRANDR
   int xrr_event_base, xrr_error_base;
   bool xrr_ok = false;
