@@ -253,7 +253,7 @@ extern void _DebPrint (const char *fmt, ...);
 #if defined lint
 # define assume(cond) ((cond) ? (void) 0 : abort ())
 #elif (__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4
-# define assume(cond) ((x) || (__builtin_unreachable(), 0))
+# define assume(cond) ((cond) || (__builtin_unreachable(), 0))
 #elif defined __MSC_VER
 # define assume(cond) __assume ((cond))
 #else

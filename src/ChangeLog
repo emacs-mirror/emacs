@@ -1,3 +1,7 @@
+2013-09-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* conf_post.h (assume): Fix compiler error: x shall be cond.
+
 2013-09-22  Daniel Colascione  <dancol@dancol.org>
 
 	* xfns.c (x_get_monitor_attributes): Suppress unused variable
