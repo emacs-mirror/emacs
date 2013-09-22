@@ -1366,7 +1366,7 @@ function, it is changed to a list of functions."
       (setq local t)))
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
     ;; If the hook value is a single function, turn it into a list.
-    (when (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+    (when (or (not (listp hook-value)) (functionp hook-value))
       (setq hook-value (list hook-value)))
     ;; Do the actual addition if necessary
     (unless (member function hook-value)
@@ -2238,6 +2238,9 @@ floating point support."
 		(setq read (cons t read)))
 	    (push read unread-command-events)
 	    nil))))))
+
+;; Behind display-popup-menus-p test.
+(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".
@@ -3878,7 +3881,7 @@ This function makes or adds to an entry on `after-load-alist'."
                                  (when (equal file lfn)
                                    (remove-hook 'after-load-functions fun)
                                    (funcall func))))
-                     (add-hook 'after-load-functions fun)))))))
+                     (add-hook 'after-load-functions fun 'append)))))))
         ;; Add FORM to the element unless it's already there.
         (unless (member delayed-func (cdr elt))
           (nconc elt (list delayed-func)))))))
@@ -4243,6 +4246,8 @@ I is the index of the frame after FRAME2.  It should return nil
 if those frames don't seem special and otherwise, it should return
 the number of frames to skip (minus 1).")
 
+(defconst internal--call-interactively (symbol-function 'call-interactively))
+
 (defun called-interactively-p (&optional kind)
   "Return t if the containing function was called by `call-interactively'.
 If KIND is `interactive', then only return t if the call was made
@@ -4315,9 +4320,9 @@ command is called from a keyboard macro?"
       (pcase (cons frame nextframe)
         ;; No subr calls `interactive-p', so we can rule that out.
         (`((,_ ,(pred (lambda (f) (subrp (indirect-function f)))) . ,_) . ,_) nil)
-        ;; Somehow, I sometimes got `command-execute' rather than
-        ;; `call-interactively' on my stacktrace !?
-        ;;(`(,_ . (t command-execute . ,_)) t)
+        ;; In case #<subr call-interactively> without going through the
+        ;; `call-interactively' symbol (bug#3984).
+        (`(,_ . (t ,(pred (eq internal--call-interactively)) . ,_)) t)
         (`(,_ . (t call-interactively . ,_)) t)))))
 
 (defun interactive-p ()

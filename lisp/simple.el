@@ -4159,6 +4159,12 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
+;; Behind display-selections-p.
+(declare-function x-selection-owner-p "xselect.c"
+                  (&optional selection terminal))
+(declare-function x-selection-exists-p "xselect.c"
+                  (&optional selection terminal))
+
 (defun deactivate-mark (&optional force)
   "Deactivate the mark.
 If Transient Mark mode is disabled, this function normally does
@@ -4713,6 +4719,9 @@ lines."
   :type 'boolean
   :group 'editing-basics
   :version "23.1")
+
+;; Only used if display-graphic-p.
+(declare-function font-info "font.c" (name &optional frame))
 
 (defun default-font-height ()
   "Return the height in pixels of the current buffer's default face font."
@@ -7343,6 +7352,24 @@ and setting it to nil."
     (set (make-local-variable 'vis-mode-saved-buffer-invisibility-spec)
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
+
+(defvar messages-buffer-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "g" nil)            ; nothing to revert
+    map))
+
+(define-derived-mode messages-buffer-mode special-mode "Messages"
+  "Major mode used in the \"*Messages*\" buffer.")
+
+(defun messages-buffer ()
+  "Return the \"*Messages*\" buffer.
+If it does not exist, create and it switch it to `messages-buffer-mode'."
+  (or (get-buffer "*Messages*")
+      (with-current-buffer (get-buffer-create "*Messages*")
+        (messages-buffer-mode)
+        (current-buffer))))
+
 
 ;; Minibuffer prompt stuff.
 

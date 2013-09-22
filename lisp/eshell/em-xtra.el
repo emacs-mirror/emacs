@@ -1,4 +1,4 @@
-;;; em-xtra.el --- extra alias functions
+;;; em-xtra.el --- extra alias functions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

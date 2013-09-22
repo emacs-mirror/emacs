@@ -866,6 +866,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	(setq secret-keys (cdr secret-keys))))
     secret-key))
 
+(autoload 'gnus-create-image "gnus-ems")
+
 (defun mml2015-epg-key-image (key-id)
   "Return the image of a key, if any"
   (with-temp-buffer

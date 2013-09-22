@@ -26,8 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define CHARSET_INLINE EXTERN_INLINE
-
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>

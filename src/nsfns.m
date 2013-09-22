@@ -46,6 +46,9 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #ifdef NS_IMPL_COCOA
 #include <IOKit/graphics/IOGraphicsLib.h>
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+#include "macfont.h"
+#endif
 #endif
 
 #if 0
@@ -124,7 +127,7 @@ check_ns_display_info (Lisp_Object object)
       struct frame *sf = XFRAME (selected_frame);
 
       if (FRAME_NS_P (sf) && FRAME_LIVE_P (sf))
-	dpyinfo = FRAME_NS_DISPLAY_INFO (sf);
+	dpyinfo = FRAME_DISPLAY_INFO (sf);
       else if (x_display_list != 0)
 	dpyinfo = x_display_list;
       else
@@ -144,7 +147,7 @@ check_ns_display_info (Lisp_Object object)
   else
     {
       struct frame *f = decode_window_system_frame (object);
-      dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+      dpyinfo = FRAME_DISPLAY_INFO (f);
     }
 
   return dpyinfo;
@@ -992,7 +995,7 @@ unwind_create_frame (Lisp_Object frame)
   if (NILP (Fmemq (frame, Vframe_list)))
     {
 #if defined GLYPH_DEBUG && defined ENABLE_CHECKING
-      struct ns_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
@@ -1139,9 +1142,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (! STRINGP (f->icon_name))
     fset_icon_name (f, Qnil);
 
-  FRAME_NS_DISPLAY_INFO (f) = dpyinfo;
+  FRAME_DISPLAY_INFO (f) = dpyinfo;
 
-  /* With FRAME_NS_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
 
   f->output_data.ns->window_desc = desc_ctr++;
@@ -1152,7 +1155,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
   else
     {
-      f->output_data.ns->parent_desc = FRAME_NS_DISPLAY_INFO (f)->root_window;
+      f->output_data.ns->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
       f->output_data.ns->explicit_parent = 0;
     }
 
@@ -1171,7 +1174,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
   block_input ();
+
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  if (CTGetCoreTextVersion != NULL
+      && CTGetCoreTextVersion () >= kCTVersionNumber10_5)
+    mac_register_font_driver (f);
+#endif
+#endif
   register_font_driver (&nsfont_driver, f);
+
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 			"fontBackend", "FontBackend", RES_TYPE_STRING);
 
@@ -1181,8 +1193,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
     x_default_parameter (f, parms, Qfontsize,
                                     make_number (0 /*(int)[font pointSize]*/),
                                     "fontSize", "FontSize", RES_TYPE_NUMBER);
+    // Remove ' Regular', not handled by backends.
+    char *fontname = xstrdup ([[font displayName] UTF8String]);
+    int len = strlen (fontname);
+    if (len > 8 && strcmp (fontname + len - 8, " Regular") == 0)
+      fontname[len-8] = '\0';
     x_default_parameter (f, parms, Qfont,
-                                 build_string ([[font fontName] UTF8String]),
+                                 build_string (fontname),
                                  "font", "Font", RES_TYPE_STRING);
   }
   unblock_input ();
@@ -1255,7 +1272,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.ns->hand_cursor = [NSCursor pointingHandCursor];
   f->output_data.ns->hourglass_cursor = [NSCursor disappearingItemCursor];
   f->output_data.ns->horizontal_drag_cursor = [NSCursor resizeLeftRightCursor];
-  FRAME_NS_DISPLAY_INFO (f)->vertical_scroll_bar_cursor
+  FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor
      = [NSCursor arrowCursor];
   f->output_data.ns->current_pointer = f->output_data.ns->text_cursor;
 
@@ -1339,14 +1356,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   return unbind_to (count, frame);
 }
 
-
-DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
-       doc: /* Set the input focus to FRAME.
-FRAME nil means use the selected frame.  */)
-     (Lisp_Object frame)
+void
+x_focus_frame (struct frame *f)
 {
-  struct frame *f = decode_window_system_frame (frame);
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (dpyinfo->x_focus_frame != f)
     {
@@ -1356,8 +1369,6 @@ FRAME nil means use the selected frame.  */)
       [[view window] makeKeyAndOrderFront: view];
       unblock_input ();
     }
-
-  return Qnil;
 }
 
 
@@ -1368,9 +1379,15 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
 {
   struct frame *f = decode_window_system_frame (frame);
   id fm = [NSFontManager sharedFontManager];
-
-  [fm setSelectedFont: ((struct nsfont_info *)f->output_data.ns->font)->nsfont
-           isMultiple: NO];
+  struct font *font = f->output_data.ns->font;
+  NSFont *nsfont;
+  if (EQ (font->driver->type, Qns))
+    nsfont = ((struct nsfont_info *)font)->nsfont;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+  else
+    nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
+  [fm setSelectedFont: nsfont isMultiple: NO];
   [fm orderFrontFontPanel: NSApp];
   return Qnil;
 }
@@ -2194,17 +2211,13 @@ x_set_scroll_bar_default_width (struct frame *f)
                                       wid - 1) / wid;
 }
 
-
-extern const char *x_get_string_resource (XrmDatabase, char *, char *);
-
-
 /* terms impl this instead of x-get-resource directly */
-const char *
-x_get_string_resource (XrmDatabase rdb, char *name, char *class)
+char *
+x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
 {
   /* remove appname prefix; TODO: allow for !="Emacs" */
-  char *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
-  const char *res;
+  const char *res, *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
+
   check_window_system (NULL);
 
   if (inhibit_x_resources)
@@ -2212,16 +2225,16 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     return NULL;
 
   res = ns_get_defaults_value (toCheck);
-  return !res ? NULL :
-      (!c_strncasecmp (res, "YES", 3) ? "true" :
-          (!c_strncasecmp (res, "NO", 2) ? "false" : res));
+  return (!res ? NULL :
+	  (!c_strncasecmp (res, "YES", 3) ? "true" :
+	   (!c_strncasecmp (res, "NO", 2) ? "false" : (char *) res)));
 }
 
 
 Lisp_Object
 x_get_focus_frame (struct frame *frame)
 {
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   Lisp_Object nsfocus;
 
   if (!dpyinfo->x_focus_frame)
@@ -2551,6 +2564,7 @@ compute_tip_xy (struct frame *f,
 {
   Lisp_Object left, top;
   EmacsView *view = FRAME_NS_VIEW (f);
+  struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   NSPoint pt;
 
   /* Start with user-specified or mouse position.  */
@@ -2559,7 +2573,8 @@ compute_tip_xy (struct frame *f,
 
   if (!INTEGERP (left) || !INTEGERP (top))
     {
-      pt = last_mouse_motion_position;
+      pt.x = dpyinfo->last_mouse_motion_x;
+      pt.y = dpyinfo->last_mouse_motion_y;
       /* Convert to screen coordinates */
       pt = [view convertPoint: pt toView: nil];
       pt = [[view window] convertBaseToScreen: pt];
@@ -2568,7 +2583,7 @@ compute_tip_xy (struct frame *f,
     {
       /* Absolute coordinates.  */
       pt.x = XINT (left);
-      pt.y = x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)) - XINT (top)
+      pt.y = x_display_pixel_height (FRAME_DISPLAY_INFO (f)) - XINT (top)
         - height;
     }
 
@@ -2578,7 +2593,7 @@ compute_tip_xy (struct frame *f,
   else if (pt.x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
   else if (pt.x + XINT (dx) + width
-	   <= x_display_pixel_width (FRAME_NS_DISPLAY_INFO (f)))
+	   <= x_display_pixel_width (FRAME_DISPLAY_INFO (f)))
     /* It fits to the right of the pointer.  */
     *root_x = pt.x + XINT (dx);
   else if (width + XINT (dx) <= pt.x)
@@ -2594,12 +2609,12 @@ compute_tip_xy (struct frame *f,
     /* It fits below the pointer.  */
     *root_y = pt.y - height - XINT (dy);
   else if (pt.y + XINT (dy) + height
-	   <= x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)))
+	   <= x_display_pixel_height (FRAME_DISPLAY_INFO (f)))
     /* It fits above the pointer */
       *root_y = pt.y + XINT (dy);
   else
     /* Put it on the top.  */
-    *root_y = x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)) - height;
+    *root_y = x_display_pixel_height (FRAME_DISPLAY_INFO (f)) - height;
 }
 
 
@@ -2894,7 +2909,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_list_services);
   defsubr (&Sns_perform_service);
   defsubr (&Sns_convert_utf8_nfd_to_nfc);
-  defsubr (&Sx_focus_frame);
   defsubr (&Sns_popup_font_panel);
   defsubr (&Sns_popup_color_panel);
 

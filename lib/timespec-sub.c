@@ -29,7 +29,6 @@
 struct timespec
 timespec_sub (struct timespec a, struct timespec b)
 {
-  struct timespec r;
   time_t rs = a.tv_sec;
   time_t bs = b.tv_sec;
   int ns = a.tv_nsec - b.tv_nsec;
@@ -37,7 +36,7 @@ timespec_sub (struct timespec a, struct timespec b)
 
   if (ns < 0)
     {
-      rns = ns + 1000000000;
+      rns = ns + TIMESPEC_RESOLUTION;
       if (rs == TYPE_MINIMUM (time_t))
         {
           if (bs <= 0)
@@ -65,7 +64,5 @@ timespec_sub (struct timespec a, struct timespec b)
   else
     rs -= bs;
 
-  r.tv_sec = rs;
-  r.tv_nsec = rns;
-  return r;
+  return make_timespec (rs, rns);
 }

@@ -1,4 +1,4 @@
-;;; em-tramp.el --- Eshell features that require TRAMP
+;;; em-tramp.el --- Eshell features that require TRAMP  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

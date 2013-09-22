@@ -1963,7 +1963,7 @@ With a prefix argument, prompt for cvs flags."
 This command ignores files that are not flagged as `Unknown'."
   (interactive)
   (dolist (fi (cvs-mode-marked 'ignore))
-    (cvs-append-to-ignore (cvs-fileinfo->dir fi) (cvs-fileinfo->file fi)
+    (vc-cvs-append-to-ignore (cvs-fileinfo->dir fi) (cvs-fileinfo->file fi)
 			  (eq (cvs-fileinfo->subtype fi) 'NEW-DIR))
     (setf (cvs-fileinfo->type fi) 'DEAD))
   (cvs-cleanup-collection cvs-cookies nil nil nil))

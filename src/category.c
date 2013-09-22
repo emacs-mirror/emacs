@@ -30,8 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define CATEGORY_INLINE EXTERN_INLINE
-
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"

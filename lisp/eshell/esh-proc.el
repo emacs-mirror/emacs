@@ -1,4 +1,4 @@
-;;; esh-proc.el --- process management
+;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -116,9 +116,11 @@ information, for example."
 (defun eshell-kill-process-function (proc status)
   "Function run when killing a process.
 Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
-PROC and STATUS to both."
-  (or (memq 'eshell-reset-after-proc eshell-kill-hook)
-      (eshell-reset-after-proc proc status))
+PROC and STATUS to functions on the latter."
+  ;; Was there till 24.1, but it is not optional.
+  (if (memq 'eshell-reset-after-proc eshell-kill-hook)
+      (setq eshell-kill-hook (delq 'eshell-reset-after-proc eshell-kill-hook)))
+  (eshell-reset-after-proc status)
   (run-hook-with-args 'eshell-kill-hook proc status))
 
 (defun eshell-proc-initialize ()
@@ -133,7 +135,7 @@ PROC and STATUS to both."
 ; (define-key eshell-command-map [(control ?z)]  'eshell-stop-process)
   (define-key eshell-command-map [(control ?\\)] 'eshell-quit-process))
 
-(defun eshell-reset-after-proc (proc status)
+(defun eshell-reset-after-proc (status)
   "Reset the command input location after a process terminates.
 The signals which will cause this to happen are matched by
 `eshell-reset-signals'."

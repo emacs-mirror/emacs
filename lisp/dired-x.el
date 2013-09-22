@@ -1047,7 +1047,8 @@ Each element of this list looks like
     (REGEXP COMMAND...)
 
 where each COMMAND can either be a string or a Lisp expression that evaluates
-to a string.  If several COMMANDs are given, the first one will be the default
+to a string.  This expression can access the file name as the variable `file'.
+If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
 
@@ -1105,8 +1106,8 @@ See `dired-guess-shell-alist-user'."
     ;; Return commands or nil if flist is still non-nil.
     ;; Evaluate the commands in order that any logical testing will be done.
     (if (cdr cmds)
-	(delete-dups (mapcar #'eval cmds))
-      (eval (car cmds)))))		; single command
+	(delete-dups (mapcar (lambda (cmd) (eval cmd `((file . ,file)))) cmds))
+      (eval (car cmds) `((file . ,file))))))		; single command
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."

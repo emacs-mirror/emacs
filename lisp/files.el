@@ -2269,6 +2269,10 @@ since only a single case-insensitive search through the alist is made."
      ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
      ;; don't interfere with each other.
      ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
+     ;; GDB 7.5 introduced OBJFILE-gdb.gdb script files; e.g. a file
+     ;; named 'emacs-gdb.gdb', if it exists, will be automatically
+     ;; loaded when GDB reads an objfile called 'emacs'.
+     ("-gdb\\.gdb" . gdb-script-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
      ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
@@ -2451,6 +2455,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("wishx?" . tcl-mode)
      ("tcl\\(sh\\)?" . tcl-mode)
      ("expect" . tcl-mode)
+     ("octave" . octave-mode)
      ("scm" . scheme-mode)
      ("[acjkwz]sh" . sh-mode)
      ("r?bash2?" . sh-mode)

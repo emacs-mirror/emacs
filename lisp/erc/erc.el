@@ -1312,13 +1312,13 @@ If BUFFER is nil, the current buffer is used."
     (and (eq major-mode 'erc-mode)
 	 (null (erc-default-target)))))
 
-(defun erc-open-server-buffer-p (&optional buffer) ;FIXME: `buffer' is ignored!
+(defun erc-open-server-buffer-p (&optional buffer)
   "Return non-nil if argument BUFFER is an ERC server buffer that
 has an open IRC process.
 
 If BUFFER is nil, the current buffer is used."
-  (and (erc-server-buffer-p)
-       (erc-server-process-alive)))
+  (and (erc-server-buffer-p buffer)
+       (erc-server-process-alive buffer)))
 
 (defun erc-query-buffer-p (&optional buffer)
   "Return non-nil if BUFFER is an ERC query buffer.
@@ -5541,8 +5541,7 @@ If ARG is non-nil, turn this mode off (-i).
 This command is sent even if excess flood is detected."
   (interactive "P")
   (erc-set-active-buffer (current-buffer))
-  (let ((tgt (erc-default-target))
-	(erc-force-send t))		;FIXME: Not used anywhere!
+  (let ((tgt (erc-default-target)))
     (cond ((or (not tgt) (not (erc-channel-p tgt)))
 	   (erc-display-message nil 'error (current-buffer) 'no-target))
 	  (arg (erc-load-irc-script-lines (list (concat "/mode " tgt " -i"))
@@ -5579,8 +5578,7 @@ If CHANNEL is non-nil, toggle MODE for that channel, otherwise use
 `erc-default-target'."
   (interactive "P")
   (erc-set-active-buffer (current-buffer))
-  (let ((tgt (or channel (erc-default-target)))
-	(erc-force-send t))		;FIXME: Not used anywhere!
+  (let ((tgt (or channel (erc-default-target))))
     (cond ((or (null tgt) (null (erc-channel-p tgt)))
 	   (erc-display-message nil 'error 'active 'no-target))
 	  ((member mode erc-channel-modes)
@@ -6189,7 +6187,7 @@ if `erc-away' is non-nil."
 		 ?m (erc-format-channel-modes)
 		 ?n (or (erc-current-nick) "")
 		 ?N (erc-format-network)
-		 ?o (erc-controls-strip erc-channel-topic)
+		 ?o (or (erc-controls-strip erc-channel-topic) "")
 		 ?p (erc-port-to-string erc-session-port)
 		 ?s (erc-format-target-and/or-server)
 		 ?S (erc-format-target-and/or-network)

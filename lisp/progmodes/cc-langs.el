@@ -2587,6 +2587,15 @@ Note that Java specific rules are currently applied to tell this from
 
 ;;; Additional constants for parser-level constructs.
 
+(c-lang-defconst c-decl-start-colon-kwd-re
+  "Regexp matching a keyword that is followed by a colon, where
+  the whole construct can precede a declaration.
+  E.g. \"public:\" in C++."
+  t "\\<\\>"
+  c++ (c-make-keywords-re t (c-lang-const c-protection-kwds)))
+(c-lang-defvar c-decl-start-colon-kwd-re
+  (c-lang-const c-decl-start-colon-kwd-re))
+
 (c-lang-defconst c-decl-prefix-re
   "Regexp matching something that might precede a declaration, cast or
 label, such as the last token of a preceding statement or declaration.
@@ -2626,8 +2635,11 @@ more info."
   java "\\([\{\}\(;,<]+\\)"
   ;; Match "<" in C++ to get the first argument in a template arglist.
   ;; In that case there's an additional check in `c-find-decl-spots'
-  ;; that it got open paren syntax.
-  c++ "\\([\{\}\(\);,<]+\\)"
+  ;; that it got open paren syntax.  Match ":" to aid in picking up
+  ;; "public:", etc.  This involves additional checks in
+  ;; `c-find-decl-prefix-search' to prevent a match of identifiers
+  ;; or labels.
+  c++ "\\([\{\}\(\);:,<]+\\)"
   ;; Additionally match the protection directives in Objective-C.
   ;; Note that this doesn't cope with the longer directives, which we
   ;; would have to match from start to end since they don't end with

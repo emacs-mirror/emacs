@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define SYSTIME_INLINE EXTERN_INLINE
-
 #include <execinfo.h>
 #include "sysstdio.h"
 #ifdef HAVE_PWD_H

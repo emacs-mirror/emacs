@@ -28,11 +28,10 @@
 struct timespec
 timespec_add (struct timespec a, struct timespec b)
 {
-  struct timespec r;
   time_t rs = a.tv_sec;
   time_t bs = b.tv_sec;
   int ns = a.tv_nsec + b.tv_nsec;
-  int nsd = ns - 1000000000;
+  int nsd = ns - TIMESPEC_RESOLUTION;
   int rns = ns;
 
   if (0 <= nsd)
@@ -65,7 +64,5 @@ timespec_add (struct timespec a, struct timespec b)
   else
     rs += bs;
 
-  r.tv_sec = rs;
-  r.tv_nsec = rns;
-  return r;
+  return make_timespec (rs, rns);
 }

@@ -18,8 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
+#define INLINE EXTERN_INLINE
 #include <config.h>
+
 #include <errno.h>
 #include <stdio.h>
 
@@ -72,6 +73,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
+#include "category.h"
+#include "charset.h"
+#include "composite.h"
+#include "dispextern.h"
+#include "syntax.h"
+#include "systime.h"
 
 #ifdef HAVE_GNUTLS
 #include "gnutls.h"

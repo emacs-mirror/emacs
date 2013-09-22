@@ -4729,6 +4729,11 @@ comment at the start of cc-engine.el for more info."
   ;; inside `c-find-decl-spots'.  The point is left at `cfd-match-pos'
   ;; if there is a match, otherwise at `cfd-limit'.
   ;;
+  ;; The macro moves point forward to the next putative start of a declaration
+  ;; or cfd-limit.  This decl start is the next token after a "declaration
+  ;; prefix".  The declaration prefix is the earlier of `cfd-prop-match' and
+  ;; `cfd-re-match'.  `cfd-match-pos' is set to the decl prefix.
+  ;;
   ;; This macro might do hidden buffer changes.
 
   '(progn
@@ -4750,34 +4755,47 @@ comment at the start of cc-engine.el for more info."
        (if (> cfd-re-match-end (point))
 	   (goto-char cfd-re-match-end))
 
-       (while (if (setq cfd-re-match-end
-			(re-search-forward c-decl-prefix-or-start-re
-					   cfd-limit 'move))
+       ;; Each time round, the next `while' moves forward over a pseudo match
+       ;; of `c-decl-prefix-or-start-re' which is either inside a literal, or
+       ;; is a ":" not preceded by "public", etc..  `cfd-re-match' and
+       ;; `cfd-re-match-end' get set.
+       (while
+	   (progn
+	     (setq cfd-re-match-end (re-search-forward c-decl-prefix-or-start-re
+						       cfd-limit 'move))
+	     (cond
+	      ((null cfd-re-match-end)
+	       ;; No match.  Finish up and exit the loop.
+	       (setq cfd-re-match cfd-limit)
+	       nil)
+	      ((c-got-face-at
+		(if (setq cfd-re-match (match-end 1))
+		    ;; Matched the end of a token preceding a decl spot.
+		    (progn
+		      (goto-char cfd-re-match)
+		      (1- cfd-re-match))
+		  ;; Matched a token that start a decl spot.
+		  (goto-char (match-beginning 0))
+		  (point))
+		c-literal-faces)
+	       ;; Pseudo match inside a comment or string literal.  Skip out
+	       ;; of comments and string literals.
+	       (while (progn
+			(goto-char (next-single-property-change
+				    (point) 'face nil cfd-limit))
+			(and (< (point) cfd-limit)
+			     (c-got-face-at (point) c-literal-faces))))
+	       t)		      ; Continue the loop over pseudo matches.
+	      ((and (match-string 1)
+		    (string= (match-string 1) ":")
+		    (save-excursion
+		      (or (/= (c-backward-token-2 2) 0) ; no search limit.  :-(
+			  (not (looking-at c-decl-start-colon-kwd-re)))))
+	       ;; Found a ":" which isn't part of "public:", etc.
+	       t)
+	      (t nil)))) ;; Found a real match.  Exit the pseudo-match loop.
 
-		  ;; Match.  Check if it's inside a comment or string literal.
-		  (c-got-face-at
-		   (if (setq cfd-re-match (match-end 1))
-		       ;; Matched the end of a token preceding a decl spot.
-		       (progn
-			 (goto-char cfd-re-match)
-			 (1- cfd-re-match))
-		     ;; Matched a token that start a decl spot.
-		     (goto-char (match-beginning 0))
-		     (point))
-		   c-literal-faces)
-
-		;; No match.  Finish up and exit the loop.
-		(setq cfd-re-match cfd-limit)
-		nil)
-
-	 ;; Skip out of comments and string literals.
-	 (while (progn
-		  (goto-char (next-single-property-change
-			      (point) 'face nil cfd-limit))
-		  (and (< (point) cfd-limit)
-		       (c-got-face-at (point) c-literal-faces)))))
-
-       ;; If we matched at the decl start, we have to back up over the
+       ;; If our match was at the decl start, we have to back up over the
        ;; preceding syntactic ws to set `cfd-match-pos' and to catch
        ;; any decl spots in the syntactic ws.
        (unless cfd-re-match
@@ -7408,7 +7426,11 @@ comment at the start of cc-engine.el for more info."
 	;; interactive refontification.
 	(c-put-c-type-property (point) 'c-decl-arg-start))
 
-      (when (and c-record-type-identifiers at-type (not (eq at-type t)))
+      (when (and c-record-type-identifiers at-type ;; (not (eq at-type t))
+		 ;; There seems no reason to exclude a token from
+		 ;; fontification just because it's "a known type that can't
+		 ;; be a name or other expression".  2013-09-18.
+		 )
 	(let ((c-promote-possible-types t))
 	  (save-excursion
 	    (goto-char type-start)

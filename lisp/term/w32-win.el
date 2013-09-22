@@ -238,6 +238,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (declare-function x-open-connection "w32fns.c"
                   (display &optional xrm-string must-succeed))
+(declare-function create-default-fontset "fontset" ())
 (declare-function create-fontset-from-fontset-spec "fontset"
                   (fontset-spec &optional style-variant noerror))
 (declare-function create-fontset-from-x-resource "fontset" ())

@@ -19,9 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 
 INLINE_HEADER_BEGIN
-#ifndef INTERVALS_INLINE
-# define INTERVALS_INLINE INLINE
-#endif
 
 /* Basic data type for use of intervals.  */
 
@@ -136,14 +133,14 @@ struct interval
 /* Use these functions to set Lisp_Object
    or pointer slots of struct interval.  */
 
-INTERVALS_INLINE void
+INLINE void
 set_interval_parent (INTERVAL i, INTERVAL parent)
 {
   i->up_obj = 0;
   i->up.interval = parent;
 }
 
-INTERVALS_INLINE void
+INLINE void
 set_interval_plist (INTERVAL i, Lisp_Object plist)
 {
   i->plist = plist;

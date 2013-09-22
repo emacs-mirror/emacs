@@ -1228,10 +1228,9 @@ is non-nil."
 
 (defun vc-cvs-ignore (file &optional _directory _remove)
   "Ignore FILE under CVS."
-  (cvs-append-to-ignore (file-name-directory file) file))
+  (vc-cvs-append-to-ignore (file-name-directory file) file))
 
-;; FIXME This should be in the vc-cvs- namespace if it is to live here.
-(defun cvs-append-to-ignore (dir str &optional old-dir)
+(defun vc-cvs-append-to-ignore (dir str &optional old-dir)
   "In DIR, add STR to the .cvsignore file.
 If OLD-DIR is non-nil, then this is a directory that we don't want
 to hear about anymore."

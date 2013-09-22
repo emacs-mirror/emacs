@@ -1733,9 +1733,12 @@ toggle between displaying the document or editing it as text.
                   "/" (:eval (number-to-string (doc-view-last-page-number)))))
     ;; Don't scroll unless the user specifically asked for it.
     (setq-local auto-hscroll-mode nil)
-    (setq-local mwheel-scroll-up-function #'doc-view-scroll-up-or-next-page)
-    (setq-local mwheel-scroll-down-function
-                #'doc-view-scroll-down-or-previous-page)
+    (if (boundp 'mwheel-scroll-up-function) ; not --without-x build
+        (setq-local mwheel-scroll-up-function
+                    #'doc-view-scroll-up-or-next-page))
+    (if (boundp 'mwheel-scroll-down-function)
+        (setq-local mwheel-scroll-down-function
+                    #'doc-view-scroll-down-or-previous-page))
     (setq-local cursor-type nil)
     (use-local-map doc-view-mode-map)
     (add-hook 'after-revert-hook 'doc-view-reconvert-doc nil t)

@@ -1,3 +1,7 @@
+2013-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* eshell.texi: Markup fixes.
+
 2013-09-11  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ido.texi (Interactive Substring Matching): Use @key{RET} instead

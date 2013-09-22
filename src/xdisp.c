@@ -1,7 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -9538,7 +9537,20 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
-      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
+
+      /* Ensure the Messages buffer exists, and switch to it.
+         If we created it, set the major-mode.  */
+      {
+        int newbuffer = 0;
+        if (NILP (Fget_buffer (Vmessages_buffer_name))) newbuffer = 1;
+
+        Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
+
+        if (newbuffer &&
+            !NILP (Ffboundp (intern ("messages-buffer-mode"))))
+          call0 (intern ("messages-buffer-mode"));
+      }
+
       bset_undo_list (current_buffer, Qt);
 
       oldpoint = message_dolog_marker1;
@@ -11442,10 +11454,6 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Where the mouse was last time we reported a mouse event.  */
-
-struct frame *last_mouse_frame;
-
 /* Tool-bar item index of the item on which a mouse button was pressed
    or -1.  */
 
@@ -12275,7 +12283,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
 {
   Lisp_Object window = f->tool_bar_window;
   struct window *w = XWINDOW (window);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos, vpos;
   struct glyph *glyph;
@@ -12308,9 +12316,9 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   clear_mouse_face (hlinfo);
 
   /* Mouse is down, but on different tool-bar item?  */
-  mouse_down_p = (dpyinfo->grabbed
-		  && f == last_mouse_frame
-		  && FRAME_LIVE_P (f));
+  mouse_down_p = (x_mouse_grabbed (dpyinfo)
+		  && f == dpyinfo->last_mouse_frame);
+
   if (mouse_down_p
       && last_tool_bar_item != prop_idx)
     return;
@@ -17283,8 +17291,6 @@ try_window_id (struct window *w)
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
-	  else
-	    emacs_abort ();
 	  return 1;
 	}
     }
@@ -17325,8 +17331,6 @@ try_window_id (struct window *w)
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
-	  else
-	    emacs_abort ();
 	  return 2;
 	}
     }
@@ -26005,7 +26009,7 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
 
   /* Detect a nonselected window or nonselected frame.  */
   else if (w != XWINDOW (f->selected_window)
-	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
+	   || f != FRAME_DISPLAY_INFO (f)->x_highlight_frame)
     {
       *active_cursor = 0;
 
@@ -27658,7 +27662,7 @@ define_frame_cursor1 (struct frame *f, Cursor cursor, Lisp_Object pointer)
 	cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
 #ifdef HAVE_X_WINDOWS
       else if (EQ (pointer, intern ("vdrag")))
-	cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
+	cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 #endif
       else if (EQ (pointer, intern ("hourglass")))
 	cursor = FRAME_X_OUTPUT (f)->hourglass_cursor;
@@ -27821,7 +27825,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
-	  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+	  dpyinfo = FRAME_DISPLAY_INFO (f);
 	  if (STRINGP (string))
 	    {
 	      cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
@@ -27843,7 +27847,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	    }
 	  else
 	    /* Default mode-line pointer.  */
-	    cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
+	    cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 	}
 #endif
     }

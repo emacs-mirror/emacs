@@ -590,6 +590,8 @@ The functions are run with one arg, the newly created frame.")
   ;; FIXME: Shouldn't we add `font' here as well?
   "Parameters `make-frame' copies from the `selected-frame' to the new frame.")
 
+(defvar x-display-name)
+
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
 Optional argument PARAMETERS is an alist of frame parameters for
@@ -759,7 +761,7 @@ the user during startup."
 	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
 
-(declare-function x-focus-frame "xfns.c" (frame))
+(declare-function x-focus-frame "frame.c" (frame))
 
 (defun select-frame-set-input-focus (frame &optional norecord)
   "Select FRAME, raise it, and set input focus, if possible.
@@ -888,6 +890,9 @@ e.g. (mapc 'frame-set-background-mode (frame-list))."
 
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
+
+;; Only used if window-system is not null.
+(declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
 (defvar inhibit-frame-set-background-mode nil)
 

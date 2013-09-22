@@ -7788,7 +7788,7 @@
 	(ruby-syntax-propertize-function): Adjust for changes in
 	`ruby-syntax-propertize-heredoc'.
 
-2012-08-09 Nobuyoshi Nakada  <nobu@ruby-lang.org>
+2012-08-09  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
 	* progmodes/ruby-mode.el (ruby-mode-map): Remove deprecated
 	binding (use `M-;' instead).

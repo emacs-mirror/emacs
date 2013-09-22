@@ -1,7 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992-1994, 2000-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -4464,62 +4463,66 @@ value can be also stored on disk and read back in a new session."
 	  (set-window-parameter window (car parameter) (cdr parameter))))
       ;; Process buffer related state.
       (when state
-	;; We don't want to raise an error in case the buffer does not
-	;; exist anymore, so we switch to a previous one and save the
-	;; window with the intention of deleting it later if possible.
 	(let ((buffer (get-buffer (car state))))
 	  (if buffer
-	      (set-window-buffer window buffer)
+	      (with-current-buffer buffer
+		(set-window-buffer window buffer)
+		(set-window-hscroll window (cdr (assq 'hscroll state)))
+		(apply 'set-window-fringes
+		       (cons window (cdr (assq 'fringes state))))
+		(let ((margins (cdr (assq 'margins state))))
+		  (set-window-margins window (car margins) (cdr margins)))
+		(let ((scroll-bars (cdr (assq 'scroll-bars state))))
+		  (set-window-scroll-bars
+		   window (car scroll-bars) (nth 2 scroll-bars)
+		   (nth 3 scroll-bars)))
+		(set-window-vscroll window (cdr (assq 'vscroll state)))
+		;; Adjust vertically.
+		(if (memq window-size-fixed '(t height))
+		    ;; A fixed height window, try to restore the
+		    ;; original size.
+		    (let ((delta (- (cdr (assq 'total-height item))
+				    (window-total-height window)))
+			  window-size-fixed)
+		      (when (window-resizable-p window delta)
+			(window-resize window delta)))
+		  ;; Else check whether the window is not high enough.
+		  (let* ((min-size (window-min-size window nil ignore))
+			 (delta (- min-size (window-total-size window))))
+		    (when (and (> delta 0)
+			       (window-resizable-p window delta nil ignore))
+		      (window-resize window delta nil ignore))))
+		;; Adjust horizontally.
+		(if (memq window-size-fixed '(t width))
+		    ;; A fixed width window, try to restore the original
+		    ;; size.
+		    (let ((delta (- (cdr (assq 'total-width item))
+				    (window-total-width window)))
+			  window-size-fixed)
+		      (when (window-resizable-p window delta)
+			(window-resize window delta)))
+		  ;; Else check whether the window is not wide enough.
+		  (let* ((min-size (window-min-size window t ignore))
+			 (delta (- min-size (window-total-size window t))))
+		    (when (and (> delta 0)
+			       (window-resizable-p window delta t ignore))
+		      (window-resize window delta t ignore))))
+		;; Set dedicated status.
+		(set-window-dedicated-p window (cdr (assq 'dedicated state)))
+		;; Install positions (maybe we should do this after all
+		;; windows have been created and sized).
+		(ignore-errors
+		  (set-window-start window (cdr (assq 'start state)))
+		  (set-window-point window (cdr (assq 'point state))))
+		;; Select window if it's the selected one.
+		(when (cdr (assq 'selected state))
+		  (select-window window)))
+	    ;; We don't want to raise an error in case the buffer does
+	    ;; not exist anymore, so we switch to a previous one and
+	    ;; save the window with the intention of deleting it later
+	    ;; if possible.
 	    (switch-to-prev-buffer window)
-	    (push window window-state-put-stale-windows)))
-	(with-current-buffer (window-buffer window)
-	  (set-window-hscroll window (cdr (assq 'hscroll state)))
-	  (apply 'set-window-fringes
-		 (cons window (cdr (assq 'fringes state))))
-	  (let ((margins (cdr (assq 'margins state))))
-	    (set-window-margins window (car margins) (cdr margins)))
-	  (let ((scroll-bars (cdr (assq 'scroll-bars state))))
-	    (set-window-scroll-bars
-	     window (car scroll-bars) (nth 2 scroll-bars) (nth 3 scroll-bars)))
-	  (set-window-vscroll window (cdr (assq 'vscroll state)))
-	  ;; Adjust vertically.
-	  (if (memq window-size-fixed '(t height))
-	      ;; A fixed height window, try to restore the original size.
-	      (let ((delta (- (cdr (assq 'total-height item))
-			      (window-total-height window)))
-		    window-size-fixed)
-		(when (window-resizable-p window delta)
-		  (window-resize window delta)))
-	    ;; Else check whether the window is not high enough.
-	    (let* ((min-size (window-min-size window nil ignore))
-		   (delta (- min-size (window-total-size window))))
-	      (when (and (> delta 0)
-			 (window-resizable-p window delta nil ignore))
-		(window-resize window delta nil ignore))))
-	  ;; Adjust horizontally.
-	  (if (memq window-size-fixed '(t width))
-	      ;; A fixed width window, try to restore the original size.
-	      (let ((delta (- (cdr (assq 'total-width item))
-			      (window-total-width window)))
-		    window-size-fixed)
-		(when (window-resizable-p window delta)
-		  (window-resize window delta)))
-	    ;; Else check whether the window is not wide enough.
-	    (let* ((min-size (window-min-size window t ignore))
-		   (delta (- min-size (window-total-size window t))))
-	      (when (and (> delta 0)
-			 (window-resizable-p window delta t ignore))
-		(window-resize window delta t ignore))))
-	  ;; Set dedicated status.
-	  (set-window-dedicated-p window (cdr (assq 'dedicated state)))
-	  ;; Install positions (maybe we should do this after all windows
-	  ;; have been created and sized).
-	  (ignore-errors
-	    (set-window-start window (cdr (assq 'start state)))
-	    (set-window-point window (cdr (assq 'point state))))
-	  ;; Select window if it's the selected one.
-	  (when (cdr (assq 'selected state))
-	    (select-window window)))))))
+	    (push window window-state-put-stale-windows)))))))
 
 (defun window-state-put (state &optional window ignore)
   "Put window state STATE into WINDOW.
@@ -6149,6 +6152,9 @@ reduce this.  If it is thicker, you might want to increase this."
   :version "24.3"
   :group 'windows)
 
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+(declare-function tool-bar-lines-needed "xdisp.c" (&optional frame))
+
 (defun fit-frame-to-buffer (&optional frame max-height min-height)
   "Adjust height of FRAME to display its buffer contents exactly.
 FRAME can be any live frame and defaults to the selected one.
@@ -6159,6 +6165,8 @@ top line of FRAME, minus `fit-frame-to-buffer-bottom-margin'.
 Optional argument MIN-HEIGHT specifies the minimum height of FRAME.
 The default corresponds to `window-min-height'."
   (interactive)
+  (or (fboundp 'x-display-pixel-height)
+      (user-error "Cannot resize frame in non-graphic Emacs"))
   (setq frame (window-normalize-frame frame))
   (let* ((root (frame-root-window frame))
 	 (frame-min-height
@@ -6681,7 +6689,7 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
 	    (window-at (cadr mouse-position) (cddr mouse-position)
 		       (car mouse-position)))))
      (cond
-      ((or (menu-or-popup-active-p)
+      ((or (and (fboundp 'menu-or-popup-active-p) (menu-or-popup-active-p))
 	   (and window
 		(let ((coords (coordinates-in-window-p
 			       (cdr mouse-position) window)))

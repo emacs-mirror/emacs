@@ -35,6 +35,7 @@
 
 (require 'icalendar)
 (require 'eieio)
+(require 'gmm-utils)
 (require 'mm-decode)
 (require 'gnus-sum)
 
@@ -149,7 +150,7 @@
 (defun gnus-icalendar-event--find-attendee (ical name-or-email)
   (let* ((event (car (icalendar--all-events ical)))
          (event-props (caddr event)))
-    (labels ((attendee-name (att) (plist-get (cadr att) 'CN))
+    (gmm-labels ((attendee-name (att) (plist-get (cadr att) 'CN))
                  (attendee-email (att)
                    (replace-regexp-in-string "^.*MAILTO:" "" (caddr att)))
                  (attendee-prop-matches-p (prop)
@@ -189,7 +190,7 @@
                        ((string= method "REPLY") 'gnus-icalendar-event-reply)
                        (t 'gnus-icalendar-event))))
 
-    (labels ((map-property (prop)
+    (gmm-labels ((map-property (prop)
                    (let ((value (icalendar--get-event-property event prop)))
                      (when value
                        ;; ugly, but cannot get
@@ -233,7 +234,7 @@ status will be retrieved from the first matching attendee record."
   (let ((summary-status (capitalize (symbol-name status)))
         (attendee-status (upcase (symbol-name status)))
         reply-event-lines)
-    (labels ((update-summary (line)
+    (gmm-labels ((update-summary (line)
                    (if (string-match "^[^:]+:" line)
                        (replace-match (format "\\&%s: " summary-status) t nil line)
                      line))
@@ -280,7 +281,7 @@ status will be retrieved from the first matching attendee record."
 The reply will have STATUS (`accepted', `tentative' or  `declined').
 The reply will be composed for attendees matching any entry
 on the IDENTITIES list."
-  (flet ((extract-block (blockname)
+  (gmm-labels ((extract-block (blockname)
                (save-excursion
                  (let ((block-start-re (format "^BEGIN:%s" blockname))
                        (block-end-re (format "^END:%s" blockname))
@@ -419,7 +420,7 @@ the optional ORG-FILE argument is specified, only that one file
 is searched."
   (let ((uid (gnus-icalendar-event:uid event))
         (files (or org-file (org-agenda-files t 'ifmode))))
-    (flet
+    (gmm-labels
         ((find-event-in (file)
            (org-check-agenda-file file)
            (with-current-buffer (find-file-noselect file)
@@ -596,7 +597,7 @@ is searched."
 ;; TODO: make the template customizable
 (defmethod gnus-icalendar-event->gnus-calendar ((event gnus-icalendar-event) &optional reply-status)
   "Format an overview of EVENT details."
-  (flet ((format-header (x)
+  (gmm-labels ((format-header (x)
             (format "%-12s%s"
                     (propertize (concat (car x) ":") 'face 'bold)
                     (cadr x))))
@@ -673,7 +674,7 @@ is searched."
                    (current-buffer) status gnus-icalendar-identities))))
 
     (when reply
-      (flet ((fold-icalendar-buffer ()
+      (gmm-labels ((fold-icalendar-buffer ()
                (goto-char (point-min))
                (while (re-search-forward "^\\(.\\{72\\}\\)\\(.+\\)$" nil t)
                  (replace-match "\\1\n \\2")
@@ -735,7 +736,7 @@ is searched."
     (setq gnus-icalendar-reply-status nil)
 
     (when event
-      (flet ((insert-button-group (buttons)
+      (gmm-labels ((insert-button-group (buttons)
                 (when buttons
                   (mapc (lambda (x)
                           (apply 'gnus-icalendar-insert-button x)

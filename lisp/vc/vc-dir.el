@@ -245,6 +245,7 @@ See `run-hooks'."
     (define-key map "+" 'vc-update)	   ;; C-x v +
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
     (define-key map "L" 'vc-print-root-log) ;; C-x v L
+    (define-key map "I" 'vc-log-incoming)   ;; C-x v I
     ;; More confusing than helpful, probably
     ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer

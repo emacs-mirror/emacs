@@ -1,4 +1,4 @@
-;;; em-pred.el --- argument predicates and modifiers (ala zsh)
+;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -306,7 +306,7 @@ predicate functions.  MOD-FUNC-LIST is a list of result modifier
 functions.  PRED-FUNCS take a filename and return t if the test
 succeeds; MOD-FUNCS take any string and preform a modification,
 returning the resultant string."
-  (let (result negate follow preds mods)
+  (let (negate follow preds mods)
     (condition-case nil
 	(while (not (eobp))
 	  (let ((char (char-after)))
@@ -399,7 +399,7 @@ returning the resultant string."
 (defun eshell-pred-file-time (mod-char mod-type attr-index)
   "Return a predicate to test whether a file matches a certain time."
   (let* ((quantum 86400)
-	 qual amount when open close end)
+	 qual when open close end)
     (when (memq (char-after) '(?M ?w ?h ?m ?s))
       (setq quantum (char-after))
       (cond

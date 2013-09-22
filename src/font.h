@@ -825,6 +825,7 @@ extern void syms_of_w32font (void);
 extern Lisp_Object Qfontsize;
 extern struct font_driver nsfont_driver;
 extern void syms_of_nsfont (void);
+extern void syms_of_macfont (void);
 #endif	/* HAVE_NS */
 
 #ifndef FONT_DEBUG

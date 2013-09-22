@@ -597,7 +597,6 @@ EXTRA-PROPERTIES is currently unused."
 (defvar version-control)
 
 (defun package-generate-autoloads (name pkg-dir)
-  (require 'autoload)         ;Load before we let-bind generated-autoload-file!
   (let* ((auto-name (format "%s-autoloads.el" name))
 	 ;;(ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
@@ -1523,7 +1522,7 @@ This fetches the contents of each archive specified in
 `package-archives', and then refreshes the package menu."
   (interactive)
   (unless (derived-mode-p 'package-menu-mode)
-    (error "The current buffer is not a Package Menu"))
+    (user-error "The current buffer is not a Package Menu"))
   (package-refresh-contents)
   (package-menu--generate t t))
 
@@ -1535,7 +1534,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 		    (tabulated-list-get-id))))
     (if pkg-desc
 	(describe-package pkg-desc)
-      (error "No package here"))))
+      (user-error "No package here"))))
 
 ;; fixme numeric argument
 (defun package-menu-mark-delete (&optional _num)

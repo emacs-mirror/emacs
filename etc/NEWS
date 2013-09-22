@@ -54,6 +54,11 @@ and zlib-format compressed data.
 ** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.
 pkg-config is required to find ImageMagick libraries.
 
+** For OSX >= 10.5, the Core text based font backend from the Mac port is used.
+For GNUStep and OSX 10.4 the old backend is used.
+To use the old backend by default, do on the command line:
+% defaults write org.gnu.Emacs FontBackend ns
+
 
 * Startup Changes in Emacs 24.4
 
@@ -87,6 +92,10 @@ simply disabling Transient Mark mode does the same thing.
 
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
+
+** The *Messages* buffer is created in a new major mode `messages-buffer-mode',
+and read-only.  Code that might create the *Messages* buffer should
+call the function `messages-buffer' to do so and set the mode.
 
 ** `remember-notes' creates a buffer whose content is saved on kill-emacs.
 You may think of it as a *scratch* buffer whose content is preserved.
@@ -266,9 +275,15 @@ whole tree revisions.
 *** In VC directory mode, `L' lists the change log for the current VC
 controlled tree in a window.
 
+*** In VC directory mode, `I' shows a log of changes that will be
+received with a pull operation.
+
 *** `C-x v G' (globally) and `G' (in VC directory mode) ignores a file
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
+
+*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
+because it is moved to vc-cvs.el.
 
 ** cl-lib
 
@@ -622,6 +637,16 @@ for something (not just adding elements to it), it ought not to affect you.
 
 
 * Lisp Changes in Emacs 24.4
+
+** New bool-vector set operation functions:
+*** `bool-vector-exclusive-or'
+*** `bool-vector-union'
+*** `bool-vector-intersection'
+*** `bool-vector-set-difference'
+*** `bool-vector-not'
+*** `bool-vector-subset'
+*** `bool-vector-count-matches'
+*** `bool-vector-count-matches-at'
 
 ** Comparison functions =, <, >, <=, >= now take many arguments.
 

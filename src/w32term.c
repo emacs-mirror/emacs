@@ -149,9 +149,6 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #define SM_CYVIRTUALSCREEN 79
 #endif
 
-/* This is a frame waiting to be autoraised, within w32_read_socket.  */
-struct frame *pending_autoraise_frame;
-
 /* The handle of the frame that currently owns the system caret.  */
 HWND w32_system_caret_hwnd;
 int w32_system_caret_height;
@@ -173,31 +170,6 @@ int last_scroll_bar_drag_pos;
 
 /* Keyboard code page - may be changed by language-change events.  */
 int w32_keyboard_codepage;
-
-/* Mouse movement. */
-
-/* Where the mouse was last time we reported a mouse event.  */
-static RECT last_mouse_glyph;
-static struct frame *last_mouse_glyph_frame;
-
-/* The scroll bar in which the last motion event occurred.
-
-   If the last motion event occurred in a scroll bar, we set this
-   so w32_mouse_position can know whether to report a scroll bar motion or
-   an ordinary motion.
-
-   If the last motion event didn't occur in a scroll bar, we set this
-   to Qnil, to tell w32_mouse_position to return an ordinary motion event.  */
-static Lisp_Object last_mouse_scroll_bar;
-static int last_mouse_scroll_bar_pos;
-
-/* This is a hack.  We would really prefer that w32_mouse_position would
-   return the time associated with the position it returns, but there
-   doesn't seem to be any way to wrest the time-stamp from the server
-   along with the position query.  So, we just keep track of the time
-   of the last movement we received, and return that in hopes that
-   it's somewhat accurate.  */
-static Time last_mouse_movement_time;
 
 /* Incremented by w32_read_socket whenever it really tries to read
    events.  */
@@ -477,7 +449,7 @@ w32_clear_window (struct frame *f)
 void
 x_set_frame_alpha (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   double alpha = 1.0;
   double alpha_min = 1.0;
   BYTE opac;
@@ -557,7 +529,7 @@ x_display_pixel_width (struct w32_display_info *dpyinfo)
 static void
 x_update_begin (struct frame *f)
 {
-  struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *display_info = FRAME_DISPLAY_INFO (f);
 
   if (! FRAME_W32_P (f))
     return;
@@ -1003,14 +975,14 @@ x_set_cursor_gc (struct glyph_string *s)
       xgcv.font = s->font;
       mask = GCForeground | GCBackground | GCFont;
 
-      if (FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc)
-	XChangeGC (NULL, FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc,
+      if (FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc)
+	XChangeGC (NULL, FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc,
 		   mask, &xgcv);
       else
-	FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc
+	FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc
 	  = XCreateGC (NULL, s->window, mask, &xgcv);
 
-      s->gc = FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc;
+      s->gc = FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc;
     }
 }
 
@@ -1052,14 +1024,14 @@ x_set_mouse_face_gc (struct glyph_string *s)
       xgcv.font = s->font;
       mask = GCForeground | GCBackground | GCFont;
 
-      if (FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc)
-	XChangeGC (NULL, FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc,
+      if (FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc)
+	XChangeGC (NULL, FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc,
 		   mask, &xgcv);
       else
-	FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc
+	FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc
 	  = XCreateGC (NULL, s->window, mask, &xgcv);
 
-      s->gc = FRAME_W32_DISPLAY_INFO (s->f)->scratch_cursor_gc;
+      s->gc = FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc;
     }
 
   eassert (s->gc != 0);
@@ -1623,7 +1595,7 @@ w32_setup_relief_color (struct frame *f, struct relief *relief, double factor,
   unsigned long mask = GCForeground;
   COLORREF pixel;
   COLORREF background = di->relief_background;
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   /* TODO: Free colors (if using palette)? */
 
@@ -2823,9 +2795,9 @@ x_new_focus_frame (struct w32_display_info *dpyinfo, struct frame *frame)
 	x_lower_frame (old_focus);
 
       if (dpyinfo->w32_focus_frame && dpyinfo->w32_focus_frame->auto_raise)
-	pending_autoraise_frame = dpyinfo->w32_focus_frame;
+	dpyinfo->w32_pending_autoraise_frame = dpyinfo->w32_focus_frame;
       else
-	pending_autoraise_frame = 0;
+	dpyinfo->w32_pending_autoraise_frame = NULL;
     }
 
   x_frame_rehighlight (dpyinfo);
@@ -2930,7 +2902,7 @@ w32_frame_rehighlight (struct frame *frame)
 {
   if (! FRAME_W32_P (frame))
     return;
-  x_frame_rehighlight (FRAME_W32_DISPLAY_INFO (frame));
+  x_frame_rehighlight (FRAME_DISPLAY_INFO (frame));
 }
 
 static void
@@ -3307,47 +3279,47 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
    the mainstream emacs code by setting mouse_moved.  If not, ask for
    another motion event, so we can check again the next time it moves.  */
 
-static MSG last_mouse_motion_event;
-static Lisp_Object last_mouse_motion_frame;
-
 static int
 note_mouse_movement (struct frame *frame, MSG *msg)
 {
+  struct w32_display_info *dpyinfo;
   int mouse_x = LOWORD (msg->lParam);
   int mouse_y = HIWORD (msg->lParam);
-
-  last_mouse_movement_time = msg->time;
-  memcpy (&last_mouse_motion_event, msg, sizeof (last_mouse_motion_event));
-  XSETFRAME (last_mouse_motion_frame, frame);
+  RECT *r;
 
   if (!FRAME_X_OUTPUT (frame))
     return 0;
 
+  dpyinfo = FRAME_DISPLAY_INFO (frame);
+  dpyinfo->last_mouse_movement_time = msg->time;
+  dpyinfo->last_mouse_motion_frame = frame;
+  dpyinfo->last_mouse_motion_x = mouse_x;
+  dpyinfo->last_mouse_motion_y = mouse_y;
+
   if (msg->hwnd != FRAME_W32_WINDOW (frame))
     {
       frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, -1, -1);
-      last_mouse_glyph_frame = 0;
+      dpyinfo->last_mouse_glyph_frame = NULL;
       return 1;
     }
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (frame != last_mouse_glyph_frame
-      || mouse_x < last_mouse_glyph.left
-      || mouse_x >= last_mouse_glyph.right
-      || mouse_y < last_mouse_glyph.top
-      || mouse_y >= last_mouse_glyph.bottom)
+  r = &dpyinfo->last_mouse_glyph;
+  if (frame != dpyinfo->last_mouse_glyph_frame
+      || mouse_x < r->left || mouse_x >= r->right
+      || mouse_y < r->top  || mouse_y >= r->bottom)
     {
       frame->mouse_moved = 1;
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, mouse_x, mouse_y);
       /* Remember the mouse position here, as w32_mouse_position only
 	 gets called when mouse tracking is enabled but we also need
 	 to keep track of the mouse for help_echo and highlighting at
 	 other times.  */
-      remember_mouse_glyph (frame, mouse_x, mouse_y, &last_mouse_glyph);
-      last_mouse_glyph_frame = frame;
+      remember_mouse_glyph (frame, mouse_x, mouse_y, r);
+      dpyinfo->last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -3365,16 +3337,6 @@ static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 					Lisp_Object *, Lisp_Object *,
 					unsigned long *);
 static void x_check_fullscreen (struct frame *);
-
-static void
-redo_mouse_highlight (void)
-{
-  if (!NILP (last_mouse_motion_frame)
-      && FRAME_LIVE_P (XFRAME (last_mouse_motion_frame)))
-    note_mouse_highlight (XFRAME (last_mouse_motion_frame),
-			  LOWORD (last_mouse_motion_event.lParam),
-			  HIWORD (last_mouse_motion_event.lParam));
-}
 
 static void
 w32_define_cursor (Window window, Cursor cursor)
@@ -3407,10 +3369,11 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    unsigned long *time)
 {
   struct frame *f1;
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
 
   block_input ();
 
-  if (! NILP (last_mouse_scroll_bar) && insist == 0)
+  if (dpyinfo->last_mouse_scroll_bar && insist == 0)
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, time);
   else
     {
@@ -3422,26 +3385,18 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       FOR_EACH_FRAME (tail, frame)
 	XFRAME (frame)->mouse_moved = 0;
 
-      last_mouse_scroll_bar = Qnil;
+      dpyinfo->last_mouse_scroll_bar = NULL;
 
       GetCursorPos (&pt);
 
       /* Now we have a position on the root; find the innermost window
 	 containing the pointer.  */
       {
-	if (FRAME_W32_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
-	    && FRAME_LIVE_P (last_mouse_frame))
-	  {
-	    /* If mouse was grabbed on a frame, give coords for that frame
-	       even if the mouse is now outside it.  */
-	    f1 = last_mouse_frame;
-	  }
-	else
-	  {
-	    /* Is window under mouse one of our frames?  */
-	    f1 = x_any_window_to_frame (FRAME_W32_DISPLAY_INFO (*fp),
-                                    WindowFromPoint (pt));
-	  }
+	/* If mouse was grabbed on a frame, give coords for that
+	   frame even if the mouse is now outside it.  Otherwise
+	   check for window under mouse on one of our frames.  */
+	f1 = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+	      : x_any_window_to_frame (dpyinfo, WindowFromPoint (pt)));
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -3468,16 +3423,17 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
+	    dpyinfo = FRAME_DISPLAY_INFO (f1);
 	    ScreenToClient (FRAME_W32_WINDOW (f1), &pt);
-	    remember_mouse_glyph (f1, pt.x, pt.y, &last_mouse_glyph);
-	    last_mouse_glyph_frame = f1;
+	    remember_mouse_glyph (f1, pt.x, pt.y, &dpyinfo->last_mouse_glyph);
+	    dpyinfo->last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
 	    *part = 0;
 	    *fp = f1;
 	    XSETINT (*x, pt.x);
 	    XSETINT (*y, pt.y);
-	    *time = last_mouse_movement_time;
+	    *time = dpyinfo->last_mouse_movement_time;
 	  }
       }
     }
@@ -3866,8 +3822,7 @@ w32_set_vertical_scroll_bar (struct window *w,
           /* Make sure scroll bar is "visible" before moving, to ensure the
              area of the parent window now exposed will be refreshed.  */
           my_show_window (f, hwnd, SW_HIDE);
-          MoveWindow (hwnd, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		      top, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
+          MoveWindow (hwnd, sb_left, top, sb_width,
 		      max (height, 1), TRUE);
 
 	  si.cbSize = sizeof (si);
@@ -4026,6 +3981,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 
   {
     int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+    struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
     int y;
     int dragging = !NILP (bar->dragging);
     SCROLLINFO si;
@@ -4037,9 +3993,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
     y = si.nPos;
 
     bar->dragging = Qnil;
-
-
-    last_mouse_scroll_bar_pos = msg->msg.wParam;
+    FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
 
     switch (LOWORD (msg->msg.wParam))
       {
@@ -4122,7 +4076,8 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    Lisp_Object *x, Lisp_Object *y,
 			    unsigned long *time)
 {
-  struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
+  struct scroll_bar *bar = dpyinfo->last_mouse_scroll_bar;
   Window w = SCROLL_BAR_W32_WINDOW (bar);
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int pos;
@@ -4141,13 +4096,13 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   pos = si.nPos;
   top_range = si.nMax - si.nPage + 1;
 
-  switch (LOWORD (last_mouse_scroll_bar_pos))
+  switch (LOWORD (dpyinfo->last_mouse_scroll_bar_pos))
   {
   case SB_THUMBPOSITION:
   case SB_THUMBTRACK:
       *part = scroll_bar_handle;
       if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height)) <= 0xffff)
-	  pos = HIWORD (last_mouse_scroll_bar_pos);
+	pos = HIWORD (dpyinfo->last_mouse_scroll_bar_pos);
       break;
   case SB_LINEDOWN:
       *part = scroll_bar_handle;
@@ -4162,9 +4117,9 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   XSETINT (*y, top_range);
 
   f->mouse_moved = 0;
-  last_mouse_scroll_bar = Qnil;
+  dpyinfo->last_mouse_scroll_bar = NULL;
 
-  *time = last_mouse_movement_time;
+  *time = dpyinfo->last_mouse_movement_time;
 
   unblock_input ();
 }
@@ -4483,11 +4438,8 @@ w32_read_socket (struct terminal *terminal,
           previous_help_echo_string = help_echo_string;
 	  help_echo_string = Qnil;
 
-	  if (dpyinfo->grabbed && last_mouse_frame
-	      && FRAME_LIVE_P (last_mouse_frame))
-	    f = last_mouse_frame;
-	  else
-	    f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+	       : x_window_to_frame (dpyinfo, msg.msg.hwnd));
 
 	  if (hlinfo->mouse_face_hidden)
 	    {
@@ -4563,11 +4515,8 @@ w32_read_socket (struct terminal *terminal,
 	    int button;
 	    int up;
 
-	    if (dpyinfo->grabbed && last_mouse_frame
-		&& FRAME_LIVE_P (last_mouse_frame))
-	      f = last_mouse_frame;
-	    else
-	      f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+		 : x_window_to_frame (dpyinfo, msg.msg.hwnd));
 
 	    if (f)
 	      {
@@ -4606,7 +4555,7 @@ w32_read_socket (struct terminal *terminal,
 	    else
 	      {
 		dpyinfo->grabbed |= (1 << button);
-		last_mouse_frame = f;
+		dpyinfo->last_mouse_frame = f;
                 /* Ignore any mouse motion that happened
                    before this event; any subsequent mouse-movement
                    Emacs events should reflect only motion after
@@ -4623,11 +4572,8 @@ w32_read_socket (struct terminal *terminal,
 	case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
 	  {
-	    if (dpyinfo->grabbed && last_mouse_frame
-		&& FRAME_LIVE_P (last_mouse_frame))
-	      f = last_mouse_frame;
-	    else
-	      f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+		 : x_window_to_frame (dpyinfo, msg.msg.hwnd));
 
 	    if (f)
 	      {
@@ -4644,7 +4590,7 @@ w32_read_socket (struct terminal *terminal,
 		   ButtonPress.  */
 		f->mouse_moved = 0;
 	      }
-	    last_mouse_frame = f;
+	    dpyinfo->last_mouse_frame = f;
 	    last_tool_bar_item = -1;
 	  }
 	  break;
@@ -4691,13 +4637,7 @@ w32_read_socket (struct terminal *terminal,
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
 	  if (f && !FRAME_ICONIFIED_P (f))
-	    {
-	      int x, y;
-
-	      x_real_positions (f, &x, &y);
-	      f->left_pos = x;
-	      f->top_pos = y;
-	    }
+	    x_real_positions (f, &f->left_pos, &f->top_pos);
 
 	  check_visibility = 1;
 	  break;
@@ -4709,7 +4649,7 @@ w32_read_socket (struct terminal *terminal,
 	  if (!msg.msg.wParam && msg.msg.hwnd == tip_window)
 	    {
 	      tip_window = NULL;
-	      redo_mouse_highlight ();
+	      x_redo_mouse_highlight (dpyinfo);
 	    }
 
 	  /* If window has been obscured or exposed by another window
@@ -4760,16 +4700,12 @@ w32_read_socket (struct terminal *terminal,
 
 		    if (iconified)
 		      {
-			int x, y;
-
 			/* Reset top and left positions of the Window
 			   here since Windows sends a WM_MOVE message
 			   BEFORE telling us the Window is minimized
 			   when the Window is iconified, with 3000,3000
 			   as the co-ords. */
-			x_real_positions (f, &x, &y);
-			f->left_pos = x;
-			f->top_pos = y;
+			x_real_positions (f, &f->left_pos, &f->top_pos);
 
 			inev.kind = DEICONIFY_EVENT;
 			XSETFRAME (inev.frame_or_window, f);
@@ -4982,12 +4918,11 @@ w32_read_socket (struct terminal *terminal,
     }
 
   /* If the focus was just given to an autoraising frame,
-     raise it now.  */
-  /* ??? This ought to be able to handle more than one such frame.  */
-  if (pending_autoraise_frame)
+     raise it now.  FIXME: handle more than one such frame.  */
+  if (dpyinfo->w32_pending_autoraise_frame)
     {
-      x_raise_frame (pending_autoraise_frame);
-      pending_autoraise_frame = 0;
+      x_raise_frame (dpyinfo->w32_pending_autoraise_frame);
+      dpyinfo->w32_pending_autoraise_frame = NULL;
     }
 
   /* Check which frames are still visible, if we have enqueued any user
@@ -5539,13 +5474,13 @@ x_calc_absolute_position (struct frame *f)
   /* Treat negative positions as relative to the rightmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->left_pos = (x_display_pixel_width (FRAME_W32_DISPLAY_INFO (f))
+    f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
 		   - FRAME_PIXEL_WIDTH (f)
 		   + f->left_pos
 		   - (left_right_borders_width - 1));
 
   if (flags & YNegative)
-    f->top_pos = (x_display_pixel_height (FRAME_W32_DISPLAY_INFO (f))
+    f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
 		  - FRAME_PIXEL_HEIGHT (f)
 		  + f->top_pos
 		  - (top_bottom_borders_height - 1));
@@ -5806,7 +5741,7 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 /* focus shifting, raising and lowering.  */
 
 void
-x_focus_on_frame (struct frame *f)
+x_focus_frame (struct frame *f)
 {
   struct w32_display_info *dpyinfo = &one_w32_display_info;
 
@@ -5920,13 +5855,9 @@ w32_frame_raise_lower (struct frame *f, int raise_flag)
 void
 x_make_frame_visible (struct frame *f)
 {
-  Lisp_Object type;
-
   block_input ();
 
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
+  x_set_bitmap_icon (f);
 
   if (! FRAME_VISIBLE_P (f))
     {
@@ -6013,8 +5944,8 @@ void
 x_make_frame_invisible (struct frame *f)
 {
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
-    FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
+  if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   block_input ();
 
@@ -6036,20 +5967,16 @@ x_make_frame_invisible (struct frame *f)
 void
 x_iconify_frame (struct frame *f)
 {
-  Lisp_Object type;
-
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
-    FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
+  if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   if (FRAME_ICONIFIED_P (f))
     return;
 
   block_input ();
 
-  type = x_icon_type (f);
-  if (!NILP (type))
-    x_bitmap_icon (f, type);
+  x_set_bitmap_icon (f);
 
   /* Simulate the user minimizing the frame.  */
   SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -6066,7 +5993,7 @@ x_iconify_frame (struct frame *f)
 void
 x_free_frame_resources (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
   block_input ();
@@ -6116,7 +6043,7 @@ x_free_frame_resources (struct frame *f)
 void
 x_destroy_window (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   x_free_frame_resources (f);
   dpyinfo->reference_count--;
@@ -6602,9 +6529,6 @@ syms_of_w32term (void)
   staticpro (&w32_display_name_list);
   w32_display_name_list = Qnil;
 
-  staticpro (&last_mouse_scroll_bar);
-  last_mouse_scroll_bar = Qnil;
-
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
 
   DEFSYM (Qadded, "added");
@@ -6687,9 +6611,6 @@ With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
 With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qt;
-
-  staticpro (&last_mouse_motion_frame);
-  last_mouse_motion_frame = Qnil;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qw32, Qnil);

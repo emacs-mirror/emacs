@@ -1,3 +1,455 @@
+2013-09-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* conf_post.h (assume): Fix compiler error: x shall be cond.
+
+2013-09-22  Daniel Colascione  <dancol@dancol.org>
+
+	* xfns.c (x_get_monitor_attributes): Suppress unused variable
+	warning when compiling without a window system.
+
+2013-09-22  Daniel Colascione  <dancol@dancol.org>
+
+	* data.c (Qbool_vector_p): New symbol.
+	(bool_vector_spare_mask,popcount_size_t_generic)
+	(popcount_size_t_msc,popcount_size_t_gcc)
+	(popcount_size_t)
+	(bool_vector_binop_driver)
+	(count_trailing_zero_bits,size_t_to_host_endian)
+	(Fbool_vector_exclusive_or)
+	(Fbool_vector_union)
+	(Fbool_vector_intersection,Fbool_vector_set_difference)
+	(Fbool_vector_subsetp,Fbool_vector_not)
+	(Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at): New functions.
+	(syms_of_data): Intern new symbol, functions.
+	* alloc.c (bool_vector_payload_bytes): New function.
+	(Fmake_bool_vector): Instead of calling Fmake_vector,
+	which performs redundant initialization and argument checking,
+	just call allocate_vector ourselves.  Make sure we clear any
+	terminating padding to zero.
+	(vector_nbytes,sweep_vectors): Use bool_vector_payload_bytes
+	instead of open-coding the size calculation.
+	(vroundup_ct): New macro.
+	(vroundup): Assume argument >= 0; invoke vroundup_ct.
+	* casetab.c (shuffle,set_identity): Change lint_assume to assume.
+	* composite.c (composition_gstring_put_cache): Change
+	lint_assume to assume.
+	* conf_post.h (assume): New macro.
+	(lint_assume): Remove.
+	* dispnew.c (update_frame_1): Change lint_assume to assume.
+	* ftfont.c (ftfont_shape_by_flt): Change lint_assume
+	to assume.
+	* image.c (gif_load): Change lint_assume to assume.
+	* lisp.h (eassert_and_assume): New macro.
+	(Qbool_vector_p): Declare.
+	(CHECK_BOOL_VECTOR,ROUNDUP,BITS_PER_SIZE_T): New macros.
+	(swap16,swap32,swap64): New inline functions.
+	* macfont.c (macfont_shape): Change lint_assume to assume.
+	* ralloc.c: Rename ROUNDUP to PAGE_ROUNDUP throughout.
+	* xsettings.c (parse_settings): Use new swap16 and
+	swap32 from lisp.h instead of file-specific macros.
+
+2013-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_id): Don't abort if cursor row could not be
+	found (which can legitimately happen when the glyph row at the
+	window start is disabled in the current_matrix.  (Bug#15365)
+
+2013-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix syntax.h bug introduced by recent INLINE change.
+	syntax.h defined an extern inline function SYNTAX_ENTRY that was
+	conditionally compiled one way in some modules, and a different
+	way in others.  This doesn't work with extern inline functions,
+	which must have the same definition in all modules, because the
+	defining code might be shared across modules, depending on the
+	implementation.  Symptoms reported by Martin Rudalics in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00414.html
+	* regex.c, syntax.c (SYNTAX_ENTRY_VIA_PROPERTY): Remove.
+	(SYNTAX, SYNTAX_ENTRY, SYNTAX_WITH_FLAGS): New macros,
+	overriding the corresponding functions in syntax.h.
+	* syntax.h (syntax_property_entry, syntax_property_with_flags)
+	(syntax_property): New inline functions.
+	(SYNTAX_ENTRY, SYNTAX_WITH_FLAGS, SYNTAX):
+	Rewrite in terms of these new functions.
+
+2013-09-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (directory_files_internal): Use multibyte_chars_in_text,
+	not chars_in_text, whose result depends on the multibyteness of
+	the current buffer.  (Bug#15426)
+
+2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent change to hosts where pointers aren't 'long'.
+	* xterm.c (x_send_scroll_bar_event, x_scroll_bar_to_input_event):
+	Don't assume that pointers are the same width as 'long'.
+	Add a compile-time check that a pointer fits into two X slots.
+
+	A simpler, centralized INLINE.
+	* conf_post.h (INLINE): Define only if not already defined.
+	This allows us to use a single INLINE, defined by one file
+	per executable.
+	* emacs.c (INLINE): Define it.
+	Also, include category.h, charset.h, composite.h, dispextern.h,
+	syntax.h, systime.h, so that their INLINE definitions are expanded
+	properly for Emacs.
+	* blockinput.h, keyboard.c (BLOCKINPUT_INLINE):
+	* buffer.h, buffer.c (BUFFER_INLINE):
+	* category.h, category.c (CATEGORY_INLINE):
+	* character.h, character.c (CHARACTER_INLINE):
+	* charset.h, charset.c (CHARSET_INLINE):
+	* composite.h, composite.c (COMPOSITE_INLINE):
+	* dispextern.h, dispnew.c (DISPEXTERN_INLINE):
+	* frame.h, frame.c (FRAME_INLINE):
+	* intervals.h, intervals.c (INTERVALS_INLINE):
+	* keyboard.h, keyboard.c (KEYBOARD_INLINE):
+	* lisp.h, alloc.c (LISP_INLINE):
+	* process.h, process.c (PROCESS_INLINE):
+	* syntax.h, syntax.c (SYNTAX_INLINE):
+	* systime.h, sysdep.c (SYSTIME_INLINE):
+	* termhooks.h, terminal.h (TERMHOOKS_INLINE):
+	* window.h, window.c (WINDOW_INLINE):
+	Remove.  All uses replaced with INLINE.
+
+2013-09-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (handle_one_xevent): Revert part of 2013-09-17 change
+	to avoid Bug#15398.
+
+2013-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32reg.c (w32_get_string_resource): Make the first 2 arguments
+	'const char *' to avoid compiler warnings due to similar change in
+	the prototype of x_get_string_resource.
+
+2013-09-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_display_info): New members last_mouse_glyph_frame,
+	last_mouse_scroll_bar, last_mouse_glyph and last_mouse_movement_time,
+	going to replace static variables below.  Adjust comments.
+	* xterm.c (last_mouse_glyph, last_mouse_glyph_frame)
+	(last_mouse_scroll_bar, last_mouse_movement_time): Remove.
+	(note_mouse_movement, XTmouse_position, x_scroll_bar_note_movement)
+	(x_scroll_bar_report_motion, handle_one_xevent, syms_of_xterm):
+	Related users changed.
+	* w32term.h (struct w32_display_info): New members last_mouse_glyph_frame,
+	last_mouse_scroll_bar, last_mouse_scroll_bar_pos, last_mouse_glyph and
+	last_mouse_movement_time, going to replace static variables below.
+	Adjust comments.
+	* w32term.c (last_mouse_glyph_frame, last_mouse_scroll_bar)
+	(last_mouse_scroll_bar_pos, last_mouse_glyph, last_mouse_movement_time):
+	Remove.
+	(note_mouse_movement, w32_mouse_position, w32_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion, syms_of_w32term): Related users changed.
+	* nsterm.h (struct ns_display_info): New members last_mouse_glyph,
+	last_mouse_movement_time and last_mouse_scroll_bar, going to replace
+	static variables below.
+	* nsterm.m (last_mouse_glyph, last_mouse_movement_time)
+	(last_mouse_scroll_bar): Remove.
+	(note_mouse_movement, ns_mouse_position, mouseMoved, mouseEntered)
+	(mouseExited): Related users changed.
+
+2013-09-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use external array to process X scroll bar messages.
+	* xterm.c (scroll_bar_windows, scroll_bar_windows_size): Remove.
+	(x_send_scroll_bar_event): Pack window pointer into two slots
+	of XClientMessageEvent if we're 64-bit.  Adjust comment.
+	(x_scroll_bar_to_input_event): Unpack accordingly.
+
+2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Ifdef away recent changes which aren't relevant to NS port.
+	* dispextern.h (x_mouse_grabbed, x_redo_mouse_highlight)
+	[!HAVE_NS]: Declare as such.
+	* frame.c (x_mouse_grabbed, x_redo_mouse_highlight)
+	[!HAVE_NS]: Define as such.
+
+2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (x_redo_mouse_highlight): New function
+	to factor out common code used in W32 and X ports.
+	* dispextern.h (x_redo_mouse_highlight): Add prototype.
+	* xterm.h (struct x_display_info):
+	* w32term.h (struct w32_display_info):
+	* nsterm.h (struct ns_display_info): New members
+	last_mouse_motion_frame, last_mouse_motion_x and
+	last_mouse_motion_y, going to replace static variables below.
+	* xterm.c (last_mouse_motion_event, last_mouse_motion_frame)
+	(redo_mouse_highlight): Remove.
+	(note_mouse_movement, syms_of_xterm): Adjust user.
+	(handle_one_xevent): Likewise.  Use x_redo_mouse_highlight.
+	* w32term.c (last_mouse_motion_event, last_mouse_motion_frame)
+	(redo_mouse_highlight): Remove.
+	(note_mouse_movement, syms_of_w32term): Adjust user.
+	(w32_read_socket): Likewise.  Use x_redo_mouse_highlight.
+	* nsterm.m (last_mouse_motion_position, last_mouse_motion_frame):
+	Remove.
+	(note_mouse_movement, mouseMoved, syms_of_nsterm):
+	* nsfns.m (compute_tip_xy): Adjust user.
+
+2013-09-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (x_mouse_grabbed): New function.
+	* dispextern.h (x_mouse_grabbed): Add prototype.
+	(last_mouse_frame): Remove declaration.
+	* xterm.h (struct x_display_info):
+	* w32term.h (struct w32_display_info):
+	* nsterm.h (struct ns_display_info): New member
+	last_mouse_frame, going to replace...
+	* xdisp.c (last_mouse_frame): ...global variable.
+	(note_tool_bar_highlight):
+	* w32term.c (w32_mouse_position, w32_read_socket):
+	* xterm.c (XTmouse_position, handle_one_xevent):
+	Use x_mouse_grabbed.
+	* nsterm.m (ns_mouse_position, mouseDown): Adjust user.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* w32term.c (w32_read_socket): Avoid temporary
+	variables in a call to x_real_positions.
+	* xterm.c (handle_one_xevent): Likewise.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (x_set_bitmap_icon) [!HAVE_NS]: New function.
+	(x_icon_type): Remove prototype.
+	(x_bitmap_icon) [!HAVE_NS]: Declare as such.
+	* frame.c (x_icon_type): Remove.
+	* w32term.c (x_make_frame_visible, x_iconify_frame):
+	* xterm.c (x_make_frame_visible, x_iconify_frame):
+	Use x_set_bitmap_icon to factor out common code.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (check_x_display_info, x_get_string_resource):
+	Declare here just once and unify the latter.
+	* frame.c (check_x_display_info, x_get_string_resource):
+	* nsterm.h (check_x_display_info):
+	* xrdb.c (x_get_string_resource):
+	* xterm.h (check_x_display_info): Remove prototypes.
+	* nsfns.m (x_get_string_resource): Likewise.  Adjust definition.
+	* w32reg.c (x_get_string_resource): Likewise.
+	(w32_get_rdb_resource): Adjust user.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_display_info): New member
+	x_pending_autoraise_frame, going to replace...
+	* xterm.c (pending_autoraise_frame): ...static variable.
+	(x_new_focus_frame, XTread_socket): Adjust users.
+	* w32term.h (struct w32_display_info): New member
+	w32_pending_autoraise_frame, going to replace...
+	* w32term.c (pending_autoraise_frame): ...global variable.
+	(x_new_focus_frame, w32_read_socket): Adjust users.
+
+2013-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* xdisp.c (message_dolog): If we create *Messages*,
+	switch it to messages-buffer-mode.
+
+2013-09-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't overuse 'const' in types of locals.
+	* bidi.c (bidi_count_bytes):
+	* gtkutil.c, gtkutil.h (xg_event_is_for_menubar)
+	(xg_event_is_for_scrollbar):
+	* xselect.c (x_handle_property_notify)
+	(x_handle_selection_notify, x_handle_dnd_message):
+	* xsettings.c, xsettings.h (xft_settings_event):
+	* xterm.c (x_handle_net_wm_state, handle_one_event)
+	(x_menubar_window_to_frame, x_detect_focus_change)
+	(construct_mouse_click, note_mouse_movement)
+	(x_scroll_bar_to_input_event, x_scroll_bar_expose)
+	(x_scroll_bar_handle_click, x_scroll_bar_note_movement)
+	(handle_one_xevent, x_handle_net_wm_state):
+	* xterm.h (x_handle_property_notify, x_handle_selection_notify)
+	(x_handle_dnd_message):
+	Avoid unnecessary 'const', typically the second 'const' in
+	'const foo * const arg', a 'const' that does not affect the API
+	and doesn't significantly help the human reader.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* image.c (fn_g_type_init) [WINDOWSNT]: Define and load
+	only if Glib < 2.36.0.
+	(fn_g_type_init) [!WINDOWSNT]: Define only if Glib < 2.36.0.
+	* xsettings.c (init_gconf, init_gsettings): Do not check
+	for g_type_init.
+	* xterm.c (handle_one_xevent): Do not call to x_clear_area
+	if GTK >= 2.7.0.
+	(toplevel) [USE_MOTIF]: Include xlwmenu.h to pacify GCC.
+
+2013-09-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (init_gconf, init_gsettings): Check for Glib 2.36.0
+	before calling g_type_init.
+
+	* font.c (syms_of_font): Move call to syms_of_(ns|mac)font ...
+
+	* nsterm.m (syms_of_nsterm): ... to here.
+
+2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (toolkit_scroll_bar_interaction): Use bool for boolean.
+	(ignore_next_mouse_click_timeout): Use Time as X does.
+	(handle_one_xevent): Avoid cast and use unsigned comparison.
+
+2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not copy X event in handle_one_xevent except KeyPress case.
+	Wnen XEvent is processed, it is unlikely to be changed except
+	KeyPress case, so we can avoid copying and use const pointer to
+	const data to make sure that an event is not changed elsewhere.
+	* xterm.c (handle_one_xevent): Change 2nd arg to 'const XEvent *
+	const' and do not create local copy except for the KeyPress event.
+	Use casts to avoid a few glitches.  Adjust formatting.  Add comments.
+	(SET_SAVED_BUTTON_EVENT): Remove and move the code to the only user.
+	(x_handle_net_wm_state, x_menubar_window_to_frame)
+	(x_detect_focus_change, construct_mouse_click, note_mouse_movement)
+	(x_scroll_bar_to_input_event, x_scroll_bar_expose)
+	(x_scroll_bar_handle_click, x_scroll_bar_note_movement):
+	* gtkutil.c (xg_event_is_for_menubar, xg_event_is_for_scrollbar):
+	* xselect.c (x_handle_property_notify, x_handle_selection_notify)
+	(x_handle_dnd_message):
+	* xsettings.c (xft_settings_event):
+	Use 'const XEvent * const' where appropriate.
+	* xterm.h, gtkutil.h, xsettngs.h: Adjust related prototypes.
+
+2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix X event waiting to handle multiple frames.
+	* frame.h (struct frame) [HAVE_X_WINDOWS]: New member wait_event_type.
+	* xterm.c (pending_event_wait): Remove.  Adjust users.
+	(x_detect_focus_change): Pass frame arg.
+	(handle_one_xevent): Find related frame early and clear per-frame
+	wait_event_type only if this is an event for the relevant frame.
+	(x_wait_for_event): Use per-frame wait_event_type.
+
+2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_create_frame): Fix font driver registration for
+	GNUStep.
+
+	* font.c (syms_of_font): Check MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+	for syms_of_macfont.
+
+	* nsterm.m: Include macfont.h.
+	(ns_tmp_flags, ns_tmp_font): Remove.
+	(ns_compute_glyph_string_overhangs): Check for driver Qns.
+	(ns_draw_glyph_string): Use local variables instead of ns_tmp_flags,
+	ns_tmp_font.  Call ns_draw_text_decoration here instead of nsfont.m.
+	(changeFont:): Fix code style.  Check for font driver type when
+	getiing font.
+
+	* nsterm.h (FONT_DESCENT, FONT_ASCENT): Define to (f)->ascent and
+	(f)->descent.
+
+	* nsfont.m (ns_tmp_flags, ns_tmp_font): Remove.
+	(nsfont_open): Set font driver type.
+	Set font->ascent and font->descent.  Figure out font instead of
+	ns_tmp_font, and flags instead of ns_tmp_flags.
+	Fix indentation. Remove call to ns_draw_text_decoration,
+	moved to nsterm.
+
+	* nsfns.m: Include macfont.h.
+	(Fx_create_frame): Register macfont driver, make a better default font.
+	(Fns_popup_font_panel): Get font from macfont driver, if used.
+
+	* macfont.m, macfont.h, maccuvs.h: New files.
+
+	* font.h: Declare syms_of_macfont.
+
+	* font.c (syms_of_font): Call syms_of_macfont.
+
+	* Makefile.in (NS_OBJ, SOME_MACHINE_OBJECTS): Add macfont.o.
+
+2013-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop VERTICAL_SCROLL_BAR_WIDTH_TRIM.  For X, it is zero since 1999,
+	and it is always zero for others, so I assume that this is an ancient
+	leftover which nobody will want to change any more.
+	* xterm.h, w32term.h, nsterm.h (VERTICAL_SCROLL_BAR_WIDTH_TRIM): Remove.
+	(VERTICAL_SCROLL_BAR_INSIDE_WIDTH):
+	* frame.c (x_set_scroll_bar_width):
+	* w32fns.c (w32_createscrollbar):
+	* w32term.c (w32_set_vertical_scroll_bar):
+	* xfns.c (x_set_scroll_bar_default_width):
+	* xterm.c (XTflash, x_scroll_bar_create, XTset_vertical_scroll_bar)
+	(x_scroll_bar_expose): Related users changed.
+
+2013-09-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (FRAME_X_SCREEN_NUMBER): Add comment.
+	(BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT): Use FRAME_X_SCREEN_NUMBER.
+	(SCROLL_BAR_X_WIDGET, SET_SCROLL_BAR_X_WIDGET) [USE_X_TOOLKIT]:
+	Define as such.
+	* frame.h (FRAME_SMALLEST_CHAR_WIDTH, FRAME_SMALLEST_FONT_HEIGHT):
+	Define once here...
+	* nsterm.h, w32term.h, xterm.h: ...and not here.
+	* w32term.h (SCROLL_BAR_X_WIDGET, SET_SCROLL_BAR_X_WIDGET):
+	Remove unused Xisms.
+	* xterm.c, xfns.c (toplevel): Remove #ifdef HAVE_X_WINDOWS because
+	these modules are never compiled otherwise.
+
+2013-09-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>:
+	Doc fix.  (Bug#15375)
+
+2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Unify Fx_focus_frame between all ports.
+	* frame.h (x_focus_frame): New prototype.
+	* xfns.c (Fx_focus_frame): Remove.
+	(syms_of_xfns): Do not defsubr it.
+	(x_focus_frame): X implementation.
+	* nsfns.m (Fx_focus_frame): Remove.
+	(syms_of_nsfns): Do not defsubr it.
+	(x_focus_frame): NS implementation.
+	* w32term.c (Fx_focus_frame): Remove.
+	(x_focus_on_frame): Rename to...
+	(x_focus_frame): W32 implementation.
+	* w32term.h (x_focus_on_frame): Remove prototype.
+	* w32fns.c (Fx_focus_frame): Remove.
+	(syms_of_w32fns): Do not defsubr it.
+	* frame.c (Fx_focus_frame): Define here.
+	(syms_of_frame): Defsubr here.
+	* gtkutil.c (xg_tool_bar_callback): Use x_focus_frame.
+
+2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Unify FRAME_window_system_DISPLAY_INFO macros between all ports.
+	All of them are replaced with FRAME_DISPLAY_INFO, defined in
+	each port to reference the port-specific window system data.
+	* msdos.h (FRAME_X_DISPLAY_INFO): Remove.
+	(FRAME_DISPLAY_INFO): Define.
+	* w32term.h (FRAME_W32_DISPLAY_INFO, FRAME_X_DISPLAY_INFO): Remove.
+	(FRAME_DISPLAY_INFO): Define.  Adjust users.
+	* xterm.h (FRAME_X_DISPLAY_INFO): Remove.
+	(FRAME_DISPLAY_INFO): Define.  Adjust users.
+	* frame.h (FRAME_RES_X, FRAME_RES_Y): Unify.
+	* font.c, frame.c, gtkutil.c, image.c, menu.c, msdos.c, nsfns.m:
+	* nsfont.m, nsterm.m, w32fns.c, w32font.c, w32menu.c, w32term.c:
+	* w32xfns.c, widget.c, xdisp.c, xfaces.c, xfns.c, xfont.c, xmenu.c:
+	* xselect.c, xterm.c: All related users changed.
+
+2013-09-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame): Remove prototypes.
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame, x_top_window_to_frame):
+	Move from here...
+	* xterm.c (x_window_to_frame, x_any_window_to_frame)
+	(x_menubar_window_to_frame, x_top_window_to_frame):
+	...to here and convert all but the last to static.
+
+2013-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.mk (lisp): Add w32-common-fns.elc.
+
 2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* charset.c (char_charset): Document an exception for char-charset.

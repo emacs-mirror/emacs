@@ -243,6 +243,9 @@ Local to those buffers, as a function called that created it.")
   "Return non-nil if FRAME is currently available."
   (and frame (frame-live-p frame) (frame-visible-p frame)))
 
+(defvar x-sensitive-text-pointer-shape)
+(defvar x-pointer-shape)
+
 (defun dframe-frame-mode (arg frame-var cache-var buffer-var frame-name
 			      local-mode-fn
 			      &optional

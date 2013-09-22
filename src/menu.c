@@ -1299,7 +1299,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   if (current_popup_menu)
     {
       discard_menu_items ();
-      FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+      FRAME_DISPLAY_INFO (f)->grabbed = 0;
       UNGCPRO;
       return Qnil;
     }
@@ -1338,7 +1338,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #endif
 
 #ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #endif
 
 #endif /* HAVE_MENUS */

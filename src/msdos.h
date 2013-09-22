@@ -63,7 +63,7 @@ extern struct tty_display_info the_only_display_info;
 
 #define FRAME_X_DISPLAY(f) ((Display *) 0)
 #define FRAME_FONT(f) ((f)->output_data.tty->font)
-#define FRAME_X_DISPLAY_INFO(f) (&the_only_display_info)
+#define FRAME_DISPLAY_INFO(f) (&the_only_display_info)
 
 /* Prototypes.  */
 

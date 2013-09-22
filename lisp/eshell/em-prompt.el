@@ -1,4 +1,4 @@
-;;; em-prompt.el --- command prompts
+;;; em-prompt.el --- command prompts  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -44,6 +44,8 @@ as is common with most shells."
   :version "24.1"			; removed eshell-prompt-initialize
   :type 'hook
   :group 'eshell-prompt)
+
+(autoload 'eshell/pwd "em-dirs")
 
 (defcustom eshell-prompt-function
   (function

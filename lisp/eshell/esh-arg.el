@@ -1,4 +1,4 @@
-;;; esh-arg.el --- argument processing
+;;; esh-arg.el --- argument processing  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

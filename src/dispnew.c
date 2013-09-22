@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define DISPEXTERN_INLINE EXTERN_INLINE
-
 #include "sysstdio.h"
 #include <unistd.h>
 
@@ -4453,7 +4451,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	}
     }
 
-  lint_assume (0 <= FRAME_LINES (f));
+  assume (0 <= FRAME_LINES (f));
   pause_p = 0 < i && i < FRAME_LINES (f) - 1;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */

@@ -1,4 +1,4 @@
-;;; em-alias.el --- creation and management of command aliases
+;;; em-alias.el --- creation and management of command aliases  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

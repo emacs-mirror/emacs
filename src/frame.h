@@ -27,9 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 INLINE_HEADER_BEGIN
-#ifndef FRAME_INLINE
-# define FRAME_INLINE INLINE
-#endif
 
 enum vertical_scroll_bar_type
 {
@@ -328,6 +325,11 @@ struct frame
   unsigned int external_menu_bar : 1;
 #endif
 
+#if defined (HAVE_X_WINDOWS)
+  /* Used by x_wait_for_event when watching for an X event on this frame.  */
+  int wait_event_type;
+#endif
+
   /* Next two bitfields are mutually exclusive.  They might both be
      zero if the frame has been made invisible without an icon.  */
 
@@ -443,105 +445,105 @@ struct frame
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
 
-FRAME_INLINE void
+INLINE void
 fset_buffer_list (struct frame *f, Lisp_Object val)
 {
   f->buffer_list = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_buried_buffer_list (struct frame *f, Lisp_Object val)
 {
   f->buried_buffer_list = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_condemned_scroll_bars (struct frame *f, Lisp_Object val)
 {
   f->condemned_scroll_bars = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_face_alist (struct frame *f, Lisp_Object val)
 {
   f->face_alist = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_focus_frame (struct frame *f, Lisp_Object val)
 {
   f->focus_frame = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_icon_name (struct frame *f, Lisp_Object val)
 {
   f->icon_name = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_menu_bar_items (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_items = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_menu_bar_vector (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_vector = val;
 }
 #if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-FRAME_INLINE void
+INLINE void
 fset_menu_bar_window (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_window = val;
 }
 #endif
-FRAME_INLINE void
+INLINE void
 fset_name (struct frame *f, Lisp_Object val)
 {
   f->name = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_param_alist (struct frame *f, Lisp_Object val)
 {
   f->param_alist = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_root_window (struct frame *f, Lisp_Object val)
 {
   f->root_window = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_scroll_bars (struct frame *f, Lisp_Object val)
 {
   f->scroll_bars = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_selected_window (struct frame *f, Lisp_Object val)
 {
   f->selected_window = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_title (struct frame *f, Lisp_Object val)
 {
   f->title = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_tool_bar_items (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_items = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_tool_bar_position (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_position = val;
 }
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
-FRAME_INLINE void
+INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
 {
   f->tool_bar_window = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_current_tool_bar_string (struct frame *f, Lisp_Object val)
 {
   f->current_tool_bar_string = val;
 }
-FRAME_INLINE void
+INLINE void
 fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 {
   f->desired_tool_bar_string = val;
@@ -550,7 +552,7 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 
 #define NUMVAL(X) ((INTEGERP (X) || FLOATP (X)) ? XFLOATINT (X) : -1)
 
-FRAME_INLINE double
+INLINE double
 default_pixels_per_inch_x (void)
 {
   Lisp_Object v = (CONSP (Vdisplay_pixels_per_inch)
@@ -559,7 +561,7 @@ default_pixels_per_inch_x (void)
   return NUMVAL (v) > 0 ? NUMVAL (v) : 72.0;
 }
 
-FRAME_INLINE double
+INLINE double
 default_pixels_per_inch_y (void)
 {
   Lisp_Object v = (CONSP (Vdisplay_pixels_per_inch)
@@ -600,36 +602,6 @@ default_pixels_per_inch_y (void)
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
 
-/* Dots per inch of the screen the frame F is on.  */
-
-#ifdef HAVE_X_WINDOWS
-#define FRAME_RES_X(f)						\
-  (eassert (FRAME_X_P (f)), FRAME_X_DISPLAY_INFO (f)->resx)
-#define FRAME_RES_Y(f)						\
-  (eassert (FRAME_X_P (f)), FRAME_X_DISPLAY_INFO (f)->resy)
-#endif
-
-#ifdef HAVE_NTGUI
-#define FRAME_RES_X(f)						\
-  (eassert (FRAME_W32_P (f)), FRAME_W32_DISPLAY_INFO (f)->resx)
-#define FRAME_RES_Y(f)						\
-  (eassert (FRAME_W32_P (f)), FRAME_W32_DISPLAY_INFO (f)->resy)
-#endif
-
-#ifdef HAVE_NS
-#define FRAME_RES_X(f)						\
-  (eassert (FRAME_NS_P (f)), FRAME_NS_DISPLAY_INFO (f)->resx)
-#define FRAME_RES_Y(f)						\
-  (eassert (FRAME_NS_P (f)), FRAME_NS_DISPLAY_INFO (f)->resy)
-#endif
-
-/* Defaults when no window system available.  */
-
-#ifndef FRAME_RES_X
-#define FRAME_RES_X(f) default_pixels_per_inch_x ()
-#define FRAME_RES_Y(f) default_pixels_per_inch_y ()
-#endif
-
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
 
@@ -646,14 +618,32 @@ default_pixels_per_inch_y (void)
 #define FRAME_WINDOW_P(f) ((void) (f), 0)
 #endif
 
+/* Dots per inch of the screen the frame F is on.  */
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+#define FRAME_RES_X(f)						\
+  (eassert (FRAME_WINDOW_P (f)), FRAME_DISPLAY_INFO (f)->resx)
+#define FRAME_RES_Y(f)						\
+  (eassert (FRAME_WINDOW_P (f)), FRAME_DISPLAY_INFO (f)->resy)
+
+#else /* !HAVE_WINDOW_SYSTEM */
+
+/* Defaults when no window system available.  */
+
+#define FRAME_RES_X(f) default_pixels_per_inch_x ()
+#define FRAME_RES_Y(f) default_pixels_per_inch_y ()
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Return a pointer to the structure holding information about the
    region of text, if any, that is currently shown in mouse-face on
    frame F.  We need to define two versions because a TTY-only build
-   does not have FRAME_X_DISPLAY_INFO.  */
+   does not have FRAME_DISPLAY_INFO.  */
 #ifdef HAVE_WINDOW_SYSTEM
 # define MOUSE_HL_INFO(F)					\
   (FRAME_WINDOW_P(F)						\
-   ? &FRAME_X_DISPLAY_INFO(F)->mouse_highlight			\
+   ? &FRAME_DISPLAY_INFO(F)->mouse_highlight			\
    : &(F)->output_data.tty->display_info->mouse_highlight)
 #else
 # define MOUSE_HL_INFO(F)					\
@@ -1143,6 +1133,15 @@ extern Lisp_Object selected_frame;
   (FRAME_PIXEL_Y_TO_LINE (f, ((height) \
 			      - FRAME_INTERNAL_BORDER_WIDTH (f))))
 
+/* Value is the smallest width of any character in any font on frame F.  */
+
+#define FRAME_SMALLEST_CHAR_WIDTH(f)		\
+  FRAME_DISPLAY_INFO (f)->smallest_char_width
+
+/* Value is the smallest height of any font on frame F.  */
+
+#define FRAME_SMALLEST_FONT_HEIGHT(f)		\
+  FRAME_DISPLAY_INFO (f)->smallest_font_height
 
 /***********************************************************************
 				Frame Parameters
@@ -1228,8 +1227,6 @@ extern void x_set_vertical_scroll_bars (struct frame *, Lisp_Object,
 extern void x_set_scroll_bar_width (struct frame *, Lisp_Object,
                                     Lisp_Object);
 
-extern Lisp_Object x_icon_type (struct frame *);
-
 extern long x_figure_window_size (struct frame *, Lisp_Object, bool);
 
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
@@ -1258,7 +1255,6 @@ extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object oldval);
 extern void x_activate_menubar (struct frame *);
 extern void x_real_positions (struct frame *, int *, int *);
-extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_set_menu_bar_lines (struct frame *,
                                   Lisp_Object,
                                   Lisp_Object);
@@ -1275,11 +1271,28 @@ extern void x_sync (struct frame *);
 
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
+extern void x_focus_frame (struct frame *);
+
+#ifndef HAVE_NS
+
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+
+/* Set F's bitmap icon, if specified among F's parameters.  */
+
+INLINE void
+x_set_bitmap_icon (struct frame *f)
+{
+  Lisp_Object obj = assq_no_quit (Qicon_type, f->param_alist);
+
+  if (CONSP (obj))
+    x_bitmap_icon (f, XCDR (obj));
+}
+
+#endif /* !HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
-
 
-FRAME_INLINE void
+INLINE void
 flush_frame (struct frame *f)
 {
   struct redisplay_interface *rif = FRAME_RIF (f);

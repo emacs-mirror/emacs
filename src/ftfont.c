@@ -2425,7 +2425,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
     }
 
   len = i;
-  lint_assume (len <= STRING_BYTES_BOUND);
+  assume (len <= STRING_BYTES_BOUND);
 
   if (with_variation_selector)
     {

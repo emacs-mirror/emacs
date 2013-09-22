@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2013-08-20.10}
+\def\texinfoversion{2013-09-11.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -322,10 +322,13 @@
   %
   % Do this outside of the \shipout so @code etc. will be expanded in
   % the headline as they should be, not taken literally (outputting ''code).
+  \def\commmonheadfootline{\let\hsize=\pagewidth \texinfochars}
+  %
   \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
-  \setbox\headlinebox = \vbox{\let\hsize=\pagewidth \makeheadline}%
+  \global\setbox\headlinebox = \vbox{\commmonheadfootline \makeheadline}%
+  %
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
-  \setbox\footlinebox = \vbox{\let\hsize=\pagewidth \makefootline}%
+  \global\setbox\footlinebox = \vbox{\commmonheadfootline \makefootline}%
   %
   {%
     % Have to do this stuff outside the \shipout because we want it to
@@ -2891,6 +2894,15 @@ end
   \def\inlinefmtname{#1}%
   \ifx\inlinefmtname\outfmtnametex \ignorespaces #2\fi
 }
+% 
+% @inlinefmtifelse{FMTNAME,THEN-TEXT,ELSE-TEXT} expands THEN-TEXT if
+% FMTNAME is tex, else ELSE-TEXT.
+\long\def\inlinefmtifelse#1{\doinlinefmtifelse #1,,,\finish}
+\long\def\doinlinefmtifelse#1,#2,#3,#4,\finish{%
+  \def\inlinefmtname{#1}%
+  \ifx\inlinefmtname\outfmtnametex \ignorespaces #2\else \ignorespaces #3\fi
+}
+%
 % For raw, must switch into @tex before parsing the argument, to avoid
 % setting catcodes prematurely.  Doing it this way means that, for
 % example, @inlineraw{html, foo{bar} gets a parse error instead of being
@@ -2905,6 +2917,23 @@ end
   \def\inlinerawname{#1}%
   \ifx\inlinerawname\outfmtnametex \ignorespaces #2\fi
   \endgroup % close group opened by \tex.
+}
+
+% @inlineifset{VAR, TEXT} expands TEXT if VAR is @set.
+%
+\long\def\inlineifset#1{\doinlineifset #1,\finish}
+\long\def\doinlineifset#1,#2,\finish{%
+  \def\inlinevarname{#1}%
+  \expandafter\ifx\csname SET\inlinevarname\endcsname\relax
+  \else\ignorespaces#2\fi
+}
+
+% @inlineifclear{VAR, TEXT} expands TEXT if VAR is not @set.
+%
+\long\def\inlineifclear#1{\doinlineifclear #1,\finish}
+\long\def\doinlineifclear#1,#2,\finish{%
+  \def\inlinevarname{#1}%
+  \expandafter\ifx\csname SET\inlinevarname\endcsname\relax \ignorespaces#2\fi
 }
 
 
@@ -4202,7 +4231,7 @@ end
 \def\value{\begingroup\makevalueexpandable\valuexxx}
 \def\valuexxx#1{\expandablevalue{#1}\endgroup}
 {
-  \catcode`\- = \active \catcode`\_ = \active
+  \catcode`\-=\active \catcode`\_=\active
   %
   \gdef\makevalueexpandable{%
     \let\value = \expandablevalue
@@ -4222,7 +4251,12 @@ end
 % variable's value contains other Texinfo commands, it's almost certain
 % it will fail (although perhaps we could fix that with sufficient work
 % to do a one-level expansion on the result, instead of complete).
-%
+% 
+% Unfortunately, this has the consequence that when _ is in the *value*
+% of an @set, it does not print properly in the roman fonts (get the cmr
+% dot accent at position 126 instead).  No fix comes to mind, and it's
+% been this way since 2003 or earlier, so just ignore it.
+% 
 \def\expandablevalue#1{%
   \expandafter\ifx\csname SET#1\endcsname\relax
     {[No value for ``#1'']}%
@@ -6276,8 +6310,8 @@ end
   \catcode `\|=\other
   \catcode `\<=\other
   \catcode `\>=\other
-  \catcode`\`=\other
-  \catcode`\'=\other
+  \catcode `\`=\other
+  \catcode `\'=\other
   \escapechar=`\\
   %
   % ' is active in math mode (mathcode"8000).  So reset it, and all our
@@ -6301,7 +6335,7 @@ end
   \let\/=\ptexslash
   \let\*=\ptexstar
   \let\t=\ptext
-  \expandafter \let\csname top\endcsname=\ptextop  % outer
+  \expandafter \let\csname top\endcsname=\ptextop  % we've made it outer
   \let\frenchspacing=\plainfrenchspacing
   %
   \def\endldots{\mathinner{\ldots\ldots\ldots\ldots}}%
@@ -9944,11 +9978,9 @@ directory should work if nowhere else does.}
 \catcode`\"=\active
 \def\activedoublequote{{\tt\char34}}
 \let"=\activedoublequote
-\catcode`\~=\active
-\def~{{\tt\char126}}
+\catcode`\~=\active \def\activetilde{{\tt\char126}} \let~ = \activetilde
 \chardef\hat=`\^
-\catcode`\^=\active
-\def^{{\tt \hat}}
+\catcode`\^=\active \def\activehat{{\tt \hat}} \let^ = \activehat
 
 \catcode`\_=\active
 \def_{\ifusingtt\normalunderscore\_}
@@ -9958,16 +9990,26 @@ directory should work if nowhere else does.}
 
 \catcode`\|=\active
 \def|{{\tt\char124}}
+
 \chardef \less=`\<
-\catcode`\<=\active
-\def<{{\tt \less}}
+\catcode`\<=\active \def\activeless{{\tt \less}}\let< = \activeless
 \chardef \gtr=`\>
-\catcode`\>=\active
-\def>{{\tt \gtr}}
-\catcode`\+=\active
-\def+{{\tt \char 43}}
-\catcode`\$=\active
-\def${\ifusingit{{\sl\$}}\normaldollar}%$ font-lock fix
+\catcode`\>=\active \def\activegtr{{\tt \gtr}}\let> = \activegtr
+\catcode`\+=\active \def+{{\tt \char 43}}
+\catcode`\$=\active \def${\ifusingit{{\sl\$}}\normaldollar}%$ font-lock fix
+
+% used for headline/footline in the output routine, in case the page
+% breaks in the middle of an @tex block.
+\def\texinfochars{%
+  \let< = \activeless
+  \let> = \activegtr
+  \let~ = \activetilde 
+  \let^ = \activehat
+  \markupsetuplqdefault \markupsetuprqdefault 
+  \let\b = \strong
+  \let\i = \smartitalic
+  % in principle, all other definitions in \tex have to be undone too.
+}
 
 % If a .fmt file is being used, characters that might appear in a file
 % name cannot be active until we have parsed the command line.

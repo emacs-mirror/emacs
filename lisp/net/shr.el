@@ -732,6 +732,10 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
 	(setq payload (base64-decode-string payload)))
       payload)))
 
+;; Behind display-graphic-p test.
+(declare-function image-size "image.c" (spec &optional pixels frame))
+(declare-function image-animate "image" (image &optional index limit))
+
 (defun shr-put-image (spec alt &optional flags)
   "Insert image SPEC with a string ALT.  Return image.
 SPEC is either an image data blob, or a list where the first

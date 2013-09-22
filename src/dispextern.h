@@ -49,18 +49,16 @@ typedef struct {
 #endif
 
 INLINE_HEADER_BEGIN
-#ifndef DISPEXTERN_INLINE
-# define DISPEXTERN_INLINE INLINE
-#endif
 
 #include <c-strcase.h>
-DISPEXTERN_INLINE int
+INLINE int
 xstrcasecmp (char const *a, char const *b)
 {
   return c_strcasecmp (a, b);
 }
 
 #ifdef HAVE_X_WINDOWS
+#include <X11/Xresource.h> /* for XrmDatabase */
 typedef struct x_display_info Display_Info;
 typedef XImage * XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
@@ -288,10 +286,10 @@ typedef struct {
 } GLYPH;
 
 /* Return a glyph's character code.  */
-DISPEXTERN_INLINE int GLYPH_CHAR (GLYPH glyph) { return glyph.ch; }
+INLINE int GLYPH_CHAR (GLYPH glyph) { return glyph.ch; }
 
 /* Return a glyph's face ID.  */
-DISPEXTERN_INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
+INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
 
 #define SET_GLYPH_CHAR(glyph, char) ((glyph).ch = (char))
 #define SET_GLYPH_FACE(glyph, face) ((glyph).face_id = (face))
@@ -300,7 +298,7 @@ DISPEXTERN_INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
 
 /* The following are valid only if GLYPH_CODE_P (gc).  */
 
-DISPEXTERN_INLINE int
+INLINE int
 GLYPH_CODE_CHAR (Lisp_Object gc)
 {
   return (CONSP (gc)
@@ -308,7 +306,7 @@ GLYPH_CODE_CHAR (Lisp_Object gc)
 	  : XINT (gc) & MAX_CHAR);
 }
 
-DISPEXTERN_INLINE int
+INLINE int
 GLYPH_CODE_FACE (Lisp_Object gc)
 {
   return CONSP (gc) ? XINT (XCDR (gc)) : XINT (gc) >> CHARACTERBITS;
@@ -1823,7 +1821,7 @@ struct face_cache
 #endif /* not HAVE_WINDOW_SYSTEM */
 
 /* Return true if G contains a valid character code.  */
-DISPEXTERN_INLINE bool
+INLINE bool
 GLYPH_CHAR_VALID_P (GLYPH g)
 {
   return CHAR_VALID_P (GLYPH_CHAR (g));
@@ -1833,7 +1831,7 @@ GLYPH_CHAR_VALID_P (GLYPH g)
    encodes a char code in the lower CHARACTERBITS bits and a (very small)
    face-id in the upper bits, or it may be a cons (CHAR . FACE-ID).  */
 
-DISPEXTERN_INLINE bool
+INLINE bool
 GLYPH_CODE_P (Lisp_Object gc)
 {
   return (CONSP (gc)
@@ -2704,7 +2702,7 @@ typedef struct {
   unsigned mouse_face_hidden : 1;
 } Mouse_HLInfo;
 
-DISPEXTERN_INLINE void
+INLINE void
 reset_mouse_highlight (Mouse_HLInfo *hlinfo)
 {
 
@@ -3193,7 +3191,6 @@ extern int help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
-extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
@@ -3530,6 +3527,7 @@ enum resource_types
   RES_TYPE_BOOLEAN_NUMBER
 };
 
+extern Display_Info *check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,
                               enum resource_types);
@@ -3541,6 +3539,13 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
                                         const char *, const char *,
                                         enum resource_types);
+extern char *x_get_string_resource (XrmDatabase, const char *,
+				    const char *);
+
+#ifndef HAVE_NS /* These both used on W32 and X only.  */
+extern bool x_mouse_grabbed (Display_Info *);
+extern void x_redo_mouse_highlight (Display_Info *);
+#endif /* HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

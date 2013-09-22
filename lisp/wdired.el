@@ -73,8 +73,6 @@
 
 ;;; Code:
 
-(defvar dired-backup-overwrite) ; Only in Emacs 20.x this is a custom var
-
 (require 'dired)
 (autoload 'dired-do-create-files-regexp "dired-aux")
 
@@ -185,7 +183,8 @@ renamed by `dired-do-rename' and `dired-do-rename-regexp'."
     (define-key map [remap capitalize-word] 'wdired-capitalize-word)
     (define-key map [remap downcase-word] 'wdired-downcase-word)
 
-    map))
+    map)
+  "Keymap used in `wdired-mode'.")
 
 (defvar wdired-mode-hook nil
   "Hooks run when changing to WDired mode.")

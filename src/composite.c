@@ -24,8 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define COMPOSITE_INLINE EXTERN_INLINE
-
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -676,7 +674,7 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
       len = j;
     }
 
-  lint_assume (len <= TYPE_MAXIMUM (ptrdiff_t) - 2);
+  assume (len <= TYPE_MAXIMUM (ptrdiff_t) - 2);
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)

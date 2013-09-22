@@ -23,9 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 
 INLINE_HEADER_BEGIN
-#ifndef WINDOW_INLINE
-# define WINDOW_INLINE INLINE
-#endif
 
 /* Windows are allocated as if they were vectors, but then the
 Lisp data type is changed to Lisp_Window.  They are garbage
@@ -349,37 +346,37 @@ struct window
 
 /* Most code should use these functions to set Lisp fields in struct
    window.  */
-WINDOW_INLINE void
+INLINE void
 wset_frame (struct window *w, Lisp_Object val)
 {
   w->frame = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_next (struct window *w, Lisp_Object val)
 {
   w->next = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_prev (struct window *w, Lisp_Object val)
 {
   w->prev = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
 {
   w->redisplay_end_trigger = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_vertical_scroll_bar (struct window *w, Lisp_Object val)
 {
   w->vertical_scroll_bar = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_prev_buffers (struct window *w, Lisp_Object val)
 {
   w->prev_buffers = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_next_buffers (struct window *w, Lisp_Object val)
 {
   w->next_buffers = val;
@@ -966,7 +963,7 @@ extern void keys_of_window (void);
    window update, so the position is the future output cursor position
    for currently updated window W.  */
 
-WINDOW_INLINE void
+INLINE void
 output_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
 {
   eassert (w);

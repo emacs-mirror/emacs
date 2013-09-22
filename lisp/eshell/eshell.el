@@ -1,4 +1,4 @@
-;;; eshell.el --- the Emacs command shell
+;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

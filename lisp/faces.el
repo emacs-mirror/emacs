@@ -1921,6 +1921,11 @@ Return nil if there is no face."
 ;;; Frame creation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare-function x-display-list "xfns.c" ())
+(declare-function x-open-connection "xfns.c"
+		  (display &optional xrm-string must-succeed))
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
 (declare-function x-parse-geometry "frame.c" (string))
 (defvar x-display-name)
 

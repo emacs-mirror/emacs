@@ -685,7 +685,8 @@ directly."
      ((string-match "image/\\(.*\\)" content-type)
       (setq type (image-type-from-file-name
 		  (concat "." (match-string 1 content-type))))
-      (if (and (memq type image-types)
+      (if (and (boundp 'image-types)
+	       (memq type image-types)
 	       (image-type-available-p type))
 	  (if (and rmail-mime-show-images
 		   (not (eq rmail-mime-show-images 'button))

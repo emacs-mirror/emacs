@@ -1,4 +1,4 @@
-;;; esh-var.el --- handling of variables
+;;; esh-var.el --- handling of variables  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -184,9 +184,9 @@ if they are quoted with a backslash."
 				   indices)))))
   "This list provides aliasing for variable references.
 It is very similar in concept to what `eshell-user-aliases-list' does
-for commands.  Each member of this defines defines the name of a
-command, and the Lisp value to return for that variable if it is
-accessed via the syntax '$NAME'.
+for commands.  Each member of this defines the name of a command,
+and the Lisp value to return for that variable if it is accessed
+via the syntax '$NAME'.
 
 If the value is a function, that function will be called with two
 arguments: the list of the indices that was used in the reference, and
@@ -502,6 +502,7 @@ Possible options are:
 	 (let ((sym (intern-soft var)))
 	   (if (and sym (boundp sym)
 		    (or eshell-prefer-lisp-variables
+			(memq sym eshell--local-vars) ; bug#15372
 			(not (getenv var))))
 	       (symbol-value sym)
 	     (getenv var))))

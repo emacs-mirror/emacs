@@ -299,7 +299,7 @@ intern_font_name (char * string)
 Lisp_Object
 w32font_get_cache (struct frame *f)
 {
-  struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   return (dpyinfo->name_list_element);
 }

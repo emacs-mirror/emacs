@@ -1139,7 +1139,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   "Major mode for the features common to all buffers of MPC."
   (buffer-disable-undo)
   (setq buffer-read-only t)
-  (setq-local tool-bar-map mpc-tool-bar-map)
+  (if (boundp 'tool-bar-map)            ; not if --without-x
+      (setq-local tool-bar-map mpc-tool-bar-map))
   (setq-local truncate-lines t))
 
 ;;; The mpc-status-mode buffer ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

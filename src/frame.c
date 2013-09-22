@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define FRAME_INLINE EXTERN_INLINE
-
 #include <stdio.h>
 #include <errno.h>
 #include <limits.h>
@@ -1901,6 +1899,17 @@ See `redirect-frame-focus'.  */)
   return FRAME_FOCUS_FRAME (decode_live_frame (frame));
 }
 
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
+       doc: /* Set the input focus to FRAME.
+FRAME nil means use the selected frame.
+If there is no window system support, this function does nothing.  */)
+  (Lisp_Object frame)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  x_focus_frame (decode_window_system_frame (frame));
+#endif
+  return Qnil;
+}
 
 
 /* Return the value of frame parameter PROP in frame FRAME.  */
@@ -2207,7 +2216,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 	value = f->name;
 #ifdef HAVE_X_WINDOWS
       else if (EQ (parameter, Qdisplay) && FRAME_X_P (f))
-	value = XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element);
+	value = XCAR (FRAME_DISPLAY_INFO (f)->name_list_element);
 #endif /* HAVE_X_WINDOWS */
       else if (EQ (parameter, Qbackground_color)
 	       || EQ (parameter, Qforeground_color))
@@ -2598,7 +2607,7 @@ x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int
 {
   int newwidth = FRAME_COLS (f);
   int newheight = FRAME_LINES (f);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   *top_pos = f->top_pos;
   *left_pos = f->left_pos;
@@ -2973,9 +2982,9 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
   store_in_alist (alistptr, Qdisplay,
-		  XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
+		  XCAR (FRAME_DISPLAY_INFO (f)->name_list_element));
 
-  if (FRAME_X_OUTPUT (f)->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window)
+  if (FRAME_X_OUTPUT (f)->parent_desc == FRAME_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
   else
     tem = make_natnum ((uintptr_t) FRAME_X_OUTPUT (f)->parent_desc);
@@ -3358,9 +3367,6 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (RANGED_INTEGERP (1, arg, INT_MAX)
 	   && XFASTINT (arg) != FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
     {
-      if (XFASTINT (arg) <= 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM)
-	XSETINT (arg, 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM + 1);
-
       FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = XFASTINT (arg);
       FRAME_CONFIG_SCROLL_BAR_COLS (f) = (XFASTINT (arg) + wid-1) / wid;
       if (FRAME_X_WINDOW (f))
@@ -3371,22 +3377,6 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   change_frame_size (f, 0, FRAME_COLS (f), 0, 0, 0);
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.hpos = 0;
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.x = 0;
-}
-
-
-
-/* Return non-nil if frame F wants a bitmap icon.  */
-
-Lisp_Object
-x_icon_type (struct frame *f)
-{
-  Lisp_Object tem;
-
-  tem = assq_no_quit (Qicon_type, f->param_alist);
-  if (CONSP (tem))
-    return XCDR (tem);
-  else
-    return Qnil;
 }
 
 void
@@ -3440,7 +3430,33 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   return;
 }
 
-
+#ifndef HAVE_NS
+
+/* Non-zero if mouse is grabbed on DPYINFO
+   and we know the frame where it is.  */
+
+bool x_mouse_grabbed (Display_Info *dpyinfo)
+{
+  return (dpyinfo->grabbed
+	  && dpyinfo->last_mouse_frame
+	  && FRAME_LIVE_P (dpyinfo->last_mouse_frame));
+}
+
+/* Re-highlight something with mouse-face properties
+   on DPYINFO using saved frame and mouse position.  */
+
+void
+x_redo_mouse_highlight (Display_Info *dpyinfo)
+{
+  if (dpyinfo->last_mouse_motion_frame
+      && FRAME_LIVE_P (dpyinfo->last_mouse_motion_frame))
+    note_mouse_highlight (dpyinfo->last_mouse_motion_frame,
+			  dpyinfo->last_mouse_motion_x,
+			  dpyinfo->last_mouse_motion_y);
+}
+
+#endif /* HAVE_NS */
+
 /* Subroutines of creating an X frame.  */
 
 /* Make sure that Vx_resource_name is set to a reasonable value.
@@ -3511,11 +3527,6 @@ validate_x_resource_name (void)
 	SSET (new, i, '_');
     }
 }
-
-
-extern char *x_get_string_resource (XrmDatabase, const char *, const char *);
-extern Display_Info *check_x_display_info (Lisp_Object);
-
 
 /* Get specified attribute from resource database RDB.
    See Fx_get_resource below for other parameters.  */
@@ -3631,7 +3642,7 @@ x_get_resource_string (const char *attribute, const char *class)
   esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
-  result = x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
+  result = x_get_string_resource (FRAME_DISPLAY_INFO (sf)->xrdb,
 				  name_key, class_key);
   SAFE_FREE ();
   return result;
@@ -3753,7 +3764,7 @@ x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
 		 const char *attribute, const char *class,
 		 enum resource_types type)
 {
-  return x_get_arg (FRAME_X_DISPLAY_INFO (f),
+  return x_get_arg (FRAME_DISPLAY_INFO (f),
 		    alist, param, attribute, class, type);
 }
 
@@ -3767,7 +3778,7 @@ x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist,
 {
   Lisp_Object value;
 
-  value = x_get_arg (FRAME_X_DISPLAY_INFO (f), alist, param,
+  value = x_get_arg (FRAME_DISPLAY_INFO (f), alist, param,
 		     attribute, class, type);
   if (! NILP (value) && ! EQ (value, Qunbound))
     store_frame_param (f, param, value);
@@ -3971,7 +3982,7 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, bool toolbar_p)
 {
   register Lisp_Object tem0, tem1, tem2;
   long window_prompting = 0;
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   /* Default values if we fall through.
      Actually, if that happens we should get
@@ -4524,6 +4535,7 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Svisible_frame_list);
   defsubr (&Sraise_frame);
   defsubr (&Slower_frame);
+  defsubr (&Sx_focus_frame);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);

@@ -1,4 +1,4 @@
-;;; em-basic.el --- basic shell builtin commands
+;;; em-basic.el --- basic shell builtin commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

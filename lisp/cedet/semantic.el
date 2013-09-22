@@ -311,14 +311,6 @@ a parse of the buffer.")
 (semantic-varalias-obsolete 'semantic-init-db-hooks
 			    'semantic-init-db-hook "23.2")
 
-(defvar semantic-new-buffer-fcn-was-run nil
-  "Non-nil after `semantic-new-buffer-fcn' has been executed.")
-(make-variable-buffer-local 'semantic-new-buffer-fcn-was-run)
-
-(defsubst semantic-active-p ()
-  "Return non-nil if the current buffer was set up for parsing."
-  semantic-new-buffer-fcn-was-run)
-
 (defsubst semantic-error-if-unparsed ()
   "Raise an error if current buffer was not parsed by Semantic."
   (unless semantic-new-buffer-fcn-was-run

@@ -302,7 +302,7 @@ If it is down, start it up (again)."
         (setcar
 	 (cdr elem)
 	 (cond (result
-		(if (eq open-server-function #'nnagent-open-server)
+		(if (eq open-server-function 'nnagent-open-server)
 		    ;; The agent's backend has a "special" status
 		    'offline
 		  'ok))
