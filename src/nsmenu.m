@@ -1239,7 +1239,7 @@ update_frame_tool_bar (struct frame *f)
 {
   /* 1) come up w/identifier */
   NSString *identifier
-      = [NSString stringWithFormat: @"%u", [img hash]];
+    = [NSString stringWithFormat: @"%lu", (unsigned long)[img hash]];
   [activeIdentifiers addObject: identifier];
 
   /* 2) create / reuse item */

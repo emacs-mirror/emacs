@@ -1,5 +1,15 @@
 2013-09-22  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* process.c (wait_reading_process_output): Change int pnamelen to
+	socklen_t.
+
+	* nsterm.m (setMarkedText:selectedRange:):
+	(deleteWorkingText):
+	* nsmenu.m (addDisplayItemWithImage:idx:tag:helpText:enabled:):
+	* nsfont.m (ns_get_covering_families, ns_findfonts): Cast NSLog
+	argument to unsigned long to avoid warning.
+	(nsfont_draw): Use 0.25 instead of  Fix2X (kATSItalicQDSkew).
+
 	* conf_post.h (assume): Fix compiler error: x shall be cond.
 
 2013-09-22  Daniel Colascione  <dancol@dancol.org>

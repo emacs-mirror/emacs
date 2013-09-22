@@ -4847,7 +4847,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #else
 	      {
 		struct sockaddr pname;
-		int pnamelen = sizeof (pname);
+		socklen_t pnamelen = sizeof (pname);
 
 		/* If connection failed, getpeername will fail.  */
 		xerrno = 0;
