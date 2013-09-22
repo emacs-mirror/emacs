@@ -1405,7 +1405,7 @@ offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
 				    start, length);
   else
     {
-      lint_assume (- TYPE_MAXIMUM (ptrdiff_t) <= length);
+      assume (- TYPE_MAXIMUM (ptrdiff_t) <= length);
       adjust_intervals_for_deletion (buffer, start, -length);
     }
 }

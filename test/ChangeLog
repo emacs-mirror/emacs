@@ -1,3 +1,21 @@
+2013-09-22  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/data-test.el:
+	(bool-vector-count-matches-all-0-nil)
+	(bool-vector-count-matches-all-0-t)
+	(bool-vector-count-matches-1-il,bool-vector-count-matches-1-t)
+	(bool-vector-count-matches-at,bool-vector-intersection-op)
+	(bool-vector-union-op,bool-vector-xor-op)
+	(bool-vector-set-difference-op)
+	(bool-vector-change-detection,bool-vector-not): New tests.
+	(mock-bool-vector-count-matches-at)
+	(test-bool-vector-bv-from-hex-string)
+	(test-bool-vector-to-hex-string)
+	(test-bool-vector-count-matches-at-tc)
+	(test-bool-vector-apply-mock-op)
+	(test-bool-vector-binop): New helper functions.
+	(bool-vector-test-vectors): New testcase data.
+
 2013-09-20  Ryan  <rct@thompsonclan.org>  (tiny change)
 
 	* automated/advice-tests.el (advice-test-called-interactively-p-around)

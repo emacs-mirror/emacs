@@ -2001,6 +2001,35 @@ INIT must be an integer that represents a character.  */)
   return val;
 }
 
+verify (sizeof (size_t) * CHAR_BIT == BITS_PER_SIZE_T);
+verify ((BITS_PER_SIZE_T & (BITS_PER_SIZE_T - 1)) == 0);
+
+static
+ptrdiff_t
+bool_vector_payload_bytes (ptrdiff_t nr_bits,
+                           ptrdiff_t* exact_needed_bytes_out)
+{
+  ptrdiff_t exact_needed_bytes;
+  ptrdiff_t needed_bytes;
+
+  eassert_and_assume (nr_bits >= 0);
+
+  exact_needed_bytes = ROUNDUP ((size_t) nr_bits, CHAR_BIT) / CHAR_BIT;
+  needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_SIZE_T) / CHAR_BIT;
+
+  if (needed_bytes == 0)
+    {
+      /* Always allocate at least one machine word of payload so that
+         bool-vector operations in data.c don't need a special case
+         for empty vectors.  */
+      needed_bytes = sizeof (size_t);
+    }
+
+  if (exact_needed_bytes_out != NULL)
+    *exact_needed_bytes_out = exact_needed_bytes;
+
+  return needed_bytes;
+}
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
        doc: /* Return a new bool-vector of length LENGTH, using INIT for each element.
@@ -2009,36 +2038,42 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 {
   register Lisp_Object val;
   struct Lisp_Bool_Vector *p;
-  ptrdiff_t length_in_chars;
-  EMACS_INT length_in_elts;
-  int bits_per_value;
-  int extra_bool_elts = ((bool_header_size - header_size + word_size - 1)
-			 / word_size);
+  ptrdiff_t exact_payload_bytes;
+  ptrdiff_t total_payload_bytes;
+  ptrdiff_t needed_elements;
 
   CHECK_NATNUM (length);
+  if (PTRDIFF_MAX < XFASTINT (length))
+    memory_full (SIZE_MAX);
 
-  bits_per_value = sizeof (EMACS_INT) * BOOL_VECTOR_BITS_PER_CHAR;
+  total_payload_bytes = bool_vector_payload_bytes
+    (XFASTINT (length), &exact_payload_bytes);
 
-  length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
+  eassert_and_assume (exact_payload_bytes <= total_payload_bytes);
+  eassert_and_assume (0 <= exact_payload_bytes);
 
-  val = Fmake_vector (make_number (length_in_elts + extra_bool_elts), Qnil);
+  needed_elements = ROUNDUP ((size_t) ((bool_header_size - header_size)
+                                       + total_payload_bytes),
+                             word_size) / word_size;
 
-  /* No Lisp_Object to trace in there.  */
+  p = (struct Lisp_Bool_Vector* ) allocate_vector (needed_elements);
+  XSETVECTOR (val, p);
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
 
-  p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
-
-  length_in_chars = ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		     / BOOL_VECTOR_BITS_PER_CHAR);
-  if (length_in_chars)
+  if (exact_payload_bytes)
     {
-      memset (p->data, ! NILP (init) ? -1 : 0, length_in_chars);
+      memset (p->data, ! NILP (init) ? -1 : 0, exact_payload_bytes);
 
       /* Clear any extraneous bits in the last byte.  */
-      p->data[length_in_chars - 1]
+      p->data[exact_payload_bytes - 1]
 	&= (1 << ((XFASTINT (length) - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1)) - 1;
     }
+
+  /* Clear padding at the end.  */
+  memset (p->data + exact_payload_bytes,
+          0,
+          total_payload_bytes - exact_payload_bytes);
 
   return val;
 }
@@ -2565,24 +2600,22 @@ enum
     roundup_size = COMMON_MULTIPLE (word_size, USE_LSB_TAG ? GCALIGNMENT : 1)
   };
 
-/* ROUNDUP_SIZE must be a power of 2.  */
-verify ((roundup_size & (roundup_size - 1)) == 0);
-
 /* Verify assumptions described above.  */
 verify ((VECTOR_BLOCK_SIZE % roundup_size) == 0);
 verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
-/* Round up X to nearest mult-of-ROUNDUP_SIZE.  */
-
-#define vroundup(x) (((x) + (roundup_size - 1)) & ~(roundup_size - 1))
+/* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
+#define vroundup_ct(x) ROUNDUP((size_t)(x), roundup_size)
+/* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at runtime.  */
+#define vroundup(x) (assume((x) >= 0), vroundup_ct(x))
 
 /* Rounding helps to maintain alignment constraints if USE_LSB_TAG.  */
 
-#define VECTOR_BLOCK_BYTES (VECTOR_BLOCK_SIZE - vroundup (sizeof (void *)))
+#define VECTOR_BLOCK_BYTES (VECTOR_BLOCK_SIZE - vroundup_ct (sizeof (void *)))
 
 /* Size of the minimal vector allocated from block.  */
 
-#define VBLOCK_BYTES_MIN vroundup (header_size + sizeof (Lisp_Object))
+#define VBLOCK_BYTES_MIN vroundup_ct (header_size + sizeof (Lisp_Object))
 
 /* Size of the largest vector allocated from block.  */
 
@@ -2642,7 +2675,7 @@ struct large_vector
     struct large_vector *vector;
 #if USE_LSB_TAG
     /* We need to maintain ROUNDUP_SIZE alignment for the vector member.  */
-    unsigned char c[vroundup (sizeof (struct large_vector *))];
+    unsigned char c[vroundup_ct (sizeof (struct large_vector *))];
 #endif
   } next;
   struct Lisp_Vector v;
@@ -2783,10 +2816,14 @@ vector_nbytes (struct Lisp_Vector *v)
   if (size & PSEUDOVECTOR_FLAG)
     {
       if (PSEUDOVECTOR_TYPEP (&v->header, PVEC_BOOL_VECTOR))
-	size = (bool_header_size
-		+ (((struct Lisp_Bool_Vector *) v)->size
-		   + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		/ BOOL_VECTOR_BITS_PER_CHAR);
+        {
+          struct Lisp_Bool_Vector *bv = (struct Lisp_Bool_Vector *) v;
+          ptrdiff_t payload_bytes =
+              bool_vector_payload_bytes (bv->size, NULL);
+
+          eassert_and_assume (payload_bytes >= 0);
+          size = bool_header_size + ROUNDUP (payload_bytes, word_size);
+        }
       else
 	size = (header_size
 		+ ((size & PSEUDOVECTOR_SIZE_MASK)
@@ -2886,17 +2923,11 @@ sweep_vectors (void)
 	  total_vectors++;
 	  if (vector->header.size & PSEUDOVECTOR_FLAG)
 	    {
-	      struct Lisp_Bool_Vector *b = (struct Lisp_Bool_Vector *) vector;
-
 	      /* All non-bool pseudovectors are small enough to be allocated
 		 from vector blocks.  This code should be redesigned if some
 		 pseudovector type grows beyond VBLOCK_BYTES_MAX.  */
 	      eassert (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BOOL_VECTOR));
-
-	      total_vector_slots
-		+= (bool_header_size
-		    + ((b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		       / BOOL_VECTOR_BITS_PER_CHAR)) / word_size;
+              total_vector_slots += vector_nbytes (vector) / word_size;
 	    }
 	  else
 	    total_vector_slots

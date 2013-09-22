@@ -1,3 +1,45 @@
+2013-09-22  Daniel Colascione  <dancol@dancol.org>
+
+	* data.c (Qbool_vector_p): New symbol.
+	(bool_vector_spare_mask,popcount_size_t_generic)
+	(popcount_size_t_msc,popcount_size_t_gcc)
+	(popcount_size_t)
+	(bool_vector_binop_driver)
+	(count_trailing_zero_bits,size_t_to_host_endian)
+	(Fbool_vector_exclusive_or)
+	(Fbool_vector_union)
+	(Fbool_vector_intersection,Fbool_vector_set_difference)
+	(Fbool_vector_subsetp,Fbool_vector_not)
+	(Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at): New functions.
+	(syms_of_data): Intern new symbol, functions.
+	* alloc.c (bool_vector_payload_bytes): New function.
+	(Fmake_bool_vector): Instead of calling Fmake_vector,
+	which performs redundant initialization and argument checking,
+	just call allocate_vector ourselves.  Make sure we clear any
+	terminating padding to zero.
+	(vector_nbytes,sweep_vectors): Use bool_vector_payload_bytes
+	instead of open-coding the size calculation.
+	(vroundup_ct): New macro.
+	(vroundup): Assume argument >= 0; invoke vroundup_ct.
+	* casetab.c (shuffle,set_identity): Change lint_assume to assume.
+	* composite.c (composition_gstring_put_cache): Change
+	lint_assume to assume.
+	* conf_post.h (assume): New macro.
+	(lint_assume): Remove.
+	* dispnew.c (update_frame_1): Change lint_assume to assume.
+	* ftfont.c (ftfont_shape_by_flt): Change lint_assume
+	to assume.
+	* image.c (gif_load): Change lint_assume to assume.
+	* lisp.h (eassert_and_assume): New macro.
+	(Qbool_vector_p): Declare.
+	(CHECK_BOOL_VECTOR,ROUNDUP,BITS_PER_SIZE_T): New macros.
+	(swap16,swap32,swap64): New inline functions.
+	* macfont.c (macfont_shape): Change lint_assume to assume.
+	* ralloc.c: Rename ROUNDUP to PAGE_ROUNDUP throughout.
+	* xsettings.c (parse_settings): Use new swap16 and
+	swap32 from lisp.h instead of file-specific macros.
+
 2013-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_window_id): Don't abort if cursor row could not be

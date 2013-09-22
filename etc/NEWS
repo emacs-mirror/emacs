@@ -638,6 +638,16 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
+** New bool-vector set operation functions:
+*** `bool-vector-exclusive-or'
+*** `bool-vector-union'
+*** `bool-vector-intersection'
+*** `bool-vector-set-difference'
+*** `bool-vector-not'
+*** `bool-vector-subset'
+*** `bool-vector-count-matches'
+*** `bool-vector-count-matches-at'
+
 ** Comparison functions =, <, >, <=, >= now take many arguments.
 
 ** The second argument of `eval' can now be a lexical-environment.

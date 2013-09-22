@@ -131,6 +131,13 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
     ? (void) 0							\
     : die (# cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
+
+/* When checking is enabled, identical to eassert.  When checking is
+ * disabled, instruct the compiler (when the compiler has such
+ * capability) to assume that cond is true and optimize
+ * accordingly.  */
+#define eassert_and_assume(cond) (eassert (cond), assume (cond))
+
 
 /* Use the configure flag --enable-check-lisp-object-type to make
    Lisp_Object use a struct type instead of the default int.  The flag
@@ -730,6 +737,7 @@ extern int char_table_translate (Lisp_Object, int);
 extern Lisp_Object Qarrayp, Qbufferp, Qbuffer_or_string_p, Qchar_table_p;
 extern Lisp_Object Qconsp, Qfloatp, Qintegerp, Qlambda, Qlistp, Qmarkerp, Qnil;
 extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qvectorp;
+extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
 extern Lisp_Object Ffboundp (Lisp_Object);
@@ -2357,6 +2365,11 @@ INLINE void
 CHECK_VECTOR (Lisp_Object x)
 {
   CHECK_TYPE (VECTORP (x), Qvectorp, x);
+}
+INLINE void
+CHECK_BOOL_VECTOR (Lisp_Object x)
+{
+  CHECK_TYPE (BOOL_VECTOR_P (x), Qbool_vector_p, x);
 }
 INLINE void
 CHECK_VECTOR_OR_STRING (Lisp_Object x)
@@ -4346,6 +4359,43 @@ functionp (Lisp_Object object)
   else
     return 0;
 }
+
+INLINE
+uint16_t
+swap16 (uint16_t val)
+{
+    return (val << 8) | (val & 0xFF);
+}
+
+INLINE
+uint32_t
+swap32 (uint32_t val)
+{
+  uint32_t low = swap16 (val & 0xFFFF);
+  uint32_t high = swap16 (val >> 16);
+  return (low << 16) | high;
+}
+
+#ifdef UINT64_MAX
+INLINE
+uint64_t
+swap64 (uint64_t val)
+{
+  uint64_t low = swap32 (val & 0xFFFFFFFF);
+  uint64_t high = swap32 (val >> 32);
+  return (low << 32) | high;
+}
+#endif
+
+#if ((SIZE_MAX >> 31) >> 1) & 1
+# define BITS_PER_SIZE_T 64
+#else
+# define BITS_PER_SIZE_T 32
+#endif
+
+/* Round x to the next multiple of y.  Does not overflow.  Evaluates
+   arguments repeatedly.  */
+#define ROUNDUP(x,y) ((y)*((x)/(y) + ((x)%(y)!=0)))
 
 INLINE_HEADER_END
 
