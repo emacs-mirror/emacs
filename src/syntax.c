@@ -29,12 +29,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "regex.h"
 
-/* Make syntax table lookup grant data in gl_state.  */
-#define SYNTAX_ENTRY_VIA_PROPERTY
-
 #include "syntax.h"
 #include "intervals.h"
 #include "category.h"
+
+/* Make syntax table lookup grant data in gl_state.  */
+#define SYNTAX(c) syntax_property (c, 1)
+#define SYNTAX_ENTRY(c) syntax_property_entry (c, 1)
+#define SYNTAX_WITH_FLAGS(c) syntax_property_with_flags (c, 1)
 
 /* Eight single-bit flags have the following meanings:
   1. This character is the first of a two-character comment-start sequence.

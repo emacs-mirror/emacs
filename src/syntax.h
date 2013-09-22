@@ -83,35 +83,49 @@ struct gl_state_s
 extern struct gl_state_s gl_state;
 
 /* Fetch the information from the entry for character C
-   in syntax table TABLE, or from globally kept data (gl_state).
+   in the current buffer's syntax table,
+   or (if VIA_PROPERTY) from globally kept data (gl_state).
    Does inheritance.  */
 
 INLINE Lisp_Object
+syntax_property_entry (int c, bool via_property)
+{
+  if (via_property)
+    return (gl_state.use_global
+	    ? gl_state.global_code
+	    : CHAR_TABLE_REF (gl_state.current_syntax_table, c));
+  return CHAR_TABLE_REF (BVAR (current_buffer, syntax_table), c);
+}
+INLINE Lisp_Object
 SYNTAX_ENTRY (int c)
 {
-#ifdef SYNTAX_ENTRY_VIA_PROPERTY
-  return (gl_state.use_global
-	  ? gl_state.global_code
-	  : CHAR_TABLE_REF (gl_state.current_syntax_table, c));
-#else
-  return CHAR_TABLE_REF (BVAR (current_buffer, syntax_table), c);
-#endif
+  return syntax_property_entry (c, 0);
 }
 
 /* Extract the information from the entry for character C
    in the current syntax table.  */
 
 INLINE int
+syntax_property_with_flags (int c, bool via_property)
+{
+  Lisp_Object ent = syntax_property_entry (c, via_property);
+  return CONSP (ent) ? XINT (XCAR (ent)) : Swhitespace;
+}
+INLINE int
 SYNTAX_WITH_FLAGS (int c)
 {
-  Lisp_Object ent = SYNTAX_ENTRY (c);
-  return CONSP (ent) ? XINT (XCAR (ent)) : Swhitespace;
+  return syntax_property_with_flags (c, 0);
 }
 
 INLINE enum syntaxcode
+syntax_property (int c, bool via_property)
+{
+  return syntax_property_with_flags (c, via_property) & 0xff;
+}
+INLINE enum syntaxcode
 SYNTAX (int c)
 {
-  return SYNTAX_WITH_FLAGS (c) & 0xff;
+  return syntax_property (c, 0);
 }
 
 

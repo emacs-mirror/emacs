@@ -1,3 +1,21 @@
+2013-09-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix syntax.h bug introduced by recent INLINE change.
+	syntax.h defined an extern inline function SYNTAX_ENTRY that was
+	conditionally compiled one way in some modules, and a different
+	way in others.  This doesn't work with extern inline functions,
+	which must have the same definition in all modules, because the
+	defining code might be shared across modules, depending on the
+	implementation.  Symptoms reported by Martin Rudalics in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00414.html
+	* regex.c, syntax.c (SYNTAX_ENTRY_VIA_PROPERTY): Remove.
+	(SYNTAX, SYNTAX_ENTRY, SYNTAX_WITH_FLAGS): New macros,
+	overriding the corresponding functions in syntax.h.
+	* syntax.h (syntax_property_entry, syntax_property_with_flags)
+	(syntax_property): New inline functions.
+	(SYNTAX_ENTRY, SYNTAX_WITH_FLAGS, SYNTAX):
+	Rewrite in terms of these new functions.
+
 2013-09-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (directory_files_internal): Use multibyte_chars_in_text,
