@@ -3361,7 +3361,12 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       if (input_status)
 	{
 	  if (input_status == -1)
-	    result = TTYM_NO_SELECT;
+	    {
+	      /* Remove the last help-echo, so that it doesn't
+		 re-appear after "Quit".  */
+	      show_help_echo (Qnil, Qnil, Qnil, Qnil);
+	      result = TTYM_NO_SELECT;
+	    }
 	  leave = 1;
 	}
       else if (sf->mouse_moved)
@@ -3420,20 +3425,22 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			    state[statecount - 1].pane,
 			    faces, 1);
 	}
-      else
+
+      /* Display the help-echo message for the currently-selected menu
+	 item.  */
+      if ((menu_help_message || prev_menu_help_message)
+	  && menu_help_message != prev_menu_help_message)
 	{
-	  if ((menu_help_message || prev_menu_help_message)
-	      && menu_help_message != prev_menu_help_message)
-	    {
-	      help_callback (menu_help_message,
-			     menu_help_paneno, menu_help_itemno);
-	      tty_hide_cursor (tty);
-	      prev_menu_help_message = menu_help_message;
-	    }
-	  /* We are busy-waiting for the mouse to move, so let's be nice
-	     to other Windows applications by releasing our time slice.  */
-	  Sleep (20);	/* FIXME */
+	  help_callback (menu_help_message,
+			 menu_help_paneno, menu_help_itemno);
+	  tty_hide_cursor (tty);
+	  prev_menu_help_message = menu_help_message;
 	}
+#if 0
+      /* We are busy-waiting for the mouse to move, so let's be nice
+	 to other Windows applications by releasing our time slice.  */
+      Sleep (20);	/* FIXME */
+
       for (b = 0; b < mouse_button_count && !leave; b++)
 	{
 	  /* Only leave if user both pressed and released the mouse, and in
@@ -3447,6 +3454,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	    }
 	  (void) mouse_released (b, &x, &y);
 	}
+#endif
     }
 
   mouse_off ();			/* FIXME */
