@@ -357,6 +357,8 @@ Lisp_Object Qvertical_line;
 static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
+static Lisp_Object Qecho_keystrokes;
+
 static void recursive_edit_unwind (Lisp_Object buffer);
 static Lisp_Object command_loop (void);
 static Lisp_Object Qcommand_execute;
@@ -1308,7 +1310,7 @@ some_mouse_moved (void)
    sans error-handling encapsulation.  */
 
 static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
-                              bool, bool, bool);
+                              bool, bool, bool, bool);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (ptrdiff_t, bool);
 
@@ -1434,7 +1436,7 @@ command_loop_1 (void)
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
-			     Qnil, 0, 1, 1);
+			     Qnil, 0, 1, 1, 0);
 
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
@@ -1699,8 +1701,17 @@ read_menu_command (void)
 {
   Lisp_Object cmd;
   Lisp_Object keybuf[30];
-  int i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
-			     Qnil, 0, 1, 1);
+  ptrdiff_t count = SPECPDL_INDEX ();
+  int i;
+
+  /* We don't want to echo the keystrokes while navigating the
+     menus.  */
+  specbind (Qecho_keystrokes, make_number (0));
+
+  i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
+			 Qnil, 0, 1, 1, 1);
+
+  unbind_to (count, Qnil);
 
   if (! FRAME_LIVE_P (XFRAME (selected_frame)))
     Fkill_emacs (Qnil);
@@ -8813,6 +8824,9 @@ test_undefined (Lisp_Object binding)
 
    Echo starting immediately unless `prompt' is 0.
 
+   If PREVENT_REDISPLAY is non-zero, avoid redisplay by calling
+   read_char with a suitable COMMANDFLAG argument.
+
    Where a key sequence ends depends on the currently active keymaps.
    These include any minor mode keymaps active in the current buffer,
    the current buffer's local map, and the global map.
@@ -8845,7 +8859,7 @@ test_undefined (Lisp_Object binding)
 static int
 read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		   bool dont_downcase_last, bool can_return_switch_frame,
-		   bool fix_current_buffer)
+		   bool fix_current_buffer, bool prevent_redisplay)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -8926,8 +8940,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
     {
       if (!NILP (prompt))
 	{
-	  /* Install the string STR as the beginning of the string of
-	     echoing, so that it serves as a prompt for the next
+	  /* Install the string PROMPT as the beginning of the string
+	     of echoing, so that it serves as a prompt for the next
 	     character.  */
 	  kset_echo_string (current_kboard, prompt);
 	  current_kboard->echo_after_prompt = SCHARS (prompt);
@@ -9082,7 +9096,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  {
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    key = read_char (NILP (prompt),
+	    /* Calling read_char with COMMANDFLAG = -2 avoids
+	       redisplay in read_char and its subroutines.  */
+	    key = read_char (prevent_redisplay ? -2 : NILP (prompt),
 		             current_binding, last_nonmenu_event,
                              &used_mouse_menu, NULL);
 	    if ((INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
@@ -9778,7 +9794,7 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
 
   i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
-			 ! NILP (can_return_switch_frame), 0);
+			 ! NILP (can_return_switch_frame), 0, 0);
 
 #if 0  /* The following is fine for code reading a key sequence and
 	  then proceeding with a lengthy computation, but it's not good
@@ -11037,6 +11053,8 @@ syms_of_keyboard (void)
   DEFSYM (Qinput_method_use_echo_area, "input-method-use-echo-area");
 
   DEFSYM (Qhelp_form_show, "help-form-show");
+
+  DEFSYM (Qecho_keystrokes, "echo-keystrokes");
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);
