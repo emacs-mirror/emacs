@@ -3176,11 +3176,15 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
     {
 #if 1
       extern Lisp_Object read_menu_command (void);
-      Lisp_Object cmd = read_menu_command ();
+      Lisp_Object cmd;
       int usable_input = 1;
       int st = 0;
 
-      if (NILP (cmd))
+      do {
+	cmd = read_menu_command ();
+      } while NILP (cmd);
+
+      if (EQ (cmd, Qt))
 	return -1;
       if (EQ (cmd, Qright_char) || EQ (cmd, Qforward_char))
 	*x += 1;

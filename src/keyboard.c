@@ -1716,7 +1716,7 @@ read_menu_command (void)
   if (! FRAME_LIVE_P (XFRAME (selected_frame)))
     Fkill_emacs (Qnil);
   if (i == 0 || i == -1)
-    return Qnil;
+    return Qt;
 
   return read_key_sequence_cmd;
 }
