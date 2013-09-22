@@ -17291,8 +17291,6 @@ try_window_id (struct window *w)
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
-	  else
-	    emacs_abort ();
 	  return 1;
 	}
     }
@@ -17333,8 +17331,6 @@ try_window_id (struct window *w)
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
-	  else
-	    emacs_abort ();
 	  return 2;
 	}
     }

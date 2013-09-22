@@ -1,3 +1,9 @@
+2013-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_id): Don't abort if cursor row could not be
+	found (which can legitimately happen when the glyph row at the
+	window start is disabled in the current_matrix.  (Bug#15365)
+
 2013-09-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix syntax.h bug introduced by recent INLINE change.
