@@ -1,3 +1,13 @@
+2013-09-23  Daniel Colascione  <dancol@dancol.org>
+
+	* alloc.c (USE_VALGRIND): New macro; on by default
+	when ENABLE_CHECKING.
+	(mark_maybe_object,mark_maybe_pointer)
+	[USE_VALGRIND]: Mark conservatively-scanned regions valid for
+	valgrind purposes.
+	(valgrind_p) [USE_VALGRIND]: New variable.
+	(init_alloc) [USE_VALGRIND]: Initialize valgrind_p.
+
 2013-09-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c (wait_reading_process_output): Change int pnamelen to

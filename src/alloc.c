@@ -45,6 +45,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <verify.h>
 
+#if (defined ENABLE_CHECKING &&               \
+     defined HAVE_VALGRIND_VALGRIND_H &&      \
+     !defined USE_VALGRIND)
+# define USE_VALGRIND 1
+#endif
+
+#if USE_VALGRIND
+#include <valgrind/valgrind.h>
+#include <valgrind/memcheck.h>
+static int valgrind_p;
+#endif
+
 /* GC_CHECK_MARKED_OBJECTS means do sanity checks on allocated objects.
    Doable only if GC_MARK_STACK.  */
 #if ! GC_MARK_STACK
@@ -4327,6 +4339,11 @@ mark_maybe_object (Lisp_Object obj)
   void *po;
   struct mem_node *m;
 
+#if USE_VALGRIND
+  if (valgrind_p)
+    VALGRIND_MAKE_MEM_DEFINED (&obj, sizeof (obj));
+#endif
+
   if (INTEGERP (obj))
     return;
 
@@ -4394,6 +4411,11 @@ static void
 mark_maybe_pointer (void *p)
 {
   struct mem_node *m;
+
+#if USE_VALGRIND
+  if (valgrind_p)
+    VALGRIND_MAKE_MEM_DEFINED (&p, sizeof (p));
+#endif
 
   /* Quickly rule out some values which can't point to Lisp data.
      USE_LSB_TAG needs Lisp data to be aligned on multiples of GCALIGNMENT.
@@ -6643,6 +6665,10 @@ init_alloc (void)
 #endif
   Vgc_elapsed = make_float (0.0);
   gcs_done = 0;
+
+#if USE_VALGRIND
+  valgrind_p = RUNNING_ON_VALGRIND;
+#endif
 }
 
 void

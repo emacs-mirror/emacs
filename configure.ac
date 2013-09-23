@@ -3696,6 +3696,8 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
+AC_CHECK_HEADERS(valgrind/valgrind.h)
+
 AC_CHECK_FUNCS_ONCE(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
