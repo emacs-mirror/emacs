@@ -2255,6 +2255,54 @@ If nil, the current mouse position is used."
      (popup-menu-normalize-position (event-end position)))
     (t position)))
 
+(defvar tty-menu-navigation-map
+  (let ((map (make-sparse-keymap)))
+    ;; The tty-menu-* are just symbols interpreted by term.c, they are
+    ;; not real commands.
+    (define-key map [t] 'tty-menu-exit)
+    (substitute-key-definition 'forward-char 'tty-menu-next-menu
+			       map (current-global-map))
+    (substitute-key-definition 'backward-char 'tty-menu-prev-menu
+			       map (current-global-map))
+    ;; The following two will need to be revised if we ever support
+    ;; a right-to-left menu bar.
+    (substitute-key-definition 'right-char 'tty-menu-next-menu
+			       map (current-global-map))
+    (substitute-key-definition 'left-char 'tty-menu-prev-menu
+			       map (current-global-map))
+    (substitute-key-definition 'next-line 'tty-menu-next-item
+			       map (current-global-map))
+    (substitute-key-definition 'previous-line 'tty-menu-prev-item
+			       map (current-global-map))
+    (substitute-key-definition 'newline 'tty-menu-select
+			       map (current-global-map))
+    (substitute-key-definition 'newline-and-indent 'tty-menu-select
+			       map (current-global-map))
+    (define-key map [?\C-r] 'tty-menu-select)
+    (define-key map [?\C-j] 'tty-menu-select)
+    (define-key map [return] 'tty-menu-select)
+    (define-key map [linefeed] 'tty-menu-select)
+    (define-key map [down-mouse-1] 'tty-menu-select)
+    (define-key map [drag-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line drag-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line down-mouse-1] 'tty-menu-select)
+    (define-key map [header-line mouse-1] 'tty-menu-select)
+    (define-key map [header-line drag-mouse-1] 'tty-menu-select)
+    (define-key map [header-line down-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line mouse-1] 'tty-menu-ignore)
+    (define-key map [mode-line mouse-2] 'tty-menu-ignore)
+    (define-key map [mode-line mouse-3] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-1] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-2] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-3] 'tty-menu-ignore)
+    (define-key map [mouse-1] 'tty-menu-ignore)
+    (define-key map [C-mouse-1] 'tty-menu-ignore)
+    (define-key map [C-mouse-2] 'tty-menu-ignore)
+    (define-key map [C-mouse-3] 'tty-menu-ignore)
+    map)
+  "Keymap used while processing TTY menus.")
+
+
 ;; FIXME: Make this a defcustom!
 (defvar tty-menu-open-use-tmm nil
   "If non-nil, menu-bar-open on a TTY will invoke `tmm-menubar'.")

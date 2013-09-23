@@ -2815,8 +2815,10 @@ static int menu_help_paneno, menu_help_itemno;
 
 static int menu_x, menu_y;
 
-static Lisp_Object Qright_char, Qleft_char, Qforward_char, Qbackward_char;
-static Lisp_Object Qnext_line, Qprevious_line, Qnewline;
+static Lisp_Object Qtty_menu_navigation_map, Qtty_menu_exit;
+static Lisp_Object Qtty_menu_prev_item, Qtty_menu_next_item;
+static Lisp_Object Qtty_menu_next_menu, Qtty_menu_prev_menu;
+static Lisp_Object Qtty_menu_select, Qtty_menu_ignore;
 
 typedef struct tty_menu_struct
 {
@@ -3158,7 +3160,8 @@ screen_update (struct frame *f, struct glyph_matrix *mtx)
 
    Value is -1 if C-g was pressed, zero otherwise.  */
 static int
-read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
+read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
+		 bool *first_time)
 {
   Lisp_Object c;
 
@@ -3184,19 +3187,25 @@ read_menu_input (struct frame *sf, int *x, int *y, bool *first_time)
 	cmd = read_menu_command ();
       } while NILP (cmd);
 
-      if (EQ (cmd, Qt))
+      if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
 	return -1;
-      if (EQ (cmd, Qright_char) || EQ (cmd, Qforward_char))
+      if (EQ (cmd, Qtty_menu_next_menu))
 	*x += 1;
-      else if (EQ (cmd, Qleft_char) || EQ (cmd, Qbackward_char))
+      else if (EQ (cmd, Qtty_menu_prev_menu))
 	*x -= 1;
-      else if (EQ (cmd, Qnext_line))
-	*y += 1;
-      else if (EQ (cmd, Qprevious_line))
-	*y -= 1;
-      else if (EQ (cmd, Qnewline))
+      else if (EQ (cmd, Qtty_menu_next_item))
+	{
+	  if (*y < max_y)
+	    *y += 1;
+	}
+      else if (EQ (cmd, Qtty_menu_prev_item))
+	{
+	  if (*y > min_y)
+	    *y -= 1;
+	}
+      else if (EQ (cmd, Qtty_menu_select))
 	st = 1;
-      else
+      else if (!EQ (cmd, Qtty_menu_ignore))
 	{
 	  usable_input = 0;
 	  st = -1;
@@ -3359,9 +3368,10 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     {
       int mouse_button_count = 3; /* FIXME */
       int input_status;
+      int min_y = state[0].y, max_y = min_y + state[0].menu->count - 1;
 
       if (!mouse_visible) mouse_on ();
-      input_status = read_menu_input (sf, &x, &y, &first_time);
+      input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
 	{
 	  if (input_status == -1)
@@ -3737,19 +3747,19 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
       uly = dispheight - height;
     }
 
-  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 1)
+  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 2)
     {
       /* Move the menu away of the echo area, to avoid overwriting the
 	 menu with help echo messages or vice versa.  */
       if (BUFFERP (echo_area_buffer[0]) && WINDOWP (echo_area_window))
 	{
-	  y -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window));
-	  uly -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window));
+	  y -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window)) + 1;
+	  uly -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window)) + 1;
 	}
       else
 	{
-	  y--;
-	  uly--;
+	  y -= 2;
+	  uly -= 2;
 	}
     }
 
@@ -3774,9 +3784,9 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 
   record_unwind_protect (tty_pop_down_menu, make_save_ptr (menu));
 
-  /* Help display under X won't work because XMenuActivate contains
-     a loop that doesn't give Emacs a chance to process it.  FIXME.  */
-  tty_menu_help_frame = f;
+  tty_menu_help_frame = f;	/* FIXME: This seems unused.  */
+  specbind (Qoverriding_terminal_local_map,
+	    Fsymbol_value (Qtty_menu_navigation_map));
   status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
 			      tty_menu_help_callback);
   entry = pane_prefix = Qnil;
@@ -4609,11 +4619,12 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
 
-  DEFSYM (Qright_char, "right-char");
-  DEFSYM (Qleft_char, "left-char");
-  DEFSYM (Qforward_char, "forward-char");
-  DEFSYM (Qbackward_char, "backward-char");
-  DEFSYM (Qprevious_line, "previous-line");
-  DEFSYM (Qnext_line, "next-line");
-  DEFSYM (Qnewline, "newline");
+  DEFSYM (Qtty_menu_next_item, "tty-menu-next-item");
+  DEFSYM (Qtty_menu_prev_item, "tty-menu-prev-item");
+  DEFSYM (Qtty_menu_next_menu, "tty-menu-next-menu");
+  DEFSYM (Qtty_menu_prev_menu, "tty-menu-prev-menu");
+  DEFSYM (Qtty_menu_select, "tty-menu-select");
+  DEFSYM (Qtty_menu_ignore, "tty-menu-ignore");
+  DEFSYM (Qtty_menu_exit, "tty-menu-exit");
+  DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
 }
