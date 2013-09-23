@@ -415,11 +415,11 @@ Lisp_Object Qboth, Qboth_horiz, Qtext_image_horiz;
 /* Non-zero means print newline to stdout before next mini-buffer
    message.  */
 
-int noninteractive_need_newline;
+bool noninteractive_need_newline;
 
 /* Non-zero means print newline to message log before next message.  */
 
-static int message_log_need_newline;
+static bool message_log_need_newline;
 
 /* Three markers that message_dolog uses.
    It could allocate them itself, but that causes trouble
@@ -478,7 +478,7 @@ Lisp_Object Qmenu_bar_update_hook;
 
 /* Nonzero if an overlay arrow has been displayed in this window.  */
 
-static int overlay_arrow_seen;
+static bool overlay_arrow_seen;
 
 /* Vector containing glyphs for an ellipsis `...'.  */
 
@@ -500,7 +500,7 @@ static Lisp_Object Vmessage_stack;
 /* Nonzero means multibyte characters were enabled when the echo area
    message was specified.  */
 
-static int message_enable_multibyte;
+static bool message_enable_multibyte;
 
 /* Nonzero if we should redraw the mode lines on the next redisplay.  */
 
@@ -514,7 +514,7 @@ int windows_or_buffers_changed;
 /* Nonzero after display_mode_line if %l was used and it displayed a
    line number.  */
 
-static int line_number_displayed;
+static bool line_number_displayed;
 
 /* The name of the *Messages* buffer, a string.  */
 
@@ -536,12 +536,12 @@ static Lisp_Object Vwith_echo_area_save_vector;
 /* Non-zero means display_echo_area should display the last echo area
    message again.  Set by redisplay_preserve_echo_area.  */
 
-static int display_last_displayed_message_p;
+static bool display_last_displayed_message_p;
 
 /* Nonzero if echo area is being used by print; zero if being used by
    message.  */
 
-static int message_buf_print;
+static bool message_buf_print;
 
 /* The symbol `inhibit-menubar-update' and its DEFVAR_BOOL variable.  */
 
@@ -551,7 +551,7 @@ static Lisp_Object Qmessage_truncate_lines;
 /* Set to 1 in clear_message to make redisplay_internal aware
    of an emptied echo area.  */
 
-static int message_cleared_p;
+static bool message_cleared_p;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -566,7 +566,7 @@ static int last_height;
 
 /* Non-zero if there's a help-echo in the echo area.  */
 
-int help_echo_showing_p;
+bool help_echo_showing_p;
 
 /* The maximum distance to look ahead for text properties.  Values
    that are too small let us call compute_char_face and similar
@@ -742,7 +742,7 @@ Lisp_Object previous_help_echo_string;
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Non-zero means an hourglass cursor is currently shown.  */
-int hourglass_shown_p;
+bool hourglass_shown_p;
 
 /* If non-null, an asynchronous timer that, when it expires, displays
    an hourglass cursor on all frames.  */

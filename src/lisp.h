@@ -3378,7 +3378,7 @@ extern Lisp_Object Qglyphless_char;
 extern Lisp_Object QCdata, QCfile;
 extern Lisp_Object QCmap;
 extern Lisp_Object Qrisky_local_variable;
-extern int noninteractive_need_newline;
+extern bool noninteractive_need_newline;
 extern Lisp_Object echo_area_buffer[2];
 extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
 extern void check_message_stack (void);

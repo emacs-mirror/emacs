@@ -3187,7 +3187,7 @@ int in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern Lisp_Object Qtool_bar;
 extern bool redisplaying_p;
-extern int help_echo_showing_p;
+extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
@@ -3389,7 +3389,7 @@ extern frame_parm_handler x_frame_parm_handlers[];
 
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
-extern int hourglass_shown_p;
+extern bool hourglass_shown_p;
 /* If non-null, an asynchronous timer that, when it expires, displays
    an hourglass cursor on all frames.  */
 extern struct atimer *hourglass_atimer;
