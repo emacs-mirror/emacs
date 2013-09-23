@@ -102,29 +102,11 @@ static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 
-/* True upon entry to redisplay means do not assume anything about
-   current contents of actual terminal frame; clear and redraw it.  */
-
-bool frame_garbaged;
-
 /* True means last display completed.  False means it was preempted.  */
 
 bool display_completed;
 
 Lisp_Object Qdisplay_table, Qredisplay_dont_pause;
-
-
-/* The currently selected frame.  In a single-frame version, this
-   variable always equals the_only_frame.  */
-
-Lisp_Object selected_frame;
-
-/* A frame which is not just a mini-buffer, or 0 if there are no such
-   frames.  This is usually the most recent such frame that was
-   selected.  In a single-frame version, this variable always holds
-   the address of the_only_frame.  */
-
-struct frame *last_nonminibuf_frame;
 
 /* True means SIGWINCH happened when not safe.  */
 

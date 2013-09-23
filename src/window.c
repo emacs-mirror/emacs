@@ -6505,7 +6505,6 @@ init_window_once (void)
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;
   selected_window = f->selected_window;
-  last_nonminibuf_frame = f;
 
   window_initialized = 1;
 }

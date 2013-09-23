@@ -408,7 +408,7 @@ static int term_setup_done;
 
 static unsigned short outside_cursor;
 
-/* Similar to the_only_frame.  */
+/* The only display since MS-DOS does not support multiple ones.  */
 struct tty_display_info the_only_display_info;
 
 /* Support for DOS/V (allows Japanese characters to be displayed on

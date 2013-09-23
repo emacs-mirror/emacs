@@ -3359,7 +3359,6 @@ extern void syms_of_insdel (void);
      && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
 _Noreturn void __executable_start (void);
 #endif
-extern Lisp_Object selected_frame;
 extern Lisp_Object Vwindow_system;
 extern Lisp_Object sit_for (Lisp_Object, bool, int);
 extern void init_display (void);
