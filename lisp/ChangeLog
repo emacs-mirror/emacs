@@ -1,3 +1,8 @@
+2013-09-23  Leo Liu  <sdl.web@gmail.com>
+
+	* autoinsert.el (auto-insert-alist): Make the value of
+	lexical-binding match its file setting.
+
 2013-09-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/vc-sccs.el (vc-sccs-search-project-dir): Mark unused argument.
