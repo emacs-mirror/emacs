@@ -598,7 +598,6 @@ void
 initialize_w32_display (struct terminal *term, int *width, int *height)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
-  Mouse_HLInfo *hlinfo;
 
   term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;

@@ -1,3 +1,8 @@
+2013-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32console.c (initialize_w32_display): Remove unused variable hlinfo.
+	* w32term.c (w32_scroll_bar_handle_click): Remove unused variable f.
+
 2013-09-23  Daniel Colascione  <dancol@dancol.org>
 
 	* alloc.c (USE_VALGRIND): New macro; on by default
