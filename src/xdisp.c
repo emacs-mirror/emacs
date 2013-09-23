@@ -27381,7 +27381,7 @@ fast_find_string_pos (struct window *w, ptrdiff_t pos, Lisp_Object object,
 #endif	/* not used */
 
 /* Find the positions of the first and the last glyphs in window W's
-   current matrix that occlude positions [STARTPOS..ENDPOS] in OBJECT
+   current matrix that occlude positions [STARTPOS..ENDPOS) in OBJECT
    (assumed to be a string), and return in HLINFO's mouse_face_*
    members the pixel and column/row coordinates of those glyphs.  */
 
@@ -27397,7 +27397,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
   int found = 0;
 
   /* Find the glyph row with at least one position in the range
-     [STARTPOS..ENDPOS], and the first glyph in that row whose
+     [STARTPOS..ENDPOS), and the first glyph in that row whose
      position belongs to that range.  */
   for (r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
        r->enabled_p && r->y < yb;
@@ -27409,7 +27409,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 	  e = g + r->used[TEXT_AREA];
 	  for (gx = r->x; g < e; gx += g->pixel_width, ++g)
 	    if (EQ (g->object, object)
-		&& startpos <= g->charpos && g->charpos <= endpos)
+		&& startpos <= g->charpos && g->charpos < endpos)
 	      {
 		hlinfo->mouse_face_beg_row
 		  = MATRIX_ROW_VPOS (r, w->current_matrix);
@@ -27427,7 +27427,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 	  g = e + r->used[TEXT_AREA];
 	  for ( ; g > e; --g)
 	    if (EQ ((g-1)->object, object)
-		&& startpos <= (g-1)->charpos && (g-1)->charpos <= endpos)
+		&& startpos <= (g-1)->charpos && (g-1)->charpos < endpos)
 	      {
 		hlinfo->mouse_face_beg_row
 		  = MATRIX_ROW_VPOS (r, w->current_matrix);
@@ -27455,7 +27455,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
       found = 0;
       for ( ; g < e; ++g)
 	if (EQ (g->object, object)
-	    && startpos <= g->charpos && g->charpos <= endpos)
+	    && startpos <= g->charpos && g->charpos < endpos)
 	  {
 	    found = 1;
 	    break;
@@ -27478,7 +27478,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
       e = g + r->used[TEXT_AREA];
       for ( ; e > g; --e)
 	if (EQ ((e-1)->object, object)
-	    && startpos <= (e-1)->charpos && (e-1)->charpos <= endpos)
+	    && startpos <= (e-1)->charpos && (e-1)->charpos < endpos)
 	  break;
       hlinfo->mouse_face_end_col = e - g;
 
@@ -27493,7 +27493,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
       for (gx = r->x ; e < g; ++e)
 	{
 	  if (EQ (e->object, object)
-	      && startpos <= e->charpos && e->charpos <= endpos)
+	      && startpos <= e->charpos && e->charpos < endpos)
 	    break;
 	  gx += e->pixel_width;
 	}
