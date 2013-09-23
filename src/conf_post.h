@@ -248,11 +248,19 @@ extern void _DebPrint (const char *fmt, ...);
 # define FLEXIBLE_ARRAY_MEMBER 1
 #endif
 
+#ifdef __clang__
+# ifndef __has_builtin
+#  define __has_builtin(x) 0
+# endif
+#endif
+
 /* assume(cond) tells the compiler (and lint) that a certain condition
  * will always hold, and that it should optimize (or check) accordingly. */
 #if defined lint
 # define assume(cond) ((cond) ? (void) 0 : abort ())
 #elif (__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4
+# define assume(cond) ((cond) || (__builtin_unreachable(), 0))
+#elif defined (__clang__) && __has_builtin (__builtin_unreachable)
 # define assume(cond) ((cond) || (__builtin_unreachable(), 0))
 #elif defined __MSC_VER
 # define assume(cond) __assume ((cond))

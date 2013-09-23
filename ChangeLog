@@ -1,3 +1,8 @@
+2013-09-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: With clang, check for and use -Wno-switch,
+	-Wno-tautological-constant-out-of-range-compare and -Wno-pointer-sign.
+
 2013-09-23  Daniel Colascione  <dancol@dancol.org>
 
 	* configure.ac: Check for valgrind headers.
