@@ -339,13 +339,15 @@ otherwise t.")
 
 ;; Command parsing
 
+(defvar eshell--sep-terms)
+
 (defun eshell-parse-command (command &optional args toplevel)
   "Parse the COMMAND, adding ARGS if given.
 COMMAND can either be a string, or a cons cell demarcating a buffer
 region.  TOPLEVEL, if non-nil, means that the outermost command (the
 user's input command) is being parsed, and that pre and post command
 hooks should be run before and after the command."
-  (let* (sep-terms
+  (let* (eshell--sep-terms
 	 (terms
 	  (append
 	   (if (consp command)
@@ -365,16 +367,16 @@ hooks should be run before and after the command."
 	   (function
 	    (lambda (cmd)
               (setq cmd
-                    (if (or (not (car sep-terms))
-                            (string= (car sep-terms) ";"))
+                    (if (or (not (car eshell--sep-terms))
+                            (string= (car eshell--sep-terms) ";"))
 			(eshell-parse-pipeline cmd)
 		      `(eshell-do-subjob
                         (list ,(eshell-parse-pipeline cmd)))))
-	      (setq sep-terms (cdr sep-terms))
+	      (setq eshell--sep-terms (cdr eshell--sep-terms))
 	      (if eshell-in-pipeline-p
 		  cmd
 		`(eshell-trap-errors ,cmd))))
-	   (eshell-separate-commands terms "[&;]" nil 'sep-terms))))
+	   (eshell-separate-commands terms "[&;]" nil 'eshell--sep-terms))))
     (let ((cmd commands))
       (while cmd
 	(if (cdr cmd)
@@ -586,9 +588,9 @@ For an external command, it means an exit code of 0."
 
 (defun eshell-parse-pipeline (terms)
   "Parse a pipeline from TERMS, return the appropriate Lisp forms."
-  (let* (sep-terms
+  (let* (eshell--sep-terms
 	 (bigpieces (eshell-separate-commands terms "\\(&&\\|||\\)"
-					      nil 'sep-terms))
+					      nil 'eshell--sep-terms))
 	 (bp bigpieces)
 	 (results (list t))
 	 final)
@@ -620,15 +622,15 @@ For an external command, it means an exit code of 0."
 	  results (nreverse results)
 	  final (car results)
 	  results (cdr results)
-	  sep-terms (nreverse sep-terms))
+	  eshell--sep-terms (nreverse eshell--sep-terms))
     (while results
-      (cl-assert (car sep-terms))
+      (cl-assert (car eshell--sep-terms))
       (setq final (eshell-structure-basic-command
-		   'if (string= (car sep-terms) "&&") "if"
+		   'if (string= (car eshell--sep-terms) "&&") "if"
 		   `(eshell-protect ,(car results))
 		   `(eshell-protect ,final))
 	    results (cdr results)
-	    sep-terms (cdr sep-terms)))
+	    eshell--sep-terms (cdr eshell--sep-terms)))
     final))
 
 (defun eshell-parse-subcommand-argument ()

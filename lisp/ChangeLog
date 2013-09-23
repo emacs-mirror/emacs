@@ -1,3 +1,10 @@
+2013-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell--sep-terms): New var.
+	(eshell-parse-command, eshell-parse-pipeline): Use it since
+	eshell-separate-commands requires a dynamic scoped var.
+	Reported by Jan Moringen <jmoringe@techfak.uni-bielefeld.de>.
+
 2013-09-23  Leo Liu  <sdl.web@gmail.com>
 
 	* autoinsert.el (auto-insert-alist): Make the value of
