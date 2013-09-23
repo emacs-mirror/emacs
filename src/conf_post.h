@@ -248,10 +248,8 @@ extern void _DebPrint (const char *fmt, ...);
 # define FLEXIBLE_ARRAY_MEMBER 1
 #endif
 
-#ifdef __clang__
-# ifndef __has_builtin
-#  define __has_builtin(x) 0
-# endif
+#ifndef __has_builtin
+# define __has_builtin(x) 0
 #endif
 
 /* assume(cond) tells the compiler (and lint) that a certain condition
