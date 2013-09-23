@@ -28267,7 +28267,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      if (NILP (s))
 		s = make_number (0);
 	      if (NILP (e))
-		e = make_number (SCHARS (object) - 1);
+		e = make_number (SCHARS (object));
 	      mouse_face_from_string_pos (w, hlinfo, object,
 					  XINT (s), XINT (e));
 	      hlinfo->mouse_face_past_end = 0;

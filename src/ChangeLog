@@ -3,6 +3,8 @@
 	* xdisp.c (mouse_face_from_string_pos): Fix off-by-one error in
 	computing the end column of mouse-highlight that comes from
 	display or overlay strings.  (Bug#15437)
+	(note_mouse_highlight): Adapt calculation of last argument to
+	mouse_face_from_string_pos to the above change.
 
 	* conf_post.h (__has_builtin): Define to zero, if undefined, on
 	all platforms, not just for clang.
