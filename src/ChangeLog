@@ -5,7 +5,9 @@
 	(display_last_displayed_message_p, message_buf_print)
 	(message_cleared_p, help_echo_showing_p, hourglass_shown_p):
 	Use bool for boolean.
-	* dispextern.h (help_echo_showing_p, hourglass_shown_p):
+	* dispextern.h (cancel_line, init_desired_glyphs):
+	Remove ancient leftover.
+	(help_echo_showing_p, hourglass_shown_p):
 	* lisp.h (noninteractive_need_newline): Adjust declaration.
 
 2013-09-23  Dmitry Antipov  <dmantipov@yandex.ru>
