@@ -1407,8 +1407,8 @@ GZIP_PROG
 INSTALL_INFO
 LN_S_FILEONLY
 GNULIB_WARN_CFLAGS
-WARN_CFLAGS
 WERROR_CFLAGS
+WARN_CFLAGS
 RANLIB
 ARFLAGS
 AR
@@ -7545,23 +7545,45 @@ fi
 # Otherwise, run RUN-IF-NOT-FOUND.
 
 
+# clang is unduly picky about some things.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
+$as_echo_n "checking whether the compiler is clang... " >&6; }
+if test "${emacs_cv_clang+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+	  #ifndef __clang__
+	    #error "not clang"
+	  #endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_clang=yes
+else
+  emacs_cv_clang=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_clang" >&5
+$as_echo "$emacs_cv_clang" >&6; }
+
 # When compiling with GCC, prefer -isystem to -I when including system
 # include files, to avoid generating useless diagnostics for the files.
 if test "$gl_gcc_warnings" != yes; then
   isystem='-I'
-else
-  isystem='-isystem '
-
-  # This, $nw, is the list of warnings we disable.
-  nw=
-
-  case $with_x_toolkit in
-    lucid | athena | motif)
-       # Old toolkits mishandle 'const'.
-       nw="$nw -Wwrite-strings"
-       ;;
-    *)
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror -Wunknown-warning-option" >&5
+  if test "$emacs_cv_clang" = yes
+  then
+     # Turn off some warnings if supported.
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror -Wunknown-warning-option" >&5
 $as_echo_n "checking whether C compiler handles -Werror -Wunknown-warning-option... " >&6; }
 if test "${gl_cv_warn_c__Werror__Wunknown_warning_option+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -7597,6 +7619,127 @@ else
   gl_unknown_warnings_are_errors=
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
+$as_echo_n "checking whether C compiler handles -Wno-switch... " >&6; }
+if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wswitch"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_switch=yes
+else
+  gl_cv_warn_c__Wno_switch=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_switch" >&5
+$as_echo "$gl_cv_warn_c__Wno_switch" >&6; }
+if test "x$gl_cv_warn_c__Wno_switch" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-switch"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-tautological-constant-out-of-range-compare" >&5
+$as_echo_n "checking whether C compiler handles -Wno-tautological-constant-out-of-range-compare... " >&6; }
+if test "${gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wtautological-constant-out-of-range-compare"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=yes
+else
+  gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" >&5
+$as_echo "$gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" >&6; }
+if test "x$gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-tautological-constant-out-of-range-compare"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-pointer-sign" >&5
+$as_echo_n "checking whether C compiler handles -Wno-pointer-sign... " >&6; }
+if test "${gl_cv_warn_c__Wno_pointer_sign+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wpointer-sign"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_pointer_sign=yes
+else
+  gl_cv_warn_c__Wno_pointer_sign=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_pointer_sign" >&5
+$as_echo "$gl_cv_warn_c__Wno_pointer_sign" >&6; }
+if test "x$gl_cv_warn_c__Wno_pointer_sign" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-pointer-sign"
+fi
+
+
+  fi
+else
+  isystem='-isystem '
+
+  # This, $nw, is the list of warnings we disable.
+  nw=
+
+  case $with_x_toolkit in
+    lucid | athena | motif)
+       # Old toolkits mishandle 'const'.
+       nw="$nw -Wwrite-strings"
+       ;;
+    *)
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
 $as_echo_n "checking whether C compiler handles -Werror... " >&6; }
@@ -7669,36 +7812,6 @@ fi
   nw="$nw -Wtype-limits"
   nw="$nw -Wunused-parameter"
 
-  # clang is unduly picky about some things.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
-$as_echo_n "checking whether the compiler is clang... " >&6; }
-if test "${emacs_cv_clang+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-	    #ifndef __clang__
-	      #error "not clang"
-	    #endif
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_clang=yes
-else
-  emacs_cv_clang=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_clang" >&5
-$as_echo "$emacs_cv_clang" >&6; }
   if test $emacs_cv_clang = yes; then
     nw="$nw -Wcast-align"
   fi
@@ -16070,6 +16183,19 @@ fi
 
 
 
+
+
+for ac_header in valgrind/valgrind.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "valgrind/valgrind.h" "ac_cv_header_valgrind_valgrind_h" "$ac_includes_default"
+if test "x$ac_cv_header_valgrind_valgrind_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_VALGRIND_VALGRIND_H 1
+_ACEOF
+
+fi
+
+done
 
 
 
