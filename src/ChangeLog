@@ -1,5 +1,9 @@
 2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispnew.c (clear_glyph_row, copy_row_except_pointers): Use enums
+	instead of ints, as it's the usual style for offsetof constants.  See:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00478.html
+
 	* data.c (POPCOUNT_STATIC_INLINE): New macro, as a hack for popcount.
 	This is ugly, but it should fix the performance problem for older
 	GCC versions in the short run.  I'll look into integrating the

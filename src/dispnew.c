@@ -838,7 +838,7 @@ clear_window_matrices (struct window *w, bool desired_p)
 void
 clear_glyph_row (struct glyph_row *row)
 {
-  int off = offsetof (struct glyph_row, used);
+  enum { off = offsetof (struct glyph_row, used) };
 
   /* Zero everything except pointers in `glyphs'.  */
   memset (row->used, 0, sizeof *row - off);
@@ -988,7 +988,7 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 static void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
-  int off = offsetof (struct glyph_row, x);
+  enum { off = offsetof (struct glyph_row, x) };
 
   memcpy (&to->x, &from->x, sizeof *to - off);
 }
