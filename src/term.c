@@ -3075,6 +3075,53 @@ struct tty_menu_state
   int x, y;
 };
 
+/* Save away the contents of frame F's current frame matrix, and
+   enable all its rows.  Value is a glyph matrix holding the contents
+   of F's current frame matrix with all its glyph rows enabled.  */
+
+struct glyph_matrix *
+save_and_enable_current_matrix (struct frame *f)
+{
+  int i;
+  struct glyph_matrix *saved = xzalloc (sizeof *saved);
+  saved->nrows = f->current_matrix->nrows;
+  saved->rows = xzalloc (saved->nrows * sizeof *saved->rows);
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = f->current_matrix->rows + i;
+      struct glyph_row *to = saved->rows + i;
+      ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+
+      to->glyphs[TEXT_AREA] = xmalloc (nbytes);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
+      to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      /* Make sure every row is enabled, or else update_frame will not
+	 redraw them.  (Rows that are identical to what is already on
+	 screen will not be redrawn anyway.)  */
+      to->enabled_p = 1;
+      to->hash = from->hash;
+      if (from->used[LEFT_MARGIN_AREA])
+	{
+	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
+	  to->glyphs[LEFT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
+		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
+	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
+	}
+      if (from->used[RIGHT_MARGIN_AREA])
+	{
+	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
+	  to->glyphs[RIGHT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
+		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
+	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
+	}
+    }
+
+  return saved;
+}
+
 /* Restore the contents of frame F's desired frame matrix from SAVED,
    and free memory associated with SAVED.  */
 
@@ -3094,7 +3141,6 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       to->enabled_p = from->enabled_p;
       to->hash = from->hash;
-      xfree (from->glyphs[TEXT_AREA]);
       nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
       if (nbytes)
 	{
@@ -3102,7 +3148,6 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
 	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
 		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
 	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
-	  xfree (from->glyphs[LEFT_MARGIN_AREA]);
 	}
       else
 	to->used[LEFT_MARGIN_AREA] = 0;
@@ -3113,14 +3158,10 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
 	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
 		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
 	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
-	  xfree (from->glyphs[RIGHT_MARGIN_AREA]);
 	}
       else
 	to->used[RIGHT_MARGIN_AREA] = 0;
     }
-
-  xfree (saved->rows);
-  xfree (saved);
 }
 
 static void
@@ -3182,10 +3223,15 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       Lisp_Object cmd;
       int usable_input = 1;
       int st = 0;
+      struct tty_display_info *tty = FRAME_TTY (sf);
 
+      /* Signal the keyboard reading routines we are displaying a menu
+	 on this terminal.  */
+      tty->showing_menu = 1;
       do {
 	cmd = read_menu_command ();
       } while NILP (cmd);
+      tty->showing_menu = 0;
 
       if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
 	return -1;
@@ -3333,7 +3379,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   update_frame_with_menu (sf);
   state[0].menu = menu;
   mouse_off ();	/* FIXME */
-  state[0].screen_behind = save_current_matrix (sf);
+  state[0].screen_behind = save_and_enable_current_matrix (sf);
 
   /* Turn off the cursor.  Otherwise it shows through the menu
      panes, which is ugly.  */
@@ -3383,7 +3429,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	    }
 	  leave = 1;
 	}
-      else if (sf->mouse_moved)
+      if (sf->mouse_moved && input_status != -1)
 	{
 	  sf->mouse_moved = 0;
 	  result = TTYM_IA_SELECT;
@@ -3425,7 +3471,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			state[statecount].pane = state[i].menu->panenumber[dy];
 			mouse_off (); /* FIXME */
 			state[statecount].screen_behind
-			  = save_current_matrix (sf);
+			  = save_and_enable_current_matrix (sf);
 			state[statecount].x
 			  = state[i].x + state[i].menu->width + 2;
 			state[statecount].y = y;
@@ -3476,7 +3522,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   /* FIXME: Since we set the fram's garbaged flag, do we need this
      call to screen_update?  */
   screen_update (sf, state[0].screen_behind);
-  state[0].screen_behind = NULL;
 #if 0
   /* We have a situation here.  ScreenUpdate has just restored the
      screen contents as it was before we started drawing this menu.

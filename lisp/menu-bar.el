@@ -2323,7 +2323,9 @@ If FRAME is nil or not given, use the selected frame."
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
      ((null tty-menu-open-use-tmm)
-      (popup-menu menu-bar-file-menu (posn-at-x-y 0 0 nil t)))
+      ;; FIXME: This should open the leftmost menu, and let the user
+      ;; move to others via C-f or right-arrow.
+      (popup-menu menu-bar-tools-menu (posn-at-x-y 30 0 nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 
