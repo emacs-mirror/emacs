@@ -45,16 +45,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <verify.h>
 
-#if (defined ENABLE_CHECKING &&               \
-     defined HAVE_VALGRIND_VALGRIND_H &&      \
-     !defined USE_VALGRIND)
+#if (defined ENABLE_CHECKING			\
+     && defined HAVE_VALGRIND_VALGRIND_H	\
+     && !defined USE_VALGRIND)
 # define USE_VALGRIND 1
 #endif
 
 #if USE_VALGRIND
 #include <valgrind/valgrind.h>
 #include <valgrind/memcheck.h>
-static int valgrind_p;
+static bool valgrind_p;
 #endif
 
 /* GC_CHECK_MARKED_OBJECTS means do sanity checks on allocated objects.
@@ -6667,7 +6667,7 @@ init_alloc (void)
   gcs_done = 0;
 
 #if USE_VALGRIND
-  valgrind_p = RUNNING_ON_VALGRIND;
+  valgrind_p = RUNNING_ON_VALGRIND != 0;
 #endif
 }
 
