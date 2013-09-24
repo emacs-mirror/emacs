@@ -1333,15 +1333,15 @@ Returns nil if format of ADDRESS is invalid.  */)
 
       for (i = 0; i < nargs; i++)
 	{
-	  if (! RANGED_INTEGERP (0, p->contents[i], 65535))
+	  if (! RANGED_INTEGERP (0, p->u.contents[i], 65535))
 	    return Qnil;
 
 	  if (nargs <= 5         /* IPv4 */
 	      && i < 4           /* host, not port */
-	      && XINT (p->contents[i]) > 255)
+	      && XINT (p->u.contents[i]) > 255)
 	    return Qnil;
 
-	  args[i+1] = p->contents[i];
+	  args[i+1] = p->u.contents[i];
 	}
 
       return Fformat (nargs+1, args);
@@ -1980,7 +1980,7 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
 	len = sizeof (sin->sin_addr) + 1;
 	address = Fmake_vector (make_number (len), Qnil);
 	p = XVECTOR (address);
-	p->contents[--len] = make_number (ntohs (sin->sin_port));
+	p->u.contents[--len] = make_number (ntohs (sin->sin_port));
 	cp = (unsigned char *) &sin->sin_addr;
 	break;
       }
@@ -1992,9 +1992,9 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
 	len = sizeof (sin6->sin6_addr)/2 + 1;
 	address = Fmake_vector (make_number (len), Qnil);
 	p = XVECTOR (address);
-	p->contents[--len] = make_number (ntohs (sin6->sin6_port));
+	p->u.contents[--len] = make_number (ntohs (sin6->sin6_port));
 	for (i = 0; i < len; i++)
-	  p->contents[i] = make_number (ntohs (ip6[i]));
+	  p->u.contents[i] = make_number (ntohs (ip6[i]));
 	return address;
       }
 #endif
@@ -2019,7 +2019,7 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
 
   i = 0;
   while (i < len)
-    p->contents[i++] = make_number (*cp++);
+    p->u.contents[i++] = make_number (*cp++);
 
   return address;
 }
@@ -2090,7 +2090,7 @@ conv_lisp_to_sockaddr (int family, Lisp_Object address, struct sockaddr *sa, int
 	{
 	  struct sockaddr_in *sin = (struct sockaddr_in *) sa;
 	  len = sizeof (sin->sin_addr) + 1;
-	  hostport = XINT (p->contents[--len]);
+	  hostport = XINT (p->u.contents[--len]);
 	  sin->sin_port = htons (hostport);
 	  cp = (unsigned char *)&sin->sin_addr;
 	  sa->sa_family = family;
@@ -2101,12 +2101,12 @@ conv_lisp_to_sockaddr (int family, Lisp_Object address, struct sockaddr *sa, int
 	  struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
 	  uint16_t *ip6 = (uint16_t *)&sin6->sin6_addr;
 	  len = sizeof (sin6->sin6_addr) + 1;
-	  hostport = XINT (p->contents[--len]);
+	  hostport = XINT (p->u.contents[--len]);
 	  sin6->sin6_port = htons (hostport);
 	  for (i = 0; i < len; i++)
-	    if (INTEGERP (p->contents[i]))
+	    if (INTEGERP (p->u.contents[i]))
 	      {
-		int j = XFASTINT (p->contents[i]) & 0xffff;
+		int j = XFASTINT (p->u.contents[i]) & 0xffff;
 		ip6[i] = ntohs (j);
 	      }
 	  sa->sa_family = family;
@@ -2137,8 +2137,8 @@ conv_lisp_to_sockaddr (int family, Lisp_Object address, struct sockaddr *sa, int
     }
 
   for (i = 0; i < len; i++)
-    if (INTEGERP (p->contents[i]))
-      *cp++ = XFASTINT (p->contents[i]) & 0xff;
+    if (INTEGERP (p->u.contents[i]))
+      *cp++ = XFASTINT (p->u.contents[i]) & 0xff;
 }
 
 #ifdef DATAGRAM_SOCKETS
@@ -3729,7 +3729,7 @@ FLAGS is the current flags of the interface.  */)
 
       any = 1;
       for (n = 0; n < 6; n++)
-	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
+	p->u.contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
       elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
     }
 #elif defined (HAVE_GETIFADDRS) && defined (LLADDR)

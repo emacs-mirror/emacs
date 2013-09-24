@@ -118,7 +118,7 @@ disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *w
 
   for (i = 0; i < 256; i++)
     if (character_width (i, disptab)
-        != XFASTINT (widthtab->contents[i]))
+        != XFASTINT (widthtab->u.contents[i]))
       return 0;
 
   return 1;
@@ -138,7 +138,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   eassert (widthtab->header.size == 256);
 
   for (i = 0; i < 256; i++)
-    XSETFASTINT (widthtab->contents[i], character_width (i, disptab));
+    XSETFASTINT (widthtab->u.contents[i], character_width (i, disptab));
 }
 
 /* Allocate or free the width run cache, as requested by the
@@ -1136,7 +1136,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
   width_run_cache_on_off ();
   if (dp == buffer_display_table ())
     width_table = (VECTORP (BVAR (current_buffer, width_table))
-                   ? XVECTOR (BVAR (current_buffer, width_table))->contents
+                   ? XVECTOR (BVAR (current_buffer, width_table))->u.contents
                    : 0);
   else
     /* If the window has its own display table, we can't use the width

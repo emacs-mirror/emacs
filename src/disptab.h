@@ -59,7 +59,7 @@ extern Lisp_Object Qdisplay_table;
 /* Return the current base (for indexing) of the GLYPH table,
    or 0 if the table isn't currently valid.  */
 #define GLYPH_TABLE_BASE  \
-  ((VECTORP (Vglyph_table)) ? XVECTOR (Vglyph_table)->contents : 0)
+  ((VECTORP (Vglyph_table)) ? XVECTOR (Vglyph_table)->u.contents : 0)
 
 /* Given BASE and LEN returned by the two previous macros,
    return nonzero if the GLYPH code G should be output as a single

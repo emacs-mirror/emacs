@@ -266,7 +266,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     composition_table = xpalloc (composition_table, &composition_table_size,
 				 1, -1, sizeof *composition_table);
 
-  key_contents = XVECTOR (key)->contents;
+  key_contents = XVECTOR (key)->u.contents;
 
   /* Check if the contents of COMPONENTS are valid if COMPONENTS is a
      vector or a list.  It should be a sequence of:

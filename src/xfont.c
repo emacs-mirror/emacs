@@ -384,7 +384,7 @@ xfont_list_pattern (Display *display, const char *pattern,
   if (num_fonts > 0)
     {
       char **indices = alloca (sizeof (char *) * num_fonts);
-      Lisp_Object *props = XVECTOR (xfont_scratch_props)->contents;
+      Lisp_Object *props = XVECTOR (xfont_scratch_props)->u.contents;
       Lisp_Object scripts = Qnil;
 
       for (i = 0; i < ASIZE (xfont_scratch_props); i++)

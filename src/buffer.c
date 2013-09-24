@@ -4534,7 +4534,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
     Lisp_Object *copy = alloca (size * sizeof *copy);
     ptrdiff_t i;
 
-    memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
+    memcpy (copy, XVECTOR (last_overlay_modification_hooks)->u.contents,
 	    size * word_size);
     gcpro1.var = copy;
     gcpro1.nvars = size;

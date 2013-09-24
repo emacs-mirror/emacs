@@ -1136,12 +1136,19 @@ struct vectorlike_header
     ptrdiff_t size;
   };
 
-/* Regular vector is just a header plus array of Lisp_Objects.  */
+/* Regular vector is just a header plus array of Lisp_Objects...  */
 
 struct Lisp_Vector
   {
     struct vectorlike_header header;
-    Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
+    union {
+      /* ...but sometimes there is also a pointer internally used in
+	 vector allocation code.  Usually you don't want to touch this.  */
+      struct Lisp_Vector *next;
+      
+      /* We can't use FLEXIBLE_ARRAY_MEMBER here.  */
+      Lisp_Object contents[1]; 
+    } u;
   };
 
 /* A boolvector is a kind of vectorlike, with contents are like a string.  */
@@ -1162,7 +1169,7 @@ struct Lisp_Bool_Vector
 
 enum
   {
-    header_size = offsetof (struct Lisp_Vector, contents),
+    header_size = offsetof (struct Lisp_Vector, u.contents),
     bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
     word_size = sizeof (Lisp_Object)
   };
@@ -1172,13 +1179,13 @@ enum
 INLINE Lisp_Object
 AREF (Lisp_Object array, ptrdiff_t idx)
 {
-  return XVECTOR (array)->contents[idx];
+  return XVECTOR (array)->u.contents[idx];
 }
 
 INLINE Lisp_Object *
 aref_addr (Lisp_Object array, ptrdiff_t idx)
 {
-  return & XVECTOR (array)->contents[idx];
+  return & XVECTOR (array)->u.contents[idx];
 }
 
 INLINE ptrdiff_t
@@ -1191,7 +1198,7 @@ INLINE void
 ASET (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < ASIZE (array));
-  XVECTOR (array)->contents[idx] = val;
+  XVECTOR (array)->u.contents[idx] = val;
 }
 
 INLINE void
@@ -1200,7 +1207,7 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
   /* Like ASET, but also can be used in the garbage collector:
      sweep_weak_table calls set_hash_key etc. while the table is marked.  */
   eassert (0 <= idx && idx < (ASIZE (array) & ~ARRAY_MARK_FLAG));
-  XVECTOR (array)->contents[idx] = val;
+  XVECTOR (array)->u.contents[idx] = val;
 }
 
 /* If a struct is made to look like a vector, this macro returns the length
@@ -3028,7 +3035,7 @@ INLINE void
 vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
 {
   eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
-  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
+  memcpy (XVECTOR (v)->u.contents + offset, args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */

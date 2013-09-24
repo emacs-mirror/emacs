@@ -1,5 +1,18 @@
 2013-09-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use union for the payload of struct Lisp_Vector.
+	This helps to avoid a few glitches dictated by C's aliasing rules.
+	* lisp.h (struct Lisp_Vector): Use union for next and
+	contents member.  Adjust comment.  Change related users.
+	* alloc.c (next_in_free_list, set_next_in_free_list): Remove.
+	Related users changed.
+	* buffer.c, bytecode.c, ccl.c, character.h, chartab.c, composite.c:
+	* composite.h, disptab.h, fns.c, fontset.c, indent.c, keyboard.c:
+	* lread.c, msdos.c, process.c, w32menu.c, window.c, xdisp.c:
+	* xfaces.c, xfont.c, xmenu.c: Related users changed.
+
+2013-09-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Optimize glyph row clearing and copying routines.
 	* dispextern.h (struct glyph_row): Change layout of struct
 	glyph_row to help copy_row_except_pointers.  Adjust comment.

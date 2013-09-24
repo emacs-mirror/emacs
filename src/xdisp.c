@@ -4473,8 +4473,8 @@ setup_for_ellipsis (struct it *it, int len)
   if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
     {
       struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
-      it->dpvec = v->contents;
-      it->dpend = v->contents + v->header.size;
+      it->dpvec = v->u.contents;
+      it->dpend = v->u.contents + v->header.size;
     }
   else
     {
@@ -6778,8 +6778,8 @@ get_next_display_element (struct it *it)
 	      if (v->header.size)
 		{
 		  it->dpvec_char_len = it->len;
-		  it->dpvec = v->contents;
-		  it->dpend = v->contents + v->header.size;
+		  it->dpvec = v->u.contents;
+		  it->dpend = v->u.contents + v->header.size;
 		  it->current.dpvec_index = 0;
 		  it->dpvec_face_id = -1;
 		  it->saved_face_id = it->face_id;
@@ -27555,7 +27555,7 @@ on_hot_spot_p (Lisp_Object hot_spot, int x, int y)
       if (VECTORP (XCDR (hot_spot)))
 	{
 	  struct Lisp_Vector *v = XVECTOR (XCDR (hot_spot));
-	  Lisp_Object *poly = v->contents;
+	  Lisp_Object *poly = v->u.contents;
 	  ptrdiff_t n = v->header.size;
 	  ptrdiff_t i;
 	  int inside = 0;

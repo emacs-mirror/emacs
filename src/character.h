@@ -677,7 +677,7 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
-  (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
+  (XCDR (XVECTOR (Vtranslation_table_vector)->u.contents[(id)]))
 
 INLINE_HEADER_END
 
