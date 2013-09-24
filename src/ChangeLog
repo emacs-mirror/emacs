@@ -1,3 +1,16 @@
+2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* data.c (POPCOUNT_STATIC_INLINE): New macro, as a hack for popcount.
+	This is ugly, but it should fix the performance problem for older
+	GCC versions in the short run.  I'll look into integrating the
+	Gnulib module for popcount, as a better fix.
+	See the thread starting in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00474.html
+	(popcount_size_t_generic) [NEED_GENERIC_POPCOUNT]:
+	(popcount_size_t_msc) [USE_MSC_POPCOUNT]:
+	(popcount_size_t_gcc) [USE_GCC_POPCOUNT]:
+	(popcount_size_t): Use it.
+
 2013-09-24  Daniel Colascione  <dancol@dancol.org>
 
 	* process.c (Fnetwork_interface_info): Fix build break due to

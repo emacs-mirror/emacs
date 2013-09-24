@@ -2972,18 +2972,25 @@ bool_vector_spare_mask (ptrdiff_t nr_bits)
 
 #if _MSC_VER >= 1500 && (defined _M_IX86 || defined _M_X64)
 # define USE_MSC_POPCOUNT
+# define POPCOUNT_STATIC_INLINE static inline
 #elif __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
 # define USE_GCC_POPCOUNT
+# if 199901L <= __STDC_VERSION__ || !__STRICT_ANSI__
+#  define POPCOUNT_STATIC_INLINE static inline
+# endif
 #else
 # define NEED_GENERIC_POPCOUNT
 #endif
+#ifndef POPCOUNT_STATIC_INLINE
+# define POPCOUNT_STATIC_INLINE static
+#endif
 
 #ifdef USE_MSC_POPCOUNT
-#define NEED_GENERIC_POPCOUNT
+# define NEED_GENERIC_POPCOUNT
 #endif
 
 #ifdef NEED_GENERIC_POPCOUNT
-static unsigned int
+POPCOUNT_STATIC_INLINE unsigned int
 popcount_size_t_generic (size_t val)
 {
     unsigned short j;
@@ -2997,7 +3004,7 @@ popcount_size_t_generic (size_t val)
 #endif
 
 #ifdef USE_MSC_POPCOUNT
-static unsigned int
+POPCOUNT_STATIC_INLINE unsigned int
 popcount_size_t_msc (size_t val)
 {
   unsigned int count;
@@ -3042,7 +3049,7 @@ popcount_size_t_msc (size_t val)
 #endif /* USE_MSC_POPCOUNT */
 
 #ifdef USE_GCC_POPCOUNT
-static unsigned int
+POPCOUNT_STATIC_INLINE unsigned int
 popcount_size_t_gcc (size_t val)
 {
 # if BITS_PER_SIZE_T == 64
@@ -3053,7 +3060,7 @@ popcount_size_t_gcc (size_t val)
 }
 #endif /* USE_GCC_POPCOUNT */
 
-static unsigned int
+POPCOUNT_STATIC_INLINE unsigned int
 popcount_size_t (size_t val)
 {
 #if defined USE_MSC_POPCOUNT
