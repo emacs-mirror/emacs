@@ -2922,14 +2922,14 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
   int i, face, width,  mx = -1, my = -1, enabled, mousehere, row, col;
   struct frame *sf = SELECTED_FRAME ();
   struct tty_display_info *tty = FRAME_TTY (sf);
-#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
+#if defined (WINDOWSNT) || defined (HAVE_GPM)
   Lisp_Object lmx, lmy, lisp_dummy;
   enum scroll_bar_part part_dummy;
   Time time_dummy;
 
   if (FRAME_TERMINAL (sf)->mouse_position_hook)
     (*FRAME_TERMINAL (sf)->mouse_position_hook) (&sf, -1,
-                                                 &lispy_dummy, &party_dummy,
+                                                 &lisp_dummy, &part_dummy,
 						 &lmx, &lmy,
 						 &time_dummy);
   if (!NILP (lmx))

@@ -3905,13 +3905,17 @@ kbd_buffer_get_event (KBOARD **kbp,
       else
 	{
 	  bool do_display = true;
-	  struct tty_display_info *tty = CURTTY ();
 
-	  /* When this TTY is displaying a menu, we must prevent any
-	     redisplay, because we modify the frame's glyph matrix
-	     behind the back of the display engine.  */
-	  if (tty->showing_menu)
-	    do_display = false;
+	  if (FRAME_TERMCAP_P (SELECTED_FRAME ()))
+	    {
+	      struct tty_display_info *tty = CURTTY ();
+
+	      /* When this TTY is displaying a menu, we must prevent
+		 any redisplay, because we modify the frame's glyph
+		 matrix behind the back of the display engine.  */
+	      if (tty->showing_menu)
+		do_display = false;
+	    }
 
 	  wait_reading_process_output (0, 0, -1, do_display, Qnil, NULL, 0);
 	}
