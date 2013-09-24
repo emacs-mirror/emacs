@@ -1882,8 +1882,7 @@ pixel_to_glyph_coords (struct frame *f, register int pix_x, register int pix_y,
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-static
-struct glyph *
+static struct glyph *
 x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
 		  int *dx, int *dy, int *area)
 {

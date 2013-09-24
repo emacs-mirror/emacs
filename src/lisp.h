@@ -4359,15 +4359,13 @@ functionp (Lisp_Object object)
     return 0;
 }
 
-INLINE
-uint16_t
+INLINE uint16_t
 swap16 (uint16_t val)
 {
     return (val << 8) | (val & 0xFF);
 }
 
-INLINE
-uint32_t
+INLINE uint32_t
 swap32 (uint32_t val)
 {
   uint32_t low = swap16 (val & 0xFFFF);
@@ -4376,8 +4374,7 @@ swap32 (uint32_t val)
 }
 
 #ifdef UINT64_MAX
-INLINE
-uint64_t
+INLINE uint64_t
 swap64 (uint64_t val)
 {
   uint64_t low = swap32 (val & 0xFFFFFFFF);

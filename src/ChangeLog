@@ -1,5 +1,19 @@
 2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Some minor cleanups of recently-added bool vector code.
+	* conf_post.h (assume): Always return void.  Use lint version
+	only if GCC and MSC versions don't apply.
+	* conf_post.h (assume):
+	* data.c (USC_MSC_POPCOUNT, count_trailing_zero_bits):
+	Depend on _MSC_VER, not __MSC_VER, for consistency with
+	the rest of Emacs.
+	* data.c (bool_vector_spare_mask, popcount_size_t_generic)
+	(popcount_size_t_msc, popcount_size_t_gcc, popcount_size_t)
+	(bool_vector_binop_driver, count_trailing_zero_bits)
+	(size_t_to_host_endian): Now static, not static inline;
+	the latter isn't needed with modern compilers and doesn't
+	work with older compilers anyway.
+
 	* alloc.c (valgrind_p): Use bool for boolean.
 
 2013-09-23  Dmitry Antipov  <dmantipov@yandex.ru>

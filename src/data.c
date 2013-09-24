@@ -617,7 +617,7 @@ global value outside of any lexical scope.  */)
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	if (blv->fwd)
 	  /* In set_internal, we un-forward vars when their value is
-    	     set to Qunbound. */
+	     set to Qunbound.  */
     	  return Qt;
 	else
 	  {
@@ -628,7 +628,7 @@ global value outside of any lexical scope.  */)
       }
     case SYMBOL_FORWARDED:
       /* In set_internal, we un-forward vars when their value is
-	 set to Qunbound. */
+	 set to Qunbound.  */
       return Qt;
     default: emacs_abort ();
     }
@@ -1996,7 +1996,7 @@ If the current binding is global (the default), the value is nil.  */)
 }
 
 /* This code is disabled now that we use the selected frame to return
-   keyboard-local-values. */
+   keyboard-local-values.  */
 #if 0
 extern struct terminal *get_terminal (Lisp_Object display, int);
 
@@ -2963,15 +2963,14 @@ lowercase l) for small endian machines.  */)
    always allocate bool vectors with at least one size_t of storage so
    that we don't have to special-case empty bit vectors.  */
 
-static inline
-size_t
+static size_t
 bool_vector_spare_mask (ptrdiff_t nr_bits)
 {
   eassert_and_assume (nr_bits > 0);
   return (((size_t) 1) << (nr_bits % BITS_PER_SIZE_T)) - 1;
 }
 
-#if __MSC_VER >= 1500 && (defined _M_IX86 || defined _M_X64)
+#if _MSC_VER >= 1500 && (defined _M_IX86 || defined _M_X64)
 # define USE_MSC_POPCOUNT
 #elif __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
 # define USE_GCC_POPCOUNT
@@ -2984,8 +2983,7 @@ bool_vector_spare_mask (ptrdiff_t nr_bits)
 #endif
 
 #ifdef NEED_GENERIC_POPCOUNT
-static inline
-unsigned int
+static unsigned int
 popcount_size_t_generic (size_t val)
 {
     unsigned short j;
@@ -2999,8 +2997,7 @@ popcount_size_t_generic (size_t val)
 #endif
 
 #ifdef USE_MSC_POPCOUNT
-static inline
-unsigned int
+static unsigned int
 popcount_size_t_msc (size_t val)
 {
   unsigned int count;
@@ -3045,8 +3042,7 @@ popcount_size_t_msc (size_t val)
 #endif /* USE_MSC_POPCOUNT */
 
 #ifdef USE_GCC_POPCOUNT
-static inline
-unsigned int
+static unsigned int
 popcount_size_t_gcc (size_t val)
 {
 # if BITS_PER_SIZE_T == 64
@@ -3057,9 +3053,8 @@ popcount_size_t_gcc (size_t val)
 }
 #endif /* USE_GCC_POPCOUNT */
 
-static inline
-unsigned int
-popcount_size_t(size_t val)
+static unsigned int
+popcount_size_t (size_t val)
 {
 #if defined USE_MSC_POPCOUNT
   return popcount_size_t_msc (val);
@@ -3067,7 +3062,7 @@ popcount_size_t(size_t val)
   return popcount_size_t_gcc (val);
 #else
   return popcount_size_t_generic (val);
-  #endif
+#endif
 }
 
 enum bool_vector_op { bool_vector_exclusive_or,
@@ -3076,8 +3071,7 @@ enum bool_vector_op { bool_vector_exclusive_or,
                       bool_vector_set_difference,
                       bool_vector_subsetp };
 
-static inline
-Lisp_Object
+static Lisp_Object
 bool_vector_binop_driver (Lisp_Object op1,
                           Lisp_Object op2,
                           Lisp_Object dest,
@@ -3108,11 +3102,11 @@ bool_vector_binop_driver (Lisp_Object op1,
     }
 
   eassert_and_assume (nr_bits >= 0);
-  nr_words = ROUNDUP(nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
-  
-  adata = (size_t*) XBOOL_VECTOR (dest)->data;
-  bdata = (size_t*) XBOOL_VECTOR (op1)->data;
-  cdata = (size_t*) XBOOL_VECTOR (op2)->data;
+  nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
+
+  adata = (size_t *) XBOOL_VECTOR (dest)->data;
+  bdata = (size_t *) XBOOL_VECTOR (op1)->data;
+  cdata = (size_t *) XBOOL_VECTOR (op2)->data;
   i = 0;
   do
     {
@@ -3132,16 +3126,16 @@ bool_vector_binop_driver (Lisp_Object op1,
       if (op != bool_vector_subsetp)
         adata[i] = mword;
 
-      i += 1;
+      i++;
     }
   while (i < nr_words);
+
   return changed ? dest : Qnil;
 }
 
 /* Compute the number of trailing zero bits in val.  If val is zero,
    return the number of bits in val.  */
-static inline
-unsigned int
+static unsigned int
 count_trailing_zero_bits (size_t val)
 {
   if (val == 0)
@@ -3151,7 +3145,7 @@ count_trailing_zero_bits (size_t val)
   return __builtin_ctzll (val);
 #elif defined USE_GCC_POPCOUNT && BITS_PER_SIZE_T == 32
   return __builtin_ctz (val);
-#elif __MSC_VER && BITS_PER_SIZE_T == 64
+#elif _MSC_VER && BITS_PER_SIZE_T == 64
 # pragma intrinsic _BitScanForward64
   {
     /* No support test needed: support since 386.  */
@@ -3159,7 +3153,7 @@ count_trailing_zero_bits (size_t val)
     _BitScanForward64 (&result, val);
     return (unsigned int) result;
   }
-#elif __MSC_VER && BITS_PER_SIZE_T == 32
+#elif _MSC_VER && BITS_PER_SIZE_T == 32
 # pragma intrinsic _BitScanForward
   {
     /* No support test needed: support since 386.  */
@@ -3171,7 +3165,7 @@ count_trailing_zero_bits (size_t val)
   {
     unsigned int count;
     count = 0;
-    for(val = ~val; val & 1; val >>= 1)
+    for (val = ~val; val & 1; val >>= 1)
       ++count;
 
     return count;
@@ -3179,8 +3173,7 @@ count_trailing_zero_bits (size_t val)
 #endif
 }
 
-static inline
-size_t
+static size_t
 size_t_to_host_endian (size_t val)
 {
 #ifdef WORDS_BIGENDIAN
@@ -3272,17 +3265,13 @@ Return the destination vector.  */)
       nr_bits = min (nr_bits, XBOOL_VECTOR (b)->size);
     }
 
-  bdata = (size_t*) XBOOL_VECTOR (b)->data;
-  adata = (size_t*) XBOOL_VECTOR (a)->data;
-  i = 0;
+  bdata = (size_t *) XBOOL_VECTOR (b)->data;
+  adata = (size_t *) XBOOL_VECTOR (a)->data;
 
   eassert_and_assume (nr_bits >= 0);
 
-  while (i < nr_bits / BITS_PER_SIZE_T)
-    {
-      bdata[i] = ~adata[i];
-      i += 1;
-    }
+  for (i = 0; i < nr_bits / BITS_PER_SIZE_T; i++)
+    bdata[i] = ~adata[i];
 
   if (nr_bits % BITS_PER_SIZE_T)
     {
@@ -3298,7 +3287,7 @@ Return the destination vector.  */)
 DEFUN ("bool-vector-count-matches", Fbool_vector_count_matches,
        Sbool_vector_count_matches, 2, 2, 0,
        doc: /* Count how many elements in A equal B.
-A must be a bool vector. B is a generalized bool.  */)
+A must be a bool vector.  B is a generalized bool.  */)
   (Lisp_Object a, Lisp_Object b)
 {
   ptrdiff_t count;
@@ -3312,11 +3301,11 @@ A must be a bool vector. B is a generalized bool.  */)
   nr_bits = XBOOL_VECTOR (a)->size;
   count = 0;
   match = NILP (b) ? (size_t) -1 : 0;
-  adata = (size_t*) XBOOL_VECTOR (a)->data;
+  adata = (size_t *) XBOOL_VECTOR (a)->data;
 
   eassert_and_assume (nr_bits >= 0);
 
-  for(i = 0; i < nr_bits / BITS_PER_SIZE_T; ++i)
+  for (i = 0; i < nr_bits / BITS_PER_SIZE_T; ++i)
     count += popcount_size_t (adata[i] ^ match);
 
   /* Mask out trailing parts of final mword.  */
@@ -3335,7 +3324,7 @@ DEFUN ("bool-vector-count-matches-at",
        Sbool_vector_count_matches_at, 3, 3, 0,
        doc: /* Count how many consecutive elements in A equal B at i.
 A must be a bool vector.  B is a generalized boolean.  i is an
-index into the vector.*/)
+index into the vector.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object i)
 {
   ptrdiff_t count;
@@ -3354,11 +3343,11 @@ index into the vector.*/)
   if (XFASTINT (i) > nr_bits) /* Allow one past the end for convenience */
     args_out_of_range (a, i);
 
-  adata = (size_t*) XBOOL_VECTOR (a)->data;
+  adata = (size_t *) XBOOL_VECTOR (a)->data;
 
   assume (nr_bits >= 0);
   nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
-  
+
   pos = XFASTINT (i) / BITS_PER_SIZE_T;
   offset = XFASTINT (i) % BITS_PER_SIZE_T;
   count = 0;
@@ -3376,7 +3365,7 @@ index into the vector.*/)
       mword >>= offset;
       count = count_trailing_zero_bits (mword);
       count = min (count, BITS_PER_SIZE_T - offset);
-      pos += 1;
+      pos++;
       if (count + offset < BITS_PER_SIZE_T)
         return make_number (count);
     }

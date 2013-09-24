@@ -981,7 +981,7 @@ struct ablocks
 #define ABLOCKS_BASE(abase) (abase)
 #else
 #define ABLOCKS_BASE(abase) \
-  (1 & (intptr_t) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
+  (1 & (intptr_t) ABLOCKS_BUSY (abase) ? abase : ((void **)abase)[-1])
 #endif
 
 /* The list of free ablock.   */
@@ -1036,7 +1036,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 
       aligned = (base == abase);
       if (!aligned)
-	((void**)abase)[-1] = base;
+	((void **) abase)[-1] = base;
 
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas.  */
@@ -2016,10 +2016,9 @@ INIT must be an integer that represents a character.  */)
 verify (sizeof (size_t) * CHAR_BIT == BITS_PER_SIZE_T);
 verify ((BITS_PER_SIZE_T & (BITS_PER_SIZE_T - 1)) == 0);
 
-static
-ptrdiff_t
+static ptrdiff_t
 bool_vector_payload_bytes (ptrdiff_t nr_bits,
-                           ptrdiff_t* exact_needed_bytes_out)
+                           ptrdiff_t *exact_needed_bytes_out)
 {
   ptrdiff_t exact_needed_bytes;
   ptrdiff_t needed_bytes;
@@ -2068,7 +2067,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
                                        + total_payload_bytes),
                              word_size) / word_size;
 
-  p = (struct Lisp_Bool_Vector* ) allocate_vector (needed_elements);
+  p = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
   XSETVECTOR (val, p);
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
 
@@ -2617,9 +2616,9 @@ verify ((VECTOR_BLOCK_SIZE % roundup_size) == 0);
 verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
-#define vroundup_ct(x) ROUNDUP((size_t)(x), roundup_size)
+#define vroundup_ct(x) ROUNDUP ((size_t) (x), roundup_size)
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at runtime.  */
-#define vroundup(x) (assume((x) >= 0), vroundup_ct(x))
+#define vroundup(x) (assume ((x) >= 0), vroundup_ct (x))
 
 /* Rounding helps to maintain alignment constraints if USE_LSB_TAG.  */
 
