@@ -832,41 +832,17 @@ clear_window_matrices (struct window *w, bool desired_p)
       See dispextern.h for an overall explanation of glyph rows.
  ***********************************************************************/
 
-/* Clear glyph row ROW.  Do it in a way that makes it robust against
-   changes in the glyph_row structure, i.e. addition or removal of
-   structure members.  */
-
-static struct glyph_row null_row;
+/* Clear glyph row ROW.  NOTE: this code relies on the current
+   layout of `glyphs' and `used' fields of `struct glyph_row'.  */
 
 void
 clear_glyph_row (struct glyph_row *row)
 {
-  struct glyph *p[1 + LAST_AREA];
+  const size_t off = offsetof (struct glyph_row, used);
 
-  /* Save pointers.  */
-  p[LEFT_MARGIN_AREA] = row->glyphs[LEFT_MARGIN_AREA];
-  p[TEXT_AREA] = row->glyphs[TEXT_AREA];
-  p[RIGHT_MARGIN_AREA] = row->glyphs[RIGHT_MARGIN_AREA];
-  p[LAST_AREA] = row->glyphs[LAST_AREA];
-
-  /* Clear.  */
-  *row = null_row;
-
-  /* Restore pointers.  */
-  row->glyphs[LEFT_MARGIN_AREA] = p[LEFT_MARGIN_AREA];
-  row->glyphs[TEXT_AREA] = p[TEXT_AREA];
-  row->glyphs[RIGHT_MARGIN_AREA] = p[RIGHT_MARGIN_AREA];
-  row->glyphs[LAST_AREA] = p[LAST_AREA];
-
-#if 0 /* At some point, some bit-fields of struct glyph were not set,
-	 which made glyphs unequal when compared with GLYPH_EQUAL_P.
-	 Redisplay outputs such glyphs, and flickering effects were
-	 the result.  This also depended on the contents of memory
-	 returned by xmalloc.  If flickering happens again, activate
-	 the code below.  If the flickering is gone with that, chances
-	 are that the flickering has the same reason as here.  */
-  memset (p[0], 0, (char *) p[LAST_AREA] - (char *) p[0]);
-#endif
+  eassert (off == sizeof row->glyphs);
+  /* Zero everything except pointers in `glyphs'.  */
+  memset ((char *) row + off, 0, sizeof *row - off);
 }
 
 
@@ -1005,29 +981,18 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 }
 
 
-/* Copy glyph row structure FROM to glyph row structure TO, except
-   that glyph pointers, the `used' counts, and the hash values in the
-   structures are left unchanged.  */
+/* Copy glyph row structure FROM to glyph row structure TO, except that
+   glyph pointers, the `used' counts, and the hash values in the structures
+   are left unchanged.  NOTE: this code relies on the current layout of
+   `glyphs', `used', `hash' and `x' fields of `struct glyph_row'.  */
 
 static void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
-  struct glyph *pointers[1 + LAST_AREA];
-  short used[LAST_AREA];
-  unsigned hashval;
+  const size_t off = offsetof (struct glyph_row, x);
 
-  /* Save glyph pointers of TO.  */
-  memcpy (pointers, to->glyphs, sizeof to->glyphs);
-  memcpy (used, to->used, sizeof to->used);
-  hashval = to->hash;
-
-  /* Do a structure assignment.  */
-  *to = *from;
-
-  /* Restore original pointers of TO.  */
-  memcpy (to->glyphs, pointers, sizeof to->glyphs);
-  memcpy (to->used, used, sizeof to->used);
-  to->hash = hashval;
+  eassert (off == sizeof to->glyphs + sizeof to->used + sizeof to->hash);
+  memcpy ((char *) to + off, (char *) from + off, sizeof *to - off);
 }
 
 

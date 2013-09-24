@@ -1,3 +1,13 @@
+2013-09-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Optimize glyph row clearing and copying routines.
+	* dispextern.h (struct glyph_row): Change layout of struct
+	glyph_row to help copy_row_except_pointers.  Adjust comment.
+	* dispnew.c (null_row): Remove.
+	(clear_glyph_row): Use offsetof and memset to find and clear
+	just the members that need clearing.  Adjust comment.
+	(copy_row_except_pointers): Likewise for copying.
+
 2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Some minor cleanups of recently-added bool vector code.

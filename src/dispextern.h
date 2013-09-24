@@ -792,7 +792,10 @@ enum glyph_row_area
    Rows in window matrices on frames having no frame matrices point to
    glyphs allocated from the heap via xmalloc;
    glyphs[LEFT_MARGIN_AREA] is the start address of the allocated
-   glyph structure array.  */
+   glyph structure array.
+
+   NOTE: layout of first four members of this structure is important,
+   see clear_glyph_row and copy_row_except_pointers to check why.  */
 
 struct glyph_row
 {
@@ -812,8 +815,13 @@ struct glyph_row
      removed some day, so don't use it in new code.  */
   struct glyph *glyphs[1 + LAST_AREA];
 
-  /* Number of glyphs actually filled in areas.  */
-  short used[LAST_AREA];
+  /* Number of glyphs actually filled in areas.  This could have size
+     LAST_AREA, but it's 1 + LAST_AREA to simplify offset calculations.  */
+  short used[1 + LAST_AREA];
+
+  /* Hash code.  This hash code is available as soon as the row
+     is constructed, i.e. after a call to display_line.  */
+  unsigned hash;
 
   /* Window-relative x and y-position of the top-left corner of this
      row.  If y < 0, this means that eabs (y) pixels of the row are
@@ -845,10 +853,6 @@ struct glyph_row
   /* Extra line spacing added after this row.  Do not consider this
      in last row when checking if row is fully visible.  */
   int extra_line_spacing;
-
-  /* Hash code.  This hash code is available as soon as the row
-     is constructed, i.e. after a call to display_line.  */
-  unsigned hash;
 
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
