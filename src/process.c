@@ -3752,7 +3752,7 @@ FLAGS is the current flags of the interface.  */)
 
           memcpy (linkaddr, LLADDR (sdl), sdl->sdl_alen);
           for (n = 0; n < 6; n++)
-            p->contents[n] = make_number (linkaddr[n]);
+            p->u.contents[n] = make_number (linkaddr[n]);
 
           elt = Fcons (make_number (it->ifa_addr->sa_family), hwaddr);
           break;

@@ -1,3 +1,8 @@
+2013-09-24  Daniel Colascione  <dancol@dancol.org>
+
+	* process.c (Fnetwork_interface_info): Fix build break due to
+	vector changes.
+
 2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dispnew.c (clear_glyph_row, copy_row_except_pointers):
