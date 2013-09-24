@@ -838,11 +838,10 @@ clear_window_matrices (struct window *w, bool desired_p)
 void
 clear_glyph_row (struct glyph_row *row)
 {
-  const size_t off = offsetof (struct glyph_row, used);
+  int off = offsetof (struct glyph_row, used);
 
-  eassert (off == sizeof row->glyphs);
   /* Zero everything except pointers in `glyphs'.  */
-  memset ((char *) row + off, 0, sizeof *row - off);
+  memset (row->used, 0, sizeof *row - off);
 }
 
 
@@ -989,10 +988,9 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 static void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
-  const size_t off = offsetof (struct glyph_row, x);
+  int off = offsetof (struct glyph_row, x);
 
-  eassert (off == sizeof to->glyphs + sizeof to->used + sizeof to->hash);
-  memcpy ((char *) to + off, (char *) from + off, sizeof *to - off);
+  memcpy (&to->x, &from->x, sizeof *to - off);
 }
 
 

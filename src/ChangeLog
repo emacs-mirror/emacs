@@ -1,3 +1,11 @@
+2013-09-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c (clear_glyph_row, copy_row_except_pointers):
+	Prefer signed to unsigned integers where either will do.
+	No need for 'const' on locals that do not escape.
+	Omit easserts with unnecessary and unportable assumptions about
+	alignment.  Avoid unnecessary casts to char *.
+
 2013-09-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use union for the payload of struct Lisp_Vector.
