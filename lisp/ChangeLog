@@ -1,3 +1,9 @@
+2013-09-24  Sam Steingold  <sds@gnu.org>
+
+	* midnight.el (clean-buffer-list-kill-regexps)
+	(clean-buffer-list-kill-buffer-names): Update for the new Man
+	buffer naming which includes the object name.
+
 2013-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/esh-cmd.el (eshell--sep-terms): New var.
