@@ -1,3 +1,8 @@
+2013-09-25  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl-type-spec): Tell edebug what type
+	specs are and that they're not evaluated.
+
 2013-09-24  Sam Steingold  <sds@gnu.org>
 
 	* midnight.el (clean-buffer-list-kill-regexps)
