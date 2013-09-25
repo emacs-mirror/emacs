@@ -2938,35 +2938,11 @@ mouse_get_xy (int *x, int *y)
 
 static void
 tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
-		  int disp_help)
+		  int mx, int my, int disp_help)
 {
-  int i, face, width,  mx = -1, my = -1, enabled, mousehere, row, col;
+  int i, face, width, enabled, mousehere, row, col;
   struct frame *sf = SELECTED_FRAME ();
   struct tty_display_info *tty = FRAME_TTY (sf);
-#if defined (WINDOWSNT) || defined (HAVE_GPM)
-  Lisp_Object lmx, lmy, lisp_dummy;
-  enum scroll_bar_part part_dummy;
-  Time time_dummy;
-
-  if (FRAME_TERMINAL (sf)->mouse_position_hook)
-    (*FRAME_TERMINAL (sf)->mouse_position_hook) (&sf, -1,
-                                                 &lisp_dummy, &part_dummy,
-						 &lmx, &lmy,
-						 &time_dummy);
-  if (!NILP (lmx))
-    {
-      mx = XINT (lmx);
-      my = XINT (lmy);
-    }
-  else
-    {
-      mx = menu_x;
-      my = menu_y;
-    }
-#else
-  mx = menu_x;
-  my = menu_y;
-#endif
 
   menu_help_message = NULL;
 
@@ -3418,7 +3394,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
      want to interpret them as zero-based column and row coordinates,
      and also because we want the first item of the menu, not its
      title, to appear at x0,y0.  */
-  tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, 0);
+  tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, x0 - 1, y0 - 1, 0);
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
   if ((onepane = menu->count == 1 && menu->submenu[0]))
@@ -3495,7 +3471,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 					  state[i].x,
 					  state[i].y,
 					  state[i].pane,
-					  faces, 1);
+					  faces, x, y, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
 			state[statecount].pane = state[i].menu->panenumber[dy];
 			mouse_off (); /* FIXME */
@@ -3512,7 +3488,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			    state[statecount - 1].x,
 			    state[statecount - 1].y,
 			    state[statecount - 1].pane,
-			    faces, 1);
+			    faces, x, y, 1);
 	}
 
       /* Display the help-echo message for the currently-selected menu
