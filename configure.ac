@@ -886,9 +886,6 @@ else
     gl_WARN_ADD([-Wno-unused-value])
   fi
 
-  gl_WARN_ADD([-fdiagnostics-show-option])
-  gl_WARN_ADD([-funit-at-a-time])
-
   AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
   AH_VERBATIM([FORTIFY_SOURCE],
   [/* Enable compile-time and run-time bounds-checking, and some warnings,

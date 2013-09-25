@@ -18,8 +18,8 @@
 /* Written by Paul Eggert.  */
 
 /* Return the difference between two timespec values A and B.  On
-   overflow, return an extremal value.  This assumes 0 <= tv_nsec <=
-   999999999.  */
+   overflow, return an extremal value.  This assumes 0 <= tv_nsec <
+   TIMESPEC_RESOLUTION.  */
 
 #include <config.h>
 #include "timespec.h"
@@ -58,7 +58,7 @@ timespec_sub (struct timespec a, struct timespec b)
       else
         {
           rs = TYPE_MAXIMUM (time_t);
-          rns = 999999999;
+          rns = TIMESPEC_RESOLUTION - 1;
         }
     }
   else

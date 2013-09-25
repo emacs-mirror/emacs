@@ -1,3 +1,12 @@
+2013-09-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-09-24 manywarnings: enable nicer gcc warning messages
+	2013-09-23 warnings: port --enable-gcc-warnings to Solaris Studio 12.3
+	2013-09-21 timespec: use the new TIMESPEC_RESOLUTION elsewhere
+	* configure.ac (WERROR_CFLAGS): Omit -fdiagnostics-show-option
+	and -funit-at-a-time, since manywarnings does that for us now.
+
 2013-09-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: With clang, check for and use -Wno-switch,
