@@ -438,12 +438,6 @@ Return the list of recognized keywords."
           (error "Unrecognized keyword: %s" keyword))))
     (plist-keys args)))
 
-(defun plist-get-sexp (plist prop)
-  (let ((sexp-or-function (plist-get plist prop)))
-    (if (functionp sexp-or-function)
-        (funcall sexp-or-function)
-      sexp-or-function)))
-
 (defun plist-get-value (plist prop)
   (let ((value-or-symbol (plist-get plist prop)))
     (if (symbolp value-or-symbol)
@@ -476,12 +470,12 @@ For full documentation. please see commentary.
 :ensure loads package using package.el if necessary."
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
   (let* ((commands (plist-get args :commands))
-         (pre-init-body (plist-get-sexp args :pre-init))
-         (init-body (plist-get-sexp args :init))
-         (config-body (plist-get-sexp args :config))
+         (pre-init-body (plist-get args :pre-init))
+         (init-body (plist-get args :init))
+         (config-body (plist-get args :config))
          (diminish-var (plist-get args :diminish))
          (defines (plist-get args :defines))
-         (idle-body (plist-get-sexp args :idle))
+         (idle-body (plist-get args :idle))
          (keybindings-alist (plist-get-value args :bind))
          (mode-alist (plist-get-value args :mode))
          (interpreter-alist (plist-get-value args :interpreter))
