@@ -2819,6 +2819,7 @@ static Lisp_Object Qtty_menu_navigation_map, Qtty_menu_exit;
 static Lisp_Object Qtty_menu_prev_item, Qtty_menu_next_item;
 static Lisp_Object Qtty_menu_next_menu, Qtty_menu_prev_menu;
 static Lisp_Object Qtty_menu_select, Qtty_menu_ignore;
+static Lisp_Object Qtty_menu_mouse_movement;
 
 typedef struct tty_menu_struct
 {
@@ -2911,6 +2912,26 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
     }
   *width = maxsubwidth;
   *height = maxheight;
+}
+
+static void
+mouse_get_xy (int *x, int *y)
+{
+  struct frame *sf = SELECTED_FRAME ();
+  Lisp_Object lmx, lmy, lisp_dummy;
+  enum scroll_bar_part part_dummy;
+  Time time_dummy;
+
+  if (FRAME_TERMINAL (sf)->mouse_position_hook)
+    (*FRAME_TERMINAL (sf)->mouse_position_hook) (&sf, -1,
+                                                 &lisp_dummy, &part_dummy,
+						 &lmx, &lmy,
+						 &time_dummy);
+  if (!NILP (lmx))
+    {
+      *x = XINT (lmx);
+      *y = XINT (lmy);
+    }
 }
 
 /* Display MENU at (X,Y) using FACES.  */
@@ -3199,13 +3220,12 @@ screen_update (struct frame *f, struct glyph_matrix *mtx)
    puts us.  We only consider mouse movement and click events and
    keyboard movement commands; the rest are ignored.
 
-   Value is -1 if C-g was pressed, zero otherwise.  */
+   Value is -1 if C-g was pressed, 1 if an item was selected, zero
+   otherwise.  */
 static int
 read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 		 bool *first_time)
 {
-  Lisp_Object c;
-
   if (*first_time)
     {
       *first_time = false;
@@ -3224,18 +3244,30 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       int usable_input = 1;
       int st = 0;
       struct tty_display_info *tty = FRAME_TTY (sf);
+      Lisp_Object saved_mouse_tracking = do_mouse_tracking;
 
       /* Signal the keyboard reading routines we are displaying a menu
 	 on this terminal.  */
       tty->showing_menu = 1;
+      /* We want mouse movements be reported by read_menu_command.  */
+      do_mouse_tracking = Qt;
       do {
 	cmd = read_menu_command ();
-      } while NILP (cmd);
+      } while (NILP (cmd));
       tty->showing_menu = 0;
+      do_mouse_tracking = saved_mouse_tracking;
 
       if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
 	return -1;
-      if (EQ (cmd, Qtty_menu_next_menu))
+      if (EQ (cmd, Qtty_menu_mouse_movement))
+	{
+	  int mx, my;
+
+	  mouse_get_xy (&mx, &my);
+	  *x = mx;
+	  *y = my;
+	}
+      else if (EQ (cmd, Qtty_menu_next_menu))
 	*x += 1;
       else if (EQ (cmd, Qtty_menu_prev_menu))
 	*x -= 1;
@@ -3252,10 +3284,7 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       else if (EQ (cmd, Qtty_menu_select))
 	st = 1;
       else if (!EQ (cmd, Qtty_menu_ignore))
-	{
-	  usable_input = 0;
-	  st = -1;
-	}
+	usable_input = 0;
       if (usable_input)
 	sf->mouse_moved = 1;
 #else
@@ -4671,5 +4700,6 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   DEFSYM (Qtty_menu_select, "tty-menu-select");
   DEFSYM (Qtty_menu_ignore, "tty-menu-ignore");
   DEFSYM (Qtty_menu_exit, "tty-menu-exit");
+  DEFSYM (Qtty_menu_mouse_movement, "tty-menu-mouse-movement");
   DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
 }

@@ -2295,10 +2295,14 @@ If nil, the current mouse position is used."
     (define-key map [mode-line C-mouse-1] 'tty-menu-ignore)
     (define-key map [mode-line C-mouse-2] 'tty-menu-ignore)
     (define-key map [mode-line C-mouse-3] 'tty-menu-ignore)
+    ;; The mouse events must be bound to tty-menu-ignore, otherwise
+    ;; the initial mouse click will select and immediately pop down
+    ;; the menu.
     (define-key map [mouse-1] 'tty-menu-ignore)
     (define-key map [C-mouse-1] 'tty-menu-ignore)
     (define-key map [C-mouse-2] 'tty-menu-ignore)
     (define-key map [C-mouse-3] 'tty-menu-ignore)
+    (define-key map [mouse-movement] 'tty-menu-mouse-movement)
     map)
   "Keymap used while processing TTY menus.")
 
