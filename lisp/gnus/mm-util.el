@@ -129,22 +129,6 @@
      (multibyte-char-to-unibyte . identity)
      ;; `set-buffer-multibyte' is an Emacs function, not available in XEmacs.
      (set-buffer-multibyte . ignore)
-     ;; `special-display-p' is an Emacs function, not available in XEmacs.
-     (special-display-p
-      . ,(lambda (buffer-name)
-	   "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
-	   (and special-display-function
-		(or (and (member buffer-name special-display-buffer-names) t)
-		    (cdr (assoc buffer-name special-display-buffer-names))
-		    (catch 'return
-		      (dolist (elem special-display-regexps)
-			(and (stringp elem)
-			     (string-match elem buffer-name)
-			     (throw 'return t))
-			(and (consp elem)
-			     (stringp (car elem))
-			     (string-match (car elem) buffer-name)
-			     (throw 'return (cdr elem)))))))))
      ;; `substring-no-properties' is available only in Emacs 22.1 or greater.
      (substring-no-properties
       . ,(lambda (string &optional from to)
@@ -173,6 +157,25 @@ to the contents of the accessible portion of the buffer."
 	       (goto-char opoint)
 	       (forward-line 0)
 	       (1+ (count-lines start (point))))))))))
+
+;; `special-display-p' is an Emacs function, not available in XEmacs.
+(defalias 'mm-special-display-p
+  (if (featurep 'emacs)
+      'special-display-p
+    (lambda (buffer-name)
+      "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
+      (and special-display-function
+	   (or (and (member buffer-name special-display-buffer-names) t)
+	       (cdr (assoc buffer-name special-display-buffer-names))
+	       (catch 'return
+		 (dolist (elem special-display-regexps)
+		   (and (stringp elem)
+			(string-match elem buffer-name)
+			(throw 'return t))
+		   (and (consp elem)
+			(stringp (car elem))
+			(string-match (car elem) buffer-name)
+			(throw 'return (cdr elem))))))))))
 
 ;; `decode-coding-string', `encode-coding-string', `decode-coding-region'
 ;; and `encode-coding-region' are available in Emacs and XEmacs built with

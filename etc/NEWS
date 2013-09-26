@@ -34,6 +34,10 @@ build time.  To prevent this, use the configure option
 `--with-file-notification-no'.  See below for file-notify features.
 FIXME?  This feature is not available for the Nextstep port. (?)
 
+** The configure option `without-compress-info' has been generalized,
+and renamed to `without-compress-install'.  It now prevents compression
+of _any_ files during installation.
+
 ** The configure option --with-crt-dir has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
@@ -49,6 +53,11 @@ and zlib-format compressed data.
 ---
 ** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.
 pkg-config is required to find ImageMagick libraries.
+
+** For OSX >= 10.5, the Core text based font backend from the Mac port is used.
+For GNUStep and OSX 10.4 the old backend is used.
+To use the old backend by default, do on the command line:
+% defaults write org.gnu.Emacs FontBackend ns
 
 
 * Startup Changes in Emacs 24.4
@@ -83,6 +92,10 @@ simply disabling Transient Mark mode does the same thing.
 
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
+
+** The *Messages* buffer is created in a new major mode `messages-buffer-mode',
+and read-only.  Code that might create the *Messages* buffer should
+call the function `messages-buffer' to do so and set the mode.
 
 ** `remember-notes' creates a buffer whose content is saved on kill-emacs.
 You may think of it as a *scratch* buffer whose content is preserved.
@@ -262,9 +275,15 @@ whole tree revisions.
 *** In VC directory mode, `L' lists the change log for the current VC
 controlled tree in a window.
 
+*** In VC directory mode, `I' shows a log of changes that will be
+received with a pull operation.
+
 *** `C-x v G' (globally) and `G' (in VC directory mode) ignores a file
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
+
+*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
+because it is moved to vc-cvs.el.
 
 ** cl-lib
 
@@ -332,6 +351,10 @@ This is useful to avoid a query when you have no key for that name.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
+*** Icomplete-mode by defaults applies to all forms of minibuffer completion.
+(setq icomplete-with-completion-tables '(internal-complete-buffer))
+will revert to the old behavior.
+
 
 ** Ido
 *** Ido has a manual now.
@@ -460,6 +483,8 @@ later time with the provided conversion command.  The old version of
 todo-mode.el has been made obsolete and renamed otodo-mode.el.
 
 ** Tramp
+
+*** The experimental url syntax for remote file names is withdrawn.
 
 +++
 *** New connection method "adb", which allows to access Android
@@ -604,9 +629,30 @@ file using `set-file-extended-attributes'.
 ** `visited-file-modtime' now returns -1 for nonexistent files.
 Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
 in the presence of files with negative time stamps.
+
+** The cars of the elements in `interpreter-mode-alist' are now treated
+as regexps rather than literal strings.  Technically this is an
+incompatible change, but unless you are using interpreter-mode-alist
+for something (not just adding elements to it), it ought not to affect you.
+
 
 * Lisp Changes in Emacs 24.4
 
+** New bool-vector set operation functions:
+*** `bool-vector-exclusive-or'
+*** `bool-vector-union'
+*** `bool-vector-intersection'
+*** `bool-vector-set-difference'
+*** `bool-vector-not'
+*** `bool-vector-subset'
+*** `bool-vector-count-matches'
+*** `bool-vector-count-matches-at'
+
+** Comparison functions =, <, >, <=, >= now take many arguments.
+
+** The second argument of `eval' can now be a lexical-environment.
+
+** `with-demoted-errors' takes an additional argument `format'.
 +++
 ** New function `define-error'.
 
@@ -753,6 +799,11 @@ used in place of the 9th element of `file-attributes'.
 ** The 6th argument to `copy-file' has been renamed to
 `preserve-extended-attributes' as it now handles both SELinux context
 and ACL entries.
+
+** The `common-substring' argument of display-completion-list is obsolete.
+Either use `completion-all-completions' which already returns highlighted
+strings (including for partial or substring completion) or call
+`completion-hilit-commonality' to add the highlight.
 
 ** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
 

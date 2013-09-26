@@ -225,7 +225,7 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.py\\'")  'python-mode))
 ;;;###autoload
-(add-to-list 'interpreter-mode-alist (cons (purecopy "python") 'python-mode))
+(add-to-list 'interpreter-mode-alist (cons (purecopy "python[0-9.]*") 'python-mode))
 
 (defgroup python nil
   "Python Language's flying circus support for Emacs."
@@ -2140,7 +2140,7 @@ the python shell:
   1. When Optional Argument NOMAIN is non-nil everything under an
      \"if __name__ == '__main__'\" block will be removed.
   2. When a subregion of the buffer is sent, it takes care of
-     appending extra whitelines so tracebacks are correct.
+     appending extra empty lines so tracebacks are correct.
   3. Wraps indented regions under an \"if True:\" block so the
      interpreter evaluates them correctly."
   (let ((substring (buffer-substring-no-properties start end))

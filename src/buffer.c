@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define BUFFER_INLINE EXTERN_INLINE
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
@@ -4536,7 +4534,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
     Lisp_Object *copy = alloca (size * sizeof *copy);
     ptrdiff_t i;
 
-    memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
+    memcpy (copy, XVECTOR (last_overlay_modification_hooks)->u.contents,
 	    size * word_size);
     gcpro1.var = copy;
     gcpro1.nvars = size;
@@ -5900,7 +5898,7 @@ See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
   DEFVAR_PER_BUFFER ("left-margin-width", &BVAR (current_buffer, left_margin_cols),
 		     Qintegerp,
-		     doc: /* Width of left marginal area for display of a buffer.
+		     doc: /* Width in columns of left marginal area for display of a buffer.
 A value of nil means no marginal area.
 
 Setting this variable does not take effect until a new buffer is displayed
@@ -5908,7 +5906,7 @@ in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("right-margin-width", &BVAR (current_buffer, right_margin_cols),
 		     Qintegerp,
-		     doc: /* Width of right marginal area for display of a buffer.
+		     doc: /* Width in columns of right marginal area for display of a buffer.
 A value of nil means no marginal area.
 
 Setting this variable does not take effect until a new buffer is displayed

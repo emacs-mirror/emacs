@@ -1,4 +1,4 @@
-;;; em-dirs.el --- directory navigation commands
+;;; em-dirs.el --- directory navigation commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

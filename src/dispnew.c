@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define DISPEXTERN_INLINE EXTERN_INLINE
-
 #include "sysstdio.h"
 #include <unistd.h>
 
@@ -77,7 +75,6 @@ struct dim
 static void update_frame_line (struct frame *, int);
 static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
-static void adjust_frame_glyphs (struct frame *);
 static void change_frame_size_1 (struct frame *, int, int, bool, bool, bool);
 static void increment_row_positions (struct glyph_row *, ptrdiff_t, ptrdiff_t);
 static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
@@ -105,29 +102,11 @@ static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 
-/* True upon entry to redisplay means do not assume anything about
-   current contents of actual terminal frame; clear and redraw it.  */
-
-bool frame_garbaged;
-
 /* True means last display completed.  False means it was preempted.  */
 
 bool display_completed;
 
 Lisp_Object Qdisplay_table, Qredisplay_dont_pause;
-
-
-/* The currently selected frame.  In a single-frame version, this
-   variable always equals the_only_frame.  */
-
-Lisp_Object selected_frame;
-
-/* A frame which is not just a mini-buffer, or 0 if there are no such
-   frames.  This is usually the most recent such frame that was
-   selected.  In a single-frame version, this variable always holds
-   the address of the_only_frame.  */
-
-struct frame *last_nonminibuf_frame;
 
 /* True means SIGWINCH happened when not safe.  */
 
@@ -151,16 +130,6 @@ static int glyph_pool_count;
    null, window matrices are worked on.  */
 
 static struct frame *frame_matrix_frame;
-
-/* True means that fonts have been loaded since the last glyph
-   matrix adjustments.  Redisplay must stop, and glyph matrices must
-   be adjusted when this flag becomes true during display.  The
-   reason fonts can be loaded so late is that fonts of fontsets are
-   loaded on demand.  Another reason is that a line contains many
-   characters displayed by zero width or very narrow glyphs of
-   variable-width fonts.  */
-
-bool fonts_changed_p;
 
 /* Convert vpos and hpos from frame to window and vice versa.
    This may only be used for terminal frames.  */
@@ -433,7 +402,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 				  || right != matrix->right_margin_glyphs);
 
       if (!marginal_areas_changed_p
-	  && !fonts_changed_p
+	  && !XFRAME (w->frame)->fonts_changed
 	  && !header_line_changed_p
 	  && matrix->window_left_col == WINDOW_LEFT_EDGE_COL (w)
 	  && matrix->window_top_line == WINDOW_TOP_EDGE_LINE (w)
@@ -794,9 +763,11 @@ clear_current_matrices (register struct frame *f)
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
 #endif
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   /* Clear the matrix of the tool-bar window, if any.  */
   if (WINDOWP (f->tool_bar_window))
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
+#endif
 
   /* Clear current window matrices.  */
   eassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
@@ -817,8 +788,10 @@ clear_desired_matrices (register struct frame *f)
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->desired_matrix);
 #endif
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   if (WINDOWP (f->tool_bar_window))
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->desired_matrix);
+#endif
 
   /* Do it for window matrices.  */
   eassert (WINDOWP (FRAME_ROOT_WINDOW (f)));
@@ -859,41 +832,16 @@ clear_window_matrices (struct window *w, bool desired_p)
       See dispextern.h for an overall explanation of glyph rows.
  ***********************************************************************/
 
-/* Clear glyph row ROW.  Do it in a way that makes it robust against
-   changes in the glyph_row structure, i.e. addition or removal of
-   structure members.  */
-
-static struct glyph_row null_row;
+/* Clear glyph row ROW.  NOTE: this code relies on the current
+   layout of `glyphs' and `used' fields of `struct glyph_row'.  */
 
 void
 clear_glyph_row (struct glyph_row *row)
 {
-  struct glyph *p[1 + LAST_AREA];
+  enum { off = offsetof (struct glyph_row, used) };
 
-  /* Save pointers.  */
-  p[LEFT_MARGIN_AREA] = row->glyphs[LEFT_MARGIN_AREA];
-  p[TEXT_AREA] = row->glyphs[TEXT_AREA];
-  p[RIGHT_MARGIN_AREA] = row->glyphs[RIGHT_MARGIN_AREA];
-  p[LAST_AREA] = row->glyphs[LAST_AREA];
-
-  /* Clear.  */
-  *row = null_row;
-
-  /* Restore pointers.  */
-  row->glyphs[LEFT_MARGIN_AREA] = p[LEFT_MARGIN_AREA];
-  row->glyphs[TEXT_AREA] = p[TEXT_AREA];
-  row->glyphs[RIGHT_MARGIN_AREA] = p[RIGHT_MARGIN_AREA];
-  row->glyphs[LAST_AREA] = p[LAST_AREA];
-
-#if 0 /* At some point, some bit-fields of struct glyph were not set,
-	 which made glyphs unequal when compared with GLYPH_EQUAL_P.
-	 Redisplay outputs such glyphs, and flickering effects were
-	 the result.  This also depended on the contents of memory
-	 returned by xmalloc.  If flickering happens again, activate
-	 the code below.  If the flickering is gone with that, chances
-	 are that the flickering has the same reason as here.  */
-  memset (p[0], 0, (char *) p[LAST_AREA] - (char *) p[0]);
-#endif
+  /* Zero everything except pointers in `glyphs'.  */
+  memset (row->used, 0, sizeof *row - off);
 }
 
 
@@ -1032,29 +980,17 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 }
 
 
-/* Copy glyph row structure FROM to glyph row structure TO, except
-   that glyph pointers, the `used' counts, and the hash values in the
-   structures are left unchanged.  */
+/* Copy glyph row structure FROM to glyph row structure TO, except that
+   glyph pointers, the `used' counts, and the hash values in the structures
+   are left unchanged.  NOTE: this code relies on the current layout of
+   `glyphs', `used', `hash' and `x' fields of `struct glyph_row'.  */
 
 static void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
-  struct glyph *pointers[1 + LAST_AREA];
-  short used[LAST_AREA];
-  unsigned hashval;
+  enum { off = offsetof (struct glyph_row, x) };
 
-  /* Save glyph pointers of TO.  */
-  memcpy (pointers, to->glyphs, sizeof to->glyphs);
-  memcpy (used, to->used, sizeof to->used);
-  hashval = to->hash;
-
-  /* Do a structure assignment.  */
-  *to = *from;
-
-  /* Restore original pointers of TO.  */
-  memcpy (to->glyphs, pointers, sizeof to->glyphs);
-  memcpy (to->used, used, sizeof to->used);
-  to->hash = hashval;
+  memcpy (&to->x, &from->x, sizeof *to - off);
 }
 
 
@@ -1799,37 +1735,17 @@ allocate_matrices_for_window_redisplay (struct window *w)
     }
 }
 
-
-/* Re-allocate/ re-compute glyph matrices on frame F.  If F is null,
-   do it for all frames; otherwise do it just for the given frame.
-   This function must be called when a new frame is created, its size
-   changes, or its window configuration changes.  */
+/* Allocate/reallocate glyph matrices of a single frame F.
+   This function must be called when a new frame is created,
+   its size changes, or its window configuration changes.  */
 
 void
-adjust_glyphs (struct frame *f)
+adjust_frame_glyphs (struct frame *f)
 {
   /* Block input so that expose events and other events that access
      glyph matrices are not processed while we are changing them.  */
   block_input ();
 
-  if (f)
-    adjust_frame_glyphs (f);
-  else
-    {
-      Lisp_Object tail, lisp_frame;
-
-      FOR_EACH_FRAME (tail, lisp_frame)
-	adjust_frame_glyphs (XFRAME (lisp_frame));
-    }
-
-  unblock_input ();
-}
-
-/* Allocate/reallocate glyph matrices of a single frame F.  */
-
-static void
-adjust_frame_glyphs (struct frame *f)
-{
   if (FRAME_WINDOW_P (f))
     adjust_frame_glyphs_for_window_redisplay (f);
   else
@@ -1839,6 +1755,8 @@ adjust_frame_glyphs (struct frame *f)
   adjust_decode_mode_spec_buffer (f);
 
   f->glyphs_initialized_p = 1;
+
+  unblock_input ();
 }
 
 /* Return true if any window in the tree has nonzero window margins.  See
@@ -1913,7 +1831,7 @@ fake_current_matrices (Lisp_Object window)
 /* Save away the contents of frame F's current frame matrix.  Value is
    a glyph matrix holding the contents of F's current frame matrix.  */
 
-struct glyph_matrix *
+static struct glyph_matrix *
 save_current_matrix (struct frame *f)
 {
   int i;
@@ -2110,10 +2028,9 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
   /* Allocate/reallocate window matrices.  */
   allocate_matrices_for_window_redisplay (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
-#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* Allocate/ reallocate matrices of the dummy window used to display
      the menu bar under X when no X toolkit support is available.  */
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   {
     /* Allocate a dummy window if not already done.  */
     struct window *w;
@@ -2137,10 +2054,9 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     w->total_cols = FRAME_TOTAL_COLS (f);
     allocate_matrices_for_window_redisplay (w);
   }
-#endif /* not USE_X_TOOLKIT && not USE_GTK */
-#endif /* HAVE_X_WINDOWS */
+#endif
 
-#ifndef USE_GTK
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   {
     /* Allocate/ reallocate matrices of the tool bar window.  If we
        don't have a tool bar window yet, make one.  */
@@ -2214,6 +2130,7 @@ free_glyphs (struct frame *f)
 	}
 #endif
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
       /* Free the tool bar window and its glyph matrices.  */
       if (!NILP (f->tool_bar_window))
 	{
@@ -2223,6 +2140,7 @@ free_glyphs (struct frame *f)
 	  w->desired_matrix = w->current_matrix = NULL;
 	  fset_tool_bar_window (f, Qnil);
 	}
+#endif
 
       /* Release frame glyph matrices.  Reset fields to zero in
 	 case we are called a second time.  */
@@ -3105,6 +3023,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 	update_window (XWINDOW (f->menu_bar_window), 1);
 #endif
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
       /* Update the tool-bar window, if present.  */
       if (WINDOWP (f->tool_bar_window))
 	{
@@ -3125,21 +3044,11 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 	      fset_desired_tool_bar_string (f, tem);
 	    }
 	}
-
+#endif
 
       /* Update windows.  */
       paused_p = update_window_tree (root_window, force_p);
       update_end (f);
-
-      /* This flush is a performance bottleneck under X,
- 	 and it doesn't seem to be necessary anyway (in general).
-         It is necessary when resizing the window with the mouse, or
- 	 at least the fringes are not redrawn in a timely manner.  ++kfs */
-      if (f->force_flush_display_p)
- 	{
-     	  FRAME_RIF (f)->flush_display (f);
- 	  f->force_flush_display_p = 0;
- 	}
     }
   else
     {
@@ -4568,7 +4477,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	}
     }
 
-  lint_assume (0 <= FRAME_LINES (f));
+  assume (0 <= FRAME_LINES (f));
   pause_p = 0 < i && i < FRAME_LINES (f) - 1;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
@@ -5608,8 +5517,10 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
       if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
       if (WINDOWP (f->tool_bar_window))
 	XWINDOW (f->tool_bar_window)->total_cols = newwidth;
+#endif
     }
 
   FRAME_LINES (f) = newheight;
@@ -5627,7 +5538,7 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
       w->cursor.vpos = w->cursor.y = 0;
   }
 
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   calculate_costs (f);
   SET_FRAME_GARBAGED (f);
   f->resized_p = 1;

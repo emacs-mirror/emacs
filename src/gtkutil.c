@@ -2737,7 +2737,7 @@ xg_create_widget (const char *type, const char *name, struct frame *f,
         {
           /* Must realize so the GdkWindow inside the widget is created.  */
           gtk_widget_realize (w);
-          xg_set_cursor (w, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
+          xg_set_cursor (w, FRAME_DISPLAY_INFO (f)->xg_cursor);
         }
     }
   else
@@ -3409,7 +3409,7 @@ free_frame_menubar (struct frame *f)
 }
 
 bool
-xg_event_is_for_menubar (struct frame *f, XEvent *event)
+xg_event_is_for_menubar (struct frame *f, const XEvent *event)
 {
   struct x_output *x = f->output_data.x;
   GList *iter;
@@ -3676,7 +3676,7 @@ xg_create_scroll_bar (struct frame *f,
 
 
   /* Set the cursor to an arrow.  */
-  xg_set_cursor (webox, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
+  xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
 
   bar->x_window = scroll_id;
 }
@@ -3861,7 +3861,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
    frame.  This function does additional checks.  */
 
 bool
-xg_event_is_for_scrollbar (struct frame *f, XEvent *event)
+xg_event_is_for_scrollbar (struct frame *f, const XEvent *event)
 {
   bool retval = 0;
 
@@ -3972,12 +3972,12 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   /* Convert between the modifier bits GDK uses and the modifier bits
      Emacs uses.  This assumes GDK and X masks are the same, which they are when
      this is written.  */
-  event.modifiers = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), mod);
+  event.modifiers = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), mod);
   kbd_buffer_store_event (&event);
 
-   /* Return focus to the frame after we have clicked on a detached
-      tool bar button. */
-   Fx_focus_frame (frame);
+  /* Return focus to the frame after we have clicked on a detached
+     tool bar button. */
+  x_focus_frame (f);
 }
 
 /* Callback function invoked when a tool bar item is pressed in a detached

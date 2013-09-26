@@ -23,9 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 
 INLINE_HEADER_BEGIN
-#ifndef WINDOW_INLINE
-# define WINDOW_INLINE INLINE
-#endif
 
 /* Windows are allocated as if they were vectors, but then the
 Lisp data type is changed to Lisp_Window.  They are garbage
@@ -264,6 +261,12 @@ struct window
        A value of -1 means use frame values.  */
     int scroll_bar_width;
 
+    /* Effective height of the mode line, or -1 if not known.  */
+    int mode_line_height;
+
+    /* Effective height of the header line, or -1 if not known.  */
+    int header_line_height;
+
     /* Z - the buffer position of the last glyph in the current
        matrix of W.  Only valid if window_end_valid is nonzero.  */
     ptrdiff_t window_end_pos;
@@ -343,37 +346,37 @@ struct window
 
 /* Most code should use these functions to set Lisp fields in struct
    window.  */
-WINDOW_INLINE void
+INLINE void
 wset_frame (struct window *w, Lisp_Object val)
 {
   w->frame = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_next (struct window *w, Lisp_Object val)
 {
   w->next = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_prev (struct window *w, Lisp_Object val)
 {
   w->prev = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
 {
   w->redisplay_end_trigger = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_vertical_scroll_bar (struct window *w, Lisp_Object val)
 {
   w->vertical_scroll_bar = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_prev_buffers (struct window *w, Lisp_Object val)
 {
   w->prev_buffers = val;
 }
-WINDOW_INLINE void
+INLINE void
 wset_next_buffers (struct window *w, Lisp_Object val)
 {
   w->next_buffers = val;
@@ -519,10 +522,13 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #endif
 
 /* 1 if W is a tool bar window.  */
-
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 #define WINDOW_TOOL_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->tool_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->tool_bar_window))
+#else
+#define WINDOW_TOOL_BAR_P(W) (0)
+#endif
 
 /* Return the frame y-position at which window W starts.
    This includes a header line, if any.  */
@@ -957,7 +963,7 @@ extern void keys_of_window (void);
    window update, so the position is the future output cursor position
    for currently updated window W.  */
 
-WINDOW_INLINE void
+INLINE void
 output_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
 {
   eassert (w);

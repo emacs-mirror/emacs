@@ -1810,26 +1810,9 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
 static void
 produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 {
-  int face_id;
-  int len;
+  int len, face_id = merge_glyphless_glyph_face (it);
   char buf[sizeof "\\x" + max (6, (sizeof it->c * CHAR_BIT + 3) / 4)];
   char const *str = "    ";
-
-  /* Get a face ID for the glyph by utilizing a cache (the same way as
-     done for `escape-glyph' in get_next_display_element).  */
-  if (it->f == last_glyphless_glyph_frame
-      && it->face_id == last_glyphless_glyph_face_id)
-    {
-      face_id = last_glyphless_glyph_merged_face_id;
-    }
-  else
-    {
-      /* Merge the `glyphless-char' face into the current face.  */
-      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
-      last_glyphless_glyph_frame = it->f;
-      last_glyphless_glyph_face_id = it->face_id;
-      last_glyphless_glyph_merged_face_id = face_id;
-    }
 
   if (it->glyphless_method == GLYPHLESS_DISPLAY_THIN_SPACE)
     {
@@ -4061,12 +4044,8 @@ dissociate_if_controlling_tty (int fd)
 struct terminal *
 init_tty (const char *name, const char *terminal_type, bool must_succeed)
 {
-#ifdef TERMINFO
-  char **address = 0;
-#else
   char *area;
   char **address = &area;
-#endif
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
@@ -4157,13 +4136,9 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
   /* On some systems, tgetent tries to access the controlling
      terminal.  */
   block_tty_out_signal ();
-#ifdef TERMINFO
-  status = tgetent (0, terminal_type);
-#else
   status = tgetent (tty->termcap_term_buffer, terminal_type);
   if (tty->termcap_term_buffer[TERMCAP_BUFFER_SIZE - 1])
     emacs_abort ();
-#endif
   unblock_tty_out_signal ();
 
   if (status < 0)
@@ -4194,9 +4169,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
                    terminal_type);
     }
 
-#ifndef TERMINFO
   area = tty->termcap_strings_buffer;
-#endif
   tty->TS_ins_line = tgetstr ("al", address);
   tty->TS_ins_multi_lines = tgetstr ("AL", address);
   tty->TS_bell = tgetstr ("bl", address);

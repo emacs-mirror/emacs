@@ -1217,6 +1217,8 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
 
+(defvar x-select-enable-clipboard)	; common-win
+
 ;; Return the value of the current X selection.
 ;; Consult the selection.  Treat empty strings as if they were unset.
 ;; If this function is called twice and finds the same text,

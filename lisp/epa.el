@@ -268,62 +268,40 @@ You should bind this variable with `let', but do not set it globally.")
 	  (epg-sub-key-id (car (epg-key-sub-key-list
 				(widget-get widget :value))))))
 
-(eval-and-compile
-  (if (fboundp 'encode-coding-string)
-      (defalias 'epa--encode-coding-string 'encode-coding-string)
-    (defalias 'epa--encode-coding-string 'identity)))
+(defalias 'epa--encode-coding-string
+  (if (fboundp 'encode-coding-string) #'encode-coding-string #'identity))
 
-(eval-and-compile
-  (if (fboundp 'decode-coding-string)
-      (defalias 'epa--decode-coding-string 'decode-coding-string)
-    (defalias 'epa--decode-coding-string 'identity)))
+(defalias 'epa--decode-coding-string
+  (if (fboundp 'decode-coding-string) #'decode-coding-string #'identity))
 
-(defun epa-key-list-mode ()
+(define-derived-mode epa-key-list-mode special-mode "Keys"
   "Major mode for `epa-list-keys'."
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'epa-key-list-mode
-	mode-name "Keys"
-	truncate-lines t
+  (setq truncate-lines t
 	buffer-read-only t)
-  (use-local-map epa-key-list-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(epa-font-lock-keywords t))
+  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   ;; In XEmacs, auto-initialization of font-lock is not effective
   ;; if buffer-file-name is not set.
   (font-lock-set-defaults)
   (make-local-variable 'epa-exit-buffer-function)
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'epa--key-list-revert-buffer)
-  (run-mode-hooks 'epa-key-list-mode-hook))
+  (setq-local revert-buffer-function #'epa--key-list-revert-buffer))
 
-(defun epa-key-mode ()
+(define-derived-mode epa-key-mode special-mode "Key"
   "Major mode for a key description."
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'epa-key-mode
-	mode-name "Key"
-	truncate-lines t
+  (setq truncate-lines t
 	buffer-read-only t)
-  (use-local-map epa-key-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(epa-font-lock-keywords t))
+  (setq-local font-lock-defaults '(epa-font-lock-keywords t))
   ;; In XEmacs, auto-initialization of font-lock is not effective
   ;; if buffer-file-name is not set.
   (font-lock-set-defaults)
-  (make-local-variable 'epa-exit-buffer-function)
-  (run-mode-hooks 'epa-key-mode-hook))
+  (make-local-variable 'epa-exit-buffer-function))
 
-(defun epa-info-mode ()
+(define-derived-mode epa-info-mode special-mode "Info"
   "Major mode for `epa-info-buffer'."
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'epa-info-mode
-	mode-name "Info"
-	truncate-lines t
-	buffer-read-only t)
-  (use-local-map epa-info-mode-map)
-  (run-mode-hooks 'epa-info-mode-hook))
+  (setq truncate-lines t
+	buffer-read-only t))
 
 (defun epa-mark-key (&optional arg)
   "Mark a key on the current line.
@@ -951,10 +929,10 @@ See the reason described in the `epa-verify-region' documentation."
 	    (error "No cleartext tail"))
 	  (epa-verify-region cleartext-start cleartext-end))))))
 
-(eval-and-compile
+(defalias 'epa--select-safe-coding-system
   (if (fboundp 'select-safe-coding-system)
-      (defalias 'epa--select-safe-coding-system 'select-safe-coding-system)
-    (defun epa--select-safe-coding-system (_from _to)
+      #'select-safe-coding-system
+    (lambda (_from _to)
       buffer-file-coding-system)))
 
 ;;;###autoload
@@ -1026,16 +1004,16 @@ If no one is selected, default secret key is used.  "
 				 'start-open t
 				 'end-open t)))))
 
-(eval-and-compile
+(defalias 'epa--derived-mode-p
   (if (fboundp 'derived-mode-p)
-      (defalias 'epa--derived-mode-p 'derived-mode-p)
-    (defun epa--derived-mode-p (&rest modes)
+      #'derived-mode-p
+    (lambda (&rest modes)
       "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
       (let ((parent major-mode))
-	(while (and (not (memq parent modes))
-		    (setq parent (get parent 'derived-mode-parent))))
-	parent))))
+        (while (and (not (memq parent modes))
+                    (setq parent (get parent 'derived-mode-parent))))
+        parent))))
 
 ;;;###autoload
 (defun epa-encrypt-region (start end recipients sign signers)
@@ -1138,6 +1116,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (if (epg-context-result-for context 'import)
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
+    ;; FIXME: Why not use the (otherwise unused) epa--derived-mode-p?
     (if (eq major-mode 'epa-key-list-mode)
 	(apply #'epa--list-keys epa-list-keys-arguments))))
 

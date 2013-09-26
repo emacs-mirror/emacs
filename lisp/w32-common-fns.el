@@ -23,6 +23,8 @@
 ;;; and Cygwin Emacs compiled to use the native Windows widget
 ;;; library.
 
+(declare-function x-server-version "w32fns.c" (&optional terminal))
+
 (defun w32-version ()
   "Return the MS-Windows version numbers.
 The value is a list of three integers: the major and minor version
@@ -100,6 +102,7 @@ in `selection-converter-alist', which see."
 ;; current selection against it, and avoid passing back our own text
 ;; from x-selection-value.
 (defvar x-last-selected-text nil)
+(defvar x-select-enable-clipboard)
 
 (defun x-get-selection-value ()
   "Return the value of the current selection.
@@ -107,9 +110,8 @@ Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
-	(condition-case c
-	    (setq text (w32-get-clipboard-data))
-	  (error (message "w32-get-clipboard-data:%s" c)))
+	(with-demoted-errors "w32-get-clipboard-data:%s"
+	  (setq text (w32-get-clipboard-data)))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)

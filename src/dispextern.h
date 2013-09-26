@@ -49,18 +49,16 @@ typedef struct {
 #endif
 
 INLINE_HEADER_BEGIN
-#ifndef DISPEXTERN_INLINE
-# define DISPEXTERN_INLINE INLINE
-#endif
 
 #include <c-strcase.h>
-DISPEXTERN_INLINE int
+INLINE int
 xstrcasecmp (char const *a, char const *b)
 {
   return c_strcasecmp (a, b);
 }
 
 #ifdef HAVE_X_WINDOWS
+#include <X11/Xresource.h> /* for XrmDatabase */
 typedef struct x_display_info Display_Info;
 typedef XImage * XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
@@ -288,10 +286,10 @@ typedef struct {
 } GLYPH;
 
 /* Return a glyph's character code.  */
-DISPEXTERN_INLINE int GLYPH_CHAR (GLYPH glyph) { return glyph.ch; }
+INLINE int GLYPH_CHAR (GLYPH glyph) { return glyph.ch; }
 
 /* Return a glyph's face ID.  */
-DISPEXTERN_INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
+INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
 
 #define SET_GLYPH_CHAR(glyph, char) ((glyph).ch = (char))
 #define SET_GLYPH_FACE(glyph, face) ((glyph).face_id = (face))
@@ -300,7 +298,7 @@ DISPEXTERN_INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
 
 /* The following are valid only if GLYPH_CODE_P (gc).  */
 
-DISPEXTERN_INLINE int
+INLINE int
 GLYPH_CODE_CHAR (Lisp_Object gc)
 {
   return (CONSP (gc)
@@ -308,7 +306,7 @@ GLYPH_CODE_CHAR (Lisp_Object gc)
 	  : XINT (gc) & MAX_CHAR);
 }
 
-DISPEXTERN_INLINE int
+INLINE int
 GLYPH_CODE_FACE (Lisp_Object gc)
 {
   return CONSP (gc) ? XINT (XCDR (gc)) : XINT (gc) >> CHARACTERBITS;
@@ -794,7 +792,10 @@ enum glyph_row_area
    Rows in window matrices on frames having no frame matrices point to
    glyphs allocated from the heap via xmalloc;
    glyphs[LEFT_MARGIN_AREA] is the start address of the allocated
-   glyph structure array.  */
+   glyph structure array.
+
+   NOTE: layout of first four members of this structure is important,
+   see clear_glyph_row and copy_row_except_pointers to check why.  */
 
 struct glyph_row
 {
@@ -814,8 +815,13 @@ struct glyph_row
      removed some day, so don't use it in new code.  */
   struct glyph *glyphs[1 + LAST_AREA];
 
-  /* Number of glyphs actually filled in areas.  */
-  short used[LAST_AREA];
+  /* Number of glyphs actually filled in areas.  This could have size
+     LAST_AREA, but it's 1 + LAST_AREA to simplify offset calculations.  */
+  short used[1 + LAST_AREA];
+
+  /* Hash code.  This hash code is available as soon as the row
+     is constructed, i.e. after a call to display_line.  */
+  unsigned hash;
 
   /* Window-relative x and y-position of the top-left corner of this
      row.  If y < 0, this means that eabs (y) pixels of the row are
@@ -847,10 +853,6 @@ struct glyph_row
   /* Extra line spacing added after this row.  Do not consider this
      in last row when checking if row is fully visible.  */
   int extra_line_spacing;
-
-  /* Hash code.  This hash code is available as soon as the row
-     is constructed, i.e. after a call to display_line.  */
-  unsigned hash;
 
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
@@ -1195,12 +1197,6 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
       ((ROW)->phys_height - (ROW)->phys_ascent	\
        > (ROW)->height - (ROW)->ascent)
 
-/* True means that fonts have been loaded since the last glyph
-   matrix adjustments.  The function redisplay_internal adjusts glyph
-   matrices when this flag is true.  */
-
-extern bool fonts_changed_p;
-
 /* A glyph for a space.  */
 
 extern struct glyph space_glyph;
@@ -1428,31 +1424,31 @@ struct glyph_string
 #define CURRENT_MODE_LINE_FACE_ID(W)		\
 	(CURRENT_MODE_LINE_FACE_ID_3((W), XWINDOW (selected_window), (W)))
 
-/* Return the current height of the mode line of window W.  If not
-   known from current_mode_line_height, look at W's current glyph
-   matrix, or return a default based on the height of the font of the
-   face `mode-line'.  */
+/* Return the current height of the mode line of window W.  If not known
+   from W->mode_line_height, look at W's current glyph matrix, or return
+   a default based on the height of the font of the face `mode-line'.  */
 
-#define CURRENT_MODE_LINE_HEIGHT(W)				\
-     (current_mode_line_height >= 0				\
-      ? current_mode_line_height				\
-      : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
-	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				      CURRENT_MODE_LINE_FACE_ID (W))))
+#define CURRENT_MODE_LINE_HEIGHT(W)					\
+  (W->mode_line_height >= 0						\
+   ? W->mode_line_height						\
+   : (W->mode_line_height						\
+      = (MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+	 ? MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+	 : estimate_mode_line_height					\
+	     (XFRAME (W->frame), CURRENT_MODE_LINE_FACE_ID (W)))))
 
-/* Return the current height of the header line of window W.  If not
-   known from current_header_line_height, look at W's current glyph
-   matrix, or return an estimation based on the height of the font of
-   the face `header-line'.  */
+/* Return the current height of the header line of window W.  If not known
+   from W->header_line_height, look at W's current glyph matrix, or return
+   an estimation based on the height of the font of the face `header-line'.  */
 
 #define CURRENT_HEADER_LINE_HEIGHT(W)				\
-      (current_header_line_height >= 0				\
-       ? current_header_line_height				\
-       : (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				       HEADER_LINE_FACE_ID)))
+  (W->header_line_height >= 0					\
+   ? W->header_line_height					\
+   : (W->header_line_height					\
+      = (MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)		\
+	 ? MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)	\
+	 : estimate_mode_line_height				\
+	     (XFRAME (W->frame), HEADER_LINE_FACE_ID))))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -1829,7 +1825,7 @@ struct face_cache
 #endif /* not HAVE_WINDOW_SYSTEM */
 
 /* Return true if G contains a valid character code.  */
-DISPEXTERN_INLINE bool
+INLINE bool
 GLYPH_CHAR_VALID_P (GLYPH g)
 {
   return CHAR_VALID_P (GLYPH_CHAR (g));
@@ -1839,7 +1835,7 @@ GLYPH_CHAR_VALID_P (GLYPH g)
    encodes a char code in the lower CHARACTERBITS bits and a (very small)
    face-id in the upper bits, or it may be a cons (CHAR . FACE-ID).  */
 
-DISPEXTERN_INLINE bool
+INLINE bool
 GLYPH_CODE_P (Lisp_Object gc)
 {
   return (CONSP (gc)
@@ -2710,7 +2706,7 @@ typedef struct {
   unsigned mouse_face_hidden : 1;
 } Mouse_HLInfo;
 
-DISPEXTERN_INLINE void
+INLINE void
 reset_mouse_highlight (Mouse_HLInfo *hlinfo)
 {
 
@@ -2801,11 +2797,6 @@ struct redisplay_interface
 
   /* Flush the display of frame F.  For X, this is XFlush.  */
   void (*flush_display) (struct frame *f);
-
-  /* Flush the display of frame F if non-NULL.  This is called
-     during redisplay, and should be NULL on systems which flush
-     automatically before reading input.  */
-  void (*flush_display_optional) (struct frame *f);
 
   /* Clear the mouse highlight in window W, if there is any.  */
   void (*clear_window_mouse_face) (struct window *w);
@@ -3200,12 +3191,10 @@ int in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern Lisp_Object Qtool_bar;
 extern bool redisplaying_p;
-extern int help_echo_showing_p;
-extern int current_mode_line_height, current_header_line_height;
+extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
-extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
@@ -3215,6 +3204,7 @@ extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
+extern int merge_glyphless_glyph_face (struct it *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3404,7 +3394,7 @@ extern frame_parm_handler x_frame_parm_handlers[];
 
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
-extern int hourglass_shown_p;
+extern bool hourglass_shown_p;
 /* If non-null, an asynchronous timer that, when it expires, displays
    an hourglass cursor on all frames.  */
 extern struct atimer *hourglass_atimer;
@@ -3454,13 +3444,10 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
-extern void cancel_line (int, struct frame *);
-extern void init_desired_glyphs (struct frame *);
 extern bool update_frame (struct frame *, bool, bool);
 extern void update_frame_with_menu (struct frame *);
 extern void bitch_at_user (void);
-void adjust_glyphs (struct frame *);
-struct glyph_matrix *save_current_matrix (struct frame *);
+extern void adjust_frame_glyphs (struct frame *);
 void free_glyphs (struct frame *);
 void free_window_matrices (struct window *);
 void check_glyph_memory (void);
@@ -3546,6 +3533,7 @@ enum resource_types
   RES_TYPE_BOOLEAN_NUMBER
 };
 
+extern Display_Info *check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
                               Lisp_Object, const char *, const char *class,
                               enum resource_types);
@@ -3557,6 +3545,13 @@ extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
                                         const char *, const char *,
                                         enum resource_types);
+extern char *x_get_string_resource (XrmDatabase, const char *,
+				    const char *);
+
+#ifndef HAVE_NS /* These both used on W32 and X only.  */
+extern bool x_mouse_grabbed (Display_Info *);
+extern void x_redo_mouse_highlight (Display_Info *);
+#endif /* HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

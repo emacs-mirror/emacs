@@ -75,7 +75,6 @@
 	   (setq prefix-arg (if (zerop digit) '- (- digit))))
 	  (t
 	   (setq prefix-arg digit))))
-  (setq universal-argument-num-events (length (this-command-keys)))
   (setq overriding-terminal-local-map universal-argument-map))
 
 (defvar autoarg-kp-mode-map

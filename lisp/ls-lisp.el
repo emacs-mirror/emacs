@@ -27,11 +27,9 @@
 
 ;; OVERVIEW ==========================================================
 
-;; This file redefines the function `insert-directory' to implement it
-;; directly from Emacs lisp, without running ls in a subprocess.  It
-;; is useful if you cannot afford to fork Emacs on a real memory UNIX,
-;; or other non-UNIX platforms if you don't have the ls
-;; program, or if you want a different format from what ls offers.
+;; This file advises the function `insert-directory' to implement it
+;; directly from Emacs lisp, without running ls in a subprocess.
+;; This is useful if you don't have ls installed (ie, on MS Windows).
 
 ;; This function can use regexps instead of shell wildcards.  If you
 ;; enter regexps remember to double each $ sign.  For example, to
@@ -198,9 +196,6 @@ to fail to line up, e.g. if month names are not all of the same length."
   :type 'boolean
   :group 'ls-lisp)
 
-(defvar original-insert-directory nil
-  "This holds the original function definition of `insert-directory'.")
-
 (defvar ls-lisp-uid-d-fmt "-%d"
   "Format to display integer UIDs.")
 (defvar ls-lisp-uid-s-fmt "-%s"
@@ -213,15 +208,10 @@ to fail to line up, e.g. if month names are not all of the same length."
   "Format to display integer file sizes.")
 (defvar ls-lisp-filesize-f-fmt "%.0f"
   "Format to display float file sizes.")
-
-;; Remember the original insert-directory function
-(or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
-    (setq original-insert-directory (symbol-function 'insert-directory)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun insert-directory (file switches &optional wildcard full-directory-p)
+(defun ls-lisp--insert-directory (orig-fun file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
 SWITCHES may be a string of options, or a list of strings.
@@ -231,12 +221,10 @@ switches do not contain `d', so that a full listing is expected.
 
 This version of the function comes from `ls-lisp.el'.
 If the value of `ls-lisp-use-insert-directory-program' is non-nil then
-it works exactly like the version from `files.el' and runs a directory
-listing program whose name is in the variable
-`insert-directory-program'; if also WILDCARD is non-nil then it runs
-the shell specified by `shell-file-name'.  If the value of
-`ls-lisp-use-insert-directory-program' is nil then it runs a Lisp
-emulation.
+this advice just delegates the work to ORIG-FUN (the normal `insert-directory'
+function from `files.el').
+But if the value of `ls-lisp-use-insert-directory-program' is nil
+then it runs a Lisp emulation.
 
 The Lisp emulation does not run any external programs or shells.  It
 supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
@@ -245,7 +233,7 @@ to match file names.  It does not support all `ls' switches -- those
 that work are: A a B C c F G g h i n R r S s t U u X.  The l switch
 is assumed to be always present and cannot be turned off."
   (if ls-lisp-use-insert-directory-program
-      (funcall original-insert-directory
+      (funcall orig-fun
 	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
     (let ((handler (find-file-name-handler (expand-file-name file)
@@ -305,6 +293,7 @@ is assumed to be always present and cannot be turned off."
 		(replace-match "total used in directory")
 		(end-of-line)
 		(insert " available " available)))))))))
+(advice-add 'insert-directory :around #'ls-lisp--insert-directory)
 
 (defun ls-lisp-insert-directory
   (file switches time-index wildcard-regexp full-directory-p)

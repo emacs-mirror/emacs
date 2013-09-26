@@ -113,9 +113,8 @@
     map))
 
 ;; Blackbox mode is suitable only for specially formatted data.
-(put 'blackbox-mode 'mode-class 'special)
 
-(defun blackbox-mode ()
+(define-derived-mode blackbox-mode special-mode "Blackbox"
   "Major mode for playing blackbox.
 To learn how to play blackbox, see the documentation for function `blackbox'.
 
@@ -124,13 +123,7 @@ The usual mnemonic keys move the cursor around the box.
 
 \\[bb-romp] -- send in a ray from point, or toggle a ball at point
 \\[bb-done] -- end game and get score"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map blackbox-mode-map)
-  (setq truncate-lines t)
-  (setq major-mode 'blackbox-mode)
-  (setq mode-name "Blackbox")
-  (run-mode-hooks 'blackbox-mode-hook))
+  (setq truncate-lines t))
 
 ;;;###autoload
 (defun blackbox (num)

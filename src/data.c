@@ -54,6 +54,7 @@ Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 static Lisp_Object Qnatnump;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
+Lisp_Object Qbool_vector_p;
 Lisp_Object Qbuffer_or_string_p;
 static Lisp_Object Qkeywordp, Qboundp;
 Lisp_Object Qfboundp;
@@ -616,7 +617,7 @@ global value outside of any lexical scope.  */)
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	if (blv->fwd)
 	  /* In set_internal, we un-forward vars when their value is
-    	     set to Qunbound. */
+	     set to Qunbound.  */
     	  return Qt;
 	else
 	  {
@@ -627,7 +628,7 @@ global value outside of any lexical scope.  */)
       }
     case SYMBOL_FORWARDED:
       /* In set_internal, we un-forward vars when their value is
-	 set to Qunbound. */
+	 set to Qunbound.  */
       return Qt;
     default: emacs_abort ();
     }
@@ -1995,7 +1996,7 @@ If the current binding is global (the default), the value is nil.  */)
 }
 
 /* This code is disabled now that we use the selected frame to return
-   keyboard-local-values. */
+   keyboard-local-values.  */
 #if 0
 extern struct terminal *get_terminal (Lisp_Object display, int);
 
@@ -2255,10 +2256,8 @@ bool-vector.  IDX starts at 0.  */)
 
 /* Arithmetic functions */
 
-enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
-
-static Lisp_Object
-arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
+Lisp_Object
+arithcompare (Lisp_Object num1, Lisp_Object num2, enum Arith_Comparison comparison)
 {
   double f1 = 0, f2 = 0;
   bool floatp = 0;
@@ -2275,32 +2274,32 @@ arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 
   switch (comparison)
     {
-    case equal:
+    case ARITH_EQUAL:
       if (floatp ? f1 == f2 : XINT (num1) == XINT (num2))
 	return Qt;
       return Qnil;
 
-    case notequal:
+    case ARITH_NOTEQUAL:
       if (floatp ? f1 != f2 : XINT (num1) != XINT (num2))
 	return Qt;
       return Qnil;
 
-    case less:
+    case ARITH_LESS:
       if (floatp ? f1 < f2 : XINT (num1) < XINT (num2))
 	return Qt;
       return Qnil;
 
-    case less_or_equal:
+    case ARITH_LESS_OR_EQUAL:
       if (floatp ? f1 <= f2 : XINT (num1) <= XINT (num2))
 	return Qt;
       return Qnil;
 
-    case grtr:
+    case ARITH_GRTR:
       if (floatp ? f1 > f2 : XINT (num1) > XINT (num2))
 	return Qt;
       return Qnil;
 
-    case grtr_or_equal:
+    case ARITH_GRTR_OR_EQUAL:
       if (floatp ? f1 >= f2 : XINT (num1) >= XINT (num2))
 	return Qt;
       return Qnil;
@@ -2310,48 +2309,65 @@ arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
     }
 }
 
-DEFUN ("=", Feqlsign, Seqlsign, 2, 2, 0,
-       doc: /* Return t if two args, both numbers or markers, are equal.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+static Lisp_Object
+arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
+                     enum Arith_Comparison comparison)
 {
-  return arithcompare (num1, num2, equal);
+  for (ptrdiff_t argnum = 1; argnum < nargs; ++argnum)
+    {
+      if (EQ (Qnil, arithcompare (args[argnum-1], args[argnum], comparison)))
+        return Qnil;
+    }
+  return Qt;
 }
 
-DEFUN ("<", Flss, Slss, 2, 2, 0,
-       doc: /* Return t if first arg is less than second arg.  Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN ("=", Feqlsign, Seqlsign, 1, MANY, 0,
+       doc: /* Return t if args, all numbers or markers, are equal.
+usage: (= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, less);
+  return arithcompare_driver (nargs, args, ARITH_EQUAL);
 }
 
-DEFUN (">", Fgtr, Sgtr, 2, 2, 0,
-       doc: /* Return t if first arg is greater than second arg.  Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN ("<", Flss, Slss, 1, MANY, 0,
+       doc: /* Return t if each arg is less than the next arg.  All must be numbers or markers.
+usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, grtr);
+  return arithcompare_driver (nargs, args, ARITH_LESS);
 }
 
-DEFUN ("<=", Fleq, Sleq, 2, 2, 0,
-       doc: /* Return t if first arg is less than or equal to second arg.
-Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
+       doc: /* Return t if each arg is greater than the next arg.  All must be numbers or markers.
+usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, less_or_equal);
+  return arithcompare_driver (nargs, args, ARITH_GRTR);
 }
 
-DEFUN (">=", Fgeq, Sgeq, 2, 2, 0,
-       doc: /* Return t if first arg is greater than or equal to second arg.
-Both must be numbers or markers.  */)
-  (register Lisp_Object num1, Lisp_Object num2)
+DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
+       doc: /* Return t if each arg is less than or equal to the next arg.
+All must be numbers or markers.
+usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare (num1, num2, grtr_or_equal);
+  return arithcompare_driver (nargs, args, ARITH_LESS_OR_EQUAL);
+}
+
+DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
+       doc: /* Return t if each arg is greater than or equal to the next arg.
+All must be numbers or markers.
+usage: (= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  return arithcompare_driver (nargs, args, ARITH_GRTR_OR_EQUAL);
 }
 
 DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
        doc: /* Return t if first arg is not equal to second arg.  Both must be numbers or markers.  */)
   (register Lisp_Object num1, Lisp_Object num2)
 {
-  return arithcompare (num1, num2, notequal);
+  return arithcompare (num1, num2, ARITH_NOTEQUAL);
 }
 
 DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
@@ -2941,6 +2957,453 @@ lowercase l) for small endian machines.  */)
   return make_number (order);
 }
 
+/* Because we round up the bool vector allocate size to word_size
+   units, we can safely read past the "end" of the vector in the
+   operations below.  These extra bits are always zero.  Also, we
+   always allocate bool vectors with at least one size_t of storage so
+   that we don't have to special-case empty bit vectors.  */
+
+static size_t
+bool_vector_spare_mask (ptrdiff_t nr_bits)
+{
+  eassert_and_assume (nr_bits > 0);
+  return (((size_t) 1) << (nr_bits % BITS_PER_SIZE_T)) - 1;
+}
+
+#if _MSC_VER >= 1500 && (defined _M_IX86 || defined _M_X64)
+# define USE_MSC_POPCOUNT
+# define POPCOUNT_STATIC_INLINE static inline
+#elif __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+# define USE_GCC_POPCOUNT
+# if 199901L <= __STDC_VERSION__ || !__STRICT_ANSI__
+#  define POPCOUNT_STATIC_INLINE static inline
+# endif
+#else
+# define NEED_GENERIC_POPCOUNT
+#endif
+#ifndef POPCOUNT_STATIC_INLINE
+# define POPCOUNT_STATIC_INLINE static
+#endif
+
+#ifdef USE_MSC_POPCOUNT
+# define NEED_GENERIC_POPCOUNT
+#endif
+
+#ifdef NEED_GENERIC_POPCOUNT
+POPCOUNT_STATIC_INLINE unsigned int
+popcount_size_t_generic (size_t val)
+{
+    unsigned short j;
+    unsigned int count = 0;
+
+    for (j = 0; j < BITS_PER_SIZE_T; ++j)
+      count += !!((((size_t) 1) << j) & val);
+
+    return count;
+}
+#endif
+
+#ifdef USE_MSC_POPCOUNT
+POPCOUNT_STATIC_INLINE unsigned int
+popcount_size_t_msc (size_t val)
+{
+  unsigned int count;
+
+#pragma intrinsic __cpuid
+  /* While gcc falls back to its own generic code if the machine on
+     which it's running doesn't support popcount, we need to perform the
+     detection and fallback ourselves when compiling with Microsoft's
+     compiler.  */
+
+    static enum {
+      popcount_unknown_support,
+      popcount_use_generic,
+      popcount_use_intrinsic
+    } popcount_state;
+
+    if (popcount_state == popcount_unknown_support)
+      {
+        int cpu_info[4];
+        __cpuid (cpu_info, 1);
+        if (cpu_info[2] & (1<<23)) /* See MSDN.  */
+          popcount_state = popcount_use_intrinsic;
+        else
+          popcount_state = popcount_use_generic;
+      }
+
+    if (popcount_state == popcount_use_intrinsic)
+      {
+# if BITS_PER_SIZE_T == 64
+#  pragma intrinsic __popcnt64
+      count = __popcnt64 (val);
+# else
+#  pragma intrinsic __popcnt
+    count = __popcnt (val);
+# endif
+      }
+    else
+      count = popcount_size_t_generic (val);
+
+    return count;
+}
+#endif /* USE_MSC_POPCOUNT */
+
+#ifdef USE_GCC_POPCOUNT
+POPCOUNT_STATIC_INLINE unsigned int
+popcount_size_t_gcc (size_t val)
+{
+# if BITS_PER_SIZE_T == 64
+  return __builtin_popcountll (val);
+# else
+  return __builtin_popcount (val);
+# endif
+}
+#endif /* USE_GCC_POPCOUNT */
+
+POPCOUNT_STATIC_INLINE unsigned int
+popcount_size_t (size_t val)
+{
+#if defined USE_MSC_POPCOUNT
+  return popcount_size_t_msc (val);
+#elif defined USE_GCC_POPCOUNT
+  return popcount_size_t_gcc (val);
+#else
+  return popcount_size_t_generic (val);
+#endif
+}
+
+enum bool_vector_op { bool_vector_exclusive_or,
+                      bool_vector_union,
+                      bool_vector_intersection,
+                      bool_vector_set_difference,
+                      bool_vector_subsetp };
+
+static Lisp_Object
+bool_vector_binop_driver (Lisp_Object op1,
+                          Lisp_Object op2,
+                          Lisp_Object dest,
+                          enum bool_vector_op op)
+{
+  EMACS_INT nr_bits;
+  size_t *adata, *bdata, *cdata;
+  ptrdiff_t i;
+  size_t changed = 0;
+  size_t mword;
+  ptrdiff_t nr_words;
+
+  CHECK_BOOL_VECTOR (op1);
+  CHECK_BOOL_VECTOR (op2);
+
+  nr_bits = min (XBOOL_VECTOR (op1)->size,
+                 XBOOL_VECTOR (op2)->size);
+
+  if (NILP (dest))
+    {
+      dest = Fmake_bool_vector (make_number (nr_bits), Qnil);
+      changed = 1;
+    }
+  else
+    {
+      CHECK_BOOL_VECTOR (dest);
+      nr_bits = min (nr_bits, XBOOL_VECTOR (dest)->size);
+    }
+
+  eassert_and_assume (nr_bits >= 0);
+  nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
+
+  adata = (size_t *) XBOOL_VECTOR (dest)->data;
+  bdata = (size_t *) XBOOL_VECTOR (op1)->data;
+  cdata = (size_t *) XBOOL_VECTOR (op2)->data;
+  i = 0;
+  do
+    {
+      if (op == bool_vector_exclusive_or)
+        mword = bdata[i] ^ cdata[i];
+      else if (op == bool_vector_union || op == bool_vector_subsetp)
+        mword = bdata[i] | cdata[i];
+      else if (op == bool_vector_intersection)
+        mword = bdata[i] & cdata[i];
+      else if (op == bool_vector_set_difference)
+        mword = bdata[i] &~ cdata[i];
+      else
+        abort ();
+
+      changed |= adata[i] ^ mword;
+
+      if (op != bool_vector_subsetp)
+        adata[i] = mword;
+
+      i++;
+    }
+  while (i < nr_words);
+
+  return changed ? dest : Qnil;
+}
+
+/* Compute the number of trailing zero bits in val.  If val is zero,
+   return the number of bits in val.  */
+static unsigned int
+count_trailing_zero_bits (size_t val)
+{
+  if (val == 0)
+    return CHAR_BIT * sizeof (val);
+
+#if defined USE_GCC_POPCOUNT && BITS_PER_SIZE_T == 64
+  return __builtin_ctzll (val);
+#elif defined USE_GCC_POPCOUNT && BITS_PER_SIZE_T == 32
+  return __builtin_ctz (val);
+#elif _MSC_VER && BITS_PER_SIZE_T == 64
+# pragma intrinsic _BitScanForward64
+  {
+    /* No support test needed: support since 386.  */
+    unsigned long result;
+    _BitScanForward64 (&result, val);
+    return (unsigned int) result;
+  }
+#elif _MSC_VER && BITS_PER_SIZE_T == 32
+# pragma intrinsic _BitScanForward
+  {
+    /* No support test needed: support since 386.  */
+    unsigned long result;
+    _BitScanForward (&result, val);
+    return (unsigned int) result;
+  }
+#else
+  {
+    unsigned int count;
+    count = 0;
+    for (val = ~val; val & 1; val >>= 1)
+      ++count;
+
+    return count;
+  }
+#endif
+}
+
+static size_t
+size_t_to_host_endian (size_t val)
+{
+#ifdef WORDS_BIGENDIAN
+# if BITS_PER_SIZE_T == 64
+  return swap64 (val);
+# else
+  return swap32 (val);
+# endif
+#else
+  return val;
+#endif
+}
+
+DEFUN ("bool-vector-exclusive-or", Fbool_vector_exclusive_or,
+       Sbool_vector_exclusive_or, 2, 3, 0,
+       doc: /* Compute C = A ^ B, bitwise exclusive or.
+A, B, and C must be bool vectors.  If C is nil, allocate a new bool
+vector in which to store the result.  Return the destination vector if
+it changed or nil otherwise.  */
+       )
+  (Lisp_Object a, Lisp_Object b, Lisp_Object c)
+{
+  return bool_vector_binop_driver (a, b, c, bool_vector_exclusive_or);
+}
+
+DEFUN ("bool-vector-union", Fbool_vector_union,
+       Sbool_vector_union, 2, 3, 0,
+       doc: /* Compute C = A | B, bitwise or.
+A, B, and C must be bool vectors.  If C is nil, allocate a new bool
+vector in which to store the result.  Return the destination vector if
+it changed or nil otherwise.  */)
+  (Lisp_Object a, Lisp_Object b, Lisp_Object c)
+{
+  return bool_vector_binop_driver (a, b, c, bool_vector_union);
+}
+
+DEFUN ("bool-vector-intersection", Fbool_vector_intersection,
+       Sbool_vector_intersection, 2, 3, 0,
+       doc: /* Compute C = A & B, bitwise and.
+A, B, and C must be bool vectors.  If C is nil, allocate a new bool
+vector in which to store the result.  Return the destination vector if
+it changed or nil otherwise.  */)
+  (Lisp_Object a, Lisp_Object b, Lisp_Object c)
+{
+  return bool_vector_binop_driver (a, b, c, bool_vector_intersection);
+}
+
+DEFUN ("bool-vector-set-difference", Fbool_vector_set_difference,
+       Sbool_vector_set_difference, 2, 3, 0,
+       doc: /* Compute C = A &~ B, set difference.
+A, B, and C must be bool vectors.  If C is nil, allocate a new bool
+vector in which to store the result.  Return the destination vector if
+it changed or nil otherwise.  */)
+  (Lisp_Object a, Lisp_Object b, Lisp_Object c)
+{
+  return bool_vector_binop_driver (a, b, c, bool_vector_set_difference);
+}
+
+DEFUN ("bool-vector-subsetp", Fbool_vector_subsetp,
+       Sbool_vector_subsetp, 2, 2, 0,
+       doc: )
+  (Lisp_Object a, Lisp_Object b)
+{
+  /* Like bool_vector_union, but doesn't modify b.  */
+  return bool_vector_binop_driver (b, a, b, bool_vector_subsetp);
+}
+
+DEFUN ("bool-vector-not", Fbool_vector_not,
+       Sbool_vector_not, 1, 2, 0,
+       doc: /* Compute B = ~A.
+B must be a bool vector.  A must be a bool vector or nil.
+If A is nil, allocate a new bool vector in which to store the result.
+Return the destination vector.  */)
+  (Lisp_Object a, Lisp_Object b)
+{
+  EMACS_INT nr_bits;
+  size_t *bdata, *adata;
+  ptrdiff_t i;
+  size_t mword;
+
+  CHECK_BOOL_VECTOR (a);
+  nr_bits = XBOOL_VECTOR (a)->size;
+
+  if (NILP (b))
+    b = Fmake_bool_vector (make_number (nr_bits), Qnil);
+  else
+    {
+      CHECK_BOOL_VECTOR (b);
+      nr_bits = min (nr_bits, XBOOL_VECTOR (b)->size);
+    }
+
+  bdata = (size_t *) XBOOL_VECTOR (b)->data;
+  adata = (size_t *) XBOOL_VECTOR (a)->data;
+
+  eassert_and_assume (nr_bits >= 0);
+
+  for (i = 0; i < nr_bits / BITS_PER_SIZE_T; i++)
+    bdata[i] = ~adata[i];
+
+  if (nr_bits % BITS_PER_SIZE_T)
+    {
+      mword = size_t_to_host_endian (adata[i]);
+      mword = ~mword;
+      mword &= bool_vector_spare_mask (nr_bits);
+      bdata[i] = size_t_to_host_endian (mword);
+    }
+
+  return b;
+}
+
+DEFUN ("bool-vector-count-matches", Fbool_vector_count_matches,
+       Sbool_vector_count_matches, 2, 2, 0,
+       doc: /* Count how many elements in A equal B.
+A must be a bool vector.  B is a generalized bool.  */)
+  (Lisp_Object a, Lisp_Object b)
+{
+  ptrdiff_t count;
+  EMACS_INT nr_bits;
+  size_t *adata;
+  size_t match;
+  ptrdiff_t i;
+
+  CHECK_BOOL_VECTOR (a);
+
+  nr_bits = XBOOL_VECTOR (a)->size;
+  count = 0;
+  match = NILP (b) ? (size_t) -1 : 0;
+  adata = (size_t *) XBOOL_VECTOR (a)->data;
+
+  eassert_and_assume (nr_bits >= 0);
+
+  for (i = 0; i < nr_bits / BITS_PER_SIZE_T; ++i)
+    count += popcount_size_t (adata[i] ^ match);
+
+  /* Mask out trailing parts of final mword.  */
+  if (nr_bits % BITS_PER_SIZE_T)
+    {
+      size_t mword = adata[i] ^ match;
+      mword = size_t_to_host_endian (mword);
+      count += popcount_size_t (mword & bool_vector_spare_mask (nr_bits));
+    }
+
+  return make_number (count);
+}
+
+DEFUN ("bool-vector-count-matches-at",
+       Fbool_vector_count_matches_at,
+       Sbool_vector_count_matches_at, 3, 3, 0,
+       doc: /* Count how many consecutive elements in A equal B at i.
+A must be a bool vector.  B is a generalized boolean.  i is an
+index into the vector.  */)
+  (Lisp_Object a, Lisp_Object b, Lisp_Object i)
+{
+  ptrdiff_t count;
+  EMACS_INT nr_bits;
+  ptrdiff_t offset;
+  size_t *adata;
+  size_t twiddle;
+  size_t mword; /* Machine word.  */
+  ptrdiff_t pos;
+  ptrdiff_t nr_words;
+
+  CHECK_BOOL_VECTOR (a);
+  CHECK_NATNUM (i);
+
+  nr_bits = XBOOL_VECTOR (a)->size;
+  if (XFASTINT (i) > nr_bits) /* Allow one past the end for convenience */
+    args_out_of_range (a, i);
+
+  adata = (size_t *) XBOOL_VECTOR (a)->data;
+
+  assume (nr_bits >= 0);
+  nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
+
+  pos = XFASTINT (i) / BITS_PER_SIZE_T;
+  offset = XFASTINT (i) % BITS_PER_SIZE_T;
+  count = 0;
+
+  /* By XORing with twiddle, we transform the problem of "count
+     consecutive equal values" into "count the zero bits".  The latter
+     operation usually has hardware support.  */
+  twiddle = NILP (b) ? 0 : (size_t) -1;
+
+  /* Scan the remainder of the mword at the current offset.  */
+  if (pos < nr_words && offset != 0)
+    {
+      mword = size_t_to_host_endian (adata[pos]);
+      mword ^= twiddle;
+      mword >>= offset;
+      count = count_trailing_zero_bits (mword);
+      count = min (count, BITS_PER_SIZE_T - offset);
+      pos++;
+      if (count + offset < BITS_PER_SIZE_T)
+        return make_number (count);
+    }
+
+  /* Scan whole words until we either reach the end of the vector or
+     find an mword that doesn't completely match.  twiddle is
+     endian-independent.  */
+  while (pos < nr_words && adata[pos] == twiddle)
+    {
+      count += BITS_PER_SIZE_T;
+      ++pos;
+    }
+
+  if (pos < nr_words)
+    {
+      /* If we stopped because of a mismatch, see how many bits match
+         in the current mword.  */
+      mword = size_t_to_host_endian (adata[pos]);
+      mword ^= twiddle;
+      count += count_trailing_zero_bits (mword);
+    }
+  else if (nr_bits % BITS_PER_SIZE_T != 0)
+    {
+      /* If we hit the end, we might have overshot our count.  Reduce
+         the total by the number of spare bits at the end of the
+         vector.  */
+      count -= BITS_PER_SIZE_T - nr_bits % BITS_PER_SIZE_T;
+    }
+
+  return make_number (count);
+}
 
 
 void
@@ -2990,6 +3453,7 @@ syms_of_data (void)
   DEFSYM (Qsequencep, "sequencep");
   DEFSYM (Qbufferp, "bufferp");
   DEFSYM (Qvectorp, "vectorp");
+  DEFSYM (Qbool_vector_p, "bool-vector-p");
   DEFSYM (Qchar_or_string_p, "char-or-string-p");
   DEFSYM (Qmarkerp, "markerp");
   DEFSYM (Qbuffer_or_string_p, "buffer-or-string-p");
@@ -3206,6 +3670,15 @@ syms_of_data (void)
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
+
+  defsubr (&Sbool_vector_exclusive_or);
+  defsubr (&Sbool_vector_union);
+  defsubr (&Sbool_vector_intersection);
+  defsubr (&Sbool_vector_set_difference);
+  defsubr (&Sbool_vector_not);
+  defsubr (&Sbool_vector_subsetp);
+  defsubr (&Sbool_vector_count_matches);
+  defsubr (&Sbool_vector_count_matches_at);
 
   set_symbol_function (Qwholenump, XSYMBOL (Qnatnump)->function);
 

@@ -166,7 +166,7 @@ If this contains a %s, that will be replaced by the matching rule."
      "Short description: "
      ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str
      (make-string (max 2 (- 80 (current-column) 27)) ?\s)
-     "-*- lexical-binding: t; -*-"
+     "-*- lexical-binding: t; -*-" '(setq lexical-binding t)
      "
 
 ;; Copyright (C) " (format-time-string "%Y") "  "

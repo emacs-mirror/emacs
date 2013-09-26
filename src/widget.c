@@ -525,7 +525,7 @@ setup_frame_gcs (EmacsFrame ew)
   font = Ffont_xlfd_name (font, Qnil);
   if (STRINGP (font))
     {
-      XFontStruct *xfont = XLoadQueryFont (FRAME_X_DISPLAY_INFO (s)->display,
+      XFontStruct *xfont = XLoadQueryFont (FRAME_DISPLAY_INFO (s)->display,
 					   SSDATA (font));
       if (xfont)
 	{

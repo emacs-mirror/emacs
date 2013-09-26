@@ -1,7 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -494,6 +493,7 @@ It is the default value of the variable `top-level'."
     (setq command-line-processed t)
     (let ((dir default-directory))
       (with-current-buffer "*Messages*"
+        (messages-buffer-mode)
         ;; Make it easy to do like "tail -f".
         (set (make-local-variable 'window-point-insertion-type) t)
         ;; Give *Messages* the same default-directory as *scratch*,

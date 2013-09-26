@@ -28,9 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "font.h"
 
 INLINE_HEADER_BEGIN
-#ifndef COMPOSITE_INLINE
-# define COMPOSITE_INLINE INLINE
-#endif
 
 /* Methods to display a sequence of components of a composition.  */
 enum composition_method {
@@ -59,7 +56,7 @@ enum composition_method {
    They don't check validity of PROP.  */
 
 /* Return true if PROP is already registered.  */
-COMPOSITE_INLINE bool
+INLINE bool
 composition_registered_p (Lisp_Object prop)
 {
   return INTEGERP (XCAR (prop));
@@ -91,8 +88,8 @@ composition_registered_p (Lisp_Object prop)
 #define COMPOSITION_GLYPH(cmp, n)					\
   XINT (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)		\
 			  ->key_and_value)				\
-		 ->contents[cmp->hash_index * 2])			\
-	->contents[cmp->method == COMPOSITION_WITH_RULE_ALTCHARS	\
+		 ->u.contents[cmp->hash_index * 2])			\
+	->u.contents[cmp->method == COMPOSITION_WITH_RULE_ALTCHARS	\
 		  ? (n) * 2 : (n)])
 
 /* Return the encoded composition rule to compose the Nth glyph of
@@ -101,8 +98,8 @@ composition_registered_p (Lisp_Object prop)
 #define COMPOSITION_RULE(cmp, n)				\
   XINT (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)	\
 			  ->key_and_value)			\
-		 ->contents[cmp->hash_index * 2])		\
-	->contents[(n) * 2 - 1])
+		 ->u.contents[cmp->hash_index * 2])		\
+	->u.contents[(n) * 2 - 1])
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
    reference point code), NREF (new ref. point code).  Don't check RULE_CODE;
@@ -207,7 +204,7 @@ extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
 
 /* Return the method of a composition with property PROP.  */
 
-COMPOSITE_INLINE enum composition_method
+INLINE enum composition_method
 composition_method (Lisp_Object prop)
 {
   if (composition_registered_p (prop))
@@ -226,7 +223,7 @@ composition_method (Lisp_Object prop)
 /* Given offsets START and END, return true if PROP is a valid composition
    property with length END - START.  */
 
-COMPOSITE_INLINE bool
+INLINE bool
 composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 {
   return (CONSP (prop)
@@ -262,7 +259,7 @@ composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 #define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
-COMPOSITE_INLINE Lisp_Object *
+INLINE Lisp_Object *
 lgstring_glyph_addr (Lisp_Object lgs, ptrdiff_t idx)
 {
   return aref_addr (lgs, idx + 2);

@@ -238,7 +238,7 @@ authentication is requested from proxy server, provide it."
        tramp-gw-vector 6 "\n%s"
        (format
 	"%s%s\r\n" command
-	(replace-regexp-in-string ;; no password in trace!
+	(tramp-compat-replace-regexp-in-string ;; no password in trace!
 	 "Basic [^\r\n]+" "Basic xxxxx" authentication t)))
       (with-current-buffer buffer
 	;; Trap errors to be traced in the right trace buffer.  Often,

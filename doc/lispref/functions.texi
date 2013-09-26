@@ -1135,6 +1135,7 @@ examining or altering the structure of closure objects.
 
 @node Obsolete Functions
 @section Declaring Functions Obsolete
+@cindex obsolete functions
 
   You can mark a named function as @dfn{obsolete}, meaning that it may
 be removed at some point in the future.  This causes Emacs to warn

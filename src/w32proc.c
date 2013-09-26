@@ -1144,7 +1144,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   return FALSE;
 }
 
-/* create_child doesn't know what emacs' file handle will be for waiting
+/* create_child doesn't know what emacs's file handle will be for waiting
    on output from the child, so we need to make this additional call
    to register the handle with the process
    This way the select emulator knows how to match file handles with

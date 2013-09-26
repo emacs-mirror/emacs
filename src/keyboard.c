@@ -20,9 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#define BLOCKINPUT_INLINE EXTERN_INLINE
-#define KEYBOARD_INLINE EXTERN_INLINE
-
 #include "sysstdio.h"
 
 #include "lisp.h"
@@ -2624,10 +2621,8 @@ read_char (int commandflag, Lisp_Object map,
 
   if (/* There currently is something in the echo area.  */
       !NILP (echo_area_buffer[0])
-      && (/* And it's either not from echoing.  */
-	  !EQ (echo_area_buffer[0], echo_message_buffer)
-	  /* Or it's an echo from a different kboard.  */
-	  || echo_kboard != current_kboard
+      && (/* It's an echo from a different kboard.  */
+	  echo_kboard != current_kboard
 	  /* Or we explicitly allow overwriting whatever there is.  */
 	  || ok_to_echo_at_next_pause == NULL))
     cancel_echoing ();
@@ -4389,7 +4384,7 @@ decode_timer (Lisp_Object timer, struct timespec *result)
 
   if (! (VECTORP (timer) && ASIZE (timer) == 9))
     return 0;
-  vector = XVECTOR (timer)->contents;
+  vector = XVECTOR (timer)->u.contents;
   if (! NILP (vector[0]))
     return 0;
 
@@ -8046,7 +8041,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 	 discard any previously made item.  */
       for (i = 0; i < ntool_bar_items; i += TOOL_BAR_ITEM_NSLOTS)
 	{
-	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->contents + i;
+	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->u.contents + i;
 
 	  if (EQ (key, v[TOOL_BAR_ITEM_KEY]))
 	    {
@@ -8370,7 +8365,7 @@ append_tool_bar_item (void)
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
   vcopy (tool_bar_items_vector, ntool_bar_items,
-	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
+	 XVECTOR (tool_bar_item_properties)->u.contents, TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
@@ -9921,20 +9916,7 @@ detect_input_pending_run_timers (bool do_display)
     get_input_pending (READABLE_EVENTS_DO_TIMERS_NOW);
 
   if (old_timers_run != timers_run && do_display)
-    {
-      redisplay_preserve_echo_area (8);
-      /* The following fixes a bug when using lazy-lock with
-	 lazy-lock-defer-on-the-fly set to t, i.e.  when fontifying
-	 from an idle timer function.  The symptom of the bug is that
-	 the cursor sometimes doesn't become visible until the next X
-	 event is processed.  --gerd.  */
-      {
-        Lisp_Object tail, frame;
-        FOR_EACH_FRAME (tail, frame)
-          if (FRAME_RIF (XFRAME (frame)))
-            FRAME_RIF (XFRAME (frame))->flush_display (XFRAME (frame));
-      }
-    }
+    redisplay_preserve_echo_area (8);
 
   return input_pending;
 }
@@ -9985,7 +9967,7 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
        doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
   (void)
 {
-  Lisp_Object *keys = XVECTOR (recent_keys)->contents;
+  Lisp_Object *keys = XVECTOR (recent_keys)->u.contents;
   Lisp_Object val;
 
   if (total_keys < NUM_RECENT_KEYS)
@@ -10011,7 +9993,7 @@ See also `this-command-keys-vector'.  */)
   (void)
 {
   return make_event_array (this_command_key_count,
-			   XVECTOR (this_command_keys)->contents);
+			   XVECTOR (this_command_keys)->u.contents);
 }
 
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
@@ -10023,7 +10005,7 @@ See also `this-command-keys'.  */)
   (void)
 {
   return Fvector (this_command_key_count,
-		  XVECTOR (this_command_keys)->contents);
+		  XVECTOR (this_command_keys)->u.contents);
 }
 
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,
@@ -10038,7 +10020,7 @@ The value is always a vector.  */)
 {
   return Fvector (this_command_key_count
 		  - this_single_command_key_start,
-		  (XVECTOR (this_command_keys)->contents
+		  (XVECTOR (this_command_keys)->u.contents
 		   + this_single_command_key_start));
 }
 
@@ -10052,8 +10034,7 @@ shows the events before all translations (except for input methods).
 The value is always a vector.  */)
   (void)
 {
-  return Fvector (raw_keybuf_count,
-		  (XVECTOR (raw_keybuf)->contents));
+  return Fvector (raw_keybuf_count, XVECTOR (raw_keybuf)->u.contents);
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,

@@ -491,10 +491,9 @@ to call FUN for any change whatsoever.")
     (cancel-timer mpc--status-timer)
     (setq mpc--status-timer nil)))
 (defun mpc--status-timer-run ()
-    (condition-case err
-      (when (process-get (mpc-proc) 'ready)
-        (with-local-quit (mpc-status-refresh)))
-    (error (message "MPC: %s" err))))
+  (with-demoted-errors "MPC: %s"
+    (when (process-get (mpc-proc) 'ready)
+      (with-local-quit (mpc-status-refresh)))))
 
 (defvar mpc--status-idle-timer nil)
 (defun mpc--status-idle-timer-start ()
@@ -520,9 +519,8 @@ to call FUN for any change whatsoever.")
           (run-with-idle-timer 10 t 'mpc--status-idle-timer-run))))
 (defun mpc--status-idle-timer-run ()
   (when (process-get (mpc-proc) 'ready)
-    (condition-case err
-        (with-local-quit (mpc-status-refresh))
-      (error (message "MPC: %s" err))))
+    (with-demoted-errors "MPC: %s"
+        (with-local-quit (mpc-status-refresh))))
   (mpc--status-timer-start))
 
 (defun mpc--status-timers-refresh ()
@@ -999,9 +997,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                     (`Cover
                      (let* ((dir (file-name-directory (cdr (assq 'file info))))
                             (cover (concat dir "cover.jpg"))
-                            (file (condition-case err
-                                      (mpc-file-local-copy cover)
-                                    (error (message "MPC: %s" err))))
+                            (file (with-demoted-errors "MPC: %s"
+                                    (mpc-file-local-copy cover)))
                             image)
                        ;; (debug)
                        (push `(equal ',dir (file-name-directory (cdr (assq 'file info)))) pred)
@@ -1142,7 +1139,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   "Major mode for the features common to all buffers of MPC."
   (buffer-disable-undo)
   (setq buffer-read-only t)
-  (setq-local tool-bar-map mpc-tool-bar-map)
+  (if (boundp 'tool-bar-map)            ; not if --without-x
+      (setq-local tool-bar-map mpc-tool-bar-map))
   (setq-local truncate-lines t))
 
 ;;; The mpc-status-mode buffer ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

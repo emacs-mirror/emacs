@@ -1,4 +1,4 @@
-;;; em-banner.el --- sample module that displays a login banner
+;;; em-banner.el --- sample module that displays a login banner  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 

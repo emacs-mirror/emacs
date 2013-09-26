@@ -22,9 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 INLINE_HEADER_BEGIN
-#ifndef KEYBOARD_INLINE
-# define KEYBOARD_INLINE INLINE
-#endif
 
 /* Most code should use this macro to access Lisp fields in struct kboard.  */
 
@@ -179,42 +176,42 @@ struct kboard
     ptrdiff_t echo_after_prompt;
   };
 
-KEYBOARD_INLINE void
+INLINE void
 kset_default_minibuffer_frame (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vdefault_minibuffer_frame) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_defining_kbd_macro (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (defining_kbd_macro) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_input_decode_map (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vinput_decode_map) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_last_command (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_command) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_last_kbd_macro (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vlast_kbd_macro) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_prefix_arg (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vprefix_arg) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_system_key_alist (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vsystem_key_alist) = val;
 }
-KEYBOARD_INLINE void
+INLINE void
 kset_window_system (struct kboard *kb, Lisp_Object val)
 {
   kb->INTERNAL_FIELD (Vwindow_system) = val;

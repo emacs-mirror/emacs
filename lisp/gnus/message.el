@@ -7947,17 +7947,6 @@ those headers."
         ;; falling back to message-tab-body-function.
         (lambda () (funcall fun) 'completion-attempted)))))
 
-(eval-and-compile
-  (condition-case nil
-      (with-temp-buffer
-	(let ((standard-output (current-buffer)))
-	  (eval '(display-completion-list nil "")))
-	(defalias 'message-display-completion-list 'display-completion-list))
-    (error ;; Don't use `wrong-number-of-arguments' here because of XEmacs.
-     (defun message-display-completion-list (completions &optional ignore)
-       "Display the list of completions, COMPLETIONS, using `standard-output'."
-       (display-completion-list completions)))))
-
 (defun message-expand-group ()
   "Expand the group name under point."
   (let ((b (save-excursion
@@ -7982,12 +7971,12 @@ those headers."
 		 group)
 	       collection))
        gnus-active-hashtb))
-    (message-completion-in-region e b collection)))
+    (message-completion-in-region b e collection)))
 
 (defalias 'message-completion-in-region
   (if (fboundp 'completion-in-region)
       'completion-in-region
-    (lambda (e b hashtb)
+    (lambda (b e hashtb)
       (let* ((string (buffer-substring b e))
              (completions (all-completions string hashtb))
              comp)
@@ -8012,8 +8001,7 @@ those headers."
               (let ((buffer-read-only nil))
                 (erase-buffer)
                 (let ((standard-output (current-buffer)))
-                  (message-display-completion-list (sort completions 'string<)
-                                                   string))
+                  (display-completion-list (sort completions 'string<)))
                 (setq buffer-read-only nil)
                 (goto-char (point-min))
                 (delete-region (point)

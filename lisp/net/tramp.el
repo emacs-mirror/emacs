@@ -690,7 +690,7 @@ Useful for \"rsync\" like methods.")
 ;; Tramp only knows how to deal with `file-name-handler-alist', not
 ;; the other places.
 
-;; Currently, we have the choice between 'ftp, 'sep, and 'url.
+;; Currently, we have the choice between 'ftp and 'sep.
 ;;;###autoload
 (defcustom tramp-syntax
   (if (featurep 'xemacs) 'sep 'ftp)
@@ -699,20 +699,15 @@ Useful for \"rsync\" like methods.")
 It can have the following values:
 
   'ftp -- Ange-FTP respective EFS like syntax (GNU Emacs default)
-  'sep -- Syntax as defined for XEmacs (not available yet for GNU Emacs)
-  'url -- URL-like syntax."
+  'sep -- Syntax as defined for XEmacs."
   :group 'tramp
-  :type (if (featurep 'xemacs)
-	    '(choice (const :tag "EFS"    ftp)
-		     (const :tag "XEmacs" sep)
-		     (const :tag "URL"    url))
-	  '(choice (const :tag "Ange-FTP" ftp)
-		   (const :tag "URL"      url))))
+  :version "24.4"
+  :type `(choice (const :tag  ,(if (featurep 'xemacs) "EFS" "Ange-FTP") ftp)
+		 (const :tag "XEmacs" sep)))
 
 (defconst tramp-prefix-format
   (cond ((equal tramp-syntax 'ftp) "/")
 	((equal tramp-syntax 'sep) "/[")
-	((equal tramp-syntax 'url) "/")
 	(t (error "Wrong `tramp-syntax' defined")))
   "String matching the very beginning of Tramp file names.
 Used in `tramp-make-tramp-file-name'.")
@@ -729,7 +724,6 @@ Should always start with \"^\". Derived from `tramp-prefix-format'.")
 (defconst tramp-postfix-method-format
   (cond ((equal tramp-syntax 'ftp) ":")
 	((equal tramp-syntax 'sep) "/")
-	((equal tramp-syntax 'url) "://")
 	(t (error "Wrong `tramp-syntax' defined")))
   "String matching delimiter between method and user or host names.
 Used in `tramp-make-tramp-file-name'.")
@@ -776,7 +770,6 @@ Derived from `tramp-postfix-user-format'.")
 (defconst tramp-prefix-ipv6-format
   (cond ((equal tramp-syntax 'ftp) "[")
 	((equal tramp-syntax 'sep) "")
-	((equal tramp-syntax 'url) "[")
 	(t (error "Wrong `tramp-syntax' defined")))
   "String matching left hand side of IPv6 addresses.
 Used in `tramp-make-tramp-file-name'.")
@@ -796,7 +789,6 @@ Derived from `tramp-prefix-ipv6-format'.")
 (defconst tramp-postfix-ipv6-format
   (cond ((equal tramp-syntax 'ftp) "]")
 	((equal tramp-syntax 'sep) "")
-	((equal tramp-syntax 'url) "]")
 	(t (error "Wrong `tramp-syntax' defined")))
   "String matching right hand side of IPv6 addresses.
 Used in `tramp-make-tramp-file-name'.")
@@ -809,7 +801,6 @@ Derived from `tramp-postfix-ipv6-format'.")
 (defconst tramp-prefix-port-format
   (cond ((equal tramp-syntax 'ftp) "#")
 	((equal tramp-syntax 'sep) "#")
-	((equal tramp-syntax 'url) ":")
 	(t (error "Wrong `tramp-syntax' defined")))
   "String matching delimiter between host names and port numbers.")
 
@@ -838,7 +829,6 @@ Derived from `tramp-postfix-hop-format'.")
 (defconst tramp-postfix-host-format
   (cond ((equal tramp-syntax 'ftp) ":")
 	((equal tramp-syntax 'sep) "]")
-	((equal tramp-syntax 'url) "")
 	(t (error "Wrong `tramp-syntax' defined")))
   "String matching delimiter between host names and localnames.
 Used in `tramp-make-tramp-file-name'.")
@@ -909,15 +899,9 @@ XEmacs uses a separate filename syntax for Tramp and EFS.
 See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
-(defconst tramp-file-name-regexp-url "\\`/[^/|:]+://"
-  "Value for `tramp-file-name-regexp' for URL-like remoting.
-See `tramp-file-name-structure' for more explanations.")
-
-;;;###autoload
 (defconst tramp-file-name-regexp
   (cond ((equal tramp-syntax 'ftp) tramp-file-name-regexp-unified)
 	((equal tramp-syntax 'sep) tramp-file-name-regexp-separate)
-	((equal tramp-syntax 'url) tramp-file-name-regexp-url)
 	(t (error "Wrong `tramp-syntax' defined")))
   "Regular expression matching file names handled by Tramp.
 This regexp should match Tramp file names but no other file names.
@@ -952,16 +936,9 @@ XEmacs uses a separate filename syntax for Tramp and EFS.
 See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
-(defconst tramp-completion-file-name-regexp-url
-  "\\`/[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?\\'"
-  "Value for `tramp-completion-file-name-regexp' for URL-like remoting.
-See `tramp-file-name-structure' for more explanations.")
-
-;;;###autoload
 (defconst tramp-completion-file-name-regexp
   (cond ((equal tramp-syntax 'ftp) tramp-completion-file-name-regexp-unified)
 	((equal tramp-syntax 'sep) tramp-completion-file-name-regexp-separate)
-	((equal tramp-syntax 'url) tramp-completion-file-name-regexp-url)
 	(t (error "Wrong `tramp-syntax' defined")))
   "Regular expression matching file names handled by Tramp completion.
 This regexp should match partial Tramp file names only.
@@ -1245,10 +1222,11 @@ their replacement."
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
       (setq result (substring result 0 -1)))
-    ;; We must mark, whether a default value has been used.
-    (if (or method (null result))
+    ;; We must mark, whether a default value has been used.  Not
+    ;; applicable for XEmacs.
+    (if (or method (null result) (null (functionp 'propertize)))
 	result
-      (propertize result 'tramp-default t))))
+      (tramp-compat-funcall 'propertize result 'tramp-default t))))
 
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
@@ -1266,10 +1244,11 @@ This is USER, if non-nil. Otherwise, do a lookup in
 		   (setq choices nil)))
 	       luser)
 	     tramp-default-user)))
-    ;; We must mark, whether a default value has been used.
-    (if (or user (null result))
+    ;; We must mark, whether a default value has been used.  Not
+    ;; applicable for XEmacs.
+    (if (or user (null result) (null (functionp 'propertize)))
 	result
-      (propertize result 'tramp-default t))))
+      (tramp-compat-funcall 'propertize result 'tramp-default t))))
 
 (defun tramp-find-host (method user host)
   "Return the right host string to use.
@@ -1286,15 +1265,19 @@ This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
 	lhost)
       tramp-default-host))
 
-(defun tramp-check-proper-host (vec)
-  "Check host name of VEC."
+(defun tramp-check-proper-method-and-host (vec)
+  "Check method and host name of VEC."
   (let ((method (tramp-file-name-method vec))
 	(user (tramp-file-name-user vec))
-	(host (tramp-file-name-host vec)))
+	(host (tramp-file-name-host vec))
+	(methods (mapcar 'car tramp-methods)))
+    (when (and method (not (member method methods)))
+      (tramp-cleanup-connection vec)
+      (tramp-user-error vec "Unknown method \"%s\"" method))
     (when (and (equal tramp-syntax 'ftp) host
 	       (or (null method) (get-text-property 0 'tramp-default method))
 	       (or (null user) (get-text-property 0 'tramp-default user))
-	       (member host (mapcar 'car tramp-methods)))
+	       (member host methods))
       (tramp-cleanup-connection vec)
       (tramp-user-error vec "Host name must not match method \"%s\"" host))))
 
@@ -1664,7 +1647,7 @@ without a visible progress reporter."
   (declare (indent 3) (debug t))
   `(progn
      (tramp-message ,vec ,level "%s..." ,message)
-     (let ((result "failed")
+     (let ((cookie "failed")
            (tm
             ;; We start a pulsing progress reporter after 3 seconds.  Feature
             ;; introduced in Emacs 24.1.
@@ -1679,10 +1662,10 @@ without a visible progress reporter."
                                  #'tramp-progress-reporter-update pr)))))))
        (unwind-protect
            ;; Execute the body.
-           (prog1 (progn ,@body) (setq result "done"))
+           (prog1 (progn ,@body) (setq cookie "done"))
          ;; Stop progress reporter.
          (if tm (tramp-compat-funcall 'cancel-timer tm))
-         (tramp-message ,vec ,level "%s...%s" ,message result)))))
+         (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
@@ -1732,19 +1715,6 @@ letter into the file name.  This function removes it."
     (if (string-match "\\`[a-zA-Z]:/" name)
 	(replace-match "/" nil t name)
       name)))
-
-(defun tramp-cleanup (vec)
-  "Cleanup connection VEC, but keep the debug buffer."
-  (with-current-buffer (tramp-get-debug-buffer vec)
-    ;; Keep the debug buffer.
-    (rename-buffer
-     (generate-new-buffer-name tramp-temp-buffer-name) 'unique)
-    (tramp-cleanup-connection vec)
-    (if (= (point-min) (point-max))
-	(kill-buffer nil)
-      (rename-buffer (tramp-debug-buffer-name vec) 'unique))
-    ;; We call `tramp-get-buffer' in order to keep the debug buffer.
-    (tramp-get-buffer vec)))
 
 ;;; Config Manipulation Functions:
 
@@ -2168,7 +2138,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 			  (tramp-message
 			   v 1 "Suppress received in operation %s"
 			   (append (list operation) args))
-			  (tramp-cleanup v)
+			  (tramp-cleanup-connection v t)
 			  (tramp-run-real-handler operation args)))
 		       (t result)))
 
@@ -2542,64 +2512,40 @@ They are collected by `tramp-completion-dissect-file-name1'."
 			tramp-prefix-ipv6-regexp
 			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
 		nil 1 2 nil))
-	 ;; "/method:user" "/[method/user" "/method://user"
+	 ;; "/method:user" "/[method/user"
 	 (tramp-completion-file-name-structure7
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)"	tramp-postfix-method-regexp
 			"\\(" tramp-user-regexp x-nil   "\\)$")
 		1 2 nil nil))
-	 ;; "/method:host" "/[method/host" "/method://host"
+	 ;; "/method:host" "/[method/host"
 	 (tramp-completion-file-name-structure8
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
 			"\\(" tramp-host-regexp x-nil   "\\)$")
 		1 nil 2 nil))
-	 ;; "/method:[ipv6" "/[method/ipv6" "/method://[ipv6"
+	 ;; "/method:[ipv6" "/[method/ipv6"
 	 (tramp-completion-file-name-structure9
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
 			tramp-prefix-ipv6-regexp
 			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
 		1 nil 2 nil))
-	 ;; "/method:user@host" "/[method/user@host" "/method://user@host"
+	 ;; "/method:user@host" "/[method/user@host"
 	 (tramp-completion-file-name-structure10
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
 			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
 			"\\(" tramp-host-regexp x-nil   "\\)$")
 		1 2 3 nil))
-	 ;; "/method:user@[ipv6" "/[method/user@ipv6" "/method://user@[ipv6"
+	 ;; "/method:user@[ipv6" "/[method/user@ipv6"
 	 (tramp-completion-file-name-structure11
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
 			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
 			tramp-prefix-ipv6-regexp
 			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
-		1 2 3 nil))
-	 ;; "/method: "/method:/"
-	 (tramp-completion-file-name-structure12
-	  (list
-	   (if (equal tramp-syntax 'url)
-	       (concat tramp-prefix-regexp
-		       "\\(" tramp-method-regexp "\\)"
-		       "\\(" (substring tramp-postfix-method-regexp 0 1)
-		       "\\|" (substring tramp-postfix-method-regexp 1 2) "\\)"
-		       "\\(" "\\)$")
-	     ;; Should not match if not URL syntax.
-	     (concat tramp-prefix-regexp "/$"))
-	   1 3 nil nil))
-	 ;; "/method: "/method:/"
-	 (tramp-completion-file-name-structure13
-	  (list
-	   (if (equal tramp-syntax 'url)
-	       (concat tramp-prefix-regexp
-		       "\\(" tramp-method-regexp "\\)"
-		       "\\(" (substring tramp-postfix-method-regexp 0 1)
-		       "\\|" (substring tramp-postfix-method-regexp 1 2) "\\)"
-		       "\\(" "\\)$")
-	     ;; Should not match if not URL syntax.
-	     (concat tramp-prefix-regexp "/$"))
-	   1 nil 3 nil)))
+		1 2 3 nil)))
 
     (mapc (lambda (structure)
       (add-to-list 'result
@@ -2616,8 +2562,6 @@ They are collected by `tramp-completion-dissect-file-name1'."
        tramp-completion-file-name-structure9
        tramp-completion-file-name-structure10
        tramp-completion-file-name-structure11
-       tramp-completion-file-name-structure12
-       tramp-completion-file-name-structure13
        tramp-file-name-structure))
 
     (delq nil result)))
@@ -3289,35 +3233,19 @@ User is always nil."
 
 (defun tramp-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
-\"//\" and \"/~\" substitute only in the local filename part.
-If the URL Tramp syntax is chosen, \"//\" as method delimiter and \"/~\" at
-beginning of local filename are not substituted."
+\"//\" and \"/~\" substitute only in the local filename part."
   ;; First, we must replace environment variables.
   (setq filename (tramp-replace-environment-variables filename))
   (with-parsed-tramp-file-name filename nil
-    (if (equal tramp-syntax 'url)
-	;; We need to check localname only.  The other parts cannot contain
-	;; "//" or "/~".
-	(if (and (> (length localname) 1)
-		 (or (string-match "//" localname)
-		     (string-match "/~" localname 1)))
-	    (tramp-run-real-handler 'substitute-in-file-name (list filename))
-	  (tramp-make-tramp-file-name
-	   (when method (substitute-in-file-name method))
-	   (when user (substitute-in-file-name user))
-	   (when host (substitute-in-file-name host))
-	   (when localname
-	     (tramp-run-real-handler
-	      'substitute-in-file-name (list localname)))))
-      ;; Ignore in LOCALNAME everything before "//" or "/~".
-      (when (and (stringp localname) (string-match ".+?/\\(/\\|~\\)" localname))
-	(setq filename
-	      (concat (file-remote-p filename)
-		      (replace-match "\\1" nil nil localname)))
-	;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
-	(when (string-match "~$" filename)
-	  (setq filename (concat filename "/"))))
-      (tramp-run-real-handler 'substitute-in-file-name (list filename)))))
+    ;; Ignore in LOCALNAME everything before "//" or "/~".
+    (when (and (stringp localname) (string-match ".+?/\\(/\\|~\\)" localname))
+      (setq filename
+	    (concat (file-remote-p filename)
+		    (replace-match "\\1" nil nil localname)))
+      ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
+      (when (string-match "~$" filename)
+	(setq filename (concat filename "/"))))
+    (tramp-run-real-handler 'substitute-in-file-name (list filename))))
 
 (defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."
@@ -3984,6 +3912,48 @@ Return the local name of the temporary file."
 			 'tramp-delete-temp-file-function)))
 
 ;;; Auto saving to a special directory:
+
+(defun tramp-handle-make-auto-save-file-name ()
+  "Like `make-auto-save-file-name' for Tramp files.
+Returns a file name in `tramp-auto-save-directory' for autosaving this file."
+  (let ((tramp-auto-save-directory tramp-auto-save-directory)
+	(buffer-file-name
+	 (tramp-subst-strs-in-string
+	  '(("_" . "|")
+	    ("/" . "_a")
+	    (":" . "_b")
+	    ("|" . "__")
+	    ("[" . "_l")
+	    ("]" . "_r"))
+	  (buffer-file-name))))
+    ;; File name must be unique.  This is ensured with Emacs 22 (see
+    ;; UNIQUIFY element of `auto-save-file-name-transforms'); but for
+    ;; all other cases we must do it ourselves.
+    (when (boundp 'auto-save-file-name-transforms)
+      (mapc
+       (lambda (x)
+	 (when (and (string-match (car x) buffer-file-name)
+		    (not (car (cddr x))))
+	   (setq tramp-auto-save-directory
+		 (or tramp-auto-save-directory
+		     (tramp-compat-temporary-file-directory)))))
+       (symbol-value 'auto-save-file-name-transforms)))
+    ;; Create directory.
+    (when tramp-auto-save-directory
+      (setq buffer-file-name
+	    (expand-file-name buffer-file-name tramp-auto-save-directory))
+      (unless (file-exists-p tramp-auto-save-directory)
+	(make-directory tramp-auto-save-directory t)))
+    ;; Run plain `make-auto-save-file-name'.  There might be an advice when
+    ;; it is not a magic file name operation (since Emacs 22).
+    ;; We must deactivate it temporarily.
+    (if (not (ad-is-active 'make-auto-save-file-name))
+	(tramp-run-real-handler 'make-auto-save-file-name nil)
+      ;; else
+      (ad-deactivate 'make-auto-save-file-name)
+      (prog1
+       (tramp-run-real-handler 'make-auto-save-file-name nil)
+       (ad-activate 'make-auto-save-file-name)))))
 
 (unless (tramp-exists-file-name-handler 'make-auto-save-file-name)
   (defadvice make-auto-save-file-name

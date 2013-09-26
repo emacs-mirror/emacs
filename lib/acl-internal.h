@@ -60,6 +60,9 @@ extern int aclsort (int, int, struct acl *);
 # define fchmod(fd, mode) (-1)
 #endif
 
+#ifndef _GL_INLINE_HEADER_BEGIN
+ #error "Please include config.h first."
+#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef ACL_INTERNAL_INLINE
 # define ACL_INTERNAL_INLINE _GL_INLINE

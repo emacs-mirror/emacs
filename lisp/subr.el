@@ -1366,7 +1366,7 @@ function, it is changed to a list of functions."
       (setq local t)))
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
     ;; If the hook value is a single function, turn it into a list.
-    (when (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+    (when (or (not (listp hook-value)) (functionp hook-value))
       (setq hook-value (list hook-value)))
     ;; Do the actual addition if necessary
     (unless (member function hook-value)
@@ -2238,6 +2238,9 @@ floating point support."
 		(setq read (cons t read)))
 	    (push read unread-command-events)
 	    nil))))))
+
+;; Behind display-popup-menus-p test.
+(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".
@@ -3350,16 +3353,22 @@ even if this catches the signal."
 (define-obsolete-function-alias 'condition-case-no-debug
   'condition-case-unless-debug "24.1")
 
-(defmacro with-demoted-errors (&rest body)
+(defmacro with-demoted-errors (format &rest body)
   "Run BODY and demote any errors to simple messages.
 If `debug-on-error' is non-nil, run BODY without catching its errors.
 This is to be used around code which is not expected to signal an error
-but which should be robust in the unexpected case that an error is signaled."
-  (declare (debug t) (indent 0))
-  (let ((err (make-symbol "err")))
+but which should be robust in the unexpected case that an error is signaled.
+For backward compatibility, if FORMAT is not a constant string, it
+is assumed to be part of BODY, in which case the message format
+used is \"Error: %S\"."
+  (declare (debug t) (indent 1))
+  (let ((err (make-symbol "err"))
+        (format (if (and (stringp format) body) format
+                  (prog1 "Error: %S"
+                    (if format (push format body))))))
     `(condition-case-unless-debug ,err
-         (progn ,@body)
-       (error (message "Error: %S" ,err) nil))))
+         ,(macroexp-progn body)
+       (error (message ,format ,err) nil))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
@@ -3872,7 +3881,7 @@ This function makes or adds to an entry on `after-load-alist'."
                                  (when (equal file lfn)
                                    (remove-hook 'after-load-functions fun)
                                    (funcall func))))
-                     (add-hook 'after-load-functions fun)))))))
+                     (add-hook 'after-load-functions fun 'append)))))))
         ;; Add FORM to the element unless it's already there.
         (unless (member delayed-func (cdr elt))
           (nconc elt (list delayed-func)))))))
@@ -3901,12 +3910,27 @@ This function is called directly from the C code."
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
   (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
-    (run-with-timer 0 nil
-                    (lambda (file)
-                      (message "Package %s is obsolete!"
-                               (substring file 0
-                                          (string-match "\\.elc?\\>" file))))
-                    (file-name-nondirectory abs-file)))
+    ;; Maybe we should just use display-warning?  This seems yucky...
+    (let* ((file (file-name-nondirectory abs-file))
+	   (msg (format "Package %s is obsolete!"
+			(substring file 0
+				   (string-match "\\.elc?\\>" file)))))
+      ;; Cribbed from cl--compiling-file.
+      (if (and (boundp 'byte-compile--outbuffer)
+	       (bufferp (symbol-value 'byte-compile--outbuffer))
+	       (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
+		      " *Compiler Output*"))
+	  ;; Don't warn about obsolete files using other obsolete files.
+	  (unless (and (stringp byte-compile-current-file)
+		       (string-match-p "/obsolete/[^/]*\\'"
+				       (expand-file-name
+					byte-compile-current-file
+					byte-compile-root-dir)))
+	    (byte-compile-log-warning msg))
+	(run-with-timer 0 nil
+			(lambda (msg)
+			  (message "%s" msg)) msg))))
+
   ;; Finally, run any other hook.
   (run-hook-with-args 'after-load-functions abs-file))
 
@@ -4222,6 +4246,8 @@ I is the index of the frame after FRAME2.  It should return nil
 if those frames don't seem special and otherwise, it should return
 the number of frames to skip (minus 1).")
 
+(defconst internal--call-interactively (symbol-function 'call-interactively))
+
 (defun called-interactively-p (&optional kind)
   "Return t if the containing function was called by `call-interactively'.
 If KIND is `interactive', then only return t if the call was made
@@ -4294,9 +4320,9 @@ command is called from a keyboard macro?"
       (pcase (cons frame nextframe)
         ;; No subr calls `interactive-p', so we can rule that out.
         (`((,_ ,(pred (lambda (f) (subrp (indirect-function f)))) . ,_) . ,_) nil)
-        ;; Somehow, I sometimes got `command-execute' rather than
-        ;; `call-interactively' on my stacktrace !?
-        ;;(`(,_ . (t command-execute . ,_)) t)
+        ;; In case #<subr call-interactively> without going through the
+        ;; `call-interactively' symbol (bug#3984).
+        (`(,_ . (t ,(pred (eq internal--call-interactively)) . ,_)) t)
         (`(,_ . (t call-interactively . ,_)) t)))))
 
 (defun interactive-p ()

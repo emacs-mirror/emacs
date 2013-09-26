@@ -1057,6 +1057,9 @@ insert_from_buffer_1 (struct buffer *buf,
   ptrdiff_t outgoing_nbytes = incoming_nbytes;
   INTERVAL intervals;
 
+  if (nchars == 0)
+    return;
+
   /* Make OUTGOING_NBYTES describe the text
      as it will be inserted in this buffer.  */
 

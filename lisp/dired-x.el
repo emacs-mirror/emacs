@@ -1,4 +1,4 @@
-;;; dired-x.el --- extra Dired functionality
+;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 1997, 2001-2013 Free Software Foundation,
 ;; Inc.
@@ -1047,7 +1047,8 @@ Each element of this list looks like
     (REGEXP COMMAND...)
 
 where each COMMAND can either be a string or a Lisp expression that evaluates
-to a string.  If several COMMANDs are given, the first one will be the default
+to a string.  This expression can access the file name as the variable `file'.
+If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
 
@@ -1105,8 +1106,8 @@ See `dired-guess-shell-alist-user'."
     ;; Return commands or nil if flist is still non-nil.
     ;; Evaluate the commands in order that any logical testing will be done.
     (if (cdr cmds)
-	(delete-dups (mapcar #'eval cmds))
-      (eval (car cmds)))))		; single command
+	(delete-dups (mapcar (lambda (cmd) (eval cmd `((file . ,file)))) cmds))
+      (eval (car cmds) `((file . ,file))))))		; single command
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."
@@ -1185,7 +1186,7 @@ results in
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:
-        (dotimes (n count)
+        (dotimes (_ count)
           (setq name1 (concat "../" name1)))))
     (make-symbolic-link
      (directory-file-name name1)        ; must not link to foo/
@@ -1397,22 +1398,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;; Does anyone use this? - lrd 6/29/93.
 ;; Apparently people do use it. - lrd 12/22/97.
 
-(with-no-warnings
-  ;; Warnings are suppressed to avoid "global/dynamic var `X' lacks a prefix".
-  ;; This is unbearably ugly, but not more than having global variables
-  ;; named size, time, name or s, however practical it can be while writing
-  ;; `dired-mark-sexp' predicates.
-  (defvar inode)
-  (defvar s)
-  (defvar mode)
-  (defvar nlink)
-  (defvar uid)
-  (defvar gid)
-  (defvar size)
-  (defvar time)
-  (defvar name)
-  (defvar sym))
-
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
 With a prefix arg, unmark or unflag those files instead.
@@ -1475,6 +1460,9 @@ to mark all zero length files."
                   s nil))
           (setq mode (buffer-substring (point) (+ mode-len (point))))
           (forward-char mode-len)
+          ;; Skip any extended attributes marker ("." or "+").
+          (or (looking-at " ")
+              (forward-char 1))
           (setq nlink (read (current-buffer)))
           ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
           (setq uid (buffer-substring (1+ (point))
@@ -1505,7 +1493,17 @@ to mark all zero length files."
                                           (line-end-position))
                       ""))
           t)
-        (eval predicate)))
+        (eval predicate
+              `((inode . ,inode)
+                (s . ,s)
+                (mode . ,mode)
+                (nlink . ,nlink)
+                (uid . ,uid)
+                (gid . ,gid)
+                (size . ,size)
+                (time . ,time)
+                (name . ,name)
+                (sym . ,sym)))))
      (format "'%s file" predicate))))
 
 

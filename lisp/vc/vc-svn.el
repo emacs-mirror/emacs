@@ -234,12 +234,12 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-run-delayed
    (vc-svn-after-dir-status callback remote))))
 
-(defun vc-svn-dir-status-files (dir files _default-state callback)
+(defun vc-svn-dir-status-files (_dir files _default-state callback)
   (apply 'vc-svn-command (current-buffer) 'async nil "status" files)
   (vc-run-delayed
    (vc-svn-after-dir-status callback)))
 
-(defun vc-svn-dir-extra-headers (dir)
+(defun vc-svn-dir-extra-headers (_dir)
   "Generate extra status headers for a Subversion working copy."
   (let (process-file-side-effects)
     (vc-svn-command "*vc*" 0 nil "info"))
@@ -352,7 +352,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 		(concat "-r" rev))
 	   (vc-switches 'SVN 'checkout))))
 
-(defun vc-svn-ignore (file &optional directory remove)
+(defun vc-svn-ignore (file &optional _directory _remove)
   "Ignore FILE under Subversion.
 FILE is a file wildcard, relative to the root directory of DIRECTORY."
   (vc-svn-command t 0 file "propedit" "svn:ignore"))
@@ -593,7 +593,7 @@ NAME is assumed to be a URL."
   (vc-svn-command nil 0 dir "copy" name)
   (when branchp (vc-svn-retrieve-tag dir name nil)))
 
-(defun vc-svn-retrieve-tag (dir name update)
+(defun vc-svn-retrieve-tag (dir name _update)
   "Retrieve a tag at and below DIR.
 NAME is the name of the tag; if it is empty, do a `svn update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers.
@@ -674,19 +674,23 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
 
 (defun vc-svn-parse-status (&optional filename)
   "Parse output of \"svn status\" command in the current buffer.
-Set file properties accordingly.  Unless FILENAME is non-nil, parse only
-information about FILENAME and return its status."
-  (let (file status propstat)
+Set file properties accordingly.  If FILENAME is non-nil, return its status."
+  (let (multifile file status propstat)
     (goto-char (point-min))
     (while (re-search-forward
             ;; Ignore the files with status X.
 	    "^\\(?:\\?\\|[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
-      (setq file (or filename
+      (setq file (or (unless multifile filename)
                      (expand-file-name
-                      (buffer-substring (point) (line-end-position)))))
-      (setq status (char-after (line-beginning-position))
+                      (buffer-substring (point) (line-end-position))))
+            ;; If we are parsing the result of running status on a directory,
+            ;; there could be multiple files in the output.
+            ;; We assume that filename, if supplied, applies to the first
+            ;; listed file (ie, the directory).  Bug#15322.
+            multifile t
+            status (char-after (line-beginning-position))
             ;; Status of the item's properties ([ MC]).
             propstat (char-after (1+ (line-beginning-position))))
       (if (eq status ??)

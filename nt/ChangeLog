@@ -1,3 +1,12 @@
+2013-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (gl_cv_sys_struct_timeval_tv_sec): Set to "yes"
+	to avoid gnulib replacement of 'struct timeval' and the resulting
+	compilation of lib/gettimeofday.c with incompatible version of
+	gettimeofday.  Related discussions on emacs-devel:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00286.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00361.html
+
 2013-08-31  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: Rename from INSTALL.MSYS.

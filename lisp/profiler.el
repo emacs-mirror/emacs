@@ -256,10 +256,9 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
 (defun profiler-calltree-find (tree entry)
   "Return a child tree of ENTRY under TREE."
   (let (result (children (profiler-calltree-children tree)))
-    ;; FIXME: Use `assoc'.
     (while (and children (null result))
       (let ((child (car children)))
-	(when (equal (profiler-calltree-entry child) entry)
+	(when (function-equal (profiler-calltree-entry child) entry)
 	  (setq result child))
 	(setq children (cdr children))))
     result))

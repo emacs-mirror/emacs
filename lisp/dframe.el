@@ -243,6 +243,9 @@ Local to those buffers, as a function called that created it.")
   "Return non-nil if FRAME is currently available."
   (and frame (frame-live-p frame) (frame-visible-p frame)))
 
+(defvar x-sensitive-text-pointer-shape)
+(defvar x-pointer-shape)
+
 (defun dframe-frame-mode (arg frame-var cache-var buffer-var frame-name
 			      local-mode-fn
 			      &optional
@@ -758,9 +761,8 @@ who requested the timer.  NULL-ON-ERROR is ignored."
 Evaluates all cached timer functions in sequence."
   (let ((l dframe-client-functions))
     (while (and l (sit-for 0))
-      (condition-case er
-	  (funcall (car l))
-	(error (message "DFRAME TIMER ERROR: %S" er)))
+      (with-demoted-errors "DFRAME TIMER ERROR: %S"
+	(funcall (car l)))
       (setq l (cdr l)))))
 
 ;;; Menu hacking for mouse-3

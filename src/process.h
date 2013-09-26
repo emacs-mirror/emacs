@@ -27,9 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 INLINE_HEADER_BEGIN
-#ifndef PROCESS_INLINE
-# define PROCESS_INLINE INLINE
-#endif
 
 /* Bound on number of file descriptors opened on behalf of a process,
    that need to be closed.  */
@@ -179,14 +176,14 @@ struct Lisp_Process
 /* Most code should use these functions to set Lisp fields in struct
    process.  */
 
-PROCESS_INLINE void
+INLINE void
 pset_childp (struct Lisp_Process *p, Lisp_Object val)
 {
   p->childp = val;
 }
 
 #ifdef HAVE_GNUTLS
-PROCESS_INLINE void
+INLINE void
 pset_gnutls_cred_type (struct Lisp_Process *p, Lisp_Object val)
 {
   p->gnutls_cred_type = val;

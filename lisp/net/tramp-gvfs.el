@@ -453,7 +453,7 @@ Every entry is a list (NAME ADDRESS).")
     (insert-directory . tramp-gvfs-handle-insert-directory)
     (insert-file-contents . tramp-gvfs-handle-insert-file-contents)
     (load . tramp-handle-load)
-    ;; `make-auto-save-file-name' performed by default handler.
+    (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-gvfs-handle-make-directory)
     (make-directory-internal . ignore)
     (make-symbolic-link . ignore)
@@ -594,15 +594,19 @@ is no information where to trace the message.")
 	    (and (tramp-tramp-file-p newname)
 		 (not (tramp-gvfs-file-name-p newname))))
 
-	;; We cannot copy directly.
+	;; We cannot call `copy-file' directly.  Use
+	;; `tramp-compat-funcall' for backward compatibility (number
+	;; of arguments).
 	(let ((tmpfile (tramp-compat-make-temp-file filename)))
 	  (cond
 	   (preserve-extended-attributes
-	    (copy-file
+	    (tramp-compat-funcall
+	     'copy-file
 	     filename tmpfile t keep-date preserve-uid-gid
 	     preserve-extended-attributes))
 	   (preserve-uid-gid
-	    (copy-file filename tmpfile t keep-date preserve-uid-gid))
+	    (tramp-compat-funcall
+	     'copy-file filename tmpfile t keep-date preserve-uid-gid))
 	   (t
 	    (copy-file filename tmpfile t keep-date)))
 	  (rename-file tmpfile newname ok-if-already-exists))
@@ -950,7 +954,7 @@ is no information where to trace the message.")
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
 	  ;; Attribute change is returned in unused wording.
-	  string (replace-regexp-in-string
+	  string (tramp-compat-replace-regexp-in-string
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
 
     (while (string-match
@@ -960,7 +964,7 @@ is no information where to trace the message.")
 		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
 	    string)
       (let ((action (intern-soft
-		     (replace-regexp-in-string
+		     (tramp-compat-replace-regexp-in-string
 		      "_" "-" (downcase (match-string 2 string)))))
 	    (file (match-string 1 string)))
 	(setq string (replace-match "" nil nil string))
@@ -1158,7 +1162,8 @@ is no information where to trace the message.")
 (defun tramp-gvfs-file-name (object-path)
   "Retrieve file name from D-Bus OBJECT-PATH."
   (dbus-unescape-from-identifier
-   (replace-regexp-in-string "^.*/\\([^/]+\\)$" "\\1" object-path)))
+   (tramp-compat-replace-regexp-in-string
+    "^.*/\\([^/]+\\)$" "\\1" object-path)))
 
 (defun tramp-bluez-address (device)
   "Return bluetooth device address from a given bluetooth DEVICE name."
@@ -1424,7 +1429,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                 (string-match "^/?\\([^/]+\\)" localname)
                 (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
                       (tramp-gvfs-mount-spec-entry "server" host)
-                      (tramp-gvfs-mount-spec-entry "share" (match-string 1 localname))))
+                      (tramp-gvfs-mount-spec-entry
+		       "share" (match-string 1 localname))))
                ((string-equal "obex" method)
                 (list (tramp-gvfs-mount-spec-entry "type" method)
                       (tramp-gvfs-mount-spec-entry
@@ -1441,7 +1447,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
             ,@(when domain
                 (list (tramp-gvfs-mount-spec-entry "domain" domain)))
             ,@(when port
-                (list (tramp-gvfs-mount-spec-entry "port" (number-to-string port))))))
+                (list (tramp-gvfs-mount-spec-entry
+		       "port" (number-to-string port))))))
 	 (mount-pref
           (if (and (string-match "\\`dav" method)
                    (string-match "^/?[^/]+" localname))
@@ -1458,7 +1465,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
-  (tramp-check-proper-host vec)
+  (tramp-check-proper-method-and-host vec)
 
   ;; We set the file name, in case there are incoming D-Bus signals or
   ;; D-Bus errors.
@@ -1707,11 +1714,13 @@ They are retrieved from the hal daemon."
       (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
 	      :system tramp-hal-service device tramp-hal-interface-device
 	      "PropertyExists" "sync.plugin")
-	(pushnew
-	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
-	   :system tramp-hal-service device tramp-hal-interface-device
-	   "GetPropertyString" "pda.pocketpc.name")
-         tramp-synce-devices :test #'equal)))
+	(let ((prop
+	       (with-tramp-dbus-call-method
+		tramp-gvfs-dbus-event-vector t
+		:system tramp-hal-service device tramp-hal-interface-device
+		"GetPropertyString" "pda.pocketpc.name")))
+	  (unless (member prop tramp-synce-devices)
+	    (push prop tramp-synce-devices)))))
     (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
     tramp-synce-devices))
 

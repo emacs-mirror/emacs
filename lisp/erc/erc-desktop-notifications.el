@@ -46,6 +46,8 @@
   :group 'erc-notifications
   :type '(choice (const :tag "No icon" nil) file))
 
+(defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
+
 (defun erc-notifications-notify (nick msg)
   "Notify that NICK send some MSG.
 This will replace the last notification sent with this function."

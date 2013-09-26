@@ -2374,9 +2374,8 @@ If FILE is nil, try to load a default file.  The default file names are
     (goto-char (point-min))
     (beep)
     (and (tpu-y-or-n-p "Copy key definitions to the new file now? ")
-	 (condition-case conditions
-             (copy-file oldname newname)
-	   (error (message "Sorry, couldn't copy - %s." (cdr conditions)))))
+	 (with-demoted-errors "Sorry, couldn't copy - %s."
+           (copy-file oldname newname)))
     (kill-buffer "*TPU-Notice*")))
 
 (defvar tpu-edt-old-global-values nil)

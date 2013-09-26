@@ -132,7 +132,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
           ruby-block-end-re "\\|}\\|\\]\\)")
   "Regexp to match where the indentation gets shallower.")
 
-(defconst ruby-operator-re "[-,.+*/%&|^~=<>:]"
+(defconst ruby-operator-re "[-,.+*/%&|^~=<>:]\\|\\\\$"
   "Regexp to match operators.")
 
 (defconst ruby-symbol-chars "a-zA-Z0-9_"
@@ -1377,6 +1377,7 @@ If the result is do-end block, it will always be multiline."
 ;; Unusual code layout confuses the byte-compiler.
 (declare-function ruby-syntax-propertize-expansion "ruby-mode" ())
 (declare-function ruby-syntax-expansion-allowed-p "ruby-mode" (parse-state))
+(declare-function ruby-syntax-propertize-function "ruby-mode" (start end))
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
@@ -1862,11 +1863,11 @@ See `font-lock-syntax-table'.")
              "using")
            'symbols))
          1 'font-lock-builtin-face)
-   ;; Perl-ish keywords
-   "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
    ;; here-doc beginnings
    `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
                                'font-lock-string-face))
+   ;; Perl-ish keywords
+   "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
    ;; variables
    `(,(concat ruby-font-lock-keyword-beg-re
               "\\_<\\(nil\\|self\\|true\\|false\\)\\>")

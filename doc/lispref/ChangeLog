@@ -1,3 +1,35 @@
+2013-09-22  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* nonascii.texi (Default Coding Systems): Typo fix.
+
+2013-09-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* nonascii.texi (Coding System Basics): Add information about carriage-return.
+
+2013-09-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Display Margins): State the units of measuring
+	margin width.  (Bug#15375)
+
+2013-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Not Intervals): Minor wording fix.
+
+2013-09-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* functions.texi (Obsolete Functions): Add an index for obsolete
+	functions.
+
+2013-09-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* nonascii.texi (Character Properties): Character properties fix
+	for decimal-digit-value and digit-value.
+
+2013-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* macros.texi (Defining Macros): Prefer "function" to "lambda
+	expression" (bug#15296).
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,

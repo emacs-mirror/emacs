@@ -117,7 +117,6 @@ The Command History listing is recomputed each time this mode is invoked."
 		  (save-window-excursion
 		    (list-command-history)
 		    (set-buffer "*Command History*")
-		    (Command-history-setup)
 		    (setq major-mode 'electric-command-history)
 		    (setq mode-name "Electric History")
 		    (use-local-map electric-history-map))

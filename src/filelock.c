@@ -459,10 +459,18 @@ lock_file_1 (char *lfname, bool force)
   char lock_info_str[MAX_LFINFO + 1];
   printmax_t pid = getpid ();
 
-  if (sizeof lock_info_str
-      <= snprintf (lock_info_str, sizeof lock_info_str,
-		   boot ? "%s@%s.%"pMd":%"pMd : "%s@%s.%"pMd,
-		   user_name, host_name, pid, boot))
+  if (boot)
+    {
+      if (sizeof lock_info_str
+          <= snprintf (lock_info_str, sizeof lock_info_str,
+                       "%s@%s.%"pMd":%"pMd,
+                       user_name, host_name, pid, boot))
+        return ENAMETOOLONG;
+    }
+  else if (sizeof lock_info_str
+           <= snprintf (lock_info_str, sizeof lock_info_str,
+                        "%s@%s.%"pMd,
+                        user_name, host_name, pid))
     return ENAMETOOLONG;
 
   return create_lock_file (lfname, lock_info_str, force);

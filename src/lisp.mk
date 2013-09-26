@@ -152,6 +152,7 @@ lisp = \
 	$(lispsource)/term/w32-win.elc \
 	$(lispsource)/ls-lisp.elc \
 	$(lispsource)/disp-table.elc \
+	$(lispsource)/w32-common-fns.elc \
 	$(lispsource)/dos-w32.elc \
 	$(lispsource)/w32-fns.elc \
 	$(lispsource)/dos-fns.elc \

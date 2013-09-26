@@ -131,11 +131,11 @@
 # include "character.h"
 # include "buffer.h"
 
-/* Make syntax table lookup grant data in gl_state.  */
-# define SYNTAX_ENTRY_VIA_PROPERTY
-
 # include "syntax.h"
 # include "category.h"
+
+/* Make syntax table lookup grant data in gl_state.  */
+# define SYNTAX(c) syntax_property (c, 1)
 
 # ifdef malloc
 #  undef malloc

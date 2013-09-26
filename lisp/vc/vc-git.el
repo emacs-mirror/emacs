@@ -706,6 +706,9 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
   '(("^ \\(.+\\) |" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-git* buffers.")
 
+;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
+(declare-function vc-compilation-mode "vc-dispatcher" (backend))
+
 (defun vc-git-pull (prompt)
   "Pull changes into the current Git branch.
 Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
@@ -725,6 +728,7 @@ for the Git command to run."
       (setq git-program (car  args)
 	    command     (cadr args)
 	    args        (cddr args)))
+    (require 'vc-dispatcher)
     (apply 'vc-do-async-command buffer root git-program command args)
     (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))

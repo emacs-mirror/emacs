@@ -195,6 +195,20 @@ typedef int verify_NSIG_constraint[NSIG <= 32 ? 1 : -1];
 
 # endif
 
+/* When also using extern inline, suppress the use of static inline in
+   standard headers of problematic Apple configurations, as Libc at
+   least through Libc-825.26 (2013-04-09) mishandles it; see, e.g.,
+   <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
+   Perhaps Apple will fix this some day.  */
+#if (defined _GL_EXTERN_INLINE_IN_USE && defined __APPLE__ \
+     && (defined __i386__ || defined __x86_64__))
+# undef sigaddset
+# undef sigdelset
+# undef sigemptyset
+# undef sigfillset
+# undef sigismember
+#endif
+
 /* Test whether a given signal is contained in a signal set.  */
 # if @HAVE_POSIX_SIGNALBLOCKING@
 /* This function is defined as a macro on Mac OS X.  */

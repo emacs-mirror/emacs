@@ -626,7 +626,7 @@ The environment used is the one when entering the activation frame at point."
 
 (put 'debugger-mode 'mode-class 'special)
 
-(defun debugger-mode ()
+(define-derived-mode debugger-mode fundamental-mode "Debugger"
   "Mode for backtrace buffers, selected in debugger.
 \\<debugger-mode-map>
 A line starts with `*' if exiting that frame will call the debugger.
@@ -641,13 +641,9 @@ which functions will enter the debugger when called.
 
 Complete list of commands:
 \\{debugger-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'debugger-mode)
-  (setq mode-name "Debugger")
   (setq truncate-lines t)
   (set-syntax-table emacs-lisp-mode-syntax-table)
-  (use-local-map debugger-mode-map)
-  (run-mode-hooks 'debugger-mode-hook))
+  (use-local-map debugger-mode-map))
 
 (defcustom debugger-record-buffer "*Debugger-record*"
   "Buffer name for expression values, for \\[debugger-record-expression]."

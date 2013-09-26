@@ -1,4 +1,4 @@
-;;; esh-arg.el --- argument processing
+;;; esh-arg.el --- argument processing  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -278,7 +278,7 @@ Point is left at the end of the arguments."
     (eshell-resolve-current-argument)
     eshell-current-argument))
 
-(defsubst eshell-operator (&rest args)
+(defsubst eshell-operator (&rest _args)
   "A stub function that generates an error if a floating operator is found."
   (error "Unhandled operator in input text"))
 

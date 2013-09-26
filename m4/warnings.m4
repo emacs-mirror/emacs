@@ -1,4 +1,4 @@
-# warnings.m4 serial 10
+# warnings.m4 serial 11
 dnl Copyright (C) 2008-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -36,9 +36,9 @@ AC_CACHE_CHECK([whether _AC_LANG compiler handles $1], m4_defn([gl_Warn]), [
   gl_save_compiler_FLAGS="$gl_Flags"
   gl_AS_VAR_APPEND(m4_defn([gl_Flags]),
     [" $gl_unknown_warnings_are_errors ]m4_defn([gl_Positive])["])
-  AC_COMPILE_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([])])],
-                    [AS_VAR_SET(gl_Warn, [yes])],
-                    [AS_VAR_SET(gl_Warn, [no])])
+  AC_LINK_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([])])],
+                 [AS_VAR_SET(gl_Warn, [yes])],
+                 [AS_VAR_SET(gl_Warn, [no])])
   gl_Flags="$gl_save_compiler_FLAGS"
 ])
 AS_VAR_IF(gl_Warn, [yes], [$2], [$3])

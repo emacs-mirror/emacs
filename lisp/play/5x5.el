@@ -185,19 +185,8 @@ GRID is the grid of positions to click.")
 
 ;; Gameplay functions.
 
-(put '5x5-mode 'mode-class 'special)
-
-(defun 5x5-mode ()
-  "A mode for playing `5x5'.
-
-The key bindings for `5x5-mode' are:
-
-\\{5x5-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map 5x5-mode-map)
-  (setq major-mode '5x5-mode
-        mode-name  "5x5")
-  (run-mode-hooks '5x5-mode-hook)
+(define-derived-mode 5x5-mode special-mode "5x5"
+  "A mode for playing `5x5'."
   (setq buffer-read-only t
         truncate-lines   t)
   (buffer-disable-undo))

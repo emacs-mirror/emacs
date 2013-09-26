@@ -26,11 +26,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h" /* for Time */
 
 INLINE_HEADER_BEGIN
-#ifndef TERMHOOKS_INLINE
-# define TERMHOOKS_INLINE INLINE
-#endif
 
 enum scroll_bar_part {
+  scroll_bar_nowhere = -1,
   scroll_bar_above_handle,
   scroll_bar_handle,
   scroll_bar_below_handle,
@@ -41,11 +39,6 @@ enum scroll_bar_part {
   scroll_bar_end_scroll,
   scroll_bar_move_ratio
 };
-
-/* If the value of the frame parameter changed, whis hook is called.
-   For example, if going from fullscreen to not fullscreen this hook
-   may do something OS dependent, like extended window manager hints on X11.  */
-extern void (*fullscreen_hook) (struct frame *f);
 
 /* Output method of a terminal (and frames on this terminal, respectively).  */
 
@@ -498,7 +491,7 @@ struct terminal
      windows.  */
   void (*frame_raise_lower_hook) (struct frame *f, int raise_flag);
 
-  /* If the value of the frame parameter changed, whis hook is called.
+  /* If the value of the frame parameter changed, this hook is called.
      For example, if going from fullscreen to not fullscreen this hook
      may do something OS dependent, like extended window manager hints on X11.  */
   void (*fullscreen_hook) (struct frame *f);
@@ -612,12 +605,12 @@ struct terminal
 
 /* Most code should use these functions to set Lisp fields in struct
    terminal.  */
-TERMHOOKS_INLINE void
+INLINE void
 tset_charset_list (struct terminal *t, Lisp_Object val)
 {
   t->charset_list = val;
 }
-TERMHOOKS_INLINE void
+INLINE void
 tset_selection_alist (struct terminal *t, Lisp_Object val)
 {
   t->Vselection_alist = val;

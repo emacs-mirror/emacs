@@ -29,9 +29,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  **  abstraction : a stopwatch
  **  operations: reset_watch, get_time
  */
-#include <config.h>
 
-#define SYSTIME_INLINE EXTERN_INLINE
+#define INLINE EXTERN_INLINE
+#include <config.h>
 
 #include <inttypes.h>
 #include <stdio.h>

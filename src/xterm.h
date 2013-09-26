@@ -78,10 +78,11 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include "dispextern.h"
 #include "termhooks.h"
 
-#define BLACK_PIX_DEFAULT(f) BlackPixel (FRAME_X_DISPLAY (f), \
-					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
-#define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
-					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
+/* Black and white pixel values for the screen which frame F is on.  */
+#define BLACK_PIX_DEFAULT(f)					\
+  BlackPixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
+#define WHITE_PIX_DEFAULT(f)					\
+  WhitePixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
 
 #define FONT_WIDTH(f)	((f)->max_width)
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
@@ -301,6 +302,41 @@ struct x_display_info
      minibuffer.  */
   struct frame *x_highlight_frame;
 
+  /* The frame waiting to be auto-raised in XTread_socket.  */
+  struct frame *x_pending_autoraise_frame;
+
+  /* The frame where the mouse was last time we reported a ButtonPress event.  */
+  struct frame *last_mouse_frame;
+
+  /* The frame where the mouse was last time we reported a mouse position.  */
+  struct frame *last_mouse_glyph_frame;
+
+  /* The frame where the mouse was last time we reported a mouse motion.  */
+  struct frame *last_mouse_motion_frame;
+
+  /* The scroll bar in which the last X motion event occurred.  */
+  struct scroll_bar *last_mouse_scroll_bar;
+
+  /* Time of last user interaction as returned in X events on this display.  */
+  Time last_user_time;
+
+  /* Position where the mouse was last time we reported a motion.
+     This is a position on last_mouse_motion_frame.  */
+  int last_mouse_motion_x;
+  int last_mouse_motion_y;
+
+  /* Where the mouse was last time we reported a mouse position.
+     This is a rectangle on last_mouse_glyph_frame.  */
+  XRectangle last_mouse_glyph;
+
+  /* Time of last mouse movement on this display.  This is a hack because
+     we would really prefer that XTmouse_position would return the time
+     associated with the position it returns, but there doesn't seem to be
+     any way to wrest the time-stamp from the server along with the position
+     query.  So, we just keep track of the time of the last movement we
+     received, and return that in hopes that it's somewhat accurate.  */
+  Time last_mouse_movement_time;
+
   /* The gray pixmap.  */
   Pixmap gray;
 
@@ -373,20 +409,6 @@ struct x_display_info
 extern int use_xim;
 #endif
 
-extern struct frame *x_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
-						XEvent *);
-extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
-
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
-						XEvent *);
-
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-#define x_any_window_to_frame x_window_to_frame
-#define x_top_window_to_frame x_window_to_frame
-#endif
-
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
@@ -397,7 +419,7 @@ extern struct x_display_info *x_display_list;
 extern Lisp_Object x_display_name_list;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
-
+extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
 extern bool x_display_ok (const char *);
 
@@ -711,20 +733,22 @@ enum
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
 
 /* This gives the x_display_info structure for the display F is on.  */
-#define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
+#define FRAME_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
 
 /* This is the `Display *' which frame F is on.  */
-#define FRAME_X_DISPLAY(f) (FRAME_X_DISPLAY_INFO (f)->display)
+#define FRAME_X_DISPLAY(f) (FRAME_DISPLAY_INFO (f)->display)
 
 /* This is the `Screen *' which frame F is on.  */
-#define FRAME_X_SCREEN(f) (FRAME_X_DISPLAY_INFO (f)->screen)
+#define FRAME_X_SCREEN(f) (FRAME_DISPLAY_INFO (f)->screen)
+
+/* This is the screen index number of screen which frame F is on.  */
 #define FRAME_X_SCREEN_NUMBER(f) XScreenNumberOfScreen (FRAME_X_SCREEN (f))
 
 /* This is the Visual which frame F is on.  */
-#define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
+#define FRAME_X_VISUAL(f) FRAME_DISPLAY_INFO (f)->visual
 
 /* This is the Colormap which frame F uses.  */
-#define FRAME_X_COLORMAP(f) FRAME_X_DISPLAY_INFO (f)->cmap
+#define FRAME_X_COLORMAP(f) FRAME_DISPLAY_INFO (f)->cmap
 
 /* The difference in pixels between the top left corner of the
    Emacs window (including possible window manager decorations)
@@ -737,21 +761,11 @@ enum
 
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
-#define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
-#define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
+#define FRAME_X_XIM(f) (FRAME_DISPLAY_INFO (f)->xim)
+#define FRAME_X_XIM_STYLES(f) (FRAME_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
 
-/* Value is the smallest width of any character in any font on frame F.  */
-
-#define FRAME_SMALLEST_CHAR_WIDTH(F) \
-     FRAME_X_DISPLAY_INFO(F)->smallest_char_width
-
-/* Value is the smallest height of any font on frame F.  */
-
-#define FRAME_SMALLEST_FONT_HEIGHT(F) \
-     FRAME_X_DISPLAY_INFO(F)->smallest_font_height
-
 /* X-specific scroll bar stuff.  */
 
 /* We represent scroll bars as lisp vectors.  This allows us to place
@@ -801,6 +815,11 @@ struct scroll_bar
      being dragged, this is -1.  */
   int dragging;
 
+#if defined (USE_TOOLKIT_SCROLL_BARS) && defined (USE_LUCID)
+  /* Last scroll bar part seen in xaw_jump_callback and xaw_scroll_callback.  */
+  enum scroll_bar_part last_seen_part;
+#endif
+
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
   unsigned fringe_extended_p : 1;
@@ -809,6 +828,7 @@ struct scroll_bar
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
+#ifdef USE_X_TOOLKIT
 
 /* Extract the X widget of the scroll bar from a struct scroll_bar.
    XtWindowToWidget should be fast enough since Xt uses a hash table
@@ -825,14 +845,14 @@ struct scroll_bar
     ptr->x_window = window;			\
 } while (0)
 
+#endif /* USE_X_TOOLKIT */
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
 #define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f, width) \
   ((width) \
    - VERTICAL_SCROLL_BAR_LEFT_BORDER \
-   - VERTICAL_SCROLL_BAR_RIGHT_BORDER \
-   - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2)
+   - VERTICAL_SCROLL_BAR_RIGHT_BORDER)
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
@@ -869,11 +889,6 @@ struct scroll_bar
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (5)
 
-/* Trimming off a few pixels from each side prevents
-   text from glomming up against the scroll bar */
-#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
-
-
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
    by this structure.  */
@@ -904,11 +919,6 @@ struct selection_input_event
   (((struct selection_input_event *) (eventp))->property)
 #define SELECTION_EVENT_TIME(eventp)	\
   (((struct selection_input_event *) (eventp))->time)
-
-/* From xselect.c.  */
-
-void x_handle_selection_notify (XSelectionEvent *);
-void x_handle_property_notify (XPropertyEvent *);
 
 /* From xfns.c.  */
 
@@ -963,8 +973,8 @@ extern void x_wait_for_event (struct frame *, int);
 
 /* Defined in xselect.c */
 
-extern void x_handle_property_notify (XPropertyEvent *);
-extern void x_handle_selection_notify (XSelectionEvent *);
+extern void x_handle_property_notify (const XPropertyEvent *);
+extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct input_event *);
 extern void x_clear_frame_selections (struct frame *);
 
@@ -976,9 +986,9 @@ extern void x_send_client_event (Lisp_Object display,
                                  Lisp_Object values);
 
 extern int x_handle_dnd_message (struct frame *,
-                                 XClientMessageEvent *,
+                                 const XClientMessageEvent *,
                                  struct x_display_info *,
-                                 struct input_event *bufp);
+                                 struct input_event *);
 extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
@@ -994,7 +1004,6 @@ extern void x_clipboard_manager_save_all (void);
 
 /* Defined in xfns.c */
 
-extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK

@@ -1634,6 +1634,8 @@ Display mechanism using tooltip for a list of possible completions.")
     (error nil))
   )
 
+(defvar tooltip-mode)
+
 (defmethod semantic-displayor-show-request ((obj semantic-displayor-tooltip))
   "A request to show the current tags table."
   (if (or (not (featurep 'tooltip)) (not tooltip-mode))
@@ -1725,6 +1727,9 @@ Return a cons cell (X . Y)"
     (cons (+ (car point-pix-pos) (car edges) left)
           (+ (cdr point-pix-pos) (cadr edges) top))))
 
+
+(defvar tooltip-frame-parameters)
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 
 (defun semantic-displayor-tooltip-show (text)
   "Display a tooltip with TEXT near cursor."

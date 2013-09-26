@@ -2269,6 +2269,10 @@ since only a single case-insensitive search through the alist is made."
      ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
      ;; don't interfere with each other.
      ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
+     ;; GDB 7.5 introduced OBJFILE-gdb.gdb script files; e.g. a file
+     ;; named 'emacs-gdb.gdb', if it exists, will be automatically
+     ;; loaded when GDB reads an objfile called 'emacs'.
+     ("-gdb\\.gdb" . gdb-script-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
      ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
@@ -2447,35 +2451,21 @@ and `magic-mode-alist', which determines modes based on file contents.")
   (mapcar
    (lambda (l)
      (cons (purecopy (car l)) (cdr l)))
-   '(("perl" . perl-mode)
-     ("perl5" . perl-mode)
-     ("miniperl" . perl-mode)
-     ("wish" . tcl-mode)
-     ("wishx" . tcl-mode)
-     ("tcl" . tcl-mode)
-     ("tclsh" . tcl-mode)
+   '(("\\(mini\\)?perl5?" . perl-mode)
+     ("wishx?" . tcl-mode)
+     ("tcl\\(sh\\)?" . tcl-mode)
      ("expect" . tcl-mode)
+     ("octave" . octave-mode)
      ("scm" . scheme-mode)
-     ("ash" . sh-mode)
-     ("bash" . sh-mode)
-     ("bash2" . sh-mode)
-     ("csh" . sh-mode)
-     ("dtksh" . sh-mode)
+     ("[acjkwz]sh" . sh-mode)
+     ("r?bash2?" . sh-mode)
+     ("\\(dt\\|pd\\|w\\)ksh" . sh-mode)
      ("es" . sh-mode)
-     ("itcsh" . sh-mode)
-     ("jsh" . sh-mode)
-     ("ksh" . sh-mode)
+     ("i?tcsh" . sh-mode)
      ("oash" . sh-mode)
-     ("pdksh" . sh-mode)
-     ("rbash" . sh-mode)
      ("rc" . sh-mode)
      ("rpm" . sh-mode)
-     ("sh" . sh-mode)
-     ("sh5" . sh-mode)
-     ("tcsh" . sh-mode)
-     ("wksh" . sh-mode)
-     ("wsh" . sh-mode)
-     ("zsh" . sh-mode)
+     ("sh5?" . sh-mode)
      ("tail" . text-mode)
      ("more" . text-mode)
      ("less" . text-mode)
@@ -2486,9 +2476,10 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("emacs" . emacs-lisp-mode)))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
-Each element looks like (INTERPRETER . MODE).
-If INTERPRETER matches the name of the interpreter specified in the first line
-of a script, mode MODE is enabled.
+Each element looks like (REGEXP . MODE).
+If \\\\`REGEXP\\\\' matches the name (minus any directory part) of
+the interpreter specified in the first line of a script, enable
+major mode MODE.
 
 See also `auto-mode-alist'.")
 
@@ -2683,19 +2674,23 @@ we don't actually set it to the same mode the buffer already has."
     ;; If we didn't, look for an interpreter specified in the first line.
     ;; As a special case, allow for things like "#!/bin/env perl", which
     ;; finds the interpreter anywhere in $PATH.
-    (unless done
-      (setq mode (save-excursion
-		   (goto-char (point-min))
-		   (if (looking-at auto-mode-interpreter-regexp)
-		       (match-string 2)
-		     ""))
-	    ;; Map interpreter name to a mode, signaling we're done at the
-	    ;; same time.
-	    done (assoc (file-name-nondirectory mode)
-			interpreter-mode-alist))
-      ;; If we found an interpreter mode to use, invoke it now.
-      (if done
-	  (set-auto-mode-0 (cdr done) keep-mode-if-same)))
+    (and (not done)
+	 (setq mode (save-excursion
+		      (goto-char (point-min))
+		      (if (looking-at auto-mode-interpreter-regexp)
+			  (match-string 2))))
+	 ;; Map interpreter name to a mode, signaling we're done at the
+	 ;; same time.
+	 (setq done (assoc-default
+		     (file-name-nondirectory mode)
+		     (mapcar (lambda (e)
+                               (cons
+                                (format "\\`%s\\'" (car e))
+                                (cdr e)))
+			     interpreter-mode-alist)
+		     #'string-match-p))
+	 ;; If we found an interpreter mode to use, invoke it now.
+	 (set-auto-mode-0 done keep-mode-if-same))
     ;; Next try matching the buffer beginning against magic-mode-alist.
     (unless done
       (if (setq done (save-excursion
@@ -3647,21 +3642,17 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; This is with-demoted-errors, but we want to mention dir-locals
-    ;; in any error message.
-    (condition-case err
-        (progn
-          (insert-file-contents file)
-          (unless (zerop (buffer-size))
-            (let* ((dir-name (file-name-directory file))
-                   (class-name (intern dir-name))
-                   (variables (let ((read-circle nil))
-                                (read (current-buffer)))))
-              (dir-locals-set-class-variables class-name variables)
-              (dir-locals-set-directory-class dir-name class-name
-                                              (nth 5 (file-attributes file)))
-              class-name)))
-      (error (message "Error reading dir-locals: %S" err) nil))))
+    (with-demoted-errors "Error reading dir-locals: %S"
+      (insert-file-contents file)
+      (unless (zerop (buffer-size))
+        (let* ((dir-name (file-name-directory file))
+               (class-name (intern dir-name))
+               (variables (let ((read-circle nil))
+                            (read (current-buffer)))))
+          (dir-locals-set-class-variables class-name variables)
+          (dir-locals-set-directory-class dir-name class-name
+                                          (nth 5 (file-attributes file)))
+          class-name)))))
 
 (defcustom enable-remote-dir-locals nil
   "Non-nil means dir-local variables will be applied to remote files."

@@ -266,13 +266,9 @@ AC_SUBST(cache_file)
 
 ## This is an option because I do not know if all info/man support
 ## compressed files, nor how to test if they do so.
-OPTION_DEFAULT_ON([compress-info],[don't compress the installed Info pages])
-if test $with_compress_info = yes; then
-   GZIP_INFO=yes
-else
-   GZIP_INFO=
-fi
-AC_SUBST(GZIP_INFO)
+OPTION_DEFAULT_ON([compress-install],
+  [don't compress some files (.el, .info, etc.) when installing.  Equivalent to:
+make GZIP_PROG= install])
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=FILENAME],
@@ -446,6 +442,17 @@ case "${srcdir}" in
   ;;
   *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
 esac
+
+#### When building with MinGW inside the MSYS tree, 'pwd' produces
+#### directories relative to the root of the MSYS tree,
+#### e.g. '/home/user/foo' instead of '/d/MSYS/home/user/foo'.  When
+#### such a value of srcdir is written to the top-level Makefile, it
+#### gets propagated to src/epaths.h, and that causes temacs to fail,
+#### because, being a MinGW program that knows nothing of MSYS root
+#### substitution, it cannot find the data directory.  "pwd -W"
+#### produces Windows-style 'd:/foo/bar' absolute directory names, so
+#### we use it here to countermand that lossage.
+test "$MSYSTEM" = "MINGW32" && srcdir=`(cd "$srcdir"; pwd -W | sed -e 's,^\([[A-Za-z]]\):,/\1,')`
 
 ### Canonicalize the configuration name.
 
@@ -780,10 +787,28 @@ AC_DEFUN([gl_GCC_VERSION_IFELSE],
   ]
 )
 
+# clang is unduly picky about some things.
+AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[
+	  #ifndef __clang__
+	    #error "not clang"
+	  #endif
+        ]])],
+     [emacs_cv_clang=yes],
+     [emacs_cv_clang=no])])
+
 # When compiling with GCC, prefer -isystem to -I when including system
 # include files, to avoid generating useless diagnostics for the files.
 if test "$gl_gcc_warnings" != yes; then
   isystem='-I'
+  if test "$emacs_cv_clang" = yes
+  then
+     # Turn off some warnings if supported.
+     gl_WARN_ADD([-Wno-switch])
+     gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
+     gl_WARN_ADD([-Wno-pointer-sign])
+  fi
 else
   isystem='-isystem '
 
@@ -826,16 +851,13 @@ else
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
 
-  # clang is unduly picky about some things.
-  AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
-    [AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM([[
-	    #ifndef __clang__
-	      #error "not clang"
-	    #endif
-          ]])],
-       [emacs_cv_clang=yes],
-       [emacs_cv_clang=no])])
+  # This part is merely for shortening the command line,
+  # since -Wno-FOO needs to be added below regardless.
+  nw="$nw -Wmissing-field-initializers"
+  nw="$nw -Wswitch"
+  nw="$nw -Wtype-limits"
+  nw="$nw -Wunused-parameter"
+
   if test $emacs_cv_clang = yes; then
     nw="$nw -Wcast-align"
   fi
@@ -863,9 +885,6 @@ else
     gl_WARN_ADD([-Wno-unused-command-line-argument])
     gl_WARN_ADD([-Wno-unused-value])
   fi
-
-  gl_WARN_ADD([-fdiagnostics-show-option])
-  gl_WARN_ADD([-funit-at-a-time])
 
   AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
   AH_VERBATIM([FORTIFY_SOURCE],
@@ -942,6 +961,9 @@ AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
+
+test $with_compress_install != yes && test -n "$GZIP_PROG" && \
+   GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
 
 if test $opsys = gnu-linux; then
   AC_PATH_PROG(PAXCTL, paxctl,,
@@ -1020,19 +1042,30 @@ dnl (Don't use `-z nocombreloc' as -z takes no arg on Irix.)
 dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
-late_LDFLAGS=$LDFLAGS
+dnl For a long time, -znocombreloc was added to LDFLAGS rather than
+dnl LD_SWITCH_SYSTEM_TEMACS.  That is:
+dnl * inappropriate, as LDFLAGS is a user option but this is essential.
+dnl   Eg "make LDFLAGS=... all" could run into problems,
+dnl   http://bugs.debian.org/684788
+dnl * unnecessary, since temacs is the only thing that actually needs it.
+dnl   Indeed this is where it was originally, prior to:
+dnl   http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-03/msg00170.html
+late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
-  LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
-  LDFLAGS="$LDFLAGS -znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-znocombreloc"
 fi
+
+LDFLAGS="$LDFLAGS $LDFLAGS_NOCOMBRELOC"
 
 AC_MSG_CHECKING([for -znocombreloc])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
   [AC_MSG_RESULT(yes)],
-  LDFLAGS=$late_LDFLAGS
+  LDFLAGS_NOCOMBRELOC=
   [AC_MSG_RESULT(no)])
 
+LDFLAGS="$late_LDFLAGS"
 
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
@@ -1606,7 +1639,10 @@ fail;
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
 
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
+  macfont_file=""
+  if test "${NS_IMPL_COCOA}" = "yes"; then
+    AC_MSG_CHECKING([for OSX 10.4 or newer])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
                                      [
 #ifdef MAC_OS_X_VERSION_MAX_ALLOWED
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
@@ -1618,13 +1654,33 @@ fail;
 		    ])],
 		    ns_osx_have_104=yes,
 		    ns_osx_have_104=no)
+    AC_MSG_RESULT([$ns_osx_have_104])
+
+    if test $ns_osx_have_104 = no; then
+       AC_MSG_ERROR([`OSX 10.4 or newer is required']);
+    fi
+    AC_MSG_CHECKING([for OSX 10.5 or newer])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <AppKit/AppKit.h>],
+                                     [
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+ ; /* OK */
+#else
+#error "OSX 10.5 not found"
+#endif
+#endif
+		    ])],
+		    ns_osx_have_105=yes,
+		    ns_osx_have_105=no)
+    AC_MSG_RESULT([$ns_osx_have_105])
+    if test $ns_osx_have_105 = yes; then
+      macfont_file="macfont.o"
+    fi
+  fi
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
 		    ns_have_nsinteger=yes,
 		    ns_have_nsinteger=no)
-  if test $ns_osx_have_104 = no; then
-     AC_MSG_ERROR([`OSX 10.4 or newer is required']);
-  fi
   if test $ns_have_nsinteger = yes; then
     AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
@@ -1660,7 +1716,8 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
+
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o $macfont_file"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -1777,6 +1834,11 @@ fi
 
 if test "$window_system" = none && test "$gl_gcc_warnings" = yes; then
    # Too many warnings for now.
+   nw=
+   nw="$nw -Wsuggest-attribute=const"
+   nw="$nw -Wsuggest-attribute=noreturn"
+   gl_MANYWARN_COMPLEMENT([WARN_CFLAGS], [$WARN_CFLAGS], [$nw])
+
    gl_WARN_ADD([-Wno-unused-variable])
    gl_WARN_ADD([-Wno-unused-but-set-variable])
    gl_WARN_ADD([-Wno-unused-but-set-parameter])
@@ -2340,7 +2402,6 @@ if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
     LIBS="$SETTINGS_LIBS $LIBS"
-    AC_CHECK_FUNCS([g_type_init])
     CFLAGS="$SAVE_CFLAGS"
     LIBS="$SAVE_LIBS"
 fi
@@ -3631,6 +3692,8 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
+AC_CHECK_HEADERS(valgrind/valgrind.h)
+
 AC_CHECK_FUNCS_ONCE(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
@@ -4636,6 +4699,24 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+dnl Call this 'FORTIFY_SOUR' so that it sorts before the 'FORTIFY_SOURCE'
+dnl verbatim defined above.  The tricky name is apropos, as this hack
+dnl makes Fortify go sour!
+AH_VERBATIM([FORTIFY_SOUR],
+[/* Without the following workaround, Emacs runs slowly on OS X 10.8.
+   The workaround disables some useful run-time checking, so it
+   should be conditional to the platforms with the performance bug.
+   Perhaps Apple will fix this some day; also see m4/extern-inline.m4.  */
+#if defined __APPLE__ && defined __GNUC__
+# ifndef _DONT_USE_CTYPE_INLINE_
+#  define _DONT_USE_CTYPE_INLINE_
+# endif
+# ifndef _FORTIFY_SOURCE
+#  define _FORTIFY_SOURCE 0
+# endif
+#endif
+])
+
 # Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
@@ -4717,6 +4798,8 @@ if test x$ac_enable_profiling != x ; then
     *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
   esac
 fi
+
+LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 

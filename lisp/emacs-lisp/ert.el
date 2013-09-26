@@ -785,7 +785,7 @@ This mainly sets up debugger-related bindings."
   "Immediately truncate *Messages* buffer according to `message-log-max'.
 
 This can be useful after reducing the value of `message-log-max'."
-  (with-current-buffer (get-buffer-create "*Messages*")
+  (with-current-buffer (messages-buffer)
     ;; This is a reimplementation of this part of message_dolog() in xdisp.c:
     ;; if (NATNUMP (Vmessage_log_max))
     ;;   {
@@ -798,7 +798,8 @@ This can be useful after reducing the value of `message-log-max'."
             (end (save-excursion
                    (goto-char (point-max))
                    (forward-line (- message-log-max))
-                   (point))))
+                   (point)))
+            (inhibit-read-only t))
         (delete-region begin end)))))
 
 (defvar ert--running-tests nil
@@ -818,7 +819,7 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
   (setf (ert-test-most-recent-result ert-test) nil)
   (cl-block error
     (let ((begin-marker
-           (with-current-buffer (get-buffer-create "*Messages*")
+           (with-current-buffer (messages-buffer)
              (point-max-marker))))
       (unwind-protect
           (let ((info (make-ert--test-execution-info
@@ -837,7 +838,7 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
                   (ert--run-test-internal info))
               (let ((result (ert--test-execution-info-result info)))
                 (setf (ert-test-result-messages result)
-                      (with-current-buffer (get-buffer-create "*Messages*")
+                      (with-current-buffer (messages-buffer)
                         (buffer-substring begin-marker (point-max))))
                 (ert--force-message-log-buffer-truncation)
                 (setq should-form-accu (nreverse should-form-accu))

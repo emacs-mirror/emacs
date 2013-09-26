@@ -1074,22 +1074,21 @@ regardless of where you click."
       (deactivate-mark)))
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary
-	 (cond
-	  ((eq (framep (selected-frame)) 'w32)
-	   ;; MS-Windows emulates PRIMARY in x-get-selection, but not
-	   ;; in x-get-selection-value (the latter only accesses the
-	   ;; clipboard).  So try PRIMARY first, in case they selected
-	   ;; something with the mouse in the current Emacs session.
-	   (or (x-get-selection 'PRIMARY)
-	       (x-get-selection-value)))
-	  ((fboundp 'x-get-selection-value) ; MS-DOS and X.
-	   ;; On X, x-get-selection-value supports more formats and
-	   ;; encodings, so use it in preference to x-get-selection.
-	   (or (x-get-selection-value)
-	       (x-get-selection 'PRIMARY)))
-	  ;; FIXME: What about xterm-mouse-mode etc.?
-	  (t
-	   (x-get-selection 'PRIMARY)))))
+         (if (fboundp 'x-get-selection-value)
+             (if (eq (framep (selected-frame)) 'w32)
+                 ;; MS-Windows emulates PRIMARY in x-get-selection, but not
+                 ;; in x-get-selection-value (the latter only accesses the
+                 ;; clipboard).  So try PRIMARY first, in case they selected
+                 ;; something with the mouse in the current Emacs session.
+                 (or (x-get-selection 'PRIMARY)
+                     (x-get-selection-value))
+               ;; Else MS-DOS or X.
+               ;; On X, x-get-selection-value supports more formats and
+               ;; encodings, so use it in preference to x-get-selection.
+               (or (x-get-selection-value)
+                   (x-get-selection 'PRIMARY)))
+           ;; FIXME: What about xterm-mouse-mode etc.?
+           (x-get-selection 'PRIMARY))))
     (unless primary
       (error "No selection is available"))
     (push-mark (point))

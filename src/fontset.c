@@ -39,17 +39,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "fontset.h"
 #include "window.h"
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
-#ifdef HAVE_NTGUI
-#include "w32term.h"
-#endif
-#ifdef HAVE_NS
-#include "nsterm.h"
-#endif
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 #include "termhooks.h"
-
 #include "font.h"
 
 /* FONTSET
@@ -460,7 +453,7 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
     }
 
   if (score_changed)
-    qsort (XVECTOR (vec)->contents, size, word_size,
+    qsort (XVECTOR (vec)->u.contents, size, word_size,
 	   fontset_compare_rfontdef);
   XSETCAR (font_group, make_number (charset_ordered_list_tick));
 }

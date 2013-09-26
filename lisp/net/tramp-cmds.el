@@ -55,9 +55,11 @@
     (buffer-list))))
 
 ;;;###tramp-autoload
-(defun tramp-cleanup-connection (vec)
+(defun tramp-cleanup-connection (vec &optional keep-debug keep-password)
   "Flush all connection related objects.
-This includes password cache, file cache, connection cache, buffers.
+This includes password cache, file cache, connection cache,
+buffers.  KEEP-DEBUG non-nil preserves the debug buffer.
+KEEP-PASSWORD non-nil preserves the password cache.
 When called interactively, a Tramp connection has to be selected."
   (interactive
    ;; When interactive, select the Tramp remote identification.
@@ -80,14 +82,15 @@ When called interactively, a Tramp connection has to be selected."
 	       "Enter Tramp connection: " connections nil t
 	       (try-completion "" connections)))
 	(when (and name (file-remote-p name))
-	  (with-parsed-tramp-file-name name nil v))))))
+	  (with-parsed-tramp-file-name name nil v))))
+    nil nil))
 
   (if (not vec)
       ;; Nothing to do.
       (message "No Tramp connection found.")
 
     ;; Flush password cache.
-    (tramp-clear-passwd vec)
+    (unless keep-password (tramp-clear-passwd vec))
 
     ;; Flush file cache.
     (tramp-flush-directory-property vec "")
@@ -101,7 +104,8 @@ When called interactively, a Tramp connection has to be selected."
     ;; Remove buffers.
     (dolist
 	(buf (list (get-buffer (tramp-buffer-name vec))
-		   (get-buffer (tramp-debug-buffer-name vec))
+		   (unless keep-debug
+		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (tramp-get-connection-property vec "process-buffer" nil)))
       (when (bufferp buf) (kill-buffer buf)))))
 
@@ -190,7 +194,9 @@ This includes password cache, file cache, connection cache, buffers."
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       (propertize "\n" 'display "\
+       (funcall
+	(if (functionp 'propertize) 'propertize 'progn)
+	"\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
 and what the local and remote machines are.

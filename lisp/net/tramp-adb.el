@@ -137,7 +137,7 @@
     (insert-directory . tramp-adb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
-    ;; `make-auto-save-file-name' performed by default handler.
+    (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-adb-handle-make-directory)
     (make-directory-internal . ignore)
     (make-symbolic-link . ignore)
@@ -407,9 +407,9 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
   (split-string
    (apply 'concat
 	  (mapcar (lambda (s)
-		    (replace-regexp-in-string
+		    (tramp-compat-replace-regexp-in-string
 		     "\\(.\\)"  " -\\1"
-		     (replace-regexp-in-string "^-" "" s)))
+		     (tramp-compat-replace-regexp-in-string "^-" "" s)))
 		  ;; FIXME: Warning about removed switches (long and non-dash).
 		  (delq nil
 			(mapcar
@@ -1092,7 +1092,7 @@ FMT and ARGS are passed to `error'."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
-  (tramp-check-proper-host vec)
+  (tramp-check-proper-method-and-host vec)
 
   (let* ((buf (tramp-get-connection-buffer vec))
 	 (p (get-buffer-process buf))
@@ -1153,11 +1153,11 @@ connection if a previous connection has died for some reason."
 		      (read (current-buffer))))))
 	      (when (and (stringp old-getprop)
 			 (not (string-equal old-getprop new-getprop)))
-		(tramp-cleanup vec)
 		(tramp-message
 		 vec 3
 		 "Connection reset, because remote host changed from `%s' to `%s'"
 		 old-getprop new-getprop)
+		(tramp-cleanup-connection vec t)
 		(tramp-adb-maybe-open-connection vec)))
 
 	    ;; Change user if indicated.

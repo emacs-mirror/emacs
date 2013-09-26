@@ -2597,7 +2597,10 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	     build them using function calls.  */
 	  Lisp_Object tmp;
 	  tmp = read_vector (readcharfun, 1);
-	  make_byte_code (XVECTOR (tmp));
+	  struct Lisp_Vector* vec = XVECTOR (tmp);
+	  if (vec->header.size==0)
+	    invalid_syntax ("Empty byte-code object");
+	  make_byte_code (vec);
 	  return tmp;
 	}
       if (c == '(')
@@ -3459,7 +3462,7 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag)
   vector = Fmake_vector (len, Qnil);
 
   size = ASIZE (vector);
-  ptr = XVECTOR (vector)->contents;
+  ptr = XVECTOR (vector)->u.contents;
   for (i = 0; i < size; i++)
     {
       item = Fcar (tem);

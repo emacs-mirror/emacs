@@ -1407,8 +1407,8 @@ GZIP_PROG
 INSTALL_INFO
 LN_S_FILEONLY
 GNULIB_WARN_CFLAGS
-WARN_CFLAGS
 WERROR_CFLAGS
+WARN_CFLAGS
 RANLIB
 ARFLAGS
 AR
@@ -1442,7 +1442,6 @@ build_vendor
 build_cpu
 build
 PROFILING_CFLAGS
-GZIP_INFO
 cache_file
 am__untar
 am__tar
@@ -1545,7 +1544,7 @@ with_gnutls
 with_zlib
 with_file_notification
 with_makeinfo
-with_compress_info
+with_compress_install
 with_pkg_config_prog
 with_gameuser
 with_gnustep_conf
@@ -2278,7 +2277,9 @@ Optional Packages:
                           use a file notification library (LIB one of: yes,
                           gfile, inotify, w32, no)
   --without-makeinfo      don't require makeinfo for building manuals
-  --without-compress-info don't compress the installed Info pages
+  --without-compress-install
+                          don't compress some files (.el, .info, etc.) when
+                          installing. Equivalent to: make GZIP_PROG= install
   --with-pkg-config-prog=FILENAME
                           file name of pkg-config for finding GTK and librsvg
   --with-gameuser=USER    user for shared game score files
@@ -4429,17 +4430,11 @@ fi
 ## This is an option because I do not know if all info/man support
 ## compressed files, nor how to test if they do so.
 
-# Check whether --with-compress-info was given.
-if test "${with_compress_info+set}" = set; then :
-  withval=$with_compress_info;
+# Check whether --with-compress-install was given.
+if test "${with_compress_install+set}" = set; then :
+  withval=$with_compress_install;
 else
-     with_compress_info=$with_features
-fi
-
-if test $with_compress_info = yes; then
-   GZIP_INFO=yes
-else
-   GZIP_INFO=
+     with_compress_install=$with_features
 fi
 
 
@@ -4627,6 +4622,17 @@ case "${srcdir}" in
   ;;
   *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
 esac
+
+#### When building with MinGW inside the MSYS tree, 'pwd' produces
+#### directories relative to the root of the MSYS tree,
+#### e.g. '/home/user/foo' instead of '/d/MSYS/home/user/foo'.  When
+#### such a value of srcdir is written to the top-level Makefile, it
+#### gets propagated to src/epaths.h, and that causes temacs to fail,
+#### because, being a MinGW program that knows nothing of MSYS root
+#### substitution, it cannot find the data directory.  "pwd -W"
+#### produces Windows-style 'd:/foo/bar' absolute directory names, so
+#### we use it here to countermand that lossage.
+test "$MSYSTEM" = "MINGW32" && srcdir=`(cd "$srcdir"; pwd -W | sed -e 's,^\([A-Za-z]\):,/\1,')`
 
 ### Canonicalize the configuration name.
 
@@ -7539,23 +7545,45 @@ fi
 # Otherwise, run RUN-IF-NOT-FOUND.
 
 
+# clang is unduly picky about some things.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
+$as_echo_n "checking whether the compiler is clang... " >&6; }
+if test "${emacs_cv_clang+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+	  #ifndef __clang__
+	    #error "not clang"
+	  #endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_clang=yes
+else
+  emacs_cv_clang=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_clang" >&5
+$as_echo "$emacs_cv_clang" >&6; }
+
 # When compiling with GCC, prefer -isystem to -I when including system
 # include files, to avoid generating useless diagnostics for the files.
 if test "$gl_gcc_warnings" != yes; then
   isystem='-I'
-else
-  isystem='-isystem '
-
-  # This, $nw, is the list of warnings we disable.
-  nw=
-
-  case $with_x_toolkit in
-    lucid | athena | motif)
-       # Old toolkits mishandle 'const'.
-       nw="$nw -Wwrite-strings"
-       ;;
-    *)
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror -Wunknown-warning-option" >&5
+  if test "$emacs_cv_clang" = yes
+  then
+     # Turn off some warnings if supported.
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror -Wunknown-warning-option" >&5
 $as_echo_n "checking whether C compiler handles -Werror -Wunknown-warning-option... " >&6; }
 if test "${gl_cv_warn_c__Werror__Wunknown_warning_option+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -7574,12 +7602,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Werror__Wunknown_warning_option=yes
 else
   gl_cv_warn_c__Werror__Wunknown_warning_option=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -7591,6 +7620,130 @@ else
   gl_unknown_warnings_are_errors=
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
+$as_echo_n "checking whether C compiler handles -Wno-switch... " >&6; }
+if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wswitch"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_warn_c__Wno_switch=yes
+else
+  gl_cv_warn_c__Wno_switch=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_switch" >&5
+$as_echo "$gl_cv_warn_c__Wno_switch" >&6; }
+if test "x$gl_cv_warn_c__Wno_switch" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-switch"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-tautological-constant-out-of-range-compare" >&5
+$as_echo_n "checking whether C compiler handles -Wno-tautological-constant-out-of-range-compare... " >&6; }
+if test "${gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wtautological-constant-out-of-range-compare"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=yes
+else
+  gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" >&5
+$as_echo "$gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" >&6; }
+if test "x$gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-tautological-constant-out-of-range-compare"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-pointer-sign" >&5
+$as_echo_n "checking whether C compiler handles -Wno-pointer-sign... " >&6; }
+if test "${gl_cv_warn_c__Wno_pointer_sign+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wpointer-sign"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_warn_c__Wno_pointer_sign=yes
+else
+  gl_cv_warn_c__Wno_pointer_sign=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_pointer_sign" >&5
+$as_echo "$gl_cv_warn_c__Wno_pointer_sign" >&6; }
+if test "x$gl_cv_warn_c__Wno_pointer_sign" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-pointer-sign"
+fi
+
+
+  fi
+else
+  isystem='-isystem '
+
+  # This, $nw, is the list of warnings we disable.
+  nw=
+
+  case $with_x_toolkit in
+    lucid | athena | motif)
+       # Old toolkits mishandle 'const'.
+       nw="$nw -Wwrite-strings"
+       ;;
+    *)
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
 $as_echo_n "checking whether C compiler handles -Werror... " >&6; }
@@ -7611,12 +7764,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Werror=yes
 else
   gl_cv_warn_c__Werror=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -7656,36 +7810,13 @@ fi
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
 
-  # clang is unduly picky about some things.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
-$as_echo_n "checking whether the compiler is clang... " >&6; }
-if test "${emacs_cv_clang+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
+  # This part is merely for shortening the command line,
+  # since -Wno-FOO needs to be added below regardless.
+  nw="$nw -Wmissing-field-initializers"
+  nw="$nw -Wswitch"
+  nw="$nw -Wtype-limits"
+  nw="$nw -Wunused-parameter"
 
-	    #ifndef __clang__
-	      #error "not clang"
-	    #endif
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_clang=yes
-else
-  emacs_cv_clang=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_clang" >&5
-$as_echo "$emacs_cv_clang" >&6; }
   if test $emacs_cv_clang = yes; then
     nw="$nw -Wcast-align"
   fi
@@ -7909,6 +8040,8 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wvla \
     -Wvolatile-register-var \
     -Wwrite-strings \
+    -fdiagnostics-show-option \
+    -funit-at-a-time \
     \
     ; do
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
@@ -7966,12 +8099,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   eval "$as_gl_Warn=yes"
 else
   eval "$as_gl_Warn=no"
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8005,12 +8139,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_missing_field_initializers=yes
 else
   gl_cv_warn_c__Wno_missing_field_initializers=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8041,12 +8176,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_sign_compare=yes
 else
   gl_cv_warn_c__Wno_sign_compare=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8077,12 +8213,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_type_limits=yes
 else
   gl_cv_warn_c__Wno_type_limits=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8113,12 +8250,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_switch=yes
 else
   gl_cv_warn_c__Wno_switch=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8149,12 +8287,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_unused_parameter=yes
 else
   gl_cv_warn_c__Wno_unused_parameter=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8185,12 +8324,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_format_nonliteral=yes
 else
   gl_cv_warn_c__Wno_format_nonliteral=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8224,12 +8364,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_logical_op=yes
 else
   gl_cv_warn_c__Wno_logical_op=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8263,12 +8404,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_format_extra_args=yes
 else
   gl_cv_warn_c__Wno_format_extra_args=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8299,12 +8441,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=yes
 else
   gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8335,12 +8478,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_unused_command_line_argument=yes
 else
   gl_cv_warn_c__Wno_unused_command_line_argument=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8371,12 +8515,13 @@ main ()
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_c_try_link "$LINENO"; then :
   gl_cv_warn_c__Wno_unused_value=yes
 else
   gl_cv_warn_c__Wno_unused_value=no
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
   CFLAGS="$gl_save_compiler_FLAGS"
 
 fi
@@ -8388,79 +8533,6 @@ fi
 
 
   fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
-$as_echo_n "checking whether C compiler handles -fdiagnostics-show-option... " >&6; }
-if test "${gl_cv_warn_c__fdiagnostics_show_option+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -fdiagnostics-show-option"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  gl_cv_warn_c__fdiagnostics_show_option=yes
-else
-  gl_cv_warn_c__fdiagnostics_show_option=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS="$gl_save_compiler_FLAGS"
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__fdiagnostics_show_option" >&5
-$as_echo "$gl_cv_warn_c__fdiagnostics_show_option" >&6; }
-if test "x$gl_cv_warn_c__fdiagnostics_show_option" = x""yes; then :
-  as_fn_append WARN_CFLAGS " -fdiagnostics-show-option"
-fi
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
-$as_echo_n "checking whether C compiler handles -funit-at-a-time... " >&6; }
-if test "${gl_cv_warn_c__funit_at_a_time+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -funit-at-a-time"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  gl_cv_warn_c__funit_at_a_time=yes
-else
-  gl_cv_warn_c__funit_at_a_time=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS="$gl_save_compiler_FLAGS"
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__funit_at_a_time" >&5
-$as_echo "$gl_cv_warn_c__funit_at_a_time" >&6; }
-if test "x$gl_cv_warn_c__funit_at_a_time" = x""yes; then :
-  as_fn_append WARN_CFLAGS " -funit-at-a-time"
-fi
-
-
 
 
 $as_echo "#define lint 1" >>confdefs.h
@@ -8610,6 +8682,9 @@ $as_echo "no" >&6; }
 fi
 
 
+
+test $with_compress_install != yes && test -n "$GZIP_PROG" && \
+   GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
 
 if test $opsys = gnu-linux; then
   # Extract the first word of "paxctl", so it can be a program name with args.
@@ -8774,12 +8849,14 @@ else
 fi
 
 
-late_LDFLAGS=$LDFLAGS
+late_LDFLAGS="$LDFLAGS"
 if test x$GCC = xyes; then
-  LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-Wl,-znocombreloc"
 else
-  LDFLAGS="$LDFLAGS -znocombreloc"
+  LDFLAGS_NOCOMBRELOC="-znocombreloc"
 fi
+
+LDFLAGS="$LDFLAGS $LDFLAGS_NOCOMBRELOC"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for -znocombreloc" >&5
 $as_echo_n "checking for -znocombreloc... " >&6; }
@@ -8798,13 +8875,14 @@ if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 else
-  LDFLAGS=$late_LDFLAGS
+  LDFLAGS_NOCOMBRELOC=
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
+LDFLAGS="$late_LDFLAGS"
 
 test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
 case "$opsys" in
@@ -10033,7 +10111,11 @@ fi
 
 
 
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  macfont_file=""
+  if test "${NS_IMPL_COCOA}" = "yes"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OSX 10.4 or newer" >&5
+$as_echo_n "checking for OSX 10.4 or newer... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <AppKit/AppKit.h>
 int
@@ -10058,6 +10140,45 @@ else
   ns_osx_have_104=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ns_osx_have_104" >&5
+$as_echo "$ns_osx_have_104" >&6; }
+
+    if test $ns_osx_have_104 = no; then
+       as_fn_error "\`OSX 10.4 or newer is required'" "$LINENO" 5;
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OSX 10.5 or newer" >&5
+$as_echo_n "checking for OSX 10.5 or newer... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <AppKit/AppKit.h>
+int
+main ()
+{
+
+#ifdef MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
+ ; /* OK */
+#else
+#error "OSX 10.5 not found"
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ns_osx_have_105=yes
+else
+  ns_osx_have_105=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ns_osx_have_105" >&5
+$as_echo "$ns_osx_have_105" >&6; }
+    if test $ns_osx_have_105 = yes; then
+      macfont_file="macfont.o"
+    fi
+  fi
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Foundation/NSObjCRuntime.h>
@@ -10075,9 +10196,6 @@ else
   ns_have_nsinteger=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  if test $ns_osx_have_104 = no; then
-     as_fn_error "\`OSX 10.4 or newer is required'" "$LINENO" 5;
-  fi
   if test $ns_have_nsinteger = yes; then
 
 $as_echo "#define NS_HAVE_NSINTEGER 1" >>confdefs.h
@@ -10112,7 +10230,8 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
+
+  NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o $macfont_file"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -10339,6 +10458,140 @@ fi
 
 ## $window_system is now set to the window system we will
 ## ultimately use.
+
+if test "$window_system" = none && test "$gl_gcc_warnings" = yes; then
+   # Too many warnings for now.
+   nw=
+   nw="$nw -Wsuggest-attribute=const"
+   nw="$nw -Wsuggest-attribute=noreturn"
+
+  gl_warn_set=
+  set x $WARN_CFLAGS; shift
+  for gl_warn_item
+  do
+    case " $nw " in
+      *" $gl_warn_item "*)
+        ;;
+      *)
+        gl_warn_set="$gl_warn_set $gl_warn_item"
+        ;;
+    esac
+  done
+  WARN_CFLAGS=$gl_warn_set
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-variable" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-variable... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_variable+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-variable"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_variable=yes
+else
+  gl_cv_warn_c__Wno_unused_variable=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_variable" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_variable" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_variable" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-variable"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-but-set-variable" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-but-set-variable... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_but_set_variable+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-but-set-variable"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_but_set_variable=yes
+else
+  gl_cv_warn_c__Wno_unused_but_set_variable=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_but_set_variable" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_but_set_variable" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_but_set_variable" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-but-set-variable"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-but-set-parameter" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-but-set-parameter... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_but_set_parameter+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-but-set-parameter"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_but_set_parameter=yes
+else
+  gl_cv_warn_c__Wno_unused_but_set_parameter=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_but_set_parameter" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_but_set_parameter" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_but_set_parameter" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-but-set-parameter"
+fi
+
+
+fi
 
 term_header=
 HAVE_X_WINDOWS=no
@@ -11934,17 +12187,6 @@ $as_echo "no" >&6; }
     SAVE_LIBS="$LIBS"
     CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
     LIBS="$SETTINGS_LIBS $LIBS"
-    for ac_func in g_type_init
-do :
-  ac_fn_c_check_func "$LINENO" "g_type_init" "ac_cv_func_g_type_init"
-if test "x$ac_cv_func_g_type_init" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_G_TYPE_INIT 1
-_ACEOF
-
-fi
-done
-
     CFLAGS="$SAVE_CFLAGS"
     LIBS="$SAVE_LIBS"
 fi
@@ -15892,6 +16134,19 @@ fi
 
 
 
+for ac_header in valgrind/valgrind.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "valgrind/valgrind.h" "ac_cv_header_valgrind_valgrind_h" "$ac_includes_default"
+if test "x$ac_cv_header_valgrind_valgrind_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_VALGRIND_VALGRIND_H 1
+_ACEOF
+
+fi
+
+done
+
+
 
 
 
@@ -17377,6 +17632,8 @@ else
   PRE_ALLOC_OBJ=lastfile.o
   POST_ALLOC_OBJ=
 fi
+
+
 
 
 
@@ -28912,6 +29169,8 @@ if test x$ac_enable_profiling != x ; then
     *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
   esac
 fi
+
+LD_SWITCH_SYSTEM_TEMACS="$LDFLAGS_NOCOMBRELOC $LD_SWITCH_SYSTEM_TEMACS"
 
 
 

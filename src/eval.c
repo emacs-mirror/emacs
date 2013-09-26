@@ -2033,7 +2033,9 @@ it is defines a macro.  */)
 
 DEFUN ("eval", Feval, Seval, 1, 2, 0,
        doc: /* Evaluate FORM and return its value.
-If LEXICAL is t, evaluate using lexical scoping.  */)
+If LEXICAL is t, evaluate using lexical scoping.
+LEXICAL can also be an actual lexical environment, in the form of an
+alist mapping symbols to their value.  */)
   (Lisp_Object form, Lisp_Object lexical)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2146,11 +2148,10 @@ eval_sub (Lisp_Object form)
 
   /* Optimize for no indirection.  */
   fun = original_fun;
-  if (SYMBOLP (fun) && !NILP (fun)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
-    fun = indirect_function (fun);
-  else
+  if (!SYMBOLP (fun))
     fun = Ffunction (Fcons (fun, Qnil));
+  else if (!NILP (fun) && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+    fun = indirect_function (fun);
 
   if (SUBRP (fun))
     {

@@ -353,7 +353,7 @@ sudo is an alias, defined as "*sudo $*"
 
 @vindex eshell-prefer-lisp-functions
 If you would prefer to use the built-in commands instead of the external
-commands, set @var{eshell-prefer-lisp-functions} to @code{t}.
+commands, set @code{eshell-prefer-lisp-functions} to @code{t}.
 
 Some of the built-in commands have different behaviour from their
 external counterparts, and some have no external counterpart.  Most of
@@ -515,7 +515,7 @@ Aliases are commands that expand to a longer input line.  For example,
 with the command invocation @samp{alias ll ls -l}; with this defined,
 running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
 Aliases defined (or deleted) by the @command{alias} command are
-automatically written to the file named by @var{eshell-aliases-file},
+automatically written to the file named by @code{eshell-aliases-file},
 which you can also edit directly (although you will have to manually
 reload it).
 
@@ -539,7 +539,7 @@ by @code{!foo:n}.
 
 The history ring is loaded from a file at the start of every session,
 and written back to the file at the end of every session.  The file path
-is specified in @var{eshell-history-file-name}.  Unlike other shells,
+is specified in @code{eshell-history-file-name}.  Unlike other shells,
 such as Bash, Eshell can not be configured to keep a history ring of a
 different size than that of the history file.
 
@@ -721,11 +721,11 @@ terminal emulator.
 Programs that need a terminal to display output properly are referred
 to in this manual as ``visual commands,'' because they are not simply
 line-oriented.  You must tell Eshell which commands are visual, by
-adding them to @var{eshell-visual-commands}; for commands that are
+adding them to @code{eshell-visual-commands}; for commands that are
 visual for only certain @emph{sub}-commands -- e.g. @samp{git log} but
-not @samp{git status} -- use @var{eshell-visual-subcommands}; and for
+not @samp{git status} -- use @code{eshell-visual-subcommands}; and for
 commands that are visual only when passed certain options, use
-@var{eshell-visual-options}.
+@code{eshell-visual-options}.
 
 @section Redirection
 Redirection is mostly the same in Eshell as it is in other command
@@ -740,16 +740,16 @@ on the right-hand side, into which it inserts the output of the
 left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
 inserts the string @code{"hello"} into the @code{*scratch*} buffer.
 
-@var{eshell-virtual-targets} is a list of mappings of virtual device
+@code{eshell-virtual-targets} is a list of mappings of virtual device
 names to functions.  Eshell comes with two virtual devices:
 @file{/dev/kill}, which sends the text to the kill ring, and
 @file{/dev/clip}, which sends text to the clipboard.
 
 You can, of course, define your own virtual targets.  They are defined
-by adding a list of the form @code{("/dev/name" function mode)} to
-@var{eshell-virtual-targets}.  The first element is the device name;
-@code{function} may be either a lambda or a function name.  If
-@code{mode} is nil, then the function is the output function; if it is
+by adding a list of the form @samp{("/dev/name" @var{function} @var{mode})} to
+@code{eshell-virtual-targets}.  The first element is the device name;
+@var{function} may be either a lambda or a function name.  If
+@var{mode} is nil, then the function is the output function; if it is
 non-nil, then the function is passed the redirection mode as a
 symbol--@code{overwrite} for @code{>}, @code{append} for @code{>>}, or
 @code{insert} for @code{>>>}--and the function is expected to return
@@ -774,7 +774,7 @@ Eshell module.}  You also need to load the following as shown:
 
 @example
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'esh-mode)
   (require 'eshell))
 

@@ -1,4 +1,4 @@
-;;; esh-ext.el --- commands external to Eshell
+;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -91,6 +91,10 @@ since nothing else but Eshell will be able to understand
 	  (setq suffixes (cdr suffixes)))
 	(setq list (cdr list)))
       file)))
+
+;; This file provides itself then eval-when-compile loads files that require it.
+;; This causes spurious "might not be defined at runtime" warnings.
+(declare-function eshell-search-path "esh-ext" (name))
 
 (defcustom eshell-windows-shell-file
   (if (eshell-under-windows-p)

@@ -205,7 +205,7 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 	from = to = XINT (c);
 
       to++;
-      lint_assume (to <= MAX_CHAR + 1);
+      assume (to <= MAX_CHAR + 1);
       for (; from < to; from++)
 	CHAR_TABLE_SET (table, from, make_number (from));
     }
@@ -232,7 +232,7 @@ shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 	from = to = XINT (c);
 
       to++;
-      lint_assume (to <= MAX_CHAR + 1);
+      assume (to <= MAX_CHAR + 1);
       for (; from < to; from++)
 	{
 	  Lisp_Object tem = Faref (table, elt);

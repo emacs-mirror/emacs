@@ -277,7 +277,7 @@ check_x_display_info (Lisp_Object frame)
       struct frame *sf = XFRAME (selected_frame);
 
       if (FRAME_W32_P (sf) && FRAME_LIVE_P (sf))
-	return FRAME_W32_DISPLAY_INFO (sf);
+	return FRAME_DISPLAY_INFO (sf);
       else
 	return &one_w32_display_info;
     }
@@ -291,7 +291,7 @@ check_x_display_info (Lisp_Object frame)
       f = XFRAME (frame);
       if (! FRAME_W32_P (f))
 	error ("Non-W32 frame used");
-      return FRAME_W32_DISPLAY_INFO (f);
+      return FRAME_DISPLAY_INFO (f);
     }
 }
 
@@ -307,7 +307,7 @@ x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
   FOR_EACH_FRAME (tail, frame)
     {
       f = XFRAME (frame);
-      if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_W32_P (f) || FRAME_DISPLAY_INFO (f) != dpyinfo)
 	continue;
 
       if (FRAME_W32_WINDOW (f) == wdesc)
@@ -1027,18 +1027,18 @@ w32_regenerate_palette (struct frame *f)
   int                   i;
 
   /* don't bother trying to create palette if not supported */
-  if (! FRAME_W32_DISPLAY_INFO (f)->has_palette)
+  if (! FRAME_DISPLAY_INFO (f)->has_palette)
     return;
 
   log_palette = (LOGPALETTE *)
     alloca (sizeof (LOGPALETTE) +
-	     FRAME_W32_DISPLAY_INFO (f)->num_colors * sizeof (PALETTEENTRY));
+	     FRAME_DISPLAY_INFO (f)->num_colors * sizeof (PALETTEENTRY));
   log_palette->palVersion = 0x300;
-  log_palette->palNumEntries = FRAME_W32_DISPLAY_INFO (f)->num_colors;
+  log_palette->palNumEntries = FRAME_DISPLAY_INFO (f)->num_colors;
 
-  list = FRAME_W32_DISPLAY_INFO (f)->color_list;
+  list = FRAME_DISPLAY_INFO (f)->color_list;
   for (i = 0;
-       i < FRAME_W32_DISPLAY_INFO (f)->num_colors;
+       i < FRAME_DISPLAY_INFO (f)->num_colors;
        i++, list = list->next)
     log_palette->palPalEntry[i] = list->entry;
 
@@ -1046,9 +1046,9 @@ w32_regenerate_palette (struct frame *f)
 
   enter_crit ();
 
-  if (FRAME_W32_DISPLAY_INFO (f)->palette)
-    DeleteObject (FRAME_W32_DISPLAY_INFO (f)->palette);
-  FRAME_W32_DISPLAY_INFO (f)->palette = new_palette;
+  if (FRAME_DISPLAY_INFO (f)->palette)
+    DeleteObject (FRAME_DISPLAY_INFO (f)->palette);
+  FRAME_DISPLAY_INFO (f)->palette = new_palette;
 
   /* Realize display palette and garbage all frames. */
   release_frame_dc (f, get_frame_dc (f));
@@ -1071,7 +1071,7 @@ w32_regenerate_palette (struct frame *f)
 void
 w32_map_color (struct frame *f, COLORREF color)
 {
-  struct w32_palette_entry * list = FRAME_W32_DISPLAY_INFO (f)->color_list;
+  struct w32_palette_entry * list = FRAME_DISPLAY_INFO (f)->color_list;
 
   if (NILP (Vw32_enable_palette))
     return;
@@ -1091,19 +1091,19 @@ w32_map_color (struct frame *f, COLORREF color)
   list = xmalloc (sizeof (struct w32_palette_entry));
   SET_W32_COLOR (list->entry, color);
   list->refcount = 1;
-  list->next = FRAME_W32_DISPLAY_INFO (f)->color_list;
-  FRAME_W32_DISPLAY_INFO (f)->color_list = list;
-  FRAME_W32_DISPLAY_INFO (f)->num_colors++;
+  list->next = FRAME_DISPLAY_INFO (f)->color_list;
+  FRAME_DISPLAY_INFO (f)->color_list = list;
+  FRAME_DISPLAY_INFO (f)->num_colors++;
 
   /* set flag that palette must be regenerated */
-  FRAME_W32_DISPLAY_INFO (f)->regen_palette = TRUE;
+  FRAME_DISPLAY_INFO (f)->regen_palette = TRUE;
 }
 
 void
 w32_unmap_color (struct frame *f, COLORREF color)
 {
-  struct w32_palette_entry * list = FRAME_W32_DISPLAY_INFO (f)->color_list;
-  struct w32_palette_entry **prev = &FRAME_W32_DISPLAY_INFO (f)->color_list;
+  struct w32_palette_entry * list = FRAME_DISPLAY_INFO (f)->color_list;
+  struct w32_palette_entry **prev = &FRAME_DISPLAY_INFO (f)->color_list;
 
   if (NILP (Vw32_enable_palette))
     return;
@@ -1117,7 +1117,7 @@ w32_unmap_color (struct frame *f, COLORREF color)
 	    {
 	      *prev = list->next;
 	      xfree (list);
-	      FRAME_W32_DISPLAY_INFO (f)->num_colors--;
+	      FRAME_DISPLAY_INFO (f)->num_colors--;
 	      break;
 	    }
 	  else
@@ -1128,7 +1128,7 @@ w32_unmap_color (struct frame *f, COLORREF color)
     }
 
   /* set flag that palette must be regenerated */
-  FRAME_W32_DISPLAY_INFO (f)->regen_palette = TRUE;
+  FRAME_DISPLAY_INFO (f)->regen_palette = TRUE;
 }
 #endif
 
@@ -1235,7 +1235,7 @@ x_decode_color (struct frame *f, Lisp_Object arg, int def)
   else if (strcmp (SDATA (arg), "white") == 0)
     return WHITE_PIX_DEFAULT (f);
 
-  if ((FRAME_W32_DISPLAY_INFO (f)->n_planes * FRAME_W32_DISPLAY_INFO (f)->n_cbits) == 1)
+  if ((FRAME_DISPLAY_INFO (f)->n_planes * FRAME_DISPLAY_INFO (f)->n_cbits) == 1)
     return def;
 
   /* w32_defined_color is responsible for coping with failures
@@ -1637,7 +1637,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
 }
 
 
@@ -1679,7 +1679,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
   resize_frame_windows (f, FRAME_LINES (f), 0);
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
      the frame, below the menu bar or tool bar, is redrawn when the
@@ -1752,10 +1752,10 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
     {
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (!strcmp (FRAME_W32_DISPLAY_INFO (f)->w32_id_name,
+      if (!strcmp (FRAME_DISPLAY_INFO (f)->w32_id_name,
 		   SDATA (f->name)))
 	return;
-      name = build_string (FRAME_W32_DISPLAY_INFO (f)->w32_id_name);
+      name = build_string (FRAME_DISPLAY_INFO (f)->w32_id_name);
     }
   else
     CHECK_STRING (name);
@@ -1890,16 +1890,11 @@ w32_init_class (HINSTANCE hinst)
 static HWND
 w32_createscrollbar (struct frame *f, struct scroll_bar * bar)
 {
-  return (CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
-			/* Position and size of scroll bar.  */
-			XINT (bar->left) + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                        XINT (bar->top),
-			XINT (bar->width) - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                        XINT (bar->height),
-			FRAME_W32_WINDOW (f),
-			NULL,
-			hinst,
-			NULL));
+  return CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
+		       /* Position and size of scroll bar.  */
+		       XINT (bar->left), XINT (bar->top),
+		       XINT (bar->width), XINT (bar->height),
+		       FRAME_W32_WINDOW (f), NULL, hinst, NULL);
 }
 
 static void
@@ -4232,7 +4227,7 @@ unwind_create_frame (Lisp_Object frame)
   if (NILP (Fmemq (frame, Vframe_list)))
     {
 #ifdef GLYPH_DEBUG
-      struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+      struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
@@ -4258,7 +4253,7 @@ do_unwind_create_frame (Lisp_Object frame)
 static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
 				RES_TYPE_STRING);
   Lisp_Object font;
@@ -4392,9 +4387,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (! STRINGP (f->icon_name))
     fset_icon_name (f, Qnil);
 
-/*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
+/*  FRAME_DISPLAY_INFO (f) = dpyinfo; */
 
-  /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (do_unwind_create_frame, frame);
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
@@ -4411,7 +4406,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
   else
     {
-      f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+      f->output_data.w32->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
       f->output_data.w32->explicit_parent = 0;
     }
 
@@ -4506,7 +4501,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
-  f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+  f->output_data.w32->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
 
   f->output_data.w32->text_cursor = w32_load_cursor (IDC_IBEAM);
   f->output_data.w32->nontext_cursor = w32_load_cursor (IDC_ARROW);
@@ -4529,7 +4524,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Now consider the frame official.  */
   f->terminal->reference_count++;
-  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
+  FRAME_DISPLAY_INFO (f)->reference_count++;
   Vframe_list = Fcons (frame, Vframe_list);
 
   /* We need to do this after creating the window, so that the
@@ -4613,7 +4608,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 Lisp_Object
 x_get_focus_frame (struct frame *frame)
 {
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (frame);
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   Lisp_Object xfocus;
   if (! dpyinfo->w32_focus_frame)
     return Qnil;
@@ -4622,15 +4617,6 @@ x_get_focus_frame (struct frame *frame)
   return xfocus;
 }
 
-DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
-       doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
-  (Lisp_Object frame)
-{
-  x_focus_on_frame (decode_window_system_frame (frame));
-  return Qnil;
-}
-
-
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.
 \(Note that the Nextstep version of this function ignores FRAME.)  */)
@@ -5131,7 +5117,7 @@ SOUND is nil to use the normal beep.  */)
 int
 x_screen_planes (register struct frame *f)
 {
-  return FRAME_W32_DISPLAY_INFO (f)->n_planes;
+  return FRAME_DISPLAY_INFO (f)->n_planes;
 }
 
 /* Return the display structure for the display named NAME.
@@ -5200,11 +5186,6 @@ terminate Emacs if we can't open the connection.
 
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
-
-#if 0
-  if (! EQ (Vwindow_system, intern ("w32")))
-    error ("Not using Microsoft Windows");
-#endif
 
   /* Allow color mapping to be defined externally; first look in user's
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
@@ -5668,7 +5649,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;
-  f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+  f->output_data.w32->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
   f->output_data.w32->explicit_parent = 0;
 
   /* Set the name; the functions to which we pass f expect the name to
@@ -5737,7 +5718,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   init_frame_faces (f);
 
   f->output_data.w32->dwStyle = WS_BORDER | WS_POPUP | WS_DISABLED;
-  f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+  f->output_data.w32->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
 
   window_prompting = x_figure_window_size (f, parms, 0);
 
@@ -5804,7 +5785,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
-  FRAME_W32_DISPLAY_INFO (f)->reference_count++;
+  FRAME_DISPLAY_INFO (f)->reference_count++;
   f->terminal->reference_count++;
 
   /* It is now ok to make the frame official even if we get an error
@@ -5851,8 +5832,8 @@ compute_tip_xy (struct frame *f,
       /* Default min and max values.  */
       min_x = 0;
       min_y = 0;
-      max_x = x_display_pixel_width (FRAME_W32_DISPLAY_INFO (f));
-      max_y = x_display_pixel_height (FRAME_W32_DISPLAY_INFO (f));
+      max_x = x_display_pixel_width (FRAME_DISPLAY_INFO (f));
+      max_y = x_display_pixel_height (FRAME_DISPLAY_INFO (f));
 
       block_input ();
       GetCursorPos (&pt);
@@ -6038,7 +6019,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
-  frame = x_create_tip_frame (FRAME_W32_DISPLAY_INFO (f), parms, string);
+  frame = x_create_tip_frame (FRAME_DISPLAY_INFO (f), parms, string);
   f = XFRAME (frame);
 
   /* Set up the frame's root window.  */
@@ -6062,7 +6043,7 @@ Text larger than the specified size is clipped.  */)
     }
 
   FRAME_TOTAL_COLS (f) = WINDOW_TOTAL_COLS (w);
-  adjust_glyphs (f);
+  adjust_frame_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
@@ -6131,7 +6112,7 @@ Text larger than the specified size is clipped.  */)
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
       w->total_cols = width;
       FRAME_TOTAL_COLS (f) = width;
-      adjust_glyphs (f);
+      adjust_frame_glyphs (f);
       w->pseudo_window_p = 1;
       clear_glyph_matrix (w->desired_matrix);
       clear_glyph_matrix (w->current_matrix);
@@ -7865,7 +7846,6 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
-  defsubr (&Sx_focus_frame);
 
   /* W32 specific functions */
 

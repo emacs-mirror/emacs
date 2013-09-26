@@ -229,7 +229,7 @@ See `tramp-actions-before-shell' for more info.")
     (insert-directory . tramp-smb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
-    ;; `make-auto-save-file-name' performed by default handler.
+    (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-smb-handle-make-directory)
     (make-directory-internal . tramp-smb-handle-make-directory-internal)
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
@@ -403,7 +403,7 @@ pass to the OPERATION."
 	       (port      (tramp-file-name-port v))
 	       (share     (tramp-smb-get-share v))
 	       (localname (file-name-as-directory
-			   (replace-regexp-in-string
+			   (tramp-compat-replace-regexp-in-string
 			    "\\\\" "/" (tramp-smb-get-localname v))))
 	       (tmpdir    (make-temp-name
 			   (expand-file-name
@@ -537,7 +537,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (unless (tramp-smb-send-command
 		     v (format "put \"%s\" \"%s\""
 			       filename (tramp-smb-get-localname v)))
-	      (tramp-error v 'file-error "Cannot copy `%s'" filename))))))
+	      (tramp-error
+	       v 'file-error "Cannot copy `%s' to `%s'" filename newname))))))
 
     ;; KEEP-DATE handling.
     (when keep-date
@@ -1151,7 +1152,8 @@ target of the symlink differ."
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Renaming %s to %s" filename newname)
 
-    (if (and (tramp-equal-remote filename newname)
+    (if (and (not (file-exists-p newname))
+	     (tramp-equal-remote filename newname)
 	     (string-equal
 	      (tramp-smb-get-share (tramp-dissect-file-name filename))
 	      (tramp-smb-get-share (tramp-dissect-file-name newname))))
@@ -1364,14 +1366,14 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 	      (while (not (eobp))
 		(setq entry (tramp-smb-read-file-entry share))
 		(forward-line)
-		(when entry (pushnew entry res :test #'equal))))
+		(when entry (push entry res))))
 
 	    ;; Cache share entries.
 	    (unless share
 	      (tramp-set-connection-property v "share-cache" res)))
 
 	  ;; Add directory itself.
-	  (pushnew '("" "drwxrwxrwx" 0 (0 0)) res :test #'equal)
+	  (push '("" "drwxrwxrwx" 0 (0 0)) res)
 
 	  ;; There's a very strange error (debugged with XEmacs 21.4.14)
 	  ;; If there's no short delay, it returns nil.  No idea about.
@@ -1564,7 +1566,7 @@ Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason.
 If ARGUMENT is non-nil, use it as argument for
 `tramp-smb-winexe-program', and suppress any checks."
-  (tramp-check-proper-host vec)
+  (tramp-check-proper-method-and-host vec)
 
   (let* ((share (tramp-smb-get-share vec))
 	 (buf (tramp-get-connection-buffer vec))
@@ -1719,11 +1721,15 @@ If ARGUMENT is non-nil, use it as argument for
 		(error
 		 (with-current-buffer (tramp-get-connection-buffer vec)
 		   (goto-char (point-min))
-		   (if (search-forward-regexp
-			tramp-smb-wrong-passwd-regexp nil t)
+		   (if (and (boundp 'auth-sources)
+			    (symbol-value 'auth-sources)
+			    (search-forward-regexp
+			     tramp-smb-wrong-passwd-regexp nil t))
 		       ;; Disable `auth-source' and `password-cache'.
+		       (tramp-message
+			vec 3 "Retry connection with new password")
 		       (let (auth-sources)
-			 (tramp-cleanup vec)
+			 (tramp-cleanup-connection vec t)
 			 (tramp-smb-maybe-open-connection vec argument))
 		     ;; Propagate the error.
 		     (signal (car err) (cdr err)))))))))))))

@@ -1,3 +1,129 @@
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (image-size): Declare.
+
+2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-icalendar.el (gnus-icalendar-event--find-attendee)
+	(gnus-icalendar-event-from-ical)
+	(gnus-icalendar-event--build-reply-event-body)
+	(gnus-icalendar-event-reply-from-buffer)
+	(gnus-icalendar-find-org-event-file)
+	(gnus-icalendar-event->gnus-calendar, gnus-icalendar-reply)
+	(gnus-icalendar-mm-inline): Use gmm-labels instead of labels or flet.
+
+	* mm-util.el (mm-special-display-p): Isolate XEmacs stuff.
+
+2013-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-salt.el (gnus-tree-mode): Use define-derived-mode.
+	Use save-current-buffer.
+	(gnus-tree-mode-map): Initialize in the declaration.
+	(gnus-pick-mouse-pick-region): Remove unused var `fun'.
+	(scroll-in-place): Defvar it.
+	(gnus-tmp-*): Defvar them.
+	(gnus-get-tree-buffer): Use derived-mode-p.
+	(gnus--let-eval): New macro.
+	(gnus-tree-highlight-node): Use it to avoid dynamic binding of
+	non-prefixed variables.
+	(gnus-tree-open, gnus-tree-close): Remove unused arg `group'.
+
+	* gnus-sum.el (gnus-summary-highlight): Remove `below' from the list of
+	vars since it doesn't seem to be available.
+	(gnus-set-global-variables, gnus-summary-read-group-1)
+	(gnus-select-newsgroup, gnus-handle-ephemeral-exit)
+	(gnus-summary-display-article, gnus-summary-select-article)
+	(gnus-summary-next-article, gnus-offer-save-summaries)
+	(gnus-summary-generic-mark): Use derived-mode-p.
+	(gnus-summary-read-group-1, gnus-summary-exit)
+	(gnus-summary-exit-no-update, gnus-kill-or-deaden-summary):
+	Adjust calls to gnus-tree-close and gnus-tree-open.
+
+	* gnus-eform.el (gnus-edit-form-mode): Use define-derived-mode.
+
+	* gnus-agent.el (gnus-category-mode): Use define-derived-mode.
+	(gnus-agent-mode): Use derived-mode-p.
+	(gnus-agent-rename-group, gnus-agent-delete-group): Don't bind
+	gnus-command-method and *-command-method to nil, but bind
+	gnus-command-method to *-command-method instead!
+	(gnus-agent-fetch-articles): Remove unused var `id'.
+	(gnus-agent-fetch-headers): Remove unused arg `force'.
+	(gnus-agent-braid-nov): Remove unused arg `group'.  Adjust callers.
+	(gnus-agent-save-alist, gnus-agent-save-local): Remove unused `item'.
+	(gnus-agent-short-article, gnus-agent-long-article)
+	(gnus-agent-low-score, gnus-agent-high-score): Move declaration before
+	first use.
+	(gnus-agent-fetch-group-1): Remove unused vars `arts', `category',
+	`score-param'.
+	(gnus-tmp-name, gnus-tmp-groups): Defvar them.
+	(gnus-get-predicate): Push in front of the cache, rather than end.
+	(gnus-agent-expire-current-dirs, gnus-agent-expire-stats): Defvar them.
+	(gnus-agent-expire-group-1): Use push.  Don't abuse dyn-binding.
+	(gnus-agent-expire-unagentized-dirs): Don't rebind
+	gnus-agent-expire-current-dirs since the defvar silences the warning.
+	(gnus-agent-retrieve-headers): Remove unused var `cached-articles'.
+	(gnus-agent-regenerate-group): Remove unused vars `point' and `dl'.
+	(gnus-agent-regenerate): Simplify interactive spec and doc.
+
+2013-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-int.el (gnus-open-server): Silence compiler.
+
+	* mm-decode.el (mm-add-meta-html-tag): Fix regexp matching meta tag.
+
+	* message.el (message-display-completion-list): Abolish.
+	(message-completion-in-region): Use display-completion-list.
+
+2013-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (gnus-message-with-timestamp-1):
+	Use `messages-buffer' function if available.  Ignore read-only.
+
+2013-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-expand-group, message-completion-in-region):
+	Correct the order of start and end of a region.
+
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* mml2015.el (gnus-create-image): Autoload it.
+
+	* gnus-spec.el (gnus-xmas-format): Fix weird error call.
+
+	* gnus-html.el (declare-function): Add compat stub for ancient Emacs.
+	(image-size): Declare.
+
+2013-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-icalendar.el (gnus-icalendar-event--build-reply-event-body):
+	Avoid using `find', which i) might not be defined at runtime;
+	ii) does not work, since its default test is eql, not equal.
+	(gnus-mime-action-alist): Declare.
+
+2013-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* score-mode.el (gnus-score-mode-map): Move initialization
+	into declaration.
+	(gnus-score-mode): Use define-derived-mode.
+	* gnus-srvr.el (gnus-browse-mode): Use define-derived-mode.
+	* gnus-kill.el (gnus-kill-file-mode-map): Move initialization
+	into declaration.
+	(gnus-kill-file-mode): Use define-derived-mode.
+	(gnus-kill-file-edit-file, gnus-kill-file-enter-kill, gnus-kill):
+	Use derived-mode-p.
+	* gnus-group.el (gnus-group-mode): Use define-derived-mode.
+	(gnus-group-setup-buffer, gnus-group-name-at-point)
+	(gnus-group-make-web-group, gnus-group-enter-directory)
+	(gnus-group-suspend): Use derived-mode-p.
+	* gnus-cus.el (gnus-custom-mode): Use define-derived-mode.
+	* gnus-bookmark.el (gnus-bookmark-bmenu-mode): Use define-derived-mode.
+	* gnus-art.el (gnus-article-mode): Use define-derived-mode.
+	(gnus-article-setup-buffer, gnus-article-prepare)
+	(gnus-article-prepare-display, gnus-sticky-article)
+	(gnus-kill-sticky-article-buffer, gnus-kill-sticky-article-buffers)
+	(gnus-bind-safe-url-regexp, gnus-article-check-buffer)
+	(gnus-article-read-summary-keys): Use derived-mode-p.
+
 2013-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-temp-files-delete): Fix file deletion logic.
@@ -177,15 +303,15 @@
 2013-07-10  David Engster  <deng@randomsample.de>
 
 	* gnus-start.el (gnus-clean-old-newsrc): Always remove 'unexist' marks
-	if `gnus-newsrc-file-version' does not match `gnus-version'.  This
-	fixes a bug in Emacs trunk where the 'unexist' marks were always
+	if `gnus-newsrc-file-version' does not match `gnus-version'.
+	This fixes a bug in Emacs trunk where the 'unexist' marks were always
 	removed at startup because "Gnus v5.13" was considered smaller than "Ma
 	Gnus v0.03".
 
 2013-07-10  Tassilo Horn  <tsdh@gnu.org>
 
-	* gnus.el (gnus-summary-line-format): Reference
-	`gnus-user-date-format-alist' for the &user-date; format, not
+	* gnus.el (gnus-summary-line-format):
+	Reference `gnus-user-date-format-alist' for the &user-date; format, not
 	`gnus-summary-user-date-format-alist'.
 
 2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -467,7 +593,7 @@
 
 	* shr.el (shr-render-td): Support horizontal alignment.
 
-	* eww.el (eww-put-color): Removed.
+	* eww.el (eww-put-color): Remove.
 	(eww-colorize-region): Use `add-face-text-property'.
 
 	* shr.el (shr-add-font): Append face data, so that we get the correct
@@ -522,7 +648,7 @@
 
 2013-06-16  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* shr.el (shr-dom-to-xml): Fixed function call.
+	* shr.el (shr-dom-to-xml): Fix function call.
 
 	* eww.el (eww): New group.
 	(eww-header-line-format): New custom variable.
@@ -558,8 +684,8 @@
 	(auth-source-netrc-parse): Refactor and improve netrc parser to support
 	single-quoted strings and multiline entries.
 	(auth-source-netrc-parse-next-interesting)
-	(auth-source-netrc-parse-one, auth-source-netrc-parse-entries): New
-	functions to support parser.
+	(auth-source-netrc-parse-one, auth-source-netrc-parse-entries):
+	New functions to support parser.
 
 2013-06-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -707,8 +833,8 @@
 	* registry.el (initialize-instance, registry-lookup)
 	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
 	(registry-lookup-secondary-value, registry-search, registry-delete)
-	(registry-insert, registry-reindex, registry-size, registry-prune): Do
-	not wrap methods in `eval-and-compile'.  This breaks due to latest
+	(registry-insert, registry-reindex, registry-size, registry-prune):
+	Do not wrap methods in `eval-and-compile'.  This breaks due to latest
 	changes in EIEIO (introduction of eieio-core.el).
 
 2013-05-30  Glenn Morris  <rgm@gnu.org>
@@ -988,8 +1114,8 @@
 2013-03-26  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el: Major rewrite.  Cleaner separation between searches and group
-	management.  Marks are now shown in nnir summary buffers.  Rudimentary
-	support for real (i.e. not ephemeral) nnir groups.
+	management.  Marks are now shown in nnir summary buffers.
+	Rudimentary support for real (i.e. not ephemeral) nnir groups.
 	(gnus-summary-make-nnir-group): New function for initiating searches
 	from a summary buffer.
 
@@ -1018,8 +1144,8 @@
 2013-02-22  David Engster  <deng@randomsample.de>
 
 	* gnus-registry.el (gnus-registry-save): Provide class name when
-	calling `eieio-persistent-read' to avoid "unsafe call" warning.  Use
-	`condition-case' to stay compatible with older EIEIO versions which
+	calling `eieio-persistent-read' to avoid "unsafe call" warning.
+	Use `condition-case' to stay compatible with older EIEIO versions which
 	only accept one argument.
 
 2013-02-17  Daiki Ueno  <ueno@gnu.org>
@@ -5295,7 +5421,7 @@
 	a creation default, pass the whole port list down.  It will be
 	completed.
 
-	* auth-source.el (auth-source-search): Updated docs to talk about
+	* auth-source.el (auth-source-search): Update docs to talk about
 	multiple creation choices.
 	(auth-source-netrc-create): Accept a list as a value (from the search
 	parameters) and do completion on that list.  Keep a separate netrc line
@@ -5362,7 +5488,7 @@
 	(gnus-summary-exit): Kill the correct article buffer on exit from a
 	`C-d' group.
 
-	* gnus-start.el (gnus-use-backend-marks): Removed, since it duplicates
+	* gnus-start.el (gnus-use-backend-marks): Remove, since it duplicates
 	gnus-propagate-marks.
 
 	* gnus-sum.el (gnus-summary-exit-no-update): Restore the group conf
@@ -18399,7 +18525,7 @@
 
 2005-11-19  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-sum.el (gnus-fetch-old-headers): Updated docs to warn that
+	* gnus-sum.el (gnus-fetch-old-headers): Update docs to warn that
 	it can seriously impact performance as it bypasses the agent's
 	local caches.
 

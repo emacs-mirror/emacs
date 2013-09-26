@@ -67,21 +67,15 @@
        ["Exit" gnus-edit-form-exit t]))
     (gnus-run-hooks 'gnus-edit-form-menu-hook)))
 
-(defun gnus-edit-form-mode ()
+(define-derived-mode gnus-edit-form-mode fundamental-mode "Edit Form"
   "Major mode for editing forms.
 It is a slightly enhanced emacs-lisp-mode.
 
 \\{gnus-edit-form-mode-map}"
-  (interactive)
   (when (gnus-visual-p 'group-menu 'menu)
     (gnus-edit-form-make-menu-bar))
-  (kill-all-local-variables)
-  (setq major-mode 'gnus-edit-form-mode)
-  (setq mode-name "Edit Form")
-  (use-local-map gnus-edit-form-mode-map)
   (make-local-variable 'gnus-edit-form-done-function)
-  (make-local-variable 'gnus-prev-winconf)
-  (gnus-run-mode-hooks 'gnus-edit-form-mode-hook))
+  (make-local-variable 'gnus-prev-winconf))
 
 (defun gnus-edit-form (form documentation exit-func &optional layout)
   "Edit FORM in a new buffer.

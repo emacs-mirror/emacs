@@ -94,7 +94,9 @@ The value t means never ding, and `error' means only ding on wrong input."
     map)
   "Local keymap to use in Mult Puzzle.")
 
-(defun mpuz-mode ()
+
+
+(define-derived-mode mpuz-mode fundamental-mode "Mult Puzzle"
   "Multiplication puzzle mode.
 
 You have to guess which letters stand for which digits in the
@@ -106,13 +108,7 @@ then the digit.  Thus, to guess that A=3, type `A 3'.
 To leave the game to do other editing work, just switch buffers.
 Then you may resume the game with M-x mpuz.
 You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'mpuz-mode
-	mode-name  "Mult Puzzle"
-	tab-width 30)
-  (use-local-map mpuz-mode-map)
-  (run-mode-hooks 'mpuz-mode-hook))
+  (setq tab-width 30))
 
 
 ;; Some variables for statistics

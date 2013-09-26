@@ -28,6 +28,10 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'gnus-art)
@@ -437,6 +441,9 @@ Return a string with image data."
      ;; Aimed height
      (truncate (* gnus-max-image-proportion
                   (- (nth 3 edges) (nth 1 edges)))))))
+
+;; Behind display-graphic-p test.
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-html-put-image (data url &optional alt-text)
   "Put an image with DATA from URL and optional ALT-TEXT."

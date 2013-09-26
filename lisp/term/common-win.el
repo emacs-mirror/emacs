@@ -44,6 +44,10 @@ This variable is not used by the Nextstep port."
 (defvar ns-last-selected-text)		; ns-win.el
 (declare-function ns-set-pasteboard "ns-win" (string))
 
+(defvar x-select-enable-primary)	; x-win.el
+(defvar x-last-selected-text-primary)
+(defvar x-last-selected-text-clipboard)
+
 (defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
 

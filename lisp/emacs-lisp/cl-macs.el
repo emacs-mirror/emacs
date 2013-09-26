@@ -209,6 +209,8 @@ The name is made by appending a number to PREFIX, default \"G\"."
 (def-edebug-spec cl-&key-arg
   (&or ([&or (symbolp arg) arg] &optional def-form arg) arg))
 
+(def-edebug-spec cl-type-spec sexp)
+
 (defconst cl--lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
 
@@ -2701,8 +2703,10 @@ The function's arguments should be treated as immutable.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug cl-defun) (indent 2))
-  (let* ((argns (cl--arglist-args args)) (p argns)
-	 (pbody (cons 'progn body)))
+  (let* ((argns (cl--arglist-args args))
+         (p argns)
+         ;; (pbody (cons 'progn body))
+         )
     (while (and p (eq (cl--expr-contains args (car p)) 1)) (pop p))
     `(progn
        ,(if p nil   ; give up if defaults refer to earlier args

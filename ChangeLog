@@ -1,3 +1,87 @@
+2013-09-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-09-24 manywarnings: enable nicer gcc warning messages
+	2013-09-23 warnings: port --enable-gcc-warnings to Solaris Studio 12.3
+	2013-09-21 timespec: use the new TIMESPEC_RESOLUTION elsewhere
+	* configure.ac (WERROR_CFLAGS): Omit -fdiagnostics-show-option
+	and -funit-at-a-time, since manywarnings does that for us now.
+
+2013-09-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: With clang, check for and use -Wno-switch,
+	-Wno-tautological-constant-out-of-range-compare and -Wno-pointer-sign.
+
+2013-09-23  Daniel Colascione  <dancol@dancol.org>
+
+	* configure.ac: Check for valgrind headers.
+
+2013-09-20  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* INSTALL: New homepage of libtiff.
+
+2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around performance bug on OS X 10.8 and earlier.
+	Perhaps Apple will fix this bug some day.
+	See the thread starting with Daniel Colascione's email in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00343.html
+	* configure.ac (FORTIFY_SOUR): New verbatim section.
+
+2013-09-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-09-19 stdio: OS X port of putc_unlocked + extern inline
+	2013-09-19 signal: OS X port of sigaddset etc. + extern inline
+	2013-09-19 extern-inline: do not always suppress extern inline on OS X
+	2013-09-17 getgroups: statement without effect
+	2013-08-28 headers: check that _GL_INLINE_HEADER_BEGIN is defined
+
+2013-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac <srcdir> [MINGW32]: Make sure the value of 'srcdir'
+	is in the full /d/foo/bar form.  See the discussion in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00210.html,
+	and in particular
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00252.html
+	and its followups, for the details.
+
+2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac: Do not check for g_type_init because we
+	require glib >= 2.28 for GTK3, glib >= 2.10 for GTK2,
+	glib >= 2.26 for GSettings and glib >= 2.7.0 for GConf, so
+	suitable glib should provide g_type_init unconditionally.
+
+2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Add check for OSX 10.5, required for macfont.o.
+
+2013-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (LDFLAGS_NOCOMBRELOC): New variable.
+	(LDFLAGS): Move nocombreloc option from here...
+	(LD_SWITCH_SYSTEM_TEMACS): ... to here.
+
+2013-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (--without-compress-install):
+	Rename from --without-compress-info.  (Bug#9789)
+	(GZIP_INFO): Remove.
+	(GZIP_PROG): Allow --without-compress-install to disable it.
+	* Makefile.in (GZIP_INFO): Remove all references.
+
+	* info/dir: Tweak emacs-gnutls entry.
+
+2013-09-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --without-x --enable-gcc-warnings to Fedora 19.
+	* configure.ac (WERROR_CFLAGS): Omit redundant use of
+	-Wmissing-field-initializers, -Wswitch, -Wtype-limits,
+	-Wunused-parameter.  If there is no window system, also omit
+	-Wsuggest-attribute=const and -Wsuggest-attribute=noreturn; this
+	is needed for Fedora 19.
+
 2013-09-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Make --without-x compatible with --enable-gcc-warnings.

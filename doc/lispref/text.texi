@@ -3920,10 +3920,11 @@ between one interval and two.
   Insertion of text at the border between intervals also raises
 questions that have no satisfactory answer.
 
-  However, it is easy to arrange for editing to behave consistently for
-questions of the form, ``What are the properties of this character?''
-So we have decided these are the only questions that make sense; we have
-not implemented asking questions about where intervals start or end.
+  However, it is easy to arrange for editing to behave consistently
+for questions of the form, ``What are the properties of text at this
+buffer or string position?''  So we have decided these are the only
+questions that make sense; we have not implemented asking questions
+about where intervals start or end.
 
   In practice, you can usually use the text property search functions in
 place of explicit interval boundaries.  You can think of them as finding

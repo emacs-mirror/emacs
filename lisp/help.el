@@ -1,7 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -412,7 +411,7 @@ With argument, display info only for the selected version."
 The number of messages retained in that buffer
 is specified by the variable `message-log-max'."
   (interactive)
-  (with-current-buffer (get-buffer-create "*Messages*")
+  (with-current-buffer (messages-buffer)
     (goto-char (point-max))
     (display-buffer (current-buffer))))
 

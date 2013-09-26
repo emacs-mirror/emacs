@@ -267,7 +267,7 @@ specified by `erc-button-alist'."
             (inhibit-point-motion-hooks t)
             (inhibit-field-text-motion t)
             (alist erc-button-alist)
-            entry regexp data)
+            regexp)
         (erc-button-remove-old-buttons)
         (dolist (entry alist)
           (if (equal (car entry) (quote (quote nicknames)))
@@ -407,7 +407,7 @@ REGEXP is the regular expression which matched for this button."
 ;; Since Emacs runs this directly, rather than with
 ;; widget-button-click, we need to fake an extra arg in the
 ;; interactive spec.
-(defun erc-button-click-button (ignore event)
+(defun erc-button-click-button (_ignore event)
   "Call `erc-button-press-button'."
   (interactive "P\ne")
   (save-excursion
@@ -416,7 +416,7 @@ REGEXP is the regular expression which matched for this button."
 
 ;; XEmacs calls this via widget-button-press with a bunch of arguments
 ;; which we don't care about.
-(defun erc-button-press-button (&rest ignore)
+(defun erc-button-press-button (&rest _ignore)
   "Check text at point for a callback function.
 If the text at point has a `erc-callback' property,
 call it with the value of the `erc-data' text property."

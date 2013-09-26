@@ -1,4 +1,4 @@
-;;; eshell.el --- the Emacs command shell
+;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -300,7 +300,7 @@ buffer selected (or created)."
 		    (get-buffer-create eshell-buffer-name)))))
     (cl-assert (and buf (buffer-live-p buf)))
     (pop-to-buffer-same-window buf)
-    (unless (eq major-mode 'eshell-mode)
+    (unless (derived-mode-p 'eshell-mode)
       (eshell-mode))
     buf))
 

@@ -1,3 +1,30 @@
+2013-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode):
+	Remove unused local variable `erc-force-send'.
+
+2013-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-click-button, erc-button-press-button):
+	* erc-list.el (erc-list-handle-322):
+	Mark unused arguments.
+
+	* erc.el (erc-open-server-buffer-p): Actually use the `buffer' arg.
+	* erc-backend.el (erc-server-process-alive): Take optional `buffer' arg.
+
+2013-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-add-buttons): Remove unused local vars.
+
+2013-09-14  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc.el (erc-update-mode-line-buffer):
+	Handle absent topic.  (Bug#15377)
+
+2013-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (dbus-debug): Declare.
+
 2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el: Use lexical-binding.

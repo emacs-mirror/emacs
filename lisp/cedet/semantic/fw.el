@@ -321,6 +321,15 @@ Avoid using a large BODY since it is duplicated."
 
 ;;; Misc utilities
 ;;
+
+(defvar semantic-new-buffer-fcn-was-run nil
+  "Non-nil after `semantic-new-buffer-fcn' has been executed.")
+(make-variable-buffer-local 'semantic-new-buffer-fcn-was-run)
+
+(defsubst semantic-active-p ()
+  "Return non-nil if the current buffer was set up for parsing."
+  semantic-new-buffer-fcn-was-run)
+
 (defsubst semantic-map-buffers (function)
   "Run FUNCTION for each Semantic enabled buffer found.
 FUNCTION does not have arguments.  When FUNCTION is entered

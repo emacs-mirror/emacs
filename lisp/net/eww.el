@@ -197,7 +197,12 @@ word(s) will be searched for via `eww-search-prefix'."
 	      "[\t\n\r ]*<\\?xml[\t\n\r ]+[^>]*encoding=\"\\([^\"]+\\)")
 	     (match-string 1)))))
 
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url))
+
 (defun eww-display-html (charset url)
+  (or (fboundp 'libxml-parse-html-region)
+      (error "This function requires Emacs to be compiled with libxml2"))
   (unless (eq charset 'utf8)
     (condition-case nil
 	(decode-coding-region (point) (point-max) charset)

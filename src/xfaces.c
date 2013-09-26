@@ -211,13 +211,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "termhooks.h"
 
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
 #include <Xm/XmStrDefs.h>
 #endif /* USE_MOTIF */
-#endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
 #include "dosfns.h"
@@ -227,15 +224,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #include "fontset.h"
 #ifdef HAVE_NTGUI
-#undef FRAME_X_DISPLAY_INFO
-#define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
 #define GCGraphicsExposures 0
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-#undef FRAME_X_DISPLAY_INFO
-#define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
 
@@ -549,7 +542,7 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
 void
 x_free_colors (struct frame *f, long unsigned int *pixels, int npixels)
 {
-  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
+  int class = FRAME_DISPLAY_INFO (f)->visual->class;
 
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
@@ -770,7 +763,7 @@ clear_face_cache (int clear_fonts_p)
 	{
 	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f)
-	      && FRAME_X_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
+	      && FRAME_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
 	    {
 	      clear_font_cache (f);
 	      free_all_realized_faces (frame);
@@ -1572,7 +1565,7 @@ the face font sort order.  */)
   vec = Fvconcat (ndrivers, drivers);
   nfonts = ASIZE (vec);
 
-  qsort (XVECTOR (vec)->contents, nfonts, word_size,
+  qsort (XVECTOR (vec)->u.contents, nfonts, word_size,
 	 compare_fonts_by_sort_order);
 
   result = Qnil;
@@ -1837,7 +1830,7 @@ check_lface (Lisp_Object lface)
   if (!NILP (lface))
     {
       eassert (LFACEP (lface));
-      check_lface_attrs (XVECTOR (lface)->contents);
+      check_lface_attrs (XVECTOR (lface)->u.contents);
     }
 }
 
@@ -2014,7 +2007,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name,
   lface = lface_from_face_name_no_resolve (f, face_name, signal_p);
 
   if (! NILP (lface))
-    memcpy (attrs, XVECTOR (lface)->contents,
+    memcpy (attrs, XVECTOR (lface)->u.contents,
 	    LFACE_VECTOR_SIZE * sizeof *attrs);
 
   return !NILP (lface);
@@ -2697,7 +2690,7 @@ The value is TO.  */)
       copy = Finternal_make_lisp_face (to, new_frame);
     }
 
-  vcopy (copy, 0, XVECTOR (lface)->contents, LFACE_VECTOR_SIZE);
+  vcopy (copy, 0, XVECTOR (lface)->u.contents, LFACE_VECTOR_SIZE);
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
@@ -3100,7 +3093,7 @@ FRAME 0 means change the face on all frames, and change the default
 		f = XFRAME (frame);
 	      if (! FONT_OBJECT_P (value))
 		{
-		  Lisp_Object *attrs = XVECTOR (lface)->contents;
+		  Lisp_Object *attrs = XVECTOR (lface)->u.contents;
 		  Lisp_Object font_object;
 
 		  font_object = font_load_for_lface (f, attrs, value);
@@ -3168,7 +3161,7 @@ FRAME 0 means change the face on all frames, and change the default
 	 the font to nil so that the font selector doesn't think that
 	 the attribute is mandatory.  Also, clear the average
 	 width.  */
-      font_clear_prop (XVECTOR (lface)->contents, prop_index);
+      font_clear_prop (XVECTOR (lface)->u.contents, prop_index);
     }
 
   /* Changing a named face means that all realized faces depending on
@@ -3198,7 +3191,7 @@ FRAME 0 means change the face on all frames, and change the default
 	     reflected in changed `font' frame parameters. */
 	  if (FRAMEP (frame)
 	      && (prop_index || EQ (attr, QCfont))
-	      && lface_fully_specified_p (XVECTOR (lface)->contents))
+	      && lface_fully_specified_p (XVECTOR (lface)->u.contents))
 	    set_font_frame_param (frame, lface);
 	  else
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -3378,7 +3371,7 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
     {
       if (FONT_SPEC_P (font))
 	{
-	  font = font_load_for_lface (f, XVECTOR (lface)->contents, font);
+	  font = font_load_for_lface (f, XVECTOR (lface)->u.contents, font);
 	  if (NILP (font))
 	    return;
 	  ASET (lface, LFACE_FONT_INDEX, font);
@@ -3403,7 +3396,7 @@ ordinary `x-get-resource' doesn't take a frame argument.  */)
   CHECK_STRING (class);
   f = decode_live_frame (frame);
   block_input ();
-  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (f),
+  value = display_x_get_resource (FRAME_DISPLAY_INFO (f),
 				  resource, class, Qnil, Qnil);
   unblock_input ();
   return value;
@@ -3493,7 +3486,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
 static void
 x_update_menu_appearance (struct frame *f)
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   XrmDatabase rdb;
 
   if (dpyinfo
@@ -3735,8 +3728,8 @@ Default face attributes override any local face attributes.  */)
      the local frame is defined from default specs in `face-defface-spec'
      and those should be overridden by global settings.  Hence the strange
      "global before local" priority.  */
-  lvec = XVECTOR (local_lface)->contents;
-  gvec = XVECTOR (global_lface)->contents;
+  lvec = XVECTOR (local_lface)->u.contents;
+  gvec = XVECTOR (global_lface)->u.contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (IGNORE_DEFFACE_P (gvec[i]))
       ASET (local_lface, i, Qunspecified);
@@ -3920,8 +3913,8 @@ If FRAME is omitted or nil, use the selected frame.  */)
 
   lface1 = lface_from_face_name (f, face1, 1);
   lface2 = lface_from_face_name (f, face2, 1);
-  equal_p = lface_equal_p (XVECTOR (lface1)->contents,
-			   XVECTOR (lface2)->contents);
+  equal_p = lface_equal_p (XVECTOR (lface1)->u.contents,
+			   XVECTOR (lface2)->u.contents);
   return equal_p ? Qt : Qnil;
 }
 
@@ -4658,7 +4651,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
   Lisp_Object lface;
   lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 			Qunspecified);
-  merge_face_ref (XFRAME (selected_frame), plist, XVECTOR (lface)->contents,
+  merge_face_ref (XFRAME (selected_frame), plist, XVECTOR (lface)->u.contents,
 		  1, 0);
   return lface;
 }
@@ -5338,9 +5331,9 @@ realize_default_face (struct frame *f)
     ASET (lface, LFACE_STIPPLE_INDEX, Qnil);
 
   /* Realize the face; it must be fully-specified now.  */
-  eassert (lface_fully_specified_p (XVECTOR (lface)->contents));
+  eassert (lface_fully_specified_p (XVECTOR (lface)->u.contents));
   check_lface (lface);
-  memcpy (attrs, XVECTOR (lface)->contents, sizeof attrs);
+  memcpy (attrs, XVECTOR (lface)->u.contents, sizeof attrs);
   face = realize_face (c, attrs, DEFAULT_FACE_ID);
 
 #ifdef HAVE_WINDOW_SYSTEM

@@ -154,7 +154,7 @@ struct font_driver xfont_driver =
 static Lisp_Object
 xfont_get_cache (struct frame *f)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   return (dpyinfo->name_list_element);
 }
@@ -384,7 +384,7 @@ xfont_list_pattern (Display *display, const char *pattern,
   if (num_fonts > 0)
     {
       char **indices = alloca (sizeof (char *) * num_fonts);
-      Lisp_Object *props = XVECTOR (xfont_scratch_props)->contents;
+      Lisp_Object *props = XVECTOR (xfont_scratch_props)->u.contents;
       Lisp_Object scripts = Qnil;
 
       for (i = 0; i < ASIZE (xfont_scratch_props); i++)
@@ -488,7 +488,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 static Lisp_Object
 xfont_list (struct frame *f, Lisp_Object spec)
 {
-  Display *display = FRAME_X_DISPLAY_INFO (f)->display;
+  Display *display = FRAME_DISPLAY_INFO (f)->display;
   Lisp_Object registry, list, val, extra, script;
   int len;
   /* Large enough to contain the longest XLFD (255 bytes) in UTF-8.  */
@@ -566,7 +566,7 @@ xfont_list (struct frame *f, Lisp_Object spec)
 static Lisp_Object
 xfont_match (struct frame *f, Lisp_Object spec)
 {
-  Display *display = FRAME_X_DISPLAY_INFO (f)->display;
+  Display *display = FRAME_DISPLAY_INFO (f)->display;
   Lisp_Object extra, val, entity;
   char name[512];
   XFontStruct *xfont;
@@ -620,7 +620,7 @@ xfont_match (struct frame *f, Lisp_Object spec)
 static Lisp_Object
 xfont_list_family (struct frame *f)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   char **names;
   int num_fonts, i;
   Lisp_Object list;
@@ -676,7 +676,7 @@ xfont_list_family (struct frame *f)
 static Lisp_Object
 xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
   char name[512];
   int len;

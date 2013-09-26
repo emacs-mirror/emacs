@@ -599,6 +599,7 @@ the buffer and commit the change, together with your log entry.
 @cindex Log Edit mode
 @cindex mode, Log Edit
 @vindex vc-log-mode-hook
+@c FIXME: Mention log-edit-mode-hook here?  --xfq
   The major mode for the @file{*vc-log*} buffer is Log Edit mode, a
 variant of Text mode (@pxref{Text Mode}).  On entering Log Edit mode,
 Emacs runs the hooks @code{text-mode-hook} and @code{vc-log-mode-hook}
@@ -652,7 +653,7 @@ opposite way of working---generating ChangeLog entries from the Log
 Edit buffer.
 @end ifnottex
 
-  To abort a commit, just @strong{don't} type @kbd{C-c C-c} in that
+  To abort a commit, just @emph{don't} type @kbd{C-c C-c} in that
 buffer.  You can switch buffers and do other editing.  As long as you
 don't try to make another commit, the entry you were editing remains
 in the @file{*vc-log*} buffer, and you can go back to that buffer at
@@ -1242,7 +1243,7 @@ Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
 
   The VC Directory buffer also defines some single-key shortcuts for
 VC commands with the @kbd{C-x v} prefix: @kbd{=}, @kbd{+}, @kbd{l},
-@kbd{i}, @kbd{D}, @kbd{L}, @kbd{G} and @kbd{v}.
+@kbd{i}, @kbd{D}, @kbd{L}, @kbd{G}, @kbd{I} and @kbd{v}.
 
   For example, you can commit a set of edited files by opening a VC
 Directory buffer, where the files are listed with the @samp{edited}

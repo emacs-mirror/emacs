@@ -86,7 +86,7 @@ rpl_getgroups (int n, gid_t *group)
         }
       saved_errno = errno;
       free (gbuf);
-      errno == saved_errno;
+      errno = saved_errno;
       return result;
     }
 

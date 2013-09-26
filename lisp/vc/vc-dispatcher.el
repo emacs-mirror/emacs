@@ -398,6 +398,8 @@ Display the buffer in some window, but don't select it."
     (set (make-local-variable 'compilation-error-regexp-alist)
 	 error-regexp-alist)))
 
+(declare-function vc-dir-refresh "vc-dir" ())
+
 (defun vc-set-async-update (process-buffer)
   "Set a `vc-exec-after' action appropriate to the current buffer.
 This action will update the current buffer after the current

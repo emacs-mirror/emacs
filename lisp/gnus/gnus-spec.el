@@ -512,7 +512,8 @@ are supported for %s."
 	  (delete-char -1))
 	 (t
 	  (if (null args)
-	      (error 'wrong-number-of-arguments #'my-format n fstring))
+	      (signal 'wrong-number-of-arguments
+		      (list #'gnus-xmas-format n fstring)))
 	  (let* ((minlen (string-to-number (or (match-string 2) "")))
 		 (arg (car args))
 		 (str (if (stringp arg) arg (format "%s" arg)))
