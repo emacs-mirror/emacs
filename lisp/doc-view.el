@@ -405,7 +405,11 @@ Typically \"page-%s.png\".")
     (define-key map (kbd "RET")       'image-next-line)
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
+    (define-key map "="               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
+    (define-key map [remap text-scale-adjust] 'doc-view-enlarge)
+    (define-key map (kbd "C-x C--")   'doc-view-shrink)
+    (define-key map (kbd "C-x C-0")   'doc-view-reset-zoom-level)
     ;; Fit the image to the window
     (define-key map "W"               'doc-view-fit-width-to-window)
     (define-key map "H"               'doc-view-fit-height-to-window)
@@ -752,6 +756,20 @@ OpenDocument format)."
   "Shrink the document."
   (interactive (list doc-view-shrink-factor))
   (doc-view-enlarge (/ 1.0 factor)))
+
+(defun doc-view-reset-zoom-level ()
+  "Reset the document size/zoom level to the initial one."
+  (interactive)
+  (if (and doc-view-scale-internally
+           (eq (plist-get (cdr (doc-view-current-image)) :type)
+               'imagemagick))
+      (progn
+	(kill-local-variable 'doc-view-image-width)
+	(doc-view-insert-image
+	 (plist-get (cdr (doc-view-current-image)) :file)
+	 :width doc-view-image-width))
+    (kill-local-variable 'doc-view-resolution)
+    (doc-view-reconvert-doc)))
 
 (defun doc-view-fit-width-to-window ()
   "Fit the image width to the window width."

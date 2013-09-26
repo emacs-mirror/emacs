@@ -1,3 +1,9 @@
+2013-09-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-reset-zoom-level): New command.
+	(doc-view-mode-map): Remap text-scale-adjust bindings to doc-view
+	zoom commands (bug#15466).
+
 2013-09-26  Kenichi Handa  <handa@gnu.org>
 
 	* international/quail.el (quail-help): Make it not a command.
