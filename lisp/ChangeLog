@@ -1,3 +1,8 @@
+2013-09-26  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuffer.el (completion-all-sorted-completions): Make args
+	optional as they are.
+
 2013-09-25  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/cl-macs.el (cl-type-spec): Tell edebug what type
