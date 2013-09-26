@@ -1094,7 +1094,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    ccl_prog_stack_struct[stack_idx].ic = ic;
 	    ccl_prog_stack_struct[stack_idx].eof_ic = eof_ic;
 	    stack_idx++;
-	    ccl_prog = XVECTOR (AREF (slot, 1))->contents;
+	    ccl_prog = XVECTOR (AREF (slot, 1))->u.contents;
 	    ic = CCL_HEADER_MAIN;
 	    eof_ic = XFASTINT (ccl_prog[CCL_HEADER_EOF]);
 	  }
@@ -1936,9 +1936,9 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 	return -1;
       vp = XVECTOR (ccl_prog);
       ccl->size = vp->header.size;
-      ccl->prog = vp->contents;
-      ccl->eof_ic = XINT (vp->contents[CCL_HEADER_EOF]);
-      ccl->buf_magnification = XINT (vp->contents[CCL_HEADER_BUF_MAG]);
+      ccl->prog = vp->u.contents;
+      ccl->eof_ic = XINT (vp->u.contents[CCL_HEADER_EOF]);
+      ccl->buf_magnification = XINT (vp->u.contents[CCL_HEADER_BUF_MAG]);
       if (ccl->idx >= 0)
 	{
 	  Lisp_Object slot;

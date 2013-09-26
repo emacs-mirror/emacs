@@ -4341,7 +4341,7 @@ decode_timer (Lisp_Object timer, struct timespec *result)
 
   if (! (VECTORP (timer) && ASIZE (timer) == 9))
     return 0;
-  vector = XVECTOR (timer)->contents;
+  vector = XVECTOR (timer)->u.contents;
   if (! NILP (vector[0]))
     return 0;
 
@@ -7998,7 +7998,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 	 discard any previously made item.  */
       for (i = 0; i < ntool_bar_items; i += TOOL_BAR_ITEM_NSLOTS)
 	{
-	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->contents + i;
+	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->u.contents + i;
 
 	  if (EQ (key, v[TOOL_BAR_ITEM_KEY]))
 	    {
@@ -8322,7 +8322,7 @@ append_tool_bar_item (void)
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
   vcopy (tool_bar_items_vector, ntool_bar_items,
-	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
+	 XVECTOR (tool_bar_item_properties)->u.contents, TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
@@ -9919,7 +9919,7 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
        doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
   (void)
 {
-  Lisp_Object *keys = XVECTOR (recent_keys)->contents;
+  Lisp_Object *keys = XVECTOR (recent_keys)->u.contents;
   Lisp_Object val;
 
   if (total_keys < NUM_RECENT_KEYS)
@@ -9945,7 +9945,7 @@ See also `this-command-keys-vector'.  */)
   (void)
 {
   return make_event_array (this_command_key_count,
-			   XVECTOR (this_command_keys)->contents);
+			   XVECTOR (this_command_keys)->u.contents);
 }
 
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
@@ -9957,7 +9957,7 @@ See also `this-command-keys'.  */)
   (void)
 {
   return Fvector (this_command_key_count,
-		  XVECTOR (this_command_keys)->contents);
+		  XVECTOR (this_command_keys)->u.contents);
 }
 
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,
@@ -9972,7 +9972,7 @@ The value is always a vector.  */)
 {
   return Fvector (this_command_key_count
 		  - this_single_command_key_start,
-		  (XVECTOR (this_command_keys)->contents
+		  (XVECTOR (this_command_keys)->u.contents
 		   + this_single_command_key_start));
 }
 
@@ -9986,8 +9986,7 @@ shows the events before all translations (except for input methods).
 The value is always a vector.  */)
   (void)
 {
-  return Fvector (raw_keybuf_count,
-		  (XVECTOR (raw_keybuf)->contents));
+  return Fvector (raw_keybuf_count, XVECTOR (raw_keybuf)->u.contents);
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,

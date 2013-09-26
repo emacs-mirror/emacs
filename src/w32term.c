@@ -3981,7 +3981,6 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 
   {
     int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
-    struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
     int y;
     int dragging = !NILP (bar->dragging);
     SCROLLINFO si;

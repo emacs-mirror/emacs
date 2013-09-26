@@ -506,7 +506,7 @@ Remaining arguments are ignored."
 ;; a (autoload 'vc-sccs-search-project-dir "vc-sccs") which would not
 ;; help us avoid loading vc-sccs.
 ;;;###autoload
-(progn (defun vc-sccs-search-project-dir (dirname basename)
+(progn (defun vc-sccs-search-project-dir (_dirname basename)
   "Return the name of a master file in the SCCS project directory.
 Does not check whether the file exists but returns nil if it does not
 find any project directory."

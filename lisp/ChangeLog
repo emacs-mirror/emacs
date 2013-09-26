@@ -1,3 +1,40 @@
+2013-09-26  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuffer.el (completion-all-sorted-completions): Make args
+	optional as they are.
+
+2013-09-25  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl-type-spec): Tell edebug what type
+	specs are and that they're not evaluated.
+
+2013-09-24  Sam Steingold  <sds@gnu.org>
+
+	* midnight.el (clean-buffer-list-kill-regexps)
+	(clean-buffer-list-kill-buffer-names): Update for the new Man
+	buffer naming which includes the object name.
+
+2013-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell--sep-terms): New var.
+	(eshell-parse-command, eshell-parse-pipeline): Use it since
+	eshell-separate-commands requires a dynamic scoped var.
+	Reported by Jan Moringen <jmoringe@techfak.uni-bielefeld.de>.
+
+2013-09-23  Leo Liu  <sdl.web@gmail.com>
+
+	* autoinsert.el (auto-insert-alist): Make the value of
+	lexical-binding match its file setting.
+
+2013-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-sccs.el (vc-sccs-search-project-dir): Mark unused argument.
+
+	* autoarg.el (autoarg-kp-digit-argument):
+	* electric.el (Electric-command-loop):
+	* kmacro.el (kmacro-step-edit-insert):
+	Do not set universal-argument-num-events.
+
 2013-09-22  Leo Liu  <sdl.web@gmail.com>
 
 	* files.el (interpreter-mode-alist): Add octave.

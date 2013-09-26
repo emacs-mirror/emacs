@@ -5401,7 +5401,7 @@ struct saved_window
 };
 
 #define SAVED_WINDOW_N(swv,n) \
-  ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
+  ((struct saved_window *) (XVECTOR ((swv)->u.contents[(n)])))
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a window-configuration object.  */)
@@ -6505,7 +6505,6 @@ init_window_once (void)
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;
   selected_window = f->selected_window;
-  last_nonminibuf_frame = f;
 
   window_initialized = 1;
 }

@@ -526,7 +526,7 @@ static NSSet
       }
 
     if (NSFONT_TRACE)
-	NSLog(@"    returning %d families", [families count]);
+      NSLog(@"    returning %lu families", (unsigned long)[families count]);
     return families;
 }
 
@@ -564,8 +564,8 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
 
     if (NSFONT_TRACE)
-	NSLog(@"Got desc %@ and found %d matching fonts from it: ", fdesc,
-	      [matchingDescs count]);
+	NSLog(@"Got desc %@ and found %lu matching fonts from it: ", fdesc,
+	      (unsigned long)[matchingDescs count]);
 
     for (dEnum = [matchingDescs objectEnumerator]; (desc = [dEnum nextObject]);)
       {
@@ -1249,7 +1249,9 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     CGContextSaveGState (gcontext);
 
-    fliptf.c =  font->synthItal ? Fix2X (kATSItalicQDSkew) : 0.0;
+    // Used to be Fix2X (kATSItalicQDSkew), but Fix2X is deprecated
+    // and kATSItalicQDSkew is 0.25.
+    fliptf.c =  font->synthItal ? 0.25 : 0.0;
 
     CGContextSetFont (gcontext, font->cgfont);
     CGContextSetFontSize (gcontext, font->size);

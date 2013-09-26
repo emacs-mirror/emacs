@@ -787,10 +787,28 @@ AC_DEFUN([gl_GCC_VERSION_IFELSE],
   ]
 )
 
+# clang is unduly picky about some things.
+AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[
+	  #ifndef __clang__
+	    #error "not clang"
+	  #endif
+        ]])],
+     [emacs_cv_clang=yes],
+     [emacs_cv_clang=no])])
+
 # When compiling with GCC, prefer -isystem to -I when including system
 # include files, to avoid generating useless diagnostics for the files.
 if test "$gl_gcc_warnings" != yes; then
   isystem='-I'
+  if test "$emacs_cv_clang" = yes
+  then
+     # Turn off some warnings if supported.
+     gl_WARN_ADD([-Wno-switch])
+     gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
+     gl_WARN_ADD([-Wno-pointer-sign])
+  fi
 else
   isystem='-isystem '
 
@@ -840,16 +858,6 @@ else
   nw="$nw -Wtype-limits"
   nw="$nw -Wunused-parameter"
 
-  # clang is unduly picky about some things.
-  AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
-    [AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM([[
-	    #ifndef __clang__
-	      #error "not clang"
-	    #endif
-          ]])],
-       [emacs_cv_clang=yes],
-       [emacs_cv_clang=no])])
   if test $emacs_cv_clang = yes; then
     nw="$nw -Wcast-align"
   fi
@@ -877,9 +885,6 @@ else
     gl_WARN_ADD([-Wno-unused-command-line-argument])
     gl_WARN_ADD([-Wno-unused-value])
   fi
-
-  gl_WARN_ADD([-fdiagnostics-show-option])
-  gl_WARN_ADD([-funit-at-a-time])
 
   AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
   AH_VERBATIM([FORTIFY_SOURCE],
@@ -3695,6 +3700,8 @@ AC_SUBST(CRYPTOLIB)
 AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
+
+AC_CHECK_HEADERS(valgrind/valgrind.h)
 
 AC_CHECK_FUNCS_ONCE(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)

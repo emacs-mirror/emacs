@@ -1136,12 +1136,19 @@ struct vectorlike_header
     ptrdiff_t size;
   };
 
-/* Regular vector is just a header plus array of Lisp_Objects.  */
+/* Regular vector is just a header plus array of Lisp_Objects...  */
 
 struct Lisp_Vector
   {
     struct vectorlike_header header;
-    Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
+    union {
+      /* ...but sometimes there is also a pointer internally used in
+	 vector allocation code.  Usually you don't want to touch this.  */
+      struct Lisp_Vector *next;
+      
+      /* We can't use FLEXIBLE_ARRAY_MEMBER here.  */
+      Lisp_Object contents[1]; 
+    } u;
   };
 
 /* A boolvector is a kind of vectorlike, with contents are like a string.  */
@@ -1162,7 +1169,7 @@ struct Lisp_Bool_Vector
 
 enum
   {
-    header_size = offsetof (struct Lisp_Vector, contents),
+    header_size = offsetof (struct Lisp_Vector, u.contents),
     bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
     word_size = sizeof (Lisp_Object)
   };
@@ -1172,13 +1179,13 @@ enum
 INLINE Lisp_Object
 AREF (Lisp_Object array, ptrdiff_t idx)
 {
-  return XVECTOR (array)->contents[idx];
+  return XVECTOR (array)->u.contents[idx];
 }
 
 INLINE Lisp_Object *
 aref_addr (Lisp_Object array, ptrdiff_t idx)
 {
-  return & XVECTOR (array)->contents[idx];
+  return & XVECTOR (array)->u.contents[idx];
 }
 
 INLINE ptrdiff_t
@@ -1191,7 +1198,7 @@ INLINE void
 ASET (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < ASIZE (array));
-  XVECTOR (array)->contents[idx] = val;
+  XVECTOR (array)->u.contents[idx] = val;
 }
 
 INLINE void
@@ -1200,7 +1207,7 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
   /* Like ASET, but also can be used in the garbage collector:
      sweep_weak_table calls set_hash_key etc. while the table is marked.  */
   eassert (0 <= idx && idx < (ASIZE (array) & ~ARRAY_MARK_FLAG));
-  XVECTOR (array)->contents[idx] = val;
+  XVECTOR (array)->u.contents[idx] = val;
 }
 
 /* If a struct is made to look like a vector, this macro returns the length
@@ -3028,7 +3035,7 @@ INLINE void
 vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
 {
   eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
-  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
+  memcpy (XVECTOR (v)->u.contents + offset, args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */
@@ -3359,7 +3366,6 @@ extern void syms_of_insdel (void);
      && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
 _Noreturn void __executable_start (void);
 #endif
-extern Lisp_Object selected_frame;
 extern Lisp_Object Vwindow_system;
 extern Lisp_Object sit_for (Lisp_Object, bool, int);
 extern void init_display (void);
@@ -3379,7 +3385,7 @@ extern Lisp_Object Qglyphless_char;
 extern Lisp_Object QCdata, QCfile;
 extern Lisp_Object QCmap;
 extern Lisp_Object Qrisky_local_variable;
-extern int noninteractive_need_newline;
+extern bool noninteractive_need_newline;
 extern Lisp_Object echo_area_buffer[2];
 extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
 extern void check_message_stack (void);
@@ -4360,15 +4366,13 @@ functionp (Lisp_Object object)
     return 0;
 }
 
-INLINE
-uint16_t
+INLINE uint16_t
 swap16 (uint16_t val)
 {
     return (val << 8) | (val & 0xFF);
 }
 
-INLINE
-uint32_t
+INLINE uint32_t
 swap32 (uint32_t val)
 {
   uint32_t low = swap16 (val & 0xFFFF);
@@ -4377,8 +4381,7 @@ swap32 (uint32_t val)
 }
 
 #ifdef UINT64_MAX
-INLINE
-uint64_t
+INLINE uint64_t
 swap64 (uint64_t val)
 {
   uint64_t low = swap32 (val & 0xFFFFFFFF);

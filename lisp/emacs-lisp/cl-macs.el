@@ -209,6 +209,8 @@ The name is made by appending a number to PREFIX, default \"G\"."
 (def-edebug-spec cl-&key-arg
   (&or ([&or (symbolp arg) arg] &optional def-form arg) arg))
 
+(def-edebug-spec cl-type-spec sexp)
+
 (defconst cl--lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
 

@@ -453,7 +453,7 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
     }
 
   if (score_changed)
-    qsort (XVECTOR (vec)->contents, size, word_size,
+    qsort (XVECTOR (vec)->u.contents, size, word_size,
 	   fontset_compare_rfontdef);
   XSETCAR (font_group, make_number (charset_ordered_list_tick));
 }

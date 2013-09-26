@@ -925,6 +925,7 @@ default_pixels_per_inch_y (void)
 #define SET_FRAME_ICONIFIED(f, i)			\
   (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
 
+extern Lisp_Object selected_frame;
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qtty_color_mode;
@@ -933,8 +934,6 @@ extern Lisp_Object Qnoelisp;
 
 /* Nonzero means there is at least one garbaged frame.  */
 extern bool frame_garbaged;
-
-extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *decode_window_system_frame (Lisp_Object);
@@ -955,10 +954,6 @@ extern void frame_make_pointer_visible (void);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object Vframe_list;
-
-/* The currently selected frame.  */
-
-extern Lisp_Object selected_frame;
 
 /* Value is a pointer to the selected frame.  If the selected frame
    isn't live, abort.  */

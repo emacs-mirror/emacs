@@ -408,7 +408,7 @@ static int term_setup_done;
 
 static unsigned short outside_cursor;
 
-/* Similar to the_only_frame.  */
+/* The only display since MS-DOS does not support multiple ones.  */
 struct tty_display_info the_only_display_info;
 
 /* Support for DOS/V (allows Japanese characters to be displayed on
@@ -2394,7 +2394,7 @@ Each input key receives two values in this vector: first the ASCII code,
 and then the scan code.  */)
   (void)
 {
-  Lisp_Object val, *keys = XVECTOR (recent_doskeys)->contents;
+  Lisp_Object val, *keys = XVECTOR (recent_doskeys)->u.contents;
 
   if (total_doskeys < NUM_RECENT_DOSKEYS)
     return Fvector (total_doskeys, keys);

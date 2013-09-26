@@ -113,6 +113,19 @@ static Lisp_Object Qdelete_frame_functions;
 
 static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 
+/* The currently selected frame.  */
+
+Lisp_Object selected_frame;
+
+/* A frame which is not just a mini-buffer, or NULL if there are no such
+   frames.  This is usually the most recent such frame that was selected.  */
+
+static struct frame *last_nonminibuf_frame;
+
+/* Nonzero means there is at least one garbaged frame.  */
+
+bool frame_garbaged;
+
 #ifdef HAVE_WINDOW_SYSTEM
 static void x_report_frame_params (struct frame *, Lisp_Object *);
 #endif
@@ -545,6 +558,8 @@ make_initial_frame (void)
 
   if (!noninteractive)
     init_frame_faces (f);
+
+  last_nonminibuf_frame = f;
 
   return f;
 }

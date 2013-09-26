@@ -5208,8 +5208,10 @@ not_in_argv (NSString *arg)
   NSString *str = [aString respondsToSelector: @selector (string)] ?
     [aString string] : aString;
   if (NS_KEYLOG)
-    NSLog (@"setMarkedText '%@' len =%d range %d from %d", str, [str length],
-           selRange.length, selRange.location);
+    NSLog (@"setMarkedText '%@' len =%lu range %lu from %lu",
+           str, (unsigned long)[str length],
+           (unsigned long)selRange.length,
+           (unsigned long)selRange.location);
 
   if (workingText != nil)
     [self deleteWorkingText];
@@ -5235,7 +5237,7 @@ not_in_argv (NSString *arg)
   if (workingText == nil)
     return;
   if (NS_KEYLOG)
-    NSLog(@"deleteWorkingText len =%d\n", [workingText length]);
+    NSLog(@"deleteWorkingText len =%lu\n", (unsigned long)[workingText length]);
   [workingText release];
   workingText = nil;
   processingCompose = NO;
