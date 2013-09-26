@@ -2796,8 +2796,6 @@ static const char *menu_help_message, *prev_menu_help_message;
    last menu help message.  */
 static int menu_help_paneno, menu_help_itemno;
 
-static int menu_x, menu_y;
-
 static Lisp_Object Qtty_menu_navigation_map, Qtty_menu_exit;
 static Lisp_Object Qtty_menu_prev_item, Qtty_menu_next_item;
 static Lisp_Object Qtty_menu_next_menu, Qtty_menu_prev_menu;
@@ -3188,9 +3186,6 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
   if (*first_time)
     {
       *first_time = false;
-      /* FIXME: Following 2 or 3 lines are temporary!  */
-      menu_x = *x;
-      menu_y = *y;
       sf->mouse_moved = 1;
       return 0;
     }
@@ -3257,8 +3252,6 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 	sf->mouse_moved = 1;
       Sleep (300);
 #endif
-      menu_x = *x;
-      menu_y = *y;
       return st;
     }
   return 0;
@@ -3595,7 +3588,7 @@ tty_menu_help_callback (char const *help_string, int pane, int item)
   Lisp_Object pane_name;
   Lisp_Object menu_object;
 
-  first_item = XVECTOR (menu_items)->contents;
+  first_item = XVECTOR (menu_items)->u.contents;
   if (EQ (first_item[0], Qt))
     pane_name = first_item[MENU_ITEMS_PANE_NAME];
   else if (EQ (first_item[0], Qquote))
