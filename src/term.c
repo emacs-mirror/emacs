@@ -2807,7 +2807,7 @@ typedef struct tty_menu_struct
   int count;
   char **text;
   struct tty_menu_struct **submenu;
-  int *panenumber; /* Also used as enable.  */
+  int *panenumber; /* Also used as enabled flag.  */
   int allocated;
   int panecount;
   int width;
@@ -2899,7 +2899,7 @@ static void
 mouse_get_xy (int *x, int *y)
 {
   struct frame *sf = SELECTED_FRAME ();
-  Lisp_Object lmx, lmy, lisp_dummy;
+  Lisp_Object lmx = Qnil, lmy = Qnil, lisp_dummy;
   enum scroll_bar_part part_dummy;
   Time time_dummy;
 
@@ -2930,9 +2930,6 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
   width = menu->width;
   col = cursorX (tty);
   row = cursorY (tty);
-#if 0
-  IT_update_begin (sf);		/* FIXME: do we need an update_begin_hook? */
-#endif
   for (i = 0; i < menu->count; i++)
     {
       int max_width = width + 2; /* +2 for padding blanks on each side */
@@ -3257,38 +3254,6 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
   return 0;
 }
 
-/* FIXME */
-static bool mouse_visible;
-static void
-mouse_off (void)
-{
-  mouse_visible = false;
-}
-
-static void
-mouse_on (void)
-{
-  mouse_visible = true;
-}
-
-static bool
-mouse_pressed (int b, int *x, int *y)
-{
-  return false;
-}
-
-static bool
-mouse_button_depressed (int b, int *x, int *y)
-{
-  return false;
-}
-
-static bool
-mouse_released (int b, int *x, int *y)
-{
-  return true;
-}
-
 /* Display menu, wait for user's response, and return that response.  */
 int
 tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
@@ -3310,11 +3275,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     x0 = 1;
   if (y0 <= 0)
     y0 = 1;
-
-#if 0
-  /* We will process all the mouse events directly.  */
-  mouse_preempted++;
-#endif
 
   state = alloca (menu->panecount * sizeof (struct tty_menu_state));
   memset (state, 0, sizeof (*state));
@@ -3349,17 +3309,10 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       buffers_num_deleted = 1;
     }
 
-#if 0
-  /* We need to save the current echo area message, so that we could
-     restore it below, before we exit.  See the commentary below,
-     before the call to message_with_string.  */
-  saved_echo_area_message = Fcurrent_message ();
-#endif
   /* Force update of the current frame, so that the desired and the
      current matrices are identical.  */
   update_frame_with_menu (sf);
   state[0].menu = menu;
-  mouse_off ();	/* FIXME */
   state[0].screen_behind = save_and_enable_current_matrix (sf);
 
   /* Turn off the cursor.  Otherwise it shows through the menu
@@ -3397,7 +3350,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       int input_status;
       int min_y = state[0].y, max_y = min_y + state[0].menu->count - 1;
 
-      if (!mouse_visible) mouse_on ();
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
 	{
@@ -3437,7 +3389,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		      while (i != statecount - 1)
 			{
 			  statecount--;
-			  mouse_off (); /* FIXME */
 			  screen_update (sf, state[statecount].screen_behind);
 			  state[statecount].screen_behind = NULL;
 			}
@@ -3450,7 +3401,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 					  faces, x, y, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
 			state[statecount].pane = state[i].menu->panenumber[dy];
-			mouse_off (); /* FIXME */
 			state[statecount].screen_behind
 			  = save_and_enable_current_matrix (sf);
 			state[statecount].x
@@ -3477,54 +3427,12 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	  tty_hide_cursor (tty);
 	  prev_menu_help_message = menu_help_message;
 	}
-#if 0
-      /* We are busy-waiting for the mouse to move, so let's be nice
-	 to other Windows applications by releasing our time slice.  */
-      Sleep (20);	/* FIXME */
-
-      for (b = 0; b < mouse_button_count && !leave; b++)
-	{
-	  /* Only leave if user both pressed and released the mouse, and in
-	     that order.  This avoids popping down the menu pane unless
-	     the user is really done with it.  */
-	  if (mouse_pressed (b, &x, &y))
-	    {
-	      while (mouse_button_depressed (b, &x, &y))
-		Sleep (20);	/* FIXME */
-	      leave = 1;
-	    }
-	  (void) mouse_released (b, &x, &y);
-	}
-#endif
     }
 
-  mouse_off ();			/* FIXME */
   sf->mouse_moved = 0;
   /* FIXME: Since we set the fram's garbaged flag, do we need this
      call to screen_update?  */
   screen_update (sf, state[0].screen_behind);
-#if 0
-  /* We have a situation here.  ScreenUpdate has just restored the
-     screen contents as it was before we started drawing this menu.
-     That includes any echo area message that could have been
-     displayed back then.  (In reality, that echo area message will
-     almost always be the ``keystroke echo'' that echoes the sequence
-     of menu items chosen by the user.)  However, if the menu had some
-     help messages, then displaying those messages caused Emacs to
-     forget about the original echo area message.  So when
-     ScreenUpdate restored it, it created a discrepancy between the
-     actual screen contents and what Emacs internal data structures
-     know about it.
-
-     To avoid this conflict, we force Emacs to restore the original
-     echo area message as we found it when we entered this function.
-     The irony of this is that we then erase the restored message
-     right away, so the only purpose of restoring it is so that
-     erasing it works correctly...  */
-  if (! NILP (saved_echo_area_message))
-    message_with_string ("%s", saved_echo_area_message, 0);
-  message (0);
-#endif
   while (statecount--)
     free_saved_screen (state[statecount].screen_behind);
   tty_show_cursor (tty);	/* turn cursor back on */
@@ -3535,15 +3443,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
      (which invoked the menu) too quickly.  If we don't remove these events,
      Emacs will process them after we return and surprise the user.  */
   discard_mouse_events ();
-#if 0
-  mouse_clear_clicks ();
-#endif
   if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
-#if 0
-  /* Allow mouse events generation by dos_rawgetc.  */
-  mouse_preempted--;
-#endif
   SET_FRAME_GARBAGED (sf);
   return result;
 }
@@ -3568,18 +3469,10 @@ tty_menu_destroy (tty_menu *menu)
   menu_help_message = prev_menu_help_message = NULL;
 }
 
-static struct frame *tty_menu_help_frame;
-
 /* Show help HELP_STRING, or clear help if HELP_STRING is null.
 
    PANE is the pane number, and ITEM is the menu item number in
-   the menu (currently not used).
-
-   This cannot be done with generating a HELP_EVENT because
-   XMenuActivate contains a loop that doesn't let Emacs process
-   keyboard events.
-
-   FIXME: Do we need this in TTY menus?  */
+   the menu (currently not used).  */
 
 static void
 tty_menu_help_callback (char const *help_string, int pane, int item)
@@ -3795,7 +3688,8 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 #if 0
   /* This code doesn't make sense on a TTY, since it can easily annul
      the adjustments above that carefully avoid truncation of the menu
-     items.  */
+     items.  I think it was written to fix some problem that only
+     happens on X11.  */
   if (! for_click)
     {
       /* If position was not given by a mouse click, adjust so upper left
@@ -3810,7 +3704,6 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 
   record_unwind_protect (tty_pop_down_menu, make_save_ptr (menu));
 
-  tty_menu_help_frame = f;	/* FIXME: This seems unused.  */
   specbind (Qoverriding_terminal_local_map,
 	    Fsymbol_value (Qtty_menu_navigation_map));
   status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
