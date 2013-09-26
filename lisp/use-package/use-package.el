@@ -439,10 +439,8 @@ Return the list of recognized keywords."
     (plist-keys args)))
 
 (defun plist-get-value (plist prop)
-  (let ((value-or-symbol (plist-get plist prop)))
-    (if (symbolp value-or-symbol)
-        (symbol-value value-or-symbol)
-      value-or-symbol)))
+  "Return the value of PROP in PLIST as if it was backquoted."
+  (eval (list '\` (plist-get plist prop))))
 
 (defmacro use-package (name &rest args)
 "Use a package with configuration options.
