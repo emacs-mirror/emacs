@@ -1,5 +1,7 @@
 2013-09-26  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* dired.texi (Flagging Many Files): Use @emph instead of @strong.
+
 	* emacs.texi (Intro): Minor cleanup.
 
 2013-09-22  Xue Fuqiao  <xfq.free@gmail.com>
