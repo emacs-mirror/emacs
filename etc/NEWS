@@ -154,6 +154,9 @@ not consume CPU cycles.
 some enhancements, like the ability to restore deleted frames.  Command
 `frame-configuration-to-register' is still available, but unbound.
 
+** The command `quail-help' is deleted.  Use `C-h C-\'
+(`describe-input-method') instead.
+
 
 * Editing Changes in Emacs 24.4
 

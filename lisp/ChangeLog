@@ -1,3 +1,7 @@
+2013-09-26  Kenichi Handa  <handa@gnu.org>
+
+	* international/quail.el (quail-help): Make it not a command.
+
 2013-09-26  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuffer.el (completion-all-sorted-completions): Make args
