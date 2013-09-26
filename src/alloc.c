@@ -2889,7 +2889,7 @@ sweep_vectors (void)
 		free_this_block = 1;
 	      else
 		{
-		  int tmp;
+		  size_t tmp;
 		  SETUP_ON_FREE_LIST (vector, total_bytes, tmp);
 		}
 	    }
@@ -3132,6 +3132,8 @@ usage: (vector &rest OBJECTS)  */)
 void
 make_byte_code (struct Lisp_Vector *v)
 {
+  /* Don't allow the global zero_vector to become a byte code object. */
+  eassert(0 < v->header.size);
   if (v->header.size > 1 && STRINGP (v->u.contents[1])
       && STRING_MULTIBYTE (v->u.contents[1]))
     /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
