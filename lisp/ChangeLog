@@ -1,3 +1,11 @@
+2013-09-27  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-scale-reset): Rename from
+	`doc-view-reset-zoom-level'.
+	(doc-view-scale-adjust): New command.
+	(doc-view-mode-map): Remap `text-scale-adjust' bindings to
+	`doc-view-scale-adjust'.
+
 2013-09-26  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-reset-zoom-level): New command.
