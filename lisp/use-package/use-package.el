@@ -439,10 +439,8 @@ Return the list of recognized keywords."
     (plist-keys args)))
 
 (defun plist-get-value (plist prop)
-  (let ((value-or-symbol (plist-get plist prop)))
-    (if (symbolp value-or-symbol)
-        (symbol-value value-or-symbol)
-      value-or-symbol)))
+  "Return the value of PROP in PLIST as if it was backquoted."
+  (eval (list '\` (plist-get plist prop))))
 
 (defmacro use-package (name &rest args)
 "Use a package with configuration options.
@@ -473,20 +471,20 @@ For full documentation. please see commentary.
          (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
          (config-body (plist-get args :config))
-         (diminish-var (plist-get args :diminish))
-         (defines (plist-get args :defines))
+         (diminish-var (plist-get-value args :diminish))
+         (defines (plist-get-value args :defines))
          (idle-body (plist-get args :idle))
          (keybindings-alist (plist-get-value args :bind))
          (mode-alist (plist-get-value args :mode))
          (interpreter-alist (plist-get-value args :interpreter))
          (predicate (plist-get args :if))
-         (pkg-load-path (plist-get args :load-path))
+         (pkg-load-path (plist-get-value args :load-path))
          (defines-eval (if (null defines)
                            nil
                          (if (listp defines)
                              (mapcar (lambda (var) `(defvar ,var)) defines)
                            `((defvar ,defines)))))
-         (requires (plist-get args :requires))
+         (requires (plist-get-value args :requires))
          (requires-test (if (null requires)
                             t
                           (if (listp requires)
