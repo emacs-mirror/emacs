@@ -18109,9 +18109,13 @@ DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
        doc: /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
-GLYPH > 1 or omitted means dump glyphs in long form.  */)
+GLYPH > 1 or omitted means dump glyphs in long form.
+
+If there's no tool-bar, or if the tool-bar is not drawn by Emacs,
+do nothing.  */)
   (Lisp_Object row, Lisp_Object glyphs)
 {
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   struct frame *sf = SELECTED_FRAME ();
   struct glyph_matrix *m = XWINDOW (sf->tool_bar_window)->current_matrix;
   EMACS_INT vpos;
@@ -18121,6 +18125,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
   if (vpos >= 0 && vpos < m->nrows)
     dump_glyph_row (MATRIX_ROW (m, vpos), vpos,
 		    TYPE_RANGED_INTEGERP (int, glyphs) ? XINT (glyphs) : 2);
+#endif
   return Qnil;
 }
 

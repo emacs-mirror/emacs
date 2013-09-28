@@ -1,3 +1,8 @@
+2013-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fdump_tool_bar_row): Ifdef away the body if 'struct
+	frame' does not have the tool_bar_window member.
+
 2013-09-26  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Signal error when reading an empty byte-code object (Bug#15405)
