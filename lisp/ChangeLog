@@ -1,5 +1,11 @@
 2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* lisp/progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
+	(octave-mode-menu): Add octave-send-buffer.
+	(octave-send-buffer): New function.
+
+2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
 	* lisp/progmodes/octave.el (octave-mode-map): Add key binding for
 	octave-lookfor.
 	(octave-mode-menu): Add octave-lookfor.

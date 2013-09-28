@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This package provides emacs support for Octave.  It defines a major
+;; This package provides Emacs support for Octave.  It defines a major
 ;; mode for editing Octave code and contains code for interacting with
 ;; an inferior Octave process using comint.
 
@@ -115,6 +115,7 @@ parenthetical grouping.")
     (define-key map "\C-c\C-ib" 'octave-send-block)
     (define-key map "\C-c\C-if" 'octave-send-defun)
     (define-key map "\C-c\C-ir" 'octave-send-region)
+    (define-key map "\C-c\C-ia" 'octave-send-buffer)
     (define-key map "\C-c\C-is" 'octave-show-process-buffer)
     (define-key map "\C-c\C-iq" 'octave-hide-process-buffer)
     (define-key map "\C-c\C-ik" 'octave-kill-process)
@@ -122,6 +123,7 @@ parenthetical grouping.")
     (define-key map "\C-c\C-i\C-b" 'octave-send-block)
     (define-key map "\C-c\C-i\C-f" 'octave-send-defun)
     (define-key map "\C-c\C-i\C-r" 'octave-send-region)
+    (define-key map "\C-c\C-i\C-a" 'octave-send-buffer)
     (define-key map "\C-c\C-i\C-s" 'octave-show-process-buffer)
     (define-key map "\C-c\C-i\C-q" 'octave-hide-process-buffer)
     (define-key map "\C-c\C-i\C-k" 'octave-kill-process)
@@ -171,6 +173,7 @@ parenthetical grouping.")
      ["Send Current Block"      octave-send-block t]
      ["Send Current Function"   octave-send-defun t]
      ["Send Region"             octave-send-region t]
+     ["Send Buffer"             octave-send-buffer t]
      ["Show Process Buffer"     octave-show-process-buffer t]
      ["Hide Process Buffer"     octave-hide-process-buffer t]
      ["Kill Process"            octave-kill-process t])
@@ -648,7 +651,7 @@ mode, include \"-q\" and \"--traditional\"."
 (defvar inferior-octave-mode-syntax-table
   (let ((table (make-syntax-table octave-mode-syntax-table)))
     table)
-  "Syntax table in use in inferior-octave-mode buffers.")
+  "Syntax table in use in `inferior-octave-mode' buffers.")
 
 (defvar inferior-octave-font-lock-keywords
   (list
@@ -1465,6 +1468,11 @@ entered without parens)."
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
 
+(defun octave-send-buffer ()
+  "Send current buffer to the inferior Octave process."
+  (interactive)
+  (octave-send-region (point-min) (point-max)))
+
 (defun octave-send-block ()
   "Send current Octave block to the inferior Octave process."
   (interactive)
@@ -1752,7 +1760,7 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
 (defun octave-find-definition (fn)
   "Find the definition of FN.
 Functions implemented in C++ can be found if
-`octave-source-directories' is set correctly."
+variable `octave-source-directories' is set correctly."
   (interactive (list (octave-completing-read)))
   (require 'etags)
   (let ((orig (point)))
