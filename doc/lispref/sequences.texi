@@ -713,6 +713,16 @@ This returns @code{t} if @var{object} is a bool-vector,
 and @code{nil} otherwise.
 @end defun
 
+@c FIXME: Document these functions:
+@c `bool-vector-exclusive-or'
+@c `bool-vector-union'
+@c `bool-vector-intersection'
+@c `bool-vector-set-difference'
+@c `bool-vector-not'
+@c `bool-vector-subset'
+@c `bool-vector-count-matches'
+@c `bool-vector-count-matches-at'
+
   Here is an example of creating, examining, and updating a
 bool-vector.  Note that the printed form represents up to 8 boolean
 values as a single character.
