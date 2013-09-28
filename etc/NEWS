@@ -647,7 +647,7 @@ for something (not just adding elements to it), it ought not to affect you.
 *** `bool-vector-intersection'
 *** `bool-vector-set-difference'
 *** `bool-vector-not'
-*** `bool-vector-subset'
+*** `bool-vector-subsetp'
 *** `bool-vector-count-matches'
 *** `bool-vector-count-matches-at'
 

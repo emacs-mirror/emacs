@@ -719,7 +719,7 @@ and @code{nil} otherwise.
 @c `bool-vector-intersection'
 @c `bool-vector-set-difference'
 @c `bool-vector-not'
-@c `bool-vector-subset'
+@c `bool-vector-subsetp'
 @c `bool-vector-count-matches'
 @c `bool-vector-count-matches-at'
 
