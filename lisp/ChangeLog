@@ -1,3 +1,8 @@
+2013-09-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* faces.el (region): Change ns_selection_color to
+	ns_selection_fg_color, add ns_selection_bg_color.
+
 2013-09-28  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-completion-table)

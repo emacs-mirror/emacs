@@ -179,9 +179,6 @@ static Lisp_Object QUTF8_STRING;
    no way to control this behavior. */
 float ns_antialias_threshold;
 
-/* Used to pick up AppleHighlightColor on OS X */
-NSString *ns_selection_color;
-
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 NSString *ns_app_name = @"Emacs";  /* default changed later */
 
@@ -1454,11 +1451,41 @@ ns_get_color (const char *name, NSColor **col)
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
   block_input ();
 
-  if ([nsname isEqualToString: @"ns_selection_color"])
+#ifdef NS_IMPL_COCOA
+  if ([nsname isEqualToString: @"ns_selection_bg_color"])
     {
-      nsname = ns_selection_color;
-      name = [ns_selection_color UTF8String];
+      NSString *defname = [[NSUserDefaults standardUserDefaults]
+                            stringForKey: @"AppleHighlightColor"];
+
+      if (defname != nil)
+        nsname = defname;
+      else if ((new = [NSColor selectedTextBackgroundColor]) != nil)
+        {
+          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          unblock_input ();
+          return 0;
+        }
+      else
+        nsname = NS_SELECTION_BG_COLOR_DEFAULT;
+
+      name = [nsname UTF8String];
     }
+  else if ([nsname isEqualToString: @"ns_selection_fg_color"])
+    {
+      /* NOTE: OSX applications normally don't set foreground selection, but
+         text may be unreadable if we don't.
+      */
+      if ((new = [NSColor selectedTextColor]) != nil)
+        {
+          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          unblock_input ();
+          return 0;
+        }
+
+      nsname = NS_SELECTION_FG_COLOR_DEFAULT;
+      name = [nsname UTF8String];
+    }
+#endif // NS_IMPL_COCOA
 
   /* First, check for some sort of numeric specification. */
   hex[0] = '\0';
@@ -4167,11 +4194,6 @@ ns_term_init (Lisp_Object display_name)
                  make_float (10.0), make_float (6.0), YES, NO);
       ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
     }
-
-  ns_selection_color = [[NSUserDefaults standardUserDefaults]
-			 stringForKey: @"AppleHighlightColor"];
-  if (ns_selection_color == nil)
-    ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
 
   {
     NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];

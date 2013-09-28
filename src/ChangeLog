@@ -1,3 +1,15 @@
+2013-09-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_selection_color): Remove.
+	(ns_get_color): Check for ns_selection_(fg|bg)_color using
+	NSColor selectedText(Background)Color.  Only for COCOA.
+	(ns_term_init): Remove assignment of ns_selection_color, logic
+	moved to ns_get_color.
+
+	* nsterm.h (NS_SELECTION_BG_COLOR_DEFAULT): Renamed from
+	NS_SELECTION_COLOR_DEFAULT.
+	(NS_SELECTION_FG_COLOR_DEFAULT): New.
+
 2013-09-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fdump_tool_bar_row): Ifdef away the body if 'struct
