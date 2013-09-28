@@ -2257,9 +2257,18 @@ If nil, the current mouse position is used."
 
 (defvar tty-menu-navigation-map
   (let ((map (make-sparse-keymap)))
+    ;; The next line is disabled because it breaks interpretation of
+    ;; escape sequences, produced by TTY arrow keys, as tty-menu-*
+    ;; commands.  Instead, we explicitly bind some keys to
+    ;; tty-menu-exit.
+    ;;(define-key map [t] 'tty-menu-exit)
+
     ;; The tty-menu-* are just symbols interpreted by term.c, they are
     ;; not real commands.
-    (define-key map [t] 'tty-menu-exit)
+    (substitute-key-definition 'keyboard-quit 'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition 'keyboard-escape-quit 'tty-menu-exit
+			       map (current-global-map))
     (substitute-key-definition 'forward-char 'tty-menu-next-menu
 			       map (current-global-map))
     (substitute-key-definition 'backward-char 'tty-menu-prev-menu
