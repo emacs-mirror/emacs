@@ -1,4 +1,4 @@
-;;; octave.el --- editing octave source files under emacs   -*- lexical-binding: t; -*-
+;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
 
@@ -804,34 +804,30 @@ startup file, `~/.emacs-octave'."
   ;;
   ;; Use cache to avoid repetitive computation of completions due to
   ;; bug#11906 - http://debbugs.gnu.org/11906 - which may cause
-  ;; noticeable delay.  CACHE: (CMD TIME VALUE).
+  ;; noticeable delay.  CACHE: (CMD . VALUE).
   (let ((cache))
     (completion-table-dynamic
      (lambda (command)
-       (unless (and (equal (car cache) command)
-                    (< (float-time) (+ 5 (cadr cache))))
+       (unless (equal (car cache) command)
          (inferior-octave-send-list-and-digest
           (list (format "completion_matches ('%s');\n" command)))
-         (setq cache (list command (float-time)
+         (setq cache (cons command
                            (delete-consecutive-dups
                             (sort inferior-octave-output-list 'string-lessp)))))
-       (car (cddr cache))))))
+       (cdr cache)))))
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
   ;; http://debbugs.gnu.org/14300
-  (let* ((filecomp (string-match-p
-                    "/" (or (comint--match-partial-filename) "")))
-         (end (point))
-	 (start
-	  (unless filecomp
-            (save-excursion
-              (skip-syntax-backward "w_" (comint-line-beginning-position))
-              (point)))))
-    (when (and start (> end start))
-      (list start end (completion-table-in-turn
+  (unless (string-match-p "/" (or (comint--match-partial-filename) ""))
+    (let ((beg (save-excursion
+                 (skip-syntax-backward "w_" (comint-line-beginning-position))
+                 (point)))
+          (end (point)))
+      (when (and beg (> end beg))
+        (list beg end (completion-table-in-turn
                        inferior-octave-completion-table
-                       'comint-completion-file-name-table)))))
+                       'comint-completion-file-name-table))))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
   'completion-at-point "24.1")

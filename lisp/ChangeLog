@@ -1,5 +1,8 @@
 2013-09-28  Leo Liu  <sdl.web@gmail.com>
 
+	* progmodes/octave.el (inferior-octave-completion-table)
+	(inferior-octave-completion-at-point): Minor tweaks.
+
 	* textmodes/ispell.el (ispell-lookup-words): Rename from
 	lookup-words.  (Bug#15460)
 	(lookup-words): Obsolete.
