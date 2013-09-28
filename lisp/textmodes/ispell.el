@@ -2407,7 +2407,7 @@ Global `ispell-quit' set to start location to continue spell session."
 					    "  --  word-list: "
 					    (or ispell-complete-word-dict
 						ispell-alternate-dictionary))
-				    miss (lookup-words new-word)
+				    miss (ispell-lookup-words new-word)
 				    choices miss
 				    line ispell-choices-win-default-height)
 			      (while (and choices ; adjust choices window.
@@ -2613,8 +2613,9 @@ SPC:   Accept word this time.
 		(sit-for 5))
 	    (erase-buffer)))))))
 
+(define-obsolete-function-alias 'lookup-words 'ispell-lookup-words "24.4")
 
-(defun lookup-words (word &optional lookup-dict)
+(defun ispell-lookup-words (word &optional lookup-dict)
   "Look up WORD in optional word-list dictionary LOOKUP-DICT.
 A `*' serves as a wild card.  If no wild cards, `look' is used if it exists.
 Otherwise the variable `ispell-grep-command' contains the command used to
@@ -3766,7 +3767,7 @@ Use APPEND to append the info to previous buffer if exists."
 
 ;;;###autoload
 (defun ispell-complete-word (&optional interior-frag)
-  "Try to complete the word before or under point (see `lookup-words').
+  "Try to complete the word before or under point.
 If optional INTERIOR-FRAG is non-nil then the word may be a character
 sequence inside of a word.
 
@@ -3782,11 +3783,12 @@ Standard ispell choices are then available."
 	  word (car word)
 	  possibilities
 	  (or (string= word "")		; Will give you every word
-	      (lookup-words (concat (and interior-frag "*") word
-				    (if (or interior-frag (null ispell-look-p))
-					"*"))
-			    (or ispell-complete-word-dict
-				ispell-alternate-dictionary))))
+	      (ispell-lookup-words
+	       (concat (and interior-frag "*") word
+		       (if (or interior-frag (null ispell-look-p))
+			   "*"))
+	       (or ispell-complete-word-dict
+		   ispell-alternate-dictionary))))
     (cond ((eq possibilities t)
 	   (message "No word to complete"))
 	  ((null possibilities)

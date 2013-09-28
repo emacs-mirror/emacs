@@ -1,3 +1,10 @@
+2013-09-28  Leo Liu  <sdl.web@gmail.com>
+
+	* textmodes/ispell.el (ispell-lookup-words): Rename from
+	lookup-words.  (Bug#15460)
+	(lookup-words): Obsolete.
+	(ispell-complete-word, ispell-command-loop): All uses changed.
+
 2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* lisp/progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
