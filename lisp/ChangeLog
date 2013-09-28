@@ -1,3 +1,60 @@
+2013-09-28  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-completion-table)
+	(inferior-octave-completion-at-point): Minor tweaks.
+
+	* textmodes/ispell.el (ispell-lookup-words): Rename from
+	lookup-words.  (Bug#15460)
+	(lookup-words): Obsolete.
+	(ispell-complete-word, ispell-command-loop): All uses changed.
+
+2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* lisp/progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
+	(octave-mode-menu): Add octave-send-buffer.
+	(octave-send-buffer): New function.
+
+2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* lisp/progmodes/octave.el (octave-mode-map): Add key binding for
+	octave-lookfor.
+	(octave-mode-menu): Add octave-lookfor.
+	(inferior-octave-mode-map, octave-help-mode-map): Bind C-ha to
+	octave-lookfor.
+	(octave-lookfor): New function.
+
+2013-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el:
+	(cl--loop-destr-temps): Remove.
+	(cl--loop-iterator-function): Rename from cl--loop-map-form and change
+	its convention.
+	(cl--loop-set-iterator-function): New function.
+	(cl-loop): Adjust accordingly, so as not to use cl-subst.
+	(cl--parse-loop-clause): Adjust all uses of cl--loop-map-form.
+	Bind `it' with `let' instead of substituting it with `cl-subst'.
+	(cl--unused-var-p): New function.
+	(cl--loop-let): Don't use the cl--loop-destr-temps hack any more.
+	Eliminate some unused variable warnings (bug#15326).
+
+2013-09-27  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-scale-reset): Rename from
+	`doc-view-reset-zoom-level'.
+	(doc-view-scale-adjust): New command.
+	(doc-view-mode-map): Remap `text-scale-adjust' bindings to
+	`doc-view-scale-adjust'.
+
+2013-09-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-reset-zoom-level): New command.
+	(doc-view-mode-map): Remap text-scale-adjust bindings to doc-view
+	zoom commands (bug#15466).
+
+2013-09-26  Kenichi Handa  <handa@gnu.org>
+
+	* international/quail.el (quail-help): Make it not a command.
+
 2013-09-26  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuffer.el (completion-all-sorted-completions): Make args

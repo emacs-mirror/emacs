@@ -2,7 +2,7 @@
 
 	* NEWS: Mention new bool-vector functionality.
 
-aaaa2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention the macfont backend.
 

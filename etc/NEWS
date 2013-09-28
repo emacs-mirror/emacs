@@ -154,6 +154,9 @@ not consume CPU cycles.
 some enhancements, like the ability to restore deleted frames.  Command
 `frame-configuration-to-register' is still available, but unbound.
 
+** The command `quail-help' is deleted.  Use `C-h C-\'
+(`describe-input-method') instead.
+
 
 * Editing Changes in Emacs 24.4
 
@@ -644,7 +647,7 @@ for something (not just adding elements to it), it ought not to affect you.
 *** `bool-vector-intersection'
 *** `bool-vector-set-difference'
 *** `bool-vector-not'
-*** `bool-vector-subset'
+*** `bool-vector-subsetp'
 *** `bool-vector-count-matches'
 *** `bool-vector-count-matches-at'
 

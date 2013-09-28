@@ -32,7 +32,7 @@
 (require 'texinfo)
 
 (defvar ede-minor-mode)
-(declare-function lookup-words "ispell")
+(declare-function ispell-lookup-words "ispell")
 (declare-function ede-current-project "ede")
 
 (defvar semantic-texi-super-regex
@@ -431,7 +431,7 @@ that start with that symbol."
 	  ((member 'word (oref context :prefixclass))
 	   ;; Do completion for words via ispell.
 	   (require 'ispell)
-	   (let ((word-list (lookup-words prefix)))
+	   (let ((word-list (ispell-lookup-words prefix)))
 	     (mapcar (lambda (f) (semantic-tag f 'word)) word-list))
 	   )
 	  (t nil))

@@ -2486,7 +2486,6 @@ should be made by `quail-build-decode-map' (which see)."
   "Show brief description of the current Quail package.
 Optional arg PACKAGE specifies the name of alternative Quail
 package to describe."
-  (interactive)
   (require 'help-mode)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
 	(mb enable-multibyte-characters)
