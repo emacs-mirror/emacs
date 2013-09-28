@@ -1,3 +1,12 @@
+2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* lisp/progmodes/octave.el (octave-mode-map): Add key binding for
+	octave-lookfor.
+	(octave-mode-menu): Add octave-lookfor.
+	(inferior-octave-mode-map, octave-help-mode-map): Bind C-ha to
+	octave-lookfor.
+	(octave-lookfor): New function.
+
 2013-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el:

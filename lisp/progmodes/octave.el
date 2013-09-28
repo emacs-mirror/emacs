@@ -109,6 +109,7 @@ parenthetical grouping.")
     (define-key map "\C-c/" 'smie-close-block)
     (define-key map "\C-c;" 'octave-update-function-file-comment)
     (define-key map "\C-hd" 'octave-help)
+    (define-key map "\C-ha" 'octave-lookfor)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
@@ -143,6 +144,7 @@ parenthetical grouping.")
     ["Start Octave Process"         run-octave t]
     ["Documentation Lookup"         info-lookup-symbol t]
     ["Help on Function"             octave-help t]
+    ["Search help"                  octave-lookfor t]
     ["Find Function Definition"     octave-find-definition t]
     ["Insert Function"              octave-insert-defun t]
     ["Update Function File Comment" octave-update-function-file-comment t]
@@ -634,6 +636,7 @@ mode, include \"-q\" and \"--traditional\"."
     (define-key map "\M-." 'octave-find-definition)
     (define-key map "\t" 'completion-at-point)
     (define-key map "\C-hd" 'octave-help)
+    (define-key map "\C-ha" 'octave-lookfor)
     ;; Same as in `shell-mode'.
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
@@ -1599,6 +1602,7 @@ code line."
   (let ((map (make-sparse-keymap)))
     (define-key map "\M-." 'octave-find-definition)
     (define-key map "\C-hd" 'octave-help)
+    (define-key map "\C-ha" 'octave-lookfor)
     map))
 
 (define-derived-mode octave-help-mode help-mode "OctHelp"
@@ -1675,6 +1679,32 @@ code line."
                       "\\s-*\\([^,\n]+?\\)\\s-*\\(?:[,]\\|[.]?$\\)" end t)
                 (make-text-button (match-beginning 1) (match-end 1)
                                   :type 'octave-help-function)))))
+        (octave-help-mode)))))
+
+(defun octave-lookfor (str &optional all)
+  "Search for the string STR in all function help strings.
+If ALL is non-nil search the entire help string else only search the first
+sentence."
+  (interactive "sSearch for: \nP")
+  (inferior-octave-send-list-and-digest
+   (list (format "lookfor (%s'%s');\n"
+                 (if all "'-all', " "")
+                 str)))
+  (let ((lines inferior-octave-output-list))
+    (when (string-match "error: \\(.*\\)$" (car lines))
+      (error "%s" (match-string 1 (car lines))))
+    (with-help-window octave-help-buffer
+      (princ (mapconcat 'identity lines "\n"))
+      (with-current-buffer octave-help-buffer
+        ;; Bound to t so that `help-buffer' returns current buffer for
+        ;; `help-setup-xref'.
+        (let ((help-xref-following t))
+          (help-setup-xref (list 'octave-lookfor str all)
+                           (called-interactively-p 'interactive)))
+        (goto-char (point-min))
+        (while (re-search-forward "^\\([^[:blank:]]+\\) " nil 'noerror)
+          (make-text-button (match-beginning 1) (match-end 1)
+                            :type 'octave-help-function))
         (octave-help-mode)))))
 
 (defcustom octave-source-directories nil
