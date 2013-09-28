@@ -1,3 +1,17 @@
+2013-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el:
+	(cl--loop-destr-temps): Remove.
+	(cl--loop-iterator-function): Rename from cl--loop-map-form and change
+	its convention.
+	(cl--loop-set-iterator-function): New function.
+	(cl-loop): Adjust accordingly, so as not to use cl-subst.
+	(cl--parse-loop-clause): Adjust all uses of cl--loop-map-form.
+	Bind `it' with `let' instead of substituting it with `cl-subst'.
+	(cl--unused-var-p): New function.
+	(cl--loop-let): Don't use the cl--loop-destr-temps hack any more.
+	Eliminate some unused variable warnings (bug#15326).
+
 2013-09-27  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-scale-reset): Rename from
