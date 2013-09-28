@@ -2140,15 +2140,7 @@ terminal type to a different value."
 (defun tty-set-up-initial-frame-faces ()
   (let ((frame (selected-frame)))
     (frame-set-background-mode frame t)
-    (face-set-after-frame-default frame)
-    (make-face 'tty-menu-enabled-face)
-    (make-face 'tty-menu-disabled-face)
-    (make-face 'tty-menu-selected-face)
-    (set-face-foreground 'tty-menu-enabled-face "yellow")
-    (set-face-foreground 'tty-menu-disabled-face "white")
-    (set-face-background 'tty-menu-enabled-face "blue")
-    (set-face-background 'tty-menu-disabled-face "blue")
-    (set-face-background 'tty-menu-selected-face "red")))
+    (face-set-after-frame-default frame)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2555,6 +2547,26 @@ It is used for characters of no fonts too."
     (((class color)) :foreground "green"))
   "Basic face used to indicate successful operation."
   :version "24.1"
+  :group 'basic-faces)
+
+;; Faces for TTY menus.
+(defface tty-menu-enabled-face
+  '((t
+     :foreground "yellow" :background "blue" :weight bold))
+  "Face for displaying enabled items in TTY menus."
+  :group 'basic-faces)
+
+(defface tty-menu-disabled-face
+  '((((class color) (min-colors 16))
+     :foreground "lightgray" :background "blue")
+    (t
+     :foreground "white" :background "blue"))
+  "Face for displaying disabled items in TTY menus."
+  :group 'basic-faces)
+
+(defface tty-menu-selected-face
+  '((t :background "red"))
+  "Face for displaying the currently selected item in TTY menus."
   :group 'basic-faces)
 
 
