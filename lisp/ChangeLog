@@ -1,3 +1,15 @@
+2013-09-28  Alan Mackenzie  <acm@muc.de>
+
+	Fix indentation/fontification of Java enum with "implements".
+
+	* progmodes/cc-langs.el (c-postfix-decl-spec-key): New variable, a
+	regexp which matches "implements", etc., in Java.
+	* progmodes/cc-engine.el (c-inside-bracelist-p): Check for extra
+	specifier clauses coming after "enum".
+	* progmodes/cc-fonts.el (c-font-lock-declarations)
+	(c-font-lock-enum-tail): Check for extra specifier clauses coming
+	after "enum".
+
 2013-09-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* faces.el (region): Change ns_selection_color to

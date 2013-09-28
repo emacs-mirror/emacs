@@ -2040,6 +2040,12 @@ declarations."
 	 ;; In CORBA PSDL:
 	 "as" "const" "implements" "of" "ref"))
 
+(c-lang-defconst c-postfix-decl-spec-key
+  ;; Regexp matching the keywords in `c-postfix-decl-spec-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-postfix-decl-spec-kwds)))
+(c-lang-defvar c-postfix-decl-spec-key
+  (c-lang-const c-postfix-decl-spec-key))
+
 (c-lang-defconst c-nonsymbol-sexp-kwds
   "Keywords that may be followed by a nonsymbol sexp before whatever
 construct it's part of continues."

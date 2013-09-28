@@ -1471,13 +1471,22 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		   (let ((paren-state (c-parse-state)))
 		     (and
 		      (numberp (car paren-state))
-		      (save-excursion
-			(goto-char (car paren-state))
-			(c-backward-token-2)
-			(or (looking-at c-brace-list-key)
-			    (progn
-			      (c-backward-token-2)
-			      (looking-at c-brace-list-key)))))))
+		      (c-safe
+			(save-excursion
+			  (goto-char (car paren-state))
+			  (let (before-identifier)
+			    (while
+				(progn
+				  (c-forward-sexp -1)
+				  (cond
+				   ((c-on-identifier) (setq before-identifier t))
+				   ((and before-identifier
+					 (looking-at c-postfix-decl-spec-key))
+				    (setq before-identifier nil)
+				    t)
+				   ((looking-at c-brace-list-key) nil) ; "enum"
+				   (t nil))))
+			    (looking-at c-brace-list-key)))))))
 	      (c-forward-token-2)
 	      nil)
 
@@ -1565,14 +1574,22 @@ casts and declarations are fontified.  Used on level 2 and higher."
     (when (and
 	   encl-pos
 	   (eq (char-after encl-pos) ?\{)
-	   (save-excursion
-	     (goto-char encl-pos)
-	     (c-backward-syntactic-ws)
-	     (c-simple-skip-symbol-backward)
-	     (or (looking-at c-brace-list-key) ; "enum"
-		 (progn (c-backward-syntactic-ws)
-			(c-simple-skip-symbol-backward)
-			(looking-at c-brace-list-key)))))
+	   (c-safe
+	     (save-excursion
+	       (goto-char encl-pos)
+	       (let (before-identifier)
+		 (while
+		     (progn
+		      (c-forward-sexp -1)
+		      (cond
+		       ((c-on-identifier) (setq before-identifier t))
+		       ((and before-identifier
+			     (looking-at c-postfix-decl-spec-key))
+			(setq before-identifier nil)
+			t)
+		       ((looking-at c-brace-list-key) nil) ; "enum"
+		       (t nil))))
+		 (looking-at c-brace-list-key)))))
       (c-syntactic-skip-backward "^{," nil t)
       (c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
 

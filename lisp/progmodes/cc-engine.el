@@ -8486,17 +8486,21 @@ comment at the start of cc-engine.el for more info."
   (or
    ;; This will pick up brace list declarations.
    (c-safe
-    (save-excursion
-      (goto-char containing-sexp)
-      (c-forward-sexp -1)
-      (let (bracepos)
-	(if (and (or (looking-at c-brace-list-key)
-		     (progn (c-forward-sexp -1)
-			    (looking-at c-brace-list-key)))
-		 (setq bracepos (c-down-list-forward (point)))
-		 (not (c-crosses-statement-barrier-p (point)
-						     (- bracepos 2))))
-	    (point)))))
+     (save-excursion
+       (goto-char containing-sexp)
+       (let (before-identifier)
+	 (while
+	     (progn
+	       (c-forward-sexp -1)
+	       (cond
+		((c-on-identifier) (setq before-identifier t))
+		((and before-identifier
+		      (looking-at c-postfix-decl-spec-key))
+		 (setq before-identifier nil)
+		 t)
+		((looking-at c-brace-list-key) nil)
+		(t nil))))
+	 (looking-at c-brace-list-key))))
    ;; this will pick up array/aggregate init lists, even if they are nested.
    (save-excursion
      (let ((class-key
