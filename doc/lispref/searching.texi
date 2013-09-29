@@ -1146,13 +1146,7 @@ implemented by searching backwards from point for a match that ends at
 point.  That can be quite slow if it has to search a long distance.
 You can bound the time required by specifying @var{limit}, which says
 not to search before @var{limit}.  In this case, the match that is
-found must begin at or after @var{limit}.
-
-If @var{greedy} is non-@code{nil}, this function extends the match
-backwards as far as possible, stopping when a single additional
-previous character cannot be part of a match for regexp.  When the
-match is extended, its starting position is allowed to occur before
-@var{limit}.
+found must begin at or after @var{limit}.  Here's an example:
 
 @example
 @group
@@ -1167,6 +1161,12 @@ comes back" twice.
      @result{} nil
 @end group
 @end example
+
+If @var{greedy} is non-@code{nil}, this function extends the match
+backwards as far as possible, stopping when a single additional
+previous character cannot be part of a match for regexp.  When the
+match is extended, its starting position is allowed to occur before
+@var{limit}.
 
 @c http://debbugs.gnu.org/5689
 As a general recommendation, try to avoid using @code{looking-back}

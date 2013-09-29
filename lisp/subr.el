@@ -3482,7 +3482,10 @@ If GREEDY is non-nil, extend the match backwards as far as
 possible, stopping when a single additional previous character
 cannot be part of a match for REGEXP.  When the match is
 extended, its starting position is allowed to occur before
-LIMIT."
+LIMIT.
+
+As a general recommendation, try to avoid using `looking-back'
+wherever possible, since it is slow."
   (let ((start (point))
 	(pos
 	 (save-excursion

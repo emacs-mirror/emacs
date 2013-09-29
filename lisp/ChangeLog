@@ -1,3 +1,7 @@
+2013-09-29  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* subr.el (looking-back): Do not recommend using looking-back.
+
 2013-09-28  Alan Mackenzie  <acm@muc.de>
 
 	Fix indentation/fontification of Java enum with "implements".
