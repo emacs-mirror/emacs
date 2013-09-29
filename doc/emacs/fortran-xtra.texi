@@ -575,7 +575,7 @@ yourself.  To use them, you must turn on Abbrev mode.
 semicolon.  For example, one built-in Fortran abbrev is @samp{;c} for
 @samp{continue}.  If you insert @samp{;c} and then insert a punctuation
 character such as a space or a newline, the @samp{;c} expands automatically
-to @samp{continue}, provided Abbrev mode is enabled.@refill
+to @samp{continue}, provided Abbrev mode is enabled.
 
   Type @samp{;?} or @samp{;C-h} to display a list of all the built-in
 Fortran abbrevs and what they stand for.
