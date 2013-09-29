@@ -47,15 +47,9 @@
   (package-desc-create :name 'simple-single
                        :version '(1 3)
                        :summary "A single-file package with no dependencies"
-                       :kind 'single)
+                       :kind 'single
+                       :extras '((:homepage . "http://doodles.au")))
   "Expected `package-desc' parsed from simple-single-1.3.el.")
-
-(defvar simple-single-desc-1-4
-  (package-desc-create :name 'simple-single
-                       :version '(1 4)
-                       :summary "A single-file package with no dependencies"
-                       :kind 'single)
-  "Expected `package-desc' parsed from simple-single-1.4.el.")
 
 (defvar simple-depend-desc
   (package-desc-create :name 'simple-depend
@@ -69,7 +63,8 @@
   (package-desc-create :name 'multi-file
                        :version '(0 2 3)
                        :summary "Example of a multi-file tar package"
-                       :kind 'tar)
+                       :kind 'tar
+                       :extras '((:homepage . "http://puddles.li")))
   "Expected `package-desc' from \"multi-file-0.2.3.tar\".")
 
 (defvar new-pkg-desc
@@ -97,7 +92,7 @@
           (package-user-dir package-test-user-dir)
           (package-archives `(("gnu" . ,package-test-data-dir)))
           (old-yes-no-defn (symbol-function 'yes-or-no-p))
-          (old-pwd default-directory)
+          (default-directory package-test-file-dir)
           package--initialized
           package-alist
           ,@(if update-news
@@ -128,8 +123,7 @@
        (when (and (boundp 'package-test-archive-upload-base)
                   (file-directory-p package-test-archive-upload-base))
          (delete-directory package-test-archive-upload-base t))
-       (setf (symbol-function 'yes-or-no-p) old-yes-no-defn)
-       (cd old-pwd))))
+       (setf (symbol-function 'yes-or-no-p) old-yes-no-defn))))
 
 (defmacro with-fake-help-buffer (&rest body)
   "Execute BODY in a temp buffer which is treated as the \"*Help*\" buffer."
@@ -194,7 +188,9 @@ Must called from within a `tar-mode' buffer."
         (should (string= (buffer-string)
                          (concat "(define-package \"simple-single\" \"1.3\" "
                                  "\"A single-file package "
-                                 "with no dependencies\" 'nil)\n"))))
+                                 "with no dependencies\" 'nil "
+                                 ":homepage \"http://doodles.au\""
+                                 ")\n"))))
       (should (file-exists-p autoloads-file))
       (should-not (get-file-buffer autoloads-file)))))
 
@@ -319,22 +315,11 @@ Must called from within a `tar-mode' buffer."
      (should (search-forward "Version: 1.3" nil t))
      (should (search-forward "Summary: A single-file package with no dependencies"
                              nil t))
+     (should (search-forward "Homepage: http://doodles.au" nil t))
      ;; No description, though. Because at this point we don't know
      ;; what archive the package originated from, and we don't have
      ;; its readme file saved.
      )))
-
-(ert-deftest package-test-describe-not-installed-package ()
-  "Test displaying of the readme for not-installed package."
-
-  (with-package-test ()
-    (package-initialize)
-    (package-refresh-contents)
-    (with-fake-help-buffer
-     (describe-package 'simple-single)
-     (goto-char (point-min))
-     (should (search-forward "This package provides a minor mode to frobnicate"
-                             nil t)))))
 
 (ert-deftest package-test-describe-non-installed-package ()
   "Test displaying of the readme for non-installed package."
@@ -345,6 +330,7 @@ Must called from within a `tar-mode' buffer."
     (with-fake-help-buffer
      (describe-package 'simple-single)
      (goto-char (point-min))
+     (should (search-forward "Homepage: http://doodles.au" nil t))
      (should (search-forward "This package provides a minor mode to frobnicate"
                              nil t)))))
 
@@ -357,6 +343,7 @@ Must called from within a `tar-mode' buffer."
     (with-fake-help-buffer
      (describe-package 'multi-file)
      (goto-char (point-min))
+     (should (search-forward "Homepage: http://puddles.li" nil t))
      (should (search-forward "This is a bare-bones readme file for the multi-file"
                              nil t)))))
 

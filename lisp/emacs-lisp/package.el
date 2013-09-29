@@ -296,7 +296,7 @@ contrast, `package-user-dir' contains packages for personal use."
                (:constructor
                 package-desc-from-define
                 (name-string version-string &optional summary requirements
-                 &key kind archive &allow-other-keys
+                 &rest rest-plist
                  &aux
                  (name (intern name-string))
                  (version (version-to-list version-string))
@@ -305,7 +305,19 @@ contrast, `package-user-dir' contains packages for personal use."
                                          (version-to-list (cadr elt))))
                                (if (eq 'quote (car requirements))
                                    (nth 1 requirements)
-                                 requirements))))))
+                                 requirements)))
+                 (kind (plist-get rest-plist :kind))
+                 (archive (plist-get rest-plist :archive))
+                 (extras (let (alist)
+                           (cl-remf rest-plist :kind)
+                           (cl-remf rest-plist :archive)
+                           (while rest-plist
+                             (let ((value (cadr rest-plist)))
+                               (when value
+                                 (push (cons (car rest-plist) value)
+                                       alist)))
+                             (setq rest-plist (cddr rest-plist)))
+                           alist)))))
   "Structure containing information about an individual package.
 Slots:
 
@@ -327,14 +339,17 @@ Slots:
 	package came.
 
 `dir'	The directory where the package is installed (if installed),
-	`builtin' if it is built-in, or nil otherwise."
+	`builtin' if it is built-in, or nil otherwise.
+
+`extras' Optional alist of additional keyword-value pairs."
   name
   version
   (summary package--default-summary)
   reqs
   kind
   archive
-  dir)
+  dir
+  extras)
 
 ;; Pseudo fields.
 (defun package-desc-full-name (pkg-desc)
@@ -642,21 +657,27 @@ untar into a directory named DIR; otherwise, signal an error."
       (write-region
        (concat
         (prin1-to-string
-         (list 'define-package
-               (symbol-name name)
-               (package-version-join (package-desc-version pkg-desc))
-               (package-desc-summary pkg-desc)
-               (let ((requires (package-desc-reqs pkg-desc)))
-                 (list 'quote
-                       ;; Turn version lists into string form.
-                       (mapcar
-                        (lambda (elt)
-                          (list (car elt)
-                                (package-version-join (cadr elt))))
-                        requires)))))
+         (nconc
+          (list 'define-package
+                (symbol-name name)
+                (package-version-join (package-desc-version pkg-desc))
+                (package-desc-summary pkg-desc)
+                (let ((requires (package-desc-reqs pkg-desc)))
+                  (list 'quote
+                        ;; Turn version lists into string form.
+                        (mapcar
+                         (lambda (elt)
+                           (list (car elt)
+                                 (package-version-join (cadr elt))))
+                         requires))))
+          (package--alist-to-plist
+           (package-desc-extras pkg-desc))))
         "\n")
        nil
        pkg-file))))
+
+(defun package--alist-to-plist (alist)
+  (apply #'nconc (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist)))
 
 (defun package-unpack (pkg-desc)
   "Install the contents of the current buffer as a package."
@@ -893,10 +914,10 @@ If the archive version is too new, signal an error."
 ;; Changing this defstruct implies changing the format of the
 ;; "archive-contents" files.
 (cl-defstruct (package--ac-desc
-               (:constructor package-make-ac-desc (version reqs summary kind))
+               (:constructor package-make-ac-desc (version reqs summary kind extras))
                (:copier nil)
                (:type vector))
-  version reqs summary kind)
+  version reqs summary kind extras)
 
 (defun package--add-to-archive-contents (package archive)
   "Add the PACKAGE from the given ARCHIVE if necessary.
@@ -911,7 +932,11 @@ Also, add the originating archive to the `package-desc' structure."
            :reqs (package--ac-desc-reqs (cdr package))
            :summary (package--ac-desc-summary (cdr package))
            :kind (package--ac-desc-kind (cdr package))
-           :archive archive))
+           :archive archive
+           :extras (and (> (length (cdr package)) 4)
+                        ;; Older archive-contents files have only 4
+                        ;; elements here.
+                        (package--ac-desc-extras (cdr package)))))
          (existing-packages (assq name package-archive-contents))
          (pinned-to-archive (assoc name package-pinned-packages)))
     (cond
@@ -1004,14 +1029,16 @@ boundaries."
 	   ;; probably wants us to use it.  Otherwise try Version.
 	   (pkg-version
 	    (or (package-strip-rcs-id (lm-header "package-version"))
-		(package-strip-rcs-id (lm-header "version")))))
+		(package-strip-rcs-id (lm-header "version"))))
+           (homepage (lm-homepage)))
       (unless pkg-version
 	(error
 	 "Package lacks a \"Version\" or \"Package-Version\" header"))
       (package-desc-from-define
        file-name pkg-version desc
        (if requires-str (package-read-from-string requires-str))
-       :kind 'single))))
+       :kind 'single
+       :homepage homepage))))
 
 (declare-function tar-get-file-descriptor "tar-mode" (file))
 (declare-function tar--extract "tar-mode" (descriptor))
@@ -1180,6 +1207,8 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (reqs (if desc (package-desc-reqs desc)))
          (version (if desc (package-desc-version desc)))
          (archive (if desc (package-desc-archive desc)))
+         (homepage (if desc (cdr (assoc :homepage
+                                        (package-desc-extras desc)))))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan")))
@@ -1248,7 +1277,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	(insert "\n")))
     (insert "    " (propertize "Summary" 'font-lock-face 'bold)
 	    ": " (if desc (package-desc-summary desc)) "\n")
-
+    (when homepage
+      (insert "   " (propertize "Homepage" 'font-lock-face 'bold) ": ")
+      (help-insert-xref-button homepage 'help-url homepage)
+      (insert "\n"))
     (let* ((all-pkgs (append (cdr (assq name package-alist))
                              (cdr (assq name package-archive-contents))
                              (let ((bi (assq name package--builtins)))

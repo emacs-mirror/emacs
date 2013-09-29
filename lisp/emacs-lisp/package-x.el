@@ -209,6 +209,7 @@ if it exists."
                 (pcase file-type
                   (`single (lm-commentary))
                   (`tar nil))) ;; FIXME: Get it from the README file.
+               (extras (package-desc-extras pkg-desc))
 	       (pkg-version (package-version-join split-version))
 	       (pkg-buffer (current-buffer)))
 
@@ -217,7 +218,7 @@ if it exists."
 	  (let ((contents (or (package--archive-contents-from-url archive-url)
 			      (package--archive-contents-from-file)))
 		(new-desc (package-make-ac-desc
-                           split-version requires desc file-type)))
+                           split-version requires desc file-type extras)))
 	    (if (> (car contents) package-archive-version)
 		(error "Unrecognized archive version %d" (car contents)))
 	    (let ((elt (assq pkg-name (cdr contents))))

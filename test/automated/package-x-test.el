@@ -48,14 +48,16 @@
   (cons 'simple-single
         (package-make-ac-desc '(1 3) nil
                               "A single-file package with no dependencies"
-                              'single))
+                              'single
+                              '((:homepage . "http://doodles.au"))))
   "Expected contents of the archive entry from the \"simple-single\" package.")
 
 (defvar package-x-test--single-archive-entry-1-4
   (cons 'simple-single
         (package-make-ac-desc '(1 4) nil
                               "A single-file package with no dependencies"
-                              'single))
+                              'single
+                              nil))
   "Expected contents of the archive entry from the updated \"simple-single\" package.")
 
 (ert-deftest package-x-test-upload-buffer ()

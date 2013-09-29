@@ -1,10 +1,12 @@
 (1
  (simple-single .
                 [(1 3)
-                 nil "A single-file package with no dependencies" single])
+                 nil "A single-file package with no dependencies" single
+                 ((:homepage . "http://doodles.au"))])
  (simple-depend .
                 [(1 0)
                  ((simple-single (1 3))) "A single-file package with a dependency." single])
  (multi-file .
              [(0 2 3)
-              nil "Example of a multi-file tar package" tar]))
+              nil "Example of a multi-file tar package" tar
+              ((:homepage . "http://puddles.li"))]))

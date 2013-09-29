@@ -3,6 +3,7 @@
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.3
 ;; Keywords: frobnicate
+;; URL: http://doodles.au
 
 ;;; Commentary:
 

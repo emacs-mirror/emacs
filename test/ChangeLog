@@ -1,3 +1,29 @@
+2013-09-29  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-test.el (simple-single-desc-1-4): Remove, it
+	was unused.
+	(simple-single-desc): Expect :homepage property.
+	(multi-file-desc): Same.
+	(with-package-test): Do not save previous `default-directory'
+	value, let-bind the var instead.
+	(package-test-install-single): Expect :homepage property in the
+	generated pkg file.
+	(package-test-describe-package): Expect Homepage button.
+	(package-test-describe-non-installed-package)
+	(package-test-describe-non-installed-multi-file-package): Same.
+	(package-test-describe-not-installed-package): Remove, it was a
+	duplicate.
+
+	* automated/package-x-test.el
+	(package-x-test--single-archive-entry-1-3): Expect :homepage
+	property.
+	(package-x-test--single-archive-entry-1-4): Expect nil extras slot.
+
+	* automated/data/package/simple-single-1.3.el: Add URL header.
+
+	* automated/data/package/archive-contents: Add :homepage
+	properties to `simple-single' and `multi-file'.
+
 2013-09-22  Daniel Colascione  <dancol@dancol.org>
 
 	* automated/data-test.el:

@@ -1,3 +1,22 @@
+2013-09-29  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-desc-from-define): Accept
+	additional arguments as plist, convert it to an alist and store it
+	in the `extras' slot.
+	(package-generate-description-file): Convert extras alist back to
+	plist and append to the `define-package' form arguments.
+	(package--alist-to-plist): New function.
+	(package--ac-desc): Add `extras' slot.
+	(package--add-to-archive-contents): Check if the archive-contents
+	vector is long enough, and if it is, pass its `extras' slot value
+	to `package-desc-create'.
+	(package-buffer-info): Call `lm-homepage', pass the returned value
+	to `package-desc-from-define'.
+	(describe-package-1): Render the homepage button (Bug#13291).
+
+	* emacs-lisp/package-x.el (package-upload-buffer-internal): Pass
+	`extras' slot from `package-desc' to `package-make-ac-desc'.
+
 2013-09-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (ns-initialize-window-system): Set locale-coding-system
