@@ -1,3 +1,8 @@
+2013-09-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-initialize-window-system): Set locale-coding-system
+	and default-process-coding-system to utf-8-unix (Bug#15402).
+
 2013-09-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* subr.el (looking-back): Do not recommend using looking-back.

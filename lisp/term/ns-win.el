@@ -912,6 +912,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; FIXME: This will surely lead to "MODIFIED OUTSIDE CUSTOM" warnings.
   (menu-bar-mode (if (get-lisp-resource nil "Menus") 1 -1))
 
+  ;; For NS nothing except UTF-8 makes sense.
+  (add-hook 'before-init-hook
+            #'(lambda ()
+                (setq locale-coding-system 'utf-8-unix)
+                (setq default-process-coding-system
+                      '(utf-8-unix . utf-8-unix))))
+
   ;; OS X Lion introduces PressAndHold, which is unsupported by this port.
   ;; See this thread for more details:
   ;; http://lists.gnu.org/archive/html/emacs-devel/2011-06/msg00505.html
