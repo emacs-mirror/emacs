@@ -1,5 +1,7 @@
 2013-09-29  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* window.c (calc_absolute_offset): #elif should be #elif defined.
+
 	* frame.c (delete_frame): Block/unblock input to overcome race
 	condition (Bug#15475).
 

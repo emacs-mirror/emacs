@@ -945,7 +945,7 @@ calc_absolute_offset (struct window *w, int *add_x, int *add_y)
 #endif
 #ifdef FRAME_TOOLBAR_TOP_HEIGHT
   *add_y += FRAME_TOOLBAR_TOP_HEIGHT (f);
-#elif FRAME_TOOLBAR_HEIGHT
+#elif defined (FRAME_TOOLBAR_HEIGHT)
   *add_y += FRAME_TOOLBAR_HEIGHT (f);
 #endif
 #ifdef FRAME_NS_TITLEBAR_HEIGHT
