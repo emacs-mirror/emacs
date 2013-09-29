@@ -2434,8 +2434,8 @@ a space; `yes-or-no-p' adds \"(yes or no) \" to it.
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.
 
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil, and `use-dialog-box' is non-nil.  */)
+If dialog boxes are supported, a dialog box will be used
+if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
 {
   register Lisp_Object ans;
@@ -2446,8 +2446,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
 
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && use_dialog_box
-      && window_system_available (SELECTED_FRAME ()))
+      && use_dialog_box)
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);
