@@ -1190,7 +1190,7 @@ Lisp_Object
 delete_frame (Lisp_Object frame, Lisp_Object force)
 {
   struct frame *f = decode_any_frame (frame);
-  struct frame *sf = SELECTED_FRAME ();
+  struct frame *sf;
   struct kboard *kb;
 
   int minibuffer_selected, is_tooltip_frame;
@@ -1265,7 +1265,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      There is no more chance for errors to prevent it.  */
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
-
+  sf = SELECTED_FRAME ();
   /* Don't let the frame remain selected.  */
   if (f == sf)
     {
