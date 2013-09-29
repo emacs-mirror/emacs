@@ -1376,6 +1376,141 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   return selection;
 }
 
+#ifdef HAVE_MENUS
+
+DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
+       doc: /* Pop up a dialog box and return user's selection.
+POSITION specifies which frame to use.
+This is normally a mouse button event or a window or frame.
+If POSITION is t, it means to use the frame the mouse is on.
+The dialog box appears in the middle of the specified frame.
+
+CONTENTS specifies the alternatives to display in the dialog box.
+It is a list of the form (DIALOG ITEM1 ITEM2...).
+Each ITEM is a cons cell (STRING . VALUE).
+The return value is VALUE from the chosen item.
+
+An ITEM may also be just a string--that makes a nonselectable item.
+An ITEM may also be nil--that means to put all preceding items
+on the left of the dialog box and all following items on the right.
+\(By default, approximately half appear on each side.)
+
+If HEADER is non-nil, the frame title for the box is "Information",
+otherwise it is "Question".
+
+If the user gets rid of the dialog box without making a valid choice,
+for instance using the window manager, then this produces a quit and
+`x-popup-dialog' does not return.  */)
+  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
+{
+  struct frame *f = NULL;
+  Lisp_Object window;
+
+  /* Decode the first argument: find the window or frame to use.  */
+  if (EQ (position, Qt)
+      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+			       || EQ (XCAR (position), Qtool_bar))))
+    {
+#if 0 /* Using the frame the mouse is on may not be right.  */
+      /* Use the mouse's current position.  */
+      struct frame *new_f = SELECTED_FRAME ();
+      Lisp_Object bar_window;
+      enum scroll_bar_part part;
+      Time time;
+      Lisp_Object x, y;
+
+      (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
+
+      if (new_f != 0)
+	XSETFRAME (window, new_f);
+      else
+	window = selected_window;
+#endif
+      window = selected_window;
+    }
+  else if (CONSP (position))
+    {
+      Lisp_Object tem = XCAR (position);
+      if (CONSP (tem))
+	window = Fcar (XCDR (position));
+      else
+	{
+	  tem = Fcar (XCDR (position));  /* EVENT_START (position) */
+	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
+	}
+    }
+  else if (WINDOWP (position) || FRAMEP (position))
+    window = position;
+  else
+    window = Qnil;
+
+  /* Decode where to put the menu.  */
+
+  if (FRAMEP (window))
+    f = XFRAME (window);
+  else if (WINDOWP (window))
+    {
+      CHECK_LIVE_WINDOW (window);
+      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
+    }
+  else
+    /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
+       but I don't want to make one now.  */
+    CHECK_WINDOW (window);
+
+  /* Force a redisplay before showing the dialog.  If a frame is created
+     just before showing the dialog, its contents may not have been fully
+     drawn, as this depends on timing of events from the X server.  Redisplay
+     is not done when a dialog is shown.  If redisplay could be done in the
+     X event loop (i.e. the X event loop does not run in a signal handler)
+     this would not be needed.
+
+     Do this before creating the widget value that points to Lisp
+     string contents, because Fredisplay may GC and relocate them.  */
+  Fredisplay (Qt);
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+  if (FRAME_WINDOW_P (f))
+    return xw_popup_dialog (f, header, contents);
+  else
+#endif
+#if defined (HAVE_NTGUI) && defined (HAVE_DIALOGS)
+  if (FRAME_W32_P (f))
+    return w32_popup_dialog (f, header, contents);
+  else
+#endif
+#ifdef HAVE_NS
+  if (FRAME_NS_P (f))
+    return ns_popup_dialog (position, header, contents);
+  else
+#endif
+  /* Display a menu with these alternatives
+     in the middle of frame F.  */
+  {
+    Lisp_Object x, y, frame, newpos;
+    int frame_width, frame_height;
+
+    if (FRAME_WINDOW_P (f))
+      {
+	frame_width = FRAME_PIXEL_WIDTH (f);
+	frame_height = FRAME_PIXEL_HEIGHT (f);
+      }
+    else
+      {
+	frame_width = FRAME_COLS (f);
+	frame_height = FRAME_LINES (f);
+      }
+    XSETFRAME (frame, f);
+    XSETINT (x, frame_width / 2);
+    XSETINT (y, frame_height / 2);
+    newpos = list2 (list2 (x, y), frame);
+
+    return Fx_popup_menu (newpos,
+			  list2 (Fcar (contents), contents));
+  }
+}
+
+#endif	/* HAVE_MENUS */
+
 void
 syms_of_menu (void)
 {
@@ -1384,4 +1519,8 @@ syms_of_menu (void)
   menu_items_inuse = Qnil;
 
   defsubr (&Sx_popup_menu);
+
+#ifdef HAVE_MENUS
+  defsubr (&Sx_popup_dialog);
+#endif
 }

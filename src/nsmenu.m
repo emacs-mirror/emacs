@@ -1452,7 +1452,7 @@ pop_down_menu (void *arg)
 
 
 Lisp_Object
-ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
+ns_popup_dialog (Lisp_Object position, Lisp_Object header, Lisp_Object contents)
 {
   id dialog;
   Lisp_Object window, tem, title;
@@ -1919,34 +1919,6 @@ DEFUN ("ns-reset-menu", Fns_reset_menu, Sns_reset_menu, 0, 0, 0,
 }
 
 
-DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
-       doc: /* Pop up a dialog box and return user's selection.
-POSITION specifies which frame to use.
-This is normally a mouse button event or a window or frame.
-If POSITION is t, it means to use the frame the mouse is on.
-The dialog box appears in the middle of the specified frame.
-
-CONTENTS specifies the alternatives to display in the dialog box.
-It is a list of the form (DIALOG ITEM1 ITEM2...).
-Each ITEM is a cons cell (STRING . VALUE).
-The return value is VALUE from the chosen item.
-
-An ITEM may also be just a string--that makes a nonselectable item.
-An ITEM may also be nil--that means to put all preceding items
-on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)
-
-If HEADER is non-nil, the frame title for the box is "Information",
-otherwise it is "Question".
-
-If the user gets rid of the dialog box without making a valid choice,
-for instance using the window manager, then this produces a quit and
-`x-popup-dialog' does not return.  */)
-     (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
-{
-  return ns_popup_dialog (position, contents, header);
-}
-
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active.  */)
      (void)
@@ -1968,7 +1940,6 @@ syms_of_nsmenu (void)
      update menus there.  */
   trackingMenu = 1;
 #endif
-  defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);
 
