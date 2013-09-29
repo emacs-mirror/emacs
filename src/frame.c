@@ -1373,13 +1373,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      have called the window-system-dependent frame destruction
      routine.  */
 
-  if (FRAME_TERMINAL (f)->delete_frame_hook)
-    (*FRAME_TERMINAL (f)->delete_frame_hook) (f);
 
   {
+    block_input ();
+    if (FRAME_TERMINAL (f)->delete_frame_hook)
+      (*FRAME_TERMINAL (f)->delete_frame_hook) (f);
     struct terminal *terminal = FRAME_TERMINAL (f);
     f->output_data.nothing = 0;
     f->terminal = 0;             /* Now the frame is dead.  */
+    unblock_input ();
 
     /* If needed, delete the terminal that this frame was on.
        (This must be done after the frame is killed.)  */

@@ -1,3 +1,8 @@
+2013-09-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (delete_frame): Block/unblock input to overcome race
+	condition (Bug#15475).
+
 2013-09-29  Andreas Politz  <politza@hochschule-trier.de>  (tiny change)
 
 	* frame.c (delete_frame): Record selected frame only after
