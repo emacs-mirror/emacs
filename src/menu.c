@@ -1486,26 +1486,30 @@ for instance using the window manager, then this produces a quit and
   /* Display a menu with these alternatives
      in the middle of frame F.  */
   {
-    Lisp_Object x, y, frame, newpos;
-    int frame_width, frame_height;
+    Lisp_Object x, y, frame, newpos, prompt;
+    int x_coord, y_coord;
 
+    prompt = Fcar (contents);
     if (FRAME_WINDOW_P (f))
       {
-	frame_width = FRAME_PIXEL_WIDTH (f);
-	frame_height = FRAME_PIXEL_HEIGHT (f);
+	x_coord = FRAME_PIXEL_WIDTH (f);
+	y_coord = FRAME_PIXEL_HEIGHT (f);
       }
     else
       {
-	frame_width = FRAME_COLS (f);
-	frame_height = FRAME_LINES (f);
+	x_coord = FRAME_COLS (f);
+	/* Center the title at frame middle.  (TTY menus have their
+	   upper-left corner at the given position.)  */
+	if (STRINGP (prompt))
+	  x_coord -= SCHARS (prompt);
+	y_coord = FRAME_LINES (f);
       }
     XSETFRAME (frame, f);
-    XSETINT (x, frame_width / 2);
-    XSETINT (y, frame_height / 2);
+    XSETINT (x, x_coord / 2);
+    XSETINT (y, y_coord / 2);
     newpos = list2 (list2 (x, y), frame);
 
-    return Fx_popup_menu (newpos,
-			  list2 (Fcar (contents), contents));
+    return Fx_popup_menu (newpos, list2 (prompt, contents));
   }
 }
 
