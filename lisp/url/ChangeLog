@@ -1,3 +1,8 @@
+2013-09-29  Leo Liu  <sdl.web@gmail.com>
+
+	* url-util.el (url-pretty-length): Make obsolete and all uses
+	changed to file-size-human-readable.
+
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* url-http.el (zlib-decompress-region): Declare.

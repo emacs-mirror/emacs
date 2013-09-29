@@ -51,7 +51,6 @@
 (defvar url-show-status)
 
 (require 'url-gw)
-(require 'url-util)
 (require 'url-parse)
 (require 'url-cookie)
 (require 'mail-parse)
@@ -919,7 +918,7 @@ should be shown to the user."
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
   ;; Just _very_ simple 'downloaded %d' type of info.
-  (url-lazy-message "Reading %s..." (url-pretty-length nd)))
+  (url-lazy-message "Reading %s..." (file-size-human-readable nd)))
 
 (defun url-http-content-length-after-change-function (st nd length)
   "Function used when we DO know how long the document is going to be.
@@ -932,16 +931,16 @@ the callback to be triggered."
        (url-percentage (- nd url-http-end-of-headers)
 		       url-http-content-length)
        url-http-content-type
-       (url-pretty-length (- nd url-http-end-of-headers))
-       (url-pretty-length url-http-content-length)
+       (file-size-human-readable (- nd url-http-end-of-headers))
+       (file-size-human-readable url-http-content-length)
        (url-percentage (- nd url-http-end-of-headers)
 		       url-http-content-length))
     (url-display-percentage
      "Reading... %s of %s (%d%%)"
      (url-percentage (- nd url-http-end-of-headers)
 		     url-http-content-length)
-     (url-pretty-length (- nd url-http-end-of-headers))
-     (url-pretty-length url-http-content-length)
+     (file-size-human-readable (- nd url-http-end-of-headers))
+     (file-size-human-readable url-http-content-length)
      (url-percentage (- nd url-http-end-of-headers)
 		     url-http-content-length)))
 
