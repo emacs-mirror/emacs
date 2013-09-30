@@ -85,7 +85,7 @@ static void initialise_wrapper(mps_word_t *wrapper)
  * .assume.dylan-obj
  */
 
-static mps_word_t *alloc_string(char *s, mps_ap_t ap)
+static mps_word_t *alloc_string(const char *s, mps_ap_t ap)
 {
   size_t l;
   size_t objsize;

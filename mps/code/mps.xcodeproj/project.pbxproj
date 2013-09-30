@@ -4186,6 +4186,8 @@
 				OTHER_CFLAGS = (
 					"-pedantic",
 					"-Wall",
+					"-Wextra",
+					"-Wwrite-strings",
 					"-Wno-extended-offsetof",
 				);
 				SDKROOT = macosx;
@@ -4201,6 +4203,8 @@
 					"-Wcast-qual",
 					"-Wshadow",
 					"-Wall",
+					"-Wextra",
+					"-Wwrite-strings",
 					"-Wno-extended-offsetof",
 				);
 			};
@@ -4635,6 +4639,8 @@
 				OTHER_CFLAGS = (
 					"-pedantic",
 					"-Wall",
+					"-Wextra",
+					"-Wwrite-strings",
 					"-Wno-extended-offsetof",
 				);
 				SDKROOT = macosx;
@@ -4650,6 +4656,8 @@
 					"-Wcast-qual",
 					"-Wshadow",
 					"-Wall",
+					"-Wextra",
+					"-Wwrite-strings",
 					"-Wno-extended-offsetof",
 				);
 			};
@@ -4689,6 +4697,8 @@
 				OTHER_CFLAGS = (
 					"-pedantic",
 					"-Wall",
+					"-Wextra",
+					"-Wwrite-strings",
 					"-Wno-extended-offsetof",
 				);
 				SDKROOT = macosx;
@@ -4704,6 +4714,8 @@
 					"-Wcast-qual",
 					"-Wshadow",
 					"-Wall",
+					"-Wextra",
+					"-Wwrite-strings",
 					"-Wno-extended-offsetof",
 				);
 			};

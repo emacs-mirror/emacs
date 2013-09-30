@@ -42,7 +42,7 @@ static FILE *ioFile = NULL;
 mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
   FILE *f;
-  char *filename;
+  const char *filename;
 
   if(ioFile != NULL) /* See <code/event.c#trans.log> */
     return MPS_RES_LIMIT; /* Cannot currently open more than one log */

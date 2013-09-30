@@ -204,7 +204,7 @@ static double time_since(double t)
 #define MAXPRINTABLE 100.0
 #define MINPRINTABLE (MAXPRINTABLE / 1000.0)
 
-static void print_time(char *before, double t, char *after)
+static void print_time(const char *before, double t, const char *after)
 {
     char prefixes[] = "\0munpfazy"; /* don't print "ks" etc */
     char *x = prefixes+2; /* start at micro */
