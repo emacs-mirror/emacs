@@ -1,3 +1,8 @@
+2013-09-30  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (inferior-octave-startup-file): Prefer
+	~/.emacs.d/init_octave.m.
+
 2013-09-29  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-desc-from-define): Accept

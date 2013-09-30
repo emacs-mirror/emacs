@@ -609,8 +609,8 @@ See `comint-prompt-read-only' for details."
   :version "24.4")
 
 (defcustom inferior-octave-startup-file
-  (convert-standard-filename
-   (concat "~/.emacs-" (file-name-nondirectory inferior-octave-program)))
+  (let ((n (file-name-nondirectory inferior-octave-program)))
+    (locate-user-emacs-file (format "init_%s.m" n) (format ".emacs-%s" n)))
   "Name of the inferior Octave startup file.
 The contents of this file are sent to the inferior Octave process on
 startup."
