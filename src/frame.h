@@ -1250,9 +1250,6 @@ extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object oldval);
 extern void x_activate_menubar (struct frame *);
 extern void x_real_positions (struct frame *, int *, int *);
-extern void x_set_menu_bar_lines (struct frame *,
-                                  Lisp_Object,
-                                  Lisp_Object);
 extern void free_frame_menubar (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 

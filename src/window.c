@@ -5540,10 +5540,12 @@ the return value is nil.  Otherwise the value is t.  */)
       if (data->frame_menu_bar_lines
 	  != previous_frame_menu_bar_lines)
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (FRAME_WINDOW_P (f))
 	    x_set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
 				  make_number (0));
 	  else	/* TTY or MSDOS */
+#endif
 	    set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
 				make_number (0));
 	}
@@ -5743,11 +5745,13 @@ the return value is nil.  Otherwise the value is t.  */)
 #ifdef HAVE_MENUS
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (FRAME_WINDOW_P (f))
 	    x_set_menu_bar_lines (f,
 				  make_number (previous_frame_menu_bar_lines),
 				  make_number (0));
 	  else	/* TTY or MSDOS */
+#endif
 	    set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
 				make_number (0));
 	}
