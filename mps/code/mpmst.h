@@ -1,7 +1,7 @@
 /* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -532,7 +532,7 @@ typedef struct ChunkCacheEntryStruct {
 
 typedef struct mps_arena_class_s {
   ProtocolClassStruct protocol;
-  char *name;                   /* class name string */
+  const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
   ArenaVarargsMethod varargs;
@@ -704,7 +704,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

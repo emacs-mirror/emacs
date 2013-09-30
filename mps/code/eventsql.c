@@ -154,14 +154,14 @@ static void sqlite_error(int res, sqlite3 *db, const char *format, ...)
 
 /* global control variables set by command-line parameters. */
 
-static char *prog; /* program name */
+static const char *prog; /* program name */
 static int rebuild = FALSE;
 static int deleteDatabase = FALSE;
 static int runTests = FALSE;
 static int force = FALSE;
 static int progress = FALSE;
-static char *databaseName = NULL;
-static char *logFileName = NULL;
+static const char *databaseName = NULL;
+static const char *logFileName = NULL;
 
 static void usage(void)
 {

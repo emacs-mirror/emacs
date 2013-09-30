@@ -2328,7 +2328,7 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   AMC amc;
   Ring node, nextNode;
-  char *rampmode;
+  const char *rampmode;
 
   if(!TESTT(Pool, pool))
     return ResFAIL;

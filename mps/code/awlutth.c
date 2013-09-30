@@ -82,7 +82,7 @@ static void initialise_wrapper(mps_word_t *wrapper)
 /* create a dylan string object (byte vector) whose contents
  * are the string s (including the terminating NUL)
  * .assume.dylan-obj */
-static mps_word_t *alloc_string(char *s, mps_ap_t ap)
+static mps_word_t *alloc_string(const char *s, mps_ap_t ap)
 {
   size_t l;
   size_t objsize;

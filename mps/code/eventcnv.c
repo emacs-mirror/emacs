@@ -1,5 +1,5 @@
 /* eventcnv.c: Simple event log converter
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
  * stream from the MPS into a more-portable textual format.
@@ -56,7 +56,7 @@
 #define TELEMETRY_FILENAME_ENVAR   "MPS_TELEMETRY_FILENAME"
 
 static EventClock eventTime; /* current event time */
-static char *prog; /* program name */
+static const char *prog; /* program name */
 
 /* Errors and Warnings */
 
@@ -301,7 +301,7 @@ static void readLog(FILE *stream)
 
 int main(int argc, char *argv[])
 {
-  char *filename;
+  const char *filename;
   FILE *input;
 
   assert(CHECKCONV(ulongest_t, Word));
@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
