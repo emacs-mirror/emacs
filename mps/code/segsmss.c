@@ -758,7 +758,7 @@ static void *test(void *arg, size_t s)
   unsigned long objs;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
-  char *indent = "    ";
+  const char *indent = "    ";
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */

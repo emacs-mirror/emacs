@@ -2,7 +2,7 @@
  * 
  * $Id$
  * 
- * Copyright (c) 2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2013 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts events from a text-format
  * MPS telemetry file into a more human-readable format.
@@ -45,8 +45,8 @@
 #pragma warning( disable : 4996 )
 #endif
 
-static char *prog; /* program name */
-static char *logFileName = NULL;
+static const char *prog; /* program name */
+static const char *logFileName = NULL;
 
 /* everror -- error signalling */
 
@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
