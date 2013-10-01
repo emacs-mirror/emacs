@@ -31,8 +31,9 @@ SRCID(prmci6li, "$Id$");
 
 MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
+  /* Always true since regnum is unsigned: */  
+  /* AVER(regnum >= 0); */
   AVER(regnum <= 15);
-  AVER(regnum >= 0);
 
   /* .assume.regref */
   /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>
