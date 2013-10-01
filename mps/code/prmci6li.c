@@ -35,8 +35,7 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 {
   Word *gregs;
 
-  /* Always true since regnum is unsigned: */  
-  /* AVER(regnum >= 0); */
+  AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 15);
 
   gregs = (Word *)&mfc->ucontext->uc_mcontext.gregs;

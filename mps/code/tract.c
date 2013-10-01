@@ -142,8 +142,7 @@ Bool ChunkCheck(Chunk chunk)
   CHECKL((Addr)chunk->pageTable >= chunk->base);
   CHECKL((Addr)&chunk->pageTable[chunk->pageTablePages]
          <= PageIndexBase(chunk, chunk->allocBase));
-  /* Always true since Index is unsigned: */
-  /* CHECKL(INDEX_OF_ADDR(chunk, (Addr)chunk->pageTable) >= 0); */
+  CHECKL(NONNEGATIVE(INDEX_OF_ADDR(chunk, (Addr)chunk->pageTable)));
   /* check there's enough space in the page table */
   CHECKL(INDEX_OF_ADDR(chunk, AddrSub(chunk->limit, 1)) < chunk->pages);
   CHECKL(chunk->pageTablePages < chunk->pages);
