@@ -1,3 +1,7 @@
+2013-10-01  Mitchel Humpherys  <mitch.special@gmail.com>  (tiny change)
+
+	* vc/vc-git.el (vc-git-grep): Disable pager.
+
 2013-10-01  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-buffer-info, describe-package-1):
@@ -9,14 +13,14 @@
 
 2013-09-30  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* progmodes/octave.el (inferior-octave-startup-file): Prefer
-	~/.emacs.d/init_octave.m.
+	* progmodes/octave.el (inferior-octave-startup-file):
+	Prefer ~/.emacs.d/init_octave.m.
 
 2013-09-29  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* emacs-lisp/package.el (package-desc-from-define): Accept
-	additional arguments as plist, convert it to an alist and store it
-	in the `extras' slot.
+	* emacs-lisp/package.el (package-desc-from-define):
+	Accept additional arguments as plist, convert them to an alist and store
+	them in the `extras' slot.
 	(package-generate-description-file): Convert extras alist back to
 	plist and append to the `define-package' form arguments.
 	(package--alist-to-plist): New function.
@@ -28,8 +32,8 @@
 	to `package-desc-from-define'.
 	(describe-package-1): Render the homepage button (Bug#13291).
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Pass
-	`extras' slot from `package-desc' to `package-make-ac-desc'.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Pass `extras' slot from `package-desc' to `package-make-ac-desc'.
 
 2013-09-29  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -181,8 +185,8 @@
 2013-09-20  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/pcvs.el (cvs-mode-ignore):
-	* vc/vc-cvs.el (vc-cvs-ignore, vc-cvs-append-to-ignore): Rename
-	cvs-append-to-ignore to vc-cvs-append-to-ignore.
+	* vc/vc-cvs.el (vc-cvs-ignore, vc-cvs-append-to-ignore):
+	Rename cvs-append-to-ignore to vc-cvs-append-to-ignore.
 
 2013-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
