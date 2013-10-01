@@ -179,6 +179,25 @@
 #define MPS_PF_ALIGN    8
 
 
+/* Clang/LLVM 3.0, clang -E -dM */
+
+#elif defined(__linux__) && defined(__x86_64) && defined(__GNUC__) \
+      && defined(__clang__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII6LL)
+#error "specified CONFIG_PF_... inconsistent with detected lii6ll"
+#endif
+#define MPS_PF_LII6LL
+#define MPS_PF_STRING   "lii6ll"
+#define MPS_OS_LI
+#define MPS_ARCH_I6
+#define MPS_BUILD_LL
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
+
 /* GCC 2.95.3, gcc -E -dM */
 
 #elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__) \
