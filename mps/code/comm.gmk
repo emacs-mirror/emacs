@@ -134,6 +134,9 @@ ifeq ($(VARIETY),cool)
 CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
 CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFCOOL)
 else
+ifneq ($(VARIETY),)
+$(error Variety "$(VARIETY)" not recognized: must be rash/hot/cool)
+endif
 endif
 endif
 endif
