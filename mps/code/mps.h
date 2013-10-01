@@ -737,9 +737,9 @@ extern void mps_arena_roots_walk(mps_arena_t,
 
 
 typedef struct mps_pool_debug_option_s {
-  void* fence_template;
+  const void *fence_template;
   size_t fence_size;
-  void*  free_template;
+  const void *free_template;
   size_t free_size;
 } mps_pool_debug_option_s;
 
