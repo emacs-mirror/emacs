@@ -1,3 +1,8 @@
+2013-10-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* newcomment.el (comment-beginning): When `comment-use-syntax' is
+	non-nil, use `syntax-ppss' (Bug#15251).
+
 2013-09-30  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/octave.el (inferior-octave-startup-file): Prefer

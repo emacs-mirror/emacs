@@ -515,30 +515,36 @@ Ensure that `comment-normalize-vars' has been called before you use this."
   "Find the beginning of the enclosing comment.
 Returns nil if not inside a comment, else moves point and returns
 the same as `comment-search-backward'."
-  ;; HACK ATTACK!
-  ;; We should really test `in-string-p' but that can be expensive.
-  (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)
-    (let ((pt (point))
-	  (cs (comment-search-backward nil t)))
-      (when cs
-	(if (save-excursion
-	      (goto-char cs)
-	      (and
-	       ;; For modes where comment-start and comment-end are the same,
-	       ;; the search above may have found a `ce' rather than a `cs'.
-	       (or (if comment-end-skip (not (looking-at comment-end-skip)))
-		   ;; Maybe font-lock knows that it's a `cs'?
-		   (eq (get-text-property (match-end 0) 'face)
-		       'font-lock-comment-face)
-		   (unless (eq (get-text-property (point) 'face)
-			       'font-lock-comment-face)
-		     ;; Let's assume it's a `cs' if we're on the same line.
-		     (>= (line-end-position) pt)))
-	       ;; Make sure that PT is not past the end of the comment.
-	       (if (comment-forward 1) (> (point) pt) (eobp))))
-	    cs
-	  (goto-char pt)
-	  nil)))))
+  (if comment-use-syntax
+      (let ((state (syntax-ppss)))
+        (when (nth 4 state)
+          (goto-char (nth 8 state))
+          (prog1 (point)
+            (when (looking-at comment-start-skip)
+              (goto-char (match-end 0))))))
+    ;; Can't rely on the syntax table, let's guess based on font-lock.
+    (unless (eq (get-text-property (point) 'face) 'font-lock-string-face)
+      (let ((pt (point))
+            (cs (comment-search-backward nil t)))
+        (when cs
+          (if (save-excursion
+                (goto-char cs)
+                (and
+                 ;; For modes where comment-start and comment-end are the same,
+                 ;; the search above may have found a `ce' rather than a `cs'.
+                 (or (if comment-end-skip (not (looking-at comment-end-skip)))
+                     ;; Maybe font-lock knows that it's a `cs'?
+                     (eq (get-text-property (match-end 0) 'face)
+                         'font-lock-comment-face)
+                     (unless (eq (get-text-property (point) 'face)
+                                 'font-lock-comment-face)
+                       ;; Let's assume it's a `cs' if we're on the same line.
+                       (>= (line-end-position) pt)))
+                 ;; Make sure that PT is not past the end of the comment.
+                 (if (comment-forward 1) (> (point) pt) (eobp))))
+              cs
+            (goto-char pt)
+            nil))))))
 
 (defun comment-forward (&optional n)
   "Skip forward over N comments.
