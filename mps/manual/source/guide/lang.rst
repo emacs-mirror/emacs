@@ -735,18 +735,16 @@ the pool creation code. First, the header for the AMC pool class::
 
 Second, the :term:`object format`::
 
-    struct mps_fmt_A_s obj_fmt_s = {
-        sizeof(mps_word_t),
-        obj_scan,
-        obj_skip,
-        NULL,
-        obj_fwd,
-        obj_isfwd,
-        obj_pad,
-    };
-
-    mps_fmt_t obj_fmt;
-    res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, obj_scan);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
+        MPS_ARGS_DONE(args);
+        res = mps_fmt_create_k(&obj_fmt, arena, args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
 Third, the :term:`generation chain`::
