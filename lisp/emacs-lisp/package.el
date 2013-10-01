@@ -1038,7 +1038,7 @@ boundaries."
        file-name pkg-version desc
        (if requires-str (package-read-from-string requires-str))
        :kind 'single
-       :homepage homepage))))
+       :url homepage))))
 
 (declare-function tar-get-file-descriptor "tar-mode" (file))
 (declare-function tar--extract "tar-mode" (descriptor))
@@ -1207,8 +1207,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (reqs (if desc (package-desc-reqs desc)))
          (version (if desc (package-desc-version desc)))
          (archive (if desc (package-desc-archive desc)))
-         (homepage (if desc (cdr (assoc :homepage
-                                        (package-desc-extras desc)))))
+         (homepage (if desc (cdr (assoc :url (package-desc-extras desc)))))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan")))

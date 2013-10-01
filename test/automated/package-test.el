@@ -48,7 +48,7 @@
                        :version '(1 3)
                        :summary "A single-file package with no dependencies"
                        :kind 'single
-                       :extras '((:homepage . "http://doodles.au")))
+                       :extras '((:url . "http://doodles.au")))
   "Expected `package-desc' parsed from simple-single-1.3.el.")
 
 (defvar simple-depend-desc
@@ -64,7 +64,7 @@
                        :version '(0 2 3)
                        :summary "Example of a multi-file tar package"
                        :kind 'tar
-                       :extras '((:homepage . "http://puddles.li")))
+                       :extras '((:url . "http://puddles.li")))
   "Expected `package-desc' from \"multi-file-0.2.3.tar\".")
 
 (defvar new-pkg-desc
@@ -189,7 +189,7 @@ Must called from within a `tar-mode' buffer."
                          (concat "(define-package \"simple-single\" \"1.3\" "
                                  "\"A single-file package "
                                  "with no dependencies\" 'nil "
-                                 ":homepage \"http://doodles.au\""
+                                 ":url \"http://doodles.au\""
                                  ")\n"))))
       (should (file-exists-p autoloads-file))
       (should-not (get-file-buffer autoloads-file)))))

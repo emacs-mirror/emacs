@@ -1,5 +1,9 @@
 2013-10-01  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* emacs-lisp/package.el (package-buffer-info, describe-package-1):
+	Use :url instead of :homepage, as per
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00622.html
+
 	* newcomment.el (comment-beginning): When `comment-use-syntax' is
 	non-nil, use `syntax-ppss' (Bug#15251).
 

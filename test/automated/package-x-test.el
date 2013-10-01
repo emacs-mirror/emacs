@@ -49,7 +49,7 @@
         (package-make-ac-desc '(1 3) nil
                               "A single-file package with no dependencies"
                               'single
-                              '((:homepage . "http://doodles.au"))))
+                              '((:url . "http://doodles.au"))))
   "Expected contents of the archive entry from the \"simple-single\" package.")
 
 (defvar package-x-test--single-archive-entry-1-4
