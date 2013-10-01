@@ -309,13 +309,12 @@ contrast, `package-user-dir' contains packages for personal use."
                  (kind (plist-get rest-plist :kind))
                  (archive (plist-get rest-plist :archive))
                  (extras (let (alist)
-                           (cl-remf rest-plist :kind)
-                           (cl-remf rest-plist :archive)
                            (while rest-plist
-                             (let ((value (cadr rest-plist)))
-                               (when value
-                                 (push (cons (car rest-plist) value)
-                                       alist)))
+                             (unless (memq (car rest-plist) '(:kind :archive))
+                               (let ((value (cadr rest-plist)))
+                                 (when value
+                                   (push (cons (car rest-plist) value)
+                                         alist))))
                              (setq rest-plist (cddr rest-plist)))
                            alist)))))
   "Structure containing information about an individual package.

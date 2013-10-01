@@ -1,3 +1,7 @@
+2013-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-desc): Simplify (bug#15495).
+
 2013-10-01  Mitchel Humpherys  <mitch.special@gmail.com>  (tiny change)
 
 	* vc/vc-git.el (vc-git-grep): Disable pager.
