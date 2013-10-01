@@ -55,6 +55,11 @@ case $host/$CLANG in
       MPS_TARGET_NAME=lii6gc
       PFMCFLAGS="$CFLAGS_GC"
     ;;
+  x86_64-*-linux*/yes)
+      AC_MSG_RESULT([Linux x86_64])
+      MPS_TARGET_NAME=lii6ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   i*86-*-darwin*/*)
       AC_MSG_RESULT([Mac OS X x86])
       MPS_TARGET_NAME=xci3ll
