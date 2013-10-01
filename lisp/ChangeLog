@@ -1,3 +1,8 @@
+2013-10-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-initialize-window-system): Set locale-coding-system
+	and default-process-coding-system for darwin only.
+
 2013-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-desc): Simplify (bug#15495).
