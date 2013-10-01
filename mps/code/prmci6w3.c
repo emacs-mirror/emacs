@@ -30,8 +30,7 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
-  /* Always true since regnum is unsigned: */  
-  /* AVER(regnum >= 0); */
+  AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 16);
 
   wincont = context->ep->ContextRecord;

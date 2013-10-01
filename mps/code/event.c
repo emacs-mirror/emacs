@@ -80,8 +80,7 @@ failWrite:
 void EventFlush(EventKind kind)
 {
   AVER(eventInited);
-  /* Always true since EventKind is unsigned: */
-  /* AVER(0 <= kind); */
+  AVER(NONNEGATIVE(kind));
   AVER(kind < EventKindLIMIT);
 
   AVER(EventBuffer[kind] <= EventLast[kind]);
