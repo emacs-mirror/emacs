@@ -1,7 +1,7 @@
 /* prmci6w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * PURPOSE
  *
@@ -30,8 +30,9 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
+  /* Always true since regnum is unsigned: */  
+  /* AVER(regnum >= 0); */
   AVER(regnum <= 16);
-  AVER(regnum >= 0);
 
   wincont = context->ep->ContextRecord;
 
@@ -86,7 +87,7 @@ void Prmci6StepOverIns(MutatorFaultContext context, Size inslen)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
