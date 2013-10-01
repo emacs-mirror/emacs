@@ -11,16 +11,18 @@ Release 1.112.0
 New features
 ............
 
-1. On Windows, you can now request that the MPS allocate address space
+1. New supported platform ``lii6ll`` (Linux, x86-64, Clang/LLVM).
+
+2. On Windows, you can now request that the MPS allocate address space
    from the top down, allowing a 32-bit executable linked with
    ``/LARGEADDRESSAWARE`` to use the top half of the address space.
    Use the keyword argument :c:macro:`MPS_KEY_VMW3_TOP_DOWN` when
    creating an arena of class :c:func:`mps_arena_class_vm`.
 
-2. On OS X, multi-threaded programs are now supported. See
+3. On OS X, multi-threaded programs are now supported. See
    :ref:`topic-thread`.
 
-3. On OS X, you can now debug the MPS using ``lldb``.
+4. On OS X, you can now debug the MPS using ``lldb``.
 
 
 Interface changes
