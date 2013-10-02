@@ -2720,7 +2720,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGFloat font_size = mac_font_get_size (macfont);
       CGAffineTransform atfm;
       CGFloat advance_delta = 0;
-      int y_draw = -y-FONT_BASE (s->font);
+      int y_draw = -s->ybase;
       int no_antialias_p =
 	(macfont_info->antialias == MACFONT_ANTIALIAS_OFF
 	 || (macfont_info->antialias == MACFONT_ANTIALIAS_DEFAULT
@@ -3321,10 +3321,8 @@ mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
   CFStringRef result = NULL;
   CFStringRef charset_string =
     CFDictionaryGetValue (attributes, MAC_FONT_CHARACTER_SET_STRING_ATTRIBUTE);
-  CFIndex length;
 
-  if (charset_string
-      && (length = CFStringGetLength (charset_string)) > 0)
+  if (charset_string && CFStringGetLength (charset_string) > 0)
     {
       CFAttributedStringRef attr_string = NULL;
       CTLineRef ctline = NULL;

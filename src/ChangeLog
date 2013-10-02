@@ -1,3 +1,9 @@
+2013-10-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* macfont.m (mac_ctfont_create_preferred_family_for_attributes): Remove
+	unised variable (from mac-port).
+	(macfont_draw): Use s->ybase for correct y position.
+
 2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.h (struct frame): Drop has_minibuffer member because...
