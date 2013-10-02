@@ -219,6 +219,11 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* Buffer Configuration -- see <code/buffer.c> */
+
+#define BUFFER_RANK_DEFAULT (mps_rank_exact())
+
+
 /* CBS Configuration -- see <code/cbs.c> */
 
 #define CBS_EXTEND_BY_DEFAULT ((Size)4096)
