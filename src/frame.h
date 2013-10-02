@@ -355,10 +355,6 @@ struct frame
   /* Nonzero if this frame should be redrawn.  */
   unsigned garbaged : 1;
 
-  /* True if frame actually has a minibuffer window on it.
-     0 if using a minibuffer window that isn't on this frame.  */
-  unsigned has_minibuffer : 1;
-
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
   unsigned wants_modeline : 1;
@@ -657,9 +653,11 @@ default_pixels_per_inch_y (void)
 #define FRAME_MINIBUF_ONLY_P(f) \
   EQ (FRAME_ROOT_WINDOW (f), FRAME_MINIBUF_WINDOW (f))
 
-/* Nonzero if frame F contains a minibuffer window.
-   (If this is 0, F must use some other minibuffer window.)  */
-#define FRAME_HAS_MINIBUF_P(f) ((f)->has_minibuffer)
+/* Nonzero if frame F contains it's own minibuffer window.  Frame always has
+   minibuffer window, but it could use minibuffer window of another frame.  */
+#define FRAME_HAS_MINIBUF_P(f)					\
+  (WINDOWP (f->minibuffer_window)				\
+   && XFRAME (XWINDOW (f->minibuffer_window)->frame) == f)
 
 /* Pixel height of frame F, including non-toolkit menu bar and
    non-toolkit tool bar lines.  */

@@ -1,5 +1,11 @@
 2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.h (struct frame): Drop has_minibuffer member because...
+	(FRAME_HAS_MINIBUF_P): ...this macro can be implemented without it.
+	* frame.c (make_frame, make_minibuffer_frame): Adjust users.
+
+2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* window.h (struct window): Prefer enum text_cursor_kinds to int
 	for phys_cursor_type member.  Move the latter, phys_cursor_width,
 	phys_cursor_ascent and phys_cursor_height under HAVE_WINDOW_SYSTEM.

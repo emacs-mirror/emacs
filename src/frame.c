@@ -339,7 +339,6 @@ make_frame (bool mini_p)
      initialize enum members explicitly even if their values are zero.  */
   f->wants_modeline = 1;
   f->garbaged = 1;
-  f->has_minibuffer = mini_p;
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
   f->column_width = 1;  /* !FRAME_WINDOW_P value */
   f->line_height = 1;  /* !FRAME_WINDOW_P value */
@@ -489,7 +488,6 @@ make_minibuffer_frame (void)
   f->auto_lower = 0;
   f->no_split = 1;
   f->wants_modeline = 0;
-  f->has_minibuffer = 1;
 
   /* Now label the root window as also being the minibuffer.
      Avoid infinite looping on the window chain by marking next pointer
