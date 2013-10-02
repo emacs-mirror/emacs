@@ -29,8 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "termhooks.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
-
 /* Fringe bitmaps are represented in three different ways:
 
    Logical bitmaps are used internally to denote things like
@@ -1863,5 +1861,3 @@ w32_reset_fringes (void)
 }
 
 #endif /* HAVE_NTGUI */
-
-#endif /* HAVE_WINDOW_SYSTEM */

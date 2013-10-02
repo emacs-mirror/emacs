@@ -1,3 +1,8 @@
+2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fringe.c (toplevel): Do not use HAVE_WINDOW_SYSTEM because
+	this module is never compiled otherwise.
+
 2013-10-01  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* macfont.m (macfont_draw): Use CGRectMake rather than NSMakeRect
