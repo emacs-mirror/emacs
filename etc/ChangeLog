@@ -1,3 +1,9 @@
+2013-10-02  Fabrice Niessen  <fni@missioncriticalit.com>
+
+	* themes/leuven-theme.el: Add Commentary and some headers, update
+	face definitions, add autoload block which is used when
+	distributed separately from Emacs.
+
 2013-09-22  Daniel Colascione  <dancol@dancol.org>
 
 	* NEWS: Mention new bool-vector functionality.
