@@ -141,6 +141,7 @@ Internals}.
 
 @node Syntax Class Table
 @subsection Table of Syntax Classes
+@cindex syntax class table
 
   Here is a table of syntax classes, the characters that designate
 them, their meanings, and examples of their use.

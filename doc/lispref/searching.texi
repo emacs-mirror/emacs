@@ -1770,6 +1770,7 @@ Do not take action for this question---in other words, ``no''.
 Answer this question ``no'', and give up on the entire series of
 questions, assuming that the answers will be ``no''.
 
+@c FIXME: Document ‘unread-comment-events’?  --xfq
 @item exit-prefix
 Like @code{exit}, but add the key that was pressed to
 @code{unread-comment-events}.
