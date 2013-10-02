@@ -311,12 +311,13 @@ selected menu item, press @key{RET}; to cancel menu navigation, press
   On a text terminal, you can optionally access the menu-bar menus in
 the echo area.  To this end, customize the variable
 @code{tty-menu-open-use-tmm} to a non-@code{nil} value.  Then typing
-@kbd{M-`} or @key{F10} will run the command @code{tmm-menubar} instead
-of dropping down the menu.  This lets you select a menu item with the
-keyboard.  A provisional choice appears in the echo area.  You can use
-the up and down arrow keys to move through the menu to different
-items, and then you can type @key{RET} to select the item.  Each menu
-item is also designated by a letter or digit (usually the initial of
-some word in the item's name).  This letter or digit is separated from
-the item name by @samp{==>}.  You can type the item's letter or digit
-to select the item.
+@key{F10} will run the command @code{tmm-menubar} instead of dropping
+down the menu.  (You can also type @kbd{M-`}, which always invokes
+@code{tmm-menubar}.)  @code{tmm-menubar} lets you select a menu item
+with the keyboard.  A provisional choice appears in the echo area.
+You can use the up and down arrow keys to move through the menu to
+different items, and then you can type @key{RET} to select the item.
+Each menu item is also designated by a letter or digit (usually the
+initial of some word in the item's name).  This letter or digit is
+separated from the item name by @samp{==>}.  You can type the item's
+letter or digit to select the item.
