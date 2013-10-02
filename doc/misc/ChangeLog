@@ -1,3 +1,10 @@
+2013-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.8.
+
+	* tramp.texi (External packages): Use `non-essential'.
+	* trampver.texi: Update release number.
+
 2013-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* eshell.texi: Markup fixes.
