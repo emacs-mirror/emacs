@@ -145,12 +145,12 @@ AMS interface
     :c:func:`mps_ap_create_k` accepts one keyword argument:
 
     * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
-    :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
-    in objects allocated on this allocation point. It must be
-    :c:func:`mps_rank_exact` (if the objects allocated on this
-    allocation point will contain :term:`exact references`), or
-    :c:func:`mps_rank_ambig` (if the objects may contain
-    :term:`ambiguous references`).
+      :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
+      in objects allocated on this allocation point. It must be
+      :c:func:`mps_rank_exact` (if the objects allocated on this
+      allocation point will contain :term:`exact references`), or
+      :c:func:`mps_rank_ambig` (if the objects may contain
+      :term:`ambiguous references`).
 
     For example::
 
