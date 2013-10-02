@@ -240,12 +240,18 @@ struct window
        without pause.  This is the position of last_point.  */
     int last_cursor_vpos;
 
-    /* Cursor type and width of last cursor drawn on the window.
-       Used for X and w32 frames; -1 initially.  */
-    int phys_cursor_type, phys_cursor_width;
+#ifdef HAVE_WINDOW_SYSTEM
+
+    /* Cursor type of last cursor drawn on the window.  */
+    enum text_cursor_kinds phys_cursor_type;
+
+    /* Width of the cursor above.  */
+    int phys_cursor_width;
 
     /* This is handy for undrawing the cursor.  */
     int phys_cursor_ascent, phys_cursor_height;
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
     /* Width of left and right fringes, in pixels.
        A value of -1 means use frame values.  */

@@ -2008,8 +2008,10 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
       memset (&n->cursor, 0, sizeof (n->cursor));
       memset (&n->phys_cursor, 0, sizeof (n->phys_cursor));
       n->last_cursor_vpos = 0;
-      n->phys_cursor_type = -1;
+#ifdef HAVE_WINDOW_SYSTEM
+      n->phys_cursor_type = NO_CURSOR;
       n->phys_cursor_width = -1;
+#endif
       n->must_be_updated_p = 0;
       n->pseudo_window_p = 0;
       n->window_end_vpos = 0;
@@ -3420,8 +3422,10 @@ make_window (void)
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
   w->left_fringe_width = w->right_fringe_width = -1;
   w->mode_line_height = w->header_line_height = -1;
-  w->phys_cursor_type = -1;
+#ifdef HAVE_WINDOW_SYSTEM
+  w->phys_cursor_type = NO_CURSOR;
   w->phys_cursor_width = -1;
+#endif
   w->scroll_bar_width = -1;
   w->column_number_displayed = -1;
 
