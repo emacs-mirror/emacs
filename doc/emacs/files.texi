@@ -286,6 +286,10 @@ exception, dropping a file into a window displaying a Dired buffer
 moves or copies the file into the displayed directory.  For details,
 see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
+  On text-mode terminals and on graphical displays when Emacs was
+built without a GUI toolkit, you can visit files via the menu-bar
+``File'' menu, which has a ``Visit New File'' item.
+
   Each time you visit a file, Emacs automatically scans its contents
 to detect what character encoding and end-of-line convention it uses,
 and converts these to Emacs's internal encoding and end-of-line
