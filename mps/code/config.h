@@ -236,6 +236,11 @@
 #define FMT_CLASS_DEFAULT (&FormatDefaultClass)
 
 
+/* Pool AMS Configuration -- see <code/poolams.c> */
+
+#define AMS_SUPPORT_AMBIGUOUS_DEFAULT FALSE
+
+
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
 #define MV_EXTEND_BY_DEFAULT  ((Size)65536)

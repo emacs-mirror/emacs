@@ -57,9 +57,10 @@ AMS properties
   :ref:`topic-collection-schedule`.
 
 * Blocks may contain :term:`exact references` to blocks in the same or
-  other pools (but may not contain :term:`ambiguous references` or
-  :term:`weak references (1)`, and may not use :term:`remote
-  references`).
+  other pools, or :term:`ambiguous references` (if the
+  :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` keyword argument is set to
+  true when creating the pool). Blocks may not contain :term:`weak
+  references (1)`, and may not use :term:`remote references`.
 
 * Allocations may be variable in size.
 
@@ -115,11 +116,16 @@ AMS interface
       the :term:`generation chain` for the pool. It must have a single
       generation.
 
+    * :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` (type
+      :c:type:`mps_bool_t`, default false) specifies whether references
+      may be ambiguous.
+
     For example::
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
             MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_ADD(args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS, 1);
             MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_ams(), args);
         } MPS_ARGS_END(args);
@@ -132,7 +138,8 @@ AMS interface
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_ams(),
                                       mps_fmt_t fmt,
-                                      mps_chain_t chain)
+                                      mps_chain_t chain,
+                                      mps_bool_t support_ambiguous)
 
 
 .. c:function:: mps_class_t mps_class_ams_debug(void)
@@ -155,4 +162,5 @@ AMS interface
                                       mps_class_t mps_class_ams_debug(),
                                       mps_debug_option_s debug_option,
                                       mps_fmt_t fmt,
-                                      mps_chain_t chain)
+                                      mps_chain_t chain,
+                                      mps_bool_t support_ambiguous)
