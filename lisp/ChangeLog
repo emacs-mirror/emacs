@@ -1,3 +1,11 @@
+2013-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.8.
+
+	* net/tramp-cmds.el (tramp-bug, tramp-append-tramp-buffers):
+	* net/tramp-cache.el (tramp-cache-print): Use `tramp-compat-funcall'.
+	* net/trampver.el: Update release number.
+
 2013-10-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (ns-initialize-window-system): Set locale-coding-system
