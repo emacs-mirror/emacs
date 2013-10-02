@@ -65,6 +65,22 @@ To use the old backend by default, do on the command line:
 
 * Changes in Emacs 24.4
 
++++
+** Emacs now supports menus on text-mode terminals.
+If the terminal supports a mouse, clicking on the menu bar, or on
+sensitive portions of the mode line or header line, will drop down the
+menu defined at that position.  Likewise, clicking C-mouse-2 or
+C-mouse-2 or C-mouse-3 on the text area will pop up the menus defined
+for those locations.
+
+If the text terminal does not support a mouse, you can activate the
+first menu-bar menu by typing F10, which invokes `menu-bar-open'.
+
+If you want the previous behavior, whereby F10 invoked `tmm-menubar',
+customize the option `tty-menu-open-use-tmm' to a non-nil value.
+(Typing M-` will always invoke `tmm-menubar', even if
+`tty-menu-open-use-tmm' is nil.)
+
 ** Key ? also describes prefix bindings like C-h.
 
 +++
@@ -640,6 +656,10 @@ for something (not just adding elements to it), it ought not to affect you.
 
 
 * Lisp Changes in Emacs 24.4
+
+** Functions that pop up menus and dialogs now work on all terminal types.
+This includes `x-popup-menu', `x-popup-dialog', `message-box',
+`yes-or-no-p', etc.
 
 ** New bool-vector set operation functions:
 *** `bool-vector-exclusive-or'
