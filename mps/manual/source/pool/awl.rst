@@ -59,7 +59,7 @@ AWL properties
 
 * Supports allocation via :term:`allocation points`. If an allocation
   point is created in an AWL pool, the call to
-  :c:func:`mps_ap_create_k` requires one keyword argument,
+  :c:func:`mps_ap_create_k` accepts one keyword argument,
   :c:macro:`MPS_KEY_RANK`.
 
 * Supports :term:`allocation frames` but does not use them to improve
@@ -343,14 +343,15 @@ AWL interface
                                       mps_awl_find_dependent_t find_dependent)
 
     When creating an :term:`allocation point` on an AWL pool,
-    :c:func:`mps_ap_create_k` requires one keyword argument:
+    :c:func:`mps_ap_create_k` accepts one keyword argument:
 
-    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`) specifies
-      the :term:`rank` of references in objects allocated on this
-      allocation point. It must be :c:func:`mps_rank_exact` (if the
-      objects allocated on this allocation point will contain
-      :term:`exact references`), or :c:func:`mps_rank_weak` (if the
-      objects will contain :term:`weak references (1)`).
+    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
+      :c:func:`mps_rank_exact`) specifies the :term:`rank` of
+      references in objects allocated on this allocation point. It
+      must be :c:func:`mps_rank_exact` (if the objects allocated on
+      this allocation point will contain :term:`exact references`), or
+      :c:func:`mps_rank_weak` (if the objects will contain :term:`weak
+      references (1)`).
 
     For example::
 

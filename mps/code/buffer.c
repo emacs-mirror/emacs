@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -1491,7 +1491,7 @@ static void rankBufVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
 {
-  Rank rank;
+  Rank rank = BUFFER_RANK_DEFAULT;
   BufferClass super;
   Res res;
   ArgStruct arg;
@@ -1499,8 +1499,8 @@ static Res rankBufInit(Buffer buffer, Pool pool, ArgList args)
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
   AVER(ArgListCheck(args));
-  ArgRequire(&arg, args, MPS_KEY_RANK);
-  rank = arg.val.rank;
+  if (ArgPick(&arg, args, MPS_KEY_RANK))
+    rank = arg.val.rank;
   AVER(RankCheck(rank));
 
   /* Initialize the superclass fields first via next-method call */
@@ -1536,7 +1536,7 @@ DEFINE_CLASS(RankBufClass, class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

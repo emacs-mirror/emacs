@@ -114,7 +114,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_MVT_FRAG_LIMIT`        :c:type:`mps_count_t`           ``count``              :c:func:`mps_class_mvt`
     :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH`     :c:type:`mps_count_t`           ``count``              :c:func:`mps_class_mvt`
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`    ``mps_pool_debug_options_s *``  ``pool_debug_options`` :c:func:`mps_class_ams_debug`, :c:func:`mps_class_mv_debug`, :c:func:`mps_class_mvff_debug`
-    :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`            ``rank``               :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
+    :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`            ``rank``               :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
     :c:macro:`MPS_KEY_VMW3_TOP_DOWN`         :c:type:`mps_bool_t`            ``b``                  :c:func:`mps_arena_class_vm`
     ======================================== ====================================================== ==========================================================
 
