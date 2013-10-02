@@ -1583,7 +1583,16 @@ Returns the compilation buffer created."
                "\\\\\\(.\\)" "\\1"
                (substring command (1+ (match-beginning 1))
                           (1- (match-end 1)))))
-             (t (substitute-env-vars (match-string 1 command)))))
+             ;; Try globbing as well (bug#15417).
+             (t (let* ((substituted-dir
+                        (substitute-env-vars (match-string 1 command)))
+                       ;; FIXME: This also tries to expand `*' that were
+                       ;; introduced by the envvar expansion!
+                       (expanded-dir
+                        (file-expand-wildcards substituted-dir)))
+                  (if (= (length expanded-dir) 1)
+                      (car expanded-dir)
+                    substituted-dir)))))
 	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))

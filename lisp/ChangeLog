@@ -1,3 +1,8 @@
+2013-10-02  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* progmodes/compile.el (compilation-start): Try globbing the arg to
+	`cd' (bug#15417).
+
 2013-10-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.8.
