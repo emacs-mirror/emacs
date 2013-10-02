@@ -141,6 +141,32 @@ AMS interface
                                       mps_chain_t chain,
                                       mps_bool_t support_ambiguous)
 
+    When creating an :term:`allocation point` on an AMS pool,
+    :c:func:`mps_ap_create_k` accepts one keyword argument:
+
+    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
+    :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
+    in objects allocated on this allocation point. It must be
+    :c:func:`mps_rank_exact` (if the objects allocated on this
+    allocation point will contain :term:`exact references`), or
+    :c:func:`mps_rank_ambig` (if the objects may contain
+    :term:`ambiguous references`).
+
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_ambig());
+            MPS_ARGS_DONE(args);
+            res = mps_ap_create_k(&ap, ams_pool, args);
+        } MPS_ARGS_END(args);
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_ap_create`, pass the rank like this::
+
+            mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool,
+                                    mps_rank_t rank)
+
 
 .. c:function:: mps_class_t mps_class_ams_debug(void)
 
