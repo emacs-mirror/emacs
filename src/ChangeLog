@@ -1,3 +1,8 @@
+2013-10-01  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* macfont.m (macfont_draw): Use CGRectMake rather than NSMakeRect
+	(Bug#15500).
+
 2013-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_next_display_element): Don't call face_for_font in

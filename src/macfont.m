@@ -2708,7 +2708,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, s);
       CGContextFillRect (context,
-			 NSMakeRect (x, y,
+			 CGRectMake (x, y,
                                      s->width, FONT_HEIGHT (s->font)));
     }
 
