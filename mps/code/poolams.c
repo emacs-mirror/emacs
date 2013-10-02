@@ -1,7 +1,7 @@
 /* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  *
@@ -763,7 +763,7 @@ static Res AMSInit(Pool pool, ArgList args)
   Res res;
   Format format;
   Chain chain;
-  Bool supportAmbiguous;
+  Bool supportAmbiguous = AMS_SUPPORT_AMBIGUOUS_DEFAULT;
   ArgStruct arg;
 
   AVERT(Pool, pool);
@@ -773,8 +773,8 @@ static Res AMSInit(Pool pool, ArgList args)
   chain = arg.val.chain;
   ArgRequire(&arg, args, MPS_KEY_FORMAT);
   format = arg.val.format;
-  ArgRequire(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS);
-  supportAmbiguous = arg.val.b;
+  if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
+    supportAmbiguous = arg.val.b;
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
@@ -1741,7 +1741,7 @@ Bool AMSCheck(AMS ams)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
