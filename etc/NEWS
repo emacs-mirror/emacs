@@ -657,7 +657,8 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
-** Functions that pop up menus and dialogs now work on all terminal types.
+** Functions that pop up menus and dialogs now work on all terminal types,
+including TTYs.
 This includes `x-popup-menu', `x-popup-dialog', `message-box',
 `yes-or-no-p', etc.
 
