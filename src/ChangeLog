@@ -1,7 +1,12 @@
+2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* charset.c (Fdecode_char, Fencode_char): Remove description of
+	`restriction' arg. now that it's hidden by advertised-calling-convention.
+
 2013-10-02  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* macfont.m (mac_ctfont_create_preferred_family_for_attributes): Remove
-	unised variable (from mac-port).
+	* macfont.m (mac_ctfont_create_preferred_family_for_attributes):
+	Remove unused variable (from mac-port).
 	(macfont_draw): Use s->ybase for correct y position.
 
 2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -52,7 +57,7 @@
 	(ns_term_init): Remove assignment of ns_selection_color, logic
 	moved to ns_get_color.
 
-	* nsterm.h (NS_SELECTION_BG_COLOR_DEFAULT): Renamed from
+	* nsterm.h (NS_SELECTION_BG_COLOR_DEFAULT): Rename from
 	NS_SELECTION_COLOR_DEFAULT.
 	(NS_SELECTION_FG_COLOR_DEFAULT): New.
 
@@ -240,8 +245,8 @@
 	(vroundup_ct): New macro.
 	(vroundup): Assume argument >= 0; invoke vroundup_ct.
 	* casetab.c (shuffle,set_identity): Change lint_assume to assume.
-	* composite.c (composition_gstring_put_cache): Change
-	lint_assume to assume.
+	* composite.c (composition_gstring_put_cache):
+	Change lint_assume to assume.
 	* conf_post.h (assume): New macro.
 	(lint_assume): Remove.
 	* dispnew.c (update_frame_1): Change lint_assume to assume.

@@ -1,3 +1,9 @@
+2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (error): Use `declare'.
+	(decode-char, encode-char): Use advertised-calling-convention instead
+	of the docstring to discourage use of the `restriction' arg.
+
 2013-10-03  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg-verify-file): Add a comment saying that it does not
