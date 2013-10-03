@@ -141,6 +141,10 @@ DEFINE (Bunbind5, 055)							\
 DEFINE (Bunbind6, 056)							\
 DEFINE (Bunbind7, 057)							\
 									\
+DEFINE (Bpophandler, 060)						\
+DEFINE (Bpushconditioncase, 061)					\
+DEFINE (Bpushcatch, 062)						\
+									\
 DEFINE (Bnth, 070)							\
 DEFINE (Bsymbolp, 071)							\
 DEFINE (Bconsp, 072)							\
@@ -478,6 +482,12 @@ If the third argument is incorrect, Emacs may crash.  */)
   return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
 }
 
+static void
+bcall0 (Lisp_Object f)
+{
+  Ffuncall (1, &f);
+}
+
 /* Execute the byte-code in BYTESTR.  VECTOR is the constant vector, and
    MAXDEPTH is the maximum stack depth used (if MAXDEPTH is incorrect,
    emacs may crash!).  If ARGS_TEMPLATE is non-nil, it should be a lisp
@@ -506,6 +516,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   struct byte_stack stack;
   Lisp_Object *top;
   Lisp_Object result;
+  enum handlertype type;
 
 #if 0 /* CHECK_FRAME_FONT */
  {
@@ -1078,7 +1089,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_restriction_save ());
 	  NEXT;
 
-	CASE (Bcatch):		/* FIXME: ill-suited for lexbind.  */
+	CASE (Bcatch):		/* Obsolete since 24.4.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -1088,11 +1099,56 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    NEXT;
 	  }
 
-	CASE (Bunwind_protect):	/* FIXME: avoid closure for lexbind.  */
-	  record_unwind_protect (unwind_body, POP);
-	  NEXT;
+	CASE (Bpushcatch):	/* New in 24.4.  */
+	  type = CATCHER;
+	  goto pushhandler;
+	CASE (Bpushconditioncase): /* New in 24.4.  */
+	  {
+	    extern EMACS_INT lisp_eval_depth;
+	    extern int poll_suppress_count;
+	    extern int interrupt_input_blocked;
+	    struct handler *c;
+	    Lisp_Object tag;
+	    int dest;
 
-	CASE (Bcondition_case):	/* FIXME: ill-suited for lexbind.  */
+	    type = CONDITION_CASE;
+	  pushhandler:
+	    tag = POP;
+	    dest = FETCH2;
+
+	    PUSH_HANDLER (c, tag, type);
+	    c->bytecode_dest = dest;
+	    c->bytecode_top = top;
+	    if (sys_setjmp (c->jmp))
+	      {
+		struct handler *c = handlerlist;
+		top = c->bytecode_top;
+		int dest = c->bytecode_dest;
+		handlerlist = c->next;
+		PUSH (c->val);
+		CHECK_RANGE (dest);
+		stack.pc = stack.byte_string_start + dest;
+	      }
+	    NEXT;
+	  }
+
+	CASE (Bpophandler):	/* New in 24.4.  */
+	  {
+	    handlerlist = handlerlist->next;
+	    NEXT;
+	  }
+
+	CASE (Bunwind_protect):	/* FIXME: avoid closure for lexbind.  */
+	  {
+	    Lisp_Object handler = POP;
+	    /* Support for a function here is new in 24.4.  */
+	    record_unwind_protect (NILP (Ffunctionp (handler))
+				   ? unwind_body : bcall0,
+				   handler);
+	    NEXT;
+	  }
+
+	CASE (Bcondition_case):		/* Obsolete since 24.4.  */
 	  {
 	    Lisp_Object handlers, body;
 	    handlers = POP;
@@ -1884,7 +1940,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
-	  error ("Invalid byte opcode");
+         call3 (intern ("error"),
+                build_string ("Invalid byte opcode: op=%s, ptr=%d"),
+                make_number (op),
+                make_number ((stack.pc - 1) - stack.byte_string_start));
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):
@@ -1957,11 +2016,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
   /* Binds and unbinds are supposed to be compiled balanced.  */
   if (SPECPDL_INDEX () != count)
-#ifdef BYTE_CODE_SAFE
-    error ("binding stack not balanced (serious byte compiler bug)");
-#else
-    emacs_abort ();
-#endif
+    {
+      if (SPECPDL_INDEX () > count)
+	unbind_to (count, Qnil);
+      error ("binding stack not balanced (serious byte compiler bug)");
+    }
 
   return result;
 }

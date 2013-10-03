@@ -1,5 +1,29 @@
 2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cconv.el (cconv-convert, cconv-analyse-form): Adjust for
+	the new compilation scheme using the new byte-codes.
+
+	* emacs-lisp/bytecomp.el (byte-pushcatch, byte-pushconditioncase)
+	(byte-pophandler): New byte codes.
+	(byte-goto-ops): Adjust accordingly.
+	(byte-compile--use-old-handlers): New var.
+	(byte-compile-catch): Use new byte codes depending on
+	byte-compile--use-old-handlers.
+	(byte-compile-condition-case--old): Rename from
+	byte-compile-condition-case.
+	(byte-compile-condition-case--new): New function.
+	(byte-compile-condition-case): New function that dispatches depending
+	on byte-compile--use-old-handlers.
+	(byte-compile-unwind-protect): Pass a function to byte-unwind-protect
+	when we can.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Optimize under `condition-case' and `catch' if
+	byte-compile--use-old-handlers is nil.
+	(disassemble-offset): Handle new bytecodes.
+
+2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* subr.el (error): Use `declare'.
 	(decode-char, encode-char): Use advertised-calling-convention instead
 	of the docstring to discourage use of the `restriction' arg.

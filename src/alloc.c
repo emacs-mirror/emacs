@@ -5370,23 +5370,15 @@ See Info node `(elisp)Garbage Collection'.  */)
 	mark_object (tail->var[i]);
   }
   mark_byte_stack ();
-  {
-    struct catchtag *catch;
-    struct handler *handler;
-
-  for (catch = catchlist; catch; catch = catch->next)
-    {
-      mark_object (catch->tag);
-      mark_object (catch->val);
-    }
-  for (handler = handlerlist; handler; handler = handler->next)
-    {
-      mark_object (handler->handler);
-      mark_object (handler->var);
-    }
-  }
 #endif
-
+  {
+    struct handler *handler;
+    for (handler = handlerlist; handler; handler = handler->next)
+      {
+	mark_object (handler->tag_or_ch);
+	mark_object (handler->val);
+      }
+  }
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
 #endif

@@ -1,5 +1,35 @@
 2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (struct handler): Merge struct handler and struct catchtag.
+	(PUSH_HANDLER): New macro.
+	(catchlist): Remove.
+	(handlerlist): Always declare.
+
+	* eval.c (catchlist): Remove (merge with handlerlist).
+	(handlerlist, lisp_eval_depth): Not static any more.
+	(internal_catch, internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2, internal_condition_case_n):
+	Use PUSH_HANDLER.
+	(unwind_to_catch, Fthrow, Fsignal): Adjust to merged
+	handlerlist/catchlist.
+	(internal_lisp_condition_case): Use PUSH_HANDLER.  Adjust to new
+	handlerlist which can only handle a single condition-case handler at
+	a time.
+	(find_handler_clause): Simplify since we only a single branch here
+	any more.
+
+	* bytecode.c (BYTE_CODES): Add Bpushcatch, Bpushconditioncase
+	and Bpophandler.
+	(bcall0): New function.
+	(exec_byte_code): Add corresponding cases.  Improve error message when
+	encountering an invalid byte-code.  Let Bunwind_protect accept
+	a function (rather than a list of expressions) as argument.
+
+	* alloc.c (Fgarbage_collect): Merge scans of handlerlist and catchlist,
+	and make them unconditional now that they're heap-allocated.
+
+2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* charset.c (Fdecode_char, Fencode_char): Remove description of
 	`restriction' arg. now that it's hidden by advertised-calling-convention.
 

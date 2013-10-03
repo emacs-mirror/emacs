@@ -2635,11 +2635,9 @@ typedef jmp_buf sys_jmp_buf;
    - The specpdl stack: keeps track of active unwind-protect and
      dynamic-let-bindings.  Allocated from the `specpdl' array, a manually
      managed stack.
-   - The catch stack: keeps track of active catch tags.
-     Allocated on the C stack.  This is where the setmp data is kept.
-   - The handler stack: keeps track of active condition-case handlers.
-     Allocated on the C stack.  Every entry there also uses an entry in
-     the catch stack.  */
+   - The handler stack: keeps track of active catch tags and condition-case
+     handlers.  Allocated in a manually managed stack implemented by a
+     doubly-linked list allocated via xmalloc and never freed.  */
 
 /* Structure for recording Lisp call stack for backtrace purposes.  */
 
@@ -2709,46 +2707,16 @@ SPECPDL_INDEX (void)
   return specpdl_ptr - specpdl;
 }
 
-/* Everything needed to describe an active condition case.
+/* This structure helps implement the `catch/throw' and `condition-case/signal'
+   control structures.  A struct handler contains all the information needed to
+   restore the state of the interpreter after a non-local jump.
 
-   Members are volatile if their values need to survive _longjmp when
-   a 'struct handler' is a local variable.  */
-struct handler
-  {
-    /* The handler clauses and variable from the condition-case form.  */
-    /* For a handler set up in Lisp code, this is always a list.
-       For an internal handler set up by internal_condition_case*,
-       this can instead be the symbol t or `error'.
-       t: handle all conditions.
-       error: handle all conditions, and errors can run the debugger
-              or display a backtrace.  */
-    Lisp_Object handler;
+   handler structures are chained together in a doubly linked list; the `next'
+   member points to the next outer catchtag and the `nextfree' member points in
+   the other direction to the next inner element (which is typically the next
+   free element since we mostly use it on the deepest handler).
 
-    Lisp_Object volatile var;
-
-    /* Fsignal stores here the condition-case clause that applies,
-       and Fcondition_case thus knows which clause to run.  */
-    Lisp_Object volatile chosen_clause;
-
-    /* Used to effect the longjump out to the handler.  */
-    struct catchtag *tag;
-
-    /* The next enclosing handler.  */
-    struct handler *next;
-  };
-
-/* This structure helps implement the `catch' and `throw' control
-   structure.  A struct catchtag contains all the information needed
-   to restore the state of the interpreter after a non-local jump.
-
-   Handlers for error conditions (represented by `struct handler'
-   structures) just point to a catch tag to do the cleanup required
-   for their jumps.
-
-   catchtag structures are chained together in the C calling stack;
-   the `next' member points to the next outer catchtag.
-
-   A call like (throw TAG VAL) searches for a catchtag whose `tag'
+   A call like (throw TAG VAL) searches for a catchtag whose `tag_or_ch'
    member is TAG, and then unbinds to it.  The `val' member is used to
    hold VAL while the stack is unwound; `val' is returned as the value
    of the catch form.
@@ -2757,23 +2725,62 @@ struct handler
    state.
 
    Members are volatile if their values need to survive _longjmp when
-   a 'struct catchtag' is a local variable.  */
-struct catchtag
+   a 'struct handler' is a local variable.  */
+
+enum handlertype { CATCHER, CONDITION_CASE };
+
+struct handler
 {
-  Lisp_Object tag;
-  Lisp_Object volatile val;
-  struct catchtag *volatile next;
+  enum handlertype type;
+  Lisp_Object tag_or_ch;
+  Lisp_Object val;
+  struct handler *next;
+  struct handler *nextfree;
+
+  /* The bytecode interpreter can have several handlers active at the same
+     time, so when we longjmp to one of them, it needs to know which handler
+     this was and what was the corresponding internal state.  This is stored
+     here, and when we longjmp we make sure that handlerlist points to the
+     proper handler.  */
+  Lisp_Object *bytecode_top;
+  int bytecode_dest;
+
+  /* Most global vars are reset to their value via the specpdl mechanism,
+     but a few others are handled by storing their value here.  */
 #if 1 /* GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS, but they're defined later.  */
   struct gcpro *gcpro;
 #endif
   sys_jmp_buf jmp;
-  struct handler *handlerlist;
   EMACS_INT lisp_eval_depth;
-  ptrdiff_t volatile pdlcount;
+  ptrdiff_t pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;
   struct byte_stack *byte_stack;
 };
+
+/* Fill in the components of c, and put it on the list.  */
+#define PUSH_HANDLER(c, tag_ch_val, handlertype)	\
+  if (handlerlist && handlerlist->nextfree)		\
+    (c) = handlerlist->nextfree;			\
+  else							\
+    {							\
+      (c) = xmalloc (sizeof (struct handler));		\
+      (c)->nextfree = NULL;				\
+      if (handlerlist)					\
+	handlerlist->nextfree = (c);			\
+    }							\
+  (c)->type = (handlertype);				\
+  (c)->tag_or_ch = (tag_ch_val);			\
+  (c)->val = Qnil;					\
+  (c)->next = handlerlist;				\
+  (c)->lisp_eval_depth = lisp_eval_depth;		\
+  (c)->pdlcount = SPECPDL_INDEX ();			\
+  (c)->poll_suppress_count = poll_suppress_count;	\
+  (c)->interrupt_input_blocked = interrupt_input_blocked;\
+  (c)->gcpro = gcprolist;				\
+  (c)->byte_stack = byte_stack_list;			\
+  handlerlist = (c);
+
 
 extern Lisp_Object memory_signal_data;
 
@@ -3677,10 +3684,8 @@ extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
-#if BYTE_MARK_STACK
-extern struct catchtag *catchlist;
 extern struct handler *handlerlist;
-#endif
+
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
 
