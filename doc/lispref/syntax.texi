@@ -411,6 +411,7 @@ is not a syntax table.
 @end defun
 
 @deffn Command modify-syntax-entry char syntax-descriptor  &optional table
+@cindex syntax entry, setting
 This function sets the syntax entry for @var{char} according to
 @var{syntax-descriptor}.  @var{char} must be a character, or a cons
 cell of the form @code{(@var{min} . @var{max})}; in the latter case,

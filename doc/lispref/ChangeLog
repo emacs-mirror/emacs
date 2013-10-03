@@ -1,6 +1,7 @@
 2013-10-03  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* syntax.texi (Syntax Flags): Add an index for comment style.
+	* syntax.texi (Syntax Flags):
+	(Syntax Table Functions): Add indexes.
 
 2013-10-02  Xue Fuqiao  <xfq.free@gmail.com>
 
