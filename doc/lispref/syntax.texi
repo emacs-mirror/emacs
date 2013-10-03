@@ -336,6 +336,7 @@ that this kind of comment can be nested.  For a two-character
 comment delimiter, @samp{n} on either character makes it
 nestable.
 
+@cindex comment style
 Emacs supports several comment styles simultaneously in any one syntax
 table.  A comment style is a set of flags @samp{b}, @samp{c}, and
 @samp{n}, so there can be up to 8 different comment styles.
