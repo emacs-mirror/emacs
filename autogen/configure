@@ -1147,6 +1147,7 @@ REPLACE_ISATTY
 REPLACE_GETPAGESIZE
 REPLACE_GETGROUPS
 REPLACE_GETLOGIN_R
+REPLACE_GETDTABLESIZE
 REPLACE_GETDOMAINNAME
 REPLACE_GETCWD
 REPLACE_FTRUNCATE
@@ -18182,6 +18183,7 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
   REPLACE_FTRUNCATE=0;
   REPLACE_GETCWD=0;
   REPLACE_GETDOMAINNAME=0;
+  REPLACE_GETDTABLESIZE=0;
   REPLACE_GETLOGIN_R=0;
   REPLACE_GETGROUPS=0;
   REPLACE_GETPAGESIZE=0;
@@ -22659,9 +22661,11 @@ int result = 0;
             /* Many gnulib modules require POSIX conformance of EBADF.  */
             if (dup2 (2, 1000000) == -1 && errno != EBADF)
               result |= 16;
-            /* Flush out a cygwin core dump.  */
+            /* Flush out some cygwin core dumps.  */
             if (dup2 (2, -1) != -1 || errno != EBADF)
               result |= 32;
+            dup2 (2, 255);
+            dup2 (2, 256);
             return result;
 
   ;
@@ -22686,6 +22690,17 @@ $as_echo "$gl_cv_func_dup2_works" >&6; }
       *yes) ;;
       *)
         REPLACE_DUP2=1
+        for ac_func in setdtablesize
+do :
+  ac_fn_c_check_func "$LINENO" "setdtablesize" "ac_cv_func_setdtablesize"
+if test "x$ac_cv_func_setdtablesize" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SETDTABLESIZE 1
+_ACEOF
+
+fi
+done
+
         ;;
     esac
   fi
@@ -28236,11 +28251,62 @@ done
 
 
 
-  if test $ac_cv_func_getdtablesize != yes; then
+
+  if test $ac_cv_func_getdtablesize = yes; then
+    # Cygwin 1.7.25 automatically increases the RLIMIT_NOFILE soft limit
+    # up to an unchangeable hard limit; all other platforms correctly
+    # require setrlimit before getdtablesize() can report a larger value.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether getdtablesize works" >&5
+$as_echo_n "checking whether getdtablesize works... " >&6; }
+if test "${gl_cv_func_getdtablesize_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+          cygwin*) # on cygwin 1.5.25, getdtablesize() automatically grows
+            gl_cv_func_getdtablesize_works="guessing no" ;;
+          *) gl_cv_func_getdtablesize_works="guessing yes" ;;
+         esac
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+        #include <unistd.h>
+int
+main ()
+{
+int size = getdtablesize();
+           if (dup2 (0, getdtablesize()) != -1)
+             return 1;
+           if (size != getdtablesize())
+             return 2;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_getdtablesize_works=yes
+else
+  gl_cv_func_getdtablesize_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_getdtablesize_works" >&5
+$as_echo "$gl_cv_func_getdtablesize_works" >&6; }
+    case "$gl_cv_func_getdtablesize_works" in
+      *yes) ;;
+      *) REPLACE_GETDTABLESIZE=1 ;;
+    esac
+  else
     HAVE_GETDTABLESIZE=0
   fi
 
-      if test $HAVE_GETDTABLESIZE = 0; then
+      if test $HAVE_GETDTABLESIZE = 0 || test $REPLACE_GETDTABLESIZE = 1; then
 
 
 

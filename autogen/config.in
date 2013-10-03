@@ -867,6 +867,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `sendto' function. */
 #undef HAVE_SENDTO
 
+/* Define to 1 if you have the `setdtablesize' function. */
+#undef HAVE_SETDTABLESIZE
+
 /* Define to 1 if you have the `setitimer' function. */
 #undef HAVE_SETITIMER
 
