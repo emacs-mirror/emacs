@@ -250,6 +250,30 @@ template <int w>
 
 #define verify(R) _GL_VERIFY (R, "verify (" #R ")")
 
+#ifndef __has_builtin
+# define __has_builtin(x) 0
+#endif
+
+/* Assume that R always holds.  This lets the compiler optimize
+   accordingly.  R should not have side-effects; it may or may not be
+   evaluated.  Behavior is undefined if R is false.  */
+
+#if (__has_builtin (__builtin_unreachable) \
+     || 4 < __GNUC__ + (5 <= __GNUC_MINOR__))
+# define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
+#elif 1200 <= _MSC_VER
+# define assume(R) __assume (R)
+#elif (defined lint \
+       && (__has_builtin (__builtin_trap) \
+           || 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))))
+  /* Doing it this way helps various packages when configured with
+     --enable-gcc-warnings, which compiles with -Dlint.  It's nicer
+     when 'assume' silences warnings even with older GCCs.  */
+# define assume(R) ((R) ? (void) 0 : __builtin_trap ())
+#else
+# define assume(R) ((void) (0 && (R)))
+#endif
+
 /* @assert.h omit end@  */
 
 #endif

@@ -433,7 +433,7 @@ AC_DEFUN([gl_INIT],
   {
     if ! $gl_gnulib_enabled_getdtablesize; then
       gl_FUNC_GETDTABLESIZE
-      if test $HAVE_GETDTABLESIZE = 0; then
+      if test $HAVE_GETDTABLESIZE = 0 || test $REPLACE_GETDTABLESIZE = 1; then
         AC_LIBOBJ([getdtablesize])
         gl_PREREQ_GETDTABLESIZE
       fi

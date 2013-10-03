@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 
 #include <intprops.h>
+#include <verify.h>
 
 INLINE_HEADER_BEGIN
 
@@ -1145,9 +1146,9 @@ struct Lisp_Vector
       /* ...but sometimes there is also a pointer internally used in
 	 vector allocation code.  Usually you don't want to touch this.  */
       struct Lisp_Vector *next;
-      
+
       /* We can't use FLEXIBLE_ARRAY_MEMBER here.  */
-      Lisp_Object contents[1]; 
+      Lisp_Object contents[1];
     } u;
   };
 

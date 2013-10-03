@@ -1,5 +1,9 @@
 2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Adjust to merge from gnulib.
+	* conf_post.h (__has_builtin, assume): Remove; gnulib now does these.
+	* lisp.h: Include <verify.h>, for 'assume'.
+
 	* eval.c (clobbered_eassert): New macro.
 	(internal_catch, internal_condition_case)
 	(internal_condition_case_1, internal_condition_case_2)

@@ -1,3 +1,10 @@
+2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-10-02 verify: new macro 'assume'
+	2013-09-26 dup2, dup3: work around another cygwin crasher
+	2013-09-26 getdtablesize: work around cygwin issue
+
 2013-09-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

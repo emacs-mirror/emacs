@@ -22,11 +22,11 @@
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 
-#include <stdio.h>
+# include <stdio.h>
 
-#include "msvc-inval.h"
+# include "msvc-inval.h"
 
-#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+# if HAVE_MSVC_INVALID_PARAMETER_HANDLER
 static int
 _setmaxstdio_nothrow (int newmax)
 {
@@ -44,10 +44,11 @@ _setmaxstdio_nothrow (int newmax)
 
   return result;
 }
-# define _setmaxstdio _setmaxstdio_nothrow
-#endif
+#  define _setmaxstdio _setmaxstdio_nothrow
+# endif
 
-/* Cache for the previous getdtablesize () result.  */
+/* Cache for the previous getdtablesize () result.  Safe to cache because
+   Windows also lacks setrlimit.  */
 static int dtablesize;
 
 int
@@ -81,6 +82,26 @@ getdtablesize (void)
       dtablesize = bound;
     }
   return dtablesize;
+}
+
+#elif HAVE_GETDTABLESIZE
+
+# include <sys/resource.h>
+# undef getdtablesize
+
+int
+rpl_getdtablesize(void)
+{
+  /* To date, this replacement is only compiled for Cygwin 1.7.25,
+     which auto-increased the RLIMIT_NOFILE soft limit until it
+     hits the compile-time constant hard limit of 3200.  Although
+     that version of cygwin supported a child process inheriting
+     a smaller soft limit, the smaller limit is not enforced, so
+     we might as well just report the hard limit.  */
+  struct rlimit lim;
+  if (!getrlimit (RLIMIT_NOFILE, &lim) && lim.rlim_max != RLIM_INFINITY)
+    return lim.rlim_max;
+  return getdtablesize ();
 }
 
 #endif
