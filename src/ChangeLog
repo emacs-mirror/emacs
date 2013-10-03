@@ -1,5 +1,7 @@
 2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (Qglyphless_char): Now static.
+
 	Adjust to merge from gnulib.
 	* conf_post.h (__has_builtin, assume): Remove; gnulib now does these.
 	* lisp.h: Include <verify.h>, for 'assume'.

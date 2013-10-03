@@ -3389,7 +3389,6 @@ extern Lisp_Object Qimage, Qtext, Qboth, Qboth_horiz, Qtext_image_horiz;
 extern Lisp_Object Qspace, Qcenter, QCalign_to;
 extern Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 extern Lisp_Object Qleft_margin, Qright_margin;
-extern Lisp_Object Qglyphless_char;
 extern Lisp_Object QCdata, QCfile;
 extern Lisp_Object QCmap;
 extern Lisp_Object Qrisky_local_variable;

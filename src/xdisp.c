@@ -751,7 +751,7 @@ struct atimer *hourglass_atimer;
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Name of the face used to display glyphless characters.  */
-Lisp_Object Qglyphless_char;
+static Lisp_Object Qglyphless_char;
 
 /* Symbol for the purpose of Vglyphless_char_display.  */
 static Lisp_Object Qglyphless_char_display;
