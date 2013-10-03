@@ -1,3 +1,11 @@
+2013-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* keymaps.texi (Defining Menus, Mouse Menus, Menu Bar): Modify
+	wording to the effect that menus are supported on TTYs.
+
+	* frames.texi (Pop-Up Menus, Dialog Boxes)
+	(Display Feature Testing): Update for menu support on TTYs.
+
 2013-09-22  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* nonascii.texi (Default Coding Systems): Typo fix.
