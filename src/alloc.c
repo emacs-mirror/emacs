@@ -2023,7 +2023,7 @@ bool_vector_payload_bytes (ptrdiff_t nr_bits,
   ptrdiff_t exact_needed_bytes;
   ptrdiff_t needed_bytes;
 
-  eassert_and_assume (nr_bits >= 0);
+  eassert (nr_bits >= 0);
 
   exact_needed_bytes = ROUNDUP ((size_t) nr_bits, CHAR_BIT) / CHAR_BIT;
   needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_SIZE_T) / CHAR_BIT;
@@ -2060,8 +2060,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   total_payload_bytes = bool_vector_payload_bytes
     (XFASTINT (length), &exact_payload_bytes);
 
-  eassert_and_assume (exact_payload_bytes <= total_payload_bytes);
-  eassert_and_assume (0 <= exact_payload_bytes);
+  eassert (exact_payload_bytes <= total_payload_bytes);
+  eassert (0 <= exact_payload_bytes);
 
   needed_elements = ROUNDUP ((size_t) ((bool_header_size - header_size)
                                        + total_payload_bytes),
@@ -2816,7 +2816,7 @@ vector_nbytes (struct Lisp_Vector *v)
           ptrdiff_t payload_bytes =
               bool_vector_payload_bytes (bv->size, NULL);
 
-          eassert_and_assume (payload_bytes >= 0);
+          eassert (payload_bytes >= 0);
           size = bool_header_size + ROUNDUP (payload_bytes, word_size);
         }
       else

@@ -1,5 +1,10 @@
 2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (eassert): Assume that COND is true when optimizing.
+	In other words, take on the behavior of eassert_and_assume.
+	This makes Emacs 0.2% smaller on my platform (Fedora 19, x86-64).
+	(eassert_and_assume): Remove.  All uses replaced by eassert.
+
 	* xdisp.c (Qglyphless_char): Now static.
 
 	Adjust to merge from gnulib.

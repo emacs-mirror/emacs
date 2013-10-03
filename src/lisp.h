@@ -108,11 +108,12 @@ typedef EMACS_UINT uprintmax_t;
 
 /* Extra internal type checking?  */
 
-/* Define an Emacs version of 'assert (COND)', since some
-   system-defined 'assert's are flaky.  COND should be free of side
-   effects; it may or may not be evaluated.  */
+/* Define an Emacs version of 'assert (COND)'.  COND should be free of
+   side effects; it may be evaluated zero or more times.  If COND is false,
+   Emacs reliably crashes if ENABLE_CHECKING is defined and behavior
+   is undefined if not.  The compiler may assume COND while optimizing.  */
 #ifndef ENABLE_CHECKING
-# define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
+# define eassert(cond) assume (cond)
 #else /* ENABLE_CHECKING */
 
 extern _Noreturn void die (const char *, const char *, int);
@@ -129,15 +130,9 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 # define eassert(cond)						\
    (suppress_checking || (cond) 				\
-    ? (void) 0							\
+    ? assume (cond)						\
     : die (# cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
-
-/* When checking is enabled, identical to eassert.  When checking is
- * disabled, instruct the compiler (when the compiler has such
- * capability) to assume that cond is true and optimize
- * accordingly.  */
-#define eassert_and_assume(cond) (eassert (cond), assume (cond))
 
 
 /* Use the configure flag --enable-check-lisp-object-type to make

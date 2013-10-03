@@ -2966,7 +2966,7 @@ lowercase l) for small endian machines.  */)
 static size_t
 bool_vector_spare_mask (ptrdiff_t nr_bits)
 {
-  eassert_and_assume (nr_bits > 0);
+  eassert (nr_bits > 0);
   return (((size_t) 1) << (nr_bits % BITS_PER_SIZE_T)) - 1;
 }
 
@@ -3108,7 +3108,7 @@ bool_vector_binop_driver (Lisp_Object op1,
       nr_bits = min (nr_bits, XBOOL_VECTOR (dest)->size);
     }
 
-  eassert_and_assume (nr_bits >= 0);
+  eassert (nr_bits >= 0);
   nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
 
   adata = (size_t *) XBOOL_VECTOR (dest)->data;
@@ -3275,7 +3275,7 @@ Return the destination vector.  */)
   bdata = (size_t *) XBOOL_VECTOR (b)->data;
   adata = (size_t *) XBOOL_VECTOR (a)->data;
 
-  eassert_and_assume (nr_bits >= 0);
+  eassert (nr_bits >= 0);
 
   for (i = 0; i < nr_bits / BITS_PER_SIZE_T; i++)
     bdata[i] = ~adata[i];
@@ -3310,7 +3310,7 @@ A must be a bool vector.  B is a generalized bool.  */)
   match = NILP (b) ? (size_t) -1 : 0;
   adata = (size_t *) XBOOL_VECTOR (a)->data;
 
-  eassert_and_assume (nr_bits >= 0);
+  eassert (nr_bits >= 0);
 
   for (i = 0; i < nr_bits / BITS_PER_SIZE_T; ++i)
     count += popcount_size_t (adata[i] ^ match);
