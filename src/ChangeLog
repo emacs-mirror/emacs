@@ -1,3 +1,14 @@
+2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (clobbered_eassert): New macro.
+	(internal_catch, internal_condition_case)
+	(internal_condition_case_1, internal_condition_case_2)
+	(internal_condition_case_n): Use it instead of eassert
+	when the argument contains locals clobbered by longjmp.
+	Don't use clobbered locals outside of clobbered_eassert.
+	(internal_lisp_condition_case): Use a volatile variable
+	to work around a local variable's getting clobbered.
+
 2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (struct handler): Merge struct handler and struct catchtag.

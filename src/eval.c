@@ -1072,6 +1072,12 @@ usage: (catch TAG BODY...)  */)
   return internal_catch (tag, Fprogn, XCDR (args));
 }
 
+/* Assert that E is true, as a comment only.  Use this instead of
+   eassert (E) when E contains variables that might be clobbered by a
+   longjmp.  */
+
+#define clobbered_eassert(E) ((void) 0)
+
 /* Set up a catch, then call C function FUNC on argument ARG.
    FUNC should return a Lisp_Object.
    This is how catches are done from within C code.  */
@@ -1089,14 +1095,14 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
   if (! sys_setjmp (c->jmp))
     {
       Lisp_Object val = (*func) (arg);
-      eassert (handlerlist == c);
-      handlerlist = c->next;
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
       return val;
     }
   else
     { /* Throw works by a longjmp that comes right here.  */
       Lisp_Object val = handlerlist->val;
-      eassert (handlerlist == c);
+      clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
       return val;
     }
@@ -1252,6 +1258,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
        be added to handlerlist last.  So we build in `clauses' a table that
        contains `handlers' but in reverse order.  */
     Lisp_Object *clauses = alloca (clausenb * sizeof (Lisp_Object *));
+    Lisp_Object *volatile clauses_volatile = clauses;
     int i = clausenb;
     for (val = handlers; CONSP (val); val = XCDR (val))
       clauses[--i] = XCAR (val);
@@ -1266,7 +1273,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	  {
 	    ptrdiff_t count = SPECPDL_INDEX ();
 	    Lisp_Object val = handlerlist->val;
-	    Lisp_Object *chosen_clause = clauses;
+	    Lisp_Object *chosen_clause = clauses_volatile;
 	    for (c = handlerlist->next; c != oldhandlerlist; c = c->next)
 	      chosen_clause++;
 	    handlerlist = oldhandlerlist;
@@ -1316,14 +1323,14 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
-      eassert (handlerlist == c);
+      clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
       return (*hfun) (val);
     }
 
   val = (*bfun) ();
-  eassert (handlerlist == c);
-  handlerlist = c->next;
+  clobbered_eassert (handlerlist == c);
+  handlerlist = handlerlist->next;
   return val;
 }
 
@@ -1340,14 +1347,14 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
-      eassert (handlerlist == c);
+      clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
       return (*hfun) (val);
     }
 
   val = (*bfun) (arg);
-  eassert (handlerlist == c);
-  handlerlist = c->next;
+  clobbered_eassert (handlerlist == c);
+  handlerlist = handlerlist->next;
   return val;
 }
 
@@ -1368,14 +1375,14 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
-      eassert (handlerlist == c);
+      clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
       return (*hfun) (val);
     }
 
   val = (*bfun) (arg1, arg2);
-  eassert (handlerlist == c);
-  handlerlist = c->next;
+  clobbered_eassert (handlerlist == c);
+  handlerlist = handlerlist->next;
   return val;
 }
 
@@ -1398,14 +1405,14 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
-      eassert (handlerlist == c);
+      clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
       return (*hfun) (val, nargs, args);
     }
 
   val = (*bfun) (nargs, args);
-  eassert (handlerlist == c);
-  handlerlist = c->next;
+  clobbered_eassert (handlerlist == c);
+  handlerlist = handlerlist->next;
   return val;
 }
 
