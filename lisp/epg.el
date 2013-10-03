@@ -2219,7 +2219,17 @@ SIGNED-TEXT and PLAIN are also a file if they are specified.
 For a detached signature, both SIGNATURE and SIGNED-TEXT should be
 string.  For a normal or a cleartext signature, SIGNED-TEXT should be
 nil.  In the latter case, if PLAIN is specified, the plaintext is
-stored into the file after successful verification."
+stored into the file after successful verification.
+
+Note that this function does not return verification result as t
+or nil, nor signal error on failure.  That's a design decision to
+handle the case where SIGNATURE has multiple signature.
+
+To check the verification results, use `epg-context-result-for' as follows:
+
+\(epg-context-result-for context 'verify)
+
+which will return a list of `epg-signature' object."
   (unwind-protect
       (progn
 	(if plain
@@ -2246,7 +2256,17 @@ SIGNED-TEXT is a string if it is specified.
 For a detached signature, both SIGNATURE and SIGNED-TEXT should be
 string.  For a normal or a cleartext signature, SIGNED-TEXT should be
 nil.  In the latter case, this function returns the plaintext after
-successful verification."
+successful verification.
+
+Note that this function does not return verification result as t
+or nil, nor signal error on failure.  That's a design decision to
+handle the case where SIGNATURE has multiple signature.
+
+To check the verification results, use `epg-context-result-for' as follows:
+
+\(epg-context-result-for context 'verify)
+
+which will return a list of `epg-signature' object."
   (let ((coding-system-for-write 'binary)
 	input-file)
     (unwind-protect

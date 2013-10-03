@@ -1,3 +1,9 @@
+2013-10-03  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-verify-file): Add a comment saying that it does not
+	notify verification error as a return value nor a signal.
+	(epg-verify-string): Ditto.
+
 2013-10-02  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* progmodes/compile.el (compilation-start): Try globbing the arg to
