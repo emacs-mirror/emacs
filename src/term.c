@@ -3315,15 +3315,15 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   state[0].menu = menu;
   state[0].screen_behind = save_and_enable_current_matrix (sf);
 
-  /* Turn off the cursor.  Otherwise it shows through the menu
-     panes, which is ugly.  */
-  tty_hide_cursor (tty);
-
   /* Display the menu title.  We subtract 1 from x0 and y0 because we
      want to interpret them as zero-based column and row coordinates,
      and also because we want the first item of the menu, not its
      title, to appear at x0,y0.  */
   tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, x0 - 1, y0 - 1, 0);
+
+  /* Turn off the cursor.  Otherwise it shows through the menu
+     panes, which is ugly.  */
+  tty_hide_cursor (tty);
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
   if ((onepane = menu->count == 1 && menu->submenu[0]))
@@ -3415,6 +3415,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			    state[statecount - 1].y,
 			    state[statecount - 1].pane,
 			    faces, x, y, 1);
+	  tty_hide_cursor (tty);
+	  fflush (tty->output);
 	}
 
       /* Display the help-echo message for the currently-selected menu
@@ -3425,6 +3427,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	  help_callback (menu_help_message,
 			 menu_help_paneno, menu_help_itemno);
 	  tty_hide_cursor (tty);
+	  fflush (tty->output);
 	  prev_menu_help_message = menu_help_message;
 	}
     }
