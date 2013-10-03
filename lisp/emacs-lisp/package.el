@@ -206,6 +206,7 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 (declare-function url-http-parse-response "url-http" ())
+(declare-function url-http-file-exists-p "url-http" (url))
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 (defvar url-http-end-of-headers)
@@ -285,6 +286,22 @@ contrast, `package-user-dir' contains packages for personal use."
   :group 'package
   :version "24.1")
 
+(defcustom package-check-signature 'allow-unsigned
+  "Whether to check package signatures when installing."
+  :type '(choice (const nil :tag "Never")
+		 (const allow-unsigned :tag "Allow unsigned")
+		 (const t :tag "Check always"))
+  :risky t
+  :group 'package
+  :version "24.1")
+
+(defcustom package-unsigned-archives nil
+  "A list of archives which do not use package signature."
+  :type '(repeat (string :tag "Archive name"))
+  :risky t
+  :group 'package
+  :version "24.1")
+
 (defvar package--default-summary "No description available.")
 
 (cl-defstruct (package-desc
@@ -340,7 +357,9 @@ Slots:
 `dir'	The directory where the package is installed (if installed),
 	`builtin' if it is built-in, or nil otherwise.
 
-`extras' Optional alist of additional keyword-value pairs."
+`extras' Optional alist of additional keyword-value pairs.
+
+`signed' Flag to indicate that the package is signed by provider."
   name
   version
   (summary package--default-summary)
@@ -348,7 +367,8 @@ Slots:
   kind
   archive
   dir
-  extras)
+  extras
+  signed)
 
 ;; Pseudo fields.
 (defun package-desc-full-name (pkg-desc)
@@ -428,7 +448,8 @@ This is, approximately, the inverse of `version-to-list'.
 (defun package-load-descriptor (pkg-dir)
   "Load the description file in directory PKG-DIR."
   (let ((pkg-file (expand-file-name (package--description-file pkg-dir)
-                                    pkg-dir)))
+                                    pkg-dir))
+	(signed-file (concat pkg-dir ".signed")))
     (when (file-exists-p pkg-file)
       (with-temp-buffer
         (insert-file-contents pkg-file)
@@ -436,6 +457,8 @@ This is, approximately, the inverse of `version-to-list'.
         (let ((pkg-desc (package-process-define-package
                          (read (current-buffer)) pkg-file)))
           (setf (package-desc-dir pkg-desc) pkg-dir)
+	  (if (file-exists-p signed-file)
+	      (setf (package-desc-signed pkg-desc) t))
           pkg-desc)))))
 
 (defun package-load-all-descriptors ()
@@ -766,13 +789,87 @@ It will move point to somewhere in the headers."
       (error "Error during download request:%s"
 	     (buffer-substring-no-properties (point) (line-end-position))))))
 
+(defun package--archive-file-exists-p (location file)
+  (let ((http (string-match "\\`https?:" location)))
+    (if http
+	(progn
+	  (require 'url-http)
+	  (url-http-file-exists-p (concat location file)))
+      (file-exists-p (expand-file-name file location)))))
+
+(declare-function epg-make-context "epg"
+		  (&optional protocol armor textmode include-certs
+			     cipher-algorithm
+			     digest-algorithm
+			     compress-algorithm))
+(declare-function epg-context-set-home-directory "epg" (context directory))
+(declare-function epg-verify-string "epg" (context signature
+						   &optional signed-text))
+(declare-function epg-context-result-for "epg" (context name))
+(declare-function epg-signature-status "epg" (signature))
+(declare-function epg-signature-to-string "epg" (signature))
+
+(defun package--check-signature (location file)
+  "Check signature of the current buffer.
+GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
+  (let ((context (epg-make-context 'OpenPGP))
+	(homedir (expand-file-name "gnupg" package-user-dir))
+	(sig-file (concat file ".sig"))
+	sig-content
+	good-signatures)
+    (condition-case-unless-debug error
+	(setq sig-content (package--with-work-buffer location sig-file
+			    (buffer-string)))
+      (error "Failed to download %s: %S" sig-file (cdr error)))
+    (epg-context-set-home-directory context homedir)
+    (epg-verify-string context sig-content (buffer-string))
+    ;; The .sig file may contain multiple signatures.  Success if one
+    ;; of the signatures is good.
+    (setq good-signatures
+	  (delq nil (mapcar (lambda (sig)
+			      (if (eq (epg-signature-status sig) 'good)
+				  sig))
+			    (epg-context-result-for context 'verify))))
+    (if (null good-signatures)
+	(error "Failed to verify signature %s: %S"
+	       sig-file
+	       (mapcar #'epg-signature-to-string
+		       (epg-context-result-for context 'verify)))
+      good-signatures)))
+
 (defun package-install-from-archive (pkg-desc)
   "Download and install a tar package."
-  (let ((location (package-archive-base pkg-desc))
-	(file (concat (package-desc-full-name pkg-desc)
-                      (package-desc-suffix pkg-desc))))
+  (let* ((location (package-archive-base pkg-desc))
+	 (file (concat (package-desc-full-name pkg-desc)
+		       (package-desc-suffix pkg-desc)))
+	 (sig-file (concat file ".sig"))
+	 good-signatures pkg-descs)
     (package--with-work-buffer location file
-      (package-unpack pkg-desc))))
+      (if (and package-check-signature
+	       (not (member (package-desc-archive pkg-desc)
+			    package-unsigned-archives)))
+	  (if (package--archive-file-exists-p location sig-file)
+	      (setq good-signatures (package--check-signature location file))
+	    (unless (eq package-check-signature 'allow-unsigned)
+	      (error "Unsigned package: `%s'"
+		     (package-desc-name pkg-desc)))))
+      (package-unpack pkg-desc))
+    ;; Here the package has been installed successfully, mark it as
+    ;; signed if appropriate.
+    (when good-signatures
+      ;; Write out good signatures into NAME-VERSION.signed file.
+      (write-region (mapconcat #'epg-signature-to-string good-signatures "\n")
+		    nil
+		    (expand-file-name
+		     (concat (package-desc-full-name pkg-desc)
+			     ".signed")
+		     package-user-dir))
+      ;; Update the old pkg-desc which will be shown on the description buffer.
+      (setf (package-desc-signed pkg-desc) t)
+      ;; Update the new (activated) pkg-desc as well.
+      (setq pkg-descs (cdr (assq (package-desc-name pkg-desc) package-alist)))
+      (if pkg-descs
+	  (setf (package-desc-signed (car pkg-descs)) t)))))
 
 (defvar package--initialized nil)
 
@@ -1104,6 +1201,10 @@ The file can either be a tar file or an Emacs Lisp file."
 	(error "Package `%s' is a system package, not deleting"
                (package-desc-full-name pkg-desc))
       (delete-directory dir t t)
+      ;; Remove NAME-VERSION.signed file.
+      (let ((signed-file (concat dir ".signed")))
+	(if (file-exists-p signed-file)
+	    (delete-file signed-file)))
       ;; Update package-alist.
       (let* ((name (package-desc-name pkg-desc)))
         (delete pkg-desc (assq name package-alist)))
@@ -1118,16 +1219,50 @@ The file can either be a tar file or an Emacs Lisp file."
 ARCHIVE should be a cons cell of the form (NAME . LOCATION),
 similar to an entry in `package-alist'.  Save the cached copy to
 \"archives/NAME/archive-contents\" in `package-user-dir'."
-  (let* ((dir (expand-file-name (format "archives/%s" (car archive))
-                                package-user-dir)))
+  (let ((dir (expand-file-name (format "archives/%s" (car archive))
+			       package-user-dir))
+	(sig-file (concat file ".sig"))
+	good-signatures)
     (package--with-work-buffer (cdr archive) file
+      ;; Check signature of archive-contents, if desired.
+      (if (and package-check-signature
+	       (not (member archive package-unsigned-archives)))
+	  (if (package--archive-file-exists-p (cdr archive) sig-file)
+	      (setq good-signatures (package--check-signature (cdr archive)
+							      file))
+	    (unless (eq package-check-signature 'allow-unsigned)
+	      (error "Unsigned archive `%s'"
+		     (car archive)))))
       ;; Read the retrieved buffer to make sure it is valid (e.g. it
       ;; may fetch a URL redirect page).
       (when (listp (read buffer))
 	(make-directory dir t)
 	(setq buffer-file-name (expand-file-name file dir))
 	(let ((version-control 'never))
-	  (save-buffer))))))
+	  (save-buffer))))
+    (when good-signatures
+      ;; Write out good signatures into archive-contents.signed file.
+      (write-region (mapconcat #'epg-signature-to-string good-signatures "\n")
+		    nil
+		    (expand-file-name (concat file ".signed") dir)))))
+
+(declare-function epg-check-configuration "epg-config"
+		  (config &optional minimum-version))
+(declare-function epg-configuration "epg-config" ())
+(declare-function epg-import-keys-from-file "epg" (context keys))
+
+;;;###autoload
+(defun package-import-keyring (&optional file)
+  "Import keys from FILE."
+  (interactive "fFile: ")
+  (setq file (expand-file-name file))
+  (let ((context (epg-make-context 'OpenPGP))
+	(homedir (expand-file-name "gnupg" package-user-dir)))
+    (make-directory homedir t)
+    (epg-context-set-home-directory context homedir)
+    (message "Importing %s..." (file-name-nondirectory file))
+    (epg-import-keys-from-file context file)
+    (message "Importing %s...done" (file-name-nondirectory file))))
 
 ;;;###autoload
 (defun package-refresh-contents ()
@@ -1138,6 +1273,14 @@ makes them available for download."
   ;; FIXME: Do it asynchronously.
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
+  (let ((default-keyring (expand-file-name "package-keyring.gpg"
+					   data-directory)))
+    (if (file-exists-p default-keyring)
+	(condition-case-unless-debug error
+	    (progn
+	      (epg-check-configuration (epg-configuration))
+	      (package-import-keyring default-keyring))
+	  (error (message "Cannot import default keyring: %S" (cdr error))))))
   (dolist (archive package-archives)
     (condition-case-unless-debug nil
 	(package--download-one-archive archive "archive-contents")
@@ -1209,7 +1352,8 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (homepage (if desc (cdr (assoc :url (package-desc-extras desc)))))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
-         (status (if desc (package-desc-status desc) "orphan")))
+         (status (if desc (package-desc-status desc) "orphan"))
+         (signed (if desc (package-desc-signed desc))))
     (prin1 name)
     (princ " is ")
     (princ (if (memq (aref status 0) '(?a ?e ?i ?o ?u)) "an " "a "))
@@ -1222,7 +1366,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
                                'font-lock-face 'font-lock-builtin-face)
                    "."))
 	  (pkg-dir
-	   (insert (propertize (capitalize status) ;FIXME: Why comment-face?
+	   (insert (propertize (if (equal status "unsigned")
+				   "Installed"
+				 (capitalize status)) ;FIXME: Why comment-face?
 			       'font-lock-face 'font-lock-comment-face))
 	   (insert " in `")
 	   ;; Todo: Add button for uninstalling.
@@ -1233,9 +1379,11 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
                     (not (package-built-in-p name version)))
 	       (insert "',\n             shadowing a "
 		       (propertize "built-in package"
-				   'font-lock-face 'font-lock-builtin-face)
-		       ".")
-	     (insert "'.")))
+				   'font-lock-face 'font-lock-builtin-face))
+	     (insert "'"))
+	   (if signed
+	       (insert ".")
+	     (insert " (unsigned).")))
 	  (installable
            (insert (capitalize status))
 	   (insert " from " (format "%s" archive))
@@ -1449,7 +1597,8 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
          (dir (package-desc-dir pkg-desc))
          (lle (assq name package-load-list))
          (held (cadr lle))
-         (version (package-desc-version pkg-desc)))
+         (version (package-desc-version pkg-desc))
+         (signed (package-desc-signed pkg-desc)))
     (cond
      ((eq dir 'builtin) "built-in")
      ((and lle (null held)) "disabled")
@@ -1463,7 +1612,9 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
      (dir                               ;One of the installed packages.
       (cond
        ((not (file-exists-p (package-desc-dir pkg-desc))) "deleted")
-       ((eq pkg-desc (cadr (assq name package-alist))) "installed")
+       ((eq pkg-desc (cadr (assq name package-alist))) (if signed
+							   "installed"
+							 "unsigned"))
        (t "obsolete")))
      (t
       (let* ((ins (cadr (assq name package-alist)))
@@ -1473,7 +1624,9 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
           (if (memq name package-menu--new-package-list)
               "new" "available"))
          ((version-list-< version ins-v) "obsolete")
-         ((version-list-= version ins-v) "installed")))))))
+         ((version-list-= version ins-v) (if signed
+					     "installed"
+					   "unsigned"))))))))
 
 (defun package-menu--refresh (&optional packages)
   "Re-populate the `tabulated-list-entries'.
@@ -1532,6 +1685,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
 		(`"held"      'font-lock-constant-face)
 		(`"disabled"  'font-lock-warning-face)
 		(`"installed" 'font-lock-comment-face)
+		(`"unsigned"  'font-lock-warning-face)
 		(_            'font-lock-warning-face)))) ; obsolete.
     (list pkg-desc
 	  (vector (list (symbol-name (package-desc-name pkg-desc))
@@ -1570,7 +1724,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 (defun package-menu-mark-delete (&optional _num)
   "Mark a package for deletion and move to the next line."
   (interactive "p")
-  (if (member (package-menu-get-status) '("installed" "obsolete"))
+  (if (member (package-menu-get-status) '("installed" "obsolete" "unsigned"))
       (tabulated-list-put-tag "D" t)
     (forward-line)))
 
@@ -1624,7 +1778,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
       ;; ENTRY is (PKG-DESC [NAME VERSION STATUS DOC])
       (let ((pkg-desc (car entry))
 	    (status (aref (cadr entry) 2)))
-	(cond ((equal status "installed")
+	(cond ((member status '("installed" "unsigned"))
 	       (push pkg-desc installed))
 	      ((member status '("available" "new"))
 	       (push (cons (package-desc-name pkg-desc) pkg-desc)
@@ -1738,6 +1892,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
 	  ((string= sB "available") nil)
 	  ((string= sA "installed") t)
 	  ((string= sB "installed") nil)
+	  ((string= sA "unsigned") t)
+	  ((string= sB "unsigned") nil)
 	  ((string= sA "held") t)
 	  ((string= sB "held") nil)
 	  ((string= sA "built-in") t)

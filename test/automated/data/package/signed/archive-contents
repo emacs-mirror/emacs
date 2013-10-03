@@ -1,0 +1,7 @@
+(1
+ (signed-good .
+       [(1 0)
+	nil "A package with good signature" single])
+ (signed-bad .
+       [(1 0)
+	nil "A package with bad signature" single]))

@@ -1,3 +1,19 @@
+2013-10-03  Daiki Ueno  <ueno@gnu.org>
+
+	* automated/data/package/signed/archive-contents:
+	* automated/data/package/signed/archive-contents.sig:
+	* automated/data/package/signed/signed-good-1.0.el:
+	* automated/data/package/signed/signed-good-1.0.el.sig:
+	* automated/data/package/signed/signed-bad-1.0.el:
+	* automated/data/package/signed/signed-bad-1.0.el.sig:
+	* automated/data/package/key.pub:
+	* automated/data/package/key.sec: New files.
+
+	* automated/package-test.el (package-test-update-listing)
+	(package-test-update-archives, package-test-describe-package):
+	Adjust to package.el change.
+	(package-test-signed): New test.
+
 2013-10-01  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/package-test.el: Update all cases to use :url instead

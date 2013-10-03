@@ -1,3 +1,28 @@
+2013-10-03  Daiki Ueno  <ueno@gnu.org>
+
+	Add support for package signature checking.
+	* emacs-lisp/package.el (url-http-file-exists-p)
+	(epg-make-context, epg-context-set-home-directory)
+	(epg-verify-string, epg-context-result-for)
+	(epg-signature-status, epg-signature-to-string)
+	(epg-check-configuration, epg-configuration)
+	(epg-import-keys-from-file): Declare.
+	(package-check-signature): New user option.
+	(package-unsigned-archives): New user option.
+	(package-desc): Add `signed' field.
+	(package-load-descriptor): Set `signed' field if .signed file exists.
+	(package--archive-file-exists-p): New function.
+	(package--check-signature): New function.
+	(package-install-from-archive): Check package signature.
+	(package--download-one-archive): Check archive signature.
+	(package-delete): Remove .signed file.
+	(package-import-keyring): New command.
+	(package-refresh-contents): Import default keyring.
+	(package-desc-status): Add "unsigned" status.
+	(describe-package-1, package-menu--print-info)
+	(package-menu-mark-delete, package-menu--find-upgrades)
+	(package-menu--status-predicate): Support "unsigned" status.
+
 2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el (cconv-convert, cconv-analyse-form): Adjust for
