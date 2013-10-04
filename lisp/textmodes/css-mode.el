@@ -302,6 +302,7 @@
   (pcase (cons kind token)
     (`(:elem . basic) css-indent-offset)
     (`(:elem . arg) 0)
+    (`(:list-intro . "") t)             ;"" stands for BOB (bug#15467).
     (`(:before . "{") (if (smie-rule-hanging-p)
                          (smie-rule-parent 0)))))
 

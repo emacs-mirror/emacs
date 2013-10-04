@@ -1,3 +1,8 @@
+2013-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/completion-tests.el:
+	* indent/css-mode.css: New files.
+
 2013-10-03  Daiki Ueno  <ueno@gnu.org>
 
 	* automated/data/package/signed/archive-contents:

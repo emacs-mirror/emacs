@@ -1,5 +1,9 @@
 2013-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/css-mode.el (css-smie-rules): Toplevel's a list (bug#15467).
+
+2013-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* subr.el (read-passwd): Hide chars even when called within a context
 	where after-change-functions is disabled (bug#15501).
 	(set-temporary-overlay-map): Don't remove oneself from pre-command-hook
