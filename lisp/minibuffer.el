@@ -873,8 +873,9 @@ Moves point to the end of the new text."
       (setq end (- end suffix-len))
       (setq newtext (substring newtext 0 (- suffix-len))))
     (goto-char beg)
-    (insert-and-inherit newtext)
-    (delete-region (point) (+ (point) (- end beg)))
+    (let ((length (- end beg)))         ;Read `end' before we insert the text.
+      (insert-and-inherit newtext)
+      (delete-region (point) (+ (point) length)))
     (forward-char suffix-len)))
 
 (defcustom completion-cycle-threshold nil

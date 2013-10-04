@@ -1,3 +1,8 @@
+2013-10-04  Jorgen Schaefer  <forcer@forcix.cx>
+
+	* minibuffer.el (completion--replace): Be careful that `end' might be
+	a marker.
+
 2013-10-03  Daiki Ueno  <ueno@gnu.org>
 
 	Add support for package signature checking.
