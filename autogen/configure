@@ -1247,6 +1247,9 @@ GNULIB_CLOSE
 GNULIB_CHOWN
 GNULIB_CHDIR
 LIB_CLOCK_GETTIME
+GL_GENERATE_BYTESWAP_H_FALSE
+GL_GENERATE_BYTESWAP_H_TRUE
+BYTESWAP_H
 GL_GENERATE_ALLOCA_H_FALSE
 GL_GENERATE_ALLOCA_H_TRUE
 ALLOCA_H
@@ -7287,6 +7290,7 @@ esac
   # Code from module allocator:
   # Code from module at-internal:
   # Code from module binary-io:
+  # Code from module byteswap:
   # Code from module c-ctype:
   # Code from module c-strcase:
   # Code from module careadlinkat:
@@ -22408,6 +22412,35 @@ fi
 
 
 
+    for ac_header in byteswap.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "byteswap.h" "ac_cv_header_byteswap_h" "$ac_includes_default"
+if test "x$ac_cv_header_byteswap_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BYTESWAP_H 1
+_ACEOF
+
+    BYTESWAP_H=''
+
+else
+
+    BYTESWAP_H='byteswap.h'
+
+fi
+
+done
+
+
+   if test -n "$BYTESWAP_H"; then
+  GL_GENERATE_BYTESWAP_H_TRUE=
+  GL_GENERATE_BYTESWAP_H_FALSE='#'
+else
+  GL_GENERATE_BYTESWAP_H_TRUE='#'
+  GL_GENERATE_BYTESWAP_H_FALSE=
+fi
+
+
+
 
 
 
@@ -29544,6 +29577,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${GL_GENERATE_ALLOCA_H_TRUE}" && test -z "${GL_GENERATE_ALLOCA_H_FALSE}"; then
   as_fn_error "conditional \"GL_GENERATE_ALLOCA_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${GL_GENERATE_BYTESWAP_H_TRUE}" && test -z "${GL_GENERATE_BYTESWAP_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_BYTESWAP_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

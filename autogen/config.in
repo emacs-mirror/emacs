@@ -313,6 +313,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
+/* Define to 1 if you have the <byteswap.h> header file. */
+#undef HAVE_BYTESWAP_H
+
 /* Define to 1 if strtold conforms to C99. */
 #undef HAVE_C99_STRTOLD
 
