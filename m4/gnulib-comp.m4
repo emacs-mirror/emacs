@@ -42,6 +42,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module allocator:
   # Code from module at-internal:
   # Code from module binary-io:
+  # Code from module byteswap:
   # Code from module c-ctype:
   # Code from module c-strcase:
   # Code from module careadlinkat:
@@ -169,6 +170,7 @@ AC_DEFUN([gl_INIT],
   gl_COMMON
   gl_source_base='lib'
   gl_FUNC_ALLOCA
+  gl_BYTESWAP
   AC_CHECK_FUNCS_ONCE([readlinkat])
   gl_CLOCK_TIME
   gl_CLOSE_STREAM
@@ -794,6 +796,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/at-func.c
   lib/binary-io.c
   lib/binary-io.h
+  lib/byteswap.in.h
   lib/c-ctype.c
   lib/c-ctype.h
   lib/c-strcase.h
@@ -912,6 +915,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/00gnulib.m4
   m4/acl.m4
   m4/alloca.m4
+  m4/byteswap.m4
   m4/c-strtod.m4
   m4/clock_time.m4
   m4/close-stream.m4

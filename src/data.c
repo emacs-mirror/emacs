@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 
+#include <byteswap.h>
 #include <intprops.h>
 
 #include "lisp.h"
@@ -3185,9 +3186,9 @@ size_t_to_host_endian (size_t val)
 {
 #ifdef WORDS_BIGENDIAN
 # if BITS_PER_SIZE_T == 64
-  return swap64 (val);
+  return bswap_64 (val);
 # else
-  return swap32 (val);
+  return bswap_32 (val);
 # endif
 #else
   return val;

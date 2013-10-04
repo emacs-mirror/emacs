@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 
+#include <byteswap.h>
+
 #include "lisp.h"
 #include "frame.h"
 #include "window.h"
@@ -1519,7 +1521,7 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 				   | (swap_nibble[(b>>12) & 0xf]));
 	      b >>= (16 - fb->width);
 #ifdef WORDS_BIGENDIAN
-	      b = ((b >> 8) | (b << 8));
+	      b = bswap_16 (b);
 #endif
 	      *bits++ = b;
 	    }

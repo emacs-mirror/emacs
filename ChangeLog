@@ -1,3 +1,9 @@
+2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use hardware insns for byteswapping on glibc hosts that support it.
+	* lib/byteswap.in.h, m4/byteswap.m4: New files, copied from Gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

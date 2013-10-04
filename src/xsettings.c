@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <limits.h>
 #include <fcntl.h>
+
+#include <byteswap.h>
+
 #include "lisp.h"
 #include "xterm.h"
 #include "xsettings.h"
@@ -405,7 +408,7 @@ parse_settings (unsigned char *prop,
 
   if (bytes < 12) return BadLength;
   memcpy (&n_settings, prop+8, 4);
-  if (my_bo != that_bo) n_settings = swap32 (n_settings);
+  if (my_bo != that_bo) n_settings = bswap_32 (n_settings);
   bytes_parsed = 12;
 
   memset (settings, 0, sizeof (*settings));
@@ -427,7 +430,7 @@ parse_settings (unsigned char *prop,
 
       memcpy (&nlen, prop+bytes_parsed, 2);
       bytes_parsed += 2;
-      if (my_bo != that_bo) nlen = swap16 (nlen);
+      if (my_bo != that_bo) nlen = bswap_16 (nlen);
       if (bytes_parsed+nlen > bytes) return BadLength;
       to_cpy = nlen > 127 ? 127 : nlen;
       memcpy (name, prop+bytes_parsed, to_cpy);
@@ -454,7 +457,7 @@ parse_settings (unsigned char *prop,
           if (want_this)
             {
               memcpy (&ival, prop+bytes_parsed, 4);
-              if (my_bo != that_bo) ival = swap32 (ival);
+              if (my_bo != that_bo) ival = bswap_32 (ival);
             }
           bytes_parsed += 4;
           break;
@@ -463,7 +466,7 @@ parse_settings (unsigned char *prop,
           if (bytes_parsed+4 > bytes) return BadLength;
           memcpy (&vlen, prop+bytes_parsed, 4);
           bytes_parsed += 4;
-          if (my_bo != that_bo) vlen = swap32 (vlen);
+          if (my_bo != that_bo) vlen = bswap_32 (vlen);
           if (want_this)
             {
               to_cpy = vlen > 127 ? 127 : vlen;

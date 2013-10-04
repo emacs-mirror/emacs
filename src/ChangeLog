@@ -1,5 +1,14 @@
 2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use hardware support for byteswapping on glibc x86 etc.
+	On Fedora 19 x86-64, the new bswap_64 needs 1 instruction,
+	whereas the old swap64 needed 30.
+	* fringe.c (init_fringe_bitmap) [WORDS_BIGENDIAN]:
+	* sound.c (le2hl, le2hs, be2hl) [!WINDOWSNT]:
+	Use byteswap.h's macros to swap bytes.
+	* lisp.h (swap16, swap32, swap64): Remove.
+	All uses replaced by bswap_16, bswap_32, bswap_64.
+
 	* bytecode.c (exec_byte_code): Use some more volatile variables
 	to work around local variables getting clobbered by longjmp.
 	Port to pre-C99, which doesn't allow decls after stmts.
