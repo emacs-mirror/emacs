@@ -1,3 +1,9 @@
+2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bytecode.c (exec_byte_code): Use some more volatile variables
+	to work around local variables getting clobbered by longjmp.
+	Port to pre-C99, which doesn't allow decls after stmts.
+
 2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (eassert): Assume that COND is true when optimizing.
