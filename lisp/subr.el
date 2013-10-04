@@ -2104,6 +2104,7 @@ by doing (clear-string STRING)."
             (setq-local buffer-undo-list t)
             (setq-local select-active-regions nil)
             (use-local-map read-passwd-map)
+            (setq-local inhibit-modification-hooks nil) ;bug#15501.
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t))
@@ -4394,14 +4395,15 @@ deactivation of MAP."
             ;; suspended during the C-u one so we don't exit isearch just
             ;; because we hit 1 after C-u and that 1 exits isearch whereas it
             ;; doesn't exit C-u.
-            (unless (cond ((null keep-pred) nil)
-                          ((eq t keep-pred)
-                           (eq this-command
-                               (lookup-key map (this-command-keys-vector))))
-                          (t (funcall keep-pred)))
-              (remove-hook 'pre-command-hook clearfun)
-              (internal-pop-keymap map 'overriding-terminal-local-map)
-              (when on-exit (funcall on-exit)))))
+            (with-demoted-errors "set-temporary-overlay-map PCH: %S"
+              (unless (cond ((null keep-pred) nil)
+                            ((eq t keep-pred)
+                             (eq this-command
+                                 (lookup-key map (this-command-keys-vector))))
+                            (t (funcall keep-pred)))
+                (internal-pop-keymap map 'overriding-terminal-local-map)
+                (remove-hook 'pre-command-hook clearfun)
+                (when on-exit (funcall on-exit))))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)))
 
