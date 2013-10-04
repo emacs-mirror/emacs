@@ -347,6 +347,10 @@
 ;;
 ;;   Mark conflicts as resolved.  Some VC systems need to run a
 ;;   command to mark conflicts as resolved.
+;;
+;; - find-admin-dir (file)
+;;
+;;   Return the administrative directory of FILE.
 
 ;; HISTORY FUNCTIONS
 ;;

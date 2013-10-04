@@ -361,6 +361,10 @@ FILE is a file wildcard, relative to the root directory of DIRECTORY."
   "Return the list of ignored files."
   )
 
+(defun vc-svn-find-admin-dir (file)
+  "Return the administrative directory of FILE."
+  (expand-file-name vc-svn-admin-directory (vc-svn-root file)))
+
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))

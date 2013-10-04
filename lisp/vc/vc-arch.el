@@ -227,6 +227,10 @@ Only the value `maybe' can be trusted :-(."
 	  (vc-file-setprop
 	   file 'arch-root root)))))
 
+(defun vc-arch-find-admin-dir (file)
+  "Return the administrative directory of FILE."
+  (expand-file-name "{arch}" (vc-arch-root file)))
+
 (defun vc-arch-register (files &optional rev _comment)
   (if rev (error "Explicit initial revision not supported for Arch"))
   (dolist (file files)

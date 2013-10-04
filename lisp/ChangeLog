@@ -1,3 +1,11 @@
+2013-10-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-svn.el (vc-svn-find-admin-dir):
+	* vc/vc-rcs.el (vc-rcs-find-admin-dir):
+	* vc/vc-mtn.el (vc-mtn-find-admin-dir):
+	* vc/vc-cvs.el (vc-cvs-find-admin-dir):
+	* vc/vc-arch.el (vc-arch-find-admin-dir): New functions.
+
 2013-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/css-mode.el (css-smie-rules): Toplevel's a list (bug#15467).

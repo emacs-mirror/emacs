@@ -1226,6 +1226,10 @@ is non-nil."
                    table (lambda () (vc-cvs-revision-table (car files))))))
     table))
 
+(defun vc-cvs-find-admin-dir (file)
+  "Return the administrative directory of FILE."
+  (vc-find-root file "CVS"))
+
 (defun vc-cvs-ignore (file &optional _directory _remove)
   "Ignore FILE under CVS."
   (vc-cvs-append-to-ignore (file-name-directory file) file))
