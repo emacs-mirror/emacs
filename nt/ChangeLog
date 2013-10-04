@@ -1,3 +1,7 @@
+2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnulib.mk: Create <byteswap.h> from <byteswap.in.h>.
+
 2013-09-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* mingw-cfg.site (gl_cv_sys_struct_timeval_tv_sec): Set to "yes"

@@ -78,6 +78,29 @@ EXTRA_DIST += alloca.in.h
 
 ## end   gnulib module alloca-opt
 
+## begin gnulib module byteswap
+
+BUILT_SOURCES += $(BYTESWAP_H)
+
+# We need the following in order to create <byteswap.h> when the system
+# doesn't have one.
+if GL_GENERATE_BYTESWAP_H
+byteswap.h: byteswap.in.h $(top_builddir)/config.status
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/byteswap.in.h; \
+	} > $@-t && \
+	mv -f $@-t $@
+else
+byteswap.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += byteswap.h byteswap.h-t
+
+EXTRA_DIST += byteswap.in.h
+
+## end   gnulib module byteswap
+
 ## begin gnulib module c-ctype
 
 libgnu_a_SOURCES += c-ctype.h c-ctype.c
