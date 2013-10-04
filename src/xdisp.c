@@ -13067,8 +13067,6 @@ redisplay_internal (void)
   match_p = XBUFFER (w->contents) == current_buffer;
   if (match_p)
     {
-      ptrdiff_t count1;
-
       /* Detect case that we need to write or remove a star in the mode line.  */
       if ((SAVE_MODIFF < MODIFF) != w->last_had_star)
 	{
@@ -13077,14 +13075,8 @@ redisplay_internal (void)
 	    update_mode_lines++;
 	}
 
-      /* Avoid invocation of point motion hooks by `current_column' below.  */
-      count1 = SPECPDL_INDEX ();
-      specbind (Qinhibit_point_motion_hooks, Qt);
-
       if (mode_line_update_needed (w))
 	w->update_mode_line = 1;
-
-      unbind_to (count1, Qnil);
     }
 
   consider_all_windows_p = (update_mode_lines

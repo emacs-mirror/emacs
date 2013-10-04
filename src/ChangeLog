@@ -1,3 +1,8 @@
+2013-10-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (redisplay_internal): Simplify because scan_for_column now
+	uses find_newline instead of scan_newline and so doesn't move point.
+
 2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use hardware support for byteswapping on glibc x86 etc.
