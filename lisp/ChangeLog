@@ -1,3 +1,11 @@
+2013-10-04  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-error-regexp-alist)
+	(inferior-octave-compilation-font-lock-keywords): New variables.
+	(compilation-error-regexp-alist)
+	(compilation-mode-font-lock-keywords): Defvar to pacify compiler.
+	(inferior-octave-mode): Use compilation-shell-minor-mode.
+
 2013-10-04  Jorgen Schaefer  <forcer@forcix.cx>
 
 	* minibuffer.el (completion--replace): Be careful that `end' might be

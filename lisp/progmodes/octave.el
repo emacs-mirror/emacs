@@ -631,6 +631,24 @@ mode, include \"-q\" and \"--traditional\"."
   :type 'hook
   :group 'octave)
 
+(defcustom inferior-octave-error-regexp-alist
+  '(("error:\\s-*\\(.*?\\) at line \\([0-9]+\\), column \\([0-9]+\\)"
+     1 2 3 2 1)
+    ("warning:\\s-*\\([^:\n]+\\):.*at line \\([0-9]+\\), column \\([0-9]+\\)"
+     1 2 3 1 1))
+  "Value for `compilation-error-regexp-alist' in inferior octave."
+  :type '(repeat (choice (symbol :tag "Predefined symbol")
+                         (sexp :tag "Error specification")))
+  :group 'octave)
+
+(defvar inferior-octave-compilation-font-lock-keywords
+  '(("\\_<PASS\\_>" . compilation-info-face)
+    ("\\_<FAIL\\_>" . compilation-error-face)
+    ("\\_<\\(warning\\):" 1 compilation-warning-face)
+    ("\\_<\\(error\\):" 1 compilation-error-face)
+    ("^\\s-*!!!!!.*\\|^.*failed$" . compilation-error-face))
+  "Value for `compilation-mode-font-lock-keywords' in inferior octave.")
+
 (defvar inferior-octave-process nil)
 
 (defvar inferior-octave-mode-map
@@ -673,6 +691,8 @@ This variable is used to initialize `comint-dynamic-complete-functions'
 in the Inferior Octave buffer.")
 
 (defvar info-lookup-mode)
+(defvar compilation-error-regexp-alist)
+(defvar compilation-mode-font-lock-keywords)
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
   "Major mode for interacting with an inferior Octave process."
@@ -698,10 +718,14 @@ in the Inferior Octave buffer.")
   (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
             'inferior-octave-directory-tracker nil t)
+  (comint-read-input-ring t)
   ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572
   (add-hook 'window-configuration-change-hook
             'inferior-octave-track-window-width-change nil t)
-  (comint-read-input-ring t))
+  (setq-local compilation-error-regexp-alist inferior-octave-error-regexp-alist)
+  (setq-local compilation-mode-font-lock-keywords
+              inferior-octave-compilation-font-lock-keywords)
+  (compilation-shell-minor-mode 1))
 
 ;;;###autoload
 (defun inferior-octave (&optional arg)
