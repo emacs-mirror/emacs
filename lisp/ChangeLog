@@ -1,3 +1,8 @@
+2013-10-04  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-mode): Call
+	compilation-forget-errors.
+
 2013-10-04  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* emacs-lisp/syntax.el (syntax-ppss): Doc fix.

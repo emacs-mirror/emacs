@@ -694,6 +694,8 @@ in the Inferior Octave buffer.")
 (defvar compilation-error-regexp-alist)
 (defvar compilation-mode-font-lock-keywords)
 
+(declare-function compilation-forget-errors "compile" ())
+
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
   "Major mode for interacting with an inferior Octave process."
   :abbrev-table octave-abbrev-table
@@ -713,19 +715,20 @@ in the Inferior Octave buffer.")
   (setq comint-input-ring-file-name
         (or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
         comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
+  (comint-read-input-ring t)
   (setq-local comint-dynamic-complete-functions
               inferior-octave-dynamic-complete-functions)
   (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
             'inferior-octave-directory-tracker nil t)
-  (comint-read-input-ring t)
   ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572
   (add-hook 'window-configuration-change-hook
             'inferior-octave-track-window-width-change nil t)
   (setq-local compilation-error-regexp-alist inferior-octave-error-regexp-alist)
   (setq-local compilation-mode-font-lock-keywords
               inferior-octave-compilation-font-lock-keywords)
-  (compilation-shell-minor-mode 1))
+  (compilation-shell-minor-mode 1)
+  (compilation-forget-errors))
 
 ;;;###autoload
 (defun inferior-octave (&optional arg)
