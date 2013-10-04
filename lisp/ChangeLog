@@ -1,3 +1,9 @@
+2013-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (secrets-create-collection): Add optional
+	argument ALIAS.  Use proper Label keyword.  Append ALIAS as
+	dbus-call-method argument.  (Bug#15516)
+
 2013-10-04  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-error-regexp-alist)
