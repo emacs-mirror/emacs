@@ -1,3 +1,7 @@
+2013-10-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp/syntax.el (syntax-ppss): Doc fix.
+
 2013-10-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/secrets.el (secrets-create-collection): Add optional
