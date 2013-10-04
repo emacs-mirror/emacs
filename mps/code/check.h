@@ -313,10 +313,10 @@ extern unsigned CheckLevel;
  *
  * We'd like to write "x >= 0" but when x belongs to an unsigned
  * integral type then this results in a "comparison of unsigned
- * expression >= 0 is always true" warning from GCC. We also don't
- * want to remove these assertions because they so protect us against
- * errors if the type of x should ever be changed to a signed type on
- * some platform.
+ * expression >= 0 is always true" warning from GCC if -Wextra is
+ * specified. We also don't want to remove these assertions because
+ * they protect us against errors if the type of x should ever be
+ * changed to a signed type on some platform.
  *
  * Note that this macro evaluates its argument twice.
  */
