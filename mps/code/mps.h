@@ -745,7 +745,7 @@ typedef struct mps_pool_debug_option_s {
 
 extern const struct mps_key_s _mps_key_pool_debug_options;
 #define MPS_KEY_POOL_DEBUG_OPTIONS (&_mps_key_pool_debug_options)
-#define MPS_KEY_VAL_POOL_DEBUG_OPTIONS pool_debug_options
+#define MPS_KEY_POOL_DEBUG_OPTIONS_FIELD pool_debug_options
 
 extern void mps_pool_check_fenceposts(mps_pool_t);
 extern void mps_pool_check_free_space(mps_pool_t);
