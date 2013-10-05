@@ -1,3 +1,8 @@
+2013-10-05  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-send-region): Call
+	compilation-forget-errors.
+
 2013-10-05  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-mode): Add `ruby-mode-set-encoding'
