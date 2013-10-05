@@ -1,3 +1,10 @@
+2013-10-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* newcomment.el (comment-use-global-state): Change default value
+	to t, mark obsolete (Bug#15251).
+	(comment-beginning): In addition to `comment-to-syntax', check the
+	value of `comment-use-global-state'.
+
 2013-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-use-smie): Change default.

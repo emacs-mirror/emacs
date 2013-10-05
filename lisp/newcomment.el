@@ -435,12 +435,15 @@ If UNP is non-nil, unquote nested comment markers."
 ;;;; Navigation
 ;;;;
 
-(defvar comment-use-global-state nil
+(defvar comment-use-global-state t
   "Non-nil means that the global syntactic context is used.
 More specifically, it means that `syntax-ppss' is used to find out whether
-point is within a string or not.  Major modes whose syntax is faithfully
-described by the syntax-tables can set this to non-nil so comment markers
-in strings will not confuse Emacs.")
+point is within a string or not.  Major modes whose syntax is not faithfully
+described by the syntax-tables (or where `font-lock-syntax-table' is radically
+different from the main syntax table) can set this to nil,
+then `syntax-ppss' cache won't be used in comment-related routines.")
+
+(make-obsolete-variable 'comment-use-global-state 'comment-use-syntax "24.4")
 
 (defun comment-search-forward (limit &optional noerror)
   "Find a comment start between point and LIMIT.
@@ -515,7 +518,7 @@ Ensure that `comment-normalize-vars' has been called before you use this."
   "Find the beginning of the enclosing comment.
 Returns nil if not inside a comment, else moves point and returns
 the same as `comment-search-backward'."
-  (if comment-use-syntax
+  (if (and comment-use-syntax comment-use-global-state)
       (let ((state (syntax-ppss)))
         (when (nth 4 state)
           (goto-char (nth 8 state))

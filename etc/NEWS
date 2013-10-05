@@ -157,6 +157,9 @@ some enhancements, like the ability to restore deleted frames.  Command
 ** The command `quail-help' is deleted.  Use `C-h C-\'
 (`describe-input-method') instead.
 
+** The default value of `comment-use-global-state' is changed to t,
+and this variable has been marked obsolete.
+
 
 * Editing Changes in Emacs 24.4
 
@@ -214,7 +217,7 @@ You can use the new function `remember-store-in-files' within the
 See `remember-data-directory' and `remember-directory-file-name-format'
 for new options related to this function.
 
-** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
+* More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
 ~/.emacs.d/vip		replaces  ~/.vip
