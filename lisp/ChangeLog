@@ -1,3 +1,11 @@
+2013-10-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-mode): Add `ruby-mode-set-encoding'
+	to `after-save-hook' instead of `before-save-hook', because then
+	we know exactly what encoding was used to write the file.
+	(ruby-mode-set-encoding): Use `last-coding-system-used' instead of
+	guessing.  Call `basic-save-buffer-1' after modifying the buffer.
+
 2013-10-04  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc-svn.el (vc-svn-find-admin-dir):
