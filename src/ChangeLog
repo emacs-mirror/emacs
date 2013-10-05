@@ -1,3 +1,7 @@
+2013-10-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (check_native_fs): Remove erroneous comment.
+
 2013-10-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (redisplay_internal): Simplify because scan_for_column now
