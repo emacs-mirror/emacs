@@ -1060,6 +1060,7 @@ standard categories are available in all modes.
 the range @w{@samp{ }} to @samp{~}.  You specify the name of a category
 when you define it with @code{define-category}.
 
+@cindex category set
   The category table is actually a char-table (@pxref{Char-Tables}).
 The element of the category table at index @var{c} is a @dfn{category
 set}---a bool-vector---that indicates which categories character @var{c}
