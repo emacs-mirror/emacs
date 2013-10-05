@@ -144,7 +144,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (define-abbrev-table 'ruby-mode-abbrev-table ()
   "Abbrev table in use in Ruby mode buffers.")
 
-(defvar ruby-use-smie nil)
+(defvar ruby-use-smie t)
 
 (defvar ruby-mode-map
   (let ((map (make-sparse-keymap)))
@@ -198,7 +198,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   "Indentation of Ruby statements."
   :type 'integer :group 'ruby)
 
-(defcustom ruby-comment-column 32
+(defcustom ruby-comment-column (default-value 'comment-column)
   "Indentation column of comments."
   :type 'integer :group 'ruby)
 
@@ -246,7 +246,7 @@ Also ignores spaces after parenthesis when 'space."
     '((id)
       (insts (inst) (insts ";" insts))
       (inst (exp) (inst "iuwu-mod" exp))
-      (exp  (exp1) (exp "," exp))
+      (exp  (exp1) (exp "," exp) (exp "=" exp))
       (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
       (exp2 ("def" insts "end")
             ("begin" insts-rescue-insts "end")
@@ -265,7 +265,7 @@ Also ignores spaces after parenthesis when 'space."
       (for-body (for-head ";" insts))
       (for-head (id "in" exp))
       (cases (exp "then" insts) ;; FIXME: Ruby also allows (exp ":" insts).
-	      (cases "when" cases) (insts "else" insts))
+             (cases "when" cases) (insts "else" insts))
       (expseq (exp) );;(expseq "," expseq)
       (hashvals (id "=>" exp1) (hashvals "," hashvals))
       (insts-rescue-insts (insts)
@@ -274,7 +274,7 @@ Also ignores spaces after parenthesis when 'space."
       (itheni (insts) (exp "then" insts))
       (ielsei (itheni) (itheni "else" insts))
       (if-body (ielsei) (if-body "elsif" if-body)))
-    '((nonassoc "in") (assoc ";") (assoc ","))
+    '((nonassoc "in") (assoc ";") (assoc ",") (right "="))
     '((assoc "when"))
     '((assoc "elsif"))
     '((assoc "rescue" "ensure"))
@@ -288,7 +288,8 @@ Also ignores spaces after parenthesis when 'space."
   (save-excursion
     (skip-chars-backward " \t")
     (not (or (bolp)
-             (and (memq (char-before) '(?\; ?- ?+ ?* ?/ ?: ?.))
+             (and (memq (char-before)
+                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\))
                   ;; Make sure it's not the end of a regexp.
                   (not (eq (car (syntax-after (1- (point)))) 7)))
              (and (memq (char-before) '(?\? ?=))
@@ -305,12 +306,13 @@ Also ignores spaces after parenthesis when 'space."
 
 (defun ruby-smie--forward-token ()
   (skip-chars-forward " \t")
-  (if (and (looking-at "[\n#]")
-           ;; Only add implicit ; when needed.
-           (ruby-smie--implicit-semi-p))
-      (progn
-        (if (eolp) (forward-char 1) (forward-comment 1))
-        ";")
+  (cond
+   ((looking-at "\\s\"") "")            ;A heredoc or a string.
+   ((and (looking-at "[\n#]")
+         (ruby-smie--implicit-semi-p))  ;Only add implicit ; when needed.
+    (if (eolp) (forward-char 1) (forward-comment 1))
+    ";")
+   (t
     (forward-comment (point-max))
     (if (looking-at ":\\s.+")
         (progn (goto-char (match-end 0)) (match-string 0)) ;; bug#15208.
@@ -321,15 +323,18 @@ Also ignores spaces after parenthesis when 'space."
             tok "iuwu-mod"))
          ((equal tok "|")
           (if (ruby-smie--opening-pipe-p) "opening-|" tok))
-         (t tok))))))
+         ((and (equal tok "") (looking-at "\\\\\n"))
+          (goto-char (match-end 0)) (ruby-smie--forward-token))
+         (t tok)))))))
 
 (defun ruby-smie--backward-token ()
   (let ((pos (point)))
     (forward-comment (- (point)))
-    (if (and (> pos (line-end-position))
-             (ruby-smie--implicit-semi-p))
-        (progn (skip-chars-forward " \t")
-               ";")
+    (cond
+     ((and (> pos (line-end-position)) (ruby-smie--implicit-semi-p))
+      (skip-chars-forward " \t") ";")
+     ((and (bolp) (not (bobp))) "")         ;Presumably a heredoc.
+     (t
       (let ((tok (smie-default-backward-token)))
         (when (and (eq ?: (char-before)) (string-match "\\`\\s." tok))
           (forward-char -1) (setq tok (concat ":" tok))) ;; bug#15208.
@@ -339,20 +344,31 @@ Also ignores spaces after parenthesis when 'space."
               tok "iuwu-mod"))
          ((equal tok "|")
           (if (ruby-smie--opening-pipe-p) "opening-|" tok))
-         (t tok))))))
+         ((and (equal tok "") (eq ?\\ (char-before)) (looking-at "\n"))
+          (forward-char -1) (ruby-smie--backward-token))
+         (t tok)))))))
 
 (defun ruby-smie-rules (kind token)
   (pcase (cons kind token)
     (`(:elem . basic) ruby-indent-level)
+    ;; "foo" "bar" is the concatenation of the two strings, so the second
+    ;; should be aligned with the first.
+    (`(:elem . args) (if (looking-at "\\s\"") 0))
+    ;; (`(:after . ",") (smie-rule-separator kind))
     (`(:after . ";")
      (if (smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
-                             "[" "{" "while" "until" "unless"
+                             "while" "until" "unless"
                              "if" "then" "elsif" "else" "when"
                              "rescue" "ensure")
          (smie-rule-parent ruby-indent-level)
        ;; For (invalid) code between switch and case.
        ;; (if (smie-parent-p "switch") 4)
        0))
+    (`(:before . ,(or `"(" `"[" `"{"))
+     ;; Treat purely syntactic block-constructs as being part of their parent,
+     ;; when the opening statement is hanging.
+     (if (smie-rule-hanging-p) (smie-rule-parent)))
+    (`(:after . "=") 2)
     (`(:before . "do")
      (when
          (save-excursion
@@ -369,8 +385,9 @@ Also ignores spaces after parenthesis when 'space."
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
     ;; Hack attack: Since newlines are separators, don't try to align args that
-    ;; appear on a separate line.
-    (`(:list-intro . ";") t)))
+    ;; appear on a separate line.  "" is for the case where the "previous
+    ;; separator" was not an implicit ";" but the BOB.
+    (`(:list-intro . ,(or `";" `"")) t)))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)
   "Create an imenu index of methods inside a block."
@@ -1095,8 +1112,10 @@ With ARG, move out of multiple blocks."
 With ARG, do it many times.  Negative ARG means move backward."
   ;; TODO: Document body
   (interactive "p")
-  (if (and (numberp arg) (< arg 0))
-      (ruby-backward-sexp (- arg))
+  (cond
+   (ruby-use-smie (forward-sexp arg))
+   ((and (numberp arg) (< arg 0)) (ruby-backward-sexp (- arg)))
+   (t
     (let ((i (or arg 1)))
       (condition-case nil
           (while (> i 0)
@@ -1131,15 +1150,17 @@ With ARG, do it many times.  Negative ARG means move backward."
                      (not expr))))
             (setq i (1- i)))
         ((error) (forward-word 1)))
-      i)))
+      i))))
 
 (defun ruby-backward-sexp (&optional arg)
   "Move backward across one balanced expression (sexp).
 With ARG, do it many times.  Negative ARG means move forward."
   ;; TODO: Document body
   (interactive "p")
-  (if (and (numberp arg) (< arg 0))
-      (ruby-forward-sexp (- arg))
+  (cond
+   (ruby-use-smie (backward-sexp arg))
+   ((and (numberp arg) (< arg 0)) (ruby-forward-sexp (- arg)))
+   (t
     (let ((i (or arg 1)))
       (condition-case nil
           (while (> i 0)
@@ -1178,7 +1199,7 @@ With ARG, do it many times.  Negative ARG means move forward."
                    nil))
             (setq i (1- i)))
         ((error)))
-      i)))
+      i))))
 
 (defun ruby-indent-exp (&optional ignored)
   "Indent each line in the balanced expression following the point."

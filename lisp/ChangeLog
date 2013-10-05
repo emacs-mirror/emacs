@@ -1,7 +1,25 @@
+2013-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-use-smie): Change default.
+	(ruby-comment-column): Follow the global default, by default.
+	(ruby-smie-grammar): Add assignment syntax.
+	(ruby-smie--implicit-semi-p): No implicit semi-colon after an
+	open-paren, a comma, or a \.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Handle heredocs,
+	and line continuations.
+	(ruby-smie-rules): Adjust handling of open-paren, now that it's never
+	followed by implicit semi-colons.  Add rule for string concatenation
+	and for indentation at BOB.
+	(ruby-forward-sexp, ruby-backward-sexp): Adjust for when smie is in use.
+
+	* emacs-lisp/smie.el (smie-next-sexp): Don't go back to pos before
+	calling next-sexp, since next-token may have skipped chars which
+	next-sexp doesn't know should be skipped!
+
 2013-10-05  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (octave-send-region): Call
-	compilation-forget-errors.
+	* progmodes/octave.el (octave-send-region):
+	Call compilation-forget-errors.
 
 2013-10-04  Xue Fuqiao  <xfq.free@gmail.com>
 

@@ -1,3 +1,10 @@
+if something_wrong?             # ruby-move-to-block-skips-heredoc
+  ActiveSupport::Deprecation.warn(<<-eowarn)
+  boo hoo
+  end
+  eowarn
+end
+
 # Percent literals.
 b = %Q{This is a "string"}
 c = %w!foo
@@ -20,6 +27,26 @@ a = asub / aslb + bsub / bslb;
 
 # Highlight the regexp after "if".
 x = toto / foo if /do bar/ =~ "dobar"
+
+bar(class: XXX) do              # ruby-indent-keyword-label
+  foo
+end
+bar
+
+foo = [1,                       # ruby-deep-indent
+       2]
+
+foo = {                         # ruby-deep-indent-disabled
+  a : b
+}
+
+foo = [                         # ruby-deep-indent-disabled
+  1
+]
+
+foo(                            # ruby-deep-indent-disabled
+  a
+)
 
 # Multiline regexp.
 /bars
@@ -74,4 +101,4 @@ end
 
 # Bug#15369
 MSG = 'Separate every 3 digits in the integer portion of a number' \
-  'with underscores(_).'
+      'with underscores(_).'

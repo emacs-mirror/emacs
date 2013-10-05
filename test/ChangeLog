@@ -1,3 +1,8 @@
+2013-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Port a few cases from automated/ruby-mode-tests.el.
+	Adjust indentation of continued line to the new SMIE behavior.
+
 2013-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/completion-tests.el:

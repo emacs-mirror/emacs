@@ -707,7 +707,7 @@ Possible return values:
              ((null toklevels)
               (when (zerop (length token))
                 (condition-case err
-                    (progn (goto-char pos) (funcall next-sexp 1) nil)
+                    (progn (funcall next-sexp 1) nil)
                   (scan-error
                    (let ((pos (nth 2 err)))
                      (throw 'return
