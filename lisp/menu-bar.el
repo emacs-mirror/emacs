@@ -2269,6 +2269,29 @@ If nil, the current mouse position is used."
 			       map (current-global-map))
     (substitute-key-definition 'keyboard-escape-quit 'tty-menu-exit
 			       map (current-global-map))
+    ;; The bindings of menu-bar items are so that clicking on the menu
+    ;; bar when a menu is already shown pops down that menu.
+    ;; FIXME: we should iterate over all the visible menu-bar items,
+    ;; instead of naming them explicitly here.  Also, this doesn't
+    ;; include items added by current major mode.
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar file])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar edit])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar options])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar buffer])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar tools])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar help-menu])
+			       'tty-menu-exit
+			       map (current-global-map))
     (substitute-key-definition 'forward-char 'tty-menu-next-menu
 			       map (current-global-map))
     (substitute-key-definition 'backward-char 'tty-menu-prev-menu
