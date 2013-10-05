@@ -83,7 +83,8 @@ host_triplet = @host@
 DIST_COMMON = $(srcdir)/../nt/gnulib.mk $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/gnulib.mk COPYING
 @BUILDING_FOR_WINDOWSNT_TRUE@am__append_1 = core *.stackdump alloca.h \
-@BUILDING_FOR_WINDOWSNT_TRUE@	alloca.h-t errno.h errno.h-t \
+@BUILDING_FOR_WINDOWSNT_TRUE@	alloca.h-t byteswap.h \
+@BUILDING_FOR_WINDOWSNT_TRUE@	byteswap.h-t errno.h errno.h-t \
 @BUILDING_FOR_WINDOWSNT_TRUE@	execinfo.h execinfo.h-t getopt.h \
 @BUILDING_FOR_WINDOWSNT_TRUE@	getopt.h-t arg-nonnull.h \
 @BUILDING_FOR_WINDOWSNT_TRUE@	arg-nonnull.h-t c++defs.h \
@@ -103,16 +104,18 @@ DIST_COMMON = $(srcdir)/../nt/gnulib.mk $(srcdir)/Makefile.am \
 # statements but through direct file reference. Therefore this snippet must be
 # present in all Makefile.am that need it. This is ensured by the applicability
 # 'all' defined above.
-@BUILDING_FOR_WINDOWSNT_TRUE@am__append_3 = $(ALLOCA_H) $(ERRNO_H) \
-@BUILDING_FOR_WINDOWSNT_TRUE@	$(EXECINFO_H) $(GETOPT_H) \
-@BUILDING_FOR_WINDOWSNT_TRUE@	arg-nonnull.h c++defs.h \
-@BUILDING_FOR_WINDOWSNT_TRUE@	warn-on-use.h $(STDALIGN_H) \
-@BUILDING_FOR_WINDOWSNT_TRUE@	$(STDARG_H) $(STDBOOL_H) \
-@BUILDING_FOR_WINDOWSNT_TRUE@	$(STDDEF_H) $(STDINT_H)
-@BUILDING_FOR_WINDOWSNT_TRUE@am__append_4 = alloca.in.h close-stream.h \
-@BUILDING_FOR_WINDOWSNT_TRUE@	md5.h sha1.h sha256.h sha512.h \
-@BUILDING_FOR_WINDOWSNT_TRUE@	dosname.h ftoastr.c ftoastr.h \
-@BUILDING_FOR_WINDOWSNT_TRUE@	dup2.c errno.in.h euidaccess.c \
+@BUILDING_FOR_WINDOWSNT_TRUE@am__append_3 = $(ALLOCA_H) $(BYTESWAP_H) \
+@BUILDING_FOR_WINDOWSNT_TRUE@	$(ERRNO_H) $(EXECINFO_H) \
+@BUILDING_FOR_WINDOWSNT_TRUE@	$(GETOPT_H) arg-nonnull.h \
+@BUILDING_FOR_WINDOWSNT_TRUE@	c++defs.h warn-on-use.h \
+@BUILDING_FOR_WINDOWSNT_TRUE@	$(STDALIGN_H) $(STDARG_H) \
+@BUILDING_FOR_WINDOWSNT_TRUE@	$(STDBOOL_H) $(STDDEF_H) \
+@BUILDING_FOR_WINDOWSNT_TRUE@	$(STDINT_H)
+@BUILDING_FOR_WINDOWSNT_TRUE@am__append_4 = alloca.in.h byteswap.in.h \
+@BUILDING_FOR_WINDOWSNT_TRUE@	close-stream.h md5.h sha1.h \
+@BUILDING_FOR_WINDOWSNT_TRUE@	sha256.h sha512.h dosname.h \
+@BUILDING_FOR_WINDOWSNT_TRUE@	ftoastr.c ftoastr.h dup2.c \
+@BUILDING_FOR_WINDOWSNT_TRUE@	errno.in.h euidaccess.c \
 @BUILDING_FOR_WINDOWSNT_TRUE@	execinfo.c execinfo.in.h \
 @BUILDING_FOR_WINDOWSNT_TRUE@	at-func.c faccessat.c fdatasync.c \
 @BUILDING_FOR_WINDOWSNT_TRUE@	fdopendir.c filemode.h fpending.c \
@@ -1684,6 +1687,17 @@ uninstall-am:
 @BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_ALLOCA_H_TRUE@	mv -f $@-t $@
 @BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_ALLOCA_H_FALSE@alloca.h: $(top_builddir)/config.status
 @BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_ALLOCA_H_FALSE@	rm -f $@
+
+# We need the following in order to create <byteswap.h> when the system
+# doesn't have one.
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_TRUE@byteswap.h: byteswap.in.h $(top_builddir)/config.status
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_TRUE@	$(AM_V_GEN)rm -f $@-t $@ && \
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_TRUE@	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_TRUE@	  cat $(srcdir)/byteswap.in.h; \
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_TRUE@	} > $@-t && \
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_TRUE@	mv -f $@-t $@
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_FALSE@byteswap.h: $(top_builddir)/config.status
+@BUILDING_FOR_WINDOWSNT_TRUE@@GL_GENERATE_BYTESWAP_H_FALSE@	rm -f $@
 
 # We need the following in order to create <errno.h> when the system
 # doesn't have one that is POSIX compliant.
