@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "blockinput.h"
 #include "dispextern.h"
+#include "buffer.h"
 
 #ifdef USE_X_TOOLKIT
 #include "../lwlib/lwlib.h"
@@ -1035,6 +1036,23 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
 }
 #endif  /* HAVE_NS */
 
+static int
+item_width (const char *str)
+{
+  int len;
+  const char *p;
+
+  for (len = 0, p = str; *p; )
+    {
+      int ch_len;
+      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
+
+      len += CHAR_WIDTH (ch);
+      p += ch_len;
+    }
+  return len;
+}
+
 DEFUN ("menu-bar-menu-at-x-y", Fmenu_bar_menu_at_x_y, Smenu_bar_menu_at_x_y,
        2, 3, 0,
        doc: /* Return the menu-bar menu on FRAME at pixel coordinates X, Y.
@@ -1077,7 +1095,10 @@ into menu items.  */)
 	  pos = AREF (items, i + 3);
 	  if (NILP (str))
 	    return item;
-	  if (XINT (pos) <= col && col < XINT (pos) + SCHARS (str))
+	  if (XINT (pos) <= col
+	      /* We use <= so the blank between 2 items on a TTY is
+		 considered part of the previous item.  */
+	      && col <= XINT (pos) + item_width (SSDATA (str)))
 	    {
 	      item = AREF (items, i);
 	      return item;
