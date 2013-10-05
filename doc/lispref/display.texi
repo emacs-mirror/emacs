@@ -168,6 +168,7 @@ entire frame width).
 @end defopt
 
 @defopt truncate-partial-width-windows
+@cindex partial-width windows
 This variable controls line truncation in @dfn{partial-width} windows.
 A partial-width window is one that does not occupy the entire frame
 width (@pxref{Splitting Windows}).  If the value is @code{nil}, line
@@ -235,6 +236,7 @@ This variable is automatically buffer-local in every buffer.
 @cindex error display
 @cindex echo area
 
+@c FIXME: Why not use @xref{Minibuffers} directly?  --xfq
   The @dfn{echo area} is used for displaying error messages
 (@pxref{Errors}), for messages made with the @code{message} primitive,
 and for echoing keystrokes.  It is not the same as the minibuffer,

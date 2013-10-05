@@ -1,3 +1,7 @@
+2013-10-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* editfns.c (message): Mention batch mode in doc string.
+
 2013-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (check_native_fs): Remove erroneous comment.
