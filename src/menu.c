@@ -1087,6 +1087,9 @@ into menu items.  */)
       /* Find the menu bar item under `col'.  */
       item = Qnil;
       items = FRAME_MENU_BAR_ITEMS (f);
+      /* This loop assumes a single menu-bar line, and will fail to
+	 find an item if it is not in the first line.  Note that
+	 make_lispy_event in keyboard.c makes the same assumption.  */
       for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object pos, str;
