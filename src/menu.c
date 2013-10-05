@@ -1035,6 +1035,59 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
 }
 #endif  /* HAVE_NS */
 
+DEFUN ("menu-bar-menu-at-x-y", Fmenu_bar_menu_at_x_y, Smenu_bar_menu_at_x_y,
+       2, 3, 0,
+       doc: /* Return the menu-bar menu on FRAME at pixel coordinates X, Y.
+X and Y are frame-relative pixel coordinates, assumed to define
+a location within the menu bar.
+If FRAME is nil or omitted, it defaults to the selected frame.
+
+Value is the symbol of the menu at X/Y, or nil if the specified
+coordinates are not within the FRAME's menu bar.  The symbol can
+be used to look up the menu like this:
+
+     (lookup-key global-map [menu-bar SYMBOL])
+
+This function can return non-nil only on a text-terminal frame
+or on an X frame that doesn't use any GUI toolkit.  Otherwise,
+Emacs does not manage the menu bar and cannot convert coordinates
+into menu items.  */)
+  (Lisp_Object x, Lisp_Object y, Lisp_Object frame)
+{
+  int row, col;
+  struct frame *f = decode_any_frame (frame);
+
+  if (!FRAME_LIVE_P (f))
+    return Qnil;
+
+  pixel_to_glyph_coords (f, XINT (x), XINT (y), &col, &row, NULL, 1);
+  if (0 <= row && row < FRAME_MENU_BAR_LINES (f))
+    {
+      Lisp_Object items, item;
+      int i;
+
+      /* Find the menu bar item under `col'.  */
+      item = Qnil;
+      items = FRAME_MENU_BAR_ITEMS (f);
+      for (i = 0; i < ASIZE (items); i += 4)
+	{
+	  Lisp_Object pos, str;
+
+	  str = AREF (items, i + 1);
+	  pos = AREF (items, i + 3);
+	  if (NILP (str))
+	    return item;
+	  if (XINT (pos) <= col && col < XINT (pos) + SCHARS (str))
+	    {
+	      item = AREF (items, i);
+	      return item;
+	    }
+	}
+    }
+  return Qnil;
+}
+
+
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
        doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button event
@@ -1527,4 +1580,5 @@ syms_of_menu (void)
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
 #endif
+  defsubr (&Smenu_bar_menu_at_x_y);
 }
