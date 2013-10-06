@@ -2182,13 +2182,14 @@ See `menu-bar-mode' for more information."
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
 (declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
 
-(defun popup-menu (menu &optional position prefix)
+(defun popup-menu (menu &optional position prefix from-menu-bar)
   "Popup the given menu and call the selected option.
 MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
 `x-popup-menu'.
 The menu is shown at the place where POSITION specifies. About
 the form of POSITION, see `popup-menu-normalize-position'.
-PREFIX is the prefix argument (if any) to pass to the command."
+PREFIX is the prefix argument (if any) to pass to the command.
+FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
   (let* ((map (cond
 	       ((keymapp menu) menu)
 	       ((and (listp menu) (keymapp (car menu))) menu)
@@ -2361,7 +2362,9 @@ If FRAME is nil or not given, use the selected frame."
      ((null tty-menu-open-use-tmm)
       ;; FIXME: This should open the leftmost menu, and let the user
       ;; move to others via C-f or right-arrow.
-      (popup-menu menu-bar-tools-menu (posn-at-x-y 30 0 nil t)))
+      (let ((menu (menu-bar-menu-at-x-y 10 0 frame)))
+	(popup-menu (lookup-key global-map (vector 'menu-bar menu))
+		    (posn-at-x-y 10 0 nil t) t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 
