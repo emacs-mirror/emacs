@@ -1,3 +1,7 @@
+2013-10-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Fix a syntax error, add a few failing examples.
+
 2013-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/ruby.rb: Port a few cases from automated/ruby-mode-tests.el.

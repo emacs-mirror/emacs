@@ -381,7 +381,7 @@ Also ignores spaces after parenthesis when 'space."
                                     (looking-at comment-start-skip)))))
        ;; `(column . ,(smie-indent-virtual))
        (smie-rule-parent)))
-    (`(:before . ,(or `"else" `"then" `"elsif" `"rescue")) 0)
+    (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
     ;; Hack attack: Since newlines are separators, don't try to align args that

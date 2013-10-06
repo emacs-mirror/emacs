@@ -37,7 +37,7 @@ foo = [1,                       # ruby-deep-indent
        2]
 
 foo = {                         # ruby-deep-indent-disabled
-  a : b
+  a: b
 }
 
 foo = [                         # ruby-deep-indent-disabled
@@ -99,6 +99,27 @@ if something == :==
   do_something
 end
 
+begin
+  foo
+ensure
+  bar
+end
+
+# Examples below fail with SMIE.
+
 # Bug#15369
 MSG = 'Separate every 3 digits in the integer portion of a number' \
       'with underscores(_).'
+
+# Next two fail similarly to the one above, so maybe remove 1 or 2
+# after they're fixed:
+
+a = foo(j, k) -
+  bar_tee
+
+while a < b do # "do" is optional
+  foo
+end
+
+desc "foo foo" \
+  "bar bar"

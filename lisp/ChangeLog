@@ -1,3 +1,8 @@
+2013-10-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Dedent `ensure'
+	keyword, too.
+
 2013-10-05  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* newcomment.el (comment-use-global-state): Change default value
