@@ -673,10 +673,21 @@ ns_update_begin (struct frame *f)
    external (RIF) call; whole frame, called before update_window_begin
    -------------------------------------------------------------------------- */
 {
-  NSView *view = FRAME_NS_VIEW (f);
+  EmacsView *view = FRAME_NS_VIEW (f);
   NSTRACE (ns_update_begin);
 
   ns_update_auto_hide_menu_bar ();
+
+#ifdef NS_IMPL_COCOA
+  if ([view isFullscreen] && [view fsIsNative])
+  {
+    // Fix reappearing tool bar in fullscreen for OSX 10.7
+    BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
+    NSToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
+    if (! tbar_visible != ! [toolbar isVisible])
+      [toolbar setVisible: tbar_visible];
+  }
+#endif
 
   ns_updating_frame = f;
   [view lockFocus];
@@ -6115,8 +6126,27 @@ if (cols > 0 && rows > 0)
       [self windowDidBecomeKey:notification];
       [nonfs_window orderOut:self];
     }
-  else if (! FRAME_EXTERNAL_TOOL_BAR (emacsframe))
-    [toolbar setVisible:NO];
+  else
+    {
+      BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (emacsframe) ? YES : NO;
+#ifdef NS_IMPL_COCOA
+      unsigned val = (unsigned)[NSApp presentationOptions];
+
+      // OSX 10.7 bug fix, the menu won't appear without this.
+      // val is non-zero on other OSX versions.
+      if (val == 0)
+        {
+          NSApplicationPresentationOptions options
+            = NSApplicationPresentationAutoHideDock
+            | NSApplicationPresentationAutoHideMenuBar
+            | NSApplicationPresentationFullScreen
+            | NSApplicationPresentationAutoHideToolbar;
+
+          [NSApp setPresentationOptions: options];
+        }
+#endif
+      [toolbar setVisible:tbar_visible];
+    }
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification
