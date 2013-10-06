@@ -586,6 +586,30 @@ VALUES-PLIST is a list with alternating index and value elements."
     (end-of-defun)
     (should (= 5 (line-number-at-pos)))))
 
+;; Tests below fail when using SMIE.
+
+(defvar ruby-sexp-test-example
+  (ruby-test-string
+   "class C
+   |  def foo
+   |    self.end
+   |    D.new.class
+   |  end
+   |end"))
+
+(ert-deftest ruby-forward-sexp-skips-method-calls-with-keyword-names ()
+  (ruby-with-temp-buffer ruby-sexp-test-example
+    (goto-line 2)
+    (ruby-forward-sexp)
+    (should (= 5 (line-number-at-pos)))))
+
+(ert-deftest ruby-backward-sexp-skips-method-calls-with-keyword-names ()
+  (ruby-with-temp-buffer ruby-sexp-test-example
+    (goto-line 5)
+    (end-of-line)
+    (ruby-backward-sexp)
+    (should (= 2 (line-number-at-pos)))))
+
 (provide 'ruby-mode-tests)
 
 ;;; ruby-mode-tests.el ends here

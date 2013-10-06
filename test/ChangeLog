@@ -1,5 +1,8 @@
 2013-10-06  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* automated/ruby-mode-tests.el: Add tests for `ruby-forward-sexp'
+	and `ruby-backward-sexp' that fail when `ruby-use-smie' is t.
+
 	* indent/ruby.rb: Fix a syntax error, add a few failing examples.
 
 2013-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
