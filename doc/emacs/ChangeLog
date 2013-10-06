@@ -1,3 +1,7 @@
+2013-10-06  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* cal-xtra.texi (Calendar Customizing, Diary Display): Remove @refill.
+
 2013-09-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* fortran-xtra.texi (Fortran Abbrev): Remove @refill.
