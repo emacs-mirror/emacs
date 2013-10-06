@@ -1,3 +1,9 @@
+2013-10-06  Dato Simó  <dato@net.com.org.es>  (tiny change)
+
+	* net/network-stream.el (network-stream-open-starttls): Don't add
+	--insecure if it's already present, because that gnutls-cli
+	rejects getting that parameter twice.
+
 2013-10-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Dedent `ensure'
