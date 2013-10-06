@@ -633,9 +633,7 @@ ns_update_auto_hide_menu_bar (void)
 
   NSTRACE (ns_update_auto_hide_menu_bar);
 
-  if (NSApp != nil
-      && [NSApp isActive]
-      && [NSApp respondsToSelector:@selector(setPresentationOptions:)])
+  if (NSApp != nil && [NSApp isActive])
     {
       // Note, "setPresentationOptions" triggers an error unless the
       // application is active.
@@ -644,10 +642,11 @@ ns_update_auto_hide_menu_bar (void)
       if (menu_bar_should_be_hidden != ns_menu_bar_is_hidden)
         {
           NSApplicationPresentationOptions options
-            = NSApplicationPresentationAutoHideDock;
+            = NSApplicationPresentationDefault;
 
           if (menu_bar_should_be_hidden)
-            options |= NSApplicationPresentationAutoHideMenuBar;
+            options |= NSApplicationPresentationAutoHideMenuBar
+              | NSApplicationPresentationAutoHideDock;
 
           [NSApp setPresentationOptions: options];
 

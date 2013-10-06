@@ -4,6 +4,8 @@
 	hide toolbar (Bug#15388).
 	(windowDidEnterFullScreen:): If presentation options are zero,
 	set them here (Bug#15388).
+	(ns_update_auto_hide_menu_bar): Remove runtime check.
+	Don't auto hide dock unless menubar is also auto hidden.
 
 2013-10-05  Xue Fuqiao  <xfq.free@gmail.com>
 
