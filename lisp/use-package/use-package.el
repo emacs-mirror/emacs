@@ -147,6 +147,12 @@
 ;; value of `use-package-verbose'. Other good candidates for `:idle' are
 ;; `yasnippet', `auto-complete' and `autopair'.
 ;;
+;; Finally, you may wish to use `:pre-load'. This form runs before everything
+;; else whenever the `use-package' form evals; the package in question will
+;; never have been required. This can be useful, if you wish for instance, to
+;; pull files from a git repository, or mount a file system. Like :init,
+;; keeping this form as simple as possible makes sense.
+;;
 ;; The `:bind' keyword takes either a cons or a list of conses:
 ;;
 ;;   (use-package hi-lock
@@ -454,6 +460,9 @@ For full documentation. please see commentary.
 :bind Perform key bindings, and define autoload for bound
       commands.
 :commands Define autoloads for given commands.
+:pre-load Code to run when `use-package' form evals and before
+       anything else. Unlike :init this form runs before the
+       package is required or autoloads added.
 :mode Form to be added to `auto-mode-alist'.
 :interpreter Form to be added to `interpreter-mode-alist'.
 :defer Defer loading of package -- automatic
@@ -469,6 +478,7 @@ For full documentation. please see commentary.
   (use-package-validate-keywords args) ; error if any bad keyword, ignore result
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
+         (pre-load-body (plist-get args :pre-load))
          (init-body (plist-get args :init))
          (config-body (plist-get args :config))
          (diminish-var (plist-get-value args :diminish))
@@ -496,6 +506,7 @@ For full documentation. please see commentary.
 
     ;; force this immediately -- one off cost
     (unless (plist-get args :disabled)
+
       (let* ((ensure (plist-get args :ensure))
              (package-name
               (or (and (eq ensure t)
@@ -572,6 +583,7 @@ For full documentation. please see commentary.
                  interpreter-alist))
 
       `(progn
+         ,pre-load-body
          ,@(mapcar
             #'(lambda (path)
                 `(add-to-list 'load-path
