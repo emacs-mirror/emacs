@@ -293,7 +293,7 @@ Also ignores spaces after parenthesis when 'space."
                   ;; Make sure it's not the end of a regexp.
                   (not (eq (car (syntax-after (1- (point)))) 7)))
              (and (memq (char-before) '(?\? ?=))
-                  (let ((tok (ruby-smie--backward-token)))
+                  (let ((tok (save-excursion (ruby-smie--backward-token))))
                     (or (equal tok "?")
                         (string-match "\\`\\s." tok))))
              (save-excursion
