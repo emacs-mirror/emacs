@@ -1990,7 +1990,7 @@ INIT must be an integer that represents a character.  */)
   else
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH];
-      int len = CHAR_STRING (c, str);
+      ptrdiff_t len = CHAR_STRING (c, str);
       EMACS_INT string_len = XINT (length);
       unsigned char *p, *beg, *end;
 
