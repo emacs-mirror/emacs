@@ -1,3 +1,16 @@
+2013-10-07  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (register-preview-delay)
+	(register-preview-functions): New variables.
+	(register-read-with-preview, register-preview)
+	(register-describe-oneline): New functions.
+	(point-to-register, window-configuration-to-register)
+	(frame-configuration-to-register, jump-to-register)
+	(number-to-register, view-register, insert-register)
+	(copy-to-register, append-to-register, prepend-to-register)
+	(copy-rectangle-to-register): Use register-read-with-preview to
+	read register.  (Bug#15525)
+
 2013-10-06  Dato Simó  <dato@net.com.org.es>  (tiny change)
 
 	* net/network-stream.el (network-stream-open-starttls): Don't add
