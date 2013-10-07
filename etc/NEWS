@@ -181,6 +181,8 @@ visual order of characters on the screen: <left> always moves to the
 left, <right> always moves to the right, disregarding the surrounding
 bidirectional context.
 
+** All register commands can now show help with preview.
+
 ** New command `kmacro-to-register' to store keyboard macros in registers.
 
 ** Shell Script mode

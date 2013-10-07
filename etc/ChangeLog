@@ -1,3 +1,7 @@
+2013-10-07  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention new feature of register commands.
+
 2013-10-02  Fabrice Niessen  <fni@missioncriticalit.com>
 
 	* themes/leuven-theme.el: Add Commentary and some headers, update

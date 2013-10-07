@@ -123,8 +123,6 @@ See the documentation of the variable `register-alist' for possible VALUEs."
 If SHOW-EMPTY is non-nil show the window even if no registers."
   (when (or show-empty (consp register-alist))
     (let ((split-height-threshold 0))
-      ;; XXX: why with-temp-buffer-window always pops up the temp
-      ;; window even if one already shown?
       (with-temp-buffer-window
        buffer
        (cons 'display-buffer-below-selected
