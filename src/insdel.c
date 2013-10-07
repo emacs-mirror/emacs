@@ -988,8 +988,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 void
 insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
-  int ins_charpos = GPT;
-  int ins_bytepos = GPT_BYTE;
+  ptrdiff_t ins_charpos = GPT, ins_bytepos = GPT_BYTE;
 
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;

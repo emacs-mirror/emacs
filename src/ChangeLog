@@ -1,3 +1,7 @@
+2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* insdel.c (insert_from_gap): Prefer ptrdiff_t to int where needed.
+
 2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	emacs_read and emacs_write now use void *, not char *.
