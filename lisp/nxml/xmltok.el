@@ -1,4 +1,4 @@
-;;; xmltok.el --- XML tokenization
+;;; xmltok.el --- XML tokenization  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
 
@@ -142,6 +142,7 @@ string giving the error message and START and END are integers
 indicating the position of the error.")
 
 (defmacro xmltok-save (&rest body)
+  (declare (indent 0) (debug t))
   `(let (xmltok-type
 	 xmltok-start
 	 xmltok-name-colon
@@ -151,9 +152,6 @@ indicating the position of the error.")
 	 xmltok-namespace-attributes
 	 xmltok-errors)
      ,@body))
-
-(put 'xmltok-save 'lisp-indent-function 0)
-(def-edebug-spec xmltok-save t)
 
 (defsubst xmltok-attribute-name-start (att)
   (aref att 0))
@@ -411,7 +409,6 @@ Return the type of the token."
 (eval-when-compile
   (let* ((or "\\|")
 	 (open "\\(?:")
-	 (gopen "\\(")
 	 (close "\\)")
 	 (name-start-char "[_[:alpha:]]")
 	 (name-continue-not-start-char "[-.[:digit:]]")
@@ -988,33 +985,6 @@ Return the type of the token."
 	 (xmltok-valid-char-p n)
 	 n)))
 
-(defun xmltok-unclosed-reparse-p (change-start
-				  change-end
-				  pre-change-length
-				  start
-				  end
-				  delimiter)
-  (let ((len-1 (1- (length delimiter))))
-    (goto-char (max start (- change-start len-1)))
-    (search-forward delimiter (min end (+ change-end len-1)) t)))
-
-;; Handles a <!-- with the next -- not followed by >
-
-(defun xmltok-semi-closed-reparse-p (change-start
-				     change-end
-				     pre-change-length
-				     start
-				     end
-				     delimiter
-				     delimiter-length)
-  (or (<= (- end delimiter-length) change-end)
-      (xmltok-unclosed-reparse-p change-start
-				 change-end
-				 pre-change-length
-				 start
-				 end
-				 delimiter)))
-
 (defun xmltok-valid-char-p (n)
   "Return non-nil if N is the Unicode code of a valid XML character."
   (cond ((< n #x20) (memq n '(#xA #xD #x9)))
@@ -1072,7 +1042,7 @@ Adds to `xmltok-errors' as appropriate."
     (setq xmltok-dtd xmltok-predefined-entity-alist)
     (xmltok-scan-xml-declaration)
     (xmltok-next-prolog-token)
-    (while (condition-case err
+    (while (condition-case nil
 	       (when (xmltok-parse-prolog-item)
 		 (xmltok-next-prolog-token))
 	     (xmltok-markup-declaration-parse-error
@@ -1371,7 +1341,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 		       (t
 			(let ((xmltok-start (1- (point)))
 			       xmltok-type xmltok-replacement)
-			  (xmltok-scan-after-amp (lambda (start end)))
+			  (xmltok-scan-after-amp (lambda (_start _end)))
 			  (cond ((eq xmltok-type 'char-ref)
 				 (setq value-parts
 				       (cons (buffer-substring-no-properties

@@ -1,14 +1,37 @@
+2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nxml/nxml-mode.el: Use lexical-binding and syntax-propertize.
+	(font-lock-beg, font-lock-end): Move before first use.
+	(nxml-mode): Use syntax-propertize-function.
+	(nxml-after-change, nxml-after-change1): Adjust accordingly.
+	(nxml-extend-after-change-region): Remove.
+	* nxml/xmltok.el: Use lexical-binding.
+	(xmltok-save): Use `declare'.
+	(xmltok-unclosed-reparse-p, xmltok-semi-closed-reparse-p): Remove.
+	* nxml/nxml-util.el: Use lexical-binding.
+	(nxml-with-degradation-on-error, nxml-with-invisible-motion):
+	Use `declare'.
+	* nxml/nxml-ns.el: Use lexical-binding.
+	(nxml-ns-save): Use `declare'.
+	(nxml-ns-prefixes-for): Avoid add-to-list.
+	* nxml/rng-match.el: Use lexical-binding.
+	(rng--ipattern): Use cl-defstruct.
+	(rng-compute-start-tag-open-deriv, rng-compute-start-attribute-deriv)
+	(rng-cons-group-after, rng-subst-group-after)
+	(rng-subst-interleave-after, rng-apply-after, rng-compute-data-deriv):
+	Use closures instead of `(lambda...).
+
 2013-10-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-insert-file-contents): Improve handling
 	of BEG and END.
 
-	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist): Use
-	`tramp-handle-insert-file-contents'.
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	Use `tramp-handle-insert-file-contents'.
 	(tramp-gvfs-handle-insert-file-contents): Remove function.
 
-	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Use
-	`save-restriction' in order to keep markers.
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory):
+	Use `save-restriction' in order to keep markers.
 
 	* net/trampver.el: Update release number.
 
@@ -20,7 +43,8 @@
 
 	* emacs-lisp/easymenu.el (easy-menu-create-menu): Use closures.
 
-	* emacs-lisp/lisp-mode.el (eval-defun-2): Simplify, using lexical-binding.
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Simplify, using
+	lexical-binding.
 
 	* emacs-lisp/tq.el (tq-create): Use a closure instead of `(lambda...).
 
