@@ -1,5 +1,8 @@
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/css-mode.el (css-smie-rules): Fix indentation (bug#15467).
+	(css-mode): Use electric-indent-chars.
+
 	* nxml/nxml-mode.el: Use lexical-binding and syntax-propertize.
 	(font-lock-beg, font-lock-end): Move before first use.
 	(nxml-mode): Use syntax-propertize-function.

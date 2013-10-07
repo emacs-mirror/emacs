@@ -302,7 +302,7 @@
   (pcase (cons kind token)
     (`(:elem . basic) css-indent-offset)
     (`(:elem . arg) 0)
-    (`(:list-intro . "") t)             ;"" stands for BOB (bug#15467).
+    (`(:list-intro . ,(or `";" `"")) t) ;"" stands for BOB (bug#15467).
     (`(:before . "{") (if (smie-rule-hanging-p)
                          (smie-rule-parent 0)))))
 
@@ -321,12 +321,8 @@
   (smie-setup css-smie-grammar #'css-smie-rules
               :forward-token #'css-smie--forward-token
               :backward-token #'css-smie--backward-token)
-  (when css-electric-keys
-    (let ((fc (make-char-table 'auto-fill-chars)))
-      (set-char-table-parent fc auto-fill-chars)
-      (dolist (c css-electric-keys)
-        (aset fc c 'indent-according-to-mode))
-      (setq-local auto-fill-chars fc))))
+  (setq-local electric-indent-chars
+              (append css-electric-keys electric-indent-chars)))
 
 (defvar comment-continue)
 
