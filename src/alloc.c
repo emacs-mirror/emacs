@@ -1973,7 +1973,6 @@ INIT must be an integer that represents a character.  */)
   (Lisp_Object length, Lisp_Object init)
 {
   register Lisp_Object val;
-  register unsigned char *p, *end;
   int c;
   EMACS_INT nbytes;
 
@@ -1985,31 +1984,36 @@ INIT must be an integer that represents a character.  */)
     {
       nbytes = XINT (length);
       val = make_uninit_string (nbytes);
-      p = SDATA (val);
-      end = p + SCHARS (val);
-      while (p != end)
-	*p++ = c;
+      memset (SDATA (val), c, nbytes);
+      SDATA (val)[nbytes] = 0;
     }
   else
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       int len = CHAR_STRING (c, str);
       EMACS_INT string_len = XINT (length);
+      unsigned char *p, *beg, *end;
 
       if (string_len > STRING_BYTES_MAX / len)
 	string_overflow ();
       nbytes = len * string_len;
       val = make_uninit_multibyte_string (string_len, nbytes);
-      p = SDATA (val);
-      end = p + nbytes;
-      while (p != end)
+      for (beg = SDATA (val), p = beg, end = beg + nbytes; p < end; p += len)
 	{
-	  memcpy (p, str, len);
-	  p += len;
+	  /* First time we just copy `str' to the data of `val'.  */
+	  if (p == beg)
+	    memcpy (p, str, len);
+	  else
+	    {
+	      /* Next time we copy largest possible chunk from
+		 initialized to uninitialized part of `val'.  */
+	      len = min (p - beg, end - p);
+	      memcpy (p, beg, len);
+	    }
 	}
+      *p = 0;
     }
 
-  *p = 0;
   return val;
 }
 

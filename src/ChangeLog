@@ -1,3 +1,10 @@
+2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fmake_string): For ASCII char initializer, prefer
+	memset to explicit loop.  Otherwise copy largest possible chunk
+	from initialized to uninitialized part, thus allowing the longer
+	memcpy runs and reducing the number of loop iterations.
+
 2013-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_update_begin): If native fullscreen and no toolbar,
