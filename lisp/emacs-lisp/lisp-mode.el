@@ -1,4 +1,4 @@
-;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- coding: utf-8 -*-
+;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1999-2013 Free Software Foundation, Inc.
 
@@ -917,27 +917,25 @@ Return the result of evaluation."
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
       ;; eval-region handles recording which file defines a function or
-      ;; variable.  Re-written using `apply' to avoid capturing
-      ;; variables like `end'.
-      (apply
-       #'eval-region
-       (let ((standard-output t)
-	     beg end form)
-	 ;; Read the form from the buffer, and record where it ends.
-	 (save-excursion
-	   (end-of-defun)
-	   (beginning-of-defun)
-	   (setq beg (point))
-	   (setq form (read (current-buffer)))
-	   (setq end (point)))
-	 ;; Alter the form if necessary.
-	 (setq form (eval-sexp-add-defvars (eval-defun-1 (macroexpand form))))
-	 (list beg end standard-output
-	       `(lambda (ignore)
-		 ;; Skipping to the end of the specified region
-		 ;; will make eval-region return.
-		 (goto-char ,end)
-		 ',form))))))
+      ;; variable.
+      (let ((standard-output t)
+            beg end form)
+        ;; Read the form from the buffer, and record where it ends.
+        (save-excursion
+          (end-of-defun)
+          (beginning-of-defun)
+          (setq beg (point))
+          (setq form (read (current-buffer)))
+          (setq end (point)))
+        ;; Alter the form if necessary.
+        (let ((form (eval-sexp-add-defvars
+                     (eval-defun-1 (macroexpand form)))))
+          (eval-region beg end standard-output
+                       (lambda (_ignore)
+                         ;; Skipping to the end of the specified region
+                         ;; will make eval-region return.
+                         (goto-char end)
+                         form))))))
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
 
