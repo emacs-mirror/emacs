@@ -451,7 +451,7 @@ Every entry is a list (NAME ADDRESS).")
     ;; `find-file-noselect' performed by default handler.
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-gvfs-handle-insert-directory)
-    (insert-file-contents . tramp-gvfs-handle-insert-file-contents)
+    (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-gvfs-handle-make-directory)
@@ -1013,32 +1013,6 @@ is no information where to trace the message.")
 	(tramp-run-real-handler
 	 'insert-directory
 	 (list filename switches wildcard full-directory-p))))))
-
-(defun tramp-gvfs-handle-insert-file-contents
-  (filename &optional visit beg end replace)
-  "Like `insert-file-contents' for Tramp files."
-  (barf-if-buffer-read-only)
-  (setq filename (expand-file-name filename))
-  (let (tmpfile result)
-    (unwind-protect
-	(if (not (file-exists-p filename))
-	    ;; We don't raise a Tramp error, because it might be
-	    ;; suppressed, like in `find-file-noselect-1'.
-	    (signal 'file-error (list "File not found on remote host" filename))
-
-	  (setq tmpfile (file-local-copy filename)
-		result (insert-file-contents tmpfile visit beg end replace)))
-      ;; Save exit.
-      (when visit
-	(setq buffer-file-name filename)
-	(setq buffer-read-only (not (file-writable-p filename)))
-	(set-visited-file-modtime)
-	(set-buffer-modified-p nil))
-      (when (stringp tmpfile)
-	(delete-file tmpfile)))
-
-    ;; Result.
-    (list filename (cadr result))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."

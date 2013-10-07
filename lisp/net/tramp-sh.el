@@ -2544,61 +2544,64 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 		   (tramp-shell-quote-argument
 		    (tramp-run-real-handler
 		     'file-name-nondirectory (list localname)))))))
-      (let ((beg (point)))
-	;; We cannot use `insert-buffer-substring' because the Tramp
-	;; buffer changes its contents before insertion due to calling
-	;; `expand-file' and alike.
-	(insert
-	 (with-current-buffer (tramp-get-buffer v)
-	   (buffer-string)))
 
-	;; Check for "--dired" output.
-	(forward-line -2)
-	(when (looking-at "//SUBDIRED//")
-	  (forward-line -1))
-	(when (looking-at "//DIRED//\\s-+")
-	  (let ((databeg (match-end 0))
-		(end (point-at-eol)))
-	    ;; Now read the numeric positions of file names.
-	    (goto-char databeg)
-	    (while (< (point) end)
-	      (let ((start (+ beg (read (current-buffer))))
-		    (end (+ beg (read (current-buffer)))))
-		(if (memq (char-after end) '(?\n ?\ ))
-		    ;; End is followed by \n or by " -> ".
-		    (put-text-property start end 'dired-filename t))))))
-	;; Remove trailing lines.
-	(goto-char (point-at-bol))
-	(while (looking-at "//")
-	  (forward-line 1)
-	  (delete-region (match-beginning 0) (point)))
+      (save-restriction
+	(let ((beg (point)))
+	  (narrow-to-region (point) (point))
+	  ;; We cannot use `insert-buffer-substring' because the Tramp
+	  ;; buffer changes its contents before insertion due to calling
+	  ;; `expand-file' and alike.
+	  (insert
+	   (with-current-buffer (tramp-get-buffer v)
+	     (buffer-string)))
 
-	;; Some busyboxes are reluctant to discard colors.
-	(unless (string-match "color" (tramp-get-connection-property v "ls" ""))
-	  (goto-char beg)
-	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
-	    (replace-match "")))
+	  ;; Check for "--dired" output.
+	  (forward-line -2)
+	  (when (looking-at "//SUBDIRED//")
+	    (forward-line -1))
+	  (when (looking-at "//DIRED//\\s-+")
+	    (let ((databeg (match-end 0))
+		  (end (point-at-eol)))
+	      ;; Now read the numeric positions of file names.
+	      (goto-char databeg)
+	      (while (< (point) end)
+		(let ((start (+ beg (read (current-buffer))))
+		      (end (+ beg (read (current-buffer)))))
+		  (if (memq (char-after end) '(?\n ?\ ))
+		      ;; End is followed by \n or by " -> ".
+		      (put-text-property start end 'dired-filename t))))))
+	  ;; Remove trailing lines.
+	  (goto-char (point-at-bol))
+	  (while (looking-at "//")
+	    (forward-line 1)
+	    (delete-region (match-beginning 0) (point)))
 
-	;; Decode the output, it could be multibyte.
-	(decode-coding-region
-	 beg (point-max)
-	 (or file-name-coding-system
-	     (and (boundp 'default-file-name-coding-system)
-		  (symbol-value 'default-file-name-coding-system))))
+	  ;; Some busyboxes are reluctant to discard colors.
+	  (unless (string-match "color" (tramp-get-connection-property v "ls" ""))
+	    (goto-char beg)
+	    (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	      (replace-match "")))
 
-	;; The inserted file could be from somewhere else.
-	(when (and (not wildcard) (not full-directory-p))
-	  (goto-char (point-max))
-	  (when (file-symlink-p filename)
-	    (goto-char (search-backward "->" beg 'noerror)))
-	  (search-backward
-	   (if (zerop (length (file-name-nondirectory filename)))
-	       "."
-	     (file-name-nondirectory filename))
-	   beg 'noerror)
-	  (replace-match (file-relative-name filename) t))
+	  ;; Decode the output, it could be multibyte.
+	  (decode-coding-region
+	   beg (point-max)
+	   (or file-name-coding-system
+	       (and (boundp 'default-file-name-coding-system)
+		    (symbol-value 'default-file-name-coding-system))))
 
-	(goto-char (point-max))))))
+	  ;; The inserted file could be from somewhere else.
+	  (when (and (not wildcard) (not full-directory-p))
+	    (goto-char (point-max))
+	    (when (file-symlink-p filename)
+	      (goto-char (search-backward "->" beg 'noerror)))
+	    (search-backward
+	     (if (zerop (length (file-name-nondirectory filename)))
+		 "."
+	       (file-name-nondirectory filename))
+	     beg 'noerror)
+	    (replace-match (file-relative-name filename) t))
+
+	  (goto-char (point-max)))))))
 
 ;; Canonicalization of file names.
 

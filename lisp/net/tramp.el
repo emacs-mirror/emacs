@@ -3030,8 +3030,11 @@ User is always nil."
 			 (list localname visit beg end replace)))
 
 		;; When we shall insert only a part of the file, we
-		;; copy this part.
-		(when (or beg end)
+		;; copy this part.  This works only for the shell file
+		;; name handlers.
+		(when (and (or beg end)
+			   (tramp-get-method-parameter
+			    (tramp-file-name-method v) 'tramp-login-program))
 		  (setq remote-copy (tramp-make-tramp-temp-file v))
 		  ;; This is defined in tramp-sh.el.  Let's assume
 		  ;; this is loaded already.
@@ -3050,7 +3053,8 @@ User is always nil."
 		    (end
 		     (format "dd bs=1 count=%d if=%s of=%s"
 			     end (tramp-shell-quote-argument localname)
-			     remote-copy)))))
+			     remote-copy))))
+		  (setq tramp-temp-buffer-file-name nil beg nil end nil))
 
 		;; `insert-file-contents-literally' takes care to
 		;; avoid calling jka-compr.  By let-binding
@@ -3093,7 +3097,7 @@ User is always nil."
 			filename local-copy)))
 		  (setq result
 			(insert-file-contents
-			 local-copy visit nil nil replace)))))
+			 local-copy visit beg end replace)))))
 
 	  ;; Save exit.
 	  (progn
@@ -3846,7 +3850,7 @@ be granted."
      (stringp host)
      (string-match tramp-local-host-regexp host)
      ;; The method shall be applied to one of the shell file name
-     ;; handler.  `tramp-local-host-p' is also called for "smb" and
+     ;; handlers.  `tramp-local-host-p' is also called for "smb" and
      ;; alike, where it must fail.
      (tramp-get-method-parameter
       (tramp-file-name-method vec) 'tramp-login-program)
