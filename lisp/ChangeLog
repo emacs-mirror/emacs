@@ -1,5 +1,9 @@
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/compile.el (compilation-parse-errors):
+	Use compilation--put-prop.
+	(compilation--ensure-parse): Check compilation-multiline.
+
 	* emacs-lisp/easymenu.el (easy-menu-create-menu): Use closures.
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Simplify, using lexical-binding.

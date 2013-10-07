@@ -1354,9 +1354,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
 			   (eq (car face) 'face)
 			   (or (symbolp (cadr face))
 			       (stringp (cadr face))))
-                      (put-text-property
-                       (match-beginning mn) (match-end mn)
-                       'font-lock-face (cadr face))
+                      (compilation--put-prop mn 'font-lock-face (cadr face))
                       (add-text-properties
                        (match-beginning mn) (match-end mn)
                        (nthcdr 2 face)))
@@ -1394,6 +1392,9 @@ to `compilation-error-regexp-alist' if RULES is nil."
         (move-marker compilation--parsed limit)
         (goto-char start)
         (forward-line 0)  ;Not line-beginning-position: ignore (comint) fields.
+        (while (and (not (bobp))
+                    (get-text-property (1- (point)) 'compilation-multiline))
+          (forward-line -1))
         (with-silent-modifications
           (compilation--parse-region (point) compilation--parsed)))))
   nil)
