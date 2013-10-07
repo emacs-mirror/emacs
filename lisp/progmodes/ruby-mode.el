@@ -295,7 +295,10 @@ Also ignores spaces after parenthesis when 'space."
              (and (memq (char-before) '(?\? ?=))
                   (let ((tok (ruby-smie--backward-token)))
                     (or (equal tok "?")
-                        (string-match "\\`\\s." tok))))))))
+                        (string-match "\\`\\s." tok))))
+             (save-excursion
+               (forward-comment 1)
+               (eq (char-after) ?.))))))
 
 (defun ruby-smie--redundant-do-p (&optional skip)
   (save-excursion
