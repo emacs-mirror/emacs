@@ -3698,8 +3698,8 @@ handle_fontified_prop (struct it *it)
       ptrdiff_t count = SPECPDL_INDEX ();
       Lisp_Object val;
       struct buffer *obuf = current_buffer;
-      int begv = BEGV, zv = ZV;
-      int old_clip_changed = current_buffer->clip_changed;
+      ptrdiff_t begv = BEGV, zv = ZV;
+      bool old_clip_changed = current_buffer->clip_changed;
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);

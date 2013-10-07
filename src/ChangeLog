@@ -1,6 +1,7 @@
 2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* insdel.c (insert_from_gap): Prefer ptrdiff_t to int where needed.
+	* xdisp.c (handle_fontified_prop): Likewise.  Use bool for boolean.
 
 2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
