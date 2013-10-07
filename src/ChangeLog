@@ -1,3 +1,8 @@
+2013-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidEnterFullScreen:): setPresentationOptions only
+	on >= 10.7.
+
 2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* insdel.c (insert_from_gap): Prefer ptrdiff_t to int where needed.

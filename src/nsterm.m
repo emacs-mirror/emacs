@@ -6129,6 +6129,7 @@ if (cols > 0 && rows > 0)
     {
       BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (emacsframe) ? YES : NO;
 #ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
       unsigned val = (unsigned)[NSApp presentationOptions];
 
       // OSX 10.7 bug fix, the menu won't appear without this.
@@ -6143,6 +6144,7 @@ if (cols > 0 && rows > 0)
 
           [NSApp setPresentationOptions: options];
         }
+#endif
 #endif
       [toolbar setVisible:tbar_visible];
     }
