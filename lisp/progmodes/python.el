@@ -3544,6 +3544,8 @@ list is returned as is."
       (reverse acc))))
 
 
+(defvar electric-indent-inhibit)
+
 ;;;###autoload
 (define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
@@ -3572,7 +3574,9 @@ if that value is non-nil."
   (set (make-local-variable 'indent-line-function)
        #'python-indent-line-function)
   (set (make-local-variable 'indent-region-function) #'python-indent-region)
-
+  ;; Because indentation is not redundant, we cannot safely reindent code.
+  (setq-local electric-indent-inhibit t)
+  
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
        'python-fill-paragraph)

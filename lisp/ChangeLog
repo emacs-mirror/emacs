@@ -1,5 +1,9 @@
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electric-indent-inhibit): New var.
+	(electric-indent-post-self-insert-function): Use it.
+	* progmodes/python.el (python-mode): Set it.
+
 	* progmodes/ruby-mode.el (ruby-smie-rules): Tweak handling of
 	open braces.
 
