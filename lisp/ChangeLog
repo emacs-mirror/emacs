@@ -1,5 +1,7 @@
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/tq.el (tq-create): Use a closure instead of `(lambda...).
+
 	* progmodes/ruby-mode.el: Fix recently added tests.
 	(ruby-smie-grammar): Add - and +.
 	(ruby-smie--redundant-do-p, ruby-smie--forward-id)
