@@ -114,7 +114,7 @@ ensure
 end
 
 # Bug#15369
-MSG = 'Separate every 3 digits in the integer portion of a number' +
+MSG = 'Separate every 3 digits in the integer portion of a number' \
       'with underscores(_).'
 
 class C
@@ -137,7 +137,21 @@ desc "foo foo" \
 foo.
   bar
 
-# FIXME: is this really valid Ruby?  Isn't the newline after "foo" treated as
-# an implicit semi-colon?
+# Examples below still fail with `ruby-use-smie' on:
+
+# https://github.com/rails/rails/blob/17f5d8e062909f1fcae25351834d8e89967b645e/activesupport/lib/active_support/time_with_zone.rb#L206
 foo
   .bar
+
+z = {
+  foo: {
+    a: "aaa",
+    b: "bbb"
+  }
+}
+
+foo +
+  bar
+
+foo if
+  bar
