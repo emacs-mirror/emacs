@@ -709,11 +709,13 @@ Possible return values:
                 (condition-case err
                     (progn (funcall next-sexp 1) nil)
                   (scan-error
-                   (let ((pos (nth 2 err)))
+                   (let ((epos (nth 2 err)))
+                     (goto-char pos)
                      (throw 'return
-                            (list t pos
+                            (list t epos
                                   (buffer-substring-no-properties
-                                   pos (+ pos (if (< (point) pos) -1 1))))))))
+                                   epos
+                                   (+ epos (if (< (point) epos) -1 1))))))))
                 (if (eq pos (point))
                     ;; We did not move, so let's abort the loop.
                     (throw 'return (list t (point))))))

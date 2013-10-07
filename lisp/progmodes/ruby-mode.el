@@ -414,7 +414,8 @@ Also ignores spaces after parenthesis when 'space."
     (`(:before . ,(or `"(" `"[" `"{"))
      ;; Treat purely syntactic block-constructs as being part of their parent,
      ;; when the opening statement is hanging.
-     (if (smie-rule-hanging-p) (smie-rule-parent)))
+     (when (smie-rule-hanging-p)
+       (smie-backward-sexp 'halfsexp) (smie-indent-virtual)))
     (`(:after . "=") 2)
     (`(:before . "do")
      (when (or (smie-rule-hanging-p)

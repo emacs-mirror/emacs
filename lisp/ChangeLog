@@ -1,5 +1,10 @@
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/ruby-mode.el (ruby-smie-rules): Tweak handling of
+	open braces.
+
+	* emacs-lisp/smie.el (smie-next-sexp): Refine last fix.
+
 	* textmodes/css-mode.el (css-smie-rules): Fix indentation (bug#15467).
 	(css-mode): Use electric-indent-chars.
 
