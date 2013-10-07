@@ -1,3 +1,12 @@
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	emacs_read and emacs_write now use void *, not char *.
+	* alloc.c (valid_pointer_p) [!WINDOWSNT]: Remove now-unnecessary cast.
+	* sysdep.c (emacs_read, emacs_write, emacs_write_sig):
+	Buffer arg is now void *, not char *.  This matches plain
+	'read' and 'write' better, and avoids a constraint violation
+	on Solaris 9 with Oracle Studio.
+
 2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fmake_string): For ASCII char initializer, prefer

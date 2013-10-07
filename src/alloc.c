@@ -4824,7 +4824,7 @@ valid_pointer_p (void *p)
 
   if (emacs_pipe (fd) == 0)
     {
-      bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
+      bool valid = emacs_write (fd[1], p, 16) == 16;
       emacs_close (fd[1]);
       emacs_close (fd[0]);
       return valid;
