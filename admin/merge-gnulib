@@ -27,7 +27,8 @@ GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
 
 GNULIB_MODULES='
   alloca-opt byteswap c-ctype c-strcase
-  careadlinkat close-stream crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
+  careadlinkat close-stream count-one-bits count-trailing-zeros
+  crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
   dtoastr dtotimespec dup2 environ execinfo faccessat
   fcntl fcntl-h fdatasync fdopendir filemode fstatat fsync
   getloadavg getopt-gnu gettime gettimeofday

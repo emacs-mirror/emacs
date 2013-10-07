@@ -1,3 +1,15 @@
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve support for popcount and counting trailing zeros (Bug#15550).
+	Do this by using the Gnulib modules for this.
+	This should generate faster code on non-GCC, non-MSC platforms,
+	and make the code a bit more portable, at least in theory.
+	* lib/count-one-bits.c, lib/count-one-bits.h:
+	* lib/count-trailing-zeros.c, lib/count-trailing-zeros.h:
+	* m4/count-one-bits.m4, m4/count-trailing-zeros.m4:
+	New files, copied from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use hardware insns for byteswapping on glibc hosts that support it.

@@ -22,6 +22,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include <byteswap.h>
+#include <count-one-bits.h>
+#include <count-trailing-zeros.h>
 #include <intprops.h>
 
 #include "lisp.h"
@@ -2971,107 +2973,15 @@ bool_vector_spare_mask (ptrdiff_t nr_bits)
   return (((size_t) 1) << (nr_bits % BITS_PER_SIZE_T)) - 1;
 }
 
-#if _MSC_VER >= 1500 && (defined _M_IX86 || defined _M_X64)
-# define USE_MSC_POPCOUNT
-# define POPCOUNT_STATIC_INLINE static inline
-#elif __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-# define USE_GCC_POPCOUNT
-# if 199901L <= __STDC_VERSION__ || !__STRICT_ANSI__
-#  define POPCOUNT_STATIC_INLINE static inline
-# endif
+#if SIZE_MAX <= UINT_MAX
+# define popcount_size_t count_one_bits
+#elif SIZE_MAX <= ULONG_MAX
+# define popcount_size_t count_one_bits_l
+#elif SIZE_MAX <= ULLONG_MAX
+# define popcount_size_t count_one_bits_ll
 #else
-# define NEED_GENERIC_POPCOUNT
+# error "size_t wider than long long? Please file a bug report."
 #endif
-#ifndef POPCOUNT_STATIC_INLINE
-# define POPCOUNT_STATIC_INLINE static
-#endif
-
-#ifdef USE_MSC_POPCOUNT
-# define NEED_GENERIC_POPCOUNT
-#endif
-
-#ifdef NEED_GENERIC_POPCOUNT
-POPCOUNT_STATIC_INLINE unsigned int
-popcount_size_t_generic (size_t val)
-{
-    unsigned short j;
-    unsigned int count = 0;
-
-    for (j = 0; j < BITS_PER_SIZE_T; ++j)
-      count += !!((((size_t) 1) << j) & val);
-
-    return count;
-}
-#endif
-
-#ifdef USE_MSC_POPCOUNT
-POPCOUNT_STATIC_INLINE unsigned int
-popcount_size_t_msc (size_t val)
-{
-  unsigned int count;
-
-#pragma intrinsic __cpuid
-  /* While gcc falls back to its own generic code if the machine on
-     which it's running doesn't support popcount, we need to perform the
-     detection and fallback ourselves when compiling with Microsoft's
-     compiler.  */
-
-    static enum {
-      popcount_unknown_support,
-      popcount_use_generic,
-      popcount_use_intrinsic
-    } popcount_state;
-
-    if (popcount_state == popcount_unknown_support)
-      {
-        int cpu_info[4];
-        __cpuid (cpu_info, 1);
-        if (cpu_info[2] & (1<<23)) /* See MSDN.  */
-          popcount_state = popcount_use_intrinsic;
-        else
-          popcount_state = popcount_use_generic;
-      }
-
-    if (popcount_state == popcount_use_intrinsic)
-      {
-# if BITS_PER_SIZE_T == 64
-#  pragma intrinsic __popcnt64
-      count = __popcnt64 (val);
-# else
-#  pragma intrinsic __popcnt
-    count = __popcnt (val);
-# endif
-      }
-    else
-      count = popcount_size_t_generic (val);
-
-    return count;
-}
-#endif /* USE_MSC_POPCOUNT */
-
-#ifdef USE_GCC_POPCOUNT
-POPCOUNT_STATIC_INLINE unsigned int
-popcount_size_t_gcc (size_t val)
-{
-# if BITS_PER_SIZE_T == 64
-  return __builtin_popcountll (val);
-# else
-  return __builtin_popcount (val);
-# endif
-}
-#endif /* USE_GCC_POPCOUNT */
-
-POPCOUNT_STATIC_INLINE unsigned int
-popcount_size_t (size_t val)
-{
-#if defined USE_MSC_POPCOUNT
-  return popcount_size_t_msc (val);
-#elif defined USE_GCC_POPCOUNT
-  return popcount_size_t_gcc (val);
-#else
-  return popcount_size_t_generic (val);
-#endif
-}
 
 enum bool_vector_op { bool_vector_exclusive_or,
                       bool_vector_union,
@@ -3143,55 +3053,54 @@ bool_vector_binop_driver (Lisp_Object op1,
 
 /* Compute the number of trailing zero bits in val.  If val is zero,
    return the number of bits in val.  */
-static unsigned int
+static int
 count_trailing_zero_bits (size_t val)
 {
+  if (SIZE_MAX == UINT_MAX)
+    return count_trailing_zeros (val);
+  if (SIZE_MAX == ULONG_MAX)
+    return count_trailing_zeros_l (val);
+# if HAVE_UNSIGNED_LONG_LONG_INT
+  if (SIZE_MAX == ULLONG_MAX)
+    return count_trailing_zeros_ll (val);
+# endif
+
+  /* The rest of this code is for the unlikely platform where size_t differs
+     in width from unsigned int, unsigned long, and unsigned long long.  */
   if (val == 0)
     return CHAR_BIT * sizeof (val);
-
-#if defined USE_GCC_POPCOUNT && BITS_PER_SIZE_T == 64
-  return __builtin_ctzll (val);
-#elif defined USE_GCC_POPCOUNT && BITS_PER_SIZE_T == 32
-  return __builtin_ctz (val);
-#elif _MSC_VER && BITS_PER_SIZE_T == 64
-# pragma intrinsic _BitScanForward64
+  if (SIZE_MAX <= UINT_MAX)
+    return count_trailing_zeros (val);
+  if (SIZE_MAX <= ULONG_MAX)
+    return count_trailing_zeros_l (val);
   {
-    /* No support test needed: support since 386.  */
-    unsigned long result;
-    _BitScanForward64 (&result, val);
-    return (unsigned int) result;
+# if HAVE_UNSIGNED_LONG_LONG_INT
+    verify (SIZE_MAX <= ULLONG_MAX);
+    return count_trailing_zeros_ll (val);
+# else
+    verify (SIZE_MAX <= ULONG_MAX);
+# endif
   }
-#elif _MSC_VER && BITS_PER_SIZE_T == 32
-# pragma intrinsic _BitScanForward
-  {
-    /* No support test needed: support since 386.  */
-    unsigned long result;
-    _BitScanForward (&result, val);
-    return (unsigned int) result;
-  }
-#else
-  {
-    unsigned int count;
-    count = 0;
-    for (val = ~val; val & 1; val >>= 1)
-      ++count;
-
-    return count;
-  }
-#endif
 }
 
 static size_t
 size_t_to_host_endian (size_t val)
 {
-#ifdef WORDS_BIGENDIAN
-# if BITS_PER_SIZE_T == 64
-  return bswap_64 (val);
-# else
-  return bswap_32 (val);
-# endif
-#else
+#ifndef WORDS_BIGENDIAN
   return val;
+#elif SIZE_MAX >> 31 == 1
+  return bswap_32 (val);
+#elif SIZE_MAX >> 31 >> 31 >> 1 == 1
+  return bswap_64 (val);
+#else
+  int i;
+  size_t r = 0;
+  for (i = 0; i < sizeof val; i++)
+    {
+      r = (r << CHAR_BIT) | (val & ((1u << CHAR_BIT) - 1));
+      val >>= CHAR_BIT;
+    }
+  return r;
 #endif
 }
 

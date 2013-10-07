@@ -1,3 +1,22 @@
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve support for popcount and counting trailing zeros (Bug#15550).
+	* data.c: Include <count-one-bits.h>, <count-trailing-zeros.h>.
+	(USE_MSC_POPCOUNT, POPCOUNT_STATIC_INLINE)
+	(NEED_GENERIC_POPCOUNT, popcount_size_t_generic)
+	(popcount_size_t_msc, popcount_size_t_gcc):
+	Remove; now done by Gnulib.
+	(popcount_size_t): Now a macro that defers to Gnulib.
+	(count_trailing_zero_bits): Return int, for consistency with
+	Gnulib and because Emacs prefers signed to unsigned int.
+	Don't assume that size_t is either unsigned int or unsigned long
+	or unsigned long long.
+	(size_t_to_host_endian): Do not assume that size_t is either
+	exactly 32 or exactly 64 bits wide.
+	* lisp.h (BITS_PER_SIZE_T): Define consistently with BITS_PER_LONG
+	etc., so that it's now an enum constant, not a macro.
+	No need to assume that it's either 32 or 64.
+
 2013-10-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (windowDidEnterFullScreen:): setPresentationOptions only

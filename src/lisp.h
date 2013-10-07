@@ -71,6 +71,7 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
+    BITS_PER_SIZE_T    = CHAR_BIT * sizeof (size_t),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 
@@ -4365,12 +4366,6 @@ functionp (Lisp_Object object)
   else
     return 0;
 }
-
-#if ((SIZE_MAX >> 31) >> 1) & 1
-# define BITS_PER_SIZE_T 64
-#else
-# define BITS_PER_SIZE_T 32
-#endif
 
 /* Round x to the next multiple of y.  Does not overflow.  Evaluates
    arguments repeatedly.  */
