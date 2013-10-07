@@ -99,6 +99,14 @@ if something == :==
   do_something
 end
 
+# Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
+d = 4 + 5 +      # no '\' needed
+    6 + 7
+
+# Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
+e = 8 + 9   \
+    + 10         # '\' needed
+
 begin
   foo
 ensure
@@ -109,20 +117,27 @@ end
 MSG = 'Separate every 3 digits in the integer portion of a number' +
       'with underscores(_).'
 
-# Examples below fail with SMIE.
+class C
+  def foo
+    self.end
+    D.new.class
+  end
+end
 
 a = foo(j, k) -
-  bar_tee
+    bar_tee
 
 while a < b do # "do" is optional
   foo
 end
 
 desc "foo foo" \
-  "bar bar"
+     "bar bar"
 
 foo.
   bar
 
+# FIXME: is this really valid Ruby?  Isn't the newline after "foo" treated as
+# an implicit semi-colon?
 foo
   .bar

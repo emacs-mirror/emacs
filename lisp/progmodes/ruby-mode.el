@@ -246,7 +246,7 @@ Also ignores spaces after parenthesis when 'space."
     '((id)
       (insts (inst) (insts ";" insts))
       (inst (exp) (inst "iuwu-mod" exp))
-      (exp  (exp1) (exp "," exp) (exp "=" exp))
+      (exp  (exp1) (exp "," exp) (exp "=" exp) (exp "-" exp)  (exp "+" exp))
       (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
       (exp2 ("def" insts "end")
             ("begin" insts-rescue-insts "end")
@@ -274,7 +274,7 @@ Also ignores spaces after parenthesis when 'space."
       (itheni (insts) (exp "then" insts))
       (ielsei (itheni) (itheni "else" insts))
       (if-body (ielsei) (if-body "elsif" if-body)))
-    '((nonassoc "in") (assoc ";") (assoc ",") (right "="))
+    '((nonassoc "in") (assoc ";") (assoc ",") (right "=") (assoc "-" "+"))
     '((assoc "when"))
     '((assoc "elsif"))
     '((assoc "rescue" "ensure"))
@@ -297,12 +297,26 @@ Also ignores spaces after parenthesis when 'space."
                     (or (equal tok "?")
                         (string-match "\\`\\s." tok))))))))
 
+(defun ruby-smie--redundant-do-p (&optional skip)
+  (save-excursion
+    (if skip (backward-word 1))
+    (member (nth 2 (smie-backward-sexp ";")) '("while"))))
+
 (defun ruby-smie--opening-pipe-p ()
   (save-excursion
     (if (eq ?| (char-before)) (forward-char -1))
     (skip-chars-backward " \t\n")
     (or (eq ?\{ (char-before))
         (looking-back "\\_<do" (- (point) 2)))))
+
+(defun ruby-smie--forward-id ()
+  (when (and (not (eobp))
+             (eq ?w (char-syntax (char-after))))
+    (let ((tok (smie-default-forward-token)))
+      (when (eq ?. (char-after))
+        (forward-char 1)
+        (setq tok (concat tok "." (ruby-smie--forward-id))))
+      tok)))
 
 (defun ruby-smie--forward-token ()
   (skip-chars-forward " \t")
@@ -316,16 +330,36 @@ Also ignores spaces after parenthesis when 'space."
     (forward-comment (point-max))
     (if (looking-at ":\\s.+")
         (progn (goto-char (match-end 0)) (match-string 0)) ;; bug#15208.
-    (let ((tok (smie-default-forward-token)))
-      (cond
-       ((member tok '("unless" "if" "while" "until"))
-        (if (save-excursion (forward-word -1) (ruby-smie--bosp))
-            tok "iuwu-mod"))
+      (let ((tok (smie-default-forward-token)))
+        (when (eq ?. (char-after))
+          (forward-char 1)
+          (setq tok (concat tok "." (ruby-smie--forward-id))))
+        (cond
+         ((member tok '("unless" "if" "while" "until"))
+          (if (save-excursion (forward-word -1) (ruby-smie--bosp))
+              tok "iuwu-mod"))
          ((equal tok "|")
           (if (ruby-smie--opening-pipe-p) "opening-|" tok))
          ((and (equal tok "") (looking-at "\\\\\n"))
           (goto-char (match-end 0)) (ruby-smie--forward-token))
+         ((equal tok "do")
+          (cond
+           ((not (ruby-smie--redundant-do-p 'skip)) tok)
+           ((> (save-excursion (forward-comment (point-max)) (point))
+               (line-end-position))
+            (ruby-smie--forward-token)) ;Fully redundant.
+           (t ";")))
+         ((equal tok ".") (concat tok (ruby-smie--forward-id)))
          (t tok)))))))
+
+(defun ruby-smie--backward-id ()
+  (when (and (not (bobp))
+             (eq ?w (char-syntax (char-before))))
+    (let ((tok (smie-default-backward-token)))
+      (when (eq ?. (char-before))
+        (forward-char -1)
+        (setq tok (concat (ruby-smie--backward-id) "." tok)))
+      tok)))
 
 (defun ruby-smie--backward-token ()
   (let ((pos (point)))
@@ -336,6 +370,9 @@ Also ignores spaces after parenthesis when 'space."
      ((and (bolp) (not (bobp))) "")         ;Presumably a heredoc.
      (t
       (let ((tok (smie-default-backward-token)))
+        (when (eq ?. (char-before))
+          (forward-char -1)
+          (setq tok (concat (ruby-smie--backward-id) "." tok)))
         (when (and (eq ?: (char-before)) (string-match "\\`\\s." tok))
           (forward-char -1) (setq tok (concat ":" tok))) ;; bug#15208.
         (cond
@@ -346,6 +383,16 @@ Also ignores spaces after parenthesis when 'space."
           (if (ruby-smie--opening-pipe-p) "opening-|" tok))
          ((and (equal tok "") (eq ?\\ (char-before)) (looking-at "\n"))
           (forward-char -1) (ruby-smie--backward-token))
+         ((equal tok "do")
+          (cond
+           ((not (ruby-smie--redundant-do-p)) tok)
+           ((> (save-excursion (forward-word 1)
+                               (forward-comment (point-max)) (point))
+               (line-end-position))
+            (ruby-smie--backward-token)) ;Fully redundant.
+           (t ";")))
+         ((equal tok ".")
+          (concat (ruby-smie--backward-id) tok))
          (t tok)))))))
 
 (defun ruby-smie-rules (kind token)
@@ -370,24 +417,22 @@ Also ignores spaces after parenthesis when 'space."
      (if (smie-rule-hanging-p) (smie-rule-parent)))
     (`(:after . "=") 2)
     (`(:before . "do")
-     (when
-         (save-excursion
-           (forward-word 1)   ;Skip "do"
-           (skip-chars-forward " \t")
-           (and (equal (save-excursion (ruby-smie--forward-token)) "opening-|")
-                (save-excursion (forward-sexp 1)
-                                (skip-chars-forward " \t")
-                                (or (eolp)
-                                    (looking-at comment-start-skip)))))
+     (when (or (smie-rule-hanging-p)
+               (save-excursion
+                 (forward-word 1)       ;Skip "do"
+                 (skip-chars-forward " \t")
+                 (and (equal (save-excursion (ruby-smie--forward-token))
+                             "opening-|")
+                      (save-excursion (forward-sexp 1)
+                                      (skip-chars-forward " \t")
+                                      (or (eolp)
+                                          (looking-at comment-start-skip))))))
        ;; `(column . ,(smie-indent-virtual))
        (smie-rule-parent)))
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
-    ;; Hack attack: Since newlines are separators, don't try to align args that
-    ;; appear on a separate line.  "" is for the case where the "previous
-    ;; separator" was not an implicit ";" but the BOB.
-    (`(:list-intro . ,(or `";" `"")) t)))
+    ))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)
   "Create an imenu index of methods inside a block."

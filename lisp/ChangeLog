@@ -1,3 +1,13 @@
+2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: Fix recently added tests.
+	(ruby-smie-grammar): Add - and +.
+	(ruby-smie--redundant-do-p, ruby-smie--forward-id)
+	(ruby-smie--backward-id): New functions.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Use them.
+	(ruby-smie-rules): Handle hanging do.  Get rid of hack, not needed
+	any more.
+
 2013-10-07  Leo Liu  <sdl.web@gmail.com>
 
 	* register.el (register-preview-delay)
