@@ -1,5 +1,7 @@
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mpc.el (mpc-songs-jump-to): Adjust to different playlist format.
+
 	* vc/pcvs.el: Use lexical-binding.
 	(cvs-temp-buffer, cvs-make-cvs-buffer): Pass some vars in the lexical
 	environment of `eval'.
