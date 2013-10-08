@@ -64,6 +64,11 @@ typedef unsigned int EMACS_UINT;
 # endif
 #endif
 
+/* An unsigned integer type representing a fixed-length bit sequence,
+   suitable for words in a Lisp bool vector.  */
+typedef size_t bits_word;
+#define BITS_WORD_MAX SIZE_MAX
+
 /* Number of bits in some machine integer types.  */
 enum
   {
@@ -71,7 +76,7 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
-    BITS_PER_SIZE_T    = CHAR_BIT * sizeof (size_t),
+    BITS_PER_BITS_WORD = CHAR_BIT * sizeof (bits_word),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 

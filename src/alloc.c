@@ -2017,8 +2017,8 @@ INIT must be an integer that represents a character.  */)
   return val;
 }
 
-verify (sizeof (size_t) * CHAR_BIT == BITS_PER_SIZE_T);
-verify ((BITS_PER_SIZE_T & (BITS_PER_SIZE_T - 1)) == 0);
+verify (sizeof (size_t) * CHAR_BIT == BITS_PER_BITS_WORD);
+verify ((BITS_PER_BITS_WORD & (BITS_PER_BITS_WORD - 1)) == 0);
 
 static ptrdiff_t
 bool_vector_payload_bytes (ptrdiff_t nr_bits,
@@ -2030,14 +2030,14 @@ bool_vector_payload_bytes (ptrdiff_t nr_bits,
   eassert (nr_bits >= 0);
 
   exact_needed_bytes = ROUNDUP ((size_t) nr_bits, CHAR_BIT) / CHAR_BIT;
-  needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_SIZE_T) / CHAR_BIT;
+  needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_BITS_WORD) / CHAR_BIT;
 
   if (needed_bytes == 0)
     {
       /* Always allocate at least one machine word of payload so that
          bool-vector operations in data.c don't need a special case
          for empty vectors.  */
-      needed_bytes = sizeof (size_t);
+      needed_bytes = sizeof (bits_word);
     }
 
   if (exact_needed_bytes_out != NULL)

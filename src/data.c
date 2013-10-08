@@ -2963,24 +2963,24 @@ lowercase l) for small endian machines.  */)
 /* Because we round up the bool vector allocate size to word_size
    units, we can safely read past the "end" of the vector in the
    operations below.  These extra bits are always zero.  Also, we
-   always allocate bool vectors with at least one size_t of storage so
+   always allocate bool vectors with at least one bits_word of storage so
    that we don't have to special-case empty bit vectors.  */
 
-static size_t
+static bits_word
 bool_vector_spare_mask (ptrdiff_t nr_bits)
 {
   eassert (nr_bits > 0);
-  return (((size_t) 1) << (nr_bits % BITS_PER_SIZE_T)) - 1;
+  return (((bits_word) 1) << (nr_bits % BITS_PER_BITS_WORD)) - 1;
 }
 
-#if SIZE_MAX <= UINT_MAX
-# define popcount_size_t count_one_bits
-#elif SIZE_MAX <= ULONG_MAX
-# define popcount_size_t count_one_bits_l
-#elif SIZE_MAX <= ULLONG_MAX
-# define popcount_size_t count_one_bits_ll
+#if BITS_WORD_MAX <= UINT_MAX
+# define popcount_bits_word count_one_bits
+#elif BITS_WORD_MAX <= ULONG_MAX
+# define popcount_bits_word count_one_bits_l
+#elif BITS_WORD_MAX <= ULLONG_MAX
+# define popcount_bits_word count_one_bits_ll
 #else
-# error "size_t wider than long long? Please file a bug report."
+# error "bits_word wider than long long? Please file a bug report."
 #endif
 
 enum bool_vector_op { bool_vector_exclusive_or,
@@ -2996,10 +2996,10 @@ bool_vector_binop_driver (Lisp_Object op1,
                           enum bool_vector_op op)
 {
   EMACS_INT nr_bits;
-  size_t *adata, *bdata, *cdata;
+  bits_word *adata, *bdata, *cdata;
   ptrdiff_t i;
-  size_t changed = 0;
-  size_t mword;
+  bits_word changed = 0;
+  bits_word mword;
   ptrdiff_t nr_words;
 
   CHECK_BOOL_VECTOR (op1);
@@ -3020,11 +3020,11 @@ bool_vector_binop_driver (Lisp_Object op1,
     }
 
   eassert (nr_bits >= 0);
-  nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
+  nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
 
-  adata = (size_t *) XBOOL_VECTOR (dest)->data;
-  bdata = (size_t *) XBOOL_VECTOR (op1)->data;
-  cdata = (size_t *) XBOOL_VECTOR (op2)->data;
+  adata = (bits_word *) XBOOL_VECTOR (dest)->data;
+  bdata = (bits_word *) XBOOL_VECTOR (op1)->data;
+  cdata = (bits_word *) XBOOL_VECTOR (op2)->data;
   i = 0;
   do
     {
@@ -3054,47 +3054,47 @@ bool_vector_binop_driver (Lisp_Object op1,
 /* Compute the number of trailing zero bits in val.  If val is zero,
    return the number of bits in val.  */
 static int
-count_trailing_zero_bits (size_t val)
+count_trailing_zero_bits (bits_word val)
 {
-  if (SIZE_MAX == UINT_MAX)
+  if (BITS_WORD_MAX == UINT_MAX)
     return count_trailing_zeros (val);
-  if (SIZE_MAX == ULONG_MAX)
+  if (BITS_WORD_MAX == ULONG_MAX)
     return count_trailing_zeros_l (val);
 # if HAVE_UNSIGNED_LONG_LONG_INT
-  if (SIZE_MAX == ULLONG_MAX)
+  if (BITS_WORD_MAX == ULLONG_MAX)
     return count_trailing_zeros_ll (val);
 # endif
 
-  /* The rest of this code is for the unlikely platform where size_t differs
+  /* The rest of this code is for the unlikely platform where bits_word differs
      in width from unsigned int, unsigned long, and unsigned long long.  */
   if (val == 0)
     return CHAR_BIT * sizeof (val);
-  if (SIZE_MAX <= UINT_MAX)
+  if (BITS_WORD_MAX <= UINT_MAX)
     return count_trailing_zeros (val);
-  if (SIZE_MAX <= ULONG_MAX)
+  if (BITS_WORD_MAX <= ULONG_MAX)
     return count_trailing_zeros_l (val);
   {
 # if HAVE_UNSIGNED_LONG_LONG_INT
-    verify (SIZE_MAX <= ULLONG_MAX);
+    verify (BITS_WORD_MAX <= ULLONG_MAX);
     return count_trailing_zeros_ll (val);
 # else
-    verify (SIZE_MAX <= ULONG_MAX);
+    verify (BITS_WORD_MAX <= ULONG_MAX);
 # endif
   }
 }
 
-static size_t
-size_t_to_host_endian (size_t val)
+static bits_word
+bits_word_to_host_endian (bits_word val)
 {
 #ifndef WORDS_BIGENDIAN
   return val;
-#elif SIZE_MAX >> 31 == 1
+#elif BITS_WORD_MAX >> 31 == 1
   return bswap_32 (val);
-#elif SIZE_MAX >> 31 >> 31 >> 1 == 1
+#elif BITS_WORD_MAX >> 31 >> 31 >> 1 == 1
   return bswap_64 (val);
 #else
   int i;
-  size_t r = 0;
+  bits_word r = 0;
   for (i = 0; i < sizeof val; i++)
     {
       r = (r << CHAR_BIT) | (val & ((1u << CHAR_BIT) - 1));
@@ -3167,9 +3167,9 @@ Return the destination vector.  */)
   (Lisp_Object a, Lisp_Object b)
 {
   EMACS_INT nr_bits;
-  size_t *bdata, *adata;
+  bits_word *bdata, *adata;
   ptrdiff_t i;
-  size_t mword;
+  bits_word mword;
 
   CHECK_BOOL_VECTOR (a);
   nr_bits = XBOOL_VECTOR (a)->size;
@@ -3182,20 +3182,20 @@ Return the destination vector.  */)
       nr_bits = min (nr_bits, XBOOL_VECTOR (b)->size);
     }
 
-  bdata = (size_t *) XBOOL_VECTOR (b)->data;
-  adata = (size_t *) XBOOL_VECTOR (a)->data;
+  bdata = (bits_word *) XBOOL_VECTOR (b)->data;
+  adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
   eassert (nr_bits >= 0);
 
-  for (i = 0; i < nr_bits / BITS_PER_SIZE_T; i++)
+  for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; i++)
     bdata[i] = ~adata[i];
 
-  if (nr_bits % BITS_PER_SIZE_T)
+  if (nr_bits % BITS_PER_BITS_WORD)
     {
-      mword = size_t_to_host_endian (adata[i]);
+      mword = bits_word_to_host_endian (adata[i]);
       mword = ~mword;
       mword &= bool_vector_spare_mask (nr_bits);
-      bdata[i] = size_t_to_host_endian (mword);
+      bdata[i] = bits_word_to_host_endian (mword);
     }
 
   return b;
@@ -3209,28 +3209,28 @@ A must be a bool vector.  B is a generalized bool.  */)
 {
   ptrdiff_t count;
   EMACS_INT nr_bits;
-  size_t *adata;
-  size_t match;
+  bits_word *adata;
+  bits_word match;
   ptrdiff_t i;
 
   CHECK_BOOL_VECTOR (a);
 
   nr_bits = XBOOL_VECTOR (a)->size;
   count = 0;
-  match = NILP (b) ? (size_t) -1 : 0;
-  adata = (size_t *) XBOOL_VECTOR (a)->data;
+  match = NILP (b) ? -1 : 0;
+  adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
   eassert (nr_bits >= 0);
 
-  for (i = 0; i < nr_bits / BITS_PER_SIZE_T; ++i)
-    count += popcount_size_t (adata[i] ^ match);
+  for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; ++i)
+    count += popcount_bits_word (adata[i] ^ match);
 
   /* Mask out trailing parts of final mword.  */
-  if (nr_bits % BITS_PER_SIZE_T)
+  if (nr_bits % BITS_PER_BITS_WORD)
     {
-      size_t mword = adata[i] ^ match;
-      mword = size_t_to_host_endian (mword);
-      count += popcount_size_t (mword & bool_vector_spare_mask (nr_bits));
+      bits_word mword = adata[i] ^ match;
+      mword = bits_word_to_host_endian (mword);
+      count += popcount_bits_word (mword & bool_vector_spare_mask (nr_bits));
     }
 
   return make_number (count);
@@ -3247,9 +3247,9 @@ index into the vector.  */)
   ptrdiff_t count;
   EMACS_INT nr_bits;
   ptrdiff_t offset;
-  size_t *adata;
-  size_t twiddle;
-  size_t mword; /* Machine word.  */
+  bits_word *adata;
+  bits_word twiddle;
+  bits_word mword; /* Machine word.  */
   ptrdiff_t pos;
   ptrdiff_t nr_words;
 
@@ -3260,30 +3260,30 @@ index into the vector.  */)
   if (XFASTINT (i) > nr_bits) /* Allow one past the end for convenience */
     args_out_of_range (a, i);
 
-  adata = (size_t *) XBOOL_VECTOR (a)->data;
+  adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
   assume (nr_bits >= 0);
-  nr_words = ROUNDUP (nr_bits, BITS_PER_SIZE_T) / BITS_PER_SIZE_T;
+  nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
 
-  pos = XFASTINT (i) / BITS_PER_SIZE_T;
-  offset = XFASTINT (i) % BITS_PER_SIZE_T;
+  pos = XFASTINT (i) / BITS_PER_BITS_WORD;
+  offset = XFASTINT (i) % BITS_PER_BITS_WORD;
   count = 0;
 
   /* By XORing with twiddle, we transform the problem of "count
      consecutive equal values" into "count the zero bits".  The latter
      operation usually has hardware support.  */
-  twiddle = NILP (b) ? 0 : (size_t) -1;
+  twiddle = NILP (b) ? 0 : -1;
 
   /* Scan the remainder of the mword at the current offset.  */
   if (pos < nr_words && offset != 0)
     {
-      mword = size_t_to_host_endian (adata[pos]);
+      mword = bits_word_to_host_endian (adata[pos]);
       mword ^= twiddle;
       mword >>= offset;
       count = count_trailing_zero_bits (mword);
-      count = min (count, BITS_PER_SIZE_T - offset);
+      count = min (count, BITS_PER_BITS_WORD - offset);
       pos++;
-      if (count + offset < BITS_PER_SIZE_T)
+      if (count + offset < BITS_PER_BITS_WORD)
         return make_number (count);
     }
 
@@ -3292,7 +3292,7 @@ index into the vector.  */)
      endian-independent.  */
   while (pos < nr_words && adata[pos] == twiddle)
     {
-      count += BITS_PER_SIZE_T;
+      count += BITS_PER_BITS_WORD;
       ++pos;
     }
 
@@ -3300,16 +3300,16 @@ index into the vector.  */)
     {
       /* If we stopped because of a mismatch, see how many bits match
          in the current mword.  */
-      mword = size_t_to_host_endian (adata[pos]);
+      mword = bits_word_to_host_endian (adata[pos]);
       mword ^= twiddle;
       count += count_trailing_zero_bits (mword);
     }
-  else if (nr_bits % BITS_PER_SIZE_T != 0)
+  else if (nr_bits % BITS_PER_BITS_WORD != 0)
     {
       /* If we hit the end, we might have overshot our count.  Reduce
          the total by the number of spare bits at the end of the
          vector.  */
-      count -= BITS_PER_SIZE_T - nr_bits % BITS_PER_SIZE_T;
+      count -= BITS_PER_BITS_WORD - nr_bits % BITS_PER_BITS_WORD;
     }
 
   return make_number (count);
