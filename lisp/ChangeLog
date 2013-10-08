@@ -1,5 +1,12 @@
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/perl-mode.el: Use lexical-binding.
+	Remove redundant :group args.
+	(perl-nochange): Change default to be closer to other major modes's
+	standard behavior.
+	(perl-indent-line): Don't consider text on current line as a
+	valid beginning of function from which to indent.
+
 	* emacs-lisp/backquote.el (backquote-process): Catch uses of , and ,@
 	with more than one argument (bug#15538).
 

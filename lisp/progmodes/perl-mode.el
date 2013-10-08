@@ -1,4 +1,4 @@
-;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- coding: utf-8 -*-
+;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990, 1994, 2001-2013 Free Software Foundation, Inc.
 
@@ -127,7 +127,7 @@
     (modify-syntax-entry ?\n ">" st)
     (modify-syntax-entry ?# "<" st)
     ;; `$' is also a prefix char so I was tempted to say "/ p",
-    ;; but the `p' thingy basically overrides the `/' :-(   --stef
+    ;; but the `p' thingy basically overrides the `/' :-(   -- Stef
     (modify-syntax-entry ?$ "/" st)
     (modify-syntax-entry ?% ". p" st)
     (modify-syntax-entry ?@ ". p" st)
@@ -494,8 +494,7 @@
 
 (defcustom perl-indent-level 4
   "Indentation of Perl statements with respect to containing block."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 
 ;; Is is not unusual to put both things like perl-indent-level and
 ;; cperl-indent-level in the local variable section of a file. If only
@@ -511,45 +510,37 @@
 
 (defcustom perl-continued-statement-offset 4
   "Extra indent for lines not starting new statements."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-continued-brace-offset -4
   "Extra indent for substatements that start with open-braces.
 This is in addition to `perl-continued-statement-offset'."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-brace-offset 0
   "Extra indentation for braces, compared with other text in same context."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-brace-imaginary-offset 0
   "Imagined indentation of an open brace that actually follows a statement."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-label-offset -2
   "Offset of Perl label lines relative to usual indentation."
-  :type 'integer
-  :group 'perl)
+  :type 'integer)
 (defcustom perl-indent-continued-arguments nil
   "If non-nil offset of argument lines relative to usual indentation.
 If nil, continued arguments are aligned with the first argument."
-  :type '(choice integer (const nil))
-  :group 'perl)
+  :type '(choice integer (const nil)))
 
 (defcustom perl-indent-parens-as-block nil
   "Non-nil means that non-block ()-, {}- and []-groups are indented as blocks.
 The closing bracket is aligned with the line of the opening bracket,
 not the contents of the brackets."
   :version "24.3"
-  :type 'boolean
-  :group 'perl)
+  :type 'boolean)
 
 (defcustom perl-tab-always-indent tab-always-indent
   "Non-nil means TAB in Perl mode always indents the current line.
 Otherwise it inserts a tab character if you type it past the first
 nonwhite character on the line."
-  :type 'boolean
-  :group 'perl)
+  :type 'boolean)
 
 ;; I changed the default to nil for consistency with general Emacs
 ;; conventions -- rms.
@@ -558,13 +549,12 @@ nonwhite character on the line."
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
 create a new comment."
-  :type 'boolean
-  :group 'perl)
+  :type 'boolean)
 
-(defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
+(defcustom perl-nochange "\f"
   "Lines starting with this regular expression are not auto-indented."
   :type 'regexp
-  :group 'perl)
+  :options '(";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"))
 
 ;; Outline support
 
@@ -685,7 +675,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
 
 (define-obsolete-function-alias 'electric-perl-terminator
   'perl-electric-terminator "22.1")
-(defun perl-electric-noindent-p (char)
+(defun perl-electric-noindent-p (_char)
   (unless (eolp) 'no-indent))
 
 (defun perl-electric-terminator (arg)
@@ -803,7 +793,11 @@ Return the amount the indentation
 changed by, or (parse-state) if line starts in a quoted string."
   (let ((case-fold-search nil)
 	(pos (- (point-max) (point)))
-	(bof (or parse-start (save-excursion (perl-beginning-of-function))))
+	(bof (or parse-start (save-excursion
+                               ;; Don't consider text on this line as a
+                               ;; valid BOF from which to indent.
+			       (goto-char (line-end-position 0))
+			       (perl-beginning-of-function))))
 	beg indent shift-amt)
     (beginning-of-line)
     (setq beg (point))
