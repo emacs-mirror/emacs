@@ -13437,8 +13437,13 @@ redisplay_internal (void)
 		    unrequest_sigio ();
 		  STOP_POLLING;
 
-		  /* Update the display.  */
-		  set_window_update_flags (XWINDOW (f->root_window), 1);
+		  /* Mark windows on frame F to update.  If we decide to
+		     update all frames but windows_or_buffers_changed is
+		     zero, we assume that only the windows that shows
+		     current buffer should be really updated.  */
+		  set_window_update_flags
+		    (XWINDOW (f->root_window),
+		     (windows_or_buffers_changed ? NULL : current_buffer), 1);
 		  pending |= update_frame (f, 0, 0);
 		  f->cursor_type_changed = 0;
 		  f->updated_p = 1;

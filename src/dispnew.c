@@ -2910,7 +2910,7 @@ redraw_frame (struct frame *f)
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
-  set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
+  set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), NULL, 1);
   f->garbaged = 0;
 }
 
@@ -3041,7 +3041,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 
  do_pause:
   /* Reset flags indicating that a window should be updated.  */
-  set_window_update_flags (root_window, 0);
+  set_window_update_flags (root_window, NULL, 0);
 
   display_completed = !paused_p;
   return paused_p;
@@ -3820,17 +3820,18 @@ set_window_cursor_after_update (struct window *w)
 }
 
 
-/* Set WINDOW->must_be_updated_p to ON_P for all windows in the window
-   tree rooted at W.  */
+/* If B is NULL, set WINDOW->must_be_updated_p to ON_P for all windows in
+   the window tree rooted at W.  Otherwise set WINDOW->must_be_updated_p
+   to ON_P only for windows that displays B.  */
 
 void
-set_window_update_flags (struct window *w, bool on_p)
+set_window_update_flags (struct window *w, struct buffer *b, bool on_p)
 {
   while (w)
     {
       if (WINDOWP (w->contents))
-	set_window_update_flags (XWINDOW (w->contents), on_p);
-      else
+	set_window_update_flags (XWINDOW (w->contents), b, on_p);
+      else if (!(b && b != XBUFFER (w->contents)))
 	w->must_be_updated_p = on_p;
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);

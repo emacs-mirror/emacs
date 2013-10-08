@@ -1,5 +1,14 @@
 2013-10-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* dispnew.c (set_window_update_flags): Add buffer arg.  Adjust comment.
+	(redraw_frame, update_frame): Adjust users.
+	* dispextern.h (set_window_update_flags): Adjust prototype.
+	* xdisp.c (redisplay_internal): When updating all frames with zero
+	windows_or_buffers_changed, assume that only the windows that shows
+	current buffer should be really updated.
+
+2013-10-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not allocate huge temporary memory areas and objects while encoding
 	for file I/O, thus reducing an enormous memory usage for large buffers.
 	See http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00180.html.
