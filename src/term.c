@@ -51,6 +51,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int been_here = -1;
 #endif
 
+#ifdef USE_X_TOOLKIT
+#include "../lwlib/lwlib.h"
+#endif
+
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
