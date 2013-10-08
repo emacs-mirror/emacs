@@ -3187,12 +3187,9 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
     {
       *first_time = false;
       sf->mouse_moved = 1;
-      return 0;
     }
-
-  while (1)
+  else
     {
-#if 1
       extern Lisp_Object read_menu_command (void);
       Lisp_Object cmd;
       int usable_input = 1;
@@ -3247,17 +3244,6 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 	usable_input = 0;
       if (usable_input)
 	sf->mouse_moved = 1;
-#else
-      int volatile dx = 0;
-      int volatile dy = 0;
-      int volatile st = 0;
-
-      *x += dx;
-      *y += dy;
-      if (dx != 0 || dy != 0)
-	sf->mouse_moved = 1;
-      Sleep (300);
-#endif
       return st;
     }
   return 0;
@@ -3356,7 +3342,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   leave = 0;
   while (!leave)
     {
-      int mouse_button_count = 3; /* FIXME */
       int input_status;
       int min_y = state[0].y, max_y = min_y + state[0].menu->count - 1;
 
@@ -3457,8 +3442,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     }
 
   sf->mouse_moved = 0;
-  /* FIXME: Since we set the fram's garbaged flag, do we need this
-     call to screen_update?  */
   screen_update (sf, state[0].screen_behind);
   while (statecount--)
     free_saved_screen (state[statecount].screen_behind);

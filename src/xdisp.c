@@ -20616,9 +20616,9 @@ deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
 }
 
 /* Display one menu item on a TTY, by overwriting the glyphs in the
-   desired glyph matrix with glyphs produced from the menu item text.
-   Called from term.c to display TTY drop-down menus one item at a
-   time.
+   frame F's desired glyph matrix with glyphs produced from the menu
+   item text.  Called from term.c to display TTY drop-down menus one
+   item at a time.
 
    ITEM_TEXT is the menu item text as a C string.
 
@@ -20626,11 +20626,11 @@ deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
    could specify one of 3 faces: a face for an enabled item, a face
    for a disabled item, or a face for a selected item.
 
-   X and Y are coordinates of the first glyph in the desired matrix to
-   be overwritten by the menu item.  Since this is a TTY, Y is the
-   zero-based number of the glyph row and X is the zero-based glyph
-   number in the row, starting from left, where to start displaying
-   the item.
+   X and Y are coordinates of the first glyph in the frame's desired
+   matrix to be overwritten by the menu item.  Since this is a TTY, Y
+   is the zero-based number of the glyph row and X is the zero-based
+   glyph number in the row, starting from left, where to start
+   displaying the item.
 
    SUBMENU non-zero means this menu item drops down a submenu, which
    should be indicated by displaying a proper visual cue after the

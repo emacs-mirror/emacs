@@ -2395,8 +2395,6 @@ If FRAME is nil or not given, use the selected frame."
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
      ((null tty-menu-open-use-tmm)
-      ;; FIXME: This should open the leftmost menu, and let the user
-      ;; move to others via C-f or right-arrow.
       (let* ((x tty-menu--initial-menu-x)
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
