@@ -2344,6 +2344,11 @@ If nil, the current mouse position is used."
 (defvar tty-menu-open-use-tmm nil
   "If non-nil, menu-bar-open on a TTY will invoke `tmm-menubar'.")
 
+(defvar tty-menu--initial-menu-x 10
+  "X coordinate of the first menu-bar menu dropped by F10.
+
+This is meant to be used only for debugging TTY menus.")
+
 (defun menu-bar-open (&optional frame)
   "Start key navigation of the menu bar in FRAME.
 
@@ -2362,9 +2367,12 @@ If FRAME is nil or not given, use the selected frame."
      ((null tty-menu-open-use-tmm)
       ;; FIXME: This should open the leftmost menu, and let the user
       ;; move to others via C-f or right-arrow.
-      (let ((menu (menu-bar-menu-at-x-y 10 0 frame)))
-	(popup-menu (lookup-key global-map (vector 'menu-bar menu))
-		    (posn-at-x-y 10 0 nil t) t)))
+      (let* ((x tty-menu--initial-menu-x)
+	     (menu (menu-bar-menu-at-x-y x 0 frame)))
+	(popup-menu (or
+		     (lookup-key global-map (vector 'menu-bar menu))
+		     (lookup-key (current-local-map) (vector 'menu-bar menu)))
+		    (posn-at-x-y x 0 nil t) t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 
