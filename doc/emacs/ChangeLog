@@ -1,5 +1,8 @@
 2013-10-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* ack.texi (Acknowledgments): Fix spelling of Hrvoje Nikšić's
+	name.  (Bug#15557)
+
 	Support menus on text-mode terminals.
 	* screen.texi (Menu Bar): Adapt to TTY menus.
 

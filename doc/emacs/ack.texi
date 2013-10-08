@@ -884,7 +884,7 @@ and @code{winterm} terminal emulators; and @file{vc-dir.el}, displaying
 the status of version-controlled directories.
 
 @item
-Hrvoje Niksic wrote @file{savehist.el}, for saving the minibuffer
+Hrvoje Nikšić wrote @file{savehist.el}, for saving the minibuffer
 history between Emacs sessions.
 
 @item
