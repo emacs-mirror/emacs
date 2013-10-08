@@ -1,8 +1,16 @@
+2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/pcvs.el: Use lexical-binding.
+	(cvs-temp-buffer, cvs-make-cvs-buffer): Pass some vars in the lexical
+	environment of `eval'.
+	(cvs-mode-run, cvs-mode-do): Change `postproc' to be a function rather
+	than a list of expressions.  Adjust callers.
+	* vc/pcvs-defs.el (cvs-postprocess): Remove, unused.
+
 2013-10-07  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Handle the
-	case of the dot in a chained method call being on the following
-	line.
+	case of the dot in a chained method call being on the following line.
 
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
