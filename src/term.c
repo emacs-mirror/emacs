@@ -2814,7 +2814,7 @@ typedef struct tty_menu_struct
   char **text;
   struct tty_menu_struct **submenu;
   int *panenumber; /* Also used as enabled flag.  */
-  int allocated;
+  ptrdiff_t allocated;
   int panecount;
   int width;
   const char **help_text;
@@ -2825,38 +2825,27 @@ typedef struct tty_menu_struct
 static tty_menu *
 tty_menu_create (void)
 {
-  tty_menu *menu;
-
-  menu = (tty_menu *) xmalloc (sizeof (tty_menu));
-  menu->allocated = menu->count = menu->panecount = menu->width = 0;
-  return menu;
+  return xzalloc (sizeof *tty_menu_create ());
 }
 
 /* Allocate some (more) memory for MENU ensuring that there is room for one
-   for item.  */
+   more item.  */
 
 static void
 tty_menu_make_room (tty_menu *menu)
 {
-  if (menu->allocated == 0)
+  if (menu->allocated == menu->count)
     {
-      int count = menu->allocated = 10;
-      menu->text = (char **) xmalloc (count * sizeof (char *));
-      menu->submenu = (tty_menu **) xmalloc (count * sizeof (tty_menu *));
-      menu->panenumber = (int *) xmalloc (count * sizeof (int));
-      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
-    }
-  else if (menu->allocated == menu->count)
-    {
-      int count = menu->allocated = menu->allocated + 10;
-      menu->text
-	= (char **) xrealloc (menu->text, count * sizeof (char *));
-      menu->submenu
-	= (tty_menu **) xrealloc (menu->submenu, count * sizeof (tty_menu *));
-      menu->panenumber
-	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
-      menu->help_text
-	= (const char **) xrealloc (menu->help_text, count * sizeof (char *));
+      ptrdiff_t allocated = menu->allocated;
+      menu->text = xpalloc (menu->text, &allocated, 1, -1, sizeof *menu->text);
+      menu->text = xrealloc (menu->text, allocated * sizeof *menu->text);
+      menu->submenu = xrealloc (menu->submenu,
+				allocated * sizeof *menu->submenu);
+      menu->panenumber = xrealloc (menu->panenumber,
+				   allocated * sizeof *menu->panenumber);
+      menu->help_text = xrealloc (menu->help_text,
+				  allocated * sizeof *menu->help_text);
+      menu->allocated = allocated;
     }
 }
 
@@ -2965,18 +2954,13 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
 
 /* --------------------------- X Menu emulation ---------------------- */
 
-/* Report availability of menus.  */
-
-int
-have_menus_p (void) {  return 1; }
-
 /* Create a new pane and place it on the outer-most level.  */
 
 static int
 tty_menu_add_pane (tty_menu *menu, const char *txt)
 {
   int len;
-  const char *p;
+  const unsigned char *p;
 
   tty_menu_make_room (menu);
   menu->submenu[menu->count] = tty_menu_create ();
@@ -2986,7 +2970,7 @@ tty_menu_add_pane (tty_menu *menu, const char *txt)
   menu->count++;
 
   /* Update the menu width, if necessary.  */
-  for (len = 0, p = txt; *p; )
+  for (len = 0, p = (unsigned char *) txt; *p; )
     {
       int ch_len;
       int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
@@ -3003,12 +2987,12 @@ tty_menu_add_pane (tty_menu *menu, const char *txt)
 
 /* Create a new item in a menu pane.  */
 
-int
+static int
 tty_menu_add_selection (tty_menu *menu, int pane,
 			char *txt, int enable, char const *help_text)
 {
   int len;
-  char *p;
+  unsigned char *p;
 
   if (pane)
     if (!(menu = tty_menu_search_pane (menu, pane)))
@@ -3021,7 +3005,7 @@ tty_menu_add_selection (tty_menu *menu, int pane,
   menu->count++;
 
   /* Update the menu width, if necessary.  */
-  for (len = 0, p = txt; *p; )
+  for (len = 0, p = (unsigned char *) txt; *p; )
     {
       int ch_len;
       int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
@@ -3038,7 +3022,7 @@ tty_menu_add_selection (tty_menu *menu, int pane,
 
 /* Decide where the menu would be placed if requested at (X,Y).  */
 
-void
+static void
 tty_menu_locate (tty_menu *menu, int x, int y,
 		 int *ulx, int *uly, int *width, int *height)
 {
@@ -3085,7 +3069,7 @@ save_and_enable_current_matrix (struct frame *f)
       if (from->used[LEFT_MARGIN_AREA])
 	{
 	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
-	  to->glyphs[LEFT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  to->glyphs[LEFT_MARGIN_AREA] = xmalloc (nbytes);
 	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
 		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
 	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
@@ -3093,7 +3077,7 @@ save_and_enable_current_matrix (struct frame *f)
       if (from->used[RIGHT_MARGIN_AREA])
 	{
 	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
-	  to->glyphs[RIGHT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  to->glyphs[RIGHT_MARGIN_AREA] = xmalloc (nbytes);
 	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
 		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
 	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
@@ -3194,7 +3178,6 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
     }
   else
     {
-      extern Lisp_Object read_menu_command (void);
       Lisp_Object cmd;
       int usable_input = 1;
       int st = 0;
@@ -3215,13 +3198,7 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
 	return -1;
       if (EQ (cmd, Qtty_menu_mouse_movement))
-	{
-	  int mx, my;
-
-	  mouse_get_xy (&mx, &my);
-	  *x = mx;
-	  *y = my;
-	}
+	mouse_get_xy (x, y);
       else if (EQ (cmd, Qtty_menu_next_menu))
 	{
 	  usable_input = 0;
@@ -3261,13 +3238,14 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		   int kbd_navigation)
 {
   struct tty_menu_state *state;
-  int statecount, x, y, i, b, leave, result, onepane;
+  int statecount, x, y, i, leave, onepane;
+  int result IF_LINT (= 0);
   int title_faces[4];		/* face to display the menu title */
   int faces[4], buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME ();
   struct tty_display_info *tty = FRAME_TTY (sf);
   bool first_time;
-  Lisp_Object saved_echo_area_message, selectface;
+  Lisp_Object selectface;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
      around the display.  */
@@ -3465,7 +3443,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 
 /* Dispose of a menu.  */
 
-void
+static void
 tty_menu_destroy (tty_menu *menu)
 {
   int i;
@@ -3576,7 +3554,7 @@ tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
 	  if (ix <= *x
 	      /* We use <= so the blank between 2 items on a TTY is
 		 considered part of the previous item.  */
-	      && *x <= ix + menu_item_width (SSDATA (str)))
+	      && *x <= ix + menu_item_width (SDATA (str)))
 	    {
 	      /* Found current item.  Now compute the X coordinate of
 		 the previous or next item.  */
@@ -3614,8 +3592,6 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   int dispwidth, dispheight;
   int i, j, lines, maxlines;
   int maxwidth;
-  int dummy_int;
-  unsigned int dummy_uint;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
   if (! FRAME_TERMCAP_P (f))

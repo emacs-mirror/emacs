@@ -1036,11 +1036,11 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
 }
 #endif  /* HAVE_NS */
 
-int
-menu_item_width (const char *str)
+ptrdiff_t
+menu_item_width (const unsigned char *str)
 {
-  int len;
-  const char *p;
+  ptrdiff_t len;
+  const unsigned char *p;
 
   for (len = 0, p = str; *p; )
     {
@@ -1104,7 +1104,7 @@ into menu items.  */)
 	  if (XINT (pos) <= col
 	      /* We use <= so the blank between 2 items on a TTY is
 		 considered part of the previous item.  */
-	      && col <= XINT (pos) + menu_item_width (SSDATA (str)))
+	      && col <= XINT (pos) + menu_item_width (SDATA (str)))
 	    {
 	      item = AREF (items, i);
 	      return item;

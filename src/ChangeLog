@@ -1,3 +1,29 @@
+2013-10-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* dispnew.c (save_current_matrix): Omit unnecessary casts.
+	* dispnew.c (update_frame_with_menu): Mark debug local as used.
+	* keyboard.c, keyboard.h (Qmouse_movement): Now static.
+	* keyboard.c (read_menu_command): Remove unused local.
+	* lisp.h (read_menu_command): New decl.
+	* menu.c, menu.h (menu_item_width): Arg is now unsigned char *, for
+	benefit of STRING_CHAR_AND_LENGTH.  All uses changed.
+	Return ptrdiff_t, not int.
+	* term.c (tty_menu_struct): 'allocated' member is now ptrdiff_t,
+	not int, for benefit of xpalloc.
+	(tty_menu_create, tty_menu_make_room): Simplify by using xzalloc
+	and xpalloc.
+	(have_menus_p): Remove; unused.
+	(tty_menu_add_pane, tty_menu_add_selection): Change signedness of
+	local char * pointer to pacify STRING_CHAR_AND_LENGTH.
+	(tty_menu_add_selection, tty_menu_locate, tty_meny_destroy):
+	Now static.
+	(save_and_enable_current_matrix): Omit unnecessary casts.
+	(read_menu_input): Omit local extern decl (now in lisp.h).
+	Don't access uninitialized storage if mouse_get_xy fails.
+	(tty_menu_activate): Mark local as initialized, for lint.
+	(tty_menu_activate, tty_meny_show): Remove unused locals.
+
 2013-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	Support menus on text-mode terminals.

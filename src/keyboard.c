@@ -289,7 +289,7 @@ static struct input_event * volatile kbd_store_ptr;
    at inopportune times.  */
 
 /* Symbols to head events.  */
-Lisp_Object Qmouse_movement;
+static Lisp_Object Qmouse_movement;
 static Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
 static Lisp_Object Qfocus_in, Qfocus_out;
@@ -1696,7 +1696,6 @@ command_loop_1 (void)
 Lisp_Object
 read_menu_command (void)
 {
-  Lisp_Object cmd;
   Lisp_Object keybuf[30];
   ptrdiff_t count = SPECPDL_INDEX ();
   int i;

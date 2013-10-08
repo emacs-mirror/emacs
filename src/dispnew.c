@@ -1853,7 +1853,7 @@ save_current_matrix (struct frame *f)
       if (from->used[LEFT_MARGIN_AREA])
 	{
 	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
-	  to->glyphs[LEFT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  to->glyphs[LEFT_MARGIN_AREA] = xmalloc (nbytes);
 	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
 		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
 	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
@@ -1861,7 +1861,7 @@ save_current_matrix (struct frame *f)
       if (from->used[RIGHT_MARGIN_AREA])
 	{
 	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
-	  to->glyphs[RIGHT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  to->glyphs[RIGHT_MARGIN_AREA] = xmalloc (nbytes);
 	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
 		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
 	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
@@ -3123,6 +3123,8 @@ update_frame_with_menu (struct frame *f)
   check_window_matrix_pointers (root_window);
 #endif
   add_frame_display_history (f, paused_p);
+#else
+  IF_LINT ((void) paused_p);
 #endif
 
   /* Reset flags indicating that a window should be updated.  */
