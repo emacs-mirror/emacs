@@ -8,6 +8,9 @@
 	All uses of 'size_t' and 'SIZE_MAX' changed to use them, when
 	they're talking about words in Lisp bool vectors.
 	(BITS_PER_BITS_WORD): Rename from BITS_PER_SIZE_T.  All uses changed.
+	* data.c (popcount_bits_word): Rename from popcount_size_t.
+	(bits_word_to_host_endian): Rename from size_t_to_host_endian.
+	All uses changed.
 
 2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
