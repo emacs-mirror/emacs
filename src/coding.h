@@ -512,6 +512,10 @@ struct coding_system
      `charbuf', but at `src_object'.  */
   unsigned chars_at_source : 1;
 
+  /* Nonzero if the result of conversion is in `destination'
+     buffer rather than in `dst_object'.  */
+  unsigned raw_destination : 1;
+
   /* Set to 1 if charbuf contains an annotation.  */
   unsigned annotated : 1;
 

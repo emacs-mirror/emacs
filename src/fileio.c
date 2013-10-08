@@ -5263,6 +5263,10 @@ a_write (int desc, Lisp_Object string, ptrdiff_t pos,
   return 1;
 }
 
+/* Maximum number of characters that the next
+   function encodes per one loop iteration.  */
+
+enum { E_WRITE_MAX = 8 * 1024 * 1024 };
 
 /* Write text in the range START and END into descriptor DESC,
    encoding them with coding system CODING.  If STRING is nil, START
@@ -5289,9 +5293,16 @@ e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
 	  coding->src_multibyte = SCHARS (string) < SBYTES (string);
 	  if (CODING_REQUIRE_ENCODING (coding))
 	    {
-	      encode_coding_object (coding, string,
-				    start, string_char_to_byte (string, start),
-				    end, string_char_to_byte (string, end), Qt);
+	      ptrdiff_t nchars = min (end - start, E_WRITE_MAX);
+
+	      /* Avoid creating huge Lisp string in encode_coding_object.  */
+	      if (nchars == E_WRITE_MAX)
+		coding->raw_destination = 1;
+
+	      encode_coding_object
+		(coding, string, start, string_char_to_byte (string, start),
+		 start + nchars, string_char_to_byte (string, start + nchars),
+		 Qt);
 	    }
 	  else
 	    {
@@ -5308,8 +5319,15 @@ e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
 	  coding->src_multibyte = (end - start) < (end_byte - start_byte);
 	  if (CODING_REQUIRE_ENCODING (coding))
 	    {
-	      encode_coding_object (coding, Fcurrent_buffer (),
-				    start, start_byte, end, end_byte, Qt);
+	      ptrdiff_t nchars = min (end - start, E_WRITE_MAX);
+
+	      /* Likewise.  */
+	      if (nchars == E_WRITE_MAX)
+		coding->raw_destination = 1;
+
+	      encode_coding_object
+		(coding, Fcurrent_buffer (), start, start_byte,
+		 start + nchars, CHAR_TO_BYTE (start + nchars), Qt);
 	    }
 	  else
 	    {
@@ -5330,11 +5348,19 @@ e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
 
       if (coding->produced > 0)
 	{
-	  char *buf = (STRINGP (coding->dst_object)
-		       ? SSDATA (coding->dst_object)
-		       : (char *) BYTE_POS_ADDR (coding->dst_pos_byte));
+	  char *buf = (coding->raw_destination ? (char *) coding->destination
+		       : (STRINGP (coding->dst_object)
+			  ? SSDATA (coding->dst_object)
+			  : (char *) BYTE_POS_ADDR (coding->dst_pos_byte)));
 	  coding->produced -= emacs_write_sig (desc, buf, coding->produced);
 
+	  if (coding->raw_destination)
+	    {
+	      /* We're responsible for freeing this, see
+		 encode_coding_object to check why.  */
+	      xfree (coding->destination);
+	      coding->raw_destination = 0;
+	    }
 	  if (coding->produced)
 	    return 0;
 	}
