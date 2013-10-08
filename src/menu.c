@@ -1036,8 +1036,8 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
 }
 #endif  /* HAVE_NS */
 
-static int
-item_width (const char *str)
+int
+menu_item_width (const char *str)
 {
   int len;
   const char *p;
@@ -1104,7 +1104,7 @@ into menu items.  */)
 	  if (XINT (pos) <= col
 	      /* We use <= so the blank between 2 items on a TTY is
 		 considered part of the previous item.  */
-	      && col <= XINT (pos) + item_width (SSDATA (str)))
+	      && col <= XINT (pos) + menu_item_width (SSDATA (str)))
 	    {
 	      item = AREF (items, i);
 	      return item;
@@ -1160,7 +1160,7 @@ event (indicating that the user invoked the menu with the mouse) then
 no quit occurs and `x-popup-menu' returns nil.  */)
   (Lisp_Object position, Lisp_Object menu)
 {
-  Lisp_Object keymap, tem;
+  Lisp_Object keymap, tem, tem2;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
   const char *error_name = NULL;
@@ -1169,6 +1169,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object x, y, window;
   bool keymaps = 0;
   bool for_click = 0;
+  bool kbd_menu_navigation = 0;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
@@ -1202,6 +1203,22 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	    for_click = 1;
 	    tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
 	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
+	    tem2 = Fcar (Fcdr (tem));	     /* POSN_POSN (tem) */
+	    /* The kbd_menu_navigation flag is set when the menu was
+	       invoked by F10, which probably means they have no
+	       mouse.  In that case, we let them switch between
+	       top-level menu-bar menus by using C-f/C-b and
+	       horizontal arrow keys, since they cannot click the
+	       mouse to open a different submenu.  This flag is only
+	       supported by tty_menu_show.  We set it when POSITION
+	       and last_nonmenu_event are different, which means we
+	       constructed POSITION by hand (in popup-menu, see
+	       menu-bar.el) to look like a mouse click on the menu bar
+	       event.  */
+	    if (!EQ (POSN_POSN (last_nonmenu_event),
+		     POSN_POSN (position))
+		&& CONSP (tem2) && EQ (Fcar (tem2), Qmenu_bar))
+	      kbd_menu_navigation = 1;
 	    tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
 	    x = Fcar (tem);
 	    y = Fcdr (tem);
@@ -1434,8 +1451,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   else
 #endif
   if (FRAME_TERMCAP_P (f))
-    selection = tty_menu_show (f, xpos, ypos, for_click,
-			       keymaps, title, &error_name);
+    selection = tty_menu_show (f, xpos, ypos, for_click, keymaps, title,
+			       kbd_menu_navigation, &error_name);
 
 #ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);

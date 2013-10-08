@@ -2789,6 +2789,8 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 #define TTYM_SUCCESS 1
 #define TTYM_NO_SELECT 2
 #define TTYM_IA_SELECT 3
+#define TTYM_NEXT 4
+#define TTYM_PREV 5
 
 /* These hold text of the current and the previous menu help messages.  */
 static const char *menu_help_message, *prev_menu_help_message;
@@ -3174,7 +3176,8 @@ screen_update (struct frame *f, struct glyph_matrix *mtx)
    puts us.  We only consider mouse movement and click events and
    keyboard movement commands; the rest are ignored.
 
-   Value is -1 if C-g was pressed, 1 if an item was selected, zero
+   Value is -1 if C-g was pressed, 1 if an item was selected, 2 or 3
+   if we need to move to the next or previous menu-bar menu, zero
    otherwise.  */
 static int
 read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
@@ -3219,9 +3222,15 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 	  *y = my;
 	}
       else if (EQ (cmd, Qtty_menu_next_menu))
-	*x += 1;
+	{
+	  usable_input = 0;
+	  st = 2;
+	}
       else if (EQ (cmd, Qtty_menu_prev_menu))
-	*x -= 1;
+	{
+	  usable_input = 0;
+	  st = 3;
+	}
       else if (EQ (cmd, Qtty_menu_next_item))
 	{
 	  if (*y < max_y)
@@ -3255,10 +3264,11 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 }
 
 /* Display menu, wait for user's response, and return that response.  */
-int
+static int
 tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		   int x0, int y0, char **txt,
-		   void (*help_callback)(char const *, int, int))
+		   void (*help_callback)(char const *, int, int),
+		   int kbd_navigation)
 {
   struct tty_menu_state *state;
   int statecount, x, y, i, b, leave, result, onepane;
@@ -3353,6 +3363,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
 	{
+	  leave = 1;
 	  if (input_status == -1)
 	    {
 	      /* Remove the last help-echo, so that it doesn't
@@ -3360,7 +3371,20 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	      show_help_echo (Qnil, Qnil, Qnil, Qnil);
 	      result = TTYM_NO_SELECT;
 	    }
-	  leave = 1;
+	  else if (input_status == 2)
+	    {
+	      if (kbd_navigation)
+		result = TTYM_NEXT;
+	      else
+		leave = 0;
+	    }
+	  else if (input_status == 3)
+	    {
+	      if (kbd_navigation)
+		result = TTYM_PREV;
+	      else
+		leave = 0;
+	    }
 	}
       if (sf->mouse_moved && input_status != -1)
 	{
@@ -3509,15 +3533,97 @@ tty_pop_down_menu (Lisp_Object arg)
   unblock_input ();
 }
 
+/* Return the zero-based index of the last menu-bar item on frame F.  */
+static int
+tty_menu_last_menubar_item (struct frame *f)
+{
+  int i = 0;
+
+  eassert (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f));
+  if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f))
+    {
+      Lisp_Object items = FRAME_MENU_BAR_ITEMS (f);
+
+      while (i < ASIZE (items))
+	{
+	  Lisp_Object str;
+
+	  str = AREF (items, i + 1);
+	  if (NILP (str))
+	    break;
+	  i += 4;
+	}
+      i -= 4;	/* went one too far */
+    }
+  return i;
+}
+
+/* Find in frame F's menu bar the menu item that is next or previous
+   to the item at X/Y, and return that item's position in X/Y.  WHICH
+   says which one--next or previous--item to look for.  X and Y are
+   measured in character cells.  This should only be called on TTY
+   frames.  */
+static void
+tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
+{
+  eassert (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f));
+  if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f))
+    {
+      Lisp_Object items = FRAME_MENU_BAR_ITEMS (f);
+      int last_i = tty_menu_last_menubar_item (f);
+      int i, prev_x;
+
+      /* This loop assumes a single menu-bar line, and will fail to
+	 find an item if it is not in the first line.  Note that
+	 make_lispy_event in keyboard.c makes the same assumption.  */
+      for (i = 0, prev_x = -1; i < ASIZE (items); i += 4)
+	{
+	  Lisp_Object pos, str;
+	  int ix;
+
+	  str = AREF (items, i + 1);
+	  pos = AREF (items, i + 3);
+	  if (NILP (str))
+	    return;
+	  ix = XINT (pos);
+	  if (ix <= *x
+	      /* We use <= so the blank between 2 items on a TTY is
+		 considered part of the previous item.  */
+	      && *x <= ix + menu_item_width (SSDATA (str)))
+	    {
+	      /* Found current item.  Now compute the X coordinate of
+		 the previous or next item.  */
+	      if (which == TTYM_NEXT)
+		{
+		  if (i < last_i)
+		    *x = XINT (AREF (items, i + 4 + 3));
+		  else
+		    *x = 0;	/* wrap around to the first item */
+		}
+	      else if (prev_x < 0)
+		{
+		  /* Wrap around to the last item.  */
+		  *x = XINT (AREF (items, last_i + 3));
+		}
+	      else
+		*x = prev_x;
+	      return;
+	    }
+	  prev_x = ix;
+	}
+    }
+}
+
 Lisp_Object
 tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
-	       Lisp_Object title, const char **error_name)
+	       Lisp_Object title, int kbd_navigation, const char **error_name)
 {
   tty_menu *menu;
   int pane, selidx, lpane, status;
   Lisp_Object entry, pane_prefix;
   char *datap;
   int ulx, uly, width, height;
+  int item_x, item_y;
   int dispwidth, dispheight;
   int i, j, lines, maxlines;
   int maxwidth;
@@ -3551,8 +3657,8 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   inhibit_garbage_collection ();
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->left_pos;
-  y += f->top_pos;
+  item_x = x += f->left_pos;
+  item_y = y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
   maxwidth = maxlines = lines = i = 0;
@@ -3710,7 +3816,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   specbind (Qoverriding_terminal_local_map,
 	    Fsymbol_value (Qtty_menu_navigation_map));
   status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
-			      tty_menu_help_callback);
+			      tty_menu_help_callback, kbd_navigation);
   entry = pane_prefix = Qnil;
 
   switch (status)
@@ -3749,6 +3855,12 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	      i += MENU_ITEMS_ITEM_LENGTH;
 	    }
 	}
+      break;
+
+    case TTYM_NEXT:
+    case TTYM_PREV:
+      tty_menu_new_item_coords (f, status, &item_x, &item_y);
+      entry = Fcons (make_number (item_x), make_number (item_y));
       break;
 
     case TTYM_FAILURE:

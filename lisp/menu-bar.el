@@ -2197,8 +2197,14 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 			 (filter (when (symbolp map)
 				   (plist-get (get map 'menu-prop) :filter))))
 		    (if filter (funcall filter (symbol-function map)) map)))))
-	 event cmd
-	 (position (popup-menu-normalize-position position)))
+	 (frame (selected-frame))
+	 event cmd)
+    (if from-menu-bar
+	(let* ((xy (posn-x-y position))
+	       (menu-symbol (menu-bar-menu-at-x-y (car xy) (cdr xy))))
+	  (setq position (list menu-symbol (list frame '(menu-bar)
+						 xy 0))))
+      (setq position (popup-menu-normalize-position position)))
     ;; The looping behavior was taken from lmenu's popup-menu-popup
     (while (and map (setq event
 			  ;; map could be a prefix key, in which case
@@ -2209,19 +2215,36 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
       ;; mouse-major-mode-menu was using a weird:
       ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
       (setq cmd
-	    (if (and (not (keymapp map)) (listp map))
-		;; We were given a list of keymaps.  Search them all
-		;; in sequence until a first binding is found.
-		(let ((mouse-click (apply 'vector event))
-		      binding)
-		  (while (and map (null binding))
-		    (setq binding (lookup-key (car map) mouse-click))
-		    (if (numberp binding)	; `too long'
-			(setq binding nil))
-		    (setq map (cdr map)))
-		  binding)
+	    (cond
+	     ((and from-menu-bar
+		   (consp event)
+		   (numberp (car event))
+		   (numberp (cdr event)))
+	      (let ((x (car event))
+		    (y (cdr event))
+		    menu-symbol)
+		(setq menu-symbol (menu-bar-menu-at-x-y x y))
+		(setq position (list menu-symbol (list frame '(menu-bar)
+						 event 0)))
+		(setq map
+		      (or
+		       (lookup-key global-map (vector 'menu-bar menu-symbol))
+		       (lookup-key (current-local-map) (vector 'menu-bar
+							       menu-symbol))))))
+	     ((and (not (keymapp map)) (listp map))
+	      ;; We were given a list of keymaps.  Search them all
+	      ;; in sequence until a first binding is found.
+	      (let ((mouse-click (apply 'vector event))
+		    binding)
+		(while (and map (null binding))
+		  (setq binding (lookup-key (car map) mouse-click))
+		  (if (numberp binding)	; `too long'
+		      (setq binding nil))
+		  (setq map (cdr map)))
+		  binding))
+	     (t
 	      ;; We were given a single keymap.
-	      (lookup-key map (apply 'vector event))))
+	      (lookup-key map (apply 'vector event)))))
       ;; Clear out echoing, which perhaps shows a prefix arg.
       (message "")
       ;; Maybe try again but with the submap.
@@ -2379,7 +2402,7 @@ If FRAME is nil or not given, use the selected frame."
 	(popup-menu (or
 		     (lookup-key global-map (vector 'menu-bar menu))
 		     (lookup-key (current-local-map) (vector 'menu-bar menu)))
-		    (posn-at-x-y x 0 nil t) t)))
+		    (posn-at-x-y x 0 nil t) nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 
