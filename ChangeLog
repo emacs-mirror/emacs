@@ -12,7 +12,7 @@
 
 2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use hardware insns for byteswapping on glibc hosts that support it.
+	Use hardware support for byteswapping on glibc x86 etc.
 	* lib/byteswap.in.h, m4/byteswap.m4: New files, copied from Gnulib.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
 
