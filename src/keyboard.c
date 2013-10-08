@@ -7090,7 +7090,8 @@ process_pending_signals (void)
 }
 
 /* Undo any number of BLOCK_INPUT calls down to level LEVEL,
-   and also (if the level is now 0) reinvoke any pending signal.  */
+   and reinvoke any pending signal if the level is now 0 and
+   a fatal error is not already in progress.  */
 
 void
 unblock_input_to (int level)
@@ -7098,7 +7099,7 @@ unblock_input_to (int level)
   interrupt_input_blocked = level;
   if (level == 0)
     {
-      if (pending_signals)
+      if (pending_signals && !fatal_error_in_progress)
 	process_pending_signals ();
     }
   else if (level < 0)

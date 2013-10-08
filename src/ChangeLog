@@ -1,5 +1,9 @@
 2013-10-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix race where emacs aborts when sent SIGTERM (Bug#15534).
+	* keyboard.c (unblock_input_to): Don't process pending signals
+	if a fatal error is in progress.
+
 	* lisp.h (bits_word, BITS_WORD_MAX): New type and macro.
 	All uses of 'size_t' and 'SIZE_MAX' changed to use them, when
 	they're talking about words in Lisp bool vectors.
