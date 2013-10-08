@@ -395,8 +395,8 @@ If optional second arg is non-nil, puts mark before and point after.
 Interactively, second arg is non-nil if prefix arg is supplied."
   (interactive (progn
 		 (barf-if-buffer-read-only)
-		 (register-read-with-preview "Insert register: ")
-		 current-prefix-arg))
+		 (list (register-read-with-preview "Insert register: ")
+		       current-prefix-arg)))
   (push-mark)
   (let ((val (get-register register)))
     (cond
