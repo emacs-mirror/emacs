@@ -6160,7 +6160,7 @@ if (cols > 0 && rows > 0)
 {
   [self setFSValue: fs_before_fs];
   fs_before_fs = -1;
-#ifdef NS_IMPL_COCOA
+#ifdef HAVE_NATIVE_FS
   [self updateCollectionBehaviour];
 #endif
   if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
@@ -6221,7 +6221,7 @@ if (cols > 0 && rows > 0)
 
   if (fs_is_native)
     {
-#ifdef NS_IMPL_COCOA
+#ifdef HAVE_NATIVE_FS
       [[self window] toggleFullScreen:sender];
 #endif
       return;

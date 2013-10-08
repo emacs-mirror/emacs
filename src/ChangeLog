@@ -1,3 +1,8 @@
+2013-10-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidExitFullScreen:):
+	(toggleFullScreen:): Change NS_IMPL_COCOA to HAVE_NATIVE_FS.
+
 2013-10-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix race where emacs aborts when sent SIGTERM (Bug#15534).
