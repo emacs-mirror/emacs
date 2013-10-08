@@ -163,6 +163,13 @@ and this variable has been marked obsolete.
 
 * Editing Changes in Emacs 24.4
 
+** C-x TAB enters a transient interactive mode.
+You can then use the left/right cursor keys to move the block of text.
+
+** `tab-stop-list' is now implicitly extended to infinity.
+Its default value is changed to nil which means a tab stop every
+`tab-width' columns.
+
 ** `split-window' is no longer a command, just a non-interactive function.
 As a command it was a special case of `split-window-below', and as such
 superfluous.  After being reimplemented in Lisp, its interactive form

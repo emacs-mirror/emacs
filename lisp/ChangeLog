@@ -1,3 +1,18 @@
+2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.el: Use lexical-binding.
+	(indent-region): Add progress reporter.
+	(tab-stop-list): Make it implicitly extend to infinity by repeating the
+	last step.
+	(indent--next-tab-stop): New function to implement this behavior.
+	(tab-to-tab-stop, move-to-tab-stop): Use it.
+
+2013-10-08  Teemu Likonen  <tlikonen@iki.fi>
+
+	* indent.el (indent-rigidly--current-indentation): New function.
+	(indent-rigidly-map): New var.
+	(indent-rigidly): Use it to provide interactive mode (bug#8196).
+
 2013-10-08  Bastien Guerry  <bzg@gnu.org>
 
 	* register.el (insert-register): Fix revno:114543.
