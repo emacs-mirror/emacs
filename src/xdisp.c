@@ -20584,7 +20584,128 @@ display_menu_bar (struct window *w)
   compute_line_metrics (&it);
 }
 
+#ifdef HAVE_MENUS
+/* Deep copy of a glyph row, including the glyphs.  */
+static void
+deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
+{
+  int area, i, sum_used = 0;
+  struct glyph *pointers[1 + LAST_AREA];
 
+  /* Save glyph pointers of TO.  */
+  memcpy (pointers, to->glyphs, sizeof to->glyphs);
+
+  /* Do a structure assignment.  */
+  *to = *from;
+
+  /* Restore original pointers of TO.  */
+  memcpy (to->glyphs, pointers, sizeof to->glyphs);
+
+  /* Count how many glyphs to copy and update glyph pointers.  */
+  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+    {
+      if (area > LEFT_MARGIN_AREA)
+	{
+	  eassert (from->glyphs[area] - from->glyphs[area - 1]
+		   == from->used[area - 1]);
+	  to->glyphs[area] = to->glyphs[area - 1] + to->used[area - 1];
+	}
+      sum_used += from->used[area];
+    }
+
+  /* Copy the glyphs.  */
+  eassert (sum_used <= to->glyphs[LAST_AREA] - to->glyphs[LEFT_MARGIN_AREA]);
+  for (i = 0; i < sum_used; i++)
+    to->glyphs[LEFT_MARGIN_AREA][i] = from->glyphs[LEFT_MARGIN_AREA][i];
+}
+
+/* Display one menu item on a TTY, by overwriting the glyphs in the
+   frame F's desired glyph matrix with glyphs produced from the menu
+   item text.  Called from term.c to display TTY drop-down menus one
+   item at a time.
+
+   ITEM_TEXT is the menu item text as a C string.
+
+   FACE_ID is the face ID to be used for this menu item.  FACE_ID
+   could specify one of 3 faces: a face for an enabled item, a face
+   for a disabled item, or a face for a selected item.
+
+   X and Y are coordinates of the first glyph in the frame's desired
+   matrix to be overwritten by the menu item.  Since this is a TTY, Y
+   is the zero-based number of the glyph row and X is the zero-based
+   glyph number in the row, starting from left, where to start
+   displaying the item.
+
+   SUBMENU non-zero means this menu item drops down a submenu, which
+   should be indicated by displaying a proper visual cue after the
+   item text.  */
+
+void
+display_tty_menu_item (const char *item_text, int width, int face_id,
+		       int x, int y, int submenu)
+{
+  struct it it;
+  struct frame *f = SELECTED_FRAME ();
+  struct window *w = XWINDOW (f->selected_window);
+  int saved_used, saved_truncated, saved_width, saved_reversed;
+  struct glyph_row *row;
+  size_t item_len = strlen (item_text);
+
+  eassert (FRAME_TERMCAP_P (f));
+
+  init_iterator (&it, w, -1, -1, f->desired_matrix->rows + y, MENU_FACE_ID);
+  it.first_visible_x = 0;
+  it.last_visible_x = FRAME_COLS (f) - 1;
+  row = it.glyph_row;
+  /* Start with the row contents from the current matrix.  */
+  deep_copy_glyph_row (row, f->current_matrix->rows + y);
+  saved_width = row->full_width_p;
+  row->full_width_p = 1;
+  saved_reversed = row->reversed_p;
+  row->reversed_p = 0;
+  row->enabled_p = 1;
+
+  /* Arrange for the menu item glyphs to start at (X,Y) and have the
+     desired face.  */
+  it.current_x = it.hpos = x;
+  it.current_y = it.vpos = y;
+  saved_used = row->used[TEXT_AREA];
+  saved_truncated = row->truncated_on_right_p;
+  row->used[TEXT_AREA] = x;
+  it.face_id = face_id;
+  it.line_wrap = TRUNCATE;
+
+  /* FIXME: This should be controlled by a user option.  See the
+     comments in redisplay_tool_bar and display_mode_line about this.
+     Also, if paragraph_embedding could ever be R2L, changes will be
+     needed to avoid shifting to the right the row characters in
+     term.c:append_glyph.  */
+  it.paragraph_embedding = L2R;
+
+  /* Pad with a space on the left.  */
+  display_string (" ", Qnil, Qnil, 0, 0, &it, 1, 0, FRAME_COLS (f) - 1, -1);
+  width--;
+  /* Display the menu item, pad with spaces to WIDTH.  */
+  if (submenu)
+    {
+      display_string (item_text, Qnil, Qnil, 0, 0, &it,
+		      item_len, 0, FRAME_COLS (f) - 1, -1);
+      width -= item_len;
+      /* Indicate with " >" that there's a submenu.  */
+      display_string (" >", Qnil, Qnil, 0, 0, &it, width, 0,
+		      FRAME_COLS (f) - 1, -1);
+    }
+  else
+    display_string (item_text, Qnil, Qnil, 0, 0, &it,
+		    width, 0, FRAME_COLS (f) - 1, -1);
+
+  row->used[TEXT_AREA] = max (saved_used, row->used[TEXT_AREA]);
+  row->truncated_on_right_p = saved_truncated;
+  row->hash = row_hash (row);
+  row->full_width_p = saved_width;
+  row->reversed_p = saved_reversed;
+}
+#endif	/* HAVE_MENUS */
 
 /***********************************************************************
 			      Mode Line

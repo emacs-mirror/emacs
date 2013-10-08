@@ -450,7 +450,7 @@ extern Lisp_Object Qswitch_frame;
 extern Lisp_Object Qevent_kind;
 
 /* The values of Qevent_kind properties.  */
-extern Lisp_Object Qmouse_click;
+extern Lisp_Object Qmouse_click, Qmouse_movement;
 
 extern Lisp_Object Qhelp_echo;
 

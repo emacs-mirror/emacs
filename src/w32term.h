@@ -264,6 +264,10 @@ extern int w32_kbd_mods_to_emacs (DWORD mods, WORD key);
 
 extern Lisp_Object x_get_focus_frame (struct frame *);
 
+/* w32console.c */
+extern void w32con_hide_cursor (void);
+extern void w32con_show_cursor (void);
+
 
 #define PIX_TYPE COLORREF
 
@@ -793,6 +797,10 @@ typedef char guichar_t;
 #endif /* NTGUI_UNICODE */
 
 #define GUI_SDATA(x) ((guichar_t*) SDATA (x))
+
+#if defined HAVE_DIALOGS
+extern Lisp_Object w32_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
+#endif
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);

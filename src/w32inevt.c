@@ -712,12 +712,17 @@ w32_console_read_socket (struct terminal *terminal,
       while (nev > 0)
         {
 	  struct input_event inev;
+	  /* Having a separate variable with this value makes
+	     debugging easier, as otherwise the compiler might
+	     rearrange the switch below in a way that makes it hard to
+	     track the event type.  */
+	  unsigned evtype = queue_ptr->EventType;
 
 	  EVENT_INIT (inev);
 	  inev.kind = NO_EVENT;
 	  inev.arg = Qnil;
 
-	  switch (queue_ptr->EventType)
+	  switch (evtype)
             {
             case KEY_EVENT:
 	      add = key_event (&queue_ptr->Event.KeyEvent, &inev, &isdead);

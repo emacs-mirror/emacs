@@ -2182,13 +2182,211 @@ See `menu-bar-mode' for more information."
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
 (declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
 
+(defun popup-menu (menu &optional position prefix from-menu-bar)
+  "Popup the given menu and call the selected option.
+MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
+`x-popup-menu'.
+The menu is shown at the place where POSITION specifies. About
+the form of POSITION, see `popup-menu-normalize-position'.
+PREFIX is the prefix argument (if any) to pass to the command.
+FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
+  (let* ((map (cond
+	       ((keymapp menu) menu)
+	       ((and (listp menu) (keymapp (car menu))) menu)
+	       (t (let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
+			 (filter (when (symbolp map)
+				   (plist-get (get map 'menu-prop) :filter))))
+		    (if filter (funcall filter (symbol-function map)) map)))))
+	 (frame (selected-frame))
+	 event cmd)
+    (if from-menu-bar
+	(let* ((xy (posn-x-y position))
+	       (menu-symbol (menu-bar-menu-at-x-y (car xy) (cdr xy))))
+	  (setq position (list menu-symbol (list frame '(menu-bar)
+						 xy 0))))
+      (setq position (popup-menu-normalize-position position)))
+    ;; The looping behavior was taken from lmenu's popup-menu-popup
+    (while (and map (setq event
+			  ;; map could be a prefix key, in which case
+			  ;; we need to get its function cell
+			  ;; definition.
+			  (x-popup-menu position (indirect-function map))))
+      ;; Strangely x-popup-menu returns a list.
+      ;; mouse-major-mode-menu was using a weird:
+      ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
+      (setq cmd
+	    (cond
+	     ((and from-menu-bar
+		   (consp event)
+		   (numberp (car event))
+		   (numberp (cdr event)))
+	      (let ((x (car event))
+		    (y (cdr event))
+		    menu-symbol)
+		(setq menu-symbol (menu-bar-menu-at-x-y x y))
+		(setq position (list menu-symbol (list frame '(menu-bar)
+						 event 0)))
+		(setq map
+		      (or
+		       (lookup-key global-map (vector 'menu-bar menu-symbol))
+		       (lookup-key (current-local-map) (vector 'menu-bar
+							       menu-symbol))))))
+	     ((and (not (keymapp map)) (listp map))
+	      ;; We were given a list of keymaps.  Search them all
+	      ;; in sequence until a first binding is found.
+	      (let ((mouse-click (apply 'vector event))
+		    binding)
+		(while (and map (null binding))
+		  (setq binding (lookup-key (car map) mouse-click))
+		  (if (numberp binding)	; `too long'
+		      (setq binding nil))
+		  (setq map (cdr map)))
+		  binding))
+	     (t
+	      ;; We were given a single keymap.
+	      (lookup-key map (apply 'vector event)))))
+      ;; Clear out echoing, which perhaps shows a prefix arg.
+      (message "")
+      ;; Maybe try again but with the submap.
+      (setq map (if (keymapp cmd) cmd)))
+    ;; If the user did not cancel by refusing to select,
+    ;; and if the result is a command, run it.
+    (when (and (null map) (commandp cmd))
+      (setq prefix-arg prefix)
+      ;; `setup-specified-language-environment', for instance,
+      ;; expects this to be set from a menu keymap.
+      (setq last-command-event (car (last event)))
+      ;; mouse-major-mode-menu was using `command-execute' instead.
+      (call-interactively cmd))))
+
+(defun popup-menu-normalize-position (position)
+  "Convert the POSITION to the form which `popup-menu' expects internally.
+POSITION can an event, a posn- value, a value having
+form ((XOFFSET YOFFSET) WINDOW), or nil.
+If nil, the current mouse position is used."
+  (pcase position
+    ;; nil -> mouse cursor position
+    (`nil
+     (let ((mp (mouse-pixel-position)))
+       (list (list (cadr mp) (cddr mp)) (car mp))))
+    ;; Value returned from `event-end' or `posn-at-point'.
+    ((pred posnp)
+     (let ((xy (posn-x-y position)))
+       (list (list (car xy) (cdr xy))
+	     (posn-window position))))
+    ;; Event.
+    ((pred eventp)
+     (popup-menu-normalize-position (event-end position)))
+    (t position)))
+
+(defvar tty-menu-navigation-map
+  (let ((map (make-sparse-keymap)))
+    ;; The next line is disabled because it breaks interpretation of
+    ;; escape sequences, produced by TTY arrow keys, as tty-menu-*
+    ;; commands.  Instead, we explicitly bind some keys to
+    ;; tty-menu-exit.
+    ;;(define-key map [t] 'tty-menu-exit)
+
+    ;; The tty-menu-* are just symbols interpreted by term.c, they are
+    ;; not real commands.
+    (substitute-key-definition 'keyboard-quit 'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition 'keyboard-escape-quit 'tty-menu-exit
+			       map (current-global-map))
+    ;; The bindings of menu-bar items are so that clicking on the menu
+    ;; bar when a menu is already shown pops down that menu.
+    ;; FIXME: we should iterate over all the visible menu-bar items,
+    ;; instead of naming them explicitly here.  Also, this doesn't
+    ;; include items added by current major mode.
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar file])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar edit])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar options])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar buffer])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar tools])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition (lookup-key (current-global-map) [menu-bar help-menu])
+			       'tty-menu-exit
+			       map (current-global-map))
+    (substitute-key-definition 'forward-char 'tty-menu-next-menu
+			       map (current-global-map))
+    (substitute-key-definition 'backward-char 'tty-menu-prev-menu
+			       map (current-global-map))
+    ;; The following two will need to be revised if we ever support
+    ;; a right-to-left menu bar.
+    (substitute-key-definition 'right-char 'tty-menu-next-menu
+			       map (current-global-map))
+    (substitute-key-definition 'left-char 'tty-menu-prev-menu
+			       map (current-global-map))
+    (substitute-key-definition 'next-line 'tty-menu-next-item
+			       map (current-global-map))
+    (substitute-key-definition 'previous-line 'tty-menu-prev-item
+			       map (current-global-map))
+    (substitute-key-definition 'newline 'tty-menu-select
+			       map (current-global-map))
+    (substitute-key-definition 'newline-and-indent 'tty-menu-select
+			       map (current-global-map))
+    (define-key map [?\C-r] 'tty-menu-select)
+    (define-key map [?\C-j] 'tty-menu-select)
+    (define-key map [return] 'tty-menu-select)
+    (define-key map [linefeed] 'tty-menu-select)
+    (define-key map [down-mouse-1] 'tty-menu-select)
+    (define-key map [drag-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line drag-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line down-mouse-1] 'tty-menu-select)
+    (define-key map [header-line mouse-1] 'tty-menu-select)
+    (define-key map [header-line drag-mouse-1] 'tty-menu-select)
+    (define-key map [header-line down-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line mouse-1] 'tty-menu-ignore)
+    (define-key map [mode-line mouse-2] 'tty-menu-ignore)
+    (define-key map [mode-line mouse-3] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-1] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-2] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-3] 'tty-menu-ignore)
+    ;; The mouse events must be bound to tty-menu-ignore, otherwise
+    ;; the initial mouse click will select and immediately pop down
+    ;; the menu.
+    (define-key map [mouse-1] 'tty-menu-ignore)
+    (define-key map [C-mouse-1] 'tty-menu-ignore)
+    (define-key map [C-mouse-2] 'tty-menu-ignore)
+    (define-key map [C-mouse-3] 'tty-menu-ignore)
+    (define-key map [mouse-movement] 'tty-menu-mouse-movement)
+    map)
+  "Keymap used while processing TTY menus.")
+
+
+(defcustom tty-menu-open-use-tmm nil
+  "If non-nil, \\[menu-bar-open] on a TTY will invoke `tmm-menubar'.
+
+If nil, \\[menu-bar-open] will drop down the menu corresponding to the
+first (leftmost) menu-bar item; you can select other items by typing
+\\[forward-char], \\[backward-char], \\[right-char] and \\[left-char]."
+  :type '(choice (const :tag "F10 drops down TTY menus" nil)
+		 (const :tag "F10 invokes tmm-menubar" t))
+  :group 'display
+  :version "24.4")
+
+(defvar tty-menu--initial-menu-x 1
+  "X coordinate of the first menu-bar menu dropped by F10.
+
+This is meant to be used only for debugging TTY menus.")
+
 (defun menu-bar-open (&optional frame)
   "Start key navigation of the menu bar in FRAME.
 
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
-`x-menu-bar-open'; on Windows, `w32-menu-bar-open' otherwise it
-calls `tmm-menubar'.
+`x-menu-bar-open'; on Windows, `w32-menu-bar-open'; otherwise it
+calls either `popup-menu' or `tmm-menubar' depending on whether
+\`tty-menu-open-use-tmm' is nil or not.
 
 If FRAME is nil or not given, use the selected frame."
   (interactive)
@@ -2196,6 +2394,13 @@ If FRAME is nil or not given, use the selected frame."
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
+     ((null tty-menu-open-use-tmm)
+      (let* ((x tty-menu--initial-menu-x)
+	     (menu (menu-bar-menu-at-x-y x 0 frame)))
+	(popup-menu (or
+		     (lookup-key global-map (vector 'menu-bar menu))
+		     (lookup-key (current-local-map) (vector 'menu-bar menu)))
+		    (posn-at-x-y x 0 nil t) nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 

@@ -1,3 +1,27 @@
+2013-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Support menus on text-mode terminals.
+	* tmm.el (tmm-menubar): Adapt doc string to TTY menus
+	functionality.
+
+	* tooltip.el (tooltip-mode): Don't error out on TTYs.
+
+	* menu-bar.el (popup-menu, popup-menu-normalize-position): Moved
+	here from mouse.el.
+	(popup-menu): Support menu-bar navigation on TTYs using C-f/C-b
+	and arrow keys.
+	(tty-menu-navigation-map): New map for TTY menu navigation.
+
+	* loadup.el ("tooltip"): Load even if x-show-tip is not available.
+
+	* frame.el (display-mouse-p): Report text-mode mouse as available
+	on w32.
+	(display-popup-menus-p): Report availability if mouse is
+	available; don't condition on window-system.
+
+	* faces.el (tty-menu-enabled-face, tty-menu-disabled-face)
+	(tty-menu-selected-face): New faces.
+
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el: Font-lock cl-lib constructs.

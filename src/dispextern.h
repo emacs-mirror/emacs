@@ -3256,6 +3256,7 @@ extern int clear_mouse_face (Mouse_HLInfo *);
 extern int cursor_in_mouse_face_p (struct window *w);
 extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
+extern void display_tty_menu_item (const char *, int, int, int, int, int);
 
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
@@ -3427,6 +3428,8 @@ extern void hide_hourglass (void);
 
 int popup_activated (void);
 
+/* Defined in dispnew.c */
+
 extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             int *, int *,
                                             struct display_pos *,
@@ -3442,6 +3445,7 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
 extern bool update_frame (struct frame *, bool, bool);
+extern void update_frame_with_menu (struct frame *);
 extern void bitch_at_user (void);
 extern void adjust_frame_glyphs (struct frame *);
 void free_glyphs (struct frame *);
@@ -3467,7 +3471,7 @@ void change_frame_size (struct frame *, int, int, bool, bool, bool);
 void init_display (void);
 void syms_of_display (void);
 extern Lisp_Object Qredisplay_dont_pause;
-void spec_glyph_lookup_face (struct window *, GLYPH *);
+extern void spec_glyph_lookup_face (struct window *, GLYPH *);
 
 /* Defined in terminal.c */
 

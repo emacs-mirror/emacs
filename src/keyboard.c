@@ -289,7 +289,7 @@ static struct input_event * volatile kbd_store_ptr;
    at inopportune times.  */
 
 /* Symbols to head events.  */
-static Lisp_Object Qmouse_movement;
+Lisp_Object Qmouse_movement;
 static Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
 static Lisp_Object Qfocus_in, Qfocus_out;
@@ -353,6 +353,8 @@ Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
+
+static Lisp_Object Qecho_keystrokes;
 
 static void recursive_edit_unwind (Lisp_Object buffer);
 static Lisp_Object command_loop (void);
@@ -1305,7 +1307,7 @@ some_mouse_moved (void)
    sans error-handling encapsulation.  */
 
 static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
-                              bool, bool, bool);
+                              bool, bool, bool, bool);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (ptrdiff_t, bool);
 
@@ -1431,7 +1433,7 @@ command_loop_1 (void)
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
-			     Qnil, 0, 1, 1);
+			     Qnil, 0, 1, 1, 0);
 
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
@@ -1689,6 +1691,31 @@ command_loop_1 (void)
 	  && NILP (KVAR (current_kboard, Vprefix_arg)))
 	finalize_kbd_macro_chars ();
     }
+}
+
+Lisp_Object
+read_menu_command (void)
+{
+  Lisp_Object cmd;
+  Lisp_Object keybuf[30];
+  ptrdiff_t count = SPECPDL_INDEX ();
+  int i;
+
+  /* We don't want to echo the keystrokes while navigating the
+     menus.  */
+  specbind (Qecho_keystrokes, make_number (0));
+
+  i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
+			 Qnil, 0, 1, 1, 1);
+
+  unbind_to (count, Qnil);
+
+  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
+    Fkill_emacs (Qnil);
+  if (i == 0 || i == -1)
+    return Qt;
+
+  return read_key_sequence_cmd;
 }
 
 /* Adjust point to a boundary of a region that has such a property
@@ -2358,6 +2385,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 /* Read a character from the keyboard; call the redisplay if needed.  */
 /* commandflag 0 means do not autosave, but do redisplay.
    -1 means do not redisplay, but do autosave.
+   -2 means do neither.
    1 means do both.  */
 
 /* The arguments MAP is for menu prompting.  MAP is a keymap.
@@ -2722,7 +2750,7 @@ read_char (int commandflag, Lisp_Object map,
 
   /* Maybe auto save due to number of keystrokes.  */
 
-  if (commandflag != 0
+  if (commandflag != 0 && commandflag != -2
       && auto_save_interval > 0
       && num_nonmacro_input_events - last_auto_save > max (auto_save_interval, 20)
       && !detect_input_pending_run_timers (0))
@@ -2774,7 +2802,7 @@ read_char (int commandflag, Lisp_Object map,
 	 9 at 200k, 11 at 300k, and 12 at 500k.  It is 15 at 1 meg.  */
 
       /* Auto save if enough time goes by without input.  */
-      if (commandflag != 0
+      if (commandflag != 0 && commandflag != -2
 	  && num_nonmacro_input_events > last_auto_save
 	  && INTEGERP (Vauto_save_timeout)
 	  && XINT (Vauto_save_timeout) > 0)
@@ -3870,7 +3898,22 @@ kbd_buffer_get_event (KBOARD **kbp,
 	    }
 	}
       else
-	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
+	{
+	  bool do_display = true;
+
+	  if (FRAME_TERMCAP_P (SELECTED_FRAME ()))
+	    {
+	      struct tty_display_info *tty = CURTTY ();
+
+	      /* When this TTY is displaying a menu, we must prevent
+		 any redisplay, because we modify the frame's glyph
+		 matrix behind the back of the display engine.  */
+	      if (tty->showing_menu)
+		do_display = false;
+	    }
+
+	  wait_reading_process_output (0, 0, -1, do_display, Qnil, NULL, 0);
+	}
 
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	gobble_input ();
@@ -5363,6 +5406,20 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 				     extra_info))));
 }
 
+/* Return non-zero if F is a GUI frame that uses some toolkit-managed
+   menu bar.  This really means that Emacs draws and manages the menu
+   bar as part of its normal display, and therefore can compute its
+   geometry.  */
+static bool
+toolkit_menubar_in_use (struct frame *f)
+{
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
+  return !(!FRAME_WINDOW_P (f));
+#else
+  return false;
+#endif
+}
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -5514,64 +5571,64 @@ make_lispy_event (struct input_event *event)
 	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
 	    struct frame *f = XFRAME (event->frame_or_window);
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    int row, column;
-#endif
 
 	    /* Ignore mouse events that were made on frame that
 	       have been deleted.  */
 	    if (! FRAME_LIVE_P (f))
 	      return Qnil;
 
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    /* EVENT->x and EVENT->y are frame-relative pixel
 	       coordinates at this place.  Under old redisplay, COLUMN
 	       and ROW are set to frame relative glyph coordinates
 	       which are then used to determine whether this click is
 	       in a menu (non-toolkit version).  */
- 	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
-	 			   &column, &row, NULL, 1);
-
-	    /* In the non-toolkit version, clicks on the menu bar
-	       are ordinary button events in the event buffer.
-	       Distinguish them, and invoke the menu.
-
-	       (In the toolkit version, the toolkit handles the menu bar
-	       and Emacs doesn't know about it until after the user
-	       makes a selection.)  */
-	    if (row >= 0 && row < FRAME_MENU_BAR_LINES (f)
-		&& (event->modifiers & down_modifier))
+	    if (!toolkit_menubar_in_use (f))
 	      {
-		Lisp_Object items, item;
+		pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
+				       &column, &row, NULL, 1);
 
-		/* Find the menu bar item under `column'.  */
-		item = Qnil;
-		items = FRAME_MENU_BAR_ITEMS (f);
-		for (i = 0; i < ASIZE (items); i += 4)
+		/* In the non-toolkit version, clicks on the menu bar
+		   are ordinary button events in the event buffer.
+		   Distinguish them, and invoke the menu.
+
+		   (In the toolkit version, the toolkit handles the
+		   menu bar and Emacs doesn't know about it until
+		   after the user makes a selection.)  */
+		if (row >= 0 && row < FRAME_MENU_BAR_LINES (f)
+		  && (event->modifiers & down_modifier))
 		  {
-		    Lisp_Object pos, string;
-		    string = AREF (items, i + 1);
-		    pos = AREF (items, i + 3);
-		    if (NILP (string))
-		      break;
-		    if (column >= XINT (pos)
-			&& column < XINT (pos) + SCHARS (string))
+		    Lisp_Object items, item;
+
+		    /* Find the menu bar item under `column'.  */
+		    item = Qnil;
+		    items = FRAME_MENU_BAR_ITEMS (f);
+		    for (i = 0; i < ASIZE (items); i += 4)
 		      {
-			item = AREF (items, i);
-			break;
+			Lisp_Object pos, string;
+			string = AREF (items, i + 1);
+			pos = AREF (items, i + 3);
+			if (NILP (string))
+			  break;
+			if (column >= XINT (pos)
+			    && column < XINT (pos) + SCHARS (string))
+			  {
+			    item = AREF (items, i);
+			    break;
+			  }
 		      }
+
+		    /* ELisp manual 2.4b says (x y) are window
+		       relative but code says they are
+		       frame-relative.  */
+		    position = list4 (event->frame_or_window,
+				      Qmenu_bar,
+				      Fcons (event->x, event->y),
+				      make_number (event->timestamp));
+
+		    return list2 (item, position);
 		  }
-
-		/* ELisp manual 2.4b says (x y) are window relative but
-		   code says they are frame-relative.  */
-		position = list4 (event->frame_or_window,
-				  Qmenu_bar,
-				  Fcons (event->x, event->y),
-				  make_number (event->timestamp));
-
-		return list2 (item, position);
 	      }
-#endif /* not USE_X_TOOLKIT && not USE_GTK && not HAVE_NS */
 
 	    position = make_lispy_position (f, event->x, event->y,
 					    event->timestamp);
@@ -8792,6 +8849,9 @@ test_undefined (Lisp_Object binding)
 
    Echo starting immediately unless `prompt' is 0.
 
+   If PREVENT_REDISPLAY is non-zero, avoid redisplay by calling
+   read_char with a suitable COMMANDFLAG argument.
+
    Where a key sequence ends depends on the currently active keymaps.
    These include any minor mode keymaps active in the current buffer,
    the current buffer's local map, and the global map.
@@ -8824,7 +8884,7 @@ test_undefined (Lisp_Object binding)
 static int
 read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		   bool dont_downcase_last, bool can_return_switch_frame,
-		   bool fix_current_buffer)
+		   bool fix_current_buffer, bool prevent_redisplay)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -8905,8 +8965,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
     {
       if (!NILP (prompt))
 	{
-	  /* Install the string STR as the beginning of the string of
-	     echoing, so that it serves as a prompt for the next
+	  /* Install the string PROMPT as the beginning of the string
+	     of echoing, so that it serves as a prompt for the next
 	     character.  */
 	  kset_echo_string (current_kboard, prompt);
 	  current_kboard->echo_after_prompt = SCHARS (prompt);
@@ -9061,7 +9121,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  {
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    key = read_char (NILP (prompt),
+	    /* Calling read_char with COMMANDFLAG = -2 avoids
+	       redisplay in read_char and its subroutines.  */
+	    key = read_char (prevent_redisplay ? -2 : NILP (prompt),
 		             current_binding, last_nonmenu_event,
                              &used_mouse_menu, NULL);
 	    if ((INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
@@ -9757,7 +9819,7 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
 
   i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
-			 ! NILP (can_return_switch_frame), 0);
+			 ! NILP (can_return_switch_frame), 0, 0);
 
 #if 0  /* The following is fine for code reading a key sequence and
 	  then proceeding with a lengthy computation, but it's not good
@@ -11002,6 +11064,8 @@ syms_of_keyboard (void)
   DEFSYM (Qinput_method_use_echo_area, "input-method-use-echo-area");
 
   DEFSYM (Qhelp_form_show, "help-form-show");
+
+  DEFSYM (Qecho_keystrokes, "echo-keystrokes");
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);

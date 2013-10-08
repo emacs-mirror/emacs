@@ -56,6 +56,8 @@ static int been_here = -1;
 #include "xterm.h"
 #endif
 
+#include "menu.h"
+
 /* The name of the default console device.  */
 #ifdef WINDOWSNT
 #define DEV_TTY  "CONOUT$"
@@ -302,7 +304,11 @@ tty_hide_cursor (struct tty_display_info *tty)
   if (tty->cursor_hidden == 0)
     {
       tty->cursor_hidden = 1;
+#ifdef WINDOWSNT
+      w32con_hide_cursor ();
+#else
       OUTPUT_IF (tty, tty->TS_cursor_invisible);
+#endif
     }
 }
 
@@ -315,9 +321,13 @@ tty_show_cursor (struct tty_display_info *tty)
   if (tty->cursor_hidden)
     {
       tty->cursor_hidden = 0;
+#ifdef WINDOWSNT
+      w32con_show_cursor ();
+#else
       OUTPUT_IF (tty, tty->TS_cursor_normal);
       if (visible_cursor)
         OUTPUT_IF (tty, tty->TS_cursor_visible);
+#endif
     }
 }
 
@@ -2755,6 +2765,1107 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 #endif /* HAVE_GPM */
 
 
+/***********************************************************************
+			       Menus
+ ***********************************************************************/
+
+#if defined (HAVE_MENUS) && !defined (MSDOS)
+
+/* TTY menu implementation and main ideas are borrowed from msdos.c.
+
+   However, unlike on MSDOS, where the menu text is drawn directly to
+   the display video memory, on a TTY we use display_string (see
+   display_tty_menu_item in xdisp.c) to put the glyphs produced from
+   the menu items directly into the frame's 'desired_matrix' glyph
+   matrix, and then call update_frame_with_menu to deliver the results
+   to the glass.  The previous contents of the screen, in the form of
+   the current_matrix, is stashed away, and used to restore screen
+   contents when the menu selection changes or when the final
+   selection is made and the menu should be popped down.
+
+   The idea of this implementation was suggested by Gerd Moellmann.  */
+
+#define TTYM_FAILURE -1
+#define TTYM_SUCCESS 1
+#define TTYM_NO_SELECT 2
+#define TTYM_IA_SELECT 3
+#define TTYM_NEXT 4
+#define TTYM_PREV 5
+
+/* These hold text of the current and the previous menu help messages.  */
+static const char *menu_help_message, *prev_menu_help_message;
+/* Pane number and item number of the menu item which generated the
+   last menu help message.  */
+static int menu_help_paneno, menu_help_itemno;
+
+static Lisp_Object Qtty_menu_navigation_map, Qtty_menu_exit;
+static Lisp_Object Qtty_menu_prev_item, Qtty_menu_next_item;
+static Lisp_Object Qtty_menu_next_menu, Qtty_menu_prev_menu;
+static Lisp_Object Qtty_menu_select, Qtty_menu_ignore;
+static Lisp_Object Qtty_menu_mouse_movement;
+
+typedef struct tty_menu_struct
+{
+  int count;
+  char **text;
+  struct tty_menu_struct **submenu;
+  int *panenumber; /* Also used as enabled flag.  */
+  int allocated;
+  int panecount;
+  int width;
+  const char **help_text;
+} tty_menu;
+
+/* Create a brand new menu structure.  */
+
+static tty_menu *
+tty_menu_create (void)
+{
+  tty_menu *menu;
+
+  menu = (tty_menu *) xmalloc (sizeof (tty_menu));
+  menu->allocated = menu->count = menu->panecount = menu->width = 0;
+  return menu;
+}
+
+/* Allocate some (more) memory for MENU ensuring that there is room for one
+   for item.  */
+
+static void
+tty_menu_make_room (tty_menu *menu)
+{
+  if (menu->allocated == 0)
+    {
+      int count = menu->allocated = 10;
+      menu->text = (char **) xmalloc (count * sizeof (char *));
+      menu->submenu = (tty_menu **) xmalloc (count * sizeof (tty_menu *));
+      menu->panenumber = (int *) xmalloc (count * sizeof (int));
+      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
+    }
+  else if (menu->allocated == menu->count)
+    {
+      int count = menu->allocated = menu->allocated + 10;
+      menu->text
+	= (char **) xrealloc (menu->text, count * sizeof (char *));
+      menu->submenu
+	= (tty_menu **) xrealloc (menu->submenu, count * sizeof (tty_menu *));
+      menu->panenumber
+	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
+      menu->help_text
+	= (const char **) xrealloc (menu->help_text, count * sizeof (char *));
+    }
+}
+
+/* Search the given menu structure for a given pane number.  */
+
+static tty_menu *
+tty_menu_search_pane (tty_menu *menu, int pane)
+{
+  int i;
+  tty_menu *try;
+
+  for (i = 0; i < menu->count; i++)
+    if (menu->submenu[i])
+      {
+	if (pane == menu->panenumber[i])
+	  return menu->submenu[i];
+	if ((try = tty_menu_search_pane (menu->submenu[i], pane)))
+	  return try;
+      }
+  return (tty_menu *) 0;
+}
+
+/* Determine how much screen space a given menu needs.  */
+
+static void
+tty_menu_calc_size (tty_menu *menu, int *width, int *height)
+{
+  int i, h2, w2, maxsubwidth, maxheight;
+
+  maxsubwidth = menu->width;
+  maxheight = menu->count;
+  for (i = 0; i < menu->count; i++)
+    {
+      if (menu->submenu[i])
+	{
+	  tty_menu_calc_size (menu->submenu[i], &w2, &h2);
+	  if (w2 > maxsubwidth) maxsubwidth = w2;
+	  if (i + h2 > maxheight) maxheight = i + h2;
+	}
+    }
+  *width = maxsubwidth;
+  *height = maxheight;
+}
+
+static void
+mouse_get_xy (int *x, int *y)
+{
+  struct frame *sf = SELECTED_FRAME ();
+  Lisp_Object lmx = Qnil, lmy = Qnil, lisp_dummy;
+  enum scroll_bar_part part_dummy;
+  Time time_dummy;
+
+  if (FRAME_TERMINAL (sf)->mouse_position_hook)
+    (*FRAME_TERMINAL (sf)->mouse_position_hook) (&sf, -1,
+                                                 &lisp_dummy, &part_dummy,
+						 &lmx, &lmy,
+						 &time_dummy);
+  if (!NILP (lmx))
+    {
+      *x = XINT (lmx);
+      *y = XINT (lmy);
+    }
+}
+
+/* Display MENU at (X,Y) using FACES.  */
+
+static void
+tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
+		  int mx, int my, int disp_help)
+{
+  int i, face, width, enabled, mousehere, row, col;
+  struct frame *sf = SELECTED_FRAME ();
+  struct tty_display_info *tty = FRAME_TTY (sf);
+
+  menu_help_message = NULL;
+
+  width = menu->width;
+  col = cursorX (tty);
+  row = cursorY (tty);
+  for (i = 0; i < menu->count; i++)
+    {
+      int max_width = width + 2; /* +2 for padding blanks on each side */
+
+      cursor_to (sf, y + i, x);
+      if (menu->submenu[i])
+	max_width += 2;	/* for displaying " >" after the item */
+      enabled
+	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
+      mousehere = (y + i == my && x <= mx && mx < x + max_width);
+      face = faces[enabled + mousehere * 2];
+      /* Display the menu help string for the i-th menu item even if
+	 the menu item is currently disabled.  That's what the GUI
+	 code does.  */
+      if (disp_help && enabled + mousehere * 2 >= 2)
+	{
+	  menu_help_message = menu->help_text[i];
+	  menu_help_paneno = pn - 1;
+	  menu_help_itemno = i;
+	}
+      display_tty_menu_item (menu->text[i], max_width, face, x, y + i,
+			     menu->submenu[i] != NULL);
+    }
+  update_frame_with_menu (sf);
+  cursor_to (sf, row, col);
+}
+
+/* --------------------------- X Menu emulation ---------------------- */
+
+/* Report availability of menus.  */
+
+int
+have_menus_p (void) {  return 1; }
+
+/* Create a new pane and place it on the outer-most level.  */
+
+static int
+tty_menu_add_pane (tty_menu *menu, const char *txt)
+{
+  int len;
+  const char *p;
+
+  tty_menu_make_room (menu);
+  menu->submenu[menu->count] = tty_menu_create ();
+  menu->text[menu->count] = (char *)txt;
+  menu->panenumber[menu->count] = ++menu->panecount;
+  menu->help_text[menu->count] = NULL;
+  menu->count++;
+
+  /* Update the menu width, if necessary.  */
+  for (len = 0, p = txt; *p; )
+    {
+      int ch_len;
+      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
+
+      len += CHAR_WIDTH (ch);
+      p += ch_len;
+    }
+
+  if (len > menu->width)
+    menu->width = len;
+
+  return menu->panecount;
+}
+
+/* Create a new item in a menu pane.  */
+
+int
+tty_menu_add_selection (tty_menu *menu, int pane,
+			char *txt, int enable, char const *help_text)
+{
+  int len;
+  char *p;
+
+  if (pane)
+    if (!(menu = tty_menu_search_pane (menu, pane)))
+      return TTYM_FAILURE;
+  tty_menu_make_room (menu);
+  menu->submenu[menu->count] = (tty_menu *) 0;
+  menu->text[menu->count] = txt;
+  menu->panenumber[menu->count] = enable;
+  menu->help_text[menu->count] = help_text;
+  menu->count++;
+
+  /* Update the menu width, if necessary.  */
+  for (len = 0, p = txt; *p; )
+    {
+      int ch_len;
+      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
+
+      len += CHAR_WIDTH (ch);
+      p += ch_len;
+    }
+
+  if (len > menu->width)
+    menu->width = len;
+
+  return TTYM_SUCCESS;
+}
+
+/* Decide where the menu would be placed if requested at (X,Y).  */
+
+void
+tty_menu_locate (tty_menu *menu, int x, int y,
+		 int *ulx, int *uly, int *width, int *height)
+{
+  tty_menu_calc_size (menu, width, height);
+  *ulx = x + 1;
+  *uly = y;
+  *width += 2;
+}
+
+struct tty_menu_state
+{
+  struct glyph_matrix *screen_behind;
+  tty_menu *menu;
+  int pane;
+  int x, y;
+};
+
+/* Save away the contents of frame F's current frame matrix, and
+   enable all its rows.  Value is a glyph matrix holding the contents
+   of F's current frame matrix with all its glyph rows enabled.  */
+
+static struct glyph_matrix *
+save_and_enable_current_matrix (struct frame *f)
+{
+  int i;
+  struct glyph_matrix *saved = xzalloc (sizeof *saved);
+  saved->nrows = f->current_matrix->nrows;
+  saved->rows = xzalloc (saved->nrows * sizeof *saved->rows);
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = f->current_matrix->rows + i;
+      struct glyph_row *to = saved->rows + i;
+      ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+
+      to->glyphs[TEXT_AREA] = xmalloc (nbytes);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
+      to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      /* Make sure every row is enabled, or else update_frame will not
+	 redraw them.  (Rows that are identical to what is already on
+	 screen will not be redrawn anyway.)  */
+      to->enabled_p = 1;
+      to->hash = from->hash;
+      if (from->used[LEFT_MARGIN_AREA])
+	{
+	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
+	  to->glyphs[LEFT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
+		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
+	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
+	}
+      if (from->used[RIGHT_MARGIN_AREA])
+	{
+	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
+	  to->glyphs[RIGHT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
+		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
+	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
+	}
+    }
+
+  return saved;
+}
+
+/* Restore the contents of frame F's desired frame matrix from SAVED,
+   and free memory associated with SAVED.  */
+
+static void
+restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
+{
+  int i;
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = saved->rows + i;
+      struct glyph_row *to = f->desired_matrix->rows + i;
+      ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+
+      eassert (to->glyphs[TEXT_AREA] != from->glyphs[TEXT_AREA]);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
+      to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      to->enabled_p = from->enabled_p;
+      to->hash = from->hash;
+      nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
+      if (nbytes)
+	{
+	  eassert (to->glyphs[LEFT_MARGIN_AREA] != from->glyphs[LEFT_MARGIN_AREA]);
+	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
+		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
+	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
+	}
+      else
+	to->used[LEFT_MARGIN_AREA] = 0;
+      nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
+      if (nbytes)
+	{
+	  eassert (to->glyphs[RIGHT_MARGIN_AREA] != from->glyphs[RIGHT_MARGIN_AREA]);
+	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
+		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
+	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
+	}
+      else
+	to->used[RIGHT_MARGIN_AREA] = 0;
+    }
+}
+
+static void
+free_saved_screen (struct glyph_matrix *saved)
+{
+  int i;
+
+  if (!saved)
+    return;	/* already freed */
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = saved->rows + i;
+
+      xfree (from->glyphs[TEXT_AREA]);
+      if (from->used[LEFT_MARGIN_AREA])
+	xfree (from->glyphs[LEFT_MARGIN_AREA]);
+      if (from->used[RIGHT_MARGIN_AREA])
+	xfree (from->glyphs[RIGHT_MARGIN_AREA]);
+    }
+
+  xfree (saved->rows);
+  xfree (saved);
+}
+
+/* Update the display of frame F from its saved contents.  */
+static void
+screen_update (struct frame *f, struct glyph_matrix *mtx)
+{
+  restore_desired_matrix (f, mtx);
+  update_frame_with_menu (f);
+}
+
+/* Read user input and return X and Y coordinates where that input
+   puts us.  We only consider mouse movement and click events and
+   keyboard movement commands; the rest are ignored.
+
+   Value is -1 if C-g was pressed, 1 if an item was selected, 2 or 3
+   if we need to move to the next or previous menu-bar menu, zero
+   otherwise.  */
+static int
+read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
+		 bool *first_time)
+{
+  if (*first_time)
+    {
+      *first_time = false;
+      sf->mouse_moved = 1;
+    }
+  else
+    {
+      extern Lisp_Object read_menu_command (void);
+      Lisp_Object cmd;
+      int usable_input = 1;
+      int st = 0;
+      struct tty_display_info *tty = FRAME_TTY (sf);
+      Lisp_Object saved_mouse_tracking = do_mouse_tracking;
+
+      /* Signal the keyboard reading routines we are displaying a menu
+	 on this terminal.  */
+      tty->showing_menu = 1;
+      /* We want mouse movements be reported by read_menu_command.  */
+      do_mouse_tracking = Qt;
+      do {
+	cmd = read_menu_command ();
+      } while (NILP (cmd));
+      tty->showing_menu = 0;
+      do_mouse_tracking = saved_mouse_tracking;
+
+      if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
+	return -1;
+      if (EQ (cmd, Qtty_menu_mouse_movement))
+	{
+	  int mx, my;
+
+	  mouse_get_xy (&mx, &my);
+	  *x = mx;
+	  *y = my;
+	}
+      else if (EQ (cmd, Qtty_menu_next_menu))
+	{
+	  usable_input = 0;
+	  st = 2;
+	}
+      else if (EQ (cmd, Qtty_menu_prev_menu))
+	{
+	  usable_input = 0;
+	  st = 3;
+	}
+      else if (EQ (cmd, Qtty_menu_next_item))
+	{
+	  if (*y < max_y)
+	    *y += 1;
+	}
+      else if (EQ (cmd, Qtty_menu_prev_item))
+	{
+	  if (*y > min_y)
+	    *y -= 1;
+	}
+      else if (EQ (cmd, Qtty_menu_select))
+	st = 1;
+      else if (!EQ (cmd, Qtty_menu_ignore))
+	usable_input = 0;
+      if (usable_input)
+	sf->mouse_moved = 1;
+      return st;
+    }
+  return 0;
+}
+
+/* Display menu, wait for user's response, and return that response.  */
+static int
+tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
+		   int x0, int y0, char **txt,
+		   void (*help_callback)(char const *, int, int),
+		   int kbd_navigation)
+{
+  struct tty_menu_state *state;
+  int statecount, x, y, i, b, leave, result, onepane;
+  int title_faces[4];		/* face to display the menu title */
+  int faces[4], buffers_num_deleted = 0;
+  struct frame *sf = SELECTED_FRAME ();
+  struct tty_display_info *tty = FRAME_TTY (sf);
+  bool first_time;
+  Lisp_Object saved_echo_area_message, selectface;
+
+  /* Don't allow non-positive x0 and y0, lest the menu will wrap
+     around the display.  */
+  if (x0 <= 0)
+    x0 = 1;
+  if (y0 <= 0)
+    y0 = 1;
+
+  state = alloca (menu->panecount * sizeof (struct tty_menu_state));
+  memset (state, 0, sizeof (*state));
+  faces[0]
+    = lookup_derived_face (sf, intern ("tty-menu-disabled-face"),
+			   DEFAULT_FACE_ID, 1);
+  faces[1]
+    = lookup_derived_face (sf, intern ("tty-menu-enabled-face"),
+			   DEFAULT_FACE_ID, 1);
+  selectface = intern ("tty-menu-selected-face");
+  faces[2] = lookup_derived_face (sf, selectface,
+				  faces[0], 1);
+  faces[3] = lookup_derived_face (sf, selectface,
+				  faces[1], 1);
+
+  /* Make sure the menu title is always displayed with
+     `tty-menu-selected-face', no matter where the mouse pointer is.  */
+  for (i = 0; i < 4; i++)
+    title_faces[i] = faces[3];
+
+  statecount = 1;
+
+  /* Don't let the title for the "Buffers" popup menu include a
+     digit (which is ugly).
+
+     This is a terrible kludge, but I think the "Buffers" case is
+     the only one where the title includes a number, so it doesn't
+     seem to be necessary to make this more general.  */
+  if (strncmp (menu->text[0], "Buffers 1", 9) == 0)
+    {
+      menu->text[0][7] = '\0';
+      buffers_num_deleted = 1;
+    }
+
+  /* Force update of the current frame, so that the desired and the
+     current matrices are identical.  */
+  update_frame_with_menu (sf);
+  state[0].menu = menu;
+  state[0].screen_behind = save_and_enable_current_matrix (sf);
+
+  /* Display the menu title.  We subtract 1 from x0 and y0 because we
+     want to interpret them as zero-based column and row coordinates,
+     and also because we want the first item of the menu, not its
+     title, to appear at x0,y0.  */
+  tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, x0 - 1, y0 - 1, 0);
+
+  /* Turn off the cursor.  Otherwise it shows through the menu
+     panes, which is ugly.  */
+  tty_hide_cursor (tty);
+  if (buffers_num_deleted)
+    menu->text[0][7] = ' ';
+  if ((onepane = menu->count == 1 && menu->submenu[0]))
+    {
+      menu->width = menu->submenu[0]->width;
+      state[0].menu = menu->submenu[0];
+    }
+  else
+    {
+      state[0].menu = menu;
+    }
+  state[0].x = x0 - 1;
+  state[0].y = y0;
+  state[0].pane = onepane;
+
+  x = state[0].x;
+  y = state[0].y;
+  first_time = true;
+
+  leave = 0;
+  while (!leave)
+    {
+      int input_status;
+      int min_y = state[0].y, max_y = min_y + state[0].menu->count - 1;
+
+      input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
+      if (input_status)
+	{
+	  leave = 1;
+	  if (input_status == -1)
+	    {
+	      /* Remove the last help-echo, so that it doesn't
+		 re-appear after "Quit".  */
+	      show_help_echo (Qnil, Qnil, Qnil, Qnil);
+	      result = TTYM_NO_SELECT;
+	    }
+	  else if (input_status == 2)
+	    {
+	      if (kbd_navigation)
+		result = TTYM_NEXT;
+	      else
+		leave = 0;
+	    }
+	  else if (input_status == 3)
+	    {
+	      if (kbd_navigation)
+		result = TTYM_PREV;
+	      else
+		leave = 0;
+	    }
+	}
+      if (sf->mouse_moved && input_status != -1)
+	{
+	  sf->mouse_moved = 0;
+	  result = TTYM_IA_SELECT;
+	  for (i = 0; i < statecount; i++)
+	    if (state[i].x <= x && x < state[i].x + state[i].menu->width + 2)
+	      {
+		int dy = y - state[i].y;
+		if (0 <= dy && dy < state[i].menu->count)
+		  {
+		    if (!state[i].menu->submenu[dy])
+		      {
+			if (state[i].menu->panenumber[dy])
+			  result = TTYM_SUCCESS;
+			else
+			  result = TTYM_IA_SELECT;
+		      }
+		    *pane = state[i].pane - 1;
+		    *selidx = dy;
+		    /* We hit some part of a menu, so drop extra menus that
+		       have been opened.  That does not include an open and
+		       active submenu.  */
+		    if (i != statecount - 2
+			|| state[i].menu->submenu[dy] != state[i+1].menu)
+		      while (i != statecount - 1)
+			{
+			  statecount--;
+			  screen_update (sf, state[statecount].screen_behind);
+			  state[statecount].screen_behind = NULL;
+			}
+		    if (i == statecount - 1 && state[i].menu->submenu[dy])
+		      {
+			tty_menu_display (state[i].menu,
+					  state[i].x,
+					  state[i].y,
+					  state[i].pane,
+					  faces, x, y, 1);
+			state[statecount].menu = state[i].menu->submenu[dy];
+			state[statecount].pane = state[i].menu->panenumber[dy];
+			state[statecount].screen_behind
+			  = save_and_enable_current_matrix (sf);
+			state[statecount].x
+			  = state[i].x + state[i].menu->width + 2;
+			state[statecount].y = y;
+			statecount++;
+		      }
+		  }
+	      }
+	  tty_menu_display (state[statecount - 1].menu,
+			    state[statecount - 1].x,
+			    state[statecount - 1].y,
+			    state[statecount - 1].pane,
+			    faces, x, y, 1);
+	  tty_hide_cursor (tty);
+	  fflush (tty->output);
+	}
+
+      /* Display the help-echo message for the currently-selected menu
+	 item.  */
+      if ((menu_help_message || prev_menu_help_message)
+	  && menu_help_message != prev_menu_help_message)
+	{
+	  help_callback (menu_help_message,
+			 menu_help_paneno, menu_help_itemno);
+	  tty_hide_cursor (tty);
+	  fflush (tty->output);
+	  prev_menu_help_message = menu_help_message;
+	}
+    }
+
+  sf->mouse_moved = 0;
+  screen_update (sf, state[0].screen_behind);
+  while (statecount--)
+    free_saved_screen (state[statecount].screen_behind);
+  tty_show_cursor (tty);	/* turn cursor back on */
+
+/* Clean up any mouse events that are waiting inside Emacs event queue.
+     These events are likely to be generated before the menu was even
+     displayed, probably because the user pressed and released the button
+     (which invoked the menu) too quickly.  If we don't remove these events,
+     Emacs will process them after we return and surprise the user.  */
+  discard_mouse_events ();
+  if (!kbd_buffer_events_waiting ())
+    clear_input_pending ();
+  SET_FRAME_GARBAGED (sf);
+  return result;
+}
+
+/* Dispose of a menu.  */
+
+void
+tty_menu_destroy (tty_menu *menu)
+{
+  int i;
+  if (menu->allocated)
+    {
+      for (i = 0; i < menu->count; i++)
+	if (menu->submenu[i])
+	  tty_menu_destroy (menu->submenu[i]);
+      xfree (menu->text);
+      xfree (menu->submenu);
+      xfree (menu->panenumber);
+      xfree (menu->help_text);
+    }
+  xfree (menu);
+  menu_help_message = prev_menu_help_message = NULL;
+}
+
+/* Show help HELP_STRING, or clear help if HELP_STRING is null.
+
+   PANE is the pane number, and ITEM is the menu item number in
+   the menu (currently not used).  */
+
+static void
+tty_menu_help_callback (char const *help_string, int pane, int item)
+{
+  Lisp_Object *first_item;
+  Lisp_Object pane_name;
+  Lisp_Object menu_object;
+
+  first_item = XVECTOR (menu_items)->u.contents;
+  if (EQ (first_item[0], Qt))
+    pane_name = first_item[MENU_ITEMS_PANE_NAME];
+  else if (EQ (first_item[0], Qquote))
+    /* This shouldn't happen, see xmenu_show.  */
+    pane_name = empty_unibyte_string;
+  else
+    pane_name = first_item[MENU_ITEMS_ITEM_NAME];
+
+  /* (menu-item MENU-NAME PANE-NUMBER)  */
+  menu_object = list3 (Qmenu_item, pane_name, make_number (pane));
+  show_help_echo (help_string ? build_string (help_string) : Qnil,
+ 		  Qnil, menu_object, make_number (item));
+}
+
+static void
+tty_pop_down_menu (Lisp_Object arg)
+{
+  tty_menu *menu = XSAVE_POINTER (arg, 0);
+
+  block_input ();
+  tty_menu_destroy (menu);
+  unblock_input ();
+}
+
+/* Return the zero-based index of the last menu-bar item on frame F.  */
+static int
+tty_menu_last_menubar_item (struct frame *f)
+{
+  int i = 0;
+
+  eassert (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f));
+  if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f))
+    {
+      Lisp_Object items = FRAME_MENU_BAR_ITEMS (f);
+
+      while (i < ASIZE (items))
+	{
+	  Lisp_Object str;
+
+	  str = AREF (items, i + 1);
+	  if (NILP (str))
+	    break;
+	  i += 4;
+	}
+      i -= 4;	/* went one too far */
+    }
+  return i;
+}
+
+/* Find in frame F's menu bar the menu item that is next or previous
+   to the item at X/Y, and return that item's position in X/Y.  WHICH
+   says which one--next or previous--item to look for.  X and Y are
+   measured in character cells.  This should only be called on TTY
+   frames.  */
+static void
+tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
+{
+  eassert (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f));
+  if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f))
+    {
+      Lisp_Object items = FRAME_MENU_BAR_ITEMS (f);
+      int last_i = tty_menu_last_menubar_item (f);
+      int i, prev_x;
+
+      /* This loop assumes a single menu-bar line, and will fail to
+	 find an item if it is not in the first line.  Note that
+	 make_lispy_event in keyboard.c makes the same assumption.  */
+      for (i = 0, prev_x = -1; i < ASIZE (items); i += 4)
+	{
+	  Lisp_Object pos, str;
+	  int ix;
+
+	  str = AREF (items, i + 1);
+	  pos = AREF (items, i + 3);
+	  if (NILP (str))
+	    return;
+	  ix = XINT (pos);
+	  if (ix <= *x
+	      /* We use <= so the blank between 2 items on a TTY is
+		 considered part of the previous item.  */
+	      && *x <= ix + menu_item_width (SSDATA (str)))
+	    {
+	      /* Found current item.  Now compute the X coordinate of
+		 the previous or next item.  */
+	      if (which == TTYM_NEXT)
+		{
+		  if (i < last_i)
+		    *x = XINT (AREF (items, i + 4 + 3));
+		  else
+		    *x = 0;	/* wrap around to the first item */
+		}
+	      else if (prev_x < 0)
+		{
+		  /* Wrap around to the last item.  */
+		  *x = XINT (AREF (items, last_i + 3));
+		}
+	      else
+		*x = prev_x;
+	      return;
+	    }
+	  prev_x = ix;
+	}
+    }
+}
+
+Lisp_Object
+tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
+	       Lisp_Object title, int kbd_navigation, const char **error_name)
+{
+  tty_menu *menu;
+  int pane, selidx, lpane, status;
+  Lisp_Object entry, pane_prefix;
+  char *datap;
+  int ulx, uly, width, height;
+  int item_x, item_y;
+  int dispwidth, dispheight;
+  int i, j, lines, maxlines;
+  int maxwidth;
+  int dummy_int;
+  unsigned int dummy_uint;
+  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+
+  if (! FRAME_TERMCAP_P (f))
+    emacs_abort ();
+
+  *error_name = 0;
+  if (menu_items_n_panes == 0)
+    return Qnil;
+
+  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
+    {
+      *error_name = "Empty menu";
+      return Qnil;
+    }
+
+  /* Make the menu on that window.  */
+  menu = tty_menu_create ();
+  if (menu == NULL)
+    {
+      *error_name = "Can't create menu";
+      return Qnil;
+    }
+
+  /* Don't GC while we prepare and show the menu, because we give the
+     menu functions pointers to the contents of strings.  */
+  inhibit_garbage_collection ();
+
+  /* Adjust coordinates to be root-window-relative.  */
+  item_x = x += f->left_pos;
+  item_y = y += f->top_pos;
+
+  /* Create all the necessary panes and their items.  */
+  maxwidth = maxlines = lines = i = 0;
+  lpane = TTYM_FAILURE;
+  while (i < menu_items_used)
+    {
+      if (EQ (AREF (menu_items, i), Qt))
+	{
+	  /* Create a new pane.  */
+	  Lisp_Object pane_name, prefix;
+	  const char *pane_string;
+
+          maxlines = max (maxlines, lines);
+          lines = 0;
+	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
+	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
+	  pane_string = (NILP (pane_name)
+			 ? "" : SSDATA (pane_name));
+	  if (keymaps && !NILP (prefix))
+	    pane_string++;
+
+	  lpane = tty_menu_add_pane (menu, pane_string);
+	  if (lpane == TTYM_FAILURE)
+	    {
+	      tty_menu_destroy (menu);
+	      *error_name = "Can't create pane";
+	      return Qnil;
+	    }
+	  i += MENU_ITEMS_PANE_LENGTH;
+
+	  /* Find the width of the widest item in this pane.  */
+	  j = i;
+	  while (j < menu_items_used)
+	    {
+	      Lisp_Object item;
+	      item = AREF (menu_items, j);
+	      if (EQ (item, Qt))
+		break;
+	      if (NILP (item))
+		{
+		  j++;
+		  continue;
+		}
+	      width = SBYTES (item);
+	      if (width > maxwidth)
+		maxwidth = width;
+
+	      j += MENU_ITEMS_ITEM_LENGTH;
+	    }
+	}
+      /* Ignore a nil in the item list.
+	 It's meaningful only for dialog boxes.  */
+      else if (EQ (AREF (menu_items, i), Qquote))
+	i += 1;
+      else
+	{
+	  /* Create a new item within current pane.  */
+	  Lisp_Object item_name, enable, descrip, help;
+	  char *item_data;
+	  char const *help_string;
+
+	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
+	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
+	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
+	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
+	  help_string = STRINGP (help) ? SSDATA (help) : NULL;
+
+	  if (!NILP (descrip))
+	    {
+	      /* if alloca is fast, use that to make the space,
+		 to reduce gc needs.  */
+	      item_data = (char *) alloca (maxwidth + SBYTES (descrip) + 1);
+	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
+	      for (j = SCHARS (item_name); j < maxwidth; j++)
+		item_data[j] = ' ';
+	      memcpy (item_data + j, SSDATA (descrip), SBYTES (descrip));
+	      item_data[j + SBYTES (descrip)] = 0;
+	    }
+	  else
+	    item_data = SSDATA (item_name);
+
+	  if (lpane == TTYM_FAILURE
+	      || (tty_menu_add_selection (menu, lpane, item_data,
+					  !NILP (enable), help_string)
+		  == TTYM_FAILURE))
+	    {
+	      tty_menu_destroy (menu);
+	      *error_name = "Can't add selection to menu";
+	      return Qnil;
+	    }
+	  i += MENU_ITEMS_ITEM_LENGTH;
+          lines++;
+	}
+    }
+
+  maxlines = max (maxlines, lines);
+
+  /* All set and ready to fly.  */
+  dispwidth = f->text_cols;
+  dispheight = f->text_lines;
+  x = min (x, dispwidth);
+  y = min (y, dispheight);
+  x = max (x, 1);
+  y = max (y, 1);
+  tty_menu_locate (menu, x, y, &ulx, &uly, &width, &height);
+  if (ulx+width > dispwidth)
+    {
+      x -= (ulx + width) - dispwidth;
+      ulx = dispwidth - width;
+    }
+  if (uly+height > dispheight)
+    {
+      y -= (uly + height) - dispheight;
+      uly = dispheight - height;
+    }
+
+  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 2)
+    {
+      /* Move the menu away of the echo area, to avoid overwriting the
+	 menu with help echo messages or vice versa.  */
+      if (BUFFERP (echo_area_buffer[0]) && WINDOWP (echo_area_window))
+	{
+	  y -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window)) + 1;
+	  uly -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window)) + 1;
+	}
+      else
+	{
+	  y -= 2;
+	  uly -= 2;
+	}
+    }
+
+  if (ulx < 0) x -= ulx;
+  if (uly < 0) y -= uly;
+
+#if 0
+  /* This code doesn't make sense on a TTY, since it can easily annul
+     the adjustments above that carefully avoid truncation of the menu
+     items.  I think it was written to fix some problem that only
+     happens on X11.  */
+  if (! for_click)
+    {
+      /* If position was not given by a mouse click, adjust so upper left
+         corner of the menu as a whole ends up at given coordinates.  This
+         is what x-popup-menu says in its documentation.  */
+      x += width/2;
+      y += 1.5*height/(maxlines+2);
+    }
+#endif
+
+  pane = selidx = 0;
+
+  record_unwind_protect (tty_pop_down_menu, make_save_ptr (menu));
+
+  specbind (Qoverriding_terminal_local_map,
+	    Fsymbol_value (Qtty_menu_navigation_map));
+  status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
+			      tty_menu_help_callback, kbd_navigation);
+  entry = pane_prefix = Qnil;
+
+  switch (status)
+    {
+    case TTYM_SUCCESS:
+      /* Find the item number SELIDX in pane number PANE.  */
+      i = 0;
+      while (i < menu_items_used)
+	{
+	  if (EQ (AREF (menu_items, i), Qt))
+	    {
+	      if (pane == 0)
+		pane_prefix
+		  = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
+	      pane--;
+	      i += MENU_ITEMS_PANE_LENGTH;
+	    }
+	  else
+	    {
+	      if (pane == -1)
+		{
+		  if (selidx == 0)
+		    {
+		      entry
+			= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
+		      if (keymaps != 0)
+			{
+			  entry = Fcons (entry, Qnil);
+			  if (!NILP (pane_prefix))
+			    entry = Fcons (pane_prefix, entry);
+			}
+		      break;
+		    }
+		  selidx--;
+		}
+	      i += MENU_ITEMS_ITEM_LENGTH;
+	    }
+	}
+      break;
+
+    case TTYM_NEXT:
+    case TTYM_PREV:
+      tty_menu_new_item_coords (f, status, &item_x, &item_y);
+      entry = Fcons (make_number (item_x), make_number (item_y));
+      break;
+
+    case TTYM_FAILURE:
+      *error_name = "Can't activate menu";
+    case TTYM_IA_SELECT:
+      break;
+    case TTYM_NO_SELECT:
+      /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
+	 the menu was invoked with a mouse event as POSITION).  */
+      if (! for_click)
+        Fsignal (Qquit, Qnil);
+      break;
+    }
+
+  unbind_to (specpdl_count, Qnil);
+
+  return entry;
+}
+
+#endif	/* HAVE_MENUS && !MSDOS */
+
+
 #ifndef MSDOS
 /***********************************************************************
 			    Initialization
@@ -3514,4 +4625,14 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
+
+  DEFSYM (Qtty_menu_next_item, "tty-menu-next-item");
+  DEFSYM (Qtty_menu_prev_item, "tty-menu-prev-item");
+  DEFSYM (Qtty_menu_next_menu, "tty-menu-next-menu");
+  DEFSYM (Qtty_menu_prev_menu, "tty-menu-prev-menu");
+  DEFSYM (Qtty_menu_select, "tty-menu-select");
+  DEFSYM (Qtty_menu_ignore, "tty-menu-ignore");
+  DEFSYM (Qtty_menu_exit, "tty-menu-exit");
+  DEFSYM (Qtty_menu_mouse_movement, "tty-menu-mouse-movement");
+  DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
 }

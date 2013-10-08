@@ -3408,7 +3408,6 @@ make_save_obj_obj_obj_obj (Lisp_Object a, Lisp_Object b, Lisp_Object c,
   return val;
 }
 
-#if defined HAVE_NS || defined HAVE_NTGUI
 Lisp_Object
 make_save_ptr (void *a)
 {
@@ -3418,7 +3417,6 @@ make_save_ptr (void *a)
   p->data[0].pointer = a;
   return val;
 }
-#endif
 
 Lisp_Object
 make_save_ptr_int (void *a, ptrdiff_t b)

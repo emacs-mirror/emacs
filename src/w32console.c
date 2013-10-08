@@ -62,6 +62,7 @@ static HANDLE	prev_screen, cur_screen;
 static WORD	char_attr_normal;
 static DWORD	prev_console_mode;
 
+static CONSOLE_CURSOR_INFO console_cursor_info;
 #ifndef USE_SEPARATE_SCREEN
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
@@ -93,6 +94,22 @@ w32con_move_cursor (struct frame *f, int row, int col)
   /* TODO: for multi-tty support, cur_screen should be replaced with a
      reference to the terminal for this frame.  */
   SetConsoleCursorPosition (cur_screen, cursor_coords);
+}
+
+void
+w32con_hide_cursor (void)
+{
+  GetConsoleCursorInfo (cur_screen, &console_cursor_info);
+  console_cursor_info.bVisible = FALSE;
+  SetConsoleCursorInfo (cur_screen, &console_cursor_info);
+}
+
+void
+w32con_show_cursor (void)
+{
+  GetConsoleCursorInfo (cur_screen, &console_cursor_info);
+  console_cursor_info.bVisible = TRUE;
+  SetConsoleCursorInfo (cur_screen, &console_cursor_info);
 }
 
 /* Clear from cursor to end of screen.  */
@@ -551,6 +568,21 @@ Wcm_clear (struct tty_display_info *tty)
 {
 }
 
+
+/* Report the current cursor position.  The following two functions
+   are used in term.c's tty menu code, so they are not really
+   "stubs".  */
+int
+cursorX (struct tty_display_info *tty)
+{
+  return cursor_coords.X;
+}
+
+int
+cursorY (struct tty_display_info *tty)
+{
+  return cursor_coords.Y;
+}
 
 /***********************************************************************
 				Faces

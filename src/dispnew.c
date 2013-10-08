@@ -1844,9 +1844,28 @@ save_current_matrix (struct frame *f)
       struct glyph_row *from = f->current_matrix->rows + i;
       struct glyph_row *to = saved->rows + i;
       ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+
       to->glyphs[TEXT_AREA] = xmalloc (nbytes);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      to->enabled_p = from->enabled_p;
+      to->hash = from->hash;
+      if (from->used[LEFT_MARGIN_AREA])
+	{
+	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
+	  to->glyphs[LEFT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
+		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
+	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
+	}
+      if (from->used[RIGHT_MARGIN_AREA])
+	{
+	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
+	  to->glyphs[RIGHT_MARGIN_AREA] = (struct glyph *) xmalloc (nbytes);
+	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
+		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
+	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
+	}
     }
 
   return saved;
@@ -1866,9 +1885,30 @@ restore_current_matrix (struct frame *f, struct glyph_matrix *saved)
       struct glyph_row *from = saved->rows + i;
       struct glyph_row *to = f->current_matrix->rows + i;
       ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       xfree (from->glyphs[TEXT_AREA]);
+      nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
+      if (nbytes)
+	{
+	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
+		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
+	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
+	  xfree (from->glyphs[LEFT_MARGIN_AREA]);
+	}
+      else
+	to->used[LEFT_MARGIN_AREA] = 0;
+      nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
+      if (nbytes)
+	{
+	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
+		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
+	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
+	  xfree (from->glyphs[RIGHT_MARGIN_AREA]);
+	}
+      else
+	to->used[RIGHT_MARGIN_AREA] = 0;
     }
 
   xfree (saved->rows);
@@ -3047,6 +3087,47 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
   return paused_p;
 }
 
+/* Update a TTY frame F that has a menu dropped down over some of its
+   glyphs.  This is like the second part of update_frame, but it
+   doesn't call build_frame_matrix, because we already have the
+   desired matrix prepared, and don't want it to be overwritten by the
+   text of the normal display.  */
+void
+update_frame_with_menu (struct frame *f)
+{
+  struct window *root_window = XWINDOW (f->root_window);
+  bool paused_p;
+
+  eassert (FRAME_TERMCAP_P (f));
+
+  /* We are working on frame matrix basis.  Set the frame on whose
+     frame matrix we operate.  */
+  set_frame_matrix_frame (f);
+
+  /* Update the display  */
+  update_begin (f);
+  /* Force update_frame_1 not to stop due to pending input, and not
+     try scrolling.  */
+  paused_p = update_frame_1 (f, 1, 1);
+  update_end (f);
+
+  if (FRAME_TTY (f)->termscript)
+    fflush (FRAME_TTY (f)->termscript);
+  fflush (FRAME_TTY (f)->output);
+  /* Check window matrices for lost pointers.  */
+#if GLYPH_DEBUG
+#if 0
+      /* We cannot possibly survive the matrix pointers check, since
+	 we have overwritten parts of the frame glyph matrix without
+	 making any updates to the window matrices.  */
+  check_window_matrix_pointers (root_window);
+#endif
+  add_frame_display_history (f, paused_p);
+#endif
+
+  /* Reset flags indicating that a window should be updated.  */
+  set_window_update_flags (root_window, NULL, 0);
+}
 
 
 /************************************************************************

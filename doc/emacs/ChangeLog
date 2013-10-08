@@ -1,3 +1,14 @@
+2013-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Support menus on text-mode terminals.
+	* screen.texi (Menu Bar): Adapt to TTY menus.
+
+	* frames.texi (Frames): Mention menu support on text terminals.
+
+	* files.texi (Visiting): Mention the "File" menu-bar menu.
+
+	* display.texi (Standard Faces): Mention TTY faces for menus.
+
 2013-10-06  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* cal-xtra.texi (Calendar Customizing, Diary Display): Remove @refill.

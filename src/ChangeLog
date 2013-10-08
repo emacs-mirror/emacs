@@ -1,3 +1,116 @@
+2013-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Support menus on text-mode terminals.
+	* xterm.h (xw_popup_dialog): Add prototype.
+
+	* xmenu.c (Fx_popup_dialog): Function moved to menu.c.
+	(xmenu_show): Block input here, instead in Fx_popup_menu.
+	(xw_popup_dialog): New function, with X-specific bits of popup
+	dialogs.
+
+	* xdisp.c (deep_copy_glyph_row, display_tty_menu_item): New
+	functions.
+
+	* window.c (Fset_window_configuration): Use run-time tests of the
+	frame type instead of compile-time conditionals, when menu-bar
+	lines are considered.
+
+	* w32term.h (w32con_hide_cursor, w32con_show_cursor)
+	(w32_popup_dialog): New prototypes.
+
+	* w32menu.c (Fx_popup_dialog): Function deleted.
+	(w32_popup_dialog): New function, with w32 specific bits of popup
+	dialogs.  Block input here.
+
+	* w32inevt.c (w32_console_read_socket): Minor change to add
+	debugging TTY events.
+
+	* w32fns.c (show_hourglass): If returning early because the frame
+	is not a GUI frame, unblock input.
+
+	* w32console.c (w32con_hide_cursor, w32con_show_cursor, cursorX)
+	(cursorY): New functions.
+
+	* termhooks.h (cursorX, cursorY): Prototypes of functions on
+	WINDOWSNT, macros that call curX and curY elsewhere.
+
+	* termchar.h (struct tty_display_info) <showing_menu>: New flag.
+
+	* term.c (tty_hide_cursor, tty_show_cursor) [WINDOWSNT]: Call w32
+	specific function to hide and show cursor on a text-mode terminal.
+	(tty_menu_struct, struct tty_menu_state): New structures.
+	(tty_menu_create, tty_menu_make_room, tty_menu_search_pane)
+	(tty_menu_calc_size, mouse_get_xy, tty_menu_display)
+	(have_menus_p, tty_menu_add_pane, tty_menu_add_selection)
+	(tty_menu_locate, save_and_enable_current_matrix)
+	(restore_desired_matrix, screen_update, read_menu_input)
+	(tty_menu_activate, tty_menu_destroy, tty_menu_help_callback)
+	(tty_pop_down_menu, tty_menu_last_menubar_item)
+	(tty_menu_new_item_coords, tty_menu_show): New functions.
+	(syms_of_term): New DEFSYMs for tty-menu-* symbols.
+
+	* nsterm.h (ns_popup_dialog): Adjust prototype.
+
+	* nsmenu.m (ns_menu_show): Block and unblock input here, instead
+	of in x-popup-menu.
+	(ns_popup_dialog): Adapt order of arguments to the other
+	*_menu_show implementations.
+	(Fx_popup_dialog): Function deleted.
+
+	* msdos.c (x_set_menu_bar_lines): Delete unused function.
+
+	* menu.h (tty_menu_show, menu_item_width): provide prototypes.
+
+	* menu.c (have_boxes): New function.
+	(single_keymap_panes): Use it instead of a compile-time
+	conditional.
+	(single_menu_item): Use run-time tests of the frame type instead
+	of compile-time conditionals.
+	(encode_menu_string): New function.
+	(list_of_items, list_of_panes): Use it instead of ENCODE_STRING
+	the macro, since different types of frame need different encoding
+	of menu items.
+	(digest_single_submenu): Use run-time tests of frame type instead
+	of, or in addition to, compile-time conditionals.
+	(menu_item_width, Fmenu_bar_menu_at_x_y): New functions.
+	(Fx_popup_menu): Detect when the function is called from keyboard
+	on a TTY.  Don't barf when invoked on a text-mode frame.  Check
+	frame type at run time, instead of compile-time conditionals for
+	invoking terminal-specific menu-show functions.  Call
+	tty_menu_show on text-mode frames.
+	(Fx_popup_dialog): Moved here from xmenu.c.  Test frame types at
+	run time to determine which alternative to invoke; support dialogs
+	on TTYs.
+
+	* keyboard.h <Qmouse_movement>: Declare.
+
+	* keyboard.c <Qmouse_movement>: Now extern.
+	<Qecho_keystrokes>: New static variable.
+	(read_key_sequence): Accept an additional argument, a flag to
+	prevent redisplay during reading of the key sequence.  All callers
+	changed.
+	(read_menu_command): New function.
+	(read_char): When COMMANDFLAG is -2, do not redisplay and do not
+	autosave.
+	(toolkit_menubar_in_use): New function.
+	(make_lispy_event): Use it instead of a compile-time test.
+
+	* fns.c (Fyes_or_no_p) [HAVE_MENUS]: Don't condition on
+	window-system being available.
+
+	* editfns.c (Fmessage_box) [HAVE_MENUS]: Don't condition the call
+	to x-popup-dialog on the frame type, they all now support popup
+	dialogs.
+
+	* dispnew.c (save_current_matrix): Save the margin areas.
+	(restore_current_matrix): Restore margin areas.
+	(update_frame_with_menu): New function.
+
+	* dispextern.h (display_tty_menu_item, update_frame_with_menu):
+	Add prototypes.
+
+	* alloc.c (make_save_ptr): Now compiled unconditionally.
+
 2013-10-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispnew.c (set_window_update_flags): Add buffer arg.  Adjust comment.

@@ -1,3 +1,12 @@
+2013-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Support menus on text-mode terminals.
+	* keymaps.texi (Defining Menus, Mouse Menus, Menu Bar): Modify
+	wording to the effect that menus are supported on TTYs.
+
+	* frames.texi (Pop-Up Menus, Dialog Boxes)
+	(Display Feature Testing): Update for menu support on TTYs.
+
 2013-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tips.texi (Comment Tips): Discourage use of triple semi-colons for

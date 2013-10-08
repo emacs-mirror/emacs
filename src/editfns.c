@@ -3472,22 +3472,17 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
     {
       Lisp_Object val = Fformat (nargs, args);
 #ifdef HAVE_MENUS
-      /* The MS-DOS frames support popup menus even though they are
-	 not FRAME_WINDOW_P.  */
-      if (FRAME_WINDOW_P (XFRAME (selected_frame))
-	  || FRAME_MSDOS_P (XFRAME (selected_frame)))
-      {
-	Lisp_Object pane, menu;
-	struct gcpro gcpro1;
-	pane = list1 (Fcons (build_string ("OK"), Qt));
-	GCPRO1 (pane);
-	menu = Fcons (val, pane);
-	Fx_popup_dialog (Qt, menu, Qt);
-	UNGCPRO;
-	return val;
-      }
-#endif /* HAVE_MENUS */
+      Lisp_Object pane, menu;
+      struct gcpro gcpro1;
+
+      pane = list1 (Fcons (build_string ("OK"), Qt));
+      GCPRO1 (pane);
+      menu = Fcons (val, pane);
+      Fx_popup_dialog (Qt, menu, Qt);
+      UNGCPRO;
+#else /* !HAVE_MENUS */
       message3 (val);
+#endif
       return val;
     }
 }

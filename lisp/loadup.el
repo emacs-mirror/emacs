@@ -276,7 +276,7 @@
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
-(if (fboundp 'x-show-tip) (load "tooltip"))
+(if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,

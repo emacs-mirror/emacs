@@ -1898,11 +1898,8 @@ to configure.])
    fi
 fi
 
-### If we're using X11, we should use the X menu package.
-HAVE_MENUS=no
-case ${HAVE_X11} in
-  yes ) HAVE_MENUS=yes ;;
-esac
+### We always support menus.
+HAVE_MENUS=yes
 
 # Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
@@ -3183,13 +3180,7 @@ if test "${HAVE_NS}" = "yes"; then
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
-  # We also have mouse menus.
-  HAVE_MENUS=yes
   OTHER_FILES=ns-app
-fi
-
-if test "${HAVE_W32}" = "yes"; then
-  HAVE_MENUS=yes
 fi
 
 ### Use session management (-lSM -lICE) if available
@@ -4672,9 +4663,7 @@ AC_SUBST(OLDXMENU_DEPS)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
-	    [Define to 1 if you have mouse menus.
-	     (This is automatic if you use X, but the option to specify it remains.)
-	     It is also defined with other window systems that support xmenu.c.])
+	    [Define to 1 if you have mouse menus.  (This is supported in all configurations, but the option to specify it remains.)])
 fi
 
 if test "${GNU_MALLOC}" = "yes" ; then
