@@ -349,7 +349,6 @@ A value of nil means highlight all matches."
 
 (defvar isearch-help-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [t] 'isearch-other-control-char)
     (define-key map (char-to-string help-char) 'isearch-help-for-help)
     (define-key map [help] 'isearch-help-for-help)
     (define-key map [f1] 'isearch-help-for-help)
@@ -423,9 +422,6 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; Make all multibyte characters search for themselves.
     (set-char-table-range (nth 1 map) (cons #x100 (max-char))
 			  'isearch-printing-char)
-    ;; Make function keys, etc, which aren't bound to a scrolling-function
-    ;; exit the search.
-    (define-key map [t] 'isearch-other-control-char)
 
     ;; Single-byte printing chars extend the search string by default.
     (setq i ?\s)
@@ -440,8 +436,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; default local key binding for any key not otherwise bound.
     (let ((meta-map (make-sparse-keymap)))
       (define-key map (char-to-string meta-prefix-char) meta-map)
-      (define-key map [escape] meta-map)
-      (define-key meta-map [t] 'isearch-other-meta-char))
+      (define-key map [escape] meta-map))
 
     ;; Several non-printing chars change the searching behavior.
     (define-key map "\C-s" 'isearch-repeat-forward)
@@ -521,9 +516,6 @@ This is like `describe-bindings', but displays only Isearch keys."
 
     ;; The key translations defined in the C-x 8 prefix should add
     ;; characters to the search string.  See iso-transl.el.
-    (define-key map "\C-x" nil)
-    (define-key map [?\C-x t] 'isearch-other-control-char)
-    (define-key map "\C-x8" nil)
     (define-key map "\C-x8\r" 'isearch-char-by-name)
 
     map)
@@ -920,6 +912,8 @@ convert the search string to a regexp used by regexp search functions."
 
   (isearch-update)
 
+  (add-hook 'pre-command-hook 'isearch-pre-command-hook nil t)
+  (add-hook 'post-command-hook 'isearch-post-command-hook nil t)
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
 
@@ -998,6 +992,8 @@ NOPUSH is t and EDIT is t."
 	(unless (equal (car command-history) command)
 	  (setq command-history (cons command command-history)))))
 
+  (remove-hook 'pre-command-hook 'isearch-pre-command-hook t)
+  (remove-hook 'post-command-hook 'isearch-post-command-hook t)
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (setq isearch-lazy-highlight-start nil)
@@ -2100,26 +2096,6 @@ to the barrier."
 			 (min last-other-end isearch-barrier)))
 	    (setq isearch-adjusted t)))))))
 
-(defun isearch-unread-key-sequence (keylist)
-  "Unread the given key-sequence KEYLIST.
-Scroll-bar or mode-line events are processed appropriately."
-  (cancel-kbd-macro-events)
-  (apply 'isearch-unread keylist)
-  ;; If the event was a scroll-bar or mode-line click, the event will have
-  ;; been prefixed by a symbol such as vertical-scroll-bar.  We must remove
-  ;; it here, because this symbol will be attached to the event again next
-  ;; time it gets read by read-key-sequence.
-  ;;
-  ;; (Old comment from isearch-other-meta-char: "Note that we don't have to
-  ;; modify the event anymore in 21 because read_key_sequence no longer
-  ;; modifies events to produce fake prefix keys.")
-  (if (and (> (length keylist) 1)
-           (symbolp (car keylist))
-           (listp (cadr keylist))
-           (not (numberp (posn-point
-                          (event-start (cadr keylist)  )))))
-      (pop unread-command-events)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; scrolling within Isearch mode.  Alan Mackenzie (acm@muc.de), 2003/2/24
 ;;
@@ -2244,198 +2220,57 @@ the bottom."
         (recenter 0))))
   (goto-char isearch-point))
 
-(defun isearch-reread-key-sequence-naturally (keylist)
-  "Reread key sequence KEYLIST with an inactive Isearch-mode keymap.
-Return the key sequence as a string/vector."
-  (isearch-unread-key-sequence keylist)
-  (let (overriding-terminal-local-map)
-    ;; This will go through function-key-map, if nec.
-    ;; The arg DONT-DOWNCASE-LAST prevents premature shift-translation.
-    (read-key-sequence nil nil t)))
+(defvar isearch-pre-scroll-point nil)
 
-(defun isearch-lookup-scroll-key (key-seq)
-  "If KEY-SEQ is bound to a scrolling command, return it as a symbol.
-Otherwise return nil."
-  (let* ((overriding-terminal-local-map nil)
-         (binding (key-binding key-seq)))
-    (and binding (symbolp binding) (commandp binding)
-         (or (eq (get binding 'isearch-scroll) t)
-	     (eq (get binding 'scroll-command) t))
-         binding)))
+(defun isearch-pre-command-hook ()
+  "Decide whether to exit Isearch mode before executing the command.
+Don't exit Isearch if the key sequence that invoked this command
+is bound in `isearch-mode-map', or if the invoked command is
+a prefix argument command (when `isearch-allow-prefix' is non-nil),
+or it is a scrolling command (when `isearch-allow-scroll' is non-nil).
+Otherwise, exit Isearch (when `search-exit-option' is non-nil)
+before the command is executed globally with terminated Isearch."
+  (let* ((key (this-command-keys))
+	 (main-event (aref key 0)))
+    (cond
+     ;; Don't exit Isearch for isearch key bindings.
+     ;; FIXME: remove prefix arg to lookup key without prefix.
+     ((commandp (lookup-key isearch-mode-map key nil)))
+     ;; Optionally edit the search string instead of exiting.
+     ((eq search-exit-option 'edit)
+      (setq this-command 'isearch-edit-string))
+     ;; Handle a scrolling function or prefix argument.
+     ((or (and isearch-allow-prefix
+	       (memq this-command '(universal-argument
+				    negative-argument
+				    digit-argument)))
+	  (and isearch-allow-scroll
+	       (or (eq (get this-command 'isearch-scroll) t)
+		   (eq (get this-command 'scroll-command) t))))
+      (when isearch-allow-scroll
+	(setq isearch-pre-scroll-point (point))))
+     ;; A mouse click on the isearch message starts editing the search string.
+     ((and (eq (car-safe main-event) 'down-mouse-1)
+	   (window-minibuffer-p (posn-window (event-start main-event))))
+      ;; Swallow the up-event.
+      (read-event)
+      (setq this-command 'isearch-edit-string))
+     ;; Other characters terminate the search and are then executed normally.
+     (search-exit-option
+      (isearch-done)
+      (isearch-clean-overlays))
+     ;; If search-exit-option is nil, run the command without exiting Isearch.
+     (t
+      (isearch-process-search-string key key)))))
 
-(defalias 'isearch-other-control-char 'isearch-other-meta-char)
-
-(defun isearch-other-meta-char (&optional arg)
-  "Process a miscellaneous key sequence in Isearch mode.
-
-Try to convert the current key-sequence to something usable in Isearch
-mode, either by converting it with `function-key-map', downcasing a
-key with C-<upper case>, or finding a \"scrolling command\" bound to
-it.  \(In the last case, we may have to read more events.)  If so,
-either unread the converted sequence or execute the command.
-
-Otherwise, if `search-exit-option' is non-nil (the default) unread the
-key-sequence and exit the search normally.  If it is the symbol
-`edit', the search string is edited in the minibuffer and the meta
-character is unread so that it applies to editing the string.
-
-ARG is the prefix argument.  It will be transmitted through to the
-scrolling command or to the command whose key-sequence exits
-Isearch mode."
-  (interactive "P")
-  (let* ((key (if current-prefix-arg    ; not nec the same as ARG
-                  (substring (this-command-keys) universal-argument-num-events)
-                (this-command-keys)))
-	 (main-event (aref key 0))
-	 (keylist (listify-key-sequence key))
-         scroll-command isearch-point)
-    (cond ((and (= (length key) 1)
-		(let ((lookup (lookup-key local-function-key-map key)))
-		  (not (or (null lookup) (integerp lookup)
-			   (keymapp lookup)))))
-	   ;; Handle a function key that translates into something else.
-	   ;; If the key has a global definition too,
-	   ;; exit and unread the key itself, so its global definition runs.
-	   ;; Otherwise, unread the translation,
-	   ;; so that the translated key takes effect within isearch.
-	   (cancel-kbd-macro-events)
-	   (if (lookup-key global-map key)
-	       (progn
-		 (isearch-done)
-		 (setq prefix-arg arg)
-		 (apply 'isearch-unread keylist))
-	     (setq keylist
-		   (listify-key-sequence
-		    (lookup-key local-function-key-map key)))
-	     (while keylist
-	       (setq key (car keylist))
-	       ;; Handle an undefined shifted printing character
-	       ;; by downshifting it if that makes it printing.
-	       ;; (As read-key-sequence would normally do,
-	       ;; if we didn't have a default definition.)
-	       (if (and (integerp key)
-			(memq 'shift (event-modifiers key))
-			(>= key (+ ?\s (- ?\S-a ?a)))
-			(/= key (+ 127 (- ?\S-a ?a)))
-			(<  key (+ 256 (- ?\S-a ?a))))
-		   (setq key (- key (- ?\S-a ?a))))
-	       ;; If KEY is a printing char, we handle it here
-	       ;; directly to avoid the input method and keyboard
-	       ;; coding system translating it.
-	       (if (and (integerp key)
-			(>= key ?\s) (/= key 127) (< key 256))
-		   (progn
-		     ;; Ensure that the processed char is recorded in
-		     ;; the keyboard macro, if any (Bug#4894)
-		     (store-kbd-macro-event key)
-		     (isearch-process-search-char key)
-		     (setq keylist (cdr keylist)))
-		 ;; As the remaining keys in KEYLIST can't be handled
-		 ;; here, we must reread them.
-		 (setq prefix-arg arg)
-		 (apply 'isearch-unread keylist)
-		 (setq keylist nil)))))
-	  (
-	   ;; Handle an undefined shifted control character
-	   ;; by downshifting it if that makes it defined.
-	   ;; (As read-key-sequence would normally do,
-	   ;; if we didn't have a default definition.)
-	   (let ((mods (event-modifiers main-event)))
-	     (and (integerp main-event)
-		  (memq 'shift mods)
-		  (memq 'control mods)
-		  (not (memq (lookup-key isearch-mode-map
-					 (let ((copy (copy-sequence key)))
-					   (aset copy 0
-						 (- main-event
-						    (- ?\C-\S-a ?\C-a)))
-					   copy)
-					 nil)
-			     '(nil
-			       isearch-other-control-char)))))
-	   (setcar keylist (- main-event (- ?\C-\S-a ?\C-a)))
-	   (cancel-kbd-macro-events)
-	   (setq prefix-arg arg)
-	   (apply 'isearch-unread keylist))
-	  ((eq search-exit-option 'edit)
-	   (setq prefix-arg arg)
-	   (apply 'isearch-unread keylist)
-	   (isearch-edit-string))
-          ;; Handle a scrolling function or prefix argument.
-          ((progn
-	     (setq key (isearch-reread-key-sequence-naturally keylist)
-		   keylist (listify-key-sequence key)
-		   main-event (aref key 0))
-	     (or (and isearch-allow-scroll
-		      (setq scroll-command (isearch-lookup-scroll-key key)))
-		 (and isearch-allow-prefix
-		      (let (overriding-terminal-local-map)
-			(setq scroll-command (key-binding key))
-			(memq scroll-command
-			      '(universal-argument
-				negative-argument digit-argument))))))
-           ;; From this point onwards, KEY, KEYLIST and MAIN-EVENT hold a
-           ;; complete key sequence, possibly as modified by function-key-map,
-           ;; not merely the one or two event fragment which invoked
-           ;; isearch-other-meta-char in the first place.
-           (setq isearch-point (point))
-           (setq prefix-arg arg)
-           (command-execute scroll-command)
-           (let ((ab-bel (isearch-string-out-of-window isearch-point)))
-             (if ab-bel
-                 (isearch-back-into-window (eq ab-bel 'above) isearch-point)
-               (goto-char isearch-point)))
-           (isearch-update))
-	  ;; A mouse click on the isearch message starts editing the search string
-	  ((and (eq (car-safe main-event) 'down-mouse-1)
-		(window-minibuffer-p (posn-window (event-start main-event))))
-	   ;; Swallow the up-event.
-	   (read-event)
-	   (isearch-edit-string))
-	  (search-exit-option
-	   (let (window)
-	     (setq prefix-arg arg)
-             (isearch-unread-key-sequence keylist)
-             (setq main-event (car unread-command-events))
-
-	     ;; Don't store special commands in the keyboard macro.
-	     (let (overriding-terminal-local-map)
-	       (when (memq (key-binding key)
-			   '(kmacro-start-macro
-			     kmacro-end-macro kmacro-end-and-call-macro))
-		 (cancel-kbd-macro-events)))
-
-	     ;; If we got a mouse click event, that event contains the
-	     ;; window clicked on. maybe it was read with the buffer
-	     ;; it was clicked on.  If so, that buffer, not the current one,
-	     ;; is in isearch mode.  So end the search in that buffer.
-
-	     ;; ??? I have no idea what this if checks for, but it's
-	     ;; obviously wrong for the case that a down-mouse event
-	     ;; on another window invokes this function.  The event
-	     ;; will contain the window clicked on and that window's
-	     ;; buffer is certainly not always in Isearch mode.
-	     ;;
-	     ;; Leave the code in, but check for current buffer not
-	     ;; being in Isearch mode for now, until someone tells
-	     ;; what it's really supposed to do.
-	     ;;
-	     ;; --gerd 2001-08-10.
-
-	     (if (and (not isearch-mode)
-		      (listp main-event)
-		      (setq window (posn-window (event-start main-event)))
-		      (windowp window)
-		      (or (> (minibuffer-depth) 0)
-			  (not (window-minibuffer-p window))))
-		 (with-current-buffer (window-buffer window)
-		   (isearch-done)
-		   (isearch-clean-overlays))
-	       (isearch-done)
-	       (isearch-clean-overlays)
-               (setq prefix-arg arg))))
-          (t;; otherwise nil
-	   (isearch-process-search-string key key)))))
+(defun isearch-post-command-hook ()
+  (when isearch-pre-scroll-point
+    (let ((ab-bel (isearch-string-out-of-window isearch-pre-scroll-point)))
+      (if ab-bel
+	  (isearch-back-into-window (eq ab-bel 'above) isearch-pre-scroll-point)
+	(goto-char isearch-pre-scroll-point)))
+    (setq isearch-pre-scroll-point nil)
+    (isearch-update)))
 
 (defun isearch-quote-char (&optional count)
   "Quote special characters for incremental search.

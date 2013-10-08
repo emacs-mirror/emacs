@@ -1,3 +1,20 @@
+2013-10-08  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-help-map, isearch-mode-map): Don't bind [t]
+	to isearch-other-control-char.
+	(isearch-mode): Add isearch-pre-command-hook to pre-command-hook
+	and isearch-post-command-hook to post-command-hook.
+	(isearch-done): Remove isearch-pre-command-hook from pre-command-hook
+	and isearch-post-command-hook from post-command-hook.
+	(isearch-unread-key-sequence)
+	(isearch-reread-key-sequence-naturally)
+	(isearch-lookup-scroll-key, isearch-other-control-char)
+	(isearch-other-meta-char): Remove functions.
+	(isearch-pre-command-hook, isearch-post-command-hook):
+	New functions based on isearch-other-meta-char rewritten
+	relying on the new behavior of overriding-terminal-local-map
+	that does not replace the local keymaps any more.  (Bug#15200)
+
 2013-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	Support menus on text-mode terminals.
