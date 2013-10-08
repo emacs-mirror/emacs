@@ -1,5 +1,15 @@
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el: Font-lock cl-lib constructs.
+	(lisp-el-font-lock-keywords, lisp-el-font-lock-keywords-1)
+	(lisp-el-font-lock-keywords-2, lisp-cl-font-lock-keywords)
+	(lisp-cl-font-lock-keywords-1, lisp-cl-font-lock-keywords-2):
+	New constants.
+	(lisp-mode-variables): New `elisp' argument.
+	(emacs-lisp-mode): Use it.
+	* font-lock.el (lisp-font-lock-keywords, lisp-font-lock-keywords-1)
+	(lisp-font-lock-keywords-2): Move to lisp-mode.el.
+
 	* indent.el: Use lexical-binding.
 	(indent-region): Add progress reporter.
 	(tab-stop-list): Make it implicitly extend to infinity by repeating the
