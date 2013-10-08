@@ -2374,7 +2374,7 @@ first (leftmost) menu-bar item; you can select other items by typing
   :group 'display
   :version "24.4")
 
-(defvar tty-menu--initial-menu-x 10
+(defvar tty-menu--initial-menu-x 1
   "X coordinate of the first menu-bar menu dropped by F10.
 
 This is meant to be used only for debugging TTY menus.")
