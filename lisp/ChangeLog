@@ -1,5 +1,8 @@
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/backquote.el (backquote-process): Catch uses of , and ,@
+	with more than one argument (bug#15538).
+
 	* mpc.el (mpc-songs-jump-to): Adjust to different playlist format.
 
 	* vc/pcvs.el: Use lexical-binding.
