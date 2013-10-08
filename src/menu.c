@@ -1064,7 +1064,10 @@ Value is the symbol of the menu at X/Y, or nil if the specified
 coordinates are not within the FRAME's menu bar.  The symbol can
 be used to look up the menu like this:
 
-     (lookup-key global-map [menu-bar SYMBOL])
+     (lookup-key MAP [menu-bar SYMBOL])
+
+where MAP is either the current global map or the current local map,
+since menu-bar items come from both.
 
 This function can return non-nil only on a text-terminal frame
 or on an X frame that doesn't use any GUI toolkit.  Otherwise,

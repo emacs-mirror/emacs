@@ -2340,9 +2340,16 @@ If nil, the current mouse position is used."
   "Keymap used while processing TTY menus.")
 
 
-;; FIXME: Make this a defcustom!
-(defvar tty-menu-open-use-tmm nil
-  "If non-nil, menu-bar-open on a TTY will invoke `tmm-menubar'.")
+(defcustom tty-menu-open-use-tmm nil
+  "If non-nil, \\[menu-bar-open] on a TTY will invoke `tmm-menubar'.
+
+If nil, \\[menu-bar-open] will drop down the menu corresponding to the
+first (leftmost) menu-bar item; you can select other items by typing
+\\[forward-char], \\[backward-char], \\[right-char] and \\[left-char]."
+  :type '(choice (const :tag "F10 drops down TTY menus" nil)
+		 (const :tag "F10 invokes tmm-menubar" t))
+  :group 'display
+  :version "24.4")
 
 (defvar tty-menu--initial-menu-x 10
   "X coordinate of the first menu-bar menu dropped by F10.
