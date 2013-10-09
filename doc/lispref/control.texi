@@ -218,15 +218,11 @@ list is the @var{condition}; the remaining elements, if any, the
 @code{cond} tries the clauses in textual order, by evaluating the
 @var{condition} of each clause.  If the value of @var{condition} is
 non-@code{nil}, the clause ``succeeds''; then @code{cond} evaluates its
-@var{body-forms}, and the value of the last of @var{body-forms} becomes
-the value of the @code{cond}.  The remaining clauses are ignored.
+@var{body-forms}, and returns the value of the last of @var{body-forms}.
+Any remaining clauses are ignored.
 
 If the value of @var{condition} is @code{nil}, the clause ``fails'', so
-the @code{cond} moves on to the following clause, trying its
-@var{condition}.
-
-If every @var{condition} evaluates to @code{nil}, so that every clause
-fails, @code{cond} returns @code{nil}.
+the @code{cond} moves on to the following clause, trying its @var{condition}.
 
 A clause may also look like this:
 
@@ -235,8 +231,11 @@ A clause may also look like this:
 @end example
 
 @noindent
-Then, if @var{condition} is non-@code{nil} when tested, the value of
-@var{condition} becomes the value of the @code{cond} form.
+Then, if @var{condition} is non-@code{nil} when tested, the @code{cond}
+form returns the value of @var{condition}.
+
+If every @var{condition} evaluates to @code{nil}, so that every clause
+fails, @code{cond} returns @code{nil}.
 
 The following example has four clauses, which test for the cases where
 the value of @code{x} is a number, string, buffer and symbol,

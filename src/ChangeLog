@@ -1,3 +1,7 @@
+2013-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fcond): Doc tweak.
+
 2013-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfaces.c (x_free_gc) [HAVE_X_WINDOWS, HAVE_NTGUI]: Don't pass

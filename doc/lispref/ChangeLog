@@ -1,3 +1,7 @@
+2013-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* control.texi (Conditionals): Copyedits.  (Bug#15558)
+
 2013-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	Support menus on text-mode terminals.
