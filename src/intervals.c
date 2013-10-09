@@ -1792,8 +1792,7 @@ temp_set_point_both (struct buffer *buffer,
 		     ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   /* In a single-byte buffer, the two positions must be equal.  */
-  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer))
-    eassert (charpos == bytepos);
+  eassert (BUF_ZV (buffer) != BUF_ZV_BYTE (buffer) || charpos == bytepos);
 
   eassert (charpos <= bytepos);
   eassert (charpos <= BUF_ZV (buffer) || BUF_BEGV (buffer) <= charpos);

@@ -1,5 +1,8 @@
 2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* intervals.c (temp_set_point_both): Move test into 'eassert',
+	for speed.
+
 	* lisp.h (eassert): Don't use 'assume'.
 	Sometimes 'assume' wins in performance, and sometimes it loses,
 	so it shouldn't be used all the time.  Perhaps we need two
