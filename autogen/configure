@@ -10687,11 +10687,8 @@ to configure." "$LINENO" 5
    fi
 fi
 
-### If we're using X11, we should use the X menu package.
-HAVE_MENUS=no
-case ${HAVE_X11} in
-  yes ) HAVE_MENUS=yes ;;
-esac
+### We always support menus.
+HAVE_MENUS=yes
 
 # Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
@@ -14318,13 +14315,7 @@ $as_echo "#define NS_IMPL_GNUSTEP 1" >>confdefs.h
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
-  # We also have mouse menus.
-  HAVE_MENUS=yes
   OTHER_FILES=ns-app
-fi
-
-if test "${HAVE_W32}" = "yes"; then
-  HAVE_MENUS=yes
 fi
 
 ### Use session management (-lSM -lICE) if available
