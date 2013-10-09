@@ -1,3 +1,14 @@
+2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (eassert): Don't use 'assume'.
+	Sometimes 'assume' wins in performance, and sometimes it loses,
+	so it shouldn't be used all the time.  Perhaps we need two
+	flavors of 'eassert', one for where 'assume' is far more likely
+	to help or to hurt; but that can be done later.
+	Problem reported by Dmitry Andipov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00276.html>.
+	Also, don't include <verify.h>; no longer needed.
+
 2013-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* eval.c (Fcond): Doc tweak.

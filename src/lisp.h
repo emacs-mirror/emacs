@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 
 #include <intprops.h>
-#include <verify.h>
 
 INLINE_HEADER_BEGIN
 
@@ -115,11 +114,9 @@ typedef EMACS_UINT uprintmax_t;
 /* Extra internal type checking?  */
 
 /* Define an Emacs version of 'assert (COND)'.  COND should be free of
-   side effects; it may be evaluated zero or more times.  If COND is false,
-   Emacs reliably crashes if ENABLE_CHECKING is defined and behavior
-   is undefined if not.  The compiler may assume COND while optimizing.  */
+   side effects; it may be evaluated zero or more times.  */
 #ifndef ENABLE_CHECKING
-# define eassert(cond) assume (cond)
+# define eassert(cond) ((void) (0 && (cond))) /* Check that COND compiles.  */
 #else /* ENABLE_CHECKING */
 
 extern _Noreturn void die (const char *, const char *, int);
@@ -136,7 +133,7 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 # define eassert(cond)						\
    (suppress_checking || (cond) 				\
-    ? assume (cond)						\
+    ? (void) 0							\
     : die (# cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
 
