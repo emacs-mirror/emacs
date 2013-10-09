@@ -4191,7 +4191,9 @@ sxhash_bool_vector (Lisp_Object vec)
   EMACS_UINT hash = XBOOL_VECTOR (vec)->size;
   int i, n;
 
-  n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->header.size);
+  n = min (SXHASH_MAX_LEN,
+	   ((XBOOL_VECTOR (vec)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	    / BOOL_VECTOR_BITS_PER_CHAR));
   for (i = 0; i < n; ++i)
     hash = sxhash_combine (hash, XBOOL_VECTOR (vec)->data[i]);
 

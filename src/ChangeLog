@@ -1,3 +1,7 @@
+2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (sxhash_bool_vector): Fix buffer read overrun.
+
 2013-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (tty_menu_activate): Flush the output stream after
