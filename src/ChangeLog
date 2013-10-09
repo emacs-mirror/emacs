@@ -1,3 +1,8 @@
+2013-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (x_free_gc) [HAVE_X_WINDOWS, HAVE_NTGUI]: Don't pass
+	expressions with side effects to eassert.  (Bug#15565)
+
 2013-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (hashfn_user_defined): Allow hash functions to return any
