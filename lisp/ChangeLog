@@ -1,3 +1,17 @@
+2013-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* profiler.el: Create a more coherent calltree from partial backtraces.
+	(profiler-format): Hide the tail with `invisible' so that C-s can still
+	find the hidden elements.
+	(profiler-calltree-depth): Don't recurse so enthusiastically.
+	(profiler-function-equal): New hash-table-test.
+	(profiler-calltree-build-unified): New function.
+	(profiler-calltree-build): Use it.
+	(profiler-report-make-name-part): Indent the calltree less.
+	(profiler-report-mode): Add visibility specs for profiler-format.
+	(profiler-report-expand-entry, profiler-report-toggle-entry):
+	Expand the whole subtree when provided with a prefix arg.
+
 2013-10-09  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Indent after hanging

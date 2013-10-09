@@ -3571,9 +3571,7 @@ hashfn_user_defined (struct hash_table_test *ht, Lisp_Object key)
   args[0] = ht->user_hash_function;
   args[1] = key;
   hash = Ffuncall (2, args);
-  if (!INTEGERP (hash))
-    signal_error ("Invalid hash code returned from user-supplied hash function", hash);
-  return XUINT (hash);
+  return hashfn_eq (ht, hash);
 }
 
 /* An upper bound on the size of a hash table index.  It must fit in
@@ -4542,9 +4540,9 @@ compare keys, and HASH for computing hash codes of keys.
 
 TEST must be a function taking two arguments and returning non-nil if
 both arguments are the same.  HASH must be a function taking one
-argument and return an integer that is the hash code of the argument.
-Hash code computation should use the whole value range of integers,
-including negative integers.  */)
+argument and returning an object that is the hash code of the argument.
+It should be the case that if (eq (funcall HASH x1) (funcall HASH x2))
+returns nil, then (funcall TEST x1 x2) also returns nil.  */)
   (Lisp_Object name, Lisp_Object test, Lisp_Object hash)
 {
   return Fput (name, Qhash_table_test, list2 (test, hash));
