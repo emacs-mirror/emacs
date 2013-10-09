@@ -594,6 +594,9 @@ VALUES-PLIST is a list with alternating index and value elements."
    |  def foo
    |    self.end
    |    D.new.class
+   |    [1, 2, 3].map do |i|
+   |      i + 1
+   |    end.sum
    |  end
    |end"))
 
@@ -601,11 +604,11 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-with-temp-buffer ruby-sexp-test-example
     (goto-line 2)
     (ruby-forward-sexp)
-    (should (= 5 (line-number-at-pos)))))
+    (should (= 8 (line-number-at-pos)))))
 
 (ert-deftest ruby-backward-sexp-skips-method-calls-with-keyword-names ()
   (ruby-with-temp-buffer ruby-sexp-test-example
-    (goto-line 5)
+    (goto-line 8)
     (end-of-line)
     (ruby-backward-sexp)
     (should (= 2 (line-number-at-pos)))))

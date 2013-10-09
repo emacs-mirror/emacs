@@ -1,3 +1,13 @@
+2013-10-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Indent after hanging
+	iuwu-mod token.
+	(ruby-smie--implicit-semi-p): Prohibit implicit semicolon after
+	hanging iuwu-mod token.
+	(ruby-smie--forward-token): Do not include a dot after a token in
+	that token.
+	(ruby-smie--backward-token): Likewise.
+
 2013-10-08  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-help-map, isearch-mode-map): Don't bind [t]

@@ -296,6 +296,9 @@ Also ignores spaces after parenthesis when 'space."
                   (let ((tok (save-excursion (ruby-smie--backward-token))))
                     (or (equal tok "?")
                         (string-match "\\`\\s." tok))))
+             (and (eq (car (syntax-after (1- (point)))) 2)
+                  (equal (save-excursion (ruby-smie--backward-token))
+                         "iuwu-mod"))
              (save-excursion
                (forward-comment 1)
                (eq (char-after) ?.))))))
@@ -334,9 +337,6 @@ Also ignores spaces after parenthesis when 'space."
     (if (looking-at ":\\s.+")
         (progn (goto-char (match-end 0)) (match-string 0)) ;; bug#15208.
       (let ((tok (smie-default-forward-token)))
-        (when (eq ?. (char-after))
-          (forward-char 1)
-          (setq tok (concat tok "." (ruby-smie--forward-id))))
         (cond
          ((member tok '("unless" "if" "while" "until"))
           (if (save-excursion (forward-word -1) (ruby-smie--bosp))
@@ -375,7 +375,7 @@ Also ignores spaces after parenthesis when 'space."
       (let ((tok (smie-default-backward-token)))
         (when (eq ?. (char-before))
           (forward-char -1)
-          (setq tok (concat (ruby-smie--backward-id) "." tok)))
+          (setq tok (concat "." tok)))
         (when (and (eq ?: (char-before)) (string-match "\\`\\s." tok))
           (forward-char -1) (setq tok (concat ":" tok))) ;; bug#15208.
         (cond
@@ -394,6 +394,9 @@ Also ignores spaces after parenthesis when 'space."
                (line-end-position))
             (ruby-smie--backward-token)) ;Fully redundant.
            (t ";")))
+         ;; FIXME: We shouldn't merge the dot with preceding token here
+         ;; either, but not doing that breaks indentation of hanging
+         ;; method calls with dot on the first line.
          ((equal tok ".")
           (concat (ruby-smie--backward-id) tok))
          (t tok)))))))
@@ -419,7 +422,7 @@ Also ignores spaces after parenthesis when 'space."
      ;; when the opening statement is hanging.
      (when (smie-rule-hanging-p)
        (smie-backward-sexp 'halfsexp) (smie-indent-virtual)))
-    (`(:after . "=") 2)
+    (`(:after . ,(or "=" "iuwu-mod")) 2)
     (`(:before . "do")
      (when (or (smie-rule-hanging-p)
                (save-excursion
