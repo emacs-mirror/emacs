@@ -1,3 +1,8 @@
+2013-10-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fns_convert_utf8_nfd_to_nfc): Check input for valid UTF-8
+	or throw error (Bug#15570).
+
 2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* intervals.c (temp_set_point_both): Move test into 'eassert',
