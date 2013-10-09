@@ -1,3 +1,9 @@
+2013-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
+	Add some entries.
+	(authors): Remove unused local variables.
+
 2013-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* profiler.el: Create a more coherent calltree from partial backtraces.

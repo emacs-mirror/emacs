@@ -51,6 +51,7 @@ files.")
     ("Bill Rozas" "Guillermo J. Rozas")
     ("Björn Torkelsson" "Bjorn Torkelsson")
     ("Brian Fox" "Brian J. Fox")
+    ("Brian P Templeton" "BT Templeton")
     ("Brian Sniffen" "Brian T. Sniffen")
     ("Christoph Wedler" "Christoph.Wedler@sap.com")
     ("Daniel Pfeiffer" "<Daniel.Pfeiffer@Informatik.START.db.de>"
@@ -192,7 +193,8 @@ If REALNAME is nil, ignore that author.")
 
 ;; FIXME seems it would be less fragile to check for O', Mc, etc.
 (defconst authors-fixed-case
-  '("Bryan O'Sullivan"
+  '("Brian van den Broek"
+    "Bryan O'Sullivan"
     "Christian von Roques"
     "Christophe de Dinechin"
     "Craig McDaniel"
@@ -206,7 +208,9 @@ If REALNAME is nil, ignore that author.")
     "Greg McGary"
     "Hans de Graaff"
     "James TD Smith"
+    "Jay McCarthy"
     "Joel N. Weber II"
+    "Matt McClure"
     "Michael McNamara"
     "Mike McEwan"
     "Nelson Jose dos Santos Ferreira"
@@ -216,6 +220,7 @@ If REALNAME is nil, ignore that author.")
     "Roland McGrath"
     "Sean O'Halpin"
     "Sean O'Rourke"
+    "Thomas DeWeese"
     "Tijs van Bakel")
   "List of authors whose names cannot be simply capitalized.")
 
@@ -1023,7 +1028,7 @@ buffer *Authors Errors* containing references to unknown files."
 Foundation's distribution of GNU Emacs.  To show our appreciation for
 their public spirit, we list here in alphabetical order a condensed
 list of their contributions.\n")
-    (let (authors-author-list a)
+    (let (authors-author-list)
       (maphash #'authors-add-to-author-list table)
       (setq authors-author-list
 	    (sort authors-author-list
@@ -1032,8 +1037,7 @@ list of their contributions.\n")
 	(let ((author (car a))
 	      (wrote (nth 1 a))
 	      (cowrote (nth 2 a))
-	      (changed (nth 3 a))
-	      file)
+	      (changed (nth 3 a)))
 	(insert "\n" author ": ")
 	(when wrote
 	  (insert "wrote")
