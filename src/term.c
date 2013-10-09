@@ -3428,6 +3428,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   while (statecount--)
     free_saved_screen (state[statecount].screen_behind);
   tty_show_cursor (tty);	/* turn cursor back on */
+  fflush (tty->output);
 
 /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
@@ -3437,7 +3438,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   discard_mouse_events ();
   if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
-  SET_FRAME_GARBAGED (sf);
   return result;
 }
 

@@ -1,3 +1,10 @@
+2013-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_activate): Flush the output stream after
+	showing the cursor, and don't mark the frame garbaged at exit from
+	the function.  Fixes redisplay glitches when moving from one menu
+	to another.
+
 2013-10-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fns_convert_utf8_nfd_to_nfc): Check input for valid UTF-8
