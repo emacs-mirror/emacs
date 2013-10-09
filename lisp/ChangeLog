@@ -1,5 +1,8 @@
 2013-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-svn.el (vc-svn-create-repo):
+	Expand paths in file://... url.  (Bug#15446)
+
 	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
 	Add some entries.
 	(authors): Remove unused local variables.
