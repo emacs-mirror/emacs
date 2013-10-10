@@ -1,3 +1,11 @@
+2013-10-10  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-options-menu): Remove text-mode auto-fill,
+	now that text mode has a menu with the same entry.
+	(menu-bar-text-mode-auto-fill): Remove now unused func.
+	* textmodes/text-mode.el (text-mode-map):
+	Use auto-fill help text from menu-bar.el.
+
 2013-10-10  John Anthony  <john@jo.hnanthony.com>  (tiny change)
 
 	* textmodes/text-mode.el (text-mode-map): Add a menu.  (Bug#15562)

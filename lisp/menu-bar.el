@@ -1102,15 +1102,6 @@ mail status in mode line"))
                                                  'tool-bar-lines))))))
     menu))
 
-(defun menu-bar-text-mode-auto-fill ()
-  (interactive)
-  (toggle-text-mode-auto-fill)
-  ;; This is somewhat questionable, as `text-mode-hook'
-  ;; might have changed outside customize.
-  ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-  (customize-mark-as-set 'text-mode-hook))
-
-
 (defvar menu-bar-line-wrapping-menu
   (let ((menu (make-sparse-keymap "Line Wrapping")))
 
@@ -1274,15 +1265,6 @@ mail status in mode line"))
        "Ignore Case for Search"
        "Case-Insensitive Search %s"
        "Ignore letter-case in search commands"))
-
-    (bindings--define-key menu [auto-fill-mode]
-      '(menu-item
- "Auto Fill in Text Modes"
-	menu-bar-text-mode-auto-fill
-	:help "Automatically fill text while typing (Auto Fill mode)"
-	:button (:toggle . (if (listp text-mode-hook)
-			       (member 'turn-on-auto-fill text-mode-hook)
-			     (eq 'turn-on-auto-fill text-mode-hook)))))
 
     (bindings--define-key menu [line-wrapping]
       `(menu-item "Line Wrapping in This Buffer"

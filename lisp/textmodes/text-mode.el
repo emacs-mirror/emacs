@@ -1,7 +1,6 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1992, 1994, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985, 1992, 1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -56,7 +55,7 @@ Use (derived-mode-p 'text-mode) instead.")
     (bindings--define-key map [menu-bar text toggle-text-mode-auto-fill]
       '(menu-item "Auto Fill" toggle-text-mode-auto-fill
                   :button (:toggle . (memq 'turn-on-auto-fill text-mode-hook))
-                  :help "Toggle auto fill within text modes"))
+                  :help "Automatically fill text while typing in text modes (Auto Fill mode)"))
     (bindings--define-key map [menu-bar text paragraph-indent-minor-mode]
       '(menu-item "Paragraph Indent" paragraph-indent-minor-mode
                   :button (:toggle . (bound-and-true-p paragraph-indent-minor-mode))
