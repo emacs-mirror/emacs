@@ -1,3 +1,8 @@
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* env.el (substitute-env-in-file-name): New function.
+	(substitute-env-vars): Extend the meaning of the optional arg.
+
 2013-10-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (dynamic-library-alist): Define separate lists

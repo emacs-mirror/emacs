@@ -1,3 +1,9 @@
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fsubstitute_in_file_name): Use substitute-env-in-file-name.
+	(Qsubstitute_env_in_file_name): New var.
+	(syms_of_fileio): Define it.
+
 2013-10-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (deep_copy_glyph_row): Assert that the 'used' counts of
