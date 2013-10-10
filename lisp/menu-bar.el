@@ -2359,7 +2359,8 @@ If FRAME is nil or not given, use the selected frame."
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
-     ((null tty-menu-open-use-tmm)
+     ((and (null tty-menu-open-use-tmm)
+	   (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0))))
       (let* ((x tty-menu--initial-menu-x)
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
