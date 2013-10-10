@@ -24,10 +24,17 @@
 (require 'ert)
 (require 'ruby-mode)
 
+(defmacro ruby-with-temp-buffer (contents &rest body)
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (insert ,contents)
+     (ruby-mode)
+     ,@body))
+
 (defun ruby-should-indent (content column)
   "Assert indentation COLUMN on the last line of CONTENT."
   (ruby-with-temp-buffer content
-    (ruby-indent-line)
+    (indent-according-to-mode)
     (should (= (current-indentation) column))))
 
 (defun ruby-should-indent-buffer (expected content)
@@ -37,13 +44,6 @@ The whitespace before and including \"|\" on each line is removed."
   (ruby-with-temp-buffer (ruby-test-string content)
     (indent-region (point-min) (point-max))
     (should (string= (ruby-test-string expected) (buffer-string)))))
-
-(defmacro ruby-with-temp-buffer (contents &rest body)
-  (declare (indent 1) (debug t))
-  `(with-temp-buffer
-     (insert ,contents)
-     (ruby-mode)
-     ,@body))
 
 (defun ruby-test-string (s &rest args)
   (apply 'format (replace-regexp-in-string "^[ \t]*|" "" s) args))
@@ -471,14 +471,13 @@ VALUES-PLIST is a list with alternating index and value elements."
    |end"))
 
 (defmacro ruby-deftest-move-to-block (name &rest body)
+  (declare (indent defun))
   `(ert-deftest ,(intern (format "ruby-move-to-block-%s" name)) ()
      (with-temp-buffer
        (insert ruby-block-test-example)
        (ruby-mode)
        (goto-char (point-min))
        ,@body)))
-
-(put 'ruby-deftest-move-to-block 'lisp-indent-function 'defun)
 
 (ruby-deftest-move-to-block works-on-do
   (forward-line 10)

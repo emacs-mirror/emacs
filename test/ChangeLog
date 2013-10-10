@@ -1,3 +1,10 @@
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/ruby-mode-tests.el (ruby-with-temp-buffer): Move before
+	first use.
+	(ruby-should-indent): Use indent-according-to-mode.
+	(ruby-deftest-move-to-block): Use `declare'.
+
 2013-10-07  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: Fix a spurious change, add more failing examples.
