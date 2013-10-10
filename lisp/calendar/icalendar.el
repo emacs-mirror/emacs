@@ -1822,7 +1822,7 @@ Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
   (interactive "fImport iCalendar data from file: \n\
 Finto diary file:
-p")
+P")
   ;; clean up the diary file
   (save-current-buffer
     ;; now load and convert from the ical file
