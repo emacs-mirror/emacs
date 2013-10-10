@@ -36,8 +36,8 @@ deciding. (Summary: am I changing the specification?).
 What is a version?
 ~~~~~~~~~~~~~~~~~~
 
-A version is a 'clone' of all the master source files, that then has its
-own evolution. A Version has these parts:
+A version is a ‘clone’ of all the master source files, that then has its
+own evolution. A version has these parts:
 
 -  Perforce branch, defining the mapping used to integrate from master
    to version. By convention, the name of the branch is
@@ -46,19 +46,20 @@ own evolution. A Version has these parts:
 
       $ p4 branch -o mps/version/1.105
       ...
-       //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
+      View:
+              //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
       ...
 
--  Cloned (integrated) and submitted files, in the "version/A.BBB/..."
-   sub-tree. Usually this is a clone of the entire "master" subtree and
-   all its files. These were created in a single change with "p4
-   integrate -b <branchspec>". This initial integrate is what populates
-   the version branch with files; before that it was empty. For each of
-   these files, Perforce reports the first action as "branch". Some
-   files may then be further modified.
+-  Cloned (integrated) and submitted files, in the ``version/A.BBB/...``
+   sub-tree. Usually this is a clone of the entire ``master`` subtree
+   and all its files. These were created in a single change with ``p4
+   integrate -b <branchspec>``. This initial integrate is what
+   populates the version branch with files; before that it was empty.
+   For each of these files, Perforce reports the first action as
+   "branch". Some files may then be further modified.
 
 -  Origin: The point in time that the initial integrate was performed,
-   expressed as its changelevel minus one, defines the "Origin" of the
+   expressed as its changelevel minus one, defines the ‘Origin’ of the
    version. The Origin is the last change on the master sources that
    also made it into the version sources by virtue of the initial
    integrate command.
@@ -70,25 +71,28 @@ own evolution. A Version has these parts:
 ---------------------------------------
 
 0. Some files contain an MPS version-name. What version-name do the
-*master* copies of these files contain? It depends. Some contain the
-pseudo-version-name "master": you will leave these files unchanged on
-master, and only update them on the version branch (see step 6 below).
-Others, even in master, refer to the expected next version-name: you
-should update these files before making the branch. Make these files
-contain the expected new version-name, and/or information pertinent to
-the new version:
+   *master* copies of these files contain? It depends. Some contain
+   the pseudo-version-name ``master``: you will leave these files
+   unchanged in the master source, and only update them on the version
+   branch (see step 6 below). Others, even in the master sources,
+   refer to the expected next version-name: you should update these
+   files before making the branch. Make these files contain the
+   expected new version-name, and/or information pertinent to the new
+   version:
 
-- ``master/readme.txt``
-- ``master/code/version.c``
-- ``master/code/w3build.bat``
+   - ``master/code/version.c``
+   - ``master/manual/source/release.rst``
 
-(check the "Setup" section of procedure/release-build for the full list
-of these files) Submit these files before you continue.
+   Submit these files before you continue.
 
-1. Make the branch: p4 branch mps/version/A.BBB Description: Branching
-master sources for version A.BBB. Always the whole of master::
+1. Make the branch by running ``p4 branch mps/version/A.BBB``. Specify::
 
-    //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/A.BBB/...
+       Description: Branching master sources for version A.BBB.
+
+   Always branch the whole of the master sources::
+
+       View:
+               //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/A.BBB/...
 
 2. Make sure you have no unsubmitted files, and then::
 
@@ -96,8 +100,9 @@ master sources for version A.BBB. Always the whole of master::
 
 3. ``p4 submit``
 
-4. Determine the Origin of the new version: do p4 changes -m 5 on the
-   master, and note the latest change that was in before the integrate.
+4. Determine the Origin of the new version: do ``p4 changes -m 5`` on
+   the master sources, and note the latest change that was in before
+   the integrate.
 
    .. Note: it's better to do it this way -- do the integrate from the
       *implicit* tip of the master, and then check back to see what
