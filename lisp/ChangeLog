@@ -1,3 +1,9 @@
+2013-10-10  João Távora <joaotavora@gmail.com>
+
+	* vc/vc.el (vc-diff-build-argument-list-internal): If the file is
+	not locked, use last revision and current source as
+	defaults.  (Bug#15569)
+
 2013-10-10  Masatake YAMATO  <yamato@redhat.com>
 
 	* menu-bar.el (menu-bar-open): Don't use popup-menu if
