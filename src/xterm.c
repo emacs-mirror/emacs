@@ -9905,15 +9905,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       terminal->kboard = share->terminal->kboard;
     else
       {
-	terminal->kboard = xmalloc (sizeof *terminal->kboard);
-	init_kboard (terminal->kboard);
-	kset_window_system (terminal->kboard, Qx);
-
-	/* Add the keyboard to the list before running Lisp code (via
-           Qvendor_specific_keysyms below), since these are not traced
-           via terminals but only through all_kboards.  */
-	terminal->kboard->next_kboard = all_kboards;
-	all_kboards = terminal->kboard;
+	terminal->kboard = allocate_kboard (Qx);
 
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {

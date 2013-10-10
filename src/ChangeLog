@@ -1,3 +1,17 @@
+2013-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (init_kboard): Now static.  Add arg
+	to denote window system.  Adjust comment.
+	(init_keyboard): Adjust user.
+	(allocate_kboard): New function.
+	(syms_of_keyboard):
+	* nsterm.m (ns_term_init):
+	* term.c (init_tty):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_term_init): Use it.
+	* keyboard.h (init_kboard): Remove prototype.
+	(allocate_kboard): Add prototype.
+
 2013-10-10  Barry Fishman  <barry_fishman@acm.org>  (tiny change)
 
 	* image.c (GIFLIB_MAJOR): Ensure it's defined.
@@ -29,7 +43,7 @@
 	so it shouldn't be used all the time.  Perhaps we need two
 	flavors of 'eassert', one for where 'assume' is far more likely
 	to help or to hurt; but that can be done later.
-	Problem reported by Dmitry Andipov in
+	Problem reported by Dmitry Antipov in
 	<http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00276.html>.
 	Also, don't include <verify.h>; no longer needed.
 

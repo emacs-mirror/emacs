@@ -10790,12 +10790,11 @@ The `posn-' functions access elements of such lists.  */)
   return tem;
 }
 
-
-/*
- * Set up a new kboard object with reasonable initial values.
- */
-void
-init_kboard (KBOARD *kb)
+/* Set up a new kboard object with reasonable initial values.
+   TYPE is a window system for which this keyboard is used.  */
+
+static void
+init_kboard (KBOARD *kb, Lisp_Object type)
 {
   kset_overriding_terminal_local_map (kb, Qnil);
   kset_last_command (kb, Qnil);
@@ -10816,11 +10815,25 @@ init_kboard (KBOARD *kb)
   kb->reference_count = 0;
   kset_system_key_alist (kb, Qnil);
   kset_system_key_syms (kb, Qnil);
-  kset_window_system (kb, Qt);	/* Unset.  */
+  kset_window_system (kb, type);
   kset_input_decode_map (kb, Fmake_sparse_keymap (Qnil));
   kset_local_function_key_map (kb, Fmake_sparse_keymap (Qnil));
   Fset_keymap_parent (KVAR (kb, Vlocal_function_key_map), Vfunction_key_map);
   kset_default_minibuffer_frame (kb, Qnil);
+}
+
+/* Allocate and basically initialize keyboard
+   object to use with window system TYPE.  */
+
+KBOARD *
+allocate_kboard (Lisp_Object type)
+{
+  KBOARD *kb = xmalloc (sizeof *kb);
+
+  init_kboard (kb, type);
+  kb->next_kboard = all_kboards;
+  all_kboards = kb;
+  return kb;
 }
 
 /*
@@ -10887,10 +10900,9 @@ init_keyboard (void)
   current_kboard = initial_kboard;
   /* Re-initialize the keyboard again.  */
   wipe_kboard (current_kboard);
-  init_kboard (current_kboard);
   /* A value of nil for Vwindow_system normally means a tty, but we also use
      it for the initial terminal since there is no window system there.  */
-  kset_window_system (current_kboard, Qnil);
+  init_kboard (current_kboard, Qnil);
 
   if (!noninteractive)
     {
@@ -11695,12 +11707,8 @@ Currently, the only supported values for this
 variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = intern_c_string ("sigusr2");
 
-  /* Create the initial keyboard.  */
-  initial_kboard = xmalloc (sizeof *initial_kboard);
-  init_kboard (initial_kboard);
-  /* Vwindow_system is left at t for now.  */
-  initial_kboard->next_kboard = all_kboards;
-  all_kboards = initial_kboard;
+  /* Create the initial keyboard.  Qt means 'unset'.  */
+  initial_kboard = allocate_kboard (Qt);
 }
 
 void

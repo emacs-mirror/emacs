@@ -4301,11 +4301,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
-  terminal->kboard = xmalloc (sizeof *terminal->kboard);
-  init_kboard (terminal->kboard);
-  kset_window_system (terminal->kboard, Qnil);
-  terminal->kboard->next_kboard = all_kboards;
-  all_kboards = terminal->kboard;
+  terminal->kboard = allocate_kboard (Qnil);
   terminal->kboard->reference_count++;
   /* Don't let the initial kboard remain current longer than necessary.
      That would cause problems if a file loaded on startup tries to

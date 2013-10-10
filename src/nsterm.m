@@ -4169,11 +4169,7 @@ ns_term_init (Lisp_Object display_name)
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);
 
-  terminal->kboard = xmalloc (sizeof *terminal->kboard);
-  init_kboard (terminal->kboard);
-  kset_window_system (terminal->kboard, Qns);
-  terminal->kboard->next_kboard = all_kboards;
-  all_kboards = terminal->kboard;
+  terminal->kboard = allocate_kboard (Qns);
   /* Don't let the initial kboard remain current longer than necessary.
      That would cause problems if a file loaded on startup tries to
      prompt in the mini-buffer.  */

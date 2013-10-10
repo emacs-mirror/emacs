@@ -507,7 +507,7 @@ extern unsigned int timers_run;
 extern bool menu_separator_name_p (const char *);
 extern bool parse_menu_item (Lisp_Object, int);
 
-extern void init_kboard (KBOARD *);
+extern KBOARD *allocate_kboard (Lisp_Object);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);
 extern void push_kboard (struct kboard *);
