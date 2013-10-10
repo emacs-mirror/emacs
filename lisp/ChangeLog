@@ -1,3 +1,8 @@
+2013-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-to-buffer-same-window): Fix doc-string.
+	(Bug#15492)
+
 2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* menu-bar.el (tty-menu-navigation-map): Reduce redundancy.
