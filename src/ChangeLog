@@ -1,3 +1,13 @@
+2013-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (GIFLIB_MAJOR): Define to 4 if undefined.
+	(GIFLIB_MINOR, GIFLIB_RELEASE): Define to zero if undefined.
+	(GifErrorString) [GIFLIB_MAJOR >= 5]: Define a function pointer.
+	(gif_load): For giflib v5.x and later, display the error message
+	produced by giflib when its functions fail.
+	(syms_of_image) <Qlibgif_version> [HAVE_NTGUI]: New DEFSYM.
+	(Bug#15531)
+
 2013-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keyboard.c (last_event_timestamp): Remove.  For X selection and

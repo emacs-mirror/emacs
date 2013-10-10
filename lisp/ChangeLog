@@ -1,3 +1,9 @@
+2013-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Define separate lists
+	of GIF DLLs for versions before and after 5.0.0 of giflib.
+	(Bug#15531)
+
 2013-10-10  João Távora <joaotavora@gmail.com>
 
 	* vc/vc.el (vc-diff-build-argument-list-internal): If the file is
