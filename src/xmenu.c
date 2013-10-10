@@ -1262,8 +1262,8 @@ pop_down_menu (void *arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (struct frame *f, widget_value *first_wv, int x, int y,
-			    bool for_click, Time timestamp)
+create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
+			    int x, int y, bool for_click)
 {
   int i;
   GtkWidget *menu;
@@ -1314,7 +1314,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv, int x, int 
   gtk_widget_show_all (menu);
 
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
-		  timestamp ? timestamp : gtk_get_current_event_time ());
+		  FRAME_DISPLAY_INFO (f)->last_user_time);
 
   record_unwind_protect_ptr (pop_down_menu, menu);
 
@@ -1372,7 +1372,7 @@ pop_down_menu (Lisp_Object arg)
    menu_item_selection will be set to the selection.  */
 static void
 create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
-			    int x, int y, bool for_click, Time timestamp)
+			    int x, int y, bool for_click)
 {
   int i;
   Arg av[2];
@@ -1451,7 +1451,7 @@ cleanup_widget_value_tree (void *arg)
 
 Lisp_Object
 xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
-	    Lisp_Object title, const char **error_name, Time timestamp)
+	    Lisp_Object title, const char **error_name)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -1664,7 +1664,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   record_unwind_protect_ptr (cleanup_widget_value_tree, first_wv);
 
   /* Actually create and show the menu until popped down.  */
-  create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
+  create_and_show_popup_menu (f, first_wv, x, y, for_click);
 
   unbind_to (specpdl_count, Qnil);
 
@@ -2133,7 +2133,7 @@ pop_down_menu (Lisp_Object arg)
 
 Lisp_Object
 xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
-	    Lisp_Object title, const char **error_name, Time timestamp)
+	    Lisp_Object title, const char **error_name)
 {
   Window root;
   XMenu *menu;

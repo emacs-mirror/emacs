@@ -320,7 +320,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
   Window selecting_window = FRAME_X_WINDOW (f);
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
-  Time timestamp = last_event_timestamp;
+  Time timestamp = dpyinfo->last_user_time;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, selection_name);
 
   block_input ();
@@ -1188,7 +1188,7 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
   Window requestor_window = FRAME_X_WINDOW (f);
-  Time requestor_time = last_event_timestamp;
+  Time requestor_time = dpyinfo->last_user_time;
   Atom target_property = dpyinfo->Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, selection_symbol);
   Atom type_atom = (CONSP (target_type)
@@ -2067,7 +2067,7 @@ On MS-DOS, all this does is return non-nil if we own the selection.  */)
 
   block_input ();
   if (NILP (time_object))
-    timestamp = last_event_timestamp;
+    timestamp = dpyinfo->last_user_time;
   else
     CONS_TO_INTEGER (time_object, Time, timestamp);
   XSetSelectionOwner (dpyinfo->display, selection_atom, None, timestamp);

@@ -496,10 +496,6 @@ extern Lisp_Object QCtoggle, QCradio;
    speed up parse_modifiers.  */
 extern Lisp_Object Qevent_symbol_element_mask;
 
-/* The timestamp of the last input event we received from the X server.
-   X Windows wants this for selection ownership.  */
-extern Time last_event_timestamp;
-
 extern int quit_char;
 
 extern unsigned int timers_run;

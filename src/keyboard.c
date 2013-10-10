@@ -218,10 +218,6 @@ static ptrdiff_t last_point_position;
    'volatile' here.  */
 Lisp_Object internal_last_event_frame;
 
-/* The timestamp of the last input event we received from the X server.
-   X Windows wants this for selection ownership.  */
-Time last_event_timestamp;
-
 static Lisp_Object Qx_set_selection, Qhandle_switch_frame;
 static Lisp_Object Qhandle_select_window;
 Lisp_Object QPRIMARY;
@@ -3632,8 +3628,6 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 	    Vlast_event_frame = focus;
 	  }
 
-	  last_event_timestamp = event->timestamp;
-
 	  handle_interrupt (0);
 	  return;
 	}
@@ -3937,8 +3931,6 @@ kbd_buffer_get_event (KBOARD **kbp,
       event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
 	       ? kbd_fetch_ptr
 	       : kbd_buffer);
-
-      last_event_timestamp = event->timestamp;
 
       *kbp = event_to_kboard (event);
       if (*kbp == 0)
@@ -4301,8 +4293,6 @@ process_special_events (void)
 	  else
 	    kbd_fetch_ptr++;
 
-	  /* X wants last_event_timestamp for selection ownership.  */
-	  last_event_timestamp = copy.timestamp;
 	  input_pending = readable_events (0);
 	  x_handle_selection_event (&copy);
 #else

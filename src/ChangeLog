@@ -1,5 +1,19 @@
 2013-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* keyboard.c (last_event_timestamp): Remove.  For X selection and
+	GTK popup menus, it may be obtained from per-frame X display info.
+	(kbd_buffer_store_event_hold, kbd_buffer_get_event)
+	(process_special_events): Adjust users.
+	* keyboard.h (last_event_timestamp): Remove declaration.
+	* xmenu.c (xmenu_show, create_and_show_popup_menu): Lost last arg.
+	Use FRAME_DISPLAY_INFO (f)->last_user_time for gtk_menu_popup.
+	* menu.h (xmenu_show): Adjust prototype.
+	* menu.c (Fx_popup_menu): Adjust user.
+	* xselect.c (x_own_selection, x_get_foreign_selection)
+	(Fx_disown_selection_internal): Use dpyinfo->last_user_time.
+
+2013-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* keyboard.c (init_kboard): Now static.  Add arg
 	to denote window system.  Adjust comment.
 	(init_keyboard): Adjust user.
