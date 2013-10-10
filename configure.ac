@@ -3106,8 +3106,9 @@ elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
         || test "${HAVE_W32}" = "yes"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
-# Earlier versions can crash Emacs.
-    [AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes, HAVE_GIF=maybe)])
+# Earlier versions can crash Emacs, but version 5.0 removes EGifPutExtensionLast.
+    [AC_CHECK_LIB(gif, GifMakeMapObject, HAVE_GIF=yes,
+        [AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes, HAVE_GIF=maybe)])])
 
   if test "$HAVE_GIF" = yes; then
     LIBGIF=-lgif

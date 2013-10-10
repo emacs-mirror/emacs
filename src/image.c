@@ -7219,14 +7219,22 @@ gif_image_p (Lisp_Object object)
 
 #endif /* HAVE_NTGUI */
 
+#ifndef GIFLIB_MAJOR
+#define GIFLIB_MAJOR 0
+#endif
 
 #ifdef WINDOWSNT
 
 /* GIF library details.  */
 DEF_IMGLIB_FN (int, DGifCloseFile, (GifFileType *));
 DEF_IMGLIB_FN (int, DGifSlurp, (GifFileType *));
+#if GIFLIB_MAJOR < 5
 DEF_IMGLIB_FN (GifFileType *, DGifOpen, (void *, InputFunc));
 DEF_IMGLIB_FN (GifFileType *, DGifOpenFileName, (const char *));
+#else
+DEF_IMGLIB_FN (GifFileType *, DGifOpen, (void *, InputFunc, int *));
+DEF_IMGLIB_FN (GifFileType *, DGifOpenFileName, (const char *, int *));
+#endif
 
 static bool
 init_gif_functions (void)
@@ -7316,7 +7324,11 @@ gif_load (struct frame *f, struct image *img)
 	}
 
       /* Open the GIF file.  */
+#if GIFLIB_MAJOR < 5
       gif = fn_DGifOpenFileName (SSDATA (file));
+#else
+      gif = fn_DGifOpenFileName (SSDATA (file), NULL);
+#endif
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -7337,7 +7349,11 @@ gif_load (struct frame *f, struct image *img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
+#if GIFLIB_MAJOR < 5
       gif = fn_DGifOpen (&memsrc, gif_read_from_memory);
+#else
+      gif = fn_DGifOpen (&memsrc, gif_read_from_memory, NULL);
+#endif
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);

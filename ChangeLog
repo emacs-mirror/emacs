@@ -1,3 +1,7 @@
+2013-10-10  Barry Fishman  <barry_fishman@acm.org>  (tiny change)
+
+	* configure.ac: Update for giflib 5.  (Bug#15531)
+
 2013-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (HAVE_MENUS): Define unconditionally.

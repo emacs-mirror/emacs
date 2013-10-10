@@ -1,3 +1,8 @@
+2013-10-10  Barry Fishman  <barry_fishman@acm.org>  (tiny change)
+
+	* image.c (GIFLIB_MAJOR): Ensure it's defined.
+	(DGifOpen, DGifOpenFileName): Handle giflib 5 syntax.  (Bug#15531)
+
 2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (sxhash_bool_vector): Fix buffer read overrun.
