@@ -1,5 +1,8 @@
 2013-10-10  Glenn Morris  <rgm@gnu.org>
 
+	* desktop.el (desktop-save): Default to saving in .emacs.d,
+	since PWD is no longer in desktop-path by default.  (Bug#15319)
+
 	* menu-bar.el (menu-bar-options-menu): Remove text-mode auto-fill,
 	now that text mode has a menu with the same entry.
 	(menu-bar-text-mode-auto-fill): Remove now unused func.
