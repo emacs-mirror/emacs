@@ -1,3 +1,7 @@
+2013-10-10  John Anthony  <john@jo.hnanthony.com>  (tiny change)
+
+	* textmodes/text-mode.el (text-mode-map): Add a menu.  (Bug#15562)
+
 2013-10-09  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-pre-command-hook): Use this-single-command-keys
