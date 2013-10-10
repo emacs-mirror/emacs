@@ -1075,7 +1075,7 @@ read_lisp_symbol (FILE *infile, char *buffer)
 static int
 search_lisp_doc_at_eol (FILE *infile)
 {
-  char c = 0, c1 = 0, c2 = 0;
+  int c = 0, c1 = 0, c2 = 0;
 
   /* Skip until the end of line; remember two previous chars.  */
   while (c != '\n' && c != '\r' && c != EOF)
