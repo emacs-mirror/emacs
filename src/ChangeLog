@@ -1,3 +1,14 @@
+2013-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (deep_copy_glyph_row): Assert that the 'used' counts of
+	FROM and TO are identical.  Copy only the glyphs of TEXT_AREA.
+	(Bug#15575)
+
+	* term.c (save_and_enable_current_matrix): Don't allocate and
+	don't save margin areas.
+	(restore_desired_matrix): Don't restore margin areas.
+	(free_saved_screen): Don't free margin areas.
+
 2013-10-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c: Pacify --enable-gcc-warnings.

@@ -3066,22 +3066,6 @@ save_and_enable_current_matrix (struct frame *f)
 	 screen will not be redrawn anyway.)  */
       to->enabled_p = 1;
       to->hash = from->hash;
-      if (from->used[LEFT_MARGIN_AREA])
-	{
-	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
-	  to->glyphs[LEFT_MARGIN_AREA] = xmalloc (nbytes);
-	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
-		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
-	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
-	}
-      if (from->used[RIGHT_MARGIN_AREA])
-	{
-	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
-	  to->glyphs[RIGHT_MARGIN_AREA] = xmalloc (nbytes);
-	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
-		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
-	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
-	}
     }
 
   return saved;
@@ -3106,26 +3090,6 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       to->enabled_p = from->enabled_p;
       to->hash = from->hash;
-      nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
-      if (nbytes)
-	{
-	  eassert (to->glyphs[LEFT_MARGIN_AREA] != from->glyphs[LEFT_MARGIN_AREA]);
-	  memcpy (to->glyphs[LEFT_MARGIN_AREA],
-		  from->glyphs[LEFT_MARGIN_AREA], nbytes);
-	  to->used[LEFT_MARGIN_AREA] = from->used[LEFT_MARGIN_AREA];
-	}
-      else
-	to->used[LEFT_MARGIN_AREA] = 0;
-      nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
-      if (nbytes)
-	{
-	  eassert (to->glyphs[RIGHT_MARGIN_AREA] != from->glyphs[RIGHT_MARGIN_AREA]);
-	  memcpy (to->glyphs[RIGHT_MARGIN_AREA],
-		  from->glyphs[RIGHT_MARGIN_AREA], nbytes);
-	  to->used[RIGHT_MARGIN_AREA] = from->used[RIGHT_MARGIN_AREA];
-	}
-      else
-	to->used[RIGHT_MARGIN_AREA] = 0;
     }
 }
 
@@ -3142,10 +3106,6 @@ free_saved_screen (struct glyph_matrix *saved)
       struct glyph_row *from = saved->rows + i;
 
       xfree (from->glyphs[TEXT_AREA]);
-      if (from->used[LEFT_MARGIN_AREA])
-	xfree (from->glyphs[LEFT_MARGIN_AREA]);
-      if (from->used[RIGHT_MARGIN_AREA])
-	xfree (from->glyphs[RIGHT_MARGIN_AREA]);
     }
 
   xfree (saved->rows);

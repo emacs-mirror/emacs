@@ -20589,34 +20589,22 @@ display_menu_bar (struct window *w)
 static void
 deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
 {
-  int area, i, sum_used = 0;
+  int area, i;
   struct glyph *pointers[1 + LAST_AREA];
 
   /* Save glyph pointers of TO.  */
   memcpy (pointers, to->glyphs, sizeof to->glyphs);
+  eassert (to->used[TEXT_AREA] == from->used[TEXT_AREA]);
 
   /* Do a structure assignment.  */
   *to = *from;
 
-  /* Restore original pointers of TO.  */
+  /* Restore original glyph pointers of TO.  */
   memcpy (to->glyphs, pointers, sizeof to->glyphs);
 
-  /* Count how many glyphs to copy and update glyph pointers.  */
-  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
-    {
-      if (area > LEFT_MARGIN_AREA)
-	{
-	  eassert (from->glyphs[area] - from->glyphs[area - 1]
-		   == from->used[area - 1]);
-	  to->glyphs[area] = to->glyphs[area - 1] + to->used[area - 1];
-	}
-      sum_used += from->used[area];
-    }
-
   /* Copy the glyphs.  */
-  eassert (sum_used <= to->glyphs[LAST_AREA] - to->glyphs[LEFT_MARGIN_AREA]);
-  for (i = 0; i < sum_used; i++)
-    to->glyphs[LEFT_MARGIN_AREA][i] = from->glyphs[LEFT_MARGIN_AREA][i];
+  memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA],
+	  from->used[TEXT_AREA] * sizeof (struct glyph));
 }
 
 /* Display one menu item on a TTY, by overwriting the glyphs in the
