@@ -1,3 +1,9 @@
+2013-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Pacify --enable-gcc-warnings.
+	(GIFLIB_MAJOR, GIFLIB_MINOR, GIFLIB_RELEASE, fn_GifErrorString):
+	#define only if used.
+
 2013-10-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (GIFLIB_MAJOR): Define to 4 if undefined.
