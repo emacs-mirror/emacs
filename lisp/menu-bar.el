@@ -2271,51 +2271,34 @@ If nil, the current mouse position is used."
 
     ;; The tty-menu-* are just symbols interpreted by term.c, they are
     ;; not real commands.
-    (substitute-key-definition 'keyboard-quit 'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition 'keyboard-escape-quit 'tty-menu-exit
-			       map (current-global-map))
+    (dolist (bind '((keyboard-quit . tty-menu-exit)
+                    (keyboard-escape-quit . tty-menu-exit)
+                    ;; The following two will need to be revised if we ever
+                    ;; support a right-to-left menu bar.
+                    (forward-char . tty-menu-next-menu)
+                    (backward-char . tty-menu-prev-menu)
+                    (right-char . tty-menu-next-menu)
+                    (left-char . tty-menu-prev-menu)
+                    (next-line . tty-menu-next-item)
+                    (previous-line . tty-menu-prev-item)
+                    (newline . tty-menu-select)
+                    (newline-and-indent . tty-menu-select)))
+      (substitute-key-definition (car bind) (cdr bind)
+                                 map (current-global-map)))
+
     ;; The bindings of menu-bar items are so that clicking on the menu
     ;; bar when a menu is already shown pops down that menu.
     ;; FIXME: we should iterate over all the visible menu-bar items,
     ;; instead of naming them explicitly here.  Also, this doesn't
     ;; include items added by current major mode.
-    (substitute-key-definition (lookup-key (current-global-map) [menu-bar file])
-			       'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition (lookup-key (current-global-map) [menu-bar edit])
-			       'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition (lookup-key (current-global-map) [menu-bar options])
-			       'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition (lookup-key (current-global-map) [menu-bar buffer])
-			       'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition (lookup-key (current-global-map) [menu-bar tools])
-			       'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition (lookup-key (current-global-map) [menu-bar help-menu])
-			       'tty-menu-exit
-			       map (current-global-map))
-    (substitute-key-definition 'forward-char 'tty-menu-next-menu
-			       map (current-global-map))
-    (substitute-key-definition 'backward-char 'tty-menu-prev-menu
-			       map (current-global-map))
-    ;; The following two will need to be revised if we ever support
-    ;; a right-to-left menu bar.
-    (substitute-key-definition 'right-char 'tty-menu-next-menu
-			       map (current-global-map))
-    (substitute-key-definition 'left-char 'tty-menu-prev-menu
-			       map (current-global-map))
-    (substitute-key-definition 'next-line 'tty-menu-next-item
-			       map (current-global-map))
-    (substitute-key-definition 'previous-line 'tty-menu-prev-item
-			       map (current-global-map))
-    (substitute-key-definition 'newline 'tty-menu-select
-			       map (current-global-map))
-    (substitute-key-definition 'newline-and-indent 'tty-menu-select
-			       map (current-global-map))
+    ;;
+    ;; FIXME: Why not (define-key map [menu-bat t] 'tty-menu-exit) ?  --Stef
+    (dolist (event '(file edit options buffer tools help-menu))
+      (substitute-key-definition
+       (lookup-key (current-global-map) (vector 'menu-bar event))
+       'tty-menu-exit
+       map (current-global-map)))
+
     (define-key map [?\C-r] 'tty-menu-select)
     (define-key map [?\C-j] 'tty-menu-select)
     (define-key map [return] 'tty-menu-select)

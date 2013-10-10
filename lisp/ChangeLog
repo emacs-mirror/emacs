@@ -1,3 +1,7 @@
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (tty-menu-navigation-map): Reduce redundancy.
+
 2013-10-10  Andrei Chițu  <andrei.chitu1@gmail.com>  (tiny change)
 
 	* calendar/icalendar.el (icalendar-import-file):
