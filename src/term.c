@@ -220,6 +220,7 @@ tty_update_end (struct frame *f)
     tty_show_cursor (tty);
   tty_turn_off_insert (tty);
   tty_background_highlight (tty);
+  fflush (tty->output);
 }
 
 /* The implementation of set_terminal_window for termcap frames. */

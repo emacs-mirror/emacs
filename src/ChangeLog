@@ -1,3 +1,10 @@
+2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispnew.c (redraw_frame): Remove useless #ifdef because
+	FRAME_MSDOS_P is a compile-time zero everywhere except MS-DOS.
+	Also, move TTY fflush to...
+	* term.c (tty_update_end): ...this function.
+
 2013-10-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_tty_menu_item): Make sure we never write beyond

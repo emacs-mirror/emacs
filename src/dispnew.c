@@ -2937,15 +2937,11 @@ redraw_frame (struct frame *f)
   /* Error if F has no glyphs.  */
   eassert (f->glyphs_initialized_p);
   update_begin (f);
-#ifdef MSDOS
   if (FRAME_MSDOS_P (f))
     FRAME_TERMINAL (f)->set_terminal_modes_hook (FRAME_TERMINAL (f));
-#endif
   clear_frame (f);
   clear_current_matrices (f);
   update_end (f);
-  if (FRAME_TERMCAP_P (f))
-    fflush (FRAME_TTY (f)->output);
   windows_or_buffers_changed++;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
