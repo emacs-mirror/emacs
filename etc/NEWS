@@ -157,8 +157,18 @@ some enhancements, like the ability to restore deleted frames.  Command
 ** The command `quail-help' is deleted.  Use `C-h C-\'
 (`describe-input-method') instead.
 
+** The default value of `comment-use-global-state' is changed to t,
+and this variable has been marked obsolete.
+
 
 * Editing Changes in Emacs 24.4
+
+** C-x TAB enters a transient interactive mode.
+You can then use the left/right cursor keys to move the block of text.
+
+** `tab-stop-list' is now implicitly extended to infinity.
+Its default value is changed to nil which means a tab stop every
+`tab-width' columns.
 
 ** `split-window' is no longer a command, just a non-interactive function.
 As a command it was a special case of `split-window-below', and as such
@@ -177,6 +187,8 @@ If this is non-nil, cursor motion with arrow keys will follow the
 visual order of characters on the screen: <left> always moves to the
 left, <right> always moves to the right, disregarding the surrounding
 bidirectional context.
+
+** All register commands can now show help with preview.
 
 ** New command `kmacro-to-register' to store keyboard macros in registers.
 
@@ -214,7 +226,7 @@ You can use the new function `remember-store-in-files' within the
 See `remember-data-directory' and `remember-directory-file-name-format'
 for new options related to this function.
 
-** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
+* More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
 ~/.emacs.d/vip		replaces  ~/.vip
@@ -647,7 +659,7 @@ for something (not just adding elements to it), it ought not to affect you.
 *** `bool-vector-intersection'
 *** `bool-vector-set-difference'
 *** `bool-vector-not'
-*** `bool-vector-subset'
+*** `bool-vector-subsetp'
 *** `bool-vector-count-matches'
 *** `bool-vector-count-matches-at'
 

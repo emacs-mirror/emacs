@@ -1,3 +1,10 @@
+if something_wrong?             # ruby-move-to-block-skips-heredoc
+  ActiveSupport::Deprecation.warn(<<-eowarn)
+  boo hoo
+  end
+  eowarn
+end
+
 # Percent literals.
 b = %Q{This is a "string"}
 c = %w!foo
@@ -20,6 +27,26 @@ a = asub / aslb + bsub / bslb;
 
 # Highlight the regexp after "if".
 x = toto / foo if /do bar/ =~ "dobar"
+
+bar(class: XXX) do              # ruby-indent-keyword-label
+  foo
+end
+bar
+
+foo = [1,                       # ruby-deep-indent
+       2]
+
+foo = {                         # ruby-deep-indent-disabled
+  a: b
+}
+
+foo = [                         # ruby-deep-indent-disabled
+  1
+]
+
+foo(                            # ruby-deep-indent-disabled
+  a
+)
 
 # Multiline regexp.
 /bars
@@ -72,6 +99,59 @@ if something == :==
   do_something
 end
 
+# Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
+d = 4 + 5 +      # no '\' needed
+    6 + 7
+
+# Example from http://www.ruby-doc.org/docs/ProgrammingRuby/html/language.html
+e = 8 + 9   \
+    + 10         # '\' needed
+
+begin
+  foo
+ensure
+  bar
+end
+
 # Bug#15369
 MSG = 'Separate every 3 digits in the integer portion of a number' \
-  'with underscores(_).'
+      'with underscores(_).'
+
+class C
+  def foo
+    self.end
+    D.new.class
+  end
+end
+
+a = foo(j, k) -
+    bar_tee
+
+while a < b do # "do" is optional
+  foo
+end
+
+desc "foo foo" \
+     "bar bar"
+
+foo.
+  bar
+
+# https://github.com/rails/rails/blob/17f5d8e062909f1fcae25351834d8e89967b645e/activesupport/lib/active_support/time_with_zone.rb#L206
+foo
+  .bar
+
+z = {
+  foo: {
+    a: "aaa",
+    b: "bbb"
+  }
+}
+
+# Examples below still fail with `ruby-use-smie' on:
+
+foo +
+  bar
+
+foo if
+  bar

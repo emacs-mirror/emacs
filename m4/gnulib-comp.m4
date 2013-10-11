@@ -42,11 +42,14 @@ AC_DEFUN([gl_EARLY],
   # Code from module allocator:
   # Code from module at-internal:
   # Code from module binary-io:
+  # Code from module byteswap:
   # Code from module c-ctype:
   # Code from module c-strcase:
   # Code from module careadlinkat:
   # Code from module clock-time:
   # Code from module close-stream:
+  # Code from module count-one-bits:
+  # Code from module count-trailing-zeros:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
   # Code from module crypto/sha256:
@@ -169,10 +172,13 @@ AC_DEFUN([gl_INIT],
   gl_COMMON
   gl_source_base='lib'
   gl_FUNC_ALLOCA
+  gl_BYTESWAP
   AC_CHECK_FUNCS_ONCE([readlinkat])
   gl_CLOCK_TIME
   gl_CLOSE_STREAM
   gl_MODULE_INDICATOR([close-stream])
+  gl_COUNT_ONE_BITS
+  gl_COUNT_TRAILING_ZEROS
   gl_MD5
   gl_SHA1
   gl_SHA256
@@ -433,7 +439,7 @@ AC_DEFUN([gl_INIT],
   {
     if ! $gl_gnulib_enabled_getdtablesize; then
       gl_FUNC_GETDTABLESIZE
-      if test $HAVE_GETDTABLESIZE = 0; then
+      if test $HAVE_GETDTABLESIZE = 0 || test $REPLACE_GETDTABLESIZE = 1; then
         AC_LIBOBJ([getdtablesize])
         gl_PREREQ_GETDTABLESIZE
       fi
@@ -794,6 +800,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/at-func.c
   lib/binary-io.c
   lib/binary-io.h
+  lib/byteswap.in.h
   lib/c-ctype.c
   lib/c-ctype.h
   lib/c-strcase.h
@@ -803,6 +810,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/careadlinkat.h
   lib/close-stream.c
   lib/close-stream.h
+  lib/count-one-bits.c
+  lib/count-one-bits.h
+  lib/count-trailing-zeros.c
+  lib/count-trailing-zeros.h
   lib/dirent.in.h
   lib/dosname.h
   lib/dtoastr.c
@@ -912,9 +923,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/00gnulib.m4
   m4/acl.m4
   m4/alloca.m4
+  m4/byteswap.m4
   m4/c-strtod.m4
   m4/clock_time.m4
   m4/close-stream.m4
+  m4/count-one-bits.m4
+  m4/count-trailing-zeros.m4
   m4/dirent_h.m4
   m4/dup2.m4
   m4/environ.m4

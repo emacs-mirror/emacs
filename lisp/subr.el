@@ -301,9 +301,9 @@ This function accepts any number of arguments, but ignores them."
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
 for the sake of consistency."
+  (declare (advertised-calling-convention (string &rest args) "23.1"))
   (while t
     (signal 'error (list (apply 'format args)))))
-(set-advertised-calling-convention 'error '(string &rest args) "23.1")
 
 (defun user-error (format &rest args)
   "Signal a pilot error, making error message by passing all args to `format'.
@@ -1246,6 +1246,8 @@ is converted into a string by expressing it in decimal."
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
+(set-advertised-calling-convention 'decode-char '(ch charset) "21.4")
+(set-advertised-calling-convention 'encode-char '(ch charset) "21.4")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -2102,6 +2104,7 @@ by doing (clear-string STRING)."
             (setq-local buffer-undo-list t)
             (setq-local select-active-regions nil)
             (use-local-map read-passwd-map)
+            (setq-local inhibit-modification-hooks nil) ;bug#15501.
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t))
@@ -3482,7 +3485,10 @@ If GREEDY is non-nil, extend the match backwards as far as
 possible, stopping when a single additional previous character
 cannot be part of a match for REGEXP.  When the match is
 extended, its starting position is allowed to occur before
-LIMIT."
+LIMIT.
+
+As a general recommendation, try to avoid using `looking-back'
+wherever possible, since it is slow."
   (let ((start (point))
 	(pos
 	 (save-excursion
@@ -4389,14 +4395,15 @@ deactivation of MAP."
             ;; suspended during the C-u one so we don't exit isearch just
             ;; because we hit 1 after C-u and that 1 exits isearch whereas it
             ;; doesn't exit C-u.
-            (unless (cond ((null keep-pred) nil)
-                          ((eq t keep-pred)
-                           (eq this-command
-                               (lookup-key map (this-command-keys-vector))))
-                          (t (funcall keep-pred)))
-              (remove-hook 'pre-command-hook clearfun)
-              (internal-pop-keymap map 'overriding-terminal-local-map)
-              (when on-exit (funcall on-exit)))))
+            (with-demoted-errors "set-temporary-overlay-map PCH: %S"
+              (unless (cond ((null keep-pred) nil)
+                            ((eq t keep-pred)
+                             (eq this-command
+                                 (lookup-key map (this-command-keys-vector))))
+                            (t (funcall keep-pred)))
+                (internal-pop-keymap map 'overriding-terminal-local-map)
+                (remove-hook 'pre-command-hook clearfun)
+                (when on-exit (funcall on-exit))))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)))
 

@@ -187,7 +187,7 @@ Returns nil when we can't find this char."
                            (eq (char-before) last-command-event)))))
       pos)))
 
-;; Electric indentation.
+;;; Electric indentation.
 
 ;; Autoloading variables is generally undesirable, but major modes
 ;; should usually set this variable by adding elements to the default
@@ -201,6 +201,11 @@ Returns nil when we can't find this char."
 Each function is called with one argument (the inserted char), with
 point right after that char, and it should return t to cause indentation,
 `no-indent' to prevent indentation or nil to let other functions decide.")
+
+(defvar-local electric-indent-inhibit nil
+  "If non-nil, reindentation is not appropriate for this buffer.
+This should be set by major modes such as `python-mode' since
+Python does not lend itself to fully automatic indentation.")
 
 (defun electric-indent-post-self-insert-function ()
   ;; FIXME: This reindents the current line, but what we really want instead is
@@ -229,12 +234,13 @@ point right after that char, and it should return t to cause indentation,
                     (unless (eq act 'do-indent) (nth 8 (syntax-ppss))))))))
       ;; For newline, we want to reindent both lines and basically behave like
       ;; reindent-then-newline-and-indent (whose code we hence copied).
-      (when (< (1- pos) (line-beginning-position))
+      (when (<= pos (line-beginning-position))
         (let ((before (copy-marker (1- pos) t)))
           (save-excursion
-            (unless (memq indent-line-function
-                          '(indent-relative indent-to-left-margin
-                                            indent-relative-maybe))
+            (unless (or (memq indent-line-function
+                              '(indent-relative indent-to-left-margin
+                                                indent-relative-maybe))
+                        electric-indent-inhibit)
               ;; Don't reindent the previous line if the indentation function
               ;; is not a real one.
               (goto-char before)
@@ -248,7 +254,9 @@ point right after that char, and it should return t to cause indentation,
             ;; Remove the trailing whitespace after indentation because
             ;; indentation may (re)introduce the whitespace.
             (delete-horizontal-space t))))
-      (unless (memq indent-line-function '(indent-to-left-margin))
+      (unless (or (memq indent-line-function '(indent-to-left-margin))
+                  (and electric-indent-inhibit
+                       (> pos (line-beginning-position))))
         (indent-according-to-mode)))))
 
 ;;;###autoload
@@ -281,7 +289,7 @@ insert a character from `electric-indent-chars'."
                          (delq #'electric-indent-post-self-insert-function
                                (cdr bp))))))))
 
-;; Electric pairing.
+;;; Electric pairing.
 
 (defcustom electric-pair-pairs
   '((?\" . ?\"))
@@ -414,7 +422,7 @@ See options `electric-pair-pairs' and `electric-pair-skip-self'."
     (remove-hook 'self-insert-uses-region-functions
 		  #'electric-pair-will-use-region)))
 
-;; Automatically add newlines after/before/around some chars.
+;;; Electric newlines after/before/around some chars.
 
 (defvar electric-layout-rules '()
   "List of rules saying where to automatically insert newlines.

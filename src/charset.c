@@ -1860,10 +1860,7 @@ DEFUN ("decode-char", Fdecode_char, Sdecode_char, 2, 3, 0,
        doc: /* Decode the pair of CHARSET and CODE-POINT into a character.
 Return nil if CODE-POINT is not valid in CHARSET.
 
-CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).
-
-Optional argument RESTRICTION specifies a way to map the pair of CCS
-and CODE-POINT to a character.  Currently not supported and just ignored.  */)
+CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).  */)
   (Lisp_Object charset, Lisp_Object code_point, Lisp_Object restriction)
 {
   int c, id;
@@ -1880,10 +1877,7 @@ and CODE-POINT to a character.  Currently not supported and just ignored.  */)
 
 DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 3, 0,
        doc: /* Encode the character CH into a code-point of CHARSET.
-Return nil if CHARSET doesn't include CH.
-
-Optional argument RESTRICTION specifies a way to map CH to a
-code-point in CCS.  Currently not supported and just ignored.  */)
+Return nil if CHARSET doesn't include CH.  */)
   (Lisp_Object ch, Lisp_Object charset, Lisp_Object restriction)
 {
   int c, id;

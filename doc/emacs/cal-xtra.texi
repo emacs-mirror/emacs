@@ -68,7 +68,7 @@ the calendar).
   Starting the calendar runs the normal hook
 @code{calendar-initial-window-hook}.  Recomputation of the calendar
 display does not run this hook.  But if you leave the calendar with the
-@kbd{q} command and reenter it, the hook runs again.@refill
+@kbd{q} command and reenter it, the hook runs again.
 
 @vindex calendar-today-visible-hook
 @findex calendar-star-date
@@ -631,7 +631,7 @@ example, to sort the entries by the dates they apply to.
   Ordinarily, the fancy diary buffer does not show days for which there
 are no diary entries, even if that day is a holiday.  If you want such
 days to be shown in the fancy diary buffer, set the variable
-@code{diary-list-include-blanks} to @code{t}.@refill
+@code{diary-list-include-blanks} to @code{t}.
 
   The fancy diary buffer enables View mode
 @iftex

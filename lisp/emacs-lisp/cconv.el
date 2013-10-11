@@ -79,8 +79,7 @@
 ;;   command-history).
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
-;; - new byte codes for unwind-protect, catch, and condition-case so that
-;;   closures aren't needed at all.
+;; - new byte codes for unwind-protect so that closures aren't needed at all.
 ;; - a reference to a var that is known statically to always hold a constant
 ;;   should be turned into a byte-constant rather than a byte-stack-ref.
 ;;   Hmm... right, that's called constant propagation and could be done here,
@@ -421,18 +420,42 @@ places where they originally did not directly appear."
                        forms)))
 
 					;condition-case
-    (`(condition-case ,var ,protected-form . ,handlers)
+    ((and `(condition-case ,var ,protected-form . ,handlers)
+          (guard byte-compile--use-old-handlers))
      (let ((newform (cconv--convert-function
                      () (list protected-form) env form)))
        `(condition-case :fun-body ,newform
-	  ,@(mapcar (lambda (handler)
+          ,@(mapcar (lambda (handler)
                       (list (car handler)
                             (cconv--convert-function
                              (list (or var cconv--dummy-var))
                              (cdr handler) env form)))
                     handlers))))
 
-    (`(,(and head (or `catch `unwind-protect)) ,form . ,body)
+                                        ; condition-case with new byte-codes.
+    (`(condition-case ,var ,protected-form . ,handlers)
+     `(condition-case ,var
+          ,(cconv-convert protected-form env extend)
+        ,@(let* ((cm (and var (member (cons (list var) form)
+                                      cconv-captured+mutated)))
+                 (newenv
+                  (cond (cm (cons `(,var . (car-save ,var)) env))
+                        ((assq var env) (cons `(,var) env))
+                        (t env))))
+            (mapcar
+             (lambda (handler)
+               `(,(car handler)
+                 ,@(let ((body
+                          (mapcar (lambda (form)
+                                    (cconv-convert form newenv extend))
+                                  (cdr handler))))
+                     (if (not cm) body
+                       `((let ((,var (list ,var))) ,@body))))))
+             handlers))))
+
+    (`(,(and head (or (and `catch (guard byte-compile--use-old-handlers))
+                      `unwind-protect))
+       ,form . ,body)
      `(,head ,(cconv-convert form env extend)
         :fun-body ,(cconv--convert-function () body env form)))
 
@@ -491,7 +514,7 @@ places where they originally did not directly appear."
 
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,
-     ;; if, progn, prog1, prog2, while, until
+     ;; if, catch, progn, prog1, prog2, while, until
      `(,func . ,(mapcar (lambda (form)
                           (cconv-convert form env extend))
                         forms)))
@@ -646,16 +669,32 @@ and updates the data stored in ENV."
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote
 
-    (`(condition-case ,var ,protected-form . ,handlers)
+    ((and `(condition-case ,var ,protected-form . ,handlers)
+          (guard byte-compile--use-old-handlers))
      ;; FIXME: The bytecode for condition-case forces us to wrap the
-     ;; form and handlers in closures (for handlers, it's understandable
-     ;; but not for the protected form).
+     ;; form and handlers in closures.
      (cconv--analyse-function () (list protected-form) env form)
      (dolist (handler handlers)
-       (cconv--analyse-function (if var (list var)) (cdr handler) env form)))
+       (cconv--analyse-function (if var (list var)) (cdr handler)
+                                env form)))
 
-    ;; FIXME: The bytecode for catch forces us to wrap the body.
-    (`(,(or `catch `unwind-protect) ,form . ,body)
+    (`(condition-case ,var ,protected-form . ,handlers)
+     (cconv-analyse-form protected-form env)
+     (when (and var (symbolp var) (byte-compile-not-lexical-var-p var))
+       (byte-compile-log-warning
+        (format "Lexical variable shadows the dynamic variable %S" var)))
+     (let* ((varstruct (list var nil nil nil nil)))
+       (if var (push varstruct env))
+       (dolist (handler handlers)
+         (dolist (form (cdr handler))
+           (cconv-analyse-form form env)))
+       (if var (cconv--analyse-use (cons (list var) (cdr varstruct))
+                                   form "variable"))))
+
+    ;; FIXME: The bytecode for unwind-protect forces us to wrap the unwind.
+    (`(,(or (and `catch (guard byte-compile--use-old-handlers))
+            `unwind-protect)
+       ,form . ,body)
      (cconv-analyse-form form env)
      (cconv--analyse-function () body env form))
 

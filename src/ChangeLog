@@ -1,3 +1,237 @@
+2013-10-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not allocate huge temporary memory areas and objects while encoding
+	for file I/O, thus reducing an enormous memory usage for large buffers.
+	See http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00180.html.
+	* coding.h (struct coding_system): New member raw_destination.
+	* coding.c (setup_coding_system): Initialize it to zero.
+	(encode_coding_object): If raw_destination is set, do not create
+	dst_object.  Add comment.
+	* fileio.c (toplevel): New constant E_WRITE_MAX.
+	(e_write): Do not encode more than E_WRITE_MAX characters per one loop
+	iteration.  Use raw_destination if E_WRITE_MAX characters is encoded.
+
+2013-10-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidExitFullScreen:):
+	(toggleFullScreen:): Change NS_IMPL_COCOA to HAVE_NATIVE_FS.
+
+2013-10-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix race where emacs aborts when sent SIGTERM (Bug#15534).
+	* keyboard.c (unblock_input_to): Don't process pending signals
+	if a fatal error is in progress.
+
+	* lisp.h (bits_word, BITS_WORD_MAX): New type and macro.
+	All uses of 'size_t' and 'SIZE_MAX' changed to use them, when
+	they're talking about words in Lisp bool vectors.
+	(BITS_PER_BITS_WORD): Rename from BITS_PER_SIZE_T.  All uses changed.
+	* data.c (popcount_bits_word): Rename from popcount_size_t.
+	(bits_word_to_host_endian): Rename from size_t_to_host_endian.
+	All uses changed.
+
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve support for popcount and counting trailing zeros (Bug#15550).
+	* data.c: Include <count-one-bits.h>, <count-trailing-zeros.h>.
+	(USE_MSC_POPCOUNT, POPCOUNT_STATIC_INLINE)
+	(NEED_GENERIC_POPCOUNT, popcount_size_t_generic)
+	(popcount_size_t_msc, popcount_size_t_gcc):
+	Remove; now done by Gnulib.
+	(popcount_size_t): Now a macro that defers to Gnulib.
+	(count_trailing_zero_bits): Return int, for consistency with
+	Gnulib and because Emacs prefers signed to unsigned int.
+	Don't assume that size_t is either unsigned int or unsigned long
+	or unsigned long long.
+	(size_t_to_host_endian): Do not assume that size_t is either
+	exactly 32 or exactly 64 bits wide.
+	* lisp.h (BITS_PER_SIZE_T): Define consistently with BITS_PER_LONG
+	etc., so that it's now an enum constant, not a macro.
+	No need to assume that it's either 32 or 64.
+
+2013-10-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidEnterFullScreen:): setPresentationOptions only
+	on >= 10.7.
+
+2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* insdel.c (insert_from_gap): Prefer ptrdiff_t to int where needed.
+	* xdisp.c (handle_fontified_prop): Likewise.  Use bool for boolean.
+
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	emacs_read and emacs_write now use void *, not char *.
+	* alloc.c (valid_pointer_p) [!WINDOWSNT]: Remove now-unnecessary cast.
+	* sysdep.c (emacs_read, emacs_write, emacs_write_sig):
+	Buffer arg is now void *, not char *.  This matches plain
+	'read' and 'write' better, and avoids a constraint violation
+	on Solaris 9 with Oracle Studio.
+
+2013-10-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (Fmake_string): For ASCII char initializer, prefer
+	memset to explicit loop.  Otherwise copy largest possible chunk
+	from initialized to uninitialized part, thus allowing the longer
+	memcpy runs and reducing the number of loop iterations.
+
+2013-10-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_begin): If native fullscreen and no toolbar,
+	hide toolbar (Bug#15388).
+	(windowDidEnterFullScreen:): If presentation options are zero,
+	set them here (Bug#15388).
+	(ns_update_auto_hide_menu_bar): Remove runtime check.
+	Don't auto hide dock unless menubar is also auto hidden.
+
+2013-10-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* editfns.c (message): Mention batch mode in doc string.
+
+2013-10-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (check_native_fs): Remove erroneous comment.
+
+2013-10-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (redisplay_internal): Simplify because scan_for_column now
+	uses find_newline instead of scan_newline and so doesn't move point.
+
+2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use hardware support for byteswapping on glibc x86 etc.
+	On Fedora 19 x86-64, the new bswap_64 needs 1 instruction,
+	whereas the old swap64 needed 30.
+	* fringe.c (init_fringe_bitmap) [WORDS_BIGENDIAN]:
+	* sound.c (le2hl, le2hs, be2hl) [!WINDOWSNT]:
+	Use byteswap.h's macros to swap bytes.
+	* lisp.h (swap16, swap32, swap64): Remove.
+	All uses replaced by bswap_16, bswap_32, bswap_64.
+
+	* bytecode.c (exec_byte_code): Use some more volatile variables
+	to work around local variables getting clobbered by longjmp.
+	Port to pre-C99, which doesn't allow decls after stmts.
+
+2013-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (eassert): Assume that COND is true when optimizing.
+	In other words, take on the behavior of eassert_and_assume.
+	This makes Emacs 0.2% smaller on my platform (Fedora 19, x86-64).
+	(eassert_and_assume): Remove.  All uses replaced by eassert.
+
+	* xdisp.c (Qglyphless_char): Now static.
+
+	Adjust to merge from gnulib.
+	* conf_post.h (__has_builtin, assume): Remove; gnulib now does these.
+	* lisp.h: Include <verify.h>, for 'assume'.
+
+	* eval.c (clobbered_eassert): New macro.
+	(internal_catch, internal_condition_case)
+	(internal_condition_case_1, internal_condition_case_2)
+	(internal_condition_case_n): Use it instead of eassert
+	when the argument contains locals clobbered by longjmp.
+	Don't use clobbered locals outside of clobbered_eassert.
+	(internal_lisp_condition_case): Use a volatile variable
+	to work around a local variable's getting clobbered.
+
+2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct handler): Merge struct handler and struct catchtag.
+	(PUSH_HANDLER): New macro.
+	(catchlist): Remove.
+	(handlerlist): Always declare.
+
+	* eval.c (catchlist): Remove (merge with handlerlist).
+	(handlerlist, lisp_eval_depth): Not static any more.
+	(internal_catch, internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2, internal_condition_case_n):
+	Use PUSH_HANDLER.
+	(unwind_to_catch, Fthrow, Fsignal): Adjust to merged
+	handlerlist/catchlist.
+	(internal_lisp_condition_case): Use PUSH_HANDLER.  Adjust to new
+	handlerlist which can only handle a single condition-case handler at
+	a time.
+	(find_handler_clause): Simplify since we only a single branch here
+	any more.
+
+	* bytecode.c (BYTE_CODES): Add Bpushcatch, Bpushconditioncase
+	and Bpophandler.
+	(bcall0): New function.
+	(exec_byte_code): Add corresponding cases.  Improve error message when
+	encountering an invalid byte-code.  Let Bunwind_protect accept
+	a function (rather than a list of expressions) as argument.
+
+	* alloc.c (Fgarbage_collect): Merge scans of handlerlist and catchlist,
+	and make them unconditional now that they're heap-allocated.
+
+2013-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* charset.c (Fdecode_char, Fencode_char): Remove description of
+	`restriction' arg. now that it's hidden by advertised-calling-convention.
+
+2013-10-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* macfont.m (mac_ctfont_create_preferred_family_for_attributes):
+	Remove unused variable (from mac-port).
+	(macfont_draw): Use s->ybase for correct y position.
+
+2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Drop has_minibuffer member because...
+	(FRAME_HAS_MINIBUF_P): ...this macro can be implemented without it.
+	* frame.c (make_frame, make_minibuffer_frame): Adjust users.
+
+2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Prefer enum text_cursor_kinds to int
+	for phys_cursor_type member.  Move the latter, phys_cursor_width,
+	phys_cursor_ascent and phys_cursor_height under HAVE_WINDOW_SYSTEM.
+	* window.c (replace_window, make_window): Adjust users.
+
+2013-10-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fringe.c (toplevel): Do not use HAVE_WINDOW_SYSTEM because
+	this module is never compiled otherwise.
+
+2013-10-01  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* macfont.m (macfont_draw): Use CGRectMake rather than NSMakeRect
+	(Bug#15500).
+
+2013-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_next_display_element): Don't call face_for_font in
+	a build configured --without-x.  (Bug#15484)
+
+2013-09-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* window.c (calc_absolute_offset): #elif should be #elif defined.
+
+	* frame.c (delete_frame): Block/unblock input to overcome race
+	condition (Bug#15475).
+
+2013-09-29  Andreas Politz  <politza@hochschule-trier.de>  (tiny change)
+
+	* frame.c (delete_frame): Record selected frame only after
+	calling Qdelete_frame_functions (Bug#15477).
+
+2013-09-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_selection_color): Remove.
+	(ns_get_color): Check for ns_selection_(fg|bg)_color using
+	NSColor selectedText(Background)Color.  Only for COCOA.
+	(ns_term_init): Remove assignment of ns_selection_color, logic
+	moved to ns_get_color.
+
+	* nsterm.h (NS_SELECTION_BG_COLOR_DEFAULT): Rename from
+	NS_SELECTION_COLOR_DEFAULT.
+	(NS_SELECTION_FG_COLOR_DEFAULT): New.
+
+2013-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fdump_tool_bar_row): Ifdef away the body if 'struct
+	frame' does not have the tool_bar_window member.
+
 2013-09-26  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Signal error when reading an empty byte-code object (Bug#15405)
@@ -177,8 +411,8 @@
 	(vroundup_ct): New macro.
 	(vroundup): Assume argument >= 0; invoke vroundup_ct.
 	* casetab.c (shuffle,set_identity): Change lint_assume to assume.
-	* composite.c (composition_gstring_put_cache): Change
-	lint_assume to assume.
+	* composite.c (composition_gstring_put_cache):
+	Change lint_assume to assume.
 	* conf_post.h (assume): New macro.
 	(lint_assume): Remove.
 	* dispnew.c (update_frame_1): Change lint_assume to assume.

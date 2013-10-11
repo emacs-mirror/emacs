@@ -3419,6 +3419,9 @@ The message also goes into the `*Messages*' buffer, if `message-log-max'
 is non-nil.  (In keyboard macros, that's all it does.)
 Return the message.
 
+In batch mode, the message is printed to the standard error stream,
+followed by a newline.
+
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 

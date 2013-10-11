@@ -179,9 +179,6 @@ static Lisp_Object QUTF8_STRING;
    no way to control this behavior. */
 float ns_antialias_threshold;
 
-/* Used to pick up AppleHighlightColor on OS X */
-NSString *ns_selection_color;
-
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 NSString *ns_app_name = @"Emacs";  /* default changed later */
 
@@ -636,9 +633,7 @@ ns_update_auto_hide_menu_bar (void)
 
   NSTRACE (ns_update_auto_hide_menu_bar);
 
-  if (NSApp != nil
-      && [NSApp isActive]
-      && [NSApp respondsToSelector:@selector(setPresentationOptions:)])
+  if (NSApp != nil && [NSApp isActive])
     {
       // Note, "setPresentationOptions" triggers an error unless the
       // application is active.
@@ -647,10 +642,11 @@ ns_update_auto_hide_menu_bar (void)
       if (menu_bar_should_be_hidden != ns_menu_bar_is_hidden)
         {
           NSApplicationPresentationOptions options
-            = NSApplicationPresentationAutoHideDock;
+            = NSApplicationPresentationDefault;
 
           if (menu_bar_should_be_hidden)
-            options |= NSApplicationPresentationAutoHideMenuBar;
+            options |= NSApplicationPresentationAutoHideMenuBar
+              | NSApplicationPresentationAutoHideDock;
 
           [NSApp setPresentationOptions: options];
 
@@ -676,10 +672,21 @@ ns_update_begin (struct frame *f)
    external (RIF) call; whole frame, called before update_window_begin
    -------------------------------------------------------------------------- */
 {
-  NSView *view = FRAME_NS_VIEW (f);
+  EmacsView *view = FRAME_NS_VIEW (f);
   NSTRACE (ns_update_begin);
 
   ns_update_auto_hide_menu_bar ();
+
+#ifdef NS_IMPL_COCOA
+  if ([view isFullscreen] && [view fsIsNative])
+  {
+    // Fix reappearing tool bar in fullscreen for OSX 10.7
+    BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
+    NSToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
+    if (! tbar_visible != ! [toolbar isVisible])
+      [toolbar setVisible: tbar_visible];
+  }
+#endif
 
   ns_updating_frame = f;
   [view lockFocus];
@@ -1454,11 +1461,41 @@ ns_get_color (const char *name, NSColor **col)
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
   block_input ();
 
-  if ([nsname isEqualToString: @"ns_selection_color"])
+#ifdef NS_IMPL_COCOA
+  if ([nsname isEqualToString: @"ns_selection_bg_color"])
     {
-      nsname = ns_selection_color;
-      name = [ns_selection_color UTF8String];
+      NSString *defname = [[NSUserDefaults standardUserDefaults]
+                            stringForKey: @"AppleHighlightColor"];
+
+      if (defname != nil)
+        nsname = defname;
+      else if ((new = [NSColor selectedTextBackgroundColor]) != nil)
+        {
+          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          unblock_input ();
+          return 0;
+        }
+      else
+        nsname = NS_SELECTION_BG_COLOR_DEFAULT;
+
+      name = [nsname UTF8String];
     }
+  else if ([nsname isEqualToString: @"ns_selection_fg_color"])
+    {
+      /* NOTE: OSX applications normally don't set foreground selection, but
+         text may be unreadable if we don't.
+      */
+      if ((new = [NSColor selectedTextColor]) != nil)
+        {
+          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          unblock_input ();
+          return 0;
+        }
+
+      nsname = NS_SELECTION_FG_COLOR_DEFAULT;
+      name = [nsname UTF8String];
+    }
+#endif // NS_IMPL_COCOA
 
   /* First, check for some sort of numeric specification. */
   hex[0] = '\0';
@@ -3358,7 +3395,6 @@ check_native_fs ()
 
   ns_last_use_native_fullscreen = ns_use_native_fullscreen;
 
-  /* Clear the mouse-moved flag for every frame on this display.  */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
@@ -4167,11 +4203,6 @@ ns_term_init (Lisp_Object display_name)
                  make_float (10.0), make_float (6.0), YES, NO);
       ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
     }
-
-  ns_selection_color = [[NSUserDefaults standardUserDefaults]
-			 stringForKey: @"AppleHighlightColor"];
-  if (ns_selection_color == nil)
-    ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
 
   {
     NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
@@ -6094,8 +6125,29 @@ if (cols > 0 && rows > 0)
       [self windowDidBecomeKey:notification];
       [nonfs_window orderOut:self];
     }
-  else if (! FRAME_EXTERNAL_TOOL_BAR (emacsframe))
-    [toolbar setVisible:NO];
+  else
+    {
+      BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (emacsframe) ? YES : NO;
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+      unsigned val = (unsigned)[NSApp presentationOptions];
+
+      // OSX 10.7 bug fix, the menu won't appear without this.
+      // val is non-zero on other OSX versions.
+      if (val == 0)
+        {
+          NSApplicationPresentationOptions options
+            = NSApplicationPresentationAutoHideDock
+            | NSApplicationPresentationAutoHideMenuBar
+            | NSApplicationPresentationFullScreen
+            | NSApplicationPresentationAutoHideToolbar;
+
+          [NSApp setPresentationOptions: options];
+        }
+#endif
+#endif
+      [toolbar setVisible:tbar_visible];
+    }
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification
@@ -6108,7 +6160,7 @@ if (cols > 0 && rows > 0)
 {
   [self setFSValue: fs_before_fs];
   fs_before_fs = -1;
-#ifdef NS_IMPL_COCOA
+#ifdef HAVE_NATIVE_FS
   [self updateCollectionBehaviour];
 #endif
   if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
@@ -6169,7 +6221,7 @@ if (cols > 0 && rows > 0)
 
   if (fs_is_native)
     {
-#ifdef NS_IMPL_COCOA
+#ifdef HAVE_NATIVE_FS
       [[self window] toggleFullScreen:sender];
 #endif
       return;

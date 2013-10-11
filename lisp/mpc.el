@@ -2009,7 +2009,9 @@ This is used so that they can be compared with `eq', which is needed for
              posn))))
   (let* ((plbuf (mpc-proc-cmd "playlist"))
          (re (if song-file
-		 (concat "^\\([0-9]+\\):" (regexp-quote song-file) "$")))
+                 ;; Newer MPCs apparently include "file: " in the buffer.
+		 (concat "^\\([0-9]+\\):\\(?:file: \\)?"
+                         (regexp-quote song-file) "$")))
          (sn (with-current-buffer plbuf
                (goto-char (point-min))
                (when (and re (re-search-forward re nil t))

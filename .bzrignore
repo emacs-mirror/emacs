@@ -102,6 +102,7 @@ lib/Makefile.in
 lib/deps
 lib/alloca.h
 lib/arg-nonnull.h
+lib/byteswap.h
 lib/c++defs.h
 lib/dirent.h
 lib/errno.h

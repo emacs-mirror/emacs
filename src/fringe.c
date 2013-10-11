@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 
+#include <byteswap.h>
+
 #include "lisp.h"
 #include "frame.h"
 #include "window.h"
@@ -28,8 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "blockinput.h"
 #include "termhooks.h"
-
-#ifdef HAVE_WINDOW_SYSTEM
 
 /* Fringe bitmaps are represented in three different ways:
 
@@ -1521,7 +1521,7 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 				   | (swap_nibble[(b>>12) & 0xf]));
 	      b >>= (16 - fb->width);
 #ifdef WORDS_BIGENDIAN
-	      b = ((b >> 8) | (b << 8));
+	      b = bswap_16 (b);
 #endif
 	      *bits++ = b;
 	    }
@@ -1863,5 +1863,3 @@ w32_reset_fringes (void)
 }
 
 #endif /* HAVE_NTGUI */
-
-#endif /* HAVE_WINDOW_SYSTEM */

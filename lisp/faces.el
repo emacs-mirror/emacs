@@ -2259,7 +2259,8 @@ terminal type to a different value."
      :foreground "gtk_selection_fg_color"
      :background "gtk_selection_bg_color")
     (((class color) (min-colors 88) (background light) (type ns))
-     :background "ns_selection_color")
+     :foreground "ns_selection_fg_color"
+     :background "ns_selection_bg_color")
     (((class color) (min-colors 88) (background light))
      :background "lightgoldenrod2")
     (((class color) (min-colors 16) (background dark))

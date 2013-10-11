@@ -593,6 +593,10 @@ files beneath it."
                        (and newvers (concat "-r" newvers)))
                  (vc-switches 'RCS 'diff))))
 
+(defun vc-rcs-find-admin-dir (file)
+  "Return the administrative directory of FILE."
+  (vc-find-root file "RCS"))
+
 (defun vc-rcs-comment-history (file)
   "Return a string with all log entries stored in BACKEND for FILE."
   (with-current-buffer "*vc*"

@@ -86,6 +86,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       (vc-file-setprop file 'vc-mtn-root
                        (vc-find-root file vc-mtn-admin-format))))
 
+(defun vc-mtn-find-admin-dir (file)
+  "Return the administrative directory of FILE."
+  (expand-file-name vc-mtn-admin-dir (vc-mtn-root file)))
 
 (defun vc-mtn-registered (file)
   (let ((root (vc-mtn-root file)))

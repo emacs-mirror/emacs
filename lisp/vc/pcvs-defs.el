@@ -245,13 +245,6 @@ Output from cvs is placed here for asynchronous commands.")
 
 
 ;;;;
-;;;; Internal variables, used in the process buffer.
-;;;;
-
-(defvar cvs-postprocess nil
-  "(Buffer local) what to do once the process exits.")
-
-;;;;
 ;;;; Internal variables for the *cvs* buffer.
 ;;;;
 

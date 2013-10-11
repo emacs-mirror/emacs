@@ -291,11 +291,14 @@ KEY identifies the connection, it is either a process or a vector."
 	   (when (vectorp key)
 	     (dotimes (i (length key))
 	       (when (stringp (aref key i))
-		 (aset key i (funcall 'substring-no-properties (aref key i))))))
+		 (aset key i
+		       (tramp-compat-funcall
+			'substring-no-properties (aref key i))))))
 	   (when (stringp key)
-	     (setq key (funcall 'substring-no-properties key)))
+	     (setq key (tramp-compat-funcall 'substring-no-properties key)))
 	   (when (stringp value)
-	     (setq value (funcall 'substring-no-properties value))))
+	     (setq value
+		   (tramp-compat-funcall 'substring-no-properties value))))
 	 ;; Dump.
 	 (let ((tmp (format
 		     "(%s %s)"

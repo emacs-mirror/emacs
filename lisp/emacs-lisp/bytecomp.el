@@ -535,7 +535,13 @@ Each element is (INDEX . VALUE)")
 (byte-defop  40  0 byte-unbind	"for unbinding special bindings")
 ;; codes 8-47 are consumed by the preceding opcodes
 
-;; unused: 48-55
+;; New (in Emacs-24.4) bytecodes for more efficient handling of non-local exits
+;; (especially useful in lexical-binding code).
+(byte-defop  48  0 byte-pophandler)
+(byte-defop  50 -1 byte-pushcatch)
+(byte-defop  49 -1 byte-pushconditioncase)
+
+;; unused: 51-55
 
 (byte-defop  56 -1 byte-nth)
 (byte-defop  57  0 byte-symbolp)
@@ -707,7 +713,8 @@ otherwise pop it")
 
 (defconst byte-goto-ops '(byte-goto byte-goto-if-nil byte-goto-if-not-nil
 			  byte-goto-if-nil-else-pop
-			  byte-goto-if-not-nil-else-pop)
+			  byte-goto-if-not-nil-else-pop
+                          byte-pushcatch byte-pushconditioncase)
   "List of byte-codes whose offset is a pc.")
 
 (defconst byte-goto-always-pop-ops '(byte-goto-if-nil byte-goto-if-not-nil))
@@ -4028,23 +4035,35 @@ binding slots have been popped."
 ;; (byte-defop-compiler-1 with-output-to-temp-buffer) ;Obsolete: now a macro.
 (byte-defop-compiler-1 track-mouse)
 
+(defvar byte-compile--use-old-handlers t
+  "If nil, use new byte codes introduced in Emacs-24.4.")
+
 (defun byte-compile-catch (form)
   (byte-compile-form (car (cdr form)))
-  (pcase (cddr form)
-    (`(:fun-body ,f)
-     (byte-compile-form `(list 'funcall ,f)))
-    (body
-     (byte-compile-push-constant
-      (byte-compile-top-level (cons 'progn body) byte-compile--for-effect))))
-  (byte-compile-out 'byte-catch 0))
+  (if (not byte-compile--use-old-handlers)
+      (let ((endtag (byte-compile-make-tag)))
+        (byte-compile-goto 'byte-pushcatch endtag)
+        (byte-compile-body (cddr form) nil)
+        (byte-compile-out 'byte-pophandler)
+        (byte-compile-out-tag endtag))
+    (pcase (cddr form)
+      (`(:fun-body ,f)
+       (byte-compile-form `(list 'funcall ,f)))
+      (body
+       (byte-compile-push-constant
+        (byte-compile-top-level (cons 'progn body) byte-compile--for-effect))))
+    (byte-compile-out 'byte-catch 0)))
 
 (defun byte-compile-unwind-protect (form)
   (pcase (cddr form)
     (`(:fun-body ,f)
-     (byte-compile-form `(list (list 'funcall ,f))))
+     (byte-compile-form
+      (if byte-compile--use-old-handlers `(list (list 'funcall ,f)) f)))
     (handlers
-     (byte-compile-push-constant
-      (byte-compile-top-level-body handlers t))))
+     (if byte-compile--use-old-handlers
+         (byte-compile-push-constant
+          (byte-compile-top-level-body handlers t))
+       (byte-compile-form `#'(lambda () ,@handlers)))))
   (byte-compile-out 'byte-unwind-protect 0)
   (byte-compile-form-do-effect (car (cdr form)))
   (byte-compile-out 'byte-unbind 1))
@@ -4056,6 +4075,11 @@ binding slots have been popped."
      (_ `(eval '(track-mouse ,@(byte-compile-top-level-body (cdr form))))))))
 
 (defun byte-compile-condition-case (form)
+  (if byte-compile--use-old-handlers
+      (byte-compile-condition-case--old form)
+    (byte-compile-condition-case--new form)))
+
+(defun byte-compile-condition-case--old (form)
   (let* ((var (nth 1 form))
 	 (fun-bodies (eq var :fun-body))
          (byte-compile-bound-variables
@@ -4106,6 +4130,62 @@ binding slots have been popped."
         (byte-compile-push-constant compiled-clauses)))
     (byte-compile-out 'byte-condition-case 0)))
 
+(defun byte-compile-condition-case--new (form)
+  (let* ((var (nth 1 form))
+         (body (nth 2 form))
+         (depth byte-compile-depth)
+         (clauses (mapcar (lambda (clause)
+                            (cons (byte-compile-make-tag) clause))
+                          (nthcdr 3 form)))
+         (endtag (byte-compile-make-tag)))
+    (byte-compile-set-symbol-position 'condition-case)
+    (unless (symbolp var)
+      (byte-compile-warn
+       "`%s' is not a variable-name or nil (in condition-case)" var))
+
+    (dolist (clause (reverse clauses))
+      (let ((condition (nth 1 clause)))
+        (unless (consp condition) (setq condition (list condition)))
+        (dolist (c condition)
+          (unless (and c (symbolp c))
+            (byte-compile-warn
+             "`%S' is not a condition name (in condition-case)" c))
+          ;; In reality, the `error-conditions' property is only required
+          ;; for the argument to `signal', not to `condition-case'.
+          ;;(unless (consp (get c 'error-conditions))
+          ;;  (byte-compile-warn
+          ;;   "`%s' is not a known condition name (in condition-case)"
+          ;;   c))
+          )
+        (byte-compile-push-constant condition))
+      (byte-compile-goto 'byte-pushconditioncase (car clause)))
+
+    (byte-compile-form body) ;; byte-compile--for-effect
+    (dolist (_ clauses) (byte-compile-out 'byte-pophandler))
+    (byte-compile-goto 'byte-goto endtag)
+
+    (while clauses
+      (let ((clause (pop clauses))
+            (byte-compile-bound-variables byte-compile-bound-variables)
+            (byte-compile--lexical-environment
+             byte-compile--lexical-environment))
+        (setq byte-compile-depth (1+ depth))
+        (byte-compile-out-tag (pop clause))
+        (dolist (_ clauses) (byte-compile-out 'byte-pophandler))
+        (cond
+         ((null var) (byte-compile-discard))
+         (lexical-binding
+          (push (cons var (1- byte-compile-depth))
+                byte-compile--lexical-environment))
+         (t (byte-compile-dynamic-variable-bind var)))
+        (byte-compile-body (cdr clause)) ;; byte-compile--for-effect
+        (cond
+         ((null var) nil)
+         (lexical-binding (byte-compile-discard 1 'preserve-tos))
+         (t (byte-compile-out 'byte-unbind 1)))
+        (byte-compile-goto 'byte-goto endtag)))
+
+    (byte-compile-out-tag endtag)))
 
 (defun byte-compile-save-excursion (form)
   (if (and (eq 'set-buffer (car-safe (car-safe (cdr form))))

@@ -751,7 +751,7 @@ struct atimer *hourglass_atimer;
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Name of the face used to display glyphless characters.  */
-Lisp_Object Qglyphless_char;
+static Lisp_Object Qglyphless_char;
 
 /* Symbol for the purpose of Vglyphless_char_display.  */
 static Lisp_Object Qglyphless_char_display;
@@ -3698,8 +3698,8 @@ handle_fontified_prop (struct it *it)
       ptrdiff_t count = SPECPDL_INDEX ();
       Lisp_Object val;
       struct buffer *obuf = current_buffer;
-      int begv = BEGV, zv = ZV;
-      int old_clip_changed = current_buffer->clip_changed;
+      ptrdiff_t begv = BEGV, zv = ZV;
+      bool old_clip_changed = current_buffer->clip_changed;
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
@@ -6955,6 +6955,7 @@ get_next_display_element (struct it *it)
 	}
     }
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Adjust face id for a multibyte character.  There are no multibyte
      character in unibyte text.  */
   if ((it->what == IT_CHARACTER || it->what == IT_COMPOSITION)
@@ -6995,6 +6996,7 @@ get_next_display_element (struct it *it)
 	  it->face_id = FACE_FOR_CHAR (it->f, face, c, pos, it->string);
 	}
     }
+#endif	/* HAVE_WINDOW_SYSTEM */
 
  done:
   /* Is this character the last one of a run of characters with
@@ -13065,8 +13067,6 @@ redisplay_internal (void)
   match_p = XBUFFER (w->contents) == current_buffer;
   if (match_p)
     {
-      ptrdiff_t count1;
-
       /* Detect case that we need to write or remove a star in the mode line.  */
       if ((SAVE_MODIFF < MODIFF) != w->last_had_star)
 	{
@@ -13075,14 +13075,8 @@ redisplay_internal (void)
 	    update_mode_lines++;
 	}
 
-      /* Avoid invocation of point motion hooks by `current_column' below.  */
-      count1 = SPECPDL_INDEX ();
-      specbind (Qinhibit_point_motion_hooks, Qt);
-
       if (mode_line_update_needed (w))
 	w->update_mode_line = 1;
-
-      unbind_to (count1, Qnil);
     }
 
   consider_all_windows_p = (update_mode_lines
@@ -18109,9 +18103,13 @@ DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
        doc: /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
-GLYPH > 1 or omitted means dump glyphs in long form.  */)
+GLYPH > 1 or omitted means dump glyphs in long form.
+
+If there's no tool-bar, or if the tool-bar is not drawn by Emacs,
+do nothing.  */)
   (Lisp_Object row, Lisp_Object glyphs)
 {
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   struct frame *sf = SELECTED_FRAME ();
   struct glyph_matrix *m = XWINDOW (sf->tool_bar_window)->current_matrix;
   EMACS_INT vpos;
@@ -18121,6 +18119,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
   if (vpos >= 0 && vpos < m->nrows)
     dump_glyph_row (MATRIX_ROW (m, vpos), vpos,
 		    TYPE_RANGED_INTEGERP (int, glyphs) ? XINT (glyphs) : 2);
+#endif
   return Qnil;
 }
 

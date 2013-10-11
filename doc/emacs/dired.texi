@@ -281,9 +281,9 @@ say they are backup files---that is, files whose names end in
 the backup files for deletion: all but the oldest few and newest few
 backups of any one file.  Normally, the number of newest versions kept
 for each file is given by the variable @code{dired-kept-versions}
-(@strong{not} @code{kept-new-versions}; that applies only when
-saving).  The number of oldest versions to keep is given by the
-variable @code{kept-old-versions}.
+(@emph{not} @code{kept-new-versions}; that applies only when saving).
+The number of oldest versions to keep is given by the variable
+@code{kept-old-versions}.
 
   Period with a positive numeric argument, as in @kbd{C-u 3 .},
 specifies the number of newest versions to keep, overriding

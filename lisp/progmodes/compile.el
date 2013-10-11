@@ -1354,9 +1354,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
 			   (eq (car face) 'face)
 			   (or (symbolp (cadr face))
 			       (stringp (cadr face))))
-                      (put-text-property
-                       (match-beginning mn) (match-end mn)
-                       'font-lock-face (cadr face))
+                      (compilation--put-prop mn 'font-lock-face (cadr face))
                       (add-text-properties
                        (match-beginning mn) (match-end mn)
                        (nthcdr 2 face)))
@@ -1394,6 +1392,9 @@ to `compilation-error-regexp-alist' if RULES is nil."
         (move-marker compilation--parsed limit)
         (goto-char start)
         (forward-line 0)  ;Not line-beginning-position: ignore (comint) fields.
+        (while (and (not (bobp))
+                    (get-text-property (1- (point)) 'compilation-multiline))
+          (forward-line -1))
         (with-silent-modifications
           (compilation--parse-region (point) compilation--parsed)))))
   nil)
@@ -1583,7 +1584,16 @@ Returns the compilation buffer created."
                "\\\\\\(.\\)" "\\1"
                (substring command (1+ (match-beginning 1))
                           (1- (match-end 1)))))
-             (t (substitute-env-vars (match-string 1 command)))))
+             ;; Try globbing as well (bug#15417).
+             (t (let* ((substituted-dir
+                        (substitute-env-vars (match-string 1 command)))
+                       ;; FIXME: This also tries to expand `*' that were
+                       ;; introduced by the envvar expansion!
+                       (expanded-dir
+                        (file-expand-wildcards substituted-dir)))
+                  (if (= (length expanded-dir) 1)
+                      (car expanded-dir)
+                    substituted-dir)))))
 	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))

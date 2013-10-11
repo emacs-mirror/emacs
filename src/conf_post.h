@@ -248,23 +248,6 @@ extern void _DebPrint (const char *fmt, ...);
 # define FLEXIBLE_ARRAY_MEMBER 1
 #endif
 
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
-
-/* Tell the compiler (and lint) that COND will always hold, and that
-   it should optimize (or check) accordingly.  */
-#if (__has_builtin (__builtin_unreachable) \
-     || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5) || __GNUC__ > 4)
-# define assume(cond) ((cond) ? (void) 0 : __builtin_unreachable ())
-#elif defined _MSC_VER
-# define assume(cond) __assume (cond)
-#elif defined lint
-# define assume(cond) ((cond) ? (void) 0 : abort ())
-#else
-# define assume(cond) ((void) (0 && (cond)))
-#endif
-
 /* Use this to suppress gcc's `...may be used before initialized' warnings. */
 #ifdef lint
 /* Use CODE only if lint checking is in effect.  */

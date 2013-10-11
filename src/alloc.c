@@ -1973,7 +1973,6 @@ INIT must be an integer that represents a character.  */)
   (Lisp_Object length, Lisp_Object init)
 {
   register Lisp_Object val;
-  register unsigned char *p, *end;
   int c;
   EMACS_INT nbytes;
 
@@ -1985,36 +1984,41 @@ INIT must be an integer that represents a character.  */)
     {
       nbytes = XINT (length);
       val = make_uninit_string (nbytes);
-      p = SDATA (val);
-      end = p + SCHARS (val);
-      while (p != end)
-	*p++ = c;
+      memset (SDATA (val), c, nbytes);
+      SDATA (val)[nbytes] = 0;
     }
   else
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH];
-      int len = CHAR_STRING (c, str);
+      ptrdiff_t len = CHAR_STRING (c, str);
       EMACS_INT string_len = XINT (length);
+      unsigned char *p, *beg, *end;
 
       if (string_len > STRING_BYTES_MAX / len)
 	string_overflow ();
       nbytes = len * string_len;
       val = make_uninit_multibyte_string (string_len, nbytes);
-      p = SDATA (val);
-      end = p + nbytes;
-      while (p != end)
+      for (beg = SDATA (val), p = beg, end = beg + nbytes; p < end; p += len)
 	{
-	  memcpy (p, str, len);
-	  p += len;
+	  /* First time we just copy `str' to the data of `val'.  */
+	  if (p == beg)
+	    memcpy (p, str, len);
+	  else
+	    {
+	      /* Next time we copy largest possible chunk from
+		 initialized to uninitialized part of `val'.  */
+	      len = min (p - beg, end - p);
+	      memcpy (p, beg, len);
+	    }
 	}
+      *p = 0;
     }
 
-  *p = 0;
   return val;
 }
 
-verify (sizeof (size_t) * CHAR_BIT == BITS_PER_SIZE_T);
-verify ((BITS_PER_SIZE_T & (BITS_PER_SIZE_T - 1)) == 0);
+verify (sizeof (size_t) * CHAR_BIT == BITS_PER_BITS_WORD);
+verify ((BITS_PER_BITS_WORD & (BITS_PER_BITS_WORD - 1)) == 0);
 
 static ptrdiff_t
 bool_vector_payload_bytes (ptrdiff_t nr_bits,
@@ -2023,17 +2027,17 @@ bool_vector_payload_bytes (ptrdiff_t nr_bits,
   ptrdiff_t exact_needed_bytes;
   ptrdiff_t needed_bytes;
 
-  eassert_and_assume (nr_bits >= 0);
+  eassert (nr_bits >= 0);
 
   exact_needed_bytes = ROUNDUP ((size_t) nr_bits, CHAR_BIT) / CHAR_BIT;
-  needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_SIZE_T) / CHAR_BIT;
+  needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_BITS_WORD) / CHAR_BIT;
 
   if (needed_bytes == 0)
     {
       /* Always allocate at least one machine word of payload so that
          bool-vector operations in data.c don't need a special case
          for empty vectors.  */
-      needed_bytes = sizeof (size_t);
+      needed_bytes = sizeof (bits_word);
     }
 
   if (exact_needed_bytes_out != NULL)
@@ -2060,8 +2064,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   total_payload_bytes = bool_vector_payload_bytes
     (XFASTINT (length), &exact_payload_bytes);
 
-  eassert_and_assume (exact_payload_bytes <= total_payload_bytes);
-  eassert_and_assume (0 <= exact_payload_bytes);
+  eassert (exact_payload_bytes <= total_payload_bytes);
+  eassert (0 <= exact_payload_bytes);
 
   needed_elements = ROUNDUP ((size_t) ((bool_header_size - header_size)
                                        + total_payload_bytes),
@@ -2816,7 +2820,7 @@ vector_nbytes (struct Lisp_Vector *v)
           ptrdiff_t payload_bytes =
               bool_vector_payload_bytes (bv->size, NULL);
 
-          eassert_and_assume (payload_bytes >= 0);
+          eassert (payload_bytes >= 0);
           size = bool_header_size + ROUNDUP (payload_bytes, word_size);
         }
       else
@@ -4820,7 +4824,7 @@ valid_pointer_p (void *p)
 
   if (emacs_pipe (fd) == 0)
     {
-      bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
+      bool valid = emacs_write (fd[1], p, 16) == 16;
       emacs_close (fd[1]);
       emacs_close (fd[0]);
       return valid;
@@ -5370,23 +5374,15 @@ See Info node `(elisp)Garbage Collection'.  */)
 	mark_object (tail->var[i]);
   }
   mark_byte_stack ();
-  {
-    struct catchtag *catch;
-    struct handler *handler;
-
-  for (catch = catchlist; catch; catch = catch->next)
-    {
-      mark_object (catch->tag);
-      mark_object (catch->val);
-    }
-  for (handler = handlerlist; handler; handler = handler->next)
-    {
-      mark_object (handler->handler);
-      mark_object (handler->var);
-    }
-  }
 #endif
-
+  {
+    struct handler *handler;
+    for (handler = handlerlist; handler; handler = handler->next)
+      {
+	mark_object (handler->tag_or_ch);
+	mark_object (handler->val);
+      }
+  }
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
 #endif

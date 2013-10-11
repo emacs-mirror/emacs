@@ -1,3 +1,8 @@
+2013-09-28  Leo Liu  <sdl.web@gmail.com>
+
+	* semantic/texi.el (semantic-analyze-possible-completions): Use
+	ispell-lookup-words instead.  (Bug#15460)
+
 2013-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* semantic.el (semantic-new-buffer-fcn-was-run, semantic-active-p):

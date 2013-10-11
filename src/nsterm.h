@@ -911,7 +911,8 @@ extern char gnustep_base_version[];  /* version tracking */
 
 #define NS_SCROLL_BAR_WIDTH_DEFAULT     [EmacsScroller scrollerWidth]
 /* This is to match emacs on other platforms, ugly though it is. */
-#define NS_SELECTION_COLOR_DEFAULT	@"LightGoldenrod2";
+#define NS_SELECTION_BG_COLOR_DEFAULT	@"LightGoldenrod2";
+#define NS_SELECTION_FG_COLOR_DEFAULT	@"Black";
 #define RESIZE_HANDLE_SIZE 12
 
 /* Little utility macros */

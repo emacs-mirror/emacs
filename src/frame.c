@@ -339,7 +339,6 @@ make_frame (bool mini_p)
      initialize enum members explicitly even if their values are zero.  */
   f->wants_modeline = 1;
   f->garbaged = 1;
-  f->has_minibuffer = mini_p;
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
   f->column_width = 1;  /* !FRAME_WINDOW_P value */
   f->line_height = 1;  /* !FRAME_WINDOW_P value */
@@ -489,7 +488,6 @@ make_minibuffer_frame (void)
   f->auto_lower = 0;
   f->no_split = 1;
   f->wants_modeline = 0;
-  f->has_minibuffer = 1;
 
   /* Now label the root window as also being the minibuffer.
      Avoid infinite looping on the window chain by marking next pointer
@@ -1190,7 +1188,7 @@ Lisp_Object
 delete_frame (Lisp_Object frame, Lisp_Object force)
 {
   struct frame *f = decode_any_frame (frame);
-  struct frame *sf = SELECTED_FRAME ();
+  struct frame *sf;
   struct kboard *kb;
 
   int minibuffer_selected, is_tooltip_frame;
@@ -1265,7 +1263,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      There is no more chance for errors to prevent it.  */
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
-
+  sf = SELECTED_FRAME ();
   /* Don't let the frame remain selected.  */
   if (f == sf)
     {
@@ -1373,13 +1371,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      have called the window-system-dependent frame destruction
      routine.  */
 
-  if (FRAME_TERMINAL (f)->delete_frame_hook)
-    (*FRAME_TERMINAL (f)->delete_frame_hook) (f);
 
   {
+    block_input ();
+    if (FRAME_TERMINAL (f)->delete_frame_hook)
+      (*FRAME_TERMINAL (f)->delete_frame_hook) (f);
     struct terminal *terminal = FRAME_TERMINAL (f);
     f->output_data.nothing = 0;
     f->terminal = 0;             /* Now the frame is dead.  */
+    unblock_input ();
 
     /* If needed, delete the terminal that this frame was on.
        (This must be done after the frame is killed.)  */

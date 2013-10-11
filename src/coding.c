@@ -5761,6 +5761,7 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
   coding->safe_charsets = SDATA (val);
   coding->default_char = XINT (CODING_ATTR_DEFAULT_CHAR (attrs));
   coding->carryover_bytes = 0;
+  coding->raw_destination = 0;
 
   coding_type = CODING_ATTR_TYPE (attrs);
   if (EQ (coding_type, Qundecided))
@@ -8352,6 +8353,11 @@ encode_coding_object (struct coding_system *coding,
     {
       if (BUFFERP (coding->dst_object))
 	coding->dst_object = Fbuffer_string ();
+      else if (coding->raw_destination)
+	/* This is used to avoid creating huge Lisp string.
+	   NOTE: caller who sets `raw_destination' is also
+	   responsible for freeing `destination' buffer.  */
+	coding->dst_object = Qnil;
       else
 	{
 	  coding->dst_object

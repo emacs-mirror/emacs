@@ -189,6 +189,7 @@ It returns t if not."
 ;;   </method>
 ;;   <method name="CreateCollection">
 ;;     <arg name="props"      type="a{sv}" direction="in"/>
+;;     <arg name="alias"      type="s"     direction="in"/>   ;; Added 2011/3/1
 ;;     <arg name="collection" type="o"     direction="out"/>
 ;;     <arg name="prompt"     type="o"     direction="out"/>
 ;;   </method>
@@ -491,9 +492,10 @@ If there is no such COLLECTION, return nil."
 	      (secrets-get-collection-property collection-path "Label"))
 	 (throw 'collection-found collection-path))))))
 
-(defun secrets-create-collection (collection)
+(defun secrets-create-collection (collection &optional alias)
   "Create collection labeled COLLECTION if it doesn't exist.
-Return the D-Bus object path for collection."
+Set ALIAS as alias of the collection.  Return the D-Bus object
+path for collection."
   (let ((collection-path (secrets-collection-path collection)))
     ;; Create the collection.
     (when (secrets-empty-path collection-path)
@@ -504,7 +506,10 @@ Return the D-Bus object path for collection."
 	      (dbus-call-method
 	       :session secrets-service secrets-path
 	       secrets-interface-service "CreateCollection"
-	       `(:array (:dict-entry "Label" (:variant ,collection))))))))
+	       `(:array
+		 (:dict-entry ,(concat secrets-interface-collection ".Label")
+			      (:variant ,collection)))
+	       (or alias ""))))))
     ;; Return object path of the collection.
     collection-path))
 

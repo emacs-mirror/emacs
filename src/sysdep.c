@@ -2257,9 +2257,9 @@ emacs_close (int fd)
    Return the number of bytes read, which might be less than NBYTE.
    On error, set errno and return -1.  */
 ptrdiff_t
-emacs_read (int fildes, char *buf, ptrdiff_t nbyte)
+emacs_read (int fildes, void *buf, ptrdiff_t nbyte)
 {
-  register ssize_t rtnval;
+  ssize_t rtnval;
 
   /* There is no need to check against MAX_RW_COUNT, since no caller ever
      passes a size that large to emacs_read.  */
@@ -2310,14 +2310,14 @@ emacs_full_write (int fildes, char const *buf, ptrdiff_t nbyte,
    interrupted or if a partial write occurs.  Return the number of
    bytes written, setting errno if this is less than NBYTE.  */
 ptrdiff_t
-emacs_write (int fildes, char const *buf, ptrdiff_t nbyte)
+emacs_write (int fildes, void const *buf, ptrdiff_t nbyte)
 {
   return emacs_full_write (fildes, buf, nbyte, 0);
 }
 
 /* Like emacs_write, but also process pending signals if interrupted.  */
 ptrdiff_t
-emacs_write_sig (int fildes, char const *buf, ptrdiff_t nbyte)
+emacs_write_sig (int fildes, void const *buf, ptrdiff_t nbyte)
 {
   return emacs_full_write (fildes, buf, nbyte, 1);
 }

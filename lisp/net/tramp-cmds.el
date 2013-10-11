@@ -194,7 +194,7 @@ This includes password cache, file cache, connection cache, buffers."
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       (funcall
+       (tramp-compat-funcall
 	(if (functionp 'propertize) 'propertize 'progn)
 	"\n" 'display "\
 Enter your bug report in this message, including as much detail
@@ -361,7 +361,7 @@ the debug buffer(s).")
 	      (kill-buffer nil)
 	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
-	      (insert (propertize "\n" 'display "\n\
+	      (insert (tramp-compat-funcall 'propertize "\n" 'display "\n\
 This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
 please ensure that the buffers are attached to your email.\n\n"))

@@ -405,7 +405,10 @@ Typically \"page-%s.png\".")
     (define-key map (kbd "RET")       'image-next-line)
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
+    (define-key map "="               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
+    (define-key map "0"               'doc-view-scale-reset)
+    (define-key map [remap text-scale-adjust] 'doc-view-scale-adjust)
     ;; Fit the image to the window
     (define-key map "W"               'doc-view-fit-width-to-window)
     (define-key map "H"               'doc-view-fit-height-to-window)
@@ -752,6 +755,38 @@ OpenDocument format)."
   "Shrink the document."
   (interactive (list doc-view-shrink-factor))
   (doc-view-enlarge (/ 1.0 factor)))
+
+(defun doc-view-scale-reset ()
+  "Reset the document size/zoom level to the initial one."
+  (interactive)
+  (if (and doc-view-scale-internally
+           (eq (plist-get (cdr (doc-view-current-image)) :type)
+               'imagemagick))
+      (progn
+	(kill-local-variable 'doc-view-image-width)
+	(doc-view-insert-image
+	 (plist-get (cdr (doc-view-current-image)) :file)
+	 :width doc-view-image-width))
+    (kill-local-variable 'doc-view-resolution)
+    (doc-view-reconvert-doc)))
+
+(defun doc-view-scale-adjust (factor)
+  "Adjust the scale of the DocView page images by FACTOR.
+FACTOR defaults to `doc-view-shrink-factor'.
+
+The actual adjustment made depends on the final component of the
+key-binding used to invoke the command, with all modifiers removed:
+
+   +, =   Increase the image scale by FACTOR
+   -      Decrease the image scale by FACTOR
+   0      Reset the image scale to the initial scale"
+  (interactive (list doc-view-shrink-factor))
+  (let ((ev last-command-event)
+	(echo-keystrokes nil))
+    (pcase (event-basic-type ev)
+      ((or ?+ ?=) (doc-view-enlarge factor))
+      (?-         (doc-view-shrink factor))
+      (?0         (doc-view-scale-reset)))))
 
 (defun doc-view-fit-width-to-window ()
   "Fit the image width to the window width."
