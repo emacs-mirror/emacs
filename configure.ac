@@ -2422,10 +2422,16 @@ fi
 AC_SUBST(LIBSELINUX_LIBS)
 
 HAVE_GNUTLS=no
+HAVE_GNUTLS3=no
 if test "${with_gnutls}" = "yes" ; then
   PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.6.6], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
+  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 3.0.0], HAVE_GNUTLS3=yes, HAVE_GNUTLS3=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
+  fi
+
+  if test "${HAVE_GNUTLS3}" = "yes"; then
+    AC_DEFINE(HAVE_GNUTLS3, 1, [Define if using GnuTLS v3.])
   fi
 
   # Windows loads GnuTLS dynamically

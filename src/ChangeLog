@@ -1,3 +1,8 @@
+2013-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (gnutls_audit_log_function): Add function for GnuTLS
+	audit logging (only used with GnuTLS 3.x) and enable it.
+
 2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispnew.c (redraw_frame): Remove useless #ifdef because

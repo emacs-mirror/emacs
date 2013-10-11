@@ -1,3 +1,7 @@
+2013-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.ac: Define HAVE_GNUTLS3 if GnuTLS v3 is found.
+
 2013-10-10  Barry Fishman  <barry_fishman@acm.org>  (tiny change)
 
 	* configure.ac: Update for giflib 5.  (Bug#15531)
