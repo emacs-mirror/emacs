@@ -2333,16 +2333,7 @@ If FRAME is nil or not given, use the selected frame."
 
     ;; The bindings of menu-bar items are so that clicking on the menu
     ;; bar when a menu is already shown pops down that menu.
-    ;; FIXME: we should iterate over all the visible menu-bar items,
-    ;; instead of naming them explicitly here.  Also, this doesn't
-    ;; include items added by current major mode.
-    ;;
-    ;; FIXME: Why not (define-key map [menu-bat t] 'tty-menu-exit) ?  --Stef
-    (dolist (event '(file edit options buffer tools help-menu))
-      (substitute-key-definition
-       (lookup-key (current-global-map) (vector 'menu-bar event))
-       'tty-menu-exit
-       map (current-global-map)))
+    (define-key map [menu-bar t] 'tty-menu-exit)
 
     (define-key map [?\C-r] 'tty-menu-select)
     (define-key map [?\C-j] 'tty-menu-select)
