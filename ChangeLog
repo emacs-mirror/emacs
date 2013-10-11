@@ -1,3 +1,8 @@
+2013-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.ac (LIBGNUTLS): Don't set LIBGNUTLS_* back to the empty
+	string when gnutls2 is installed but gnutls3 is not.
+
 2013-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* configure.ac: Define HAVE_GNUTLS3 if GnuTLS v3 is found.
