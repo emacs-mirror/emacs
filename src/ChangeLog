@@ -1,3 +1,13 @@
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (deep_copy_glyph_row): Handle the case that FROM and TO
+	have different dimensions.  (Bug#15575)
+
+	* dispnew.c (fill_up_frame_row_with_spaces): Now has external
+	visibility.
+
+	* dispextern.h (fill_up_frame_row_with_spaces): Add prototype.
+
 2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* term.c (tty_menu_show): Never return with unbalanced

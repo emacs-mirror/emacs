@@ -20590,10 +20590,10 @@ static void
 deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
+  int to_used = to->used[TEXT_AREA];
 
   /* Save glyph pointers of TO.  */
   memcpy (pointers, to->glyphs, sizeof to->glyphs);
-  eassert (to->used[TEXT_AREA] == from->used[TEXT_AREA]);
 
   /* Do a structure assignment.  */
   *to = *from;
@@ -20603,7 +20603,12 @@ deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
 
   /* Copy the glyphs.  */
   memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA],
-	  from->used[TEXT_AREA] * sizeof (struct glyph));
+	  min (from->used[TEXT_AREA], to_used) * sizeof (struct glyph));
+
+  /* If we filled only part of the TO row, fill the rest with
+     space_glyph (which will display as empty space).  */
+  if (to_used > from->used[TEXT_AREA])
+    fill_up_frame_row_with_spaces (to, to_used);
 }
 
 /* Display one menu item on a TTY, by overwriting the glyphs in the

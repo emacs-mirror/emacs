@@ -77,7 +77,6 @@ static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
 static void change_frame_size_1 (struct frame *, int, int, bool, bool, bool);
 static void increment_row_positions (struct glyph_row *, ptrdiff_t, ptrdiff_t);
-static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
 static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
                                                  struct window *);
 static void build_frame_matrix_from_leaf_window (struct glyph_matrix *,
@@ -2503,7 +2502,7 @@ fill_up_glyph_row_area_with_spaces (struct glyph_row *row, int area)
 /* Add spaces to the end of ROW in a frame matrix until index UPTO is
    reached.  In frame matrices only one area, TEXT_AREA, is used.  */
 
-static void
+void
 fill_up_frame_row_with_spaces (struct glyph_row *row, int upto)
 {
   int i = row->used[TEXT_AREA];
