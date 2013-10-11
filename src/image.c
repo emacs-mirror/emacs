@@ -7571,10 +7571,7 @@ gif_load (struct frame *f, struct image *img)
 	       y++, row += interlace_increment[pass])
 	    {
 	      while (subimg_height <= row)
-		{
-		  assume (pass < 3);
-		  row = interlace_start[++pass];
-		}
+		row = interlace_start[++pass];
 
 	      for (x = 0; x < subimg_width; x++)
 		{

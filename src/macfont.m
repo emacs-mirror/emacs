@@ -2817,7 +2817,6 @@ macfont_shape (Lisp_Object lgstring)
     }
 
   len = i;
-  assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
 
   if (INT_MAX / 2 < len)
     memory_full (SIZE_MAX);

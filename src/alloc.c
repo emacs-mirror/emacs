@@ -2027,7 +2027,7 @@ bool_vector_payload_bytes (ptrdiff_t nr_bits,
   ptrdiff_t exact_needed_bytes;
   ptrdiff_t needed_bytes;
 
-  eassert (nr_bits >= 0);
+  eassume (nr_bits >= 0);
 
   exact_needed_bytes = ROUNDUP ((size_t) nr_bits, CHAR_BIT) / CHAR_BIT;
   needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_BITS_WORD) / CHAR_BIT;
@@ -2064,8 +2064,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   total_payload_bytes = bool_vector_payload_bytes
     (XFASTINT (length), &exact_payload_bytes);
 
-  eassert (exact_payload_bytes <= total_payload_bytes);
-  eassert (0 <= exact_payload_bytes);
+  eassume (exact_payload_bytes <= total_payload_bytes);
+  eassume (0 <= exact_payload_bytes);
 
   needed_elements = ROUNDUP ((size_t) ((bool_header_size - header_size)
                                        + total_payload_bytes),
@@ -2622,7 +2622,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
 #define vroundup_ct(x) ROUNDUP ((size_t) (x), roundup_size)
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at runtime.  */
-#define vroundup(x) (assume ((x) >= 0), vroundup_ct (x))
+#define vroundup(x) (eassume ((x) >= 0), vroundup_ct (x))
 
 /* Rounding helps to maintain alignment constraints if USE_LSB_TAG.  */
 
@@ -2820,7 +2820,7 @@ vector_nbytes (struct Lisp_Vector *v)
           ptrdiff_t payload_bytes =
               bool_vector_payload_bytes (bv->size, NULL);
 
-          eassert (payload_bytes >= 0);
+          eassume (payload_bytes >= 0);
           size = bool_header_size + ROUNDUP (payload_bytes, word_size);
         }
       else

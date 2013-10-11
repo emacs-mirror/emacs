@@ -1,3 +1,24 @@
+2013-10-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (eassume): New macro.
+	Also, include <verify.h>, for 'assume'.
+	* alloc.c (bool_vector_payload_bytes, Fmake_bool_vector)
+	(vroundup, vector_nbytes):
+	* data.c (bool_vector_spare_mask, bool_vector_binop_driver)
+	(Fbool_vector_not, Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at):
+	Use eassume, not eassert.
+	* casetab.c (set_identity, shuffle):
+	* composite.c (composition_gstring_put_cache):
+	* dispnew.c (update_frame_1):
+	* ftfont.c (ftfont_shape_by_flt):
+	* image.c (gif_load):
+	* intervals.c (offset_intervals):
+	* macfont.m (macfont_shape):
+	Remove calls to 'assume' that are no longer needed, because
+	--enable-gcc-warnings no longer generates bogus warnings
+	when these calls are removed.
+
 2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (deep_copy_glyph_row): Remove unused locals.

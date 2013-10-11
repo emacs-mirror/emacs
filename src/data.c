@@ -2969,7 +2969,7 @@ lowercase l) for small endian machines.  */)
 static bits_word
 bool_vector_spare_mask (ptrdiff_t nr_bits)
 {
-  eassert (nr_bits > 0);
+  eassume (nr_bits > 0);
   return (((bits_word) 1) << (nr_bits % BITS_PER_BITS_WORD)) - 1;
 }
 
@@ -3019,7 +3019,7 @@ bool_vector_binop_driver (Lisp_Object op1,
       nr_bits = min (nr_bits, XBOOL_VECTOR (dest)->size);
     }
 
-  eassert (nr_bits >= 0);
+  eassume (nr_bits >= 0);
   nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
 
   adata = (bits_word *) XBOOL_VECTOR (dest)->data;
@@ -3185,7 +3185,7 @@ Return the destination vector.  */)
   bdata = (bits_word *) XBOOL_VECTOR (b)->data;
   adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
-  eassert (nr_bits >= 0);
+  eassume (nr_bits >= 0);
 
   for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; i++)
     bdata[i] = ~adata[i];
@@ -3220,7 +3220,7 @@ A must be a bool vector.  B is a generalized bool.  */)
   match = NILP (b) ? -1 : 0;
   adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
-  eassert (nr_bits >= 0);
+  eassume (nr_bits >= 0);
 
   for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; ++i)
     count += popcount_bits_word (adata[i] ^ match);
@@ -3262,7 +3262,7 @@ index into the vector.  */)
 
   adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
-  assume (nr_bits >= 0);
+  eassume (nr_bits >= 0);
   nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
 
   pos = XFASTINT (i) / BITS_PER_BITS_WORD;
