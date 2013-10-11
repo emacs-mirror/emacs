@@ -20589,7 +20589,6 @@ display_menu_bar (struct window *w)
 static void
 deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
 {
-  int area, i;
   struct glyph *pointers[1 + LAST_AREA];
 
   /* Save glyph pointers of TO.  */

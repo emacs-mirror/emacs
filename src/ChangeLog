@@ -1,3 +1,7 @@
+2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (deep_copy_glyph_row): Remove unused locals.
+
 2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fsubstitute_in_file_name): Use substitute-env-in-file-name.
