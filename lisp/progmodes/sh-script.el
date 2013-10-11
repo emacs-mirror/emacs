@@ -1,4 +1,4 @@
-;;; sh-script.el --- shell-script editing commands for Emacs
+;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
@@ -1469,9 +1469,11 @@ frequently editing existing scripts with different styles.")
 
 ;; inferior shell interaction
 ;; TODO: support multiple interactive shells
-(defvar sh-shell-process nil
+(defvar-local sh-shell-process nil
   "The inferior shell process for interaction.")
-(make-variable-buffer-local 'sh-shell-process)
+
+(defvar explicit-shell-file-name)
+
 (defun sh-shell-process (force)
   "Get a shell process for interaction.
 If FORCE is non-nil and no process found, create one."
@@ -1616,6 +1618,8 @@ with your script for an edit-interpret-debug cycle."
   (setq-local defun-prompt-regexp
 	      (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
   (setq-local add-log-current-defun-function #'sh-current-defun-name)
+  (add-hook 'completion-at-point-functions
+            #'sh-completion-at-point-function nil t)
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell
@@ -1674,6 +1678,41 @@ This adds rules for comments and assignments."
   "Function to get better fontification including keywords and builtins."
   (sh-font-lock-keywords-1 t))
 
+;;; Completion
+
+(defun sh--vars-before-point ()
+  (save-excursion
+    (let ((vars ()))
+      (while (re-search-backward "^[ \t]*\\([[:alnum:]_]+\\)=" nil t)
+        (push (match-string 1) vars))
+      vars)))
+
+;; (defun sh--var-completion-table (string pred action)
+;;   (complete-with-action action (sh--vars-before-point) string pred))
+
+(defun sh--cmd-completion-table (string pred action)
+  (let ((cmds
+         (append (when (fboundp 'imenu--make-index-alist)
+                   (mapcar #'car (imenu--make-index-alist)))
+                 (mapcar (lambda (v) (concat v "="))
+                         (sh--vars-before-point))
+                 (locate-file-completion-table
+                  exec-path exec-suffixes string pred t)
+                 '("if" "while" "until" "for"))))
+    (complete-with-action action cmds string pred)))
+
+(defun sh-completion-at-point-function ()
+  (save-excursion
+    (skip-chars-forward "[:alnum:]_")
+    (let ((end (point))
+          (_ (skip-chars-backward "[:alnum:]_"))
+          (start (point)))
+      (cond
+       ((eq (char-before) ?$)
+        (list start end (sh--vars-before-point)))
+       ((sh-smie--keyword-p)
+        (list start end #'sh--cmd-completion-table))))))
+
 ;;; Indentation and navigation with SMIE.
 
 (require 'smie)
@@ -1685,8 +1724,10 @@ This adds rules for comments and assignments."
 (defvar sh-use-smie nil
   "Whether to use the SMIE code for navigation and indentation.")
 
-(defun sh-smie--keyword-p (tok)
-  "Non-nil if TOK (at which we're looking) really is a keyword."
+(defun sh-smie--keyword-p ()
+  "Non-nil if we're at a keyword position.
+A keyword position is one where if we're looking at something that looks
+like a keyword, then it is a keyword."
   (let ((prev (funcall smie-backward-token-function)))
     (if (zerop (length prev))
         (looking-back "\\s(" (1- (point)))
@@ -1784,7 +1825,7 @@ Does not preserve point."
   "Non-nil if TOK (at which we're looking) really is a keyword."
   (if (equal tok "in")
       (sh-smie--sh-keyword-in-p)
-    (sh-smie--keyword-p tok)))
+    (sh-smie--keyword-p)))
 
 (defun sh-smie-sh-forward-token ()
   (if (and (looking-at "[ \t]*\\(?:#\\|\\(\\s|\\)\\|$\\)")
@@ -1834,8 +1875,7 @@ Does not preserve point."
                        (line-beginning-position)))))
 
 (defun sh-smie-sh-backward-token ()
-  (let ((bol (line-beginning-position))
-        pos tok)
+  (let ((bol (line-beginning-position)))
     (forward-comment (- (point)))
     (cond
      ((and (bolp) (not (bobp))
@@ -2033,14 +2073,13 @@ Point should be before the newline."
                (not
                 (save-excursion
                   (goto-char pos)
-                  (sh-smie--keyword-p tok))))
+                  (sh-smie--keyword-p))))
           " word ")
          (t tok)))))))
 
 (defun sh-smie-rc-backward-token ()
   ;; FIXME: Code duplication with sh-smie-sh-backward-token.
-  (let ((bol (line-beginning-position))
-        pos tok)
+  (let ((bol (line-beginning-position)))
     (forward-comment (- (point)))
     (cond
      ((and (bolp) (not (bobp))
@@ -2072,7 +2111,7 @@ Point should be before the newline."
          ;; ((equal tok ")") "case-)")
          ((and tok (string-match "\\`[a-z]" tok)
                (assoc tok smie-grammar)
-               (not (save-excursion (sh-smie--keyword-p tok))))
+               (not (save-excursion (sh-smie--keyword-p))))
           " word ")
          (t tok)))))))
 
@@ -2209,14 +2248,14 @@ Calls the value of `sh-set-shell-hook' if set."
 		  (sh-feature sh-indent-supported))
       (progn
 	(message "Setting up indent for shell type %s" sh-shell)
-        (if sh-use-smie
-            (let ((mksym (lambda (name)
-                           (intern (format "sh-smie-%s-%s"
-                                           sh-indent-supported-here name)))))
-              (smie-setup (symbol-value (funcall mksym "grammar"))
-                          (funcall mksym "rules")
-                          :forward-token  (funcall mksym "forward-token")
-                          :backward-token (funcall mksym "backward-token")))
+        (let ((mksym (lambda (name)
+                       (intern (format "sh-smie-%s-%s"
+                                       sh-indent-supported-here name)))))
+          (smie-setup (symbol-value (funcall mksym "grammar"))
+                      (funcall mksym "rules")
+                      :forward-token  (funcall mksym "forward-token")
+                      :backward-token (funcall mksym "backward-token")))
+        (unless sh-use-smie
           (setq-local parse-sexp-lookup-properties t)
           (setq-local sh-kw-alist (sh-feature sh-kw))
           (let ((regexp (sh-feature sh-kws-for-done)))

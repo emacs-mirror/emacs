@@ -1,3 +1,16 @@
+2013-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el: Provide simpl(e|istic) completion.
+	(explicit-shell-file-name): Declare.
+	(sh--vars-before-point, sh--cmd-completion-table): New functions.
+	(sh-completion-at-point-function): New function.
+	(sh-mode): Use it.
+	(sh-smie--keyword-p): Remove unused argument.
+	(sh-smie-sh-backward-token, sh-smie-rc-backward-token): Remove unused
+	vars.
+	(sh-set-shell): Always setup SMIE, even if we use the
+	old indentation code.
+
 2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Split the
