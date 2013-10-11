@@ -1,3 +1,9 @@
+2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/smie.el (smie--matching-block-data): Invalidate the
+	cache also after commands that modify the buffer but don't move
+	point.
+
 2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* env.el (substitute-env-in-file-name): New function.

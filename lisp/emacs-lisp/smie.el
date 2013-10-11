@@ -1062,10 +1062,12 @@ OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
 (defun smie--matching-block-data (orig &rest args)
   "A function suitable for `show-paren-data-function' (which see)."
   (if (or (null smie-closer-alist)
-          (eq (point) (car smie--matching-block-data-cache)))
+          (equal (cons (point) (buffer-chars-modified-tick))
+                 (car smie--matching-block-data-cache)))
       (or (cdr smie--matching-block-data-cache)
           (apply orig args))
-    (setq smie--matching-block-data-cache (list (point)))
+    (setq smie--matching-block-data-cache
+          (list (cons (point) (buffer-chars-modified-tick))))
     (unless (nth 8 (syntax-ppss))
       (condition-case nil
           (let ((here (smie--opener/closer-at-point)))
@@ -1108,7 +1110,7 @@ OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
                               (nth 1 there) (nth 2 there)
                               (not (nth 0 there)))))))
         (scan-error nil))
-      (goto-char (car smie--matching-block-data-cache)))
+      (goto-char (caar smie--matching-block-data-cache)))
     (apply #'smie--matching-block-data orig args)))
 
 ;;; The indentation engine.
