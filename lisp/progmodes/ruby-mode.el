@@ -292,10 +292,11 @@ Also ignores spaces after parenthesis when 'space."
                         '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\))
                   ;; Make sure it's not the end of a regexp.
                   (not (eq (car (syntax-after (1- (point)))) 7)))
-             (and (memq (char-before) '(?\? ?=))
-                  (let ((tok (save-excursion (ruby-smie--backward-token))))
-                    (or (equal tok "?")
-                        (string-match "\\`\\s." tok))))
+             (and (eq (char-before) ?\?)
+                  (equal (save-excursion (ruby-smie--backward-token)) "?"))
+             (and (eq (char-before) ?=)
+                  (string-match "\\`\\s." (save-excursion
+                                            (ruby-smie--backward-token))))
              (and (eq (car (syntax-after (1- (point)))) 2)
                   (equal (save-excursion (ruby-smie--backward-token))
                          "iuwu-mod"))
@@ -306,7 +307,7 @@ Also ignores spaces after parenthesis when 'space."
 (defun ruby-smie--redundant-do-p (&optional skip)
   (save-excursion
     (if skip (backward-word 1))
-    (member (nth 2 (smie-backward-sexp ";")) '("while"))))
+    (member (nth 2 (smie-backward-sexp ";")) '("while" "until" "for"))))
 
 (defun ruby-smie--opening-pipe-p ()
   (save-excursion
@@ -423,19 +424,7 @@ Also ignores spaces after parenthesis when 'space."
      (when (smie-rule-hanging-p)
        (smie-backward-sexp 'halfsexp) (smie-indent-virtual)))
     (`(:after . ,(or "=" "iuwu-mod")) 2)
-    (`(:before . "do")
-     (when (or (smie-rule-hanging-p)
-               (save-excursion
-                 (forward-word 1)       ;Skip "do"
-                 (skip-chars-forward " \t")
-                 (and (equal (save-excursion (ruby-smie--forward-token))
-                             "opening-|")
-                      (save-excursion (forward-sexp 1)
-                                      (skip-chars-forward " \t")
-                                      (or (eolp)
-                                          (looking-at comment-start-skip))))))
-       ;; `(column . ,(smie-indent-virtual))
-       (smie-rule-parent)))
+    (`(:before . "do") (smie-rule-parent))
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level

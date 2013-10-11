@@ -151,6 +151,10 @@ z = {
 foo if
   bar
 
+if foo?
+  bar
+end
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo +

@@ -1,5 +1,11 @@
 2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Split the
+	cases of ? and =.
+	(ruby-smie-rules): Simplify the "do" rule.  The cases when the
+	predicate would return nil are almost non-existent.
+	(ruby-smie--redundant-do-p): Include "until" and "for" statements.
+
 	* emacs-lisp/smie.el (smie--matching-block-data): Invalidate the
 	cache also after commands that modify the buffer but don't move
 	point.
