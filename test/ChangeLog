@@ -1,3 +1,7 @@
+2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add two more cases.
+
 2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/ruby-mode-tests.el (ruby-with-temp-buffer): Move before

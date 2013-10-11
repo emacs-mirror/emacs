@@ -163,3 +163,10 @@ foo +
 foo = [1, 2, 3].map do |i|
   i + 1
 end
+
+foo_bar_tee(1, 2, 3)
+  .qux
+
+if foo &&
+    bar
+end
