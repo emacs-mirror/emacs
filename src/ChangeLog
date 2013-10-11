@@ -1,3 +1,8 @@
+2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* term.c (tty_menu_show): Never return with unbalanced
+	specpdl.  Use eassert for debugging check.  Adjust style.
+
 2013-10-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (read_menu_input): Make selection of menu items
