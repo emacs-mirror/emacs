@@ -1,3 +1,9 @@
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (read_menu_input): Make selection of menu items
+	cyclical.  Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+	(tty_menu_activate): Fix off-by-one error when computing max_y.
+
 2013-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (gnutls_audit_log_function): Add function for GnuTLS

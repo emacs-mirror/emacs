@@ -3177,11 +3177,15 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 	{
 	  if (*y < max_y)
 	    *y += 1;
+	  else
+	    *y = min_y;
 	}
       else if (EQ (cmd, Qtty_menu_prev_item))
 	{
 	  if (*y > min_y)
 	    *y -= 1;
+	  else
+	    *y = max_y;
 	}
       else if (EQ (cmd, Qtty_menu_select))
 	st = 1;
@@ -3290,7 +3294,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     {
       int input_status;
       int min_y = state[0].y;
-      int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf)) - 1;
+      int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf) - 1) - 1;
 
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
