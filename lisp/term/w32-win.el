@@ -223,7 +223,19 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	       "libpng13d.dll" "libpng13.dll"))
        '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
        '(tiff "libtiff3.dll" "libtiff.dll")
-       '(gif "giflib4.dll" "libungif4.dll" "libungif.dll")
+       ;; Versions of giflib 5.0.0 and later changed signatures of
+       ;; several functions used by Emacs, which makes those versions
+       ;; incompatible with previous ones.  We select the correct
+       ;; libraries according to the version of giflib we were
+       ;; compiled against.  (If we were compiled without GIF support,
+       ;; libgif-version's value is -1.)
+       (if (>= libgif-version 50000)
+	   ;; Yes, giflib 5.x uses 6 as the major version of the API,
+	   ;; thus "libgif-6.dll" below (giflib 4.x used 5 as the
+	   ;; major API version).
+	   ;; giflib5.dll is from the lua-files project.
+	   '(gif "libgif-6.dll" "giflib5.dll")
+	 '(gif "libgif-5.dll" "giflib4.dll" "libungif4.dll" "libungif.dll"))
        '(svg "librsvg-2-2.dll")
        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
        '(glib "libglib-2.0-0.dll")

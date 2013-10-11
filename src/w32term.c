@@ -6262,11 +6262,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   /* We don't yet support separate terminals on W32, so don't try to share
      keyboards between virtual terminals that are on the same physical
      terminal like X does.  */
-  terminal->kboard = xmalloc (sizeof (KBOARD));
-  init_kboard (terminal->kboard);
-  kset_window_system (terminal->kboard, Qw32);
-  terminal->kboard->next_kboard = all_kboards;
-  all_kboards = terminal->kboard;
+  terminal->kboard = allocate_kboard (Qw32);
   /* Don't let the initial kboard remain current longer than necessary.
      That would cause problems if a file loaded on startup tries to
      prompt in the mini-buffer.  */

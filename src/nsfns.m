@@ -2048,16 +2048,27 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
 /* TODO: If GNUstep ever implements precomposedStringWithCanonicalMapping,
          remove this. */
   NSString *utfStr;
-  Lisp_Object ret;
+  Lisp_Object ret = Qnil;
+  NSAutoreleasePool *pool;
 
   CHECK_STRING (str);
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
- utfStr = [NSString stringWithUTF8String: SSDATA (str)];
+  pool = [[NSAutoreleasePool alloc] init];
+  utfStr = [NSString stringWithUTF8String: SSDATA (str)];
 #ifdef NS_IMPL_COCOA
-  utfStr = [utfStr precomposedStringWithCanonicalMapping];
+  if (utfStr)
+    utfStr = [utfStr precomposedStringWithCanonicalMapping];
 #endif
-  ret = build_string ([utfStr UTF8String]);
+  if (utfStr)
+    {
+      const char *cstr = [utfStr UTF8String];
+      if (cstr)
+        ret = build_string (cstr);
+    }
+
   [pool release];
+  if (NILP (ret))
+    error ("Invalid UTF-8");
+
   return ret;
 }
 

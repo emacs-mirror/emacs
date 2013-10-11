@@ -1739,13 +1739,12 @@ Return t if the buffer had changes, nil otherwise."
      ;; if the file is not up-to-date, use working revision as older revision
      ((not (vc-up-to-date-p first))
       (setq rev1-default (vc-working-revision first)))
-     ;; if the file is not locked, use last and previous revisions as defaults
+     ;; if the file is not locked, use last revision and current source as defaults
      (t
       (setq rev1-default (ignore-errors ;If `previous-revision' doesn't work.
                            (vc-call-backend backend 'previous-revision first
                                             (vc-working-revision first))))
-      (when (string= rev1-default "") (setq rev1-default nil))
-      (setq rev2-default (vc-working-revision first))))
+      (when (string= rev1-default "") (setq rev1-default nil))))
     ;; construct argument list
     (let* ((rev1-prompt (if rev1-default
                             (concat "Older revision (default "

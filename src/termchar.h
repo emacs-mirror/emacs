@@ -194,6 +194,9 @@ struct tty_display_info
   /* Nonzero means use ^S/^Q for flow control.  */
 
   unsigned flow_control : 1;
+
+  /* Non-zero means we are displaying a TTY menu on this tty.  */
+  unsigned showing_menu : 1;
 };
 
 /* A chain of structures for all tty devices currently in use. */

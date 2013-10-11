@@ -1404,10 +1404,7 @@ offset_intervals (struct buffer *buffer, ptrdiff_t start, ptrdiff_t length)
     adjust_intervals_for_insertion (buffer_intervals (buffer),
 				    start, length);
   else
-    {
-      assume (- TYPE_MAXIMUM (ptrdiff_t) <= length);
-      adjust_intervals_for_deletion (buffer, start, -length);
-    }
+    adjust_intervals_for_deletion (buffer, start, -length);
 }
 
 /* Merge interval I with its lexicographic successor. The resulting
@@ -1792,8 +1789,7 @@ temp_set_point_both (struct buffer *buffer,
 		     ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   /* In a single-byte buffer, the two positions must be equal.  */
-  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer))
-    eassert (charpos == bytepos);
+  eassert (BUF_ZV (buffer) != BUF_ZV_BYTE (buffer) || charpos == bytepos);
 
   eassert (charpos <= bytepos);
   eassert (charpos <= BUF_ZV (buffer) || BUF_BEGV (buffer) <= charpos);

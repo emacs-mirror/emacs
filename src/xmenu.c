@@ -192,149 +192,6 @@ mouse_position_for_popup (struct frame *f, int *x, int *y)
 
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef HAVE_MENUS
-
-DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
-       doc: /* Pop up a dialog box and return user's selection.
-POSITION specifies which frame to use.
-This is normally a mouse button event or a window or frame.
-If POSITION is t, it means to use the frame the mouse is on.
-The dialog box appears in the middle of the specified frame.
-
-CONTENTS specifies the alternatives to display in the dialog box.
-It is a list of the form (DIALOG ITEM1 ITEM2...).
-Each ITEM is a cons cell (STRING . VALUE).
-The return value is VALUE from the chosen item.
-
-An ITEM may also be just a string--that makes a nonselectable item.
-An ITEM may also be nil--that means to put all preceding items
-on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)
-
-If HEADER is non-nil, the frame title for the box is "Information",
-otherwise it is "Question".
-
-If the user gets rid of the dialog box without making a valid choice,
-for instance using the window manager, then this produces a quit and
-`x-popup-dialog' does not return.  */)
-  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
-{
-  struct frame *f = NULL;
-  Lisp_Object window;
-
-  /* Decode the first argument: find the window or frame to use.  */
-  if (EQ (position, Qt)
-      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-			       || EQ (XCAR (position), Qtool_bar))))
-    {
-#if 0 /* Using the frame the mouse is on may not be right.  */
-      /* Use the mouse's current position.  */
-      struct frame *new_f = SELECTED_FRAME ();
-      Lisp_Object bar_window;
-      enum scroll_bar_part part;
-      Time time;
-      Lisp_Object x, y;
-
-      (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
-
-      if (new_f != 0)
-	XSETFRAME (window, new_f);
-      else
-	window = selected_window;
-#endif
-      window = selected_window;
-    }
-  else if (CONSP (position))
-    {
-      Lisp_Object tem = XCAR (position);
-      if (CONSP (tem))
-	window = Fcar (XCDR (position));
-      else
-	{
-	  tem = Fcar (XCDR (position));  /* EVENT_START (position) */
-	  window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-	}
-    }
-  else if (WINDOWP (position) || FRAMEP (position))
-    window = position;
-  else
-    window = Qnil;
-
-  /* Decode where to put the menu.  */
-
-  if (FRAMEP (window))
-    f = XFRAME (window);
-  else if (WINDOWP (window))
-    {
-      CHECK_LIVE_WINDOW (window);
-      f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-    }
-  else
-    /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
-       but I don't want to make one now.  */
-    CHECK_WINDOW (window);
-
-  check_window_system (f);
-
-  /* Force a redisplay before showing the dialog.  If a frame is created
-     just before showing the dialog, its contents may not have been fully
-     drawn, as this depends on timing of events from the X server.  Redisplay
-     is not done when a dialog is shown.  If redisplay could be done in the
-     X event loop (i.e. the X event loop does not run in a signal handler)
-     this would not be needed.
-
-     Do this before creating the widget value that points to Lisp
-     string contents, because Fredisplay may GC and relocate them.  */
-  Fredisplay (Qt);
-
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-  /* Display a menu with these alternatives
-     in the middle of frame F.  */
-  {
-    Lisp_Object x, y, frame, newpos;
-    XSETFRAME (frame, f);
-    XSETINT (x, FRAME_PIXEL_WIDTH (f) / 2);
-    XSETINT (y, FRAME_PIXEL_HEIGHT (f) / 2);
-    newpos = list2 (list2 (x, y), frame);
-
-    return Fx_popup_menu (newpos,
-			  list2 (Fcar (contents), contents));
-  }
-#else
-  {
-    Lisp_Object title;
-    const char *error_name;
-    Lisp_Object selection;
-    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-
-    /* Decode the dialog items from what was specified.  */
-    title = Fcar (contents);
-    CHECK_STRING (title);
-    record_unwind_protect_void (unuse_menu_items);
-
-    if (NILP (Fcar (Fcdr (contents))))
-      /* No buttons specified, add an "Ok" button so users can pop down
-         the dialog.  Also, the lesstif/motif version crashes if there are
-         no buttons.  */
-      contents = list2 (title, Fcons (build_string ("Ok"), Qt));
-
-    list_of_panes (list1 (contents));
-
-    /* Display them in a dialog box.  */
-    block_input ();
-    selection = xdialog_show (f, 0, title, header, &error_name);
-    unblock_input ();
-
-    unbind_to (specpdl_count, Qnil);
-    discard_menu_items ();
-
-    if (error_name) error ("%s", error_name);
-    return selection;
-  }
-#endif
-}
-
-
 #ifndef MSDOS
 
 #if defined USE_GTK || defined USE_MOTIF
@@ -1405,8 +1262,8 @@ pop_down_menu (void *arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (struct frame *f, widget_value *first_wv, int x, int y,
-			    bool for_click, Time timestamp)
+create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
+			    int x, int y, bool for_click)
 {
   int i;
   GtkWidget *menu;
@@ -1457,7 +1314,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv, int x, int 
   gtk_widget_show_all (menu);
 
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
-		  timestamp ? timestamp : gtk_get_current_event_time ());
+		  FRAME_DISPLAY_INFO (f)->last_user_time);
 
   record_unwind_protect_ptr (pop_down_menu, menu);
 
@@ -1515,7 +1372,7 @@ pop_down_menu (Lisp_Object arg)
    menu_item_selection will be set to the selection.  */
 static void
 create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
-			    int x, int y, bool for_click, Time timestamp)
+			    int x, int y, bool for_click)
 {
   int i;
   Arg av[2];
@@ -1594,7 +1451,7 @@ cleanup_widget_value_tree (void *arg)
 
 Lisp_Object
 xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
-	    Lisp_Object title, const char **error_name, Time timestamp)
+	    Lisp_Object title, const char **error_name)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -1617,6 +1474,8 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       *error_name = "Empty menu";
       return Qnil;
     }
+
+  block_input ();
 
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
@@ -1805,7 +1664,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   record_unwind_protect_ptr (cleanup_widget_value_tree, first_wv);
 
   /* Actually create and show the menu until popped down.  */
-  create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
+  create_and_show_popup_menu (f, first_wv, x, y, for_click);
 
   unbind_to (specpdl_count, Qnil);
 
@@ -1857,6 +1716,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 			if (!NILP (subprefix_stack[j]))
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
+		  unblock_input ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -1864,9 +1724,13 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	}
     }
   else if (!for_click)
-    /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    {
+      unblock_input ();
+      /* Make "Cancel" equivalent to C-g.  */
+      Fsignal (Qquit, Qnil);
+    }
 
+  unblock_input ();
   return Qnil;
 }
 
@@ -2163,6 +2027,41 @@ xdialog_show (struct frame *f,
   return Qnil;
 }
 
+Lisp_Object
+xw_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
+{
+  Lisp_Object title;
+  const char *error_name;
+  Lisp_Object selection;
+  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+
+  check_window_system (f);
+
+  /* Decode the dialog items from what was specified.  */
+  title = Fcar (contents);
+  CHECK_STRING (title);
+  record_unwind_protect_void (unuse_menu_items);
+
+  if (NILP (Fcar (Fcdr (contents))))
+    /* No buttons specified, add an "Ok" button so users can pop down
+       the dialog.  Also, the lesstif/motif version crashes if there are
+       no buttons.  */
+    contents = list2 (title, Fcons (build_string ("Ok"), Qt));
+
+  list_of_panes (list1 (contents));
+
+  /* Display them in a dialog box.  */
+  block_input ();
+  selection = xdialog_show (f, 0, title, header, &error_name);
+  unblock_input ();
+
+  unbind_to (specpdl_count, Qnil);
+  discard_menu_items ();
+
+  if (error_name) error ("%s", error_name);
+  return selection;
+}
+
 #else /* not USE_X_TOOLKIT && not USE_GTK */
 
 /* The frame of the last activated non-toolkit menu bar.
@@ -2234,7 +2133,7 @@ pop_down_menu (Lisp_Object arg)
 
 Lisp_Object
 xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
-	    Lisp_Object title, const char **error_name, Time timestamp)
+	    Lisp_Object title, const char **error_name)
 {
   Window root;
   XMenu *menu;
@@ -2261,6 +2160,8 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       return Qnil;
     }
 
+  block_input ();
+
   /* Figure out which root window F is on.  */
   XGetGeometry (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &root,
 		&dummy_int, &dummy_int, &dummy_uint, &dummy_uint,
@@ -2271,6 +2172,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   if (menu == NULL)
     {
       *error_name = "Can't create menu";
+      unblock_input ();
       return Qnil;
     }
 
@@ -2314,6 +2216,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't create pane";
+	      unblock_input ();
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
@@ -2378,6 +2281,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't add selection to menu";
+	      unblock_input ();
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -2504,18 +2408,20 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
       /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
 	 the menu was invoked with a mouse event as POSITION).  */
       if (! for_click)
-        Fsignal (Qquit, Qnil);
+	{
+	  unblock_input ();
+	  Fsignal (Qquit, Qnil);
+	}
       break;
     }
 
+  unblock_input ();
   unbind_to (specpdl_count, Qnil);
 
   return entry;
 }
 
 #endif /* not USE_X_TOOLKIT */
-
-#endif /* HAVE_MENUS */
 
 #ifndef MSDOS
 /* Detect if a dialog or menu has been posted.  MSDOS has its own
@@ -2557,9 +2463,5 @@ syms_of_xmenu (void)
   defsubr (&Sx_menu_bar_open_internal);
   Ffset (intern_c_string ("accelerate-menu"),
 	 intern_c_string (Sx_menu_bar_open_internal.symbol_name));
-#endif
-
-#ifdef HAVE_MENUS
-  defsubr (&Sx_popup_dialog);
 #endif
 }

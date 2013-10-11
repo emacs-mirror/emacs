@@ -850,8 +850,8 @@ extern void find_and_call_menu_selection (struct frame *f,
 extern Lisp_Object find_and_return_menu_selection (struct frame *f,
                                                    bool keymaps,
                                                    void *client_data);
-extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
-                                    Lisp_Object header);
+extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object header,
+                                    Lisp_Object contents);
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);

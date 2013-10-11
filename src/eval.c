@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1987, 1993-1995, 1999-2013 Free Software
-   Foundation, Inc.
+
+Copyright (C) 1985-1987, 1993-1995, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -405,9 +405,9 @@ Each clause looks like (CONDITION BODY...).  CONDITION is evaluated
 and, if the value is non-nil, this clause succeeds:
 then the expressions in BODY are evaluated and the last one's
 value is the value of the cond-form.
+If a clause has one element, as in (CONDITION), then the cond-form
+returns CONDITION's value, if that is non-nil.
 If no clause succeeds, cond returns nil.
-If a clause has one element, as in (CONDITION),
-CONDITION's value if non-nil is returned from the cond-form.
 usage: (cond CLAUSES...)  */)
   (Lisp_Object args)
 {

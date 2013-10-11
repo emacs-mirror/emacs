@@ -293,8 +293,10 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
+  ;; Expand default-directory because svn gets confused by eg
+  ;; file://~/path/to/file.  (Bug#15446).
   (vc-svn-command "*vc*" 0 "." "checkout"
-                  (concat "file://" default-directory "SVN")))
+                  (concat "file://" (expand-file-name default-directory) "SVN")))
 
 (autoload 'vc-switches "vc")
 

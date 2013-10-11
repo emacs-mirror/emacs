@@ -148,10 +148,18 @@ z = {
   }
 }
 
+foo if
+  bar
+
+if foo?
+  bar
+end
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo +
   bar
 
-foo if
-  bar
+foo = [1, 2, 3].map do |i|
+  i + 1
+end

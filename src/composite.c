@@ -674,7 +674,6 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
       len = j;
     }
 
-  assume (len <= TYPE_MAXIMUM (ptrdiff_t) - 2);
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)

@@ -1,3 +1,8 @@
+2013-10-10  Glenn Morris  <rgm@gnu.org>
+
+	* make-docfile.c (search_lisp_doc_at_eol):
+	Use int rather than char with getc.  (Bug#15481)
+
 2013-09-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	A simpler, centralized INLINE.

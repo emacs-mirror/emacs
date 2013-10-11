@@ -2023,7 +2023,7 @@ which is a string that appears as an element of the keymap.
 the menu's commands.  Emacs displays the overall prompt string as the
 menu title in some cases, depending on the toolkit (if any) used for
 displaying menus.@footnote{It is required for menus which do not use a
-toolkit, e.g., under MS-DOS.}  Keyboard menus also display the
+toolkit, e.g., on a text terminal.}  Keyboard menus also display the
 overall prompt string.
 
 The easiest way to construct a keymap with a prompt string is to
@@ -2371,16 +2371,17 @@ if the menu keymap contains a single nested keymap and no other menu
 items, the menu shows the contents of the nested keymap directly, not
 as a submenu.
 
-  However, if Emacs is compiled without X toolkit support, submenus
-are not supported.  Each nested keymap is shown as a menu item, but
-clicking on it does not automatically pop up the submenu.  If you wish
-to imitate the effect of submenus, you can do that by giving a nested
-keymap an item string which starts with @samp{@@}.  This causes Emacs
-to display the nested keymap using a separate @dfn{menu pane}; the
-rest of the item string after the @samp{@@} is the pane label.  If
-Emacs is compiled without X toolkit support, menu panes are not used;
-in that case, a @samp{@@} at the beginning of an item string is
-omitted when the menu label is displayed, and has no other effect.
+  However, if Emacs is compiled without X toolkit support, or on text
+terminals, submenus are not supported.  Each nested keymap is shown as
+a menu item, but clicking on it does not automatically pop up the
+submenu.  If you wish to imitate the effect of submenus, you can do
+that by giving a nested keymap an item string which starts with
+@samp{@@}.  This causes Emacs to display the nested keymap using a
+separate @dfn{menu pane}; the rest of the item string after the
+@samp{@@} is the pane label.  If Emacs is compiled without X toolkit
+support, or if a menu is displayed on a text terminal, menu panes are
+not used; in that case, a @samp{@@} at the beginning of an item string
+is omitted when the menu label is displayed, and has no other effect.
 
 @node Keyboard Menus
 @subsection Menus and the Keyboard
@@ -2485,10 +2486,10 @@ can do it this way:
 @subsection The Menu Bar
 @cindex menu bar
 
-  On graphical displays, there is usually a @dfn{menu bar} at the top
-of each frame.  @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu
-bar items are subcommands of the fake ``function key''
-@code{menu-bar}, as defined in the active keymaps.
+  Emacs usually shows a @dfn{menu bar} at the top of each frame.
+@xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu bar items are
+subcommands of the fake ``function key'' @code{menu-bar}, as defined
+in the active keymaps.
 
   To add an item to the menu bar, invent a fake ``function key'' of your
 own (let's call it @var{key}), and make a binding for the key sequence
@@ -2575,7 +2576,7 @@ in Documentation}.
 
   A @dfn{tool bar} is a row of clickable icons at the top of a frame,
 just below the menu bar.  @xref{Tool Bars,,,emacs, The GNU Emacs
-Manual}.
+Manual}.  Emacs normally shows a tool bar on graphical displays.
 
   On each frame, the frame parameter @code{tool-bar-lines} controls
 how many lines' worth of height to reserve for the tool bar.  A zero

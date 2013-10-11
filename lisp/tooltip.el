@@ -58,9 +58,7 @@ echo area, instead of making a pop-up window."
   :init-value t
   :initialize 'custom-initialize-delay
   :group 'tooltip
-  (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
-    (error "Sorry, tooltips are not yet available on this system"))
-  (if tooltip-mode
+  (if (and tooltip-mode (fboundp 'x-show-tip))
       (progn
 	(add-hook 'pre-command-hook 'tooltip-hide)
 	(add-hook 'tooltip-functions 'tooltip-help-tips))

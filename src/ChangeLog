@@ -1,3 +1,305 @@
+2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispnew.c (redraw_frame): Remove useless #ifdef because
+	FRAME_MSDOS_P is a compile-time zero everywhere except MS-DOS.
+	Also, move TTY fflush to...
+	* term.c (tty_update_end): ...this function.
+
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_tty_menu_item): Make sure we never write beyond
+	the end of the frame's glyph matrix.  (Bug#15575)
+
+	* term.c (tty_menu_display): Don't move cursor while overwriting
+	frame's glyphs with menu items.  Limit the number of items
+	displayed to what can be shown on the available screen lines,
+	excluding the echo area.
+	(tty_menu_activate): Limit the Y coordinate allowed by
+	read_menu_input to the last screen line used for menu display.
+
+2013-10-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (eassume): New macro.
+	Also, include <verify.h>, for 'assume'.
+	* alloc.c (bool_vector_payload_bytes, Fmake_bool_vector)
+	(vroundup, vector_nbytes):
+	* data.c (bool_vector_spare_mask, bool_vector_binop_driver)
+	(Fbool_vector_not, Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at):
+	Use eassume, not eassert.
+	* casetab.c (set_identity, shuffle):
+	* composite.c (composition_gstring_put_cache):
+	* dispnew.c (update_frame_1):
+	* ftfont.c (ftfont_shape_by_flt):
+	* image.c (gif_load):
+	* intervals.c (offset_intervals):
+	* macfont.m (macfont_shape):
+	Remove calls to 'assume' that are no longer needed, because
+	--enable-gcc-warnings no longer generates bogus warnings
+	when these calls are removed.
+
+2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (deep_copy_glyph_row): Remove unused locals.
+
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fsubstitute_in_file_name): Use substitute-env-in-file-name.
+	(Qsubstitute_env_in_file_name): New var.
+	(syms_of_fileio): Define it.
+
+2013-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (deep_copy_glyph_row): Assert that the 'used' counts of
+	FROM and TO are identical.  Copy only the glyphs of TEXT_AREA.
+	(Bug#15575)
+
+	* term.c (save_and_enable_current_matrix): Don't allocate and
+	don't save margin areas.
+	(restore_desired_matrix): Don't restore margin areas.
+	(free_saved_screen): Don't free margin areas.
+
+2013-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Pacify --enable-gcc-warnings.
+	(GIFLIB_MAJOR, GIFLIB_MINOR, GIFLIB_RELEASE, fn_GifErrorString):
+	#define only if used.
+
+2013-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (GIFLIB_MAJOR): Define to 4 if undefined.
+	(GIFLIB_MINOR, GIFLIB_RELEASE): Define to zero if undefined.
+	(GifErrorString) [GIFLIB_MAJOR >= 5]: Define a function pointer.
+	(gif_load): For giflib v5.x and later, display the error message
+	produced by giflib when its functions fail.
+	(syms_of_image) <Qlibgif_version> [HAVE_NTGUI]: New DEFSYM.
+	(Bug#15531)
+
+2013-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (last_event_timestamp): Remove.  For X selection and
+	GTK popup menus, it may be obtained from per-frame X display info.
+	(kbd_buffer_store_event_hold, kbd_buffer_get_event)
+	(process_special_events): Adjust users.
+	* keyboard.h (last_event_timestamp): Remove declaration.
+	* xmenu.c (xmenu_show, create_and_show_popup_menu): Lost last arg.
+	Use FRAME_DISPLAY_INFO (f)->last_user_time for gtk_menu_popup.
+	* menu.h (xmenu_show): Adjust prototype.
+	* menu.c (Fx_popup_menu): Adjust user.
+	* xselect.c (x_own_selection, x_get_foreign_selection)
+	(Fx_disown_selection_internal): Use dpyinfo->last_user_time.
+
+2013-10-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (init_kboard): Now static.  Add arg
+	to denote window system.  Adjust comment.
+	(init_keyboard): Adjust user.
+	(allocate_kboard): New function.
+	(syms_of_keyboard):
+	* nsterm.m (ns_term_init):
+	* term.c (init_tty):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_term_init): Use it.
+	* keyboard.h (init_kboard): Remove prototype.
+	(allocate_kboard): Add prototype.
+
+2013-10-10  Barry Fishman  <barry_fishman@acm.org>  (tiny change)
+
+	* image.c (GIFLIB_MAJOR): Ensure it's defined.
+	(DGifOpen, DGifOpenFileName): Handle giflib 5 syntax.  (Bug#15531)
+
+2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (sxhash_bool_vector): Fix buffer read overrun.
+
+2013-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (tty_menu_activate): Flush the output stream after
+	showing the cursor, and don't mark the frame garbaged at exit from
+	the function.  Fixes redisplay glitches when moving from one menu
+	to another.
+
+2013-10-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fns_convert_utf8_nfd_to_nfc): Check input for valid UTF-8
+	or throw error (Bug#15570).
+
+2013-10-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* intervals.c (temp_set_point_both): Move test into 'eassert',
+	for speed.
+
+	* lisp.h (eassert): Don't use 'assume'.
+	Sometimes 'assume' wins in performance, and sometimes it loses,
+	so it shouldn't be used all the time.  Perhaps we need two
+	flavors of 'eassert', one for where 'assume' is far more likely
+	to help or to hurt; but that can be done later.
+	Problem reported by Dmitry Antipov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00276.html>.
+	Also, don't include <verify.h>; no longer needed.
+
+2013-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fcond): Doc tweak.
+
+2013-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (x_free_gc) [HAVE_X_WINDOWS, HAVE_NTGUI]: Don't pass
+	expressions with side effects to eassert.  (Bug#15565)
+
+2013-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (hashfn_user_defined): Allow hash functions to return any
+	Lisp_Object.
+
+2013-10-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* dispnew.c (save_current_matrix): Omit unnecessary casts.
+	* dispnew.c (update_frame_with_menu): Mark debug local as used.
+	* keyboard.c, keyboard.h (Qmouse_movement): Now static.
+	* keyboard.c (read_menu_command): Remove unused local.
+	* lisp.h (read_menu_command): New decl.
+	* menu.c, menu.h (menu_item_width): Arg is now unsigned char *, for
+	benefit of STRING_CHAR_AND_LENGTH.  All uses changed.
+	Return ptrdiff_t, not int.
+	* term.c (tty_menu_struct): 'allocated' member is now ptrdiff_t,
+	not int, for benefit of xpalloc.
+	(tty_menu_create, tty_menu_make_room): Simplify by using xzalloc
+	and xpalloc.
+	(have_menus_p): Remove; unused.
+	(tty_menu_add_pane, tty_menu_add_selection): Change signedness of
+	local char * pointer to pacify STRING_CHAR_AND_LENGTH.
+	(tty_menu_add_selection, tty_menu_locate, tty_meny_destroy):
+	Now static.
+	(save_and_enable_current_matrix): Omit unnecessary casts.
+	(read_menu_input): Omit local extern decl (now in lisp.h).
+	Don't access uninitialized storage if mouse_get_xy fails.
+	(tty_menu_activate): Mark local as initialized, for lint.
+	(tty_menu_activate, tty_meny_show): Remove unused locals.
+
+2013-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Support menus on text-mode terminals.
+	* xterm.h (xw_popup_dialog): Add prototype.
+
+	* xmenu.c (Fx_popup_dialog): Function moved to menu.c.
+	(xmenu_show): Block input here, instead in Fx_popup_menu.
+	(xw_popup_dialog): New function, with X-specific bits of popup
+	dialogs.
+
+	* xdisp.c (deep_copy_glyph_row, display_tty_menu_item): New
+	functions.
+
+	* window.c (Fset_window_configuration): Use run-time tests of the
+	frame type instead of compile-time conditionals, when menu-bar
+	lines are considered.
+
+	* w32term.h (w32con_hide_cursor, w32con_show_cursor)
+	(w32_popup_dialog): New prototypes.
+
+	* w32menu.c (Fx_popup_dialog): Function deleted.
+	(w32_popup_dialog): New function, with w32 specific bits of popup
+	dialogs.  Block input here.
+
+	* w32inevt.c (w32_console_read_socket): Minor change to add
+	debugging TTY events.
+
+	* w32fns.c (show_hourglass): If returning early because the frame
+	is not a GUI frame, unblock input.
+
+	* w32console.c (w32con_hide_cursor, w32con_show_cursor, cursorX)
+	(cursorY): New functions.
+
+	* termhooks.h (cursorX, cursorY): Prototypes of functions on
+	WINDOWSNT, macros that call curX and curY elsewhere.
+
+	* termchar.h (struct tty_display_info) <showing_menu>: New flag.
+
+	* term.c (tty_hide_cursor, tty_show_cursor) [WINDOWSNT]: Call w32
+	specific function to hide and show cursor on a text-mode terminal.
+	(tty_menu_struct, struct tty_menu_state): New structures.
+	(tty_menu_create, tty_menu_make_room, tty_menu_search_pane)
+	(tty_menu_calc_size, mouse_get_xy, tty_menu_display)
+	(have_menus_p, tty_menu_add_pane, tty_menu_add_selection)
+	(tty_menu_locate, save_and_enable_current_matrix)
+	(restore_desired_matrix, screen_update, read_menu_input)
+	(tty_menu_activate, tty_menu_destroy, tty_menu_help_callback)
+	(tty_pop_down_menu, tty_menu_last_menubar_item)
+	(tty_menu_new_item_coords, tty_menu_show): New functions.
+	(syms_of_term): New DEFSYMs for tty-menu-* symbols.
+
+	* nsterm.h (ns_popup_dialog): Adjust prototype.
+
+	* nsmenu.m (ns_menu_show): Block and unblock input here, instead
+	of in x-popup-menu.
+	(ns_popup_dialog): Adapt order of arguments to the other
+	*_menu_show implementations.
+	(Fx_popup_dialog): Function deleted.
+
+	* msdos.c (x_set_menu_bar_lines): Delete unused function.
+
+	* menu.h (tty_menu_show, menu_item_width): provide prototypes.
+
+	* menu.c (have_boxes): New function.
+	(single_keymap_panes): Use it instead of a compile-time
+	conditional.
+	(single_menu_item): Use run-time tests of the frame type instead
+	of compile-time conditionals.
+	(encode_menu_string): New function.
+	(list_of_items, list_of_panes): Use it instead of ENCODE_STRING
+	the macro, since different types of frame need different encoding
+	of menu items.
+	(digest_single_submenu): Use run-time tests of frame type instead
+	of, or in addition to, compile-time conditionals.
+	(menu_item_width, Fmenu_bar_menu_at_x_y): New functions.
+	(Fx_popup_menu): Detect when the function is called from keyboard
+	on a TTY.  Don't barf when invoked on a text-mode frame.  Check
+	frame type at run time, instead of compile-time conditionals for
+	invoking terminal-specific menu-show functions.  Call
+	tty_menu_show on text-mode frames.
+	(Fx_popup_dialog): Moved here from xmenu.c.  Test frame types at
+	run time to determine which alternative to invoke; support dialogs
+	on TTYs.
+
+	* keyboard.h <Qmouse_movement>: Declare.
+
+	* keyboard.c <Qmouse_movement>: Now extern.
+	<Qecho_keystrokes>: New static variable.
+	(read_key_sequence): Accept an additional argument, a flag to
+	prevent redisplay during reading of the key sequence.  All callers
+	changed.
+	(read_menu_command): New function.
+	(read_char): When COMMANDFLAG is -2, do not redisplay and do not
+	autosave.
+	(toolkit_menubar_in_use): New function.
+	(make_lispy_event): Use it instead of a compile-time test.
+
+	* fns.c (Fyes_or_no_p) [HAVE_MENUS]: Don't condition on
+	window-system being available.
+
+	* editfns.c (Fmessage_box) [HAVE_MENUS]: Don't condition the call
+	to x-popup-dialog on the frame type, they all now support popup
+	dialogs.
+
+	* dispnew.c (save_current_matrix): Save the margin areas.
+	(restore_current_matrix): Restore margin areas.
+	(update_frame_with_menu): New function.
+
+	* dispextern.h (display_tty_menu_item, update_frame_with_menu):
+	Add prototypes.
+
+	* alloc.c (make_save_ptr): Now compiled unconditionally.
+
+2013-10-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispnew.c (set_window_update_flags): Add buffer arg.  Adjust comment.
+	(redraw_frame, update_frame): Adjust users.
+	* dispextern.h (set_window_update_flags): Adjust prototype.
+	* xdisp.c (redisplay_internal): When updating all frames with zero
+	windows_or_buffers_changed, assume that only the windows that shows
+	current buffer should be really updated.
+
 2013-10-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not allocate huge temporary memory areas and objects while encoding

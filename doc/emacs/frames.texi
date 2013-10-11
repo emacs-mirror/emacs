@@ -39,7 +39,7 @@ doing so on GNU and Unix systems; and
 @ifnottex
 @pxref{MS-DOS Mouse},
 @end ifnottex
-for doing so on MS-DOS).
+for doing so on MS-DOS).  Menus are supported on all text terminals.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.

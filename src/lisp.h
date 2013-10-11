@@ -114,29 +114,47 @@ typedef EMACS_UINT uprintmax_t;
 
 /* Extra internal type checking?  */
 
-/* Define an Emacs version of 'assert (COND)'.  COND should be free of
-   side effects; it may be evaluated zero or more times.  If COND is false,
-   Emacs reliably crashes if ENABLE_CHECKING is defined and behavior
-   is undefined if not.  The compiler may assume COND while optimizing.  */
+/* Define Emacs versions of <assert.h>'s 'assert (COND)' and <verify.h>'s
+   'assume (COND)'.  COND should be free of side effects, as it may or
+   may not be evaluated.
+
+   'eassert (COND)' checks COND at runtime if ENABLE_CHECKING is
+   defined and suppress_checking is false, and does nothing otherwise.
+   Emacs dies if COND is checked and is false.  The suppress_checking
+   variable is initialized to 0 in alloc.c.  Set it to 1 using a
+   debugger to temporarily disable aborting on detected internal
+   inconsistencies or error conditions.
+
+   In some cases, a good compiler may be able to optimize away the
+   eassert macro even if ENABLE_CHECKING is true, e.g., if XSTRING (x)
+   uses eassert to test STRINGP (x), but a particular use of XSTRING
+   is invoked only after testing that STRINGP (x) is true, making the
+   test redundant.
+
+   eassume is like eassert except that it also causes the compiler to
+   assume that COND is true afterwards, regardless of whether runtime
+   checking is enabled.  This can improve performance in some cases,
+   though it can degrade performance in others.  It's often suboptimal
+   for COND to call external functions or access volatile storage.  */
+
 #ifndef ENABLE_CHECKING
-# define eassert(cond) assume (cond)
+# define eassert(cond) ((void) (0 && (cond))) /* Check that COND compiles.  */
+# define eassume(cond) assume (cond)
 #else /* ENABLE_CHECKING */
 
 extern _Noreturn void die (const char *, const char *, int);
 
-/* The suppress_checking variable is initialized to 0 in alloc.c.  Set
-   it to 1 using a debugger to temporarily disable aborting on
-   detected internal inconsistencies or error conditions.
-
-   In some cases, a good compiler may be able to optimize away the
-   eassert macro altogether, e.g., if XSTRING (x) uses eassert to test
-   STRINGP (x), but a particular use of XSTRING is invoked only after
-   testing that STRINGP (x) is true, making the test redundant.  */
 extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 # define eassert(cond)						\
    (suppress_checking || (cond) 				\
+    ? (void) 0							\
+    : die (# cond, __FILE__, __LINE__))
+# define eassume(cond)						\
+   (suppress_checking						\
     ? assume (cond)						\
+    : (cond)							\
+    ? (void) 0							\
     : die (# cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
 
@@ -3905,6 +3923,7 @@ extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_1 (void);
+extern Lisp_Object read_menu_command (void);
 extern Lisp_Object recursive_edit_1 (void);
 extern void record_auto_save (void);
 extern void force_auto_save_soon (void);

@@ -656,6 +656,14 @@ extern unsigned char *encode_terminal_code (struct glyph *, int,
 extern void close_gpm (int gpm_fd);
 #endif
 
+#ifdef WINDOWSNT
+extern int cursorX (struct tty_display_info *);
+extern int cursorY (struct tty_display_info *);
+#else
+#define cursorX(t)  curX(t)
+#define cursorY(t)  curY(t)
+#endif
+
 INLINE_HEADER_END
 
 #endif /* EMACS_TERMHOOKS_H */

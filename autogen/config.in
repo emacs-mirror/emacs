@@ -762,9 +762,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `memrchr' function. */
 #undef HAVE_MEMRCHR
 
-/* Define to 1 if you have mouse menus. (This is automatic if you use X, but
-   the option to specify it remains.) It is also defined with other window
-   systems that support xmenu.c. */
+/* Define to 1 if you have mouse menus. (This is supported in all
+   configurations, but the option to specify it remains.) */
 #undef HAVE_MENUS
 
 /* Define to 1 if you have the `mkostemp' function. */

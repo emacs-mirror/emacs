@@ -87,10 +87,11 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #define x_defined_color w32_defined_color
 #define DefaultDepthOfScreen(screen) (one_w32_display_info.n_cbits)
 
-/* Version of libpng that we were compiled with, or -1 if no PNG
-   support was compiled in.  This is tested by w32-win.el to correctly
-   set up the alist used to search for PNG libraries.  */
-Lisp_Object Qlibpng_version;
+/* Versions of libpng and libgif that we were compiled with, or -1 if
+   no PNG/GIF support was compiled in.  This is tested by w32-win.el
+   to correctly set up the alist used to search for the respective
+   image libraries.  */
+Lisp_Object Qlibpng_version, Qlibgif_version;
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
@@ -7202,7 +7203,21 @@ gif_image_p (Lisp_Object object)
 
 #ifdef HAVE_GIF
 
+/* Giflib before 5.0 didn't define these macros.  */
+#ifndef GIFLIB_MAJOR
+#define GIFLIB_MAJOR 4
+#endif
+
 #if defined (HAVE_NTGUI)
+
+/* Giflib before 5.0 didn't define these macros (used only if HAVE_NTGUI).  */
+#ifndef GIFLIB_MINOR
+#define GIFLIB_MINOR 0
+#endif
+#ifndef GIFLIB_RELEASE
+#define GIFLIB_RELEASE 0
+#endif
+
 /* winuser.h might define DrawText to DrawTextA or DrawTextW.
    Undefine before redefining to avoid a preprocessor warning.  */
 #ifdef DrawText
@@ -7219,14 +7234,19 @@ gif_image_p (Lisp_Object object)
 
 #endif /* HAVE_NTGUI */
 
-
 #ifdef WINDOWSNT
 
 /* GIF library details.  */
 DEF_IMGLIB_FN (int, DGifCloseFile, (GifFileType *));
 DEF_IMGLIB_FN (int, DGifSlurp, (GifFileType *));
+#if GIFLIB_MAJOR < 5
 DEF_IMGLIB_FN (GifFileType *, DGifOpen, (void *, InputFunc));
 DEF_IMGLIB_FN (GifFileType *, DGifOpenFileName, (const char *));
+#else
+DEF_IMGLIB_FN (GifFileType *, DGifOpen, (void *, InputFunc, int *));
+DEF_IMGLIB_FN (GifFileType *, DGifOpenFileName, (const char *, int *));
+DEF_IMGLIB_FN (char *, GifErrorString, (int));
+#endif
 
 static bool
 init_gif_functions (void)
@@ -7240,6 +7260,9 @@ init_gif_functions (void)
   LOAD_IMGLIB_FN (library, DGifSlurp);
   LOAD_IMGLIB_FN (library, DGifOpen);
   LOAD_IMGLIB_FN (library, DGifOpenFileName);
+#if GIFLIB_MAJOR >= 5
+  LOAD_IMGLIB_FN (library, GifErrorString);
+#endif
   return 1;
 }
 
@@ -7249,6 +7272,9 @@ init_gif_functions (void)
 #define fn_DGifSlurp		DGifSlurp
 #define fn_DGifOpen		DGifOpen
 #define fn_DGifOpenFileName	DGifOpenFileName
+#if 5 <= GIFLIB_MAJOR
+# define fn_GifErrorString	GifErrorString
+#endif
 
 #endif /* WINDOWSNT */
 
@@ -7305,6 +7331,9 @@ gif_load (struct frame *f, struct image *img)
   Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
   unsigned long bgcolor = 0;
   EMACS_INT idx;
+#if GIFLIB_MAJOR >= 5
+  int gif_err;
+#endif
 
   if (NILP (specified_data))
     {
@@ -7316,12 +7345,22 @@ gif_load (struct frame *f, struct image *img)
 	}
 
       /* Open the GIF file.  */
+#if GIFLIB_MAJOR < 5
       gif = fn_DGifOpenFileName (SSDATA (file));
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
 	  return 0;
 	}
+#else
+      gif = fn_DGifOpenFileName (SSDATA (file), &gif_err);
+      if (gif == NULL)
+	{
+	  image_error ("Cannot open `%s': %s",
+		       file, build_string (fn_GifErrorString (gif_err)));
+	  return 0;
+	}
+#endif
     }
   else
     {
@@ -7337,12 +7376,22 @@ gif_load (struct frame *f, struct image *img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
+#if GIFLIB_MAJOR < 5
       gif = fn_DGifOpen (&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
 	  return 0;
 	}
+#else
+      gif = fn_DGifOpen (&memsrc, gif_read_from_memory, &gif_err);
+      if (!gif)
+	{
+	  image_error ("Cannot open memory source `%s': %s",
+		       img->spec, build_string (fn_GifErrorString (gif_err)));
+	  return 0;
+	}
+#endif
     }
 
   /* Before reading entire contents, check the declared image size. */
@@ -7522,10 +7571,7 @@ gif_load (struct frame *f, struct image *img)
 	       y++, row += interlace_increment[pass])
 	    {
 	      while (subimg_height <= row)
-		{
-		  assume (pass < 3);
-		  row = interlace_start[++pass];
-		}
+		row = interlace_start[++pass];
 
 	      for (x = 0; x < subimg_width; x++)
 		{
@@ -9352,6 +9398,16 @@ non-numeric, there is no explicit limit on the size of images.  */);
   Fset (Qlibpng_version,
 #if HAVE_PNG
 	make_number (PNG_LIBPNG_VER)
+#else
+	make_number (-1)
+#endif
+	);
+  DEFSYM (Qlibgif_version, "libgif-version");
+  Fset (Qlibgif_version,
+#ifdef HAVE_GIF
+	make_number (GIFLIB_MAJOR * 10000
+		     + GIFLIB_MINOR * 100
+		     + GIFLIB_RELEASE)
 #else
 	make_number (-1)
 #endif

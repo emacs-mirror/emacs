@@ -1035,6 +1035,10 @@ extern void x_free_dpy_colors (Display *, Screen *, Colormap,
 
 /* Defined in xmenu.c */
 
+#if defined USE_X_TOOLKIT || defined USE_GTK
+extern Lisp_Object xw_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
+#endif
+
 #if defined USE_GTK || defined USE_MOTIF
 extern void x_menu_set_in_use (int);
 #endif

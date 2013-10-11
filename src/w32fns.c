@@ -5467,7 +5467,10 @@ show_hourglass (struct atimer *timer)
     f = SELECTED_FRAME ();
 
   if (!FRAME_W32_P (f))
-    return;
+    {
+      unblock_input ();
+      return;
+    }
 
   w32_show_hourglass (f);
   unblock_input ();

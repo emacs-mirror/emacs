@@ -603,7 +603,7 @@ static void
 x_free_gc (struct frame *f, GC gc)
 {
   eassert (input_blocked_p ());
-  IF_DEBUG (eassert (--ngcs >= 0));
+  IF_DEBUG ((--ngcs, eassert (ngcs >= 0)));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 }
 
@@ -629,7 +629,7 @@ x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 static void
 x_free_gc (struct frame *f, GC gc)
 {
-  IF_DEBUG (eassert (--ngcs >= 0));
+  IF_DEBUG ((--ngcs, eassert (ngcs >= 0)));
   xfree (gc);
 }
 

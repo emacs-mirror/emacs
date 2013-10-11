@@ -143,6 +143,8 @@ static Lisp_Object Qcopy_directory;
 /* Lisp function for recursively deleting directories.  */
 static Lisp_Object Qdelete_directory;
 
+static Lisp_Object Qsubstitute_env_in_file_name;
+
 #ifdef WINDOWSNT
 #endif
 
@@ -1664,10 +1666,8 @@ If `//' appears, everything up to and including the first of
 those `/' is discarded.  */)
   (Lisp_Object filename)
 {
-  char *nm, *s, *p, *o, *x, *endp;
-  char *target = NULL;
-  ptrdiff_t total = 0;
-  bool substituted = 0;
+  char *nm, *p, *x, *endp;
+  bool substituted = false;
   bool multibyte;
   char *xnm;
   Lisp_Object handler;
@@ -1708,66 +1708,19 @@ those `/' is discarded.  */)
     return Fsubstitute_in_file_name
       (make_specified_string (p, -1, endp - p, multibyte));
 
-  /* See if any variables are substituted into the string
-     and find the total length of their values in `total'.  */
+  /* See if any variables are substituted into the string.  */
 
-  for (p = nm; p != endp;)
-    if (*p != '$')
-      p++;
-    else
-      {
-	p++;
-	if (p == endp)
-	  goto badsubst;
-	else if (*p == '$')
-	  {
-	    /* "$$" means a single "$".  */
-	    p++;
-	    total -= 1;
-	    substituted = 1;
-	    continue;
-	  }
-	else if (*p == '{')
-	  {
-	    o = ++p;
-	    p = memchr (p, '}', endp - p);
-	    if (! p)
-	      goto missingclose;
-	    s = p;
-	  }
-	else
-	  {
-	    o = p;
-	    while (p != endp && (c_isalnum (*p) || *p == '_')) p++;
-	    s = p;
-	  }
-
-	/* Copy out the variable name.  */
-	target = alloca (s - o + 1);
-	memcpy (target, o, s - o);
-	target[s - o] = 0;
-#ifdef DOS_NT
-	strupr (target); /* $home == $HOME etc.  */
-#endif /* DOS_NT */
-
-	/* Get variable value.  */
-	o = egetenv (target);
-	if (o)
-	  {
-	    /* Don't try to guess a maximum length - UTF8 can use up to
-	       four bytes per character.  This code is unlikely to run
-	       in a situation that requires performance, so decoding the
-	       env variables twice should be acceptable. Note that
-	       decoding may cause a garbage collect.  */
-	    Lisp_Object orig, decoded;
-	    orig = build_unibyte_string (o);
-	    decoded = DECODE_FILE (orig);
-	    total += SBYTES (decoded);
-	    substituted = 1;
-	  }
-	else if (*p == '}')
-	  goto badvar;
-      }
+  if (!NILP (Ffboundp (Qsubstitute_env_in_file_name)))
+    {
+      Lisp_Object name
+	= (!substituted ? filename
+	   : make_specified_string (nm, -1, endp - nm, multibyte));
+      Lisp_Object tmp = call1 (Qsubstitute_env_in_file_name, name);
+      CHECK_STRING (tmp);
+      if (!EQ (tmp, name))
+	substituted = true;
+      filename = tmp;
+    }
 
   if (!substituted)
     {
@@ -1778,73 +1731,9 @@ those `/' is discarded.  */)
       return filename;
     }
 
-  /* If substitution required, recopy the string and do it.  */
-  /* Make space in stack frame for the new copy.  */
-  xnm = alloca (SBYTES (filename) + total + 1);
-  x = xnm;
-
-  /* Copy the rest of the name through, replacing $ constructs with values.  */
-  for (p = nm; *p;)
-    if (*p != '$')
-      *x++ = *p++;
-    else
-      {
-	p++;
-	if (p == endp)
-	  goto badsubst;
-	else if (*p == '$')
-	  {
-	    *x++ = *p++;
-	    continue;
-	  }
-	else if (*p == '{')
-	  {
-	    o = ++p;
-	    p = memchr (p, '}', endp - p);
-	    if (! p)
-	      goto missingclose;
-	    s = p++;
-	  }
-	else
-	  {
-	    o = p;
-	    while (p != endp && (c_isalnum (*p) || *p == '_')) p++;
-	    s = p;
-	  }
-
-	/* Copy out the variable name.  */
-	target = alloca (s - o + 1);
-	memcpy (target, o, s - o);
-	target[s - o] = 0;
-
-	/* Get variable value.  */
-	o = egetenv (target);
-	if (!o)
-	  {
-	    *x++ = '$';
-	    strcpy (x, target); x+= strlen (target);
-	  }
-	else
-	  {
-	    Lisp_Object orig, decoded;
-	    ptrdiff_t orig_length, decoded_length;
-	    orig_length = strlen (o);
-	    orig = make_unibyte_string (o, orig_length);
-	    decoded = DECODE_FILE (orig);
-	    decoded_length = SBYTES (decoded);
-	    memcpy (x, SDATA (decoded), decoded_length);
-	    x += decoded_length;
-
-	    /* If environment variable needed decoding, return value
-	       needs to be multibyte.  */
-	    if (decoded_length != orig_length
-		|| memcmp (SDATA (decoded), o, orig_length))
-	      multibyte = 1;
-	  }
-      }
-
-  *x = 0;
-
+  xnm = SSDATA (filename);
+  x = xnm + SBYTES (filename);
+  
   /* If /~ or // appears, discard everything through first slash.  */
   while ((p = search_embedded_absfilename (xnm, x)) != NULL)
     /* This time we do not start over because we've already expanded envvars
@@ -1862,14 +1751,9 @@ those `/' is discarded.  */)
     }
   else
 #endif
-  return make_specified_string (xnm, -1, x - xnm, multibyte);
-
- badsubst:
-  error ("Bad format environment-variable substitution");
- missingclose:
-  error ("Missing \"}\" in environment-variable substitution");
- badvar:
-  error ("Substituting nonexistent environment variable \"%s\"", target);
+  return (xnm == SSDATA (filename)
+	  ? filename
+	  : make_specified_string (xnm, -1, x - xnm, multibyte));
 }
 
 /* A slightly faster and more convenient way to get
@@ -6108,6 +5992,7 @@ This includes interactive calls to `delete-file' and
   DEFSYM (Qmove_file_to_trash, "move-file-to-trash");
   DEFSYM (Qcopy_directory, "copy-directory");
   DEFSYM (Qdelete_directory, "delete-directory");
+  DEFSYM (Qsubstitute_env_in_file_name, "substitute-env-in-file-name");
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);

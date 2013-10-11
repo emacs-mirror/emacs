@@ -1,4 +1,170 @@
+2013-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el: Provide simpl(e|istic) completion.
+	(explicit-shell-file-name): Declare.
+	(sh--vars-before-point, sh--cmd-completion-table): New functions.
+	(sh-completion-at-point-function): New function.
+	(sh-mode): Use it.
+	(sh-smie--keyword-p): Remove unused argument.
+	(sh-smie-sh-backward-token, sh-smie-rc-backward-token): Remove unused
+	vars.
+	(sh-set-shell): Always setup SMIE, even if we use the
+	old indentation code.
+
+2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Split the
+	cases of ? and =.
+	(ruby-smie-rules): Simplify the "do" rule.  The cases when the
+	predicate would return nil are almost non-existent.
+	(ruby-smie--redundant-do-p): Include "until" and "for" statements.
+
+	* emacs-lisp/smie.el (smie--matching-block-data): Invalidate the
+	cache also after commands that modify the buffer but don't move
+	point.
+
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* env.el (substitute-env-in-file-name): New function.
+	(substitute-env-vars): Extend the meaning of the optional arg.
+
+2013-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Define separate lists
+	of GIF DLLs for versions before and after 5.0.0 of giflib.
+	(Bug#15531)
+
+2013-10-10  João Távora <joaotavora@gmail.com>
+
+	* vc/vc.el (vc-diff-build-argument-list-internal): If the file is
+	not locked, use last revision and current source as
+	defaults.  (Bug#15569)
+
+2013-10-10  Masatake YAMATO  <yamato@redhat.com>
+
+	* menu-bar.el (menu-bar-open): Don't use popup-menu if
+	menu-bar is hidden.
+
+2013-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-to-buffer-same-window): Fix doc-string.
+	(Bug#15492)
+
+2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (tty-menu-navigation-map): Reduce redundancy.
+
+2013-10-10  Andrei Chițu  <andrei.chitu1@gmail.com>  (tiny change)
+
+	* calendar/icalendar.el (icalendar-import-file):
+	Fix interactive spec.  (Bug#15482)
+
+2013-10-10  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-save): Default to saving in .emacs.d,
+	since PWD is no longer in desktop-path by default.  (Bug#15319)
+
+	* menu-bar.el (menu-bar-options-menu): Remove text-mode auto-fill,
+	now that text mode has a menu with the same entry.
+	(menu-bar-text-mode-auto-fill): Remove now unused func.
+	* textmodes/text-mode.el (text-mode-map):
+	Use auto-fill help text from menu-bar.el.
+
+2013-10-10  John Anthony  <john@jo.hnanthony.com>  (tiny change)
+
+	* textmodes/text-mode.el (text-mode-map): Add a menu.  (Bug#15562)
+
+2013-10-09  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-pre-command-hook): Use this-single-command-keys
+	instead of this-command-keys.  Add universal-argument-more and
+	universal-argument-minus to the list of prefix commands.  (Bug#15568)
+
+2013-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-create-repo):
+	Expand paths in file://... url.  (Bug#15446)
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
+	Add some entries.
+	(authors): Remove unused local variables.
+
+2013-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* profiler.el: Create a more coherent calltree from partial backtraces.
+	(profiler-format): Hide the tail with `invisible' so that C-s can still
+	find the hidden elements.
+	(profiler-calltree-depth): Don't recurse so enthusiastically.
+	(profiler-function-equal): New hash-table-test.
+	(profiler-calltree-build-unified): New function.
+	(profiler-calltree-build): Use it.
+	(profiler-report-make-name-part): Indent the calltree less.
+	(profiler-report-mode): Add visibility specs for profiler-format.
+	(profiler-report-expand-entry, profiler-report-toggle-entry):
+	Expand the whole subtree when provided with a prefix arg.
+
+2013-10-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Indent after hanging
+	iuwu-mod token.
+	(ruby-smie--implicit-semi-p): Prohibit implicit semicolon after
+	hanging iuwu-mod token.
+	(ruby-smie--forward-token): Do not include a dot after a token in
+	that token.
+	(ruby-smie--backward-token): Likewise.
+
+2013-10-08  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-help-map, isearch-mode-map): Don't bind [t]
+	to isearch-other-control-char.
+	(isearch-mode): Add isearch-pre-command-hook to pre-command-hook
+	and isearch-post-command-hook to post-command-hook.
+	(isearch-done): Remove isearch-pre-command-hook from pre-command-hook
+	and isearch-post-command-hook from post-command-hook.
+	(isearch-unread-key-sequence)
+	(isearch-reread-key-sequence-naturally)
+	(isearch-lookup-scroll-key, isearch-other-control-char)
+	(isearch-other-meta-char): Remove functions.
+	(isearch-pre-command-hook, isearch-post-command-hook):
+	New functions based on isearch-other-meta-char rewritten
+	relying on the new behavior of overriding-terminal-local-map
+	that does not replace the local keymaps any more.  (Bug#15200)
+
+2013-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Support menus on text-mode terminals.
+	* tmm.el (tmm-menubar): Adapt doc string to TTY menus
+	functionality.
+
+	* tooltip.el (tooltip-mode): Don't error out on TTYs.
+
+	* menu-bar.el (popup-menu, popup-menu-normalize-position): Moved
+	here from mouse.el.
+	(popup-menu): Support menu-bar navigation on TTYs using C-f/C-b
+	and arrow keys.
+	(tty-menu-navigation-map): New map for TTY menu navigation.
+
+	* loadup.el ("tooltip"): Load even if x-show-tip is not available.
+
+	* frame.el (display-mouse-p): Report text-mode mouse as available
+	on w32.
+	(display-popup-menus-p): Report availability if mouse is
+	available; don't condition on window-system.
+
+	* faces.el (tty-menu-enabled-face, tty-menu-disabled-face)
+	(tty-menu-selected-face): New faces.
+
 2013-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el: Font-lock cl-lib constructs.
+	(lisp-el-font-lock-keywords, lisp-el-font-lock-keywords-1)
+	(lisp-el-font-lock-keywords-2, lisp-cl-font-lock-keywords)
+	(lisp-cl-font-lock-keywords-1, lisp-cl-font-lock-keywords-2):
+	New constants.
+	(lisp-mode-variables): New `elisp' argument.
+	(emacs-lisp-mode): Use it.
+	* font-lock.el (lisp-font-lock-keywords, lisp-font-lock-keywords-1)
+	(lisp-font-lock-keywords-2): Move to lisp-mode.el.
 
 	* indent.el: Use lexical-binding.
 	(indent-region): Add progress reporter.

@@ -1741,8 +1741,10 @@ allows to know if the pointer has been hidden.
 @node Pop-Up Menus
 @section Pop-Up Menus
 
-  When using a window system, a Lisp program can pop up a menu so that
-the user can choose an alternative with the mouse.
+  A Lisp program can pop up a menu so that the user can choose an
+alternative with the mouse.  On a text terminal, if the mouse is not
+available, the user can choose an alternative using the keyboard
+motion keys---@kbd{C-n}, @kbd{C-p}, or up- and down-arrow keys.
 
 @defun x-popup-menu position menu
 This function displays a pop-up menu and returns an indication of
@@ -1763,20 +1765,22 @@ pixels, counting from the top left corner of @var{window}.  @var{window}
 may be a window or a frame.
 
 If @var{position} is @code{t}, it means to use the current mouse
-position.  If @var{position} is @code{nil}, it means to precompute the
-key binding equivalents for the keymaps specified in @var{menu},
-without actually displaying or popping up the menu.
+position (or the top-left corner of the frame if the mouse is not
+available on a text terminal).  If @var{position} is @code{nil}, it
+means to precompute the key binding equivalents for the keymaps
+specified in @var{menu}, without actually displaying or popping up the
+menu.
 
 The argument @var{menu} says what to display in the menu.  It can be a
 keymap or a list of keymaps (@pxref{Menu Keymaps}).  In this case, the
 return value is the list of events corresponding to the user's choice.
 This list has more than one element if the choice occurred in a
 submenu.  (Note that @code{x-popup-menu} does not actually execute the
-command bound to that sequence of events.)  On toolkits that support
-menu titles, the title is taken from the prompt string of @var{menu}
-if @var{menu} is a keymap, or from the prompt string of the first
-keymap in @var{menu} if it is a list of keymaps (@pxref{Defining
-Menus}).
+command bound to that sequence of events.)  On text terminals and
+toolkits that support menu titles, the title is taken from the prompt
+string of @var{menu} if @var{menu} is a keymap, or from the prompt
+string of the first keymap in @var{menu} if it is a list of keymaps
+(@pxref{Defining Menus}).
 
 Alternatively, @var{menu} can have the following form:
 
@@ -1800,7 +1804,7 @@ cell; this makes a non-selectable menu item.
 
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing
-keyboard input, then this normally results in a quit and
+@kbd{C-g}, then this normally results in a quit and
 @code{x-popup-menu} does not return.  But if @var{position} is a mouse
 button event (indicating that the user invoked the menu with the
 mouse) then no quit occurs and @code{x-popup-menu} returns @code{nil}.
@@ -1872,7 +1876,8 @@ window don't matter; only the frame matters.
 
 If @var{header} is non-@code{nil}, the frame title for the box is
 @samp{Information}, otherwise it is @samp{Question}.  The former is used
-for @code{message-box} (@pxref{message-box}).
+for @code{message-box} (@pxref{message-box}).  (On text terminals, the
+box title is not displayed.)
 
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
@@ -2284,9 +2289,9 @@ obtain information about displays.
 
 @defun display-popup-menus-p &optional display
 This function returns @code{t} if popup menus are supported on
-@var{display}, @code{nil} if not.  Support for popup menus requires that
-the mouse be available, since the user cannot choose menu items without
-a mouse.
+@var{display}, @code{nil} if not.  Support for popup menus requires
+that the mouse be available, since the menu is popped up by clicking
+the mouse on some portion of the Emacs display.
 @end defun
 
 @defun display-graphic-p &optional display
