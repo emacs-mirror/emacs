@@ -20640,6 +20640,14 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
 
   eassert (FRAME_TERMCAP_P (f));
 
+  /* Don't write beyond the matrix's last row.  This can happen for
+     TTY screens that are not high enough to show the entire menu.
+     (This is actually a bit of defensive programming, as
+     tty_menu_display already limits the number of menu items to one
+     less than the number of screen lines.)  */
+  if (y >= f->desired_matrix->nrows)
+    return;
+
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows + y, MENU_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_COLS (f) - 1;
@@ -20654,6 +20662,7 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
 
   /* Arrange for the menu item glyphs to start at (X,Y) and have the
      desired face.  */
+  eassert (x < f->desired_matrix->matrix_w);
   it.current_x = it.hpos = x;
   it.current_y = it.vpos = y;
   saved_used = row->used[TEXT_AREA];

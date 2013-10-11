@@ -1,3 +1,15 @@
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_tty_menu_item): Make sure we never write beyond
+	the end of the frame's glyph matrix.  (Bug#15575)
+
+	* term.c (tty_menu_display): Don't move cursor while overwriting
+	frame's glyphs with menu items.  Limit the number of items
+	displayed to what can be shown on the available screen lines,
+	excluding the echo area.
+	(tty_menu_activate): Limit the Y coordinate allowed by
+	read_menu_input to the last screen line used for menu display.
+
 2013-10-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (eassume): New macro.

@@ -2919,17 +2919,20 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
   int i, face, width, enabled, mousehere, row, col;
   struct frame *sf = SELECTED_FRAME ();
   struct tty_display_info *tty = FRAME_TTY (sf);
+  /* Don't try to display more menu items than the console can display
+     using the available screen lines.  Exclude the echo area line, as
+     it will be overwritten by the help-echo anyway.  */
+  int max_items = min (menu->count, FRAME_LINES (sf) - 1);
 
   menu_help_message = NULL;
 
   width = menu->width;
   col = cursorX (tty);
   row = cursorY (tty);
-  for (i = 0; i < menu->count; i++)
+  for (i = 0; i < max_items; i++)
     {
       int max_width = width + 2; /* +2 for padding blanks on each side */
 
-      cursor_to (sf, y + i, x);
       if (menu->submenu[i])
 	max_width += 2;	/* for displaying " >" after the item */
       enabled
@@ -3285,7 +3288,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   while (!leave)
     {
       int input_status;
-      int min_y = state[0].y, max_y = min_y + state[0].menu->count - 1;
+      int min_y = state[0].y;
+      int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf)) - 1;
 
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
