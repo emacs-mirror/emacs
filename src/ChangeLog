@@ -1,3 +1,9 @@
+2013-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (GIFLIB_MAJOR, GIFLIB_MINOR, GIFLIB_RELEASE): Move back
+	after inclusion of gif_lib.h, thus fixing compiler warnings caused
+	by revision 114614 (commit of 2013-10-10).
+
 2013-10-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (deep_copy_glyph_row): Handle the case that FROM and TO
