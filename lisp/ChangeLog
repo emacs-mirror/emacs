@@ -1,3 +1,8 @@
+2013-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-pre-command-hook): Don't build in knowledge about
+	internals of universal-argument.
+
 2013-10-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (tty-menu-navigation-map): Remap F10 to tty-menu-exit.
