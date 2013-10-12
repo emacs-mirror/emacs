@@ -1,3 +1,13 @@
+2013-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-10-10 strtoumax: port to Solaris 8
+	2013-10-09 strtoimax, strtoumax: port to HP-UX 11.11
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/inttypes.in.h, lib/strtoimax.c, m4/inttypes.m4, m4/strtoimax.m4:
+	* m4/strtoumax.m4:
+	Update from gnulib.
+
 2013-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.ac (LIBGNUTLS): Don't set LIBGNUTLS_* back to the empty
