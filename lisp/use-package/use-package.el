@@ -298,9 +298,6 @@
 (require 'bytecomp)
 (require 'diminish nil t)
 
-(eval-when-compile
-  (require 'cl))
-
 (declare-function package-installed-p 'package)
 (declare-function el-get-read-recipe 'el-get)
 
@@ -324,18 +321,18 @@
   :group 'use-package)
 
 (defmacro with-elapsed-timer (text &rest forms)
-  `(let ((now ,(if use-package-verbose
-                   '(current-time))))
-     ,(if use-package-verbose
-          `(message "%s..." ,text))
-     (prog1
-         ,@forms
-       ,(when use-package-verbose
-          `(let ((elapsed
-                  (float-time (time-subtract (current-time) now))))
-             (if (> elapsed ,use-package-minimum-reported-time)
-                 (message "%s...done (%.3fs)" ,text elapsed)
-               (message "%s...done" ,text)))))))
+  (let ((body `(progn ,@forms)))
+    (if use-package-verbose
+        (let ((nowvar (make-symbol "now")))
+          `(let ((,nowvar (current-time)))
+             (message "%s..." ,text)
+             (prog1 ,body
+               (let ((elapsed
+                      (float-time (time-subtract (current-time) ,nowvar))))
+                 (if (> elapsed ,use-package-minimum-reported-time)
+                     (message "%s...done (%.3fs)" ,text elapsed)
+                   (message "%s...done" ,text))))))
+      ,body)))
 
 (put 'with-elapsed-timer 'lisp-indent-function 1)
 
@@ -656,10 +653,9 @@ For full documentation. please see commentary.
                       `(eval-after-load ,(if (stringp name) name `',name)
                          `(,(lambda ()
                               (if ,requires-test
-                                  ,(macroexpand-all
-                                    `(with-elapsed-timer
-                                         ,(format "Configuring package %s" name-string)
-                                       ,config-body)))))))
+                                  (with-elapsed-timer
+                                      ,(format "Configuring package %s" name-string)
+                                    ,config-body))))))
                    t))
             `(if (and ,(or predicate t)
                       ,requires-test)

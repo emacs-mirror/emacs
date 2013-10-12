@@ -87,11 +87,6 @@
 (add-to-list 'emulation-mode-map-alists
              `((override-global-mode . ,override-global-map)))
 
-(add-hook 'after-init-hook
-          (function
-           (lambda ()
-             (override-global-mode 1))))
-
 (defvar personal-keybindings nil)
 
 (defmacro bind-key (key-name command &optional keymap)
