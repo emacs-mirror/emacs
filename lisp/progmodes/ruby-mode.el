@@ -246,7 +246,8 @@ Also ignores spaces after parenthesis when 'space."
     '((id)
       (insts (inst) (insts ";" insts))
       (inst (exp) (inst "iuwu-mod" exp))
-      (exp  (exp1) (exp "," exp) (exp "=" exp) (exp "-" exp)  (exp "+" exp))
+      (exp  (exp1) (exp "," exp) (exp "=" exp) (exp "-" exp)  (exp "+" exp)
+            (id " @ " exp))
       (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
       (exp2 ("def" insts "end")
             ("begin" insts-rescue-insts "end")
@@ -274,7 +275,8 @@ Also ignores spaces after parenthesis when 'space."
       (itheni (insts) (exp "then" insts))
       (ielsei (itheni) (itheni "else" insts))
       (if-body (ielsei) (if-body "elsif" if-body)))
-    '((nonassoc "in") (assoc ";") (assoc ",") (right "=") (assoc "-" "+"))
+    '((nonassoc "in") (assoc ";") (right " @ ")
+      (assoc ",") (right "=") (assoc "-" "+"))
     '((assoc "when"))
     '((assoc "elsif"))
     '((assoc "rescue" "ensure"))
@@ -316,6 +318,12 @@ Also ignores spaces after parenthesis when 'space."
     (or (eq ?\{ (char-before))
         (looking-back "\\_<do" (- (point) 2)))))
 
+(defun ruby-smie--args-separator-p (pos)
+  (and
+   (eq ?w (char-syntax (char-before)))
+   (< pos (point-max))
+   (memq (char-syntax (char-after pos)) '(?w ?\"))))
+
 (defun ruby-smie--forward-id ()
   (when (and (not (eobp))
              (eq ?w (char-syntax (char-after))))
@@ -326,35 +334,42 @@ Also ignores spaces after parenthesis when 'space."
       tok)))
 
 (defun ruby-smie--forward-token ()
-  (skip-chars-forward " \t")
-  (cond
-   ((looking-at "\\s\"") "")            ;A heredoc or a string.
-   ((and (looking-at "[\n#]")
-         (ruby-smie--implicit-semi-p))  ;Only add implicit ; when needed.
-    (if (eolp) (forward-char 1) (forward-comment 1))
-    ";")
-   (t
-    (forward-comment (point-max))
-    (if (looking-at ":\\s.+")
-        (progn (goto-char (match-end 0)) (match-string 0)) ;; bug#15208.
-      (let ((tok (smie-default-forward-token)))
-        (cond
-         ((member tok '("unless" "if" "while" "until"))
-          (if (save-excursion (forward-word -1) (ruby-smie--bosp))
-              tok "iuwu-mod"))
-         ((equal tok "|")
-          (if (ruby-smie--opening-pipe-p) "opening-|" tok))
-         ((and (equal tok "") (looking-at "\\\\\n"))
-          (goto-char (match-end 0)) (ruby-smie--forward-token))
-         ((equal tok "do")
+  (let ((pos (point)))
+    (skip-chars-forward " \t")
+    (cond
+     ((looking-at "\\s\"") "")          ;A heredoc or a string.
+     ((and (looking-at "[\n#]")
+           (ruby-smie--implicit-semi-p)) ;Only add implicit ; when needed.
+      (if (eolp) (forward-char 1) (forward-comment 1))
+      ";")
+     (t
+      (forward-comment (point-max))
+      (cond
+       ((looking-at ":\\s.+")
+        (goto-char (match-end 0)) (match-string 0)) ;; bug#15208.
+       ((and (< pos (point))
+             (save-excursion
+               (ruby-smie--args-separator-p (prog1 (point) (goto-char pos)))))
+        " @ ")
+       (t
+        (let ((tok (smie-default-forward-token)))
           (cond
-           ((not (ruby-smie--redundant-do-p 'skip)) tok)
-           ((> (save-excursion (forward-comment (point-max)) (point))
-               (line-end-position))
-            (ruby-smie--forward-token)) ;Fully redundant.
-           (t ";")))
-         ((equal tok ".") (concat tok (ruby-smie--forward-id)))
-         (t tok)))))))
+           ((member tok '("unless" "if" "while" "until"))
+            (if (save-excursion (forward-word -1) (ruby-smie--bosp))
+                tok "iuwu-mod"))
+           ((equal tok "|")
+            (if (ruby-smie--opening-pipe-p) "opening-|" tok))
+           ((and (equal tok "") (looking-at "\\\\\n"))
+            (goto-char (match-end 0)) (ruby-smie--forward-token))
+           ((equal tok "do")
+            (cond
+             ((not (ruby-smie--redundant-do-p 'skip)) tok)
+             ((> (save-excursion (forward-comment (point-max)) (point))
+                 (line-end-position))
+              (ruby-smie--forward-token)) ;Fully redundant.
+             (t ";")))
+           ((equal tok ".") (concat tok (ruby-smie--forward-id)))
+           (t tok)))))))))
 
 (defun ruby-smie--backward-id ()
   (when (and (not (bobp))
@@ -372,6 +387,12 @@ Also ignores spaces after parenthesis when 'space."
      ((and (> pos (line-end-position)) (ruby-smie--implicit-semi-p))
       (skip-chars-forward " \t") ";")
      ((and (bolp) (not (bobp))) "")         ;Presumably a heredoc.
+     ((and (> pos (point)) (not (bolp))
+           (ruby-smie--args-separator-p pos))
+      ;; We have "ID SPC ID", which is a method call, but it binds less tightly
+      ;; than commas, since a method call can also be "ID ARG1, ARG2, ARG3".
+      ;; In some textbooks, "e1 @ e2" is used to mean "call e1 with arg e2".
+      " @ ")
      (t
       (let ((tok (smie-default-backward-token)))
         (when (eq ?. (char-before))
