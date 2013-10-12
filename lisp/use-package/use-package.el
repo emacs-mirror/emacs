@@ -321,17 +321,18 @@
   :group 'use-package)
 
 (defmacro with-elapsed-timer (text &rest forms)
-  (if use-package-verbose
-      (let ((nowvar (make-symbol "now")))
-        `(let ((,nowvar (current-time)))
-           (message "%s..." ,text)
-           (prog1 ,@forms
-             (let ((elapsed
-                    (float-time (time-subtract (current-time) ,nowvar))))
-               (if (> elapsed ,use-package-minimum-reported-time)
-                   (message "%s...done (%.3fs)" ,text elapsed)
-                 (message "%s...done" ,text))))))
-    `(prog1 ,@forms)))
+  (let ((body `(progn ,@forms)))
+    (if use-package-verbose
+        (let ((nowvar (make-symbol "now")))
+          `(let ((,nowvar (current-time)))
+             (message "%s..." ,text)
+             (prog1 ,body
+               (let ((elapsed
+                      (float-time (time-subtract (current-time) ,nowvar))))
+                 (if (> elapsed ,use-package-minimum-reported-time)
+                     (message "%s...done (%.3fs)" ,text elapsed)
+                   (message "%s...done" ,text))))))
+      ,body)))
 
 (put 'with-elapsed-timer 'lisp-indent-function 1)
 
