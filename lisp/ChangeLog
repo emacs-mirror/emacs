@@ -1,5 +1,8 @@
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
+	* menu-bar.el (menu-bar-update-buffers):
+	Unify Buffers menu prompt string.  (Bug#15576)
+
 	* face-remap.el (text-scale-adjust): Doc fix.  (Bug#15434)
 
 	* emacs-lisp/authors.el (authors-aliases, authors-ignored-files):
