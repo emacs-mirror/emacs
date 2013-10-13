@@ -910,6 +910,7 @@ PRIPTR_PREFIX
 PRI_MACROS_BROKEN
 INT64_MAX_EQ_LONG_MAX
 INT32_MAX_LT_INTMAX_MAX
+REPLACE_STRTOUMAX
 REPLACE_STRTOIMAX
 HAVE_DECL_STRTOUMAX
 HAVE_DECL_STRTOIMAX
@@ -20969,6 +20970,7 @@ fi
   HAVE_DECL_STRTOIMAX=1;
   HAVE_DECL_STRTOUMAX=1;
   REPLACE_STRTOIMAX=0;
+  REPLACE_STRTOUMAX=0;
   INT32_MAX_LT_INTMAX_MAX=1;
   INT64_MAX_EQ_LONG_MAX='defined _LP64';
   PRI_MACROS_BROKEN=0;
@@ -27035,7 +27037,7 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
     HAVE_DECL_STRTOIMAX=0
   fi
 
-  if test $ac_cv_func_strtoimax = yes; then
+  if test "$ac_cv_func_strtoimax" = yes; then
     HAVE_STRTOIMAX=1
              { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether strtoimax works" >&5
 $as_echo_n "checking whether strtoimax works... " >&6; }
@@ -27108,10 +27110,14 @@ $as_echo "$gl_cv_func_strtoimax" >&6; }
       *no) REPLACE_STRTOIMAX=1 ;;
     esac
   else
+    if test "$ac_cv_have_decl_strtoimax" = yes; then
+      # HP-UX 11.11 has "#define strtoimax(...) ..." but no function.
+      REPLACE_STRTOIMAX=1
+    fi
     HAVE_STRTOIMAX=0
   fi
 
-  if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
+  if test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
 
 
 
@@ -27152,11 +27158,16 @@ _ACEOF
 
 
 
-  if test "$ac_cv_have_decl_strtoumax" != yes; then
+  if test "$ac_cv_have_decl_strtoumax" = yes; then
+    if test "$ac_cv_func_strtoumax" != yes; then
+      # HP-UX 11.11 has "#define strtoimax(...) ..." but no function.
+      REPLACE_STRTOUMAX=1
+    fi
+  else
     HAVE_DECL_STRTOUMAX=0
   fi
 
-  if test $ac_cv_func_strtoumax = no; then
+  if test $HAVE_DECL_STRTOUMAX = 0 || test $REPLACE_STRTOUMAX = 1; then
 
 
 
@@ -29126,10 +29137,10 @@ done
   if test $HAVE_READLINKAT = 0; then
     func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
   fi
-  if { test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
+  if { test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
+  if { test $HAVE_DECL_STRTOUMAX = 0 || test $REPLACE_STRTOUMAX = 1; } && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
   fi
 
