@@ -1,3 +1,15 @@
+2013-10-13  Alan Mackenzie  <acm@muc.de>
+
+	Fix indentation/fontification of Java enum with
+	"implements"/generic.
+
+	* progmodes/cc-engine.el (c-backward-over-enum-header): Extracted
+	from the three other places and enhanced to handle generics.
+	(c-inside-bracelist-p): Uses new function above.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Uses new
+	function above.
+	(c-font-lock-enum-tail): Uses new function above.
+
 2013-10-13  Kenichi Handa  <handa@gnu.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Remove a

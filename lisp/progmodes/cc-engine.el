@@ -8471,6 +8471,32 @@ comment at the start of cc-engine.el for more info."
 		      (not (looking-at "=")))))
       b-pos)))
 
+(defun c-backward-over-enum-header ()
+  ;; We're at a "{".  Move back to the enum-like keyword that starts this
+  ;; declaration and return t, otherwise don't move and return nil.
+  (let ((here (point))
+	up-sexp-pos before-identifier)
+    (while
+	(and
+	 (eq (c-backward-token-2) 0)
+	 (or (not (looking-at "\\s)"))
+	     (c-go-up-list-backward))
+	 (cond
+	  ((and (looking-at c-symbol-key) (c-on-identifier))
+	   (setq before-identifier t))
+	  ((and before-identifier
+		(looking-at c-postfix-decl-spec-key))
+	   (setq before-identifier nil)
+	   t)
+	  ((looking-at c-brace-list-key) nil)
+	  ((and c-recognize-<>-arglists
+		(eq (char-after) ?<)
+		(looking-at "\\s("))
+	   t)
+	  (t nil))))
+    (or (looking-at c-brace-list-key)
+	(progn (goto-char here) nil))))
+
 (defun c-inside-bracelist-p (containing-sexp paren-state)
   ;; return the buffer position of the beginning of the brace list
   ;; statement if we're inside a brace list, otherwise return nil.
@@ -8485,22 +8511,9 @@ comment at the start of cc-engine.el for more info."
   ;; This function might do hidden buffer changes.
   (or
    ;; This will pick up brace list declarations.
-   (c-safe
-     (save-excursion
-       (goto-char containing-sexp)
-       (let (before-identifier)
-	 (while
-	     (progn
-	       (c-forward-sexp -1)
-	       (cond
-		((c-on-identifier) (setq before-identifier t))
-		((and before-identifier
-		      (looking-at c-postfix-decl-spec-key))
-		 (setq before-identifier nil)
-		 t)
-		((looking-at c-brace-list-key) nil)
-		(t nil))))
-	 (looking-at c-brace-list-key))))
+   (save-excursion
+     (goto-char containing-sexp)
+     (c-backward-over-enum-header))
    ;; this will pick up array/aggregate init lists, even if they are nested.
    (save-excursion
      (let ((class-key

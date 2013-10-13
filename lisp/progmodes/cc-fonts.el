@@ -1471,22 +1471,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		   (let ((paren-state (c-parse-state)))
 		     (and
 		      (numberp (car paren-state))
-		      (c-safe
-			(save-excursion
-			  (goto-char (car paren-state))
-			  (let (before-identifier)
-			    (while
-				(progn
-				  (c-forward-sexp -1)
-				  (cond
-				   ((c-on-identifier) (setq before-identifier t))
-				   ((and before-identifier
-					 (looking-at c-postfix-decl-spec-key))
-				    (setq before-identifier nil)
-				    t)
-				   ((looking-at c-brace-list-key) nil) ; "enum"
-				   (t nil))))
-			    (looking-at c-brace-list-key)))))))
+		      (save-excursion
+			(goto-char (car paren-state))
+			(c-backward-over-enum-header)))))
 	      (c-forward-token-2)
 	      nil)
 
@@ -1574,22 +1561,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
     (when (and
 	   encl-pos
 	   (eq (char-after encl-pos) ?\{)
-	   (c-safe
-	     (save-excursion
-	       (goto-char encl-pos)
-	       (let (before-identifier)
-		 (while
-		     (progn
-		      (c-forward-sexp -1)
-		      (cond
-		       ((c-on-identifier) (setq before-identifier t))
-		       ((and before-identifier
-			     (looking-at c-postfix-decl-spec-key))
-			(setq before-identifier nil)
-			t)
-		       ((looking-at c-brace-list-key) nil) ; "enum"
-		       (t nil))))
-		 (looking-at c-brace-list-key)))))
+	   (save-excursion
+	     (goto-char encl-pos)
+	     (c-backward-over-enum-header)))
       (c-syntactic-skip-backward "^{," nil t)
       (c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
 
