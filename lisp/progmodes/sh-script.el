@@ -3438,26 +3438,23 @@ so that `occur-next' and `occur-prev' will work."
 	)
       (goto-char (point-max))
       (setq start (point))
-      (insert line)
-      (if occur-point
-	  (setq occur-point (point)))
-      (insert message)
-      (if point
-	  (add-text-properties
-	   start (point)
-	   '(mouse-face highlight
-	     help-echo "mouse-2: go to the line where I learned this")))
-      (insert "\n")
-      (if point
-	  (progn
-	    (put-text-property start (point) 'occur-target m1)
-	    (if occur-point
-		(put-text-property start occur-point
-				   'occur-match t))
-	    ))
-      )))
-
-
+      (let ((inhibit-read-only t))
+        (insert line)
+        (if occur-point
+            (setq occur-point (point)))
+        (insert message)
+        (if point
+            (add-text-properties
+             start (point)
+             '(mouse-face highlight
+                          help-echo "mouse-2: go to the line where I learned this")))
+        (insert "\n")
+        (when point
+          (put-text-property start (point) 'occur-target m1)
+          (if occur-point
+              (put-text-property start occur-point
+                                 'occur-match t))
+          )))))
 
 ;; Is this really worth having?
 (defvar sh-learned-buffer-hook nil
@@ -3689,15 +3686,15 @@ This command can often take a long time to run."
 			  (nth 2 learned-var) out-buffer)))
 	(with-current-buffer out-buffer
 	  (goto-char (point-min))
-	  (insert
-	   (format "Indentation values for buffer %s.\n" name)
-	   (format "%d indentation variable%s different values%s\n\n"
-		   num-diffs
-		   (if (= num-diffs 1)
-		       " has"   "s have")
-		   (if (zerop num-diffs)
-		       "." ":"))
-	   )))
+          (let ((inhibit-read-only t))
+            (insert
+             (format "Indentation values for buffer %s.\n" name)
+             (format "%d indentation variable%s different values%s\n\n"
+                     num-diffs
+                     (if (= num-diffs 1)
+                         " has"   "s have")
+                     (if (zerop num-diffs)
+                         "." ":"))))))
       ;; Are abnormal hooks considered bad form?
       (run-hook-with-args 'sh-learned-buffer-hook learned-var-list)
       (and (called-interactively-p 'any)
