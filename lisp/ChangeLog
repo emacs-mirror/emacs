@@ -1,5 +1,7 @@
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
+	* face-remap.el (text-scale-adjust): Doc fix.  (Bug#15434)
+
 	* emacs-lisp/authors.el (authors-aliases, authors-ignored-files):
 	Add some entries.
 	(authors-fixed-entries): Use accented form of name.

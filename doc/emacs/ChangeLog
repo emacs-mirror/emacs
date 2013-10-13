@@ -1,5 +1,7 @@
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
+	* display.texi (Text Scale): Update text-scale-adjust details.
+
 	* ack.texi (Acknowledgments):
 	* emacs.texi (Acknowledgments): Use accented form of some names.
 
