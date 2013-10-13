@@ -1,3 +1,7 @@
+2013-10-13  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	* replace.el (how-many): Fix rstart and !rend case.  (Bug#15589)
+
 2013-10-13  Andreas Politz  <politza@hochschule-trier.de>
 
 	* progmodes/sql.el (sql-add-product): Fix paren typo.  (Bug#15435)

@@ -810,9 +810,12 @@ a previously found match."
    (keep-lines-read-args "How many matches for regexp"))
   (save-excursion
     (if rstart
-	(progn
-	  (goto-char (min rstart rend))
-	  (setq rend (max rstart rend)))
+        (if rend
+            (progn
+              (goto-char (min rstart rend))
+              (setq rend (max rstart rend)))
+          (goto-char rstart)
+          (setq rend (point-max)))
       (if (and interactive transient-mark-mode mark-active)
 	  (setq rstart (region-beginning)
 		rend (region-end))
