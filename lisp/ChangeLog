@@ -3223,7 +3223,7 @@
 
 2013-07-23  Michael R. Mauger  <michael@mauger.com>
 
-	* progmodes/sql.el Version 3.3
+	* progmodes/sql.el: Version 3.3
 	(sql-product-alist): Improve oracle :prompt-cont-regexp.
 	(sql-starts-with-prompt-re, sql-ends-with-prompt-re): New functions.
 	(sql-interactive-remove-continuation-prompt): Rewrite, use
@@ -8435,7 +8435,7 @@
 
 2013-03-14  Tassilo Horn  <tsdh@gnu.org>
 
-	* doc-view.el Fix bug#13887.
+	* doc-view.el: Fix bug#13887.
 	(doc-view-insert-image): Don't modify overlay associated to
 	non-live windows, and implement horizontal centering of image in
 	case it's smaller than the window.
