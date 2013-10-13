@@ -1,3 +1,9 @@
+2013-10-13  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Remove a
+	superfluous condition in chekcing whether a coding system is safe
+	or not.
+
 2013-10-13  Oleh Krehel  <ohwoeowho@gmail.com>
 
 	* replace.el (how-many): Fix rstart and !rend case.  (Bug#15589)
