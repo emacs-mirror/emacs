@@ -1,3 +1,7 @@
+2013-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Comment out old alpha stuff.
+
 2013-10-13  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* calendar.texi (Special Diary Entries): Remove @refill.

@@ -518,8 +518,8 @@ Changes to files in this list are not listed.")
     ("Schlumberger Technology Corporation" :changed "gud.el")
     ;; Replaced by tcl.el.
 ;;;    ("Gregor Schmid" :wrote "tcl-mode.el")
-    ;; FIXME files no longer included; but see bug 15601
-    ("Rainer Schöpf" :wrote "alpha.h" "unexalpha.c")
+    ;; No longer distributed since 24.1.
+;;;    ("Rainer Schöpf" :wrote "alpha.h" "unexalpha.c")
     ;; No longer distributed: emacsserver.c.
     ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
     ;; No longer distributed: emacsserver.c.

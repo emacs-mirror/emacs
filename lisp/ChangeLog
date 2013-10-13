@@ -1,3 +1,8 @@
+2013-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries):
+	Comment out old alpha stuff.
+
 2013-10-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-mode): Add `ruby-mode-set-encoding'

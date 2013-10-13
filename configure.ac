@@ -1175,10 +1175,13 @@ case $canonical in
     if test "x$GCC" = "xyes"; then
       C_SWITCH_MACHINE="-fno-common"
     else
-      AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
+      AC_MSG_ERROR([Non-GCC compilers are not supported.])
     fi
   else
-    UNEXEC_OBJ=unexalpha.o
+      dnl This was the unexalpha.c case.  Removed in 24.1, 2010-07-24,
+      dnl albeit under the mistaken assumption that said file
+      dnl was no longer used.
+      AC_MSG_ERROR([Non-ELF systems are not supported since Emacs 24.1.])
   fi
   ;;
 esac

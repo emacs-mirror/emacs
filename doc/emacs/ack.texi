@@ -1099,9 +1099,11 @@ Ronald S. Schnell wrote @file{dunnet.el}, a text adventure game.
 Philippe Schnoebelen wrote @file{gomoku.el}, a Go Moku game played
 against Emacs; and @file{mpuz.el}, a multiplication puzzle.
 
-@c FIXME files no longer included; but see bug 15601.
+@ignore
+@c Removed in 24.1.
 @item
 Rainer Schöpf contributed to Alpha and OSF1 support.
+@end ignore
 
 @item
 Jan Schormann wrote @file{solitaire.el}, an implementation of the
