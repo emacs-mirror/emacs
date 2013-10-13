@@ -1,3 +1,7 @@
+2013-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* intro.texi (Acknowledgments): Use accented form of some names.
+
 2013-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* control.texi (Conditionals): Copyedits.  (Bug#15558)

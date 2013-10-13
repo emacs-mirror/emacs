@@ -103,6 +103,7 @@ files.")
     ("John J Foerch" "John Foerch")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
+    ("Jorgen Schäfer" "Jorgen Schaefer")
     ("Joseph Arceneaux" "Joe Arceneaux")
     ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
@@ -145,6 +146,8 @@ files.")
     ("Peter S. Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
+    ("Piotr Zieliński" "Piotr Zielinski")
+    ("Rainer Schöpf" "Rainer Schoepf")
     ("Raja R. Harinath" "Raja R Harinath")
     ("Richard G. Bielawski" "Richard G Bielawski" "Richard Bielawski")
     ("Richard King" "Dick King")
@@ -297,7 +300,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "NICKLES.WORTH" "INTERVAL.IDEAS" "RCP"
     "3B-MAXMEM" "AIX.DUMP" "SUN-SUPPORT" "XENIX"
     "CODINGS" "CHARSETS"
-    "calc/INSTALL" "calc/Makefile"
+    "calc/INSTALL" "calc/Makefile" "calc/README.prev"
     "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
     "emacsver.texi.in"
     "vpath.sed"
@@ -334,6 +337,15 @@ Changes to files matching one of the regexps in this list are not listed.")
     "debian/scripts/startup"
     "debian/scripts/startup.erc"
     "debian/scripts/startup.erc-speak"
+    ;; Used to be in admin, not very interesting.
+    "emacs-pretesters" "make-announcement" "make-changelog-diff"
+    ;; Generated files that have since been removed.
+    "refcards/calccard.pdf" "refcards/cs-dired-ref.pdf" "refcards/cs-refcard.pdf"
+    "refcards/de-refcard.pdf" "refcards/dired-ref.pdf" "refcards/fr-dired-ref.pdf"
+    "refcards/fr-refcard.pdf" "refcards/gnus-booklet.pdf" "refcards/gnus-refcard.pdf"
+    "refcards/orgcard.pdf" "refcards/pl-refcard.pdf" "refcards/pt-br-refcard.pdf"
+    "refcards/refcard.pdf" "refcards/ru-refcard.pdf" "refcards/sk-dired-ref.pdf"
+    "refcards/sk-refcard.pdf"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -506,7 +518,8 @@ Changes to files in this list are not listed.")
     ("Schlumberger Technology Corporation" :changed "gud.el")
     ;; Replaced by tcl.el.
 ;;;    ("Gregor Schmid" :wrote "tcl-mode.el")
-    ("Rainer Schoepf" :wrote "alpha.h" "unexalpha.c")
+    ;; FIXME files no longer included; but see bug 15601
+    ("Rainer Schöpf" :wrote "alpha.h" "unexalpha.c")
     ;; No longer distributed: emacsserver.c.
     ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
     ;; No longer distributed: emacsserver.c.

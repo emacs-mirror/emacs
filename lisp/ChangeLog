@@ -1,3 +1,9 @@
+2013-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-ignored-files):
+	Add some entries.
+	(authors-fixed-entries): Use accented form of name.
+
 2013-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Add rule for paren-free

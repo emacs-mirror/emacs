@@ -55,7 +55,7 @@
 ;; point and some other names have been changed to make it a drop-in
 ;; replacement for the old man.el package.
 
-;; Francesco Potorti` <pot@cnuce.cnr.it> cleaned it up thoroughly,
+;; Francesco Potortì <pot@cnuce.cnr.it> cleaned it up thoroughly,
 ;; making it faster, more robust and more tolerant of different
 ;; systems' man idiosyncrasies.
 
