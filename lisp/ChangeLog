@@ -1,3 +1,7 @@
+2013-10-13  Andreas Politz  <politza@hochschule-trier.de>
+
+	* progmodes/sql.el (sql-add-product): Fix paren typo.  (Bug#15435)
+
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-update-buffers):

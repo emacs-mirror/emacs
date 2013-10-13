@@ -2439,7 +2439,7 @@ configuration."
       (user-error "Product `%s' is already defined" product)
 
     ;; Add product to the alist
-    (add-to-list 'sql-product-alist `((,product :name ,display . ,plist)))
+    (add-to-list 'sql-product-alist `(,product :name ,display . ,plist))
     ;; Add a menu item to the SQL->Product menu
     (easy-menu-add-item sql-mode-menu '("Product")
 			;; Each product is represented by a radio
