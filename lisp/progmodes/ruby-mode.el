@@ -529,7 +529,7 @@ Also ignores spaces after parenthesis when 'space."
     (when (re-search-forward "[^\0-\177]" nil t)
       (goto-char (point-min))
       (let ((coding-system
-             (or coding-system-for-write
+             (or save-buffer-coding-system
                  buffer-file-coding-system)))
         (if coding-system
             (setq coding-system
@@ -555,7 +555,9 @@ Also ignores spaces after parenthesis when 'space."
                  (insert coding-system)))
               ((looking-at "\\s *#.*coding\\s *[:=]"))
               (t (when ruby-insert-encoding-magic-comment
-                   (insert "# -*- coding: " coding-system " -*-\n"))))))))
+                   (insert "# -*- coding: " coding-system " -*-\n"))))
+        (when (buffer-modified-p)
+          (basic-save-buffer-1))))))
 
 (defun ruby-current-indentation ()
   "Return the indentation level of current line."
@@ -2017,11 +2019,7 @@ The variable `ruby-indent-level' controls the amount of indentation.
   (set (make-local-variable 'end-of-defun-function)
        'ruby-end-of-defun)
 
-  (add-hook
-   (cond ((boundp 'before-save-hook) 'before-save-hook)
-         ((boundp 'write-contents-functions) 'write-contents-functions)
-         ((boundp 'write-contents-hooks) 'write-contents-hooks))
-   'ruby-mode-set-encoding nil 'local)
+  (add-hook 'after-save-hook 'ruby-mode-set-encoding nil 'local)
 
   (set (make-local-variable 'electric-indent-chars)
        (append '(?\{ ?\}) electric-indent-chars))

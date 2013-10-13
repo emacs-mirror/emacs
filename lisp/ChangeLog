@@ -1,3 +1,11 @@
+2013-10-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-mode): Add `ruby-mode-set-encoding'
+	to `after-save-hook' instead of `before-save-hook'.
+	(ruby-mode-set-encoding): Use the value of coding system used to
+	write the file.  Call `basic-save-buffer-1' after modifying the
+	buffer.
+
 2013-10-13  Alan Mackenzie  <acm@muc.de>
 
 	Fix indentation/fontification of Java enum with
