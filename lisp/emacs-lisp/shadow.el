@@ -45,7 +45,7 @@
 ;;
 ;;     emacs -batch -f list-load-path-shadows
 ;;
-;; Thanks to Francesco Potorti` <pot@cnuce.cnr.it> for suggestions,
+;; Thanks to Francesco Potortì <pot@cnuce.cnr.it> for suggestions,
 ;; rewritings & speedups.
 
 ;;; Code:
@@ -284,3 +284,7 @@ version unless you know what you are doing.\n")
 (provide 'shadow)
 
 ;;; shadow.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

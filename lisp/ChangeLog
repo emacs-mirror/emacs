@@ -4,6 +4,42 @@
 	superfluous condition in chekcing whether a coding system is safe
 	or not.
 
+2013-10-13  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	* replace.el (how-many): Fix rstart and !rend case.  (Bug#15589)
+
+2013-10-13  Andreas Politz  <politza@hochschule-trier.de>
+
+	* progmodes/sql.el (sql-add-product): Fix paren typo.  (Bug#15435)
+
+2013-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-update-buffers):
+	Unify Buffers menu prompt string.  (Bug#15576)
+
+	* face-remap.el (text-scale-adjust): Doc fix.  (Bug#15434)
+
+	* emacs-lisp/authors.el (authors-aliases, authors-ignored-files):
+	Add some entries.
+	(authors-fixed-entries): Use accented form of name.
+
+2013-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Add rule for paren-free
+	method calls (bug#bug#15594).
+	(ruby-smie--args-separator-p): New function.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Use it to
+	recognize paren-free method calls.
+
+	* isearch.el (isearch-pre-command-hook): Don't build in knowledge about
+	internals of universal-argument.
+
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (tty-menu-navigation-map): Remap F10 to tty-menu-exit.
+	Bind all menu-bar sequences to tty-menu-exit -- this pops down a
+	dropped menu on second mouse click on the menu bar.
+
 2013-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el: Provide simpl(e|istic) completion.
@@ -3212,7 +3248,7 @@
 
 2013-07-23  Michael R. Mauger  <michael@mauger.com>
 
-	* progmodes/sql.el Version 3.3
+	* progmodes/sql.el: Version 3.3
 	(sql-product-alist): Improve oracle :prompt-cont-regexp.
 	(sql-starts-with-prompt-re, sql-ends-with-prompt-re): New functions.
 	(sql-interactive-remove-continuation-prompt): Rewrite, use
@@ -8424,7 +8460,7 @@
 
 2013-03-14  Tassilo Horn  <tsdh@gnu.org>
 
-	* doc-view.el Fix bug#13887.
+	* doc-view.el: Fix bug#13887.
 	(doc-view-insert-image): Don't modify overlay associated to
 	non-live windows, and implement horizontal centering of image in
 	case it's smaller than the window.

@@ -104,7 +104,7 @@ footnotes in email messages; and @file{gnus-audio.el} and
 @item
 Alexander L. Belikoff, Sergey Berezin, Sacha Chua, David Edmondson,
 Noah Friedman, Andreas Fuchs, Mario Lang, Ben Mesander, Lawrence
-Mitchell, Gergely Nagy, Michael Olson, Per Persson, Jorgen Schaefer,
+Mitchell, Gergely Nagy, Michael Olson, Per Persson, Jorgen Schäfer,
 Alex Schroeder, and Tom Tromey wrote ERC, an advanced Internet Relay
 Chat client (for more information, see the file @file{CREDITS} in the
 ERC distribution).
@@ -276,7 +276,7 @@ over maintainership.  Benjamin Andresen, Thomas Baumann, Joel Boehland, Jan Böc
 Borgman, Baoqiu Cui, Dan Davison, Christian Egli, Eric S. Fraga, Daniel German, Chris Gray, Konrad Hinsen, Tassilo Horn, Philip
 Jackson, Martyn Jago, Thorsten Jolitz, Jambunathan K, Tokuya Kameshima, Sergey Litvinov, David Maus, Ross Patterson, Juan Pechiar, Sebastian Rose, Eric Schulte,
 Paul Sexton, Ulf Stegemann, Andy Stewart, Christopher Suckling, David O'Toole, John Wiegley, Zhang Weize,
-Piotr Zielinski, and others also wrote various Org mode components.
+Piotr Zieliński, and others also wrote various Org mode components.
 For more information, @pxref{History and Acknowledgments,,, org, The Org Manual}.
 
 @item
@@ -819,7 +819,7 @@ used in mail messages and news articles; and @file{terminal.el}, a
 terminal emulator for Emacs subprocesses.
 
 @item
-Gerd Moellmann was the Emacs maintainer from the beginning of Emacs 21
+Gerd Möllmann was the Emacs maintainer from the beginning of Emacs 21
 development until the release of 21.1.  He wrote the new display
 engine used from Emacs 21 onwards, and the asynchronous timers
 facility.  He also wrote @code{ebrowse}, the C@t{++} browser;
@@ -979,7 +979,7 @@ minor mode for displaying a ruler in the header line; and
 structures.
 
 @item
-Francesco A. Potorti wrote @file{cmacexp.el}, providing a command which
+Francesco A. Potortì wrote @file{cmacexp.el}, providing a command which
 runs the C preprocessor on a region of a file and displays the results.
 He also expanded and redesigned the @code{etags} program.
 
@@ -1099,8 +1099,9 @@ Ronald S. Schnell wrote @file{dunnet.el}, a text adventure game.
 Philippe Schnoebelen wrote @file{gomoku.el}, a Go Moku game played
 against Emacs; and @file{mpuz.el}, a multiplication puzzle.
 
+@c FIXME files no longer included; but see bug 15601.
 @item
-Rainer Schoepf contributed to Alpha and OSF1 support.
+Rainer Schöpf contributed to Alpha and OSF1 support.
 
 @item
 Jan Schormann wrote @file{solitaire.el}, an implementation of the

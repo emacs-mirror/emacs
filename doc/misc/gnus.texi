@@ -22998,7 +22998,7 @@ elements on the line is (i.e., the non-info part).  If you put
 additional elements on the mode line (e.g., a clock), you should modify
 this variable:
 
-@c Hook written by Francesco Potorti` <pot@cnuce.cnr.it>
+@c Hook written by Francesco Potortì <pot@cnuce.cnr.it>
 @lisp
 (add-hook 'display-time-hook
           (lambda () (setq gnus-mode-non-string-length

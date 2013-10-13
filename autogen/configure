@@ -12253,7 +12253,65 @@ fi
 
 
 HAVE_GNUTLS=no
+HAVE_GNUTLS3=no
 if test "${with_gnutls}" = "yes" ; then
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GNUTLS3=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 3.0.0" >&5
+$as_echo_n "checking for gnutls >= 3.0.0... " >&6; }
+
+        if "$PKG_CONFIG" --exists "gnutls >= 3.0.0" 2>&5 &&
+	   LIBGNUTLS_CFLAGS=`"$PKG_CONFIG" --cflags "gnutls >= 3.0.0" 2>&5` &&
+	   LIBGNUTLS_LIBS=`"$PKG_CONFIG" --libs "gnutls >= 3.0.0" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    LIBGNUTLS_CFLAGS=`$as_echo "$LIBGNUTLS_CFLAGS" | sed -e "$edit_cflags"`
+	    LIBGNUTLS_LIBS=`$as_echo "$LIBGNUTLS_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$LIBGNUTLS_CFLAGS' LIBS='$LIBGNUTLS_LIBS'" >&5
+$as_echo "yes CFLAGS='$LIBGNUTLS_CFLAGS' LIBS='$LIBGNUTLS_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            LIBGNUTLS_CFLAGS=""
+            LIBGNUTLS_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    LIBGNUTLS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gnutls >= 3.0.0") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GNUTLS3=yes
+  else
+     HAVE_GNUTLS3=no
+  fi
+
+  if test "${HAVE_GNUTLS3}" = "yes"; then
+
+$as_echo "#define HAVE_GNUTLS3 1" >>confdefs.h
+
+    HAVE_GNUTLS="yes"
+  else
 
   succeeded=no
 
@@ -12305,6 +12363,7 @@ $as_echo "no" >&6; }
      HAVE_GNUTLS=no
   fi
 
+  fi
   if test "${HAVE_GNUTLS}" = "yes"; then
 
 $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h

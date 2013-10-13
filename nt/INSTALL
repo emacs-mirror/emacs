@@ -536,14 +536,6 @@ Windows 9X as well).
   is in the PATH or otherwise accessible and that the binaries are
   compatible (for example, that they were built with the same compiler).
 
-  Binaries for the image libraries (among many others) can be found at
-  the GnuWin32 project.  The PNG libraries are also included with GTK,
-  which is installed along with other Free Software that requires it.
-  Note specifically that, due to some packaging snafus in the
-  GnuWin32-supplied image libraries, you will need to download
-  _source_ packages for some of the libraries in order to get the
-  header files necessary for building Emacs with image support.
-
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
   precompiled libraries and headers on the GTK download page for
@@ -560,6 +552,27 @@ Windows 9X as well).
   installed, check the name of the installed DLL against
   `dynamic-library-alist' and the value of `libpng-version', and
   download compatible DLLs if needed.
+
+  For GIF images, we recommend to use versions 5.0.0 or later of
+  giflib, as it is much enhanced wrt previous versions.  You can find
+  precompiled binaries and headers for giflib on the ezwinports site,
+  http://sourceforge.net/projects/ezwinports/files/.
+
+  Version 5.0.0 and later of giflib are binary incompatible with
+  previous versions (the signatures of several functions have
+  changed), so Emacs will only look for giflib libraries that are
+  compatible with the version it was compiled against.  Similar to
+  libpng, that version is given by the value of the Lisp variable
+  `libgif-version'; e.g., 50005 means version 5.0.5.  The variable
+  `dynamic-library-alist' is automatically set to name only those DLL
+  libraries that are known to be compatible with the version given by
+  `libgif-version'.
+
+  Binaries for the other image libraries can be found at the GnuWin32
+  project.  Note specifically that, due to some packaging snafus in
+  the GnuWin32-supplied image libraries, you will need to download
+  _source_ packages for some of the libraries in order to get the
+  header files necessary for building Emacs with image support.
 
 * Optional GnuTLS support
 

@@ -576,6 +576,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if using GnuTLS. */
 #undef HAVE_GNUTLS
 
+/* Define if using GnuTLS v3. */
+#undef HAVE_GNUTLS3
+
 /* Define to 1 if you have the gpm library (-lgpm). */
 #undef HAVE_GPM
 

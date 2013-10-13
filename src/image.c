@@ -7203,20 +7203,7 @@ gif_image_p (Lisp_Object object)
 
 #ifdef HAVE_GIF
 
-/* Giflib before 5.0 didn't define these macros.  */
-#ifndef GIFLIB_MAJOR
-#define GIFLIB_MAJOR 4
-#endif
-
 #if defined (HAVE_NTGUI)
-
-/* Giflib before 5.0 didn't define these macros (used only if HAVE_NTGUI).  */
-#ifndef GIFLIB_MINOR
-#define GIFLIB_MINOR 0
-#endif
-#ifndef GIFLIB_RELEASE
-#define GIFLIB_RELEASE 0
-#endif
 
 /* winuser.h might define DrawText to DrawTextA or DrawTextW.
    Undefine before redefining to avoid a preprocessor warning.  */
@@ -7228,11 +7215,24 @@ gif_image_p (Lisp_Object object)
 #include <gif_lib.h>
 #undef DrawText
 
+/* Giflib before 5.0 didn't define these macros (used only if HAVE_NTGUI).  */
+#ifndef GIFLIB_MINOR
+#define GIFLIB_MINOR 0
+#endif
+#ifndef GIFLIB_RELEASE
+#define GIFLIB_RELEASE 0
+#endif
+
 #else /* HAVE_NTGUI */
 
 #include <gif_lib.h>
 
 #endif /* HAVE_NTGUI */
+
+/* Giflib before 5.0 didn't define these macros.  */
+#ifndef GIFLIB_MAJOR
+#define GIFLIB_MAJOR 4
+#endif
 
 #ifdef WINDOWSNT
 

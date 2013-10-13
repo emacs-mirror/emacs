@@ -1,3 +1,22 @@
+2013-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-10-10 strtoumax: port to Solaris 8
+	2013-10-09 strtoimax, strtoumax: port to HP-UX 11.11
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/inttypes.in.h, lib/strtoimax.c, m4/inttypes.m4, m4/strtoimax.m4:
+	* m4/strtoumax.m4:
+	Update from gnulib.
+
+2013-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.ac (LIBGNUTLS): Don't set LIBGNUTLS_* back to the empty
+	string when gnutls2 is installed but gnutls3 is not.
+
+2013-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.ac: Define HAVE_GNUTLS3 if GnuTLS v3 is found.
+
 2013-10-10  Barry Fishman  <barry_fishman@acm.org>  (tiny change)
 
 	* configure.ac: Update for giflib 5.  (Bug#15531)

@@ -3472,6 +3472,7 @@ void init_display (void);
 void syms_of_display (void);
 extern Lisp_Object Qredisplay_dont_pause;
 extern void spec_glyph_lookup_face (struct window *, GLYPH *);
+extern void fill_up_frame_row_with_spaces (struct glyph_row *, int);
 
 /* Defined in terminal.c */
 

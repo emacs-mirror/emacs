@@ -299,11 +299,9 @@ key-binding used to invoke the command, with all modifiers removed:
    -      Decrease the default face height by one step
    0      Reset the default face height to the global default
 
-When adjusting with `+' or `-', continue to read input events and
-further adjust the face height as long as the input event read
-\(with all modifiers removed) is `+' or `-'.
-
-When adjusting with `0', immediately finish.
+After adjusting, continue to read input events and further adjust
+the face height as long as the input event read
+\(with all modifiers removed) is one of the above characters.
 
 Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number of steps decreases the

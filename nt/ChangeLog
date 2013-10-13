@@ -1,3 +1,15 @@
+2013-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (struct dirent) [__MINGW_MAJOR_VERSION >= 4]: Make
+	the layout of 'struct dirent' be compatible with MinGW32 runtime
+	versions 4.0 and later.
+
+	* inc/ms-w32.h (__MINGW_MAJOR_VERSION, __MINGW_MINOR_VERSION)
+	(__MINGW_PATCHLEVEL) [!__MINGW64_VERSION_MAJOR]: Define, if not
+	defined, but not for MinGW64.
+	(_USE_32BIT_TIME_T) [__MINGW64_VERSION_MAJOR]: Define, to force
+	use of 32-bit time_t type.
+
 2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve support for popcount and counting trailing zeros (Bug#15550).

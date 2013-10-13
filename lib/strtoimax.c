@@ -48,28 +48,31 @@ long long int strtoll (char const *, char **, int);
 #ifdef UNSIGNED
 # define Have_long_long HAVE_UNSIGNED_LONG_LONG_INT
 # define Int uintmax_t
+# define Strtoimax strtoumax
+# define Strtol strtoul
+# define Strtoll strtoull
 # define Unsigned unsigned
-# define strtoimax strtoumax
-# define strtol strtoul
-# define strtoll strtoull
 #else
 # define Have_long_long HAVE_LONG_LONG_INT
 # define Int intmax_t
+# define Strtoimax strtoimax
+# define Strtol strtol
+# define Strtoll strtoll
 # define Unsigned
 #endif
 
 Int
-strtoimax (char const *ptr, char **endptr, int base)
+Strtoimax (char const *ptr, char **endptr, int base)
 {
 #if Have_long_long
   verify (sizeof (Int) == sizeof (Unsigned long int)
           || sizeof (Int) == sizeof (Unsigned long long int));
 
   if (sizeof (Int) != sizeof (Unsigned long int))
-    return strtoll (ptr, endptr, base);
+    return Strtoll (ptr, endptr, base);
 #else
   verify (sizeof (Int) == sizeof (Unsigned long int));
 #endif
 
-  return strtol (ptr, endptr, base);
+  return Strtol (ptr, endptr, base);
 }

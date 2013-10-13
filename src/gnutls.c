@@ -55,6 +55,7 @@ static Lisp_Object QCgnutls_bootprop_verify_hostname_error;
 static Lisp_Object QCgnutls_bootprop_callbacks_verify;
 
 static void gnutls_log_function (int, const char *);
+static void gnutls_audit_log_function (gnutls_session_t, const char *);
 static void gnutls_log_function2 (int, const char*, const char*);
 
 
@@ -108,6 +109,9 @@ DEF_GNUTLS_FN (void, gnutls_dh_set_prime_bits,
 DEF_GNUTLS_FN (int, gnutls_error_is_fatal, (int));
 DEF_GNUTLS_FN (int, gnutls_global_init, (void));
 DEF_GNUTLS_FN (void, gnutls_global_set_log_function, (gnutls_log_func));
+#ifdef HAVE_GNUTLS3
+DEF_GNUTLS_FN (void, gnutls_global_set_audit_log_function, (gnutls_audit_log_func));
+#endif
 DEF_GNUTLS_FN (void, gnutls_global_set_log_level, (int));
 DEF_GNUTLS_FN (void, gnutls_global_set_mem_functions,
 	       (gnutls_alloc_function, gnutls_alloc_function,
@@ -173,6 +177,9 @@ init_gnutls_functions (void)
   LOAD_GNUTLS_FN (library, gnutls_error_is_fatal);
   LOAD_GNUTLS_FN (library, gnutls_global_init);
   LOAD_GNUTLS_FN (library, gnutls_global_set_log_function);
+#ifdef HAVE_GNUTLS3
+  LOAD_GNUTLS_FN (library, gnutls_global_set_audit_log_function);
+#endif
   LOAD_GNUTLS_FN (library, gnutls_global_set_log_level);
   LOAD_GNUTLS_FN (library, gnutls_global_set_mem_functions);
   LOAD_GNUTLS_FN (library, gnutls_handshake);
@@ -230,6 +237,9 @@ init_gnutls_functions (void)
 #define fn_gnutls_error_is_fatal		gnutls_error_is_fatal
 #define fn_gnutls_global_init			gnutls_global_init
 #define fn_gnutls_global_set_log_function	gnutls_global_set_log_function
+#ifdef HAVE_GNUTLS3
+#define fn_gnutls_global_set_audit_log_function	gnutls_global_set_audit_log_function
+#endif
 #define fn_gnutls_global_set_log_level		gnutls_global_set_log_level
 #define fn_gnutls_global_set_mem_functions	gnutls_global_set_mem_functions
 #define fn_gnutls_handshake			gnutls_handshake
@@ -249,6 +259,16 @@ init_gnutls_functions (void)
 #endif /* !WINDOWSNT */
 
 
+/* Function to log a simple audit message.  */
+static void
+gnutls_audit_log_function (gnutls_session_t session, const char* string)
+{
+  if (global_gnutls_log_level >= 1)
+    {
+      message ("gnutls.c: [audit] %s", string);
+    }
+}
+
 /* Function to log a simple message.  */
 static void
 gnutls_log_function (int level, const char* string)
@@ -797,6 +817,9 @@ one trustfile (usually a CA bundle).  */)
   if (TYPE_RANGED_INTEGERP (int, loglevel))
     {
       fn_gnutls_global_set_log_function (gnutls_log_function);
+#ifdef HAVE_GNUTLS3
+      fn_gnutls_global_set_audit_log_function (gnutls_audit_log_function);
+#endif
       fn_gnutls_global_set_log_level (XINT (loglevel));
       max_log_level = XINT (loglevel);
       XPROCESS (proc)->gnutls_log_level = max_log_level;

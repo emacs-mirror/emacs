@@ -1,3 +1,35 @@
+2013-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (GIFLIB_MAJOR, GIFLIB_MINOR, GIFLIB_RELEASE): Move back
+	after inclusion of gif_lib.h, thus fixing compiler warnings caused
+	by revision 114614 (commit of 2013-10-10).
+
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (deep_copy_glyph_row): Handle the case that FROM and TO
+	have different dimensions.  (Bug#15575)
+
+	* dispnew.c (fill_up_frame_row_with_spaces): Now has external
+	visibility.
+
+	* dispextern.h (fill_up_frame_row_with_spaces): Add prototype.
+
+2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* term.c (tty_menu_show): Never return with unbalanced
+	specpdl.  Use eassert for debugging check.  Adjust style.
+
+2013-10-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (read_menu_input): Make selection of menu items
+	cyclical.  Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+	(tty_menu_activate): Fix off-by-one error when computing max_y.
+
+2013-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (gnutls_audit_log_function): Add function for GnuTLS
+	audit logging (only used with GnuTLS 3.x) and enable it.
+
 2013-10-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispnew.c (redraw_frame): Remove useless #ifdef because
@@ -2333,7 +2365,7 @@
 	* keyboard.c (Fdiscard_input): Do not increment update_mode_lines.
 	* nsfns.m (x_set_cursor_type):
 	* w32fns.c (x_set_cursor_type):
-	* xfns.m (x_set_cursor_type): Do not set cursor_type_changed here...
+	* xfns.c (x_set_cursor_type): Do not set cursor_type_changed here...
 	* xdisp.c (set_frame_cursor_types): ...but in common code.
 
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>

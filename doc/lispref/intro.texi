@@ -545,7 +545,7 @@ Eirik Fuller, Stephen Gildea, Bob Glickstein, Eric Hanchrow, Jesper
 Harder, George Hartzell, Nathan Hess, Masayuki Ida, Dan Jacobson, Jak
 Kirman, Bob Knighten, Frederick M. Korz, Joe Lammens, Glenn M. Lewis,
 K. Richard Magill, Brian Marick, Roland McGrath, Stefan Monnier, Skip
-Montanaro, John Gardiner Myers, Thomas A. Peterson, Francesco Potorti,
+Montanaro, John Gardiner Myers, Thomas A. Peterson, Francesco Potortì,
 Friedrich Pukelsheim, Arnold D. Robbins, Raul Rockwell, Jason Rumney,
 Per Starbäck, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
 Trost, Rickard Westman, Jean White, Eduard Wiebe, Matthew Wilding,

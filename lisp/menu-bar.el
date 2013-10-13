@@ -2046,7 +2046,7 @@ It must accept a buffer as its only required argument.")
          ;; We used to "(define-key (current-global-map) [menu-bar buffer]"
          ;; but that did not do the right thing when the [menu-bar buffer]
          ;; entry above had been moved (e.g. to a parent keymap).
-	 (setcdr global-buffers-menu-map (cons "Select Buffer" buffers-menu)))))
+	 (setcdr global-buffers-menu-map (cons "Buffers" buffers-menu)))))
 
 (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
 
@@ -2261,73 +2261,6 @@ If nil, the current mouse position is used."
      (popup-menu-normalize-position (event-end position)))
     (t position)))
 
-(defvar tty-menu-navigation-map
-  (let ((map (make-sparse-keymap)))
-    ;; The next line is disabled because it breaks interpretation of
-    ;; escape sequences, produced by TTY arrow keys, as tty-menu-*
-    ;; commands.  Instead, we explicitly bind some keys to
-    ;; tty-menu-exit.
-    ;;(define-key map [t] 'tty-menu-exit)
-
-    ;; The tty-menu-* are just symbols interpreted by term.c, they are
-    ;; not real commands.
-    (dolist (bind '((keyboard-quit . tty-menu-exit)
-                    (keyboard-escape-quit . tty-menu-exit)
-                    ;; The following two will need to be revised if we ever
-                    ;; support a right-to-left menu bar.
-                    (forward-char . tty-menu-next-menu)
-                    (backward-char . tty-menu-prev-menu)
-                    (right-char . tty-menu-next-menu)
-                    (left-char . tty-menu-prev-menu)
-                    (next-line . tty-menu-next-item)
-                    (previous-line . tty-menu-prev-item)
-                    (newline . tty-menu-select)
-                    (newline-and-indent . tty-menu-select)))
-      (substitute-key-definition (car bind) (cdr bind)
-                                 map (current-global-map)))
-
-    ;; The bindings of menu-bar items are so that clicking on the menu
-    ;; bar when a menu is already shown pops down that menu.
-    ;; FIXME: we should iterate over all the visible menu-bar items,
-    ;; instead of naming them explicitly here.  Also, this doesn't
-    ;; include items added by current major mode.
-    ;;
-    ;; FIXME: Why not (define-key map [menu-bat t] 'tty-menu-exit) ?  --Stef
-    (dolist (event '(file edit options buffer tools help-menu))
-      (substitute-key-definition
-       (lookup-key (current-global-map) (vector 'menu-bar event))
-       'tty-menu-exit
-       map (current-global-map)))
-
-    (define-key map [?\C-r] 'tty-menu-select)
-    (define-key map [?\C-j] 'tty-menu-select)
-    (define-key map [return] 'tty-menu-select)
-    (define-key map [linefeed] 'tty-menu-select)
-    (define-key map [down-mouse-1] 'tty-menu-select)
-    (define-key map [drag-mouse-1] 'tty-menu-select)
-    (define-key map [mode-line drag-mouse-1] 'tty-menu-select)
-    (define-key map [mode-line down-mouse-1] 'tty-menu-select)
-    (define-key map [header-line mouse-1] 'tty-menu-select)
-    (define-key map [header-line drag-mouse-1] 'tty-menu-select)
-    (define-key map [header-line down-mouse-1] 'tty-menu-select)
-    (define-key map [mode-line mouse-1] 'tty-menu-ignore)
-    (define-key map [mode-line mouse-2] 'tty-menu-ignore)
-    (define-key map [mode-line mouse-3] 'tty-menu-ignore)
-    (define-key map [mode-line C-mouse-1] 'tty-menu-ignore)
-    (define-key map [mode-line C-mouse-2] 'tty-menu-ignore)
-    (define-key map [mode-line C-mouse-3] 'tty-menu-ignore)
-    ;; The mouse events must be bound to tty-menu-ignore, otherwise
-    ;; the initial mouse click will select and immediately pop down
-    ;; the menu.
-    (define-key map [mouse-1] 'tty-menu-ignore)
-    (define-key map [C-mouse-1] 'tty-menu-ignore)
-    (define-key map [C-mouse-2] 'tty-menu-ignore)
-    (define-key map [C-mouse-3] 'tty-menu-ignore)
-    (define-key map [mouse-movement] 'tty-menu-mouse-movement)
-    map)
-  "Keymap used while processing TTY menus.")
-
-
 (defcustom tty-menu-open-use-tmm nil
   "If non-nil, \\[menu-bar-open] on a TTY will invoke `tmm-menubar'.
 
@@ -2371,6 +2304,64 @@ If FRAME is nil or not given, use the selected frame."
           (tmm-menubar))))))
 
 (global-set-key [f10] 'menu-bar-open)
+
+(defvar tty-menu-navigation-map
+  (let ((map (make-sparse-keymap)))
+    ;; The next line is disabled because it breaks interpretation of
+    ;; escape sequences, produced by TTY arrow keys, as tty-menu-*
+    ;; commands.  Instead, we explicitly bind some keys to
+    ;; tty-menu-exit.
+    ;;(define-key map [t] 'tty-menu-exit)
+
+    ;; The tty-menu-* are just symbols interpreted by term.c, they are
+    ;; not real commands.
+    (dolist (bind '((keyboard-quit . tty-menu-exit)
+                    (keyboard-escape-quit . tty-menu-exit)
+                    ;; The following two will need to be revised if we ever
+                    ;; support a right-to-left menu bar.
+                    (forward-char . tty-menu-next-menu)
+                    (backward-char . tty-menu-prev-menu)
+                    (right-char . tty-menu-next-menu)
+                    (left-char . tty-menu-prev-menu)
+                    (next-line . tty-menu-next-item)
+                    (previous-line . tty-menu-prev-item)
+                    (newline . tty-menu-select)
+                    (newline-and-indent . tty-menu-select)
+		    (menu-bar-open . tty-menu-exit)))
+      (substitute-key-definition (car bind) (cdr bind)
+                                 map (current-global-map)))
+
+    ;; The bindings of menu-bar items are so that clicking on the menu
+    ;; bar when a menu is already shown pops down that menu.
+    (define-key map [menu-bar t] 'tty-menu-exit)
+
+    (define-key map [?\C-r] 'tty-menu-select)
+    (define-key map [?\C-j] 'tty-menu-select)
+    (define-key map [return] 'tty-menu-select)
+    (define-key map [linefeed] 'tty-menu-select)
+    (define-key map [down-mouse-1] 'tty-menu-select)
+    (define-key map [drag-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line drag-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line down-mouse-1] 'tty-menu-select)
+    (define-key map [header-line mouse-1] 'tty-menu-select)
+    (define-key map [header-line drag-mouse-1] 'tty-menu-select)
+    (define-key map [header-line down-mouse-1] 'tty-menu-select)
+    (define-key map [mode-line mouse-1] 'tty-menu-ignore)
+    (define-key map [mode-line mouse-2] 'tty-menu-ignore)
+    (define-key map [mode-line mouse-3] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-1] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-2] 'tty-menu-ignore)
+    (define-key map [mode-line C-mouse-3] 'tty-menu-ignore)
+    ;; The mouse events must be bound to tty-menu-ignore, otherwise
+    ;; the initial mouse click will select and immediately pop down
+    ;; the menu.
+    (define-key map [mouse-1] 'tty-menu-ignore)
+    (define-key map [C-mouse-1] 'tty-menu-ignore)
+    (define-key map [C-mouse-2] 'tty-menu-ignore)
+    (define-key map [C-mouse-3] 'tty-menu-ignore)
+    (define-key map [mouse-movement] 'tty-menu-mouse-movement)
+    map)
+  "Keymap used while processing TTY menus.")
 
 (provide 'menu-bar)
 

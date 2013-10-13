@@ -63,7 +63,7 @@
 
 2013-03-11  Michael R. Mauger  <michael@mauger.com>
 
-	* progmodes/sql.el Version 3.2
+	* progmodes/sql.el: Version 3.2
 	Please note that my address changed to <michael@mauger.com>;
 	the <mmaug@yahoo.com> address remains active.
 	(sql-connection-alist): Updates documentation to fix bug#13715.

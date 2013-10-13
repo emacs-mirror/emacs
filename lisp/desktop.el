@@ -123,7 +123,7 @@
 ;;            f89-kam@nada.kth.se (Klas Mellbourn)   for a mh-e tip.
 ;;            kifer@sbkifer.cs.sunysb.edu (M. Kifer) for a bug hunt.
 ;;            treese@lcs.mit.edu (Win Treese)        for ange-ftp tips.
-;;            pot@cnuce.cnr.it (Francesco Potorti`)  for misc. tips.
+;;            pot@cnuce.cnr.it (Francesco Potortì)  for misc. tips.
 ;; ---------------------------------------------------------------------------
 ;; TODO:
 ;;
@@ -1467,3 +1467,7 @@ If there are no buffers left to create, kill the timer."
 (provide 'desktop)
 
 ;;; desktop.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

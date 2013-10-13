@@ -88,7 +88,7 @@
 
 ;; Dec 10, 1996 -- posted draft version to gnu.sources.emacs
 
-;; Dec 11, 1996 -- fixed some typos, and Francesco Potorti`
+;; Dec 11, 1996 -- fixed some typos, and Francesco Potortì
 ;; <F.Potorti@cnuce.cnr.it> pointed out that my use of defvar was
 ;; weird, suggested fix, and added let form.
 
@@ -375,3 +375,7 @@ You might need to set `uce-mail-reader' before using this."
 (provide 'uce)
 
 ;;; uce.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

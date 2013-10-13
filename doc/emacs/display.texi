@@ -743,9 +743,9 @@ determine which action to take.
 @kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face
 height by three steps.  Each step scales the text height by a factor
 of 1.2; to change this factor, customize the variable
-@code{text-scale-mode-step}.  As an exception, a numeric argument of 0
+@code{text-scale-mode-step}.  A numeric argument of 0
 to the @code{text-scale-adjust} command restores the default height,
-similar to typing @kbd{C-x C-0}.
+the same as typing @kbd{C-x C-0}.
 
 @cindex increase buffer face height
 @findex text-scale-increase

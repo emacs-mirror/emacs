@@ -3177,11 +3177,15 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 	{
 	  if (*y < max_y)
 	    *y += 1;
+	  else
+	    *y = min_y;
 	}
       else if (EQ (cmd, Qtty_menu_prev_item))
 	{
 	  if (*y > min_y)
 	    *y -= 1;
+	  else
+	    *y = max_y;
 	}
       else if (EQ (cmd, Qtty_menu_select))
 	st = 1;
@@ -3290,7 +3294,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
     {
       int input_status;
       int min_y = state[0].y;
-      int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf)) - 1;
+      int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf) - 1) - 1;
 
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
       if (input_status)
@@ -3557,10 +3561,9 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   int dispwidth, dispheight;
   int i, j, lines, maxlines;
   int maxwidth;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  ptrdiff_t specpdl_count;
 
-  if (! FRAME_TERMCAP_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f));
 
   *error_name = 0;
   if (menu_items_n_panes == 0)
@@ -3582,7 +3585,7 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 
   /* Don't GC while we prepare and show the menu, because we give the
      menu functions pointers to the contents of strings.  */
-  inhibit_garbage_collection ();
+  specpdl_count = inhibit_garbage_collection ();
 
   /* Adjust coordinates to be root-window-relative.  */
   item_x = x += f->left_pos;
@@ -3613,7 +3616,8 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	    {
 	      tty_menu_destroy (menu);
 	      *error_name = "Can't create pane";
-	      return Qnil;
+	      entry = Qnil;
+	      goto tty_menu_end;
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
 
@@ -3675,7 +3679,8 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	    {
 	      tty_menu_destroy (menu);
 	      *error_name = "Can't add selection to menu";
-	      return Qnil;
+	      entry = Qnil;
+	      goto tty_menu_end;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
           lines++;
@@ -3692,12 +3697,12 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
   x = max (x, 1);
   y = max (y, 1);
   tty_menu_locate (menu, x, y, &ulx, &uly, &width, &height);
-  if (ulx+width > dispwidth)
+  if (ulx + width > dispwidth)
     {
       x -= (ulx + width) - dispwidth;
       ulx = dispwidth - width;
     }
-  if (uly+height > dispheight)
+  if (uly + height > dispheight)
     {
       y -= (uly + height) - dispheight;
       uly = dispheight - height;
@@ -3803,8 +3808,9 @@ tty_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
       break;
     }
 
-  unbind_to (specpdl_count, Qnil);
+ tty_menu_end:
 
+  unbind_to (specpdl_count, Qnil);
   return entry;
 }
 

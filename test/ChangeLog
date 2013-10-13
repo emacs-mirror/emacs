@@ -1,3 +1,7 @@
+2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add two more cases.
+
 2013-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/ruby-mode-tests.el (ruby-with-temp-buffer): Move before
@@ -145,7 +149,7 @@
 
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	* automated/Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
 	for portability to hosts where /bin/sh has problems.
 
 2013-08-21  David Engster  <deng@randomsample.de>
@@ -551,7 +555,7 @@
 
 2012-12-14  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* automated/ruby-mode-tests.el
+	* automated/ruby-mode-tests.el:
 	Rename one interpolation test; add three more.
 	(ruby-with-temp-buffer): New macro, use it where appropriate.
 	(ruby-add-log-current-method-examples): Use "_" for target point.
