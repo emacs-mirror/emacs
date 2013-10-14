@@ -4203,9 +4203,9 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap (tty) = MagicWrap (tty) || tgetflag ("am");
-  terminal->memory_below_frame = tgetflag ("db");
+  tty->memory_below_frame = tgetflag ("db");
   tty->TF_hazeltine = tgetflag ("hz");
-  terminal->must_write_spaces = tgetflag ("in");
+  tty->must_write_spaces = tgetflag ("in");
   tty->meta_key = tgetflag ("km") || tgetflag ("MT");
   tty->TF_insmode_motion = tgetflag ("mi");
   tty->TF_standout_motion = tgetflag ("ms");
@@ -4225,7 +4225,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     tty->specified_window = height;
 
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
-    terminal->char_ins_del_ok = 1;
+    tty->char_ins_del_ok = 1;
     baud_rate = 19200;
   }
 #else  /* MSDOS */
@@ -4238,7 +4238,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     get_tty_size (fileno (tty->input), &width, &height);
     FrameCols (tty) = width;
     FrameRows (tty) = height;
-    terminal->char_ins_del_ok = 0;
+    tty->char_ins_del_ok = 0;
     init_baud_rate (fileno (tty->input));
   }
 #endif	/* MSDOS */
@@ -4257,12 +4257,12 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
-  terminal->scroll_region_ok = 0;
+  tty->scroll_region_ok = 0;
 
   /* Seems to insert lines when it's not supposed to, messing up the
      display.  In doing a trace, it didn't seem to be called much, so I
      don't think we're losing anything by turning it off.  */
-  terminal->line_ins_del_ok = 0;
+  tty->line_ins_del_ok = 0;
 
   tty->TN_max_colors = 16;  /* Must be non-zero for tty-display-color-p.  */
 #endif	/* DOS_NT */
@@ -4393,17 +4393,17 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 
-  terminal->scroll_region_ok
+  tty->scroll_region_ok
     = (tty->Wcm->cm_abs
        && (tty->TS_set_window || tty->TS_set_scroll_region || tty->TS_set_scroll_region_1));
 
-  terminal->line_ins_del_ok
+  tty->line_ins_del_ok
     = (((tty->TS_ins_line || tty->TS_ins_multi_lines)
         && (tty->TS_del_line || tty->TS_del_multi_lines))
-       || (terminal->scroll_region_ok
+       || (tty->scroll_region_ok
            && tty->TS_fwd_scroll && tty->TS_rev_scroll));
 
-  terminal->char_ins_del_ok
+  tty->char_ins_del_ok
     = ((tty->TS_ins_char || tty->TS_insert_mode
         || tty->TS_pad_inserted_char || tty->TS_ins_multi_chars)
        && (tty->TS_del_char || tty->TS_del_multi_chars));

@@ -197,6 +197,25 @@ struct tty_display_info
 
   /* Non-zero means we are displaying a TTY menu on this tty.  */
   unsigned showing_menu : 1;
+
+  /* Nonzero means spaces in the text must actually be output;
+     can't just skip over some columns to leave them blank.  */
+  unsigned must_write_spaces : 1;
+
+  /* Nonzero if TTY can insert and delete lines.  */
+  unsigned line_ins_del_ok : 1;
+
+  /* Nonzero if TTY can insert and delete chars.  */
+  unsigned char_ins_del_ok : 1;
+
+  /* Nonzero if TTY supports setting the scroll window.  */
+  unsigned scroll_region_ok : 1;
+
+  /* Nonzero if TTY remembers lines scrolled off bottom.  */
+  unsigned memory_below_frame : 1;
+
+  /* Cost of setting the scroll window, measured in characters.  */
+  int scroll_region_cost;	
 };
 
 /* A chain of structures for all tty devices currently in use. */

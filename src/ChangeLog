@@ -1,5 +1,24 @@
 2013-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* termhooks.h (FRAME_MUST_WRITE_SPACES, FRAME_LINE_INS_DEL_OK)
+	(FRAME_CHAR_INS_DEL_OK, FRAME_SCROLL_REGION_OK)
+	(FRAME_SCROLL_REGION_COST, FRAME_MEMORY_BELOW_FRAME):
+	Adjust to match the change described below.
+	(struct terminal): Move must_write_spaces, line_ins_del_ok,
+	char_ins_del_ok, scroll_region_ok, scroll_region_cost and
+	memory_below_frame members to...
+	* termchar.h (struct tty_display_info): ...here because they're
+	relevant only on TTYs.  Prefer unsigned bitfield where appropriate.
+	* term.c (init_tty):
+	* nsterm.m (ns_create_terminal):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_create_terminal): Adjust users.
+	* dispnew.c (line_hash_code, line_draw_cost): Pass frame arg
+	to filter out non-TTY frames.  Adjust comment.
+	(scrolling): Adjust user.  Prefer eassert for debugging check.
+
+2013-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xfaces.c (PT_PER_INCH): Remove unused macro.
 	* termhooks.h (struct terminal): Remove set-but-unused
 	member fast_clear_end_of_line.

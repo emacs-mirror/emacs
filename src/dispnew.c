@@ -1070,10 +1070,11 @@ prepare_desired_row (struct glyph_row *row)
 }
 
 
-/* Return a hash code for glyph row ROW.  */
+/* Return a hash code for glyph row ROW, which may
+   be from current or desired matrix of frame F.  */
 
 static int
-line_hash_code (struct glyph_row *row)
+line_hash_code (struct frame *f, struct glyph_row *row)
 {
   int hash = 0;
 
@@ -1086,7 +1087,7 @@ line_hash_code (struct glyph_row *row)
 	{
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
-	  if (FRAME_MUST_WRITE_SPACES (SELECTED_FRAME ())) /* XXX Is SELECTED_FRAME OK here? */
+	  if (FRAME_MUST_WRITE_SPACES (f))
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
@@ -1101,12 +1102,13 @@ line_hash_code (struct glyph_row *row)
 }
 
 
-/* Return the cost of drawing line VPOS in MATRIX.  The cost equals
-   the number of characters in the line.  If must_write_spaces is
-   zero, leading and trailing spaces are ignored.  */
+/* Return the cost of drawing line VPOS in MATRIX, which may
+   be current or desired matrix of frame F.  The cost equals
+   the number of characters in the line.  If must_write_spaces
+   is zero, leading and trailing spaces are ignored.  */
 
 static int
-line_draw_cost (struct glyph_matrix *matrix, int vpos)
+line_draw_cost (struct frame *f, struct glyph_matrix *matrix, int vpos)
 {
   struct glyph_row *row = matrix->rows + vpos;
   struct glyph *beg = row->glyphs[TEXT_AREA];
@@ -1116,7 +1118,7 @@ line_draw_cost (struct glyph_matrix *matrix, int vpos)
   ptrdiff_t glyph_table_len = GLYPH_TABLE_LENGTH;
 
   /* Ignore trailing and leading spaces if we can.  */
-  if (!FRAME_MUST_WRITE_SPACES (SELECTED_FRAME ())) /* XXX Is SELECTED_FRAME OK here? */
+  if (!FRAME_MUST_WRITE_SPACES (f))
     {
       /* Skip from the end over trailing spaces.  */
       while (end > beg && CHAR_GLYPH_SPACE_P (*(end - 1)))
@@ -4595,8 +4597,7 @@ scrolling (struct frame *frame)
   struct glyph_matrix *current_matrix = frame->current_matrix;
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
 
-  if (!current_matrix)
-    emacs_abort ();
+  eassert (current_matrix);
 
   /* Compute hash codes of all the lines.  Also calculate number of
      changed lines, number of unchanged lines at the beginning, and
@@ -4609,7 +4610,7 @@ scrolling (struct frame *frame)
       /* Give up on this scrolling if some old lines are not enabled.  */
       if (!MATRIX_ROW_ENABLED_P (current_matrix, i))
 	return 0;
-      old_hash[i] = line_hash_code (MATRIX_ROW (current_matrix, i));
+      old_hash[i] = line_hash_code (frame, MATRIX_ROW (current_matrix, i));
       if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
 	{
 	  /* This line cannot be redrawn, so don't let scrolling mess it.  */
@@ -4619,8 +4620,8 @@ scrolling (struct frame *frame)
 	}
       else
 	{
-	  new_hash[i] = line_hash_code (MATRIX_ROW (desired_matrix, i));
-	  draw_cost[i] = line_draw_cost (desired_matrix, i);
+	  new_hash[i] = line_hash_code (frame, MATRIX_ROW (desired_matrix, i));
+	  draw_cost[i] = line_draw_cost (frame, desired_matrix, i);
 	}
 
       if (old_hash[i] != new_hash[i])
@@ -4630,7 +4631,7 @@ scrolling (struct frame *frame)
 	}
       else if (i == unchanged_at_top)
 	unchanged_at_top++;
-      old_draw_cost[i] = line_draw_cost (current_matrix, i);
+      old_draw_cost[i] = line_draw_cost (frame, current_matrix, i);
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */

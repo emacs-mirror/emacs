@@ -4091,11 +4091,6 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = ns_delete_terminal;
 
-  terminal->scroll_region_ok = 1;
-  terminal->char_ins_del_ok = 1;
-  terminal->line_ins_del_ok = 1;
-  terminal->memory_below_frame = 0;
-
   return terminal;
 }
 

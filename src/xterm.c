@@ -10509,11 +10509,6 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->delete_terminal_hook = x_delete_terminal;
 
   terminal->rif = &x_redisplay_interface;
-  terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
-  terminal->char_ins_del_ok = 1;
-  terminal->line_ins_del_ok = 1;         /* We'll just blt 'em. */
-  terminal->memory_below_frame = 0;   /* We don't remember what scrolls
-                                        off the bottom. */
 
   return terminal;
 }

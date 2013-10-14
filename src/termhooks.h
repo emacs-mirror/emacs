@@ -402,21 +402,6 @@ struct terminal
      the function `set-keyboard-coding-system'.  */
   struct coding_system *keyboard_coding;
 
-  /* Terminal characteristics.  */
-  /* XXX Are these really used on non-termcap displays?  */
-
-  int must_write_spaces;	/* Nonzero means spaces in the text must
-				   actually be output; can't just skip over
-				   some columns to leave them blank.  */
-  int line_ins_del_ok;          /* Terminal can insert and delete lines.  */
-  int char_ins_del_ok;          /* Terminal can insert and delete chars.  */
-  int scroll_region_ok;         /* Terminal supports setting the scroll
-                                   window.  */
-  int scroll_region_cost;	/* Cost of setting the scroll window,
-                                   measured in characters.  */
-  int memory_below_frame;	/* Terminal remembers lines scrolled
-                                   off bottom.  */
-
   /* Window-based redisplay interface for this device (0 for tty
      devices). */
   struct redisplay_interface *rif;
@@ -617,12 +602,12 @@ tset_selection_alist (struct terminal *t, Lisp_Object val)
 /* Chain of all terminal devices currently in use.  */
 extern struct terminal *terminal_list;
 
-#define FRAME_MUST_WRITE_SPACES(f) ((f)->terminal->must_write_spaces)
-#define FRAME_LINE_INS_DEL_OK(f) ((f)->terminal->line_ins_del_ok)
-#define FRAME_CHAR_INS_DEL_OK(f) ((f)->terminal->char_ins_del_ok)
-#define FRAME_SCROLL_REGION_OK(f) ((f)->terminal->scroll_region_ok)
-#define FRAME_SCROLL_REGION_COST(f) ((f)->terminal->scroll_region_cost)
-#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->terminal->memory_below_frame)
+#define FRAME_MUST_WRITE_SPACES(f) (FRAME_TTY (f)->must_write_spaces)
+#define FRAME_LINE_INS_DEL_OK(f) (FRAME_TTY (f)->line_ins_del_ok)
+#define FRAME_CHAR_INS_DEL_OK(f) (FRAME_TTY (f)->char_ins_del_ok)
+#define FRAME_SCROLL_REGION_OK(f) (FRAME_TTY (f)->scroll_region_ok)
+#define FRAME_SCROLL_REGION_COST(f) (FRAME_TTY (f)->scroll_region_cost)
+#define FRAME_MEMORY_BELOW_FRAME(f) (FRAME_TTY (f)->memory_below_frame)
 
 #define FRAME_TERMINAL_CODING(f) ((f)->terminal->terminal_coding)
 #define FRAME_KEYBOARD_CODING(f) ((f)->terminal->keyboard_coding)
