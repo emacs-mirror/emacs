@@ -1,3 +1,8 @@
+2013-10-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: More examples for bug#15594, both failing and
+	now passing.
+
 2013-10-11  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: Add two more cases.

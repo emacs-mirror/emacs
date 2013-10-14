@@ -327,7 +327,9 @@ explicitly declared in magic comment."
 
 (defun ruby-smie--args-separator-p (pos)
   (and
-   (eq ?w (char-syntax (char-before)))
+   (or (eq (char-syntax (preceding-char)) '?w)
+       (and (memq (preceding-char) '(?! ??))
+            (eq (char-syntax (char-before (1- (point)))) '?w)))
    (< pos (point-max))
    (memq (char-syntax (char-after pos)) '(?w ?\"))))
 

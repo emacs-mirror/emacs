@@ -155,6 +155,16 @@ if foo?
   bar
 end
 
+method arg1,                   # bug#15594
+       method2 arg2,
+               arg3
+
+method? arg1,
+        arg2
+
+method! arg1,
+        arg2
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo +
@@ -171,6 +181,17 @@ if foo &&
     bar
 end
 
-method1 arg1,                   # bug#15594
-        method2 arg2,
-                arg3
+method !arg1,
+        arg2
+
+method [],
+       arg2
+
+method {:a => 1, :b => 2},
+       arg2
+
+method :foo,
+       :bar
+
+method (a + b),
+       c
