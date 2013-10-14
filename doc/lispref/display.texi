@@ -611,6 +611,9 @@ program signals a Lisp error and then handles it with
 @code{condition-case}, the user won't see the error message; it could
 show the message to the user by reporting it as a warning.)
 
+@c FIXME: Why use ‘(bytecomp)’ instead of ‘'bytecomp’ or simply
+@c ‘bytecomp’ here?  The parens are part of ‘warning-type-format’ but
+@c not part of the warning type. --xfq
 @cindex warning type
   Each warning has a @dfn{warning type} to classify it.  The type is a
 list of symbols.  The first symbol should be the custom group that you
