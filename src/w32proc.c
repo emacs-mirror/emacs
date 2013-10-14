@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      Adapted from alarm.c by Tim Fleehart
 */
 
+#include <mingw_time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

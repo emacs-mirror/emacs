@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /*
    Geoff Voelker (voelker@cs.washington.edu)                         7-29-94
 */
+
+#include <mingw_time.h>
 #include <stddef.h> /* for offsetof */
 #include <stdlib.h>
 #include <stdio.h>

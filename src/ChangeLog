@@ -1,5 +1,9 @@
 2013-10-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c: Include mingw_time.h.
+
+	* w32.c: Include mingw_time.h.
+
 	Implement scrolling of TTY menus when the screen is too short.
 
 	* term.c (tty_menu_display): Accept an additional argument, the

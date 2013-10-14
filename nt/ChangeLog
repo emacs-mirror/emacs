@@ -1,3 +1,9 @@
+2013-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/mingw_time.h: New file.
+
+	* inc/ms-w32.h: Include mingw_time.h instead of doing its job.
+
 2013-10-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/dirent.h (struct dirent) [__MINGW_MAJOR_VERSION >= 4]: Make
