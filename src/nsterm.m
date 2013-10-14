@@ -4094,7 +4094,6 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->scroll_region_ok = 1;
   terminal->char_ins_del_ok = 1;
   terminal->line_ins_del_ok = 1;
-  terminal->fast_clear_end_of_line = 1;
   terminal->memory_below_frame = 0;
 
   return terminal;

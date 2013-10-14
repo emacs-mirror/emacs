@@ -10512,7 +10512,6 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
   terminal->char_ins_del_ok = 1;
   terminal->line_ins_del_ok = 1;         /* We'll just blt 'em. */
-  terminal->fast_clear_end_of_line = 1;  /* X does this well. */
   terminal->memory_below_frame = 0;   /* We don't remember what scrolls
                                         off the bottom. */
 

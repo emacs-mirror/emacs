@@ -408,8 +408,6 @@ struct terminal
   int must_write_spaces;	/* Nonzero means spaces in the text must
 				   actually be output; can't just skip over
 				   some columns to leave them blank.  */
-  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string.  */
-
   int line_ins_del_ok;          /* Terminal can insert and delete lines.  */
   int char_ins_del_ok;          /* Terminal can insert and delete chars.  */
   int scroll_region_ok;         /* Terminal supports setting the scroll
@@ -620,7 +618,6 @@ tset_selection_alist (struct terminal *t, Lisp_Object val)
 extern struct terminal *terminal_list;
 
 #define FRAME_MUST_WRITE_SPACES(f) ((f)->terminal->must_write_spaces)
-#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->terminal->fast_clear_end_of_line)
 #define FRAME_LINE_INS_DEL_OK(f) ((f)->terminal->line_ins_del_ok)
 #define FRAME_CHAR_INS_DEL_OK(f) ((f)->terminal->char_ins_del_ok)
 #define FRAME_SCROLL_REGION_OK(f) ((f)->terminal->scroll_region_ok)

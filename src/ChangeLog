@@ -1,3 +1,14 @@
+2013-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfaces.c (PT_PER_INCH): Remove unused macro.
+	* termhooks.h (struct terminal): Remove set-but-unused
+	member fast_clear_end_of_line.
+	(FRAME_FAST_CLEAR_END_OF_LINE): Remove.
+	* nsterm.m (ns_create_terminal):
+	* term.c (init_tty):
+	* w32term.c (w32_create_terminal):
+	* xterm.c (x_create_terminal): Adjust users.
+
 2013-10-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (bool_vector_size): New function.

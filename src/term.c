@@ -4408,8 +4408,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
         || tty->TS_pad_inserted_char || tty->TS_ins_multi_chars)
        && (tty->TS_del_char || tty->TS_del_multi_chars));
 
-  terminal->fast_clear_end_of_line = tty->TS_clr_line != 0;
-
   init_baud_rate (fileno (tty->input));
 
 #endif /* not DOS_NT */

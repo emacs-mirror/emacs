@@ -231,11 +231,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
-
-/* Number of pt per inch (from the TeXbook).  */
-
-#define PT_PER_INCH 72.27
-
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "buffer.h"
