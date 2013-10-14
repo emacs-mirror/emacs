@@ -9004,10 +9004,10 @@ fi
     if test "x$GCC" = "xyes"; then
       C_SWITCH_MACHINE="-fno-common"
     else
-      as_fn_error "What gives?  Fix me if DEC Unix supports ELF now." "$LINENO" 5
+      as_fn_error "Non-GCC compilers are not supported." "$LINENO" 5
     fi
   else
-    UNEXEC_OBJ=unexalpha.o
+                        as_fn_error "Non-ELF systems are not supported since Emacs 24.1." "$LINENO" 5
   fi
   ;;
 esac
