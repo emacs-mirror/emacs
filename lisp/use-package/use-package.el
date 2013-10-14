@@ -332,7 +332,7 @@
                  (if (> elapsed ,use-package-minimum-reported-time)
                      (message "%s...done (%.3fs)" ,text elapsed)
                    (message "%s...done" ,text))))))
-      ,body)))
+      body)))
 
 (put 'with-elapsed-timer 'lisp-indent-function 1)
 
