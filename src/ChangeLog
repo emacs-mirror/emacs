@@ -1,3 +1,12 @@
+2013-10-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (bool_vector_size): New function.
+	All uses of XBOOL_VECTOR (x)->size changed to bool_vector_size (x).
+	* data.c (bool_vector_spare_mask, bool_vector_binop_driver)
+	(Fbool_vector_not, Fbool_vector_count_matches_at):
+	Remove uses of 'eassume' that should no longer be needed,
+	because they are subsumed by the 'eassume' in bool_vector_size.
+
 2013-10-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (GIFLIB_MAJOR, GIFLIB_MINOR, GIFLIB_RELEASE): Move back

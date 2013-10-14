@@ -2130,7 +2130,7 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int val;
 
-      if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
+      if (idxval < 0 || idxval >= bool_vector_size (array))
 	args_out_of_range (array, idx);
 
       val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR];
@@ -2180,7 +2180,7 @@ bool-vector.  IDX starts at 0.  */)
     {
       int val;
 
-      if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
+      if (idxval < 0 || idxval >= bool_vector_size (array))
 	args_out_of_range (array, idx);
 
       val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR];
@@ -2969,7 +2969,6 @@ lowercase l) for small endian machines.  */)
 static bits_word
 bool_vector_spare_mask (ptrdiff_t nr_bits)
 {
-  eassume (nr_bits > 0);
   return (((bits_word) 1) << (nr_bits % BITS_PER_BITS_WORD)) - 1;
 }
 
@@ -3005,8 +3004,7 @@ bool_vector_binop_driver (Lisp_Object op1,
   CHECK_BOOL_VECTOR (op1);
   CHECK_BOOL_VECTOR (op2);
 
-  nr_bits = min (XBOOL_VECTOR (op1)->size,
-                 XBOOL_VECTOR (op2)->size);
+  nr_bits = min (bool_vector_size (op1), bool_vector_size (op2));
 
   if (NILP (dest))
     {
@@ -3016,10 +3014,9 @@ bool_vector_binop_driver (Lisp_Object op1,
   else
     {
       CHECK_BOOL_VECTOR (dest);
-      nr_bits = min (nr_bits, XBOOL_VECTOR (dest)->size);
+      nr_bits = min (nr_bits, bool_vector_size (dest));
     }
 
-  eassume (nr_bits >= 0);
   nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
 
   adata = (bits_word *) XBOOL_VECTOR (dest)->data;
@@ -3172,20 +3169,18 @@ Return the destination vector.  */)
   bits_word mword;
 
   CHECK_BOOL_VECTOR (a);
-  nr_bits = XBOOL_VECTOR (a)->size;
+  nr_bits = bool_vector_size (a);
 
   if (NILP (b))
     b = Fmake_bool_vector (make_number (nr_bits), Qnil);
   else
     {
       CHECK_BOOL_VECTOR (b);
-      nr_bits = min (nr_bits, XBOOL_VECTOR (b)->size);
+      nr_bits = min (nr_bits, bool_vector_size (b));
     }
 
   bdata = (bits_word *) XBOOL_VECTOR (b)->data;
   adata = (bits_word *) XBOOL_VECTOR (a)->data;
-
-  eassume (nr_bits >= 0);
 
   for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; i++)
     bdata[i] = ~adata[i];
@@ -3215,12 +3210,10 @@ A must be a bool vector.  B is a generalized bool.  */)
 
   CHECK_BOOL_VECTOR (a);
 
-  nr_bits = XBOOL_VECTOR (a)->size;
+  nr_bits = bool_vector_size (a);
   count = 0;
   match = NILP (b) ? -1 : 0;
   adata = (bits_word *) XBOOL_VECTOR (a)->data;
-
-  eassume (nr_bits >= 0);
 
   for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; ++i)
     count += popcount_bits_word (adata[i] ^ match);
@@ -3256,13 +3249,12 @@ index into the vector.  */)
   CHECK_BOOL_VECTOR (a);
   CHECK_NATNUM (i);
 
-  nr_bits = XBOOL_VECTOR (a)->size;
+  nr_bits = bool_vector_size (a);
   if (XFASTINT (i) > nr_bits) /* Allow one past the end for convenience */
     args_out_of_range (a, i);
 
   adata = (bits_word *) XBOOL_VECTOR (a)->data;
 
-  eassume (nr_bits >= 0);
   nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
 
   pos = XFASTINT (i) / BITS_PER_BITS_WORD;

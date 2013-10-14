@@ -1184,6 +1184,14 @@ struct Lisp_Bool_Vector
     unsigned char data[FLEXIBLE_ARRAY_MEMBER];
   };
 
+INLINE EMACS_INT
+bool_vector_size (Lisp_Object a)
+{
+  EMACS_INT size = XBOOL_VECTOR (a)->size;
+  eassume (0 <= size);
+  return size;
+}
+
 /* Some handy constants for calculating sizes
    and offsets, mostly of vectorlike objects.   */
 

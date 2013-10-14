@@ -2456,7 +2456,7 @@ xbm_image_p (Lisp_Object object)
 		}
 	      else if (BOOL_VECTOR_P (elt))
 		{
-		  if (XBOOL_VECTOR (elt)->size < width)
+		  if (bool_vector_size (elt) < width)
 		    return 0;
 		}
 	      else
@@ -2471,7 +2471,7 @@ xbm_image_p (Lisp_Object object)
 	}
       else if (BOOL_VECTOR_P (data))
 	{
-	  if (XBOOL_VECTOR (data)->size / height < width)
+	  if (bool_vector_size (data) / height < width)
 	    return 0;
 	}
       else

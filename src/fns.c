@@ -114,7 +114,7 @@ To get the number of bytes, use `string-bytes'.  */)
   else if (CHAR_TABLE_P (sequence))
     XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
-    XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
+    XSETFASTINT (val, bool_vector_size (sequence));
   else if (COMPILEDP (sequence))
     XSETFASTINT (val, ASIZE (sequence) & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (sequence))
@@ -437,7 +437,7 @@ with the original.  */)
     {
       Lisp_Object val;
       ptrdiff_t size_in_chars
-	= ((XBOOL_VECTOR (arg)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	= ((bool_vector_size (arg) + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
@@ -540,7 +540,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 		if (! ASCII_CHAR_P (c) && ! CHAR_BYTE8_P (c))
 		  some_multibyte = 1;
 	      }
-	  else if (BOOL_VECTOR_P (this) && XBOOL_VECTOR (this)->size > 0)
+	  else if (BOOL_VECTOR_P (this) && bool_vector_size (this) > 0)
 	    wrong_type_argument (Qintegerp, Faref (this, make_number (0)));
 	  else if (CONSP (this))
 	    for (; CONSP (this); this = XCDR (this))
@@ -2070,11 +2070,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	/* Boolvectors are compared much like strings.  */
 	if (BOOL_VECTOR_P (o1))
 	  {
-	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
+	    EMACS_INT size = bool_vector_size (o1);
+	    if (size != bool_vector_size (o2))
 	      return 0;
 	    if (memcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
-			((XBOOL_VECTOR (o1)->size
-			  + BOOL_VECTOR_BITS_PER_CHAR - 1)
+			((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 			 / BOOL_VECTOR_BITS_PER_CHAR)))
 	      return 0;
 	    return 1;
@@ -2166,10 +2166,9 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   else if (BOOL_VECTOR_P (array))
     {
-      register unsigned char *p = XBOOL_VECTOR (array)->data;
-      size =
-	((XBOOL_VECTOR (array)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	 / BOOL_VECTOR_BITS_PER_CHAR);
+      unsigned char *p = XBOOL_VECTOR (array)->data;
+      size = ((bool_vector_size (array) + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	      / BOOL_VECTOR_BITS_PER_CHAR);
 
       if (size)
 	{
@@ -4188,11 +4187,12 @@ sxhash_vector (Lisp_Object vec, int depth)
 static EMACS_UINT
 sxhash_bool_vector (Lisp_Object vec)
 {
-  EMACS_UINT hash = XBOOL_VECTOR (vec)->size;
+  EMACS_INT size = bool_vector_size (vec);
+  EMACS_UINT hash = size;
   int i, n;
 
   n = min (SXHASH_MAX_LEN,
-	   ((XBOOL_VECTOR (vec)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	   ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	    / BOOL_VECTOR_BITS_PER_CHAR));
   for (i = 0; i < n; ++i)
     hash = sxhash_combine (hash, XBOOL_VECTOR (vec)->data[i]);
