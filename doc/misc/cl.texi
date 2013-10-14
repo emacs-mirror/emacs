@@ -273,6 +273,8 @@ and the @code{cl-eval-when} construct.
 
 @node Argument Lists
 @section Argument Lists
+@cindex &key
+@cindex &aux
 
 @noindent
 Emacs Lisp's notation for argument lists of functions is a subset of
