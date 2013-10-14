@@ -1,3 +1,8 @@
+2013-10-14  Dima Kogan  <dima@secretsauce.net>  (tiny change)
+
+	* progmodes/subword.el (subword-capitalize): Be careful when
+	the search for [[:alpha:]] fails (bug#15580).
+
 2013-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (tty-menu-navigation-map): Bind shifted mouse clicks
@@ -5,8 +10,8 @@
 
 2013-10-14  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-smie--args-separator-p): Handle
-	methods ending with `?' and `!'.
+	* progmodes/ruby-mode.el (ruby-smie--args-separator-p):
+	Handle methods ending with `?' and `!'.
 
 2013-10-14  Akinori MUSHA  <knu@iDaemons.org>
 
@@ -41,8 +46,8 @@
 	Fix indentation/fontification of Java enum with
 	"implements"/generic.
 
-	* progmodes/cc-engine.el (c-backward-over-enum-header): Extracted
-	from the three other places and enhanced to handle generics.
+	* progmodes/cc-engine.el (c-backward-over-enum-header):
+	Extracted from the three other places and enhanced to handle generics.
 	(c-inside-bracelist-p): Uses new function above.
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Uses new
 	function above.
@@ -230,8 +235,8 @@
 
 	* tooltip.el (tooltip-mode): Don't error out on TTYs.
 
-	* menu-bar.el (popup-menu, popup-menu-normalize-position): Moved
-	here from mouse.el.
+	* menu-bar.el (popup-menu, popup-menu-normalize-position):
+	Move here from mouse.el.
 	(popup-menu): Support menu-bar navigation on TTYs using C-f/C-b
 	and arrow keys.
 	(tty-menu-navigation-map): New map for TTY menu navigation.
