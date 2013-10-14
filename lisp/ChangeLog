@@ -1,3 +1,15 @@
+2013-10-14  Akinori MUSHA  <knu@iDaemons.org>
+
+	* progmodes/ruby-mode.el (ruby-encoding-map): Add a mapping from
+	`japanese-cp932' to `cp932' to fix the problem where saving a
+	source file written in Shift_JIS twice would end up having
+	`coding: japanese-cp932' which Ruby could not recognize.
+	(ruby-mode-set-encoding): Add support for encodings mapped to nil
+	in `ruby-encoding-map'.
+	(ruby-encoding-map): Map `us-ascii' to nil by default, meaning it
+	doesn't need to be explicitly declared in magic comment.
+	(ruby-encoding-map): Add type declaration for better customize UI.
+
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/sh-script.el (sh-mark-line, sh-learn-buffer-indent):
@@ -54,7 +66,7 @@
 2013-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Add rule for paren-free
-	method calls (bug#bug#15594).
+	method calls (bug#15594).
 	(ruby-smie--args-separator-p): New function.
 	(ruby-smie--forward-token, ruby-smie--backward-token): Use it to
 	recognize paren-free method calls.
