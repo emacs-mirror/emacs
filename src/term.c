@@ -2781,10 +2781,10 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
    However, unlike on MSDOS, where the menu text is drawn directly to
    the display video memory, on a TTY we use display_string (see
    display_tty_menu_item in xdisp.c) to put the glyphs produced from
-   the menu items directly into the frame's 'desired_matrix' glyph
-   matrix, and then call update_frame_with_menu to deliver the results
-   to the glass.  The previous contents of the screen, in the form of
-   the current_matrix, is stashed away, and used to restore screen
+   the menu items into the frame's 'desired_matrix' glyph matrix, and
+   then call update_frame_with_menu to deliver the results to the
+   glass.  The previous contents of the screen, in the form of the
+   current_matrix, is stashed away, and used to restore screen
    contents when the menu selection changes or when the final
    selection is made and the menu should be popped down.
 
@@ -2911,11 +2911,12 @@ mouse_get_xy (int *x, int *y)
     }
 }
 
-/* Display MENU at (X,Y) using FACES.  */
+/* Display MENU at (X,Y) using FACES, starting with FIRST_ITEM
+   (zero-based).  */
 
 static void
 tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
-		  int mx, int my, int disp_help)
+		  int mx, int my, int first_item, int disp_help)
 {
   int i, face, width, enabled, mousehere, row, col;
   struct frame *sf = SELECTED_FRAME ();
@@ -2923,7 +2924,7 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
   /* Don't try to display more menu items than the console can display
      using the available screen lines.  Exclude the echo area line, as
      it will be overwritten by the help-echo anyway.  */
-  int max_items = min (menu->count, FRAME_LINES (sf) - 1);
+  int max_items = min (menu->count - first_item, FRAME_LINES (sf) - 1 - y);
 
   menu_help_message = NULL;
 
@@ -2933,11 +2934,12 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
   for (i = 0; i < max_items; i++)
     {
       int max_width = width + 2; /* +2 for padding blanks on each side */
+      int j = i + first_item;
 
-      if (menu->submenu[i])
+      if (menu->submenu[j])
 	max_width += 2;	/* for displaying " >" after the item */
       enabled
-	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
+	= (!menu->submenu[j] && menu->panenumber[j]) || (menu->submenu[j]);
       mousehere = (y + i == my && x <= mx && mx < x + max_width);
       face = faces[enabled + mousehere * 2];
       /* Display the menu help string for the i-th menu item even if
@@ -2945,12 +2947,12 @@ tty_menu_display (tty_menu *menu, int x, int y, int pn, int *faces,
 	 code does.  */
       if (disp_help && enabled + mousehere * 2 >= 2)
 	{
-	  menu_help_message = menu->help_text[i];
+	  menu_help_message = menu->help_text[j];
 	  menu_help_paneno = pn - 1;
-	  menu_help_itemno = i;
+	  menu_help_itemno = j;
 	}
-      display_tty_menu_item (menu->text[i], max_width, face, x, y + i,
-			     menu->submenu[i] != NULL);
+      display_tty_menu_item (menu->text[j], max_width, face, x, y + i,
+			     menu->submenu[j] != NULL);
     }
   update_frame_with_menu (sf);
   cursor_to (sf, row, col);
@@ -3124,14 +3126,20 @@ screen_update (struct frame *f, struct glyph_matrix *mtx)
   update_frame_with_menu (f);
 }
 
-/* Read user input and return X and Y coordinates where that input
-   puts us.  We only consider mouse movement and click events and
-   keyboard movement commands; the rest are ignored.
+typedef enum {
+  MI_QUIT_MENU      = -1,
+  MI_CONTINUE       = 0,
+  MI_ITEM_SELECTED  = 1,
+  MI_NEXT_ITEM      = 2,
+  MI_PREV_ITEM      = 3,
+  MI_SCROLL_FORWARD = 4,
+  MI_SCROLL_BACK    = 5
+} mi_result;
 
-   Value is -1 if C-g was pressed, 1 if an item was selected, 2 or 3
-   if we need to move to the next or previous menu-bar menu, zero
-   otherwise.  */
-static int
+/* Read user input and return X and Y coordinates where that input
+   puts us.  We only consider mouse movement and click events, and
+   keyboard movement commands; the rest are ignored.  */
+static mi_result
 read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
 		 bool *first_time)
 {
@@ -3144,7 +3152,7 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
     {
       Lisp_Object cmd;
       int usable_input = 1;
-      int st = 0;
+      mi_result st = MI_CONTINUE;
       struct tty_display_info *tty = FRAME_TTY (sf);
       Lisp_Object saved_mouse_tracking = do_mouse_tracking;
 
@@ -3160,42 +3168,42 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       do_mouse_tracking = saved_mouse_tracking;
 
       if (EQ (cmd, Qt) || EQ (cmd, Qtty_menu_exit))
-	return -1;
+	return MI_QUIT_MENU;
       if (EQ (cmd, Qtty_menu_mouse_movement))
 	mouse_get_xy (x, y);
       else if (EQ (cmd, Qtty_menu_next_menu))
 	{
 	  usable_input = 0;
-	  st = 2;
+	  st = MI_NEXT_ITEM;
 	}
       else if (EQ (cmd, Qtty_menu_prev_menu))
 	{
 	  usable_input = 0;
-	  st = 3;
+	  st = MI_PREV_ITEM;
 	}
       else if (EQ (cmd, Qtty_menu_next_item))
 	{
 	  if (*y < max_y)
 	    *y += 1;
 	  else
-	    *y = min_y;
+	    st = MI_SCROLL_FORWARD;
 	}
       else if (EQ (cmd, Qtty_menu_prev_item))
 	{
 	  if (*y > min_y)
 	    *y -= 1;
 	  else
-	    *y = max_y;
+	    st = MI_SCROLL_BACK;
 	}
       else if (EQ (cmd, Qtty_menu_select))
-	st = 1;
+	st = MI_ITEM_SELECTED;
       else if (!EQ (cmd, Qtty_menu_ignore))
 	usable_input = 0;
       if (usable_input)
 	sf->mouse_moved = 1;
       return st;
     }
-  return 0;
+  return MI_CONTINUE;
 }
 
 /* Display menu, wait for user's response, and return that response.  */
@@ -3214,6 +3222,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   struct tty_display_info *tty = FRAME_TTY (sf);
   bool first_time;
   Lisp_Object selectface;
+  int first_item = 0;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
      around the display.  */
@@ -3265,7 +3274,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
      want to interpret them as zero-based column and row coordinates,
      and also because we want the first item of the menu, not its
      title, to appear at x0,y0.  */
-  tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, x0 - 1, y0 - 1, 0);
+  tty_menu_display (menu, x0 - 1, y0 - 1, 1, title_faces, x0 - 1, y0 - 1, 0, 0);
 
   /* Turn off the cursor.  Otherwise it shows through the menu
      panes, which is ugly.  */
@@ -3292,7 +3301,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   leave = 0;
   while (!leave)
     {
-      int input_status;
+      mi_result input_status;
       int min_y = state[0].y;
       int max_y = min (min_y + state[0].menu->count, FRAME_LINES (sf) - 1) - 1;
 
@@ -3300,36 +3309,59 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       if (input_status)
 	{
 	  leave = 1;
-	  if (input_status == -1)
+	  switch (input_status)
 	    {
+	    case MI_QUIT_MENU:
 	      /* Remove the last help-echo, so that it doesn't
 		 re-appear after "Quit".  */
 	      show_help_echo (Qnil, Qnil, Qnil, Qnil);
 	      result = TTYM_NO_SELECT;
-	    }
-	  else if (input_status == 2)
-	    {
+	      break;
+	    case MI_NEXT_ITEM:
 	      if (kbd_navigation)
 		result = TTYM_NEXT;
 	      else
 		leave = 0;
-	    }
-	  else if (input_status == 3)
-	    {
+	      break;
+	    case MI_PREV_ITEM:
 	      if (kbd_navigation)
 		result = TTYM_PREV;
 	      else
 		leave = 0;
+	      break;
+	    case MI_SCROLL_FORWARD:
+	      if (y - min_y == state[0].menu->count - 1 - first_item)
+		{
+		  y = min_y;
+		  first_item = 0;
+		}
+	      else
+		first_item++;
+	      leave = 0;
+	      break;
+	    case MI_SCROLL_BACK:
+	      if (first_item == 0)
+		{
+		  y = max_y;
+		  first_item = state[0].menu->count - 1 - (y - min_y);
+		}
+	      else
+		first_item--;
+	      leave = 0;
+	      break;
+	    default:
+	      /* MI_ITEM_SELECTED is handled below, so nothing to do.  */
+	      break;
 	    }
 	}
-      if (sf->mouse_moved && input_status != -1)
+      if (sf->mouse_moved && input_status != MI_QUIT_MENU)
 	{
 	  sf->mouse_moved = 0;
 	  result = TTYM_IA_SELECT;
 	  for (i = 0; i < statecount; i++)
 	    if (state[i].x <= x && x < state[i].x + state[i].menu->width + 2)
 	      {
-		int dy = y - state[i].y;
+		int dy = y - state[i].y + first_item;
 		if (0 <= dy && dy < state[i].menu->count)
 		  {
 		    if (!state[i].menu->submenu[dy])
@@ -3358,7 +3390,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 					  state[i].x,
 					  state[i].y,
 					  state[i].pane,
-					  faces, x, y, 1);
+					  faces, x, y, first_item, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
 			state[statecount].pane = state[i].menu->panenumber[dy];
 			state[statecount].screen_behind
@@ -3374,7 +3406,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 			    state[statecount - 1].x,
 			    state[statecount - 1].y,
 			    state[statecount - 1].pane,
-			    faces, x, y, 1);
+			    faces, x, y, first_item, 1);
 	  tty_hide_cursor (tty);
 	  fflush (tty->output);
 	}

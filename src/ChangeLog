@@ -1,3 +1,19 @@
+2013-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement scrolling of TTY menus when the screen is too short.
+
+	* term.c (tty_menu_display): Accept an additional argument, the
+	menu item from which to start displaying the menu.  Account for
+	the value of Y when limiting the menu to the number of available
+	screen lines.
+	(mi_result): New enumeration.
+	(read_menu_input): Return enumerated value.  When the y coordinate
+	hits min_y or max_y, return scroll indication instead of wrapping
+	around the menu.
+	(tty_menu_activate): Handle the scrolling indications from
+	read_menu_input.  Compute the first menu item to display and pass
+	it to tty_menu_display.
+
 2013-10-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* termhooks.h (FRAME_MUST_WRITE_SPACES, FRAME_LINE_INS_DEL_OK)

@@ -1,3 +1,8 @@
+2013-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (tty-menu-navigation-map): Bind shifted mouse clicks
+	to commands that scroll the menu.
+
 2013-10-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--args-separator-p): Handle

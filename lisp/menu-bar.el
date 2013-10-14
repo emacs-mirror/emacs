@@ -2341,20 +2341,26 @@ If FRAME is nil or not given, use the selected frame."
     (define-key map [linefeed] 'tty-menu-select)
     (define-key map [down-mouse-1] 'tty-menu-select)
     (define-key map [drag-mouse-1] 'tty-menu-select)
+    ;; The following 4 bindings are for those whose text-mode mouse
+    ;; lack the wheel.
+    (define-key map [S-down-mouse-1] 'tty-menu-next-item)
+    (define-key map [S-drag-mouse-1] 'tty-menu-next-item)
+    (define-key map [S-down-mouse-2] 'tty-menu-prev-item)
+    (define-key map [S-drag-mouse-2] 'tty-menu-prev-item)
     (define-key map [mode-line drag-mouse-1] 'tty-menu-select)
     (define-key map [mode-line down-mouse-1] 'tty-menu-select)
     (define-key map [header-line mouse-1] 'tty-menu-select)
     (define-key map [header-line drag-mouse-1] 'tty-menu-select)
     (define-key map [header-line down-mouse-1] 'tty-menu-select)
+    ;; The mouse events must be bound to tty-menu-ignore, otherwise
+    ;; the initial mouse click will select and immediately pop down
+    ;; the menu.
     (define-key map [mode-line mouse-1] 'tty-menu-ignore)
     (define-key map [mode-line mouse-2] 'tty-menu-ignore)
     (define-key map [mode-line mouse-3] 'tty-menu-ignore)
     (define-key map [mode-line C-mouse-1] 'tty-menu-ignore)
     (define-key map [mode-line C-mouse-2] 'tty-menu-ignore)
     (define-key map [mode-line C-mouse-3] 'tty-menu-ignore)
-    ;; The mouse events must be bound to tty-menu-ignore, otherwise
-    ;; the initial mouse click will select and immediately pop down
-    ;; the menu.
     (define-key map [mouse-1] 'tty-menu-ignore)
     (define-key map [C-mouse-1] 'tty-menu-ignore)
     (define-key map [C-mouse-2] 'tty-menu-ignore)
