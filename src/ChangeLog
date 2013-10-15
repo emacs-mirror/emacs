@@ -1,3 +1,10 @@
+2013-10-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* nsterm.h (struct ns_display_info): Remove set-but-unused
+	member image_cache (image caches are per-terminal anyway).
+	(FRAME_X_IMAGE_CACHE): Remove.
+	* nsterm.m (ns_initialize_display_info): Adjust user.
+
 2013-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c: Include mingw_time.h.

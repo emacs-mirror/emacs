@@ -569,8 +569,6 @@ struct ns_display_info
   ptrdiff_t bitmaps_size;
   ptrdiff_t bitmaps_last;
 
-  struct image_cache *image_cache;
-
   struct ns_color_table *color_table;
 
   /* DPI resolution of this screen */
@@ -713,8 +711,6 @@ struct x_output
 
 #define FRAME_FOREGROUND_COLOR(f) ((f)->output_data.ns->foreground_color)
 #define FRAME_BACKGROUND_COLOR(f) ((f)->output_data.ns->background_color)
-
-#define FRAME_X_IMAGE_CACHE(F) FRAME_DISPLAY_INFO ((F))->image_cache
 
 #define NS_FACE_FOREGROUND(f) ((f)->foreground)
 #define NS_FACE_BACKGROUND(f) ((f)->background)

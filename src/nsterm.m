@@ -3975,7 +3975,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                 && ![NSCalibratedWhiteColorSpace isEqualToString:
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
-    dpyinfo->image_cache = make_image_cache ();
     dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
     dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* a placeholder.. */
