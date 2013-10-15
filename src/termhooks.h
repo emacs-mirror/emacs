@@ -243,7 +243,6 @@ struct input_event
      For a mouse event, this is the button number.
      For a HELP_EVENT, this is the position within the object
       (stored in ARG below) where the help was found.  */
-  /* In WindowsNT, for a mouse wheel event, this is the delta.  */
   ptrdiff_t code;
   enum scroll_bar_part part;
 
