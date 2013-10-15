@@ -82,7 +82,7 @@ volatile bool pending_signals;
 
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
-KBOARD *all_kboards;
+static KBOARD *all_kboards;
 
 /* True in the single-kboard state, false in the any-kboard state.  */
 static bool single_kboard;

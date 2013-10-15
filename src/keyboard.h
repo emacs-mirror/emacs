@@ -227,9 +227,6 @@ extern KBOARD *initial_kboard;
    right now considering input.  We can consider input from another
    kboard, but doing so requires throwing to wrong_kboard_jmpbuf.  */
 extern KBOARD *current_kboard;
-
-/* A list of all kboard objects, linked through next_kboard.  */
-extern KBOARD *all_kboards;
 
 /* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
 extern uintmax_t num_input_events;
