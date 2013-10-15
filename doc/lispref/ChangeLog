@@ -1,3 +1,7 @@
+2013-10-15  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Warning Basics): Mention the ‘*Warnings*’ buffer.
+
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* intro.texi (Acknowledgments): Use accented form of some names.

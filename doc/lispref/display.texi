@@ -633,8 +633,8 @@ for logging the warning.  By default, it is @file{*Warnings*}.
 
 @defun lwarn type level message &rest args
 This function reports a warning using the value of @code{(format
-@var{message} @var{args}...)} as the message.  In other respects it is
-equivalent to @code{display-warning}.
+@var{message} @var{args}...)} as the message in the @file{*Warnings*}
+buffer.  In other respects it is equivalent to @code{display-warning}.
 @end defun
 
 @defun warn message &rest args
