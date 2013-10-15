@@ -542,6 +542,7 @@ For full documentation. please see commentary.
       (when idle-body
         (setq init-body
               `(progn
+                 (require 'use-package)
                  (use-package-init-on-idle (lambda () ,idle-body))
                    ,init-body)))
 
