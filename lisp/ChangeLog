@@ -1,3 +1,8 @@
+2013-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (tty-menu-navigation-map): Bind mouse wheels to TTY
+	menu navigations commands.
+
 2013-10-14  Dima Kogan  <dima@secretsauce.net>  (tiny change)
 
 	* progmodes/subword.el (subword-capitalize): Be careful when

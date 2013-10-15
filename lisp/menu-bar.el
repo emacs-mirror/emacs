@@ -2341,6 +2341,10 @@ If FRAME is nil or not given, use the selected frame."
     (define-key map [linefeed] 'tty-menu-select)
     (define-key map [down-mouse-1] 'tty-menu-select)
     (define-key map [drag-mouse-1] 'tty-menu-select)
+    (define-key map [wheel-down] 'tty-menu-next-item)
+    (define-key map [wheel-up] 'tty-menu-prev-item)
+    (define-key map [wheel-left] 'tty-menu-prev-menu)
+    (define-key map [wheel-right] 'tty-menu-next-menu)
     ;; The following 4 bindings are for those whose text-mode mouse
     ;; lack the wheel.
     (define-key map [S-down-mouse-1] 'tty-menu-next-item)
