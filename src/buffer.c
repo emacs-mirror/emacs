@@ -6190,7 +6190,9 @@ If the value is a list, a text character is invisible if its `invisible'
 property is an element in that list (or is a list with members in common).
 If an element is a cons cell of the form (PROP . ELLIPSIS),
 then characters with property value PROP are invisible,
-and they have an ellipsis as well if ELLIPSIS is non-nil.  */);
+and they have an ellipsis as well if ELLIPSIS is non-nil.
+Setting this variable is very fast, much faster than scanning all the
+text in the buffer looking for properties to change.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
 		     &BVAR (current_buffer, display_count), Qintegerp,
