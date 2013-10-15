@@ -1,3 +1,7 @@
+2013-10-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* print.c (print_object): Print " ..." when truncating bool vectors.
+
 2013-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32inevt.c (do_mouse_event): Support mouse wheel and all the 5
