@@ -182,12 +182,9 @@ if foo &&
 end
 
 method !arg1,
-        arg2
-
-method [],
        arg2
 
-method {:a => 1, :b => 2},
+method [],
        arg2
 
 method :foo,
@@ -195,3 +192,11 @@ method :foo,
 
 method (a + b),
        c
+
+it "is a method call with block" do
+  foo
+end
+
+it("is too!") {
+  bar
+}
