@@ -1,5 +1,12 @@
 2013-10-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Disallow bool vector operations on mixed-length operands.
+	The old behavior left garbage in the result vector sometimes,
+	and didn't seem to be useful.
+	* data.c (Qwrong_length_argument): New static var.
+	(wrong_length_argument): New function.
+	(bool_vector_binop_driver): Check that args agree in length.
+
 	* keyboard.c, keyboard.h (all_kboards): Now static.
 
 2013-10-15  Xue Fuqiao  <xfq.free@gmail.com>

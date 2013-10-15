@@ -41,6 +41,7 @@ Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 Lisp_Object Qerror, Quser_error, Qquit, Qargs_out_of_range;
+static Lisp_Object Qwrong_length_argument;
 static Lisp_Object Qwrong_type_argument;
 Lisp_Object Qvoid_variable, Qvoid_function;
 static Lisp_Object Qcyclic_function_indirection;
@@ -177,6 +178,18 @@ static void
 set_blv_valcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
 {
   blv->valcell = val;
+}
+
+static _Noreturn void
+wrong_length_argument (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
+{
+  Lisp_Object size1 = make_number (bool_vector_size (a1));
+  Lisp_Object size2 = make_number (bool_vector_size (a2));
+  if (NILP (a3))
+    xsignal2 (Qwrong_length_argument, size1, size2);
+  else
+    xsignal3 (Qwrong_length_argument, size1, size2,
+	      make_number (bool_vector_size (a3)));
 }
 
 Lisp_Object
@@ -3004,7 +3017,9 @@ bool_vector_binop_driver (Lisp_Object op1,
   CHECK_BOOL_VECTOR (op1);
   CHECK_BOOL_VECTOR (op2);
 
-  nr_bits = min (bool_vector_size (op1), bool_vector_size (op2));
+  nr_bits = bool_vector_size (op1);
+  if (bool_vector_size (op2) != nr_bits)
+    wrong_length_argument (op1, op2, dest);
 
   if (NILP (dest))
     {
@@ -3014,7 +3029,8 @@ bool_vector_binop_driver (Lisp_Object op1,
   else
     {
       CHECK_BOOL_VECTOR (dest);
-      nr_bits = min (nr_bits, bool_vector_size (dest));
+      if (bool_vector_size (dest) != nr_bits)
+	wrong_length_argument (op1, op2, dest);
     }
 
   nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
@@ -3103,11 +3119,10 @@ bits_word_to_host_endian (bits_word val)
 
 DEFUN ("bool-vector-exclusive-or", Fbool_vector_exclusive_or,
        Sbool_vector_exclusive_or, 2, 3, 0,
-       doc: /* Compute C = A ^ B, bitwise exclusive or.
-A, B, and C must be bool vectors.  If C is nil, allocate a new bool
-vector in which to store the result.  Return the destination vector if
-it changed or nil otherwise.  */
-       )
+       doc: /* Return A ^ B, bitwise exclusive or.
+If optional third argument C is given, store result into C.
+A, B, and C must be bool vectors of the same length.
+Return the destination vector if it changed or nil otherwise.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object c)
 {
   return bool_vector_binop_driver (a, b, c, bool_vector_exclusive_or);
@@ -3115,10 +3130,10 @@ it changed or nil otherwise.  */
 
 DEFUN ("bool-vector-union", Fbool_vector_union,
        Sbool_vector_union, 2, 3, 0,
-       doc: /* Compute C = A | B, bitwise or.
-A, B, and C must be bool vectors.  If C is nil, allocate a new bool
-vector in which to store the result.  Return the destination vector if
-it changed or nil otherwise.  */)
+       doc: /* Return A | B, bitwise or.
+If optional third argument C is given, store result into C.
+A, B, and C must be bool vectors of the same length.
+Return the destination vector if it changed or nil otherwise.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object c)
 {
   return bool_vector_binop_driver (a, b, c, bool_vector_union);
@@ -3126,10 +3141,10 @@ it changed or nil otherwise.  */)
 
 DEFUN ("bool-vector-intersection", Fbool_vector_intersection,
        Sbool_vector_intersection, 2, 3, 0,
-       doc: /* Compute C = A & B, bitwise and.
-A, B, and C must be bool vectors.  If C is nil, allocate a new bool
-vector in which to store the result.  Return the destination vector if
-it changed or nil otherwise.  */)
+       doc: /* Return A & B, bitwise and.
+If optional third argument C is given, store result into C.
+A, B, and C must be bool vectors of the same length.
+Return the destination vector if it changed or nil otherwise.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object c)
 {
   return bool_vector_binop_driver (a, b, c, bool_vector_intersection);
@@ -3137,10 +3152,10 @@ it changed or nil otherwise.  */)
 
 DEFUN ("bool-vector-set-difference", Fbool_vector_set_difference,
        Sbool_vector_set_difference, 2, 3, 0,
-       doc: /* Compute C = A &~ B, set difference.
-A, B, and C must be bool vectors.  If C is nil, allocate a new bool
-vector in which to store the result.  Return the destination vector if
-it changed or nil otherwise.  */)
+       doc: /* Return A &~ B, set difference.
+If optional third argument C is given, store result into C.
+A, B, and C must be bool vectors of the same length.
+Return the destination vector if it changed or nil otherwise.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object c)
 {
   return bool_vector_binop_driver (a, b, c, bool_vector_set_difference);
@@ -3157,9 +3172,9 @@ DEFUN ("bool-vector-subsetp", Fbool_vector_subsetp,
 
 DEFUN ("bool-vector-not", Fbool_vector_not,
        Sbool_vector_not, 1, 2, 0,
-       doc: /* Compute B = ~A.
-B must be a bool vector.  A must be a bool vector or nil.
-If A is nil, allocate a new bool vector in which to store the result.
+       doc: /* Compute ~A, set complement.
+If optional second argument B is given, store result into B.
+A and B must be bool vectors of the same length.
 Return the destination vector.  */)
   (Lisp_Object a, Lisp_Object b)
 {
@@ -3176,7 +3191,8 @@ Return the destination vector.  */)
   else
     {
       CHECK_BOOL_VECTOR (b);
-      nr_bits = min (nr_bits, bool_vector_size (b));
+      if (bool_vector_size (b) != nr_bits)
+	wrong_length_argument (a, b, Qnil);
     }
 
   bdata = (bits_word *) XBOOL_VECTOR (b)->data;
@@ -3323,6 +3339,7 @@ syms_of_data (void)
   DEFSYM (Qerror, "error");
   DEFSYM (Quser_error, "user-error");
   DEFSYM (Qquit, "quit");
+  DEFSYM (Qwrong_length_argument, "wrong-length-argument");
   DEFSYM (Qwrong_type_argument, "wrong-type-argument");
   DEFSYM (Qargs_out_of_range, "args-out-of-range");
   DEFSYM (Qvoid_function, "void-function");
@@ -3397,6 +3414,7 @@ syms_of_data (void)
   PUT_ERROR (Qquit, Qnil, "Quit");
 
   PUT_ERROR (Quser_error, error_tail, "");
+  PUT_ERROR (Qwrong_length_argument, error_tail, "Wrong length argument");
   PUT_ERROR (Qwrong_type_argument, error_tail, "Wrong type argument");
   PUT_ERROR (Qargs_out_of_range, error_tail, "Args out of range");
   PUT_ERROR (Qvoid_function, error_tail,
