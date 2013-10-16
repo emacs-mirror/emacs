@@ -1,3 +1,9 @@
+2013-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* net/eww.el (eww-render): Always set eww-current-url,
+	and update header line.  (Bug#15622)
+	(eww-display-html): ... Rather than just doing it here.
+
 2013-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (tty-menu-navigation-map): Bind mouse wheels to TTY

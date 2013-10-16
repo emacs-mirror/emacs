@@ -160,7 +160,9 @@ word(s) will be searched for via `eww-search-prefix'."
 	    (eww-display-image))
 	   (t
 	    (eww-display-raw)))
-	  (setq eww-history-position 0)
+	  (setq eww-current-url url
+		eww-history-position 0)
+	  (eww-update-header-line-format)
 	  (cond
 	   (point
 	    (goto-char point))
@@ -212,8 +214,6 @@ word(s) will be searched for via `eww-search-prefix'."
 	  'base (list (cons 'href url))
 	  (libxml-parse-html-region (point) (point-max)))))
     (eww-setup-buffer)
-    (setq eww-current-url url)
-    (eww-update-header-line-format)
     (let ((inhibit-read-only t)
 	  (after-change-functions nil)
 	  (shr-width nil)
@@ -266,6 +266,8 @@ word(s) will be searched for via `eww-search-prefix'."
       (setq header-line-format
 	    (replace-regexp-in-string
 	     "%" "%%"
+	     ;; FIXME?  Title can be blank.  Default to, eg, last component
+	     ;; of url?
 	     (format-spec eww-header-line-format
 			  `((?u . ,eww-current-url)
 			    (?t . ,eww-current-title)))))
@@ -369,6 +371,7 @@ word(s) will be searched for via `eww-search-prefix'."
   "Mode for browsing the web.
 
 \\{eww-mode-map}"
+  ;; FIXME?  This seems a strange default.
   (set (make-local-variable 'eww-current-url) 'author)
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
   (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
