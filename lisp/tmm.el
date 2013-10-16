@@ -149,6 +149,8 @@ specify nil for this variable."
 	'(metadata (display-sort-function . identity))
       (complete-with-action action items string pred))))
 
+(defvar tmm--history nil)
+
 ;;;###autoload
 (defun tmm-prompt (menu &optional in-popup default-item)
   "Text-mode emulation of calling the bindings in keymap.
@@ -167,7 +169,7 @@ Its value should be an event that has a binding in MENU."
   ;; That is used for recursive calls only.
   (let ((gl-str "Menu bar")  ;; The menu bar itself is not a menu keymap
 					; so it doesn't have a name.
-	tmm-km-list out history history-len tmm-table-undef tmm-c-prompt
+	tmm-km-list out history-len tmm-table-undef tmm-c-prompt
 	tmm-old-mb-map tmm-short-cuts
 	chosen-string choice
 	(not-menu (not (keymapp menu))))
@@ -221,16 +223,18 @@ Its value should be an event that has a binding in MENU."
 			 (setq index-of-default (1+ index-of-default)))
 		     (setq tail (cdr tail)))))
              (let ((prompt (concat "^." (regexp-quote tmm-mid-prompt))))
-               (setq history
+               (setq tmm--history
                      (reverse (delq nil
                                     (mapcar
                                      (lambda (elt)
                                        (if (string-match prompt (car elt))
                                            (car elt)))
                                      tmm-km-list)))))
-	     (setq history-len (length history))
-	     (setq history (append history history history history))
-	     (setq tmm-c-prompt (nth (- history-len 1 index-of-default) history))
+	     (setq history-len (length tmm--history))
+	     (setq tmm--history (append tmm--history tmm--history
+                                        tmm--history tmm--history))
+	     (setq tmm-c-prompt (nth (- history-len 1 index-of-default)
+                                     tmm--history))
              (setq out
                    (if default-item
                        (car (nth index-of-default tmm-km-list))
@@ -239,7 +243,7 @@ Its value should be an event that has a binding in MENU."
                         (concat gl-str
                                 " (up/down to change, PgUp to menu): ")
                         (tmm--completion-table tmm-km-list) nil t nil
-                        (cons 'history
+                        (cons 'tmm--history
                               (- (* 2 history-len) index-of-default))))))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)

@@ -1,3 +1,8 @@
+2013-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* tmm.el (tmm--history): New dynamic variable.
+	(tmm-prompt): Use tmm--history in place of `history'.  (Bug#15623)
+
 2013-10-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-smb.el (tramp-smb-acl-program): New customer option.
