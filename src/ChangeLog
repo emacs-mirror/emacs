@@ -1,3 +1,8 @@
+2013-10-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (ns_string_from_pasteboard): Remove Fquit, just return
+	Qnil (Bug#15628).
+
 2013-10-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (network_interface_get_info, network_interface_list)

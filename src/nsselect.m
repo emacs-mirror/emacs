@@ -256,9 +256,7 @@ ns_string_from_pasteboard (id pb)
   type = [pb availableTypeFromArray: ns_return_types];
   if (type == nil)
     {
-      Fsignal (Qquit,
-	       list1 (build_string ("empty or unsupported pasteboard type")));
-    return Qnil;
+      return Qnil;
     }
 
   /* get the string */
@@ -274,9 +272,6 @@ ns_string_from_pasteboard (id pb)
         }
       else
         {
-          Fsignal (Qquit,
-		   list1 (build_string ("pasteboard doesn't contain"
-					" valid data")));
           return Qnil;
         }
     }
