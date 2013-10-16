@@ -1009,11 +1009,9 @@ If STRING is multibyte and contains a character of charset
 
   if (STRING_MULTIBYTE (string))
     {
-      ptrdiff_t bytes = SBYTES (string);
-      unsigned char *str = xmalloc (bytes);
+      unsigned char *str = xlispstrdup (string);
+      ptrdiff_t bytes = str_as_unibyte (str, SBYTES (string));
 
-      memcpy (str, SDATA (string), bytes);
-      bytes = str_as_unibyte (str, bytes);
       string = make_unibyte_string ((char *) str, bytes);
       xfree (str);
     }

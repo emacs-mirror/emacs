@@ -1,3 +1,7 @@
+2013-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fns.c (Fstring_as_unibyte): Use xlispstrdup.
+
 2013-10-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* print.c (print_object): Print " ..." when truncating bool vectors.
