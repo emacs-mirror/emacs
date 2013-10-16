@@ -218,6 +218,8 @@ typedef struct _REPARSE_DATA_BUFFER {
 #undef recvfrom
 #undef sendto
 
+#include <iphlpapi.h>	/* should be after winsock2.h */
+
 #include "w32.h"
 #include <dirent.h>
 #include "w32common.h"
@@ -296,6 +298,7 @@ static BOOL g_b_init_convert_sd_to_sddl;
 static BOOL g_b_init_convert_sddl_to_sd;
 static BOOL g_b_init_is_valid_security_descriptor;
 static BOOL g_b_init_set_file_security;
+static BOOL g_b_init_get_adapters_info;
 
 /*
   BEGIN: Wrapper functions around OpenProcessToken
@@ -438,6 +441,9 @@ typedef BOOL (WINAPI *ConvertSecurityDescriptorToStringSecurityDescriptor_Proc) 
     LPTSTR  *StringSecurityDescriptor,
     PULONG StringSecurityDescriptorLen);
 typedef BOOL (WINAPI *IsValidSecurityDescriptor_Proc) (PSECURITY_DESCRIPTOR);
+typedef DWORD (WINAPI *GetAdaptersInfo_Proc) (
+    PIP_ADAPTER_INFO pAdapterInfo,
+    PULONG pOutBufLen);
 
   /* ** A utility function ** */
 static BOOL
@@ -1128,6 +1134,28 @@ convert_sddl_to_sd (LPCTSTR StringSecurityDescriptor,
 				     SecurityDescriptorSize);
 
   return retval;
+}
+
+static DWORD WINAPI
+get_adapters_info (PIP_ADAPTER_INFO pAdapterInfo, PULONG pOutBufLen)
+{
+  static GetAdaptersInfo_Proc s_pfn_Get_Adapters_Info = NULL;
+  HMODULE hm_iphlpapi = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return ERROR_NOT_SUPPORTED;
+
+  if (g_b_init_get_adapters_info == 0)
+    {
+      g_b_init_get_adapters_info = 1;
+      hm_iphlpapi = LoadLibrary ("Iphlpapi.dll");
+      if (hm_iphlpapi)
+	s_pfn_Get_Adapters_Info = (GetAdaptersInfo_Proc)
+	  GetProcAddress (hm_iphlpapi, "GetAdaptersInfo");
+    }
+  if (s_pfn_Get_Adapters_Info == NULL)
+    return ERROR_NOT_SUPPORTED;
+  return s_pfn_Get_Adapters_Info (pAdapterInfo, pOutBufLen);
 }
 
 
@@ -7434,6 +7462,269 @@ sys_write (int fd, const void * buffer, unsigned int count)
   return nchars;
 }
 
+
+/* Emulation of SIOCGIFCONF and getifaddrs, see process.c.  */
+
+extern Lisp_Object conv_sockaddr_to_lisp (struct sockaddr *, int);
+
+/* Return information about network interface IFNAME, or about all
+   interfaces (if IFNAME is nil).  */
+static Lisp_Object
+network_interface_get_info (Lisp_Object ifname)
+{
+  ULONG ainfo_len = sizeof (IP_ADAPTER_INFO);
+  IP_ADAPTER_INFO *adapter, *ainfo = xmalloc (ainfo_len);
+  DWORD retval = get_adapters_info (ainfo, &ainfo_len);
+  Lisp_Object res = Qnil;
+
+  if (retval == ERROR_BUFFER_OVERFLOW)
+    {
+      ainfo = xrealloc (ainfo, ainfo_len);
+      retval = get_adapters_info (ainfo, &ainfo_len);
+    }
+
+  if (retval == ERROR_SUCCESS)
+    {
+      int eth_count = 0, tr_count = 0, fddi_count = 0, ppp_count = 0;
+      int sl_count = 0, wlan_count = 0, lo_count = 0, ifx_count = 0;
+      int if_num;
+      struct sockaddr_in sa;
+
+      /* For the below, we need some winsock functions, so make sure
+	 the winsock DLL is loaded.  If we cannot successfully load
+	 it, they will have no use of the information we provide,
+	 anyway, so punt.  */
+      if (!winsock_lib && !init_winsock (1))
+	goto done;
+
+      for (adapter = ainfo; adapter; adapter = adapter->Next)
+	{
+	  char namebuf[MAX_ADAPTER_NAME_LENGTH + 4];
+	  u_long ip_addr;
+	  /* Present Unix-compatible interface names, instead of the
+	     Windows names, which are really GUIDs not readable by
+	     humans.  */
+	  static const char *ifmt[] = {
+	    "eth%d", "tr%d", "fddi%d", "ppp%d", "sl%d", "wlan%d",
+	    "lo", "ifx%d"
+	  };
+	  enum {
+	    NONE = -1,
+	    ETHERNET = 0,
+	    TOKENRING = 1,
+	    FDDI = 2,
+	    PPP = 3,
+	    SLIP = 4,
+	    WLAN = 5,
+	    LOOPBACK = 6,
+	    OTHER_IF = 7
+	  } ifmt_idx;
+
+	  switch (adapter->Type)
+	    {
+	    case MIB_IF_TYPE_ETHERNET:
+	      /* Windows before Vista reports wireless adapters as
+		 Ethernet.  Work around by looking at the Description
+		 string.  */
+	      if (strstr (adapter->Description, "Wireless "))
+		{
+		  ifmt_idx = WLAN;
+		  if_num = wlan_count++;
+		}
+	      else
+		{
+		  ifmt_idx = ETHERNET;
+		  if_num = eth_count++;
+		}
+	      break;
+	    case MIB_IF_TYPE_TOKENRING:
+	      ifmt_idx = TOKENRING;
+	      if_num = tr_count++;
+	      break;
+	    case MIB_IF_TYPE_FDDI:
+	      ifmt_idx = FDDI;
+	      if_num = fddi_count++;
+	      break;
+	    case MIB_IF_TYPE_PPP:
+	      ifmt_idx = PPP;
+	      if_num = ppp_count++;
+	      break;
+	    case MIB_IF_TYPE_SLIP:
+	      ifmt_idx = SLIP;
+	      if_num = sl_count++;
+	      break;
+	    case IF_TYPE_IEEE80211:
+	      ifmt_idx = WLAN;
+	      if_num = wlan_count++;
+	      break;
+	    case MIB_IF_TYPE_LOOPBACK:
+	      if (lo_count < 0)
+		{
+		  ifmt_idx = LOOPBACK;
+		  if_num = lo_count++;
+		}
+	      else
+		ifmt_idx = NONE;
+	      break;
+	    default:
+	      ifmt_idx = OTHER_IF;
+	      if_num = ifx_count++;
+	      break;
+	    }
+	  if (ifmt_idx == NONE)
+	    continue;
+	  sprintf (namebuf, ifmt[ifmt_idx], if_num);
+
+	  sa.sin_family = AF_INET;
+	  ip_addr = sys_inet_addr (adapter->IpAddressList.IpAddress.String);
+	  if (ip_addr == INADDR_NONE)
+	    {
+	      /* Bogus address, skip this interface.  */
+	      continue;
+	    }
+	  sa.sin_addr.s_addr = ip_addr;
+	  sa.sin_port = 0;
+	  if (NILP (ifname))
+	    res = Fcons (Fcons (build_string (namebuf),
+				conv_sockaddr_to_lisp ((struct sockaddr*) &sa,
+						       sizeof (struct sockaddr))),
+			 res);
+	  else if (strcmp (namebuf, SSDATA (ifname)) == 0)
+	    {
+	      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
+	      register struct Lisp_Vector *p = XVECTOR (hwaddr);
+	      Lisp_Object flags = Qnil;
+	      int n;
+	      u_long net_mask;
+
+	      /* Flags.  We guess most of them by type, since the
+		 Windows flags are different and hard to get by.  */
+	      flags = Fcons (intern ("up"), flags);
+	      if (ifmt_idx == ETHERNET || ifmt_idx == WLAN)
+		{
+		  flags = Fcons (intern ("broadcast"), flags);
+		  flags = Fcons (intern ("multicast"), flags);
+		}
+	      flags = Fcons (intern ("running"), flags);
+	      if (ifmt_idx == PPP)
+		{
+		  flags = Fcons (intern ("pointopoint"), flags);
+		  flags = Fcons (intern ("noarp"), flags);
+		}
+	      if (adapter->HaveWins)
+		flags = Fcons (intern ("WINS"), flags);
+	      if (adapter->DhcpEnabled)
+		flags = Fcons (intern ("dynamic"), flags);
+
+	      res = Fcons (flags, res);
+
+	      /* Hardware address and its family.  */
+	      for (n = 0; n < adapter->AddressLength; n++)
+		p->u.contents[n] = make_number ((int) adapter->Address[n]);
+	      /* Windows does not support AF_LINK or AF_PACKET family
+		 of addresses.  Use an arbitrary family number that is
+		 identical to what GNU/Linux returns.  */
+	      res = Fcons (Fcons (make_number (1), hwaddr), res);
+
+	      /* Network mask.  */
+	      sa.sin_family = AF_INET;
+	      net_mask = sys_inet_addr (adapter->IpAddressList.IpMask.String);
+	      if (net_mask != INADDR_NONE)
+		{
+		  sa.sin_addr.s_addr = net_mask;
+		  sa.sin_port = 0;
+		  res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
+						      sizeof (struct sockaddr)),
+			       res);
+		}
+	      else
+		res = Fcons (Qnil, res);
+
+	      sa.sin_family = AF_INET;
+	      if (ip_addr != INADDR_NONE)
+		{
+		  /* Broadcast address is only reported by
+		     GetAdaptersAddresses, which is of limited
+		     availability.  Generate it on our own.  */
+		  u_long bcast_addr = (ip_addr & net_mask) | ~net_mask;
+
+		  sa.sin_addr.s_addr = bcast_addr;
+		  sa.sin_port = 0;
+		  res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
+						      sizeof (struct sockaddr)),
+			       res);
+
+		  /* IP address.  */
+		  sa.sin_addr.s_addr = ip_addr;
+		  sa.sin_port = 0;
+		  res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
+						      sizeof (struct sockaddr)),
+			       res);
+		}
+	      else
+		res = Fcons (Qnil, Fcons (Qnil, res));
+	    }
+	}
+      /* GetAdaptersInfo is documented to not report loopback
+	 interfaces, so we generate one out of thin air.  */
+      if (!lo_count)
+	{
+	  sa.sin_family = AF_INET;
+	  sa.sin_port = 0;
+	  if (NILP (ifname))
+	    {
+	      sa.sin_addr.s_addr = sys_inet_addr ("127.0.0.1");
+	      res = Fcons (Fcons (build_string ("lo"),
+				  conv_sockaddr_to_lisp ((struct sockaddr*) &sa,
+							 sizeof (struct sockaddr))),
+			   res);
+	    }
+	  else if (strcmp (SSDATA (ifname), "lo") == 0)
+	    {
+	      res = Fcons (Fcons (intern ("running"),
+				  Fcons (intern ("loopback"),
+					 Fcons (intern ("up"), Qnil))), Qnil);
+	      /* 772 is what 3 different GNU/Linux systems report for
+		 the loopback interface.  */
+	      res = Fcons (Fcons (make_number (772),
+				  Fmake_vector (make_number (6),
+						make_number (0))),
+			   res);
+	      sa.sin_addr.s_addr = sys_inet_addr ("255.0.0.0");
+	      res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
+						  sizeof (struct sockaddr)),
+			   res);
+	      sa.sin_addr.s_addr = sys_inet_addr ("0.0.0.0");
+	      res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
+						  sizeof (struct sockaddr)),
+			   res);
+	      sa.sin_addr.s_addr = sys_inet_addr ("127.0.0.1");
+	      res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
+						  sizeof (struct sockaddr)),
+			   res);
+	    }
+
+	}
+    }
+
+ done:
+  xfree (ainfo);
+  return res;
+}
+
+Lisp_Object
+network_interface_list (void)
+{
+  return network_interface_get_info (Qnil);
+}
+
+Lisp_Object
+network_interface_info (Lisp_Object ifname)
+{
+  return network_interface_get_info (ifname);
+}
+
+
 /* The Windows CRT functions are "optimized for speed", so they don't
    check for timezone and DST changes if they were last called less
    than 1 minute ago (see http://support.microsoft.com/kb/821231).  So
@@ -7735,6 +8026,7 @@ globals_of_w32 (void)
   g_b_init_convert_sddl_to_sd = 0;
   g_b_init_is_valid_security_descriptor = 0;
   g_b_init_set_file_security = 0;
+  g_b_init_get_adapters_info = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and

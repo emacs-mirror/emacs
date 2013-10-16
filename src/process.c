@@ -1958,7 +1958,7 @@ create_pty (Lisp_Object process)
 /* Convert an internal struct sockaddr to a lisp object (vector or string).
    The address family of sa is not included in the result.  */
 
-static Lisp_Object
+Lisp_Object
 conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
 {
   Lisp_Object address;
@@ -3504,15 +3504,44 @@ usage: (make-network-process &rest ARGS)  */)
 }
 
 
-#if defined (HAVE_NET_IF_H)
-
-#ifdef SIOCGIFCONF
 DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
        doc: /* Return an alist of all network interfaces and their network address.
 Each element is a cons, the car of which is a string containing the
 interface name, and the cdr is the network address in internal
-format; see the description of ADDRESS in `make-network-process'.  */)
+format; see the description of ADDRESS in `make-network-process'.
+
+If the information is not available, return nil.  */)
   (void)
+{
+#if (defined (HAVE_NET_IF_H) && defined (SIOCGIFCONF)) || defined (WINDOWSNT)
+  return network_interface_list ();
+#else
+  return Qnil;
+#endif
+}
+
+DEFUN ("network-interface-info", Fnetwork_interface_info, Snetwork_interface_info, 1, 1, 0,
+       doc: /* Return information about network interface named IFNAME.
+The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
+where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
+NETMASK is the layer 3 network mask, HWADDR is the layer 2 address, and
+FLAGS is the current flags of the interface.
+
+Data that is unavailable is returned as nil.  */)
+  (Lisp_Object ifname)
+{
+#if (defined (HAVE_NET_IF_H) && (defined (SIOCGIFADDR) || defined (SIOCGIFHWADDR) || defined (SIOCGIFFLAGS))) || defined (WINDOWSNT)
+  return network_interface_info (ifname);
+#else
+  return Qnil;
+#endif
+}
+
+#if defined (HAVE_NET_IF_H)
+
+#ifdef SIOCGIFCONF
+Lisp_Object
+network_interface_list (void)
 {
   struct ifconf ifconf;
   struct ifreq *ifreq;
@@ -3654,13 +3683,8 @@ static const struct ifflag_def ifflag_table[] = {
   { 0, 0 }
 };
 
-DEFUN ("network-interface-info", Fnetwork_interface_info, Snetwork_interface_info, 1, 1, 0,
-       doc: /* Return information about network interface named IFNAME.
-The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
-where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
-NETMASK is the layer 3 network mask, HWADDR is the layer 2 address, and
-FLAGS is the current flags of the interface.  */)
-  (Lisp_Object ifname)
+Lisp_Object
+network_interface_info (Lisp_Object ifname)
 {
   struct ifreq rq;
   Lisp_Object res = Qnil;
@@ -3802,7 +3826,7 @@ FLAGS is the current flags of the interface.  */)
 
   return unbind_to (count, any ? res : Qnil);
 }
-#endif
+#endif	/* !SIOCGIFADDR && !SIOCGIFHWADDR && !SIOCGIFFLAGS */
 #endif	/* defined (HAVE_NET_IF_H) */
 
 /* Turn off input and output for process PROC.  */
@@ -7293,14 +7317,8 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
-#if defined (HAVE_NET_IF_H)
-#ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
-#endif
-#if defined (SIOCGIFADDR) || defined (SIOCGIFHWADDR) || defined (SIOCGIFFLAGS)
   defsubr (&Snetwork_interface_info);
-#endif
-#endif /* defined (HAVE_NET_IF_H) */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);

@@ -240,4 +240,8 @@ extern void delete_write_fd (int fd);
 extern void catch_child_signal (void);
 #endif
 
+extern Lisp_Object network_interface_list (void);
+extern Lisp_Object network_interface_info (Lisp_Object);
+
+
 INLINE_HEADER_END
