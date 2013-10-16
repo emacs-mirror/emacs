@@ -1,5 +1,8 @@
 2013-10-16  Glenn Morris  <rgm@gnu.org>
 
+	* ansi-color.el (ansi-color-drop-regexp):
+	Add 1J, 1K, 2K.  (Bug#15617)
+
 	* files.el (hack-local-variables--warned-lexical): New.
 	(hack-local-variables):
 	Warn about misplaced lexical-binding.  (Bug#15616)

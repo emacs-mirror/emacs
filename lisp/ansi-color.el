@@ -153,7 +153,7 @@ foreground and background colors, respectively."
   "Regexp that matches SGR control sequences.")
 
 (defconst ansi-color-drop-regexp
-  "\033\\[\\([ABCDsuK]\\|2J\\|=[0-9]+[hI]\\|[0-9;]*[Hf]\\)"
+  "\033\\[\\([ABCDsuK]\\|[12][JK]\\|=[0-9]+[hI]\\|[0-9;]*[Hf]\\)"
   "Regexp that matches ANSI control sequences to silently drop.")
 
 (defconst ansi-color-parameter-regexp "\\([0-9]*\\)[m;]"
