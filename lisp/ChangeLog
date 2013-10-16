@@ -1,3 +1,8 @@
+2013-10-16  Dima Kogan  <dima@secretsauce.net>  (tiny change)
+
+	* progmodes/subword.el (subword-capitalize): Fix Stefan's mess
+	(bug#15580).
+
 2013-10-16  Glenn Morris  <rgm@gnu.org>
 
 	* ansi-color.el (ansi-color-drop-regexp):
