@@ -1,3 +1,14 @@
+2013-10-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-acl-program): New customer option.
+	(tramp-smb-errors): Add error messages.
+	(tramp-smb-actions-with-acl): New defconst.
+	(tramp-smb-file-name-handler-alist) [set-file-acl]: Add handler.
+	(tramp-smb-action-with-acl, tramp-smb-handle-set-file-acl): New defuns.
+	(tramp-smb-handle-file-acl): Rewrite, using "smbcacls".
+	(tramp-smb-handle-file-attributes): Simplify test for "stat" capability.
+	(tramp-smb-get-stat-capability): Fix tests.
+
 2013-10-16  Dima Kogan  <dima@secretsauce.net>  (tiny change)
 
 	* progmodes/subword.el (subword-capitalize): Fix Stefan's mess
