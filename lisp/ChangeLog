@@ -1,5 +1,9 @@
 2013-10-16  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (hack-local-variables--warned-lexical): New.
+	(hack-local-variables):
+	Warn about misplaced lexical-binding.  (Bug#15616)
+
 	* net/eww.el (eww-render): Always set eww-current-url,
 	and update header line.  (Bug#15622)
 	(eww-display-html): ... Rather than just doing it here.

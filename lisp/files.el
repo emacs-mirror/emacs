@@ -3154,6 +3154,9 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 		   (assq-delete-all (car elt) file-local-variables-alist)))
 	   (push elt file-local-variables-alist)))))
 
+;; TODO?  Warn once per file rather than once per session?
+(defvar hack-local-variables--warned-lexical nil)
+
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
 Uses `hack-local-variables-apply' to apply the variables.
@@ -3275,13 +3278,18 @@ local variables, but directory-local variables may still be applied."
 				     "-minor\\'"
 				     (setq val2 (downcase (symbol-name val)))))
 			       (setq result (intern (concat val2 "-mode"))))
-			(unless (eq var 'coding)
-			  (condition-case nil
-			      (push (cons (if (eq var 'eval)
-					      'eval
-					    (indirect-variable var))
-					  val) result)
-			    (error nil)))))
+			(cond ((eq var 'coding))
+			      ((eq var 'lexical-binding)
+			       (unless hack-local-variables--warned-lexical
+				 (setq hack-local-variables--warned-lexical t)
+				 (display-warning :warning
+						  "Specify `lexical-binding' on the first line, not at the end")))
+			      (t
+			       (ignore-errors
+				 (push (cons (if (eq var 'eval)
+						 'eval
+					       (indirect-variable var))
+					     val) result))))))
 		    (forward-line 1))))))))
       ;; Now we've read all the local variables.
       ;; If MODE-ONLY is non-nil, return whether the mode was specified.
