@@ -1,3 +1,8 @@
+2013-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (have_boxes): Fix redundant simulation of radio buttons
+	in NS GUI sessions.  (Bug#15629)
+
 2013-10-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fns.c (Fstring_as_unibyte): Use xlispstrdup.
