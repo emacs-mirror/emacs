@@ -1,3 +1,8 @@
+2013-10-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.h (conv_sockaddr_to_lisp): New decl, for newly-extern func.
+	(struct sockaddr): Add forward decl, for platforms that lack it.
+
 2013-10-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m (ns_string_from_pasteboard): Remove Fquit, just return
