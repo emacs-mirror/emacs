@@ -961,6 +961,7 @@ make it invisible again.
   @dfn{Selective display} refers to a pair of related features for
 hiding certain lines on the screen.
 
+@cindex explicit selective display
   The first variant, explicit selective display, is designed for use
 in a Lisp program: it controls which lines are hidden by altering the
 text.  This kind of hiding in some ways resembles the effect of the
