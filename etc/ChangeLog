@@ -1,3 +1,7 @@
+2013-10-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* NEWS: Mention the homepage-related changes in package.el.
+
 2013-10-07  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention new feature of register commands.
