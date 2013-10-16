@@ -1009,7 +1009,7 @@ If STRING is multibyte and contains a character of charset
 
   if (STRING_MULTIBYTE (string))
     {
-      unsigned char *str = xlispstrdup (string);
+      unsigned char *str = (unsigned char *) xlispstrdup (string);
       ptrdiff_t bytes = str_as_unibyte (str, SBYTES (string));
 
       string = make_unibyte_string ((char *) str, bytes);
