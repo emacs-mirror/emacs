@@ -1796,8 +1796,8 @@ the beginning of the result if one multi-column character in
 
 If @var{ellipsis} is non-@code{nil}, it should be a string which will
 replace the end of @var{str} (including any padding) if it extends
-beyond @var{end-column}, unless the display width of @var{str} is
-equal to or less than the display width of @var{ellipsis}.  If
+beyond @var{width}, unless the display width of @var{string} is equal
+to or less than the display width of @var{ellipsis}.  If
 @var{ellipsis} is non-@code{nil} and not a string, it stands for
 @code{"..."}.
 
