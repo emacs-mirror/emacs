@@ -187,11 +187,21 @@ This list is used for tar-like copy of directories.
 
 See `tramp-actions-before-shell' for more info.")
 
-(defconst tramp-smb-actions-with-acl
+(defconst tramp-smb-actions-get-acl
   '((tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-smb-errors tramp-action-permission-denied)
-    (tramp-process-alive-regexp tramp-smb-action-with-acl))
+    (tramp-process-alive-regexp tramp-smb-action-get-acl))
+  "List of pattern/action pairs.
+This list is used for smbcacls actions.
+
+See `tramp-actions-before-shell' for more info.")
+
+(defconst tramp-smb-actions-set-acl
+  '((tramp-password-prompt-regexp tramp-action-password)
+    (tramp-wrong-passwd-regexp tramp-action-permission-denied)
+    (tramp-smb-errors tramp-action-permission-denied)
+    (tramp-process-alive-regexp tramp-smb-action-set-acl))
   "List of pattern/action pairs.
 This list is used for smbcacls actions.
 
@@ -481,6 +491,7 @@ pass to the OPERATION."
 
 		  (tramp-message
 		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
+		  (tramp-set-connection-property p "vector" v)
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
 		  (tramp-process-actions p v nil tramp-smb-actions-with-tar)
 
@@ -521,7 +532,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
   (with-tramp-progress-reporter
-      (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
+      (tramp-dissect-file-name
+       (if (tramp-tramp-file-p filename) filename newname))
       0 (format "Copying %s to %s" filename newname)
 
     (if (file-directory-p filename)
@@ -667,7 +679,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
        method user host
        (tramp-run-real-handler 'expand-file-name (list localname))))))
 
-(defun tramp-smb-action-with-acl (proc vec)
+(defun tramp-smb-action-get-acl (proc vec)
   "Read ACL data from connection buffer."
   (when (not (memq (process-status proc) '(run open)))
     ;; Accept pending output.
@@ -734,9 +746,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 		  (tramp-message
 		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
+		  (tramp-set-connection-property p "vector" v)
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v nil tramp-smb-actions-with-acl)
-		  (tramp-message v 6 "\n%s" (buffer-string))
+		  (tramp-process-actions p v nil tramp-smb-actions-get-acl)
 		  (when (> (point-max) (point-min))
 		    (tramp-compat-funcall
 		     'substring-no-properties (buffer-string)))))
@@ -1225,11 +1237,12 @@ target of the symlink differ."
 	     (file-exists-p newname))
     (tramp-error
      (tramp-dissect-file-name
-      (if (file-remote-p filename) filename newname))
+      (if (tramp-tramp-file-p filename) filename newname))
      'file-already-exists newname))
 
   (with-tramp-progress-reporter
-      (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
+      (tramp-dissect-file-name
+       (if (tramp-tramp-file-p filename) filename newname))
       0 (format "Renaming %s to %s" filename newname)
 
     (if (and (not (file-exists-p newname))
@@ -1260,67 +1273,85 @@ target of the symlink differ."
 	  (tramp-compat-delete-directory filename 'recursive)
 	(delete-file filename)))))
 
+(defun tramp-smb-action-set-acl (proc vec)
+  "Read ACL data from connection buffer."
+  (when (not (memq (process-status proc) '(run open)))
+    ;; Accept pending output.
+    (while (tramp-accept-process-output proc 0.1))
+    (with-current-buffer (tramp-get-connection-buffer vec)
+      (tramp-message vec 10 "\n%s" (buffer-string))
+      (throw 'tramp-action 'ok))))
+
 (defun tramp-smb-handle-set-file-acl (filename acl-string)
   "Like `set-file-acl' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (when (and (stringp acl-string) (executable-find tramp-smb-acl-program))
+  (ignore-errors
+    (with-parsed-tramp-file-name filename nil
+      (when (and (stringp acl-string) (executable-find tramp-smb-acl-program))
+	(setq tramp-current-method (tramp-file-name-method v)
+	      tramp-current-user (tramp-file-name-user v)
+	      tramp-current-host (tramp-file-name-real-host v))
+	(tramp-set-file-property v localname "file-acl" 'undef)
 
-      (setq tramp-current-method (tramp-file-name-method v)
-	    tramp-current-user (tramp-file-name-user v)
-	    tramp-current-host (tramp-file-name-real-host v))
-      (tramp-set-file-property v localname "file-acl" 'undef)
+	(let* ((real-user (tramp-file-name-real-user v))
+	       (real-host (tramp-file-name-real-host v))
+	       (domain    (tramp-file-name-domain v))
+	       (port      (tramp-file-name-port v))
+	       (share     (tramp-smb-get-share v))
+	       (localname (tramp-compat-replace-regexp-in-string
+			   "\\\\" "/" (tramp-smb-get-localname v)))
+	       (args      (list (concat "//" real-host "/" share) "-E" "-S"
+				(tramp-compat-replace-regexp-in-string
+				 "\n" "," acl-string))))
 
-      (let* ((real-user (tramp-file-name-real-user v))
-	     (real-host (tramp-file-name-real-host v))
-	     (domain    (tramp-file-name-domain v))
-	     (port      (tramp-file-name-port v))
-	     (share     (tramp-smb-get-share v))
-	     (localname (tramp-compat-replace-regexp-in-string
-			 "\\\\" "/" (tramp-smb-get-localname v)))
-	     (args      (list (concat "//" real-host "/" share) "-E" "-S"
-			      (tramp-compat-replace-regexp-in-string
-			       "\n" "," acl-string))))
+	  (if (not (zerop (length real-user)))
+	      (setq args (append args (list "-U" real-user)))
+	    (setq args (append args (list "-N"))))
 
-	(if (not (zerop (length real-user)))
-	    (setq args (append args (list "-U" real-user)))
-	  (setq args (append args (list "-N"))))
+	  (when domain (setq args (append args (list "-W" domain))))
+	  (when port   (setq args (append args (list "-p" port))))
+	  (when tramp-smb-conf
+	    (setq args (append args (list "-s" tramp-smb-conf))))
+	  (setq
+	   args
+	   (append args (list (shell-quote-argument localname)
+			      "&&" "echo" "tramp_exit_status" "0"
+			      "||" "echo" "tramp_exit_status" "1")))
 
-	(when domain (setq args (append args (list "-W" domain))))
-	(when port   (setq args (append args (list "-p" port))))
-	(when tramp-smb-conf
-	  (setq args (append args (list "-s" tramp-smb-conf))))
-	(setq
-	 args
-	 (append args (list (shell-quote-argument localname) "2>/dev/null")))
+	  (unwind-protect
+	      (with-temp-buffer
+		;; Set the transfer process properties.
+		(tramp-set-connection-property
+		 v "process-name" (buffer-name (current-buffer)))
+		(tramp-set-connection-property
+		 v "process-buffer" (current-buffer))
 
-	(unwind-protect
-	    (with-temp-buffer
-	      ;; Set the transfer process properties.
-	      (tramp-set-connection-property
-	       v "process-name" (buffer-name (current-buffer)))
-	      (tramp-set-connection-property
-	       v "process-buffer" (current-buffer))
+		;; Use an asynchronous processes.  By this, password can
+		;; be handled.
+		(let ((p (apply
+			  'start-process-shell-command
+			  (tramp-get-connection-name v)
+			  (tramp-get-connection-buffer v)
+			  tramp-smb-acl-program args)))
 
-	      ;; Use an asynchronous processes.  By this, password can
-	      ;; be handled.
-	      (let ((p (apply
-			'start-process
-			(tramp-get-connection-name v)
-			(tramp-get-connection-buffer v)
-			tramp-smb-acl-program args)))
+		  (tramp-message
+		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
+		  (tramp-set-connection-property p "vector" v)
+		  (tramp-compat-set-process-query-on-exit-flag p nil)
+		  (tramp-process-actions p v nil tramp-smb-actions-set-acl)
+		  (goto-char (point-max))
+		  (unless (re-search-backward "tramp_exit_status [0-9]+" nil t)
+		    (tramp-error
+		     v 'file-error
+		     "Couldn't find exit status of `%s'" tramp-smb-acl-program))
+		  (skip-chars-forward "^ ")
+		  (when (zerop (read (current-buffer)))
+		    ;; Success.
+		    (tramp-set-file-property v localname "file-acl" acl-string)
+		    t)))
 
-		(tramp-message
-		 v 6 "%s" (mapconcat 'identity (process-command p) " "))
-		(tramp-compat-set-process-query-on-exit-flag p nil)
-		(tramp-process-actions p v nil tramp-smb-actions-with-acl)
-		(tramp-message v 6 "\n%s" (buffer-string))
-		;; Success.
-		(tramp-set-file-property v localname "file-acl" acl-string)
-		t))
-
-	  ;; Reset the transfer process properties.
-	  (tramp-set-connection-property v "process-name" nil)
-	  (tramp-set-connection-property v "process-buffer" nil))))))
+	    ;; Reset the transfer process properties.
+	    (tramp-set-connection-property v "process-name" nil)
+	    (tramp-set-connection-property v "process-buffer" nil)))))))
 
 (defun tramp-smb-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."
@@ -1819,6 +1850,7 @@ If ARGUMENT is non-nil, use it as argument for
 
 	      (tramp-message
 	       vec 6 "%s" (mapconcat 'identity (process-command p) " "))
+	      (tramp-set-connection-property p "vector" vec)
 	      (tramp-compat-set-process-query-on-exit-flag p nil)
 
 	      ;; Set variables for computing the prompt for reading password.
@@ -1935,10 +1967,6 @@ Returns nil if an error message has appeared."
 
 (defun tramp-smb-call-winexe (vec)
   "Apply a remote command, if possible, using `tramp-smb-winexe-program'."
-
-  ;; We call `tramp-get-buffer' in order to get a debug buffer for
-  ;; messages.
-  (tramp-get-buffer vec)
 
   ;; Check for program.
   (unless (executable-find tramp-smb-winexe-program)

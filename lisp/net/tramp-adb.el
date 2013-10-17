@@ -662,7 +662,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (if (file-directory-p filename)
       (tramp-file-name-handler 'copy-directory filename newname keep-date t)
     (with-tramp-progress-reporter
-	(tramp-dissect-file-name (if (file-remote-p filename) filename newname))
+	(tramp-dissect-file-name
+	 (if (tramp-tramp-file-p filename) filename newname))
 	0 (format "Copying %s to %s" filename newname)
 
       (let ((tmpfile (file-local-copy filename)))
@@ -704,7 +705,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	newname (expand-file-name newname))
 
   (with-parsed-tramp-file-name
-      (if (file-remote-p filename) filename newname) nil
+      (if (tramp-tramp-file-p filename) filename newname) nil
     (with-tramp-progress-reporter
 	v 0 (format "Renaming %s to %s" newname filename)
 
@@ -1134,6 +1135,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-adb-wait-for-output p 30)
 	    (unless (eq 'run (process-status p))
 	      (tramp-error  vec 'file-error "Terminated!"))
+	    (tramp-set-connection-property p "vector" vec)
 	    (tramp-compat-set-process-query-on-exit-flag p nil)
 
 	    ;; Check whether the properties have been changed.  If

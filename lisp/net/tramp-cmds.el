@@ -48,10 +48,7 @@
    nil
    (mapcar
     (lambda (x)
-      (with-current-buffer x
-	(when (and (stringp default-directory)
-		   (file-remote-p default-directory))
-	  x)))
+      (with-current-buffer x (when (tramp-tramp-file-p default-directory) x)))
     (buffer-list))))
 
 ;;;###tramp-autoload
@@ -81,8 +78,7 @@ When called interactively, a Tramp connection has to be selected."
 	      (completing-read
 	       "Enter Tramp connection: " connections nil t
 	       (try-completion "" connections)))
-	(when (and name (file-remote-p name))
-	  (with-parsed-tramp-file-name name nil v))))
+	(and (tramp-tramp-file-p name) (tramp-dissect-file-name name))))
     nil nil))
 
   (if (not vec)
@@ -113,8 +109,7 @@ When called interactively, a Tramp connection has to be selected."
 (defun tramp-cleanup-this-connection ()
   "Flush all connection related objects of the current buffer's connection."
   (interactive)
-  (and (stringp default-directory)
-       (file-remote-p default-directory)
+  (and (tramp-tramp-file-p default-directory)
        (tramp-cleanup-connection
 	(tramp-dissect-file-name default-directory 'noexpand))))
 

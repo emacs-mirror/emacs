@@ -630,7 +630,7 @@ is no information where to trace the message.")
 	     nil v 'file-error
 	     "Copying failed, see buffer `%s' for details." (buffer-name)))))
 
-      (when (file-remote-p newname)
+      (when (tramp-tramp-file-p newname)
 	(with-parsed-tramp-file-name newname nil
 	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname))))))
@@ -938,6 +938,9 @@ is no information where to trace the message.")
       (if (not (processp p))
 	  (tramp-error
 	   v 'file-notify-error "gvfs-monitor-file failed to start")
+	(tramp-message
+	 v 6 "Run `%s', %S" (mapconcat 'identity (process-command p) " ") p)
+	(tramp-set-connection-property p "vector" v)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
 	(set-process-filter p 'tramp-gvfs-file-gvfs-monitor-file-process-filter)
 	(with-current-buffer (process-buffer p)
@@ -1061,12 +1064,12 @@ is no information where to trace the message.")
 	     nil v 'file-error
 	     "Renaming failed, see buffer `%s' for details." (buffer-name)))))
 
-      (when (file-remote-p filename)
+      (when (tramp-tramp-file-p filename)
 	(with-parsed-tramp-file-name filename nil
 	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname)))
 
-      (when (file-remote-p newname)
+      (when (tramp-tramp-file-p newname)
 	(with-parsed-tramp-file-name newname nil
 	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname))))))

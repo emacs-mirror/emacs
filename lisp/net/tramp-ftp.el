@@ -172,7 +172,7 @@ pass to the OPERATION."
        ;; We must copy it locally first, because there is no place in
        ;; ange-ftp for correct handling.
        ((and (memq operation '(copy-file rename-file))
-	     (file-remote-p (cadr args))
+	     (tramp-tramp-file-p (cadr args))
 	     (not (tramp-ftp-file-name-p (cadr args))))
 	(let* ((filename (car args))
 	       (newname (cadr args))

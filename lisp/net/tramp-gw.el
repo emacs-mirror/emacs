@@ -96,7 +96,7 @@
   (unless (memq (process-status proc) '(run open))
     (tramp-message
      tramp-gw-vector 4 "Deleting auxiliary process `%s'" tramp-gw-gw-proc)
-    (let* (tramp-verbose
+    (let* ((tramp-verbose 0)
 	   (p (tramp-get-connection-property proc "process" nil)))
       (when (processp p) (delete-process p)))))
 
@@ -111,7 +111,7 @@
     (tramp-compat-set-process-query-on-exit-flag proc nil)
     ;; We don't want debug messages, because the corresponding debug
     ;; buffer might be undecided.
-    (let (tramp-verbose)
+    (let ((tramp-verbose 0))
       (tramp-set-connection-property tramp-gw-gw-proc "process" proc)
       (tramp-set-connection-property proc "process" tramp-gw-gw-proc))
     ;; Set the process-filter functions for both processes.
@@ -125,7 +125,7 @@
 	  (tramp-gw-process-filter tramp-gw-gw-proc s))))))
 
 (defun tramp-gw-process-filter (proc string)
-  (let (tramp-verbose)
+  (let ((tramp-verbose 0))
     (process-send-string
      (tramp-get-connection-property proc "process" nil) string)))
 
@@ -245,7 +245,7 @@ authentication is requested from proxy server, provide it."
 	;; proxies have a timeout of 60".  We wait 65" in order to
 	;; receive an answer this case.
 	(ignore-errors
-	  (let (tramp-verbose)
+	  (let ((tramp-verbose 0))
 	    (tramp-wait-for-regexp proc 65 "\r?\n\r?\n")))
 	;; Check return code.
 	(goto-char (point-min))

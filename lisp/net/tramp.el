@@ -1433,67 +1433,65 @@ The outline level is equal to the verbosity of the Tramp message."
   "Append message to debug buffer.
 Message is formatted with FMT-STRING as control string and the remaining
 ARGUMENTS to actually emit the message (if applicable)."
-  (when (get-buffer (tramp-buffer-name vec))
-    (with-current-buffer (tramp-get-debug-buffer vec)
-      (goto-char (point-max))
-      ;; Headline.
-      (when (bobp)
-	(insert
-	 (format
-	  ";; %sEmacs: %s Tramp: %s -*- mode: outline; -*-"
-	  (if (featurep 'sxemacs) "SX" (if (featurep 'xemacs) "X" "GNU "))
-	  emacs-version tramp-version)))
-      (unless (bolp)
-	(insert "\n"))
-      ;; Timestamp.
-      (let ((now (current-time)))
-        (insert (format-time-string "%T." now))
-        (insert (format "%06d " (nth 2 now))))
-      ;; Calling Tramp function.  We suppress compat and trace
-      ;; functions from being displayed.
-      (let ((btn 1) btf fn)
-	(while (not fn)
-	  (setq btf (nth 1 (backtrace-frame btn)))
-	  (if (not btf)
-	      (setq fn "")
-	    (when (symbolp btf)
-	      (setq fn (symbol-name btf))
-	      (unless
-		  (and
-		   (string-match "^tramp" fn)
-		   (not
-		    (string-match
-		     (concat
-		      "^"
-		      (regexp-opt
-		       '("tramp-backtrace"
-			 "tramp-compat-condition-case-unless-debug"
-			 "tramp-compat-funcall"
-			 "tramp-compat-with-temp-message"
-			 "tramp-condition-case-unless-debug"
-			 "tramp-debug-message"
-			 "tramp-error"
-			 "tramp-error-with-buffer"
-			 "tramp-message"
-			 "tramp-user-error")
-		       t)
-		      "$")
-		     fn)))
-		(setq fn nil)))
-	    (setq btn (1+ btn))))
-	;; The following code inserts filename and line number.
-	;; Should be inactive by default, because it is time
-	;; consuming.
-;	(let ((ffn (find-function-noselect (intern fn))))
-;	  (insert
-;	   (format
-;	    "%s:%d: "
-;	    (file-name-nondirectory (buffer-file-name (car ffn)))
-;	    (with-current-buffer (car ffn)
-;	      (1+ (count-lines (point-min) (cdr ffn)))))))
-	(insert (format "%s " fn)))
-      ;; The message.
-      (insert (apply 'format fmt-string arguments)))))
+  (with-current-buffer (tramp-get-debug-buffer vec)
+    (goto-char (point-max))
+    ;; Headline.
+    (when (bobp)
+      (insert
+       (format
+	";; %sEmacs: %s Tramp: %s -*- mode: outline; -*-"
+	(if (featurep 'sxemacs) "SX" (if (featurep 'xemacs) "X" "GNU "))
+	emacs-version tramp-version)))
+    (unless (bolp)
+      (insert "\n"))
+    ;; Timestamp.
+    (let ((now (current-time)))
+      (insert (format-time-string "%T." now))
+      (insert (format "%06d " (nth 2 now))))
+    ;; Calling Tramp function.  We suppress compat and trace functions
+    ;; from being displayed.
+    (let ((btn 1) btf fn)
+      (while (not fn)
+	(setq btf (nth 1 (backtrace-frame btn)))
+	(if (not btf)
+	    (setq fn "")
+	  (when (symbolp btf)
+	    (setq fn (symbol-name btf))
+	    (unless
+		(and
+		 (string-match "^tramp" fn)
+		 (not
+		  (string-match
+		   (concat
+		    "^"
+		    (regexp-opt
+		     '("tramp-backtrace"
+		       "tramp-compat-condition-case-unless-debug"
+		       "tramp-compat-funcall"
+		       "tramp-compat-with-temp-message"
+		       "tramp-condition-case-unless-debug"
+		       "tramp-debug-message"
+		       "tramp-error"
+		       "tramp-error-with-buffer"
+		       "tramp-message"
+		       "tramp-user-error")
+		     t)
+		    "$")
+		   fn)))
+	      (setq fn nil)))
+	  (setq btn (1+ btn))))
+      ;; The following code inserts filename and line number.  Should
+      ;; be inactive by default, because it is time consuming.
+;      (let ((ffn (find-function-noselect (intern fn))))
+;	(insert
+;	 (format
+;	  "%s:%d: "
+;	  (file-name-nondirectory (buffer-file-name (car ffn)))
+;	  (with-current-buffer (car ffn)
+;	    (1+ (count-lines (point-min) (cdr ffn)))))))
+      (insert (format "%s " fn)))
+    ;; The message.
+    (insert (apply 'format fmt-string arguments))))
 
 (defvar tramp-message-show-message t
   "Show Tramp message in the minibuffer.
@@ -1530,13 +1528,13 @@ applicable)."
 		 arguments))
 	;; Log only when there is a minimum level.
 	(when (>= tramp-verbose 4)
-	  (when (and vec-or-proc
-		     (processp vec-or-proc)
-		     (buffer-name (process-buffer vec-or-proc)))
-	    (with-current-buffer (process-buffer vec-or-proc)
-	      ;; Translate proc to vec.
-	      (setq vec-or-proc (tramp-dissect-file-name default-directory))))
-	  (when (and vec-or-proc (vectorp vec-or-proc))
+	  ;; Translate proc to vec.
+	  (when (processp vec-or-proc)
+	    (let ((tramp-verbose 0))
+	      (setq vec-or-proc
+		    (tramp-get-connection-property vec-or-proc "vector" nil))))
+	  ;; Do it.
+	  (when (vectorp vec-or-proc)
 	    (apply 'tramp-debug-message
 		   vec-or-proc
 		   (concat (format "(%d) # " level) fmt-string)
@@ -1548,7 +1546,7 @@ If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  This
 function is meant for debugging purposes."
   (if vec-or-proc
       (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
-    (if (<= 10 tramp-verbose)
+    (if (>= tramp-verbose 10)
 	(with-output-to-temp-buffer "*debug tramp*" (backtrace)))))
 
 (defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
@@ -1821,7 +1819,7 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 	  ;; We do not want to send any remote command.
 	  (non-essential t))
       (when
-	  (file-remote-p
+	  (tramp-tramp-file-p
 	   (tramp-compat-funcall
 	    'buffer-substring-no-properties end (point-max)))
 	(save-excursion
@@ -2356,7 +2354,8 @@ not in completion mode."
   (and (tramp-tramp-file-p filename)
        (with-parsed-tramp-file-name filename nil
 	 (or (not (tramp-completion-mode-p))
-	     (let ((p (tramp-get-connection-process v)))
+	     (let* ((tramp-verbose 0)
+		    (p (tramp-get-connection-process v)))
 	       (and p (processp p) (memq (process-status p) '(run open))))))))
 
 ;; Method, host name and user name completion.
@@ -2934,7 +2933,8 @@ User is always nil."
 
 (defun tramp-handle-file-remote-p (filename &optional identification connected)
   "Like `file-remote-p' for Tramp files."
-  (let ((tramp-verbose 3))
+  ;; We do not want traces in the debug buffer.
+  (let ((tramp-verbose (min tramp-verbose 3)))
     (when (tramp-tramp-file-p filename)
       (let* ((v (tramp-dissect-file-name filename))
 	     (p (tramp-get-connection-process v))
@@ -3663,8 +3663,8 @@ Example:
 would yield `t'.  On the other hand, the following check results in nil:
 
   (tramp-equal-remote \"/sudo::/etc\" \"/su::/etc\")"
-  (and (stringp (file-remote-p file1))
-       (stringp (file-remote-p file2))
+  (and (tramp-tramp-file-p file1)
+       (tramp-tramp-file-p file2)
        (string-equal (file-remote-p file1) (file-remote-p file2))))
 
 ;;;###tramp-autoload
@@ -4198,7 +4198,7 @@ Only works for Bourne-like shells."
 (defun tramp-eshell-directory-change ()
   "Set `eshell-path-env' to $PATH of the host related to `default-directory'."
   (setq eshell-path-env
-	(if (file-remote-p default-directory)
+	(if (tramp-tramp-file-p default-directory)
 	    (with-parsed-tramp-file-name default-directory nil
 	      (mapconcat
 	       'identity

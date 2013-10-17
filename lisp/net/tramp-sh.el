@@ -1300,7 +1300,7 @@ of."
 
 (defun tramp-sh-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."
-  (if (file-remote-p filename)
+  (if (tramp-tramp-file-p filename)
       (with-parsed-tramp-file-name filename nil
 	(tramp-flush-file-property v localname)
 	(let ((time (if (or (null time) (equal time '(0 0)))
@@ -1339,7 +1339,7 @@ be non-negative integers."
   ;; the majority of cases.
   ;; Don't modify `last-coding-system-used' by accident.
   (let ((last-coding-system-used last-coding-system-used))
-    (if (file-remote-p filename)
+    (if (tramp-tramp-file-p filename)
 	(with-parsed-tramp-file-name filename nil
 	  (if (and (zerop (user-uid)) (tramp-local-host-p v))
 	      ;; If we are root on the local host, we can do it directly.
@@ -2323,6 +2323,7 @@ The method used must be an out-of-band method."
 		  (tramp-message
 		   orig-vec 6 "%s"
 		   (mapconcat 'identity (process-command p) " "))
+		  (tramp-set-connection-property p "vector" orig-vec)
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
 		  (tramp-process-actions
 		   p v nil tramp-actions-copy-out-of-band)
@@ -2333,7 +2334,8 @@ The method used must be an out-of-band method."
 		      (re-search-backward "tramp_exit_status [0-9]+" nil t)
 		    (tramp-error
 		     orig-vec 'file-error
-		     "Couldn't find exit status of `%s'" (process-command p)))
+		     "Couldn't find exit status of `%s'"
+		     (mapconcat 'identity (process-command p) " ")))
 		  (skip-chars-forward "^ ")
 		  (unless (zerop (read (current-buffer)))
 		    (forward-line -1)
@@ -3342,14 +3344,12 @@ Fall back to normal file name handler if no Tramp handler exists."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
     (let* ((default-directory (file-name-directory file-name))
-	   command events filter p)
+	   command events filter p sequence)
       (cond
        ;; gvfs-monitor-dir.
        ((setq command (tramp-get-remote-gvfs-monitor-dir v))
 	(setq filter 'tramp-sh-file-gvfs-monitor-dir-process-filter
-	      p (start-file-process
-		 "gvfs-monitor-dir" (generate-new-buffer " *gvfs-monitor-dir*")
-		 command localname)))
+	      sequence `(,command ,localname)))
        ;; inotifywait.
        ((setq command (tramp-get-remote-inotifywait v))
 	(setq filter 'tramp-sh-file-inotifywait-process-filter
@@ -3359,18 +3359,27 @@ Fall back to normal file name handler if no Tramp handler exists."
 		"create,modify,move,delete,attrib")
 	       ((memq 'change flags) "create,modify,move,delete")
 	       ((memq 'attribute-change flags) "attrib"))
-	      p (start-file-process
-		  "inotifywait" (generate-new-buffer " *inotifywait*")
-		  command "-mq" "-e" events localname)))
+	      sequence `(,command "-mq" "-e" ,events ,localname)))
        ;; None.
        (t (tramp-error
 	   v 'file-notify-error
 	   "No file notification program found on %s"
 	   (file-remote-p file-name))))
+      ;; Start process.
+      (setq p (apply
+	       'start-file-process
+	       (file-name-nondirectory command)
+	       (generate-new-buffer
+		(format " *%s*" (file-name-nondirectory command)))
+	       sequence))
       ;; Return the process object as watch-descriptor.
       (if (not (processp p))
 	  (tramp-error
-	   v 'file-notify-error "`%s' failed to start on remote host" command)
+	   v 'file-notify-error
+	   "`%s' failed to start on remote host"
+	   (mapconcat 'identity sequence " "))
+	(tramp-message v 6 "Run `%s', %S" (mapconcat 'identity sequence " ") p)
+	(tramp-set-connection-property p "vector" v)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
 	(set-process-filter p filter)
 	p))))
@@ -4332,10 +4341,6 @@ connection if a previous connection has died for some reason."
     ;; New connection must be opened.
     (condition-case err
 	(unless (and p (processp p) (memq (process-status p) '(run open)))
-
-	  ;; We call `tramp-get-buffer' in order to get a debug buffer
-	  ;; for messages from the beginning.
-	  (tramp-get-buffer vec)
 
 	  ;; If `non-essential' is non-nil, don't reopen a new connection.
 	  (when (and (boundp 'non-essential) (symbol-value 'non-essential))

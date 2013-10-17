@@ -471,7 +471,7 @@ element is not omitted."
 
      ;; Fallback, if there is no Lisp support yet.
      (t (let ((default-directory
-		(if (file-remote-p default-directory)
+		(if (tramp-tramp-file-p default-directory)
 		    (tramp-compat-temporary-file-directory)
 		  default-directory))
 	      (unix95 (getenv "UNIX95"))

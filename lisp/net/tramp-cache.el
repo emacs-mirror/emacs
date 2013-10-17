@@ -405,6 +405,7 @@ for all methods.  Resulting data are derived from connection history."
       (with-temp-buffer
 	(insert-file-contents tramp-persistency-file-name)
 	(let ((list (read (current-buffer)))
+	      (tramp-verbose 0)
 	      element key item)
 	  (while (setq element (pop list))
 	    (setq key (pop element))
