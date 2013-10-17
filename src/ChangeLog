@@ -1,3 +1,13 @@
+2013-10-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	bool vector int width fixes
+	* data.c (bool_vector_spare_mask, Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at):
+	Use EMACS_INT, not ptrdiff_t, to record bit counts, as a bit count
+	can exceed PTRDIFF_MAX, at least in theory.
+	(Fbool_vector_count_matches_at):
+	Use int, not ptrdiff_t, to record a value that can't exceed INT_MAX.
+
 2013-10-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.h (conv_sockaddr_to_lisp): New decl, for newly-extern func.

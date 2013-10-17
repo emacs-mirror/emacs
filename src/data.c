@@ -2980,7 +2980,7 @@ lowercase l) for small endian machines.  */)
    that we don't have to special-case empty bit vectors.  */
 
 static bits_word
-bool_vector_spare_mask (ptrdiff_t nr_bits)
+bool_vector_spare_mask (EMACS_INT nr_bits)
 {
   return (((bits_word) 1) << (nr_bits % BITS_PER_BITS_WORD)) - 1;
 }
@@ -3218,7 +3218,7 @@ DEFUN ("bool-vector-count-matches", Fbool_vector_count_matches,
 A must be a bool vector.  B is a generalized bool.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  ptrdiff_t count;
+  EMACS_INT count;
   EMACS_INT nr_bits;
   bits_word *adata;
   bits_word match;
@@ -3253,9 +3253,9 @@ A must be a bool vector.  B is a generalized boolean.  i is an
 index into the vector.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object i)
 {
-  ptrdiff_t count;
+  EMACS_INT count;
   EMACS_INT nr_bits;
-  ptrdiff_t offset;
+  int offset;
   bits_word *adata;
   bits_word twiddle;
   bits_word mword; /* Machine word.  */
