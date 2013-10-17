@@ -227,7 +227,9 @@ extern Lisp_Object system_process_attributes (Lisp_Object);
 
 extern void record_deleted_pid (pid_t, Lisp_Object);
 struct sockaddr;
+#ifdef WINDOWSNT
 extern Lisp_Object conv_sockaddr_to_lisp (struct sockaddr *, int);
+#endif
 extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
 extern bool kbd_on_hold_p (void);
@@ -242,8 +244,9 @@ extern void delete_write_fd (int fd);
 extern void catch_child_signal (void);
 #endif
 
+#ifdef WINDOWSNT
 extern Lisp_Object network_interface_list (void);
 extern Lisp_Object network_interface_info (Lisp_Object);
-
+#endif
 
 INLINE_HEADER_END

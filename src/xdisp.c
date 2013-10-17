@@ -26410,9 +26410,11 @@ draw_phys_cursor_glyph (struct window *w, struct glyph_row *row,
 }
 
 
-/* EXPORT:
-   Erase the image of a cursor of window W from the screen.  */
+/* Erase the image of a cursor of window W from the screen.  */
 
+#ifndef WINDOWSNT
+static
+#endif
 void
 erase_phys_cursor (struct window *w)
 {

@@ -161,6 +161,56 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 		     struct coding_system *);
 
 
+/* Return true if FILENAME exists.  */
+
+static bool
+check_existing (const char *filename)
+{
+  return faccessat (AT_FDCWD, filename, F_OK, AT_EACCESS) == 0;
+}
+
+/* Return true if file FILENAME exists and can be executed.  */
+
+static bool
+check_executable (char *filename)
+{
+  return faccessat (AT_FDCWD, filename, X_OK, AT_EACCESS) == 0;
+}
+
+/* Return true if file FILENAME exists and can be accessed
+   according to AMODE, which should include W_OK.
+   On failure, return false and set errno.  */
+
+static bool
+check_writable (const char *filename, int amode)
+{
+#ifdef MSDOS
+  /* FIXME: an faccessat implementation should be added to the
+     DOS/Windows ports and this #ifdef branch should be removed.  */
+  struct stat st;
+  if (stat (filename, &st) < 0)
+    return 0;
+  errno = EPERM;
+  return (st.st_mode & S_IWRITE || S_ISDIR (st.st_mode));
+#else /* not MSDOS */
+  bool res = faccessat (AT_FDCWD, filename, amode, AT_EACCESS) == 0;
+#ifdef CYGWIN
+  /* faccessat may have returned failure because Cygwin couldn't
+     determine the file's UID or GID; if so, we return success. */
+  if (!res)
+    {
+      int faccessat_errno = errno;
+      struct stat st;
+      if (stat (filename, &st) < 0)
+        return 0;
+      res = (st.st_uid == -1 || st.st_gid == -1);
+      errno = faccessat_errno;
+    }
+#endif /* CYGWIN */
+  return res;
+#endif /* not MSDOS */
+}
+
 /* Signal a file-access failure.  STRING describes the failure,
    NAME the file involved, and ERRORNO the errno value.
 
@@ -1733,7 +1783,7 @@ those `/' is discarded.  */)
 
   xnm = SSDATA (filename);
   x = xnm + SBYTES (filename);
-  
+
   /* If /~ or // appears, discard everything through first slash.  */
   while ((p = search_embedded_absfilename (xnm, x)) != NULL)
     /* This time we do not start over because we've already expanded envvars
@@ -2440,55 +2490,6 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
   return file_name_absolute_p (SSDATA (filename)) ? Qt : Qnil;
 }
 
-/* Return true if FILENAME exists.  */
-bool
-check_existing (const char *filename)
-{
-  return faccessat (AT_FDCWD, filename, F_OK, AT_EACCESS) == 0;
-}
-
-/* Return true if file FILENAME exists and can be executed.  */
-
-static bool
-check_executable (char *filename)
-{
-  return faccessat (AT_FDCWD, filename, X_OK, AT_EACCESS) == 0;
-}
-
-/* Return true if file FILENAME exists and can be accessed
-   according to AMODE, which should include W_OK.
-   On failure, return false and set errno.  */
-
-static bool
-check_writable (const char *filename, int amode)
-{
-#ifdef MSDOS
-  /* FIXME: an faccessat implementation should be added to the
-     DOS/Windows ports and this #ifdef branch should be removed.  */
-  struct stat st;
-  if (stat (filename, &st) < 0)
-    return 0;
-  errno = EPERM;
-  return (st.st_mode & S_IWRITE || S_ISDIR (st.st_mode));
-#else /* not MSDOS */
-  bool res = faccessat (AT_FDCWD, filename, amode, AT_EACCESS) == 0;
-#ifdef CYGWIN
-  /* faccessat may have returned failure because Cygwin couldn't
-     determine the file's UID or GID; if so, we return success. */
-  if (!res)
-    {
-      int faccessat_errno = errno;
-      struct stat st;
-      if (stat (filename, &st) < 0)
-        return 0;
-      res = (st.st_uid == -1 || st.st_gid == -1);
-      errno = faccessat_errno;
-    }
-#endif /* CYGWIN */
-  return res;
-#endif /* not MSDOS */
-}
-
 DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
        doc: /* Return t if file FILENAME exists (whether or not you can read it.)
 See also `file-readable-p' and `file-attributes'.
@@ -2514,7 +2515,7 @@ Use `file-symlink-p' to test for such links.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return (check_existing (SSDATA (absname))) ? Qt : Qnil;
+  return check_existing (SSDATA (absname)) ? Qt : Qnil;
 }
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,

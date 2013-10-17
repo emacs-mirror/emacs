@@ -2088,7 +2088,7 @@ init_environment (char ** argv)
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
-    if (!check_existing ("C:/.emacs"))
+    if (faccessat (AT_FDCWD, "C:/.emacs", F_OK, AT_EACCESS) != 0)
       {
 	HRESULT profile_result;
 	/* Dynamically load ShGetFolderPath, as it won't exist on versions
@@ -2226,7 +2226,8 @@ init_environment (char ** argv)
 			  strcpy (&fname[pend - pstart + 1], "cmdproxy.exe");
 			  ExpandEnvironmentStrings ((LPSTR) fname, bufc,
 						    sizeof (bufc));
-			  if (check_existing (bufc))
+			  if (faccessat (AT_FDCWD, bufc, F_OK, AT_EACCESS)
+			      == 0)
 			    {
 			      lpval = bufc;
 			      dwType = REG_SZ;

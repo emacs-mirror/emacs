@@ -2097,6 +2097,9 @@ bind_polling_period (int n)
 
 /* Apply the control modifier to CHARACTER.  */
 
+#ifndef WINDOWSNT
+static
+#endif
 int
 make_ctrl_char (int c)
 {

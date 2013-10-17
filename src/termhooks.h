@@ -630,8 +630,10 @@ extern void delete_terminal (struct terminal *);
 /* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;
 
+#ifdef WINDOWSNT
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
+#endif
 
 #ifdef HAVE_GPM
 extern void close_gpm (int gpm_fd);

@@ -249,7 +249,9 @@ init_gnutls_functions (void)
 #define fn_gnutls_record_recv			gnutls_record_recv
 #define fn_gnutls_record_send			gnutls_record_send
 #define fn_gnutls_strerror			gnutls_strerror
+#ifdef WINDOWSNT
 #define fn_gnutls_transport_set_errno		gnutls_transport_set_errno
+#endif
 #define fn_gnutls_transport_set_ptr2		gnutls_transport_set_ptr2
 #define fn_gnutls_x509_crt_check_hostname	gnutls_x509_crt_check_hostname
 #define fn_gnutls_x509_crt_deinit		gnutls_x509_crt_deinit
@@ -364,11 +366,13 @@ emacs_gnutls_record_check_pending (gnutls_session_t state)
   return fn_gnutls_record_check_pending (state);
 }
 
+#ifdef WINDOWSNT
 void
 emacs_gnutls_transport_set_errno (gnutls_session_t state, int err)
 {
   fn_gnutls_transport_set_errno (state, err);
 }
+#endif
 
 ptrdiff_t
 emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
