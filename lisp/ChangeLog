@@ -1,5 +1,8 @@
 2013-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Complete var names for
+	let-bindings.
+
 	* progmodes/sh-script.el (sh-find-prev-matching): Disable SMIE's
 	forward-sexp-function while we redo its job (bug#15613).
 

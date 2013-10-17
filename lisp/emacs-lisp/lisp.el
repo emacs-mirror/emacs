@@ -867,6 +867,17 @@ considered."
                                      (< (point) beg)))))
                      (list t obarray
                            :predicate (lambda (sym) (get sym 'error-conditions))))
+		    ((and ?\(
+			  (guard (save-excursion
+				   (goto-char (1- beg))
+				   (up-list -1)
+				   (forward-symbol -1)
+				   (looking-at "\\_<let\\*?\\_>"))))
+		     (list t obarray
+			   :predicate #'boundp
+			   :company-doc-buffer #'lisp--company-doc-buffer
+			   :company-docsig #'lisp--company-doc-string
+			   :company-location #'lisp--company-location))
                     (_ (list nil obarray
                              :predicate #'fboundp
                              :company-doc-buffer #'lisp--company-doc-buffer
