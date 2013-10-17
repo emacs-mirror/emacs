@@ -33306,12 +33306,15 @@ Lisp integers.  This is the only storage format for Calc data objects
 which is not a Lisp list.
 
 Large integers are stored as lists of the form @samp{(bigpos @var{d0}
-@var{d1} @var{d2} @dots{})} for positive integers 1000000 or more, or
-@samp{(bigneg @var{d0} @var{d1} @var{d2} @dots{})} for negative integers
-@mathit{-1000000} or less.  Each @var{d} is a base-1000 ``digit,'' a Lisp integer
-from 0 to 999.  The least significant digit is @var{d0}; the last digit,
+@var{d1} @var{d2} @dots{})} for sufficiently large positive integers
+(where ``sufficiently large'' depends on the machine), or
+@samp{(bigneg @var{d0} @var{d1} @var{d2} @dots{})} for negative
+integers.  Each @var{d} is a base-@expr{10^n} ``digit'' (where again,
+@expr{n} depends on the machine), a Lisp integer from 0 to
+99@dots{}9.  The least significant digit is @var{d0}; the last digit,
 @var{dn}, which is always nonzero, is the most significant digit.  For
-example, the integer @mathit{-12345678} is stored as @samp{(bigneg 678 345 12)}.
+example, the integer @mathit{-12345678} might be stored as
+@samp{(bigneg 678 345 12)}. 
 
 The distinction between small and large integers is entirely hidden from
 the user.  In @code{defmath} definitions, the Lisp predicate @code{integerp}
