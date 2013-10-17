@@ -35,6 +35,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
+/* Define a TYPE constant ID as an externally visible name.  Use like this:
+
+      DEFINE_GDB_SYMBOL_BEGIN (TYPE, ID)
+      #define ID something
+      DEFINE_GDB_SYMBOL_END (ID)
+
+   This hack is for the benefit of compilers that do not make macro
+   definitions visible to the debugger.  It's used for symbols that
+   .gdbinit needs, symbols whose values may not fit in 'int' (where an
+   enum would suffice).  */
+#ifdef MAIN_PROGRAM
+# define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
+# define DEFINE_GDB_SYMBOL_END(id) = id;
+#else
+# define DEFINE_GDB_SYMBOL_BEGIN(type, id)
+# define DEFINE_GDB_SYMBOL_END(val)
+#endif
+
 /* The ubiquitous max and min macros.  */
 #undef min
 #undef max
@@ -533,15 +551,15 @@ LISP_MACRO_DEFUN (XIL, Lisp_Object, (EMACS_INT i), (i))
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-static ptrdiff_t const ARRAY_MARK_FLAG
+DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, ARRAY_MARK_FLAG)
 #define ARRAY_MARK_FLAG PTRDIFF_MIN
-      = ARRAY_MARK_FLAG;
+DEFINE_GDB_SYMBOL_END (ARRAY_MARK_FLAG)
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-static ptrdiff_t const PSEUDOVECTOR_FLAG
+DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, PSEUDOVECTOR_FLAG)
 #define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
-      = PSEUDOVECTOR_FLAG;
+DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
@@ -603,12 +621,13 @@ enum More_Lisp_Bits
   };
 
 /* These functions extract various sorts of values from a Lisp_Object.
- For example, if tem is a Lisp_Object whose type is Lisp_Cons,
- XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
+   For example, if tem is a Lisp_Object whose type is Lisp_Cons,
+   XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
+   that cons.  */
 
-static EMACS_INT const VALMASK
+DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
 #define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
-      = VALMASK;
+DEFINE_GDB_SYMBOL_END (VALMASK)
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */

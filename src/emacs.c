@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <close-stream.h>
 
+#define MAIN_PROGRAM
 #include "lisp.h"
 
 #ifdef WINDOWSNT

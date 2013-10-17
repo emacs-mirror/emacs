@@ -1,5 +1,10 @@
 2013-10-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Make VALMASK visible to GDB even if clang is used (Bug#15574).
+	* emacs.c (MAIN_PROGRAM): New macro.
+	* lisp.h (DEFINE_GDB_SYMBOL_BEGIN, DEFINE_GDB_SYMBOL_END): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Use them.
+
 	bool vector int width fixes
 	* data.c (bool_vector_spare_mask, Fbool_vector_count_matches)
 	(Fbool_vector_count_matches_at):
