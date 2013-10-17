@@ -1,5 +1,8 @@
 2013-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* skeleton.el (skeleton-newline): Remove.
+	(skeleton-internal-1): Use (insert "\n") instead.
+
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Complete var names for
 	let-bindings.
 

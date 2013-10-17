@@ -356,15 +356,6 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit 'recursive)
     recursive))
 
-(defun skeleton-newline ()
-  (if (or (eq (point) skeleton-point)
-          (eq (point) (car skeleton-positions)))
-      ;; If point is recorded, avoid `newline' since it may do things like
-      ;; strip trailing spaces, and since recorded points are commonly placed
-      ;; right after a trailing space, calling `newline' can destroy the
-      ;; position and renders the recorded position incorrect.
-      (insert "\n")
-    (newline)))
 
 (defun skeleton-internal-1 (element &optional literal recursive)
   (cond
@@ -384,7 +375,7 @@ automatically, and you are prompted to fill in the variable parts.")))
     (let ((pos (if (eq element '>) (point))))
       (cond
        ((and skeleton-regions (eq (nth 1 skeleton-il) '_))
-	(or (eolp) (newline))
+	(or (eolp) (insert "\n"))
 	(if pos (save-excursion (goto-char pos) (indent-according-to-mode)))
 	(indent-region (line-beginning-position)
 		       (car skeleton-regions) nil))
@@ -393,13 +384,13 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(if pos (indent-according-to-mode)))
        (skeleton-newline-indent-rigidly
 	(let ((pt (point)))
-	  (skeleton-newline)
+          (insert "\n")
 	  (indent-to (save-excursion
 		       (goto-char pt)
 		       (if pos (indent-according-to-mode))
 		       (current-indentation)))))
        (t (if pos (reindent-then-newline-and-indent)
-	    (skeleton-newline)
+	    (insert "\n")
 	    (indent-according-to-mode))))))
    ((eq element '>)
     (if (and skeleton-regions (eq (nth 1 skeleton-il) '_))
