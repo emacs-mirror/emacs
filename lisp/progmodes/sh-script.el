@@ -3097,6 +3097,7 @@ This takes into account that there may be nested open..close pairings.
 OPEN and CLOSE are regexps denoting the tokens to be matched.
 Optional parameter DEPTH (usually 1) says how many to look for."
   (let ((parse-sexp-ignore-comments t)
+        (forward-sexp-function nil)
 	prev)
     (setq depth (or depth 1))
     (save-excursion

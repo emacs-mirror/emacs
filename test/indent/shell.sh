@@ -5,6 +5,12 @@ setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
 # adsgsdg
 
+if foo; then
+    if bar; then
+	toto
+    fi
+fi                              # bug#15613
+
 case $X in
     foo)
         do_something
