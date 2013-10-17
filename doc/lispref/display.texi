@@ -1126,6 +1126,7 @@ The value of the last form in @var{forms} is returned.
 @result{} #<buffer foo>
 
 ---------- Buffer: foo ----------
+
 20
 
 #<buffer foo>
