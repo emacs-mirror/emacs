@@ -212,7 +212,7 @@ and <S-right>.")
             (skip-chars-forward " \t")
             (setq eol-flag (eolp)))
           (or eol-flag
-              (indent-to (max 0 (+ indent arg)) 0))
+              (indent-to (max 0 (+ indent (prefix-numeric-value arg))) 0))
           (delete-region (point) (progn (skip-chars-forward " \t") (point))))
         (forward-line 1))
       (move-marker end nil))))

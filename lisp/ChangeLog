@@ -1,3 +1,7 @@
+2013-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* indent.el (indent-rigidly): Fix 2013-10-08 change.  (Bug#15635)
+
 2013-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* skeleton.el (skeleton-newline): Remove.
