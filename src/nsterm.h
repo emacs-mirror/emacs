@@ -552,8 +552,7 @@ struct ns_display_info
   /* The generic display parameters corresponding to this NS display. */
   struct terminal *terminal;
 
-  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
-     The same cons cell also appears in ns_display_name_list.  */
+  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
 
   /* The number of fonts loaded. */
@@ -624,7 +623,6 @@ struct ns_display_info
 /* This is a chain of structures for all the NS displays currently in use.  */
 extern struct ns_display_info *x_display_list;
 
-extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name (Lisp_Object name);
 
 struct ns_output

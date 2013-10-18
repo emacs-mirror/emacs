@@ -175,20 +175,13 @@ ns_get_window (Lisp_Object maybeFrame)
 struct ns_display_info *
 ns_display_info_for_name (Lisp_Object name)
 {
-  Lisp_Object names;
   struct ns_display_info *dpyinfo;
 
   CHECK_STRING (name);
 
-  for (dpyinfo = x_display_list, names = ns_display_name_list;
-       dpyinfo;
-       dpyinfo = dpyinfo->next, names = XCDR (names))
-    {
-      Lisp_Object tem;
-      tem = Fstring_equal (XCAR (XCAR (names)), name);
-      if (!NILP (tem))
-        return dpyinfo;
-    }
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+    if (!NILP (Fstring_equal (XCAR (dpyinfo->name_list_element), name)))
+      return dpyinfo;
 
   error ("Emacs for OpenStep does not yet support multi-display.");
 
@@ -1843,11 +1836,11 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
      (void)
 {
-  Lisp_Object tail, result;
+  Lisp_Object result = Qnil;
+  struct ns_display_info *ndi;
 
-  result = Qnil;
-  for (tail = ns_display_name_list; CONSP (tail); tail = XCDR (tail))
-    result = Fcons (XCAR (XCAR (tail)), result);
+  for (ndi = x_display_list; ndi; ndi = ndi->next)
+    result = Fcons (XCAR (ndi->name_list_element), result);
 
   return result;
 }

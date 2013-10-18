@@ -99,13 +99,6 @@ extern Cursor w32_load_cursor (LPCTSTR name);
 struct w32_display_info one_w32_display_info;
 struct w32_display_info *x_display_list;
 
-/* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
-   one for each element of w32_display_list and in the same order.
-   NAME is the name of the frame.
-   FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
-Lisp_Object w32_display_name_list;
-
-
 #if _WIN32_WINNT < 0x0500 && !defined(_W64)
 /* Pre Windows 2000, this was not available, but define it here so
    that Emacs compiled on such a platform will run on newer versions.
@@ -6105,11 +6098,7 @@ w32_initialize_display_info (Lisp_Object display_name)
 
   memset (dpyinfo, 0, sizeof (*dpyinfo));
 
-  /* Put it on w32_display_name_list.  */
-  w32_display_name_list = Fcons (Fcons (display_name, Qnil),
-                                 w32_display_name_list);
-  dpyinfo->name_list_element = XCAR (w32_display_name_list);
-
+  dpyinfo->name_list_element = Fcons (display_name, Qnil);
   dpyinfo->w32_id_name = xmalloc (SCHARS (Vinvocation_name)
 				  + SCHARS (Vsystem_name) + 2);
   sprintf (dpyinfo->w32_id_name, "%s@%s",
@@ -6357,27 +6346,7 @@ w32_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 void
 x_delete_display (struct w32_display_info *dpyinfo)
 {
-  /* Discard this display from w32_display_name_list and w32_display_list.
-     We can't use Fdelq because that can quit.  */
-  if (! NILP (w32_display_name_list)
-      && EQ (XCAR (w32_display_name_list), dpyinfo->name_list_element))
-    w32_display_name_list = XCDR (w32_display_name_list);
-  else
-    {
-      Lisp_Object tail;
-
-      tail = w32_display_name_list;
-      while (CONSP (tail) && CONSP (XCDR (tail)))
-	{
-	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
-	    {
-	      XSETCDR (tail, XCDR (XCDR (tail)));
-	      break;
-	    }
-	  tail = XCDR (tail);
-	}
-    }
-
+  /* FIXME: the only display info apparently can't be deleted.  */
   /* free palette table */
   {
     struct w32_palette_entry * plist;
@@ -6515,9 +6484,6 @@ w32_initialize (void)
 void
 syms_of_w32term (void)
 {
-  staticpro (&w32_display_name_list);
-  w32_display_name_list = Qnil;
-
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
 
   DEFSYM (Qadded, "added");

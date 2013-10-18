@@ -5126,20 +5126,13 @@ x_screen_planes (register struct frame *f)
 struct w32_display_info *
 x_display_info_for_name (Lisp_Object name)
 {
-  Lisp_Object names;
   struct w32_display_info *dpyinfo;
 
   CHECK_STRING (name);
 
-  for (dpyinfo = &one_w32_display_info, names = w32_display_name_list;
-       dpyinfo && !NILP (w32_display_name_list);
-       dpyinfo = dpyinfo->next, names = XCDR (names))
-    {
-      Lisp_Object tem;
-      tem = Fstring_equal (XCAR (XCAR (names)), name);
-      if (!NILP (tem))
-	return dpyinfo;
-    }
+  for (dpyinfo = &one_w32_display_info; dpyinfo; dpyinfo = dpyinfo->next)
+    if (!NILP (Fstring_equal (XCAR (dpyinfo->name_list_element), name)))
+      return dpyinfo;
 
   /* Use this general default value to start with.  */
   Vx_resource_name = Vinvocation_name;
@@ -5274,11 +5267,11 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
   (void)
 {
-  Lisp_Object tail, result;
+  Lisp_Object result = Qnil;
+  struct w32_display_info *wdi;
 
-  result = Qnil;
-  for (tail = w32_display_name_list; CONSP (tail); tail = XCDR (tail))
-    result = Fcons (XCAR (XCAR (tail)), result);
+  for (wdi = x_display_list; wdi; wdi = wdi->next)
+    result = Fcons (XCAR (wdi->name_list_element), result);
 
   return result;
 }

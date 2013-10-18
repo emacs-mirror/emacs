@@ -42,6 +42,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "termhooks.h"		/* For struct terminal.  */
+#ifdef HAVE_WINDOW_SYSTEM
+#include TERM_HEADER
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #include <verify.h>
 
@@ -6115,6 +6118,9 @@ mark_terminals (void)
 	 it might have been marked already.  Make sure the image cache
 	 gets marked.  */
       mark_image_cache (t->image_cache);
+      /* FIXME: currently font cache may grow too large
+	 and probably needs special finalization.  */
+      mark_object (TERMINAL_FONT_CACHE (t));
 #endif /* HAVE_WINDOW_SYSTEM */
       if (!VECTOR_MARKED_P (t))
 	mark_vectorlike ((struct Lisp_Vector *)t);

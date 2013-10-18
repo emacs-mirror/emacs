@@ -1,3 +1,27 @@
+2013-10-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove port-specific display name lists to avoid extra
+	complexity and data duplication with display info lists.
+	* xterm.h (x_display_name_list): Remove declaration.
+	* xterm.c (x_display_name_list): Remove.
+	(x_term_init, x_delete_display, syms_of_xterm): Adjust users.
+	* xfns.c (x_display_info_for_name, Fx_display_list):
+	Likewise.  Use x_display_list where appropriate.
+	* w32term.h (w32_display_name_list): Remove declaration.
+	* w32term.c (w32_display_name_list): Remove.
+	(w32_initialize_display_info, x_delete_display, syms_of_w32term):
+	Adjust users.
+	* w32fns.c (x_display_info_for_name, Fx_display_list):
+	Likewise.  Use x_display_list where appropriate.
+	* nsterm.h (ns_display_name_list): Remove declaration.
+	* nsterm.m (ns_display_name_list): Remove.
+	(ns_term_init, syms_of_nsterm): Adjust users.
+	* nsfns.m (ns_display_info_for_name, Fx_display_list):
+	Likewise.  Use x_display_list where appropriate.
+	* termhooks.h (TERMINAL_FONT_CACHE): New macro.
+	* alloc.c (toplevel) [HAVE_WINDOW_SYSTEM]: Include TERM_HEADER.
+	(mark_terminals): Mark per-terminal font cache.
+
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Don't run timers in input-pending-p.  Its new check-timers param

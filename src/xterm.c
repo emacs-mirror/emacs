@@ -148,13 +148,6 @@ static bool any_help_event_p;
 
 struct x_display_info *x_display_list;
 
-/* This is a list of cons cells, each of the form (NAME
-   . FONT-LIST-CACHE), one for each element of x_display_list and in
-   the same order.  NAME is the name of the frame.  FONT-LIST-CACHE
-   records previous values returned by x-list-fonts.  */
-
-Lisp_Object x_display_name_list;
-
 #ifdef USE_X_TOOLKIT
 
 /* The application context for Xt use.  */
@@ -9894,11 +9887,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   {
     struct x_display_info *share;
-    Lisp_Object tail;
 
-    for (share = x_display_list, tail = x_display_name_list; share;
-	 share = share->next, tail = XCDR (tail))
-      if (same_x_server (SSDATA (XCAR (XCAR (tail))),
+    for (share = x_display_list; share; share = share->next)
+      if (same_x_server (SSDATA (XCAR (share->name_list_element)),
 			 SSDATA (display_name)))
 	break;
     if (share)
@@ -9944,11 +9935,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->next = x_display_list;
   x_display_list = dpyinfo;
 
-  /* Put it on x_display_name_list as well, to keep them parallel.  */
-  x_display_name_list = Fcons (Fcons (display_name, Qnil),
-			       x_display_name_list);
-  dpyinfo->name_list_element = XCAR (x_display_name_list);
-
+  dpyinfo->name_list_element = Fcons (display_name, Qnil);
   dpyinfo->display = dpy;
 
   /* Set the name of the terminal. */
@@ -10275,27 +10262,6 @@ x_delete_display (struct x_display_info *dpyinfo)
         break;
       }
 
-  /* Discard this display from x_display_name_list and x_display_list.
-     We can't use Fdelq because that can quit.  */
-  if (! NILP (x_display_name_list)
-      && EQ (XCAR (x_display_name_list), dpyinfo->name_list_element))
-    x_display_name_list = XCDR (x_display_name_list);
-  else
-    {
-      Lisp_Object tail;
-
-      tail = x_display_name_list;
-      while (CONSP (tail) && CONSP (XCDR (tail)))
-	{
-	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
-	    {
-	      XSETCDR (tail, XCDR (XCDR (tail)));
-	      break;
-	    }
-	  tail = XCDR (tail);
-	}
-    }
-
   if (next_noop_dpyinfo == dpyinfo)
     next_noop_dpyinfo = dpyinfo->next;
 
@@ -10564,9 +10530,6 @@ void
 syms_of_xterm (void)
 {
   x_error_message = NULL;
-
-  staticpro (&x_display_name_list);
-  x_display_name_list = Qnil;
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");

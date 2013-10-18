@@ -142,8 +142,7 @@ struct x_display_info
   /* This says how to access this display in Xlib.  */
   Display *display;
 
-  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
-     The same cons cell also appears in x_display_name_list.  */
+  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
 
   /* Number of frames that are on this display.  */
@@ -411,12 +410,6 @@ extern int use_xim;
 
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
-
-/* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
-   one for each element of x_display_list and in the same order.
-   NAME is the name of the frame.
-   FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
-extern Lisp_Object x_display_name_list;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
 extern struct frame *x_top_window_to_frame (struct x_display_info *, int);

@@ -184,7 +184,6 @@ NSString *ns_app_name = @"Emacs";  /* default changed later */
 
 /* Display variables */
 struct ns_display_info *x_display_list; /* Chain of existing displays */
-Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
 /* display update */
@@ -4173,10 +4172,7 @@ ns_term_init (Lisp_Object display_name)
   dpyinfo->next = x_display_list;
   x_display_list = dpyinfo;
 
-  /* Put it on ns_display_name_list */
-  ns_display_name_list = Fcons (Fcons (display_name, Qnil),
-                                ns_display_name_list);
-  dpyinfo->name_list_element = XCAR (ns_display_name_list);
+  dpyinfo->name_list_element = Fcons (display_name, Qnil);
 
   terminal->name = xstrdup (SSDATA (display_name));
 
@@ -7459,9 +7455,6 @@ allowing it to be used at a lower level for accented character entry.");
   DEFVAR_LISP ("ns-confirm-quit", ns_confirm_quit,
                "Whether to confirm application quit using dialog.");
   ns_confirm_quit = Qnil;
-
-  staticpro (&ns_display_name_list);
-  ns_display_name_list = Qnil;
 
   DEFVAR_LISP ("ns-auto-hide-menu-bar", ns_auto_hide_menu_bar,
                doc: /* Non-nil means that the menu bar is hidden, but appears when the mouse is near.
