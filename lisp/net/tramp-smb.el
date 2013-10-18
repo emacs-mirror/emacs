@@ -1901,9 +1901,9 @@ If ARGUMENT is non-nil, use it as argument for
 			    (search-forward-regexp
 			     tramp-smb-wrong-passwd-regexp nil t))
 		       ;; Disable `auth-source' and `password-cache'.
-		       (tramp-message
-			vec 3 "Retry connection with new password")
 		       (let (auth-sources)
+			 (tramp-message
+			  vec 3 "Retry connection with new password")
 			 (tramp-cleanup-connection vec t)
 			 (tramp-smb-maybe-open-connection vec argument))
 		     ;; Propagate the error.

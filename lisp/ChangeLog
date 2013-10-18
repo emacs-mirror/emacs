@@ -1,3 +1,9 @@
+2013-10-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Fix an error
+	introduced on 2013-09-08, which results in an infinite loop
+	requesting a password.
+
 2013-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/verilog-mode.el (verilog-case-fold): Add :version.
@@ -121,7 +127,7 @@
 	connection property.
 
 	* net/tramp-cache.el (top): Suppress traces when reading
-	presistency file.
+	persistency file.
 
 	* net/tramp-sh.el (tramp-sh-handle-file-notify-add-watch):
 	Refactor common code.  Improve debug message.
