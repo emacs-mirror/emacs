@@ -1812,6 +1812,7 @@ to or less than the display width of @var{ellipsis}.  If
 @node Line Height
 @section Line Height
 @cindex line height
+@cindex height of a line
 
   The total height of each display line consists of the height of the
 contents of the line, plus optional additional vertical line spacing
