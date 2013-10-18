@@ -1847,6 +1847,7 @@ First Emacs uses @var{height} as a height spec to control extra space
 to bring the total line height up to @var{total}.  In this case, the
 other ways to specify the line spacing are ignored.
 
+@cindex height spec
   Any other kind of property value is a height spec, which translates
 into a number---the specified line height.  There are several ways to
 write a height spec; here's how each of them translates into a number:
