@@ -9950,12 +9950,13 @@ requeued_events_pending_p (void)
   return (!NILP (Vunread_command_events));
 }
 
-
-DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
+DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 1, 0,
        doc: /* Return t if command input is currently available with no wait.
 Actually, the value is nil only if we can be sure that no input is available;
-if there is a doubt, the value is t.  */)
-  (void)
+if there is a doubt, the value is t.
+
+If CHECK-TIMERS is non-nil, timers that are ready to run will do so.  */)
+  (Lisp_Object check_timers)
 {
   if (!NILP (Vunread_command_events)
       || !NILP (Vunread_post_input_method_events)
@@ -9965,7 +9966,8 @@ if there is a doubt, the value is t.  */)
   /* Process non-user-visible events (Bug#10195).  */
   process_special_events ();
 
-  return (get_input_pending (READABLE_EVENTS_DO_TIMERS_NOW
+  return (get_input_pending ((NILP (check_timers)
+                              ? 0 : READABLE_EVENTS_DO_TIMERS_NOW)
 			     | READABLE_EVENTS_FILTER_EVENTS)
 	  ? Qt : Qnil);
 }

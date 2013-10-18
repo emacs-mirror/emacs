@@ -620,6 +620,9 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** `(input-pending-p)' no longer runs other timers which are ready to
+run.  The new optional CHECK-TIMERS param allows for the prior behavior.
+
 ** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
 ** The syntax of ?» and ?« is now punctuation instead of matched parens.

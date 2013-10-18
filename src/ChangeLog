@@ -1,3 +1,10 @@
+2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	Don't run timers in input-pending-p.  Its new check-timers param
+	provides the prior behavior. (Bug#15045).
+	* src/keyboard.c (Finput_pending_p): Accept optional check-timers
+	param.
+
 2013-10-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make some functions static in non-Microsoft builds.
