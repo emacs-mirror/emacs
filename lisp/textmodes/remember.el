@@ -294,6 +294,7 @@ With a prefix or a visible region, use the region as INITIAL."
     (if remember-in-new-frame
         (set-window-dedicated-p
          (get-buffer-window (current-buffer) (selected-frame)) t))
+    (setq buffer-offer-save t)
     (remember-mode)
     (when (= (point-max) (point-min))
       (when initial (insert initial))

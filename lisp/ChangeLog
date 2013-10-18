@@ -1,3 +1,8 @@
+2013-10-18  Reuben Thomas  <rrt@sc3d.org>
+
+	* textmodes/remember.el (remember): set buffer-offer-save in
+	remember buffers (bug#13566).
+
 2013-10-18  Daniel Colascione  <dancol@dancol.org>
 
 	When evaluating forms in ielm, direct standard output to ielm
@@ -6905,6 +6910,7 @@
 	* progmodes/f90.el (f90-imenu-generic-expression):
 	Fix typo in 2013-05-08 change.  (Bug#14402)
 
+>>>>>>> MERGE-SOURCE
 2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
 	* progmodes/gdb-mi.el (gdb-running, gdb-starting):
