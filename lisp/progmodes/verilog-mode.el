@@ -1187,6 +1187,7 @@ See the \\[verilog-faq] for examples on using this."
 (defcustom verilog-case-fold t
   "Non-nil means `verilog-mode' regexps should ignore case.
 This variable is t for backward compatibility; nil is suggested."
+  :version "24.4"
   :group 'verilog-mode
   :type 'boolean)
 (put 'verilog-case-fold 'safe-local-variable 'verilog-booleanp)

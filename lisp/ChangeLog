@@ -1,3 +1,7 @@
+2013-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/verilog-mode.el (verilog-case-fold): Add :version.
+
 2013-10-18  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	Sync with upstream verilog-mode revision 1a6ecec7.
