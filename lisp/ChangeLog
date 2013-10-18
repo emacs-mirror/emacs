@@ -1,3 +1,60 @@
+2013-10-18  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Sync with upstream verilog-mode revision 1a6ecec7.
+	* progmodes/verilog-mode.el (verilog-mode-version): Update.
+	(verilog-mode-release-date): Remove.
+	(verilog-highlight-grouping-keywords, verilog-active-low-regexp)
+	(verilog-auto-inst-param-value, verilog-auto-input-ignore-regexp)
+	(verilog-auto-inout-ignore-regexp, verilog-auto-output-ignore-regexp)
+	(verilog-auto-tieoff-ignore-regexp)
+	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp)
+	(verilog-scan-cache-preserving, verilog-mode, verilog-at-struct-p)
+	(verilog-signals-with, verilog-dir-cache-preserving)
+	(verilog-auto-inst, verilog-auto-inout-param, verilog-auto):
+	Doc fixes.
+	(verilog-case-fold): New option, to control case folding in
+	regexp searches, bug597.
+	(verilog-menu): Add verilog-sk-uvm-component, minor tweaks.
+	(verilog-string-match-fold, verilog-in-paren-count)
+	(verilog-in-struct-nested-p, verilog-at-struct-mv-p)
+	(verilog-at-close-struct-p): New functions.
+	(verilog-beg-block-re-ordered, verilog-extended-case-re)
+	(verilog-forward-sexp, verilog-set-auto-endcomments):
+	(verilog-leap-to-case-head): Handle "unique0" case.
+	(verilog-in-constraint-re): New constant.
+	(verilog-keywords, verilog-type-font-keywords):
+	Add some SystemVerilog 1800-2012 keywords.
+	(verilog-label-be): Remove unimplemented argument, bug669.
+	(verilog-batch-execute-func): When batch expanding clear
+	create-lockfiles to prevent spurious user locks when a file ends
+	up not changing.
+	(verilog-calculate-indent, verilog-calc-1)
+	(verilog-at-close-constraint-p, verilog-at-constraint-p)
+	(verilog-do-indent): Fix indentation of nested constraints
+	and structures.
+	(verilog-sig-tieoff, verilog-typedef-name-p, verilog-auto-inst)
+	(verilog-auto-inst-param): Use verilog-string-match-fold.
+	(verilog-read-inst-module-matcher):
+	Fix AUTOINST on gate primitives with #1.
+	(verilog-read-decls): Fix double-declaring user-defined typed signals.
+	Reads all user-defined typed variables.
+	(verilog-read-defines): Fix reading definitions inside comments, bug647.
+	(verilog-signals-matching-regexp)
+	(verilog-signals-not-matching-regexp, verilog-auto):
+	Respect verilog-case-fold.
+	(verilog-diff-report): Fix line count.
+	(verilog-auto-assign-modport): Remove unused local `modi'.
+	(verilog-auto-inst-port): Support [][] in AUTO_TEMPLATE to
+	better handle multidimensional arrays.
+	Fix packed array ports misadding bit index in AUTOINST, bug637.
+	(verilog-auto-output, verilog-auto-input): Fix AUTOINPUT and AUTOOUTPUT
+	to not double-declare existing outputs and inputs, respectively.
+	(verilog-template-map): Bind U to verilog-sk-uvm-component.
+	(verilog-sk-uvm-object): Rename from verilog-sk-uvm-class.
+	(verilog-sk-uvm-component): New skeleton.
+	(verilog-submit-bug-report): Add verilog-case-fold,
+	remove verilog-mode-release-date.
+
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* lisp/subr.el (sit-for): Call (input-pending-p t) so as to behave
