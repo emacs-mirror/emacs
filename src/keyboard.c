@@ -5547,6 +5547,9 @@ make_lispy_event (struct input_event *event)
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
     case MOUSE_CLICK_EVENT:
+#ifdef HAVE_GPM
+    case GPM_CLICK_EVENT:
+#endif
 #ifndef USE_TOOLKIT_SCROLL_BARS
     case SCROLL_BAR_CLICK_EVENT:
 #endif
@@ -5560,7 +5563,11 @@ make_lispy_event (struct input_event *event)
 	position = Qnil;
 
 	/* Build the position as appropriate for this mouse click.  */
-	if (event->kind == MOUSE_CLICK_EVENT)
+	if (event->kind == MOUSE_CLICK_EVENT
+#ifdef HAVE_GPM
+	    || event->kind == GPM_CLICK_EVENT
+#endif
+	    )
 	  {
 	    struct frame *f = XFRAME (event->frame_or_window);
 	    int row, column;
@@ -6025,55 +6032,6 @@ make_lispy_event (struct input_event *event)
     case CONFIG_CHANGED_EVENT:
 	return list3 (Qconfig_changed_event,
 		      event->arg, event->frame_or_window);
-#ifdef HAVE_GPM
-    case GPM_CLICK_EVENT:
-      {
-	struct frame *f = XFRAME (event->frame_or_window);
-	Lisp_Object head, position;
-	Lisp_Object *start_pos_ptr;
-	Lisp_Object start_pos;
-	int button = event->code;
-
-	if (button >= ASIZE (button_down_location))
-	  {
-	    ptrdiff_t incr = button - ASIZE (button_down_location) + 1;
-	    button_down_location = larger_vector (button_down_location,
-						  incr, -1);
-	    mouse_syms = larger_vector (mouse_syms, incr, -1);
-	  }
-
-	start_pos_ptr = aref_addr (button_down_location, button);
-	start_pos = *start_pos_ptr;
-
-	position = make_lispy_position (f, event->x, event->y,
-					event->timestamp);
-
- 	if (event->modifiers & down_modifier)
-	  *start_pos_ptr = Fcopy_alist (position);
-	else if (event->modifiers & (up_modifier | drag_modifier))
-	  {
-	    if (!CONSP (start_pos))
-	      return Qnil;
-	    event->modifiers &= ~up_modifier;
-	  }
-
-	head = modify_event_symbol (button,
-				    event->modifiers,
-				    Qmouse_click, Vlispy_mouse_stem,
-				    NULL,
-				    &mouse_syms,
-				    ASIZE (mouse_syms));
-
-	if (event->modifiers & drag_modifier)
-	  return list3 (head, start_pos, position);
-	else if (event->modifiers & double_modifier)
-	  return list3 (head, position, make_number (2));
-	else if (event->modifiers & triple_modifier)
-	  return list3 (head, position, make_number (3));
- 	else
-	  return list2 (head, position);
-       }
-#endif /* HAVE_GPM */
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
