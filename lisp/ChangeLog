@@ -1,3 +1,19 @@
+2013-10-18  Daniel Colascione  <dancol@dancol.org>
+
+	When evaluating forms in ielm, direct standard output to ielm
+	buffer.  Add new ielm-return-for-effect command.  Remove trailing
+	whitespace throughout.
+
+	* ielm.el (ielm-map): Bind M-RET to ielm-return-for-effect.
+	(ielm-return-for-effect): New command.
+	(ielm-send-input): Accept optional `for-effect' parameter.
+	(ielm-eval-input): Accept optional `for-effect' parameter.  Bind
+	`standard-output' to stream we create using
+	`ielm-standard-output-impl'.  Suppress printing result when
+	`for-effect'.
+	(ielm-standard-output-impl): New function.
+	(inferior-emacs-lisp-mode): Explain new features in documentation.
+
 2013-10-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	Code cleanup.
