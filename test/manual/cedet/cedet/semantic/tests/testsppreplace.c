@@ -151,11 +151,19 @@ OBJ(test)     /* expands to ABtest */
 
 /* TEST: Macro Recursion limits in arguments to a macro.
  * This code is from ALSA (with names changed to moose), noticed by Yupeng. */
+
+/* David Engster:
+   This test is broken. The problem is not an infinite recursion, but that
+   the mr_moose macro shouldn't be applied when there are no arguments.
+   That this test succeeded was simply a bug in the function pointer
+   parser.
+
 #define mr_moose(n) list_entry(n, struct mr_moose, list)
 
 struct mr_moose_ops {
   int (*mr_moose_disconnect)(struct mr_moose *dev);
 };
 
+*/
 
 /* END */
