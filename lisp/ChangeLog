@@ -1,3 +1,15 @@
+2013-10-19  Alan Mackenzie  <acm@muc.de>
+
+	Fix fontification bugs with constructors and const.
+
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): (Just after
+	CASE 2) Remove the check for the absence of a suffix construct
+	after a function declaration with only types (no identifiers) in
+	the parentheses.  Also, accept a function declaration with just a
+	type inside the parentheses, if this type can be positively
+	recognised as such, or if a prefix keyword like "explicit" nails
+	down the construct as a declaration.
+
 2013-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (tty-menu-navigation-map): Bind mouse-N to perform
