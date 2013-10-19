@@ -1,3 +1,10 @@
+2013-10-19  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* ffap.el: Handle "/usr/include/c++/<version>" directories.
+	(ffap-alist): Use ffap-c++-mode for c++-mode.
+	(ffap-c++-path): New variable.
+	(ffap-c++-mode): New function.
+
 2013-10-19  Joe Vornehm Jr.  <joe.vornehm@gmail.com>  (tiny change)
 
 	* ido.el (dired-other-frame): Only list directories.  (Bug#15638)

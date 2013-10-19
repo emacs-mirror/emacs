@@ -769,7 +769,7 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
     ;; (lisp-interaction-mode . ffap-el-mode) ; maybe
     (finder-mode . ffap-el-mode)	; type {C-h p} and try it
     (help-mode . ffap-el-mode)		; maybe useful
-    (c++-mode . ffap-c-mode)		; search ffap-c-path
+    (c++-mode . ffap-c++-mode)         ; search ffap-c++-path
     (cc-mode . ffap-c-mode)		; same
     ("\\.\\([chCH]\\|cc\\|hh\\)\\'" . ffap-c-mode) ; stdio.h
     (fortran-mode . ffap-fortran-mode)	; FORTRAN requested by MDB
@@ -865,6 +865,28 @@ URL, or nil.  If nil, search the alist for further matches.")
 
 (defun ffap-c-mode (name)
   (ffap-locate-file name t ffap-c-path))
+
+(defvar ffap-c++-path
+  (let ((c++-include-dir (with-temp-buffer
+                           (when (eq 0 (ignore-errors
+                                         (call-process "g++" nil t nil "-v")))
+                             (goto-char (point-min))
+                             (if (re-search-forward "--with-gxx-include-dir=\
+\\([^[:space:]]+\\)"
+                                                      nil 'noerror)
+                                 (match-string 1)
+                               (when (re-search-forward "gcc version \
+\\([[:digit:]]+.[[:digit:]]+.[[:digit:]]+\\)"
+                                                   nil 'noerror)
+                                 (expand-file-name (match-string 1)
+                                                   "/usr/include/c++/")))))))
+    (if c++-include-dir
+        (cons c++-include-dir ffap-c-path)
+      ffap-c-path))
+  "List of directories to search for include files.")
+
+(defun ffap-c++-mode (name)
+  (ffap-locate-file name t ffap-c++-path))
 
 (defvar ffap-fortran-path '("../include" "/usr/include"))
 
