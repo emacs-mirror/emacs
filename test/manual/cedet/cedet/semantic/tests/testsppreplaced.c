@@ -101,9 +101,11 @@ int ABtest;
 
 /* TEST: Macro Recursion limits in arguments to a macro.
  * This code is from ALSA, noticed by Yupeng. */
+/* See commentary in testsppreplace.c. This test is broken.
+
 struct mr_moose_ops {
   int (*mr_moose_disconnect)(struct mr_moose *dev);
 };
-
+*/
 
 /* End */
