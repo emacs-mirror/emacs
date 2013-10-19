@@ -300,6 +300,8 @@ static BOOL g_b_init_is_valid_security_descriptor;
 static BOOL g_b_init_set_file_security;
 static BOOL g_b_init_get_adapters_info;
 
+int w32_unicode_filenames;
+
 /*
   BEGIN: Wrapper functions around OpenProcessToken
   and other functions in advapi32.dll that are only
@@ -1182,7 +1184,83 @@ w32_valid_pointer_p (void *p, int size)
     return -1;
 }
 
-static char startup_dir[MAXPATHLEN];
+
+
+/* Converting file names from UTF-8 to either UTF-16 or the system
+   ANSI codepage.  */
+static int
+filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
+{
+  int result = MultiByteToWideChar (CP_UTF8, 0, fn_in, -1, fn_out, MAX_PATH);
+
+  if (!result)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_FLAGS:
+	case ERROR_INVALID_PARAMETER:
+	  errno = EINVAL;
+	  break;
+	case ERROR_INSUFFICIENT_BUFFER:
+	case ERROR_NO_UNICODE_TRANSLATION:
+	default:
+	  errno = ENOENT;
+	  break;
+	}
+      return -1;
+    }
+  return 0;
+}
+
+static int
+filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
+{
+  return -1;
+}
+
+static int
+filename_to_ansi (const char *fn_in, char *fn_out)
+{
+  wchar_t fn_utf16[MAXPATHLEN];
+
+  if (filename_to_utf16 (fn_in, fn_utf16) == 0)
+    {
+      int result = WideCharToMultiByte (CP_ACP, 0, fn_utf16, -1,
+					fn_out, MAX_UTF8_PATH, NULL, NULL);
+
+      if (!result)
+	{
+	  DWORD err = GetLastError ();
+
+	  switch (err)
+	    {
+	    case ERROR_INVALID_FLAGS:
+	    case ERROR_INVALID_PARAMETER:
+	      errno = EINVAL;
+	      break;
+	    case ERROR_INSUFFICIENT_BUFFER:
+	    case ERROR_NO_UNICODE_TRANSLATION:
+	    default:
+	      errno = ENOENT;
+	      break;
+	    }
+	  return -1;
+	}
+      return 0;
+    }
+}
+
+static int
+filename_from_ansi (const char *fn_in, char *fn_out)
+{
+  return -1;
+}
+
+
+
+static char startup_dir[MAX_UTF8_PATH];
 
 /* Get the current working directory.  */
 char *
@@ -3334,7 +3412,25 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 int
 sys_chdir (const char * path)
 {
-  return _chdir (map_w32_filename (path, NULL));
+  /* FIXME: Temporary.  Also, figure out what to do with
+     map_w32_filename, as the original code did this:
+     _chdir(map_w32_filename (path, NULL)).  */
+  if (w32_unicode_filenames)
+    {
+      wchar_t newdir[MAXPATHLEN];
+
+      if (filename_to_utf16 (path, newdir) == 0)
+	return _wchdir (newdir);
+      return -1;
+    }
+  else
+    {
+      char newdir[MAXPATHLEN];
+
+      if (filename_to_ansi (path, newdir) == 0)
+	return _chdir (path);
+      return -1;
+    }
 }
 
 int
@@ -8040,6 +8136,14 @@ globals_of_w32 (void)
 
   /* Reset, in case it has some value inherited from dump time.  */
   w32_stat_get_owner_group = 0;
+
+  /* If w32_unicode_filenames is non-zero, we will be using Unicode
+     (a.k.a. "wide") APIs to invoke functions that accept file
+     names.  */
+  if (is_windows_9x ())
+    w32_unicode_filenames = 0;
+  else
+    w32_unicode_filenames = 1;
 }
 
 /* For make-serial-process  */

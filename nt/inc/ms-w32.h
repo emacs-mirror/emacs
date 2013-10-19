@@ -152,6 +152,9 @@ extern char *getenv ();
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
+/* This is used to hold UTF-8 encoded file names.  */
+#define MAX_UTF8_PATH   (MAXPATHLEN * 4)
+
 #ifdef HAVE_NTGUI
 # ifndef HAVE_WINDOW_SYSTEM
 #  define HAVE_WINDOW_SYSTEM 1
