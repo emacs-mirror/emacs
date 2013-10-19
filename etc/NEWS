@@ -242,7 +242,7 @@ You can use the new function `remember-store-in-files' within the
 See `remember-data-directory' and `remember-directory-file-name-format'
 for new options related to this function.
 
-* More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
+** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
 ~/.emacs.d/vip		replaces  ~/.vip
