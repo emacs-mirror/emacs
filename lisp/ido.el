@@ -4740,6 +4740,7 @@ Modified from `icomplete-completions'."
 (put 'ibuffer-find-file 'ido 'find-file)
 (put 'dired 'ido 'dir)
 (put 'dired-other-window 'ido 'dir)
+(put 'dired-other-frame 'ido 'dir)
 ;; See http://debbugs.gnu.org/11954 for reasons.
 (put 'dired-do-copy 'ido 'ignore)
 (put 'dired-do-rename 'ido 'ignore)

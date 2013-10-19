@@ -1,3 +1,7 @@
+2013-10-19  Joe Vornehm Jr.  <joe.vornehm@gmail.com>  (tiny change)
+
+	* ido.el (dired-other-frame): Only list directories.  (Bug#15638)
+
 2013-10-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Fix an error
