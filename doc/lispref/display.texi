@@ -2077,6 +2077,8 @@ value @code{nil} means do not overline.
 Whether or not characters should be strike-through, and in what
 color.  The value is used like that of @code{:overline}.
 
+@cindex 2D box
+@cindex 3D box
 @item :box
 Whether or not a box should be drawn around characters, its color, the
 width of the box lines, and 3D appearance.  Here are the possible

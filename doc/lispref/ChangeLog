@@ -1,3 +1,7 @@
+2013-10-19  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Face Attributes): Add indexes for the ‘:box’ face attribute.
+
 2013-10-18  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* display.texi (Line Height): Add indexes for line height.
