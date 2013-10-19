@@ -1,3 +1,7 @@
+2013-10-19  Johan Bockgård  <bojohan@gnu.org>
+
+	* icomplete.el (icomplete-with-completion-tables): Add :version.
+
 2013-10-19  Alan Mackenzie  <acm@muc.de>
 
 	Fix fontification bugs with constructors and const.

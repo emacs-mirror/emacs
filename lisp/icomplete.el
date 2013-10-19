@@ -157,6 +157,7 @@ icompletion is occurring."
 
 Icomplete does not operate with any specialized completion tables
 except those on this list."
+  :version "24.4"
   :type '(choice (const :tag "All" t)
           (repeat function)))
 
