@@ -1,3 +1,8 @@
+2013-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Only run post-self-insert-hook when
+	called interactively.
+
 2013-10-19  Johan Bockgård  <bojohan@gnu.org>
 
 	* icomplete.el (icomplete-with-completion-tables): Add :version.

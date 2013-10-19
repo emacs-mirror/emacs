@@ -377,14 +377,15 @@ Other major modes are defined by comparison with this one."
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
   "Propertized string representing a hard newline character.")
 
-(defun newline (&optional arg)
+(defun newline (&optional arg interactive)
   "Insert a newline, and move to left margin of the new line if it's blank.
 If option `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
-than the value of `fill-column' and ARG is nil."
-  (interactive "*P")
+than the value of `fill-column' and ARG is nil.
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
+  (interactive "*P\np")
   (barf-if-buffer-read-only)
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
   ;; Set last-command-event to tell self-insert what to insert.
@@ -415,14 +416,20 @@ than the value of `fill-column' and ARG is nil."
             ;; starts a page.
             (or was-page-start
                 (move-to-left-margin nil t)))))
-    (unwind-protect
-        (progn
-          (add-hook 'post-self-insert-hook postproc)
+    (if (not interactive)
+        ;; FIXME: For non-interactive uses, many calls actually just want
+        ;; (insert "\n"), so maybe we should do just that, so as to avoid
+        ;; the risk of filling or running abbrevs unexpectedly.
+        (let ((post-self-insert-hook (list postproc)))
           (self-insert-command (prefix-numeric-value arg)))
-      ;; We first used let-binding to protect the hook, but that was naive
-      ;; since add-hook affects the symbol-default value of the variable,
-      ;; whereas the let-binding might only protect the buffer-local value.
-      (remove-hook 'post-self-insert-hook postproc)))
+      (unwind-protect
+          (progn
+            (add-hook 'post-self-insert-hook postproc)
+            (self-insert-command (prefix-numeric-value arg)))
+        ;; We first used let-binding to protect the hook, but that was naive
+        ;; since add-hook affects the symbol-default value of the variable,
+        ;; whereas the let-binding might only protect the buffer-local value.
+        (remove-hook 'post-self-insert-hook postproc))))
   nil)
 
 (defun set-hard-newline-properties (from to)
