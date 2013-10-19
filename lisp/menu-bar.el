@@ -54,9 +54,7 @@
                    :help "Save unsaved buffers, then exit"))
     (bindings--define-key global-map [menu-bar hide-app]
       '(menu-item "Hide" ns-do-hide-emacs
-                  :help "Hide Emacs")))
-  (bindings--define-key global-map [menu-bar services] ; Set-up in ns-win.
-    (cons "Services" (make-sparse-keymap "Services"))))
+                  :help "Hide Emacs"))))
 
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.

@@ -1,3 +1,7 @@
+2013-10-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el: Don't make Services menu.
+
 2013-10-19  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* ffap.el: Handle "/usr/include/c++/<version>" directories.
