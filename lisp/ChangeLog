@@ -1,3 +1,12 @@
+2013-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (tty-menu-navigation-map): Bind mouse-N to perform
+	TTY menu actions and down-mouse-N to tty-menu-ignore.  This solves
+	the problem whereby selecting a menu item that leads to a
+	minibuffer prompt moves the cursor out of the minibuffer window,
+	making it hard to type at the prompt.  Suggested by Stefan Monnier
+	<monnier@iro.umontreal.ca>.
+
 2013-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el: Don't make Services menu.
