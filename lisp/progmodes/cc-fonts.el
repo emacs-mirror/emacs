@@ -1884,7 +1884,7 @@ higher."
 		"\\)\\>"
 		;; Disallow various common punctuation chars that can't come
 		;; before the '{' of the enum list, to avoid searching too far.
-		"[^\]\[{}();,/#=]*"
+		"[^\]\[{}();/#=]*"
 		"{")
 	       '((c-font-lock-declarators limit t nil)
 		 (save-match-data

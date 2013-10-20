@@ -1,3 +1,12 @@
+2013-10-20  Alan Mackenzie  <acm@muc.de>
+
+	Allow comma separated lists after Java "implements".
+
+	* progmodes/cc-engine.el (c-backward-over-enum-header): parse
+	commas.
+	* progmodes/cc-fonts.el (c-basic-matchers-after): Remove comma
+	from a "disallowed" list in enum fontification.
+
 2013-10-20  Johan Bockgård  <bojohan@gnu.org>
 
 	* startup.el (default-frame-background-mode): Remove unused

@@ -8492,10 +8492,12 @@ comment at the start of cc-engine.el for more info."
 	 (or (not (looking-at "\\s)"))
 	     (c-go-up-list-backward))
 	 (cond
-	  ((and (looking-at c-symbol-key) (c-on-identifier))
+	  ((and (looking-at c-symbol-key) (c-on-identifier)
+		(not before-identifier))
 	   (setq before-identifier t))
 	  ((and before-identifier
-		(looking-at c-postfix-decl-spec-key))
+		(or (eq (char-after) ?,)
+		    (looking-at c-postfix-decl-spec-key)))
 	   (setq before-identifier nil)
 	   t)
 	  ((looking-at c-brace-list-key) nil)
