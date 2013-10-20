@@ -1,5 +1,11 @@
 2013-10-20  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* menu-bar.el: Put help-menu in menu-bar-final-items unconditionally.
+	Move Info menu item creation to ns-win.el.
+
+	* term/ns-win.el (ns-initialize-window-system): Rename Help to Info
+	in menu bar.
+
 	* menu-bar.el: Move GNUStep specific menus...
 
 	* term/ns-win.el (ns-initialize-window-system): ... to here.

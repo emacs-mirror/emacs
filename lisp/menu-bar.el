@@ -40,11 +40,10 @@
 (or (lookup-key global-map [menu-bar])
     (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar")))
 
-(if (not (featurep 'ns))
-    ;; Force Help item to come last, after the major mode's own items.
-    ;; The symbol used to be called `help', but that gets confused with the
-    ;; help key.
-    (setq menu-bar-final-items '(help-menu)))
+;; Force Help item to come last, after the major mode's own items.
+;; The symbol used to be called `help', but that gets confused with the
+;; help key.
+(setq menu-bar-final-items '(help-menu))
 
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.
@@ -1731,15 +1730,8 @@ key, a click, or a menu-item"))
   (cons "Edit" menu-bar-edit-menu))
 (bindings--define-key global-map [menu-bar file]
   (cons "File" menu-bar-file-menu))
-
-;; Put "Help" menu at the end, or Info at the front.
-;; If running under GNUstep, "Help" is moved and renamed "Info" (see below).
-(if (and (featurep 'ns)
-         (not (eq system-type 'darwin)))
-    (bindings--define-key global-map [menu-bar help-menu]
-      (cons "Info" menu-bar-help-menu))
-  (define-key-after global-map [menu-bar help-menu]
-    (cons (purecopy "Help") menu-bar-help-menu)))
+(bindings--define-key global-map [menu-bar help-menu]
+  (cons (purecopy "Help") menu-bar-help-menu))
 
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
