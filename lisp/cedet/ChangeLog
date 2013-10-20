@@ -1,3 +1,10 @@
+2013-10-20  Johan Bockgård  <bojohan@gnu.org>
+
+	* semantic/db-mode.el (global-semanticdb-minor-mode): Remove hooks
+	correctly.
+	(semanticdb-toggle-global-mode): Pass `toggle' to minor mode
+	function.
+
 2013-09-28  Leo Liu  <sdl.web@gmail.com>
 
 	* semantic/texi.el (semantic-analyze-possible-completions): Use

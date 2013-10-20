@@ -66,7 +66,7 @@ database, which can be saved for future Emacs sessions."
 	(add-hook (cadr elt) (car elt)))
     ;; Disable
     (dolist (elt semanticdb-hooks)
-      (add-hook (cadr elt) (car elt)))))
+      (remove-hook (cadr elt) (car elt)))))
 
 (defvaralias 'semanticdb-mode-hook 'global-semanticdb-minor-mode-hook)
 (defvaralias 'semanticdb-global-mode 'global-semanticdb-minor-mode)
@@ -82,7 +82,7 @@ Update the environment of Semantic enabled buffers accordingly."
       ;; Save databases before disabling semanticdb.
       (semanticdb-save-all-db))
   ;; Toggle semanticdb minor mode.
-  (global-semanticdb-minor-mode))
+  (global-semanticdb-minor-mode 'toggle))
 
 ;;; Hook Functions:
 ;;
