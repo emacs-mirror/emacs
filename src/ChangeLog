@@ -1,3 +1,8 @@
+2013-10-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (Qcocoa, Qgnustep): New variables.
+	(syms_of_nsterm): Defsym Qcocoa, Qgnustep.  Fprovide appropriate one.
+
 2013-10-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (make_lispy_event): Remove GPM-specific code that

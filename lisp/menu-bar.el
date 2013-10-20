@@ -44,17 +44,7 @@
     ;; Force Help item to come last, after the major mode's own items.
     ;; The symbol used to be called `help', but that gets confused with the
     ;; help key.
-    (setq menu-bar-final-items '(help-menu))
-  (if (eq system-type 'darwin)
-      (setq menu-bar-final-items '(buffer services help-menu))
-    (setq menu-bar-final-items '(buffer services hide-app quit))
-    ;; Add standard top-level items to GNUstep menu.
-    (bindings--define-key global-map [menu-bar quit]
-      '(menu-item "Quit" save-buffers-kill-emacs
-                   :help "Save unsaved buffers, then exit"))
-    (bindings--define-key global-map [menu-bar hide-app]
-      '(menu-item "Hide" ns-do-hide-emacs
-                  :help "Hide Emacs"))))
+    (setq menu-bar-final-items '(help-menu)))
 
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.

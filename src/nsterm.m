@@ -173,6 +173,7 @@ Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
+static Lisp_Object Qcocoa, Qgnustep;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -7501,11 +7502,17 @@ baseline level.  The default value is nil.  */);
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);
 
+  DEFSYM (Qcocoa, "cocoa");
+  DEFSYM (Qgnustep, "gnustep");
+
   syms_of_nsfont ();
 #ifdef NS_IMPL_COCOA
+  Fprovide (Qcocoa, Qnil);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
   syms_of_macfont ();
 #endif
+#else
+  Fprovide (Qgnustep, Qnil);
 #endif
   
 }

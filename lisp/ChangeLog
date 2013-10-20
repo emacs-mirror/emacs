@@ -1,3 +1,9 @@
+2013-10-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el: Move GNUStep specific menus...
+
+	* term/ns-win.el (ns-initialize-window-system): ... to here.
+
 2013-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline): Only run post-self-insert-hook when

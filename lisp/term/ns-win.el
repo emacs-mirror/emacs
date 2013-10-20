@@ -899,6 +899,20 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
   (x-open-connection (system-name) nil t)
 
+  ;; Add GNUStep menu items Services, Hide and Quit.
+  (if (featurep 'gnustep)
+      (progn
+	(setq menu-bar-final-items '(buffer services hide-app quit))
+	(bindings--define-key global-map [menu-bar quit]
+	  '(menu-item "Quit" save-buffers-kill-emacs
+		      :help "Save unsaved buffers, then exit"))
+	(bindings--define-key global-map [menu-bar hide-app]
+	  '(menu-item "Hide" ns-do-hide-emacs
+		      :help "Hide Emacs"))
+	(bindings--define-key global-map [menu-bar services]
+	  (cons "Services" (make-sparse-keymap "Services")))))
+
+
   (dolist (service (ns-list-services))
       (if (eq (car service) 'undefined)
 	  (ns-define-service (cdr service))
