@@ -1,5 +1,8 @@
 2013-10-20  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* emacs.c (main): On Cocoa, if GUI session and 0 is not a tty,
+	chdir to HOME (bug#15607).
+
 	* nsterm.m (Qcocoa, Qgnustep): New variables.
 	(syms_of_nsterm): Defsym Qcocoa, Qgnustep.  Fprovide appropriate one.
 	(ns_get_color): Make selection color work for GNUStep also.
