@@ -2,6 +2,7 @@
 
 	* nsterm.m (Qcocoa, Qgnustep): New variables.
 	(syms_of_nsterm): Defsym Qcocoa, Qgnustep.  Fprovide appropriate one.
+	(ns_get_color): Make selection color work for GNUStep also.
 
 2013-10-18  Eli Zaretskii  <eliz@gnu.org>
 

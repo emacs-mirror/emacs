@@ -1461,15 +1461,16 @@ ns_get_color (const char *name, NSColor **col)
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
   block_input ();
 
-#ifdef NS_IMPL_COCOA
   if ([nsname isEqualToString: @"ns_selection_bg_color"])
     {
+#ifdef NS_IMPL_COCOA
       NSString *defname = [[NSUserDefaults standardUserDefaults]
                             stringForKey: @"AppleHighlightColor"];
-
       if (defname != nil)
         nsname = defname;
-      else if ((new = [NSColor selectedTextBackgroundColor]) != nil)
+      else
+#endif
+      if ((new = [NSColor selectedTextBackgroundColor]) != nil)
         {
           *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
           unblock_input ();
@@ -1495,7 +1496,6 @@ ns_get_color (const char *name, NSColor **col)
       nsname = NS_SELECTION_FG_COLOR_DEFAULT;
       name = [nsname UTF8String];
     }
-#endif // NS_IMPL_COCOA
 
   /* First, check for some sort of numeric specification. */
   hex[0] = '\0';
