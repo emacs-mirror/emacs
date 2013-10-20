@@ -3657,7 +3657,7 @@ Key bindings specific to `verilog-mode-map' are:
   (set-syntax-table verilog-mode-syntax-table)
   (set (make-local-variable 'indent-line-function)
        #'verilog-indent-line-relative)
-  (setq comment-indent-function 'verilog-comment-indent)
+  (set (make-local-variable 'comment-indent-function) 'verilog-comment-indent)
   (set (make-local-variable 'parse-sexp-ignore-comments) nil)
   (set (make-local-variable 'comment-start) "// ")
   (set (make-local-variable 'comment-end) "")
