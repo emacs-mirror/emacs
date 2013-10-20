@@ -397,8 +397,6 @@ from being initialized."
 
 (defvar no-blinking-cursor nil)
 
-(defvar default-frame-background-mode)
-
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 

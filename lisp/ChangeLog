@@ -1,5 +1,8 @@
 2013-10-20  Johan Bockgård  <bojohan@gnu.org>
 
+	* startup.el (default-frame-background-mode): Remove unused
+	defvar.
+
 	* progmodes/verilog-mode.el (verilog-mode): Don't set
 	comment-indent-function globally.
 
