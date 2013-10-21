@@ -498,6 +498,8 @@ explicitly declared in magic comment."
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
+    (`(:after . "+")       ;FIXME: Probably applicable to most infix operators.
+     (if (smie-rule-parent-p ";") ruby-indent-level))
     ))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)

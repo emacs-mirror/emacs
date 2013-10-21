@@ -1,3 +1,8 @@
+2013-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Indent after + used as
+	an instruction.
+
 2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Add (almost) all infix operators.
@@ -12,15 +17,14 @@
 
 	Allow comma separated lists after Java "implements".
 
-	* progmodes/cc-engine.el (c-backward-over-enum-header): parse
-	commas.
+	* progmodes/cc-engine.el (c-backward-over-enum-header):
+	Parse commas.
 	* progmodes/cc-fonts.el (c-basic-matchers-after): Remove comma
 	from a "disallowed" list in enum fontification.
 
 2013-10-20  Johan Bockgård  <bojohan@gnu.org>
 
-	* startup.el (default-frame-background-mode): Remove unused
-	defvar.
+	* startup.el (default-frame-background-mode): Remove unused defvar.
 
 	* progmodes/verilog-mode.el (verilog-mode): Don't set
 	comment-indent-function globally.
@@ -168,8 +172,8 @@
 	* ielm.el (ielm-map): Bind M-RET to ielm-return-for-effect.
 	(ielm-return-for-effect): New command.
 	(ielm-send-input): Accept optional `for-effect' parameter.
-	(ielm-eval-input): Accept optional `for-effect' parameter.  Bind
-	`standard-output' to stream we create using
+	(ielm-eval-input): Accept optional `for-effect' parameter.
+	Bind `standard-output' to stream we create using
 	`ielm-standard-output-impl'.  Suppress printing result when
 	`for-effect'.
 	(ielm-standard-output-impl): New function.
