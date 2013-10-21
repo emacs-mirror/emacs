@@ -2188,7 +2188,7 @@ sequences are mandatory.
 @samp{\C-} can be used as a prefix for a control character, as in
 @samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
 a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
-@kbd{Control-Meta-A}.@refill
+@kbd{Control-Meta-A}.
 
 @xref{Init Non-ASCII}, for information about including
 non-@acronym{ASCII} in your init file.
@@ -2451,7 +2451,7 @@ it is run on that type of terminal.  For a terminal type named
 found by searching the directories @code{load-path} as usual and trying the
 suffixes @samp{.elc} and @samp{.el}.  Normally it appears in the
 subdirectory @file{term} of the directory where most Emacs libraries are
-kept.@refill
+kept.
 
   The usual purpose of the terminal-specific library is to map the
 escape sequences used by the terminal's function keys onto more
@@ -2466,7 +2466,7 @@ function keys that Termcap does not specify.
 before the first hyphen is significant in choosing the library name.
 Thus, terminal types @samp{aaa-48} and @samp{aaa-30-rv} both use
 the library @file{term/aaa}.  The code in the library can use
-@code{(getenv "TERM")} to find the full terminal type name.@refill
+@code{(getenv "TERM")} to find the full terminal type name.
 
 @vindex term-file-prefix
   The library's name is constructed by concatenating the value of the
