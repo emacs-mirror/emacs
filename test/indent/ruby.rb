@@ -182,6 +182,10 @@ and_this_one(has) { |block, parameters|
   tee
 }
 
+if foo +
+   bar
+end
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo +
@@ -193,10 +197,6 @@ end
 
 foo_bar_tee(1, 2, 3)
   .qux
-
-if foo &&
-    bar
-end
 
 method !arg1,
        arg2
