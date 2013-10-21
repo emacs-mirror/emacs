@@ -5254,6 +5254,95 @@ total_bytes_of_live_objects (void)
   return tot;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Remove unmarked font-spec and font-entity objects from ENTRY, which is
+   (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...), and return changed entry.  */
+
+static Lisp_Object
+compact_font_cache_entry (Lisp_Object entry)
+{
+  Lisp_Object tail, *prev = &entry;
+
+  for (tail = entry; CONSP (tail); tail = XCDR (tail))
+    {
+      bool drop = 0;
+      Lisp_Object obj = XCAR (tail);
+
+      /* Consider OBJ if it is (font-spec . [font-entity font-entity ...]).  */
+      if (CONSP (obj) && FONT_SPEC_P (XCAR (obj))
+	  && !VECTOR_MARKED_P (XFONT_SPEC (XCAR (obj)))
+	  && VECTORP (XCDR (obj)))
+	{
+	  ptrdiff_t i, size = ASIZE (XCDR (obj)) & ~ARRAY_MARK_FLAG;
+
+	  /* If font-spec is not marked, most likely all font-entities
+	     are not marked too.  But we must be sure that nothing is
+	     marked within OBJ before we really drop it.  */
+	  for (i = 0; i < size; i++)
+	    if (VECTOR_MARKED_P (XFONT_ENTITY (AREF (XCDR (obj), i))))
+	      break;
+
+	  if (i == size)
+	    drop = 1;
+	}
+      if (drop)
+	*prev = XCDR (tail);
+      else
+	prev = xcdr_addr (tail);
+    }
+  return entry;
+}
+
+/* Compact font caches on all terminals and mark
+   everything which is still here after compaction.  */
+
+static void
+compact_font_caches (void)
+{
+  struct terminal *t;
+
+  for (t = terminal_list; t; t = t->next_terminal)
+    {
+      Lisp_Object cache = TERMINAL_FONT_CACHE (t);
+
+      if (CONSP (cache))
+	{
+	  Lisp_Object entry;
+
+	  for (entry = XCDR (cache); CONSP (entry); entry = XCDR (entry))
+	    XSETCAR (entry, compact_font_cache_entry (XCAR (entry)));
+	}
+      mark_object (cache);
+    }
+}
+
+#else /* not HAVE_WINDOW_SYSTEM */
+
+#define compact_font_caches() (void)(0)
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
+/* Remove (MARKER . DATA) entries with unmarked MARKER
+   from buffer undo LIST and return changed list.  */
+
+static Lisp_Object
+compact_undo_list (Lisp_Object list)
+{
+  Lisp_Object tail, *prev = &list;
+
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    {
+      if (CONSP (XCAR (tail))
+	  && MARKERP (XCAR (XCAR (tail)))
+	  && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
+	*prev = XCDR (tail);
+      else
+	prev = xcdr_addr (tail);
+    }
+  return list;
+}
+
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
@@ -5392,46 +5481,19 @@ See Info node `(elisp)Garbage Collection'.  */)
   mark_stack ();
 #endif
 
-  /* Everything is now marked, except for the things that require special
-     finalization, i.e. the undo_list.
-     Look thru every buffer's undo list
-     for elements that update markers that were not marked,
-     and delete them.  */
+  /* Everything is now marked, except for the data in font caches
+     and undo lists.  They're compacted by removing an items which
+     aren't reachable otherwise.  */
+
+  compact_font_caches ();
+
   FOR_EACH_BUFFER (nextb)
     {
-      /* If a buffer's undo list is Qt, that means that undo is
-	 turned off in that buffer.  Calling truncate_undo_list on
-	 Qt tends to return NULL, which effectively turns undo back on.
-	 So don't call truncate_undo_list if undo_list is Qt.  */
-      if (! EQ (nextb->INTERNAL_FIELD (undo_list), Qt))
-	{
-	  Lisp_Object tail, prev;
-	  tail = nextb->INTERNAL_FIELD (undo_list);
-	  prev = Qnil;
-	  while (CONSP (tail))
-	    {
-	      if (CONSP (XCAR (tail))
-		  && MARKERP (XCAR (XCAR (tail)))
-		  && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
-		{
-		  if (NILP (prev))
-		    nextb->INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
-		  else
-		    {
-		      tail = XCDR (tail);
-		      XSETCDR (prev, tail);
-		    }
-		}
-	      else
-		{
-		  prev = tail;
-		  tail = XCDR (tail);
-		}
-	    }
-	}
-      /* Now that we have stripped the elements that need not be in the
-	 undo_list any more, we can finally mark the list.  */
-      mark_object (nextb->INTERNAL_FIELD (undo_list));
+      if (!EQ (BVAR (nextb, undo_list), Qt))
+	bset_undo_list (nextb, compact_undo_list (BVAR (nextb, undo_list)));
+      /* Now that we have stripped the elements that need not be
+	 in the undo_list any more, we can finally mark the list.  */
+      mark_object (BVAR (nextb, undo_list));
     }
 
   gc_sweep ();
@@ -5603,30 +5665,6 @@ mark_glyph_matrix (struct glyph_matrix *matrix)
       }
 }
 
-
-/* Mark Lisp faces in the face cache C.  */
-
-static void
-mark_face_cache (struct face_cache *c)
-{
-  if (c)
-    {
-      int i, j;
-      for (i = 0; i < c->used; ++i)
-	{
-	  struct face *face = FACE_FROM_ID (c->f, i);
-
-	  if (face)
-	    {
-	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
-		mark_object (face->lface[j]);
-	    }
-	}
-    }
-}
-
-
-
 /* Mark reference to a Lisp_Object.
    If the object referred to has not been seen yet, recursively mark
    all the references contained in it.  */
@@ -5724,6 +5762,30 @@ mark_buffer (struct buffer *buffer)
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
     mark_buffer (buffer->base_buffer);
+}
+
+/* Mark Lisp faces in the face cache C.  */
+
+static void
+mark_face_cache (struct face_cache *c)
+{
+  if (c)
+    {
+      int i, j;
+      for (i = 0; i < c->used; ++i)
+	{
+	  struct face *face = FACE_FROM_ID (c->f, i);
+
+	  if (face)
+	    {
+	      if (face->font && !VECTOR_MARKED_P (face->font))
+		mark_vectorlike ((struct Lisp_Vector *) face->font);
+
+	      for (j = 0; j < LFACE_VECTOR_SIZE; ++j)
+		mark_object (face->lface[j]);
+	    }
+	}
+    }
 }
 
 /* Remove killed buffers or items whose car is a killed buffer from
@@ -6118,9 +6180,6 @@ mark_terminals (void)
 	 it might have been marked already.  Make sure the image cache
 	 gets marked.  */
       mark_image_cache (t->image_cache);
-      /* FIXME: currently font cache may grow too large
-	 and probably needs special finalization.  */
-      mark_object (TERMINAL_FONT_CACHE (t));
 #endif /* HAVE_WINDOW_SYSTEM */
       if (!VECTOR_MARKED_P (t))
 	mark_vectorlike ((struct Lisp_Vector *)t);

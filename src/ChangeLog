@@ -1,3 +1,16 @@
+2013-10-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not allow font caches to grow too large.
+	* alloc.c (compact_font_cache_entry, compact_font_caches):
+	New functions or stub if not HAVE_WINDOW_SYSTEM.
+	(compact_undo_list): Factor out from Fgarbage_collect.
+	Add comment.
+	(mark_face_cache): Mark face font.  Move down to avoid
+	extra prototypes.
+	(mark_terminals): Do not mark font cache here.
+	(Fgarbage_collect): Call compaction functions described
+	above.  Adjust comment.
+
 2013-10-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (main): On Cocoa, if GUI session and 0 is not a tty,
