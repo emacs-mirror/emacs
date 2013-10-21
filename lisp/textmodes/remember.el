@@ -535,7 +535,7 @@ If this is nil, then `diary-file' will be used instead."
     (goto-char (point-min))
     (let (list)
       (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
-        (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
+        (push (remember-diary-convert-entry (match-string 1)) list))
       (when list
         (diary-make-entry (mapconcat 'identity list "\n")
                           nil remember-diary-file))

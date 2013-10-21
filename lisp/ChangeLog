@@ -1,5 +1,8 @@
 2013-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/remember.el (remember-diary-extract-entries):
+	Avoid add-to-list.
+
 	* progmodes/ruby-mode.el (ruby-smie-rules): Indent after + used as
 	an instruction.
 
