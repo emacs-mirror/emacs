@@ -182,7 +182,7 @@ and_this_one(has) { |block, parameters|
   tee
 }
 
-if foo +
+if foo &&
    bar
 end
 
