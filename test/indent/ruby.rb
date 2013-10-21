@@ -189,14 +189,15 @@ end
 foo +
   bar
 
+foo_bar_tee(1, 2, 3)
+  .qux
+  .bar
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo = [1, 2, 3].map do |i|
   i + 1
 end
-
-foo_bar_tee(1, 2, 3)
-  .qux
 
 method !arg1,
        arg2
@@ -209,3 +210,13 @@ method :foo,
 
 method (a + b),
        c
+
+foo do
+  bar
+    .tee
+end
+
+def bar
+  foo
+    .baz
+end

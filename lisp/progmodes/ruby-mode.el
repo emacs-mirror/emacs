@@ -251,7 +251,6 @@ explicitly declared in magic comment."
 ;; Here's a simplified BNF grammar, for reference:
 ;; http://www.cse.buffalo.edu/~regan/cse305/RubyBNF.pdf
 (defconst ruby-smie-grammar
-  ;; FIXME: Add support for Cucumber.
   (smie-prec2->grammar
    (smie-merge-prec2s
     (smie-bnf->prec2
@@ -259,7 +258,8 @@ explicitly declared in magic comment."
        (insts (inst) (insts ";" insts))
        (inst (exp) (inst "iuwu-mod" exp))
        (exp  (exp1) (exp "," exp) (exp "=" exp)
-             (id " @ " exp))
+             (id " @ " exp)
+             (exp "." exp))
        (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
        (exp2 ("def" insts "end")
              ("begin" insts-rescue-insts "end")
@@ -288,7 +288,7 @@ explicitly declared in magic comment."
        (ielsei (itheni) (itheni "else" insts))
        (if-body (ielsei) (if-body "elsif" if-body)))
      '((nonassoc "in") (assoc ";") (right " @ ")
-       (assoc ",") (right "="))
+       (assoc ",") (right "=") (assoc "."))
      '((assoc "when"))
      '((assoc "elsif"))
      '((assoc "rescue" "ensure"))
@@ -354,14 +354,10 @@ explicitly declared in magic comment."
             (eq (char-syntax (char-before (1- (point)))) '?w)))
    (memq (char-syntax (char-after pos)) '(?w ?\"))))
 
-(defun ruby-smie--forward-id ()
-  (when (and (not (eobp))
-             (eq ?w (char-syntax (char-after))))
-    (let ((tok (smie-default-forward-token)))
-      (when (eq ?. (char-after))
-        (forward-char 1)
-        (setq tok (concat tok "." (ruby-smie--forward-id))))
-      tok)))
+(defun ruby-smie--at-dot-call ()
+  (and (eq ?w (char-syntax (char-after)))
+       (eq (char-before) ?.)
+       (not (eq (char-before (1- (point))) ?.))))
 
 (defun ruby-smie--forward-token ()
   (let ((pos (point)))
@@ -382,7 +378,10 @@ explicitly declared in magic comment."
                (ruby-smie--args-separator-p (prog1 (point) (goto-char pos)))))
         " @ ")
        (t
-        (let ((tok (smie-default-forward-token)))
+        (let ((dot (ruby-smie--at-dot-call))
+              (tok (smie-default-forward-token)))
+          (when dot
+            (setq tok (concat "." tok)))
           (cond
            ((member tok '("unless" "if" "while" "until"))
             (if (save-excursion (forward-word -1) (ruby-smie--bosp))
@@ -398,17 +397,7 @@ explicitly declared in magic comment."
                  (line-end-position))
               (ruby-smie--forward-token)) ;Fully redundant.
              (t ";")))
-           ((equal tok ".") (concat tok (ruby-smie--forward-id)))
            (t tok)))))))))
-
-(defun ruby-smie--backward-id ()
-  (when (and (not (bobp))
-             (eq ?w (char-syntax (char-before))))
-    (let ((tok (smie-default-backward-token)))
-      (when (eq ?. (char-before))
-        (forward-char -1)
-        (setq tok (concat (ruby-smie--backward-id) "." tok)))
-      tok)))
 
 (defun ruby-smie--backward-token ()
   (let ((pos (point)))
@@ -424,9 +413,9 @@ explicitly declared in magic comment."
       ;; In some textbooks, "e1 @ e2" is used to mean "call e1 with arg e2".
       " @ ")
      (t
-      (let ((tok (smie-default-backward-token)))
-        (when (eq ?. (char-before))
-          (forward-char -1)
+      (let ((tok (smie-default-backward-token))
+            (dot (ruby-smie--at-dot-call)))
+        (when dot
           (setq tok (concat "." tok)))
         (when (and (eq ?: (char-before)) (string-match "\\`\\s." tok))
           (forward-char -1) (setq tok (concat ":" tok))) ;; bug#15208.
@@ -446,11 +435,6 @@ explicitly declared in magic comment."
                (line-end-position))
             (ruby-smie--backward-token)) ;Fully redundant.
            (t ";")))
-         ;; FIXME: We shouldn't merge the dot with preceding token here
-         ;; either, but not doing that breaks indentation of hanging
-         ;; method calls with dot on the first line.
-         ((equal tok ".")
-          (concat (ruby-smie--backward-id) tok))
          (t tok)))))))
 
 (defun ruby-smie-rules (kind token)
@@ -495,6 +479,9 @@ explicitly declared in magic comment."
     (`(:after . ,(or "=" "iuwu-mod")) 2)
     (`(:after . " @ ") (smie-rule-parent))
     (`(:before . "do") (smie-rule-parent))
+    (`(,(or :before :after) . ".")
+     (unless (smie-rule-parent-p ".")
+       (smie-rule-parent ruby-indent-level)))
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level

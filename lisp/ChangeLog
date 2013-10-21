@@ -1,3 +1,15 @@
+2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Remove outdated
+	TODO.  Add "." after " @ ".
+	(ruby-smie--at-dot-call): New function.  Checks if point at method
+	call with explicit target.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Prepend "."
+	to the method name tokens when it precedes them.
+	(ruby-smie--backward-id, ruby-smie--forward-id): Remove.
+	(ruby-smie-rules): Add rule for indentation before and after "."
+	token.
+
 2013-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/remember.el (remember-diary-extract-entries):
