@@ -40,6 +40,11 @@ foo = {                         # ruby-deep-indent-disabled
   a: b
 }
 
+foo({
+     a: b,
+     c: d
+   })
+
 foo = [                         # ruby-deep-indent-disabled
   1
 ]
@@ -165,6 +170,18 @@ method? arg1,
 method! arg1,
         arg2
 
+it "is a method call with block" do |asd|
+  foo
+end
+
+it("is too!") {
+  bar
+}
+
+and_this_one(has) { |block, parameters|
+  tee
+}
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo +
@@ -192,11 +209,3 @@ method :foo,
 
 method (a + b),
        c
-
-it "is a method call with block" do
-  foo
-end
-
-it("is too!") {
-  bar
-}

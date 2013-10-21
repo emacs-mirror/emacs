@@ -1,3 +1,10 @@
+2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Add binding for
+	`smie-down-list'.
+	(ruby-smie--args-separator-p): Check that there's no newline
+	between method call and its arguments.
+
 2013-10-20  Alan Mackenzie  <acm@muc.de>
 
 	Allow comma separated lists after Java "implements".

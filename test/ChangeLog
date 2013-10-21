@@ -1,3 +1,8 @@
+2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: New examples for indentation of blocks.  Example
+	of hash inside parens that inflooped before the present commit.
+
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* test/automated/timer-tests.el: New file.  Tests that (sit-for 0)

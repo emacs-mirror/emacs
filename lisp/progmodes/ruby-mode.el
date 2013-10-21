@@ -152,6 +152,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
       (define-key map (kbd "M-C-b") 'ruby-backward-sexp)
       (define-key map (kbd "M-C-f") 'ruby-forward-sexp)
       (define-key map (kbd "M-C-q") 'ruby-indent-exp))
+    (when ruby-use-smie
+      (define-key map (kbd "M-C-d") 'smie-down-list))
     (define-key map (kbd "M-C-p") 'ruby-beginning-of-block)
     (define-key map (kbd "M-C-n") 'ruby-end-of-block)
     (define-key map (kbd "C-c {") 'ruby-toggle-block)
@@ -327,10 +329,10 @@ explicitly declared in magic comment."
 
 (defun ruby-smie--args-separator-p (pos)
   (and
+   (< pos (line-end-position))
    (or (eq (char-syntax (preceding-char)) '?w)
        (and (memq (preceding-char) '(?! ??))
             (eq (char-syntax (char-before (1- (point)))) '?w)))
-   (< pos (point-max))
    (memq (char-syntax (char-after pos)) '(?w ?\"))))
 
 (defun ruby-smie--forward-id ()
@@ -440,20 +442,39 @@ explicitly declared in magic comment."
     (`(:elem . args) (if (looking-at "\\s\"") 0))
     ;; (`(:after . ",") (smie-rule-separator kind))
     (`(:after . ";")
-     (if (smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
-                             "while" "until" "unless"
-                             "if" "then" "elsif" "else" "when"
-                             "rescue" "ensure")
-         (smie-rule-parent ruby-indent-level)
-       ;; For (invalid) code between switch and case.
-       ;; (if (smie-parent-p "switch") 4)
-       0))
+     (cond
+      ((smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
+                           "while" "until" "unless"
+                           "if" "then" "elsif" "else" "when"
+                           "rescue" "ensure")
+       (smie-rule-parent ruby-indent-level))
+      ((and (smie-rule-parent-p "{")
+            (save-excursion
+              (goto-char (1+ (cadr (smie-indent--parent))))
+              (ruby-smie--opening-pipe-p)
+              (forward-char -1)
+              ;; Can't delegate to `smie-rule-parent' because it
+              ;; short-circuits to `current-column' when the parent
+              ;; token is of paren syntax class and not hanging.
+              (cons 'column (+ (smie-indent-virtual)
+                               ruby-indent-level)))))
+      ;; For (invalid) code between switch and case.
+      ;; (if (smie-parent-p "switch") 4)
+      (t 0)))
     (`(:before . ,(or `"(" `"[" `"{"))
-     ;; Treat purely syntactic block-constructs as being part of their parent,
-     ;; when the opening statement is hanging.
-     (when (smie-rule-hanging-p)
-       (smie-backward-sexp 'halfsexp) (smie-indent-virtual)))
+     (cond
+      ((and (equal token "{")
+            (not (smie-rule-prev-p "(" "{" "[" "," "=>")))
+       ;; Curly block opener.
+       (smie-rule-parent))
+      ((smie-rule-hanging-p)
+       ;; Treat purely syntactic block-constructs as being part of their parent,
+       ;; when the opening statement is hanging.
+       (let ((state (smie-backward-sexp 'halfsexp)))
+         (when (eq t (car state)) (goto-char (cadr state))))
+       (cons 'column  (smie-indent-virtual)))))
     (`(:after . ,(or "=" "iuwu-mod")) 2)
+    (`(:after . " @ ") (smie-rule-parent))
     (`(:before . "do") (smie-rule-parent))
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
