@@ -1358,7 +1358,8 @@ frame's display)."
 (declare-function x-display-screens "xfns.c" (&optional terminal))
 
 (defun display-screens (&optional display)
-  "Return the number of screens associated with DISPLAY."
+  "Return the number of screens associated with DISPLAY.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1374,7 +1375,8 @@ For character terminals, each character counts as a single pixel.
 For graphical terminals, note that on \"multi-monitor\" setups this
 refers to the pixel height for all physical monitors associated
 with DISPLAY.  To get information for each physical monitor, use
-`display-monitor-attributes-list'."
+`display-monitor-attributes-list'.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1390,7 +1392,8 @@ For character terminals, each character counts as a single pixel.
 For graphical terminals, note that on \"multi-monitor\" setups this
 refers to the pixel width for all physical monitors associated
 with DISPLAY.  To get information for each physical monitor, use
-`display-monitor-attributes-list'."
+`display-monitor-attributes-list'.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1425,7 +1428,8 @@ If the information is unavailable, value is nil.
 For graphical terminals, note that on \"multi-monitor\" setups this
 refers to the height in millimeters for all physical monitors
 associated with DISPLAY.  To get information for each physical
-monitor, use `display-monitor-attributes-list'."
+monitor, use `display-monitor-attributes-list'.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (and (memq (framep-on-display display) '(x w32 ns))
        (or (cddr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
@@ -1441,7 +1445,8 @@ If the information is unavailable, value is nil.
 For graphical terminals, note that on \"multi-monitor\" setups this
 refers to the width in millimeters for all physical monitors
 associated with DISPLAY.  To get information for each physical
-monitor, use `display-monitor-attributes-list'."
+monitor, use `display-monitor-attributes-list'.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (and (memq (framep-on-display display) '(x w32 ns))
        (or (cadr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
@@ -1455,7 +1460,8 @@ monitor, use `display-monitor-attributes-list'."
 (defun display-backing-store (&optional display)
   "Return the backing store capability of DISPLAY's screen.
 The value may be `always', `when-mapped', `not-useful', or nil if
-the question is inapplicable to a certain kind of display."
+the question is inapplicable to a certain kind of display.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1466,7 +1472,8 @@ the question is inapplicable to a certain kind of display."
 (declare-function x-display-save-under "xfns.c" (&optional terminal))
 
 (defun display-save-under (&optional display)
-  "Return non-nil if DISPLAY's screen supports the SaveUnder feature."
+  "Return non-nil if DISPLAY's screen supports the SaveUnder feature.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1477,7 +1484,8 @@ the question is inapplicable to a certain kind of display."
 (declare-function x-display-planes "xfns.c" (&optional terminal))
 
 (defun display-planes (&optional display)
-  "Return the number of planes supported by DISPLAY."
+  "Return the number of planes supported by DISPLAY.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1490,7 +1498,8 @@ the question is inapplicable to a certain kind of display."
 (declare-function x-display-color-cells "xfns.c" (&optional terminal))
 
 (defun display-color-cells (&optional display)
-  "Return the number of color cells supported by DISPLAY."
+  "Return the number of color cells supported by DISPLAY.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1505,7 +1514,8 @@ the question is inapplicable to a certain kind of display."
 (defun display-visual-class (&optional display)
   "Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
-`static-color', `pseudo-color', `true-color', or `direct-color'."
+`static-color', `pseudo-color', `true-color', or `direct-color'.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1550,7 +1560,8 @@ is the closest to the frame if the frame does not intersect any
 physical monitors.  Every non-tip frame (including invisible one)
 in a graphical display is dominated by exactly one physical
 monitor at a time, though it can span multiple (or no) physical
-monitors."
+monitors.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((eq frame-type 'x)
