@@ -444,23 +444,13 @@ explicitly declared in magic comment."
     ;; should be aligned with the first.
     (`(:elem . args) (if (looking-at "\\s\"") 0))
     ;; (`(:after . ",") (smie-rule-separator kind))
-    (`(:after . ";")
+    (`(:before . ";")
      (cond
       ((smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
                            "while" "until" "unless"
                            "if" "then" "elsif" "else" "when"
-                           "rescue" "ensure")
+                           "rescue" "ensure" "{")
        (smie-rule-parent ruby-indent-level))
-      ((and (smie-rule-parent-p "{")
-            (save-excursion
-              (goto-char (1+ (cadr (smie-indent--parent))))
-              (ruby-smie--opening-pipe-p)
-              (forward-char -1)
-              ;; Can't delegate to `smie-rule-parent' because it
-              ;; short-circuits to `current-column' when the parent
-              ;; token is of paren syntax class and not hanging.
-              (cons 'column (+ (smie-indent-virtual)
-                               ruby-indent-level)))))
       ;; For (invalid) code between switch and case.
       ;; (if (smie-parent-p "switch") 4)
       (t 0)))

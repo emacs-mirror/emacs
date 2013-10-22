@@ -1242,7 +1242,8 @@ Only meaningful when called from within `smie-rules-function'."
              ;; rules-function, so it gives it a chance to tweak
              ;; indentation (e.g. by forcing indentation relative to
              ;; its own parent, as in fn a => fn b => fn c =>).
-             (if (or (listp (car smie--parent)) (smie-indent--hanging-p))
+             (if (or (not (numberp (car smie--parent)))
+		     (smie-indent--hanging-p))
                  (smie-indent-virtual) (current-column))))))
 
 (defvar smie-rule-separator-outdent 2)

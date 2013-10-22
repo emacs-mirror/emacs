@@ -1,10 +1,18 @@
+2013-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+
+	* emacs-lisp/smie.el (smie-rule-parent): Fix opener-test.
+	* progmodes/ruby-mode.el (ruby-smie-rules):
+	Remove corresponding workaround.  Fix indentation rule of ";" so it
+	also applies when ";" is the parent.
+
 2013-10-22  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* frame.el (display-screens, display-pixel-height)
 	(display-pixel-width, display-mm-width, display-backing-store)
 	(display-save-under, display-planes, display-color-cells)
-	(display-visual-class, display-monitor-attributes-list): Mention
-	the optional ‘display’ argument in doc strings.
+	(display-visual-class, display-monitor-attributes-list):
+	Mention the optional ‘display’ argument in doc strings.
 
 2013-10-22  Michael Gauland  <mikelygee@amuri.net>
 
