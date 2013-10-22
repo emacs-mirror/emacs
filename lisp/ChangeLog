@@ -1,3 +1,8 @@
+2013-10-22  Michael Gauland  <mikelygee@amuri.net>
+
+	* progmodes/ebnf2ps.el (ebnf-prologue): Avoid PS error with some
+	viewers such as evince when ebnf-production-name-p is nil.  (Bug#15625)
+
 2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Remove outdated
