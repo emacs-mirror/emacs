@@ -1,3 +1,10 @@
+2013-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Guess content-type if the first
+	token is missing in the Content-Type header.
+
+	* nndoc.el (nndoc-dissect-mime-parts-sub): Ditto.
+
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (image-size): Declare.

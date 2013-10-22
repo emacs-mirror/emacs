@@ -672,12 +672,39 @@ MIME-Version header before proceeding."
 				 description)))))
       (if (or (not ctl)
 	      (not (string-match "/" (car ctl))))
-	  (mm-dissect-singlepart
-	   (list mm-dissect-default-type)
-	   (and cte (intern (downcase (mail-header-strip cte))))
-	   no-strict-mime
-	   (and cd (mail-header-parse-content-disposition cd))
-	   description)
+	  (let ((cdl (and cd (mail-header-parse-content-disposition cd))))
+	    (mm-dissect-singlepart
+	     ;; Guess Content-Type from the file name extention.
+	     ;; Some mailer sends a part without type like this:
+	     ;;  Content-Type: ; name="IMG_3156.JPG"
+	     ;;  Content-Disposition: attachment; filename="IMG_3156.JPG"
+	     (list (or
+		    (let ((tem
+			   (or (mail-content-type-get cdl 'filename)
+			       (and ct
+				    (with-temp-buffer
+				      (insert ct)
+				      (goto-char (point-min))
+				      (and (re-search-forward "\
+;[\t\n ]*name=\\([\"']\\|\\([^\t\n\r ]+\\)\\)" nil t)
+					   (or (match-string 2)
+					       (progn
+						 (goto-char (match-beginning 1))
+						 (condition-case nil
+						     (progn
+						       (forward-sexp 1)
+						       (buffer-substring
+							(1+ (match-beginning 1))
+							(1- (point))))
+						   (error nil))))))))))
+		      (and tem
+			   (setq tem (file-name-extension tem))
+			   (require 'mailcap)
+			   (cdr (assoc (concat "." (downcase tem))
+				       mailcap-mime-extensions))))
+		    mm-dissect-default-type))
+	     (and cte (intern (downcase (mail-header-strip cte))))
+	     no-strict-mime cdl description))
 	(setq type (split-string (car ctl) "/"))
 	(setq subtype (cadr type)
 	      type (car type))
