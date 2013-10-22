@@ -1011,7 +1011,7 @@ PARENT is the message-ID of the parent summary line, or nil for none."
 		      (when (re-search-forward "^Content-Type:\\([^;]*\\);"
 					       nil t)
 			(setq len (- (match-end 1) (match-beginning 1)
-				     (length content-type))
+				     (length content-type) 1)
 			      head-end (- head-end len)
 			      body-begin (- body-begin len)
 			      body-end (- body-end len))
