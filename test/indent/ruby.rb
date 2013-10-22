@@ -193,6 +193,16 @@ foo_bar_tee(1, 2, 3)
   .qux
   .bar
 
+foo do
+  bar
+    .tee
+end
+
+def bar
+  foo
+    .baz
+end
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo = [1, 2, 3].map do |i|
@@ -211,12 +221,6 @@ method :foo,
 method (a + b),
        c
 
-foo do
+bar.foo do # "." is parent to "do"; it shouldn't be.
   bar
-    .tee
-end
-
-def bar
-  foo
-    .baz
 end
