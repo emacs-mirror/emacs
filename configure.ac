@@ -74,8 +74,12 @@ dnl --program-transform-name options
 AC_ARG_PROGRAM
 
 dnl http://debbugs.gnu.org/15260
-for var in "`pwd`" "`cd \"$srcdir\"; pwd`" "$bindir" \
-    "$datadir" "$sharedstatedir" "$libexecdir"; do
+dnl I think we have to check, eg, both exec_prefix and bindir,
+dnl because the latter by default is not yet expanded, but the user
+dnl may have specified a value for it via --bindir.
+dnl Note that abs_srcdir and abs_builddir are not yet defined. :(
+for var in "`pwd`" "`cd \"$srcdir\"; pwd`" "$prefix" "$exec_prefix" \
+    "$datarootdir" "$bindir" "$datadir" "$sharedstatedir" "$libexecdir"; do
 
   dnl configure sets LC_ALL=C early on, so this range should work.
   case "$var" in
