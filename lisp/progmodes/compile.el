@@ -513,7 +513,7 @@ listed text properties PROP# are given values VAL# as well."
   "Directory to restore to when doing `recompile'.")
 
 (defvar compilation-directory-matcher
-  '("\\(?:Entering\\|Leavin\\(g\\)\\) directory `\\(.+\\)'$" (2 . 1))
+  '("\\(?:Entering\\|Leavin\\(g\\)\\) directory [`']\\(.+\\)'$" (2 . 1))
   "A list for tracking when directories are entered or left.
 If nil, do not track directories, e.g. if all file names are absolute.  The
 first element is the REGEXP matching these messages.  It can match any number
@@ -526,7 +526,7 @@ directory we were in before the last entering message.  If you change this,
 you may also want to change `compilation-page-delimiter'.")
 
 (defvar compilation-page-delimiter
-  "^\\(?:\f\\|.*\\(?:Entering\\|Leaving\\) directory `.+'\n\\)+"
+  "^\\(?:\f\\|.*\\(?:Entering\\|Leaving\\) directory [`'].+'\n\\)+"
   "Value of `page-delimiter' in Compilation mode.")
 
 (defvar compilation-mode-font-lock-keywords

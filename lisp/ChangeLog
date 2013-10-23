@@ -1,3 +1,9 @@
+2013-10-23  Jed Brown  <jed@59A2.org>  (tiny change)
+
+	* progmodes/compile.el (compilation-directory-matcher)
+	(compilation-page-delimiter):
+	Support GNU Make-4.0 directory quoting.  (Bug#15678)
+
 2013-10-23  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-tidy): Handle read-only text.
