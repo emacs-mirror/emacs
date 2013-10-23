@@ -2392,6 +2392,7 @@ For example,
 @end example
 @end defun
 
+@c FIXME: Add an index for "relative face attribute", maybe here?  --xfq
 @defun face-attribute-relative-p attribute value
 This function returns non-@code{nil} if @var{value}, when used as the
 value of the face attribute @var{attribute}, is relative.  This means
