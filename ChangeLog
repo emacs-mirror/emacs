@@ -1,5 +1,12 @@
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
+	Progress towards allowing installation in directories with whitespace.
+	* Makefile.in (COPYDESTS, write_subdir, install-arch-dep)
+	(install-arch-indep, install-etcdoc, install-info, install-man)
+	(install-etc, uninstall): Quote entities that might contain whitespace.
+	* build-aux/update-subdirs: Handle whitespace in argument.
+	Check cd return value.
+
 	Make building in directories with whitespace possible.  (Bug#15675)
 	* configure.ac (srcdir): Don't make it absolute - abs_srcdir exists.
 	* Makefile.in (abs_srcdir): New, set by configure.

@@ -1,7 +1,7 @@
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in ($(DESTDIR)${archlibdir}):
-	Quote entities that might contain whitespace.
+	* Makefile.in ($(DESTDIR)${archlibdir}, need-blessmail, install)
+	(uninstall): Quote entities that might contain whitespace.
 
 2013-10-10  Glenn Morris  <rgm@gnu.org>
 

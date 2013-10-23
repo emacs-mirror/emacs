@@ -1,6 +1,13 @@
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-dvi, install-html, install-pdf)
+	(install-ps, uninstall-dvi, uninstall-html, uninstall-ps)
+	(uninstall-pdf): Quote entities that might contain whitespace.
+
 2013-10-20  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* custom.texi (Init Syntax, Terminal Init, Terminal Init): Remove @refill.
+	* custom.texi (Init Syntax, Terminal Init, Terminal Init):
+	Remove @refill.
 
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 

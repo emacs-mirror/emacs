@@ -1,3 +1,9 @@
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-dvi, install-html, install-pdf)
+	(install-ps, uninstall-dvi, uninstall-html, uninstall-ps)
+	(uninstall-pdf): Quote entities that might contain whitespace.
+
 2013-10-19  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* display.texi (Face Attributes): Add indexes for the ‘:box’ face attribute.

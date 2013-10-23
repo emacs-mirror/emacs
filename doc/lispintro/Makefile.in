@@ -145,21 +145,21 @@ dist:
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
 install-dvi: dvi
-	umask 022; $(MKDIR_P) $(DESTDIR)$(dvidir)
-	$(INSTALL_DATA) $(DVI_TARGETS) $(DESTDIR)$(dvidir)
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(dvidir)"
+	$(INSTALL_DATA) $(DVI_TARGETS) "$(DESTDIR)$(dvidir)"
 install-html: html
-	umask 022; $(MKDIR_P) $(DESTDIR)$(htmldir)
-	$(INSTALL_DATA) $(HTML_TARGETS) $(DESTDIR)$(htmldir)
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(htmldir)"
+	$(INSTALL_DATA) $(HTML_TARGETS) "$(DESTDIR)$(htmldir)"
 install-pdf: pdf
-	 umask 022;$(MKDIR_P) $(DESTDIR)$(pdfdir)
-	$(INSTALL_DATA) $(PDF_TARGETS) $(DESTDIR)$(pdfdir)
+	 umask 022;$(MKDIR_P) "$(DESTDIR)$(pdfdir)"
+	$(INSTALL_DATA) $(PDF_TARGETS) "$(DESTDIR)$(pdfdir)"
 install-ps: ps
-	umask 022; $(MKDIR_P) $(DESTDIR)$(psdir)
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(psdir)"
 	for file in $(PS_TARGETS); do \
-	  $(INSTALL_DATA) $${file} $(DESTDIR)$(psdir); \
+	  $(INSTALL_DATA) $${file} "$(DESTDIR)$(psdir)"; \
 	  [ -n "${GZIP_PROG}" ] || continue; \
-	  rm -f $(DESTDIR)$(psdir)/$${file}.gz; \
-	  ${GZIP_PROG} -9n $(DESTDIR)$(psdir)/$${file}; \
+	  rm -f "$(DESTDIR)$(psdir)/$${file}.gz"; \
+	  ${GZIP_PROG} -9n "$(DESTDIR)$(psdir)/$${file}"; \
 	done
 
 ## Top-level Makefile installs the info pages.
@@ -170,20 +170,20 @@ install-doc: install-dvi install-html install-pdf install-ps
 
 uninstall-dvi:
 	for file in $(DVI_TARGETS); do \
-	  rm -f $(DESTDIR)$(dvidir)/$${file}; \
+	  rm -f "$(DESTDIR)$(dvidir)/$${file}"; \
 	done
 uninstall-html:
 	for file in $(HTML_TARGETS); do \
-	  rm -f $(DESTDIR)$(htmldir)/$${file}; \
+	  rm -f "$(DESTDIR)$(htmldir)/$${file}"; \
 	done
 uninstall-ps:
 	ext= ; [ -n "${GZIP_PROG}" ] && ext=.gz; \
 	for file in $(PS_TARGETS); do \
-	  rm -f $(DESTDIR)$(psdir)/$${file}$${ext}; \
+	  rm -f "$(DESTDIR)$(psdir)/$${file}$${ext}"; \
 	done
 uninstall-pdf:
 	for file in $(PDF_TARGETS); do \
-	  rm -f $(DESTDIR)$(pdfdir)/$${file}; \
+	  rm -f "$(DESTDIR)$(pdfdir)/$${file}"; \
 	done
 
 uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
