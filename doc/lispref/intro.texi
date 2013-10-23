@@ -456,7 +456,7 @@ described using a format like that for functions, except that there
 are no arguments.
 
   Here is a description of the imaginary @code{electric-future-map}
-variable.@refill
+variable.
 
 @defvar electric-future-map
 The value of this variable is a full keymap used by Electric Command

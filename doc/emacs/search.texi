@@ -668,7 +668,7 @@ it possible to match the rest of the pattern.  For example, in matching
 tries to match all three @samp{a}s; but the rest of the pattern is
 @samp{ar} and there is only @samp{r} left to match, so this try fails.
 The next alternative is for @samp{a*} to match only two @samp{a}s.
-With this choice, the rest of the regexp matches successfully.@refill
+With this choice, the rest of the regexp matches successfully.
 
 @item @kbd{+}
 is a postfix operator, similar to @samp{*} except that it must match
@@ -830,11 +830,11 @@ either @var{a} matches it or @var{b} matches it.  It works by trying to
 match @var{a}, and if that fails, by trying to match @var{b}.
 
 Thus, @samp{foo\|bar} matches either @samp{foo} or @samp{bar}
-but no other string.@refill
+but no other string.
 
 @samp{\|} applies to the largest possible surrounding expressions.  Only a
 surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
-@samp{\|}.@refill
+@samp{\|}.
 
 Full backtracking capability exists to handle multiple uses of @samp{\|}.
 
@@ -850,7 +850,7 @@ Thus, @samp{\(foo\|bar\)x} matches either @samp{foox} or @samp{barx}.
 To enclose a complicated expression for the postfix operators @samp{*},
 @samp{+} and @samp{?} to operate on.  Thus, @samp{ba\(na\)*} matches
 @samp{bananana}, etc., with any (zero or more) number of @samp{na}
-strings.@refill
+strings.
 
 @item
 To record a matched substring for future reference.
@@ -912,7 +912,7 @@ matches the empty string, but only at point.
 matches the empty string, but only at the beginning or
 end of a word.  Thus, @samp{\bfoo\b} matches any occurrence of
 @samp{foo} as a separate word.  @samp{\bballs?\b} matches
-@samp{ball} or @samp{balls} as a separate word.@refill
+@samp{ball} or @samp{balls} as a separate word.
 
 @samp{\b} matches at the beginning or end of the buffer
 regardless of what text appears next to it.
@@ -1005,7 +1005,7 @@ searching through, if you specify the text in lower case.  Thus, if
 you specify searching for @samp{foo}, then @samp{Foo} and @samp{foo}
 also match.  Regexps, and in particular character sets, behave
 likewise: @samp{[ab]} matches @samp{a} or @samp{A} or @samp{b} or
-@samp{B}.@refill
+@samp{B}.
 
   An upper-case letter anywhere in the incremental search string makes
 the search case-sensitive.  Thus, searching for @samp{Foo} does not find

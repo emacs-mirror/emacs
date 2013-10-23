@@ -88,7 +88,7 @@ be visited as needed.
 
 Comments and bug reports are welcome.
 @code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
-Please use the Ex command @kbd{:submitReport} for this purpose.@refill
+Please use the Ex command @kbd{:submitReport} for this purpose.
 
 @insertcopying
 @end ifnottex
@@ -147,7 +147,7 @@ comes with Emacs.  This manual can be read as an Info file.  Try the command
 
 Comments and bug reports are welcome.
 @code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
-Please use the Ex command @kbd{:submitReport} for this purpose.@refill
+Please use the Ex command @kbd{:submitReport} for this purpose.
 
 @end iftex
 
@@ -197,21 +197,21 @@ Emacs can edit several files at once.  A file in Emacs is placed in a
 @dfn{buffer} that usually has the same name as the file.  Buffers are also used
 for other purposes, such as shell interfaces, directory editing, etc.
 @xref{Dired,,Directory Editor,emacs,The
-GNU Emacs Manual}, for an example.@refill
+GNU Emacs Manual}, for an example.
 
 A buffer has a distinguished position called the @dfn{point}.
 A @dfn{point} is always between 2 characters, and is @dfn{looking at}
 the right hand character.  The cursor is positioned on the right hand
 character.  Thus, when the @dfn{point} is looking at the end-of-line,
 the cursor is on the end-of-line character, i.e., beyond the last
-character on the line.  This is the default Emacs behavior.@refill
+character on the line.  This is the default Emacs behavior.
 
 The default settings of Viper try to mimic the behavior of Vi, preventing
 the cursor from going beyond the last character on the line.  By using
 Emacs commands directly (such as those bound to arrow keys), it is possible
 to get the cursor beyond the end-of-line.  However, this won't (or
 shouldn't) happen if you restrict yourself to standard Vi keys, unless you
-modify the default editing style.  @xref{Customization}.@refill
+modify the default editing style.  @xref{Customization}.
 
 In addition to the @dfn{point}, there is another distinguished buffer
 position called the @dfn{mark}.  @xref{Mark,,Mark,emacs,The GNU Emacs
@@ -232,7 +232,7 @@ assuming that the current region starts at line 123 and ends at line
 135.  There is no need to type the line numbers, since Viper inserts them
 automatically in front of the Ex command.
 
-@xref{Basics}, for more info.@refill
+@xref{Basics}, for more info.
 
 @cindex window
 @cindex mode line
@@ -255,7 +255,7 @@ show the buffer name and current major and minor modes (see below).
 A special buffer called @dfn{Minibuffer} is displayed as the last line
 in a minibuffer window.  The minibuffer window is used for command input
 output.  Viper uses minibuffer window for @kbd{/} and @kbd{:}
-commands.@refill
+commands.
 
 @cindex mode
 @cindex keymap
@@ -275,7 +275,7 @@ keymap then that function will be executed when you type the key.
 If no function is bound to a key in the
 local map, however, the function bound to the key in the global map
 will be executed.  @xref{Major Modes,Major Modes,Major Modes,emacs,The
-GNU Emacs Manual}, for more information.@refill
+GNU Emacs Manual}, for more information.
 
 A buffer can also have a @dfn{minor mode}.  Minor modes are options that
 you can use or not.  A buffer in @code{text-mode} can have
@@ -283,7 +283,7 @@ you can use or not.  A buffer in @code{text-mode} can have
 any time.  In Emacs, a minor mode may have it own keymap,
 which overrides the local keymap when the minor mode is turned on.  For
 more information, @pxref{Minor Modes,Minor Modes,Minor Modes,emacs,The
-GNU Emacs Manual} @refill
+GNU Emacs Manual}.
 
 @cindex Viper as minor mode
 @cindex Control keys
@@ -293,7 +293,7 @@ Viper is implemented as a collection of minor modes.  Different minor modes
 are involved when Viper emulates Vi command mode, Vi insert mode, etc.
 You can also turn Viper on and off at any time while in Vi command mode.
 @xref{States in Viper}, for
-more information.@refill
+more information.
 
 Emacs uses Control and Meta modifiers.  These are denoted as C and M,
 e.g., @kbd{^Z} as @kbd{C-z} and @kbd{Meta-x} as @kbd{M-x}.  The Meta key is
@@ -303,7 +303,7 @@ holding the Meta key down.  For keyboards that do not have a Meta key,
 @key{ESC} is used as Meta.  Thus @kbd{M-x} is typed as @kbd{@key{ESC}
 x}.  Viper uses @key{ESC} to switch from Insert state to Vi state.  Therefore
 Viper defines @kbd{C-\} as its Meta key in Vi state.  @xref{Vi State}, for
-more info.@refill
+more info.
 
 Emacs is structured as a Lisp interpreter around a C core.  Emacs keys
 cause Lisp functions to be called.  It is possible to call these
@@ -357,7 +357,7 @@ command line, it will show the @samp{*scratch*} buffer, in the
 editing files by using @kbd{:e}, @kbd{:vi}, or @kbd{v} commands.
 (@xref{File and Buffer Handling}, for more information on @kbd{v} and other
 new commands that, in many cases, are more convenient than @kbd{:e},
-@kbd{:vi}, and similar old-style Vi commands.)@refill
+@kbd{:vi}, and similar old-style Vi commands.)
 
 Finally, if at some point you would want to de-Viperize your running
 copy of Emacs after Viper has been loaded, the command @kbd{M-x
@@ -386,7 +386,7 @@ This is the state plain vanilla Emacs is normally in.  After you have loaded
 Viper, @kbd{C-z} will normally take you to Vi command state.  Another
 @kbd{C-z} will take you back to Emacs state.  This toggle key can be
 changed, @pxref{Customization} You can also type @kbd{M-x viper-mode} to
-change to Vi state.@refill
+change to Vi state.
 
 
 For users who chose to set their user level to 1 at Viper setup time,
@@ -424,7 +424,7 @@ boundary of a replacement region (usually designated via a @samp{$} sign),
 it will automatically change to Insert state.  You do not have to worry
 about it.  The key bindings remain practically the same as in Insert
 state.  If you type @key{ESC}, Viper will switch to Vi command mode, terminating the
-replacement state.@refill
+replacement state.
 @end table
 
 @cindex mode line
@@ -488,7 +488,7 @@ for editing LaTeX documents, Dired for directory editing, etc.  These are
 major modes, each with a different set of key-bindings.  Viper states are
 orthogonal to these Emacs major modes.  The presence of these language
 sensitive and other modes is a major win over Vi.  @xref{Improvements over
-Vi}, for more.@refill
+Vi}, for more.
 
 The bindings for these modes can be made available in the Viper Insert state
 as well as in Emacs state.  Unless you specify your user level as 1 (a
@@ -541,7 +541,6 @@ functionality and no key-binding.  Recursive edits are indicated by
 Edit,Recursive Edit,emacs,The GNU Emacs Manual}.
 At user level 1, @kbd{C-g} is bound to @code{viper-info-on-file}
 function instead.
-@refill
 @item C-\
 @kindex @kbd{C-\}
 @cindex Meta key
@@ -652,7 +651,6 @@ In contrast to @kbd{:w!@: foo}, if the command were @kbd{:r foo}, the entire
 command will appear in the history list.  This is because having @kbd{:r}
 alone as a default is meaningless, since this command requires a file
 argument.
-@refill
 @end table
 @noindent
 As in Vi, Viper's destructive commands can be re-executed by typing `@kbd{.}'.
@@ -673,7 +671,7 @@ Emacs major modes cannot be used in Insert state.
 It is strongly recommended that as soon as you are comfortable, make the
 Emacs state bindings visible (by changing your user level to 3 or higher).
 @xref{Customization},
-to see how to do this.@refill
+to see how to do this.
 
 Once this is done, it is possible to do quite a bit of editing in
 Insert state.  For instance, Emacs has a @dfn{yank} command, @kbd{C-y},
@@ -823,13 +821,13 @@ If you set marker @samp{a} in
 file @file{foo}, start editing file @file{bar} and type @kbd{'a}, then
 @emph{YOU WILL SWITCH TO FILE @file{foo}}.  You can see the contents of a
 textmarker using the Viper command @kbd{[<a-z>} where <a-z> are the
-textmarkers, e.g., @kbd{[a} to view marker @samp{a} .@refill
+textmarkers, e.g., @kbd{[a} to view marker @samp{a} .
 @item Repeated Commands
 Command repetitions are common over files.  Typing @kbd{!!} will repeat the
 last @kbd{!} command whichever file it was issued from.
 Typing @kbd{.} will repeat the last command from any file, and
 searches will repeat the last search.  Ex commands can be repeated by typing
-@kbd{: @key{RET}}.@refill
+@kbd{: @key{RET}}.
 Note: in some rare cases, that @kbd{: @key{RET}} may do something dangerous.
 However, usually its effect can be undone by typing @kbd{u}.
 @item Registers
@@ -897,7 +895,7 @@ more powerful facilities for defining abbreviations.
 it is not implemented.
 A useful alternative is @code{cat -t -e file}.  Unfortunately, it cannot
 be used directly inside Emacs, since Emacs will obdurately change @samp{^I}
-back to normal tabs.@refill
+back to normal tabs.
 @end itemize
 
 @node Improvements over Vi
@@ -928,7 +926,7 @@ The Vi command set is based on the idea of combining motion commands
 with other commands.  The motion command is used as a text region
 specifier for other commands.
 We classify motion commands into @dfn{point commands} and
-@dfn{line commands}.@refill
+@dfn{line commands}.
 
 @cindex point commands
 
@@ -1010,7 +1008,7 @@ direction.
 Since the undo size is limited, Viper can create backup files and
 auto-save files.  It will normally do this automatically.  It is possible
 to have numbered backups, etc.  For details, @pxref{Backup,,Backup and
-Auto-Save,emacs,The GNU Emacs Manual} @refill
+Auto-Save,emacs,The GNU Emacs Manual}.
 
 @comment [ balance parens
 @cindex viewing registers and markers
@@ -1083,7 +1081,7 @@ where @samp{register} is any character from @samp{a} through @samp{z}.  Then
 you can execute this macro using @kbd{@@register}.  It is, of course,
 possible to yank some text into a register and execute it using
 @kbd{@@register}.  Typing @kbd{@@@@}, @kbd{@@RET}, or @kbd{@@C-j} will
-execute the last macro that was executed using @kbd{@@register}.@refill
+execute the last macro that was executed using @kbd{@@register}.
 
 Viper will automatically lowercase the register, so that pressing the
 @kbd{SHIFT} key for @kbd{@@} will not create problems.  This is for
@@ -1105,7 +1103,7 @@ The last keyboard macro can also be executed using
 This is useful for Emacs style keyboard macros defined using @kbd{C-x(}
 and @kbd{C-x)}.  Emacs keyboard macros have more capabilities.
 @xref{Keyboard Macros,,Keyboard Macros,emacs, The GNU Emacs Manual}, for
-details.@refill
+details.
 
 Keyboard Macros allow an interesting form of Query-Replace:
 @kbd{/pattern} or @kbd{n} to go to the next pattern (the query), followed by a
@@ -1161,7 +1159,7 @@ as you go along.  Incremental Search is normally bound to @kbd{C-s} and
 @kbd{C-r}.  @xref{Customization}, to find out how to change the bindings
 of @kbd{C-r or C-s}.
 For details, @pxref{Incremental Search,,Incremental
-Search,emacs,The GNU Emacs Manual} @refill
+Search,emacs,The GNU Emacs Manual}.
 
 @cindex query replace
 
@@ -1308,7 +1306,7 @@ into 2.  Except for novice users, @kbd{C-c} is also set to execute an Emacs
 command from the current major mode.  @key{ESC} will do the same, if you
 configure @key{ESC} as Meta by setting @code{viper-no-multiple-ESC} to @code{nil}
 in @file{.viper}.  @xref{Customization}.  @kbd{C-\} in Insert, Replace, or Vi
-states will make Emacs think @kbd{Meta} has been hit.@refill
+states will make Emacs think @kbd{Meta} has been hit.
 @item \
 @kindex @kbd{\}
 Escape to Emacs to execute a single Emacs command.  For instance,
@@ -1339,7 +1337,7 @@ argument is the region determined by the motion command that follows
 (indicated as <move>).
 Currently, @var{ch} can be one of @kbd{c}, @kbd{C}, @kbd{g}, @kbd{q}, and
 @kbd{s}.  For instance, @kbd{#qr} will prompt you for a string and then
-prepend this string to each line in the buffer.@refill
+prepend this string to each line in the buffer.
 @item # c
 @kindex @kbd{#c<move>}
 @cindex changing case
@@ -1355,7 +1353,7 @@ Emacs command @kbd{M-u} does the same for words.
 @item # g
 @kindex @kbd{#g<move>}
 Execute last keyboard macro for each line in the region
-(@code{viper-global-execute}).@refill
+(@code{viper-global-execute}).
 @item # q
 @kindex @kbd{#q<move>}
 Insert specified string at the beginning of each line in the region
@@ -1401,7 +1399,7 @@ Go to end of heading.
 @item g <@emph{movement command}>
 Search buffer for text delimited by movement command.  The canonical
 example is @kbd{gw} to search for the word under the cursor.
-@xref{Improved Search}, for details.@refill
+@xref{Improved Search}, for details.
 @item C-g and C-]
 @kindex @kbd{C-g}
 @kindex @kbd{C-]}
@@ -1560,7 +1558,7 @@ patches.
 @noindent
 Emacs Lisp archives exist on
 @samp{archive.cis.ohio-state.edu}
-and @samp{wuarchive.wustl.edu}@refill
+and @samp{wuarchive.wustl.edu}
 
 
 @node Customization
@@ -1583,7 +1581,7 @@ Elisp code in your @file{.emacs} file before and after the @code{(require
 'viper)} line.  This method is @emph{not} recommended, unless you know what
 you are doing.  Only two variables, @code{viper-mode} and
 @code{viper-custom-file-name}, are supposed to be customized in @file{.emacs},
-prior to loading Viper (i.e., prior to @code{(require 'viper)} command.@refill
+prior to loading Viper (i.e., prior to @code{(require 'viper)} command.
 @item
 @cindex :customize
 By executing the @kbd{:customize} Ex command. This takes you to the Emacs
@@ -2780,7 +2778,7 @@ macros) lets the user define keyboard macros that ask for confirmation or
 even prompt the user for input and then continue.  To do this, one should
 type @kbd{C-x q} (for confirmation) or @kbd{C-u C-x q} (for prompt).
 For details, @pxref{Keyboard Macro Query,,Customization,emacs,The GNU Emacs
-Manual} @refill
+Manual}.
 
 When the user finishes defining a macro (which is done by typing @kbd{C-x)},
 a departure from Vi), you will be asked whether you want this
@@ -2994,7 +2992,7 @@ currently defined.  To see all macros along with their definitions, type
 
 This section is a semi-automatically bowdlerized version of the Vi
 reference created by @* @samp{maart@@cs.vu.nl} and others.  It can be
-found on the Vi archives.  This reference has been adapted for Viper.@refill
+found on the Vi archives.  This reference has been adapted for Viper.
 
 @menu
 * Groundwork::                  Textual Conventions and Viper basics
@@ -3015,7 +3013,7 @@ The VI command set is based on the idea of combining motion commands
 with other commands.  The motion command is used as a text region
 specifier for other commands.
 We classify motion commands into @dfn{point commands} and
-@dfn{line commands}.@refill
+@dfn{line commands}.
 
 @cindex point commands
 
@@ -4187,7 +4185,7 @@ the whole file.
 @cindex @samp{#} (Previous file)
 Similarly, @samp{#} expands to the previous file.  The previous file is the
 first file in @kbd{:args} listing.  This defaults to the previous file in
-the VI sense if you have one window.@refill
+the VI sense if you have one window.
 
 Symbols @samp{%} and @samp{#} are also used in the Ex commands @kbd{:e} and
 @kbd{:r <shell-cmd>}.  The commands @kbd{:w} and the regular @kbd{:r
@@ -4425,7 +4423,7 @@ a region under the mouse pointer.
 This command can take a prefix argument.  Note: Viper sets this
 binding only if this mouse action is not
 already bound to something else.
-@xref{Viper Specials}, for more information.@refill
+@xref{Viper Specials}, for more information.
 
 @item S-Mouse-2
 Holding Shift and clicking button 2 of the mouse will
@@ -4433,7 +4431,7 @@ insert a region surrounding the mouse pointer.
 This command can also take a prefix argument.
 Note: Viper sets this binding only if this mouse action is not
 already bound to something else.
-@xref{Viper Specials}, for more details.@refill
+@xref{Viper Specials}, for more details.
 @end table
 @kindex @kbd{S-Mouse-1}
 @kindex @kbd{S-Mouse-2}

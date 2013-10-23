@@ -1089,7 +1089,7 @@ of data with the command @kbd{M-x recover-file @key{RET} @var{file}
 restores the contents from its auto-save file @file{#@var{file}#}.
 You can then save with @kbd{C-x C-s} to put the recovered text into
 @var{file} itself.  For example, to recover file @file{foo.c} from its
-auto-save file @file{#foo.c#}, do:@refill
+auto-save file @file{#foo.c#}, do:
 
 @example
 M-x recover-file @key{RET} foo.c @key{RET}

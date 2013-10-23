@@ -1,5 +1,9 @@
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.texi, ebrowse.texi, ede.texi, eieio.texi, eshell.texi:
+	* pcl-cvs.texi, sc.texi, srecode.texi, vip.texi, viper.texi:
+	* widget.texi: Nuke @refill.
+
 	* Makefile.in (install-dvi, install-html, install-pdf)
 	(install-ps, uninstall-dvi, uninstall-html, uninstall-ps)
 	(uninstall-pdf): Quote entities that might contain whitespace.

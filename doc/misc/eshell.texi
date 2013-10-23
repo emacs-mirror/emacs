@@ -158,25 +158,25 @@ The following persons have made contributions to Eshell.
 @item
 Eli Zaretskii made it possible for Eshell to run without requiring
 asynchronous subprocess support.  This is important for MS-DOS, which
-does not have such support.@refill
+does not have such support.
 
 @item
-Miles Bader contributed many fixes during the port to Emacs 21.@refill
+Miles Bader contributed many fixes during the port to Emacs 21.
 
 @item
 Stefan Monnier fixed the things which bothered him, which of course made
-things better for all.@refill
+things better for all.
 
 @item
 Gerd Moellmann also helped to contribute bug fixes during the initial
-integration with Emacs 21.@refill
+integration with Emacs 21.
 
 @item
 Alex Schroeder contributed code for interactively querying the user
-before overwriting files.@refill
+before overwriting files.
 
 @item
-Sudish Joseph helped with some XEmacs compatibility issues.@refill
+Sudish Joseph helped with some XEmacs compatibility issues.
 @end itemize
 
 Apart from these, a lot of people have sent suggestions, ideas,
