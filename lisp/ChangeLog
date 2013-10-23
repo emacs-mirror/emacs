@@ -1,3 +1,7 @@
+2013-10-23  Masashi Fujimoto  <masfj.dev@gmail.com>  (tiny change)
+
+	* battery.el (battery-pmset): Handle OS X Mavericks.  (Bug#15694)
+
 2013-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Only align with parent of
