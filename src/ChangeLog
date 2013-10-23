@@ -1,3 +1,9 @@
+2013-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Solaris 10 and its bundled GCC.
+	Problem reported by Timothy C. Burt.
+	* floatfns.c (isfinite, isnan): Redefine unconditionally.
+
 2013-10-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not allow font caches to grow too large.
