@@ -968,61 +968,15 @@ PARENT is the message-ID of the parent summary line, or nil for none."
     (goto-char head-begin)
     (setq content-type (message-fetch-field "Content-Type"))
     (when content-type
-      (with-temp-buffer
-	(insert content-type)
-	(goto-char (point-min))
-	(when (re-search-forward ";[\t\n ]*name=\\([\"']\\|\\([^\t\n\r ]+\\)\\)"
-				 nil t)
-	     (setq subject (or (match-string 2)
-			       (progn
-				 (goto-char (match-beginning 1))
-				 (condition-case nil
-				     (progn
-				       (forward-sexp 1)
-				       (buffer-substring
-					(1+ (match-beginning 1)) (1- (point))))
-				   (error nil)))))))
-      (when (or (string-match "^ *\\([^ \t\n/;]+\\)/\\([^ \t\n/;]+\\)"
-			      content-type)
-		;; Guess Content-Type from the file name extention.
-		;; Some mailer sends a part without type like this:
-		;;  Content-Type: ; name="IMG_3156.JPG"
-		;;  Content-Disposition: attachment; filename="IMG_3156.JPG"
-		(let ((tem (message-fetch-field "Content-Disposition"))
-		      (case-fold-search t)
-		      len)
-		  (when (and
-			 (setq tem
-			       (or (and tem
-					(mail-content-type-get
-					 (mail-header-parse-content-disposition
-					  tem)
-					 'filename))
-				   subject))
-			 (setq tem (file-name-extension tem))
-			 (require 'mailcap)
-			 (setq content-type
-			       (cdr (assoc (concat "." (downcase tem))
-					   mailcap-mime-extensions)))
-			 (string-match "^ *\\([^ \t\n/;]+\\)/\\([^ \t\n/;]+\\)"
-				       content-type))
-		    (save-match-data
-		      (goto-char (point-min))
-		      (when (re-search-forward "^Content-Type:\\([^;]*\\);"
-					       nil t)
-			(setq len (- (match-end 1) (match-beginning 1)
-				     (length content-type) 1)
-			      head-end (- head-end len)
-			      body-begin (- body-begin len)
-			      body-end (- body-end len))
-			(replace-match (concat "Content-Type: " content-type
-					       ";"))))
-		    t)))
+      (when (string-match
+	     "^ *\\([^ \t\n/;]+\\)/\\([^ \t\n/;]+\\)" content-type)
 	(setq type (downcase (match-string 1 content-type))
 	      subtype (downcase (match-string 2 content-type))
 	      message-rfc822 (and (string= type "message")
 				  (string= subtype "rfc822"))
 	      multipart-any (string= type "multipart")))
+      (when (string-match ";[ \t\n]*name=\\([^ \t\n;]+\\)" content-type)
+	(setq subject (match-string 1 content-type)))
       (when (string-match "boundary=\"?\\([^\"\n]*[^\" \t\n]\\)" content-type)
 	(setq boundary-regexp (concat "^--"
 				      (regexp-quote
