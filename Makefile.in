@@ -485,9 +485,9 @@ write_subdir=if [ -f "$${subdir}/subdirs.el" ]; \
 install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
 	cd lib-src && \
-	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
-	    exec_prefix=${exec_prefix} bindir=${bindir} \
-	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
+	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
+	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
 	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)" || exit 1 ; \
@@ -507,9 +507,9 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 install-:
 install-nt:
 	cd $(NTDIR) && \
-	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
-	    exec_prefix=${exec_prefix} bindir=${bindir} \
-	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
+	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
+	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
 	    INSTALL_STRIP=${INSTALL_STRIP}
 
 ## In the share directory, we are deleting:
@@ -731,8 +731,9 @@ install-strip:
 uninstall: uninstall-$(NTDIR) uninstall-doc
 	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
-	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+	    prefix="${prefix}" exec_prefix="${exec_prefix}" \
+	    bindir="${bindir}" libexecdir="${libexecdir}" \
+	    archlibdir="${archlibdir}"
 
 	-unset CDPATH; \
 	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
@@ -784,8 +785,9 @@ uninstall-:
 uninstall-nt:
 	cd $(NTDIR) && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
-	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+	    prefix="${prefix}" exec_prefix="${exec_prefix}" \
+	    bindir="${bindir}" libexecdir="${libexecdir}" \
+	    archlibdir="${archlibdir}"
 
 FRC:
 

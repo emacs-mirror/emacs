@@ -3,7 +3,8 @@
 	Progress towards allowing installation in directories with whitespace.
 	* Makefile.in (COPYDESTS, write_subdir, install-arch-dep)
 	(install-arch-indep, install-etcdoc, install-info, install-man)
-	(install-etc, uninstall): Quote entities that might contain whitespace.
+	(install-etc, uninstall, install-nt, uninstall-nt):
+	Quote entities that might contain whitespace.
 	* build-aux/update-subdirs: Handle whitespace in argument.
 	Check cd return value.
 
