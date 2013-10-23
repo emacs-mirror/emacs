@@ -4604,30 +4604,6 @@ if test "${enable_gtk_deprecation_warnings+set}" = set; then :
 fi
 
 
-#### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the file name through pwd unnecessarily, since pwd can
-#### give you automounter prefixes, which can go away.  We do all this
-#### so Emacs can find its files when run uninstalled.
-## Make sure CDPATH doesn't affect cd (in case PWD is relative).
-unset CDPATH
-case "${srcdir}" in
-  [\\/]* | ?:[\\/]*) ;;
-  . )
-    ## We may be able to use the $PWD environment variable to make this
-    ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use $PWD at the end instead of `pwd`,
-    ## but that tested only for a well-formed and valid PWD,
-    ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
-    then
-      srcdir="$PWD"
-    else
-      srcdir=`(cd "$srcdir"; pwd)`
-    fi
-  ;;
-  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
-esac
-
 #### When building with MinGW inside the MSYS tree, 'pwd' produces
 #### directories relative to the root of the MSYS tree,
 #### e.g. '/home/user/foo' instead of '/d/MSYS/home/user/foo'.  When
@@ -4637,7 +4613,7 @@ esac
 #### substitution, it cannot find the data directory.  "pwd -W"
 #### produces Windows-style 'd:/foo/bar' absolute directory names, so
 #### we use it here to countermand that lossage.
-test "$MSYSTEM" = "MINGW32" && srcdir=`(cd "$srcdir"; pwd -W | sed -e 's,^\([A-Za-z]\):,/\1,')`
+test "$MSYSTEM" = "MINGW32" && abs_srcdir=`(cd "$abs_srcdir"; pwd -W | sed -e 's,^\([A-Za-z]\):,/\1,')`
 
 ### Canonicalize the configuration name.
 
@@ -25592,10 +25568,8 @@ $as_echo_n "checking for working acl_get_file... " >&6; }
 if test "${gl_cv_func_working_acl_get_file+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
-  if test "$cross_compiling" = yes; then :
-  gl_cv_func_working_acl_get_file=cross-compiling
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  gl_cv_func_working_acl_get_file=no
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <sys/types.h>
            #include <sys/acl.h>
@@ -25612,20 +25586,19 @@ if (!acl_get_file (".", ACL_TYPE_ACCESS) && errno == ENOENT)
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  gl_cv_func_working_acl_get_file=yes
-else
-  gl_cv_func_working_acl_get_file=no
+if ac_fn_c_try_link "$LINENO"; then :
+  if test $cross_compiling = yes; then
+          gl_cv_func_working_acl_get_file="guessing yes"
+        elif ./conftest$ac_exeext; then
+          gl_cv_func_working_acl_get_file=yes
+        fi
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_working_acl_get_file" >&5
 $as_echo "$gl_cv_func_working_acl_get_file" >&6; }
-
-  if test $gl_cv_func_working_acl_get_file = yes; then :
+  if test "$gl_cv_func_working_acl_get_file" != no; then :
   use_acl=1
 fi
 
