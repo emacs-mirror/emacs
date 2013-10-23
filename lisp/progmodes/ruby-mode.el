@@ -453,7 +453,7 @@ explicitly declared in magic comment."
        (smie-rule-parent ruby-indent-level))
       ;; For (invalid) code between switch and case.
       ;; (if (smie-parent-p "switch") 4)
-      (t 0)))
+      ))
     (`(:before . ,(or `"(" `"[" `"{"))
      (cond
       ((and (equal token "{")

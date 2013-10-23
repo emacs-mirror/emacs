@@ -1,3 +1,8 @@
+2013-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Don't return 0 for
+	:before ";".
+
 2013-10-23  Jed Brown  <jed@59A2.org>  (tiny change)
 
 	* progmodes/compile.el (compilation-directory-matcher)
@@ -20,8 +25,8 @@
 
 2013-10-23  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-smie--at-dot-call): Use
-	`following-char'.
+	* progmodes/ruby-mode.el (ruby-smie--at-dot-call):
+	Use `following-char'.
 
 2013-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
