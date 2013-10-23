@@ -5042,9 +5042,12 @@ else
 fi
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
+dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
+dnl is not yet set, sigh.  Or we could use ../$srcdir/src/.gdbinit,
+dnl or a symlink?
 AC_CONFIG_COMMANDS([src/.gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
+  echo "source $ac_abs_top_srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])
 

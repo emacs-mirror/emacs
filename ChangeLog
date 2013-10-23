@@ -12,6 +12,7 @@
 
 	Make building in directories with whitespace possible.  (Bug#15675)
 	* configure.ac (srcdir): Don't make it absolute - abs_srcdir exists.
+	(src/.gdbinit): Use ac_abs_top_srcdir.
 	* Makefile.in (abs_srcdir): New, set by configure.
 	(buildlisppath, epaths-force-w32): Use abs_srcdir.
 	(install-arch-indep, install-etcdoc, install-info, install-man)
