@@ -1,3 +1,11 @@
+2013-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-10-14 acl: allow cross-compilation to Gentoo
+	2013-10-18 extern-inline: make safe for -Wundef usage
+	2013-09-30 fpending: use pure+const function attrs
+	* lib/fpending.h, m4/acl.m4, m4/extern-inline.m4: Update from gnulib.
+
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac [alpha]: Explicit error in non-ELF case.  (Bug#15601)

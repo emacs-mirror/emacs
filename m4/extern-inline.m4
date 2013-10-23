@@ -1,3 +1,4 @@
+# extern-inline.m4 serial 2
 dnl 'extern inline' a la ISO C99.
 
 dnl Copyright 2012-2013 Free Software Foundation, Inc.
@@ -41,7 +42,7 @@ AC_DEFUN([gl_EXTERN_INLINE],
 # define _GL_EXTERN_INLINE_IN_USE
 #elif (2 < __GNUC__ + (7 <= __GNUC_MINOR__) && !defined __STRICT_ANSI__ \
        && !defined _GL_EXTERN_INLINE_APPLE_BUG)
-# if __GNUC_GNU_INLINE__
+# if defined __GNUC_GNU_INLINE__ && __GNUC_GNU_INLINE__
    /* __gnu_inline__ suppresses a GCC 4.2 diagnostic.  */
 #  define _GL_INLINE extern inline __attribute__ ((__gnu_inline__))
 # else
