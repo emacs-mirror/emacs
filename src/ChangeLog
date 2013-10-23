@@ -1,3 +1,9 @@
+2013-10-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Tweak last font-related changes to fix bug#15686.
+	* alloc.c (mark_object) [HAVE_WINDOW_SYSTEM]: If marked frame
+	is a live window system frame, mark it's default font too.
+
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (RUN_TEMACS): Make relative (again).

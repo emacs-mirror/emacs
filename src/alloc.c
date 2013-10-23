@@ -5951,8 +5951,21 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_FRAME:
-	    mark_vectorlike (ptr);
-	    mark_face_cache (((struct frame *) ptr)->face_cache);
+	    {
+	      struct frame *f = (struct frame *) ptr;
+
+	      mark_vectorlike (ptr);
+	      mark_face_cache (f->face_cache);
+#ifdef HAVE_WINDOW_SYSTEM
+	      if (FRAME_WINDOW_P (f) && FRAME_X_OUTPUT (f))
+		{
+		  struct font *font = FRAME_FONT (f);
+
+		  if (font && !VECTOR_MARKED_P (font))
+		    mark_vectorlike ((struct Lisp_Vector *) font);
+		}
+#endif
+	    }
 	    break;
 
 	  case PVEC_WINDOW:
