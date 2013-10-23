@@ -1,5 +1,9 @@
-2013-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+2013-10-23  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (ruby-smie--at-dot-call): Use
+	`following-char'.
+
+2013-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-rule-parent): Fix opener-test.
 	* progmodes/ruby-mode.el (ruby-smie-rules):

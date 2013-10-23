@@ -355,7 +355,7 @@ explicitly declared in magic comment."
    (memq (char-syntax (char-after pos)) '(?w ?\"))))
 
 (defun ruby-smie--at-dot-call ()
-  (and (eq ?w (char-syntax (char-after)))
+  (and (eq ?w (char-syntax (following-char)))
        (eq (char-before) ?.)
        (not (eq (char-before (1- (point))) ?.))))
 
