@@ -1,5 +1,7 @@
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac: Explicit error for non-ASCII directories.  (Bug#15260)
+
 	Progress towards allowing installation in directories with whitespace.
 	* Makefile.in (COPYDESTS, write_subdir, install-arch-dep)
 	(install-arch-indep, install-etcdoc, install-info, install-man)

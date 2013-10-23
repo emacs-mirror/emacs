@@ -73,6 +73,17 @@ dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
 AC_ARG_PROGRAM
 
+dnl http://debbugs.gnu.org/15260
+for var in "`pwd`" "`cd \"$srcdir\"; pwd`" "$bindir" \
+    "$datadir" "$sharedstatedir" "$libexecdir"; do
+
+  dnl configure sets LC_ALL=C early on, so this range should work.
+  case "$var" in
+    *[[^\ -~]]*) AC_MSG_ERROR([Emacs cannot be built or installed in a directory whose name contains non-ASCII characters: $var]) ;;
+  esac
+
+done
+
 dnl It is important that variables on the RHS not be expanded here,
 dnl hence the single quotes.  This is per the GNU coding standards, see
 dnl (autoconf) Installation Directory Variables
