@@ -4707,19 +4707,18 @@ Modified from `icomplete-completions'."
     (cancel-timer ido-auto-merge-timer)
     (setq ido-auto-merge-timer nil))
 
-  (if (ido-active)
-      (if (and (boundp 'ido-eoinput)
-	       ido-eoinput)
+  (when (ido-active)
+    (if (bound-and-true-p ido-eoinput)
+	(if (> ido-eoinput (point-max))
+	    ;; Oops, got rug pulled out from under us - reinit:
+	    (setq ido-eoinput (point-max))
+	  (let ((inhibit-read-only t)
+		(buffer-undo-list t))
+	    (delete-region ido-eoinput (point-max))))
 
-	  (if (> ido-eoinput (point-max))
-	      ;; Oops, got rug pulled out from under us - reinit:
-	      (setq ido-eoinput (point-max))
-	    (let ((buffer-undo-list t))
-	      (delete-region ido-eoinput (point-max))))
-
-	;; Reestablish the local variable 'cause minibuffer-setup is weird:
-	(make-local-variable 'ido-eoinput)
-	(setq ido-eoinput 1))))
+      ;; Reestablish the local variable 'cause minibuffer-setup is weird:
+      (make-local-variable 'ido-eoinput)
+      (setq ido-eoinput 1))))
 
 (defun ido-summary-buffers-to-end ()
   ;; Move the summaries to the end of the buffer list.
