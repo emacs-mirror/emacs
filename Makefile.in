@@ -341,7 +341,7 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 # Use the value of ${locallisppath} supplied by `configure',
 # to support the --enable-locallisppath argument.
 epaths-force-w32: FRC
-	@(w32srcdir=`echo "${srcdir}" | ${msys_to_w32}` ; 	\
+	@(w32srcdir=`echo "${abs_srcdir}" | ${msys_to_w32}` ; 	\
 	  prefixpattern=`echo '${prefix}' | ${msys_to_w32} | ${msys_sed_sh_escape}` ; \
 	  locallisppath=`echo '${locallisppath}' | ${msys_lisppath_to_w32} | ${msys_prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
