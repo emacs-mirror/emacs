@@ -1,3 +1,8 @@
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (emacs, ${DSTDIR}/charprop.el):
+	Quote entities that might contain whitespace.
+
 2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve support for popcount and counting trailing zeros (Bug#15550).

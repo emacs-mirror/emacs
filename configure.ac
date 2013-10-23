@@ -419,30 +419,6 @@ AC_ARG_ENABLE(gtk-deprecation-warnings,
 		[Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0])],
 [ac_enable_gtk_deprecation_warnings="${enableval}"],[])
 
-#### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the file name through pwd unnecessarily, since pwd can
-#### give you automounter prefixes, which can go away.  We do all this
-#### so Emacs can find its files when run uninstalled.
-## Make sure CDPATH doesn't affect cd (in case PWD is relative).
-unset CDPATH
-case "${srcdir}" in
-  [[\\/]]* | ?:[[\\/]]*) ;;
-  . )
-    ## We may be able to use the $PWD environment variable to make this
-    ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use $PWD at the end instead of `pwd`,
-    ## but that tested only for a well-formed and valid PWD,
-    ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
-    then
-      srcdir="$PWD"
-    else
-      srcdir=`(cd "$srcdir"; pwd)`
-    fi
-  ;;
-  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
-esac
-
 #### When building with MinGW inside the MSYS tree, 'pwd' produces
 #### directories relative to the root of the MSYS tree,
 #### e.g. '/home/user/foo' instead of '/d/MSYS/home/user/foo'.  When
@@ -452,7 +428,7 @@ esac
 #### substitution, it cannot find the data directory.  "pwd -W"
 #### produces Windows-style 'd:/foo/bar' absolute directory names, so
 #### we use it here to countermand that lossage.
-test "$MSYSTEM" = "MINGW32" && srcdir=`(cd "$srcdir"; pwd -W | sed -e 's,^\([[A-Za-z]]\):,/\1,')`
+test "$MSYSTEM" = "MINGW32" && abs_srcdir=`(cd "$abs_srcdir"; pwd -W | sed -e 's,^\([[A-Za-z]]\):,/\1,')`
 
 ### Canonicalize the configuration name.
 

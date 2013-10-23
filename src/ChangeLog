@@ -1,3 +1,10 @@
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (RUN_TEMACS): Make relative (again).
+	($(leimdir)/leim-list.el, .el.elc, $(lispsource)/loaddefs.el)
+	(bootstrap-emacs$(EXEEXT)):
+	Quote entities that might contain whitespace.
+
 2013-10-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Solaris 10 and its bundled GCC.

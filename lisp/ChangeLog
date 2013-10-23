@@ -1,3 +1,13 @@
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir, abs_lisp): New, set by configure.
+	(emacs, compile, compile-always):
+	Quote entities that might contain whitespace.
+	(custom-deps, finder-data, autoloads): Use abs_lisp.
+	($(MH_E_DIR)/mh-loaddefs.el, $(TRAMP_DIR)/tramp-loaddefs.el)
+	($(CAL_DIR)/cal-loaddefs.el, $(CAL_DIR)/diary-loaddefs.el)
+	($(CAL_DIR)/hol-loaddefs.el): Manually expand target file name.
+
 2013-10-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--at-dot-call): Use

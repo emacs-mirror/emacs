@@ -163,6 +163,7 @@ bitmapdir=@bitmapdir@
 
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
+abs_srcdir=@abs_srcdir@
 
 # Where the manpage source files are kept.
 mansrcdir=$(srcdir)/doc/man
@@ -216,7 +217,7 @@ lisppath=@lisppath@
 # before they've been installed in their final location.
 # This should be a colon-separated list of directories.
 # Normally it points to the lisp/ directory in the sources.
-buildlisppath=${srcdir}/lisp
+buildlisppath=${abs_srcdir}/lisp
 
 # Where to install the other architecture-independent
 # data files distributed with Emacs (like the tutorial,
@@ -569,10 +570,10 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dest} ] && \
-	    [ `cd $${dest} && /bin/pwd` = `cd $${dir} && /bin/pwd` ] && \
+	    [ "`cd $${dest} && /bin/pwd`" = "`cd $${dir} && /bin/pwd`" ] && \
 	    continue ; \
 	  if [ "$${dir}" = "leim/quail" ]; then \
-	    [ `cd $${dir} && /bin/pwd` = `cd ${srcdir}/leim/quail && /bin/pwd` ] && \
+	    [ "`cd $${dir} && /bin/pwd`" = "`cd ${srcdir}/leim/quail && /bin/pwd`" ] && \
 	      continue ; \
 	  else \
 	    rm -rf $${dest} ; \
@@ -616,7 +617,7 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	    unset CDPATH; \
 	    thisdir=`/bin/pwd`; \
 	    for dir in $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}; do \
-	      cd $${thisdir} ; \
+	      cd "$${thisdir}" ; \
 	      cd $${dir} || exit 1 ; \
 	      for f in `find . -name "*.elc" -print`; do \
 	        ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
@@ -633,7 +634,7 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 install-etcdoc: src install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} $(DESTDIR)${etcdocdir} ; \
-	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${etcdocdir}; /bin/pwd` ]; \
+	if [ "`cd ./etc; /bin/pwd`" != "`cd $(DESTDIR)${etcdocdir}; /bin/pwd`" ]; \
 	then \
 	   docfile="DOC"; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${etcdocdir} ..." ; \
@@ -646,27 +647,28 @@ install-info: info
 	umask 022; ${MKDIR_P} $(DESTDIR)${infodir}
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	[ `cd ${srcdir}/info && /bin/pwd` = `cd $(DESTDIR)${infodir} && /bin/pwd` ] || \
-	  (cd $(DESTDIR)${infodir};  \
+	if [ "`cd ${srcdir}/info && /bin/pwd`" = "`cd $(DESTDIR)${infodir} && /bin/pwd`" ]; then \
+	  true; \
+	else \
+	  (cd "$(DESTDIR)${infodir}"; \
 	   [ -f dir ] || \
-	     (cd $${thisdir}; \
-	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
-	   info_misc=`cd $${thisdir}/doc/misc && \
-		$(QUIET_SUBMAKE) $(MAKE) -s echo-info \
-	   `; \
+	     (cd "$${thisdir}"; \
+	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ); \
+	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
-	       (cd $${thisdir}; \
+	       (cd "$${thisdir}"; \
 	        ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f); \
 	        [ -n "${GZIP_PROG}" ] || continue ; \
 	        rm -f $(DESTDIR)${infodir}/$$f.gz; \
 	        ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
 	      done; \
-	     (cd $${thisdir}; \
+	     (cd "$${thisdir}"; \
 	      ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	   done)
+	   done; \
+	fi
 
 ## "gzip || true" is because some gzips exit with non-zero status
 ## if compression would not reduce the file size.  Eg, the gzip in
@@ -680,7 +682,7 @@ install-man:
 	cd ${mansrcdir}; \
 	for page in *.1; do \
 	  dest=`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1; \
-	  (cd $${thisdir}; \
+	  (cd "$${thisdir}"; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${dest}); \
 	  [ -n "${GZIP_PROG}" ] || continue ; \
 	  rm -f $(DESTDIR)${man1dir}/$${dest}.gz; \
@@ -706,12 +708,12 @@ install-etc:
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
-	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
+	  ( cd "$${thisdir}"; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
 	  for icon in $${dir}/${EMACS_ICON}[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
 	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
-	    ( cd $${thisdir}; \
+	    ( cd "$${thisdir}"; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
 	    || exit 1; \
 	  done ; \
@@ -734,8 +736,8 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
-	    case `cd $${dir} ; /bin/pwd` in		\
-	      `cd ${srcdir} ; /bin/pwd`* ) ;;		\
+	    case "`cd $${dir} ; /bin/pwd`" in		\
+	      "`cd ${srcdir} ; /bin/pwd`"* ) ;;		\
 	      * ) rm -rf $${dir} ;;			\
 	    esac ;					\
 	    case $${dir} in				\
@@ -750,7 +752,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	(info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
 	 if cd $(DESTDIR)${infodir}; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
-	     (cd $${thisdir}; \
+	     (cd "$${thisdir}"; \
 	      $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	     if [ -n "${GZIP_PROG}" ]; then \
 	        ext=.gz; else ext=; fi; \

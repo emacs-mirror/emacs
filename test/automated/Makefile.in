@@ -20,12 +20,14 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
-top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
 abs_top_builddir = @abs_top_builddir@
 test = $(srcdir)
+abs_test = $(abs_srcdir)
 VPATH = $(srcdir)
-lispsrc = $(top_srcdir)/lisp
-lisp = ${abs_top_builddir}/lisp
+abs_lispsrc = $(abs_top_srcdir)/lisp
+lisp = $(top_builddir)/lisp
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -46,7 +48,7 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # The example above is just for developers, it should not be used by default.
 
 # The actual Emacs command run in the targets below.
-emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
+emacs = EMACSLOADPATH="$(abs_lispsrc):$(abs_test)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
@@ -79,7 +81,7 @@ doit:
 .PHONY: lisp-compile compile-main compile compile-always
 
 lisp-compile:
-	cd $(lisp); $(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
+	cd "$(lisp)"; $(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
 # In `compile-main' we could directly do
 #    ... | xargs $(MAKE) $(MFLAGS) EMACS="$(EMACS)"
@@ -128,14 +130,14 @@ compile-clean:
 # Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
 # sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS)
+	$(MAKE) $(MFLAGS) compile-main EMACS="$(EMACS)"
 
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
 	cd $(test); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
-	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
+	$(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
 bootstrap-clean:
 	cd $(test); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc

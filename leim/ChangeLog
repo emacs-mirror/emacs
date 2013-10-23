@@ -1,3 +1,11 @@
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(buildlisppath): Use abs_srcdir.
+	(RUN_EMACS, .el.elc, changed.tit, changed.misc, leim-list.el)
+	($(srcdir)/ja-dic/ja-dic.el, setwins, distclean, check-declare):
+	Quote entities that might contain whitespace.
+
 2013-09-05  Jean Haidouk  <haidouk@yandex.com>  (tiny change)
 
 	* quail/latin-alt.el ("french-alt-postfix", "latin-alt-postfix"):

@@ -20,8 +20,10 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
 top_srcdir = @top_srcdir@
 abs_top_builddir = @abs_top_builddir@
+abs_lisp = $(abs_srcdir)
 lisp = $(srcdir)
 VPATH = $(srcdir)
 
@@ -112,7 +114,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 
-emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
+emacs = EMACSLOADPATH="$(abs_lisp)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
@@ -165,14 +167,14 @@ $(lisp)/cus-load.el:
 custom-deps: doit
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(lisp)/cus-load.el"))' -f custom-make-dependencies $$wins
+	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(abs_lisp)/cus-load.el"))' -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
+	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(abs_lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
 autoloads: $(LOADDEFS) doit
@@ -181,7 +183,7 @@ autoloads: $(LOADDEFS) doit
 	echo Directories: $$wins; \
 	$(emacs) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (unmsys--file-name "$(lisp)/loaddefs.el"))' \
+	    --eval '(setq generated-autoload-file (unmsys--file-name "$(abs_lisp)/loaddefs.el"))' \
 	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
@@ -307,14 +309,14 @@ compile-clean:
 # Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
 # sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS)
+	$(MAKE) $(MFLAGS) compile-main EMACS="$(EMACS)"
 
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
-	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
+	$(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
 .PHONY: compile-calc backup-compiled-files compile-after-backup
 
@@ -378,7 +380,7 @@ mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
 $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name (expand-file-name \"$@\")))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
 
@@ -396,7 +398,7 @@ TRAMP_SRC = $(TRAMP_DIR)/tramp.el    $(TRAMP_DIR)/tramp-adb.el	\
 $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name (expand-file-name \"$@\")))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(TRAMP_DIR)
 
@@ -418,21 +420,21 @@ CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
-	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name (expand-file-name \"$@\")))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
-	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name (expand-file-name \"$@\")))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
-	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name (expand-file-name \"$@\")))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 

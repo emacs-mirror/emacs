@@ -313,7 +313,7 @@ INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
-RUN_TEMACS = `/bin/pwd`/temacs
+RUN_TEMACS = ./temacs
 
 ## Invoke ../nt/addsection for MinGW, ":" elsewhere.
 TEMACS_POST_LINK = @TEMACS_POST_LINK@
@@ -437,7 +437,7 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS=$(bootstrap_exe)
+	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
@@ -646,7 +646,7 @@ tags: TAGS TAGS-LISP $(lwlibdir)/TAGS
 ## With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"
 .el.elc:
 	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
-	                     THEFILE=$< EMACS=$(bootstrap_exe)
+	                     THEFILE=$< EMACS="$(bootstrap_exe)"
 
 ## Since the .el.elc rule cannot specify an extra dependency, we do it here.
 $(lisp): $(BOOTSTRAPEMACS)
@@ -657,7 +657,7 @@ $(lisp): $(BOOTSTRAPEMACS)
 VCSWITNESS =
 
 $(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
-	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=$(bootstrap_exe)
+	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
@@ -672,7 +672,7 @@ bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	  mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT); \
 	fi
 	@: Compile some files earlier to speed up further compilation.
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=$(bootstrap_exe)
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS="$(bootstrap_exe)"
 
 ## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
 @deps_frag@
