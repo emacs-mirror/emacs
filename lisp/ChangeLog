@@ -1,5 +1,8 @@
 2013-10-24  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* vc/vc.el (vc-print-root-log): Always set `default-directory'
+	value, whether we could auto-deduce `backend', or not.
+
 	* progmodes/ruby-mode.el (ruby-smie-rules): Fix the "curly block
 	with parameters" example.  Simplify the "is it block or is it
 	hash" check, but also make it more thorough.

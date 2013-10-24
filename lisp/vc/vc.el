@@ -2330,10 +2330,10 @@ When called interactively with a prefix argument, prompt for LIMIT."
 	(setq rootdir (vc-call-backend backend 'root default-directory))
       (setq rootdir (read-directory-name "Directory for VC root-log: "))
       (setq backend (vc-responsible-backend rootdir))
-      (if backend
-	  (setq default-directory rootdir)
-	(error "Directory is not version controlled")))
-    (setq working-revision (vc-working-revision rootdir))
+      (unless backend
+        (error "Directory is not version controlled")))
+    (setq working-revision (vc-working-revision rootdir)
+          default-directory rootdir)
     (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
 
 ;;;###autoload
