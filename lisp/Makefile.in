@@ -22,6 +22,7 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 abs_srcdir = @abs_srcdir@
 top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_lisp = $(abs_srcdir)
 lisp = $(srcdir)
@@ -193,7 +194,7 @@ $(lisp)/subdirs.el:
 update-subdirs: doit
 	cd $(lisp); $(setwins_for_subdirs); \
 	for file in $$wins; do \
-	   $(top_srcdir)/build-aux/update-subdirs $$file; \
+	   $(abs_top_srcdir)/build-aux/update-subdirs $$file; \
 	done;
 
 .PHONY: updates bzr-update update-authors
