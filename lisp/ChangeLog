@@ -1,3 +1,17 @@
+2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* emacs-lisp/ert.el (ert-deftest): Bind macro `skip-unless'.
+	(ert-test-skipped): New error.
+	(ert-skip, ert-stats-skipped): New defuns.
+	(ert--skip-unless): New macro.
+	(ert-test-skipped): New struct.
+	(ert--run-test-debugger, ert-test-result-type-p)
+	(ert-test-result-expected-p, ert--stats, ert-stats-completed)
+	(ert--stats-set-test-and-result, ert-char-for-test-result)
+	(ert-string-for-test-result, ert-run-tests-batch)
+	(ert--results-update-ewoc-hf, ert-run-tests-interactively): Handle
+	skipped tests.
+
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (check-declare): Remove unnecessary path in -l argument.
