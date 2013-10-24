@@ -266,7 +266,7 @@ compile-first: $(COMPILE_FIRST)
 # In `compile-main' we could directly do
 #    ... | xargs $(MAKE) $(MFLAGS) EMACS="$(EMACS)"
 # and it works, but it generates a lot of messages like
-#    make[2]: « gnus/gnus-mlspl.elc » is up to date.
+#    make[2]: gnus/gnus-mlspl.elc is up to date.
 # so instead, we use "xargs echo" to split the list of file into manageable
 # chunks and then use an intermediate `compile-targets' target so the
 # actual targets (the .elc files) are not mentioned as targets on the
@@ -452,8 +452,7 @@ maintainer-clean: distclean bootstrap-clean
 .PHONY: check-declare
 
 check-declare:
-	$(emacs) -l $(lisp)/emacs-lisp/check-declare \
-	  --eval '(check-declare-directory "$(lisp)")'
+	$(emacs) -l check-declare --eval '(check-declare-directory "$(lisp)")'
 
 # Dependencies
 

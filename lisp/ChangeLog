@@ -1,5 +1,7 @@
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (check-declare): Remove unnecessary path in -l argument.
+
 	* Makefile.in (abs_top_srcdir): New, set by configure.
 	(update-subdirs): Correct build-aux location.
 
