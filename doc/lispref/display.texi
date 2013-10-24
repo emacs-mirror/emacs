@@ -2936,6 +2936,7 @@ other registries given in @var{alternate-registries}, one by one,
 until it finds a registry that does exist.
 @end defopt
 
+@cindex scalable fonts
   Emacs can make use of scalable fonts, but by default it does not use
 them.
 
