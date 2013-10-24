@@ -2651,6 +2651,8 @@ then the new definition of the @code{mode-line} face inherits from the
 @code{mode-line} face.
 @end defvar
 
+@cindex relative remapping, faces
+@cindex base remapping, faces
   The following functions implement a higher-level interface to
 @code{face-remapping-alist}.  Most Lisp code should use these
 functions instead of setting @code{face-remapping-alist} directly, to
