@@ -164,7 +164,8 @@ bitmapdir=@bitmapdir@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 abs_srcdir=@abs_srcdir@
-abs_top_srcdir=@abs_top_srcdir@	# MinGW CPPFLAGS may use this
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 
 # Where the manpage source files are kept.
 mansrcdir=$(srcdir)/doc/man
