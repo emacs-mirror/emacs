@@ -1,3 +1,22 @@
+2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-skip-unless): New test case.
+	(ert-test-deftest): Adapt test for changed macro expansion.
+	(ert-test-run-tests-interactively):
+	* automated/ert-x-tests.el (ert-test-run-tests-interactively-2):
+	Add a skipping test.
+
+	* automated/file-notify-tests.el (top): Do not require tramp-sh.el.
+	(file-notify--test-local-enabled): Make it a function.  Check also
+	for `file-remote-p' of `temporary-file-directory'.
+	(file-notify--test-remote-enabled-checked): New defvar.
+	(file-notify--test-remote-enabled): Rewrite.  Do not use Tramp
+	internal functions.  Cache result.
+	(file-notify--deftest-remote, file-notify-test00-availability)
+	(file-notify-test01-add-watch, file-notify-test02-events)
+	(file-notify-test03-autorevert): Add checks with `skip_unless'.
+	(file-notify-test-all): Do not check `file-notify--test-local-enabled'.
+
 2013-10-24  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: Fix syntax error in the latest example.
