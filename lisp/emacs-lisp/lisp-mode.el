@@ -251,9 +251,7 @@ It has `lisp-mode-abbrev-table' as its parent."
                              (cons "go" (mapcar (lambda (s) (concat "cl-" s))
                                                 (remove "go" cl-lib-kw))))
                             t)
-                (regexp-opt (append lisp-kw el-kw eieio-kw
-                                    (cons "go" (mapcar (lambda (s) (concat "cl-" s))
-                                                       (remove "go" cl-kw))))
+                (regexp-opt (append lisp-kw cl-kw eieio-kw cl-lib-kw)
                             t)
 
                 ;; Elisp and Common Lisp "errors".
@@ -360,7 +358,7 @@ It has `lisp-mode-abbrev-table' as its parent."
        ;; Control structures.  Common Lisp forms.
        (,(concat "(" cl-kws-re "\\_>") . 1)
        ;; Exit/Feature symbols as constants.
-       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
+       (,(concat "(\\(catch\\|throw\\|provide\\|require\\)\\_>"
                  "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
         (1 font-lock-keyword-face)
         (2 font-lock-constant-face nil t))

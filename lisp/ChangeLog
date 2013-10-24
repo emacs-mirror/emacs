@@ -1,3 +1,8 @@
+2013-10-24  Helmut Eller  <eller.helmut@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (lisp-cl-font-lock-keywords-2): Fix cut&paste
+	(bug#15699).
+
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (abs_top_srcdir): Remove.
@@ -7,8 +12,8 @@
 
 	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el)
 	($(TRAMP_DIR)/tramp-loaddefs.el, $(CAL_DIR)/cal-loaddefs.el)
-	($(CAL_DIR)/diary-loaddefs.el, $(CAL_DIR)/hol-loaddefs.el): Call
-	unmsys--file-name before expand-file-name, not after it.
+	($(CAL_DIR)/diary-loaddefs.el, $(CAL_DIR)/hol-loaddefs.el):
+	Call unmsys--file-name before expand-file-name, not after it.
 
 2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -21,8 +26,8 @@
 	(ert-test-result-expected-p, ert--stats, ert-stats-completed)
 	(ert--stats-set-test-and-result, ert-char-for-test-result)
 	(ert-string-for-test-result, ert-run-tests-batch)
-	(ert--results-update-ewoc-hf, ert-run-tests-interactively): Handle
-	skipped tests.
+	(ert--results-update-ewoc-hf, ert-run-tests-interactively):
+	Handle skipped tests.
 
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
