@@ -4738,7 +4738,7 @@ CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
 if test "${opsys}" = "mingw32"; then
-  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
+  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I \${abs_top_srcdir}/nt/inc"
   # Remove unneeded switches from the value of CC that goes to Makefiles
   CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
 fi

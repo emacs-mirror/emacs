@@ -1,3 +1,7 @@
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Makefile improvements.

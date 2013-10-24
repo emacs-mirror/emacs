@@ -23,6 +23,7 @@
 # and set up to be configured by ../configure.
 
 srcdir=@srcdir@
+abs_top_srcdir=@abs_top_srcdir@	# MinGW CPPFLAGS may use this
 VPATH=@srcdir@
 @SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@

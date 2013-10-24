@@ -28,6 +28,7 @@ SHELL = @SHELL@
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
+abs_top_srcdir=@abs_top_srcdir@	# MinGW CPPFLAGS may use this
 ntsource = $(srcdir)/../nt
 abs_builddir = @abs_builddir@
 VPATH = $(srcdir)

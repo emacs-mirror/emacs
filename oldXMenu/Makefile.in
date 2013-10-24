@@ -43,6 +43,7 @@
 ### Code:
 
 srcdir=@srcdir@
+abs_top_srcdir=@abs_top_srcdir@	# MinGW CPPFLAGS may use this
 VPATH=@srcdir@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
