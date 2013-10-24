@@ -1,3 +1,9 @@
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.el.elc, changed.tit, changed.misc, leim-list.el)
+	($(srcdir)/ja-dic/ja-dic.el, check-declare): Remove unnecessary
+	path in -l argument (RUN_EMACS sets EMACSLOADPATH).
+
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (abs_srcdir): New, set by configure.
