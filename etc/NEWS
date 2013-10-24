@@ -591,6 +591,9 @@ During initialization, Emacs no longer expends a process to decide
 whether it is safe to use Bash's --noediting option.  These days
 --noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
 
++++
+** There is a new macro `skip-unless' for skipping ERT tests.  See the manual.
+
 
 * New Modes and Packages in Emacs 24.4
 
