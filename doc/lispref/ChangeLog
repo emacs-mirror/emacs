@@ -1,6 +1,7 @@
 2013-10-24  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* display.texi (Face Remapping): Add indexes for face remapping.
+	(Font Selection): Add indexes for font selection.
 
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 

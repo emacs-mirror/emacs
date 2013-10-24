@@ -2864,6 +2864,8 @@ these are used for messages in @file{*Compilation*} buffers.
 
 @node Font Selection
 @subsection Font Selection
+@cindex font selection
+@cindex selecting a font
 
   Before Emacs can draw a character on a graphical display, it must
 select a @dfn{font} for that character@footnote{In this context, the
