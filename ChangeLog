@@ -1,5 +1,9 @@
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac:
+	* Makefile.in (install-arch-indep, install-etcdoc, install-info):
+	Avoid non-portable "`\" nesting.
+
 	* configure.ac (CPPFLAGS) [mingw32]: Use abs_top_srcdir.
 
 	* Makefile.in (abs_top_srcdir): New, set by configure.

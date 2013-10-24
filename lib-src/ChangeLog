@@ -1,5 +1,8 @@
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(DESTDIR)${archlibdir}):
+	Avoid non-portable "`\" nesting.
+
 	* Makefile.in (abs_top_srcdir): New, set by configure.
 
 2013-10-23  Glenn Morris  <rgm@gnu.org>

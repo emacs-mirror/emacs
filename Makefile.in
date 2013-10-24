@@ -571,9 +571,11 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	for dir in ${COPYDIR} ; do \
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest="$$1" ; shift ; \
-	  [ -d "$${dest}" ] && \
-	    [ "`cd \"$${dest}\" && /bin/pwd`" = "`cd $${dir} && /bin/pwd`" ] && \
-	    continue ; \
+	  if [ -d "$${dest}" ]; then \
+	    exp_dest=`cd "$${dest}" && /bin/pwd`; \
+	    [ "$$exp_dest" = "`cd $${dir} && /bin/pwd`" ] && continue ; \
+	  else true; \
+	  fi; \
 	  if [ "$${dir}" = "leim/quail" ]; then \
 	    [ "`cd $${dir} && /bin/pwd`" = "`cd ${srcdir}/leim/quail && /bin/pwd`" ] && \
 	      continue ; \
@@ -623,7 +625,8 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	      cd "$${thisdir}" ; \
 	      cd "$${dir}" || exit 1 ; \
 	      for f in `find . -name "*.elc" -print`; do \
-	        ${GZIP_PROG} -9n "`echo \"$$f\" | sed 's/.elc$$/.el/'`" ; \
+	        f_el=`echo "$$f" | sed 's/.elc$$/.el/'`; \
+	        ${GZIP_PROG} -9n "$$f_el" ; \
 	      done ; \
 	    done )
 	-chmod -R a+r "$(DESTDIR)${datadir}/emacs/${version}" ${COPYDESTS}
@@ -637,7 +640,8 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 install-etcdoc: src install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} "$(DESTDIR)${etcdocdir}" ; \
-	if [ "`cd ./etc; /bin/pwd`" != "`cd \"$(DESTDIR)${etcdocdir}\"; /bin/pwd`" ]; \
+	exp_etcdocdir=`cd "$(DESTDIR)${etcdocdir}"; /bin/pwd`; \
+	if [ "`cd ./etc; /bin/pwd`" != "$$exp_etcdocdir" ]; \
 	then \
 	   docfile="DOC"; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${etcdocdir} ..." ; \
@@ -650,7 +654,8 @@ install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	if [ "`cd ${srcdir}/info && /bin/pwd`" = "`cd \"$(DESTDIR)${infodir}\" && /bin/pwd`" ]; then \
+	exp_infodir=`cd "$(DESTDIR)${infodir}" && /bin/pwd`; \
+	if [ "`cd ${srcdir}/info && /bin/pwd`" = "$$exp_infodir" ]; then \
 	  true; \
 	else \
 	  (cd "$(DESTDIR)${infodir}"; \
