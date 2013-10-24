@@ -1,3 +1,7 @@
+2013-10-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Fix syntax error in the latest example.
+
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (abs_top_srcdir, top_builddir):

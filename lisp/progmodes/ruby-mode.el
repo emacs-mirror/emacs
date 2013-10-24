@@ -449,7 +449,7 @@ explicitly declared in magic comment."
       ((smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
                            "while" "until" "unless"
                            "if" "then" "elsif" "else" "when"
-                           "rescue" "ensure")
+                           "rescue" "ensure" "{")
        (smie-rule-parent ruby-indent-level))
       ;; For (invalid) code between switch and case.
       ;; (if (smie-parent-p "switch") 4)
@@ -457,9 +457,7 @@ explicitly declared in magic comment."
     (`(:before . ,(or `"(" `"[" `"{"))
      (cond
       ((and (equal token "{")
-            (not (smie-rule-prev-p "(" "{" "[" "," "=>"))
-	    (or (smie-rule-hanging-p)
-		(smie-rule-next-p "opening-|")))
+            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";")))
        ;; Curly block opener.
        (smie-rule-parent))
       ((smie-rule-hanging-p)

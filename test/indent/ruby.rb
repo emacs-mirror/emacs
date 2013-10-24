@@ -40,7 +40,7 @@ foo = {                         # ruby-deep-indent-disabled
   a: b
 }
 
-foo = { a: b
+foo = { a: b,
         a1: b1
       }
 
