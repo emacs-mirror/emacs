@@ -4034,6 +4034,15 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
+for var in "`pwd`" "`cd \"$srcdir\"; pwd`" "$prefix" "$exec_prefix" \
+    "$datarootdir" "$bindir" "$datadir" "$sharedstatedir" "$libexecdir"; do
+
+    case "$var" in
+    *[^\ -~]*) as_fn_error "Emacs cannot be built or installed in a directory whose name contains non-ASCII characters: $var" "$LINENO" 5 ;;
+  esac
+
+done
+
 lispdir='${datadir}/emacs/${version}/lisp'
 leimdir='${datadir}/emacs/${version}/leim'
 standardlisppath='${lispdir}:${leimdir}'
@@ -29289,7 +29298,7 @@ CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
 if test "${opsys}" = "mingw32"; then
-  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
+  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I \${abs_top_srcdir}/nt/inc"
   # Remove unneeded switches from the value of CC that goes to Makefiles
   CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
 fi
@@ -31140,7 +31149,7 @@ fi
  ;;
     "src/.gdbinit":C)
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
+  echo "source $ac_abs_top_srcdir/src/.gdbinit" > src/.gdbinit
 fi
  ;;
 
