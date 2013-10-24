@@ -1,3 +1,26 @@
+2013-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: New smie-config system.
+	(smie-config): New defcustom.
+	(smie-edebug, smie-config-show-indent, smie-config-set-indent)
+	(smie-config-guess, smie-config-save): New commands.
+	(smie-config--mode-local, smie-config--buffer-local)
+	(smie-config--trace, smie-config--modefuns): New vars.
+	(smie-config--advice, smie-config--mode-hook)
+	(smie-config--setter, smie-config-local, smie-config--get-trace)
+	(smie-config--guess-value, smie-config--guess): New functions.
+	(smie-indent-forward-token, smie-indent-backward-token): Don't copy
+	text properties.  Treat "string fence" syntax like string syntax.
+
+	* progmodes/sh-script.el (sh-use-smie): Change default.
+	(sh-smie-sh-rules, sh-smie-rc-rules): Obey legacy sh-indent-* vars.
+	(sh-var-value): Simplify by CSE.
+	(sh-show-indent, sh-set-indent, sh-learn-line-indent)
+	(sh-learn-buffer-indent): Redirect to their SMIE equivalent when SMIE
+	is used.
+	(sh-guess-basic-offset): Use cl-incf.
+	(sh-guess-basic-offset): Use push+nreverse to avoid O(n^2).
+
 2013-10-24  Helmut Eller  <eller.helmut@gmail.com>
 
 	* emacs-lisp/lisp-mode.el (lisp-cl-font-lock-keywords-2): Fix cut&paste

@@ -1721,7 +1721,7 @@ This adds rules for comments and assignments."
 ;; the various indentation custom-vars, and it misses some important features
 ;; of the old code, mostly: sh-learn-line/buffer-indent, sh-show-indent,
 ;; sh-name/save/load-style.
-(defvar sh-use-smie nil
+(defvar sh-use-smie t
   "Whether to use the SMIE code for navigation and indentation.")
 
 (defun sh-smie--keyword-p ()
@@ -1926,7 +1926,8 @@ May return nil if the line should not be treated as continued."
 (defun sh-smie-sh-rules (kind token)
   (pcase (cons kind token)
     (`(:elem . basic) sh-indentation)
-    (`(:after . "case-)") (or sh-indentation smie-indent-basic))
+    (`(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
+                             (sh-var-value 'sh-indent-for-case-label)))
     ((and `(:before . ,_)
           (guard (when sh-indent-after-continuation
                    (save-excursion
@@ -1960,6 +1961,21 @@ May return nil if the line should not be treated as continued."
                  (current-column)
                (smie-indent-calculate)))))
     (`(:after . "|") (if (smie-rule-parent-p "|") nil 4))
+    ;; Attempt at backward compatibility with the old config variables.
+    (`(:before . "fi") (sh-var-value 'sh-indent-for-fi))
+    (`(:before . "done") (sh-var-value 'sh-indent-for-done))
+    (`(:after . "else") (sh-var-value 'sh-indent-after-else))
+    (`(:after . "if") (sh-var-value 'sh-indent-after-if))
+    (`(:before . "then") (sh-var-value 'sh-indent-for-then))
+    (`(:before . "do") (sh-var-value 'sh-indent-for-do))
+    (`(:after . "do")
+     (sh-var-value (if (smie-rule-hanging-p)
+                       'sh-indent-after-loop-construct 'sh-indent-after-do)))
+    ;; sh-indent-after-done: aligned completely differently.
+    (`(:after . "in") (sh-var-value 'sh-indent-for-case-label))
+    ;; sh-indent-for-continuation: Line continuations are handled differently.
+    (`(:after . ,(or `"(" `"{" `"[")) (sh-var-value 'sh-indent-after-open))
+    ;; sh-indent-after-function: we don't handle it differently.
     ))
 
 ;; (defconst sh-smie-csh-grammar
@@ -2119,8 +2135,9 @@ Point should be before the newline."
   (pcase (cons kind token)
     (`(:elem . basic) sh-indentation)
     ;; (`(:after . "case") (or sh-indentation smie-indent-basic))
-    (`(:after . ";") (if (smie-rule-parent-p "case")
-                         (smie-rule-parent sh-indentation)))
+    (`(:after . ";")
+     (if (smie-rule-parent-p "case")
+         (smie-rule-parent (sh-var-value 'sh-indent-after-case))))
     (`(:before . "{")
      (save-excursion
        (when (sh-smie--rc-after-special-arg-p)
@@ -2135,6 +2152,7 @@ Point should be before the newline."
     ;; with "(exp)", which is rarely the right thing to do, but is better
     ;; than nothing.
     (`(:list-intro . ,(or `"for" `"if" `"while")) t)
+    ;; sh-indent-after-switch: handled implicitly by the default { rule.
     ))
 
 ;;; End of SMIE code.
@@ -3154,12 +3172,9 @@ IGNORE-ERROR is non-nil."
      ((eq val '/)
       (/ (- sh-basic-offset) 2))
      (t
-      (if ignore-error
-      (progn
-	(message "Don't know how to handle %s's value of %s" var val)
-	0)
-      (error "Don't know how to handle %s's value of %s" var val))
-      ))))
+      (funcall (if ignore-error #'message #'error)
+               "Don't know how to handle %s's value of %s" var val)
+      0))))
 
 (defun sh-set-var-value (var value &optional no-symbol)
   "Set variable VAR to VALUE.
@@ -3284,33 +3299,35 @@ If variable `sh-blink' is non-nil then momentarily go to the line
 we are indenting relative to, if applicable."
   (interactive "P")
   (sh-must-support-indent)
-  (let* ((info (sh-get-indent-info))
-	 (var (sh-get-indent-var-for-line info))
-	 (curr-indent (current-indentation))
-	 val msg)
-    (if (stringp var)
-	(message "%s" (setq msg var))
-      (setq val (sh-calculate-indent info))
+  (if sh-use-smie
+      (smie-config-show-indent)
+    (let* ((info (sh-get-indent-info))
+           (var (sh-get-indent-var-for-line info))
+           (curr-indent (current-indentation))
+           val msg)
+      (if (stringp var)
+          (message "%s" (setq msg var))
+        (setq val (sh-calculate-indent info))
 
-      (if (eq curr-indent val)
-	  (setq msg (format "%s is %s" var (symbol-value var)))
-	(setq msg
-	      (if val
-		  (format "%s (%s) would change indent from %d to: %d"
-			  var (symbol-value var) curr-indent val)
-		(format "%s (%s) would leave line as is"
-			var (symbol-value var)))
-	      ))
-      (if (and arg var)
-	  (describe-variable var)))
-    (if sh-blink
-	(let ((info (sh-get-indent-info)))
-	  (if (and info (listp (car info))
-		   (eq (car (car info)) t))
-	      (sh-blink (nth 1 (car info))  msg)
-	    (message "%s" msg)))
-      (message "%s" msg))
-    ))
+        (if (eq curr-indent val)
+            (setq msg (format "%s is %s" var (symbol-value var)))
+          (setq msg
+                (if val
+                    (format "%s (%s) would change indent from %d to: %d"
+                            var (symbol-value var) curr-indent val)
+                  (format "%s (%s) would leave line as is"
+                          var (symbol-value var)))
+                ))
+        (if (and arg var)
+            (describe-variable var)))
+      (if sh-blink
+          (let ((info (sh-get-indent-info)))
+            (if (and info (listp (car info))
+                     (eq (car (car info)) t))
+                (sh-blink (nth 1 (car info))  msg)
+              (message "%s" msg)))
+        (message "%s" msg))
+      )))
 
 (defun sh-set-indent ()
   "Set the indentation for the current line.
@@ -3318,34 +3335,36 @@ If the current line is controlled by an indentation variable, prompt
 for a new value for it."
   (interactive)
   (sh-must-support-indent)
-  (let* ((info (sh-get-indent-info))
-	 (var (sh-get-indent-var-for-line info))
-	 val old-val indent-val)
-    (if (stringp var)
-	(message "Cannot set indent - %s" var)
-      (setq old-val (symbol-value var))
-      (setq val (sh-read-variable var))
-      (condition-case nil
-	  (progn
-	    (set var val)
-	    (setq indent-val (sh-calculate-indent info))
-	    (if indent-val
-		(message "Variable: %s  Value: %s  would indent to: %d"
-			 var (symbol-value var) indent-val)
-	      (message "Variable: %s  Value: %s  would leave line as is."
-		       var (symbol-value var)))
-	    ;; I'm not sure about this, indenting it now?
-	    ;; No.  Because it would give the impression that an undo would
-	    ;; restore thing, but the value has been altered.
-	    ;; (sh-indent-line)
-	    )
-	(error
-	 (set var old-val)
-	 (message "Bad value for %s, restoring to previous value %s"
-		  var old-val)
-	 (sit-for 1)
-	 nil))
-      )))
+  (if sh-use-smie
+      (smie-config-set-indent)
+    (let* ((info (sh-get-indent-info))
+           (var (sh-get-indent-var-for-line info))
+           val old-val indent-val)
+      (if (stringp var)
+          (message "Cannot set indent - %s" var)
+        (setq old-val (symbol-value var))
+        (setq val (sh-read-variable var))
+        (condition-case nil
+            (progn
+              (set var val)
+              (setq indent-val (sh-calculate-indent info))
+              (if indent-val
+                  (message "Variable: %s  Value: %s  would indent to: %d"
+                           var (symbol-value var) indent-val)
+                (message "Variable: %s  Value: %s  would leave line as is."
+                         var (symbol-value var)))
+              ;; I'm not sure about this, indenting it now?
+              ;; No.  Because it would give the impression that an undo would
+              ;; restore thing, but the value has been altered.
+              ;; (sh-indent-line)
+              )
+          (error
+           (set var old-val)
+           (message "Bad value for %s, restoring to previous value %s"
+                    var old-val)
+           (sit-for 1)
+           nil))
+        ))))
 
 
 (defun sh-learn-line-indent (arg)
@@ -3359,55 +3378,57 @@ If the value can be represented by one of the symbols then do so
 unless optional argument ARG (the prefix when interactive) is non-nil."
   (interactive "*P")
   (sh-must-support-indent)
-  ;; I'm not sure if we show allow learning on an empty line.
-  ;; Though it might occasionally be useful I think it usually
-  ;; would just be confusing.
-  (if (save-excursion
-	(beginning-of-line)
-	(looking-at "\\s-*$"))
-      (message "sh-learn-line-indent ignores empty lines.")
-    (let* ((info (sh-get-indent-info))
-	   (var (sh-get-indent-var-for-line info))
-	   ival sval diff new-val
-	   (no-symbol arg)
-	   (curr-indent (current-indentation)))
-      (cond
-       ((stringp var)
-	(message "Cannot learn line - %s" var))
-       ((eq var 'sh-indent-comment)
-	;; This is arbitrary...
-	;; - if curr-indent is 0, set to curr-indent
-	;; - else if it has the indentation of a "normal" line,
-	;;   then set to t
-	;; - else set to curr-indent.
-	(setq sh-indent-comment
-	      (if (= curr-indent 0)
-		  0
-		(let* ((sh-indent-comment t)
-		       (val2 (sh-calculate-indent info)))
-		  (if (= val2 curr-indent)
-		      t
-		    curr-indent))))
-	(message "%s set to %s" var (symbol-value var))
-	)
-       ((numberp (setq sval (sh-var-value var)))
-	(setq ival (sh-calculate-indent info))
-	(setq diff (- curr-indent ival))
+  (if sh-use-smie
+      (smie-config-set-indent)
+    ;; I'm not sure if we show allow learning on an empty line.
+    ;; Though it might occasionally be useful I think it usually
+    ;; would just be confusing.
+    (if (save-excursion
+          (beginning-of-line)
+          (looking-at "\\s-*$"))
+        (message "sh-learn-line-indent ignores empty lines.")
+      (let* ((info (sh-get-indent-info))
+             (var (sh-get-indent-var-for-line info))
+             ival sval diff new-val
+             (no-symbol arg)
+             (curr-indent (current-indentation)))
+        (cond
+         ((stringp var)
+          (message "Cannot learn line - %s" var))
+         ((eq var 'sh-indent-comment)
+          ;; This is arbitrary...
+          ;; - if curr-indent is 0, set to curr-indent
+          ;; - else if it has the indentation of a "normal" line,
+          ;;   then set to t
+          ;; - else set to curr-indent.
+          (setq sh-indent-comment
+                (if (= curr-indent 0)
+                    0
+                  (let* ((sh-indent-comment t)
+                         (val2 (sh-calculate-indent info)))
+                    (if (= val2 curr-indent)
+                        t
+                      curr-indent))))
+          (message "%s set to %s" var (symbol-value var))
+          )
+         ((numberp (setq sval (sh-var-value var)))
+          (setq ival (sh-calculate-indent info))
+          (setq diff (- curr-indent ival))
 
-	(sh-debug "curr-indent: %d   ival: %d  diff: %d  var:%s  sval %s"
-		  curr-indent ival diff  var sval)
-	(setq new-val (+ sval diff))
-;;;	  I commented out this because someone might want to replace
-;;;	  a value of `+' with the current value of sh-basic-offset
-;;;	  or vice-versa.
-;;;	  (if (= 0 diff)
-;;;	      (message "No change needed!")
-	(sh-set-var-value var new-val no-symbol)
-	(message "%s set to %s" var (symbol-value var))
-	)
-       (t
-	(debug)
-	(message "Cannot change %s" var))))))
+          (sh-debug "curr-indent: %d   ival: %d  diff: %d  var:%s  sval %s"
+                    curr-indent ival diff  var sval)
+          (setq new-val (+ sval diff))
+          ;; I commented out this because someone might want to replace
+          ;; a value of `+' with the current value of sh-basic-offset
+          ;; or vice-versa.
+          ;;(if (= 0 diff)
+          ;;     (message "No change needed!")
+          (sh-set-var-value var new-val no-symbol)
+          (message "%s set to %s" var (symbol-value var))
+          )
+         (t
+          (debug)
+          (message "Cannot change %s" var)))))))
 
 
 
@@ -3505,202 +3526,204 @@ removed in the future.
 This command can often take a long time to run."
   (interactive "P")
   (sh-must-support-indent)
-  (save-excursion
-    (goto-char (point-min))
-    (let ((learned-var-list nil)
-	  (out-buffer "*indent*")
-	  (num-diffs 0)
-	  previous-set-info
-	  (max 17)
-	  vec
-	  msg
-	  (comment-col nil) ;; number if all same, t if seen diff values
-	  (comments-always-default t) ;; nil if we see one not default
-	  initial-msg
-	  (specified-basic-offset (and arg (numberp arg)
-				       (> arg 0)))
-	  (linenum 0)
-	  suggested)
-      (setq vec (make-vector max 0))
-      (sh-mark-init out-buffer)
+  (if sh-use-smie
+      (smie-config-guess)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((learned-var-list nil)
+            (out-buffer "*indent*")
+            (num-diffs 0)
+            previous-set-info
+            (max 17)
+            vec
+            msg
+            (comment-col nil) ;; number if all same, t if seen diff values
+            (comments-always-default t) ;; nil if we see one not default
+            initial-msg
+            (specified-basic-offset (and arg (numberp arg)
+                                         (> arg 0)))
+            (linenum 0)
+            suggested)
+        (setq vec (make-vector max 0))
+        (sh-mark-init out-buffer)
 
-      (if specified-basic-offset
-	  (progn
-	    (setq sh-basic-offset arg)
-	    (setq initial-msg
-		  (format "Using specified sh-basic-offset of %d"
-			  sh-basic-offset)))
-	(setq initial-msg
-	      (format "Initial value of sh-basic-offset: %s"
-		      sh-basic-offset)))
+        (if specified-basic-offset
+            (progn
+              (setq sh-basic-offset arg)
+              (setq initial-msg
+                    (format "Using specified sh-basic-offset of %d"
+                            sh-basic-offset)))
+          (setq initial-msg
+                (format "Initial value of sh-basic-offset: %s"
+                        sh-basic-offset)))
 
-      (while (< (point) (point-max))
-	(setq linenum (1+ linenum))
-	;; (if (zerop (% linenum 10))
-	(message "line %d" linenum)
-	;; )
-	(unless (looking-at "\\s-*$") ;; ignore empty lines!
-	  (let* ((sh-indent-comment t) ;; info must return default indent
-		 (info (sh-get-indent-info))
-		 (var (sh-get-indent-var-for-line info))
-		 sval ival diff new-val
-		 (curr-indent (current-indentation)))
-	    (cond
-	     ((null var)
-	      nil)
-	     ((stringp var)
-	      nil)
-	     ((numberp (setq sval (sh-var-value var 'no-error)))
-	      ;; the numberp excludes comments since sval will be t.
-	      (setq ival (sh-calculate-indent))
-	      (setq diff (- curr-indent ival))
-	      (setq new-val (+ sval diff))
-	      (sh-set-var-value var new-val 'no-symbol)
-	      (unless (looking-at "\\s-*#") ;; don't learn from comments
-		(if (setq previous-set-info (assoc var learned-var-list))
-		    (progn
-		      ;; it was already there, is it same value ?
-		      (unless (eq (symbol-value var)
-				  (nth 1 previous-set-info))
-			(sh-mark-line
-			 (format "Variable %s was set to %s"
-				 var (symbol-value var))
-			 (point) out-buffer t t)
-			(sh-mark-line
-			 (format "  but was previously set to %s"
-				 (nth 1 previous-set-info))
-			 (nth 2 previous-set-info) out-buffer t)
-			(setq num-diffs (1+ num-diffs))
-			;; (delete previous-set-info  learned-var-list)
-			(setcdr previous-set-info
-				(list (symbol-value var) (point)))
-			)
-		      )
-		  (setq learned-var-list
-			(append (list (list var (symbol-value var)
-					    (point)))
-				learned-var-list)))
-		(if (numberp new-val)
-		    (progn
-		      (sh-debug
-		       "This line's indent value: %d"  new-val)
-		      (if (< new-val 0)
-			  (setq new-val (- new-val)))
-		      (if (< new-val max)
-			  (aset vec new-val (1+ (aref vec new-val))))))
-		))
-	     ((eq var 'sh-indent-comment)
-	      (unless (= curr-indent (sh-calculate-indent info))
-		;; this is not the default indentation
-		(setq comments-always-default nil)
-		(if comment-col	;; then we have see one before
-		    (or (eq comment-col curr-indent)
-			(setq comment-col t)) ;; seen a different one
-		  (setq comment-col curr-indent))
-		))
-	     (t
-	      (sh-debug "Cannot learn this line!!!")
-	      ))
-	    (sh-debug
-	     "at %s learned-var-list is %s" (point) learned-var-list)
-	    ))
-	(forward-line 1)
-	) ;; while
-      (if sh-debug
-	  (progn
-	    (setq msg (format
-		       "comment-col = %s  comments-always-default = %s"
-		       comment-col comments-always-default))
-	    ;; (message msg)
-	    (sh-mark-line  msg nil out-buffer)))
-      (cond
-       ((eq comment-col 0)
-	(setq msg  "\nComments are all in 1st column.\n"))
-       (comments-always-default
-	(setq msg  "\nComments follow default indentation.\n")
-	(setq comment-col t))
-       ((numberp comment-col)
-	(setq msg  (format "\nComments are in col %d." comment-col)))
-       (t
-	(setq msg  "\nComments seem to be mixed, leaving them as is.\n")
-	(setq comment-col nil)
-	))
-      (sh-debug msg)
-      (sh-mark-line  msg nil out-buffer)
+        (while (< (point) (point-max))
+          (setq linenum (1+ linenum))
+          ;; (if (zerop (% linenum 10))
+          (message "line %d" linenum)
+          ;; )
+          (unless (looking-at "\\s-*$") ;; ignore empty lines!
+            (let* ((sh-indent-comment t) ;; info must return default indent
+                   (info (sh-get-indent-info))
+                   (var (sh-get-indent-var-for-line info))
+                   sval ival diff new-val
+                   (curr-indent (current-indentation)))
+              (cond
+               ((null var)
+                nil)
+               ((stringp var)
+                nil)
+               ((numberp (setq sval (sh-var-value var 'no-error)))
+                ;; the numberp excludes comments since sval will be t.
+                (setq ival (sh-calculate-indent))
+                (setq diff (- curr-indent ival))
+                (setq new-val (+ sval diff))
+                (sh-set-var-value var new-val 'no-symbol)
+                (unless (looking-at "\\s-*#") ;; don't learn from comments
+                  (if (setq previous-set-info (assoc var learned-var-list))
+                      (progn
+                        ;; it was already there, is it same value ?
+                        (unless (eq (symbol-value var)
+                                    (nth 1 previous-set-info))
+                          (sh-mark-line
+                           (format "Variable %s was set to %s"
+                                   var (symbol-value var))
+                           (point) out-buffer t t)
+                          (sh-mark-line
+                           (format "  but was previously set to %s"
+                                   (nth 1 previous-set-info))
+                           (nth 2 previous-set-info) out-buffer t)
+                          (setq num-diffs (1+ num-diffs))
+                          ;; (delete previous-set-info  learned-var-list)
+                          (setcdr previous-set-info
+                                  (list (symbol-value var) (point)))
+                          )
+                        )
+                    (setq learned-var-list
+                          (append (list (list var (symbol-value var)
+                                              (point)))
+                                  learned-var-list)))
+                  (if (numberp new-val)
+                      (progn
+                        (sh-debug
+                         "This line's indent value: %d"  new-val)
+                        (if (< new-val 0)
+                            (setq new-val (- new-val)))
+                        (if (< new-val max)
+                            (aset vec new-val (1+ (aref vec new-val))))))
+                  ))
+               ((eq var 'sh-indent-comment)
+                (unless (= curr-indent (sh-calculate-indent info))
+                  ;; this is not the default indentation
+                  (setq comments-always-default nil)
+                  (if comment-col ;; then we have see one before
+                      (or (eq comment-col curr-indent)
+                          (setq comment-col t)) ;; seen a different one
+                    (setq comment-col curr-indent))
+                  ))
+               (t
+                (sh-debug "Cannot learn this line!!!")
+                ))
+              (sh-debug
+               "at %s learned-var-list is %s" (point) learned-var-list)
+              ))
+          (forward-line 1)
+          ) ;; while
+        (if sh-debug
+            (progn
+              (setq msg (format
+                         "comment-col = %s  comments-always-default = %s"
+                         comment-col comments-always-default))
+              ;; (message msg)
+              (sh-mark-line  msg nil out-buffer)))
+        (cond
+         ((eq comment-col 0)
+          (setq msg  "\nComments are all in 1st column.\n"))
+         (comments-always-default
+          (setq msg  "\nComments follow default indentation.\n")
+          (setq comment-col t))
+         ((numberp comment-col)
+          (setq msg  (format "\nComments are in col %d." comment-col)))
+         (t
+          (setq msg  "\nComments seem to be mixed, leaving them as is.\n")
+          (setq comment-col nil)
+          ))
+        (sh-debug msg)
+        (sh-mark-line  msg nil out-buffer)
 
-      (sh-mark-line initial-msg nil out-buffer t t)
+        (sh-mark-line initial-msg nil out-buffer t t)
 
-      (setq suggested (sh-guess-basic-offset vec))
+        (setq suggested (sh-guess-basic-offset vec))
 
-      (if (and suggested (not specified-basic-offset))
-	  (let ((new-value
-		 (cond
-		  ;; t => set it if we have a single value as a number
-		  ((and (eq sh-learn-basic-offset t) (numberp suggested))
-		   suggested)
-		  ;; other non-nil => set it if only one value was found
-		  (sh-learn-basic-offset
-		   (if (numberp suggested)
-		       suggested
-		     (if (= (length suggested) 1)
-			 (car suggested))))
-		  (t
-		   nil))))
-	    (if new-value
-		(progn
-		  (setq learned-var-list
-			(append (list (list 'sh-basic-offset
-					    (setq sh-basic-offset new-value)
-					    (point-max)))
-				learned-var-list))
-		  ;; Not sure if we need to put this line in, since
-		  ;; it will appear in the "Learned variable settings".
-		  (sh-mark-line
-		   (format "Changed sh-basic-offset to: %d" sh-basic-offset)
-		   nil out-buffer))
-	      (sh-mark-line
-	       (if (listp suggested)
-		   (format "Possible value(s) for sh-basic-offset:  %s"
-			   (mapconcat 'int-to-string suggested " "))
-		 (format "Suggested sh-basic-offset:  %d" suggested))
-	       nil out-buffer))))
+        (if (and suggested (not specified-basic-offset))
+            (let ((new-value
+                   (cond
+                    ;; t => set it if we have a single value as a number
+                    ((and (eq sh-learn-basic-offset t) (numberp suggested))
+                     suggested)
+                    ;; other non-nil => set it if only one value was found
+                    (sh-learn-basic-offset
+                     (if (numberp suggested)
+                         suggested
+                       (if (= (length suggested) 1)
+                           (car suggested))))
+                    (t
+                     nil))))
+              (if new-value
+                  (progn
+                    (setq learned-var-list
+                          (append (list (list 'sh-basic-offset
+                                              (setq sh-basic-offset new-value)
+                                              (point-max)))
+                                  learned-var-list))
+                    ;; Not sure if we need to put this line in, since
+                    ;; it will appear in the "Learned variable settings".
+                    (sh-mark-line
+                     (format "Changed sh-basic-offset to: %d" sh-basic-offset)
+                     nil out-buffer))
+                (sh-mark-line
+                 (if (listp suggested)
+                     (format "Possible value(s) for sh-basic-offset:  %s"
+                             (mapconcat 'int-to-string suggested " "))
+                   (format "Suggested sh-basic-offset:  %d" suggested))
+                 nil out-buffer))))
 
 
-      (setq learned-var-list
-	    (append (list (list 'sh-indent-comment comment-col (point-max)))
-		    learned-var-list))
-      (setq sh-indent-comment comment-col)
-      (let ((name (buffer-name)))
-	(sh-mark-line  "\nLearned variable settings:" nil out-buffer)
-	(if arg
-	    ;; Set learned variables to symbolic rather than numeric
-	    ;; values where possible.
-	    (dolist (learned-var (reverse learned-var-list))
-	      (let ((var (car learned-var))
-		    (val (nth 1 learned-var)))
-		(when (and (not (eq var 'sh-basic-offset))
-			   (numberp val))
-		  (sh-set-var-value var val)))))
-	(dolist (learned-var (reverse learned-var-list))
-	  (let ((var (car learned-var)))
-	    (sh-mark-line (format "  %s %s" var (symbol-value var))
-			  (nth 2 learned-var) out-buffer)))
-	(with-current-buffer out-buffer
-	  (goto-char (point-min))
-          (let ((inhibit-read-only t))
-            (insert
-             (format "Indentation values for buffer %s.\n" name)
-             (format "%d indentation variable%s different values%s\n\n"
-                     num-diffs
-                     (if (= num-diffs 1)
-                         " has"   "s have")
-                     (if (zerop num-diffs)
-                         "." ":"))))))
-      ;; Are abnormal hooks considered bad form?
-      (run-hook-with-args 'sh-learned-buffer-hook learned-var-list)
-      (and (called-interactively-p 'any)
-	   (or sh-popup-occur-buffer (> num-diffs 0))
-	   (pop-to-buffer out-buffer)))))
+        (setq learned-var-list
+              (append (list (list 'sh-indent-comment comment-col (point-max)))
+                      learned-var-list))
+        (setq sh-indent-comment comment-col)
+        (let ((name (buffer-name)))
+          (sh-mark-line  "\nLearned variable settings:" nil out-buffer)
+          (if arg
+              ;; Set learned variables to symbolic rather than numeric
+              ;; values where possible.
+              (dolist (learned-var (reverse learned-var-list))
+                (let ((var (car learned-var))
+                      (val (nth 1 learned-var)))
+                  (when (and (not (eq var 'sh-basic-offset))
+                             (numberp val))
+                    (sh-set-var-value var val)))))
+          (dolist (learned-var (reverse learned-var-list))
+            (let ((var (car learned-var)))
+              (sh-mark-line (format "  %s %s" var (symbol-value var))
+                            (nth 2 learned-var) out-buffer)))
+          (with-current-buffer out-buffer
+            (goto-char (point-min))
+            (let ((inhibit-read-only t))
+              (insert
+               (format "Indentation values for buffer %s.\n" name)
+               (format "%d indentation variable%s different values%s\n\n"
+                       num-diffs
+                       (if (= num-diffs 1)
+                           " has"   "s have")
+                       (if (zerop num-diffs)
+                           "." ":"))))))
+        ;; Are abnormal hooks considered bad form?
+        (run-hook-with-args 'sh-learned-buffer-hook learned-var-list)
+        (and (called-interactively-p 'any)
+             (or sh-popup-occur-buffer (> num-diffs 0))
+             (pop-to-buffer out-buffer))))))
 
 (defun sh-guess-basic-offset (vec)
   "See if we can determine a reasonable value for `sh-basic-offset'.
@@ -3716,11 +3739,11 @@ Return values:
 	 (i 1)
 	 (totals (make-vector max 0)))
     (while (< i max)
-      (aset totals i (+ (aref totals i) (* 4 (aref vec i))))
+      (cl-incf (aref totals i) (* 4 (aref vec i)))
       (if (zerop (% i 2))
-	  (aset totals i (+ (aref totals i) (aref vec (/ i 2)))))
+	  (cl-incf (aref totals i) (aref vec (/ i 2))))
       (if (< (* i 2) max)
-	  (aset totals i (+ (aref totals i) (aref vec (* i 2)))))
+	  (cl-incf (aref totals i) (aref vec (* i 2))))
       (setq i (1+ i)))
 
     (let ((x nil)
@@ -3729,10 +3752,10 @@ Return values:
       (setq i 1)
       (while (< i max)
 	(if (/= (aref totals i) 0)
-	    (setq x (append x (list (cons i (aref totals i))))))
+	    (push (cons i (aref totals i)) x))
 	(setq i (1+ i)))
 
-      (setq x (sort x (lambda (a b) (> (cdr a) (cdr b)))))
+      (setq x (sort (nreverse x) (lambda (a b) (> (cdr a) (cdr b)))))
       (setq tot (apply '+ (append totals nil)))
       (sh-debug (format "vec: %s\ntotals: %s\ntot: %d"
 			vec totals tot))

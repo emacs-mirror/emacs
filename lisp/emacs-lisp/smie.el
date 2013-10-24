@@ -1370,9 +1370,9 @@ BASE-POS is the position relative to which offsets should be applied."
      ((< 0 (length tok)) (assoc tok smie-grammar))
      ((looking-at "\\s(\\|\\s)\\(\\)")
       (forward-char 1)
-      (cons (buffer-substring (1- (point)) (point))
+      (cons (buffer-substring-no-properties (1- (point)) (point))
             (if (match-end 1) '(0 nil) '(nil 0))))
-     ((looking-at "\\s\"")
+     ((looking-at "\\s\"\\|\\s|")
       (forward-sexp 1)
       nil)
      ((eobp) nil)
@@ -1387,9 +1387,9 @@ BASE-POS is the position relative to which offsets should be applied."
      ;; 4 == open paren syntax, 5 == close.
      ((memq (setq class (syntax-class (syntax-after (1- (point))))) '(4 5))
       (forward-char -1)
-      (cons (buffer-substring (point) (1+ (point)))
+      (cons (buffer-substring-no-properties (point) (1+ (point)))
             (if (eq class 4) '(nil 0) '(0 nil))))
-     ((eq class 7)
+     ((memq class '(7 15))
       (backward-sexp 1)
       nil)
      ((bobp) nil)
@@ -1829,6 +1829,352 @@ KEYWORDS are additional arguments, which can use the following keywords:
                     (append smie-blink-matching-triggers
                             (delete-dups triggers)))))))
 
+(defun smie-edebug ()
+  "Instrument the `smie-rules-function' for Edebug."
+  (interactive)
+  (require 'edebug)
+  (if (symbolp smie-rules-function)
+      (edebug-instrument-function smie-rules-function)
+    (error "Sorry, don't know how to instrument a lambda expression")))
+
+;;; User configuration
+
+;; This is designed to be a completely independent "module", so we can play
+;; with various kinds of smie-config modules without having to change the core.
+
+;; This smie-config module is fairly primitive and suffers from serious
+;; restrictions:
+;; - You can only change a returned offset, so you can't change the offset
+;;   passed to smie-rule-parent, nor can you change the object with which
+;;   to align (in general).
+;; - The rewrite rule can only distinguish cases based on the kind+token arg
+;;   and smie-rules-function's return value, so you can't distinguish cases
+;;   where smie-rules-function returns the same value.
+;; - Since config-rules depend on the return value of smie-rules-function, any
+;;   config change that modifies this return value (e.g. changing
+;;   foo-indent-basic) ends up invalidating config-rules.
+;; This last one is a serious problem since it means that file-local
+;; config-rules will only work if the user hasn't changed foo-indent-basic.
+;; One possible way to change it is to modify smie-rules-functions so they can
+;; return special symbols like +, ++, -, etc.  Or make them use a new
+;; smie-rule-basic function which can then be used to know when a returned
+;; offset was computed based on foo-indent-basic.
+
+(defvar-local smie-config--mode-local nil
+  "Indentation config rules installed for this major mode.
+Typically manipulated from the major-mode's hook.")
+(defvar-local smie-config--buffer-local nil
+  "Indentation config rules installed for this very buffer.
+E.g. provided via a file-local call to `smie-config-local'.")
+(defvar smie-config--trace nil
+  "Variable used to trace calls to `smie-rules-function'.")
+
+(defun smie-config--advice (orig kind token)
+  (let* ((ret (funcall orig kind token))
+         (sig (list kind token ret))
+         (brule (rassoc sig smie-config--buffer-local))
+         (mrule (rassoc sig smie-config--mode-local)))
+    (when smie-config--trace
+      (setq smie-config--trace (or brule mrule)))
+    (cond
+     (brule (car brule))
+     (mrule (car mrule))
+     (t ret))))
+
+(defun smie-config--mode-hook (rules)
+  (setq smie-config--mode-local
+        (append rules smie-config--mode-local))
+  (add-function :around (local 'smie-rules-function) #'smie-config--advice))
+
+(defvar smie-config--modefuns nil)
+
+(defun smie-config--setter (var value)
+  (setq-default var value)
+  (let ((old-modefuns smie-config--modefuns))
+    (setq smie-config--modefuns nil)
+    (pcase-dolist (`(,mode . ,rules) value)
+      (let ((modefunname (intern (format "smie-config--modefun-%s" mode))))
+        (fset modefunname (lambda () (smie-config--mode-hook rules)))
+        (push modefunname smie-config--modefuns)
+        (add-hook (intern (format "%s-hook" mode)) modefunname)))
+    ;; Neuter any left-over previously installed hook.
+    (dolist (modefun old-modefuns)
+      (unless (memq modefun smie-config--modefuns)
+        (fset modefun #'ignore)))))
+
+(defcustom smie-config nil
+  ;; FIXME: there should be a file-local equivalent.
+  "User configuration of SMIE indentation.
+This is a list of elements (MODE . RULES), where RULES is a list
+of elements describing when and how to change the indentation rules.
+Each RULE element should be of the form (NEW KIND TOKEN NORMAL),
+where KIND and TOKEN are the elements passed to `smie-rules-function',
+NORMAL is the value returned by `smie-rules-function' and NEW is the
+value with which to replace it."
+  :set #'smie-config--setter)
+
+(defun smie-config-local (rules)
+  "Add RULES as local indentation rules to use in this buffer.
+These replace any previous local rules, but supplement the rules
+specified in `smie-config'."
+  (setq smie-config--buffer-local rules)
+  (add-function :around (local 'smie-rules-function) #'smie-config--advice))
+
+;; Make it so we can set those in the file-local block.
+;; FIXME: Better would be to be able to write "smie-config-local: (...)" rather
+;; than "eval: (smie-config-local '(...))".
+(put 'smie-config-local 'safe-local-eval-function t)
+
+(defun smie-config--get-trace ()
+  (save-excursion
+    (forward-line 0)
+    (skip-chars-forward " \t")
+    (let* ((trace ())
+           (srf-fun (lambda (orig kind token)
+                      (let* ((pos (point))
+                             (smie-config--trace t)
+                             (res (funcall orig kind token)))
+                        (push (if (consp smie-config--trace)
+                                  (list pos kind token res smie-config--trace)
+                                (list pos kind token res))
+                              trace)
+                        res))))
+      (unwind-protect
+          (progn
+            (add-function :around (local 'smie-rules-function) srf-fun)
+            (cons (smie-indent-calculate)
+                  trace))
+        (remove-function (local 'smie-rules-function) srf-fun)))))
+
+(defun smie-config-show-indent (&optional arg)
+  "Display the SMIE rules that are used to indent the current line.
+If prefix ARG is given, then move briefly point to the buffer
+position corresponding to each rule."
+  (interactive "P")
+  (let ((trace (cdr (smie-config--get-trace))))
+    (cond
+     ((null trace) (message "No SMIE rules involved"))
+     ((not arg)
+      (message "Rules used: %s"
+               (mapconcat (lambda (elem)
+                            (pcase-let ((`(,_pos ,kind ,token ,res ,rewrite)
+                                         elem))
+                              (format "%S %S -> %S%s" kind token res
+                                      (if (null rewrite) ""
+                                        (format "(via %S)" (nth 3 rewrite))))))
+                          trace
+                          ", ")))
+     (t
+      (save-excursion
+        (pcase-dolist (`(,pos ,kind ,token ,res ,rewrite) trace)
+          (message "%S %S -> %S%s" kind token res
+                   (if (null rewrite) ""
+                     (format "(via %S)" (nth 3 rewrite))))
+          (goto-char pos)
+          (sit-for blink-matching-delay)))))))
+
+(defun smie-config--guess-value (sig)
+  (add-function :around (local 'smie-rules-function) #'smie-config--advice)
+  (let* ((rule (cons 0 sig))
+         (smie-config--buffer-local (cons rule smie-config--buffer-local))
+         (goal (current-indentation))
+         (cur (smie-indent-calculate)))
+    (cond
+     ((and (eq goal
+               (progn (setf (car rule) (- goal cur))
+                      (smie-indent-calculate))))
+      (- goal cur)))))
+
+(defun smie-config-set-indent ()
+  "Add a rule to adjust the indentation of current line."
+  (interactive)
+  (let* ((trace (cdr (smie-config--get-trace)))
+         (_ (unless trace (error "No SMIE rules involved")))
+         (sig (if (null (cdr trace))
+                  (pcase-let* ((elem (car trace))
+                               (`(,_pos ,kind ,token ,res ,rewrite) elem))
+                    (list kind token (or (nth 3 rewrite) res)))
+                (let* ((choicestr
+                        (completing-read
+                         "Adjust rule: "
+                         (mapcar (lambda (elem)
+                                   (format "%s %S"
+                                           (substring (symbol-name (cadr elem))
+                                                      1)
+                                           (nth 2 elem)))
+                                 trace)
+                         nil t nil nil
+                         nil)) ;FIXME: Provide good default!
+                       (choicelst (car (read-from-string
+                                        (concat "(:" choicestr ")")))))
+                  (catch 'found
+                    (pcase-dolist (`(,_pos ,kind ,token ,res ,rewrite) trace)
+                      (when (and (eq kind (car choicelst))
+                                 (equal token (nth 1 choicelst)))
+                        (throw 'found (list kind token
+                                            (or (nth 3 rewrite) res)))))))))
+         (default-new (smie-config--guess-value sig))
+         (newstr (read-string (format "Adjust rule (%S %S -> %S) to%s: "
+                                      (nth 0 sig) (nth 1 sig) (nth 2 sig)
+                                      (if (not default-new) ""
+                                        (format " (default %S)" default-new)))
+                              nil nil (format "%S" default-new)))
+         (new (car (read-from-string newstr))))
+    (let ((old (rassoc sig smie-config--buffer-local)))
+      (when old
+        (setq smie-config--buffer-local
+              (remove old smie-config--buffer-local))))
+    (push (cons new sig) smie-config--buffer-local)
+    (message "Added rule %S %S -> %S (via %S)"
+             (nth 0 sig) (nth 1 sig) new (nth 2 sig))
+    (add-function :around (local 'smie-rules-function) #'smie-config--advice)))
+
+(defun smie-config--guess (beg end)
+  (let ((otraces (make-hash-table :test #'equal))
+        (smie-config--buffer-local nil)
+        (smie-config--mode-local nil)
+        (pr (make-progress-reporter "Analyzing the buffer" beg end)))
+
+    ;; First, lets get the indentation traces and offsets for the region.
+    (save-excursion
+      (goto-char beg)
+      (forward-line 0)
+      (while (< (point) end)
+        (skip-chars-forward " \t")
+        (unless (eolp)                  ;Skip empty lines.
+          (progress-reporter-update pr (point))
+          (let* ((itrace (smie-config--get-trace))
+                 (nindent (car itrace))
+                 (trace (mapcar #'cdr (cdr itrace)))
+                 (cur (current-indentation)))
+            (when (numberp nindent)     ;Skip `noindent' and friends.
+              (cl-incf (gethash (cons (- cur nindent) trace) otraces 0)))))
+        (forward-line 1)))
+    (progress-reporter-done pr)
+
+    ;; Second, compile the data.  Our algorithm only knows how to adjust rules
+    ;; where the smie-rules-function returns an integer.  We call those
+    ;; "adjustable sigs".  We build a table mapping each adjustable sig
+    ;; to its data, describing the total number of times we encountered it,
+    ;; the offsets found, and the traces in which it was found.
+    (message "Guessing...")
+    (let ((sigs (make-hash-table :test #'equal)))
+      (maphash (lambda (otrace count)
+                 (let ((offset (car otrace))
+                       (trace (cdr otrace))
+                       (double nil))
+                   (let ((sigs trace))
+                     (while sigs
+                       (let ((sig (pop sigs)))
+                         (if (and (integerp (nth 2 sig)) (member sig sigs))
+                             (setq double t)))))
+                   (if double
+                       ;; Disregard those traces where an adjustable sig
+                       ;; appears twice, because the rest of the code assumes
+                       ;; that adding a rule to add an offset N will change the
+                       ;; end result by N rather than 2*N or more.
+                       nil
+                     (dolist (sig trace)
+                       (if (not (integerp (nth 2 sig)))
+                           ;; Disregard those sigs that return nil or a column,
+                           ;; because our algorithm doesn't know how to adjust
+                           ;; them anyway.
+                           nil
+                         (let ((sig-data (or (gethash sig sigs)
+                                             (let ((data (list 0 nil nil)))
+                                               (puthash sig data sigs)
+                                               data))))
+                           (cl-incf (nth 0 sig-data) count)
+                           (push (cons count otrace) (nth 2 sig-data))
+                           (let ((sig-off-data
+                                  (or (assq offset (nth 1 sig-data))
+                                      (let ((off-data (cons offset 0)))
+                                        (push off-data (nth 1 sig-data))
+                                        off-data))))
+                             (cl-incf (cdr sig-off-data) count))))))))
+               otraces)
+
+      ;; Finally, guess the indentation rules.
+      (let ((ssigs nil)
+            (rules nil))
+        ;; Sort the sigs by frequency of occurrence.
+        (maphash (lambda (sig sig-data) (push (cons sig sig-data) ssigs)) sigs)
+        (setq ssigs (sort ssigs (lambda (sd1 sd2) (> (cadr sd1) (cadr sd2)))))
+        (while ssigs
+          (pcase-let ((`(,sig ,total ,off-alist ,cotraces) (pop ssigs)))
+            (cl-assert (= total (apply #'+ (mapcar #'cdr off-alist))))
+            (let* ((sorted-off-alist
+                    (sort off-alist (lambda (x y) (> (cdr x) (cdr y)))))
+                   (offset (caar sorted-off-alist)))
+              (if (zerop offset)
+                  ;; Nothing to do with this sig; indentation is
+                  ;; correct already.
+                  nil
+                (push (cons (+ offset (nth 2 sig)) sig) rules)
+                ;; Adjust the rest of the data.
+                (pcase-dolist ((and cotrace `(,count ,toffset ,trace))
+                               cotraces)
+                  (setf (nth 1 cotrace) (- toffset offset))
+                  (dolist (sig trace)
+                    (let ((sig-data (cdr (assq sig ssigs))))
+                      (when sig-data
+                        (let* ((ooff-data (assq toffset (nth 1 sig-data)))
+                               (noffset (- toffset offset))
+                               (noff-data
+                                (or (assq noffset (nth 1 sig-data))
+                                    (let ((off-data (cons noffset 0)))
+                                      (push off-data (nth 1 sig-data))
+                                      off-data))))
+                          (cl-assert (>= (cdr ooff-data) count))
+                          (cl-decf (cdr ooff-data) count)
+                          (cl-incf (cdr noff-data) count))))))))))
+        (message "Guessing...done")
+        rules))))
+
+(defun smie-config-guess ()
+  "Try and figure out this buffer's indentation settings."
+  (interactive)
+  (let ((config (smie-config--guess (point-min) (point-max))))
+    (cond
+     ((null config) (message "Nothing to change"))
+     ((null smie-config--buffer-local)
+      (message "Local rules set")
+      (setq smie-config--buffer-local config))
+     ((y-or-n-p "Replace existing local config? ")
+      (message "Local rules replaced")
+      (setq smie-config--buffer-local config))
+     ((y-or-n-p "Merge with existing local config? ")
+      (message "Local rules adjusted")
+      (setq smie-config--buffer-local
+            (append config smie-config--buffer-local)))
+     (t
+      (message "Rules guessed: %S" config)))))
+
+(defun smie-config-save ()
+  "Save local rules for use with this major mode."
+  (interactive)
+  (cond
+   ((null smie-config--buffer-local)
+    (message "No local rules to save"))
+   (t
+    (let* ((existing (assq major-mode smie-config))
+           (config
+            (cond ((null existing)
+                   (message "Local rules saved in `smie-config'")
+                   smie-config--buffer-local)
+                  ((y-or-n-p "Replace the existing mode's config? ")
+                   (message "Mode rules replaced in `smie-config'")
+                   smie-config--buffer-local)
+                  ((y-or-n-p "Merge with existing mode's config? ")
+                   (message "Mode rules adjusted in `smie-config'")
+                   (append smie-config--buffer-local (cdr existing)))
+                  (t (error "Abort")))))
+      (if existing
+          (setcdr existing config)
+        (push (cons major-mode config) smie-config))
+      (setq smie-config--mode-local config)
+      (kill-local-variable smie-config--buffer-local)
+      (customize-mark-as-set 'smie-config)))))
 
 (provide 'smie)
 ;;; smie.el ends here
