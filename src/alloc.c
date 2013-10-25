@@ -2837,6 +2837,19 @@ vector_nbytes (struct Lisp_Vector *v)
   return vroundup (size);
 }
 
+/* Release extra resources still in use by VECTOR, which may be any
+   vector-like object.  For now, this is used just to free data in
+   font objects.  */
+
+static void
+cleanup_vector (struct Lisp_Vector *vector)
+{
+  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT)
+      && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	  == FONT_OBJECT_MAX))
+    ((struct font *) vector)->driver->close ((struct font *) vector);
+}
+
 /* Reclaim space used by unmarked vectors.  */
 
 static void
@@ -2871,6 +2884,7 @@ sweep_vectors (void)
 	    {
 	      ptrdiff_t total_bytes;
 
+	      cleanup_vector (vector);
 	      nbytes = vector_nbytes (vector);
 	      total_bytes = nbytes;
 	      next = ADVANCE (vector, nbytes);
@@ -2882,6 +2896,7 @@ sweep_vectors (void)
 		{
 		  if (VECTOR_MARKED_P (next))
 		    break;
+		  cleanup_vector (next);
 		  nbytes = vector_nbytes (next);
 		  total_bytes += nbytes;
 		  next = ADVANCE (next, nbytes);

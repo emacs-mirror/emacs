@@ -9,9 +9,15 @@
 	* nsfont.m (nsfont_close):
 	* w32font.c (w32font_close):
 	* xfont.c (xfont_close):
-	* xftfont.c (xftfont_close): Adjust driver-specific close
-	functions, tweak comments and make functions safe if called
-	more than once for the same font object.
+	* xftfont.c (xftfont_close): Adjust driver-specific close functions,
+	tweak comments and make functions safe if called more than once for
+	the same font object.
+
+	Perform font-specific cleanup when font object is swept by GC.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00740.html.
+	* alloc.c (cleanup_vector): New function.
+	(sweep_vector): Call it for each reclaimed vector object.
+	* font.h (struct font): Adjust comment.
 
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
