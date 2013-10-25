@@ -1,3 +1,46 @@
+2013-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el: Remove old indent; use post-self-insert-hook.
+	(prolog-align-comments-flag, prolog-indent-mline-comments-flag)
+	(prolog-object-end-to-0-flag, prolog-electric-newline-flag)
+	(prolog-electric-tab-flag, prolog-use-prolog-tokenizer-flag):
+	Remove vars, they do not apply any more.
+	(prolog-mode-abbrev-table): Remove redundant declaration.
+	(prolog-upper-case-string, prolog-lower-case-string): Remove.
+	(prolog-use-smie): Remove.
+	(prolog-smie-rules): Add indentation rule for the if-then-else layout
+	supported by prolog-electric-if-then-else-flag.
+	(prolog-mode-variables, prolog-menu): Use setq-local.
+	(prolog-mode-keybindings-edit): Don't rebind M-C-p and M-C-n.
+	Remove binding to `Backspace' since this key doesn't exist anyway.
+	Remove bindings for electric self-inserting keys.
+	(prog-mode): Assume it's defined.
+	(prolog-post-self-insert): New function.
+	(prolog-mode): Use it.
+	(prolog-indent-line, prolog-indent-level)
+	(prolog-find-indent-of-matching-paren)
+	(prolog-indentation-level-of-line, prolog-goto-comment-column)
+	(prolog-paren-is-the-first-on-line-p, prolog-region-paren-balance)
+	(prolog-goto-next-paren, prolog-in-string-or-comment)
+	(prolog-tokenize, prolog-inside-mline-comment)
+	(prolog-find-start-of-mline-comment): Remove functions.
+	(prolog-find-unmatched-paren, prolog-clause-end)
+	(prolog-guess-fill-prefix, prolog-get-predspec): Use syntax-ppss.
+	(prolog-electric--if-then-else): Rename from
+	prolog-insert-spaces-after-paren; use prolog-electric-if-then-else-flag.
+	(prolog-tokenize-searchkey): Remove const.
+	(prolog-clause-info): Use forward-sexp.
+	(prolog-forward-list, prolog-backward-list, prolog-electric-delete)
+	(prolog-electric-if-then-else): Remove commands.
+	(prolog-electric--colon): Rename from prolog-electric-colon; adapt it
+	for use in post-self-insert-hook.
+	(prolog-electric--dash): Rename from prolog-electric-dash; adapt it
+	for use in post-self-insert-hook.
+	(prolog-electric--dot): Rename from prolog-electric-dot; adapt it
+	for use in post-self-insert-hook.
+	(prolog-electric--underscore): Rename from prolog-electric--underscore;
+	adapt it for use in post-self-insert-hook.
+
 2013-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* emacs-lisp/ert.el (ert-run-tests-interactively):
@@ -13,8 +56,8 @@
 2013-10-25  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-mode-menu): Use proper
-	capitalization.  Use :visible instead of :active.  Fix
-	`ruby-indent-exp' reference.  Add menu items for the generic
+	capitalization.  Use :visible instead of :active.
+	Fix `ruby-indent-exp' reference.  Add menu items for the generic
 	commands that are used with SMIE.
 	(ruby-do-end-to-brace): Insert space after `{'.
 
