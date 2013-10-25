@@ -3181,6 +3181,7 @@ does that, this function's value may not be accurate.
 
 @node Low-Level Font
 @subsection Low-Level Font Representation
+@cindex font property
 
   Normally, it is not necessary to manipulate fonts directly.  In case
 you need to do so, this section explains how.
