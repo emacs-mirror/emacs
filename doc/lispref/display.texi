@@ -3064,7 +3064,7 @@ function does nothing.
 If optional argument @var{style-variant-p} is non-@code{nil}, that says
 to create bold, italic and bold-italic variants of the fontset as well.
 These variant fontsets do not have a short name, only a long one, which
-is made by altering @var{fontpattern} to indicate the bold or italic
+is made by altering @var{fontpattern} to indicate the bold and/or italic
 status.
 
 The specification string also says which fonts to use in the fontset.
