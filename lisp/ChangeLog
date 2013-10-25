@@ -1,3 +1,10 @@
+2013-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): Call line-move-1 instead of
+	line-move-visual when the current window hscroll is zero, but
+	temporary-goal-column indicates we will need to hscroll as result
+	of the movement.  (Bug#15712)
+
 2013-10-25  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-mode-menu): Use proper

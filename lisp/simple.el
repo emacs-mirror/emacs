@@ -4908,7 +4908,16 @@ The value is a floating-point number."
 	       ;; When the text in the window is scrolled to the left,
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
-	       (not (> (window-hscroll) 0)))
+	       (not (> (window-hscroll) 0))
+	       ;; Likewise when the text _was_ scrolled to the left
+	       ;; when the current run of vertical motion commands
+	       ;; started.
+	       (not (and (memq last-command
+			       `(next-line previous-line ,this-command))
+			 auto-hscroll-mode
+			 (numberp temporary-goal-column)
+			 (>= temporary-goal-column
+			    (- (window-width) hscroll-margin)))))
 	  (prog1 (line-move-visual arg noerror)
 	    ;; If we moved into a tall line, set vscroll to make
 	    ;; scrolling through tall images more smooth.
