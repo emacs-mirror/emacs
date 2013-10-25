@@ -160,6 +160,22 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     map)
   "Keymap used in Ruby mode.")
 
+(easy-menu-define
+  ruby-mode-menu
+  ruby-mode-map
+  "Ruby Mode Menu"
+  '("Ruby"
+    ["Beginning Of Block" ruby-beginning-of-block t]
+    ["End Of Block" ruby-end-of-block t]
+    ["Toggle Block" ruby-toggle-block t]
+    "--"
+    ["Backward Sexp" ruby-backward-sexp
+     :active (not ruby-use-smie)]
+    ["Forward Sexp" ruby-forward-sexp
+     :active (not ruby-use-smie)]
+    ["Indent Sexp" ruby-indent-sexp
+     :active (not ruby-use-smie)]))
+
 (defvar ruby-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\' "\"" table)

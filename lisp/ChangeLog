@@ -1,6 +1,8 @@
 2013-10-25  John Anthony  <john@jo.hnanthony.com>
 
-	* progmodes/inf-lisp.el (inferior-lisp-menu): Add menu.  (Bug#15599)
+	* progmodes/ruby-mode.el (ruby-mode-menu): Add a menu.  (Bug#15600)
+
+	* progmodes/inf-lisp.el (inferior-lisp-menu): Add a menu.  (Bug#15599)
 
 2013-10-25  Glenn Morris  <rgm@gnu.org>
 
