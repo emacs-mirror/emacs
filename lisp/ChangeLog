@@ -1,3 +1,8 @@
+2013-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-print-log): Don't use a working revision unless
+	one was explicitly specified.  (Bug#15322)
+
 2013-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (add-to-list): Preserve return value in compiler-macro

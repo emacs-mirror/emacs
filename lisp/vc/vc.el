@@ -2302,7 +2302,8 @@ WORKING-REVISION and LIMIT."
   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
-	 (working-revision (or working-revision (vc-working-revision (car files)))))
+;;	 (working-revision (or working-revision (vc-working-revision (car files))))
+         )
     (vc-print-log-internal backend files working-revision nil limit)))
 
 ;;;###autoload
