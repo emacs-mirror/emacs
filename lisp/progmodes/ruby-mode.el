@@ -165,16 +165,22 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   ruby-mode-map
   "Ruby Mode Menu"
   '("Ruby"
-    ["Beginning Of Block" ruby-beginning-of-block t]
-    ["End Of Block" ruby-end-of-block t]
+    ["Beginning of Block" ruby-beginning-of-block t]
+    ["End of Block" ruby-end-of-block t]
     ["Toggle Block" ruby-toggle-block t]
     "--"
     ["Backward Sexp" ruby-backward-sexp
-     :active (not ruby-use-smie)]
+     :visible (not ruby-use-smie)]
+    ["Backward Sexp" backward-sexp
+     :visible ruby-use-smie]
     ["Forward Sexp" ruby-forward-sexp
-     :active (not ruby-use-smie)]
-    ["Indent Sexp" ruby-indent-sexp
-     :active (not ruby-use-smie)]))
+     :visible (not ruby-use-smie)]
+    ["Forward Sexp" forward-sexp
+     :visible ruby-use-smie]
+    ["Indent Sexp" ruby-indent-exp
+     :visible (not ruby-use-smie)]
+    ["Indent Sexp" prog-indent-sexp
+     :visible ruby-use-smie]))
 
 (defvar ruby-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -1461,7 +1467,8 @@ See `add-log-current-defun-function'."
       (insert "}")
       (goto-char orig)
       (delete-char 2)
-      (insert "{")
+      ;; Maybe this should be customizable, let's see if anyone asks.
+      (insert "{ ")
       (setq beg-marker (point-marker))
       (when (looking-at "\\s +|")
         (delete-char (- (match-end 0) (match-beginning 0) 1))

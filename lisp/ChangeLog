@@ -1,3 +1,11 @@
+2013-10-25  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-mode-menu): Use proper
+	capitalization.  Use :visible instead of :active.  Fix
+	`ruby-indent-exp' reference.  Add menu items for the generic
+	commands that are used with SMIE.
+	(ruby-do-end-to-brace): Insert space after `{'.
+
 2013-10-25  John Anthony  <john@jo.hnanthony.com>
 
 	* progmodes/ruby-mode.el (ruby-mode-menu): Add a menu.  (Bug#15600)
