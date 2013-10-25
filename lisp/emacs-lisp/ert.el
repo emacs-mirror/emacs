@@ -1881,11 +1881,11 @@ and how to display message."
                             ;; defined without cl.
                             (car ert--selector-history)
                           "t")))
-           (read-from-minibuffer (if (null default)
-                                     "Run tests: "
-                                   (format "Run tests (default %s): " default))
-                                 nil nil t 'ert--selector-history
-                                 default nil))
+           (completing-read (if (null default)
+				"Run tests: "
+			      (format "Run tests (default %s): " default))
+			    obarray #'ert-test-boundp nil nil
+			    'ert--selector-history default nil))
          nil))
   (unless message-fn (setq message-fn 'message))
   (let ((output-buffer-name output-buffer-name)

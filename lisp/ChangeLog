@@ -1,3 +1,8 @@
+2013-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* emacs-lisp/ert.el (ert-run-tests-interactively):
+	Use `completing-read'.  (Bug#9756)
+
 2013-10-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move): Call line-move-1 instead of
@@ -86,7 +91,7 @@
 	(ert--stats-set-test-and-result, ert-char-for-test-result)
 	(ert-string-for-test-result, ert-run-tests-batch)
 	(ert--results-update-ewoc-hf, ert-run-tests-interactively):
-	Handle skipped tests.
+	Handle skipped tests.  (Bug#9803)
 
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
