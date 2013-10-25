@@ -1724,20 +1724,32 @@ sentence."
                  (if all "'-all', " "")
                  str)))
   (let ((lines inferior-octave-output-list))
-    (when (string-match "error: \\(.*\\)$" (car lines))
+    (when (and (stringp (car lines))
+               (string-match "error: \\(.*\\)$" (car lines)))
       (error "%s" (match-string 1 (car lines))))
     (with-help-window octave-help-buffer
-      (princ (mapconcat 'identity lines "\n"))
       (with-current-buffer octave-help-buffer
+        (if lines
+            (insert (mapconcat 'identity lines "\n"))
+          (insert (format "Nothing found for \"%s\".\n" str)))
         ;; Bound to t so that `help-buffer' returns current buffer for
         ;; `help-setup-xref'.
         (let ((help-xref-following t))
           (help-setup-xref (list 'octave-lookfor str all)
                            (called-interactively-p 'interactive)))
         (goto-char (point-min))
-        (while (re-search-forward "^\\([^[:blank:]]+\\) " nil 'noerror)
-          (make-text-button (match-beginning 1) (match-end 1)
-                            :type 'octave-help-function))
+        (when lines
+          (while (re-search-forward "^\\([^[:blank:]]+\\) " nil 'noerror)
+            (make-text-button (match-beginning 1) (match-end 1)
+                              :type 'octave-help-function)))
+        (unless all
+          (goto-char (point-max))
+          (insert "\nRetry with ")
+          (insert-text-button "'-all'"
+                              'follow-link t
+                              'action #'(lambda (b)
+                                          (octave-lookfor str '-all)))
+          (insert ".\n"))
         (octave-help-mode)))))
 
 (defcustom octave-source-directories nil

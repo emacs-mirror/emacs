@@ -1,3 +1,8 @@
+2013-10-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (octave-lookfor): Handle empty lookfor
+	result.  Ask user to retry using '-all' flag.  (Bug#15701)
+
 2013-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el: New smie-config system.
