@@ -1,3 +1,13 @@
+2013-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32font.h (w32font_close): Adjust the prototype to the change in
+	function definition.
+
+	* w32font.c (w32font_close): Reintroduce deleted declaration of i.
+
+	* w32uniscribe.c (uniscribe_close): Adapt the call to
+	w32font_close to its new prototype.
+
 2013-10-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Omit unused frame argument of font API's close function.

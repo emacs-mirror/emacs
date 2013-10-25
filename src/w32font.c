@@ -391,6 +391,8 @@ w32font_close (struct font *font)
       /* Free all the cached metrics.  */
       if (w32_font->cached_metrics)
 	{
+	  int i;
+
 	  for (i = 0; i < w32_font->n_cache_blocks; i++)
 	      xfree (w32_font->cached_metrics[i]);
 	  xfree (w32_font->cached_metrics);

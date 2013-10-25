@@ -143,7 +143,7 @@ uniscribe_close (struct frame *f, struct font *font)
   if (uniscribe_font->cache)
     ScriptFreeCache (&(uniscribe_font->cache));
 
-  w32font_close (f, font);
+  w32font_close (font);
 }
 
 /* Return a list describing which scripts/languages FONT supports by
