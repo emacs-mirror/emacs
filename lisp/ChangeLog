@@ -1,3 +1,7 @@
+2013-10-25  John Anthony  <john@jo.hnanthony.com>
+
+	* progmodes/inf-lisp.el (inferior-lisp-menu): Add menu.  (Bug#15599)
+
 2013-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc.el (vc-print-log): Don't use a working revision unless
@@ -617,7 +621,7 @@
 	* textmodes/text-mode.el (text-mode-map):
 	Use auto-fill help text from menu-bar.el.
 
-2013-10-10  John Anthony  <john@jo.hnanthony.com>  (tiny change)
+2013-10-10  John Anthony  <john@jo.hnanthony.com>
 
 	* textmodes/text-mode.el (text-mode-map): Add a menu.  (Bug#15562)
 
