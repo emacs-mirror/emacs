@@ -135,7 +135,7 @@ uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 }
 
 static void
-uniscribe_close (struct frame *f, struct font *font)
+uniscribe_close (struct font *font)
 {
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;

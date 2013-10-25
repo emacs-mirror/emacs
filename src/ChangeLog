@@ -1,5 +1,8 @@
 2013-10-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32uniscribe.c (uniscribe_close): Adjust the argument list to
+	the changed signature of the font driver's 'close' method.
+
 	* w32font.h (w32font_close): Adjust the prototype to the change in
 	function definition.
 
