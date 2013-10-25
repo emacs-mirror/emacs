@@ -1541,13 +1541,14 @@ other hooks, such as major mode hooks, can do the job."
                             (byte-compile-log-warning msg t :error))))
                (code
                 (macroexp-let2 macroexp-copyable-p x element
-                  `(unless ,(if compare-fn
-                                (progn
-                                  (require 'cl-lib)
-                                  `(cl-member ,x ,sym :test ,compare-fn))
-                              ;; For bootstrapping reasons, don't rely on
-                              ;; cl--compiler-macro-member for the base case.
-                              `(member ,x ,sym))
+                  `(if ,(if compare-fn
+                            (progn
+                              (require 'cl-lib)
+                              `(cl-member ,x ,sym :test ,compare-fn))
+                          ;; For bootstrapping reasons, don't rely on
+                          ;; cl--compiler-macro-member for the base case.
+                          `(member ,x ,sym))
+                       ,sym
                      ,(if append
                           `(setq ,sym (append ,sym (list ,x)))
                         `(push ,x ,sym))))))

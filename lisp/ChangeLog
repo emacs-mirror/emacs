@@ -1,3 +1,8 @@
+2013-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (add-to-list): Preserve return value in compiler-macro
+	(bug#15692).
+
 2013-10-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/octave.el (octave-lookfor): Handle empty lookfor
