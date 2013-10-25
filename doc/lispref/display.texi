@@ -3199,6 +3199,7 @@ should be one of @code{font-object}, @code{font-spec}, or
 @code{font-entity}.
 @end defun
 
+@cindex font object
   A font object is a Lisp object that represents a font that Emacs has
 @dfn{opened}.  Font objects cannot be modified in Lisp, but they can
 be inspected.
@@ -3212,6 +3213,7 @@ otherwise, @var{string} should be a string, and @var{position}
 specifies a position in that string.
 @end defun
 
+@cindex font spec
   A font spec is a Lisp object that contains a set of specifications
 that can be used to find a font.  More than one font may match the
 specifications in a font spec.
@@ -3277,6 +3279,7 @@ Set the font property @var{property} in the font-spec @var{font-spec}
 to @var{value}.
 @end defun
 
+@cindex font entity
   A font entity is a reference to a font that need not be open.  Its
 properties are intermediate between a font object and a font spec:
 like a font object, and unlike a font spec, it refers to a single,
