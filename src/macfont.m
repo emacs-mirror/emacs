@@ -1518,7 +1518,7 @@ static Lisp_Object macfont_match (struct frame *, Lisp_Object);
 static Lisp_Object macfont_list_family (struct frame *);
 static void macfont_free_entity (Lisp_Object);
 static Lisp_Object macfont_open (struct frame *, Lisp_Object, int);
-static void macfont_close (struct frame *, struct font *);
+static void macfont_close (struct font *);
 static int macfont_has_char (Lisp_Object, int);
 static unsigned macfont_encode_char (struct font *, int);
 static int macfont_text_extents (struct font *, unsigned int *, int,
@@ -2580,23 +2580,28 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-macfont_close (struct frame * f, struct font *font)
+macfont_close (struct font *font)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  int i;
 
-  block_input ();
-  CFRelease (macfont_info->macfont);
-  CGFontRelease (macfont_info->cgfont);
-  if (macfont_info->screen_font)
-    CFRelease (macfont_info->screen_font);
-  macfont_release_cache (macfont_info->cache);
-  for (i = 0; i < macfont_info->metrics_nrows; i++)
-    if (macfont_info->metrics[i])
-      xfree (macfont_info->metrics[i]);
-  if (macfont_info->metrics)
-    xfree (macfont_info->metrics);
-  unblock_input ();
+  if (macfont_info->cache)
+    {
+      int i;
+
+      block_input ();
+      CFRelease (macfont_info->macfont);
+      CGFontRelease (macfont_info->cgfont);
+      if (macfont_info->screen_font)
+	CFRelease (macfont_info->screen_font);
+      macfont_release_cache (macfont_info->cache);
+      macfont_info->cache = NULL;
+      for (i = 0; i < macfont_info->metrics_nrows; i++)
+	if (macfont_info->metrics[i])
+	  xfree (macfont_info->metrics[i]);
+      if (macfont_info->metrics)
+	xfree (macfont_info->metrics);
+      unblock_input ();
+    }
 }
 
 static int

@@ -486,18 +486,26 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-xftfont_close (struct frame *f, struct font *font)
+xftfont_close (struct font *font)
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
 
 #ifdef HAVE_LIBOTF
   if (xftfont_info->otf)
-    OTF_close (xftfont_info->otf);
+    {
+      OTF_close (xftfont_info->otf);
+      xftfont_info->otf = NULL;
+    }
 #endif
-  block_input ();
-  XftUnlockFace (xftfont_info->xftfont);
-  XftFontClose (xftfont_info->display, xftfont_info->xftfont);
-  unblock_input ();
+
+  if (xftfont_info->xftfont)
+    {
+      block_input ();
+      XftUnlockFace (xftfont_info->xftfont);
+      XftFontClose (xftfont_info->display, xftfont_info->xftfont);
+      unblock_input ();
+      xftfont_info->xftfont = NULL;
+    }
 }
 
 static int

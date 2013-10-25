@@ -1,3 +1,18 @@
+2013-10-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Omit unused frame argument of font API's close function.
+	* font.h (struct font): Drop frame argument.  Adjust comment.
+	* font.c (font_clear_cache, font_close_object): Adjust users.
+	* ftfont.c (ftfont_close):
+	* ftxfont.c (ftxfont_close):
+	* macfont.m (macfont_close):
+	* nsfont.m (nsfont_close):
+	* w32font.c (w32font_close):
+	* xfont.c (xfont_close):
+	* xftfont.c (xftfont_close): Adjust driver-specific close
+	functions, tweak comments and make functions safe if called
+	more than once for the same font object.
+
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (abs_top_srcdir): New, set by configure.

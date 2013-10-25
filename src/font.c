@@ -2591,7 +2591,7 @@ font_clear_cache (struct frame *f, Lisp_Object cache, struct font_driver *driver
 		      if (! NILP (AREF (val, FONT_TYPE_INDEX)))
 			{
 			  eassert (font && driver == font->driver);
-			  driver->close (f, font);
+			  driver->close (font);
 			}
 		    }
 		  if (driver->free_entity)
@@ -2892,7 +2892,7 @@ font_close_object (struct frame *f, Lisp_Object font_object)
     /* Already closed.  */
     return;
   FONT_ADD_LOG ("close", font_object, Qnil);
-  font->driver->close (f, font);
+  font->driver->close (font);
 #ifdef HAVE_WINDOW_SYSTEM
   eassert (FRAME_DISPLAY_INFO (f)->n_fonts);
   FRAME_DISPLAY_INFO (f)->n_fonts--;

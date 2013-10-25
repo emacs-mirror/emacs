@@ -376,26 +376,26 @@ w32font_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   return font_object;
 }
 
-/* w32 implementation of close for font_backend.
-   Close FONT on frame F.  */
+/* w32 implementation of close for font_backend.  */
 void
-w32font_close (struct frame *f, struct font *font)
+w32font_close (struct font *font)
 {
-  int i;
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
-  /* Delete the GDI font object.  */
-  DeleteObject (w32_font->hfont);
-
-  /* Free all the cached metrics.  */
-  if (w32_font->cached_metrics)
+  if (w32_font->hfont)
     {
-      for (i = 0; i < w32_font->n_cache_blocks; i++)
-        {
-          xfree (w32_font->cached_metrics[i]);
-        }
-      xfree (w32_font->cached_metrics);
-      w32_font->cached_metrics = NULL;
+      /* Delete the GDI font object.  */
+      DeleteObject (w32_font->hfont);
+      w32_font->hfont = NULL;
+
+      /* Free all the cached metrics.  */
+      if (w32_font->cached_metrics)
+	{
+	  for (i = 0; i < w32_font->n_cache_blocks; i++)
+	      xfree (w32_font->cached_metrics[i]);
+	  xfree (w32_font->cached_metrics);
+	  w32_font->cached_metrics = NULL;
+	}
     }
 }
 

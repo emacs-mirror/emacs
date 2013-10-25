@@ -260,9 +260,9 @@ ftxfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-ftxfont_close (struct frame *f, struct font *font)
+ftxfont_close (struct font *font)
 {
-  ftfont_driver.close (f, font);
+  ftfont_driver.close (font);
 }
 
 static int
