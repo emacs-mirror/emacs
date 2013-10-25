@@ -3253,6 +3253,7 @@ The charset registry and encoding of the font, such as
 The script that the font must support (a symbol).
 
 @item :otf
+@cindex OpenType font
 The font must be an OpenType font that supports these OpenType
 features, provided Emacs is compiled with support for @samp{libotf} (a
 library for performing complex text layout in certain scripts).  The
