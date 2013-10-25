@@ -1,5 +1,7 @@
 2013-10-25  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* nonascii.texi (Character Properties): Add an index for script symbols.
+
 	* display.texi (Fontsets): Minor wording fix.
 
 2013-10-24  Xue Fuqiao  <xfq.free@gmail.com>
