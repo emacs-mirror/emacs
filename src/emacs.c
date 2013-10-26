@@ -2044,11 +2044,15 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
+  filename = ENCODE_FILE (filename);
   if (!NILP (symfile))
     {
       CHECK_STRING (symfile);
       if (SCHARS (symfile))
-	symfile = Fexpand_file_name (symfile, Qnil);
+	{
+	  symfile = Fexpand_file_name (symfile, Qnil);
+	  symfile = ENCODE_FILE (symfile);
+	}
     }
 
   tem = Vpurify_flag;

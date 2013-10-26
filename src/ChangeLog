@@ -1,3 +1,8 @@
+2013-10-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (Fdump_emacs): Encode FILENAME and SYMFILE arguments
+	before passing them to 'unexec'.  (Bug#15260)
+
 2013-10-26  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* fringe.c (set_fringe_bitmap_face): Add usage note from lispref.
