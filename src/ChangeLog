@@ -1,3 +1,7 @@
+2013-10-26  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* fringe.c (set_fringe_bitmap_face): Add usage note from lispref.
+
 2013-10-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32uniscribe.c (uniscribe_close): Adjust the argument list to
