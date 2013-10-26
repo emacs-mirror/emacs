@@ -1,5 +1,7 @@
 2013-10-26  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* indent/ruby.rb: New failing example.
+
 	* automated/ruby-mode-tests.el (ruby-toggle-block-to-brace): Fix
 	the test, in respect to adding the space after the curly.
 

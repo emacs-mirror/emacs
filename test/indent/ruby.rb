@@ -229,3 +229,7 @@ end
 bar.foo do # "." is parent to "do"; it shouldn't be.
   bar
 end
+
+foo :bar do
+  qux
+end
