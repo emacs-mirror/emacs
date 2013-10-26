@@ -300,8 +300,6 @@ static BOOL g_b_init_is_valid_security_descriptor;
 static BOOL g_b_init_set_file_security;
 static BOOL g_b_init_get_adapters_info;
 
-int w32_unicode_filenames;
-
 /*
   BEGIN: Wrapper functions around OpenProcessToken
   and other functions in advapi32.dll that are only
@@ -1186,12 +1184,74 @@ w32_valid_pointer_p (void *p, int size)
 
 
 
-/* Converting file names from UTF-8 to either UTF-16 or the system
-   ANSI codepage.  */
+/* Converting file names from UTF-8 to either UTF-16 or the ANSI
+   codepage defined by file-name-coding-system.  */
+
+/* Current codepage for encoding file names.  */
+static int file_name_codepage;
+
+/* Produce a Windows ANSI codepage suitable for encoding file names.
+   Return the information about that codepage in CP_INFO.  */
+static int
+codepage_for_filenames (CPINFO *cp_info)
+{
+  /* A simple cache to avoid calling GetCPInfo every time we need to
+     encode/decode a file name.  The file-name encoding is not
+     supposed to be changed too frequently, if ever.  */
+  static Lisp_Object last_file_name_encoding;
+  static CPINFO cp;
+  Lisp_Object current_encoding;
+
+  current_encoding = Vfile_name_coding_system;
+  if (NILP (current_encoding))
+    current_encoding = Vdefault_file_name_coding_system;
+
+  if (!EQ (last_file_name_encoding, current_encoding))
+    {
+      /* Default to the current ANSI codepage.  */
+      file_name_codepage = w32_ansi_code_page;
+
+      if (NILP (current_encoding))
+	{
+	  char *cpname = SDATA (SYMBOL_NAME (current_encoding));
+	  char *cp = NULL, *end;
+	  int cpnum;
+
+	  if (strncmp (cpname, "cp", 2) == 0)
+	    cp = cpname + 2;
+	  else if (strncmp (cpname, "windows-", 8) == 0)
+	    cp = cpname + 8;
+
+	  if (cp)
+	    {
+	      end = cp;
+	      cpnum = strtol (cp, &end, 10);
+	      if (cpnum && *end == '\0' && end - cp >= 2)
+		file_name_codepage = cpnum;
+	    }
+	}
+
+      if (!file_name_codepage)
+	file_name_codepage = CP_ACP; /* CP_ACP = 0, but let's not assume that */
+
+      if (!GetCPInfo (file_name_codepage, &cp))
+	{
+	  file_name_codepage = CP_ACP;
+	  if (!GetCPInfo (file_name_codepage, &cp))
+	    emacs_abort ();
+	}
+    }
+  if (cp_info)
+    *cp_info = cp;
+
+  return file_name_codepage;
+}
+
 static int
 filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
 {
-  int result = MultiByteToWideChar (CP_UTF8, 0, fn_in, -1, fn_out, MAX_PATH);
+  int result = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, fn_in, -1,
+				    fn_out, MAX_PATH);
 
   if (!result)
     {
@@ -1217,7 +1277,28 @@ filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
 static int
 filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
 {
-  return -1;
+  int result = WideCharToMultiByte (CP_UTF8, 0, fn_in, -1,
+				    fn_out, MAX_UTF8_PATH, NULL, NULL);
+
+  if (!result)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_FLAGS:
+	case ERROR_INVALID_PARAMETER:
+	  errno = EINVAL;
+	  break;
+	case ERROR_INSUFFICIENT_BUFFER:
+	case ERROR_NO_UNICODE_TRANSLATION:
+	default:
+	  errno = ENOENT;
+	  break;
+	}
+      return -1;
+    }
+  return 0;
 }
 
 static int
@@ -1227,9 +1308,11 @@ filename_to_ansi (const char *fn_in, char *fn_out)
 
   if (filename_to_utf16 (fn_in, fn_utf16) == 0)
     {
-      int result = WideCharToMultiByte (CP_ACP, 0, fn_utf16, -1,
-					fn_out, MAX_UTF8_PATH, NULL, NULL);
+      int result;
+      int codepage = codepage_for_filenames (NULL);
 
+      result  = WideCharToMultiByte (codepage, 0, fn_utf16, -1,
+				     fn_out, MAX_UTF8_PATH, NULL, NULL);
       if (!result)
 	{
 	  DWORD err = GetLastError ();
@@ -1250,12 +1333,36 @@ filename_to_ansi (const char *fn_in, char *fn_out)
 	}
       return 0;
     }
+  return -1;
 }
 
 static int
 filename_from_ansi (const char *fn_in, char *fn_out)
 {
-  return -1;
+  wchar_t fn_utf16[MAXPATHLEN];
+  int codepage = codepage_for_filenames (NULL);
+  int result = MultiByteToWideChar (codepage, MB_ERR_INVALID_CHARS, fn_in, -1,
+				    fn_utf16, MAX_PATH);
+
+  if (!result)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_FLAGS:
+	case ERROR_INVALID_PARAMETER:
+	  errno = EINVAL;
+	  break;
+	case ERROR_INSUFFICIENT_BUFFER:
+	case ERROR_NO_UNICODE_TRANSLATION:
+	default:
+	  errno = ENOENT;
+	  break;
+	}
+      return -1;
+    }
+  return filename_from_utf16 (fn_utf16, fn_out);
 }
 
 
@@ -1662,66 +1769,16 @@ srandom (int seed)
   srand (seed);
 }
 
-/* Current codepage for encoding file names.  */
-static int file_name_codepage;
-
 /* Return the maximum length in bytes of a multibyte character
    sequence encoded in the current ANSI codepage.  This is required to
    correctly walk the encoded file names one character at a time.  */
 static int
 max_filename_mbslen (void)
 {
-  /* A simple cache to avoid calling GetCPInfo every time we need to
-     normalize a file name.  The file-name encoding is not supposed to
-     be changed too frequently, if ever.  */
-  static Lisp_Object last_file_name_encoding;
-  static int last_max_mbslen;
-  Lisp_Object current_encoding;
+  CPINFO cp_info;
 
-  current_encoding = Vfile_name_coding_system;
-  if (NILP (current_encoding))
-    current_encoding = Vdefault_file_name_coding_system;
-
-  if (!EQ (last_file_name_encoding, current_encoding))
-    {
-      CPINFO cp_info;
-
-      last_file_name_encoding = current_encoding;
-      /* Default to the current ANSI codepage.  */
-      file_name_codepage = w32_ansi_code_page;
-      if (!NILP (current_encoding))
-	{
-	  char *cpname = SDATA (SYMBOL_NAME (current_encoding));
-	  char *cp = NULL, *end;
-	  int cpnum;
-
-	  if (strncmp (cpname, "cp", 2) == 0)
-	    cp = cpname + 2;
-	  else if (strncmp (cpname, "windows-", 8) == 0)
-	    cp = cpname + 8;
-
-	  if (cp)
-	    {
-	      end = cp;
-	      cpnum = strtol (cp, &end, 10);
-	      if (cpnum && *end == '\0' && end - cp >= 2)
-		file_name_codepage = cpnum;
-	    }
-	}
-
-      if (!file_name_codepage)
-	file_name_codepage = CP_ACP; /* CP_ACP = 0, but let's not assume that */
-
-      if (!GetCPInfo (file_name_codepage, &cp_info))
-	{
-	  file_name_codepage = CP_ACP;
-	  if (!GetCPInfo (file_name_codepage, &cp_info))
-	    emacs_abort ();
-	}
-      last_max_mbslen = cp_info.MaxCharSize;
-    }
-
-  return last_max_mbslen;
+  codepage_for_filenames (&cp_info);
+  return cp_info.MaxCharSize;
 }
 
 /* Normalize filename by converting all path separators to

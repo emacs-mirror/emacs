@@ -200,8 +200,6 @@ extern void record_pending_deletion (char *);
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);
 
-
-
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 
