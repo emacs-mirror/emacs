@@ -372,9 +372,18 @@ explicitly declared in magic comment."
   (and
    (< pos (line-end-position))
    (or (eq (char-syntax (preceding-char)) '?w)
+       ;; FIXME: Check that the preceding token is not a keyword.
+       ;; This isn't very important most of the time, though.
        (and (memq (preceding-char) '(?! ??))
             (eq (char-syntax (char-before (1- (point)))) '?w)))
-   (memq (char-syntax (char-after pos)) '(?w ?\"))))
+   (or (and (eq (char-syntax (char-after pos)) ?w)
+            (not (looking-at (regexp-opt '("unless" "if" "while" "until"
+                                           "else" "elsif" "do" "end")
+                                         'symbols))))
+       (memq (syntax-after pos) '(7 15))
+       (save-excursion
+         (goto-char pos)
+         (looking-at "\\s(\\|[-+!~:]\\sw")))))
 
 (defun ruby-smie--at-dot-call ()
   (and (eq ?w (char-syntax (following-char)))

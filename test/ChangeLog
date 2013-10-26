@@ -1,3 +1,8 @@
+2013-10-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el (ruby-toggle-block-to-brace): Fix
+	the test, in respect to adding the space after the curly.
+
 2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/ert-tests.el (ert-test-skip-unless): New test case.

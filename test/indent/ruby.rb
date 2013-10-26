@@ -174,6 +174,19 @@ method? arg1,
 method! arg1,
         arg2
 
+method !arg1,
+       arg2
+
+method [],
+       arg2
+
+method :foo,
+       :bar
+
+method (a + b),
+       c, :d => :e,
+       f: g
+
 it "is a method call with block" do |asd|
   foo
 end
@@ -212,18 +225,6 @@ end
 foo = [1, 2, 3].map do |i|
   i + 1
 end
-
-method !arg1,
-       arg2
-
-method [],
-       arg2
-
-method :foo,
-       :bar
-
-method (a + b),
-       c
 
 bar.foo do # "." is parent to "do"; it shouldn't be.
   bar

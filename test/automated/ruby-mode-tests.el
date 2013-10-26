@@ -292,8 +292,8 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (string= "foo do |b|\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
-  (let ((pairs '((16 . "foo {|b| b + 2 }")
-                 (15 . "foo {|b|\n  b + 2\n}"))))
+  (let ((pairs '((17 . "foo { |b| b + 2 }")
+                 (16 . "foo { |b|\n  b + 2\n}"))))
     (dolist (pair pairs)
       (with-temp-buffer
         (let ((fill-column (car pair)))

@@ -1,3 +1,10 @@
+2013-10-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--args-separator-p): Be more
+	specific in what the first arg can be: a non-keyword word,
+	string/regexp/percent literal opener, opening paren, or unary
+	operator followed directly by word.
+
 2013-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/prolog.el: Remove old indent; use post-self-insert-hook.
