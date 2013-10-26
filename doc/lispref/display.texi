@@ -3440,6 +3440,7 @@ etc.
 
 @defopt indicate-empty-lines
 @cindex fringes, and empty line indication
+@cindex empty lines, indicating
 When this is non-@code{nil}, Emacs displays a special glyph in the
 fringe of each empty line at the end of the buffer, on graphical
 displays.  @xref{Fringes}.  This variable is automatically
@@ -3447,6 +3448,7 @@ buffer-local in every buffer.
 @end defopt
 
 @defopt indicate-buffer-boundaries
+@cindex buffer boundaries, indicating
 This buffer-local variable controls how the buffer boundaries and
 window scrolling are indicated in the window fringes.
 
