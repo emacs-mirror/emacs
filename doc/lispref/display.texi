@@ -3670,6 +3670,7 @@ If @var{pos} is @code{nil}, that stands for the value of point in
 
 @node Customizing Bitmaps
 @subsection Customizing Fringe Bitmaps
+@cindex fringe bitmaps, customizing
 
 @defun define-fringe-bitmap bitmap bits &optional height width align
 This function defines the symbol @var{bitmap} as a new fringe bitmap,
