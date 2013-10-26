@@ -1267,6 +1267,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     indirectly by prepending newdir to nm if necessary, and using
 	     cwd (or the wd of newdir's drive) as the new newdir.  */
 	  char *adir;
+#ifdef WINDOWSNT
+	  const int adir_size = MAX_UTF8_PATH;
+#else
+	  const int adir_size = MAXPATHLEN + 1;
+#endif
 
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
@@ -1282,14 +1287,14 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
-	  adir = alloca (MAXPATHLEN + 1);
+	  adir = alloca (adir_size);
 	  if (drive)
 	    {
 	      if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
 		strcpy (adir, "/");
 	    }
 	  else
-	    getcwd (adir, MAXPATHLEN + 1);
+	    getcwd (adir, adir_size);
 	  if (multibyte)
 	    {
 	      Lisp_Object tem = build_string (adir);

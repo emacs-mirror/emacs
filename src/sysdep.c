@@ -464,7 +464,11 @@ sys_subshell (void)
 {
 #ifdef DOS_NT	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   int st;
+#ifdef MSDOS
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
+#else
+  char oldwd[MAX_UTF8_PATH];
+#endif
 #endif
   pid_t pid;
   int status;

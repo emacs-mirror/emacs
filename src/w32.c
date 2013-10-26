@@ -1367,6 +1367,7 @@ filename_from_ansi (const char *fn_in, char *fn_out)
 
 
 
+/* The directory where we started, in UTF-8. */
 static char startup_dir[MAX_UTF8_PATH];
 
 /* Get the current working directory.  */
@@ -1559,8 +1560,8 @@ getloadavg (double loadavg[], int nelem)
 static char dflt_passwd_name[PASSWD_FIELD_SIZE];
 static char dflt_passwd_passwd[PASSWD_FIELD_SIZE];
 static char dflt_passwd_gecos[PASSWD_FIELD_SIZE];
-static char dflt_passwd_dir[PASSWD_FIELD_SIZE];
-static char dflt_passwd_shell[PASSWD_FIELD_SIZE];
+static char dflt_passwd_dir[MAX_UTF8_PATH];
+static char dflt_passwd_shell[MAX_UTF8_PATH];
 
 static struct passwd dflt_passwd =
 {
@@ -1741,15 +1742,32 @@ init_user_info (void)
     }
   dflt_group.gr_gid = dflt_passwd.pw_gid;
 
-  /* Ensure HOME and SHELL are defined. */
-  if (getenv ("HOME") == NULL)
-    emacs_abort ();
-  if (getenv ("SHELL") == NULL)
-    emacs_abort ();
-
   /* Set dir and shell from environment variables. */
-  strcpy (dflt_passwd.pw_dir, getenv ("HOME"));
-  strcpy (dflt_passwd.pw_shell, getenv ("SHELL"));
+  if (w32_unicode_filenames)
+    {
+      wchar_t *home = _wgetenv (L"HOME");
+      wchar_t *shell = _wgetenv (L"SHELL");
+
+      /* Ensure HOME and SHELL are defined. */
+      if (home == NULL)
+	emacs_abort ();
+      if (shell == NULL)
+	emacs_abort ();
+      filename_from_utf16 (home, dflt_passwd.pw_dir);
+      filename_from_utf16 (shell, dflt_passwd.pw_shell);
+    }
+  else
+    {
+      char *home = getenv ("HOME");
+      char *shell = getenv ("SHELL");
+
+      if (home == NULL)
+	emacs_abort ();
+      if (shell == NULL)
+	emacs_abort ();
+      filename_from_ansi (home, dflt_passwd.pw_dir);
+      filename_from_ansi (shell, dflt_passwd.pw_shell);
+    }
 
   xfree (buf);
   if (token)
@@ -2442,8 +2460,22 @@ init_environment (char ** argv)
   /* Remember the initial working directory for getcwd.  */
   /* FIXME: Do we need to resolve possible symlinks in startup_dir?
      Does it matter anywhere in Emacs?  */
-  if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
-    emacs_abort ();
+  if (w32_unicode_filenames)
+    {
+      wchar_t wstartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryW (MAX_PATH, wstartup_dir))
+	emacs_abort ();
+      filename_from_utf16 (wstartup_dir, startup_dir);
+    }
+  else
+    {
+      char astartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryA (MAX_PATH, astartup_dir))
+	emacs_abort ();
+      filename_from_ansi (astartup_dir, startup_dir);
+    }
 
   {
     static char modname[MAX_PATH];
