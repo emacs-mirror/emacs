@@ -3575,6 +3575,8 @@ See the next subsection for details.
 @xref{Fringe Bitmaps}.
 @end ifnottex
 
+@c FIXME: I can't find the ‘fringes-indicator-alist’ variable.  Maybe
+@c it should be ‘fringe-indicator-alist’ or ‘fringe-cursor-alist’?  --xfq
 When @code{fringe-cursor-alist} has a buffer-local value, and there is
 no bitmap defined for a cursor type, the corresponding value from the
 default value of @code{fringes-indicator-alist} is used.
