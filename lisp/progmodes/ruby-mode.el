@@ -334,7 +334,7 @@ explicitly declared in magic comment."
 
 (defun ruby-smie--bosp ()
   (save-excursion (skip-chars-backward " \t")
-                  (or (bolp) (eq (char-before) ?\;))))
+                  (or (bolp) (memq (char-before) '(?\; ?=)))))
 
 (defun ruby-smie--implicit-semi-p ()
   (save-excursion

@@ -220,6 +220,11 @@ def bar
     .baz
 end
 
+# http://stackoverflow.com/questions/17786563/emacs-ruby-mode-if-expressions-indentation
+tee = if foo
+        bar
+      end
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo = [1, 2, 3].map do |i|
