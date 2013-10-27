@@ -1,3 +1,9 @@
+2013-10-27  Alan Mackenzie  <acm@muc.de>
+
+	Indent statements in macros following "##" correctly.
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Modify
+	the "#" arm of a cond form to handle "#" and "##" operators.
+
 2013-10-27  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
 	* linum.el (linum-update-window): Fix boundary test (bug#13446).
