@@ -149,6 +149,33 @@ int
 OBJ(test)     /* expands to ABtest */
   ;
 
+
+/* TEST: Macros which open a scope which is closed by another macro */
+/* Simple: */
+#define OPEN_NS namespace foo {
+/* Less simple: */
+#define OPEN_NS_TWICE namespace foo { namespace bar {
+/* Really bad: */
+#define OPEN_NS_ARGS(a,b) namespace a { \
+                            namespace b {
+/* Closing macros: */
+#define END_NS }
+#define END_NS_TWICE } }
+
+OPEN_NS
+struct inside_foo {};
+struct inside_foo_as_well {};
+END_NS
+
+OPEN_NS_TWICE
+struct inside_foo_bar {};
+END_NS_TWICE
+
+OPEN_NS_ARGS(one, two)
+struct inside_one_two ();
+END_NS_TWICE
+
+
 /* TEST: Macro Recursion limits in arguments to a macro.
  * This code is from ALSA (with names changed to moose), noticed by Yupeng. */
 
