@@ -4781,6 +4781,7 @@ from the file's name.
 The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
+@c ‘:heuristic-mask’ is not documented?
 @example
 (create-image "foo.xpm" 'xpm nil :heuristic-mask t)
 @end example

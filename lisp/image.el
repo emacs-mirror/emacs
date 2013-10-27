@@ -591,7 +591,7 @@ Image files should not be larger than specified by `max-image-size'."
 
 ;;;###autoload
 (defmacro defimage (symbol specs &optional doc)
-  "Define SYMBOL as an image.
+  "Define SYMBOL as an image, and return SYMBOL.
 
 SPECS is a list of image specifications.  DOC is an optional
 documentation string.
