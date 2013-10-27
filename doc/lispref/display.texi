@@ -4700,6 +4700,7 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
+@c FIXME: ‘:format-type’ or ‘:format’?  --xfq
 @item :format
 ImageMagick tries to auto-detect the image type, but it isn't always
 able to.  By using @code{:format-type}, we can give ImageMagick a hint
