@@ -74,6 +74,11 @@ dnl --program-transform-name options
 AC_ARG_PROGRAM
 
 dnl http://debbugs.gnu.org/15260
+dnl I think we have to check, eg, both exec_prefix and bindir,
+dnl because the latter by default is not yet expanded, but the user
+dnl may have specified a value for it via --bindir.
+dnl At first glance, _installing_ in non-ASCII seems ok, but in fact
+dnl it is not; see http://debbugs.gnu.org/15260#61
 dnl Note that abs_srcdir and abs_builddir are not yet defined. :(
 
 dnl "`cd \"$srcdir\"`" is not portable.
@@ -82,11 +87,12 @@ dnl "There is just no portable way to use double-quoted strings inside
 dnl double-quoted back-quoted expressions (pfew!)."
 temp_srcdir=`cd "$srcdir"; pwd`
 
-for var in "`pwd`" "$temp_srcdir"; do
+for var in "`pwd`" "$temp_srcdir" "$prefix" "$exec_prefix" \
+    "$datarootdir" "$bindir" "$datadir" "$sharedstatedir" "$libexecdir"; do
 
   dnl configure sets LC_ALL=C early on, so this range should work.
   case "$var" in
-    *[[^\ -~]]*) AC_MSG_ERROR([Emacs cannot be built in a directory whose name contains non-ASCII characters: $var]) ;;
+    *[[^\ -~]]*) AC_MSG_ERROR([Emacs cannot be built or installed in a directory whose name contains non-ASCII characters: $var]) ;;
   esac
 
 done
