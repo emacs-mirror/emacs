@@ -58,7 +58,6 @@ struct xftfont_info
   int index;
   FT_Matrix matrix;
   Display *display;
-  int screen;
   XftFont *xftfont;
 };
 
@@ -69,11 +68,6 @@ struct xftface_info
   XftColor xft_fg;		/* color for face->foreground */
   XftColor xft_bg;		/* color for face->background */
 };
-
-static void xftfont_get_colors (struct frame *, struct face *, GC gc,
-                                struct xftface_info *,
-                                XftColor *fg, XftColor *bg);
-
 
 /* Setup foreground and background colors of GC into FG and BG.  If
    XFTFACE_INFO is not NULL, reuse the colors in it if possible.  BG
@@ -377,7 +371,6 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 
   xftfont_info = (struct xftfont_info *) font;
   xftfont_info->display = display;
-  xftfont_info->screen = FRAME_X_SCREEN_NUMBER (f);
   xftfont_info->xftfont = xftfont;
   /* This means that there's no need of transformation.  */
   xftfont_info->matrix.xx = 0;
