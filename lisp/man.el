@@ -89,6 +89,7 @@
 ;;; Code:
 
 (require 'ansi-color)
+(require 'cl-lib)
 (require 'button)
 
 (defgroup man nil
@@ -368,6 +369,12 @@ specified subject, if your `man' program supports it."
 Otherwise, the value is whatever the function
 `Man-support-local-filenames' should return.")
 
+(defcustom man-imenu-title "Contents"
+  "The title to use if man adds a Contents menu to the menubar."
+  :version "24.4"
+  :type 'string
+  :group 'man)
+
 
 ;; other variables and keymap initializations
 (defvar Man-original-frame)
@@ -446,6 +453,28 @@ Otherwise, the value is whatever the function
     ;; manual page can contain references to other man pages
     (define-key map "\r"   'man-follow)
     (define-key map "?"    'describe-mode)
+
+    (easy-menu-define nil map
+      "`Man-mode' menu."
+      '("Man"
+        ["Next Section" Man-next-section t]
+        ["Previous Section" Man-previous-section t]
+        ["Go To Section..." Man-goto-section t]
+        ["Go To \"SEE ALSO\" Section" Man-goto-see-also-section
+         :active (cl-member Man-see-also-regexp Man--sections
+                            :test #'string-match-p)]
+        ["Follow Reference..." Man-follow-manual-reference
+         :active Man--refpages
+         :help "Go to a manpage referred to in the \"SEE ALSO\" section"]
+        "--"
+        ["Next Manpage" Man-next-manpage
+         :active (> (length Man-page-list) 1)]
+        ["Previous Manpage" Man-previous-manpage
+         :active (> (length Man-page-list) 1)]
+        "--"
+        ["Man..." man t]
+        ["Kill Buffer" Man-kill t]
+        ["Quit" Man-quit t]))
     map)
   "Keymap for Man mode.")
 
@@ -1396,6 +1425,7 @@ The following key bindings are currently in effect in the buffer:
   (buffer-disable-undo)
   (auto-fill-mode -1)
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
+  (imenu-add-to-menubar man-imenu-title)
   (set (make-local-variable 'outline-regexp) Man-heading-regexp)
   (set (make-local-variable 'outline-level) (lambda () 1))
   (set (make-local-variable 'bookmark-make-record-function)

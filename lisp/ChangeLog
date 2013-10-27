@@ -1,3 +1,9 @@
+2013-10-27  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* man.el (man-imenu-title): New option.
+	(Man-mode-map): Add menu.  (Bug#15722)
+	(Man-mode): Add imenu to menu.
+
 2013-10-26  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--args-separator-p): Be more
