@@ -1,3 +1,7 @@
+2013-10-27  Nathan Trapuzzano  <nbtrap@nbtrap.com>
+
+	* linum.el (linum-update-window): Fix boundary test (bug#13446).
+
 2013-10-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--bosp): Anything that goes
