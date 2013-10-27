@@ -4612,6 +4612,229 @@ encoded string (and the same mask) will decode the string."
 
 ;;; Start of automatically extracted autoloads.
 
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailedit"
+;;;;;;  "rmailedit.el" "0b056146d4775080a1847b8ce7527bc5")
+;;; Generated autoloads from rmailedit.el
+
+(autoload 'rmail-edit-current-message "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailedit" "\
+Edit the contents of this message.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailkwd"
+;;;;;;  "rmailkwd.el" "b5337290fd35bbc11888afb25d767195")
+;;; Generated autoloads from rmailkwd.el
+
+(autoload 'rmail-add-label "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailkwd" "\
+Add LABEL to labels associated with current RMAIL message.
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string.  Only one label is allowed.
+
+\(fn LABEL)" t nil)
+
+(autoload 'rmail-kill-label "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailkwd" "\
+Remove LABEL from labels associated with current RMAIL message.
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string.  Only one label is allowed.
+
+\(fn LABEL)" t nil)
+
+(autoload 'rmail-read-label "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailkwd" "\
+Read a label with completion, prompting with PROMPT.
+Completions are chosen from `rmail-label-obarray'.  The default
+is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
+according to the choice made, and returns a symbol.
+
+\(fn PROMPT)" nil nil)
+
+(autoload 'rmail-previous-labeled-message "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailkwd" "\
+Show previous message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
+With prefix argument N moves backward N messages with these labels.
+
+\(fn N LABELS)" t nil)
+
+(autoload 'rmail-next-labeled-message "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailkwd" "\
+Show next message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
+With prefix argument N moves forward N messages with these labels.
+
+\(fn N LABELS)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailmm"
+;;;;;;  "rmailmm.el" "8c14f4cf6e7dacb0c94fd300d814caf7")
+;;; Generated autoloads from rmailmm.el
+
+(autoload 'rmail-mime "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailmm" "\
+Toggle the display of a MIME message.
+
+The actual behavior depends on the value of `rmail-enable-mime'.
+
+If `rmail-enable-mime' is non-nil (the default), this command toggles
+the display of a MIME message between decoded presentation form and
+raw data.  With optional prefix argument ARG, it toggles the display only
+of the MIME entity at point, if there is one.  The optional argument
+STATE forces a particular display state, rather than toggling.
+`raw' forces raw mode, any other non-nil value forces decoded mode.
+
+If `rmail-enable-mime' is nil, this creates a temporary \"*RMAIL*\"
+buffer holding a decoded copy of the message. Inline content-types are
+handled according to `rmail-mime-media-type-handlers-alist'.
+By default, this displays text and multipart messages, and offers to
+download attachments as specified by `rmail-mime-attachment-dirs-alist'.
+The arguments ARG and STATE have no effect in this case.
+
+\(fn &optional ARG STATE)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailmsc"
+;;;;;;  "rmailmsc.el" "8a2466563b4a463710531d01766c07a3")
+;;; Generated autoloads from rmailmsc.el
+
+(autoload 'set-rmail-inbox-list "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailmsc" "\
+Set the inbox list of the current RMAIL file to FILE-NAME.
+You can specify one file name, or several names separated by commas.
+If FILE-NAME is empty, remove any existing inbox list.
+
+This applies only to the current session.
+
+\(fn FILE-NAME)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort"
+;;;;;;  "rmailsort.el" "3e3a30326fc95d7f17835906c2ccb19f")
+;;; Generated autoloads from rmailsort.el
+
+(autoload 'rmail-sort-by-date "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by \"Date\" header.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-subject "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by \"Subject\" header.
+Ignores any \"Re: \" prefix.  If prefix argument REVERSE is
+non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-author "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by author.
+This uses either the \"From\" or \"Sender\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-recipient "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by recipient.
+This uses either the \"To\" or \"Apparently-To\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-correspondent "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by other correspondent.
+This uses either the \"From\", \"Sender\", \"To\", or
+\"Apparently-To\" header, downcased.  Uses the first header not
+excluded by `mail-dont-reply-to-names'.  If prefix argument
+REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-lines "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by the number of lines.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-labels "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsort" "\
+Sort messages of current Rmail buffer by labels.
+LABELS is a comma-separated list of labels.  The order of these
+labels specifies the order of messages: messages with the first
+label come first, messages with the second label come second, and
+so on.  Messages that have none of these labels come last.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE LABELS)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum"
+;;;;;;  "rmailsum.el" "9005bd5da3e21d1cc173e86fd9fec3c9")
+;;; Generated autoloads from rmailsum.el
+
+(autoload 'rmail-summary "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum" "\
+Display a summary of all messages, one line per message.
+
+\(fn)" t nil)
+
+(autoload 'rmail-summary-by-labels "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum" "\
+Display a summary of all messages with one or more LABELS.
+LABELS should be a string containing the desired labels, separated by commas.
+
+\(fn LABELS)" t nil)
+
+(autoload 'rmail-summary-by-recipients "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum" "\
+Display a summary of all messages with the given RECIPIENTS.
+Normally checks the To, From and Cc fields of headers;
+but if PRIMARY-ONLY is non-nil (prefix arg given),
+ only look in the To and From fields.
+RECIPIENTS is a string of regexps separated by commas.
+
+\(fn RECIPIENTS &optional PRIMARY-ONLY)" t nil)
+
+(autoload 'rmail-summary-by-regexp "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum" "\
+Display a summary of all messages according to regexp REGEXP.
+If the regular expression is found in the header of the message
+\(including in the date and other lines, as well as the subject line),
+Emacs will list the message in the summary.
+
+\(fn REGEXP)" t nil)
+
+(autoload 'rmail-summary-by-topic "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum" "\
+Display a summary of all messages with the given SUBJECT.
+Normally checks just the Subject field of headers; but with prefix
+argument WHOLE-MESSAGE is non-nil, looks in the whole message.
+SUBJECT is a string of regexps separated by commas.
+
+\(fn SUBJECT &optional WHOLE-MESSAGE)" t nil)
+
+(autoload 'rmail-summary-by-senders "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/rmailsum" "\
+Display a summary of all messages whose \"From\" field matches SENDERS.
+SENDERS is a string of regexps separated by commas.
+
+\(fn SENDERS)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/undigest"
+;;;;;;  "undigest.el" "9b273a3e15b5496ab6121b585d8bd3b3")
+;;; Generated autoloads from undigest.el
+
+(autoload 'undigestify-rmail-message "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/undigest" "\
+Break up a digest message into its constituent messages.
+Leaves original message, deleted, before the undigestified messages.
+
+\(fn)" t nil)
+
+(autoload 'unforward-rmail-message "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/mail/undigest" "\
+Extract a forwarded message from the containing message.
+This puts the forwarded message into a separate rmail message following
+the containing message.  This command is only useful when messages are
+forwarded with `rmail-enable-mime-composing' set to nil.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
 ;;;;;;  "0b056146d4775080a1847b8ce7527bc5")
 ;;; Generated autoloads from rmailedit.el

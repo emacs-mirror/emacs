@@ -3,7 +3,8 @@
 ;; Copyright (C) 2002-2003, 2009-2013 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
-;; Package: htmlfontify
+;; Package: 
+htmlfontify
 ;; Filename: htmlfontify.el
 ;; Version: 0.21
 ;; Keywords: html, hypermedia, markup, etags
@@ -2410,6 +2411,25 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (let ((file (hfy-initfile)))
     (load file 'NOERROR nil nil) ))
 
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/hfy-cmap"
+;;;;;;  "hfy-cmap.el" "df4e418d0d8749ead9d32bb2c7a5bd56")
+;;; Generated autoloads from hfy-cmap.el
+(push (purecopy '(htmlfontify 0 20)) package--builtin-versions)
+(autoload 'htmlfontify-load-rgb-file "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/hfy-cmap" "\
+Load an X11 style rgb.txt FILE.
+Search `hfy-rgb-load-path' if FILE is not specified.
+Loads the variable `hfy-rgb-txt-colour-map', which is used by
+`hfy-fallback-colour-values'.
+
+\(fn &optional FILE)" t nil)
+
+(autoload 'hfy-fallback-colour-values "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/hfy-cmap" "\
+Use a fallback method for obtaining the rgb values for a color.
+
+\(fn COLOUR-STRING)" nil nil)
+
+;;;***
 
 ;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
 ;;;;;;  "hfy-cmap" "hfy-cmap.el" "3f97eeabe72027099da579f6ef9ae0bd")

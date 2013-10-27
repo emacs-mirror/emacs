@@ -2438,6 +2438,35 @@ If FILE is nil, try to load a default file.  The default file names are
   (setq tpu-edt-mode nil))
 
 
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/emulation/tpu-extras"
+;;;;;;  "tpu-extras.el" "ae3bca6f21640b5713a7c58c40f30847")
+;;; Generated autoloads from tpu-extras.el
+
+(autoload 'tpu-cursor-free-mode "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/emulation/tpu-extras" "\
+Minor mode to allow the cursor to move freely about the screen.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'tpu-set-scroll-margins "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/emulation/tpu-extras" "\
+Set scroll margins.
+
+\(fn TOP BOTTOM)" t nil)
+
+(autoload 'tpu-set-cursor-free "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/emulation/tpu-extras" "\
+Allow the cursor to move freely about the screen.
+
+\(fn)" t nil)
+
+(autoload 'tpu-set-cursor-bound "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/emulation/tpu-extras" "\
+Constrain the cursor to the flow of the text.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
 ;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "ae3bca6f21640b5713a7c58c40f30847")
 ;;; Generated autoloads from tpu-extras.el

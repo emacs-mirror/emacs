@@ -1,3 +1,4 @@
+
 ;;; ps-print.el --- print text from the buffer as PostScript
 
 ;; Copyright (C) 1993-2013 Free Software Foundation, Inc.
@@ -6583,6 +6584,73 @@ If FACE is not a valid face name, use default face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
+
+;;;### (autoloads nil "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/ps-mule"
+;;;;;;  "ps-mule.el" "a90e8414a27ac8fdf093251ac648d761")
+;;; Generated autoloads from ps-mule.el
+
+(defvar ps-multibyte-buffer nil "\
+Specifies the multi-byte buffer handling.
+
+Valid values are:
+
+  nil			  This is the value to use the default settings;
+			  by default, this only works to print buffers with
+			  only ASCII and Latin characters.   But this default
+			  setting can be changed by setting the variable
+			  `ps-mule-font-info-database-default' differently.
+			  The initial value of this variable is
+			  `ps-mule-font-info-database-latin' (see
+			  documentation).
+
+  `non-latin-printer'	  This is the value to use when you have a Japanese
+			  or Korean PostScript printer and want to print
+			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
+			  JISX0201-Kana) and Korean characters.  At present,
+			  it was not tested with the Korean characters
+			  printing.  If you have a korean PostScript printer,
+			  please, test it.
+
+  `bdf-font'		  This is the value to use when you want to print
+			  buffer with BDF fonts.  BDF fonts include both latin
+			  and non-latin fonts.  BDF (Bitmap Distribution
+			  Format) is a format used for distributing X's font
+			  source file.  BDF fonts are included in
+			  `intlfonts-1.2' which is a collection of X11 fonts
+			  for all characters supported by Emacs.  In order to
+			  use this value, be sure to have installed
+			  `intlfonts-1.2' and set the variable
+			  `bdf-directory-list' appropriately (see ps-bdf.el for
+			  documentation of this variable).
+
+  `bdf-font-except-latin' This is like `bdf-font' except that it uses
+			  PostScript default fonts to print ASCII and Latin-1
+			  characters.  This is convenient when you want or
+			  need to use both latin and non-latin characters on
+			  the same buffer.  See `ps-font-family',
+			  `ps-header-font-family' and `ps-font-info-database'.
+
+Any other value is treated as nil.")
+
+(custom-autoload 'ps-multibyte-buffer "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/ps-mule" t)
+
+(autoload 'ps-mule-initialize "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/ps-mule" "\
+Initialize global data for printing multi-byte characters.
+
+\(fn)" nil nil)
+
+(autoload 'ps-mule-begin-job "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/ps-mule" "\
+Start printing job for multi-byte chars between FROM and TO.
+It checks if all multi-byte characters in the region are printable or not.
+
+\(fn FROM TO)" nil nil)
+
+(autoload 'ps-mule-end-job "../../../../../../srv/data/home/r/rgm/emacs/bzr/trunk/lisp/ps-mule" "\
+Finish printing job for multi-byte chars.
+
+\(fn)" nil nil)
+
+;;;***
 
 ;;;### (autoloads nil "ps-mule" "ps-mule.el" "a90e8414a27ac8fdf093251ac648d761")
 ;;; Generated autoloads from ps-mule.el
