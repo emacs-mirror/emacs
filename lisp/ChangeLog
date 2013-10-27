@@ -1,6 +1,7 @@
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* image.el (defimage): Doc fix.
+	* image.el (defimage):
+	(image-load-path): Doc fixes.
 
 2013-10-27  Alan Mackenzie  <acm@muc.de>
 

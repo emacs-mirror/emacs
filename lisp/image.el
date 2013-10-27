@@ -115,7 +115,9 @@ If an element is a string, it defines a directory to search.
 If an element is a variable symbol whose value is a string, that
 value defines a directory to search.
 If an element is a variable symbol whose value is a list, the
-value is used as a list of directories to search."
+value is used as a list of directories to search.
+
+Subdirectories are not automatically included in the search."
   :type '(repeat (choice directory variable))
   :initialize 'custom-initialize-delay)
 
