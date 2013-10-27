@@ -99,6 +99,24 @@ int MACROA () {
 /* TEST: Fancy concat/recursive macros */
 int ABtest;
 
+/* TEST: Macros which open a scope which is closed by another macro */
+namespace foo {
+  struct inside_foo {};
+  struct inside_foo_as_well {};
+}
+
+namespace foo {
+  namespace bar {
+    struct inside_foo_bar {};
+  }
+}
+
+namespace one {
+  namespace two {
+    struct inside_one_two ();
+  }
+}
+
 /* TEST: Macro Recursion limits in arguments to a macro.
  * This code is from ALSA, noticed by Yupeng. */
 /* See commentary in testsppreplace.c. This test is broken.
