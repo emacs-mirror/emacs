@@ -4497,6 +4497,7 @@ This specifies the pointer shape when the mouse pointer is over this
 image.  @xref{Pointer Shape}, for available pointer shapes.
 
 @item :map @var{map}
+@cindex image maps
 This associates an image map of @dfn{hot spots} with this image.
 
 An image map is an alist where each element has the format
