@@ -4132,6 +4132,7 @@ Here are the possibilities for @var{height}:
 
 @table @asis
 @item @code{(+ @var{n})}
+@c FIXME: Add an index for "step"?  --xfq
 This means to use a font that is @var{n} steps larger.  A ``step'' is
 defined by the set of available fonts---specifically, those that match
 what was otherwise specified for this text, in all attributes except
@@ -4412,6 +4413,7 @@ sometimes consider this useful for displaying the image for a
 ``disabled'' button.
 
 @item (edge-detection :matrix @var{matrix} :color-adjust @var{adjust})
+@cindex edge detection, images
 Specifies a general edge-detection algorithm.  @var{matrix} must be
 either a nine-element list or a nine-element vector of numbers.  A pixel
 at position @math{x/y} in the transformed image is computed from
