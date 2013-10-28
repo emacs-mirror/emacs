@@ -419,6 +419,7 @@
      :load-path
      :mode
      :pre-init
+     :pre-load
      :requires
   )
   "Keywords recognized by `use-package'.")
