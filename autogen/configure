@@ -4037,10 +4037,11 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 temp_srcdir=`cd "$srcdir"; pwd`
 
-for var in "`pwd`" "$temp_srcdir"; do
+for var in "`pwd`" "$temp_srcdir" "$prefix" "$exec_prefix" \
+    "$datarootdir" "$bindir" "$datadir" "$sharedstatedir" "$libexecdir"; do
 
     case "$var" in
-    *[^\ -~]*) as_fn_error "Emacs cannot be built in a directory whose name contains non-ASCII characters: $var" "$LINENO" 5 ;;
+    *[^\ -~]*) as_fn_error "Emacs cannot be built or installed in a directory whose name contains non-ASCII characters: $var" "$LINENO" 5 ;;
   esac
 
 done
