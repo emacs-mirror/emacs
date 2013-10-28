@@ -1831,18 +1831,20 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
      'copy-file (list filename newname ok-if-already-exists keep-date)))))
 
 (defun tramp-sh-handle-copy-directory
-  (dirname newname &optional keep-date parents _copy-contents)
+  (dirname newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files."
   (let ((t1 (tramp-tramp-file-p dirname))
 	(t2 (tramp-tramp-file-p newname)))
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
-      (if (and (tramp-get-method-parameter method 'tramp-copy-recursive)
+      (if (and (not copy-contents)
+	       (tramp-get-method-parameter method 'tramp-copy-recursive)
 	       ;; When DIRNAME and NEWNAME are remote, they must have
 	       ;; the same method.
 	       (or (null t1) (null t2)
 		   (string-equal
 		    (tramp-file-name-method (tramp-dissect-file-name dirname))
-		    (tramp-file-name-method (tramp-dissect-file-name newname)))))
+		    (tramp-file-name-method
+		     (tramp-dissect-file-name newname)))))
 	  ;; scp or rsync DTRT.
 	  (progn
 	    (setq dirname (directory-file-name (expand-file-name dirname))
@@ -1859,7 +1861,10 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	     'copy dirname newname keep-date))
 	;; We must do it file-wise.
 	(tramp-run-real-handler
-	 'copy-directory (list dirname newname keep-date parents)))
+	 'copy-directory
+	 (if copy-contents
+	     (list dirname newname keep-date parents copy-contents)
+	   (list dirname newname keep-date parents))))
 
       ;; When newname did exist, we have wrong cached values.
       (when t2

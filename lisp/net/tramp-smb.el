@@ -387,141 +387,150 @@ pass to the OPERATION."
 	(throw 'tramp-action 'ok)))))
 
 (defun tramp-smb-handle-copy-directory
-  (dirname newname &optional keep-date parents _copy-contents)
+  (dirname newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files."
-  (setq dirname (expand-file-name dirname)
-	newname (expand-file-name newname))
-  (let ((t1 (tramp-tramp-file-p dirname))
-	(t2 (tramp-tramp-file-p newname)))
-    (with-parsed-tramp-file-name (if t1 dirname newname) nil
-      (with-tramp-progress-reporter
-	  v 0 (format "Copying %s to %s" dirname newname)
-      (cond
-       ;; We must use a local temporary directory.
-       ((and t1 t2)
-	(let ((tmpdir
-	       (make-temp-name
-		(expand-file-name
-		 tramp-temp-name-prefix
-		 (tramp-compat-temporary-file-directory)))))
-	  (unwind-protect
-	      (progn
-		(tramp-compat-copy-directory dirname tmpdir keep-date parents)
-		(tramp-compat-copy-directory tmpdir newname keep-date parents))
-	    (tramp-compat-delete-directory tmpdir 'recursive))))
+  (if copy-contents
+      ;; We must do it file-wise.
+      (tramp-run-real-handler
+       'copy-directory (list dirname newname keep-date parents copy-contents))
 
-       ;; We can copy recursively.
-       ((or t1 t2)
-	(when (and (file-directory-p newname)
-		   (not (string-equal (file-name-nondirectory dirname)
-				      (file-name-nondirectory newname))))
-	  (setq newname
-		(expand-file-name
-		 (file-name-nondirectory dirname) newname))
-	  (if t2 (setq v (tramp-dissect-file-name newname))))
-	(if (not (file-directory-p newname))
-	    (make-directory newname parents))
+    (setq dirname (expand-file-name dirname)
+	  newname (expand-file-name newname))
+    (let ((t1 (tramp-tramp-file-p dirname))
+	  (t2 (tramp-tramp-file-p newname)))
+      (with-parsed-tramp-file-name (if t1 dirname newname) nil
+	(with-tramp-progress-reporter
+	    v 0 (format "Copying %s to %s" dirname newname)
+	  (cond
+	   ;; We must use a local temporary directory.
+	   ((and t1 t2)
+	    (let ((tmpdir
+		   (make-temp-name
+		    (expand-file-name
+		     tramp-temp-name-prefix
+		     (tramp-compat-temporary-file-directory)))))
+	      (unwind-protect
+		  (progn
+		    (tramp-compat-copy-directory
+		     dirname tmpdir keep-date parents)
+		    (tramp-compat-copy-directory
+		     tmpdir newname keep-date parents))
+		(tramp-compat-delete-directory tmpdir 'recursive))))
 
-	(setq tramp-current-method (tramp-file-name-method v)
-	      tramp-current-user (tramp-file-name-user v)
-	      tramp-current-host (tramp-file-name-real-host v))
+	   ;; We can copy recursively.
+	   ((or t1 t2)
+	    (when (and (file-directory-p newname)
+		       (not (string-equal (file-name-nondirectory dirname)
+					  (file-name-nondirectory newname))))
+	      (setq newname
+		    (expand-file-name
+		     (file-name-nondirectory dirname) newname))
+	      (if t2 (setq v (tramp-dissect-file-name newname))))
+	    (if (not (file-directory-p newname))
+		(make-directory newname parents))
 
-	(let* ((real-user (tramp-file-name-real-user v))
-	       (real-host (tramp-file-name-real-host v))
-	       (domain    (tramp-file-name-domain v))
-	       (port      (tramp-file-name-port v))
-	       (share     (tramp-smb-get-share v))
-	       (localname (file-name-as-directory
-			   (tramp-compat-replace-regexp-in-string
-			    "\\\\" "/" (tramp-smb-get-localname v))))
-	       (tmpdir    (make-temp-name
-			   (expand-file-name
-			    tramp-temp-name-prefix
-			    (tramp-compat-temporary-file-directory))))
-	       (args      (list tramp-smb-program
-				(concat "//" real-host "/" share) "-E")))
+	    (setq tramp-current-method (tramp-file-name-method v)
+		  tramp-current-user (tramp-file-name-user v)
+		  tramp-current-host (tramp-file-name-real-host v))
 
-	  (if (not (zerop (length real-user)))
-	      (setq args (append args (list "-U" real-user)))
-	    (setq args (append args (list "-N"))))
+	    (let* ((real-user (tramp-file-name-real-user v))
+		   (real-host (tramp-file-name-real-host v))
+		   (domain    (tramp-file-name-domain v))
+		   (port      (tramp-file-name-port v))
+		   (share     (tramp-smb-get-share v))
+		   (localname (file-name-as-directory
+			       (tramp-compat-replace-regexp-in-string
+				"\\\\" "/" (tramp-smb-get-localname v))))
+		   (tmpdir    (make-temp-name
+			       (expand-file-name
+				tramp-temp-name-prefix
+				(tramp-compat-temporary-file-directory))))
+		   (args      (list tramp-smb-program
+				    (concat "//" real-host "/" share) "-E")))
 
-	  (when domain (setq args (append args (list "-W" domain))))
-	  (when port   (setq args (append args (list "-p" port))))
-	  (when tramp-smb-conf
-	    (setq args (append args (list "-s" tramp-smb-conf))))
-	  (setq args
-		(if t1
-		    ;; Source is remote.
-		    (append args
-			    (list "-D" (shell-quote-argument localname)
-				  "-c" (shell-quote-argument "tar qc - *")
-				  "|" "tar" "xfC" "-"
-				  (shell-quote-argument tmpdir)))
-		  ;; Target is remote.
-		  (append (list "tar" "cfC" "-" (shell-quote-argument dirname)
-				"." "|")
-			  args
-			  (list "-D" (shell-quote-argument localname)
-				"-c" (shell-quote-argument "tar qx -")))))
+	      (if (not (zerop (length real-user)))
+		  (setq args (append args (list "-U" real-user)))
+		(setq args (append args (list "-N"))))
 
-	  (unwind-protect
-	      (with-temp-buffer
-		;; Set the transfer process properties.
-		(tramp-set-connection-property
-		 v "process-name" (buffer-name (current-buffer)))
-		(tramp-set-connection-property
-		 v "process-buffer" (current-buffer))
+	      (when domain (setq args (append args (list "-W" domain))))
+	      (when port   (setq args (append args (list "-p" port))))
+	      (when tramp-smb-conf
+		(setq args (append args (list "-s" tramp-smb-conf))))
+	      (setq args
+		    (if t1
+			;; Source is remote.
+			(append args
+				(list "-D" (shell-quote-argument localname)
+				      "-c" (shell-quote-argument "tar qc - *")
+				      "|" "tar" "xfC" "-"
+				      (shell-quote-argument tmpdir)))
+		      ;; Target is remote.
+		      (append (list "tar" "cfC" "-"
+				    (shell-quote-argument dirname) "." "|")
+			      args
+			      (list "-D" (shell-quote-argument localname)
+				    "-c" (shell-quote-argument "tar qx -")))))
 
-		(when t1
-		  ;; The smbclient tar command creates always complete
-		  ;; paths.  We must emulate the directory structure,
-		  ;; and symlink to the real target.
-		  (make-directory
-		   (expand-file-name ".." (concat tmpdir localname)) 'parents)
-		  (make-symbolic-link
-		   newname (directory-file-name (concat tmpdir localname))))
+	      (unwind-protect
+		  (with-temp-buffer
+		    ;; Set the transfer process properties.
+		    (tramp-set-connection-property
+		     v "process-name" (buffer-name (current-buffer)))
+		    (tramp-set-connection-property
+		     v "process-buffer" (current-buffer))
 
-		;; Use an asynchronous processes.  By this, password
-		;; can be handled.
-		(let* ((default-directory tmpdir)
-		       (p (start-process-shell-command
-			   (tramp-get-connection-name v)
-			   (tramp-get-connection-buffer v)
-			   (mapconcat 'identity args " "))))
+		    (when t1
+		      ;; The smbclient tar command creates always
+		      ;; complete paths.  We must emulate the
+		      ;; directory structure, and symlink to the real
+		      ;; target.
+		      (make-directory
+		       (expand-file-name
+			".." (concat tmpdir localname)) 'parents)
+		      (make-symbolic-link
+		       newname (directory-file-name (concat tmpdir localname))))
 
-		  (tramp-message
-		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
-		  (tramp-set-connection-property p "vector" v)
-		  (tramp-compat-set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v nil tramp-smb-actions-with-tar)
+		    ;; Use an asynchronous processes.  By this,
+		    ;; password can be handled.
+		    (let* ((default-directory tmpdir)
+			   (p (start-process-shell-command
+			       (tramp-get-connection-name v)
+			       (tramp-get-connection-buffer v)
+			       (mapconcat 'identity args " "))))
 
-		  (while (memq (process-status p) '(run open))
-		    (sit-for 0.1))
-		  (tramp-message v 6 "\n%s" (buffer-string))))
+		      (tramp-message
+		       v 6 "%s" (mapconcat 'identity (process-command p) " "))
+		      (tramp-set-connection-property p "vector" v)
+		      (tramp-compat-set-process-query-on-exit-flag p nil)
+		      (tramp-process-actions p v nil tramp-smb-actions-with-tar)
 
-	    ;; Reset the transfer process properties.
-	    (tramp-set-connection-property v "process-name" nil)
-	    (tramp-set-connection-property v "process-buffer" nil)
-	    (when t1 (delete-directory tmpdir 'recurse))))
+		      (while (memq (process-status p) '(run open))
+			(sit-for 0.1))
+		      (tramp-message v 6 "\n%s" (buffer-string))))
 
-	;; Handle KEEP-DATE argument.
-	(when keep-date
-	  (set-file-times newname (nth 5 (file-attributes dirname))))
+		;; Reset the transfer process properties.
+		(tramp-set-connection-property v "process-name" nil)
+		(tramp-set-connection-property v "process-buffer" nil)
+		(when t1 (delete-directory tmpdir 'recurse))))
 
-	;; Set the mode.
-	(unless keep-date
-	  (set-file-modes newname (tramp-default-file-modes dirname)))
+	    ;; Handle KEEP-DATE argument.
+	    (when keep-date
+	      (set-file-times newname (nth 5 (file-attributes dirname))))
 
-	;; When newname did exist, we have wrong cached values.
-	(when t2
-	  (with-parsed-tramp-file-name newname nil
-	    (tramp-flush-file-property v (file-name-directory localname))
-	    (tramp-flush-file-property v localname))))
+	    ;; Set the mode.
+	    (unless keep-date
+	      (set-file-modes newname (tramp-default-file-modes dirname)))
 
-       ;; We must do it file-wise.
-       (t
-	(tramp-run-real-handler
-	 'copy-directory (list dirname newname keep-date parents))))))))
+	    ;; When newname did exist, we have wrong cached values.
+	    (when t2
+	      (with-parsed-tramp-file-name newname nil
+		(tramp-flush-file-property v (file-name-directory localname))
+		(tramp-flush-file-property v localname))))
+
+	   ;; We must do it file-wise.
+	   (t
+	    (tramp-run-real-handler
+	     'copy-directory (list dirname newname keep-date parents)))))))))
 
 (defun tramp-smb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date

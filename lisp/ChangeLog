@@ -1,3 +1,9 @@
+2013-10-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-copy-directory):
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory):
+	Handle COPY-CONTENTS.  (Bug#15737)
+
 2013-10-28  Daiki Ueno  <ueno@gnu.org>
 
 	* epa-file.el
