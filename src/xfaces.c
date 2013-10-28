@@ -1298,8 +1298,7 @@ load_face_colors (struct frame *f, struct face *face,
       && !NILP (Fbitmap_spec_p (Vface_default_stipple)))
     {
       x_destroy_bitmap (f, face->stipple);
-      face->stipple = load_pixmap (f, Vface_default_stipple,
-				   &face->pixmap_w, &face->pixmap_h);
+      face->stipple = load_pixmap (f, Vface_default_stipple, NULL, NULL);
     }
 
   face->background = load_color (f, face, bg, LFACE_BACKGROUND_INDEX);
@@ -4018,9 +4017,13 @@ lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 static struct face *
 make_realized_face (Lisp_Object *attr)
 {
-  struct face *face = xzalloc (sizeof *face);
-  face->ascii_face = face;
+  enum { off = offsetof (struct face, id) };
+  struct face *face = xmalloc (sizeof *face);
+
   memcpy (face->lface, attr, sizeof face->lface);
+  memset (&face->id, 0, sizeof *face - off);
+  face->ascii_face = face;
+
   return face;
 }
 
@@ -5716,7 +5719,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE])
 
   stipple = attrs[LFACE_STIPPLE_INDEX];
   if (!NILP (stipple))
-    face->stipple = load_pixmap (f, stipple, &face->pixmap_w, &face->pixmap_h);
+    face->stipple = load_pixmap (f, stipple, NULL, NULL);
 #endif /* HAVE_WINDOW_SYSTEM */
 
   return face;

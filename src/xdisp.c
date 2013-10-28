@@ -18615,7 +18615,9 @@ extend_face_to_end_of_line (struct it *it)
       && MATRIX_ROW_DISPLAYS_TEXT_P (it->glyph_row)
       && face->box == FACE_NO_BOX
       && face->background == FRAME_BACKGROUND_PIXEL (f)
+#ifdef HAVE_WINDOW_SYSTEM
       && !face->stipple
+#endif
       && !it->glyph_row->reversed_p)
     return;
 

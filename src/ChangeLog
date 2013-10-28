@@ -1,3 +1,14 @@
+2013-10-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (struct face): Use bitfields for 'underline_type'
+	and 'box' members.  Remove set-but-unused members 'pixmap_w' and
+	'pixmap_h'.  If not HAVE_WINDOW_SYSTEM, also remove dummy
+	'stipple' member.  Move 'lface' member up to help...
+	* xfaces.c (make_realized_face): ...this function to find and
+	clear just the members that need clearing.
+	(load_face_colors, realize_x_face):
+	* xdisp.c (extend_face_to_end_of_line): Adjust user.
+
 2013-10-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xftfont.c (struct xftfont_info): Remove set-but-unused

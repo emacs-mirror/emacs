@@ -1581,6 +1581,10 @@ enum face_underline_type
 
 struct face
 {
+  /* The Lisp face attributes this face realizes.  All attributes
+     in this vector are non-nil.  */
+  Lisp_Object lface[LFACE_VECTOR_SIZE];
+
   /* The id of this face.  The id equals the index of this face in the
      vector faces_by_id of its face cache.  */
   int id;
@@ -1593,11 +1597,6 @@ struct face
 
   /* Background stipple or bitmap used for this face.  This is
      an id as returned from load_pixmap.  */
-  ptrdiff_t stipple;
-
-#else /* not HAVE_WINDOW_SYSTEM */
-
-  /* Dummy.  */
   ptrdiff_t stipple;
 
 #endif /* not HAVE_WINDOW_SYSTEM */
@@ -1624,9 +1623,6 @@ struct face
      from the same ASCII face have the same fontset.  */
   int fontset;
 
-  /* Pixmap width and height.  */
-  unsigned int pixmap_w, pixmap_h;
-
   /* Non-zero means characters in this face have a box of that
      thickness around them.  If this value is negative, its absolute
      value indicates the thickness, and the horizontal (top and
@@ -1640,10 +1636,10 @@ struct face
      of width box_line_width is drawn in color box_color.  A value of
      FACE_RAISED_BOX or FACE_SUNKEN_BOX means a 3D box is drawn with
      shadow colors derived from the background color of the face.  */
-  enum face_box_type box;
+  ENUM_BF (face_box_type) box : 2;
 
   /* Style of underlining. */
-  enum face_underline_type underline_type;
+  ENUM_BF (face_underline_type) underline_type : 1;
 
   /* If `box' above specifies a 3D type, 1 means use box_color for
      drawing shadows.  */
@@ -1694,10 +1690,6 @@ struct face
   /* If non-zero, use geometric rotation (to simulate italic).  */
   unsigned synth_ital : 1;
 #endif
-
-  /* The Lisp face attributes this face realizes.  All attributes
-     in this vector are non-nil.  */
-  Lisp_Object lface[LFACE_VECTOR_SIZE];
 
   /* The hash value of this face.  */
   unsigned hash;
