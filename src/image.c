@@ -159,13 +159,13 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 
 /* Functions to access the contents of a bitmap, given an id.  */
 
-int
+static int
 x_bitmap_height (struct frame *f, ptrdiff_t id)
 {
   return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
-int
+static int
 x_bitmap_width (struct frame *f, ptrdiff_t id)
 {
   return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].width;

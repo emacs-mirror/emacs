@@ -853,12 +853,10 @@ the pixmap.  Bits are stored row by row, each row occupies
    pixmap spec) for use on frame F.  Value is the bitmap_id (see
    xfns.c).  If NAME is nil, return with a bitmap id of zero.  If
    bitmap cannot be loaded, display a message saying so, and return
-   zero.  Store the bitmap width in *W_PTR and its height in *H_PTR,
-   if these pointers are not null.  */
+   zero.  */
 
 static ptrdiff_t
-load_pixmap (struct frame *f, Lisp_Object name, unsigned int *w_ptr,
-	     unsigned int *h_ptr)
+load_pixmap (struct frame *f, Lisp_Object name)
 {
   ptrdiff_t bitmap_id;
 
@@ -893,22 +891,12 @@ load_pixmap (struct frame *f, Lisp_Object name, unsigned int *w_ptr,
     {
       add_to_log ("Invalid or undefined bitmap `%s'", name, Qnil);
       bitmap_id = 0;
-
-      if (w_ptr)
-	*w_ptr = 0;
-      if (h_ptr)
-	*h_ptr = 0;
     }
   else
     {
 #ifdef GLYPH_DEBUG
       ++npixmaps_allocated;
 #endif
-      if (w_ptr)
-	*w_ptr = x_bitmap_width (f, bitmap_id);
-
-      if (h_ptr)
-	*h_ptr = x_bitmap_height (f, bitmap_id);
     }
 
   return bitmap_id;
@@ -1298,7 +1286,7 @@ load_face_colors (struct frame *f, struct face *face,
       && !NILP (Fbitmap_spec_p (Vface_default_stipple)))
     {
       x_destroy_bitmap (f, face->stipple);
-      face->stipple = load_pixmap (f, Vface_default_stipple, NULL, NULL);
+      face->stipple = load_pixmap (f, Vface_default_stipple);
     }
 
   face->background = load_color (f, face, bg, LFACE_BACKGROUND_INDEX);
@@ -5719,7 +5707,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE])
 
   stipple = attrs[LFACE_STIPPLE_INDEX];
   if (!NILP (stipple))
-    face->stipple = load_pixmap (f, stipple, NULL, NULL);
+    face->stipple = load_pixmap (f, stipple);
 #endif /* HAVE_WINDOW_SYSTEM */
 
   return face;

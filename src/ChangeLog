@@ -1,3 +1,9 @@
+2013-10-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h, image.c (x_bitmap_height, x_bitmap_width): Now static.
+	* xfaces.c (load_pixmap): Omit last two args, which are always NULL
+	in practice now.  All callers changed.
+
 2013-10-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispextern.h (struct face): Use bitfields for 'underline_type'
