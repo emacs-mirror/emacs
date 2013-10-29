@@ -4968,6 +4968,7 @@ This removes only images that were put into @var{buffer} the way
 @end defun
 
 @defun image-size spec &optional pixels frame
+@cindex size of image
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
 specification.  @var{pixels} non-@code{nil} means return sizes
