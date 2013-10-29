@@ -483,7 +483,8 @@ The forwarding object must satisfy these properties:
 2. It must contain a pointer to the new location of the object (a
    :term:`forwarding pointer`).
 
-3. The :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
+3. It must be the same size as the old object. This means that the
+   :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
    <guide-lang-skip>` will both need to know the length of the
    forwarding object. This can be arbitrarily long (in the case of
    string objects, for example) so it must contain a length field.
