@@ -1,3 +1,7 @@
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (run_hook_with_args): Use FUNCTIONP.
+
 2013-10-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.h (struct x_output): For 'black_relief' and 'white_relief'
@@ -227,8 +231,8 @@
 	(get_adapters_info): New wrapper function.
 	(globals_of_w32): Initialize g_b_init_get_adapters_info.
 
-	* process.h (network_interface_list, network_interface_info): New
-	prototypes.
+	* process.h (network_interface_list, network_interface_info):
+	New prototypes.
 
 	* process.c (conv_sockaddr_to_lisp): Now externally-visible.
 	(Fnetwork_interface_list, Fnetwork_interface_info): Define for
@@ -559,8 +563,8 @@
 	(xw_popup_dialog): New function, with X-specific bits of popup
 	dialogs.
 
-	* xdisp.c (deep_copy_glyph_row, display_tty_menu_item): New
-	functions.
+	* xdisp.c (deep_copy_glyph_row, display_tty_menu_item):
+	New functions.
 
 	* window.c (Fset_window_configuration): Use run-time tests of the
 	frame type instead of compile-time conditionals, when menu-bar
@@ -625,11 +629,11 @@
 	of, or in addition to, compile-time conditionals.
 	(menu_item_width, Fmenu_bar_menu_at_x_y): New functions.
 	(Fx_popup_menu): Detect when the function is called from keyboard
-	on a TTY.  Don't barf when invoked on a text-mode frame.  Check
-	frame type at run time, instead of compile-time conditionals for
-	invoking terminal-specific menu-show functions.  Call
-	tty_menu_show on text-mode frames.
-	(Fx_popup_dialog): Moved here from xmenu.c.  Test frame types at
+	on a TTY.  Don't barf when invoked on a text-mode frame.
+	Check frame type at run time, instead of compile-time conditionals for
+	invoking terminal-specific menu-show functions.
+	Call tty_menu_show on text-mode frames.
+	(Fx_popup_dialog): Move here from xmenu.c.  Test frame types at
 	run time to determine which alternative to invoke; support dialogs
 	on TTYs.
 

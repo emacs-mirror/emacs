@@ -1,9 +1,15 @@
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/prolog.prolog: Test alignment of ->; with operator at bol.
+
+	* indent/css-mode.css (.x2): Test alignement inside braces.
+
 2013-10-26  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: New failing example.
 
-	* automated/ruby-mode-tests.el (ruby-toggle-block-to-brace): Fix
-	the test, in respect to adding the space after the curly.
+	* automated/ruby-mode-tests.el (ruby-toggle-block-to-brace):
+	Fix the test, in respect to adding the space after the curly.
 
 2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -45,8 +51,8 @@
 
 2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* indent/ruby.rb: New examples for indentation of blocks.  Example
-	of hash inside parens that inflooped before the present commit.
+	* indent/ruby.rb: New examples for indentation of blocks.
+	Example of hash inside parens that inflooped before the present commit.
 
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 

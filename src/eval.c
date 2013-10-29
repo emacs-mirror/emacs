@@ -2479,7 +2479,7 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 
   if (EQ (val, Qunbound) || NILP (val))
     return ret;
-  else if (!CONSP (val) || EQ (XCAR (val), Qlambda))
+  else if (!CONSP (val) || FUNCTIONP (val))
     {
       args[0] = val;
       return funcall (nargs, args);

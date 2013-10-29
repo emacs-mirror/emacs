@@ -35,7 +35,7 @@ echo $[1<<8]                    # bug#11263
 declare -a VERSION
 for i in $(ls "$PREFIX/sbin") ; do
     echo -e $N')' $i
-    VERSION[${#VERSION[*]}]=$i         #bug#11946.
+    VERSION[${#VERSION[*]}]=$i  # bug#11946.
     N=$(($N + 1))
 done
 

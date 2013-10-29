@@ -2074,7 +2074,7 @@ the current buffer's major mode.  */)
   count = SPECPDL_INDEX ();
 
   /* To select a nonfundamental mode,
-     select the buffer temporarily and then call the mode function. */
+     select the buffer temporarily and then call the mode function.  */
 
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
 
@@ -2114,7 +2114,7 @@ set_buffer_internal_1 (register struct buffer *b)
 
   old_buf = current_buffer;
   current_buffer = b;
-  last_known_column_point = -1;   /* invalidate indentation cache */
+  last_known_column_point = -1;   /* Invalidate indentation cache.  */
 
   if (old_buf)
     {
@@ -2138,7 +2138,7 @@ set_buffer_internal_1 (register struct buffer *b)
   fetch_buffer_markers (b);
 
   /* Look down buffer's list of local Lisp variables
-     to find and update any that forward into C variables. */
+     to find and update any that forward into C variables.  */
 
   do
     {
