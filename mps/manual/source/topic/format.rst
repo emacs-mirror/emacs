@@ -388,10 +388,10 @@ Format methods
     ``addr`` is the address of the object to be skipped.
 
     Returns the address of the "next object". In an object format
-    without headers (for example, a format of variant A), this is the
-    address just past the end of this object. In an object format with
-    :term:`in-band headers`, it's the address just past where the
-    header of next object would be, if there were one.
+    without :term:`in-band headers`, this is the address just past the
+    end of this object. In an object format with in-band headers, it's
+    the address just past where the header of next object would be, if
+    there were one.
 
     .. note::
 
@@ -531,7 +531,7 @@ format in the form of a *format variant structure*.
 There are four format variants.
 
 * Variant A (:c:type:`mps_fmt_A_s`): for objects without
-  :term:`headers <in-band header>`.
+  :term:`in-band headers`.
 
 * Variant B (:c:type:`mps_fmt_B_s`): as variant A, but with the
   addition of a class method.
