@@ -1,3 +1,8 @@
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Selective Display): Discourage the use of explicit
+	selective display.
+
 2013-10-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* display.texi (Showing Images): Add an index for image-size.

@@ -962,11 +962,10 @@ make it invisible again.
 hiding certain lines on the screen.
 
 @cindex explicit selective display
-  The first variant, explicit selective display, is designed for use
-in a Lisp program: it controls which lines are hidden by altering the
-text.  This kind of hiding in some ways resembles the effect of the
-@code{invisible} property (@pxref{Invisible Text}), but the two
-features are different and do not work the same way.
+  The first variant, explicit selective display, was designed for use in a Lisp
+program: it controls which lines are hidden by altering the text.  This kind of
+hiding is now obsolete; instead you can get the same effect with the
+@code{invisible} property (@pxref{Invisible Text}).
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
