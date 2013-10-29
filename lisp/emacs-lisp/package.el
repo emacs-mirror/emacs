@@ -1238,7 +1238,8 @@ similar to an entry in `package-alist'.  Save the cached copy to
       (when (listp (read buffer))
 	(make-directory dir t)
 	(setq buffer-file-name (expand-file-name file dir))
-	(let ((version-control 'never))
+	(let ((version-control 'never)
+              (require-final-newline nil))
 	  (save-buffer))))
     (when good-signatures
       ;; Write out good signatures into archive-contents.signed file.
@@ -1472,15 +1473,17 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	;; For elpa packages, try downloading the commentary.  If that
 	;; fails, try an existing readme file in `package-user-dir'.
 	(cond ((condition-case nil
-		   (package--with-work-buffer
-                       (package-archive-base desc)
-                       (format "%s-readme.txt" name)
-		     (setq buffer-file-name
-			   (expand-file-name readme package-user-dir))
-		     (let ((version-control 'never))
-		       (save-buffer))
-		     (setq readme-string (buffer-string))
-		     t)
+                   (save-excursion
+                     (package--with-work-buffer
+                         (package-archive-base desc)
+                         (format "%s-readme.txt" name)
+                       (setq buffer-file-name
+                             (expand-file-name readme package-user-dir))
+                       (let ((version-control 'never)
+                             (require-final-newline t))
+                         (save-buffer))
+                       (setq readme-string (buffer-string))
+                       t))
 		 (error nil))
 	       (insert readme-string))
 	      ((file-readable-p readme)

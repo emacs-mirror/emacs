@@ -1,3 +1,8 @@
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package--download-one-archive)
+	(describe-package-1): Don't query the user about final newline.
+
 2013-10-29  Daniel Colascione  <dancol@dancol.org>
 
 	* net/tramp.el (tramp-methods): Document new functionality.
@@ -14,8 +19,8 @@
 2013-10-28  Daiki Ueno  <ueno@gnu.org>
 
 	* epa-file.el
-	(epa-file-cache-passphrase-for-symmetric-encryption): Document
-	that this option has no effect with GnuPG 2.0 (bug#15552).
+	(epa-file-cache-passphrase-for-symmetric-encryption):
+	Document that this option has no effect with GnuPG 2.0 (bug#15552).
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -25,8 +30,8 @@
 2013-10-27  Alan Mackenzie  <acm@muc.de>
 
 	Indent statements in macros following "##" correctly.
-	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Modify
-	the "#" arm of a cond form to handle "#" and "##" operators.
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
+	Modify the "#" arm of a cond form to handle "#" and "##" operators.
 
 2013-10-27  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
