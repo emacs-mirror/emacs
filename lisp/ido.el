@@ -797,7 +797,7 @@ remaining completion.  If absent, elements 5 and 6 are used instead."
 The value can be one of the following:
 
   nil:  No virtual buffers are used.
-  auto: Use virtual bufferw when the current input matches no
+  auto: Use virtual buffers when the current input matches no
         existing buffers.
   t:    Always use virtual buffers.
 
