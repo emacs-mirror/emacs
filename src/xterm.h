@@ -605,7 +605,6 @@ struct x_output
   {
     GC gc;
     unsigned long pixel;
-    int allocated_p;
   }
   black_relief, white_relief;
 

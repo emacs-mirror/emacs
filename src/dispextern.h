@@ -3328,6 +3328,7 @@ void ignore_sigio (void);
 /* Defined in xfaces.c */
 
 #ifdef HAVE_X_WINDOWS
+void unload_color (struct frame *, unsigned long);
 void x_free_colors (struct frame *, unsigned long *, int);
 #endif
 
@@ -3339,7 +3340,6 @@ void clear_face_cache (int);
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
 #endif
-void unload_color (struct frame *, unsigned long);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 void prepare_face_for_display (struct frame *, struct face *);

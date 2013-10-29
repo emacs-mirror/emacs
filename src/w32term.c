@@ -1596,10 +1596,7 @@ w32_setup_relief_color (struct frame *f, struct relief *relief, double factor,
   xgcv.foreground = default_pixel;
   pixel = background;
   if (w32_alloc_lighter_color (f, &pixel, factor, delta))
-    {
-      relief->allocated_p = 1;
-      xgcv.foreground = relief->pixel = pixel;
-    }
+    xgcv.foreground = relief->pixel = pixel;
 
   if (relief->gc == 0)
     {
@@ -6000,17 +5997,6 @@ x_free_frame_resources (struct frame *f)
     my_destroy_window (f, FRAME_W32_WINDOW (f));
 
   free_frame_menubar (f);
-
-  unload_color (f, FRAME_FOREGROUND_PIXEL (f));
-  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
-  unload_color (f, f->output_data.w32->cursor_pixel);
-  unload_color (f, f->output_data.w32->cursor_foreground_pixel);
-  unload_color (f, f->output_data.w32->border_pixel);
-  unload_color (f, f->output_data.w32->mouse_pixel);
-  if (f->output_data.w32->white_relief.allocated_p)
-    unload_color (f, f->output_data.w32->white_relief.pixel);
-  if (f->output_data.w32->black_relief.allocated_p)
-    unload_color (f, f->output_data.w32->black_relief.pixel);
 
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);

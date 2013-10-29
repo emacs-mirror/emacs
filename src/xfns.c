@@ -2880,6 +2880,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
+  f->output_data.x->white_relief.pixel = -1;
+  f->output_data.x->black_relief.pixel = -1;
 
   fset_icon_name (f,
 		  x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
@@ -4824,6 +4826,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
+  f->output_data.x->white_relief.pixel = -1;
+  f->output_data.x->black_relief.pixel = -1;
+
   fset_icon_name (f, Qnil);
   FRAME_DISPLAY_INFO (f) = dpyinfo;
   f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;

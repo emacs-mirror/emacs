@@ -1,3 +1,18 @@
+2013-10-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_output): For 'black_relief' and 'white_relief'
+	fields, drop 'allocated_p' member and use -1 for uninitialized value.
+	* w32term.h (struct w32_output): Similarly but do not use -1 because...
+	* xfaces.c (unload_color) [HAVE_X_WINDOWS]: ...this function is a no-op
+	on MS-Windows anyway.
+	(free_face_colors): Define only if HAVE_X_WINDOWS and...
+	(free_realized_face): ...adjust user.
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Initialize black and
+	white relief pixels to -1.
+	* xterm.c (x_setup_relief_color, x_free_frame_resources): Adjust users.
+	* w32term.c (w32_setup_relief_color, x_free_frame_resources): Likewise.
+	* dispextern.h (unload_color): Move prototype under HAVE_X_WINDOWS.
+
 2013-10-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dispextern.h, image.c (x_bitmap_height, x_bitmap_width): Now static.

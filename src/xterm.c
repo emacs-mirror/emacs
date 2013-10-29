@@ -1774,11 +1774,10 @@ x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int
   /* Free previously allocated color.  The color cell will be reused
      when it has been freed as many times as it was allocated, so this
      doesn't affect faces using the same colors.  */
-  if (relief->gc
-      && relief->allocated_p)
+  if (relief->gc && relief->pixel != -1)
     {
       x_free_colors (f, &relief->pixel, 1);
-      relief->allocated_p = 0;
+      relief->pixel = -1;
     }
 
   /* Allocate new color.  */
@@ -1786,10 +1785,7 @@ x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int
   pixel = background;
   if (dpyinfo->n_planes != 1
       && x_alloc_lighter_color (f, dpy, cmap, &pixel, factor, delta))
-    {
-      relief->allocated_p = 1;
-      xgcv.foreground = relief->pixel = pixel;
-    }
+    xgcv.foreground = relief->pixel = pixel;
 
   if (relief->gc == 0)
     {
@@ -9338,9 +9334,9 @@ x_free_frame_resources (struct frame *f)
       if (f->output_data.x->scroll_bar_bottom_shadow_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_bottom_shadow_pixel);
 #endif /* USE_TOOLKIT_SCROLL_BARS */
-      if (f->output_data.x->white_relief.allocated_p)
+      if (f->output_data.x->white_relief.pixel != -1)
 	unload_color (f, f->output_data.x->white_relief.pixel);
-      if (f->output_data.x->black_relief.allocated_p)
+      if (f->output_data.x->black_relief.pixel != -1)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
       x_free_gcs (f);

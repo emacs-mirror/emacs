@@ -1293,30 +1293,28 @@ load_face_colors (struct frame *f, struct face *face,
   face->foreground = load_color (f, face, fg, LFACE_FOREGROUND_INDEX);
 }
 
+#ifdef HAVE_X_WINDOWS
 
 /* Free color PIXEL on frame F.  */
 
 void
 unload_color (struct frame *f, long unsigned int pixel)
 {
-#ifdef HAVE_X_WINDOWS
   if (pixel != -1)
     {
       block_input ();
       x_free_colors (f, &pixel, 1);
       unblock_input ();
     }
-#endif
 }
-
 
 /* Free colors allocated for FACE.  */
 
 static void
 free_face_colors (struct frame *f, struct face *face)
 {
-/* PENDING(NS): need to do something here? */
-#ifdef HAVE_X_WINDOWS
+  /* PENDING(NS): need to do something here? */
+
   if (face->colors_copied_bitwise_p)
     return;
 
@@ -1363,8 +1361,9 @@ free_face_colors (struct frame *f, struct face *face)
     }
 
   unblock_input ();
-#endif /* HAVE_X_WINDOWS */
 }
+
+#endif /* HAVE_X_WINDOWS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -4039,8 +4038,9 @@ free_realized_face (struct frame *f, struct face *face)
 	      face->gc = 0;
 	      unblock_input ();
 	    }
-
+#ifdef HAVE_X_WINDOWS
 	  free_face_colors (f, face);
+#endif /* HAVE_X_WINDOWS */
 	  x_destroy_bitmap (f, face->stipple);
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
