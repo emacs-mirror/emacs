@@ -2,7 +2,7 @@
 
 	* display.texi (Showing Images): Add an index for image-size.
 	Use @code instead of @var for a normal variable.
-	(Multi-Frame Images): Add an index for multi-frame images.
+	(Multi-Frame Images): Improve indexing.
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
 

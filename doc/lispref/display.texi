@@ -5047,6 +5047,8 @@ or @code{nil}, the image animates once only; if @code{t} it loops
 forever; if a number animation stops after that many seconds.
 @end defun
 
+@vindex image-minimum-frame-delay
+@vindex image-default-frame-delay
 @noindent Animation operates by means of a timer.  Note that Emacs imposes a
 minimum frame delay of 0.01 (@code{image-minimum-frame-delay}) seconds.
 If the image itself does not specify a delay, Emacs uses
