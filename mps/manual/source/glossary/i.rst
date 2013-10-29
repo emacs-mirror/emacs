@@ -66,7 +66,7 @@ Memory Management Glossary: I
         a fixed amount more than is necessary for each :term:`block`
         and use it to store information such as the size of the block
         or a :term:`tag`. This extra memory is known as an *in-band
-        header* or a *frame*
+        header* or a *frame*.
 
         This is a form of :term:`internal fragmentation`, although
         sometimes, :term:`alignment` requirements result in free space
