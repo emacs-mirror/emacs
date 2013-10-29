@@ -4994,7 +4994,7 @@ The purpose of this variable is to prevent unreasonably large images
 from accidentally being loaded into Emacs.  It only takes effect the
 first time an image is loaded.  Once an image is placed in the image
 cache, it can always be displayed, even if the value of
-@var{max-image-size} is subsequently changed (@pxref{Image Cache}).
+@code{max-image-size} is subsequently changed (@pxref{Image Cache}).
 @end defvar
 
 @node Multi-Frame Images
