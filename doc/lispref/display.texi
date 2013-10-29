@@ -5449,7 +5449,8 @@ in the search, instead of starting at the next button.
   The Ewoc package constructs buffer text that represents a structure
 of Lisp objects, and updates the text to follow changes in that
 structure.  This is like the ``view'' component in the
-``model/view/controller'' design paradigm.
+``model/view/controller'' design paradigm.  Ewoc means ``Emacs's
+Widget for Object Collections''.
 
   An @dfn{ewoc} is a structure that organizes information required to
 construct buffer text that represents certain Lisp data.  The buffer

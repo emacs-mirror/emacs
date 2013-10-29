@@ -4,6 +4,7 @@
 	Use @code instead of @var for a normal variable.
 	(Multi-Frame Images): Improve indexing.
 	(Button Buffer Commands): Use @code instead of @var for a normal variable.
+	(Abstract Display): Explain the meaning of Ewoc.
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
 
