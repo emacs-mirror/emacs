@@ -1,3 +1,10 @@
+2013-10-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-open-connection-1): `auth-source-search' for the
+	`nnoo-current-server' first, then for the actual `nnimap-address' to
+	allow netrc entries for the nnoo server to coexist with netrc entries
+	for the `nnimap-address'.
+
 2013-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-dissect-buffer): Revert last change.
