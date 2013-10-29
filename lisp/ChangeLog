@@ -1,3 +1,10 @@
+2013-10-29  Daniel Colascione  <dancol@dancol.org>
+
+	* net/tramp.el (tramp-methods): Document new functionality.
+	* net/tramp-sh.el (tramp-compute-multi-hops): Punt to
+	tramp-hostname-checker if method provides one instead of scanning
+	argument list for "%h" to decide hostname acceptability.
+
 2013-10-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-copy-directory):
