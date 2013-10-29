@@ -1,5 +1,32 @@
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* rect.el: Use lexical-binding.  Add new rectangular region support.
+	(rectangle-mark): New command.
+	(rectangle--region): New var.
+	(deactivate-mark-hook): Reset rectangle--region.
+	(rectangle--extract-region, rectangle--insert-for-yank)
+	(rectangle--highlight-for-redisplay)
+	(rectangle--unhighlight-for-redisplay): New functions.
+	(region-extract-function, redisplay-unhighlight-region-function)
+	(redisplay-highlight-region-function): Use them to handle
+	rectangular region.
+	* simple.el (region-extract-function): New var.
+	(delete-backward-char, delete-forward-char, deactivate-mark): Use it.
+	(kill-new, kill-append): Remove obsolete `yank-handler' argument.
+	(kill-region): Replace obsolete `yank-handler' arg with `region'.
+	(copy-region-as-kill, kill-ring-save): Add `region' argument.
+	(redisplay-unhighlight-region-function)
+	(redisplay-highlight-region-function): New vars.
+	(redisplay--update-region-highlight): New function.
+	(pre-redisplay-function): Use it.
+	(exchange-point-and-mark): Don't deactivate the mark before
+	reactivate-it anyway.
+	* comint.el (comint-kill-region): Remove yank-handler argument.
+	* delsel.el (delete-backward-char, backward-delete-char-untabify)
+	(delete-char): Remove property, since it's now part of their
+	default behavior.
+	(self-insert-iso): Remove property since this command doesn't exist.
+
 	* emacs-lisp/package.el (package--download-one-archive)
 	(describe-package-1): Don't query the user about final newline.
 

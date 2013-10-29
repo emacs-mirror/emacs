@@ -1875,7 +1875,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	return Qnil;
       w = XWINDOW (window);
       f = XFRAME (w->frame);
-      face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
+      face_id = face_at_buffer_position (w, pos, &dummy,
 					 pos + 100, 0, -1);
     }
   if (! CHAR_VALID_P (c))

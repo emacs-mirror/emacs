@@ -2818,6 +2818,7 @@ if it's an autoloaded macro."
     val))
 
 ;;;; Support for yanking and text properties.
+;; Why here in subr.el rather than in simple.el?  --Stef
 
 (defvar yank-handled-properties)
 (defvar yank-excluded-properties)

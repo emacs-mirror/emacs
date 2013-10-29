@@ -2601,24 +2601,6 @@ check_window_end (struct window *w)
 
 #endif /* GLYPH_DEBUG and ENABLE_CHECKING */
 
-/* Return mark position if current buffer has the region of non-zero length,
-   or -1 otherwise.  */
-
-static ptrdiff_t
-markpos_of_region (void)
-{
-  if (!NILP (Vtransient_mark_mode)
-      && !NILP (BVAR (current_buffer, mark_active))
-      && XMARKER (BVAR (current_buffer, mark))->buffer != NULL)
-    {
-      ptrdiff_t markpos = XMARKER (BVAR (current_buffer, mark))->charpos;
-
-      if (markpos != PT)
-	return markpos;
-    }
-  return -1;
-}
-
 /***********************************************************************
 		       Iterator initialization
  ***********************************************************************/
@@ -2647,7 +2629,6 @@ init_iterator (struct it *it, struct window *w,
 	       ptrdiff_t charpos, ptrdiff_t bytepos,
 	       struct glyph_row *row, enum face_id base_face_id)
 {
-  ptrdiff_t markpos;
   enum face_id remapped_base_face_id = base_face_id;
 
   /* Some precondition checks.  */
@@ -2750,28 +2731,6 @@ init_iterator (struct it *it, struct window *w,
 
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-
-  /* If visible region is of non-zero length, set IT->region_beg_charpos
-     and IT->region_end_charpos to the start and end of a visible region
-     in window IT->w.  Set both to -1 to indicate no region.  */
-  markpos = markpos_of_region ();
-  if (markpos >= 0
-      /* Maybe highlight only in selected window.  */
-      && (/* Either show region everywhere.  */
-	  highlight_nonselected_windows
-	  /* Or show region in the selected window.  */
-	  || w == XWINDOW (selected_window)
-	  /* Or show the region if we are in the mini-buffer and W is
-	     the window the mini-buffer refers to.  */
-	  || (MINI_WINDOW_P (XWINDOW (selected_window))
-	      && WINDOWP (minibuf_selected_window)
-	      && w == XWINDOW (minibuf_selected_window))))
-    {
-      it->region_beg_charpos = min (PT, markpos);
-      it->region_end_charpos = max (PT, markpos);
-    }
-  else
-    it->region_beg_charpos = it->region_end_charpos = -1;
 
   /* Get the position at which the redisplay_end_trigger hook should
      be run, if it is to be run at all.  */
@@ -3406,16 +3365,6 @@ compute_stop_pos (struct it *it)
       if (pos < it->stop_charpos)
 	it->stop_charpos = pos;
 
-      /* If showing the region, we have to stop at the region
-	 start or end because the face might change there.  */
-      if (it->region_beg_charpos > 0)
-	{
-	  if (IT_CHARPOS (*it) < it->region_beg_charpos)
-	    it->stop_charpos = min (it->stop_charpos, it->region_beg_charpos);
-	  else if (IT_CHARPOS (*it) < it->region_end_charpos)
-	    it->stop_charpos = min (it->stop_charpos, it->region_end_charpos);
-	}
-
       /* Set up variables for computing the stop position from text
          property changes.  */
       XSETBUFFER (object, current_buffer);
@@ -3799,8 +3748,6 @@ handle_face_prop (struct it *it)
       new_face_id
 	= face_at_buffer_position (it->w,
 				   IT_CHARPOS (*it),
-				   it->region_beg_charpos,
-				   it->region_end_charpos,
 				   &next_stop,
 				   (IT_CHARPOS (*it)
 				    + TEXT_PROP_DISTANCE_LIMIT),
@@ -3877,8 +3824,6 @@ handle_face_prop (struct it *it)
 	  base_face_id
 	    = face_for_overlay_string (it->w,
 				       IT_CHARPOS (*it),
-				       it->region_beg_charpos,
-				       it->region_end_charpos,
 				       &next_stop,
 				       (IT_CHARPOS (*it)
 					+ TEXT_PROP_DISTANCE_LIMIT),
@@ -3907,8 +3852,6 @@ handle_face_prop (struct it *it)
 					     it->string,
 					     IT_STRING_CHARPOS (*it),
 					     bufpos,
-					     it->region_beg_charpos,
-					     it->region_end_charpos,
 					     &next_stop,
 					     base_face_id, 0);
 
@@ -4051,8 +3994,6 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 					 it->string,
 					 charpos,
 					 bufpos,
-					 it->region_beg_charpos,
-					 it->region_end_charpos,
 					 &next_check_charpos,
 					 base_face_id, 0);
 
@@ -4142,8 +4083,6 @@ face_before_or_after_it_pos (struct it *it, int before_p)
       /* Determine face for CHARSET_ASCII, or unibyte.  */
       face_id = face_at_buffer_position (it->w,
 					 CHARPOS (pos),
-					 it->region_beg_charpos,
-					 it->region_end_charpos,
 					 &next_check_charpos,
 					 limit, 0, -1);
 
@@ -6441,9 +6380,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 		  ptrdiff_t charpos, ptrdiff_t precision, int field_width,
 		  int multibyte)
 {
-  /* No region in strings.  */
-  it->region_beg_charpos = it->region_end_charpos = -1;
-
   /* No text property checks performed by default, but see below.  */
   it->stop_charpos = -1;
 
@@ -7033,8 +6969,7 @@ get_next_display_element (struct it *it)
 		  INC_TEXT_POS (pos, it->multibyte_p);
 
 		  next_face_id = face_at_buffer_position
-		    (it->w, CHARPOS (pos), it->region_beg_charpos,
-		     it->region_end_charpos, &ignore,
+		    (it->w, CHARPOS (pos), &ignore,
 		     (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT), 0,
 		     -1);
 		  it->end_of_box_run_p
@@ -10906,8 +10841,7 @@ buffer_shared_and_changed (void)
 	  && UNCHANGED_MODIFIED < MODIFF);
 }
 
-/* Nonzero if W's buffer was changed but not saved or Transient Mark mode
-   is enabled and mark of W's buffer was changed since last W's update.  */
+/* Nonzero if W's buffer was changed but not saved.  */
 
 static int
 window_buffer_changed (struct window *w)
@@ -10916,9 +10850,7 @@ window_buffer_changed (struct window *w)
 
   eassert (BUFFER_LIVE_P (b));
 
-  return (((BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)) != w->last_had_star)
-	  || ((!NILP (Vtransient_mark_mode) && !NILP (BVAR (b, mark_active)))
-	      != (w->region_showing != 0)));
+  return (((BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)) != w->last_had_star));
 }
 
 /* Nonzero if W has %c in its mode line and mode line should be updated.  */
@@ -11273,6 +11205,10 @@ prepare_menu_bars (void)
   all_windows = (update_mode_lines
 		 || buffer_shared_and_changed ()
 		 || windows_or_buffers_changed);
+
+  if (FUNCTIONP (Vpre_redisplay_function))
+    safe_call1 (Vpre_redisplay_function, all_windows ? Qt : Qnil);
+
   if (all_windows)
     {
       Lisp_Object tail, frame;
@@ -13147,17 +13083,6 @@ redisplay_internal (void)
       clear_garbaged_frames ();
     }
 
-  /* If showing the region, and mark has changed, we must redisplay
-     the whole window.  The assignment to this_line_start_pos prevents
-     the optimization directly below this if-statement.  */
-  if (((!NILP (Vtransient_mark_mode)
-	&& !NILP (BVAR (XBUFFER (w->contents), mark_active)))
-       != (w->region_showing > 0))
-      || (w->region_showing
-	  && w->region_showing
-	  != XINT (Fmarker_position (BVAR (XBUFFER (w->contents), mark)))))
-    CHARPOS (this_line_start_pos) = 0;
-
   /* Optimize the case that only the line containing the cursor in the
      selected window has changed.  Variables starting with this_ are
      set in display_line and record information about the line
@@ -13317,13 +13242,7 @@ redisplay_internal (void)
 	}
       /* If highlighting the region, or if the cursor is in the echo area,
 	 then we can't just move the cursor.  */
-      else if (! (!NILP (Vtransient_mark_mode)
-		  && !NILP (BVAR (current_buffer, mark_active)))
-	       && (EQ (selected_window,
-		       BVAR (current_buffer, last_selected_window))
-		   || highlight_nonselected_windows)
-	       && !w->region_showing
-	       && NILP (Vshow_trailing_whitespace)
+      else if (NILP (Vshow_trailing_whitespace)
 	       && !cursor_in_echo_area)
 	{
 	  struct it it;
@@ -15003,11 +14922,6 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
       && !update_mode_lines
       && !windows_or_buffers_changed
       && !f->cursor_type_changed
-      /* Can't use this case if highlighting a region.  When a
-         region exists, cursor movement has to do more than just
-         set the cursor.  */
-      && markpos_of_region () < 0
-      && !w->region_showing
       && NILP (Vshow_trailing_whitespace)
       /* This code is not used for mini-buffer for the sake of the case
 	 of redisplaying to replace an echo area message; since in
@@ -15622,7 +15536,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     Move it back to a fully-visible line.  */
 	  new_vpos = window_box_height (w);
 	}
-      else if (w->cursor.vpos >=0)
+      else if (w->cursor.vpos >= 0)
 	{
 	  /* Some people insist on not letting point enter the scroll
 	     margin, even though this part handles windows that didn't
@@ -15680,12 +15594,14 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  /* If we are highlighting the region, then we just changed
 	     the region, so redisplay to show it.  */
-	  if (markpos_of_region () >= 0)
+	  /* FIXME: We need to (re)run pre-redisplay-function!  */
+	  /* if (markpos_of_region () >= 0)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
 		goto need_larger_matrices;
 	    }
+	  */
 	}
 
 #ifdef GLYPH_DEBUG
@@ -16380,10 +16296,8 @@ try_window_reusing_current_matrix (struct window *w)
       || f->cursor_type_changed)
     return 0;
 
-  /* Can't do this if region may have changed.  */
-  if (markpos_of_region () >= 0
-      || w->region_showing
-      || !NILP (Vshow_trailing_whitespace))
+  /* Can't do this if showing trailing whitespace.  */
+  if (!NILP (Vshow_trailing_whitespace))
     return 0;
 
   /* If top-line visibility has changed, give up.  */
@@ -17181,18 +17095,9 @@ try_window_id (struct window *w)
   if (!w->window_end_valid)
     GIVE_UP (8);
 
-  /* Can't use this if highlighting a region because a cursor movement
-     will do more than just set the cursor.  */
-  if (markpos_of_region () >= 0)
-    GIVE_UP (9);
-
   /* Likewise if highlighting trailing whitespace.  */
   if (!NILP (Vshow_trailing_whitespace))
     GIVE_UP (11);
-
-  /* Likewise if showing a region.  */
-  if (w->region_showing)
-    GIVE_UP (10);
 
   /* Can't use this if overlay arrow position and/or string have
      changed.  */
@@ -19276,9 +19181,6 @@ display_line (struct it *it)
       it->f->fonts_changed = 1;
       return 0;
     }
-
-  /* Is IT->w showing the region?  */
-  it->w->region_showing = it->region_beg_charpos > 0 ? it->region_beg_charpos : 0;
 
   /* Clear the result glyph row and enable it.  */
   prepare_desired_row (row);
@@ -22413,9 +22315,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
       it->face_id
 	= face_at_string_position (it->w, face_string, face_string_pos,
-				   0, it->region_beg_charpos,
-				   it->region_end_charpos,
-				   &endptr, it->base_face_id, 0);
+				   0, &endptr, it->base_face_id, 0);
       face = FACE_FROM_ID (it->f, it->face_id);
       it->face_box_p = face->box != FACE_NO_BOX;
     }
@@ -27419,7 +27319,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 
   hlinfo->mouse_face_window = window;
   hlinfo->mouse_face_face_id
-    = face_at_buffer_position (w, mouse_charpos, 0, 0, &ignore,
+    = face_at_buffer_position (w, mouse_charpos, &ignore,
 			       mouse_charpos + 1,
 			       !hlinfo->mouse_face_hidden, -1);
   show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
@@ -28100,8 +28000,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 
 	  hlinfo->mouse_face_face_id = face_at_string_position (w, string,
 								charpos,
-								0, 0, 0,
-								&ignore,
+								0, &ignore,
 								glyph->face_id,
 								1);
 	  show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
@@ -28402,7 +28301,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      hlinfo->mouse_face_past_end = 0;
 	      hlinfo->mouse_face_window = window;
 	      hlinfo->mouse_face_face_id
-		= face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
+		= face_at_string_position (w, object, pos, 0, &ignore,
 					   glyph->face_id, 1);
 	      show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 	      cursor = No_Cursor;
@@ -28449,13 +28348,14 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		     the first row visible in a window does not
 		     necessarily display the character whose position
 		     is the smallest.  */
-		  Lisp_Object lim1 =
-		    NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
+		  Lisp_Object lim1
+		    = NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
 		    ? Fmarker_position (w->start)
 		    : Qnil;
-		  Lisp_Object lim2 =
-		    NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
-		    ? make_number (BUF_Z (XBUFFER (buffer)) - w->window_end_pos)
+		  Lisp_Object lim2
+		    = NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
+		    ? make_number (BUF_Z (XBUFFER (buffer))
+				   - w->window_end_pos)
 		    : Qnil;
 
 		  if (NILP (overlay))
@@ -29787,6 +29687,13 @@ cursor shapes.  */);
   DEFSYM (Qempty_box, "empty-box");
   DEFSYM (Qthin_space, "thin-space");
   DEFSYM (Qzero_width, "zero-width");
+
+  DEFVAR_LISP ("pre-redisplay-function", Vpre_redisplay_function,
+	       doc: /* Function run just before redisplay.
+It is called with one argument, which is the set of windows that are to
+be redisplayed.  This set can be nil (meaning, only the selected window),
+or t (meaning all windows).  */);
+  Vpre_redisplay_function = intern ("ignore");
 
   DEFSYM (Qglyphless_char_display, "glyphless-char-display");
   Fput (Qglyphless_char_display, Qchar_table_extra_slots, make_number (1));

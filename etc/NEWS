@@ -179,6 +179,9 @@ and this variable has been marked obsolete.
 
 * Editing Changes in Emacs 24.4
 
+** New command `rectangle-mark' makes a rectangular region.
+Most commands are still unaware of it, but kill/yank do work on the rectangle.
+
 ** C-x TAB enters a transient interactive mode.
 You can then use the left/right cursor keys to move the block of text.
 
@@ -631,6 +634,8 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** `kill-region' lost its `yank-handler' optional argument.
+
 ** `(input-pending-p)' no longer runs other timers which are ready to
 run.  The new optional CHECK-TIMERS param allows for the prior behavior.
 
@@ -691,6 +696,8 @@ for something (not just adding elements to it), it ought not to affect you.
 
 
 * Lisp Changes in Emacs 24.4
+
+** New hook `pre-redisplay-function'.
 
 +++
 ** Functions that pop up menus and dialogs now work on all terminal types,

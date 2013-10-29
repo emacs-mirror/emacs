@@ -2214,10 +2214,6 @@ struct it
      used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
-  /* Start and end of a visible region; -1 if the region is not
-     visible in the window.  */
-  ptrdiff_t region_beg_charpos, region_end_charpos;
-
   /* Position at which redisplay end trigger functions should be run.  */
   ptrdiff_t redisplay_end_trigger_charpos;
 
@@ -3325,7 +3321,7 @@ void init_baud_rate (int);
 void init_sigio (int);
 void ignore_sigio (void);
 
-/* Defined in xfaces.c */
+/* Defined in xfaces.c.  */
 
 #ifdef HAVE_X_WINDOWS
 void unload_color (struct frame *, unsigned long);
@@ -3352,16 +3348,13 @@ void init_frame_faces (struct frame *);
 void free_frame_faces (struct frame *);
 void recompute_basic_faces (struct frame *);
 int face_at_buffer_position (struct window *w, ptrdiff_t pos,
-                             ptrdiff_t region_beg, ptrdiff_t region_end,
                              ptrdiff_t *endptr, ptrdiff_t limit,
                              int mouse, int base_face_id);
 int face_for_overlay_string (struct window *w, ptrdiff_t pos,
-                             ptrdiff_t region_beg, ptrdiff_t region_end,
                              ptrdiff_t *endptr, ptrdiff_t limit,
                              int mouse, Lisp_Object overlay);
 int face_at_string_position (struct window *w, Lisp_Object string,
                              ptrdiff_t pos, ptrdiff_t bufpos,
-                             ptrdiff_t region_beg, ptrdiff_t region_end,
                              ptrdiff_t *endptr, enum face_id, int mouse);
 int merge_faces (struct frame *, Lisp_Object, int, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
@@ -3369,7 +3362,7 @@ void free_all_realized_faces (Lisp_Object);
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern char unspecified_fg[], unspecified_bg[];
 
-/* Defined in xfns.c  */
+/* Defined in xfns.c.  */
 
 #ifdef HAVE_X_WINDOWS
 void gamma_correct (struct frame *, XColor *);

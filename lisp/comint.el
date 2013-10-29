@@ -2679,7 +2679,7 @@ if necessary."
     (kill-whole-line count)
     (when (>= count 0) (comint-update-fence))))
 
-(defun comint-kill-region (beg end &optional yank-handler)
+(defun comint-kill-region (beg end)
   "Like `kill-region', but ignores read-only properties, if safe.
 This command assumes that the buffer contains read-only
 \"prompts\" which are regions with front-sticky read-only
@@ -2693,7 +2693,6 @@ prompts should stay at the beginning of a line.  If this is not
 the case, this command just calls `kill-region' with all
 read-only properties intact.  The read-only status of newlines is
 updated using `comint-update-fence', if necessary."
-  (declare (advertised-calling-convention (beg end) "23.3"))
   (interactive "r")
   (save-excursion
     (let* ((true-beg (min beg end))
@@ -2708,9 +2707,9 @@ updated using `comint-update-fence', if necessary."
 			 (if (listp end-lst) (memq 'read-only end-lst) t))))
       (if (or (and (not beg-bolp) (or beg-bad end-bad))
 	      (and (not end-bolp) end-bad))
-	  (kill-region beg end yank-handler)
+	  (kill-region beg end)
 	(let ((inhibit-read-only t))
-	  (kill-region beg end yank-handler)
+	  (kill-region beg end)
 	  (comint-update-fence))))))
 
 ;; Support for source-file processing commands.

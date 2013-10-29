@@ -3669,10 +3669,10 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
       ptrdiff_t endptr;
 
       if (STRINGP (string))
-	face_id = face_at_string_position (w, string, pos, 0, -1, -1, &endptr,
+	face_id = face_at_string_position (w, string, pos, 0, &endptr,
 					   DEFAULT_FACE_ID, 0);
       else
-	face_id = face_at_buffer_position (w, pos, -1, -1, &endptr,
+	face_id = face_at_buffer_position (w, pos, &endptr,
 					   pos + 100, 0, -1);
       face = FACE_FROM_ID (f, face_id);
     }
@@ -3716,7 +3716,7 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 	{
 	  int face_id;
 
-	  face_id = face_at_buffer_position (w, pos, 0, 0, &ignore,
+	  face_id = face_at_buffer_position (w, pos, &ignore,
 					     *limit, 0, -1);
 	  face = FACE_FROM_ID (XFRAME (w->frame), face_id);
 	}

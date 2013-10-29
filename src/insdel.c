@@ -1778,6 +1778,8 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   bset_point_before_scroll (current_buffer, Qnil);
 }
 
+Lisp_Object Qregion_extract_function;
+
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.
 
@@ -1843,6 +1845,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
 #endif /* not CLASH_DETECTION */
 
   /* If `select-active-regions' is non-nil, save the region text.  */
+  /* FIXME: Move this to Elisp (via before-change-functions).  */
   if (!NILP (BVAR (current_buffer, mark_active))
       && !inhibit_modification_hooks
       && XMARKER (BVAR (current_buffer, mark))->buffer
@@ -1854,10 +1857,8 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
     {
       ptrdiff_t b = marker_position (BVAR (current_buffer, mark));
       ptrdiff_t e = PT;
-      if (b < e)
-	Vsaved_region_selection = make_buffer_string (b, e, 0);
-      else if (b > e)
-	Vsaved_region_selection = make_buffer_string (e, b, 0);
+      Vsaved_region_selection
+	= call1 (Fsymbol_value (Qregion_extract_function), Qnil);
     }
 
   signal_before_change (start, end, preserve_ptr);
@@ -2201,6 +2202,8 @@ This affects `before-change-functions' and `after-change-functions',
 as well as hooks attached to text properties and overlays.  */);
   inhibit_modification_hooks = 0;
   DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
+
+  DEFSYM (Qregion_extract_function, "region-extract-function");
 
   defsubr (&Scombine_after_change_execute);
 }

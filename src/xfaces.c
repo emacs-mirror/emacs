@@ -5916,7 +5916,6 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
 
 int
 face_at_buffer_position (struct window *w, ptrdiff_t pos,
-			 ptrdiff_t region_beg, ptrdiff_t region_end,
 			 ptrdiff_t *endptr, ptrdiff_t limit,
 			 int mouse, int base_face_id)
 {
@@ -5937,8 +5936,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
   XSETFASTINT (position, pos);
 
   endpos = ZV;
-  if (pos < region_beg && region_beg < endpos)
-    endpos = region_beg;
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
@@ -5974,8 +5971,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* Optimize common cases where we can use the default face.  */
   if (noverlays == 0
-      && NILP (prop)
-      && !(pos >= region_beg && pos < region_end))
+      && NILP (prop))
     return default_face->id;
 
   /* Begin with attributes from the default face.  */
@@ -6002,15 +5998,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 	endpos = oendpos;
     }
 
-  /* If in the region, merge in the region face.  */
-  if (pos >= region_beg && pos < region_end)
-    {
-      merge_named_face (f, Qregion, attrs, 0);
-
-      if (region_end < endpos)
-	endpos = region_end;
-    }
-
   *endptr = endpos;
 
   /* Look up a realized face with the given face attributes,
@@ -6026,7 +6013,6 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
 int
 face_for_overlay_string (struct window *w, ptrdiff_t pos,
-			 ptrdiff_t region_beg, ptrdiff_t region_end,
 			 ptrdiff_t *endptr, ptrdiff_t limit,
 			 int mouse, Lisp_Object overlay)
 {
@@ -6045,8 +6031,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
   XSETFASTINT (position, pos);
 
   endpos = ZV;
-  if (pos < region_beg && region_beg < endpos)
-    endpos = region_beg;
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
@@ -6060,7 +6044,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* Optimize common case where we can use the default face.  */
   if (NILP (prop)
-      && !(pos >= region_beg && pos < region_end)
       && NILP (Vface_remapping_alist))
     return DEFAULT_FACE_ID;
 
@@ -6071,15 +6054,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
     merge_face_ref (f, prop, attrs, 1, 0);
-
-  /* If in the region, merge in the region face.  */
-  if (pos >= region_beg && pos < region_end)
-    {
-      merge_named_face (f, Qregion, attrs, 0);
-
-      if (region_end < endpos)
-	endpos = region_end;
-    }
 
   *endptr = endpos;
 
@@ -6113,7 +6087,6 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 int
 face_at_string_position (struct window *w, Lisp_Object string,
 			 ptrdiff_t pos, ptrdiff_t bufpos,
-			 ptrdiff_t region_beg, ptrdiff_t region_end,
 			 ptrdiff_t *endptr, enum face_id base_face_id,
 			 int mouse_p)
 {
@@ -6145,15 +6118,8 @@ face_at_string_position (struct window *w, Lisp_Object string,
   base_face = FACE_FROM_ID (f, base_face_id);
   eassert (base_face);
 
-  /* Optimize the default case that there is no face property and we
-     are not in the region.  */
+  /* Optimize the default case that there is no face property.  */
   if (NILP (prop)
-      && (base_face_id != DEFAULT_FACE_ID
-	  /* BUFPOS <= 0 means STRING is not an overlay string, so
-	     that the region doesn't have to be taken into account.  */
-	  || bufpos <= 0
-	  || bufpos < region_beg
-	  || bufpos >= region_end)
       && (multibyte_p
 	  /* We can't realize faces for different charsets differently
 	     if we don't have fonts, so we can stop here if not working
@@ -6168,12 +6134,6 @@ face_at_string_position (struct window *w, Lisp_Object string,
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
     merge_face_ref (f, prop, attrs, 1, 0);
-
-  /* If in the region, merge in the region face.  */
-  if (bufpos
-      && bufpos >= region_beg
-      && bufpos < region_end)
-    merge_named_face (f, Qregion, attrs, 0);
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */

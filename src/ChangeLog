@@ -1,3 +1,27 @@
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (prepare_menu_bars): Call Vpre_redisplay_function.
+	(syms_of_xdisp): Declare pre-redisplay-function.
+	(markpos_of_region): Remove function.
+	(init_iterator, compute_stop_pos, handle_face_prop)
+	(face_before_or_after_it_pos, reseat_to_string)
+	(get_next_display_element, window_buffer_changed)
+	(redisplay_internal, try_cursor_movement, redisplay_window)
+	(try_window_reusing_current_matrix, try_window_id, display_line)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight)
+	(display_string, mouse_face_from_buffer_pos): Remove region handling.
+	* window.h (struct window): Remove field `region_showing'.
+	* dispextern.h (struct it): Remove region_beg/end_charpos.
+	(face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Update prototypes.
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Remove `region_beg' and `region_end' args.
+	* fontset.c (Finternal_char_font):
+	* font.c (font_at, font_range): Adjust calls accordingly.
+	* insdel.c (Qregion_extract_function): New var.
+	(syms_of_insdel): Initialize it.
+	(prepare_to_modify_buffer_1): Use it.
+
 2013-10-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Prefer 'unsigned long' to 'long unsigned int' and 'unsigned long int'.

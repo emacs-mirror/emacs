@@ -165,15 +165,9 @@ See `delete-selection-helper'."
        (not (run-hook-with-args-until-success
              'self-insert-uses-region-functions))))
 
-(put 'self-insert-iso 'delete-selection t)
-
 (put 'yank 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
-
-(put 'delete-backward-char 'delete-selection 'supersede)
-(put 'backward-delete-char-untabify 'delete-selection 'supersede)
-(put 'delete-char 'delete-selection 'supersede)
 
 (put 'newline-and-indent 'delete-selection t)
 (put 'newline 'delete-selection t)
