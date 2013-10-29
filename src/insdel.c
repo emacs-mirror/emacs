@@ -1778,7 +1778,7 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   bset_point_before_scroll (current_buffer, Qnil);
 }
 
-Lisp_Object Qregion_extract_function;
+static Lisp_Object Qregion_extract_function;
 
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.
@@ -1854,12 +1854,8 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
 	  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
-    {
-      ptrdiff_t b = marker_position (BVAR (current_buffer, mark));
-      ptrdiff_t e = PT;
-      Vsaved_region_selection
-	= call1 (Fsymbol_value (Qregion_extract_function), Qnil);
-    }
+    Vsaved_region_selection
+      = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
 
   signal_before_change (start, end, preserve_ptr);
   Vdeactivate_mark = Qt;

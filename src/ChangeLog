@@ -1,3 +1,9 @@
+2013-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* insdel.c: Fix minor problems found by static checking.
+	(Qregion_extract_function): Now static.
+	(prepare_to_modify_buffer_1): Remove unused locals.
+
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (prepare_menu_bars): Call Vpre_redisplay_function.
