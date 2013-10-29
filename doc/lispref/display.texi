@@ -5393,7 +5393,7 @@ additionally available in the keymap stored in
 @code{button-buffer-map} as a parent keymap for its keymap.
 
 If the button has a non-@code{nil} @code{follow-link} property, and
-@var{mouse-1-click-follows-link} is set, a quick @key{Mouse-1} click
+@code{mouse-1-click-follows-link} is set, a quick @key{Mouse-1} click
 will also activate the @code{push-button} command.
 @xref{Clickable Text}.
 

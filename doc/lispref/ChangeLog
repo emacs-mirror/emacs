@@ -3,6 +3,7 @@
 	* display.texi (Showing Images): Add an index for image-size.
 	Use @code instead of @var for a normal variable.
 	(Multi-Frame Images): Improve indexing.
+	(Button Buffer Commands): Use @code instead of @var for a normal variable.
 
 2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
 
