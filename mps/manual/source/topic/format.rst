@@ -283,8 +283,10 @@ Format methods
        and so on) with the address of a forwarding marker as the
        argument.
 
-    2. The forwarding marker must not be bigger than the original
-       object.
+    2. The forwarding marker must be the same size as the old object.
+       That is, when the :term:`skip method` is called on the
+       forwarding marker, it must return the same address as when it
+       was called on the old object.
 
     3. It must be possible for the :term:`is-forwarded method` of the
        object format to distinguish the forwarding marker from
