@@ -1038,7 +1038,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
 /* Set the background of widget W to PIXEL.  */
 
 static void
-xg_set_widget_bg (struct frame *f, GtkWidget *w, long unsigned int pixel)
+xg_set_widget_bg (struct frame *f, GtkWidget *w, unsigned long pixel)
 {
 #ifdef HAVE_GTK3
   GdkRGBA bg;
@@ -1439,7 +1439,7 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
    BG is the pixel value to change to.  */
 
 void
-xg_set_background_color (struct frame *f, long unsigned int bg)
+xg_set_background_color (struct frame *f, unsigned long bg)
 {
   if (FRAME_GTK_WIDGET (f))
     {

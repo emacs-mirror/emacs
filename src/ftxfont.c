@@ -57,7 +57,7 @@ struct ftxfont_frame_data
 /* Return an array of 6 GCs for antialiasing.  */
 
 static GC *
-ftxfont_get_gcs (struct frame *f, long unsigned int foreground, long unsigned int background)
+ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long background)
 {
   XColor color;
   XGCValues xgcv;

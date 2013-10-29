@@ -1643,7 +1643,7 @@ x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
    get color reference counts right.  */
 
 unsigned long
-x_copy_color (struct frame *f, long unsigned int pixel)
+x_copy_color (struct frame *f, unsigned long pixel)
 {
   XColor color;
 
@@ -1681,7 +1681,8 @@ x_copy_color (struct frame *f, long unsigned int pixel)
    Value is non-zero if successful.  */
 
 static bool
-x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long unsigned int *pixel, double factor, int delta)
+x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap,
+		       unsigned long *pixel, double factor, int delta)
 {
   XColor color, new;
   long bright;
@@ -1757,7 +1758,8 @@ x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long un
    be allocated, use DEFAULT_PIXEL, instead.  */
 
 static void
-x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int delta, long unsigned int default_pixel)
+x_setup_relief_color (struct frame *f, struct relief *relief, double factor,
+		      int delta, unsigned long default_pixel)
 {
   XGCValues xgcv;
   struct x_output *di = f->output_data.x;
@@ -9686,7 +9688,7 @@ same_x_server (const char *name1, const char *name2)
    get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
    to 5.  */
 static void
-get_bits_and_offset (long unsigned int mask, int *bits, int *offset)
+get_bits_and_offset (unsigned long mask, int *bits, int *offset)
 {
   int nr = 0;
   int off = 0;

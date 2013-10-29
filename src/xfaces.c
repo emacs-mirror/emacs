@@ -535,7 +535,7 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
    is called.  */
 
 void
-x_free_colors (struct frame *f, long unsigned int *pixels, int npixels)
+x_free_colors (struct frame *f, unsigned long *pixels, int npixels)
 {
   int class = FRAME_DISPLAY_INFO (f)->visual->class;
 
@@ -560,7 +560,7 @@ x_free_colors (struct frame *f, long unsigned int *pixels, int npixels)
 
 void
 x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
-		   long unsigned int *pixels, int npixels)
+		   unsigned long *pixels, int npixels)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   int class = dpyinfo->visual->class;
@@ -581,7 +581,7 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
    are given by XGCV and MASK.  */
 
 static GC
-x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
+x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 {
   GC gc;
   block_input ();
@@ -1298,7 +1298,7 @@ load_face_colors (struct frame *f, struct face *face,
 /* Free color PIXEL on frame F.  */
 
 void
-unload_color (struct frame *f, long unsigned int pixel)
+unload_color (struct frame *f, unsigned long pixel)
 {
   if (pixel != -1)
     {

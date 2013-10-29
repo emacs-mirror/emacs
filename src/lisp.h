@@ -71,7 +71,7 @@ typedef unsigned long long int EMACS_UINT;
 #  define pI "ll"
 # elif INT_MAX < LONG_MAX
 typedef long int EMACS_INT;
-typedef unsigned long int EMACS_UINT;
+typedef unsigned long EMACS_UINT;
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # else

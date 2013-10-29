@@ -1,3 +1,18 @@
+2013-10-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Prefer 'unsigned long' to 'long unsigned int' and 'unsigned long int'.
+	* ftxfont.c (ftxfont_get_gcs):
+	* gtkutil.c (xg_set_widget_bg, xg_set_background_color):
+	* xfaces.c (x_free_colors, x_free_dpy_colors)
+	(x_create_gc, unload_color):
+	* xselect.c (x_property_data_to_lisp):
+	* xsettings.c (parse_settings):
+	* xterm.c (x_copy_color, x_alloc_lighter_color, x_setup_relief_color)
+	(get_bits_and_offset): Adjust definition.
+	* frame.c (XParseGeometry): Adjust locals.
+	* lisp.h (toplevel): Adjust EMACS_UINT type definition.
+	* regex.h (toplevel): Likewise for reg_syntax_t.
+
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (run_hook_with_args): Use FUNCTIONP.

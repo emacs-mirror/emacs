@@ -3844,7 +3844,7 @@ XParseGeometry (char *string,
 {
   int mask = NoValue;
   char *strind;
-  unsigned long int tempWidth, tempHeight;
+  unsigned long tempWidth, tempHeight;
   long int tempX, tempY;
   char *nextCharacter;
 

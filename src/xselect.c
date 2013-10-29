@@ -2365,7 +2365,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 
 Lisp_Object
 x_property_data_to_lisp (struct frame *f, const unsigned char *data,
-			 Atom type, int format, long unsigned int size)
+			 Atom type, int format, unsigned long size)
 {
   ptrdiff_t format_bytes = format >> 3;
   if (PTRDIFF_MAX / format_bytes < size)

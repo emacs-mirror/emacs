@@ -393,7 +393,7 @@ get_prop_window (struct x_display_info *dpyinfo)
 
 static int
 parse_settings (unsigned char *prop,
-                long unsigned int bytes,
+                unsigned long bytes,
                 struct xsettings *settings)
 {
   Lisp_Object byteorder = Fbyteorder ();
