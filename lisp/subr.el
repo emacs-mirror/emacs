@@ -586,7 +586,15 @@ saving keyboard macros (see `edmacro-mode')."
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
   (interactive)
-  (ding))
+  (ding)
+  (message "%s is undefined" (key-description (this-single-command-keys)))
+  (setq defining-kbd-macro nil)
+  (force-mode-line-update)
+  ;; If this is a down-mouse event, don't reset prefix-arg;
+  ;; pass it to the command run by the up event.
+  (setq prefix-arg
+        (when (memq 'down (event-modifiers last-command-event))
+          current-prefix-arg)))
 
 ;; Prevent the \{...} documentation construct
 ;; from mentioning keys that run this command.

@@ -1510,27 +1510,8 @@ command_loop_1 (void)
       already_adjusted = 0;
 
       if (NILP (Vthis_command))
-	{
-	  /* nil means key is undefined.  */
-	  Lisp_Object keys = Fvector (i, keybuf);
-	  keys = Fkey_description (keys, Qnil);
-	  bitch_at_user ();
-	  message_with_string ("%s is undefined", keys, 0);
-	  kset_defining_kbd_macro (current_kboard, Qnil);
-	  update_mode_lines = 1;
-	  /* If this is a down-mouse event, don't reset prefix-arg;
-	     pass it to the command run by the up event.  */
-	  if (EVENT_HAS_PARAMETERS (last_command_event))
-	    {
-	      Lisp_Object breakdown
-		= parse_modifiers (EVENT_HEAD (last_command_event));
-	      int modifiers = XINT (XCAR (XCDR (breakdown)));
-	      if (!(modifiers & down_modifier))
-		kset_prefix_arg (current_kboard, Qnil);
-	    }
-	  else
-	    kset_prefix_arg (current_kboard, Qnil);
-	}
+	/* nil means key is undefined.  */
+	call0 (Qundefined);
       else
 	{
 	  /* Here for a command that isn't executed directly.  */

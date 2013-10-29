@@ -1,3 +1,7 @@
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (command_loop_1): If command is nil, call `undefined'.
+
 2013-10-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* insdel.c: Fix minor problems found by static checking.

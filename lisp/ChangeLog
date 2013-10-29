@@ -1,5 +1,8 @@
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (undefined): Add missing behavior from the C code for
+	unbound keys.
+
 	* rect.el: Use lexical-binding.  Add new rectangular region support.
 	(rectangle-mark): New command.
 	(rectangle--region): New var.
