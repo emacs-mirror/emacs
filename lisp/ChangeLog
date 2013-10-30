@@ -1,5 +1,7 @@
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* vc/pcvs.el (cvs-status-cvstrees): Autoload to silence compiler.
+
 	* Makefile.in (finder-data, autoloads, update-subdirs)
 	(compile-main, compile-clean, compile-always, bootstrap-clean):
 	Check return value of cd.
