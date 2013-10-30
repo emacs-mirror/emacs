@@ -441,8 +441,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (let* ((this-dir (car dirs))
 	     (contents (directory-files this-dir))
 	     (default-directory this-dir)
-	     (canonicalized (if (fboundp 'untranslated-canonical-name)
-				(untranslated-canonical-name this-dir))))
+	     (canonicalized (if (fboundp 'w32-untranslated-canonical-name)
+				(w32-untranslated-canonical-name this-dir))))
 	;; The Windows version doesn't report meaningful inode numbers, so
 	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized

@@ -29,13 +29,12 @@
 ;;; Code:
 
 ;; Use ";" instead of ":" as a path separator (from files.el).
-(setq path-separator ";")
-
-(setq minibuffer-history-case-insensitive-variables
-      (cons 'file-name-history minibuffer-history-case-insensitive-variables))
-
-;; Set the null device (for compile.el).
-(setq null-device "NUL")
+(when (memq system-type '(ms-dos windows-nt))
+  (setq path-separator ";")
+  (push 'file-name-history minibuffer-history-case-insensitive-variables)
+  ;; Set the null device (for compile.el).
+  (setq null-device "NUL")
+  (setq-default buffer-file-coding-system 'undecided-dos))
 
 ;; For distinguishing file types based upon suffixes.  DEPRECATED, DO NOT USE!
 (defcustom file-name-buffer-file-type-alist
@@ -67,18 +66,16 @@ This variable is deprecated, not used anywhere, and will soon be deleted."
 			'file-coding-system-alist
 			"24.4")
 
-(setq-default buffer-file-coding-system 'undecided-dos)
-
 (defun find-buffer-file-type-coding-system (command)
   "Choose a coding system for a file operation in COMMAND.
 COMMAND is a list that specifies the operation, an I/O primitive, as its
 CAR, and the arguments that might be given to that operation as its CDR.
 If operation is `insert-file-contents', the coding system is chosen based
 upon the filename (the CAR of the arguments beyond the operation), the contents
-of `untranslated-filesystem-list' and `file-name-buffer-file-type-alist',
+of `w32-untranslated-filesystem-list' and `file-name-buffer-file-type-alist',
 and whether the file exists:
 
-  If it matches in `untranslated-filesystem-list':
+  If it matches in `w32-untranslated-filesystem-list':
     If the file exists:					`undecided'
     If the file does not exist:				`undecided-unix'
   Otherwise:
@@ -95,7 +92,7 @@ upon the value of `buffer-file-coding-system'.  If
 Otherwise, it is `undecided-dos'.
 
 The most common situation is when DOS and Unix files are read and
-written, and their names do not match in `untranslated-filesystem-list'.
+written, and their names do not match in `w32-untranslated-filesystem-list'.
 In these cases, the coding system initially will be `undecided'.
 As the file is read in the DOS case, the coding system will be
 changed to `undecided-dos' as CR/LFs are detected.  As the file
@@ -135,7 +132,7 @@ when writing the file."
 					   (file-name-directory target)))))
 		  (setq undecided t))
 		 ;; Next check for a non-DOS file system.
-		 ((untranslated-file-p target)
+		 ((w32-untranslated-file-p target)
 		  (setq undecided-unix t)))
 	   (cond (undecided-unix '(undecided-unix . undecided-unix))
 		 (undecided '(undecided . undecided))
@@ -149,11 +146,14 @@ when writing the file."
 	     ;; buffer, because normally buffer-file-coding-system is non-nil
 	     ;; in a file-visiting buffer.
 	     '(undecided-dos . undecided-dos))))))
+(make-obsolete 'find-buffer-file-type-coding-system nil "24.4")
 
 (defun find-file-binary (filename)
   "Visit file FILENAME and treat it as binary."
+  ;; FIXME: Why here rather than in files.el?
+  ;; FIXME: Can't we use find-file-literally for the same purposes?
   (interactive "FFind file binary: ")
-  (let ((coding-system-for-read 'no-conversion))
+  (let ((coding-system-for-read 'no-conversion))  ;; FIXME: undecided-unix?
     (find-file filename)))
 
 (defun find-file-text (filename)
@@ -162,7 +162,7 @@ when writing the file."
   (let ((coding-system-for-read 'undecided-dos))
     (find-file filename)))
 
-(defun find-file-not-found-set-buffer-file-coding-system ()
+(defun w32-find-file-not-found-set-buffer-file-coding-system ()
   (with-current-buffer (current-buffer)
     (let ((coding buffer-file-coding-system))
       ;; buffer-file-coding-system is already set by
@@ -171,49 +171,50 @@ when writing the file."
       ;; the EOL conversion, if required by the user.
       (when (and (null coding-system-for-read)
 		 (or inhibit-eol-conversion
-		     (untranslated-file-p (buffer-file-name))))
+		     (w32-untranslated-file-p (buffer-file-name))))
 	(setq coding (coding-system-change-eol-conversion coding 0))
 	(setq buffer-file-coding-system coding))
       nil)))
 
-;;; To set the default coding system on new files.
+;; To set the default coding system on new files.
 (add-hook 'find-file-not-found-functions
-	  'find-file-not-found-set-buffer-file-coding-system)
+	  'w32-find-file-not-found-set-buffer-file-coding-system)
 
 ;;; To accommodate filesystems that do not require CR/LF translation.
-(defvar untranslated-filesystem-list nil
+(define-obsolete-variable-alias 'untranslated-filesystem-list
+  'w32-untranslated-filesystem-list "24.4")
+(defvar w32-untranslated-filesystem-list nil
   "List of filesystems that require no CR/LF translation when reading
 and writing files.  Each filesystem in the list is a string naming
 the directory prefix corresponding to the filesystem.")
 
-(defun untranslated-canonical-name (filename)
+(defun w32-untranslated-canonical-name (filename)
   "Return FILENAME in a canonicalized form for use with the functions
 dealing with untranslated filesystems."
   (if (memq system-type '(ms-dos windows-nt cygwin))
       ;; The canonical form for DOS/W32 is with A-Z downcased and all
       ;; directory separators changed to directory-sep-char.
-      (let ((name nil))
-	(setq name (mapconcat
-		    (lambda (char)
-                      (if (and (<= ?A char) (<= char ?Z))
-                          (char-to-string (+ (- char ?A) ?a))
-                        (char-to-string char)))
-		    filename nil))
+      (let ((name
+             (mapconcat (lambda (char)
+                          (char-to-string (if (and (<= ?A char ?Z))
+                                              (+ (- char ?A) ?a)
+                                            char)))
+                        filename nil)))
 	;; Use expand-file-name to canonicalize directory separators, except
 	;; with bare drive letters (which would have the cwd appended).
 	;; Avoid expanding names that could trigger ange-ftp to prompt
 	;; for passwords, though.
-	(if (or (string-match-p "^.:$" name)
+	(if (or (string-match-p "^.:\\'" name)
 		(string-match-p "^/[^/:]+:" name))
 	    name
 	  (expand-file-name name)))
     filename))
 
-(defun untranslated-file-p (filename)
+(defun w32-untranslated-file-p (filename)
   "Return t if FILENAME is on a filesystem that does not require
 CR/LF translation, and nil otherwise."
-  (let ((fs (untranslated-canonical-name filename))
-	(ufs-list untranslated-filesystem-list)
+  (let ((fs (w32-untranslated-canonical-name filename))
+	(ufs-list w32-untranslated-filesystem-list)
 	(found nil))
     (while (and (not found) ufs-list)
       (if (string-match-p (concat "^" (car ufs-list)) fs)
@@ -221,7 +222,9 @@ CR/LF translation, and nil otherwise."
 	(setq ufs-list (cdr ufs-list))))
     found))
 
-(defun add-untranslated-filesystem (filesystem)
+(define-obsolete-function-alias 'add-untranslated-filesystem
+  'w32-add-untranslated-filesystem "24.4")
+(defun w32-add-untranslated-filesystem (filesystem)
   "Add FILESYSTEM to the list of filesystems that do not require
 CR/LF translation.  FILESYSTEM is a string containing the directory
 prefix corresponding to the filesystem.  For example, for a Unix
@@ -230,25 +233,29 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
   ;; with a directory, but RET returns the current buffer's file, not
   ;; its directory.
   (interactive "DUntranslated file system: ")
-  (let ((fs (untranslated-canonical-name filesystem)))
-    (if (member fs untranslated-filesystem-list)
-	untranslated-filesystem-list
-      (setq untranslated-filesystem-list
-	    (cons fs untranslated-filesystem-list)))))
+  (let ((fs (w32-untranslated-canonical-name filesystem)))
+    (if (member fs w32-untranslated-filesystem-list)
+	w32-untranslated-filesystem-list
+      (push fs w32-untranslated-filesystem-list))))
 
-(defun remove-untranslated-filesystem (filesystem)
+
+(define-obsolete-function-alias 'remove-untranslated-filesystem
+  'w32-remove-untranslated-filesystem "24.4")
+(defun w32-remove-untranslated-filesystem (filesystem)
   "Remove FILESYSTEM from the list of filesystems that do not require
 CR/LF translation.  FILESYSTEM is a string containing the directory
 prefix corresponding to the filesystem.  For example, for a Unix
 filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
   (interactive "fUntranslated file system: ")
-  (setq untranslated-filesystem-list
-	(delete (untranslated-canonical-name filesystem)
-		untranslated-filesystem-list)))
+  (setq w32-untranslated-filesystem-list
+	(delete (w32-untranslated-canonical-name filesystem)
+		w32-untranslated-filesystem-list)))
 
 ;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
 
-(defcustom direct-print-region-use-command-dot-com t
+(define-obsolete-variable-alias 'direct-print-region-use-command-dot-com
+  'w32-direct-print-region-use-command-dot-com "24.4")
+(defcustom w32-direct-print-region-use-command-dot-com t
   "If non-nil, use command.com to print on Windows 9x."
   :type 'boolean
   :group 'dos-fns
@@ -256,7 +263,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.
-(defun direct-print-region-helper (printer
+(defun w32-direct-print-region-helper (printer
                                    start end
                                    lpr-prog
                                    _delete-text _buf _display
@@ -332,7 +339,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	 ((and (eq system-type 'windows-nt)
 	       (getenv "winbootdir")
 	       ;; Allow cop-out so command.com isn't invoked
-	       direct-print-region-use-command-dot-com
+	       w32-direct-print-region-use-command-dot-com
 	       ;; file-attributes fails on LPT ports on Windows 9x but
 	       ;; not on NT, so handle both cases for safety.
 	       (eq (or (nth 7 (file-attributes printer)) 0) 0))
@@ -351,10 +358,12 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 (declare-function default-printer-name "w32fns.c")
 
-(defun direct-print-region-function (start end
-                                     &optional lpr-prog
-                                     delete-text buf display
-                                     &rest rest)
+(define-obsolete-function-alias 'direct-print-region-function
+  'w32-direct-print-region-function "24.4")
+(defun w32-direct-print-region-function (start end
+                                               &optional lpr-prog
+                                               delete-text buf display
+                                               &rest rest)
   "DOS/Windows-specific function to print the region on a printer.
 Writes the region to the device or file which is a value of
 `printer-name' (which see), unless the value of `lpr-command'
@@ -382,8 +391,8 @@ indicates a specific program should be invoked."
     (or (eq coding-system-for-write 'no-conversion)
 	(setq coding-system-for-write
 	      (aref eol-type 1)))	; force conversion to DOS EOLs
-    (direct-print-region-helper printer start end lpr-prog
-				delete-text buf display rest)))
+    (w32-direct-print-region-helper printer start end lpr-prog
+                                    delete-text buf display rest)))
 
 (defvar lpr-headers-switches)
 
@@ -395,14 +404,17 @@ indicates a specific program should be invoked."
 ;; then requests to print page headers will be silently
 ;; ignored, and `print-buffer' and `print-region' produce
 ;; the same output as `lpr-buffer' and `lpr-region', accordingly.
-(setq lpr-headers-switches "(page headers are not supported)")
+(when (memq system-type '(ms-dos windows-nt))
+  (setq lpr-headers-switches "(page headers are not supported)"))
 
 (defvar ps-printer-name)
 
-(defun direct-ps-print-region-function (start end
-					      &optional lpr-prog
-					      delete-text buf display
-					      &rest rest)
+(define-obsolete-function-alias 'direct-ps-print-region-function
+  'w32-direct-ps-print-region-function "24.4")
+(defun w32-direct-ps-print-region-function (start end
+                                                  &optional lpr-prog
+                                                  delete-text buf display
+                                                  &rest rest)
   "DOS/Windows-specific function to print the region on a PostScript printer.
 Writes the region to the device or file which is a value of
 `ps-printer-name' (which see), unless the value of `ps-lpr-command'
@@ -413,8 +425,8 @@ indicates a specific program should be invoked."
 			  (symbol-value 'dos-ps-printer))
 		     ps-printer-name
 		     (default-printer-name))))
-    (direct-print-region-helper printer start end lpr-prog
-				delete-text buf display rest)))
+    (w32-direct-print-region-helper printer start end lpr-prog
+                                    delete-text buf display rest)))
 
 ;(setq ps-lpr-command "gs")
 

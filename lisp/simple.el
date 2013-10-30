@@ -3676,7 +3676,7 @@ some text between BEG and END, but we're copying the region.
 This command's old key binding has been given to `kill-ring-save'."
   (interactive "r\np")
   (let ((str (if region
-                 (funcall region-extract-function)
+                 (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
   (if (eq last-command 'kill-region)
         (kill-append str (< end beg))

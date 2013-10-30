@@ -1,5 +1,26 @@
 2013-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (copy-region-as-kill): Fix call to region-extract-function.
+
+	* emacs-lisp/bytecomp.el (byte-defop-compiler): Add new `2-and' handler.
+	(byte-compile-and-folded): New function.
+	(=, <, >, <=, >=): Use it.
+
+	* dos-w32.el (minibuffer-history-case-insensitive-variables)
+	(path-separator, null-device, buffer-file-coding-system)
+	(lpr-headers-switches): Check system-type before modifying them.
+	(find-buffer-file-type-coding-system): Mark obsolete.
+	(w32-find-file-not-found-set-buffer-file-coding-system): Rename from
+	find-file-not-found-set-buffer-file-coding-system.
+	(w32-untranslated-filesystem-list, w32-untranslated-canonical-name):
+	(w32-add-untranslated-filesystem, w32-remove-untranslated-filesystem)
+	(w32-direct-print-region-use-command-dot-com, w32-untranslated-file-p):
+	(w32-direct-print-region-helper, w32-direct-print-region-function)
+	(w32-direct-ps-print-region-function): Rename by adding a "w32-" prefix.
+	* startup.el (normal-top-level-add-subdirs-to-load-path):
+	* ps-print.el (ps-print-region-function):
+	* lpr.el (print-region-function): Use new name.
+
 	* subr.el (custom-declare-variable-early): Remove function.
 	(custom-declare-variable-list): Remove var.
 	(error, user-error): Remove `while' loop.

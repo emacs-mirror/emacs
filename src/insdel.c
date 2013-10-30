@@ -827,7 +827,7 @@ insert_1_both (const char *string,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* The insert may have been in the unchanged region, so check again. */
+  /* The insert may have been in the unchanged region, so check again.  */
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
@@ -956,7 +956,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* The insert may have been in the unchanged region, so check again. */
+  /* The insert may have been in the unchanged region, so check again.  */
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
@@ -1148,7 +1148,7 @@ insert_from_buffer_1 (struct buffer *buf,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* The insert may have been in the unchanged region, so check again. */
+  /* The insert may have been in the unchanged region, so check again.  */
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 

@@ -3175,6 +3175,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 				      '((0 . byte-compile-no-args)
 					(1 . byte-compile-one-arg)
 					(2 . byte-compile-two-args)
+					(2-and . byte-compile-and-folded)
 					(3 . byte-compile-three-args)
 					(0-1 . byte-compile-zero-or-one-arg)
 					(1-2 . byte-compile-one-or-two-args)
@@ -3256,11 +3257,11 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler cons		2)
 (byte-defop-compiler aref		2)
 (byte-defop-compiler set		2)
-(byte-defop-compiler (= byte-eqlsign)	2)
-(byte-defop-compiler (< byte-lss)	2)
-(byte-defop-compiler (> byte-gtr)	2)
-(byte-defop-compiler (<= byte-leq)	2)
-(byte-defop-compiler (>= byte-geq)	2)
+(byte-defop-compiler (= byte-eqlsign)	2-and)
+(byte-defop-compiler (< byte-lss)	2-and)
+(byte-defop-compiler (> byte-gtr)	2-and)
+(byte-defop-compiler (<= byte-leq)	2-and)
+(byte-defop-compiler (>= byte-geq)	2-and)
 (byte-defop-compiler get		2)
 (byte-defop-compiler nth		2)
 (byte-defop-compiler substring		2-3)
@@ -3323,6 +3324,16 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
     (byte-compile-form (car (cdr form)))  ;; Push the arguments
     (byte-compile-form (nth 2 form))
     (byte-compile-out (get (car form) 'byte-opcode) 0)))
+
+(defun byte-compile-and-folded (form)
+  "Compile calls to functions like `<='.
+These implicitly `and' together a bunch of two-arg bytecodes."
+  (let ((l (length form)))
+    (cond
+     ((< l 3) (byte-compile-form `(progn ,(nth 1 form) t)))
+     ((= l 3) (byte-compile-two-args form))
+     (t (byte-compile-form `(and (,(car form) ,(nth 1 form) ,(nth 2 form))
+				 (,(car form) ,@(nthcdr 2 form))))))))
 
 (defun byte-compile-three-args (form)
   (if (not (= (length form) 4))

@@ -1772,7 +1772,7 @@ See `ps-lpr-command'."
 
 (defcustom ps-print-region-function
   (if (memq system-type '(ms-dos windows-nt))
-      #'direct-ps-print-region-function
+      #'w32-direct-ps-print-region-function
     #'call-process-region)
   "Specify a function to print the region on a PostScript printer.
 See definition of `call-process-region' for calling conventions.  The fourth
