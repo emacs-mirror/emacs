@@ -1,3 +1,8 @@
+2013-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	`newline' does not respect `standard-output', so use `princ'.
+
 2013-10-30  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	Ensure unmarking in buffer menu clears 'S' marks.  (Bug#15761)

@@ -553,7 +553,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                           (princ `(push (purecopy
                                              ',(cons (intern package) version))
                                         package--builtin-versions))
-                         (newline)))))
+			  (princ "\n")))))
 
               (goto-char (point-min))
               (while (not (eobp))
