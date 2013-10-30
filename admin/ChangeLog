@@ -1,5 +1,15 @@
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* unidata/unidata-gen.el (unidata-gen-files): Use pop.
+	Also take the output directory as an argument.
+	* unidata/Makefile.in: Simplify now that unidata-gen-files takes
+	the output directory as an argument (no need to cd, etc).
+	(abs_srcdir, abs_builddir): Remove.
+	(abs_top_builddir): Replace by top_builddir.
+	(${DSTDIR}/charprop.el): No need to cd.  Pass dest as argument.
+	(${DSTDIR}/charprop.el, charprop.el):
+	No need to pass unidata.txt as argument.
+
 	* unidata/unidata-gen.el (unidata--ensure-compiled): New function.
 	(unidata-gen-table-name, unidata-gen-table-decomposition)
 	(unidata-gen-files): Use unidata--ensure-compiled.

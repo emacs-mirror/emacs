@@ -31,7 +31,7 @@
 ;; FILES TO BE GENERATED
 ;;
 ;;   The entry function `unidata-gen-files' generates these files in
-;;   the current directory.
+;;   in directory specified by its dest-dir argument.
 ;;
 ;;   charprop.el
 ;;	It contains a series of forms of this format:
@@ -90,9 +90,9 @@
 
 (defvar unidata-list nil)
 
-;; Name of the directory containing files of Unicode Character
-;; Database.
+;; Name of the directory containing files of Unicode Character Database.
 
+;; Dynamically bound in unidata-gen-files.
 (defvar unidata-dir nil)
 
 (defun unidata-setup-list (unidata-text-file)
@@ -1182,12 +1182,17 @@ is the character itself.")))
 ;; The entry function.  It generates files described in the header
 ;; comment of this file.
 
-(defun unidata-gen-files (&optional data-dir unidata-text-file)
+;; Write files (charprop.el, uni-*.el) to dest-dir (default PWD),
+;; using as input files from data-dir, and
+;; unidata-text-file (default "unidata.txt" in PWD).
+(defun unidata-gen-files (&optional data-dir dest-dir unidata-text-file)
   (or data-dir
       (setq data-dir (pop command-line-args-left)
-	    unidata-text-file (pop command-line-args-left)))
+	    dest-dir (or (pop command-line-args-left) default-directory)
+	    unidata-text-file (or (pop command-line-args-left)
+				  (expand-file-name "unidata.txt"))))
   (let ((coding-system-for-write 'utf-8-unix)
-	(charprop-file "charprop.el")
+	(charprop-file (expand-file-name "charprop.el" dest-dir))
 	(unidata-dir data-dir))
     (dolist (elt unidata-prop-alist)
       (let* ((prop (car elt))
@@ -1200,7 +1205,8 @@ is the character itself.")))
       (dolist (elt unidata-prop-alist)
 	(let* ((prop (car elt))
 	       (generator (unidata-prop-generator prop))
-	       (file (unidata-prop-file prop))
+	       (file (expand-file-name (unidata-prop-file prop) dest-dir))
+	       (basename (file-name-nondirectory file))
 	       (docstring (unidata-prop-docstring prop))
 	       (describer (unidata-prop-describer prop))
 	       (default-value (unidata-prop-default prop))
@@ -1208,9 +1214,9 @@ is the character itself.")))
 	       table)
 	  ;; Filename in this comment line is extracted by sed in
 	  ;; Makefile.
-	  (insert (format ";; FILE: %s\n" file))
+	  (insert (format ";; FILE: %s\n" basename))
 	  (insert (format "(define-char-code-property '%S %S\n  %S)\n"
-			  prop file docstring))
+			  prop basename docstring))
 	  (with-temp-buffer
 	    (message "Generating %s..." file)
 	    (when (file-exists-p file)
@@ -1235,7 +1241,7 @@ is the character itself.")))
 			";; coding: utf-8\n"
 			";; no-byte-compile: t\n"
 			";; End:\n\n"
-			(format ";; %s ends here\n" file)))
+			(format ";; %s ends here\n" basename)))
 	    (write-file file)
 	    (message "Generating %s...done" file))))
       (message "Writing %s..." charprop-file)
@@ -1243,7 +1249,8 @@ is the character itself.")))
 	      ";; coding: utf-8\n"
 	      ";; no-byte-compile: t\n"
 	      ";; End:\n\n"
-	      (format ";; %s ends here\n" charprop-file)))))
+	      (format ";; %s ends here\n"
+		      (file-name-nondirectory charprop-file))))))
 
 
 
