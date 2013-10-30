@@ -1,4 +1,7 @@
 ;; unidata-gen.el -- Create files containing character property data.
+
+;; Copyright 2008-2013 (C) Free Software Foundation, Inc.
+
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -23,8 +26,7 @@
 ;; SPECIAL NOTICE
 ;;
 ;;   This file must be byte-compilable/loadable by `temacs' and also
-;;   the entry function `unidata-gen-files' must be runnable by
-;;   `temacs'.
+;;   the entry function `unidata-gen-files' must be runnable by `temacs'.
 
 ;; FILES TO BE GENERATED
 ;;
@@ -975,11 +977,15 @@ is the character itself.")))
 		      idx (1+ i)))))
 	(nreverse (cons (intern (substring str idx)) l))))))
 
+(defun unidata--ensure-compiled (&rest funcs)
+  (dolist (fun funcs)
+    (or (byte-code-function-p (symbol-function fun))
+	(byte-compile fun))))
+
 (defun unidata-gen-table-name (prop &rest ignore)
   (let* ((table (unidata-gen-table-word-list prop 'unidata-split-name))
 	 (word-tables (char-table-extra-slot table 4)))
-    (byte-compile 'unidata-get-name)
-    (byte-compile 'unidata-put-name)
+    (unidata--ensure-compiled 'unidata-get-name 'unidata-put-name)
     (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-name))
     (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-name))
 
@@ -1017,8 +1023,8 @@ is the character itself.")))
 (defun unidata-gen-table-decomposition (prop &rest ignore)
   (let* ((table (unidata-gen-table-word-list prop 'unidata-split-decomposition))
 	 (word-tables (char-table-extra-slot table 4)))
-    (byte-compile 'unidata-get-decomposition)
-    (byte-compile 'unidata-put-decomposition)
+    (unidata--ensure-compiled 'unidata-get-decomposition
+			      'unidata-put-decomposition)
     (set-char-table-extra-slot table 1
 			       (symbol-function 'unidata-get-decomposition))
     (set-char-table-extra-slot table 2
@@ -1178,10 +1184,8 @@ is the character itself.")))
 
 (defun unidata-gen-files (&optional data-dir unidata-text-file)
   (or data-dir
-      (setq data-dir (car command-line-args-left)
-	    command-line-args-left (cdr command-line-args-left)
-	    unidata-text-file (car command-line-args-left)
-	    command-line-args-left (cdr command-line-args-left)))
+      (setq data-dir (pop command-line-args-left)
+	    unidata-text-file (pop command-line-args-left)))
   (let ((coding-system-for-write 'utf-8-unix)
 	(charprop-file "charprop.el")
 	(unidata-dir data-dir))
@@ -1216,7 +1220,7 @@ is the character itself.")))
 	    (setq table (funcall generator prop default-value val-list))
 	    (when describer
 	      (unless (subrp (symbol-function describer))
-		(byte-compile describer)
+		(unidata--ensure-compiled describer)
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
 	    (if (bobp)

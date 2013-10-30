@@ -1,5 +1,9 @@
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* unidata/unidata-gen.el (unidata--ensure-compiled): New function.
+	(unidata-gen-table-name, unidata-gen-table-decomposition)
+	(unidata-gen-files): Use unidata--ensure-compiled.
+
 	* unidata/Makefile.in (abs_srcdir): New, set by configure.
 	(${DSTDIR}/charprop.el, charprop.el): Update for srcdir not absolute.
 	(clean): Delete all .elc files.
