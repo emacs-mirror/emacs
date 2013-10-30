@@ -165,21 +165,21 @@ doit:
 $(lisp)/cus-load.el:
 	$(MAKE) $(MFLAGS) custom-deps
 custom-deps: doit
-	cd $(lisp); $(setwins_almost); \
+	cd $(lisp) && $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(abs_lisp)/cus-load.el"))' -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
-	cd $(lisp); $(setwins_almost); \
+	cd $(lisp) && $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(abs_lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
-	cd $(lisp); $(setwins_almost); \
+	cd $(lisp) && $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
@@ -191,7 +191,7 @@ autoloads: $(LOADDEFS) doit
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
-	cd $(lisp); $(setwins_for_subdirs); \
+	cd $(lisp) && $(setwins_for_subdirs); \
 	for file in $$wins; do \
 	   ../build-aux/update-subdirs $$file; \
 	done;
@@ -279,7 +279,7 @@ compile-targets: $(TARGETS)
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
 compile-main: compile-clean
-	@(cd $(lisp); $(setwins); \
+	@(cd $(lisp) && $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
 	  test -f $$el || continue; \
@@ -293,7 +293,7 @@ compile-main: compile-clean
 .PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
-	@cd $(lisp); $(setwins); \
+	@cd $(lisp) && $(setwins); \
 	elcs=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
 	for el in `echo $$elcs | sed -e 's/\.elc/\.el/g'`; do \
 	  if test -f "$$el" -o \! -f "$${el}c"; then :; else \
@@ -315,16 +315,10 @@ compile: $(LOADDEFS) autoloads compile-first
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
-	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
+	cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 	$(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
-.PHONY: compile-calc backup-compiled-files compile-after-backup
-
-compile-calc:
-	for el in $(lisp)/calc/*.el; do \
-	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1;\
-	done
+.PHONY: backup-compiled-files compile-after-backup
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
 # exists, make a backup of it.
@@ -441,7 +435,7 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 .PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
-	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
+	-cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
 
 distclean:
 	-rm -f ./Makefile $(lisp)/loaddefs.el~
