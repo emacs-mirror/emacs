@@ -3,9 +3,7 @@
 ;; Copyright (C) 2002-2003, 2009-2013 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
-;; Package: 
-
-htmlfontify
+;; Package: htmlfontify
 ;; Filename: htmlfontify.el
 ;; Version: 0.21
 ;; Keywords: html, hypermedia, markup, etags
