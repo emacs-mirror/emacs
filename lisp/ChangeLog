@@ -1,5 +1,8 @@
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-ls.el (eshell-ls-directory, eshell-ls-symlink):
+	Fix doc typos.
+
 	* vc/pcvs.el (cvs-status-cvstrees): Autoload to silence compiler.
 
 	* Makefile.in (finder-data, autoloads, update-subdirs)

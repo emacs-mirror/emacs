@@ -100,14 +100,14 @@ faster and conserves more memory."
   '((((class color) (background light)) (:foreground "Blue" :weight bold))
     (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
     (t (:weight bold)))
-  "The face used for highlight directories.")
+  "The face used for highlighting directories.")
 (define-obsolete-face-alias 'eshell-ls-directory-face
   'eshell-ls-directory "22.1")
 
 (defface eshell-ls-symlink
   '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
-  "The face used for highlight symbolic links.")
+  "The face used for highlighting symbolic links.")
 (define-obsolete-face-alias 'eshell-ls-symlink-face 'eshell-ls-symlink "22.1")
 
 (defface eshell-ls-executable
