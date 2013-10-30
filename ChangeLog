@@ -1,3 +1,8 @@
+2013-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean, bootstrap-clean, maintainer-clean):
+	Also clean admin/unidata, if present.
+
 2013-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: It seems installing in non-ASCII is not, in fact, ok.

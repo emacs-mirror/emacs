@@ -63,4 +63,4 @@ clean:
 distclean: clean
 	-rm -f ./Makefile
 
-maintainer-clean: distclean
+bootstrap-clean maintainer-clean: distclean

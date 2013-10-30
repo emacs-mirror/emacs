@@ -7,6 +7,7 @@
 	* unidata/Makefile.in (abs_srcdir): New, set by configure.
 	(${DSTDIR}/charprop.el, charprop.el): Update for srcdir not absolute.
 	(clean): Delete all .elc files.
+	(bootstrap-clean): New rule.
 
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 
