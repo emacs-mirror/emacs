@@ -1,7 +1,7 @@
 /* bt.c: BIT TABLES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * READERSHIP
  *
@@ -683,6 +683,9 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
       if (resBase != minLimit) {
         /* Already found the start of next candidate range */
         minLimit = resBase + minLength;
+        /* minLimit might just have gone out of bounds, but in that
+         * case resBase >= resLimit and so the loop will exit. */
+        AVER(minLimit <= searchLimit || resBase >= resLimit);
       } else {
         foundRes = FALSE;
       }
@@ -776,7 +779,11 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
       unseenLimit = minBase;
       resLimit = setIndex;
       if (resLimit != minBase) {
-        /* Already found the start of next candidate range */
+        /* Already found the start of next candidate range. This wraps
+         * round if minLength > resLimit (all the variables are
+         * unsigned so this behaviour is defined), but that means that
+         * resLimit <= resBase and so the loop will exit. */
+        AVER(resLimit >= minLength || resLimit <= resBase);
         minBase = resLimit - minLength;
       } else {
         foundRes = FALSE;
@@ -1020,7 +1027,7 @@ Count BTCountResRange(BT bt, Index base, Index limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
