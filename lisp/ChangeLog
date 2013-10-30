@@ -1,5 +1,7 @@
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (AUTOGENEL): Add org/org-loaddefs.el.
+
 	* emacs-lisp/package.el (lm-homepage): Declare.
 
 	* eshell/em-ls.el (eshell-ls-directory, eshell-ls-symlink):

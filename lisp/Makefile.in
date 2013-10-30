@@ -76,7 +76,8 @@ AUTOGENEL = loaddefs.el \
 	eshell/esh-groups.el \
 	cedet/semantic/loaddefs.el \
 	cedet/ede/loaddefs.el \
-	cedet/srecode/loaddefs.el
+	cedet/srecode/loaddefs.el \
+	org/org-loaddefs.el
 
 # Versioned files that are the value of someone's `generated-autoload-file'.
 # Note that update_loaddefs parses this.
