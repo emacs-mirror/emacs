@@ -1,3 +1,13 @@
+2013-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-shell-get-buffer): New function.
+	(python-shell-get-process): Use it.
+	(python-shell-send-string): Always use utf-8 and add a cookie to tell
+	Python which encoding was used.  Don't split-string since we only care
+	about the first line.  Return the temp-file, if applicable.
+	(python-shell-send-region): Tell compile.el how to turn locations in
+	the temp-file into locations in the source buffer.
+
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (undefined): Add missing behavior from the C code for

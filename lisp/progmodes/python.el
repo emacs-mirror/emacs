@@ -1968,8 +1968,8 @@ startup."
       (python-shell-parse-command)
       (python-shell-internal-get-process-name) nil t))))
 
-(defun python-shell-get-process ()
-  "Get inferior Python process for current buffer and return it."
+(defun python-shell-get-buffer ()
+  "Get inferior Python buffer for current buffer and return it."
   (let* ((dedicated-proc-name (python-shell-get-process-name t))
          (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
          (global-proc-name  (python-shell-get-process-name nil))
@@ -1977,8 +1977,12 @@ startup."
          (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
          (global-running (comint-check-proc global-proc-buffer-name)))
     ;; Always prefer dedicated
-    (get-buffer-process (or (and dedicated-running dedicated-proc-buffer-name)
-                            (and global-running global-proc-buffer-name)))))
+    (or (and dedicated-running dedicated-proc-buffer-name)
+        (and global-running global-proc-buffer-name))))
+
+(defun python-shell-get-process ()
+  "Get inferior Python process for current buffer and return it."
+  (get-buffer-process (python-shell-get-buffer)))
 
 (defun python-shell-get-or-create-process ()
   "Get or create an inferior Python process for current buffer and return it."
@@ -2034,26 +2038,32 @@ there for compatibility with CEDET.")
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
-When MSG is non-nil messages the first line of STRING."
+When MSG is non-nil messages the first line of STRING.
+If a temp file is used, return its name, otherwise return nil."
   (interactive "sPython command: ")
   (let ((process (or process (python-shell-get-or-create-process)))
-        (lines (split-string string "\n" t)))
-    (and msg (message "Sent: %s..." (nth 0 lines)))
-    (if (> (length lines) 1)
+        (_ (string-match "\\`\n*\\(.*\\)\\(\n.\\)?" string))
+        (multiline (match-beginning 2)))
+    (and msg (message "Sent: %s..." (match-string 1 string)))
+    (if multiline
         (let* ((temporary-file-directory
                 (if (file-remote-p default-directory)
                     (concat (file-remote-p default-directory) "/tmp")
                   temporary-file-directory))
                (temp-file-name (make-temp-file "py"))
+               (coding-system-for-write 'utf-8)
                (file-name (or (buffer-file-name) temp-file-name)))
           (with-temp-file temp-file-name
+            (insert "# -*- coding: utf-8 -*-\n")
             (insert string)
             (delete-trailing-whitespace))
-          (python-shell-send-file file-name process temp-file-name))
+          (python-shell-send-file file-name process temp-file-name)
+          temp-file-name)
       (comint-send-string process string)
       (when (or (not (string-match "\n$" string))
                 (string-match "\n[ \t].*\n?$" string))
-        (comint-send-string process "\n")))))
+        (comint-send-string process "\n"))
+      nil)))
 
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
@@ -2179,11 +2189,18 @@ the python shell:
                  (line-number-at-pos if-name-main-start)) ?\n)))))
       (buffer-substring-no-properties (point-min) (point-max)))))
 
+(declare-function compilation-fake-loc "compile"
+                  (marker file &optional line col))
+
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
-  (python-shell-send-string
-   (python-shell-buffer-substring start end) nil t))
+  (let ((temp-file-name
+         (python-shell-send-string
+          (python-shell-buffer-substring start end) nil t)))
+    (when temp-file-name
+      (with-current-buffer (python-shell-get-buffer)
+        (compilation-fake-loc (copy-marker start) temp-file-name)))))
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
