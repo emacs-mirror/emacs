@@ -58,7 +58,9 @@ clean:
 	fi
 	rm -f charprop.el ${srcdir}/*.elc unidata.txt
 
+bootstrap-clean: clean
+
 distclean: clean
 	-rm -f ./Makefile
 
-bootstrap-clean maintainer-clean: distclean
+maintainer-clean: distclean
