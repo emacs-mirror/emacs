@@ -221,6 +221,9 @@ never really made it work for this.
 
 Perspectives also need to interact with the tabs.
 
+** FFI (foreign function interface)
+See eg http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00246.html
+
 ** Imenu could be extended into a file-structure browsing mechanism
 using code like that of customize-groups.
 
@@ -442,6 +445,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
+  [Basic support added 2013/10:
+  http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00904.html ]
 
 ** Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with GCC 4.x and proprietary compilers on
