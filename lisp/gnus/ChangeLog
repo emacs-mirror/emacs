@@ -1,6 +1,7 @@
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-group-browse-foreign-server):
+	* gnus-int.el (gnus-start-news-server):
 	Silence compiler obsolescence warning.
 
 2013-10-29  Teodor Zlatanov  <tzz@lifelogs.com>
