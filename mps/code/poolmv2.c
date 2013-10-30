@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -425,7 +425,10 @@ static void MVTFinish(Pool pool)
   /* Free the segments in the pool */
   ring = PoolSegRing(pool);
   RING_FOR(node, ring, nextNode) {
-    MVTSegFree(mvt, SegOfPoolRing(node));
+    /* We mustn't call MVTSegFree, because we don't know whether or not
+     * there was any fragmented (unavailable) space in this segment,
+     * and so we can't keep the accounting correct. */
+    SegFree(SegOfPoolRing(node));
   }
 
   /* Finish the Freelist, ABQ and CBS structures */
@@ -1083,6 +1086,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
 static void MVTSegFree(MVT mvt, Seg seg)
 {
   Size size = SegSize(seg);
+  AVER(mvt->available >= size);
 
   mvt->available -= size;
   mvt->size -= size;
@@ -1357,7 +1361,7 @@ CBS _mps_mvt_cbs(mps_pool_t mps_pool) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
