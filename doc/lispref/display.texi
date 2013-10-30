@@ -5469,6 +5469,8 @@ The text's start position in the buffer.
 The header and footer strings.
 
 @item
+@cindex node, ewoc
+@c or "@cindex node, abstract display"?
 A doubly-linked chain of @dfn{nodes}, each of which contains:
 
 @itemize
@@ -5493,6 +5495,8 @@ between buffer positions and nodes, move point from one node's textual
 representation to another, and so forth.  @xref{Abstract Display
 Functions}.
 
+@cindex encapsulation, ewoc
+@c or "@cindex encapsulation, abstract display"?
   A node @dfn{encapsulates} a data element much the way a variable
 holds a value.  Normally, encapsulation occurs as a part of adding a
 node to the ewoc.  You can retrieve the data element value and place a
