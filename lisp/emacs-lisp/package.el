@@ -1101,6 +1101,8 @@ Otherwise return nil."
 	    str)
       (error nil))))
 
+(declare-function lm-homepage "lisp-mnt" (&optional file))
+
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
 
