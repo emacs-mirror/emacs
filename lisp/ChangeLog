@@ -1,3 +1,9 @@
+2013-10-30  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	Ensure unmarking in buffer menu clears 'S' marks.  (Bug#15761)
+	* buff-menu.el (Buffer-menu--unmark): New function.
+	(Buffer-menu-unmark, Buffer-menu-backup-unmark): Use it.
+
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (AUTOGENEL): Add org/org-loaddefs.el.
