@@ -636,6 +636,67 @@ column specified by the function `current-left-margin'."
       (delete-horizontal-space t))
     (indent-according-to-mode)))
 
+(defcustom read-quoted-char-radix 8
+ "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
+Legitimate radix values are 8, 10 and 16."
+ :type '(choice (const 8) (const 10) (const 16))
+ :group 'editing-basics)
+
+(defun read-quoted-char (&optional prompt)
+  "Like `read-char', but do not allow quitting.
+Also, if the first character read is an octal digit,
+we read any number of octal digits and return the
+specified character code.  Any nondigit terminates the sequence.
+If the terminator is RET, it is discarded;
+any other terminator is used itself as input.
+
+The optional argument PROMPT specifies a string to use to prompt the user.
+The variable `read-quoted-char-radix' controls which radix to use
+for numeric input."
+  (let ((message-log-max nil) done (first t) (code 0) translated)
+    (while (not done)
+      (let ((inhibit-quit first)
+	    ;; Don't let C-h get the help message--only help function keys.
+	    (help-char nil)
+	    (help-form
+	     "Type the special character you want to use,
+or the octal character code.
+RET terminates the character code and is discarded;
+any other non-digit terminates the character code and is then used as input."))
+	(setq translated (read-key (and prompt (format "%s-" prompt))))
+	(if inhibit-quit (setq quit-flag nil)))
+      (if (integerp translated)
+	  (setq translated (char-resolve-modifiers translated)))
+      (cond ((null translated))
+	    ((not (integerp translated))
+	     (setq unread-command-events
+                   (listify-key-sequence (this-single-command-raw-keys))
+		   done t))
+	    ((/= (logand translated ?\M-\^@) 0)
+	     ;; Turn a meta-character into a character with the 0200 bit set.
+	     (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
+		   done t))
+	    ((and (<= ?0 translated)
+                  (< translated (+ ?0 (min 10 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
+	     (and prompt (setq prompt (message "%s %c" prompt translated))))
+	    ((and (<= ?a (downcase translated))
+		  (< (downcase translated)
+                     (+ ?a -10 (min 36 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix)
+			   (+ 10 (- (downcase translated) ?a))))
+	     (and prompt (setq prompt (message "%s %c" prompt translated))))
+	    ((and (not first) (eq translated ?\C-m))
+	     (setq done t))
+	    ((not first)
+	     (setq unread-command-events
+                   (listify-key-sequence (this-single-command-raw-keys))
+		   done t))
+	    (t (setq code translated
+		     done t)))
+      (setq first nil))
+    code))
+
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.

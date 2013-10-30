@@ -1,5 +1,17 @@
 2013-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (custom-declare-variable-early): Remove function.
+	(custom-declare-variable-list): Remove var.
+	(error, user-error): Remove `while' loop.
+	(read-quoted-char-radix, read-quoted-char): Move to simple.el.
+	(user-emacs-directory-warning, locate-user-emacs-file):
+	Move to files.el.
+	* simple.el (read-quoted-char-radix, read-quoted-char):
+	* files.el (user-emacs-directory-warning, locate-user-emacs-file):
+	Move from subr.el.
+	* custom.el (custom-declare-variable-list): Don't process
+	custom-declare-variable-list.
+
 	* progmodes/python.el (python-shell-get-buffer): New function.
 	(python-shell-get-process): Use it.
 	(python-shell-send-string): Always use utf-8 and add a cookie to tell
