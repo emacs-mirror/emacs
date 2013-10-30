@@ -178,13 +178,15 @@ finder-data: doit
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(abs_lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
+# Use expand-file-name rather than $abs_lisp so that Emacs does not
+# get confused when it compares file-names for equality.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	cd $(lisp) && $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (unmsys--file-name "$(abs_lisp)/loaddefs.el"))' \
+	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(lisp)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
