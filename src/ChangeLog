@@ -1,3 +1,10 @@
+2013-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (original_pwd): New char.
+	(main): If using --chdir, store original_pwd.
+	(init_cmdargs): When setting Vinvocation_directory based on a
+	relative argv[0], use original_pwd if set.  (Bug#15768)
+
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (command_loop_1): If command is nil, call `undefined'.

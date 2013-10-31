@@ -202,6 +202,9 @@ static char *daemon_name;
    startup.  */
 int daemon_pipe[2];
 
+/* If we use --chdir, this records the original directory.  */
+char *original_pwd;
+
 /* Save argv and argc.  */
 char **initial_argv;
 int initial_argc;
@@ -426,7 +429,10 @@ init_cmdargs (int argc, char **argv, int skip_args)
       && NILP (Ffile_name_absolute_p (Vinvocation_directory)))
     /* Emacs was started with relative path, like ./emacs.
        Make it absolute.  */
-    Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, Qnil);
+    {
+      Lisp_Object odir = original_pwd ? build_string (original_pwd) : Qnil;
+      Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, odir);
+    }
 
   Vinstallation_directory = Qnil;
 
@@ -786,12 +792,15 @@ main (int argc, char **argv)
     }
 
   if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
-    if (chdir (ch_to_dir) == -1)
-      {
-	fprintf (stderr, "%s: Can't chdir to %s: %s\n",
-		 argv[0], ch_to_dir, strerror (errno));
-	exit (1);
-      }
+    {
+      original_pwd = get_current_dir_name ();
+      if (chdir (ch_to_dir) == -1)
+        {
+          fprintf (stderr, "%s: Can't chdir to %s: %s\n",
+                   argv[0], ch_to_dir, strerror (errno));
+          exit (1);
+        }
+    }
 
   dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
 			     || strcmp (argv[argc - 1], "bootstrap") == 0);
