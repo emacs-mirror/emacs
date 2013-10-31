@@ -1,3 +1,7 @@
+2013-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): Skip -psn args on OSX even if ! isatty (0).
+
 2013-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (original_pwd): New char.

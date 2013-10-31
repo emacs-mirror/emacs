@@ -1201,7 +1201,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
          chdir fails.  */
       if (! inhibit_window_system && ! isatty (0))
         chdir (getenv ("HOME"));
-      else if (skip_args < argc)
+      if (skip_args < argc)
         {
           if (!strncmp (argv[skip_args], "-psn", 4))
             {
