@@ -168,14 +168,14 @@ $(lisp)/cus-load.el:
 custom-deps: doit
 	cd $(lisp) && $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(abs_lisp)/cus-load.el"))' -f custom-make-dependencies $$wins
+	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
 	cd $(lisp) && $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(abs_lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
+	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
 # Use expand-file-name rather than $abs_lisp so that Emacs does not
