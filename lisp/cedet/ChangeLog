@@ -1,3 +1,11 @@
+2013-10-28  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* semantic/idle.el (semantic-idle-symbol-highlight)
+	(semantic-idle-symbol-highlight-face): Define face with defface
+	and obsolete the replaced one defined with defvar.  (Bug#15745)
+	* pulse.el (pulse-momentary-highlight-overlay)
+	(pulse-momentary-highlight-region): Fix typo in doc
+
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/grammar.el (semantic-grammar-mode-keywords-2)
