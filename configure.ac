@@ -92,7 +92,7 @@ for var in "`pwd`" "$temp_srcdir" "$prefix" "$exec_prefix" \
 
   dnl configure sets LC_ALL=C early on, so this range should work.
   case "$var" in
-    *[[^\ -~]]*) AC_MSG_ERROR([Emacs cannot be built or installed in a directory whose name contains non-ASCII characters: $var]) ;;
+    *[[!\ -~]]*) AC_MSG_ERROR([Emacs cannot be built or installed in a directory whose name contains non-ASCII characters: $var]) ;;
   esac
 
 done
