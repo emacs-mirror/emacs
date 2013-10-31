@@ -1,3 +1,8 @@
+2013-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-stats-set-test-and-result):
+	Add a skipping test.
+
 2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/prolog.prolog: Test alignment of ->; with operator at bol.
