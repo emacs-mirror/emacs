@@ -1,3 +1,10 @@
+2013-11-01  Tassilo Horn  <tsdh@gnu.org>
+
+	Allow multiple bibliographies when BibLaTeX is used rathen than
+	BibTeX.
+	* textmodes/reftex-parse.el (reftex-using-biblatex-p): New function.
+	(reftex-locate-bibliography-files): Us it.
+
 2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
 
 	* image.el (image-type-header-regexps): Fix the 'pbm' part to
