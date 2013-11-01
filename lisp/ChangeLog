@@ -1,3 +1,10 @@
+2013-11-01  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-indent-tabs-mode)
+	(ruby-indent-level, ruby-comment-column, ruby-deep-arglist):
+	Add property :safe.
+	(ruby-deep-arglist): Add property :type.
+
 2013-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (custom-deps, finder-data): No need to setq the target

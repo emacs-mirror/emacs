@@ -216,20 +216,28 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 
 (defcustom ruby-indent-tabs-mode nil
   "Indentation can insert tabs in Ruby mode if this is non-nil."
-  :type 'boolean :group 'ruby)
+  :type 'boolean
+  :group 'ruby
+  :safe 'booleanp)
 
 (defcustom ruby-indent-level 2
   "Indentation of Ruby statements."
-  :type 'integer :group 'ruby)
+  :type 'integer
+  :group 'ruby
+  :safe 'integerp)
 
 (defcustom ruby-comment-column (default-value 'comment-column)
   "Indentation column of comments."
-  :type 'integer :group 'ruby)
+  :type 'integer
+  :group 'ruby
+  :safe 'integerp)
 
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
 Also ignores spaces after parenthesis when 'space."
-  :group 'ruby)
+  :type 'boolean
+  :group 'ruby
+  :safe 'booleanp)
 
 (defcustom ruby-deep-indent-paren '(?\( ?\[ ?\] t)
   "Deep indent lists in parenthesis when non-nil.
@@ -259,12 +267,6 @@ explicitly declared in magic comment."
 (defcustom ruby-use-encoding-map t
   "Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
   :type 'boolean :group 'ruby)
-
-;; Safe file variables
-(put 'ruby-indent-tabs-mode 'safe-local-variable 'booleanp)
-(put 'ruby-indent-level 'safe-local-variable 'integerp)
-(put 'ruby-comment-column 'safe-local-variable 'integerp)
-(put 'ruby-deep-arglist 'safe-local-variable 'booleanp)
 
 ;;; SMIE support
 
