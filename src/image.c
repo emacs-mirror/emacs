@@ -5106,6 +5106,27 @@ pbm_image_p (Lisp_Object object)
 }
 
 
+/* Get next char skipping comments in Netpbm header.  Returns -1 at
+   end of input.  */
+
+static int
+pbm_next_char (unsigned char **s, unsigned char *end)
+{
+  int c = -1;
+
+  while (*s < end && (c = *(*s)++, c == '#'))
+    {
+      /* Skip to the next line break.  */
+      while (*s < end && (c = *(*s)++, c != '\n' && c != '\r'))
+        ;
+
+      c = -1;
+    }
+
+  return c;
+}
+
+
 /* Scan a decimal number from *S and return it.  Advance *S while
    reading the number.  END is the end of the string.  Value is -1 at
    end of input.  */
@@ -5115,28 +5136,16 @@ pbm_scan_number (unsigned char **s, unsigned char *end)
 {
   int c = 0, val = -1;
 
-  while (*s < end)
-    {
-      /* Skip white-space.  */
-      while (*s < end && (c = *(*s)++, c_isspace (c)))
-	;
+  /* Skip white-space.  */
+  while ((c = pbm_next_char (s, end)) != -1 && c_isspace (c))
+    ;
 
-      if (c == '#')
-	{
-	  /* Skip comment to end of line.  */
-	  while (*s < end && (c = *(*s)++, c != '\n'))
-	    ;
-	}
-      else if (c_isdigit (c))
-	{
-	  /* Read decimal number.  */
-	  val = c - '0';
-	  while (*s < end && (c = *(*s)++, c_isdigit (c)))
-	    val = 10 * val + c - '0';
-	  break;
-	}
-      else
-	break;
+  if (c_isdigit (c))
+    {
+      /* Read decimal number.  */
+      val = c - '0';
+      while ((c = pbm_next_char (s, end)) != -1 && c_isdigit (c))
+        val = 10 * val + c - '0';
     }
 
   return val;

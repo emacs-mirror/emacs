@@ -1,5 +1,8 @@
 2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
 
+	* image.el (image-type-header-regexps): Fix the 'pbm' part to
+	allow comments in pbm files.
+
 	* term/w32-win.el (dynamic-library-alist): Support newer versions
 	of libjpeg starting with v7: look only for the DLL from the
 	version against which Emacs was built.
