@@ -216,8 +216,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        ;; the version we were compiled against.  (If we were compiled
        ;; without PNG support, libpng-version's value is -1.)
        (if (>= libpng-version 10400)
-	   ;; libpng14-14.dll is libpng 1.4.3 from GTK+
-	   '(png "libpng14-14.dll" "libpng14.dll")
+	   (let ((major (/ libpng-version 10000))
+		 (minor (mod (/ libpng-version 100) 10)))
+	     (list 'png
+		   ;; libpngXY.dll is the default name when building
+		   ;; with CMake or from a lpngXYY tarball on w32,
+		   ;; libpngXY-XY.dll is the DLL name when building
+		   ;; with libtool / autotools
+		   (format "libpng%d%d.dll" major minor)
+		   (format "libpng%d%d-%d%d.dll" major minor major minor)))
 	 '(png "libpng12d.dll" "libpng12.dll" "libpng3.dll" "libpng.dll"
 	       ;; these are libpng 1.2.8 from GTK+
 	       "libpng13d.dll" "libpng13.dll"))
