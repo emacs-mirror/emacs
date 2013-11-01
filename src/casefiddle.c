@@ -102,7 +102,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	    inword = (SYNTAX (c) == Sword);
 	  if (c != c1)
 	    {
-		  MAKE_CHAR_UNIBYTE (c);
+	      MAKE_CHAR_UNIBYTE (c);
 	      /* If the char can't be converted to a valid byte, just don't
 		 change it.  */
 	      if (c >= 0 && c < 256)
