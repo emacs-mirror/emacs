@@ -228,7 +228,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	 '(png "libpng12d.dll" "libpng12.dll" "libpng3.dll" "libpng.dll"
 	       ;; these are libpng 1.2.8 from GTK+
 	       "libpng13d.dll" "libpng13.dll"))
-       '(tiff "libtiff3.dll" "libtiff.dll")
+       '(tiff "libtiff-5.dll" "libtiff3.dll" "libtiff.dll")
        (if (> libjpeg-version 62)
 	   ;; Versions of libjpeg after 6b are incompatible with
 	   ;; earlier versions, and each of versions 7, 8, and 9 is

@@ -4,6 +4,7 @@
 	of libjpeg starting with v7: look only for the DLL from the
 	version against which Emacs was built.
 	Support versions of libpng beyond 1.4.x.
+	Support libtiff v4.x.
 
 2013-11-01  Bozhidar Batsov  <bozhidar@batsov.com>
 
