@@ -1,6 +1,7 @@
 2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
 
-	* image.c (pbm_next_char): New function.
+	* image.c (pbm_next_char): New function.  See
+	http://netpbm.sourceforge.net/doc/pbm.html for the details.
 	(pbm_scan_number): Use it.
 	(Qlibjpeg_version): New variable.
 	(syms_of_image): DEFSYM and initialize it.
