@@ -1,3 +1,8 @@
+2013-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Remove manual mh-e dependencies (writing .elc
+	files is atomic for some time, so no parallel compilation issues).
+
 2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* faces.el (face-x-resources): Add :distant-foreground.
