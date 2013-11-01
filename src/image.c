@@ -87,11 +87,12 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #define x_defined_color w32_defined_color
 #define DefaultDepthOfScreen(screen) (one_w32_display_info.n_cbits)
 
-/* Versions of libpng and libgif that we were compiled with, or -1 if
-   no PNG/GIF support was compiled in.  This is tested by w32-win.el
-   to correctly set up the alist used to search for the respective
-   image libraries.  */
-Lisp_Object Qlibpng_version, Qlibgif_version;
+/* Versions of libpng, libgif, and libjpeg that we were compiled with,
+   or -1 if no PNG/GIF support was compiled in.  This is tested by
+   w32-win.el to correctly set up the alist used to search for the
+   respective image libraries.  */
+Lisp_Object Qlibpng_version, Qlibgif_version, Qlibjpeg_version;
+
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
@@ -9408,6 +9409,14 @@ non-numeric, there is no explicit limit on the size of images.  */);
 	make_number (GIFLIB_MAJOR * 10000
 		     + GIFLIB_MINOR * 100
 		     + GIFLIB_RELEASE)
+#else
+	make_number (-1)
+#endif
+        );
+  DEFSYM (Qlibjpeg_version, "libjpeg-version");
+  Fset (Qlibjpeg_version,
+#if HAVE_JPEG
+	make_number (JPEG_LIB_VERSION)
 #else
 	make_number (-1)
 #endif

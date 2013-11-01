@@ -221,8 +221,17 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	 '(png "libpng12d.dll" "libpng12.dll" "libpng3.dll" "libpng.dll"
 	       ;; these are libpng 1.2.8 from GTK+
 	       "libpng13d.dll" "libpng13.dll"))
-       '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
        '(tiff "libtiff3.dll" "libtiff.dll")
+       (if (> libjpeg-version 62)
+	   ;; Versions of libjpeg after 6b are incompatible with
+	   ;; earlier versions, and each of versions 7, 8, and 9 is
+	   ;; also incompatible with the preceding ones (the core data
+	   ;; structures used for communications with the library
+	   ;; gained additional members with each new version).  So we
+	   ;; must use only the version of the library which Emacs was
+	   ;; compiled against.
+	   (list 'jpeg (format "libjpeg-%d.dll" (/ libjpeg-version 10)))
+	 '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll"))
        ;; Versions of giflib 5.0.0 and later changed signatures of
        ;; several functions used by Emacs, which makes those versions
        ;; incompatible with previous ones.  We select the correct

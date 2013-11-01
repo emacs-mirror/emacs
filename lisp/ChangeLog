@@ -1,3 +1,9 @@
+2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
+
+	* term/w32-win.el (dynamic-library-alist): Support newer versions
+	of libjpeg starting with v7: look only for the DLL from the
+	version against which Emacs was built.
+
 2013-11-01  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* progmodes/ruby-mode.el (ruby-indent-tabs-mode)

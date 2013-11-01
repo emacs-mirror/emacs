@@ -1,3 +1,8 @@
+2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
+
+	* image.c (Qlibjpeg_version): New variable.
+	(syms_of_image): DEFSYM and initialize it.
+
 2013-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (main): Skip -psn args on OSX even if ! isatty (0).
