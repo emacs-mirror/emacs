@@ -141,9 +141,6 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (defconst ruby-symbol-re (concat "[" ruby-symbol-chars "]")
   "Regexp to match symbols.")
 
-(define-abbrev-table 'ruby-mode-abbrev-table ()
-  "Abbrev table in use in Ruby mode buffers.")
-
 (defvar ruby-use-smie t)
 
 (defvar ruby-mode-map
@@ -563,8 +560,6 @@ explicitly declared in magic comment."
 
 (defun ruby-mode-variables ()
   "Set up initial buffer-local variables for Ruby mode."
-  (set-syntax-table ruby-mode-syntax-table)
-  (setq local-abbrev-table ruby-mode-abbrev-table)
   (setq indent-tabs-mode ruby-indent-tabs-mode)
   (if ruby-use-smie
       (smie-setup ruby-smie-grammar #'ruby-smie-rules

@@ -1,3 +1,9 @@
+2013-11-01  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-mode-variables): Don't set syntax
+	table and abbrev table, `define-derived-mode' does that for us
+	anyway.
+
 2013-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Remove manual mh-e dependencies (writing .elc
