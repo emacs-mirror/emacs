@@ -788,6 +788,10 @@ rather than inheriting from it (as do face specs set via Customize).
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
 
+*** New face spec attribute :distant-foreground
+specifies foreground to use if background is near the foreground that would
+otherwise have been used.
+
 ** Image API
 
 +++

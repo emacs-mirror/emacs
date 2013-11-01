@@ -274,6 +274,8 @@ If FRAME is omitted or nil, use the selected frame."
     (:weight (".attributeWeight" . "Face.AttributeWeight"))
     (:slant (".attributeSlant" . "Face.AttributeSlant"))
     (:foreground (".attributeForeground" . "Face.AttributeForeground"))
+    (:distant-foreground
+     (".attributeDistantForeground" . "Face.AttributeDistantForeground"))
     (:background (".attributeBackground" . "Face.AttributeBackground"))
     (:overline (".attributeOverline" . "Face.AttributeOverline"))
     (:strike-through (".attributeStrikeThrough" . "Face.AttributeStrikeThrough"))
@@ -2255,10 +2257,10 @@ terminal type to a different value."
   '((((class color) (min-colors 88) (background dark))
      :background "blue3")
     (((class color) (min-colors 88) (background light) (type gtk))
-     :foreground "gtk_selection_fg_color"
+     :distant-foreground "gtk_selection_fg_color"
      :background "gtk_selection_bg_color")
     (((class color) (min-colors 88) (background light) (type ns))
-     :foreground "ns_selection_fg_color"
+     :distant-foreground "ns_selection_fg_color"
      :background "ns_selection_bg_color")
     (((class color) (min-colors 88) (background light))
      :background "lightgoldenrod2")

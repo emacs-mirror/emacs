@@ -1,3 +1,22 @@
+2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c: Declare color_distance.
+	(QCdistant_foreground): New variable.
+	(NEAR_SAME_COLOR_THRESHOLD): New define.
+	(load_color2): New function.
+	(load_color): Call load_color2.
+	(load_face_colors): Call load_color2 and if distant-color is specified
+	calculate distant and use distant-color if colors are near.
+	(LFACE_DISTANT_FOREGROUND): New define.
+	(merge_face_ref, Finternal_set_lisp_face_attribute)
+	(Finternal_get_lisp_face_attribute)
+	(x_supports_face_attributes_p): Handle distant-foreground similar to
+	foreground.
+	(syms_of_xfaces): DEFSYM QCdistant_foreground.
+
+	* dispextern.h (lface_attribute_index): Add
+	LFACE_DISTANT_FOREGROUND_INDEX.
+
 2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
 
 	* image.c (pbm_next_char): New function.  See

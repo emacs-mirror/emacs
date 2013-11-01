@@ -2036,6 +2036,15 @@ name, or a hexadecimal color specification.  @xref{Color Names}.  On
 black-and-white displays, certain shades of gray are implemented by
 stipple patterns.
 
+@item :distant-foreground
+Alternative foreground color, a string.  This is like @code{:foreground}
+but the color is only used as a foreground when the background color is
+near to the foreground that would have been used.  This is useful for
+example when marking text (i.e. the region face).  If the text has a foreground 
+that is visible with the region face, that foreground is used.
+If the foreground is near the region face background,
+@code{:distant-foreground} is used instead so the text is readable.
+
 @item :background
 Background color, a string.  The value can be a system-defined color
 name, or a hexadecimal color specification.  @xref{Color Names}.

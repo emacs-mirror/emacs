@@ -292,7 +292,7 @@ Lisp_Object QCwidth;
 static Lisp_Object QCfont, QCbold, QCitalic;
 static Lisp_Object QCreverse_video;
 static Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
-static Lisp_Object QCfontset;
+static Lisp_Object QCfontset, QCdistant_foreground;
 
 /* Symbols used for attribute values.  */
 
@@ -440,6 +440,7 @@ static struct face_cache *make_face_cache (struct frame *);
 static void free_face_cache (struct face_cache *);
 static int merge_face_ref (struct frame *, Lisp_Object, Lisp_Object *,
 			   int, struct named_merge_point *);
+static int color_distance (XColor *x, XColor *y);
 
 #ifdef HAVE_WINDOW_SYSTEM
 static void set_font_frame_param (Lisp_Object, Lisp_Object);
@@ -910,6 +911,8 @@ load_pixmap (struct frame *f, Lisp_Object name)
 				X Colors
  ***********************************************************************/
 
+#define NEAR_SAME_COLOR_THRESHOLD 30000
+
 /* Parse RGB_LIST, and fill in the RGB fields of COLOR.
    RGB_LIST should contain (at least) 3 lisp integers.
    Return 0 if there's a problem with RGB_LIST, otherwise return 1.  */
@@ -1176,6 +1179,68 @@ COLOR must be a valid color name.  */)
 }
 
 
+static unsigned long
+load_color2 (struct frame *f, struct face *face, Lisp_Object name,
+             enum lface_attribute_index target_index, XColor *color)
+{
+  eassert (STRINGP (name));
+  eassert (target_index == LFACE_FOREGROUND_INDEX
+	   || target_index == LFACE_BACKGROUND_INDEX
+	   || target_index == LFACE_UNDERLINE_INDEX
+	   || target_index == LFACE_OVERLINE_INDEX
+	   || target_index == LFACE_STRIKE_THROUGH_INDEX
+	   || target_index == LFACE_BOX_INDEX);
+
+  /* if the color map is full, defined_color will return a best match
+     to the values in an existing cell. */
+  if (!defined_color (f, SSDATA (name), color, 1))
+    {
+      add_to_log ("Unable to load color \"%s\"", name, Qnil);
+
+      switch (target_index)
+	{
+	case LFACE_FOREGROUND_INDEX:
+	  face->foreground_defaulted_p = 1;
+	  color->pixel = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+
+	case LFACE_BACKGROUND_INDEX:
+	  face->background_defaulted_p = 1;
+	  color->pixel = FRAME_BACKGROUND_PIXEL (f);
+	  break;
+
+	case LFACE_UNDERLINE_INDEX:
+	  face->underline_defaulted_p = 1;
+	  color->pixel = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+
+	case LFACE_OVERLINE_INDEX:
+	  face->overline_color_defaulted_p = 1;
+	  color->pixel = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+
+	case LFACE_STRIKE_THROUGH_INDEX:
+	  face->strike_through_color_defaulted_p = 1;
+	  color->pixel = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+
+	case LFACE_BOX_INDEX:
+	  face->box_color_defaulted_p = 1;
+	  color->pixel = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+
+	default:
+	  emacs_abort ();
+	}
+    }
+#ifdef GLYPH_DEBUG
+  else
+    ++ncolors_allocated;
+#endif
+
+  return color->pixel;
+}
+
 /* Load color with name NAME for use by face FACE on frame F.
    TARGET_INDEX must be one of LFACE_FOREGROUND_INDEX,
    LFACE_BACKGROUND_INDEX, LFACE_UNDERLINE_INDEX, LFACE_OVERLINE_INDEX,
@@ -1193,63 +1258,7 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 	    enum lface_attribute_index target_index)
 {
   XColor color;
-
-  eassert (STRINGP (name));
-  eassert (target_index == LFACE_FOREGROUND_INDEX
-	   || target_index == LFACE_BACKGROUND_INDEX
-	   || target_index == LFACE_UNDERLINE_INDEX
-	   || target_index == LFACE_OVERLINE_INDEX
-	   || target_index == LFACE_STRIKE_THROUGH_INDEX
-	   || target_index == LFACE_BOX_INDEX);
-
-  /* if the color map is full, defined_color will return a best match
-     to the values in an existing cell. */
-  if (!defined_color (f, SSDATA (name), &color, 1))
-    {
-      add_to_log ("Unable to load color \"%s\"", name, Qnil);
-
-      switch (target_index)
-	{
-	case LFACE_FOREGROUND_INDEX:
-	  face->foreground_defaulted_p = 1;
-	  color.pixel = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-
-	case LFACE_BACKGROUND_INDEX:
-	  face->background_defaulted_p = 1;
-	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
-	  break;
-
-	case LFACE_UNDERLINE_INDEX:
-	  face->underline_defaulted_p = 1;
-	  color.pixel = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-
-	case LFACE_OVERLINE_INDEX:
-	  face->overline_color_defaulted_p = 1;
-	  color.pixel = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-
-	case LFACE_STRIKE_THROUGH_INDEX:
-	  face->strike_through_color_defaulted_p = 1;
-	  color.pixel = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-
-	case LFACE_BOX_INDEX:
-	  face->box_color_defaulted_p = 1;
-	  color.pixel = FRAME_FOREGROUND_PIXEL (f);
-	  break;
-
-	default:
-	  emacs_abort ();
-	}
-    }
-#ifdef GLYPH_DEBUG
-  else
-    ++ncolors_allocated;
-#endif
-
-  return color.pixel;
+  return load_color2 (f, face, name, target_index, &color);
 }
 
 
@@ -1264,7 +1273,8 @@ static void
 load_face_colors (struct frame *f, struct face *face,
 		  Lisp_Object attrs[LFACE_VECTOR_SIZE])
 {
-  Lisp_Object fg, bg;
+  Lisp_Object fg, bg, dfg;
+  XColor xfg, xbg;
 
   bg = attrs[LFACE_BACKGROUND_INDEX];
   fg = attrs[LFACE_FOREGROUND_INDEX];
@@ -1289,8 +1299,18 @@ load_face_colors (struct frame *f, struct face *face,
       face->stipple = load_pixmap (f, Vface_default_stipple);
     }
 
-  face->background = load_color (f, face, bg, LFACE_BACKGROUND_INDEX);
-  face->foreground = load_color (f, face, fg, LFACE_FOREGROUND_INDEX);
+  face->background = load_color2 (f, face, bg, LFACE_BACKGROUND_INDEX, &xbg);
+  face->foreground = load_color2 (f, face, fg, LFACE_FOREGROUND_INDEX, &xfg);
+
+  dfg = attrs[LFACE_DISTANT_FOREGROUND_INDEX];
+  if (!NILP (dfg) && !UNSPECIFIEDP (dfg)
+      && color_distance (&xbg, &xfg) < NEAR_SAME_COLOR_THRESHOLD)
+    {
+      if (EQ (attrs[LFACE_INVERSE_INDEX], Qt))
+        face->background = load_color (f, face, dfg, LFACE_BACKGROUND_INDEX);
+      else
+        face->foreground = load_color (f, face, dfg, LFACE_FOREGROUND_INDEX);
+    }
 }
 
 #ifdef HAVE_X_WINDOWS
@@ -1721,6 +1741,8 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_FONT(LFACE)	    AREF ((LFACE), LFACE_FONT_INDEX)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
 #define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
+#define LFACE_DISTANT_FOREGROUND(LFACE) \
+  AREF ((LFACE), LFACE_DISTANT_FOREGROUND_INDEX)
 
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
@@ -2449,6 +2471,13 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 		  else
 		    err = 1;
 		}
+	      else if (EQ (keyword, QCdistant_foreground))
+		{
+		  if (STRINGP (value))
+		    to[LFACE_DISTANT_FOREGROUND_INDEX] = value;
+		  else
+		    err = 1;
+		}
 	      else if (EQ (keyword, QCbackground))
 		{
 		  if (STRINGP (value))
@@ -3004,6 +3033,23 @@ FRAME 0 means change the face on all frames, and change the default
 	}
       old_value = LFACE_FOREGROUND (lface);
       ASET (lface, LFACE_FOREGROUND_INDEX, value);
+    }
+  else if (EQ (attr, QCdistant_foreground))
+    {
+      /* Compatibility with 20.x.  */
+      if (NILP (value))
+	value = Qunspecified;
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
+	{
+	  /* Don't check for valid color names here because it depends
+	     on the frame (display) whether the color will be valid
+	     when the face is realized.  */
+	  CHECK_STRING (value);
+	  if (SCHARS (value) == 0)
+	    signal_error ("Empty distant-foreground color value", value);
+	}
+      old_value = LFACE_DISTANT_FOREGROUND (lface);
+      ASET (lface, LFACE_DISTANT_FOREGROUND_INDEX, value);
     }
   else if (EQ (attr, QCbackground))
     {
@@ -3649,6 +3695,8 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
     value = LFACE_INVERSE (lface);
   else if (EQ (keyword, QCforeground))
     value = LFACE_FOREGROUND (lface);
+  else if (EQ (keyword, QCdistant_foreground))
+    value = LFACE_DISTANT_FOREGROUND (lface);
   else if (EQ (keyword, QCbackground))
     value = LFACE_BACKGROUND (lface);
   else if (EQ (keyword, QCstipple))
@@ -4688,6 +4736,9 @@ x_supports_face_attributes_p (struct frame *f,
       || (!UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
 	  && face_attr_equal_p (attrs[LFACE_FOREGROUND_INDEX],
 				def_attrs[LFACE_FOREGROUND_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_DISTANT_FOREGROUND_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_DISTANT_FOREGROUND_INDEX],
+				def_attrs[LFACE_DISTANT_FOREGROUND_INDEX]))
       || (!UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
 	  && face_attr_equal_p (attrs[LFACE_BACKGROUND_INDEX],
 				def_attrs[LFACE_BACKGROUND_INDEX]))
@@ -6361,6 +6412,7 @@ syms_of_xfaces (void)
   DEFSYM (QCwidth, ":width");
   DEFSYM (QCfont, ":font");
   DEFSYM (QCfontset, ":fontset");
+  DEFSYM (QCdistant_foreground, ":distant-foreground");
   DEFSYM (QCbold, ":bold");
   DEFSYM (QCitalic, ":italic");
   DEFSYM (QCoverline, ":overline");
