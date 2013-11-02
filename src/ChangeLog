@@ -1,3 +1,8 @@
+2013-11-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c (original_pwd): Remove global var by making it local.
+	(init_cmdargs): New arg ORIGINAL_PWD; caller changed.
+
 2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c: Declare color_distance.

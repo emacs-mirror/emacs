@@ -202,9 +202,6 @@ static char *daemon_name;
    startup.  */
 int daemon_pipe[2];
 
-/* If we use --chdir, this records the original directory.  */
-char *original_pwd;
-
 /* Save argv and argc.  */
 char **initial_argv;
 int initial_argc;
@@ -386,7 +383,7 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 /* Code for dealing with Lisp access to the Unix command line.  */
 
 static void
-init_cmdargs (int argc, char **argv, int skip_args)
+init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 {
   register int i;
   Lisp_Object name, dir, handler;
@@ -705,6 +702,9 @@ main (int argc, char **argv)
 #endif
   char *ch_to_dir;
 
+  /* If we use --chdir, this records the original directory.  */
+  char *original_pwd = 0;
+
 #if GC_MARK_STACK
   stack_base = &dummy;
 #endif
@@ -794,7 +794,7 @@ main (int argc, char **argv)
   if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
     {
       original_pwd = get_current_dir_name ();
-      if (chdir (ch_to_dir) == -1)
+      if (chdir (ch_to_dir) != 0)
         {
           fprintf (stderr, "%s: Can't chdir to %s: %s\n",
                    argv[0], ch_to_dir, strerror (errno));
@@ -1330,7 +1330,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_buffer ();	/* Init default directory of main buffer.  */
 
   init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
-  init_cmdargs (argc, argv, skip_args);	/* Must precede init_lread.  */
+
+  /* Must precede init_lread.  */
+  init_cmdargs (argc, argv, skip_args, original_pwd);
 
   if (initialized)
     {
