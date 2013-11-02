@@ -248,7 +248,7 @@ static int enable_privilege (LPCTSTR, BOOL, TOKEN_PRIVILEGES *);
 static int restore_privilege (TOKEN_PRIVILEGES *);
 static BOOL WINAPI revert_to_self (void);
 
-extern int sys_access (const char *, int);
+static int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       struct timespec *, void *);
@@ -2037,7 +2037,7 @@ is_unc_volume (const char *filename)
   if (!IS_DIRECTORY_SEP (ptr[0]) || !IS_DIRECTORY_SEP (ptr[1]) || !ptr[2])
     return 0;
 
-  if (_mbspbrk (ptr + 2, "*?|<>\"\\/"))
+  if (strpbrk (ptr + 2, "*?|<>\"\\/"))
     return 0;
 
   return 1;
@@ -2137,8 +2137,6 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
   return (NULL);
 }
 
-char *get_emacs_configuration (void);
-
 void
 init_environment (char ** argv)
 {
@@ -2149,6 +2147,13 @@ init_environment (char ** argv)
   int i;
 
   const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
+
+  /* Implementation note: This function explicitly works with ANSI
+     file names, not with UTF-8 encoded file names.  This is because
+     this function pushes variables into the Emacs's environment, and
+     the environment variables are always assumed to be in the
+     locale-specific encoding.  Do NOT call any functions that accept
+     UTF-8 file names from this function!  */
 
   /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
      temporary files and assume "/tmp" if $TMPDIR is unset, which
@@ -2165,8 +2170,8 @@ init_environment (char ** argv)
 	 The only way to be really sure is to actually create a file and
 	 see if it succeeds.  But I think that's too much to ask.  */
 
-      /* MSVCRT's _access crashes with D_OK.  */
-      if (tmp && faccessat (AT_FDCWD, tmp, D_OK, AT_EACCESS) == 0)
+      /* MSVCRT's _access crashes with D_OK, so we use our replacement.  */
+      if (tmp && sys_access (tmp, D_OK) == 0)
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
@@ -2228,7 +2233,7 @@ init_environment (char ** argv)
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
-    if (faccessat (AT_FDCWD, "C:/.emacs", F_OK, AT_EACCESS) != 0)
+    if (sys_access ("C:/.emacs", F_OK) != 0)
       {
 	HRESULT profile_result;
 	/* Dynamically load ShGetFolderPath, as it won't exist on versions
@@ -2304,33 +2309,6 @@ init_environment (char ** argv)
 	      _putenv (strdup (buf));
 	    }
 	}
-      /* Handle running emacs from the build directory: src/oo-spd/i386/  */
-
-      /* FIXME: should use substring of get_emacs_configuration ().
-	 But I don't think the Windows build supports alpha, mips etc
-         anymore, so have taken the easy option for now.  */
-      else if (p && (xstrcasecmp (p, "\\i386") == 0
-                     || xstrcasecmp (p, "\\AMD64") == 0))
-	{
-	  *p = 0;
-	  p = _mbsrchr (modname, '\\');
-	  if (p != NULL)
-	    {
-	      *p = 0;
-	      p = _mbsrchr (modname, '\\');
-	      if (p && xstrcasecmp (p, "\\src") == 0)
-		{
-		  char buf[SET_ENV_BUF_SIZE];
-
-		  *p = 0;
-		  for (p = modname; *p; p = CharNext (p))
-		    if (*p == '\\') *p = '/';
-
-		  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
-		  _putenv (strdup (buf));
-		}
-	    }
-	}
     }
 
     for (i = 0; i < N_ENV_VARS; i++)
@@ -2366,8 +2344,7 @@ init_environment (char ** argv)
 			  strcpy (&fname[pend - pstart + 1], "cmdproxy.exe");
 			  ExpandEnvironmentStrings ((LPSTR) fname, bufc,
 						    sizeof (bufc));
-			  if (faccessat (AT_FDCWD, bufc, F_OK, AT_EACCESS)
-			      == 0)
+			  if (sys_access (bufc, F_OK) == 0)
 			    {
 			      lpval = bufc;
 			      dwType = REG_SZ;
@@ -2485,169 +2462,17 @@ init_environment (char ** argv)
 char *
 emacs_root_dir (void)
 {
-  static char root_dir[FILENAME_MAX];
+  static char root_dir[MAX_UTF8_PATH];
   const char *p;
 
   p = getenv ("emacs_dir");
   if (p == NULL)
     emacs_abort ();
-  strcpy (root_dir, p);
+  filename_from_ansi (p, root_dir);
   root_dir[parse_root (root_dir, NULL)] = '\0';
   dostounix_filename (root_dir);
   return root_dir;
 }
-
-/* We don't have scripts to automatically determine the system configuration
-   for Emacs before it's compiled, and we don't want to have to make the
-   user enter it, so we define EMACS_CONFIGURATION to invoke this runtime
-   routine.  */
-
-char *
-get_emacs_configuration (void)
-{
-  char *arch, *oem, *os;
-  int build_num;
-  static char configuration_buffer[32];
-
-  /* Determine the processor type.  */
-  switch (get_processor_type ())
-    {
-
-#ifdef PROCESSOR_INTEL_386
-    case PROCESSOR_INTEL_386:
-    case PROCESSOR_INTEL_486:
-    case PROCESSOR_INTEL_PENTIUM:
-#ifdef _WIN64
-      arch = "amd64";
-#else
-      arch = "i386";
-#endif
-      break;
-#endif
-#ifdef PROCESSOR_AMD_X8664
-    case PROCESSOR_AMD_X8664:
-      arch = "amd64";
-      break;
-#endif
-
-#ifdef PROCESSOR_MIPS_R2000
-    case PROCESSOR_MIPS_R2000:
-    case PROCESSOR_MIPS_R3000:
-    case PROCESSOR_MIPS_R4000:
-      arch = "mips";
-      break;
-#endif
-
-#ifdef PROCESSOR_ALPHA_21064
-    case PROCESSOR_ALPHA_21064:
-      arch = "alpha";
-      break;
-#endif
-
-    default:
-      arch = "unknown";
-      break;
-    }
-
-  /* Use the OEM field to reflect the compiler/library combination.  */
-#ifdef _MSC_VER
-#define COMPILER_NAME	"msvc"
-#else
-#ifdef __GNUC__
-#define COMPILER_NAME	"mingw"
-#else
-#define COMPILER_NAME	"unknown"
-#endif
-#endif
-  oem = COMPILER_NAME;
-
-  switch (osinfo_cache.dwPlatformId) {
-  case VER_PLATFORM_WIN32_NT:
-    os = "nt";
-    build_num = osinfo_cache.dwBuildNumber;
-    break;
-  case VER_PLATFORM_WIN32_WINDOWS:
-    if (osinfo_cache.dwMinorVersion == 0) {
-      os = "windows95";
-    } else {
-      os = "windows98";
-    }
-    build_num = LOWORD (osinfo_cache.dwBuildNumber);
-    break;
-  case VER_PLATFORM_WIN32s:
-    /* Not supported, should not happen. */
-    os = "windows32s";
-    build_num = LOWORD (osinfo_cache.dwBuildNumber);
-    break;
-  default:
-    os = "unknown";
-    build_num = 0;
-    break;
-  }
-
-  if (osinfo_cache.dwPlatformId == VER_PLATFORM_WIN32_NT) {
-    sprintf (configuration_buffer, "%s-%s-%s%d.%d.%d", arch, oem, os,
-	     get_w32_major_version (), get_w32_minor_version (), build_num);
-  } else {
-    sprintf (configuration_buffer, "%s-%s-%s.%d", arch, oem, os, build_num);
-  }
-
-  return configuration_buffer;
-}
-
-char *
-get_emacs_configuration_options (void)
-{
-  static char *options_buffer;
-  char cv[32];  /* Enough for COMPILER_VERSION.  */
-  char *options[] = {
-    cv,  /* To be filled later.  */
-#ifdef EMACSDEBUG
-    " --no-opt",
-#endif
-#ifdef ENABLE_CHECKING
-    " --enable-checking",
-#endif
-    /* configure.bat already sets USER_CFLAGS and USER_LDFLAGS
-       with a starting space to save work here.  */
-#ifdef USER_CFLAGS
-    " --cflags", USER_CFLAGS,
-#endif
-#ifdef USER_LDFLAGS
-    " --ldflags", USER_LDFLAGS,
-#endif
-    NULL
-  };
-  size_t size = 0;
-  int i;
-
-/* Work out the effective configure options for this build.  */
-#ifdef _MSC_VER
-#define COMPILER_VERSION	"--with-msvc (%d.%02d)", _MSC_VER / 100, _MSC_VER % 100
-#else
-#ifdef __GNUC__
-#define COMPILER_VERSION	"--with-gcc (%d.%d)", __GNUC__, __GNUC_MINOR__
-#else
-#define COMPILER_VERSION	""
-#endif
-#endif
-
-  if (_snprintf (cv, sizeof (cv) - 1, COMPILER_VERSION) < 0)
-    return "Error: not enough space for compiler version";
-  cv[sizeof (cv) - 1] = '\0';
-
-  for (i = 0; options[i]; i++)
-    size += strlen (options[i]);
-
-  options_buffer = xmalloc (size + 1);
-  options_buffer[0] = '\0';
-
-  for (i = 0; options[i]; i++)
-    strcat (options_buffer, options[i]);
-
-  return options_buffer;
-}
-
 
 #include <sys/timeb.h>
 
@@ -3463,6 +3288,62 @@ faccessat (int dirfd, const char * path, int mode, int flags)
     }
   if ((mode & X_OK) != 0
       && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
+    {
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & W_OK) != 0 && (attributes & FILE_ATTRIBUTE_READONLY) != 0)
+    {
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & D_OK) != 0 && (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+    {
+      errno = EACCES;
+      return -1;
+    }
+  return 0;
+}
+
+/* A version of 'access' to be used locally with file names in
+   locale-specific encoding.  Does not resolve symlinks and does not
+   support file names on FAT12 and FAT16 volumes, but that's OK, since
+   we only invoke this function for files inside the Emacs source or
+   installation tree, on directories (so any symlinks should have the
+   directory bit set), and on short file names such as "C:/.emacs".  */
+static int
+sys_access (const char *fname, int mode)
+{
+  char fname_copy[MAX_PATH], *p;
+  DWORD attributes;
+
+  strcpy (fname_copy, fname);
+  /* Do the equivalent of unixtodos_filename.  */
+  for (p = fname_copy; *p; p = CharNext (p))
+    if (*p == '/')
+      *p = '\\';
+
+  if ((attributes = GetFileAttributesA (fname_copy)) == -1)
+    {
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_INVALID_NAME:
+	case ERROR_BAD_PATHNAME:
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_BAD_NETPATH:
+	  errno = ENOENT;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
+      return -1;
+    }
+  if ((mode & X_OK) != 0
+      && !(is_exec (fname_copy)
+	   || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
       errno = EACCES;
       return -1;
