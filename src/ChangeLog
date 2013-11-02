@@ -1,5 +1,12 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
+	Use relative filenames in TAGS files.
+	* Makefile.in (abs_srcdir): Remove it again.
+	(.PHONY): Remove frc.
+	(maintainer-clean): No more TAGS-LISP file.
+	(TAGS): Pass relative file names to etags.
+	(../lisp/TAGS): Rename from TAGS-LISP.  Work in ../lisp.
+
 	* Makefile.in (abs_srcdir): New, set by configure.
 	(lispdir): Remove.
 	(maintainer-clean): Remove pointless echo.  That should be in the

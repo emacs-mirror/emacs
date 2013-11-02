@@ -1,5 +1,9 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
+	Use relative filenames in TAGS files.
+	* Makefile.in (abs_srcdir): Remove it again.
+	(ctagsfiles, TAGS): Use relative filenames.
+
 	* Makefile.in (abs_srcdir): New, set by configure.
 	(ETAGS, ctagsfiles): New variables.
 	(TAGS): Use ETAGS, ctagsfiles.  Use absolute filenames again.

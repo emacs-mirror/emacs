@@ -1,5 +1,11 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
+	Use relative filenames in TAGS files.
+	* Makefile.in (lisptagsfiles1, lisptagsfiles2, lisptagsfiles3)
+	(lisptagsfiles4, TAGS): Use relative file names.
+	(TAGS-LISP): Remove.
+	(maintainer-clean): No more TAGS-LISP file.
+
 	* Makefile.in (lisptagsfiles1, lisptagsfiles2, lisptagsfiles3)
 	(lisptagsfiles4): Use absolute filenames again.
 	(TAGS, TAGS-LISP): Not everything needs to run in one line.

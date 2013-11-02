@@ -1,7 +1,7 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
-# Foundation, Inc.
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -28,7 +28,6 @@ SHELL = @SHELL@
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
-abs_srcdir = @abs_srcdir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 ntsource = $(srcdir)/../nt
@@ -557,7 +556,7 @@ ns-app: emacs$(EXEEXT)
 	cd ../nextstep && $(MAKE) $(MFLAGS) all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
-.PHONY: versionclean extraclean frc
+.PHONY: versionclean extraclean
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core *.core \#* *.o libXMenu11.a liblw.a
@@ -585,7 +584,7 @@ distclean: bootstrap-clean
 	rm -f Makefile
 
 maintainer-clean: distclean
-	rm -f TAGS TAGS-LISP
+	rm -f TAGS
 versionclean:
 	-rm -f emacs$(EXEEXT) emacs-*.*.*$(EXEEXT) ../etc/DOC*
 extraclean: distclean
@@ -598,28 +597,27 @@ ctagsfiles1 = [xyzXYZ]*.[hc]
 ctagsfiles2 = [a-wA-W]*.[hc]
 ctagsfiles3 = [a-zA-Z]*.m
 
-## FIXME?  Do we really need to use absolute filenames here?
+## FIXME? In out-of-tree builds, should TAGS be generated in srcdir?
 
 ## This does not need to depend on ../lisp and ../lwlib TAGS files,
 ## because etags "--include" only includes a pointer to the file,
 ## rather than the file contents.
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
-	"$(ETAGS)" --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
+	"$(ETAGS)" --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  "$(abs_srcdir)"/$(ctagsfiles1) "$(abs_srcdir)"/$(ctagsfiles2) \
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  "$(abs_srcdir)"/$(ctagsfiles3)
+	  $(srcdir)/$(ctagsfiles3)
 
 ## Arrange to make tags tables for ../lisp and ../lwlib,
 ## which the above TAGS file for the C files includes by reference.
-frc:
-TAGS-LISP: frc
-	$(MAKE) -f ../lisp/Makefile TAGS-LISP ETAGS="$(ETAGS)"
+../lisp/TAGS:
+	cd ../lisp && $(MAKE) TAGS ETAGS="$(ETAGS)"
 
 $(lwlibdir)/TAGS:
 	cd $(lwlibdir) && $(MAKE) TAGS ETAGS="$(ETAGS)"
 
-tags: TAGS TAGS-LISP $(lwlibdir)/TAGS
+tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 .PHONY: tags
 
 
