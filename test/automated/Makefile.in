@@ -21,13 +21,9 @@ SHELL = @SHELL@
 
 srcdir = @srcdir@
 abs_top_srcdir = @abs_top_srcdir@
-top_builddir = @top_builddir@
 abs_top_builddir = @abs_top_builddir@
 test = $(srcdir)
-abs_test = $(abs_srcdir)
 VPATH = $(srcdir)
-abs_lispsrc = $(abs_top_srcdir)/lisp
-lisp = $(top_builddir)/lisp
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -48,7 +44,7 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # The example above is just for developers, it should not be used by default.
 
 # The actual Emacs command run in the targets below.
-emacs = EMACSLOADPATH="$(abs_lispsrc):$(abs_test)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH="$(abs_top_srcdir)/lisp:$(abs_srcdir)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
@@ -81,7 +77,7 @@ doit:
 .PHONY: lisp-compile compile-main compile compile-always
 
 lisp-compile:
-	cd "$(lisp)"; $(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
+	cd ../../lisp && $(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
 # In `compile-main' we could directly do
 #    ... | xargs $(MAKE) $(MFLAGS) EMACS="$(EMACS)"

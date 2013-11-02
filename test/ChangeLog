@@ -1,3 +1,11 @@
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (top_builddir, abs_test, abs_lispsrc, lisp):
+	Remove variables.
+	(emacs): Use abs_top_srcdir, abs_srcdir rather than abs_lispsrc,
+	abs_test.
+	(lisp-compile): Use ../../lisp rather than $lisp.
+
 2013-10-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/ert-tests.el (ert-test-stats-set-test-and-result):
