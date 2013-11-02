@@ -57,7 +57,6 @@ etc = ../etc
 leimdir = ../leim
 oldXMenudir = ../oldXMenu
 lwlibdir = ../lwlib
-lispdir = ../lisp
 
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
@@ -615,7 +614,7 @@ TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
 ## which the above TAGS file for the C files includes by reference.
 frc:
 TAGS-LISP: frc
-	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS="$(ETAGS)"
+	$(MAKE) -f ../lisp/Makefile TAGS-LISP ETAGS="$(ETAGS)"
 
 $(lwlibdir)/TAGS:
 	cd $(lwlibdir) && $(MAKE) TAGS ETAGS="$(ETAGS)"
