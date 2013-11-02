@@ -1,5 +1,10 @@
 2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
 
+	* emacs-lisp/package.el (package-version-join): Recognize
+	snapshot versions.
+
+2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
+
 	* subr.el (version-regexp-alist): Add support for snapshot versions.
 
 2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>

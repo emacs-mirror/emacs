@@ -429,7 +429,7 @@ This is, approximately, the inverse of `version-to-list'.
 	 ((>= num 0)
 	  (push (int-to-string num) str-list)
 	  (push "." str-list))
-	 ((< num -3)
+	 ((< num -4)
 	  (error "Invalid version list `%s'" vlist))
 	 (t
 	  ;; pre, or beta, or alpha
@@ -439,7 +439,8 @@ This is, approximately, the inverse of `version-to-list'.
 		 (error "Invalid version list `%s'" vlist)))
 	  (push (cond ((= num -1) "pre")
 		      ((= num -2) "beta")
-		      ((= num -3) "alpha"))
+		      ((= num -3) "alpha")
+                      ((= num -4) "snapshot"))
 		str-list))))
       (if (equal "." (car str-list))
 	  (pop str-list))
