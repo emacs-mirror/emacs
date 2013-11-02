@@ -1,3 +1,8 @@
+2013-11-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (check_lface_attrs, realize_default_face): Add
+	LFACE_DISTANT_FOREGROUND_INDEX (Bug#15788).
+
 2013-11-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c (original_pwd): Remove global var by making it local.

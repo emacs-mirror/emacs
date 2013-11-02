@@ -1805,6 +1805,9 @@ check_lface_attrs (Lisp_Object attrs[LFACE_VECTOR_SIZE])
   eassert (UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FOREGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_FOREGROUND_INDEX]));
+  eassert (UNSPECIFIEDP (attrs[LFACE_DISTANT_FOREGROUND_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_DISTANT_FOREGROUND_INDEX])
+	   || STRINGP (attrs[LFACE_DISTANT_FOREGROUND_INDEX]));
   eassert (UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_BACKGROUND_INDEX])
 	   || STRINGP (attrs[LFACE_BACKGROUND_INDEX]));
@@ -5351,6 +5354,9 @@ realize_default_face (struct frame *f)
       else
 	emacs_abort ();
     }
+
+  if (UNSPECIFIEDP (LFACE_DISTANT_FOREGROUND (lface)))
+    ASET (lface, LFACE_DISTANT_FOREGROUND_INDEX, Qnil);
 
   if (UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
     {
