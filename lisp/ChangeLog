@@ -49,7 +49,7 @@
 
 2013-11-01  Tassilo Horn  <tsdh@gnu.org>
 
-	Allow multiple bibliographies when BibLaTeX is used rathen than
+	Allow multiple bibliographies when BibLaTeX is used rather than
 	BibTeX.
 	* textmodes/reftex-parse.el (reftex-using-biblatex-p): New function.
 	(reftex-locate-bibliography-files): Us it.
