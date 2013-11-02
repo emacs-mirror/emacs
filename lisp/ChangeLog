@@ -1,5 +1,12 @@
 2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (ruby-smie--rule-parent-skip-assign): New
+	function, replacement for `smie-rule-parent' for when we want to
+	skip over our direct parent if it's an assignment token..
+	(ruby-smie-rules): Use it.
+
+2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>
+
 	* progmodes/ruby-mode.el Use `syntax-propertize-function'
 	unconditionally.  Remove now unnecessary forward declarations.
 	Remove XEmacs-specific setup.

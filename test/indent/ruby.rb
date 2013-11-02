@@ -225,6 +225,14 @@ tee = if foo
         bar
       end
 
+a = b {
+  c
+}
+
+aa = bb do
+  cc
+end
+
 # Examples below still fail with `ruby-use-smie' on:
 
 foo = [1, 2, 3].map do |i|
