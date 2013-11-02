@@ -1,12 +1,15 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (top_builddir, abs_test, abs_lispsrc, lisp)
-	(test, abs_top_srcdir): Remove variables.
+	(test, abs_top_srcdir, abs_top_builddir): Remove variables.
 	(abs_srcdir): New, set by configure.
+	(EMACS): Use a relative file name.
 	(emacs): Use abs_srcdir rather than abs_lispsrc, abs_test.
-	(lisp-compile): Use ../../lisp rather than $lisp.
+	(lisp-compile): Remove (assume it's up-to-date).
+	(compile-main): Do not run lisp-compile.
 	(compile-main, compile-clean, compile-always, bootstrap-clean)
 	(check): Use srcdir rather than $test.  Check cd return value.
+	Use --chdir.
 	(doit, compile, compile-always): Remove stuff copied from lisp/.
 	(all, check, bootstrap-clean, distclean, maintainer-clean): PHONY.
 

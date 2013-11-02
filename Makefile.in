@@ -936,7 +936,7 @@ extraclean:
 TAGS tags: lib lib-src src
 	cd src; $(MAKE) $(MFLAGS) tags
 
-check:
+check: all
 	@if test ! -d test/automated; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \

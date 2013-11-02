@@ -1,3 +1,7 @@
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (check): Depend on all.
+
 2013-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Use [!...] rather than [^...], for ksh.  (Bug#15769)
