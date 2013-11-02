@@ -3295,7 +3295,7 @@ void msdos_downcase_filename (unsigned char *);
 /* Destructively turn backslashes into slashes.  */
 
 void
-dostounix_filename (char *p, int ignore)
+dostounix_filename (char *p)
 {
   msdos_downcase_filename (p);
 
@@ -3559,7 +3559,7 @@ init_environment (int argc, char **argv, int skip_args)
   if (!s) s = "c:/command.com";
   t = alloca (strlen (s) + 1);
   strcpy (t, s);
-  dostounix_filename (t, 0);
+  dostounix_filename (t);
   setenv ("SHELL", t, 0);
 
   /* PATH is also downcased and backslashes mirrored.  */
@@ -3569,7 +3569,7 @@ init_environment (int argc, char **argv, int skip_args)
   /* Current directory is always considered part of MsDos's path but it is
      not normally mentioned.  Now it is.  */
   strcat (strcpy (t, ".;"), s);
-  dostounix_filename (t, 0); /* Not a single file name, but this should work.  */
+  dostounix_filename (t); /* Not a single file name, but this should work.  */
   setenv ("PATH", t, 1);
 
   /* In some sense all dos users have root privileges, so...  */

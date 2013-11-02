@@ -6466,8 +6466,8 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 #ifdef NTGUI_UNICODE
         filename = from_unicode_buffer (filename_buf);
 #else /* !NTGUI_UNICODE */
-        dostounix_filename (filename_buf, 0);
-        filename = DECODE_FILE (build_string (filename_buf));
+        filename = DECODE_FILE (build_unibyte_string (filename_buf));
+        dostounix_filename (SSDATA (filename));
 #endif /* NTGUI_UNICODE */
 
 #ifdef CYGWIN

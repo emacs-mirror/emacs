@@ -152,6 +152,9 @@ extern int w32_valid_pointer_p (void *, int);
 /* Get long (aka "true") form of file name, if it exists.  */
 extern BOOL w32_get_long_filename (char * name, char * buf, int size);
 
+/* Get the short (a.k.a. "8+3") form of a file name.  */
+extern unsigned int w32_get_short_filename (char *, char *, int);
+
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
 				      int err, HANDLE handles[4]);
@@ -181,8 +184,10 @@ extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
-extern void dostounix_filename (register char *, int);
+extern void dostounix_filename (register char *);
 extern void unixtodos_filename (register char *);
+extern int  filename_from_ansi (const char *, char *);
+
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
 extern int random (void);

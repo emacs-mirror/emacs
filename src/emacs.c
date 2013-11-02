@@ -2153,9 +2153,15 @@ decode_env_path (const char *evarname, const char *defalt)
   Lisp_Object lpath, element, tem;
 #ifdef WINDOWSNT
   bool defaulted = 0;
-  const char *emacs_dir = egetenv ("emacs_dir");
   static const char *emacs_dir_env = "%emacs_dir%/";
   const size_t emacs_dir_len = strlen (emacs_dir_env);
+  const char *edir = egetenv ("emacs_dir");
+  char emacs_dir[MAX_UTF8_PATH];
+
+  /* egetenv looks in process-environment, which holds the variables
+     in their original system-locale encoding.  We need emacs_dir to
+     be in UTF-8.  */
+  filename_from_ansi (edir, emacs_dir);
 #endif
 
   /* It's okay to use getenv here, because this function is only used
@@ -2176,9 +2182,16 @@ decode_env_path (const char *evarname, const char *defalt)
   /* Ensure values from the environment use the proper directory separator.  */
   if (path)
     {
-      char *path_copy = alloca (strlen (path) + 1);
+      char *path_copy;
+
+#ifdef WINDOWSNT
+      path_copy = alloca (MAX_UTF8_PATH);
+      filename_from_ansi (path, path_copy);
+#else  /* MSDOS */
+      path_copy = alloca (strlen (path) + 1);
       strcpy (path_copy, path);
-      dostounix_filename (path_copy, 0);
+#endif
+      dostounix_filename (path_copy);
       path = path_copy;
     }
 #endif

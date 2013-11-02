@@ -728,9 +728,15 @@ unexec (const char *new_name, const char *old_name)
   char *q;
 
   /* Ignore old_name, and get our actual location from the OS.  */
-  if (!GetModuleFileName (NULL, in_filename, MAX_PATH))
+  if (!GetModuleFileNameA (NULL, in_filename, MAX_PATH))
     abort ();
-  dostounix_filename (in_filename, 0);
+
+  /* Can't use dostounix_filename here, since that needs its file name
+     argument encoded in UTF-8.  */
+  for (p = in_filename; *p; p = CharNextA (p))
+    if (*p == '\\')
+      *p = '/';
+
   strcpy (out_filename, in_filename);
 
   /* Change the base of the output filename to match the requested name.  */

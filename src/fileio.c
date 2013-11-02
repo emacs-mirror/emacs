@@ -459,7 +459,8 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	    strcat (res, "/");
 	  beg = res;
 	  p = beg + strlen (beg);
-	  dostounix_filename (beg, 0);
+	  dostounix_filename (beg);
+	  /* FIXME: Figure out the multibyte vs unibyte stuff here.  */
 	  tem_fn = make_specified_string (beg, -1, p - beg,
 					  STRING_MULTIBYTE (filename));
 	}
@@ -470,7 +471,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   else if (STRING_MULTIBYTE (filename))
     {
       tem_fn = make_specified_string (beg, -1, p - beg, 1);
-      dostounix_filename (SSDATA (tem_fn), 1);
+      dostounix_filename (SSDATA (tem_fn));
 #ifdef WINDOWSNT
       if (!NILP (Vw32_downcase_file_names))
 	tem_fn = Fdowncase (tem_fn);
@@ -478,7 +479,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     }
   else
     {
-      dostounix_filename (beg, 0);
+      dostounix_filename (beg);
       tem_fn = make_specified_string (beg, -1, p - beg, 0);
     }
   return tem_fn;
@@ -582,7 +583,7 @@ file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen,
     dst[srclen++] = DIRECTORY_SEP;
   dst[srclen] = 0;
 #ifdef DOS_NT
-  dostounix_filename (dst, multibyte);
+  dostounix_filename (dst);
 #endif
   return srclen;
 }
@@ -651,7 +652,7 @@ directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
   memcpy (dst, src, srclen);
   dst[srclen] = 0;
 #ifdef DOS_NT
-  dostounix_filename (dst, multibyte);
+  dostounix_filename (dst);
 #endif
   return srclen;
 }
@@ -1082,7 +1083,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef DOS_NT
 	  /* Make sure directories are all separated with /, but
 	     avoid allocation of a new string when not required. */
-	  dostounix_filename (nm, multibyte);
+	  /* FIXME: Figure out multibyte and downcase here.  */
+	  dostounix_filename (nm);
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
@@ -1465,7 +1467,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[1] = ':';
       }
     result = make_specified_string (target, -1, o - target, multibyte);
-    dostounix_filename (SSDATA (result), multibyte);
+    /* FIXME: Figure out the multibyte and downcase here.  */
+    dostounix_filename (SSDATA (result));
 #ifdef WINDOWSNT
     if (!NILP (Vw32_downcase_file_names))
       result = Fdowncase (result);
@@ -1749,7 +1752,8 @@ those `/' is discarded.  */)
   nm = xlispstrdupa (filename);
 
 #ifdef DOS_NT
-  dostounix_filename (nm, multibyte);
+  /* FIXME: Figure out multibyte and downcase.  */
+  dostounix_filename (nm);
   substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
 #endif
   endp = nm + SBYTES (filename);

@@ -1336,7 +1336,7 @@ filename_to_ansi (const char *fn_in, char *fn_out)
   return -1;
 }
 
-static int
+int
 filename_from_ansi (const char *fn_in, char *fn_out)
 {
   wchar_t fn_utf16[MAXPATHLEN];
@@ -1799,31 +1799,20 @@ max_filename_mbslen (void)
   return cp_info.MaxCharSize;
 }
 
-/* Normalize filename by converting all path separators to
-   the specified separator.  Also conditionally convert upper
-   case path name components to lower case.  */
+/* Normalize filename by converting in-place all of its path
+   separators to the separator specified by PATH_SEP.  */
 
 static void
-normalize_filename (register char *fp, char path_sep, int multibyte)
+normalize_filename (register char *fp, char path_sep)
 {
-  char sep;
-  char *elem, *p2;
-  int dbcs_p = max_filename_mbslen () > 1;
-
-  /* Multibyte file names are in the Emacs internal representation, so
-     we can traverse them by bytes with no problems.  */
-  if (multibyte)
-    dbcs_p = 0;
+  char *p2;
 
   /* Always lower-case drive letters a-z, even if the filesystem
      preserves case in filenames.
      This is so filenames can be compared by string comparison
      functions that are case-sensitive.  Even case-preserving filesystems
      do not distinguish case in drive letters.  */
-  if (dbcs_p)
-    p2 = CharNextExA (file_name_codepage, fp, 0);
-  else
-    p2 = fp + 1;
+  p2 = fp + 1;
 
   if (*p2 == ':' && *fp >= 'A' && *fp <= 'Z')
     {
@@ -1831,68 +1820,26 @@ normalize_filename (register char *fp, char path_sep, int multibyte)
       fp += 2;
     }
 
-  if (multibyte || NILP (Vw32_downcase_file_names))
+  while (*fp)
     {
-      while (*fp)
-	{
-	  if (*fp == '/' || *fp == '\\')
-	    *fp = path_sep;
-	  if (!dbcs_p)
-	    fp++;
-	  else
-	    fp = CharNextExA (file_name_codepage, fp, 0);
-	}
-      return;
+      if (*fp == '/' || *fp == '\\')
+	*fp = path_sep;
+      fp++;
     }
-
-  sep = path_sep;		/* convert to this path separator */
-  elem = fp;			/* start of current path element */
-
-  do {
-    if (*fp >= 'a' && *fp <= 'z')
-      elem = 0;			/* don't convert this element */
-
-    if (*fp == 0 || *fp == ':')
-      {
-	sep = *fp;		/* restore current separator (or 0) */
-	*fp = '/';		/* after conversion of this element */
-      }
-
-    if (*fp == '/' || *fp == '\\')
-      {
-	if (elem && elem != fp)
-	  {
-	    *fp = 0;		/* temporary end of string */
-	    _mbslwr (elem);	/* while we convert to lower case */
-	  }
-	*fp = sep;		/* convert (or restore) path separator */
-	elem = fp + 1;		/* next element starts after separator */
-	sep = path_sep;
-      }
-    if (*fp)
-      {
-	if (!dbcs_p)
-	  fp++;
-	else
-	  fp = CharNextExA (file_name_codepage, fp, 0);
-      }
-  } while (*fp);
 }
 
-/* Destructively turn backslashes into slashes.  MULTIBYTE non-zero
-   means the file name is a multibyte string in Emacs's internal
-   representation.  */
+/* Destructively turn backslashes into slashes.  */
 void
-dostounix_filename (register char *p, int multibyte)
+dostounix_filename (register char *p)
 {
-  normalize_filename (p, '/', multibyte);
+  normalize_filename (p, '/');
 }
 
 /* Destructively turn slashes into backslashes.  */
 void
 unixtodos_filename (register char *p)
 {
-  normalize_filename (p, '\\', 0);
+  normalize_filename (p, '\\');
 }
 
 /* Remove all CR's that are followed by a LF.
@@ -1943,17 +1890,13 @@ parse_root (char * name, char ** pPath)
   else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
     {
       int slashes = 2;
-      int dbcs_p = max_filename_mbslen () > 1;
 
       name += 2;
       do
         {
 	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
 	    break;
-	  if (dbcs_p)
-	    name = CharNextExA (file_name_codepage, name, 0);
-	  else
-	    name++;
+	  name++;
 	}
       while ( *name );
       if (IS_DIRECTORY_SEP (name[0]))
@@ -1970,23 +1913,44 @@ parse_root (char * name, char ** pPath)
 static int
 get_long_basename (char * name, char * buf, int size)
 {
-  WIN32_FIND_DATA find_data;
   HANDLE dir_handle;
+  char fname_utf8[MAX_UTF8_PATH];
   int len = 0;
+  int cstatus;
 
-  /* must be valid filename, no wild cards or other invalid characters */
-  if (_mbspbrk (name, "*?|<>\""))
+  /* Must be valid filename, no wild cards or other invalid characters.  */
+  if (strpbrk (name, "*?|<>\""))
     return 0;
 
-  dir_handle = FindFirstFile (name, &find_data);
-  if (dir_handle != INVALID_HANDLE_VALUE)
+  if (w32_unicode_filenames)
     {
-      if ((len = strlen (find_data.cFileName)) < size)
-	memcpy (buf, find_data.cFileName, len + 1);
-      else
-	len = 0;
-      FindClose (dir_handle);
+      wchar_t fname_utf16[MAX_PATH];
+      WIN32_FIND_DATAW find_data_wide;
+
+      filename_to_utf16 (name, fname_utf16);
+      dir_handle = FindFirstFileW (fname_utf16, &find_data_wide);
+      if (dir_handle != INVALID_HANDLE_VALUE)
+	cstatus = filename_from_utf16 (find_data_wide.cFileName, fname_utf8);
     }
+  else
+    {
+      char fname_ansi[MAX_PATH];
+      WIN32_FIND_DATAA find_data_ansi;
+
+      filename_to_ansi (name, fname_ansi);
+      dir_handle = FindFirstFileA (fname_ansi, &find_data_ansi);
+      if (dir_handle != INVALID_HANDLE_VALUE)
+	cstatus = filename_from_ansi (find_data_ansi.cFileName, fname_utf8);
+    }
+
+  if (cstatus == 0 && (len = strlen (fname_utf8)) < size)
+    memcpy (buf, fname_utf8, len + 1);
+  else
+    len = 0;
+
+  if (dir_handle != INVALID_HANDLE_VALUE)
+    FindClose (dir_handle);
+
   return len;
 }
 
@@ -1997,11 +1961,11 @@ w32_get_long_filename (char * name, char * buf, int size)
   char * o = buf;
   char * p;
   char * q;
-  char full[ MAX_PATH ];
+  char full[ MAX_UTF8_PATH ];
   int len;
 
   len = strlen (name);
-  if (len >= MAX_PATH)
+  if (len >= MAX_UTF8_PATH)
     return FALSE;
 
   /* Use local copy for destructive modification.  */
@@ -2018,7 +1982,7 @@ w32_get_long_filename (char * name, char * buf, int size)
   while (p != NULL && *p)
     {
       q = p;
-      p = _mbschr (q, '\\');
+      p = strchr (q, '\\');
       if (p) *p = '\0';
       len = get_long_basename (full, o, size);
       if (len > 0)
@@ -2040,6 +2004,29 @@ w32_get_long_filename (char * name, char * buf, int size)
     }
 
   return TRUE;
+}
+
+unsigned int
+w32_get_short_filename (char * name, char * buf, int size)
+{
+  if (w32_unicode_filenames)
+    {
+      wchar_t name_utf16[MAX_PATH], short_name[MAX_PATH];
+      unsigned int retval;
+
+      filename_to_utf16 (name, name_utf16);
+      retval = GetShortPathNameW (name_utf16, short_name, size);
+      if (retval && retval < size)
+	filename_from_utf16 (short_name, buf);
+      return retval;
+    }
+  else
+    {
+      char name_ansi[MAX_PATH];
+
+      filename_to_ansi (name, name_ansi);
+      return GetShortPathNameA (name_ansi, buf, size);
+    }
 }
 
 static int
@@ -2506,7 +2493,7 @@ emacs_root_dir (void)
     emacs_abort ();
   strcpy (root_dir, p);
   root_dir[parse_root (root_dir, NULL)] = '\0';
-  dostounix_filename (root_dir, 0);
+  dostounix_filename (root_dir);
   return root_dir;
 }
 
@@ -3936,49 +3923,6 @@ convert_from_time_t (time_t time, FILETIME * pft)
   pft->dwHighDateTime = tmp.HighPart;
   pft->dwLowDateTime = tmp.LowPart;
 }
-
-#if 0
-/* No reason to keep this; faking inode values either by hashing or even
-   using the file index from GetInformationByHandle, is not perfect and
-   so by default Emacs doesn't use the inode values on Windows.
-   Instead, we now determine file-truename correctly (except for
-   possible drive aliasing etc).  */
-
-/*  Modified version of "PJW" algorithm (see the "Dragon" compiler book). */
-static unsigned
-hashval (const unsigned char * str)
-{
-  unsigned h = 0;
-  while (*str)
-    {
-      h = (h << 4) + *str++;
-      h ^= (h >> 28);
-    }
-  return h;
-}
-
-/* Return the hash value of the canonical pathname, excluding the
-   drive/UNC header, to get a hopefully unique inode number. */
-static DWORD
-generate_inode_val (const char * name)
-{
-  char fullname[ MAX_PATH ];
-  char * p;
-  unsigned hash;
-
-  /* Get the truly canonical filename, if it exists.  (Note: this
-     doesn't resolve aliasing due to subst commands, or recognize hard
-     links.  */
-  if (!w32_get_long_filename ((char *)name, fullname, MAX_PATH))
-    emacs_abort ();
-
-  parse_root (fullname, &p);
-  /* Normal W32 filesystems are still case insensitive. */
-  _strlwr (p);
-  return hashval (p);
-}
-
-#endif
 
 static PSECURITY_DESCRIPTOR
 get_file_security_desc_by_handle (HANDLE h)
