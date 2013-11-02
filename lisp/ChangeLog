@@ -1,3 +1,7 @@
+2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* subr.el (version-regexp-alist): Add support for snapshot versions.
+
 2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--rule-parent-skip-assign): New

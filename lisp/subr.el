@@ -4478,11 +4478,12 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defconst version-regexp-alist
-  '(("^[-_+ ]?alpha$"           . -3)
-    ("^[-_+]$"                  . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
-    ("^[-_+ ]cvs$"              . -3) ; treat "1.2.3-CVS" as alpha release
-    ("^[-_+ ]?beta$"            . -2)
-    ("^[-_+ ]?\\(pre\\|rcc\\)$" . -1))
+  '(("^[-_+ ]?snapshot$"              . -4)
+    ("^[-_+]$"                        . -4) ; treat "1.2.3-20050920" and "1.2-3" as snapshot releases
+    ("^[-_+ ]?\\(cvs\\|git\\|bzr\\)$" . -4) ; treat "1.2.3-CVS" as snapshot release
+    ("^[-_+ ]?alpha$"                 . -3)
+    ("^[-_+ ]?beta$"                  . -2)
+    ("^[-_+ ]?\\(pre\\|rcc\\)$"       . -1))
   "Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
@@ -4490,6 +4491,8 @@ This association is used to handle version string like \"1.0pre2\",
 non-numeric part of a version string to an integer.  For example:
 
    String Version    Integer List Version
+   \"0.9snapshot\"     (0  9 -4)
+   \"1.0-git\"         (1  0 -4)
    \"1.0pre2\"         (1  0 -1 2)
    \"1.0PRE2\"         (1  0 -1 2)
    \"22.8beta3\"       (22 8 -2 3)
@@ -4546,6 +4549,8 @@ Examples of version conversion:
    \"0.9alpha1\"       (0  9 -3 1)
    \"0.9AlphA1\"       (0  9 -3 1)
    \"0.9alpha\"        (0  9 -3)
+   \"0.9snapshot\"     (0  9 -4)
+   \"1.0-git\"         (1  0 -4)
 
 See documentation for `version-separator' and `version-regexp-alist'."
   (or (and (stringp ver) (> (length ver) 0))
