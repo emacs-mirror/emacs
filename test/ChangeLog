@@ -2,6 +2,7 @@
 
 	* automated/Makefile.in (top_builddir, abs_test, abs_lispsrc, lisp)
 	(test): Remove variables.
+	(abs_srcdir): New, set by configure.
 	(emacs): Use abs_top_srcdir, abs_srcdir rather than abs_lispsrc,
 	abs_test.
 	(lisp-compile): Use ../../lisp rather than $lisp.
