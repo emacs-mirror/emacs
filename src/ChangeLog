@@ -1,3 +1,14 @@
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(maintainer-clean): Remove pointless echo.  That should be in the
+	top-level Makefile, if anywhere.  Delete TAGS-LISP.
+	(extraclean): No s/ and m/ directories for some time.
+	(TAGS): Remove no-longer-defined S_FILE.
+	Pass absolute filenames to etags once more.
+	(TAGS-LISP, $(lwlibdir)/TAGS): Correctly pass ETAGS to sub-makes.
+	($(lwlibdir)/TAGS): Remove useless subshell, check cd return value.
+
 2013-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (check_lface_attrs, realize_default_face): Add

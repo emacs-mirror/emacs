@@ -23,6 +23,7 @@
 # and set up to be configured by ../configure.
 
 srcdir=@srcdir@
+abs_srcdir=@abs_srcdir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
@@ -100,7 +101,17 @@ distclean: clean
 maintainer-clean: distclean
 	rm -f TAGS
 
-TAGS:
-	../lib-src/etags $(srcdir)/*.[ch]
+
+ETAGS = ../lib-src/etags
+
+## FIXME?  Does etags need to use absolute filenames?
+## See comments in lisp/Makefile.in, src/Makefile.in.
+ctagsfiles= *.[ch]
+
+TAGS: $(srcdir)/$(ctagsfiles)
+	"$(ETAGS)" "$(abs_srcdir)"/$(ctagsfiles)
 tags: TAGS
 .PHONY: tags
+
+
+### Makefile.in ends here

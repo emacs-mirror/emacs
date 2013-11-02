@@ -1,3 +1,11 @@
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (lisptagsfiles1, lisptagsfiles2, lisptagsfiles3)
+	(lisptagsfiles4): Use absolute filenames again.
+	(TAGS, TAGS-LISP): Not everything needs to run in one line.
+	Remove all *loaddefs files, not just the first.  Remove esh-groups.
+	(maintainer-clean): Delete TAGS, TAGS-LISP.
+
 2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* emacs-lisp/package.el (package-version-join): Recognize

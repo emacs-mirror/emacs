@@ -28,6 +28,7 @@ SHELL = @SHELL@
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 ntsource = $(srcdir)/../nt
@@ -580,38 +581,44 @@ bootstrap-clean: clean
 	  if test -f "$(srcdir)/.gdbinit"; then rm -f ./.gdbinit.save; \
 	  else mv ./.gdbinit.save ./.gdbinit; fi; \
 	fi
-## This is used in making a distribution.
-## Do not use it on development directories!
+
 distclean: bootstrap-clean
 	rm -f Makefile
+
 maintainer-clean: distclean
-	@echo "This command is intended for maintainers to use;"
-	@echo "it deletes files that may require special tools to rebuild."
-	rm -f TAGS
+	rm -f TAGS TAGS-LISP
 versionclean:
 	-rm -f emacs$(EXEEXT) emacs-*.*.*$(EXEEXT) ../etc/DOC*
 extraclean: distclean
-	-rm -f *~ \#* m/?*~ s/?*~
+	-rm -f *~ \#*
 
-## Arrange to make a tags table TAGS-LISP for ../lisp,
-## plus TAGS for the C files, which includes ../lisp/TAGS by reference.
+
+ETAGS = ../lib-src/etags
 
 ctagsfiles1 = [xyzXYZ]*.[hc]
 ctagsfiles2 = [a-wA-W]*.[hc]
 ctagsfiles3 = [a-zA-Z]*.m
 
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
-	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
+## FIXME?  Do we really need to use absolute filenames here?
+
+## This does not need to depend on ../lisp and ../lwlib TAGS files,
+## because etags "--include" only includes a pointer to the file,
+## rather than the file contents.
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
+	"$(ETAGS)" --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE) \
+	  "$(abs_srcdir)"/$(ctagsfiles1) "$(abs_srcdir)"/$(ctagsfiles2) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles3)
+	  "$(abs_srcdir)"/$(ctagsfiles3)
+
+## Arrange to make tags tables for ../lisp and ../lwlib,
+## which the above TAGS file for the C files includes by reference.
 frc:
 TAGS-LISP: frc
-	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags
+	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS="$(ETAGS)"
 
 $(lwlibdir)/TAGS:
-	(cd $(lwlibdir); $(MAKE) -f $(lwlibdir)/Makefile tags ETAGS=../lib-src/etags)
+	cd $(lwlibdir) && $(MAKE) TAGS ETAGS="$(ETAGS)"
 
 tags: TAGS TAGS-LISP $(lwlibdir)/TAGS
 .PHONY: tags
