@@ -1,3 +1,16 @@
+2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el Use `syntax-propertize-function'
+	unconditionally.  Remove now unnecessary forward declarations.
+	Remove XEmacs-specific setup.
+	(ruby-here-doc-end-re, ruby-here-doc-beg-match)
+	(ruby-font-lock-syntactic-keywords)
+	(ruby-comment-beg-syntax, ruby-in-here-doc-p)
+	(ruby-here-doc-find-end, ruby-here-doc-beg-syntax)
+	(ruby-here-doc-end-syntax): Remove.
+	(ruby-mode): Don't check whether `syntax-propertize-rules' is
+	defined as function.
+
 2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* progmodes/ruby-mode.el (ruby-mode-variables, ruby-mode): Use `setq-local'.
