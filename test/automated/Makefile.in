@@ -21,7 +21,6 @@ SHELL = @SHELL@
 
 srcdir = @srcdir@
 abs_srcdir = @abs_srcdir@
-abs_top_srcdir = @abs_top_srcdir@
 abs_top_builddir = @abs_top_builddir@
 VPATH = $(srcdir)
 
@@ -34,17 +33,13 @@ VPATH = $(srcdir)
 EMACS = ${abs_top_builddir}/src/emacs
 
 # Command line flags for Emacs.
-
 EMACSOPT = -batch --no-site-file --no-site-lisp
 
-# Extra flags to pass to the byte compiler
+# Extra flags to pass to the byte compiler.
 BYTE_COMPILE_EXTRA_FLAGS =
-# For example to not display the undefined function warnings you can use this:
-# BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
-# The example above is just for developers, it should not be used by default.
 
 # The actual Emacs command run in the targets below.
-emacs = EMACSLOADPATH="$(abs_top_srcdir)/lisp:$(abs_srcdir)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH="$(abs_srcdir)/../../lisp:$(abs_srcdir)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
@@ -54,42 +49,24 @@ setwins=subdirs=`find . -type d -print`; \
 	   esac; \
         done
 
+.PHONY: all check
+
 all: check
 
-doit:
-
-
-# Files MUST be compiled one by one. If we compile several files in a
-# row (i.e., in the same instance of Emacs) we can't make sure that
-# the compilation environment is clean.  We also set the load-path of
-# the Emacs used for compilation to the current directory and its
-# subdirectories, to make sure require's and load's in the files being
-# compiled find the right files.
+# The compilation stuff is copied from lisp/Makefile - see comments there.
 
 .SUFFIXES: .elc .el
 
-# An old-fashioned suffix rule, which, according to the GNU Make manual,
-# cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
 	@$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
-.PHONY: lisp-compile compile-main compile compile-always
+
+.PHONY: lisp-compile compile-targets compile-main compile-clean
 
 lisp-compile:
 	cd ../../lisp && $(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
-# In `compile-main' we could directly do
-#    ... | xargs $(MAKE) $(MFLAGS) EMACS="$(EMACS)"
-# and it works, but it generates a lot of messages like
-#    make[2]: « gnus/gnus-mlspl.elc » is up to date.
-# so instead, we use "xargs echo" to split the list of file into manageable
-# chunks and then use an intermediate `compile-targets' target so the
-# actual targets (the .elc files) are not mentioned as targets on the
-# make command line.
-
-
-.PHONY: compile-targets
 # TARGETS is set dynamically in the recursive call from `compile-main'.
 compile-targets: $(TARGETS)
 
@@ -107,7 +84,6 @@ compile-main: compile-clean lisp-compile
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
 
-.PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
 	@cd $(srcdir) && $(setwins); \
@@ -119,20 +95,8 @@ compile-clean:
 	  fi \
 	done
 
-# Compile all Lisp files, but don't recompile those that are up to
-# date.  Some .el files don't get compiled because they set the
-# local variable no-byte-compile.
-# Calling make recursively because suffix rule cannot have prerequisites.
-# Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
-# sub-makes that run rules that use it, for the sake of some non-GNU makes.
-compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main EMACS="$(EMACS)"
 
-# Compile all Lisp files.  This is like `compile' but compiles files
-# unconditionally.  Some files don't actually get compiled because they
-# set the local variable no-byte-compile.
-compile-always: bootstrap-clean
-	$(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
 	-cd $(srcdir) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
@@ -141,6 +105,7 @@ distclean:
 	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
+
 
 check: compile-main
 	@(cd $(srcdir) && $(setwins); \
