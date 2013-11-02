@@ -2410,9 +2410,10 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
     (load file 'NOERROR nil nil) ))
 
 
-;;;### (autoloads nil "hfy-cmap" "hfy-cmap.el" "df4e418d0d8749ead9d32bb2c7a5bd56")
+;;;### (autoloads nil "hfy-cmap" "hfy-cmap.el" "9fc09983e774dd0938661615b457fb59")
 ;;; Generated autoloads from hfy-cmap.el
 (push (purecopy '(htmlfontify 0 20)) package--builtin-versions)
+
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\
 Load an X11 style rgb.txt FILE.
 Search `hfy-rgb-load-path' if FILE is not specified.

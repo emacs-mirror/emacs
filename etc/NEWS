@@ -789,8 +789,8 @@ rather than inheriting from it (as do face specs set via Customize).
 specifies whether or not the terminal can display a wavy line.
 
 *** New face spec attribute :distant-foreground
-specifies foreground to use if background is near the foreground that would
-otherwise have been used.
+specifies foreground to use if background color is near the foreground
+color that would otherwise have been used.
 
 ** Image API
 
