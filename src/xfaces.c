@@ -5356,7 +5356,7 @@ realize_default_face (struct frame *f)
     }
 
   if (UNSPECIFIEDP (LFACE_DISTANT_FOREGROUND (lface)))
-    ASET (lface, LFACE_DISTANT_FOREGROUND_INDEX, Qnil);
+    ASET (lface, LFACE_DISTANT_FOREGROUND_INDEX, build_string (unspecified_fg));
 
   if (UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
     {

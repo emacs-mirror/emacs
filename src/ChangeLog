@@ -2,6 +2,7 @@
 
 	* xfaces.c (check_lface_attrs, realize_default_face): Add
 	LFACE_DISTANT_FOREGROUND_INDEX (Bug#15788).
+	(realize_default_face): Set DISTANT_FOREGROUND to unspecified_fg.
 
 2013-11-02  Paul Eggert  <eggert@cs.ucla.edu>
 
