@@ -1304,7 +1304,7 @@ filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
 static int
 filename_to_ansi (const char *fn_in, char *fn_out)
 {
-  wchar_t fn_utf16[MAXPATHLEN];
+  wchar_t fn_utf16[MAX_PATH];
 
   if (filename_to_utf16 (fn_in, fn_utf16) == 0)
     {
@@ -1312,7 +1312,7 @@ filename_to_ansi (const char *fn_in, char *fn_out)
       int codepage = codepage_for_filenames (NULL);
 
       result  = WideCharToMultiByte (codepage, 0, fn_utf16, -1,
-				     fn_out, MAX_UTF8_PATH, NULL, NULL);
+				     fn_out, MAX_PATH, NULL, NULL);
       if (!result)
 	{
 	  DWORD err = GetLastError ();
@@ -1339,7 +1339,7 @@ filename_to_ansi (const char *fn_in, char *fn_out)
 int
 filename_from_ansi (const char *fn_in, char *fn_out)
 {
-  wchar_t fn_utf16[MAXPATHLEN];
+  wchar_t fn_utf16[MAX_PATH];
   int codepage = codepage_for_filenames (NULL);
   int result = MultiByteToWideChar (codepage, MB_ERR_INVALID_CHARS, fn_in, -1,
 				    fn_utf16, MAX_PATH);
@@ -4573,13 +4573,32 @@ utime (const char *name, struct utimbuf *times)
       times = &deftime;
     }
 
-  /* Need write access to set times.  */
-  fh = CreateFile (name, FILE_WRITE_ATTRIBUTES,
-		   /* If NAME specifies a directory, FILE_SHARE_DELETE
-		      allows other processes to delete files inside it,
-		      while we have the directory open.  */
-		   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-		   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t name_utf16[MAX_PATH];
+
+      if (filename_to_utf16 (name, name_utf16) != 0)
+	return -1;	/* errno set by filename_to_utf16 */
+
+      /* Need write access to set times.  */
+      fh = CreateFileW (name_utf16, FILE_WRITE_ATTRIBUTES,
+			/* If NAME specifies a directory, FILE_SHARE_DELETE
+			   allows other processes to delete files inside it,
+			   while we have the directory open.  */
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
+  else
+    {
+      char name_ansi[MAX_PATH];
+
+      if (filename_to_ansi (name, name_ansi) != 0)
+	return -1;	/* errno set by filename_to_ansi */
+
+      fh = CreateFileA (name_ansi, FILE_WRITE_ATTRIBUTES,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
   if (fh != INVALID_HANDLE_VALUE)
     {
       convert_from_time_t (times->actime, &atime);
@@ -4594,7 +4613,31 @@ utime (const char *name, struct utimbuf *times)
     }
   else
     {
-      errno = EINVAL;
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_INVALID_DRIVE:
+	case ERROR_BAD_NETPATH:
+	case ERROR_DEV_NOT_EXIST:
+	  /* ERROR_INVALID_NAME is the error CreateFile sets when the
+	     file name includes ?s, i.e. translation to ANSI failed.  */
+	case ERROR_INVALID_NAME:
+	  errno = ENOENT;
+	  break;
+	case ERROR_TOO_MANY_OPEN_FILES:
+	  errno = ENFILE;
+	  break;
+	case ERROR_ACCESS_DENIED:
+	case ERROR_SHARING_VIOLATION:
+	  errno = EACCES;
+	  break;
+	default:
+	  errno = EINVAL;
+	  break;
+	}
       return -1;
     }
   return 0;
