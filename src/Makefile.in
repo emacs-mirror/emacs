@@ -31,7 +31,6 @@ srcdir = @srcdir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 ntsource = $(srcdir)/../nt
-abs_builddir = @abs_builddir@
 VPATH = $(srcdir)
 CC = @CC@
 WINDRES = @WINDRES@
@@ -60,7 +59,7 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
-bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
+bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
 
 ## ns-app if HAVE_NS, else empty.
 OTHER_FILES = @OTHER_FILES@
