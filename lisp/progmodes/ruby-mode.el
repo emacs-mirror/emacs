@@ -565,17 +565,17 @@ explicitly declared in magic comment."
       (smie-setup ruby-smie-grammar #'ruby-smie-rules
                   :forward-token  #'ruby-smie--forward-token
                   :backward-token #'ruby-smie--backward-token)
-    (set (make-local-variable 'indent-line-function) 'ruby-indent-line))
-  (set (make-local-variable 'require-final-newline) t)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-column) ruby-comment-column)
-  (set (make-local-variable 'comment-start-skip) "#+ *")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
+    (setq-local indent-line-function 'ruby-indent-line))
+  (setq-local require-final-newline t)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-column ruby-comment-column)
+  (setq-local comment-start-skip "#+ *")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local parse-sexp-lookup-properties t)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t))
 
 (defun ruby-mode-set-encoding ()
   "Insert a magic comment header with the proper encoding if necessary."
@@ -2069,32 +2069,22 @@ The variable `ruby-indent-level' controls the amount of indentation.
 \\{ruby-mode-map}"
   (ruby-mode-variables)
 
-  (set (make-local-variable 'imenu-create-index-function)
-       'ruby-imenu-create-index)
-  (set (make-local-variable 'add-log-current-defun-function)
-       'ruby-add-log-current-method)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'ruby-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'ruby-end-of-defun)
+  (setq-local imenu-create-index-function 'ruby-imenu-create-index)
+  (setq-local add-log-current-defun-function 'ruby-add-log-current-method)
+  (setq-local beginning-of-defun-function 'ruby-beginning-of-defun)
+  (setq-local end-of-defun-function 'ruby-end-of-defun)
 
   (add-hook 'after-save-hook 'ruby-mode-set-encoding nil 'local)
 
-  (set (make-local-variable 'electric-indent-chars)
-       (append '(?\{ ?\}) electric-indent-chars))
+  (setq-local electric-indent-chars (append '(?\{ ?\}) electric-indent-chars))
 
-  (set (make-local-variable 'font-lock-defaults)
-       '((ruby-font-lock-keywords) nil nil))
-  (set (make-local-variable 'font-lock-keywords)
-       ruby-font-lock-keywords)
-  (set (make-local-variable 'font-lock-syntax-table)
-       ruby-font-lock-syntax-table)
+  (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil))
+  (setq-local font-lock-keywords ruby-font-lock-keywords)
+  (setq-local font-lock-syntax-table ruby-font-lock-syntax-table)
 
   (if (eval-when-compile (fboundp 'syntax-propertize-rules))
-      (set (make-local-variable 'syntax-propertize-function)
-           #'ruby-syntax-propertize-function)
-    (set (make-local-variable 'font-lock-syntactic-keywords)
-         ruby-font-lock-syntactic-keywords)))
+      (setq-local syntax-propertize-function #'ruby-syntax-propertize-function)
+    (setq-local font-lock-syntactic-keywords ruby-font-lock-syntactic-keywords)))
 
 ;;; Invoke ruby-mode when appropriate
 
