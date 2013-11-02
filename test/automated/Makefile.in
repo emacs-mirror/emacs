@@ -22,7 +22,6 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 abs_top_srcdir = @abs_top_srcdir@
 abs_top_builddir = @abs_top_builddir@
-test = $(srcdir)
 VPATH = $(srcdir)
 
 # You can specify a different executable on the make command line,
@@ -96,7 +95,7 @@ compile-targets: $(TARGETS)
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
 compile-main: compile-clean lisp-compile
-	@(cd $(test); $(setwins); \
+	@(cd $(srcdir) && $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
 	  test -f $$el || continue; \
@@ -110,7 +109,7 @@ compile-main: compile-clean lisp-compile
 .PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
-	@cd $(test); $(setwins); \
+	@cd $(srcdir) && $(setwins); \
 	elcs=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
 	for el in $$(echo $$elcs | sed -e 's/\.elc/\.el/g'); do \
 	  if test -f "$$el" -o \! -f "$${el}c"; then :; else \
@@ -131,20 +130,19 @@ compile: $(LOADDEFS) autoloads compile-first
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
-compile-always: doit
-	cd $(test); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
+compile-always: bootstrap-clean
 	$(MAKE) $(MFLAGS) compile EMACS="$(EMACS)"
 
 bootstrap-clean:
-	cd $(test); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
+	-cd $(srcdir) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 
 distclean:
-	-rm -f ./Makefile
+	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
 
 check: compile-main
-	@(cd $(test); $(setwins); \
+	@(cd $(srcdir) && $(setwins); \
 	pattern=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$pattern; do \
 	  test -f $$el || continue; \
