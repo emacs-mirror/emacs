@@ -2087,12 +2087,11 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",
 	    ;; if foo is intended to be found in DIR.
 	    ;;
-	    ;; ;; The directories listed in --directory/-L options will *appear*
-	    ;; ;; at the front of `load-path' in the order they appear on the
-	    ;; ;; command-line.  We cannot do this by *placing* them at the front
-	    ;; ;; in the order they appear, so we need this variable to hold them,
-	    ;; ;; temporarily.
-	    ;; extra-load-path
+	    ;; The directories listed in --directory/-L options will *appear*
+	    ;; at the front of `load-path' in the order they appear on the
+	    ;; command-line.  We cannot do this by *placing* them at the front
+	    ;; in the order they appear, so we need this variable to hold them,
+	    ;; temporarily.
 	    ;;
 	    ;; To DTRT we keep track of the splice point and modify `load-path'
 	    ;; straight away upon any --directory/-L option.
