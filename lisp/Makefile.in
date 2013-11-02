@@ -33,10 +33,10 @@ XARGS_LIMIT = @XARGS_LIMIT@
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-# We sometimes change directory before running Emacs (typically when
-# building out-of-tree, we chdir to the source directory), so we need
-# to use an absolute file name.
-EMACS = ${abs_top_builddir}/src/emacs
+# We never change directory before running Emacs, so a relative file
+# name is fine, and makes life easier.  If we need to change
+# directory, we can use emacs --chdir.
+EMACS = ../src/emacs
 
 # Command line flags for Emacs.
 
@@ -159,25 +159,26 @@ doit:
 $(lisp)/cus-load.el:
 	$(MAKE) $(MFLAGS) custom-deps
 custom-deps: doit
-	cd $(lisp) && $(setwins_almost); \
+	thisdir=`pwd`; cd $(lisp) && $(setwins_almost); cd "$$thisdir"; \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
+	$(emacs) --chdir $(lisp) -l cus-dep -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
-	cd $(lisp) && $(setwins_almost); \
+	thisdir=`pwd`; cd $(lisp) && $(setwins_almost); cd "$$thisdir"; \
 	echo Directories: $$wins; \
-	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
+	$(emacs) --chdir $(lisp) -l finder \
+	  -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
 # Use expand-file-name rather than $abs_scrdir so that Emacs does not
 # get confused when it compares file-names for equality.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
-	cd $(lisp) && $(setwins_almost); \
+	thisdir=`pwd`; cd $(lisp) && $(setwins_almost); cd "$$thisdir"; \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload \
+	$(emacs) --chdir $(lisp) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name "loaddefs.el"))' \
 	    -f batch-update-autoloads $$wins
