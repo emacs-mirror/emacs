@@ -1,5 +1,7 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (abs_lisp): Remove, replace by abs_srcdir.
+
 	Use relative filenames in TAGS files.
 	* Makefile.in (lisptagsfiles1, lisptagsfiles2, lisptagsfiles3)
 	(lisptagsfiles4, TAGS): Use relative file names.

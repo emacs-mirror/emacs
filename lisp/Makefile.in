@@ -23,7 +23,6 @@ srcdir = @srcdir@
 abs_srcdir = @abs_srcdir@
 top_srcdir = @top_srcdir@
 abs_top_builddir = @abs_top_builddir@
-abs_lisp = $(abs_srcdir)
 lisp = $(srcdir)
 VPATH = $(srcdir)
 
@@ -109,7 +108,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 
-emacs = EMACSLOADPATH="$(abs_lisp)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH="$(abs_srcdir)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
@@ -172,7 +171,7 @@ finder-data: doit
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
-# Use expand-file-name rather than $abs_lisp so that Emacs does not
+# Use expand-file-name rather than $abs_scrdir so that Emacs does not
 # get confused when it compares file-names for equality.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
