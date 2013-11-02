@@ -31,10 +31,8 @@ abs_srcdir=@abs_srcdir@
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
 EMACS = ../src/emacs
 
-buildlisppath=${abs_srcdir}/../lisp
-
 # How to run Emacs.
-RUN_EMACS = EMACSLOADPATH="$(buildlisppath)" LC_ALL=C \
+RUN_EMACS = EMACSLOADPATH="${abs_srcdir}/../lisp" LC_ALL=C \
 	"${EMACS}" -batch --no-site-file --no-site-lisp
 
 MKDIR_P = @MKDIR_P@
