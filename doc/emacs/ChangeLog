@@ -1,6 +1,6 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
-	* cmdargs.texi (Action Arguments): Clarify that `-L' prepends.
+	* cmdargs.texi (Action Arguments): Clarify `-L' a bit.
 
 2013-10-23  Glenn Morris  <rgm@gnu.org>
 

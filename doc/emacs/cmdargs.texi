@@ -136,6 +136,9 @@ visited.
 @itemx --directory=@var{dir}
 @opindex --directory
 Prepend directory @var{dir} to the variable @code{load-path}.
+If you specify multiple @samp{-L} options, Emacs preserves the
+relative order; i.e., using @samp{-L /foo -L /bar} results in
+a @code{load-path} of the form @code{("/foo" "/bar" @dots{})}.
 
 @item -f @var{function}
 @opindex -f
