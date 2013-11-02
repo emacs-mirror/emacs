@@ -135,7 +135,7 @@ visited.
 @opindex -L
 @itemx --directory=@var{dir}
 @opindex --directory
-Add directory @var{dir} to the variable @code{load-path}.
+Prepend directory @var{dir} to the variable @code{load-path}.
 
 @item -f @var{function}
 @opindex -f
