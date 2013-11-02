@@ -219,13 +219,11 @@ lisptagsfiles2 = $(srcdir)/*/*.el
 lisptagsfiles3 = $(srcdir)/*/*/*.el
 lisptagsfiles4 = $(srcdir)/*/*/*/*.el
 
-## Apparently the echo | sed | xargs is to stop the command line
-## getting too long on MS Windows.  It will make no difference on
-## POSIX systems, where the shell does the globbing right away, before
-## passing the expanded arguments to echo.
-## The POSIX way would be to use find in a similar way to compile-main.
-## But maybe this is not even necessary any more now that this uses
-## relative filenames.
+## The echo | sed | xargs is to stop the command line getting too long
+## on MS Windows, when the MSYS Bash passes it to a MinGW compiled
+## etags.  It might be better to use find in a similar way to
+## compile-main.  But maybe this is not even necessary any more now
+## that this uses relative filenames.
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
 	rm -f $@
 	touch $@
