@@ -22,7 +22,6 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 abs_srcdir = @abs_srcdir@
 top_srcdir = @top_srcdir@
-abs_top_builddir = @abs_top_builddir@
 lisp = $(srcdir)
 VPATH = $(srcdir)
 

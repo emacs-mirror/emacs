@@ -1,6 +1,7 @@
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACS): Use a relative filename.
+	(abs_top_builddir): Remove.
 	(custom-deps, finder-data, autoloads): Use --chdir.
 
 	* Makefile.in (abs_lisp): Remove, replace by abs_srcdir.
