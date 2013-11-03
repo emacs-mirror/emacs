@@ -1,3 +1,12 @@
+2013-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-smie--rule-parent-skip-assign): Remove.
+	(ruby-smie-rules): Use smie-rule-parent instead.
+
+	* emacs-lisp/smie.el (smie-rule-parent): Always call
+	smie-indent-virtual rather than only for hanging tokens.
+	(smie--next-indent-change): New helper command.
+
 2013-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (abs_srcdir): Remove.
@@ -25,8 +34,8 @@
 
 2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
 
-	* emacs-lisp/package.el (package-version-join): Recognize
-	snapshot versions.
+	* emacs-lisp/package.el (package-version-join):
+	Recognize snapshot versions.
 
 2013-11-02  Bozhidar Batsov  <bozhidar@batsov.com>
 
@@ -34,8 +43,8 @@
 
 2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-smie--rule-parent-skip-assign): New
-	function, replacement for `smie-rule-parent' for when we want to
+	* progmodes/ruby-mode.el (ruby-smie--rule-parent-skip-assign):
+	New function, replacement for `smie-rule-parent' for when we want to
 	skip over our direct parent if it's an assignment token..
 	(ruby-smie-rules): Use it.
 

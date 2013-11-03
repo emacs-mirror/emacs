@@ -1236,15 +1236,7 @@ Only meaningful when called from within `smie-rules-function'."
     (goto-char (cadr (smie-indent--parent)))
     (cons 'column
           (+ (or offset 0)
-             ;; Use smie-indent-virtual when indenting relative to an opener:
-             ;; this will also by default use current-column unless
-             ;; that opener is hanging, but will additionally consult
-             ;; rules-function, so it gives it a chance to tweak
-             ;; indentation (e.g. by forcing indentation relative to
-             ;; its own parent, as in fn a => fn b => fn c =>).
-             (if (or (not (numberp (car smie--parent)))
-		     (smie-indent--hanging-p))
-                 (smie-indent-virtual) (current-column))))))
+             (smie-indent-virtual)))))
 
 (defvar smie-rule-separator-outdent 2)
 
@@ -1836,6 +1828,15 @@ KEYWORDS are additional arguments, which can use the following keywords:
   (if (symbolp smie-rules-function)
       (edebug-instrument-function smie-rules-function)
     (error "Sorry, don't know how to instrument a lambda expression")))
+
+(defun smie--next-indent-change ()
+  "Go to the next line that needs to be reindented (and reindent it)."
+  (interactive)
+  (while
+      (let ((tick (buffer-modified-tick)))
+        (indent-according-to-mode)
+        (eq tick (buffer-modified-tick)))
+    (forward-line 1)))
 
 ;;; User configuration
 

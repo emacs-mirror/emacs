@@ -467,16 +467,6 @@ explicitly declared in magic comment."
            (t ";")))
          (t tok)))))))
 
-(defun ruby-smie--rule-parent-skip-assign ()
-  (let* ((parent (smie-indent--parent))
-         (tok (caddr parent)))
-    (if (and (stringp tok) (string-match-p "[+-*&|^]?=\\'" tok))
-        (progn
-          (goto-char (cadr parent))
-          (let (smie--parent)
-            (smie-rule-parent)))
-      (smie-rule-parent))))
-
 (defun ruby-smie-rules (kind token)
   (pcase (cons kind token)
     (`(:elem . basic) ruby-indent-level)
@@ -499,7 +489,7 @@ explicitly declared in magic comment."
       ((and (equal token "{")
             (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";")))
        ;; Curly block opener.
-       (ruby-smie--rule-parent-skip-assign))
+       (smie-rule-parent))
       ((smie-rule-hanging-p)
        ;; Treat purely syntactic block-constructs as being part of their parent,
        ;; when the opening statement is hanging.
@@ -508,7 +498,7 @@ explicitly declared in magic comment."
        (cons 'column  (smie-indent-virtual)))))
     (`(:after . ,(or "=" "iuwu-mod")) 2)
     (`(:after . " @ ") (smie-rule-parent))
-    (`(:before . "do") (ruby-smie--rule-parent-skip-assign))
+    (`(:before . "do") (smie-rule-parent))
     (`(,(or :before :after) . ".")
      (unless (smie-rule-parent-p ".")
        (smie-rule-parent ruby-indent-level)))
