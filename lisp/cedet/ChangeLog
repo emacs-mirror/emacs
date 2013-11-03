@@ -1,3 +1,9 @@
+2013-11-03  Johan Bockgård  <bojohan@gnu.org>
+
+	* semantic/lex.el (semantic-lex-start-block)
+	(semantic-lex-end-block): Move after definition of
+	semantic-lex-token macro.
+
 2013-10-28  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* semantic/idle.el (semantic-idle-symbol-highlight)
