@@ -20,7 +20,6 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
-abs_srcdir = @abs_srcdir@
 top_srcdir = @top_srcdir@
 lisp = $(srcdir)
 VPATH = $(srcdir)
@@ -106,8 +105,8 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
-
-emacs = EMACSLOADPATH="$(abs_srcdir)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
+# Prevent any setting of EMACSLOADPATH in user environment causing problems.
+emacs = unset EMACSLOADPATH; LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \

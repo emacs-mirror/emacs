@@ -1,3 +1,8 @@
+2013-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): Remove.
+	(emacs): Unset EMACSLOADPATH.
+
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (EMACS): Use a relative filename.
