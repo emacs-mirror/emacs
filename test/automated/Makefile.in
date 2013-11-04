@@ -20,7 +20,6 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
-abs_srcdir = @abs_srcdir@
 VPATH = $(srcdir)
 
 # We never change directory before running Emacs, so a relative file
@@ -35,7 +34,8 @@ EMACSOPT = -batch --no-site-file --no-site-lisp
 BYTE_COMPILE_EXTRA_FLAGS =
 
 # The actual Emacs command run in the targets below.
-emacs = EMACSLOADPATH="$(abs_srcdir)/../../lisp:$(abs_srcdir)" LC_ALL=C "$(EMACS)" $(EMACSOPT)
+# Prevent any setting of EMACSLOADPATH in user environment causing problems.
+emacs = unset EMACSLOADPATH; LC_ALL=C "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
@@ -55,7 +55,7 @@ all: check
 
 .el.elc:
 	@echo Compiling $<
-	@$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
+	@$(emacs) -L :$(srcdir) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 
 .PHONY: compile-targets compile-main compile-clean
@@ -110,6 +110,6 @@ check: compile-main
 	done; \
 	echo Testing $$els; \
 	cd "$$thisdir"; \
-	$(emacs) --chdir $(srcdir) $$args -f ert-run-tests-batch-and-exit
+	$(emacs) --chdir $(srcdir) -L :. $$args -f ert-run-tests-batch-and-exit
 
 # Makefile ends here.

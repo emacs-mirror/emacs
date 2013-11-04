@@ -1,3 +1,9 @@
+2013-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (abs_srcdir): Remove.
+	(emacs): Unset EMACSLOADPATH.
+	(.el.elc, check): Use -L to append srcdir to load-path.
+
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (top_builddir, abs_test, abs_lispsrc, lisp)
