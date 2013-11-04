@@ -409,9 +409,9 @@ void BufferFinish(Buffer buffer)
 
 /* BufferIsReset -- test whether a buffer is in the "reset" state
  *
- * A buffer is "reset" when it is not attached.  In this state all of
- * the pointers into the region are zero.  This condition is checked by
- * BufferCheck.  */
+ * A buffer is "reset" when it is not attached. In this state, the
+ * base, init, alloc, and limit pointers are all zero. This condition
+ * is checked by BufferCheck. */
 
 Bool BufferIsReset(Buffer buffer)
 {
