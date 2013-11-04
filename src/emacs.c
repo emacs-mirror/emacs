@@ -254,7 +254,7 @@ Action options:\n\
 FILE                    visit FILE using find-file\n\
 +LINE                   go to line LINE in next FILE\n\
 +LINE:COLUMN            go to line LINE, column COLUMN, in next FILE\n\
---directory, -L DIR     add DIR to variable load-path\n\
+--directory, -L DIR     prepend DIR to load-path (with :DIR, append DIR)\n\
 --eval EXPR             evaluate Emacs Lisp expression EXPR\n\
 --execute EXPR          evaluate Emacs Lisp expression EXPR\n\
 ",
