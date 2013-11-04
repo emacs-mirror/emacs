@@ -550,7 +550,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #ifdef BYTE_CODE_SAFE
   bytestr_length = SBYTES (bytestr);
 #endif
-  vectorp = XVECTOR (vector)->u.contents;
+  vectorp = XVECTOR (vector)->contents;
 
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = SDATA (bytestr);

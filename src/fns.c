@@ -1602,7 +1602,7 @@ changing the value of a sequence `foo'.  */)
 
 	  for (i = n = 0; i < ASIZE (seq); ++i)
 	    if (NILP (Fequal (AREF (seq, i), elt)))
-	      p->u.contents[n++] = AREF (seq, i);
+	      p->contents[n++] = AREF (seq, i);
 
 	  XSETVECTOR (seq, p);
 	}
@@ -3446,7 +3446,7 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 {
   struct Lisp_Vector *v;
   ptrdiff_t i, incr, incr_max, old_size, new_size;
-  ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->u.contents;
+  ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->contents;
   ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
 		     ? nitems_max : C_language_max);
   eassert (VECTORP (vec));
@@ -3458,9 +3458,9 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
     memory_full (SIZE_MAX);
   new_size = old_size + incr;
   v = allocate_vector (new_size);
-  memcpy (v->u.contents, XVECTOR (vec)->u.contents, old_size * sizeof *v->u.contents);
+  memcpy (v->contents, XVECTOR (vec)->contents, old_size * sizeof *v->contents);
   for (i = old_size; i < new_size; ++i)
-    v->u.contents[i] = Qnil;
+    v->contents[i] = Qnil;
   XSETVECTOR (vec, v);
   return vec;
 }

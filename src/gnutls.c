@@ -791,16 +791,10 @@ one trustfile (usually a CA bundle).  */)
   CHECK_LIST (proplist);
 
   if (NILP (Fgnutls_available_p ()))
-    {
-      error ("GnuTLS not available");
-      return gnutls_make_error (GNUTLS_EMACS_ERROR_NOT_LOADED);
-    }
+    error ("GnuTLS not available");
 
   if (!EQ (type, Qgnutls_x509pki) && !EQ (type, Qgnutls_anon))
-    {
-      error ("Invalid GnuTLS credential type");
-      return gnutls_make_error (GNUTLS_EMACS_ERROR_INVALID_TYPE);
-    }
+    error ("Invalid GnuTLS credential type");
 
   hostname              = Fplist_get (proplist, QCgnutls_bootprop_hostname);
   priority_string       = Fplist_get (proplist, QCgnutls_bootprop_priority);

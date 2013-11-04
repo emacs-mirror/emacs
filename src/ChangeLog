@@ -1,3 +1,37 @@
+2013-11-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to stricter C99 platforms.
+	Especially, C99 prohibits nesting a struct X inside struct Y if
+	struct X has a flexible array member.
+	* alloc.c (struct sdata): New type.
+	(sdata): Implement in terms of struct sdata.
+	Remove u member; all uses replaced by next_vector, set_next_vector.
+	(SDATA_SELECTOR, SDATA_DATA, SDATA_DATA_OFFSET): Adjust to sdata change.
+	(SDATA_DATA_OFFSET): Now a constant, not a macro.
+	(struct sblock): Rename first_data member to data, which is now
+	a flexible array member.  All uses changed.
+	(next_vector, set_next_vector, large_vector_vec): New functions.
+	(vector_alignment): New constant.
+	(roundup_size): Make it a multiple of ALIGNOF_STRUCT_LISP_VECTOR, too.
+	(struct large-vector): Now merely a NEXT member, since the old approach
+	ran afoul of stricter C99.  All uses changed to use
+	large_vector_vec or large_vector_offset.
+	(large_vector_offset): New constant.
+	* dispnew.c: Include tparam.h, for tgetent.
+	Do not include term.h; no longer needed.
+	* gnutls.c (Fgnutls_boot): Don't continue after calling a _Noreturn.
+	* lisp.h (ENUM_BF) [__SUNPRO_C && __STDC__]: Use unsigned int.
+	(struct Lisp_Vector): Use a flexible array member for contents,
+	instead of a union with a member that is an array of size 1.
+	All uses changed.
+	(ALIGNOF_STRUCT_LISP_VECTOR): New constant, to make up for the
+	fact that the struct no longer contains a union.
+	(struct Lisp_Misc_Any, struct Lisp_Marker, struct Lisp_Overlay)
+	(struct Lisp_Save_Value, struct Lisp_Free):
+	Use unsigned, not int, for spacers, to avoid c99 warning.
+	(union specbinding): Use unsigned, not bool, for bitfield, as
+	bool is not portable to pre-C99 hosts.
+
 2013-11-04  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (usage_message): Mention that `-L :...' appends.

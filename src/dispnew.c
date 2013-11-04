@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 
 #include "syssignal.h"
+#include "tparam.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -51,10 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <fpending.h>
 #include <timespec.h>
-
-#if defined (HAVE_TERM_H) && defined (GNU_LINUX)
-#include <term.h>		/* for tgetent */
-#endif
 
 #ifdef WINDOWSNT
 #include "w32.h"

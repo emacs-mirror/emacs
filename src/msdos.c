@@ -2387,7 +2387,7 @@ Each input key receives two values in this vector: first the ASCII code,
 and then the scan code.  */)
   (void)
 {
-  Lisp_Object val, *keys = XVECTOR (recent_doskeys)->u.contents;
+  Lisp_Object val, *keys = XVECTOR (recent_doskeys)->contents;
 
   if (total_doskeys < NUM_RECENT_DOSKEYS)
     return Fvector (total_doskeys, keys);

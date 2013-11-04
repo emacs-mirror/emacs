@@ -406,8 +406,10 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 
 /* Idea stolen from GDB.  Pedantic GCC complains about enum bitfields,
-   MSVC doesn't support them, and xlc complains vociferously about them.  */
-#if defined __STRICT_ANSI__ || defined _MSC_VER || defined __IBMC__
+   MSVC doesn't support them, and xlc and Oracle Studio c99 complain
+   vociferously about them.  */
+#if (defined __STRICT_ANSI__ || defined _MSC_VER || defined __IBMC__ \
+     || (defined __SUNPRO_C && __STDC__))
 #define ENUM_BF(TYPE) unsigned int
 #else
 #define ENUM_BF(TYPE) enum TYPE
@@ -1175,22 +1177,22 @@ struct vectorlike_header
     ptrdiff_t size;
   };
 
-/* Regular vector is just a header plus array of Lisp_Objects...  */
+/* A regular vector is just a header plus an array of Lisp_Objects.  */
 
 struct Lisp_Vector
   {
     struct vectorlike_header header;
-    union {
-      /* ...but sometimes there is also a pointer internally used in
-	 vector allocation code.  Usually you don't want to touch this.  */
-      struct Lisp_Vector *next;
-
-      /* We can't use FLEXIBLE_ARRAY_MEMBER here.  */
-      Lisp_Object contents[1];
-    } u;
+    Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   };
 
-/* A boolvector is a kind of vectorlike, with contents are like a string.  */
+/* C11 prohibits alignof (struct Lisp_Vector), so compute it manually.  */
+enum
+  {
+    ALIGNOF_STRUCT_LISP_VECTOR
+      = alignof (union { struct vectorlike_header a; Lisp_Object b; })
+  };
+
+/* A boolvector is a kind of vectorlike, with contents like a string.  */
 
 struct Lisp_Bool_Vector
   {
@@ -1216,7 +1218,7 @@ bool_vector_size (Lisp_Object a)
 
 enum
   {
-    header_size = offsetof (struct Lisp_Vector, u.contents),
+    header_size = offsetof (struct Lisp_Vector, contents),
     bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
     word_size = sizeof (Lisp_Object)
   };
@@ -1226,13 +1228,13 @@ enum
 INLINE Lisp_Object
 AREF (Lisp_Object array, ptrdiff_t idx)
 {
-  return XVECTOR (array)->u.contents[idx];
+  return XVECTOR (array)->contents[idx];
 }
 
 INLINE Lisp_Object *
 aref_addr (Lisp_Object array, ptrdiff_t idx)
 {
-  return & XVECTOR (array)->u.contents[idx];
+  return & XVECTOR (array)->contents[idx];
 }
 
 INLINE ptrdiff_t
@@ -1245,7 +1247,7 @@ INLINE void
 ASET (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < ASIZE (array));
-  XVECTOR (array)->u.contents[idx] = val;
+  XVECTOR (array)->contents[idx] = val;
 }
 
 INLINE void
@@ -1254,7 +1256,7 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
   /* Like ASET, but also can be used in the garbage collector:
      sweep_weak_table calls set_hash_key etc. while the table is marked.  */
   eassert (0 <= idx && idx < (ASIZE (array) & ~ARRAY_MARK_FLAG));
-  XVECTOR (array)->u.contents[idx] = val;
+  XVECTOR (array)->contents[idx] = val;
 }
 
 /* If a struct is made to look like a vector, this macro returns the length
@@ -1758,14 +1760,14 @@ struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 {
   ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_??? */
   unsigned gcmarkbit : 1;
-  int spacer : 15;
+  unsigned spacer : 15;
 };
 
 struct Lisp_Marker
 {
   ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
-  int spacer : 13;
+  unsigned spacer : 13;
   /* This flag is temporarily used in the functions
      decode/encode_coding_object to record that the marker position
      must be adjusted after the conversion.  */
@@ -1819,7 +1821,7 @@ struct Lisp_Overlay
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
-    int spacer : 15;
+    unsigned spacer : 15;
     struct Lisp_Overlay *next;
     Lisp_Object start;
     Lisp_Object end;
@@ -1897,7 +1899,7 @@ struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
+    unsigned spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
 
     /* V->data may hold up to SAVE_VALUE_SLOTS entries.  The type of
        V's data entries are determined by V->save_type.  E.g., if
@@ -1973,7 +1975,7 @@ struct Lisp_Free
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Free */
     unsigned gcmarkbit : 1;
-    int spacer : 15;
+    unsigned spacer : 15;
     union Lisp_Misc *chain;
   };
 
@@ -2737,7 +2739,7 @@ union specbinding
     } let;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
-      bool debug_on_exit : 1;
+      unsigned debug_on_exit : 1;
       Lisp_Object function;
       Lisp_Object *args;
       ptrdiff_t nargs;
@@ -3089,7 +3091,7 @@ INLINE void
 vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
 {
   eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
-  memcpy (XVECTOR (v)->u.contents + offset, args, count * sizeof *args);
+  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */

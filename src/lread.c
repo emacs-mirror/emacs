@@ -3462,7 +3462,7 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag)
   vector = Fmake_vector (len, Qnil);
 
   size = ASIZE (vector);
-  ptr = XVECTOR (vector)->u.contents;
+  ptr = XVECTOR (vector)->contents;
   for (i = 0; i < size; i++)
     {
       item = Fcar (tem);
