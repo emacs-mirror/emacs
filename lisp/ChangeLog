@@ -13,6 +13,11 @@
 
 2013-11-04  Bozhidar Batsov  <bozhidar@batsov.com>
 
+	* progmodes/ruby-mode.el (ruby-mode): Clean up docstring.
+
+	* subr.el (version<, version<=, version=):
+	Update docstrings with information for snapshot versions.
+
 	* helpers.el: New library for misc helper functions.
 	(hash-table-keys): New function returning a list of hash keys.
 	(hash-table-values): New function returning a list of hash values.
