@@ -1892,14 +1892,12 @@ See `font-lock-syntax-table'.")
 
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
-  "Major mode for editing Ruby scripts.
-\\[ruby-indent-line] properly indents subexpressions of multi-line
-class, module, def, if, while, for, do, and case statements, taking
-nesting into account.
+  "Major mode for editing Ruby code.
 
-The variable `ruby-indent-level' controls the amount of indentation.
+\\{ruby-mode-map}
 
-\\{ruby-mode-map}"
+Entry to this mode calls the value of `ruby-mode-hook'
+if that value is non-nil."
   (ruby-mode-variables)
 
   (setq-local imenu-create-index-function 'ruby-imenu-create-index)
