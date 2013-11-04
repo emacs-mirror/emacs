@@ -24,7 +24,7 @@
 	directory/file names.
 
 	* buffer.c (init_buffer): Don't store default-directory of
-	8scratch* in multibyte form.  The original problem which led to
+	*scratch* in multibyte form.  The original problem which led to
 	that is described in
 	http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-11/msg00532.html,
 	but it was solved long ago.  (Bug#15260)
