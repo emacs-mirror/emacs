@@ -1,3 +1,11 @@
+2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle-mark-mode): Rename from rectangle-mark.
+	Make it into a proper minor mode.
+	(rectangle--region): (implicitly) rename to rectangle-mark-mode.
+	(rectangle-mark-mode-map): New keymap.
+	(rectangle--highlight-for-redisplay): Fix some corner cases (bug#15796).
+
 2013-11-04  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (command-line-1): Allow `-L :...' to append to load-path.

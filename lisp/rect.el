@@ -420,11 +420,8 @@ with a prefix argument, prompt for START-AT and FORMAT."
 ;; - lots of commands handle the region without paying attention to its
 ;;   rectangular shape.
 
-(defvar-local rectangle--region nil
-  "If non-nil, the region is meant to delimit a rectangle.")
-
 (add-hook 'deactivate-mark-hook
-          (lambda () (kill-local-variable 'rectangle--region)))
+          (lambda () (rectangle-mark-mode -1)))
 
 (add-function :around redisplay-highlight-region-function
               #'rectangle--highlight-for-redisplay)
@@ -433,17 +430,25 @@ with a prefix argument, prompt for START-AT and FORMAT."
 (add-function :around region-extract-function
               #'rectangle--extract-region)
 
+(defvar rectangle-mark-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-o] 'open-rectangle)
+    (define-key map [?\C-t] 'string-rectangle)
+    ;; (define-key map [remap open-line] 'open-rectangle)
+    ;; (define-key map [remap transpose-chars] 'string-rectangle)
+    map)
+  "Keymap used while marking a rectangular region.")
+
 ;;;###autoload
-(defun rectangle-mark ()
-  "Toggle the region as rectangular."
-  (interactive)
-  (if rectangle--region
-      (kill-local-variable 'rectangle--region)
-    (unless (region-active-p) (push-mark-command t))
-    (setq rectangle--region t)))
+(define-minor-mode rectangle-mark-mode
+  "Toggle the region as rectangular.
+Activates the region if needed.  Only lasts until the region is deactivated."
+  nil nil nil
+  (when rectangle-mark-mode
+    (unless (region-active-p) (push-mark-command t))))
 
 (defun rectangle--extract-region (orig &optional delete)
-  (if (not rectangle--region)
+  (if (not rectangle-mark-mode)
       (funcall orig delete)
     (let* ((strs (funcall (if delete
                               #'delete-extract-rectangle
@@ -473,7 +478,7 @@ with a prefix argument, prompt for START-AT and FORMAT."
 
 (defun rectangle--highlight-for-redisplay (orig start end window rol)
   (cond
-   ((not rectangle--region)
+   ((not rectangle-mark-mode)
     (funcall orig start end window rol))
    ((and (eq 'rectangle (car-safe rol))
          (eq (nth 1 rol) (buffer-modified-tick))
@@ -535,10 +540,17 @@ with a prefix argument, prompt for START-AT and FORMAT."
                    (eq (char-before right) ?\t))
               (setq right (1- right))
               (move-overlay ol left right)
-              (goto-char right)
-              (let ((str (make-string (- rightcol (current-column)) ?\s)))
-                (put-text-property 0 (length str) 'face 'region str)
-                (overlay-put ol 'after-string str)))
+	      (if (= rightcol leftcol)
+		  (overlay-put ol 'after-string nil)
+		(goto-char right)
+		(let ((str (make-string
+			    (- rightcol (max leftcol (current-column))) ?\s)))
+		  (put-text-property 0 (length str) 'face 'region str)
+		  (when (= left right)
+		    ;; If cursor happens to be here, draw it *before* rather
+		    ;; than after this highlighted pseudo-text.
+		    (put-text-property 0 1 'cursor 1 str))
+		  (overlay-put ol 'after-string str))))
              ((overlay-get ol 'after-string)
               (overlay-put ol 'after-string nil)))
             (when (= leftcol rightcol)
