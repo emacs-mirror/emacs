@@ -273,7 +273,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     using `tramp-error'.  If a method does not provide
     a value here, then Tramp looks at whether the method's
     login program uses a \"%h\" parameter.  If not, then Tramp
-    requires that the given hostname match `tramp-local-host-regexp'. 
+    requires that the given hostname match `tramp-local-host-regexp'.
 
 What does all this mean?  Well, you should specify `tramp-login-program'
 for all methods; this program is used to log in to the remote site.  Then,
@@ -893,8 +893,8 @@ See also `tramp-file-name-regexp'.")
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
   (if (memq system-type '(cygwin windows-nt))
-      "\\`/\\([^[/|:]\\{2,\\}\\|[^/|]\\{2,\\}]\\):"
-    "\\`/\\([^[/|:]+\\|[^/|]+]\\):")
+      "\\`/[^/|:]\\{2,\\}[^/|]*:"
+    "\\`/[^/|:][^/|]*:")
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
 Tramp.  See `tramp-file-name-structure' for more explanations.
@@ -2029,8 +2029,8 @@ ARGS are the arguments OPERATION has been called with."
 		  'vm-imap-move-mail 'vm-pop-move-mail 'vm-spool-move-mail))
     (save-match-data
       (cond
-       ((string-match tramp-file-name-regexp (nth 0 args)) (nth 0 args))
-       ((string-match tramp-file-name-regexp (nth 1 args)) (nth 1 args))
+       ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))
+       ((tramp-tramp-file-p (nth 1 args)) (nth 1 args))
        (t (buffer-file-name (current-buffer))))))
    ;; START END FILE.
    ((eq operation 'write-region)
@@ -3258,7 +3258,9 @@ User is always nil."
       ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
       (when (string-match "~$" filename)
 	(setq filename (concat filename "/"))))
-    (tramp-run-real-handler 'substitute-in-file-name (list filename))))
+    ;; We do not want to replace environment variables, again.
+    (let (process-environment)
+      (tramp-run-real-handler 'substitute-in-file-name (list filename)))))
 
 (defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."

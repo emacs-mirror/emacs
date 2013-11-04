@@ -1988,14 +1988,14 @@ file names."
 	;; In case of `rename', we must flush the cache of the source file.
 	(when (and t1 (eq op 'rename))
 	  (with-parsed-tramp-file-name filename v1
-	    (tramp-flush-file-property v1 (file-name-directory localname))
-	    (tramp-flush-file-property v1 localname)))
+	    (tramp-flush-file-property v1 (file-name-directory v1-localname))
+	    (tramp-flush-file-property v1 v1-localname)))
 
 	;; When newname did exist, we have wrong cached values.
 	(when t2
 	  (with-parsed-tramp-file-name newname v2
-	    (tramp-flush-file-property v2 (file-name-directory localname))
-	    (tramp-flush-file-property v2 localname)))))))
+	    (tramp-flush-file-property v2 (file-name-directory v2-localname))
+	    (tramp-flush-file-property v2 v2-localname)))))))
 
 (defun tramp-do-copy-or-rename-file-via-buffer (op filename newname keep-date)
   "Use an Emacs buffer to copy or rename a file.
