@@ -8900,8 +8900,9 @@ do extra unwind via `cperl-unwind-to-safe'."
 		  (beginning-of-line)
 		  (eq (get-text-property (setq beg (point)) 'syntax-type)
 		      'multiline)))
-      (if (setq beg (cperl-beginning-of-property beg 'syntax-type))
-	  (goto-char beg)))
+      (let ((new-beg (cperl-beginning-of-property beg 'syntax-type)))
+	(setq beg (if (= new-beg beg) nil new-beg))
+	(goto-char new-beg)))
     (setq beg (point))
     (goto-char end)
     (while (and end
