@@ -1,3 +1,17 @@
+2013-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (init, run, stop:): New methods in EmacsApp for
+	OSX >= 10.9 to prevent memory leak of GCD dispatch source.
+
+	* nsterm.h (EmacsApp): Add shouldKeepRunning and isFirst for
+	OSX >= 10.9.
+
+	* nsfns.m (Fx_create_frame): Fix memory leak.
+
+	* macfont.m (CG_SET_FILL_COLOR_WITH_GC_FOREGROUND)
+	(CG_SET_FILL_COLOR_WITH_GC_BACKGROUND)
+	(CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND): Fix memory leak.
+
 2013-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (message3_nolog, message_with_string): Encode the string

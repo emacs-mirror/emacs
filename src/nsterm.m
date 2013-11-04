@@ -4367,6 +4367,46 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsApp
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+- (id)init
+{
+  if (self = [super init])
+    self->isFirst = YES;
+
+  return self;
+}
+
+- (void)run
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+    if (isFirst) [self finishLaunching];
+    isFirst = NO;
+
+    shouldKeepRunning = YES;
+    do
+    {
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
+
+        NSEvent *event =
+          [self nextEventMatchingMask:NSAnyEventMask
+                            untilDate:[NSDate distantFuture]
+                               inMode:NSDefaultRunLoopMode
+                              dequeue:YES];
+        [self sendEvent:event];
+        [self updateWindows];
+    } while (shouldKeepRunning);
+
+    [pool release];
+}
+
+- (void)stop: (id)sender
+{
+    shouldKeepRunning = NO;
+}
+#endif
+
 - (void)logNotification: (NSNotification *)notification
 {
   const char *name = [[notification name] UTF8String];

@@ -85,6 +85,10 @@ typedef float EmacsCGFloat;
 /* We override sendEvent: as a means to stop/start the event loop */
 @interface EmacsApp : NSApplication
 {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+  BOOL shouldKeepRunning;
+  BOOL isFirst;
+#endif
 #ifdef NS_IMPL_GNUSTEP
 @public
   int nextappdefined;

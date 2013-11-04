@@ -624,19 +624,26 @@ get_cgcolor(unsigned long idx, struct frame *f)
 }
 
 #define CG_SET_FILL_COLOR_WITH_GC_FOREGROUND(context, s)                \
-  CGContextSetFillColorWithColor (context,                              \
-                                  get_cgcolor (NS_FACE_FOREGROUND (s->face), \
-                                               s->f))
-
+  do {                                                                  \
+    CGColorRef refcol_ = get_cgcolor (NS_FACE_FOREGROUND (s->face),     \
+                                      s->f);                            \
+    CGContextSetFillColorWithColor (context, refcol_) ;                 \
+    CGColorRelease (refcol_);                                           \
+  } while (0)
 #define CG_SET_FILL_COLOR_WITH_GC_BACKGROUND(context, s)                \
-  CGContextSetFillColorWithColor (context,                              \
-                                  get_cgcolor (NS_FACE_BACKGROUND (s->face), \
-                                               s->f))
-
+  do {                                                                  \
+    CGColorRef refcol_ = get_cgcolor (NS_FACE_BACKGROUND (s->face),\
+                                      s->f);                            \
+    CGContextSetFillColorWithColor (context, refcol_);                  \
+    CGColorRelease (refcol_);                                           \
+  } while (0)
 #define CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND(context, s)              \
-  CGContextSetStrokeColorWithColor (context,                            \
-                                    get_cgcolor (NS_FACE_FOREGROUND (s->face),\
-                                                 s->f))
+  do {                                                                  \
+    CGColorRef refcol_ = get_cgcolor (NS_FACE_FOREGROUND (s->face),\
+                                      s->f);                            \
+    CGContextSetStrokeColorWithColor (context, refcol_);                \
+    CGColorRelease (refcol_);                                           \
+  } while (0)
 
 
 /* Mac font driver.  */

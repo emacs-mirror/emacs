@@ -1194,6 +1194,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     x_default_parameter (f, parms, Qfont,
                                  build_string (fontname),
                                  "font", "Font", RES_TYPE_STRING);
+    xfree (fontname);
   }
   unblock_input ();
 
