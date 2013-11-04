@@ -1,5 +1,7 @@
 2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-run.el (defmacro, defun): Set their `indent' property.
+
 	* electric.el (electric-indent-post-self-insert-function):
 	Only delete trailing whitepsace if it is indeed trailing (bug#15767).
 

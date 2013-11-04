@@ -118,6 +118,7 @@ the FUN corresponding to PROP is called with the function name
 and the VALUES and should return the code to use to set this property.")
 
 (put 'defmacro 'doc-string-elt 3)
+(put 'defmacro 'lisp-indent-function 2)
 (defalias 'defmacro
   (cons
    'macro
@@ -179,7 +180,7 @@ The return value is undefined.
   ;;    (defun foo (arg) (toto) nil)
   ;; from
   ;;    (defun foo (arg) (toto)).
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent 2))
   (let ((decls (cond
                 ((eq (car-safe docstring) 'declare)
                  (prog1 (cdr docstring) (setq docstring nil)))
