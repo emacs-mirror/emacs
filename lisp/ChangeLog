@@ -1,5 +1,7 @@
 2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/helpers.el: Move from helpers.el.  Use lexical-binding.
+
 	* progmodes/python.el: Fix up last change.
 	(python-shell--save-temp-file): New function.
 	(python-shell-send-string): Use it.  Remove `msg' arg.  Don't assume

@@ -1,4 +1,4 @@
-;;; helpers.el --- Some non-essential library extensions
+;;; helpers.el --- Some non-essential library extensions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Free Software Foundation, Inc.
 
@@ -28,13 +28,13 @@
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."
   (let ((keys '()))
-    (maphash (lambda (k v) (push k keys)) hash-table)
+    (maphash (lambda (k _v) (push k keys)) hash-table)
     keys))
 
 (defsubst hash-table-values (hash-table)
   "Return a list of values in HASH-TABLE."
   (let ((values '()))
-    (maphash (lambda (k v) (push v values)) hash-table)
+    (maphash (lambda (_k v) (push v values)) hash-table)
     values))
 
 (provide 'helpers)
