@@ -1,3 +1,8 @@
+2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function):
+	Only delete trailing whitepsace if it is indeed trailing (bug#15767).
+
 2013-11-04  Helmut Eller  <eller.helmut@gmail.com>
 
 	* emacs-lisp/cl-indent.el (with-compilation-unit): Add rule (bug#15782).

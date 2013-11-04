@@ -251,9 +251,10 @@ Python does not lend itself to fully automatic indentation.")
             ;; whereas we need `move after insertion', so we do the
             ;; save/restore by hand.
             (goto-char before)
-            ;; Remove the trailing whitespace after indentation because
-            ;; indentation may (re)introduce the whitespace.
-            (delete-horizontal-space t))))
+	    (when (eolp)
+	      ;; Remove the trailing whitespace after indentation because
+	      ;; indentation may (re)introduce the whitespace.
+	      (delete-horizontal-space t)))))
       (unless (or (memq indent-line-function '(indent-to-left-margin))
                   (and electric-indent-inhibit
                        (> pos (line-beginning-position))))
@@ -270,7 +271,6 @@ This is a global minor mode.  When enabled, it reindents whenever
 the hook `electric-indent-functions' returns non-nil, or you
 insert a character from `electric-indent-chars'."
   :global t
-  :group 'electricity
   (if (not electric-indent-mode)
       (remove-hook 'post-self-insert-hook
                    #'electric-indent-post-self-insert-function)
@@ -294,7 +294,6 @@ insert a character from `electric-indent-chars'."
 (defcustom electric-pair-pairs
   '((?\" . ?\"))
   "Alist of pairs that should be used regardless of major mode."
-  :group 'electricity
   :version "24.1"
   :type '(repeat (cons character character)))
 
@@ -304,7 +303,6 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 This can be convenient for people who find it easier to hit ) than C-f."
-  :group 'electricity
   :version "24.1"
   :type 'boolean)
 
@@ -410,7 +408,6 @@ closing parenthesis.  \(Likewise for brackets, etc.)
 
 See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
-  :group 'electricity
   (if electric-pair-mode
       (progn
 	(add-hook 'post-self-insert-hook
@@ -463,7 +460,6 @@ positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 The variable `electric-layout-rules' says when and how to insert newlines."
   :global t
-  :group 'electricity
   (if electric-layout-mode
       (add-hook 'post-self-insert-hook
                 #'electric-layout-post-self-insert-function)
