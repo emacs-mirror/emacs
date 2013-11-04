@@ -30,9 +30,8 @@
 
 (require 'semantic)
 
-(defvar semantic-utest-temp-directory (if (fboundp 'temp-directory)
-					  (temp-directory)
-					temporary-file-directory)
+(defvar semantic-utest-temp-directory
+  (expand-file-name (make-temp-name "CEDET-UTEST-") temporary-file-directory)
   "Temporary directory to use when creating files.")
 
 (defun semantic-utest-fname (name)
@@ -868,6 +867,7 @@ INSERTME is the text to be inserted after the deletion."
 (defun semantic-utest-main()
   (interactive)
   "call all utests"
+  (make-directory semantic-utest-temp-directory)
   (cedet-utest-log-start "multi-lang parsing")
   (cedet-utest-log " * C tests...")
   (semantic-utest-C)
@@ -887,7 +887,7 @@ INSERTME is the text to be inserted after the deletion."
   (semantic-utest-PHP)
   (cedet-utest-log " * Csharp tests...")
   (semantic-utest-Csharp)
-
+  (delete-directory semantic-utest-temp-directory)
   (cedet-utest-log-shutdown "multi-lang parsing")
   )
 
