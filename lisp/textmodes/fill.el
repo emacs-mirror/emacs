@@ -329,13 +329,24 @@ places."
 	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))
 
+(defun fill-single-char-nobreak-p ()
+  "Return t if point is placed just after a 1-letter word.
+This is used in `fill-nobreak-predicate' to prevent breaking line just
+after a 1-letter word (usually conjunction or preposition) which is
+considered composition error in Polish and Czech typography."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (backward-char 2)
+    (looking-at "[[:space:]][[:alpha:]]")))
+
 (defcustom fill-nobreak-predicate nil
   "List of predicates for recognizing places not to break a line.
 The predicates are called with no arguments, with point at the place to
 be tested.  If it returns t, fill commands do not break the line there."
   :group 'fill
   :type 'hook
-  :options '(fill-french-nobreak-p fill-single-word-nobreak-p))
+  :options '(fill-french-nobreak-p fill-single-word-nobreak-p
+             fill-single-char-nobreak-p))
 
 (defcustom fill-nobreak-invisible nil
   "Non-nil means that fill commands do not break lines in invisible text."
