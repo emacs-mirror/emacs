@@ -2171,13 +2171,22 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (eval (read (or argval (pop command-line-args-left)))))
 
 		  ((member argi '("-L" "-directory"))
-		   (setq tem (expand-file-name
-			      (command-line-normalize-file-name
-			       (or argval (pop command-line-args-left)))))
-		   (cond (splice (setcdr splice (cons tem (cdr splice)))
-				 (setq splice (cdr splice)))
-			 (t (setq load-path (cons tem load-path)
-				  splice load-path))))
+		   ;; -L :/foo adds /foo to the _end_ of load-path.
+		   (let (append)
+		     (if (string-match-p
+			  "\\`:"
+			  (setq tem (or argval (pop command-line-args-left))))
+			 (setq tem (substring tem 1)
+			       append t))
+		     (setq tem (expand-file-name
+				(command-line-normalize-file-name tem)))
+		     (cond (append (setq load-path
+					 (append load-path (list tem)))
+				   (if splice (setq splice load-path)))
+			   (splice (setcdr splice (cons tem (cdr splice)))
+				   (setq splice (cdr splice)))
+			   (t (setq load-path (cons tem load-path)
+				    splice load-path)))))
 
 		  ((member argi '("-l" "-load"))
 		   (let* ((file (command-line-normalize-file-name

@@ -1,3 +1,7 @@
+2013-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line-1): Allow `-L :...' to append to load-path.
+
 2013-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-smie--rule-parent-skip-assign): Remove.

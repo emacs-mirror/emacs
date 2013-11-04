@@ -139,6 +139,8 @@ Prepend directory @var{dir} to the variable @code{load-path}.
 If you specify multiple @samp{-L} options, Emacs preserves the
 relative order; i.e., using @samp{-L /foo -L /bar} results in
 a @code{load-path} of the form @code{("/foo" "/bar" @dots{})}.
+If @var{dir} begins with @samp{:}, Emacs removes the @samp{:} and
+appends (rather than prepends) the remainder to @code{load-path}.
 
 @item -f @var{function}
 @opindex -f

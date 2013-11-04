@@ -62,6 +62,10 @@ To use the old backend by default, do on the command line:
 
 * Startup Changes in Emacs 24.4
 
++++
+** The -L option, which normally prepends its argument to load-path,
+will instead append, if the argument begins with `:'.
+
 
 * Changes in Emacs 24.4
 
