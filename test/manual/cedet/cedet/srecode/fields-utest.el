@@ -35,6 +35,11 @@
 It is filled with some text."
   "Text for tests.")
 
+(defvar srecode-field-utest-filename
+  (expand-file-name
+   (concat (make-temp-name "srecode-field-test-") ".txt")
+   temporary-file-directory))
+
 ;;;###autoload
 (defun srecode-field-utest ()
   "Test the srecode field manager."
@@ -46,8 +51,7 @@ It is filled with some text."
 (defun srecode-field-utest-impl ()
   "Implementation of the SRecode field utest."
   (save-excursion
-    (find-file "/tmp/srecode-field-test.txt")
-
+    (find-file srecode-field-utest-filename)
     (erase-buffer)
     (goto-char (point-min))
     (insert srecode-field-utest-text)
@@ -241,6 +245,8 @@ It is filled with some text."
     (set-buffer-modified-p nil)
 
     (message "   All field tests passed.")
+    (when (file-exists-p srecode-field-utest-filename)
+      (delete-file srecode-field-utest-filename))
     ))
 
 
