@@ -2036,34 +2036,31 @@ there for compatibility with CEDET.")
 (define-obsolete-variable-alias
   'python-preoutput-result 'python-shell-internal-last-output "24.3")
 
-(defun python-shell-send-string (string &optional process msg)
+(defun python-shell--save-temp-file (string)
+  (let* ((temporary-file-directory
+          (if (file-remote-p default-directory)
+              (concat (file-remote-p default-directory) "/tmp")
+            temporary-file-directory))
+         (temp-file-name (make-temp-file "py"))
+         (coding-system-for-write 'utf-8))
+    (with-temp-file temp-file-name
+      (insert "# -*- coding: utf-8 -*-\n") ;Not needed for Python-3.
+      (insert string)
+      (delete-trailing-whitespace))
+    temp-file-name))
+
+(defun python-shell-send-string (string &optional process)
   "Send STRING to inferior Python PROCESS.
-When MSG is non-nil messages the first line of STRING.
-If a temp file is used, return its name, otherwise return nil."
+When MSG is non-nil messages the first line of STRING."
   (interactive "sPython command: ")
-  (let ((process (or process (python-shell-get-or-create-process)))
-        (_ (string-match "\\`\n*\\(.*\\)\\(\n.\\)?" string))
-        (multiline (match-beginning 2)))
-    (and msg (message "Sent: %s..." (match-string 1 string)))
-    (if multiline
-        (let* ((temporary-file-directory
-                (if (file-remote-p default-directory)
-                    (concat (file-remote-p default-directory) "/tmp")
-                  temporary-file-directory))
-               (temp-file-name (make-temp-file "py"))
-               (coding-system-for-write 'utf-8)
-               (file-name (or (buffer-file-name) temp-file-name)))
-          (with-temp-file temp-file-name
-            (insert "# -*- coding: utf-8 -*-\n")
-            (insert string)
-            (delete-trailing-whitespace))
-          (python-shell-send-file file-name process temp-file-name)
-          temp-file-name)
+  (let ((process (or process (python-shell-get-or-create-process))))
+    (if (string-match ".\n+." string)   ;Multiline.
+        (let* ((temp-file-name (python-shell--save-temp-file string)))
+          (python-shell-send-file temp-file-name process temp-file-name))
       (comint-send-string process string)
-      (when (or (not (string-match "\n$" string))
-                (string-match "\n[ \t].*\n?$" string))
-        (comint-send-string process "\n"))
-      nil)))
+      (when (or (not (string-match "\n\\'" string))
+                (string-match "\n[ \t].*\n?\\'" string))
+        (comint-send-string process "\n")))))
 
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
@@ -2101,7 +2098,7 @@ detecting a prompt at the end of the buffer."
             (substring python-shell-output-filter-buffer (match-end 0)))))
   "")
 
-(defun python-shell-send-string-no-output (string &optional process msg)
+(defun python-shell-send-string-no-output (string &optional process)
   "Send STRING to PROCESS and inhibit output.
 When MSG is non-nil messages the first line of STRING.  Return
 the output."
@@ -2112,7 +2109,7 @@ the output."
         (inhibit-quit t))
     (or
      (with-local-quit
-       (python-shell-send-string string process msg)
+       (python-shell-send-string string process)
        (while python-shell-output-filter-in-progress
          ;; `python-shell-output-filter' takes care of setting
          ;; `python-shell-output-filter-in-progress' to NIL after it
@@ -2134,13 +2131,19 @@ Returns the output.  See `python-shell-send-string-no-output'."
          ;; Makes this function compatible with the old
          ;; python-send-receive. (At least for CEDET).
          (replace-regexp-in-string "_emacs_out +" "" string)
-         (python-shell-internal-get-or-create-process) nil)))
+         (python-shell-internal-get-or-create-process))))
 
 (define-obsolete-function-alias
   'python-send-receive 'python-shell-internal-send-string "24.3")
 
 (define-obsolete-function-alias
   'python-send-string 'python-shell-internal-send-string "24.3")
+
+(defvar python--use-fake-loc nil
+  "If non-nil, use `compilation-fake-loc' to trace errors back to the buffer.
+If nil, regions of text are prepended by the corresponding number of empty
+lines and Python is told to output error messages referring to the whole
+source file.")
 
 (defun python-shell-buffer-substring (start end &optional nomain)
   "Send buffer substring from START to END formatted for shell.
@@ -2154,7 +2157,8 @@ the python shell:
   3. Wraps indented regions under an \"if True:\" block so the
      interpreter evaluates them correctly."
   (let ((substring (buffer-substring-no-properties start end))
-        (fillstr (make-string (1- (line-number-at-pos start)) ?\n))
+        (fillstr (unless python--use-fake-loc
+                   (make-string (1- (line-number-at-pos start)) ?\n)))
         (toplevel-block-p (save-excursion
                             (goto-char start)
                             (or (zerop (line-number-at-pos start))
@@ -2163,9 +2167,14 @@ the python shell:
                                   (zerop (current-indentation)))))))
     (with-temp-buffer
       (python-mode)
-      (insert fillstr)
+      (if fillstr (insert fillstr))
       (insert substring)
       (goto-char (point-min))
+      (unless python--use-fake-loc
+        ;; python-shell--save-temp-file adds an extra coding line, which would
+        ;; throw off the line-counts, so let's try to compensate here.
+        (if (looking-at "[ \t]*[#\n]")
+            (delete-region (point) (line-beginning-position 2))))
       (when (not toplevel-block-p)
         (insert "if True:")
         (delete-region (point) (line-end-position)))
@@ -2192,15 +2201,23 @@ the python shell:
 (declare-function compilation-fake-loc "compile"
                   (marker file &optional line col))
 
-(defun python-shell-send-region (start end)
+(defun python-shell-send-region (start end &optional nomain)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
-  (let ((temp-file-name
-         (python-shell-send-string
-          (python-shell-buffer-substring start end) nil t)))
-    (when temp-file-name
-      (with-current-buffer (python-shell-get-buffer)
-        (compilation-fake-loc (copy-marker start) temp-file-name)))))
+  (let* ((python--use-fake-loc
+          (or python--use-fake-loc (not buffer-file-name)))
+         (string (python-shell-buffer-substring start end nomain))
+         (process (python-shell-get-or-create-process))
+         (_ (string-match "\\`\n*\\(.*\\)" string)))
+    (message "Sent: %s..." (match-string 1 string))
+    (let* ((temp-file-name (python-shell--save-temp-file string))
+           (file-name (or (buffer-file-name) temp-file-name)))
+      (python-shell-send-file file-name process temp-file-name)
+      (unless python--use-fake-loc
+        (with-current-buffer (process-buffer process)
+          (compilation-fake-loc (copy-marker start) temp-file-name
+                                2)) ;; Not 1, because of the added coding line.
+        ))))
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
@@ -2209,9 +2226,7 @@ by \"if __name__== '__main__':\""
   (interactive "P")
   (save-restriction
     (widen)
-    (python-shell-send-string
-     (python-shell-buffer-substring
-      (point-min) (point-max) (not arg)))))
+    (python-shell-send-region (point-min) (point-max) (not arg))))
 
 (defun python-shell-send-defun (arg)
   "Send the current defun to inferior Python process.
@@ -3561,6 +3576,15 @@ list is returned as is."
       (reverse acc))))
 
 
+(defun python-electric-pair-string-delimiter ()
+  (when (and electric-pair-mode
+             (memq last-command-event '(?\" ?\'))
+             (let ((count 0))
+               (while (eq (char-before (- (point) count)) last-command-event)
+                 (cl-incf count))
+               (= count 3)))
+    (save-excursion (insert (make-string 3 last-command-event)))))
+
 (defvar electric-indent-inhibit)
 
 ;;;###autoload
@@ -3593,7 +3617,11 @@ if that value is non-nil."
   (set (make-local-variable 'indent-region-function) #'python-indent-region)
   ;; Because indentation is not redundant, we cannot safely reindent code.
   (setq-local electric-indent-inhibit t)
-  
+
+  ;; Add """ ... """ pairing to electric-pair-mode.
+  (add-hook 'post-self-insert-hook
+            #'python-electric-pair-string-delimiter 'append t)
+
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
        'python-fill-paragraph)
