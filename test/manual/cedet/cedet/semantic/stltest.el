@@ -106,4 +106,5 @@
 (semantic-stltest "map")
 ;; I know, not a class...
 (semantic-stltest "iostream")
-(delete-file semantic-stltest-filename)
+(when (file-exists-p semantic-stltest-filename)
+  (delete-file semantic-stltest-filename))
