@@ -82,10 +82,8 @@ for use on `completion-at-point-function'."
   "Complete the nick before point."
   (interactive)
   (when (> (point) (erc-beg-of-input-line))
-    (let ((last-command (if (eq last-command 'erc-complete-word)
-                            'pcomplete
-                          last-command)))
-      (call-interactively 'pcomplete))
+    (setq this-command 'pcomplete)
+    (call-interactively 'pcomplete)
     t))
 
 ;;; Setup function
