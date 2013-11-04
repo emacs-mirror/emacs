@@ -1,3 +1,9 @@
+2013-11-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* emacs-lisp/package.el (package-menu-mode)
+	(package-menu--print-info, package-menu--archive-predicate): Add
+	Archive column to package list.
+
 2013-11-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	Fix problems found while writing a test suite.

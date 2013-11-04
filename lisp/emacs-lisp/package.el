@@ -1581,6 +1581,7 @@ Letters do not insert themselves; instead, they are commands.
   (setq tabulated-list-format [("Package" 18 package-menu--name-predicate)
 			       ("Version" 12 nil)
 			       ("Status"  10 package-menu--status-predicate)
+			       ("Archive" 10 package-menu--archive-predicate)
 			       ("Description" 0 nil)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Status" nil))
@@ -1703,6 +1704,8 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
                                (package-desc-version pkg-desc))
 			      'font-lock-face face)
 		  (propertize status 'font-lock-face face)
+		  (propertize (or (package-desc-archive pkg-desc) "")
+                              'font-lock-face face)
 		  (propertize (package-desc-summary pkg-desc)
                               'font-lock-face face)))))
 
@@ -1918,6 +1921,10 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
 (defun package-menu--name-predicate (A B)
   (string< (symbol-name (package-desc-name (car A)))
 	   (symbol-name (package-desc-name (car B)))))
+
+(defun package-menu--archive-predicate (A B)
+  (string< (or (package-desc-archive (car A)) "")
+	   (or (package-desc-archive (car B)) "")))
 
 ;;;###autoload
 (defun list-packages (&optional no-fetch)
