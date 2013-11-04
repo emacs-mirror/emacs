@@ -75,11 +75,16 @@
    "right" "scientific" "showbase" "showpoint" "showpos" "skipws" "unitbuf" "uppercase" "ws"))
 
 
+(defvar semantic-stltest-filename
+  (expand-file-name
+   (concat (make-temp-name "stltest-") ".cpp")
+   temporary-file-directory))
+
 (defun semantic-stltest (class)
   "Test completions on CLASS."
   (semantic-mode 1)
   (with-current-buffer
-      (find-file-noselect "/tmp/stltest.cpp")
+      (find-file-noselect semantic-stltest-filename)
     (erase-buffer)
     (insert (symbol-value (intern
 			   (concat "semantic-stltest-" class "-buf"))))
@@ -101,3 +106,4 @@
 (semantic-stltest "map")
 ;; I know, not a class...
 (semantic-stltest "iostream")
+(delete-file semantic-stltest-filename)
