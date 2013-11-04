@@ -49,7 +49,10 @@ private:
 
 ;;; Master Harness
 ;;
-(defvar srecode-utest-getset-testfile "/tmp/srecode-utest-getset.cpp"
+(defvar srecode-utest-getset-testfile
+  (expand-file-name
+   (concat (make-temp-name "srecode-utest-getset-") ".cpp")
+   temporary-file-directory)
   "File used to do testing.")
 
 ;;;###autoload
@@ -127,6 +130,8 @@ private:
 	(re-search-forward "miscFunction" pos))
 
       ))
+  (when (file-exists-p srecode-utest-getset-testfile)
+    (delete-file srecode-utest-getset-testfile))
   (cedet-utest-log-shutdown
    "SRECODE Get/Set"
    nil ; How to detect a problem?
