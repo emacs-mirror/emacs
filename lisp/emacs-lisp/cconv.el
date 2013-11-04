@@ -289,12 +289,15 @@ places where they originally did not directly appear."
 
        (dolist (binder binders)
          (let* ((value nil)
-                (var (if (not (consp binder))
-                         (prog1 binder (setq binder (list binder)))
-                       (setq value (cadr binder))
-                       (car binder)))
-                (new-val
-                 (cond
+		(var (if (not (consp binder))
+			 (prog1 binder (setq binder (list binder)))
+		       (cl-assert (null (cdr (cdr binder))) nil
+				  "malformed let binding: `%s'"
+                                  (prin1-to-string binder))
+		       (setq value (cadr binder))
+		       (car binder)))
+		(new-val
+		 (cond
                   ;; Check if var is a candidate for lambda lifting.
                   ((and (member (cons binder form) cconv-lambda-candidates)
                         (progn
