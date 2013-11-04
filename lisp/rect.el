@@ -481,7 +481,7 @@ Activates the region if needed.  Only lasts until the region is deactivated."
    ((not rectangle-mark-mode)
     (funcall orig start end window rol))
    ((and (eq 'rectangle (car-safe rol))
-         (eq (nth 1 rol) (buffer-modified-tick))
+         (eq (nth 1 rol) (buffer-chars-modified-tick))
          (eq start (nth 2 rol))
          (eq end (nth 3 rol)))
     rol)
@@ -562,7 +562,7 @@ Activates the region if needed.  Only lasts until the region is deactivated."
             (push ol nrol))
           (forward-line 1))
         (mapc #'delete-overlay old)
-        `(rectangle ,(buffer-modified-tick) ,start ,end ,@nrol))))))
+        `(rectangle ,(buffer-chars-modified-tick) ,start ,end ,@nrol))))))
 
 (defun rectangle--unhighlight-for-redisplay (orig rol)
   (if (not (eq 'rectangle (car-safe rol)))

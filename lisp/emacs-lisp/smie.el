@@ -1833,9 +1833,9 @@ KEYWORDS are additional arguments, which can use the following keywords:
   "Go to the next line that needs to be reindented (and reindent it)."
   (interactive)
   (while
-      (let ((tick (buffer-modified-tick)))
+      (let ((tick (buffer-chars-modified-tick)))
         (indent-according-to-mode)
-        (eq tick (buffer-modified-tick)))
+        (eq tick (buffer-chars-modified-tick)))
     (forward-line 1)))
 
 ;;; User configuration

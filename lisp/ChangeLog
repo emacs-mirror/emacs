@@ -1,5 +1,9 @@
 2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* rect.el (rectangle--highlight-for-redisplay):
+	* emacs-lisp/smie.el (smie--next-indent-change):
+	Use buffer-chars-modified-tick.
+
 	* emacs-lisp/byte-run.el (defmacro, defun): Set their `indent' property.
 
 	* electric.el (electric-indent-post-self-insert-function):
