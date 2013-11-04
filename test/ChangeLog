@@ -1,3 +1,9 @@
+2013-11-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add a statement on the line after heredoc.
+
+	* automated/ruby-mode-tests.el: Remove outdated comment.
+
 2013-11-04  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (abs_srcdir): Remove.

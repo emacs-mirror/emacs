@@ -393,7 +393,12 @@ explicitly declared in magic comment."
   (let ((pos (point)))
     (skip-chars-forward " \t")
     (cond
-     ((looking-at "\\s\"") "")          ;A heredoc or a string.
+     ((looking-at "\\s\"") ;A heredoc or a string.
+      (if (not (looking-at "\n"))
+          ""
+        ;; Tokenize the whole heredoc as semicolon.
+        (goto-char (scan-sexps (point) 1))
+        ";"))
      ((and (looking-at "[\n#]")
            (ruby-smie--implicit-semi-p)) ;Only add implicit ; when needed.
       (if (eolp) (forward-char 1) (forward-comment 1))
@@ -435,7 +440,10 @@ explicitly declared in magic comment."
     (cond
      ((and (> pos (line-end-position)) (ruby-smie--implicit-semi-p))
       (skip-chars-forward " \t") ";")
-     ((and (bolp) (not (bobp))) "")         ;Presumably a heredoc.
+     ((and (bolp) (not (bobp)))         ;Presumably a heredoc.
+      ;; Tokenize the whole heredoc as semicolon.
+      (goto-char (scan-sexps (point) -1))
+      ";")
      ((and (> pos (point)) (not (bolp))
            (ruby-smie--args-separator-p pos))
       ;; We have "ID SPC ID", which is a method call, but it binds less tightly

@@ -585,8 +585,6 @@ VALUES-PLIST is a list with alternating index and value elements."
     (end-of-defun)
     (should (= 5 (line-number-at-pos)))))
 
-;; Tests below fail when using SMIE.
-
 (defvar ruby-sexp-test-example
   (ruby-test-string
    "class C

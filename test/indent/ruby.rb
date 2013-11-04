@@ -3,6 +3,7 @@ if something_wrong?             # ruby-move-to-block-skips-heredoc
   boo hoo
   end
   eowarn
+  foo
 end
 
 # Percent literals.
