@@ -1,6 +1,7 @@
 2013-11-04  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: Add a statement on the line after heredoc.
+	Move a now-successful example.
 
 	* automated/ruby-mode-tests.el: Remove outdated comment.
 
