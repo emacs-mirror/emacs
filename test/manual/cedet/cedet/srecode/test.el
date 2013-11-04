@@ -291,7 +291,8 @@ INSIDE SECTION: ARG HANDLER ONE")
 
 ;;; Master Harness
 ;;
-(defvar srecode-utest-testfile "/tmp/srecode-utest.srt"
+(defvar srecode-utest-testfile
+  (expand-file-name (concat (make-temp-name "srecode-utest-") ".srt") temporary-file-directory)
   "File used to do testing.")
 
 ;;;###autoload
@@ -323,7 +324,9 @@ INSIDE SECTION: ARG HANDLER ONE")
        "SRECODE Templates"
        nil ; How to detect a problem?
        )
-      )))
+      ))
+  (when (file-exists-p srecode-utest-testfile)
+    (delete-file srecode-utest-testfile)))
 
 ;;; Project test
 ;;
@@ -370,7 +373,9 @@ INSIDE SECTION: ARG HANDLER ONE")
 	  (error "Project template found when not in project")))
 
       ;;
-      )))
+      ))
+  (when (file-exists-p srecode-utest-testfile)
+    (delete-file srecode-utest-testfile)))
 
 
 (provide 'cedet/srecode/test)
