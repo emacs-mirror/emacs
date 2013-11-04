@@ -670,14 +670,16 @@ struct coding_system
     (code) = (s1 << 8) | s2;				\
   } while (0)
 
-/* Encode the file name NAME using the specified coding system
-   for file names, if any.  */
-#define ENCODE_FILE(name)						   \
-  (! NILP (Vfile_name_coding_system)					   \
-   ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
-   : (! NILP (Vdefault_file_name_coding_system)				   \
-      ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
-      : name))
+/* Encode the file name NAME using the specified coding system for
+   file names, if any.  If NAME is a unibyte string, return NAME.  */
+#define ENCODE_FILE(name)						\
+    (! STRING_MULTIBYTE (name)						\
+     ? name								\
+     : (! NILP (Vfile_name_coding_system)				\
+	? code_convert_string_norecord (name, Vfile_name_coding_system, 1) \
+	: (! NILP (Vdefault_file_name_coding_system)			\
+	   ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
+	   : name)))
 
 
 /* Decode the file name NAME using the specified coding system

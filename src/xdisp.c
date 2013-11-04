@@ -9728,7 +9728,11 @@ message3_nolog (Lisp_Object m)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
       if (STRINGP (m))
-	fwrite (SDATA (m), SBYTES (m), 1, stderr);
+	{
+	  Lisp_Object s = ENCODE_SYSTEM (m);
+
+	  fwrite (SDATA (s), SBYTES (s), 1, stderr);
+	}
       if (cursor_in_echo_area == 0)
 	fprintf (stderr, "\n");
       fflush (stderr);
@@ -9803,13 +9807,19 @@ message_with_string (const char *m, Lisp_Object string, int log)
     {
       if (m)
 	{
+	  /* ENCODE_SYSTEM below can GC and/or relocate the Lisp
+	     String whose data pointer might be passed to us in M.  So
+	     we use a local copy.  */
+	  char *fmt = xstrdup (m);
+
 	  if (noninteractive_need_newline)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
-	  fprintf (stderr, m, SDATA (string));
+	  fprintf (stderr, fmt, SDATA (ENCODE_SYSTEM (string)));
 	  if (!cursor_in_echo_area)
 	    fprintf (stderr, "\n");
 	  fflush (stderr);
+	  xfree (fmt);
 	}
     }
   else if (INTERACTIVE)

@@ -1612,14 +1612,14 @@ init_callproc (void)
       Lisp_Object tem, tem1, srcdir;
 
       srcdir = Fexpand_file_name (build_string ("../src/"),
-				  build_string (PATH_DUMPLOADSEARCH));
+				  build_unibyte_string (PATH_DUMPLOADSEARCH));
       tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
       tem1 = Ffile_exists_p (tem);
       if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
 	{
 	  Lisp_Object newdir;
 	  newdir = Fexpand_file_name (build_string ("../etc/"),
-				      build_string (PATH_DUMPLOADSEARCH));
+				      build_unibyte_string (PATH_DUMPLOADSEARCH));
 	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
 	  tem1 = Ffile_exists_p (tem);
 	  if (!NILP (tem1))
@@ -1646,7 +1646,7 @@ init_callproc (void)
 #ifdef DOS_NT
   Vshared_game_score_directory = Qnil;
 #else
-  Vshared_game_score_directory = build_string (PATH_GAME);
+  Vshared_game_score_directory = build_unibyte_string (PATH_GAME);
   if (NILP (Ffile_accessible_directory_p (Vshared_game_score_directory)))
     Vshared_game_score_directory = Qnil;
 #endif

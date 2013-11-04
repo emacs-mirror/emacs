@@ -393,7 +393,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
   initial_argv = argv;
   initial_argc = argc;
 
-  raw_name = build_string (argv[0]);
+  raw_name = build_unibyte_string (argv[0]);
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
@@ -427,7 +427,9 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
     /* Emacs was started with relative path, like ./emacs.
        Make it absolute.  */
     {
-      Lisp_Object odir = original_pwd ? build_string (original_pwd) : Qnil;
+      Lisp_Object odir =
+	original_pwd ? build_unibyte_string (original_pwd) : Qnil;
+
       Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, odir);
     }
 
@@ -2206,7 +2208,7 @@ decode_env_path (const char *evarname, const char *defalt)
       p = strchr (path, SEPCHAR);
       if (!p)
 	p = path + strlen (path);
-      element = (p - path ? make_string (path, p - path)
+      element = (p - path ? make_unibyte_string (path, p - path)
 		 : build_string ("."));
 #ifdef WINDOWSNT
       /* Relative file names in the default path are interpreted as
@@ -2216,7 +2218,7 @@ decode_env_path (const char *evarname, const char *defalt)
 	element = Fexpand_file_name (Fsubstring (element,
 						 make_number (emacs_dir_len),
 						 Qnil),
-				     build_string (emacs_dir));
+				     build_unibyte_string (emacs_dir));
 #endif
 
       /* Add /: to the front of the name

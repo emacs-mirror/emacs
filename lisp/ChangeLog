@@ -1,3 +1,16 @@
+2013-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (normal-top-level): Move setting eol-mnemonic-unix,
+	eol-mnemonic-mac, eol-mnemonic-dos, and also setup of the locale
+	environment and decoding all of the default-directory's to here
+	from command-line.
+	(command-line): Decode also argv[0].
+
+	* loadup.el: Error out if default-directory is a multibyte string
+	when we are dumping.
+
+	* Makefile.in (emacs): Don't set LC_ALL=C.  (Bug#15260)
+
 2013-11-04  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-lisp/package.el (package-menu-mode)

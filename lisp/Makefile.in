@@ -106,7 +106,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = unset EMACSLOADPATH; LC_ALL=C "$(EMACS)" $(EMACSOPT)
+emacs = unset EMACSLOADPATH; "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \

@@ -286,6 +286,20 @@
 ;For other systems, you must edit ../src/Makefile.in.
 (load "site-load" t)
 
+;; Make sure default-directory is unibyte when dumping.  This is
+;; because we cannot decode and encode it correctly (since the locale
+;; environment is not, and should not be, set up).  default-directory
+;; is used every time we call expand-file-name, which we do in every
+;; file primitive.  So the only workable solution to support building
+;; in non-ASCII directories is to manipulate unibyte strings in the
+;; current locale's encoding.
+(if (and (or (equal (nth 3 command-line-args) "dump")
+	     (equal (nth 4 command-line-args) "dump")
+	     (equal (nth 3 command-line-args) "bootstrap")
+	     (equal (nth 4 command-line-args) "bootstrap"))
+	 (multibyte-string-p default-directory))
+    (error "default-directory must be unibyte when dumping Emacs!"))
+
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
 (if (and (or (equal (nth 3 command-line-args) "dump")

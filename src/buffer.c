@@ -5349,13 +5349,10 @@ init_buffer (void)
       len++;
     }
 
+  /* At this moment, we still don't know how to decode the directory
+     name.  So, we keep the bytes in unibyte form so that file I/O
+     routines correctly get the original bytes.  */
   bset_directory (current_buffer, make_unibyte_string (pwd, len));
-  if (! NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
-    /* At this moment, we still don't know how to decode the
-       directory name.  So, we keep the bytes in multibyte form so
-       that ENCODE_FILE correctly gets the original bytes.  */
-    bset_directory
-      (current_buffer, string_to_multibyte (BVAR (current_buffer, directory)));
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */

@@ -1,3 +1,34 @@
+2013-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (message3_nolog, message_with_string): Encode the string
+	before writing it to the terminal in a non-interactive session.
+
+	* lread.c (openp): If both FILENAME and SUFFIX are unibyte, make
+	sure we concatenate them into a unibyte string.
+
+	* fileio.c (make_temp_name): Encode PREFIX, and decode the
+	resulting temporary name before returning it to the caller.
+	(Fexpand_file_name): If NAME is pure-ASCII and DEFAULT_DIRECTORY
+	is a unibyte string, convert NAME to a unibyte string to ensure
+	that the result is also a unibyte string.
+
+	* emacs.c (init_cmdargs): Use build_unibyte_string to make sure we
+	create unibyte strings from default paths and directory/file
+	names.
+
+	* coding.h (ENCODE_FILE): Do not attempt to encode a unibyte
+	string.
+
+	* callproc.c (init_callproc): Use build_unibyte_string to make
+	sure we create unibyte strings from default paths and
+	directory/file names.
+
+	* buffer.c (init_buffer): Don't store default-directory of
+	8scratch* in multibyte form.  The original problem which led to
+	that is described in
+	http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-11/msg00532.html,
+	but it was solved long ago.  (Bug#15260)
+
 2013-11-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to stricter C99 platforms.
