@@ -1044,6 +1044,7 @@ x1
 @node Rearrangement
 @subsection Functions that Rearrange Lists
 @cindex rearrangement of lists
+@cindex reordering, in lists
 @cindex modification of lists
 
   Here are some functions that rearrange lists ``destructively'' by

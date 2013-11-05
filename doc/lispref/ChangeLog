@@ -1,7 +1,9 @@
 2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* lists.texi (Rearrangement): Improve indexing.
+
 	* display.texi (Glyphs): Add an index for glyph code.
-	(Bidirectional Display): Add an index for UBA.
+	(Bidirectional Display): Improve indexing.
 
 2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
