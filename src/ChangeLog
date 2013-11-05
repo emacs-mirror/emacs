@@ -1,3 +1,9 @@
+2013-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_get_name_from_ioreg): New function.
+	(ns_screen_name): Don't use deprecated CGDisplayIOServicePort on
+	OSX >= 10.9.  Use ns_get_name_from_ioreg.
+
 2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify and port recent bool vector changes.

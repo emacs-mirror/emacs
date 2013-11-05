@@ -2358,7 +2358,35 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
 }
 
 #ifdef NS_IMPL_COCOA
-/* Returns the name for the screen that DICT came from, or NULL.
+
+/* Returns the name for the screen that OBJ represents, or NULL.
+   Caller must free return value.
+*/
+
+static char *
+ns_get_name_from_ioreg (io_object_t obj)
+{
+  char *name = NULL;
+
+  NSDictionary *info = (NSDictionary *)
+    IODisplayCreateInfoDictionary (obj, kIODisplayOnlyPreferredName);
+  NSDictionary *names = [info objectForKey:
+                                [NSString stringWithUTF8String:
+                                            kDisplayProductName]];
+
+  if ([names count] > 0)
+    {
+      NSString *n = [names objectForKey: [[names allKeys]
+                                                 objectAtIndex:0]];
+      if (n != nil) name = xstrdup ([n UTF8String]);
+    }
+
+  [info release];
+
+  return name;
+}
+
+/* Returns the name for the screen that DID came from, or NULL.
    Caller must free return value.
 */
 
@@ -2366,20 +2394,50 @@ static char *
 ns_screen_name (CGDirectDisplayID did)
 {
   char *name = NULL;
-  NSDictionary *info = (NSDictionary *)
-    IODisplayCreateInfoDictionary (CGDisplayIOServicePort (did),
-                                   kIODisplayOnlyPreferredName);
-  NSDictionary *names
-    = [info objectForKey:
-              [NSString stringWithUTF8String:kDisplayProductName]];
 
-  if ([names count] > 0) {
-    NSString *n = [names objectForKey: [[names allKeys] objectAtIndex:0]];
-    if (n != nil)
-      name = xstrdup ([n UTF8String]);
-  }
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+  mach_port_t masterPort;
+  io_iterator_t it;
+  io_object_t obj;
 
-  [info release];
+  // CGDisplayIOServicePort is deprecated.  Do it another (harder) way.
+
+  if (IOMasterPort (MACH_PORT_NULL, &masterPort) != kIOReturnSuccess
+      || IOServiceGetMatchingServices (masterPort,
+                                       IOServiceMatching ("IONDRVDevice"),
+                                       &it) != kIOReturnSuccess)
+    return name;
+
+  /* Must loop until we find a name.  Many devices can have the same unit
+     number (represents different GPU parts), but only one has a name.  */
+  while (! name && (obj = IOIteratorNext (it)))
+    {
+      CFMutableDictionaryRef props;
+      const void *val;
+
+      if (IORegistryEntryCreateCFProperties (obj,
+                                             &props,
+                                             kCFAllocatorDefault,
+                                             kNilOptions) == kIOReturnSuccess
+          && props != nil
+          && (val = CFDictionaryGetValue(props, @"IOFBDependentIndex")))
+        {
+          unsigned nr = [(NSNumber *)val unsignedIntegerValue];
+          if (nr == CGDisplayUnitNumber (did))
+            name = ns_get_name_from_ioreg (obj);
+        }
+
+      CFRelease (props);
+      IOObjectRelease (obj);
+    }
+
+  IOObjectRelease (it);
+
+#else
+
+  name = ns_get_name_from_ioreg (CGDisplayIOServicePort (did));
+
+#endif
   return name;
 }
 #endif
