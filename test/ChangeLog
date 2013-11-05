@@ -1,5 +1,13 @@
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 
+	Get rid of --chdir usage.
+	* automated/Makefile.in (EMACSOPT): Move -L here.
+	(emacs): Set EMACS_TEST_DIRECTORY in the environment.
+	(setwins): Don't assume called from srcdir.  Remove legacy stuff.
+	(.el.elc): No more need to pass -L here.
+	(compile-main): Get rid of sub-shell and cd.
+	(compile-clean, check): Get rid of cd.
+
 	Make it possible to run tests with a different working directory.
 	* automated/flymake-tests.el (flymake-tests-data-directory): New.
 	(flymake-tests--current-face): Use flymake-tests-data-directory.
