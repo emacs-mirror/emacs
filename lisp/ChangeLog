@@ -1,3 +1,13 @@
+2013-11-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix problems found while writing a test suite.
+
+	* net/tramp-compat.el (tramp-compat-load): New defun.
+	* net/tramp.el (tramp-handle-load): Use it.
+
+	* net/tramp-sh.el (tramp-sh-handle-add-name-to-file): Handle the case
+	"(numberp ok-if-already-exists)" correctly.
+
 2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* international/characters.el (glyphless-char-display-control):

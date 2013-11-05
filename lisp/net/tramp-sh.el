@@ -1784,21 +1784,21 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
   (with-parsed-tramp-file-name filename v1
     (with-parsed-tramp-file-name newname v2
       (let ((ln (when v1 (tramp-get-remote-ln v1))))
-	(when (and (not ok-if-already-exists)
+	(when (and (numberp ok-if-already-exists)
 		   (file-exists-p newname)
-		   (not (numberp ok-if-already-exists))
-		   (y-or-n-p
+		   (yes-or-no-p
 		    (format
 		     "File %s already exists; make it a new name anyway? "
 		     newname)))
 	  (tramp-error
-	   v2 'file-error
-	   "add-name-to-file: file %s already exists" newname))
+	   v2 'file-error "add-name-to-file: file %s already exists" newname))
+	(when ok-if-already-exists (setq ln (concat ln " -f")))
 	(tramp-flush-file-property v2 (file-name-directory v2-localname))
 	(tramp-flush-file-property v2 v2-localname)
 	(tramp-barf-unless-okay
 	 v1
-	 (format "%s %s %s" ln (tramp-shell-quote-argument v1-localname)
+	 (format "%s %s %s" ln
+		 (tramp-shell-quote-argument v1-localname)
 		 (tramp-shell-quote-argument v2-localname))
 	 "error with add-name-to-file, see buffer `%s' for details"
 	 (buffer-name))))))

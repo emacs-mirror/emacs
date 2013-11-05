@@ -3150,9 +3150,8 @@ User is always nil."
       (let ((tramp-message-show-message (not nomessage)))
 	(with-tramp-progress-reporter v 0 (format "Loading %s" file)
 	  (let ((local-copy (file-local-copy file)))
-	    ;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
 	    (unwind-protect
-		(load local-copy noerror t t)
+		(tramp-compat-load local-copy noerror t nosuffix must-suffix)
 	      (delete-file local-copy)))))
       t)))
 
