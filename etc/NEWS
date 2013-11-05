@@ -232,7 +232,7 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 ** prolog-use-smie has been removed, along with the non-SMIE indentation code.
 
 ** SMIE indentation can be customized via `smie-config'.
-The customizaton can be guessed by Emacs by providing a sample indented
+The customization can be guessed by Emacs by providing a sample indented
 file and letting SMIE learn from it.
 
 ** sh-script now uses its SMIE indentation algorithm by default.

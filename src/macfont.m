@@ -64,7 +64,7 @@ static CGGlyph mac_ctfont_get_glyph_for_cid (CTFontRef,
 #endif
 
 /* The font property key specifying the font design destination.  The
-   value is an unsigned integer code: 0 for WYSIWIG, and 1 for Video
+   value is an unsigned integer code: 0 for WYSIWYG, and 1 for Video
    text.  (See the documentation of X Logical Font Description
    Conventions.)  In the Mac font driver, 1 means the screen font is
    used for calculating some glyph metrics.  You can see the
@@ -366,7 +366,7 @@ mac_font_shape_1 (NSFont *font, NSString *string,
   if (!(textStorage && layoutManager && textContainer))
     {
       [textStorage release];
-      
+
       return 0;
     }
 
@@ -1166,7 +1166,7 @@ struct macfont_cache
 
     /* The cached glyph for a character c is stored as the (c %
        NGLYPHS_IN_VALUE)-th CGGlyph block of a value for the key (c /
-       NGLYPHS_IN_VALUE).  However, the glyph for a BMP characrer c is
+       NGLYPHS_IN_VALUE).  However, the glyph for a BMP character c is
        not stored here if row_nkeys_or_perm[c / 256] >=
        ROW_PERM_OFFSET.  */
     CFMutableDictionaryRef dictionary;
@@ -2472,7 +2472,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   macfont_info = (struct macfont_info *) font;
   macfont_info->macfont = macfont;
   macfont_info->cgfont = mac_font_copy_graphics_font (macfont);
-  
+
   val = assq_no_quit (QCdestination, AREF (entity, FONT_EXTRA_INDEX));
   if (CONSP (val) && EQ (XCDR (val), make_number (1)))
     macfont_info->screen_font = mac_screen_font_create_with_name (font_name,
@@ -2679,7 +2679,7 @@ macfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
     }
   unblock_input ();
 
-  if (metrics) 
+  if (metrics)
     metrics->width = width;
 
   return width;
@@ -2741,7 +2741,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       for (i = 0; i < len; i++)
 	{
 	  int width;
- 
+
 	  glyphs[i] = *(s->char2b + s->cmp_from + i);
 	  width = (s->padding_p ? 1
 		   : macfont_glyph_extents (s->font, glyphs[i],
@@ -3001,7 +3001,7 @@ struct non_default_uvs_table
 #define BUINT32_VALUE(lval)	OSReadBigInt32 (&(lval), 0)
 
 /* Return UVS subtable for the specified FONT.  If the subtable is not
-   found or ill-formated, then return NULL.  */
+   found or ill-formatted, then return NULL.  */
 
 static CFDataRef
 mac_font_copy_uvs_table (FontRef font)

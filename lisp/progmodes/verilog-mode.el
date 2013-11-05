@@ -5460,7 +5460,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 	(catch 'continue
 	  (cond
 	   ((equal (char-after) ?\{)
-            ;; block type returned based on outer contraint { or inner
+            ;; block type returned based on outer constraint { or inner
 	    (if (verilog-at-constraint-p)
                 (cond (inconstraint (throw 'nesting 'constraint))
                       (t            (throw 'nesting 'statement)))))
@@ -11101,7 +11101,7 @@ Templates:
   it is a good idea to do this for all connections in a template,
   as then they will work for any width signal, and with AUTOWIRE.
   See PTL_BUS becoming PTL_BUSNEW below.
- 
+
   Inside a template, a [] in a connection name (with nothing else inside
   the brackets) will be replaced by the same bus subscript as it is being
   connected to, or the [] will be removed if it is a single bit signal.

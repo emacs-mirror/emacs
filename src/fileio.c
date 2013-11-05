@@ -997,7 +997,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 		 unibyte.  Do not convert DEFAULT_DIRECTORY to
 		 multibyte; instead, convert NAME to a unibyte string,
 		 so that the result of this function is also a unibyte
-		 string.  This is needed during bootstraping and
+		 string.  This is needed during bootstrapping and
 		 dumping, when Emacs cannot decode file names, because
 		 the locale environment is not set up.  */
 	      name = make_unibyte_string (SSDATA (name), SBYTES (name));

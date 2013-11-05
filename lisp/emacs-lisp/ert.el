@@ -436,7 +436,7 @@ failed."
 
 (cl-defmacro ert--skip-unless (form)
   "Evaluate FORM.  If it returns nil, skip the current test.
-Errors during evaluation are catched and handled like nil."
+Errors during evaluation are caught and handled like nil."
   (declare (debug t))
   (ert--expand-should `(skip-unless ,form) form
                       (lambda (inner-form form-description-form _value-var)
