@@ -4609,7 +4609,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      {
 			struct Lisp_Process *p =
 			  XPROCESS (chan_process[channel]);
-			if (p && p->gnutls_p && p->infd
+			if (p && p->gnutls_p && p->gnutls_state && p->infd
 			    && ((emacs_gnutls_record_check_pending
 				 (p->gnutls_state))
 				> 0))
@@ -4623,6 +4623,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		{
 		  /* Check this specific channel. */
 		  if (wait_proc->gnutls_p /* Check for valid process.  */
+                      && p->gnutls_state
 		      /* Do we have pending data?  */
 		      && ((emacs_gnutls_record_check_pending
 			   (wait_proc->gnutls_state))
@@ -5004,7 +5005,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	  proc_buffered_char[channel] = -1;
 	}
 #ifdef HAVE_GNUTLS
-      if (p->gnutls_p)
+      if (p->gnutls_p && p->gnutls_state)
 	nbytes = emacs_gnutls_read (p, chars + carryover + buffered,
 				    readmax - buffered);
       else
@@ -5498,7 +5499,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 #endif
 	    {
 #ifdef HAVE_GNUTLS
-	      if (p->gnutls_p)
+	      if (p->gnutls_p && p->gnutls_state)
 		written = emacs_gnutls_write (p, cur_buf, cur_len);
 	      else
 #endif

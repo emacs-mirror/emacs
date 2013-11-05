@@ -1,3 +1,11 @@
+2013-11-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* process.c (wait_reading_process_output, read_process_output)
+	(send_process): Check gnutls_state is not NULL.
+
+	* gnutls.c (emacs_gnutls_handle_error): Adjust log level for EAGAIN.
+	(Fgnutls_boot): Set process gnutls_p later, after initialization.
+
 2013-11-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (init, run, stop:): New methods in EmacsApp for
