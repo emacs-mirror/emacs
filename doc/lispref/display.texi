@@ -6388,6 +6388,7 @@ and displaying bidirectional text.
 @cindex reading order
 @cindex visual order
 @cindex unicode bidirectional algorithm
+@cindex UBA
 @cindex bidirectional reordering
   Text is stored in Emacs buffers and strings in @dfn{logical} (or
 @dfn{reading}) order, i.e., the order in which a human would read
