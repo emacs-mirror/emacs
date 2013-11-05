@@ -2542,7 +2542,9 @@ Assuming that your actual keyboard has the `")
 	   'quail-keyboard-layout-button
 	   quail-keyboard-layout-type)
 	  (insert "' layout,
-translation results in the following \"virtual\" keyboard layout:
+translation results in the following \"virtual\" keyboard layout
+\(the labels on the keys indicate what character will be produced
+by each key, with and without holding Shift):
 ")
 	  (setq done-list
 		(quail-insert-kbd-layout quail-keyboard-layout))

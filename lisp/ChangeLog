@@ -1,5 +1,8 @@
 2013-11-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/quail.el (quail-help): Be more explicit about the
+	meaning of the labels shown on the keys.  (Bug#15800)
+
 	* startup.el (normal-top-level): Load the subdirs.el files before
 	setting the locale environment.  (Bug#15805)
 
