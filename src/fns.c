@@ -441,8 +441,7 @@ with the original.  */)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
-      memcpy (XBOOL_VECTOR (val)->data, XBOOL_VECTOR (arg)->data,
-	      size_in_chars);
+      memcpy (bool_vector_data (val), bool_vector_data (arg), size_in_chars);
       return val;
     }
 
@@ -674,12 +673,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	      }
 	    else if (BOOL_VECTOR_P (this))
 	      {
-		int byte;
-		byte = XBOOL_VECTOR (this)->data[thisindex / BOOL_VECTOR_BITS_PER_CHAR];
-		if (byte & (1 << (thisindex % BOOL_VECTOR_BITS_PER_CHAR)))
-		  elt = Qt;
-		else
-		  elt = Qnil;
+		elt = bool_vector_ref (this, thisindex);
 		thisindex++;
 	      }
 	    else
@@ -2071,7 +2065,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	    EMACS_INT size = bool_vector_size (o1);
 	    if (size != bool_vector_size (o2))
 	      return 0;
-	    if (memcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
+	    if (memcmp (bool_vector_data (o1), bool_vector_data (o2),
 			((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 			 / BOOL_VECTOR_BITS_PER_CHAR)))
 	      return 0;
@@ -2163,19 +2157,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
-    {
-      unsigned char *p = XBOOL_VECTOR (array)->data;
-      size = ((bool_vector_size (array) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	      / BOOL_VECTOR_BITS_PER_CHAR);
-
-      if (size)
-	{
-	  memset (p, ! NILP (item) ? -1 : 0, size);
-
-	  /* Clear any extraneous bits in the last byte.  */
-	  p[size - 1] &= (1 << (size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	}
-    }
+    bool_vector_fill (array, item);
   else
     wrong_type_argument (Qarrayp, array);
   return array;
@@ -2287,10 +2269,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     {
       for (i = 0; i < leni; i++)
 	{
-	  unsigned char byte;
-	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
-	  dummy = (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR))) ? Qt : Qnil;
-	  dummy = call1 (fn, dummy);
+	  dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
@@ -4189,11 +4168,9 @@ sxhash_bool_vector (Lisp_Object vec)
   EMACS_UINT hash = size;
   int i, n;
 
-  n = min (SXHASH_MAX_LEN,
-	   ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	    / BOOL_VECTOR_BITS_PER_CHAR));
+  n = min (SXHASH_MAX_LEN, bool_vector_words (size));
   for (i = 0; i < n; ++i)
-    hash = sxhash_combine (hash, XBOOL_VECTOR (vec)->data[i]);
+    hash = sxhash_combine (hash, bool_vector_data (vec)[i]);
 
   return SXHASH_REDUCE (hash);
 }

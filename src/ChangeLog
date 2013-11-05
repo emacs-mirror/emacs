@@ -1,5 +1,51 @@
 2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify and port recent bool vector changes.
+	* alloc.c (ROUNDUP): Move here from lisp.h, since it's now used
+	only in this file.  Use a more-efficient implementation if the
+	second argument is a power of 2.
+	(ALIGN): Rewrite in terms of ROUNDUP.  Make it a function.
+	Remove no-longer-necessary compile-time checks.
+	(bool_vector_exact_payload_bytes): New function.
+	(bool_vector_payload_bytes): Remove 2nd arg; callers that need
+	exact payload changed to call the new function.  Do not assume
+	that the arg or result fits in ptrdiff_t.
+	(bool_vector_fill): New function.
+	(Fmake_bool_vector): Use it.  Don't assume bit counts fit
+	in ptrdiff_t.
+	(vroundup_ct): Don't assume arg fits in size_t.
+	* category.c (SET_CATEGORY_SET): Remove.  All callers now just
+	invoke set_category_set.
+	(set_category_set): 2nd arg is now EMACS_INT and 3rd is now bool.
+	All callers changed.  Use bool_vector_set.
+	* category.h (XCATEGORY_SET): Remove; no longer needed.
+	(CATEGORY_MEMBER): Now a function.  Rewrite in terms of
+	bool_vector_bitref.
+	* data.c (Faref): Use bool_vector_ref.
+	(Faset): Use bool_vector_set.
+	(bits_word_to_host_endian): Don't assume you can shift by CHAR_BIT.
+	(Fbool_vector_not, Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at): Don't assume CHAR_BIT == 8.
+	* fns.c (concat): Use bool_vector_ref.
+	(Ffillarray): Use bool_vector_fill.
+	(mapcar1): Use bool_vector_ref.
+	(sxhash_bool_vector): Hash words, not bytes.
+	* lisp.h (BOOL_VECTOR_BITS_PER_CHAR): Now a macro as well as
+	a constant, since it's now used in #if.
+	(bits_word, BITS_WORD_MAX, BITS_PER_BITS_WORD): Fall back on
+	unsigned char on unusual architectures, so that we no longer
+	assume that the number of bits per bits_word is a power of two or
+	is a multiple of 8 or of CHAR_BIT.
+	(Qt): Add forward decl.
+	(struct Lisp_Bool_Vector): Don't assume EMACS_INT is aligned
+	at least as strictly as bits_word.
+	(bool_vector_data, bool_vector_uchar_data): New accessors.
+	All data structure accesses changed to use them.
+	(bool_vector_words, bool_vector_bitref, bool_vector_ref)
+	(bool_vector_set): New functions.
+	(bool_vector_fill): New decl.
+	(ROUNDUP): Move to alloc.c as described above.
+
 	Fix recent gnutls changes.
 	* gnutls.c (Fgnutls_boot): Don't assume C99.
 	* process.c (wait_reading_process_output): Fix typo in recent change.

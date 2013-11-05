@@ -82,10 +82,26 @@ typedef unsigned int EMACS_UINT;
 # endif
 #endif
 
+/* Number of bits to put in each character in the internal representation
+   of bool vectors.  This should not vary across implementations.  */
+enum {  BOOL_VECTOR_BITS_PER_CHAR =
+#define BOOL_VECTOR_BITS_PER_CHAR 8
+        BOOL_VECTOR_BITS_PER_CHAR
+};
+
 /* An unsigned integer type representing a fixed-length bit sequence,
-   suitable for words in a Lisp bool vector.  */
+   suitable for words in a Lisp bool vector.  Normally it is size_t
+   for speed, but it is unsigned char on weird platforms.  */
+#if (BITSIZEOF_SIZE_T == CHAR_BIT * SIZEOF_SIZE_T \
+     && BOOL_VECTOR_BITS_PER_CHAR == CHAR_BIT)
 typedef size_t bits_word;
 #define BITS_WORD_MAX SIZE_MAX
+enum { BITS_PER_BITS_WORD = CHAR_BIT * sizeof (bits_word) };
+#else
+typedef unsigned char bits_word;
+#define BITS_WORD_MAX ((1u << BOOL_VECTOR_BITS_PER_CHAR) - 1)
+enum { BITS_PER_BITS_WORD = BOOL_VECTOR_BITS_PER_CHAR };
+#endif
 
 /* Number of bits in some machine integer types.  */
 enum
@@ -94,7 +110,6 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
-    BITS_PER_BITS_WORD = CHAR_BIT * sizeof (bits_word),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 
@@ -616,10 +631,6 @@ enum More_Lisp_Bits
     /* Used to extract pseudovector subtype information.  */
     PSEUDOVECTOR_AREA_BITS = PSEUDOVECTOR_SIZE_BITS + PSEUDOVECTOR_REST_BITS,
     PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS,
-
-    /* Number of bits to put in each character in the internal representation
-       of bool vectors.  This should not vary across implementations.  */
-    BOOL_VECTOR_BITS_PER_CHAR = 8
   };
 
 /* These functions extract various sorts of values from a Lisp_Object.
@@ -777,7 +788,7 @@ extern int char_table_translate (Lisp_Object, int);
 /* Defined in data.c.  */
 extern Lisp_Object Qarrayp, Qbufferp, Qbuffer_or_string_p, Qchar_table_p;
 extern Lisp_Object Qconsp, Qfloatp, Qintegerp, Qlambda, Qlistp, Qmarkerp, Qnil;
-extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qvectorp;
+extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qt, Qvectorp;
 extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
@@ -1152,7 +1163,7 @@ STRING_COPYIN (Lisp_Object string, ptrdiff_t index, char const *new,
    and PSEUDOVECTORP cast their pointers to struct vectorlike_header *,
    because when two such pointers potentially alias, a compiler won't
    incorrectly reorder loads and stores to their size fields.  See
-   <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
+   Bug#8546.  */
 struct vectorlike_header
   {
     /* The only field contains various pieces of information:
@@ -1202,7 +1213,7 @@ struct Lisp_Bool_Vector
     /* This is the size in bits.  */
     EMACS_INT size;
     /* This contains the actual bits, packed into bytes.  */
-    unsigned char data[FLEXIBLE_ARRAY_MEMBER];
+    bits_word data[FLEXIBLE_ARRAY_MEMBER];
   };
 
 INLINE EMACS_INT
@@ -1211,6 +1222,59 @@ bool_vector_size (Lisp_Object a)
   EMACS_INT size = XBOOL_VECTOR (a)->size;
   eassume (0 <= size);
   return size;
+}
+
+INLINE bits_word *
+bool_vector_data (Lisp_Object a)
+{
+  return XBOOL_VECTOR (a)->data;
+}
+
+INLINE unsigned char *
+bool_vector_uchar_data (Lisp_Object a)
+{
+  return (unsigned char *) bool_vector_data (a);
+}
+
+/* The number of data words in a bool vector with SIZE bits.  */
+
+INLINE EMACS_INT
+bool_vector_words (EMACS_INT size)
+{
+  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
+  return (size + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
+}
+
+/* True if A's Ith bit is set.  */
+
+INLINE bool
+bool_vector_bitref (Lisp_Object a, EMACS_INT i)
+{
+  eassume (0 <= i && i < bool_vector_size (a));
+  return !! (bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR]
+	     & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR)));
+}
+
+INLINE Lisp_Object
+bool_vector_ref (Lisp_Object a, EMACS_INT i)
+{
+  return bool_vector_bitref (a, i) ? Qt : Qnil;
+}
+
+/* Set A's Ith bit to B.  */
+
+INLINE void
+bool_vector_set (Lisp_Object a, EMACS_INT i, bool b)
+{
+  unsigned char *addr;
+
+  eassume (0 <= i && i < bool_vector_size (a));
+  addr = &bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR];
+
+  if (b)
+    *addr |= 1 << (i % BOOL_VECTOR_BITS_PER_CHAR);
+  else
+    *addr &= ~ (1 << (i % BOOL_VECTOR_BITS_PER_CHAR));
 }
 
 /* Some handy constants for calculating sizes
@@ -3526,6 +3590,7 @@ list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
 		make_number (w), make_number (h));
 }
 
+extern void bool_vector_fill (Lisp_Object, Lisp_Object);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
@@ -4418,10 +4483,6 @@ functionp (Lisp_Object object)
   else
     return 0;
 }
-
-/* Round x to the next multiple of y.  Does not overflow.  Evaluates
-   arguments repeatedly.  */
-#define ROUNDUP(x,y) ((y)*((x)/(y) + ((x)%(y)!=0)))
 
 INLINE_HEADER_END
 

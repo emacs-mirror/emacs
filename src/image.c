@@ -3026,13 +3026,13 @@ xbm_load (struct frame *f, struct image *img)
 		  if (STRINGP (line))
 		    memcpy (p, SDATA (line), nbytes);
 		  else
-		    memcpy (p, XBOOL_VECTOR (line)->data, nbytes);
+		    memcpy (p, bool_vector_data (line), nbytes);
 		}
 	    }
 	  else if (STRINGP (data))
 	    bits = SSDATA (data);
 	  else
-	    bits = (char *) XBOOL_VECTOR (data)->data;
+	    bits = (char *) bool_vector_data (data);
 
 #ifdef HAVE_NTGUI
           {

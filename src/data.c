@@ -2141,13 +2141,9 @@ or a byte-code object.  IDX starts at 0.  */)
     }
   else if (BOOL_VECTOR_P (array))
     {
-      int val;
-
       if (idxval < 0 || idxval >= bool_vector_size (array))
 	args_out_of_range (array, idx);
-
-      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR];
-      return (val & (1 << (idxval % BOOL_VECTOR_BITS_PER_CHAR)) ? Qt : Qnil);
+      return bool_vector_ref (array, idxval);
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -2191,18 +2187,9 @@ bool-vector.  IDX starts at 0.  */)
     }
   else if (BOOL_VECTOR_P (array))
     {
-      int val;
-
       if (idxval < 0 || idxval >= bool_vector_size (array))
 	args_out_of_range (array, idx);
-
-      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR];
-
-      if (! NILP (newelt))
-	val |= 1 << (idxval % BOOL_VECTOR_BITS_PER_CHAR);
-      else
-	val &= ~(1 << (idxval % BOOL_VECTOR_BITS_PER_CHAR));
-      XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR] = val;
+      bool_vector_set (array, idxval, !NILP (newelt));
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -3033,11 +3020,11 @@ bool_vector_binop_driver (Lisp_Object op1,
 	wrong_length_argument (op1, op2, dest);
     }
 
-  nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
+  nr_words = bool_vector_words (nr_bits);
 
-  adata = (bits_word *) XBOOL_VECTOR (dest)->data;
-  bdata = (bits_word *) XBOOL_VECTOR (op1)->data;
-  cdata = (bits_word *) XBOOL_VECTOR (op2)->data;
+  adata = bool_vector_data (dest);
+  bdata = bool_vector_data (op1);
+  cdata = bool_vector_data (op2);
   i = 0;
   do
     {
@@ -3110,8 +3097,9 @@ bits_word_to_host_endian (bits_word val)
   bits_word r = 0;
   for (i = 0; i < sizeof val; i++)
     {
-      r = (r << CHAR_BIT) | (val & ((1u << CHAR_BIT) - 1));
-      val >>= CHAR_BIT;
+      r = ((r << 1 << (CHAR_BIT - 1))
+	   | (val & ((1u << 1 << (CHAR_BIT - 1)) - 1)));
+      val = val >> 1 >> (CHAR_BIT - 1);
     }
   return r;
 #endif
@@ -3181,7 +3169,6 @@ Return the destination vector.  */)
   EMACS_INT nr_bits;
   bits_word *bdata, *adata;
   ptrdiff_t i;
-  bits_word mword;
 
   CHECK_BOOL_VECTOR (a);
   nr_bits = bool_vector_size (a);
@@ -3195,15 +3182,15 @@ Return the destination vector.  */)
 	wrong_length_argument (a, b, Qnil);
     }
 
-  bdata = (bits_word *) XBOOL_VECTOR (b)->data;
-  adata = (bits_word *) XBOOL_VECTOR (a)->data;
+  bdata = bool_vector_data (b);
+  adata = bool_vector_data (a);
 
   for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; i++)
-    bdata[i] = ~adata[i];
+    bdata[i] = BITS_WORD_MAX & ~adata[i];
 
   if (nr_bits % BITS_PER_BITS_WORD)
     {
-      mword = bits_word_to_host_endian (adata[i]);
+      bits_word mword = bits_word_to_host_endian (adata[i]);
       mword = ~mword;
       mword &= bool_vector_spare_mask (nr_bits);
       bdata[i] = bits_word_to_host_endian (mword);
@@ -3228,8 +3215,8 @@ A must be a bool vector.  B is a generalized bool.  */)
 
   nr_bits = bool_vector_size (a);
   count = 0;
-  match = NILP (b) ? -1 : 0;
-  adata = (bits_word *) XBOOL_VECTOR (a)->data;
+  match = NILP (b) ? BITS_WORD_MAX : 0;
+  adata = bool_vector_data (a);
 
   for (i = 0; i < nr_bits / BITS_PER_BITS_WORD; ++i)
     count += popcount_bits_word (adata[i] ^ match);
@@ -3269,10 +3256,8 @@ index into the vector.  */)
   if (XFASTINT (i) > nr_bits) /* Allow one past the end for convenience */
     args_out_of_range (a, i);
 
-  adata = (bits_word *) XBOOL_VECTOR (a)->data;
-
-  nr_words = ROUNDUP (nr_bits, BITS_PER_BITS_WORD) / BITS_PER_BITS_WORD;
-
+  adata = bool_vector_data (a);
+  nr_words = bool_vector_words (nr_bits);
   pos = XFASTINT (i) / BITS_PER_BITS_WORD;
   offset = XFASTINT (i) % BITS_PER_BITS_WORD;
   count = 0;
@@ -3280,7 +3265,7 @@ index into the vector.  */)
   /* By XORing with twiddle, we transform the problem of "count
      consecutive equal values" into "count the zero bits".  The latter
      operation usually has hardware support.  */
-  twiddle = NILP (b) ? 0 : -1;
+  twiddle = NILP (b) ? 0 : BITS_WORD_MAX;
 
   /* Scan the remainder of the mword at the current offset.  */
   if (pos < nr_words && offset != 0)

@@ -1726,7 +1726,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  for (i = 0; i < size_in_chars; i++)
 	    {
 	      QUIT;
-	      c = XBOOL_VECTOR (obj)->data[i];
+	      c = bool_vector_uchar_data (obj)[i];
 	      if (c == '\n' && print_escape_newlines)
 		{
 		  PRINTCHAR ('\\');

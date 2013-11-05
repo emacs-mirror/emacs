@@ -60,8 +60,6 @@ INLINE_HEADER_BEGIN
 #define CHECK_CATEGORY(x) \
   CHECK_TYPE (CATEGORYP (x), Qcategoryp, x)
 
-#define XCATEGORY_SET XBOOL_VECTOR
-
 #define CATEGORY_SET_P(x) \
   (BOOL_VECTOR_P (x) && bool_vector_size (x) == 128)
 
@@ -75,10 +73,12 @@ INLINE_HEADER_BEGIN
 #define CATEGORY_SET(c) char_category_set (c)
 
 /* Return true if CATEGORY_SET contains CATEGORY.
-   The faster version of `!NILP (Faref (category_set, category))'.  */
-#define CATEGORY_MEMBER(category, category_set)		 		\
-  ((XCATEGORY_SET (category_set)->data[(category) / 8]			\
-    >> ((category) % 8)) & 1)
+   Faster than '!NILP (Faref (category_set, make_number (category)))'.  */
+INLINE bool
+CATEGORY_MEMBER (EMACS_INT category, Lisp_Object category_set)
+{
+  return bool_vector_bitref (category_set, category);
+}
 
 /* Return true if category set of CH contains CATEGORY.  */
 INLINE bool

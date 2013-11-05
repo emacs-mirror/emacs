@@ -361,13 +361,21 @@ static int staticidx;
 
 static void *pure_alloc (size_t, int);
 
+/* Return X rounded to the next multiple of Y.  Arguments should not
+   have side effects, as they are evaluated more than once.  Assume X
+   + Y - 1 does not overflow.  Tune for Y being a power of 2.  */
 
-/* Value is SZ rounded up to the next multiple of ALIGNMENT.
-   ALIGNMENT must be a power of 2.  */
+#define ROUNDUP(x, y) ((y) & ((y) - 1)					\
+		       ? ((x) + (y) - 1) - ((x) + (y) - 1) % (y)	\
+		       : ((x) + (y) - 1) & ~ ((y) - 1))
 
-#define ALIGN(ptr, ALIGNMENT) \
-  ((void *) (((uintptr_t) (ptr) + (ALIGNMENT) - 1) \
-	     & ~ ((ALIGNMENT) - 1)))
+/* Return PTR rounded up to the next multiple of ALIGNMENT.  */
+
+static void *
+ALIGN (void *ptr, int alignment)
+{
+  return (void *) ROUNDUP ((uintptr_t) ptr, alignment);
+}
 
 static void
 XFLOAT_INIT (Lisp_Object f, double n)
@@ -2026,33 +2034,39 @@ INIT must be an integer that represents a character.  */)
   return val;
 }
 
-verify (sizeof (size_t) * CHAR_BIT == BITS_PER_BITS_WORD);
-verify ((BITS_PER_BITS_WORD & (BITS_PER_BITS_WORD - 1)) == 0);
-
-static ptrdiff_t
-bool_vector_payload_bytes (ptrdiff_t nr_bits,
-                           ptrdiff_t *exact_needed_bytes_out)
+static EMACS_INT
+bool_vector_exact_payload_bytes (EMACS_INT nbits)
 {
-  ptrdiff_t exact_needed_bytes;
-  ptrdiff_t needed_bytes;
+  eassume (0 <= nbits);
+  return (nbits + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
+}
 
-  eassume (nr_bits >= 0);
+static EMACS_INT
+bool_vector_payload_bytes (EMACS_INT nbits)
+{
+  EMACS_INT exact_needed_bytes = bool_vector_exact_payload_bytes (nbits);
 
-  exact_needed_bytes = ROUNDUP ((size_t) nr_bits, CHAR_BIT) / CHAR_BIT;
-  needed_bytes = ROUNDUP ((size_t) nr_bits, BITS_PER_BITS_WORD) / CHAR_BIT;
+  /* Always allocate at least one machine word of payload so that
+     bool-vector operations in data.c don't need a special case
+     for empty vectors.  */
+  return ROUNDUP (exact_needed_bytes + !exact_needed_bytes,
+		  sizeof (bits_word));
+}
 
-  if (needed_bytes == 0)
+void
+bool_vector_fill (Lisp_Object a, Lisp_Object init)
+{
+  EMACS_INT nbits = bool_vector_size (a);
+  if (0 < nbits)
     {
-      /* Always allocate at least one machine word of payload so that
-         bool-vector operations in data.c don't need a special case
-         for empty vectors.  */
-      needed_bytes = sizeof (bits_word);
+      unsigned char *data = bool_vector_uchar_data (a);
+      int pattern = NILP (init) ? 0 : (1 << BOOL_VECTOR_BITS_PER_CHAR) - 1;
+      ptrdiff_t nbytes = ((nbits + BOOL_VECTOR_BITS_PER_CHAR - 1)
+			  / BOOL_VECTOR_BITS_PER_CHAR);
+      int last_mask = ~ (~0 << ((nbits - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1));
+      memset (data, pattern, nbytes - 1);
+      data[nbytes - 1] = pattern & last_mask;
     }
-
-  if (exact_needed_bytes_out != NULL)
-    *exact_needed_bytes_out = exact_needed_bytes;
-
-  return needed_bytes;
 }
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
@@ -2060,42 +2074,29 @@ DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   (Lisp_Object length, Lisp_Object init)
 {
-  register Lisp_Object val;
+  Lisp_Object val;
   struct Lisp_Bool_Vector *p;
-  ptrdiff_t exact_payload_bytes;
-  ptrdiff_t total_payload_bytes;
-  ptrdiff_t needed_elements;
+  EMACS_INT exact_payload_bytes, total_payload_bytes, needed_elements;
 
   CHECK_NATNUM (length);
-  if (PTRDIFF_MAX < XFASTINT (length))
-    memory_full (SIZE_MAX);
 
-  total_payload_bytes = bool_vector_payload_bytes
-    (XFASTINT (length), &exact_payload_bytes);
+  exact_payload_bytes = bool_vector_exact_payload_bytes (XFASTINT (length));
+  total_payload_bytes = bool_vector_payload_bytes (XFASTINT (length));
 
-  eassume (exact_payload_bytes <= total_payload_bytes);
-  eassume (0 <= exact_payload_bytes);
-
-  needed_elements = ROUNDUP ((size_t) ((bool_header_size - header_size)
-                                       + total_payload_bytes),
-                             word_size) / word_size;
+  needed_elements = ((bool_header_size - header_size + total_payload_bytes
+		      + word_size - 1)
+		     / word_size);
 
   p = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
   XSETVECTOR (val, p);
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
 
   p->size = XFASTINT (length);
-  if (exact_payload_bytes)
-    {
-      memset (p->data, ! NILP (init) ? -1 : 0, exact_payload_bytes);
-
-      /* Clear any extraneous bits in the last byte.  */
-      p->data[exact_payload_bytes - 1]
-	&= (1 << ((XFASTINT (length) - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1)) - 1;
-    }
+  bool_vector_fill (val, init);
 
   /* Clear padding at the end.  */
-  memset (p->data + exact_payload_bytes,
+  eassume (exact_payload_bytes <= total_payload_bytes);
+  memset (bool_vector_uchar_data (val) + exact_payload_bytes,
           0,
           total_payload_bytes - exact_payload_bytes);
 
@@ -2648,7 +2649,7 @@ verify ((VECTOR_BLOCK_SIZE % roundup_size) == 0);
 verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
-#define vroundup_ct(x) ROUNDUP ((size_t) (x), roundup_size)
+#define vroundup_ct(x) ROUNDUP (x, roundup_size)
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at runtime.  */
 #define vroundup(x) (eassume ((x) >= 0), vroundup_ct (x))
 
@@ -2856,11 +2857,8 @@ vector_nbytes (struct Lisp_Vector *v)
       if (PSEUDOVECTOR_TYPEP (&v->header, PVEC_BOOL_VECTOR))
         {
           struct Lisp_Bool_Vector *bv = (struct Lisp_Bool_Vector *) v;
-          ptrdiff_t payload_bytes =
-              bool_vector_payload_bytes (bv->size, NULL);
-
-          eassume (payload_bytes >= 0);
-          size = bool_header_size + ROUNDUP (payload_bytes, word_size);
+          ptrdiff_t payload_bytes = bool_vector_payload_bytes (bv->size);
+          size = bool_header_size + payload_bytes;
         }
       else
 	size = (header_size
