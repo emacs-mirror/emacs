@@ -3591,9 +3591,7 @@ list is returned as is."
 (define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
 
-\\{python-mode-map}
-Entry to this mode calls the value of `python-mode-hook'
-if that value is non-nil."
+\\{python-mode-map}"
   (set (make-local-variable 'tab-width) 8)
   (set (make-local-variable 'indent-tabs-mode) nil)
 

@@ -1109,9 +1109,7 @@ To find out what version of Prolog mode you are running, enter
 `\\[prolog-mode-version]'.
 
 Commands:
-\\{prolog-mode-map}
-Entry to this mode calls the value of `prolog-mode-hook'
-if that value is non-nil."
+\\{prolog-mode-map}"
   (setq mode-name (concat "Prolog"
                           (cond
                            ((eq prolog-system 'eclipse) "[ECLiPSe]")

@@ -1,5 +1,11 @@
 2013-11-05  Bozhidar Batsov  <bozhidar@batsov.com>
 
+	* progmodes/python.el (python-mode): Remove incorrect text from docstring.
+	* progmodes/scheme.el (scheme-mode): Remove incorrect text from docstring.
+	* progmodes/prolog.el (prolog-mode): Remove incorrect text from docstring.
+	* emacs-lisp/lisp-mode.el (lisp-mode, lisp-interaction-mode, emacs-lisp-mode):
+	Remove incorrect text from docstring.
+
 	* progmodes/ruby-mode.el (ruby-mode): Remove incorrect text from docstring.
 
 2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>

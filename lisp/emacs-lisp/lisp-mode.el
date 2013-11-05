@@ -700,9 +700,7 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 
-\\{emacs-lisp-mode-map}
-Entry to this mode calls the value of `emacs-lisp-mode-hook'
-if that value is non-nil."
+\\{emacs-lisp-mode-map}"
   :group 'lisp
   (lisp-mode-variables nil nil 'elisp)
   (setq imenu-case-fold-search nil)
@@ -792,10 +790,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
-or to switch back to an existing one.
-
-Entry to this mode calls the value of `lisp-mode-hook'
-if that value is non-nil."
+or to switch back to an existing one."
   (lisp-mode-variables nil t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
@@ -860,9 +855,7 @@ Delete converts tabs to spaces as it moves back.
 Paragraphs are separated only by blank lines.
 Semicolons start comments.
 
-\\{lisp-interaction-mode-map}
-Entry to this mode calls the value of `lisp-interaction-mode-hook'
-if that value is non-nil."
+\\{lisp-interaction-mode-map}"
   :abbrev-table nil)
 
 (defun eval-print-last-sexp ()
