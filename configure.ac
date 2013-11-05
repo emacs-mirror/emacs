@@ -419,17 +419,6 @@ AC_ARG_ENABLE(gtk-deprecation-warnings,
 		[Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0])],
 [ac_enable_gtk_deprecation_warnings="${enableval}"],[])
 
-#### When building with MinGW inside the MSYS tree, 'pwd' produces
-#### directories relative to the root of the MSYS tree,
-#### e.g. '/home/user/foo' instead of '/d/MSYS/home/user/foo'.  When
-#### such a value of srcdir is written to the top-level Makefile, it
-#### gets propagated to src/epaths.h, and that causes temacs to fail,
-#### because, being a MinGW program that knows nothing of MSYS root
-#### substitution, it cannot find the data directory.  "pwd -W"
-#### produces Windows-style 'd:/foo/bar' absolute directory names, so
-#### we use it here to countermand that lossage.
-test "$MSYSTEM" = "MINGW32" && abs_srcdir=`(cd "$abs_srcdir"; pwd -W | sed -e 's,^\([[A-Za-z]]\):,/\1,')`
-
 ### Canonicalize the configuration name.
 
 AC_CANONICAL_HOST

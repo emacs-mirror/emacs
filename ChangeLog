@@ -1,5 +1,9 @@
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (abs_srcdir) [MINGW32]: No point setting it here,
+	config.status computes it.
+	* Makefile.in (epaths-force-w32): Move srcdir tweak here.
+
 	* autogen: Remove directory.  Move update_autogen to admin/.
 	* autogen.sh: Remove reference to copy_autogen.
 	* GNUmakefile (configure):
