@@ -2873,14 +2873,13 @@ struct handler
 
 /* Fill in the components of c, and put it on the list.  */
 #define PUSH_HANDLER(c, tag_ch_val, handlertype)	\
-  if (handlerlist && handlerlist->nextfree)		\
+  if (handlerlist->nextfree)				\
     (c) = handlerlist->nextfree;			\
   else							\
     {							\
       (c) = xmalloc (sizeof (struct handler));		\
       (c)->nextfree = NULL;				\
-      if (handlerlist)					\
-	handlerlist->nextfree = (c);			\
+      handlerlist->nextfree = (c);			\
     }							\
   (c)->type = (handlertype);				\
   (c)->tag_or_ch = (tag_ch_val);			\

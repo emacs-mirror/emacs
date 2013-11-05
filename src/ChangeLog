@@ -1,3 +1,12 @@
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (handlerlist_sentinel): New variable (bug#15802).
+	(init_eval): Use it to ensure handlerlist is non-NULL.
+	(unwind_to_catch): Make sure we never set handlerlist to NULL.
+	(Fsignal): Adjust NULLness test of handlerlist.
+
+	* lisp.h (PUSH_HANDLER): Assume handlerlist is non-NULL.
+
 2013-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* callproc.c (call_process): Call prepare_to_modify_buffer before
