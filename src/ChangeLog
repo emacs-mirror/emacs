@@ -1,3 +1,10 @@
+2013-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (call_process): Call prepare_to_modify_buffer before
+	decoding text read from the sub-process, as the decoded stuff will
+	be inserted into the buffer.  This will invalidate the various
+	caches maintained for the buffer.  (Bug#15148)
+
 2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* xdisp.c (syms_of_xdisp): Mention the active display table in doc
