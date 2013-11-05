@@ -2,6 +2,7 @@
 
 	* autogen/config.in:
 	* autogen/Makefile.in: Move here from ../autogen.
+	* mainmake.v2: Use msdos/autogen rather than autogen.
 
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
