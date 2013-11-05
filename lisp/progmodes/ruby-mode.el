@@ -1894,10 +1894,7 @@ See `font-lock-syntax-table'.")
 (define-derived-mode ruby-mode prog-mode "Ruby"
   "Major mode for editing Ruby code.
 
-\\{ruby-mode-map}
-
-Entry to this mode calls the value of `ruby-mode-hook'
-if that value is non-nil."
+\\{ruby-mode-map}"
   (ruby-mode-variables)
 
   (setq-local imenu-create-index-function 'ruby-imenu-create-index)
