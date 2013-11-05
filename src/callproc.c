@@ -777,7 +777,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       char buf[CALLPROC_BUFFER_SIZE_MAX];
       int bufsize = CALLPROC_BUFFER_SIZE_MIN;
       int nread;
-      bool first = 1;
       EMACS_INT total_read = 0;
       int carryover = 0;
       bool display_on_the_fly = display_p;
@@ -875,9 +874,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 	  if (display_p)
 	    {
-	      if (first)
-		prepare_menu_bars ();
-	      first = 0;
 	      redisplay_preserve_echo_area (1);
 	      /* This variable might have been set to 0 for code
 		 detection.  In that case, set it back to 1 because

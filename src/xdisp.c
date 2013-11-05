@@ -737,7 +737,7 @@ ptrdiff_t help_echo_pos;
 
 Lisp_Object previous_help_echo_string;
 
-/* Platform-independent portion of hourglass implementation. */
+/* Platform-independent portion of hourglass implementation.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -6554,8 +6554,8 @@ lookup_glyphless_char_display (int c, struct it *it)
       if (c >= 0)
 	{
 	  glyphless_method = CHAR_TABLE_REF (Vglyphless_char_display, c);
-	  if (CONSP (glyphless_method))
-	    glyphless_method = FRAME_WINDOW_P (it->f)
+      if (CONSP (glyphless_method))
+	glyphless_method = FRAME_WINDOW_P (it->f)
 	      ? XCAR (glyphless_method)
 	      : XCDR (glyphless_method);
 	}
@@ -6759,7 +6759,7 @@ get_next_display_element (struct it *it)
 
 	     Non-printable characters and raw-byte characters are also
 	     translated to octal form.  */
-	  if (((c < ' ' || c == 127) /* ASCII control chars */
+	  if (((c < ' ' || c == 127) /* ASCII control chars.  */
 	       ? (it->area != TEXT_AREA
 		  /* In mode line, treat \n, \t like other crl chars.  */
 		  || (c != '\t'
@@ -9272,7 +9272,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 
   /* The commented-out optimization uses vmotion on terminals.  This
      gives bad results, because elements like it->what, on which
-     callers such as pos_visible_p rely, aren't updated. */
+     callers such as pos_visible_p rely, aren't updated.  */
   /* struct position pos;
     if (!FRAME_WINDOW_P (it->f))
     {
@@ -9290,7 +9290,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
     {
       /* DVPOS == 0 means move to the start of the screen line.  */
       move_it_vertically_backward (it, 0);
-      /* Let next call to line_bottom_y calculate real line height */
+      /* Let next call to line_bottom_y calculate real line height.  */
       last_height = 0;
     }
   else if (dvpos > 0)
@@ -11167,7 +11167,7 @@ x_consider_frame_title (Lisp_Object frame)
 /* Prepare for redisplay by updating menu-bar item lists when
    appropriate.  This can call eval.  */
 
-void
+static void
 prepare_menu_bars (void)
 {
   int all_windows;
@@ -18452,7 +18452,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  it->len = 1;
 
 	  /* If the default face was remapped, be sure to use the
-	     remapped face for the appended newline. */
+	     remapped face for the appended newline.  */
 	  if (default_face_p)
 	    it->face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
 	  else if (it->face_before_selective_p)
@@ -25052,7 +25052,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
       lower_yoff = descent - 2 - metrics_lower.descent;
       upper_yoff = (lower_yoff - metrics_lower.ascent - 1
 		    - metrics_upper.descent);
-      /* Don't make the height shorter than the base height. */
+      /* Don't make the height shorter than the base height.  */
       if (height > base_height)
 	{
 	  it->ascent = ascent;
@@ -25089,16 +25089,16 @@ x_produce_glyphs (struct it *it)
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       struct font *font = face->font;
       struct font_metrics *pcm = NULL;
-      int boff;			/* baseline offset */
+      int boff;			/* Baseline offset.  */
 
       if (font == NULL)
 	{
 	  /* When no suitable font is found, display this character by
 	     the method specified in the first extra slot of
 	     Vglyphless_char_display.  */
-	  Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
+	      Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
 
-	  eassert (it->what == IT_GLYPHLESS);
+	      eassert (it->what == IT_GLYPHLESS);
 	  produce_glyphless_glyph (it, 1, STRINGP (acronym) ? acronym : Qnil);
 	  goto done;
 	}
@@ -25236,7 +25236,7 @@ x_produce_glyphs (struct it *it)
 	{
 	  /* A newline has no width, but we need the height of the
 	     line.  But if previous part of the line sets a height,
-	     don't increase that height */
+	     don't increase that height.  */
 
 	  Lisp_Object height;
 	  Lisp_Object total_height = Qnil;
@@ -25246,7 +25246,7 @@ x_produce_glyphs (struct it *it)
 	  it->nglyphs = 0;
 
 	  height = get_it_property (it, Qline_height);
-	  /* Split (line-height total-height) list */
+	  /* Split (line-height total-height) list.  */
 	  if (CONSP (height)
 	      && CONSP (XCDR (height))
 	      && NILP (XCDR (XCDR (height))))

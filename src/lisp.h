@@ -3526,7 +3526,6 @@ extern void update_echo_area (void);
 extern void truncate_echo_area (ptrdiff_t);
 extern void redisplay (void);
 extern void redisplay_preserve_echo_area (int);
-extern void prepare_menu_bars (void);
 
 void set_frame_cursor_types (struct frame *, Lisp_Object);
 extern void syms_of_xdisp (void);

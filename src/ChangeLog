@@ -1,3 +1,10 @@
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (prepare_menu_bars): Mark static.
+	* lisp.h (prepare_menu_bars): Don't declare.
+	* xselect.c (x_handle_selection_clear):
+	* callproc.c (call_process): Remove redundant call to prepare_menu_bars.
+
 2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (Fcommand_error_default_function): Fix pointer signedness

@@ -33,7 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #else /* !HAVE_X_WINDOWS */
 
-/* X-related stuff used by non-X gui code. */
+/* X-related stuff used by non-X gui code.  */
 
 typedef struct {
   unsigned long pixel;
@@ -2348,7 +2348,7 @@ struct it
       } stretch;
     } u;
 
-    /* current text and display positions.  */
+    /* Current text and display positions.  */
     struct text_pos position;
     struct display_pos current;
     Lisp_Object from_overlay;
@@ -2360,11 +2360,12 @@ struct it
     unsigned string_from_prefix_prop_p : 1;
     unsigned display_ellipsis_p : 1;
     unsigned avoid_cursor_p : 1;
-    unsigned bidi_p:1;
+    unsigned bidi_p : 1;
     unsigned from_disp_prop_p : 1;
     enum line_wrap_method line_wrap;
 
-    /* properties from display property that are reset by another display property. */
+    /* Properties from display property that are reset by another display
+       property.  */
     short voffset;
     Lisp_Object space_width;
     Lisp_Object font_height;

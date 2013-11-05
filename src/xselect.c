@@ -972,7 +972,6 @@ x_handle_selection_clear (struct input_event *event)
     Frun_hook_with_args (2, args);
   }
 
-  prepare_menu_bars ();
   redisplay_preserve_echo_area (20);
 }
 
