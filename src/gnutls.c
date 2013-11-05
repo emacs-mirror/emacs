@@ -1103,7 +1103,7 @@ one trustfile (usually a CA bundle).  */)
       fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
     }
 
-  // Only set this flag if the whole initialization succeeded.
+  /* Set this flag only if the whole initialization succeeded.  */
   XPROCESS (proc)->gnutls_p = 1;
 
   return gnutls_make_error (ret);

@@ -4623,7 +4623,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		{
 		  /* Check this specific channel. */
 		  if (wait_proc->gnutls_p /* Check for valid process.  */
-                      && p->gnutls_state
+		      && wait_proc->gnutls_state
 		      /* Do we have pending data?  */
 		      && ((emacs_gnutls_record_check_pending
 			   (wait_proc->gnutls_state))
