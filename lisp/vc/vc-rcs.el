@@ -294,7 +294,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 				 nil ".*,v$" t))
 	   (yes-or-no-p "Create RCS subdirectory? ")
 	   (make-directory subdir))
-      (apply 'vc-do-command "*vc*" 0 "ci" file
+      (apply #'vc-do-command "*vc*" 0 "ci" file
 	     ;; if available, use the secure registering option
 	     (and (vc-rcs-release-p "5.6.4") "-i")
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
@@ -375,7 +375,7 @@ whether to remove it."
 	     (setq switches (cons "-f" switches)))
 	(if (and (not rev) old-version)
 	    (setq rev (vc-branch-part old-version)))
-	(apply 'vc-do-command "*vc*" 0 "ci" (vc-name file)
+	(apply #'vc-do-command "*vc*" 0 "ci" (vc-name file)
 	       ;; if available, use the secure check-in option
 	       (and (vc-rcs-release-p "5.6.4") "-j")
 	       (concat (if vc-keep-workfiles "-u" "-r") rev)
@@ -411,7 +411,7 @@ whether to remove it."
 			     (concat "-u" old-version)))))))))
 
 (defun vc-rcs-find-revision (file rev buffer)
-  (apply 'vc-do-command
+  (apply #'vc-do-command
 	 (or buffer "*vc*") 0 "co" (vc-name file)
 	 "-q" ;; suppress diagnostic output
 	 (concat "-p" rev)
@@ -443,7 +443,7 @@ attempt the checkout for all registered files beneath it."
 	      (and rev (string= rev "")
 		   (vc-rcs-set-default-branch file nil))
 	      ;; now do the checkout
-	      (apply 'vc-do-command
+	      (apply #'vc-do-command
 		     "*vc*" 0 "co" (vc-name file)
 		     ;; If locking is not strict, force to overwrite
 		     ;; the writable workfile.
@@ -585,7 +585,7 @@ files beneath it."
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
-  (apply 'vc-do-command (or buffer "*vc-diff*")
+  (apply #'vc-do-command (or buffer "*vc-diff*")
 	 1		;; Always go synchronous, the repo is local
 	 "rcsdiff" (vc-expand-dirs files)
          (append (list "-q"
@@ -787,7 +787,7 @@ Optional arg REVISION is a revision to annotate from."
       (cl-flet ((pad (w) (substring-no-properties padding w))
                 (render (rda &rest ls)
                         (propertize
-                         (apply 'concat
+                         (apply #'concat
                                 (format-time-string "%Y-%m-%d" (aref rda 1))
                                 "  "
                                 (aref rda 0)
@@ -811,7 +811,7 @@ Optional arg REVISION is a revision to annotate from."
   "Return the current time, based at midnight of the current day, and
 encoded as fractional days."
   (vc-annotate-convert-time
-   (apply 'encode-time 0 0 0 (nthcdr 3 (decode-time (current-time))))))
+   (apply #'encode-time 0 0 0 (nthcdr 3 (decode-time (current-time))))))
 
 (defun vc-rcs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
@@ -935,7 +935,7 @@ Uses `rcs2log' which only works for RCS and CVS."
 	     (unwind-protect
 		 (progn
 		   (setq default-directory odefault)
-		   (if (eq 0 (apply 'call-process vc-rcs-rcs2log-program
+		   (if (eq 0 (apply #'call-process vc-rcs-rcs2log-program
                                     nil (list t tempfile) nil
                                     "-c" changelog
                                     "-u" (concat login-name
@@ -1340,11 +1340,10 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
          (to-one@ () (setq @-holes nil
                            b (progn (search-forward "@") (point))
                            e (progn (while (and (search-forward "@")
-                                                (= ?@ (char-after))
-                                                (progn
-                                                  (push (point) @-holes)
-                                                  (forward-char 1)
-                                                  (push (point) @-holes))))
+                                                (= ?@ (char-after)))
+                                      (push (point) @-holes)
+                                      (forward-char 1)
+                                      (push (point) @-holes))
                                     (1- (point)))))
          (tok+val (set-b+e name &optional proc)
                   (unless (eq name (setq tok (read buffer)))
@@ -1355,18 +1354,18 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                                 (funcall proc)
                               (buffer-substring-no-properties b e))))
          (k-semi (name &optional proc) (tok+val #'to-semi name proc))
-         (gather () (let ((pairs `(,e ,@@-holes ,b))
-                          acc)
-                      (while pairs
-                        (push (buffer-substring-no-properties
-                               (cadr pairs) (car pairs))
-                              acc)
-                        (setq pairs (cddr pairs)))
-                      (apply 'concat acc)))
-         (k-one@ (name &optional later) (tok+val #'to-one@ name
-                                                 (if later
-                                                     (lambda () t)
-                                                   #'gather))))
+         (gather (b e @-holes)
+                 (let ((pairs `(,e ,@@-holes ,b))
+                       acc)
+                   (while pairs
+                     (push (buffer-substring-no-properties
+                            (cadr pairs) (car pairs))
+                           acc)
+                     (setq pairs (cddr pairs)))
+                   (apply #'concat acc)))
+         (gather1 () (gather b e @-holes))
+         (k-one@ (name &optional later)
+                 (tok+val #'to-one@ name (if later (lambda () t) #'gather1))))
       (save-excursion
         (goto-char (point-min))
         ;; headers
@@ -1413,7 +1412,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                                ;; same algorithm used in RCS 5.7.
                                (when (< (car ls) 100)
                                  (setcar ls (+ 1900 (car ls))))
-                               (apply 'encode-time (nreverse ls)))))
+                               (apply #'encode-time (nreverse ls)))))
                   ,@(mapcar #'k-semi '(author state))
                   ,(k-semi 'branches
                            (lambda ()
@@ -1444,9 +1443,10 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; only the former since it behaves identically to the
               ;; latter in the absence of "@@".)
               sub)
-          (cl-flet ((incg (_beg end)
-                          (let ((e end) @-holes)
+          (cl-flet ((incg (beg end)
+                          (let ((b beg) (e end) @-holes)
                             (while (and asc (< (car asc) e))
+                              (push (pop asc) @-holes)
                               (push (pop asc) @-holes))
                             ;; Self-deprecate when work is done.
                             ;; Folding many dimensions into one.
@@ -1454,7 +1454,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
                             ;; O beauteous math! --the Unvexed Bum
                             (unless asc
                               (setq sub #'buffer-substring-no-properties))
-                            (gather))))
+                            (gather b e @-holes))))
             (while (and (sw)
                         (not (eobp))
                         (setq context (to-eol)
@@ -1470,7 +1470,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
               ;; other revisions, replace the `text' tag+value with `:insn'
               ;; plus value, always scanning in-place.
               (if (string= context (cdr (assq 'head headers)))
-                  (setcdr (cadr rev) (gather))
+                  (setcdr (cadr rev) (gather b e @-holes))
                 (if @-holes
                     (setq asc (nreverse @-holes)
                           sub #'incg)

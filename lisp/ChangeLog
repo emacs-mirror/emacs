@@ -1,5 +1,8 @@
 2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/vc-rcs.el (vc-rcs-parse): Make `gather' get e, b, and @-holes
+	via arguments so as to get the right ones (bug#15418).
+
 	* net/rcirc.el (rcirc-record-activity): Don't abuse add-to-list.
 
 2013-11-05  Michael Albinus  <michael.albinus@gmx.de>
