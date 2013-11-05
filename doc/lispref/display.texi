@@ -6390,7 +6390,7 @@ and displaying bidirectional text.
 @cindex unicode bidirectional algorithm
 @cindex UBA
 @cindex bidirectional reordering
-@cindex reordering, in bidi
+@cindex reordering, of bidirectional text
   Text is stored in Emacs buffers and strings in @dfn{logical} (or
 @dfn{reading}) order, i.e., the order in which a human would read
 each character.  In right-to-left and bidirectional text, the order in
