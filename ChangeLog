@@ -1,7 +1,5 @@
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 
-	* make-dist: Don't distribute old, unsupported w32 build method.
-
 	* autogen: Remove directory.  Move update_autogen to admin/.
 	* autogen.sh: Remove reference to copy_autogen.
 	* GNUmakefile (configure):
