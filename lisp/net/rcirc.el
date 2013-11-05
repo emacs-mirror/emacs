@@ -1950,7 +1950,8 @@ activity.  Only run if the buffer is not visible and
 	  (old-types rcirc-activity-types))
       (when (not (get-buffer-window (current-buffer) t))
 	(setq rcirc-activity
-	      (sort (add-to-list 'rcirc-activity (current-buffer))
+	      (sort (if (memq (current-buffer) rcirc-activity) rcirc-activity
+                      (cons (current-buffer) rcirc-activity))
 		    (lambda (b1 b2)
 		      (let ((t1 (with-current-buffer b1 rcirc-last-post-time))
 			    (t2 (with-current-buffer b2 rcirc-last-post-time)))
