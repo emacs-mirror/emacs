@@ -1,3 +1,8 @@
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-print.el (mh-ps-print-preprint): Don't use dynamic-var
+	`prefix-arg' as function argument.
+
 2013-06-18  Juri Linkov  <juri@jurta.org>
 
 	* mh-alias.el (mh-alias-local-users): Add non-nil arg REPLACE to
