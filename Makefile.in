@@ -1065,11 +1065,11 @@ check-info-dir: info
 
 # Bootstrapping does the following:
 #  * Remove files to start from a bootstrap-clean slate.
-#  * Run autogen.sh, falling back on copy_autogen if autogen.sh fails.
+#  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
+	cd $(srcdir) && ./autogen.sh
 	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) $(MFLAGS) info all
 

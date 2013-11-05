@@ -281,12 +281,7 @@ Windows 9X as well).
 
   To build a development snapshot from the Emacs Bazaar repository,
   you will first need to generate the configure script and a few other
-  auto-generated files.  (If this step, described below, somehow
-  fails, you can use the files in the autogen/ directory instead, but
-  they might be outdated, and, most importantly, you are well advised
-  not to disregard any failures in your local build procedures, as
-  these are likely to be symptoms of incorrect installation that will
-  bite you down the road.)
+  auto-generated files.
 
   To generate the configure script, type this at the MSYS Bash prompt
   from the top-level directory of the Emacs tree:

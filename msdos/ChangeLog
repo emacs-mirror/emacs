@@ -1,3 +1,8 @@
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/config.in:
+	* autogen/Makefile.in: Move here from ../autogen.
+
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sed1x.inp: Don't rewrite DOC any more.

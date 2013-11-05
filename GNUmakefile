@@ -68,8 +68,8 @@ default $(filter-out configure Makefile,$(MAKECMDGOALS)): Makefile
 
 configure:
 	@echo >&2 'There seems to be no "configure" file in this directory.'
-	@echo >&2 'Running ./autogen.sh || autogen/copy_autogen ...'
-	./autogen.sh || autogen/copy_autogen
+	@echo >&2 'Running ./autogen.sh ...'
+	./autogen.sh
 	@echo >&2 '"configure" file built.'
 
 Makefile: configure

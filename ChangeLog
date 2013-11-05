@@ -1,3 +1,11 @@
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* autogen: Remove directory.  Move update_autogen to admin/.
+	* autogen.sh: Remove reference to copy_autogen.
+	* GNUmakefile (configure):
+	* Makefile.in (bootstrap): Do not try to run copy_autogen.
+	* config.bat: Use msdos/autogen rather than autogen.
+
 2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify and port recent bool vector changes.

@@ -1,3 +1,13 @@
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen: Move here from ../autogen.
+	(usage): Update.  Remove -l, add -A.
+	(autogendir): New variable.
+	(ldefs_flag): Default to set.
+	(genfiles): Reduce to only ms-dos relevant files.
+	(main): Make checking autogen sources optional.
+	Make copying of autogen files optional.
+
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-gen-files): Use pop.

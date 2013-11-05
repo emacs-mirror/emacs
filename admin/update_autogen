@@ -1,5 +1,5 @@
 #!/bin/bash
-### update_autogen - update the generated files in Emacs autogen/ directory
+### update_autogen - update some auto-generated files in the Emacs tree
 
 ## Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
@@ -22,12 +22,12 @@
 
 ### Commentary:
 
-## This is a helper script to update the pre-built generated files in
-## the autogen/ directory.  This is suitable for running from cron.
+## This is a helper script to update some generated files in the Emacs
+## repository.  This is suitable for running from cron.
 ## Only Emacs maintainers need use this, so it uses bash features.
 ##
-## With the -l option, it also updates the versioned loaddefs-like
-## files in lisp/.  These include ldefs-boot, cl-loaddefs, rmail, etc.
+## By default, it updates the versioned loaddefs-like files in lisp,
+## except ldefs-boot.el.
 
 ### Code:
 
@@ -42,24 +42,25 @@ PD=${0%/*}
 
 [ "$PD" = "$0" ] && PD=.        # if PATH includes PWD
 
-## This should be the autogen directory.
+## This should be the admin directory.
 cd $PD
 cd ../
-[ -d autogen ] || die "Could not locate autogen directory"
+[ -d admin ] || die "Could not locate admin directory"
 
 
 usage ()
 {
     cat 1>&2 <<EOF
-Usage: ${PN} [-f] [-c] [-q] [-l [-L]] [-C] [-- make-flags]
-Update the generated files in the Emacs autogen/ directory.
+Usage: ${PN} [-f] [-c] [-q] [-A dir] [-L] [-C] [-- make-flags]
+Update some auto-generated files in the Emacs tree.
+By default, only does the versioned loaddefs-like files in lisp/.
+This requires a build.  Passes any non-option args to make (eg -- -j2).
 Options:
 -f: force an update even if the source files are locally modified.
 -c: if the update succeeds and the generated files are modified,
     commit them (caution).
 -q: be quiet; only give error messages, not status messages.
--l: also update the versioned loaddefs-like files in lisp/.
-This requires a build.  Passes any non-option args to make (eg -- -j2).
+-A: only update autotools files, copying into specified dir.
 -L: also update ldefs-boot.el.
 -C: start from a clean state.  Slower, but more correct.
 EOF
@@ -73,18 +74,23 @@ force=
 commit=
 quiet=
 clean=
-ldefs_flag=
+autogendir=                     # was "autogen"
+ldefs_flag=1
 lboot_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
 sources="configure.ac lib/Makefile.am"
+## Files to copy into autogendir.
+## Everything:
 genfiles="
   configure aclocal.m4 src/config.in lib/Makefile.in
   build-aux/compile build-aux/config.guess build-aux/config.sub
   build-aux/depcomp build-aux/install-sh build-aux/missing
 "
+## msdos-only:
+genfiles="src/config.in lib/Makefile.in"
 
 for g in $genfiles; do
     basegen="$basegen ${g##*/}"
@@ -97,7 +103,7 @@ tempfile=/tmp/$PN.$$
 trap "rm -f $tempfile 2> /dev/null" EXIT
 
 
-while getopts ":hcflqCL" option ; do
+while getopts ":hcfqA:CL" option ; do
     case $option in
         (h) usage ;;
 
@@ -105,9 +111,11 @@ while getopts ":hcflqCL" option ; do
 
         (f) force=1 ;;
 
-        (l) ldefs_flag=1 ;;
-
         (q) quiet=1 ;;
+
+        (A) autogendir=$OPTARG
+            [ -d "$autogendir" ] || die "No autogen directory: $autogendir"
+            ;;
 
         (C) clean=1 ;;
 
@@ -130,8 +138,8 @@ OPTIND=1
 
 echo "Running bzr status..."
 
-bzr status -S $sources ${ldefs_flag:+lisp} >| $tempfile || \
-    die "bzr status error for sources"
+bzr status -S ${autogendir:+$sources} ${ldefs_flag:+lisp} >| $tempfile || \
+    die "bzr status error for input files"
 
 ## The lisp portion could be more permissive, eg only care about .el files.
 while read stat file; do
@@ -175,31 +183,6 @@ fi
 [ $retval -ne 0 ] && die "autoreconf error"
 
 
-cp $genfiles autogen/
-
-
-cd autogen
-
-echo "Checking status of generated files..."
-
-bzr status -S $basegen >| $tempfile || \
-    die "bzr status error for generated files"
-
-
-modified=
-
-while read stat file; do
-
-    [ "$stat" != "M" ] && die "Unexpected status ($stat) for generated $file"
-
-    modified="$modified $file"
-
-done < $tempfile
-
-
-cd ../
-
-
 ## Uses global $commit.
 commit ()
 {
@@ -224,7 +207,36 @@ commit ()
 }                               # function commit
 
 
-commit "generated" $modified || die "bzr commit error"
+[ "$autogendir" ] && {
+
+    oldpwd=$PWD
+
+    cp $genfiles $autogendir/
+
+    cd $autogendir || die "cd error for $autogendir"
+
+    echo "Checking status of generated files..."
+
+    bzr status -S $basegen >| $tempfile || \
+        die "bzr status error for generated files"
+
+    modified=
+
+    while read stat file; do
+
+        [ "$stat" != "M" ] && \
+            die "Unexpected status ($stat) for generated $file"
+
+        modified="$modified $file"
+
+    done < $tempfile
+
+    cd $oldpwd
+
+    commit "generated" $modified || die "bzr commit error"
+
+    exit 0
+}                               # $autogendir
 
 
 [ "$ldefs_flag" ] || exit 0
