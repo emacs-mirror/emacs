@@ -1,3 +1,7 @@
+2013-11-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cite.el (gnus-cite-add-face): Make non-sticky overlays.
+
 2013-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-group-browse-foreign-server):
