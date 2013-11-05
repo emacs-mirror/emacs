@@ -241,8 +241,6 @@ Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
 static Lisp_Object Qecho_area_clear_hook;
 
-static Lisp_Object Qdefault_error_output;
-
 /* Hooks to run before and after each command.  */
 static Lisp_Object Qpre_command_hook;
 static Lisp_Object Qpost_command_hook;
@@ -1074,8 +1072,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
   Vquit_flag = Qnil;
   Vinhibit_quit = Qt;
 
-  /* Use user's specified output function,
-     initially it is our Fdefault_error_output.  */
+  /* Use user's specified output function if any.  */
   if (!NILP (Vcommand_error_function))
     call3 (Vcommand_error_function, data,
 	   context ? build_string (context) : empty_unibyte_string,
@@ -1084,17 +1081,17 @@ cmd_error_internal (Lisp_Object data, const char *context)
   Vsignaling_function = Qnil;
 }
 
-DEFUN ("default-error-output", Fdefault_error_output,
-       Sdefault_error_output, 3, 3, 0,
-       doc: /* Produce default output for the error message,
-into the messages buffer and the echo area.  */)
+DEFUN ("command-error-default-function", Fcommand_error_default_function,
+       Scommand_error_default_function, 3, 3, 0,
+       doc: /* Produce default output for unhandled error message.
+Default value of `command-error-function'.  */)
   (Lisp_Object data, Lisp_Object context, Lisp_Object signal)
 {
   struct frame *sf = SELECTED_FRAME ();
   const char *sz_context;
 
-  CHECK_STRING(context);
-  sz_context = XSTRING(context)->data;
+  CHECK_STRING (context);
+  sz_context = XSTRING (context)->data;
 
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
@@ -1126,6 +1123,7 @@ into the messages buffer and the echo area.  */)
 
       print_error_message (data, Qt, sz_context, signal);
     }
+  return Qnil;
 }
 
 static Lisp_Object command_loop_2 (Lisp_Object);
@@ -11123,7 +11121,7 @@ syms_of_keyboard (void)
   defsubr (&Sabort_recursive_edit);
   defsubr (&Sexit_recursive_edit);
   defsubr (&Srecursion_depth);
-  defsubr (&Sdefault_error_output);
+  defsubr (&Scommand_error_default_function);
   defsubr (&Stop_level);
   defsubr (&Sdiscard_input);
   defsubr (&Sopen_dribble_file);
@@ -11602,18 +11600,14 @@ The value of that variable is passed to `quit-flag' and later causes a
 peculiar kind of quitting.  */);
   Vthrow_on_input = Qnil;
 
-  DEFSYM (Qdefault_error_output, "default-error-output");
   DEFVAR_LISP ("command-error-function", Vcommand_error_function,
-	       doc: /* If non-nil, function to output error messages.
-The arguments are the error data, a list of the form
- (SIGNALED-CONDITIONS . SIGNAL-DATA)
-such as just as `condition-case' would bind its variable to,
-the context (a string which normally goes at the start of the message),
-and the Lisp function within which the error was signaled.
-
-This variable is initialized with Emacs default error output function.
-It is suggested that user functions are added using add-function.  */);
-  Vcommand_error_function = Qdefault_error_output;
+	       doc: /* Function to output error messages.
+Called with three arguments:
+- the error data, a list of the form (SIGNALED-CONDITION . SIGNAL-DATA)
+  such as what `condition-case' would bind its variable to,
+- the context (a string which normally goes at the start of the message),
+- the Lisp function within which the error was signaled.  */);
+  Vcommand_error_function = intern ("command-error-default-function");
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
 	       Venable_disabled_menus_and_buttons,

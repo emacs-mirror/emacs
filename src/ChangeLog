@@ -1,7 +1,13 @@
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fcommand_error_default_function): Rename from
+	Fdefault_error_output.
+
 2013-11-05  Jarek Czekalski  <jarekczek@poczta.onet.pl>  (tiny change)
 
-	* keyboard.c: new function default-error-output which becomes
-	a default value for command-error-function.
+	* keyboard.c (Fdefault_error_output): New function, extracted from
+	cmd_error_internal.
+	(syms_of_keyboard): Use it for Vcommand_error_function.
 
 2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
