@@ -1,3 +1,8 @@
+2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* international/characters.el (glyphless-char-display-control):
+	Add usage note.
+
 2013-11-05  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* progmodes/python.el (python-mode): Remove incorrect text from docstring.
