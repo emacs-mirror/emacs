@@ -1,5 +1,8 @@
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 
+	* automated/eieio-tests.el (eieio-test-37-persistent-classes):
+	Remove test that makes no sense.
+
 	* automated/files.el (files-test-local-variable-data):
 	Fix result typo presumably caused by interference from dir-locals.
 	(file-test--do-local-variables-test): Prevent dir-locals interfering.

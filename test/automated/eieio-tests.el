@@ -885,9 +885,6 @@ Subclasses to override slot attributes.")
   (should (= (length (eieio-build-class-alist opt-test1 nil)) 2))
   (should (= (length (eieio-build-class-alist opt-test1 t)) 1)))
 
-(ert-deftest eieio-test-37-persistent-classes ()
-  (load-file "eieio-test-persist.el"))
-
 (provide 'eieio-tests)
 
 ;;; eieio-tests.el ends here
