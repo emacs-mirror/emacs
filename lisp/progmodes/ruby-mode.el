@@ -641,7 +641,7 @@ explicitly declared in magic comment."
   "Indent the current line to COLUMN."
   (when column
     (let (shift top beg)
-      (and (< column 0) (error "invalid nest"))
+      (and (< column 0) (error "Invalid nesting"))
       (setq shift (current-column))
       (beginning-of-line)
       (setq beg (point))
@@ -732,7 +732,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
       (forward-char -1))
     (cond ((zerop n))
           (no-error nil)
-          ((error "unterminated string")))))
+          ((error "Unterminated string")))))
 
 (defun ruby-deep-indent-paren-p (c)
   "TODO: document."
@@ -943,7 +943,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
           (setq in-string (match-end 0))
           (goto-char ruby-indent-point)))
        (t
-        (error (format "bad string %s"
+        (error (format "Bad string %s"
                        (buffer-substring (point) pnt)
                        ))))))
   (list in-string nest depth pcol))
@@ -1018,7 +1018,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                (setq indent (current-column)))))
        ((and (nth 2 state) (> (nth 2 state) 0)) ; in nest
         (if (null (cdr (nth 1 state)))
-            (error "invalid nest"))
+            (error "Invalid nesting"))
         (goto-char (cdr (nth 1 state)))
         (forward-word -1)               ; skip back a keyword
         (setq begin (point))
