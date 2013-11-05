@@ -1,3 +1,7 @@
+2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Glyphs): Add an index for glyph code.
+
 2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* display.texi (Face Attributes): Document :distant-foreground.

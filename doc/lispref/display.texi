@@ -6112,6 +6112,7 @@ the standard display table.
 @subsection Glyphs
 @cindex glyph
 
+@cindex glyph code
   A @dfn{glyph} is a graphical symbol which occupies a single
 character position on the screen.  Each glyph is represented in Lisp
 as a @dfn{glyph code}, which specifies a character and optionally a
