@@ -6441,6 +6441,7 @@ or overlay string includes non-@sc{ascii} characters, these characters
 are assumed to have left-to-right direction.
 
 @cindex display properties, and bidi reordering of text
+@cindex Object Replacement Character
   Text covered by @code{display} text properties, by overlays with
 @code{display} properties whose value is a string, and by any other
 properties that replace buffer text, is treated as a single unit when
