@@ -1,3 +1,8 @@
+2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Fcommand_error_default_function): Fix pointer signedness
+	glitch.  Eliminate 'sz' prefix; Hungarian notation is not helpful here.
+
 2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Fcommand_error_default_function): Rename from

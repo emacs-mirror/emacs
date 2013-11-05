@@ -1088,10 +1088,8 @@ Default value of `command-error-function'.  */)
   (Lisp_Object data, Lisp_Object context, Lisp_Object signal)
 {
   struct frame *sf = SELECTED_FRAME ();
-  const char *sz_context;
 
   CHECK_STRING (context);
-  sz_context = XSTRING (context)->data;
 
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
@@ -1110,7 +1108,7 @@ Default value of `command-error-function'.  */)
 	   || noninteractive)
     {
       print_error_message (data, Qexternal_debugging_output,
-			   sz_context, signal);
+			   SSDATA (context), signal);
       Fterpri (Qexternal_debugging_output);
       Fkill_emacs (make_number (-1));
     }
@@ -1121,7 +1119,7 @@ Default value of `command-error-function'.  */)
       message_log_maybe_newline ();
       bitch_at_user ();
 
-      print_error_message (data, Qt, sz_context, signal);
+      print_error_message (data, Qt, SSDATA (context), signal);
     }
   return Qnil;
 }
