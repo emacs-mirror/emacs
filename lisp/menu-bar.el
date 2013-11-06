@@ -2189,12 +2189,7 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 		(setq position (list menu-symbol (list frame '(menu-bar)
 						 event 0)))
 		(setq map
-		      (or
-		       (lookup-key global-map (vector 'menu-bar menu-symbol))
-		       (lookup-key (current-local-map) (vector 'menu-bar
-							       menu-symbol))
-		       (cdar (minor-mode-key-binding (vector 'menu-bar
-							     menu-symbol)))))))
+		      (key-binding (vector 'menu-bar menu-symbol)))))
 	     ((and (not (keymapp map)) (listp map))
 	      ;; We were given a list of keymaps.  Search them all
 	      ;; in sequence until a first binding is found.

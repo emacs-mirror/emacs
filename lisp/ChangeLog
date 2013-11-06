@@ -1,3 +1,7 @@
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (popup-menu): Use key-binding.
+
 2013-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (popup-menu, menu-bar-open): When displaying TTY
