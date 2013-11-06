@@ -267,6 +267,18 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
                    (> pos (line-beginning-position)))
         (indent-according-to-mode)))))
 
+(defun electric-indent-just-newline (arg)
+  "Insert just a newline, without any auto-indentation."
+  (interactive "*P")
+  (let ((electric-indent-mode nil))
+    (newline arg 'interactive)))
+
+(defvar electric-indent-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-j] 'electric-indent-just-newline)
+    map)
+  "Keymap used for `electric-mode-mode'.")
+
 ;;;###autoload
 (define-minor-mode electric-indent-mode
   "Toggle on-the-fly reindentation (Electric Indent mode).
@@ -277,7 +289,7 @@ the mode if ARG is omitted or nil.
 This is a global minor mode.  When enabled, it reindents whenever
 the hook `electric-indent-functions' returns non-nil, or you
 insert a character from `electric-indent-chars'."
-  :global t
+  :global t :group 'electricity
   (if (not electric-indent-mode)
       (remove-hook 'post-self-insert-hook
                    #'electric-indent-post-self-insert-function)
@@ -427,7 +439,7 @@ an open parenthesis automatically inserts the corresponding
 closing parenthesis.  \(Likewise for brackets, etc.)
 
 See options `electric-pair-pairs' and `electric-pair-skip-self'."
-  :global t
+  :global t :group 'electricity
   (if electric-pair-mode
       (progn
 	(add-hook 'post-self-insert-hook
@@ -479,7 +491,7 @@ With a prefix argument ARG, enable Electric Layout mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 The variable `electric-layout-rules' says when and how to insert newlines."
-  :global t
+  :global t :group 'electricity
   (if electric-layout-mode
       (add-hook 'post-self-insert-hook
                 #'electric-layout-post-self-insert-function)

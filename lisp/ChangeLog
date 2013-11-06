@@ -1,5 +1,10 @@
 2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electric-indent-just-newline): New command.
+	(electric-indent-mode-map): New keymap.
+	(electric-indent-mode, electric-pair-mode, electric-layout-mode):
+	Re-add :group which weren't redundant.
+
 	* electric.el (electric-indent-local-mode): New minor mode.
 	(electric-indent-functions-without-reindent): New var.
 	(electric-indent-post-self-insert-function): Use it.
