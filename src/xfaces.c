@@ -4711,7 +4711,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Return non-zero if all the face attributes in ATTRS are supported
+/* Return true if all the face attributes in ATTRS are supported
    on the window-system frame F.
 
    The definition of `supported' is somewhat heuristic, but basically means
@@ -4721,7 +4721,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
     \(1) different in appearance than the default face, and
     \(2) `close in spirit' to what the attributes specify, if not exact.  */
 
-static int
+static bool
 x_supports_face_attributes_p (struct frame *f,
 			      Lisp_Object attrs[LFACE_VECTOR_SIZE],
 			      struct face *def_face)
@@ -4811,7 +4811,7 @@ x_supports_face_attributes_p (struct frame *f,
 
 #endif	/* HAVE_WINDOW_SYSTEM */
 
-/* Return non-zero if all the face attributes in ATTRS are supported
+/* Return true if all the face attributes in ATTRS are supported
    on the tty frame F.
 
    The definition of `supported' is somewhat heuristic, but basically means
@@ -4827,7 +4827,7 @@ x_supports_face_attributes_p (struct frame *f,
    will _not_ be satisfied by the tty display code's automatic
    substitution of a `dim' face for italic.  */
 
-static int
+static bool
 tty_supports_face_attributes_p (struct frame *f,
 				Lisp_Object attrs[LFACE_VECTOR_SIZE],
 				struct face *def_face)
@@ -4921,12 +4921,6 @@ tty_supports_face_attributes_p (struct frame *f,
 
   /* Color testing.  */
 
-  /* Default the color indices in FG_TTY_COLOR and BG_TTY_COLOR, since
-     we use them when calling `tty_capable_p' below, even if the face
-     specifies no colors.  */
-  fg_tty_color.pixel = FACE_TTY_DEFAULT_FG_COLOR;
-  bg_tty_color.pixel = FACE_TTY_DEFAULT_BG_COLOR;
-
   /* Check if foreground color is close enough.  */
   fg = attrs[LFACE_FOREGROUND_INDEX];
   if (STRINGP (fg))
@@ -4992,14 +4986,7 @@ tty_supports_face_attributes_p (struct frame *f,
 
   /* See if the capabilities we selected above are supported, with the
      given colors.  */
-  if (test_caps != 0 &&
-      ! tty_capable_p (FRAME_TTY (f), test_caps, fg_tty_color.pixel,
-		       bg_tty_color.pixel))
-    return 0;
-
-
-  /* Hmmm, everything checks out, this terminal must support this face.  */
-  return 1;
+  return tty_capable_p (FRAME_TTY (f), test_caps);
 }
 
 
@@ -5024,7 +5011,8 @@ satisfied by the tty display code's automatic substitution of a `dim'
 face for italic.  */)
   (Lisp_Object attributes, Lisp_Object display)
 {
-  int supports = 0, i;
+  bool supports = 0;
+  int i;
   Lisp_Object frame;
   struct frame *f;
   struct face *def_face;

@@ -1,3 +1,19 @@
+2013-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer-related fixes for term.c etc.
+	* dispextern.h (face_tty_specified_color): New function.
+	* term.c (turn_on_face): Don't rely on undefined behavior when
+	assigning an out-of-range value to 'long'.  Simplify
+	test for toggling highlight.
+	(tty_capable_p): Omit last two (unused) args.  All callers changed.
+	* term.c (tty_capable_p, tty_menu_display, tty_menu_add_selection)
+	(read_menu_input, tty_menu_activate, tty_menu_show):
+	* xfaces.c (x_supports_face_attributes_p)
+	(tty_supports_face_attributes_p):
+	Use bool for boolean.  All callers changed.
+	(tty_supports_face_attributes_p): Omit defaults for color indices;
+	no longer needed.  Simplify tail call.
+
 2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (prepare_menu_bars): Mark static.

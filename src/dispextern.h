@@ -1720,6 +1720,15 @@ struct face
 
 #define FACE_TTY_DEFAULT_BG_COLOR ((unsigned long) -3)
 
+/* True if COLOR is a specified (i.e., nondefault) foreground or
+   background color for a tty face.  */
+
+INLINE bool
+face_tty_specified_color (unsigned long color)
+{
+  return color < FACE_TTY_DEFAULT_BG_COLOR;
+}
+
 /* Non-zero if FACE was realized for unibyte use.  */
 
 #define FACE_UNIBYTE_P(FACE) ((FACE)->charset < 0)
@@ -3489,8 +3498,7 @@ extern int string_cost (const char *);
 extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
-extern bool tty_capable_p (struct tty_display_info *, unsigned,
-			   unsigned long, unsigned long);
+extern bool tty_capable_p (struct tty_display_info *, unsigned);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
 extern void create_tty_output (struct frame *);
