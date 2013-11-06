@@ -501,15 +501,26 @@ and `file-name-nondirectory'."
 	       (unhandled-file-name-directory "/method:host:/path/to/file"))))
 
 (ert-deftest tramp-test07-file-exists-p ()
-  "Check `file-exist-p'.
-Implicitely, this checks also `write-region' and `delete-file'."
-  (skip-unless (tramp--test-enabled))
-  (let ((tmp-name (tramp--test-make-temp-name)))
+  "Check `file-exist-p', `write-region' and `delete-file'."
+  (condition-case err
+      (with-timeout (20 (should-not 'timeout))
+	(message "tramp--test-enabled")
+	(message "%S" (tramp--test-enabled))
+	(skip-unless (tramp--test-enabled))
+	(let ((tmp-name (tramp--test-make-temp-name)))
+	  (message "file-exists-p")
 	  (should-not (file-exists-p tmp-name))
+	  (message "write-region")
 	  (write-region "foo" nil tmp-name)
+	  (message "file-exists-p")
 	  (should (file-exists-p tmp-name))
+	  (message "delete-file")
 	  (delete-file tmp-name)
+	  (message "file-exists-p")
 	  (should-not (file-exists-p tmp-name))))
+    ((error quit)
+     (message "%S" err)
+     (signal (car err) (cdr err)))))
 
 (ert-deftest tramp-test08-file-local-copy ()
   "Check `file-local-copy'."
