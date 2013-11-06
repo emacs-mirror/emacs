@@ -1,3 +1,9 @@
+2013-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (popup-menu, menu-bar-open): When displaying TTY
+	menus, support also the menus produced by minor modes.
+	(Bug#15817)
+
 2013-11-06  Leo Liu  <sdl.web@gmail.com>
 
 	* thingatpt.el (thing-at-point-looking-at): Add optional arg

@@ -2192,7 +2192,9 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 		      (or
 		       (lookup-key global-map (vector 'menu-bar menu-symbol))
 		       (lookup-key (current-local-map) (vector 'menu-bar
-							       menu-symbol))))))
+							       menu-symbol))
+		       (cdar (minor-mode-key-binding (vector 'menu-bar
+							     menu-symbol)))))))
 	     ((and (not (keymapp map)) (listp map))
 	      ;; We were given a list of keymaps.  Search them all
 	      ;; in sequence until a first binding is found.
@@ -2278,7 +2280,8 @@ If FRAME is nil or not given, use the selected frame."
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
 		     (lookup-key global-map (vector 'menu-bar menu))
-		     (lookup-key (current-local-map) (vector 'menu-bar menu)))
+		     (lookup-key (current-local-map) (vector 'menu-bar menu))
+		     (cdar (minor-mode-key-binding (vector 'menu-bar menu))))
 		    (posn-at-x-y x 0 nil t) nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
