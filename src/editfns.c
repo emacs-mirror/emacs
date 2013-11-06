@@ -1702,6 +1702,7 @@ by text that describes the specified date and time in TIME:
 %G is the year corresponding to the ISO week, %g within the century.
 %m is the numeric month.
 %b and %h are the locale's abbreviated month name, %B the full name.
+ (%h is not supported on MS-Windows.)
 %d is the day of the month, zero-padded, %e is blank-padded.
 %u is the numeric day of week from 1 (Monday) to 7, %w from 0 (Sunday) to 6.
 %a is the locale's abbreviated name of the day of week, %A the full name.

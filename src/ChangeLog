@@ -1,3 +1,7 @@
+2013-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fformat_time_string): Doc fix.  (Bug#15816)
+
 2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* *.[chm]: Number every assignment to windows_or_buffers_changed so we
