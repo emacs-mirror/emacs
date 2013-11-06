@@ -1629,8 +1629,8 @@ command_loop_1 (void)
 		  && NILP (Fmemq (Vthis_command,
 				  Vselection_inhibit_update_commands)))
 		{
-		  ptrdiff_t beg =
-		    XINT (Fmarker_position (BVAR (current_buffer, mark)));
+		  ptrdiff_t beg
+		    = XINT (Fmarker_position (BVAR (current_buffer, mark)));
 		  ptrdiff_t end = PT;
 		  if (beg < end)
 		    call2 (Qx_set_selection, QPRIMARY,

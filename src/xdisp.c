@@ -13004,7 +13004,7 @@ redisplay_internal (void)
   if (NILP (Vmemory_full))
     prepare_menu_bars ();
 
-  if (windows_or_buffers_changed & !update_mode_lines)
+  if (windows_or_buffers_changed && !update_mode_lines)
     update_mode_lines = 32;
 
   reconsider_clip_changes (w);

@@ -1,3 +1,7 @@
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_internal): Fix typo in last change.
+
 2013-11-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* regex.c: Fix --enable-gcc-warning glitch with GCC 4.5.2.
