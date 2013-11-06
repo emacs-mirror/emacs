@@ -312,6 +312,14 @@ General types
     :c:func:`mps_clock`.
 
 
+.. c:type:: mps_fun_t
+
+    The type of a generic function pointer.
+
+    It is a :term:`transparent alias <transparent type>` for
+    ``void (*)(void)``.
+
+
 .. c:type:: mps_label_t
 
     The type of a :term:`telemetry label`.
