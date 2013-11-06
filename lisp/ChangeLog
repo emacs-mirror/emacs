@@ -1,6 +1,8 @@
 2013-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs): Simplify.
+	(setwins_almost, setwins_for_subdirs): Don't assume called from srcdir.
+	(custom-deps, finder-data, autoloads, update-subdirs): No need to cd.
 
 2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 

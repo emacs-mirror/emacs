@@ -113,18 +113,18 @@ setwins=for file in `find . -type d -print`; do \
 	   case $$file in */.* ) ;; \
 		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
-        done
+	done
 
 # Find all subdirectories except `obsolete' and `term'.
-setwins_almost=for file in `find . -type d -print`; do \
-	   case $$file in */.* | */obsolete | */term ) ;; \
+setwins_almost=for file in `find ${srcdir} -type d -print`; do \
+	   case $$file in */obsolete | */term ) ;; \
 		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
-# Find all subdirectories in which we might want to create subdirs.el
-setwins_for_subdirs=for file in `find . -type d -print`; do \
-	   case $$file in */.* | */cedet* ) ;; \
+# Find all subdirectories in which we might want to create subdirs.el.
+setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
+	   case $$file in */cedet* ) ;; \
 		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
@@ -154,16 +154,19 @@ doit:
 $(lisp)/cus-load.el:
 	$(MAKE) $(MFLAGS) custom-deps
 custom-deps: doit
-	thisdir=`pwd`; cd $(lisp) && $(setwins_almost); cd "$$thisdir"; \
+	$(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) --chdir $(lisp) -l cus-dep -f custom-make-dependencies $$wins
+	$(emacs) -l cus-dep \
+	  --eval '(setq generated-custom-dependencies-file "$(srcdir)/cus-load.el")' \
+	  -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
-	thisdir=`pwd`; cd $(lisp) && $(setwins_almost); cd "$$thisdir"; \
+	$(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) --chdir $(lisp) -l finder \
+	$(emacs) -l finder \
+	  --eval '(setq generated-finder-keywords-file "$(srcdir)/finder-inf.el")' \
 	  -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
@@ -171,11 +174,11 @@ finder-data: doit
 # get confused when it compares file-names for equality.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
-	thisdir=`pwd`; cd $(lisp) && $(setwins_almost); cd "$$thisdir"; \
+	$(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) --chdir $(lisp) -l autoload \
+	$(emacs) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (expand-file-name "loaddefs.el"))' \
+	    --eval '(setq generated-autoload-file (expand-file-name "$(srcdir)/loaddefs.el"))' \
 	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
@@ -183,9 +186,9 @@ autoloads: $(LOADDEFS) doit
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
-	cd $(lisp) && $(setwins_for_subdirs); \
+	$(setwins_for_subdirs); \
 	for file in $$wins; do \
-	   ../build-aux/update-subdirs $$file; \
+	   $(srcdir)/../build-aux/update-subdirs $$file; \
 	done;
 
 .PHONY: updates bzr-update update-authors
