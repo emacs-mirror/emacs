@@ -1489,7 +1489,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
   if (!is_tooltip_frame)
-    update_mode_lines = 1;
+    update_mode_lines = 15;
 
   return Qnil;
 }
@@ -2025,7 +2025,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
     }
 
   fset_name (f, name);
-  update_mode_lines = 1;
+  update_mode_lines = 16;
 }
 
 void

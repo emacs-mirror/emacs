@@ -2639,7 +2639,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 		mark_window_display_accurate (window, 0);
 		w->update_mode_line = 1;
 		XBUFFER (obj)->prevent_redisplay_optimizations_p = 1;
-		++update_mode_lines;
+		update_mode_lines = 27;
 		best_window = window;
 	      }
 	    break;
@@ -3279,7 +3279,7 @@ displaying that buffer.  */)
   if (NILP (object))
     {
       windows_or_buffers_changed = 29;
-      update_mode_lines++;
+      update_mode_lines = 28;
       return Qt;
     }
 
@@ -3290,7 +3290,7 @@ displaying that buffer.  */)
       w->update_mode_line = 1;
       if (BUFFERP (w->contents))
 	XBUFFER (w->contents)->prevent_redisplay_optimizations_p = 1;
-      ++update_mode_lines;
+      update_mode_lines = 29;
       return Qt;
     }
 

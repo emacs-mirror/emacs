@@ -451,8 +451,8 @@ ns_set_name_internal (struct frame *f, Lisp_Object name)
 
   str = [NSString stringWithUTF8String: SSDATA (encoded_icon_name)];
 
-  if ([[view window] miniwindowTitle] &&
-      ! [[[view window] miniwindowTitle] isEqualToString: str])
+  if ([[view window] miniwindowTitle]
+      && ! [[[view window] miniwindowTitle] isEqualToString: str])
     [[view window] setMiniwindowTitle: str];
 
 }
@@ -469,7 +469,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* If we're switching from explicit to implicit, we had better
          update the mode lines and thereby update the title.  */
       if (f->explicit_name && NILP (name))
-        update_mode_lines = 1;
+        update_mode_lines = 21;
 
       f->explicit_name = ! NILP (name);
     }
@@ -477,7 +477,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
     return;
 
   if (NILP (name))
-    name = build_string([ns_app_name UTF8String]);
+    name = build_string ([ns_app_name UTF8String]);
   else
     CHECK_STRING (name);
 
@@ -487,7 +487,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 
   fset_name (f, name);
 
-  /* title overrides explicit name */
+  /* Title overrides explicit name.  */
   if (! NILP (f->title))
     name = f->title;
 
@@ -534,7 +534,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   if (EQ (name, f->title))
     return;
 
-  update_mode_lines = 1;
+  update_mode_lines = 22;
 
   fset_title (f, name);
 

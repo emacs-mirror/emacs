@@ -1393,7 +1393,7 @@ A non-nil FLAG means mark the buffer modified.  */)
      smarter about updating the `*' in mode lines.  --gerd  */
   if (buffer_window_count (current_buffer))
     {
-      ++update_mode_lines;
+      update_mode_lines = 10;
       current_buffer->prevent_redisplay_optimizations_p = 1;
     }
 
@@ -1513,7 +1513,7 @@ This does not change the name of the visited file (if any).  */)
 
   /* Catch redisplay's attention.  Unless we do this, the mode lines for
      any windows displaying current_buffer will stay unchanged.  */
-  update_mode_lines++;
+  update_mode_lines = 11;
 
   XSETBUFFER (buf, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), newname);
@@ -2765,7 +2765,7 @@ the normal hook `change-major-mode-hook'.  */)
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */
-  update_mode_lines++;
+  update_mode_lines = 12;
 
   return Qnil;
 }

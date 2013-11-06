@@ -5246,7 +5246,7 @@ DEFUN ("internal-default-process-filter", Finternal_default_process_filter,
       else
 	set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
-      update_mode_lines++;
+      update_mode_lines = 23;
 
       /* Make sure opoint and the old restrictions
 	 float ahead of any new text just as point would.  */
@@ -6390,7 +6390,7 @@ status_notify (struct Lisp_Process *deleting_process)
 	}
     } /* end for */
 
-  update_mode_lines++;  /* In case buffers use %s in mode-line-format.  */
+  update_mode_lines = 24;  /* In case buffers use %s in mode-line-format.  */
   UNGCPRO;
 }
 

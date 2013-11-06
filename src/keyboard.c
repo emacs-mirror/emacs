@@ -821,7 +821,7 @@ This function is called by the editor initialization to begin editing.  */)
     return Qnil;
 
   command_loop_level++;
-  update_mode_lines = 1;
+  update_mode_lines = 17;
 
   if (command_loop_level
       && current_buffer != XBUFFER (XWINDOW (selected_window)->contents))
@@ -848,7 +848,7 @@ recursive_edit_unwind (Lisp_Object buffer)
     Fset_buffer (buffer);
 
   command_loop_level--;
-  update_mode_lines = 1;
+  update_mode_lines = 18;
 }
 
 

@@ -4997,7 +4997,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       SAVE_MODIFF = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
       bset_filename (current_buffer, visit_file);
-      update_mode_lines++;
+      update_mode_lines = 14;
     }
   else if (quietly)
     {

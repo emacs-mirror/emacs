@@ -1740,7 +1740,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* If we're switching from explicit to implicit, we had better
 	 update the mode lines and thereby update the title.  */
       if (f->explicit_name && NILP (name))
-	update_mode_lines = 1;
+	update_mode_lines = 25;
 
       f->explicit_name = ! NILP (name);
     }
@@ -1808,7 +1808,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   if (EQ (name, f->title))
     return;
 
-  update_mode_lines = 1;
+  update_mode_lines = 26;
 
   fset_title (f, name);
 

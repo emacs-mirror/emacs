@@ -1,3 +1,12 @@
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (syms_of_xdisp): New vars redisplay--all-windows-cause and
+	redisplay--mode-lines-cause.
+	(redisplay_internal): Keep them uptodate.  Remove redundant check of
+	buffer_shared_and_changed.
+	* *.[chm]: Number every assignment to update_mode_lines so we
+	can track why it is set.
+
 2013-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (Fformat_time_string): Doc fix.  (Bug#15816)

@@ -10337,7 +10337,7 @@ resize_echo_area_exactly (void)
       if (resized_p)
 	{
 	  windows_or_buffers_changed = 42;
-	  ++update_mode_lines;
+	  update_mode_lines = 30;
 	  redisplay_internal ();
 	}
     }
@@ -12886,12 +12886,12 @@ redisplay_internal (void)
   int polling_stopped_here = 0;
   Lisp_Object tail, frame;
 
-  /* Non-zero means redisplay has to consider all windows on all
-     frames.  Zero means, only selected_window is considered.  */
-  int consider_all_windows_p;
+  /* True means redisplay has to consider all windows on all
+     frames.  False, only selected_window is considered.  */
+  bool consider_all_windows_p;
 
-  /* Non-zero means redisplay has to redisplay the miniwindow.  */
-  int update_miniwindow_p = 0;
+  /* True means redisplay has to redisplay the miniwindow.  */
+  bool update_miniwindow_p = false;
 
   TRACE ((stderr, "redisplay_internal %d\n", redisplaying_p));
 
@@ -12984,7 +12984,7 @@ redisplay_internal (void)
 	  /* If cursor type has been changed on the frame
 	     other than selected, consider all frames.  */
 	  if (f != sf && f->cursor_type_changed)
-	    update_mode_lines++;
+	    update_mode_lines = 31;
 	}
       clear_desired_matrices (f);
     }
@@ -13004,8 +13004,8 @@ redisplay_internal (void)
   if (NILP (Vmemory_full))
     prepare_menu_bars ();
 
-  if (windows_or_buffers_changed)
-    update_mode_lines++;
+  if (windows_or_buffers_changed & !update_mode_lines)
+    update_mode_lines = 32;
 
   reconsider_clip_changes (w);
 
@@ -13018,7 +13018,7 @@ redisplay_internal (void)
 	{
 	  w->update_mode_line = 1;
 	  if (buffer_shared_and_changed ())
-	    update_mode_lines++;
+	    update_mode_lines = 33;
 	}
 
       if (mode_line_update_needed (w))
@@ -13031,7 +13031,10 @@ redisplay_internal (void)
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
   if (overlay_arrows_changed_p ())
-    consider_all_windows_p = windows_or_buffers_changed = 49;
+    {
+      consider_all_windows_p = true;
+      windows_or_buffers_changed = 49;
+    }
 
   /* Normally the message* functions will have already displayed and
      updated the echo area, but the frame may have been trashed, or
@@ -13049,7 +13052,7 @@ redisplay_internal (void)
       int window_height_changed_p = echo_area_display (0);
 
       if (message_cleared_p)
-	update_miniwindow_p = 1;
+	update_miniwindow_p = true;
 
       must_finish = 1;
 
@@ -13062,8 +13065,8 @@ redisplay_internal (void)
 
       if (window_height_changed_p)
 	{
-	  consider_all_windows_p = 1;
-	  ++update_mode_lines;
+	  consider_all_windows_p = true;
+	  update_mode_lines = 34;
 	  windows_or_buffers_changed = 50;
 
 	  /* If window configuration was changed, frames may have been
@@ -13083,15 +13086,33 @@ redisplay_internal (void)
 	 since only the current frame needs to be considered.  This function
 	 needs to be rewritten with two variables, consider_all_windows and
 	 consider_all_frames.  */
-      consider_all_windows_p = 1;
+      consider_all_windows_p = true;
       windows_or_buffers_changed = 51;
-      ++update_mode_lines;
+      update_mode_lines = 35;
 
       /* If window configuration was changed, frames may have been
 	 marked garbaged.  Clear them or we will experience
 	 surprises wrt scrolling.  */
       clear_garbaged_frames ();
     }
+
+  if (VECTORP (Vredisplay__all_windows_cause)
+      && windows_or_buffers_changed >= 0
+      && windows_or_buffers_changed < ASIZE (Vredisplay__all_windows_cause)
+      && INTEGERP (AREF (Vredisplay__all_windows_cause,
+			 windows_or_buffers_changed)))
+    ASET (Vredisplay__all_windows_cause, windows_or_buffers_changed,
+	  make_number (1 + XINT (AREF (Vredisplay__all_windows_cause,
+				       windows_or_buffers_changed))));
+
+  if (VECTORP (Vredisplay__mode_lines_cause)
+      && update_mode_lines >= 0
+      && update_mode_lines < ASIZE (Vredisplay__mode_lines_cause)
+      && INTEGERP (AREF (Vredisplay__mode_lines_cause,
+			 update_mode_lines)))
+    ASET (Vredisplay__mode_lines_cause, update_mode_lines,
+	  make_number (1 + XINT (AREF (Vredisplay__mode_lines_cause,
+				       update_mode_lines))));
 
   /* Optimize the case that only the line containing the cursor in the
      selected window has changed.  Variables starting with this_ are
@@ -13294,7 +13315,6 @@ redisplay_internal (void)
     }
 
   CHARPOS (this_line_start_pos) = 0;
-  consider_all_windows_p |= buffer_shared_and_changed ();
   ++clear_face_cache_count;
 #ifdef HAVE_WINDOW_SYSTEM
   ++clear_image_cache_count;
@@ -13473,7 +13493,7 @@ redisplay_internal (void)
 	 matrices of some windows are not valid.  */
       if (!WINDOW_FULL_WIDTH_P (w)
 	  && !FRAME_WINDOW_P (XFRAME (w->frame)))
-	update_mode_lines = 1;
+	update_mode_lines = 36;
     }
   else
     {
@@ -15337,7 +15357,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	}
       else if ((w != XWINDOW (minibuf_window)
 		|| minibuf_level == 0)
-	       /* When buffer is nonempty, redisplay window normally. */
+	       /* When buffer is nonempty, redisplay window normally.  */
 	       && BUF_Z (XBUFFER (w->contents)) == BUF_BEG (XBUFFER (w->contents))
 	       /* Quail displays non-mini buffers in minibuffer window.
 		  In that case, redisplay the window normally.  */
@@ -29735,6 +29755,16 @@ display table takes effect; in this case, Emacs does not consult
   DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
 	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);
   Vdebug_on_message = Qnil;
+
+  DEFVAR_LISP ("redisplay--all-windows-cause", Vredisplay__all_windows_cause,
+	       doc: /*  */);
+  Vredisplay__all_windows_cause
+    = Fmake_vector (make_number (100), make_number (0));
+
+  DEFVAR_LISP ("redisplay--mode-lines-cause", Vredisplay__mode_lines_cause,
+	       doc: /*  */);
+  Vredisplay__mode_lines_cause
+    = Fmake_vector (make_number (100), make_number (0));
 }
 
 
