@@ -1,3 +1,10 @@
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-local-mode): New minor mode.
+	(electric-indent-functions-without-reindent): New var.
+	(electric-indent-post-self-insert-function): Use it.
+	* emacs-lisp/gv.el (buffer-local-value): Add setter.
+
 2013-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/quail.el (quail-help): Be more explicit about the

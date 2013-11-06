@@ -346,6 +346,10 @@ The return value is the last VAL in the list.
 (gv-define-simple-setter window-point set-window-point)
 (gv-define-simple-setter window-start set-window-start)
 
+(gv-define-setter buffer-local-value (val var buf)
+  (macroexp-let2 nil v val
+    `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
+
 ;;; Some occasionally handy extensions.
 
 ;; While several of the "places" below are not terribly useful for direct use,
