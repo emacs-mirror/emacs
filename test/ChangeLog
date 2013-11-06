@@ -1,3 +1,7 @@
+2013-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (setwins): Avoid accidental matches.
+
 2013-11-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test07-file-exists-p):

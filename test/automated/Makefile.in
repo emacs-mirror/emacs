@@ -39,9 +39,8 @@ emacs = unset EMACSLOADPATH; \
 	LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
-setwins=subdirs=`find $(srcdir) -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */data* | */flymake* ) ;; \
+setwins=for file in `find $(srcdir) -type d -print`; do \
+	   case $$file in $(srcdir)*/data* | $(srcdir)*/flymake* ) ;; \
 		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done

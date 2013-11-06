@@ -117,14 +117,14 @@ setwins=for file in `find . -type d -print`; do \
 
 # Find all subdirectories except `obsolete' and `term'.
 setwins_almost=for file in `find ${srcdir} -type d -print`; do \
-	   case $$file in */obsolete | */term ) ;; \
+	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term ) ;; \
 		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
 # Find all subdirectories in which we might want to create subdirs.el.
 setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
-	   case $$file in */cedet* ) ;; \
+	   case $$file in ${srcdir}*/cedet* ) ;; \
 		*) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
