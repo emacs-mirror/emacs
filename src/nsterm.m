@@ -6089,7 +6089,7 @@ if (cols > 0 && rows > 0)
 
   SET_FRAME_ICONIFIED (emacsframe, 0);
   SET_FRAME_VISIBLE (emacsframe, 1);
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 63;
 
   if (emacs_event)
     {

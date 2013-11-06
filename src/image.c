@@ -1521,7 +1521,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 		clear_current_matrices (fr);
 	    }
 
-	  ++windows_or_buffers_changed;
+	  windows_or_buffers_changed = 19;
 	}
 
       unblock_input ();

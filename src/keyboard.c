@@ -1667,7 +1667,7 @@ command_loop_1 (void)
 	       cluster to prevent automatic composition.  To recover
 	       the automatic composition, we must update the
 	       display.  */
-	    windows_or_buffers_changed++;
+	    windows_or_buffers_changed = 21;
 	  if (!already_adjusted)
 	    adjust_point_for_property (last_point_position,
 				       MODIFF != prev_modiff);

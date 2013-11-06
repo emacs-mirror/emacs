@@ -2705,7 +2705,7 @@ current buffer is cleared.  */)
 
   /* If buffer is shown in a window, let redisplay consider other windows.  */
   if (buffer_window_count (current_buffer))
-    ++windows_or_buffers_changed;
+    windows_or_buffers_changed = 10;
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
@@ -3911,11 +3911,11 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
     {
       /* ... it's visible in other window than selected,  */
       if (buf != XBUFFER (XWINDOW (selected_window)->contents))
-	windows_or_buffers_changed = 1;
+	windows_or_buffers_changed = 11;
       /* ... or if we modify an overlay at the end of the buffer
 	 and so we cannot be sure that window end is still valid.  */
       else if (end >= ZV && start <= ZV)
-	windows_or_buffers_changed = 1;
+	windows_or_buffers_changed = 12;
     }
 
   ++BUF_OVERLAY_MODIFF (buf);

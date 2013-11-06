@@ -403,23 +403,23 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (!NILP (f->title))
         arg = f->title;
       else
-        /* explicit name and no icon-name -> explicit_name */
+        /* Explicit name and no icon-name -> explicit_name.  */
         if (f->explicit_name)
           arg = f->name;
         else
           {
-            /* no explicit name and no icon-name ->
-               name has to be rebuild from icon_title_format */
-            windows_or_buffers_changed++;
+            /* No explicit name and no icon-name ->
+               name has to be rebuild from icon_title_format.  */
+            windows_or_buffers_changed = 62;
             return;
           }
     }
 
   /* Don't change the name if it's already NAME.  */
-  if ([[view window] miniwindowTitle] &&
-      ([[[view window] miniwindowTitle]
+  if ([[view window] miniwindowTitle]
+      && ([[[view window] miniwindowTitle]
              isEqualToString: [NSString stringWithUTF8String:
-                                           SSDATA (arg)]]))
+					  SSDATA (arg)]]))
     return;
 
   [[view window] setMiniwindowTitle:

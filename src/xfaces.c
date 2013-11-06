@@ -788,7 +788,7 @@ Optional THOROUGHLY non-nil means try to free unused fonts, too.  */)
 {
   clear_face_cache (!NILP (thoroughly));
   ++face_change_count;
-  ++windows_or_buffers_changed;
+  windows_or_buffers_changed = 53;
   return Qnil;
 }
 
@@ -2637,7 +2637,7 @@ Value is a vector of face attributes.  */)
   if (NILP (Fget (face, Qface_no_inherit)))
     {
       ++face_change_count;
-      ++windows_or_buffers_changed;
+      windows_or_buffers_changed = 54;
     }
 
   eassert (LFACEP (lface));
@@ -2716,7 +2716,7 @@ The value is TO.  */)
   if (NILP (Fget (to, Qface_no_inherit)))
     {
       ++face_change_count;
-      ++windows_or_buffers_changed;
+      windows_or_buffers_changed = 55;
     }
 
   return to;
@@ -3207,7 +3207,7 @@ FRAME 0 means change the face on all frames, and change the default
       && NILP (Fequal (old_value, value)))
     {
       ++face_change_count;
-      ++windows_or_buffers_changed;
+      windows_or_buffers_changed = 56;
     }
 
   if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
@@ -3221,7 +3221,7 @@ FRAME 0 means change the face on all frames, and change the default
 	{
 #ifdef HAVE_WINDOW_SYSTEM
 	  /* Changed font-related attributes of the `default' face are
-	     reflected in changed `font' frame parameters. */
+	     reflected in changed `font' frame parameters.  */
 	  if (FRAMEP (frame)
 	      && (prop_index || EQ (attr, QCfont))
 	      && lface_fully_specified_p (XVECTOR (lface)->contents))
@@ -3380,7 +3380,7 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
       && NILP (Fget (face, Qface_no_inherit)))
     {
       ++face_change_count;
-      ++windows_or_buffers_changed;
+      windows_or_buffers_changed = 57;
     }
 }
 
@@ -4273,7 +4273,7 @@ free_realized_faces (struct face_cache *c)
       if (WINDOWP (f->root_window))
 	{
 	  clear_current_matrices (f);
-	  ++windows_or_buffers_changed;
+	  windows_or_buffers_changed = 58;
 	}
 
       unblock_input ();

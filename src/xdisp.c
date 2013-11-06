@@ -9633,7 +9633,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 	 shown in some window.  So we must manually incrementing
 	 windows_or_buffers_changed here to make up for that.  */
       if (shown)
-	windows_or_buffers_changed++;
+	windows_or_buffers_changed = 41;
       else
 	windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
@@ -10336,7 +10336,7 @@ resize_echo_area_exactly (void)
 					 (intptr_t) w, resize_exactly);
       if (resized_p)
 	{
-	  ++windows_or_buffers_changed;
+	  windows_or_buffers_changed = 42;
 	  ++update_mode_lines;
 	  redisplay_internal ();
 	}
@@ -10733,7 +10733,7 @@ clear_garbaged_frames (void)
 
       frame_garbaged = 0;
       if (changed_count)
-	++windows_or_buffers_changed;
+	windows_or_buffers_changed = 43;
     }
 }
 
@@ -10802,7 +10802,7 @@ echo_area_display (int update_frame_p)
 		 pending input.  */
 	      ptrdiff_t count = SPECPDL_INDEX ();
 	      specbind (Qredisplay_dont_pause, Qt);
-	      windows_or_buffers_changed = 1;
+	      windows_or_buffers_changed = 44;
 	      redisplay_internal ();
 	      unbind_to (count, Qnil);
 	    }
@@ -10821,11 +10821,11 @@ echo_area_display (int update_frame_p)
 	     redisplay displays the minibuffer, so that the cursor will
 	     be replaced with what the minibuffer wants.  */
 	  if (cursor_in_echo_area)
-	    ++windows_or_buffers_changed;
+	    windows_or_buffers_changed = 45;
 	}
     }
   else if (!EQ (mini_window, selected_window))
-    windows_or_buffers_changed++;
+    windows_or_buffers_changed = 46;
 
   /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
@@ -12947,7 +12947,7 @@ redisplay_internal (void)
      realized faces, which includes the faces referenced from current
      matrices.  So, we can't reuse current matrices in this case.  */
   if (face_change_count)
-    ++windows_or_buffers_changed;
+    windows_or_buffers_changed = 47;
 
   if ((FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
       && FRAME_TTY (sf)->previous_frame != sf)
@@ -12955,7 +12955,7 @@ redisplay_internal (void)
       /* Since frames on a single ASCII terminal share the same
 	 display area, displaying a different frame means redisplay
 	 the whole thing.  */
-      windows_or_buffers_changed++;
+      windows_or_buffers_changed = 48;
       SET_FRAME_GARBAGED (sf);
 #ifndef DOS_NT
       set_tty_color_mode (FRAME_TTY (sf), sf);
@@ -13031,7 +13031,7 @@ redisplay_internal (void)
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
   if (overlay_arrows_changed_p ())
-    consider_all_windows_p = windows_or_buffers_changed = 1;
+    consider_all_windows_p = windows_or_buffers_changed = 49;
 
   /* Normally the message* functions will have already displayed and
      updated the echo area, but the frame may have been trashed, or
@@ -13064,7 +13064,7 @@ redisplay_internal (void)
 	{
 	  consider_all_windows_p = 1;
 	  ++update_mode_lines;
-	  ++windows_or_buffers_changed;
+	  windows_or_buffers_changed = 50;
 
 	  /* If window configuration was changed, frames may have been
 	     marked garbaged.  Clear them or we will experience
@@ -13084,7 +13084,7 @@ redisplay_internal (void)
 	 needs to be rewritten with two variables, consider_all_windows and
 	 consider_all_frames.  */
       consider_all_windows_p = 1;
-      ++windows_or_buffers_changed;
+      windows_or_buffers_changed = 51;
       ++update_mode_lines;
 
       /* If window configuration was changed, frames may have been
@@ -13524,7 +13524,7 @@ redisplay_internal (void)
 	}
 
       if (new_count != number_of_visible_frames)
-	windows_or_buffers_changed++;
+	windows_or_buffers_changed = 52;
     }
 
   /* Change frame size now if a change is pending.  */

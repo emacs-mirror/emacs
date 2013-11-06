@@ -1,10 +1,15 @@
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* *.[chm]: Number every assignment to windows_or_buffers_changed so we
+	can track why it is set.
+
 2013-11-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer-related fixes for term.c etc.
 	* dispextern.h (face_tty_specified_color): New function.
 	* term.c (turn_on_face): Don't rely on undefined behavior when
-	assigning an out-of-range value to 'long'.  Simplify
-	test for toggling highlight.
+	assigning an out-of-range value to 'long'.
+	Simplify test for toggling highlight.
 	(tty_capable_p): Omit last two (unused) args.  All callers changed.
 	* term.c (tty_capable_p, tty_menu_display, tty_menu_add_selection)
 	(read_menu_input, tty_menu_activate, tty_menu_show):
@@ -232,8 +237,8 @@
 
 2013-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xfaces.c (check_lface_attrs, realize_default_face): Add
-	LFACE_DISTANT_FOREGROUND_INDEX (Bug#15788).
+	* xfaces.c (check_lface_attrs, realize_default_face):
+	Add LFACE_DISTANT_FOREGROUND_INDEX (Bug#15788).
 	(realize_default_face): Set DISTANT_FOREGROUND to unspecified_fg.
 
 2013-11-02  Paul Eggert  <eggert@cs.ucla.edu>
@@ -257,13 +262,13 @@
 	foreground.
 	(syms_of_xfaces): DEFSYM QCdistant_foreground.
 
-	* dispextern.h (lface_attribute_index): Add
-	LFACE_DISTANT_FOREGROUND_INDEX.
+	* dispextern.h (lface_attribute_index):
+	Add LFACE_DISTANT_FOREGROUND_INDEX.
 
 2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
 
-	* image.c (pbm_next_char): New function.  See
-	http://netpbm.sourceforge.net/doc/pbm.html for the details.
+	* image.c (pbm_next_char): New function.
+	See http://netpbm.sourceforge.net/doc/pbm.html for the details.
 	(pbm_scan_number): Use it.
 	(Qlibjpeg_version): New variable.
 	(syms_of_image): DEFSYM and initialize it.

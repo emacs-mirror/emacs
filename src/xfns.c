@@ -959,7 +959,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   /* Make sure we redisplay all windows in this frame.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 59;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   FRAME_MENU_BAR_LINES (f) = 0;
@@ -1068,8 +1068,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 #else /* !USE_GTK */
 
-     /* Make sure we redisplay all windows in this frame.  */
-  ++windows_or_buffers_changed;
+  /* Make sure we redisplay all windows in this frame.  */
+  windows_or_buffers_changed = 60;
 
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
 

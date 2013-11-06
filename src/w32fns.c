@@ -1664,7 +1664,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   /* Make sure we redisplay all windows in this frame.  */
-  ++windows_or_buffers_changed;
+  windows_or_buffers_changed = 23;
 
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
 

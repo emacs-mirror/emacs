@@ -866,7 +866,7 @@ read_minibuf_unwind (void)
     resize_mini_window (XWINDOW (window), 0);
 
   /* Enforce full redisplay.  FIXME: make it more selective.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 22;
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,
