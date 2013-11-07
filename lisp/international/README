@@ -1,22 +1,19 @@
 The following files in this directory are derived from the Unicode
-Data File at http://www.unicode.org/Public/UNIDATA/UnicodeData.txt,
-downloaded on 2006-05-23:
+Data File at http://www.unicode.org/Public/UNIDATA/UnicodeData.txt:
 
   charprop.el uni-bidi.el uni-category.el uni-combining.el
   uni-comment.el uni-decimal.el uni-decomposition.el uni-digit.el
   uni-lowercase.el uni-mirrored.el uni-name.el uni-numeric.el
   uni-old-name.el uni-titlecase.el uni-uppercase.el
 
-These files were generated from UnicodeData.txt using unidata-gen.el,
-which is not included in the Emacs distribution; it can be found in
-the admin/unidata directory of the Emacs source repository at
-https://savannah.gnu.org/projects/emacs/
+These files were generated from the version admin/unidata/UnicodeData.txt
+in the Emacs sources, using the file unidata-gen.el in the same directory.
 
 The file UnicodeData.txt is used under the terms of the following
 Copyright and Permission Notice:
 
 
-Copyright (C) 1991-2009 Unicode, Inc. All rights reserved. Distributed
+Copyright (C) 1991-2013 Unicode, Inc. All rights reserved. Distributed
 under the Terms of Use in http://www.unicode.org/copyright.html.
 
 Permission is hereby granted, free of charge, to any person obtaining
