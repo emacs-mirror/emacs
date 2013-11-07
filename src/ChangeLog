@@ -1,3 +1,20 @@
+2013-11-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	Import changes from mac-port 4.5.
+	* macfont.m (mac_font_copy_default_descriptors_for_language)
+	(mac_font_copy_default_name_for_charset_and_languages): Declare.
+	(cf_charset_table): big-5-0 has uniquifier 0x4EDC.
+	(macfont_language_default_font_names): New.
+	(macfont_list): Rearrange language/charset code.
+	(macfont_close): Don't check for macfont_info->cache.
+	(mac_ctfont_create_preferred_family_for_attributes): New font
+	selection code, call
+	mac_font_copy_default_name_for_charset_and_languages.
+	(mac_font_copy_default_descriptors_for_language)
+	(mac_font_copy_default_name_for_charset_and_languages): New functions.
+
+	* macfont.h (kCTVersionNumber10_9): Define if not defined.
+
 2013-11-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to C11 aligned_alloc, and fix some integer overflows.
