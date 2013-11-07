@@ -329,7 +329,8 @@ explicitly declared in magic comment."
        (nonassoc "==" "===" "!=")
        (nonassoc "=~" "!~")
        (left "<<" ">>")
-       (left "&&" "||"))))))
+       (left "&&" "||")
+       (left "and" "or"))))))
 
 (defun ruby-smie--bosp ()
   (save-excursion (skip-chars-backward " \t")
@@ -340,7 +341,7 @@ explicitly declared in magic comment."
     (skip-chars-backward " \t")
     (not (or (bolp)
              (and (memq (char-before)
-                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?% ?~))
+                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?% ?~ ?^))
                   ;; Make sure it's not the end of a regexp.
                   (not (eq (car (syntax-after (1- (point)))) 7)))
              (and (eq (char-before) ?\?)
@@ -349,8 +350,8 @@ explicitly declared in magic comment."
                   (string-match "\\`\\s." (save-excursion
                                             (ruby-smie--backward-token))))
              (and (eq (car (syntax-after (1- (point)))) 2)
-                  (equal (save-excursion (ruby-smie--backward-token))
-                         "iuwu-mod"))
+                  (member (save-excursion (ruby-smie--backward-token))
+                          '("iuwu-mod" "and" "or")))
              (save-excursion
                (forward-comment 1)
                (eq (char-after) ?.))))))
@@ -375,13 +376,15 @@ explicitly declared in magic comment."
        ;; This isn't very important most of the time, though.
        (and (memq (preceding-char) '(?! ??))
             (eq (char-syntax (char-before (1- (point)))) '?w)))
-   (or (and (eq (char-syntax (char-after pos)) ?w)
-            (not (looking-at (regexp-opt '("unless" "if" "while" "until"
-                                           "else" "elsif" "do" "end")
-                                         'symbols))))
-       (memq (syntax-after pos) '(7 15))
-       (save-excursion
-         (goto-char pos)
+   (save-excursion
+     (goto-char pos)
+     (or (and (eq (char-syntax (char-after)) ?w)
+              ;; FIXME: Also "do".  But alas, that breaks some
+              ;; indentation cases.
+              (not (looking-at (regexp-opt '("unless" "if" "while" "until"
+                                             "else" "elsif" "end" "and" "or")
+                                           'symbols))))
+         (memq (syntax-after pos) '(7 15))
          (looking-at "\\s(\\|[-+!~:]\\sw")))))
 
 (defun ruby-smie--at-dot-call ()
@@ -504,7 +507,6 @@ explicitly declared in magic comment."
        (let ((state (smie-backward-sexp 'halfsexp)))
          (when (eq t (car state)) (goto-char (cadr state))))
        (cons 'column  (smie-indent-virtual)))))
-    (`(:after . ,(or "=" "iuwu-mod")) 2)
     (`(:after . " @ ") (smie-rule-parent))
     (`(:before . "do") (smie-rule-parent))
     (`(,(or :before :after) . ".")
@@ -513,8 +515,11 @@ explicitly declared in magic comment."
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
-    (`(:after . "+")       ;FIXME: Probably applicable to most infix operators.
-     (if (smie-rule-parent-p ";") ruby-indent-level))
+    (`(:after . ,(or "=" "iuwu-mod" "+" "-" "*" "/" "&&" "||" "%" "**" "^" "&"
+                     "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"
+                     "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^="
+                     "<<=" ">>=" "&&=" "||=" "and" "or"))
+     (if (smie-rule-parent-p ";" nil) ruby-indent-level))
     ))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)
