@@ -1239,6 +1239,7 @@ is the character itself.")))
 	    (if (eobp)
 		(insert ";; Local Variables:\n"
 			";; coding: utf-8\n"
+			";; version-control: never\n"
 			";; no-byte-compile: t\n"
 			";; End:\n\n"
 			(format ";; %s ends here\n" basename)))
@@ -1247,6 +1248,7 @@ is the character itself.")))
       (message "Writing %s..." charprop-file)
       (insert ";; Local Variables:\n"
 	      ";; coding: utf-8\n"
+	      ";; version-control: never\n"
 	      ";; no-byte-compile: t\n"
 	      ";; End:\n\n"
 	      (format ";; %s ends here\n"
