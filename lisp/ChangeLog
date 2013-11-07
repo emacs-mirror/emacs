@@ -1,3 +1,8 @@
+2013-11-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Lower priority of
+	"." compared to "do".
+
 2013-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (setwins_almost, setwins_for_subdirs):

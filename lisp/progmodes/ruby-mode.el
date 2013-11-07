@@ -280,7 +280,7 @@ explicitly declared in magic comment."
        (inst (exp) (inst "iuwu-mod" exp))
        (exp  (exp1) (exp "," exp) (exp "=" exp)
              (id " @ " exp)
-             (exp "." exp))
+             (exp "." id))
        (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
        (exp2 ("def" insts "end")
              ("begin" insts-rescue-insts "end")
