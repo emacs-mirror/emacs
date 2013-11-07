@@ -1992,11 +1992,19 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
       (unwind-protect
           (progn
             (fset 'macroexpand #'cl--sm-macroexpand)
-            ;; FIXME: For N bindings, this will traverse `body' N times!
-            (macroexpand-all (cons 'progn body)
-                             (cons (list (symbol-name (caar bindings))
-                                         (cl-cadar bindings))
-                                   macroexpand-all-environment)))
+            (let ((expansion
+                   ;; FIXME: For N bindings, this will traverse `body'
+                   ;; N times!
+                   (macroexpand-all (cons 'progn body)
+                                    (cons (list (symbol-name (caar bindings))
+                                                (cl-cadar bindings))
+                                          macroexpand-all-environment))))
+              (if (or (null (cdar bindings)) (cl-cddar bindings))
+                  (macroexp--warn-and-return
+                   (format "Malformed `cl-symbol-macrolet' binding: %S"
+                           (car bindings))
+                   expansion)
+                expansion)))
         (fset 'macroexpand previous-macroexpand))))))
 
 ;;; Multiple values.
@@ -2726,7 +2734,7 @@ macro that returns its `&whole' argument."
   (let* ((cl-entry (cons (nth 1 (nth 1 cl-form)) nil))
          (cl--active-block-names (cons cl-entry cl--active-block-names))
          (cl-body (macroexpand-all      ;Performs compiler-macro expansions.
-                   (cons 'progn (cddr cl-form))
+                   (macroexp-progn (cddr cl-form))
                    macroexpand-all-environment)))
     ;; FIXME: To avoid re-applying macroexpand-all, we'd like to be able
     ;; to indicate that this return value is already fully expanded.

@@ -1,10 +1,14 @@
+2013-11-05  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
+
+	* emacs-lisp/cl-macs.el (cl-symbol-macrolet): Print warning for
+	malformed bindings form (bug#15814).
+
 2013-11-07  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Lower priority of
 	"." compared to " @ ".  This incidentally fixes some indentation
 	examples with "do".
-	(ruby-smie--implicit-semi-p): No implicit semi after "^", "and" or
-	"or".
+	(ruby-smie--implicit-semi-p): No implicit semi after "^", "and" or "or".
 	(ruby-smie-grammar): New tokens: "and" and "or".
 	(ruby-smie--args-separator-p): Fix the check for tokens at POS.
 	Exclude "and" and "or".  Remove "do" in order to work around token
