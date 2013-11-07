@@ -3576,6 +3576,12 @@ This function expects to be in the right *tramp* buffer."
 I.e., for each directory in `tramp-remote-path', it is tested
 whether it exists and if so, it is added to the environment
 variable PATH."
+  (when (featurep 'ert)
+    (ignore-errors
+      (with-demoted-errors
+	  (message
+	   "tramp-set-remote-path:\n%s\n"
+	   (tramp-send-command-and-read vec "echo PATH=$PATH")))))
   (tramp-message vec 5 "Setting $PATH environment variable")
   (tramp-send-command
    vec (format "PATH=%s; export PATH"
@@ -4831,7 +4837,23 @@ Return ATTR."
 	remote-path)))))
 
 (defun tramp-get-ls-command (vec)
-  (with-tramp-connection-property vec "ls"
+;  (with-tramp-connection-property vec "ls"
+    (when (featurep 'ert)
+      (ignore-errors
+	(with-demoted-errors
+	  (message
+	   "tramp-get-ls-command printenv:\n%s\n"
+	   (tramp-send-command-and-read
+	    vec "echo \"\\\"`(printenv | sort) || exit`\\\"\"")))
+	(with-demoted-errors
+	  (message
+	   "tramp-get-ls-command getconf PATH:\n%s\n"
+	   (tramp-send-command-and-read
+	    vec "echo \\\"`getconf PATH 2>/dev/null || exit`\\\"")))
+	(with-demoted-errors
+	  (message
+	   "tramp-get-ls-command whereis ls:\n%s\n"
+	   (tramp-send-command-and-read vec "echo \"\\\"`whereis ls || exit`\\\"\"")))))
     (tramp-message vec 5 "Finding a suitable `ls' command")
     (or
      (catch 'ls-found
@@ -4853,7 +4875,7 @@ Return ATTR."
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
-     (tramp-error vec 'file-error "Couldn't find a proper `ls' command"))))
+     (tramp-error vec 'file-error "Couldn't find a proper `ls' command")));)
 
 (defun tramp-get-ls-command-with-dired (vec)
   (save-match-data

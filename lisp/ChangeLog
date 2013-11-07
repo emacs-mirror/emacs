@@ -1,3 +1,8 @@
+2013-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-set-remote-path, tramp-get-ls-command):
+	Instrument, in order to hunt failure on hydra.
+
 2013-11-05  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
 	* emacs-lisp/cl-macs.el (cl-symbol-macrolet): Print warning for
