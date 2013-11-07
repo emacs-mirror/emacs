@@ -1,3 +1,12 @@
+2013-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C11 aligned_alloc.
+	* configure.ac (GMALLOC_OBJ): Initialize to empty if !system_malloc
+	and doug_lea_malloc.
+	(aligned_alloc): Test for existence if !GMALLOC_OBJ and not darwin.
+	(posix_memalign): Test for existence only if !GMALLOC_OBJ and
+	not darwin and !aligned_alloc.
+
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (abs_srcdir) [MINGW32]: No point setting it here,

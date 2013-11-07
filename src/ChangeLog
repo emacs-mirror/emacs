@@ -1,3 +1,17 @@
+2013-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C11 aligned_alloc, and fix some integer overflows.
+	* alloc.c (USE_ALIGNED_ALLOC): New symbol.
+	(USE_POSIX_MEMALIGN): Remove.  All uses replaced with USE_ALIGNED_ALLOC,
+	and use of posix_memalign replaced with aligned_alloc.
+	(aligned_alloc): New function, defined or declared as needed.
+	* conf_post.h (HAVE_POSIX_MEMALIGN) [DARWIN_OS]:
+	Don't undef; configure.ac now does this.
+	* gmalloc.c (aligned_alloc) [MSDOS]: New decl.
+	(calloc, aligned_alloc): Check for integer overflow.
+	(aligned_alloc): Rename from memalign.  All uses changed.
+	(memalign): New function, an alias for aligned_alloc.
+
 2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (redisplay_internal): Fix typo in last change.

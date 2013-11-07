@@ -920,8 +920,20 @@ lisp_free (void *block)
 /* The entry point is lisp_align_malloc which returns blocks of at most
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
-#if defined (HAVE_POSIX_MEMALIGN) && defined (SYSTEM_MALLOC)
-#define USE_POSIX_MEMALIGN 1
+#if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+# define USE_ALIGNED_ALLOC 1
+/* Defined in gmalloc.c.  */
+void *aligned_alloc (size_t, size_t);
+#elif defined HAVE_ALIGNED_ALLOC
+# define USE_ALIGNED_ALLOC 1
+#elif defined HAVE_POSIX_MEMALIGN
+# define USE_ALIGNED_ALLOC 1
+static void *
+aligned_alloc (size_t alignment, size_t size)
+{
+  void *p;
+  return posix_memalign (&p, alignment, size) == 0 ? p : 0;
+}
 #endif
 
 /* BLOCK_ALIGN has to be a power of 2.  */
@@ -931,7 +943,7 @@ lisp_free (void *block)
    malloc a chance to minimize the amount of memory wasted to alignment.
    It should be tuned to the particular malloc library used.
    On glibc-2.3.2, malloc never tries to align, so a padding of 0 is best.
-   posix_memalign on the other hand would ideally prefer a value of 4
+   aligned_alloc on the other hand would ideally prefer a value of 4
    because otherwise, there's 1020 bytes wasted between each ablocks.
    In Emacs, testing shows that those 1020 can most of the time be
    efficiently used by malloc to place other objects, so a value of 0 can
@@ -976,7 +988,7 @@ struct ablocks
   struct ablock blocks[ABLOCKS_SIZE];
 };
 
-/* Size of the block requested from malloc or posix_memalign.  */
+/* Size of the block requested from malloc or aligned_alloc.  */
 #define ABLOCKS_BYTES (sizeof (struct ablocks) - BLOCK_PADDING)
 
 #define ABLOCK_ABASE(block) \
@@ -988,7 +1000,7 @@ struct ablocks
 #define ABLOCKS_BUSY(abase) ((abase)->blocks[0].abase)
 
 /* Pointer to the (not necessarily aligned) malloc block.  */
-#ifdef USE_POSIX_MEMALIGN
+#ifdef USE_ALIGNED_ALLOC
 #define ABLOCKS_BASE(abase) (abase)
 #else
 #define ABLOCKS_BASE(abase) \
@@ -1027,13 +1039,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
       mallopt (M_MMAP_MAX, 0);
 #endif
 
-#ifdef USE_POSIX_MEMALIGN
-      {
-	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
-	if (err)
-	  base = NULL;
-	abase = base;
-      }
+#ifdef USE_ALIGNED_ALLOC
+      abase = base = aligned_alloc (BLOCK_ALIGN, ABLOCKS_BYTES);
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);

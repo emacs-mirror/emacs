@@ -1895,12 +1895,14 @@ case "$opsys" in
   darwin|sol2-10) system_malloc=yes ;;
 esac
 
+GMALLOC_OBJ=
 if test "${system_malloc}" = "yes"; then
-  AC_DEFINE(SYSTEM_MALLOC, 1, [Define to use system malloc.])
+  AC_DEFINE([SYSTEM_MALLOC], 1,
+    [Define to 1 to use the system memory allocator, even if it is not
+     Doug Lea style.])
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
-  GMALLOC_OBJ=
   VMLIMIT_OBJ=
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
@@ -1929,7 +1931,8 @@ if test "$doug_lea_malloc" = "yes" ; then
       (Using Doug Lea's new malloc from the GNU C Library.)"
   fi
   AC_DEFINE(DOUG_LEA_MALLOC, 1,
-	    [Define to 1 if you are using the GNU C Library.])
+    [Define to 1 if the system memory allocator is Doug Lea style,
+     with malloc hooks and malloc_set_state.])
 
   ## Use mmap directly for allocating larger buffers.
   ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
@@ -3372,10 +3375,17 @@ getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror getline getdelim sync \
-difftime posix_memalign \
+difftime \
 getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start log2)
+
+dnl No need to check for aligned_alloc and posix_memalign if using
+dnl gmalloc.o, as it supplies them.  Don't use these functions on
+dnl Darwin as they are incompatible with unexmacosx.c.
+if test -z "$GMALLOC_OBJ" && test "$opsys" != darwin; then
+  AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
+fi
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
