@@ -2,6 +2,7 @@
 
 	* unidata/unidata-gen.el (unidata-gen-files):
 	Disable version-control in generated files.
+	Update Unicode Inc. copyright years.
 
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 

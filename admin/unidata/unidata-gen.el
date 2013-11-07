@@ -1230,7 +1230,7 @@ is the character itself.")))
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
 	    (if (bobp)
-		(insert ";; Copyright (C) 1991-2009 Unicode, Inc.
+		(insert ";; Copyright (C) 1991-2013 Unicode, Inc.
 ;; This file was generated from the Unicode data files at
 ;; http://www.unicode.org/Public/UNIDATA/.
 ;; See lisp/international/README for the copyright and permission notice.\n"))
