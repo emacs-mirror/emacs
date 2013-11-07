@@ -1993,9 +1993,8 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
           (progn
             (fset 'macroexpand #'cl--sm-macroexpand)
             (let ((expansion
-                   ;; FIXME: For N bindings, this will traverse `body'
-                   ;; N times!
-                   (macroexpand-all (cons 'progn body)
+                   ;; FIXME: For N bindings, this will traverse `body' N times!
+                   (macroexpand-all (macroexp-progn body)
                                     (cons (list (symbol-name (caar bindings))
                                                 (cl-cadar bindings))
                                           macroexpand-all-environment))))
@@ -2739,7 +2738,7 @@ macro that returns its `&whole' argument."
     ;; FIXME: To avoid re-applying macroexpand-all, we'd like to be able
     ;; to indicate that this return value is already fully expanded.
     (if (cdr cl-entry)
-        `(catch ,(nth 1 cl-form) ,@(cdr cl-body))
+        `(catch ,(nth 1 cl-form) ,@(macroexp-unprogn cl-body))
       cl-body)))
 
 (cl-define-compiler-macro cl--block-throw (cl-tag cl-value)
