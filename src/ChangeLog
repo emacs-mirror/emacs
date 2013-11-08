@@ -16,6 +16,8 @@
 
 2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gmalloc.c (special_realloc, calloc, mallochook): Use tail calls.
+
 	* chartab.c (make_sub_char_table): Fix size typo (Bug#15825).
 	This bug was introduced in my 2013-06-21 change, and caused
 	struct Lisp_Sub_Char_Table objects to be given too many slots,

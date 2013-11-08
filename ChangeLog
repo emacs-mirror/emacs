@@ -1,3 +1,11 @@
+2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-11-08 extern-inline: port better to OS X 10.9
+	2013-11-08 fpending: fix regression on DragonFly BSD
+	* lib/fpending.h, m4/extern-inline.m4, m4/fpending.m4:
+	Update from gnulib.
+
 2013-11-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to C11 aligned_alloc.

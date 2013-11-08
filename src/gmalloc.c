@@ -1307,8 +1307,8 @@ special_realloc (void *ptr, size_t size)
     type == 0 ? bss_sbrk_heapinfo[block].busy.info.size * BLOCKSIZE
     : (size_t) 1 << type;
   result = _malloc_internal_nolock (size);
-  if (result != NULL)
-    memcpy (result, ptr, min (oldsize, size));
+  if (result)
+    return memcpy (result, ptr, min (oldsize, size));
   return result;
 }
 #endif
@@ -1501,7 +1501,7 @@ calloc (size_t nmemb, size_t size)
 
   result = malloc (bytes);
   if (result)
-    memset (result, 0, bytes);
+    return memset (result, 0, bytes);
   return result;
 }
 /* Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
@@ -1814,8 +1814,7 @@ mallochook (size_t size)
   hdr->size = size;
   hdr->magic = MAGICWORD;
   ((char *) &hdr[1])[size] = MAGICBYTE;
-  memset (hdr + 1, MALLOCFLOOD, size);
-  return hdr + 1;
+  return memset (hdr + 1, MALLOCFLOOD, size);
 }
 
 static void *

@@ -1,4 +1,3 @@
-# extern-inline.m4 serial 2
 dnl 'extern inline' a la ISO C99.
 
 dnl Copyright 2012-2013 Free Software Foundation, Inc.
@@ -20,15 +19,20 @@ AC_DEFUN([gl_EXTERN_INLINE],
    'reference to static identifier "f" in extern inline function'.
    This bug was observed with Sun C 5.12 SunOS_i386 2011/11/16.
 
-   Suppress the use of extern inline on problematic Apple configurations, as
-   Libc at least through Libc-825.26 (2013-04-09) mishandles it; see, e.g.,
+   Suppress the use of extern inline on problematic Apple configurations.
+   OS X 10.8 and earlier mishandle it; see, e.g.,
    <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
+   OS X 10.9 has a macro __header_inline indicating the bug is fixed for C and
+   for clang but remains for g++; see <http://trac.macports.org/ticket/41033>.
    Perhaps Apple will fix this some day.  */
 #if (defined __APPLE__ \
-     && ((! defined _DONT_USE_CTYPE_INLINE_ \
-          && (defined __GNUC__ || defined __cplusplus)) \
-         || (defined _FORTIFY_SOURCE && 0 < _FORTIFY_SOURCE \
-             && defined __GNUC__ && ! defined __cplusplus)))
+     && (defined __header_inline \
+         ? (defined __cplusplus && defined __GNUC_STDC_INLINE__ \
+            && ! defined __clang__) \
+         : ((! defined _DONT_USE_CTYPE_INLINE_ \
+             && (defined __GNUC__ || defined __cplusplus)) \
+            || (defined _FORTIFY_SOURCE && 0 < _FORTIFY_SOURCE \
+                && defined __GNUC__ && ! defined __cplusplus))))
 # define _GL_EXTERN_INLINE_APPLE_BUG
 #endif
 #if ((__GNUC__ \
