@@ -1,3 +1,10 @@
+2013-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (lface_fully_specified_p): Let distant-foreground be
+	unspecified.
+	(realize_default_face): Remove assignment to distant-foreground if
+	unspecified (Bug#15815).
+
 2013-11-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (message_dolog): Make sure the *Messages* buffer has its

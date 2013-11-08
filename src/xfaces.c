@@ -2073,7 +2073,8 @@ lface_fully_specified_p (Lisp_Object attrs[LFACE_VECTOR_SIZE])
   int i;
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX)
+    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
+        && i != LFACE_DISTANT_FOREGROUND_INDEX)
       if ((UNSPECIFIEDP (attrs[i]) || IGNORE_DEFFACE_P (attrs[i])))
 	break;
 
@@ -5342,9 +5343,6 @@ realize_default_face (struct frame *f)
       else
 	emacs_abort ();
     }
-
-  if (UNSPECIFIEDP (LFACE_DISTANT_FOREGROUND (lface)))
-    ASET (lface, LFACE_DISTANT_FOREGROUND_INDEX, build_string (unspecified_fg));
 
   if (UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
     {

@@ -1350,6 +1350,7 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:weight . "Weight")
 		  (:slant . "Slant")
 		  (:foreground . "Foreground")
+		  (:distant-foreground . "DistantForeground")
 		  (:background . "Background")
 		  (:underline . "Underline")
 		  (:overline . "Overline")
