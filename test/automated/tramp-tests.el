@@ -40,6 +40,10 @@
 (setq tramp-verbose 0
       tramp-message-show-message nil)
 (when noninteractive (defalias 'tramp-read-passwd 'ignore))
+;; This shall happen on hydra only; we need a proper test.  Check
+;; `process-environment' for a hint.
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+(message "%s" process-environment)
 
 (defvar tramp--test-enabled-checked nil
   "Cached result of `tramp--test-enabled'.
