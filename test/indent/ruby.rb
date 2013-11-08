@@ -284,3 +284,10 @@ bar 1 do
     tee
   end
 end
+
+# Failing with SMIE:
+
+foo ||
+  begin
+    bar
+  end
