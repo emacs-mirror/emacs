@@ -1,3 +1,8 @@
+2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--forward-token)
+	(ruby-smie--backward-token): Only consider full-string matches.
+
 2013-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* faces.el (describe-face): Add distant-foreground.
