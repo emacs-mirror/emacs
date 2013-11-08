@@ -6635,6 +6635,13 @@
 	* emacs-lisp/macroexp.el (macroexp--compiling-p): New function.
 	(macroexp--warn-and-return): Use it.
 
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/subr.el: Convert to lexical binding.
+	(overriding-local-map): Make obsolete.
+	(add-to-list): Doc fix.  Add compiler macro.
+	(read-key): Swap values of local maps.
+
 2013-06-05  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/esh-mode.el (eshell-mode): Fix key bindings.
