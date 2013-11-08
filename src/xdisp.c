@@ -9488,6 +9488,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       }
 
       bset_undo_list (current_buffer, Qt);
+      bset_cache_long_scans (current_buffer, Qnil);
 
       oldpoint = message_dolog_marker1;
       set_marker_restricted_both (oldpoint, Qnil, PT, PT_BYTE);

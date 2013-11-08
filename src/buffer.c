@@ -154,7 +154,8 @@ CHECK_OVERLAY (Lisp_Object x)
   CHECK_TYPE (OVERLAYP (x), Qoverlayp, x);
 }
 
-/* These setters are used only in this file, so they can be private.  */
+/* These setters are used only in this file, so they can be private.
+   The public setters are inline functions defined in buffer.h.  */
 static void
 bset_abbrev_mode (struct buffer *b, Lisp_Object val)
 {
@@ -199,11 +200,6 @@ static void
 bset_buffer_file_coding_system (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (buffer_file_coding_system) = val;
-}
-static void
-bset_cache_long_scans (struct buffer *b, Lisp_Object val)
-{
-  b->INTERNAL_FIELD (cache_long_scans) = val;
 }
 static void
 bset_case_fold_search (struct buffer *b, Lisp_Object val)
@@ -5185,7 +5181,7 @@ init_buffer_once (void)
   bset_buffer_file_coding_system (&buffer_defaults, Qnil);
   XSETFASTINT (BVAR (&buffer_defaults, fill_column), 70);
   XSETFASTINT (BVAR (&buffer_defaults, left_margin), 0);
-  bset_cache_long_scans (&buffer_defaults, Qnil);
+  bset_cache_long_scans (&buffer_defaults, Qt);
   bset_file_truename (&buffer_defaults, Qnil);
   XSETFASTINT (BVAR (&buffer_defaults, display_count), 0);
   XSETFASTINT (BVAR (&buffer_defaults, left_margin_cols), 0);

@@ -1,3 +1,19 @@
+2013-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (message_dolog): Make sure the *Messages* buffer has its
+	cache-long-scans disabled, since we don't want to call
+	prepare_to_modify_buffer (in insert_1_both) for each message we
+	display.
+
+	* buffer.h (bset_cache_long_scans): New INLINE function, moved
+	from buffer.c.  Improve commentary to the buffer field setter
+	functions.
+
+	* buffer.c (bset_cache_long_scans): Static function deleted.
+	Improve commentary to the buffer field setter functions.
+	(init_buffer_once): Default for cache-long-scans changed to t.
+	(Bug#15797)
+
 2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* chartab.c (make_sub_char_table): Fix size typo (Bug#15825).
