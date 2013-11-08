@@ -19,13 +19,17 @@
 
 ;;; Commentary:
 
-;; Some of the tests are intended to run over remote files.  Set
+;; The tests require a recent ert.el from Emacs 24.4.
+
+;; Some of the tests require access to a remote host files.  Set
 ;; `tramp-test-temporary-file-directory' to a suitable value.  It must
 ;; NOT require an interactive password prompt, when running the tests
 ;; in batch mode.
 
-;; If you want to skip tests for remote files, set this variable to
-;; `null-device'.
+;; If you want to skip tests accessing a remote host, set this
+;; variable to `null-device'.
+
+;; A whole test run can be performed calling the command `tramp-test-all'.
 
 ;;; Code:
 
@@ -40,10 +44,9 @@
 (setq tramp-verbose 0
       tramp-message-show-message nil)
 (when noninteractive (defalias 'tramp-read-passwd 'ignore))
-;; This shall happen on hydra only; we need a proper test.  Check
-;; `process-environment' for a hint.
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-(message "%s" process-environment)
+;; This shall happen on hydra only.
+(when (getenv "NIX_STORE")
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 (defvar tramp--test-enabled-checked nil
   "Cached result of `tramp--test-enabled'.
@@ -506,25 +509,13 @@ and `file-name-nondirectory'."
 
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
-  (condition-case err
-      (with-timeout (20 (should-not 'timeout))
-	(message "tramp--test-enabled")
-	(message "%S" (tramp--test-enabled))
-	(skip-unless (tramp--test-enabled))
-	(let ((tmp-name (tramp--test-make-temp-name)))
-	  (message "file-exists-p")
-	  (should-not (file-exists-p tmp-name))
-	  (message "write-region")
-	  (write-region "foo" nil tmp-name)
-	  (message "file-exists-p")
-	  (should (file-exists-p tmp-name))
-	  (message "delete-file")
-	  (delete-file tmp-name)
-	  (message "file-exists-p")
-	  (should-not (file-exists-p tmp-name))))
-    ((error quit)
-     (message "%S" err)
-     (signal (car err) (cdr err)))))
+  (skip-unless (tramp--test-enabled))
+  (let ((tmp-name (tramp--test-make-temp-name)))
+    (should-not (file-exists-p tmp-name))
+    (write-region "foo" nil tmp-name)
+    (should (file-exists-p tmp-name))
+    (delete-file tmp-name)
+    (should-not (file-exists-p tmp-name))))
 
 (ert-deftest tramp-test08-file-local-copy ()
   "Check `file-local-copy'."
@@ -930,8 +921,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check `process-file'."
   (skip-unless (tramp--test-enabled))
   (let ((default-directory tramp-test-temporary-file-directory))
-    (should (zerop (process-file "/bin/true")))
-    (should-not (zerop (process-file "/bin/false")))
+    (should (zerop (process-file "true")))
+    (should-not (zerop (process-file "false")))
     (with-temp-buffer
       (should (zerop (process-file "ls" nil t)))
       (should (> (point-max) (point-min))))))

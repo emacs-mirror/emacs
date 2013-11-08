@@ -46,6 +46,9 @@
 (setq tramp-verbose 0
       tramp-message-show-message nil)
 (when noninteractive (defalias 'tramp-read-passwd 'ignore))
+;; This shall happen on hydra only.
+(when (getenv "NIX_STORE")
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 ;; We do not want to try and fail `file-notify-add-watch'.
 (defun file-notify--test-local-enabled ()

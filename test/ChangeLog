@@ -1,7 +1,11 @@
 2013-11-08  Michael Albinus  <michael.albinus@gmx.de>
 
+	* automated/file-notify-tests.el:
 	* automated/tramp-tests.el: Add `tramp-own-remote-path' to
-	`tramp-remote-path'.
+	`tramp-remote-path' when running on hydra.
+	(tramp-test07-file-exists-p): Remove instrumentation code.
+	(tramp-test26-process-file): Don't use "/bin/true" and
+	"/bin/false", these paths do not exist on hydra.
 
 2013-11-08  Helmut Eller  <eller.helmut@gmail.com>
 
