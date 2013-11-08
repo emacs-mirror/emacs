@@ -1,3 +1,9 @@
+2013-11-08  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-mode-set-encoding): Use
+	`ruby-encoding-magic-comment-style' to control the
+	style of the auto-inserted encoding comment.
+
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--indent-to-stmt): Use

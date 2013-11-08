@@ -261,6 +261,20 @@ explicitly declared in magic comment."
   "Insert a magic Emacs 'coding' comment upon save if this is non-nil."
   :type 'boolean :group 'ruby)
 
+(defcustom ruby-encoding-magic-comment-style 'ruby
+  "The style of the magic encoding comment to use."
+  :type '(choice
+          (const :tag "Emacs Style" emacs)
+          (const :tag "Ruby Style" ruby)
+          (const :tag "Custom Style" custom))
+  :group 'ruby)
+
+(defcustom ruby-custom-encoding-magic-comment-template "# coding: %s"
+  "The encoding comment template to be used when
+`ruby-encoding-magic-comment-style' is set to `custom'."
+  :type 'string
+  :group 'ruby)
+
 (defcustom ruby-use-encoding-map t
   "Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
   :type 'boolean :group 'ruby)
@@ -639,7 +653,14 @@ explicitly declared in magic comment."
                    (insert coding-system)))
                 ((looking-at "\\s *#.*coding\\s *[:=]"))
                 (t (when ruby-insert-encoding-magic-comment
-                     (insert "# -*- coding: " coding-system " -*-\n"))))
+                     (let ((encoding-magic-comment-template
+                            (case ruby-encoding-magic-comment-style
+                              ('ruby "# coding: %s")
+                              ('emacs "# -*- coding: %s -*-")
+                              ('custom ruby-custom-encoding-magic-comment-template))))
+                      (insert
+                       (format encoding-magic-comment-template coding-system)
+                       "\n")))))
           (when (buffer-modified-p)
             (basic-save-buffer-1)))))))
 
