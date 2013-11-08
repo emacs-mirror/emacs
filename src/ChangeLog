@@ -1,3 +1,10 @@
+2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* chartab.c (make_sub_char_table): Fix size typo (Bug#15825).
+	This bug was introduced in my 2013-06-21 change, and caused
+	struct Lisp_Sub_Char_Table objects to be given too many slots,
+	which broke 'make -C admin/unidata'.
+
 2013-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	Import changes from mac-port 4.5.

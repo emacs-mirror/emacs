@@ -141,7 +141,8 @@ static Lisp_Object
 make_sub_char_table (int depth, int min_char, Lisp_Object defalt)
 {
   Lisp_Object table;
-  int size = CHAR_TABLE_STANDARD_SLOTS + chartab_size[depth];
+  int size = (PSEUDOVECSIZE (struct Lisp_Sub_Char_Table, contents)
+	      + chartab_size[depth]);
 
   table = Fmake_vector (make_number (size), defalt);
   XSETPVECTYPE (XVECTOR (table), PVEC_SUB_CHAR_TABLE);
