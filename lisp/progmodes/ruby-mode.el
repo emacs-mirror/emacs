@@ -485,13 +485,8 @@ explicitly declared in magic comment."
 
 (defun ruby-smie--indent-to-stmt ()
   (save-excursion
-    (let (parent)
-      (while (not (or (eq (car parent) t)
-                      (equal (nth 2 parent) ";")))
-        (setq parent (let (smie--parent) (smie-indent--parent)))
-        (when (numberp (nth 1 parent))
-          (goto-char (nth 1 parent))))
-      (cons 'column (smie-indent-virtual)))))
+    (smie-backward-sexp ";")
+    (cons 'column (smie-indent-virtual))))
 
 (defun ruby-smie-rules (kind token)
   (pcase (cons kind token)
