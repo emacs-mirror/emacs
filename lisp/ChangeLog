@@ -1,3 +1,19 @@
+2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Improve precedences
+	of "and", "or", "&&" and "||".
+	(ruby-smie--args-separator-p): Prohibit keyword "do" as the first
+	argument.  Prohibit opening curly brace because it could only be a
+	block opener in that position.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Separate
+	"|" from "&" or "*" going after it.  That can happen in block
+	arguments.
+	(ruby-smie--indent-to-stmt): New function, seeks the end of
+	previous statement or beginning of buffer.
+	(ruby-smie-rules): Use it.
+	(ruby-smie-rules): Check if there's a ":" before a curly block
+	opener candidate; if there is, it's a hash.
+
 2013-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-symbol-macrolet): Use macroexp-progn.

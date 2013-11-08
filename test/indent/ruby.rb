@@ -117,6 +117,9 @@ d = 4 + 5 +      # no '\' needed
 e = 8 + 9   \
     + 10         # '\' needed
 
+foo = obj.bar { |m| tee(m) } +
+      obj.qux { |m| hum(m) }
+
 begin
   foo
 ensure
@@ -210,6 +213,14 @@ foo +
 foo and
   bar
 
+foo > bar &&
+  tee < qux
+
+zux do
+  foo == bar and
+    tee == qux
+end
+
 foo ^
   bar
 
@@ -244,6 +255,14 @@ foo :bar do
   qux
 end
 
+foo do |*args|
+  tee
+end
+
+bar do |&block|
+  tee
+end
+
 foo = [1, 2, 3].map do |i|
   i + 1
 end
@@ -252,8 +271,16 @@ bar.foo do
   bar
 end
 
-# Examples below still fail with `ruby-use-smie' on:
-
-bar.foo(tee) do # "." is parent to "do"; it shouldn't be.
+bar.foo(tee) do
   bar
+end
+
+bar.foo(tee) {
+  bar
+}
+
+bar 1 do
+  foo 2 do
+    tee
+  end
 end

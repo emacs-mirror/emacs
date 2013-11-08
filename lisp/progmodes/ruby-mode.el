@@ -277,7 +277,10 @@ explicitly declared in magic comment."
     (smie-bnf->prec2
      '((id)
        (insts (inst) (insts ";" insts))
-       (inst (exp) (inst "iuwu-mod" exp))
+       (inst (exp) (inst "iuwu-mod" exp)
+             ;; Somewhat incorrect (both can be used multiple times),
+             ;; but avoids lots of conflicts:
+             (exp "and" exp) (exp "or" exp))
        (exp  (exp1) (exp "," exp) (exp "=" exp)
              (id " @ " exp)
              (exp "." id))
@@ -323,14 +326,13 @@ explicitly declared in magic comment."
        (left "+" "-")
        (left "*" "/" "%" "**")
        ;; (left "|") ; FIXME: Conflicts with | after block parameters.
+       (left "&&" "||")
        (left "^" "&")
        (nonassoc "<=>")
        (nonassoc ">" ">=" "<" "<=")
        (nonassoc "==" "===" "!=")
        (nonassoc "=~" "!~")
-       (left "<<" ">>")
-       (left "&&" "||")
-       (left "and" "or"))))))
+       (left "<<" ">>"))))))
 
 (defun ruby-smie--bosp ()
   (save-excursion (skip-chars-backward " \t")
@@ -379,13 +381,11 @@ explicitly declared in magic comment."
    (save-excursion
      (goto-char pos)
      (or (and (eq (char-syntax (char-after)) ?w)
-              ;; FIXME: Also "do".  But alas, that breaks some
-              ;; indentation cases.
               (not (looking-at (regexp-opt '("unless" "if" "while" "until"
-                                             "else" "elsif" "end" "and" "or")
+                                             "else" "elsif" "do" "end" "and" "or")
                                            'symbols))))
          (memq (syntax-after pos) '(7 15))
-         (looking-at "\\s(\\|[-+!~:]\\sw")))))
+         (looking-at "[([]\\|[-+!~:]\\sw")))))
 
 (defun ruby-smie--at-dot-call ()
   (and (eq ?w (char-syntax (following-char)))
@@ -424,7 +424,9 @@ explicitly declared in magic comment."
            ((member tok '("unless" "if" "while" "until"))
             (if (save-excursion (forward-word -1) (ruby-smie--bosp))
                 tok "iuwu-mod"))
-           ((equal tok "|")
+           ((string-match "|[*&]?" tok)
+            (forward-char (- 1 (length tok)))
+            (setq tok "|")
             (if (ruby-smie--opening-pipe-p) "opening-|" tok))
            ((and (equal tok "") (looking-at "\\\\\n"))
             (goto-char (match-end 0)) (ruby-smie--forward-token))
@@ -466,6 +468,9 @@ explicitly declared in magic comment."
               tok "iuwu-mod"))
          ((equal tok "|")
           (if (ruby-smie--opening-pipe-p) "opening-|" tok))
+         ((string-match-p "|[*&]" tok)
+          (forward-char 1)
+          (substring tok 1))
          ((and (equal tok "") (eq ?\\ (char-before)) (looking-at "\n"))
           (forward-char -1) (ruby-smie--backward-token))
          ((equal tok "do")
@@ -477,6 +482,16 @@ explicitly declared in magic comment."
             (ruby-smie--backward-token)) ;Fully redundant.
            (t ";")))
          (t tok)))))))
+
+(defun ruby-smie--indent-to-stmt ()
+  (save-excursion
+    (let (parent)
+      (while (not (or (eq (car parent) t)
+                      (equal (nth 2 parent) ";")))
+        (setq parent (let (smie--parent) (smie-indent--parent)))
+        (when (numberp (nth 1 parent))
+          (goto-char (nth 1 parent))))
+      (cons 'column (smie-indent-virtual)))))
 
 (defun ruby-smie-rules (kind token)
   (pcase (cons kind token)
@@ -498,9 +513,12 @@ explicitly declared in magic comment."
     (`(:before . ,(or `"(" `"[" `"{"))
      (cond
       ((and (equal token "{")
-            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";")))
+            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";"))
+            (save-excursion
+              (forward-comment -1)
+              (not (eq (preceding-char) ?:))))
        ;; Curly block opener.
-       (smie-rule-parent))
+       (ruby-smie--indent-to-stmt))
       ((smie-rule-hanging-p)
        ;; Treat purely syntactic block-constructs as being part of their parent,
        ;; when the opening statement is hanging.
@@ -508,7 +526,7 @@ explicitly declared in magic comment."
          (when (eq t (car state)) (goto-char (cadr state))))
        (cons 'column  (smie-indent-virtual)))))
     (`(:after . " @ ") (smie-rule-parent))
-    (`(:before . "do") (smie-rule-parent))
+    (`(:before . "do") (ruby-smie--indent-to-stmt))
     (`(,(or :before :after) . ".")
      (unless (smie-rule-parent-p ".")
        (smie-rule-parent ruby-indent-level)))
