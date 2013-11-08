@@ -1,3 +1,10 @@
+2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p):
+	Not after "||".
+	(ruby-smie-rules): Indent non-hanging "begin" blocks as part of
+	their parent.
+
 2013-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el: Don't require cl any more.  Use pcase instead.

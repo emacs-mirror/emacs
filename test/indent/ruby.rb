@@ -285,9 +285,14 @@ bar 1 do
   end
 end
 
-# Failing with SMIE:
-
 foo ||
   begin
     bar
   end
+
+def qux
+  foo ||= begin
+    bar
+    tee
+  end
+end

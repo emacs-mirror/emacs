@@ -364,6 +364,8 @@ explicitly declared in magic comment."
              (and (eq (char-before) ?=)
                   (string-match "\\`\\s." (save-excursion
                                             (ruby-smie--backward-token))))
+             (and (eq (char-before) ?|)
+                  (eq (char-before (1- (point))) ?|))
              (and (eq (car (syntax-after (1- (point)))) 2)
                   (member (save-excursion (ruby-smie--backward-token))
                           '("iuwu-mod" "and" "or")))
@@ -546,6 +548,9 @@ explicitly declared in magic comment."
                      "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^="
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
      (if (smie-rule-parent-p ";" nil) ruby-indent-level))
+    (`(:before . "begin")
+     (unless (save-excursion (skip-chars-backward " \t") (bolp))
+       (smie-rule-parent)))
     ))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)
