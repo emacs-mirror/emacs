@@ -79,7 +79,8 @@ searching backwards at another AC_... command."
   (setq-local parens-require-spaces nil) ; for M4 arg lists
   (setq-local defun-prompt-regexp "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
   (setq-local comment-start "dnl ")
-  (setq-local comment-start-skip "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
+  ;; We want to avoid matching "dnl" in other text.
+  (setq-local comment-start-skip "\\(?:\\(\\W\\|^\\)dnl\\|#\\) +")
   (setq-local syntax-propertize-function
 	      (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
   (setq-local font-lock-defaults

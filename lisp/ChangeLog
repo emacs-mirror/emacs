@@ -1,3 +1,8 @@
+2013-11-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/autoconf.el (autoconf-mode):
+	Tweak comment-start-skip.  (Bug#15822)
+
 2013-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-smie--sh-keyword-in-p): Don't inf-loop
