@@ -1,3 +1,7 @@
+2013-11-08  Helmut Eller  <eller.helmut@gmail.com>
+
+	* automated/sentinel-tests.el: New file.
+
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: New examples.
