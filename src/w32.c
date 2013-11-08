@@ -1872,9 +1872,9 @@ crlf_to_lf (register int n, register unsigned char *buf)
 /* Parse the root part of file name, if present.  Return length and
     optionally store pointer to char after root.  */
 static int
-parse_root (char * name, char ** pPath)
+parse_root (const char * name, const char ** pPath)
 {
-  char * start = name;
+  const char * start = name;
 
   if (name == NULL)
     return 0;
@@ -1960,7 +1960,7 @@ w32_get_long_filename (char * name, char * buf, int size)
 {
   char * o = buf;
   char * p;
-  char * q;
+  const char * q;
   char full[ MAX_UTF8_PATH ];
   int len;
 
@@ -1973,7 +1973,7 @@ w32_get_long_filename (char * name, char * buf, int size)
   unixtodos_filename (full);
 
   /* Copy root part verbatim.  */
-  len = parse_root (full, &p);
+  len = parse_root (full, (const char **)&p);
   memcpy (o, full, len);
   o += len;
   *o = '\0';
@@ -2628,6 +2628,7 @@ static void
 add_volume_info (char * root_dir, volume_info_data * info)
 {
   info->root_dir = xstrdup (root_dir);
+  unixtodos_filename (info->root_dir);
   info->next = volume_cache;
   volume_cache = info;
 }
@@ -2640,14 +2641,30 @@ static volume_info_data *
 GetCachedVolumeInformation (char * root_dir)
 {
   volume_info_data * info;
-  char default_root[ MAX_PATH ];
+  char default_root[ MAX_UTF8_PATH ];
+  char  name[MAX_PATH+1];
+  char  type[MAX_PATH+1];
 
   /* NULL for root_dir means use root from current directory.  */
   if (root_dir == NULL)
     {
-      if (GetCurrentDirectory (MAX_PATH, default_root) == 0)
-	return NULL;
-      parse_root (default_root, &root_dir);
+      if (w32_unicode_filenames)
+	{
+	  wchar_t curdirw[MAX_PATH];
+
+	  if (GetCurrentDirectoryW (MAX_PATH, curdirw) == 0)
+	    return NULL;
+	  filename_from_utf16 (curdirw, default_root);
+	}
+      else
+	{
+	  char curdira[MAX_PATH];
+
+	  if (GetCurrentDirectoryA (MAX_PATH, curdira) == 0)
+	    return NULL;
+	  filename_from_ansi (curdira, default_root);
+	}
+      parse_root (default_root, (const char **)&root_dir);
       *root_dir = 0;
       root_dir = default_root;
     }
@@ -2686,20 +2703,47 @@ GetCachedVolumeInformation (char * root_dir)
 
   if (info == NULL || ! VOLINFO_STILL_VALID (root_dir, info))
     {
-      char  name[ 256 ];
       DWORD serialnum;
       DWORD maxcomp;
       DWORD flags;
-      char  type[ 256 ];
 
       /* Info is not cached, or is stale. */
-      if (!GetVolumeInformation (root_dir,
-				 name, sizeof (name),
-				 &serialnum,
-				 &maxcomp,
-				 &flags,
-				 type, sizeof (type)))
-	return NULL;
+      if (w32_unicode_filenames)
+	{
+	  wchar_t root_w[MAX_PATH];
+	  wchar_t  name_w[MAX_PATH+1];
+	  wchar_t  type_w[MAX_PATH+1];
+
+	  filename_to_utf16 (root_dir, root_w);
+	  if (!GetVolumeInformationW (root_w,
+				     name_w, sizeof (name_w),
+				     &serialnum,
+				     &maxcomp,
+				     &flags,
+				     type_w, sizeof (type_w)))
+	    return NULL;
+	  /* Hmm... not really 100% correct, as these 2 are not file
+	     names...  */
+	  filename_from_utf16 (name_w, name);
+	  filename_from_utf16 (type_w, type);
+	}
+      else
+	{
+	  char root_a[MAX_PATH];
+	  char  name_a[MAX_PATH+1];
+	  char  type_a[MAX_PATH+1];
+
+	  filename_to_ansi (root_dir, root_a);
+	  if (!GetVolumeInformationA (root_a,
+				     name_a, sizeof (name_a),
+				     &serialnum,
+				     &maxcomp,
+				     &flags,
+				     type_a, sizeof (type_a)))
+	    return NULL;
+	  filename_from_ansi (name_a, name);
+	  filename_from_ansi (type_a, type);
+	}
 
       /* Cache the volume information for future use, overwriting existing
 	 entry if present.  */
@@ -2715,6 +2759,7 @@ GetCachedVolumeInformation (char * root_dir)
 	}
 
       info->name = xstrdup (name);
+      unixtodos_filename (info->name);
       info->serialnum = serialnum;
       info->maxcomp = maxcomp;
       info->flags = flags;
@@ -2737,52 +2782,22 @@ GetCachedVolumeInformation (char * root_dir)
 static int
 get_volume_info (const char * name, const char ** pPath)
 {
-  char temp[MAX_PATH];
+  char temp[MAX_UTF8_PATH];
   char *rootname = NULL;  /* default to current volume */
   volume_info_data * info;
+  int root_len = parse_root (name, pPath);
 
   if (name == NULL)
     return FALSE;
 
-  /* Find the root name of the volume if given.  */
-  if (isalpha (name[0]) && name[1] == ':')
+  /* Copy the root name of the volume, if given.  */
+  if (root_len)
     {
+      strncpy (temp, name, root_len);
+      temp[root_len] = '\0';
+      unixtodos_filename (temp);
       rootname = temp;
-      temp[0] = *name++;
-      temp[1] = *name++;
-      temp[2] = '\\';
-      temp[3] = 0;
     }
-  else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
-    {
-      char *str = temp;
-      int slashes = 4;
-      int dbcs_p = max_filename_mbslen () > 1;
-
-      rootname = temp;
-      do
-        {
-	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
-	    break;
-	  if (!dbcs_p)
-	    *str++ = *name++;
-	  else
-	    {
-	      const char *p = name;
-
-	      name = CharNextExA (file_name_codepage, name, 0);
-	      memcpy (str, p, name - p);
-	      str += name - p;
-	    }
-	}
-      while ( *name );
-
-      *str++ = '\\';
-      *str = 0;
-    }
-
-  if (pPath)
-    *pPath = name;
 
   info = GetCachedVolumeInformation (rootname);
   if (info != NULL)
@@ -2805,18 +2820,19 @@ is_fat_volume (const char * name, const char ** pPath)
   return FALSE;
 }
 
-/* Map filename to a valid 8.3 name if necessary.
-   The result is a pointer to a static buffer, so CAVEAT EMPTOR!  */
+/* Convert all slashes in a filename to backslashes, and map filename
+   to a valid 8.3 name if necessary.  The result is a pointer to a
+   static buffer, so CAVEAT EMPTOR!  */
 const char *
 map_w32_filename (const char * name, const char ** pPath)
 {
-  static char shortname[MAX_PATH];
+  static char shortname[MAX_UTF8_PATH];
   char * str = shortname;
   char c;
   char * path;
   const char * save_name = name;
 
-  if (strlen (name) >= MAX_PATH)
+  if (strlen (name) >= sizeof (shortname))
     {
       /* Return a filename which will cause callers to fail.  */
       strcpy (shortname, "?");
@@ -2883,7 +2899,7 @@ map_w32_filename (const char * name, const char ** pPath)
 		str[-1] = c;		/* replace last character of part */
 	      /* FALLTHRU */
 	    default:
-	      if ( left )
+	      if ( left && 'A' <= c && c <= 'Z' )
 	        {
 		  *str++ = tolower (c);	/* map to lower case (looks nicer) */
 		  left--;
