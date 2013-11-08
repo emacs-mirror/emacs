@@ -1,3 +1,8 @@
+2013-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Truncation): Document that cache-long-scans is now
+	non-nil by default.  (Bug#15797)
+
 2013-11-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* lists.texi (Rearrangement): Fix indexing.

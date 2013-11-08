@@ -214,19 +214,16 @@ A line prefix may also be specified for regions of text using the
 over the @code{line-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
-  If your buffer contains @emph{very} long lines, and you use
-continuation to display them, computing the continuation lines can
-make redisplay slow.  The column computation and indentation functions
-also become slow.  Then you might find it advisable to set
-@code{cache-long-scans} to @code{t}.
+  If your buffer contains only very short lines, you might find it
+advisable to set @code{cache-long-scans} to @code{nil}.
 
 @defvar cache-long-scans
-If this variable is non-@code{nil}, various indentation and motion
-functions, and Emacs redisplay, cache the results of scanning the
-buffer, and consult the cache to avoid rescanning regions of the buffer
-unless they are modified.
+If this variable is non-@code{nil} (the default), various indentation
+and motion functions, and Emacs redisplay, cache the results of
+scanning the buffer, and consult the cache to avoid rescanning regions
+of the buffer unless they are modified.
 
-Turning on the cache slows down processing of short lines somewhat.
+Turning off the cache speeds up processing of short lines somewhat.
 
 This variable is automatically buffer-local in every buffer.
 @end defvar
