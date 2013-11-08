@@ -1730,7 +1730,7 @@ A keyword position is one where if we're looking at something that looks
 like a keyword, then it is a keyword."
   (let ((prev (funcall smie-backward-token-function)))
     (if (zerop (length prev))
-        (looking-back "\\s(" (1- (point)))
+        (looking-back "\\`\\|\\s(" (1- (point)))
       (assoc prev smie-grammar))))
 
 (defun sh-smie--newline-semi-p (&optional tok)
@@ -1804,12 +1804,14 @@ Does not preserve point."
       (setq prev (funcall smie-backward-token-function))
       (cond
        ((zerop (length prev))
-        (if newline
-            (progn (cl-assert words) (setq res 'word))
+	(cond
+	 (newline (cl-assert words) (setq res 'word))
+	 ((bobp) (setq res 'word))
+	 (t
           (setq words t)
           (condition-case nil
               (forward-sexp -1)
-            (scan-error (setq res 'unknown)))))
+            (scan-error (setq res 'unknown))))))
        ((equal prev ";")
         (if words (setq newline t)
           (setq res 'keyword)))

@@ -1,3 +1,9 @@
+2013-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-smie--sh-keyword-in-p): Don't inf-loop
+	at bobp (bug#15826).
+	(sh-smie--sh-keyword-in-p): Recognize keywords at bobp.
+
 2013-11-08  Darren Hoo  <darren.hoo@gmail.com>
 
 	* man.el (Man-start-calling): New macro, extracted from
