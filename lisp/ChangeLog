@@ -1,3 +1,11 @@
+2013-11-08  Darren Hoo  <darren.hoo@gmail.com>
+
+	* man.el (Man-start-calling): New macro, extracted from
+	Man-getpage-in-background.
+	(Man-getpage-in-background): Use it.
+	(Man-update-manpage): New command.
+	(Man-mode-map): Bind it.
+
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Improve precedences
@@ -5,8 +13,8 @@
 	(ruby-smie--args-separator-p): Prohibit keyword "do" as the first
 	argument.  Prohibit opening curly brace because it could only be a
 	block opener in that position.
-	(ruby-smie--forward-token, ruby-smie--backward-token): Separate
-	"|" from "&" or "*" going after it.  That can happen in block
+	(ruby-smie--forward-token, ruby-smie--backward-token):
+	Separate "|" from "&" or "*" going after it.  That can happen in block
 	arguments.
 	(ruby-smie--indent-to-stmt): New function, seeks the end of
 	previous statement or beginning of buffer.
