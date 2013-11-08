@@ -1,3 +1,8 @@
+2013-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: Don't require cl any more.  Use pcase instead.
+	(ruby-font-lock-keywords): Use backquote.
+
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--forward-token)
@@ -9,14 +14,14 @@
 
 2013-11-08  Bozhidar Batsov  <bozhidar@batsov.com>
 
-	* progmodes/ruby-mode.el (ruby-mode-set-encoding): Use
-	`ruby-encoding-magic-comment-style' to control the
+	* progmodes/ruby-mode.el (ruby-mode-set-encoding):
+	Use `ruby-encoding-magic-comment-style' to control the
 	style of the auto-inserted encoding comment.
 
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-smie--indent-to-stmt): Use
-	`smie-backward-sexp' with token argument.
+	* progmodes/ruby-mode.el (ruby-smie--indent-to-stmt):
+	Use `smie-backward-sexp' with token argument.
 
 2013-11-08  Michael Albinus  <michael.albinus@gmx.de>
 

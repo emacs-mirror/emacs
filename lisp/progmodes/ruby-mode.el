@@ -39,8 +39,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defgroup ruby nil
   "Major mode for editing Ruby code."
   :prefix "ruby-"
@@ -357,7 +355,8 @@ explicitly declared in magic comment."
     (skip-chars-backward " \t")
     (not (or (bolp)
              (and (memq (char-before)
-                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?% ?~ ?^))
+                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?%
+                          ?~ ?^))
                   ;; Make sure it's not the end of a regexp.
                   (not (eq (car (syntax-after (1- (point)))) 7)))
              (and (eq (char-before) ?\?)
@@ -395,8 +394,8 @@ explicitly declared in magic comment."
    (save-excursion
      (goto-char pos)
      (or (and (eq (char-syntax (char-after)) ?w)
-              (not (looking-at (regexp-opt '("unless" "if" "while" "until"
-                                             "else" "elsif" "do" "end" "and" "or")
+              (not (looking-at (regexp-opt '("unless" "if" "while" "until" "or"
+                                             "else" "elsif" "do" "end" "and")
                                            'symbols))))
          (memq (syntax-after pos) '(7 15))
          (looking-at "[([]\\|[-+!~:]\\sw")))))
@@ -654,13 +653,14 @@ explicitly declared in magic comment."
                 ((looking-at "\\s *#.*coding\\s *[:=]"))
                 (t (when ruby-insert-encoding-magic-comment
                      (let ((encoding-magic-comment-template
-                            (case ruby-encoding-magic-comment-style
-                              (ruby "# coding: %s")
-                              (emacs "# -*- coding: %s -*-")
-                              (custom ruby-custom-encoding-magic-comment-template))))
-                      (insert
-                       (format encoding-magic-comment-template coding-system)
-                       "\n")))))
+                            (pcase ruby-encoding-magic-comment-style
+                              (`ruby "# coding: %s")
+                              (`emacs "# -*- coding: %s -*-")
+                              (`custom
+                               ruby-custom-encoding-magic-comment-template))))
+                       (insert
+                        (format encoding-magic-comment-template coding-system)
+                        "\n")))))
           (when (buffer-modified-p)
             (basic-save-buffer-1)))))))
 
@@ -797,7 +797,8 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
        ((looking-at "[\"`]")            ;skip string
         (cond
          ((and (not (eobp))
-               (ruby-forward-string (buffer-substring (point) (1+ (point))) end t t))
+               (ruby-forward-string (buffer-substring (point) (1+ (point)))
+                                    end t t))
           nil)
          (t
           (setq in-string (point))
@@ -1104,7 +1105,8 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
             (while (and (re-search-forward "#" pos t)
                         (setq end (1- (point)))
                         (or (ruby-special-char-p end)
-                            (and (setq state (ruby-parse-region parse-start end))
+                            (and (setq state (ruby-parse-region
+                                              parse-start end))
                                  (nth 0 state))))
               (setq end nil))
             (goto-char (or end pos))
@@ -1115,7 +1117,8 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
           (and
            (or (and (looking-at ruby-symbol-re)
                     (skip-chars-backward ruby-symbol-chars)
-                    (looking-at (concat "\\<\\(" ruby-block-hanging-re "\\)\\>"))
+                    (looking-at (concat "\\<\\(" ruby-block-hanging-re
+                                        "\\)\\>"))
                     (not (eq (point) (nth 3 state)))
                     (save-excursion
                       (goto-char (match-end 0))
@@ -1159,7 +1162,8 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                  (cond
                   ((and
                     (null op-end)
-                    (not (looking-at (concat "\\<\\(" ruby-block-hanging-re "\\)\\>")))
+                    (not (looking-at (concat "\\<\\(" ruby-block-hanging-re
+                                             "\\)\\>")))
                     (eq (ruby-deep-indent-paren-p t) 'space)
                     (not (bobp)))
                    (widen)
@@ -1296,7 +1300,8 @@ With ARG, do it many times.  Negative ARG means move backward."
                      (skip-chars-forward ",.:;|&^~=!?\\+\\-\\*")
                      (looking-at "\\s("))
                    (goto-char (scan-sexps (point) 1)))
-                  ((and (looking-at (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))
+                  ((and (looking-at (concat "\\<\\(" ruby-block-beg-re
+                                            "\\)\\>"))
                         (not (eq (char-before (point)) ?.))
                         (not (eq (char-before (point)) ?:)))
                    (ruby-end-of-block)
@@ -1313,7 +1318,8 @@ With ARG, do it many times.  Negative ARG means move backward."
                          (progn
                            (setq expr (or expr (ruby-expr-beg)
                                           (looking-at "%\\sw?\\Sw\\|[\"'`/]")))
-                           (nth 1 (setq state (apply 'ruby-parse-partial nil state))))
+                           (nth 1 (setq state (apply #'ruby-parse-partial
+                                                     nil state))))
                        (setq expr t)
                        (skip-chars-forward "<"))
                      (not expr))))
@@ -1337,10 +1343,11 @@ With ARG, do it many times.  Negative ARG means move forward."
             (forward-char -1)
             (cond ((looking-at "\\s)")
                    (goto-char (scan-sexps (1+ (point)) -1))
-                   (case (char-before)
-                     (?% (forward-char -1))
-                     ((?q ?Q ?w ?W ?r ?x)
-                      (if (eq (char-before (1- (point))) ?%) (forward-char -2))))
+                   (pcase (char-before)
+                     (`?% (forward-char -1))
+                     ((or `?q `?Q `?w `?W `?r `?x)
+                      (if (eq (char-before (1- (point))) ?%)
+                          (forward-char -2))))
                    nil)
                   ((looking-at "\\s\"\\|\\\\\\S_")
                    (let ((c (char-to-string (char-before (match-end 0)))))
@@ -1354,13 +1361,14 @@ With ARG, do it many times.  Negative ARG means move forward."
                   (t
                    (forward-char 1)
                    (while (progn (forward-word -1)
-                                 (case (char-before)
-                                   (?_ t)
-                                   (?. (forward-char -1) t)
-                                   ((?$ ?@)
+                                 (pcase (char-before)
+                                   (`?_ t)
+                                   (`?. (forward-char -1) t)
+                                   ((or `?$ `?@)
                                     (forward-char -1)
-                                    (and (eq (char-before) (char-after)) (forward-char -1)))
-                                   (?:
+                                    (and (eq (char-before) (char-after))
+                                         (forward-char -1)))
+                                   (`?:
                                     (forward-char -1)
                                     (eq (char-before) :)))))
                    (if (looking-at ruby-block-end-re)
@@ -1770,153 +1778,155 @@ See `font-lock-syntax-table'.")
 (defconst ruby-font-lock-keyword-beg-re "\\(?:^\\|[^.@$]\\|\\.\\.\\)")
 
 (defconst ruby-font-lock-keywords
-  (list
-   ;; functions
-   '("^\\s *def\\s +\\(?:[^( \t\n.]*\\.\\)?\\([^( \t\n]+\\)"
+  `(;; Functions.
+    ("^\\s *def\\s +\\(?:[^( \t\n.]*\\.\\)?\\([^( \t\n]+\\)"
      1 font-lock-function-name-face)
-   ;; keywords
-   (list (concat
-          ruby-font-lock-keyword-beg-re
-          (regexp-opt
-           '("alias"
-             "and"
-             "begin"
-             "break"
-             "case"
-             "class"
-             "def"
-             "defined?"
-             "do"
-             "elsif"
-             "else"
-             "fail"
-             "ensure"
-             "for"
-             "end"
-             "if"
-             "in"
-             "module"
-             "next"
-             "not"
-             "or"
-             "redo"
-             "rescue"
-             "retry"
-             "return"
-             "then"
-             "super"
-             "unless"
-             "undef"
-             "until"
-             "when"
-             "while"
-             "yield")
-           'symbols))
-         1 'font-lock-keyword-face)
-   ;; some core methods
-   (list (concat
-          ruby-font-lock-keyword-beg-re
-          (regexp-opt
-           '(;; built-in methods on Kernel
-             "__callee__"
-             "__dir__"
-             "__method__"
-             "abort"
-             "at_exit"
-             "autoload"
-             "autoload?"
-             "binding"
-             "block_given?"
-             "caller"
-             "catch"
-             "eval"
-             "exec"
-             "exit"
-             "exit!"
-             "fail"
-             "fork"
-             "format"
-             "lambda"
-             "load"
-             "loop"
-             "open"
-             "p"
-             "print"
-             "printf"
-             "proc"
-             "putc"
-             "puts"
-             "raise"
-             "rand"
-             "readline"
-             "readlines"
-             "require"
-             "require_relative"
-             "sleep"
-             "spawn"
-             "sprintf"
-             "srand"
-             "syscall"
-             "system"
-             "throw"
-             "trap"
-             "warn"
-             ;; keyword-like private methods on Module
-             "alias_method"
-             "attr"
-             "attr_accessor"
-             "attr_reader"
-             "attr_writer"
-             "define_method"
-             "extend"
-             "include"
-             "module_function"
-             "prepend"
-             "private"
-             "protected"
-             "public"
-             "refine"
-             "using")
-           'symbols))
-         1 'font-lock-builtin-face)
-   ;; here-doc beginnings
-   `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
-                               'font-lock-string-face))
-   ;; Perl-ish keywords
-   "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
-   ;; variables
-   `(,(concat ruby-font-lock-keyword-beg-re
+    ;; Keywords.
+    (,(concat
+       ruby-font-lock-keyword-beg-re
+       (regexp-opt
+        '("alias"
+          "and"
+          "begin"
+          "break"
+          "case"
+          "class"
+          "def"
+          "defined?"
+          "do"
+          "elsif"
+          "else"
+          "fail"
+          "ensure"
+          "for"
+          "end"
+          "if"
+          "in"
+          "module"
+          "next"
+          "not"
+          "or"
+          "redo"
+          "rescue"
+          "retry"
+          "return"
+          "then"
+          "super"
+          "unless"
+          "undef"
+          "until"
+          "when"
+          "while"
+          "yield")
+        'symbols))
+     (1 font-lock-keyword-face))
+    ;; Some core methods.
+    (,(concat
+       ruby-font-lock-keyword-beg-re
+       (regexp-opt
+        '( ;; built-in methods on Kernel
+          "__callee__"
+          "__dir__"
+          "__method__"
+          "abort"
+          "at_exit"
+          "autoload"
+          "autoload?"
+          "binding"
+          "block_given?"
+          "caller"
+          "catch"
+          "eval"
+          "exec"
+          "exit"
+          "exit!"
+          "fail"
+          "fork"
+          "format"
+          "lambda"
+          "load"
+          "loop"
+          "open"
+          "p"
+          "print"
+          "printf"
+          "proc"
+          "putc"
+          "puts"
+          "raise"
+          "rand"
+          "readline"
+          "readlines"
+          "require"
+          "require_relative"
+          "sleep"
+          "spawn"
+          "sprintf"
+          "srand"
+          "syscall"
+          "system"
+          "throw"
+          "trap"
+          "warn"
+          ;; keyword-like private methods on Module
+          "alias_method"
+          "attr"
+          "attr_accessor"
+          "attr_reader"
+          "attr_writer"
+          "define_method"
+          "extend"
+          "include"
+          "module_function"
+          "prepend"
+          "private"
+          "protected"
+          "public"
+          "refine"
+          "using")
+        'symbols))
+     (1 font-lock-builtin-face))
+    ;; Here-doc beginnings.
+    (,ruby-here-doc-beg-re
+     (0 (unless (ruby-singleton-class-p (match-beginning 0))
+          'font-lock-string-face)))
+    ;; Perl-ish keywords.
+    "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
+    ;; Variables.
+    (,(concat ruby-font-lock-keyword-beg-re
               "\\_<\\(nil\\|self\\|true\\|false\\)\\>")
      1 font-lock-variable-name-face)
-   ;; keywords that evaluate to certain values
-   '("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>" 0 font-lock-variable-name-face)
-   ;; symbols
-   '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
+    ;; Keywords that evaluate to certain values.
+    ("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>"
+     (0 font-lock-variable-name-face))
+    ;; Symbols.
+    ("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-constant-face)
-   ;; variables
-   '("\\(\\$\\([^a-zA-Z0-9 \n]\\|[0-9]\\)\\)\\W"
+    ;; Variables.
+    ("\\(\\$\\([^a-zA-Z0-9 \n]\\|[0-9]\\)\\)\\W"
      1 font-lock-variable-name-face)
-   '("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
+    ("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
-   ;; constants
-   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
+    ;; Constants.
+    ("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
      1 (unless (eq ?\( (char-after)) font-lock-type-face))
-   '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
-   ;; conversion methods on Kernel
-   (list (concat ruby-font-lock-keyword-beg-re
-                 (regexp-opt '("Array" "Complex" "Float" "Hash"
-                               "Integer" "Rational" "String") 'symbols))
-         1 font-lock-builtin-face)
-   ;; expression expansion
-   '(ruby-match-expression-expansion
+    ("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]"
+     (2 font-lock-constant-face))
+    ;; Conversion methods on Kernel.
+    (,(concat ruby-font-lock-keyword-beg-re
+              (regexp-opt '("Array" "Complex" "Float" "Hash"
+                            "Integer" "Rational" "String") 'symbols))
+     (1 font-lock-builtin-face))
+    ;; Expression expansion.
+    (ruby-match-expression-expansion
      2 font-lock-variable-name-face t)
-   ;; negation char
-   '("[^[:alnum:]_]\\(!\\)[^=]"
+    ;; Negation char.
+    ("[^[:alnum:]_]\\(!\\)[^=]"
      1 font-lock-negation-char-face)
-   ;; character literals
-   ;; FIXME: Support longer escape sequences.
-   '("\\_<\\?\\\\?\\S " 0 font-lock-string-face)
-   )
+    ;; Character literals.
+    ;; FIXME: Support longer escape sequences.
+    ("\\_<\\?\\\\?\\S " 0 font-lock-string-face)
+    )
   "Additional expressions to highlight in Ruby mode.")
 
 (defun ruby-match-expression-expansion (limit)
