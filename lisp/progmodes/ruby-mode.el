@@ -655,9 +655,9 @@ explicitly declared in magic comment."
                 (t (when ruby-insert-encoding-magic-comment
                      (let ((encoding-magic-comment-template
                             (case ruby-encoding-magic-comment-style
-                              ('ruby "# coding: %s")
-                              ('emacs "# -*- coding: %s -*-")
-                              ('custom ruby-custom-encoding-magic-comment-template))))
+                              (ruby "# coding: %s")
+                              (emacs "# -*- coding: %s -*-")
+                              (custom ruby-custom-encoding-magic-comment-template))))
                       (insert
                        (format encoding-magic-comment-template coding-system)
                        "\n")))))
