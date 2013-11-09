@@ -1,3 +1,8 @@
+2013-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Fix deletion of existing output files after 2013-10-30 changes.
+
 2013-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-gen-files):
