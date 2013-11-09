@@ -317,7 +317,7 @@ Run without an interactive terminal.  @xref{Batch Mode}.
 Do not initialize any display; just start a server in the background.
 
 @item --no-init-file
-@itemx -Q
+@itemx -q
 Do not load either the init file, or the @file{default} library.
 
 @item --no-site-file
