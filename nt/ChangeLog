@@ -1,3 +1,7 @@
+2013-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* mingw-cfg.site: No need for this to be executable.
+
 2013-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(DESTDIR)${archlibdir}):
