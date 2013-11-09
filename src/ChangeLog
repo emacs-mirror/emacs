@@ -1,3 +1,8 @@
+2013-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Invalidate the newline cache
+	for the entire range of inserted characters.  (Bug#15841)
+
 2013-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (lface_fully_specified_p): Let distant-foreground be

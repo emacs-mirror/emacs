@@ -49,6 +49,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "window.h"
 #include "blockinput.h"
+#include "region-cache.h"
 #include "frame.h"
 #include "dispextern.h"
 
@@ -4475,6 +4476,14 @@ by calling `format-decode', which see.  */)
       /* If visiting nonexistent file, return nil.  */
       report_file_errno ("Opening input file", orig_filename, save_errno);
     }
+
+  /* We made a lot of deletions and insertions above, so invalidate
+     the newline cache for the entire region of the inserted
+     characters.  */
+  if (current_buffer->newline_cache)
+    invalidate_region_cache (current_buffer,
+                             current_buffer->newline_cache,
+                             PT - BEG, Z - PT - inserted);
 
   if (read_quit)
     Fsignal (Qquit, Qnil);
