@@ -2,6 +2,7 @@
 
 	* os.texi (Startup Summary): Add an index about startup screen.
 	Typo fix.
+	(Command-Line Arguments): Add cross-reference for `dump-emacs'.
 
 2013-11-08  Eli Zaretskii  <eliz@gnu.org>
 
