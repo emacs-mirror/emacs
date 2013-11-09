@@ -942,6 +942,7 @@ See `sh-feature'.")
     (rpm sh-append rpm2
 	 ("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
     (rpm2 sh-append shell
+	  ("^Summary:\\(.*\\)$" (1 font-lock-doc-face t))
 	  ("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 

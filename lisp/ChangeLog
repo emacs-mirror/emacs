@@ -1,3 +1,8 @@
+2013-11-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/sh-script.el (sh-font-lock-keywords-var): Force
+	highlighting text after Summary keyword in doc face for rpm.
+
 2013-11-09  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* textmodes/ispell.el (ispell-lookup-words): When `look' is not
