@@ -2934,25 +2934,28 @@ is_exec (const char * name)
 	 xstrcasecmp (p, ".cmd") == 0));
 }
 
-/* Emulate the Unix directory procedures opendir, closedir,
-   and readdir.  We can't use the procedures supplied in sysdep.c,
-   so we provide them here.  */
+/* Emulate the Unix directory procedures opendir, closedir, and
+   readdir.  We rename them to sys_* names because some versions of
+   MinGW startup code call opendir and readdir to glob wildcards, and
+   the code that calls them doesn't grok UTF-8 encoded file names we
+   produce in dirent->d_name[].  */
 
 struct dirent dir_static;       /* simulated directory contents */
 static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
-static char   dir_pathname[MAXPATHLEN+1];
-static WIN32_FIND_DATA dir_find_data;
+static char   dir_pathname[MAX_UTF8_PATH];
+static WIN32_FIND_DATAW dir_find_data_w;
+static WIN32_FIND_DATAA dir_find_data_a;
 
 /* Support shares on a network resource as subdirectories of a read-only
    root directory. */
 static HANDLE wnet_enum_handle = INVALID_HANDLE_VALUE;
 static HANDLE open_unc_volume (const char *);
-static char  *read_unc_volume (HANDLE, char *, int);
+static void  *read_unc_volume (HANDLE, wchar_t *, char *, int);
 static void   close_unc_volume (HANDLE);
 
 DIR *
-opendir (const char *filename)
+sys_opendir (const char *filename)
 {
   DIR *dirp;
 
@@ -2981,8 +2984,8 @@ opendir (const char *filename)
   dirp->dd_loc = 0;
   dirp->dd_size = 0;
 
-  strncpy (dir_pathname, map_w32_filename (filename, NULL), MAXPATHLEN);
-  dir_pathname[MAXPATHLEN] = '\0';
+  strncpy (dir_pathname, map_w32_filename (filename, NULL), MAX_UTF8_PATH - 1);
+  dir_pathname[MAX_UTF8_PATH - 1] = '\0';
   /* Note: We don't support symlinks to file names on FAT volumes.
      Doing so would mean punishing 99.99% of use cases by resolving
      all the possible symlinks in FILENAME, recursively.  */
@@ -2992,7 +2995,7 @@ opendir (const char *filename)
 }
 
 void
-closedir (DIR *dirp)
+sys_closedir (DIR *dirp)
 {
   /* If we have a find-handle open, close it.  */
   if (dir_find_handle != INVALID_HANDLE_VALUE)
@@ -3009,52 +3012,59 @@ closedir (DIR *dirp)
 }
 
 struct dirent *
-readdir (DIR *dirp)
+sys_readdir (DIR *dirp)
 {
   int downcase = !NILP (Vw32_downcase_file_names);
 
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
       if (!read_unc_volume (wnet_enum_handle,
-                            dir_find_data.cFileName,
+                            dir_find_data_w.cFileName,
+                            dir_find_data_a.cFileName,
                             MAX_PATH))
 	return NULL;
     }
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
   else if (dir_find_handle == INVALID_HANDLE_VALUE)
     {
-      char filename[MAXNAMLEN + 3];
+      char filename[MAX_UTF8_PATH + 2];
       int ln;
-      int dbcs_p = max_filename_mbslen () > 1;
 
       strcpy (filename, dir_pathname);
       ln = strlen (filename) - 1;
-      if (!dbcs_p)
-	{
-	  if (!IS_DIRECTORY_SEP (filename[ln]))
-	    strcat (filename, "\\");
-	}
-      else
-	{
-	  char *end = filename + ln + 1;
-	  char *last_char = CharPrevExA (file_name_codepage, filename, end, 0);
-
-	  if (!IS_DIRECTORY_SEP (*last_char))
-	    strcat (filename, "\\");
-	}
+      if (!IS_DIRECTORY_SEP (filename[ln]))
+	strcat (filename, "\\");
       strcat (filename, "*");
 
       /* Note: No need to resolve symlinks in FILENAME, because
 	 FindFirst opens the directory that is the target of a
 	 symlink.  */
-      dir_find_handle = FindFirstFile (filename, &dir_find_data);
+      if (w32_unicode_filenames)
+	{
+	  wchar_t fnw[MAX_PATH];
+
+	  filename_to_utf16 (filename, fnw);
+	  dir_find_handle = FindFirstFileW (fnw, &dir_find_data_w);
+	}
+      else
+	{
+	  char fna[MAX_PATH];
+
+	  filename_to_ansi (filename, fna);
+	  dir_find_handle = FindFirstFileA (fna, &dir_find_data_a);
+	}
 
       if (dir_find_handle == INVALID_HANDLE_VALUE)
 	return NULL;
     }
+  else if (w32_unicode_filenames)
+    {
+      if (!FindNextFileW (dir_find_handle, &dir_find_data_w))
+	return NULL;
+    }
   else
     {
-      if (!FindNextFile (dir_find_handle, &dir_find_data))
+      if (!FindNextFileA (dir_find_handle, &dir_find_data_a))
 	return NULL;
     }
 
@@ -3062,53 +3072,49 @@ readdir (DIR *dirp)
      value returned by stat().  */
   dir_static.d_ino = 1;
 
-  strcpy (dir_static.d_name, dir_find_data.cFileName);
-
-  /* If the file name in cFileName[] includes `?' characters, it means
-     the original file name used characters that cannot be represented
-     by the current ANSI codepage.  To avoid total lossage, retrieve
-     the short 8+3 alias of the long file name.  */
-  if (_mbspbrk (dir_static.d_name, "?"))
+  if (w32_unicode_filenames)
     {
-      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
-      downcase = 1;	/* 8+3 aliases are returned in all caps */
-    }
-  dir_static.d_namlen = strlen (dir_static.d_name);
-  dir_static.d_reclen = sizeof (struct dirent) - MAXNAMLEN + 3 +
-    dir_static.d_namlen - dir_static.d_namlen % 4;
+      if (downcase || dir_is_fat)
+	{
+	  wchar_t tem[MAX_PATH];
 
-  /* If the file name in cFileName[] includes `?' characters, it means
-     the original file name used characters that cannot be represented
-     by the current ANSI codepage.  To avoid total lossage, retrieve
-     the short 8+3 alias of the long file name.  */
-  if (_mbspbrk (dir_find_data.cFileName, "?"))
-    {
-      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
-      /* 8+3 aliases are returned in all caps, which could break
-	 various alists that look at filenames' extensions.  */
-      downcase = 1;
+	  wcscpy (tem, dir_find_data_w.cFileName);
+	  CharLowerW (tem);
+	  filename_from_utf16 (tem, dir_static.d_name);
+	}
+      else
+	filename_from_utf16 (dir_find_data_w.cFileName, dir_static.d_name);
     }
   else
-    strcpy (dir_static.d_name, dir_find_data.cFileName);
-  dir_static.d_namlen = strlen (dir_static.d_name);
-  if (dir_is_fat)
-    _mbslwr (dir_static.d_name);
-  else if (downcase)
     {
-      register char *p;
-      int dbcs_p = max_filename_mbslen () > 1;
-      for (p = dir_static.d_name; *p; )
+      char tem[MAX_PATH];
+
+      /* If the file name in cFileName[] includes `?' characters, it
+	 means the original file name used characters that cannot be
+	 represented by the current ANSI codepage.  To avoid total
+	 lossage, retrieve the short 8+3 alias of the long file
+	 name.  */
+      if (_mbspbrk (dir_find_data_a.cFileName, "?"))
 	{
-	  if (*p >= 'a' && *p <= 'z')
-	    break;
-	  if (dbcs_p)
-	    p = CharNextExA (file_name_codepage, p, 0);
-	  else
-	    p++;
+	  strcpy (tem, dir_find_data_a.cAlternateFileName);
+	  /* 8+3 aliases are returned in all caps, which could break
+	     various alists that look at filenames' extensions.  */
+	  downcase = 1;
 	}
-      if (!*p)
-	_mbslwr (dir_static.d_name);
+      else if (downcase || dir_is_fat)
+	strcpy (tem, dir_find_data_a.cFileName);
+      else
+	filename_from_ansi (dir_find_data_a.cFileName, dir_static.d_name);
+      if (downcase || dir_is_fat)
+	{
+	  _mbslwr (tem);
+	  filename_from_ansi (tem, dir_static.d_name);
+	}
     }
+
+  dir_static.d_namlen = strlen (dir_static.d_name);
+  dir_static.d_reclen = sizeof (struct dirent) - MAX_UTF8_PATH + 3 +
+    dir_static.d_namlen - dir_static.d_namlen % 4;
 
   return &dir_static;
 }
@@ -3116,58 +3122,103 @@ readdir (DIR *dirp)
 static HANDLE
 open_unc_volume (const char *path)
 {
-  NETRESOURCE nr;
+  const char *fn = map_w32_filename (path, NULL);
+  DWORD result;
   HANDLE henum;
-  int result;
 
-  nr.dwScope = RESOURCE_GLOBALNET;
-  nr.dwType = RESOURCETYPE_DISK;
-  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
-  nr.dwUsage = RESOURCEUSAGE_CONTAINER;
-  nr.lpLocalName = NULL;
-  nr.lpRemoteName = (LPSTR)map_w32_filename (path, NULL);
-  nr.lpComment = NULL;
-  nr.lpProvider = NULL;
+  if (w32_unicode_filenames)
+    {
+      NETRESOURCEW nrw;
+      wchar_t fnw[MAX_PATH];
 
-  result = WNetOpenEnum (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
-			 RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
+      nrw.dwScope = RESOURCE_GLOBALNET;
+      nrw.dwType = RESOURCETYPE_DISK;
+      nrw.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
+      nrw.dwUsage = RESOURCEUSAGE_CONTAINER;
+      nrw.lpLocalName = NULL;
+      filename_to_utf16 (fn, fnw);
+      nrw.lpRemoteName = fnw;
+      nrw.lpComment = NULL;
+      nrw.lpProvider = NULL;
 
+      result = WNetOpenEnumW (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			      RESOURCEUSAGE_CONNECTABLE, &nrw, &henum);
+    }
+  else
+    {
+      NETRESOURCEA nra;
+      char fna[MAX_PATH];
+
+      nra.dwScope = RESOURCE_GLOBALNET;
+      nra.dwType = RESOURCETYPE_DISK;
+      nra.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
+      nra.dwUsage = RESOURCEUSAGE_CONTAINER;
+      nra.lpLocalName = NULL;
+      filename_to_ansi (fn, fna);
+      nra.lpRemoteName = fna;
+      nra.lpComment = NULL;
+      nra.lpProvider = NULL;
+
+      result = WNetOpenEnumA (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			      RESOURCEUSAGE_CONNECTABLE, &nra, &henum);
+    }
   if (result == NO_ERROR)
     return henum;
   else
     return INVALID_HANDLE_VALUE;
 }
 
-static char *
-read_unc_volume (HANDLE henum, char *readbuf, int size)
+static void *
+read_unc_volume (HANDLE henum, wchar_t *fname_w, char *fname_a, int size)
 {
   DWORD count;
   int result;
-  DWORD bufsize = 512;
   char *buffer;
-  char *ptr;
-  int dbcs_p = max_filename_mbslen () > 1;
+  DWORD bufsize = 512;
+  void *retval;
 
   count = 1;
-  buffer = alloca (bufsize);
-  result = WNetEnumResource (henum, &count, buffer, &bufsize);
-  if (result != NO_ERROR)
-    return NULL;
+  if (w32_unicode_filenames)
+    {
+      wchar_t *ptrw;
 
-  /* WNetEnumResource returns \\resource\share...skip forward to "share". */
-  ptr = ((LPNETRESOURCE) buffer)->lpRemoteName;
-  ptr += 2;
-  if (!dbcs_p)
-    while (*ptr && !IS_DIRECTORY_SEP (*ptr)) ptr++;
+      bufsize *= 2;
+      buffer = alloca (bufsize);
+      result = WNetEnumResourceW (henum, &count, buffer, &bufsize);
+      if (result != NO_ERROR)
+	return NULL;
+      /* WNetEnumResource returns \\resource\share...skip forward to "share". */
+      ptrw = ((LPNETRESOURCEW) buffer)->lpRemoteName;
+      ptrw += 2;
+      while (*ptrw && *ptrw != L'/' && *ptrw != L'\\') ptrw++;
+      ptrw++;
+      wcsncpy (fname_w, ptrw, size);
+      retval = fname_w;
+    }
   else
     {
-      while (*ptr && !IS_DIRECTORY_SEP (*ptr))
-	ptr = CharNextExA (file_name_codepage, ptr, 0);
-    }
-  ptr++;
+      int dbcs_p = max_filename_mbslen () > 1;
+      char *ptra;
 
-  strncpy (readbuf, ptr, size);
-  return readbuf;
+      buffer = alloca (bufsize);
+      result = WNetEnumResourceA (henum, &count, buffer, &bufsize);
+      if (result != NO_ERROR)
+	return NULL;
+      ptra = ((LPNETRESOURCEA) buffer)->lpRemoteName;
+      ptra += 2;
+      if (!dbcs_p)
+	while (*ptra && !IS_DIRECTORY_SEP (*ptra)) ptra++;
+      else
+	{
+	  while (*ptra && !IS_DIRECTORY_SEP (*ptra))
+	    ptra = CharNextExA (file_name_codepage, ptra, 0);
+	}
+      ptra++;
+      strncpy (fname_a, ptra, size);
+      retval = fname_a;
+    }
+
+  return retval;
 }
 
 static void
@@ -3198,13 +3249,12 @@ unc_volume_file_attributes (const char *path)
 static void
 logon_network_drive (const char *path)
 {
-  NETRESOURCE resource;
-  char share[MAX_PATH];
+  char share[MAX_UTF8_PATH];
   int n_slashes;
   char drive[4];
   UINT drvtype;
   char *p;
-  int dbcs_p;
+  DWORD val;
 
   if (IS_DIRECTORY_SEP (path[0]) && IS_DIRECTORY_SEP (path[1]))
     drvtype = DRIVE_REMOTE;
@@ -3224,28 +3274,70 @@ logon_network_drive (const char *path)
     return;
 
   n_slashes = 2;
-  strncpy (share, path, MAX_PATH);
+  strncpy (share, path, MAX_UTF8_PATH);
   /* Truncate to just server and share name.  */
-  dbcs_p = max_filename_mbslen () > 1;
-  for (p = share + 2; *p && p < share + MAX_PATH; )
+  for (p = share + 2; *p && p < share + MAX_UTF8_PATH; p++)
     {
       if (IS_DIRECTORY_SEP (*p) && ++n_slashes > 3)
         {
           *p = '\0';
           break;
         }
-      if (dbcs_p)
-	p = CharNextExA (file_name_codepage, p, 0);
-      else
-	p++;
     }
 
-  resource.dwType = RESOURCETYPE_DISK;
-  resource.lpLocalName = NULL;
-  resource.lpRemoteName = share;
-  resource.lpProvider = NULL;
+  if (w32_unicode_filenames)
+    {
+      NETRESOURCEW resourcew;
+      wchar_t share_w[MAX_PATH];
 
-  WNetAddConnection2 (&resource, NULL, NULL, CONNECT_INTERACTIVE);
+      resourcew.dwScope = RESOURCE_GLOBALNET;
+      resourcew.dwType = RESOURCETYPE_DISK;
+      resourcew.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE;
+      resourcew.dwUsage = RESOURCEUSAGE_CONTAINER;
+      resourcew.lpLocalName = NULL;
+      filename_to_utf16 (share, share_w);
+      resourcew.lpRemoteName = share_w;
+      resourcew.lpProvider = NULL;
+
+      val = WNetAddConnection2W (&resourcew, NULL, NULL, CONNECT_INTERACTIVE);
+    }
+  else
+    {
+      NETRESOURCEA resourcea;
+      char share_a[MAX_PATH];
+
+      resourcea.dwScope = RESOURCE_GLOBALNET;
+      resourcea.dwType = RESOURCETYPE_DISK;
+      resourcea.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE;
+      resourcea.dwUsage = RESOURCEUSAGE_CONTAINER;
+      resourcea.lpLocalName = NULL;
+      filename_to_ansi (share, share_a);
+      resourcea.lpRemoteName = share_a;
+      resourcea.lpProvider = NULL;
+
+      val = WNetAddConnection2A (&resourcea, NULL, NULL, CONNECT_INTERACTIVE);
+    }
+
+  switch (val)
+    {
+    case NO_ERROR:
+    case ERROR_ALREADY_ASSIGNED:
+      break;
+    case ERROR_ACCESS_DENIED:
+    case ERROR_LOGON_FAILURE:
+      errno = EACCES;
+      break;
+    case ERROR_BUSY:
+      errno = EAGAIN;
+      break;
+    case ERROR_BAD_NET_NAME:
+    case ERROR_NO_NET_OR_BAD_PATH:
+    case ERROR_NO_NETWORK:
+    case ERROR_CANCELLED:
+    default:
+      errno = ENOENT;
+      break;
+    }
 }
 
 /* Emulate faccessat(2).  */
@@ -4338,7 +4430,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	      && xstrcasecmp (name + len + 1, dir_static.d_name) == 0)
 	    {
 	      /* This was the last entry returned by readdir.  */
-	      wfd = dir_find_data;
+	      wfd = dir_find_data_a; /* FIXME!!! */
 	    }
 	  else
 	    {
