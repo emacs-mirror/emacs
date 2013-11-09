@@ -218,6 +218,7 @@ specify.
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
+@cindex startup screen
 It displays the @dfn{startup screen}, which is a special buffer that
 contains information about copyleft and basic Emacs usage.  This is
 not done if @code{inhibit-startup-screen} or @code{initial-buffer-choice}
