@@ -3365,7 +3365,22 @@ faccessat (int dirfd, const char * path, int mode, int flags)
       && (flags & AT_SYMLINK_NOFOLLOW) == 0)
     path = chase_symlinks (path);
 
-  if ((attributes = GetFileAttributes (path)) == -1)
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      attributes = GetFileAttributesW (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      attributes = GetFileAttributesA (path_a);
+    }
+
+  if (attributes == -1)
     {
       DWORD w32err = GetLastError ();
 
@@ -3477,23 +3492,21 @@ sys_access (const char *fname, int mode)
 int
 sys_chdir (const char * path)
 {
-  /* FIXME: Temporary.  Also, figure out what to do with
-     map_w32_filename, as the original code did this:
-     _chdir(map_w32_filename (path, NULL)).  */
+  path = map_w32_filename (path, NULL);
   if (w32_unicode_filenames)
     {
-      wchar_t newdir[MAXPATHLEN];
+      wchar_t newdir_w[MAX_PATH];
 
-      if (filename_to_utf16 (path, newdir) == 0)
-	return _wchdir (newdir);
+      if (filename_to_utf16 (path, newdir_w) == 0)
+	return _wchdir (newdir_w);
       return -1;
     }
   else
     {
-      char newdir[MAXPATHLEN];
+      char newdir_a[MAX_PATH];
 
-      if (filename_to_ansi (path, newdir) == 0)
-	return _chdir (path);
+      if (filename_to_ansi (path, newdir_a) == 0)
+	return _chdir (newdir_a);
       return -1;
     }
 }
@@ -3502,13 +3515,40 @@ int
 sys_chmod (const char * path, int mode)
 {
   path = chase_symlinks (map_w32_filename (path, NULL));
-  return _chmod (path, mode);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wchmod (path_w, mode);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _chmod (path_a, mode);
+    }
 }
 
 int
 sys_creat (const char * path, int mode)
 {
-  return _creat (map_w32_filename (path, NULL), mode);
+  path = map_w32_filename (path, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wcreat (path_w, mode);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _creat (path_a, mode);
+    }
 }
 
 FILE *
@@ -3548,7 +3588,21 @@ sys_fopen (const char * path, const char * mode)
       }
     else break;
 
-  fd = _open (map_w32_filename (path, NULL), oflag | _O_NOINHERIT, 0644);
+  path = map_w32_filename (path, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      fd = _wopen (path_w, oflag | _O_NOINHERIT, 0644);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      fd = _open (path_a, oflag | _O_NOINHERIT, 0644);
+    }
   if (fd < 0)
     return NULL;
 
