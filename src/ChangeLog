@@ -1,3 +1,8 @@
+2013-11-09  Łukasz Stelmach <stlman@poczta.fm> (tiny change)
+
+	* gtkutil.c (xg_check_special_colors): Use rgb: instead of rgbi:
+	for conversion (Bug#15837).
+
 2013-11-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Finsert_file_contents): Invalidate the newline cache
