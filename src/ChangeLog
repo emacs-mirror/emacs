@@ -1,3 +1,9 @@
+2013-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline): If buffer text is relocated during the
+	"dumb loop", adjust C pointers into buffer text to follow suit.
+	(Bug#15841)
+
 2013-11-09  Łukasz Stelmach <stlman@poczta.fm> (tiny change)
 
 	* gtkutil.c (xg_check_special_colors): Use rgb: instead of rgbi:

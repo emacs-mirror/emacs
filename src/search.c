@@ -752,6 +752,22 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		    *bytepos = nl + 1 - base + start_byte;
 		  return BYTE_TO_CHAR (nl + 1 - base + start_byte);
 		}
+	      if (newline_cache)
+		{
+		  /* The call to know_region_cache could have
+		     allocated memory and caused relocation of buffer
+		     text.  If it did, adjust pointers into buffer
+		     text.  */
+		  ptrdiff_t offset = BYTE_POS_ADDR (start_byte) - base;
+
+		  if (offset != 0)
+		    {
+		      cursor += offset;
+		      base += offset;
+		      ceiling_addr += offset;
+		      nl += offset;
+		    }
+		}
 	      cursor = nl + 1;
             }
 
@@ -823,6 +839,18 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		  if (bytepos)
 		    *bytepos = nl - base + start_byte;
 		  return BYTE_TO_CHAR (nl - base + start_byte);
+		}
+	      if (newline_cache)
+		{
+		  ptrdiff_t offset = BYTE_POS_ADDR (start_byte - 1) - base;
+
+		  if (offset != 0)
+		    {
+		      cursor += offset;
+		      base += offset;
+		      ceiling_addr += offset;
+		      nl += offset;
+		    }
 		}
 	      cursor = nl - 1;
             }
