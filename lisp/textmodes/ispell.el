@@ -2649,8 +2649,12 @@ if defined."
       (message "Starting \"%s\" process..." (file-name-nondirectory prog))
       (if look-p
           nil
+        (insert "^" word)
+        ;; When there are no wildcards, append one, for consistency
+        ;; with `look' behavior.
+        (unless wild-p (insert "*"))
+        (insert "$")
         ;; Convert * to .*
-        (insert "^" word "$")
         (while (search-backward "*" nil t) (insert "."))
         (setq word (buffer-string))
         (erase-buffer))
@@ -3785,8 +3789,7 @@ Standard ispell choices are then available."
 	  (or (string= word "")		; Will give you every word
 	      (ispell-lookup-words
 	       (concat (and interior-frag "*") word
-		       (if (or interior-frag (null ispell-look-p))
-			   "*"))
+		       (and interior-frag "*"))
 	       (or ispell-complete-word-dict
 		   ispell-alternate-dictionary))))
     (cond ((eq possibilities t)

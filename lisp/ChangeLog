@@ -1,3 +1,12 @@
+2013-11-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* textmodes/ispell.el (ispell-lookup-words): When `look' is not
+	available and the word has no wildcards, append one to the grep
+	pattern.
+	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00258.html
+	(ispell-complete-word): Call `ispell-lookup-words' with the value
+	independent of `ispell-look-p'.
+
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p):
