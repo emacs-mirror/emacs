@@ -4285,10 +4285,6 @@ Gateway hops are already opened."
 	  (or
 	   ;; There are multi-hops.
 	   (cdr target-alist)
-           ;; This method explicitly has an explicit allowability check.
-           (let ((checker (tramp-get-method-parameter
-                           method 'tramp-hostname-checker)))
-             (when checker (funcall checker v host method) t))
 	   ;; The host name is used for the remote shell command.
 	   (member
 	    '("%h") (tramp-get-method-parameter method 'tramp-login-args))

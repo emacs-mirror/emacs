@@ -1,3 +1,9 @@
+2013-11-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods):
+	* net/tramp-sh.el (tramp-compute-multi-hops): Revert change of
+	2013-10-29 (r114834).
+
 2013-11-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/sh-script.el (sh-font-lock-keywords-var): Force

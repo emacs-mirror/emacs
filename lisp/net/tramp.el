@@ -265,15 +265,6 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     In general, the global default value shall be used, but for
     some methods, like \"su\" or \"sudo\", a shorter timeout
     might be desirable.
-  * `tramp-hostname-checker'
-    This is a function that tramp calls while setting
-    up a connection.  It is called with three arguments:
-    the target, the host, and the method description.  If
-    the hostname is unacceptable, this function should signal
-    using `tramp-error'.  If a method does not provide
-    a value here, then Tramp looks at whether the method's
-    login program uses a \"%h\" parameter.  If not, then Tramp
-    requires that the given hostname match `tramp-local-host-regexp'.
 
 What does all this mean?  Well, you should specify `tramp-login-program'
 for all methods; this program is used to log in to the remote site.  Then,
