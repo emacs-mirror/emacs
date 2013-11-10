@@ -2631,6 +2631,9 @@ Used when the item is disabled and deselected.
 @end table
 @end table
 
+The GTK+ and NS versions of Emacs ignores items 1 to 3, because disabled and/or
+deselected images are autocomputed from item 0.
+
 If @var{image} is a single image specification, Emacs draws the tool bar
 button in disabled state by applying an edge-detection algorithm to the
 image.
