@@ -2013,7 +2013,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
     ;; `jka-compr-inhibit' to t.
     (let ((coding-system-for-write 'binary)
 	  (jka-compr-inhibit t))
-      (write-region (point-min) (point-max) newname)))
+      (write-region (point-min) (point-max) newname nil 'no-message)))
   ;; KEEP-DATE handling.
   (when keep-date (set-file-times newname (nth 5 (file-attributes filename))))
   ;; Set the mode.
@@ -2932,7 +2932,8 @@ the result will be a local, non-Tramp, filename."
 		      ;; epa-file gets confused.
 		      (let (file-name-handler-alist
 			    (coding-system-for-write 'binary))
-			(write-region (point-min) (point-max) tmpfile)))
+			(write-region
+			 (point-min) (point-max) tmpfile nil 'no-message)))
 
 		  ;; If tramp-decoding-function is not defined for this
 		  ;; method, we invoke tramp-decoding-command instead.
@@ -2942,7 +2943,8 @@ the result will be a local, non-Tramp, filename."
 		    (let (file-name-handler-alist
 			  (coding-system-for-write 'binary))
 		      (with-current-buffer (tramp-get-buffer v)
-			(write-region (point-min) (point-max) tmpfile2)))
+			(write-region
+			 (point-min) (point-max) tmpfile2 nil 'no-message)))
 		    (unwind-protect
 			(tramp-call-local-coding-command
 			 loc-dec tmpfile2 tmpfile)

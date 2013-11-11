@@ -1,3 +1,17 @@
+2013-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-sh-handle-file-local-copy): Don't write a message when
+	saving temporary files.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory): Fix bug when
+	both directories are remote.
+	(tramp-smb-handle-directory-files): Do not return double entries.
+	Do not expand full file names.
+	(tramp-smb-handle-insert-directory): Accept nil SWITCHES.
+	(tramp-smb-handle-write-region): Implement APPEND.
+	(tramp-smb-get-stat-capability): Fix a stupid bug.
+
 2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (ctl-x-map): Bind C-x SPC to rectangle-mark-mode.

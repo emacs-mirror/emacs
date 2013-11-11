@@ -411,10 +411,12 @@ pass to the OPERATION."
 		     (tramp-compat-temporary-file-directory)))))
 	      (unwind-protect
 		  (progn
+		    (make-directory tmpdir)
 		    (tramp-compat-copy-directory
-		     dirname tmpdir keep-date parents)
+		     dirname tmpdir keep-date 'parents)
 		    (tramp-compat-copy-directory
-		     tmpdir newname keep-date parents))
+		     (expand-file-name (file-name-nondirectory dirname) tmpdir)
+		     newname keep-date parents))
 		(tramp-compat-delete-directory tmpdir 'recursive))))
 
 	   ;; We can copy recursively.
@@ -640,7 +642,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (directory &optional full match nosort)
   "Like `directory-files' for Tramp files."
   (let ((result (mapcar 'directory-file-name
-			(file-name-all-completions "" directory))))
+			(file-name-all-completions "" directory)))
+	res)
     ;; Discriminate with regexp.
     (when match
       (setq result
@@ -651,12 +654,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (when full
       (setq result
 	    (mapcar
-	     (lambda (x) (expand-file-name x directory))
+	     (lambda (x) (format "%s/%s" directory x))
 	     result)))
     ;; Sort them if necessary.
     (unless nosort (setq result (sort result 'string-lessp)))
-    ;; That's it.
-    result))
+    ;; Remove double entries.
+    (dolist (elt result res)
+      (add-to-list 'res elt 'append))))
 
 (defun tramp-smb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
@@ -924,6 +928,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
+  (unless switches (setq switches ""))
   (if full-directory-p
       ;; Called from `dired-add-entry'.
       (setq filename (file-name-as-directory filename))
@@ -1441,9 +1446,6 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (unless (eq append nil)
-      (tramp-error
-	 v 'file-error "Cannot append to file using Tramp (`%s')" filename))
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
     (when (and (not (featurep 'xemacs))
 	       confirm (file-exists-p filename))
@@ -1456,6 +1458,8 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
     (tramp-flush-file-property v localname)
     (let ((curbuf (current-buffer))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
+      (when (and append (file-exists-p filename))
+	(copy-file filename tmpfile 'ok))
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
@@ -1727,7 +1731,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (and (tramp-smb-get-share vec)
 	   (let ((p (tramp-get-connection-process vec)))
-	     p (processp p) (memq (process-status p) '(run open))))
+	     (and p (processp p) (memq (process-status p) '(run open)))))
       (with-tramp-connection-property
 	  (tramp-get-connection-process vec) "stat-capability"
 	(tramp-smb-send-command vec "stat \"/\""))))
