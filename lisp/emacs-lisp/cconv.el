@@ -291,9 +291,9 @@ places where they originally did not directly appear."
          (let* ((value nil)
 		(var (if (not (consp binder))
 			 (prog1 binder (setq binder (list binder)))
-		       (cl-assert (null (cdr (cdr binder))) nil
-				  "malformed let binding: `%s'"
-                                  (prin1-to-string binder))
+                       (when (cddr binder)
+                         (byte-compile-log-warning
+                          (format "Malformed `%S' binding: %S" letsym binder)))
 		       (setq value (cadr binder))
 		       (car binder)))
 		(new-val

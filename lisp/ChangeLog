@@ -1,3 +1,8 @@
+2013-11-11  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
+
+	* emacs-lisp/cconv.el (cconv-convert): Print warning instead of
+	throwing error over malformed let/let* (bug#15814).
+
 2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* iswitchb.el (iswitchb-mode): Mark obsolete.
@@ -16,14 +21,13 @@
 
 2013-11-09  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* progmodes/sh-script.el (sh-font-lock-keywords-var): Force
-	highlighting text after Summary keyword in doc face for rpm.
+	* progmodes/sh-script.el (sh-font-lock-keywords-var):
+	Force highlighting text after Summary keyword in doc face for rpm.
 
 2013-11-09  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* textmodes/ispell.el (ispell-lookup-words): When `look' is not
-	available and the word has no wildcards, append one to the grep
-	pattern.
+	available and the word has no wildcards, append one to the grep pattern.
 	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00258.html
 	(ispell-complete-word): Call `ispell-lookup-words' with the value
 	independent of `ispell-look-p'.
