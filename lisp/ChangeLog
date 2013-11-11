@@ -1,3 +1,9 @@
+2013-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* international/uni-bidi.el, international/uni-category.el:
+	* international/uni-name.el, international/uni-numeric.el:
+	Regenerate for Unicode 6.3.0.
+
 2013-11-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods):

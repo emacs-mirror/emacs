@@ -1,5 +1,7 @@
 2013-11-11  Glenn Morris  <rgm@gnu.org>
 
+	* unidata/BidiMirroring.txt, unidata/UnicodeData.txt: Update to 6.3.0.
+
 	* unidata/unidata-gen.el (unidata-gen-files):
 	Tweak whitespace in generated files.
 

@@ -1,19 +1,19 @@
-# BidiMirroring-6.2.0.txt
-# Date: 2012-05-15, 24:19:00 GMT [KW, LI]
+# BidiMirroring-6.3.0.txt
+# Date: 2013-02-12, 08:20:00 GMT [KW, LI]
 #
 # Bidi_Mirroring_Glyph Property
 # 
 # This file is an informative contributory data file in the
 # Unicode Character Database.
 #
-# Copyright (c) 1991-2012 Unicode, Inc.
+# Copyright (c) 1991-2013 Unicode, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
 # This data file lists characters that have the Bidi_Mirrored=Yes property
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 6.2.0.
+# The repertoire covered by the file is Unicode 6.3.0.
 # 
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.
@@ -42,7 +42,7 @@
 # 
 # This file was originally created by Markus Scherer.
 # Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler,
-# and for Unicode 6.1 and 6.2 by Ken Whistler and Laurentiu Iancu.
+# and for Unicode 6.1, 6.2, and 6.3 by Ken Whistler and Laurentiu Iancu.
 # 
 # ############################################################
 #
@@ -204,8 +204,8 @@
 276F; 276E # HEAVY RIGHT-POINTING ANGLE QUOTATION MARK ORNAMENT
 2770; 2771 # HEAVY LEFT-POINTING ANGLE BRACKET ORNAMENT
 2771; 2770 # HEAVY RIGHT-POINTING ANGLE BRACKET ORNAMENT
-2772; 2773 # LIGHT LEFT TORTOISE SHELL BRACKET
-2773; 2772 # LIGHT RIGHT TORTOISE SHELL BRACKET
+2772; 2773 # LIGHT LEFT TORTOISE SHELL BRACKET ORNAMENT
+2773; 2772 # LIGHT RIGHT TORTOISE SHELL BRACKET ORNAMENT
 2774; 2775 # MEDIUM LEFT CURLY BRACKET ORNAMENT
 2775; 2774 # MEDIUM RIGHT CURLY BRACKET ORNAMENT
 27C3; 27C4 # OPEN SUBSET
