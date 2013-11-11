@@ -1234,7 +1234,7 @@ is the character itself.")))
 ;; This file was generated from the Unicode data files at
 ;; http://www.unicode.org/Public/UNIDATA/.
 ;; See lisp/international/README for the copyright and permission notice.\n"))
-	    (insert (format "(define-char-code-property '%S %S %S)\n"
+	    (insert (format "(define-char-code-property '%S\n  %S\n  %S)\n"
 			    prop table docstring))
 	    (if (eobp)
 		(insert ";; Local Variables:\n"

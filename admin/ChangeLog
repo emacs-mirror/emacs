@@ -1,3 +1,8 @@
+2013-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Tweak whitespace in generated files.
+
 2013-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-gen-files):
