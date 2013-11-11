@@ -1,3 +1,7 @@
+2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* iswitchb.el (iswitchb-mode): Mark obsolete.
+
 2013-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* international/uni-bidi.el, international/uni-category.el:

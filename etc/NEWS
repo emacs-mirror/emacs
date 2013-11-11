@@ -587,6 +587,8 @@ display a `Homepage' header, if it's present.
 
 ** Obsolete packages:
 
+*** Iswitchb is made obsolete by icomplete-mode.
+
 *** longlines.el is obsolete; use visual-line-mode instead.
 
 +++
