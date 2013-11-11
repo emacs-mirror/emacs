@@ -1328,15 +1328,55 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
 }
 
+DEFUN ("force-mode-line-update", Fforce_mode_line_update,
+       Sforce_mode_line_update, 0, 1, 0,
+       doc: /* Force redisplay of the current buffer's mode line and header line.
+With optional non-nil ALL, force redisplay of all mode lines and
+header lines.  This function also forces recomputation of the
+menu bar menus and the frame title.  */)
+     (Lisp_Object all)
+{
+  if (!NILP (all) || buffer_window_count (current_buffer))
+    {
+      update_mode_lines = 10;
+      current_buffer->prevent_redisplay_optimizations_p = 1;
+    }
+}
+
 DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
        1, 1, 0,
        doc: /* Mark current buffer as modified or unmodified according to FLAG.
 A non-nil FLAG means mark the buffer modified.  */)
   (Lisp_Object flag)
 {
+  Frestore_buffer_modified_p (flag);
+
+  /* Set update_mode_lines only if buffer is displayed in some window.
+     Packages like jit-lock or lazy-lock preserve a buffer's modified
+     state by recording/restoring the state around blocks of code.
+     Setting update_mode_lines makes redisplay consider all windows
+     (on all frames).  Stealth fontification of buffers not displayed
+     would incur additional redisplay costs if we'd set
+     update_modes_lines unconditionally.
+
+     Ideally, I think there should be another mechanism for fontifying
+     buffers without "modifying" buffers, or redisplay should be
+     smarter about updating the `*' in mode lines.  --gerd  */
+  Fforce_mode_line_update (Qnil);
+
+  return flag;
+}
+
+DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
+       Srestore_buffer_modified_p, 1, 1, 0,
+       doc: /* Like `set-buffer-modified-p', with a difference concerning redisplay.
+It is not ensured that mode lines will be updated to show the modified
+state of the current buffer.  Use with care.  */)
+  (Lisp_Object flag)
+{
+#ifdef CLASH_DETECTION
   Lisp_Object fn;
 
-#ifdef CLASH_DETECTION
   /* If buffer becoming modified, lock the file.
      If buffer becoming unmodified, unlock the file.  */
 
@@ -1376,52 +1416,6 @@ A non-nil FLAG means mark the buffer modified.  */)
 		    or increase MODIFF.  */
 		 : MODIFF++);
 
-  /* Set update_mode_lines only if buffer is displayed in some window.
-     Packages like jit-lock or lazy-lock preserve a buffer's modified
-     state by recording/restoring the state around blocks of code.
-     Setting update_mode_lines makes redisplay consider all windows
-     (on all frames).  Stealth fontification of buffers not displayed
-     would incur additional redisplay costs if we'd set
-     update_modes_lines unconditionally.
-
-     Ideally, I think there should be another mechanism for fontifying
-     buffers without "modifying" buffers, or redisplay should be
-     smarter about updating the `*' in mode lines.  --gerd  */
-  if (buffer_window_count (current_buffer))
-    {
-      update_mode_lines = 10;
-      current_buffer->prevent_redisplay_optimizations_p = 1;
-    }
-
-  return flag;
-}
-
-DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
-       Srestore_buffer_modified_p, 1, 1, 0,
-       doc: /* Like `set-buffer-modified-p', with a difference concerning redisplay.
-It is not ensured that mode lines will be updated to show the modified
-state of the current buffer.  Use with care.  */)
-  (Lisp_Object flag)
-{
-#ifdef CLASH_DETECTION
-  Lisp_Object fn;
-
-  /* If buffer becoming modified, lock the file.
-     If buffer becoming unmodified, unlock the file.  */
-
-  fn = BVAR (current_buffer, file_truename);
-  /* Test buffer-file-name so that binding it to nil is effective.  */
-  if (!NILP (fn) && ! NILP (BVAR (current_buffer, filename)))
-    {
-      bool already = SAVE_MODIFF < MODIFF;
-      if (!already && !NILP (flag))
-	lock_file (fn);
-      else if (already && NILP (flag))
-	unlock_file (fn);
-    }
-#endif /* CLASH_DETECTION */
-
-  SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
   return flag;
 }
 
@@ -1794,7 +1788,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* Run replace_buffer_in_windows before making another buffer current
      since set-window-buffer-start-and-point will refuse to make another
      buffer current if the selected window does not show the current
-     buffer.  (Bug#10114) */
+     buffer (bug#10114).  */
   replace_buffer_in_windows (buffer);
 
   /* Exit if replacing the buffer in windows has killed our buffer.  */
@@ -5403,12 +5397,12 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
-       slot of buffer_local_flags */
+       slot of buffer_local_flags.  */
     emacs_abort ();
 }
 
 
-/* initialize the buffer routines */
+/* Initialize the buffer routines.  */
 void
 syms_of_buffer (void)
 {
@@ -5798,7 +5792,8 @@ its value may not be a list of functions.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &BVAR (current_buffer, filename),
 		     Qstringp,
-		     doc: /* Name of file visited in current buffer, or nil if not visiting a file.  */);
+		     doc: /* Name of file visited in current buffer, or nil if not visiting a file.
+This should be an absolute file name.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-truename", &BVAR (current_buffer, file_truename),
 		     Qstringp,
@@ -6298,6 +6293,7 @@ and `bury-buffer-internal'.  */);
   defsubr (&Sbuffer_local_value);
   defsubr (&Sbuffer_local_variables);
   defsubr (&Sbuffer_modified_p);
+  defsubr (&Sforce_mode_line_update);
   defsubr (&Sset_buffer_modified_p);
   defsubr (&Sbuffer_modified_tick);
   defsubr (&Sbuffer_chars_modified_tick);

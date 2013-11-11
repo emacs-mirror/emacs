@@ -1,3 +1,11 @@
+2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Frestore_buffer_modified_p): Sync it with
+	Fset_buffer_modified_p.
+	(Fforce_mode_line_update): New function, moved from subr.el.
+	(Fset_buffer_modified_p): Use them.
+	(syms_of_buffer): Defsubr Fforce_mode_line_update.
+
 2013-11-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* search.c (find_newline): Rewrite to prefer offsets to pointers.

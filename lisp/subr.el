@@ -2382,14 +2382,6 @@ This finishes the change group by reverting all of its changes."
 (define-obsolete-function-alias 'redraw-modeline
   'force-mode-line-update "24.3")
 
-(defun force-mode-line-update (&optional all)
-  "Force redisplay of the current buffer's mode line and header line.
-With optional non-nil ALL, force redisplay of all mode lines and
-header lines.  This function also forces recomputation of the
-menu bar menus and the frame title."
-  (if all (with-current-buffer (other-buffer)))
-  (set-buffer-modified-p (buffer-modified-p)))
-
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
 Display remains until next event is input.
