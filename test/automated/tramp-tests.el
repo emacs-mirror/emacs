@@ -22,12 +22,14 @@
 ;; The tests require a recent ert.el from Emacs 24.4.
 
 ;; Some of the tests require access to a remote host files.  Set
-;; `tramp-test-temporary-file-directory' to a suitable value.  It must
-;; NOT require an interactive password prompt, when running the tests
-;; in batch mode.
+;; $TRAMP_TEST_TEMPORARY_FILE_DIRECTORY to a suitable value in order
+;; to overwrite the default value.  If you want to skip tests
+;; accessing a remote host, set this environment variable to
+;; "/dev/null" or whatever is appropriate on your system.
 
-;; If you want to skip tests accessing a remote host, set this
-;; variable to `null-device'.
+;; When running the tests in batch mode, it must NOT require an
+;; interactive password prompt unless the environment variable
+;; $TRAMP_TEST_ALLOW_PASSWORD is set.
 
 ;; A whole test run can be performed calling the command `tramp-test-all'.
 
@@ -38,12 +40,19 @@
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst tramp-test-temporary-file-directory
-  (if (eq system-type 'windows-nt) null-device "/ssh::/tmp")
+  (cond
+   ((getenv "TRAMP_TEST_TEMPORARY_FILE_DIRECTORY"))
+   ((eq system-type 'windows-nt) null-device)
+   (t (format "/ssh::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
 (setq tramp-verbose 0
       tramp-message-show-message nil)
-(when noninteractive (defalias 'tramp-read-passwd 'ignore))
+
+;; Disable interactive passwords in batch mode.
+(when (and noninteractive (not (getenv "TRAMP_TEST_ALLOW_PASSWORD")))
+  (defalias 'tramp-read-passwd 'ignore))
+
 ;; This shall happen on hydra only.
 (when (getenv "NIX_STORE")
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
@@ -542,6 +551,14 @@ and `file-name-nondirectory'."
 	  (write-region "foo" nil tmp-name)
 	  (with-temp-buffer
 	    (insert-file-contents tmp-name)
+	    (should (string-equal (buffer-string) "foo"))
+	    (insert-file-contents tmp-name)
+	    (should (string-equal (buffer-string) "foofoo"))
+	    ;; Insert partly.
+	    (insert-file-contents tmp-name nil 1 3)
+	    (should (string-equal (buffer-string) "oofoofoo"))
+	    ;; Replace.
+	    (insert-file-contents tmp-name nil nil nil 'replace)
 	    (should (string-equal (buffer-string) "foo"))))
       (ignore-errors (delete-file tmp-name)))))
 
@@ -556,15 +573,33 @@ and `file-name-nondirectory'."
 	    (write-region nil nil tmp-name))
 	  (with-temp-buffer
 	    (insert-file-contents tmp-name)
-	    (should (string-equal (buffer-string) "foo"))))
-      (ignore-errors (delete-file tmp-name)))))
+	    (should (string-equal (buffer-string) "foo")))
+	  ;; Append.
+	  (with-temp-buffer
+	    (insert "bla")
+	    (write-region nil nil tmp-name 'append))
+	  (with-temp-buffer
+	    (insert-file-contents tmp-name)
+	    (should (string-equal (buffer-string) "foobla")))
+	  ;; Write string.
+	  (write-region "foo" nil tmp-name)
+	  (with-temp-buffer
+	    (insert-file-contents tmp-name)
+	    (should (string-equal (buffer-string) "foo")))
+	  ;; Write partly.
+ 	  (with-temp-buffer
+	    (insert "123456789")
+	    (write-region 3 5 tmp-name))
+	  (with-temp-buffer
+	    (insert-file-contents tmp-name)
+	    (should (string-equal (buffer-string) "34"))))
+     (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test11-copy-file ()
   "Check `copy-file'."
   (skip-unless (tramp--test-enabled))
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name)))
-    (message "%s %s" tmp-name1 tmp-name2)
     (unwind-protect
 	(progn
 	  (write-region "foo" nil tmp-name1)
@@ -779,22 +814,22 @@ This tests also `file-readable-p' and `file-regular-p'."
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp--test-enabled))
-  (let ((tmp-name1 (tramp--test-make-temp-name))
-	(tmp-name2 (tramp--test-make-temp-name)))
+  (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
-	  (write-region "foo" nil tmp-name1)
-	  (should (file-exists-p tmp-name1))
-	  (set-file-modes tmp-name1 #o777)
-	  (should (= (file-modes tmp-name1) #o777))
-	  (should (file-executable-p tmp-name1))
-	  (should (file-writable-p tmp-name1))
-	  (set-file-modes tmp-name1 #o444)
-	  (should (= (file-modes tmp-name1) #o444))
-	  (should-not (file-executable-p tmp-name1))
-	  (should-not (file-writable-p tmp-name1)))
-      (delete-file tmp-name1)
-      (delete-file tmp-name2))))
+	  (write-region "foo" nil tmp-name)
+	  (should (file-exists-p tmp-name))
+	  (set-file-modes tmp-name #o777)
+	  (should (= (file-modes tmp-name) #o777))
+	  (should (file-executable-p tmp-name))
+	  (should (file-writable-p tmp-name))
+	  (set-file-modes tmp-name #o444)
+	  (should (= (file-modes tmp-name) #o444))
+	  (should-not (file-executable-p tmp-name))
+	  ;; A file is always writable for user "root".
+	  (unless (string-equal (file-remote-p tmp-name 'user) "root")
+	    (should-not (file-writable-p tmp-name))))
+      (delete-file tmp-name))))
 
 (ert-deftest tramp-test21-file-links ()
   "Check `file-symlink-p'.
@@ -921,8 +956,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Check `process-file'."
   (skip-unless (tramp--test-enabled))
   (let ((default-directory tramp-test-temporary-file-directory))
+    ;; We cannot use "/bin/true" and "/bin/false"; those paths do not
+    ;; exist on hydra.
     (should (zerop (process-file "true")))
     (should-not (zerop (process-file "false")))
+    (should-not (zerop (process-file "binary-does-not-exist")))
     (with-temp-buffer
       (should (zerop (process-file "ls" nil t)))
       (should (> (point-max) (point-min))))))
