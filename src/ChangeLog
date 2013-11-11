@@ -1,3 +1,10 @@
+2013-11-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* search.c (find_newline): Rewrite to prefer offsets to pointers.
+	This avoids undefined behavior when subtracting pointers into
+	different aways.  On my platform it also makes the code a tad
+	smaller and presumably faster.
+
 2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (command_loop_1): Use region-extract-function.
