@@ -1778,7 +1778,7 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   bset_point_before_scroll (current_buffer, Qnil);
 }
 
-static Lisp_Object Qregion_extract_function;
+Lisp_Object Qregion_extract_function;
 
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.

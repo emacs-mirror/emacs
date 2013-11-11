@@ -189,7 +189,7 @@ Czech typography rules.  To globally enable this feature, evaluate:
 
 * Editing Changes in Emacs 24.4
 
-** New command `rectangle-mark' makes a rectangular region.
+** Command `rectangle-mark-mode' bound to C-x SPC makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
 
 ** C-x TAB enters a transient interactive mode.

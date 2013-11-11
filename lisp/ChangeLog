@@ -1,3 +1,7 @@
+2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (ctl-x-map): Bind C-x SPC to rectangle-mark-mode.
+
 2013-11-11  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
 	* emacs-lisp/cconv.el (cconv-convert): Print warning instead of

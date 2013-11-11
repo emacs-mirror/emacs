@@ -414,9 +414,7 @@ with a prefix argument, prompt for START-AT and FORMAT."
 
 ;;; New rectangle integration with kill-ring.
 
-;; FIXME: lots of known problems with the new rectangle support:
-;; - no key binding for mark-rectangle.
-;; - no access to the `string-rectangle' functionality.
+;; FIXME: known problems with the new rectangle support:
 ;; - lots of commands handle the region without paying attention to its
 ;;   rectangular shape.
 

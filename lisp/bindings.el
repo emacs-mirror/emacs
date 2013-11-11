@@ -891,6 +891,7 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
+(define-key ctl-x-map " " 'rectangle-mark-mode)
 (define-key ctl-x-map [?\C- ] 'pop-global-mark)
 
 (define-key global-map "\C-n" 'next-line)

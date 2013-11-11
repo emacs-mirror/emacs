@@ -1321,6 +1321,8 @@ static void adjust_point_for_property (ptrdiff_t, bool);
 /* The last boundary auto-added to buffer-undo-list.  */
 Lisp_Object last_undo_boundary;
 
+extern Lisp_Object Qregion_extract_function;
+
 /* FIXME: This is wrong rather than test window-system, we should call
    a new set-selection, which will then dispatch to x-set-selection, or
    tty-set-selection, or w32-set-selection, ...  */
@@ -1629,16 +1631,11 @@ command_loop_1 (void)
 		  && NILP (Fmemq (Vthis_command,
 				  Vselection_inhibit_update_commands)))
 		{
-		  ptrdiff_t beg
-		    = XINT (Fmarker_position (BVAR (current_buffer, mark)));
-		  ptrdiff_t end = PT;
-		  if (beg < end)
-		    call2 (Qx_set_selection, QPRIMARY,
-			   make_buffer_string (beg, end, 0));
-		  else if (beg > end)
-		    call2 (Qx_set_selection, QPRIMARY,
-			   make_buffer_string (end, beg, 0));
-		  /* Don't set empty selections.  */
+		  Lisp_Object txt
+		    = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
+		  if (XINT (Flength (txt)) > 0)
+		    /* Don't set empty selections.  */
+		    call2 (Qx_set_selection, QPRIMARY, txt);
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)

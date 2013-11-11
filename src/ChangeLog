@@ -1,3 +1,9 @@
+2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (command_loop_1): Use region-extract-function.
+	* insdel.c (Qregion_extract_function): Not static any more (can we
+	stop pretending that these vars can benefit from being marked static?).
+
 2013-11-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (find_newline): If buffer text is relocated during the
