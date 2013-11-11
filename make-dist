@@ -453,6 +453,8 @@ echo "Making links to \`lwlib'"
  ln *.[ch] *.in ../${tempdir}/lwlib
  ln README ChangeLog ../${tempdir}/lwlib)
 
+## It is important to distribute admin/ because it contains sources
+## for generated lisp/international/uni-*.el files.
 echo "Making links to \`admin' and its subdirectories"
 for f in `find admin -type f`; do
   case $f in
