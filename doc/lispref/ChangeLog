@@ -1,3 +1,8 @@
+2013-11-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (User Identification, Time of Day, Time Conversion):
+	Minor fixes.
+
 2013-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keymaps.texi (Tool Bar): Mention that Gtk+/NS ignores item 1 to 3.
