@@ -310,10 +310,10 @@ explicitly declared in magic comment."
              ("unless" insts "end")
              ("if" if-body "end")
              ("case"  cases "end"))
-       (formal-params ("opening-|" exp "|"))
+       (formal-params ("opening-|" exp "closing-|"))
        (for-body (for-head ";" insts))
        (for-head (id "in" exp))
-       (cases (exp "then" insts) ;; FIXME: Ruby also allows (exp ":" insts).
+       (cases (exp "then" insts)
               (cases "when" cases) (insts "else" insts))
        (expseq (exp) );;(expseq "," expseq)
        (hashvals (id "=>" exp1) (hashvals "," hashvals))
@@ -337,9 +337,8 @@ explicitly declared in magic comment."
        (left ".." "...")
        (left "+" "-")
        (left "*" "/" "%" "**")
-       ;; (left "|") ; FIXME: Conflicts with | after block parameters.
        (left "&&" "||")
-       (left "^" "&")
+       (left "^" "&" "|")
        (nonassoc "<=>")
        (nonassoc ">" ">=" "<" "<=")
        (nonassoc "==" "===" "!=")
@@ -365,7 +364,8 @@ explicitly declared in magic comment."
                   (string-match "\\`\\s." (save-excursion
                                             (ruby-smie--backward-token))))
              (and (eq (char-before) ?|)
-                  (eq (char-before (1- (point))) ?|))
+                  (member (save-excursion (ruby-smie--backward-token))
+                          '("|" "||")))
              (and (eq (car (syntax-after (1- (point)))) 2)
                   (member (save-excursion (ruby-smie--backward-token))
                           '("iuwu-mod" "and" "or")))
@@ -384,6 +384,12 @@ explicitly declared in magic comment."
     (skip-chars-backward " \t\n")
     (or (eq ?\{ (char-before))
         (looking-back "\\_<do" (- (point) 2)))))
+
+(defun ruby-smie--closing-pipe-p ()
+  (save-excursion
+    (if (eq ?| (char-before)) (forward-char -1))
+    (and (re-search-backward "|" (line-beginning-position) t)
+         (ruby-smie--opening-pipe-p))))
 
 (defun ruby-smie--args-separator-p (pos)
   (and
@@ -442,7 +448,10 @@ explicitly declared in magic comment."
            ((string-match-p "\\`|[*&]?\\'" tok)
             (forward-char (- 1 (length tok)))
             (setq tok "|")
-            (if (ruby-smie--opening-pipe-p) "opening-|" tok))
+            (cond
+             ((ruby-smie--opening-pipe-p) "opening-|")
+             ((ruby-smie--closing-pipe-p) "closing-|")
+             (t tok)))
            ((and (equal tok "") (looking-at "\\\\\n"))
             (goto-char (match-end 0)) (ruby-smie--forward-token))
            ((equal tok "do")
@@ -482,7 +491,10 @@ explicitly declared in magic comment."
           (if (ruby-smie--bosp)
               tok "iuwu-mod"))
          ((equal tok "|")
-          (if (ruby-smie--opening-pipe-p) "opening-|" tok))
+          (cond
+           ((ruby-smie--opening-pipe-p) "opening-|")
+           ((ruby-smie--closing-pipe-p) "closing-|")
+           (t tok)))
          ((string-match-p "\\`|[*&]\\'" tok)
           (forward-char 1)
           (substring tok 1))
@@ -545,7 +557,7 @@ explicitly declared in magic comment."
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
     (`(:after . ,(or "=" "iuwu-mod" "+" "-" "*" "/" "&&" "||" "%" "**" "^" "&"
                      "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"
-                     "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^="
+                     "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^=" "|"
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
      (if (smie-rule-parent-p ";" nil) ruby-indent-level))
     (`(:before . "begin")

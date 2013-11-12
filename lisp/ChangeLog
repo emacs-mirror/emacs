@@ -1,3 +1,13 @@
+2013-11-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Disambiguate between
+	binary "|" operator and closing block args delimiter.  Remove
+	FIXME comment referring to Ruby 1.8-only syntax.
+	(ruby-smie--implicit-semi-p): Not after "|" operator.
+	(ruby-smie--closing-pipe-p): New function.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Use it.
+	(ruby-smie-rules): Indent after "|".
+
 2013-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* ps-print.el (ps-face-attribute-list):

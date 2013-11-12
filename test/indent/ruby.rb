@@ -285,6 +285,9 @@ bar 1 do
   end
 end
 
+foo |
+  bar
+
 foo ||
   begin
     bar
