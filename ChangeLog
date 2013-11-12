@@ -1,3 +1,7 @@
+2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* Makefile.in (epaths-force-w32): Simplify w32srcdir computation.
+
 2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

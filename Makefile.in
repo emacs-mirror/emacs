@@ -351,7 +351,7 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 # the data directory.  "pwd -W" produces Windows-style 'd:/foo/bar'
 # absolute directory names, so we use it here to countermand that lossage.
 epaths-force-w32: FRC
-	@(w32srcdir=`cd "${srcdir}"; pwd -W | sed -e 's,^\([A-Za-z]\):,/\1,' | ${msys_to_w32}` ; 	\
+	@(w32srcdir=`cd "${srcdir}" && pwd -W` ; \
 	  prefixpattern=`echo '${prefix}' | ${msys_to_w32} | ${msys_sed_sh_escape}` ; \
 	  locallisppath=`echo '${locallisppath}' | ${msys_lisppath_to_w32} | ${msys_prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
