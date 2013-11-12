@@ -1341,6 +1341,7 @@ menu bar menus and the frame title.  */)
       update_mode_lines = 10;
       current_buffer->prevent_redisplay_optimizations_p = 1;
     }
+  return all;
 }
 
 DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
@@ -1362,9 +1363,7 @@ A non-nil FLAG means mark the buffer modified.  */)
      Ideally, I think there should be another mechanism for fontifying
      buffers without "modifying" buffers, or redisplay should be
      smarter about updating the `*' in mode lines.  --gerd  */
-  Fforce_mode_line_update (Qnil);
-
-  return flag;
+  return Fforce_mode_line_update (Qnil);
 }
 
 DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,

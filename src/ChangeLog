@@ -1,3 +1,10 @@
+2013-11-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.c (Fforce_mode_line_update): Don't fall off end of function
+	that requires a return value.
+	(Fset_buffer_modified_p): Take advantage of this change to do
+	a tail call.
+
 2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Frestore_buffer_modified_p): Sync it with
