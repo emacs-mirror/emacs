@@ -7084,6 +7084,7 @@ their type."
 	     'help-echo "Agendas are currently limited to this subtree.")
 (org-detach-overlay org-agenda-restriction-lock-overlay)
 
+;;;###autoload
 (defun org-agenda-set-restriction-lock (&optional type)
   "Set restriction lock for agenda, to current subtree or file.
 Restriction will be the file if TYPE is `file', or if type is the

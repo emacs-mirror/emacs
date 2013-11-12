@@ -1,3 +1,7 @@
+2013-11-12  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-set-restriction-lock): Autoload.
+
 2013-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Address some byte-compiler warnings.
