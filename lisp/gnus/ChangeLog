@@ -1,3 +1,8 @@
+2013-11-12  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event-from-ical):
+	Fix timezone handling in gnus-icalendar export to org.
+
 2013-11-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-cite.el (gnus-cite-add-face): Make non-sticky overlays.

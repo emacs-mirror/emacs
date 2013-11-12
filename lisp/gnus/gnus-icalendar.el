@@ -69,14 +69,14 @@
              :accessor gnus-icalendar-event:location
              :initform ""
              :type (or null string))
-   (start :initarg :start
-          :accessor gnus-icalendar-event:start
+   (start-time :initarg :start-time
+          :accessor gnus-icalendar-event:start-time
           :initform ""
-          :type (or null string))
-   (end :initarg :end
-        :accessor gnus-icalendar-event:end
+          :type (or null t))
+   (end-time :initarg :end-time
+        :accessor gnus-icalendar-event:end-time
         :initform ""
-        :type (or null string))
+        :type (or null t))
    (recur :initarg :recur
           :accessor gnus-icalendar-event:recur
           :initform ""
@@ -125,27 +125,15 @@
     (or (match-string 1 rrule)
         default-interval)))
 
-(defmethod gnus-icalendar-event:start-time ((event gnus-icalendar-event))
-  "Return time value of the EVENT start date."
-  (date-to-time (gnus-icalendar-event:start event)))
+(defmethod gnus-icalendar-event:start ((event gnus-icalendar-event))
+  (format-time-string "%Y-%m-%d %H:%M" (gnus-icalendar-event:start-time event)))
 
-(defmethod gnus-icalendar-event:end-time ((event gnus-icalendar-event))
-  "Return time value of the EVENT end date."
-  (date-to-time (gnus-icalendar-event:end event)))
+(defun gnus-icalendar-event--decode-datefield (ical field)
+  (let* ((date (icalendar--get-event-property ical field))
+         (date-props (icalendar--get-event-property-attributes ical field))
+         (tz (plist-get date-props 'TZID)))
 
-
-(defun gnus-icalendar-event--decode-datefield (ical field zone-map &optional date-style)
-  (let* ((calendar-date-style (or date-style 'european))
-         (date (icalendar--get-event-property ical field))
-         (date-zone (icalendar--find-time-zone
-                     (icalendar--get-event-property-attributes
-                      ical field)
-                     zone-map))
-         (date-decoded (icalendar--decode-isodatetime date nil date-zone)))
-
-    (concat (icalendar--datetime-to-iso-date date-decoded "-")
-            " "
-            (icalendar--datetime-to-colontime date-decoded))))
+    (date-to-time (timezone-make-date-arpa-standard date nil tz))))
 
 (defun gnus-icalendar-event--find-attendee (ical name-or-email)
   (let* ((event (car (icalendar--all-events ical)))
@@ -166,7 +154,6 @@
 
 (defun gnus-icalendar-event-from-ical (ical &optional attendee-name-or-email)
   (let* ((event (car (icalendar--all-events ical)))
-         (zone-map (icalendar--convert-all-timezones ical))
          (organizer (replace-regexp-in-string
                      "^.*MAILTO:" ""
                      (or (icalendar--get-event-property event 'ORGANIZER) "")))
@@ -180,8 +167,8 @@
                      (gnus-icalendar-event--find-attendee ical attendee-name-or-email)))
          (args (list :method method
                      :organizer organizer
-                     :start (gnus-icalendar-event--decode-datefield event 'DTSTART zone-map)
-                     :end (gnus-icalendar-event--decode-datefield event 'DTEND zone-map)
+                     :start-time (gnus-icalendar-event--decode-datefield event 'DTSTART)
+                     :end-time (gnus-icalendar-event--decode-datefield event 'DTEND)
                      :rsvp (string= (plist-get (cadr attendee) 'RSVP)
                                     "TRUE")))
          (event-class (cond
@@ -363,10 +350,10 @@ Return nil for non-recurring EVENT."
   "Build `org-mode' timestamp from EVENT start/end dates and recurrence info."
   (let* ((start (gnus-icalendar-event:start-time event))
          (end (gnus-icalendar-event:end-time event))
-         (start-date (format-time-string "%Y-%m-%d %a" start t))
-         (start-time (format-time-string "%H:%M" start t))
-         (end-date (format-time-string "%Y-%m-%d %a" end t))
-         (end-time (format-time-string "%H:%M" end t))
+         (start-date (format-time-string "%Y-%m-%d %a" start))
+         (start-time (format-time-string "%H:%M" start))
+         (end-date (format-time-string "%Y-%m-%d %a" end))
+         (end-time (format-time-string "%H:%M" end))
          (org-repeat (gnus-icalendar-event:org-repeat event))
          (repeat (if org-repeat (concat " " org-repeat) "")))
 
