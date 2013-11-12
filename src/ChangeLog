@@ -1,5 +1,7 @@
 2013-11-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (syms_of_xterm): staticpro Qmodifier_value.
+
 	* buffer.c (Fforce_mode_line_update): Don't fall off end of function
 	that requires a return value.
 	(Fset_buffer_modified_p): Take advantage of this change to do

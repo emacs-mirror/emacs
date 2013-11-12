@@ -10587,7 +10587,7 @@ With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qnil;
 #endif
 
-  Qmodifier_value = intern_c_string ("modifier-value");
+  DEFSYM (Qmodifier_value, "modifier-value");
   Qalt = intern_c_string ("alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
   Qhyper = intern_c_string ("hyper");
