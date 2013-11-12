@@ -2840,6 +2840,8 @@ Pressing `<' twice means to restrict to the current subtree or region
        ((equal org-keys "!") (customize-variable 'org-stuck-projects))
        (t (user-error "Invalid agenda key"))))))
 
+(defvar org-agenda-multi)
+
 (defun org-agenda-append-agenda ()
   "Append another agenda view to the current one.
 This function allows interactive building of block agendas.
@@ -3814,6 +3816,8 @@ generating a new one."
 	       'org-priority))
 	(overlay-put ov 'org-type 'org-priority)))))
 
+(defvar org-depend-tag-blocked)
+
 (defun org-agenda-dim-blocked-tasks (&optional invisible)
   "Dim currently blocked TODO's in the agenda display.
 When INVISIBLE is non-nil, hide currently blocked TODO instead of
@@ -3982,6 +3986,7 @@ This check for agenda markers in all agenda buffers currently active."
 ;;; Agenda timeline
 
 (defvar org-agenda-only-exact-dates nil) ; dynamically scoped
+(defvar org-agenda-show-log-scoped) ;; dynamically scope in `org-timeline' or `org-agenda-list'
 
 (defun org-timeline (&optional dotodo)
   "Show a time-sorted view of the entries in the current org file.
@@ -5762,7 +5767,6 @@ please use `org-class' instead."
      dayname skip-weeks)))
 (make-obsolete 'org-diary-class 'org-class "")
 
-(defvar org-agenda-show-log-scoped) ;; dynamically scope in `org-timeline' or `org-agenda-list'
 (defalias 'org-get-closed 'org-agenda-get-progress)
 (defun org-agenda-get-progress ()
   "Return the logged TODO entries for agenda display."

@@ -65,8 +65,8 @@
 	       "\n")))
 
 (defun org-babel-execute:maxima (body params)
-  "Execute a block of Maxima entries with org-babel.  This function is
-called by `org-babel-execute-src-block'."
+  "Execute a block of Maxima entries with org-babel.
+This function is called by `org-babel-execute-src-block'."
   (message "executing Maxima source code block")
   (let ((result-params (split-string (or (cdr (assoc :results params)) "")))
 	(result
@@ -76,18 +76,18 @@ called by `org-babel-execute-src-block'."
 			     org-babel-maxima-command in-file cmdline)))
 	   (with-temp-file in-file (insert (org-babel-maxima-expand body params)))
 	   (message cmd)
-	   ((lambda (raw) ;; " | grep -v batch | grep -v 'replaced' | sed '/^$/d' "
-	      (mapconcat
-	       #'identity
-	       (delq nil
-		     (mapcar (lambda (line)
-			       (unless (or (string-match "batch" line)
-					   (string-match "^rat: replaced .*$" line)
-					   (string-match "^;;; Loading #P" line)
-					   (= 0 (length line)))
-				 line))
-			     (split-string raw "[\r\n]"))) "\n"))
-	    (org-babel-eval cmd "")))))
+           ;; " | grep -v batch | grep -v 'replaced' | sed '/^$/d' "
+	   (let ((raw (org-babel-eval cmd "")))
+             (mapconcat
+              #'identity
+              (delq nil
+                    (mapcar (lambda (line)
+                              (unless (or (string-match "batch" line)
+                                          (string-match "^rat: replaced .*$" line)
+                                          (string-match "^;;; Loading #P" line)
+                                          (= 0 (length line)))
+                                line))
+                            (split-string raw "[\r\n]"))) "\n")))))
     (if (org-babel-maxima-graphical-output-file params)
 	nil
       (org-babel-result-cond result-params

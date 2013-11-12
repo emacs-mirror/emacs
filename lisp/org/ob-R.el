@@ -85,21 +85,22 @@
 	 (or graphics-file (org-babel-R-graphical-output-file params))))
     (mapconcat
      #'identity
-     ((lambda (inside)
-	(if graphics-file
-	    (append
-	     (list (org-babel-R-construct-graphics-device-call
-		    graphics-file params))
-	     inside
-	     (list "dev.off()"))
-	  inside))
-      (append
-       (when (cdr (assoc :prologue params))
-	 (list (cdr (assoc :prologue params))))
-       (org-babel-variable-assignments:R params)
-       (list body)
-       (when (cdr (assoc :epilogue params))
-	 (list (cdr (assoc :epilogue params)))))) "\n")))
+     (let ((inside
+            (append
+             (when (cdr (assoc :prologue params))
+               (list (cdr (assoc :prologue params))))
+             (org-babel-variable-assignments:R params)
+             (list body)
+             (when (cdr (assoc :epilogue params))
+               (list (cdr (assoc :epilogue params)))))))
+       (if graphics-file
+           (append
+            (list (org-babel-R-construct-graphics-device-call
+                   graphics-file params))
+            inside
+            (list "dev.off()"))
+         inside))
+     "\n")))
 
 (defun org-babel-execute:R (body params)
   "Execute a block of R code.
@@ -323,6 +324,8 @@ last statement in BODY, as elisp."
 	  (org-babel-import-elisp-from-file tmp-file '(16)))
 	column-names-p)))
     (output (org-babel-eval org-babel-R-command body))))
+
+(defvar ess-eval-visibly-p)
 
 (defun org-babel-R-evaluate-session
   (session body result-type result-params column-names-p row-names-p)

@@ -844,8 +844,9 @@ with \",*\", \",#+\", \",,*\" and \",,#+\"."
   (let ((session (cdr (assoc :session (nth 2 info)))))
     (and session (not (string= session "none"))
 	 (org-babel-comint-buffer-livep session)
-	 ((lambda (f) (and (fboundp f) (funcall f session)))
-	  (intern (format "org-babel-%s-associate-session" (nth 0 info)))))))
+	 (let ((f (intern (format "org-babel-%s-associate-session"
+                                  (nth 0 info)))))
+           (and (fboundp f) (funcall f session))))))
 
 (defun org-src-babel-configure-edit-buffer ()
   (when org-src-babel-info
@@ -953,8 +954,9 @@ fontification of code blocks see `org-src-fontify-block' and
 LANG is a string, and the returned major mode is a symbol."
   (intern
    (concat
-    ((lambda (l) (if (symbolp l) (symbol-name l) l))
-     (or (cdr (assoc lang org-src-lang-modes)) lang)) "-mode")))
+    (let ((l (or (cdr (assoc lang org-src-lang-modes)) lang)))
+      (if (symbolp l) (symbol-name l) l))
+    "-mode")))
 
 (provide 'org-src)
 

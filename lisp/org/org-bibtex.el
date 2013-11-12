@@ -293,12 +293,13 @@ This variable is relevant only if `org-bibtex-export-tags-as-keywords' is t."
 
 ;;; Utility functions
 (defun org-bibtex-get (property)
-  ((lambda (it) (when it (org-babel-trim it)))
-   (let ((org-special-properties
-	  (delete "FILE" (copy-sequence org-special-properties))))
-     (or
-      (org-entry-get (point) (upcase property))
-      (org-entry-get (point) (concat org-bibtex-prefix (upcase property)))))))
+  (let ((it (let ((org-special-properties
+                   (delete "FILE" (copy-sequence org-special-properties))))
+              (or
+               (org-entry-get (point) (upcase property))
+               (org-entry-get (point) (concat org-bibtex-prefix
+                                              (upcase property)))))))
+    (when it (org-babel-trim it))))
 
 (defun org-bibtex-put (property value)
   (let ((prop (upcase (if (keywordp property)
@@ -384,8 +385,8 @@ This variable is relevant only if `org-bibtex-export-tags-as-keywords' is t."
 	(princ (cdr (assoc field org-bibtex-fields))))
       (with-current-buffer buf-name (visual-line-mode 1))
       (org-fit-window-to-buffer (get-buffer-window buf-name))
-      ((lambda (result) (when (> (length result) 0) result))
-       (read-from-minibuffer (format "%s: " name))))))
+      (let ((result (read-from-minibuffer (format "%s: " name))))
+        (when (> (length result) 0) result)))))
 
 (defun org-bibtex-autokey ()
   "Generate an autokey for the current headline."
@@ -539,20 +540,21 @@ Headlines are exported using `org-bibtex-export-headline'."
 	  "Bibtex file: " nil nil nil
 	  (file-name-nondirectory
 	   (concat (file-name-sans-extension (buffer-file-name)) ".bib")))))
-  ((lambda (error-point)
-     (when error-point
-       (goto-char error-point)
-       (message "Bibtex error at %S" (nth 4 (org-heading-components)))))
-   (catch 'bib
-     (let ((bibtex-entries (remove nil (org-map-entries
-					(lambda ()
-					  (condition-case foo
-					      (org-bibtex-headline)
-					    (error (throw 'bib (point)))))))))
-       (with-temp-file filename
-	 (insert (mapconcat #'identity bibtex-entries "\n")))
-       (message "Successfully exported %d BibTeX entries to %s"
-		(length bibtex-entries) filename) nil))))
+  (let ((error-point
+         (catch 'bib
+           (let ((bibtex-entries
+                  (remove nil (org-map-entries
+                               (lambda ()
+                                 (condition-case foo
+                                     (org-bibtex-headline)
+                                   (error (throw 'bib (point)))))))))
+             (with-temp-file filename
+               (insert (mapconcat #'identity bibtex-entries "\n")))
+             (message "Successfully exported %d BibTeX entries to %s"
+                      (length bibtex-entries) filename) nil))))
+    (when error-point
+      (goto-char error-point)
+      (message "Bibtex error at %S" (nth 4 (org-heading-components))))))
 
 (defun org-bibtex-check (&optional optional)
   "Check the current headline for required fields.
@@ -560,8 +562,8 @@ With prefix argument OPTIONAL also prompt for optional fields."
   (interactive "P")
   (save-restriction
     (org-narrow-to-subtree)
-    (let ((type ((lambda (name) (when name (intern (concat ":" name))))
-                 (org-bibtex-get org-bibtex-type-property-name))))
+    (let ((type (let ((name (org-bibtex-get org-bibtex-type-property-name)))
+                  (when name (intern (concat ":" name))))))
       (when type (org-bibtex-fleshout type optional)))))
 
 (defun org-bibtex-check-all (&optional optional)

@@ -69,6 +69,8 @@ be executed."
    ('otherwise
     (error "Requested export buffer when `org-current-export-file' is nil"))))
 
+(defvar org-link-search-inhibit-query)
+
 (defmacro org-babel-exp-in-export-file (lang &rest body)
   (declare (indent 1))
   `(let* ((lang-headers (intern (concat "org-babel-default-header-args:" ,lang)))
@@ -372,7 +374,7 @@ replaced with its value."
 		 (cons (substring (symbol-name (car pair)) 1)
 		       (format "%S" (cdr pair))))
 	       (nth 2 info))
-     ("flags" . ,((lambda (f) (when f (concat " " f))) (nth 3 info)))
+     ("flags" . ,(let ((f (nth 3 info))) (when f (concat " " f))))
      ("name"  . ,(or (nth 4 info) "")))))
 
 (defun org-babel-exp-results (info type &optional silent hash)

@@ -200,7 +200,6 @@ FILE-NAME is full path to lilypond (.ly) file"
   (let ((arg-1 (ly-determine-ly-path)) ;program
         (arg-2 nil)                    ;infile
         (arg-3 "*lilypond*")           ;buffer
-        (arg-4 t)                      ;display
 	(arg-4 t)                      ;display
 	(arg-5 (if ly-gen-png  "--png"  "")) ;&rest...
 	(arg-6 (if ly-gen-html "--html" ""))

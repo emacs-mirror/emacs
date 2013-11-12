@@ -55,19 +55,18 @@
     ;; created package-name directories if missing
     (unless (or (not packagename) (file-exists-p packagename))
       (make-directory packagename 'parents))
-    ((lambda (results)
-       (org-babel-reassemble-table
-	(org-babel-result-cond (cdr (assoc :result-params params))
-	  (org-babel-read results)
-	  (let ((tmp-file (org-babel-temp-file "c-")))
-	      (with-temp-file tmp-file (insert results))
-	      (org-babel-import-elisp-from-file tmp-file)))
-	(org-babel-pick-name
-	 (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
-	(org-babel-pick-name
-	 (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))
-     (org-babel-eval (concat org-babel-java-command
-			     " " cmdline " " classname) ""))))
+    (let ((results (org-babel-eval (concat org-babel-java-command
+                                           " " cmdline " " classname) "")))
+      (org-babel-reassemble-table
+       (org-babel-result-cond (cdr (assoc :result-params params))
+	 (org-babel-read results)
+         (let ((tmp-file (org-babel-temp-file "c-")))
+           (with-temp-file tmp-file (insert results))
+           (org-babel-import-elisp-from-file tmp-file)))
+       (org-babel-pick-name
+        (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+       (org-babel-pick-name
+        (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))))
 
 (provide 'ob-java)
 

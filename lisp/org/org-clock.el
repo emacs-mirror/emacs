@@ -1114,6 +1114,7 @@ so long."
 
 (defvar org-clock-current-task nil "Task currently clocked in.")
 (defvar org-clock-out-time nil) ; store the time of the last clock-out
+(defvar org--msg-extra)
 
 ;;;###autoload
 (defun org-clock-in (&optional select start-time)
@@ -1133,7 +1134,7 @@ make this the default behavior.)"
   (catch 'abort
     (let ((interrupting (and (not org-clock-resolving-clocks-due-to-idleness)
 			     (org-clocking-p)))
-	  ts selected-task target-pos (msg-extra "")
+	  ts selected-task target-pos (org--msg-extra "")
 	  (leftover (and (not org-clock-resolving-clocks)
 			 org-clock-leftover-time)))
 
@@ -1305,7 +1306,7 @@ make this the default behavior.)"
 	      (setq org-clock-idle-timer nil))
 	    (setq org-clock-idle-timer
 		  (run-with-timer 60 60 'org-resolve-clocks-if-idle))
-	    (message "Clock starts at %s - %s" ts msg-extra)
+	    (message "Clock starts at %s - %s" ts org--msg-extra)
 	    (run-hooks 'org-clock-in-hook)))))))
 
 ;;;###autoload
@@ -1351,7 +1352,6 @@ for a todo state to switch to, overriding the existing value
     (org-back-to-heading t)
     (move-marker org-clock-default-task (point))))
 
-(defvar msg-extra)
 (defun org-clock-get-sum-start ()
   "Return the time from which clock times should be counted.
 This is for the currently running clock as it is displayed
@@ -1364,10 +1364,10 @@ decides which time to use."
 	(lr (org-entry-get nil "LAST_REPEAT")))
     (cond
      ((equal cmt "current")
-      (setq msg-extra "showing time in current clock instance")
+      (setq org--msg-extra "showing time in current clock instance")
       (current-time))
      ((equal cmt "today")
-      (setq msg-extra "showing today's task time.")
+      (setq org--msg-extra "showing today's task time.")
       (let* ((dt (decode-time (current-time))))
 	(setq dt (append (list 0 0 0) (nthcdr 3 dt)))
 	(if org-extend-today-until
@@ -1376,12 +1376,12 @@ decides which time to use."
      ((or (equal cmt "all")
 	  (and (or (not cmt) (equal cmt "auto"))
 	       (not lr)))
-      (setq msg-extra "showing entire task time.")
+      (setq org--msg-extra "showing entire task time.")
       nil)
      ((or (equal cmt "repeat")
 	  (and (or (not cmt) (equal cmt "auto"))
 	       lr))
-      (setq msg-extra "showing task time since last repeat.")
+      (setq org--msg-extra "showing task time since last repeat.")
       (if (not lr)
 	  nil
 	(org-time-string-to-time lr)))

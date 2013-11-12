@@ -54,25 +54,26 @@
 (defun org-babel-execute:emacs-lisp (body params)
   "Execute a block of emacs-lisp code with Babel."
   (save-window-excursion
-    ((lambda (result)
-       (org-babel-result-cond (cdr (assoc :result-params params))
-	 (let ((print-level nil)
-	       (print-length nil))
-	   (if (or (member "scalar" (cdr (assoc :result-params params)))
-		   (member "verbatim" (cdr (assoc :result-params params))))
-	       (format "%S" result)
-	     (format "%s" result)))
-	 (org-babel-reassemble-table
-	  result
-	  (org-babel-pick-name (cdr (assoc :colname-names params))
-			       (cdr (assoc :colnames params)))
-	  (org-babel-pick-name (cdr (assoc :rowname-names params))
-			       (cdr (assoc :rownames params))))))
-     (eval (read (format (if (member "output"
-				     (cdr (assoc :result-params params)))
-			     "(with-output-to-string %s)"
-			   "(progn %s)")
-			 (org-babel-expand-body:emacs-lisp body params)))))))
+    (let ((result
+           (eval (read (format (if (member "output"
+                                           (cdr (assoc :result-params params)))
+                                   "(with-output-to-string %s)"
+                                 "(progn %s)")
+                               (org-babel-expand-body:emacs-lisp
+                                body params))))))
+      (org-babel-result-cond (cdr (assoc :result-params params))
+	(let ((print-level nil)
+              (print-length nil))
+          (if (or (member "scalar" (cdr (assoc :result-params params)))
+                  (member "verbatim" (cdr (assoc :result-params params))))
+              (format "%S" result)
+            (format "%s" result)))
+	(org-babel-reassemble-table
+	 result
+         (org-babel-pick-name (cdr (assoc :colname-names params))
+                              (cdr (assoc :colnames params)))
+         (org-babel-pick-name (cdr (assoc :rowname-names params))
+                              (cdr (assoc :rownames params))))))))
 
 (provide 'ob-emacs-lisp)
 

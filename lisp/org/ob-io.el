@@ -94,12 +94,11 @@ in BODY as elisp."
     (value (let* ((src-file (org-babel-temp-file "io-"))
                   (wrapper (format org-babel-io-wrapper-method body)))
              (with-temp-file src-file (insert wrapper))
-             ((lambda (raw)
-                (org-babel-result-cond result-params
-		  raw
-                  (org-babel-io-table-or-string raw)))
-              (org-babel-eval
-               (concat org-babel-io-command " " src-file) ""))))))
+             (let ((raw (org-babel-eval
+                         (concat org-babel-io-command " " src-file) "")))
+               (org-babel-result-cond result-params
+		 raw
+                 (org-babel-io-table-or-string raw)))))))
 
 
 (defun org-babel-prep-session:io (session params)

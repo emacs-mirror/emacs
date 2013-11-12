@@ -114,23 +114,22 @@ This function is called by `org-babel-execute-src-block'."
 
 (defun org-babel-sqlite-expand-vars (body vars)
   "Expand the variables held in VARS in BODY."
+  ;; FIXME: Redundancy with org-babel-sql-expand-vars!
   (mapc
    (lambda (pair)
      (setq body
 	   (replace-regexp-in-string
-	    (format "\$%s" (car pair))
-	    ((lambda (val)
-	       (if (listp val)
-		   ((lambda (data-file)
-		      (with-temp-file data-file
-			(insert (orgtbl-to-csv
-				 val '(:fmt (lambda (el) (if (stringp el)
-							     el
-							   (format "%S" el)))))))
-		      data-file)
-		    (org-babel-temp-file "sqlite-data-"))
-		 (if (stringp val) val (format "%S" val))))
-	     (cdr pair))
+	    (format "\$%s" (car pair))  ;FIXME: "\$" == "$"!
+	    (let ((val (cdr pair)))
+              (if (listp val)
+                  (let ((data-file (org-babel-temp-file "sqlite-data-")))
+                    (with-temp-file data-file
+                      (insert (orgtbl-to-csv
+                               val '(:fmt (lambda (el) (if (stringp el)
+                                                      el
+                                                    (format "%S" el)))))))
+                    data-file)
+                (if (stringp val) val (format "%S" val))))
 	    body)))
    vars)
   body)

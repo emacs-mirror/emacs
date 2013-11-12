@@ -3113,12 +3113,11 @@ and prefix with \"OrgSrc\".  For example,
 `font-lock-function-name-face' is associated with
 \"OrgSrcFontLockFunctionNameFace\"."
   (let* ((css-list (hfy-face-to-style fn))
-	 (style-name ((lambda (fn)
-			(concat "OrgSrc"
-				(mapconcat
-				 'capitalize (split-string
-					      (hfy-face-or-def-to-name fn) "-")
-				 ""))) fn))
+	 (style-name (concat "OrgSrc"
+                             (mapconcat
+                              'capitalize (split-string
+                                           (hfy-face-or-def-to-name fn) "-")
+                              "")))
 	 (color-val (cdr (assoc "color" css-list)))
 	 (background-color-val (cdr (assoc "background" css-list)))
 	 (style (and org-odt-create-custom-styles-for-srcblocks

@@ -24,9 +24,11 @@
 
 ;;; Commentary:
 
-;;; This file adds support to Org Babel for music in ABC notation.
-;;; It requires that the abcm2ps program is installed.
-;;; See http://moinejf.free.fr/
+;; This file adds support to Org Babel for music in ABC notation.
+;; It requires that the abcm2ps program is installed.
+;; See http://moinejf.free.fr/
+
+;;; Code:
 
 (require 'ob)
 
@@ -40,18 +42,15 @@
 
 (defun org-babel-expand-body:abc (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
-    (mapc
-     (lambda (pair)
-       (let ((name (symbol-name (car pair)))
-	     (value (cdr pair)))
-	 (setq body
-	       (replace-regexp-in-string
-		(concat "\$" (regexp-quote name))
-		(if (stringp value) value (format "%S" value))
-		body))))
-     vars)
-    body))
+  (dolist (pair (mapcar #'cdr (org-babel-get-header params :var)))
+    (let ((name (symbol-name (car pair)))
+          (value (cdr pair)))
+      (setq body
+            (replace-regexp-in-string
+             (concat "\$" (regexp-quote name)) ;FIXME: "\$" == "$"!
+             (if (stringp value) value (format "%S" value))
+             body))))
+  body)
 
 (defun org-babel-execute:abc (body params)
   "Execute a block of ABC code with org-babel.  This function is
@@ -59,10 +58,10 @@
   (message "executing Abc source code block")
   (let* ((result-params (split-string (or (cdr (assoc :results params)))))
 	 (cmdline (cdr (assoc :cmdline params)))
-	 (out-file ((lambda (el)
-		      (or el
-			  (error "abc code block requires :file header argument")))
-		    (replace-regexp-in-string "\.pdf$" ".ps" (cdr (assoc :file params)))))
+	 (out-file
+          (let ((el (cdr (assoc :file params))))
+            (if el (replace-regexp-in-string "\\.pdf\\'" ".ps" el)
+              (error "abc code block requires :file header argument"))))
 	 (in-file (org-babel-temp-file "abc-"))
 	 (render (concat "abcm2ps" " " cmdline
 		      " -O " (org-babel-process-file-name out-file)

@@ -1,3 +1,65 @@
+2013-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Address some byte-compiler warnings.
+	* ob-abc.el (org-babel-expand-body:abc): Use dolist.
+	(org-babel-execute:abc): Fix regexp quoting.
+	* ob-calc.el (org--var-syms): Rename from `var-syms'.
+	* ob-lilypond.el (ly-compile-lilyfile): Remove redundant let-binding.
+	* ob-table.el (sbe): Move debug declaration.
+	* org-clock.el (org--msg-extra): Rename from `msg-extra'.
+	* org.el (org-version): Avoid var name starting with _.
+	(org-inhibit-startup, org-called-with-limited-levels)
+	(org-link-search-inhibit-query, org-time-was-given)
+	(org-end-time-was-given, org-def, org-defdecode, org-with-time):
+	* org-colview.el (org-agenda-overriding-columns-format):
+	* org-agenda.el (org-agenda-multi, org-depend-tag-blocked)
+	(org-agenda-show-log-scoped):
+	* ob-python.el (py-which-bufname, python-shell-buffer-name):
+	* ob-haskell.el (org-export-copy-to-kill-ring):
+	* ob-exp.el (org-link-search-inhibit-query):
+	* ob-R.el (ess-eval-visibly-p):
+	* ob-core.el (org-src-window-setup): Declare before use.
+	(org-babel-expand-noweb-references): Remove unused `blocks-in-buffer'.
+	* ox-odt.el (org-odt-hfy-face-to-css):
+	* org-src.el (org-src-associate-babel-session, org-src-get-lang-mode):
+	* org-bibtex.el (org-bibtex-get, org-bibtex-ask, org-bibtex)
+	(org-bibtex-check):
+	* ob-tangle.el (org-babel-tangle, org-babel-spec-to-string)
+	(org-babel-tangle-single-block, org-babel-tangle-comment-links):
+	* ob-table.el (sbe):
+	* ob-sqlite.el (org-babel-sqlite-expand-vars):
+	* ob-sql.el (org-babel-sql-expand-vars):
+	* ob-shen.el (org-babel-execute:shen):
+	* ob-sh.el (org-babel-execute:sh, org-babel-sh-evaluate):
+	* ob-scala.el (org-babel-scala-evaluate):
+	* ob-ruby.el (org-babel-ruby-table-or-string)
+	(org-babel-ruby-evaluate):
+	* ob-python.el (org-babel-python-table-or-string)
+	(org-babel-python-evaluate-external-process)
+	(org-babel-python-evaluate-session):
+	* ob-picolisp.el (org-babel-execute:picolisp):
+	* ob-perl.el (org-babel-perl-evaluate):
+	* ob-maxima.el (org-babel-execute:maxima):
+	* ob-lisp.el (org-babel-execute:lisp):
+	* ob-java.el (org-babel-execute:java):
+	* ob-io.el (org-babel-io-evaluate):
+	* ob-haskell.el (org-babel-execute:haskell):
+	* ob-fortran.el (org-babel-execute:fortran):
+	* ob-exp.el (org-babel-exp-code):
+	* ob-emacs-lisp.el (org-babel-execute:emacs-lisp):
+	* ob-ditaa.el (org-babel-execute:ditaa):
+	* ob-core.el (org-babel-execute-src-block, org-babel-sha1-hash)
+	(org-babel-parse-header-arguments, org-babel-reassemble-table)
+	(org-babel-goto-src-block-head, org-babel-mark-block)
+	(org-babel-expand-noweb-references, org-babel-script-escape)
+	(org-babel-process-file-name):
+	* ob-clojure.el (org-babel-execute:clojure):
+	* ob-calc.el (org-babel-execute:calc):
+	* ob-awk.el (org-babel-execute:awk):
+	* ob-abc.el (org-babel-execute:abc):
+	* ob-R.el (org-babel-expand-body:R):
+	* ob-C.el (org-babel-C-execute): Avoid deprecated ((lambda) ...).
+
 2013-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* ox-html.el (org-html-scripts): Add 2013 to copyright years.
@@ -14,7 +76,7 @@
 	* ob-python.el: Update the arglist passed to `declare-function'
 	for `run-python'.
 
-	* ob-tangle.el (org-babel-tangle): Use 'light argument to
+	* ob-tangle.el (org-babel-tangle): Use `light' argument to
 	`org-babel-get-src-block-info'.
 
 	* ob-core.el (org-babel-execute-src-block): Return nil in case of
@@ -5191,7 +5253,7 @@
 	* org-clock.el (org-clock-notify-once-if-expired): Honor
 	`org-clock-sound'.
 
-2013-11-12  Rasmus Pank  <rasmus.pank@gmail.com> 
+2013-11-12  Rasmus Pank  <rasmus.pank@gmail.com>
 
 	* org.el (org-format-latex-header): Remove eucal and amsmath.
 	(org-latex-default-packages-alist): Remove amstext and add

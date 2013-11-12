@@ -210,8 +210,8 @@ used to limit the exported source code blocks by language."
 	      (lambda (spec)
 		(let ((get-spec (lambda (name) (cdr (assoc name (nth 4 spec))))))
 		  (let* ((tangle (funcall get-spec :tangle))
-			 (she-bang ((lambda (sheb) (when (> (length sheb) 0) sheb))
-				    (funcall get-spec :shebang)))
+			 (she-bang (let ((sheb (funcall get-spec :shebang)))
+                                     (when (> (length sheb) 0) sheb)))
 			 (tangle-mode (funcall get-spec :tangle-mode))
 			 (base-name (cond
 				     ((string= "yes" tangle)
@@ -224,9 +224,9 @@ used to limit the exported source code blocks by language."
 				      (if (and ext (string= "yes" tangle))
 					  (concat base-name "." ext) base-name))))
 		    (when file-name
-		      ;; possibly create the parent directories for file
-		      (when ((lambda (m) (and m (not (string= m "no"))))
-			     (funcall get-spec :mkdirp))
+		      ;; Possibly create the parent directories for file.
+		      (when (let ((m (funcall get-spec :mkdirp)))
+                              (and m (not (string= m "no"))))
 			(make-directory (file-name-directory file-name) 'parents))
 		      ;; delete any old versions of file
 		      (when (and (file-exists-p file-name)
@@ -314,9 +314,8 @@ that the appropriate major-mode is set.  SPEC has the form:
 		     (string= comments "yes") (string= comments "noweb")))
 	 (link-data (mapcar (lambda (el)
 			      (cons (symbol-name el)
-				    ((lambda (le)
-				       (if (stringp le) le (format "%S" le)))
-				     (eval el))))
+				    (let ((le (eval el)))
+                                      (if (stringp le) le (format "%S" le)))))
 			    '(start-line file link source-name)))
 	 (insert-comment (lambda (text)
 			   (when (and comments (not (string= comments "no"))
@@ -402,11 +401,10 @@ list to be used by `org-babel-tangle' directly."
 	 (cref-fmt (or (and (string-match "-l \"\\(.+\\)\"" extra)
 			    (match-string 1 extra))
 		       org-coderef-label-format))
-	 (link ((lambda (link)
-		  (and (string-match org-bracket-link-regexp link)
-		       (match-string 1 link)))
-		(org-no-properties
-		 (org-store-link nil))))
+	 (link (let ((link (org-no-properties
+                            (org-store-link nil))))
+                 (and (string-match org-bracket-link-regexp link)
+                      (match-string 1 link))))
 	 (source-name
 	  (intern (or (nth 4 info)
 		      (format "%s:%d"
@@ -418,28 +416,29 @@ list to be used by `org-babel-tangle' directly."
 	 (assignments-cmd
 	  (intern (concat "org-babel-variable-assignments:" src-lang)))
 	 (body
-	  ((lambda (body) ;; Run the tangle-body-hook
-	     (with-temp-buffer
-	       (insert body)
-	       (when (string-match "-r" extra)
-		 (goto-char (point-min))
-		 (while (re-search-forward
-			 (replace-regexp-in-string "%s" ".+" cref-fmt) nil t)
-		   (replace-match "")))
-	       (run-hooks 'org-babel-tangle-body-hook)
-	       (buffer-string)))
-	   ((lambda (body) ;; Expand the body in language specific manner
-	      (if (assoc :no-expand params)
-		  body
-		(if (fboundp expand-cmd)
-		    (funcall expand-cmd body params)
-		  (org-babel-expand-body:generic
-		   body params
-		   (and (fboundp assignments-cmd)
-			(funcall assignments-cmd params))))))
-	    (if (org-babel-noweb-p params :tangle)
-		(org-babel-expand-noweb-references info)
-	      (nth 1 info)))))
+	  ;; Run the tangle-body-hook.
+          (let* ((body ;; Expand the body in language specific manner.
+                  (if (org-babel-noweb-p params :tangle)
+                      (org-babel-expand-noweb-references info)
+                    (nth 1 info)))
+                 (body
+                  (if (assoc :no-expand params)
+                      body
+                    (if (fboundp expand-cmd)
+                        (funcall expand-cmd body params)
+                      (org-babel-expand-body:generic
+                       body params
+                       (and (fboundp assignments-cmd)
+                            (funcall assignments-cmd params)))))))
+            (with-temp-buffer
+              (insert body)
+              (when (string-match "-r" extra)
+                (goto-char (point-min))
+                (while (re-search-forward
+                        (replace-regexp-in-string "%s" ".+" cref-fmt) nil t)
+                  (replace-match "")))
+              (run-hooks 'org-babel-tangle-body-hook)
+              (buffer-string))))
 	 (comment
 	  (when (or (string= "both" (cdr (assoc :comments params)))
 		    (string= "org" (cdr (assoc :comments params))))
@@ -474,9 +473,8 @@ list to be used by `org-babel-tangle' directly."
 	 (source-name (nth 4 (or info (org-babel-get-src-block-info 'light))))
 	 (link-data (mapcar (lambda (el)
 			      (cons (symbol-name el)
-				    ((lambda (le)
-				       (if (stringp le) le (format "%S" le)))
-				     (eval el))))
+				    (let ((le (eval el)))
+                                      (if (stringp le) le (format "%S" le)))))
 			    '(start-line file link source-name))))
     (list (org-fill-template org-babel-tangle-comment-format-beg link-data)
 	  (org-fill-template org-babel-tangle-comment-format-end link-data))))

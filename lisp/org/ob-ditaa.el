@@ -82,11 +82,10 @@ Do not leave leading or trailing spaces in this string."
   "Execute a block of Ditaa code with org-babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	 (out-file ((lambda (el)
-		      (or el
-			  (error
-			   "ditaa code block requires :file header argument")))
-		    (cdr (assoc :file params))))
+	 (out-file (let ((el (cdr (assoc :file params))))
+                     (or el
+                         (error
+                          "ditaa code block requires :file header argument"))))
 	 (cmdline (cdr (assoc :cmdline params)))
 	 (java (cdr (assoc :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))

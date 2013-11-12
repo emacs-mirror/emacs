@@ -135,21 +135,21 @@ return the value of the last statement in BODY, as elisp."
 	 (tmp-file (org-babel-temp-file "perl-"))
 	 (tmp-babel-file (org-babel-process-file-name
 			  tmp-file 'noquote)))
-    ((lambda (results)
-       (when results
-	 (org-babel-result-cond result-params
-	   (org-babel-eval-read-file tmp-file)
-	   (org-babel-import-elisp-from-file tmp-file '(16)))))
-     (case result-type
-       (output
-	(with-temp-file tmp-file
-	  (insert
-	   (org-babel-eval org-babel-perl-command body))
-	  (buffer-string)))
-       (value
-	(org-babel-eval org-babel-perl-command
-			(format org-babel-perl-wrapper-method
-				body tmp-babel-file)))))))
+    (let ((results
+           (case result-type
+             (output
+              (with-temp-file tmp-file
+                (insert
+                 (org-babel-eval org-babel-perl-command body))
+                (buffer-string)))
+             (value
+              (org-babel-eval org-babel-perl-command
+                              (format org-babel-perl-wrapper-method
+                                      body tmp-babel-file))))))
+      (when results
+        (org-babel-result-cond result-params
+	  (org-babel-eval-read-file tmp-file)
+          (org-babel-import-elisp-from-file tmp-file '(16)))))))
 
 (provide 'ob-perl)
 
