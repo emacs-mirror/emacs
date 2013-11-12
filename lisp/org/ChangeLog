@@ -1,3 +1,8 @@
+2013-11-12  Glenn Morris  <rgm@gnu.org>
+
+	* ox-html.el (org-html-scripts): Add 2013 to copyright years.
+	(org-html-infojs-template): Copyright holder to FSF.
+
 2013-11-12  Aaron Ecay  <aaronecay@gmail.com>
 
 	* ox-latex.el (org-latex-inline-image-rules): Add "svg" to
