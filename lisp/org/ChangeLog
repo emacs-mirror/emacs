@@ -2332,12 +2332,6 @@
 	(org-agenda): Set `org-agenda-buffer-name' correctly with sticky
 	agendas and non-custom commands.
 
-2013-11-12  Bill Day  <williamson.day@gmail.com>  (tiny change)
-
-	* org-taskjuggler.el
-	(org-export-taskjuggler-valid-task-attributes): Add chargeset and
-	charge.
-
 2013-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-src.el (org-edit-src-exit): Let overlay survive after the
@@ -5159,35 +5153,6 @@
 
 	* org-publish.el (org-publish-org-to-taskjuggler): New function to
 	publish taskjuggler projects.
-
-	* org-taskjuggler.el (org-export-as-taskjuggler): Adapt signature
-	to reflect standard interface, in particular allow export to
-	buffer.
-	(org-export-taskjuggler-report-tag): New option.
-	(org-export-taskjuggler-valid-report-attributes): New option.
-	(org-export-as-taskjuggler): Compute reports.
-	(org-taskjuggler-open-report): Generate report from org item.
-	(org-taskjuggler-insert-reports): Insert default reports only if no
-	explicit one is defined.
-	(org-export-taskjuggler-keep-project-as-task): New option.
-	(org-export-as-taskjuggler): Optionally drop the topmost "task".
-	(org-taskjuggler-assign-task-ids): Adapt path computation by
-	optionally dropping the topmost component.
-	(org-taskjuggler-open-project): Use START - END as an alternative
-	to START +Xd.
-	(org-export-taskjuggler-default-global-header): New option.
-	(org-export-as-taskjuggler): Insert global header before anything
-	else.
-	(org-taskjuggler-open-task): Task with end-only is also a
-	milestone (deadline), task with length is not.
-	(org-taskjuggler-date): Introduce new function to produce a
-	taskjuggler-compatible date.
-	(org-taskjuggler-components): Make use of SCHEDULED/DEADLINE
-	properties.
-	(org-export-as-taskjuggler): Compute opt-plist, use
-	`org-install-letbind'.
-	(org-export-taskjuggler-valid-task-attributes)
-	(org-export-taskjuggler-valid-resource-attributes): New options.
 
 2013-11-12  Yasushi Shoji  <yashi@atmark-techno.com>
 
