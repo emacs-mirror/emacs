@@ -6293,6 +6293,10 @@ If FACE is not a valid face name, use default face."
    ;; only background color, not a `real' face
    ((ps-face-background-color-p (car face-or-list))
     (vector 0 nil (ps-face-extract-color face-or-list)))
+   ;; Anonymous face.
+   ((keywordp (car face-or-list))
+    (vector 0 (plist-get face-or-list :foreground)
+	    (plist-get face-or-list :background)))
    ;; list of faces
    (t
     (let ((effects 0)
