@@ -1,5 +1,8 @@
 2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
 
+	* configure.ac [MINGW32]: Source nt/mingw-cfg.site.
+	* make-dist: Don't distribute nt/msysconfig.sh.
+
 	* Makefile.in (epaths-force-w32): Simplify w32srcdir computation.
 
 2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>

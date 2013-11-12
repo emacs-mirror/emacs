@@ -24,6 +24,8 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
+test "$MSYSTEM" = "MINGW32" && . $srcdir/nt/mingw-cfg.site
+
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
 dnl Add some environment variables, if they were passed via the environment

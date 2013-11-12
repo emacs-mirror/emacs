@@ -31,15 +31,15 @@ Windows 9X as well).
   1. If you want to build Emacs outside of the source tree
      (recommended), create the build directory and chdir there.
 
-  2. Invoke the MSYS-specific configure script:
+  2. Invoke the configure script:
 
       - If you are building outside the source tree:
 
-        /PATH/TO/EMACS/SOURCE/TREE/nt/msysconfig.sh --prefix=PREFIX ...
+        /PATH/TO/EMACS/SOURCE/TREE/configure --prefix=PREFIX ...
 
       - If you are building in-place, i.e. inside the source tree:
 
-        ./nt/msysconfig.sh --prefix=PREFIX ...
+        ./configure --prefix=PREFIX ...
 
      It is always preferable to use --prefix to configure Emacs for
      some specific location of its installed tree; the default
@@ -49,7 +49,7 @@ Windows 9X as well).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=/d/usr/emacs --enable-checking
+       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -313,11 +313,11 @@ Windows 9X as well).
 
   You invoke the configure script like this:
 
-     /PATH/TO/EMACS/SOURCE/TREE/nt/msysconfig.sh --prefix=PREFIX ...
+     /PATH/TO/EMACS/SOURCE/TREE/configure --prefix=PREFIX ...
 
   or, if you are building in-place, i.e. inside the source tree:
 
-     ./nt/msysconfig.sh --prefix=PREFIX ...
+     ./configure --prefix=PREFIX ...
 
   Here PREFIX is the place where you eventually want to install Emacs
   once built, e.g. /d/usr.  We recommend to always use --prefix when
@@ -337,12 +337,12 @@ Windows 9X as well).
   Windows-style file names was reported to cause subtle and hard to
   figure out problems during the build.  This applies both to the
   command switches, such as --prefix=, and to the absolute file name
-  of msysconfig.sh, if you are building outside of the source tree.
+  of 'configure', if you are building outside of the source tree.
 
   You can pass additional options to the configure script, for the
   full list type
 
-     ./nt/msysconfig.sh --help
+     ./configure --help
 
   As explained in the help text, you may need to tell the script what
   are the optional flags to invoke the compiler.  This is needed if
@@ -355,7 +355,7 @@ Windows 9X as well).
   headers in C:\emacs\libs\jpeg-6b-4-lib\include, you will need to say
   something like this:
 
-    CPPFLAGS='-I/c/emacs/libs/libpng-1.2.37-lib/include -I/c/emacs/libs/jpeg-6b-4-lib/include' ./nt/msysconfig.sh --prefix=PREFIX
+    CPPFLAGS='-I/c/emacs/libs/libpng-1.2.37-lib/include -I/c/emacs/libs/jpeg-6b-4-lib/include' ./configure --prefix=PREFIX
 
   which is quite a mouth-full, especially if you have more directories
   to specify...  Perhaps you may wish to revisit your installation
@@ -363,9 +363,9 @@ Windows 9X as well).
 
   If you have a global site-lisp directory from previous Emacs
   installation, and you want Emacs to continue using it, specify it
-  via the --enable-locallisppath switch to msysconfig.sh, like this:
+  via the --enable-locallisppath switch to 'configure', like this:
 
-   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="/d/usr/share/emacs/VERSION/site-lisp:/d/wherever/site-lisp"
+   ./configure --prefix=PREFIX --enable-locallisppath="/d/usr/share/emacs/VERSION/site-lisp:/d/wherever/site-lisp"
 
   Use the normal MSYS /d/foo/bar style to specify directories by their
   absolute file names.
@@ -373,7 +373,7 @@ Windows 9X as well).
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
 
-     CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=PREFIX --enable-checking
+     CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking
 
   Once invoked, the configure script will run for some time, and, if
   successful, will eventually produce a summary of the configuration

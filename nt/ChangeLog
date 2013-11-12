@@ -1,3 +1,8 @@
+2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* msysconfig.sh: Remove.
+	* INSTALL: Update for this.
+
 2013-11-09  Glenn Morris  <rgm@gnu.org>
 
 	* mingw-cfg.site: No need for this to be executable.
