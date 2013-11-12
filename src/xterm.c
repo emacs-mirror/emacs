@@ -10588,13 +10588,13 @@ With MS Windows or Nextstep, the value is t.  */);
 #endif
 
   DEFSYM (Qmodifier_value, "modifier-value");
-  Qalt = intern_c_string ("alt");
+  DEFSYM (Qalt, "alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern_c_string ("hyper");
+  DEFSYM (Qhyper, "hyper");
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern_c_string ("meta");
+  DEFSYM (Qmeta, "meta");
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern_c_string ("super");
+  DEFSYM (Qsuper, "super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
 
   DEFVAR_LISP ("x-alt-keysym", Vx_alt_keysym,
