@@ -2,10 +2,10 @@
 ;;
 ;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 ;;
-;; Authors: Bastien Guerry <bzg at altern dot org>
+;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>
 ;;       Eric Schulte <schulte dot eric at gmail dot com>
-;; Keywords: org, wp, remember
+;; Keywords: org, wp, capture
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,7 +31,7 @@
 ;; the link that contains the author name, the year and a short title.
 ;;
 ;; It also stores detailed information about the entry so that
-;; remember templates can access and enter this information easily.
+;; capture templates can access and enter this information easily.
 ;;
 ;; The available properties for each entry are listed here:
 ;;
@@ -41,14 +41,14 @@
 ;; :booktitle     :month          :annote      :abstract
 ;; :key           :btype
 ;;
-;; Here is an example of a remember template that use some of this
+;; Here is an example of a capture template that use some of this
 ;; information (:author :year :title :journal :pages):
 ;;
-;; (setq org-remember-templates
+;; (setq org-capure-templates
 ;;   '((?b "* READ %?\n\n%a\n\n%:author (%:year): %:title\n   \
 ;;          In %:journal, %:pages.")))
 ;;
-;; Let's say you want to remember this BibTeX entry:
+;; Let's say you want to capture this BibTeX entry:
 ;;
 ;; @Article{dolev83,
 ;;   author = 	 {Danny Dolev and Andrew C. Yao},
@@ -61,7 +61,7 @@
 ;;   month =	 {Mars}
 ;; }
 ;;
-;; M-x `org-remember' on this entry will produce this buffer:
+;; M-x `org-capture' on this entry will produce this buffer:
 ;;
 ;; =====================================================================
 ;; * READ <== [point here]
@@ -94,7 +94,7 @@
 ;;
 ;; The link creation part has been part of Org-mode for a long time.
 ;;
-;; Creating better remember template information was inspired by a request
+;; Creating better capture template information was inspired by a request
 ;; of Austin Frank: http://article.gmane.org/gmane.emacs.orgmode/4112
 ;; and then implemented by Bastien Guerry.
 ;;
@@ -224,7 +224,9 @@
 For example setting to 'BIB_' would allow interoperability with fireforg."
   :group 'org-bibtex
   :version "24.1"
-  :type  'string)
+  :type  '(choice
+	   (const nil)
+	   (string)))
 
 (defcustom org-bibtex-treat-headline-as-title t
   "Treat headline text as title if title property is absent.
@@ -623,6 +625,27 @@ This uses `bibtex-parse-entry'."
            (save-excursion (bibtex-beginning-of-entry) (bibtex-parse-entry)))
           org-bibtex-entries)))
 
+(defun org-bibtex-read-buffer (buffer)
+  "Read all bibtex entries in BUFFER and save to `org-bibtex-entries'.
+Return the number of saved entries."
+  (interactive "bbuffer: ")
+  (let ((start-length (length org-bibtex-entries)))
+    (with-current-buffer buffer
+      (save-excursion
+	(goto-char (point-max))
+	(while (not (= (point) (point-min)))
+	  (backward-char 1)
+	  (org-bibtex-read)
+	  (bibtex-beginning-of-entry))))
+    (let ((added (- (length org-bibtex-entries) start-length)))
+      (message "parsed %d entries" added)
+      added)))
+
+(defun org-bibtex-read-file (file)
+  "Read FILE with `org-bibtex-read-buffer'."
+  (interactive "ffile: ")
+  (org-bibtex-read-buffer (find-file-noselect file 'nowarn 'rawfile)))
+
 (defun org-bibtex-write ()
   "Insert a heading built from the first element of `org-bibtex-entries'."
   (interactive)
@@ -663,6 +686,14 @@ This uses `bibtex-parse-entry'."
     (if entry
 	(org-bibtex-write)
       (error "Yanked text does not appear to contain a BibTeX entry"))))
+
+(defun org-bibtex-import-from-file (file)
+  "Read bibtex entries from FILE and insert as Org-mode headlines after point."
+  (interactive "ffile: ")
+  (dotimes (_ (org-bibtex-read-file file))
+    (save-excursion (org-bibtex-write))
+    (re-search-forward org-property-end-re)
+    (open-line 1) (forward-char 1)))
 
 (defun org-bibtex-export-to-kill-ring ()
   "Export current headline to kill ring as bibtex entry."

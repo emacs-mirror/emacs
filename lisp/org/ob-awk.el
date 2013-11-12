@@ -32,7 +32,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-eval)
 (require 'org-compat)
 (eval-when-compile (require 'cl))
 
@@ -45,7 +44,7 @@
 (defvar org-babel-awk-command "awk"
   "Name of the awk executable command.")
 
-(defun org-babel-expand-body:awk (body params &optional processed-params)
+(defun org-babel-expand-body:awk (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (dolist (pair (mapcar #'cdr (org-babel-get-header params :var)))
     (setf body (replace-regexp-in-string
@@ -78,10 +77,8 @@ called by `org-babel-execute-src-block'"
     (org-babel-reassemble-table
      ((lambda (results)
 	(when results
-	  (if (or (member "scalar" result-params)
-		  (member "verbatim" result-params)
-		  (member "output" result-params))
-	      results
+	  (org-babel-result-cond result-params
+	    results
 	    (let ((tmp (org-babel-temp-file "awk-results-")))
 	      (with-temp-file tmp (insert results))
 	      (org-babel-import-elisp-from-file tmp)))))

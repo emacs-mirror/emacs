@@ -28,7 +28,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-eval)
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("java" . "java"))
@@ -58,11 +57,11 @@
       (make-directory packagename 'parents))
     ((lambda (results)
        (org-babel-reassemble-table
-	(if (member "vector" (cdr (assoc :result-params params)))
-	    (let ((tmp-file (org-babel-temp-file "c-")))
+	(org-babel-result-cond (cdr (assoc :result-params params))
+	  (org-babel-read results)
+	  (let ((tmp-file (org-babel-temp-file "c-")))
 	      (with-temp-file tmp-file (insert results))
-	      (org-babel-import-elisp-from-file tmp-file))
-	  (org-babel-read results))
+	      (org-babel-import-elisp-from-file tmp-file)))
 	(org-babel-pick-name
 	 (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
 	(org-babel-pick-name

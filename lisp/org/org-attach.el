@@ -42,6 +42,8 @@
 (require 'org-id)
 (require 'org)
 
+(declare-function vc-git-root "vc-git" (file))
+
 (defgroup org-attach nil
   "Options concerning entry attachments in Org-mode."
   :tag "Org Attach"
@@ -53,6 +55,15 @@ If this is a relative path, it will be interpreted relative to the directory
 where the Org file lives."
   :group 'org-attach
   :type 'directory)
+
+(defcustom org-attach-git-annex-cutoff (* 32 1024)
+  "If non-nil, files larger than this will be annexed instead of stored."
+  :group 'org-attach
+  :version "24.4"
+  :package-version '(Org . "8.0")
+  :type '(choice
+	  (const :tag "None" nil)
+	  (integer :tag "Bytes")))
 
 (defcustom org-attach-auto-tag "ATTACH"
   "Tag that will be triggered automatically when an entry has an attachment."
@@ -252,18 +263,32 @@ the ATTACH_DIR property) their own attachment directory."
 (defun org-attach-commit ()
   "Commit changes to git if `org-attach-directory' is properly initialized.
 This checks for the existence of a \".git\" directory in that directory."
-  (let ((dir (expand-file-name org-attach-directory)))
-    (when (file-exists-p (expand-file-name ".git" dir))
+  (let* ((dir (expand-file-name org-attach-directory))
+	 (git-dir (vc-git-root dir))
+	 (changes 0))
+    (when git-dir
       (with-temp-buffer
 	(cd dir)
-	(shell-command "git add .")
-	(shell-command "git ls-files --deleted" t)
-	(mapc #'(lambda (file)
-		  (unless (string= file "")
-		    (shell-command
-		     (concat "git rm \"" file "\""))))
-	      (split-string (buffer-string) "\n"))
-	(shell-command "git commit -m 'Synchronized attachments'")))))
+	(let ((have-annex
+	       (and org-attach-git-annex-cutoff
+		    (file-exists-p (expand-file-name "annex" git-dir)))))
+	  (dolist (new-or-modified
+		   (split-string
+		    (shell-command-to-string
+		     "git ls-files -zmo --exclude-standard") "\0" t))
+	    (if (and have-annex
+		     (>= (nth 7 (file-attributes new-or-modified))
+			 org-attach-git-annex-cutoff))
+		(call-process "git" nil nil nil "annex" "add" new-or-modified)
+	      (call-process "git" nil nil nil "add" new-or-modified))
+	    (incf changes)))
+	(dolist (deleted
+		 (split-string
+		  (shell-command-to-string "git ls-files -z --deleted") "\0" t))
+	  (call-process "git" nil nil nil "rm" deleted)
+	  (incf changes))
+	(when (> changes 0)
+	  (shell-command "git commit -m 'Synchronized attachments'"))))))
 
 (defun org-attach-tag (&optional off)
   "Turn the autotag on or (if OFF is set) off."
@@ -405,14 +430,14 @@ This ignores files starting with a \".\", and files ending in \"~\"."
 		(directory-files dir nil "[^~]\\'"))))
 
 (defun org-attach-reveal (&optional if-exists)
-  "Show the attachment directory of the current task in dired."
+  "Show the attachment directory of the current task.
+This will attempt to use an external program to show the directory."
   (interactive "P")
   (let ((attach-dir (org-attach-dir (not if-exists))))
     (and attach-dir (org-open-file attach-dir))))
 
 (defun org-attach-reveal-in-emacs ()
-  "Show the attachment directory of the current task.
-This will attempt to use an external program to show the directory."
+  "Show the attachment directory of the current task in dired."
   (interactive)
   (let ((attach-dir (org-attach-dir t)))
     (dired attach-dir)))

@@ -85,6 +85,12 @@ today's agenda, even if they are not scheduled."
   :version "24.1"
   :type 'character)
 
+(defcustom org-habit-show-done-always-green nil
+  "Non-nil means DONE days will always be green in the consistency graph.
+It will be green even if it was done after the deadline."
+  :group 'org-habit
+  :type 'boolean)
+
 (defface org-habit-clear-face
   '((((background light)) (:background "#8270f9"))
     (((background dark)) (:background "blue")))
@@ -272,8 +278,9 @@ Habits are assigned colors on the following basis:
       (if donep
 	  '(org-habit-ready-face . org-habit-ready-future-face)
 	'(org-habit-alert-face . org-habit-alert-future-face)))
-     (t
-      '(org-habit-overdue-face . org-habit-overdue-future-face)))))
+     ((and org-habit-show-done-always-green donep)
+      '(org-habit-ready-face . org-habit-ready-future-face))
+     (t '(org-habit-overdue-face . org-habit-overdue-future-face)))))
 
 (defun org-habit-build-graph (habit starting current ending)
   "Build a graph for the given HABIT, from STARTING to ENDING.

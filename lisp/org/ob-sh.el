@@ -27,9 +27,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
-(require 'ob-comint)
-(require 'ob-eval)
 (require 'shell)
 (eval-when-compile (require 'cl))
 
@@ -109,7 +106,7 @@ var of the same value."
   "Convert an elisp value to a string."
   (let ((echo-var (lambda (v) (if (stringp v) v (format "%S" v)))))
     (cond
-     ((and (listp var) (listp (car var)))
+     ((and (listp var) (or (listp (car var)) (equal (car var) 'hline)))
       (orgtbl-to-generic var  (list :sep (or sep "\t") :fmt echo-var)))
      ((listp var)
       (mapconcat echo-var var "\n"))
@@ -141,10 +138,8 @@ return the value of the last statement in BODY."
   ((lambda (results)
      (when results
        (let ((result-params (cdr (assoc :result-params params))))
-	 (if (or (member "scalar" result-params)
-		 (member "verbatim" result-params)
-		 (member "output" result-params))
-	     results
+	 (org-babel-result-cond result-params
+	   results
 	   (let ((tmp-file (org-babel-temp-file "sh-")))
 	     (with-temp-file tmp-file (insert results))
 	     (org-babel-import-elisp-from-file tmp-file))))))

@@ -31,7 +31,6 @@
 (unless (featurep 'xemacs)
   (require 'calc-trail)
   (require 'calc-store))
-(eval-when-compile (require 'ob-comint))
 
 (declare-function calc-store-into    "calc-store" (&optional var))
 (declare-function calc-recall        "calc-store" (&optional var))

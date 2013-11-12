@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+(require 'org-macs)
 (require 'org)
 
 ;; Customization variables

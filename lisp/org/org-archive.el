@@ -71,6 +71,15 @@ This variable is obsolete and has no effect anymore, instead add or remove
   :group 'org-archive
   :type 'boolean)
 
+(defcustom org-archive-file-header-format "\nArchived entries from file %s\n\n"
+  "The header format string for newly created archive files.
+When nil, no header will be inserted.
+When a string, a %s formatter will be replaced by the file name."
+  :group 'org-archive
+  :version "24.4"
+  :package-version '(Org . "8.0")
+  :type 'string)
+
 (defcustom org-archive-subtree-add-inherited-tags 'infile
   "Non-nil means append inherited tags when archiving a subtree."
   :group 'org-archive
@@ -278,9 +287,9 @@ this heading."
 	      (let ((org-insert-mode-line-in-empty-file t)
 		    (org-inhibit-startup t))
 		(call-interactively 'org-mode)))
-	  (when newfile-p
+	  (when (and newfile-p org-archive-file-header-format)
 	    (goto-char (point-max))
-	    (insert (format "\nArchived entries from file %s\n\n"
+	    (insert (format org-archive-file-header-format
 			    (buffer-file-name this-buffer))))
 	  (when datetree-date
 	    (require 'org-datetree)

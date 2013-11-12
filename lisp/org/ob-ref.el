@@ -40,7 +40,7 @@
 ;; So an example of a simple src block referencing table data in the
 ;; same file would be
 
-;;  #+TBLNAME: sandbox
+;;  #+NAME: sandbox
 ;;  | 1 |         2 | 3 |
 ;;  | 4 | org-babel | 6 |
 ;;
@@ -49,7 +49,7 @@
 ;;  #+end_src
 
 ;;; Code:
-(require 'ob)
+(require 'ob-core)
 (eval-when-compile
   (require 'cl))
 
@@ -83,7 +83,10 @@ the variable."
     (let ((var (match-string 1 assignment))
 	  (ref (match-string 2 assignment)))
       (cons (intern var)
-	    (let ((out (org-babel-read ref)))
+	    (let ((out (save-excursion
+			 (when org-babel-current-src-block-location
+			   (goto-char org-babel-current-src-block-location))
+			 (org-babel-read ref))))
 	      (if (equal out ref)
 		  (if (string-match "^\".*\"$" ref)
 		      (read ref)

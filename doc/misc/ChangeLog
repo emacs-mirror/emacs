@@ -1,3 +1,483 @@
+2013-11-12  Aaron Ecay  <aaronecay@gmail.com>
+
+	* org.texi (Exporting code blocks): Document the 'inline-only
+	setting for `org-export-babel-evaluate'.  Document how :var
+	introduces code block dependencies.
+
+2013-11-12  Achim Gratz  <Stromeko@Stromeko.DE>
+
+	* org.texi (Header arguments): Document header-args[:lang]
+	properties and remove deprecated old-style properties from
+	documentation.
+
+	* org.texi (Agenda commands): Remove footnote from @tsubheading
+	and add a sentence with the reference instead.
+
+2013-11-12  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Catching invisible edits):
+	* org.texi (Plain lists, Plain lists):
+	* org.texi (Advanced configuration):
+	* org.texi (Tag groups):
+	* org.texi (Conventions):
+	* org.texi (Checkboxes, Radio lists):
+	* org.texi (Top, Summary, Exporting):
+	* org.texi (In-buffer settings): Fix typos.
+
+	* org.texi (Refile and copy): Document `org-copy' and `C-3 C-c
+	C-w'.  Add an index entry for `org-refile-keep'.
+
+	* org.texi (Plain lists): Add an index entry for sorting plain
+	list.  Document sorting by checked status for check lists.
+
+	* org.texi (Publishing options): Fix old variable names.
+
+	* org.texi (Orgstruct mode): Fix suggested setting of
+	`orgstruct-heading-prefix-regexp'.
+
+	* org.texi (Export settings): Document
+	`org-export-allow-bind-keywords'.
+
+	* org.texi (History and Acknowledgments): Small rephrasing.
+
+	* org.texi (Template elements): Add a footnote about tags accepted
+	in a year datetree.
+
+	* org.texi (Beamer export, @LaTeX{} and PDF export)
+	(Header and sectioning, @LaTeX{} specific attributes): Enhance
+	style.
+
+	* org.texi (Agenda commands): Add a footnote about dragging agenda
+	lines: it does not persist and it does not change the .org files.
+
+	* org.texi (Agenda commands): Add a table heading for dragging
+	agenda lines forward/backward.
+
+	* org.texi (Agenda commands): Add documentation for
+	`org-agenda-bulk-toggle' and `org-agenda-bulk-toggle-all'.
+
+	* org.texi (Publishing options): Update the list of options.
+	(Simple example, Complex example): Fix the examples.
+
+	* org.texi (Formula syntax for Calc): Don't use a bold font the
+	warning.
+
+	* org.texi (Other built-in back-ends): New section.
+
+	* org.texi (Editing source code): Document
+	`org-edit-src-auto-save-idle-delay' and
+	`org-edit-src-turn-on-auto-save'.
+
+	* org.texi (External links): Document contributed link types
+	separately.
+
+	* org.texi (Closing items): Document
+	`org-closed-keep-when-no-todo'.
+
+	* org.texi (Export back-ends): Rename from "Export formats".
+	(The Export Dispatcher): Remove reference to
+	`org-export-run-in-background'.
+	(Export settings): Minor rewrites.
+	(ASCII/Latin-1/UTF-8 export): Update variable's name.
+	(In-buffer settings): Add #+HTML_HEAD_EXTRA.
+
+	* org.texi (Export in foreign buffers): New section.
+	(Exporting): Remove documentation about converting the selected
+	region.
+
+	* org.texi (Advanced configuration): Put the filter valid types in
+	a table.  Use @lisp and @smalllisp.
+
+	* org.texi: Use @code{nil} instead of nil.  Update the maintainer
+	contact info.
+
+	* org.texi (Exporting): Better introductory sentence.  Add a note
+	about conversion commands.
+	(Feedback, Orgstruct mode, Built-in table editor)
+	(Built-in table editor, Orgtbl mode, Updating the table)
+	(Property syntax, Capturing column view, Capture)
+	(Agenda files, Agenda commands, CDLaTeX mode, CDLaTeX mode)
+	(Exporting, Extending ODT export)
+	(Working with @LaTeX{} math snippets, dir, Customization)
+	(Radio tables, A @LaTeX{} example, Pulling from MobileOrg):
+	Uniformly use @kbd{M-x command RET}.
+
+	* org.texi (Filtering/limiting agenda items): New subsection.
+	Document the use of `org-agenda-max-*' options and
+	`org-agenda-limit-interactively' from the agenda.
+	(Agenda commands): Move details about filtering commands to
+	the new section, only include a summary here.
+	(Customizing tables in ODT export)
+	(System-wide header arguments, Conflicts, Dynamic blocks): Use
+	spaces for indentation.
+
+	* org.texi (Emphasis and monospace): Mention `org-emphasis-alist'.
+
+	* org.texi (Links in HTML export, Images in HTML export)
+	(post): Fix syntax within #+ATTR_*.
+	(Tables in HTML export): Document `org-html-table-row-tags'
+	and use `org-html-table-default-attributes' instead of
+	`org-html-table-tag'.
+
+	* org.texi (Publishing action, Publishing options)
+	(Publishing links): Major rewrite.  Enhance explanations for
+	`org-org-publish-to-org'.  Remove reference to
+	`org-export-run-in-background'.
+
+	* org.texi: Fix many small typos.  Use #+NAME instead of
+	#+TBLNAME.  Use @smalllisp instead of @example.
+	(Special symbols): Add index?
+	(HTML preamble and postamble): Don't mention obsolete use of
+	opt-plist.
+	(JavaScript support): Don't mention the org-jsinfo.el file as it
+	has been merged with ox-html.el.
+
+	* org.texi (Installation, Feedback, Setting Options)
+	(Code evaluation security, org-crypt.el): Use @lisp instead of
+	@example.
+	(Agenda commands): Use @table instead of @example.
+
+	* org.texi (Adding hyperlink types): New appendix.
+
+	* org.texi (ODT export commands, Extending ODT export)
+	(Applying custom styles, Images in ODT export)
+	(Labels and captions in ODT export)
+	(Literal examples in ODT export)
+	(Configuring a document converter)
+	(Working with OpenDocument style files)
+	(Customizing tables in ODT export)
+	(Validating OpenDocument XML): Fix options names.
+
+	* org.texi (History and Acknowledgments): Update acknowledgments
+	to Nicolas.  Add Nicolas Goaziou to the list of contributors.
+
+	* org.texi (System-wide header arguments): Don't use "customizing"
+	for setting a variable.  Also remove comments.
+
+	* org.texi (Weekly/daily agenda): Add `org-agenda-start-day' and
+	`org-agenda-start-on-weekday' to the variable index and document
+	them.
+
+	* org.texi (Sparse trees, Agenda commands)
+	(@LaTeX{} fragments, Selective export, Export options)
+	(The export dispatcher, ASCII/Latin-1/UTF-8 export)
+	(HTML Export commands, @LaTeX{}/PDF export commands)
+	(iCalendar export, Publishing options, Triggering publication)
+	(In-buffer settings): Update to reflect changes from the new
+	export engine.
+
+	* org.texi (Matching tags and properties): More examples.  Explain
+	group tags expansion as regular expressions.
+
+	* org.texi (Tag groups): New section.
+
+	* org.texi (Setting tags): Tiny formatting fixes.
+
+	* org.texi (Plain lists, Checkboxes): Use non-obsolete variable
+	names.
+
+	* org.texi (Storing searches): Add "agenda" and "agenda*" to the
+	concept index.  Include example for these agenda views.
+	(Special agenda views): Mention the "agenda*" agenda view.
+
+	* org.texi (Repeated tasks): Document how to ignore a repeater
+	when using both a scheduled and a deadline timetamp.
+
+	* org.texi (Global and local cycling): Wrap in a new subsection.
+	(Initial visibility, Catching invisible edits): New subsections.
+
+	* org.texi (Visibility cycling): Mention that
+	`org-agenda-inhibit-startup' will prevent visibility setting when
+	the agenda opens an Org file for the first time.
+
+	* org.texi (Org syntax): New section.
+
+	* org.texi (Orgstruct mode): Document
+	`orgstruct-heading-prefix-regexp'.
+
+	* org.texi (Speeding up your agendas): New section.
+
+	* org.texi (Installation): When installing Org from ELPA, users
+	should do this from an Emacs session where no .org file has been
+	visited.
+
+	* org.texi (CSS support, In-buffer settings): Update HTML options
+	names.
+
+	* org.texi (Structure editing): Update documentation for
+	`org-insert-heading-or-item'.
+	(Plain lists, Relative timer): Update index entry.
+
+	* org.texi (JavaScript support): Update variable names.
+
+	* org.texi (comments): Minor formatting fix.
+
+	* org.texi (@LaTeX{} fragments): Minor enhancement.
+
+	* org.texi: Update the list contributions.
+
+	* org.texi (Agenda commands): Exporting the agenda to an .org file
+	will not copy the subtrees and the inherited tags.  Document
+	`org-agenda-filter-by-regexp'.
+
+	* org.texi (Publishing action, Complex example): Fix names of
+	publishing functions.
+
+	* org.texi (Top, Exporting): Delete references to Freemind.
+	(Freemind export): Delete section.
+
+	* org.texi (Top, Exporting): Delete references to the XOXO export.
+	(XOXO export): Delete section.
+
+	* org.texi (Capture): Mention that org-remember.el is not
+	supported anymore.
+
+	* org.texi (Top, Exporting, Beamer class export): Delete
+	references to the TaskJuggler export.
+	(History and Acknowledgments): Mention that the TaskJuggler has
+	been rewritten by Nicolas and now lives in the contrib/ directory
+	of Org's distribution.  Mention that Jambunathan rewrote the HTML
+	exporter.  Remove Jambunathan from my own acknowledgments.
+	(TaskJuggler export): Delete.
+
+	* org.texi (HTML preamble and postamble)
+	(Tables in HTML export, Images in HTML export)
+	(Math formatting in HTML export, CSS support)
+	(@LaTeX{} and PDF export, Publishing options): Fix the names of
+	the HTML export and publishing options.
+
+	* org.texi (Literal examples, Export options)
+	(@LaTeX{} and PDF export, Header and sectioning)
+	(Publishing options): Fix LaTeX options names.
+
+	* org.texi (Export options, CSS support, In-buffer settings): Fix
+	references to HTML_LINK_* and HTML_STYLE keywords.
+
+	* org.texi (Export options, In-buffer settings): Fix references to
+	#+SELECT_TAGS and #+EXCLUDE_TAGS and remove reference to #+XSLT.
+
+	* org.texi (Top, Markup, Initial text, Images and tables)
+	(@LaTeX{} fragments, @LaTeX{} fragments, Exporting)
+	(Export options, JavaScript support, Beamer class export): Remove
+	references to the DocBook export, which has been deleted.
+	(History and Acknowledgments): Mention that DocBook has been
+	deleted, suggest to use the Texinfo exporter instead, then to
+	convert the .texi to DocBook with makeinfo.
+	(Links in ODT export, Tables in ODT export): Fix indices.
+
+	* org.texi (Deadlines and scheduling): Add a variable to the
+	index.  Add documentation about delays for scheduled tasks.
+
+	* org.texi (Emphasis and monospace): Mention
+	`org-fontify-emphasized-text' and
+	`org-emphasis-regexp-components'.
+
+	* org.texi (References): Small enhancement.
+
+	* org.texi (Column width and alignment): Make the example visually
+	more clear.
+
+	* org.texi (The clock table): Document :mstart and :wstart as a
+	way to set the starting day of the week.
+
+	* org.texi (In-buffer settings): Document new startup keywords.
+	Thanks to John J Foerch for this idea.
+
+	* org.texi (Include files): Tiny formatting fix.
+
+	* org.texi (Activation): Point to the "Conflicts" section.
+
+2013-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (CSS support): Clarify this section.
+
+	* org.texi (@LaTeX{} specific attributes): Document that tabu and
+	tabularx packages are not in the default set of packages.
+
+	* org.texi (Agenda commands): Document fortnight view.
+
+	* org.texi: Document conflict with ecomplete.el.
+
+	* org.texi (History and Acknowledgments): Acknowledgements for
+	Jason Dunsmore and Rakcspace.
+
+	* org.texi: Rename org-crypt.el node to org-crypt.
+
+	* org.texi (A @LaTeX{} example): Fix typo in variable name.
+
+	* org.texi (MobileOrg): Mention the new iPhone developer.
+
+	* org.texi (Table of contents) Improve documentation of TOC
+	placement.
+
+	* org.texi: Explain that date/time information at read-date prompt
+	should start at the beginning, not anywhere in the middle of a
+	long string.
+
+2013-11-12  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* org.texi (Orgstruct mode): Fix wrong regexp.
+
+2013-11-12  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* org.texi: Document export to (X)HTML flavors.
+
+2013-11-12  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Extracting source code): Mention the prefix argument
+	to org-babel-tangle.
+	(noweb): Removed erroneous negative.
+	(Specific header arguments): Document new header arguments.
+	Documentation for new tangle-mode header argument.
+	(Top): Documentation for new tangle-mode header argument.
+	(rownames): Documentation for new tangle-mode header argument.
+	Mention elisp as special rowname case.
+	(tangle-mode): Documentation for new tangle-mode header argument.
+	(post): Documentation and an example of usage.
+	(var): Remove the "Alternate argument syntax" section from the
+	documentation.
+	(hlines): Note that :hline has no effect for Emacs Lisp code
+	blocks.
+
+2013-11-12  Feng Shu  <tumashu@gmail.com>
+
+	* org.texi (@LaTeX{} fragments, Previewing @LaTeX{} fragments)
+	(Math formatting in HTML export)
+	(Working with @LaTeX{} math snippets): Add document about creating
+	formula image with imagemagick.
+
+	* org.texi (@LaTeX{} specific attributes): Document `:caption'
+	attribute of #+ATTR_LATEX.
+
+2013-11-12  Grégoire Jadi  <gregoire.jadi@gmail.com>
+
+	* org.texi (Handling links): Fix a typo in
+	`org-startup-with-inline-images' documentation.
+
+	* org.texi (Previewing @LaTeX{} fragments): Document the startup
+	keywords to use for previewing LaTeX fragments or not.
+	(Summary of in-buffer settings): Improve formatting and add an
+	entry for the variable `org-startup-with-latex-preview'.
+
+	* org.texi (Property syntax): Recall the user to refresh the org
+	buffer when properties are set on a per-file basis.
+
+2013-11-12  Gustav Wikström  <gustav.erik@gmail.com>  (tiny change)
+
+	* org.texi (Matching tags and properties): Clarification.
+
+2013-11-12  Ippei Furuhashi  <top.tuna+orgmode@gmail.com>
+
+	* org.texi (Editing and debugging formulas): Add an example when a
+	table has multiple #+TBLFM lines.
+
+2013-11-12  Ivan Vilata i Balaguer  <ivan@selidor.net>  (tiny change)
+
+	* org.texi (The clock table): Document acceptance of relative
+	times in tstart and tend, link to syntax description and provide
+	example.
+
+2013-11-12  Jarmo Hurri  <jarmo.hurri@syk.fi>
+
+	* org.texi (The spreadsheet): Document lookup functions.
+
+2013-11-12  Kodi Arfer  <git@arfer.net>  (tiny change)
+
+	* org.text (CSS support): Mention .figure-number, .listing-number,
+	and .table-number.
+
+2013-11-12  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org.texi
+	(Formula syntax for Calc, Emacs Lisp forms as formulas): Reformat
+	spreadsheet formula mode strings and some examples from @example
+	block with xy @r{yz} to @table.
+
+	* org.texi (Formula syntax for Calc): Improve the documentation of
+	empty fields in formulas for spreadsheet.  Add explanation and
+	example for empty field.  Extend explanations of format
+	specifiers.  Add a sentence to mention Calc defmath.
+
+	* org.texi (Column formulas): Add a sentence to be more explicit
+	about when a table header is mandatory.
+
+2013-11-12  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Subscripts and superscripts): Remove reference to
+	quoted underscores until this mechanism is implemented again.
+
+	* org.texi (Beamer export): Be more accurate about BEAMER_OPT
+	property.
+
+	* org.texi (Document title): Subtree export is no longer triggered
+	by marking one as the region.
+	(Horizontal rules): LaTeX export doesn't use "\hrule" anymore, and
+	giving examples isn't very useful: "horizontal rule" is, at least,
+	as explicit as <hr/>.
+
+	* org.texi (HTML doctypes): Reflect keyword removal.
+	(CSS support): Reflect keyword removal.
+
+	* org.texi (@LaTeX{} specific attributes): Document new :float
+	values.
+
+	* org.texi (Export settings): Improve documentation.
+
+	* org.texi (Math formatting in HTML export): Fix OPTIONS item's name.
+	(Text areas in HTML export): Update text areas.
+	(HTML Export commands): Update export commands.
+
+	* org.texi (Header and sectioning): Add a footnote about the
+	different between LATEX_HEADER_EXTRA and LATEX_HEADER.
+
+	* org.texi (The Export Dispatcher): Document
+	`org-export-in-background'.
+
+	* org.texi (Footnotes): Export back-ends do not use
+	`org-footnote-normalize' anymore.
+
+	* org.texi: Document variable changes.
+
+	* org.texi (Export settings): Doument p: item in OPTIONS keyword.
+
+	* org.texi (Exporting): Massive rewrite of the first sections.
+	(Selective export): Delete.
+	(The Export Dispatcher): Rewrite.
+	(Export options): Rewrite as "Export settings".
+
+	* org.texi: Small changes to documentation for embedded LaTeX.
+
+	* org.texi (Internal links): Document #+NAME keyword and
+	cross-referencing during export.
+
+	* org.texi (Include files): Remove reference to :prefix1
+	and :prefix.  Give more details for :minlevel.
+
+	* org.texi (Macro replacement): Fix macro name.  Update
+	documentation about possible locations and escaping mechanism.
+
+	* org.texi (Table of contents): Update documentation.  Document
+	lists of listings and lists of tables.  Add documentation for
+	optional title and #+TOC: keyword.
+
+2013-11-12  Rick Frankel  <rick@rickster.com>
+
+	* org.texi (results): Add Format section, broken out of Type
+	section to match code.
+	(hlines, colnames): Remove incorrect Emacs Lisp exception.  Note
+	that the actual default handling (at least for python and
+	emacs-lisp) does not seem to match the description.
+
+2013-11-12  Sacha Chua  <sacha@sachachua.com>  (tiny change)
+
+	* org.texi (The date/time prompt): Update the documentation to
+	reflect the new way `org-read-date-get-relative' handles weekdays.
+
+2013-11-12  Yasushi Shoji  <yashi@atmark-techno.com>
+
+	* org.texi (Resolving idle time): Document
+	`org-clock-x11idle-program-name'.
+
 2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ert.texi (Running Tests Interactively): Adapt examle output.
