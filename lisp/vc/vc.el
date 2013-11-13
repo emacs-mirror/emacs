@@ -755,13 +755,6 @@ not specific to any particular backend."
   :group 'vc
   :version "21.1")
 
-(defcustom vc-diff-knows-L nil
-  "Indicates whether diff understands the -L option.
-The value is either `yes', `no', or nil.  If it is nil, VC tries
-to use -L and sets this variable to remember whether it worked."
-  :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc)
-
 (defcustom vc-log-show-limit 2000
   "Limit the number of items shown by the VC log commands.
 Zero means unlimited.
