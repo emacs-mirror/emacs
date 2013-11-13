@@ -319,8 +319,26 @@ being the result.")
     (should (string-equal
 	     (file-remote-p "/method:user@1.2.3.4:" 'localname) ""))
 
-    ;; This does not work.  Why?
-    ;(should (file-remote-p "/[]:"))
+    ;; Expand `tramp-default-method', `tramp-default-user' and
+    ;; `tramp-default-host'.
+    (should (string-equal
+	     (file-remote-p "/[]:")
+	     (format
+	      "/%s:%s@%s:" "default-method" "default-user" "default-host")))
+    (should (string-equal (file-remote-p "/[]:" 'method) "default-method"))
+    (should (string-equal (file-remote-p "/[]:" 'user) "default-user"))
+    (should (string-equal (file-remote-p "/[]:" 'host) "default-host"))
+    (should (string-equal (file-remote-p "/[]:" 'localname) ""))
+
+    ;; Expand `tramp-default-method' and `tramp-default-user'.
+    (let ((tramp-default-host "::1"))
+      (should (string-equal
+	       (file-remote-p "/[]:")
+	       (format "/%s:%s@%s:" "default-method" "default-user" "[::1]")))
+      (should (string-equal (file-remote-p "/[]:" 'method) "default-method"))
+      (should (string-equal (file-remote-p "/[]:" 'user) "default-user"))
+      (should (string-equal (file-remote-p "/[]:" 'host) "::1"))
+      (should (string-equal (file-remote-p "/[]:" 'localname) "")))
 
     ;; Expand `tramp-default-method' and `tramp-default-user'.
     (should (string-equal
@@ -436,19 +454,21 @@ being the result.")
   (dolist (u '("ftp" "anonymous"))
     (should (string-equal (file-remote-p (format "/%s@:" u) 'method) "ftp")))
   ;; Default values in tramp-gvfs.el.
-  ;(should (string-equal (file-remote-p "/synce::" 'user) nil))
+  (when (and (load "tramp-gvfs" 'noerror 'nomessage)
+	     (symbol-value 'tramp-gvfs-enabled))
+    (should (string-equal (file-remote-p "/synce::" 'user) nil)))
   ;; Default values in tramp-gw.el.
   (dolist (m '("tunnel" "socks"))
-    (should (string-equal (file-remote-p (format "/%s::" m) 'user)
-			  (user-login-name))))
+    (should
+     (string-equal (file-remote-p (format "/%s::" m) 'user) (user-login-name))))
   ;; Default values in tramp-sh.el.
   (dolist (h `("127.0.0.1" "[::1]" "localhost" "localhost6" ,(system-name)))
     (should (string-equal (file-remote-p (format "/root@%s:" h) 'method) "su")))
   (dolist (m '("su" "sudo" "ksu"))
     (should (string-equal (file-remote-p (format "/%s::" m) 'user) "root")))
   (dolist (m '("rcp" "remcp" "rsh" "telnet" "krlogin" "fcp"))
-    (should (string-equal (file-remote-p (format "/%s::" m) 'user)
-			  (user-login-name))))
+    (should
+     (string-equal (file-remote-p (format "/%s::" m) 'user) (user-login-name))))
   ;; Default values in tramp-smb.el.
   (should (string-equal (file-remote-p "/user%domain@host:" 'method) "smb"))
   (should (string-equal (file-remote-p "/smb::" 'user) nil)))
@@ -456,65 +476,75 @@ being the result.")
 (ert-deftest tramp-test04-substitute-in-file-name ()
   "Check `substitute-in-file-name'."
   (should (string-equal (substitute-in-file-name "/method:host://foo") "/foo"))
-  (should (string-equal
-	   (substitute-in-file-name "/method:host:/path//foo")
-	   "/method:host:/foo"))
-  (should (string-equal
-	   (substitute-in-file-name "/method:host:/path///foo")	"/foo"))
-  (should (string-equal
-	   (substitute-in-file-name "/method:host:/path/~/foo")
-	   "/method:host:~/foo"))
-  (should (string-equal
-	   (substitute-in-file-name "/method:host:/path//~/foo") "~/foo"))
+  (should
+   (string-equal
+    (substitute-in-file-name "/method:host:/path//foo") "/method:host:/foo"))
+  (should
+   (string-equal (substitute-in-file-name "/method:host:/path///foo")	"/foo"))
+  (should
+   (string-equal
+    (substitute-in-file-name "/method:host:/path/~/foo") "/method:host:~/foo"))
+  (should
+   (string-equal (substitute-in-file-name "/method:host:/path//~/foo") "~/foo"))
   (let (process-environment)
     (should
-     (string-equal (substitute-in-file-name "/method:host:/path/$FOO")
-		   "/method:host:/path/$FOO"))
+     (string-equal
+      (substitute-in-file-name "/method:host:/path/$FOO")
+      "/method:host:/path/$FOO"))
     (setenv "FOO" "bla")
-    (should (string-equal
-	     (substitute-in-file-name "/method:host:/path/$FOO")
-	     "/method:host:/path/bla"))
-    (should (string-equal
-	     (substitute-in-file-name "/method:host:/path/$$FOO")
-	     "/method:host:/path/$FOO"))))
+    (should
+     (string-equal
+      (substitute-in-file-name "/method:host:/path/$FOO")
+      "/method:host:/path/bla"))
+    (should
+     (string-equal
+      (substitute-in-file-name "/method:host:/path/$$FOO")
+      "/method:host:/path/$FOO"))))
 
 (ert-deftest tramp-test05-expand-file-name ()
   "Check `expand-file-name'."
-  (should (string-equal
-	   (expand-file-name "/method:host:/path/./file")
-	   "/method:host:/path/file"))
-  (should (string-equal
-	   (expand-file-name "/method:host:/path/../file")
-	   "/method:host:/file")))
+  (should
+   (string-equal
+    (expand-file-name "/method:host:/path/./file") "/method:host:/path/file"))
+  (should
+   (string-equal
+    (expand-file-name "/method:host:/path/../file") "/method:host:/file")))
 
 (ert-deftest tramp-test06-directory-file-name ()
   "Check `directory-file-name'.
 This checks also `file-name-as-directory', `file-name-directory'
 and `file-name-nondirectory'."
-  (should (string-equal
-	   (directory-file-name "/method:host:/path/to/file")
-	   "/method:host:/path/to/file"))
-  (should (string-equal
-	   (directory-file-name "/method:host:/path/to/file/")
-	   "/method:host:/path/to/file"))
-  (should (string-equal
-	   (file-name-as-directory "/method:host:/path/to/file")
-	   "/method:host:/path/to/file/"))
-  (should (string-equal
-	   (file-name-as-directory "/method:host:/path/to/file/")
-	   "/method:host:/path/to/file/"))
-  (should (string-equal
-	   (file-name-directory "/method:host:/path/to/file")
-	   "/method:host:/path/to/"))
-  (should (string-equal
-	   (file-name-directory "/method:host:/path/to/file/")
-	   "/method:host:/path/to/file/"))
-  (should (string-equal
-	   (file-name-nondirectory "/method:host:/path/to/file") "file"))
-  (should (string-equal
-	   (file-name-nondirectory "/method:host:/path/to/file/") ""))
-  (should-not (file-remote-p
-	       (unhandled-file-name-directory "/method:host:/path/to/file"))))
+  (should
+   (string-equal
+    (directory-file-name "/method:host:/path/to/file")
+    "/method:host:/path/to/file"))
+  (should
+   (string-equal
+    (directory-file-name "/method:host:/path/to/file/")
+    "/method:host:/path/to/file"))
+  (should
+   (string-equal
+    (file-name-as-directory "/method:host:/path/to/file")
+    "/method:host:/path/to/file/"))
+  (should
+   (string-equal
+    (file-name-as-directory "/method:host:/path/to/file/")
+    "/method:host:/path/to/file/"))
+  (should
+   (string-equal
+    (file-name-directory "/method:host:/path/to/file")
+    "/method:host:/path/to/"))
+  (should
+   (string-equal
+    (file-name-directory "/method:host:/path/to/file/")
+    "/method:host:/path/to/file/"))
+  (should
+   (string-equal (file-name-nondirectory "/method:host:/path/to/file") "file"))
+  (should
+   (string-equal (file-name-nondirectory "/method:host:/path/to/file/") ""))
+  (should-not
+   (file-remote-p
+    (unhandled-file-name-directory "/method:host:/path/to/file"))))
 
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
@@ -872,7 +902,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-exists-p tmp-name1))
 	  (make-symbolic-link tmp-name1 tmp-name2)
 	  (should (file-symlink-p tmp-name2))
-	  (should (string-equal (file-truename tmp-name2) tmp-name1)))
+	  (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
+	  (should
+	   (string-equal (file-truename tmp-name1) (file-truename tmp-name2))))
       (delete-file tmp-name1)
       (delete-file tmp-name2))))
 
@@ -955,15 +987,20 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test26-process-file ()
   "Check `process-file'."
   (skip-unless (tramp--test-enabled))
-  (let ((default-directory tramp-test-temporary-file-directory))
-    ;; We cannot use "/bin/true" and "/bin/false"; those paths do not
-    ;; exist on hydra.
-    (should (zerop (process-file "true")))
-    (should-not (zerop (process-file "false")))
-    (should-not (zerop (process-file "binary-does-not-exist")))
-    (with-temp-buffer
-      (should (zerop (process-file "ls" nil t)))
-      (should (> (point-max) (point-min))))))
+  (let ((tmp-name (tramp--test-make-temp-name))
+	(default-directory tramp-test-temporary-file-directory))
+    (unwind-protect
+	(progn
+	  ;; We cannot use "/bin/true" and "/bin/false"; those paths
+	  ;; do not exist on hydra.
+	  (should (zerop (process-file "true")))
+	  (should-not (zerop (process-file "false")))
+	  (should-not (zerop (process-file "binary-does-not-exist")))
+	  (with-temp-buffer
+	    (write-region "foo" nil tmp-name)
+	    (should (zerop (process-file "ls" nil t)))
+	    (should (> (point-max) (point-min)))))
+      (delete-file tmp-name))))
 
 (ert-deftest tramp-test27-start-file-process ()
   "Check `start-file-process'."
@@ -1011,10 +1048,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test28-shell-command ()
   "Check `shell-command'."
   (skip-unless (tramp--test-enabled))
-  (let ((default-directory tramp-test-temporary-file-directory))
-    (with-temp-buffer
-      (shell-command "ls" (current-buffer))
-      (should (> (point-max) (point-min))))))
+  (let ((tmp-name (tramp--test-make-temp-name))
+	(default-directory tramp-test-temporary-file-directory))
+    (unwind-protect
+	(with-temp-buffer
+	  (write-region "foo" nil tmp-name)
+	  (shell-command "ls" (current-buffer))
+	  (should (> (point-max) (point-min))))
+      (delete-file tmp-name))))
 
 ;; TODO:
 

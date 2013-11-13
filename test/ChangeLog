@@ -1,3 +1,13 @@
+2013-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test02-events)
+	(file-notify-test03-autorevert): Suppress messages in `write-region'.
+
+	* automated/tramp-tests.el (tramp-test02-file-name-dissect)
+	(tramp-test03-file-name-defaults, tramp-test21-file-links): Add tests.
+	(tramp-test26-process-file, tramp-test28-shell-command): Ensure,
+	that the directory is not empty when calling "ls".
+
 2013-11-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test-temporary-file-directory):

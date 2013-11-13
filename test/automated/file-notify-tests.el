@@ -189,16 +189,19 @@ Save the result in `file-notify--test-results', for later analysis."
 		 '(change) 'file-notify--test-event-handler))
 
 	  ;; Check creation and removal.
-	  (write-region "any text" nil file-notify--test-tmpfile)
+	  (write-region
+	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (delete-file file-notify--test-tmpfile)
 
 	  ;; Check copy and rename.
-	  (write-region "any text" nil file-notify--test-tmpfile)
+	  (write-region
+	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  (delete-file file-notify--test-tmpfile)
 	  (delete-file file-notify--test-tmpfile1)
 
-	  (write-region "any text" nil file-notify--test-tmpfile)
+	  (write-region
+	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  (delete-file file-notify--test-tmpfile1))
 
@@ -234,7 +237,8 @@ This test is skipped in batch mode."
 	(progn
 	  (setq file-notify--test-tmpfile (file-notify--test-make-temp-name))
 
-	  (write-region "any text" nil file-notify--test-tmpfile)
+	  (write-region
+	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (setq buf (find-file-noselect file-notify--test-tmpfile))
 	  (with-current-buffer buf
 	    (should (string-equal (buffer-string) "any text"))
