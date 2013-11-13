@@ -1,3 +1,17 @@
+2013-11-13  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event:sync-to-org)
+	(gnus-icalendar-event:inline-org-buttons): Allow for appointment
+	cancellations to be synced to org if the original appt has an org
+	outline.
+
+2013-11-13  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar--format-summary-line)
+	(gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event)
+	(gnus-icalendar-event->gnus-calendar): Fix empty location handling.
+
 2013-11-12  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event-from-ical):
