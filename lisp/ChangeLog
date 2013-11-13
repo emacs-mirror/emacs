@@ -1,5 +1,8 @@
 2013-11-13  Glenn Morris  <rgm@gnu.org>
 
+	* arc-mode.el (archive-7z-extract, archive-7z-expunge)
+	(archive-7z-update): Avoid custom type mismatches.
+
 	* vc/vc.el (vc-diff-knows-L): Remove; unused since 2007-10-10.
 
 2013-11-13  Michael Albinus  <michael.albinus@gmx.de>

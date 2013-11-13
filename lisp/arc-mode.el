@@ -1,7 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -326,7 +325,7 @@ Archive and member name will be added."
 ;; 7z archive configuration
 
 (defcustom archive-7z-extract
-  `(,archive-7z-program "x" "-so")
+  `(,(or archive-7z-program "7z") "x" "-so")
   "Program and its options to run in order to extract a 7z file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
@@ -338,7 +337,7 @@ be added."
   :group 'archive-7z)
 
 (defcustom archive-7z-expunge
-  `(,archive-7z-program "d")
+  `(,(or archive-7z-program "7z") "d")
   "Program and its options to run in order to delete 7z file members.
 Archive and member names will be added."
   :version "24.1"
@@ -349,7 +348,7 @@ Archive and member names will be added."
   :group 'archive-7z)
 
 (defcustom archive-7z-update
-  `(,archive-7z-program "u")
+  `(,(or archive-7z-program "7z") "u")
   "Program and its options to run in order to update a 7z file member.
 Options should ensure that specified directory will be put into the 7z
 file.  Archive and member name will be added."
