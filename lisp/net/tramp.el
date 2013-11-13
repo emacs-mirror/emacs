@@ -848,7 +848,7 @@ Derived from `tramp-postfix-host-format'.")
    "\\(?:" "\\("   tramp-method-regexp "\\)" tramp-postfix-method-regexp "\\)?"
    "\\(?:" "\\("   tramp-user-regexp   "\\)" tramp-postfix-user-regexp   "\\)?"
    "\\("   "\\(?:" tramp-host-regexp   "\\|"
-	           tramp-prefix-ipv6-regexp  tramp-ipv6-regexp
+	           tramp-prefix-ipv6-regexp  "\\(?:" tramp-ipv6-regexp "\\)?"
 		 			     tramp-postfix-ipv6-regexp "\\)"
 	   "\\(?:" tramp-prefix-port-regexp  tramp-port-regexp "\\)?" "\\)?")
 "Regular expression matching a Tramp file name between prefix and postfix.")

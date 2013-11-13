@@ -1009,6 +1009,7 @@ is no information where to trace the message.")
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   ;; gvfs-* output is hard to parse.  So we let `ls-lisp' do the job.
+  (unless switches (setq switches ""))
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
       (require 'ls-lisp)
@@ -1075,7 +1076,7 @@ is no information where to trace the message.")
 	  (tramp-flush-file-property v localname))))))
 
 (defun tramp-gvfs-handle-write-region
-  (start end filename &optional _append visit _lockname confirm)
+  (start end filename &optional append visit lockname confirm)
   "Like `write-region' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
@@ -1084,7 +1085,16 @@ is no information where to trace the message.")
 	(tramp-error v 'file-error "File not overwritten")))
 
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (write-region start end tmpfile)
+      (when (and append (file-exists-p filename))
+	(copy-file filename tmpfile 'ok))
+      ;; We say `no-message' here because we don't want the visited file
+      ;; modtime data to be clobbered from the temp file.  We call
+      ;; `set-visited-file-modtime' ourselves later on.
+      (tramp-run-real-handler
+       'write-region
+       (if confirm ; don't pass this arg unless defined for backward compat.
+	   (list start end tmpfile append 'no-message lockname confirm)
+	 (list start end tmpfile append 'no-message lockname)))
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
