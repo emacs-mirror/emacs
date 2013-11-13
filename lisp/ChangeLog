@@ -1,5 +1,8 @@
 2013-11-13  Glenn Morris  <rgm@gnu.org>
 
+	* replace.el (replace-eval-replacement):
+	Try to give more helpful error message.  (Bug#15836)
+
 	* arc-mode.el (archive-7z-extract, archive-7z-expunge)
 	(archive-7z-update): Avoid custom type mismatches.
 
