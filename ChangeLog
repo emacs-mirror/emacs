@@ -1,3 +1,7 @@
+2013-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ACLOCAL_INPUTS): Add configure.ac.
+
 2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* configure.ac [MINGW32]: Source nt/mingw-cfg.site.
