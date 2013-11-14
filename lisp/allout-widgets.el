@@ -90,7 +90,6 @@
 
 ;;;_ : USER CUSTOMIZATION VARIABLES and incidental functions:
 ;;;_  > defgroup allout-widgets
-;;;###autoload
 (defgroup allout-widgets nil
   "Allout extension that highlights outline structure graphically.
 
