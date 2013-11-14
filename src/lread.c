@@ -2577,9 +2577,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  if (c == '"')
 	    {
 	      Lisp_Object tmp, val;
-	      EMACS_INT size_in_chars
-		= ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		   / BOOL_VECTOR_BITS_PER_CHAR);
+	      EMACS_INT size_in_chars = bool_vector_bytes (XFASTINT (length));
 	      unsigned char *data;
 
 	      UNREAD (c);
@@ -2594,7 +2592,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 			    == (SCHARS (tmp) - 1) * BOOL_VECTOR_BITS_PER_CHAR)))
 		invalid_syntax ("#&...");
 
-	      val = Fmake_bool_vector (length, Qnil);
+	      val = make_uninit_bool_vector (XFASTINT (length));
 	      data = bool_vector_uchar_data (val);
 	      memcpy (data, SDATA (tmp), size_in_chars);
 	      /* Clear the extraneous bits in the last byte.  */

@@ -1,5 +1,45 @@
 2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify, port and tune bool vector implementation.
+	* alloc.c (bool_vector_exact_payload_bytes)
+	(bool_vector_payload_bytes): Remove.
+	(bool_vector_fill): Return its argument.
+	* alloc.c (bool_vector_fill):
+	* lread.c (read1):
+	* print.c (print_object):
+	Simplify by using bool_vector_bytes.
+	* alloc.c (make_uninit_bool_vector):
+	New function, broken out from Fmake_bool_vector.
+	(Fmake_bool_vector): Use it.  Use tail call.
+	(make_uninit_bool_vector, vector_nbytes): Simplify size calculations.
+	* data.c (BITS_PER_ULL): New constant.
+	(ULLONG_MAX, count_one_bits_ll): Fall back on long counterparts
+	if long long versions don't exist.
+	(shift_right_ull): New function.
+	(count_one_bits_word): New function, replacing popcount_bits_word
+	macro.  Don't assume that bits_word is no wider than long long.
+	(count_one_bits_word, count_trailing_zero_bits):
+	Don't assume that bits_word is no wider than long long.
+	* data.c (bool_vector_binop_driver, bool_vector_not):
+	* fns.c (Fcopy_sequence):
+	* lread.c (read1):
+	Create an uninitialized destination, to avoid needless work.
+	(internal_equal): Simplify.
+	(Ffillarray): Prefer tail call.
+	* data.c (bool_vector_binop_driver): Don't assume bit vectors always
+	contain at least one word.
+	(bits_word_to_host_endian): Prefer if to #if.  Don't assume
+	chars are narrower than ints.
+	* data.c (Fbool_vector_count_matches, Fbool_vector_count_matches_at):
+	* fns.c (Fcopy_sequence):
+	Simplify and tune.
+	* lisp.h (bits_word, BITS_WORD_MAX, BITS_PER_BITS_WORD):
+	Don't try to port to hosts where bits_word values have holes; the
+	code wouldn't work there anyway.  Verify this assumption, though.
+	(bool_vector_bytes): New function.
+	(make_uninit_bool_vector): New decl.
+	(bool_vector_fill): Now returns Lisp_Object.
+
 	* xfns.c (xic_create_fontsetname):
 	* xrdb.c (gethomedir): Prefer tail calls.
 

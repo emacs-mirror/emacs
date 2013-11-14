@@ -435,13 +435,10 @@ with the original.  */)
 
   if (BOOL_VECTOR_P (arg))
     {
-      Lisp_Object val;
-      ptrdiff_t size_in_chars
-	= ((bool_vector_size (arg) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	   / BOOL_VECTOR_BITS_PER_CHAR);
-
-      val = Fmake_bool_vector (Flength (arg), Qnil);
-      memcpy (bool_vector_data (val), bool_vector_data (arg), size_in_chars);
+      EMACS_INT nbits = bool_vector_size (arg);
+      ptrdiff_t nbytes = bool_vector_bytes (nbits);
+      Lisp_Object val = make_uninit_bool_vector (nbits);
+      memcpy (bool_vector_data (val), bool_vector_data (arg), nbytes);
       return val;
     }
 
@@ -2066,8 +2063,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	    if (size != bool_vector_size (o2))
 	      return 0;
 	    if (memcmp (bool_vector_data (o1), bool_vector_data (o2),
-			((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-			 / BOOL_VECTOR_BITS_PER_CHAR)))
+			bool_vector_bytes (size)))
 	      return 0;
 	    return 1;
 	  }
@@ -2157,7 +2153,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
-    bool_vector_fill (array, item);
+    return bool_vector_fill (array, item);
   else
     wrong_type_argument (Qarrayp, array);
   return array;

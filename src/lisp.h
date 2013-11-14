@@ -92,16 +92,16 @@ enum {  BOOL_VECTOR_BITS_PER_CHAR =
 /* An unsigned integer type representing a fixed-length bit sequence,
    suitable for words in a Lisp bool vector.  Normally it is size_t
    for speed, but it is unsigned char on weird platforms.  */
-#if (BITSIZEOF_SIZE_T == CHAR_BIT * SIZEOF_SIZE_T \
-     && BOOL_VECTOR_BITS_PER_CHAR == CHAR_BIT)
+#if BOOL_VECTOR_BITS_PER_CHAR == CHAR_BIT
 typedef size_t bits_word;
-#define BITS_WORD_MAX SIZE_MAX
+# define BITS_WORD_MAX SIZE_MAX
 enum { BITS_PER_BITS_WORD = CHAR_BIT * sizeof (bits_word) };
 #else
 typedef unsigned char bits_word;
-#define BITS_WORD_MAX ((1u << BOOL_VECTOR_BITS_PER_CHAR) - 1)
+# define BITS_WORD_MAX ((1u << BOOL_VECTOR_BITS_PER_CHAR) - 1)
 enum { BITS_PER_BITS_WORD = BOOL_VECTOR_BITS_PER_CHAR };
 #endif
+verify (BITS_WORD_MAX >> (BITS_PER_BITS_WORD - 1) == 1);
 
 /* Number of bits in some machine integer types.  */
 enum
@@ -1212,7 +1212,9 @@ struct Lisp_Bool_Vector
     struct vectorlike_header header;
     /* This is the size in bits.  */
     EMACS_INT size;
-    /* This contains the actual bits, packed into bytes.  */
+    /* The actual bits, packed into bytes.
+       The bits are in little-endian order in the bytes, and
+       the bytes are in little-endian order in the words.  */
     bits_word data[FLEXIBLE_ARRAY_MEMBER];
   };
 
@@ -1236,13 +1238,20 @@ bool_vector_uchar_data (Lisp_Object a)
   return (unsigned char *) bool_vector_data (a);
 }
 
-/* The number of data words in a bool vector with SIZE bits.  */
+/* The number of data words and bytes in a bool vector with SIZE bits.  */
 
 INLINE EMACS_INT
 bool_vector_words (EMACS_INT size)
 {
   eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
   return (size + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
+}
+
+INLINE EMACS_INT
+bool_vector_bytes (EMACS_INT size)
+{
+  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
+  return (size + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
 }
 
 /* True if A's Ith bit is set.  */
@@ -3588,7 +3597,8 @@ list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
 		make_number (w), make_number (h));
 }
 
-extern void bool_vector_fill (Lisp_Object, Lisp_Object);
+extern Lisp_Object make_uninit_bool_vector (EMACS_INT);
+extern Lisp_Object bool_vector_fill (Lisp_Object, Lisp_Object);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)

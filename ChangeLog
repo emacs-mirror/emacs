@@ -1,3 +1,8 @@
+2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, port and tune bool vector implementation.
+	* configure.ac (BITSIZEOF_SIZE_T, SIZEOF_SIZE_T): Remove.
+
 2013-11-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (ACLOCAL_INPUTS): Add configure.ac.

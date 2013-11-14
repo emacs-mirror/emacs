@@ -1705,8 +1705,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  unsigned char c;
 	  struct gcpro gcpro1;
 	  EMACS_INT size = bool_vector_size (obj);
-	  ptrdiff_t size_in_chars = ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-				     / BOOL_VECTOR_BITS_PER_CHAR);
+	  ptrdiff_t size_in_chars = bool_vector_bytes (size);
 	  ptrdiff_t real_size_in_chars = size_in_chars;
 	  GCPRO1 (obj);
 

@@ -2041,26 +2041,10 @@ INIT must be an integer that represents a character.  */)
   return val;
 }
 
-static EMACS_INT
-bool_vector_exact_payload_bytes (EMACS_INT nbits)
-{
-  eassume (0 <= nbits);
-  return (nbits + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
-}
+/* Fill A with 1 bits if INIT is non-nil, and with 0 bits otherwise.
+   Return A.  */
 
-static EMACS_INT
-bool_vector_payload_bytes (EMACS_INT nbits)
-{
-  EMACS_INT exact_needed_bytes = bool_vector_exact_payload_bytes (nbits);
-
-  /* Always allocate at least one machine word of payload so that
-     bool-vector operations in data.c don't need a special case
-     for empty vectors.  */
-  return ROUNDUP (exact_needed_bytes + !exact_needed_bytes,
-		  sizeof (bits_word));
-}
-
-void
+Lisp_Object
 bool_vector_fill (Lisp_Object a, Lisp_Object init)
 {
   EMACS_INT nbits = bool_vector_size (a);
@@ -2068,12 +2052,36 @@ bool_vector_fill (Lisp_Object a, Lisp_Object init)
     {
       unsigned char *data = bool_vector_uchar_data (a);
       int pattern = NILP (init) ? 0 : (1 << BOOL_VECTOR_BITS_PER_CHAR) - 1;
-      ptrdiff_t nbytes = ((nbits + BOOL_VECTOR_BITS_PER_CHAR - 1)
-			  / BOOL_VECTOR_BITS_PER_CHAR);
+      ptrdiff_t nbytes = bool_vector_bytes (nbits);
       int last_mask = ~ (~0 << ((nbits - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1));
       memset (data, pattern, nbytes - 1);
       data[nbytes - 1] = pattern & last_mask;
     }
+  return a;
+}
+
+/* Return a newly allocated, uninitialized bool vector of size NBITS.  */
+
+Lisp_Object
+make_uninit_bool_vector (EMACS_INT nbits)
+{
+  Lisp_Object val;
+  struct Lisp_Bool_Vector *p;
+  EMACS_INT word_bytes, needed_elements;
+  word_bytes = bool_vector_words (nbits) * sizeof (bits_word);
+  needed_elements = ((bool_header_size - header_size + word_bytes
+		      + word_size - 1)
+		     / word_size);
+  p = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
+  XSETVECTOR (val, p);
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
+  p->size = nbits;
+
+  /* Clear padding at the end.  */
+  if (nbits)
+    p->data[bool_vector_words (nbits) - 1] = 0;
+
+  return val;
 }
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
@@ -2082,32 +2090,10 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   (Lisp_Object length, Lisp_Object init)
 {
   Lisp_Object val;
-  struct Lisp_Bool_Vector *p;
-  EMACS_INT exact_payload_bytes, total_payload_bytes, needed_elements;
 
   CHECK_NATNUM (length);
-
-  exact_payload_bytes = bool_vector_exact_payload_bytes (XFASTINT (length));
-  total_payload_bytes = bool_vector_payload_bytes (XFASTINT (length));
-
-  needed_elements = ((bool_header_size - header_size + total_payload_bytes
-		      + word_size - 1)
-		     / word_size);
-
-  p = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
-  XSETVECTOR (val, p);
-  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
-
-  p->size = XFASTINT (length);
-  bool_vector_fill (val, init);
-
-  /* Clear padding at the end.  */
-  eassume (exact_payload_bytes <= total_payload_bytes);
-  memset (bool_vector_uchar_data (val) + exact_payload_bytes,
-          0,
-          total_payload_bytes - exact_payload_bytes);
-
-  return val;
+  val = make_uninit_bool_vector (XFASTINT (length));
+  return bool_vector_fill (val, init);
 }
 
 
@@ -2858,24 +2844,27 @@ static ptrdiff_t
 vector_nbytes (struct Lisp_Vector *v)
 {
   ptrdiff_t size = v->header.size & ~ARRAY_MARK_FLAG;
+  ptrdiff_t nwords;
 
   if (size & PSEUDOVECTOR_FLAG)
     {
       if (PSEUDOVECTOR_TYPEP (&v->header, PVEC_BOOL_VECTOR))
         {
           struct Lisp_Bool_Vector *bv = (struct Lisp_Bool_Vector *) v;
-          ptrdiff_t payload_bytes = bool_vector_payload_bytes (bv->size);
-          size = bool_header_size + payload_bytes;
+	  ptrdiff_t word_bytes = (bool_vector_words (bv->size)
+				  * sizeof (bits_word));
+	  ptrdiff_t boolvec_bytes = bool_header_size + word_bytes;
+	  verify (header_size <= bool_header_size);
+	  nwords = (boolvec_bytes - header_size + word_size - 1) / word_size;
         }
       else
-	size = (header_size
-		+ ((size & PSEUDOVECTOR_SIZE_MASK)
-		   + ((size & PSEUDOVECTOR_REST_MASK)
-		      >> PSEUDOVECTOR_SIZE_BITS)) * word_size);
+	nwords = ((size & PSEUDOVECTOR_SIZE_MASK)
+		  + ((size & PSEUDOVECTOR_REST_MASK)
+		     >> PSEUDOVECTOR_SIZE_BITS));
     }
   else
-    size = header_size + size * word_size;
-  return vroundup (size);
+    nwords = size;
+  return vroundup (header_size + word_size * nwords);
 }
 
 /* Release extra resources still in use by VECTOR, which may be any
