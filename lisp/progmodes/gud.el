@@ -66,7 +66,7 @@ pdb (Python), and jdb."
   :group 'gud)
 
 (global-set-key (vconcat gud-key-prefix "\C-l") 'gud-refresh)
-(define-key ctl-x-map " " 'gud-break)	;; backward compatibility hack
+;; (define-key ctl-x-map " " 'gud-break); backward compatibility hack
 
 (defvar gud-marker-filter nil)
 (put 'gud-marker-filter 'permanent-local t)
@@ -2159,10 +2159,8 @@ relative to a classpath directory."
 		    (split-string
 		     ;; Eliminate any subclass references in the class
 		     ;; name string. These start with a "$"
-		     ((lambda (x)
-			(if (string-match "$.*" x)
-			    (replace-match "" t t x) p))
-		      p)
+                     (if (string-match "$.*" p)
+                         (replace-match "" t t p) p)
 		     "\\.") "/")
 	 ".java"))
        (cplist (append gud-jdb-sourcepath gud-jdb-classpath))
