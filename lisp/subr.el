@@ -4470,12 +4470,14 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defconst version-regexp-alist
-  '(("^[-_+ ]?snapshot$"              . -4)
-    ("^[-_+]$"                        . -4) ; treat "1.2.3-20050920" and "1.2-3" as snapshot releases
-    ("^[-_+ ]?\\(cvs\\|git\\|bzr\\)$" . -4) ; treat "1.2.3-CVS" as snapshot release
-    ("^[-_+ ]?alpha$"                 . -3)
-    ("^[-_+ ]?beta$"                  . -2)
-    ("^[-_+ ]?\\(pre\\|rcc\\)$"       . -1))
+  '(("^[-_+ ]?snapshot$"                                 . -4)
+    ;; treat "1.2.3-20050920" and "1.2-3" as snapshot releases
+    ("^[-_+]$"                                           . -4)
+    ;; treat "1.2.3-CVS" as snapshot release
+    ("^[-_+ ]?\\(cvs\\|git\\|bzr\\|svn\\|hg\\|darcs\\)$" . -4)
+    ("^[-_+ ]?alpha$"                                    . -3)
+    ("^[-_+ ]?beta$"                                     . -2)
+    ("^[-_+ ]?\\(pre\\|rcc\\)$"                          . -1))
   "Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
