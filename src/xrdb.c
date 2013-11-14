@@ -234,9 +234,7 @@ gethomedir (void)
 
   copy = xmalloc (strlen (ptr) + 2);
   strcpy (copy, ptr);
-  strcat (copy, "/");
-
-  return copy;
+  return strcat (copy, "/");
 }
 
 

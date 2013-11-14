@@ -1,3 +1,7 @@
+2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lwlib.c (safe_strdup): Prefer tail calls.
+
 2013-11-02  Glenn Morris  <rgm@gnu.org>
 
 	Use relative filenames in TAGS files.

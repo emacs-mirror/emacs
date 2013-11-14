@@ -514,7 +514,7 @@ static char *
 xstrdup (char *s)
 {
   if (s)
-    s = strcpy (xmalloc (strlen (s) + 1), s);
+    return strcpy (xmalloc (strlen (s) + 1), s);
   return s;
 }
 

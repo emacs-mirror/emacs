@@ -1750,7 +1750,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	}
     }
   if (motif)
-    strcat (fontsetname, ":");
+    return strcat (fontsetname, ":");
   return fontsetname;
 }
 #endif /* HAVE_X_WINDOWS && USE_X_TOOLKIT */

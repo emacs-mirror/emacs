@@ -103,11 +103,7 @@ static void show_one_widget_busy (Widget, Boolean);
 char *
 safe_strdup (const char *s)
 {
-  char *result;
-  if (! s) return 0;
-  result = (char *) xmalloc (strlen (s) + 1);
-  strcpy (result, s);
-  return result;
+  return s ? xstrdup (s) : 0;
 }
 
 static void
