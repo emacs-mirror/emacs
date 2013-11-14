@@ -1,6 +1,7 @@
 2013-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/gud.el (ctl-x-map): Remove C-x SPC binding.
+	* progmodes/gud.el (ctl-x-map):
+	Remove C-x SPC binding.  (Bug#12342)
 	(gud-jdb-find-source-using-classpath): Remove ((lambda (..)..)..).
 
 2013-11-14  Bozhidar Batsov  <bozhidar@batsov.com>
