@@ -1,3 +1,9 @@
+2013-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/assoc.el (aget): Prefix dynamic variable.
+
+	* allout-widgets.el (allout-widgets): No need to autoload defgroup.
+
 2013-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* widget.el, hfy-cmap.el: Remove bogus package version number.
