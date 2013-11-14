@@ -1,3 +1,13 @@
+2013-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Sync with upstream verilog-mode revision 78e66ba.
+	* progmodes/verilog-mode.el (verilog-end-of-defun)
+	(verilog-type-completion, verilog-get-list): Remove unused funcs.
+	(verilog-get-end-of-defun): Remove unused argument.
+	(verilog-comment-depth): Remove unused local `e'.
+	(verilog-read-decls, verilog-read-sub-decls, verilog-read-instants):
+	Don't pass arg to verilog-get-end-of-defun.
+
 2013-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/assoc.el (aget): Prefix dynamic variable.
