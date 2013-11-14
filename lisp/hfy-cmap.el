@@ -5,7 +5,6 @@
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
 ;; Filename: hfy-cmap.el
-;; Version: 0.20
 ;; Keywords: colour, rgb
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
 ;; Maintainer: Vivek Dasmohapatra <vivek@etla.org>

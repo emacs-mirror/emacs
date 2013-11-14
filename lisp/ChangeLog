@@ -1,3 +1,7 @@
+2013-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* widget.el, hfy-cmap.el: Remove bogus package version number.
+
 2013-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* replace.el (replace-eval-replacement):
@@ -20,8 +24,8 @@
 2013-11-12  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Disambiguate between
-	binary "|" operator and closing block args delimiter.  Remove
-	FIXME comment referring to Ruby 1.8-only syntax.
+	binary "|" operator and closing block args delimiter.
+	Remove FIXME comment referring to Ruby 1.8-only syntax.
 	(ruby-smie--implicit-semi-p): Not after "|" operator.
 	(ruby-smie--closing-pipe-p): New function.
 	(ruby-smie--forward-token, ruby-smie--backward-token): Use it.
