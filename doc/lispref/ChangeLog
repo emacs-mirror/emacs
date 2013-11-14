@@ -1,3 +1,7 @@
+2013-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search): Update section.
+
 2013-11-11  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* os.texi (User Identification, Time of Day, Time Conversion):
