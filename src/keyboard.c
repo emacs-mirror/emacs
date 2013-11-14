@@ -2086,7 +2086,7 @@ bind_polling_period (int n)
 
 /* Apply the control modifier to CHARACTER.  */
 
-#ifndef WINDOWSNT
+#ifndef HAVE_NTGUI
 static
 #endif
 int

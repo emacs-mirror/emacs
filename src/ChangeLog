@@ -1,3 +1,11 @@
+2013-11-14  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* keyboard.c (make_ctrl_char) [HAVE_NTGUI]: Now externally visible
+	for Cygwin w32 build.
+
+	* xdisp.c (erase_phys_cursor) [HAVE_NTGUI]: Now externally visible
+	for Cygwin w32 build.  (Bug#15892)
+
 2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify, port and tune bool vector implementation.
