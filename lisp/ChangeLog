@@ -1,3 +1,8 @@
+2013-11-14  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-mode-set-encoding):
+	Add the ability to always insert an utf-8 encoding comment.
+
 2013-11-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (top): Run init code only when

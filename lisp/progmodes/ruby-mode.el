@@ -256,7 +256,12 @@ explicitly declared in magic comment."
   :group 'ruby)
 
 (defcustom ruby-insert-encoding-magic-comment t
-  "Insert a magic Emacs 'coding' comment upon save if this is non-nil."
+  "Insert a magic Ruby encoding comment upon save if this is non-nil.
+The encoding will be auto-detected.  The format of the encoding comment
+is customizable via `ruby-encoding-magic-comment-style'.
+
+When set to `always-utf8' an utf-8 comment will always be added,
+even if it's not required."
   :type 'boolean :group 'ruby)
 
 (defcustom ruby-encoding-magic-comment-style 'ruby
@@ -633,28 +638,49 @@ explicitly declared in magic comment."
   (setq-local paragraph-separate paragraph-start)
   (setq-local paragraph-ignore-fill-prefix t))
 
+(defun ruby--insert-coding-comment (encoding)
+  "Insert a magic coding comment for ENCODING.
+The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
+  (let ((encoding-magic-comment-template
+         (pcase ruby-encoding-magic-comment-style
+           (`ruby "# coding: %s")
+           (`emacs "# -*- coding: %s -*-")
+           (`custom
+            ruby-custom-encoding-magic-comment-template))))
+    (insert
+     (format encoding-magic-comment-template encoding)
+     "\n")))
+
+(defun ruby--detect-encoding ()
+  (if (eq ruby-insert-encoding-magic-comment 'always-utf8)
+      "utf-8"
+    (let ((coding-system
+           (or save-buffer-coding-system
+               buffer-file-coding-system)))
+      (if coding-system
+          (setq coding-system
+                (or (coding-system-get coding-system 'mime-charset)
+                    (coding-system-change-eol-conversion coding-system nil))))
+      (if coding-system
+          (symbol-name
+           (if ruby-use-encoding-map
+               (let ((elt (assq coding-system ruby-encoding-map)))
+                 (if elt (cdr elt) coding-system))
+             coding-system))
+        "ascii-8bit"))))
+
+(defun ruby--encoding-comment-required-p ()
+  (or (eq ruby-insert-encoding-magic-comment 'always-utf8)
+      (re-search-forward "[^\0-\177]" nil t)))
+
 (defun ruby-mode-set-encoding ()
   "Insert a magic comment header with the proper encoding if necessary."
   (save-excursion
     (widen)
     (goto-char (point-min))
-    (when (re-search-forward "[^\0-\177]" nil t)
+    (when (ruby--encoding-comment-required-p)
       (goto-char (point-min))
-      (let ((coding-system
-             (or save-buffer-coding-system
-                 buffer-file-coding-system)))
-        (if coding-system
-            (setq coding-system
-                  (or (coding-system-get coding-system 'mime-charset)
-                      (coding-system-change-eol-conversion coding-system nil))))
-        (setq coding-system
-              (if coding-system
-                  (symbol-name
-                   (if ruby-use-encoding-map
-                       (let ((elt (assq coding-system ruby-encoding-map)))
-                         (if elt (cdr elt) coding-system))
-                     coding-system))
-                "ascii-8bit"))
+      (let ((coding-system (ruby--detect-encoding)))
         (when coding-system
           (if (looking-at "^#!") (beginning-of-line 2))
           (cond ((looking-at "\\s *#.*-\*-\\s *\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)\\s *\\(;\\|-\*-\\)")
@@ -669,15 +695,7 @@ explicitly declared in magic comment."
                    (insert coding-system)))
                 ((looking-at "\\s *#.*coding\\s *[:=]"))
                 (t (when ruby-insert-encoding-magic-comment
-                     (let ((encoding-magic-comment-template
-                            (pcase ruby-encoding-magic-comment-style
-                              (`ruby "# coding: %s")
-                              (`emacs "# -*- coding: %s -*-")
-                              (`custom
-                               ruby-custom-encoding-magic-comment-template))))
-                       (insert
-                        (format encoding-magic-comment-template coding-system)
-                        "\n")))))
+                     (ruby--insert-coding-comment coding-system))))
           (when (buffer-modified-p)
             (basic-save-buffer-1)))))))
 
