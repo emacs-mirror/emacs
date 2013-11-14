@@ -683,15 +683,11 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
       (let ((coding-system (ruby--detect-encoding)))
         (when coding-system
           (if (looking-at "^#!") (beginning-of-line 2))
-          (cond ((looking-at "\\s *#.*-\*-\\s *\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)\\s *\\(;\\|-\*-\\)")
+          (cond ((looking-at "\\s *#\\s *.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
+                 ;; update existing encoding comment if necessary
                  (unless (string= (match-string 2) coding-system)
                    (goto-char (match-beginning 2))
                    (delete-region (point) (match-end 2))
-                   (and (looking-at "-\*-")
-                        (let ((n (skip-chars-backward " ")))
-                          (cond ((= n 0) (insert "  ") (backward-char))
-                                ((= n -1) (insert " "))
-                                ((forward-char)))))
                    (insert coding-system)))
                 ((looking-at "\\s *#.*coding\\s *[:=]"))
                 (t (when ruby-insert-encoding-magic-comment
