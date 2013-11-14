@@ -1,3 +1,9 @@
+2013-11-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (top): Run init code only when
+	`tramp-gvfs-enabled' is not nil.
+	(tramp-gvfs-enabled): Check also :system bus.
+
 2013-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Sync with upstream verilog-mode revision 78e66ba.

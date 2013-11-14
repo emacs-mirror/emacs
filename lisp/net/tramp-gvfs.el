@@ -153,6 +153,7 @@
 (defconst tramp-gvfs-enabled
   (ignore-errors
     (and (featurep 'dbusbind)
+	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
 	 (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
 	     (tramp-compat-process-running-p "gvfsd-fuse"))))
@@ -1621,9 +1622,10 @@ be used."
 	:system tramp-bluez-service (dbus-event-path-name last-input-event)
 	tramp-bluez-interface-adapter "StopDiscovery")))))
 
-(dbus-register-signal
- :system nil nil tramp-bluez-interface-adapter "PropertyChanged"
- 'tramp-bluez-property-changed)
+(when tramp-gvfs-enabled
+  (dbus-register-signal
+   :system nil nil tramp-bluez-interface-adapter "PropertyChanged"
+   'tramp-bluez-property-changed))
 
 (defun tramp-bluez-device-found (device args)
   "Signal handler for the \"org.bluez.Adapter.DeviceFound\" signal."
@@ -1634,9 +1636,10 @@ be used."
     ;; device, and call also SDP in order to find the obex service.
     (add-to-list 'tramp-bluez-devices (list alias address))))
 
-(dbus-register-signal
- :system nil nil tramp-bluez-interface-adapter "DeviceFound"
- 'tramp-bluez-device-found)
+(when tramp-gvfs-enabled
+  (dbus-register-signal
+   :system nil nil tramp-bluez-interface-adapter "DeviceFound"
+   'tramp-bluez-device-found))
 
 (defun tramp-bluez-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
@@ -1645,7 +1648,8 @@ be used."
    (tramp-bluez-list-devices)))
 
 ;; Add completion function for OBEX method.
-(when (member tramp-bluez-service (dbus-list-known-names :system))
+(when (and tramp-gvfs-enabled
+	   (member tramp-bluez-service (dbus-list-known-names :system)))
   (tramp-set-completion-function
    "obex" '((tramp-bluez-parse-device-names ""))))
 
@@ -1678,7 +1682,8 @@ be used."
    (zeroconf-list-services "_webdav._tcp")))
 
 ;; Add completion function for DAV and DAVS methods.
-(when (member zeroconf-service-avahi (dbus-list-known-names :system))
+(when (and tramp-gvfs-enabled
+	   (member zeroconf-service-avahi (dbus-list-known-names :system)))
   (zeroconf-init tramp-gvfs-zeroconf-domain)
   (tramp-set-completion-function
    "sftp" '((tramp-zeroconf-parse-workstation-device-names "")))
@@ -1718,8 +1723,9 @@ They are retrieved from the hal daemon."
    (tramp-synce-list-devices)))
 
 ;; Add completion function for SYNCE method.
-(tramp-set-completion-function
- "synce" '((tramp-synce-parse-device-names "")))
+(when tramp-gvfs-enabled
+  (tramp-set-completion-function
+   "synce" '((tramp-synce-parse-device-names ""))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
