@@ -1,5 +1,10 @@
 2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
 
+	* automated/tramp-tests.el (tramp-test29-utf8): Cleanup the
+	connection before running the test.
+
+2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
 	* automated/tramp-tests.el (tramp-test15-copy-directory)
 	(tramp-test16-directory-files, tramp-test17-insert-directory)
 	(tramp-test18-file-attributes)
