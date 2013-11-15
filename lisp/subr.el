@@ -4477,7 +4477,7 @@ Usually the separator is \".\", but it can be any other string.")
     ("^[-_+ ]?\\(cvs\\|git\\|bzr\\|svn\\|hg\\|darcs\\)$" . -4)
     ("^[-_+ ]?alpha$"                                    . -3)
     ("^[-_+ ]?beta$"                                     . -2)
-    ("^[-_+ ]?\\(pre\\|rcc\\)$"                          . -1))
+    ("^[-_+ ]?\\(pre\\|rc\\)$"                           . -1))
   "Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
