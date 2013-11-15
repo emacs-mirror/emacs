@@ -1,3 +1,8 @@
+2013-11-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): End regexp for
+	nil/self/true/false with "end of symbol".
+
 2013-11-15  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* subr.el (version-regexp-alist): Fix a typo.

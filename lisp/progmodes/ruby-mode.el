@@ -1925,7 +1925,7 @@ See `font-lock-syntax-table'.")
     "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
     ;; Variables.
     (,(concat ruby-font-lock-keyword-beg-re
-              "\\_<\\(nil\\|self\\|true\\|false\\)\\>")
+              "\\_<\\(nil\\|self\\|true\\|false\\)\\_>")
      1 font-lock-variable-name-face)
     ;; Keywords that evaluate to certain values.
     ("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>"
