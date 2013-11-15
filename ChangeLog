@@ -1,3 +1,7 @@
+2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (DEBUGGER_SEES_C_MACROS): New macro.
+
 2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify, port and tune bool vector implementation.

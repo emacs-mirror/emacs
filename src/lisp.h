@@ -45,7 +45,7 @@ INLINE_HEADER_BEGIN
    definitions visible to the debugger.  It's used for symbols that
    .gdbinit needs, symbols whose values may not fit in 'int' (where an
    enum would suffice).  */
-#ifdef MAIN_PROGRAM
+#if defined MAIN_PROGRAM && !defined DEBUGGER_SEES_C_MACROS
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
 # define DEFINE_GDB_SYMBOL_END(id) = id;
 #else

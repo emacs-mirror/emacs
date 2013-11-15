@@ -1,3 +1,9 @@
+2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DEFINE_GDB_SYMBOL_BEGIN, DEFINE_GDB_SYMBOL_END):
+	Define to empty if DEBUGGER_SEES_C_MACROS is defined.
+	This avoids placing unnecessary constants into the Emacs code.
+
 2013-11-14  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* keyboard.c (make_ctrl_char) [HAVE_NTGUI]: Now externally visible
