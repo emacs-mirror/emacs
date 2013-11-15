@@ -1,3 +1,17 @@
+2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test15-copy-directory)
+	(tramp-test16-directory-files, tramp-test17-insert-directory)
+	(tramp-test18-file-attributes)
+	(tramp-test19-directory-files-and-attributes)
+	(tramp-test20-file-modes, tramp-test21-file-links)
+	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
+	(tramp-test24-file-name-completion, tramp-test25-load)
+	(tramp-test26-process-file, tramp-test27-start-file-process):
+	(tramp-test28-shell-command): Protect unwindforms with
+	`ignore-errors'.
+	(tramp-test29-utf8): New test.
+
 2013-11-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el (file-notify-test02-events)
@@ -5,8 +19,8 @@
 
 	* automated/tramp-tests.el (tramp-test02-file-name-dissect)
 	(tramp-test03-file-name-defaults, tramp-test21-file-links): Add tests.
-	(tramp-test26-process-file, tramp-test28-shell-command): Ensure,
-	that the directory is not empty when calling "ls".
+	(tramp-test26-process-file, tramp-test28-shell-command):
+	Ensure, that the directory is not empty when calling "ls".
 
 2013-11-11  Michael Albinus  <michael.albinus@gmx.de>
 

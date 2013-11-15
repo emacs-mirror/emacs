@@ -710,8 +710,9 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (copy-directory tmp-name1 tmp-name2)
 	  (should (file-directory-p tmp-name3))
 	  (should (file-exists-p tmp-name6)))
-      (delete-directory tmp-name1 'recursive)
-      (delete-directory tmp-name2 'recursive))))
+      (ignore-errors
+	(delete-directory tmp-name1 'recursive)
+	(delete-directory tmp-name2 'recursive)))))
 
 (ert-deftest tramp-test16-directory-files ()
   "Check `directory-files'."
@@ -738,7 +739,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (should (equal (directory-files
 			  tmp-name1 'full directory-files-no-dot-files-regexp)
 			 `(,tmp-name2 ,tmp-name3))))
-      (delete-directory tmp-name1 'recursive))))
+      (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test17-insert-directory ()
   "Check `insert-directory'."
@@ -770,7 +771,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p "total +[[:digit:]]+\n.+ \\.\n.+ \\.\\.\n.+ foo$"))))
-      (delete-directory tmp-name1 'recursive))))
+      (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test18-file-attributes ()
   "Check `file-attributes'.
@@ -812,7 +813,7 @@ This tests also `file-readable-p' and `file-regular-p'."
 	  (should-not (file-regular-p tmp-name))
 	  (setq attr (file-attributes tmp-name))
 	  (should (eq (car attr) t)))
-      (delete-directory tmp-name))))
+      (ignore-errors (delete-directory tmp-name)))))
 
 (ert-deftest tramp-test19-directory-files-and-attributes ()
   "Check `directory-files-and-attributes'."
@@ -838,7 +839,7 @@ This tests also `file-readable-p' and `file-regular-p'."
 	     (equal (file-attributes (car elt)) (cdr elt))))
 	  (setq attr (directory-files-and-attributes tmp-name nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
-      (delete-directory tmp-name 'recursive))))
+      (ignore-errors (delete-directory tmp-name 'recursive)))))
 
 (ert-deftest tramp-test20-file-modes ()
   "Check `file-modes'.
@@ -859,7 +860,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  ;; A file is always writable for user "root".
 	  (unless (string-equal (file-remote-p tmp-name 'user) "root")
 	    (should-not (file-writable-p tmp-name))))
-      (delete-file tmp-name))))
+      (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test21-file-links ()
   "Check `file-symlink-p'.
@@ -879,8 +880,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-symlink-p tmp-name2))
 	  ;; `tmp-name3' is a local file name.
 	  (should-error (make-symbolic-link tmp-name1 tmp-name3)))
-      (delete-file tmp-name1)
-      (delete-file tmp-name2))
+      (ignore-errors
+	(delete-file tmp-name1)
+	(delete-file tmp-name2)))
 
     (unwind-protect
 	(progn
@@ -893,8 +895,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should-not (file-symlink-p tmp-name2))
 	  ;; `tmp-name3' is a local file name.
 	  (should-error (add-name-to-file tmp-name1 tmp-name3)))
-      (delete-file tmp-name1)
-      (delete-file tmp-name2))
+      (ignore-errors
+	(delete-file tmp-name1)
+	(delete-file tmp-name2)))
 
     (unwind-protect
 	(progn
@@ -905,8 +908,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should-not (string-equal tmp-name2 (file-truename tmp-name2)))
 	  (should
 	   (string-equal (file-truename tmp-name1) (file-truename tmp-name2))))
-      (delete-file tmp-name1)
-      (delete-file tmp-name2))))
+      (ignore-errors
+	(delete-file tmp-name1)
+	(delete-file tmp-name2)))))
 
 (ert-deftest tramp-test22-file-times ()
   "Check `set-file-times' and `file-newer-than-file-p'."
@@ -928,8 +932,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  ;; `tmp-name3' does not exist.
 	  (should (file-newer-than-file-p tmp-name2 tmp-name3))
 	  (should-not (file-newer-than-file-p tmp-name3 tmp-name1)))
-      (delete-file tmp-name1)
-      (delete-file tmp-name2))))
+      (ignore-errors
+	(delete-file tmp-name1)
+	(delete-file tmp-name2)))))
 
 (ert-deftest tramp-test23-visited-file-modtime ()
   "Check `set-visited-file-modtime' and `verify-visited-file-modtime'."
@@ -945,7 +950,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (set-visited-file-modtime '(0 1))
 	    (should (verify-visited-file-modtime))
 	    (should (equal (visited-file-modtime) '(0 1 0 0)))))
-      (delete-file tmp-name))))
+      (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test24-file-name-completion ()
   "Check `file-name-completion' and `file-name-all-completions'."
@@ -966,7 +971,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should
 	   (equal (sort (file-name-all-completions "b" tmp-name) 'string-lessp)
 		  '("bold" "boz/"))))
-      (delete-directory tmp-name 'recursive))))
+      (ignore-errors (delete-directory tmp-name 'recursive)))))
 
 (ert-deftest tramp-test25-load ()
   "Check `load'."
@@ -981,8 +986,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  ;(should-error (load tmp-name nil 'nomessage 'nosuffix 'must-suffix))
 	  (load tmp-name nil 'nomessage 'nosuffix)
 	  (should (featurep 'tramp-test-load)))
-      (and (featurep 'tramp-test-load) (unload-feature 'tramp-test-load))
-      (delete-file tmp-name))))
+      (ignore-errors
+	(and (featurep 'tramp-test-load) (unload-feature 'tramp-test-load))
+	(delete-file tmp-name)))))
 
 (ert-deftest tramp-test26-process-file ()
   "Check `process-file'."
@@ -1000,7 +1006,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (write-region "foo" nil tmp-name)
 	    (should (zerop (process-file "ls" nil t)))
 	    (should (> (point-max) (point-min)))))
-      (delete-file tmp-name))))
+      (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test27-start-file-process ()
   "Check `start-file-process'."
@@ -1017,7 +1023,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (process-send-eof proc)
 	  (accept-process-output proc 1)
 	  (should (string-equal (buffer-string) "foo")))
-      (delete-process proc))
+      (ignore-errors (delete-process proc)))
 
     (unwind-protect
 	(with-temp-buffer
@@ -1030,8 +1036,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (processp proc))
 	  (accept-process-output proc 1)
 	  (should (string-equal (buffer-string) "foo")))
-      (delete-process proc)
-      (delete-file tmp-name))
+      (ignore-errors
+	(delete-process proc)
+	(delete-file tmp-name)))
 
     (unwind-protect
 	(progn
@@ -1043,7 +1050,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (process-send-string proc "foo")
 	  (process-send-eof proc)
 	  (accept-process-output proc 1))
-      (delete-process proc))))
+      (ignore-errors (delete-process proc)))))
 
 (ert-deftest tramp-test28-shell-command ()
   "Check `shell-command'."
@@ -1055,7 +1062,31 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (write-region "foo" nil tmp-name)
 	  (shell-command "ls" (current-buffer))
 	  (should (> (point-max) (point-min))))
-      (delete-file tmp-name))))
+      (ignore-errors (delete-file tmp-name)))))
+
+(ert-deftest tramp-test29-utf8 ()
+  "Check UTF8 encoding in file names and file contents."
+  (skip-unless (tramp--test-enabled))
+  (let ((tmp-name (tramp--test-make-temp-name))
+	(arabic "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت.")
+	(chinese "银河系漫游指南系列")
+	(russian "Автостопом по гала́ктике"))
+    (unwind-protect
+	(progn
+	  (make-directory tmp-name)
+	  (dolist (lang `(,arabic ,chinese ,russian))
+	    (let ((file (expand-file-name lang tmp-name)))
+	      (write-region lang nil file)
+	      (should (file-exists-p file))
+	      ;; Check file contents.
+	      (with-temp-buffer
+		(insert-file-contents file)
+		(should (string-equal (buffer-string) lang)))))
+	  ;; Check file name.
+	  (should (equal (directory-files
+			  tmp-name nil directory-files-no-dot-files-regexp)
+			 (sort `(,arabic ,chinese ,russian) 'string-lessp))))
+      (ignore-errors (delete-directory tmp-name 'recursive)))))
 
 ;; TODO:
 
