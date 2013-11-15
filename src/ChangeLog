@@ -1,3 +1,11 @@
+2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* data.c: Work around bogus GCC diagnostic about shift count.
+	Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00489.html>.
+	(pre_value): New function.
+	(count_trailing_zero_bits): Use it.
+
 2013-11-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.h (DEBUGGER_SEES_C_MACROS) [GCC < v3.5]: Pessimistically

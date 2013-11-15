@@ -3078,6 +3078,16 @@ bool_vector_binop_driver (Lisp_Object op1,
   return changed ? dest : Qnil;
 }
 
+/* PRECONDITION must be true.  Return VALUE.  This odd construction
+   works around a bogus GCC diagnostic "shift count >= width of type".  */
+
+static int
+pre_value (bool precondition, int value)
+{
+  eassume (precondition);
+  return precondition ? value : 0;
+}
+
 /* Compute the number of trailing zero bits in val.  If val is zero,
    return the number of bits in val.  */
 static int
@@ -3111,7 +3121,8 @@ count_trailing_zero_bits (bits_word val)
 
       if (BITS_PER_BITS_WORD % BITS_PER_ULL != 0
 	  && BITS_WORD_MAX == (bits_word) -1)
-	val |= (bits_word) 1 << (BITS_PER_BITS_WORD % BITS_PER_ULL);
+	val |= (bits_word) 1 << pre_value (ULONG_MAX < BITS_WORD_MAX,
+					   BITS_PER_BITS_WORD % BITS_PER_ULL);
       return count + count_trailing_zeros_ll (val);
     }
 }
