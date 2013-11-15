@@ -1,3 +1,8 @@
+2013-11-15  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.c (Ftry_completion, Fall_completions)
+	(Ftest_completion): Use FUNCTIONP.  (Bug#15889)
+
 2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (DEFINE_GDB_SYMBOL_BEGIN, DEFINE_GDB_SYMBOL_END):
