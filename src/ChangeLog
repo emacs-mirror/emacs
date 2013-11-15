@@ -1,3 +1,9 @@
+2013-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DEBUGGER_SEES_C_MACROS) [GCC < v3.5]: Pessimistically
+	assume C macros are not supported even under -g3 in these old GCC
+	versions.
+
 2013-11-15  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuf.c (Ftry_completion, Fall_completions)

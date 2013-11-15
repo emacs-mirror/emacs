@@ -45,6 +45,13 @@ INLINE_HEADER_BEGIN
    definitions visible to the debugger.  It's used for symbols that
    .gdbinit needs, symbols whose values may not fit in 'int' (where an
    enum would suffice).  */
+#if defined DEBUGGER_SEES_C_MACROS && defined __GNUC__
+/* GCC versions before 3.5 have unreliable support for C macros in
+   debug info.  */
+# if __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 5)
+#  undef DEBUGGER_SEES_C_MACROS
+# endif
+#endif
 #if defined MAIN_PROGRAM && !defined DEBUGGER_SEES_C_MACROS
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
 # define DEFINE_GDB_SYMBOL_END(id) = id;
