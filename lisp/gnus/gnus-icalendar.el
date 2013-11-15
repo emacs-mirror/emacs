@@ -91,7 +91,19 @@
    (rsvp :initarg :rsvp
          :accessor gnus-icalendar-event:rsvp
          :initform nil
-         :type (or null boolean)))
+         :type (or null boolean))
+   (participation-required :initarg :participation-required
+         :accessor gnus-icalendar-event:participation-required
+         :initform t
+         :type (or null boolean))
+   (req-participants :initarg :req-participants
+         :accessor gnus-icalendar-event:req-participants
+         :initform nil
+         :type (or null t))
+   (opt-participants :initarg :opt-participants
+         :accessor gnus-icalendar-event:opt-participants
+         :initform nil
+         :type (or null t)))
   "generic iCalendar Event class")
 
 (defclass gnus-icalendar-event-request (gnus-icalendar-event)
@@ -151,6 +163,24 @@
 
       (gnus-icalendar-find-if #'attendee-prop-matches-p event-props))))
 
+(defun gnus-icalendar-event--get-attendee-names (ical)
+  (let* ((event (car (icalendar--all-events ical)))
+         (attendee-props (gnus-remove-if-not
+                          (lambda (p) (eq (car p) 'ATTENDEE))
+                          (caddr event))))
+
+    (gmm-labels ((attendee-role (prop) (plist-get (cadr prop) 'ROLE))
+                 (attendee-name (prop) (plist-get (cadr prop) 'CN))
+                 (attendees-by-type (type)
+                   (gnus-remove-if-not
+                    (lambda (p) (string= (attendee-role p) type))
+                    attendee-props))
+                 (attendee-names-by-type (type)
+                    (mapcar #'attendee-name (attendees-by-type type))))
+
+      (list
+       (attendee-names-by-type "REQ-PARTICIPANT")
+       (attendee-names-by-type "OPT-PARTICIPANT")))))
 
 (defun gnus-icalendar-event-from-ical (ical &optional attendee-name-or-email)
   (let* ((event (car (icalendar--all-events ical)))
@@ -165,12 +195,17 @@
          (method (caddr (assoc 'METHOD (caddr (car (nreverse ical))))))
          (attendee (when attendee-name-or-email
                      (gnus-icalendar-event--find-attendee ical attendee-name-or-email)))
+         (attendee-names (gnus-icalendar-event--get-attendee-names ical))
          (args (list :method method
                      :organizer organizer
                      :start-time (gnus-icalendar-event--decode-datefield event 'DTSTART)
                      :end-time (gnus-icalendar-event--decode-datefield event 'DTEND)
                      :rsvp (string= (plist-get (cadr attendee) 'RSVP)
-                                    "TRUE")))
+                                    "TRUE")
+                     :participation-required (string= (plist-get (cadr attendee) 'ROLE)
+                                                      "REQ-PARTICIPANT")
+                     :req-participants (cdar attendee-names)
+                     :opt-participants (cadr attendee-names)))
          (event-class (cond
                        ((string= method "REQUEST") 'gnus-icalendar-event-request)
                        ((string= method "CANCEL") 'gnus-icalendar-event-cancel)
@@ -366,6 +401,10 @@ Return nil for non-recurring EVENT."
       (format "%s (%s)" summary location)
     (format "%s" summary)))
 
+
+(defun gnus-icalendar--format-participant-list (participants)
+  (mapconcat #'identity participants ", "))
+
 ;; TODO: make the template customizable
 (defmethod gnus-icalendar-event->org-entry ((event gnus-icalendar-event) reply-status)
   "Return string with new `org-mode' entry describing EVENT."
@@ -380,6 +419,9 @@ Return nil for non-recurring EVENT."
                       ("DT" . ,(gnus-icalendar-event:org-timestamp event))
                       ("ORGANIZER" . ,(gnus-icalendar-event:organizer event))
                       ("LOCATION" . ,(gnus-icalendar-event:location event))
+                      ("PARTICIPATION_REQUIRED" . ,(when (gnus-icalendar-event:participation-required event) "t"))
+                      ("REQ_PARTICIPANTS" . ,(gnus-icalendar--format-participant-list (gnus-icalendar-event:req-participants event)))
+                      ("OPT_PARTICIPANTS" . ,(gnus-icalendar--format-participant-list (gnus-icalendar-event:opt-participants event)))
                       ("RRULE" . ,(gnus-icalendar-event:recur event))
                       ("REPLY" . ,reply))))
 
@@ -438,7 +480,8 @@ is searched."
   (let ((file (gnus-icalendar-find-org-event-file event org-file)))
     (when file
       (with-current-buffer (find-file-noselect file)
-        (with-slots (uid summary description organizer location recur) event
+        (with-slots (uid summary description organizer location recur
+                         participation-required req-participants opt-participants) event
           (let ((event-pos (org-find-entry-with-id uid)))
             (when event-pos
               (goto-char event-pos)
@@ -480,6 +523,9 @@ is searched."
                 (org-entry-put event-pos "DT" (gnus-icalendar-event:org-timestamp event))
                 (org-entry-put event-pos "ORGANIZER" organizer)
                 (org-entry-put event-pos "LOCATION" location)
+                (org-entry-put event-pos "PARTICIPATION_REQUIRED" (when participation-required "t"))
+                (org-entry-put event-pos "REQ_PARTICIPANTS" (gnus-icalendar--format-participant-list req-participants))
+                (org-entry-put event-pos "OPT_PARTICIPANTS" (gnus-icalendar--format-participant-list opt-participants))
                 (org-entry-put event-pos "RRULE" recur)
                 (when reply-status (org-entry-put event-pos "REPLY"
                                                   (capitalize (symbol-name reply-status))))
@@ -595,11 +641,13 @@ is searched."
                     (propertize (concat (car x) ":") 'face 'bold)
                     (cadr x))))
 
-    (with-slots (organizer summary description location recur uid method rsvp) event
+    (with-slots (organizer summary description location recur uid
+                           method rsvp participation-required) event
       (let ((headers `(("Summary" ,summary)
                       ("Location" ,(or location ""))
                       ("Time" ,(gnus-icalendar-event:org-timestamp event))
                       ("Organizer" ,organizer)
+                      ("Attendance" ,(if participation-required "Required" "Optional"))
                       ("Method" ,method))))
 
        (when (and (not (gnus-icalendar-event-reply-p event)) rsvp)

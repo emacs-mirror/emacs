@@ -1,3 +1,11 @@
+2013-11-15  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event->gnus-calendar)
+	(gnus-icalendar-event-from-ical)
+	(gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event): Required/optional participation,
+	list of attendees synced to org.
+
 2013-11-13  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event:sync-to-org)
