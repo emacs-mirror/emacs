@@ -419,7 +419,8 @@ as given in your `~/.profile'."
 
 ;;;###tramp-autoload
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0" "LC_ALL=C"
+  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0"
+    "LC_ALL=en_US.utf8" "LC_CTYPE=''"
     ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
     ,(format "INSIDE_EMACS='%s,tramp:%s'" emacs-version tramp-version)
@@ -2518,13 +2519,10 @@ This is like `dired-recursive-delete-directory' for Tramp files."
        (if full-directory-p "yes" "no"))
       ;; If `full-directory-p', we just say `ls -l FILENAME'.
       ;; Else we chdir to the parent directory, then say `ls -ld BASENAME'.
-      ;; "--dired" returns byte positions.  Therefore, the file names
-      ;; must be encoded, which is guaranteed by "LC_ALL=en_US.utf8
-      ;; LC_CTYPE=''".
       (if full-directory-p
 	  (tramp-send-command
 	   v
-	   (format "env LC_ALL=en_US.utf8 LC_CTYPE='' %s %s %s 2>/dev/null"
+	   (format "%s %s %s 2>/dev/null"
 		   (tramp-get-ls-command v)
 		   switches
 		   (if wildcard
@@ -2540,7 +2538,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	  (tramp-run-real-handler 'file-name-directory (list localname))))
 	(tramp-send-command
 	 v
-	 (format "env LC_ALL=en_US.utf8 LC_CTYPE='' %s %s %s 2>/dev/null"
+	 (format "%s %s %s 2>/dev/null"
 		 (tramp-get-ls-command v)
 		 switches
 		 (if (or wildcard
@@ -4369,7 +4367,7 @@ connection if a previous connection has died for some reason."
 	      (when (and p (processp p))
 		(delete-process p))
 	      (setenv "TERM" tramp-terminal-type)
-	      (setenv "LC_ALL" "C")
+	      (setenv "LC_ALL" "en_US.utf8")
 	      (setenv "PROMPT_COMMAND")
 	      (setenv "PS1" tramp-initial-end-of-output)
 	      (let* ((target-alist (tramp-compute-multi-hops vec))
@@ -4479,7 +4477,7 @@ connection if a previous connection has died for some reason."
 			  tramp-current-user   (or g-user   l-user)
 			  tramp-current-host   (or g-host   l-host))
 
-		    ;; Replace login-args place holders.
+		    ;; Replace `login-args' place holders.
 		    (setq
 		     l-host (or l-host "")
 		     l-user (or l-user "")

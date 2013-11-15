@@ -1,3 +1,10 @@
+2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Set "LC_ALL" to
+	"en_US.utf8" and "LC_CTYPE" to "".
+	(tramp-maybe-open-connection): Set "LC_ALL" to "en_US.utf8".
+	(tramp-sh-handle-insert-directory): Don't set "LC_ALL" and "LC_CTYPE".
+
 2013-11-15  Leo Liu  <sdl.web@gmail.com>
 
 	* loadhist.el (read-feature): Get rid of fake feature nil.  (Bug#15889)
@@ -55,7 +62,7 @@
 
 2013-11-13  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-remote-file-name-spec-regexp): An IPV6
+	* net/tramp.el (tramp-remote-file-name-spec-regexp): An IPv6
 	address can be empty.
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-insert-directory):
