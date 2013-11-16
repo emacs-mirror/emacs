@@ -3383,9 +3383,12 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 
       if (vect[i].shadowed)
 	{
-	  SET_PT (PT - 1);
+	  ptrdiff_t pt = max (PT - 1, BEG);
+
+	  SET_PT (pt);
 	  insert_string ("\n  (that binding is currently shadowed by another mode)");
-	  SET_PT (PT + 1);
+	  pt = min (PT + 1, Z);
+	  SET_PT (pt);
 	}
     }
 

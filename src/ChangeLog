@@ -1,3 +1,8 @@
+2013-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* keymap.c (describe_map): Don't crash if PT is 1 both before and
+	after inserting the description string.  (Bug#15907)
+
 2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* data.c: Work around bogus GCC diagnostic about shift count.
