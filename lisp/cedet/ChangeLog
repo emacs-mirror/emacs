@@ -1,4 +1,4 @@
-2013-10-28  Barry O'Reilly  <gundaetiapo@gmail.com>
+2013-11-16  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* semantic/fw.el (semantic-exit-on-input)
 	(semantic-throw-on-input): Restore point before
