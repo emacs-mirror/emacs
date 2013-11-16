@@ -8119,7 +8119,7 @@ sys_localtime (const time_t *t)
 HMODULE
 w32_delayed_load (Lisp_Object library_id)
 {
-  HMODULE library_dll = NULL;
+  HMODULE dll_handle = NULL;
 
   CHECK_SYMBOL (library_id);
 
@@ -8132,26 +8132,56 @@ w32_delayed_load (Lisp_Object library_id)
       if (CONSP (dlls))
         for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
           {
-            CHECK_STRING_CAR (dlls);
-            if ((library_dll = LoadLibrary (SDATA (XCAR (dlls)))))
-              {
-                char name[MAX_PATH];
-                DWORD len;
+	    Lisp_Object dll = XCAR (dlls);
+	    char name[MAX_UTF8_PATH];
+	    DWORD res = -1;
 
-                len = GetModuleFileNameA (library_dll, name, sizeof (name));
-                found = Fcons (XCAR (dlls),
-                               (len > 0)
-                               /* Possibly truncated */
-                               ? make_specified_string (name, -1, len, 1)
-                               : Qnil);
-                break;
-              }
-          }
+	    CHECK_STRING (dll);
+	    dll = ENCODE_FILE (dll);
+	    if (w32_unicode_filenames)
+	      {
+		wchar_t name_w[MAX_PATH];
+
+		filename_to_utf16 (SSDATA (dll), name_w);
+		dll_handle = LoadLibraryW (name_w);
+		if (dll_handle)
+		  {
+		    res = GetModuleFileNameW (dll_handle, name_w,
+					      sizeof (name_w));
+		    if (res > 0)
+		      filename_from_utf16 (name_w, name);
+		  }
+	      }
+	    else
+	      {
+		char name_a[MAX_PATH];
+
+		filename_to_ansi (SSDATA (dll), name_a);
+		dll_handle = LoadLibraryA (name_a);
+		if (dll_handle)
+		  {
+		    res = GetModuleFileNameA (dll_handle, name_a,
+					      sizeof (name_a));
+		    if (res > 0)
+		      filename_from_ansi (name_a, name);
+		  }
+	      }
+	    if (dll_handle)
+	      {
+		ptrdiff_t len = strlen (name);
+		found = Fcons (dll,
+			       (res > 0)
+			       /* Possibly truncated */
+			       ? make_specified_string (name, -1, len, 1)
+			       : Qnil);
+		break;
+	      }
+	  }
 
       Fput (library_id, QCloaded_from, found);
     }
 
-  return library_dll;
+  return dll_handle;
 }
 
 
@@ -8170,6 +8200,12 @@ check_windows_init_file (void)
       Lisp_Object init_file;
       int fd;
 
+      /* Implementation note: this function runs early during Emacs
+	 startup, before startup.el is run.  So Vload_path is still in
+	 its initial unibyte form, holding ANSI-encoded file names.
+	 That is why we never bother to ENCODE_FILE here, nor use wide
+	 APIs for file names: we will never get UTF-8 encoded file
+	 names here.  */
       init_file = build_string ("term/w32-win");
       fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil);
       if (fd < 0)
