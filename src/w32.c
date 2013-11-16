@@ -3847,9 +3847,10 @@ int
 sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 {
   BOOL result;
-  char temp[MAX_PATH];
+  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];;
   int newname_dev;
   int oldname_dev;
+  bool have_temp_a = false;
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -3874,17 +3875,20 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
       char * o;
       char * p;
       int    i = 0;
+      char oldname_a[MAX_PATH];
 
       oldname = map_w32_filename (oldname, NULL);
-      if ((o = strrchr (oldname, '\\')))
+      filename_to_ansi (oldname, oldname_a);
+      filename_to_ansi (temp, temp_a);
+      if ((o = strrchr (oldname_a, '\\')))
 	o++;
       else
-	o = (char *) oldname;
+	o = (char *) oldname_a;
 
-      if ((p = strrchr (temp, '\\')))
+      if ((p = strrchr (temp_a, '\\')))
 	p++;
       else
-	p = temp;
+	p = temp_a;
 
       do
 	{
@@ -3892,12 +3896,13 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	     seems to make the second rename work properly.  */
 	  sprintf (p, "_.%s.%u", o, i);
 	  i++;
-	  result = rename (oldname, temp);
+	  result = rename (oldname_a, temp_a);
 	}
       /* This loop must surely terminate!  */
       while (result < 0 && errno == EEXIST);
       if (result < 0)
 	return -1;
+      have_temp_a = true;
     }
 
   /* If FORCE, emulate Unix behavior - newname is deleted if it already exists
@@ -3916,41 +3921,81 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
   /* volume_info is set indirectly by map_w32_filename.  */
   newname_dev = volume_info.serialnum;
 
-  result = rename (temp, newname);
-
-  if (result < 0 && force)
+  if (w32_unicode_filenames)
     {
-      DWORD w32err = GetLastError ();
+      wchar_t temp_w[MAX_PATH], newname_w[MAX_PATH];
 
-      if (errno == EACCES
-	  && newname_dev != oldname_dev)
+      filename_to_utf16 (temp, temp_w);
+      filename_to_utf16 (newname, newname_w);
+      result = _wrename (temp_w, newname_w);
+      if (result < 0 && force)
 	{
-	  /* The implementation of `rename' on Windows does not return
-	     errno = EXDEV when you are moving a directory to a
-	     different storage device (ex. logical disk).  It returns
-	     EACCES instead.  So here we handle such situations and
-	     return EXDEV.  */
-	  DWORD attributes;
+	  DWORD w32err = GetLastError ();
 
-	  if ((attributes = GetFileAttributes (temp)) != -1
-	      && (attributes & FILE_ATTRIBUTE_DIRECTORY))
-	    errno = EXDEV;
+	  if (errno == EACCES
+	      && newname_dev != oldname_dev)
+	    {
+	      /* The implementation of `rename' on Windows does not return
+		 errno = EXDEV when you are moving a directory to a
+		 different storage device (ex. logical disk).  It returns
+		 EACCES instead.  So here we handle such situations and
+		 return EXDEV.  */
+	      DWORD attributes;
+
+	      if ((attributes = GetFileAttributesW (temp_w)) != -1
+		  && (attributes & FILE_ATTRIBUTE_DIRECTORY))
+		errno = EXDEV;
+	    }
+	  else if (errno == EEXIST)
+	    {
+	      if (_wchmod (newname_w, 0666) != 0)
+		return result;
+	      if (_wunlink (newname_w) != 0)
+		return result;
+	      result = _wrename (temp_w, newname_w);
+	    }
+	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
+		   && is_symlink (temp))
+	    {
+	      /* This is Windows prohibiting the user from creating a
+		 symlink in another place, since that requires
+		 privileges.  */
+	      errno = EPERM;
+	    }
 	}
-      else if (errno == EEXIST)
+    }
+  else
+    {
+      char newname_a[MAX_PATH];
+
+      if (!have_temp_a)
+	filename_to_ansi (temp, temp_a);
+      filename_to_ansi (newname, newname_a);
+      result = rename (temp_a, newname_a);
+      if (result < 0 && force)
 	{
-	  if (_chmod (newname, 0666) != 0)
-	    return result;
-	  if (_unlink (newname) != 0)
-	    return result;
-	  result = rename (temp, newname);
-	}
-      else if (w32err == ERROR_PRIVILEGE_NOT_HELD
-	       && is_symlink (temp))
-	{
-	  /* This is Windows prohibiting the user from creating a
-	     symlink in another place, since that requires
-	     privileges.  */
-	  errno = EPERM;
+	  DWORD w32err = GetLastError ();
+
+	  if (errno == EACCES
+	      && newname_dev != oldname_dev)
+	    {
+	      DWORD attributes;
+
+	      if ((attributes = GetFileAttributesA (temp_a)) != -1
+		  && (attributes & FILE_ATTRIBUTE_DIRECTORY))
+		errno = EXDEV;
+	    }
+	  else if (errno == EEXIST)
+	    {
+	      if (_chmod (newname_a, 0666) != 0)
+		return result;
+	      if (_unlink (newname_a) != 0)
+		return result;
+	      result = rename (temp_a, newname_a);
+	    }
+	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
+		   && is_symlink (temp))
+	    errno = EPERM;
 	}
     }
 
