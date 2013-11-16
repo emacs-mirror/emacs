@@ -5,7 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: languages
-;; Version: 1.2
+;; Version: 1.3
 
 ;; This file is part of GNU Emacs.
 
@@ -45,6 +45,10 @@
 ;; (add-to-list 'auto-mode-alist '("^cf\\." . cfengine2-mode))
 ;; (add-to-list 'auto-mode-alist '("^cfagent.conf\\'" . cfengine2-mode))
 
+;; It's *highly* recommended that you enable the eldoc minor mode:
+
+;; (add-hook 'cfengine-mode-hook 'turn-on-eldoc-mode)
+
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does
 ;; better fontification and indentation, inter alia.
@@ -59,6 +63,18 @@
   "Size of a CFEngine indentation step in columns."
   :group 'cfengine
   :type 'integer)
+
+(defcustom cfengine-cf-promises
+  (or (executable-find "cf-promises")
+      (executable-find "/var/cfengine/bin/cf-promises")
+      (executable-find "/usr/bin/cf-promises")
+      (executable-find "/usr/local/bin/cf-promises")
+      (executable-find "~/bin/cf-promises"))
+  "The location of the cf-promises executable.
+Used for syntax discovery and checking.  Set to nil to disable
+the `compile-command' override and the ElDoc support."
+  :group 'cfengine
+  :type 'file)
 
 (defcustom cfengine-parameters-indent '(promise pname 0)
   "*Indentation of CFEngine3 promise parameters (hanging indent).
@@ -127,6 +143,9 @@ bundle agent rcfiles
 (defvar cfengine-mode-debug nil
   "Whether `cfengine-mode' should print debugging info.")
 
+(defvar cfengine-mode-syntax-cache nil
+  "Cache for `cfengine-mode' syntax trees obtained from 'cf-promises -s json'.")
+
 (defcustom cfengine-mode-abbrevs nil
   "Abbrevs for CFEngine2 mode."
   :group 'cfengine
@@ -167,7 +186,7 @@ This includes those for cfservd as well as cfagent.")
   (defconst cfengine3-vartypes
     (mapcar
      'symbol-name
-     '(string int real slist ilist rlist irange rrange counter))
+     '(string int real slist ilist rlist irange rrange counter data))
     "List of the CFEngine 3.x variable types."))
 
 (defvar cfengine2-font-lock-keywords
@@ -501,6 +520,116 @@ Intended as the value of `indent-line-function'."
 ;; CLASS: [.|&!()a-zA-Z0-9_\200-\377]+::
 ;; CATEGORY: [a-zA-Z_]+:
 
+(defun cfengine3--current-word (&optional bounds)
+  "Propose a word around point in the current CFEngine 3 buffer."
+  (let ((c (char-after (point)))
+        (s (syntax-ppss)))
+    (when (not (nth 3 s)) ; not inside a string
+      (if bounds
+          (save-excursion
+            (let ((oldpoint (point))
+                  start end)
+              (skip-syntax-backward "w_") (setq start (point))
+              (goto-char oldpoint)
+              (skip-syntax-forward "w_") (setq end (point))
+              (when (not (and (eq start oldpoint)
+                              (eq end oldpoint)))
+                (list start (point)))))
+        (and c
+             (memq (char-syntax c) '(?_ ?w))
+             (current-word))))))
+
+(defun cfengine3--current-function ()
+  "Look up current CFEngine 3 function"
+  (let* ((syntax (assoc cfengine-cf-promises cfengine-mode-syntax-cache))
+         (flist (assoc 'functions syntax)))
+    (when flist
+      (let ((w (cfengine3--current-word)))
+        (and w (assq (intern w) flist))))))
+
+;; format from "cf-promises -s json", e.g. "sort" function:
+;; ((category . "data")
+;;  (variadic . :json-false)
+;;  (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+;;                 ((range . "lex,int,real,IP,ip,MAC,mac") (type . "option"))])
+;;  (returnType . "slist")
+;;  (status . "normal"))
+
+(defun cfengine3-format-function-docstring (fdef)
+  (let* ((f (format "%s" (car-safe fdef)))
+         (def (cdr fdef))
+         (rtype (cdr (assq 'returnType def)))
+         (plist (cdr (assq 'parameters def)))
+         (has-some-parameters (> (length plist) 0))
+         (variadic (eq t (cdr (assq 'variadic def)))))
+
+    ;; (format "[%S]%s %s(%s%s)" def
+    (format "%s %s(%s%s)"
+            (if rtype
+                (propertize rtype 'face 'font-lock-variable-name-face)
+              "???")
+            (propertize f 'face 'font-lock-function-name-face)
+            (mapconcat (lambda (p)
+                         (let ((type (cdr (assq 'type p)))
+                               (range (cdr (assq 'range p))))
+                           (cond
+                            ((not (stringp type)) "???type???")
+                            ((not (stringp range)) "???range???")
+                            ;; options are lists of possible keywords
+                            ((equal type "option")
+                             (propertize (concat "[" range "]")
+                                         'face
+                                         'font-lock-keyword-face))
+                            ;; anything else is a type name as a variable
+                            (t (propertize type
+                                           'face
+                                           'font-lock-variable-name-face)))))
+                       plist
+                       ", ")
+            (if variadic
+                (if has-some-parameters ", ..." "...")
+              ""))))
+
+(defun cfengine3-make-syntax-cache ()
+  "Build the CFEngine 3 syntax cache.
+Calls `cfengine-cf-promises' with \"-s json\""
+  (when cfengine-cf-promises
+    (let ((loaded-json-lib (require 'json nil t))
+          (syntax (assoc cfengine-cf-promises cfengine-mode-syntax-cache)))
+      (if (not loaded-json-lib)
+          (message "JSON library could not be loaded!")
+        (unless syntax
+          (with-demoted-errors
+              (with-temp-buffer
+                (call-process-shell-command cfengine-cf-promises
+                                            nil   ; no input
+                                            t     ; current buffer
+                                            nil   ; no redisplay
+                                            "-s" "json")
+                (goto-char (point-min))
+                (setq syntax (json-read))
+                (setq cfengine-mode-syntax-cache
+                      (cons (cons cfengine-cf-promises syntax)
+                            cfengine-mode-syntax-cache)))))))))
+
+(defun cfengine3-documentation-function ()
+  "Document CFengine 3 functions around point.
+Intended as the value of `eldoc-documentation-function', which
+see.  Use it by executing `turn-on-eldoc-mode'."
+  (cfengine3-make-syntax-cache)
+  (let ((fdef (cfengine3--current-function)))
+    (when fdef
+      (cfengine3-format-function-docstring fdef))))
+
+(defun cfengine3-completion-function ()
+  "Return completions for function name around or before point."
+  (cfengine3-make-syntax-cache)
+  (let* ((bounds (cfengine3--current-word t))
+         (syntax (assoc cfengine-cf-promises cfengine-mode-syntax-cache))
+         (flist (assoc 'functions syntax)))
+    (when bounds
+      (append bounds (list (cdr flist))))))
+
 (defun cfengine-common-settings ()
   (set (make-local-variable 'syntax-propertize-function)
        ;; In the main syntax-table, \ is marked as a punctuation, because
@@ -548,6 +677,21 @@ to the action header."
         '(cfengine3-font-lock-keywords
           nil nil nil beginning-of-defun))
   (setq-local prettify-symbols-alist cfengine3--prettify-symbols-alist)
+
+  ;; `compile-command' is almost never a `make' call with CFEngine so
+  ;; we override it
+  (when cfengine-cf-promises
+    (set (make-local-variable 'compile-command)
+         (concat cfengine-cf-promises
+                 " -f "
+                 (when buffer-file-name
+                   (shell-quote-argument buffer-file-name)))))
+
+  (set (make-local-variable 'eldoc-documentation-function)
+       #'cfengine3-documentation-function)
+
+  (add-hook 'completion-at-point-functions
+            #'cfengine3-completion-function nil t)
 
   ;; Use defuns as the essential syntax block.
   (set (make-local-variable 'beginning-of-defun-function)

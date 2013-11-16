@@ -1,3 +1,20 @@
+2013-11-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Version bump.
+	(cfengine-cf-promises): New defcustom to locate cf-promises.
+	(cfengine3-vartypes): Add new "data" type.
+	(cfengine3--current-word): New function to get current name-like
+	word or its bounds.
+	(cfengine3--current-function): New function to look up a CFEngine
+	function's definition.
+	(cfengine3-format-function-docstring): New function.
+	(cfengine3-make-syntax-cache): New function.
+	(cfengine3-documentation-function): New function: ElDoc glue.
+	(cfengine3-completion-function): New function: completion glue.
+	(cfengine3-mode): Set `compile-command',
+	`eldoc-documentation-function', and add to
+	`completion-at-point-functions'.
+
 2013-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Clean up
