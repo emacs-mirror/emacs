@@ -3615,7 +3615,9 @@ sys_link (const char * old, const char * new)
 {
   HANDLE fileh;
   int   result = -1;
-  char oldname[MAX_PATH], newname[MAX_PATH];
+  char oldname[MAX_UTF8_PATH], newname[MAX_UTF8_PATH];
+  wchar_t oldname_w[MAX_PATH];
+  char oldname_a[MAX_PATH];
 
   if (old == NULL || new == NULL)
     {
@@ -3626,8 +3628,18 @@ sys_link (const char * old, const char * new)
   strcpy (oldname, map_w32_filename (old, NULL));
   strcpy (newname, map_w32_filename (new, NULL));
 
-  fileh = CreateFile (oldname, 0, 0, NULL, OPEN_EXISTING,
-		      FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if (w32_unicode_filenames)
+    {
+      filename_to_utf16 (oldname, oldname_w);
+      fileh = CreateFileW (oldname_w, 0, 0, NULL, OPEN_EXISTING,
+			   FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
+  else
+    {
+      filename_to_ansi (oldname, oldname_a);
+      fileh = CreateFileA (oldname_a, 0, 0, NULL, OPEN_EXISTING,
+			   FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
   if (fileh != INVALID_HANDLE_VALUE)
     {
       int wlen;
@@ -3644,7 +3656,10 @@ sys_link (const char * old, const char * new)
 	WCHAR wbuffer[MAX_PATH];	/* extra space for link name */
       } data;
 
-      wlen = MultiByteToWideChar (CP_ACP, MB_PRECOMPOSED, newname, -1,
+      /* We used to pass MB_PRECOMPOSED as the 2nd arg here, but MSDN
+	 indicates that flag is unsupported for CP_UTF8, and OTOH says
+	 it is the default anyway.  */
+      wlen = MultiByteToWideChar (CP_UTF8, 0, newname, -1,
 				  data.wid.cStreamName, MAX_PATH);
       if (wlen > 0)
 	{
@@ -3668,9 +3683,40 @@ sys_link (const char * old, const char * new)
 	    }
 	  else
 	    {
-	      /* Should try mapping GetLastError to errno; for now just
-		 indicate a general error (eg. links not supported).  */
-	      errno = EINVAL;  // perhaps EMLINK?
+	      DWORD err = GetLastError ();
+	      DWORD attributes;
+
+	      switch (err)
+		{
+		case ERROR_ACCESS_DENIED:
+		  /* This is what happens when OLDNAME is a directory,
+		     since Windows doesn't support hard links to
+		     directories.  Posix says to set errno to EPERM in
+		     that case.  */
+		  if (w32_unicode_filenames)
+		    attributes = GetFileAttributesW (oldname_w);
+		  else
+		    attributes = GetFileAttributesA (oldname_a);
+		  if (attributes != -1
+		      && (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		    errno = EPERM;
+		  else if (attributes == -1
+			   && is_unc_volume (oldname)
+			   && unc_volume_file_attributes (oldname) != -1)
+		    errno = EPERM;
+		  else
+		    errno = EACCES;
+		  break;
+		case ERROR_TOO_MANY_LINKS:
+		  errno = EMLINK;
+		  break;
+		case ERROR_NOT_SAME_DEVICE:
+		  errno = EXDEV;
+		  break;
+		default:
+		  errno = EINVAL;
+		  break;
+		}
 	    }
 	}
 
