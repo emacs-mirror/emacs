@@ -1,3 +1,10 @@
+2013-10-28  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* semantic/fw.el (semantic-exit-on-input)
+	(semantic-throw-on-input): Restore point before
+	accept-process-output because timers which redisplay can run.
+	(Bug#15045)
+
 2013-11-03  Johan Bockgård  <bojohan@gnu.org>
 
 	* semantic/lex.el (semantic-lex-start-block)
