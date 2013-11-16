@@ -4011,7 +4011,22 @@ sys_rename (char const *old, char const *new)
 int
 sys_rmdir (const char * path)
 {
-  return _rmdir (map_w32_filename (path, NULL));
+  path = map_w32_filename (path, NULL);
+
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wrmdir (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _rmdir (path_a);
+    }
 }
 
 int
@@ -4019,9 +4034,23 @@ sys_unlink (const char * path)
 {
   path = map_w32_filename (path, NULL);
 
-  /* On Unix, unlink works without write permission. */
-  _chmod (path, 0666);
-  return _unlink (path);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      /* On Unix, unlink works without write permission. */
+      _wchmod (path_w, 0666);
+      return _wunlink (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      _chmod (path_a, 0666);
+      return _unlink (path_a);
+    }
 }
 
 static FILETIME utc_base_ft;
