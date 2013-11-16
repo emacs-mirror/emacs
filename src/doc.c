@@ -850,6 +850,7 @@ Otherwise, return a new string, without any text properties.  */)
 	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
 	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  Lisp_Object earlier_maps;
+	  ptrdiff_t count = SPECPDL_INDEX ();
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
@@ -886,6 +887,10 @@ Otherwise, return a new string, without any text properties.  */)
 	  /* Now switch to a temp buffer.  */
 	  oldbuf = current_buffer;
 	  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
+	  /* This is for an unusual case where some after-change
+	     function uses 'format' or 'prin1' or something else that
+	     will thrash Vprin1_to_string_buffer we are using.  */
+	  specbind (Qinhibit_modification_hooks, Qt);
 
 	  if (NILP (tem))
 	    {
@@ -910,6 +915,7 @@ Otherwise, return a new string, without any text properties.  */)
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();
 	  set_buffer_internal (oldbuf);
+	  unbind_to (count, Qnil);
 
 	subst_string:
 	  start = SDATA (tem);

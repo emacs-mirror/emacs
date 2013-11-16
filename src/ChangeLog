@@ -1,5 +1,8 @@
 2013-11-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* doc.c (Fsubstitute_command_keys): Inhibit modification hooks
+	while we are using Vprin1_to_string_buffer.
+
 	* keymap.c (describe_map): Don't crash if PT is 1 both before and
 	after inserting the description string.  (Bug#15907)
 
