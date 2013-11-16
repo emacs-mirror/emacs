@@ -3731,7 +3731,22 @@ sys_link (const char * old, const char * new)
 int
 sys_mkdir (const char * path)
 {
-  return _mkdir (map_w32_filename (path, NULL));
+  path = map_w32_filename (path, NULL);
+
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wmkdir (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _mkdir (path_a);
+    }
 }
 
 int
@@ -3740,13 +3755,29 @@ sys_open (const char * path, int oflag, int mode)
   const char* mpath = map_w32_filename (path, NULL);
   int res = -1;
 
-  /* If possible, try to open file without _O_CREAT, to be able to
-     write to existing hidden and system files.  Force all file
-     handles to be non-inheritable. */
-  if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
-    res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
-  if (res < 0)
-    res = _open (mpath, oflag | _O_NOINHERIT, mode);
+  if (w32_unicode_filenames)
+    {
+      wchar_t mpath_w[MAX_PATH];
+
+      filename_to_utf16 (mpath, mpath_w);
+      /* If possible, try to open file without _O_CREAT, to be able to
+	 write to existing hidden and system files.  Force all file
+	 handles to be non-inheritable. */
+      if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
+	res = _wopen (mpath_w, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
+      if (res < 0)
+	res = _wopen (mpath_w, oflag | _O_NOINHERIT, mode);
+    }
+  else
+    {
+      char mpath_a[MAX_PATH];
+
+      filename_to_ansi (mpath, mpath_a);
+      if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
+	res = _open (mpath_a, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
+      if (res < 0)
+	res = _open (mpath_a, oflag | _O_NOINHERIT, mode);
+    }
 
   return res;
 }
