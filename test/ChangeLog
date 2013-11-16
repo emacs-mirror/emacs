@@ -1,3 +1,19 @@
+2013-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test07-file-exists-p)
+	(tramp-test08-file-local-copy)
+	(tramp-test09-insert-file-contents, tramp-test10-write-region)
+	(tramp-test11-copy-file, tramp-test12-rename-file)
+	(tramp-test13-make-directory, tramp-test14-delete-directory)
+	(tramp-test15-copy-directory, tramp-test16-directory-files)
+	(tramp-test17-insert-directory, tramp-test18-file-attributes)
+	(tramp-test19-directory-files-and-attributes)
+	(tramp-test20-file-modes, tramp-test21-file-links)
+	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
+	(tramp-test24-file-name-completion, tramp-test25-load)
+	(tramp-test26-process-file, tramp-test27-start-file-process)
+	(tramp-test28-shell-command): Cleanup connection initially.
+
 2013-11-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test29-utf8): Cleanup the

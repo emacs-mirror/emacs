@@ -549,6 +549,10 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (should-not (file-exists-p tmp-name))
     (write-region "foo" nil tmp-name)
@@ -559,6 +563,10 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test08-file-local-copy ()
   "Check `file-local-copy'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	tmp-name2)
     (unwind-protect
@@ -575,6 +583,10 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test09-insert-file-contents ()
   "Check `insert-file-contents'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -595,6 +607,10 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test10-write-region ()
   "Check `write-region'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -628,6 +644,10 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test11-copy-file ()
   "Check `copy-file'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name)))
     (unwind-protect
@@ -645,6 +665,10 @@ and `file-name-nondirectory'."
 (ert-deftest tramp-test12-rename-file ()
   "Check `rename-file'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name)))
     (unwind-protect
@@ -662,6 +686,10 @@ and `file-name-nondirectory'."
   "Check `make-directory'.
 This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -673,6 +701,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test14-delete-directory ()
   "Check `delete-directory'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     ;; Delete empty directory.
     (make-directory tmp-name)
@@ -689,6 +721,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test15-copy-directory ()
   "Check `copy-directory'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (tramp--test-make-temp-name))
 	 (tmp-name3 (expand-file-name
@@ -717,6 +753,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test16-directory-files ()
   "Check `directory-files'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "bla" tmp-name1))
 	 (tmp-name3 (expand-file-name "foo" tmp-name1)))
@@ -744,6 +784,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test17-insert-directory ()
   "Check `insert-directory'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (tmp-name2 (expand-file-name "foo" tmp-name1)))
     (unwind-protect
@@ -777,6 +821,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   "Check `file-attributes'.
 This tests also `file-readable-p' and `file-regular-p'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name))
 	attr)
     (unwind-protect
@@ -818,6 +866,10 @@ This tests also `file-readable-p' and `file-regular-p'."
 (ert-deftest tramp-test19-directory-files-and-attributes ()
   "Check `directory-files-and-attributes'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name))
 	attr)
     (unwind-protect
@@ -845,6 +897,10 @@ This tests also `file-readable-p' and `file-regular-p'."
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -866,6 +922,10 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   "Check `file-symlink-p'.
 This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name))
 	(tmp-name3 (make-temp-name "tramp-")))
@@ -915,6 +975,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test22-file-times ()
   "Check `set-file-times' and `file-newer-than-file-p'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name1 (tramp--test-make-temp-name))
 	(tmp-name2 (tramp--test-make-temp-name))
 	(tmp-name3 (tramp--test-make-temp-name)))
@@ -939,6 +1003,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test23-visited-file-modtime ()
   "Check `set-visited-file-modtime' and `verify-visited-file-modtime'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -955,6 +1023,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test24-file-name-completion ()
   "Check `file-name-completion' and `file-name-all-completions'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -976,6 +1048,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test25-load ()
   "Check `load'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name)))
     (unwind-protect
 	(progn
@@ -993,6 +1069,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test26-process-file ()
   "Check `process-file'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name))
 	(default-directory tramp-test-temporary-file-directory))
     (unwind-protect
@@ -1011,6 +1091,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test27-start-file-process ()
   "Check `start-file-process'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((default-directory tramp-test-temporary-file-directory)
 	(tmp-name (tramp--test-make-temp-name))
 	kill-buffer-query-functions proc)
@@ -1055,6 +1139,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test28-shell-command ()
   "Check `shell-command'."
   (skip-unless (tramp--test-enabled))
+  (tramp-cleanup-connection
+   (tramp-dissect-file-name tramp-test-temporary-file-directory)
+   nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name))
 	(default-directory tramp-test-temporary-file-directory))
     (unwind-protect
@@ -1067,10 +1155,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 (ert-deftest tramp-test29-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
-  ;; TODO: It shall be possible to call it in every test.
   (tramp-cleanup-connection
    (tramp-dissect-file-name tramp-test-temporary-file-directory)
    nil 'keep-password)
+
   (let ((tmp-name (tramp--test-make-temp-name))
 	(arabic "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
 	(chinese "银河系漫游指南系列")
@@ -1086,7 +1174,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (with-temp-buffer
 		(insert-file-contents file)
 		(should (string-equal (buffer-string) lang)))))
-	  ;; Check file name.
+	  ;; Check file names.
 	  (should (equal (directory-files
 			  tmp-name nil directory-files-no-dot-files-regexp)
 			 (sort `(,arabic ,chinese ,russian) 'string-lessp))))
