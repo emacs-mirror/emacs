@@ -1,3 +1,8 @@
+2013-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Clean up
+	`tramp-current-connection'.
+
 2013-11-15  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): End regexp for
