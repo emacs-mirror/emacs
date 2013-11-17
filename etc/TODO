@@ -199,6 +199,14 @@ dired buffers and DTRT WRT `auto-revert-mode'.
 http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
 
 * Important features:
+
+** "Emacs as word processor"
+http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00515.html
+    rms writes:
+    25 years ago I hoped we would extend Emacs to do WYSIWG word
+    processing.  That is why we added text properties and variable
+    width fonts.  However, more features are still needed to achieve this.
+
 ** Extended text-properties (to make overlays "obsolete")
 *** Several text-property planes
 This would get us rid of font-lock-face property (and I'd be happy to
