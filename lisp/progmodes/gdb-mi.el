@@ -1016,11 +1016,15 @@ no input, and GDB is waiting for input."
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 
+(defconst gdb--string-regexp "\"\\(?:[^\\\"]\\|\\\\.\\)*\"")
+
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (cond
-     ((re-search-forward ".*value=\\(\".*\"\\)" nil t)
+     ((re-search-forward (concat ".*value=\\(" gdb--string-regexp
+                                 "\\)")
+                         nil t)
       (tooltip-show
        (concat expr " = " (read (match-string 1)))
        (or gud-tooltip-echo-area
@@ -1198,7 +1202,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (goto-char (point-min))
-  (re-search-forward ".*value=\\(\".*\"\\)" nil t)
+  (re-search-forward (concat ".*value=\\(" gdb--string-regexp "\\)")
+                     nil t)
   (let ((var (assoc varnum gdb-var-list)))
     (when var
       (if changed (setcar (nthcdr 5 var) 'changed))
@@ -2124,7 +2129,8 @@ a GDB/MI reply message."
        '&' c-string"
   (when (< gdbmi-bnf-offset (length gud-marker-acc))
     (if (and (member (aref gud-marker-acc gdbmi-bnf-offset) '(?~ ?@ ?&))
-             (string-match "\\([~@&]\\)\\(\".*?\"\\)\n" gud-marker-acc
+             (string-match (concat "\\([~@&]\\)\\(" gdb--string-regexp "\\)\n")
+                           gud-marker-acc
                            gdbmi-bnf-offset))
         (let ((prefix (match-string 1 gud-marker-acc))
               (c-string (match-string 2 gud-marker-acc)))
@@ -2586,9 +2592,10 @@ incompatible with GDB/MI output syntax."
               (insert "]"))))))
     (goto-char (point-min))
     (insert "{")
-    (while (re-search-forward
-	    "\\([[:alnum:]-_]+\\)=\\({\\|\\[\\|\"\"\\|\".*?[^\\]\"\\)" nil t)
-      (replace-match "\"\\1\":\\2" nil nil))
+    (let ((re (concat "\\([[:alnum:]-_]+\\)=\\({\\|\\[\\|\"\"\\|"
+                      gdb--string-regexp "\\)")))
+      (while (re-search-forward re nil t)
+        (replace-match "\"\\1\":\\2" nil nil)))
     (goto-char (point-max))
     (insert "}")))
 
@@ -2812,8 +2819,12 @@ See `def-gdb-auto-update-handler'."
                             (or (bindat-get-field breakpoint 'disp) "")
                             (let ((flag (bindat-get-field breakpoint 'enabled)))
                               (if (string-equal flag "y")
-                                  (propertize "y" 'font-lock-face  font-lock-warning-face)
-                                (propertize "n" 'font-lock-face  font-lock-comment-face)))
+                                  (eval-when-compile
+                                    (propertize "y" 'font-lock-face
+                                                font-lock-warning-face))
+                                (eval-when-compile
+                                  (propertize "n" 'font-lock-face
+                                              font-lock-comment-face))))
                             (bindat-get-field breakpoint 'addr)
                             (or (bindat-get-field breakpoint 'times) "")
                             (if (and type (string-match ".*watchpoint" type))
@@ -2865,7 +2876,8 @@ See `def-gdb-auto-update-handler'."
 	      (gdb-put-breakpoint-icon (string-equal flag "y") bptno
 				       (string-to-number line)))))))))
 
-(defvar gdb-source-file-regexp "fullname=\"\\(.*?\\)\"")
+(defconst gdb-source-file-regexp
+  (concat "fullname=\\(" gdb--string-regexp "\\)"))
 
 (defun gdb-get-location (bptno line flag)
   "Find the directory containing the relevant source file.
@@ -2874,6 +2886,7 @@ Put in buffer and place breakpoint icon."
   (catch 'file-not-found
     (if (re-search-forward gdb-source-file-regexp nil t)
 	(delete (cons bptno "File not found") gdb-location-alist)
+      ;; FIXME: Why/how do we use (match-string 1) when the search failed?
       (push (cons bptno (match-string 1)) gdb-location-alist)
       (gdb-resync)
       (unless (assoc bptno gdb-location-alist)
@@ -4214,7 +4227,7 @@ If buffers already exist for any of these files, `gud-minor-mode'
 is set in them."
   (goto-char (point-min))
   (while (re-search-forward gdb-source-file-regexp nil t)
-    (push (match-string 1) gdb-source-file-list))
+    (push (read (match-string 1)) gdb-source-file-list))
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (member buffer-file-name gdb-source-file-list)
@@ -4253,14 +4266,15 @@ overlay arrow in source buffer."
                 (setq gud-overlay-arrow-position (make-marker))
                 (set-marker gud-overlay-arrow-position position))))))))
 
-(defvar gdb-prompt-name-regexp "value=\"\\(.*?\\)\"")
+(defconst gdb-prompt-name-regexp
+  (concat "value=\\(" gdb--string-regexp "\\)"))
 
 (defun gdb-get-prompt ()
   "Find prompt for GDB session."
   (goto-char (point-min))
   (setq gdb-prompt-name nil)
   (re-search-forward gdb-prompt-name-regexp nil t)
-  (setq gdb-prompt-name (match-string 1))
+  (setq gdb-prompt-name (read (match-string 1)))
   ;; Insert first prompt.
   (setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
 
@@ -4541,7 +4555,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
 buffers, if required."
   (goto-char (point-min))
   (if (re-search-forward gdb-source-file-regexp nil t)
-      (setq gdb-main-file (match-string 1)))
+      (setq gdb-main-file (read (match-string 1))))
   (if gdb-many-windows
       (gdb-setup-windows)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)

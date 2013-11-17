@@ -1,3 +1,15 @@
+2013-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Avoid backtracking in regexp matcher.
+	(gdb--string-regexp): New constant.
+	(gdb-tooltip-print, gdb-var-evaluate-expression-handler)
+	(gdbmi-bnf-stream-record, gdb-jsonify-buffer): Use it.
+	(gdb-source-file-regexp, gdb-prompt-name-regexp): Use it and change
+	submatch 1.
+	(gdb-get-source-file-list, gdb-get-prompt, gdb-get-source-file):
+	Adjust use accordingly.
+	(gdb-breakpoints-list-handler-custom): Pre-build the y/n string.
+
 2013-11-17  Adam Sokolnicki  <adam.sokolnicki@gmail.com>  (tiny change)
 
 	* progmodes/ruby-mode.el (ruby-toggle-block): Don't stop at
