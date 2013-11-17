@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This library implements a Markdown back-end (vanilla flavour) for
+;; This library implements a Markdown back-end (vanilla flavor) for
 ;; Org exporter, based on `html' back-end.  See Org manual for more
 ;; information.
 

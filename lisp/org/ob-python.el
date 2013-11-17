@@ -156,14 +156,14 @@ Emacs-lisp table, otherwise return the results as a string."
   "Return the buffer associated with SESSION."
   (cdr (assoc session org-babel-python-buffers)))
 
-(defun org-babel-python-with-earmufs (session)
+(defun org-babel-python-with-earmuffs (session)
   (let ((name (if (stringp session) session (format "%s" session))))
     (if (and (string= "*" (substring name 0 1))
 	     (string= "*" (substring name (- (length name) 1))))
 	name
       (format "*%s*" name))))
 
-(defun org-babel-python-without-earmufs (session)
+(defun org-babel-python-without-earmuffs (session)
   (let ((name (if (stringp session) session (format "%s" session))))
     (if (and (string= "*" (substring name 0 1))
 	     (string= "*" (substring name (- (length name) 1))))
@@ -190,9 +190,9 @@ then create.  Return the initialized session."
 	(if (not (version< "24.1" emacs-version))
 	    (run-python cmd)
 	  (unless python-buffer
-	    (setq python-buffer (org-babel-python-with-earmufs session)))
+	    (setq python-buffer (org-babel-python-with-earmuffs session)))
 	  (let ((python-shell-buffer-name
-		 (org-babel-python-without-earmufs python-buffer)))
+		 (org-babel-python-without-earmuffs python-buffer)))
 	    (run-python cmd))))
        ((and (eq 'python-mode org-babel-python-mode)
 	     (fboundp 'py-shell)) ; python-mode.el
@@ -208,7 +208,7 @@ then create.  Return the initialized session."
 			  (concat "Python-" (symbol-name session))))
 	       (py-which-bufname bufname))
 	  (py-shell)
-	  (setq python-buffer (org-babel-python-with-earmufs bufname))))
+	  (setq python-buffer (org-babel-python-with-earmuffs bufname))))
        (t
 	(error "No function available for running an inferior Python")))
       (setq org-babel-python-buffers

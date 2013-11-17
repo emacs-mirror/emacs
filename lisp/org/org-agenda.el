@@ -863,7 +863,7 @@ When set to the symbol `not-today', skip scheduled previously,
 but not scheduled today.
 
 When set to the symbol `repeated-after-deadline', skip scheduled
-items if they are repeated beyond the current dealine."
+items if they are repeated beyond the current deadline."
   :group 'org-agenda-skip
   :group 'org-agenda-daily/weekly
   :type '(choice

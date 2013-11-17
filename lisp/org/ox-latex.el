@@ -1325,13 +1325,13 @@ holding contextual information."
     (let* ((class (plist-get info :latex-class))
 	   (level (org-export-get-relative-level headline info))
 	   (numberedp (org-export-numbered-headline-p headline info))
-	   (class-sectionning (assoc class org-latex-classes))
+	   (class-sectioning (assoc class org-latex-classes))
 	   ;; Section formatting will set two placeholders: one for
 	   ;; the title and the other for the contents.
 	   (section-fmt
-	    (let ((sec (if (functionp (nth 2 class-sectionning))
-			   (funcall (nth 2 class-sectionning) level numberedp)
-			 (nth (1+ level) class-sectionning))))
+	    (let ((sec (if (functionp (nth 2 class-sectioning))
+			   (funcall (nth 2 class-sectioning) level numberedp)
+			 (nth (1+ level) class-sectioning))))
 	      (cond
 	       ;; No section available for that LEVEL.
 	       ((not sec) nil)
@@ -1622,7 +1622,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 	  (value (org-remove-indentation
 		  (org-element-property :value latex-environment))))
       (if (not (org-string-nw-p label)) value
-	;; Environment is labelled: label must be within the environment
+	;; Environment is labeled: label must be within the environment
 	;; (otherwise, a reference pointing to that element will count
 	;; the section instead).
 	(with-temp-buffer

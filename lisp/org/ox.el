@@ -2862,7 +2862,7 @@ The copy will preserve local variables, visibility, contents and
 narrowing of the original buffer.  If a region was active in
 BUFFER, contents will be narrowed to that region instead.
 
-The resulting function can be evaled at a later time, from
+The resulting function can be evaluated at a later time, from
 another buffer, effectively cloning the original buffer there.
 
 The function assumes BUFFER's major mode is `org-mode'."
@@ -4674,7 +4674,7 @@ INFO is a plist used as a communication channel."
   "Return TABLE-ROW number.
 INFO is a plist used as a communication channel.  Return value is
 zero-based and ignores separators.  The function returns nil for
-special colums and separators."
+special columns and separators."
   (when (and (eq (org-element-property :type table-row) 'standard)
 	     (not (org-export-table-row-is-special-p table-row info)))
     (let ((number 0))
@@ -5866,7 +5866,7 @@ files or buffers, only the display.
   "Export dispatcher for Org mode.
 
 It provides an access to common export related tasks in a buffer.
-Its interface comes in two flavours: standard and expert.
+Its interface comes in two flavors: standard and expert.
 
 While both share the same set of bindings, only the former
 displays the valid keys associations in a dedicated buffer.
@@ -5874,7 +5874,7 @@ Scrolling (resp. line-wise motion) in this buffer is done with
 SPC and DEL (resp. C-n and C-p) keys.
 
 Set variable `org-export-dispatch-use-expert-ui' to switch to one
-flavour or the other.
+flavor or the other.
 
 When ARG is \\[universal-argument], repeat the last export action, with the same set
 of options used back then, on the current buffer.

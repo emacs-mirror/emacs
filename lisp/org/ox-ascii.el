@@ -489,7 +489,7 @@ Empty lines are not indented."
 
 (defun org-ascii--box-string (s info)
   "Return string S with a partial box to its left.
-INFO is a plist used as a communicaton channel."
+INFO is a plist used as a communication channel."
   (let ((utf8p (eq (plist-get info :ascii-charset) 'utf-8)))
     (format (if utf8p "╭────\n%s\n╰────" ",----\n%s\n`----")
 	    (replace-regexp-in-string
@@ -710,7 +710,7 @@ generation.  INFO is a plist used as a communication channel."
      (let ((text-width
 	    (if keyword (org-ascii--current-text-width keyword info)
 	      (- org-ascii-text-width org-ascii-global-margin)))
-	   ;; Use a counter instead of retreiving ordinal of each
+	   ;; Use a counter instead of retrieving ordinal of each
 	   ;; src-block.
 	   (count 0))
        (mapconcat
@@ -748,7 +748,7 @@ generation.  INFO is a plist used as a communication channel."
      (let ((text-width
 	    (if keyword (org-ascii--current-text-width keyword info)
 	      (- org-ascii-text-width org-ascii-global-margin)))
-	   ;; Use a counter instead of retreiving ordinal of each
+	   ;; Use a counter instead of retrieving ordinal of each
 	   ;; src-block.
 	   (count 0))
        (mapconcat

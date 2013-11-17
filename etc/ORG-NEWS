@@ -101,7 +101,7 @@ of the list.
 Add support for ell, imath, jmath, varphi, varpi, aleph, gimel, beth,
 dalet, cdots, S (§), dag, ddag, colon, therefore, because, triangleq,
 leq, geq, lessgtr, lesseqgtr, ll, lll, gg, ggg, prec, preceq,
-preccurleyeq, succ, succeq, succurleyeq, setminus, nexist(s), mho,
+preccurlyeq, succ, succeq, succurlyeq, setminus, nexist(s), mho,
 check, frown, diamond.  Changes loz, vert, checkmark, smile and tilde.
 
 *** Anonymous export back-ends
@@ -146,7 +146,7 @@ This makes java executable configurable for ditaa blocks.
 
 This enables SVG generation from latex code blocks.
 
-*** New option: [[doc:org-habit-show-done-alwyays-green][org-habit-show-done-alwyays-green]]
+*** New option: [[doc:org-habit-show-done-always-green][org-habit-show-done-always-green]]
 
 See [[http://lists.gnu.org/archive/html/emacs-orgmode/2013-05/msg00214.html][this message]] from Max Mikhanosha.
 
@@ -277,8 +277,8 @@ manual for details and check [[http://orgmode.org/worg/org-8.0.html][this Worg p
      moved some contributions into the =contrib/= directory.
 
      The rationale for deciding that these files should live in =contrib/=
-     is either because they rely on third-part softwares that are not
-     included in Emacs, or because they are not targetting a significant
+     is either because they rely on third-party software that is not
+     included in Emacs, or because they are not targeting a significant
      user-base.
 
      - org-colview-xemacs.el
@@ -395,7 +395,7 @@ Among the new/updated export options, three are of particular importance:
 
 - [[doc:org-export-allow-bind-keywords][org-export-allow-bind-keywords]] :: This option replaces the old option
      =org-export-allow-BIND= and the default value is =nil=, not =confirm=.
-     You will need to explicitely set this to =t= in your initialization
+     You will need to explicitly set this to =t= in your initialization
      file if you want to allow =#+BIND= keywords.
 
 - [[doc:org-export-with-planning][org-export-with-planning]] :: This new option controls the export of
@@ -654,7 +654,7 @@ headlines and their content (but not subheadings) into the new file.
 This is useful when you want to quickly share an agenda containing the full
 list of notes.
 
-**** New commands to drag an agenda line forward (=M-<down>=) or backard (=M-<up>=)
+**** New commands to drag an agenda line forward (=M-<down>=) or backward (=M-<up>=)
 
 It sometimes handy to move agenda lines around, just to quickly reorganize
 your tasks, or maybe before saving the agenda to a file.  Now you can use
@@ -717,7 +717,7 @@ string is important to keep the agenda alignment clean.
 
 When [[doc:org-agenda-skip-scheduled-if-deadline-is-shown][org-agenda-skip-scheduled-if-deadline-is-shown]] is set to
 =repeated-after-deadline=, the agenda will skip scheduled items if they are
-repeated beyond the current dealine.
+repeated beyond the current deadline.
 
 **** New option for [[doc:org-agenda-skip-deadline-prewarning-if-scheduled][org-agenda-skip-deadline-prewarning-if-scheduled]]
 
@@ -757,7 +757,7 @@ check against the name of the buffer.
 
 Using =#+TAGS: { Tag1 : Tag2 Tag3 }= will define =Tag1= as a /group tag/
 (note the colon after =Tag1=).  If you search for =Tag1=, it will return
-headlines containing either =Tag1=, =Tag2= or =Tag3= (or any combinaison
+headlines containing either =Tag1=, =Tag2= or =Tag3= (or any combination
 of those tags.)
 
 You can use group tags for sparse tree in an Org buffer, for creating

@@ -963,7 +963,7 @@ holding contextual information."
   (let* ((class (plist-get info :texinfo-class))
 	 (level (org-export-get-relative-level headline info))
 	 (numberedp (org-export-numbered-headline-p headline info))
-	 (class-sectionning (assoc class org-texinfo-classes))
+	 (class-sectioning (assoc class org-texinfo-classes))
 	 ;; Find the index type, if any
 	 (index (org-element-property :INDEX headline))
 	 ;; Check if it is an appendix
@@ -999,10 +999,10 @@ holding contextual information."
 	 ;; Section formatting will set two placeholders: one for the
 	 ;; title and the other for the contents.
 	 (section-fmt
-	  (let ((sec (if (and (symbolp (nth 2 class-sectionning))
-			      (fboundp (nth 2 class-sectionning)))
-			 (funcall (nth 2 class-sectionning) level numberedp)
-		       (nth (1+ level) class-sectionning))))
+	  (let ((sec (if (and (symbolp (nth 2 class-sectioning))
+			      (fboundp (nth 2 class-sectioning)))
+			 (funcall (nth 2 class-sectioning) level numberedp)
+		       (nth (1+ level) class-sectioning))))
 	    (cond
 	     ;; No section available for that LEVEL.
 	     ((not sec) nil)

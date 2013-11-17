@@ -153,7 +153,7 @@
 \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">")
     ("xhtml-transitional" . "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
 \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">")
-    ("xhtml-framset" . "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\"
+    ("xhtml-frameset" . "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Frameset//EN\"
 \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd\">")
     ("xhtml-11" . "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
 \"http://www.w3.org/TR/xhtml1/DTD/xhtml11.dtd\">")
@@ -3069,7 +3069,7 @@ CONTENTS is the contents of the object.  INFO is a plist holding
 contextual information."
   (format "<sup>%s</sup>" contents))
 
-;;;; Tabel Cell
+;;;; Table Cell
 
 (defun org-html-table-cell (table-cell contents info)
   "Transcode a TABLE-CELL element from Org to HTML.

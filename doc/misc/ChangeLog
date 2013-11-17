@@ -1773,7 +1773,7 @@
 	* org.texi (Clocking commands): Document the use of S-M-<up/down>
 	on clock timestamps.
 
-	* org.texi (Fast access to TODO states): Explicitely says only
+	* org.texi (Fast access to TODO states): Explicitly says only
 	letters are supported as fast TODO selection keys.
 
 	* org.texi (Link abbreviations): Illustrate the use of the "%h"
@@ -2549,7 +2549,7 @@
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>  (tiny change)
 
-	* org.texi (Selective export): Explicitely mention the default
+	* org.texi (Selective export): Explicitly mention the default
 	values for `org-export-select-tags',
 	`org-export-exclude-tags'.
 

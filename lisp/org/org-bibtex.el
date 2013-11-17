@@ -44,7 +44,7 @@
 ;; Here is an example of a capture template that use some of this
 ;; information (:author :year :title :journal :pages):
 ;;
-;; (setq org-capure-templates
+;; (setq org-capture-templates
 ;;   '((?b "* READ %?\n\n%a\n\n%:author (%:year): %:title\n   \
 ;;          In %:journal, %:pages.")))
 ;;

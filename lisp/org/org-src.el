@@ -69,7 +69,7 @@ there are kept outside the narrowed region."
 This will save the content of the source code editing buffer into
 a newly created file, not the base buffer for this source block.
 
-If you want to regularily save the base buffer instead of the source
+If you want to regularly save the base buffer instead of the source
 code editing buffer, see `org-edit-src-auto-save-idle-delay' instead."
   :group 'org-edit-structure
   :version "24.4"

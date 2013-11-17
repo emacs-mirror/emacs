@@ -596,7 +596,7 @@ INPUT-FMT-LIST in to a single class.
 Note that this variable inherently captures how LibreOffice based
 converters work.  LibreOffice maps documents of various formats
 to classes like Text, Web, Spreadsheet, Presentation etc and
-allow document of a given class (irrespective of it's source
+allow document of a given class (irrespective of its source
 format) to be converted to any of the export formats associated
 with that class.
 
@@ -919,7 +919,7 @@ Specifically, locale-dependent specifiers like \"%c\", \"%x\" are
 formatted as canonical Org timestamps.  For finer control, avoid
 these %-specifiers.
 
-Textutal specifiers like \"%b\", \"%h\", \"%B\", \"%a\", \"%A\"
+Textual specifiers like \"%b\", \"%h\", \"%B\", \"%a\", \"%A\"
 etc., are displayed by the application in the default language
 and country specified in `org-odt-styles-file'.  Note that the
 default styles file uses language \"en\" and country \"GB\".  You
@@ -1436,7 +1436,7 @@ original parsed data.  INFO is a plist holding export options."
   ;; Update content.xml.
 
   (let* ( ;; `org-display-custom-times' should be accessed right
-	 ;; within the context of the Org buffer.  So obtain it's
+	 ;; within the context of the Org buffer.  So obtain its
 	 ;; value before moving on to temp-buffer context down below.
 	 (custom-time-fmts
 	  (if org-display-custom-times
@@ -1721,7 +1721,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
        (and (eq (org-element-type prev) 'footnote-reference)
 	    (format "<text:span text:style-name=\"%s\">%s</text:span>"
 		    "OrgSuperscript" ",")))
-     ;; Trancode footnote reference.
+     ;; Transcode footnote reference.
      (let ((n (org-export-get-footnote-number footnote-reference info)))
        (cond
 	((not (org-export-footnote-first-reference-p footnote-reference info))
@@ -2195,7 +2195,7 @@ SHORT-CAPTION are strings."
 	       (concat
 		;; Sneak in a bookmark.  The bookmark is used when the
 		;; labeled element is referenced with a link that
-		;; provides it's own description.
+		;; provides its own description.
 		(format "\n<text:bookmark text:name=\"%s\"/>" label)
 		;; Label definition: Typically formatted as below:
 		;;     CATEGORY SEQ-NO: LONG CAPTION
@@ -2342,7 +2342,6 @@ used as a communication channel."
 	 (user-frame-params
 	  (list user-frame-style user-frame-attrs user-frame-anchor))
 	 ;; (embed-as (or embed-as user-frame-anchor "paragraph"))
-	 ;; extrac
 	 ;;
 	 ;; Handle `:width', `:height' and `:scale' properties.  Read
 	 ;; them as numbers since we need them for computations.
@@ -2372,7 +2371,7 @@ used as a communication channel."
 	 (title (and replaces (capitalize
 			       (symbol-name (org-element-type replaces)))))
 
-	 ;; If yes, note down it's contents.  It will go in to frame
+	 ;; If yes, note down its contents.  It will go in to frame
 	 ;; description.  This quite useful for debugging.
 	 (desc (and replaces (org-element-property :value replaces))))
     (org-odt--render-image/formula entity href width height
@@ -2410,7 +2409,7 @@ used as a communication channel."
 	 (title (and replaces (capitalize
 			       (symbol-name (org-element-type replaces)))))
 
-	 ;; If yes, note down it's contents.  It will go in to frame
+	 ;; If yes, note down its contents.  It will go in to frame
 	 ;; description.  This quite useful for debugging.
 	 (desc (and replaces (org-element-property :value replaces)))
 	 width height)
@@ -2614,12 +2613,12 @@ used as a communication channel."
 INFO is a plist holding contextual information.
 
 Return non-nil, if ELEMENT is of type paragraph satisfying
-PARAGRAPH-PREDICATE and it's sole content, save for whitespaces,
+PARAGRAPH-PREDICATE and its sole content, save for whitespaces,
 is a link that satisfies LINK-PREDICATE.
 
 Return non-nil, if ELEMENT is of type link satisfying
-LINK-PREDICATE and it's containing paragraph satisfies
-PARAGRAPH-PREDICATE inaddtion to having no other content save for
+LINK-PREDICATE and its containing paragraph satisfies
+PARAGRAPH-PREDICATE in addition to having no other content save for
 leading and trailing whitespaces.
 
 Return nil, otherwise."
@@ -2708,7 +2707,7 @@ Return nil, otherwise."
 					    (concat (number-to-string n) ".")))
 			      item-numbers "")))))
      ;; Case 2: Locate a regular and numbered headline in the
-     ;; hierarchy.  Display it's section number.
+     ;; hierarchy.  Display its section number.
      (let ((headline (loop for el in (cons destination genealogy)
 			   when (and (eq (org-element-type el) 'headline)
 				     (not (org-export-low-level-p el info))
@@ -2721,7 +2720,7 @@ Return nil, otherwise."
 		 (mapconcat 'number-to-string (org-export-get-headline-number
 					       headline info) "."))))
      ;; Case 4: Locate a regular headline in the hierarchy.  Display
-     ;; it's title.
+     ;; its title.
      (let ((headline (loop for el in (cons destination genealogy)
 			   when (and (eq (org-element-type el) 'headline)
 				     (not (org-export-low-level-p el info)))
@@ -3101,9 +3100,9 @@ holding contextual information."
 
 (defun org-odt-hfy-face-to-css (fn)
   "Create custom style for face FN.
-When FN is the default face, use it's foreground and background
+When FN is the default face, use its foreground and background
 properties to create \"OrgSrcBlock\" paragraph style.  Otherwise
-use it's color attribute to create a character style whose name
+use its color attribute to create a character style whose name
 is obtained from FN.  Currently all attributes of FN other than
 color are ignored.
 

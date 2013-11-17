@@ -688,7 +688,7 @@ Using header arguments
 * System-wide header arguments::  Set global default values
 * Language-specific header arguments::  Set default values by language
 * Header arguments in Org mode properties::  Set default values for a buffer or heading
-* Language-specific header arguments in Org mode properties::  Set langugage-specific default values for a buffer or heading
+* Language-specific header arguments in Org mode properties::  Set language-specific default values for a buffer or heading
 * Code block specific header arguments::  The most common way to set values
 * Header arguments in function calls::  The most specific level
 
@@ -3874,7 +3874,7 @@ Jump to line 255.
 Search for a link target @samp{<<My Target>>}, or do a text search for
 @samp{my target}, similar to the search in internal links, see
 @ref{Internal links}.  In HTML export (@pxref{HTML export}), such a file
-link will become a HTML reference to the corresponding named anchor in
+link will become an HTML reference to the corresponding named anchor in
 the linked file.
 @item *My Target
 In an Org file, restrict search to headlines.
@@ -8055,7 +8055,7 @@ You may also test for properties (@pxref{Properties and Columns}) at the same
 time as matching tags.  The properties may be real properties, or special
 properties that represent other metadata (@pxref{Special properties}).  For
 example, the ``property'' @code{TODO} represents the TODO keyword of the
-entry and the ``propety'' @code{PRIORITY} represents the PRIORITY keyword of
+entry and the ``property'' @code{PRIORITY} represents the PRIORITY keyword of
 the entry.  The ITEM special property cannot currently be used in tags/property
 searches@footnote{But @pxref{x-agenda-skip-entry-regexp,
 ,skipping entries based on regexp}.}.
@@ -8547,7 +8547,7 @@ Limit the number of tagged entries.
 @end table
 
 When set to a positive integer, each option will exclude entries from other
-catogories: for example, @code{(setq org-agenda-max-effort 100)} will limit
+categories: for example, @code{(setq org-agenda-max-effort 100)} will limit
 the agenda to 100 minutes of effort and exclude any entry that as no effort
 property.  If you want to include entries with no effort property, use a
 negative value for @code{org-agenda-max-effort}.
@@ -9632,7 +9632,7 @@ or on a per-file basis with a line like
 @end example
 
 If you would like to move the table of contents to a different location, you
-should turn off the detault table using @code{org-export-with-toc} or
+should turn off the default table using @code{org-export-with-toc} or
 @code{#+OPTIONS} and insert @code{#+TOC: headlines N} at the desired
 location(s).
 
@@ -10856,7 +10856,7 @@ recognized.  See @ref{@LaTeX{} and PDF export} for more information.
 @cindex #+BEAMER_INNER_THEME
 @cindex #+BEAMER_OUTER_THEME
 Beamer export introduces a number of keywords to insert code in the
-document's header.  Four control appearance of the presentantion:
+document's header.  Four control appearance of the presentation:
 @code{#+BEAMER_THEME}, @code{#+BEAMER_COLOR_THEME},
 @code{#+BEAMER_FONT_THEME}, @code{#+BEAMER_INNER_THEME} and
 @code{#+BEAMER_OUTER_THEME}.  All of them accept optional arguments
@@ -10975,7 +10975,7 @@ Here is a simple example Org document that is intended for Beamer export.
 @section HTML export
 @cindex HTML export
 
-Org mode contains a HTML (XHTML 1.0 strict) exporter with extensive
+Org mode contains an HTML (XHTML 1.0 strict) exporter with extensive
 HTML formatting, in ways similar to John Gruber's @emph{markdown}
 language, but with additional support for tables.
 
@@ -10998,11 +10998,11 @@ language, but with additional support for tables.
 
 @table @kbd
 @orgcmd{C-c C-e h h,org-html-export-to-html}
-Export as a HTML file.  For an Org file @file{myfile.org},
+Export as an HTML file.  For an Org file @file{myfile.org},
 the HTML file will be @file{myfile.html}.  The file will be overwritten
 without warning.
 @kbd{C-c C-e h o}
-Export as a HTML file and immediately open it with a browser.
+Export as an HTML file and immediately open it with a browser.
 @orgcmd{C-c C-e h H,org-html-export-as-html}
 Export to a temporary buffer.  Do not create a file.
 @end table
@@ -11029,7 +11029,7 @@ Export to a temporary buffer.  Do not create a file.
 Org can export to various (X)HTML flavors.
 
 Setting the variable @code{org-html-doctype} allows you to export to different
-(X)HTML variants.  The exported HTML will be adjusted according to the sytax
+(X)HTML variants.  The exported HTML will be adjusted according to the syntax
 requirements of that variant.  You can either set this variable to a doctype
 string directly, in which case the exporter will try to adjust the syntax
 automatically, or you can use a ready-made doctype.  The ready-made options
@@ -11176,7 +11176,7 @@ includes automatic links created by radio targets (@pxref{Radio
 targets}).  Links to external files will still work if the target file is on
 the same @i{relative} path as the published Org file.  Links to other
 @file{.org} files will be translated into HTML links under the assumption
-that a HTML version also exists of the linked file, at the same relative
+that an HTML version also exists of the linked file, at the same relative
 path.  @samp{id:} links can then be used to jump to specific entries across
 files.  For information related to linking files while publishing them to a
 publishing directory see @ref{Publishing links}.
@@ -11773,10 +11773,10 @@ attribute.  You may set it to:
 @code{t}: if you want to make the source block a float.  It is the default
 value when a caption is provided.
 @item
-@code{mulicolumn}: if you wish to include a source block which spans multiple
-colums in a page.
+@code{multicolumn}: if you wish to include a source block which spans multiple
+columns in a page.
 @item
-@code{nil}: if you need to avoid any floating evironment, even when a caption
+@code{nil}: if you need to avoid any floating environment, even when a caption
 is provided.  It is useful for source code that may not fit in a single page.
 @end itemize
 
@@ -11838,7 +11838,7 @@ respectively, @code{:width} and @code{:thickness} attributes:
 @section Markdown export
 @cindex Markdown export
 
-@code{md} export back-end generates Markdown syntax@footnote{Vanilla flavour,
+@code{md} export back-end generates Markdown syntax@footnote{Vanilla flavor,
 as defined at @url{http://daringfireball.net/projects/markdown/}.} for an Org
 mode buffer.
 
@@ -12861,7 +12861,7 @@ you are using.  The FAQ covers this issue.
 @cindex export back-ends, built-in
 @vindex org-export-backends
 
-On top of the aforemetioned back-ends, Org comes with other built-in ones: 
+On top of the aforementioned back-ends, Org comes with other built-in ones:
 
 @itemize
 @item @file{ox-man.el}: export to a man page.
@@ -12894,8 +12894,8 @@ Convert the selected region into @code{Texinfo}.
 Convert the selected region into @code{MarkDown}.
 @end table
 
-This is particularily useful for converting tables and lists in foreign
-buffers.  E.g., in a HTML buffer, you can turn on @code{orgstruct-mode}, then
+This is particularly useful for converting tables and lists in foreign
+buffers.  E.g., in an HTML buffer, you can turn on @code{orgstruct-mode}, then
 use Org commands for editing a list, and finally select and convert the list
 with @code{M-x org-html-convert-region-to-html RET}.
 
@@ -17273,8 +17273,8 @@ to become slow.  Below are some tips on how to speed up the agenda commands.
 
 @enumerate
 @item
-Reduce the number of Org agenda files: this will reduce the slowliness caused
-by accessing to a hard drive.
+Reduce the number of Org agenda files: this will reduce the slowness caused
+by accessing a hard drive.
 @item
 Reduce the number of DONE and archived headlines: this way the agenda does
 not need to skip them.
@@ -17912,7 +17912,7 @@ inspired some of the early development, including HTML export.  He also
 asked for a way to narrow wide table columns.
 @item
 @i{Jason Dunsmore} has been maintaining the Org-Mode server at Rackspace for
-several years now.  He also sponsered the hosting costs until Rackspace
+several years now.  He also sponsored the hosting costs until Rackspace
 started to host us for free.
 @item
 @i{Thomas S. Dye} contributed documentation on Worg and helped integrating

@@ -1,3 +1,11 @@
+2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* ob-python.el (org-babel-python-with-earmuffs):
+	Rename from org-babel-python-with-earmufs.  All uses changed.
+	(org-babel-python-without-earmuffs):
+	Rename from org-babel-python-without-earmufs.  All uses changed.
+
 2013-11-12  Bastien Guerry  <bzg@gnu.org>
 
 	* org-agenda.el (org-agenda-set-restriction-lock): Autoload.
@@ -1887,7 +1895,7 @@
 	when `org-prefix-has-breadcrumbs' is non-nil.
 
 	* org.el (org-mode): Don't make characters from
-	`org-emphasis-alist' word constituants.
+	`org-emphasis-alist' word constituents.
 	(org-mode-transpose-word-syntax-table): Rename from
 	`org-syntax-table'.
 	(org-transpose-words): Use
@@ -3394,7 +3402,7 @@
 	(org-export--get-buffer-attributes): Store a default title.
 	(org-export-as): Apply function removal.
 	(org-export--get-global-options): Do not set a property with an
-	explicitely nil value.
+	explicitly nil value.
 
 	* ox-publish.el (org-publish-sitemap-sort-files)
 	(org-publish-sitemap-sort-folders)
@@ -4526,7 +4534,7 @@
 	the string returned will end with a single one.
 
 	* ox-latex.el (org-latex-headline): When a function returns a
-	sectionning command, only one placeholder should be required.
+	sectioning command, only one placeholder should be required.
 
 	* org-element.el (org-element-nested-p): Do not inline function.
 
@@ -5262,8 +5270,8 @@
 	* org-entities.el (org-entities): Add support for ell, imath,
 	jmath, varphi, varpi, aleph, gimel, beth, dalet, cdots, S (§),
 	dag, ddag, colon, therefore, because, triangleq, leq, geq,
-	lessgtr, lesseqgtr, ll, lll, gg, ggg, prec, preceq, preccurleyeq,
-	succ, succeq, succurleyeq, setminus, nexist(s), mho, check, frown,
+	lessgtr, lesseqgtr, ll, lll, gg, ggg, prec, preceq, preccurlyeq,
+	succ, succeq, succurlyeq, setminus, nexist(s), mho, check, frown,
 	diamond.  Changes loz, vert, checkmark, smile and tilde.
 
 	* ob-C.el: Added C++ to `org-babel-load-languages' automatically
@@ -6358,7 +6366,7 @@
 
 	* org.el (org-reload): Simplify file-re (orgtbl-*.el files do not
 	exist anymore).  Keep org-*.el at the end of the files list.
-	Explicitely load org-version.el (since it doesn't provide feature
+	Explicitly load org-version.el (since it doesn't provide feature
 	'org-version) at the very end, but ignore errors when it doesn't
 	exist.  Add parameters 'full and 'message to the call of
 	(org-version) so that after reload the full version information is
@@ -8147,7 +8155,7 @@
 	* org.el (org-read-date): Set cursor-type to nil in the calendar.
 
 	* org-faces.el (org-date-selected): Use inverse video.
-	Don't explicitely set bold to nil as it causes `customize-face' to show
+	Don't explicitly set bold to nil as it causes `customize-face' to show
 	the weight property and thus encourage the user to change it.
 	Warn in the docstring that using bold might cause problems when
 	displaying the calendar.
@@ -9228,7 +9236,7 @@
 	* org-agenda.el (org-agenda-skip-timestamp-if-deadline-is-shown):
 	Skip timestamp items in agenda view if item is already shown as a
 	deadline item.
-	(org-agenda-skip-dealine-if-done): Pass deadline results to
+	(org-agenda-skip-deadline-if-done): Pass deadline results to
 	org-agenda-get-timestamps.
 	(org-agenda-get-timestamps): Optionally take list of deadline
 	results, so that timestamp results can be skipped if already
@@ -12430,7 +12438,7 @@
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-footnote.el (org-footnote-create-definition):
-	Explicitely move point after tag, if it has just been
+	Explicitly move point after tag, if it has just been
 	inserted.
 
 2012-01-03  Eric Schulte  <schulte.eric@gmail.com>

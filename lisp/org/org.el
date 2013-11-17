@@ -713,7 +713,7 @@ the following lines anywhere in the buffer:
   "Non-nil means preview LaTeX fragments when loading a new Org file.
 
 This can also be configured on a per-file basis by adding one of
-the followinglines anywhere in the buffer:
+the following lines anywhere in the buffer:
    #+STARTUP: latexpreview
    #+STARTUP: nolatexpreview"
   :group 'org-startup
@@ -1037,7 +1037,7 @@ commands in the Help buffer using the `?' speed command."
      :last-refile "org-refile-last-stored"
      :last-capture-marker "org-capture-last-stored-marker")
    "Names for bookmarks automatically set by some Org commands.
-This can provide strings as names for a number of bookmakrs Org sets
+This can provide strings as names for a number of bookmarks Org sets
 automatically.  The following keys are currently implemented:
   :last-capture
   :last-capture-marker
@@ -19542,7 +19542,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
   "Transpose words for Org.
 This uses the `org-mode-transpose-word-syntax-table' syntax
 table, which interprets characters in `org-emphasis-alist' as
-word constituants."
+word constituents."
   (interactive)
   (with-syntax-table org-mode-transpose-word-syntax-table
     (call-interactively 'transpose-words)))
@@ -20401,7 +20401,7 @@ If `org-special-ctrl-o' is nil, just call `open-line' everywhere."
     (open-line n))
    ((org-at-table-p)
     (org-table-insert-row))
-   (t    
+   (t
     (open-line n))))
 
 (defun org-return (&optional indent)
@@ -21148,7 +21148,7 @@ With prefix arg UNCOMPILED, load the uncompiled versions."
 	(message "The following feature%s found in load-path, please check if that's correct:\n%s"
 		 (if (> (length load-uncore) 1) "s were" " was") load-uncore))
     (if load-misses
-	(message "Some error occured while reloading Org feature%s\n%s\nPlease check *Messages*!\n%s"
+	(message "Some error occurred while reloading Org feature%s\n%s\nPlease check *Messages*!\n%s"
 		 (if (> (length load-misses) 1) "s" "") load-misses (org-version nil 'full))
       (message "Successfully reloaded Org\n%s" (org-version nil 'full)))))
 

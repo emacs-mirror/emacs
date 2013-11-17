@@ -318,7 +318,7 @@ Do not query the user."
 	   (message (format "Evaluation of this%scode-block%sis disabled."
 			    code-block block-name))))))
 
- ;; dynamically scoped for asynchroneous export
+ ;; dynamically scoped for asynchronous export
 (defvar org-babel-confirm-evaluate-answer-no)
 
 (defsubst org-babel-confirm-evaluate (info)
