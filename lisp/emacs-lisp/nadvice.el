@@ -284,7 +284,7 @@ of the piece of advice."
   (cond ((eq 'local (car-safe place))
          (setq place `(advice--buffer-local ,@(cdr place))))
         ((symbolp place)
-         (error "Use (default-value '%S) or (local '%S)" place place)))
+         (setq place `(default-value ',place))))
   (gv-letplace (getter setter) place
     (macroexp-let2 nil new `(advice--remove-function ,getter ,function)
       `(unless (eq ,new ,getter) ,(funcall setter new)))))

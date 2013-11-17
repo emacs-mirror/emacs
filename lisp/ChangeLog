@@ -1,5 +1,8 @@
 2013-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/nadvice.el (remove-function): Align with
+	add-function's behavior.
+
 	* progmodes/gdb-mi.el: Avoid backtracking in regexp matcher.
 	(gdb--string-regexp): New constant.
 	(gdb-tooltip-print, gdb-var-evaluate-expression-handler)
