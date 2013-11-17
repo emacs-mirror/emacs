@@ -146,6 +146,7 @@
 (declare-function calc-set-language "calc-lang" (lang &optional option no-refresh))
 (declare-function calc-edit-finish "calc-yank" (&optional keep))
 (declare-function calc-edit-cancel "calc-yank" ())
+(declare-function calc-locate-cursor-element "calc-yank" (pt))
 (declare-function calc-do-quick-calc "calc-aent" ())
 (declare-function calc-do-calc-eval "calc-aent" (str separator args))
 (declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
@@ -424,6 +425,13 @@ in normal mode."
 when converting units."
   :group 'calc
   :version "24.3"
+  :type 'boolean)
+
+(defcustom calc-context-sensitive-enter
+  nil
+  "If non-nil, the stack element under the cursor will be copied by `calc-enter'."
+  :group 'calc
+  :version "24.4"
   :type 'boolean)
 
 (defcustom calc-undo-length
@@ -2257,8 +2265,10 @@ the United States."
 	 ((= n 0)
 	  (calc-push-list (calc-top-list (calc-stack-size))))
 	 (t
-	  (calc-push-list (calc-top-list n))))))
-
+          (if (not calc-context-sensitive-enter)
+              (calc-push-list (calc-top-list n))
+            (let ((num (max 1 (calc-locate-cursor-element (point)))))
+              (calc-push-list (calc-top-list n num))))))))
 
 (defun calc-pop (n)
   (interactive "P")

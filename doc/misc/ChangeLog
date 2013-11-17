@@ -1,3 +1,8 @@
+2013-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Customizing Calc): Mention new variable
+	`calc-context-sensitive-enter'.
+
 2013-11-12  Aaron Ecay  <aaronecay@gmail.com>
 
 	* org.texi (Exporting code blocks): Document the 'inline-only
