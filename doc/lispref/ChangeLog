@@ -1,3 +1,8 @@
+2013-11-17  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (Time Parsing):
+	(Processor Run Time, Input Modes, Terminal Output): Minor fixes.
+
 2013-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (Library Search): Update section.

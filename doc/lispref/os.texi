@@ -1524,7 +1524,7 @@ system.
 @defun seconds-to-time seconds
 This function converts @var{seconds}, a floating point number of
 seconds since the epoch, to a time value and returns that.  To perform
-the inverse conversion, use @code{float-time}.
+the inverse conversion, use @code{float-time} (@pxref{Time of Day}).
 @end defun
 
 @defun format-seconds format-string seconds
@@ -1586,6 +1586,7 @@ most-positive-fixnum}).
 both elapsed and processor time, used by the Emacs process.
 
 @deffn Command emacs-uptime &optional format
+@cindex uptime of Emacs
 This function returns a string representing the Emacs
 @dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
 running.  The string is formatted by @code{format-seconds} according
@@ -1922,10 +1923,10 @@ functions.
 
 @defun set-input-mode interrupt flow meta &optional quit-char
 This function sets the mode for reading keyboard input.  If
-@var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
-@code{nil}, then it uses @sc{cbreak} mode.  The default setting is
-system-dependent.  Some systems always use @sc{cbreak} mode regardless
-of what is specified.
+@var{interrupt} is non-@code{nil}, then Emacs uses input interrupts.
+If it is @code{nil}, then it uses @sc{cbreak} mode.  The default
+setting is system-dependent.  Some systems always use @sc{cbreak} mode
+regardless of what is specified.
 
 When Emacs communicates directly with X, it ignores this argument and
 uses interrupts if that is the way it knows how to communicate.
@@ -2075,17 +2076,17 @@ often than to actual Emacs bugs.  Once you are certain which characters
 were actually output, you can determine reliably whether they correspond
 to the Termcap specifications in use.
 
-You close the termscript file by calling this function with an
-argument of @code{nil}.
-
-See also @code{open-dribble-file} in @ref{Recording Input}.
-
 @example
 @group
 (open-termscript "../junk/termscript")
      @result{} nil
 @end group
 @end example
+
+You close the termscript file by calling this function with an
+argument of @code{nil}.
+
+See also @code{open-dribble-file} in @ref{Recording Input}.
 @end deffn
 
 @node Sound Output
@@ -2096,6 +2097,7 @@ See also @code{open-dribble-file} in @ref{Recording Input}.
 certain systems are supported; if you call @code{play-sound} on a
 system which cannot really do the job, it gives an error.
 
+@c FIXME: Add indexes for Au and WAV?  --xfq
   The sound must be stored as a file in RIFF-WAVE format (@samp{.wav})
 or Sun Audio format (@samp{.au}).
 
