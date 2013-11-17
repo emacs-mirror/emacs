@@ -309,6 +309,12 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-toggle-block)
     (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
 
+(ert-deftest ruby-toggle-block-with-interpolation ()
+  (ruby-with-temp-buffer "foo do\n  \"#{bar}\"\nend"
+    (beginning-of-line)
+    (ruby-toggle-block)
+    (should (string= "foo { \"#{bar}\" }" (buffer-string)))))
+
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
   (ruby-assert-face ":@abc" 3 font-lock-constant-face))
 

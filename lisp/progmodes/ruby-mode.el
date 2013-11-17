@@ -1590,8 +1590,9 @@ If the result is do-end block, it will always be multiline."
   (let ((start (point)) beg end)
     (end-of-line)
     (unless
-        (if (and (re-search-backward "\\({\\)\\|\\_<do\\(\\s \\|$\\||\\)")
+        (if (and (re-search-backward "\\(?:[^#]\\)\\({\\)\\|\\(\\_<do\\_>\\)")
                  (progn
+                   (goto-char (or (match-beginning 1) (match-beginning 2)))
                    (setq beg (point))
                    (save-match-data (ruby-forward-sexp))
                    (setq end (point))

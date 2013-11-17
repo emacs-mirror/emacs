@@ -1,3 +1,8 @@
+2013-11-17  Adam Sokolnicki  <adam.sokolnicki@gmail.com>  (tiny change)
+
+	* progmodes/ruby-mode.el (ruby-toggle-block): Don't stop at
+	interpolation curlies (Bug#15914).
+
 2013-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-context-sensitive-enter): New variable.
