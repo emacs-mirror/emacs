@@ -1,3 +1,9 @@
+2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (DEBUGGER_SEES_C_MACROS): Remove.
+	It apparently doesn't work for GCC 3, and I suppose it's more
+	trouble than it's worth to worry about this.
+
 2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (DEBUGGER_SEES_C_MACROS): New macro.

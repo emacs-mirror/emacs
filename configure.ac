@@ -697,16 +697,6 @@ if test "$ac_test_CFLAGS" != set; then
   esac
 fi
 
-for flag in $CFLAGS -; do
-  case $flag in
-    -g*3)
-      AC_DEFINE([DEBUGGER_SEES_C_MACROS], 1,
-        [Define to 1 if C macros are visible to the debugger, as with
-	 GCC's -g3 option.])
-      break;;
-  esac
-done
-
 AC_ARG_ENABLE([gcc-warnings],
   [AS_HELP_STRING([--enable-gcc-warnings],
                   [turn on lots of GCC warnings/errors. This is intended for

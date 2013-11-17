@@ -1,3 +1,7 @@
+2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DEBUGGER_SEES_C_MACROS): Remove.
+
 2013-11-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* doc.c (Fsubstitute_command_keys): Inhibit modification hooks
