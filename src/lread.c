@@ -1500,7 +1500,8 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
       for (tail = NILP (suffixes) ? list1 (empty_unibyte_string) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
-	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
+	  Lisp_Object suffix = XCAR (tail);
+	  ptrdiff_t fnlen, lsuffix = SBYTES (suffix);
 	  Lisp_Object handler;
 
 	  /* Concatenate path element/specified name with the suffix.
@@ -1511,7 +1512,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 			   ? 2 : 0);
 	  fnlen = SBYTES (filename) - prefixlen;
 	  memcpy (fn, SDATA (filename) + prefixlen, fnlen);
-	  memcpy (fn + fnlen, SDATA (XCAR (tail)), lsuffix + 1);
+	  memcpy (fn + fnlen, SDATA (suffix), lsuffix + 1);
 	  fnlen += lsuffix;
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
@@ -1521,7 +1522,18 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	     It's not clear why that was the case and it breaks things like
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
-	  string = make_string (fn, fnlen);
+	  /* make_string has its own ideas on when to return a unibyte
+	     string and when a multibyte string, but we know better.
+	     We must have a unibyte string when dumping, since
+	     file-name encoding is shaky at best at that time, and in
+	     particular default-file-name-coding-system is reset
+	     several times during loadup.  We therefore don't want to
+	     encode the file before passing it to file I/O library
+	     functions.  */
+	  if (!STRING_MULTIBYTE (filename) && !STRING_MULTIBYTE (suffix))
+	    string = make_unibyte_string (fn, fnlen);
+	  else
+	    string = make_string (fn, fnlen);
 	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
@@ -2565,9 +2577,8 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  if (c == '"')
 	    {
 	      Lisp_Object tmp, val;
-	      EMACS_INT size_in_chars
-		= ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		   / BOOL_VECTOR_BITS_PER_CHAR);
+	      EMACS_INT size_in_chars = bool_vector_bytes (XFASTINT (length));
+	      unsigned char *data;
 
 	      UNREAD (c);
 	      tmp = read1 (readcharfun, pch, first_in_list);
@@ -2581,11 +2592,12 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 			    == (SCHARS (tmp) - 1) * BOOL_VECTOR_BITS_PER_CHAR)))
 		invalid_syntax ("#&...");
 
-	      val = Fmake_bool_vector (length, Qnil);
-	      memcpy (XBOOL_VECTOR (val)->data, SDATA (tmp), size_in_chars);
+	      val = make_uninit_bool_vector (XFASTINT (length));
+	      data = bool_vector_uchar_data (val);
+	      memcpy (data, SDATA (tmp), size_in_chars);
 	      /* Clear the extraneous bits in the last byte.  */
 	      if (XINT (length) != size_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
-		XBOOL_VECTOR (val)->data[size_in_chars - 1]
+		data[size_in_chars - 1]
 		  &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	      return val;
 	    }
@@ -3462,7 +3474,7 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag)
   vector = Fmake_vector (len, Qnil);
 
   size = ASIZE (vector);
-  ptr = XVECTOR (vector)->u.contents;
+  ptr = XVECTOR (vector)->contents;
   for (i = 0; i < size; i++)
     {
       item = Fcar (tem);

@@ -84,6 +84,8 @@ VPATH=@srcdir@
 
 # The top-level source directory, also set by configure.
 top_srcdir=@top_srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 
 # ==================== Emacs-specific directories ====================
 
@@ -214,10 +216,10 @@ blessmail:
 need-blessmail: blessmail
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
-	  echo Assuming $$dir is really the mail spool directory, you should; \
-	  echo run  lib-src/blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}; \
-	  echo as root, to give  movemail${EXEEXT}  appropriate permissions.; \
-	  echo Do that after running  make install.; \
+	  echo "Assuming $$dir is really the mail spool directory, you should"; \
+	  echo "run  lib-src/blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}"; \
+	  echo "as root, to give  movemail${EXEEXT}  appropriate permissions."; \
+	  echo "Do that after running  make install."; \
 	fi
 
 ## This is the target invoked by the top-level Makefile.
@@ -231,23 +233,24 @@ maybe-blessmail: $(BLESSMAIL_TARGET)
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	umask 022; ${MKDIR_P} $(DESTDIR)${archlibdir}
-	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` != `/bin/pwd` ]; then \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${archlibdir}"
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
+	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
 	  for file in ${UTILITIES}; do \
-	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
+	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file "$(DESTDIR)${archlibdir}/$$file" ; \
 	  done ; \
         fi
-	umask 022; ${MKDIR_P} $(DESTDIR)${gamedir}; \
-	touch $(DESTDIR)${gamedir}/snake-scores; \
-	touch $(DESTDIR)${gamedir}/tetris-scores
-	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score${EXEEXT} && chmod u+s $(DESTDIR)${archlibdir}/update-game-score${EXEEXT}; then \
-	  chown ${gameuser} $(DESTDIR)${gamedir}; \
-	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${gamedir}"; \
+	touch "$(DESTDIR)${gamedir}/snake-scores"; \
+	touch "$(DESTDIR)${gamedir}/tetris-scores"
+	-if chown ${gameuser} "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" && chmod u+s "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}"; then \
+	  chown ${gameuser} "$(DESTDIR)${gamedir}"; \
+	  chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"; \
 	fi
-	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` \
-             != `cd ${srcdir} && /bin/pwd` ]; then \
+	if [ "`cd \"$(DESTDIR)${archlibdir}\" && /bin/pwd`" \
+             != "`cd ${srcdir} && /bin/pwd`" ]; then \
 	  for file in ${SCRIPTS}; do \
-	    $(INSTALL_SCRIPT) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
+	    $(INSTALL_SCRIPT) ${srcdir}/$$file "$(DESTDIR)${archlibdir}/$$file"; \
 	  done ; \
 	fi
 
@@ -257,23 +260,23 @@ $(DESTDIR)${archlibdir}: all
 install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
-	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  $(INSTALL_SCRIPT) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
+	  $(INSTALL_SCRIPT) ${srcdir}/$${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed '$(TRANSFORM)'`  ; \
 	done
 
 uninstall:
 	for file in ${INSTALLABLES}; do \
-	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	  rm -f "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS}; do \
-	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
+	  rm -f "$(DESTDIR)${bindir}"/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done
-	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && rm -f ${UTILITIES} ${SCRIPTS}) \
+	if [ -d "$(DESTDIR)${archlibdir}" ]; then \
+	  (cd "$(DESTDIR)${archlibdir}" && rm -f ${UTILITIES} ${SCRIPTS}) \
 	fi
 
 mostlyclean:

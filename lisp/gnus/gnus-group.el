@@ -4398,7 +4398,12 @@ and the second element is the address."
 		     ;; Suggested by mapjph@bath.ac.uk.
 		     (gnus-completing-read
 		      "Address"
-		      gnus-secondary-servers))
+		      ;; FIXME? gnus-secondary-servers is obsolete,
+		      ;; and it is not obvious that there is anything
+		      ;; sensible to use instead in this particular case.
+		      (if (boundp 'gnus-secondary-servers)
+			  gnus-secondary-servers
+			(cdr gnus-select-method))))
 	     ;; We got a server name.
 	     how))))
   (gnus-browse-foreign-server method))

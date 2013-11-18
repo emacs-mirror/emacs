@@ -1,7 +1,39 @@
+2013-11-16  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* semantic/fw.el (semantic-exit-on-input)
+	(semantic-throw-on-input): Restore point before
+	accept-process-output because timers which redisplay can run.
+	(Bug#15045)
+
+2013-11-03  Johan Bockgård  <bojohan@gnu.org>
+
+	* semantic/lex.el (semantic-lex-start-block)
+	(semantic-lex-end-block): Move after definition of
+	semantic-lex-token macro.
+
+2013-10-28  Barry O'Reilly  <gundaetiapo@gmail.com>
+
+	* semantic/idle.el (semantic-idle-symbol-highlight)
+	(semantic-idle-symbol-highlight-face): Define face with defface
+	and obsolete the replaced one defined with defvar.  (Bug#15745)
+	* pulse.el (pulse-momentary-highlight-overlay)
+	(pulse-momentary-highlight-region): Fix typo in doc
+
+2013-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/grammar.el (semantic-grammar-mode-keywords-2)
+	(semantic-grammar-mode-keywords-3): Handle renamed font-lock vars.
+
+2013-10-20  Johan Bockgård  <bojohan@gnu.org>
+
+	* semantic/db-mode.el (global-semanticdb-minor-mode):
+	Remove hooks correctly.
+	(semanticdb-toggle-global-mode): Pass `toggle' to minor mode function.
+
 2013-09-28  Leo Liu  <sdl.web@gmail.com>
 
-	* semantic/texi.el (semantic-analyze-possible-completions): Use
-	ispell-lookup-words instead.  (Bug#15460)
+	* semantic/texi.el (semantic-analyze-possible-completions):
+	Use ispell-lookup-words instead.  (Bug#15460)
 
 2013-09-20  Glenn Morris  <rgm@gnu.org>
 

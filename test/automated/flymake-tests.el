@@ -25,12 +25,17 @@
 (require 'ert)
 (require 'flymake)
 
+(defvar flymake-tests-data-directory
+  (expand-file-name "flymake/warnpred" (getenv "EMACS_TEST_DIRECTORY"))
+  "Directory containing flymake test data.")
+
 
 ;; Warning predicate
 (defun flymake-tests--current-face (file predicate)
-  (let ((buffer (find-file-noselect file)))
+  (let ((buffer (find-file-noselect
+                 (expand-file-name file flymake-tests-data-directory))))
     (unwind-protect
-        (with-current-buffer (find-file-noselect file)
+        (with-current-buffer buffer
           (setq-local flymake-warning-predicate predicate)
           (goto-char (point-min))
           (flymake-mode 1)
@@ -42,36 +47,29 @@
 
 (ert-deftest warning-predicate-rx-gcc ()
   "Test GCC warning via regexp predicate."
-  :expected-result (if (executable-find "gcc") :passed :failed)
+  (skip-unless (executable-find "gcc"))
   (should (eq 'flymake-warnline
-              (flymake-tests--current-face
-               "flymake/warnpred/test.c"
-               "^[Ww]arning"))))
+              (flymake-tests--current-face "test.c" "^[Ww]arning"))))
 
 (ert-deftest warning-predicate-function-gcc ()
   "Test GCC warning via function predicate."
-  :expected-result (if (and (executable-find "gcc") (executable-find "make"))
-                       :passed
-                     :failed)
+  (skip-unless (and (executable-find "gcc") (executable-find "make")))
   (should (eq 'flymake-warnline
-              (flymake-tests--current-face
-               "flymake/warnpred/test.c"
+              (flymake-tests--current-face "test.c"
                (lambda (msg) (string-match "^[Ww]arning" msg))))))
 
 (ert-deftest warning-predicate-rx-perl ()
   "Test perl warning via regular expression predicate."
-  :expected-result (if (executable-find "perl") :passed :failed)
+  (skip-unless (executable-find "perl"))
   (should (eq 'flymake-warnline
-              (flymake-tests--current-face
-               "flymake/warnpred/test.pl"
-               "^Scalar value"))))
+              (flymake-tests--current-face "test.pl" "^Scalar value"))))
 
 (ert-deftest warning-predicate-function-perl ()
   "Test perl warning via function predicate."
-  :expected-result (if (executable-find "perl") :passed :failed)
+  (skip-unless (executable-find "perl"))
   (should (eq 'flymake-warnline
               (flymake-tests--current-face
-               "flymake/warnpred/test.pl"
+               "test.pl"
                (lambda (msg) (string-match "^Scalar value" msg))))))
 
 (provide 'flymake-tests)

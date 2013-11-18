@@ -183,9 +183,10 @@ tests run.  It looks like this:
 
 @example
 Selector: t
-Passed: 31
-Failed: 2 (2 unexpected)
-Total:  33/33
+Passed:  31
+Skipped: 0
+Failed:  2 (2 unexpected)
+Total:   33/33
 
 Started at:   2008-09-11 08:39:25-0700
 Finished.
@@ -453,6 +454,19 @@ versions, specific architectures, etc.:
 
 @node Tests and Their Environment
 @section Tests and Their Environment
+
+Sometimes, it doesn't make sense to run a test due to missing
+preconditions.  A required Emacs feature might not be compiled in, the
+function to be tested could call an external binary which might not be
+available on the test machine, you name it.  In this case, the macro
+@code{skip-unless} could be used to skip the test:
+
+@lisp
+(ert-deftest test-dbus ()
+  "A test that checks D-BUS functionality."
+  (skip-unless (featurep 'dbusbind))
+  ...)
+@end lisp
 
 The outcome of running a test should not depend on the current state
 of the environment, and each test should leave its environment in the

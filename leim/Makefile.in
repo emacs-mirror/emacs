@@ -30,11 +30,10 @@ srcdir=@srcdir@
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
 EMACS = ../src/emacs
 
-buildlisppath=${srcdir}/../lisp
-
 # How to run Emacs.
-RUN_EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
-	${EMACS} -batch --no-site-file --no-site-lisp
+# Prevent any setting of EMACSLOADPATH in user environment causing problems.
+RUN_EMACS = unset EMACSLOADPATH; "${EMACS}" -batch \
+	--no-site-file --no-site-lisp
 
 MKDIR_P = @MKDIR_P@
 
@@ -76,7 +75,7 @@ TIT_MISC=${CHINESE_TIT} ${MISC}
 
 .el.elc:
 	@echo Compiling $<
-	@${RUN_EMACS} -l ${buildlisppath}/international/quail -f batch-byte-compile $<
+	@${RUN_EMACS} -l international/quail -f batch-byte-compile $<
 
 all: leim-list.el compile-main
 .PHONY: all
@@ -109,7 +108,7 @@ ${CHINESE_TIT}: changed.tit
 ## It doesn't seem possible to do this with VPATH and suffix rules.
 changed.tit: ${TIT_SOURCES}
 	@${MKDIR_P} quail
-	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	${RUN_EMACS} -l titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
 	  echo "changed" > $@
 
@@ -126,30 +125,30 @@ ${MISC}: changed.misc
 
 changed.misc: ${MISC_SOURCES}
 	@${MKDIR_P} quail
-	${RUN_EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	${RUN_EMACS} -l titdic-cnv \
 	  -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
 	  echo "changed" > $@
 
 leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
 	rm -f leim-list.el
-	if [ x`cd ${srcdir} && /bin/pwd` = x`/bin/pwd` ] ; then \
-	  ${RUN_EMACS} -l ${buildlisppath}/international/quail \
+	if [ "`cd ${srcdir} && /bin/pwd`" = "`/bin/pwd`" ] ; then \
+	  ${RUN_EMACS} -l international/quail \
 	    --eval "(update-leim-list-file \".\")" ; \
 	else \
-	  ${RUN_EMACS} -l ${buildlisppath}/international/quail \
+	  ${RUN_EMACS} -l international/quail \
 	    --eval "(update-leim-list-file \".\" (unmsys--file-name \"${srcdir}\"))" ; \
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
 $(srcdir)/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	@$(MKDIR_P) $(srcdir)/ja-dic
-	$(RUN_EMACS) -batch -l $(buildlisppath)/international/ja-dic-cnv \
+	$(RUN_EMACS) -batch -l ja-dic-cnv \
 	  -f batch-skkdic-convert -dir "$(srcdir)/ja-dic" \
 	  "$(srcdir)/SKK-DIC/SKK-JISYO.L"
 
 ## Following adapted from lisp/Makefile.in.
 setwins=wins="${srcdir}/ja-dic quail"; \
-	[ `cd ${srcdir} && /bin/pwd` != `/bin/pwd` ] && \
+	[ "`cd ${srcdir} && /bin/pwd`" != "`/bin/pwd`" ] && \
 	wins="$$wins ${srcdir}/quail"
 
 .PHONY: compile-targets
@@ -184,7 +183,7 @@ bootstrap-clean: clean
 	$(setwins); for w in $$wins; do rm -f $$w/*.elc; done
 
 distclean: clean
-	-[ `cd ${srcdir} && /bin/pwd` != `/bin/pwd` ] && rm -rf quail
+	-[ "`cd ${srcdir} && /bin/pwd`" != "`/bin/pwd`" ] && rm -rf quail
 	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
@@ -195,5 +194,5 @@ extraclean: maintainer-clean
 .PHONY: check-declare
 
 check-declare:
-	$(RUN_EMACS) -l $(buildlisppath)/emacs-lisp/check-declare \
+	$(RUN_EMACS) -l check-declare \
 	  --eval '(check-declare-directory (unmsys--file-name "$(srcdir)"))'

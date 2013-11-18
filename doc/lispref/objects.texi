@@ -1301,7 +1301,7 @@ called @dfn{subrs} or @dfn{built-in functions}.  (The word ``subr'' is
 derived from ``subroutine''.)  Most primitive functions evaluate all
 their arguments when they are called.  A primitive function that does
 not evaluate all its arguments is called a @dfn{special form}
-(@pxref{Special Forms}).@refill
+(@pxref{Special Forms}).
 
   It does not matter to the caller of a function whether the function is
 primitive.  However, this does matter if you try to redefine a primitive

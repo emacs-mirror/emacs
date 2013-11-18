@@ -341,10 +341,6 @@ struct window
        y-direction (smooth scrolling).  */
     int vscroll;
 
-    /* If we have highlighted the region (or any part of it), the mark
-       (region start) position; otherwise zero.  */
-    ptrdiff_t region_showing;
-
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
        Should be nonnegative, and only valid if window_end_valid is nonzero.  */
     ptrdiff_t window_end_bytepos;

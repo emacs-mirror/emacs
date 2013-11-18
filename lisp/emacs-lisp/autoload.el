@@ -528,6 +528,9 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 		(if (stringp generated-autoload-load-name)
 		    generated-autoload-load-name
 		  (autoload-file-load-name absfile)))
+          ;; FIXME? Comparing file-names for equality with just equal
+          ;; is fragile, eg if one has an automounter prefix and one
+          ;; does not, but both refer to the same physical file.
           (when (and outfile
                      (not
 		      (if (memq system-type '(ms-dos windows-nt))
@@ -553,7 +556,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                           (princ `(push (purecopy
                                              ',(cons (intern package) version))
                                         package--builtin-versions))
-                         (newline)))))
+			  (princ "\n")))))
 
               (goto-char (point-min))
               (while (not (eobp))

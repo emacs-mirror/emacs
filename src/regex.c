@@ -43,7 +43,7 @@
 # endif
 #endif
 
-#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__) && ! defined __clang__
+#if 4 < __GNUC__ + (6 <= __GNUC_MINOR__) && ! defined __clang__
 # pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 

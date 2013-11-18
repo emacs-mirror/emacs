@@ -119,7 +119,7 @@ static Lisp_Object xfont_list (struct frame *, Lisp_Object);
 static Lisp_Object xfont_match (struct frame *, Lisp_Object);
 static Lisp_Object xfont_list_family (struct frame *);
 static Lisp_Object xfont_open (struct frame *, Lisp_Object, int);
-static void xfont_close (struct frame *, struct font *);
+static void xfont_close (struct font *);
 static int xfont_prepare_face (struct frame *, struct face *);
 static int xfont_has_char (Lisp_Object, int);
 static unsigned xfont_encode_char (struct font *, int);
@@ -384,7 +384,7 @@ xfont_list_pattern (Display *display, const char *pattern,
   if (num_fonts > 0)
     {
       char **indices = alloca (sizeof (char *) * num_fonts);
-      Lisp_Object *props = XVECTOR (xfont_scratch_props)->u.contents;
+      Lisp_Object *props = XVECTOR (xfont_scratch_props)->contents;
       Lisp_Object scripts = Qnil;
 
       for (i = 0; i < ASIZE (xfont_scratch_props); i++)
@@ -890,11 +890,17 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-xfont_close (struct frame *f, struct font *font)
+xfont_close (struct font *font)
 {
-  block_input ();
-  XFreeFont (FRAME_X_DISPLAY (f), ((struct xfont_info *) font)->xfont);
-  unblock_input ();
+  struct xfont_info *xfi = (struct xfont_info *) font;
+
+  if (xfi->xfont)
+    {
+      block_input ();
+      XFreeFont (xfi->display, xfi->xfont);
+      unblock_input ();
+      xfi->xfont = NULL;
+    }
 }
 
 static int

@@ -214,19 +214,16 @@ A line prefix may also be specified for regions of text using the
 over the @code{line-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
-  If your buffer contains @emph{very} long lines, and you use
-continuation to display them, computing the continuation lines can
-make redisplay slow.  The column computation and indentation functions
-also become slow.  Then you might find it advisable to set
-@code{cache-long-scans} to @code{t}.
+  If your buffer contains only very short lines, you might find it
+advisable to set @code{cache-long-scans} to @code{nil}.
 
 @defvar cache-long-scans
-If this variable is non-@code{nil}, various indentation and motion
-functions, and Emacs redisplay, cache the results of scanning the
-buffer, and consult the cache to avoid rescanning regions of the buffer
-unless they are modified.
+If this variable is non-@code{nil} (the default), various indentation
+and motion functions, and Emacs redisplay, cache the results of
+scanning the buffer, and consult the cache to avoid rescanning regions
+of the buffer unless they are modified.
 
-Turning on the cache slows down processing of short lines somewhat.
+Turning off the cache speeds up processing of short lines somewhat.
 
 This variable is automatically buffer-local in every buffer.
 @end defvar
@@ -962,11 +959,10 @@ make it invisible again.
 hiding certain lines on the screen.
 
 @cindex explicit selective display
-  The first variant, explicit selective display, is designed for use
-in a Lisp program: it controls which lines are hidden by altering the
-text.  This kind of hiding in some ways resembles the effect of the
-@code{invisible} property (@pxref{Invisible Text}), but the two
-features are different and do not work the same way.
+  The first variant, explicit selective display, was designed for use in a Lisp
+program: it controls which lines are hidden by altering the text.  This kind of
+hiding is now obsolete; instead you can get the same effect with the
+@code{invisible} property (@pxref{Invisible Text}).
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
@@ -2037,6 +2033,15 @@ name, or a hexadecimal color specification.  @xref{Color Names}.  On
 black-and-white displays, certain shades of gray are implemented by
 stipple patterns.
 
+@item :distant-foreground
+Alternative foreground color, a string.  This is like @code{:foreground}
+but the color is only used as a foreground when the background color is
+near to the foreground that would have been used.  This is useful for
+example when marking text (i.e. the region face).  If the text has a foreground 
+that is visible with the region face, that foreground is used.
+If the foreground is near the region face background,
+@code{:distant-foreground} is used instead so the text is readable.
+
 @item :background
 Background color, a string.  The value can be a system-defined color
 name, or a hexadecimal color specification.  @xref{Color Names}.
@@ -2392,6 +2397,7 @@ For example,
 @end example
 @end defun
 
+@c FIXME: Add an index for "relative face attribute", maybe here?  --xfq
 @defun face-attribute-relative-p attribute value
 This function returns non-@code{nil} if @var{value}, when used as the
 value of the face attribute @var{attribute}, is relative.  This means
@@ -2650,6 +2656,8 @@ then the new definition of the @code{mode-line} face inherits from the
 @code{mode-line} face.
 @end defvar
 
+@cindex relative remapping, faces
+@cindex base remapping, faces
   The following functions implement a higher-level interface to
 @code{face-remapping-alist}.  Most Lisp code should use these
 functions instead of setting @code{face-remapping-alist} directly, to
@@ -2861,6 +2869,8 @@ these are used for messages in @file{*Compilation*} buffers.
 
 @node Font Selection
 @subsection Font Selection
+@cindex font selection
+@cindex selecting a font
 
   Before Emacs can draw a character on a graphical display, it must
 select a @dfn{font} for that character@footnote{In this context, the
@@ -2931,6 +2941,7 @@ other registries given in @var{alternate-registries}, one by one,
 until it finds a registry that does exist.
 @end defopt
 
+@cindex scalable fonts
   Emacs can make use of scalable fonts, but by default it does not use
 them.
 
@@ -3058,7 +3069,7 @@ function does nothing.
 If optional argument @var{style-variant-p} is non-@code{nil}, that says
 to create bold, italic and bold-italic variants of the fontset as well.
 These variant fontsets do not have a short name, only a long one, which
-is made by altering @var{fontpattern} to indicate the bold or italic
+is made by altering @var{fontpattern} to indicate the bold and/or italic
 status.
 
 The specification string also says which fonts to use in the fontset.
@@ -3175,6 +3186,7 @@ does that, this function's value may not be accurate.
 
 @node Low-Level Font
 @subsection Low-Level Font Representation
+@cindex font property
 
   Normally, it is not necessary to manipulate fonts directly.  In case
 you need to do so, this section explains how.
@@ -3193,6 +3205,7 @@ should be one of @code{font-object}, @code{font-spec}, or
 @code{font-entity}.
 @end defun
 
+@cindex font object
   A font object is a Lisp object that represents a font that Emacs has
 @dfn{opened}.  Font objects cannot be modified in Lisp, but they can
 be inspected.
@@ -3206,6 +3219,7 @@ otherwise, @var{string} should be a string, and @var{position}
 specifies a position in that string.
 @end defun
 
+@cindex font spec
   A font spec is a Lisp object that contains a set of specifications
 that can be used to find a font.  More than one font may match the
 specifications in a font spec.
@@ -3236,6 +3250,7 @@ size, or a floating point number that specifies the point size.
 Additional typographic style information for the font, such as
 @samp{sans}.  The value should be a string or a symbol.
 
+@cindex font registry
 @item :registry
 The charset registry and encoding of the font, such as
 @samp{iso8859-1}.  The value should be a string or a symbol.
@@ -3244,6 +3259,7 @@ The charset registry and encoding of the font, such as
 The script that the font must support (a symbol).
 
 @item :otf
+@cindex OpenType font
 The font must be an OpenType font that supports these OpenType
 features, provided Emacs is compiled with support for @samp{libotf} (a
 library for performing complex text layout in certain scripts).  The
@@ -3270,6 +3286,7 @@ Set the font property @var{property} in the font-spec @var{font-spec}
 to @var{value}.
 @end defun
 
+@cindex font entity
   A font entity is a reference to a font that need not be open.  Its
 properties are intermediate between a font object and a font spec:
 like a font object, and unlike a font spec, it refers to a single,
@@ -3428,6 +3445,7 @@ etc.
 
 @defopt indicate-empty-lines
 @cindex fringes, and empty line indication
+@cindex empty lines, indicating
 When this is non-@code{nil}, Emacs displays a special glyph in the
 fringe of each empty line at the end of the buffer, on graphical
 displays.  @xref{Fringes}.  This variable is automatically
@@ -3435,6 +3453,7 @@ buffer-local in every buffer.
 @end defopt
 
 @defopt indicate-buffer-boundaries
+@cindex buffer boundaries, indicating
 This buffer-local variable controls how the buffer boundaries and
 window scrolling are indicated in the window fringes.
 
@@ -3563,6 +3582,8 @@ See the next subsection for details.
 @xref{Fringe Bitmaps}.
 @end ifnottex
 
+@c FIXME: I can't find the ‘fringes-indicator-alist’ variable.  Maybe
+@c it should be ‘fringe-indicator-alist’ or ‘fringe-cursor-alist’?  --xfq
 When @code{fringe-cursor-alist} has a buffer-local value, and there is
 no bitmap defined for a cursor type, the corresponding value from the
 default value of @code{fringes-indicator-alist} is used.
@@ -3654,6 +3675,7 @@ If @var{pos} is @code{nil}, that stands for the value of point in
 
 @node Customizing Bitmaps
 @subsection Customizing Fringe Bitmaps
+@cindex fringe bitmaps, customizing
 
 @defun define-fringe-bitmap bitmap bits &optional height width align
 This function defines the symbol @var{bitmap} as a new fringe bitmap,
@@ -4115,6 +4137,7 @@ Here are the possibilities for @var{height}:
 
 @table @asis
 @item @code{(+ @var{n})}
+@c FIXME: Add an index for "step"?  --xfq
 This means to use a font that is @var{n} steps larger.  A ``step'' is
 defined by the set of available fonts---specifically, those that match
 what was otherwise specified for this text, in all attributes except
@@ -4395,6 +4418,7 @@ sometimes consider this useful for displaying the image for a
 ``disabled'' button.
 
 @item (edge-detection :matrix @var{matrix} :color-adjust @var{adjust})
+@cindex edge detection, images
 Specifies a general edge-detection algorithm.  @var{matrix} must be
 either a nine-element list or a nine-element vector of numbers.  A pixel
 at position @math{x/y} in the transformed image is computed from
@@ -4478,6 +4502,7 @@ This specifies the pointer shape when the mouse pointer is over this
 image.  @xref{Pointer Shape}, for available pointer shapes.
 
 @item :map @var{map}
+@cindex image maps
 This associates an image map of @dfn{hot spots} with this image.
 
 An image map is an alist where each element has the format
@@ -4680,6 +4705,7 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
+@c FIXME: ‘:format-type’ or ‘:format’?  --xfq
 @item :format
 ImageMagick tries to auto-detect the image type, but it isn't always
 able to.  By using @code{:format-type}, we can give ImageMagick a hint
@@ -4760,6 +4786,7 @@ from the file's name.
 The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
+@c ‘:heuristic-mask’ is not documented?
 @example
 (create-image "foo.xpm" 'xpm nil :heuristic-mask t)
 @end example
@@ -4946,6 +4973,7 @@ This removes only images that were put into @var{buffer} the way
 @end defun
 
 @defun image-size spec &optional pixels frame
+@cindex size of image
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
 specification.  @var{pixels} non-@code{nil} means return sizes
@@ -4971,11 +4999,12 @@ The purpose of this variable is to prevent unreasonably large images
 from accidentally being loaded into Emacs.  It only takes effect the
 first time an image is loaded.  Once an image is placed in the image
 cache, it can always be displayed, even if the value of
-@var{max-image-size} is subsequently changed (@pxref{Image Cache}).
+@code{max-image-size} is subsequently changed (@pxref{Image Cache}).
 @end defvar
 
 @node Multi-Frame Images
 @subsection Multi-Frame Images
+@cindex multi-frame images
 
 @cindex animation
 @cindex image animation
@@ -5023,6 +5052,8 @@ or @code{nil}, the image animates once only; if @code{t} it loops
 forever; if a number animation stops after that many seconds.
 @end defun
 
+@vindex image-minimum-frame-delay
+@vindex image-default-frame-delay
 @noindent Animation operates by means of a timer.  Note that Emacs imposes a
 minimum frame delay of 0.01 (@code{image-minimum-frame-delay}) seconds.
 If the image itself does not specify a delay, Emacs uses
@@ -5367,7 +5398,7 @@ additionally available in the keymap stored in
 @code{button-buffer-map} as a parent keymap for its keymap.
 
 If the button has a non-@code{nil} @code{follow-link} property, and
-@var{mouse-1-click-follows-link} is set, a quick @key{Mouse-1} click
+@code{mouse-1-click-follows-link} is set, a quick @key{Mouse-1} click
 will also activate the @code{push-button} command.
 @xref{Clickable Text}.
 
@@ -5406,7 +5437,7 @@ is skipped over.  Returns the button found.
 
 @defun next-button pos &optional count-current
 @defunx previous-button pos &optional count-current
-Return the next button after (for @code{next-button} or before (for
+Return the next button after (for @code{next-button}) or before (for
 @code{previous-button}) position @var{pos} in the current buffer.  If
 @var{count-current} is non-@code{nil}, count any button at @var{pos}
 in the search, instead of starting at the next button.
@@ -5423,7 +5454,8 @@ in the search, instead of starting at the next button.
   The Ewoc package constructs buffer text that represents a structure
 of Lisp objects, and updates the text to follow changes in that
 structure.  This is like the ``view'' component in the
-``model/view/controller'' design paradigm.
+``model/view/controller'' design paradigm.  Ewoc means ``Emacs's
+Widget for Object Collections''.
 
   An @dfn{ewoc} is a structure that organizes information required to
 construct buffer text that represents certain Lisp data.  The buffer
@@ -5443,6 +5475,8 @@ The text's start position in the buffer.
 The header and footer strings.
 
 @item
+@cindex node, ewoc
+@c or "@cindex node, abstract display"?
 A doubly-linked chain of @dfn{nodes}, each of which contains:
 
 @itemize
@@ -5467,6 +5501,8 @@ between buffer positions and nodes, move point from one node's textual
 representation to another, and so forth.  @xref{Abstract Display
 Functions}.
 
+@cindex encapsulation, ewoc
+@c or "@cindex encapsulation, abstract display"?
   A node @dfn{encapsulates} a data element much the way a variable
 holds a value.  Normally, encapsulation occurs as a part of adding a
 node to the ewoc.  You can retrieve the data element value and place a
@@ -6073,6 +6109,7 @@ the standard display table.
 @subsection Glyphs
 @cindex glyph
 
+@cindex glyph code
   A @dfn{glyph} is a graphical symbol which occupies a single
 character position on the screen.  Each glyph is represented in Lisp
 as a @dfn{glyph code}, which specifies a character and optionally a
@@ -6348,7 +6385,9 @@ and displaying bidirectional text.
 @cindex reading order
 @cindex visual order
 @cindex unicode bidirectional algorithm
+@cindex UBA
 @cindex bidirectional reordering
+@cindex reordering, of bidirectional text
   Text is stored in Emacs buffers and strings in @dfn{logical} (or
 @dfn{reading}) order, i.e., the order in which a human would read
 each character.  In right-to-left and bidirectional text, the order in

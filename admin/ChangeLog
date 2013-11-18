@@ -1,3 +1,57 @@
+2013-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/BidiMirroring.txt, unidata/UnicodeData.txt: Update to 6.3.0.
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Tweak whitespace in generated files.
+
+2013-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Fix deletion of existing output files after 2013-10-30 changes.
+
+2013-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Disable version-control in generated files.
+	Update Unicode Inc. copyright years.
+
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen: Move here from ../autogen.
+	(usage): Update.  Remove -l, add -A.
+	(autogendir): New variable.
+	(ldefs_flag): Default to set.
+	(genfiles): Reduce to only ms-dos relevant files.
+	(main): Make checking autogen sources optional.
+	Make copying of autogen files optional.
+
+2013-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files): Use pop.
+	Also take the output directory as an argument.
+	* unidata/Makefile.in: Simplify now that unidata-gen-files takes
+	the output directory as an argument (no need to cd, etc).
+	(abs_srcdir, abs_builddir): Remove.
+	(abs_top_builddir): Replace by top_builddir.
+	(${DSTDIR}/charprop.el): No need to cd.  Pass dest as argument.
+	(${DSTDIR}/charprop.el, charprop.el):
+	No need to pass unidata.txt as argument.
+
+	* unidata/unidata-gen.el (unidata--ensure-compiled): New function.
+	(unidata-gen-table-name, unidata-gen-table-decomposition)
+	(unidata-gen-files): Use unidata--ensure-compiled.
+
+	* unidata/Makefile.in (abs_srcdir): New, set by configure.
+	(${DSTDIR}/charprop.el, charprop.el): Update for srcdir not absolute.
+	(clean): Delete all .elc files.
+	(bootstrap-clean): New rule.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (emacs, ${DSTDIR}/charprop.el):
+	Quote entities that might contain whitespace.
+
 2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve support for popcount and counting trailing zeros (Bug#15550).

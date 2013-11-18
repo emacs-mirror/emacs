@@ -24,6 +24,8 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
+test "x$MSYSTEM" = "xMINGW32" && . $srcdir/nt/mingw-cfg.site
+
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
 dnl Add some environment variables, if they were passed via the environment
@@ -418,41 +420,6 @@ AC_ARG_ENABLE(gtk-deprecation-warnings,
 [AS_HELP_STRING([--enable-gtk-deprecation-warnings],
 		[Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0])],
 [ac_enable_gtk_deprecation_warnings="${enableval}"],[])
-
-#### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the file name through pwd unnecessarily, since pwd can
-#### give you automounter prefixes, which can go away.  We do all this
-#### so Emacs can find its files when run uninstalled.
-## Make sure CDPATH doesn't affect cd (in case PWD is relative).
-unset CDPATH
-case "${srcdir}" in
-  [[\\/]]* | ?:[[\\/]]*) ;;
-  . )
-    ## We may be able to use the $PWD environment variable to make this
-    ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use $PWD at the end instead of `pwd`,
-    ## but that tested only for a well-formed and valid PWD,
-    ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
-    then
-      srcdir="$PWD"
-    else
-      srcdir=`(cd "$srcdir"; pwd)`
-    fi
-  ;;
-  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
-esac
-
-#### When building with MinGW inside the MSYS tree, 'pwd' produces
-#### directories relative to the root of the MSYS tree,
-#### e.g. '/home/user/foo' instead of '/d/MSYS/home/user/foo'.  When
-#### such a value of srcdir is written to the top-level Makefile, it
-#### gets propagated to src/epaths.h, and that causes temacs to fail,
-#### because, being a MinGW program that knows nothing of MSYS root
-#### substitution, it cannot find the data directory.  "pwd -W"
-#### produces Windows-style 'd:/foo/bar' absolute directory names, so
-#### we use it here to countermand that lossage.
-test "$MSYSTEM" = "MINGW32" && srcdir=`(cd "$srcdir"; pwd -W | sed -e 's,^\([[A-Za-z]]\):,/\1,')`
 
 ### Canonicalize the configuration name.
 
@@ -1930,12 +1897,14 @@ case "$opsys" in
   darwin|sol2-10) system_malloc=yes ;;
 esac
 
+GMALLOC_OBJ=
 if test "${system_malloc}" = "yes"; then
-  AC_DEFINE(SYSTEM_MALLOC, 1, [Define to use system malloc.])
+  AC_DEFINE([SYSTEM_MALLOC], 1,
+    [Define to 1 to use the system memory allocator, even if it is not
+     Doug Lea style.])
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
-  GMALLOC_OBJ=
   VMLIMIT_OBJ=
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
@@ -1964,7 +1933,8 @@ if test "$doug_lea_malloc" = "yes" ; then
       (Using Doug Lea's new malloc from the GNU C Library.)"
   fi
   AC_DEFINE(DOUG_LEA_MALLOC, 1,
-	    [Define to 1 if you are using the GNU C Library.])
+    [Define to 1 if the system memory allocator is Doug Lea style,
+     with malloc hooks and malloc_set_state.])
 
   ## Use mmap directly for allocating larger buffers.
   ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
@@ -3407,10 +3377,17 @@ getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror getline getdelim sync \
-difftime posix_memalign \
+difftime \
 getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start log2)
+
+dnl No need to check for aligned_alloc and posix_memalign if using
+dnl gmalloc.o, as it supplies them.  Don't use these functions on
+dnl Darwin as they are incompatible with unexmacosx.c.
+if test -z "$GMALLOC_OBJ" && test "$opsys" != darwin; then
+  AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
+fi
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
@@ -4747,7 +4724,7 @@ CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
 if test "${opsys}" = "mingw32"; then
-  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
+  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I \${abs_top_srcdir}/nt/inc"
   # Remove unneeded switches from the value of CC that goes to Makefiles
   CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
 fi
@@ -5051,9 +5028,12 @@ else
 fi
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
+dnl NB we have to cheat and use the ac_... version because abs_top_srcdir
+dnl is not yet set, sigh.  Or we could use ../$srcdir/src/.gdbinit,
+dnl or a symlink?
 AC_CONFIG_COMMANDS([src/.gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
+  echo "source $ac_abs_top_srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])
 

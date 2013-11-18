@@ -35696,6 +35696,14 @@ have different dimensions. The default value of @code{calc-ensure-consistent-uni
 is @code{nil}.
 @end defvar
 
+@defvar calc-context-sensitive-enter
+The command @code{calc-enter} will typically duplicate the top of the
+stack.  If @code{calc-context-sensitive-enter} is non-@code{nil},
+then the @code{calc-enter} will copy the element at the cursor to the
+top of the stack.  The default value of
+@code{calc-context-sensitive-enter} is @code{nil}.
+@end defvar
+
 @defvar calc-undo-length
 The variable @code{calc-undo-length} determines the number of undo
 steps that Calc will keep track of when @code{calc-quit} is called.

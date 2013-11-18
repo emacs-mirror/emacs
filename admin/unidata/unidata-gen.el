@@ -1,4 +1,7 @@
 ;; unidata-gen.el -- Create files containing character property data.
+
+;; Copyright 2008-2013 (C) Free Software Foundation, Inc.
+
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -23,13 +26,12 @@
 ;; SPECIAL NOTICE
 ;;
 ;;   This file must be byte-compilable/loadable by `temacs' and also
-;;   the entry function `unidata-gen-files' must be runnable by
-;;   `temacs'.
+;;   the entry function `unidata-gen-files' must be runnable by `temacs'.
 
 ;; FILES TO BE GENERATED
 ;;
 ;;   The entry function `unidata-gen-files' generates these files in
-;;   the current directory.
+;;   in directory specified by its dest-dir argument.
 ;;
 ;;   charprop.el
 ;;	It contains a series of forms of this format:
@@ -88,9 +90,9 @@
 
 (defvar unidata-list nil)
 
-;; Name of the directory containing files of Unicode Character
-;; Database.
+;; Name of the directory containing files of Unicode Character Database.
 
+;; Dynamically bound in unidata-gen-files.
 (defvar unidata-dir nil)
 
 (defun unidata-setup-list (unidata-text-file)
@@ -975,11 +977,15 @@ is the character itself.")))
 		      idx (1+ i)))))
 	(nreverse (cons (intern (substring str idx)) l))))))
 
+(defun unidata--ensure-compiled (&rest funcs)
+  (dolist (fun funcs)
+    (or (byte-code-function-p (symbol-function fun))
+	(byte-compile fun))))
+
 (defun unidata-gen-table-name (prop &rest ignore)
   (let* ((table (unidata-gen-table-word-list prop 'unidata-split-name))
 	 (word-tables (char-table-extra-slot table 4)))
-    (byte-compile 'unidata-get-name)
-    (byte-compile 'unidata-put-name)
+    (unidata--ensure-compiled 'unidata-get-name 'unidata-put-name)
     (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-name))
     (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-name))
 
@@ -1017,8 +1023,8 @@ is the character itself.")))
 (defun unidata-gen-table-decomposition (prop &rest ignore)
   (let* ((table (unidata-gen-table-word-list prop 'unidata-split-decomposition))
 	 (word-tables (char-table-extra-slot table 4)))
-    (byte-compile 'unidata-get-decomposition)
-    (byte-compile 'unidata-put-decomposition)
+    (unidata--ensure-compiled 'unidata-get-decomposition
+			      'unidata-put-decomposition)
     (set-char-table-extra-slot table 1
 			       (symbol-function 'unidata-get-decomposition))
     (set-char-table-extra-slot table 2
@@ -1176,18 +1182,21 @@ is the character itself.")))
 ;; The entry function.  It generates files described in the header
 ;; comment of this file.
 
-(defun unidata-gen-files (&optional data-dir unidata-text-file)
+;; Write files (charprop.el, uni-*.el) to dest-dir (default PWD),
+;; using as input files from data-dir, and
+;; unidata-text-file (default "unidata.txt" in PWD).
+(defun unidata-gen-files (&optional data-dir dest-dir unidata-text-file)
   (or data-dir
-      (setq data-dir (car command-line-args-left)
-	    command-line-args-left (cdr command-line-args-left)
-	    unidata-text-file (car command-line-args-left)
-	    command-line-args-left (cdr command-line-args-left)))
+      (setq data-dir (pop command-line-args-left)
+	    dest-dir (or (pop command-line-args-left) default-directory)
+	    unidata-text-file (or (pop command-line-args-left)
+				  (expand-file-name "unidata.txt"))))
   (let ((coding-system-for-write 'utf-8-unix)
-	(charprop-file "charprop.el")
+	(charprop-file (expand-file-name "charprop.el" dest-dir))
 	(unidata-dir data-dir))
     (dolist (elt unidata-prop-alist)
       (let* ((prop (car elt))
-	     (file (unidata-prop-file prop)))
+	     (file (expand-file-name (unidata-prop-file prop) dest-dir)))
 	(if (file-exists-p file)
 	    (delete-file file))))
     (unidata-setup-list unidata-text-file)
@@ -1196,7 +1205,8 @@ is the character itself.")))
       (dolist (elt unidata-prop-alist)
 	(let* ((prop (car elt))
 	       (generator (unidata-prop-generator prop))
-	       (file (unidata-prop-file prop))
+	       (file (expand-file-name (unidata-prop-file prop) dest-dir))
+	       (basename (file-name-nondirectory file))
 	       (docstring (unidata-prop-docstring prop))
 	       (describer (unidata-prop-describer prop))
 	       (default-value (unidata-prop-default prop))
@@ -1204,9 +1214,9 @@ is the character itself.")))
 	       table)
 	  ;; Filename in this comment line is extracted by sed in
 	  ;; Makefile.
-	  (insert (format ";; FILE: %s\n" file))
+	  (insert (format ";; FILE: %s\n" basename))
 	  (insert (format "(define-char-code-property '%S %S\n  %S)\n"
-			  prop file docstring))
+			  prop basename docstring))
 	  (with-temp-buffer
 	    (message "Generating %s..." file)
 	    (when (file-exists-p file)
@@ -1216,30 +1226,33 @@ is the character itself.")))
 	    (setq table (funcall generator prop default-value val-list))
 	    (when describer
 	      (unless (subrp (symbol-function describer))
-		(byte-compile describer)
+		(unidata--ensure-compiled describer)
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
 	    (if (bobp)
-		(insert ";; Copyright (C) 1991-2009 Unicode, Inc.
+		(insert ";; Copyright (C) 1991-2013 Unicode, Inc.
 ;; This file was generated from the Unicode data files at
 ;; http://www.unicode.org/Public/UNIDATA/.
 ;; See lisp/international/README for the copyright and permission notice.\n"))
-	    (insert (format "(define-char-code-property '%S %S %S)\n"
+	    (insert (format "(define-char-code-property '%S\n  %S\n  %S)\n"
 			    prop table docstring))
 	    (if (eobp)
 		(insert ";; Local Variables:\n"
 			";; coding: utf-8\n"
+			";; version-control: never\n"
 			";; no-byte-compile: t\n"
 			";; End:\n\n"
-			(format ";; %s ends here\n" file)))
+			(format ";; %s ends here\n" basename)))
 	    (write-file file)
 	    (message "Generating %s...done" file))))
       (message "Writing %s..." charprop-file)
       (insert ";; Local Variables:\n"
 	      ";; coding: utf-8\n"
+	      ";; version-control: never\n"
 	      ";; no-byte-compile: t\n"
 	      ";; End:\n\n"
-	      (format ";; %s ends here\n" charprop-file)))))
+	      (format ";; %s ends here\n"
+		      (file-name-nondirectory charprop-file))))))
 
 
 

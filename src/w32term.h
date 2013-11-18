@@ -376,7 +376,6 @@ struct w32_output
   {
     XGCValues *gc;
     unsigned long pixel;
-    int allocated_p;
   }
   black_relief, white_relief;
 

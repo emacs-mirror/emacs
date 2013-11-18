@@ -91,6 +91,21 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-v" 'lisp-show-variable-documentation)
     map))
 
+(easy-menu-define
+  inferior-lisp-menu
+  inferior-lisp-mode-map
+  "Inferior Lisp Menu"
+  '("Inf-Lisp"
+    ["Eval Last Sexp" lisp-eval-last-sexp t]
+    "--"
+    ["Load File..." lisp-load-file t]
+    ["Compile File..." lisp-compile-file t]
+    "--"
+    ["Show Arglist..." lisp-show-arglist t]
+    ["Describe Symbol..." lisp-describe-sym t]
+    ["Show Documentation for Function..." lisp-show-function-documentation t]
+    ["Show Documentation for Variable..." lisp-show-variable-documentation t]))
+
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.
 (define-key lisp-mode-map "\M-\C-x"  'lisp-eval-defun)     ; Gnu convention

@@ -49,6 +49,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "window.h"
 #include "blockinput.h"
+#include "region-cache.h"
 #include "frame.h"
 #include "dispextern.h"
 
@@ -733,8 +734,8 @@ static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
 Lisp_Object
 make_temp_name (Lisp_Object prefix, bool base64_p)
 {
-  Lisp_Object val;
-  int len, clen;
+  Lisp_Object val, encoded_prefix;
+  int len;
   printmax_t pid;
   char *p, *data;
   char pidbuf[INT_BUFSIZE_BOUND (printmax_t)];
@@ -768,12 +769,11 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
 #endif
     }
 
-  len = SBYTES (prefix); clen = SCHARS (prefix);
-  val = make_uninit_multibyte_string (clen + 3 + pidlen, len + 3 + pidlen);
-  if (!STRING_MULTIBYTE (prefix))
-    STRING_SET_UNIBYTE (val);
+  encoded_prefix = ENCODE_FILE (prefix);
+  len = SBYTES (encoded_prefix);
+  val = make_uninit_string (len + 3 + pidlen);
   data = SSDATA (val);
-  memcpy (data, SSDATA (prefix), len);
+  memcpy (data, SSDATA (encoded_prefix), len);
   p = data + len;
 
   memcpy (p, pidbuf, pidlen);
@@ -811,7 +811,7 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
 	{
 	  /* We want to return only if errno is ENOENT.  */
 	  if (errno == ENOENT)
-	    return val;
+	    return DECODE_FILE (val);
 	  else
 	    /* The error here is dubious, but there is little else we
 	       can do.  The alternatives are to return nil, which is
@@ -988,7 +988,26 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   if (multibyte != STRING_MULTIBYTE (default_directory))
     {
       if (multibyte)
-	default_directory = string_to_multibyte (default_directory);
+	{
+	  unsigned char *p = SDATA (name);
+
+	  while (*p && ASCII_BYTE_P (*p))
+	    p++;
+	  if (*p == '\0')
+	    {
+	      /* NAME is a pure ASCII string, and DEFAULT_DIRECTORY is
+		 unibyte.  Do not convert DEFAULT_DIRECTORY to
+		 multibyte; instead, convert NAME to a unibyte string,
+		 so that the result of this function is also a unibyte
+		 string.  This is needed during bootstrapping and
+		 dumping, when Emacs cannot decode file names, because
+		 the locale environment is not set up.  */
+	      name = make_unibyte_string (SSDATA (name), SBYTES (name));
+	      multibyte = 0;
+	    }
+	  else
+	    default_directory = string_to_multibyte (default_directory);
+	}
       else
 	{
 	  name = string_to_multibyte (name);
@@ -4467,6 +4486,14 @@ by calling `format-decode', which see.  */)
       report_file_errno ("Opening input file", orig_filename, save_errno);
     }
 
+  /* We made a lot of deletions and insertions above, so invalidate
+     the newline cache for the entire region of the inserted
+     characters.  */
+  if (current_buffer->newline_cache)
+    invalidate_region_cache (current_buffer,
+                             current_buffer->newline_cache,
+                             PT - BEG, Z - PT - inserted);
+
   if (read_quit)
     Fsignal (Qquit, Qnil);
 
@@ -4988,7 +5015,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       SAVE_MODIFF = MODIFF;
       XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
       bset_filename (current_buffer, visit_file);
-      update_mode_lines++;
+      update_mode_lines = 14;
     }
   else if (quietly)
     {

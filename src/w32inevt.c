@@ -518,7 +518,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 			      help_echo_window, help_echo_object,
 			      help_echo_pos);
 	  }
-	/* We alread called kbd_buffer_store_event, so indicate the
+	/* We already called kbd_buffer_store_event, so indicate the
 	   the caller it shouldn't.  */
 	return 0;
       }

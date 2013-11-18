@@ -25,7 +25,7 @@
 ;;; Code:
 (eval-when-compile
   (require 'cl))
-(require 'ob)
+(require 'ob-core)
 (require 'ob-table)
 
 (declare-function org-babel-in-example-or-verbatim "ob-exp" nil)
@@ -35,7 +35,7 @@
 This is an association list.  Populate the library by adding
 files to `org-babel-lob-files'.")
 
-(defcustom org-babel-lob-files '()
+(defcustom org-babel-lob-files nil
   "Files used to populate the `org-babel-library-of-babel'.
 To add files to this list use the `org-babel-lob-ingest' command."
   :group 'org-babel
@@ -114,29 +114,45 @@ if so then run the appropriate source block from the Library."
 			  (or (funcall nonempty 8 19) ""))
 		  (funcall nonempty 9 18)))
 	 (list (length (if (= (length (match-string 12)) 0)
-			   (match-string 2) (match-string 11)))))))))
+			   (match-string 2) (match-string 11)))
+	       (save-excursion
+		 (forward-line -1)
+		 (and (looking-at (concat org-babel-src-name-regexp
+					  "\\([^\n]*\\)$"))
+		      (org-no-properties (match-string 1))))))))))
 
+(defvar org-babel-default-header-args:emacs-lisp) ; Defined in ob-emacs-lisp.el
 (defun org-babel-lob-execute (info)
   "Execute the lob call specified by INFO."
-  (let* ((mkinfo (lambda (p) (list "emacs-lisp" "results" p nil nil (nth 2 info))))
-	 (pre-params (org-babel-merge-params
-		      org-babel-default-header-args
-		      (org-babel-params-from-properties)
-		      (org-babel-parse-header-arguments
-		       (org-no-properties
-			(concat ":var results="
-				(mapconcat #'identity (butlast info) " "))))))
+  (let* ((mkinfo (lambda (p)
+		   (list "emacs-lisp" "results" p nil
+			 (nth 3 info) ;; name
+			 (nth 2 info))))
+	 (pre-params (apply #'org-babel-merge-params
+			    org-babel-default-header-args
+			    org-babel-default-header-args:emacs-lisp
+			    (append
+			     (org-babel-params-from-properties)
+			     (list
+			      (org-babel-parse-header-arguments
+			       (org-no-properties
+				(concat
+				 ":var results="
+				 (mapconcat #'identity (butlast info 2)
+					    " "))))))))
 	 (pre-info (funcall mkinfo pre-params))
-	 (cache? (and (cdr (assoc :cache pre-params))
-		      (string= "yes" (cdr (assoc :cache pre-params)))))
-	 (new-hash (when cache? (org-babel-sha1-hash pre-info)))
-	 (old-hash (when cache? (org-babel-current-result-hash))))
-    (if (and cache? (equal new-hash old-hash))
+	 (cache-p (and (cdr (assoc :cache pre-params))
+		       (string= "yes" (cdr (assoc :cache pre-params)))))
+	 (new-hash (when cache-p (org-babel-sha1-hash pre-info)))
+	 (old-hash (when cache-p (org-babel-current-result-hash)))
+	 (org-babel-current-src-block-location (point-marker)))
+    (if (and cache-p (equal new-hash old-hash))
 	(save-excursion (goto-char (org-babel-where-is-src-block-result))
 			(forward-line 1)
 			(message "%S" (org-babel-read-result)))
-      (prog1 (org-babel-execute-src-block
-	      nil (funcall mkinfo (org-babel-process-params pre-params)))
+      (prog1 (let* ((proc-params (org-babel-process-params pre-params))
+		     org-confirm-babel-evaluate)
+	       (org-babel-execute-src-block nil (funcall mkinfo proc-params)))
 	;; update the hash
 	(when new-hash (org-babel-set-current-result-hash new-hash))))))
 

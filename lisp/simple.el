@@ -377,14 +377,15 @@ Other major modes are defined by comparison with this one."
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
   "Propertized string representing a hard newline character.")
 
-(defun newline (&optional arg)
+(defun newline (&optional arg interactive)
   "Insert a newline, and move to left margin of the new line if it's blank.
 If option `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
-than the value of `fill-column' and ARG is nil."
-  (interactive "*P")
+than the value of `fill-column' and ARG is nil.
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
+  (interactive "*P\np")
   (barf-if-buffer-read-only)
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
   ;; Set last-command-event to tell self-insert what to insert.
@@ -415,14 +416,20 @@ than the value of `fill-column' and ARG is nil."
             ;; starts a page.
             (or was-page-start
                 (move-to-left-margin nil t)))))
-    (unwind-protect
-        (progn
-          (add-hook 'post-self-insert-hook postproc)
+    (if (not interactive)
+        ;; FIXME: For non-interactive uses, many calls actually just want
+        ;; (insert "\n"), so maybe we should do just that, so as to avoid
+        ;; the risk of filling or running abbrevs unexpectedly.
+        (let ((post-self-insert-hook (list postproc)))
           (self-insert-command (prefix-numeric-value arg)))
-      ;; We first used let-binding to protect the hook, but that was naive
-      ;; since add-hook affects the symbol-default value of the variable,
-      ;; whereas the let-binding might only protect the buffer-local value.
-      (remove-hook 'post-self-insert-hook postproc)))
+      (unwind-protect
+          (progn
+            (add-hook 'post-self-insert-hook postproc)
+            (self-insert-command (prefix-numeric-value arg)))
+        ;; We first used let-binding to protect the hook, but that was naive
+        ;; since add-hook affects the symbol-default value of the variable,
+        ;; whereas the let-binding might only protect the buffer-local value.
+        (remove-hook 'post-self-insert-hook postproc))))
   nil)
 
 (defun set-hard-newline-properties (from to)
@@ -628,6 +635,67 @@ column specified by the function `current-left-margin'."
       ;; indentation may introduce the whitespace.
       (delete-horizontal-space t))
     (indent-according-to-mode)))
+
+(defcustom read-quoted-char-radix 8
+ "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
+Legitimate radix values are 8, 10 and 16."
+ :type '(choice (const 8) (const 10) (const 16))
+ :group 'editing-basics)
+
+(defun read-quoted-char (&optional prompt)
+  "Like `read-char', but do not allow quitting.
+Also, if the first character read is an octal digit,
+we read any number of octal digits and return the
+specified character code.  Any nondigit terminates the sequence.
+If the terminator is RET, it is discarded;
+any other terminator is used itself as input.
+
+The optional argument PROMPT specifies a string to use to prompt the user.
+The variable `read-quoted-char-radix' controls which radix to use
+for numeric input."
+  (let ((message-log-max nil) done (first t) (code 0) translated)
+    (while (not done)
+      (let ((inhibit-quit first)
+	    ;; Don't let C-h get the help message--only help function keys.
+	    (help-char nil)
+	    (help-form
+	     "Type the special character you want to use,
+or the octal character code.
+RET terminates the character code and is discarded;
+any other non-digit terminates the character code and is then used as input."))
+	(setq translated (read-key (and prompt (format "%s-" prompt))))
+	(if inhibit-quit (setq quit-flag nil)))
+      (if (integerp translated)
+	  (setq translated (char-resolve-modifiers translated)))
+      (cond ((null translated))
+	    ((not (integerp translated))
+	     (setq unread-command-events
+                   (listify-key-sequence (this-single-command-raw-keys))
+		   done t))
+	    ((/= (logand translated ?\M-\^@) 0)
+	     ;; Turn a meta-character into a character with the 0200 bit set.
+	     (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
+		   done t))
+	    ((and (<= ?0 translated)
+                  (< translated (+ ?0 (min 10 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
+	     (and prompt (setq prompt (message "%s %c" prompt translated))))
+	    ((and (<= ?a (downcase translated))
+		  (< (downcase translated)
+                     (+ ?a -10 (min 36 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix)
+			   (+ 10 (- (downcase translated) ?a))))
+	     (and prompt (setq prompt (message "%s %c" prompt translated))))
+	    ((and (not first) (eq translated ?\C-m))
+	     (setq done t))
+	    ((not first)
+	     (setq unread-command-events
+                   (listify-key-sequence (this-single-command-raw-keys))
+		   done t))
+	    (t (setq code translated
+		     done t)))
+      (setq first nil))
+    code))
 
 (defun quoted-insert (arg)
   "Read next input character and insert it.
@@ -867,6 +935,18 @@ instead of deleted."
   :group 'killing
   :version "24.1")
 
+(defvar region-extract-function
+  (lambda (delete)
+    (when (region-beginning)
+      (if (eq delete 'delete-only)
+          (delete-region (region-beginning) (region-end))
+        (filter-buffer-substring (region-beginning) (region-end) delete))))
+  "Function to get the region's content.
+Called with one argument DELETE.
+If DELETE is `delete-only', then only delete the region and the return value
+is undefined.  If DELETE is nil, just return the content as a string.
+If anything else, delete the region and return its content as a string.")
+
 (defun delete-backward-char (n &optional killflag)
   "Delete the previous N characters (following if N is negative).
 If Transient Mark mode is enabled, the mark is active, and N is 1,
@@ -888,8 +968,8 @@ the end of the line."
 	      (= n 1))
 	 ;; If a region is active, kill or delete it.
 	 (if (eq delete-active-region 'kill)
-	     (kill-region (region-beginning) (region-end))
-	   (delete-region (region-beginning) (region-end))))
+	     (kill-region (region-beginning) (region-end) 'region)
+           (funcall region-extract-function 'delete-only)))
 	;; In Overwrite mode, maybe untabify while deleting
 	((null (or (null overwrite-mode)
 		   (<= n 0)
@@ -920,8 +1000,9 @@ KILLFLAG is set if N was explicitly specified."
 	      (= n 1))
 	 ;; If a region is active, kill or delete it.
 	 (if (eq delete-active-region 'kill)
-	     (kill-region (region-beginning) (region-end))
-	   (delete-region (region-beginning) (region-end))))
+	     (kill-region (region-beginning) (region-end) 'region)
+	   (funcall region-extract-function 'delete-only)))
+
 	;; Otherwise, do simple deletion.
 	(t (delete-char n killflag))))
 
@@ -3410,7 +3491,7 @@ The comparison is done using `equal-including-properties'."
   :group 'killing
   :version "23.2")
 
-(defun kill-new (string &optional replace yank-handler)
+(defun kill-new (string &optional replace)
   "Make STRING the latest kill in the kill ring.
 Set `kill-ring-yank-pointer' to point to it.
 If `interprogram-cut-function' is non-nil, apply it to STRING.
@@ -3425,13 +3506,6 @@ When the yank handler has a non-nil PARAM element, the original STRING
 argument is not used by `insert-for-yank'.  However, since Lisp code
 may access and use elements from the kill ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
-  (if (> (length string) 0)
-      (if yank-handler
-	  (put-text-property 0 (length string)
-			     'yank-handler yank-handler string))
-    (if yank-handler
-	(signal 'args-out-of-range
-		(list string "yank-handler specified for empty string"))))
   (unless (and kill-do-not-save-duplicates
 	       ;; Due to text properties such as 'yank-handler that
 	       ;; can alter the contents to yank, comparison using
@@ -3459,19 +3533,15 @@ argument should still be a \"useful\" string for such uses."
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
       (funcall interprogram-cut-function string)))
-(set-advertised-calling-convention
- 'kill-new '(string &optional replace) "23.3")
 
-(defun kill-append (string before-p &optional yank-handler)
+(defun kill-append (string before-p)
   "Append STRING to the end of the latest kill in the kill ring.
 If BEFORE-P is non-nil, prepend STRING to the kill.
 If `interprogram-cut-function' is set, pass the resulting kill to it."
   (let* ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))
 	      (or (= (length cur) 0)
-		  (equal yank-handler (get-text-property 0 'yank-handler cur)))
-	      yank-handler)))
-(set-advertised-calling-convention 'kill-append '(string before-p) "23.3")
+		  (equal nil (get-text-property 0 'yank-handler cur))))))
 
 (defcustom yank-pop-change-selection nil
   "Whether rotating the kill ring changes the window system selection.
@@ -3532,7 +3602,7 @@ move the yanking point; just return the Nth kill forward."
   :type 'boolean
   :group 'killing)
 
-(defun kill-region (beg end &optional yank-handler)
+(defun kill-region (beg end &optional region)
   "Kill (\"cut\") text between point and mark.
 This deletes the text from the buffer and saves it in the kill ring.
 The command \\[yank] can retrieve it from there.
@@ -3552,19 +3622,24 @@ Supply two arguments, character positions indicating the stretch of text
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
-to make one entry in the kill ring."
+to make one entry in the kill ring.
+
+The optional argument REGION if non-nil, indicates that we're not just killing
+some text between BEG and END, but we're killing the region."
   ;; Pass point first, then mark, because the order matters
   ;; when calling kill-append.
-  (interactive (list (point) (mark)))
+  (interactive (list (point) (mark) 'region))
   (unless (and beg end)
     (error "The mark is not set now, so there is no region"))
   (condition-case nil
-      (let ((string (filter-buffer-substring beg end t)))
+      (let ((string (if region
+                        (funcall region-extract-function 'delete)
+                      (filter-buffer-substring beg end 'delete))))
 	(when string			;STRING is nil if BEG = END
 	  ;; Add that string to the kill ring, one way or another.
 	  (if (eq last-command 'kill-region)
-	      (kill-append string (< end beg) yank-handler)
-	    (kill-new string nil yank-handler)))
+	      (kill-append string (< end beg))
+	    (kill-new string nil)))
 	(when (or string (eq last-command 'kill-region))
 	  (setq this-command 'kill-region))
 	(setq deactivate-mark t)
@@ -3575,7 +3650,7 @@ to make one entry in the kill ring."
      ;; We should beep, in case the user just isn't aware of this.
      ;; However, there's no harm in putting
      ;; the region's text in the kill ring, anyway.
-     (copy-region-as-kill beg end)
+     (copy-region-as-kill beg end region)
      ;; Set this-command now, so it will be set even if we get an error.
      (setq this-command 'kill-region)
      ;; This should barf, if appropriate, and give us the correct error.
@@ -3585,26 +3660,31 @@ to make one entry in the kill ring."
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
        (signal 'text-read-only (list (current-buffer)))))))
-(set-advertised-calling-convention 'kill-region '(beg end) "23.3")
 
 ;; copy-region-as-kill no longer sets this-command, because it's confusing
 ;; to get two copies of the text when the user accidentally types M-w and
 ;; then corrects it with the intended C-w.
-(defun copy-region-as-kill (beg end)
+(defun copy-region-as-kill (beg end &optional region)
   "Save the region as if killed, but don't kill it.
 In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
 
+The optional argument REGION if non-nil, indicates that we're not just copying
+some text between BEG and END, but we're copying the region.
+
 This command's old key binding has been given to `kill-ring-save'."
-  (interactive "r")
+  (interactive "r\np")
+  (let ((str (if region
+                 (funcall region-extract-function nil)
+               (filter-buffer-substring beg end))))
   (if (eq last-command 'kill-region)
-      (kill-append (filter-buffer-substring beg end) (< end beg))
-    (kill-new (filter-buffer-substring beg end)))
+        (kill-append str (< end beg))
+      (kill-new str)))
   (setq deactivate-mark t)
   nil)
 
-(defun kill-ring-save (beg end)
+(defun kill-ring-save (beg end &optional region)
   "Save the region as if killed, but don't kill it.
 In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
@@ -3613,10 +3693,13 @@ system cut and paste.
 If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-ring-save].
 
+The optional argument REGION if non-nil, indicates that we're not just copying
+some text between BEG and END, but we're copying the region.
+
 This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
-  (interactive "r")
-  (copy-region-as-kill beg end)
+  (interactive "r\np")
+  (copy-region-as-kill beg end region)
   ;; This use of called-interactively-p is correct because the code it
   ;; controls just gives the user visual feedback.
   (if (called-interactively-p 'interactive)
@@ -4196,8 +4279,7 @@ run `deactivate-mark-hook'."
 		  (or (x-selection-owner-p 'PRIMARY)
 		      (null (x-selection-exists-p 'PRIMARY))))
 	     (x-set-selection 'PRIMARY
-			      (buffer-substring (region-beginning)
-						(region-end))))))
+                              (funcall region-extract-function nil)))))
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
@@ -4282,9 +4364,60 @@ mode is enabled.  Usually, such commands should use
 also checks the value of `use-empty-active-region'."
   (and transient-mark-mode mark-active))
 
-(defvar mark-ring nil
+
+(defvar redisplay-unhighlight-region-function
+  (lambda (rol) (when (overlayp rol) (delete-overlay rol))))
+
+(defvar redisplay-highlight-region-function
+  (lambda (start end window rol)
+    (if (not (overlayp rol))
+        (let ((nrol (make-overlay start end)))
+          (funcall redisplay-unhighlight-region-function rol)
+          (overlay-put nrol 'window window)
+          (overlay-put nrol 'face 'region)
+          nrol)
+      (unless (and (eq (overlay-buffer rol) (current-buffer))
+                   (eq (overlay-start rol) start)
+                   (eq (overlay-end rol) end))
+        (move-overlay rol start end (current-buffer)))
+      rol)))
+
+(defun redisplay--update-region-highlight (window)
+  (with-current-buffer (window-buffer window)
+    (let ((rol (window-parameter window 'internal-region-overlay)))
+      (if (not (region-active-p))
+          (funcall redisplay-unhighlight-region-function rol)
+        (let* ((pt (window-point window))
+               (mark (mark))
+               (start (min pt mark))
+               (end   (max pt mark))
+               (new
+                (funcall redisplay-highlight-region-function
+                         start end window rol)))
+          (unless (equal new rol)
+            (set-window-parameter window 'internal-region-overlay
+                                  new)))))))
+
+(defun redisplay--update-region-highlights (windows)
+  (with-demoted-errors "redisplay--update-region-highlights: %S"
+    (if (null windows)
+        (redisplay--update-region-highlight (selected-window))
+      (unless (listp windows) (setq windows (window-list-1 nil nil t)))
+      (if highlight-nonselected-windows
+          (mapc #'redisplay--update-region-highlight windows)
+        (let ((msw (and (window-minibuffer-p) (minibuffer-selected-window))))
+          (dolist (w windows)
+            (if (or (eq w (selected-window)) (eq w msw))
+                (redisplay--update-region-highlight w)
+              (funcall redisplay-unhighlight-region-function
+                       (window-parameter w 'internal-region-overlay)))))))))
+
+(add-function :before pre-redisplay-function
+              #'redisplay--update-region-highlights)
+
+
+(defvar-local mark-ring nil
   "The list of former marks of the current buffer, most recent first.")
-(make-variable-buffer-local 'mark-ring)
 (put 'mark-ring 'permanent-local t)
 
 (defcustom mark-ring-max 16
@@ -4459,7 +4592,6 @@ mode temporarily."
 	(temp-highlight (eq (car-safe transient-mark-mode) 'only)))
     (if (null omark)
         (error "No mark set in this buffer"))
-    (deactivate-mark)
     (set-mark (point))
     (goto-char omark)
     (cond (temp-highlight
@@ -4901,7 +5033,16 @@ The value is a floating-point number."
 	       ;; When the text in the window is scrolled to the left,
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
-	       (not (> (window-hscroll) 0)))
+	       (not (> (window-hscroll) 0))
+	       ;; Likewise when the text _was_ scrolled to the left
+	       ;; when the current run of vertical motion commands
+	       ;; started.
+	       (not (and (memq last-command
+			       `(next-line previous-line ,this-command))
+			 auto-hscroll-mode
+			 (numberp temporary-goal-column)
+			 (>= temporary-goal-column
+			    (- (window-width) hscroll-margin)))))
 	  (prog1 (line-move-visual arg noerror)
 	    ;; If we moved into a tall line, set vscroll to make
 	    ;; scrolling through tall images more smooth.

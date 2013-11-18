@@ -39,7 +39,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-eval)
 
 (defvar org-babel-default-header-args:dot
   '((:results . "file") (:exports . "results"))

@@ -34,7 +34,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
 
 (defvar org-babel-screen-location "screen"
   "The command location for screen.

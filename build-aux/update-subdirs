@@ -20,7 +20,7 @@
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-cd $1
+cd "$1" || exit 1
 for file in *; do
     case $file in
 	*.elc | *.el | term | RCS | CVS | Old | . | .. | =* | *~ | *.orig | *.rej)

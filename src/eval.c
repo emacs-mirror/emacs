@@ -237,11 +237,22 @@ init_eval_once (void)
   Vrun_hooks = Qnil;
 }
 
+static struct handler handlerlist_sentinel;
+
 void
 init_eval (void)
 {
   specpdl_ptr = specpdl;
-  handlerlist = NULL;
+  { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
+       This is important since handlerlist->nextfree holds the freelist
+       which would otherwise leak every time we unwind back to top-level.   */
+    struct handler *c;
+    handlerlist = handlerlist_sentinel.nextfree = &handlerlist_sentinel;
+    PUSH_HANDLER (c, Qunbound, CATCHER);
+    eassert (c == &handlerlist_sentinel);
+    handlerlist_sentinel.nextfree = NULL;
+    handlerlist_sentinel.next = NULL;
+  }
   Vquit_flag = Qnil;
   debug_on_next_call = 0;
   lisp_eval_depth = 0;
@@ -1129,6 +1140,8 @@ unwind_to_catch (struct handler *catch, Lisp_Object value)
 {
   bool last_time;
 
+  eassert (catch->next);
+
   /* Save the value in the tag.  */
   catch->val = value;
 
@@ -1542,7 +1555,10 @@ See also the function `condition-case'.  */)
     }
   else
     {
-      if (handlerlist != 0)
+      if (handlerlist != &handlerlist_sentinel)
+	/* FIXME: This will come right back here if there's no `top-level'
+	   catcher.  A better solution would be to abort here, and instead
+	   add a catch-all condition handler so we never come here.  */
 	Fthrow (Qtop_level, Qt);
     }
 
@@ -2479,7 +2495,7 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 
   if (EQ (val, Qunbound) || NILP (val))
     return ret;
-  else if (!CONSP (val) || EQ (XCAR (val), Qlambda))
+  else if (!CONSP (val) || FUNCTIONP (val))
     {
       args[0] = val;
       return funcall (nargs, args);

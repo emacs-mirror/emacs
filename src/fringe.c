@@ -1690,6 +1690,8 @@ If BITMAP already exists, the existing definition is replaced.  */)
 DEFUN ("set-fringe-bitmap-face", Fset_fringe_bitmap_face, Sset_fringe_bitmap_face,
        1, 2, 0,
        doc: /* Set face for fringe bitmap BITMAP to FACE.
+FACE is merged with the `fringe' face, so normally FACE should specify
+only the foreground color.
 If FACE is nil, reset face to default fringe face.  */)
   (Lisp_Object bitmap, Lisp_Object face)
 {

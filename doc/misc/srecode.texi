@@ -247,7 +247,6 @@ features of the current file name, user name, time, etc.
 
 Some arguments are major-mode specific, such as the @code{:el} or
 @code{:cpp} arguments.
-@refill
 
 @section Template Insertion Context
 A context can be provided for templates in a file.  This helps
@@ -257,7 +256,6 @@ contexts to have the same name.  Some standard contexts are
 
 A context can be automatically derived as well based on the parsing
 state from @i{Semantic}.  @inforef{Top, Semantic Manual, semantic}.
-@refill
 
 @section Applications
 Commands that do a particular user task which involves also writing
@@ -781,7 +779,6 @@ All the text and macros within a section are either not shown at all
 (if that section is not 'visible') or the section is shown one time
 for each dictionary added to that symbol.
 @xref{Developing Template Functions}.
-@refill
 
 Macros prefixed with ``>'' will include another template.  Include
 macros would look like this:

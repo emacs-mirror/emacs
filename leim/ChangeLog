@@ -1,3 +1,31 @@
+2013-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (RUN_EMACS): Don't set LC_ALL=C.  (Bug#15260)
+
+2013-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): Remove.
+	(RUN_EMACS): Unset EMACSLOADPATH.
+
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (buildlisppath): Remove.
+	(RUN_EMACS): Use abs_srcdir directly.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.el.elc, changed.tit, changed.misc, leim-list.el)
+	($(srcdir)/ja-dic/ja-dic.el, check-declare): Remove unnecessary
+	path in -l argument (RUN_EMACS sets EMACSLOADPATH).
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(buildlisppath): Use abs_srcdir.
+	(RUN_EMACS, .el.elc, changed.tit, changed.misc, leim-list.el)
+	($(srcdir)/ja-dic/ja-dic.el, setwins, distclean, check-declare):
+	Quote entities that might contain whitespace.
+
 2013-09-05  Jean Haidouk  <haidouk@yandex.com>  (tiny change)
 
 	* quail/latin-alt.el ("french-alt-postfix", "latin-alt-postfix"):

@@ -598,14 +598,17 @@ xg_check_special_colors (struct frame *f,
     GtkStyleContext *gsty
       = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
     GdkRGBA col;
-    char buf[sizeof "rgbi://" + 3 * (DBL_MAX_10_EXP + sizeof "-1.000000" - 1)];
+    char buf[sizeof "rgb://rrrr/gggg/bbbb"];
     int state = GTK_STATE_FLAG_SELECTED|GTK_STATE_FLAG_FOCUSED;
     if (get_fg)
       gtk_style_context_get_color (gsty, state, &col);
     else
       gtk_style_context_get_background_color (gsty, state, &col);
 
-    sprintf (buf, "rgbi:%lf/%lf/%lf", col.red, col.green, col.blue);
+    sprintf (buf, "rgb:%04x/%04x/%04x",
+             (int)(col.red * 65535),
+             (int)(col.green * 65535),
+             (int)(col.blue * 65535));
     success_p = (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
 			      buf, color)
 		 != 0);
@@ -1038,7 +1041,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
 /* Set the background of widget W to PIXEL.  */
 
 static void
-xg_set_widget_bg (struct frame *f, GtkWidget *w, long unsigned int pixel)
+xg_set_widget_bg (struct frame *f, GtkWidget *w, unsigned long pixel)
 {
 #ifdef HAVE_GTK3
   GdkRGBA bg;
@@ -1439,7 +1442,7 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
    BG is the pixel value to change to.  */
 
 void
-xg_set_background_color (struct frame *f, long unsigned int bg)
+xg_set_background_color (struct frame *f, unsigned long bg)
 {
   if (FRAME_GTK_WIDGET (f))
     {

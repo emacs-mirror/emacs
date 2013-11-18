@@ -255,7 +255,7 @@ is found, such as a `-version' variable, or the standard header."
       (save-excursion
 	(if (file-symlink-p ec)
 	    (progn
-	      ;; Desymlinkify
+	      ;; Change symlinks to copies.
 	      (rename-file ec (concat ec ".tmp"))
 	      (copy-file (concat ec ".tmp") ec)
 	      (delete-file (concat ec ".tmp"))))

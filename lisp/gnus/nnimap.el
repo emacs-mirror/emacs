@@ -456,8 +456,8 @@ textual parts.")
                                (nnimap-credentials
 				(gnus-delete-duplicates
 				 (list
-				  nnimap-address
-				  (nnoo-current-server 'nnimap)))
+                                  (nnoo-current-server 'nnimap)
+				  nnimap-address))
                                 ports
                                 nnimap-user))))
 		  (setq nnimap-object nil)

@@ -866,7 +866,7 @@ read_minibuf_unwind (void)
     resize_mini_window (XWINDOW (window), 0);
 
   /* Enforce full redisplay.  FIXME: make it more selective.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 22;
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,
@@ -1199,9 +1199,7 @@ is used to further constrain the set of candidates.  */)
     type = (HASH_TABLE_P (collection) ? hash_table
 	    : VECTORP (collection) ? obarray_table
 	    : ((NILP (collection)
-		|| (CONSP (collection)
-		    && (!SYMBOLP (XCAR (collection))
-			|| NILP (XCAR (collection)))))
+		|| (CONSP (collection) && !FUNCTIONP (collection)))
 	       ? list_table : function_table));
   ptrdiff_t idx = 0, obsize = 0;
   int matchcount = 0;
@@ -1460,9 +1458,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
   Lisp_Object allmatches;
   int type = HASH_TABLE_P (collection) ? 3
     : VECTORP (collection) ? 2
-    : NILP (collection) || (CONSP (collection)
-			    && (!SYMBOLP (XCAR (collection))
-				|| NILP (XCAR (collection))));
+    : NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection));
   ptrdiff_t idx = 0, obsize = 0;
   ptrdiff_t bindcount = -1;
   Lisp_Object bucket, tem, zero;
@@ -1691,9 +1687,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 
   CHECK_STRING (string);
 
-  if ((CONSP (collection)
-       && (!SYMBOLP (XCAR (collection)) || NILP (XCAR (collection))))
-      || NILP (collection))
+  if (NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection)))
     {
       tem = Fassoc_string (string, collection, completion_ignore_case ? Qt : Qnil);
       if (NILP (tem))

@@ -848,7 +848,7 @@ Derived from `tramp-postfix-host-format'.")
    "\\(?:" "\\("   tramp-method-regexp "\\)" tramp-postfix-method-regexp "\\)?"
    "\\(?:" "\\("   tramp-user-regexp   "\\)" tramp-postfix-user-regexp   "\\)?"
    "\\("   "\\(?:" tramp-host-regexp   "\\|"
-	           tramp-prefix-ipv6-regexp  tramp-ipv6-regexp
+	           tramp-prefix-ipv6-regexp  "\\(?:" tramp-ipv6-regexp "\\)?"
 		 			     tramp-postfix-ipv6-regexp "\\)"
 	   "\\(?:" tramp-prefix-port-regexp  tramp-port-regexp "\\)?" "\\)?")
 "Regular expression matching a Tramp file name between prefix and postfix.")
@@ -884,8 +884,8 @@ See also `tramp-file-name-regexp'.")
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
   (if (memq system-type '(cygwin windows-nt))
-      "\\`/\\([^[/|:]\\{2,\\}\\|[^/|]\\{2,\\}]\\):"
-    "\\`/\\([^[/|:]+\\|[^/|]+]\\):")
+      "\\`/[^/|:]\\{2,\\}[^/|]*:"
+    "\\`/[^/|:][^/|]*:")
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
 Tramp.  See `tramp-file-name-structure' for more explanations.
@@ -2020,8 +2020,8 @@ ARGS are the arguments OPERATION has been called with."
 		  'vm-imap-move-mail 'vm-pop-move-mail 'vm-spool-move-mail))
     (save-match-data
       (cond
-       ((string-match tramp-file-name-regexp (nth 0 args)) (nth 0 args))
-       ((string-match tramp-file-name-regexp (nth 1 args)) (nth 1 args))
+       ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))
+       ((tramp-tramp-file-p (nth 1 args)) (nth 1 args))
        (t (buffer-file-name (current-buffer))))))
    ;; START END FILE.
    ((eq operation 'write-region)
@@ -3141,9 +3141,8 @@ User is always nil."
       (let ((tramp-message-show-message (not nomessage)))
 	(with-tramp-progress-reporter v 0 (format "Loading %s" file)
 	  (let ((local-copy (file-local-copy file)))
-	    ;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
 	    (unwind-protect
-		(load local-copy noerror t t)
+		(tramp-compat-load local-copy noerror t nosuffix must-suffix)
 	      (delete-file local-copy)))))
       t)))
 
@@ -3249,7 +3248,9 @@ User is always nil."
       ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
       (when (string-match "~$" filename)
 	(setq filename (concat filename "/"))))
-    (tramp-run-real-handler 'substitute-in-file-name (list filename))))
+    ;; We do not want to replace environment variables, again.
+    (let (process-environment)
+      (tramp-run-real-handler 'substitute-in-file-name (list filename)))))
 
 (defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."

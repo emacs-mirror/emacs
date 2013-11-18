@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2013 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2013
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -1793,7 +1793,12 @@ type them using Lisp syntax."
 
 (defun replace-eval-replacement (expression count)
   (let* ((replace-count count)
-         (replacement (eval expression)))
+         err
+         (replacement
+          (condition-case err
+              (eval expression)
+            (error
+             (error "Error evaluating replacement expression: %S" err)))))
     (if (stringp replacement)
         replacement
       (prin1-to-string replacement t))))

@@ -163,6 +163,9 @@ bitmapdir=@bitmapdir@
 
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
+abs_srcdir=@abs_srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 
 # Where the manpage source files are kept.
 mansrcdir=$(srcdir)/doc/man
@@ -216,7 +219,7 @@ lisppath=@lisppath@
 # before they've been installed in their final location.
 # This should be a colon-separated list of directories.
 # Normally it points to the lisp/ directory in the sources.
-buildlisppath=${srcdir}/lisp
+buildlisppath=${abs_srcdir}/lisp
 
 # Where to install the other architecture-independent
 # data files distributed with Emacs (like the tutorial,
@@ -283,7 +286,7 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 # separately.  quail appears twice because in out-of-tree builds, it
 # exists twice.
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/leim/ja-dic ${srcdir}/leim/quail leim/quail
-COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic $(DESTDIR)${leimdir}/quail $(DESTDIR)${leimdir}/quail
+COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}" "$(DESTDIR)${leimdir}/ja-dic" "$(DESTDIR)${leimdir}/quail" "$(DESTDIR)${leimdir}/quail"
 
 all: ${SUBDIR}
 
@@ -339,8 +342,16 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 # nt/epaths.nt as the template.
 # Use the value of ${locallisppath} supplied by `configure',
 # to support the --enable-locallisppath argument.
+#
+# When building with MinGW inside the MSYS tree, 'pwd' produces directories
+# relative to the root of the MSYS tree, e.g. '/home/user/foo' instead of
+# '/d/MSYS/home/user/foo'.  If such a value of srcdir is written to
+# src/epaths.h, that causes temacs to fail, because, being a MinGW
+# program that knows nothing of MSYS root substitution, it cannot find
+# the data directory.  "pwd -W" produces Windows-style 'd:/foo/bar'
+# absolute directory names, so we use it here to countermand that lossage.
 epaths-force-w32: FRC
-	@(w32srcdir=`echo "${srcdir}" | ${msys_to_w32}` ; 	\
+	@(w32srcdir=`cd "${srcdir}" && pwd -W` ; \
 	  prefixpattern=`echo '${prefix}' | ${msys_to_w32} | ${msys_sed_sh_escape}` ; \
 	  locallisppath=`echo '${locallisppath}' | ${msys_lisppath_to_w32} | ${msys_prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
@@ -424,7 +435,7 @@ AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
-ACLOCAL_INPUTS = $(srcdir)/m4/gnulib-comp.m4
+ACLOCAL_INPUTS = $(srcdir)/configure.ac $(srcdir)/m4/gnulib-comp.m4
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && aclocal -I m4
 
@@ -468,32 +479,32 @@ install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR)
 ## world-readable.
 ## TODO it might be good to warn about non-standard permissions of
 ## pre-existing directories, but that does not seem easy.
-write_subdir=if [ -f $${subdir}/subdirs.el ]; \
+write_subdir=if [ -f "$${subdir}/subdirs.el" ]; \
 	then true; \
 	else \
 	  umask 022; \
-	  ${MKDIR_P} $${subdir}; \
+	  ${MKDIR_P} "$${subdir}"; \
 	  (echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	   echo "    (normal-top-level-add-subdirs-to-load-path))") \
-	    > $${subdir}/subdirs.el; \
+	    > "$${subdir}/subdirs.el"; \
 	fi
 
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
 install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
-	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
 	cd lib-src && \
-	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
-	    exec_prefix=${exec_prefix} bindir=${bindir} \
-	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
+	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
+	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
 	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
-	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
-	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) || true; \
+	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)" || exit 1 ; \
+	  chmod 1755 "$(DESTDIR)${bindir}/$(EMACSFULL)" || true; \
 	  if test "x${NO_BIN_LINK}" = x; then \
-	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
-	    cd $(DESTDIR)${bindir} && $(LN_S_FILEONLY) $(EMACSFULL) $(EMACS); \
+	    rm -f "$(DESTDIR)${bindir}/$(EMACS)" ; \
+	    cd "$(DESTDIR)${bindir}" && $(LN_S_FILEONLY) $(EMACSFULL) $(EMACS); \
 	  fi; \
 	else \
 	  subdir=${ns_appresdir}/site-lisp; \
@@ -506,9 +517,9 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 install-:
 install-nt:
 	cd $(NTDIR) && \
-	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
-	    exec_prefix=${exec_prefix} bindir=${bindir} \
-	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	  $(MAKE) install $(MFLAGS) prefix="${prefix}" \
+	    exec_prefix="${exec_prefix}" bindir="${bindir}" \
+	    libexecdir="${libexecdir}" archlibdir="${archlibdir}" \
 	    INSTALL_STRIP=${INSTALL_STRIP}
 
 ## In the share directory, we are deleting:
@@ -567,62 +578,66 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	$(set_installuser); \
 	for dir in ${COPYDIR} ; do \
 	  [ -d $${dir} ] || exit 1 ; \
-	  dest=$$1 ; shift ; \
-	  [ -d $${dest} ] && \
-	    [ `cd $${dest} && /bin/pwd` = `cd $${dir} && /bin/pwd` ] && \
-	    continue ; \
+	  dest="$$1" ; shift ; \
+	  if [ -d "$${dest}" ]; then \
+	    exp_dest=`cd "$${dest}" && /bin/pwd`; \
+	    [ "$$exp_dest" = "`cd $${dir} && /bin/pwd`" ] && continue ; \
+	  else true; \
+	  fi; \
 	  if [ "$${dir}" = "leim/quail" ]; then \
-	    [ `cd $${dir} && /bin/pwd` = `cd ${srcdir}/leim/quail && /bin/pwd` ] && \
+	    [ "`cd $${dir} && /bin/pwd`" = "`cd ${srcdir}/leim/quail && /bin/pwd`" ] && \
 	      continue ; \
 	  else \
-	    rm -rf $${dest} ; \
-	    umask 022; ${MKDIR_P} $${dest} ; \
+	    rm -rf "$${dest}" ; \
+	    umask 022; ${MKDIR_P} "$${dest}" ; \
 	  fi ; \
 	  echo "Copying $${dir} to $${dest}..." ; \
 	  (cd $${dir}; tar -chf - . ) \
-	    | (cd $${dest}; umask 022; \
+	    | (cd "$${dest}"; umask 022; \
 	       tar -xvf - && cat > /dev/null) || exit 1; \
 	  if [ "$${dir}" = "${srcdir}/etc" ]; then \
-	      rm -f $${dest}/DOC* ; \
-	      rm -f $${dest}/refcards/*.aux $${dest}/refcards/*.dvi; \
-	      rm -f $${dest}/refcards/*.log; \
+	      rm -f "$${dest}/DOC"* ; \
+	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
+	      rm -f "$${dest}/refcards"/*.log; \
 	  else true; \
 	  fi; \
-	  for subdir in `find $${dest} -type d -print` ; do \
-	    chmod a+rx $${subdir} ; \
-	    rm -f $${subdir}/.gitignore ; \
-	    rm -f $${subdir}/.arch-inventory ; \
-	    rm -f $${subdir}/.DS_Store ; \
-	    rm -f $${subdir}/\#* ; \
-	    rm -f $${subdir}/.\#* ; \
-	    rm -f $${subdir}/*~ ; \
-	    rm -f $${subdir}/*.orig ; \
-	    rm -f $${subdir}/ChangeLog* ; \
-	    [ "$${dir}" != "${srcdir}/etc" ] && \
-	      rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
-	  done ; \
-	  find $${dest} -exec chown $${installuser} {} ';' ;\
+	  (cd "$${dest}" || exit 1; \
+	    for subdir in `find . -type d -print` ; do \
+	      chmod a+rx $${subdir} ; \
+	      rm -f $${subdir}/.gitignore ; \
+	      rm -f $${subdir}/.arch-inventory ; \
+	      rm -f $${subdir}/.DS_Store ; \
+	      rm -f $${subdir}/\#* ; \
+	      rm -f $${subdir}/.\#* ; \
+	      rm -f $${subdir}/*~ ; \
+	      rm -f $${subdir}/*.orig ; \
+	      rm -f $${subdir}/ChangeLog* ; \
+	      [ "$${dir}" != "${srcdir}/etc" ] && \
+	        rm -f $${subdir}/[mM]akefile*[.-]in $${subdir}/[mM]akefile ; \
+	    done ); \
+	  find "$${dest}" -exec chown $${installuser} {} ';' ;\
 	done
-	-rm -f $(DESTDIR)${leimdir}/leim-list.el
-	${INSTALL_DATA} leim/leim-list.el $(DESTDIR)${leimdir}/leim-list.el
-	-rm -f $(DESTDIR)${lispdir}/subdirs.el
-	umask 022; $(srcdir)/build-aux/update-subdirs $(DESTDIR)${lispdir}
-	subdir=$(DESTDIR)${datadir}/emacs/${version}/site-lisp ; \
+	-rm -f "$(DESTDIR)${leimdir}/leim-list.el"
+	${INSTALL_DATA} leim/leim-list.el "$(DESTDIR)${leimdir}/leim-list.el"
+	-rm -f "$(DESTDIR)${lispdir}/subdirs.el"
+	umask 022; $(srcdir)/build-aux/update-subdirs "$(DESTDIR)${lispdir}"
+	subdir="$(DESTDIR)${datadir}/emacs/${version}/site-lisp" ; \
 	  ${write_subdir}
-	subdir=$(DESTDIR)${datadir}/emacs/site-lisp ; \
+	subdir="$(DESTDIR)${datadir}/emacs/site-lisp" ; \
 	  ${write_subdir} || true
 	[ -z "${GZIP_PROG}" ] || \
 	  ( echo "Compressing *.el ..." ; \
 	    unset CDPATH; \
 	    thisdir=`/bin/pwd`; \
-	    for dir in $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}; do \
-	      cd $${thisdir} ; \
-	      cd $${dir} || exit 1 ; \
+	    for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${leimdir}"; do \
+	      cd "$${thisdir}" ; \
+	      cd "$${dir}" || exit 1 ; \
 	      for f in `find . -name "*.elc" -print`; do \
-	        ${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	        f_el=`echo "$$f" | sed 's/.elc$$/.el/'`; \
+	        ${GZIP_PROG} -9n "$$f_el" ; \
 	      done ; \
 	    done )
-	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
+	-chmod -R a+r "$(DESTDIR)${datadir}/emacs/${version}" ${COPYDESTS}
 
 ## The above chmods are needed because "umask 022; tar ..." is not
 ## guaranteed to do the right thing; eg if we are root and tar is
@@ -632,41 +647,44 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 ## installed etc/ directory, so we need it to run before this does.
 install-etcdoc: src install-arch-indep
 	-unset CDPATH; \
-	umask 022; ${MKDIR_P} $(DESTDIR)${etcdocdir} ; \
-	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${etcdocdir}; /bin/pwd` ]; \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${etcdocdir}" ; \
+	exp_etcdocdir=`cd "$(DESTDIR)${etcdocdir}"; /bin/pwd`; \
+	if [ "`cd ./etc; /bin/pwd`" != "$$exp_etcdocdir" ]; \
 	then \
 	   docfile="DOC"; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${etcdocdir} ..." ; \
-	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${etcdocdir}/$${docfile}; \
+	   ${INSTALL_DATA} etc/$${docfile} "$(DESTDIR)${etcdocdir}/$${docfile}"; \
 	   $(set_installuser); \
-	     chown $${installuser} $(DESTDIR)${etcdocdir}/$${docfile} || true ; \
+	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
 	else true; fi
 
 install-info: info
-	umask 022; ${MKDIR_P} $(DESTDIR)${infodir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
-	[ `cd ${srcdir}/info && /bin/pwd` = `cd $(DESTDIR)${infodir} && /bin/pwd` ] || \
-	  (cd $(DESTDIR)${infodir};  \
+	exp_infodir=`cd "$(DESTDIR)${infodir}" && /bin/pwd`; \
+	if [ "`cd ${srcdir}/info && /bin/pwd`" = "$$exp_infodir" ]; then \
+	  true; \
+	else \
+	  (cd "$(DESTDIR)${infodir}"; \
 	   [ -f dir ] || \
-	     (cd $${thisdir}; \
-	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
-	   info_misc=`cd $${thisdir}/doc/misc && \
-		$(QUIET_SUBMAKE) $(MAKE) -s echo-info \
-	   `; \
+	     (cd "$${thisdir}"; \
+	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir") ); \
+	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
-	       (cd $${thisdir}; \
-	        ${INSTALL_DATA} ${srcdir}/info/$$f $(DESTDIR)${infodir}/$$f); \
+	       (cd "$${thisdir}"; \
+	        ${INSTALL_DATA} ${srcdir}/info/$$f "$(DESTDIR)${infodir}/$$f"); \
 	        [ -n "${GZIP_PROG}" ] || continue ; \
-	        rm -f $(DESTDIR)${infodir}/$$f.gz; \
-	        ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
+	        rm -f "$(DESTDIR)${infodir}/$$f.gz"; \
+	        ${GZIP_PROG} -9n "$(DESTDIR)${infodir}/$$f"; \
 	      done; \
-	     (cd $${thisdir}; \
-	      ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	   done)
+	     (cd "$${thisdir}"; \
+	      ${INSTALL_INFO} --info-dir="$(DESTDIR)${infodir}" "$(DESTDIR)${infodir}/$$elt"); \
+	   done; \
+	fi
 
 ## "gzip || true" is because some gzips exit with non-zero status
 ## if compression would not reduce the file size.  Eg, the gzip in
@@ -675,16 +693,16 @@ install-info: info
 ## ctags.1 is compressed or not.  "gzip -f" is another option here,
 ## but not sure if portable.
 install-man:
-	umask 022; ${MKDIR_P} $(DESTDIR)${man1dir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${man1dir}"
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
 	for page in *.1; do \
 	  dest=`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1; \
-	  (cd $${thisdir}; \
-	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${dest}); \
+	  (cd "$${thisdir}"; \
+	   ${INSTALL_DATA} ${mansrcdir}/$${page} "$(DESTDIR)${man1dir}/$${dest}"); \
 	  [ -n "${GZIP_PROG}" ] || continue ; \
-	  rm -f $(DESTDIR)${man1dir}/$${dest}.gz; \
-	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest} || true; \
+	  rm -f "$(DESTDIR)${man1dir}/$${dest}.gz"; \
+	  ${GZIP_PROG} -9n "$(DESTDIR)${man1dir}/$${dest}" || true; \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
@@ -694,25 +712,25 @@ install-man:
 EMACS_ICON=emacs
 
 install-etc:
-	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${desktopdir}"
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
 	emacs_name=`echo emacs | sed '$(TRANSFORM)'`; \
 	sed -e "/^Exec=emacs/ s/emacs/$${emacs_name}/" \
 	  -e "/^Icon=emacs/ s/emacs/$${emacs_name}/" \
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
-	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop; \
+	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"; \
 	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
-	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
+	  ( cd "$${thisdir}"; ${MKDIR_P} "$(DESTDIR)${icondir}/$${dir}" ) ; \
 	  for icon in $${dir}/${EMACS_ICON}[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
 	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
-	    ( cd $${thisdir}; \
-	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
+	    ( cd "$${thisdir}"; \
+	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} "$(DESTDIR)${icondir}/$${dir}/$${dest}" ) \
 	    || exit 1; \
 	  done ; \
 	done
@@ -728,30 +746,31 @@ install-strip:
 uninstall: uninstall-$(NTDIR) uninstall-doc
 	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
-	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+	    prefix="${prefix}" exec_prefix="${exec_prefix}" \
+	    bindir="${bindir}" libexecdir="${libexecdir}" \
+	    archlibdir="${archlibdir}"
 
 	-unset CDPATH; \
-	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
-	  if [ -d $${dir} ]; then			\
-	    case `cd $${dir} ; /bin/pwd` in		\
-	      `cd ${srcdir} ; /bin/pwd`* ) ;;		\
-	      * ) rm -rf $${dir} ;;			\
+	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
+	  if [ -d "$${dir}" ]; then			\
+	    case `cd "$${dir}" ; /bin/pwd` in		\
+	      "`cd ${srcdir} ; /bin/pwd`"* ) ;;		\
+	      * ) rm -rf "$${dir}" ;;			\
 	    esac ;					\
-	    case $${dir} in				\
-	      $(DESTDIR)${datadir}/emacs/${version}/* )		\
-	        rm -rf $(DESTDIR)${datadir}/emacs/${version}	\
+	    case "$${dir}" in				\
+	      "$(DESTDIR)${datadir}/emacs/${version}"/* )		\
+	        rm -rf "$(DESTDIR)${datadir}/emacs/${version}"	\
 	      ;;					\
 	    esac ;					\
 	  fi ;						\
 	done
-	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
+	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
 	thisdir=`/bin/pwd`; \
 	(info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
-	 if cd $(DESTDIR)${infodir}; then \
+	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
-	     (cd $${thisdir}; \
-	      $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
+	     (cd "$${thisdir}"; \
+	      $(INSTALL_INFO) --remove --info-dir="$(DESTDIR)${infodir}" "$(DESTDIR)${infodir}/$$elt"); \
 	     if [ -n "${GZIP_PROG}" ]; then \
 	        ext=.gz; else ext=; fi; \
 	     rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
@@ -761,18 +780,18 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	    ext=.gz; else ext=; fi; \
 	 if cd ${mansrcdir}; then \
 	   for page in *.1; do \
-	     rm -f $(DESTDIR)${man1dir}/`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1$$ext; done; \
+	     rm -f "$(DESTDIR)${man1dir}"/`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1$$ext; done; \
 	 fi)
-	(cd $(DESTDIR)${bindir} && rm -f $(EMACSFULL) $(EMACS) || true)
-	(if cd $(DESTDIR)${icondir}; then \
+	(cd "$(DESTDIR)${bindir}" && rm -f $(EMACSFULL) $(EMACS) || true)
+	(if cd "$(DESTDIR)${icondir}"; then \
 	   rm -f hicolor/*x*/apps/${EMACS_NAME}.png \
 	     hicolor/scalable/apps/${EMACS_NAME}.svg \
 	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
 	fi)
-	-rm -f $(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop
+	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
 	for file in snake-scores tetris-scores; do \
-	  file=$(DESTDIR)${gamedir}/$${file}; \
-	  [ -s $${file} ] || rm -f $$file; \
+	  file="$(DESTDIR)${gamedir}/$${file}"; \
+	  [ -s "$${file}" ] || rm -f "$$file"; \
 	done
 
 ### Windows-specific uninstall target for removing programs produced
@@ -781,8 +800,9 @@ uninstall-:
 uninstall-nt:
 	cd $(NTDIR) && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
-	    prefix=${prefix} exec_prefix=${exec_prefix}	\
-	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+	    prefix="${prefix}" exec_prefix="${exec_prefix}" \
+	    bindir="${bindir}" libexecdir="${libexecdir}" \
+	    archlibdir="${archlibdir}"
 
 FRC:
 
@@ -858,9 +878,9 @@ distclean: FRC
 	cd leim     && $(MAKE) $(MFLAGS) distclean
 	cd lisp     && $(MAKE) $(MFLAGS) distclean
 	cd nextstep && $(MAKE) $(MFLAGS) distclean
-	[ ! -d test/automated ] || { \
-	  cd test/automated && $(MAKE) $(MFLAGS) distclean; \
-	}
+	for dir in test/automated admin/unidata; do \
+	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) distclean); \
+	done
 	${top_distclean}
 
 ### `bootstrap-clean'
@@ -880,9 +900,9 @@ bootstrap-clean: FRC
 	cd leim     && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lisp     && $(MAKE) $(MFLAGS) bootstrap-clean
 	cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean
-	[ ! -d test/automated ] || { \
-	  cd test/automated && $(MAKE) $(MFLAGS) bootstrap-clean; \
-	}
+	for dir in test/automated admin/unidata; do \
+	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) bootstrap-clean); \
+	done
 	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
 
@@ -903,9 +923,9 @@ top_maintainer_clean=\
 maintainer-clean: bootstrap-clean FRC
 	cd src  && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lisp && $(MAKE) $(MFLAGS) maintainer-clean
-	[ ! -d test/automated ] || { \
-	  cd test/automated && $(MAKE) $(MFLAGS) maintainer-clean; \
-	}
+	for dir in test/automated admin/unidata; do \
+	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) maintainer-clean); \
+	done
 	${top_maintainer_clean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -924,7 +944,7 @@ extraclean:
 TAGS tags: lib lib-src src
 	cd src; $(MAKE) $(MFLAGS) tags
 
-check:
+check: all
 	@if test ! -d test/automated; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
@@ -1053,11 +1073,11 @@ check-info-dir: info
 
 # Bootstrapping does the following:
 #  * Remove files to start from a bootstrap-clean slate.
-#  * Run autogen.sh, falling back on copy_autogen if autogen.sh fails.
+#  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean FRC
-	cd $(srcdir) && { ./autogen.sh || autogen/copy_autogen; }
+	cd $(srcdir) && ./autogen.sh
 	$(MAKE) $(MFLAGS) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) $(MFLAGS) info all
 

@@ -1924,6 +1924,8 @@ With prefix argument, prompt for cvs flags."
                              (lambda () (with-current-buffer buf
                                      (cvs-mode-remove-handled)))))))
 
+(autoload 'cvs-status-cvstrees "cvs-status")
+
 (defun-cvs-mode (cvs-mode-tree . SIMPLE) (flags)
   "Call cvstree using the file under the point as a keyfile."
   (interactive (list (cvs-flags-query 'cvs-status-flags "cvs status flags")))

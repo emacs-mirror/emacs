@@ -218,6 +218,7 @@ specify.
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
+@cindex startup screen
 It displays the @dfn{startup screen}, which is a special buffer that
 contains information about copyleft and basic Emacs usage.  This is
 not done if @code{inhibit-startup-screen} or @code{initial-buffer-choice}
@@ -316,7 +317,7 @@ Run without an interactive terminal.  @xref{Batch Mode}.
 Do not initialize any display; just start a server in the background.
 
 @item --no-init-file
-@itemx -Q
+@itemx -q
 Do not load either the init file, or the @file{default} library.
 
 @item --no-site-file
@@ -516,9 +517,10 @@ displays the startup messages.
 The value of this variable is @code{t} once the command line has been
 processed.
 
-If you redump Emacs by calling @code{dump-emacs}, you may wish to set
-this variable to @code{nil} first in order to cause the new dumped Emacs
-to process its new command-line arguments.
+If you redump Emacs by calling @code{dump-emacs} (@pxref{Building
+Emacs}), you may wish to set this variable to @code{nil} first in
+order to cause the new dumped Emacs to process its new command-line
+arguments.
 @end defvar
 
 @defvar command-switch-alist
@@ -550,8 +552,8 @@ sole argument.
 In some cases, the option is followed in the command line by an
 argument.  In these cases, the @var{handler-function} can find all the
 remaining command-line arguments in the variable
-@code{command-line-args-left}.  (The entire list of command-line
-arguments is in @code{command-line-args}.)
+@code{command-line-args-left} (see below).  (The entire list of
+command-line arguments is in @code{command-line-args}.)
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Emacs
@@ -959,6 +961,7 @@ to access the value of @var{variable}.  If @var{value} is omitted or
 removes @var{variable} from the environment.  Otherwise, @var{value}
 should be a string.
 
+@c FIXME: Document `substitute-env-vars'?  --xfq
 If the optional argument @var{substitute} is non-@code{nil}, Emacs
 calls the function @code{substitute-env-vars} to expand any
 environment variables in @var{value}.
@@ -1095,9 +1098,9 @@ originally logged in.  The value reflects command-line options such as
 Lisp packages that load files of customizations, or any other sort of
 user profile, should obey this variable in deciding where to find it.
 They should load the profile of the user name found in this variable.
-If @code{init-file-user} is @code{nil}, meaning that the @samp{-q}
-option was used, then Lisp packages should not load any customization
-files or user profile.
+If @code{init-file-user} is @code{nil}, meaning that the @samp{-q},
+@samp{-Q}, or @samp{-batch} option was used, then Lisp packages should
+not load any customization files or user profile.
 @end defvar
 
 @defopt user-mail-address
@@ -1147,6 +1150,7 @@ you to ``fake out'' Emacs by telling the functions what to return.  The
 variables are also useful for constructing frame titles (@pxref{Frame
 Titles}).
 
+@cindex UID
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
 The value may be a floating point number, in the (unlikely) event that
@@ -1158,6 +1162,7 @@ This function returns the effective @acronym{UID} of the user.
 The value may be a floating point number.
 @end defun
 
+@cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
 The value may be a floating point number.
@@ -1217,9 +1222,9 @@ file-attributes}).  In function arguments, e.g., the @var{time-value}
 argument to @code{current-time-string}, two-, three-, and four-integer
 lists are accepted.  You can convert times from the list
 representation into standard human-readable strings using
-@code{current-time}, or to other forms using the @code{decode-time}
-and @code{format-time-string} functions documented in the following
-sections.
+@code{current-time-string}, or to other forms using the
+@code{decode-time} and @code{format-time-string} functions documented
+in the following sections.
 
 @defun current-time-string &optional time-value
 This function returns the current time and date as a human-readable
@@ -1263,6 +1268,7 @@ exact.  Do not use this function if precise time stamps are required.
 @end defun
 
 @defun current-time-zone &optional time-value
+@cindex time zone, current
 This function returns a list describing the time zone that the user is
 in.
 
@@ -1289,6 +1295,7 @@ time zone.
 
 @node Time Conversion
 @section Time Conversion
+@cindex calendrical information
 
   These functions convert time values (lists of two to four integers,
 as explained in the previous section) into calendrical information and
@@ -1517,7 +1524,7 @@ system.
 @defun seconds-to-time seconds
 This function converts @var{seconds}, a floating point number of
 seconds since the epoch, to a time value and returns that.  To perform
-the inverse conversion, use @code{float-time}.
+the inverse conversion, use @code{float-time} (@pxref{Time of Day}).
 @end defun
 
 @defun format-seconds format-string seconds
@@ -1579,6 +1586,7 @@ most-positive-fixnum}).
 both elapsed and processor time, used by the Emacs process.
 
 @deffn Command emacs-uptime &optional format
+@cindex uptime of Emacs
 This function returns a string representing the Emacs
 @dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
 running.  The string is formatted by @code{format-seconds} according
@@ -1915,10 +1923,10 @@ functions.
 
 @defun set-input-mode interrupt flow meta &optional quit-char
 This function sets the mode for reading keyboard input.  If
-@var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
-@code{nil}, then it uses @sc{cbreak} mode.  The default setting is
-system-dependent.  Some systems always use @sc{cbreak} mode regardless
-of what is specified.
+@var{interrupt} is non-@code{nil}, then Emacs uses input interrupts.
+If it is @code{nil}, then it uses @sc{cbreak} mode.  The default
+setting is system-dependent.  Some systems always use @sc{cbreak} mode
+regardless of what is specified.
 
 When Emacs communicates directly with X, it ignores this argument and
 uses interrupts if that is the way it knows how to communicate.
@@ -2068,17 +2076,17 @@ often than to actual Emacs bugs.  Once you are certain which characters
 were actually output, you can determine reliably whether they correspond
 to the Termcap specifications in use.
 
-You close the termscript file by calling this function with an
-argument of @code{nil}.
-
-See also @code{open-dribble-file} in @ref{Recording Input}.
-
 @example
 @group
 (open-termscript "../junk/termscript")
      @result{} nil
 @end group
 @end example
+
+You close the termscript file by calling this function with an
+argument of @code{nil}.
+
+See also @code{open-dribble-file} in @ref{Recording Input}.
 @end deffn
 
 @node Sound Output
@@ -2089,6 +2097,7 @@ See also @code{open-dribble-file} in @ref{Recording Input}.
 certain systems are supported; if you call @code{play-sound} on a
 system which cannot really do the job, it gives an error.
 
+@c FIXME: Add indexes for Au and WAV?  --xfq
   The sound must be stored as a file in RIFF-WAVE format (@samp{.wav})
 or Sun Audio format (@samp{.au}).
 

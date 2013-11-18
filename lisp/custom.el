@@ -1489,11 +1489,6 @@ This means reset VARIABLE.  (The argument IGNORED is ignored)."
 
 ;;; The End.
 
-;; Process the defcustoms for variables loaded before this file.
-(while custom-declare-variable-list
-  (apply 'custom-declare-variable (car custom-declare-variable-list))
-  (setq custom-declare-variable-list (cdr custom-declare-variable-list)))
-
 (provide 'custom)
 
 ;;; custom.el ends here

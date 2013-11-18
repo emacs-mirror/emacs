@@ -3,6 +3,7 @@ if something_wrong?             # ruby-move-to-block-skips-heredoc
   boo hoo
   end
   eowarn
+  foo
 end
 
 # Percent literals.
@@ -39,6 +40,15 @@ foo = [1,                       # ruby-deep-indent
 foo = {                         # ruby-deep-indent-disabled
   a: b
 }
+
+foo = { a: b,
+        a1: b1
+      }
+
+foo({
+     a: b,
+     c: d
+   })
 
 foo = [                         # ruby-deep-indent-disabled
   1
@@ -107,6 +117,9 @@ d = 4 + 5 +      # no '\' needed
 e = 8 + 9   \
     + 10         # '\' needed
 
+foo = obj.bar { |m| tee(m) } +
+      obj.qux { |m| hum(m) }
+
 begin
   foo
 ensure
@@ -165,22 +178,6 @@ method? arg1,
 method! arg1,
         arg2
 
-# Examples below still fail with `ruby-use-smie' on:
-
-foo +
-  bar
-
-foo = [1, 2, 3].map do |i|
-  i + 1
-end
-
-foo_bar_tee(1, 2, 3)
-  .qux
-
-if foo &&
-    bar
-end
-
 method !arg1,
        arg2
 
@@ -191,12 +188,114 @@ method :foo,
        :bar
 
 method (a + b),
-       c
+       c, :d => :e,
+       f: g
 
-it "is a method call with block" do
+it "is a method call with block" do |asd|
   foo
 end
 
 it("is too!") {
   bar
 }
+
+and_this_one(has) { |block, parameters|
+  tee
+}
+
+if foo &&
+   bar
+end
+
+foo +
+  bar
+
+foo and
+  bar
+
+foo > bar &&
+  tee < qux
+
+zux do
+  foo == bar and
+    tee == qux
+end
+
+foo ^
+  bar
+
+foo_bar_tee(1, 2, 3)
+  .qux
+  .bar
+
+foo do
+  bar
+    .tee
+end
+
+def bar
+  foo
+    .baz
+end
+
+# http://stackoverflow.com/questions/17786563/emacs-ruby-mode-if-expressions-indentation
+tee = if foo
+        bar
+      end
+
+a = b {
+  c
+}
+
+aa = bb do
+  cc
+end
+
+foo :bar do
+  qux
+end
+
+foo do |*args|
+  tee
+end
+
+bar do |&block|
+  tee
+end
+
+foo = [1, 2, 3].map do |i|
+  i + 1
+end
+
+bar.foo do
+  bar
+end
+
+bar.foo(tee) do
+  bar
+end
+
+bar.foo(tee) {
+  bar
+}
+
+bar 1 do
+  foo 2 do
+    tee
+  end
+end
+
+foo |
+  bar
+
+foo ||
+  begin
+    bar
+  end
+
+def qux
+  foo ||= begin
+    bar
+    tee
+  end
+end

@@ -523,7 +523,7 @@ GNU Emacs Lisp and Common Lisp.  @code{setq}, @code{if}, and
 doesn't exist in Common Lisp.  @code{throw} is a special form in
 Common Lisp (because it must be able to throw multiple values), but it
 is a function in Emacs Lisp (which doesn't have multiple
-values).@refill
+values).
 @end quotation
 
 @node Autoloading

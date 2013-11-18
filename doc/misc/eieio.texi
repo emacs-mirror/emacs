@@ -1625,7 +1625,6 @@ inherit from a special class stored in
 with it, certain default methods or attributes can be added to all
 objects.  In CLOS, this would be named @code{STANDARD-CLASS}, and that
 symbol is an alias to @code{eieio-default-superclass}.
-@refill
 
 Currently, the default superclass is defined as follows:
 

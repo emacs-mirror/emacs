@@ -173,6 +173,7 @@ Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
+static Lisp_Object Qcocoa, Qgnustep;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -1460,15 +1461,16 @@ ns_get_color (const char *name, NSColor **col)
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
   block_input ();
 
-#ifdef NS_IMPL_COCOA
   if ([nsname isEqualToString: @"ns_selection_bg_color"])
     {
+#ifdef NS_IMPL_COCOA
       NSString *defname = [[NSUserDefaults standardUserDefaults]
                             stringForKey: @"AppleHighlightColor"];
-
       if (defname != nil)
         nsname = defname;
-      else if ((new = [NSColor selectedTextBackgroundColor]) != nil)
+      else
+#endif
+      if ((new = [NSColor selectedTextBackgroundColor]) != nil)
         {
           *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
           unblock_input ();
@@ -1494,7 +1496,6 @@ ns_get_color (const char *name, NSColor **col)
       nsname = NS_SELECTION_FG_COLOR_DEFAULT;
       name = [nsname UTF8String];
     }
-#endif // NS_IMPL_COCOA
 
   /* First, check for some sort of numeric specification. */
   hex[0] = '\0';
@@ -4366,6 +4367,46 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsApp
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+- (id)init
+{
+  if (self = [super init])
+    self->isFirst = YES;
+
+  return self;
+}
+
+- (void)run
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+    if (isFirst) [self finishLaunching];
+    isFirst = NO;
+
+    shouldKeepRunning = YES;
+    do
+    {
+        [pool release];
+        pool = [[NSAutoreleasePool alloc] init];
+
+        NSEvent *event =
+          [self nextEventMatchingMask:NSAnyEventMask
+                            untilDate:[NSDate distantFuture]
+                               inMode:NSDefaultRunLoopMode
+                              dequeue:YES];
+        [self sendEvent:event];
+        [self updateWindows];
+    } while (shouldKeepRunning);
+
+    [pool release];
+}
+
+- (void)stop: (id)sender
+{
+    shouldKeepRunning = NO;
+}
+#endif
+
 - (void)logNotification: (NSNotification *)notification
 {
   const char *name = [[notification name] UTF8String];
@@ -6048,7 +6089,7 @@ if (cols > 0 && rows > 0)
 
   SET_FRAME_ICONIFIED (emacsframe, 0);
   SET_FRAME_VISIBLE (emacsframe, 1);
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 63;
 
   if (emacs_event)
     {
@@ -7501,11 +7542,17 @@ baseline level.  The default value is nil.  */);
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);
 
+  DEFSYM (Qcocoa, "cocoa");
+  DEFSYM (Qgnustep, "gnustep");
+
   syms_of_nsfont ();
 #ifdef NS_IMPL_COCOA
+  Fprovide (Qcocoa, Qnil);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
   syms_of_macfont ();
 #endif
+#else
+  Fprovide (Qgnustep, Qnil);
 #endif
   
 }

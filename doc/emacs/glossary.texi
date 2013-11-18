@@ -256,7 +256,7 @@ abbreviation for a name into the entire name.  Completion is done for
 minibuffer (q.v.@:) arguments when the set of possible valid inputs
 is known; for example, on command names, buffer names, and
 file names.  Completion usually occurs when @key{TAB}, @key{SPC} or
-@key{RET} is typed.  @xref{Completion}.@refill
+@key{RET} is typed.  @xref{Completion}.
 
 @anchor{Glossary---Continuation Line}
 @item Continuation Line

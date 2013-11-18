@@ -9358,6 +9358,14 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
   setup_coding_system (coding_system, &coding);
   coding.mode |= CODING_MODE_LAST_BLOCK;
 
+  if (BUFFERP (dst_object) && !EQ (dst_object, src_object))
+    {
+      struct buffer *buf = XBUFFER (dst_object);
+      ptrdiff_t buf_pt = BUF_PT (buf);
+
+      invalidate_buffer_caches (buf, buf_pt, buf_pt);
+    }
+
   if (encodep)
     encode_coding_object (&coding, src_object, from, from_byte, to, to_byte,
 			  dst_object);
@@ -9447,6 +9455,15 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
   coding.mode |= CODING_MODE_LAST_BLOCK;
   chars = SCHARS (string);
   bytes = SBYTES (string);
+
+  if (BUFFERP (dst_object))
+    {
+      struct buffer *buf = XBUFFER (dst_object);
+      ptrdiff_t buf_pt = BUF_PT (buf);
+
+      invalidate_buffer_caches (buf, buf_pt, buf_pt);
+    }
+
   if (encodep)
     encode_coding_object (&coding, string, 0, 0, chars, bytes, dst_object);
   else
@@ -9499,6 +9516,12 @@ decode_file_name (Lisp_Object fname)
 Lisp_Object
 encode_file_name (Lisp_Object fname)
 {
+  /* This is especially important during bootstrap and dumping, when
+     file-name encoding is not yet known, and therefore any non-ASCII
+     file names are unibyte strings, and could only be thrashed if we
+     try to encode them.  */
+  if (!STRING_MULTIBYTE (fname))
+    return fname;
 #ifdef WINDOWSNT
   /* The w32 build pretends to use UTF-8 for file-name encoding, and
      converts the file names either to UTF-16LE or to the system ANSI

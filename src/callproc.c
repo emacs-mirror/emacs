@@ -777,7 +777,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       char buf[CALLPROC_BUFFER_SIZE_MAX];
       int bufsize = CALLPROC_BUFFER_SIZE_MIN;
       int nread;
-      bool first = 1;
       EMACS_INT total_read = 0;
       int carryover = 0;
       bool display_on_the_fly = display_p;
@@ -822,6 +821,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	      ptrdiff_t count1 = SPECPDL_INDEX ();
 
 	      XSETBUFFER (curbuf, current_buffer);
+	      prepare_to_modify_buffer (PT, PT, NULL);
 	      /* We cannot allow after-change-functions be run
 		 during decoding, because that might modify the
 		 buffer, while we rely on process_coding.produced to
@@ -874,9 +874,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 	  if (display_p)
 	    {
-	      if (first)
-		prepare_menu_bars ();
-	      first = 0;
 	      redisplay_preserve_echo_area (1);
 	      /* This variable might have been set to 0 for code
 		 detection.  In that case, set it back to 1 because
@@ -1612,14 +1609,14 @@ init_callproc (void)
       Lisp_Object tem, tem1, srcdir;
 
       srcdir = Fexpand_file_name (build_string ("../src/"),
-				  build_string (PATH_DUMPLOADSEARCH));
+				  build_unibyte_string (PATH_DUMPLOADSEARCH));
       tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
       tem1 = Ffile_exists_p (tem);
       if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
 	{
 	  Lisp_Object newdir;
 	  newdir = Fexpand_file_name (build_string ("../etc/"),
-				      build_string (PATH_DUMPLOADSEARCH));
+				      build_unibyte_string (PATH_DUMPLOADSEARCH));
 	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
 	  tem1 = Ffile_exists_p (tem);
 	  if (!NILP (tem1))
@@ -1646,7 +1643,7 @@ init_callproc (void)
 #ifdef DOS_NT
   Vshared_game_score_directory = Qnil;
 #else
-  Vshared_game_score_directory = build_string (PATH_GAME);
+  Vshared_game_score_directory = build_unibyte_string (PATH_GAME);
   if (NILP (Ffile_accessible_directory_p (Vshared_game_score_directory)))
     Vshared_game_score_directory = Qnil;
 #endif

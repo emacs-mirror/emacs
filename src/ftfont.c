@@ -498,7 +498,7 @@ static Lisp_Object ftfont_list (struct frame *, Lisp_Object);
 static Lisp_Object ftfont_match (struct frame *, Lisp_Object);
 static Lisp_Object ftfont_list_family (struct frame *);
 static Lisp_Object ftfont_open (struct frame *, Lisp_Object, int);
-static void ftfont_close (struct frame *, struct font *);
+static void ftfont_close (struct font *);
 static int ftfont_has_char (Lisp_Object, int);
 static unsigned ftfont_encode_char (struct font *, int);
 static int ftfont_text_extents (struct font *, unsigned *, int,
@@ -1317,7 +1317,7 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-ftfont_close (struct frame *f, struct font *font)
+ftfont_close (struct font *font)
 {
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   Lisp_Object val, cache;

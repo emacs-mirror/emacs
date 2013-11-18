@@ -15,7 +15,6 @@
 ;; Compatibility: Emacs23, Emacs22
 ;; Incompatibility: Emacs19, Emacs20, Emacs21
 ;; Last Updated: Thu 2009-11-19 01:31:21 +0000
-;; Version: 0.21
 
 ;; This file is part of GNU Emacs.
 
@@ -2411,8 +2410,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
     (load file 'NOERROR nil nil) ))
 
 
-;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
-;;;;;;  "hfy-cmap" "hfy-cmap.el" "3f97eeabe72027099da579f6ef9ae0bd")
+;;;### (autoloads nil "hfy-cmap" "hfy-cmap.el" "8a7794fa69a9dfec65d63d17db83b5b0")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\

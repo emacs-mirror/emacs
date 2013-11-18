@@ -871,11 +871,17 @@ struct buffer
 };
 
 /* Most code should use these functions to set Lisp fields in struct
-   buffer.  */
+   buffer.  (Some setters that are private to a single .c file are
+   defined as static in those files.)  */
 INLINE void
 bset_bidi_paragraph_direction (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (bidi_paragraph_direction) = val;
+}
+INLINE void
+bset_cache_long_scans (struct buffer *b, Lisp_Object val)
+{
+  b->INTERNAL_FIELD (cache_long_scans) = val;
 }
 INLINE void
 bset_case_canon_table (struct buffer *b, Lisp_Object val)

@@ -1,3 +1,135 @@
+2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (DEBUGGER_SEES_C_MACROS): Remove.
+	It apparently doesn't work for GCC 3, and I suppose it's more
+	trouble than it's worth to worry about this.
+
+2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (DEBUGGER_SEES_C_MACROS): New macro.
+
+2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, port and tune bool vector implementation.
+	* configure.ac (BITSIZEOF_SIZE_T, SIZEOF_SIZE_T): Remove.
+
+2013-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ACLOCAL_INPUTS): Add configure.ac.
+
+2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* configure.ac [MINGW32]: Source nt/mingw-cfg.site.
+	* make-dist: Don't distribute nt/msysconfig.sh.
+
+	* Makefile.in (epaths-force-w32): Simplify w32srcdir computation.
+
+2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-11-08 extern-inline: port better to OS X 10.9
+	2013-11-08 fpending: fix regression on DragonFly BSD
+	* lib/fpending.h, m4/extern-inline.m4, m4/fpending.m4:
+	Update from gnulib.
+
+2013-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C11 aligned_alloc.
+	* configure.ac (GMALLOC_OBJ): Initialize to empty if !system_malloc
+	and doug_lea_malloc.
+	(aligned_alloc): Test for existence if !GMALLOC_OBJ and not darwin.
+	(posix_memalign): Test for existence only if !GMALLOC_OBJ and
+	not darwin and !aligned_alloc.
+
+2013-11-05  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (abs_srcdir) [MINGW32]: No point setting it here,
+	config.status computes it.
+	* Makefile.in (epaths-force-w32): Move srcdir tweak here.
+
+	* autogen: Remove directory.  Move update_autogen to admin/.
+	* autogen.sh: Remove reference to copy_autogen.
+	* GNUmakefile (configure):
+	* Makefile.in (bootstrap): Do not try to run copy_autogen.
+	* config.bat: Use msdos/autogen rather than autogen.
+
+2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify and port recent bool vector changes.
+	* configure.ac (BITSIZEOF_SIZE_T, SIZEOF_SIZE_T):
+	New symbols to configure.
+
+2013-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac: Don't disallow builds in non-ASCII directories.
+	(Bug#15260)
+
+2013-11-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to stricter C99 platforms.
+	Merge from gnulib, incorporating:
+	2013-11-03 intprops: port to Oracle Studio c99
+	* lib/intprops.h: Update from gnulib.
+
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (check): Depend on all.
+
+2013-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Use [!...] rather than [^...], for ksh.  (Bug#15769)
+
+2013-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean, bootstrap-clean, maintainer-clean):
+	Also clean admin/unidata, if present.
+
+2013-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: It seems installing in non-ASCII is not, in fact, ok.
+
+2013-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: It seems _installing_ in non-ASCII is ok, not building.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac:
+	* Makefile.in (install-arch-indep, install-etcdoc, install-info):
+	Avoid non-portable "`\" nesting.
+
+	* configure.ac (CPPFLAGS) [mingw32]: Use abs_top_srcdir.
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Explicit error for non-ASCII directories.  (Bug#15260)
+
+	Progress towards allowing installation in directories with whitespace.
+	* Makefile.in (COPYDESTS, write_subdir, install-arch-dep)
+	(install-arch-indep, install-etcdoc, install-info, install-man)
+	(install-etc, uninstall, install-nt, uninstall-nt):
+	Quote entities that might contain whitespace.
+	* build-aux/update-subdirs: Handle whitespace in argument.
+	Check cd return value.
+
+	Make building in directories with whitespace possible.  (Bug#15675)
+	* configure.ac (srcdir): Don't make it absolute - abs_srcdir exists.
+	(src/.gdbinit): Use ac_abs_top_srcdir.
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(buildlisppath, epaths-force-w32): Use abs_srcdir.
+	(install-arch-indep, install-etcdoc, install-info, install-man)
+	(install-etc): Quote entities that might contain whitespace.
+
+2013-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-10-14 acl: allow cross-compilation to Gentoo
+	2013-10-18 extern-inline: make safe for -Wundef usage
+	2013-09-30 fpending: use pure+const function attrs
+	* lib/fpending.h, m4/acl.m4, m4/extern-inline.m4: Update from gnulib.
+
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac [alpha]: Explicit error in non-ELF case.  (Bug#15601)

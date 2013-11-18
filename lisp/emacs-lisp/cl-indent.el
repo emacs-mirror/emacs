@@ -756,6 +756,7 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
            (when 1)
            (with-accessors . multiple-value-bind)
            (with-condition-restarts . multiple-value-bind)
+	   (with-compilation-unit (&lambda &body))
            (with-output-to-string (4 2))
            (with-slots . multiple-value-bind)
            (with-standard-io-syntax (2)))))

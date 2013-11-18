@@ -23,6 +23,8 @@
 # and set up to be configured by ../configure.
 
 srcdir=@srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
 @SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
@@ -98,7 +100,15 @@ distclean: clean
 maintainer-clean: distclean
 	rm -f TAGS
 
-TAGS:
-	../lib-src/etags $(srcdir)/*.[ch]
+
+ETAGS = ../lib-src/etags
+
+ctagsfiles= $(srcdir)/*.[ch]
+
+TAGS: $(ctagsfiles)
+	"$(ETAGS)" $(ctagsfiles)
 tags: TAGS
 .PHONY: tags
+
+
+### Makefile.in ends here

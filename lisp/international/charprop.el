@@ -81,6 +81,7 @@ The value nil means that the actual property value of a character
 is the character itself.")
 ;; Local Variables:
 ;; coding: utf-8
+;; version-control: never
 ;; no-byte-compile: t
 ;; End:
 

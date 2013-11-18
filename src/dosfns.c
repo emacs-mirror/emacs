@@ -472,7 +472,7 @@ x_set_title (struct frame *f, Lisp_Object name)
   if (EQ (name, f->title))
     return;
 
-  update_mode_lines = 1;
+  update_mode_lines = 13;
 
   fset_title (f, name);
 

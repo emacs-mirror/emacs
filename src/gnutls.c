@@ -488,8 +488,20 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
   else
     {
       ret = 1;
-      GNUTLS_LOG2 (1, max_log_level, "non-fatal error:", str);
-      /* TODO: EAGAIN AKA Qgnutls_e_again should be level 2.  */
+
+      switch (err)
+        {
+        case GNUTLS_E_AGAIN:
+          GNUTLS_LOG2 (3,
+                       max_log_level,
+                       "retry:",
+                       str);
+        default:
+          GNUTLS_LOG2 (1,
+                       max_log_level,
+                       "non-fatal error:",
+                       str);
+        }
     }
 
   if (err == GNUTLS_E_WARNING_ALERT_RECEIVED
@@ -791,16 +803,10 @@ one trustfile (usually a CA bundle).  */)
   CHECK_LIST (proplist);
 
   if (NILP (Fgnutls_available_p ()))
-    {
-      error ("GnuTLS not available");
-      return gnutls_make_error (GNUTLS_EMACS_ERROR_NOT_LOADED);
-    }
+    error ("GnuTLS not available");
 
   if (!EQ (type, Qgnutls_x509pki) && !EQ (type, Qgnutls_anon))
-    {
-      error ("Invalid GnuTLS credential type");
-      return gnutls_make_error (GNUTLS_EMACS_ERROR_INVALID_TYPE);
-    }
+    error ("Invalid GnuTLS credential type");
 
   hostname              = Fplist_get (proplist, QCgnutls_bootprop_hostname);
   priority_string       = Fplist_get (proplist, QCgnutls_bootprop_priority);
@@ -816,7 +822,6 @@ one trustfile (usually a CA bundle).  */)
   c_hostname = SSDATA (hostname);
 
   state = XPROCESS (proc)->gnutls_state;
-  XPROCESS (proc)->gnutls_p = 1;
 
   if (TYPE_RANGED_INTEGERP (int, loglevel))
     {
@@ -839,7 +844,6 @@ one trustfile (usually a CA bundle).  */)
   emacs_gnutls_deinit (proc);
 
   /* Mark PROC as a GnuTLS process.  */
-  XPROCESS (proc)->gnutls_p = 1;
   XPROCESS (proc)->gnutls_state = NULL;
   XPROCESS (proc)->gnutls_x509_cred = NULL;
   XPROCESS (proc)->gnutls_anon_cred = NULL;
@@ -1098,6 +1102,9 @@ one trustfile (usually a CA bundle).  */)
 	}
       fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
     }
+
+  /* Set this flag only if the whole initialization succeeded.  */
+  XPROCESS (proc)->gnutls_p = 1;
 
   return gnutls_make_error (ret);
 }

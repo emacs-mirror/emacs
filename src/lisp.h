@@ -45,7 +45,7 @@ INLINE_HEADER_BEGIN
    definitions visible to the debugger.  It's used for symbols that
    .gdbinit needs, symbols whose values may not fit in 'int' (where an
    enum would suffice).  */
-#ifdef MAIN_PROGRAM
+#if defined MAIN_PROGRAM
 # define DEFINE_GDB_SYMBOL_BEGIN(type, id) type const id EXTERNALLY_VISIBLE
 # define DEFINE_GDB_SYMBOL_END(id) = id;
 #else
@@ -71,7 +71,7 @@ typedef unsigned long long int EMACS_UINT;
 #  define pI "ll"
 # elif INT_MAX < LONG_MAX
 typedef long int EMACS_INT;
-typedef unsigned long int EMACS_UINT;
+typedef unsigned long EMACS_UINT;
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # else
@@ -82,10 +82,26 @@ typedef unsigned int EMACS_UINT;
 # endif
 #endif
 
+/* Number of bits to put in each character in the internal representation
+   of bool vectors.  This should not vary across implementations.  */
+enum {  BOOL_VECTOR_BITS_PER_CHAR =
+#define BOOL_VECTOR_BITS_PER_CHAR 8
+        BOOL_VECTOR_BITS_PER_CHAR
+};
+
 /* An unsigned integer type representing a fixed-length bit sequence,
-   suitable for words in a Lisp bool vector.  */
+   suitable for words in a Lisp bool vector.  Normally it is size_t
+   for speed, but it is unsigned char on weird platforms.  */
+#if BOOL_VECTOR_BITS_PER_CHAR == CHAR_BIT
 typedef size_t bits_word;
-#define BITS_WORD_MAX SIZE_MAX
+# define BITS_WORD_MAX SIZE_MAX
+enum { BITS_PER_BITS_WORD = CHAR_BIT * sizeof (bits_word) };
+#else
+typedef unsigned char bits_word;
+# define BITS_WORD_MAX ((1u << BOOL_VECTOR_BITS_PER_CHAR) - 1)
+enum { BITS_PER_BITS_WORD = BOOL_VECTOR_BITS_PER_CHAR };
+#endif
+verify (BITS_WORD_MAX >> (BITS_PER_BITS_WORD - 1) == 1);
 
 /* Number of bits in some machine integer types.  */
 enum
@@ -94,7 +110,6 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
-    BITS_PER_BITS_WORD = CHAR_BIT * sizeof (bits_word),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 
@@ -406,8 +421,10 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 
 /* Idea stolen from GDB.  Pedantic GCC complains about enum bitfields,
-   MSVC doesn't support them, and xlc complains vociferously about them.  */
-#if defined __STRICT_ANSI__ || defined _MSC_VER || defined __IBMC__
+   MSVC doesn't support them, and xlc and Oracle Studio c99 complain
+   vociferously about them.  */
+#if (defined __STRICT_ANSI__ || defined _MSC_VER || defined __IBMC__ \
+     || (defined __SUNPRO_C && __STDC__))
 #define ENUM_BF(TYPE) unsigned int
 #else
 #define ENUM_BF(TYPE) enum TYPE
@@ -614,10 +631,6 @@ enum More_Lisp_Bits
     /* Used to extract pseudovector subtype information.  */
     PSEUDOVECTOR_AREA_BITS = PSEUDOVECTOR_SIZE_BITS + PSEUDOVECTOR_REST_BITS,
     PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS,
-
-    /* Number of bits to put in each character in the internal representation
-       of bool vectors.  This should not vary across implementations.  */
-    BOOL_VECTOR_BITS_PER_CHAR = 8
   };
 
 /* These functions extract various sorts of values from a Lisp_Object.
@@ -775,7 +788,7 @@ extern int char_table_translate (Lisp_Object, int);
 /* Defined in data.c.  */
 extern Lisp_Object Qarrayp, Qbufferp, Qbuffer_or_string_p, Qchar_table_p;
 extern Lisp_Object Qconsp, Qfloatp, Qintegerp, Qlambda, Qlistp, Qmarkerp, Qnil;
-extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qvectorp;
+extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qt, Qvectorp;
 extern Lisp_Object Qbool_vector_p;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
 extern Lisp_Object Qwindow;
@@ -1150,7 +1163,7 @@ STRING_COPYIN (Lisp_Object string, ptrdiff_t index, char const *new,
    and PSEUDOVECTORP cast their pointers to struct vectorlike_header *,
    because when two such pointers potentially alias, a compiler won't
    incorrectly reorder loads and stores to their size fields.  See
-   <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
+   Bug#8546.  */
 struct vectorlike_header
   {
     /* The only field contains various pieces of information:
@@ -1175,22 +1188,22 @@ struct vectorlike_header
     ptrdiff_t size;
   };
 
-/* Regular vector is just a header plus array of Lisp_Objects...  */
+/* A regular vector is just a header plus an array of Lisp_Objects.  */
 
 struct Lisp_Vector
   {
     struct vectorlike_header header;
-    union {
-      /* ...but sometimes there is also a pointer internally used in
-	 vector allocation code.  Usually you don't want to touch this.  */
-      struct Lisp_Vector *next;
-
-      /* We can't use FLEXIBLE_ARRAY_MEMBER here.  */
-      Lisp_Object contents[1];
-    } u;
+    Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   };
 
-/* A boolvector is a kind of vectorlike, with contents are like a string.  */
+/* C11 prohibits alignof (struct Lisp_Vector), so compute it manually.  */
+enum
+  {
+    ALIGNOF_STRUCT_LISP_VECTOR
+      = alignof (union { struct vectorlike_header a; Lisp_Object b; })
+  };
+
+/* A boolvector is a kind of vectorlike, with contents like a string.  */
 
 struct Lisp_Bool_Vector
   {
@@ -1199,8 +1212,10 @@ struct Lisp_Bool_Vector
     struct vectorlike_header header;
     /* This is the size in bits.  */
     EMACS_INT size;
-    /* This contains the actual bits, packed into bytes.  */
-    unsigned char data[FLEXIBLE_ARRAY_MEMBER];
+    /* The actual bits, packed into bytes.
+       The bits are in little-endian order in the bytes, and
+       the bytes are in little-endian order in the words.  */
+    bits_word data[FLEXIBLE_ARRAY_MEMBER];
   };
 
 INLINE EMACS_INT
@@ -1211,12 +1226,72 @@ bool_vector_size (Lisp_Object a)
   return size;
 }
 
+INLINE bits_word *
+bool_vector_data (Lisp_Object a)
+{
+  return XBOOL_VECTOR (a)->data;
+}
+
+INLINE unsigned char *
+bool_vector_uchar_data (Lisp_Object a)
+{
+  return (unsigned char *) bool_vector_data (a);
+}
+
+/* The number of data words and bytes in a bool vector with SIZE bits.  */
+
+INLINE EMACS_INT
+bool_vector_words (EMACS_INT size)
+{
+  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
+  return (size + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
+}
+
+INLINE EMACS_INT
+bool_vector_bytes (EMACS_INT size)
+{
+  eassume (0 <= size && size <= EMACS_INT_MAX - (BITS_PER_BITS_WORD - 1));
+  return (size + BOOL_VECTOR_BITS_PER_CHAR - 1) / BOOL_VECTOR_BITS_PER_CHAR;
+}
+
+/* True if A's Ith bit is set.  */
+
+INLINE bool
+bool_vector_bitref (Lisp_Object a, EMACS_INT i)
+{
+  eassume (0 <= i && i < bool_vector_size (a));
+  return !! (bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR]
+	     & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR)));
+}
+
+INLINE Lisp_Object
+bool_vector_ref (Lisp_Object a, EMACS_INT i)
+{
+  return bool_vector_bitref (a, i) ? Qt : Qnil;
+}
+
+/* Set A's Ith bit to B.  */
+
+INLINE void
+bool_vector_set (Lisp_Object a, EMACS_INT i, bool b)
+{
+  unsigned char *addr;
+
+  eassume (0 <= i && i < bool_vector_size (a));
+  addr = &bool_vector_uchar_data (a)[i / BOOL_VECTOR_BITS_PER_CHAR];
+
+  if (b)
+    *addr |= 1 << (i % BOOL_VECTOR_BITS_PER_CHAR);
+  else
+    *addr &= ~ (1 << (i % BOOL_VECTOR_BITS_PER_CHAR));
+}
+
 /* Some handy constants for calculating sizes
    and offsets, mostly of vectorlike objects.   */
 
 enum
   {
-    header_size = offsetof (struct Lisp_Vector, u.contents),
+    header_size = offsetof (struct Lisp_Vector, contents),
     bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
     word_size = sizeof (Lisp_Object)
   };
@@ -1226,13 +1301,13 @@ enum
 INLINE Lisp_Object
 AREF (Lisp_Object array, ptrdiff_t idx)
 {
-  return XVECTOR (array)->u.contents[idx];
+  return XVECTOR (array)->contents[idx];
 }
 
 INLINE Lisp_Object *
 aref_addr (Lisp_Object array, ptrdiff_t idx)
 {
-  return & XVECTOR (array)->u.contents[idx];
+  return & XVECTOR (array)->contents[idx];
 }
 
 INLINE ptrdiff_t
@@ -1245,7 +1320,7 @@ INLINE void
 ASET (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (0 <= idx && idx < ASIZE (array));
-  XVECTOR (array)->u.contents[idx] = val;
+  XVECTOR (array)->contents[idx] = val;
 }
 
 INLINE void
@@ -1254,7 +1329,7 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
   /* Like ASET, but also can be used in the garbage collector:
      sweep_weak_table calls set_hash_key etc. while the table is marked.  */
   eassert (0 <= idx && idx < (ASIZE (array) & ~ARRAY_MARK_FLAG));
-  XVECTOR (array)->u.contents[idx] = val;
+  XVECTOR (array)->contents[idx] = val;
 }
 
 /* If a struct is made to look like a vector, this macro returns the length
@@ -1758,14 +1833,14 @@ struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 {
   ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_??? */
   unsigned gcmarkbit : 1;
-  int spacer : 15;
+  unsigned spacer : 15;
 };
 
 struct Lisp_Marker
 {
   ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
-  int spacer : 13;
+  unsigned spacer : 13;
   /* This flag is temporarily used in the functions
      decode/encode_coding_object to record that the marker position
      must be adjusted after the conversion.  */
@@ -1819,7 +1894,7 @@ struct Lisp_Overlay
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
-    int spacer : 15;
+    unsigned spacer : 15;
     struct Lisp_Overlay *next;
     Lisp_Object start;
     Lisp_Object end;
@@ -1897,7 +1972,7 @@ struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
+    unsigned spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
 
     /* V->data may hold up to SAVE_VALUE_SLOTS entries.  The type of
        V's data entries are determined by V->save_type.  E.g., if
@@ -1973,7 +2048,7 @@ struct Lisp_Free
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Free */
     unsigned gcmarkbit : 1;
-    int spacer : 15;
+    unsigned spacer : 15;
     union Lisp_Misc *chain;
   };
 
@@ -2737,7 +2812,7 @@ union specbinding
     } let;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
-      bool debug_on_exit : 1;
+      unsigned debug_on_exit : 1;
       Lisp_Object function;
       Lisp_Object *args;
       ptrdiff_t nargs;
@@ -2807,14 +2882,13 @@ struct handler
 
 /* Fill in the components of c, and put it on the list.  */
 #define PUSH_HANDLER(c, tag_ch_val, handlertype)	\
-  if (handlerlist && handlerlist->nextfree)		\
+  if (handlerlist->nextfree)				\
     (c) = handlerlist->nextfree;			\
   else							\
     {							\
       (c) = xmalloc (sizeof (struct handler));		\
       (c)->nextfree = NULL;				\
-      if (handlerlist)					\
-	handlerlist->nextfree = (c);			\
+      handlerlist->nextfree = (c);			\
     }							\
   (c)->type = (handlertype);				\
   (c)->tag_or_ch = (tag_ch_val);			\
@@ -3089,7 +3163,7 @@ INLINE void
 vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
 {
   eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
-  memcpy (XVECTOR (v)->u.contents + offset, args, count * sizeof *args);
+  memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
 }
 
 /* Functions to modify hash tables.  */
@@ -3405,6 +3479,7 @@ extern Lisp_Object del_range_2 (ptrdiff_t, ptrdiff_t,
 extern void modify_text (ptrdiff_t, ptrdiff_t);
 extern void prepare_to_modify_buffer (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 extern void prepare_to_modify_buffer_1 (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
+extern void invalidate_buffer_caches (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void signal_after_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
@@ -3461,7 +3536,6 @@ extern void update_echo_area (void);
 extern void truncate_echo_area (ptrdiff_t);
 extern void redisplay (void);
 extern void redisplay_preserve_echo_area (int);
-extern void prepare_menu_bars (void);
 
 void set_frame_cursor_types (struct frame *, Lisp_Object);
 extern void syms_of_xdisp (void);
@@ -3524,6 +3598,8 @@ list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
 		make_number (w), make_number (h));
 }
 
+extern Lisp_Object make_uninit_bool_vector (EMACS_INT);
+extern Lisp_Object bool_vector_fill (Lisp_Object, Lisp_Object);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
@@ -4416,10 +4492,6 @@ functionp (Lisp_Object object)
   else
     return 0;
 }
-
-/* Round x to the next multiple of y.  Does not overflow.  Evaluates
-   arguments repeatedly.  */
-#define ROUNDUP(x,y) ((y)*((x)/(y) + ((x)%(y)!=0)))
 
 INLINE_HEADER_END
 

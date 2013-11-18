@@ -87,11 +87,12 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #define x_defined_color w32_defined_color
 #define DefaultDepthOfScreen(screen) (one_w32_display_info.n_cbits)
 
-/* Versions of libpng and libgif that we were compiled with, or -1 if
-   no PNG/GIF support was compiled in.  This is tested by w32-win.el
-   to correctly set up the alist used to search for the respective
-   image libraries.  */
-Lisp_Object Qlibpng_version, Qlibgif_version;
+/* Versions of libpng, libgif, and libjpeg that we were compiled with,
+   or -1 if no PNG/GIF support was compiled in.  This is tested by
+   w32-win.el to correctly set up the alist used to search for the
+   respective image libraries.  */
+Lisp_Object Qlibpng_version, Qlibgif_version, Qlibjpeg_version;
+
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
@@ -159,13 +160,13 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 
 /* Functions to access the contents of a bitmap, given an id.  */
 
-int
+static int
 x_bitmap_height (struct frame *f, ptrdiff_t id)
 {
   return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
-int
+static int
 x_bitmap_width (struct frame *f, ptrdiff_t id)
 {
   return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].width;
@@ -1520,7 +1521,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 		clear_current_matrices (fr);
 	    }
 
-	  ++windows_or_buffers_changed;
+	  windows_or_buffers_changed = 19;
 	}
 
       unblock_input ();
@@ -3025,13 +3026,13 @@ xbm_load (struct frame *f, struct image *img)
 		  if (STRINGP (line))
 		    memcpy (p, SDATA (line), nbytes);
 		  else
-		    memcpy (p, XBOOL_VECTOR (line)->data, nbytes);
+		    memcpy (p, bool_vector_data (line), nbytes);
 		}
 	    }
 	  else if (STRINGP (data))
 	    bits = SSDATA (data);
 	  else
-	    bits = (char *) XBOOL_VECTOR (data)->data;
+	    bits = (char *) bool_vector_data (data);
 
 #ifdef HAVE_NTGUI
           {
@@ -5105,6 +5106,27 @@ pbm_image_p (Lisp_Object object)
 }
 
 
+/* Get next char skipping comments in Netpbm header.  Returns -1 at
+   end of input.  */
+
+static int
+pbm_next_char (unsigned char **s, unsigned char *end)
+{
+  int c = -1;
+
+  while (*s < end && (c = *(*s)++, c == '#'))
+    {
+      /* Skip to the next line break.  */
+      while (*s < end && (c = *(*s)++, c != '\n' && c != '\r'))
+        ;
+
+      c = -1;
+    }
+
+  return c;
+}
+
+
 /* Scan a decimal number from *S and return it.  Advance *S while
    reading the number.  END is the end of the string.  Value is -1 at
    end of input.  */
@@ -5114,28 +5136,16 @@ pbm_scan_number (unsigned char **s, unsigned char *end)
 {
   int c = 0, val = -1;
 
-  while (*s < end)
-    {
-      /* Skip white-space.  */
-      while (*s < end && (c = *(*s)++, c_isspace (c)))
-	;
+  /* Skip white-space.  */
+  while ((c = pbm_next_char (s, end)) != -1 && c_isspace (c))
+    ;
 
-      if (c == '#')
-	{
-	  /* Skip comment to end of line.  */
-	  while (*s < end && (c = *(*s)++, c != '\n'))
-	    ;
-	}
-      else if (c_isdigit (c))
-	{
-	  /* Read decimal number.  */
-	  val = c - '0';
-	  while (*s < end && (c = *(*s)++, c_isdigit (c)))
-	    val = 10 * val + c - '0';
-	  break;
-	}
-      else
-	break;
+  if (c_isdigit (c))
+    {
+      /* Read decimal number.  */
+      val = c - '0';
+      while ((c = pbm_next_char (s, end)) != -1 && c_isdigit (c))
+        val = 10 * val + c - '0';
     }
 
   return val;
@@ -9408,6 +9418,14 @@ non-numeric, there is no explicit limit on the size of images.  */);
 	make_number (GIFLIB_MAJOR * 10000
 		     + GIFLIB_MINOR * 100
 		     + GIFLIB_RELEASE)
+#else
+	make_number (-1)
+#endif
+        );
+  DEFSYM (Qlibjpeg_version, "libjpeg-version");
+  Fset (Qlibjpeg_version,
+#if HAVE_JPEG
+	make_number (JPEG_LIB_VERSION)
 #else
 	make_number (-1)
 #endif

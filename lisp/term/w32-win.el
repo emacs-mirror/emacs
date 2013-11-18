@@ -216,13 +216,29 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        ;; the version we were compiled against.  (If we were compiled
        ;; without PNG support, libpng-version's value is -1.)
        (if (>= libpng-version 10400)
-	   ;; libpng14-14.dll is libpng 1.4.3 from GTK+
-	   '(png "libpng14-14.dll" "libpng14.dll")
+	   (let ((major (/ libpng-version 10000))
+		 (minor (mod (/ libpng-version 100) 10)))
+	     (list 'png
+		   ;; libpngXY.dll is the default name when building
+		   ;; with CMake or from a lpngXYY tarball on w32,
+		   ;; libpngXY-XY.dll is the DLL name when building
+		   ;; with libtool / autotools
+		   (format "libpng%d%d.dll" major minor)
+		   (format "libpng%d%d-%d%d.dll" major minor major minor)))
 	 '(png "libpng12d.dll" "libpng12.dll" "libpng3.dll" "libpng.dll"
 	       ;; these are libpng 1.2.8 from GTK+
 	       "libpng13d.dll" "libpng13.dll"))
-       '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
-       '(tiff "libtiff3.dll" "libtiff.dll")
+       '(tiff "libtiff-5.dll" "libtiff3.dll" "libtiff.dll")
+       (if (> libjpeg-version 62)
+	   ;; Versions of libjpeg after 6b are incompatible with
+	   ;; earlier versions, and each of versions 7, 8, and 9 is
+	   ;; also incompatible with the preceding ones (the core data
+	   ;; structures used for communications with the library
+	   ;; gained additional members with each new version).  So we
+	   ;; must use only the version of the library which Emacs was
+	   ;; compiled against.
+	   (list 'jpeg (format "libjpeg-%d.dll" (/ libjpeg-version 10)))
+	 '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll"))
        ;; Versions of giflib 5.0.0 and later changed signatures of
        ;; several functions used by Emacs, which makes those versions
        ;; incompatible with previous ones.  We select the correct

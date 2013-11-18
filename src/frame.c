@@ -231,7 +231,7 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   if (nlines != olines)
     {
-      windows_or_buffers_changed++;
+      windows_or_buffers_changed = 14;
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       FRAME_MENU_BAR_LINES (f) = nlines;
       set_menu_bar_lines_1 (f->root_window, nlines - olines);
@@ -1489,7 +1489,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
   if (!is_tooltip_frame)
-    update_mode_lines = 1;
+    update_mode_lines = 15;
 
   return Qnil;
 }
@@ -1699,7 +1699,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   make_frame_visible_1 (f->root_window);
 
   /* Make menu bar update for the Buffers and Frames menus.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 15;
 
   XSETFRAME (frame, f);
   return frame;
@@ -1753,7 +1753,7 @@ displayed in the terminal.  */)
 #endif
 
   /* Make menu bar update for the Buffers and Frames menus.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 16;
 
   return Qnil;
 }
@@ -1776,7 +1776,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 #endif
 
   /* Make menu bar update for the Buffers and Frames menus.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 17;
 
   return Qnil;
 }
@@ -2025,7 +2025,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
     }
 
   fset_name (f, name);
-  update_mode_lines = 1;
+  update_mode_lines = 16;
 }
 
 void
@@ -3245,7 +3245,7 @@ x_set_font_backend (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       XSETFRAME (frame, f);
       x_set_font (f, Fframe_parameter (frame, Qfont), Qnil);
       ++face_change_count;
-      ++windows_or_buffers_changed;
+      windows_or_buffers_changed = 18;
     }
 }
 
@@ -3844,7 +3844,7 @@ XParseGeometry (char *string,
 {
   int mask = NoValue;
   char *strind;
-  unsigned long int tempWidth, tempHeight;
+  unsigned long tempWidth, tempHeight;
   long int tempX, tempY;
   char *nextCharacter;
 

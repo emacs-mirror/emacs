@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 
 #include "syssignal.h"
+#include "tparam.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -51,10 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <fpending.h>
 #include <timespec.h>
-
-#if defined (HAVE_TERM_H) && defined (GNU_LINUX)
-#include <term.h>		/* for tgetent */
-#endif
 
 #ifdef WINDOWSNT
 #include "w32.h"
@@ -2943,7 +2940,7 @@ redraw_frame (struct frame *f)
   clear_frame (f);
   clear_current_matrices (f);
   update_end (f);
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 13;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);

@@ -5545,7 +5545,7 @@ argument, ACTION is t."
 	window))))
 
 (defun display-buffer-other-frame (buffer)
-  "Display buffer BUFFER in another frame.
+  "Display buffer BUFFER preferably in another frame.
 This uses the function `display-buffer' as a subroutine; see
 its documentation for additional customization information."
   (interactive "BDisplay buffer in other frame: ")

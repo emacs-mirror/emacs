@@ -435,14 +435,10 @@ with the original.  */)
 
   if (BOOL_VECTOR_P (arg))
     {
-      Lisp_Object val;
-      ptrdiff_t size_in_chars
-	= ((bool_vector_size (arg) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	   / BOOL_VECTOR_BITS_PER_CHAR);
-
-      val = Fmake_bool_vector (Flength (arg), Qnil);
-      memcpy (XBOOL_VECTOR (val)->data, XBOOL_VECTOR (arg)->data,
-	      size_in_chars);
+      EMACS_INT nbits = bool_vector_size (arg);
+      ptrdiff_t nbytes = bool_vector_bytes (nbits);
+      Lisp_Object val = make_uninit_bool_vector (nbits);
+      memcpy (bool_vector_data (val), bool_vector_data (arg), nbytes);
       return val;
     }
 
@@ -674,12 +670,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	      }
 	    else if (BOOL_VECTOR_P (this))
 	      {
-		int byte;
-		byte = XBOOL_VECTOR (this)->data[thisindex / BOOL_VECTOR_BITS_PER_CHAR];
-		if (byte & (1 << (thisindex % BOOL_VECTOR_BITS_PER_CHAR)))
-		  elt = Qt;
-		else
-		  elt = Qnil;
+		elt = bool_vector_ref (this, thisindex);
 		thisindex++;
 	      }
 	    else
@@ -1602,7 +1593,7 @@ changing the value of a sequence `foo'.  */)
 
 	  for (i = n = 0; i < ASIZE (seq); ++i)
 	    if (NILP (Fequal (AREF (seq, i), elt)))
-	      p->u.contents[n++] = AREF (seq, i);
+	      p->contents[n++] = AREF (seq, i);
 
 	  XSETVECTOR (seq, p);
 	}
@@ -2071,9 +2062,8 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	    EMACS_INT size = bool_vector_size (o1);
 	    if (size != bool_vector_size (o2))
 	      return 0;
-	    if (memcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
-			((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-			 / BOOL_VECTOR_BITS_PER_CHAR)))
+	    if (memcmp (bool_vector_data (o1), bool_vector_data (o2),
+			bool_vector_bytes (size)))
 	      return 0;
 	    return 1;
 	  }
@@ -2163,19 +2153,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
-    {
-      unsigned char *p = XBOOL_VECTOR (array)->data;
-      size = ((bool_vector_size (array) + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	      / BOOL_VECTOR_BITS_PER_CHAR);
-
-      if (size)
-	{
-	  memset (p, ! NILP (item) ? -1 : 0, size);
-
-	  /* Clear any extraneous bits in the last byte.  */
-	  p[size - 1] &= (1 << (size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	}
-    }
+    return bool_vector_fill (array, item);
   else
     wrong_type_argument (Qarrayp, array);
   return array;
@@ -2287,10 +2265,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     {
       for (i = 0; i < leni; i++)
 	{
-	  unsigned char byte;
-	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
-	  dummy = (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR))) ? Qt : Qnil;
-	  dummy = call1 (fn, dummy);
+	  dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
@@ -3446,7 +3421,7 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 {
   struct Lisp_Vector *v;
   ptrdiff_t i, incr, incr_max, old_size, new_size;
-  ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->u.contents;
+  ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / sizeof *v->contents;
   ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
 		     ? nitems_max : C_language_max);
   eassert (VECTORP (vec));
@@ -3458,9 +3433,9 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
     memory_full (SIZE_MAX);
   new_size = old_size + incr;
   v = allocate_vector (new_size);
-  memcpy (v->u.contents, XVECTOR (vec)->u.contents, old_size * sizeof *v->u.contents);
+  memcpy (v->contents, XVECTOR (vec)->contents, old_size * sizeof *v->contents);
   for (i = old_size; i < new_size; ++i)
-    v->u.contents[i] = Qnil;
+    v->contents[i] = Qnil;
   XSETVECTOR (vec, v);
   return vec;
 }
@@ -4189,11 +4164,9 @@ sxhash_bool_vector (Lisp_Object vec)
   EMACS_UINT hash = size;
   int i, n;
 
-  n = min (SXHASH_MAX_LEN,
-	   ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-	    / BOOL_VECTOR_BITS_PER_CHAR));
+  n = min (SXHASH_MAX_LEN, bool_vector_words (size));
   for (i = 0; i < n; ++i)
-    hash = sxhash_combine (hash, XBOOL_VECTOR (vec)->data[i]);
+    hash = sxhash_combine (hash, bool_vector_data (vec)[i]);
 
   return SXHASH_REDUCE (hash);
 }

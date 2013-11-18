@@ -396,7 +396,7 @@ which encryption method should be used through @xref{File Variables, ,
 variable for this.
 @vindex epa-file-encrypt-to
 
-For example, if you want an Elisp file should be encrypted with a
+For example, if you want an Elisp file to be encrypted with a
 public key associated with an email address @samp{ueno@@unixuser.org},
 add the following line to the beginning of the file.
 

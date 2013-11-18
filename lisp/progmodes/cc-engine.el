@@ -1261,12 +1261,15 @@ comment at the start of cc-engine.el for more info."
 	      ;; looking for more : and ?.
 	      (setq c-maybe-labelp nil
 		    skip-chars (substring c-stmt-delim-chars 0 -2)))
-	     ;; At a CPP construct?
-	     ((and c-opt-cpp-symbol (looking-at c-opt-cpp-symbol)
-		   (save-excursion
-		     (forward-line 0)
-		     (looking-at c-opt-cpp-prefix)))
-	      (c-end-of-macro))
+	     ;; At a CPP construct or a "#" or "##" operator?
+	     ((and c-opt-cpp-symbol (looking-at c-opt-cpp-symbol))
+	      (if (save-excursion
+		    (skip-chars-backward " \t")
+		    (and (bolp)
+			 (or (bobp)
+			     (not (eq (char-before (1- (point))) ?\\)))))
+		  (c-end-of-macro)
+		(skip-chars-forward c-opt-cpp-symbol)))
 	     ((memq (char-after) non-skip-list)
 	      (throw 'done (point)))))
 	  ;; In trailing space after an as yet undetected virtual semicolon?
@@ -8492,10 +8495,12 @@ comment at the start of cc-engine.el for more info."
 	 (or (not (looking-at "\\s)"))
 	     (c-go-up-list-backward))
 	 (cond
-	  ((and (looking-at c-symbol-key) (c-on-identifier))
+	  ((and (looking-at c-symbol-key) (c-on-identifier)
+		(not before-identifier))
 	   (setq before-identifier t))
 	  ((and before-identifier
-		(looking-at c-postfix-decl-spec-key))
+		(or (eq (char-after) ?,)
+		    (looking-at c-postfix-decl-spec-key)))
 	   (setq before-identifier nil)
 	   t)
 	  ((looking-at c-brace-list-key) nil)

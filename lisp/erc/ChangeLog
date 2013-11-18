@@ -1,3 +1,7 @@
+2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcomplete): Set this-command.
+
 2013-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-invite-only-mode, erc-toggle-channel-mode):

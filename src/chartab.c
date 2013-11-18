@@ -141,7 +141,8 @@ static Lisp_Object
 make_sub_char_table (int depth, int min_char, Lisp_Object defalt)
 {
   Lisp_Object table;
-  int size = CHAR_TABLE_STANDARD_SLOTS + chartab_size[depth];
+  int size = (PSEUDOVECSIZE (struct Lisp_Sub_Char_Table, contents)
+	      + chartab_size[depth]);
 
   table = Fmake_vector (make_number (size), defalt);
   XSETPVECTYPE (XVECTOR (table), PVEC_SUB_CHAR_TABLE);
@@ -1258,7 +1259,7 @@ uniprop_encode_value_character (Lisp_Object table, Lisp_Object value)
 static Lisp_Object
 uniprop_encode_value_run_length (Lisp_Object table, Lisp_Object value)
 {
-  Lisp_Object *value_table = XVECTOR (XCHAR_TABLE (table)->extras[4])->u.contents;
+  Lisp_Object *value_table = XVECTOR (XCHAR_TABLE (table)->extras[4])->contents;
   int i, size = ASIZE (XCHAR_TABLE (table)->extras[4]);
 
   for (i = 0; i < size; i++)
@@ -1276,7 +1277,7 @@ uniprop_encode_value_run_length (Lisp_Object table, Lisp_Object value)
 static Lisp_Object
 uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)
 {
-  Lisp_Object *value_table = XVECTOR (XCHAR_TABLE (table)->extras[4])->u.contents;
+  Lisp_Object *value_table = XVECTOR (XCHAR_TABLE (table)->extras[4])->contents;
   int i, size = ASIZE (XCHAR_TABLE (table)->extras[4]);
 
   CHECK_NUMBER (value);

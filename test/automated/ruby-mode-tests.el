@@ -292,8 +292,8 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (string= "foo do |b|\nend" (buffer-string)))))
 
 (ert-deftest ruby-toggle-block-to-brace ()
-  (let ((pairs '((16 . "foo {|b| b + 2 }")
-                 (15 . "foo {|b|\n  b + 2\n}"))))
+  (let ((pairs '((17 . "foo { |b| b + 2 }")
+                 (16 . "foo { |b|\n  b + 2\n}"))))
     (dolist (pair pairs)
       (with-temp-buffer
         (let ((fill-column (car pair)))
@@ -308,6 +308,12 @@ VALUES-PLIST is a list with alternating index and value elements."
     (beginning-of-line)
     (ruby-toggle-block)
     (should (string= "foo do |b|\n  b + 1\nend" (buffer-string)))))
+
+(ert-deftest ruby-toggle-block-with-interpolation ()
+  (ruby-with-temp-buffer "foo do\n  \"#{bar}\"\nend"
+    (beginning-of-line)
+    (ruby-toggle-block)
+    (should (string= "foo { \"#{bar}\" }" (buffer-string)))))
 
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
   (ruby-assert-face ":@abc" 3 font-lock-constant-face))
@@ -584,8 +590,6 @@ VALUES-PLIST is a list with alternating index and value elements."
     (forward-line 1)
     (end-of-defun)
     (should (= 5 (line-number-at-pos)))))
-
-;; Tests below fail when using SMIE.
 
 (defvar ruby-sexp-test-example
   (ruby-test-string

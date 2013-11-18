@@ -76,6 +76,8 @@ VPATH=@srcdir@
 
 # The top-level source directory, also set by configure.
 top_srcdir=@top_srcdir@
+# MinGW CPPFLAGS may use this.
+abs_top_srcdir=@abs_top_srcdir@
 
 # ==================== Emacs-specific directories ====================
 
@@ -141,10 +143,11 @@ all: ${EXE_FILES}
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	umask 022; ${MKDIR_P} $(DESTDIR)${archlibdir}
-	if [ `cd $(DESTDIR)${archlibdir} && /bin/pwd` != `/bin/pwd` ]; then \
+	umask 022; ${MKDIR_P} "$(DESTDIR)${archlibdir}"
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
+	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
 	  for file in ${UTILITIES}; do \
-	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
+	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file "$(DESTDIR)${archlibdir}/$$file" ; \
 	  done ; \
         fi
 
@@ -154,17 +157,17 @@ $(DESTDIR)${archlibdir}: all
 install: $(DESTDIR)${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
-	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
+	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
 
 uninstall:
 	for file in ${INSTALLABLES}; do \
-	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
+	  rm -f "$(DESTDIR)${bindir}"/`echo $${file} | sed -e 's/${EXEEXT}$$//' -e '$(TRANSFORM)'`${EXEEXT} ; \
 	done
-	if [ -d $(DESTDIR)${archlibdir} ]; then \
-	  (cd $(DESTDIR)${archlibdir} && rm -f ${UTILITIES}) \
+	if [ -d "$(DESTDIR)${archlibdir}" ]; then \
+	  (cd "$(DESTDIR)${archlibdir}" && rm -f ${UTILITIES}) \
 	fi
 
 mostlyclean:

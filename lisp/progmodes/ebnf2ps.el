@@ -3912,7 +3912,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
  {/Effect EffectP def
   /fP F ForegroundP SetRGB BackgroundP aload pop true BG S
   /Effect 0 def
-  ( :) S false BG}if
+  ( :) S false BG}{pop}ifelse
  xw yw moveto
  hT EL RA
  xp yw moveto

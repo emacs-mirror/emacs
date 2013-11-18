@@ -207,6 +207,15 @@ point right after that char, and it should return t to cause indentation,
 This should be set by major modes such as `python-mode' since
 Python does not lend itself to fully automatic indentation.")
 
+(defvar electric-indent-functions-without-reindent
+  '(indent-relative indent-to-left-margin indent-relative-maybe
+    py-indent-line coffee-indent-line org-indent-line
+    haskell-indentation-indent-line haskell-indent-cycle haskell-simple-indent)
+  "List of indent functions that can't reindent.
+If `line-indent-function' is one of those, then `electric-indent-mode' will
+not try to reindent lines.  It is normally better to make the major
+mode set `electric-indent-inhibit', but this can be used as a workaround.")
+
 (defun electric-indent-post-self-insert-function ()
   ;; FIXME: This reindents the current line, but what we really want instead is
   ;; to reindent the whole affected text.  That's the current line for simple
@@ -238,8 +247,7 @@ Python does not lend itself to fully automatic indentation.")
         (let ((before (copy-marker (1- pos) t)))
           (save-excursion
             (unless (or (memq indent-line-function
-                              '(indent-relative indent-to-left-margin
-                                                indent-relative-maybe))
+                              electric-indent-functions-without-reindent)
                         electric-indent-inhibit)
               ;; Don't reindent the previous line if the indentation function
               ;; is not a real one.
@@ -251,13 +259,19 @@ Python does not lend itself to fully automatic indentation.")
             ;; whereas we need `move after insertion', so we do the
             ;; save/restore by hand.
             (goto-char before)
-            ;; Remove the trailing whitespace after indentation because
-            ;; indentation may (re)introduce the whitespace.
-            (delete-horizontal-space t))))
-      (unless (or (memq indent-line-function '(indent-to-left-margin))
-                  (and electric-indent-inhibit
-                       (> pos (line-beginning-position))))
+	    (when (eolp)
+	      ;; Remove the trailing whitespace after indentation because
+	      ;; indentation may (re)introduce the whitespace.
+	      (delete-horizontal-space t)))))
+      (unless (and electric-indent-inhibit
+                   (> pos (line-beginning-position)))
         (indent-according-to-mode)))))
+
+(defun electric-indent-just-newline (arg)
+  "Insert just a newline, without any auto-indentation."
+  (interactive "*P")
+  (let ((electric-indent-mode nil))
+    (newline arg 'interactive)))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
@@ -269,11 +283,16 @@ the mode if ARG is omitted or nil.
 This is a global minor mode.  When enabled, it reindents whenever
 the hook `electric-indent-functions' returns non-nil, or you
 insert a character from `electric-indent-chars'."
-  :global t
-  :group 'electricity
+  :global t :group 'electricity
   (if (not electric-indent-mode)
-      (remove-hook 'post-self-insert-hook
-                   #'electric-indent-post-self-insert-function)
+      (progn
+        (when (eq (lookup-key global-map [?\C-j])
+                  'electric-indent-just-newline)
+          (define-key global-map [?\C-j] 'newline-and-indent))
+        (remove-hook 'post-self-insert-hook
+                     #'electric-indent-post-self-insert-function))
+    (when (eq (lookup-key global-map [?\C-j]) 'newline-and-indent)
+      (define-key global-map [?\C-j] 'electric-indent-just-newline))
     ;; post-self-insert-hooks interact in non-trivial ways.
     ;; It turns out that electric-indent-mode generally works better if run
     ;; late, but still before blink-paren.
@@ -289,12 +308,24 @@ insert a character from `electric-indent-chars'."
                          (delq #'electric-indent-post-self-insert-function
                                (cdr bp))))))))
 
+;;;###autoload
+(define-minor-mode electric-indent-local-mode
+  "Toggle `electric-indent-mode' only in this buffer."
+  :variable (buffer-local-value 'electric-indent-mode (current-buffer))
+  (cond
+   ((eq electric-indent-mode (default-value 'electric-indent-mode))
+    (kill-local-variable 'electric-indent-mode))
+   ((not (default-value 'electric-indent-mode))
+    ;; Locally enabled, but globally disabled.
+    (electric-indent-mode 1)                ; Setup the hooks.
+    (setq-default electric-indent-mode nil) ; But keep it globally disabled.
+    )))
+
 ;;; Electric pairing.
 
 (defcustom electric-pair-pairs
   '((?\" . ?\"))
   "Alist of pairs that should be used regardless of major mode."
-  :group 'electricity
   :version "24.1"
   :type '(repeat (cons character character)))
 
@@ -304,7 +335,6 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 This can be convenient for people who find it easier to hit ) than C-f."
-  :group 'electricity
   :version "24.1"
   :type 'boolean)
 
@@ -409,8 +439,7 @@ an open parenthesis automatically inserts the corresponding
 closing parenthesis.  \(Likewise for brackets, etc.)
 
 See options `electric-pair-pairs' and `electric-pair-skip-self'."
-  :global t
-  :group 'electricity
+  :global t :group 'electricity
   (if electric-pair-mode
       (progn
 	(add-hook 'post-self-insert-hook
@@ -462,8 +491,7 @@ With a prefix argument ARG, enable Electric Layout mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
 the mode if ARG is omitted or nil.
 The variable `electric-layout-rules' says when and how to insert newlines."
-  :global t
-  :group 'electricity
+  :global t :group 'electricity
   (if electric-layout-mode
       (add-hook 'post-self-insert-hook
                 #'electric-layout-post-self-insert-function)

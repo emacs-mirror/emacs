@@ -1485,7 +1485,12 @@ METHOD must be one of these symbols:
   `empty-box':  display an empty box.
   `acronym':    display an acronym of the character in a box.  The
                 acronym is taken from `char-acronym-table', which see.
-  `hex-code':   display the hexadecimal character code in a box."
+  `hex-code':   display the hexadecimal character code in a box.
+
+Do not set its value directly from Lisp; the value takes effect
+only via a custom `:set'
+function (`update-glyphless-char-display'), which updates
+`glyphless-char-display'."
   :version "24.1"
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))

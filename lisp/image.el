@@ -34,7 +34,10 @@
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
-    ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
+    ("\\`P[1-6]\\\(?:\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)?[[:space:]]\\)+\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)?[0-9]\\)+\
+\\)\\{2\\}" . pbm)
     ("\\`GIF8[79]a" . gif)
     ("\\`\x89PNG\r\n\x1a\n" . png)
     ("\\`[\t\n\r ]*#define \\([a-z0-9_]+\\)_width [0-9]+\n\
@@ -115,7 +118,9 @@ If an element is a string, it defines a directory to search.
 If an element is a variable symbol whose value is a string, that
 value defines a directory to search.
 If an element is a variable symbol whose value is a list, the
-value is used as a list of directories to search."
+value is used as a list of directories to search.
+
+Subdirectories are not automatically included in the search."
   :type '(repeat (choice directory variable))
   :initialize 'custom-initialize-delay)
 
@@ -591,7 +596,7 @@ Image files should not be larger than specified by `max-image-size'."
 
 ;;;###autoload
 (defmacro defimage (symbol specs &optional doc)
-  "Define SYMBOL as an image.
+  "Define SYMBOL as an image, and return SYMBOL.
 
 SPECS is a list of image specifications.  DOC is an optional
 documentation string.

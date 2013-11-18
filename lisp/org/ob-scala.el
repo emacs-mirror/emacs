@@ -31,9 +31,6 @@
 
 ;;; Code:
 (require 'ob)
-(require 'ob-ref)
-(require 'ob-comint)
-(require 'ob-eval)
 (eval-when-compile (require 'cl))
 
 (defvar org-babel-tangle-lang-exts) ;; Autoloaded
@@ -103,12 +100,11 @@ in BODY as elisp."
      (let* ((src-file (org-babel-temp-file "scala-"))
             (wrapper (format org-babel-scala-wrapper-method body)))
        (with-temp-file src-file (insert wrapper))
-       ((lambda (raw)
-          (if (member "code" result-params)
-              raw
-            (org-babel-scala-table-or-string raw)))
-        (org-babel-eval
-         (concat org-babel-scala-command " " src-file) ""))))))
+       (let ((raw (org-babel-eval
+                   (concat org-babel-scala-command " " src-file) "")))
+         (org-babel-result-cond result-params
+	   raw
+           (org-babel-scala-table-or-string raw)))))))
 
 
 (defun org-babel-prep-session:scala (session params)

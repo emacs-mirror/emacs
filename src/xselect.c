@@ -972,7 +972,6 @@ x_handle_selection_clear (struct input_event *event)
     Frun_hook_with_args (2, args);
   }
 
-  prepare_menu_bars ();
   redisplay_preserve_echo_area (20);
 }
 
@@ -2365,7 +2364,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
 
 Lisp_Object
 x_property_data_to_lisp (struct frame *f, const unsigned char *data,
-			 Atom type, int format, long unsigned int size)
+			 Atom type, int format, unsigned long size)
 {
   ptrdiff_t format_bytes = format >> 3;
   if (PTRDIFF_MAX / format_bytes < size)

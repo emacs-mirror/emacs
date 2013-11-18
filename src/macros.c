@@ -55,7 +55,7 @@ Use \\[name-last-kbd-macro] to give it a permanent name.
 Non-nil arg (prefix arg) means append to last macro defined;
 this begins by re-executing that macro as if you typed it again.
 If optional second arg, NO-EXEC, is non-nil, do not re-execute last
-macro before appending to it. */)
+macro before appending to it.  */)
   (Lisp_Object append, Lisp_Object no_exec)
 {
   if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
@@ -66,7 +66,7 @@ macro before appending to it. */)
       current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
       current_kboard->kbd_macro_bufsize = 30;
     }
-  update_mode_lines++;
+  update_mode_lines = 19;
   if (NILP (append))
     {
       if (current_kboard->kbd_macro_bufsize > 200)
@@ -138,7 +138,7 @@ void
 end_kbd_macro (void)
 {
   kset_defining_kbd_macro (current_kboard, Qnil);
-  update_mode_lines++;
+  update_mode_lines = 20;
   kset_last_kbd_macro
     (current_kboard,
      make_event_array ((current_kboard->kbd_macro_end

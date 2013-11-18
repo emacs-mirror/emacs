@@ -254,7 +254,7 @@ Action options:\n\
 FILE                    visit FILE using find-file\n\
 +LINE                   go to line LINE in next FILE\n\
 +LINE:COLUMN            go to line LINE, column COLUMN, in next FILE\n\
---directory, -L DIR     add DIR to variable load-path\n\
+--directory, -L DIR     prepend DIR to load-path (with :DIR, append DIR)\n\
 --eval EXPR             evaluate Emacs Lisp expression EXPR\n\
 --execute EXPR          evaluate Emacs Lisp expression EXPR\n\
 ",
@@ -383,7 +383,7 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 /* Code for dealing with Lisp access to the Unix command line.  */
 
 static void
-init_cmdargs (int argc, char **argv, int skip_args)
+init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 {
   register int i;
   Lisp_Object name, dir, handler;
@@ -393,7 +393,7 @@ init_cmdargs (int argc, char **argv, int skip_args)
   initial_argv = argv;
   initial_argc = argc;
 
-  raw_name = build_string (argv[0]);
+  raw_name = build_unibyte_string (argv[0]);
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
@@ -426,7 +426,12 @@ init_cmdargs (int argc, char **argv, int skip_args)
       && NILP (Ffile_name_absolute_p (Vinvocation_directory)))
     /* Emacs was started with relative path, like ./emacs.
        Make it absolute.  */
-    Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, Qnil);
+    {
+      Lisp_Object odir =
+	original_pwd ? build_unibyte_string (original_pwd) : Qnil;
+
+      Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, odir);
+    }
 
   Vinstallation_directory = Qnil;
 
@@ -699,6 +704,9 @@ main (int argc, char **argv)
 #endif
   char *ch_to_dir;
 
+  /* If we use --chdir, this records the original directory.  */
+  char *original_pwd = 0;
+
 #if GC_MARK_STACK
   stack_base = &dummy;
 #endif
@@ -786,12 +794,15 @@ main (int argc, char **argv)
     }
 
   if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
-    if (chdir (ch_to_dir) == -1)
-      {
-	fprintf (stderr, "%s: Can't chdir to %s: %s\n",
-		 argv[0], ch_to_dir, strerror (errno));
-	exit (1);
-      }
+    {
+      original_pwd = get_current_dir_name ();
+      if (chdir (ch_to_dir) != 0)
+        {
+          fprintf (stderr, "%s: Can't chdir to %s: %s\n",
+                   argv[0], ch_to_dir, strerror (errno));
+          exit (1);
+        }
+    }
 
   dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
 			     || strcmp (argv[argc - 1], "bootstrap") == 0);
@@ -1187,10 +1198,13 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (!noninteractive)
     {
 #ifdef NS_IMPL_COCOA
+      /* Started from GUI? */
+      /* FIXME: Do the right thing if getenv returns NULL, or if
+         chdir fails.  */
+      if (! inhibit_window_system && ! isatty (0))
+        chdir (getenv ("HOME"));
       if (skip_args < argc)
         {
-	  /* FIXME: Do the right thing if getenv returns NULL, or if
-	     chdir fails.  */
           if (!strncmp (argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
@@ -1318,7 +1332,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_buffer ();	/* Init default directory of main buffer.  */
 
   init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
-  init_cmdargs (argc, argv, skip_args);	/* Must precede init_lread.  */
+
+  /* Must precede init_lread.  */
+  init_cmdargs (argc, argv, skip_args, original_pwd);
 
   if (initialized)
     {
@@ -2041,11 +2057,15 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
+  filename = ENCODE_FILE (filename);
   if (!NILP (symfile))
     {
       CHECK_STRING (symfile);
       if (SCHARS (symfile))
-	symfile = Fexpand_file_name (symfile, Qnil);
+	{
+	  symfile = Fexpand_file_name (symfile, Qnil);
+	  symfile = ENCODE_FILE (symfile);
+	}
     }
 
   tem = Vpurify_flag;
@@ -2201,7 +2221,7 @@ decode_env_path (const char *evarname, const char *defalt)
       p = strchr (path, SEPCHAR);
       if (!p)
 	p = path + strlen (path);
-      element = (p - path ? make_string (path, p - path)
+      element = (p - path ? make_unibyte_string (path, p - path)
 		 : build_string ("."));
 #ifdef WINDOWSNT
       /* Relative file names in the default path are interpreted as
@@ -2211,7 +2231,7 @@ decode_env_path (const char *evarname, const char *defalt)
 	element = Fexpand_file_name (Fsubstring (element,
 						 make_number (emacs_dir_len),
 						 Qnil),
-				     build_string (emacs_dir));
+				     build_unibyte_string (emacs_dir));
 #endif
 
       /* Add /: to the front of the name

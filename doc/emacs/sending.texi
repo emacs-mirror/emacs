@@ -256,7 +256,7 @@ This means that @var{nick} should expand into @var{fulladdresses},
 where @var{fulladdresses} can be either a single address, or multiple
 addresses separated with spaces.  For instance, to make @code{maingnu}
 stand for @code{gnu@@gnu.org} plus a local address of your own, put in
-this line:@refill
+this line:
 
 @example
 alias maingnu gnu@@gnu.org local-gnu

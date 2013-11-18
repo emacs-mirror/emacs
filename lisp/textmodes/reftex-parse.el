@@ -350,20 +350,38 @@ of master file."
     ;; Return the list
     docstruct))
 
+(defun reftex-using-biblatex-p ()
+  "Return non-nil iff we are using biblatex rather than bibtex."
+  (if (boundp 'TeX-active-styles)
+      ;; the sophisticated AUCTeX way
+      (member "biblatex" TeX-active-styles)
+    ;; poor-man's check...
+    (save-excursion
+      (re-search-forward "^[^%]*\\\\usepackage.*{biblatex}" nil t))))
+
 (defun reftex-locate-bibliography-files (master-dir &optional files)
-  "Scan buffer for bibliography macro and return file list."
+  "Scan buffer for bibliography macros and return file list."
   (unless files
     (save-excursion
       (goto-char (point-min))
-      (if (re-search-forward
-           (concat
-;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
-            "\\(^\\)[^%\n\r]*\\\\\\("
-            (mapconcat 'identity reftex-bibliography-commands "\\|")
-            "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t)
-          (setq files
-                (split-string (reftex-match-string 4)
-                              "[ \t\n\r]*,[ \t\n\r]*")))))
+      ;; when biblatex is used, multiple \bibliography or
+      ;; \addbibresource macros are allowed.  With plain bibtex, only
+      ;; the first is used.
+      (let ((using-biblatex (reftex-using-biblatex-p))
+	    (again t))
+	(while (and again
+		    (re-search-forward
+		     (concat
+		      ;;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
+		      "\\(^\\)[^%\n\r]*\\\\\\("
+		      (mapconcat 'identity reftex-bibliography-commands "\\|")
+		      "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t))
+	  (setq files
+		(append files
+			(split-string (reftex-match-string 4)
+				      "[ \t\n\r]*,[ \t\n\r]*")))
+	  (unless using-biblatex
+	    (setq again nil))))))
   (when files
     (setq files
           (mapcar

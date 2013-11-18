@@ -1643,7 +1643,7 @@ x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
    get color reference counts right.  */
 
 unsigned long
-x_copy_color (struct frame *f, long unsigned int pixel)
+x_copy_color (struct frame *f, unsigned long pixel)
 {
   XColor color;
 
@@ -1681,7 +1681,8 @@ x_copy_color (struct frame *f, long unsigned int pixel)
    Value is non-zero if successful.  */
 
 static bool
-x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long unsigned int *pixel, double factor, int delta)
+x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap,
+		       unsigned long *pixel, double factor, int delta)
 {
   XColor color, new;
   long bright;
@@ -1757,7 +1758,8 @@ x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long un
    be allocated, use DEFAULT_PIXEL, instead.  */
 
 static void
-x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int delta, long unsigned int default_pixel)
+x_setup_relief_color (struct frame *f, struct relief *relief, double factor,
+		      int delta, unsigned long default_pixel)
 {
   XGCValues xgcv;
   struct x_output *di = f->output_data.x;
@@ -1774,11 +1776,10 @@ x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int
   /* Free previously allocated color.  The color cell will be reused
      when it has been freed as many times as it was allocated, so this
      doesn't affect faces using the same colors.  */
-  if (relief->gc
-      && relief->allocated_p)
+  if (relief->gc && relief->pixel != -1)
     {
       x_free_colors (f, &relief->pixel, 1);
-      relief->allocated_p = 0;
+      relief->pixel = -1;
     }
 
   /* Allocate new color.  */
@@ -1786,10 +1787,7 @@ x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int
   pixel = background;
   if (dpyinfo->n_planes != 1
       && x_alloc_lighter_color (f, dpy, cmap, &pixel, factor, delta))
-    {
-      relief->allocated_p = 1;
-      xgcv.foreground = relief->pixel = pixel;
-    }
+    xgcv.foreground = relief->pixel = pixel;
 
   if (relief->gc == 0)
     {
@@ -9338,9 +9336,9 @@ x_free_frame_resources (struct frame *f)
       if (f->output_data.x->scroll_bar_bottom_shadow_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_bottom_shadow_pixel);
 #endif /* USE_TOOLKIT_SCROLL_BARS */
-      if (f->output_data.x->white_relief.allocated_p)
+      if (f->output_data.x->white_relief.pixel != -1)
 	unload_color (f, f->output_data.x->white_relief.pixel);
-      if (f->output_data.x->black_relief.allocated_p)
+      if (f->output_data.x->black_relief.pixel != -1)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
       x_free_gcs (f);
@@ -9690,7 +9688,7 @@ same_x_server (const char *name1, const char *name2)
    get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
    to 5.  */
 static void
-get_bits_and_offset (long unsigned int mask, int *bits, int *offset)
+get_bits_and_offset (unsigned long mask, int *bits, int *offset)
 {
   int nr = 0;
   int off = 0;
@@ -10589,14 +10587,14 @@ With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qnil;
 #endif
 
-  Qmodifier_value = intern_c_string ("modifier-value");
-  Qalt = intern_c_string ("alt");
+  DEFSYM (Qmodifier_value, "modifier-value");
+  DEFSYM (Qalt, "alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern_c_string ("hyper");
+  DEFSYM (Qhyper, "hyper");
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern_c_string ("meta");
+  DEFSYM (Qmeta, "meta");
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern_c_string ("super");
+  DEFSYM (Qsuper, "super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
 
   DEFVAR_LISP ("x-alt-keysym", Vx_alt_keysym,

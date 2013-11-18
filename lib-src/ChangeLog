@@ -1,3 +1,21 @@
+2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ebrowse.c (xstrdup):
+	* etags.c (savenstr): Prefer tail calls.
+	* etags.c (concat): Omit unnecessary assignment.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}):
+	Avoid non-portable "`\" nesting.
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}, need-blessmail, install)
+	(uninstall): Quote entities that might contain whitespace.
+
 2013-10-10  Glenn Morris  <rgm@gnu.org>
 
 	* make-docfile.c (search_lisp_doc_at_eol):

@@ -1,3 +1,706 @@
+2013-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* insdel.c (invalidate_buffer_caches): New function, consolidated
+	from part of prepare_to_modify_buffer.
+	(insert_from_gap, prepare_to_modify_buffer):
+	* coding.c (code_convert_region, code_convert_string): Call
+	invalidate_buffer_caches.  (Bug#15841)
+
+	* lisp.h (invalidate_buffer_caches): Add prototype.
+
+2013-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (x_update_window_end): Don't invalidate the entire
+	mouse-highlight info, just signal frame_up_to_date_hook that mouse
+	highlight needs to be redisplayed.  (Bug#15913)
+
+2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DEBUGGER_SEES_C_MACROS): Remove.
+
+2013-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* doc.c (Fsubstitute_command_keys): Inhibit modification hooks
+	while we are using Vprin1_to_string_buffer.
+
+	* keymap.c (describe_map): Don't crash if PT is 1 both before and
+	after inserting the description string.  (Bug#15907)
+
+2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* data.c: Work around bogus GCC diagnostic about shift count.
+	Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00489.html>.
+	(pre_value): New function.
+	(count_trailing_zero_bits): Use it.
+
+2013-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DEBUGGER_SEES_C_MACROS) [GCC < v3.5]: Pessimistically
+	assume C macros are not supported even under -g3 in these old GCC
+	versions.
+
+2013-11-15  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.c (Ftry_completion, Fall_completions)
+	(Ftest_completion): Use FUNCTIONP.  (Bug#15889)
+
+2013-11-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DEFINE_GDB_SYMBOL_BEGIN, DEFINE_GDB_SYMBOL_END):
+	Define to empty if DEBUGGER_SEES_C_MACROS is defined.
+	This avoids placing unnecessary constants into the Emacs code.
+
+2013-11-14  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* keyboard.c (make_ctrl_char) [HAVE_NTGUI]: Now externally visible
+	for Cygwin w32 build.
+
+	* xdisp.c (erase_phys_cursor) [HAVE_NTGUI]: Now externally visible
+	for Cygwin w32 build.  (Bug#15892)
+
+2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify, port and tune bool vector implementation.
+	* alloc.c (bool_vector_exact_payload_bytes)
+	(bool_vector_payload_bytes): Remove.
+	(bool_vector_fill): Return its argument.
+	* alloc.c (bool_vector_fill):
+	* lread.c (read1):
+	* print.c (print_object):
+	Simplify by using bool_vector_bytes.
+	* alloc.c (make_uninit_bool_vector):
+	New function, broken out from Fmake_bool_vector.
+	(Fmake_bool_vector): Use it.  Use tail call.
+	(make_uninit_bool_vector, vector_nbytes): Simplify size calculations.
+	* data.c (BITS_PER_ULL): New constant.
+	(ULLONG_MAX, count_one_bits_ll): Fall back on long counterparts
+	if long long versions don't exist.
+	(shift_right_ull): New function.
+	(count_one_bits_word): New function, replacing popcount_bits_word
+	macro.  Don't assume that bits_word is no wider than long long.
+	(count_one_bits_word, count_trailing_zero_bits):
+	Don't assume that bits_word is no wider than long long.
+	* data.c (bool_vector_binop_driver, bool_vector_not):
+	* fns.c (Fcopy_sequence):
+	* lread.c (read1):
+	Create an uninitialized destination, to avoid needless work.
+	(internal_equal): Simplify.
+	(Ffillarray): Prefer tail call.
+	* data.c (bool_vector_binop_driver): Don't assume bit vectors always
+	contain at least one word.
+	(bits_word_to_host_endian): Prefer if to #if.  Don't assume
+	chars are narrower than ints.
+	* data.c (Fbool_vector_count_matches, Fbool_vector_count_matches_at):
+	* fns.c (Fcopy_sequence):
+	Simplify and tune.
+	* lisp.h (bits_word, BITS_WORD_MAX, BITS_PER_BITS_WORD):
+	Don't try to port to hosts where bits_word values have holes; the
+	code wouldn't work there anyway.  Verify this assumption, though.
+	(bool_vector_bytes): New function.
+	(make_uninit_bool_vector): New decl.
+	(bool_vector_fill): Now returns Lisp_Object.
+
+	* xfns.c (xic_create_fontsetname):
+	* xrdb.c (gethomedir): Prefer tail calls.
+
+2013-11-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.c (syms_of_xterm): staticpro Qmodifier_value, Qalt, Qhyper,
+	Qmeta, and Qsuper.  This is safer, and it's what w32fns.c does.
+
+	* buffer.c (Fforce_mode_line_update): Don't fall off end of function
+	that requires a return value.
+	(Fset_buffer_modified_p): Take advantage of this change to do
+	a tail call.
+
+2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Frestore_buffer_modified_p): Sync it with
+	Fset_buffer_modified_p.
+	(Fforce_mode_line_update): New function, moved from subr.el.
+	(Fset_buffer_modified_p): Use them.
+	(syms_of_buffer): Defsubr Fforce_mode_line_update.
+
+2013-11-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* search.c (find_newline): Rewrite to prefer offsets to pointers.
+	This avoids undefined behavior when subtracting pointers into
+	different aways.  On my platform it also makes the code a tad
+	smaller and presumably faster.
+
+2013-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (command_loop_1): Use region-extract-function.
+	* insdel.c (Qregion_extract_function): Not static any more (can we
+	stop pretending that these vars can benefit from being marked static?).
+
+2013-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline): If buffer text is relocated during the
+	"dumb loop", adjust C pointers into buffer text to follow suit.
+	(Bug#15841)
+
+2013-11-09  Łukasz Stelmach <stlman@poczta.fm> (tiny change)
+
+	* gtkutil.c (xg_check_special_colors): Use rgb: instead of rgbi:
+	for conversion (Bug#15837).
+
+2013-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Invalidate the newline cache
+	for the entire range of inserted characters.  (Bug#15841)
+
+2013-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (lface_fully_specified_p): Let distant-foreground be
+	unspecified.
+	(realize_default_face): Remove assignment to distant-foreground if
+	unspecified (Bug#15815).
+
+2013-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (message_dolog): Make sure the *Messages* buffer has its
+	cache-long-scans disabled, since we don't want to call
+	prepare_to_modify_buffer (in insert_1_both) for each message we
+	display.
+
+	* buffer.h (bset_cache_long_scans): New INLINE function, moved
+	from buffer.c.  Improve commentary to the buffer field setter
+	functions.
+
+	* buffer.c (bset_cache_long_scans): Static function deleted.
+	Improve commentary to the buffer field setter functions.
+	(init_buffer_once): Default for cache-long-scans changed to t.
+	(Bug#15797)
+
+2013-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gmalloc.c (special_realloc, calloc, mallochook): Use tail calls.
+
+	* chartab.c (make_sub_char_table): Fix size typo (Bug#15825).
+	This bug was introduced in my 2013-06-21 change, and caused
+	struct Lisp_Sub_Char_Table objects to be given too many slots,
+	which broke 'make -C admin/unidata'.
+
+2013-11-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	Import changes from mac-port 4.5.
+	* macfont.m (mac_font_copy_default_descriptors_for_language)
+	(mac_font_copy_default_name_for_charset_and_languages): Declare.
+	(cf_charset_table): big-5-0 has uniquifier 0x4EDC.
+	(macfont_language_default_font_names): New.
+	(macfont_list): Rearrange language/charset code.
+	(macfont_close): Don't check for macfont_info->cache.
+	(mac_ctfont_create_preferred_family_for_attributes): New font
+	selection code, call
+	mac_font_copy_default_name_for_charset_and_languages.
+	(mac_font_copy_default_descriptors_for_language)
+	(mac_font_copy_default_name_for_charset_and_languages): New functions.
+
+	* macfont.h (kCTVersionNumber10_9): Define if not defined.
+
+2013-11-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C11 aligned_alloc, and fix some integer overflows.
+	* alloc.c (USE_ALIGNED_ALLOC): New symbol.
+	(USE_POSIX_MEMALIGN): Remove.  All uses replaced with USE_ALIGNED_ALLOC,
+	and use of posix_memalign replaced with aligned_alloc.
+	(aligned_alloc): New function, defined or declared as needed.
+	* conf_post.h (HAVE_POSIX_MEMALIGN) [DARWIN_OS]:
+	Don't undef; configure.ac now does this.
+	* gmalloc.c (aligned_alloc) [MSDOS]: New decl.
+	(calloc, aligned_alloc): Check for integer overflow.
+	(aligned_alloc): Rename from memalign.  All uses changed.
+	(memalign): New function, an alias for aligned_alloc.
+
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_internal): Fix typo in last change.
+
+2013-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* regex.c: Fix --enable-gcc-warning glitch with GCC 4.5.2.
+
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (syms_of_xdisp): New vars redisplay--all-windows-cause and
+	redisplay--mode-lines-cause.
+	(redisplay_internal): Keep them uptodate.  Remove redundant check of
+	buffer_shared_and_changed.
+	* *.[chm]: Number every assignment to update_mode_lines so we
+	can track why it is set.
+
+2013-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fformat_time_string): Doc fix.  (Bug#15816)
+
+2013-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* *.[chm]: Number every assignment to windows_or_buffers_changed so we
+	can track why it is set.
+
+2013-11-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer-related fixes for term.c etc.
+	* dispextern.h (face_tty_specified_color): New function.
+	* term.c (turn_on_face): Don't rely on undefined behavior when
+	assigning an out-of-range value to 'long'.
+	Simplify test for toggling highlight.
+	(tty_capable_p): Omit last two (unused) args.  All callers changed.
+	* term.c (tty_capable_p, tty_menu_display, tty_menu_add_selection)
+	(read_menu_input, tty_menu_activate, tty_menu_show):
+	* xfaces.c (x_supports_face_attributes_p)
+	(tty_supports_face_attributes_p):
+	Use bool for boolean.  All callers changed.
+	(tty_supports_face_attributes_p): Omit defaults for color indices;
+	no longer needed.  Simplify tail call.
+
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (prepare_menu_bars): Mark static.
+	* lisp.h (prepare_menu_bars): Don't declare.
+	* xselect.c (x_handle_selection_clear):
+	* callproc.c (call_process): Remove redundant call to prepare_menu_bars.
+
+2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (Fcommand_error_default_function): Fix pointer signedness
+	glitch.  Eliminate 'sz' prefix; Hungarian notation is not helpful here.
+
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fcommand_error_default_function): Rename from
+	Fdefault_error_output.
+
+2013-11-05  Jarek Czekalski  <jarekczek@poczta.onet.pl>  (tiny change)
+
+	* keyboard.c (Fdefault_error_output): New function, extracted from
+	cmd_error_internal.
+	(syms_of_keyboard): Use it for Vcommand_error_function.
+
+2013-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (handlerlist_sentinel): New variable (bug#15802).
+	(init_eval): Use it to ensure handlerlist is non-NULL.
+	(unwind_to_catch): Make sure we never set handlerlist to NULL.
+	(Fsignal): Adjust NULLness test of handlerlist.
+	* lisp.h (PUSH_HANDLER): Assume handlerlist is non-NULL.
+
+2013-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (call_process): Call prepare_to_modify_buffer before
+	decoding text read from the sub-process, as the decoded stuff will
+	be inserted into the buffer.  This will invalidate the various
+	caches maintained for the buffer.  (Bug#15148)
+
+2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* xdisp.c (syms_of_xdisp): Mention the active display table in doc
+	string of glyphless-char-display.
+
+2013-11-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_get_name_from_ioreg): New function.
+	(ns_screen_name): Don't use deprecated CGDisplayIOServicePort on
+	OSX >= 10.9.  Use ns_get_name_from_ioreg.
+
+2013-11-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify and port recent bool vector changes.
+	* alloc.c (ROUNDUP): Move here from lisp.h, since it's now used
+	only in this file.  Use a more-efficient implementation if the
+	second argument is a power of 2.
+	(ALIGN): Rewrite in terms of ROUNDUP.  Make it a function.
+	Remove no-longer-necessary compile-time checks.
+	(bool_vector_exact_payload_bytes): New function.
+	(bool_vector_payload_bytes): Remove 2nd arg; callers that need
+	exact payload changed to call the new function.  Do not assume
+	that the arg or result fits in ptrdiff_t.
+	(bool_vector_fill): New function.
+	(Fmake_bool_vector): Use it.  Don't assume bit counts fit
+	in ptrdiff_t.
+	(vroundup_ct): Don't assume arg fits in size_t.
+	* category.c (SET_CATEGORY_SET): Remove.  All callers now just
+	invoke set_category_set.
+	(set_category_set): 2nd arg is now EMACS_INT and 3rd is now bool.
+	All callers changed.  Use bool_vector_set.
+	* category.h (XCATEGORY_SET): Remove; no longer needed.
+	(CATEGORY_MEMBER): Now a function.  Rewrite in terms of
+	bool_vector_bitref.
+	* data.c (Faref): Use bool_vector_ref.
+	(Faset): Use bool_vector_set.
+	(bits_word_to_host_endian): Don't assume you can shift by CHAR_BIT.
+	(Fbool_vector_not, Fbool_vector_count_matches)
+	(Fbool_vector_count_matches_at): Don't assume CHAR_BIT == 8.
+	* fns.c (concat): Use bool_vector_ref.
+	(Ffillarray): Use bool_vector_fill.
+	(mapcar1): Use bool_vector_ref.
+	(sxhash_bool_vector): Hash words, not bytes.
+	* lisp.h (BOOL_VECTOR_BITS_PER_CHAR): Now a macro as well as
+	a constant, since it's now used in #if.
+	(bits_word, BITS_WORD_MAX, BITS_PER_BITS_WORD): Fall back on
+	unsigned char on unusual architectures, so that we no longer
+	assume that the number of bits per bits_word is a power of two or
+	is a multiple of 8 or of CHAR_BIT.
+	(Qt): Add forward decl.
+	(struct Lisp_Bool_Vector): Don't assume EMACS_INT is aligned
+	at least as strictly as bits_word.
+	(bool_vector_data, bool_vector_uchar_data): New accessors.
+	All data structure accesses changed to use them.
+	(bool_vector_words, bool_vector_bitref, bool_vector_ref)
+	(bool_vector_set): New functions.
+	(bool_vector_fill): New decl.
+	(ROUNDUP): Move to alloc.c as described above.
+
+	Fix recent gnutls changes.
+	* gnutls.c (Fgnutls_boot): Don't assume C99.
+	* process.c (wait_reading_process_output): Fix typo in recent change.
+
+2013-11-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* process.c (wait_reading_process_output, read_process_output)
+	(send_process): Check gnutls_state is not NULL.
+
+	* gnutls.c (emacs_gnutls_handle_error): Adjust log level for EAGAIN.
+	(Fgnutls_boot): Set process gnutls_p later, after initialization.
+
+2013-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (init, run, stop:): New methods in EmacsApp for
+	OSX >= 10.9 to prevent memory leak of GCD dispatch source.
+
+	* nsterm.h (EmacsApp): Add shouldKeepRunning and isFirst for
+	OSX >= 10.9.
+
+	* nsfns.m (Fx_create_frame): Fix memory leak.
+
+	* macfont.m (CG_SET_FILL_COLOR_WITH_GC_FOREGROUND)
+	(CG_SET_FILL_COLOR_WITH_GC_BACKGROUND)
+	(CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND): Fix memory leak.
+
+2013-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (message3_nolog, message_with_string): Encode the string
+	before writing it to the terminal in a non-interactive session.
+
+	* lread.c (openp): If both FILENAME and SUFFIX are unibyte, make
+	sure we concatenate them into a unibyte string.
+
+	* fileio.c (make_temp_name): Encode PREFIX, and decode the
+	resulting temporary name before returning it to the caller.
+	(Fexpand_file_name): If NAME is pure-ASCII and DEFAULT_DIRECTORY
+	is a unibyte string, convert NAME to a unibyte string to ensure
+	that the result is also a unibyte string.
+
+	* emacs.c (init_cmdargs): Use build_unibyte_string to make sure we
+	create unibyte strings from default paths and directory/file
+	names.
+
+	* coding.h (ENCODE_FILE): Do not attempt to encode a unibyte
+	string.
+
+	* callproc.c (init_callproc): Use build_unibyte_string to make
+	sure we create unibyte strings from default paths and
+	directory/file names.
+
+	* buffer.c (init_buffer): Don't store default-directory of
+	*scratch* in multibyte form.  The original problem which led to
+	that is described in
+	http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-11/msg00532.html,
+	but it was solved long ago.  (Bug#15260)
+
+2013-11-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to stricter C99 platforms.
+	Especially, C99 prohibits nesting a struct X inside struct Y if
+	struct X has a flexible array member.
+	* alloc.c (struct sdata): New type.
+	(sdata): Implement in terms of struct sdata.
+	Remove u member; all uses replaced by next_vector, set_next_vector.
+	(SDATA_SELECTOR, SDATA_DATA, SDATA_DATA_OFFSET): Adjust to sdata change.
+	(SDATA_DATA_OFFSET): Now a constant, not a macro.
+	(struct sblock): Rename first_data member to data, which is now
+	a flexible array member.  All uses changed.
+	(next_vector, set_next_vector, large_vector_vec): New functions.
+	(vector_alignment): New constant.
+	(roundup_size): Make it a multiple of ALIGNOF_STRUCT_LISP_VECTOR, too.
+	(struct large-vector): Now merely a NEXT member, since the old approach
+	ran afoul of stricter C99.  All uses changed to use
+	large_vector_vec or large_vector_offset.
+	(large_vector_offset): New constant.
+	* dispnew.c: Include tparam.h, for tgetent.
+	Do not include term.h; no longer needed.
+	* gnutls.c (Fgnutls_boot): Don't continue after calling a _Noreturn.
+	* lisp.h (ENUM_BF) [__SUNPRO_C && __STDC__]: Use unsigned int.
+	(struct Lisp_Vector): Use a flexible array member for contents,
+	instead of a union with a member that is an array of size 1.
+	All uses changed.
+	(ALIGNOF_STRUCT_LISP_VECTOR): New constant, to make up for the
+	fact that the struct no longer contains a union.
+	(struct Lisp_Misc_Any, struct Lisp_Marker, struct Lisp_Overlay)
+	(struct Lisp_Save_Value, struct Lisp_Free):
+	Use unsigned, not int, for spacers, to avoid c99 warning.
+	(union specbinding): Use unsigned, not bool, for bitfield, as
+	bool is not portable to pre-C99 hosts.
+
+2013-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (usage_message): Mention that `-L :...' appends.
+
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_builddir): Remove.
+	(bootstrap_exe): Use relative filename.
+
+	Use relative filenames in TAGS files.
+	* Makefile.in (abs_srcdir): Remove it again.
+	(.PHONY): Remove frc.
+	(maintainer-clean): No more TAGS-LISP file.
+	(TAGS): Pass relative file names to etags.
+	(../lisp/TAGS): Rename from TAGS-LISP.  Work in ../lisp.
+
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(lispdir): Remove.
+	(maintainer-clean): Remove pointless echo.  That should be in the
+	top-level Makefile, if anywhere.  Delete TAGS-LISP.
+	(extraclean): No s/ and m/ directories for some time.
+	(TAGS): Also depend on ctagsfiles3.
+	Remove no-longer-defined S_FILE.
+	Pass absolute filenames to etags once more.
+	(TAGS-LISP): Replace lispdir with its expansion.
+	(TAGS-LISP, $(lwlibdir)/TAGS): Correctly pass ETAGS to sub-makes.
+	($(lwlibdir)/TAGS): Remove useless subshell, check cd return value.
+
+2013-11-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (check_lface_attrs, realize_default_face):
+	Add LFACE_DISTANT_FOREGROUND_INDEX (Bug#15788).
+	(realize_default_face): Set DISTANT_FOREGROUND to unspecified_fg.
+
+2013-11-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c (original_pwd): Remove global var by making it local.
+	(init_cmdargs): New arg ORIGINAL_PWD; caller changed.
+
+2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c: Declare color_distance.
+	(QCdistant_foreground): New variable.
+	(NEAR_SAME_COLOR_THRESHOLD): New define.
+	(load_color2): New function.
+	(load_color): Call load_color2.
+	(load_face_colors): Call load_color2 and if distant-color is specified
+	calculate distant and use distant-color if colors are near.
+	(LFACE_DISTANT_FOREGROUND): New define.
+	(merge_face_ref, Finternal_set_lisp_face_attribute)
+	(Finternal_get_lisp_face_attribute)
+	(x_supports_face_attributes_p): Handle distant-foreground similar to
+	foreground.
+	(syms_of_xfaces): DEFSYM QCdistant_foreground.
+
+	* dispextern.h (lface_attribute_index):
+	Add LFACE_DISTANT_FOREGROUND_INDEX.
+
+2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
+
+	* image.c (pbm_next_char): New function.
+	See http://netpbm.sourceforge.net/doc/pbm.html for the details.
+	(pbm_scan_number): Use it.
+	(Qlibjpeg_version): New variable.
+	(syms_of_image): DEFSYM and initialize it.
+
+2013-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): Skip -psn args on OSX even if ! isatty (0).
+
+2013-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (original_pwd): New char.
+	(main): If using --chdir, store original_pwd.
+	(init_cmdargs): When setting Vinvocation_directory based on a
+	relative argv[0], use original_pwd if set.  (Bug#15768)
+
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (command_loop_1): If command is nil, call `undefined'.
+
+2013-10-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* insdel.c: Fix minor problems found by static checking.
+	(Qregion_extract_function): Now static.
+	(prepare_to_modify_buffer_1): Remove unused locals.
+
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (prepare_menu_bars): Call Vpre_redisplay_function.
+	(syms_of_xdisp): Declare pre-redisplay-function.
+	(markpos_of_region): Remove function.
+	(init_iterator, compute_stop_pos, handle_face_prop)
+	(face_before_or_after_it_pos, reseat_to_string)
+	(get_next_display_element, window_buffer_changed)
+	(redisplay_internal, try_cursor_movement, redisplay_window)
+	(try_window_reusing_current_matrix, try_window_id, display_line)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight)
+	(display_string, mouse_face_from_buffer_pos): Remove region handling.
+	* window.h (struct window): Remove field `region_showing'.
+	* dispextern.h (struct it): Remove region_beg/end_charpos.
+	(face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Update prototypes.
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Remove `region_beg' and `region_end' args.
+	* fontset.c (Finternal_char_font):
+	* font.c (font_at, font_range): Adjust calls accordingly.
+	* insdel.c (Qregion_extract_function): New var.
+	(syms_of_insdel): Initialize it.
+	(prepare_to_modify_buffer_1): Use it.
+
+2013-10-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Prefer 'unsigned long' to 'long unsigned int' and 'unsigned long int'.
+	* ftxfont.c (ftxfont_get_gcs):
+	* gtkutil.c (xg_set_widget_bg, xg_set_background_color):
+	* xfaces.c (x_free_colors, x_free_dpy_colors)
+	(x_create_gc, unload_color):
+	* xselect.c (x_property_data_to_lisp):
+	* xsettings.c (parse_settings):
+	* xterm.c (x_copy_color, x_alloc_lighter_color, x_setup_relief_color)
+	(get_bits_and_offset): Adjust definition.
+	* frame.c (XParseGeometry): Adjust locals.
+	* lisp.h (toplevel): Adjust EMACS_UINT type definition.
+	* regex.h (toplevel): Likewise for reg_syntax_t.
+
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (run_hook_with_args): Use FUNCTIONP.
+
+2013-10-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_output): For 'black_relief' and 'white_relief'
+	fields, drop 'allocated_p' member and use -1 for uninitialized value.
+	* w32term.h (struct w32_output): Similarly but do not use -1 because...
+	* xfaces.c (unload_color) [HAVE_X_WINDOWS]: ...this function is a no-op
+	on MS-Windows anyway.
+	(free_face_colors): Define only if HAVE_X_WINDOWS and...
+	(free_realized_face): ...adjust user.
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Initialize black and
+	white relief pixels to -1.
+	* xterm.c (x_setup_relief_color, x_free_frame_resources): Adjust users.
+	* w32term.c (w32_setup_relief_color, x_free_frame_resources): Likewise.
+	* dispextern.h (unload_color): Move prototype under HAVE_X_WINDOWS.
+
+2013-10-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h, image.c (x_bitmap_height, x_bitmap_width): Now static.
+	* xfaces.c (load_pixmap): Omit last two args, which are always NULL
+	in practice now.  All callers changed.
+
+2013-10-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (struct face): Use bitfields for 'underline_type'
+	and 'box' members.  Remove set-but-unused members 'pixmap_w' and
+	'pixmap_h'.  If not HAVE_WINDOW_SYSTEM, also remove dummy
+	'stipple' member.  Move 'lface' member up to help...
+	* xfaces.c (make_realized_face): ...this function to find and
+	clear just the members that need clearing.
+	(load_face_colors, realize_x_face):
+	* xdisp.c (extend_face_to_end_of_line): Adjust user.
+
+2013-10-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xftfont.c (struct xftfont_info): Remove set-but-unused
+	'screen' member.
+	(xftfont_open): Adjust user.
+	(xftfont_get_colors): Remove useless prototype.
+
+2013-10-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (Fdump_emacs): Encode FILENAME and SYMFILE arguments
+	before passing them to 'unexec'.  (Bug#15260)
+
+2013-10-26  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* fringe.c (set_fringe_bitmap_face): Add usage note from lispref.
+
+2013-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_close): Adjust the argument list to
+	the changed signature of the font driver's 'close' method.
+
+	* w32font.h (w32font_close): Adjust the prototype to the change in
+	function definition.
+
+	* w32font.c (w32font_close): Reintroduce deleted declaration of i.
+
+	* w32uniscribe.c (uniscribe_close): Adapt the call to
+	w32font_close to its new prototype.
+
+2013-10-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Omit unused frame argument of font API's close function.
+	* font.h (struct font): Drop frame argument.  Adjust comment.
+	* font.c (font_clear_cache, font_close_object): Adjust users.
+	* ftfont.c (ftfont_close):
+	* ftxfont.c (ftxfont_close):
+	* macfont.m (macfont_close):
+	* nsfont.m (nsfont_close):
+	* w32font.c (w32font_close):
+	* xfont.c (xfont_close):
+	* xftfont.c (xftfont_close): Adjust driver-specific close functions,
+	tweak comments and make functions safe if called more than once for
+	the same font object.
+
+	Perform font-specific cleanup when font object is swept by GC.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00740.html.
+	* alloc.c (cleanup_vector): New function.
+	(sweep_vector): Call it for each reclaimed vector object.
+	* font.h (struct font): Adjust comment.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
+2013-10-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Adjust recent font-related changes to fix bug#15686.
+	* alloc.c (mark_object) [HAVE_WINDOW_SYSTEM]: If marked frame
+	is a live window system frame, mark its default font too.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (RUN_TEMACS): Make relative (again).
+	($(leimdir)/leim-list.el, .el.elc, $(lispsource)/loaddefs.el)
+	(bootstrap-emacs$(EXEEXT)):
+	Quote entities that might contain whitespace.
+
+2013-10-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Solaris 10 and its bundled GCC.
+	Problem reported by Timothy C. Burt.
+	* floatfns.c (isfinite, isnan): Redefine unconditionally.
+
+2013-10-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not allow font caches to grow too large.
+	* alloc.c (compact_font_cache_entry, compact_font_caches):
+	New functions or stub if not HAVE_WINDOW_SYSTEM.
+	(compact_undo_list): Factor out from Fgarbage_collect.
+	Add comment.
+	(mark_face_cache): Mark face font.  Move down to avoid
+	extra prototypes.
+	(mark_terminals): Do not mark font cache here.
+	(Fgarbage_collect): Call compaction functions described
+	above.  Adjust comment.
+
+2013-10-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): On Cocoa, if GUI session and 0 is not a tty,
+	chdir to HOME (bug#15607).
+
+	* nsterm.m (Qcocoa, Qgnustep): New variables.
+	(syms_of_nsterm): Defsym Qcocoa, Qgnustep.  Fprovide appropriate one.
+	(ns_get_color): Make selection color work for GNUStep also.
+
 2013-10-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (make_lispy_event): Remove GPM-specific code that
@@ -100,8 +803,8 @@
 	(get_adapters_info): New wrapper function.
 	(globals_of_w32): Initialize g_b_init_get_adapters_info.
 
-	* process.h (network_interface_list, network_interface_info): New
-	prototypes.
+	* process.h (network_interface_list, network_interface_info):
+	New prototypes.
 
 	* process.c (conv_sockaddr_to_lisp): Now externally-visible.
 	(Fnetwork_interface_list, Fnetwork_interface_info): Define for
@@ -432,8 +1135,8 @@
 	(xw_popup_dialog): New function, with X-specific bits of popup
 	dialogs.
 
-	* xdisp.c (deep_copy_glyph_row, display_tty_menu_item): New
-	functions.
+	* xdisp.c (deep_copy_glyph_row, display_tty_menu_item):
+	New functions.
 
 	* window.c (Fset_window_configuration): Use run-time tests of the
 	frame type instead of compile-time conditionals, when menu-bar
@@ -498,11 +1201,11 @@
 	of, or in addition to, compile-time conditionals.
 	(menu_item_width, Fmenu_bar_menu_at_x_y): New functions.
 	(Fx_popup_menu): Detect when the function is called from keyboard
-	on a TTY.  Don't barf when invoked on a text-mode frame.  Check
-	frame type at run time, instead of compile-time conditionals for
-	invoking terminal-specific menu-show functions.  Call
-	tty_menu_show on text-mode frames.
-	(Fx_popup_dialog): Moved here from xmenu.c.  Test frame types at
+	on a TTY.  Don't barf when invoked on a text-mode frame.
+	Check frame type at run time, instead of compile-time conditionals for
+	invoking terminal-specific menu-show functions.
+	Call tty_menu_show on text-mode frames.
+	(Fx_popup_dialog): Move here from xmenu.c.  Test frame types at
 	run time to determine which alternative to invoke; support dialogs
 	on TTYs.
 
@@ -5384,7 +6087,7 @@
 
 	* keyboard.c (read_decoded_char): Don't decode under w32 (bug#14403).
 
-2013-05-22  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+2013-05-22  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* casetab.c (init_casetab_once): Fix last change (bug#14424).
 
@@ -5409,7 +6112,7 @@
 	character numbers counted by detect_coding_utf_8.  Fix detection
 	of BOM for utf-8.
 
-2013-05-21  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+2013-05-21  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* search.c (looking_at_1): Only set last_thing_searched if the match
 	changed the match-data (bug#14281).

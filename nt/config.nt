@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* NOTE:
-   This file is intentionally kept in sync with autogen/config.in to
-   ease maintenance.  Please do not remove non-Windows related stuff
+   *** WARNING This file is no longer being updated ***
+   Please do not remove non-Windows related stuff
    unless strictly necessary.  Also, before adding anything here
    consider whether inc/ms-w32.h would be a better place; this is
    particularly true for gcc vs. MSVC conditional defines, MinGW or

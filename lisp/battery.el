@@ -615,7 +615,7 @@ The following %-sequences are provided:
     (with-temp-buffer
       (ignore-errors (call-process "pmset" nil t nil "-g" "ps"))
       (goto-char (point-min))
-      (when (re-search-forward "Currentl?y drawing from '\\(AC\\|Battery\\) Power'" nil t)
+      (when (re-search-forward "\\(?:Currentl?y\\|Now\\) drawing from '\\(AC\\|Battery\\) Power'" nil t)
 	(setq power-source (match-string 1))
 	(when (re-search-forward "^ -InternalBattery-0[ \t]+" nil t)
 	  (when (looking-at "\\([0-9]\\{1,3\\}\\)%")

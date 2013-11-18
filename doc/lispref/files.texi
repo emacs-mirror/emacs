@@ -2378,7 +2378,7 @@ buffer's default directory is prepended to @var{directory}, if
 In the following example, suppose that @file{~rms/lewis} is the current
 default directory, and has five files whose names begin with @samp{f}:
 @file{foo}, @file{file~}, @file{file.c}, @file{file.c.~1~}, and
-@file{file.c.~2~}.@refill
+@file{file.c.~2~}.
 
 @example
 @group
@@ -2409,7 +2409,7 @@ function returns @code{t}.  The function returns @code{nil} if directory
 In the following example, suppose that the current default directory
 has five files whose names begin with @samp{f}: @file{foo},
 @file{file~}, @file{file.c}, @file{file.c.~1~}, and
-@file{file.c.~2~}.@refill
+@file{file.c.~2~}.
 
 @example
 @group
@@ -2438,7 +2438,7 @@ has five files whose names begin with @samp{f}: @file{foo},
 @code{file-name-completion} usually ignores file names that end in any
 string in this list.  It does not ignore them when all the possible
 completions end in one of these suffixes.  This variable has no effect
-on @code{file-name-all-completions}.@refill
+on @code{file-name-all-completions}.
 
 A typical value might look like this:
 

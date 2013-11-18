@@ -153,6 +153,7 @@
 (defconst tramp-gvfs-enabled
   (ignore-errors
     (and (featurep 'dbusbind)
+	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
 	 (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
 	     (tramp-compat-process-running-p "gvfsd-fuse"))))
@@ -1009,6 +1010,7 @@ is no information where to trace the message.")
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   ;; gvfs-* output is hard to parse.  So we let `ls-lisp' do the job.
+  (unless switches (setq switches ""))
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-progress-reporter v 0 (format "Opening directory %s" filename)
       (require 'ls-lisp)
@@ -1075,7 +1077,7 @@ is no information where to trace the message.")
 	  (tramp-flush-file-property v localname))))))
 
 (defun tramp-gvfs-handle-write-region
-  (start end filename &optional _append visit _lockname confirm)
+  (start end filename &optional append visit lockname confirm)
   "Like `write-region' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
@@ -1084,7 +1086,16 @@ is no information where to trace the message.")
 	(tramp-error v 'file-error "File not overwritten")))
 
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (write-region start end tmpfile)
+      (when (and append (file-exists-p filename))
+	(copy-file filename tmpfile 'ok))
+      ;; We say `no-message' here because we don't want the visited file
+      ;; modtime data to be clobbered from the temp file.  We call
+      ;; `set-visited-file-modtime' ourselves later on.
+      (tramp-run-real-handler
+       'write-region
+       (if confirm ; don't pass this arg unless defined for backward compat.
+	   (list start end tmpfile append 'no-message lockname confirm)
+	 (list start end tmpfile append 'no-message lockname)))
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
@@ -1611,9 +1622,10 @@ be used."
 	:system tramp-bluez-service (dbus-event-path-name last-input-event)
 	tramp-bluez-interface-adapter "StopDiscovery")))))
 
-(dbus-register-signal
- :system nil nil tramp-bluez-interface-adapter "PropertyChanged"
- 'tramp-bluez-property-changed)
+(when tramp-gvfs-enabled
+  (dbus-register-signal
+   :system nil nil tramp-bluez-interface-adapter "PropertyChanged"
+   'tramp-bluez-property-changed))
 
 (defun tramp-bluez-device-found (device args)
   "Signal handler for the \"org.bluez.Adapter.DeviceFound\" signal."
@@ -1624,9 +1636,10 @@ be used."
     ;; device, and call also SDP in order to find the obex service.
     (add-to-list 'tramp-bluez-devices (list alias address))))
 
-(dbus-register-signal
- :system nil nil tramp-bluez-interface-adapter "DeviceFound"
- 'tramp-bluez-device-found)
+(when tramp-gvfs-enabled
+  (dbus-register-signal
+   :system nil nil tramp-bluez-interface-adapter "DeviceFound"
+   'tramp-bluez-device-found))
 
 (defun tramp-bluez-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
@@ -1635,7 +1648,8 @@ be used."
    (tramp-bluez-list-devices)))
 
 ;; Add completion function for OBEX method.
-(when (member tramp-bluez-service (dbus-list-known-names :system))
+(when (and tramp-gvfs-enabled
+	   (member tramp-bluez-service (dbus-list-known-names :system)))
   (tramp-set-completion-function
    "obex" '((tramp-bluez-parse-device-names ""))))
 
@@ -1668,7 +1682,8 @@ be used."
    (zeroconf-list-services "_webdav._tcp")))
 
 ;; Add completion function for DAV and DAVS methods.
-(when (member zeroconf-service-avahi (dbus-list-known-names :system))
+(when (and tramp-gvfs-enabled
+	   (member zeroconf-service-avahi (dbus-list-known-names :system)))
   (zeroconf-init tramp-gvfs-zeroconf-domain)
   (tramp-set-completion-function
    "sftp" '((tramp-zeroconf-parse-workstation-device-names "")))
@@ -1708,8 +1723,9 @@ They are retrieved from the hal daemon."
    (tramp-synce-list-devices)))
 
 ;; Add completion function for SYNCE method.
-(tramp-set-completion-function
- "synce" '((tramp-synce-parse-device-names "")))
+(when tramp-gvfs-enabled
+  (tramp-set-completion-function
+   "synce" '((tramp-synce-parse-device-names ""))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

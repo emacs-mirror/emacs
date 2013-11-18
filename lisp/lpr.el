@@ -132,7 +132,7 @@ and print the result."
 
 (defcustom print-region-function
   (if (memq system-type '(ms-dos windows-nt))
-      #'direct-print-region-function
+      #'w32-direct-print-region-function
     #'call-process-region)
   "Function to call to print the region on a printer.
 See definition of `print-region-1' for calling conventions."

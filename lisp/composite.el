@@ -630,14 +630,14 @@ All non-spacing characters have this function in
 		   ((and (= class 0)
 			 (eq (get-char-code-property (lglyph-char glyph)
 						     'general-category) 'Me))
-		    ;; Artificially layouting glyphs in an enclosing
+		    ;; Artificially laying out glyphs in an enclosing
 		    ;; mark is difficult.  All we can do is to adjust
 		    ;; the x-offset and width of the base glyph to
 		    ;; align it at the center of the glyph of the
 		    ;; enclosing mark hoping that the enclosing mark
 		    ;; is big enough.  We also have to adjust the
 		    ;; x-offset and width of the mark ifself properly
-		    ;; depending on how the glyph is designed
+		    ;; depending on how the glyph is designed.
 
 		    ;; (non-spacing or not).  For instance, when we
 		    ;; have these glyphs:

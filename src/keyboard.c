@@ -821,7 +821,7 @@ This function is called by the editor initialization to begin editing.  */)
     return Qnil;
 
   command_loop_level++;
-  update_mode_lines = 1;
+  update_mode_lines = 17;
 
   if (command_loop_level
       && current_buffer != XBUFFER (XWINDOW (selected_window)->contents))
@@ -848,7 +848,7 @@ recursive_edit_unwind (Lisp_Object buffer)
     Fset_buffer (buffer);
 
   command_loop_level--;
-  update_mode_lines = 1;
+  update_mode_lines = 18;
 }
 
 
@@ -1064,8 +1064,6 @@ cmd_error (Lisp_Object data)
 void
 cmd_error_internal (Lisp_Object data, const char *context)
 {
-  struct frame *sf = SELECTED_FRAME ();
-
   /* The immediate context is not interesting for Quits,
      since they are asynchronous.  */
   if (EQ (XCAR (data), Qquit))
@@ -1079,9 +1077,23 @@ cmd_error_internal (Lisp_Object data, const char *context)
     call3 (Vcommand_error_function, data,
 	   context ? build_string (context) : empty_unibyte_string,
 	   Vsignaling_function);
+
+  Vsignaling_function = Qnil;
+}
+
+DEFUN ("command-error-default-function", Fcommand_error_default_function,
+       Scommand_error_default_function, 3, 3, 0,
+       doc: /* Produce default output for unhandled error message.
+Default value of `command-error-function'.  */)
+  (Lisp_Object data, Lisp_Object context, Lisp_Object signal)
+{
+  struct frame *sf = SELECTED_FRAME ();
+
+  CHECK_STRING (context);
+
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
-  else if (!sf->glyphs_initialized_p
+  if (!sf->glyphs_initialized_p
 	   /* The initial frame is a special non-displaying frame. It
 	      will be current in daemon mode when there are no frames
 	      to display, and in non-daemon mode before the real frame
@@ -1096,7 +1108,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
 	   || noninteractive)
     {
       print_error_message (data, Qexternal_debugging_output,
-			   context, Vsignaling_function);
+			   SSDATA (context), signal);
       Fterpri (Qexternal_debugging_output);
       Fkill_emacs (make_number (-1));
     }
@@ -1107,10 +1119,9 @@ cmd_error_internal (Lisp_Object data, const char *context)
       message_log_maybe_newline ();
       bitch_at_user ();
 
-      print_error_message (data, Qt, context, Vsignaling_function);
+      print_error_message (data, Qt, SSDATA (context), signal);
     }
-
-  Vsignaling_function = Qnil;
+  return Qnil;
 }
 
 static Lisp_Object command_loop_2 (Lisp_Object);
@@ -1309,6 +1320,8 @@ static void adjust_point_for_property (ptrdiff_t, bool);
 
 /* The last boundary auto-added to buffer-undo-list.  */
 Lisp_Object last_undo_boundary;
+
+extern Lisp_Object Qregion_extract_function;
 
 /* FIXME: This is wrong rather than test window-system, we should call
    a new set-selection, which will then dispatch to x-set-selection, or
@@ -1510,27 +1523,8 @@ command_loop_1 (void)
       already_adjusted = 0;
 
       if (NILP (Vthis_command))
-	{
-	  /* nil means key is undefined.  */
-	  Lisp_Object keys = Fvector (i, keybuf);
-	  keys = Fkey_description (keys, Qnil);
-	  bitch_at_user ();
-	  message_with_string ("%s is undefined", keys, 0);
-	  kset_defining_kbd_macro (current_kboard, Qnil);
-	  update_mode_lines = 1;
-	  /* If this is a down-mouse event, don't reset prefix-arg;
-	     pass it to the command run by the up event.  */
-	  if (EVENT_HAS_PARAMETERS (last_command_event))
-	    {
-	      Lisp_Object breakdown
-		= parse_modifiers (EVENT_HEAD (last_command_event));
-	      int modifiers = XINT (XCAR (XCDR (breakdown)));
-	      if (!(modifiers & down_modifier))
-		kset_prefix_arg (current_kboard, Qnil);
-	    }
-	  else
-	    kset_prefix_arg (current_kboard, Qnil);
-	}
+	/* nil means key is undefined.  */
+	call0 (Qundefined);
       else
 	{
 	  /* Here for a command that isn't executed directly.  */
@@ -1637,16 +1631,11 @@ command_loop_1 (void)
 		  && NILP (Fmemq (Vthis_command,
 				  Vselection_inhibit_update_commands)))
 		{
-		  ptrdiff_t beg =
-		    XINT (Fmarker_position (BVAR (current_buffer, mark)));
-		  ptrdiff_t end = PT;
-		  if (beg < end)
-		    call2 (Qx_set_selection, QPRIMARY,
-			   make_buffer_string (beg, end, 0));
-		  else if (beg > end)
-		    call2 (Qx_set_selection, QPRIMARY,
-			   make_buffer_string (end, beg, 0));
-		  /* Don't set empty selections.  */
+		  Lisp_Object txt
+		    = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
+		  if (XINT (Flength (txt)) > 0)
+		    /* Don't set empty selections.  */
+		    call2 (Qx_set_selection, QPRIMARY, txt);
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
@@ -1675,7 +1664,7 @@ command_loop_1 (void)
 	       cluster to prevent automatic composition.  To recover
 	       the automatic composition, we must update the
 	       display.  */
-	    windows_or_buffers_changed++;
+	    windows_or_buffers_changed = 21;
 	  if (!already_adjusted)
 	    adjust_point_for_property (last_point_position,
 				       MODIFF != prev_modiff);
@@ -2097,7 +2086,7 @@ bind_polling_period (int n)
 
 /* Apply the control modifier to CHARACTER.  */
 
-#ifndef WINDOWSNT
+#ifndef HAVE_NTGUI
 static
 #endif
 int
@@ -4376,7 +4365,7 @@ decode_timer (Lisp_Object timer, struct timespec *result)
 
   if (! (VECTORP (timer) && ASIZE (timer) == 9))
     return 0;
-  vector = XVECTOR (timer)->u.contents;
+  vector = XVECTOR (timer)->contents;
   if (! NILP (vector[0]))
     return 0;
 
@@ -8006,7 +7995,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 	 discard any previously made item.  */
       for (i = 0; i < ntool_bar_items; i += TOOL_BAR_ITEM_NSLOTS)
 	{
-	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->u.contents + i;
+	  Lisp_Object *v = XVECTOR (tool_bar_items_vector)->contents + i;
 
 	  if (EQ (key, v[TOOL_BAR_ITEM_KEY]))
 	    {
@@ -8330,7 +8319,7 @@ append_tool_bar_item (void)
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
   vcopy (tool_bar_items_vector, ntool_bar_items,
-	 XVECTOR (tool_bar_item_properties)->u.contents, TOOL_BAR_ITEM_NSLOTS);
+	 XVECTOR (tool_bar_item_properties)->contents, TOOL_BAR_ITEM_NSLOTS);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
@@ -9934,7 +9923,7 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
        doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
   (void)
 {
-  Lisp_Object *keys = XVECTOR (recent_keys)->u.contents;
+  Lisp_Object *keys = XVECTOR (recent_keys)->contents;
   Lisp_Object val;
 
   if (total_keys < NUM_RECENT_KEYS)
@@ -9960,7 +9949,7 @@ See also `this-command-keys-vector'.  */)
   (void)
 {
   return make_event_array (this_command_key_count,
-			   XVECTOR (this_command_keys)->u.contents);
+			   XVECTOR (this_command_keys)->contents);
 }
 
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
@@ -9972,7 +9961,7 @@ See also `this-command-keys'.  */)
   (void)
 {
   return Fvector (this_command_key_count,
-		  XVECTOR (this_command_keys)->u.contents);
+		  XVECTOR (this_command_keys)->contents);
 }
 
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,
@@ -9987,7 +9976,7 @@ The value is always a vector.  */)
 {
   return Fvector (this_command_key_count
 		  - this_single_command_key_start,
-		  (XVECTOR (this_command_keys)->u.contents
+		  (XVECTOR (this_command_keys)->contents
 		   + this_single_command_key_start));
 }
 
@@ -10001,7 +9990,7 @@ shows the events before all translations (except for input methods).
 The value is always a vector.  */)
   (void)
 {
-  return Fvector (raw_keybuf_count, XVECTOR (raw_keybuf)->u.contents);
+  return Fvector (raw_keybuf_count, XVECTOR (raw_keybuf)->contents);
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
@@ -11127,6 +11116,7 @@ syms_of_keyboard (void)
   defsubr (&Sabort_recursive_edit);
   defsubr (&Sexit_recursive_edit);
   defsubr (&Srecursion_depth);
+  defsubr (&Scommand_error_default_function);
   defsubr (&Stop_level);
   defsubr (&Sdiscard_input);
   defsubr (&Sopen_dribble_file);
@@ -11606,13 +11596,13 @@ peculiar kind of quitting.  */);
   Vthrow_on_input = Qnil;
 
   DEFVAR_LISP ("command-error-function", Vcommand_error_function,
-	       doc: /* If non-nil, function to output error messages.
-The arguments are the error data, a list of the form
- (SIGNALED-CONDITIONS . SIGNAL-DATA)
-such as just as `condition-case' would bind its variable to,
-the context (a string which normally goes at the start of the message),
-and the Lisp function within which the error was signaled.  */);
-  Vcommand_error_function = Qnil;
+	       doc: /* Function to output error messages.
+Called with three arguments:
+- the error data, a list of the form (SIGNALED-CONDITION . SIGNAL-DATA)
+  such as what `condition-case' would bind its variable to,
+- the context (a string which normally goes at the start of the message),
+- the Lisp function within which the error was signaled.  */);
+  Vcommand_error_function = intern ("command-error-default-function");
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
 	       Venable_disabled_menus_and_buttons,

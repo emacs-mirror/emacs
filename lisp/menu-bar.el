@@ -40,21 +40,10 @@
 (or (lookup-key global-map [menu-bar])
     (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar")))
 
-(if (not (featurep 'ns))
-    ;; Force Help item to come last, after the major mode's own items.
-    ;; The symbol used to be called `help', but that gets confused with the
-    ;; help key.
-    (setq menu-bar-final-items '(help-menu))
-  (if (eq system-type 'darwin)
-      (setq menu-bar-final-items '(buffer services help-menu))
-    (setq menu-bar-final-items '(buffer services hide-app quit))
-    ;; Add standard top-level items to GNUstep menu.
-    (bindings--define-key global-map [menu-bar quit]
-      '(menu-item "Quit" save-buffers-kill-emacs
-                   :help "Save unsaved buffers, then exit"))
-    (bindings--define-key global-map [menu-bar hide-app]
-      '(menu-item "Hide" ns-do-hide-emacs
-                  :help "Hide Emacs"))))
+;; Force Help item to come last, after the major mode's own items.
+;; The symbol used to be called `help', but that gets confused with the
+;; help key.
+(setq menu-bar-final-items '(help-menu))
 
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.
@@ -1741,15 +1730,8 @@ key, a click, or a menu-item"))
   (cons "Edit" menu-bar-edit-menu))
 (bindings--define-key global-map [menu-bar file]
   (cons "File" menu-bar-file-menu))
-
-;; Put "Help" menu at the end, or Info at the front.
-;; If running under GNUstep, "Help" is moved and renamed "Info" (see below).
-(if (and (featurep 'ns)
-         (not (eq system-type 'darwin)))
-    (bindings--define-key global-map [menu-bar help-menu]
-      (cons "Info" menu-bar-help-menu))
-  (define-key-after global-map [menu-bar help-menu]
-    (cons (purecopy "Help") menu-bar-help-menu)))
+(bindings--define-key global-map [menu-bar help-menu]
+  (cons (purecopy "Help") menu-bar-help-menu))
 
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
@@ -2207,10 +2189,7 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 		(setq position (list menu-symbol (list frame '(menu-bar)
 						 event 0)))
 		(setq map
-		      (or
-		       (lookup-key global-map (vector 'menu-bar menu-symbol))
-		       (lookup-key (current-local-map) (vector 'menu-bar
-							       menu-symbol))))))
+		      (key-binding (vector 'menu-bar menu-symbol)))))
 	     ((and (not (keymapp map)) (listp map))
 	      ;; We were given a list of keymaps.  Search them all
 	      ;; in sequence until a first binding is found.
@@ -2296,7 +2275,8 @@ If FRAME is nil or not given, use the selected frame."
 	     (menu (menu-bar-menu-at-x-y x 0 frame)))
 	(popup-menu (or
 		     (lookup-key global-map (vector 'menu-bar menu))
-		     (lookup-key (current-local-map) (vector 'menu-bar menu)))
+		     (lookup-key (current-local-map) (vector 'menu-bar menu))
+		     (cdar (minor-mode-key-binding (vector 'menu-bar menu))))
 		    (posn-at-x-y x 0 nil t) nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))

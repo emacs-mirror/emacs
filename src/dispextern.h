@@ -33,7 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #else /* !HAVE_X_WINDOWS */
 
-/* X-related stuff used by non-X gui code. */
+/* X-related stuff used by non-X gui code.  */
 
 typedef struct {
   unsigned long pixel;
@@ -1543,6 +1543,7 @@ enum lface_attribute_index
   LFACE_FONT_INDEX,
   LFACE_INHERIT_INDEX,
   LFACE_FONTSET_INDEX,
+  LFACE_DISTANT_FOREGROUND_INDEX,
   LFACE_VECTOR_SIZE
 };
 
@@ -1581,6 +1582,10 @@ enum face_underline_type
 
 struct face
 {
+  /* The Lisp face attributes this face realizes.  All attributes
+     in this vector are non-nil.  */
+  Lisp_Object lface[LFACE_VECTOR_SIZE];
+
   /* The id of this face.  The id equals the index of this face in the
      vector faces_by_id of its face cache.  */
   int id;
@@ -1593,11 +1598,6 @@ struct face
 
   /* Background stipple or bitmap used for this face.  This is
      an id as returned from load_pixmap.  */
-  ptrdiff_t stipple;
-
-#else /* not HAVE_WINDOW_SYSTEM */
-
-  /* Dummy.  */
   ptrdiff_t stipple;
 
 #endif /* not HAVE_WINDOW_SYSTEM */
@@ -1624,9 +1624,6 @@ struct face
      from the same ASCII face have the same fontset.  */
   int fontset;
 
-  /* Pixmap width and height.  */
-  unsigned int pixmap_w, pixmap_h;
-
   /* Non-zero means characters in this face have a box of that
      thickness around them.  If this value is negative, its absolute
      value indicates the thickness, and the horizontal (top and
@@ -1640,10 +1637,10 @@ struct face
      of width box_line_width is drawn in color box_color.  A value of
      FACE_RAISED_BOX or FACE_SUNKEN_BOX means a 3D box is drawn with
      shadow colors derived from the background color of the face.  */
-  enum face_box_type box;
+  ENUM_BF (face_box_type) box : 2;
 
   /* Style of underlining. */
-  enum face_underline_type underline_type;
+  ENUM_BF (face_underline_type) underline_type : 1;
 
   /* If `box' above specifies a 3D type, 1 means use box_color for
      drawing shadows.  */
@@ -1695,10 +1692,6 @@ struct face
   unsigned synth_ital : 1;
 #endif
 
-  /* The Lisp face attributes this face realizes.  All attributes
-     in this vector are non-nil.  */
-  Lisp_Object lface[LFACE_VECTOR_SIZE];
-
   /* The hash value of this face.  */
   unsigned hash;
 
@@ -1726,6 +1719,15 @@ struct face
 /* Color index indicating that face uses an unknown background color.  */
 
 #define FACE_TTY_DEFAULT_BG_COLOR ((unsigned long) -3)
+
+/* True if COLOR is a specified (i.e., nondefault) foreground or
+   background color for a tty face.  */
+
+INLINE bool
+face_tty_specified_color (unsigned long color)
+{
+  return color < FACE_TTY_DEFAULT_BG_COLOR;
+}
 
 /* Non-zero if FACE was realized for unibyte use.  */
 
@@ -2222,10 +2224,6 @@ struct it
      used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
-  /* Start and end of a visible region; -1 if the region is not
-     visible in the window.  */
-  ptrdiff_t region_beg_charpos, region_end_charpos;
-
   /* Position at which redisplay end trigger functions should be run.  */
   ptrdiff_t redisplay_end_trigger_charpos;
 
@@ -2359,7 +2357,7 @@ struct it
       } stretch;
     } u;
 
-    /* current text and display positions.  */
+    /* Current text and display positions.  */
     struct text_pos position;
     struct display_pos current;
     Lisp_Object from_overlay;
@@ -2371,11 +2369,12 @@ struct it
     unsigned string_from_prefix_prop_p : 1;
     unsigned display_ellipsis_p : 1;
     unsigned avoid_cursor_p : 1;
-    unsigned bidi_p:1;
+    unsigned bidi_p : 1;
     unsigned from_disp_prop_p : 1;
     enum line_wrap_method line_wrap;
 
-    /* properties from display property that are reset by another display property. */
+    /* Properties from display property that are reset by another display
+       property.  */
     short voffset;
     Lisp_Object space_width;
     Lisp_Object font_height;
@@ -3282,8 +3281,6 @@ extern unsigned row_hash (struct glyph_row *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-extern int x_bitmap_height (struct frame *, ptrdiff_t);
-extern int x_bitmap_width (struct frame *, ptrdiff_t);
 extern ptrdiff_t x_bitmap_pixmap (struct frame *, ptrdiff_t);
 extern void x_reference_bitmap (struct frame *, ptrdiff_t);
 extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
@@ -3335,9 +3332,10 @@ void init_baud_rate (int);
 void init_sigio (int);
 void ignore_sigio (void);
 
-/* Defined in xfaces.c */
+/* Defined in xfaces.c.  */
 
 #ifdef HAVE_X_WINDOWS
+void unload_color (struct frame *, unsigned long);
 void x_free_colors (struct frame *, unsigned long *, int);
 #endif
 
@@ -3349,7 +3347,6 @@ void clear_face_cache (int);
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
 #endif
-void unload_color (struct frame *, unsigned long);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 void prepare_face_for_display (struct frame *, struct face *);
@@ -3362,16 +3359,13 @@ void init_frame_faces (struct frame *);
 void free_frame_faces (struct frame *);
 void recompute_basic_faces (struct frame *);
 int face_at_buffer_position (struct window *w, ptrdiff_t pos,
-                             ptrdiff_t region_beg, ptrdiff_t region_end,
                              ptrdiff_t *endptr, ptrdiff_t limit,
                              int mouse, int base_face_id);
 int face_for_overlay_string (struct window *w, ptrdiff_t pos,
-                             ptrdiff_t region_beg, ptrdiff_t region_end,
                              ptrdiff_t *endptr, ptrdiff_t limit,
                              int mouse, Lisp_Object overlay);
 int face_at_string_position (struct window *w, Lisp_Object string,
                              ptrdiff_t pos, ptrdiff_t bufpos,
-                             ptrdiff_t region_beg, ptrdiff_t region_end,
                              ptrdiff_t *endptr, enum face_id, int mouse);
 int merge_faces (struct frame *, Lisp_Object, int, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
@@ -3379,7 +3373,7 @@ void free_all_realized_faces (Lisp_Object);
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern char unspecified_fg[], unspecified_bg[];
 
-/* Defined in xfns.c  */
+/* Defined in xfns.c.  */
 
 #ifdef HAVE_X_WINDOWS
 void gamma_correct (struct frame *, XColor *);
@@ -3504,8 +3498,7 @@ extern int string_cost (const char *);
 extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
-extern bool tty_capable_p (struct tty_display_info *, unsigned,
-			   unsigned long, unsigned long);
+extern bool tty_capable_p (struct tty_display_info *, unsigned);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
 extern void create_tty_output (struct frame *);

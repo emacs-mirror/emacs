@@ -545,8 +545,8 @@ struct font_driver
   Lisp_Object (*open) (struct frame *f, Lisp_Object font_entity,
                        int pixel_size);
 
-  /* Close FONT on frame F.  */
-  void (*close) (struct frame *f, struct font *font);
+  /* Close FONT.  NOTE: this can be called by GC.  */
+  void (*close) (struct font *font);
 
   /* Optional (if FACE->extra is not used).
      Prepare FACE for displaying characters by FONT on frame F by

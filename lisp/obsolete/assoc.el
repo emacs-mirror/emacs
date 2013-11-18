@@ -102,14 +102,14 @@ returned.
 
 If no key-value pair matching KEY could be found in ALIST, or ALIST is
 nil then nil is returned.  ALIST is not altered."
-  (defvar copy)
-  (let ((copy (copy-alist alist)))
+  (defvar assoc--copy)
+  (let ((assoc--copy (copy-alist alist)))
     (cond ((null alist) nil)
-	  ((progn (asort 'copy key)
-		  (anot-head-p copy key)) nil)
-	  ((cdr (car copy)))
+	  ((progn (asort 'assoc--copy key) ; dynamic binding
+		  (anot-head-p assoc--copy key)) nil)
+	  ((cdr (car assoc--copy)))
 	  (keynil-p nil)
-	  ((car (car copy)))
+	  ((car (car assoc--copy)))
 	  (t nil))))
 
 

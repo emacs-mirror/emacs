@@ -1,3 +1,21 @@
+2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lwlib.c (safe_strdup): Prefer tail calls.
+
+2013-11-02  Glenn Morris  <rgm@gnu.org>
+
+	Use relative filenames in TAGS files.
+	* Makefile.in (abs_srcdir): Remove it again.
+	(ctagsfiles, TAGS): Use relative filenames.
+
+	* Makefile.in (abs_srcdir): New, set by configure.
+	(ETAGS, ctagsfiles): New variables.
+	(TAGS): Use ETAGS, ctagsfiles.  Use absolute filenames again.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
 2013-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Makefile improvements.

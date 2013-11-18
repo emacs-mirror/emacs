@@ -656,7 +656,13 @@ x_update_window_end (struct window *w, bool cursor_on_p,
   /* If a row with mouse-face was overwritten, arrange for
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
-    reset_mouse_highlight (MOUSE_HL_INFO (XFRAME (w->frame)));
+    {
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
+
+      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+      hlinfo->mouse_face_window = Qnil;
+    }
 
   /* Unhide the caret.  This won't actually show the cursor, unless it
      was visible before the corresponding call to HideCaret in
@@ -1596,10 +1602,7 @@ w32_setup_relief_color (struct frame *f, struct relief *relief, double factor,
   xgcv.foreground = default_pixel;
   pixel = background;
   if (w32_alloc_lighter_color (f, &pixel, factor, delta))
-    {
-      relief->allocated_p = 1;
-      xgcv.foreground = relief->pixel = pixel;
-    }
+    xgcv.foreground = relief->pixel = pixel;
 
   if (relief->gc == 0)
     {
@@ -6000,17 +6003,6 @@ x_free_frame_resources (struct frame *f)
     my_destroy_window (f, FRAME_W32_WINDOW (f));
 
   free_frame_menubar (f);
-
-  unload_color (f, FRAME_FOREGROUND_PIXEL (f));
-  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
-  unload_color (f, f->output_data.w32->cursor_pixel);
-  unload_color (f, f->output_data.w32->cursor_foreground_pixel);
-  unload_color (f, f->output_data.w32->border_pixel);
-  unload_color (f, f->output_data.w32->mouse_pixel);
-  if (f->output_data.w32->white_relief.allocated_p)
-    unload_color (f, f->output_data.w32->white_relief.pixel);
-  if (f->output_data.w32->black_relief.allocated_p)
-    unload_color (f, f->output_data.w32->black_relief.pixel);
 
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);

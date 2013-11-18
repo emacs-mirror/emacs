@@ -1,6 +1,101 @@
+2013-11-17  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (Time Parsing):
+	(Processor Run Time, Input Modes, Terminal Output): Minor fixes.
+
+2013-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search): Update section.
+
+2013-11-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (User Identification, Time of Day, Time Conversion):
+	Minor fixes.
+
+2013-11-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keymaps.texi (Tool Bar): Mention that Gtk+/NS ignores item 1 to 3.
+
+2013-11-09  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (Startup Summary): Add an index about startup screen.
+	Typo fix.
+	(Command-Line Arguments): Add cross-reference for `dump-emacs'.
+
+2013-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Truncation): Document that cache-long-scans is now
+	non-nil by default.  (Bug#15797)
+
+2013-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* lists.texi (Rearrangement): Fix indexing.
+
+	* display.texi (Bidirectional Display): Fix indexing.
+
+2013-11-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* lists.texi (Rearrangement): Improve indexing.
+
+	* display.texi (Glyphs): Add an index for glyph code.
+	(Bidirectional Display): Improve indexing.
+
+2013-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* display.texi (Face Attributes): Document :distant-foreground.
+
+2013-10-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Abstract Display): Improve indexing.
+
+2013-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Selective Display): Discourage the use of explicit
+	selective display.
+
+2013-10-29  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Showing Images): Add an index for image-size.
+	Use @code instead of @var for a normal variable.
+	(Multi-Frame Images): Improve indexing.
+	(Button Buffer Commands): Use @code instead of @var for a normal variable.
+	(Abstract Display): Explain the meaning of Ewoc.
+
+2013-10-27  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Image Descriptors): Improve indexing.
+
+2013-10-26  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Fringe Indicators): Add indexes for fringe indicators.
+	(Customizing Bitmaps): Add an index for customizing fringe bitmaps.
+
+2013-10-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Fontsets): Minor wording fix.
+	(Low-Level Font): Improve indexing.
+
+	* nonascii.texi (Character Properties): Add an index for script symbols.
+
+2013-10-24  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Face Remapping): Add indexes for face remapping.
+	(Font Selection): Add indexes.
+	(Low-Level Font): Add an index for font registry.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* eval.texi, files.texi, intro.texi, objects.texi, searching.texi:
+	Nuke @refill.
+
+	* Makefile.in (install-dvi, install-html, install-pdf)
+	(install-ps, uninstall-dvi, uninstall-html, uninstall-ps)
+	(uninstall-pdf): Quote entities that might contain whitespace.
+
 2013-10-19  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* display.texi (Face Attributes): Add indexes for the ‘:box’ face attribute.
+	* display.texi (Face Attributes): Add indexes for the ‘:box’
+	face attribute.
 
 2013-10-18  Xue Fuqiao  <xfq.free@gmail.com>
 

@@ -959,7 +959,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   /* Make sure we redisplay all windows in this frame.  */
-  windows_or_buffers_changed++;
+  windows_or_buffers_changed = 59;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   FRAME_MENU_BAR_LINES (f) = 0;
@@ -1068,8 +1068,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 #else /* !USE_GTK */
 
-     /* Make sure we redisplay all windows in this frame.  */
-  ++windows_or_buffers_changed;
+  /* Make sure we redisplay all windows in this frame.  */
+  windows_or_buffers_changed = 60;
 
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
 
@@ -1383,7 +1383,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
       /* If we're switching from explicit to implicit, we had better
 	 update the mode lines and thereby update the title.  */
       if (f->explicit_name && NILP (name))
-	update_mode_lines = 1;
+	update_mode_lines = 37;
 
       f->explicit_name = ! NILP (name);
     }
@@ -1445,7 +1445,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   if (EQ (name, f->title))
     return;
 
-  update_mode_lines = 1;
+  update_mode_lines = 38;
 
   fset_title (f, name);
 
@@ -1750,7 +1750,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	}
     }
   if (motif)
-    strcat (fontsetname, ":");
+    return strcat (fontsetname, ":");
   return fontsetname;
 }
 #endif /* HAVE_X_WINDOWS && USE_X_TOOLKIT */
@@ -2880,6 +2880,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
+  f->output_data.x->white_relief.pixel = -1;
+  f->output_data.x->black_relief.pixel = -1;
 
   fset_icon_name (f,
 		  x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
@@ -4824,6 +4826,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
+  f->output_data.x->white_relief.pixel = -1;
+  f->output_data.x->black_relief.pixel = -1;
+
   fset_icon_name (f, Qnil);
   FRAME_DISPLAY_INFO (f) = dpyinfo;
   f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;

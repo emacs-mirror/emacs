@@ -476,19 +476,22 @@ looks like an email address, \"ftp://\" if it starts with
 ;; matches that straddle the start position so we search forwards once
 ;; and then back repeatedly and then back up a char at a time.
 
-(defun thing-at-point-looking-at (regexp)
+(defun thing-at-point-looking-at (regexp &optional distance)
   "Return non-nil if point is in or just after a match for REGEXP.
 Set the match data from the earliest such match ending at or after
 point."
   (save-excursion
-    (let ((old-point (point)) match)
+    (let ((old-point (point))
+	  (forward-bound (and distance (+ (point) distance)))
+	  (backward-bound (and distance (- (point) distance)))
+	  match)
       (and (looking-at regexp)
 	   (>= (match-end 0) old-point)
 	   (setq match (point)))
       ;; Search back repeatedly from end of next match.
       ;; This may fail if next match ends before this match does.
-      (re-search-forward regexp nil 'limit)
-      (while (and (re-search-backward regexp nil t)
+      (re-search-forward regexp forward-bound 'limit)
+      (while (and (re-search-backward regexp backward-bound t)
 		  (or (> (match-beginning 0) old-point)
 		      (and (looking-at regexp)	; Extend match-end past search start
 			   (>= (match-end 0) old-point)
@@ -518,7 +521,8 @@ with angle brackets.")
 
 (put 'email 'bounds-of-thing-at-point
      (lambda ()
-       (let ((thing (thing-at-point-looking-at thing-at-point-email-regexp)))
+       (let ((thing (thing-at-point-looking-at
+		     thing-at-point-email-regexp 500)))
          (if thing
              (let ((beginning (match-beginning 0))
                    (end (match-end 0)))

@@ -827,7 +827,7 @@ insert_1_both (const char *string,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* The insert may have been in the unchanged region, so check again. */
+  /* The insert may have been in the unchanged region, so check again.  */
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
@@ -956,7 +956,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* The insert may have been in the unchanged region, so check again. */
+  /* The insert may have been in the unchanged region, so check again.  */
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
@@ -993,6 +993,11 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
 
+  /* No need to call prepare_to_modify_buffer, since this is called
+     from places that replace some region with a different text, so
+     prepare_to_modify_buffer was already called by the deletion part
+     of this dance.  */
+  invalidate_buffer_caches (current_buffer, GPT, GPT);
   record_insert (GPT, nchars);
   MODIFF++;
 
@@ -1148,7 +1153,7 @@ insert_from_buffer_1 (struct buffer *buf,
 
   eassert (GPT <= GPT_BYTE);
 
-  /* The insert may have been in the unchanged region, so check again. */
+  /* The insert may have been in the unchanged region, so check again.  */
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
@@ -1778,6 +1783,8 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   bset_point_before_scroll (current_buffer, Qnil);
 }
 
+Lisp_Object Qregion_extract_function;
+
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.
 
@@ -1801,7 +1808,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
      let redisplay consider other windows if this buffer is visible.  */
   if (XBUFFER (XWINDOW (selected_window)->contents) != current_buffer
       && buffer_window_count (current_buffer))
-    ++windows_or_buffers_changed;
+    windows_or_buffers_changed = 20;
 
   if (buffer_intervals (current_buffer))
     {
@@ -1843,6 +1850,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
 #endif /* not CLASH_DETECTION */
 
   /* If `select-active-regions' is non-nil, save the region text.  */
+  /* FIXME: Move this to Elisp (via before-change-functions).  */
   if (!NILP (BVAR (current_buffer, mark_active))
       && !inhibit_modification_hooks
       && XMARKER (BVAR (current_buffer, mark))->buffer
@@ -1851,14 +1859,8 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
 	  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
-    {
-      ptrdiff_t b = marker_position (BVAR (current_buffer, mark));
-      ptrdiff_t e = PT;
-      if (b < e)
-	Vsaved_region_selection = make_buffer_string (b, e, 0);
-      else if (b > e)
-	Vsaved_region_selection = make_buffer_string (e, b, 0);
-    }
+    Vsaved_region_selection
+      = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
 
   signal_before_change (start, end, preserve_ptr);
   Vdeactivate_mark = Qt;
@@ -1872,19 +1874,26 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 			  ptrdiff_t *preserve_ptr)
 {
   prepare_to_modify_buffer_1 (start, end, preserve_ptr);
+  invalidate_buffer_caches (current_buffer, start, end);
+}
 
-  if (current_buffer->newline_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->newline_cache,
-                             start - BEG, Z - end);
-  if (current_buffer->width_run_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->width_run_cache,
-                             start - BEG, Z - end);
-  if (current_buffer->bidi_paragraph_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->bidi_paragraph_cache,
-                             start - BEG, Z - end);
+/* Invalidate the caches maintained by the buffer BUF, if any, for the
+   region between buffer positions START and END.  */
+void
+invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
+{
+  if (buf->newline_cache)
+    invalidate_region_cache (buf,
+                             buf->newline_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+  if (buf->width_run_cache)
+    invalidate_region_cache (buf,
+                             buf->width_run_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+  if (buf->bidi_paragraph_cache)
+    invalidate_region_cache (buf,
+                             buf->bidi_paragraph_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
 }
 
 /* These macros work with an argument named `preserve_ptr'
@@ -2201,6 +2210,8 @@ This affects `before-change-functions' and `after-change-functions',
 as well as hooks attached to text properties and overlays.  */);
   inhibit_modification_hooks = 0;
   DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
+
+  DEFSYM (Qregion_extract_function, "region-extract-function");
 
   defsubr (&Scombine_after_change_execute);
 }

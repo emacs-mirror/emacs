@@ -253,37 +253,38 @@ it skips the latter group.
 in a list of directories specified by the variable @code{load-path}.
 
 @defvar load-path
-@cindex @env{EMACSLOADPATH} environment variable
 The value of this variable is a list of directories to search when
 loading files with @code{load}.  Each element is a string (which must be
 a directory name) or @code{nil} (which stands for the current working
 directory).
 @end defvar
 
-  Each time Emacs starts up, it sets up the value of @code{load-path}
-in several steps.  First, it initializes @code{load-path} to the
-directories specified by the environment variable @env{EMACSLOADPATH},
-if that exists.  The syntax of @env{EMACSLOADPATH} is the same as used
-for @code{PATH}; directory names are separated by @samp{:} (or
-@samp{;}, on some operating systems), and @samp{.} stands for the
-current default directory.  Here is an example of how to set
-@env{EMACSLOADPATH} variable from @command{sh}:
+  When Emacs starts up, it sets up the value of @code{load-path}
+in several steps.  First, it initializes @code{load-path} using
+default locations set when Emacs was compiled.  Normally, this
+is a directory something like
 
 @example
-export EMACSLOADPATH
-EMACSLOADPATH=/home/foo/.emacs.d/lisp:/opt/emacs/lisp
+"/usr/local/share/emacs/@var{version}/lisp"
 @end example
 
-@noindent
-Here is how to set it from @code{csh}:
+followed by a similarly named @file{leim} directory.  These
+directories contain the standard Lisp files that come with Emacs.
+If Emacs cannot find them, it will not start correctly.
 
-@example
-setenv EMACSLOADPATH /home/foo/.emacs.d/lisp:/opt/emacs/lisp
-@end example
+If you run Emacs from the directory where it was built---that is, an
+executable that has not been formally installed---Emacs instead
+initializes @code{load-path} using the @file{lisp} and @file{leim}
+directories in the directory containing the sources from which it
+was built.  If you built Emacs in a separate directory from the
+sources, it also adds those directories from the build directory.
+(In all cases, elements are represented as absolute file names.)
 
 @cindex site-lisp directories
-  If @env{EMACSLOADPATH} is not set (which is usually the case), Emacs
-initializes @code{load-path} with the following two directories:
+Unless you start Emacs with the @option{--no-site-lisp} option,
+it then adds two more @file{site-lisp} directories to the front of
+@code{load-path}.  These are intended for locally installed Lisp files,
+and are normally of the form:
 
 @example
 "/usr/local/share/emacs/@var{version}/site-lisp"
@@ -297,26 +298,45 @@ and
 @end example
 
 @noindent
-The first one is for locally installed packages for a particular Emacs
-version; the second is for locally installed packages meant for use
-with all installed Emacs versions.
+The first one is for locally installed files for a specific Emacs
+version; the second is for locally installed files meant for use
+with all installed Emacs versions.  (If Emacs is running uninstalled,
+it also adds @file{site-lisp} directories from the source and build
+directories, if they exist.  Normally these directories do not contain
+@file{site-lisp} directories.)
 
-  If you run Emacs from the directory where it was built---that is, an
-executable that has not been formally installed---Emacs puts two more
-directories in @code{load-path}.  These are the @code{lisp} and
-@code{site-lisp} subdirectories of the main build directory.  (Both
-are represented as absolute file names.)
+@cindex @env{EMACSLOADPATH} environment variable
+If the environment variable @env{EMACSLOADPATH} is set, it overrides
+the above initialization procedure.  That is, Emacs initializes
+@code{load-path} based solely on the value of the environment
+variable.  You must therefore include the directory containing the
+standard Lisp files, else Emacs will not function.  In most
+situations, it is better to use the @option{-L} command-line option
+(see below) to add elements to @code{load-path}.
 
-  Next, Emacs ``expands'' the initial list of directories in
-@code{load-path} by adding the subdirectories of those directories.
-Both immediate subdirectories and subdirectories multiple levels down
-are added.  But it excludes subdirectories whose names do not start
-with a letter or digit, and subdirectories named @file{RCS} or
-@file{CVS}, and subdirectories containing a file named
-@file{.nosearch}.
+The syntax of @env{EMACSLOADPATH} is the same as used for @code{PATH};
+directory names are separated by @samp{:} (or @samp{;}, on some
+operating systems), and @samp{.} stands for the current default
+directory.  Here is an example of how to set @env{EMACSLOADPATH}
+variable (from a @command{sh}-style shell):
 
-  Next, Emacs adds any extra load directory that you specify using the
-@samp{-L} command-line option (@pxref{Action Arguments,,,emacs, The
+@example
+export EMACSLOADPATH
+EMACSLOADPATH=/home/foo/.emacs.d/lisp:/usr/local/emacs/24.3/lisp
+@end example
+
+  For each directory in @code{load-path}, Emacs then checks to see if
+it contains a file @file{subdirs.el}, and if so, loads it.  The
+@file{subdirs.el} file is created when Emacs is built/installed,
+and contains code that causes Emacs to add any subdirectories of those
+directories to @code{load-path}.  Both immediate subdirectories and
+subdirectories multiple levels down are added.  But it excludes
+subdirectories whose names do not start with a letter or digit, and
+subdirectories named @file{RCS} or @file{CVS}, and subdirectories
+containing a file named @file{.nosearch}.
+
+  Next, Emacs adds any extra load directories that you specify using the
+@option{-L} command-line option (@pxref{Action Arguments,,,emacs, The
 GNU Emacs Manual}).  It also adds the directories where optional
 packages are installed, if any (@pxref{Packaging Basics}).
 

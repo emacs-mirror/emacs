@@ -62,6 +62,10 @@ To use the old backend by default, do on the command line:
 
 * Startup Changes in Emacs 24.4
 
++++
+** The -L option, which normally prepends its argument to load-path,
+will instead append, if the argument begins with `:'.
+
 
 * Changes in Emacs 24.4
 
@@ -176,8 +180,17 @@ some enhancements, like the ability to restore deleted frames.  Command
 ** The default value of `comment-use-global-state' is changed to t,
 and this variable has been marked obsolete.
 
+** `fill-single-char-nobreak-p' prevents fill from breaking a line after
+a 1-letter word, which is an error according to Polish and
+Czech typography rules.  To globally enable this feature, evaluate:
+
+  (add-hook 'fill-nobreak-predicate 'fill-single-char-nobreak-p)
+
 
 * Editing Changes in Emacs 24.4
+
+** Command `rectangle-mark-mode' bound to C-x SPC makes a rectangular region.
+Most commands are still unaware of it, but kill/yank do work on the rectangle.
 
 ** C-x TAB enters a transient interactive mode.
 You can then use the left/right cursor keys to move the block of text.
@@ -215,6 +228,14 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** prolog-use-smie has been removed, along with the non-SMIE indentation code.
+
+** SMIE indentation can be customized via `smie-config'.
+The customization can be guessed by Emacs by providing a sample indented
+file and letting SMIE learn from it.
+
+** sh-script now uses its SMIE indentation algorithm by default.
 
 ** The debugger's `e' command evaluates the code in the context at point.
 This includes using the lexical environment at point, which means that
@@ -386,6 +407,14 @@ This is useful to avoid a query when you have no key for that name.
 (setq icomplete-with-completion-tables '(internal-complete-buffer))
 will revert to the old behavior.
 
+
+** New features for Octave mode:
+*** Font locking for texinfo comments and new keywords
+*** Completion in Octave file buffers
+*** Eldoc support
+*** Jump to definition
+*** Documentation lookup/search
+*** Code cleanup and various bug fixes
 
 ** Ido
 *** Ido has a manual now.
@@ -566,6 +595,8 @@ display a `Homepage' header, if it's present.
 
 ** Obsolete packages:
 
+*** Iswitchb is made obsolete by icomplete-mode.
+
 *** longlines.el is obsolete; use visual-line-mode instead.
 
 +++
@@ -590,6 +621,9 @@ has not been relevant for some time.
 During initialization, Emacs no longer expends a process to decide
 whether it is safe to use Bash's --noediting option.  These days
 --noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
+
++++
+** There is a new macro `skip-unless' for skipping ERT tests.  See the manual.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -619,6 +653,8 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 
 * Incompatible Lisp Changes in Emacs 24.4
+
+** `kill-region' lost its `yank-handler' optional argument.
 
 ** `(input-pending-p)' no longer runs other timers which are ready to
 run.  The new optional CHECK-TIMERS param allows for the prior behavior.
@@ -681,6 +717,8 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
+** New hook `pre-redisplay-function'.
+
 +++
 ** Functions that pop up menus and dialogs now work on all terminal types,
 including TTYs.
@@ -713,6 +751,10 @@ frame.
 
 +++
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
+
+** New library helpers.el for misc helper functions
+*** `hash-table-keys'
+*** `hash-table-values'
 
 ** Obsoleted functions:
 *** `log10'
@@ -769,6 +811,10 @@ rather than inheriting from it (as do face specs set via Customize).
 
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
+
+*** New face spec attribute :distant-foreground
+specifies foreground to use if background color is near the foreground
+color that would otherwise have been used.
 
 ** Image API
 

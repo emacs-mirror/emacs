@@ -1,3 +1,61 @@
+2013-11-15  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event->gnus-calendar)
+	(gnus-icalendar-event-from-ical)
+	(gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event): Required/optional participation,
+	list of attendees synced to org.
+
+2013-11-13  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event:sync-to-org)
+	(gnus-icalendar-event:inline-org-buttons): Allow for appointment
+	cancellations to be synced to org if the original appt has an org
+	outline.
+
+2013-11-13  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar--format-summary-line)
+	(gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event)
+	(gnus-icalendar-event->gnus-calendar): Fix empty location handling.
+
+2013-11-12  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event-from-ical):
+	Fix timezone handling in gnus-icalendar export to org.
+
+2013-11-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cite.el (gnus-cite-add-face): Make non-sticky overlays.
+
+2013-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-group-browse-foreign-server):
+	* gnus-int.el (gnus-start-news-server):
+	Silence compiler obsolescence warning.
+
+2013-10-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-open-connection-1): `auth-source-search' for the
+	`nnoo-current-server' first, then for the actual `nnimap-address' to
+	allow netrc entries for the nnoo server to coexist with netrc entries
+	for the `nnimap-address'.
+
+2013-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Revert last change.
+	* nndoc.el (nndoc-dissect-mime-parts-sub): Ditto.
+	The problem that motivated those changes was attributed to a broken
+	mail sender, and has been fixed.
+
+2013-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Guess content-type if the first
+	token is missing in the Content-Type header.
+
+	* nndoc.el (nndoc-dissect-mime-parts-sub): Ditto.
+
 2013-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (image-size): Declare.

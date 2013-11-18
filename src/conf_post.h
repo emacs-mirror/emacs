@@ -49,8 +49,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define malloc unexec_malloc
 #define realloc unexec_realloc
 #define free unexec_free
-/* Don't use posix_memalign because it is not compatible with unexmacosx.c.  */
-#undef HAVE_POSIX_MEMALIGN
 #endif
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile

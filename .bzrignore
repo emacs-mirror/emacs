@@ -43,7 +43,6 @@ stamp-h1
 stamp_BLD
 subdirs.el
 TAGS
-TAGS-LISP
 cxxdefs.h
 # Intermediate files when making pdf versions of the manuals.
 doc/**/*.aux

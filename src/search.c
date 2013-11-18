@@ -720,42 +720,45 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
         {
           /* The termination address of the dumb loop.  */
-          register unsigned char *ceiling_addr
-	    = BYTE_POS_ADDR (ceiling_byte) + 1;
-          register unsigned char *cursor
-	    = BYTE_POS_ADDR (start_byte);
-          unsigned char *base = cursor;
+	  unsigned char *lim_addr = BYTE_POS_ADDR (ceiling_byte) + 1;
+	  ptrdiff_t lim_byte = ceiling_byte + 1;
 
-          while (cursor < ceiling_addr)
-            {
+	  /* Nonpositive offsets (relative to LIM_ADDR and LIM_BYTE)
+	     of the base, the cursor, and the next line.  */
+	  ptrdiff_t base = start_byte - lim_byte;
+	  ptrdiff_t cursor, next;
+
+	  for (cursor = base; cursor < 0; cursor = next)
+	    {
               /* The dumb loop.  */
-	      unsigned char *nl = memchr (cursor, '\n', ceiling_addr - cursor);
+	      unsigned char *nl = memchr (lim_addr + cursor, '\n', - cursor);
+	      next = nl ? nl - lim_addr : 0;
 
               /* If we're looking for newlines, cache the fact that
-                 the region from start to cursor is free of them. */
+                 this line's region is free of them. */
               if (newline_cache)
 		{
-		  unsigned char *low = cursor;
-		  unsigned char *lim = nl ? nl : ceiling_addr;
 		  know_region_cache (current_buffer, newline_cache,
-				     BYTE_TO_CHAR (low - base + start_byte),
-				     BYTE_TO_CHAR (lim - base + start_byte));
+				     BYTE_TO_CHAR (lim_byte + cursor),
+				     BYTE_TO_CHAR (lim_byte + next));
+		  /* know_region_cache can relocate buffer text.  */
+		  lim_addr = BYTE_POS_ADDR (ceiling_byte) + 1;
 		}
 
               if (! nl)
 		break;
+	      next++;
 
 	      if (--count == 0)
 		{
 		  immediate_quit = 0;
 		  if (bytepos)
-		    *bytepos = nl + 1 - base + start_byte;
-		  return BYTE_TO_CHAR (nl + 1 - base + start_byte);
+		    *bytepos = lim_byte + next;
+		  return BYTE_TO_CHAR (lim_byte + next);
 		}
-	      cursor = nl + 1;
             }
 
-	  start_byte += ceiling_addr - base;
+	  start_byte = lim_byte;
 	  start = BYTE_TO_CHAR (start_byte);
         }
       }
@@ -794,24 +797,28 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
         {
           /* The termination address of the dumb loop.  */
-          register unsigned char *ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
-          register unsigned char *cursor = BYTE_POS_ADDR (start_byte - 1);
-          unsigned char *base = cursor;
+	  unsigned char *ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
 
-          while (cursor >= ceiling_addr)
+	  /* Offsets (relative to CEILING_ADDR and CEILING_BYTE) of
+	     the base, the cursor, and the previous line.  These
+	     offsets are at least -1.  */
+	  ptrdiff_t base = start_byte - ceiling_byte;
+	  ptrdiff_t cursor, prev;
+
+	  for (cursor = base; 0 < cursor; cursor = prev)
             {
-	      unsigned char *nl = memrchr (ceiling_addr, '\n',
-					   cursor + 1 - ceiling_addr);
+	      unsigned char *nl = memrchr (ceiling_addr, '\n', cursor);
+	      prev = nl ? nl - ceiling_addr : -1;
 
               /* If we're looking for newlines, cache the fact that
-                 the region from after the cursor to start is free of them.  */
+                 this line's region is free of them. */
               if (newline_cache)
 		{
-		  unsigned char *low = nl ? nl : ceiling_addr - 1;
-		  unsigned char *lim = cursor;
 		  know_region_cache (current_buffer, newline_cache,
-				     BYTE_TO_CHAR (low - base + start_byte),
-				     BYTE_TO_CHAR (lim - base + start_byte));
+				     BYTE_TO_CHAR (ceiling_byte + prev + 1),
+				     BYTE_TO_CHAR (ceiling_byte + cursor));
+		  /* know_region_cache can relocate buffer text.  */
+		  ceiling_addr = BYTE_POS_ADDR (ceiling_byte);
 		}
 
               if (! nl)
@@ -821,13 +828,12 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		{
 		  immediate_quit = 0;
 		  if (bytepos)
-		    *bytepos = nl - base + start_byte;
-		  return BYTE_TO_CHAR (nl - base + start_byte);
+		    *bytepos = ceiling_byte + prev + 1;
+		  return BYTE_TO_CHAR (ceiling_byte + prev + 1);
 		}
-	      cursor = nl - 1;
             }
 
-	  start_byte += ceiling_addr - 1 - base;
+	  start_byte = ceiling_byte;
 	  start = BYTE_TO_CHAR (start_byte);
         }
       }

@@ -294,6 +294,20 @@ failed or if there was a problem."
                   "the error signaled was a subtype of the expected type")))))
     ))
 
+(ert-deftest ert-test-skip-unless ()
+  ;; Don't skip.
+  (let ((test (make-ert-test :body (lambda () (skip-unless t)))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-passed-p result))))
+  ;; Skip.
+  (let ((test (make-ert-test :body (lambda () (skip-unless nil)))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-skipped-p result))))
+  ;; Skip in case of error.
+  (let ((test (make-ert-test :body (lambda () (skip-unless (error "Foo"))))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-skipped-p result)))))
+
 (defmacro ert--test-my-list (&rest args)
   "Don't use this.  Instead, call `list' with ARGS, it does the same thing.
 
@@ -332,23 +346,31 @@ This macro is used to test if macroexpansion in `should' works."
 
 (ert-deftest ert-test-deftest ()
   (should (equal (macroexpand '(ert-deftest abc () "foo" :tags '(bar)))
-                 '(progn
-                    (ert-set-test 'abc
-                                  (make-ert-test :name 'abc
-                                                 :documentation "foo"
-                                                 :tags '(bar)
-                                                 :body (lambda ())))
-                    (push '(ert-deftest . abc) current-load-list)
-                    'abc)))
+		 '(progn
+		    (ert-set-test 'abc
+				  (progn
+				    (vector 'cl-struct-ert-test 'abc "foo"
+					    #'(lambda nil)
+					    nil ':passed
+					    '(bar))))
+		    (setq current-load-list
+			  (cons
+			   '(ert-deftest . abc)
+			   current-load-list))
+		    'abc)))
   (should (equal (macroexpand '(ert-deftest def ()
                                  :expected-result ':passed))
-                 '(progn
-                    (ert-set-test 'def
-                                  (make-ert-test :name 'def
-                                                 :expected-result-type ':passed
-                                                 :body (lambda ())))
-                    (push '(ert-deftest . def) current-load-list)
-                    'def)))
+		 '(progn
+		    (ert-set-test 'def
+				  (progn
+				    (vector 'cl-struct-ert-test 'def nil
+					    #'(lambda nil)
+					    nil ':passed 'nil)))
+		    (setq current-load-list
+			  (cons
+			   '(ert-deftest . def)
+			   current-load-list))
+		    'def)))
   ;; :documentation keyword is forbidden
   (should-error (macroexpand '(ert-deftest ghi ()
                                 :documentation "foo"))))
@@ -543,7 +565,10 @@ This macro is used to test if macroexpansion in `should' works."
                                      :body (lambda () (ert-pass))))
         (failing-test (make-ert-test :name 'failing-test
                                      :body (lambda () (ert-fail
-                                                       "failure message")))))
+                                                       "failure message"))))
+        (skipped-test (make-ert-test :name 'skipped-test
+                                     :body (lambda () (ert-skip
+                                                       "skip message")))))
     (let ((ert-debug-on-error nil))
       (let* ((buffer-name (generate-new-buffer-name " *ert-test-run-tests*"))
              (messages nil)
@@ -554,23 +579,26 @@ This macro is used to test if macroexpansion in `should' works."
           (unwind-protect
               (let ((case-fold-search nil))
                 (ert-run-tests-interactively
-                 `(member ,passing-test ,failing-test) buffer-name
+                 `(member ,passing-test ,failing-test, skipped-test) buffer-name
                  mock-message-fn)
                 (should (equal messages `(,(concat
-                                            "Ran 2 tests, 1 results were "
-                                            "as expected, 1 unexpected"))))
+                                            "Ran 3 tests, 1 results were "
+                                            "as expected, 1 unexpected, "
+					    "1 skipped"))))
                 (with-current-buffer buffer-name
                   (goto-char (point-min))
                   (should (equal
                            (buffer-substring (point-min)
                                              (save-excursion
-                                               (forward-line 4)
+                                               (forward-line 5)
                                                (point)))
                            (concat
-                            "Selector: (member <passing-test> <failing-test>)\n"
-                            "Passed: 1\n"
-                            "Failed: 1 (1 unexpected)\n"
-                            "Total:  2/2\n")))))
+                            "Selector: (member <passing-test> <failing-test> "
+			    "<skipped-test>)\n"
+                            "Passed:  1\n"
+                            "Failed:  1 (1 unexpected)\n"
+			    "Skipped: 1\n"
+                            "Total:   3/3\n")))))
             (when (get-buffer buffer-name)
               (kill-buffer buffer-name))))))))
 
@@ -749,41 +777,57 @@ This macro is used to test if macroexpansion in `should' works."
          (stats (ert--make-stats (list test-1 test-2) 't))
          (failed (make-ert-test-failed :condition nil
                                        :backtrace nil
-                                       :infos nil)))
+                                       :infos nil))
+         (skipped (make-ert-test-skipped :condition nil
+					 :backtrace nil
+					 :infos nil)))
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 0 (ert-stats-completed stats)))
     (should (eql 0 (ert-stats-completed-expected stats)))
     (should (eql 0 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
     (ert--stats-set-test-and-result stats 0 test-1 (make-ert-test-passed))
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 1 (ert-stats-completed stats)))
     (should (eql 1 (ert-stats-completed-expected stats)))
     (should (eql 0 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
     (ert--stats-set-test-and-result stats 0 test-1 failed)
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 1 (ert-stats-completed stats)))
     (should (eql 0 (ert-stats-completed-expected stats)))
     (should (eql 1 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
     (ert--stats-set-test-and-result stats 0 test-1 nil)
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 0 (ert-stats-completed stats)))
     (should (eql 0 (ert-stats-completed-expected stats)))
     (should (eql 0 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
     (ert--stats-set-test-and-result stats 0 test-3 failed)
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 1 (ert-stats-completed stats)))
     (should (eql 0 (ert-stats-completed-expected stats)))
     (should (eql 1 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
     (ert--stats-set-test-and-result stats 1 test-2 (make-ert-test-passed))
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 2 (ert-stats-completed stats)))
     (should (eql 1 (ert-stats-completed-expected stats)))
     (should (eql 1 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
     (ert--stats-set-test-and-result stats 0 test-1 (make-ert-test-passed))
     (should (eql 2 (ert-stats-total stats)))
     (should (eql 2 (ert-stats-completed stats)))
     (should (eql 2 (ert-stats-completed-expected stats)))
-    (should (eql 0 (ert-stats-completed-unexpected stats)))))
+    (should (eql 0 (ert-stats-completed-unexpected stats)))
+    (should (eql 0 (ert-stats-skipped stats)))
+    (ert--stats-set-test-and-result stats 0 test-1 skipped)
+    (should (eql 2 (ert-stats-total stats)))
+    (should (eql 2 (ert-stats-completed stats)))
+    (should (eql 1 (ert-stats-completed-expected stats)))
+    (should (eql 0 (ert-stats-completed-unexpected stats)))
+    (should (eql 1 (ert-stats-skipped stats)))))
 
 
 (provide 'ert-tests)

@@ -24,6 +24,6 @@
 # include <stdio_ext.h>
 #endif
 
-#ifndef __fpending
-size_t __fpending (FILE *);
+#if !HAVE_DECL___FPENDING
+size_t __fpending (FILE *) _GL_ATTRIBUTE_PURE;
 #endif

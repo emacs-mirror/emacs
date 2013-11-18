@@ -1,4 +1,4 @@
-#! /bin/sh
+# -*- sh -*-
 # Site defaults for the MinGW configuration of GNU Emacs.
 #
 # This file's purpose is to short-circuit configure-time tests for
@@ -12,10 +12,11 @@
 # value of a shell variable ac_cv_header_foo_h.  The value should be
 # yes if the header is deemed to exist, no otherwise.  Or it could be
 # something else, if the value computed by 'configure' requires that.
-# In general, since nt/msysconfig.sh instructs GCC to use header files
-# in nt/inc, you should not need to futz with header file tests.  But
-# there are exceptions, like with getopt.h below (which is a MinGW
-# system header, but we do not want to use it).
+# In general, since configure (when invoked from an MSYS environment)
+# instructs GCC to use header files in nt/inc, you should not need to
+# futz with header file tests.  But there are exceptions, like with
+# getopt.h below (which is a MinGW system header, but we do not want
+# to use it).
 #
 # For each library function foo you want to supply test results, set
 # the value of a shell variable ac_cv_func_foo.  Again, the value is

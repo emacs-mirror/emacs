@@ -101,14 +101,10 @@ A library name is equivalent to the file name that `load-library' would load."
   "Read feature name from the minibuffer, prompting with string PROMPT.
 If optional second arg LOADED-P is non-nil, the feature must be loaded
 from a file."
-  (intern
-   (completing-read prompt
-		    (cons nil features)
-		    (and loaded-p
-			 #'(lambda (f)
-			     (and f	; ignore nil
-				  (feature-file f))))
-		    loaded-p)))
+  (intern (completing-read prompt
+			   features
+			   (and loaded-p #'feature-file)
+			   loaded-p)))
 
 (defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
 (defvar unload-feature-special-hooks

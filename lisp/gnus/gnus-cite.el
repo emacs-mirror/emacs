@@ -1096,7 +1096,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(skip-chars-backward " \t")
 	(setq to (point))
 	(when (< from to)
-	  (push (setq overlay (gnus-make-overlay from to))
+	  (push (setq overlay (gnus-make-overlay from to nil t))
 		gnus-cite-overlay-list)
 	  (gnus-overlay-put overlay 'evaporate t)
 	  (gnus-overlay-put overlay 'face face))))))

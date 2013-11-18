@@ -755,13 +755,6 @@ not specific to any particular backend."
   :group 'vc
   :version "21.1")
 
-(defcustom vc-diff-knows-L nil
-  "Indicates whether diff understands the -L option.
-The value is either `yes', `no', or nil.  If it is nil, VC tries
-to use -L and sets this variable to remember whether it worked."
-  :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc)
-
 (defcustom vc-log-show-limit 2000
   "Limit the number of items shown by the VC log commands.
 Zero means unlimited.
@@ -2302,7 +2295,8 @@ WORKING-REVISION and LIMIT."
   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
-	 (working-revision (or working-revision (vc-working-revision (car files)))))
+;;	 (working-revision (or working-revision (vc-working-revision (car files))))
+         )
     (vc-print-log-internal backend files working-revision nil limit)))
 
 ;;;###autoload
@@ -2330,10 +2324,10 @@ When called interactively with a prefix argument, prompt for LIMIT."
 	(setq rootdir (vc-call-backend backend 'root default-directory))
       (setq rootdir (read-directory-name "Directory for VC root-log: "))
       (setq backend (vc-responsible-backend rootdir))
-      (if backend
-	  (setq default-directory rootdir)
-	(error "Directory is not version controlled")))
-    (setq working-revision (vc-working-revision rootdir))
+      (unless backend
+        (error "Directory is not version controlled")))
+    (setq working-revision (vc-working-revision rootdir)
+          default-directory rootdir)
     (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
 
 ;;;###autoload
