@@ -1,3 +1,7 @@
+2013-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/text-mode.el (paragraph-indent-minor-mode): Use add-function.
+
 2013-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (remove-function): Align with
