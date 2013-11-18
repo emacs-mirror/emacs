@@ -218,3 +218,28 @@ void acc_using2()
   sn.//-19-
     ; //#19# ( "one" "two" )
 }
+
+// Check if scope gets correctly generated, i.e., without us providing any
+// hints in the form of an existing type
+
+void check_scope()
+{
+  using namespace first;
+  AAA//-20-
+    ; //#20# ( "AAA1" "AAA2" )
+}
+
+void check_scope2()
+{
+  using namespace third;
+  AAA//-21-
+    ; //#21# ( "AAA1" "AAA2" "AAA3" )
+}
+
+// Make sure this also works not only in functions
+
+namespace check_scope3 {
+  using namespace first;
+  AAA//-22-
+  ; //#22# ( "AAA1" "AAA2" )
+}
