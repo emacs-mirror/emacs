@@ -408,6 +408,14 @@ This is useful to avoid a query when you have no key for that name.
 will revert to the old behavior.
 
 
+** New features for Octave mode:
+*** Font locking for texinfo comments and new keywords
+*** Completion in Octave file buffers
+*** Eldoc support
+*** Jump to definition
+*** Documentation lookup/search
+*** Code cleanup and various bug fixes
+
 ** Ido
 *** Ido has a manual now.
 *** `ido-use-virtual-buffers' takes a new value 'auto.
