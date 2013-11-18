@@ -1,6 +1,10 @@
 2013-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* textmodes/text-mode.el (paragraph-indent-minor-mode): Use add-function.
+	* electric.el (electric-indent-mode-map): Remove.
+	(electric-indent-mode): Change the global-map instead (bug#15915).
+
+	* textmodes/text-mode.el (paragraph-indent-minor-mode):
+	Use add-function.
 
 2013-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 

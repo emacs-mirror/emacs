@@ -273,12 +273,6 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
   (let ((electric-indent-mode nil))
     (newline arg 'interactive)))
 
-(defvar electric-indent-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-j] 'electric-indent-just-newline)
-    map)
-  "Keymap used for `electric-mode-mode'.")
-
 ;;;###autoload
 (define-minor-mode electric-indent-mode
   "Toggle on-the-fly reindentation (Electric Indent mode).
@@ -291,8 +285,14 @@ the hook `electric-indent-functions' returns non-nil, or you
 insert a character from `electric-indent-chars'."
   :global t :group 'electricity
   (if (not electric-indent-mode)
-      (remove-hook 'post-self-insert-hook
-                   #'electric-indent-post-self-insert-function)
+      (progn
+        (when (eq (lookup-key global-map [?\C-j])
+                  'electric-indent-just-newline)
+          (define-key global-map [?\C-j] 'newline-and-indent))
+        (remove-hook 'post-self-insert-hook
+                     #'electric-indent-post-self-insert-function))
+    (when (eq (lookup-key global-map [?\C-j]) 'newline-and-indent)
+      (define-key global-map [?\C-j] 'electric-indent-just-newline))
     ;; post-self-insert-hooks interact in non-trivial ways.
     ;; It turns out that electric-indent-mode generally works better if run
     ;; late, but still before blink-paren.
