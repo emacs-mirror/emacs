@@ -123,6 +123,22 @@ namespace outer {
   }
 }
 
+// Namespace which pulls in one of its own nested namespaces
+namespace first {
+  class AAA1;
+  namespace second {
+    class AAA2;
+  }
+  // Elevate nested namespace into first one
+  using namespace second;
+}
+
+namespace third {
+  using namespace first;
+  class AAA3;
+}
+
+
 // Elevate the first struct into 'outer'
 // so that we can access it via 'outer::StructNested'
 namespace outer {
