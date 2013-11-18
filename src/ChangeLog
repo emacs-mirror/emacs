@@ -1,3 +1,13 @@
+2013-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* insdel.c (invalidate_buffer_caches): New function, consolidated
+	from part of prepare_to_modify_buffer.
+	(insert_from_gap, prepare_to_modify_buffer):
+	* coding.c (code_convert_region, code_convert_string): Call
+	invalidate_buffer_caches.  (Bug#15841)
+
+	* lisp.h (invalidate_buffer_caches): Add prototype.
+
 2013-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (x_update_window_end): Don't invalidate the entire

@@ -993,6 +993,11 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
 
+  /* No need to call prepare_to_modify_buffer, since this is called
+     from places that replace some region with a different text, so
+     prepare_to_modify_buffer was already called by the deletion part
+     of this dance.  */
+  invalidate_buffer_caches (current_buffer, GPT, GPT);
   record_insert (GPT, nchars);
   MODIFF++;
 
@@ -1869,19 +1874,26 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 			  ptrdiff_t *preserve_ptr)
 {
   prepare_to_modify_buffer_1 (start, end, preserve_ptr);
+  invalidate_buffer_caches (current_buffer, start, end);
+}
 
-  if (current_buffer->newline_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->newline_cache,
-                             start - BEG, Z - end);
-  if (current_buffer->width_run_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->width_run_cache,
-                             start - BEG, Z - end);
-  if (current_buffer->bidi_paragraph_cache)
-    invalidate_region_cache (current_buffer,
-                             current_buffer->bidi_paragraph_cache,
-                             start - BEG, Z - end);
+/* Invalidate the caches maintained by the buffer BUF, if any, for the
+   region between buffer positions START and END.  */
+void
+invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
+{
+  if (buf->newline_cache)
+    invalidate_region_cache (buf,
+                             buf->newline_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+  if (buf->width_run_cache)
+    invalidate_region_cache (buf,
+                             buf->width_run_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
+  if (buf->bidi_paragraph_cache)
+    invalidate_region_cache (buf,
+                             buf->bidi_paragraph_cache,
+                             start - BUF_BEG (buf), BUF_Z (buf) - end);
 }
 
 /* These macros work with an argument named `preserve_ptr'

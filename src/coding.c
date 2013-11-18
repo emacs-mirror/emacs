@@ -9358,6 +9358,14 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
   setup_coding_system (coding_system, &coding);
   coding.mode |= CODING_MODE_LAST_BLOCK;
 
+  if (BUFFERP (dst_object) && !EQ (dst_object, src_object))
+    {
+      struct buffer *buf = XBUFFER (dst_object);
+      ptrdiff_t buf_pt = BUF_PT (buf);
+
+      invalidate_buffer_caches (buf, buf_pt, buf_pt);
+    }
+
   if (encodep)
     encode_coding_object (&coding, src_object, from, from_byte, to, to_byte,
 			  dst_object);
@@ -9447,6 +9455,15 @@ code_convert_string (Lisp_Object string, Lisp_Object coding_system,
   coding.mode |= CODING_MODE_LAST_BLOCK;
   chars = SCHARS (string);
   bytes = SBYTES (string);
+
+  if (BUFFERP (dst_object))
+    {
+      struct buffer *buf = XBUFFER (dst_object);
+      ptrdiff_t buf_pt = BUF_PT (buf);
+
+      invalidate_buffer_caches (buf, buf_pt, buf_pt);
+    }
+
   if (encodep)
     encode_coding_object (&coding, string, 0, 0, chars, bytes, dst_object);
   else
