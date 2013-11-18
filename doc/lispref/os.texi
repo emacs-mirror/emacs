@@ -2244,6 +2244,7 @@ saved session to restore.  For Emacs, this argument is @samp{--smid
 @var{session}}.
 
 @defvar emacs-save-session-functions
+@cindex session file
 Emacs supports saving state via a hook called
 @code{emacs-save-session-functions}.  Emacs runs this hook when the
 session manager tells it that the window system is shutting down.  The
@@ -2283,11 +2284,13 @@ Emacs is restarted by the session manager.
 @node Desktop Notifications
 @section Desktop Notifications
 @cindex desktop notifications
+@cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
 freedesktop.org Desktop Notifications Specification.  In order to use
 this functionality, Emacs must have been compiled with D-Bus support,
-and the @code{notifications} library must be loaded.
+and the @code{notifications} library must be loaded.  @xref{Top, ,
+D-Bus,dbus,D-Bus integration in Emacs}.
 
 @defun notifications-notify &rest params
 This function sends a notification to the desktop via D-Bus,

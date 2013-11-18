@@ -10,6 +10,7 @@
 @cindex switches (command line)
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
+@c FIXME: Document `--smid'?  --xfq
 
   Emacs supports command line arguments to request various actions
 when invoking Emacs.  These are for compatibility with other editors
