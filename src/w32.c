@@ -273,7 +273,8 @@ static BOOL g_b_init_lookup_account_sid;
 static BOOL g_b_init_get_sid_sub_authority;
 static BOOL g_b_init_get_sid_sub_authority_count;
 static BOOL g_b_init_get_security_info;
-static BOOL g_b_init_get_file_security;
+static BOOL g_b_init_get_file_security_w;
+static BOOL g_b_init_get_file_security_a;
 static BOOL g_b_init_get_security_descriptor_owner;
 static BOOL g_b_init_get_security_descriptor_group;
 static BOOL g_b_init_is_valid_sid;
@@ -327,12 +328,8 @@ GetProcessTimes_Proc get_process_times_fn = NULL;
 
 #ifdef _UNICODE
 const char * const LookupAccountSid_Name = "LookupAccountSidW";
-const char * const GetFileSecurity_Name =  "GetFileSecurityW";
-const char * const SetFileSecurity_Name =  "SetFileSecurityW";
 #else
 const char * const LookupAccountSid_Name = "LookupAccountSidA";
-const char * const GetFileSecurity_Name =  "GetFileSecurityA";
-const char * const SetFileSecurity_Name =  "SetFileSecurityA";
 #endif
 typedef BOOL (WINAPI * LookupAccountSid_Proc) (
     LPCTSTR lpSystemName,
@@ -356,8 +353,14 @@ typedef DWORD (WINAPI * GetSecurityInfo_Proc) (
     PACL *ppDacl,
     PACL *ppSacl,
     PSECURITY_DESCRIPTOR *ppSecurityDescriptor);
-typedef BOOL (WINAPI * GetFileSecurity_Proc) (
-    LPCTSTR lpFileName,
+typedef BOOL (WINAPI * GetFileSecurityW_Proc) (
+    LPCWSTR lpFileName,
+    SECURITY_INFORMATION RequestedInformation,
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    DWORD nLength,
+    LPDWORD lpnLengthNeeded);
+typedef BOOL (WINAPI * GetFileSecurityA_Proc) (
+    LPCSTR lpFileName,
     SECURITY_INFORMATION RequestedInformation,
     PSECURITY_DESCRIPTOR pSecurityDescriptor,
     DWORD nLength,
@@ -678,36 +681,68 @@ get_security_info (HANDLE handle,
 				   ppSecurityDescriptor));
 }
 
+static int filename_to_ansi (const char *, char *);
+static int filename_to_utf16 (const char *, wchar_t *);
+
 static BOOL WINAPI
-get_file_security (LPCTSTR lpFileName,
+get_file_security (const char *lpFileName,
 		   SECURITY_INFORMATION RequestedInformation,
 		   PSECURITY_DESCRIPTOR pSecurityDescriptor,
 		   DWORD nLength,
 		   LPDWORD lpnLengthNeeded)
 {
-  static GetFileSecurity_Proc s_pfn_Get_File_Security = NULL;
+  static GetFileSecurityA_Proc s_pfn_Get_File_SecurityA = NULL;
+  static GetFileSecurityW_Proc s_pfn_Get_File_SecurityW = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       errno = ENOTSUP;
       return FALSE;
     }
-  if (g_b_init_get_file_security == 0)
+  if (w32_unicode_filenames)
     {
-      g_b_init_get_file_security = 1;
-      hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_File_Security =
-        (GetFileSecurity_Proc) GetProcAddress (
-            hm_advapi32, GetFileSecurity_Name);
+      wchar_t filename_w[MAX_PATH];
+
+      if (g_b_init_get_file_security_w == 0)
+	{
+	  g_b_init_get_file_security_w = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Get_File_SecurityW =
+	    (GetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
+						   "GetFileSecurityW");
+	}
+      if (s_pfn_Get_File_SecurityW == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_utf16 (lpFileName, filename_w);
+      return (s_pfn_Get_File_SecurityW (filename_w, RequestedInformation,
+					pSecurityDescriptor, nLength,
+					lpnLengthNeeded));
     }
-  if (s_pfn_Get_File_Security == NULL)
+  else
     {
-      errno = ENOTSUP;
-      return FALSE;
+      char filename_a[MAX_PATH];
+
+      if (g_b_init_get_file_security_a == 0)
+	{
+	  g_b_init_get_file_security_a = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Get_File_SecurityA =
+	    (GetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
+						   "GetFileSecurityA");
+	}
+      if (s_pfn_Get_File_SecurityA == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_ansi (lpFileName, filename_a);
+      return (s_pfn_Get_File_SecurityA (filename_a, RequestedInformation,
+					pSecurityDescriptor, nLength,
+					lpnLengthNeeded));
     }
-  return (s_pfn_Get_File_Security (lpFileName, RequestedInformation,
-				   pSecurityDescriptor, nLength,
-				   lpnLengthNeeded));
 }
 
 static BOOL WINAPI
@@ -728,7 +763,7 @@ set_file_security (LPCTSTR lpFileName,
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
       s_pfn_Set_File_Security =
         (SetFileSecurity_Proc) GetProcAddress (
-            hm_advapi32, SetFileSecurity_Name);
+            hm_advapi32, "SetFileSecurityA");
     }
   if (s_pfn_Set_File_Security == NULL)
     {
@@ -2946,6 +2981,9 @@ static int    dir_is_fat;
 static char   dir_pathname[MAX_UTF8_PATH];
 static WIN32_FIND_DATAW dir_find_data_w;
 static WIN32_FIND_DATAA dir_find_data_a;
+#define DIR_FIND_DATA_W 1
+#define DIR_FIND_DATA_A 2
+static int    last_dir_find_data = -1;
 
 /* Support shares on a network resource as subdirectories of a read-only
    root directory. */
@@ -3051,7 +3089,13 @@ sys_readdir (DIR *dirp)
 	  char fna[MAX_PATH];
 
 	  filename_to_ansi (filename, fna);
-	  dir_find_handle = FindFirstFileA (fna, &dir_find_data_a);
+	  /* If FILENAME is not representable by the current ANSI
+	     codepage, we don't want FindFirstFileA to interpret the
+	     '?' characters as a wildcard.  */
+	  if (_mbspbrk (fna, "?"))
+	    dir_find_handle = INVALID_HANDLE_VALUE;
+	  else
+	    dir_find_handle = FindFirstFileA (fna, &dir_find_data_a);
 	}
 
       if (dir_find_handle == INVALID_HANDLE_VALUE)
@@ -3084,6 +3128,7 @@ sys_readdir (DIR *dirp)
 	}
       else
 	filename_from_utf16 (dir_find_data_w.cFileName, dir_static.d_name);
+      last_dir_find_data = DIR_FIND_DATA_W;
     }
   else
     {
@@ -3110,6 +3155,7 @@ sys_readdir (DIR *dirp)
 	  _mbslwr (tem);
 	  filename_from_ansi (tem, dir_static.d_name);
 	}
+      last_dir_find_data = DIR_FIND_DATA_A;
     }
 
   dir_static.d_namlen = strlen (dir_static.d_name);
@@ -4324,18 +4370,21 @@ is_slow_fs (const char *name)
 }
 
 /* If this is non-zero, the caller wants accurate information about
-   file's owner and group, which could be expensive to get.  */
+   file's owner and group, which could be expensive to get.  dired.c
+   uses this flag when needed for the job at hand.  */
 int w32_stat_get_owner_group;
 
 /* MSVC stat function can't cope with UNC names and has other bugs, so
    replace it with our own.  This also allows us to calculate consistent
-   inode values and owner/group without hacks in the main Emacs code. */
+   inode values and owner/group without hacks in the main Emacs code,
+   and support file names encoded in UTF-8. */
 
 static int
 stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 {
   char *name, *save_name, *r;
-  WIN32_FIND_DATA wfd;
+  WIN32_FIND_DATAW wfd_w;
+  WIN32_FIND_DATAA wfd_a;
   HANDLE fh;
   unsigned __int64 fake_inode = 0;
   int permission;
@@ -4347,7 +4396,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
   DWORD access_rights = 0;
   DWORD fattrs = 0, serialnum = 0, fs_high = 0, fs_low = 0, nlinks = 1;
   FILETIME ctime, atime, wtime;
-  int dbcs_p;
+  wchar_t name_w[MAX_PATH];
+  char name_a[MAX_PATH];
 
   if (path == NULL || buf == NULL)
     {
@@ -4357,11 +4407,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 
   save_name = name = (char *) map_w32_filename (path, &path);
   /* Must be valid filename, no wild cards or other invalid
-     characters.  We use _mbspbrk to support multibyte strings that
-     might look to strpbrk as if they included literal *, ?, and other
-     characters mentioned below that are disallowed by Windows
-     filesystems.  */
-  if (_mbspbrk (name, "*?|<>\""))
+     characters.  */
+  if (strpbrk (name, "*?|<>\""))
     {
       errno = ENOENT;
       return -1;
@@ -4412,13 +4459,26 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
       if (is_windows_9x () != TRUE)
 	access_rights |= READ_CONTROL;
 
-      fh = CreateFile (name, access_rights, 0, NULL, OPEN_EXISTING,
-		       file_flags, NULL);
-      /* If CreateFile fails with READ_CONTROL, try again with zero as
-	 access rights.  */
-      if (fh == INVALID_HANDLE_VALUE && access_rights)
-	fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
-			 file_flags, NULL);
+      if (w32_unicode_filenames)
+	{
+	  filename_to_utf16 (name, name_w);
+	  fh = CreateFileW (name_w, access_rights, 0, NULL, OPEN_EXISTING,
+			   file_flags, NULL);
+	  /* If CreateFile fails with READ_CONTROL, try again with
+	     zero as access rights.  */
+	  if (fh == INVALID_HANDLE_VALUE && access_rights)
+	    fh = CreateFileW (name_w, 0, 0, NULL, OPEN_EXISTING,
+			     file_flags, NULL);
+	}
+      else
+	{
+	  filename_to_ansi (name, name_a);
+	  fh = CreateFileA (name_a, access_rights, 0, NULL, OPEN_EXISTING,
+			   file_flags, NULL);
+	  if (fh == INVALID_HANDLE_VALUE && access_rights)
+	    fh = CreateFileA (name_a, 0, 0, NULL, OPEN_EXISTING,
+			     file_flags, NULL);
+	}
       if (fh == INVALID_HANDLE_VALUE)
 	goto no_true_file_attributes;
 
@@ -4545,7 +4605,6 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	 did not ask for extra precision, resolving symlinks will fly
 	 in the face of that request, since the user then wants the
 	 lightweight version of the code.  */
-      dbcs_p = max_filename_mbslen () > 1;
       rootdir = (path >= save_name + len - 1
 		 && (IS_DIRECTORY_SEP (*path) || *path == 0));
 
@@ -4573,19 +4632,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else if (rootdir)
 	{
-	  if (!dbcs_p)
-	    {
-	      if (!IS_DIRECTORY_SEP (name[len-1]))
-		strcat (name, "\\");
-	    }
-	  else
-	    {
-	      char *end = name + len;
-	      char *n = CharPrevExA (file_name_codepage, name, end, 0);
-
-	      if (!IS_DIRECTORY_SEP (*n))
-		strcat (name, "\\");
-	    }
+	  if (!IS_DIRECTORY_SEP (name[len-1]))
+	    strcat (name, "\\");
 	  if (GetDriveType (name) < 2)
 	    {
 	      errno = ENOENT;
@@ -4597,51 +4645,65 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else
 	{
-	  if (!dbcs_p)
-	    {
-	      if (IS_DIRECTORY_SEP (name[len-1]))
-		name[len - 1] = 0;
-	    }
-	  else
-	    {
-	      char *end = name + len;
-	      char *n = CharPrevExA (file_name_codepage, name, end, 0);
+	  int have_wfd = -1;
 
-	      if (IS_DIRECTORY_SEP (*n))
-		*n = 0;
-	    }
+	  if (IS_DIRECTORY_SEP (name[len-1]))
+	    name[len - 1] = 0;
 
 	  /* (This is hacky, but helps when doing file completions on
 	     network drives.)  Optimize by using information available from
 	     active readdir if possible.  */
 	  len = strlen (dir_pathname);
-	  if (!dbcs_p)
-	    {
-	      if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
-		len--;
-	    }
-	  else
-	    {
-	      char *end = dir_pathname + len;
-	      char *n = CharPrevExA (file_name_codepage, dir_pathname, end, 0);
-
-	      if (IS_DIRECTORY_SEP (*n))
-		len--;
-	    }
+	  if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
+	    len--;
 	  if (dir_find_handle != INVALID_HANDLE_VALUE
+	      && last_dir_find_data != -1
 	      && !(is_a_symlink && follow_symlinks)
-	      && strnicmp (save_name, dir_pathname, len) == 0
+	      /* The 2 file-name comparisons below support only ASCII
+		 characters, and will lose (compare not equal) when
+		 the file names include non-ASCII charcaters that are
+		 the same but for the case.  However, doing this
+		 properly involves: (a) converting both file names to
+		 UTF-16, (b) lower-casing both names using CharLowerW,
+		 and (c) comparing the results; this would be quite a
+		 bit slower, whereas Plan B is for users who want
+		 lightweight albeit inaccurate version of 'stat'.  */
+	      && c_strncasecmp (save_name, dir_pathname, len) == 0
 	      && IS_DIRECTORY_SEP (name[len])
 	      && xstrcasecmp (name + len + 1, dir_static.d_name) == 0)
 	    {
+	      have_wfd = last_dir_find_data;
 	      /* This was the last entry returned by readdir.  */
-	      wfd = dir_find_data_a; /* FIXME!!! */
+	      if (last_dir_find_data == DIR_FIND_DATA_W)
+		wfd_w = dir_find_data_w;
+	      else
+		wfd_a = dir_find_data_a;
 	    }
 	  else
 	    {
 	      logon_network_drive (name);
 
-	      fh = FindFirstFile (name, &wfd);
+	      if (w32_unicode_filenames)
+		{
+		  filename_to_utf16 (name, name_w);
+		  fh = FindFirstFileW (name_w, &wfd_w);
+		  have_wfd = DIR_FIND_DATA_W;
+		}
+	      else
+		{
+		  filename_to_ansi (name, name_a);
+		  /* If NAME includes characters not representable by
+		     the current ANSI codepage, filename_to_ansi
+		     usually replaces them with a '?'.  We don't want
+		     to let FindFirstFileA interpret those as widlcards,
+		     and "succeed", returning us data from some random
+		     file in the same directory.  */
+		  if (_mbspbrk (name_a, "?"))
+		    fh = INVALID_HANDLE_VALUE;
+		  else
+		    fh = FindFirstFileA (name_a, &wfd_a);
+		  have_wfd = DIR_FIND_DATA_A;
+		}
 	      if (fh == INVALID_HANDLE_VALUE)
 		{
 		  errno = ENOENT;
@@ -4651,12 +4713,24 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	    }
 	  /* Note: if NAME is a symlink, the information we get from
 	     FindFirstFile is for the symlink, not its target.  */
-	  fattrs = wfd.dwFileAttributes;
-	  ctime = wfd.ftCreationTime;
-	  atime = wfd.ftLastAccessTime;
-	  wtime = wfd.ftLastWriteTime;
-	  fs_high = wfd.nFileSizeHigh;
-	  fs_low = wfd.nFileSizeLow;
+	  if (have_wfd == DIR_FIND_DATA_W)
+	    {
+	      fattrs = wfd_w.dwFileAttributes;
+	      ctime = wfd_w.ftCreationTime;
+	      atime = wfd_w.ftLastAccessTime;
+	      wtime = wfd_w.ftLastWriteTime;
+	      fs_high = wfd_w.nFileSizeHigh;
+	      fs_low = wfd_w.nFileSizeLow;
+	    }
+	  else
+	    {
+	      fattrs = wfd_a.dwFileAttributes;
+	      ctime = wfd_a.ftCreationTime;
+	      atime = wfd_a.ftLastAccessTime;
+	      wtime = wfd_a.ftLastWriteTime;
+	      fs_high = wfd_a.nFileSizeHigh;
+	      fs_low = wfd_a.nFileSizeLow;
+	    }
 	  fake_inode = 0;
 	  nlinks = 1;
 	  serialnum = volume_info.serialnum;
@@ -4670,18 +4744,6 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 
       get_file_owner_and_group (NULL, buf);
     }
-
-#if 0
-  /* Not sure if there is any point in this.  */
-  if (!NILP (Vw32_generate_fake_inodes))
-    fake_inode = generate_inode_val (name);
-  else if (fake_inode == 0)
-    {
-      /* For want of something better, try to make everything unique.  */
-      static DWORD gen_num = 0;
-      fake_inode = ++gen_num;
-    }
-#endif
 
   buf->st_ino = fake_inode;
 
@@ -4741,7 +4803,7 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
 
      FIXME: Add proper support for fdopendir, fstatat, readlinkat.
      Gnulib does this and can serve as a model.  */
-  char fullname[MAX_PATH];
+  char fullname[MAX_UTF8_PATH];
 
   if (fd != AT_FDCWD)
     {
@@ -8404,7 +8466,8 @@ globals_of_w32 (void)
   g_b_init_get_sid_sub_authority = 0;
   g_b_init_get_sid_sub_authority_count = 0;
   g_b_init_get_security_info = 0;
-  g_b_init_get_file_security = 0;
+  g_b_init_get_file_security_w = 0;
+  g_b_init_get_file_security_a = 0;
   g_b_init_get_security_descriptor_owner = 0;
   g_b_init_get_security_descriptor_group = 0;
   g_b_init_is_valid_sid = 0;
