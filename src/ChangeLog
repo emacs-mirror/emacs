@@ -1,5 +1,8 @@
 2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* data.c (bool_vector_binop_driver): Rename locals for sanity's sake.
+	The old names predated the API change that put destination at end.
+
 	Improve API of recently-added bool vector functions (Bug#15912).
 	The old API had (bool-vector-count-matches A B)
 	and (bool-vector-count-matches-at A B I), which gave the

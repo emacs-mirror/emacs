@@ -3018,62 +3018,62 @@ enum bool_vector_op { bool_vector_exclusive_or,
                       bool_vector_subsetp };
 
 static Lisp_Object
-bool_vector_binop_driver (Lisp_Object op1,
-                          Lisp_Object op2,
+bool_vector_binop_driver (Lisp_Object a,
+                          Lisp_Object b,
                           Lisp_Object dest,
                           enum bool_vector_op op)
 {
   EMACS_INT nr_bits;
-  bits_word *adata, *bdata, *cdata;
+  bits_word *adata, *bdata, *destdata;
   ptrdiff_t i = 0;
   ptrdiff_t nr_words;
 
-  CHECK_BOOL_VECTOR (op1);
-  CHECK_BOOL_VECTOR (op2);
+  CHECK_BOOL_VECTOR (a);
+  CHECK_BOOL_VECTOR (b);
 
-  nr_bits = bool_vector_size (op1);
-  if (bool_vector_size (op2) != nr_bits)
-    wrong_length_argument (op1, op2, dest);
+  nr_bits = bool_vector_size (a);
+  if (bool_vector_size (b) != nr_bits)
+    wrong_length_argument (a, b, dest);
 
   nr_words = bool_vector_words (nr_bits);
-  bdata = bool_vector_data (op1);
-  cdata = bool_vector_data (op2);
+  adata = bool_vector_data (a);
+  bdata = bool_vector_data (b);
 
   if (NILP (dest))
     {
       dest = make_uninit_bool_vector (nr_bits);
-      adata = bool_vector_data (dest);
+      destdata = bool_vector_data (dest);
     }
   else
     {
       CHECK_BOOL_VECTOR (dest);
-      adata = bool_vector_data (dest);
+      destdata = bool_vector_data (dest);
       if (bool_vector_size (dest) != nr_bits)
-	wrong_length_argument (op1, op2, dest);
+	wrong_length_argument (a, b, dest);
 
       switch (op)
 	{
 	case bool_vector_exclusive_or:
-	  while (adata[i] == (bdata[i] ^ cdata[i]))
+	  while (destdata[i] == (adata[i] ^ bdata[i]))
 	    if (! (++i < nr_words))
 	      return Qnil;
 	  break;
 
 	case bool_vector_subsetp:
 	case bool_vector_union:
-	  while (adata[i] == (bdata[i] | cdata[i]))
+	  while (destdata[i] == (adata[i] | bdata[i]))
 	    if (! (++i < nr_words))
 	      return Qnil;
 	  break;
 
 	case bool_vector_intersection:
-	  while (adata[i] == (bdata[i] & cdata[i]))
+	  while (destdata[i] == (adata[i] & bdata[i]))
 	    if (! (++i < nr_words))
 	      return Qnil;
 	  break;
 
 	case bool_vector_set_difference:
-	  while (adata[i] == (bdata[i] &~ cdata[i]))
+	  while (destdata[i] == (adata[i] &~ bdata[i]))
 	    if (! (++i < nr_words))
 	      return Qnil;
 	  break;
@@ -3084,7 +3084,7 @@ bool_vector_binop_driver (Lisp_Object op1,
     {
     case bool_vector_exclusive_or:
       do
-	adata[i] = bdata[i] ^ cdata[i];
+	destdata[i] = adata[i] ^ bdata[i];
       while (++i < nr_words);
       break;
 
@@ -3093,19 +3093,19 @@ bool_vector_binop_driver (Lisp_Object op1,
 
     case bool_vector_union:
       do
-	adata[i] = bdata[i] | cdata[i];
+	destdata[i] = adata[i] | bdata[i];
       while (++i < nr_words);
       break;
 
     case bool_vector_intersection:
       do
-	adata[i] = bdata[i] & cdata[i];
+	destdata[i] = adata[i] & bdata[i];
       while (++i < nr_words);
       break;
 
     case bool_vector_set_difference:
       do
-	adata[i] = bdata[i] &~ cdata[i];
+	destdata[i] = adata[i] &~ bdata[i];
       while (++i < nr_words);
       break;
     }
