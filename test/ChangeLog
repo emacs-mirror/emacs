@@ -1,3 +1,8 @@
+2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve API of recently-added bool vector functions (Bug#15912).
+	* automated/data-tests.el: Adjust to API changes.
+
 2013-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test07-file-exists-p)

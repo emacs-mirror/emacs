@@ -736,8 +736,8 @@ frame.
 *** `bool-vector-set-difference'
 *** `bool-vector-not'
 *** `bool-vector-subsetp'
-*** `bool-vector-count-matches'
-*** `bool-vector-count-matches-at'
+*** `bool-vector-count-consecutive'
+*** `bool-vector-count-population'
 
 ** Comparison functions =, <, >, <=, >= now take many arguments.
 

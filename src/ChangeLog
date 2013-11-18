@@ -1,5 +1,19 @@
 2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Improve API of recently-added bool vector functions (Bug#15912).
+	The old API had (bool-vector-count-matches A B)
+	and (bool-vector-count-matches-at A B I), which gave the
+	misleading impression that the two functions were variants, one
+	with a location I.  The new API has (bool-vector-count-population A)
+	and (bool-vector-count-consecutive A B I) to make the distinction
+	clearer.  The first function no longer has a B argument, since the
+	caller can easily determine the number of nils if the length and
+	number of ts is known.
+	* data.c (Fbool_vector_count_population): Rename from
+	bool_vector_count_matches, and accept just 1 argument.
+	(Fbool_vector_count_consecutive): Rename from
+	Fbool_vector_count_matches_at.
+
 	Always allocate at least one bits_word per bool vector.
 	See Daniel Colascione in:
 	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00518.html

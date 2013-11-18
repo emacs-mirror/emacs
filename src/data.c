@@ -3282,11 +3282,12 @@ Return the destination vector.  */)
   return b;
 }
 
-DEFUN ("bool-vector-count-matches", Fbool_vector_count_matches,
-       Sbool_vector_count_matches, 2, 2, 0,
-       doc: /* Count how many elements in A equal B.
-A must be a bool vector.  B is a generalized bool.  */)
-  (Lisp_Object a, Lisp_Object b)
+DEFUN ("bool-vector-count-population", Fbool_vector_count_population,
+       Sbool_vector_count_population, 1, 1, 0,
+       doc: /* Count how many elements in A are t.
+A is a bool vector.  To count A's nil elements, subtract the return
+value from A's length.  */)
+  (Lisp_Object a)
 {
   EMACS_INT count;
   EMACS_INT nr_bits;
@@ -3303,17 +3304,13 @@ A must be a bool vector.  B is a generalized bool.  */)
   for (i = 0; i < nwords; i++)
     count += count_one_bits_word (adata[i]);
 
-  if (NILP (b))
-    count = nr_bits - count;
   return make_number (count);
 }
 
-DEFUN ("bool-vector-count-matches-at",
-       Fbool_vector_count_matches_at,
-       Sbool_vector_count_matches_at, 3, 3, 0,
-       doc: /* Count how many consecutive elements in A equal B at i.
-A must be a bool vector.  B is a generalized boolean.  i is an
-index into the vector.  */)
+DEFUN ("bool-vector-count-consecutive", Fbool_vector_count_consecutive,
+       Sbool_vector_count_consecutive, 3, 3, 0,
+       doc: /* Count how many consecutive elements in A equal B starting at I.
+A is a bool vector, B is t or nil, and I is an index into A.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object i)
 {
   EMACS_INT count;
@@ -3660,8 +3657,8 @@ syms_of_data (void)
   defsubr (&Sbool_vector_set_difference);
   defsubr (&Sbool_vector_not);
   defsubr (&Sbool_vector_subsetp);
-  defsubr (&Sbool_vector_count_matches);
-  defsubr (&Sbool_vector_count_matches_at);
+  defsubr (&Sbool_vector_count_consecutive);
+  defsubr (&Sbool_vector_count_population);
 
   set_symbol_function (Qwholenump, XSYMBOL (Qnatnump)->function);
 

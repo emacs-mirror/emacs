@@ -77,42 +77,40 @@
 ;; Bool vector tests.  Compactly represent bool vectors as hex
 ;; strings.
 
-(ert-deftest bool-vector-count-matches-all-0-nil ()
+(ert-deftest bool-vector-count-population-all-0-nil ()
   (cl-loop for sz in '(0 45 1 64 9 344)
            do (let* ((bv (make-bool-vector sz nil)))
                 (should
+                 (zerop
+                  (bool-vector-count-population bv))))))
+
+(ert-deftest bool-vector-count-population-all-1-t ()
+  (cl-loop for sz in '(0 45 1 64 9 344)
+           do (let* ((bv (make-bool-vector sz t)))
+                (should
                  (eql
-                  (bool-vector-count-matches bv nil)
+                  (bool-vector-count-population bv)
                   sz)))))
 
-(ert-deftest bool-vector-count-matches-all-0-t ()
-  (cl-loop for sz in '(0 45 1 64 9 344)
-           do (let* ((bv (make-bool-vector sz nil)))
-                (should
-                 (eql
-                  (bool-vector-count-matches bv t)
-                  0)))))
-
-(ert-deftest bool-vector-count-matches-1-nil ()
+(ert-deftest bool-vector-count-population-1-nil ()
   (let* ((bv (make-bool-vector 45 nil)))
     (aset bv 40 t)
     (aset bv 0 t)
     (should
      (eql
-      (bool-vector-count-matches bv t)
-      2)))
-  )
+      (bool-vector-count-population bv)
+      2))))
 
-(ert-deftest bool-vector-count-matches-1-t ()
-  (let* ((bv (make-bool-vector 45 nil)))
-    (aset bv 40 t)
-    (aset bv 0 t)
+(ert-deftest bool-vector-count-population-1-t ()
+  (let* ((bv (make-bool-vector 45 t)))
+    (aset bv 40 nil)
+    (aset bv 0 nil)
     (should
      (eql
-      (bool-vector-count-matches bv nil)
+      (bool-vector-count-population bv)
       43))))
 
-(defun mock-bool-vector-count-matches-at (a b i)
+(defun mock-bool-vector-count-consecutive (a b i)
   (loop for i from i below (length a)
         while (eq (aref a i) b)
         sum 1))
@@ -147,8 +145,8 @@
                (nreverse nibbles)
                "")))
 
-(defun test-bool-vector-count-matches-at-tc (desc)
-  "Run a test case for bool-vector-count-matches-at.
+(defun test-bool-vector-count-consecutive-tc (desc)
+  "Run a test case for bool-vector-count-consecutive.
 DESC is a string describing the test.  It is a sequence of
 hexadecimal digits describing the bool vector.  We exhaustively
 test all counts at all possible positions in the vector by
@@ -158,8 +156,8 @@ comparing the subr with a much slower lisp implementation."
      for lf in '(nil t)
      do (loop
          for pos from 0 upto (length bv)
-         for cnt = (mock-bool-vector-count-matches-at bv lf pos)
-         for rcnt = (bool-vector-count-matches-at bv lf pos)
+         for cnt = (mock-bool-vector-count-consecutive bv lf pos)
+         for rcnt = (bool-vector-count-consecutive bv lf pos)
          unless (eql cnt rcnt)
          do (error "FAILED testcase %S %3S %3S %3S"
                    pos lf cnt rcnt)))))
@@ -182,8 +180,8 @@ comparing the subr with a much slower lisp implementation."
   "0000000000000000000000000"
   "FFFFFFFFFFFFFFFF1"))
 
-(ert-deftest bool-vector-count-matches-at ()
-  (mapc #'test-bool-vector-count-matches-at-tc
+(ert-deftest bool-vector-count-consecutive ()
+  (mapc #'test-bool-vector-count-consecutive-tc
         bool-vector-test-vectors))
 
 (defun test-bool-vector-apply-mock-op (mock a b c)
