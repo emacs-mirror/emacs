@@ -3025,9 +3025,7 @@ bool_vector_binop_driver (Lisp_Object op1,
 {
   EMACS_INT nr_bits;
   bits_word *adata, *bdata, *cdata;
-  ptrdiff_t i;
-  bool changed = 0;
-  bits_word mword;
+  ptrdiff_t i = 0;
   ptrdiff_t nr_words;
 
   CHECK_BOOL_VECTOR (op1);
@@ -3037,45 +3035,82 @@ bool_vector_binop_driver (Lisp_Object op1,
   if (bool_vector_size (op2) != nr_bits)
     wrong_length_argument (op1, op2, dest);
 
+  nr_words = bool_vector_words (nr_bits);
+  bdata = bool_vector_data (op1);
+  cdata = bool_vector_data (op2);
+
   if (NILP (dest))
     {
       dest = make_uninit_bool_vector (nr_bits);
-      changed = 1;
+      adata = bool_vector_data (dest);
     }
   else
     {
       CHECK_BOOL_VECTOR (dest);
+      adata = bool_vector_data (dest);
       if (bool_vector_size (dest) != nr_bits)
 	wrong_length_argument (op1, op2, dest);
+
+      switch (op)
+	{
+	case bool_vector_exclusive_or:
+	  while (adata[i] == (bdata[i] ^ cdata[i]))
+	    if (! (++i < nr_words))
+	      return Qnil;
+	  break;
+
+	case bool_vector_subsetp:
+	case bool_vector_union:
+	  while (adata[i] == (bdata[i] | cdata[i]))
+	    if (! (++i < nr_words))
+	      return Qnil;
+	  break;
+
+	case bool_vector_intersection:
+	  while (adata[i] == (bdata[i] & cdata[i]))
+	    if (! (++i < nr_words))
+	      return Qnil;
+	  break;
+
+	case bool_vector_set_difference:
+	  while (adata[i] == (bdata[i] &~ cdata[i]))
+	    if (! (++i < nr_words))
+	      return Qnil;
+	  break;
+	}
     }
 
-  nr_words = bool_vector_words (nr_bits);
-
-  adata = bool_vector_data (dest);
-  bdata = bool_vector_data (op1);
-  cdata = bool_vector_data (op2);
-
-  for (i = 0; i < nr_words; i++)
+  switch (op)
     {
-      if (op == bool_vector_exclusive_or)
-        mword = bdata[i] ^ cdata[i];
-      else if (op == bool_vector_union || op == bool_vector_subsetp)
-        mword = bdata[i] | cdata[i];
-      else if (op == bool_vector_intersection)
-        mword = bdata[i] & cdata[i];
-      else if (op == bool_vector_set_difference)
-        mword = bdata[i] &~ cdata[i];
-      else
-        abort ();
+    case bool_vector_exclusive_or:
+      do
+	adata[i] = bdata[i] ^ cdata[i];
+      while (++i < nr_words);
+      break;
 
-      if (! changed)
-	changed = adata[i] != mword;
+    case bool_vector_subsetp:
+      break;
 
-      if (op != bool_vector_subsetp)
-        adata[i] = mword;
+    case bool_vector_union:
+      do
+	adata[i] = bdata[i] | cdata[i];
+      while (++i < nr_words);
+      break;
+
+    case bool_vector_intersection:
+      do
+	adata[i] = bdata[i] & cdata[i];
+      while (++i < nr_words);
+      break;
+
+    case bool_vector_set_difference:
+      do
+	adata[i] = bdata[i] &~ cdata[i];
+      while (++i < nr_words);
+      break;
     }
 
-  return changed ? dest : Qnil;
+  return dest;
 }
 
 /* PRECONDITION must be true.  Return VALUE.  This odd construction
@@ -3314,7 +3349,10 @@ index into the vector.  */)
       mword = bits_word_to_host_endian (adata[pos]);
       mword ^= twiddle;
       mword >>= offset;
+
+      /* Do not count the pad bits.  */
       mword |= (bits_word) 1 << (BITS_PER_BITS_WORD - offset);
+
       count = count_trailing_zero_bits (mword);
       pos++;
       if (count + offset < BITS_PER_BITS_WORD)

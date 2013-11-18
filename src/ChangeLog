@@ -1,3 +1,12 @@
+2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Always allocate at least one bits_word per bool vector.
+	See Daniel Colascione in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00518.html
+	* alloc.c (make_uninit_bool_vector): Always allocate at least one word.
+	* data.c (bool_vector_binop_driver): Rely on this.  Tune.
+	* lisp.h (struct Lisp_Bool_vector): Document this.
+
 2013-11-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* insdel.c (invalidate_buffer_caches): New function, consolidated

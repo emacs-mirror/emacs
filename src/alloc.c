@@ -2066,20 +2066,21 @@ Lisp_Object
 make_uninit_bool_vector (EMACS_INT nbits)
 {
   Lisp_Object val;
-  struct Lisp_Bool_Vector *p;
-  EMACS_INT word_bytes, needed_elements;
-  word_bytes = bool_vector_words (nbits) * sizeof (bits_word);
-  needed_elements = ((bool_header_size - header_size + word_bytes
-		      + word_size - 1)
-		     / word_size);
-  p = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
+  EMACS_INT words0 = bool_vector_words (nbits);
+  EMACS_INT words = words0 + !words0;  /* Allocate at least one word.  */
+  EMACS_INT word_bytes = words * sizeof (bits_word);
+  EMACS_INT needed_elements = ((bool_header_size - header_size + word_bytes
+				+ word_size - 1)
+			       / word_size);
+  struct Lisp_Bool_Vector *p
+    = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
   XSETVECTOR (val, p);
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
   p->size = nbits;
 
-  /* Clear padding at the end.  */
-  if (nbits)
-    p->data[bool_vector_words (nbits) - 1] = 0;
+  /* Clear padding at the end.  If NBITS != 0 this initializes more
+     than it needs to, but that's OK.  */
+  p->data[words - 1] = 0;
 
   return val;
 }
