@@ -2526,6 +2526,7 @@ specification prior to @samp{"1.0"}.
 @node File Notifications
 @section Notifications on File Changes
 @cindex file notifications
+@cindex watch, for filesystem events
 
 Several operating systems support watching of filesystems for changes
 of files.  If configured properly, Emacs links a respective library

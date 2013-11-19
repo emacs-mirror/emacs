@@ -1,3 +1,9 @@
+2013-11-19  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (File Notifications): Add an index.
+
+	* loading.texi (Loading): Add an cross-reference.
+
 2013-11-18  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* os.texi (Session Management, Desktop Notifications): Add some

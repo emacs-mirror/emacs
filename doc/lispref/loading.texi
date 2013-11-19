@@ -29,6 +29,8 @@ into a buffer and evaluated there.  (Indeed, most code is tested this
 way.)  Most often, the forms are function definitions and variable
 definitions.
 
+For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
+
 @menu
 * How Programs Do Loading:: The @code{load} function and others.
 * Load Suffixes::           Details about the suffixes that @code{load} tries.

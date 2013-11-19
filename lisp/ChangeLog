@@ -1,3 +1,7 @@
+2013-11-19  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* filenotify.el (file-notify-add-watch): Doc fix.
+
 2013-11-19  Leo Liu  <sdl.web@gmail.com>
 
 	* obsolete/rcompile.el: Mark obsolete.
