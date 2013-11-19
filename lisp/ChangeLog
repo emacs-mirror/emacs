@@ -1,5 +1,7 @@
 2013-11-19  Leo Liu  <sdl.web@gmail.com>
 
+	* obsolete/rcompile.el: Mark obsolete.
+
 	* progmodes/compile.el (compilation-start)
 	(compilation-goto-locus, compilation-find-file): Pass
 	no-display-ok and handle nil value from display-buffer.

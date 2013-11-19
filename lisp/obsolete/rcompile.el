@@ -6,6 +6,7 @@
 ;; Maintainer: FSF
 ;; Created: 1993 Oct 6
 ;; Keywords: tools, processes
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 
