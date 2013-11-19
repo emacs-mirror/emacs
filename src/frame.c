@@ -892,7 +892,8 @@ DEFUN ("handle-focus-in", Fhandle_focus_in, Shandle_focus_in, 1, 1, "e",
 Focus in events are usually bound to this function.
 Focus in events occur when a frame has focus, but a switch-frame event
 is not generated.
-This function checks if blink-cursor timers should be turned on again.  */)
+This function runs the hook `focus-in-hook'.
+It also checks if blink-cursor timers should be turned on again.  */)
   (Lisp_Object event)
 {
   Frun_hooks (1, &Qfocus_in_hook);
@@ -903,7 +904,8 @@ DEFUN ("handle-focus-out", Fhandle_focus_out, Shandle_focus_out, 1, 1, "e",
        doc: /* Handle a focus-out event.
 Focus out events are usually bound to this function.
 Focus out events occur when no frame has focus.
-This function checks if blink-cursor timers should be turned off.  */)
+This function runs the hook `focus-out-hook'.
+It also checks if blink-cursor timers should be turned off.  */)
   (Lisp_Object event)
 {
   Frun_hooks (1, &Qfocus_out_hook);
