@@ -5355,7 +5355,10 @@ This is a list of elements (CONDITION . ACTION), where:
  ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
   function or a list of functions.  Each such function should
   accept two arguments: a buffer to display and an alist of the
-  same form as ALIST.  See `display-buffer' for details.
+  same form as ALIST.  If (no-display-ok . t) is in ALIST, the
+  caller is prepared for the case of not displaying the buffer
+  and FUNCTION can safely return a non-window value to suppress
+  displaying.  See `display-buffer' for details.
 
 `display-buffer' scans this alist until it either finds a
 matching regular expression or the function specified by a
@@ -5439,9 +5442,10 @@ where FUNCTION is either a function or a list of functions, and
 ALIST is an arbitrary association list (alist).
 
 Each such FUNCTION should accept two arguments: the buffer to
-display and an alist.  Based on those arguments, it should either
-display the buffer and return the window, or return nil if unable
-to display the buffer.
+display and an alist.  Based on those arguments, it should
+display the buffer and return the window.  If the caller is
+prepared to handle the case of not displaying the buffer it
+should pass (no-display-ok . t) as an element of the ALIST.
 
 The `display-buffer' function builds a function list and an alist
 by combining the functions and alists specified in
@@ -5542,7 +5546,7 @@ argument, ACTION is t."
 	(while (and functions (not window))
 	  (setq window (funcall (car functions) buffer alist)
 	  	functions (cdr functions)))
-	window))))
+	(and (windowp window) window)))))
 
 (defun display-buffer-other-frame (buffer)
   "Display buffer BUFFER preferably in another frame.
