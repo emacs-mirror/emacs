@@ -1,3 +1,7 @@
+2013-11-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* charset.c (syms_of_charset): Don't read past end of string.
+
 2013-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Doc fixes.
