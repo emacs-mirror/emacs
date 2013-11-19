@@ -559,6 +559,11 @@ or an empty string if none."
 	(propertize remote-url
 		    'face 'font-lock-variable-name-face)))
      "\n"
+     ;; For now just a heading, key bindings can be added later for various bisect actions
+     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root _dir)))
+       (propertize  "Bisect     : in progress\n" 'face 'font-lock-warning-face))
+     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root _dir)))
+       (propertize  "Rebase     : in progress\n" 'face 'font-lock-warning-face))
      (if stash
        (concat
 	(propertize "Stash      :\n" 'face 'font-lock-type-face

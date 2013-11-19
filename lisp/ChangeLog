@@ -1,3 +1,8 @@
+2013-11-19  Dan Nicolaescu  <dann@gnu.org>
+
+	* vc/vc-git.el (vc-git-dir-extra-headers): Add headers
+	when rebase or bisect are in progress.
+
 2013-11-19  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* filenotify.el (file-notify-add-watch): Doc fix.
