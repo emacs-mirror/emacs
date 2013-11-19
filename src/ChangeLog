@@ -1,3 +1,10 @@
+2013-11-19  Brian Jenkins  <brian@brianjenkins.org>  (tiny change)
+
+	Add hooks to run on gaining/losing focus.  (Bug#15029)
+	* frame.c (Qfocus_in_hook, Qfocus_out_hook): New static lisp objects.
+	(Fhandle_focus_in, Fhandle_focus_out): Run focus hooks.
+	(syms_of_frame): Add focus-in-hook, focus-out-hook.
+
 2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* data.c (bool_vector_binop_driver): Rename locals for sanity's sake.

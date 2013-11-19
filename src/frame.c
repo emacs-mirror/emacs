@@ -109,6 +109,8 @@ Lisp_Object Qalpha;
 
 Lisp_Object Qface_set_after_frame_default;
 
+static Lisp_Object Qfocus_in_hook;
+static Lisp_Object Qfocus_out_hook;
 static Lisp_Object Qdelete_frame_functions;
 
 static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
@@ -893,6 +895,7 @@ is not generated.
 This function checks if blink-cursor timers should be turned on again.  */)
   (Lisp_Object event)
 {
+  Frun_hooks (1, &Qfocus_in_hook);
   return call0 (intern ("blink-cursor-check"));
 }
 
@@ -903,6 +906,7 @@ Focus out events occur when no frame has focus.
 This function checks if blink-cursor timers should be turned off.  */)
   (Lisp_Object event)
 {
+  Frun_hooks (1, &Qfocus_out_hook);
   return call0 (intern ("blink-cursor-suspend"));
 }
 
@@ -4464,6 +4468,16 @@ when the mouse is over clickable text.  */);
                doc: /* If non-nil, make pointer invisible while typing.
 The pointer becomes visible again when the mouse is moved.  */);
   Vmake_pointer_invisible = Qt;
+
+  DEFVAR_LISP ("focus-in-hook", Vfocus_in_hook,
+               doc: /* Normal hook run when a frame gains input focus.  */);
+  Vfocus_in_hook = Qnil;
+  DEFSYM (Qfocus_in_hook, "focus-in-hook");
+
+  DEFVAR_LISP ("focus-out-hook", Vfocus_out_hook,
+               doc: /* Normal hook run when a frame loses input focus.  */);
+  Vfocus_out_hook = Qnil;
+  DEFSYM (Qfocus_out_hook, "focus-out-hook");
 
   DEFVAR_LISP ("delete-frame-functions", Vdelete_frame_functions,
 	       doc: /* Functions run before deleting a frame.
