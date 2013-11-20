@@ -1,5 +1,8 @@
 2013-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (init, run, stop:): Enable again. stop calls super stop
+	to handle dialogs.
+
 	* nsterm.m (init, run, stop:): Comment out for now, does not work
 	with dialogs.
 

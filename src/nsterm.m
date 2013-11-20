@@ -4367,7 +4367,6 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsApp
 
-#if 0
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
 - (id)init
 {
@@ -4386,7 +4385,7 @@ ns_term_shutdown (int sig)
 
     shouldKeepRunning = YES;
     do
-    {
+      {
         [pool release];
         pool = [[NSAutoreleasePool alloc] init];
 
@@ -4405,8 +4404,10 @@ ns_term_shutdown (int sig)
 - (void)stop: (id)sender
 {
     shouldKeepRunning = NO;
+    // Stop possible dialog also.  Noop if no dialog present.
+    // The file dialog still leaks 7k - 10k on 10.9 though.
+    [super stop:sender];
 }
-#endif
 #endif
 
 - (void)logNotification: (NSNotification *)notification
