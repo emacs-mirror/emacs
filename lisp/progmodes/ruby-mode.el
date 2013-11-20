@@ -272,7 +272,7 @@ even if it's not required."
           (const :tag "Custom Style" custom))
   :group 'ruby)
 
-(defcustom ruby-custom-encoding-magic-comment-template "# coding: %s"
+(defcustom ruby-custom-encoding-magic-comment-template "# encoding: %s"
   "The encoding comment template to be used when
 `ruby-encoding-magic-comment-style' is set to `custom'."
   :type 'string
