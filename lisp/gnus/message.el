@@ -6271,6 +6271,9 @@ they are."
   :link '(custom-manual "(message)Movement")
   :type 'boolean)
 
+(defvar visual-line-mode)
+(declare-function beginning-of-visual-line "simple" (&optional n))
+
 (defun message-beginning-of-line (&optional n)
   "Move point to beginning of header value or to beginning of line.
 The prefix argument N is passed directly to `beginning-of-line'.
@@ -6297,7 +6300,9 @@ between beginning of field and beginning of line."
 	(goto-char
 	 (if (and eoh (or (< eoh here) (= bol here)))
 	     eoh bol)))
-    (beginning-of-line n)))
+    (if (and (boundp 'visual-line-mode) visual-line-mode)
+	(beginning-of-visual-line n)
+      (beginning-of-line n))))
 
 (defun message-buffer-name (type &optional to group)
   "Return a new (unique) buffer name based on TYPE and TO."

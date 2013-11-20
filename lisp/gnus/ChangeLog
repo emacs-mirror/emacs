@@ -1,3 +1,8 @@
+2013-11-20  Dave Goldberg  <david.goldberg6@verizon.net>
+
+	* message.el (message-beginning-of-line):
+	Use beginning-of-visual-line when visual-line-mode is turned on.
+
 2013-11-15  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event->gnus-calendar)
