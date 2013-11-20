@@ -1,3 +1,11 @@
+2013-11-20  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* build-aux/msys-to-w32: New file.
+	* Makefile.in (msys_to_w32, msys_lisppath_to_w32): Remove.
+	(msys_w32prefix_subst): Rename from msys_prefix_subst.
+	Operate on w32prefixpattern.
+	(epaths-force-w32): Use build-aux/msys-to-w32.
+
 2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (DEBUGGER_SEES_C_MACROS): Remove.
