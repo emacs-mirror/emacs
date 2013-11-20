@@ -1,3 +1,8 @@
+2013-11-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (init, run, stop:): Comment out for now, does not work
+	with dialogs.
+
 2013-11-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* charset.c (syms_of_charset): Don't read past end of string.
