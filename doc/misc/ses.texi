@@ -66,6 +66,7 @@ To report bugs, use @kbd{M-x report-emacs-bug}.
 
 @menu
 * Sales Pitch::                 Why use @acronym{SES}?
+* Quick Tutorial::              A quick introduction
 * The Basics::                  Basic spreadsheet commands
 * Advanced Features::           Want to know more?
 * For Gurus::                   Want to know @emph{even more}?
@@ -98,6 +99,95 @@ To report bugs, use @kbd{M-x report-emacs-bug}.
 
 @c ===================================================================
 
+@node Quick Tutorial
+@chapter Quick Tutorial
+@cindex introduction
+@cindex tutorial
+
+If you want to get started quickly and think that you know what to
+expect from a simple spreadsheet, this chapter may be all that you
+need.
+
+First, visit a new file with the @file{.ses} extension.
+Emacs presents you with an empty spreadsheet containing a single cell.
+
+Begin by inserting a headline: @kbd{"Income"@key{RET}}.  The double
+quotes indicate that this is a text cell.  (Notice that Emacs
+automatically inserts the closing quotation mark.)
+
+To insert your first income value, you must first resize the
+spreadsheet.  Press @key{TAB} to add a new cell and navigate back up
+to it.  Enter a number, such as @samp{2.23}.  Then proceed to add a
+few more income entries, e.g.:
+
+@example
+@group
+A
+ Income
+   2.23
+   0.02
+  15.76
+  -4.00
+@end group
+@end example
+
+To add up the values, enter a Lisp expression:
+
+@example
+(+ A2 A3 A4 A5)
+@end example
+
+Perhaps you want to add a cell to the right of cell A4 to explain
+why you have a negative entry.  Pressing @kbd{TAB} in that cell
+adds an entire new column @samp{B}, where you can add such a note.
+
+The column is fairly narrow by default, but pressing @kbd{w} allows
+you to resize it as needed.  Make it 20 characters wide.  You can
+now add descriptive legends for all the entries, e.g.:
+
+@example
+@group
+A       B
+ Income
+   2.23       Consulting fee
+   0.02     Informed opinion
+  15.76       Lemonade stand
+     -4          Loan to Joe
+  14.01                Total
+@end group
+@end example
+
+By default, the labels in column B are right-justified.  To change
+that, you can enter a printer function for the whole column, using
+e.g., @kbd{M-p ("%s")}.  You can override a column's printer function
+in any individual cell using @kbd{p}.
+
+If Joe pays back his loan, you might blank that entry; e.g., by
+positioning the cursor in cell A5 and pressing @kbd{C-d} twice.
+If you do that, the total cell will display @samp{######}.  That is
+because the regular @code{+} operator does not handle a range that
+contains some empty cells.  Instead of emptying the cell, you could
+enter a literal @samp{0}, or delete the entire row using @kbd{C-k}.
+An alternative is to use the special function @code{ses+} instead of
+the regular @code{+}:
+
+@example
+(ses+ A2 A3 A4 A5)
+@end example
+
+To make a formula robust against changes in the spreadsheet geometry,
+you can use the @code{ses-range} macro to refer to a range of cells by
+the end-points, e.g.:
+
+@example
+(apply 'ses+ (ses-range A2 A5))
+@end example
+
+(The @code{apply} is necessary because @code{ses-range} produces a
+@emph{list} of values.  This allows for more complex possibilities.)
+
+@c ===================================================================
+
 @node The Basics
 @comment  node-name,  next,  previous,  up
 @chapter The Basics
@@ -117,6 +207,7 @@ A @dfn{cell identifier} is a symbol with a column letter and a row
 number.  Cell B7 is the 2nd column of the 7th row.  For very wide
 spreadsheets, there are two column letters: cell AB7 is the 28th
 column of the 7th row. Super wide spreadsheets get AAA1, etc.
+You move around with the regular Emacs movement commands.
 
 @table @kbd
 @item j
@@ -161,13 +252,17 @@ Highlight all cells (@code{mark-whole-buffer}).
 @section Cell formulas
 @cindex formulas
 @cindex formulas, entering
+@cindex values
+@cindex cell values
+@cindex editing cells
 @findex ses-read-cell
 @findex ses-read-symbol
 @findex ses-edit-cell
 @findex ses-recalculate-cell
 @findex ses-recalculate-all
 
-To enter a number into the current cell, just start typing:
+To insert a value into a cell, simply type a numeric expression,
+@samp{"double-quoted text"}, or a Lisp expression.
 
 @table @kbd
 @item 0..9
@@ -213,6 +308,13 @@ Recalculate the entire spreadsheet (@code{ses-recalculate-all}).
 @node Resizing
 @section Resizing the spreadsheet
 @cindex resizing spreadsheets
+@cindex dimensions
+@cindex row, adding or removing
+@cindex column, adding or removing
+@cindex adding rows or columns
+@cindex inserting rows or columns
+@cindex removing rows or columns
+@cindex deleting rows or columns
 @findex ses-insert-row
 @findex ses-insert-column
 @findex ses-delete-row
@@ -269,6 +371,8 @@ Undo previous action (@code{(undo)}).
 @node Printer functions
 @section Printer functions
 @cindex printer functions
+@cindex cell formatting
+@cindex formatting cells
 @findex ses-read-cell-printer
 @findex ses-read-column-printer
 @findex ses-read-default-printer
