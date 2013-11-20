@@ -5355,15 +5355,17 @@ This is a list of elements (CONDITION . ACTION), where:
  ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
   function or a list of functions.  Each such function should
   accept two arguments: a buffer to display and an alist of the
-  same form as ALIST.  If (no-display-ok . t) is in ALIST, the
-  caller is prepared for the case of not displaying the buffer
-  and FUNCTION can safely return a non-window value to suppress
-  displaying.  See `display-buffer' for details.
+  same form as ALIST.  See `display-buffer' for details.
 
 `display-buffer' scans this alist until it either finds a
 matching regular expression or the function specified by a
-condition returns non-nil.  In any of these cases, it adds the
-associated action to the list of actions it will try."
+condition returns non-nil.  It can pass (no-display-ok . t) in
+its action alist to indicate readiness for the case of not
+displaying the buffer and FUNCTION can safely return a non-window
+value to suppress displaying.
+
+In any of these cases, it adds the associated action to the list
+of actions it will try."
   :type `(alist :key-type
 		(choice :tag "Condition"
 			regexp

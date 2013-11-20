@@ -1,3 +1,7 @@
+2013-11-20  Leo Liu  <sdl.web@gmail.com>
+
+	* window.el (display-buffer-alist): Doc fix.  (Bug#13594)
+
 2013-11-19  Dan Nicolaescu  <dann@gnu.org>
 
 	* vc/vc-git.el (vc-git-dir-extra-headers): Add headers

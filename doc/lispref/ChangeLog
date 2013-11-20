@@ -1,3 +1,7 @@
+2013-11-20  Leo Liu  <sdl.web@gmail.com>
+
+	* windows.texi (Choosing Window): Mention `no-display-ok'.  (Bug#13594)
+
 2013-11-19  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* os.texi (File Notifications): Add an index.
