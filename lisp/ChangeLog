@@ -1,3 +1,7 @@
+2013-11-20  era eriksson  <era+emacsbugs@iki.fi>
+
+	* ses.el (ses-mode): Doc fix.  (Bug#14748)
+
 2013-11-20  Leo Liu  <sdl.web@gmail.com>
 
 	* window.el (display-buffer-alist): Doc fix.  (Bug#13594)
