@@ -1403,6 +1403,8 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 				 'action 'package-install-button-action)))
 	  (t (insert (capitalize status) ".")))
     (insert "\n")
+    (insert "    " (propertize "Archive" 'font-lock-face 'bold)
+	    ": " (or archive "n/a") "\n")
     (and version
 	 (insert "    "
 		 (propertize "Version" 'font-lock-face 'bold) ": "
