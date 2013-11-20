@@ -619,6 +619,26 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-backward-sexp)
     (should (= 2 (line-number-at-pos)))))
 
+(ert-deftest ruby--insert-coding-comment-ruby-style ()
+  (with-temp-buffer
+    (let ((ruby-encoding-magic-comment-style 'ruby))
+      (ruby--insert-coding-comment "utf-8")
+      (should (string= "# coding: utf-8\n" (buffer-string))))))
+
+(ert-deftest ruby--insert-coding-comment-emacs-style ()
+  (with-temp-buffer
+    (let ((ruby-encoding-magic-comment-style 'emacs))
+      (ruby--insert-coding-comment "utf-8")
+      (should (string= "# -*- coding: utf-8 -*-\n" (buffer-string))))))
+
+(ert-deftest ruby--insert-coding-comment-custom-style ()
+  (with-temp-buffer
+    (let ((ruby-encoding-magic-comment-style 'custom)
+          (ruby-custom-encoding-magic-comment-template "# encoding: %s\n"))
+      (ruby--insert-coding-comment "utf-8")
+      (should (string= "# encoding: utf-8\n\n" (buffer-string))))))
+
+
 (provide 'ruby-mode-tests)
 
 ;;; ruby-mode-tests.el ends here
