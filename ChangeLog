@@ -1,3 +1,7 @@
+2013-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Distribute build-aux/msys-to-w32.
+
 2013-11-20  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* build-aux/msys-to-w32: New file.
