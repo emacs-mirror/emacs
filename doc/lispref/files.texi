@@ -1663,8 +1663,6 @@ version of an existing file; saving a file preserves its existing
 permissions.
 @end defun
 
-@c FIXME: The return value is decimal?  Octal?  We should explain it
-@c further.  --xfq
 @defun default-file-modes
 This function returns the default file permissions, as an integer.
 @end defun
