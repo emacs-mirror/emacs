@@ -3054,60 +3054,64 @@ bool_vector_binop_driver (Lisp_Object a,
       switch (op)
 	{
 	case bool_vector_exclusive_or:
-	  while (destdata[i] == (adata[i] ^ bdata[i]))
-	    if (! (++i < nr_words))
-	      return Qnil;
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] ^ bdata[i]))
+	      goto set_dest;
 	  break;
 
 	case bool_vector_subsetp:
-	case bool_vector_union:
-	  while (destdata[i] == (adata[i] | bdata[i]))
-	    if (! (++i < nr_words))
+	  for (; i < nr_words; i++)
+	    if (adata[i] &~ bdata[i])
 	      return Qnil;
+	  return Qt;
+
+	case bool_vector_union:
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] | bdata[i]))
+	      goto set_dest;
 	  break;
 
 	case bool_vector_intersection:
-	  while (destdata[i] == (adata[i] & bdata[i]))
-	    if (! (++i < nr_words))
-	      return Qnil;
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] & bdata[i]))
+	      goto set_dest;
 	  break;
 
 	case bool_vector_set_difference:
-	  while (destdata[i] == (adata[i] &~ bdata[i]))
-	    if (! (++i < nr_words))
-	      return Qnil;
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] &~ bdata[i]))
+	      goto set_dest;
 	  break;
 	}
+
+      return Qnil;
     }
 
+ set_dest:
   switch (op)
     {
     case bool_vector_exclusive_or:
-      do
+      for (; i < nr_words; i++)
 	destdata[i] = adata[i] ^ bdata[i];
-      while (++i < nr_words);
-      break;
-
-    case bool_vector_subsetp:
       break;
 
     case bool_vector_union:
-      do
+      for (; i < nr_words; i++)
 	destdata[i] = adata[i] | bdata[i];
-      while (++i < nr_words);
       break;
 
     case bool_vector_intersection:
-      do
+      for (; i < nr_words; i++)
 	destdata[i] = adata[i] & bdata[i];
-      while (++i < nr_words);
       break;
 
     case bool_vector_set_difference:
-      do
+      for (; i < nr_words; i++)
 	destdata[i] = adata[i] &~ bdata[i];
-      while (++i < nr_words);
       break;
+
+    default:
+      eassume (0);
     }
 
   return dest;

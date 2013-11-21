@@ -1213,7 +1213,7 @@ struct Lisp_Bool_Vector
     /* This is the size in bits.  */
     EMACS_INT size;
     /* The actual bits, packed into bytes.
-       Zeros fill out the last word as needed; there's always at least one word.
+       Zeros fill out the last word if needed.
        The bits are in little-endian order in the bytes, and
        the bytes are in little-endian order in the words.  */
     bits_word data[FLEXIBLE_ARRAY_MEMBER];

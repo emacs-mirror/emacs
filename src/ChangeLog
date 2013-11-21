@@ -1,3 +1,15 @@
+2013-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix recently introduced bool vector overrun.
+	This was due to an optimization that went awry.
+	Reported by Glenn Morris in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00622.html>.
+	* alloc.c (make_uninit_bool_vector): Don't allocate a dummy word
+	for empty vectors, undoing the 2013-11-18 change.
+	* data.c (bool_vector_binop_driver): Rely on this.
+	Fix bug that occasionally overran the destination.
+	* lisp.h (struct Lisp_Bool_vector): Document this.
+
 2013-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (init, run, stop:): Enable again. stop calls super stop
