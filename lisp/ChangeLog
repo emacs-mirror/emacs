@@ -1,3 +1,9 @@
+2013-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (eval-when-compile): Fix edebug spec
+	(bug#14646).
+	(make-obsolete): Remove interactive spec.
+
 2013-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (command-line-1): Use path-separator with -L.
@@ -29,8 +35,8 @@
 	* obsolete/rcompile.el: Mark obsolete.
 
 	* progmodes/compile.el (compilation-start)
-	(compilation-goto-locus, compilation-find-file): Pass
-	no-display-ok and handle nil value from display-buffer.
+	(compilation-goto-locus, compilation-find-file):
+	Pass no-display-ok and handle nil value from display-buffer.
 	(Bug#13594)
 
 	* window.el (display-buffer-alist, display-buffer): Document the
