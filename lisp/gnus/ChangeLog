@@ -1,3 +1,13 @@
+2013-11-21  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-additional-identities): New.
+	(gnus-icalendar-identities): Support additional-identities.
+
+2013-11-21  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event:org-timestamp): Fix
+	org-timestamp for events ending at midnight.
+
 2013-11-21  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
 
 	* nndoc.el (nndoc-type-alist, nndoc-debbugs-db-type-p): Support debbugs
