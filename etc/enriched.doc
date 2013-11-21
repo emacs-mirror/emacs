@@ -71,7 +71,7 @@ the right margin, fully justified, centered, or left alone).</indent>
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>FACES and COLORS</bold></x-color></x-bg-color>
 
 
-<indent>You can add faces either with the menu or with <fixed>M-g.</fixed>  The face is
+<indent>You can add faces either with the menu or with <fixed>M-o.</fixed>  The face is
 applied to the current region.  If you are using
 `transient-mark-mode' and the region is not active, then the face
 applies to whatever you type next.  Any face can have colors.  If
