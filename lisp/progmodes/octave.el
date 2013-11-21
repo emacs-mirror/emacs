@@ -547,7 +547,7 @@ definitions can also be stored in files and used in batch mode."
   ;; a ";" at those places where it's correct (i.e. outside of parens).
   (setq-local electric-layout-rules '((?\; . after)))
 
-  (setq-local comment-use-global-state t)
+  (setq-local comment-use-syntax t)
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
   (setq-local comment-start-skip octave-comment-start-skip)
@@ -703,7 +703,7 @@ in the Inferior Octave buffer.")
   :abbrev-table octave-abbrev-table
   (setq comint-prompt-regexp inferior-octave-prompt)
 
-  (setq-local comment-use-global-state t)
+  (setq-local comment-use-syntax t)
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
   (setq comment-column 32)
