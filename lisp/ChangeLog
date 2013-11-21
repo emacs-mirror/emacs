@@ -1,3 +1,9 @@
+2013-11-21  Leo Liu  <sdl.web@gmail.com>
+
+	Add completion for command `ag'.
+	* pcmpl-x.el (pcomplete/ag, pcmpl-x-ag-options): New functions.
+	(pcmpl-x-ag-options): New variable.
+
 2013-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-run.el (eval-when-compile): Fix edebug spec

@@ -247,5 +247,35 @@ long options."
 ;;;###autoload
 (defalias 'pcomplete/ack-grep 'pcomplete/ack)
 
+
+;;;; the_silver_search - https://github.com/ggreer/the_silver_searcher
+
+(defvar pcmpl-x-ag-options nil)
+
+(defun pcmpl-x-ag-options ()
+  (or pcmpl-x-ag-options
+      (setq pcmpl-x-ag-options
+            (with-temp-buffer
+              (when (zerop (call-process "ag" nil t nil "--help"))
+                (let (so lo)
+                  (goto-char (point-min))
+                  (while (re-search-forward "^ +\\(-[a-zA-Z]\\) " nil t)
+                    (push (match-string 1) so))
+                  (goto-char (point-min))
+                  (while (re-search-forward
+                          "^ +\\(?:-[a-zA-Z] \\)?\\(--[^ \t\n]+\\) " nil t)
+                    (push (match-string 1) lo))
+                  (list (cons 'short (nreverse so))
+                        (cons 'long  (nreverse lo)))))))))
+
+;;;###autoload
+(defun pcomplete/ag ()
+  "Completion for the `ag' command."
+  (while t
+    (if (pcomplete-match "^-" 0)
+        (pcomplete-here* (cdr (assq (if (pcomplete-match "^--" 0) 'long 'short)
+                                    (pcmpl-x-ag-options))))
+      (pcomplete-here* (pcomplete-dirs-or-entries)))))
+
 (provide 'pcmpl-x)
 ;;; pcmpl-x.el ends here
