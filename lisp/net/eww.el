@@ -101,23 +101,28 @@
 (defvar eww-start-url nil)
 (defvar eww-contents-url nil)
 
+(defvar eww-local-regex "localhost"
+  "When this regex is found in the URL, it's not a keyword but an address.")
+
 ;;;###autoload
 (defun eww (url)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'."
   (interactive "sEnter URL or keywords: ")
-  (if (and (= (length (split-string url)) 1)
-           (> (length (split-string url "\\.")) 1))
-      (progn
-        (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
-          (setq url (concat "http://" url)))
-        ;; some site don't redirect final /
-        (when (string= (url-filename (url-generic-parse-url url)) "")
-          (setq url (concat url "/"))))
-    (unless (string-match-p "\\'file:" url)
-      (setq url (concat eww-search-prefix
-                        (replace-regexp-in-string " " "+" url)))))
+  (cond ((string-match-p "\\`file:" url))
+       (t
+        (if (and (= (length (split-string url)) 1)
+                 (or (> (length (split-string url "\\.")) 1)
+                     (string-match eww-local-regex url)))
+            (progn
+              (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
+                (setq url (concat "http://" url)))
+              ;; some site don't redirect final /
+              (when (string= (url-filename (url-generic-parse-url url)) "")
+                (setq url (concat url "/"))))
+          (setq url (concat eww-search-prefix
+                            (replace-regexp-in-string " " "+" url))))))
   (url-retrieve url 'eww-render (list url)))
 
 ;;;###autoload
