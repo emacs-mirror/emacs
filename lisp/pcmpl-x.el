@@ -257,16 +257,23 @@ long options."
       (setq pcmpl-x-ag-options
             (with-temp-buffer
               (when (zerop (call-process "ag" nil t nil "--help"))
-                (let (so lo)
+                (let (short long)
                   (goto-char (point-min))
                   (while (re-search-forward "^ +\\(-[a-zA-Z]\\) " nil t)
-                    (push (match-string 1) so))
+                    (push (match-string 1) short))
                   (goto-char (point-min))
                   (while (re-search-forward
-                          "^ +\\(?:-[a-zA-Z] \\)?\\(--[^ \t\n]+\\) " nil t)
-                    (push (match-string 1) lo))
-                  (list (cons 'short (nreverse so))
-                        (cons 'long  (nreverse lo)))))))))
+                          "^ +\\(?:-[a-zA-Z] \\)?\\(--\\(\\[no\\]\\)?[^ \t\n]+\\) "
+                          nil t)
+                    (if (match-string 2)
+                        (progn
+                          (replace-match "" nil nil nil 2)
+                          (push (match-string 1) long)
+                          (replace-match "no" nil nil nil 2)
+                          (push (match-string 1) long))
+                      (push (match-string 1) long)))
+                  (list (cons 'short (nreverse short))
+                        (cons 'long  (nreverse long)))))))))
 
 ;;;###autoload
 (defun pcomplete/ag ()
