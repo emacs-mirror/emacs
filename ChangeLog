@@ -1,3 +1,10 @@
+2013-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some dependency problems that cause unnecessary recompiles.
+	* configure.ac (OLDXMENU_TARGET, OLDXMENU, LIBXMENU, OLDXMENU_DEPS):
+	Remove.
+	(LIBXMENU_DIR, LIBXMENU_BASE): New vars.
+
 2013-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Distribute build-aux/msys-to-w32.

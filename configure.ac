@@ -4598,56 +4598,34 @@ AC_SUBST(TOOLKIT_LIBW)
 if test "${opsys}" != "mingw32"; then
   if test "$USE_X_TOOLKIT" = "none"; then
     LIBXT_OTHER="\$(LIBXSM)"
-    OLDXMENU_TARGET="really-oldXMenu"
   else
     LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
-    OLDXMENU_TARGET="really-lwlib"
   fi
 fi
 AC_SUBST(LIBXT_OTHER)
 
-## The X Menu stuff is present in the X10 distribution, but missing
-## from X11.  If we have X10, just use the installed library;
-## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
-	    [Define to 1 if you want to use version 11 of X windows.
-	     Otherwise, Emacs expects to use version 10.])
-
-  if test "$USE_X_TOOLKIT" = "none"; then
-    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
-  else
-    OLDXMENU="\${lwlibdir}/liblw.a"
-  fi
-  LIBXMENU="\$(OLDXMENU)"
+	    [Define to 1 if you want to use version 11 of X windows.])
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
-  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  ## For a syntactically valid Makefile; not actually used for anything.
-  ## See comments in src/Makefile.in.
-  OLDXMENU=nothing
-  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
-  if test "${HAVE_X_WINDOWS}" = "yes"; then
-    LIBXMENU="-lXMenu"
-  else
-    LIBXMENU=
-  fi
   LIBX_OTHER=
-  OLDXMENU_DEPS=
 fi
-
-if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU_TARGET=
-  OLDXMENU=nothing
-  LIBXMENU=
-  OLDXMENU_DEPS=
-fi
-
-AC_SUBST(OLDXMENU_TARGET)
-AC_SUBST(OLDXMENU)
-AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
-AC_SUBST(OLDXMENU_DEPS)
+
+if test "$HAVE_GTK" = yes ||
+   test "$HAVE_MENUS" != yes || test "$HAVE_X11" != yes; then
+  LIBXMENU_DIR=
+  LIBXMENU_BASE=
+elif test "$USE_X_TOOLKIT" = none; then
+  LIBXMENU_DIR='$(oldXMenudir)/'
+  LIBXMENU_BASE='libXMenu11.a'
+else
+  LIBXMENU_DIR='$(lwlibdir)/'
+  LIBXMENU_BASE='liblw.a'
+fi
+AC_SUBST(LIBXMENU_DIR)
+AC_SUBST(LIBXMENU_BASE)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
