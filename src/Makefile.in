@@ -181,11 +181,7 @@ LIBXT_OTHER=@LIBXT_OTHER@
 ## If !HAVE_X11 || USE_GTK, empty.
 ## Else if USE_X_TOOLKIT, $(lwlibdir)/liblw.a.
 ## Else $(oldXMenudir)/libXMenu11.a.
-## LIBXMENU_DIR is the directory part, including any slash;
-## LIBXMENU_BASE is the rest.
-LIBXMENU_DIR=@LIBXMENU_DIR@
-LIBXMENU_BASE=@LIBXMENU_BASE@
-LIBXMENU=$(LIBXMENU_DIR)$(LIBXMENU_BASE)
+LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
@@ -204,7 +200,7 @@ LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 ## If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.
 LIBX_OTHER=@LIBX_OTHER@
 
-## LIBXMENU is nil if !HAVE_X_WINDOWS.
+## LIBXMENU is empty if !HAVE_X_WINDOWS.
 ## LD_SWITCH_X_SITE should not be used if not using X, but nothing
 ## sets it at present, and if something ever does, it should be
 ## configure, which should set it to nil in non-X builds.

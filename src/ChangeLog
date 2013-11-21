@@ -6,8 +6,6 @@
 	* Makefile.in (OLDXMENU_TARGET, OLDXMENU, OLDXMENU_DEPS)
 	(really-lwlib, really-oldXMenu, stamp-oldxmenu)
 	(../src/$(OLDXMENU), $(OLDXMENU)): Remove.
-	(LIBXMENU_DIR, LIBXMENU_BASE): New macros.
-	(LIBXMENU): Use them.
 	(temacs$(EXEEXT)): Depend on $(LIBXMENU), not stamp-oldxmenu.
 	($(lwlibdir)/liblw.a, $(oldXMenudir)/libXMenu11.a, FORCE): New targets.
 	(boostrap-clean): No need to remove stamp-oldxmenu.

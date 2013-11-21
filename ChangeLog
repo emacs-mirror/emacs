@@ -1,9 +1,10 @@
 2013-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some dependency problems that cause unnecessary recompiles.
-	* configure.ac (OLDXMENU_TARGET, OLDXMENU, LIBXMENU, OLDXMENU_DEPS):
+	* configure.ac (OLDXMENU_TARGET, OLDXMENU, OLDXMENU_DEPS):
 	Remove.
-	(LIBXMENU_DIR, LIBXMENU_BASE): New vars.
+	(LIBXMENU): Now is always either empty or a file name,
+	so that it can be used as a dependency.
 
 2013-11-20  Glenn Morris  <rgm@gnu.org>
 

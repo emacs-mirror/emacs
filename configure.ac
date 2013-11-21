@@ -4615,17 +4615,13 @@ AC_SUBST(LIBX_OTHER)
 
 if test "$HAVE_GTK" = yes ||
    test "$HAVE_MENUS" != yes || test "$HAVE_X11" != yes; then
-  LIBXMENU_DIR=
-  LIBXMENU_BASE=
+  LIBXMENU=
 elif test "$USE_X_TOOLKIT" = none; then
-  LIBXMENU_DIR='$(oldXMenudir)/'
-  LIBXMENU_BASE='libXMenu11.a'
+  LIBXMENU='$(oldXMenudir)/libXMenu11.a'
 else
-  LIBXMENU_DIR='$(lwlibdir)/'
-  LIBXMENU_BASE='liblw.a'
+  LIBXMENU='$(lwlibdir)/liblw.a'
 fi
-AC_SUBST(LIBXMENU_DIR)
-AC_SUBST(LIBXMENU_BASE)
+AC_SUBST(LIBXMENU)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
