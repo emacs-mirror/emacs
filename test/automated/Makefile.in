@@ -24,6 +24,10 @@ VPATH = $(srcdir)
 
 PATH_SEPARATOR = @PATH_SEPARATOR@
 
+# Empty for all systems except MinGW, where xargs needs an explicit
+# limitation.
+XARGS_LIMIT = @XARGS_LIMIT@
+
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
 # directory, we can use emacs --chdir.
@@ -76,7 +80,7 @@ compile-main: compile-clean
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
 	  echo "$${el}c"; \
-	done | xargs echo | \
+	done | xargs $(XARGS_LIMIT) echo | \
 	while read chunk; do \
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done

@@ -1,5 +1,8 @@
 2013-11-21  Glenn Morris  <rgm@gnu.org>
 
+	* automated/Makefile.in (XARGS_LIMIT): New, set by configure.
+	(compile-main): Pass XARGS_LIMIT to xargs.
+
 	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
 	(EMACSOPT): Use PATH_SEPARATOR.
 
