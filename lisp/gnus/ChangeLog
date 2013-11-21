@@ -1,3 +1,12 @@
+2013-11-21  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+
+	* nndoc.el (nndoc-type-alist, nndoc-debbugs-db-type-p): Support debbugs
+	.log files.
+
+2013-11-20  David Engster  <deng@randomsample.de>
+
+	* lpath.el: Fix XEmacs warning for `beginning-of-visual-line'.
+
 2013-11-20  Dave Goldberg  <david.goldberg6@verizon.net>
 
 	* message.el (message-beginning-of-line):
