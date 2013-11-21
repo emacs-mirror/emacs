@@ -110,6 +110,7 @@ parenthetical grouping.")
     (define-key map "\C-c;" 'octave-update-function-file-comment)
     (define-key map "\C-hd" 'octave-help)
     (define-key map "\C-ha" 'octave-lookfor)
+    (define-key map "\C-c\C-l" 'octave-source-file)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
@@ -174,6 +175,7 @@ parenthetical grouping.")
      ["Send Current Function"   octave-send-defun t]
      ["Send Region"             octave-send-region t]
      ["Send Buffer"             octave-send-buffer t]
+     ["Source Current File"     octave-source-file t]
      ["Show Process Buffer"     octave-show-process-buffer t]
      ["Hide Process Buffer"     octave-hide-process-buffer t]
      ["Kill Process"            octave-kill-process t])
@@ -1462,6 +1464,19 @@ entered without parens)."
   (if (get-buffer inferior-octave-buffer)
       (delete-windows-on inferior-octave-buffer)
     (message "No buffer named %s" inferior-octave-buffer)))
+
+(defun octave-source-file (file)
+  "Execute FILE in the inferior Octave process.
+This is done using Octave's source function.  FILE defaults to
+current buffer file unless called with a prefix arg \\[universal-argument]."
+  (interactive (list (or (and (not current-prefix-arg) buffer-file-name)
+                         (read-file-name "File: " nil nil t))))
+  (or (stringp file)
+      (signal 'wrong-type-argument (list 'stringp file)))
+  (inferior-octave t)
+  (with-current-buffer inferior-octave-buffer
+    (comint-send-string inferior-octave-process
+                        (format "source '%s'\n" file))))
 
 (defun octave-send-region (beg end)
   "Send current region to the inferior Octave process."

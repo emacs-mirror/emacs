@@ -1,3 +1,9 @@
+2013-11-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (octave-mode-map, octave-mode-menu): Add
+	`octave-source-file'.
+	(octave-source-file): New function.  (Bug#15935)
+
 2013-11-21  Kenjiro Nakayama <nakayamakenjiro@gmail.com>  (tiny change)
 
 	* net/eww.el (eww-local-regex): New variable.
