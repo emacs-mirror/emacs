@@ -1,3 +1,7 @@
+2013-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line-1): Use path-separator with -L.
+
 2013-11-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-lisp/package.el (describe-package-1): Add package archive

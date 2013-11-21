@@ -1,3 +1,8 @@
+2013-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
+	(EMACSOPT): Use PATH_SEPARATOR.
+
 2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve API of recently-added bool vector functions (Bug#15912).

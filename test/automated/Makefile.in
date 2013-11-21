@@ -22,13 +22,17 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 VPATH = $(srcdir)
 
+PATH_SEPARATOR = @PATH_SEPARATOR@
+
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
 # directory, we can use emacs --chdir.
 EMACS = ../../src/emacs
 
 # Command line flags for Emacs.
-EMACSOPT = -batch --no-site-file --no-site-lisp -L :$(srcdir)
+# Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
+# but we might as well be explicit.
+EMACSOPT = -batch --no-site-file --no-site-lisp -L $(PATH_SEPARATOR)$(srcdir)
 
 # Extra flags to pass to the byte compiler.
 BYTE_COMPILE_EXTRA_FLAGS =

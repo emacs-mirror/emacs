@@ -2219,7 +2219,7 @@ A fancy display is used on graphic displays, normal otherwise."
 		   ;; -L :/foo adds /foo to the _end_ of load-path.
 		   (let (append)
 		     (if (string-match-p
-			  "\\`:"
+			  (format "\\`%s" path-separator)
 			  (setq tem (or argval (pop command-line-args-left))))
 			 (setq tem (substring tem 1)
 			       append t))
