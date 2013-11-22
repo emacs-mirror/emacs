@@ -1,3 +1,8 @@
+2013-11-22  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-custom-encoding-magic-comment-template):
+	Improve docstring.
+
 2013-11-22  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-operator-regexp): Exclude newline.
