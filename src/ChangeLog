@@ -1,3 +1,8 @@
+2013-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_find_paragraph_start): Limit the returned positions
+	to BEGV_BYTE..ZV_BYTE range.  (Bug#15951)
+
 2013-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some dependency problems that cause unnecessary recompiles.

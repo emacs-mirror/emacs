@@ -1148,6 +1148,9 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
     pos = BEGV, pos_byte = BEGV_BYTE;
   if (bpc)
     know_region_cache (current_buffer, bpc, pos, oldpos);
+  /* Positions returned by the region cache are not limited to
+     BEGV..ZV range, so we limit them here.  */
+  pos_byte = clip_to_bounds (BEGV_BYTE, pos_byte, ZV_BYTE);
   return pos_byte;
 }
 
