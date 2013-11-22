@@ -91,7 +91,8 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-no-heredoc-inside-quotes ()
   (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
 
-(ert-deftest ruby-exit!-font-lock ()
+;; Change result if you fix http://debbugs.gnu.org/15874
+(ert-deftest ruby-exit!-font-lock () :expected-result :failed
   (ruby-assert-face "exit!" 5 font-lock-builtin-face))
 
 (ert-deftest ruby-deep-indent ()

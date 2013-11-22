@@ -1,3 +1,8 @@
+2013-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
+	Set expected-result.
+
 2013-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (XARGS_LIMIT): New, set by configure.
