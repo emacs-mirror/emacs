@@ -2,6 +2,9 @@
 
 	* progmodes/octave.el (octave-operator-regexp): Exclude newline.
 	(Bug#15076)
+	(octave-help-mode): Adapt to change to help-mode-finish to use
+	derived-mode-p on 2013-09-17.
+	(inferior-octave-prompt): Also match octave-gui.
 
 2013-11-22  Leo Liu  <sdl.web@gmail.com>
 

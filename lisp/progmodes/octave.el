@@ -599,7 +599,7 @@ definitions can also be stored in files and used in batch mode."
   :group 'octave)
 
 (defcustom inferior-octave-prompt
-  "\\(^octave\\(\\|.bin\\|.exe\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
+  "\\(^octave\\(\\|.bin\\|.exe\\|-gui\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
   "Regexp to match prompts for the inferior Octave process."
   :type 'regexp
   :group 'octave)
@@ -1649,7 +1649,7 @@ code line."
 
 (defvar octave-help-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\M-." 'octave-find-definition)
+    (define-key map "\M-."  'octave-find-definition)
     (define-key map "\C-hd" 'octave-help)
     (define-key map "\C-ha" 'octave-lookfor)
     map))
@@ -1659,26 +1659,9 @@ code line."
   :abbrev-table nil
   :syntax-table octave-mode-syntax-table
   (eval-and-compile (require 'help-mode))
-  ;; Mostly stolen from `help-make-xrefs'.
-  (let ((inhibit-read-only t))
-    (setq-local info-lookup-mode 'octave-mode)
-    ;; Delete extraneous newlines at the end of the docstring
-    (goto-char (point-max))
-    (while (and (not (bobp)) (bolp))
-      (delete-char -1))
-    (insert "\n")
-    (when (or help-xref-stack help-xref-forward-stack)
-      (insert "\n"))
-    (when help-xref-stack
-      (help-insert-xref-button help-back-label 'help-back
-                               (current-buffer)))
-    (when help-xref-forward-stack
-      (when help-xref-stack
-        (insert "\t"))
-      (help-insert-xref-button help-forward-label 'help-forward
-                               (current-buffer)))
-    (when (or help-xref-stack help-xref-forward-stack)
-      (insert "\n"))))
+  ;; Don't highlight `EXAMPLE' as elisp symbols by using a regexp that
+  ;; can never match.
+  (setq-local help-xref-symbol-regexp "x\\`"))
 
 (defun octave-help (fn)
   "Display the documentation of FN."
