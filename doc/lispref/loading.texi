@@ -270,9 +270,11 @@ is a directory something like
 "/usr/local/share/emacs/@var{version}/lisp"
 @end example
 
-followed by a similarly named @file{leim} directory.  These
-directories contain the standard Lisp files that come with Emacs.
-If Emacs cannot find them, it will not start correctly.
+followed by a similarly named @file{leim} directory.
+(In this and the following examples, replace @file{/usr/local} with
+the installation prefix appropriate for your Emacs.)
+These directories contain the standard Lisp files that come with
+Emacs.  If Emacs cannot find them, it will not start correctly.
 
 If you run Emacs from the directory where it was built---that is, an
 executable that has not been formally installed---Emacs instead

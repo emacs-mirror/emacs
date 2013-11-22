@@ -1,3 +1,7 @@
+2013-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search): Minor clarification.
+
 2013-11-20  Leo Liu  <sdl.web@gmail.com>
 
 	* windows.texi (Choosing Window): Mention `no-display-ok'.  (Bug#13594)
