@@ -698,6 +698,9 @@ in the Inferior Octave buffer.")
 
 (declare-function compilation-forget-errors "compile" ())
 
+(defun inferior-octave-process-live-p ()
+  (and inferior-octave-process (process-live-p inferior-octave-process)))
+
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
   "Major mode for interacting with an inferior Octave process."
   :abbrev-table octave-abbrev-table
@@ -782,7 +785,7 @@ startup file, `~/.emacs-octave'."
     ;; output may be mixed up).  Hence, we need to digest the Octave
     ;; output to see when it issues a prompt.
     (while inferior-octave-receive-in-progress
-      (or (process-live-p inferior-octave-process)
+      (or (inferior-octave-process-live-p)
           (error "Process `%s' died" inferior-octave-process))
       (accept-process-output inferior-octave-process))
     (goto-char (point-max))
@@ -903,8 +906,7 @@ the rest to `inferior-octave-output-string'."
   (setq inferior-octave-output-string string))
 
 (defun inferior-octave-check-process ()
-  (or (and inferior-octave-process
-           (process-live-p inferior-octave-process))
+  (or (inferior-octave-process-live-p)
       (error (substitute-command-keys
               "No inferior octave process running. Type \\[run-octave]"))))
 
@@ -973,8 +975,7 @@ directory and makes this the current buffer's default directory."
   (let ((width (max inferior-octave-minimal-columns (window-width))))
     (unless (eq inferior-octave-last-column-width width)
       (setq-local inferior-octave-last-column-width width)
-      (when (and inferior-octave-process
-                 (process-live-p inferior-octave-process))
+      (when (inferior-octave-process-live-p)
         (inferior-octave-send-list-and-digest
          (list (format "putenv ('COLUMNS', '%s');\n" width)))))))
 
@@ -1398,8 +1399,7 @@ The block marked is the one that contains point or follows point."
         (save-excursion (skip-syntax-forward "w_")
                         (setq end (point))))
     (when (> end beg)
-      (list beg end (or (and inferior-octave-process
-                             (process-live-p inferior-octave-process)
+      (list beg end (or (and (inferior-octave-process-live-p)
                              inferior-octave-completion-table)
                         octave-reserved-words)))))
 
@@ -1444,12 +1444,13 @@ entered without parens)."
 (defun octave-kill-process ()
   "Kill inferior Octave process and its buffer."
   (interactive)
-  (if inferior-octave-process
-      (progn
-	(process-send-string inferior-octave-process "quit;\n")
-	(accept-process-output inferior-octave-process)))
-  (if inferior-octave-buffer
-      (kill-buffer inferior-octave-buffer)))
+  (or (yes-or-no-p "Kill the inferior Octave process and its buffer? ")
+      (user-error "Aborted"))
+  (when (inferior-octave-process-live-p)
+    (process-send-string inferior-octave-process "quit;\n")
+    (accept-process-output inferior-octave-process))
+  (when inferior-octave-buffer
+    (kill-buffer inferior-octave-buffer)))
 
 (defun octave-show-process-buffer ()
   "Make sure that `inferior-octave-buffer' is displayed."
@@ -1592,8 +1593,7 @@ code line."
 
 (defun octave-eldoc-function ()
   "A function for `eldoc-documentation-function' (which see)."
-  (when (and inferior-octave-process
-             (process-live-p inferior-octave-process))
+  (when (inferior-octave-process-live-p)
     (let* ((ppss (syntax-ppss))
            (paren-pos (cadr ppss))
            (fn (save-excursion
