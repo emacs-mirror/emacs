@@ -270,13 +270,15 @@ even if it's not required."
           (const :tag "Emacs Style" emacs)
           (const :tag "Ruby Style" ruby)
           (const :tag "Custom Style" custom))
-  :group 'ruby)
+  :group 'ruby
+  :version "24.4")
 
 (defcustom ruby-custom-encoding-magic-comment-template "# encoding: %s"
   "A custom encoding comment template.
 It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   :type 'string
-  :group 'ruby)
+  :group 'ruby
+  :version "24.4")
 
 (defcustom ruby-use-encoding-map t
   "Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
