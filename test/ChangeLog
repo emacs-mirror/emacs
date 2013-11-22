@@ -11,6 +11,13 @@
 	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
 	(EMACSOPT): Use PATH_SEPARATOR.
 
+2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
+
+	* test/automated/ruby-mode-tests.el:
+	Add a failing test for Bug#15874.
+	* test/automated/ruby-mode-tests.el:
+	Add a few tests for `ruby--insert-coding-comment'.
+
 2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve API of recently-added bool vector functions (Bug#15912).
