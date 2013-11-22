@@ -53,6 +53,12 @@
 	* emacs-lisp/package.el (describe-package-1): Add package archive
 	to shown fields.
 
+2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-custom-encoding-magic-comment-template):
+	Change default to "# encoding: %s" to differentiate it from the
+	default Ruby encoding comment template.
+
 2013-11-20  era eriksson  <era+emacsbugs@iki.fi>
 
 	* ses.el (ses-mode): Doc fix.  (Bug#14748)
