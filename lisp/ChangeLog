@@ -5,6 +5,7 @@
 	(octave-help-mode): Adapt to change to help-mode-finish to use
 	derived-mode-p on 2013-09-17.
 	(inferior-octave-prompt): Also match octave-gui.
+	(octave-kill-process): Don't ask twice.  (Bug#10564)
 
 2013-11-22  Leo Liu  <sdl.web@gmail.com>
 

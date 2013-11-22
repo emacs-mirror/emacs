@@ -1445,12 +1445,14 @@ entered without parens)."
 (defun octave-kill-process ()
   "Kill inferior Octave process and its buffer."
   (interactive)
-  (or (yes-or-no-p "Kill the inferior Octave process and its buffer? ")
-      (user-error "Aborted"))
-  (when (inferior-octave-process-live-p)
-    (process-send-string inferior-octave-process "quit;\n")
-    (accept-process-output inferior-octave-process))
-  (when inferior-octave-buffer
+  (when (and (buffer-live-p (get-buffer inferior-octave-buffer))
+             (or (yes-or-no-p (format "Kill %S and its buffer? "
+                                      inferior-octave-process))
+                 (user-error "Aborted")))
+    (when (inferior-octave-process-live-p)
+      (set-process-query-on-exit-flag inferior-octave-process nil)
+      (process-send-string inferior-octave-process "quit;\n")
+      (accept-process-output inferior-octave-process))
     (kill-buffer inferior-octave-buffer)))
 
 (defun octave-show-process-buffer ()
