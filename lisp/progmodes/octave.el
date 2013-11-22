@@ -363,7 +363,8 @@ Non-nil means always go to the next Octave code line after sending."
 ;; corresponding continuation lines).
 
 (defconst octave-operator-regexp
-  (regexp-opt (apply 'append (mapcar 'cdr octave-operator-table))))
+  (regexp-opt (remove "\n" (apply 'append
+                                  (mapcar 'cdr octave-operator-table)))))
 
 (defun octave-smie-backward-token ()
   (let ((pos (point)))
