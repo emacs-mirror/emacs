@@ -1,3 +1,8 @@
+2013-11-22  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup): Spit out error
+	message.
+
 2013-11-22  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* progmodes/ruby-mode.el (ruby-custom-encoding-magic-comment-template):

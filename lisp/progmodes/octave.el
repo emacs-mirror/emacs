@@ -786,8 +786,13 @@ startup file, `~/.emacs-octave'."
     ;; output may be mixed up).  Hence, we need to digest the Octave
     ;; output to see when it issues a prompt.
     (while inferior-octave-receive-in-progress
-      (or (inferior-octave-process-live-p)
-          (error "Process `%s' died" inferior-octave-process))
+      (unless (inferior-octave-process-live-p)
+        ;; Spit out the error messages.
+        (when inferior-octave-output-list
+          (princ (concat (mapconcat 'identity inferior-octave-output-list "\n")
+                         "\n")
+                 (process-mark inferior-octave-process)))
+        (error "Process `%s' died" inferior-octave-process))
       (accept-process-output inferior-octave-process))
     (goto-char (point-max))
     (set-marker (process-mark proc) (point))
