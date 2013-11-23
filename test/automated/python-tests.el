@@ -1448,9 +1448,7 @@ def f():
   "Check the command to execute is calculated correctly.
 Using `python-shell-interpreter' and
 `python-shell-interpreter-args'."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (let ((python-shell-interpreter (executable-find
                                    python-tests-shell-interpreter))
         (python-shell-interpreter-args "-B"))
@@ -1522,9 +1520,7 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-make-comint-1 ()
   "Check comint creation for global shell buffer."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (let* ((python-shell-interpreter
           (executable-find python-tests-shell-interpreter))
          (proc-name (python-shell-get-process-name nil))
@@ -1544,9 +1540,7 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-make-comint-2 ()
   "Check comint creation for internal shell buffer."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (let* ((python-shell-interpreter
           (executable-find python-tests-shell-interpreter))
          (proc-name (python-shell-internal-get-process-name))
@@ -1566,9 +1560,7 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-get-process-1 ()
   "Check dedicated shell process preference over global."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-file
       ""
     (let* ((python-shell-interpreter
@@ -1627,9 +1619,7 @@ Using `python-shell-interpreter' and
 
 (ert-deftest python-shell-internal-get-or-create-process-1 ()
   "Check internal shell process creation fallback."
-  :expected-result (if (executable-find python-tests-shell-interpreter)
-                       :passed
-                     :failed)
+  (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-file
       ""
     (should (not (process-live-p (python-shell-internal-get-process-name))))

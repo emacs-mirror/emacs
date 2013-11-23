@@ -1,5 +1,11 @@
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
+	* automated/python-tests.el (python-shell-parse-command-1)
+	(python-shell-make-comint-1, python-shell-make-comint-2)
+	(python-shell-get-process-1)
+	(python-shell-internal-get-or-create-process-1):
+	Skip rather than fail if prereqs not found.
+
 	* automated/Makefile.in (emacs):
 	Empty EMACSLOADPATH rather than unsetting.
 
