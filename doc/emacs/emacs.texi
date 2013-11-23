@@ -115,6 +115,7 @@ display editor.  This manual describes how to edit with Emacs and
 some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
 
+@c See `manual-html-mono' and `manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
 @html
 The homepage for GNU Emacs is at

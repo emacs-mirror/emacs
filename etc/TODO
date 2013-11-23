@@ -544,7 +544,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   aim for completeness, but some may be worth documenting.
 
   Here's a list which is probably not complete/correct: align, allout,
-  artist, ansi-color, array, battery, calculator, cdl, cmuscheme,
+  artist, ansi-color, array, calculator, cdl, cmuscheme,
   completion, cua, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
   generic/generic-x [various modes], kermit, log-edit,
