@@ -1,3 +1,8 @@
+2013-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (init_lread): Fix int/Lisp_Object mixup.
+	Please use --enable-check-lisp-object-type.
+
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* process.c (get_process): Explicit error for dead buffers.

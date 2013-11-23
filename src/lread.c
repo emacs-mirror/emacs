@@ -4341,7 +4341,7 @@ init_lread (void)
       load_path_check (Vload_path);
 
       /* Replace any nil elements from the environment with the default.  */
-      if (Fmemq (Qnil, Vload_path))
+      if (!NILP (Fmemq (Qnil, Vload_path)))
         {
           Lisp_Object lpath = Vload_path;
           Lisp_Object elem, default_lpath = load_path_default (1);
