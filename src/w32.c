@@ -299,7 +299,8 @@ static BOOL g_b_init_get_security_descriptor_dacl;
 static BOOL g_b_init_convert_sd_to_sddl;
 static BOOL g_b_init_convert_sddl_to_sd;
 static BOOL g_b_init_is_valid_security_descriptor;
-static BOOL g_b_init_set_file_security;
+static BOOL g_b_init_set_file_security_w;
+static BOOL g_b_init_set_file_security_a;
 static BOOL g_b_init_get_adapters_info;
 
 /*
@@ -366,8 +367,12 @@ typedef BOOL (WINAPI * GetFileSecurityA_Proc) (
     PSECURITY_DESCRIPTOR pSecurityDescriptor,
     DWORD nLength,
     LPDWORD lpnLengthNeeded);
-typedef BOOL (WINAPI *SetFileSecurity_Proc) (
-    LPCTSTR lpFileName,
+typedef BOOL (WINAPI *SetFileSecurityW_Proc) (
+    LPCWSTR lpFileName,
+    SECURITY_INFORMATION SecurityInformation,
+    PSECURITY_DESCRIPTOR pSecurityDescriptor);
+typedef BOOL (WINAPI *SetFileSecurityA_Proc) (
+    LPCSTR lpFileName,
     SECURITY_INFORMATION SecurityInformation,
     PSECURITY_DESCRIPTOR pSecurityDescriptor);
 typedef BOOL (WINAPI * GetSecurityDescriptorOwner_Proc) (
@@ -751,32 +756,60 @@ get_file_security (const char *lpFileName,
 }
 
 static BOOL WINAPI
-set_file_security (LPCTSTR lpFileName,
+set_file_security (const char *lpFileName,
 		   SECURITY_INFORMATION SecurityInformation,
 		   PSECURITY_DESCRIPTOR pSecurityDescriptor)
 {
-  static SetFileSecurity_Proc s_pfn_Set_File_Security = NULL;
+  static SetFileSecurityW_Proc s_pfn_Set_File_SecurityW = NULL;
+  static SetFileSecurityA_Proc s_pfn_Set_File_SecurityA = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       errno = ENOTSUP;
       return FALSE;
     }
-  if (g_b_init_set_file_security == 0)
+  if (w32_unicode_filenames)
     {
-      g_b_init_set_file_security = 1;
-      hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Set_File_Security =
-        (SetFileSecurity_Proc) GetProcAddress (
-            hm_advapi32, "SetFileSecurityA");
+      wchar_t filename_w[MAX_PATH];
+
+      if (g_b_init_set_file_security_w == 0)
+	{
+	  g_b_init_set_file_security_w = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Set_File_SecurityW =
+	    (SetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
+						    "SetFileSecurityW");
+	}
+      if (s_pfn_Set_File_SecurityW == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_utf16 (lpFileName, filename_w);
+      return (s_pfn_Set_File_SecurityW (filename_w, SecurityInformation,
+					pSecurityDescriptor));
     }
-  if (s_pfn_Set_File_Security == NULL)
+  else
     {
-      errno = ENOTSUP;
-      return FALSE;
+      char filename_a[MAX_PATH];
+
+      if (g_b_init_set_file_security_a == 0)
+	{
+	  g_b_init_set_file_security_a = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Set_File_SecurityA =
+	    (SetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
+						    "SetFileSecurityA");
+	}
+      if (s_pfn_Set_File_SecurityA == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_ansi (lpFileName, filename_a);
+      return (s_pfn_Set_File_SecurityA (filename_a, SecurityInformation,
+					pSecurityDescriptor));
     }
-  return (s_pfn_Set_File_Security (lpFileName, SecurityInformation,
-				   pSecurityDescriptor));
 }
 
 static BOOL WINAPI
@@ -5643,7 +5676,11 @@ acl_get_file (const char *fname, acl_type_t type)
 		}
 	    }
 	  else if (err == ERROR_FILE_NOT_FOUND
-		   || err == ERROR_PATH_NOT_FOUND)
+		   || err == ERROR_PATH_NOT_FOUND
+		   /* ERROR_INVALID_NAME is what we get if
+		      w32-unicode-filenames is nil and the file cannot
+		      be encoded in the current ANSI codepage. */
+		   || err == ERROR_INVALID_NAME)
 	    errno = ENOENT;
 	  else
 	    errno = EIO;
@@ -5721,7 +5758,7 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
 
   e = errno;
   errno = 0;
-  if (!set_file_security ((char *)fname, flags, (PSECURITY_DESCRIPTOR)acl))
+  if (!set_file_security (fname, flags, (PSECURITY_DESCRIPTOR)acl))
     {
       err = GetLastError ();
 
@@ -5754,7 +5791,12 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
 	      acl_free (current_acl);
 	    }
 	}
-      else if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND)
+      else if (err == ERROR_FILE_NOT_FOUND
+	       || err == ERROR_PATH_NOT_FOUND
+	       /* ERROR_INVALID_NAME is what we get if
+		  w32-unicode-filenames is nil and the file cannot be
+		  encoded in the current ANSI codepage. */
+	       || err == ERROR_INVALID_NAME)
 	errno = ENOENT;
       else
 	errno = EACCES;
@@ -8501,7 +8543,8 @@ globals_of_w32 (void)
   g_b_init_convert_sd_to_sddl = 0;
   g_b_init_convert_sddl_to_sd = 0;
   g_b_init_is_valid_security_descriptor = 0;
-  g_b_init_set_file_security = 0;
+  g_b_init_set_file_security_w = 0;
+  g_b_init_set_file_security_a = 0;
   g_b_init_get_adapters_info = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
