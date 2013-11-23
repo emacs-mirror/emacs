@@ -2056,7 +2056,7 @@ When MSG is non-nil messages the first line of STRING."
   (let ((process (or process (python-shell-get-or-create-process))))
     (if (string-match ".\n+." string)   ;Multiline.
         (let* ((temp-file-name (python-shell--save-temp-file string)))
-          (python-shell-send-file temp-file-name process temp-file-name))
+          (python-shell-send-file temp-file-name process temp-file-name t))
       (comint-send-string process string)
       (when (or (not (string-match "\n\\'" string))
                 (string-match "\n[ \t].*\n?\\'" string))
@@ -2212,7 +2212,7 @@ the python shell:
     (message "Sent: %s..." (match-string 1 string))
     (let* ((temp-file-name (python-shell--save-temp-file string))
            (file-name (or (buffer-file-name) temp-file-name)))
-      (python-shell-send-file file-name process temp-file-name)
+      (python-shell-send-file file-name process temp-file-name t)
       (unless python--use-fake-loc
         (with-current-buffer (process-buffer process)
           (compilation-fake-loc (copy-marker start) temp-file-name
@@ -2249,11 +2249,12 @@ When argument ARG is non-nil do not include decorators."
            (end-of-line 1))
        (point-marker)))))
 
-(defun python-shell-send-file (file-name &optional process temp-file-name)
+(defun python-shell-send-file (file-name &optional process temp-file-name
+                                         delete)
   "Send FILE-NAME to inferior Python PROCESS.
 If TEMP-FILE-NAME is passed then that file is used for processing
 instead, while internally the shell will continue to use
-FILE-NAME."
+FILE-NAME.  If DELETE is non-nil, delete the file afterwards."
   (interactive "fFile to send: ")
   (let* ((process (or process (python-shell-get-or-create-process)))
          (temp-file-name (when temp-file-name
@@ -2271,8 +2272,11 @@ FILE-NAME."
      (format
       (concat "__pyfile = open('''%s''');"
               "exec(compile(__pyfile.read(), '''%s''', 'exec'));"
-              "__pyfile.close()")
-      (or temp-file-name file-name) file-name)
+              "__pyfile.close()%s")
+      (or temp-file-name file-name) file-name
+      (if delete (format "; import os; os.remove('''%s''')"
+                         (or temp-file-name file-name))
+        ""))
      process)))
 
 (defun python-shell-switch-to-shell ()

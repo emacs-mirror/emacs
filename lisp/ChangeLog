@@ -1,3 +1,9 @@
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el (python-shell-send-file):
+	Add option to delete file when done.  (Bug#15647)
+	(python-shell-send-string, python-shell-send-region): Use it.
+
 2013-11-23  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
 
 	* vc/diff-mode.el (diff-mode): Only allow diff-default-read-only
