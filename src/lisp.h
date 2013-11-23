@@ -1,7 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4058,7 +4057,7 @@ extern int initial_argc;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
 extern bool display_arg;
 #endif
-extern Lisp_Object decode_env_path (const char *, const char *);
+extern Lisp_Object decode_env_path (const char *, const char *, bool);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
 extern _Noreturn void terminate_due_to_signal (int, int);

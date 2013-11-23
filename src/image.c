@@ -9502,7 +9502,7 @@ A cross is always drawn on black & white displays.  */);
 
   DEFVAR_LISP ("x-bitmap-file-path", Vx_bitmap_file_path,
     doc: /* List of directories to search for window system bitmap files.  */);
-  Vx_bitmap_file_path = decode_env_path (0, PATH_BITMAPS);
+  Vx_bitmap_file_path = decode_env_path (0, PATH_BITMAPS, 0);
 
   DEFVAR_LISP ("image-cache-eviction-delay", Vimage_cache_eviction_delay,
     doc: /* Maximum time after which images are removed from the cache.

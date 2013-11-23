@@ -2167,10 +2167,13 @@ synchronize_system_messages_locale (void)
 
 
 Lisp_Object
-decode_env_path (const char *evarname, const char *defalt)
+decode_env_path (const char *evarname, const char *defalt, bool empty)
 {
   const char *path, *p;
   Lisp_Object lpath, element, tem;
+  /* Default is to use "." for empty path elements.
+     But if argument EMPTY is true, use nil instead.  */
+  Lisp_Object empty_element = empty ? Qnil : build_string (".");
 #ifdef WINDOWSNT
   bool defaulted = 0;
   const char *emacs_dir = egetenv ("emacs_dir");
@@ -2209,34 +2212,38 @@ decode_env_path (const char *evarname, const char *defalt)
       if (!p)
 	p = path + strlen (path);
       element = (p - path ? make_unibyte_string (path, p - path)
-		 : build_string ("."));
+		 : empty_element);
+      if (! NILP (element))
+        {
 #ifdef WINDOWSNT
-      /* Relative file names in the default path are interpreted as
-	 being relative to $emacs_dir.  */
-      if (emacs_dir && defaulted
-	  && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
-	element = Fexpand_file_name (Fsubstring (element,
-						 make_number (emacs_dir_len),
-						 Qnil),
-				     build_unibyte_string (emacs_dir));
+          /* Relative file names in the default path are interpreted as
+             being relative to $emacs_dir.  */
+          if (emacs_dir && defaulted
+              && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
+            element = Fexpand_file_name (Fsubstring
+                                         (element,
+                                          make_number (emacs_dir_len),
+                                          Qnil),
+                                         build_unibyte_string (emacs_dir));
 #endif
 
-      /* Add /: to the front of the name
-	 if it would otherwise be treated as magic.  */
-      tem = Ffind_file_name_handler (element, Qt);
+          /* Add /: to the front of the name
+             if it would otherwise be treated as magic.  */
+          tem = Ffind_file_name_handler (element, Qt);
 
-      /* However, if the handler says "I'm safe",
-	 don't bother adding /:.  */
-      if (SYMBOLP (tem))
-	{
-	  Lisp_Object prop;
-	  prop = Fget (tem, intern ("safe-magic"));
-	  if (! NILP (prop))
-	    tem = Qnil;
-	}
+          /* However, if the handler says "I'm safe",
+             don't bother adding /:.  */
+          if (SYMBOLP (tem))
+            {
+              Lisp_Object prop;
+              prop = Fget (tem, intern ("safe-magic"));
+              if (! NILP (prop))
+                tem = Qnil;
+            }
 
-      if (! NILP (tem))
-	element = concat2 (build_string ("/:"), element);
+          if (! NILP (tem))
+            element = concat2 (build_string ("/:"), element);
+        } /* !NILP (element) */
 
       lpath = Fcons (element, lpath);
       if (*p)

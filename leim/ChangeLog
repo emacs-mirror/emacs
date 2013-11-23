@@ -1,3 +1,7 @@
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (RUN_EMACS): Empty EMACSLOADPATH rather than unsetting.
+
 2013-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (RUN_EMACS): Don't set LC_ALL=C.  (Bug#15260)

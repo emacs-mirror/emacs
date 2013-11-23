@@ -32,8 +32,7 @@ EMACS = ../src/emacs
 
 # How to run Emacs.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-RUN_EMACS = unset EMACSLOADPATH; "${EMACS}" -batch \
-	--no-site-file --no-site-lisp
+RUN_EMACS = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
 
 MKDIR_P = @MKDIR_P@
 

@@ -1,3 +1,19 @@
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	Empty elements in EMACSLOADPATH stand for the default.  (Bug#12100)
+	* lread.c (load_path_check): Take path to check as argument.
+	(load_path_default): New, split from init_lread.
+	(init_lread): Move calc of default load-path to load_path_default.
+	Empty elements in EMACSLOADPATH now stand for the default.
+	(load-path): Doc fix.
+	* emacs.c (decode_env_path): Add option to treat empty elements
+	as nil rather than ".".
+	* callproc.c (init_callproc_1, init_callproc):
+	* image.c (Vx_bitmap_file_path):
+	* lisp.h (decode_env_path):
+	* lread.c (Vsource_directory):
+	Update for new argument spec of decode_env_path.
+
 2013-11-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_find_paragraph_start): Limit the returned positions

@@ -310,24 +310,33 @@ directories, if they exist.  Normally these directories do not contain
 @file{site-lisp} directories.)
 
 @cindex @env{EMACSLOADPATH} environment variable
-If the environment variable @env{EMACSLOADPATH} is set, it overrides
-the above initialization procedure.  That is, Emacs initializes
-@code{load-path} based solely on the value of the environment
-variable.  You must therefore include the directory containing the
-standard Lisp files, else Emacs will not function.  In most
-situations, it is better to use the @option{-L} command-line option
-(see below) to add elements to @code{load-path}.
+If the environment variable @env{EMACSLOADPATH} is set, it modifies
+the above initialization procedure.  Emacs initializes
+@code{load-path} based on the value of the environment variable.
 
 The syntax of @env{EMACSLOADPATH} is the same as used for @code{PATH};
 directory names are separated by @samp{:} (or @samp{;}, on some
-operating systems), and @samp{.} stands for the current default
-directory.  Here is an example of how to set @env{EMACSLOADPATH}
-variable (from a @command{sh}-style shell):
+operating systems).
+@ignore
+@c AFAICS, does not (yet) work right to specify non-absolute elements.
+and @samp{.} stands for the current default directory.
+@end ignore
+Here is an example of how to set @env{EMACSLOADPATH} variable (from a
+@command{sh}-style shell):
 
 @example
-export EMACSLOADPATH
-EMACSLOADPATH=/home/foo/.emacs.d/lisp:/usr/local/emacs/24.3/lisp
+export EMACSLOADPATH=/home/foo/.emacs.d/lisp:
 @end example
+
+An empty element in the value of the environment variable, whether
+trailing (as in the above example), leading, or embedded, is replaced
+by the default value of @code{load-path} as determined by the standard
+initialization procedure.  If there are no such empty elements, then
+@env{EMACSLOADPATH} specifies the entire @code{load-path}.  You must
+include either an empty element, or the explicit path to the directory
+containing the standard Lisp files, else Emacs will not function.
+(Another way to modify @code{load-path} is to use the @option{-L}
+command-line option when starting Emacs; see below.)
 
   For each directory in @code{load-path}, Emacs then checks to see if
 it contains a file @file{subdirs.el}, and if so, loads it.  The

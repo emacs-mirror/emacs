@@ -1,3 +1,7 @@
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs): Empty EMACSLOADPATH rather than unsetting.
+
 2013-11-22  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-startup): Spit out error

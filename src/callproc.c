@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2013
-		 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1988, 1993-1995, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1520,14 +1520,14 @@ init_callproc_1 (void)
 #ifdef HAVE_NS
                                              etc_dir ? etc_dir :
 #endif
-                                             PATH_DATA);
+                                             PATH_DATA, 0);
   Vdata_directory = Ffile_name_as_directory (Fcar (Vdata_directory));
 
   Vdoc_directory = decode_env_path ("EMACSDOC",
 #ifdef HAVE_NS
                                              etc_dir ? etc_dir :
 #endif
-                                             PATH_DOC);
+                                             PATH_DOC, 0);
   Vdoc_directory = Ffile_name_as_directory (Fcar (Vdoc_directory));
 
   /* Check the EMACSPATH environment variable, defaulting to the
@@ -1536,10 +1536,10 @@ init_callproc_1 (void)
 #ifdef HAVE_NS
                                 path_exec ? path_exec :
 #endif
-                                PATH_EXEC);
+                                PATH_EXEC, 0);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   /* FIXME?  For ns, path_exec should go at the front?  */
-  Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
+  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
 }
 
 /* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
@@ -1580,9 +1580,9 @@ init_callproc (void)
 #ifdef HAVE_NS
 					path_exec ? path_exec :
 #endif
-					PATH_EXEC);
+					PATH_EXEC, 0);
 	  Vexec_path = Fcons (tem, Vexec_path);
-	  Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
+	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
 	}
 
       Vexec_directory = Ffile_name_as_directory (tem);

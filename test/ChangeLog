@@ -1,3 +1,8 @@
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (emacs):
+	Empty EMACSLOADPATH rather than unsetting.
+
 2013-11-22  Glenn Morris  <rgm@gnu.org>
 
 	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):

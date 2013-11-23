@@ -63,6 +63,16 @@ To use the old backend by default, do on the command line:
 * Startup Changes in Emacs 24.4
 
 +++
+** When initializing `load-path', an empty element in the EMACSLOADPATH
+environment variable (either leading, e.g., ":/foo"; trailing, e.g.,
+"/foo:"; or embedded, e.g., "/foo::/bar") is replaced with the default
+load-path (the one that would have been used if EMACSLOADPATH was unset).
+This makes it easier to _extend_ the load-path via EMACSLOADPATH
+(previously, EMACSLOADPATH had to specify the complete load-path,
+including the defaults).  (In older versions of Emacs, an empty element
+was replaced by ".", so use an explicit "." now if that is what you want.)
+
++++
 ** The -L option, which normally prepends its argument to load-path,
 will instead append, if the argument begins with `:' (or `;' on MS Windows;
 i.e., `path-separator').
