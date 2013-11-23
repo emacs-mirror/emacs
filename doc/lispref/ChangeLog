@@ -1,3 +1,8 @@
+2013-11-23  Brian Jenkins  <brian@brianjenkins.org>  (tiny change)
+
+	* frames.texi (Input Focus):
+	* hooks.texi (Standard Hooks): Mention focus-in-hook, focus-out-hook.
+
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (Library Search):

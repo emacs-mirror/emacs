@@ -1479,6 +1479,14 @@ The redirection lasts until @code{redirect-frame-focus} is called to
 change it.
 @end defun
 
+@defvar focus-in-hook
+This is a normal hook run when an Emacs frame gains input focus.
+@end defvar
+
+@defvar focus-out-hook
+This is a normal hook run when an Emacs frame loses input focus.
+@end defvar
+
 @defopt focus-follows-mouse
 This option is how you inform Emacs whether the window manager transfers
 focus when the user moves the mouse.  Non-@code{nil} says that it does.
