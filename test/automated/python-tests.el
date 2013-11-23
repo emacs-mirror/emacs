@@ -1521,7 +1521,11 @@ Using `python-shell-interpreter' and
 (ert-deftest python-shell-make-comint-1 ()
   "Check comint creation for global shell buffer."
   (skip-unless (executable-find python-tests-shell-interpreter))
-  (let* ((python-shell-interpreter
+  ;; The interpreter can get killed too quickly to allow it to clean
+  ;; up the tempfiles that the default python-shell-setup-codes create,
+  ;; so it leaves tempfiles behind, which is a minor irritation.
+  (let* ((python-shell-setup-codes nil)
+         (python-shell-interpreter
           (executable-find python-tests-shell-interpreter))
          (proc-name (python-shell-get-process-name nil))
          (shell-buffer
@@ -1541,7 +1545,8 @@ Using `python-shell-interpreter' and
 (ert-deftest python-shell-make-comint-2 ()
   "Check comint creation for internal shell buffer."
   (skip-unless (executable-find python-tests-shell-interpreter))
-  (let* ((python-shell-interpreter
+  (let* ((python-shell-setup-codes nil)
+         (python-shell-interpreter
           (executable-find python-tests-shell-interpreter))
          (proc-name (python-shell-internal-get-process-name))
          (shell-buffer
@@ -1563,7 +1568,8 @@ Using `python-shell-interpreter' and
   (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-file
       ""
-    (let* ((python-shell-interpreter
+    (let* ((python-shell-setup-codes nil)
+           (python-shell-interpreter
             (executable-find python-tests-shell-interpreter))
            (global-proc-name (python-shell-get-process-name nil))
            (dedicated-proc-name (python-shell-get-process-name t))
