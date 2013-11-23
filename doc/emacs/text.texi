@@ -2011,8 +2011,8 @@ highlighting (@pxref{Font Lock}).  Unlike Enriched mode, Font Lock
 mode assigns text properties automatically, based on the current
 buffer contents; those properties are not saved to disk.
 
-  The file @file{etc/enriched.doc} in the Emacs distribution serves as
-an example of the features of Enriched mode.
+  The file @file{enriched.txt} in Emacs's @code{data-directory}
+serves as an example of the features of Enriched mode.
 
 @menu
 * Enriched Mode::           Entering and exiting Enriched mode.
