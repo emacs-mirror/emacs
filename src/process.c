@@ -812,9 +812,8 @@ get_process (register Lisp_Object name)
   else
     obj = name;
 
-  /* Now obj should be either a buffer object or a process object.
-   */
-  if (BUFFERP (obj))
+  /* Now obj should be either a (live) buffer object or a process object.  */
+  if (BUFFERP (obj) && !NILP (BVAR (XBUFFER (obj), name)))
     {
       proc = Fget_buffer_process (obj);
       if (NILP (proc))
