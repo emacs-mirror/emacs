@@ -6249,18 +6249,31 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
     {
+      OFNOTIFYW * notify_w = (OFNOTIFYW *)lParam;
+      OFNOTIFYA * notify_a = (OFNOTIFYA *)lParam;
+      int dropdown_changed;
+      int dir_index;
 #ifdef NTGUI_UNICODE
-      OFNOTIFYW * notify = (OFNOTIFYW *)lParam;
+      int use_unicode = 1;
 #else /* !NTGUI_UNICODE */
-      OFNOTIFYA * notify = (OFNOTIFYA *)lParam;
+      int use_unicode = w32_unicode_filenames;
 #endif /* NTGUI_UNICODE */
+
       /* Detect when the Filter dropdown is changed.  */
-      if (notify->hdr.code == CDN_TYPECHANGE
-	  || notify->hdr.code == CDN_INITDONE)
+      if (use_unicode)
+	dropdown_changed =
+	  notify_w->hdr.code == CDN_TYPECHANGE
+	  || notify_w->hdr.code == CDN_INITDONE;
+      else
+	dropdown_changed =
+	  notify_a->hdr.code == CDN_TYPECHANGE
+	  || notify_a->hdr.code == CDN_INITDONE;
+      if (dropdown_changed)
 	{
 	  HWND dialog = GetParent (hwnd);
 	  HWND edit_control = GetDlgItem (dialog, FILE_NAME_TEXT_FIELD);
 	  HWND list = GetDlgItem (dialog, FILE_NAME_LIST);
+	  int hdr_code;
 
 	  /* At least on Windows 7, the above attempt to get the window handle
 	     to the File Name Text Field fails.	 The following code does the
@@ -6278,10 +6291,24 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	    }
 
 	  /* Directories is in index 2.	 */
-	  if (notify->lpOFN->nFilterIndex == 2)
+	  if (use_unicode)
 	    {
-	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
-					       GUISTR ("Current Directory"));
+	      dir_index = notify_w->lpOFN->nFilterIndex;
+	      hdr_code = notify_w->hdr.code;
+	    }
+	  else
+	    {
+	      dir_index = notify_a->lpOFN->nFilterIndex;
+	      hdr_code = notify_a->hdr.code;
+	    }
+	  if (dir_index == 2)
+	    {
+	      if (use_unicode)
+		SendMessageW (dialog, CDM_SETCONTROLTEXT, FILE_NAME_TEXT_FIELD,
+			      (LPARAM)L"Current Directory");
+	      else
+		SendMessageA (dialog, CDM_SETCONTROLTEXT, FILE_NAME_TEXT_FIELD,
+			      (LPARAM)"Current Directory");
 	      EnableWindow (edit_control, FALSE);
 	      /* Note that at least on Windows 7, the above call to EnableWindow
 		 disables the window that would ordinarily have focus.	If we
@@ -6289,16 +6316,21 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 no man's land and the user will be unable to tab through the
 		 dialog box (pressing tab will only result in a beep).
 		 Avoid that problem by setting focus to the list here.	*/
-	      if (notify->hdr.code == CDN_INITDONE)
+	      if (hdr_code == CDN_INITDONE)
 		SetFocus (list);
 	    }
 	  else
 	    {
 	      /* Don't override default filename on init done.  */
-	      if (notify->hdr.code == CDN_TYPECHANGE)
-		CommDlg_OpenSave_SetControlText (dialog,
-						 FILE_NAME_TEXT_FIELD,
-                                                 GUISTR (""));
+	      if (hdr_code == CDN_TYPECHANGE)
+		{
+		  if (use_unicode)
+		    SendMessageW (dialog, CDM_SETCONTROLTEXT,
+				  FILE_NAME_TEXT_FIELD, (LPARAM)L"");
+		  else
+		    SendMessageA (dialog, CDM_SETCONTROLTEXT,
+				  FILE_NAME_TEXT_FIELD, (LPARAM)"");
+		}
 	      EnableWindow (edit_control, TRUE);
 	    }
 	}
@@ -6318,8 +6350,8 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   /* Filter index: 1: All Files, 2: Directories only  */
-  static const guichar_t filter[] =
-    GUISTR ("All Files (*.*)\0*.*\0Directories\0*|*\0");
+  static const wchar_t filter_w[] = L"All Files (*.*)\0*.*\0Directories\0*|*\0";
+  static const char filter_a[] = "All Files (*.*)\0*.*\0Directories\0*|*\0";
 
   Lisp_Object filename = default_filename;
   struct frame *f = SELECTED_FRAME ();
@@ -6332,25 +6364,36 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
      enough struct for the new dialog to trick GetOpenFileName into
      giving us the new dialogs on newer versions of Windows.  */
   struct {
-#ifdef NTGUI_UNICODE
     OPENFILENAMEW details;
-#else /* !NTGUI_UNICODE */
-    OPENFILENAMEA details;
-#endif /* NTGUI_UNICODE */
-
 #if _WIN32_WINNT < 0x500 /* < win2k */
       PVOID pvReserved;
       DWORD dwReserved;
       DWORD FlagsEx;
 #endif /* < win2k */
-  } new_file_details;
+  } new_file_details_w;
 
 #ifdef NTGUI_UNICODE
-  wchar_t filename_buf[32*1024 + 1]; // NT kernel maximum
-  OPENFILENAMEW * file_details = &new_file_details.details;
+  wchar_t filename_buf_w[32*1024 + 1]; // NT kernel maximum
+  OPENFILENAMEW * file_details_w = &new_file_details_w.details;
+  int use_unicode = 1;
 #else /* not NTGUI_UNICODE */
-  char filename_buf[MAX_PATH + 1];
-  OPENFILENAMEA * file_details = &new_file_details.details;
+  struct {
+    OPENFILENAMEA details;
+#if _WIN32_WINNT < 0x500 /* < win2k */
+      PVOID pvReserved;
+      DWORD dwReserved;
+      DWORD FlagsEx;
+#endif /* < win2k */
+  } new_file_details_a;
+  wchar_t filename_buf_w[MAX_PATH + 1], dir_w[MAX_PATH];
+  char filename_buf_a[MAX_PATH + 1], dir_a[MAX_PATH];
+  OPENFILENAMEW * file_details_w = &new_file_details_w.details;
+  OPENFILENAMEA * file_details_a = &new_file_details_a.details;
+  int use_unicode = w32_unicode_filenames;
+  wchar_t *prompt_w;
+  char *prompt_a;
+  int len;
+  char fname_ret[MAX_UTF8_PATH];
 #endif /* NTGUI_UNICODE */
 
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
@@ -6396,6 +6439,10 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     to_unicode (prompt, &prompt);
     to_unicode (dir, &dir);
     to_unicode (filename, &filename);
+    if (SBYTES (filename) + 1 > sizeof (filename_buf_w))
+      report_file_error ("filename too long", default_filename);
+
+    memcpy (filename_buf_w, SDATA (filename), SBYTES (filename) + 1);
 #else /* !NTGUI_UNICODE */
     prompt = ENCODE_FILE (prompt);
     dir = ENCODE_FILE (dir);
@@ -6406,6 +6453,43 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     unixtodos_filename (SDATA (dir));
     filename = Fcopy_sequence (filename);
     unixtodos_filename (SDATA (filename));
+    if (SBYTES (filename) >= MAX_UTF8_PATH)
+      report_file_error ("filename too long", default_filename);
+    if (w32_unicode_filenames)
+      {
+	filename_to_utf16 (SSDATA (dir), dir_w);
+	if (filename_to_utf16 (SSDATA (filename), filename_buf_w) != 0)
+	  {
+	    /* filename_to_utf16 sets errno to ENOENT when the file
+	       name is too long or cannot be converted to UTF-16.  */
+	    if (errno == ENOENT && filename_buf_w[MAX_PATH - 1] != 0)
+	      report_file_error ("filename too long", default_filename);
+	  }
+	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				   SSDATA (prompt), -1, NULL, 0);
+	prompt_w = alloca (len * sizeof (wchar_t));
+	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			     SSDATA (prompt), -1, prompt_w, len);
+      }
+    else
+      {
+	filename_to_ansi (SSDATA (dir), dir_a);
+	if (filename_to_ansi (SSDATA (filename), filename_buf_a) != '\0')
+	  {
+	    /* filename_to_ansi sets errno to ENOENT when the file
+	       name is too long or cannot be converted to UTF-16.  */
+	    if (errno == ENOENT && filename_buf_a[MAX_PATH - 1] != 0)
+	      report_file_error ("filename too long", default_filename);
+	  }
+	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				   SSDATA (prompt), -1, NULL, 0);
+	prompt_w = alloca (len * sizeof (wchar_t));
+	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			     SSDATA (prompt), -1, prompt_w, len);
+	len = WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
+	prompt_a = alloca (len);
+	WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
+      }
 #endif /* NTGUI_UNICODE */
 
     /* Fill in the structure for the call to GetOpenFileName below.
@@ -6414,38 +6498,65 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
        builds, we tell the OS we're using an old version of the
        structure if the OS isn't new enough to support the newer
        version.  */
-    memset (&new_file_details, 0, sizeof (new_file_details));
-
-    if (w32_major_version > 4 && w32_major_version < 95)
-      file_details->lStructSize = sizeof (new_file_details);
-    else
-      file_details->lStructSize = sizeof (*file_details);
-
-    /* Set up the inout parameter for the selected file name.  */
-    if (SBYTES (filename) + 1 > sizeof (filename_buf))
-      report_file_error ("filename too long", default_filename);
-
-    memcpy (filename_buf, SDATA (filename), SBYTES (filename) + 1);
-    file_details->lpstrFile = filename_buf;
-    file_details->nMaxFile = sizeof (filename_buf) / sizeof (*filename_buf);
-
-    file_details->hwndOwner = FRAME_W32_WINDOW (f);
-    /* Undocumented Bug in Common File Dialog:
-       If a filter is not specified, shell links are not resolved.  */
-    file_details->lpstrFilter = filter;
-    file_details->lpstrInitialDir = (guichar_t*) SDATA (dir);
-    file_details->lpstrTitle = (guichar_t*) SDATA (prompt);
-    file_details->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
-    file_details->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
-                           | OFN_EXPLORER | OFN_ENABLEHOOK);
-
-    if (!NILP (mustmatch))
+    if (use_unicode)
       {
-        /* Require that the path to the parent directory exists.  */
-        file_details->Flags |= OFN_PATHMUSTEXIST;
-        /* If we are looking for a file, require that it exists.  */
-        if (NILP (only_dir_p))
-          file_details->Flags |= OFN_FILEMUSTEXIST;
+	memset (&new_file_details_w, 0, sizeof (new_file_details_w));
+	if (w32_major_version > 4 && w32_major_version < 95)
+	  file_details_w->lStructSize = sizeof (new_file_details_w);
+	else
+	  file_details_w->lStructSize = sizeof (*file_details_w);
+	/* Set up the inout parameter for the selected file name.  */
+	file_details_w->lpstrFile = filename_buf_w;
+	file_details_w->nMaxFile =
+	  sizeof (filename_buf_w) / sizeof (*filename_buf_w);
+	file_details_w->hwndOwner = FRAME_W32_WINDOW (f);
+	/* Undocumented Bug in Common File Dialog:
+	   If a filter is not specified, shell links are not resolved.  */
+	file_details_w->lpstrFilter = filter_w;
+#ifdef NTGUI_UNICODE
+	file_details_w->lpstrInitialDir = (wchar_t*) SDATA (dir);
+	file_details->lpstrTitle = (guichar_t*) SDATA (prompt);
+#else
+	file_details_w->lpstrInitialDir = dir_w;
+	file_details_w->lpstrTitle = prompt_w;
+#endif
+	file_details_w->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
+	file_details_w->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+				 | OFN_EXPLORER | OFN_ENABLEHOOK);
+	if (!NILP (mustmatch))
+	  {
+	    /* Require that the path to the parent directory exists.  */
+	    file_details_w->Flags |= OFN_PATHMUSTEXIST;
+	    /* If we are looking for a file, require that it exists.  */
+	    if (NILP (only_dir_p))
+	      file_details_w->Flags |= OFN_FILEMUSTEXIST;
+	  }
+      }
+    else
+      {
+	memset (&new_file_details_a, 0, sizeof (new_file_details_a));
+	if (w32_major_version > 4 && w32_major_version < 95)
+	  file_details_a->lStructSize = sizeof (new_file_details_a);
+	else
+	  file_details_a->lStructSize = sizeof (*file_details_a);
+	file_details_a->lpstrFile = filename_buf_a;
+	file_details_a->nMaxFile =
+	  sizeof (filename_buf_a) / sizeof (*filename_buf_a);
+	file_details_a->hwndOwner = FRAME_W32_WINDOW (f);
+	file_details_a->lpstrFilter = filter_a;
+	file_details_a->lpstrInitialDir = dir_a;
+	file_details_a->lpstrTitle = prompt_a;
+	file_details_a->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
+	file_details_a->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+				 | OFN_EXPLORER | OFN_ENABLEHOOK);
+	if (!NILP (mustmatch))
+	  {
+	    /* Require that the path to the parent directory exists.  */
+	    file_details_a->Flags |= OFN_PATHMUSTEXIST;
+	    /* If we are looking for a file, require that it exists.  */
+	    if (NILP (only_dir_p))
+	      file_details_a->Flags |= OFN_FILEMUSTEXIST;
+	  }
       }
 
     {
@@ -6453,9 +6564,18 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       /* Prevent redisplay.  */
       specbind (Qinhibit_redisplay, Qt);
       block_input ();
-      file_details->lpfnHook = file_dialog_callback;
+      if (use_unicode)
+	{
+	  file_details_w->lpfnHook = file_dialog_callback;
 
-      file_opened = GUI_FN (GetOpenFileName) (file_details);
+	  file_opened = GetOpenFileNameW (file_details_w);
+	}
+      else
+	{
+	  file_details_a->lpfnHook = file_dialog_callback;
+
+	  file_opened = GetOpenFileNameA (file_details_a);
+	}
       unblock_input ();
       unbind_to (count, Qnil);
     }
@@ -6464,10 +6584,14 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       {
         /* Get an Emacs string from the value Windows gave us.  */
 #ifdef NTGUI_UNICODE
-        filename = from_unicode_buffer (filename_buf);
+        filename = from_unicode_buffer (filename_buf_w);
 #else /* !NTGUI_UNICODE */
-        filename = DECODE_FILE (build_unibyte_string (filename_buf));
-        dostounix_filename (SSDATA (filename));
+	if (use_unicode)
+	  filename_from_utf16 (filename_buf_w, fname_ret);
+	else
+	  filename_from_ansi (filename_buf_a, fname_ret);
+	dostounix_filename (fname_ret);
+        filename = DECODE_FILE (build_unibyte_string (fname_ret));
 #endif /* NTGUI_UNICODE */
 
 #ifdef CYGWIN
@@ -6476,10 +6600,9 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
         /* Strip the dummy filename off the end of the string if we
            added it to select a directory.  */
-        if (file_details->nFilterIndex == 2)
-          {
-            filename = Ffile_name_directory (filename);
-          }
+        if (use_unicode && file_details_w->nFilterIndex == 2
+	    || !use_unicode && file_details_a->nFilterIndex == 2)
+	  filename = Ffile_name_directory (filename);
       }
     /* User canceled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())

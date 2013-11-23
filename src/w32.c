@@ -691,9 +691,6 @@ get_security_info (HANDLE handle,
 				   ppSecurityDescriptor));
 }
 
-static int filename_to_ansi (const char *, char *);
-static int filename_to_utf16 (const char *, wchar_t *);
-
 static BOOL WINAPI
 get_file_security (const char *lpFileName,
 		   SECURITY_INFORMATION RequestedInformation,
@@ -1356,7 +1353,7 @@ codepage_for_filenames (CPINFO *cp_info)
   return file_name_codepage;
 }
 
-static int
+int
 filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
 {
   int result = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, fn_in, -1,
@@ -1383,7 +1380,7 @@ filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
   return 0;
 }
 
-static int
+int
 filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
 {
   int result = WideCharToMultiByte (CP_UTF8, 0, fn_in, -1,
@@ -1410,7 +1407,7 @@ filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
   return 0;
 }
 
-static int
+int
 filename_to_ansi (const char *fn_in, char *fn_out)
 {
   wchar_t fn_utf16[MAX_PATH];
