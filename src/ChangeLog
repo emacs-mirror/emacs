@@ -1,3 +1,7 @@
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (get_process): Explicit error for dead buffers.
+
 2013-11-23  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (get_process): Check that OBJ is a live buffer.  (Bug#15923)

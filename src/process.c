@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2013
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -812,12 +812,14 @@ get_process (register Lisp_Object name)
   else
     obj = name;
 
-  /* Now obj should be either a (live) buffer object or a process object.  */
-  if (BUFFERP (obj) && !NILP (BVAR (XBUFFER (obj), name)))
+  /* Now obj should be either a buffer object or a process object.  */
+  if (BUFFERP (obj))
     {
+      if (NILP (BVAR (XBUFFER (obj), name)))
+        error ("Attempt to get process for a dead buffer");
       proc = Fget_buffer_process (obj);
       if (NILP (proc))
-	error ("Buffer %s has no process", SDATA (BVAR (XBUFFER (obj), name)));
+        error ("Buffer %s has no process", SDATA (BVAR (XBUFFER (obj), name)));
     }
   else
     {
