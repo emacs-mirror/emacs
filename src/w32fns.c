@@ -6467,6 +6467,8 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	  }
 	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
 				   SSDATA (prompt), -1, NULL, 0);
+	if (len > 32768)
+	  len = 32768;
 	prompt_w = alloca (len * sizeof (wchar_t));
 	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
 			     SSDATA (prompt), -1, prompt_w, len);
@@ -6483,10 +6485,14 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	  }
 	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
 				   SSDATA (prompt), -1, NULL, 0);
+	if (len > 32768)
+	  len = 32768;
 	prompt_w = alloca (len * sizeof (wchar_t));
 	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
 			     SSDATA (prompt), -1, prompt_w, len);
 	len = WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
+	if (len > 32768)
+	  len = 32768;
 	prompt_a = alloca (len);
 	WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
       }
@@ -6755,38 +6761,164 @@ an integer representing a ShowWindow flag:
   6 - start minimized  */)
   (Lisp_Object operation, Lisp_Object document, Lisp_Object parameters, Lisp_Object show_flag)
 {
-  Lisp_Object current_dir;
   char *errstr;
+  Lisp_Object current_dir = BVAR (current_buffer, directory);;
+  wchar_t *doc_w = NULL, *params_w = NULL, *ops_w = NULL;
+  int result;
+#ifndef CYGWIN
+  int use_unicode = w32_unicode_filenames;
+  char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
+#endif
 
   CHECK_STRING (document);
-
-  /* Encode filename, current directory and parameters.  */
-  current_dir = BVAR (current_buffer, directory);
 
 #ifdef CYGWIN
   current_dir = Fcygwin_convert_file_name_to_windows (current_dir, Qt);
   if (STRINGP (document))
     document = Fcygwin_convert_file_name_to_windows (document, Qt);
-#endif /* CYGWIN */
 
+  /* Encode filename, current directory and parameters.  */
   current_dir = GUI_ENCODE_FILE (current_dir);
   if (STRINGP (document))
-    document = GUI_ENCODE_FILE (document);
+    {
+      document = GUI_ENCODE_FILE (document);
+      doc_w = GUI_SDATA (document);
+    }
   if (STRINGP (parameters))
-    parameters = GUI_ENCODE_SYSTEM (parameters);
+    {
+      parameters = GUI_ENCODE_SYSTEM (parameters);
+      params_w = GUI_SDATA (parameters);
+    }
+  if (STRINGP (operation))
+    {
+      operation = GUI_ENCODE_SYSTEM (operation);
+      ops_w = GUI_SDATA (operation);
+    }
+  result = (int) ShellExecuteW (NULL, ops_w, doc_w, params_w,
+				GUI_SDATA (current_dir),
+				(INTEGERP (show_flag)
+				 ? XINT (show_flag) : SW_SHOWDEFAULT));
+#else  /* !CYGWIN */
+  if (use_unicode)
+    {
+      wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
 
-  if ((int) GUI_FN (ShellExecute) (NULL,
-                                   (STRINGP (operation) ?
-                                    GUI_SDATA (operation) : NULL),
-                                   GUI_SDATA (document),
-                                   (STRINGP (parameters) ?
-                                    GUI_SDATA (parameters) : NULL),
-                                   GUI_SDATA (current_dir),
-                                   (INTEGERP (show_flag) ?
-                                    XINT (show_flag) : SW_SHOWDEFAULT))
-      > 32)
+      /* Encode filename, current directory and parameters, and
+	 convert operation to UTF-16.  */
+      current_dir = ENCODE_FILE (current_dir);
+      filename_to_utf16 (SSDATA (current_dir), current_dir_w);
+      if (STRINGP (document))
+	{
+	  filename_to_utf16 (SSDATA (document), document_w);
+	  doc_w = document_w;
+	}
+      if (STRINGP (parameters))
+	{
+	  int len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+					 SSDATA (parameters), -1, NULL, 0);
+	  if (len > 32768)
+	    len = 32768;
+	  params_w = alloca (len * sizeof (wchar_t));
+	  MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			       SSDATA (parameters), -1, params_w, len);
+	}
+      if (STRINGP (operation))
+	{
+	  /* Assume OPERATION is pure ASCII.  */
+	  const char *s = SSDATA (operation);
+	  wchar_t *d;
+	  int len = SBYTES (operation);
+
+	  if (len > 32768)
+	    len = 32768;
+	  d = ops_w = alloca (len * sizeof (wchar_t));
+	  while (d < ops_w + len - 1)
+	    *d++ = *s++;
+	  *d = 0;
+	}
+      result = (int) ShellExecuteW (NULL, ops_w, doc_w, params_w,
+				    current_dir_w,
+				    (INTEGERP (show_flag)
+				     ? XINT (show_flag) : SW_SHOWDEFAULT));
+    }
+  else
+    {
+      char document_a[MAX_PATH], current_dir_a[MAX_PATH];
+
+      current_dir = ENCODE_FILE (current_dir);
+      filename_to_ansi (SSDATA (current_dir), current_dir_a);
+      if (STRINGP (document))
+	{
+	  filename_to_ansi (SSDATA (document), document_a);
+	  doc_a = document_a;
+	}
+      if (STRINGP (parameters))
+	{
+	  int len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+					 SSDATA (parameters), -1, NULL, 0);
+	  if (len > 32768)
+	    len = 32768;
+	  params_w = alloca (len * sizeof (wchar_t));
+	  MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			       SSDATA (parameters), -1, params_w, len);
+	  len = WideCharToMultiByte (CP_ACP, 0, params_w, -1, NULL, 0,
+				     NULL, NULL);
+	  if (len > 32768)
+	    len = 32768;
+	  params_a = alloca (len);
+	  WideCharToMultiByte (CP_ACP, 0, params_w, -1, params_a, len,
+			       NULL, NULL);
+	}
+      if (STRINGP (operation))
+	{
+	  /* Assume OPERATION is pure ASCII.  */
+	  ops_a = SSDATA (operation);
+	}
+      result = (int) ShellExecuteA (NULL, ops_a, doc_a, params_a,
+				    current_dir_a,
+				    (INTEGERP (show_flag)
+				     ? XINT (show_flag) : SW_SHOWDEFAULT));
+    }
+#endif /* !CYGWIN */
+
+  if (result > 32)
     return Qt;
-  errstr = w32_strerror (0);
+
+  switch (result)
+    {
+    case SE_ERR_ACCESSDENIED:
+      errstr = w32_strerror (ERROR_ACCESS_DENIED);
+      break;
+    case SE_ERR_ASSOCINCOMPLETE:
+    case SE_ERR_NOASSOC:
+      errstr = w32_strerror (ERROR_NO_ASSOCIATION);
+      break;
+    case SE_ERR_DDEBUSY:
+    case SE_ERR_DDEFAIL:
+      errstr = w32_strerror (ERROR_DDE_FAIL);
+      break;
+    case SE_ERR_DDETIMEOUT:
+      errstr = w32_strerror (ERROR_TIMEOUT);
+      break;
+    case SE_ERR_DLLNOTFOUND:
+      errstr = w32_strerror (ERROR_DLL_NOT_FOUND);
+      break;
+    case SE_ERR_FNF:
+      errstr = w32_strerror (ERROR_FILE_NOT_FOUND);
+      break;
+    case SE_ERR_OOM:
+      errstr = w32_strerror (ERROR_NOT_ENOUGH_MEMORY);
+      break;
+    case SE_ERR_PNF:
+      errstr = w32_strerror (ERROR_PATH_NOT_FOUND);
+      break;
+    case SE_ERR_SHARE:
+      errstr = w32_strerror (ERROR_SHARING_VIOLATION);
+      break;
+    default:
+      errstr = w32_strerror (0);
+      break;
+    }
   /* The error string might be encoded in the locale's encoding.  */
   if (!NILP (Vlocale_coding_system))
     {
