@@ -1,3 +1,8 @@
+2013-11-23  Jorgen Schaefer  <forcer@forcix.cx>  (tiny change)
+
+	* progmodes/python.el (python-shell--save-temp-file):
+	Delete temp-file when done.  (Bug#15647)
+
 2013-11-23  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
 
 	* vc/diff-mode.el (diff-mode): Only allow diff-default-read-only
