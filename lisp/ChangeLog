@@ -1,5 +1,8 @@
 2013-11-23  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
 
+	* vc/diff-mode.el (diff-mode): Only allow diff-default-read-only
+	to set buffer-read-only to t, never to nil.  (Bug#15938)
+
 	* textmodes/tex-mode.el (latex-noindent-environments):
 	Add safe-local-variable property.  (Bug#15936)
 
