@@ -1,3 +1,9 @@
+2013-11-23  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (init_fileio): Move `write_region_inhibit_fsync'
+	initialization here ...
+	(syms_of_fileio): ... from here.
+
 2013-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (init_lread): Fix int/Lisp_Object mixup.

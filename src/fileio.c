@@ -5773,6 +5773,24 @@ void
 init_fileio (void)
 {
   valid_timestamp_file_system = 0;
+
+  /* fsync can be a significant performance hit.  Often it doesn't
+     suffice to make the file-save operation survive a crash.  For
+     batch scripts, which are typically part of larger shell commands
+     that don't fsync other files, its effect on performance can be
+     significant so its utility is particularly questionable.
+     Hence, for now by default fsync is used only when interactive.
+
+     For more on why fsync often fails to work on today's hardware, see:
+     Zheng M et al. Understanding the robustness of SSDs under power fault.
+     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
+     http://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
+
+     For more on why fsync does not suffice even if it works properly, see:
+     Roche X. Necessary step(s) to synchronize filename operations on disk.
+     Austin Group Defect 672, 2013-03-19
+     http://austingroupbugs.net/view.php?id=672  */
+  write_region_inhibit_fsync = noninteractive;
 }
 
 void
@@ -5985,28 +6003,12 @@ in the buffer; this is the default behavior, because the auto-save
 file is usually more useful if it contains the deleted text.  */);
   Vauto_save_include_big_deletions = Qnil;
 
-  /* fsync can be a significant performance hit.  Often it doesn't
-     suffice to make the file-save operation survive a crash.  For
-     batch scripts, which are typically part of larger shell commands
-     that don't fsync other files, its effect on performance can be
-     significant so its utility is particularly questionable.
-     Hence, for now by default fsync is used only when interactive.
-
-     For more on why fsync often fails to work on today's hardware, see:
-     Zheng M et al. Understanding the robustness of SSDs under power fault.
-     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
-     http://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
-
-     For more on why fsync does not suffice even if it works properly, see:
-     Roche X. Necessary step(s) to synchronize filename operations on disk.
-     Austin Group Defect 672, 2013-03-19
-     http://austingroupbugs.net/view.php?id=672  */
   DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
 Setting this to nil may avoid data loss if the system loses power or
 the operating system crashes.  */);
-  write_region_inhibit_fsync = noninteractive;
+  write_region_inhibit_fsync = 0; /* See also `init_fileio' above.  */
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.
