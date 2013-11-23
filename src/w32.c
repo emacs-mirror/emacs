@@ -293,7 +293,8 @@ static BOOL g_b_init_equal_sid;
 static BOOL g_b_init_copy_sid;
 static BOOL g_b_init_get_native_system_info;
 static BOOL g_b_init_get_system_times;
-static BOOL g_b_init_create_symbolic_link;
+static BOOL g_b_init_create_symbolic_link_w;
+static BOOL g_b_init_create_symbolic_link_a;
 static BOOL g_b_init_get_security_descriptor_dacl;
 static BOOL g_b_init_convert_sd_to_sddl;
 static BOOL g_b_init_convert_sddl_to_sd;
@@ -428,9 +429,13 @@ typedef BOOL (WINAPI * GetSystemTimes_Proc) (
     LPFILETIME lpIdleTime,
     LPFILETIME lpKernelTime,
     LPFILETIME lpUserTime);
-typedef BOOLEAN (WINAPI *CreateSymbolicLink_Proc) (
-    LPTSTR lpSymlinkFileName,
-    LPTSTR lpTargetFileName,
+typedef BOOLEAN (WINAPI *CreateSymbolicLinkW_Proc) (
+    LPCWSTR lpSymlinkFileName,
+    LPCWSTR lpTargetFileName,
+    DWORD  dwFlags);
+typedef BOOLEAN (WINAPI *CreateSymbolicLinkA_Proc) (
+    LPCSTR lpSymlinkFileName,
+    LPCSTR lpTargetFileName,
     DWORD  dwFlags);
 typedef BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptor_Proc) (
     LPCTSTR StringSecurityDescriptor,
@@ -1008,11 +1013,12 @@ get_system_times (LPFILETIME lpIdleTime,
 }
 
 static BOOLEAN WINAPI
-create_symbolic_link (LPTSTR lpSymlinkFilename,
-		      LPTSTR lpTargetFileName,
+create_symbolic_link (LPCSTR lpSymlinkFilename,
+		      LPCSTR lpTargetFileName,
 		      DWORD dwFlags)
 {
-  static CreateSymbolicLink_Proc s_pfn_Create_Symbolic_Link = NULL;
+  static CreateSymbolicLinkW_Proc s_pfn_Create_Symbolic_LinkW = NULL;
+  static CreateSymbolicLinkA_Proc s_pfn_Create_Symbolic_LinkA = NULL;
   BOOLEAN retval;
 
   if (is_windows_9x () == TRUE)
@@ -1020,39 +1026,74 @@ create_symbolic_link (LPTSTR lpSymlinkFilename,
       errno = ENOSYS;
       return 0;
     }
-  if (g_b_init_create_symbolic_link == 0)
+  if (w32_unicode_filenames)
     {
-      g_b_init_create_symbolic_link = 1;
-#ifdef _UNICODE
-      s_pfn_Create_Symbolic_Link =
-	(CreateSymbolicLink_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						 "CreateSymbolicLinkW");
-#else
-      s_pfn_Create_Symbolic_Link =
-	(CreateSymbolicLink_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						 "CreateSymbolicLinkA");
-#endif
-    }
-  if (s_pfn_Create_Symbolic_Link == NULL)
-    {
-      errno = ENOSYS;
-      return 0;
-    }
+      wchar_t symfn_w[MAX_PATH], tgtfn_w[MAX_PATH];
 
-  retval = s_pfn_Create_Symbolic_Link (lpSymlinkFilename, lpTargetFileName,
-				       dwFlags);
-  /* If we were denied creation of the symlink, try again after
-     enabling the SeCreateSymbolicLinkPrivilege for our process.  */
-  if (!retval)
-    {
-      TOKEN_PRIVILEGES priv_current;
-
-      if (enable_privilege (SE_CREATE_SYMBOLIC_LINK_NAME, TRUE, &priv_current))
+      if (g_b_init_create_symbolic_link_w == 0)
 	{
-	  retval = s_pfn_Create_Symbolic_Link (lpSymlinkFilename, lpTargetFileName,
-					       dwFlags);
-	  restore_privilege (&priv_current);
-	  revert_to_self ();
+	  g_b_init_create_symbolic_link_w = 1;
+	  s_pfn_Create_Symbolic_LinkW =
+	    (CreateSymbolicLinkW_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+						     "CreateSymbolicLinkW");
+	}
+      if (s_pfn_Create_Symbolic_LinkW == NULL)
+	{
+	  errno = ENOSYS;
+	  return 0;
+	}
+
+      filename_to_utf16 (lpSymlinkFilename, symfn_w);
+      filename_to_utf16 (lpTargetFileName, tgtfn_w);
+      retval = s_pfn_Create_Symbolic_LinkW (symfn_w, tgtfn_w, dwFlags);
+      /* If we were denied creation of the symlink, try again after
+	 enabling the SeCreateSymbolicLinkPrivilege for our process.  */
+      if (!retval)
+	{
+	  TOKEN_PRIVILEGES priv_current;
+
+	  if (enable_privilege (SE_CREATE_SYMBOLIC_LINK_NAME, TRUE,
+				&priv_current))
+	    {
+	      retval = s_pfn_Create_Symbolic_LinkW (symfn_w, tgtfn_w, dwFlags);
+	      restore_privilege (&priv_current);
+	      revert_to_self ();
+	    }
+	}
+    }
+  else
+    {
+      char symfn_a[MAX_PATH], tgtfn_a[MAX_PATH];
+
+      if (g_b_init_create_symbolic_link_a == 0)
+	{
+	  g_b_init_create_symbolic_link_a = 1;
+	  s_pfn_Create_Symbolic_LinkA =
+	    (CreateSymbolicLinkA_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+						     "CreateSymbolicLinkA");
+	}
+      if (s_pfn_Create_Symbolic_LinkA == NULL)
+	{
+	  errno = ENOSYS;
+	  return 0;
+	}
+
+      filename_to_ansi (lpSymlinkFilename, symfn_a);
+      filename_to_ansi (lpTargetFileName, tgtfn_a);
+      retval = s_pfn_Create_Symbolic_LinkA (symfn_a, tgtfn_a, dwFlags);
+      /* If we were denied creation of the symlink, try again after
+	 enabling the SeCreateSymbolicLinkPrivilege for our process.  */
+      if (!retval)
+	{
+	  TOKEN_PRIVILEGES priv_current;
+
+	  if (enable_privilege (SE_CREATE_SYMBOLIC_LINK_NAME, TRUE,
+				&priv_current))
+	    {
+	      retval = s_pfn_Create_Symbolic_LinkA (symfn_a, tgtfn_a, dwFlags);
+	      restore_privilege (&priv_current);
+	      revert_to_self ();
+	    }
 	}
     }
   return retval;
@@ -5027,10 +5068,9 @@ utime (const char *name, struct utimbuf *times)
 int
 symlink (char const *filename, char const *linkname)
 {
-  char linkfn[MAX_PATH], *tgtfn;
+  char linkfn[MAX_UTF8_PATH], *tgtfn;
   DWORD flags = 0;
   int dir_access, filename_ends_in_slash;
-  int dbcs_p;
 
   /* Diagnostics follows Posix as much as possible.  */
   if (filename == NULL || linkname == NULL)
@@ -5043,7 +5083,7 @@ symlink (char const *filename, char const *linkname)
       errno = ENOENT;
       return -1;
     }
-  if (strlen (filename) > MAX_PATH || strlen (linkname) > MAX_PATH)
+  if (strlen (filename) > MAX_UTF8_PATH || strlen (linkname) > MAX_UTF8_PATH)
     {
       errno = ENAMETOOLONG;
       return -1;
@@ -5056,8 +5096,6 @@ symlink (char const *filename, char const *linkname)
       return -1;
     }
 
-  dbcs_p = max_filename_mbslen () > 1;
-
   /* Note: since empty FILENAME was already rejected, we can safely
      refer to FILENAME[1].  */
   if (!(IS_DIRECTORY_SEP (filename[0]) || IS_DEVICE_SEP (filename[1])))
@@ -5069,24 +5107,11 @@ symlink (char const *filename, char const *linkname)
 	 directory where the Emacs process runs.  Note that
 	 make-symbolic-link always makes sure LINKNAME is a fully
 	 expanded file name.  */
-      char tem[MAX_PATH];
+      char tem[MAX_UTF8_PATH];
       char *p = linkfn + strlen (linkfn);
 
-      if (!dbcs_p)
-	{
-	  while (p > linkfn && !IS_ANY_SEP (p[-1]))
-	    p--;
-	}
-      else
-	{
-	  char *p1 = CharPrevExA (file_name_codepage, linkfn, p, 0);
-
-	  while (p > linkfn && !IS_ANY_SEP (*p1))
-	    {
-	      p = p1;
-	      p1 = CharPrevExA (file_name_codepage, linkfn, p1, 0);
-	    }
-	}
+      while (p > linkfn && !IS_ANY_SEP (p[-1]))
+	p--;
       if (p > linkfn)
 	strncpy (tem, linkfn, p - linkfn);
       tem[p - linkfn] = '\0';
@@ -5101,15 +5126,7 @@ symlink (char const *filename, char const *linkname)
      exist, but ends in a slash, we create a symlink to directory.  If
      FILENAME exists and is a directory, we always create a symlink to
      directory.  */
-  if (!dbcs_p)
-    filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
-  else
-    {
-      const char *end = filename + strlen (filename);
-      const char *n = CharPrevExA (file_name_codepage, filename, end, 0);
-
-      filename_ends_in_slash = IS_DIRECTORY_SEP (*n);
-    }
+  filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
   if (dir_access == 0 || filename_ends_in_slash)
     flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
 
@@ -5179,10 +5196,23 @@ static int
 is_symlink (const char *filename)
 {
   DWORD attrs;
-  WIN32_FIND_DATA wfd;
+  wchar_t filename_w[MAX_PATH];
+  char filename_a[MAX_PATH];
+  WIN32_FIND_DATAW wfdw;
+  WIN32_FIND_DATAA wfda;
   HANDLE fh;
+  int attrs_mean_symlink;
 
-  attrs = GetFileAttributes (filename);
+  if (w32_unicode_filenames)
+    {
+      filename_to_utf16 (filename, filename_w);
+      attrs = GetFileAttributesW (filename_w);
+    }
+  else
+    {
+      filename_to_ansi (filename, filename_a);
+      attrs = GetFileAttributesA (filename_a);
+    }
   if (attrs == -1)
     {
       DWORD w32err = GetLastError ();
@@ -5205,12 +5235,30 @@ is_symlink (const char *filename)
   if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
     return 0;
   logon_network_drive (filename);
-  fh = FindFirstFile (filename, &wfd);
+  if (w32_unicode_filenames)
+    {
+      fh = FindFirstFileW (filename_w, &wfdw);
+      attrs_mean_symlink =
+	(wfdw.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+	&& (wfdw.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+    }
+  else if (_mbspbrk (filename_a, "?"))
+    {
+      /* filename_to_ansi failed to convert the file name.  */
+      errno = ENOENT;
+      return 0;
+    }
+  else
+    {
+      fh = FindFirstFileA (filename_a, &wfda);
+      attrs_mean_symlink =
+	(wfda.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+	&& (wfda.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+    }
   if (fh == INVALID_HANDLE_VALUE)
     return 0;
   FindClose (fh);
-  return (wfd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
-    	  && (wfd.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+  return attrs_mean_symlink;
 }
 
 /* If NAME identifies a symbolic link, copy into BUF the file name of
@@ -5227,6 +5275,7 @@ readlink (const char *name, char *buf, size_t buf_size)
   int restore_privs = 0;
   HANDLE sh;
   ssize_t retval;
+  char resolved[MAX_UTF8_PATH];
 
   if (name == NULL)
     {
@@ -5241,7 +5290,7 @@ readlink (const char *name, char *buf, size_t buf_size)
 
   path = map_w32_filename (name, NULL);
 
-  if (strlen (path) > MAX_PATH)
+  if (strlen (path) > MAX_UTF8_PATH)
     {
       errno = ENAMETOOLONG;
       return -1;
@@ -5271,9 +5320,26 @@ readlink (const char *name, char *buf, size_t buf_size)
      e.g. 'C:\Users\All Users', GENERIC_READ fails with
      ERROR_ACCESS_DENIED.  Zero seems to work just fine, both for file
      and directory symlinks.  */
-  sh = CreateFile (path, 0, 0, NULL, OPEN_EXISTING,
-		   FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-		   NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      sh = CreateFileW (path_w, 0, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_OPEN_REPARSE_POINT
+			| FILE_FLAG_BACKUP_SEMANTICS,
+			NULL);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      sh = CreateFileA (path_a, 0, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_OPEN_REPARSE_POINT
+			| FILE_FLAG_BACKUP_SEMANTICS,
+			NULL);
+    }
   if (sh != INVALID_HANDLE_VALUE)
     {
       BYTE reparse_buf[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
@@ -5292,89 +5358,27 @@ readlink (const char *name, char *buf, size_t buf_size)
 	     reparse_data, then convert it to multibyte encoding in
 	     the current locale's codepage.  */
 	  WCHAR *lwname;
-	  BYTE  lname[MAX_PATH];
-	  USHORT lname_len;
+	  size_t lname_size;
 	  USHORT lwname_len =
 	    reparse_data->SymbolicLinkReparseBuffer.PrintNameLength;
 	  WCHAR *lwname_src =
 	    reparse_data->SymbolicLinkReparseBuffer.PathBuffer
 	    + reparse_data->SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(WCHAR);
-	  /* This updates file_name_codepage which we need below.  */
-	  int dbcs_p = max_filename_mbslen () > 1;
+	  size_t size_to_copy = buf_size;
 
 	  /* According to MSDN, PrintNameLength does not include the
 	     terminating null character.  */
 	  lwname = alloca ((lwname_len + 1) * sizeof(WCHAR));
 	  memcpy (lwname, lwname_src, lwname_len);
 	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* null-terminate */
-
-	  lname_len = WideCharToMultiByte (file_name_codepage, 0, lwname, -1,
-					   lname, MAX_PATH, NULL, NULL);
-	  if (!lname_len)
-	    {
-	      /* WideCharToMultiByte failed.  */
-	      DWORD w32err1 = GetLastError ();
-
-	      switch (w32err1)
-		{
-		case ERROR_INSUFFICIENT_BUFFER:
-		  errno = ENAMETOOLONG;
-		  break;
-		case ERROR_INVALID_PARAMETER:
-		  errno = EFAULT;
-		  break;
-		case ERROR_NO_UNICODE_TRANSLATION:
-		  errno = ENOENT;
-		  break;
-		default:
-		  errno = EINVAL;
-		  break;
-		}
-	    }
-	  else
-	    {
-	      size_t size_to_copy = buf_size;
-	      BYTE *p = lname, *p2;
-	      BYTE *pend = p + lname_len;
-
-	      /* Normalize like dostounix_filename does, but we don't
-		 want to assume that lname is null-terminated.  */
-	      if (dbcs_p)
-		p2 = CharNextExA (file_name_codepage, p, 0);
-	      else
-		p2 = p + 1;
-	      if (*p && *p2 == ':' && *p >= 'A' && *p <= 'Z')
-		{
-		  *p += 'a' - 'A';
-		  p += 2;
-		}
-	      while (p <= pend)
-		{
-		  if (*p == '\\')
-		    *p = '/';
-		  if (dbcs_p)
-		    {
-		      p = CharNextExA (file_name_codepage, p, 0);
-		      /* CharNextExA doesn't advance at null character.  */
-		      if (!*p)
-			break;
-		    }
-		  else
-		    ++p;
-		}
-	      /* Testing for null-terminated LNAME is paranoia:
-		 WideCharToMultiByte should always return a
-		 null-terminated string when its 4th argument is -1
-		 and its 3rd argument is null-terminated (which they
-		 are, see above).  */
-	      if (lname[lname_len - 1] == '\0')
-		lname_len--;
-	      if (lname_len <= buf_size)
-		size_to_copy = lname_len;
-	      strncpy (buf, lname, size_to_copy);
-	      /* Success!  */
-	      retval = size_to_copy;
-	    }
+	  filename_from_utf16 (lwname, resolved);
+	  dostounix_filename (resolved);
+	  lname_size = strlen (resolved) + 1;
+	  if (lname_size <= buf_size)
+	    size_to_copy = lname_size;
+	  strncpy (buf, resolved, size_to_copy);
+	  /* Success!  */
+	  retval = size_to_copy;
 	}
       CloseHandle (sh);
     }
@@ -5413,7 +5417,7 @@ readlinkat (int fd, char const *name, char *buffer,
 {
   /* Rely on a hack: an open directory is modeled as file descriptor 0,
      as in fstatat.  FIXME: Add proper support for readlinkat.  */
-  char fullname[MAX_PATH];
+  char fullname[MAX_UTF8_PATH];
 
   if (fd != AT_FDCWD)
     {
@@ -5452,41 +5456,45 @@ readlinkat (int fd, char const *name, char *buffer,
 static char *
 chase_symlinks (const char *file)
 {
-  static char target[MAX_PATH];
-  char link[MAX_PATH];
+  static char target[MAX_UTF8_PATH];
+  char link[MAX_UTF8_PATH];
+  wchar_t target_w[MAX_PATH], link_w[MAX_PATH];
+  char target_a[MAX_PATH], link_a[MAX_PATH];
   ssize_t res, link_len;
   int loop_count = 0;
-  int dbcs_p;
 
   if (is_windows_9x () == TRUE || !is_symlink (file))
     return (char *)file;
 
-  if ((link_len = GetFullPathName (file, MAX_PATH, link, NULL)) == 0)
-    return (char *)file;
+  if (w32_unicode_filenames)
+    {
+      wchar_t file_w[MAX_PATH];
 
-  dbcs_p = max_filename_mbslen () > 1;
+      filename_to_utf16 (file, file_w);
+      if (GetFullPathNameW (file_w, MAX_PATH, link_w, NULL) == 0)
+	return (char *)file;
+      filename_from_utf16 (link_w, link);
+    }
+  else
+    {
+      char file_a[MAX_PATH];
+
+      filename_to_ansi (file, file_a);
+      if (GetFullPathNameA (file_a, MAX_PATH, link_a, NULL) == 0)
+	return (char *)file;
+      filename_from_ansi (link_a, link);
+    }
+  link_len = strlen (link);
+
   target[0] = '\0';
   do {
 
     /* Remove trailing slashes, as we want to resolve the last
        non-trivial part of the link name.  */
-    if (!dbcs_p)
-      {
-	while (link_len > 3 && IS_DIRECTORY_SEP (link[link_len-1]))
-	  link[link_len--] = '\0';
-      }
-    else if (link_len > 3)
-      {
-	char *n = CharPrevExA (file_name_codepage, link, link + link_len, 0);
+    while (link_len > 3 && IS_DIRECTORY_SEP (link[link_len-1]))
+      link[link_len--] = '\0';
 
-	while (n >= link + 2 && IS_DIRECTORY_SEP (*n))
-	  {
-	    n[1] = '\0';
-	    n = CharPrevExA (file_name_codepage, link, n, 0);
-	  }
-      }
-
-    res = readlink (link, target, MAX_PATH);
+    res = readlink (link, target, MAX_UTF8_PATH);
     if (res > 0)
       {
 	target[res] = '\0';
@@ -5497,27 +5505,28 @@ chase_symlinks (const char *file)
 	       the symlink, then copy the result back to target.  */
 	    char *p = link + link_len;
 
-	    if (!dbcs_p)
-	      {
-		while (p > link && !IS_ANY_SEP (p[-1]))
-		  p--;
-	      }
-	    else
-	      {
-		char *p1 = CharPrevExA (file_name_codepage, link, p, 0);
-
-		while (p > link && !IS_ANY_SEP (*p1))
-		  {
-		    p = p1;
-		    p1 = CharPrevExA (file_name_codepage, link, p1, 0);
-		  }
-	      }
+	    while (p > link && !IS_ANY_SEP (p[-1]))
+	      p--;
 	    strcpy (p, target);
 	    strcpy (target, link);
 	  }
 	/* Resolve any "." and ".." to get a fully-qualified file name
 	   in link[] again. */
-	link_len = GetFullPathName (target, MAX_PATH, link, NULL);
+	if (w32_unicode_filenames)
+	  {
+	    filename_to_utf16 (target, target_w);
+	    link_len = GetFullPathNameW (target_w, MAX_PATH, link_w, NULL);
+	    if (link_len > 0)
+	      filename_from_utf16 (link_w, link);
+	  }
+	else
+	  {
+	    filename_to_ansi (target, target_a);
+	    link_len = GetFullPathNameA (target_a, MAX_PATH, link_a, NULL);
+	    if (link_len > 0)
+	      filename_from_ansi (link_a, link);
+	  }
+	link_len = strlen (link);
       }
   } while (res > 0 && link_len > 0 && ++loop_count <= 100);
 
@@ -5778,7 +5787,7 @@ careadlinkat (int fd, char const *filename,
               struct allocator const *alloc,
               ssize_t (*preadlinkat) (int, char const *, char *, size_t))
 {
-  char linkname[MAX_PATH];
+  char linkname[MAX_UTF8_PATH];
   ssize_t link_size;
 
   link_size = preadlinkat (fd, filename, linkname, sizeof(linkname));
@@ -8486,7 +8495,8 @@ globals_of_w32 (void)
   g_b_init_get_length_sid = 0;
   g_b_init_get_native_system_info = 0;
   g_b_init_get_system_times = 0;
-  g_b_init_create_symbolic_link = 0;
+  g_b_init_create_symbolic_link_w = 0;
+  g_b_init_create_symbolic_link_a = 0;
   g_b_init_get_security_descriptor_dacl = 0;
   g_b_init_convert_sd_to_sddl = 0;
   g_b_init_convert_sddl_to_sd = 0;

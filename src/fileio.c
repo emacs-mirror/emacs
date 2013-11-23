@@ -2670,9 +2670,9 @@ emacs_readlinkat (int fd, char const *filename)
   if (!buf)
     return Qnil;
 
-  val = build_string (buf);
+  val = build_unibyte_string (buf);
   if (buf[0] == '/' && strchr (buf, ':'))
-    val = concat2 (build_string ("/:"), val);
+    val = concat2 (build_unibyte_string ("/:"), val);
   if (buf != readlink_buf)
     xfree (buf);
   val = DECODE_FILE (val);
