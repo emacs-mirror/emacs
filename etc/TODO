@@ -545,7 +545,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
   Here's a list which is probably not complete/correct: align, allout,
   artist, ansi-color, array, calculator, cdl, cmuscheme,
-  completion, cua, delim-col, dirtrack, double, echistory, elide-head,
+  completion, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
   generic/generic-x [various modes], kermit, log-edit,
   makesum, midnight [other than in Kill Buffer node],
@@ -554,7 +554,7 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   the web page], talk, thingatpt [interactive functions?], type-break,
   vcursor, xscheme, zone-mode [?], mlconvert [?], iso-cvt,
   feedmail [?], uce, gametree, meese, page-ext,
-  refbib, refer, scribe, sgml-mode, spell, texinfo, underline,
+  refbib, refer, scribe, spell [obsolete?], texinfo, underline,
   cmacexp, hideif, mantemp [obsolete?], pcomplete, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
