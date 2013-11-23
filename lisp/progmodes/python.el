@@ -2046,8 +2046,6 @@ there for compatibility with CEDET.")
     (with-temp-file temp-file-name
       (insert "# -*- coding: utf-8 -*-\n") ;Not needed for Python-3.
       (insert string)
-      (insert (format "\n\nimport os ; os.remove('''%s''')\n"
-                      temp-file-name))
       (delete-trailing-whitespace))
     temp-file-name))
 
