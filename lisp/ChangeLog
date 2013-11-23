@@ -1,3 +1,8 @@
+2013-11-23  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+
+	* textmodes/tex-mode.el (latex-noindent-environments):
+	Add safe-local-variable property.  (Bug#15936)
+
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/enriched.el (enriched-mode): Doc fix.
