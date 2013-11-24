@@ -1551,8 +1551,12 @@ Note that binding the variable with `let', or setting it while
 a `let'-style binding made in this buffer is in effect,
 does not make the variable buffer-local.  Return VARIABLE.
 
-In most cases it is better to use `make-local-variable',
-which makes a variable local in just one buffer.
+This globally affects all uses of this variable, so it belongs together with
+the variable declaration, rather than with its uses (if you just want to make
+a variable local to the current buffer for one particular use, use
+`make-local-variable').  Buffer-local bindings are normally cleared
+while setting up a new major mode, unless they have a `permanent-local'
+property.
 
 The function `default-value' gets the default value and `set-default' sets it.  */)
   (register Lisp_Object variable)
