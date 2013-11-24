@@ -1,9 +1,9 @@
-2013-11-24  Simon Schubert  <2@0x2c.org>
+2013-11-24  Simon Schubert  <2@0x2c.org>  (tiny change)
 
 	* json.el (json-alist-p): Only return non-nil if the alist has
 	simple keys (Bug#13518).
 
-2013-11-22  Mihir Rege  <mihirrege@gmail.com>  (tiny change)
+2013-11-24  Mihir Rege  <mihirrege@gmail.com>  (tiny change)
 
 	* progmodes/js.el (js--ctrl-statement-indentation): Fix indent
 	when control-statement is the first statement in a buffer (Bug#15956).
