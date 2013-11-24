@@ -790,6 +790,8 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 The value, if non-nil, is a regexp that specifies what to trim from
 the start and end of each substring.
 
+** New function `string-suffix-p'.
+
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
 ** Support for filesystem notifications.

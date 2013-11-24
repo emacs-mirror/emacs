@@ -3635,6 +3635,15 @@ to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
 
+(defun string-suffix-p (suffix string  &optional ignore-case)
+  "Return non-nil if SUFFIX is a suffix of STRING.
+If IGNORE-CASE is non-nil, the comparison is done without paying
+attention to case differences."
+  (let ((start-pos (- (length string) (length suffix))))
+    (and (>= start-pos 0)
+         (eq t (compare-strings suffix nil nil
+                                string start-pos nil ignore-case)))))
+
 (defun bidi-string-mark-left-to-right (str)
   "Return a string that can be safely inserted in left-to-right text.
 

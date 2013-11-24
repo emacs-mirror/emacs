@@ -1,3 +1,7 @@
+2013-11-24  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* subr.el (string-suffix-p): New function.
+
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/python.el (python-shell-send-file):
