@@ -1,3 +1,8 @@
+2013-11-24  Jorgen Schaefer  <contact@jorgenschaefer.de>
+
+	* minibuffer.el (completion--in-region-1): Scroll the correct
+	window. (Bug#13898)
+
 2013-11-24  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* emacs-lisp/helpers.el: Add some string helpers.

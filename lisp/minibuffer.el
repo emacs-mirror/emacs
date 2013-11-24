@@ -1067,7 +1067,8 @@ scroll the window of possible completions."
             ;; If end is in view, scroll up to the beginning.
             (set-window-start window (point-min) nil)
           ;; Else scroll down one screen.
-          (scroll-other-window))
+          (with-selected-window window
+	    (scroll-up)))
         nil)))
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)
