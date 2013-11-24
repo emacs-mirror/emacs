@@ -343,16 +343,15 @@ overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
   return idx;
 }
 
-/* Return the value of property PROP, in OBJECT at POSITION.
-   It's the value of PROP that a char inserted at POSITION would get.
-   OBJECT is optional and defaults to the current buffer.
-   If OBJECT is a buffer, then overlay properties are considered as well as
-   text properties.
-   If OBJECT is a window, then that window's buffer is used, but
-   window-specific overlays are considered only if they are associated
-   with OBJECT. */
-Lisp_Object
-get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object object)
+DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,
+       doc: /* Return the value of POSITION's property PROP, in OBJECT.
+Almost identical to `get-char-property' except for the following difference:
+Whereas `get-char-property' returns the property of the char at (i.e. right
+after) POSITION, this pays attention to properties's stickiness and overlays's
+advancement settings, in order to find the property of POSITION itself,
+i.e. the property that a char would inherit if it were inserted
+at POSITION.  */)
+  (Lisp_Object position, register Lisp_Object prop, Lisp_Object object)
 {
   CHECK_NUMBER_COERCE_MARKER (position);
 
@@ -484,7 +483,7 @@ find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
      specially.  */
   if (NILP (merge_at_boundary))
     {
-      Lisp_Object field = get_pos_property (pos, Qfield, Qnil);
+      Lisp_Object field = Fget_pos_property (pos, Qfield, Qnil);
       if (!EQ (field, after_field))
 	at_field_end = 1;
       if (!EQ (field, before_field))
@@ -683,7 +682,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
       && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
           || !NILP (Fget_char_property (old_pos, Qfield, Qnil))
           /* To recognize field boundaries, we must also look at the
-             previous positions; we could use `get_pos_property'
+             previous positions; we could use `Fget_pos_property'
              instead, but in itself that would fail inside non-sticky
              fields (like comint prompts).  */
           || (XFASTINT (new_pos) > BEGV
@@ -694,10 +693,12 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
           /* Field boundaries are again a problem; but now we must
              decide the case exactly, so we need to call
              `get_pos_property' as well.  */
-          || (NILP (get_pos_property (old_pos, inhibit_capture_property, Qnil))
+          || (NILP (Fget_pos_property (old_pos, inhibit_capture_property, Qnil))
               && (XFASTINT (old_pos) <= BEGV
-                  || NILP (Fget_char_property (old_pos, inhibit_capture_property, Qnil))
-                  || NILP (Fget_char_property (prev_old, inhibit_capture_property, Qnil))))))
+                  || NILP (Fget_char_property
+			   (old_pos, inhibit_capture_property, Qnil))
+                  || NILP (Fget_char_property
+			   (prev_old, inhibit_capture_property, Qnil))))))
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {
@@ -717,7 +718,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 	  /* NEW_POS should be constrained, but only if either
 	     ONLY_IN_LINE is nil (in which case any constraint is OK),
 	     or NEW_POS and FIELD_BOUND are on the same line (in which
-	     case the constraint is OK even if ONLY_IN_LINE is non-nil). */
+	     case the constraint is OK even if ONLY_IN_LINE is non-nil).  */
 	  && (NILP (only_in_line)
 	      /* This is the ONLY_IN_LINE case, check that NEW_POS and
 		 FIELD_BOUND are on the same line by seeing whether
@@ -4836,6 +4837,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sbuffer_substring);
   defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);
+  defsubr (&Sget_pos_property);
 
   defsubr (&Spoint_marker);
   defsubr (&Smark_marker);

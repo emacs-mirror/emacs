@@ -2232,7 +2232,7 @@ get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)
      editing a field with a `local-map' property, we want insertion at the end
      to obey the `local-map' property.  */
   if (NILP (prop))
-    prop = get_pos_property (lispy_position, type, lispy_buffer);
+    prop = Fget_pos_property (lispy_position, type, lispy_buffer);
 
   SET_BUF_BEGV_BOTH (buffer, old_begv, old_begv_byte);
   SET_BUF_ZV_BOTH (buffer, old_zv, old_zv_byte);

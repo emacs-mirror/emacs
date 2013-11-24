@@ -5774,7 +5774,7 @@ static void xembed_send_message (struct frame *f, Time,
    *FINISH is X_EVENT_DROP if event should not be passed to the toolkit.
    *EVENT is unchanged unless we're processing KeyPress event.
 
-   We return the number of characters stored into the buffer. */
+   We return the number of characters stored into the buffer.  */
 
 static int
 handle_one_xevent (struct x_display_info *dpyinfo,

@@ -1,5 +1,9 @@
 2013-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Export get_pos_property to Elisp.
+	* editfns.c (Fget_pos_property): Rename from get_pos_property.
+	(syms_of_editfns): Export it to Elisp.
+
 	* data.c (Fmake_variable_buffer_local): Mention `permanent-local'.
 
 2013-11-23  Romain Francoise  <romain@orebokech.com>

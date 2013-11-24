@@ -731,6 +731,8 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
+** New function get-pos-property.
+
 ** New hook `pre-redisplay-function'.
 
 +++

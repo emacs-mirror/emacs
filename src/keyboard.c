@@ -1771,8 +1771,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		    than skip both boundaries.  However, this code
 		    also stops anywhere in a non-sticky text-property,
 		    which breaks (e.g.) Org mode.  */
-		 && (val = get_pos_property (make_number (end),
-					     Qinvisible, Qnil),
+		 && (val = Fget_pos_property (make_number (end),
+					      Qinvisible, Qnil),
 		     TEXT_PROP_MEANS_INVISIBLE (val))
 #endif
 		 && !NILP (val = get_char_property_and_overlay
@@ -1789,8 +1789,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	    }
 	  while (beg > BEGV
 #if 0
-		 && (val = get_pos_property (make_number (beg),
-					     Qinvisible, Qnil),
+		 && (val = Fget_pos_property (make_number (beg),
+					      Qinvisible, Qnil),
 		     TEXT_PROP_MEANS_INVISIBLE (val))
 #endif
 		 && !NILP (val = get_char_property_and_overlay
@@ -1843,12 +1843,12 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 		   to the other end would mean moving backwards and thus
 		   could lead to an infinite loop.  */
 		;
-	      else if (val = get_pos_property (make_number (PT),
-					       Qinvisible, Qnil),
+	      else if (val = Fget_pos_property (make_number (PT),
+						Qinvisible, Qnil),
 		       TEXT_PROP_MEANS_INVISIBLE (val)
-		       && (val = get_pos_property
-			   (make_number (PT == beg ? end : beg),
-			    Qinvisible, Qnil),
+		       && (val = (Fget_pos_property
+				  (make_number (PT == beg ? end : beg),
+				   Qinvisible, Qnil)),
 			   !TEXT_PROP_MEANS_INVISIBLE (val)))
 		(check_composition = check_display = 1,
 		 SET_PT (PT == beg ? end : beg));
