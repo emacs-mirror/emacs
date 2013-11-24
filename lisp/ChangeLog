@@ -1,3 +1,9 @@
+2013-11-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* imenu.el (imenu-generic-skip-comments-and-strings):
+	New option (Bug#15560).
+	(imenu--generic-function): Use it.
+
 2013-11-24  Jorgen Schaefer  <contact@jorgenschaefer.de>
 
 	* minibuffer.el (completion--in-region-1): Scroll the correct

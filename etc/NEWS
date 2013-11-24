@@ -639,6 +639,10 @@ whether it is safe to use Bash's --noediting option.  These days
 +++
 ** There is a new macro `skip-unless' for skipping ERT tests.  See the manual.
 
+** Imenu
+
+*** New option `imenu-generic-skip-comments-and-strings'.
+
 
 * New Modes and Packages in Emacs 24.4
 

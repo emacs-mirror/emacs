@@ -185,6 +185,13 @@ with name concatenation."
   :type 'string
   :group 'imenu)
 
+(defcustom imenu-generic-skip-comments-and-strings t
+  "When non-nil, ignore text inside comments and strings.
+Only affects `imenu--generic-function'."
+  :type 'boolean
+  :group 'imenu
+  :version "24.4")
+
 ;;;###autoload
 (defvar imenu-generic-expression nil
   "List of definition matchers for creating an Imenu index.
@@ -796,7 +803,9 @@ depending on PATTERNS."
 		      ;; starting with its title (or nil).
 		      (menu (assoc menu-title index-alist)))
 		  ;; Insert the item unless it is already present.
-		  (unless (member item (cdr menu))
+		  (unless (or (member item (cdr menu))
+                              (and imenu-generic-skip-comments-and-strings
+                                   (nth 8 (syntax-ppss))))
 		    (setcdr menu
 			    (cons item (cdr menu)))))
 		;; Go to the start of the match, to make sure we
