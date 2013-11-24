@@ -37,6 +37,22 @@
     (maphash (lambda (_k v) (push v values)) hash-table)
     values))
 
+(defsubst string-trim-left (string)
+  "Remove leading whitespace from STRING."
+  (if (string-match "\\`[ \t\n\r]+" string)
+      (replace-match "" t t string)
+    string))
+
+(defsubst string-trim-right (string)
+  "Remove trailing whitespace from STRING."
+  (if (string-match "[ \t\n\r]+\\'" string)
+      (replace-match "" t t string)
+    string))
+
+(defsubst string-trim (string)
+  "Remove leading and trailing whitespace from STRING."
+  (string-trim-left (string-trim-right string)))
+
 (provide 'helpers)
 
 ;;; helpers.el ends here

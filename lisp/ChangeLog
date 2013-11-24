@@ -1,5 +1,10 @@
 2013-11-24  Bozhidar Batsov  <bozhidar@batsov.com>
 
+	* emacs-lisp/helpers.el: Add some string helpers.
+	(string-trim-left): Removes leading whitespace.
+	(string-trim-right): Removes trailing whitespace.
+	(string-trim): Removes leading and trailing whitespace.
+
 	* subr.el (string-suffix-p): New function.
 
 2013-11-23  Glenn Morris  <rgm@gnu.org>

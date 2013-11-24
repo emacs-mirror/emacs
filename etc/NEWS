@@ -769,6 +769,9 @@ frame.
 ** New library helpers.el for misc helper functions
 *** `hash-table-keys'
 *** `hash-table-values'
+*** `string-trim-left'
+*** `string-trim-right'
+*** `string-trim'
 
 ** Obsoleted functions:
 *** `log10'
