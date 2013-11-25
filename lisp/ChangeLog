@@ -1,3 +1,8 @@
+2013-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Clean up
+	`tramp-current-connection' only when KEEP-PASSWORD is non-nil.
+
 2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* play/gomoku.el: Don't use intangible property.  Use lexical-binding.

@@ -85,12 +85,13 @@ When called interactively, a Tramp connection has to be selected."
       ;; Nothing to do.
       (message "No Tramp connection found.")
 
-    ;; Cleanup `tramp-current-connection'.  Otherwise, we would be
-    ;; suppressed in the test suite.
-    (setq tramp-current-connection nil)
-
     ;; Flush password cache.
     (unless keep-password (tramp-clear-passwd vec))
+
+    ;; Cleanup `tramp-current-connection'.  Otherwise, we would be
+    ;; suppressed in the test suite.  We use `keep-password' as
+    ;; indicator; it is not worth to add a new argument.
+    (when keep-password (setq tramp-current-connection nil))
 
     ;; Flush file cache.
     (tramp-flush-directory-property vec "")
