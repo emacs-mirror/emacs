@@ -547,9 +547,12 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
-## We used to create locallisppath, but if it points to non-standard
-## locations, is not really Emacs's job to create these directories,
-## so it is no longer done.
+## We always create the _default_ locallisppath directories, and
+## ensure that they contain a subdirs.el file (via write_subdir).
+## This is true even if locallisppath has a non-default value.
+## In case of non-default value, we used to create the specified directories,
+## but not add subdirs.el to them.  This was a strange halfway house.
+## Nowadays we do not create non-default directories.
 
 ## Note that we use tar instead of plain old cp -R/-r because the latter
 ## is apparently not portable (even in 2012!).
