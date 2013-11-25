@@ -5728,7 +5728,8 @@ of the selected frame."
     (walk-window-tree
      (lambda (window) (setq bottom-window window)) nil nil 'nomini)
     (or (and (not (frame-parameter nil 'unsplittable))
-	     (setq window (window--try-to-split-window bottom-window alist))
+	     (let (split-width-threshold)
+	       (setq window (window--try-to-split-window bottom-window alist)))
 	     (window--display-buffer
 	      buffer window 'window alist display-buffer-mark-dedicated))
 	(and (not (frame-parameter nil 'unsplittable))
