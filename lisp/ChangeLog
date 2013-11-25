@@ -1,6 +1,8 @@
-2013-11-25  Bozhidar Batsov  <bozhidar@bozhidar.com>
+2013-11-25  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-form): Fix a typo.
+
+	* emacs-lisp/helpers.el (string-join): New function.
 
 2013-11-25  Sebastian Wiesner <lunaryorn@gmail.com>
 

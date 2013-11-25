@@ -37,6 +37,10 @@
     (maphash (lambda (_k v) (push v values)) hash-table)
     values))
 
+(defsubst string-join (strings &optional separator)
+  "Join all STRINGS using SEPARATOR."
+  (mapconcat 'identity strings separator))
+
 (defsubst string-trim-left (string)
   "Remove leading whitespace from STRING."
   (if (string-match "\\`[ \t\n\r]+" string)
