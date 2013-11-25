@@ -127,6 +127,7 @@ Focus-in events are usually bound to this function.
 Focus-in events occur when a frame has focus, but a switch-frame event
 is not generated.
 This function runs the hook `focus-in-hook'."
+  (interactive "e")
   (run-hooks 'focus-in-hook))
 
 (defun handle-focus-out (_event)
@@ -134,6 +135,7 @@ This function runs the hook `focus-in-hook'."
 Focus-out events are usually bound to this function.
 Focus-out events occur when no frame has focus.
 This function runs the hook `focus-out-hook'."
+  (interactive "e")
   (run-hooks 'focus-out-hook))
 
 ;;;; Arrangement of frames at startup
