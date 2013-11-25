@@ -4167,7 +4167,7 @@ static Lisp_Object dump_path;
    leim and site-lisp.
 */
 Lisp_Object
-load_path_default (bool ignore_existing)
+load_path_default (bool changed)
 {
   Lisp_Object lpath = Qnil;
   const char *normal;
@@ -4193,11 +4193,11 @@ load_path_default (bool ignore_existing)
      the source directory, instead of the path of the installed elisp
      libraries.  However, if it appears that Vload_path has already been
      changed from the default that was saved before dumping, don't
-     change it further.  Changes can only be due to EMACSLOADPATH, or
-     site-lisp files that were processed during dumping.  */
+     change it further.  Changes can only be due to site-lisp
+     files that were processed during dumping.  */
   if (initialized)
     {
-      if (!ignore_existing && NILP (Fequal (dump_path, Vload_path)))
+      if (changed || NILP (Fequal (dump_path, Vload_path)))
         {
           /* Do not make any changes.  */
           return Vload_path;
@@ -4332,19 +4332,27 @@ init_lread (void)
 {
   /* First, set Vload_path.  */
 
+  /* NB: Do not change Vload_path before calling load_path_default,
+     since it may check it against dump_path.
+     (This behavior could be changed.)  */
+
   /* We explicitly ignore EMACSLOADPATH when dumping.  */
   if (NILP (Vpurify_flag) && egetenv ("EMACSLOADPATH"))
     {
-      Vload_path = decode_env_path ("EMACSLOADPATH", 0, 1);
+      Lisp_Object elpath = decode_env_path ("EMACSLOADPATH", 0, 1);
 
       /* Check (non-nil) user-supplied elements.  */
-      load_path_check (Vload_path);
+      load_path_check (elpath);
 
-      /* Replace any nil elements from the environment with the default.  */
-      if (!NILP (Fmemq (Qnil, Vload_path)))
+      /* If no nils in the environment variable, use as-is.
+         Otherwise, replace any nils with the default.  */
+      if (NILP (Fmemq (Qnil, elpath)))
         {
-          Lisp_Object lpath = Vload_path;
-          Lisp_Object elem, default_lpath = load_path_default (1);
+          Vload_path = elpath;
+        }
+      else
+        {
+          Lisp_Object elem, default_lpath = load_path_default (0);
 
           /* Check defaults, before adding site-lisp.  */
           load_path_check (default_lpath);
@@ -4361,11 +4369,11 @@ init_lread (void)
           Vload_path = Qnil;
 
           /* Replace nils from EMACSLOADPATH by default.  */
-          while (CONSP (lpath))
+          while (CONSP (elpath))
             {
               Lisp_Object arg[2];
-              elem = XCAR (lpath);
-              lpath = XCDR (lpath);
+              elem = XCAR (elpath);
+              elpath = XCDR (elpath);
               arg[0] = Vload_path;
               arg[1] = NILP (elem) ? default_lpath : Fcons (elem, Qnil);
               Vload_path = Fappend (2, arg);
@@ -4374,8 +4382,13 @@ init_lread (void)
     }
   else                          /* Vpurify_flag || !EMACSLOADPATH */
     {
-      Lisp_Object lpath = Vload_path;
-      Vload_path = load_path_default (0);
+#ifdef CANNOT_DUMP
+      bool changed = 0;
+#else
+      bool changed = initialized && NILP (Fequal (dump_path, Vload_path));
+#endif
+
+      Vload_path = load_path_default (changed);
 
       /* Check before adding site-lisp directories.
          The install should have created them, but they are not
@@ -4384,10 +4397,9 @@ init_lread (void)
       load_path_check (Vload_path);
 
       /* Add the site-lisp directories at the front, unless the
-         load-path has somehow already been changed (this can only be
-         from a site-load file during dumping?) from the dumped value.
-         FIXME?  Should we ignore any dump_path changes?  */
-      if (initialized && !no_site_lisp && !NILP (Fequal (dump_path, lpath)))
+         load-path has already been changed.
+         FIXME?  Should we ignore changed here?  */
+      if (initialized && !no_site_lisp && !changed)
         {
           Lisp_Object sitelisp;
           sitelisp = decode_env_path (0, PATH_SITELOADSEARCH, 0);

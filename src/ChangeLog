@@ -1,5 +1,9 @@
 2013-11-25  Glenn Morris  <rgm@gnu.org>
 
+	* lread.c (load_path_default): Change the sense of the argument.
+	(init_lread): When EMACSLOADPATH is set, do not ignore changes
+	from dump_path.  When it is not, avoid checking dump_path twice.
+
 	* lread.c (init_lread): Fix 2013-11-23 goof that was checking
 	uninstalled dump_path against installed Vload_path.  (Bug#15964)
 
