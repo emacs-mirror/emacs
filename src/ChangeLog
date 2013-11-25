@@ -1,3 +1,8 @@
+2013-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (init_lread): Fix 2013-11-23 goof that was checking
+	uninstalled dump_path against installed Vload_path.  (Bug#15964)
+
 2013-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Export get_pos_property to Elisp.

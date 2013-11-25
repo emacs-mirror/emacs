@@ -4374,6 +4374,7 @@ init_lread (void)
     }
   else                          /* Vpurify_flag || !EMACSLOADPATH */
     {
+      Lisp_Object lpath = Vload_path;
       Vload_path = load_path_default (0);
 
       /* Check before adding site-lisp directories.
@@ -4386,8 +4387,7 @@ init_lread (void)
          load-path has somehow already been changed (this can only be
          from a site-load file during dumping?) from the dumped value.
          FIXME?  Should we ignore any dump_path changes?  */
-      if (initialized && !no_site_lisp &&
-          ! NILP (Fequal (dump_path, Vload_path)))
+      if (initialized && !no_site_lisp && !NILP (Fequal (dump_path, lpath)))
         {
           Lisp_Object sitelisp;
           sitelisp = decode_env_path (0, PATH_SITELOADSEARCH, 0);
