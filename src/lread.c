@@ -4164,9 +4164,9 @@ static Lisp_Object dump_path;
    out-of-tree build) AND install-dir/src/Makefile exists BUT
    install-dir/src/Makefile.in does NOT exist (this is a sanity
    check), then repeat the above steps for source-dir/lisp,
-   leim and site-lisp.
-*/
-Lisp_Object
+   leim and site-lisp.  */
+
+static Lisp_Object
 load_path_default (bool changed)
 {
   Lisp_Object lpath = Qnil;

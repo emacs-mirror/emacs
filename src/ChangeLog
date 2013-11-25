@@ -1,3 +1,11 @@
+2013-11-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* lread.c (load_path_default): Now static.
+	* textprop.c (text_property_stickiness): Be consistent about the
+	test used when deciding whether to consider the previous character.
+	This simplifies the code a bit.
+
 2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textprop.c (text_property_stickiness): Fix front-stickiness at BOB.
