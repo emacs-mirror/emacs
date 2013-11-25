@@ -514,7 +514,7 @@ Examples:
          (code (cdr (assoc action erc-nick-popup-alist))))
     (when code
       (erc-set-active-buffer (current-buffer))
-      (eval code))))
+      (eval code `((nick . ,nick))))))
 
 ;;; Callback functions
 (defun erc-button-describe-symbol (symbol-name)

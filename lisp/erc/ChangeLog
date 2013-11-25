@@ -1,3 +1,8 @@
+2013-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-nick-popup): Make `nick' available in the
+	eval environment.  (Bug#15969)
+
 2013-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-pcomplete.el (erc-pcomplete): Set this-command.
