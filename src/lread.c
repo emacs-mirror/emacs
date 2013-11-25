@@ -4195,6 +4195,14 @@ load_path_default (bool changed)
      changed from the default that was saved before dumping, don't
      change it further.  Changes can only be due to site-lisp
      files that were processed during dumping.  */
+  /* FIXME?  AFAICS, it does not make sense to change load-path in a
+     dumped site-lisp file, so maybe we should just drop this check.
+     E.g., if you add an element to load-path, you are going to be
+     adding it to PATH_DUMPLOADSEARCH, which refers to the source directory.
+     This will make no sense (and may not still exist) in an installed Emacs.
+     And the only change it is sensible to make to load-path is to add
+     something to the front, which you should do with configure's
+     --enable-locallisppath option if you really want to have it dumped.  */
   if (initialized)
     {
       if (changed || NILP (Fequal (dump_path, Vload_path)))
