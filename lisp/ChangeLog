@@ -1,5 +1,15 @@
 2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* play/gomoku.el: Don't use intangible property.  Use lexical-binding.
+	(gomoku--last-pos): New var.
+	(gomoku--intangible-chars): New const.
+	(gomoku--intangible): New function.
+	(gomoku-mode): Use it.  Derive from special-mode.
+	(gomoku-move-up): Adjust line count.
+	(gomoku-click, gomoku-point-y, gomoku-point-square, gomoku-goto-xy)
+	(gomoku-plot-square, gomoku-init-display, gomoku-cross-qtuple):
+	Simplify accordingly.
+
 	* frame.el (handle-focus-in, handle-focus-out): Move from frame.c.
 	Remove blink-cursor code.
 	(blink-cursor-timer-function, blink-cursor-suspend):
