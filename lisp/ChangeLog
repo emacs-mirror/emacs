@@ -1,3 +1,7 @@
+2013-11-25  Bozhidar Batsov  <bozhidar@bozhidar-home.local>
+
+	* emacs-lisp/bytecomp.el (byte-compile-form): Fix a typo.
+
 2013-11-25  Sebastian Wiesner <lunaryorn@gmail.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
