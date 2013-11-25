@@ -1,3 +1,11 @@
+2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (handle-focus-in, handle-focus-out): Move from frame.c.
+	Remove blink-cursor code.
+	(blink-cursor-timer-function, blink-cursor-suspend):
+	Don't special-case GUIs.
+	(blink-cursor-mode): Use focus-in/out-hook.
+
 2013-11-25  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-git.el (vc-git-annotate-extract-revision-at-line): Make it
@@ -86,13 +94,13 @@
 
 2013-11-21  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (octave-mode, inferior-octave-mode): Fix
-	obsolete variable comment-use-global-state.
+	* progmodes/octave.el (octave-mode, inferior-octave-mode):
+	Fix obsolete variable comment-use-global-state.
 
 2013-11-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* progmodes/octave.el (octave-mode-map, octave-mode-menu): Add
-	`octave-source-file'.
+	* progmodes/octave.el (octave-mode-map, octave-mode-menu):
+	Add `octave-source-file'.
 	(octave-source-file): New function.  (Bug#15935)
 
 2013-11-21  Kenjiro Nakayama <nakayamakenjiro@gmail.com>  (tiny change)

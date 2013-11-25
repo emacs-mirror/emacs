@@ -120,6 +120,21 @@ appended when the minibuffer frame is created."
 	(delete-frame frame t)
       ;; Gildea@x.org says it is ok to ask questions before terminating.
       (save-buffers-kill-emacs))))
+
+(defun handle-focus-in (_event)
+  "Handle a focus-in event.
+Focus-in events are usually bound to this function.
+Focus-in events occur when a frame has focus, but a switch-frame event
+is not generated.
+This function runs the hook `focus-in-hook'."
+  (run-hooks 'focus-in-hook))
+
+(defun handle-focus-out (_event)
+  "Handle a focus-out event.
+Focus-out events are usually bound to this function.
+Focus-out events occur when no frame has focus.
+This function runs the hook `focus-out-hook'."
+  (run-hooks 'focus-out-hook))
 
 ;;;; Arrangement of frames at startup
 
@@ -1727,12 +1742,11 @@ command starts, by installing a pre-command hook."
   "Timer function of timer `blink-cursor-timer'."
   (internal-show-cursor nil (not (internal-show-cursor-p)))
   ;; Each blink is two calls to this function.
-  (when (memq window-system '(x ns w32))
-    (setq blink-cursor-blinks-done (1+ blink-cursor-blinks-done))
-    (when (and (> blink-cursor-blinks 0)
-	       (<= (* 2 blink-cursor-blinks) blink-cursor-blinks-done))
-      (blink-cursor-suspend)
-      (add-hook 'post-command-hook 'blink-cursor-check))))
+  (setq blink-cursor-blinks-done (1+ blink-cursor-blinks-done))
+  (when (and (> blink-cursor-blinks 0)
+             (<= (* 2 blink-cursor-blinks) blink-cursor-blinks-done))
+    (blink-cursor-suspend)
+    (add-hook 'post-command-hook 'blink-cursor-check)))
 
 
 (defun blink-cursor-end ()
@@ -1747,15 +1761,14 @@ itself as a pre-command hook."
     (setq blink-cursor-timer nil)))
 
 (defun blink-cursor-suspend ()
-  "Suspend cursor blinking on NS, X and W32.
+  "Suspend cursor blinking.
 This is called when no frame has focus and timers can be suspended.
 Timers are restarted by `blink-cursor-check', which is called when a
 frame receives focus."
-  (when (memq window-system '(x ns w32))
-    (blink-cursor-end)
-    (when blink-cursor-idle-timer
-      (cancel-timer blink-cursor-idle-timer)
-      (setq blink-cursor-idle-timer nil))))
+  (blink-cursor-end)
+  (when blink-cursor-idle-timer
+    (cancel-timer blink-cursor-idle-timer)
+    (setq blink-cursor-idle-timer nil)))
 
 (defun blink-cursor-check ()
   "Check if cursor blinking shall be restarted.
@@ -1789,13 +1802,15 @@ terminals, cursor blinking is controlled by the terminal."
   (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
   (setq blink-cursor-idle-timer nil)
   (blink-cursor-end)
+  (remove-hook 'focus-in-hook #'blink-cursor-check)
+  (remove-hook 'focus-out-hook #'blink-cursor-suspend)
   (when blink-cursor-mode
-    ;; Hide the cursor.
-    ;;(internal-show-cursor nil nil)
+    (add-hook 'focus-in-hook #'blink-cursor-check)
+    (add-hook 'focus-out-hook #'blink-cursor-suspend)
     (setq blink-cursor-idle-timer
           (run-with-idle-timer blink-cursor-delay
                                blink-cursor-delay
-                               'blink-cursor-start))))
+                               #'blink-cursor-start))))
 
 
 ;; Frame maximization/fullscreen

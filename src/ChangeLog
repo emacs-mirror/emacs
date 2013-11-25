@@ -1,3 +1,8 @@
+2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Move to frame.el.
+	(syms_of_frame): Don't defsubr them.
+
 2013-11-25  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (load_path_default): Change the sense of the argument.

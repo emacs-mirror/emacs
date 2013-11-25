@@ -887,31 +887,6 @@ This function returns FRAME, or nil if FRAME has been deleted.  */)
   return do_switch_frame (frame, 1, 0, norecord);
 }
 
-DEFUN ("handle-focus-in", Fhandle_focus_in, Shandle_focus_in, 1, 1, "e",
-       doc: /* Handle a focus-in event.
-Focus in events are usually bound to this function.
-Focus in events occur when a frame has focus, but a switch-frame event
-is not generated.
-This function runs the hook `focus-in-hook'.
-It also checks if blink-cursor timers should be turned on again.  */)
-  (Lisp_Object event)
-{
-  Frun_hooks (1, &Qfocus_in_hook);
-  return call0 (intern ("blink-cursor-check"));
-}
-
-DEFUN ("handle-focus-out", Fhandle_focus_out, Shandle_focus_out, 1, 1, "e",
-       doc: /* Handle a focus-out event.
-Focus out events are usually bound to this function.
-Focus out events occur when no frame has focus.
-This function runs the hook `focus-out-hook'.
-It also checks if blink-cursor timers should be turned off.  */)
-  (Lisp_Object event)
-{
-  Frun_hooks (1, &Qfocus_out_hook);
-  return call0 (intern ("blink-cursor-suspend"));
-}
-
 DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 1, "e",
        doc: /* Handle a switch-frame event EVENT.
 Switch-frame events are usually bound to this function.
@@ -926,7 +901,8 @@ to that frame.  */)
   /* Preserve prefix arg that the command loop just cleared.  */
   kset_prefix_arg (current_kboard, Vcurrent_prefix_arg);
   Frun_hooks (1, &Qmouse_leave_buffer_hook);
-  Fhandle_focus_in (event); // switch-frame implies a focus in.
+  /* `switch-frame' implies a focus in.  */
+  call1 (intern ("handle-focus-in"), event);
   return do_switch_frame (event, 0, 0, Qnil);
 }
 
@@ -4542,8 +4518,6 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Swindow_system);
   defsubr (&Smake_terminal_frame);
   defsubr (&Shandle_switch_frame);
-  defsubr (&Shandle_focus_in);
-  defsubr (&Shandle_focus_out);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
   defsubr (&Sframe_list);
