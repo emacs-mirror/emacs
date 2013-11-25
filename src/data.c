@@ -3242,11 +3242,11 @@ Return the destination vector if it changed or nil otherwise.  */)
 
 DEFUN ("bool-vector-subsetp", Fbool_vector_subsetp,
        Sbool_vector_subsetp, 2, 2, 0,
-       doc: )
+       doc: /* Return t if every t value in A is also t in B, nil otherwise.
+A and B must be bool vectors of the same length.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  /* Like bool_vector_union, but doesn't modify b.  */
-  return bool_vector_binop_driver (b, a, b, bool_vector_subsetp);
+  return bool_vector_binop_driver (a, b, b, bool_vector_subsetp);
 }
 
 DEFUN ("bool-vector-not", Fbool_vector_not,

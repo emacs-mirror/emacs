@@ -1,5 +1,9 @@
 2013-11-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	bool-vector-subsetp is now the normal direction (Bug#15912).
+	* data.c (Fbool_vector_subsetp): Test whether the first argument
+	is a subset of the second one, not the reverse.  Add doc string.
+
 	Fix minor problems found by static checking.
 	* lread.c (load_path_default): Now static.
 	* textprop.c (text_property_stickiness): Be consistent about the
