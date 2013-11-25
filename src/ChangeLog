@@ -1,5 +1,7 @@
 2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textprop.c (text_property_stickiness): Fix front-stickiness at BOB.
+
 	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Move to frame.el.
 	(syms_of_frame): Don't defsubr them.
 

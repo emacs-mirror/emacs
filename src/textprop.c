@@ -1820,7 +1820,7 @@ int
 text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 {
   Lisp_Object prev_pos, front_sticky;
-  bool is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
+  bool is_rear_sticky = true, is_front_sticky = false; /* defaults */
   Lisp_Object defalt = Fassq (prop, Vtext_property_default_nonsticky);
 
   if (NILP (buffer))
@@ -1841,10 +1841,10 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 		 ? Fmemq (prop, rear_non_sticky)
 		 : rear_non_sticky))
 	/* PROP is rear-non-sticky.  */
-	is_rear_sticky = 0;
+	is_rear_sticky = false;
     }
   else
-    return 0;
+    is_rear_sticky = false;
 
   /* Consider following character.  */
   /* This signals an arg-out-of-range error if pos is outside the
@@ -1855,7 +1855,7 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
       || (CONSP (front_sticky)
 	  && !NILP (Fmemq (prop, front_sticky))))
     /* PROP is inherited from after.  */
-    is_front_sticky = 1;
+    is_front_sticky = true;
 
   /* Simple cases, where the properties are consistent.  */
   if (is_rear_sticky && !is_front_sticky)
