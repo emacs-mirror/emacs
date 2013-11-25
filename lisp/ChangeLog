@@ -1,3 +1,11 @@
+2013-11-25  Sebastian Wiesner (lunaryorn@gmail.com)
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Mark as obsolete and replace it with a symbol property.
+	(byte-compile-form): Use new 'interactive-only property.
+	* comint.el, files.el, replace.el, simple.el:
+	Apply new 'interactive-only properly.
+
 2013-11-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-at-bottom): Make sure that

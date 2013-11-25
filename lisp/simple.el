@@ -888,6 +888,7 @@ Don't use this command in Lisp programs!
 			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
 		 (point-min))))
   (if (and arg (not (consp arg))) (forward-line 1)))
+(put 'beginning-of-buffer 'interactive-only "Use (goto-char (point-min)) instead")
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer.
@@ -920,6 +921,7 @@ Don't use this command in Lisp programs!
 	 ;; then scroll specially to put it near, but not at, the bottom.
 	 (overlay-recenter (point))
 	 (recenter -3))))
+(put 'end-of-buffer 'interactive-only "Use (goto-char (point-max)) instead")
 
 (defcustom delete-active-region t
   "Whether single-char deletion commands delete an active region.
@@ -982,6 +984,7 @@ the end of the line."
 	     (insert-char ?\s (- ocol (current-column)) nil))))
 	;; Otherwise, do simple deletion.
 	(t (delete-char (- n) killflag))))
+(put 'delete-backward-char 'interactive-only "Use `delete-char' instead")
 
 (defun delete-forward-char (n &optional killflag)
   "Delete the following N characters (previous if N is negative).
@@ -1079,6 +1082,7 @@ rather than line counts."
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
+(put 'goto-line 'interactive-only "Use `forward-line' instead")
 
 (defun count-words-region (start end &optional arg)
   "Count the number of words in the region.
@@ -4165,6 +4169,7 @@ Don't call it from programs: use `insert-buffer-substring' instead!"
      (insert-buffer-substring (get-buffer buffer))
      (point)))
   nil)
+(put 'insert-buffer 'interactive-only "Use `insert-buffer-substring' instead")
 
 (defun append-to-buffer (buffer start end)
   "Append to specified buffer the text of the region.
@@ -4763,6 +4768,7 @@ and more reliable (no dependence on goal column, etc.)."
 	   (signal (car err) (cdr err))))
       (line-move arg nil nil try-vscroll)))
   nil)
+(put 'next-line 'interactive-only "Use `forward-line' instead")
 
 (defun previous-line (&optional arg try-vscroll)
   "Move cursor vertically up ARG lines.
@@ -4802,6 +4808,8 @@ to use and more reliable (no dependence on goal column, etc.)."
 	 (signal (car err) (cdr err))))
     (line-move (- arg) nil nil try-vscroll))
   nil)
+(put 'previous-line 'interactive-only
+     "Use `forward-line' with negative argument instead")
 
 (defcustom track-eol nil
   "Non-nil means vertical motion starting at end of line keeps to ends of lines.

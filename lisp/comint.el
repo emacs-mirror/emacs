@@ -752,6 +752,7 @@ See `make-comint' and `comint-exec'."
   (let ((name (file-name-nondirectory program)))
     (switch-to-buffer (make-comint name program))
     (run-hooks (intern-soft (concat "comint-" name "-hook")))))
+(put 'comint-run 'interactive-only "Use `make-comint' instead")
 
 (defun comint-exec (buffer name command startfile switches)
   "Start up a process named NAME in buffer BUFFER for Comint modes.
