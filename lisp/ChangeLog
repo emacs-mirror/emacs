@@ -1,3 +1,8 @@
+2013-11-25  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-annotate-extract-revision-at-line): Make it
+	work when annotation is invisible (Bug#13886).
+
 2013-11-24  Simon Schubert  <2@0x2c.org>  (tiny change)
 
 	* json.el (json-alist-p): Only return non-nil if the alist has

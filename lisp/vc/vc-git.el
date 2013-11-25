@@ -931,7 +931,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion
-    (move-beginning-of-line 1)
+    (beginning-of-line)
     (when (looking-at "\\([0-9a-f^][0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
       (let ((revision (match-string-no-properties 1)))
 	(if (match-beginning 2)
