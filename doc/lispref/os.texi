@@ -71,11 +71,14 @@ in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
 @item
-If the library @file{leim-list.el} exists, Emacs loads it.  This
-optional library is intended for registering input methods; Emacs
-looks for it in @code{load-path} (@pxref{Library Search}), skipping
-those directories containing the standard Emacs libraries (since
-@file{leim-list.el} should not exist in those directories).
+It loads any @file{leim-list.el} that it finds in the @code{load-path}
+directories.  This file is intended for registering input methods.
+The search is only for any personal @file{leim-list.el} files that you
+may have created; so it skips the directories containing the standard Emacs
+libraries (for efficiency, since @file{leim-list.el} should not exist
+in those directories), as well as the @file{leim} directory that is
+part of the distribution (since the @file{leim-list.el} file in this
+directory is compiled into the Emacs executable).
 
 @vindex before-init-time
 @item

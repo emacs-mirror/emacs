@@ -1,3 +1,7 @@
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Update for leim-list being preloaded.
+
 2013-11-23  Brian Jenkins  <brian@brianjenkins.org>  (tiny change)
 
 	* frames.texi (Input Focus):
