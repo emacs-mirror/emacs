@@ -643,6 +643,18 @@ whether it is safe to use Bash's --noediting option.  These days
 
 *** New option `imenu-generic-skip-comments-and-strings'.
 
+** Ruby mode
+
+*** New option `ruby-encoding-magic-comment-style'.
+
+*** New option `ruby-custom-encoding-magic-comment-template'.
+
+*** New mode menu.
+
+*** Improved syntax highlighting and indentation.
+
+*** Add more Ruby file types to `auto-mode-alist'.
+
 
 * New Modes and Packages in Emacs 24.4
 
