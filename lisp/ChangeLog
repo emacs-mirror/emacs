@@ -1,3 +1,8 @@
+2013-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/vc.el (vc-diff-internal): Use *-dos coding-system when
+	reading output from Diff on MS-Windows and MS-DOS.
+
 2013-11-26  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* emacs-lisp/helpers.el (string-reverse): New function.
