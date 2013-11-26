@@ -164,6 +164,7 @@ bitmapdir=@bitmapdir@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 abs_srcdir=@abs_srcdir@
+abs_builddir=@abs_builddir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 
@@ -213,13 +214,16 @@ locallisppath=@locallisppath@
 # The default is ${locallisppath}:${standardlisppath}.
 lisppath=@lisppath@
 
-# Where Emacs will search for its lisp files while
-# building.  This is only used during the process of
-# compiling Emacs, to help Emacs find its lisp files
-# before they've been installed in their final location.
+# Where Emacs will search for its lisp files while building.
+# This is only used during the process of compiling Emacs,
+# to help Emacs find its lisp files before they've been installed
+# in their final location.
 # This should be a colon-separated list of directories.
-# Normally it points to the lisp/ directory in the sources.
-buildlisppath=${abs_srcdir}/lisp
+# Normally it points to the lisp/ directory in the sources and
+# the leim/ directory in the build tree.
+# NB lread.c relies on lisp/ being first here.
+# TODO generate leim in srcdir also, prebuild in tarfiles.
+buildlisppath=${abs_srcdir}/lisp:${abs_builddir}/leim
 
 # Where to install the other architecture-independent
 # data files distributed with Emacs (like the tutorial,
@@ -337,6 +341,7 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 # '/foo/bar').
 epaths-force-w32: FRC
 	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
+	  w32blddir=`${srcdir}/build-aux/msys-to-w32 .`; \
 	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}" N`; \
 	  w32prefixpattern=`echo "${w32prefix}" | ${msys_sed_sh_escape}` ; \
 	  w32locallisppath=`${srcdir}/build-aux/msys-to-w32 "${locallisppath}" N ":" "\\;" | ${msys_w32prefix_subst}` ; \
@@ -344,6 +349,7 @@ epaths-force-w32: FRC
 	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${w32locallisppath}"'";' \
 	  -e '/^.*#/s/@VER@/${version}/g' 			\
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
+	  -e '/^.*#/s|@BLD@|$${w32blddir}|g'			\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 

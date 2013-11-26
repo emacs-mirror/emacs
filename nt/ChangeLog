@@ -1,3 +1,7 @@
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* epaths.nt (PATH_DUMPLOADSEARCH): Add leim/.
+
 2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* msysconfig.sh: Remove.

@@ -1607,16 +1607,16 @@ init_callproc (void)
   if (data_dir == 0)
     {
       Lisp_Object tem, tem1, srcdir;
+      Lisp_Object lispdir = Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0));
 
-      srcdir = Fexpand_file_name (build_string ("../src/"),
-				  build_unibyte_string (PATH_DUMPLOADSEARCH));
+      srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
+
       tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
       tem1 = Ffile_exists_p (tem);
       if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
 	{
 	  Lisp_Object newdir;
-	  newdir = Fexpand_file_name (build_string ("../etc/"),
-				      build_unibyte_string (PATH_DUMPLOADSEARCH));
+	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
 	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
 	  tem1 = Ffile_exists_p (tem);
 	  if (!NILP (tem1))

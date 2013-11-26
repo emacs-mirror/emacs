@@ -1,3 +1,10 @@
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	Preload leim-list.el.
+	* Makefile.in (abs_builddir): New, set by configure.
+	(buildlisppath): Add leim/.
+	(epaths-force-w32): Set BLD.
+
 2013-11-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some dependency problems that cause unnecessary recompiles.

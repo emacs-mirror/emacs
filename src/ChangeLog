@@ -1,3 +1,10 @@
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	Preload leim-list.el.
+	* epaths.in (PATH_DUMPLOADSEARCH): Add leim/.
+	* callproc.c (init_callproc): Don't assume PATH_DUMPLOADSEARCH
+	is a single directory.
+
 2013-11-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	bool-vector-subsetp is now the normal direction (Bug#15912).

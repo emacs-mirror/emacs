@@ -499,18 +499,23 @@ It is the default value of the variable `top-level'."
     ;; available input methods.
     (let ((tail load-path)
           (lispdir (expand-file-name "../lisp" data-directory))
-	  ;; For out-of-tree builds, leim-list is generated in the build dir.
-;;;          (leimdir (expand-file-name "../leim" doc-directory))
+          ;; For out-of-tree builds, leim-list is generated in the build dir.
+          (leimdir (expand-file-name "../leim" doc-directory))
           dir)
       (while tail
         (setq dir (car tail))
         (let ((default-directory dir))
           (load (expand-file-name "subdirs.el") t t t))
-	;; Do not scan standard directories that won't contain a leim-list.el.
-	;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
-	(or (string-match (concat "\\`" lispdir) dir)
-	    (let ((default-directory dir))
-	      (load (expand-file-name "leim-list.el") t t t)))
+        ;; Do not scan standard directories that won't contain a leim-list.el.
+        ;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
+        ;; Also skip leim/leim-list.el, since we preloaded that one.
+        (or (string-prefix-p lispdir dir)
+            ;; Not supposed to be subdirs.el in leim, but someone
+            ;; might have added one and be keeping their own leim-list
+            ;; files in subdirs of leim.
+            (string-equal leimdir dir)
+            (let ((default-directory dir))
+              (load (expand-file-name "leim-list.el") t t t)))
         ;; We don't use a dolist loop and we put this "setq-cdr" command at
         ;; the end, because the subdirs.el files may add elements to the end
         ;; of load-path and we want to take it into account.

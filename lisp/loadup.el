@@ -1,7 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -98,6 +98,8 @@
 (load "env")
 (load "format")
 (load "bindings")
+;; This sets temporary-file-directory, used by eg
+;; auto-save-file-name-transforms in files.el.
 (load "cus-start")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
@@ -278,12 +280,16 @@
 (load "vc/ediff-hook")
 (if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
-;If you want additional libraries to be preloaded and their
-;doc strings kept in the DOC file rather than in core,
-;you may load them with a "site-load.el" file.
-;But you must also cause them to be scanned when the DOC file
-;is generated.
-;For other systems, you must edit ../src/Makefile.in.
+;; This file doesn't exist when building a development version of Emacs
+;; from the repository.  It is generated just after temacs is built.
+(load "leim-list.el" t)
+
+;; If you want additional libraries to be preloaded and their
+;; doc strings kept in the DOC file rather than in core,
+;; you may load them with a "site-load.el" file.
+;; But you must also cause them to be scanned when the DOC file
+;; is generated.
+;; For other systems, you must edit ../src/Makefile.in.
 (load "site-load" t)
 
 ;; Make sure default-directory is unibyte when dumping.  This is

@@ -1,7 +1,6 @@
 /* Hey Emacs, this is -*- C -*- code!  */
 /*
-Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -42,9 +41,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Like PATH_LOADSEARCH, but used only during the build process
    when Emacs is dumping.  Configure (using "make epaths-force") sets
-   this to $buildlisppath, which normally has the value: <srcdir>/lisp.
+   this to $buildlisppath, which normally has the value:
+   <srcdir>/lisp:<builddir>/leim.
 */
-#define PATH_DUMPLOADSEARCH "../lisp"
+#define PATH_DUMPLOADSEARCH "../lisp:../leim"
 
 /* The extra search path for programs to invoke.  This is appended to
    whatever the PATH environment variable says to set the Lisp
