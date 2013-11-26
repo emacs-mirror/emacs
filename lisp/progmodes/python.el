@@ -676,7 +676,7 @@ AFTER-LINE.")
                  (goto-char block-end)
                  (python-util-forward-comment)
                  (current-indentation))))
-          (if indentation
+          (if (and indentation (not (zerop indentation)))
               (set (make-local-variable 'python-indent-offset) indentation)
             (message "Can't guess python-indent-offset, using defaults: %s"
                      python-indent-offset)))))))

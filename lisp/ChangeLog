@@ -1,5 +1,8 @@
 2013-11-26  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/python.el (python-indent-guess-indent-offset):
+	Avoid corner-case error.  (Bug#15975)
+
 	Preload leim-list.el.  (Bug#4789)
 	* loadup.el: Load leim-list.el when found.
 	* startup.el (normal-top-level): Skip re-loading leim/leim-list.el.
