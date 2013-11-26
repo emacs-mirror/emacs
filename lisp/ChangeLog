@@ -1,3 +1,7 @@
+2013-11-26  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/helpers.el (string-reverse): New function.
+
 2013-11-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-regexp-unified): Support IPv6 host

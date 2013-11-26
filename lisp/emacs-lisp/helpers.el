@@ -41,6 +41,10 @@
   "Join all STRINGS using SEPARATOR."
   (mapconcat 'identity strings separator))
 
+(defsubst string-reverse (str)
+  "Reverse the string STR."
+  (apply 'string (nreverse (string-to-list str))))
+
 (defsubst string-trim-left (string)
   "Remove leading whitespace from STRING."
   (if (string-match "\\`[ \t\n\r]+" string)

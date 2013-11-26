@@ -788,6 +788,7 @@ frame.
 *** `hash-table-keys'
 *** `hash-table-values'
 *** `string-join`
+*** `string-reverse`
 *** `string-trim-left'
 *** `string-trim-right'
 *** `string-trim'
