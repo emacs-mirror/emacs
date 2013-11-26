@@ -203,7 +203,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
 ** "Emacs as word processor"
 http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00515.html
     rms writes:
-    25 years ago I hoped we would extend Emacs to do WYSIWG word
+    25 years ago I hoped we would extend Emacs to do WYSIWYG word
     processing.  That is why we added text properties and variable
     width fonts.  However, more features are still needed to achieve this.
 

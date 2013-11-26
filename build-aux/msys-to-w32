@@ -37,7 +37,7 @@ transformations:
 4. Translate to Windows-native format those paths that are not in such
    format already. The translated paths will not end with a slash,
    except for root directories (e.g. 'c:/' or 'c:/foo').
-5. Escape with backslashes every ocurrence of SEPARATOR2 within the paths.
+5. Escape with backslashes every occurrence of SEPARATOR2 within the paths.
 6. Concatenate the translated paths with SEPARATOR2.
 
 If MUSTEXIST is 'Y' or not supplied, then each path in PATHLIST must
