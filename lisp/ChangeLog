@@ -1,3 +1,11 @@
+2013-11-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-regexp-unified): Support IPv6 host
+	names on MS Windows, like "/[::1]:".
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Accept nil
+	SWITCHES.
+
 2013-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/python.el (python-indent-guess-indent-offset):

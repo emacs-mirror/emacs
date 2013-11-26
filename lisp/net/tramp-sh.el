@@ -2493,6 +2493,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
+  (unless switches (setq switches ""))
   (with-parsed-tramp-file-name filename nil
     (if (and (featurep 'ls-lisp)
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
