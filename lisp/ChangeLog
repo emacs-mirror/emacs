@@ -1,3 +1,9 @@
+2013-11-26  Kenjiro NAKAYAMA <knakayam@redhat.com>  (tiny change)
+
+        * net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.
+        (eww-add-bookmark): ask confirmation when add to bookmarks
+        (eww-quit): ask confirmation before quitting eww
+
 2013-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* vc/vc.el (vc-diff-internal): Use *-dos coding-system when

@@ -403,8 +403,10 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-quit ()
   "Exit the Emacs Web Wowser."
   (interactive)
-  (setq eww-history nil)
-  (kill-buffer (current-buffer)))
+  (if (y-or-n-p "quit eww? ")
+      (progn
+	(setq eww-history nil)
+	(kill-buffer (current-buffer)))))
 
 (defun eww-back-url ()
   "Go to the previously displayed page."
@@ -964,14 +966,16 @@ The browser to used is specified by the `shr-external-browser' variable."
     (when (equal eww-current-url
 		 (plist-get bookmark :url))
       (error "Already bookmarked")))
-  (let ((title (replace-regexp-in-string "[\n\t\r]" " " eww-current-title)))
-    (setq title (replace-regexp-in-string "\\` +\\| +\\'" "" title))
-    (push (list :url eww-current-url
-		:title title
-		:time (current-time-string))
-	  eww-bookmarks))
-  (eww-write-bookmarks)
-  (message "Bookmarked %s (%s)" eww-current-url eww-current-title))
+  (if (y-or-n-p "bookmark this page? ")
+      (progn
+	(let ((title (replace-regexp-in-string "[\n\t\r]" " " eww-current-title)))
+	  (setq title (replace-regexp-in-string "\\` +\\| +\\'" "" title))
+	  (push (list :url eww-current-url
+		      :title title
+		      :time (current-time-string))
+		eww-bookmarks))
+	(eww-write-bookmarks)
+	(message "Bookmarked %s (%s)" eww-current-url eww-current-title))))
 
 (defun eww-write-bookmarks ()
   (with-temp-file (expand-file-name "eww-bookmarks" user-emacs-directory)
@@ -1063,7 +1067,7 @@ The browser to used is specified by the `shr-external-browser' variable."
     ;; just let it remain.
     (ignore-errors
       (delete-window))
-    (eww (plist-get bookmark :url))))
+    (eww-browse-url (plist-get bookmark :url))))
 
 (defun eww-next-bookmark ()
   "Go to the next bookmark in the list."
