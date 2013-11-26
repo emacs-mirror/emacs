@@ -28,9 +28,12 @@
 
 2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
 
-	* test/automated/ruby-mode-tests.el:
+	* test/automated/ruby-mode-tests.el (ruby-exit!-font-lock):
 	Add a failing test for Bug#15874.
-	* test/automated/ruby-mode-tests.el:
+	* test/automated/ruby-mode-tests.el
+	(ruby--insert-coding-comment-ruby-style)
+	(ruby--insert-coding-comment-emacs-style)
+	(ruby--insert-coding-comment-custom-style):
 	Add a few tests for `ruby--insert-coding-comment'.
 
 2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>

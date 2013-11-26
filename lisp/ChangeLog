@@ -307,9 +307,13 @@
 	* subr.el (version-regexp-alist):
 	Recognize hg, svn and darcs versions as snapshot versions.
 
-	* progmodes/ruby-mode.el (ruby-mode-set-encoding):
-	Add the ability to always insert an utf-8 encoding comment.
-	Fix and simplify coding comment update logic.
+	* progmodes/ruby-mode.el (ruby--detect-encoding): Make aware of
+	'always-utf8 value of `ruby-insert-encoding-magic-comment'.
+	(ruby--encoding-comment-required-p): Extract from
+	`ruby-mode-set-encoding'.
+	(ruby-mode-set-encoding): Add the ability to always insert an
+	utf-8 encoding comment.  Fix and simplify coding comment update
+	logic.
 
 2013-11-14  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -455,9 +459,13 @@
 
 2013-11-08  Bozhidar Batsov  <bozhidar@batsov.com>
 
-	* progmodes/ruby-mode.el (ruby-mode-set-encoding):
-	Use `ruby-encoding-magic-comment-style' to control the
-	style of the auto-inserted encoding comment.
+	* progmodes/ruby-mode.el: Improve encoding comment handling.
+	(ruby-encoding-magic-comment-style): New option.
+	(ruby-custom-encoding-magic-comment-template): New option.
+	(ruby--insert-coding-comment, ruby--detect-encoding): New
+	functions extracted from `ruby-mode-set-encoding'.
+	(ruby-mode-set-encoding): Use `ruby-encoding-magic-comment-style'
+	to control the style of the auto-inserted encoding comment.
 
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
