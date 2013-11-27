@@ -1,3 +1,9 @@
+2013-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32notify.c (Fw32notify_add_watch): If the argument FILE is a
+	directory, watch it and not its parent.
+	(add_watch): Allow empty string in FILE.
+
 2013-11-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_start, window_resize_apply)

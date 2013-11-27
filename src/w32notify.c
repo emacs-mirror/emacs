@@ -324,7 +324,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
   HANDLE hdir;
   struct notification *dirwatch = NULL;
 
-  if (!file || !*file)
+  if (!file)
     return NULL;
 
   hdir = CreateFile (parent_dir,
@@ -526,13 +526,21 @@ generate notifications correctly, though.  */)
       report_file_error ("GetFullPathName failed",
 			 Fcons (lisp_errstr, Fcons (file, Qnil)));
     }
-  /* We need the parent directory without the slash that follows it.
-     If BASENAME is NULL, the argument was the root directory on its
-     drive.  */
-  if (basename)
-    basename[-1] = '\0';
+  /* filenotify.el always passes us a directory, either the parent
+     directory of a file to be watched, or the directory to be
+     watched.  */
+  if (file_directory_p (parent_dir))
+    basename = "";
   else
-    subdirs = TRUE;
+    {
+      /* This should only happen if we are called directly, not via
+	 filenotify.el.  If BASENAME is NULL, the argument was the
+	 root directory on its drive.  */
+      if (basename)
+	basename[-1] = '\0';
+      else
+	subdirs = TRUE;
+    }
 
   if (!NILP (Fmember (Qsubtree, filter)))
     subdirs = TRUE;

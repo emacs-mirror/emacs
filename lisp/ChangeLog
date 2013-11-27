@@ -1,3 +1,8 @@
+2013-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* filenotify.el (file-notify-add-watch): Don't special-case
+	w32notify when computing the directory to watch.
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	Make bootstrap without generated uni-*.el files possible again.
