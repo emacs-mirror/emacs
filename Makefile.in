@@ -48,6 +48,8 @@
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
+#      Also generated files that do not normally change and can be slow
+#      to rebuild (eg leim/ja-dic).
 #
 # make bootstrap
 #      Removes all the compiled files to force a new bootstrap from a

@@ -1,3 +1,8 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(lispsource)/international/charprop.el): New.
+	(emacs$(EXEEXT)): Depend on charprop.el.
+
 2013-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Finsert_file_contents): Invalidate buffer caches when

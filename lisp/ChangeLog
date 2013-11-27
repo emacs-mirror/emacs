@@ -1,3 +1,15 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* international/charprop.el, international/uni-bidi.el:
+	* international/uni-category.el, international/uni-combining.el:
+	* international/uni-comment.el, international/uni-decimal.el:
+	* international/uni-decomposition.el, international/uni-digit.el:
+	* international/uni-lowercase.el, international/uni-mirrored.el:
+	* international/uni-name.el, international/uni-numeric.el:
+	* international/uni-old-name.el, international/uni-titlecase.el:
+	* international/uni-uppercase.el:
+	Remove generated files from VCS repository.
+
 2013-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* filenotify.el (file-notify-add-watch): Don't special-case

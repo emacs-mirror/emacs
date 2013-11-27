@@ -417,13 +417,17 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	cd ../leim && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
 
+$(lispsource)/international/charprop.el: bootstrap-emacs$(EXEEXT)
+	cd ../admin/unidata && $(MAKE) $(MFLAGS) all EMACS="../$(bootstrap_exe)"
+
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
 emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
-                $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
+                $(etc)/DOC $(lisp) $(leimdir)/leim-list.el \
+                $(lispsource)/international/charprop.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  rm -f emacs$(EXEEXT); \
 	  ln temacs$(EXEEXT) emacs$(EXEEXT); \

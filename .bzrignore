@@ -148,6 +148,22 @@ lisp/cus-load.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/gnus/_dir-locals.el
+# Generated Unicode files.
+lisp/international/charprop.el
+lisp/international/uni-bidi.el
+lisp/international/uni-category.el
+lisp/international/uni-combining.el
+lisp/international/uni-comment.el
+lisp/international/uni-decimal.el
+lisp/international/uni-decomposition.el
+lisp/international/uni-digit.el
+lisp/international/uni-lowercase.el
+lisp/international/uni-mirrored.el
+lisp/international/uni-name.el
+lisp/international/uni-numeric.el
+lisp/international/uni-old-name.el
+lisp/international/uni-titlecase.el
+lisp/international/uni-uppercase.el
 lisp/leim/ja-dic
 lisp/leim/leim-list.el
 # Generated quail files.

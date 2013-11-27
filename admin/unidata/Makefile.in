@@ -31,6 +31,8 @@ EMACS = ${top_builddir}/src/emacs
 DSTDIR = ${top_srcdir}/lisp/international
 emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 
+.PHONY: all compile install
+
 all: ${DSTDIR}/charprop.el
 
 .el.elc:
@@ -39,7 +41,13 @@ all: ${DSTDIR}/charprop.el
 unidata.txt: ${srcdir}/UnicodeData.txt
 	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < ${srcdir}/UnicodeData.txt > $@
 
-${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
+compile: ${srcdir}/unidata-gen.elc
+
+## Depend on .el rather than .elc so as not to needless rebuild
+## uni-*.el files just because .elc is missing.
+## Same for UnicodeData.txt v unidata.txt.
+${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt
+	${MAKE} ${MFLAGS} compile unidata.txt EMACS="${EMACS}"
 	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
 	  ${srcdir} "${DSTDIR}"
 
@@ -47,6 +55,8 @@ ${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
 charprop.el: ${srcdir}/unidata-gen.elc unidata.txt
 	${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
 	  ${srcdir}
+
+.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
 
 install: charprop.el
 	cp charprop.el ${DSTDIR}
@@ -61,6 +71,15 @@ clean:
 bootstrap-clean: clean
 
 distclean: clean
-	-rm -f ./Makefile
+	rm -f Makefile
 
 maintainer-clean: distclean
+
+## Do not remove these files, even in a bootstrap, because they rarely
+## change and it slows down bootstrap (a tiny bit).
+## Cf leim/ja-dic (which is much slower).
+extraclean:
+	if test -f ${DSTDIR}/charprop.el; then \
+	  (cd ${DSTDIR} && rm -f `sed -n 's/^;; FILE: //p' < charprop.el`); \
+	  rm -f ${DSTDIR}/charprop.el; \
+	fi

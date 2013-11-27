@@ -1,3 +1,11 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (all, install, clean, bootstrap-clean)
+	(distclean, maintainer-clean): Declare as PHONY.
+	(compile, extraclean): New.
+	(${DSTDIR}/charprop.el): Depend on source files rather than
+	intermediate products.
+
 2013-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/BidiMirroring.txt, unidata/UnicodeData.txt: Update to 6.3.0.
