@@ -143,8 +143,7 @@ ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 .PHONY: bootstrap-clean distclean maintainer-clean extraclean
 
 bootstrap-clean:
-	rm -f ${TIT_MISC} ${TIT_MISC:.el=.elc} \
-	  ${leimdir}/leim-list.el changed.tit changed.misc
+	rm -f ${TIT_MISC} ${leimdir}/leim-list.el changed.tit changed.misc
 
 distclean:
 	rm -f Makefile
@@ -153,6 +152,8 @@ maintainer-clean: distclean bootstrap-clean
 
 ## We do not delete ja-dic, even in a bootstrap, because it rarely
 ## changes and is slow to regenerate.
+## TODO? Could consider doing the same with TIT_MISC, though those
+## are much faster to generate.
 extraclean:
 	rm -rf ${leimdir}/ja-dic
 
