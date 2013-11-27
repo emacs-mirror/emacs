@@ -54,7 +54,7 @@
 
 	* emacs-lisp/helpers.el (string-join): New function.
 
-2013-11-25  Sebastian Wiesner <lunaryorn@gmail.com>
+2013-11-25  Sebastian Wiesner  <lunaryorn@gmail.com>  (tiny change)
 
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
 	Mark as obsolete and replace it with a symbol property.
