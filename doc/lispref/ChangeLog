@@ -1,3 +1,8 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search):
+	* os.texi (Startup Summary): No more leim directory.
+
 2013-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Startup Summary): Update for leim-list being preloaded.

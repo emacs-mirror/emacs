@@ -74,11 +74,9 @@ automatically when Emacs is installed.
 It loads any @file{leim-list.el} that it finds in the @code{load-path}
 directories.  This file is intended for registering input methods.
 The search is only for any personal @file{leim-list.el} files that you
-may have created; so it skips the directories containing the standard Emacs
-libraries (for efficiency, since @file{leim-list.el} should not exist
-in those directories), as well as the @file{leim} directory that is
-part of the distribution (since the @file{leim-list.el} file in this
-directory is compiled into the Emacs executable).
+may have created; it skips the directories containing the standard Emacs
+libraries (these should contain only a single @file{leim-list.el} file,
+which is compiled into the Emacs executable).
 
 @vindex before-init-time
 @item

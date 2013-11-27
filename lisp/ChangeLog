@@ -1,3 +1,21 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (setwins_for_subdirs): Skip leim/ directory.
+	(compile-main): Depend on leim rule.
+	(leim): New rule.
+	* loadup.el: Move leim-list.el to leim/ subdirectory.
+	* startup.el (normal-top-level): No more leim directory.
+	* international/ja-dic-cnv.el (skkdic-convert):
+	Disable version-control and autoloads in output files.
+	* international/titdic-cnv.el (titdic-convert, miscdic-convert):
+	Disable version-control and autoloads in output files.
+	* leim/quail: Move here from ../leim.
+	* leim/quail/hangul.el (hangul-input-method-activate):
+	Add autoload cookie.
+	(generated-autoload-load-name): Set file-local value.
+	* leim/quail/uni-input.el (ucs-input-activate): Add autoload cookie.
+	(generated-autoload-load-name): Set file-local value.
+
 2013-11-26  Kenjiro NAKAYAMA <knakayam@redhat.com>  (tiny change)
 
         * net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.

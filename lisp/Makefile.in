@@ -118,14 +118,15 @@ setwins=for file in `find . -type d -print`; do \
 # Find all subdirectories except `obsolete' and `term'.
 setwins_almost=for file in `find ${srcdir} -type d -print`; do \
 	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term ) ;; \
-		*) wins="$$wins$${wins:+ }$$file" ;; \
+	     *) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
 # Find all subdirectories in which we might want to create subdirs.el.
 setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
-	   case $$file in ${srcdir}*/cedet* ) ;; \
-		*) wins="$$wins$${wins:+ }$$file" ;; \
+	   case $$file in \
+	     ${srcdir}*/cedet* | ${srcdir}*/leim* ) ;; \
+	     *) wins="$$wins$${wins:+ }$$file" ;; \
 	   esac; \
         done
 
@@ -172,6 +173,10 @@ finder-data: doit
 # The chmod +w is to handle env var CVSREAD=1.
 # Use expand-file-name rather than $abs_scrdir so that Emacs does not
 # get confused when it compares file-names for equality.
+#
+# Note that we set no-update-autoloads in _generated_ leim files.
+# If you want to allow autoloads in such files, remove that,
+# and make this depend on leim.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	$(setwins_almost); \
@@ -291,7 +296,7 @@ compile-targets: $(TARGETS)
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
-compile-main: compile-clean
+compile-main: leim compile-clean
 	@(cd $(lisp) && $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
@@ -314,6 +319,10 @@ compile-clean:
 	    rm "$${el}c"; \
 	  fi \
 	done
+
+.PHONY: leim
+leim:
+	cd ../leim && $(MAKE) $(MFLAGS) all EMACS="$(EMACS)"
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some .el files don't get compiled because they set the

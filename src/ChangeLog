@@ -1,3 +1,11 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (leimdir): Now in lisp source directory.
+	($(leimdir)/leim-list.el): Just use ../leim .
+	* epaths.in (PATH_DUMPLOADSEARCH):
+	* lread.c (load_path_default):
+	* nsterm.m (ns_load_path): No more leim directory.
+
 2013-11-26  Andreas Schwab  <schwab@suse.de>
 
 	* .gdbinit (xgettype): Add cast.

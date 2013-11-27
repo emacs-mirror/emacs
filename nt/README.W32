@@ -20,8 +20,8 @@ See the end of the file for license conditions.
 
 * Preliminaries
 
-  Along with this file should be six subdirectories (bin, etc, info,
-  lisp, leim, site-lisp).  If you have downloaded the barebin
+  Along with this file should be five subdirectories (bin, etc, info,
+  lisp, site-lisp).  If you have downloaded the barebin
   distribution, then it will contain only the bin directory and the
   built in documentation in etc/DOC, the rest of the subdirectories
   are in the src distribution, which the barebin distribution is

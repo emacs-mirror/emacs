@@ -201,13 +201,11 @@ fi
 if [ $check = yes ]; then
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
-	leim/[a-z]*/[a-z]*.el > /tmp/el
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el > /tmp/el
 
   ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
 	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
-	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
-	leim/[a-z]*/[a-z]*.elc > /tmp/elc
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc > /tmp/elc
 
   ## Check for .elc files with no corresponding .el file.
   sed 's/\.el$/.elc/' /tmp/el > /tmp/elelc
@@ -262,7 +260,7 @@ if [ $update = yes ]; then
   (cd leim && make leim-list.el EMACS="$EMACS")
 
   echo "Recompiling Lisp files"
-  $EMACS -batch -f batch-byte-recompile-directory lisp leim
+  $EMACS -batch -f batch-byte-recompile-directory lisp
 fi                              # $update = yes
 
 echo "Creating staging directory: \`${tempparent}'"
@@ -291,8 +289,7 @@ ln aclocal.m4 ${tempdir}
 
 echo "Creating subdirectories"
 for subdir in site-lisp \
-	      leim leim/CXTERM-DIC leim/MISC-DIC \
-	      leim/SKK-DIC leim/ja-dic leim/quail \
+	      leim leim/CXTERM-DIC leim/MISC-DIC leim/SKK-DIC \
 	      build-aux build-aux/snippet \
 	      src src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
@@ -340,16 +337,8 @@ echo "Making links to \`leim' and its subdirectories"
  ln CXTERM-DIC/README CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC
  ln MISC-DIC/README MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
- ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/leim/ja-dic
  ln Makefile.in ../${tempdir}/leim/Makefile.in
- ln leim-ext.el ../${tempdir}/leim/leim-ext.el
- ## Lisp files that start with a capital (also 4Corner.el) are
- ## generated from TIT dictionaries so we don't distribute them.
- ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/leim/quail
- rm -f ../${tempdir}/leim/quail/quick-b5.*
- rm -f ../${tempdir}/leim/quail/quick-cns.*
- rm -f ../${tempdir}/leim/quail/tsang-b5.*
- rm -f ../${tempdir}/leim/quail/tsang-cns.*)
+ ln leim-ext.el ../${tempdir}/leim/leim-ext.el)
 
 echo "Making links to \`build-aux'"
 (cd build-aux

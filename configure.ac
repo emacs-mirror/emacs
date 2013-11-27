@@ -80,8 +80,7 @@ dnl hence the single quotes.  This is per the GNU coding standards, see
 dnl (autoconf) Installation Directory Variables
 dnl See also epaths.h below.
 lispdir='${datadir}/emacs/${version}/lisp'
-leimdir='${datadir}/emacs/${version}/leim'
-standardlisppath='${lispdir}:${leimdir}'
+standardlisppath='${lispdir}'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${standardlisppath}'
@@ -1683,7 +1682,6 @@ if test "${HAVE_NS}" = yes; then
      infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
-     leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
 
@@ -4490,7 +4488,6 @@ AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
 AC_SUBST(lispdir)
-AC_SUBST(leimdir)
 AC_SUBST(standardlisppath)
 AC_SUBST(locallisppath)
 AC_SUBST(lisppath)

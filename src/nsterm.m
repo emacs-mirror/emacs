@@ -1,7 +1,7 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2013
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -445,8 +445,8 @@ ns_exec_path (void)
 const char *
 ns_load_path (void)
 /* If running as a self-contained app bundle, return as a path string
-   the filenames of the site-lisp, lisp and leim directories.
-   Ie, site-lisp:lisp:leim.  Otherwise, return nil.  */
+   the filenames of the site-lisp and lisp directories.
+   Ie, site-lisp:lisp.  Otherwise, return nil.  */
 {
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
@@ -456,7 +456,7 @@ ns_load_path (void)
   BOOL isDir;
   NSArray *paths = [resourceDir stringsByAppendingPaths:
                               [NSArray arrayWithObjects:
-                                         @"site-lisp", @"lisp", @"leim", nil]];
+                                         @"site-lisp", @"lisp", nil]];
   NSEnumerator *pathEnum = [paths objectEnumerator];
   resourcePaths = @"";
 

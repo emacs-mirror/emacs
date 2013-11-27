@@ -22,8 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    load-path, which is the search path for the Lisp function "load".
    Configure (using "make epaths-force") sets this to
    ${standardlisppath}, which typically has a value like:
-   <datadir>/emacs/VERSION/lisp:<datadir>/emacs/VERSION/leim
-   where datadir is eg /usr/local/share.
+   <datadir>/emacs/VERSION/lisp where datadir is eg /usr/local/share.
 */
 #define PATH_LOADSEARCH "/usr/local/share/emacs/lisp"
 
@@ -41,10 +40,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Like PATH_LOADSEARCH, but used only during the build process
    when Emacs is dumping.  Configure (using "make epaths-force") sets
-   this to $buildlisppath, which normally has the value:
-   <srcdir>/lisp:<builddir>/leim.
+   this to $buildlisppath, which normally has the value: <srcdir>/lisp.
 */
-#define PATH_DUMPLOADSEARCH "../lisp:../leim"
+#define PATH_DUMPLOADSEARCH "../lisp"
 
 /* The extra search path for programs to invoke.  This is appended to
    whatever the PATH environment variable says to set the Lisp

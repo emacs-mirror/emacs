@@ -1,3 +1,20 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (abs_builddir, leimdir): Remove.
+	(buildlisppath, SUBDIR, COPYDIR, COPYDESTS): No more leim directory.
+	(epaths-force-w32): No longer set BLD.
+	(leim): Remove.
+	(install-arch-indep): No longer run or install leim.
+	(mostlyclean, clean): No longer run leim rule.
+	(bootstrap-clean): Change leim target.
+	(maintainer-clean): Add leim.
+	(check-declare): Remove leim.
+	* README: Update for leim changes.
+	* configure.ac (leimdir): Remove.
+	(standardlisppath): No more leimdir.
+
+	* make-dist: Update for files from leim/ now being in lisp/leim/.
+
 2013-11-26  Glenn Morris  <rgm@gnu.org>
 
 	Preload leim-list.el.

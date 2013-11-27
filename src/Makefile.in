@@ -52,7 +52,7 @@ lispsource = $(srcdir)/../lisp
 lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
-leimdir = ../leim
+leimdir = ${lispsource}/leim
 oldXMenudir = ../oldXMenu
 lwlibdir = ../lwlib
 
@@ -415,7 +415,7 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
+	cd ../leim && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.

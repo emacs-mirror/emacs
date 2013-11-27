@@ -64,9 +64,10 @@ There are several subdirectories:
             its primitives, the redisplay code, and some basic editing
             functions).
 `lisp'      holds the Emacs Lisp code for Emacs (most everything else).
-`leim'      holds the library of Emacs input methods, Lisp code and
-            auxiliary data files required to type international characters
-            which can't be directly produced by your keyboard.
+`leim'      holds the original source files for the generated files
+            in lisp/leim.  These form the library of Emacs input methods,
+            required to type international characters that can't be
+            directly produced by your keyboard.
 `lib'       holds source code for libraries used by Emacs and its utilities
 `lib-src'   holds the source code for some utility programs for use by or
             with Emacs, like movemail and etags.

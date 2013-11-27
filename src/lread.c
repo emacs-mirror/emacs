@@ -4157,14 +4157,12 @@ static Lisp_Object dump_path;
    are not yet installed, we should not use them, even if they exist.)
    If installation-dir/lisp does not exist, just add dump_path at the
    end instead.
-   Add installation-dir/leim (if exists and not already a member) at the front.
    Add installation-dir/site-lisp (if !no_site_lisp, and exists
    and not already a member) at the front.
    If installation-dir != source-dir (ie running an uninstalled,
    out-of-tree build) AND install-dir/src/Makefile exists BUT
    install-dir/src/Makefile.in does NOT exist (this is a sanity
-   check), then repeat the above steps for source-dir/lisp,
-   leim and site-lisp.  */
+   check), then repeat the above steps for source-dir/lisp, site-lisp.  */
 
 static Lisp_Object
 load_path_default (bool changed)
@@ -4233,9 +4231,9 @@ load_path_default (bool changed)
                   if (NILP (Fmember (tem, lpath)))
                     {
                       /* We are running uninstalled.  The default load-path
-                         points to the eventual installed lisp, leim
-                         directories.  We should not use those now, even
-                         if they exist, so start over from a clean slate.  */
+                         points to the eventual installed lisp directories.
+                         We should not use those now, even if they exist,
+                         so start over from a clean slate.  */
                       lpath = list1 (tem);
                     }
                 }
@@ -4243,16 +4241,6 @@ load_path_default (bool changed)
                 /* That dir doesn't exist, so add the build-time
                    Lisp dirs instead.  */
                 lpath = nconc2 (lpath, dump_path);
-
-              /* Add leim under the installation dir, if it is accessible. */
-              tem = Fexpand_file_name (build_string ("leim"),
-                                       Vinstallation_directory);
-              tem1 = Ffile_accessible_directory_p (tem);
-              if (!NILP (tem1))
-                {
-                  if (NILP (Fmember (tem, lpath)))
-                    lpath = Fcons (tem, lpath);
-                }
 
               /* Add site-lisp under the installation dir, if it exists.  */
               if (!no_site_lisp)
@@ -4269,7 +4257,7 @@ load_path_default (bool changed)
 
               /* If Emacs was not built in the source directory,
                  and it is run from where it was built, add to load-path
-                 the lisp, leim and site-lisp dirs under that directory.  */
+                 the lisp and site-lisp dirs under that directory.  */
 
               if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
                 {
@@ -4289,12 +4277,6 @@ load_path_default (bool changed)
                   if (!NILP (tem1) && NILP (tem2))
                     {
                       tem = Fexpand_file_name (build_string ("lisp"),
-                                               Vsource_directory);
-
-                      if (NILP (Fmember (tem, lpath)))
-                        lpath = Fcons (tem, lpath);
-
-                      tem = Fexpand_file_name (build_string ("leim"),
                                                Vsource_directory);
 
                       if (NILP (Fmember (tem, lpath)))

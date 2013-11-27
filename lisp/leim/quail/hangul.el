@@ -508,6 +508,7 @@ When a Korean input method is off, convert the following hangul character."
 (defvar hangul-input-method-help-text nil)
 (make-variable-buffer-local 'hangul-input-method-help-text)
 
+;;;###autoload
 (defun hangul-input-method-activate (input-method func help-text &rest args)
   "Activate Hangul input method INPUT-METHOD.
 FUNC is a function to handle input key.
@@ -541,5 +542,9 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
     (princ hangul-input-method-help-text)))
 
 (provide 'hangul)
+
+;; Local Variables:
+;; generated-autoload-load-name: "quail/hangul"
+;; End:
 
 ;;; hangul.el ends here

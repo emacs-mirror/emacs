@@ -1,3 +1,19 @@
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (leimdir): New variable.
+	(TIT_GB, TIT_BIG5, MISC, changed.tit, changed.misc)
+	(${leimdir}/leim-list.el, ${leimdir}/ja-dic/ja-dic.el):
+	Generate in $leimdir.
+	(all): Remove compilation, add ja-dic.
+	(leim-list.el): Now PHONY.
+	(setwins, compile-targets, compile-main, clean, mostlyclean)
+	(extraclean): Remove.
+	(bootstrap-clean): Delete all generated files.
+	* README: Update for moved leim/ directory.
+	* leim-ext.el (ucs-input-activate, hangul-input-method-activate):
+	Remove manual autoloads; now in loaddefs.el.
+	Disable byte-compile, version-control, autoloads in the output.
+
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (RUN_EMACS): Empty EMACSLOADPATH rather than unsetting.

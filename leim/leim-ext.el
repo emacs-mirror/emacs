@@ -37,20 +37,8 @@
 (eval-after-load "quail/Punct-b5"
   '(quail-defrule " " ?　 nil t))
 
-(autoload 'ucs-input-activate "quail/uni-input"
-  "Activate UCS input method.
-With arg, activate UCS input method if and only if arg is positive.
-
-While this input method is active, the variable
-`input-method-function' is bound to the function `ucs-input-method'.")
-
 (register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
 		       "Unicode input as hex in the form Uxxxx.")
-
-(autoload 'hangul-input-method-activate "quail/hangul"
-  "Activate Hangul input method INPUT-METHOD.
-FUNC is a function to handle input key.
-HELP-TEXT is a text set in `hangul-input-method-help-text'.")
 
 (register-input-method
  "korean-hangul"
@@ -88,3 +76,16 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'.")
  'hangul390-input-method
  "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
 
+;; Following lines are indented so that Makefile adds them to output.
+;; leim-list-header adds "coding: utf-8"; we could move that here,
+;; unless others are using that stuff to generate their own leim files.
+
+ ;; Local Variables:
+ ;; no-byte-compile: t
+ ;; version-control: never
+ ;; no-update-autoloads: t
+ ;; End:
+
+ ;;; leim-list.el ends here
+
+;;; leim-ext.el ends here

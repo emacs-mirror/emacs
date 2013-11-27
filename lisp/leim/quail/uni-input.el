@@ -85,6 +85,7 @@
 	(set-buffer-modified-p modified-p)
 	(run-hooks 'input-method-after-insert-chunk-hook)))))
 
+;;;###autoload
 (defun ucs-input-activate (&optional arg)
   "Activate UCS input method.
 With ARG, activate UCS input method if and only if ARG is positive.
@@ -124,10 +125,14 @@ Input method: ucs (mode line indicator:U+)
 
 Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 
-;; The file ../leim-ext.el contains the following call.
+;; The file leim-list.el contains the following call.
 ;; (register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
 ;; 		       "Unicode input as hex in the form Uxxxx.")
 
 (provide 'uni-input)
+
+;; Local Variables:
+;; generated-autoload-load-name: "quail/uni-input"
+;; End:
 
 ;;; uni-input.el ends here

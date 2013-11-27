@@ -270,7 +270,6 @@ is a directory something like
 "/usr/local/share/emacs/@var{version}/lisp"
 @end example
 
-followed by a similarly named @file{leim} directory.
 (In this and the following examples, replace @file{/usr/local} with
 the installation prefix appropriate for your Emacs.)
 These directories contain the standard Lisp files that come with
@@ -278,10 +277,12 @@ Emacs.  If Emacs cannot find them, it will not start correctly.
 
 If you run Emacs from the directory where it was built---that is, an
 executable that has not been formally installed---Emacs instead
-initializes @code{load-path} using the @file{lisp} and @file{leim}
-directories in the directory containing the sources from which it
-was built.  If you built Emacs in a separate directory from the
-sources, it also adds those directories from the build directory.
+initializes @code{load-path} using the @file{lisp}
+directory in the directory containing the sources from which it
+was built.
+@c Though there should be no *.el files in builddir/lisp, so it's pointless.
+If you built Emacs in a separate directory from the
+sources, it also adds the lisp directories from the build directory.
 (In all cases, elements are represented as absolute file names.)
 
 @cindex site-lisp directories

@@ -282,7 +282,7 @@
 
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.
-(load "leim-list.el" t)
+(load "leim/leim-list.el" t)
 
 ;; If you want additional libraries to be preloaded and their
 ;; doc strings kept in the DOC file rather than in core,
