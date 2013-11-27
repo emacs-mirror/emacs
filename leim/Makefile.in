@@ -140,16 +140,20 @@ ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" \
 	  "$(srcdir)/SKK-DIC/SKK-JISYO.L"
 
-.PHONY: bootstrap-clean distclean maintainer-clean
+.PHONY: bootstrap-clean distclean maintainer-clean extraclean
 
 bootstrap-clean:
 	rm -f ${TIT_MISC} ${TIT_MISC:.el=.elc} \
 	  ${leimdir}/leim-list.el changed.tit changed.misc
-	rm -rf ${leimdir}/ja-dic
 
 distclean:
 	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
+
+## We do not delete ja-dic, even in a bootstrap, because it rarely
+## changes and is slow to regenerate.
+extraclean:
+	rm -rf ${leimdir}/ja-dic
 
 ### Makefile.in ends here

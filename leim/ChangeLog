@@ -1,5 +1,8 @@
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (extraclean): New.
+	(bootstrap-clean): Move ja-dic deletion to extraclean.
+
 	Move ja-dic, quail, leim-list.el to ../lisp/leim.
 	* Makefile.in (leimdir): New variable.
 	(TIT_GB, TIT_BIG5, MISC, changed.tit, changed.misc)
