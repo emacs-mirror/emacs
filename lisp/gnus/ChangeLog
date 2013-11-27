@@ -1,3 +1,12 @@
+2013-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	Work for broken Chinese articles.
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content):
+	Exclude broken handles that gnus-summary-enter-digest-group may create.
+	(gnus-article-browse-html-parts):
+	Allow overriding charset by mm-charset-override-alist.
+
 2013-11-21  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-additional-identities): New.
