@@ -19,13 +19,17 @@
 
 ;;; Commentary:
 
-;; Some of the tests are intended to run over remote files.  Set
-;; `file-notify-test-remote-temporary-file-directory' to a suitable
-;; value.  It must NOT require an interactive password prompt, when
-;; running the tests in batch mode.
+;; Some of the tests require access to a remote host files.  Set
+;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order
+;; to overwrite the default value.  If you want to skip tests
+;; accessing a remote host, set this environment variable to
+;; "/dev/null" or whatever is appropriate on your system.
 
-;; If you want to skip tests for remote files, set this variable to
-;; `null-device'.
+;; When running the tests in batch mode, it must NOT require an
+;; interactive password prompt unless the environment variable
+;; $REMOTE_ALLOW_PASSWORD is set.
+
+;; A whole test run can be performed calling the command `file-notify-test-all'.
 
 ;;; Code:
 
@@ -34,7 +38,10 @@
 
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst file-notify-test-remote-temporary-file-directory
-  (if (eq system-type 'windows-nt) null-device "/ssh::/tmp")
+  (cond
+   ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
+   ((eq system-type 'windows-nt) null-device)
+   (t (format "/ssh::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
 (defvar file-notify--test-tmpfile nil)
@@ -45,7 +52,11 @@
 (require 'tramp)
 (setq tramp-verbose 0
       tramp-message-show-message nil)
-(when noninteractive (defalias 'tramp-read-passwd 'ignore))
+
+;; Disable interactive passwords in batch mode.
+(when (and noninteractive (not (getenv "REMOTE_ALLOW_PASSWORD")))
+  (defalias 'tramp-read-passwd 'ignore))
+
 ;; This shall happen on hydra only.
 (when (getenv "NIX_STORE")
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
@@ -96,6 +107,8 @@ being the result.")
        ;; That's why we skip only for failed local tests.
        (skip-unless
 	(not (ert-test-failed-p (ert-test-most-recent-result ert-test))))
+       (tramp-cleanup-connection
+	(tramp-dissect-file-name temporary-file-directory) nil 'keep-password)
        (funcall (ert-test-body ert-test)))))
 
 (ert-deftest file-notify-test00-availability ()
@@ -228,11 +241,11 @@ Save the result in `file-notify--test-results', for later analysis."
   "Check autorevert via file notification.
 This test is skipped in batch mode."
   (skip-unless (file-notify--test-local-enabled))
-  (skip-unless (not noninteractive))
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
-  (let ((timeout 10)
-	buf)
+  (let* ((remote (file-remote-p temporary-file-directory))
+	 (timeout (if remote 60 10))
+	 buf)
     (unwind-protect
 	(progn
 	  (setq file-notify--test-tmpfile (file-notify--test-make-temp-name))
@@ -247,7 +260,7 @@ This test is skipped in batch mode."
 	    ;; `auto-revert-buffers' runs every 5".
 	    (with-timeout (timeout (ignore))
 	      (while (null auto-revert-notify-watch-descriptor)
-		(sit-for 0.1 'nodisplay)))
+		(sit-for 1 'nodisplay)))
 
 	    ;; Check, that file notification has been used.
 	    (should auto-revert-mode)
@@ -269,8 +282,10 @@ This test is skipped in batch mode."
 		    (null (string-match
 			   (format "Reverting buffer `%s'." (buffer-name buf))
 			   (buffer-string)))
-		  (sit-for 0.1 'nodisplay))))
-	    (should (string-equal (buffer-string) "another text"))))
+		  ;; We must trigger the process filter to run.
+		  (when remote (accept-process-output nil 1))
+		  (sit-for 1 'nodisplay))))
+	    (should (string-match "another text" (buffer-string)))))
 
       ;; Exit.
       (ignore-errors (kill-buffer buf))
