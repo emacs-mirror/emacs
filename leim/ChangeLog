@@ -13,6 +13,7 @@
 	* leim-ext.el (ucs-input-activate, hangul-input-method-activate):
 	Remove manual autoloads; now in loaddefs.el.
 	Disable byte-compile, version-control, autoloads in the output.
+	* quail: Move to ../lisp/leim.
 
 2013-11-23  Glenn Morris  <rgm@gnu.org>
 
