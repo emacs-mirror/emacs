@@ -1,5 +1,9 @@
 2013-11-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* fileio.c (Finsert_file_contents): Invalidate buffer caches when
+	deleting portions of the buffer under non-nil REPLACE argument.
+	(Bug#15973)
+
 	* w32notify.c (Fw32notify_add_watch): If the argument FILE is a
 	directory, watch it and not its parent.
 	(add_watch): Allow empty string in FILE.

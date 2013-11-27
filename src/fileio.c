@@ -3858,6 +3858,9 @@ by calling `format-decode', which see.  */)
 	  beg_offset += same_at_start - BEGV_BYTE;
 	  end_offset -= ZV_BYTE - same_at_end;
 
+	  invalidate_buffer_caches (current_buffer,
+				    BYTE_TO_CHAR (same_at_start),
+				    BYTE_TO_CHAR (same_at_end));
 	  del_range_byte (same_at_start, same_at_end, 0);
 	  /* Insert from the file at the proper position.  */
 	  temp = BYTE_TO_CHAR (same_at_start);
@@ -3968,7 +3971,12 @@ by calling `format-decode', which see.  */)
 	{
 	  /* Truncate the buffer to the size of the file.  */
 	  if (same_at_start != same_at_end)
-	    del_range_byte (same_at_start, same_at_end, 0);
+	    {
+	      invalidate_buffer_caches (current_buffer,
+					BYTE_TO_CHAR (same_at_start),
+					BYTE_TO_CHAR (same_at_end));
+	      del_range_byte (same_at_start, same_at_end, 0);
+	    }
 	  inserted = 0;
 
 	  unbind_to (this_count, Qnil);
@@ -4016,6 +4024,9 @@ by calling `format-decode', which see.  */)
 
       if (same_at_end != same_at_start)
 	{
+	  invalidate_buffer_caches (current_buffer,
+				    BYTE_TO_CHAR (same_at_start),
+				    BYTE_TO_CHAR (same_at_end));
 	  del_range_byte (same_at_start, same_at_end, 0);
 	  temp = GPT;
 	  eassert (same_at_start == GPT_BYTE);
