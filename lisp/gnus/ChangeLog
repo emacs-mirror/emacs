@@ -1,5 +1,8 @@
 2013-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (gnus-article-browse-html-parts):
+	Replace LWSPs with `&nbsp;'s in header.
+
 	Work for broken Chinese articles.
 
 	* gnus-art.el (gnus-article-browse-html-save-cid-content):

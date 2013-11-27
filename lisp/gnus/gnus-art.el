@@ -2895,6 +2895,13 @@ message header will be added to the bodies of the \"text/html\" parts."
 					  ((match-beginning 3) "&amp;")
 					  (t "<br>\n"))))
 		   (goto-char (point-min))
+		   (while (re-search-forward "^[\t ]+" nil t)
+		     (dotimes (i (prog1
+				     (current-column)
+				   (delete-region (match-beginning 0)
+						  (match-end 0))))
+		       (insert "&nbsp;")))
+		   (goto-char (point-min))
 		   (insert "<div align=\"left\">\n")
 		   (goto-char (point-max))
 		   (insert "</div>\n<hr>\n")
