@@ -1,5 +1,6 @@
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
+	Move ja-dic, quail, leim-list.el from leim to lisp/leim.
 	* Makefile.in (abs_builddir, leimdir): Remove.
 	(buildlisppath, SUBDIR, COPYDIR, COPYDESTS): No more leim directory.
 	(epaths-force-w32): No longer set BLD.

@@ -1,5 +1,6 @@
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
+	Move ja-dic, quail, leim-list.el from ../leim to a leim subdirectory.
 	* Makefile.in (setwins_for_subdirs): Skip leim/ directory.
 	(compile-main): Depend on leim rule.
 	(leim): New rule.

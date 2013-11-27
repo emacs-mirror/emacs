@@ -1,5 +1,6 @@
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
+	Move ja-dic, quail, leim-list.el to ../lisp/leim.
 	* Makefile.in (leimdir): New variable.
 	(TIT_GB, TIT_BIG5, MISC, changed.tit, changed.misc)
 	(${leimdir}/leim-list.el, ${leimdir}/ja-dic/ja-dic.el):
