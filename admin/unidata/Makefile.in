@@ -43,7 +43,7 @@ unidata.txt: ${srcdir}/UnicodeData.txt
 
 compile: ${srcdir}/unidata-gen.elc
 
-## Depend on .el rather than .elc so as not to needless rebuild
+## Depend on .el rather than .elc so as not to needlessly rebuild
 ## uni-*.el files just because .elc is missing.
 ## Same for UnicodeData.txt v unidata.txt.
 ${DSTDIR}/charprop.el: ${srcdir}/unidata-gen.el ${srcdir}/UnicodeData.txt
