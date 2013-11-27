@@ -1,3 +1,8 @@
+2013-11-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_start, window_resize_apply)
+	(window_scroll): Reset window_end_valid (Bug#15957).
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (leimdir): Now in lisp source directory.

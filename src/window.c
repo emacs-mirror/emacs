@@ -1574,6 +1574,8 @@ overriding motion of point in order to display at this exact start.  */)
   if (NILP (noforce))
     w->force_start = 1;
   w->update_mode_line = 1;
+  /* Bug#15957.  */
+  w->window_end_valid = 0;
   if (w != XWINDOW (selected_window))
     /* Enforce full redisplay.  FIXME: make it more selective.  */
     windows_or_buffers_changed = 26;
@@ -3615,6 +3617,9 @@ window_resize_apply (struct window *w, bool horflag)
 	  c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	}
     }
+  else
+    /* Bug#15957.  */
+    w->window_end_valid = 0;
 }
 
 
@@ -4286,6 +4291,8 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, int noerror)
   else
     window_scroll_line_based (window, n, whole, noerror);
 
+  /* Bug#15957.  */
+  XWINDOW (window)->window_end_valid = 0;
   immediate_quit = 0;
 }
 
