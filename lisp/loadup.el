@@ -51,8 +51,9 @@
 ;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
-	(equal (nth 3 command-line-args) "unidata-gen.el")
-	(equal (nth 4 command-line-args) "unidata-gen-files")
+	;; FIXME this is irritatingly fragile.
+	(equal (nth 4 command-line-args) "unidata-gen.el")
+	(equal (nth 7 command-line-args) "unidata-gen-files")
 	;; In case CANNOT_DUMP.
 	(string-match "src/bootstrap-emacs" (nth 0 command-line-args)))
     (let ((dir (car load-path)))
@@ -62,7 +63,8 @@
 			    (expand-file-name "emacs-lisp" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)
-			    (expand-file-name "textmodes" dir)))))
+			    (expand-file-name "textmodes" dir)
+			    (expand-file-name "vc" dir)))))
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.

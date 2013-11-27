@@ -1,5 +1,11 @@
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
+	Make bootstrap without generated uni-*.el files possible again.
+	* loadup.el: Update command-line-args checking for unidata-gen.
+	Add vc to load-path to allow loading vc-bzr when writing uni-*.el.
+	* composite.el, international/characters.el:
+	Handle unicode tables being undefined.
+
 	Move ja-dic, quail, leim-list.el from ../leim to a leim subdirectory.
 	* Makefile.in (setwins_for_subdirs): Skip leim/ directory.
 	(compile-main): Depend on leim rule.
