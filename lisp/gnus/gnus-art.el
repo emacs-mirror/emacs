@@ -2665,7 +2665,7 @@ If READ-CHARSET, ask for a coding system."
 			    (string-match "quoted-printable" type))))
 	(article-goto-body)
 	(quoted-printable-decode-region
-	 (point) (point-max) (mm-charset-to-coding-system charset))))))
+	 (point) (point-max) (mm-charset-to-coding-system charset nil t))))))
 
 (defun article-de-base64-unreadable (&optional force read-charset)
   "Translate a base64 article.
@@ -2696,7 +2696,8 @@ If READ-CHARSET, ask for a coding system."
 	  (narrow-to-region (point) (point-max))
 	  (base64-decode-region (point-min) (point-max))
 	  (mm-decode-coding-region
-	   (point-min) (point-max) (mm-charset-to-coding-system charset)))))))
+	   (point-min) (point-max)
+	   (mm-charset-to-coding-system charset nil t)))))))
 
 (eval-when-compile
   (require 'rfc1843))
@@ -5247,7 +5248,8 @@ are decompressed."
       (switch-to-buffer (generate-new-buffer filename))
       (if (or coding-system
 	      (and charset
-		   (setq coding-system (mm-charset-to-coding-system charset))
+		   (setq coding-system (mm-charset-to-coding-system
+					charset nil t))
 		   (not (eq coding-system 'ascii))))
 	  (progn
 	    (mm-enable-multibyte)

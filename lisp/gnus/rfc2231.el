@@ -215,7 +215,8 @@ These look like:
  \"''This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
  \"This is ***fun***\"."
   (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
-  (let ((coding-system (mm-charset-to-coding-system (match-string 1 string)))
+  (let ((coding-system (mm-charset-to-coding-system
+			(match-string 1 string) nil t))
 	;;(language (match-string 2 string))
 	(value (match-string 3 string)))
     (mm-with-unibyte-buffer

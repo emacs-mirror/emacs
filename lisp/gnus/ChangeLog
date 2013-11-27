@@ -1,5 +1,13 @@
 2013-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (article-de-quoted-unreadable)
+	(article-de-base64-unreadable, gnus-mime-copy-part)
+	* gnus-html.el (gnus-article-html)
+	* mm-view.el (mm-inline-text-html-render-with-w3)
+	(mm-inline-text-html-render-with-w3m-standalone)
+	* rfc2231.el (rfc2231-decode-encoded-string):
+	Allow overriding charset by mm-charset-override-alist.
+
 	* gnus-art.el (gnus-article-browse-html-parts):
 	Replace LWSPs with `&nbsp;'s in header.
 
