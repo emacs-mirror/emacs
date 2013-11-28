@@ -232,9 +232,10 @@ Save the result in `file-notify--test-results', for later analysis."
 (file-notify--deftest-remote file-notify-test02-events
   "Check file creation/removal notifications for remote files.")
 
-;; autorevert runs only in interactive mode.
 (defvar auto-revert-remote-files)
-(setq auto-revert-remote-files t)
+(defvar auto-revert-stop-on-user-input)
+(setq auto-revert-remote-files t
+      auto-revert-stop-on-user-input nil)
 (require 'autorevert)
 
 (ert-deftest file-notify-test03-autorevert ()
