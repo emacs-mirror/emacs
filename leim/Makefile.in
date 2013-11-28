@@ -132,7 +132,7 @@ ${leimdir}/leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
 	rm -f $@
 	${RUN_EMACS} -l international/quail \
 	  --eval "(update-leim-list-file (unmsys--file-name \"${leimdir}\"))"
-	sed -n -e '/^[^;]/p' -e 's/;inc/;/p' < ${srcdir}/leim-ext.el >> $@
+	sed -n -e '/^[^;]/p' -e 's/^;\(;*\)inc /;\1 /p' < ${srcdir}/leim-ext.el >> $@
 
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	@$(MKDIR_P) $(leimdir)/ja-dic
