@@ -76,16 +76,17 @@
  'hangul390-input-method
  "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
 
-;; Following lines are indented so that Makefile adds them to output.
+;; Following lines are marked such that Makefile adds them to output.
 ;; leim-list-header adds "coding: utf-8"; we could move that here,
 ;; unless others are using that stuff to generate their own leim files.
+;; TODO?  Better to add leim-list-footer?
 
- ;; Local Variables:
- ;; no-byte-compile: t
- ;; version-control: never
- ;; no-update-autoloads: t
- ;; End:
+;;inc Local Variables:
+;;inc no-byte-compile: t
+;;inc version-control: never
+;;inc no-update-autoloads: t
+;;inc End:
 
- ;;; leim-list.el ends here
+;;;inc leim-list.el ends here
 
 ;;; leim-ext.el ends here
