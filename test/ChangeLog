@@ -1,3 +1,9 @@
+2013-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/Makefile.in (PATH_SEP): Set this instead of
+	PATH_SEPARATOR.
+	(EMACSOPT): Use $(PATH_SEP).
+
 2013-11-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el (auto-revert-stop-on-user-input):

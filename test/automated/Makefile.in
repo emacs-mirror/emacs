@@ -22,7 +22,7 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 VPATH = $(srcdir)
 
-PATH_SEPARATOR = @PATH_SEPARATOR@
+PATH_SEP = @PATH_SEP@
 
 # Empty for all systems except MinGW, where xargs needs an explicit
 # limitation.
@@ -36,7 +36,7 @@ EMACS = ../../src/emacs
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
 # but we might as well be explicit.
-EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(PATH_SEPARATOR)$(srcdir)"
+EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(PATH_SEP)$(srcdir)"
 
 # Extra flags to pass to the byte compiler.
 BYTE_COMPILE_EXTRA_FLAGS =
