@@ -32,12 +32,6 @@
 # run "configure" by hand.  But run autogen.sh first, if the source
 # was checked out directly from the repository.
 
-ifneq ($(MSYSTEM),)
-CFG = CONFIG_SITE=$(CURDIR)/nt/mingw-cfg.site
-else
-CFG =
-endif
-
 # If a Makefile already exists, just use it.
 
 ifeq ($(wildcard Makefile),Makefile)
@@ -75,7 +69,7 @@ configure:
 Makefile: configure
 	@echo >&2 'There seems to be no Makefile in this directory.'
 	@echo >&2 'Running ./configure ...'
-	$(CFG) ./configure
+	./configure
 	@echo >&2 'Makefile built.'
 
 endif

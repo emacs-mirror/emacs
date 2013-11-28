@@ -1,5 +1,8 @@
 2013-11-28  Eli Zaretskii  <eliz@gnu.org>
 
+	* GNUmakefile (Makefile): Don't use $(CFG).
+	(CFG): Don't compute.
+
 	* configure.ac (PATH_SEP): Set and AC_SUBST.
 
 2013-11-27  Paul Eggert  <eggert@cs.ucla.edu>
