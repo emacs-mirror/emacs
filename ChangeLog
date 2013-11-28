@@ -1,3 +1,7 @@
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (PATH_SEP): Replace with pre-existing SEPCHAR.
+
 2013-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* GNUmakefile (Makefile): Don't use $(CFG).

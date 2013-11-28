@@ -923,22 +923,6 @@ if test "$opsys" = "mingw32"; then
   LN_S="ln"
 fi
 
-dnl This is for MinGW, and is used in test/automated/Makefile.in.
-dnl The MSYS Bash has heuristics for replacing ':' with ';' when it
-dnl decides that a command-line argument to be passed to a MinGW program
-dnl is a PATH-style list of directories.  But that heuristics plays it
-dnl safe, and only does the replacement when it is _absolutely_ sure it
-dnl sees a colon-seperated list of file names; e.g. ":." is left alone,
-dnl which breaks in-tree builds.  So we do this manually instead.
-dnl Note that we cannot rely on PATH_SEPARATOR, as that one will always
-dnl be computed as ':' in MSYS Bash.
-if test "$opsys" = "mingw32"; then
-  PATH_SEP=';'
-else
-  PATH_SEP=':'
-fi
-AC_SUBST(PATH_SEP)
-
 AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
@@ -3851,12 +3835,22 @@ else
   AC_DEFINE(NULL_DEVICE, ["/dev/null"])
 fi
 
-AH_TEMPLATE(SEPCHAR, [Character that separates PATH elements.])
 if test "${opsys}" = "mingw32"; then
-  AC_DEFINE(SEPCHAR, [';'])
+  SEPCHAR=';'
 else
-  AC_DEFINE(SEPCHAR, [':'])
+  SEPCHAR=':'
 fi
+AC_DEFINE_UNQUOTED(SEPCHAR, ['$SEPCHAR'], [Character that separates PATH elements.])
+dnl This is for MinGW, and is used in test/automated/Makefile.in.
+dnl The MSYS Bash has heuristics for replacing ':' with ';' when it
+dnl decides that a command-line argument to be passed to a MinGW program
+dnl is a PATH-style list of directories.  But that heuristics plays it
+dnl safe, and only does the replacement when it is _absolutely_ sure it
+dnl sees a colon-seperated list of file names; e.g. ":." is left alone,
+dnl which breaks in-tree builds.  So we do this manually instead.
+dnl Note that we cannot rely on PATH_SEPARATOR, as that one will always
+dnl be computed as ':' in MSYS Bash.
+AC_SUBST(SEPCHAR)
 
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE(subprocesses, 1, [Define to enable asynchronous subprocesses.])

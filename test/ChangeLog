@@ -1,3 +1,7 @@
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (SEPCHAR): Use in place of PATH_SEP.
+
 2013-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* automated/Makefile.in (PATH_SEP): Set this instead of
