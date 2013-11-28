@@ -6202,7 +6202,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             SET_FRAME_GARBAGED (f);
 
           /* Check if fullscreen was specified before we where mapped the
-             first time, i.e. from the command line. */
+             first time, i.e. from the command line.  */
           if (!f->output_data.x->has_been_visible)
             x_check_fullscreen (f);
 

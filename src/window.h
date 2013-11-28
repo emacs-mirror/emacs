@@ -282,60 +282,63 @@ struct window
     int window_end_vpos;
 
     /* Non-zero if this window is a minibuffer window.  */
-    unsigned mini : 1;
+    bool mini : 1;
 
     /* Meaningful only if contents is a window, non-zero if this
        internal window is used in horizontal combination.  */
-    unsigned horizontal : 1;
+    bool horizontal : 1;
 
     /* Non-zero means must regenerate mode line of this window.  */
-    unsigned update_mode_line : 1;
+    bool update_mode_line : 1;
 
     /* Non-nil if the buffer was "modified" when the window
        was last updated.  */
-    unsigned last_had_star : 1;
+    bool last_had_star : 1;
 
     /* Non-zero means current value of `start'
        was the beginning of a line when it was chosen.  */
-    unsigned start_at_line_beg : 1;
+    bool start_at_line_beg : 1;
 
     /* Non-zero means next redisplay must use the value of start
        set up for it in advance.  Set by scrolling commands.  */
-    unsigned force_start : 1;
+    bool force_start : 1;
 
     /* Non-zero means we have explicitly changed the value of start,
        but that the next redisplay is not obliged to use the new value.
        This is used in Fdelete_other_windows to force a call to
        Vwindow_scroll_functions; also by Frecenter with argument.  */
-    unsigned optional_new_start : 1;
+    bool optional_new_start : 1;
 
     /* Non-zero means the cursor is currently displayed.  This can be
        set to zero by functions overpainting the cursor image.  */
-    unsigned phys_cursor_on_p : 1;
+    bool phys_cursor_on_p : 1;
 
     /* 0 means cursor is logically on, 1 means it's off.  Used for
        blinking cursor.  */
-    unsigned cursor_off_p : 1;
+    bool cursor_off_p : 1;
 
     /* Value of cursor_off_p as of the last redisplay.  */
-    unsigned last_cursor_off_p : 1;
+    bool last_cursor_off_p : 1;
 
     /* 1 means desired matrix has been build and window must be
        updated in update_frame.  */
-    unsigned must_be_updated_p : 1;
+    bool must_be_updated_p : 1;
 
     /* Flag indicating that this window is not a real one.
        Currently only used for menu bar windows of frames.  */
-    unsigned pseudo_window_p : 1;
+    bool pseudo_window_p : 1;
 
     /* Non-zero means fringes are drawn outside display margins.
        Otherwise draw them between margin areas and text.  */
-    unsigned fringes_outside_margins : 1;
+    bool fringes_outside_margins : 1;
 
     /* Nonzero if window_end_pos and window_end_vpos are truly valid.
        This is zero if nontrivial redisplay is preempted since in that case
        the frame image that window_end_pos did not get onto the frame.  */
-    unsigned window_end_valid : 1;
+    bool window_end_valid : 1;
+
+    /* True if it needs to be redisplayed.  */
+    bool redisplay : 1;
 
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
@@ -900,14 +903,31 @@ extern EMACS_INT command_loop_level;
 
 extern EMACS_INT minibuf_level;
 
-/* true if we should redraw the mode lines on the next redisplay.  */
+/* Non-zero if we should redraw the mode lines on the next redisplay.
+   Usually set to a unique small integer so we can track the main causes of
+   full redisplays in `redisplay--mode-lines-cause'.  */
 
 extern int update_mode_lines;
 
 /* Nonzero if window sizes or contents have changed since last
-   redisplay that finished.  */
+   redisplay that finished.  Usually set to a unique small integer so
+   we can track the main causes of full redisplays in
+   `redisplay--all-windows-cause'.  */
 
 extern int windows_or_buffers_changed;
+
+/* The main redisplay routine usually only redisplays the selected-window,
+   so when something's changed elsewhere, we call one of the functions below
+   to indicate which other windows might also need to be redisplayed.  */
+
+extern void wset_redisplay (struct window *w);
+extern void fset_redisplay (struct frame *f);
+extern void bset_redisplay (struct buffer *b);
+extern void bset_update_mode_line (struct buffer *b);
+/* Call this to tell redisplay to look for other windows than selected-window
+   that need to be redisplayed.  Calling one of the *set_redisplay functions
+   above already does it, so it's only needed in unusual cases.  */
+extern void redisplay_other_windows (void);
 
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
@@ -942,6 +962,7 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 extern Lisp_Object Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
+extern Lisp_Object window_list (void);
 extern struct window *decode_live_window (Lisp_Object);
 extern struct window *decode_any_window (Lisp_Object);
 extern bool compare_window_configurations (Lisp_Object, Lisp_Object, bool);

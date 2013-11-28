@@ -499,6 +499,7 @@ Typically \"page-%s.png\".")
                  ;; how many pages will be available.
                  (null doc-view--current-converter-processes))
 	(setq page len)))
+    (force-mode-line-update)            ;To update `current-page'.
     (setf (doc-view-current-page) page
 	  (doc-view-current-info)
 	  (concat

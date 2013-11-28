@@ -1,3 +1,46 @@
+2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Refine redisplay optimizations to only redisplay *some* frames/windows
+	rather than all of them.
+	* xdisp.c (REDISPLAY_SOME): New constant.
+	(redisplay_other_windows, wset_redisplay, fset_redisplay)
+	(bset_redisplay, bset_update_mode_line): New functions.
+	(message_dolog): Use bset_redisplay.
+	(clear_garbaged_frames): Use fset_redisplay.
+	(echo_area_display): Use wset_redisplay.
+	(buffer_shared_and_changed): Remove.
+	(prepare_menu_bars): Call Vpre_redisplay_function before updating
+	frame titles.  Compute the actual set of windows redisplayed.
+	Don't update frame titles and menu bars for frames that don't need to
+	be redisplayed.
+	(propagate_buffer_redisplay): New function.
+	(AINC): New macro.
+	(redisplay_internal): Use it.  Be more selective in the set of windows
+	we redisplay.  Propagate windows_or_buffers_changed to
+	update_mode_lines a bit later to simplify the code.
+	(mark_window_display_accurate_1): Reset window and buffer's
+	`redisplay' flag.
+	(redisplay_window): Do nothing if neither the window nor the buffer nor
+	the frame needs redisplay.
+	* window.h (struct window): Add `redisplay' field.
+	(wset_redisplay, fset_redisplay, bset_redisplay, bset_update_mode_line)
+	(redisplay_other_windows, window_list): New declarations.
+	* window.c (select_window, Fset_window_start): Use wset_redisplay.
+	(window_list): Not static any more.
+	(grow_mini_window, shrink_mini_window): Use fset_redisplay.
+	* minibuf.c (read_minibuf_unwind): Don't redisplay everything.
+	* insdel.c (prepare_to_modify_buffer_1): Use bset_redisplay.
+	* frame.c (Fmake_frame_visible): Don't redisplay everything.
+	* frame.h (struct frame): Add `redisplay' field.
+	Move `external_menu_bar' bitfield next to other bit-fields.
+	(SET_FRAME_GARBAGED): Use fset_redisplay.
+	(SET_FRAME_VISIBLE): Don't garbage the frame;
+	Use redisplay_other_windows.
+	* buffer.h (struct buffer): Add `redisplay' field.
+	* buffer.c (Fforce_mode_line_update): Pay attention to the `all' flag.
+	(modify_overlay): Use bset_redisplay.
+	* alloc.c (gc_sweep): Don't unmark strings while sweeping symbols.
+
 2013-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	Support w32 file notifications in batch mode.
@@ -6,11 +49,9 @@
 	handle_file_notifications to store file notification events in the
 	input queue.  (Bug#15933)
 
-	* w32notify.c (send_notifications): Handle FRAME_INITIAL frames as
-	well.
+	* w32notify.c (send_notifications): Handle FRAME_INITIAL frames as well.
 
-	* w32inevt.c (handle_file_notifications): Now external, not
-	static.
+	* w32inevt.c (handle_file_notifications): Now external, not static.
 
 	* w32term.h (handle_file_notifications): Provide prototype.
 
@@ -209,8 +250,8 @@
 	* insdel.c (invalidate_buffer_caches): New function, consolidated
 	from part of prepare_to_modify_buffer.
 	(insert_from_gap, prepare_to_modify_buffer):
-	* coding.c (code_convert_region, code_convert_string): Call
-	invalidate_buffer_caches.  (Bug#15841)
+	* coding.c (code_convert_region, code_convert_string):
+	Call invalidate_buffer_caches.  (Bug#15841)
 
 	* lisp.h (invalidate_buffer_caches): Add prototype.
 

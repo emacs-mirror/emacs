@@ -502,12 +502,20 @@ static Lisp_Object Vmessage_stack;
 
 static bool message_enable_multibyte;
 
-/* Nonzero if we should redraw the mode lines on the next redisplay.  */
+/* Nonzero if we should redraw the mode lines on the next redisplay.
+   If it has value REDISPLAY_SOME, then only redisplay the mode lines where
+   the `redisplay' bit has been set.  Otherwise, redisplay all mode lines
+   (the number used is then only used to track down the cause for this
+   full-redisplay).  */
 
 int update_mode_lines;
 
-/* Nonzero if window sizes or contents have changed since last
-   redisplay that finished.  */
+/* Nonzero if window sizes or contents other than selected-window have changed
+   since last redisplay that finished.
+   If it has value REDISPLAY_SOME, then only redisplay the windows where
+   the `redisplay' bit has been set.  Otherwise, redisplay all windows
+   (the number used is then only used to track down the cause for this
+   full-redisplay).  */
 
 int windows_or_buffers_changed;
 
@@ -598,6 +606,49 @@ bool help_echo_showing_p;
     bidi_unshelve_cache (CACHE, 0);		\
     CACHE = NULL;				\
   } while (0)
+
+/* Functions to mark elements as needing redisplay.  */
+enum { REDISPLAY_SOME = 2};	/* Arbitrary choice.  */
+
+void redisplay_other_windows (void)
+{
+  if (!windows_or_buffers_changed)
+    windows_or_buffers_changed = REDISPLAY_SOME;
+}
+
+void wset_redisplay (struct window *w)
+{
+  redisplay_other_windows ();
+  w->redisplay = true;
+}
+
+void fset_redisplay (struct frame *f)
+{
+  redisplay_other_windows ();
+  f->redisplay = true;
+}
+
+void bset_redisplay (struct buffer *b)
+{
+  int count = buffer_window_count (b);
+  if (count > 0)
+    {
+      /* ... it's visible in other window than selected,  */
+      if (count > 1 || b != XBUFFER (XWINDOW (selected_window)->contents))
+	redisplay_other_windows ();
+      /* Even if we don't set windows_or_buffers_changed, do set `redisplay'
+	 so that if we later set windows_or_buffers_changed, this buffer will
+	 not be omitted.  */
+      b->text->redisplay = true;
+    }
+}
+
+extern void bset_update_mode_line (struct buffer *b)
+{
+  if (!update_mode_lines)
+    update_mode_lines = REDISPLAY_SOME;
+  b->text->redisplay = true;
+}
 
 #ifdef GLYPH_DEBUG
 
@@ -9468,7 +9519,6 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       ptrdiff_t point_at_end = 0;
       ptrdiff_t zv_at_end = 0;
       Lisp_Object old_deactivate_mark;
-      bool shown;
       struct gcpro gcpro1;
 
       old_deactivate_mark = Vdeactivate_mark;
@@ -9482,8 +9532,8 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 
         Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
 
-        if (newbuffer &&
-            !NILP (Ffboundp (intern ("messages-buffer-mode"))))
+        if (newbuffer
+	    && !NILP (Ffboundp (intern ("messages-buffer-mode"))))
           call0 (intern ("messages-buffer-mode"));
       }
 
@@ -9625,18 +9675,17 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       unchain_marker (XMARKER (oldbegv));
       unchain_marker (XMARKER (oldzv));
 
-      shown = buffer_window_count (current_buffer) > 0;
-      set_buffer_internal (oldbuf);
       /* We called insert_1_both above with its 5th argument (PREPARE)
 	 zero, which prevents insert_1_both from calling
 	 prepare_to_modify_buffer, which in turns prevents us from
 	 incrementing windows_or_buffers_changed even if *Messages* is
-	 shown in some window.  So we must manually incrementing
+	 shown in some window.  So we must manually set
 	 windows_or_buffers_changed here to make up for that.  */
-      if (shown)
-	windows_or_buffers_changed = 41;
-      else
 	windows_or_buffers_changed = old_windows_or_buffers_changed;
+      bset_redisplay (current_buffer);
+
+      set_buffer_internal (oldbuf);
+
       message_log_need_newline = !nlflag;
       Vdeactivate_mark = old_deactivate_mark;
     }
@@ -10325,15 +10374,8 @@ resize_echo_area_exactly (void)
       && WINDOWP (echo_area_window))
     {
       struct window *w = XWINDOW (echo_area_window);
-      int resized_p;
-      Lisp_Object resize_exactly;
-
-      if (minibuf_level == 0)
-	resize_exactly = Qt;
-      else
-	resize_exactly = Qnil;
-
-      resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
+      Lisp_Object resize_exactly = (minibuf_level == 0 ? Qt : Qnil);
+      int resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
 					 (intptr_t) w, resize_exactly);
       if (resized_p)
 	{
@@ -10714,7 +10756,6 @@ clear_garbaged_frames (void)
   if (frame_garbaged)
     {
       Lisp_Object tail, frame;
-      int changed_count = 0;
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -10726,15 +10767,13 @@ clear_garbaged_frames (void)
 		redraw_frame (f);
 	      else
 		clear_current_matrices (f);
-	      changed_count++;
-	      f->garbaged = 0;
-	      f->resized_p = 0;
+	      fset_redisplay (f);
+	      f->garbaged = false;
+	      f->resized_p = false;
 	    }
 	}
 
-      frame_garbaged = 0;
-      if (changed_count)
-	windows_or_buffers_changed = 43;
+      frame_garbaged = false;
     }
 }
 
@@ -10822,11 +10861,11 @@ echo_area_display (int update_frame_p)
 	     redisplay displays the minibuffer, so that the cursor will
 	     be replaced with what the minibuffer wants.  */
 	  if (cursor_in_echo_area)
-	    windows_or_buffers_changed = 45;
+	    wset_redisplay (XWINDOW (mini_window));
 	}
     }
   else if (!EQ (mini_window, selected_window))
-    windows_or_buffers_changed = 46;
+    wset_redisplay (XWINDOW (mini_window));
 
   /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
@@ -10840,16 +10879,6 @@ echo_area_display (int update_frame_p)
     CHARPOS (this_line_start_pos) = 0;
 
   return window_height_changed_p;
-}
-
-/* Nonzero if the current window's buffer is shown in more than one
-   window and was modified since last redisplay.  */
-
-static int
-buffer_shared_and_changed (void)
-{
-  return (buffer_window_count (current_buffer) > 1
-	  && UNCHANGED_MODIFIED < MODIFF);
 }
 
 /* Nonzero if W's buffer was changed but not saved.  */
@@ -11171,9 +11200,13 @@ x_consider_frame_title (Lisp_Object frame)
 static void
 prepare_menu_bars (void)
 {
-  int all_windows;
+  bool all_windows = windows_or_buffers_changed || update_mode_lines;
+  bool some_windows
+    = (windows_or_buffers_changed == 0
+       || windows_or_buffers_changed == REDISPLAY_SOME)
+    && (update_mode_lines == 0
+	|| update_mode_lines == REDISPLAY_SOME);
   struct gcpro gcpro1, gcpro2;
-  struct frame *f;
   Lisp_Object tooltip_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -11182,17 +11215,45 @@ prepare_menu_bars (void)
   tooltip_frame = Qnil;
 #endif
 
+  if (FUNCTIONP (Vpre_redisplay_function))
+    {
+      Lisp_Object windows = all_windows ? Qt : Qnil;
+      if (all_windows && some_windows)
+	{
+	  Lisp_Object ws = window_list ();
+	  for (windows = Qnil; CONSP (ws); ws = XCDR (ws))
+	    {
+	      Lisp_Object this = XCAR (ws);
+	      struct window *w = XWINDOW (this);
+	      if (w->redisplay
+		  || XFRAME (w->frame)->redisplay
+		  || XBUFFER (w->contents)->text->redisplay)
+		{
+		  windows = Fcons (this, windows);
+		}
+	    }
+	}
+      safe_call1 (Vpre_redisplay_function, windows);
+    }
+
   /* Update all frame titles based on their buffer names, etc.  We do
      this before the menu bars so that the buffer-menu will show the
      up-to-date frame titles.  */
 #ifdef HAVE_WINDOW_SYSTEM
-  if (windows_or_buffers_changed || update_mode_lines)
+  if (all_windows)
     {
       Lisp_Object tail, frame;
 
       FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (frame);
+	  struct frame *f = XFRAME (frame);
+	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+	  if (some_windows
+	      && !f->redisplay
+	      && !w->redisplay
+	      && !XBUFFER (w->contents)->text->redisplay)
+	    continue;
+
 	  if (!EQ (frame, tooltip_frame)
 	      && (FRAME_ICONIFIED_P (f)
 		  || FRAME_VISIBLE_P (f) == 1
@@ -11213,12 +11274,6 @@ prepare_menu_bars (void)
 
   /* Update the menu bar item lists, if appropriate.  This has to be
      done before any actual redisplay or generation of display lines.  */
-  all_windows = (update_mode_lines
-		 || buffer_shared_and_changed ()
-		 || windows_or_buffers_changed);
-
-  if (FUNCTIONP (Vpre_redisplay_function))
-    safe_call1 (Vpre_redisplay_function, all_windows ? Qt : Qnil);
 
   if (all_windows)
     {
@@ -11232,10 +11287,17 @@ prepare_menu_bars (void)
 
       FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (frame);
+	  struct frame *f = XFRAME (frame);
+	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 
 	  /* Ignore tooltip frame.  */
 	  if (EQ (frame, tooltip_frame))
+	    continue;
+
+	  if (some_windows
+	      && !f->redisplay
+	      && !w->redisplay
+	      && !XBUFFER (w->contents)->text->redisplay)
 	    continue;
 
 	  /* If a window on this frame changed size, report that to
@@ -12860,6 +12922,27 @@ reconsider_clip_changes (struct window *w)
     }
 }
 
+void propagate_buffer_redisplay (void)
+{ /* Resetting b->text->redisplay is problematic!
+     We can't just reset it in the case that some window that displays
+     it has not been redisplayed; and such a window can stay
+     unredisplayed for a long time if it's currently invisible.
+     But we do want to reset it at the end of redisplay otherwise
+     its displayed windows will keep being redisplayed over and over
+     again.
+     So we copy all b->text->redisplay flags up to their windows here,
+     such that mark_window_display_accurate can safely reset
+     b->text->redisplay.  */
+  Lisp_Object ws = window_list ();
+  for (; CONSP (ws); ws = XCDR (ws))
+    {
+      struct window *thisw = XWINDOW (XCAR (ws));
+      struct buffer *thisb = XBUFFER (thisw->contents);
+      if (thisb->text->redisplay)
+	thisw->redisplay = true;
+    }
+}
+
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -12956,7 +13039,6 @@ redisplay_internal (void)
       /* Since frames on a single ASCII terminal share the same
 	 display area, displaying a different frame means redisplay
 	 the whole thing.  */
-      windows_or_buffers_changed = 48;
       SET_FRAME_GARBAGED (sf);
 #ifndef DOS_NT
       set_tty_color_mode (FRAME_TTY (sf), sf);
@@ -13005,9 +13087,6 @@ redisplay_internal (void)
   if (NILP (Vmemory_full))
     prepare_menu_bars ();
 
-  if (windows_or_buffers_changed && !update_mode_lines)
-    update_mode_lines = 32;
-
   reconsider_clip_changes (w);
 
   /* In most cases selected window displays current buffer.  */
@@ -13016,25 +13095,10 @@ redisplay_internal (void)
     {
       /* Detect case that we need to write or remove a star in the mode line.  */
       if ((SAVE_MODIFF < MODIFF) != w->last_had_star)
-	{
 	  w->update_mode_line = 1;
-	  if (buffer_shared_and_changed ())
-	    update_mode_lines = 33;
-	}
 
       if (mode_line_update_needed (w))
 	w->update_mode_line = 1;
-    }
-
-  consider_all_windows_p = (update_mode_lines
-			    || buffer_shared_and_changed ());
-
-  /* If specs for an arrow have changed, do thorough redisplay
-     to ensure we remove any arrow that should no longer exist.  */
-  if (overlay_arrows_changed_p ())
-    {
-      consider_all_windows_p = true;
-      windows_or_buffers_changed = 49;
     }
 
   /* Normally the message* functions will have already displayed and
@@ -13066,8 +13130,6 @@ redisplay_internal (void)
 
       if (window_height_changed_p)
 	{
-	  consider_all_windows_p = true;
-	  update_mode_lines = 34;
 	  windows_or_buffers_changed = 50;
 
 	  /* If window configuration was changed, frames may have been
@@ -13083,13 +13145,6 @@ redisplay_internal (void)
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = 1;
-      /* FIXME: this causes all frames to be updated, which seems unnecessary
-	 since only the current frame needs to be considered.  This function
-	 needs to be rewritten with two variables, consider_all_windows and
-	 consider_all_frames.  */
-      consider_all_windows_p = true;
-      windows_or_buffers_changed = 51;
-      update_mode_lines = 35;
 
       /* If window configuration was changed, frames may have been
 	 marked garbaged.  Clear them or we will experience
@@ -13097,23 +13152,29 @@ redisplay_internal (void)
       clear_garbaged_frames ();
     }
 
-  if (VECTORP (Vredisplay__all_windows_cause)
-      && windows_or_buffers_changed >= 0
-      && windows_or_buffers_changed < ASIZE (Vredisplay__all_windows_cause)
-      && INTEGERP (AREF (Vredisplay__all_windows_cause,
-			 windows_or_buffers_changed)))
-    ASET (Vredisplay__all_windows_cause, windows_or_buffers_changed,
-	  make_number (1 + XINT (AREF (Vredisplay__all_windows_cause,
-				       windows_or_buffers_changed))));
+  if (windows_or_buffers_changed && !update_mode_lines)
+    /* Code that sets windows_or_buffers_changed doesn't distinguish whether
+       only the windows's contents needs to be refreshed, or whether the
+       mode-lines also need a refresh.  */
+    update_mode_lines = (windows_or_buffers_changed == REDISPLAY_SOME
+  			 ? REDISPLAY_SOME : 32);
 
-  if (VECTORP (Vredisplay__mode_lines_cause)
-      && update_mode_lines >= 0
-      && update_mode_lines < ASIZE (Vredisplay__mode_lines_cause)
-      && INTEGERP (AREF (Vredisplay__mode_lines_cause,
-			 update_mode_lines)))
-    ASET (Vredisplay__mode_lines_cause, update_mode_lines,
-	  make_number (1 + XINT (AREF (Vredisplay__mode_lines_cause,
-				       update_mode_lines))));
+  /* If specs for an arrow have changed, do thorough redisplay
+     to ensure we remove any arrow that should no longer exist.  */
+  if (overlay_arrows_changed_p ())
+    /* Apparently, this is the only case where we update other windows,
+       without updating other mode-lines.  */
+    windows_or_buffers_changed = 49;
+
+  consider_all_windows_p = (update_mode_lines
+			    || windows_or_buffers_changed);
+
+#define AINC(a,i) \
+  if (VECTORP (a) && i >= 0 && i < ASIZE (a) && INTEGERP (AREF (a, i))) \
+    ASET (a, i, make_number (1 + XINT (AREF (a, i))))
+
+  AINC (Vredisplay__all_windows_cause, windows_or_buffers_changed);
+  AINC (Vredisplay__mode_lines_cause, update_mode_lines);
 
   /* Optimize the case that only the line containing the cursor in the
      selected window has changed.  Variables starting with this_ are
@@ -13330,6 +13391,8 @@ redisplay_internal (void)
       FOR_EACH_FRAME (tail, frame)
 	XFRAME (frame)->updated_p = 0;
 
+      propagate_buffer_redisplay ();
+
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
@@ -13344,9 +13407,12 @@ redisplay_internal (void)
 
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
+	      bool gcscrollbars
+		/* Only GC scollbars when we redisplay the whole frame.  */
+		= f->redisplay || windows_or_buffers_changed != REDISPLAY_SOME;
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
-	      if (FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
+	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
 		FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
@@ -13358,7 +13424,7 @@ redisplay_internal (void)
 
 	      /* Any scroll bars which redisplay_windows should have
 		 nuked should now go away.  */
-	      if (FRAME_TERMINAL (f)->judge_scroll_bars_hook)
+	      if (gcscrollbars && FRAME_TERMINAL (f)->judge_scroll_bars_hook)
 		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
@@ -13413,6 +13479,7 @@ redisplay_internal (void)
 	      struct frame *f = XFRAME (frame);
               if (f->updated_p)
                 {
+		  f->redisplay = false;
                   mark_window_display_accurate (f->root_window, 1);
                   if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
                     FRAME_TERMINAL (f)->frame_up_to_date_hook (f);
@@ -13502,6 +13569,11 @@ redisplay_internal (void)
 	{
 	  /* This has already been done above if
 	     consider_all_windows_p is set.  */
+	  if (XBUFFER (w->contents)->text->redisplay
+	      && buffer_window_count (XBUFFER (w->contents)) > 1)
+	    /* This can happen if b->text->redisplay was set during
+	       jit-lock.  */
+	    propagate_buffer_redisplay ();
 	  mark_window_display_accurate_1 (w, 1);
 
 	  /* Say overlay arrows are up to date.  */
@@ -13535,12 +13607,7 @@ redisplay_internal (void)
 
       FOR_EACH_FRAME (tail, frame)
 	{
-	  int this_is_visible = 0;
-
 	  if (XFRAME (frame)->visible)
-	    this_is_visible = 1;
-
-	  if (this_is_visible)
 	    new_count++;
 	}
 
@@ -13639,8 +13706,13 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
 
   if (accurate_p)
     {
-      b->clip_changed = 0;
-      b->prevent_redisplay_optimizations_p = 0;
+      b->clip_changed = false;
+      b->prevent_redisplay_optimizations_p = false;
+      eassert (buffer_window_count (b) > 0);
+      /* Resetting b->text->redisplay is problematic!
+	 In order to make it safer to do it here, redisplay_internal must
+	 have copied all b->text->redisplay to their respective windows.  */
+      b->text->redisplay = false;
 
       BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
       BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
@@ -13659,9 +13731,11 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
       else
 	w->last_point = marker_position (w->pointm);
 
-      w->window_end_valid = 1;
-      w->update_mode_line = 0;
+      w->window_end_valid = true;
+      w->update_mode_line = false;
     }
+
+  w->redisplay = !accurate_p;
 }
 
 
@@ -14314,9 +14388,9 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
      occlude point.  Only set w->cursor if we found a better
      approximation to the cursor position than we have from previously
      examined candidate rows belonging to the same continued line.  */
-  if (/* we already have a candidate row */
+  if (/* We already have a candidate row.  */
       w->cursor.vpos >= 0
-      /* that candidate is not the row we are processing */
+      /* That candidate is not the row we are processing.  */
       && MATRIX_ROW (matrix, w->cursor.vpos) != row
       /* Make sure cursor.vpos specifies a row whose start and end
 	 charpos occlude point, and it is valid candidate for being a
@@ -14327,30 +14401,30 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
       && pt_old <= MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos))
       && cursor_row_p (MATRIX_ROW (matrix, w->cursor.vpos)))
     {
-      struct glyph *g1 =
-	MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
+      struct glyph *g1
+	= MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
 
       /* Don't consider glyphs that are outside TEXT_AREA.  */
       if (!(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end))
 	return 0;
       /* Keep the candidate whose buffer position is the closest to
 	 point or has the `cursor' property.  */
-      if (/* previous candidate is a glyph in TEXT_AREA of that row */
+      if (/* Previous candidate is a glyph in TEXT_AREA of that row.  */
 	  w->cursor.hpos >= 0
 	  && w->cursor.hpos < MATRIX_ROW_USED (matrix, w->cursor.vpos)
 	  && ((BUFFERP (g1->object)
-	       && (g1->charpos == pt_old /* an exact match always wins */
+	       && (g1->charpos == pt_old /* An exact match always wins.  */
 		   || (BUFFERP (glyph->object)
 		       && eabs (g1->charpos - pt_old)
 		       < eabs (glyph->charpos - pt_old))))
-	      /* previous candidate is a glyph from a string that has
-		 a non-nil `cursor' property */
+	      /* Previous candidate is a glyph from a string that has
+		 a non-nil `cursor' property.  */
 	      || (STRINGP (g1->object)
 		  && (!NILP (Fget_char_property (make_number (g1->charpos),
 						Qcursor, g1->object))
-		      /* previous candidate is from the same display
+		      /* Previous candidate is from the same display
 			 string as this one, and the display string
-			 came from a text property */
+			 came from a text property.  */
 		      || (EQ (g1->object, glyph->object)
 			  && string_from_text_prop)
 		      /* this candidate is from newline and its
@@ -15328,6 +15402,16 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 #ifdef GLYPH_DEBUG
   *w->desired_matrix->method = 0;
 #endif
+
+  if (!just_this_one_p
+      && (update_mode_lines == REDISPLAY_SOME
+	  || update_mode_lines == 0)
+      && (windows_or_buffers_changed == REDISPLAY_SOME
+	  || windows_or_buffers_changed == 0)
+      && !w->redisplay
+      && !f->redisplay
+      && !buffer->text->redisplay)
+    return;
 
   /* Make sure that both W's markers are valid.  */
   eassert (XMARKER (w->start)->buffer == buffer);

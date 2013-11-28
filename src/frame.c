@@ -339,11 +339,12 @@ make_frame (bool mini_p)
      non-Lisp data, so do it only for slots which should not be zero.
      To avoid subtle bugs and for the sake of readability, it's better to
      initialize enum members explicitly even if their values are zero.  */
-  f->wants_modeline = 1;
-  f->garbaged = 1;
+  f->wants_modeline = true;
+  f->redisplay = true;
+  f->garbaged = true;
   f->vertical_scroll_bar_type = vertical_scroll_bar_none;
-  f->column_width = 1;  /* !FRAME_WINDOW_P value */
-  f->line_height = 1;  /* !FRAME_WINDOW_P value */
+  f->column_width = 1;  /* !FRAME_WINDOW_P value.  */
+  f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
 #ifdef HAVE_WINDOW_SYSTEM
   f->want_fullscreen = FULLSCREEN_NONE;
 #endif
@@ -785,9 +786,6 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
   if (sf == XFRAME (frame))
     return frame;
 
-  /* This is too greedy; it causes inappropriate focus redirection
-     that's hard to get rid of.  */
-#if 0
   /* If a frame's focus has been redirected toward the currently
      selected frame, we should change the redirection to point to the
      newly selected frame.  This means that if the focus is redirected
@@ -795,6 +793,9 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      can use `other-window' to switch between all the frames using
      that minibuffer frame, and the focus redirection will follow us
      around.  */
+#if 0
+  /* This is too greedy; it causes inappropriate focus redirection
+     that's hard to get rid of.  */
   if (track)
     {
       Lisp_Object tail;
@@ -1681,7 +1682,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   make_frame_visible_1 (f->root_window);
 
   /* Make menu bar update for the Buffers and Frames menus.  */
-  windows_or_buffers_changed = 15;
+  /* windows_or_buffers_changed = 15; FIXME: Why?  */
 
   XSETFRAME (frame, f);
   return frame;

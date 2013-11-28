@@ -1,5 +1,7 @@
 2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el (doc-view-goto-page): Update mode-line.
+
 	* vc/vc-dispatcher.el (vc-log-edit): Setup the Summary&Author headers.
 
 2013-11-27  Glenn Morris  <rgm@gnu.org>
@@ -531,8 +533,8 @@
 	* progmodes/ruby-mode.el: Improve encoding comment handling.
 	(ruby-encoding-magic-comment-style): New option.
 	(ruby-custom-encoding-magic-comment-template): New option.
-	(ruby--insert-coding-comment, ruby--detect-encoding): New
-	functions extracted from `ruby-mode-set-encoding'.
+	(ruby--insert-coding-comment, ruby--detect-encoding):
+	New functions extracted from `ruby-mode-set-encoding'.
 	(ruby-mode-set-encoding): Use `ruby-encoding-magic-comment-style'
 	to control the style of the auto-inserted encoding comment.
 

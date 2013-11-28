@@ -178,41 +178,44 @@ struct frame
 
   /* 1 means that glyphs on this frame have been initialized so it can
      be used for output.  */
-  unsigned glyphs_initialized_p : 1;
+  bool glyphs_initialized_p : 1;
 
   /* Set to non-zero in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
-  unsigned resized_p : 1;
+  bool resized_p : 1;
 
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
-  unsigned default_face_done_p : 1;
+  bool default_face_done_p : 1;
 
   /* Set to non-zero if this frame has already been hscrolled during
      current redisplay.  */
-  unsigned already_hscrolled_p : 1;
+  bool already_hscrolled_p : 1;
 
   /* Set to non-zero when current redisplay has updated frame.  */
-  unsigned updated_p : 1;
+  bool updated_p : 1;
 
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   /* Set to non-zero to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
-  unsigned minimize_tool_bar_window_p : 1;
+  bool minimize_tool_bar_window_p : 1;
 #endif
 
 #if defined (USE_GTK) || defined (HAVE_NS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
-  unsigned external_tool_bar : 1;
+  bool external_tool_bar : 1;
 #endif
 
   /* Nonzero means that fonts have been loaded since the last glyph
      matrix adjustments.  */
-  unsigned fonts_changed : 1;
+  bool fonts_changed : 1;
 
   /* Nonzero means that cursor type has been changed.  */
-  unsigned cursor_type_changed : 1;
+  bool cursor_type_changed : 1;
+
+  /* True if it needs to be redisplayed.  */
+  bool redisplay : 1;
 
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
@@ -220,17 +223,17 @@ struct frame
   int n_tool_bar_rows;
   int n_tool_bar_items;
 
-  /* A buffer for decode_mode_line. */
+  /* A buffer for decode_mode_line.  */
   char *decode_mode_spec_buffer;
 
-  /* See do_line_insertion_deletion_costs for info on these arrays. */
-  /* Cost of inserting 1 line on this frame */
+  /* See do_line_insertion_deletion_costs for info on these arrays.  */
+  /* Cost of inserting 1 line on this frame.  */
   int *insert_line_cost;
-  /* Cost of deleting 1 line on this frame */
+  /* Cost of deleting 1 line on this frame.  */
   int *delete_line_cost;
-  /* Cost of inserting n lines on this frame */
+  /* Cost of inserting n lines on this frame.  */
   int *insert_n_lines_cost;
-  /* Cost of deleting n lines on this frame */
+  /* Cost of deleting n lines on this frame.  */
   int *delete_n_lines_cost;
 
   /* Size of this frame, excluding fringes, scroll bars etc.,
@@ -252,7 +255,7 @@ struct frame
   int pixel_height, pixel_width;
 
   /* These many pixels are the difference between the outer window (i.e. the
-     left and top of the window manager decoration) and FRAME_X_WINDOW. */
+     left and top of the window manager decoration) and FRAME_X_WINDOW.  */
   int x_pixels_diff, y_pixels_diff;
 
   /* This is the gravity value for the specified window position.  */
@@ -281,23 +284,23 @@ struct frame
   enum output_method output_method;
 
   /* The terminal device that this frame uses.  If this is NULL, then
-     the frame has been deleted. */
+     the frame has been deleted.  */
   struct terminal *terminal;
 
   /* Device-dependent, frame-local auxiliary data used for displaying
      the contents.  When the frame is deleted, this data is deleted as
-     well. */
+     well.  */
   union output_data
   {
-    struct tty_output *tty;     /* termchar.h */
-    struct x_output *x;         /* xterm.h */
-    struct w32_output *w32;     /* w32term.h */
-    struct ns_output *ns;       /* nsterm.h */
+    struct tty_output *tty;     /* From termchar.h.  */
+    struct x_output *x;         /* From xterm.h.  */
+    struct w32_output *w32;     /* From w32term.h.  */
+    struct ns_output *ns;       /* From nsterm.h.  */
     intptr_t nothing;
   }
   output_data;
 
-  /* List of font-drivers available on the frame. */
+  /* List of font-drivers available on the frame.  */
   struct font_driver_list *font_driver_list;
   /* List of data specific to font-driver and frame, but common to
      faces.  */
@@ -313,21 +316,21 @@ struct frame
   /* The extra width (in pixels) currently allotted for fringes.  */
   int left_fringe_width, right_fringe_width;
 
-  /* See FULLSCREEN_ enum below */
+  /* See FULLSCREEN_ enum below.  */
   enum fullscreen_type want_fullscreen;
 
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-    || defined (HAVE_NS) || defined (USE_GTK)
-  /* Nonzero means using a menu bar that comes from the X toolkit.  */
-  unsigned int external_menu_bar : 1;
-#endif
-
 #if defined (HAVE_X_WINDOWS)
   /* Used by x_wait_for_event when watching for an X event on this frame.  */
   int wait_event_type;
+#endif
+
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
+    || defined (HAVE_NS) || defined (USE_GTK)
+  /* Nonzero means using a menu bar that comes from the X toolkit.  */
+  bool external_menu_bar : 1;
 #endif
 
   /* Next two bitfields are mutually exclusive.  They might both be
@@ -336,57 +339,53 @@ struct frame
   /* Nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
 
-     Note that, since invisible frames aren't updated, whenever a
-     frame becomes visible again, it must be marked as garbaged.
-
      On ttys and on Windows NT/9X, to avoid wasting effort updating
      visible frames that are actually completely obscured by other
      windows on the display, we bend the meaning of visible slightly:
      if equal to 2, then the frame is obscured - we still consider
      it to be "visible" as seen from lisp, but we don't bother
-     updating it.  We must take care to garbage the frame when it
-     ceases to be obscured though.  See SET_FRAME_VISIBLE below.  */
+     updating it.  */
   unsigned visible : 2;
 
   /* Nonzero if the frame is currently iconified.  Do not
      set this directly, use SET_FRAME_ICONIFIED instead.  */
-  unsigned iconified : 1;
+  bool iconified : 1;
 
   /* Nonzero if this frame should be redrawn.  */
-  unsigned garbaged : 1;
+  bool garbaged : 1;
 
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
-  unsigned wants_modeline : 1;
+  bool wants_modeline : 1;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
-  unsigned auto_raise : 1;
+  bool auto_raise : 1;
 
   /* Non-0 means lower this frame to the bottom of the stack when left.  */
-  unsigned auto_lower : 1;
+  bool auto_lower : 1;
 
   /* True if frame's root window can't be split.  */
-  unsigned no_split : 1;
+  bool no_split : 1;
 
   /* If this is set, then Emacs won't change the frame name to indicate
      the current buffer, etcetera.  If the user explicitly sets the frame
      name, this gets set.  If the user sets the name to Qnil, this is
      cleared.  */
-  unsigned explicit_name : 1;
+  bool explicit_name : 1;
 
   /* Nonzero if size of some window on this frame has changed.  */
-  unsigned window_sizes_changed : 1;
+  bool window_sizes_changed : 1;
 
   /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
-  unsigned mouse_moved :1;
+  bool mouse_moved : 1;
 
-  /* Nonzero means that the pointer is invisible. */
-  unsigned pointer_invisible :1;
+  /* Nonzero means that the pointer is invisible.  */
+  bool pointer_invisible : 1;
 
   /* Nonzero means that all windows except mini-window and
      selected window on this frame have frozen window starts.  */
-  unsigned frozen_window_starts : 1;
+  bool frozen_window_starts : 1;
 
   /* Nonzero if we should actually display the scroll bars on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
@@ -720,7 +719,8 @@ default_pixels_per_inch_y (void)
 #define FRAME_ICONIFIED_P(f) (f)->iconified
 
 /* Mark frame F as currently garbaged.  */
-#define SET_FRAME_GARBAGED(f) (frame_garbaged = 1, f->garbaged = 1)
+#define SET_FRAME_GARBAGED(f)				\
+  (frame_garbaged = true, fset_redisplay (f), f->garbaged = true)
 
 /* Nonzero if frame F is currently garbaged.  */
 #define FRAME_GARBAGED_P(f) (f)->garbaged
@@ -911,11 +911,14 @@ default_pixels_per_inch_y (void)
       }								\
   } while (0)
 
-/* Set visibility of frame F, marking F as garbaged if needed.  */
+/* Set visibility of frame F.
+   We call redisplay_other_windows to make sure the frame gets redisplayed
+   if some changes were applied to it while it wasn't visible (and hence
+   wasn't redisplayed).  */
 
-#define SET_FRAME_VISIBLE(f, v)				\
-  (((f)->visible == 0 || ((f)->visible == 2))		\
-   && ((v) == 1) ? SET_FRAME_GARBAGED (f) : 0,		\
+#define SET_FRAME_VISIBLE(f, v)					\
+  (((f)->visible == 0 || ((f)->visible == 2)) && ((v) == 1)	\
+   ? redisplay_other_windows () : 0,				\
    (f)->visible = (eassert (0 <= (v) && (v) <= 2), (v)))
 
 /* Set iconify of frame F.  */

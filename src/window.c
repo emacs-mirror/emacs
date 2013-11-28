@@ -60,7 +60,6 @@ static int get_leaf_windows (struct window *, struct window **, int);
 static void window_scroll (Lisp_Object, EMACS_INT, bool, int);
 static void window_scroll_pixel_based (Lisp_Object, int, bool, int);
 static void window_scroll_line_based (Lisp_Object, int, bool, int);
-static Lisp_Object window_list (void);
 static int add_window_to_list (struct window *, void *);
 static Lisp_Object next_window (Lisp_Object, Lisp_Object,
                                 Lisp_Object, int);
@@ -482,6 +481,12 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
        record_buffer before returning here.  */
     goto record_and_return;
 
+  if (NILP (norecord))
+    /* Mark the window for redisplay since the selected-window has a different
+       mode-line.  */
+    wset_redisplay (XWINDOW (selected_window));
+  else
+    redisplay_other_windows ();
   sf = SELECTED_FRAME ();
   if (XFRAME (WINDOW_FRAME (w)) != sf)
     {
@@ -500,7 +505,8 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 
   select_window_1 (window, inhibit_point_swap);
   bset_last_selected_window (XBUFFER (w->contents), window);
-  windows_or_buffers_changed = 24;
+  if (NILP (norecord))
+    wset_redisplay (w);
 
  record_and_return:
   /* record_buffer can run QUIT, so make sure it is run only after we have
@@ -1577,8 +1583,7 @@ overriding motion of point in order to display at this exact start.  */)
   /* Bug#15957.  */
   w->window_end_valid = 0;
   if (w != XWINDOW (selected_window))
-    /* Enforce full redisplay.  FIXME: make it more selective.  */
-    windows_or_buffers_changed = 26;
+    wset_redisplay (w);
 
   return pos;
 }
@@ -2139,7 +2144,7 @@ add_window_to_list (struct window *w, void *user_data)
    Vwindow_list is a list, return that list.  Otherwise, build a new
    list, cache it in Vwindow_list, and return that.  */
 
-static Lisp_Object
+Lisp_Object
 window_list (void)
 {
   if (!CONSP (Vwindow_list))
@@ -4138,8 +4143,9 @@ grow_mini_window (struct window *w, int delta)
       /* Grow the mini-window.  */
       w->top_line = r->top_line + r->total_lines;
       w->total_lines -= XINT (value);
-      /* Enforce full redisplay.  FIXME: make it more selective.  */
-      windows_or_buffers_changed = 34;
+      /* Enforce full redisplay of the frame.  */
+      /* FIXME: Shouldn't window--resize-root-window-vertically do it?  */
+      fset_redisplay (f);
       adjust_frame_glyphs (f);
       unblock_input ();
     }
@@ -4172,8 +4178,9 @@ shrink_mini_window (struct window *w)
 	  /* Shrink the mini-window.  */
 	  w->top_line = r->top_line + r->total_lines;
 	  w->total_lines = 1;
-	  /* Enforce full redisplay.  FIXME: make it more selective.  */
-	  windows_or_buffers_changed = 35;
+	  /* Enforce full redisplay of the frame.  */
+	  /* FIXME: Shouldn't window--resize-root-window-vertically do it?  */
+	  fset_redisplay (f);
 	  adjust_frame_glyphs (f);
 	  unblock_input ();
 	}

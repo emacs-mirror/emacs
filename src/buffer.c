@@ -1336,10 +1336,16 @@ header lines.  This function also forces recomputation of the
 menu bar menus and the frame title.  */)
      (Lisp_Object all)
 {
-  if (!NILP (all) || buffer_window_count (current_buffer))
+  if (!NILP (all))
     {
       update_mode_lines = 10;
-      current_buffer->prevent_redisplay_optimizations_p = 1;
+      /* FIXME: This can't be right.  */
+      current_buffer->prevent_redisplay_optimizations_p = true;
+    }
+  else if (buffer_window_count (current_buffer))
+    {
+      bset_update_mode_line (current_buffer);
+      current_buffer->prevent_redisplay_optimizations_p = true;
     }
   return all;
 }
@@ -3895,17 +3901,7 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
   BUF_COMPUTE_UNCHANGED (buf, start, end);
 
-  /* If BUF is visible, consider updating the display if ...  */
-  if (buffer_window_count (buf) > 0)
-    {
-      /* ... it's visible in other window than selected,  */
-      if (buf != XBUFFER (XWINDOW (selected_window)->contents))
-	windows_or_buffers_changed = 11;
-      /* ... or if we modify an overlay at the end of the buffer
-	 and so we cannot be sure that window end is still valid.  */
-      else if (end >= ZV && start <= ZV)
-	windows_or_buffers_changed = 12;
-    }
+  bset_redisplay (buf);
 
   ++BUF_OVERLAY_MODIFF (buf);
 }

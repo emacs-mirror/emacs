@@ -6291,7 +6291,7 @@ survives_gc_p (Lisp_Object obj)
 
 
 
-/* Sweep: find all structures not marked, and free them. */
+/* Sweep: find all structures not marked, and free them.  */
 
 static void
 gc_sweep (void)
@@ -6303,7 +6303,7 @@ gc_sweep (void)
   sweep_strings ();
   check_string_bytes (!noninteractive);
 
-  /* Put all unmarked conses on free list */
+  /* Put all unmarked conses on free list.  */
   {
     register struct cons_block *cblk;
     struct cons_block **cprev = &cons_block;
@@ -6380,7 +6380,7 @@ gc_sweep (void)
     total_free_conses = num_free;
   }
 
-  /* Put all unmarked floats on free list */
+  /* Put all unmarked floats on free list.  */
   {
     register struct float_block *fblk;
     struct float_block **fprev = &float_block;
@@ -6426,7 +6426,7 @@ gc_sweep (void)
     total_free_floats = num_free;
   }
 
-  /* Put all unmarked intervals on free list */
+  /* Put all unmarked intervals on free list.  */
   {
     register struct interval_block *iblk;
     struct interval_block **iprev = &interval_block;
@@ -6475,7 +6475,7 @@ gc_sweep (void)
     total_free_intervals = num_free;
   }
 
-  /* Put all unmarked symbols on free list */
+  /* Put all unmarked symbols on free list.  */
   {
     register struct symbol_block *sblk;
     struct symbol_block **sprev = &symbol_block;
@@ -6512,7 +6512,7 @@ gc_sweep (void)
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (XSTRING (sym->s.name));
+		  eassert (!STRING_MARKED_P (XSTRING (sym->s.name)));
 		sym->s.gcmarkbit = 0;
 	      }
 	  }
