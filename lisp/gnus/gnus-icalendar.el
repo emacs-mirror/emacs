@@ -92,10 +92,10 @@
          :accessor gnus-icalendar-event:rsvp
          :initform nil
          :type (or null boolean))
-   (participation-required :initarg :participation-required
-         :accessor gnus-icalendar-event:participation-required
-         :initform t
-         :type (or null boolean))
+   (participation-type :initarg :participation-type
+         :accessor gnus-icalendar-event:participation-type
+         :initform 'non-participant
+         :type (or null t))
    (req-participants :initarg :req-participants
          :accessor gnus-icalendar-event:req-participants
          :initform nil
@@ -196,15 +196,18 @@
          (attendee (when attendee-name-or-email
                      (gnus-icalendar-event--find-attendee ical attendee-name-or-email)))
          (attendee-names (gnus-icalendar-event--get-attendee-names ical))
+         (role (plist-get (cadr attendee) 'ROLE))
+         (participation-type (pcase role
+                              ("REQ-PARTICIPANT" 'required)
+                              ("OPT-PARTICIPANT" 'optional)
+                              (_                 'non-participant)))
          (args (list :method method
                      :organizer organizer
                      :start-time (gnus-icalendar-event--decode-datefield event 'DTSTART)
                      :end-time (gnus-icalendar-event--decode-datefield event 'DTEND)
-                     :rsvp (string= (plist-get (cadr attendee) 'RSVP)
-                                    "TRUE")
-                     :participation-required (string= (plist-get (cadr attendee) 'ROLE)
-                                                      "REQ-PARTICIPANT")
-                     :req-participants (cdar attendee-names)
+                     :rsvp (string= (plist-get (cadr attendee) 'RSVP) "TRUE")
+                     :participation-type participation-type
+                     :req-participants (car attendee-names)
                      :opt-participants (cadr attendee-names)))
          (event-class (cond
                        ((string= method "REQUEST") 'gnus-icalendar-event-request)
@@ -451,7 +454,7 @@ Return nil for non-recurring EVENT."
                       ("DT" . ,(gnus-icalendar-event:org-timestamp event))
                       ("ORGANIZER" . ,(gnus-icalendar-event:organizer event))
                       ("LOCATION" . ,(gnus-icalendar-event:location event))
-                      ("PARTICIPATION_REQUIRED" . ,(when (gnus-icalendar-event:participation-required event) "t"))
+                      ("PARTICIPATION_TYPE" . ,(symbol-name (gnus-icalendar-event:participation-type event)))
                       ("REQ_PARTICIPANTS" . ,(gnus-icalendar--format-participant-list (gnus-icalendar-event:req-participants event)))
                       ("OPT_PARTICIPANTS" . ,(gnus-icalendar--format-participant-list (gnus-icalendar-event:opt-participants event)))
                       ("RRULE" . ,(gnus-icalendar-event:recur event))
@@ -513,7 +516,7 @@ is searched."
     (when file
       (with-current-buffer (find-file-noselect file)
         (with-slots (uid summary description organizer location recur
-                         participation-required req-participants opt-participants) event
+                         participation-type req-participants opt-participants) event
           (let ((event-pos (org-find-entry-with-id uid)))
             (when event-pos
               (goto-char event-pos)
@@ -555,7 +558,7 @@ is searched."
                 (org-entry-put event-pos "DT" (gnus-icalendar-event:org-timestamp event))
                 (org-entry-put event-pos "ORGANIZER" organizer)
                 (org-entry-put event-pos "LOCATION" location)
-                (org-entry-put event-pos "PARTICIPATION_REQUIRED" (when participation-required "t"))
+                (org-entry-put event-pos "PARTICIPATION_TYPE" (symbol-name participation-type))
                 (org-entry-put event-pos "REQ_PARTICIPANTS" (gnus-icalendar--format-participant-list req-participants))
                 (org-entry-put event-pos "OPT_PARTICIPANTS" (gnus-icalendar--format-participant-list opt-participants))
                 (org-entry-put event-pos "RRULE" recur)
@@ -691,12 +694,14 @@ only makes sense to define names or email addresses."
                     (cadr x))))
 
     (with-slots (organizer summary description location recur uid
-                           method rsvp participation-required) event
+                           method rsvp participation-type) event
       (let ((headers `(("Summary" ,summary)
                       ("Location" ,(or location ""))
                       ("Time" ,(gnus-icalendar-event:org-timestamp event))
                       ("Organizer" ,organizer)
-                      ("Attendance" ,(if participation-required "Required" "Optional"))
+                      ("Attendance" ,(if (eq participation-type 'non-participant)
+                                         "You are not listed as an attendee"
+                                       (capitalize (symbol-name participation-type))))
                       ("Method" ,method))))
 
        (when (and (not (gnus-icalendar-event-reply-p event)) rsvp)

@@ -1,3 +1,12 @@
+2013-11-28  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event-from-ical)
+	(gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event)
+	(gnus-icalendar-event->gnus-calendar): Distinguish between
+	required/optional/non-participant attendee status. Fix bug causing
+	the first required event participant to be omitted.
+
 2013-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-de-quoted-unreadable)
