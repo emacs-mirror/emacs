@@ -1,3 +1,8 @@
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Disable autoloads in generated files.
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/Makefile.in (all, install, clean, bootstrap-clean)

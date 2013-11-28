@@ -1241,6 +1241,7 @@ is the character itself.")))
 			";; coding: utf-8\n"
 			";; version-control: never\n"
 			";; no-byte-compile: t\n"
+			";; no-update-autoloads: t\n"
 			";; End:\n\n"
 			(format ";; %s ends here\n" basename)))
 	    (write-file file)
@@ -1250,6 +1251,7 @@ is the character itself.")))
 	      ";; coding: utf-8\n"
 	      ";; version-control: never\n"
 	      ";; no-byte-compile: t\n"
+	      ";; no-update-autoloads: t\n"
 	      ";; End:\n\n"
 	      (format ";; %s ends here\n"
 		      (file-name-nondirectory charprop-file))))))
