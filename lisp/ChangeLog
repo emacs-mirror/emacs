@@ -1,3 +1,7 @@
+2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-dispatcher.el (vc-log-edit): Setup the Summary&Author headers.
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* international/charprop.el, international/uni-bidi.el:
