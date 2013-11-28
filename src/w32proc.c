@@ -1960,12 +1960,17 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   FD_ZERO (rfds);
   nr = 0;
 
-  /* Always wait on interrupt_handle, to detect C-g (quit).  */
-  wait_hnd[0] = interrupt_handle;
-  fdindex[0] = -1;
+  /* If interrupt_handle is available and valid, always wait on it, to
+     detect C-g (quit).  */
+  nh = 0;
+  if (interrupt_handle && interrupt_handle != INVALID_HANDLE_VALUE)
+    {
+      wait_hnd[0] = interrupt_handle;
+      fdindex[0] = -1;
+      nh++;
+    }
 
   /* Build a list of pipe handles to wait on.  */
-  nh = 1;
   for (i = 0; i < nfds; i++)
     if (FD_ISSET (i, &orfds))
       {
@@ -1985,6 +1990,11 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	      {
 		FD_SET (i, rfds);
 		return 1;
+	      }
+	    else if (noninteractive)
+	      {
+		if (handle_file_notifications (NULL))
+		  return 1;
 	      }
 	  }
 	else
@@ -2086,6 +2096,11 @@ count_children:
     {
       if (timeout)
 	Sleep (timeout_ms);
+      if (noninteractive)
+	{
+	  if (handle_file_notifications (NULL))
+	    return 1;
+	}
       return 0;
     }
 
@@ -2112,6 +2127,11 @@ count_children:
     }
   else if (active == WAIT_TIMEOUT)
     {
+      if (noninteractive)
+	{
+	  if (handle_file_notifications (NULL))
+	    return 1;
+	}
       return 0;
     }
   else if (active >= WAIT_OBJECT_0
@@ -2217,6 +2237,12 @@ count_children:
 	if (WaitForSingleObject (wait_hnd[active], 0) == WAIT_OBJECT_0)
 	  break;
     } while (active < nh + nc);
+
+  if (noninteractive)
+    {
+      if (handle_file_notifications (NULL))
+	nr++;
+    }
 
   /* If no input has arrived and timeout hasn't expired, wait again.  */
   if (nr == 0)

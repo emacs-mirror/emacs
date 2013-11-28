@@ -608,7 +608,7 @@ maybe_generate_resize_event (void)
 }
 
 #if HAVE_W32NOTIFY
-static int
+int
 handle_file_notifications (struct input_event *hold_quit)
 {
   BYTE *p = file_notifications;
@@ -676,7 +676,7 @@ handle_file_notifications (struct input_event *hold_quit)
   return nevents;
 }
 #else  /* !HAVE_W32NOTIFY */
-static int
+int
 handle_file_notifications (struct input_event *hold_quit)
 {
   return 0;

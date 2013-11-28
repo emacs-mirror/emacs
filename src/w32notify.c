@@ -163,7 +163,12 @@ send_notifications (BYTE *info, DWORD info_size, void *desc,
 	       && PostThreadMessage (dwMainThreadId, WM_EMACS_FILENOTIFY, 0, 0))
 	      || (FRAME_W32_P (f)
 		  && PostMessage (FRAME_W32_WINDOW (f),
-				  WM_EMACS_FILENOTIFY, 0, 0)))
+				  WM_EMACS_FILENOTIFY, 0, 0))
+	      /* When we are running in batch mode, there's no one to
+		 send a message, so we just signal the data is
+		 available and hope sys_select will be called soon and
+		 will read the data.  */
+	      || (FRAME_INITIAL_P (f) && noninteractive))
 	    notification_buffer_in_use = 1;
 	  done = 1;
 	}

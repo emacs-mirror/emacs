@@ -1,3 +1,23 @@
+2013-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Support w32 file notifications in batch mode.
+	* w32proc.c (sys_select): Don't wait on interrupt_handle if it is
+	invalid (which happens in batch mode).  If non-interactive, call
+	handle_file_notifications to store file notification events in the
+	input queue.  (Bug#15933)
+
+	* w32notify.c (send_notifications): Handle FRAME_INITIAL frames as
+	well.
+
+	* w32inevt.c (handle_file_notifications): Now external, not
+	static.
+
+	* w32term.h (handle_file_notifications): Provide prototype.
+
+	* emacs.c (main) [HAVE_W32NOTIFY]: When non-interactive, call
+	init_crit, since init_display, which does that otherwise, is not
+	called.
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(lispsource)/international/charprop.el): New.
