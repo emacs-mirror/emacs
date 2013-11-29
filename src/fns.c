@@ -48,7 +48,7 @@ static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
 
-static bool internal_equal (Lisp_Object, Lisp_Object, int, bool);
+static bool internal_equal (Lisp_Object, Lisp_Object, int, bool, Lisp_Object);
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the argument unchanged.  */)
@@ -1355,7 +1355,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
       register Lisp_Object tem;
       CHECK_LIST_CONS (tail, list);
       tem = XCAR (tail);
-      if (FLOATP (tem) && internal_equal (elt, tem, 0, 0))
+      if (FLOATP (tem) && internal_equal (elt, tem, 0, 0, Qnil))
 	return tail;
       QUIT;
     }
@@ -1959,7 +1959,7 @@ Floating-point numbers of equal value are `eql', but they may not be `eq'.  */)
   (Lisp_Object obj1, Lisp_Object obj2)
 {
   if (FLOATP (obj1))
-    return internal_equal (obj1, obj2, 0, 0) ? Qt : Qnil;
+    return internal_equal (obj1, obj2, 0, 0, Qnil) ? Qt : Qnil;
   else
     return EQ (obj1, obj2) ? Qt : Qnil;
 }
@@ -1974,7 +1974,7 @@ Numbers are compared by value, but integers cannot equal floats.
 Symbols must match exactly.  */)
   (register Lisp_Object o1, Lisp_Object o2)
 {
-  return internal_equal (o1, o2, 0, 0) ? Qt : Qnil;
+  return internal_equal (o1, o2, 0, 0, Qnil) ? Qt : Qnil;
 }
 
 DEFUN ("equal-including-properties", Fequal_including_properties, Sequal_including_properties, 2, 2, 0,
@@ -1983,7 +1983,7 @@ This is like `equal' except that it compares the text properties
 of strings.  (`equal' ignores text properties.)  */)
   (register Lisp_Object o1, Lisp_Object o2)
 {
-  return internal_equal (o1, o2, 0, 1) ? Qt : Qnil;
+  return internal_equal (o1, o2, 0, 1, Qnil) ? Qt : Qnil;
 }
 
 /* DEPTH is current depth of recursion.  Signal an error if it
@@ -1991,10 +1991,39 @@ of strings.  (`equal' ignores text properties.)  */)
    PROPS means compare string text properties too.  */
 
 static bool
-internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
+internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props,
+		Lisp_Object ht)
 {
-  if (depth > 200)
-    error ("Stack overflow in equal");
+  if (depth > 10)
+    {
+      if (depth > 200)
+	error ("Stack overflow in equal");
+      if (NILP (ht))
+	{
+	  Lisp_Object args[2] = { QCtest, Qeq };
+	  ht = Fmake_hash_table (2, args);
+	}
+      switch (XTYPE (o1))
+	{
+	case Lisp_Cons: case Lisp_Misc: case Lisp_Vectorlike:
+	  {
+	    struct Lisp_Hash_Table *h = XHASH_TABLE (ht);
+	    EMACS_UINT hash;
+	    ptrdiff_t i = hash_lookup (h, o1, &hash);
+	    if (i >= 0)
+	      { /* `o1' was seen already.  */
+		Lisp_Object o2s = HASH_VALUE (h, i);
+		if (!NILP (Fmemq (o2, o2s)))
+		  return 1;
+		else
+		  set_hash_value_slot (h, i, Fcons (o2, o2s));
+	      }
+	    else
+	      hash_put (h, o1, Fcons (o2, Qnil), hash);
+	  }
+	default: ;
+	}
+    }
 
  tail_recurse:
   QUIT;
@@ -2017,10 +2046,11 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
       }
 
     case Lisp_Cons:
-      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1, props))
+      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1, props, ht))
 	return 0;
       o1 = XCDR (o1);
       o2 = XCDR (o2);
+      /* FIXME: This inf-loops in a circular list!  */
       goto tail_recurse;
 
     case Lisp_Misc:
@@ -2029,9 +2059,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
       if (OVERLAYP (o1))
 	{
 	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
-			       depth + 1, props)
+			       depth + 1, props, ht)
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
-				  depth + 1, props))
+				  depth + 1, props, ht))
 	    return 0;
 	  o1 = XOVERLAY (o1)->plist;
 	  o2 = XOVERLAY (o2)->plist;
@@ -2083,7 +2113,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props)
 	    Lisp_Object v1, v2;
 	    v1 = AREF (o1, i);
 	    v2 = AREF (o2, i);
-	    if (!internal_equal (v1, v2, depth + 1, props))
+	    if (!internal_equal (v1, v2, depth + 1, props, ht))
 	      return 0;
 	  }
 	return 1;
