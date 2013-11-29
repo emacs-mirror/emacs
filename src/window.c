@@ -5742,14 +5742,6 @@ the return value is nil.  Otherwise the value is t.  */)
 			       make_number (old_point),
 			       XWINDOW (data->current_window)->contents);
 
-      /* In the following call to `select-window', prevent "swapping out
-	 point" in the old selected window using the buffer that has
-	 been restored into it.  We already swapped out that point from
-	 that window's old buffer.  */
-      select_window (data->current_window, Qnil, 1);
-      BVAR (XBUFFER (XWINDOW (selected_window)->contents), last_selected_window)
-	= selected_window;
-
       if (NILP (data->focus_frame)
 	  || (FRAMEP (data->focus_frame)
 	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
@@ -5799,6 +5791,20 @@ the return value is nil.  Otherwise the value is t.  */)
 	  if (WINDOW_LIVE_P (window) && !EQ (window, FRAME_ROOT_WINDOW (f)))
 	    delete_deletable_window (window);
 	}
+
+      /* In the following call to `select-window', prevent "swapping out
+	 point" in the old selected window using the buffer that has
+	 been restored into it.  We already swapped out that point from
+	 that window's old buffer.  */
+      /* This `select_window' calls record_buffer which calls Fdelq which
+	 invokes QUIT, so we do it here at the end rather than earlier,
+	 to minimize the risk of interrupting the Fset_window_configuration
+	 in an inconsistent state (e.g. before frame-focus redirection is
+	 canceled).  */
+      select_window (data->current_window, Qnil, 1);
+      BVAR (XBUFFER (XWINDOW (selected_window)->contents),
+	    last_selected_window)
+	= selected_window;
 
       /* Fselect_window will have made f the selected frame, so we
 	 reselect the proper frame here.  Fhandle_switch_frame will change the
