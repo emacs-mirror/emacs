@@ -1866,9 +1866,6 @@ to configure.])
    fi
 fi
 
-### We always support menus.
-HAVE_MENUS=yes
-
 # Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
@@ -4620,8 +4617,7 @@ else
 fi
 AC_SUBST(LIBX_OTHER)
 
-if test "$HAVE_GTK" = yes ||
-   test "$HAVE_MENUS" != yes || test "$HAVE_X11" != yes; then
+if test "$HAVE_GTK" = yes || test "$HAVE_X11" != yes; then
   LIBXMENU=
 elif test "$USE_X_TOOLKIT" = none; then
   LIBXMENU='$(oldXMenudir)/libXMenu11.a'
@@ -4629,11 +4625,6 @@ else
   LIBXMENU='$(lwlibdir)/liblw.a'
 fi
 AC_SUBST(LIBXMENU)
-
-if test "${HAVE_MENUS}" = "yes" ; then
-  AC_DEFINE(HAVE_MENUS, 1,
-	    [Define to 1 if you have mouse menus.  (This is supported in all configurations, but the option to specify it remains.)])
-fi
 
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC, 1,

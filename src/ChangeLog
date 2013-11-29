@@ -1,5 +1,14 @@
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xmenu.c (Fmenu_or_popup_active_p):
+	* window.c (Fset_window_configuration):
+	* menu.c (Fx_popup_menu, Fx_popup_dialog):
+	* keyboard.c (record_menu_key, read_char_x_menu_prompt):
+	* fns.c (Fyes_or_no_p):
+	* editfns.c (Fmessage_box, Fmessage_or_box):
+	* alloc.c (make_save_ptr_ptr):
+	* xdisp.c, w32menu.c, term.c, xterm.h, xterm.c: Remove HAVE_MENUS.
+
 	* window.c (Fset_window_configuration): Move select_window later.
 
 2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>

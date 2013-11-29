@@ -3528,7 +3528,7 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 }
 
 
-#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void

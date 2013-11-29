@@ -20603,7 +20603,6 @@ display_menu_bar (struct window *w)
   compute_line_metrics (&it);
 }
 
-#ifdef HAVE_MENUS
 /* Deep copy of a glyph row, including the glyphs.  */
 static void
 deep_copy_glyph_row (struct glyph_row *to, struct glyph_row *from)
@@ -20725,7 +20724,6 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   row->full_width_p = saved_width;
   row->reversed_p = saved_reversed;
 }
-#endif	/* HAVE_MENUS */
 
 /***********************************************************************
 			      Mode Line

@@ -3222,8 +3222,6 @@ read_char (int commandflag, Lisp_Object map,
   RETURN_UNGCPRO (c);
 }
 
-#ifdef HAVE_MENUS
-
 /* Record a key that came from a mouse menu.
    Record it for echoing, for this-command-keys, and so on.  */
 
@@ -3254,12 +3252,10 @@ record_menu_key (Lisp_Object c)
   /* Record this character as part of the current key.  */
   add_command_key (c);
 
-  /* Re-reading in the middle of a command */
+  /* Re-reading in the middle of a command.  */
   last_input_event = c;
   num_input_events++;
 }
-
-#endif /* HAVE_MENUS */
 
 /* Return true if should recognize C as "the help character".  */
 
@@ -8359,7 +8355,6 @@ read_char_x_menu_prompt (Lisp_Object map,
   if (! menu_prompting)
     return Qnil;
 
-#ifdef HAVE_MENUS
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
   if (EVENT_HAS_PARAMETERS (prev_event)
@@ -8405,7 +8400,6 @@ read_char_x_menu_prompt (Lisp_Object map,
 	*used_mouse_menu = 1;
       return value;
     }
-#endif /* HAVE_MENUS */
   return Qnil ;
 }
 

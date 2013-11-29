@@ -5554,7 +5554,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	  || data->frame_cols != previous_frame_cols)
 	change_frame_size (f, data->frame_lines,
 			   data->frame_cols, 0, 0, 0);
-#ifdef HAVE_MENUS
       if (data->frame_menu_bar_lines
 	  != previous_frame_menu_bar_lines)
 	{
@@ -5567,7 +5566,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	    set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
 				make_number (0));
 	}
-#endif
 #ifdef HAVE_WINDOW_SYSTEM
       if (data->frame_tool_bar_lines
 	  != previous_frame_tool_bar_lines)
@@ -5752,7 +5750,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	  || previous_frame_cols != FRAME_COLS (f))
 	change_frame_size (f, previous_frame_lines, previous_frame_cols,
 			   0, 0, 0);
-#ifdef HAVE_MENUS
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
 	{
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5765,7 +5762,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	    set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
 				make_number (0));
 	}
-#endif
 #ifdef HAVE_WINDOW_SYSTEM
       if (previous_frame_tool_bar_lines != FRAME_TOOL_BAR_LINES (f))
 	x_set_tool_bar_lines (f, make_number (previous_frame_tool_bar_lines),
@@ -5799,7 +5795,7 @@ the return value is nil.  Otherwise the value is t.  */)
       /* This `select_window' calls record_buffer which calls Fdelq which
 	 invokes QUIT, so we do it here at the end rather than earlier,
 	 to minimize the risk of interrupting the Fset_window_configuration
-	 in an inconsistent state (e.g. before frame-focus redirection is
+	 in an inconsistent state (e.g. before frame-focus redirection is 
 	 canceled).  */
       select_window (data->current_window, Qnil, 1);
       BVAR (XBUFFER (XWINDOW (selected_window)->contents),

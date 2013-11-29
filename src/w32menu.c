@@ -114,7 +114,6 @@ static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
 
-#ifdef HAVE_MENUS
 #ifdef HAVE_DIALOGS
 Lisp_Object
 w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
@@ -1602,21 +1601,15 @@ w32_free_menu_strings (HWND hwnd)
   current_popup_menu = NULL;
 }
 
-#endif /* HAVE_MENUS */
-
 /* The following is used by delayed window autoselection.  */
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
   (void)
 {
-#ifdef HAVE_MENUS
   struct frame *f;
   f = SELECTED_FRAME ();
   return (f->output_data.w32->menubar_active > 0) ? Qt : Qnil;
-#else
-  return Qnil;
-#endif /* HAVE_MENUS */
 }
 
 void

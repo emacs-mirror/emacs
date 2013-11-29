@@ -2440,11 +2440,7 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
        doc: /* Return t if a menu or popup dialog is active.  */)
   (void)
 {
-#ifdef HAVE_MENUS
   return (popup_activated ()) ? Qt : Qnil;
-#else
-  return Qnil;
-#endif /* HAVE_MENUS */
 }
 
 void

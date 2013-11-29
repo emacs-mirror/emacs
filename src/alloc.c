@@ -3477,7 +3477,7 @@ make_save_ptr_int (void *a, ptrdiff_t b)
   return val;
 }
 
-#if defined HAVE_MENUS && ! (defined USE_X_TOOLKIT || defined USE_GTK)
+#if ! (defined USE_X_TOOLKIT || defined USE_GTK)
 Lisp_Object
 make_save_ptr_ptr (void *a, void *b)
 {

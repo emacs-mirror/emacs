@@ -2739,7 +2739,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 			       Menus
  ***********************************************************************/
 
-#if defined (HAVE_MENUS) && !defined (MSDOS)
+#if !defined (MSDOS)
 
 /* TTY menu implementation and main ideas are borrowed from msdos.c.
 
@@ -3816,7 +3816,7 @@ tty_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
   return entry;
 }
 
-#endif	/* HAVE_MENUS && !MSDOS */
+#endif	/* !MSDOS */
 
 
 #ifndef MSDOS
@@ -3825,7 +3825,7 @@ tty_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
  ***********************************************************************/
 
 /* Initialize the tty-dependent part of frame F.  The frame must
-   already have its device initialized. */
+   already have its device initialized.  */
 
 void
 create_tty_output (struct frame *f)
@@ -3839,7 +3839,7 @@ create_tty_output (struct frame *f)
   f->output_data.tty = t;
 }
 
-/* Delete frame F's face cache, and its tty-dependent part. */
+/* Delete frame F's face cache, and its tty-dependent part.  */
 
 static void
 tty_free_frame_resources (struct frame *f)
@@ -3854,7 +3854,7 @@ tty_free_frame_resources (struct frame *f)
 
 #else  /* MSDOS */
 
-/* Delete frame F's face cache. */
+/* Delete frame F's face cache.  */
 
 static void
 tty_free_frame_resources (struct frame *f)

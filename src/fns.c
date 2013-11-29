@@ -35,11 +35,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "window.h"
 #include "blockinput.h"
-#ifdef HAVE_MENUS
 #if defined (HAVE_X_WINDOWS)
 #include "xterm.h"
 #endif
-#endif /* HAVE_MENUS */
 
 Lisp_Object Qstring_lessp;
 static Lisp_Object Qprovide, Qrequire;
@@ -2416,7 +2414,6 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
 
   CHECK_STRING (prompt);
 
-#ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box)
     {
@@ -2430,7 +2427,6 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
       UNGCPRO;
       return obj;
     }
-#endif /* HAVE_MENUS */
 
   args[0] = prompt;
   args[1] = build_string ("(yes or no) ");

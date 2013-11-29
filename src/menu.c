@@ -1178,7 +1178,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
        keybinding equivalents, but we don't do that any more anyway.  */
     return Qnil;
 
-#ifdef HAVE_MENUS
   {
     bool get_current_pos_p = 0;
 
@@ -1315,7 +1314,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
     XSETFRAME (Vmenu_updating_frame, f);
   }
-#endif /* HAVE_MENUS */
 
   /* Now parse the lisp menus.  */
   record_unwind_protect_void (unuse_menu_items);
@@ -1398,7 +1396,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
   unbind_to (specpdl_count, Qnil);
 
-#ifdef HAVE_MENUS
 #ifdef HAVE_WINDOW_SYSTEM
   /* Hide a previous tip, if any.  */
   if (!FRAME_TERMCAP_P (f))
@@ -1460,15 +1457,11 @@ no quit occurs and `x-popup-menu' returns nil.  */)
     FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #endif
 
-#endif /* HAVE_MENUS */
-
   UNGCPRO;
 
   if (error_name) error ("%s", error_name);
   return selection;
 }
-
-#ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
        doc: /* Pop up a dialog box and return user's selection.
@@ -1604,8 +1597,6 @@ for instance using the window manager, then this produces a quit and
     return Fx_popup_menu (newpos, list2 (prompt, contents));
   }
 }
-
-#endif	/* HAVE_MENUS */
 
 void
 syms_of_menu (void)

@@ -156,9 +156,6 @@ extern char *getenv ();
 # ifndef HAVE_WINDOW_SYSTEM
 #  define HAVE_WINDOW_SYSTEM 1
 # endif
-# ifndef HAVE_MENUS
-#  define HAVE_MENUS 1
-# endif
 #endif
 
 /* Get some redefinitions in place.  */
@@ -176,7 +173,7 @@ extern char *getenv ();
 extern struct tm * sys_localtime (const time_t *);
 /* MinGW64 uses a 2-argument _setjmp, and setjmp is a macro defined to
    supply the 2nd arg correctly, so don't use _setjmp directly in that
-   case. */
+   case.  */
 #undef HAVE__SETJMP
 #endif
 

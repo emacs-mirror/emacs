@@ -949,7 +949,7 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int);
-#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
@@ -963,7 +963,7 @@ extern int x_display_pixel_width (struct x_display_info *);
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_wait_for_event (struct frame *, int);
 
-/* Defined in xselect.c */
+/* Defined in xselect.c.  */
 
 extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);

@@ -3473,7 +3473,6 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
   else
     {
       Lisp_Object val = Fformat (nargs, args);
-#ifdef HAVE_MENUS
       Lisp_Object pane, menu;
       struct gcpro gcpro1;
 
@@ -3482,9 +3481,6 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       menu = Fcons (val, pane);
       Fx_popup_dialog (Qt, menu, Qt);
       UNGCPRO;
-#else /* !HAVE_MENUS */
-      message3 (val);
-#endif
       return val;
     }
 }
@@ -3503,11 +3499,9 @@ message; let the minibuffer contents show.
 usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-#ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box)
     return Fmessage_box (nargs, args);
-#endif
   return Fmessage (nargs, args);
 }
 
