@@ -93,7 +93,7 @@
   :group 'files)
 
 
-(defcustom uniquify-buffer-name-style nil
+(defcustom uniquify-buffer-name-style 'post-forward
   "If non-nil, buffer names are uniquified with parts of directory name.
 The value determines the buffer name style and is one of `forward',
 `reverse', `post-forward', or `post-forward-angle-brackets'.

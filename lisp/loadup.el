@@ -280,6 +280,7 @@
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
+(load "uniquify")
 (load "electric")
 (if (not (eq system-type 'ms-dos)) (load "tooltip"))
 

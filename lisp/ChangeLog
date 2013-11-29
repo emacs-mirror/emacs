@@ -1,5 +1,9 @@
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* uniquify.el (uniquify-buffer-name-style): Change default.
+
+	* loadup.el: Preload "uniquify".
+
 	* time.el (display-time-update): Update all mode lines (bug#15999).
 
 	* electric.el (electric-indent-mode): Enable by default.

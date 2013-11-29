@@ -4,7 +4,7 @@
 	(redisplay_internal): Use it (bug#15999).
 	(prepare_menu_bars, redisplay_window): Use it as well.
 
-	* lisp.mk (lisp): Add electric.elc.
+	* lisp.mk (lisp): Add electric.elc and uniquify.elc.
 
 2013-11-29  Tom Seddon  <emacs@tomseddon.plus.com>  (tiny change)
 
