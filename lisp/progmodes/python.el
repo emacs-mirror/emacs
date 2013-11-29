@@ -40,9 +40,9 @@
 
 ;; Indentation: Automatic indentation with indentation cycling is
 ;; provided, it allows you to navigate different available levels of
-;; indentation by hitting <tab> several times.  Also when inserting a
-;; colon the `python-indent-electric-colon' command is invoked and
-;; causes the current line to be dedented automatically if needed.
+;; indentation by hitting <tab> several times.  Also electric-indent-mode
+;; is supported such that when inserting a colon the current line is
+;; dedented automatically if needed.
 
 ;; Movement: `beginning-of-defun' and `end-of-defun' functions are
 ;; properly implemented.  There are also specialized
@@ -248,7 +248,6 @@
     (define-key map (kbd "<backtab>") 'python-indent-dedent-line)
     (define-key map "\C-c<" 'python-indent-shift-left)
     (define-key map "\C-c>" 'python-indent-shift-right)
-    (define-key map ":" 'python-indent-electric-colon)
     ;; Skeletons
     (define-key map "\C-c\C-tc" 'python-skeleton-class)
     (define-key map "\C-c\C-td" 'python-skeleton-def)
@@ -1058,48 +1057,43 @@ the lines in which START and END lie."
        (list (region-beginning) (region-end) current-prefix-arg)
      (list (line-beginning-position) (line-end-position) current-prefix-arg)))
   (let ((deactivate-mark nil))
-    (if count
-        (setq count (prefix-numeric-value count))
-      (setq count python-indent-offset))
+    (setq count (if count (prefix-numeric-value count)
+                  python-indent-offset))
     (indent-rigidly start end count)))
 
-(defun python-indent-electric-colon (arg)
-  "Insert a colon and maybe de-indent the current line.
-With numeric ARG, just insert that many colons.  With
-\\[universal-argument], just insert a single colon."
-  (interactive "*P")
-  (self-insert-command (if (not (integerp arg)) 1 arg))
-  (when (and (not arg)
-             (eolp)
-             (not (equal ?: (char-after (- (point-marker) 2))))
-             (not (python-syntax-comment-or-string-p)))
-    (let ((indentation (current-indentation))
-          (calculated-indentation (python-indent-calculate-indentation)))
-      (python-info-closing-block-message)
-      (when (> indentation calculated-indentation)
-        (save-excursion
-          (indent-line-to calculated-indentation)
-          (when (not (python-info-closing-block-message))
-            (indent-line-to indentation)))))))
-(put 'python-indent-electric-colon 'delete-selection t)
-
 (defun python-indent-post-self-insert-function ()
-  "Adjust closing paren line indentation after a char is added.
+  "Adjust indentation after insertion of some characters.
 This function is intended to be added to the
 `post-self-insert-hook.'  If a line renders a paren alone, after
 adding a char before it, the line will be re-indented
 automatically if needed."
-  (when (and (eq (char-before) last-command-event)
-             (not (bolp))
-             (memq (char-after) '(?\) ?\] ?\})))
-    (save-excursion
-      (goto-char (line-beginning-position))
-      ;; If after going to the beginning of line the point
-      ;; is still inside a paren it's ok to do the trick
-      (when (python-syntax-context 'paren)
-        (let ((indentation (python-indent-calculate-indentation)))
-          (when (< (current-indentation) indentation)
-            (indent-line-to indentation)))))))
+  (when (and electric-indent-mode
+             (eq (char-before) last-command-event))
+    (cond
+     ((and (not (bolp))
+           (memq (char-after) '(?\) ?\] ?\})))
+      (save-excursion
+        (goto-char (line-beginning-position))
+        ;; If after going to the beginning of line the point
+        ;; is still inside a paren it's ok to do the trick
+        (when (python-syntax-context 'paren)
+          (let ((indentation (python-indent-calculate-indentation)))
+            (when (< (current-indentation) indentation)
+              (indent-line-to indentation))))))
+     ((and (eq ?: last-command-event)
+           (memq ?: electric-indent-chars)
+           (not current-prefix-arg)
+           (eolp)
+           (not (equal ?: (char-before (1- (point)))))
+           (not (python-syntax-comment-or-string-p)))
+      (let ((indentation (current-indentation))
+            (calculated-indentation (python-indent-calculate-indentation)))
+        (python-info-closing-block-message)
+        (when (> indentation calculated-indentation)
+          (save-excursion
+            (indent-line-to calculated-indentation)
+            (when (not (python-info-closing-block-message))
+              (indent-line-to indentation)))))))))
 
 
 ;;; Navigation
@@ -3619,6 +3613,7 @@ list is returned as is."
   (set (make-local-variable 'indent-region-function) #'python-indent-region)
   ;; Because indentation is not redundant, we cannot safely reindent code.
   (setq-local electric-indent-inhibit t)
+  (setq-local electric-indent-chars (cons ?: electric-indent-chars))
 
   ;; Add """ ... """ pairing to electric-pair-mode.
   (add-hook 'post-self-insert-hook
@@ -3626,7 +3621,7 @@ list is returned as is."
 
   (set (make-local-variable 'paragraph-start) "\\s-*$")
   (set (make-local-variable 'fill-paragraph-function)
-       'python-fill-paragraph)
+       #'python-fill-paragraph)
 
   (set (make-local-variable 'beginning-of-defun-function)
        #'python-nav-beginning-of-defun)
@@ -3634,10 +3629,10 @@ list is returned as is."
        #'python-nav-end-of-defun)
 
   (add-hook 'completion-at-point-functions
-            'python-completion-complete-at-point nil 'local)
+            #'python-completion-complete-at-point nil 'local)
 
   (add-hook 'post-self-insert-hook
-            'python-indent-post-self-insert-function nil 'local)
+            #'python-indent-post-self-insert-function 'append 'local)
 
   (set (make-local-variable 'imenu-create-index-function)
        #'python-imenu-create-index)

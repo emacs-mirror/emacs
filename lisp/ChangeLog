@@ -1,3 +1,14 @@
+2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode-map): Remove binding for ":".
+	(python-indent-electric-colon): Remove command.
+	(python-indent-post-self-insert-function): Integrate the previous code
+	of python-indent-electric-colon.  Make it conditional on
+	electric-indent-mode.
+	(python-mode): Add ?: to electric-indent-chars.
+	Move python-indent-post-self-insert-function to the end of
+	post-self-insert-hook.
+
 2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-goto-page): Update mode-line.
