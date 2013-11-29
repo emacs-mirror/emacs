@@ -2870,8 +2870,8 @@ init_iterator (struct it *it, struct window *w,
     }
   else
     {
-      it->first_visible_x =
-	window_hscroll_limited (it->w, it->f) * FRAME_COLUMN_WIDTH (it->f);
+      it->first_visible_x
+	= window_hscroll_limited (it->w, it->f) * FRAME_COLUMN_WIDTH (it->f);
       it->last_visible_x = (it->first_visible_x
 			    + window_box_width (w, TEXT_AREA));
 
@@ -11198,6 +11198,12 @@ x_consider_frame_title (Lisp_Object frame)
 			      Menu Bars
  ***********************************************************************/
 
+/* Non-zero if we will not redisplay all visible windows.  */
+#define REDISPLAY_SOME_P()				\
+  ((windows_or_buffers_changed == 0			\
+    || windows_or_buffers_changed == REDISPLAY_SOME)	\
+   && (update_mode_lines == 0				\
+       || update_mode_lines == REDISPLAY_SOME))
 
 /* Prepare for redisplay by updating menu-bar item lists when
    appropriate.  This can call eval.  */
@@ -11206,10 +11212,7 @@ static void
 prepare_menu_bars (void)
 {
   bool all_windows = windows_or_buffers_changed || update_mode_lines;
-  bool some_windows = ((windows_or_buffers_changed == 0
-			|| windows_or_buffers_changed == REDISPLAY_SOME)
-		       && (update_mode_lines == 0
-			   || update_mode_lines == REDISPLAY_SOME));
+  bool some_windows = REDISPLAY_SOME_P ();
   struct gcpro gcpro1, gcpro2;
   Lisp_Object tooltip_frame;
 
@@ -13414,7 +13417,7 @@ redisplay_internal (void)
 	    {
 	      bool gcscrollbars
 		/* Only GC scollbars when we redisplay the whole frame.  */
-		= f->redisplay || windows_or_buffers_changed != REDISPLAY_SOME;
+		= f->redisplay || !REDISPLAY_SOME_P ();
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
 	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
@@ -15409,10 +15412,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 #endif
 
   if (!just_this_one_p
-      && (update_mode_lines == REDISPLAY_SOME
-	  || update_mode_lines == 0)
-      && (windows_or_buffers_changed == REDISPLAY_SOME
-	  || windows_or_buffers_changed == 0)
+      && REDISPLAY_SOME_P ()
       && !w->redisplay
       && !f->redisplay
       && !buffer->text->redisplay)
