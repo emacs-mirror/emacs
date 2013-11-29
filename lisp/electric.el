@@ -284,6 +284,8 @@ This is a global minor mode.  When enabled, it reindents whenever
 the hook `electric-indent-functions' returns non-nil, or you
 insert a character from `electric-indent-chars'."
   :global t :group 'electricity
+  :initialize 'custom-initialize-delay
+  :init-value t
   (if (not electric-indent-mode)
       (progn
         (when (eq (lookup-key global-map [?\C-j])

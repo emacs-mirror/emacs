@@ -280,6 +280,7 @@
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
+(load "electric")
 (if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
 ;; This file doesn't exist when building a development version of Emacs

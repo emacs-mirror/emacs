@@ -203,6 +203,8 @@ Czech typography rules.  To globally enable this feature, evaluate:
 
 * Editing Changes in Emacs 24.4
 
+** `electric-indent-mode' is enabled by default.
+
 ** Command `rectangle-mark-mode' bound to C-x SPC makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
 

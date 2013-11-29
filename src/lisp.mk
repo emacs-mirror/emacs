@@ -164,6 +164,7 @@ lisp = \
 	$(lispsource)/emacs-lisp/float-sup.elc \
 	$(lispsource)/vc/vc-hooks.elc \
 	$(lispsource)/vc/ediff-hook.elc \
+	$(lispsource)/electric.elc \
 	$(lispsource)/tooltip.elc
 
 

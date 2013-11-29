@@ -1,3 +1,7 @@
+2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.mk (lisp): Add electric.elc.
+
 2013-11-29  Tom Seddon  <emacs@tomseddon.plus.com>  (tiny change)
 
 	* w32font.c (g_b_init_get_char_width_32_w): New static var.
@@ -8,6 +12,8 @@
 	get_char_width_32_w before declaring a failure.  This avoids
 	punishing raster (a.k.a. "bitmap") fonts by slowing down
 	redisplay.  (Bug#6364).
+
+2013-11-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (clear_mouse_face): Don't invalidate the entire
 	mouse-highlight info, just signal frame_up_to_date_hook that mouse
