@@ -1,3 +1,8 @@
+2013-11-29  Andreas Politz  <politza@hochschule-trier.de>
+
+	* imenu.el (imenu--index-alist): Add missing dot to the docstring
+	(Bug#14029).
+
 2013-11-29  Andreas Politz  <politza@fh-trier.de>
 	* imenu.el (imenu--subalist-p): Don't error on non-conses and
 	allow non-lambda lists as functions.

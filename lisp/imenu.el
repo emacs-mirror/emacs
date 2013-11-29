@@ -463,7 +463,7 @@ Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
 To \"go to\" a special element means applying FUNCTION
 to INDEX-NAME, POSITION, and the ARGUMENTS.
 
-A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
+A nested sub-alist element looks like (INDEX-NAME . SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t
 if it is a sub-alist.
 
