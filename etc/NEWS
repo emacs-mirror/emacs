@@ -787,6 +787,8 @@ frame.
 ** New library helpers.el for misc helper functions
 *** `hash-table-keys'
 *** `hash-table-values'
+*** `string-blank-p`
+*** `string-empty-p`
 *** `string-join`
 *** `string-reverse`
 *** `string-trim-left'

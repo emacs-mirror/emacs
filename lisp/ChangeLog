@@ -1,3 +1,8 @@
+2013-11-29  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/helpers.el (string-empty-p): New function.
+	(string-blank-p): New function.
+
 2013-11-29  Andreas Politz  <politza@hochschule-trier.de>
 
 	* imenu.el (imenu--index-alist): Add missing dot to the docstring

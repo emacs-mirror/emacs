@@ -37,6 +37,10 @@
     (maphash (lambda (_k v) (push v values)) hash-table)
     values))
 
+(defsubst string-empty-p (string)
+  "Check whether STRING is empty."
+  (string= string ""))
+
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR."
   (mapconcat 'identity strings separator))
@@ -60,6 +64,10 @@
 (defsubst string-trim (string)
   "Remove leading and trailing whitespace from STRING."
   (string-trim-left (string-trim-right string)))
+
+(defsubst string-blank-p (string)
+  "Check whether STRING is either empty or only whitespace."
+  (string-empty-p (string-trim string)))
 
 (provide 'helpers)
 
