@@ -471,7 +471,7 @@ update which can wait for the next redisplay."
     ;; This is inside the let binding, but we are not going to document
     ;; what variables are available.
     (run-hooks 'display-time-hook))
-  (force-mode-line-update))
+  (force-mode-line-update 'all))
 
 (defun display-time-file-nonempty-p (file)
   (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))

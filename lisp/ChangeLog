@@ -1,5 +1,7 @@
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* time.el (display-time-update): Update all mode lines (bug#15999).
+
 	* electric.el (electric-indent-mode): Enable by default.
 	* loadup.el: Preload "electric".
 
