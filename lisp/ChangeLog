@@ -1,5 +1,8 @@
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/newst-reader.el (newsticker-html-renderer): Default to SHR if
+	available.  Suggested by Clément B. <barthele1u@etu.univ-lorraine.fr>.
+
 	* uniquify.el (uniquify-buffer-name-style): Change default.
 
 	* loadup.el: Preload "uniquify".
