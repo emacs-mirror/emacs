@@ -26883,7 +26883,10 @@ clear_mouse_face (Mouse_HLInfo *hlinfo)
       cleared = 1;
     }
 
-  reset_mouse_highlight (hlinfo);
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
   return cleared;
 }
 
