@@ -1,3 +1,9 @@
+2013-11-29  Andreas Politz  <politza@fh-trier.de>
+	* imenu.el (imenu--subalist-p): Don't error on non-conses and
+	allow non-lambda lists as functions.
+	(imenu--in-alist): Don't recurse into non-subalists.
+	(imenu): Don't pass function itself as an argument (Bug#14029).
+
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-mode-map): Remove binding for ":".

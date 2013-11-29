@@ -1,3 +1,8 @@
+2013-11-29  Andreas Politz  <politza@fh-trier.de>
+
+	* modes.texi (Imenu): Make it clear that sub-alist is the cdr
+	(Bug#14029).
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (Library Search):
