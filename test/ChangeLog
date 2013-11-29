@@ -1,3 +1,10 @@
+2013-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/decoder-tests.el (ert-test-decoder-prefer-utf-8):
+	Force Unix EOLs by using 'utf-8-unix', since the default of
+	'utf-8' is system-dependent, while the test expects to see Unix
+	EOLs.
+
 2013-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* automated/Makefile.in (SEPCHAR): Use in place of PATH_SEP.
