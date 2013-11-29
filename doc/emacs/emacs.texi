@@ -502,7 +502,7 @@ Using Multiple Buffers
 Convenience Features and Customization of Buffer Handling
 
 * Uniquify::            Making buffer names unique with directory parts.
-* Iswitchb::            Switching between buffers with substrings.
+* Icomplete::           Fast minibuffer selection.
 * Buffer Menus::        Configurable buffer menu.
 
 Multiple Windows
