@@ -1,5 +1,9 @@
 2013-11-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* automated/reftex-tests.el (reftex-parse-from-file-test): Run
+	temp-dir through file-truename, to make sure the temporary file
+	names are comparable as strings.
+
 	* automated/decoder-tests.el (ert-test-decoder-prefer-utf-8):
 	Force Unix EOLs by using 'utf-8-unix', since the default of
 	'utf-8' is system-dependent, while the test expects to see Unix
