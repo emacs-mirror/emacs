@@ -338,7 +338,7 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 epaths-force-w32: FRC
 	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
 	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}" N`; \
-	  w32prefixpattern=`echo "${w32prefix}" | ${msys_sed_sh_escape}` ; \
+	  w32prefixpattern=`echo "$${w32prefix}" | ${msys_sed_sh_escape}` ; \
 	  w32locallisppath=`${srcdir}/build-aux/msys-to-w32 "${locallisppath}" N ":" "\\;" | ${msys_w32prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${w32locallisppath}"'";' \
