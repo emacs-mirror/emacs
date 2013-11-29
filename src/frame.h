@@ -178,44 +178,44 @@ struct frame
 
   /* 1 means that glyphs on this frame have been initialized so it can
      be used for output.  */
-  bool glyphs_initialized_p : 1;
+  unsigned glyphs_initialized_p : 1;
 
   /* Set to non-zero in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
-  bool resized_p : 1;
+  unsigned resized_p : 1;
 
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
-  bool default_face_done_p : 1;
+  unsigned default_face_done_p : 1;
 
   /* Set to non-zero if this frame has already been hscrolled during
      current redisplay.  */
-  bool already_hscrolled_p : 1;
+  unsigned already_hscrolled_p : 1;
 
   /* Set to non-zero when current redisplay has updated frame.  */
-  bool updated_p : 1;
+  unsigned updated_p : 1;
 
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
   /* Set to non-zero to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
-  bool minimize_tool_bar_window_p : 1;
+  unsigned minimize_tool_bar_window_p : 1;
 #endif
 
 #if defined (USE_GTK) || defined (HAVE_NS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
-  bool external_tool_bar : 1;
+  unsigned external_tool_bar : 1;
 #endif
 
   /* Nonzero means that fonts have been loaded since the last glyph
      matrix adjustments.  */
-  bool fonts_changed : 1;
+  unsigned fonts_changed : 1;
 
   /* Nonzero means that cursor type has been changed.  */
-  bool cursor_type_changed : 1;
+  unsigned cursor_type_changed : 1;
 
   /* True if it needs to be redisplayed.  */
-  bool redisplay : 1;
+  unsigned redisplay : 1;
 
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
@@ -330,7 +330,7 @@ struct frame
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
-  bool external_menu_bar : 1;
+  unsigned external_menu_bar : 1;
 #endif
 
   /* Next two bitfields are mutually exclusive.  They might both be
@@ -349,43 +349,43 @@ struct frame
 
   /* Nonzero if the frame is currently iconified.  Do not
      set this directly, use SET_FRAME_ICONIFIED instead.  */
-  bool iconified : 1;
+  unsigned iconified : 1;
 
   /* Nonzero if this frame should be redrawn.  */
-  bool garbaged : 1;
+  unsigned garbaged : 1;
 
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
-  bool wants_modeline : 1;
+  unsigned wants_modeline : 1;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
-  bool auto_raise : 1;
+  unsigned auto_raise : 1;
 
   /* Non-0 means lower this frame to the bottom of the stack when left.  */
-  bool auto_lower : 1;
+  unsigned auto_lower : 1;
 
   /* True if frame's root window can't be split.  */
-  bool no_split : 1;
+  unsigned no_split : 1;
 
   /* If this is set, then Emacs won't change the frame name to indicate
      the current buffer, etcetera.  If the user explicitly sets the frame
      name, this gets set.  If the user sets the name to Qnil, this is
      cleared.  */
-  bool explicit_name : 1;
+  unsigned explicit_name : 1;
 
   /* Nonzero if size of some window on this frame has changed.  */
-  bool window_sizes_changed : 1;
+  unsigned window_sizes_changed : 1;
 
   /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
-  bool mouse_moved : 1;
+  unsigned mouse_moved : 1;
 
   /* Nonzero means that the pointer is invisible.  */
-  bool pointer_invisible : 1;
+  unsigned pointer_invisible : 1;
 
   /* Nonzero means that all windows except mini-window and
      selected window on this frame have frozen window starts.  */
-  bool frozen_window_starts : 1;
+  unsigned frozen_window_starts : 1;
 
   /* Nonzero if we should actually display the scroll bars on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;

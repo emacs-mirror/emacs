@@ -1,3 +1,15 @@
+2013-11-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* buffer.h (struct buffer_text, struct buffer):
+	* frame.h (struct frame):
+	* window.h (struct window):
+	Avoid 'bool foo : 1;', as it's not portable to pre-C99 compilers,
+	as described in ../lib/stdbool.in.h.  Use 'unsigned foo : 1;' instead.
+	* menu.c (syms_of_menu): Define x-popup-dialog, removing a
+	no-longer-valid use of HAVE_MENUS.
+	* xdisp.c (propagate_buffer_redisplay): Now static.
+
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (Fmenu_or_popup_active_p):

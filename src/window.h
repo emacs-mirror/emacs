@@ -282,63 +282,63 @@ struct window
     int window_end_vpos;
 
     /* Non-zero if this window is a minibuffer window.  */
-    bool mini : 1;
+    unsigned mini : 1;
 
     /* Meaningful only if contents is a window, non-zero if this
        internal window is used in horizontal combination.  */
-    bool horizontal : 1;
+    unsigned horizontal : 1;
 
     /* Non-zero means must regenerate mode line of this window.  */
-    bool update_mode_line : 1;
+    unsigned update_mode_line : 1;
 
     /* Non-nil if the buffer was "modified" when the window
        was last updated.  */
-    bool last_had_star : 1;
+    unsigned last_had_star : 1;
 
     /* Non-zero means current value of `start'
        was the beginning of a line when it was chosen.  */
-    bool start_at_line_beg : 1;
+    unsigned start_at_line_beg : 1;
 
     /* Non-zero means next redisplay must use the value of start
        set up for it in advance.  Set by scrolling commands.  */
-    bool force_start : 1;
+    unsigned force_start : 1;
 
     /* Non-zero means we have explicitly changed the value of start,
        but that the next redisplay is not obliged to use the new value.
        This is used in Fdelete_other_windows to force a call to
        Vwindow_scroll_functions; also by Frecenter with argument.  */
-    bool optional_new_start : 1;
+    unsigned optional_new_start : 1;
 
     /* Non-zero means the cursor is currently displayed.  This can be
        set to zero by functions overpainting the cursor image.  */
-    bool phys_cursor_on_p : 1;
+    unsigned phys_cursor_on_p : 1;
 
     /* 0 means cursor is logically on, 1 means it's off.  Used for
        blinking cursor.  */
-    bool cursor_off_p : 1;
+    unsigned cursor_off_p : 1;
 
     /* Value of cursor_off_p as of the last redisplay.  */
-    bool last_cursor_off_p : 1;
+    unsigned last_cursor_off_p : 1;
 
     /* 1 means desired matrix has been build and window must be
        updated in update_frame.  */
-    bool must_be_updated_p : 1;
+    unsigned must_be_updated_p : 1;
 
     /* Flag indicating that this window is not a real one.
        Currently only used for menu bar windows of frames.  */
-    bool pseudo_window_p : 1;
+    unsigned pseudo_window_p : 1;
 
     /* Non-zero means fringes are drawn outside display margins.
        Otherwise draw them between margin areas and text.  */
-    bool fringes_outside_margins : 1;
+    unsigned fringes_outside_margins : 1;
 
     /* Nonzero if window_end_pos and window_end_vpos are truly valid.
        This is zero if nontrivial redisplay is preempted since in that case
        the frame image that window_end_pos did not get onto the frame.  */
-    bool window_end_valid : 1;
+    unsigned window_end_valid : 1;
 
     /* True if it needs to be redisplayed.  */
-    bool redisplay : 1;
+    unsigned redisplay : 1;
 
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
@@ -347,7 +347,7 @@ struct window
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
        Should be nonnegative, and only valid if window_end_valid is nonzero.  */
     ptrdiff_t window_end_bytepos;
-};
+  };
 
 /* Most code should use these functions to set Lisp fields in struct
    window.  */

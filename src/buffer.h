@@ -475,10 +475,10 @@ struct buffer_text
     /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
        prevent Fgarbage_collect from shrinking the gap and losing
        not-yet-decoded bytes.  */
-    bool inhibit_shrinking : 1;
+    unsigned inhibit_shrinking : 1;
 
     /* True if it needs to be redisplayed.  */
-    bool redisplay : 1;
+    unsigned redisplay : 1;
   };
 
 /* Most code should use this macro to access Lisp fields in struct buffer.  */
@@ -849,10 +849,10 @@ struct buffer
 
   /* Non-zero means don't use redisplay optimizations for
      displaying this buffer.  */
-  bool prevent_redisplay_optimizations_p : 1;
+  unsigned prevent_redisplay_optimizations_p : 1;
 
   /* Non-zero whenever the narrowing is changed in this buffer.  */
-  bool clip_changed : 1;
+  unsigned clip_changed : 1;
 
   /* List of overlays that end at or before the current center,
      in order of end-position.  */

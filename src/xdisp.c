@@ -610,25 +610,29 @@ bool help_echo_showing_p;
 /* Functions to mark elements as needing redisplay.  */
 enum { REDISPLAY_SOME = 2};	/* Arbitrary choice.  */
 
-void redisplay_other_windows (void)
+void
+redisplay_other_windows (void)
 {
   if (!windows_or_buffers_changed)
     windows_or_buffers_changed = REDISPLAY_SOME;
 }
 
-void wset_redisplay (struct window *w)
+void
+wset_redisplay (struct window *w)
 {
   redisplay_other_windows ();
   w->redisplay = true;
 }
 
-void fset_redisplay (struct frame *f)
+void
+fset_redisplay (struct frame *f)
 {
   redisplay_other_windows ();
   f->redisplay = true;
 }
 
-void bset_redisplay (struct buffer *b)
+void
+bset_redisplay (struct buffer *b)
 {
   int count = buffer_window_count (b);
   if (count > 0)
@@ -643,7 +647,8 @@ void bset_redisplay (struct buffer *b)
     }
 }
 
-extern void bset_update_mode_line (struct buffer *b)
+void
+bset_update_mode_line (struct buffer *b)
 {
   if (!update_mode_lines)
     update_mode_lines = REDISPLAY_SOME;
@@ -11201,11 +11206,10 @@ static void
 prepare_menu_bars (void)
 {
   bool all_windows = windows_or_buffers_changed || update_mode_lines;
-  bool some_windows
-    = (windows_or_buffers_changed == 0
-       || windows_or_buffers_changed == REDISPLAY_SOME)
-    && (update_mode_lines == 0
-	|| update_mode_lines == REDISPLAY_SOME);
+  bool some_windows = ((windows_or_buffers_changed == 0
+			|| windows_or_buffers_changed == REDISPLAY_SOME)
+		       && (update_mode_lines == 0
+			   || update_mode_lines == REDISPLAY_SOME));
   struct gcpro gcpro1, gcpro2;
   Lisp_Object tooltip_frame;
 
@@ -12922,7 +12926,8 @@ reconsider_clip_changes (struct window *w)
     }
 }
 
-void propagate_buffer_redisplay (void)
+static void
+propagate_buffer_redisplay (void)
 { /* Resetting b->text->redisplay is problematic!
      We can't just reset it in the case that some window that displays
      it has not been redisplayed; and such a window can stay

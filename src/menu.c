@@ -1606,9 +1606,6 @@ syms_of_menu (void)
   menu_items_inuse = Qnil;
 
   defsubr (&Sx_popup_menu);
-
-#ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
-#endif
   defsubr (&Smenu_bar_menu_at_x_y);
 }
