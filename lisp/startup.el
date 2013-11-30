@@ -1764,6 +1764,10 @@ Returning non-nil does not mean we should necessarily
 use the fancy splash screen, but if we do use it,
 we put it on this frame."
   (let (chosen-frame)
+    ;; MS-Windows needs this to have a chance to make the initial
+    ;; frame visible.
+    (if (eq system-type 'windows-nt)
+	(sit-for 0 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
@@ -1774,7 +1778,7 @@ we put it on this frame."
   "Return t if fancy splash screens should be used."
   (when (and (display-graphic-p)
              (or (and (display-color-p)
-		 (image-type-available-p 'xpm))
+		      (image-type-available-p 'xpm))
                  (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
