@@ -912,8 +912,6 @@ load_pixmap (struct frame *f, Lisp_Object name)
 				X Colors
  ***********************************************************************/
 
-#define NEAR_SAME_COLOR_THRESHOLD 30000
-
 /* Parse RGB_LIST, and fill in the RGB fields of COLOR.
    RGB_LIST should contain (at least) 3 lisp integers.
    Return 0 if there's a problem with RGB_LIST, otherwise return 1.  */
@@ -1264,6 +1262,8 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 
 
 #ifdef HAVE_WINDOW_SYSTEM
+
+#define NEAR_SAME_COLOR_THRESHOLD 30000
 
 /* Load colors for face FACE which is used on frame F.  Colors are
    specified by slots LFACE_BACKGROUND_INDEX and LFACE_FOREGROUND_INDEX

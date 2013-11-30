@@ -1,5 +1,10 @@
 2013-11-30  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfaces.c (NEAR_SAME_COLOR_THRESHOLD): Move inside HAVE_WINDOW_SYSTEM.
+
+	* gnutls.c (gnutls_audit_log_function): Only declare and define if
+	HAVE_GNUTLS3 (Bug#16001).
+
 	* xdisp.c (redisplay_internal): Call request_sigio at end_of_redisplay
 	if interrupts are deferred (Bug#15801).
 
