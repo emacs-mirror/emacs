@@ -1,4 +1,4 @@
-2013-12-01  Martin Rudalics  <rudalics@gmx.at>
+2013-11-30  Martin Rudalics  <rudalics@gmx.at>
 
 	Support resizing frames and windows pixelwise.
 	* cus-start.el (frame-resize-pixelwise)
