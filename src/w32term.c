@@ -4224,7 +4224,6 @@ w32_read_socket (struct terminal *terminal,
   struct frame *f;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
-  static char buf[1];
 
   block_input ();
 

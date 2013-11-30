@@ -1,3 +1,12 @@
+2013-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (Fwindow_text_pixel_size): Remove unused variables
+	`value' and `endp'.
+
+	* window.c (Fset_window_configuration): Comment out unused variables.
+
+	* w32term.c (w32_read_socket): Remove unused variable `buf'.
+
 2013-11-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (redisplay_internal): unrequest_sigio => request_sigio.

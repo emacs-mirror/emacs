@@ -4129,7 +4129,7 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
 				   ? FRAME_COLUMN_WIDTH (f)
 				   : FRAME_LINE_HEIGHT (f));
     }
-  else    
+  else
     {
       new_size= (horflag
 		 ? size
@@ -4657,7 +4657,7 @@ grow_mini_window (struct window *w, int delta, bool pixelwise)
 	    }
 	  else
 	    {
-	      line_height = -XINT (height); 
+	      line_height = -XINT (height);
 	      pixel_height = line_height * FRAME_LINE_HEIGHT (f);
 	    }
 
@@ -4687,7 +4687,7 @@ shrink_mini_window (struct window *w, bool pixelwise)
 
   eassert (MINI_WINDOW_P (w));
 
-  height = pixelwise ? w->pixel_height : w->total_lines; 
+  height = pixelwise ? w->pixel_height : w->total_lines;
   unit = pixelwise ? FRAME_LINE_HEIGHT (f) : 1;
   if (height > unit)
     {
@@ -6078,10 +6078,10 @@ the return value is nil.  Otherwise the value is t.  */)
 	 back.  We keep track of the prevailing height in these variables.  */
       int previous_frame_text_height = FRAME_TEXT_HEIGHT (f);
       int previous_frame_text_width =  FRAME_TEXT_WIDTH  (f);
-      int previous_frame_menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
-      int previous_frame_tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
-      int previous_frame_lines = FRAME_LINES (f);
-      int previous_frame_cols =  FRAME_COLS  (f);
+      /* int previous_frame_menu_bar_height = FRAME_MENU_BAR_HEIGHT (f); */
+      /* int previous_frame_tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f); */
+      /* int previous_frame_lines = FRAME_LINES (f); */
+      /* int previous_frame_cols =  FRAME_COLS  (f); */
       int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
       int previous_frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
 
@@ -6353,7 +6353,7 @@ the return value is nil.  Otherwise the value is t.  */)
       /* This `select_window' calls record_buffer which calls Fdelq which
 	 invokes QUIT, so we do it here at the end rather than earlier,
 	 to minimize the risk of interrupting the Fset_window_configuration
-	 in an inconsistent state (e.g. before frame-focus redirection is 
+	 in an inconsistent state (e.g. before frame-focus redirection is
 	 canceled).  */
       select_window (data->current_window, Qnil, 1);
       BVAR (XBUFFER (XWINDOW (selected_window)->contents),

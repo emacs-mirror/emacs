@@ -9512,12 +9512,12 @@ include the height of any of these lines in the return value.  */)
    Lisp_Object mode_and_header_line)
 {
   struct window *w = decode_live_window (window);
-  Lisp_Object buf, value;
+  Lisp_Object buf;
   struct buffer *b;
   struct it it;
   struct buffer *old_buffer = NULL;
   ptrdiff_t start, end, pos;
-  struct text_pos startp, endp;
+  struct text_pos startp;
   void *itdata = NULL;
   int c, max_y = -1, x = 0, y = 0;
 
