@@ -13820,7 +13820,7 @@ redisplay_internal (void)
 
  end_of_redisplay:
   if (interrupt_input && interrupts_deferred)
-    unrequest_sigio ();
+    request_sigio ();
 
   unbind_to (count, Qnil);
   RESUME_POLLING;

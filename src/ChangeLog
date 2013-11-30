@@ -1,5 +1,7 @@
 2013-11-30  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xdisp.c (redisplay_internal): unrequest_sigio => request_sigio.
+
 	* xfaces.c (NEAR_SAME_COLOR_THRESHOLD): Move inside HAVE_WINDOW_SYSTEM.
 
 	* gnutls.c (gnutls_audit_log_function): Only declare and define if
