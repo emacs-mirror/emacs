@@ -37,13 +37,13 @@ GTAGS
 ID
 makefile
 Makefile
-Makefile.c
 ./GNUmakefile.unix
 stamp-h1
 stamp_BLD
 subdirs.el
 TAGS
 cxxdefs.h
+!admin/charsets/Makefile
 # Intermediate files when making pdf versions of the manuals.
 doc/**/*.aux
 doc/**/*.cm
