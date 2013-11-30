@@ -1207,4 +1207,7 @@ to store generated Quail packages."
 	(miscdic-convert filename dir))))
   (kill-emacs 0))
 
+;; Prevent "Local Variables" above confusing Emacs.
+
+
 ;;; titdic-cnv.el ends here
