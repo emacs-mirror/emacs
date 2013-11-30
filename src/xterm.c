@@ -214,7 +214,7 @@ enum xembed_message
   };
 
 static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
-static void x_set_window_size_1 (struct frame *, int, int, int);
+static void x_set_window_size_1 (struct frame *, int, int, int, bool);
 static void x_raise_frame (struct frame *);
 static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
@@ -509,6 +509,23 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 	     f->output_data.x->normal_gc, x, y0, x, y1);
 }
 
+/* Draw a window divider from (x0,y0) to (x1,y1)  */
+
+static void
+x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
+
+  face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
+  if (face)
+    XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
+		    face->foreground);
+
+  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  f->output_data.x->normal_gc, x0, y0, x1 - x0, y1 - y0);
+}
+
 /* End update of window W.
 
    Draw vertical borders between horizontally adjacent windows, and
@@ -536,7 +553,12 @@ x_update_window_end (struct window *w, bool cursor_on_p,
 				w->output_cursor.x, w->output_cursor.y);
 
       if (draw_window_fringes (w, 1))
-	x_draw_vertical_border (w);
+	{
+	  if (WINDOW_RIGHT_DIVIDER_WIDTH (w))
+	    x_draw_right_divider (w);
+	  else
+	    x_draw_vertical_border (w);
+	}
 
       unblock_input ();
     }
@@ -658,8 +680,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 	  if (sb_width > 0)
 	    {
 	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
-	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-				    * FRAME_COLUMN_WIDTH (f));
+	      int bar_area_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
 
 	      if (bx < 0)
 		{
@@ -3121,8 +3142,7 @@ x_scroll_run (struct window *w, struct run *run)
       if (sb_width > 0)
 	{
 	  int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
-	  int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-				* FRAME_COLUMN_WIDTH (f));
+	  int bar_area_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
 
 	  if (bar_area_x + bar_area_width == x)
 	    {
@@ -4945,7 +4965,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
-    if (width > 0 && height > 0)
+    if (width > 0 && window_box_height (w) > 0)
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    left, top, width, window_box_height (w));
 
@@ -5156,7 +5176,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
   /* Get window dimensions.  */
   window_box (w, ANY_AREA, 0, &window_y, 0, &window_height);
   top = window_y;
-  width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
+  width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
   height = window_height;
 
   /* Compute the left edge of the scroll bar area.  */
@@ -5203,7 +5223,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	  unblock_input ();
 	}
 
-      bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
+      bar = x_scroll_bar_create (w, top, sb_left, sb_width, max (height, 1));
     }
   else
     {
@@ -5254,7 +5274,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	 previous mode line display is cleared after C-x 2 C-x 1, for
 	 example.  */
       {
-	int area_width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
+	int area_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
 	int rest = area_width - sb_width;
 	if (rest > 0 && height > 0)
 	  {
@@ -6722,8 +6742,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         {
 #ifndef USE_X_TOOLKIT
 #ifndef USE_GTK
-          int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, event->xconfigure.height);
-          int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, event->xconfigure.width);
+          int width = FRAME_PIXEL_TO_TEXT_WIDTH (f, event->xconfigure.width);
+          int height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, event->xconfigure.height);
 
           /* In the toolkit version, change_frame_size
              is called by the code that handles resizing
@@ -6732,12 +6752,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           /* Even if the number of character rows and columns has
              not changed, the font size may have changed, so we need
              to check the pixel dimensions as well.  */
-          if (columns != FRAME_COLS (f)
-              || rows != FRAME_LINES (f)
+          if (width != FRAME_TEXT_WIDTH (f)
+              || height != FRAME_TEXT_HEIGHT (f)
               || event->xconfigure.width != FRAME_PIXEL_WIDTH (f)
               || event->xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
-              change_frame_size (f, rows, columns, 0, 1, 0);
+              change_frame_size (f, width, height, 0, 1, 0, 1);
               SET_FRAME_GARBAGED (f);
               cancel_mouse_face (f);
             }
@@ -7822,12 +7842,15 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     {
       int wid = FRAME_COLUMN_WIDTH (f);
+
       FRAME_CONFIG_SCROLL_BAR_COLS (f)
 	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
     }
   else
     {
       int wid = FRAME_COLUMN_WIDTH (f);
+
+      FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 14;
       FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
     }
 
@@ -7837,7 +7860,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 	 doing it because it's done in Fx_show_tip, and it leads to
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-        x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+	x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 1);
     }
 
 #ifdef HAVE_X_I18N
@@ -8652,11 +8675,11 @@ x_wait_for_event (struct frame *f, int eventtype)
    size changes.  Otherwise we leave the window gravity unchanged.  */
 
 static void
-x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
+x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height, bool pixelwise)
 {
   int pixelwidth, pixelheight;
 
-  check_frame_size (f, &rows, &cols);
+  check_frame_size (f, &width, &height, pixelwise);
   f->scroll_bar_actual_width
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
@@ -8664,9 +8687,11 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols)
+  pixelwidth =
+    (pixelwise ? width : FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width))
     + FRAME_TOOLBAR_WIDTH (f);
-  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
+  pixelheight =
+    (pixelwise ? height : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height))
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
   if (change_gravity) f->win_gravity = NorthWestGravity;
@@ -8702,7 +8727,7 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
     x_wait_for_event (f, ConfigureNotify);
   else
     {
-      change_frame_size (f, rows, cols, 0, 1, 0);
+      change_frame_size (f, width, height, 0, 1, 0, 1);
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
       x_sync (f);
@@ -8716,17 +8741,17 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
    Otherwise we leave the window gravity unchanged.  */
 
 void
-x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
+x_set_window_size (struct frame *f, int change_gravity, int width, int height, bool pixelwise)
 {
   block_input ();
 
   if (NILP (tip_frame) || XFRAME (tip_frame) != f)
     {
-      int r, c;
+      int r, c, text_width, text_height;
 
       /* When the frame is maximized/fullscreen or running under for
          example Xmonad, x_set_window_size_1 will be a no-op.
-         In that case, the right thing to do is extend rows/cols to
+         In that case, the right thing to do is extend rows/width to
          the current frame size.  We do that first if x_set_window_size_1
          turns out to not be a no-op (there is no way to know).
          The size will be adjusted again if the frame gets a
@@ -8737,23 +8762,25 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
          is however.  */
       pixelh -= FRAME_MENUBAR_HEIGHT (f);
 #endif
+      text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, FRAME_PIXEL_WIDTH (f));
+      text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelh);
       r = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
       /* Update f->scroll_bar_actual_width because it is used in
          FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
       f->scroll_bar_actual_width
         = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
       c = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
-      change_frame_size (f, r, c, 0, 1, 0);
+      change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
     }
 
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))
-    xg_frame_set_char_size (f, cols, rows);
+    xg_frame_set_char_size (f, width, height);
   else
-    x_set_window_size_1 (f, change_gravity, cols, rows);
+    x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
 #else /* not USE_GTK */
 
-  x_set_window_size_1 (f, change_gravity, cols, rows);
+  x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
 
 #endif /* not USE_GTK */
 
@@ -9439,7 +9466,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
     base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
     base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
-    check_frame_size (f, &min_rows, &min_cols);
+    check_frame_size (f, &min_cols, &min_rows, 0);
 
     /* The window manager uses the base width hints to calculate the
        current number of rows and columns in the frame while
@@ -10352,6 +10379,7 @@ static struct redisplay_interface x_redisplay_interface =
     x_clear_frame_area,
     x_draw_window_cursor,
     x_draw_vertical_window_border,
+    x_draw_window_divider,
     x_shift_glyphs_for_insert
   };
 

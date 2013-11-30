@@ -2407,7 +2407,7 @@ frame's terminal). */)
 	     was suspended.  */
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
-	    change_frame_size (f, height, width, 0, 0, 0);
+	    change_frame_size (f, width, height, 0, 0, 0, 0);
 	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 

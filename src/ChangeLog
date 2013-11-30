@@ -1,3 +1,243 @@
+2013-12-01  Martin Rudalics  <rudalics@gmx.at>
+
+	Support resizing frames and windows pixelwise.
+	* dispextern.h (enum window_part): Add ON_SCROLL_BAR,
+	ON_RIGHT_DIVIDER and ON_BOTTOM_DIVIDER.
+	(struct glyph_matrix): Replace window_left_col and
+	window_top_line by window_pixel_left and window_pixel_top.
+	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P): Minor
+	rewrite.
+	(enum face_id): Add WINDOW_DIVIDER_FACE_ID.
+	(draw_window_divider, move_it_to, x_draw_right_divider)
+	(x_draw_bottom_divider, change_frame_size): Add or fix
+	declarations.
+	* dispnew.c (change_frame_size_1): Change prototype.
+	(adjust_glyph_matrix, required_matrix_width)
+	(adjust_frame_glyphs_for_window_redisplay): Use pixel
+	values instead of lines and columns.
+	(marginal_area_string): Use WINDOW_FRINGES_WIDTH instead of
+	WINDOW_TOTAL_FRINGE_WIDTH.
+	(handle_window_change_signal, do_pending_window_change)
+	(init_display): Adjusts calls of change_frame_size.
+	(change_frame_size, change_frame_size_1): Handle pixelwise
+	changes.
+	* frame.c (Qright_divider_width, Qbottom_divider_width): New
+	Lisp objects.
+	(set_menu_bar_lines_1, set_menu_bar_lines, make_frame)
+	(make_terminal_frame, Fmake_terminal_frame, Fframe_parameters)
+	(x_set_internal_border_width, x_set_vertical_scroll_bars)
+	(x_set_scroll_bar_width, x_figure_window_size): Handle pixel
+	values.
+	(set_frame_param): New function.
+	(Fframe_text_cols, Fframe_text_lines, Fframe_total_cols)
+	(Fframe_text_width, Fframe_text_height, Fscroll_bar_width)
+	(Ffringe_width, Fborder_width, Fright_divider_width)
+	(Fbottom_divider_width): New functions, defsubr them.
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size): New
+	argument pixelwise.
+	(struct frame_parm_table): New members Qright_divider_width and
+	Qbottom_divider_width.
+	(x_set_frame_parameters): Handle parameters for pixelwise sizes.
+	(x_report_frame_params): Handle Qright_divider_width and
+	Qbottom_divider_width.
+	(x_set_right_divider_width, x_set_bottom_divider_width): New
+	functions.
+	(frame_resize_pixelwise): New option.
+	* frame.h (struct frame): Add tool_bar_height, menu_bar_height,
+	new_pixelwise, right_divider_width and bottom_divider_width;
+	remove total_lines; rename text_lines, text_cols, new_text_lines
+	and new_text_cols to text_height, text_width, new_height and
+	new_width respectively.
+	(FRAME_LINES, FRAME_COLS): Rename to FRAME_TEXT_HEIGHT and
+	FRAME_TEXT_WIDTH respectively.
+	(FRAME_MENU_BAR_HEIGHT, FRAME_TOOL_BAR_HEIGHT)
+	(FRAME_RIGHT_DIVIDER_WIDTH, FRAME_BOTTOM_DIVIDER_WIDTH)
+	(FRAME_TEXT_TO_PIXEL_WIDTH, FRAME_PIXEL_TO_TEXT_WIDTH): New
+	macros.
+	(FRAME_TOP_MARGIN_HEIGHT, FRAME_LEFT_SCROLL_BAR_AREA_WIDTH)
+	(FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH, FRAME_SCROLL_BAR_AREA_WIDTH)
+	(SET_FRAME_COLS, SET_FRAME_WIDTH, SET_FRAME_HEIGHT)
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH, FRAME_PIXEL_WIDTH_TO_TEXT_COLS)
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Rewrite macros.
+	(FRAME_TOTAL_COLS_ARG): Remove macro.
+	* fringe.c (draw_fringe_bitmap_1): Handle right divder.
+	* gtkutil.c (xg_frame_resized, xg_frame_set_char_size)
+	(x_wm_set_size_hint): Handle frame pixel sizes.
+	* indent.c (compute_motion, Fcompute_motion): Call
+	window_body_width instead of window_body_cols.
+	* keyboard.c (Qright_divider, Qbottom_divider): New symbols.
+	(make_lispy_position): Handle right and bottom dividers.
+	(Fsuspend_emacs): Pixelize call of change_frame_size.
+	* keyboard.h: Extern Qright_divider, Qbottom_divider.
+	* lisp.h: Extern set_frame_param.
+	* nsfns.m (x_set_tool_bar_lines): Pixelize call of
+	x_set_window_size.
+	(Fx_create_frame): Add entry for vertical_drag_cursor.  Pixelize
+	call of change_frame_size.
+	* nsterm.h (struct ns_output): Add vertical_drag_cursor.
+	* nsterm.m (ns_update_window_end): Optionally draw right
+	divider.
+	(x_set_window_size): Add argument pixelwise.  Call
+	check_frame_size and change_frame_size with pixelwise zero.
+	(ns_draw_window_divider): New function.
+	(ns_redisplay_interface): Add ns_draw_window_divider.
+	(updateFrameSize:): Call change_frame_size with pixelwise zero.
+	(x_new_font): Call x_set_window_size with pixelwise zero.
+	* print.c (print_object): For a window print its sequence
+	number again.
+	* term.c (Fresume_tty): Pixelize call of change_frame_size.
+	* w32fns.c (x_set_mouse_color): Handle vertical drag cursor.
+	(x_set_menu_bar_lines, x_set_tool_bar_lines): Calculate pixelwise.
+	(w32_createwindow): Use scroll bar area width.
+	(w32_wnd_proc): Handle bottom divider width.  For
+	WM_WINDOWPOSCHANGING return zero if we resize pixelwise.
+	(Fx_create_frame): Default divider width parameters.  Caclulate
+	sizes pixelwise.  Add vertical drag cursor support.
+	(x_create_tip_frame): Default divider widths to zero.  Pixelize
+	call to change_frame_size.
+	(Fx_show_tip): Add handling of divider widths.  Pixelize window
+	position and sizes.
+	(Fw32_frame_rect): New function.
+	(frame_parm_handler w32_frame_parm_handlers): Add divider
+	widths.
+	(Vx_window_vertical_drag_shape): Add variable.
+	* w32inevt.c (resize_event, maybe_generate_resize_event):
+	Pixelize change_frame_size calls.
+	* w32menu.c (set_frame_menubar): Pixelize x_set_window_size
+	call.
+	* w32term.c (w32_draw_window_divider): New function.
+	(x_update_window_end): Handle right divider.
+	(w32_draw_fringe_bitmap, x_scroll_run)
+	(w32_set_vertical_scroll_bar): Pixelize scrollbar widths.
+	(w32_read_socket): Handle SIZE_MAXIMIZED separately.  Calculate
+	new frame sizes pixelwise.
+	(x_new_font): Pixelize call to x_set_window_size.
+	(x_check_fullscreen): Pixelize call to change_frame_size.
+	(x_set_window_size_1, x_set_window_size): New argument
+	pixelwise.  Calculate pixelwise.
+	(x_wm_set_size_hint): Use scroll bar area width.
+	(w32_redisplay_interface): Add w32_draw_window_divider.
+	* w32term.h (struct w32_output): Add vertical drag cursor.
+	* widget.c (set_frame_size, update_wm_hints)
+	(EmacsFrameResize, EmacsFrameSetValues): Pixelize calls of
+	change_frame_size.
+	(EmacsFrameSetCharSize): Pixelize call of x_set_window_size.
+	* window.c (sequence_number): Restore.
+	(Fwindow_pixel_width, Fwindow_pixel_height)
+	(Fwindow_mode_line_height, Fwindow_header_line_height)
+	(window_pixel_to_total, Frun_window_scroll_functions)
+	(Fset_window_new_pixel, window_resize_apply_total)
+	(Fwindow_resize_apply_total): New functions.
+	(window_body_height, window_body_width): Rename from
+	window_body_lines.  New argument PIXELWISE.  Calculate
+	pixelwise.
+	(Fwindow_body_height, Fwindow_body_width): New argument
+	PIXELWISE.
+	(coordinates_in_window, window_relative_x_coord): Use window's
+	pixel width instead of total width.
+	(replace_window, recombine_windows): Initialize pixel values.
+	(resize_root_window, resize_frame_windows, grow_mini_window)
+	(shrink_mini_window): New argument PIXELWISE.  Calculate
+	pixelwise.
+	(Fdelete_other_windows_internal, adjust_window_margins)
+	(window_resize_check, window_resize_apply)
+	(Fdelete_window_internal, Fresize_mini_window_internal)
+	(Fwindow_text_width, Fwindow_text_height): Calculate pixelwise.
+	(check_frame_size): Rename arguments.  New argument PIXELWISE.
+	Calculate pixelwise.
+	(set_window_buffer): Make samebuf bool.  Run configuration change
+	hook only if buffer changed.
+	(Fset_window_buffer): Rewrite doc-string.
+	(make_window): Initialize new_pixel slot.
+	(Fwindow_resize_apply): Check pixel size of root window.
+	(Fsplit_window_internal): Call 2nd argument pixel_size.
+	Calculate pixelwise.
+	(Fscroll_left, Fscroll_right): Call window_body_width instead of
+	window_body_cols.
+	(save_window_data): New slots frame_text_width,
+	frame_text_height, frame_menu_bar_height, frame_tool_bar_height.
+	(saved_window): New slots pixel_left, pixel_top, pixel_height,
+	pixel_width.
+	(Fcurrent_window_configuration, Fset_window_configuration)
+	(save_window_save, compare_window_configurations): Handle new
+	slots in save_window_data and saved_window.
+	(Fset_window_scroll_bars): Fix doc-string.
+	(window_resize_pixelwise): New variable.
+	(coordinates_in_window, Fcoordinates_in_window_p): Handle
+	dividers.
+	(make_parent_window): Adjust sequence_number.
+	(Fwindow_right_divider_width, Fwindow_bottom_divider_width): New
+	functions.
+	* window.h (struct window): New members new_pixel, pixel_left,
+	pixel_top, pixel_width, pixel_height.  Restore sequence_number.
+	(wset_new_pixel): New function.
+	(WINDOW_PIXEL_WIDTH, WINDOW_PIXEL_HEIGHT)
+	(MIN_SAFE_WINDOW_PIXEL_WIDTH, MIN_SAFE_WINDOW_PIXEL_HEIGHT)
+	(WINDOW_LEFT_PIXEL_EDGE, WINDOW_RIGHT_PIXEL_EDGE)
+	(WINDOW_TOP_PIXEL_EDGE, WINDOW_BOTTOM_PIXEL_EDGE)
+	(WINDOW_BOTTOMMOST_P, WINDOW_BOX_LEFT_PIXEL_EDGE)
+	(WINDOW_BOX_RIGHT_PIXEL_EDGE, WINDOW_MARGINS_COLS)
+	(WINDOW_MARGINS_WIDTH, WINDOW_RIGHT_DIVIDER_WIDTH)
+	(WINDOW_BOTTOM_DIVIDER_WIDTH): New macros.
+	(WINDOW_TOTAL_FRINGE_WIDTH): Rename to WINDOW_FRINGES_WIDTH.
+	(WINDOW_TOTAL_WIDTH, WINDOW_TOTAL_HEIGHT): Remove macros.
+	(WINDOW_RIGHT_EDGE_X, WINDOW_LEFT_EDGE_X, WINDOW_TOP_EDGE_Y)
+	(WINDOW_BOTTOM_EDGE_Y, WINDOW_FULL_WIDTH_P, WINDOW_LEFTMOST_P)
+	(WINDOW_RIGHTMOST_P, WINDOW_BOX_LEFT_EDGE_X)
+	(WINDOW_BOX_RIGHT_EDGE_X, WINDOW_FRINGE_COLS)
+	(WINDOW_BOX_HEIGHT_NO_MODE_LINE, WINDOW_BOX_TEXT_HEIGHT):
+	Rewrite.
+	(resize_frame_windows, grow_mini_window, shrink_mini_window)
+	(window_body_width, check_frame_size): Adapt external declarations.
+	* xdisp.c (last_max_ascent): New integer.
+	(window_text_bottom_y): Handle bottom divider.
+	(window_box_width, window_box_height): Calculate pixelwise.
+	(get_glyph_string_clip_rects): Handle right divider.
+	(remember_mouse_glyph): When windows are resized pixelwise
+	proceed with width and height set to 1.
+	(init_iterator): Use WINDOW_PIXEL_WIDTH instead of
+	WINDOW_TOTAL_WIDTH.
+	(move_it_to): Calculate and return maximum x position
+	encountered.
+	(Fwindow_text_pixel_size): New function.
+	(resize_mini_window, update_tool_bar): Calculate pixelwise.
+	(tool_bar_lines_needed): Rename to tool_bar_height.  Calculate
+	pixelwise.
+	(Ftool_bar_lines_needed): Rename to Ftool_bar_height.  Calculate
+	pixelwise.
+	(redisplay_tool_bar): Calculate pixelwise.
+	(redisplay_window): Calculate pixelwise.  Handle dividers.
+	(draw_glyphs, x_clear_end_of_line, note_mouse_highlight)
+	(x_draw_vertical_border): Handle dividers.
+	(define_frame_cursor1): Handle vertical drag cursor.
+	(x_draw_right_divider, x_draw_bottom_divider): New functions.
+	(expose_window): Calculate pixelwise.  Handle dividers.
+	(init_xdisp): Initialize pixel values.
+	* xfaces.c (Qwindow_divider): New face.
+	(realize_basic_faces): Realize it.
+	* xfns.c (x_set_mouse_color): Handle vertical_drag_cursor.
+	(x_set_menu_bar_lines, x_set_tool_bar_lines): Calculate pixelwise.
+	(x_set_scroll_bar_default_width): Default actual width to 16.
+	(Fx_create_frame): Set sizes pixelwise.
+	(x_create_tip_frame): Default divider widths to zero.  Pixelize
+	call of change_frame_size.
+	(Fx_show_tip): Handle divider widths.  Initial pixel position
+	and sizes.
+	(frame_parm_handler x_frame_parm_handlers): Add divider widths.
+	(Vx_window_vertical_drag_shape): New option.
+	* xmenu.c (free_frame_menubar): Pixelize call of
+	x_set_window_size.
+	* xterm.c (x_draw_window_divider): New function.
+	(x_update_window_end): Optionally draw right divider.
+	(x_draw_fringe_bitmap, x_scroll_run, x_scroll_bar_create)
+	(XTset_vertical_scroll_bar): Use scroll bar pixel width.
+	(handle_one_xevent, x_new_font): Calculate pixelwise.
+	(x_set_window_size_1, x_set_window_size): New argument
+	pixelwise.  Calculate pixelwise.
+	(x_wm_set_size_hint): Pixelize call of check_frame_size.
+	(struct x_redisplay_interface): Add x_draw_window_divider.
+	* xterm.h (struct x_output): Add vertical_drag_cursor.
+
 2013-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (redisplay_internal): Don't call set_window_update_flags.

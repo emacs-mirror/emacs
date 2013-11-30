@@ -1766,8 +1766,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	}
       else if (WINDOWP (obj))
 	{
-	  void *ptr = XWINDOW (obj);
-	  int len = sprintf (buf, "#<window %p", ptr);
+	  int len;
+	  strout ("#<window ", -1, -1, printcharfun);
+	  len = sprintf (buf, "%d", XWINDOW (obj)->sequence_number);
 	  strout (buf, len, len, printcharfun);
 	  if (BUFFERP (XWINDOW (obj)->contents))
 	    {

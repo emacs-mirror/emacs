@@ -654,6 +654,7 @@ struct ns_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
 
   /* NS-specific */
   Cursor current_pointer;

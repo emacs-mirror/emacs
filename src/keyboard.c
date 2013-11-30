@@ -347,6 +347,7 @@ static Lisp_Object Qmodifier_cache;
 /* Symbols to use for parts of windows.  */
 Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
+Lisp_Object Qright_divider, Qbottom_divider;
 static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
@@ -5302,6 +5303,20 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  dy = yret = wy;
 	}
       /* Nothing special for part == ON_SCROLL_BAR.  */
+      else if (part == ON_RIGHT_DIVIDER)
+	{
+	  posn = Qright_divider;
+	  width = WINDOW_RIGHT_DIVIDER_WIDTH (w);
+	  dx = xret = wx;
+	  dy = yret = wy;
+	}
+      else if (part == ON_BOTTOM_DIVIDER)
+	{
+	  posn = Qbottom_divider;
+	  width = WINDOW_BOTTOM_DIVIDER_WIDTH (w);
+	  dx = xret = wx;
+	  dy = yret = wy;
+	}
 
       /* For clicks in the text area, fringes, or margins, call
 	 buffer_posn_from_coords to extract TEXTPOS, the buffer
@@ -10142,7 +10157,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
      with a window system; but suspend should be disabled in that case.  */
   get_tty_size (fileno (CURTTY ()->input), &width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
+    change_frame_size (SELECTED_FRAME (), width, height, 0, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
   hook = intern ("suspend-resume-hook");
@@ -10978,6 +10993,8 @@ syms_of_keyboard (void)
   DEFSYM (Qvertical_line, "vertical-line");
   DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
   DEFSYM (Qmenu_bar, "menu-bar");
+  DEFSYM (Qright_divider, "right-divider");
+  DEFSYM (Qbottom_divider, "bottom-divider");
 
   DEFSYM (Qmouse_fixup_help_message, "mouse-fixup-help-message");
 

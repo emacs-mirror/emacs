@@ -204,7 +204,7 @@ first will be printed into the backtrace buffer."
 			(window-resize
 			 debugger-window
 			 (- debugger-previous-window-height
-			    (window-total-size debugger-window)))
+			    (window-total-height debugger-window)))
 		      (error nil)))
 		(setq debugger-previous-window debugger-window))
 	      (debugger-mode)
@@ -236,7 +236,7 @@ first will be printed into the backtrace buffer."
 		     (eq (window-buffer debugger-window) debugger-buffer))
 	    ;; Record height of debugger window.
 	    (setq debugger-previous-window-height
-		  (window-total-size debugger-window)))
+		  (window-total-height debugger-window)))
 	  (if debugger-will-be-back
 	      ;; Restore previous window configuration (Bug#12623).
 	      (set-window-configuration window-configuration)

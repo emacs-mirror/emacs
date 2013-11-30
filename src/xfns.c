@@ -612,7 +612,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct x_output *x = f->output_data.x;
   Display *dpy = FRAME_X_DISPLAY (f);
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
-  Cursor hourglass_cursor, horizontal_drag_cursor;
+  Cursor hourglass_cursor, horizontal_drag_cursor, vertical_drag_cursor;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   unsigned long mask_color = FRAME_BACKGROUND_PIXEL (f);
 
@@ -688,6 +688,16 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     horizontal_drag_cursor
       = XCreateFontCursor (dpy, XC_sb_h_double_arrow);
 
+  if (!NILP (Vx_window_vertical_drag_shape))
+    {
+      CHECK_NUMBER (Vx_window_vertical_drag_shape);
+      vertical_drag_cursor
+	= XCreateFontCursor (dpy, XINT (Vx_window_vertical_drag_shape));
+    }
+  else
+    vertical_drag_cursor
+      = XCreateFontCursor (dpy, XC_sb_v_double_arrow);
+
   /* Check and report errors with the above calls.  */
   x_check_errors (dpy, "can't set cursor shape: %s");
   x_uncatch_errors ();
@@ -744,6 +754,11 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       && x->horizontal_drag_cursor != 0)
     XFreeCursor (dpy, x->horizontal_drag_cursor);
   x->horizontal_drag_cursor = horizontal_drag_cursor;
+
+  if (vertical_drag_cursor != x->vertical_drag_cursor
+      && x->vertical_drag_cursor != 0)
+    XFreeCursor (dpy, x->vertical_drag_cursor);
+  x->vertical_drag_cursor = vertical_drag_cursor;
 
   XFlush (dpy);
   unblock_input ();
@@ -963,6 +978,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   FRAME_MENU_BAR_LINES (f) = 0;
+  FRAME_MENU_BAR_HEIGHT (f) = 0;
   if (nlines)
     {
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
@@ -980,7 +996,8 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
-  resize_frame_windows (f, FRAME_LINES (f), 0);
+  FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
+  resize_frame_windows (f, FRAME_LINES (f), 0, 0);
 
   /* If the menu bar height gets changed, the internal border below
      the top margin has to be cleared.  Also, if the menu bar gets
@@ -993,7 +1010,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       int y;
 
       /* height can be zero here. */
-      if (height > 0 && width > 0)
+      if (FRAME_X_WINDOW (f) && height > 0 && width > 0)
 	{
 	  y = FRAME_TOP_MARGIN_HEIGHT (f);
 
@@ -1051,6 +1068,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 #ifdef USE_GTK
 
   FRAME_TOOL_BAR_LINES (f) = 0;
+  FRAME_TOOL_BAR_HEIGHT (f) = 0;
   if (nlines)
     {
       FRAME_EXTERNAL_TOOL_BAR (f) = 1;
@@ -1083,7 +1101,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  resize_frame_windows (f, FRAME_LINES (f), 0);
+  FRAME_TOOL_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
+  resize_frame_windows (f, FRAME_LINES (f), 0, 0);
   adjust_frame_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
@@ -1092,7 +1111,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
      below the tool bar if one is displayed, but is below the menu bar
      if there isn't a tool bar.  The tool bar draws into the area
      below the menu bar.  */
-  if (FRAME_X_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
+  if (FRAME_X_WINDOW (f) && FRAME_TOOL_BAR_HEIGHT (f) == 0)
     {
       clear_frame (f);
       clear_current_matrices (f);
@@ -1471,13 +1490,13 @@ x_set_scroll_bar_default_width (struct frame *f)
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (minw + wid - 1) / wid;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = minw;
 #else
-  /* Make the actual width at least 14 pixels and a multiple of a
+  /* Make the actual width 16 pixels and a multiple of a
      character width.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (16 + wid - 1) / wid;
 
   /* Use all of that space (aside from required margins) for the
      scroll bar.  */
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 0;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 16;
 #endif
 }
 
@@ -3130,12 +3149,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
      FRAME_LINES (f).  */
-  width = FRAME_COLS (f);
-  height = FRAME_LINES (f);
-
-  SET_FRAME_COLS (f, 0);
-  FRAME_LINES (f) = 0;
-  change_frame_size (f, height, width, 1, 0, 0);
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
@@ -4918,6 +4936,10 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qright_divider_width, make_number (0),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qbottom_divider_width, make_number (0),
+		       NULL, NULL, RES_TYPE_NUMBER);
 
   /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
@@ -5000,7 +5022,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   height = FRAME_LINES (f);
   SET_FRAME_COLS (f, 0);
   FRAME_LINES (f) = 0;
-  change_frame_size (f, height, width, 1, 0, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -5260,6 +5282,10 @@ Text larger than the specified size is clipped.  */)
     parms = Fcons (Fcons (Qinternal_border_width, make_number (3)), parms);
   if (NILP (Fassq (Qborder_width, parms)))
     parms = Fcons (Fcons (Qborder_width, make_number (1)), parms);
+  if (NILP (Fassq (Qbottom_divider_width, parms)))
+    parms = Fcons (Fcons (Qbottom_divider_width, make_number (0)), parms);
+  if (NILP (Fassq (Qright_divider_width, parms)))
+    parms = Fcons (Fcons (Qright_divider_width, make_number (0)), parms);
   if (NILP (Fassq (Qborder_color, parms)))
     parms = Fcons (Fcons (Qborder_color, build_string ("lightyellow")), parms);
   if (NILP (Fassq (Qbackground_color, parms)))
@@ -5275,6 +5301,8 @@ Text larger than the specified size is clipped.  */)
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left_col = 0;
   w->top_line = 0;
+  w->pixel_left = 0;
+  w->pixel_top = 0;
 
   if (CONSP (Vx_max_tooltip_size)
       && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
@@ -5288,6 +5316,9 @@ Text larger than the specified size is clipped.  */)
       w->total_cols = 80;
       w->total_lines = 40;
     }
+
+  w->pixel_width = w->total_cols * FRAME_COLUMN_WIDTH (f);
+  w->pixel_height = w->total_lines * FRAME_LINE_HEIGHT (f);
 
   FRAME_TOTAL_COLS (f) = w->total_cols;
   adjust_frame_glyphs (f);
@@ -5355,9 +5386,11 @@ Text larger than the specified size is clipped.  */)
     {
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
+      w->pixel_width = width;
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
       w->total_cols = width;
       FRAME_TOTAL_COLS (f) = width;
+      SET_FRAME_WIDTH (f, width);
       adjust_frame_glyphs (f);
       clear_glyph_matrix (w->desired_matrix);
       clear_glyph_matrix (w->current_matrix);
@@ -5958,6 +5991,8 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_icon_name,
   x_set_icon_type,
   x_set_internal_border_width,
+  x_set_right_divider_width,
+  x_set_bottom_divider_width,
   x_set_menu_bar_lines,
   x_set_mouse_color,
   x_explicitly_set_name,
@@ -6040,6 +6075,13 @@ or when you set the mouse color.  */);
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_horizontal_drag_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-vertical-drag-cursor",
+	      Vx_window_vertical_drag_shape,
+  doc: /* Pointer shape to use for indicating a window can be dragged vertically.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_vertical_drag_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
     doc: /* A string indicating the foreground color of the cursor box.  */);

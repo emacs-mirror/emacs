@@ -4042,6 +4042,7 @@ extern void syms_of_indent (void);
 /* Defined in frame.c.  */
 extern Lisp_Object Qonly, Qnone;
 extern Lisp_Object Qvisible;
+extern void set_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
 extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);

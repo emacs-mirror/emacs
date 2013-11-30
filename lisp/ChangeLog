@@ -1,3 +1,58 @@
+2013-12-01  Martin Rudalics  <rudalics@gmx.at>
+
+	Support resizing frames and windows pixelwise.
+	* cus-start.el (frame-resize-pixelwise)
+	(window-resize-pixelwise): New entries.
+	* emacs-lisp/debug.el (debug): Use window-total-height instead
+	of window-total-size.
+	* frame.el (tool-bar-lines-needed): Defalias to tool-bar-height.
+	* help.el (describe-bindings-internal): Call help-buffer
+	(temp-buffer-max-width): New option.
+	(resize-temp-buffer-window, help-window-setup)
+	(with-help-window): Rewrite.
+	* mouse.el (mouse-drag-line): Rewrite.  Add key bindings for
+	dragging dividers.
+	* window.el (frame-char-size, window-min-pixel-height)
+	(window-safe-min-pixel-height, window-safe-min-pixel-width)
+	(window-min-pixel-width, window-safe-min-pixel-size)
+	(window-combination-p, window-safe-min-size)
+	(window-resizable-p, window--size-to-pixel)
+	(window--pixel-to-size, window--resize-apply-p): New functions.
+	(window-safe-min-height): Fix doc-string.
+	(window-size, window-min-size, window--min-size-1)
+	(window-sizable, window-sizable-p, window--min-delta-1)
+	(window-min-delta, window--max-delta-1, window-max-delta)
+	(window--resizable, window--resizable-p, window-resizable)
+	(window-full-height-p, window-full-width-p, window-at-side-p)
+	(window--in-direction-2, window-in-direction)
+	(window--resize-reset-1, window--resize-mini-window)
+	(window-resize, window-resize-no-error)
+	(window--resize-child-windows-normal)
+	(window--resize-child-windows, window--resize-siblings)
+	(window--resize-this-window, window--resize-root-window)
+	(window--resize-root-window-vertically)
+	(adjust-window-trailing-edge, enlarge-window, shrink-window)
+	(maximize-window, minimize-window, delete-window)
+	(quit-restore-window, window-split-min-size, split-window)
+	(balance-windows-2, balance-windows)
+	(balance-windows-area-adjust, balance-windows-area)
+	(window--state-get-1, window-state-get, window--state-put-1)
+	(window--state-put-2, window-state-put)
+	(display-buffer-record-window, window--display-buffer): Make
+	functions handle pixelwise sizing of windows.
+	(display-buffer--action-function-custom-type)
+	(display-buffer-fallback-action): Add
+	display-buffer-in-previous-window.
+	(display-buffer-use-some-window): Resize window to height it had
+	before.
+	(fit-window-to-buffer-horizontally): New option.
+	(fit-frame-to-buffer): Describe new values.
+	(fit-frame-to-buffer-bottom-margin): Replace with
+	fit-frame-to-buffer-margins.
+	(window--sanitize-margin): New function.
+	(fit-frame-to-buffer, fit-window-to-buffer): Rewrite completely
+	using window-text-pixel-size.
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-form):

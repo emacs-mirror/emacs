@@ -771,7 +771,12 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
 				w->output_cursor.x, w->output_cursor.y);
 
       if (draw_window_fringes (w, 1))
-	x_draw_vertical_border (w);
+	{
+	  if (WINDOW_RIGHT_DIVIDER_WIDTH (w))
+	    x_draw_right_divider (w);
+	  else
+	    x_draw_vertical_border (w);
+	}
 
       unblock_input ();
     }
@@ -1235,7 +1240,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
 
 void
-x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
+x_set_window_size (struct frame *f, int change_grav, int cols, int rows, bool pixelwise)
 /* --------------------------------------------------------------------------
      Adjust window pixel size based on given character grid size
      Impl is a bit more complex than other terms, need to do some
@@ -1257,7 +1262,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 
   block_input ();
 
-  check_frame_size (f, &rows, &cols);
+  check_frame_size (f, &cols, &rows, 0);
 
   f->scroll_bar_actual_width = NS_SCROLL_BAR_WIDTH (f);
   compute_fringe_widths (f, 0);
@@ -1316,7 +1321,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     [view setBoundsOrigin: origin];
   }
 
-  change_frame_size (f, rows, cols, 0, 1, 0); /* pretend, delay, safe */
+  change_frame_size (f, cols, rows, 0, 1, 0, 0); /* pretend, delay, safe */
   FRAME_PIXEL_WIDTH (f) = pixelwidth;
   FRAME_PIXEL_HEIGHT (f) = pixelheight;
 /*  SET_FRAME_GARBAGED (f); // this short-circuits expose call in drawRect */
@@ -2495,6 +2500,28 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
   NSTRACE (ns_draw_vertical_window_border);
 
   face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+      [ns_lookup_indexed_color(face->foreground, f) set];
+
+  ns_focus (f, &r, 1);
+  NSRectFill(r);
+  ns_unfocus (f);
+}
+
+
+static void
+ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+/* --------------------------------------------------------------------------
+     External (RIF): Draw a window divider.
+   -------------------------------------------------------------------------- */
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
+  NSRect r = NSMakeRect (x0, y0, x1-x0, y1-y0);
+
+  NSTRACE (ns_draw_window_divider);
+
+  face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
   if (face)
       [ns_lookup_indexed_color(face->foreground, f) set];
 
@@ -4017,6 +4044,7 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_clear_frame_area,
   ns_draw_window_cursor,
   ns_draw_vertical_window_border,
+  ns_draw_window_divider,
   ns_shift_glyphs_for_insert
 };
 
@@ -5657,7 +5685,7 @@ not_in_argv (NSString *arg)
 
       FRAME_PIXEL_WIDTH (emacsframe) = neww;
       FRAME_PIXEL_HEIGHT (emacsframe) = newh;
-      change_frame_size (emacsframe, rows, cols, 0, delay, 0);
+      change_frame_size (emacsframe, cols, rows, 0, delay, 0, 0);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
 
@@ -7330,7 +7358,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   /* Now make the frame display the given font.  */
   if (FRAME_NS_WINDOW (f) != 0)
-	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+    x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f), 0);
 
   return font_object;
 }

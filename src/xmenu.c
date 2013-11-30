@@ -1168,7 +1168,7 @@ free_frame_menubar (struct frame *f)
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
 #endif
-          x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+	  x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 1);
 	}
       unblock_input ();
     }

@@ -703,7 +703,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
         }
     }
 
-  x_set_window_size (f, 0, f->text_cols, f->text_lines);
+  x_set_window_size (f, 0, f->text_cols, f->text_lines, 0);
 }
 
 
@@ -1266,6 +1266,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.ns->hand_cursor = [NSCursor pointingHandCursor];
   f->output_data.ns->hourglass_cursor = [NSCursor disappearingItemCursor];
   f->output_data.ns->horizontal_drag_cursor = [NSCursor resizeLeftRightCursor];
+  f->output_data.ns->vertical_drag_cursor = [NSCursor resizeUpDownCursor];
   FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor
      = [NSCursor arrowCursor];
   f->output_data.ns->current_pointer = f->output_data.ns->text_cursor;
@@ -1303,7 +1304,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   SET_FRAME_COLS (f, 0);
   FRAME_LINES (f) = 0;
-  change_frame_size (f, height, width, 1, 0, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 0);
 
   if (! f->output_data.ns->explicit_parent)
     {

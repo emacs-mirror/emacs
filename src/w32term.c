@@ -180,7 +180,7 @@ void x_lower_frame (struct frame *);
 void x_scroll_bar_clear (struct frame *);
 void x_wm_set_size_hint (struct frame *, long, bool);
 void x_raise_frame (struct frame *);
-void x_set_window_size (struct frame *, int, int, int);
+void x_set_window_size (struct frame *, int, int, int, bool);
 void x_wm_set_window_state (struct frame *, int);
 void x_wm_set_icon_pixmap (struct frame *, int);
 static void w32_initialize (void);
@@ -621,6 +621,32 @@ w32_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 }
 
 
+/* Draw a window divider from (x0, y0) to (x1, y1)  */
+
+static void
+w32_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  RECT r;
+  HDC hdc;
+  struct face *face;
+
+  r.left = x0;
+  r.right = x1;
+  r.top = y0;
+  r.bottom = y1;
+
+  hdc = get_frame_dc (f);
+  face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
+  if (face)
+    w32_fill_rect (f, hdc, face->foreground, &r);
+  else
+    w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), &r);
+
+  release_frame_dc (f, hdc);
+}
+
+
 /* End update of window W.
 
    Draw vertical borders between horizontally adjacent windows, and
@@ -648,7 +674,12 @@ x_update_window_end (struct window *w, bool cursor_on_p,
 				w->output_cursor.x, w->output_cursor.y);
 
       if (draw_window_fringes (w, 1))
-	x_draw_vertical_border (w);
+	{
+	  if (WINDOW_RIGHT_DIVIDER_WIDTH (w))
+	    x_draw_right_divider (w);
+	  else
+	    x_draw_vertical_border (w);
+	}
 
       unblock_input ();
     }
@@ -777,8 +808,7 @@ w32_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	  if (sb_width > 0)
 	    {
 	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
-	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-				    * FRAME_COLUMN_WIDTH (f));
+	      int bar_area_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
 
 	      if (bx < 0)
 		{
@@ -2675,8 +2705,7 @@ x_scroll_run (struct window *w, struct run *run)
       if (sb_width > 0)
 	{
 	  int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
-	  int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-				* FRAME_COLUMN_WIDTH (f));
+	  int bar_area_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
 
 	  if (bar_area_x + bar_area_width == x)
 	    {
@@ -3740,7 +3769,7 @@ w32_set_vertical_scroll_bar (struct window *w,
   /* Get window dimensions.  */
   window_box (w, ANY_AREA, 0, &window_y, 0, &window_height);
   top  = window_y;
-  width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
+  width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
   height = window_height;
 
   /* Compute the left edge of the scroll bar area.  */
@@ -4681,6 +4710,47 @@ w32_read_socket (struct terminal *terminal,
 		  break;
 
 		case SIZE_MAXIMIZED:
+		  {
+		    bool iconified = FRAME_ICONIFIED_P (f);
+
+		    SET_FRAME_VISIBLE (f, 1);
+		    SET_FRAME_ICONIFIED (f, 0);
+
+		    /* wait_reading_process_output will notice this
+		       and update the frame's display structures.  */
+		    SET_FRAME_GARBAGED (f);
+
+		    if (iconified)
+		      {
+			int x, y;
+
+			/* Reset top and left positions of the Window
+			   here since Windows sends a WM_MOVE message
+			   BEFORE telling us the Window is minimized
+			   when the Window is iconified, with 3000,3000
+			   as the co-ords. */
+			x_real_positions (f, &x, &y);
+			f->left_pos = x;
+			f->top_pos = y;
+
+			inev.kind = DEICONIFY_EVENT;
+			XSETFRAME (inev.frame_or_window, f);
+		      }
+		    else if (! NILP (Vframe_list)
+			     && ! NILP (XCDR (Vframe_list)))
+		      /* Force a redisplay sooner or later
+			 to update the frame titles
+			 in case this is the second frame.  */
+		      record_asynch_buffer_change ();
+		  }
+
+		  if (get_frame_param (f, Qfullscreen) == Qnil)
+		    set_frame_param (f, Qfullscreen, Qmaximized);
+		  else if (get_frame_param (f, Qfullscreen) != Qmaximized)
+		    set_frame_param (f, Qmaximized, Qmaximized);
+
+		  break;
+
 		case SIZE_RESTORED:
 		  {
 		    bool iconified = FRAME_ICONIFIED_P (f);
@@ -4712,6 +4782,12 @@ w32_read_socket (struct terminal *terminal,
 			 in case this is the second frame.  */
 		      record_asynch_buffer_change ();
 		  }
+
+		  if (get_frame_param (f, Qfullscreen) == Qmaximized)
+		    set_frame_param (f, Qfullscreen, Qnil);
+		  else if (get_frame_param (f, Qmaximized) != Qnil)
+		    set_frame_param (f, Qmaximized, Qnil);
+
 		  break;
 		}
 	    }
@@ -4719,16 +4795,14 @@ w32_read_socket (struct terminal *terminal,
 	  if (f && !FRAME_ICONIFIED_P (f) && msg.msg.wParam != SIZE_MINIMIZED)
 	    {
 	      RECT rect;
-	      int rows;
-	      int columns;
-	      int width;
-	      int height;
+	      int rows, columns, width, height, text_width, text_height;
 
 	      GetClientRect (msg.msg.hwnd, &rect);
 
 	      height = rect.bottom - rect.top;
 	      width = rect.right - rect.left;
-
+	      text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
+	      text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
 	      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
 	      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
 
@@ -4738,16 +4812,18 @@ w32_read_socket (struct terminal *terminal,
 		 not changed, the font size may have changed, so we need
 		 to check the pixel dimensions as well.  */
 
-	      if (columns != FRAME_COLS (f)
-		  || rows != FRAME_LINES (f)
-		  || width != FRAME_PIXEL_WIDTH (f)
-		  || height != FRAME_PIXEL_HEIGHT (f))
+	      if (width != FRAME_PIXEL_WIDTH (f)
+		  || height != FRAME_PIXEL_HEIGHT (f)
+		  || text_width != FRAME_TEXT_WIDTH (f)
+		  || text_height != FRAME_TEXT_HEIGHT (f))
 		{
-		  change_frame_size (f, rows, columns, 0, 1, 0);
+		  change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
 		  SET_FRAME_GARBAGED (f);
 		  cancel_mouse_face (f);
-		  FRAME_PIXEL_WIDTH (f) = width;
-		  FRAME_PIXEL_HEIGHT (f) = height;
+		  /* Do we want to set these here ????  */
+/** 		  FRAME_PIXEL_WIDTH (f) = width; **/
+/** 		  FRAME_TEXT_WIDTH (f) = text_width; **/
+/** 		  FRAME_PIXEL_HEIGHT (f) = height; **/
 		  f->win_gravity = NorthWestGravity;
 		}
 	    }
@@ -5404,7 +5480,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 	 doing it because it's done in Fx_show_tip, and it leads to
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+	x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f),
+			   FRAME_TEXT_HEIGHT (f), 1);
     }
 
   /* X version sets font of input methods here also.  */
@@ -5542,7 +5619,7 @@ x_check_fullscreen (struct frame *f)
          when setting WM manager hints.  */
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
-          change_frame_size (f, height, width, 0, 1, 0);
+          change_frame_size (f, width, height, 0, 1, 0, 0);
           SET_FRAME_GARBAGED (f);
           cancel_mouse_face (f);
 
@@ -5606,20 +5683,28 @@ w32fullscreen_hook (struct frame *f)
    Otherwise we leave the window gravity unchanged.  */
 
 void
-x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
+x_set_window_size (struct frame *f, int change_gravity, int width, int height, bool pixelwise)
 {
   int pixelwidth, pixelheight;
 
   block_input ();
 
-  check_frame_size (f, &rows, &cols);
+  check_frame_size (f, &width, &height, pixelwise);
   f->scroll_bar_actual_width
     = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
-  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+  if (pixelwise)
+    {
+      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
+      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
+    }
+  else
+    {
+      pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
+      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
+    }
 
   f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
@@ -5670,7 +5755,7 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
 
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
-  change_frame_size (f, rows, cols, 0, 1, 0);
+  change_frame_size (f, width, height, 0, 1, 0, 0);
   FRAME_PIXEL_WIDTH (f) = pixelwidth;
   FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
@@ -6051,7 +6136,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   SetWindowLong (window, WND_FONTWIDTH_INDEX, FRAME_COLUMN_WIDTH (f));
   SetWindowLong (window, WND_LINEHEIGHT_INDEX, FRAME_LINE_HEIGHT (f));
   SetWindowLong (window, WND_BORDER_INDEX, FRAME_INTERNAL_BORDER_WIDTH (f));
-  SetWindowLong (window, WND_SCROLLBAR_INDEX, f->scroll_bar_actual_width);
+  SetWindowLong (window, WND_SCROLLBAR_INDEX, FRAME_SCROLL_BAR_AREA_WIDTH (f));
 
   leave_crit ();
 }
@@ -6191,6 +6276,7 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_clear_frame_area,
   w32_draw_window_cursor,
   w32_draw_vertical_window_border,
+  w32_draw_window_divider,
   w32_shift_glyphs_for_insert
 };
 

@@ -904,7 +904,7 @@ xg_clear_under_internal_border (struct frame *f)
 void
 xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
 {
-  int rows, columns;
+  int width, height;
 
   if (pixelwidth == -1 && pixelheight == -1)
     {
@@ -916,11 +916,11 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
     }
 
 
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
-  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+  width = FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth);
+  height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight);
 
-  if (columns != FRAME_COLS (f)
-      || rows != FRAME_LINES (f)
+  if (width != FRAME_TEXT_WIDTH (f)
+      || height != FRAME_TEXT_HEIGHT (f)
       || pixelwidth != FRAME_PIXEL_WIDTH (f)
       || pixelheight != FRAME_PIXEL_HEIGHT (f))
     {
@@ -928,7 +928,7 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
       xg_clear_under_internal_border (f);
-      change_frame_size (f, rows, columns, 0, 1, 0);
+      change_frame_size (f, width, height, 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
     }
@@ -938,11 +938,10 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
-xg_frame_set_char_size (struct frame *f, int cols, int rows)
+xg_frame_set_char_size (struct frame *f, int width, int height)
 {
-  int pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
-    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
   int pixelwidth;
+  int pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
 
   if (FRAME_PIXEL_HEIGHT (f) == 0)
     return;
@@ -959,9 +958,7 @@ xg_frame_set_char_size (struct frame *f, int cols, int rows)
 
   /* FRAME_TEXT_COLS_TO_PIXEL_WIDTH uses scroll_bar_actual_width, so call it
      after calculating that value.  */
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols)
-    + FRAME_TOOLBAR_WIDTH (f);
-
+  pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
 
   /* Do this before resize, as we don't know yet if we will be resized.  */
   xg_clear_under_internal_border (f);
@@ -991,7 +988,7 @@ xg_frame_set_char_size (struct frame *f, int cols, int rows)
     }
   else
     {
-      change_frame_size (f, rows, cols, 0, 1, 0);
+      change_frame_size (f, width, height, 0, 1, 0, 1);
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
      }
@@ -1381,7 +1378,7 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 1)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
-  check_frame_size (f, &min_rows, &min_cols);
+  check_frame_size (f, &min_cols, &min_rows, 0);
   if (min_cols > 0) --min_cols; /* We used one col in base_width = ... 1); */
   if (min_rows > 0) --min_rows; /* We used one row in base_height = ... 1); */
 

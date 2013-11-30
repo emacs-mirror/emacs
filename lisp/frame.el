@@ -210,6 +210,8 @@ This function runs the hook `focus-out-hook'."
 
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
 
+(defalias 'tool-bar-lines-needed 'tool-bar-height)
+
 ;; startup.el calls this function after loading the user's init
 ;; file.  Now default-frame-alist and initial-frame-alist contain
 ;; information to which we must react; do what needs to be done.

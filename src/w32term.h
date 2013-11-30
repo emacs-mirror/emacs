@@ -230,7 +230,7 @@ extern struct w32_display_info *w32_term_init (Lisp_Object,
 extern int w32_defined_color (struct frame *f, const char *color,
                               XColor *color_def, int alloc);
 extern void x_set_window_size (struct frame *f, int change_grav,
-                              int cols, int rows);
+			       int width, int height, bool pixelwise);
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
 extern Lisp_Object x_get_focus_frame (struct frame *);
@@ -349,6 +349,7 @@ struct w32_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
 
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;

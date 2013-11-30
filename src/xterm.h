@@ -549,6 +549,7 @@ struct x_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
   Cursor current_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
@@ -930,7 +931,7 @@ extern void x_check_errors (Display *, const char *)
 extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
-extern void x_set_window_size (struct frame *, int, int, int);
+extern void x_set_window_size (struct frame *, int, int, int, bool);
 extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void xembed_request_focus (struct frame *);
