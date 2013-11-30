@@ -1,3 +1,8 @@
+2013-11-30  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* build-aux/msys-to-w32 (w32pathlist): Do not translate paths
+	starting with %emacs_dir%.
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	Stop keeping (most) generated cedet grammar files in the repository.

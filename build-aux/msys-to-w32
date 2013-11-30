@@ -36,7 +36,8 @@ transformations:
 3. Replace two consecutive slashes with single ones.
 4. Translate to Windows-native format those paths that are not in such
    format already. The translated paths will not end with a slash,
-   except for root directories (e.g. 'c:/' or 'c:/foo').
+   except for root directories (e.g. 'c:/' or 'c:/foo').  Paths
+   starting with '%emacs_dir%' will not be translated.
 5. Escape with backslashes every occurrence of SEPARATOR2 within the paths.
 6. Concatenate the translated paths with SEPARATOR2.
 
@@ -100,7 +101,11 @@ do
     p="${p//\\//}"
     p="${p//\/\///}"
 
-    if test -d "$p"
+    if test "${p:0:11}" = "%emacs_dir%"
+    then
+	# Paths starting with "%emacs_dir%" will not be translated
+	w32p=$p
+    elif test -d "$p"
     then
 	# The path exists, so just translate it
 	w32p=`cd "$p" && pwd -W`
@@ -162,4 +167,4 @@ do
 done
 
 # Write the translated pathlist to the standard output
-printf "${w32pathlist}"
+printf "%s" "${w32pathlist}"
