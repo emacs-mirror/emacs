@@ -1,3 +1,9 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	Stop keeping (most) generated cedet grammar files in the repository.
+	* Makefile.in (semantic): New.
+	(compile-main): Depend on semantic.
+
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/newst-reader.el (newsticker-html-renderer): Default to SHR if

@@ -296,7 +296,7 @@ compile-targets: $(TARGETS)
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
-compile-main: leim compile-clean
+compile-main: leim semantic compile-clean
 	@(cd $(lisp) && $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
@@ -320,9 +320,17 @@ compile-clean:
 	  fi \
 	done
 
-.PHONY: leim
+.PHONY: leim semantic
 leim:
 	cd ../leim && $(MAKE) $(MFLAGS) all EMACS="$(EMACS)"
+
+# FIXME.  Yuck.
+semantic:
+	case ${EMACS} in \
+	  .*) EMACS="../${EMACS}" ;; \
+	   *) EMACS="${EMACS}" ;; \
+	esac; \
+	cd ../admin/grammars && $(MAKE) $(MFLAGS) all EMACS="$${EMACS}"
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some .el files don't get compiled because they set the

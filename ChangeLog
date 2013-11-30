@@ -1,3 +1,11 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	Stop keeping (most) generated cedet grammar files in the repository.
+	* configure.ac (SUBDIR_MAKEFILES, AC_CONFIG_FILES):
+	Add admin/grammars Makefile.
+	* Makefile.in (distclean, bootstrap-clean, maintainer-clean):
+	Also clean admin/grammars, if present.
+
 2013-11-29  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* Makefile.in (epaths-force-w32): Fix 2013-11-20 typo.

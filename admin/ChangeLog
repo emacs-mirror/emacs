@@ -1,3 +1,11 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	Stop keeping (most) generated cedet grammar files in the repository.
+	* grammars/README: Remove.
+	* grammars/Makefile.in: New file.
+	* grammars/c.by, grammars/java-tags.wy, grammars/js.wy:
+	* grammars/python.wy: Update declarations to match generated outputs.
+
 2013-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-gen-files):

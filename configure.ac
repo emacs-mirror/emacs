@@ -4971,13 +4971,12 @@ if test -f "$srcdir/$opt_makefile.in"; then
 fi
 
 
-dnl admin/ may or may not be present.
-opt_makefile=admin/unidata/Makefile
-
-if test -f "$srcdir/$opt_makefile.in"; then
-  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+dnl The admin/ directory used to be excluded from tarfiles.
+if test -d $srcdir/admin; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES admin/unidata/Makefile admin/grammars/Makefile"
   AC_CONFIG_FILES([admin/unidata/Makefile])
-fi
+  AC_CONFIG_FILES([admin/grammars/Makefile])
+fi                              dnl -d admin
 
 
 SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
