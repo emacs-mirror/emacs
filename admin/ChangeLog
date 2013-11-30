@@ -1,3 +1,8 @@
+2013-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* charsets/mule-charsets.el: Rewritten to work in Emacs 23 and
+	later.  (Bug#16007)
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	Stop keeping (most) generated cedet grammar files in the repository.
