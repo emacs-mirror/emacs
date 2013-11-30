@@ -524,7 +524,7 @@ and TO-STRING is also null.)"
 	       (region-end)))))
   (perform-replace from-string to-string nil nil delimited nil nil start end))
 (put 'replace-string 'interactive-only
-     "Use `search-forward' and `replace-match' instead.")
+     "use `search-forward' and `replace-match' instead.")
 
 (defun replace-regexp (regexp to-string &optional delimited start end)
   "Replace things after point matching REGEXP with TO-STRING.
@@ -593,7 +593,7 @@ which will run faster and will not set the mark or print anything."
 	       (region-end)))))
   (perform-replace regexp to-string nil t delimited nil nil start end))
 (put 'replace-regexp 'interactive-only
-     "Use `re-search-forward' and `replace-match' instead.")
+     "use `re-search-forward' and `replace-match' instead.")
 
 
 (defvar regexp-history nil

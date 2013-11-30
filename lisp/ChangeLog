@@ -1,5 +1,14 @@
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-form):
+	Make the `interactive-only' warning like the `obsolete' one.
+	* comint.el (comint-run):
+	* files.el (insert-file-literally, insert-file):
+	* replace.el (replace-string, replace-regexp):
+	* simple.el (beginning-of-buffer, end-of-buffer, delete-backward-char)
+	(goto-line, insert-buffer, next-line, previous-line):
+	Tweak `interactive-only' spec.
+
 	Stop keeping (most) generated cedet grammar files in the repository.
 	* Makefile.in (semantic): New.
 	(compile-main): Depend on semantic.

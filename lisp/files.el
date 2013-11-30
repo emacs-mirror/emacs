@@ -2085,8 +2085,7 @@ Don't call it from programs!  Use `insert-file-contents-literally' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "*fInsert file literally: ")
   (insert-file-1 filename #'insert-file-contents-literally))
-(put 'insert-file-literally 'interactive-only
-     "Use `insert-file-contents-literally' instead")
+(put 'insert-file-literally 'interactive-only 'insert-file-contents-literally)
 
 (defvar find-file-literally nil
   "Non-nil if this buffer was made by `find-file-literally' or equivalent.
@@ -5009,7 +5008,7 @@ Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "*fInsert file: ")
   (insert-file-1 filename #'insert-file-contents))
-(put 'insert-file 'interactive-only "Use `insert-file-contents' instead.")
+(put 'insert-file 'interactive-only 'insert-file-contents)
 
 (defun append-to-file (start end filename)
   "Append the contents of the region to the end of file FILENAME.
