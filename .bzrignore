@@ -218,6 +218,8 @@ src/stamp-oldxmenu
 src/stamp-h.in
 src/temacs
 test/indent/*.new
+!test/automated/flymake/warnpred/Makefile
+!test/indent/Makefile
 +*
 src/globals.h
 src/gl-stamp
