@@ -20,7 +20,7 @@ oo-spd
 *.exe
 *.res
 *.tmp
-*.map
+src/temacs.map
 ./aclocal.m4
 autom4te.cache
 confdefs.h
