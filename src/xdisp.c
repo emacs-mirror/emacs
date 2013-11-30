@@ -2484,7 +2484,6 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
       goto store_rect;
     }
 
- pixelwise:
   gx += WINDOW_LEFT_EDGE_X (w);
   gy += WINDOW_TOP_EDGE_Y (w);
 
@@ -12108,10 +12107,11 @@ If FRAME is nil or omitted, use the selected frame.  Optional argument
 PIXELWISE non-nil means return the height of the tool bar inpixels.  */)
   (Lisp_Object frame, Lisp_Object pixelwise)
 {
-  struct frame *f = decode_any_frame (frame);
   int height = 0;
 
 #if ! defined (USE_GTK) && ! defined (HAVE_NS)
+  struct frame *f = decode_any_frame (frame);
+
   if (WINDOWP (f->tool_bar_window)
       && WINDOW_PIXEL_HEIGHT (XWINDOW (f->tool_bar_window)) > 0)
     {

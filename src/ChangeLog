@@ -1,3 +1,11 @@
+2013-11-30  Martin Rudalics  <rudalics@gmx.at>
+
+	Remove some unused items introduced during pixelwise change.
+	* window.c (window_resize_total_check): Remove unused function.
+	* xdisp.c (remember_mouse_glyph): Remove unused label.
+	(Ftool_bar_height): Move declaration inside #if.
+	* xterm.c (x_set_window_size): Don't use r and c.
+
 2013-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (Fwindow_text_pixel_size): Remove unused variables

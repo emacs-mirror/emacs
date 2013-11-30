@@ -8747,7 +8747,7 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 
   if (NILP (tip_frame) || XFRAME (tip_frame) != f)
     {
-      int r, c, text_width, text_height;
+      int text_width, text_height;
 
       /* When the frame is maximized/fullscreen or running under for
          example Xmonad, x_set_window_size_1 will be a no-op.
@@ -8764,12 +8764,10 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 #endif
       text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, FRAME_PIXEL_WIDTH (f));
       text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelh);
-      r = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
       /* Update f->scroll_bar_actual_width because it is used in
          FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
       f->scroll_bar_actual_width
         = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
-      c = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
       change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
     }
 
