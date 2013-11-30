@@ -1,3 +1,7 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* grammars/Makefile.in: Ensure output files are writable.
+
 2013-11-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* charsets/mule-charsets.el: Rewritten to work in Emacs 23 and

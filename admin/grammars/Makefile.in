@@ -65,28 +65,36 @@ wisent: ${WISENT}
 
 
 ${bovinedir}/c-by.el: ${srcdir}/c.by
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_bovine} -o "$@" ${srcdir}/c.by
 
 ${bovinedir}/make-by.el: ${srcdir}/make.by
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_bovine} -o "$@" ${srcdir}/make.by
 
 ${bovinedir}/scm-by.el: ${srcdir}/scheme.by
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_bovine} -o "$@" ${srcdir}/scheme.by
 
 
 ${cedetdir}/semantic/grammar-wy.el: ${srcdir}/grammar.wy
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_wisent} -o "$@" ${srcdir}/grammar.wy
 
 ${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_wisent} -o "$@" ${srcdir}/java-tags.wy
 
 ${wisentdir}/js-wy.el: ${srcdir}/js.wy
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_wisent} -o "$@" ${srcdir}/js.wy
 
 ${wisentdir}/python-wy.el: ${srcdir}/python.wy
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_wisent} -o "$@" ${srcdir}/python.wy
 
 ${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
+	[ ! -f "$@" ] || chmod +w "$@"
 	${make_wisent} -o "$@" ${srcdir}/srecode-template.wy
 
 
