@@ -3523,7 +3523,7 @@ extern void pop_message_unwind (void);
 extern Lisp_Object restore_message_unwind (Lisp_Object);
 extern void restore_message (void);
 extern Lisp_Object current_message (void);
-extern void clear_message (int, int);
+extern void clear_message (bool, bool);
 extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);

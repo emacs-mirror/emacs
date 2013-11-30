@@ -3462,7 +3462,6 @@ void blank_row (struct window *, struct glyph_row *, int);
 void clear_glyph_matrix_rows (struct glyph_matrix *, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);
-void set_window_update_flags (struct window *, struct buffer *, bool);
 void update_single_window (struct window *, bool);
 void do_pending_window_change (bool);
 void change_frame_size (struct frame *, int, int, bool, bool, bool);

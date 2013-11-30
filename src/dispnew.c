@@ -97,6 +97,7 @@ static bool scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
+static void set_window_update_flags (struct window *w, bool on_p);
 
 /* True means last display completed.  False means it was preempted.  */
 
@@ -2944,8 +2945,8 @@ redraw_frame (struct frame *f)
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
-  set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), NULL, 1);
-  f->garbaged = 0;
+  set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), true);
+  f->garbaged = false;
 }
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 0, 1, 0,
@@ -3029,7 +3030,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 	      Lisp_Object tem;
 
 	      update_window (w, 1);
-	      w->must_be_updated_p = 0;
+	      w->must_be_updated_p = false;
 
 	      /* Swap tool-bar strings.  We swap because we want to
 		 reuse strings.  */
@@ -3075,7 +3076,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 
  do_pause:
   /* Reset flags indicating that a window should be updated.  */
-  set_window_update_flags (root_window, NULL, 0);
+  set_window_update_flags (root_window, false);
 
   display_completed = !paused_p;
   return paused_p;
@@ -3098,7 +3099,7 @@ update_frame_with_menu (struct frame *f)
      frame matrix we operate.  */
   set_frame_matrix_frame (f);
 
-  /* Update the display  */
+  /* Update the display.  */
   update_begin (f);
   /* Force update_frame_1 not to stop due to pending input, and not
      try scrolling.  */
@@ -3122,7 +3123,7 @@ update_frame_with_menu (struct frame *f)
 #endif
 
   /* Reset flags indicating that a window should be updated.  */
-  set_window_update_flags (root_window, NULL, 0);
+  set_window_update_flags (root_window, false);
 }
 
 
@@ -3174,7 +3175,7 @@ update_single_window (struct window *w, bool force_p)
       update_end (f);
 
       /* Reset flag in W.  */
-      w->must_be_updated_p = 0;
+      w->must_be_updated_p = false;
     }
 }
 
@@ -3897,18 +3898,17 @@ set_window_cursor_after_update (struct window *w)
 }
 
 
-/* If B is NULL, set WINDOW->must_be_updated_p to ON_P for all windows in
-   the window tree rooted at W.  Otherwise set WINDOW->must_be_updated_p
-   to ON_P only for windows that displays B.  */
+/* Set WINDOW->must_be_updated_p to ON_P for all windows in
+   the window tree rooted at W.  */
 
-void
-set_window_update_flags (struct window *w, struct buffer *b, bool on_p)
+static void
+set_window_update_flags (struct window *w, bool on_p)
 {
   while (w)
     {
       if (WINDOWP (w->contents))
-	set_window_update_flags (XWINDOW (w->contents), b, on_p);
-      else if (!(b && b != XBUFFER (w->contents)))
+	set_window_update_flags (XWINDOW (w->contents), on_p);
+      else
 	w->must_be_updated_p = on_p;
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);

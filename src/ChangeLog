@@ -1,3 +1,15 @@
+2013-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_internal): Don't call set_window_update_flags.
+	Set invisible frames's `redisplay' when a full redisplay is requested.
+	(redisplay_window): Set must_be_updated_p instead (bug#15999).
+	(redisplay_mode_lines): Don't set must_be_updated_p any more.
+	(display_mode_lines): Set it here instead.
+
+	* dispnew.c (set_window_update_flags): Remove `b' argument; make static.
+
+	* dispextern.h (set_window_update_flags): Remove.
+
 2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (internal_equal): Add a hash_table argument to handle cycles.
