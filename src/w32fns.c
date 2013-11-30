@@ -6809,17 +6809,21 @@ an integer representing a ShowWindow flag:
       filename_to_utf16 (SSDATA (current_dir), current_dir_w);
       if (STRINGP (document))
 	{
+	  document = ENCODE_FILE (document);
 	  filename_to_utf16 (SSDATA (document), document_w);
 	  doc_w = document_w;
 	}
       if (STRINGP (parameters))
 	{
-	  int len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-					 SSDATA (parameters), -1, NULL, 0);
+	  int len;
+
+	  parameters = ENCODE_SYSTEM (parameters);
+	  len = MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				     SSDATA (parameters), -1, NULL, 0);
 	  if (len > 32768)
 	    len = 32768;
 	  params_w = alloca (len * sizeof (wchar_t));
-	  MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+	  MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
 			       SSDATA (parameters), -1, params_w, len);
 	}
       if (STRINGP (operation))
@@ -6827,7 +6831,7 @@ an integer representing a ShowWindow flag:
 	  /* Assume OPERATION is pure ASCII.  */
 	  const char *s = SSDATA (operation);
 	  wchar_t *d;
-	  int len = SBYTES (operation);
+	  int len = SBYTES (operation) + 1;
 
 	  if (len > 32768)
 	    len = 32768;
@@ -6849,25 +6853,16 @@ an integer representing a ShowWindow flag:
       filename_to_ansi (SSDATA (current_dir), current_dir_a);
       if (STRINGP (document))
 	{
+	  ENCODE_FILE (document);
 	  filename_to_ansi (SSDATA (document), document_a);
 	  doc_a = document_a;
 	}
       if (STRINGP (parameters))
 	{
-	  int len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-					 SSDATA (parameters), -1, NULL, 0);
-	  if (len > 32768)
-	    len = 32768;
-	  params_w = alloca (len * sizeof (wchar_t));
-	  MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
-			       SSDATA (parameters), -1, params_w, len);
-	  len = WideCharToMultiByte (CP_ACP, 0, params_w, -1, NULL, 0,
-				     NULL, NULL);
-	  if (len > 32768)
-	    len = 32768;
-	  params_a = alloca (len);
-	  WideCharToMultiByte (CP_ACP, 0, params_w, -1, params_a, len,
-			       NULL, NULL);
+	  int len;
+
+	  parameters = ENCODE_SYSTEM (parameters);
+	  params_a = SSDATA (parameters);
 	}
       if (STRINGP (operation))
 	{
