@@ -51,6 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include "w32heap.h"
+#include <mbstring.h>
 #endif /* WINDOWSNT */
 
 #if CYGWIN
@@ -6655,38 +6656,80 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
       operation = intern ("delete-directory");
       filename = Fdirectory_file_name (filename);
     }
+
+  /* Must have fully qualified file names for moving files to Recycle
+     Bin. */
   filename = Fexpand_file_name (filename, Qnil);
 
   handler = Ffind_file_name_handler (filename, operation);
   if (!NILP (handler))
     return call2 (handler, operation, filename);
+  else
+    {
+      const char * path;
+      int result;
 
-  encoded_file = ENCODE_FILE (filename);
+      encoded_file = ENCODE_FILE (filename);
 
-  {
-    const char * path;
-    SHFILEOPSTRUCT file_op;
-    char tmp_path[MAX_PATH + 1];
+      path = map_w32_filename (SDATA (encoded_file), NULL);
 
-    path = map_w32_filename (SDATA (encoded_file), NULL);
+      /* The Unicode version of SHFileOperation is not supported on
+	 Windows 9X. */
+      if (w32_unicode_filenames && os_subtype != OS_9X)
+	{
+	  SHFILEOPSTRUCTW file_op_w;
+	  /* We need one more element beyond MAX_PATH because this is
+	     a list of file names, with the last element double-null
+	     terminated. */
+	  wchar_t tmp_path_w[MAX_PATH + 1];
 
-    /* On Windows, write permission is required to delete/move files.  */
-    _chmod (path, 0666);
+	  memset (tmp_path_w, 0, sizeof (tmp_path_w));
+	  filename_to_utf16 (path, tmp_path_w);
 
-    memset (tmp_path, 0, sizeof (tmp_path));
-    strcpy (tmp_path, path);
+	  /* On Windows, write permission is required to delete/move files.  */
+	  _wchmod (tmp_path_w, 0666);
 
-    memset (&file_op, 0, sizeof (file_op));
-    file_op.hwnd = HWND_DESKTOP;
-    file_op.wFunc = FO_DELETE;
-    file_op.pFrom = tmp_path;
-    file_op.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
-      | FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
-    file_op.fAnyOperationsAborted = FALSE;
+	  memset (&file_op_w, 0, sizeof (file_op_w));
+	  file_op_w.hwnd = HWND_DESKTOP;
+	  file_op_w.wFunc = FO_DELETE;
+	  file_op_w.pFrom = tmp_path_w;
+	  file_op_w.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
+	    | FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
+	  file_op_w.fAnyOperationsAborted = FALSE;
 
-    if (SHFileOperation (&file_op) != 0)
-      report_file_error ("Removing old name", list1 (filename));
-  }
+	  result = SHFileOperationW (&file_op_w);
+	}
+      else
+	{
+	  SHFILEOPSTRUCTA file_op_a;
+	  char tmp_path_a[MAX_PATH + 1];
+
+	  memset (tmp_path_a, 0, sizeof (tmp_path_a));
+	  filename_to_ansi (path, tmp_path_a);
+
+	  /* If a file cannot be represented in ANSI codepage, don't
+	     let them inadvertently delete other files because some
+	     characters are interpreted as a wildcards.  */
+	  if (_mbspbrk (tmp_path_a, "?*"))
+	    result = ERROR_FILE_NOT_FOUND;
+	  else
+	    {
+	      _chmod (tmp_path_a, 0666);
+
+	      memset (&file_op_a, 0, sizeof (file_op_a));
+	      file_op_a.hwnd = HWND_DESKTOP;
+	      file_op_a.wFunc = FO_DELETE;
+	      file_op_a.pFrom = tmp_path_a;
+	      file_op_a.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
+		| FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
+	      file_op_a.fAnyOperationsAborted = FALSE;
+
+	      result = SHFileOperationA (&file_op_a);
+	    }
+	}
+      if (result != 0)
+	report_file_error ("Removing old name", list1 (filename));
+    }
   return Qnil;
 }
 
