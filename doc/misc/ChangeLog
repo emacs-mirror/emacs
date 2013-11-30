@@ -1,3 +1,7 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): Remove Makefile.
+
 2013-11-20  era eriksson  <era+emacsbugs@iki.fi>
 
 	* ses.texi (Quick Tutorial): New chapter.  (Bug#14748)

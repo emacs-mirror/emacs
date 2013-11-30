@@ -169,6 +169,7 @@ clean: mostlyclean
 	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean
+	rm -f Makefile
 
 infoclean:
 	-cd $(buildinfodir) && rm -f elisp$(INFO_EXT) elisp$(INFO_EXT)-[1-9] elisp$(INFO_EXT)-[1-9][0-9]

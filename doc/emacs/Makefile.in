@@ -196,6 +196,7 @@ clean: mostlyclean
 	rm -f emacs-manual-${version}.tar*
 
 distclean: clean
+	rm -f Makefile
 
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:

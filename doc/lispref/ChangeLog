@@ -1,3 +1,7 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): Remove Makefile.
+
 2013-11-29  Andreas Politz  <politza@fh-trier.de>
 
 	* modes.texi (Imenu): Make it clear that sub-alist is the cdr

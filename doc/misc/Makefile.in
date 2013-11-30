@@ -842,7 +842,7 @@ clean: mostlyclean
 	rm -f emacs-misc-${version}.tar*
 
 distclean: clean
-#	rm -f Makefile
+	rm -f Makefile
 
 ## buildinfodir is relative to srcdir.
 infoclean:
