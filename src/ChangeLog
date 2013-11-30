@@ -1,3 +1,8 @@
+2013-11-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (redisplay_internal): Call request_sigio at end_of_redisplay
+	if interrupts are deferred (Bug#15801).
+
 2013-11-30  Martin Rudalics  <rudalics@gmx.at>
 
 	Support resizing frames and windows pixelwise.

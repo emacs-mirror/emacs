@@ -13819,6 +13819,9 @@ redisplay_internal (void)
 #endif /* HAVE_WINDOW_SYSTEM */
 
  end_of_redisplay:
+  if (interrupt_input && interrupts_deferred)
+    unrequest_sigio ();
+
   unbind_to (count, Qnil);
   RESUME_POLLING;
 }
