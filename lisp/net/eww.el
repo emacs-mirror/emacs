@@ -378,7 +378,7 @@ word(s) will be searched for via `eww-search-prefix'."
 (defvar eww-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "q" 'eww-quit)
+    (define-key map "q" 'quit-window)
     (define-key map "g" 'eww-reload)
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
@@ -446,12 +446,6 @@ word(s) will be searched for via `eww-search-prefix'."
 	     eww-current-url)
     (eww-save-history))
   (eww url))
-
-(defun eww-quit ()
-  "Exit the Emacs Web Wowser."
-  (interactive)
-  (setq eww-history nil)
-  (kill-buffer (current-buffer)))
 
 (defun eww-back-url ()
   "Go to the previously displayed page."

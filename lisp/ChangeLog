@@ -1,3 +1,8 @@
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-mode-map): Have `q' do a normal `quit-window'
+	instead of killing the buffer.
+
 2013-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline): Mention `electric-indent-mode' (bug#16015).
