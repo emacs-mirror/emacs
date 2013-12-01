@@ -1,3 +1,8 @@
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-restore-history): Update the window title after
+	moving in the history.
+
 2013-12-01  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/log-edit.el (log-edit-mode-map): Add binding for

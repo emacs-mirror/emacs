@@ -431,7 +431,8 @@ word(s) will be searched for via `eww-search-prefix'."
     (insert (plist-get elem :text))
     (goto-char (plist-get elem :point))
     (setq eww-current-url (plist-get elem :url)
-	  eww-current-title (plist-get elem :title))))
+	  eww-current-title (plist-get elem :title))
+    (eww-update-header-line-format)))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.
