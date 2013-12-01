@@ -2,6 +2,7 @@
 
 	* net/shr.el (shr-tag-video): Display content for video if no
 	poster is available.
+	(shr-tag-audio): Add support for <audio> tag.
 
 	* net/eww.el (eww-text-input-types): : New const.
 	(eww-process-text-input): Treat input types in

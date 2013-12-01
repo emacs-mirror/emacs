@@ -1105,6 +1105,12 @@ ones, in case fg and bg are nil."
       (shr-insert " [video] "))
     (shr-urlify start (shr-expand-url url))))
 
+(defun shr-tag-audio (cont)
+  (let ((url (cdr (assq :src cont)))
+        (start (point)))
+    (shr-insert " [audio] ")
+    (shr-urlify start (shr-expand-url url))))
+
 (defun shr-tag-img (cont &optional url)
   (when (or url
 	    (and cont
