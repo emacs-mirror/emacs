@@ -2840,7 +2840,7 @@
 2012-11-19  Daniel Colascione  <dancol@dancol.org>
 
 	* w32fns.c (Fx_file_dialog):
-	(Fx_file_dialog): Accomodate rename of cygwin_convert_path* to
+	(Fx_file_dialog): Accommodate rename of cygwin_convert_path* to
 	cygwin_convert_file_name*.
 
 	* cygw32.c (Fcygwin_convert_path_to_windows, syms_of_cygw32):

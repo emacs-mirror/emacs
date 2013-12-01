@@ -3537,7 +3537,7 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag)
   return vector;
 }
 
-/* FLAG means check for ] to terminate rather than ) and .  */
+/* FLAG means check for ']' to terminate rather than ')' and '.'.  */
 
 static Lisp_Object
 read_list (bool flag, Lisp_Object readcharfun)

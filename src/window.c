@@ -1212,7 +1212,7 @@ coordinates_in_window (register struct window *w, int x, int y)
     return ON_NOTHING;
 
   /* On vertical window divider (which prevails horizontal
-     dividers) ?  */
+     dividers)?  */
   if (!WINDOW_RIGHTMOST_P (w)
       && WINDOW_RIGHT_DIVIDER_WIDTH (w)
       && x >= right_x - WINDOW_RIGHT_DIVIDER_WIDTH (w)
@@ -1285,8 +1285,8 @@ coordinates_in_window (register struct window *w, int x, int y)
      terminals, the vertical line's x coordinate is right_x.  */
   else if (!w->pseudo_window_p
 	   && !WINDOW_RIGHTMOST_P (w)
-	   /* Why check ux if we are not the rightmost window ?  Also
-	      shouldn't a pseudo window always be rightmost ?  */
+	   /* Why check ux if we are not the rightmost window?  Also
+	      shouldn't a pseudo window always be rightmost?  */
 	   && x > right_x - ux)
     return ON_VERTICAL_BORDER;
 
@@ -5844,12 +5844,12 @@ struct save_window_data
        From `frame-cols' down, the fields are ignored by the GC.  */
     /* We should be able to do without the following two.  */
     int frame_cols, frame_lines;
-    /* These two should get eventually replaced by their pixelized
+    /* These two should get eventually replaced by their pixel
        counterparts.  */
     int frame_menu_bar_lines, frame_tool_bar_lines;
     int frame_text_width, frame_text_height;
-    /* These are currently unused.  We need them as soon as we pixelize
-       them.  */
+    /* These are currently unused.  We need them as soon as we convert
+       to pixels.  */
     int frame_menu_bar_height, frame_tool_bar_height;
   };
 

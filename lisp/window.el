@@ -1165,7 +1165,7 @@ of WINDOW."
 		   0
 		 window-min-width)))))
 	 (pixelwise
-	  (max 
+	  (max
 	   (+ (window-safe-min-size window nil t)
 	      (window-header-line-height window)
 	      (window-mode-line-height window))
@@ -2753,7 +2753,7 @@ zero, this function can resize fixed-size windows in order to
 recover the necessary lines.  Return the number of lines that
 were recovered.
 
-Third argument PIXELWISE non-nil means to intepret DELTA as
+Third argument PIXELWISE non-nil means to interpret DELTA as
 pixels and return the number of pixels that were recovered.
 
 This function is called by the minibuffer window resizing
@@ -3189,7 +3189,7 @@ Return 'frame if deleting WINDOW should also delete its frame."
   (setq window (window-normalize-window window))
 
   (unless (or ignore-window-parameters
-	      (eq (window-parameter window 'delete-window) t)) 
+	      (eq (window-parameter window 'delete-window) t))
     ;; Handle atomicity.
     (when (window-parameter window 'window-atom)
       (setq window (window-atom-root window))))
@@ -4093,7 +4093,7 @@ window provided SIZE is negative) including space reserved for
 fringes and the scrollbar or a divider column.  Any other non-nil
 value for SIDE is currently handled like t (or `right').
 
-PIXELWISE, if non-nil, means to intepret SIZE pixelwise.
+PIXELWISE, if non-nil, means to interpret SIZE pixelwise.
 
 If the variable `ignore-window-parameters' is non-nil or the
 `split-window' parameter of WINDOW equals t, do not process any
@@ -7091,7 +7091,7 @@ accessible position."
 			   (if pixelwise
 			       (window-safe-min-pixel-width)
 			     window-safe-min-width))
-		    ;; Preserve fringes, margines, scrollbars if present.
+		    ;; Preserve fringes, margins, scrollbars if present.
 		    (window-min-size nil nil t pixelwise)))
 		 (max-width
 		  ;; Sanitize MAX-WIDTH.

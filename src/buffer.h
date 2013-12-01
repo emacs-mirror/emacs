@@ -741,7 +741,7 @@ struct buffer
   Lisp_Object INTERNAL_FIELD (cursor_in_non_selected_windows);
 
   /* No more Lisp_Object beyond this point.  Except undo_list,
-     which is handled specially in Fgarbage_collect .  */
+     which is handled specially in Fgarbage_collect.  */
 
   /* This structure holds the coordinates of the buffer contents
      in ordinary buffers.  In indirect buffers, this is not used.  */

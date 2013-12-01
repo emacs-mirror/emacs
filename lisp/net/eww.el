@@ -992,7 +992,7 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
       (eww-browse-url url)))))
 
 (defun eww-same-page-p (url1 url2)
-  "Return non-nil if boths URLs represent the same page.
+  "Return non-nil if both URLs represent the same page.
 Differences in #targets are ignored."
   (let ((obj1 (url-generic-parse-url url1))
 	(obj2 (url-generic-parse-url url2)))

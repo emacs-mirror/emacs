@@ -208,7 +208,7 @@ struct charset
   unsigned min_code, max_code;
 
   /* Offset value used by macros CODE_POINT_TO_INDEX and
-      INDEX_TO_CODE_POINT. .  */
+      INDEX_TO_CODE_POINT.  */
   unsigned char_index_offset;
 
   /* Minimum and Maximum character codes of the charset.  If the

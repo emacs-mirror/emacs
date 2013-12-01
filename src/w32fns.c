@@ -6153,7 +6153,7 @@ Text larger than the specified size is clipped.  */)
     {
       /* PXW: Why do we do the pixel-to-cols conversion only if
 	 seen_reversed_p holds?  Don't we have to set other fields of
-	 the window/frame stucture ?
+	 the window/frame structure?
 
 	 w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */

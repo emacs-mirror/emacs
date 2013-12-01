@@ -1471,8 +1471,8 @@ struct glyph_string
    So maybe these checks should be removed and any clipping left to the
    window manager.  */
 
-/* Value is non-zero if window W wants a mode line and is large enough
-   to accomodate it.  */
+/* Value is true if window W wants a mode line and is large enough
+   to accommodate it.  */
 #define WINDOW_WANTS_MODELINE_P(W)					\
   (BUFFERP ((W)->contents)						\
    ? (!MINI_WINDOW_P (W)						\
@@ -1482,8 +1482,8 @@ struct glyph_string
       && WINDOW_PIXEL_HEIGHT (W) > WINDOW_FRAME_LINE_HEIGHT (W))	\
    : 0)
 
-/* Value is non-zero if window W wants a header line and is large enough
-   to accomodate it.  */
+/* Value is true if window W wants a header line and is large enough
+   to accommodate it.  */
 #define WINDOW_WANTS_HEADER_LINE_P(W)					\
      (BUFFERP ((W)->contents)						\
       ? (!MINI_WINDOW_P (W)						\

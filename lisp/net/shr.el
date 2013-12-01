@@ -1139,7 +1139,7 @@ The preference is a float determined from `shr-prefer-media-type'."
           (setq pref new-pref
                 url (cdr (assq :src elem)))
           (message "new %s %s" url pref))
-        ;; libxml's html parser isn't HML5 compliant and non terminated
+        ;; libxml's html parser isn't HTML5 compliant and non terminated
         ;; source tags might end up as children.  So recursion it is...
         (dolist (child (cdr elem))
           (when (and (listp child)

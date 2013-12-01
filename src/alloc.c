@@ -4317,7 +4317,7 @@ live_buffer_p (struct mem_node *m, void *p)
 void dump_zombies (void) EXTERNALLY_VISIBLE;
 
 /* Array of objects that are kept alive because the C stack contains
-   a pattern that looks like a reference to them .  */
+   a pattern that looks like a reference to them.  */
 
 #define MAX_ZOMBIES 10
 static Lisp_Object zombies[MAX_ZOMBIES];

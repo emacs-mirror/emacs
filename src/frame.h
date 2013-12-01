@@ -254,7 +254,7 @@ struct frame
   int text_width, text_height;
 
   /* New text height and width for pending size change.  0 if no change
-     pending.  These value represent pixels or canoncial character units
+     pending.  These values represent pixels or canonical character units
      according to the value of new_pixelwise and correlate to the the
      text width/height of the frame.  */
   int new_width, new_height;
@@ -1170,7 +1170,7 @@ extern Lisp_Object Vframe_list;
 			      - FRAME_INTERNAL_BORDER_WIDTH (f))))
 
 /* Return the pixel width/height of frame F with a text size of
-   width/heigh.  */
+   width/height.  */
 
 #define FRAME_TEXT_TO_PIXEL_WIDTH(f, width)	  \
   ((width)					  \
@@ -1182,7 +1182,7 @@ extern Lisp_Object Vframe_list;
   ((height) + 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
 
 /* Return the text width/height of frame F with a pixel size of
-   width/heigh.  */
+   width/height.  */
 
 #define FRAME_PIXEL_TO_TEXT_WIDTH(f, width)	  \
   ((width)					  \

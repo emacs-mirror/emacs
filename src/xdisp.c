@@ -1907,8 +1907,7 @@ pixel_to_glyph_coords (struct frame *f, register int pix_x, register int pix_y,
 			   FRAME_COLUMN_WIDTH (f) - 1,
 			   FRAME_LINE_HEIGHT (f) - 1);
 
-      /* PXW: Should we clip pixelized before converting to
-	 columns/lines ?  */
+      /* PXW: Should we clip pixels before converting to columns/lines?  */
       if (!noclip)
 	{
 	  if (pix_x < 0)
@@ -2814,7 +2813,7 @@ init_iterator (struct it *it, struct window *w,
 	  && ((!NILP (Vtruncate_partial_width_windows)
 	       && !INTEGERP (Vtruncate_partial_width_windows))
 	      || (INTEGERP (Vtruncate_partial_width_windows)
-		  /* PXW: Shall we do something about this ?  */
+		  /* PXW: Shall we do something about this?  */
 		  && (WINDOW_TOTAL_COLS (it->w)
 		      < XINT (Vtruncate_partial_width_windows))))))
     it->line_wrap = TRUNCATE;
@@ -12072,7 +12071,7 @@ tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
   init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
-  /* PXW: Use FRAME_PIXEL_WIDTH (f) here ?  */
+  /* PXW: Use FRAME_PIXEL_WIDTH (f) here?  */
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
   it.paragraph_embedding = L2R;
@@ -13494,7 +13493,7 @@ redisplay_internal (void)
 	       /* Make sure the cursor was last displayed
 		  in this window.  Otherwise we have to reposition it.  */
 
-	       /* PXW: Must be pixelized, probably.  */
+	       /* PXW: Must be converted to pixels, probably.  */
 	       && 0 <= w->cursor.vpos
 	       && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
 	{
@@ -13588,7 +13587,7 @@ redisplay_internal (void)
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
 	      bool gcscrollbars
-		/* Only GC scollbars when we redisplay the whole frame.  */
+		/* Only GC scrollbars when we redisplay the whole frame.  */
 		= f->redisplay || !REDISPLAY_SOME_P ();
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
@@ -15046,7 +15045,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
       if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0)
 	  /* It's possible that the cursor is on the first line of the
 	     buffer, which is partially obscured due to a vscroll
-	     (Bug#7537).  In that case, avoid looping forever . */
+	     (Bug#7537).  In that case, avoid looping forever. */
 	  && extra_scroll_margin_lines < w->desired_matrix->nrows - 1)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
@@ -15101,7 +15100,7 @@ compute_window_start_on_continuation_line (struct window *w)
       /* If the line start is "too far" away from the window start,
          say it takes too much time to compute a new window start.  */
       if (CHARPOS (start_pos) - IT_CHARPOS (it)
-	  /* PXW: Do we need upper bounds here ?  */
+	  /* PXW: Do we need upper bounds here?  */
 	  < WINDOW_TOTAL_LINES (w) * WINDOW_TOTAL_COLS (w))
 	{
 	  int min_distance, distance;
@@ -20728,7 +20727,7 @@ display_menu_bar (struct window *w)
   eassert (!FRAME_WINDOW_P (f));
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
   it.first_visible_x = 0;
-  /* PXW: Use FRAME_PIXEL_WIDTH (f) here ?  */
+  /* PXW: Use FRAME_PIXEL_WIDTH (f) here?  */
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
 #elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
   if (FRAME_WINDOW_P (f))
@@ -20740,7 +20739,7 @@ display_menu_bar (struct window *w)
       init_iterator (&it, menu_w, -1, -1, menu_w->desired_matrix->rows,
 		     MENU_FACE_ID);
       it.first_visible_x = 0;
-      /* PXW: Use FRAME_PIXEL_WIDTH (f) here ?  */
+      /* PXW: Use FRAME_PIXEL_WIDTH (f) here?  */
       it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
     }
   else

@@ -1119,7 +1119,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
    string (its text properties will be traced), or a symbol that has
    no obarray (this is for the print-gensym feature).
    The status fields of Vprint_number_table mean whether each object appears
-   more than once in OBJ: Qnil at the first time, and Qt after that .  */
+   more than once in OBJ: Qnil at the first time, and Qt after that.  */
 static void
 print_preprocess (Lisp_Object obj)
 {

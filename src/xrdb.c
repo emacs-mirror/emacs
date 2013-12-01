@@ -179,7 +179,7 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
       else
 	next = p, next_len = 1;
 
-      /* Do we have room for this component followed by a '\0' ?  */
+      /* Do we have room for this component followed by a '\0'?  */
       if (path_size - path_len <= next_len)
 	{
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)

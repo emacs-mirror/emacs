@@ -1390,7 +1390,7 @@ ns_index_color (NSColor *color, struct frame *f)
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
 
-  /* do we already have this color ? */
+  /* Do we already have this color?  */
   for (i = 1; i < color_table->avail; i++)
     if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
       return i;
@@ -7585,5 +7585,5 @@ baseline level.  The default value is nil.  */);
 #else
   Fprovide (Qgnustep, Qnil);
 #endif
-  
+
 }

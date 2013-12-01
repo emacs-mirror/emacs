@@ -99,7 +99,7 @@
   ;; MS-Windows into their long file-name equivalents, which is
   ;; necessary for the 'equal' and 'string=' comparisons below.  This
   ;; also resolves any symlinks, which cannot be bad for the same
-  ;; reason.  (An alternatrive solution would be to use file-equal-p,
+  ;; reason.  (An alternative solution would be to use file-equal-p,
   ;; but I'm too lazy to do that, as one of the tests compares a
   ;; list.)
   (let* ((temp-dir (file-truename (make-temp-file "reftex-parse" 'dir)))
