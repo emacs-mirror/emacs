@@ -169,6 +169,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	 (data-buffer (current-buffer)))
     (unwind-protect
 	(progn
+          (setq eww-current-title "")
 	  (cond
            ((and eww-use-external-browser-for-content-type
                  (string-match-p eww-use-external-browser-for-content-type
