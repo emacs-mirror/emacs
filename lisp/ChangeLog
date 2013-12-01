@@ -1,22 +1,20 @@
+2013-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Mention `electric-indent-mode' (bug#16015).
+
 2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* net/eww.el (eww-form-checkbox-selected-symbol): New
-	customizable variable.
+	* net/eww.el (eww-form-checkbox-selected-symbol)
 	(eww-form-checkbox-symbol): New customizable variable.
-	(eww-form-checkbox): Use `eww-form-checkbox-selected-symbol' and
-	`eww-form-checkbox-symbol'.
-	(eww-toggle-checkbox): Use `eww-form-checkbox-selected-symbol' and
-	`eww-form-checkbox-symbol'.
+	(eww-form-checkbox, eww-toggle-checkbox):
+	Use `eww-form-checkbox-selected-symbol' and `eww-form-checkbox-symbol'.
 
-	* net/shr.el (shr-prefer-media-type-alist): : New customizable
-	variable.
-	(shr--get-media-pref): New function.
-	(shr--extract-best-source): New function.
+	* net/shr.el (shr-prefer-media-type-alist): : New customizable variable.
+	(shr--get-media-pref, shr--extract-best-source): New function.
 	(shr-tag-video, shr-tag-audio):  Use `shr--extract-best-source' when
 	no :src tag was specified.
 
-	* net/eww.el (eww-use-external-browser-for-content-type): New
-	variable.
+	* net/eww.el (eww-use-external-browser-for-content-type): New variable.
 	(eww-render): Handle `eww-use-external-browser-for-content-type'.
 	Use \\` to match beginning of string instead of ^.
 	(eww-browse-with-external-browser): Provide optional URL parameter.
@@ -112,11 +110,11 @@
 	(balance-windows-area-adjust, balance-windows-area)
 	(window--state-get-1, window-state-get, window--state-put-1)
 	(window--state-put-2, window-state-put)
-	(display-buffer-record-window, window--display-buffer): Make
-	functions handle pixelwise sizing of windows.
+	(display-buffer-record-window, window--display-buffer):
+	Make functions handle pixelwise sizing of windows.
 	(display-buffer--action-function-custom-type)
-	(display-buffer-fallback-action): Add
-	display-buffer-in-previous-window.
+	(display-buffer-fallback-action):
+	Add display-buffer-in-previous-window.
 	(display-buffer-use-some-window): Resize window to height it had
 	before.
 	(fit-window-to-buffer-horizontally): New option.

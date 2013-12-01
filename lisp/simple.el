@@ -384,7 +384,8 @@ text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil.
-A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook',
+which by default will also indent the line (see `electric-indent-mode')."
   (interactive "*P\np")
   (barf-if-buffer-read-only)
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
