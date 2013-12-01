@@ -1,3 +1,8 @@
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-follow-link): New command to avoid reloading
+	pages when we follow #target links (bug#15243).
+
 2013-12-01  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-tag-select): Support <optgroup> tags in <select>

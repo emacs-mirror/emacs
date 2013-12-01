@@ -849,7 +849,6 @@ START, and END.  Note that START and END should be markers."
   (shr-ensure-paragraph))
 
 (defun shr-urlify (start url &optional title)
-  (when (and title (string-match "ctx" title)) (debug))
   (shr-add-font start (point) 'shr-link)
   (add-text-properties
    start (point)

@@ -143,9 +143,6 @@ word(s) will be searched for via `eww-search-prefix'."
   (set (make-local-variable 'eww-start-url) nil)
   (set (make-local-variable 'eww-contents-url) nil)
   (let* ((headers (eww-parse-headers))
-	 (shr-target-id
-	  (and (string-match "#\\(.*\\)" url)
-	       (match-string 1 url)))
 	 (content-type
 	  (mail-header-parse-content-type
 	   (or (cdr (assoc "content-type" headers))
@@ -161,22 +158,15 @@ word(s) will be searched for via `eww-search-prefix'."
 	(progn
 	  (cond
 	   ((equal (car content-type) "text/html")
-	    (eww-display-html charset url))
+	    (eww-display-html charset url nil point))
 	   ((string-match "^image/" (car content-type))
-	    (eww-display-image))
+	    (eww-display-image)
+	    (eww-update-header-line-format))
 	   (t
-	    (eww-display-raw)))
+	    (eww-display-raw)
+	    (eww-update-header-line-format)))
 	  (setq eww-current-url url
-		eww-history-position 0)
-	  (eww-update-header-line-format)
-	  (cond
-	   (point
-	    (goto-char point))
-	   (shr-target-id
-	    (let ((point (next-single-property-change
-			  (point-min) 'shr-target-id)))
-	      (when point
-		(goto-char (1+ point)))))))
+		eww-history-position 0))
       (kill-buffer data-buffer))))
 
 (defun eww-parse-headers ()
@@ -208,7 +198,7 @@ word(s) will be searched for via `eww-search-prefix'."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url))
 
-(defun eww-display-html (charset url)
+(defun eww-display-html (charset url &optional document point)
   (or (fboundp 'libxml-parse-html-region)
       (error "This function requires Emacs to be compiled with libxml2"))
   (unless (eq charset 'utf8)
@@ -216,14 +206,16 @@ word(s) will be searched for via `eww-search-prefix'."
 	(decode-coding-region (point) (point-max) charset)
       (coding-system-error nil)))
   (let ((document
-	 (list
-	  'base (list (cons 'href url))
-	  (libxml-parse-html-region (point) (point-max)))))
+	 (or document
+	     (list
+	      'base (list (cons 'href url))
+	      (libxml-parse-html-region (point) (point-max))))))
     (eww-setup-buffer)
     (setq eww-current-dom document)
     (let ((inhibit-read-only t)
 	  (after-change-functions nil)
 	  (shr-width nil)
+	  (shr-target-id (url-target (url-generic-parse-url url)))
 	  (shr-external-rendering-functions
 	   '((title . eww-tag-title)
 	     (form . eww-tag-form)
@@ -233,8 +225,20 @@ word(s) will be searched for via `eww-search-prefix'."
 	     (select . eww-tag-select)
 	     (link . eww-tag-link)
 	     (a . eww-tag-a))))
-      (shr-insert-document document))
-    (goto-char (point-min))))
+      (shr-insert-document document)
+      (cond
+       (point
+	(goto-char point))
+       (shr-target-id
+	(let ((point (next-single-property-change
+		      (point-min) 'shr-target-id)))
+	  (when point
+	    (goto-char (1+ point)))))
+       (t
+	(goto-char (point-min)))))
+    (setq eww-current-url url
+	  eww-history-position 0)
+    (eww-update-header-line-format)))
 
 (defun eww-handle-link (cont)
   (let* ((rel (assq :rel cont))
@@ -266,7 +270,9 @@ word(s) will be searched for via `eww-search-prefix'."
 
 (defun eww-tag-a (cont)
   (eww-handle-link cont)
-  (shr-tag-a cont))
+  (let ((start (point)))
+    (shr-tag-a cont)
+    (put-text-property start (point) 'keymap eww-link-keymap)))
 
 (defun eww-update-header-line-format ()
   (if eww-header-line-format
@@ -372,6 +378,11 @@ word(s) will be searched for via `eww-search-prefix'."
 	["Add bookmark" eww-add-bookmark t]
 	["List bookmarks" eww-copy-page-url t]
 	["List cookies" url-cookie-list t]))
+    map))
+
+(defvar eww-link-keymap
+  (let ((map (copy-keymap shr-map)))
+    (define-key map "\r" 'eww-follow-link)
     map))
 
 (define-derived-mode eww-mode nil "eww"
@@ -927,6 +938,36 @@ appears in a <link> or <a> tag."
 The browser to used is specified by the `shr-external-browser' variable."
   (interactive)
   (funcall shr-external-browser eww-current-url))
+
+(defun eww-follow-link (&optional external mouse-event)
+  "Browse the URL under point.
+If EXTERNAL, browse the URL using `shr-external-browser'."
+  (interactive (list current-prefix-arg last-nonmenu-event))
+  (mouse-set-point mouse-event)
+  (let ((url (get-text-property (point) 'shr-url)))
+    (cond
+     ((not url)
+      (message "No link under point"))
+     ((string-match "^mailto:" url)
+      (browse-url-mail url))
+     (external
+      (funcall shr-external-browser url))
+     ;; This is a #target url in the same page as the current one.
+     ((and (url-target (url-generic-parse-url url))
+	   (eww-same-page-p url eww-current-url))
+      (eww-save-history)
+      (eww-display-html 'utf8 url eww-current-dom))
+     (t
+      (eww-browse-url url)))))
+
+(defun eww-same-page-p (url1 url2)
+  "Return non-nil if boths URLs represent the same page.
+Differences in #targets are ignored."
+  (let ((obj1 (url-generic-parse-url url1))
+	(obj2 (url-generic-parse-url url2)))
+    (setf (url-target obj1) nil)
+    (setf (url-target obj2) nil)
+    (equal (url-recreate-url obj1) (url-recreate-url obj2))))
 
 (defun eww-copy-page-url ()
   (interactive)
