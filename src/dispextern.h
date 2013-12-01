@@ -3255,7 +3255,6 @@ extern void x_update_cursor (struct frame *, bool);
 extern void x_clear_cursor (struct window *);
 extern void x_draw_vertical_border (struct window *w);
 extern void x_draw_right_divider (struct window *w);
-extern void x_draw_bottom_divider (struct window *w);
 
 extern int get_glyph_string_clip_rects (struct glyph_string *,
                                         NativeRectangle *, int);

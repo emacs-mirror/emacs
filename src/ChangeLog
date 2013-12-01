@@ -1,3 +1,10 @@
+2013-12-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* dispextern.h, xdisp.c (x_draw_bottom_divider): Now static.
+	* frame.c (set_frame_param) [!HAVE_NTGUI]: Remove.
+	* xdisp.c (Ftool_bar_height) [USE_GTK || HAVE_NS]: Now const function.
+
 2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (imagemagick_compute_animated_image): Don't crash if we

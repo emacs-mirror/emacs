@@ -2027,6 +2027,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
   update_mode_lines = 16;
 }
 
+#ifdef HAVE_NTGUI
 void
 set_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 {
@@ -2038,6 +2039,7 @@ set_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
   else
     Fsetcdr (old_alist_elt, val);
 }
+#endif
 
 void
 store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)

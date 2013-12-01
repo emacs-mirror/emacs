@@ -970,6 +970,7 @@ static int in_ellipses_for_invisible_text_p (struct display_pos *,
 static void x_consider_frame_title (Lisp_Object);
 static void update_tool_bar (struct frame *, int);
 static int redisplay_tool_bar (struct frame *);
+static void x_draw_bottom_divider (struct window *w);
 static void notice_overwritten_cursor (struct window *,
                                        enum glyph_row_area,
                                        int, int, int, int);
@@ -12097,6 +12098,7 @@ tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
 #endif /* !USE_GTK && !HAVE_NS */
 
 #if defined USE_GTK || defined HAVE_NS
+EXFUN (Ftool_bar_height, 2) ATTRIBUTE_CONST;
 EXFUN (Ftool_bar_lines_needed, 1) ATTRIBUTE_CONST;
 #endif
 
@@ -29118,7 +29120,7 @@ x_draw_right_divider (struct window *w)
     }
 }
 
-void
+static void
 x_draw_bottom_divider (struct window *w)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
