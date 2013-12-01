@@ -1100,7 +1100,9 @@ ones, in case fg and bg are nil."
   (let ((image (cdr (assq :poster cont)))
 	(url (cdr (assq :src cont)))
 	(start (point)))
-    (shr-tag-img nil image)
+    (if image
+        (shr-tag-img nil image)
+      (shr-insert " [video] "))
     (shr-urlify start (shr-expand-url url))))
 
 (defun shr-tag-img (cont &optional url)

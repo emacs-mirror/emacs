@@ -1,5 +1,12 @@
 2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* net/shr.el (shr-tag-video): Display content for video if no
+	poster is available.
+
+	* net/eww.el (eww-text-input-types): : New const.
+	(eww-process-text-input): Treat input types in
+	`eww-text-input-types' as text.
+
 	* net/shr.el (shr-tag-table): Fix comment typo.
 
 2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
