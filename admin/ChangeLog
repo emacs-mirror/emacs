@@ -1,3 +1,8 @@
+2013-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (${DSTDIR}/charprop.el):
+	Ensure output files are writable.
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* grammars/Makefile.in: Ensure output files are writable.
