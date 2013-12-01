@@ -89,6 +89,7 @@
   :group 'eww)
 
 (defvar eww-current-url nil)
+(defvar eww-current-dom nil)
 (defvar eww-current-title ""
   "Title of current page.")
 (defvar eww-history nil)
@@ -219,6 +220,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	  'base (list (cons 'href url))
 	  (libxml-parse-html-region (point) (point-max)))))
     (eww-setup-buffer)
+    (setq eww-current-dom document)
     (let ((inhibit-read-only t)
 	  (after-change-functions nil)
 	  (shr-width nil)
@@ -378,6 +380,7 @@ word(s) will be searched for via `eww-search-prefix'."
 \\{eww-mode-map}"
   ;; FIXME?  This seems a strange default.
   (set (make-local-variable 'eww-current-url) 'author)
+  (set (make-local-variable 'eww-current-dom) nil)
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
   (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
   (set (make-local-variable 'eww-history) nil)
@@ -390,6 +393,7 @@ word(s) will be searched for via `eww-search-prefix'."
   (push (list :url eww-current-url
 	      :title eww-current-title
 	      :point (point)
+              :dom eww-current-dom
 	      :text (buffer-string))
 	eww-history))
 
@@ -429,6 +433,7 @@ word(s) will be searched for via `eww-search-prefix'."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert (plist-get elem :text))
+    (setq eww-current-dom (plist-get elem :dom))
     (goto-char (plist-get elem :point))
     (setq eww-current-url (plist-get elem :url)
 	  eww-current-title (plist-get elem :title))

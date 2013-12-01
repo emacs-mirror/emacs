@@ -2,6 +2,7 @@
 
 	* net/eww.el (eww-restore-history): Update the window title after
 	moving in the history.
+	(eww-current-dom): New variable used to save the current DOM.
 
 2013-12-01  Dmitry Gutov  <dgutov@yandex.ru>
 
