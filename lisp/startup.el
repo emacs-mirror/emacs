@@ -1289,6 +1289,29 @@ the `--debug-init' option to view a complete error backtrace."
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
 
+  ;; This is a problem because, e.g. if emacs.d/gnus.el exists,
+  ;; trying to load gnus could load the wrong file.
+  ;; OK, it would not matter if .emacs.d were at the end of load-path.
+  ;; but for the sake of simplicity, we discourage it full-stop.
+  ;; Ref eg http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00056.html
+  ;;
+  ;; A bad element could come from user-emacs-file, the command line,
+  ;; or EMACSLOADPATH, so we basically always have to check.
+  (let (warned)
+    (dolist (dir load-path)
+      (and (not warned)
+	   (string-match-p "/[._]emacs\\.d/?\\'" dir)
+	   (string-equal (file-name-as-directory (expand-file-name dir))
+			 (expand-file-name user-emacs-directory))
+	   (setq warned t)
+	   (display-warning 'initialization
+			    (format "Your `load-path' seems to contain
+your `.emacs.d' directory: %s\n\
+This is likely to cause problems...\n\
+Consider using a subdirectory instead, e.g.: %s" dir
+(expand-file-name "lisp" user-emacs-directory))
+			     :warning))))
+
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t))
 

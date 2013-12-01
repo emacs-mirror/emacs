@@ -1,3 +1,7 @@
+2013-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line): Warn if ~/emacs.d is in load-path.
+
 2013-11-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (fancy-splash-frame): On MS-Windows, trigger
