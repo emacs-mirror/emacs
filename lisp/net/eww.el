@@ -56,6 +56,14 @@
   :group 'eww
   :type 'string)
 
+(defcustom eww-use-external-browser-for-content-type
+  "\\`\\(video/\\|audio/\\|application/ogg\\)"
+  "Always use external browser for specified content-type."
+  :version "24.4"
+  :group 'eww
+  :type '(choice (const :tag "Never" nil)
+                 regexp))
+
 (defface eww-form-submit
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -162,11 +170,15 @@ word(s) will be searched for via `eww-search-prefix'."
     (unwind-protect
 	(progn
 	  (cond
+           ((and eww-use-external-browser-for-content-type
+                 (string-match-p eww-use-external-browser-for-content-type
+                                 (car content-type)))
+            (eww-browse-with-external-browser url))
 	   ((equal (car content-type) "text/html")
 	    (eww-display-html charset url nil point))
-	   ((string-match "^image/" (car content-type))
-	    (eww-display-image)
-	    (eww-update-header-line-format))
+	   ((string-match-p "\\`image/" (car content-type))
+	    (eww-display-image url))
+	   (eww-update-header-line-format))
 	   (t
 	    (eww-display-raw)
 	    (eww-update-header-line-format)))
@@ -938,11 +950,11 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	"?"
 	(mm-url-encode-www-form-urlencoded values))))))
 
-(defun eww-browse-with-external-browser ()
+(defun eww-browse-with-external-browser (&optional url)
   "Browse the current URL with an external browser.
 The browser to used is specified by the `shr-external-browser' variable."
   (interactive)
-  (funcall shr-external-browser eww-current-url))
+  (funcall shr-external-browser (or url eww-current-url)))
 
 (defun eww-follow-link (&optional external mouse-event)
   "Browse the URL under point.

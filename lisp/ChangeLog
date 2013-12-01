@@ -1,5 +1,11 @@
 2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* net/eww.el (eww-use-external-browser-for-content-type): New
+	variable.
+	(eww-render): Handle `eww-use-external-browser-for-content-type'.
+	Use \\` to match beginning of string instead of ^.
+	(eww-browse-with-external-browser): Provide optional URL parameter.
+
 	* net/shr.el (shr-tag-video): Display content for video if no
 	poster is available.
 	(shr-tag-audio): Add support for <audio> tag.
