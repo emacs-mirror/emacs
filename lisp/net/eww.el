@@ -105,6 +105,11 @@
 (defvar eww-local-regex "localhost"
   "When this regex is found in the URL, it's not a keyword but an address.")
 
+(defvar eww-link-keymap
+  (let ((map (copy-keymap shr-map)))
+    (define-key map "\r" 'eww-follow-link)
+    map))
+
 ;;;###autoload
 (defun eww (url)
   "Fetch URL and render the page.
@@ -378,11 +383,6 @@ word(s) will be searched for via `eww-search-prefix'."
 	["Add bookmark" eww-add-bookmark t]
 	["List bookmarks" eww-copy-page-url t]
 	["List cookies" url-cookie-list t]))
-    map))
-
-(defvar eww-link-keymap
-  (let ((map (copy-keymap shr-map)))
-    (define-key map "\r" 'eww-follow-link)
     map))
 
 (define-derived-mode eww-mode nil "eww"
