@@ -634,12 +634,19 @@ appears in a <link> or <a> tag."
 			     :name (cdr (assq :name cont))))
     (insert " ")))
 
+(defconst eww-text-input-types '("text" "password" "textarea"
+                                 "color" "date" "datetime" "datetime-local"
+                                 "email" "month" "number" "search" "tel"
+                                 "time" "url" "week")
+  "List of input types which represent a text input.
+See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
+
 (defun eww-process-text-input (beg end length)
   (let* ((form (get-text-property (min (1+ end) (point-max)) 'eww-form))
 	 (properties (text-properties-at end))
 	 (type (plist-get form :type)))
     (when (and form
-	       (member type '("text" "password" "textarea")))
+	       (member type eww-text-input-types))
       (cond
        ((zerop length)
 	;; Delete some space at the end.
