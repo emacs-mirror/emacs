@@ -721,7 +721,7 @@
 	"dumb loop", adjust C pointers into buffer text to follow suit.
 	(Bug#15841)
 
-2013-11-09  Łukasz Stelmach <stlman@poczta.fm> (tiny change)
+2013-11-09  Łukasz Stelmach  <stlman@poczta.fm>  (tiny change)
 
 	* gtkutil.c (xg_check_special_colors): Use rgb: instead of rgbi:
 	for conversion (Bug#15837).

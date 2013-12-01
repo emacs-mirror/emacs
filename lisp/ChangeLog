@@ -29,7 +29,7 @@
 2013-11-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (fancy-splash-frame): On MS-Windows, trigger
-	redisplay to make sure the initial frame gets a change to become
+	redisplay to make sure the initial frame gets a chance to become
 	visible.  (Bug#16014)
 
 2013-11-30  Martin Rudalics  <rudalics@gmx.at>
@@ -191,7 +191,7 @@
 	* leim/quail/uni-input.el (ucs-input-activate): Add autoload cookie.
 	(generated-autoload-load-name): Set file-local value.
 
-2013-11-26  Kenjiro NAKAYAMA <knakayam@redhat.com>  (tiny change)
+2013-11-26  Kenjiro NAKAYAMA  <knakayam@redhat.com>  (tiny change)
 
         * net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.
         (eww-add-bookmark): ask confirmation when add to bookmarks
@@ -375,7 +375,7 @@
 	Add `octave-source-file'.
 	(octave-source-file): New function.  (Bug#15935)
 
-2013-11-21  Kenjiro Nakayama <nakayamakenjiro@gmail.com>  (tiny change)
+2013-11-21  Kenjiro Nakayama  <nakayamakenjiro@gmail.com>  (tiny change)
 
 	* net/eww.el (eww-local-regex): New variable.
 	(eww): Use it to detect localhost and similar.
@@ -402,7 +402,7 @@
 	* emacs-lisp/package.el (describe-package-1): Add package archive
 	to shown fields.
 
-2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
+2013-11-20  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* progmodes/ruby-mode.el (ruby-custom-encoding-magic-comment-template):
 	Change default to "# encoding: %s" to differentiate it from the
@@ -1866,7 +1866,7 @@
 	of GIF DLLs for versions before and after 5.0.0 of giflib.
 	(Bug#15531)
 
-2013-10-10  João Távora <joaotavora@gmail.com>
+2013-10-10  João Távora  <joaotavora@gmail.com>
 
 	* vc/vc.el (vc-diff-build-argument-list-internal): If the file is
 	not locked, use last revision and current source as
