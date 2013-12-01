@@ -1,3 +1,8 @@
+2013-12-01  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
+
+	* net/eww.el (eww-tag-select): Support <optgroup> tags in <select>
+	forms.
+
 2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-restore-history): Update the window title after
