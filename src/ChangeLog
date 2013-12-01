@@ -1,3 +1,8 @@
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_compute_animated_image): Don't crash if we
+	have an animation with different-sized images (bug#15313).
+
 2013-11-30  Martin Rudalics  <rudalics@gmx.at>
 
 	Remove some unused items introduced during pixelwise change.
