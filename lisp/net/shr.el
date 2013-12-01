@@ -1332,7 +1332,7 @@ ones, in case fg and bg are nil."
 	(if caption `((tr (td ,@caption))))
 	(if header
 	    (if footer
-		;; hader + body + footer
+		;; header + body + footer
 		(if (= nheader nbody)
 		    (if (= nbody nfooter)
 			`((tr (td (table (tbody ,@header ,@body ,@footer)))))

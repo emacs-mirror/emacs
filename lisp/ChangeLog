@@ -1,3 +1,7 @@
+2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* net/shr.el (shr-tag-table): Fix comment typo.
+
 2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-follow-link): New command to avoid reloading
