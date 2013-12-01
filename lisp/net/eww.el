@@ -418,10 +418,8 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-quit ()
   "Exit the Emacs Web Wowser."
   (interactive)
-  (if (y-or-n-p "quit eww? ")
-      (progn
-	(setq eww-history nil)
-	(kill-buffer (current-buffer)))))
+  (setq eww-history nil)
+  (kill-buffer (current-buffer)))
 
 (defun eww-back-url ()
   "Go to the previously displayed page."

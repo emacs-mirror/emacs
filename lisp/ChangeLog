@@ -2,6 +2,7 @@
 
 	* net/eww.el (eww-follow-link): New command to avoid reloading
 	pages when we follow #target links (bug#15243).
+	(eww-quit): Special mode buffers shouldn't query before exiting.
 
 2013-12-01  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
