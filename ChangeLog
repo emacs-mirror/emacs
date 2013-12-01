@@ -1,3 +1,7 @@
+2013-12-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* .dir-locals.el: (log-edit-move): Add the "Author: " header.
+
 2013-11-30  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* build-aux/msys-to-w32 (w32pathlist): Do not translate paths

@@ -32,6 +32,7 @@
 (require 'add-log)			; for all the ChangeLog goodies
 (require 'pcvs-util)
 (require 'ring)
+(require 'message)
 
 ;;;;
 ;;;; Global Variables
@@ -55,6 +56,7 @@
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-d" . log-edit-show-diff)
     ("\C-c\C-f" . log-edit-show-files)
+    ("\C-a"     . log-edit-beginning-of-line)
     ("\M-n"	. log-edit-next-comment)
     ("\M-p"	. log-edit-previous-comment)
     ("\M-r"	. log-edit-comment-search-backward)
@@ -115,6 +117,13 @@ Enforce it silently if t, query if non-nil and don't do anything if nil."
 If SETUP is 'force, this variable has no effect."
   :group 'log-edit
   :type 'boolean)
+
+(defcustom log-edit-setup-add-author nil
+  "Non-nil means `log-edit' should add the `Author:' header when
+its SETUP argument is non-nil."
+  :group 'log-edit
+  :type 'boolean
+  :safe 'booleanp)
 
 (defcustom log-edit-hook '(log-edit-insert-cvs-template
                            log-edit-show-files
@@ -427,13 +436,15 @@ done.  Otherwise, it uses the current buffer."
     (if buffer (pop-to-buffer buffer))
     (when (and log-edit-setup-invert (not (eq setup 'force)))
       (setq setup (not setup)))
-    (when setup
-      (erase-buffer)
-      (insert "Summary: \nAuthor: ")
-      (save-excursion (insert "\n\n")))
     (if mode
 	(funcall mode)
       (log-edit-mode))
+    (when setup
+      (erase-buffer)
+      (insert "Summary: ")
+      (when log-edit-setup-add-author
+        (insert "\nAuthor: "))
+      (insert "\n\n"))
     (set (make-local-variable 'log-edit-callback) callback)
     (if (listp params)
 	(dolist (crt params)
@@ -445,7 +456,10 @@ done.  Otherwise, it uses the current buffer."
     (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
     (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
     (when setup (run-hooks 'log-edit-hook))
-    (goto-char (point-min)) (push-mark (point-max))
+    (if setup
+        (message-position-point)
+      (goto-char (point-min)))
+    (push-mark (point-max))
     (message "%s" (substitute-command-keys
 	      "Press \\[log-edit-done] when you are done editing."))))
 
@@ -573,6 +587,15 @@ If you want to abort the commit, simply delete the buffer."
 	(cvs-pop-to-buffer-same-frame buf)
 	(shrink-window-if-larger-than-buffer)
 	(selected-window)))))
+
+(defun log-edit-beginning-of-line (&optional n)
+  "Move point to beginning of header value or to beginning of line.
+
+It works the same as `message-beginning-of-line', but it uses a
+different header separator appropriate for `log-edit-mode'."
+  (interactive "p")
+  (let ((mail-header-separator ""))
+    (message-beginning-of-line n)))
 
 (defun log-edit-empty-buffer-p ()
   "Return non-nil if the buffer is \"empty\"."

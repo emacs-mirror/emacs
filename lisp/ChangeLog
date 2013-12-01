@@ -1,3 +1,16 @@
+2013-12-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-mode-map): Add binding for
+	`log-edit-beginning-of-line'.
+	(log-edit-setup-add-author): New user option.
+	(log-edit-beginning-of-line): New command.
+	(log-edit): Move major mode call above the contents setup so that
+	the local variable values are already applied.
+	(log-edit): Only insert "Author: " when
+	`log-edit-setup-add-author' is non-nil.
+	(log-edit): When SETUP is non-nil, position point after ": "
+	instead of point-min.
+
 2013-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (command-line): Warn if ~/emacs.d is in load-path.
