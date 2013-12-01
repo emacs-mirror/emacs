@@ -177,8 +177,8 @@ word(s) will be searched for via `eww-search-prefix'."
 	   ((equal (car content-type) "text/html")
 	    (eww-display-html charset url nil point))
 	   ((string-match-p "\\`image/" (car content-type))
-	    (eww-display-image url))
-	   (eww-update-header-line-format))
+	    (eww-display-image url)
+	    (eww-update-header-line-format))
 	   (t
 	    (eww-display-raw)
 	    (eww-update-header-line-format)))
