@@ -64,6 +64,25 @@
   :type '(choice (const :tag "Never" nil)
                  regexp))
 
+(defcustom eww-form-checkbox-selected-symbol "[X]"
+  "Symbol used to represent a selected checkbox.
+See also `eww-form-checkbox-symbol'."
+  :version "24.4"
+  :group 'eww
+  :type '(choice (const "[X]")
+                 (const "☒")            ; Unicode BALLOT BOX WITH X
+                 (const "☑")            ; Unicode BALLOT BOX WITH CHECK
+                 string))
+
+(defcustom eww-form-checkbox-symbol "[ ]"
+  "Symbol used to represent a checkbox.
+See also `eww-form-checkbox-selected-symbol'."
+  :version "24.4"
+  :group 'eww
+  :type '(choice (const "[ ]")
+                 (const "☐")            ; Unicode BALLOT BOX
+                 string))
+
 (defface eww-form-submit
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -614,8 +633,8 @@ appears in a <link> or <a> tag."
 (defun eww-form-checkbox (cont)
   (let ((start (point)))
     (if (cdr (assq :checked cont))
-	(insert "[X]")
-      (insert "[ ]"))
+	(insert eww-form-checkbox-selected-symbol)
+      (insert eww-form-checkbox-symbol))
     (add-face-text-property start (point) 'eww-form-checkbox)
     (put-text-property start (point) 'eww-form
 		       (list :eww-form eww-form
@@ -849,9 +868,9 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	  (if (plist-get input :checked)
 	      (progn
 		(plist-put input :checked nil)
-		(eww-update-field "[ ]"))
+		(eww-update-field eww-form-checkbox-symbol))
 	    (plist-put input :checked t)
-	    (eww-update-field "[X]"))))
+	    (eww-update-field eww-form-checkbox-selected-symbol))))
       ;; Radio button.  Switch all other buttons off.
       (let ((name (plist-get input :name)))
 	(save-excursion
@@ -861,9 +880,9 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	      (if (not (eq (cdr elem) input))
 		  (progn
 		    (plist-put input :checked nil)
-		    (eww-update-field "[ ]"))
+		    (eww-update-field eww-form-checkbox-symbol))
 		(plist-put input :checked t)
-		(eww-update-field "[X]")))))
+		(eww-update-field eww-form-checkbox-selected-symbol)))))
 	(forward-char 1)))))
 
 (defun eww-inputs (form)

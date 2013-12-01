@@ -1,5 +1,13 @@
 2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* net/eww.el (eww-form-checkbox-selected-symbol): New
+	customizable variable.
+	(eww-form-checkbox-symbol): New customizable variable.
+	(eww-form-checkbox): Use `eww-form-checkbox-selected-symbol' and
+	`eww-form-checkbox-symbol'.
+	(eww-toggle-checkbox): Use `eww-form-checkbox-selected-symbol' and
+	`eww-form-checkbox-symbol'.
+
 	* net/shr.el (shr-prefer-media-type-alist): : New customizable
 	variable.
 	(shr--get-media-pref): New function.
