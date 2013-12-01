@@ -1,5 +1,12 @@
 2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* net/shr.el (shr-prefer-media-type-alist): : New customizable
+	variable.
+	(shr--get-media-pref): New function.
+	(shr--extract-best-source): New function.
+	(shr-tag-video, shr-tag-audio):  Use `shr--extract-best-source' when
+	no :src tag was specified.
+
 	* net/eww.el (eww-use-external-browser-for-content-type): New
 	variable.
 	(eww-render): Handle `eww-use-external-browser-for-content-type'.
