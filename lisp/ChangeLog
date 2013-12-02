@@ -1,3 +1,10 @@
+2013-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Do not set
+	"LC_ALL".
+	(tramp-get-remote-locale): New defun.
+	(tramp-open-connection-setup-interactive-shell): Use it.
+
 2013-12-02  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (process-live-p): Return nil for non-process.  (Bug#16023)

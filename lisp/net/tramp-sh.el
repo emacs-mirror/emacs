@@ -419,8 +419,7 @@ as given in your `~/.profile'."
 
 ;;;###tramp-autoload
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0"
-    "LC_ALL=en_US.utf8" "LC_CTYPE=''"
+  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0" "LC_CTYPE=''"
     ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
     ,(format "INSIDE_EMACS='%s,tramp:%s'" emacs-version tramp-version)
@@ -3889,7 +3888,8 @@ process to set up.  VEC specifies the connection."
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
-  (let ((env (copy-sequence tramp-remote-process-environment))
+  (let ((env (append `(,(tramp-get-remote-locale vec))
+		     (copy-sequence tramp-remote-process-environment)))
 	unset item)
     (while env
       (setq item (tramp-compat-split-string (car env) "="))
@@ -4826,6 +4826,21 @@ Return ATTR."
 	     x))
 	   x))
 	remote-path)))))
+
+(defun tramp-get-remote-locale (vec)
+  (with-tramp-connection-property vec "locale"
+    (tramp-send-command vec "locale -a")
+    (let ((candidates '("en_US.utf8" "C.utf8" "C"))
+	  locale)
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(while candidates
+	  (goto-char (point-min))
+	  (if (string-match (concat "^" (car candidates) "$") (buffer-string))
+	      (setq locale (car candidates)
+		    candidates nil)
+	    (setq candidates (cdr candidates)))))
+      ;; Return value.
+      (when locale (format "LC_ALL=%s" locale)))))
 
 (defun tramp-get-ls-command (vec)
   (with-tramp-connection-property vec "ls"
