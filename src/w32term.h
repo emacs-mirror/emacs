@@ -26,22 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
-#define FONT_WIDTH(f)     ((f)->max_width)
-#define FONT_HEIGHT(f)    ((f)->height)
-#define FONT_BASE(f)      ((f)->ascent)
-#define FONT_DESCENT(f)   ((f)->descent)
-
 #define CP_DEFAULT 1004
-
-#define CHECK_W32_FRAME(f, frame)		\
-  if (NILP (frame))				\
-    f = SELECTED_FRAME ();			\
-  else						\
-    {						\
-      CHECK_LIVE_FRAME (frame, 0);		\
-      f = XFRAME (frame);			\
-    }						\
-  if (! FRAME_W32_P (f))
 
 /* Indicates whether we are in the readsocket call and the message we
    are processing in the current loop */

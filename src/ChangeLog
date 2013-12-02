@@ -1,3 +1,10 @@
+2013-12-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.h (FONT_WIDTH, FONT_HEIGHT, FONT_BASE, FONT_DESCENT):
+	Define here to unify between...
+	* nsterm.h, w32term.h, xterm.h: ...port-specific headers.
+	* w32term.h (CHECK_W32_FRAME): Remove unused macro.
+
 2013-12-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.h (struct scroll_bar): Remove member `fringe_extended_p'.

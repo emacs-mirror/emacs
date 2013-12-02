@@ -84,11 +84,6 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define WHITE_PIX_DEFAULT(f)					\
   WhitePixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
 
-#define FONT_WIDTH(f)	((f)->max_width)
-#define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
-#define FONT_BASE(f)    ((f)->ascent)
-#define FONT_DESCENT(f) ((f)->descent)
-
 /* The mask of events that text windows always want to receive.  This
    includes mouse movement events, since handling the mouse-font text property
    means that we must track mouse motion all the time.  */

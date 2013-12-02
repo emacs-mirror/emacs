@@ -234,6 +234,11 @@ enum font_property_index
 #define FONT_SET_STYLE(font, prop, val)	\
   ASET ((font), prop, make_number (font_style_to_value (prop, val, 1)))
 
+#define FONT_WIDTH(f) ((f)->max_width)
+#define FONT_HEIGHT(f) ((f)->height)
+#define FONT_BASE(f) ((f)->ascent)
+#define FONT_DESCENT(f) ((f)->descent)
+
 extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript;
 extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity;
 extern Lisp_Object Qp;
