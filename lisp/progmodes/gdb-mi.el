@@ -981,7 +981,8 @@ no input, and GDB is waiting for input."
 	       (eq gud-minor-mode 'gdbmi))
     (error "Not in a GDB-MI buffer"))
   (let ((proc (get-buffer-process gud-comint-buffer)))
-    (if (and (eobp) proc (process-live-p proc)
+    (if (and (eobp)
+             (process-live-p proc)
 	     (not gud-running)
 	     (= (point) (marker-position (process-mark proc))))
 	;; Sending an EOF does not work with GDB-MI; submit an
@@ -1584,9 +1585,8 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
     ;; read from the pty, and stops listening to it.  If the gdb
     ;; process is still running, remove the pty, make a new one, and
     ;; pass it to gdb.
-    (let ((gdb-proc (get-buffer-process gud-comint-buffer))
-	  (io-buffer (process-buffer proc)))
-      (when (and gdb-proc (process-live-p gdb-proc)
+    (let ((io-buffer (process-buffer proc)))
+      (when (and (process-live-p (get-buffer-process gud-comint-buffer))
 		 (buffer-live-p io-buffer))
 	;; `comint-exec' deletes the original process as a side effect.
 	(comint-exec io-buffer "gdb-inferior" nil nil nil)

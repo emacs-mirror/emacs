@@ -1,3 +1,13 @@
+2013-12-02  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (process-live-p): Return nil for non-process.  (Bug#16023)
+
+	* progmodes/sh-script.el (sh-shell-process):
+	* progmodes/octave.el (inferior-octave-process-live-p):
+	* progmodes/gdb-mi.el (gdb-delchar-or-quit)
+	(gdb-inferior-io-sentinel):
+	* emacs-lock.el (emacs-lock-live-process-p): All uses changed.
+
 2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/log-edit.el (log-edit-kill-buffer): Move the use of

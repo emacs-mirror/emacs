@@ -700,7 +700,7 @@ in the Inferior Octave buffer.")
 (declare-function compilation-forget-errors "compile" ())
 
 (defun inferior-octave-process-live-p ()
-  (and inferior-octave-process (process-live-p inferior-octave-process)))
+  (process-live-p inferior-octave-process))
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
   "Major mode for interacting with an inferior Octave process."
