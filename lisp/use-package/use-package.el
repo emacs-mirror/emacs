@@ -267,7 +267,7 @@
   "A use-package declaration for simplifying your `.emacs'."
   :group 'startup)
 
-(defcustom use-package-verbose t
+(defcustom use-package-verbose nil
   "Whether to report about loading and configuration details."
   :type 'boolean
   :group 'use-package)
