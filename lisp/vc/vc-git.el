@@ -641,7 +641,17 @@ If toggling on, also insert its message into the buffer."
     (insert (with-output-to-string
               (vc-git-command
                standard-output 1 nil
-               "log" "--max-count=1" "--pretty=format:%B" "HEAD")))))
+               "log" "--max-count=1" "--pretty=format:%B" "HEAD")))
+    (save-excursion
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (let ((pt (point)))
+        (and (zerop (forward-line 1))
+             (looking-at "\n\\|\\'")
+             (let ((summary (buffer-substring-no-properties pt (1- (point)))))
+               (skip-chars-forward " \n")
+               (delete-region pt (point))
+               (log-edit-set-header "Summary" summary)))))))
 
 (defvar vc-git-log-edit-mode-map
   (let ((map (make-sparse-keymap "Git-Log-Edit")))

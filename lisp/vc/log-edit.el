@@ -944,10 +944,14 @@ Rename relative filenames in the ChangeLog entry as FILES."
 
 (defun log-edit-toggle-header (header value)
   "Toggle a boolean-type header in the current buffer.
-If the value of HEADER is VALUE, clear it.  Otherwise, add the
-header if it's not present and set it to VALUE.  Then make sure
-there is an empty line after the headers.  Return t if toggled
-on, otherwise nil."
+See `log-edit-set-header' for details."
+  (log-edit-set-header header value t))
+
+(defun log-edit-set-header (header value &optional toggle)
+  "Set the value of HEADER to VALUE in the current buffer.
+If TOGGLE is non-nil, and the value of HEADER already is VALUE,
+clear it.  Make sure there is an empty line after the headers.
+Return t if toggled on (or TOGGLE is nil), otherwise nil."
   (let ((val t)
         (line (concat header ": " value "\n")))
     (save-excursion
@@ -958,7 +962,7 @@ on, otherwise nil."
         (if (re-search-forward (concat "^" header ":"
                                        log-edit-header-contents-regexp)
                                nil t)
-            (if (setq val (not (string= (match-string 1) value)))
+            (if (setq val (not (and toggle (string= (match-string 1) value))))
                 (replace-match line t t)
               (replace-match "" t t nil 1))
           (insert line)))
@@ -1006,7 +1010,7 @@ line of MSG."
       (goto-char (point-min))
       (when (looking-at "\\([ \t]*\n\\)+")
         (delete-region (match-beginning 0) (match-end 0)))
-      (if summary (insert summary "\n"))
+      (if summary (insert summary "\n\n"))
       (cons (buffer-string) res))))
 
 (provide 'log-edit)

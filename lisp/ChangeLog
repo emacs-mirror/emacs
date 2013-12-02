@@ -1,3 +1,13 @@
+2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-set-header): Extract from
+	`log-edit-toggle-header'.
+	(log-edit-extract-headers): Separate the summary, when extracted
+	from header, from the rest of the message with an empty line.
+
+	* vc/vc-git.el (vc-git-log-edit-toggle-amend): Move the summary
+	line, if present, to the Summary header.
+
 2013-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* epa-file.el (epa-file-insert-file-contents): Ensure we insert text
