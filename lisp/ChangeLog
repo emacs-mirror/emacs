@@ -1,3 +1,13 @@
+2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-mode-map): Add binding for
+	`log-edit-kill-biffer'.
+	(log-edit-hide-buf): Add a FIXME comment.
+	(log-edit-add-new-comment): New function, extracted from
+	`log-edit-done'.
+	(log-edit-done, log-edit-add-to-changelog): Use it.
+	(log-edit-kill-buffer): New command.
+
 2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-mode-map): Have `q' do a normal `quit-window'
