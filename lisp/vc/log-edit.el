@@ -56,6 +56,7 @@
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-d" . log-edit-show-diff)
     ("\C-c\C-f" . log-edit-show-files)
+    ("\C-c\C-k" . log-edit-kill-buffer)
     ("\C-a"     . log-edit-beginning-of-line)
     ("\M-n"	. log-edit-next-comment)
     ("\M-p"	. log-edit-previous-comment)
@@ -479,9 +480,17 @@ commands (under C-x v for VC, for example).
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
+    ;; FIXME: Should use something like `quit-windows-on' here, but
+    ;; that function never deletes this buffer's window because it
+    ;; was created using `cvs-pop-to-buffer-same-frame'.
     (let ((win (get-buffer-window buf where)))
       (if win (ignore-errors (delete-window win))))
     (bury-buffer buf)))
+
+(defun log-edit-add-new-comment (comment)
+  (when (or (ring-empty-p log-edit-comment-ring)
+            (not (equal comment (ring-ref log-edit-comment-ring 0))))
+    (ring-insert log-edit-comment-ring comment)))
 
 (defun log-edit-done ()
   "Finish editing the log message and commit the files.
@@ -514,10 +523,7 @@ If you want to abort the commit, simply delete the buffer."
       (save-excursion
 	(goto-char (point-max))
 	(insert ?\n)))
-  (let ((comment (buffer-string)))
-    (when (or (ring-empty-p log-edit-comment-ring)
-	      (not (equal comment (ring-ref log-edit-comment-ring 0))))
-      (ring-insert log-edit-comment-ring comment)))
+  (log-edit-add-new-comment (buffer-string))
   (let ((win (get-buffer-window log-edit-files-buf)))
     (if (and log-edit-confirm
 	     (not (and (eq log-edit-confirm 'changed)
@@ -532,6 +538,18 @@ If you want to abort the commit, simply delete the buffer."
       (unless (or log-edit-keep-buffer (not log-edit-parent-buffer))
 	(cvs-bury-buffer (current-buffer) log-edit-parent-buffer))
       (call-interactively log-edit-callback))))
+
+(defun log-edit-kill-buffer ()
+  "Kill the current buffer.
+Also saves its contents in the comment history and hides
+`log-edit-files-buf'."
+  (interactive)
+  (log-edit-add-new-comment (buffer-string))
+  (save-selected-window
+    (log-edit-hide-buf))
+  (let ((buf (current-buffer)))
+    (quit-windows-on buf)
+    (kill-buffer buf)))
 
 (defun log-edit-files ()
   "Return the list of files that are about to be committed."
@@ -640,9 +658,7 @@ can thus take some time."
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
   (interactive)
-  ;; Yuck!
-  (unless (string= (buffer-string) (ring-ref log-edit-comment-ring 0))
-    (ring-insert log-edit-comment-ring (buffer-string)))
+  (log-edit-add-new-comment (buffer-string))
   (dolist (f (log-edit-files))
     (let ((buffer-file-name (expand-file-name f)))
       (save-excursion
