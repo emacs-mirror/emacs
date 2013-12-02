@@ -1,3 +1,8 @@
+2013-12-02  Helmut Eller  <eller.helmut@gmail.com>
+
+	* eval.c (Fbacktrace__locals): New function.
+	(syms_of_eval): Defsubr it.
+
 2013-12-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.h (FONT_WIDTH, FONT_HEIGHT, FONT_BASE, FONT_DESCENT):

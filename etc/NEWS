@@ -247,6 +247,8 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** The backtrace debugger can display local vars with `v'.
+
 ** prolog-use-smie has been removed, along with the non-SMIE indentation code.
 
 ** SMIE indentation can be customized via `smie-config'.
