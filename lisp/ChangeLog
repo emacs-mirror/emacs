@@ -1,3 +1,8 @@
+2013-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa-file.el (epa-file-insert-file-contents): Ensure we insert text
+	in current-buffer (bug#16029).
+
 2013-12-02  Helmut Eller  <eller.helmut@gmail.com>
 
 	* emacs-lisp/debug.el (debugger-toggle-locals): New command.
