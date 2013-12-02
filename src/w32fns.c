@@ -7969,61 +7969,35 @@ only be necessary if the default setting causes problems.  */);
 #endif
 }
 
+
 
-/*
-	globals_of_w32fns is used to initialize those global variables that
-	must always be initialized on startup even when the global variable
-	initialized is non zero (see the function main in emacs.c).
-	globals_of_w32fns is called from syms_of_w32fns when the global
-	variable initialized is 0 and directly from main when initialized
-	is non zero.
- */
-void
-globals_of_w32fns (void)
+/* Crashing and reporting backtrace.  */
+
+#ifndef CYGWIN
+static LONG CALLBACK my_exception_handler (EXCEPTION_POINTERS *);
+static LPTOP_LEVEL_EXCEPTION_FILTER prev_exception_handler;
+#endif
+static DWORD except_code;
+static PVOID except_addr;
+
+#ifndef CYGWIN
+/* This handler records the exception code and the address where it
+   was triggered so that this info could be included in the backtrace.
+   Without that, the backtrace in some cases has no information
+   whatsoever about the offending code, and looks as if the top-level
+   exception handler in the MinGW startup code di the one that
+   crashed.  */
+static LONG CALLBACK
+my_exception_handler (EXCEPTION_POINTERS * exception_data)
 {
-  HMODULE user32_lib = GetModuleHandle ("user32.dll");
-  /*
-    TrackMouseEvent not available in all versions of Windows, so must load
-    it dynamically.  Do it once, here, instead of every time it is used.
-  */
-  track_mouse_event_fn = (TrackMouseEvent_Proc)
-    GetProcAddress (user32_lib, "TrackMouseEvent");
+  except_code = exception_data->ExceptionRecord->ExceptionCode;
+  except_addr = exception_data->ExceptionRecord->ExceptionAddress;
 
-  monitor_from_point_fn = (MonitorFromPoint_Proc)
-    GetProcAddress (user32_lib, "MonitorFromPoint");
-  get_monitor_info_fn = (GetMonitorInfo_Proc)
-    GetProcAddress (user32_lib, "GetMonitorInfoA");
-  monitor_from_window_fn = (MonitorFromWindow_Proc)
-    GetProcAddress (user32_lib, "MonitorFromWindow");
-  enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
-    GetProcAddress (user32_lib, "EnumDisplayMonitors");
-
-  {
-    HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
-    get_composition_string_fn = (ImmGetCompositionString_Proc)
-      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
-    get_ime_context_fn = (ImmGetContext_Proc)
-      GetProcAddress (imm32_lib, "ImmGetContext");
-    release_ime_context_fn = (ImmReleaseContext_Proc)
-      GetProcAddress (imm32_lib, "ImmReleaseContext");
-    set_ime_composition_window_fn = (ImmSetCompositionWindow_Proc)
-      GetProcAddress (imm32_lib, "ImmSetCompositionWindow");
-  }
-  DEFVAR_INT ("w32-ansi-code-page",
-	      w32_ansi_code_page,
-	      doc: /* The ANSI code page used by the system.  */);
-  w32_ansi_code_page = GetACP ();
-
-  if (os_subtype == OS_NT)
-    w32_unicode_gui = 1;
-  else
-    w32_unicode_gui = 0;
-
-  /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
-  InitCommonControls ();
-
-  syms_of_w32uniscribe ();
+  if (prev_exception_handler)
+    return prev_exception_handler (exception_data);
+  return EXCEPTION_EXECUTE_HANDLER;
 }
+#endif
 
 typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
 						      PULONG);
@@ -8080,21 +8054,32 @@ emacs_abort (void)
 
 	if (i)
 	  {
+	    int errfile_fd = -1;
+	    int j;
+	    char buf[sizeof ("\r\nException  at this address:\r\n\r\n")
+		     + 2 * INT_BUFSIZE_BOUND (void *)];
 #ifdef CYGWIN
 	    int stderr_fd = 2;
 #else
 	    HANDLE errout = GetStdHandle (STD_ERROR_HANDLE);
 	    int stderr_fd = -1;
-#endif
-	    int errfile_fd = -1;
-	    int j;
 
-#ifndef CYGWIN
 	    if (errout && errout != INVALID_HANDLE_VALUE)
 	      stderr_fd = _open_osfhandle ((intptr_t)errout, O_APPEND | O_BINARY);
 #endif
+
+	    /* We use %p, not 0x%p, as %p produces a leading "0x" on XP,
+	       but not on Windows 7.  addr2line doesn't mind a missing
+	       "0x", but will be confused by an extra one.  */
+	    if (except_addr)
+	      sprintf (buf, "\r\nException 0x%lx at this address:\r\n%p\r\n",
+		       except_code, except_addr);
 	    if (stderr_fd >= 0)
-	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	      {
+		if (except_addr)
+		  write (stderr_fd, buf, strlen (buf));
+		write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	      }
 #ifdef CYGWIN
 #define _open open
 #endif
@@ -8102,17 +8087,17 @@ emacs_abort (void)
 	    if (errfile_fd >= 0)
 	      {
 		lseek (errfile_fd, 0L, SEEK_END);
+		if (except_addr)
+		  write (errfile_fd, buf, strlen (buf));
 		write (errfile_fd, "\r\nBacktrace:\r\n", 14);
 	      }
 
 	    for (j = 0; j < i; j++)
 	      {
-		char buf[INT_BUFSIZE_BOUND (void *)];
-
 		/* stack[] gives the return addresses, whereas we want
 		   the address of the call, so decrease each address
 		   by approximate size of 1 CALL instruction.  */
-		sprintf (buf, "0x%p\r\n", (char *)stack[j] - sizeof(void *));
+		sprintf (buf, "%p\r\n", (char *)stack[j] - sizeof(void *));
 		if (stderr_fd >= 0)
 		  write (stderr_fd, buf, strlen (buf));
 		if (errfile_fd >= 0)
@@ -8132,6 +8117,72 @@ emacs_abort (void)
 	break;
       }
     }
+}
+
+
+
+/* Initialization.  */
+
+/*
+	globals_of_w32fns is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+	globals_of_w32fns is called from syms_of_w32fns when the global
+	variable initialized is 0 and directly from main when initialized
+	is non zero.
+ */
+void
+globals_of_w32fns (void)
+{
+  HMODULE user32_lib = GetModuleHandle ("user32.dll");
+  /*
+    TrackMouseEvent not available in all versions of Windows, so must load
+    it dynamically.  Do it once, here, instead of every time it is used.
+  */
+  track_mouse_event_fn = (TrackMouseEvent_Proc)
+    GetProcAddress (user32_lib, "TrackMouseEvent");
+
+  monitor_from_point_fn = (MonitorFromPoint_Proc)
+    GetProcAddress (user32_lib, "MonitorFromPoint");
+  get_monitor_info_fn = (GetMonitorInfo_Proc)
+    GetProcAddress (user32_lib, "GetMonitorInfoA");
+  monitor_from_window_fn = (MonitorFromWindow_Proc)
+    GetProcAddress (user32_lib, "MonitorFromWindow");
+  enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
+    GetProcAddress (user32_lib, "EnumDisplayMonitors");
+
+  {
+    HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
+    get_composition_string_fn = (ImmGetCompositionString_Proc)
+      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
+    get_ime_context_fn = (ImmGetContext_Proc)
+      GetProcAddress (imm32_lib, "ImmGetContext");
+    release_ime_context_fn = (ImmReleaseContext_Proc)
+      GetProcAddress (imm32_lib, "ImmReleaseContext");
+    set_ime_composition_window_fn = (ImmSetCompositionWindow_Proc)
+      GetProcAddress (imm32_lib, "ImmSetCompositionWindow");
+  }
+
+  except_code = 0;
+  except_addr = 0;
+#ifndef CYGWIN
+  prev_exception_handler = SetUnhandledExceptionFilter (my_exception_handler);
+#endif
+
+  DEFVAR_INT ("w32-ansi-code-page",
+	      w32_ansi_code_page,
+	      doc: /* The ANSI code page used by the system.  */);
+  w32_ansi_code_page = GetACP ();
+
+  if (os_subtype == OS_NT)
+    w32_unicode_gui = 1;
+  else
+    w32_unicode_gui = 0;
+
+  /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
+  InitCommonControls ();
+
+  syms_of_w32uniscribe ();
 }
 
 #ifdef NTGUI_UNICODE

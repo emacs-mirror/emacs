@@ -1,3 +1,14 @@
+2013-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve reporting of fatal exception on MS-Windows.
+	* w32fns.c (my_exception_handler): New function.
+	(globals_of_w32fns): Set it up as the unhandled exception
+	handler.  Initialize exception code and address to zeros.
+	(emacs_abort): If the exception code and address are available,
+	print them at the beginning of the backtrace.  Fix the format of
+	printing addresses (was producing 0x0x12345678 on XP).
+	(Bug#15994)
+
 2013-12-02  Helmut Eller  <eller.helmut@gmail.com>
 
 	* eval.c (Fbacktrace__locals): New function.
