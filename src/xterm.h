@@ -812,10 +812,6 @@ struct scroll_bar
   /* Last scroll bar part seen in xaw_jump_callback and xaw_scroll_callback.  */
   enum scroll_bar_part last_seen_part;
 #endif
-
-  /* 1 if the background of the fringe that is adjacent to a scroll
-     bar is extended to the gap between the fringe and the bar.  */
-  unsigned fringe_extended_p : 1;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */

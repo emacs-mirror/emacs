@@ -1,3 +1,14 @@
+2013-12-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.h (struct scroll_bar): Remove member `fringe_extended_p'.
+
+	* xterm.c (x_draw_fringe_bitmap, x_scroll_run): Remove code for
+	fringe background extension.
+	(x_scroll_bar_create): Remove variables `sb_left' and `sb_width',
+	because they are now always the same as `left' and `width',
+	respectively.  Remove code for the case that `width' and
+	`sb_width' are different.
+
 2013-12-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
