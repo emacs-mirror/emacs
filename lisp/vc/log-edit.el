@@ -483,9 +483,10 @@ commands (under C-x v for VC, for example).
     ;; FIXME: Should use something like `quit-windows-on' here, but
     ;; that function never deletes this buffer's window because it
     ;; was created using `cvs-pop-to-buffer-same-frame'.
-    (let ((win (get-buffer-window buf where)))
-      (if win (ignore-errors (delete-window win))))
-    (bury-buffer buf)))
+    (save-selected-window
+      (let ((win (get-buffer-window buf where)))
+        (if win (ignore-errors (delete-window win))))
+      (bury-buffer buf))))
 
 (defun log-edit-add-new-comment (comment)
   (when (or (ring-empty-p log-edit-comment-ring)
@@ -545,8 +546,7 @@ Also saves its contents in the comment history and hides
 `log-edit-files-buf'."
   (interactive)
   (log-edit-add-new-comment (buffer-string))
-  (save-selected-window
-    (log-edit-hide-buf))
+  (log-edit-hide-buf)
   (let ((buf (current-buffer)))
     (quit-windows-on buf)
     (kill-buffer buf)))
@@ -604,6 +604,7 @@ Also saves its contents in the comment history and hides
       (save-selected-window
 	(cvs-pop-to-buffer-same-frame buf)
 	(shrink-window-if-larger-than-buffer)
+        (set-window-dedicated-p (selected-window) t)
 	(selected-window)))))
 
 (defun log-edit-beginning-of-line (&optional n)

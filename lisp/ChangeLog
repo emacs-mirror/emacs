@@ -1,5 +1,12 @@
 2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* vc/log-edit.el (log-edit-kill-buffer): Move the use of
+	`save-selected-window' to `log-edit-hide-buf'.  This makes
+	`log-edit-show-files' idempotent.
+	(log-edit-show-files): Mark the new window as dedicated.
+
+2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
+
 	* vc/log-edit.el (log-edit-mode-map): Add binding for
 	`log-edit-kill-biffer'.
 	(log-edit-hide-buf): Add a FIXME comment.
