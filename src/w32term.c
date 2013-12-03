@@ -52,6 +52,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #ifdef WINDOWSNT
+#include "w32.h"	/* for filename_from_utf16, filename_from_ansi */
 #include "w32heap.h"
 #endif
 
@@ -3099,7 +3100,14 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
   HDROP hdrop;
   POINT p;
   WORD num_files;
-  guichar_t *name;
+  wchar_t name_w[MAX_PATH];
+#ifdef NTGUI_UNICODE
+  const int use_unicode = 1;
+#else
+  int use_unicode = w32_unicode_filenames;
+  char name_a[MAX_PATH];
+  char file[MAX_UTF8_PATH];
+#endif
   int i, len;
 
   result->kind = DRAG_N_DROP_EVENT;
@@ -3124,17 +3132,34 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 
   for (i = 0; i < num_files; i++)
     {
-      len = GUI_FN (DragQueryFile) (hdrop, i, NULL, 0);
-      if (len <= 0)
-	continue;
-
-      name = alloca ((len + 1) * sizeof (*name));
-      GUI_FN (DragQueryFile) (hdrop, i, name, len + 1);
+      /* FIXME: In the native w32 build, the Unicode branch works only
+	 for file names that can be expressed in the current ANSI
+	 codepage; the characters not supported by that codepage get
+	 replaced with blanks.  I don't know why this happens.  */
+      if (use_unicode)
+	{
+	  eassert (DragQueryFileW (hdrop, i, NULL, 0) < MAX_PATH);
+	  /* If DragQueryFile returns zero, it failed to fetch a file
+	     name.  */
+	  if (DragQueryFileW (hdrop, i, name_w, MAX_PATH) == 0)
+	    continue;
 #ifdef NTGUI_UNICODE
-      files = Fcons (from_unicode_buffer (name), files);
+	  files = Fcons (from_unicode_buffer (name_w), files);
 #else
-      files = Fcons (DECODE_FILE (build_string (name)), files);
+	  filename_from_utf16 (name_w, file);
+	  files = Fcons (DECODE_FILE (build_unibyte_string (file)), files);
 #endif /* NTGUI_UNICODE */
+	}
+#ifndef NTGUI_UNICODE
+      else
+	{
+	  eassert (DragQueryFileA (hdrop, i, NULL, 0) < MAX_PATH);
+	  if (DragQueryFileA (hdrop, i, name_a, MAX_PATH) == 0)
+	    continue;
+	  filename_from_ansi (name_a, file);
+	  files = Fcons (DECODE_FILE (build_unibyte_string (file)), files);
+	}
+#endif
     }
 
   DragFinish (hdrop);
