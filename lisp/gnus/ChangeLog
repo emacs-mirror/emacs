@@ -1,4 +1,4 @@
-2013-12-03  Vitalie Spinu  <spinuvit@gmail.com>  (tiny change)
+2013-12-03  Vitalie Spinu  <spinuvit@gmail.com>
 
 	* message.el (message-send-mail-with-sendmail):
 	Don't kill error buffer if sending fails.
