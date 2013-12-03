@@ -1,3 +1,11 @@
+2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor integer overflow fixes (Bug#16033).
+	* window.c (Fset_window_new_pixel): Don't let new_pixel go negative.
+	This improves on the previous fix to this function.
+	(window_resize_check): When summing up pixel counts, don't rely on
+	undefined behavior if the sum overflows.
+
 2013-12-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_new_pixel): Don't choke at negative

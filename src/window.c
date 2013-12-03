@@ -3646,10 +3646,8 @@ Note: This function does not operate on any child windows of WINDOW.  */)
   (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
   struct window *w = decode_valid_window (window);
-  EMACS_INT size_min = (max (INT_MIN, MOST_NEGATIVE_FIXNUM)
-			+ (NILP (add) ? 0 : XINT (w->new_pixel)));
-  EMACS_INT size_max = (min (INT_MAX, MOST_POSITIVE_FIXNUM)
-			- (NILP (add) ? 0 : XINT (w->new_pixel)));
+  EMACS_INT size_min = NILP (add) ? 0 : - XINT (w->new_pixel);
+  EMACS_INT size_max = size_min + min (INT_MAX, MOST_POSITIVE_FIXNUM);
 
   CHECK_RANGED_INTEGER (size, size_min, size_max);
   if (NILP (add))
@@ -3729,18 +3727,20 @@ window_resize_check (struct window *w, bool horflag)
 	/* The sum of the heights of the child windows of W must equal
 	   W's height.  */
 	{
-	  int sum_of_pixels = 0;
+	  int remaining_pixels = XINT (w->new_pixel);
 
 	  while (c)
 	    {
 	      if (!window_resize_check (c, horflag))
 		return 0;
 
-	      sum_of_pixels = sum_of_pixels + XINT (c->new_pixel);
+	      remaining_pixels -= XINT (c->new_pixel);
+	      if (remaining_pixels < 0)
+		return 0;
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	    }
 
-	  return (sum_of_pixels == XINT (w->new_pixel));
+	  return remaining_pixels == 0;
 	}
     }
   else if (WINDOW_HORIZONTAL_COMBINATION_P (w))
@@ -3751,18 +3751,20 @@ window_resize_check (struct window *w, bool horflag)
 	/* The sum of the widths of the child windows of W must equal W's
 	   width.  */
 	{
-	  int sum_of_pixels = 0;
+	  int remaining_pixels = XINT (w->new_pixel);
 
 	  while (c)
 	    {
 	      if (!window_resize_check (c, horflag))
 		return 0;
 
-	      sum_of_pixels = sum_of_pixels + XINT (c->new_pixel);
+	      remaining_pixels -= XINT (c->new_pixel);
+	      if (remaining_pixels < 0)
+		return 0;
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	    }
 
-	  return (sum_of_pixels == XINT (w->new_pixel));
+	  return remaining_pixels == 0;
 	}
       else
 	/* All child windows of W must have the same height as W.  */
