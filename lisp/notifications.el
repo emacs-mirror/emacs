@@ -349,7 +349,7 @@ BUS can be a string denoting a D-Bus connection, the default is `:session'."
                     notifications-path
                     notifications-interface
                     notifications-close-notification-method
-                    :int32 id))
+                    :uint32 id))
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
 
