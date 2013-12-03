@@ -1,3 +1,8 @@
+2013-12-03  Vitalie Spinu  <spinuvit@gmail.com>  (tiny change)
+
+	* message.el (message-send-mail-with-sendmail):
+	Don't kill error buffer if sending fails.
+
 2013-11-28  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event-from-ical)

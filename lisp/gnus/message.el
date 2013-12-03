@@ -4739,7 +4739,9 @@ that instead."
 			    (list resend-to-addresses)
 			  '("-t"))))))
 	    (unless (or (null cpr) (and (numberp cpr) (zerop cpr)))
-              (if errbuf (pop-to-buffer errbuf))
+	      (when errbuf
+		(pop-to-buffer errbuf)
+		(setq errbuf nil))
 	      (error "Sending...failed with exit value %d" cpr)))
 	  (when message-interactive
 	    (with-current-buffer errbuf
