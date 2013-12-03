@@ -952,7 +952,9 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   /* Must resize our top level widget.  Font size may have changed,
      but not rows/cols.  */
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                     pixelwidth, pixelheight);
+                     pixelwidth + FRAME_TOOLBAR_WIDTH (f),
+		     pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+		     + FRAME_MENUBAR_HEIGHT (f));
   x_wm_set_size_hint (f, 0, 0);
 
   SET_FRAME_GARBAGED (f);
