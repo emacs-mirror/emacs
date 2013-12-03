@@ -2135,6 +2135,36 @@ w32_get_short_filename (char * name, char * buf, int size)
     }
 }
 
+/* Re-encode FILENAME, a UTF-8 encoded unibyte string, using the
+   MS-Windows ANSI codepage.  If FILENAME includes characters not
+   supported by the ANSI codepage, return the 8+3 alias of FILENAME,
+   if it exists.  This is needed because the w32 build wants to
+   support file names outside of the system locale, but image
+   libraries typically don't support wide (a.k.a. "Unicode") APIs
+   required for that.  */
+
+Lisp_Object
+ansi_encode_filename (Lisp_Object filename)
+{
+  Lisp_Object encoded_filename;
+  char fname[MAX_PATH];
+
+  filename_to_ansi (SSDATA (filename), fname);
+  if (_mbspbrk (fname, "?"))
+    {
+      char shortname[MAX_PATH];
+
+      if (w32_get_short_filename (SDATA (filename), shortname, MAX_PATH))
+	{
+	  dostounix_filename (shortname);
+	  encoded_filename = build_string (shortname);
+	}
+    }
+  else
+    encoded_filename = build_unibyte_string (fname);
+  return encoded_filename;
+}
+
 static int
 is_unc_volume (const char *filename)
 {

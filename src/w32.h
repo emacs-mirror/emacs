@@ -184,6 +184,7 @@ extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern Lisp_Object ansi_encode_filename (Lisp_Object);
 
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
