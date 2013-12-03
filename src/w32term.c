@@ -3132,10 +3132,6 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 
   for (i = 0; i < num_files; i++)
     {
-      /* FIXME: In the native w32 build, the Unicode branch works only
-	 for file names that can be expressed in the current ANSI
-	 codepage; the characters not supported by that codepage get
-	 replaced with blanks.  I don't know why this happens.  */
       if (use_unicode)
 	{
 	  eassert (DragQueryFileW (hdrop, i, NULL, 0) < MAX_PATH);
