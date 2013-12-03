@@ -680,7 +680,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
-      CHECK_NUMBER (Vx_window_horizontal_drag_shape);
+      CHECK_TYPE_RANGED_INTEGER (unsigned, Vx_window_horizontal_drag_shape);
       horizontal_drag_cursor
 	= XCreateFontCursor (dpy, XINT (Vx_window_horizontal_drag_shape));
     }

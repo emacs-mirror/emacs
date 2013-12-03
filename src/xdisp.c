@@ -9567,7 +9567,7 @@ include the height of any of these lines in the return value.  */)
   if (!NILP (y_limit))
     {
       CHECK_NUMBER (y_limit);
-      max_y = XINT (y_limit);
+      max_y = min (XINT (y_limit), INT_MAX);
     }
 
   itdata = bidi_shelve_cache ();
@@ -9580,7 +9580,7 @@ include the height of any of these lines in the return value.  */)
   else
     {
       CHECK_NUMBER (x_limit);
-      it.last_visible_x = XINT (x_limit);
+      it.last_visible_x = min (XINT (x_limit), INFINITY);
       /* Actually, we never want move_it_to stop at to_x.  But to make
 	 sure that move_it_in_display_line_to always moves far enough,
 	 we set it to INT_MAX and specify MOVE_TO_X.  */

@@ -3646,8 +3646,10 @@ Note: This function does not operate on any child windows of WINDOW.  */)
   (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
   struct window *w = decode_valid_window (window);
+  EMACS_INT size_max = (min (INT_MAX, MOST_POSITIVE_FIXNUM)
+			- (NILP (add) ? 0 : XINT (w->new_pixel)));
 
-  CHECK_NUMBER (size);
+  CHECK_RANGED_INTEGER (size, 0, size_max);
   if (NILP (add))
     wset_new_pixel (w, size);
   else
@@ -4556,12 +4558,14 @@ grow_mini_window (struct window *w, int delta, bool pixelwise)
 
 	  if (pixelwise)
 	    {
-	      pixel_height = -XINT (height);
+	      pixel_height = min (-XINT (height), INT_MAX - w->pixel_height);
 	      line_height = pixel_height / FRAME_LINE_HEIGHT (f);
 	    }
 	  else
 	    {
-	      line_height = -XINT (height);
+	      line_height = min (-XINT (height),
+				 ((INT_MAX - w->pixel_height)
+				  / FRAME_LINE_HEIGHT (f)));
 	      pixel_height = line_height * FRAME_LINE_HEIGHT (f);
 	    }
 

@@ -1,3 +1,12 @@
+2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor integer overflow fixes.
+	* window.c (Fset_window_new_pixel, grow_mini_window):
+	* xdisp.c (Fwindow_text_pixel_size):
+	Avoid undefined behavior on signed integer overflow.
+	* xfns.c (x_set_mouse_color):
+	Check that drag shape fits in 'unsigned', since that's what X wants.
+
 2013-12-02  Eli Zaretskii  <eliz@gnu.org>
 
 	Improve reporting of fatal exception on MS-Windows.
