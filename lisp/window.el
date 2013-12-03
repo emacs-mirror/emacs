@@ -5851,13 +5851,8 @@ This is a list of elements (CONDITION . ACTION), where:
 
 `display-buffer' scans this alist until it either finds a
 matching regular expression or the function specified by a
-condition returns non-nil.  It can pass (no-display-ok . t) in
-its action alist to indicate readiness for the case of not
-displaying the buffer and FUNCTION can safely return a non-window
-value to suppress displaying.
-
-In any of these cases, it adds the associated action to the list
-of actions it will try."
+condition returns non-nil.  In any of these cases, it adds the
+associated action to the list of actions it will try."
   :type `(alist :key-type
 		(choice :tag "Condition"
 			regexp
@@ -5939,8 +5934,9 @@ ALIST is an arbitrary association list (alist).
 Each such FUNCTION should accept two arguments: the buffer to
 display and an alist.  Based on those arguments, it should
 display the buffer and return the window.  If the caller is
-prepared to handle the case of not displaying the buffer it
-should pass (no-display-ok . t) as an element of the ALIST.
+prepared to handle the case of not displaying the buffer
+and returning nil from `display-buffer' it should pass
+\(allow-no-window . t) as an element of the ALIST.
 
 The `display-buffer' function builds a function list and an alist
 by combining the functions and alists specified in
@@ -5994,6 +5990,10 @@ Recognized alist entries include:
     frame's root window) or a function to be called with one
     argument - a new window.  The function is supposed to adjust
     the width of the window; its return value is ignored.
+
+ `allow-no-window' -- A non-nil value indicates readiness for the case
+    of not displaying the buffer and FUNCTION can safely return
+    a non-window value to suppress displaying.
 
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
@@ -6336,6 +6336,16 @@ that frame."
 	(window--even-window-heights window)
 	(unless (cdr (assq 'inhibit-switch-frame alist))
 	  (window--maybe-raise-frame (window-frame window)))))))
+
+(defun display-buffer-no-window (buffer alist)
+  "Display BUFFER in no window.
+If ALIST has a non-nil `allow-no-window' entry, then don't display
+a window at all.  This makes possible to override the default action
+and avoid displaying the buffer.  It is assumed that when the caller
+specifies a non-nil `allow-no-window' then it can handle a nil value
+returned from `display-buffer' in this case."
+  (when (cdr (assq 'allow-no-window alist))
+    'fail))
 
 ;;; Display + selection commands:
 (defun pop-to-buffer (buffer &optional action norecord)

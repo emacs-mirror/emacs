@@ -2640,6 +2640,12 @@ to execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
 That buffer is in shell mode.
 
+You can configure `async-shell-command-buffer' to specify what to do in
+case when `*Async Shell Command*' buffer is already taken by another
+running shell command.  To run COMMAND without displaying the output
+in a window you can configure `display-buffer-alist' to use the action
+`display-buffer-no-window' for the buffer `*Async Shell Command*'.
+
 In Elisp, you will often be better served by calling `start-process'
 directly, since it offers more control and does not impose the use of a
 shell (with its need to quote arguments)."
@@ -2826,7 +2832,7 @@ the use of a shell (with its need to quote arguments)."
 		  ;; which comint sometimes adds for prompts.
 		  (let ((inhibit-read-only t))
 		    (erase-buffer))
-		  (display-buffer buffer)
+		  (display-buffer buffer '(nil (allow-no-window . t)))
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer shell-file-name
 					    shell-command-switch command))

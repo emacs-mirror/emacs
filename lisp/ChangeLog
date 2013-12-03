@@ -1,3 +1,15 @@
+2013-12-03  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Rename window alist
+	entry `no-display-ok' to `allow-no-window'.
+
+	* simple.el (shell-command): Add window alist entry
+	`allow-no-window' to `display-buffer'.
+	(async-shell-command): Doc fix.
+
+	* window.el (display-buffer-no-window): New action function.
+	(display-buffer-alist, display-buffer): Doc fix.  (Bug#13594)
+
 2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/log-edit.el (log-edit-set-header): Extract from
@@ -537,7 +549,8 @@
 	(Bug#13594)
 
 	* window.el (display-buffer-alist, display-buffer): Document the
-	new parameter no-display-ok.
+	new parameter no-display-ok.  Return either a window or nil
+	but never a non-window value.
 
 2013-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 

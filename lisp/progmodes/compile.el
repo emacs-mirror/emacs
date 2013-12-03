@@ -1632,7 +1632,7 @@ Returns the compilation buffer created."
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.
     ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01638.html
-    (setq outwin (display-buffer outbuf '(nil (no-display-ok . t))))
+    (setq outwin (display-buffer outbuf '(nil (allow-no-window . t))))
     (with-current-buffer outbuf
       (let ((process-environment
 	     (append
@@ -2513,7 +2513,7 @@ and overlay is highlighted between MK and END-MK."
                 ;; the error location if the two buffers are in two
                 ;; different frames.  So don't do it if it's not necessary.
                 pre-existing
-	      (display-buffer (marker-buffer msg) '(nil (no-display-ok . t)))))
+	      (display-buffer (marker-buffer msg) '(nil (allow-no-window . t)))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer
 			     (goto-char (marker-position msg))
@@ -2635,7 +2635,7 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
       (save-excursion            ;This save-excursion is probably not right.
         (let ((w (let ((pop-up-windows t))
 		   (display-buffer (marker-buffer marker)
-				   '(nil (no-display-ok . t))))))
+				   '(nil (allow-no-window . t))))))
           (with-current-buffer (marker-buffer marker)
 	    (goto-char marker)
 	    (and w (compilation-set-window w marker)))

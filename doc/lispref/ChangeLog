@@ -1,3 +1,8 @@
+2013-12-03  Juri Linkov  <juri@jurta.org>
+
+	* windows.texi (Choosing Window): Rename `no-display-ok' to
+	`allow-no-window'.  (Bug#13594)
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (distclean): Remove Makefile.

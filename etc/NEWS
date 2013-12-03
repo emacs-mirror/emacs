@@ -1848,9 +1848,12 @@ reused.
 *** New option `switch-to-buffer-preserve-window-point' to restore a
 window's point when switching buffers.
 
-*** New display action alist entry `no-display-ok' to indicate the
+*** New display action function `display-buffer-no-window' to not
+display the buffer in a window.
+
+*** New display action alist entry `allow-no-window' to indicate the
 caller of `display-buffer' is ready to handle the case of not
-displaying the buffer.
+displaying the buffer in a window.
 
 *** New display action alist entries `window-height' and `window-width'
 specify the size of new windows created by `display-buffer'.
