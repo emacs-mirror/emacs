@@ -1,3 +1,7 @@
+2013-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/eww.el (eww-render): Don't pass arg to eww-display-image.
+
 2013-12-03  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-start): Rename window alist
