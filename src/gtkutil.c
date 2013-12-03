@@ -940,25 +940,11 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
 void
 xg_frame_set_char_size (struct frame *f, int width, int height)
 {
-  int pixelwidth;
+  int pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
   int pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
 
   if (FRAME_PIXEL_HEIGHT (f) == 0)
     return;
-
-  /* Take into account the size of the scroll bar.  Always use the
-     number of columns occupied by the scroll bar here otherwise we
-     might end up with a frame width that is not a multiple of the
-     frame's character width which is bad for vertically split
-     windows.  */
-  f->scroll_bar_actual_width
-    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
-
-  compute_fringe_widths (f, 0);
-
-  /* FRAME_TEXT_COLS_TO_PIXEL_WIDTH uses scroll_bar_actual_width, so call it
-     after calculating that value.  */
-  pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
 
   /* Do this before resize, as we don't know yet if we will be resized.  */
   xg_clear_under_internal_border (f);
@@ -987,11 +973,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       x_wait_for_event (f, ConfigureNotify);
     }
   else
-    {
-      change_frame_size (f, width, height, 0, 1, 0, 1);
-      FRAME_PIXEL_WIDTH (f) = pixelwidth;
-      FRAME_PIXEL_HEIGHT (f) = pixelheight;
-     }
+    change_frame_size (f, width, height, 0, 1, 0, 1);
 }
 
 /* Handle height/width changes (i.e. add/remove/move menu/toolbar).
@@ -1095,7 +1077,7 @@ style_changed_cb (GObject *go,
               && FRAME_X_DISPLAY (f) == dpy)
             {
               x_set_scroll_bar_default_width (f);
-              xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
+              xg_frame_set_char_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f));
             }
         }
     }

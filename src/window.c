@@ -3646,10 +3646,12 @@ Note: This function does not operate on any child windows of WINDOW.  */)
   (Lisp_Object window, Lisp_Object size, Lisp_Object add)
 {
   struct window *w = decode_valid_window (window);
+  EMACS_INT size_min = (max (INT_MIN, MOST_NEGATIVE_FIXNUM)
+			+ (NILP (add) ? 0 : XINT (w->new_pixel)));
   EMACS_INT size_max = (min (INT_MAX, MOST_POSITIVE_FIXNUM)
 			- (NILP (add) ? 0 : XINT (w->new_pixel)));
 
-  CHECK_RANGED_INTEGER (size, 0, size_max);
+  CHECK_RANGED_INTEGER (size, size_min, size_max);
   if (NILP (add))
     wset_new_pixel (w, size);
   else

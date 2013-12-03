@@ -8610,6 +8610,8 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 {
   block_input ();
 
+  check_frame_size (f, &width, &height, pixelwise);
+
   if (NILP (tip_frame) || XFRAME (tip_frame) != f)
     {
       int text_width, text_height;
@@ -8636,14 +8638,20 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
       change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
     }
 
+  if (! pixelwise)
+    {
+      width = width * FRAME_COLUMN_WIDTH (f);
+      height = height * FRAME_LINE_HEIGHT (f);
+    }
+
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))
     xg_frame_set_char_size (f, width, height);
   else
-    x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
+    x_set_window_size_1 (f, change_gravity, width, height, 1);
 #else /* not USE_GTK */
 
-  x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
+  x_set_window_size_1 (f, change_gravity, width, height, 1);
 
 #endif /* not USE_GTK */
 

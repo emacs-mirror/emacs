@@ -1,3 +1,16 @@
+2013-12-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_new_pixel): Don't choke at negative
+	argument value (Bug#16033).
+
+	* xfns.c (Fx_create_frame): Add another call to change_frame_size
+	to avoid crash in window_box_height.
+
+	* gtkutil.h: Fix external declaration of xg_frame_set_char_size.
+	* gtkutil.c (xg_frame_set_char_size, style_changed_cb): Fix size
+	calculation.
+	* xterm.c (x_set_window_size): Fix size calculation (Bug#16013).
+
 2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor integer overflow fixes.

@@ -139,7 +139,7 @@ extern void xg_change_toolbar_position (struct frame *f, Lisp_Object pos);
 extern void xg_frame_resized (struct frame *f,
                               int pixelwidth,
                               int pixelheight);
-extern void xg_frame_set_char_size (struct frame *f, int cols, int rows);
+extern void xg_frame_set_char_size (struct frame *f, int width, int height);
 extern GtkWidget * xg_win_to_widget (Display *dpy, Window wdesc);
 
 extern void xg_display_open (char *display_name, Display **dpy);
