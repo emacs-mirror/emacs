@@ -55,7 +55,7 @@ static Lisp_Object pending_boundary;
 static void
 record_point (ptrdiff_t pt)
 {
-  int at_boundary;
+  bool at_boundary;
 
   /* Don't record position of pt when undo_inhibit_record_point holds.  */
   if (undo_inhibit_record_point)
@@ -77,7 +77,7 @@ record_point (ptrdiff_t pt)
 
   if (CONSP (BVAR (current_buffer, undo_list)))
     {
-      /* Set AT_BOUNDARY to 1 only when we have nothing other than
+      /* Set AT_BOUNDARY only when we have nothing other than
          marker adjustment before undo boundary.  */
 
       Lisp_Object tail = BVAR (current_buffer, undo_list), elt;
@@ -244,7 +244,7 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
 {
   Lisp_Object lbeg, lend, entry;
   struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
-  int boundary = 0;
+  bool boundary = 0;
 
   if (EQ (BVAR (buf, undo_list), Qt))
     return;

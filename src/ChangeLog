@@ -1,5 +1,10 @@
 2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use bool for boolean.
+	* tparam.c (tparam1):
+	* undo.c (record_point, record_property_change):
+	Use bool for boolean, for local vars that are always true or false.
+
 	Minor integer overflow fixes (Bug#16033).
 	* window.c (Fset_window_new_pixel): Don't let new_pixel go negative.
 	This improves on the previous fix to this function.
