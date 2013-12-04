@@ -4443,6 +4443,20 @@ extern void *record_xmalloc (size_t);
       memory_full (SIZE_MAX);				       \
   } while (0)
 
+/* Loop over all tails of a list, checking for cycles.
+   FIXME: Make tortoise and n internal declarations.
+   FIXME: Unroll the loop body so we don't need `n'.  */
+#define FOR_EACH_TAIL(hare, list, tortoise, n)	\
+  for (tortoise = hare = (list), n = true;			\
+       CONSP (hare);						\
+       (hare = XCDR (hare), n = !n,				\
+   	(n							\
+   	 ? ((EQ (hare, tortoise)				\
+	     && (xsignal1 (Qcircular_list, (list)), 0)))	\
+	 /* Move tortoise before the next iteration, in case */ \
+	 /* the next iteration does an Fsetcdr.  */		\
+   	 : (tortoise = XCDR (tortoise), 0))))
+
 /* Do a `for' loop over alist values.  */
 
 #define FOR_EACH_ALIST_VALUE(head_var, list_var, value_var)		\

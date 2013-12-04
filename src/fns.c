@@ -1537,15 +1537,12 @@ Write `(setq foo (delq element foo))' to be sure of correctly changing
 the value of a list `foo'.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
-  register Lisp_Object tail, prev;
-  register Lisp_Object tem;
+  Lisp_Object tail, tortoise, prev = Qnil;
+  bool skip;
 
-  tail = list;
-  prev = Qnil;
-  while (CONSP (tail))
+  FOR_EACH_TAIL (tail, list, tortoise, skip)
     {
-      CHECK_LIST_CONS (tail, list);
-      tem = XCAR (tail);
+      Lisp_Object tem = XCAR (tail);
       if (EQ (elt, tem))
 	{
 	  if (NILP (prev))
@@ -1555,8 +1552,6 @@ the value of a list `foo'.  */)
 	}
       else
 	prev = tail;
-      tail = XCDR (tail);
-      QUIT;
     }
   return list;
 }
