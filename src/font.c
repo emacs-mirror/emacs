@@ -2718,7 +2718,7 @@ font_list_entities (struct frame *f, Lisp_Object spec)
   ASET (scratch_font_spec, FONT_SPACING_INDEX, AREF (spec, FONT_SPACING_INDEX));
   ASET (scratch_font_spec, FONT_EXTRA_INDEX, AREF (spec, FONT_EXTRA_INDEX));
 
-  for (i = 0; driver_list; driver_list = driver_list->next)
+  for (; driver_list; driver_list = driver_list->next)
     if (driver_list->on
 	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {

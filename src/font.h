@@ -312,6 +312,10 @@ struct font
   /* Ascent and descent of the font (in pixels).  */
   int ascent, descent;
 
+  /* The following members makes sense on graphic displays only.  */
+
+#if defined (HAVE_WINDOW_SYSTEM)
+
   /* Vertical pixel width of the underline.  If is zero if that
      information is not in the font.  */
   int underline_thickness;
@@ -374,12 +378,6 @@ struct font
      registered in char-table `use-default-ascent'.  */
   int default_ascent;
 
-  /* CCL program to calculate code points of the font.  */
-  struct ccl_program *font_encoder;
-
-  /* Font-driver for the font.  */
-  struct font_driver *driver;
-
   /* Charset to encode a character code into a glyph code of the font.
      -1 means that the font doesn't require this information to encode
      a character.  */
@@ -389,6 +387,11 @@ struct font
      -1 means that the contents of the font must be looked up to
      determine it.  */
   int repertory_charset;
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
+  /* Font-driver for the font.  */
+  struct font_driver *driver;
 
   /* There are more members in this structure, but they are private
      to the font-driver.  */

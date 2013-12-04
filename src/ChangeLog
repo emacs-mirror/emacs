@@ -1,3 +1,11 @@
+2013-12-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_list_entities): Remove dummy assignment.
+	* font.h (struct font) [HAVE_WINDOW_SYSTEM]: Group members which are
+	used on graphic displays only.  Remove unused 'font_encoder' member.
+	* nsfont.m (nsfont_open):
+	* w32font.c (w32font_open_internal): Adjust users.
+
 2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool for boolean.

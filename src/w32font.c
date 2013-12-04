@@ -1012,7 +1012,6 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
   font->baseline_offset = 0;
   font->relative_compose = 0;
   font->default_ascent = w32_font->metrics.tmAscent;
-  font->font_encoder = NULL;
   font->pixel_size = size;
   font->driver = &w32font_driver;
   /* Use format cached during list, as the information we have access to
