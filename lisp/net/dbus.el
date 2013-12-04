@@ -829,8 +829,15 @@ STRING shall be UTF8 coded."
 
 (defun dbus-byte-array-to-string (byte-array)
   "Transforms BYTE-ARRAY into UTF8 coded string.
-BYTE-ARRAY must be a list of structure (c1 c2 ...)."
-  (apply 'string byte-array))
+BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte
+array as produced by `dbus-string-to-byte-array'."
+  (apply
+   'string
+   (if (equal byte-array '(:array :signature "y"))
+       nil
+     (let (result)
+       (dolist (elt byte-array result)
+	 (when (characterp elt) (setq result (append result `(,elt)))))))))
 
 (defun dbus-escape-as-identifier (string)
   "Escape an arbitrary STRING so it follows the rules for a C identifier.
@@ -863,7 +870,7 @@ STRING must have been coded with `dbus-escape-as-identifier'"
       ""
     (replace-regexp-in-string
      "_.."
-     (lambda (x) (format "%c" (string-to-number (substring x 1) 16)))
+     (lambda (x) (byte-to-string (string-to-number (substring x 1) 16)))
      string)))
 
 

@@ -1,3 +1,10 @@
+2013-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-byte-array-to-string): Accept also byte arrays
+	in D-Bus type syntax.
+	(dbus-unescape-from-identifier): Use `byte-to-string' in order to
+	preserve unibyte strings.  (Bug#16048)
+
 2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eldoc.el (eldoc-minibuffer-message):
@@ -21,7 +28,7 @@
 2013-12-03  Tom Regner <tom@goochesa.de>  (tiny change)
 
 	* notifications.el (notifications-close-notification): Call the
-	D-Bus method with `id' being an `:uint32'.  (Bug#16030)
+	D-Bus method with ID being a `:uint32'.  (Bug#16030)
 
 2013-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
