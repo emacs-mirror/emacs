@@ -1,3 +1,8 @@
+2013-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* windmove.el (windmove-other-window-loc): Handle navigation
+	between windows (excluding the minibuffer window - Bug#16017).
+
 2013-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-byte-array-to-string): Accept also byte arrays
