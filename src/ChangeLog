@@ -1,3 +1,7 @@
+2013-12-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (LRM_CHAR, RLM_CHAR): Remove; no longer used.
+
 2013-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32xfns.c: Include window.h, to avoid a compiler warning.

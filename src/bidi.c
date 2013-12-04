@@ -67,9 +67,7 @@ static bool bidi_initialized = 0;
 
 static Lisp_Object bidi_type_table, bidi_mirror_table;
 
-#define LRM_CHAR   0x200E
-#define RLM_CHAR   0x200F
-#define BIDI_EOB   -1
+#define BIDI_EOB   (-1)
 
 /* Data type for describing the bidirectional character categories.  */
 typedef enum {
