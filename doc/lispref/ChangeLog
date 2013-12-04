@@ -1,3 +1,8 @@
+2013-12-04  Juri Linkov  <juri@jurta.org>
+
+	* searching.texi (Search and Replace): Fix `unread-command-events'
+	and add ref.
+
 2013-12-03  Juri Linkov  <juri@jurta.org>
 
 	* windows.texi (Choosing Window): Rename `no-display-ok' to

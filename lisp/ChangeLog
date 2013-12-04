@@ -1,3 +1,8 @@
+2013-12-04  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode, isearch-done): Don't set arg LOCAL in
+	add-hook and remove-hook for multi-buffer search.  (Bug#16035)
+
 2013-12-03  Tom Regner <tom@goochesa.de>  (tiny change)
 
 	* notifications.el (notifications-close-notification): Call the

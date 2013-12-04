@@ -912,8 +912,8 @@ convert the search string to a regexp used by regexp search functions."
 
   (isearch-update)
 
-  (add-hook 'pre-command-hook 'isearch-pre-command-hook nil t)
-  (add-hook 'post-command-hook 'isearch-post-command-hook nil t)
+  (add-hook 'pre-command-hook 'isearch-pre-command-hook)
+  (add-hook 'post-command-hook 'isearch-post-command-hook)
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
 
@@ -992,8 +992,8 @@ NOPUSH is t and EDIT is t."
 	(unless (equal (car command-history) command)
 	  (setq command-history (cons command command-history)))))
 
-  (remove-hook 'pre-command-hook 'isearch-pre-command-hook t)
-  (remove-hook 'post-command-hook 'isearch-post-command-hook t)
+  (remove-hook 'pre-command-hook 'isearch-pre-command-hook)
+  (remove-hook 'post-command-hook 'isearch-post-command-hook)
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (setq isearch-lazy-highlight-start nil)
