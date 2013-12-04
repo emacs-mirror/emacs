@@ -261,7 +261,8 @@
 (require 'bytecomp)
 (require 'diminish nil t)
 
-(declare-function package-installed-p 'package)
+(when fboundp 'declare-function
+  (declare-function package-installed-p 'package))
 
 (defgroup use-package nil
   "A use-package declaration for simplifying your `.emacs'."
