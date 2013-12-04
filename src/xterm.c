@@ -2920,7 +2920,7 @@ XTflash (struct frame *f)
 #endif
     {
       /* Get the height not including a menu bar widget.  */
-      int height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+      int height = FRAME_PIXEL_HEIGHT (f);
       /* Height of each line to flash.  */
       int flash_height = FRAME_LINE_HEIGHT (f);
       /* These will be the left and right margins of the rectangles.  */

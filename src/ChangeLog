@@ -1,3 +1,8 @@
+2013-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* xterm.c (XTflash): Fix coordinate of bottom area to flash
+	(Bug#16044).
+
 2013-12-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (font_list_entities): Remove dummy assignment.
