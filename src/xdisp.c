@@ -620,7 +620,9 @@ redisplay_other_windows (void)
 void
 wset_redisplay (struct window *w)
 {
-  redisplay_other_windows ();
+  /* Beware: selected_window can be nil during early stages.  */
+  if (!EQ (make_lisp_ptr (w, Lisp_Vectorlike), selected_window))
+    redisplay_other_windows ();
   w->redisplay = true;
 }
 

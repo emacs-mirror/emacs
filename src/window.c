@@ -1683,7 +1683,7 @@ Return POS.  */)
       set_marker_restricted (w->pointm, pos, w->contents);
       /* We have to make sure that redisplay updates the window to show
 	 the new value of point.  */
-      windows_or_buffers_changed = 25;
+      wset_redisplay (w);
     }
 
   return pos;
@@ -1706,8 +1706,7 @@ overriding motion of point in order to display at this exact start.  */)
   w->update_mode_line = 1;
   /* Bug#15957.  */
   w->window_end_valid = 0;
-  if (w != XWINDOW (selected_window))
-    wset_redisplay (w);
+  wset_redisplay (w);
 
   return pos;
 }
@@ -2979,7 +2978,7 @@ window-start value is reasonable when this function is called.  */)
     }
   free_window_matrices (r);
 
-  windows_or_buffers_changed = 27;
+  fset_redisplay (f);
   Vwindow_list = Qnil;
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
   resize_failed = 0;
@@ -3364,7 +3363,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
     }
   /* Maybe we could move this into the `if' but it's not obviously safe and
      I doubt it's worth the trouble.  */
-  windows_or_buffers_changed = 28;
+  wset_redisplay (w);
 
   /* We must select BUFFER for running the window-scroll-functions.  */
   /* We can't check ! NILP (Vwindow_scroll_functions) here
@@ -3970,7 +3969,7 @@ be applied on the Elisp level.  */)
   block_input ();
   window_resize_apply (r, horflag);
 
-  windows_or_buffers_changed = 30;
+  fset_redisplay (f);
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
   adjust_frame_glyphs (f);
@@ -4148,7 +4147,7 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
 	}
     }
 
-  windows_or_buffers_changed = 31;
+  fset_redisplay (f);
 }
 
 
@@ -4250,7 +4249,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
 	error ("Sum of sizes of old and new window don't fit");
     }
 
-  /* This is our point of no return. */
+  /* This is our point of no return.  */
   if (combination_limit)
     {
       /* Save the old value of o->normal_cols/lines.  It gets corrupted
@@ -4275,7 +4274,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   else
     p = XWINDOW (o->parent);
 
-  windows_or_buffers_changed = 32;
+  fset_redisplay (f);
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
   new = make_window ();
   n = XWINDOW (new);
@@ -4439,7 +4438,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	    hlinfo->mouse_face_window = Qnil;
 	}
 
-      windows_or_buffers_changed = 33;
+      fset_redisplay (f);
       Vwindow_list = Qnil;
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
@@ -4662,7 +4661,7 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
       w->pixel_height = XFASTINT (w->new_pixel);
       w->pixel_top = r->pixel_top + r->pixel_height;
 
-      windows_or_buffers_changed = 36;
+      fset_redisplay (f);
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
       adjust_frame_glyphs (f);
       unblock_input ();
@@ -4731,6 +4730,8 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, int noerror)
 {
   immediate_quit = 1;
   n = clip_to_bounds (INT_MIN, n, INT_MAX);
+
+  wset_redisplay (XWINDOW (window));
 
   /* If we must, use the pixel-based version which is much slower than
      the line-based one but can handle varying line heights.  */
@@ -5283,9 +5284,6 @@ scroll_command (Lisp_Object n, int direction)
     {
       record_unwind_protect (save_excursion_restore, save_excursion_save ());
       Fset_buffer (XWINDOW (selected_window)->contents);
-
-      /* Make redisplay consider other windows than just selected_window.  */
-      windows_or_buffers_changed = 37;
     }
 
   if (NILP (n))
@@ -5395,7 +5393,6 @@ specifies the window to scroll.  This takes precedence over
 
   /* Don't screw up if window_scroll gets an error.  */
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
-  windows_or_buffers_changed = 38;
 
   Fset_buffer (w->contents);
   SET_PT_BOTH (marker_position (w->pointm), marker_byte_position (w->pointm));
@@ -6052,7 +6049,7 @@ the return value is nil.  Otherwise the value is t.  */)
 			   BUF_PT_BYTE (XBUFFER (w->contents)));
 	}
 
-      windows_or_buffers_changed = 39;
+      fset_redisplay (f);
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
 
       /* Problem: Freeing all matrices and later allocating them again
@@ -6597,7 +6594,7 @@ apply_window_adjustment (struct window *w)
   adjust_window_margins (w);
   clear_glyph_matrix (w->current_matrix);
   w->window_end_valid = 0;
-  windows_or_buffers_changed = 40;
+  wset_redisplay (w);
   adjust_frame_glyphs (XFRAME (WINDOW_FRAME (w)));
 }
 

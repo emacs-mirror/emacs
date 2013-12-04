@@ -1,3 +1,17 @@
+2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_scroll): Mark window for redisplay (bug#16034).
+	(scroll_command, Fscroll_other_window): Don't cause redisplay now that
+	window_scroll takes care of it.
+	(Fset_window_point, Fdelete_other_windows_internal)
+	(set_window_buffer, Fwindow_resize_apply, resize_frame_windows)
+	(Fsplit_window_internal, Fdelete_window_internal)
+	(Fresize_mini_window_internal, Fset_window_configuration)
+	(apply_window_adjustment): Use fset_redisplay and wset_redisplay to
+	cause redisplay instead of forcing a complete redisplay.
+	* xdisp.c (wset_redisplay): Don't set windows_or_buffers_changed if
+	we're only affecting the selected_window.
+
 2013-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_get_type, bidi_get_category): Handle the isolate
