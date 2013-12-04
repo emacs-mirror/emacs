@@ -1,3 +1,7 @@
+2013-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32xfns.c: Include window.h, to avoid a compiler warning.
+
 2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (window_scroll): Mark window for redisplay (bug#16034).
