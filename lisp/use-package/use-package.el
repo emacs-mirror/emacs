@@ -261,7 +261,7 @@
 (require 'bytecomp)
 (require 'diminish nil t)
 
-(when fboundp 'declare-function
+(when (fboundp 'declare-function)
   (declare-function package-installed-p 'package))
 
 (defgroup use-package nil
