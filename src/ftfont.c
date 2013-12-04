@@ -1478,7 +1478,6 @@ ftfont_get_bitmap (struct font *font, unsigned int code, struct font_bitmap *bit
   bitmap->left = ft_face->glyph->bitmap_left;
   bitmap->top = ft_face->glyph->bitmap_top;
   bitmap->advance = ft_face->glyph->metrics.horiAdvance >> 6;
-  bitmap->extra = NULL;
 
   return 0;
 }

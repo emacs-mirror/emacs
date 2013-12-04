@@ -420,7 +420,6 @@ struct font_bitmap
   int left;
   int top;
   int advance;
-  void *extra;
 };
 
 /* Predicates to check various font-related objects.  */

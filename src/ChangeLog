@@ -3,8 +3,10 @@
 	* font.c (font_list_entities): Remove dummy assignment.
 	* font.h (struct font) [HAVE_WINDOW_SYSTEM]: Group members which are
 	used on graphic displays only.  Remove unused 'font_encoder' member.
+	(struct font_bitmap): Remove unused 'extra' member.
 	* nsfont.m (nsfont_open):
-	* w32font.c (w32font_open_internal): Adjust users.
+	* w32font.c (w32font_open_internal):
+	* ftfont.c (ftfont_get_bitmap): Adjust users.
 
 2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
 
