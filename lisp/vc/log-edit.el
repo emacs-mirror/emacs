@@ -476,6 +476,7 @@ commands (under C-x v for VC, for example).
   (set (make-local-variable 'font-lock-defaults)
        '(log-edit-font-lock-keywords t))
   (make-local-variable 'log-edit-comment-ring-index)
+  (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
   (hack-dir-local-variables-non-file-buffer))
 
 (defun log-edit-hide-buf (&optional buf where)
@@ -488,7 +489,8 @@ commands (under C-x v for VC, for example).
         (if win (ignore-errors (delete-window win))))
       (bury-buffer buf))))
 
-(defun log-edit-add-new-comment (comment)
+(defun log-edit-remember-comment (&optional comment)
+  (unless comment (setq comment (buffer-string)))
   (when (or (ring-empty-p log-edit-comment-ring)
             (not (equal comment (ring-ref log-edit-comment-ring 0))))
     (ring-insert log-edit-comment-ring comment)))
@@ -524,7 +526,7 @@ If you want to abort the commit, simply delete the buffer."
       (save-excursion
 	(goto-char (point-max))
 	(insert ?\n)))
-  (log-edit-add-new-comment (buffer-string))
+  (log-edit-remember-comment)
   (let ((win (get-buffer-window log-edit-files-buf)))
     (if (and log-edit-confirm
 	     (not (and (eq log-edit-confirm 'changed)
@@ -545,7 +547,6 @@ If you want to abort the commit, simply delete the buffer."
 Also saves its contents in the comment history and hides
 `log-edit-files-buf'."
   (interactive)
-  (log-edit-add-new-comment (buffer-string))
   (log-edit-hide-buf)
   (let ((buf (current-buffer)))
     (quit-windows-on buf)
@@ -659,7 +660,7 @@ can thus take some time."
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
   (interactive)
-  (log-edit-add-new-comment (buffer-string))
+  (log-edit-remember-comment)
   (dolist (f (log-edit-files))
     (let ((buffer-file-name (expand-file-name f)))
       (save-excursion

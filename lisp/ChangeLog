@@ -1,3 +1,13 @@
+2013-12-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-add-new-comment): Rename to
+	`log-edit-remember-comment', make argument optional.  Adjust all
+	callers.
+	(log-edit-mode): Add `log-edit-remember-comment' to
+	`kill-buffer-hook' locally.
+	(log-edit-kill-buffer): Don't remember comment explicitly since
+	the buffer is killed anyway.
+
 2013-12-04  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode, isearch-done): Don't set arg LOCAL in
