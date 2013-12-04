@@ -1,3 +1,8 @@
+2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (select_window): Call second wset_redisplay before we change
+	selected_window (bug#16034).
+
 2013-12-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bidi.c (LRM_CHAR, RLM_CHAR): Remove; no longer used.

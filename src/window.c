@@ -487,11 +487,14 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     goto record_and_return;
 
   if (NILP (norecord))
-    /* Mark the window for redisplay since the selected-window has a different
-       mode-line.  */
-    wset_redisplay (XWINDOW (selected_window));
+    { /* Mark the window for redisplay since the selected-window has
+	 a different mode-line.  */
+      wset_redisplay (XWINDOW (selected_window));
+      wset_redisplay (w);
+    }
   else
     redisplay_other_windows ();
+
   sf = SELECTED_FRAME ();
   if (XFRAME (WINDOW_FRAME (w)) != sf)
     {
@@ -510,8 +513,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 
   select_window_1 (window, inhibit_point_swap);
   bset_last_selected_window (XBUFFER (w->contents), window);
-  if (NILP (norecord))
-    wset_redisplay (w);
 
  record_and_return:
   /* record_buffer can run QUIT, so make sure it is run only after we have
