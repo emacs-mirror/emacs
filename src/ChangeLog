@@ -1,3 +1,13 @@
+2013-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type, bidi_get_category): Handle the isolate
+	directional control characters.  Update type and category
+	determination according to the UBA from Unicode v6.3.
+	(bidi_category_t): New category EXPLICIT_FORMATTING.
+
+	* dispextern.h (bidi_type_t): Update to include new bidirectional
+	properties introduced with Unicode v6.3.  (Bug#16043)
+
 2013-12-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* xterm.c (XTflash): Fix coordinate of bottom area to flash

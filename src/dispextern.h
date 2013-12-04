@@ -1895,6 +1895,10 @@ typedef enum {
   RLE,		/* right-to-left embedding */
   RLO,		/* right-to-left override */
   PDF,		/* pop directional format */
+  LRI,		/* left-to-right isolate */
+  RLI,		/* right-to-left isolate */
+  FSI,		/* first strong isolate */
+  PDI,		/* pop directional isolate */
   WEAK_ES,	/* european number separator */
   WEAK_ET,	/* european number terminator */
   WEAK_CS,	/* common separator */

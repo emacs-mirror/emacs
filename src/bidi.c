@@ -76,7 +76,8 @@ typedef enum {
   UNKNOWN_BC,
   NEUTRAL,
   WEAK,
-  STRONG
+  STRONG,
+  EXPLICIT_FORMATTING
 } bidi_category_t;
 
 /* UAX#9 says to search only for L, AL, or R types of characters, and
@@ -115,13 +116,9 @@ bidi_get_type (int ch, bidi_dir_t override)
   if (default_type == UNKNOWN_BT)
     emacs_abort ();
 
-  if (override == NEUTRAL_DIR)
-    return default_type;
-
   switch (default_type)
     {
-      /* Although UAX#9 does not tell, it doesn't make sense to
-	 override NEUTRAL_B and LRM/RLM characters.  */
+      case WEAK_BN:
       case NEUTRAL_B:
       case LRE:
       case LRO:
@@ -129,20 +126,20 @@ bidi_get_type (int ch, bidi_dir_t override)
       case RLO:
       case PDF:
 	return default_type;
+	/* FIXME: The isolate controls are treated as BN until we add
+	   support for UBA v6.3.  */
+      case LRI:
+      case RLI:
+      case FSI:
+      case PDI:
+	return WEAK_BN;
       default:
-	switch (ch)
-	  {
-	    case LRM_CHAR:
-	    case RLM_CHAR:
-	      return default_type;
-	    default:
-	      if (override == L2R) /* X6 */
-		return STRONG_L;
-	      else if (override == R2L)
-		return STRONG_R;
-	      else
-		emacs_abort ();	/* can't happen: handled above */
-	  }
+	if (override == L2R)
+	  return STRONG_L;
+	else if (override == R2L)
+	  return STRONG_R;
+	else
+	  return default_type;
     }
 }
 
@@ -163,12 +160,7 @@ bidi_get_category (bidi_type_t type)
       case STRONG_L:
       case STRONG_R:
       case STRONG_AL:
-      case LRE:
-      case LRO:
-      case RLE:
-      case RLO:
 	return STRONG;
-      case PDF:		/* ??? really?? */
       case WEAK_EN:
       case WEAK_ES:
       case WEAK_ET:
@@ -176,12 +168,30 @@ bidi_get_category (bidi_type_t type)
       case WEAK_CS:
       case WEAK_NSM:
       case WEAK_BN:
+	/* FIXME */
+      case LRI:
+      case RLI:
+      case FSI:
+      case PDI:
 	return WEAK;
       case NEUTRAL_B:
       case NEUTRAL_S:
       case NEUTRAL_WS:
       case NEUTRAL_ON:
 	return NEUTRAL;
+      case LRE:
+      case LRO:
+      case RLE:
+      case RLO:
+      case PDF:
+#if 0
+	/* FIXME: This awaits implementation of isolate support.  */
+      case LRI:
+      case RLI:
+      case FSI:
+      case PDI:
+#endif
+	return EXPLICIT_FORMATTING;
       default:
 	emacs_abort ();
     }
