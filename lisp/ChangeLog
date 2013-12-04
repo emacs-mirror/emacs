@@ -1,3 +1,8 @@
+2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eldoc.el (eldoc-minibuffer-message):
+	Call force-mode-line-update is the proper buffer (bug#16042).
+
 2013-12-04  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/log-edit.el (log-edit-add-new-comment): Rename to
