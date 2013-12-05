@@ -1258,7 +1258,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows, bool pi
   if (view == nil)
     return;
 
-/*fprintf (stderr, "\tsetWindowSize: %d x %d, font size %d x %d\n", cols, rows, FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f)); */
+/*fprintf (stderr, "\tsetWindowSize: %d x %d, pixelwise %d, font size %d x %d\n", cols, rows, pixelwise, FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f));*/
 
   block_input ();
 
@@ -1267,8 +1267,18 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows, bool pi
   f->scroll_bar_actual_width = NS_SCROLL_BAR_WIDTH (f);
   compute_fringe_widths (f, 0);
 
-  pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
-  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+  if (pixelwise)
+    {
+      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, cols);
+      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, rows);
+      cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
+    }
+  else
+    {
+      pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
+      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+    }
 
   /* If we have a toolbar, take its height into account. */
   if (tb && ! [view isFullscreen])

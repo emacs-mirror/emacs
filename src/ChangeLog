@@ -1,3 +1,9 @@
+2013-12-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_frame_parm_handlers): Add right/bottom_divider_width.
+
+	* nsterm.m (x_set_window_size): Handle pixelwise.
+
 2013-12-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (x_new_font):

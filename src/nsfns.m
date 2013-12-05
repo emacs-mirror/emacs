@@ -946,6 +946,8 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_icon_name,
   x_set_icon_type,
   x_set_internal_border_width, /* generic OK */
+  0, /* x_set_right_divider_width */
+  0, /* x_set_bottom_divider_width */
   x_set_menu_bar_lines,
   x_set_mouse_color,
   x_explicitly_set_name,
