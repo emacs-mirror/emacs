@@ -117,6 +117,7 @@ See also `eww-form-checkbox-selected-symbol'."
 
 (defvar eww-current-url nil)
 (defvar eww-current-dom nil)
+(defvar eww-current-source nil)
 (defvar eww-current-title ""
   "Title of current page.")
 (defvar eww-history nil)
@@ -247,6 +248,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	     (list
 	      'base (list (cons 'href url))
 	      (libxml-parse-html-region (point) (point-max))))))
+    (setq eww-current-source (buffer-substring (point) (point-max)))
     (eww-setup-buffer)
     (setq eww-current-dom document)
     (let ((inhibit-read-only t)
@@ -375,6 +377,18 @@ word(s) will be searched for via `eww-search-prefix'."
   (unless (eq major-mode 'eww-mode)
     (eww-mode)))
 
+(defun eww-view-source ()
+  (interactive)
+  (let ((buf (get-buffer-create "*eww-source*"))
+        (source eww-current-source))
+    (with-current-buffer buf
+      (delete-region (point-min) (point-max))
+      (insert (or eww-current-source "no source"))
+      (goto-char (point-min))
+      (when (featurep 'html-mode)
+        (html-mode)))
+    (view-buffer buf)))
+
 (defvar eww-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
@@ -395,6 +409,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "d" 'eww-download)
     (define-key map "w" 'eww-copy-page-url)
     (define-key map "C" 'url-cookie-list)
+    (define-key map "v" 'eww-view-source)
 
     (define-key map "b" 'eww-add-bookmark)
     (define-key map "B" 'eww-list-bookmarks)
@@ -411,6 +426,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	 :active (not (zerop eww-history-position))]
 	["Browse with external browser" eww-browse-with-external-browser t]
 	["Download" eww-download t]
+	["View page source" eww-view-source]
 	["Copy page URL" eww-copy-page-url t]
 	["Add bookmark" eww-add-bookmark t]
 	["List bookmarks" eww-copy-page-url t]
@@ -424,6 +440,7 @@ word(s) will be searched for via `eww-search-prefix'."
   ;; FIXME?  This seems a strange default.
   (set (make-local-variable 'eww-current-url) 'author)
   (set (make-local-variable 'eww-current-dom) nil)
+  (set (make-local-variable 'eww-current-source) nil)
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
   (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
   (set (make-local-variable 'eww-history) nil)
@@ -437,6 +454,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	      :title eww-current-title
 	      :point (point)
               :dom eww-current-dom
+              :source eww-current-source
 	      :text (buffer-string))
 	eww-history))
 
@@ -468,6 +486,7 @@ word(s) will be searched for via `eww-search-prefix'."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert (plist-get elem :text))
+    (setq eww-current-source (plist-get elem :source))
     (setq eww-current-dom (plist-get elem :dom))
     (goto-char (plist-get elem :point))
     (setq eww-current-url (plist-get elem :url)
