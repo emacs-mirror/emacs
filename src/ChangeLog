@@ -1,3 +1,9 @@
+2013-12-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_new_font):
+	* xterm.c (x_new_font): Calculate new frame size from new font
+	size (Bug#16028).
+
 2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (FOR_EACH_TAIL): New macro.
