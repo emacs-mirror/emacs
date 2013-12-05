@@ -1,3 +1,7 @@
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Clarify unibyte-ness of strings.
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (distclean): Remove Makefile.

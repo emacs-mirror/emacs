@@ -1138,10 +1138,11 @@ The signal @code{PropertyModified}, discussed as example in
 (@var{INTEGER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) @dots{}))
 @end lisp
 
-@defun dbus-byte-array-to-string byte-array
+@defun dbus-byte-array-to-string byte-array &optional multibyte
 If a D-Bus method or signal returns an array of bytes, which are known
 to represent an UTF8 string, this function converts @var{byte-array}
-to the corresponding string.  Example:
+to the corresponding string.  The string is unibyte encoded, unless
+@var{multibyte} is non-@code{nil}.  Example:
 
 @lisp
 (dbus-byte-array-to-string '(47 101 116 99 47 104 111 115 116 115))
@@ -1151,20 +1152,30 @@ to the corresponding string.  Example:
 @end defun
 
 @defun dbus-unescape-from-identifier string
-Retrieve the original string from the encoded @var{string}.
-@var{string} must have been coded with
+Retrieve the original string from the encoded @var{string} as unibyte
+string.  @var{string} must have been encoded with
 @code{dbus-escape-as-identifier}.  Example:
 
 @lisp
 (dbus-unescape-from-identifier "_30123abc_5fxyz_01_ff")
 
-@ifinfo
-@result{} "0123abc_xyz^Aÿ"
-@end ifinfo
-@ifnotinfo
-@result{} "0123abc_xyz^A@"y"
-@end ifnotinfo
+@result{} "0123abc_xyz\x01\xff"
 @end lisp
+
+If the original string used in @code{dbus-escape-as-identifier} is a
+multibyte string, it cannot be expected that this function returns
+that string:
+
+@lisp
+(string-equal
+  (dbus-unescape-from-identifier
+    (dbus-escape-as-identifier "Grüß Göttin"))
+  "Grüß Göttin")
+
+@result{} nil
+@end lisp
+
+
 @end defun
 
 
