@@ -345,6 +345,7 @@
      :config
      :defer
      :defines
+     :demand
      :diminish
      :disabled
      :ensure
@@ -383,7 +384,7 @@ Return the list of recognized keywords."
   (eval (list '\` (plist-get plist prop))))
 
 (defmacro use-package (name &rest args)
-"Use a package with configuration options.
+  "Use a package with configuration options.
 
 For full documentation. please see commentary.
 
@@ -401,6 +402,7 @@ For full documentation. please see commentary.
 :interpreter Form to be added to `interpreter-mode-alist'.
 :defer Defer loading of package -- automatic
        if :commands, :bind, :mode or :interpreter are used.
+:demand Prevent deferred loading in all cases.
 :config Runs if and when package loads.
 :if Conditional loading.
 :disabled Ignore everything.
@@ -465,7 +467,7 @@ For full documentation. please see commentary.
                          `((diminish (quote ,diminish-var))))
                         ((and (consp diminish-var) (stringp (cdr diminish-var)))
                          `((diminish (quote ,(car diminish-var)) ,(cdr diminish-var))))
-                        (t ; list of symbols or (symbol . "string") pairs
+                        (t      ; list of symbols or (symbol . "string") pairs
                          (mapcar (lambda (var)
                                    (if (listp var)
                                        `(diminish (quote ,(car var)) ,(cdr var))
@@ -481,7 +483,7 @@ For full documentation. please see commentary.
               `(progn
                  (require 'use-package)
                  (use-package-init-on-idle (lambda () ,idle-body))
-                   ,init-body)))
+                 ,init-body)))
 
 
       (let ((init-for-commands
@@ -534,12 +536,13 @@ For full documentation. please see commentary.
 
          (eval-when-compile
            (when (bound-and-true-p byte-compile-current-file)
-            ,@defines-eval
-            ,(if (stringp name)
-                 `(load ,name t)
-               `(require ',name nil t))))
+             ,@defines-eval
+             ,(if (stringp name)
+                  `(load ,name t)
+                `(require ',name nil t))))
 
-         ,(if (or commands (plist-get args :defer))
+         ,(if (and (or commands (plist-get args :defer))
+                   (not (plist-get args :demand)))
               (let (form)
                 (mapc #'(lambda (command)
                           (push `(autoload (function ,command)
