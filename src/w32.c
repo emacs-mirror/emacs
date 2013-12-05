@@ -1290,6 +1290,98 @@ w32_valid_pointer_p (void *p, int size)
 
 
 
+/* Here's an overview of how the Windows build supports file names
+   that cannot be encoded by the current system codepage.
+
+   From the POV of Lisp and layers of C code above the functions here,
+   Emacs on Windows pretends that its file names are encoded in UTF-8;
+   see encode_file and decode_file on coding.c.  Any file name that is
+   passed as a unibyte string to C functions defined here is assumed
+   to be in UTF-8 encoding.  Any file name returned by functions
+   defined here must be in UTF-8 encoding, with only a few exceptions
+   reserved for a couple of special cases.  (Be sure to use
+   MAX_UTF8_PATH for char arrays that store UTF-8 encoded file names,
+   as they can be much longer than MAX_PATH!)
+
+   The UTF-8 encoded file names cannot be passed to system APIs, as
+   Windows does not support that.  Therefore, they are converted
+   either to UTF-16 or to the ANSI codepage, depending on the value of
+   w32-unicode-filenames, before calling any system APIs or CRT library
+   functions.  The default value of that variable is determined by the
+   OS on which Emacs runs: nil on Windows 9X and t otherwise, but the
+   user can change that default (although I don't see why would she
+   want to).
+
+   The 4 functions defined below, filename_to_utf16, filename_to_ansi,
+   filename_from_utf16, and filename_from_ansi, are the workhorses of
+   these conversions.  They rely on Windows native APIs
+   MultiByteToWideChar and WideCharToMultiByte; we cannot use
+   functions from coding.c here, because they allocate memory, which
+   is a bad idea on the level of libc, which is what the functions
+   here emulate.  (If you worry about performance due to constant
+   conversion back and forth from UTF-8 to UTF-16, then don't: first,
+   it was measured to take only a few microseconds on a not-so-fast
+   machine, and second, that's exactly what the ANSI APIs we used
+   before do anyway, because they are just thin wrappers around the
+   Unicode APIs.)
+
+   The variables file-name-coding-system and default-file-name-coding-system
+   still exist, but are actually used only when a file name needs to
+   be converted to the ANSI codepage.  This happens all the time when
+   w32-unicode-filenames is nil, but can also happen from time to time
+   when it is t.  Otherwise, these variables have no effect on file-name
+   encoding when w32-unicode-filenames is t; this is similar to
+   selection-coding-system.
+
+   This arrangement works very well, but it has a few gotchas:
+
+   . Lisp code that encodes or decodes file names manually should
+     normally use 'utf-8' as the coding-system on Windows,
+     disregarding file-name-coding-system.  This is a somewhat
+     unpleasant consequence, but it cannot be avoided.  Fortunately,
+     very few Lisp packages need to do that.
+
+     More generally, passing to library functions (e.g., fopen or
+     opendir) file names already encoded in the ANSI codepage is
+     explictly *verboten*, as all those functions, as shadowed and
+     emulated here, assume they will receive UTF-8 encoded file names.
+
+     For the same reasons, no CRT function or Win32 API can be called
+     directly in Emacs sources, without either converting the file
+     name sfrom UTF-8 to either UTF-16 or ANSI codepage, or going
+     through some shadowing function defined here.
+
+   . File names passed to external libraries, like the image libraries
+     and GnuTLS, need special handling.  These libraries generally
+     don't support UTF-16 or UTF-8 file names, so they must get file
+     names encoded in the ANSI codepage.  To facilitate using these
+     libraries with file names that are not encodable in the ANSI
+     codepage, use the function ansi_encode_filename, which will try
+     to use the short 8+3 alias of a file name if that file name is
+     not encodable in the ANSI codepage.  See image.c and gnutls.c for
+     examples of how this should be done.
+
+   . Running subprocesses in non-ASCII directories and with non-ASCII
+     file arguments is limited to the current codepage (even though
+     Emacs is perfectly capable of finding an executable program file
+     even in a directory whose name cannot be encoded in the curreent
+     codepage).  This is because the command-line arguments are
+     encoded _before_ they get to the w32-specific level, and the
+     encoding is not known in advance (it doesn't have to be the
+     current ANSI codepage), so w32proc.c functions cannot re-encode
+     them in UTF-16.  This should be fixed, but will also require
+     changes in cmdproxy.  The current limitation is not terribly bad
+     anyway, since very few, if any, Windows console programs that are
+     likely to be invoked by Emacs support UTF-16 encoded command
+     lines.
+
+   . For similar reasons, server.el and emacsclient are also limited
+     to the current ANSI codepage for now.
+
+*/
+
+
+
 /* Converting file names from UTF-8 to either UTF-16 or the ANSI
    codepage defined by file-name-coding-system.  */
 
