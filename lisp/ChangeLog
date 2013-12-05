@@ -1,3 +1,12 @@
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-service)
+	(dbus-escape-as-identifier, dbus-unescape-from-identifier):
+	Fix docstring.
+	(dbus-unregister-service): Skip :serial entries in
+	`dbus-registered-objects-table'.
+	(dbus-byte-array-to-string): New optional arg MULTIBYTE.
+
 2013-12-04  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-lisp/lisp-mnt.el (lm-keywords-list): Trim whitespace
