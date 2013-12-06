@@ -2686,27 +2686,46 @@ the result will be a local, non-Tramp, filename."
 (defun tramp-sh-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    ;; When PROGRAM is nil, we just provide a tty.
-    (let ((command
-	   (when (stringp program)
-	     (format "cd %s; exec env PS1=%s %s"
-		     (tramp-shell-quote-argument localname)
-		     ;; Use a human-friendly prompt, for example for `shell'.
-		     (tramp-shell-quote-argument
-		      (format "%s %s"
-			      (file-remote-p default-directory)
-			      tramp-initial-end-of-output))
-		     (mapconcat 'tramp-shell-quote-argument
-				(cons program args) " "))))
-	  (tramp-process-connection-type
-	   (or (null program) tramp-process-connection-type))
-	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-	  (name1 name)
-	  (i 0)
-	  ;; We do not want to raise an error when
-	  ;; `start-file-process' has been started several time in
-	  ;; `eshell' and friends.
-	  (tramp-current-connection nil))
+    (let* (;; When PROGRAM matches "*sh", and the first arg is "-c",
+	   ;; it might be that the arguments exceed the command line
+	   ;; length.  Therefore, we modify the command.
+	   (heredoc (and (stringp program)
+			 (string-match "sh$" program)
+			 (string-equal "-c" (car args))
+			 (= (length args) 2)))
+	   ;; When PROGRAM is nil, we just provide a tty.
+	   (args (if (not heredoc) args
+		   (let ((i 250))
+		     (while (and (< i (length (cadr args)))
+				 (string-match " " (cadr args) i))
+		       (setcdr
+			args
+			(list (replace-match " \\\\\n" nil nil (cadr args))))
+		       (setq i (+ i 250))))
+		   (cdr args)))
+	   (command
+	    (when (stringp program)
+	      (format "cd %s; exec %s env PS1=%s %s"
+		      (tramp-shell-quote-argument localname)
+		      (if heredoc "<<EOF" "")
+		      ;; Use a human-friendly prompt, for example for `shell'.
+		      (tramp-shell-quote-argument
+		       (format "%s %s"
+			       (file-remote-p default-directory)
+			       tramp-initial-end-of-output))
+		      (if heredoc
+			  (format "%s\n%s\nEOF" program (car args))
+			(mapconcat 'tramp-shell-quote-argument
+				   (cons program args) " ")))))
+	   (tramp-process-connection-type
+	    (or (null program) tramp-process-connection-type))
+	   (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	   (name1 name)
+	   (i 0)
+	   ;; We do not want to raise an error when
+	   ;; `start-file-process' has been started several time in
+	   ;; `eshell' and friends.
+	   (tramp-current-connection nil))
 
       (unless buffer
 	;; BUFFER can be nil.  We use a temporary buffer.
