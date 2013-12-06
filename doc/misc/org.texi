@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 8.2.4 (GNU Emacs 24.3)
+@set VERSION 8.2.4
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2

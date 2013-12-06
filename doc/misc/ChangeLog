@@ -1,3 +1,7 @@
+2013-12-06  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi: Don't include Emacs version within Org's version.
+
 2013-12-06  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.texi (Creating one-off styles): Use new export snippet
