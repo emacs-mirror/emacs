@@ -1,3 +1,8 @@
+2013-12-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (Fset_buffer_multibyte): Invalidate buffer caches.
+	(Bug#16070)
+
 2013-12-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.c (input_signal_count): Remove.

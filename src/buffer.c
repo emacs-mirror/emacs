@@ -2482,6 +2482,8 @@ current buffer is cleared.  */)
   if (narrowed)
     error ("Changing multibyteness in a narrowed buffer");
 
+  invalidate_buffer_caches (current_buffer, BEGV, ZV);
+
   if (NILP (flag))
     {
       ptrdiff_t pos, stop;
