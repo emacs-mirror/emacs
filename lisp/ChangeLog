@@ -1,3 +1,12 @@
+2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-mode-syntax-table): Don't modify
+	syntax for `?'.
+	(ruby-expr-beg): Expect that `!' will have syntax class "symbol"
+	where appropriate already.
+	(ruby-syntax-propertize-function): Propertize `?' and `!' at the
+	end of method names (Bug#15874).
+
 2013-12-06  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch--saved-overriding-local-map):

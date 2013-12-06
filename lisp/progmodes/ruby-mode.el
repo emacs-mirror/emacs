@@ -186,7 +186,6 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     (modify-syntax-entry ?\n ">" table)
     (modify-syntax-entry ?\\ "\\" table)
     (modify-syntax-entry ?$ "." table)
-    (modify-syntax-entry ?? "_" table)
     (modify-syntax-entry ?_ "_" table)
     (modify-syntax-entry ?: "_" table)
     (modify-syntax-entry ?< "." table)
@@ -783,7 +782,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                                         ruby-block-mid-keywords)
                                 'words))
                    (goto-char (match-end 0))
-                   (not (looking-at "\\s_\\|!")))
+                   (not (looking-at "\\s_")))
                   ((eq option 'expr-qstr)
                    (looking-at "[a-zA-Z][a-zA-z0-9_]* +%[^ \t]"))
                   ((eq option 'expr-re)
@@ -1648,6 +1647,14 @@ It will be properly highlighted even when the call omits parens.")
                     ;; Not within a string.
                     (nth 3 (syntax-ppss (match-beginning 0))))
             (string-to-syntax "\\"))))
+      ;; Part of symbol when at the end of a method name.
+      ("[!?]"
+       (0 (unless (save-excursion
+                    (or (nth 8 (syntax-ppss (match-beginning 0)))
+                        (let (parse-sexp-lookup-properties)
+                          (or (zerop (skip-syntax-backward "w_"))
+                              (memq (preceding-char) '(?@ ?$))))))
+            (string-to-syntax "_"))))
       ;; Regular expressions.  Start with matching unescaped slash.
       ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
        (1 (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
