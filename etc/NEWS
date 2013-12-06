@@ -171,7 +171,7 @@ monitor, use the new functions above.  Similar notes also apply to
 `x-display-pixel-width', `x-display-pixel-height', `display-mm-width',
 `display-mm-height', `x-display-mm-width', and `x-display-mm-height'.
 
-** New macro `alternatives-define' can be used to define generic commands.
+** New macro `define-alternatives' can be used to define generic commands.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
 
