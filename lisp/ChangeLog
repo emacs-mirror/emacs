@@ -1,3 +1,11 @@
+2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/octave.el (inferior-octave-completion-table): Turn
+	back into function, use `completion-table-with-cache'
+	(Bug#11906).  Update all references.
+
+	* minibuffer.el (completion-table-with-cache): New function.
+
 2013-12-05  Cameron Desautels  <camdez@gmail.com>  (tiny change)
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Fix ^ (bug#16046).

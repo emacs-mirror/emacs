@@ -838,21 +838,13 @@ startup file, `~/.emacs-octave'."
     ;; `comint-history-isearch-backward-regexp'.  Bug#14433.
     (comint-send-string proc "\n")))
 
-(defvar inferior-octave-completion-table
-  ;;
-  ;; Use cache to avoid repetitive computation of completions due to
-  ;; bug#11906 - http://debbugs.gnu.org/11906 - which may cause
-  ;; noticeable delay.  CACHE: (CMD . VALUE).
-  (let ((cache))
-    (completion-table-dynamic
-     (lambda (command)
-       (unless (equal (car cache) command)
-         (inferior-octave-send-list-and-digest
-          (list (format "completion_matches ('%s');\n" command)))
-         (setq cache (cons command
-                           (delete-consecutive-dups
-                            (sort inferior-octave-output-list 'string-lessp)))))
-       (cdr cache)))))
+(defun inferior-octave-completion-table ()
+  (completion-table-with-cache
+   (lambda (command)
+     (inferior-octave-send-list-and-digest
+      (list (format "completion_matches ('%s');\n" command)))
+     (delete-consecutive-dups
+      (sort inferior-octave-output-list 'string-lessp)))))
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
@@ -864,7 +856,7 @@ startup file, `~/.emacs-octave'."
           (end (point)))
       (when (and beg (> end beg))
         (list beg end (completion-table-in-turn
-                       inferior-octave-completion-table
+                       (inferior-octave-completion-table)
                        'comint-completion-file-name-table))))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
@@ -1022,7 +1014,7 @@ directory and makes this the current buffer's default directory."
     (completing-read
      (format (if def "Function (default %s): "
                "Function: ") def)
-     inferior-octave-completion-table
+     (inferior-octave-completion-table)
      nil nil nil nil def)))
 
 (defun octave-goto-function-definition (fn)
@@ -1406,7 +1398,7 @@ The block marked is the one that contains point or follows point."
                         (setq end (point))))
     (when (> end beg)
       (list beg end (or (and (inferior-octave-process-live-p)
-                             inferior-octave-completion-table)
+                             (inferior-octave-completion-table))
                         octave-reserved-words)))))
 
 (define-obsolete-function-alias 'octave-complete-symbol
