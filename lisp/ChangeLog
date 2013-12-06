@@ -1,3 +1,8 @@
+2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Touch
+	up the last change.
+
 2013-12-06  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-prompt): Use shy groups.

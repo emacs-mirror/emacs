@@ -1652,8 +1652,8 @@ It will be properly highlighted even when the call omits parens.")
        (0 (unless (save-excursion
                     (or (nth 8 (syntax-ppss (match-beginning 0)))
                         (let (parse-sexp-lookup-properties)
-                          (or (zerop (skip-syntax-backward "w_"))
-                              (memq (preceding-char) '(?@ ?$))))))
+                          (zerop (skip-syntax-backward "w_")))
+                        (memq (preceding-char) '(?@ ?$))))
             (string-to-syntax "_"))))
       ;; Regular expressions.  Start with matching unescaped slash.
       ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
