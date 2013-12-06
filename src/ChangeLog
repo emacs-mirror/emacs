@@ -1,3 +1,11 @@
+2013-12-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (input_signal_count): Remove.
+	(x_dispatch_event): Define unconditionally.
+	(x_make_frame_visible): Process X events until the frame
+	is really visible (Bug#16027).
+	* xterm.h (x_dispatch_event): Declare unconditionally.
+
 2013-12-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (ns_frame_parm_handlers): Add right/bottom_divider_width.

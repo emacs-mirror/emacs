@@ -945,9 +945,7 @@ extern void x_clear_area (Display *, Window, int, int, int, int);
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
-#ifdef USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
-#endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);

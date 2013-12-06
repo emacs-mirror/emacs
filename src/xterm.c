@@ -165,11 +165,6 @@ static bool toolkit_scroll_bar_interaction;
 
 static Time ignore_next_mouse_click_timeout;
 
-/* Incremented by XTread_socket whenever it really tries to read
-   events.  */
-
-static int volatile input_signal_count;
-
 /* Used locally within XTread_socket.  */
 
 static int x_noop_count;
@@ -253,9 +248,6 @@ static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *,
 			      const XEvent *, int *,
 			      struct input_event *);
-#ifdef USE_GTK
-static int x_dispatch_event (XEvent *, Display *);
-#endif
 /* Don't declare this _Noreturn because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
@@ -6853,8 +6845,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   return count;
 }
 
-#if defined USE_GTK || defined USE_X_TOOLKIT
-
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
    i.e. looping while a popup menu or a dialog is posted.
@@ -6873,8 +6863,6 @@ x_dispatch_event (XEvent *event, Display *display)
 
   return finish;
 }
-#endif
-
 
 /* Read events coming from the X server.
    Return as soon as there are no more events to be read.
@@ -6892,9 +6880,6 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
   struct x_display_info *dpyinfo = terminal->display_info.x;
 
   block_input ();
-
-  /* So people can tell when we have read the available input.  */
-  input_signal_count++;
 
   /* For debugging, this gives a way to fake an I/O error.  */
   if (dpyinfo == XTread_socket_fake_io_error)
@@ -8826,9 +8811,6 @@ void
 x_make_frame_visible (struct frame *f)
 {
   int original_top, original_left;
-  int retry_count = 2;
-
- retry:
 
   block_input ();
 
@@ -8877,7 +8859,6 @@ x_make_frame_visible (struct frame *f)
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
-    int count;
     /* This must be before UNBLOCK_INPUT
        since events that arrive in response to the actions above
        will set it when they are handled.  */
@@ -8931,46 +8912,18 @@ x_make_frame_visible (struct frame *f)
 
     XSETFRAME (frame, f);
 
-    /* Wait until the frame is visible.  Process X events until a
-       MapNotify event has been seen, or until we think we won't get a
-       MapNotify at all..  */
-    for (count = input_signal_count + 10;
-	 input_signal_count < count && !FRAME_VISIBLE_P (f);)
+    /* Process X events until a MapNotify event has been seen.  */
+    while (!FRAME_VISIBLE_P (f))
       {
 	/* Force processing of queued events.  */
 	x_sync (f);
-
-	/* Machines that do polling rather than SIGIO have been
-	   observed to go into a busy-wait here.  So we'll fake an
-	   alarm signal to let the handler know that there's something
-	   to be read.  We used to raise a real alarm, but it seems
-	   that the handler isn't always enabled here.  This is
-	   probably a bug.  */
-	if (input_polling_used ())
+	if (XPending (FRAME_X_DISPLAY (f)))
 	  {
-	    /* It could be confusing if a real alarm arrives while
-	       processing the fake one.  Turn it off and let the
-	       handler reset it.  */
-	    int old_poll_suppress_count = poll_suppress_count;
-	    poll_suppress_count = 1;
-	    poll_for_input_1 ();
-	    poll_suppress_count = old_poll_suppress_count;
+	    XEvent xev;
+	    XNextEvent (FRAME_X_DISPLAY (f), &xev);
+	    x_dispatch_event (&xev, FRAME_X_DISPLAY (f));
 	  }
       }
-
-    /* 2000-09-28: In
-
-       (let ((f (selected-frame)))
-          (iconify-frame f)
-	  (raise-frame f))
-
-       the frame is not raised with various window managers on
-       FreeBSD, GNU/Linux and Solaris.  It turns out that, for some
-       unknown reason, the call to XtMapWidget is completely ignored.
-       Mapping the widget a second time works.  */
-
-    if (!FRAME_VISIBLE_P (f) && --retry_count != 0)
-      goto retry;
   }
 }
 
