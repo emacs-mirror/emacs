@@ -637,6 +637,8 @@ Each set is a vector of the form:
 ;; isearch is invoked.
 (defvar isearch-input-method-local-p nil)
 
+(defvar isearch--saved-overriding-local-map nil)
+
 ;; Minor-mode-alist changes - kind of redundant with the
 ;; echo area, but if isearching in multiple windows, it can be useful.
 
@@ -904,6 +906,9 @@ convert the search string to a regexp used by regexp search functions."
 
   (setq overriding-terminal-local-map isearch-mode-map)
   (run-hooks 'isearch-mode-hook)
+  ;; Remember the initial map possibly modified
+  ;; by external packages in isearch-mode-hook.  (Bug#16035)
+  (setq isearch--saved-overriding-local-map overriding-terminal-local-map)
 
   ;; Pushing the initial state used to be before running isearch-mode-hook,
   ;; but a hook might set `isearch-push-state-function' used in
@@ -2235,7 +2240,7 @@ before the command is executed globally with terminated Isearch."
     (cond
      ;; Don't exit Isearch if we're in the middle of some
      ;; set-temporary-overlay-map thingy like universal-argument--mode.
-     ((not (eq overriding-terminal-local-map isearch-mode-map)))
+     ((not (eq overriding-terminal-local-map isearch--saved-overriding-local-map)))
      ;; Don't exit Isearch for isearch key bindings.
      ((commandp (lookup-key isearch-mode-map key nil)))
      ;; Optionally edit the search string instead of exiting.

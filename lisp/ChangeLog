@@ -1,3 +1,12 @@
+2013-12-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch--saved-overriding-local-map):
+	New internal variable.
+	(isearch-mode): Set it to the initial value of
+	`overriding-terminal-local-map'.
+	(isearch-pre-command-hook): Compare `overriding-terminal-local-map'
+	with `isearch--saved-overriding-local-map'.  (Bug#16035)
+
 2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/octave.el (inferior-octave-completion-table): Turn
