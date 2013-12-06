@@ -1005,9 +1005,7 @@ to specify a command to run."
 			      (mapconcat
 			       #'shell-quote-argument
 			       (split-string files)
-			       (concat
-				(if (file-remote-p dir) "\\\n")
-				" -o " find-name-arg " "))
+			       (concat "\\\n" " -o " find-name-arg " "))
 			      " "
 			      (shell-quote-argument ")"))
 		      dir
@@ -1028,9 +1026,7 @@ to specify a command to run."
 						      (concat "*/"
 							      (cdr ignore)))))))
 				     grep-find-ignored-directories
-				     (if (file-remote-p dir)
-					 "\\\n -o -path "
-				       " -o -path "))
+				     "\\\n -o -path ")
 				    " "
 				    (shell-quote-argument ")")
 				    " -prune -o "))
@@ -1048,9 +1044,7 @@ to specify a command to run."
 						     (shell-quote-argument
 						      (cdr ignore))))))
 				     grep-find-ignored-files
-				     (if (file-remote-p dir)
-					 "\\\n -o -name "
-				       " -o -name "))
+				     "\\\n -o -name ")
 				    " "
 				    (shell-quote-argument ")")
 				    " -prune -o "))))))
