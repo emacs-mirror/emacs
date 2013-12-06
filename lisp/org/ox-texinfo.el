@@ -143,7 +143,7 @@
 
 ;;; Preamble
 
-(defcustom org-texinfo-filename nil
+(defcustom org-texinfo-filename ""
   "Default filename for Texinfo output."
   :group 'org-export-texinfo
   :type '(string :tag "Export Filename"))
@@ -202,7 +202,7 @@ a format string in which the section title will be added."
 
 ;;; Headline
 
-(defcustom org-texinfo-format-headline-function nil
+(defcustom org-texinfo-format-headline-function 'ignore
   "Function to format headline text.
 
 This function will be called with 5 arguments:
@@ -316,7 +316,8 @@ returned as-is."
 
 ;;; Drawers
 
-(defcustom org-texinfo-format-drawer-function nil
+(defcustom org-texinfo-format-drawer-function
+  (lambda (name contents) contents)
   "Function called to format a drawer in Texinfo code.
 
 The function must accept two parameters:
@@ -325,18 +326,15 @@ The function must accept two parameters:
 
 The function should return the string to be exported.
 
-For example, the variable could be set to the following function
-in order to mimic default behaviour:
-
-\(defun org-texinfo-format-drawer-default \(name contents\)
-  \"Format a drawer element for Texinfo export.\"
-  contents\)"
+The default function simply returns the value of CONTENTS."
   :group 'org-export-texinfo
+  :version "24.4"
+  :package-version '(Org . "8.3")
   :type 'function)
 
 ;;; Inlinetasks
 
-(defcustom org-texinfo-format-inlinetask-function nil
+(defcustom org-texinfo-format-inlinetask-function 'ignore
   "Function called to format an inlinetask in Texinfo code.
 
 The function must accept six parameters:
@@ -882,12 +880,8 @@ contextual information."
 CONTENTS holds the contents of the block.  INFO is a plist
 holding contextual information."
   (let* ((name (org-element-property :drawer-name drawer))
-	 (output (if (functionp org-texinfo-format-drawer-function)
-		     (funcall org-texinfo-format-drawer-function
-			      name contents)
-		   ;; If there's no user defined function: simply
-		   ;; display contents of the drawer.
-		   contents)))
+	 (output (funcall org-texinfo-format-drawer-function
+			  name contents)))
     output))
 
 ;;; Dynamic Block
@@ -1036,7 +1030,7 @@ holding contextual information."
 	 ;; Create the headline text along with a no-tag version.  The
 	 ;; latter is required to remove tags from table of contents.
 	 (full-text (org-texinfo--sanitize-content
-		     (if (functionp org-texinfo-format-headline-function)
+		     (if (not (eq org-texinfo-format-headline-function 'ignore))
 			 ;; User-defined formatting function.
 			 (funcall org-texinfo-format-headline-function
 				  todo todo-type priority text tags)
@@ -1051,7 +1045,7 @@ holding contextual information."
 				  (mapconcat 'identity tags ":")))))))
 	 (full-text-no-tag
 	  (org-texinfo--sanitize-content
-	   (if (functionp org-texinfo-format-headline-function)
+	   (if (not (eq org-texinfo-format-headline-function 'ignore))
 	       ;; User-defined formatting function.
 	       (funcall org-texinfo-format-headline-function
 			todo todo-type priority text nil)
@@ -1153,7 +1147,7 @@ holding contextual information."
 		       (org-element-property :priority inlinetask))))
     ;; If `org-texinfo-format-inlinetask-function' is provided, call it
     ;; with appropriate arguments.
-    (if (functionp org-texinfo-format-inlinetask-function)
+    (if (not (eq org-texinfo-format-inlinetask-function 'ignore))
 	(funcall org-texinfo-format-inlinetask-function
 		 todo todo-type priority title tags contents)
       ;; Otherwise, use a default template.

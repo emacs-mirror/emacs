@@ -135,6 +135,7 @@ information."
 	  (match-string 1))
 	 (t org-archive-location))))))
 
+;;;###autoload
 (defun org-add-archive-files (files)
   "Splice the archive files into the list of files.
 This implies visiting all these files and finding out what the

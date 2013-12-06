@@ -1871,6 +1871,7 @@ will be easy to remove."
       (overlay-put ov 'end-glyph (make-glyph tx)))
     (push ov org-clock-overlays)))
 
+;;;###autoload
 (defun org-clock-remove-overlays (&optional beg end noremove)
   "Remove the occur highlights from the buffer.
 BEG and END are ignored.  If NOREMOVE is nil, remove this function
@@ -2143,6 +2144,7 @@ If you can combine both, the month starting day will have priority."
    ((= n 3) "3rd")
    ((= n 4) "4th")))
 
+;;;###autoload
 (defun org-clocktable-shift (dir n)
   "Try to shift the :block date of the clocktable at point.
 Point must be in the #+BEGIN: line of a clocktable, or this function
@@ -2752,6 +2754,7 @@ This function is made for clock tables."
 (defvar org-clock-loaded nil
   "Was the clock file loaded?")
 
+;;;###autoload
 (defun org-clock-update-time-maybe ()
   "If this is a CLOCK line, update it and return t.
 Otherwise, return nil."

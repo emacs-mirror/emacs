@@ -1,3 +1,187 @@
+2013-12-06  Achim Gratz  <Stromeko@Stromeko.DE>
+
+	* org-crypt.el: Declare `epg-context´.
+	(org-encrypt-string): Correct indentation.
+
+	* org.el (org-version): Replace `_version´ by `version1´.
+
+2013-12-06  Alexander Vorobiev  <alexander.vorobiev@gmail.com>  (tiny change)
+
+	* org-compat.el (org-get-x-clipboard): Use w32-get-clipboard-data
+	to get the clipboard data under Windows.
+
+2013-12-06  Bastien Guerry  <bzg@gnu.org>
+
+	* ox.el (org-export-with-sub-superscripts):
+	* org.el (org-use-sub-superscripts): Fix version and enhance
+	docstring again.
+
+	* ox.el (org-export-with-sub-superscripts):
+	* org.el (org-use-sub-superscripts): Enhance docstrings.
+
+	* org-macs.el (org-autoload): Delete.
+
+	* org-docview.el ("docview"): Fix declarations and require
+	doc-view directly.
+
+	* org-id.el (org-id-copy)
+	(org-id-get-with-outline-path-completion)
+	(org-id-get-with-outline-drilling, org-id-new):
+
+	* org-colview.el:
+	(org-colview-initial-truncate-line-value)
+	(org-columns-open-link, org-string-to-number):
+	* org-clock.el:
+	(org-clock-put-overlay, org-count-quarter, org-clock-loaded):
+	* org-archive.el (org-get-local-archive-location):
+	* org-agenda.el (org-agenda-todo-custom-ignore-p):
+	Autoload.
+
+	* org.el (org-return-follows-link):
+	* ob-python.el (org-babel-python-command): Don't use :set.
+
+	* ox-odt.el (org-odt-content-template-file): Fix version.
+
+	* ox-texinfo.el (org-texinfo-filename): Fix default value.
+	(org-texinfo-format-headline-function): Use 'ignore as the
+	default value.
+	(org-texinfo-format-drawer-function): Use a function as the
+	default value.  Update docstring.
+	(org-texinfo-drawer): Always use
+	`org-texinfo-format-drawer-function' as it is now a function
+	by default.
+	(org-texinfo-headline): Compare
+	`org-texinfo-format-headline-function' against 'ignore.
+	(org-texinfo-inlinetask): Compare
+	`org-texinfo-format-inlinetask-function' against 'ignore.
+
+	* ox-odt.el (org-odt-format-drawer-function): Use a function as
+	the default value.  Update docstring.
+	(org-odt-format-headline-function)
+	(org-odt-format-inlinetask-function): Fix default value.
+	(org-odt-drawer): Always use `org-odt-format-drawer-function'
+	as it is now a function by default.
+	(org-odt-format-headline--wrap): Compare
+	`org-odt-format-headline-function' against 'ignore.
+
+	* ox-latex.el (org-latex-format-drawer-function): Use a function
+	as the default value.  Update docstring.
+	(org-latex-format-inlinetask-function): Fix default value.
+	(org-latex-drawer): Always use
+	`org-latex-format-drawer-function' as it is now a function by
+	default.
+	(org-latex-inlinetask): Compare
+	`org-latex-format-inlinetask-function' against 'ignore.
+
+	* ox-html.el (org-html-format-drawer-function): Use a function as
+	the default value.  Update docstring.
+	(org-html-format-headline-function)
+	(org-html-format-inlinetask-function): Fix default value.
+	(org-html--format-toc-headline)
+	(org-html-format-headline--wrap): Compare
+	`org-html-format-headline-function' against 'ignore.
+	(org-html-inlinetask): Compare
+	`org-html-format-inlinetask-function' against 'ignore.
+
+	* ox-ascii.el (org-ascii-format-drawer-function): Use a
+	function as the default value.  Update docstring.
+	(org-ascii-drawer): Always use
+	`org-ascii-format-drawer-function' as it is now a function by
+	default.
+	(org-ascii-format-inlinetask-default): New function.
+	(org-ascii-format-inlinetask-function): Use
+	`org-ascii-format-inlinetask-default' as the default.
+
+	* org.el (org-mouse-1-follows-link): Use :set to set the default
+	value.  Update custom type.
+	(org-log-note-headings): Fix order or list items in the custom
+	type.
+	(orgstruct-heading-prefix-regexp): Use an empty string as the
+	default value.  Use 'regexp as the custom type.
+	(orgstruct-make-binding): Tiny docstring enhancement.  Assume
+	`orgstruct-heading-prefix-regexp' is a string.
+
+	* org-agenda.el (org-agenda-search-view-max-outline-level): Set
+	default value to 0.  Update docstring.
+	(org-agenda-deadline-leaders): Fix custom type.
+	(org-search-view): Assume
+	`org-agenda-search-view-max-outline-level' is a number.
+
+	* ob-ruby.el (org-babel-ruby-nil-to): Fix custom type.
+
+	* ob-python.el (org-babel-python-mode): Use :set to set the
+	default value.
+	(org-babel-python-None-to): Fix custom type.
+
+	* ob-plantuml.el (org-plantuml-jar-path): Fix default value.
+	(org-babel-execute:plantuml): Assume `org-plantuml-jar-path' is a
+	string.
+
+	* ob-latex.el (org-babel-latex-htlatex): Fix default value.
+	(org-babel-latex-htlatex-packages): Fix custom type.
+	(org-babel-execute:latex): Assume `org-babel-latex-htlatex' is a
+	string.
+
+	* ox-odt.el (org-odt-display-outline-level): Fix version.
+
+	* ox-odt.el (org-odt-inline-formula-rules)
+	(org-odt-inline-image-rules, org-odt-use-date-fields): Add version
+	and package-version.
+
+	* ox-html.el (org-html-format-drawer-function)
+	(org-html-format-headline-function)
+	(org-html-format-inlinetask-function)
+	(org-html-creator-string): Add version and package-version.
+
+	* ox-html.el (org-html-text-markup-alist): Fix version.
+
+	* org-agenda.el (org-agenda-set-restriction-lock): Autoload.
+
+	* ob-abc.el (org-babel-expand-body:abc): Use dolist.
+	(org-babel-execute:abc): Fix regexp quoting.
+
+	* ob-calc.el (org--var-syms): Rename from `var-syms'.
+
+	* ob-lilypond.el (ly-compile-lilyfile): Remove redundant
+	let-binding.
+
+	* ob-table.el (sbe): Move debug declaration.
+
+	* org-clock.el (org--msg-extra): Rename from `msg-extra'.
+
+2013-12-06  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-ctrl-c-ctrl-c): When point is on an unsupported
+	object, look for something to do at a higher level instead of
+	bailing out.
+
+	* ox-html.el (org-html-format-latex): Add an argument.  Ensure
+	latex header is the same as specified in the original buffer when
+	exporting a LaTeX fragment or environment.
+	(org-html-latex-environment, org-html-latex-fragment): Apply
+	signature change.
+
+	* ox-publish.el (org-publish-cache-ctime-of-src): Return an error
+	when publishing a non-existent file.
+
+	* org-element.el (org-element-paragraph-separate): More accurate
+	regexp.
+
+	* org.el (org-entry-get): Widen buffer in order to retrieve
+	properties, as `org-entry-properties' and
+	`org-entry-get-with-inheritance' already do.
+
+	* ox-html.el (org-html--format-toc-headline): Add missing headline
+	number in TOC entries.
+
+	* org.el (org-entry-properties): Ignore narrowing when retrieving
+	current headline properties.
+
+2013-12-06  Thierry Volpiatto  <thierry.volpiatto@gmail.com>  (tiny change)
+
+	* org-crypt.el (org-encrypt-string, org-encrypt-entry)
+	(org-decrypt-entry): Fix warning.
+
 2013-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.

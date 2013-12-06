@@ -1,3 +1,12 @@
+2013-12-06  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Creating one-off styles): Use new export snippet
+	syntax.
+
+	* org.texi (Export settings): documentation describing how text
+	above the first heading is ignored when an :export: tag is in a
+	file.
+
 2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Type Conversion): Clarify unibyte-ness of strings.

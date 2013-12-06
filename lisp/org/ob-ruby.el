@@ -62,9 +62,7 @@
   :group 'org-babel
   :version "24.4"
   :package-version '(Org . "8.0")
-  :type 'string)
-
-
+  :type 'symbol)
 
 (defun org-babel-execute:ruby (body params)
   "Execute a block of Ruby code with Babel.

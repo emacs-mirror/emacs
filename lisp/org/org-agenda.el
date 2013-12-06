@@ -1419,13 +1419,14 @@ When nil, they may also match part of a word."
   :version "24.1"
   :type 'boolean)
 
-(defcustom org-agenda-search-view-max-outline-level nil
+(defcustom org-agenda-search-view-max-outline-level 0
   "Maximum outline level to display in search view.
 E.g. when this is set to 1, the search view will only
-show headlines of level 1."
+show headlines of level 1.  When set to 0, the default
+value, don't limit agenda view by outline level."
   :group 'org-agenda-search-view
   :version "24.4"
-  :package-version '(Org . "8.0")
+  :package-version '(Org . "8.3")
   :type 'integer)
 
 (defgroup org-agenda-time-grid nil
@@ -1746,10 +1747,9 @@ to capture the number of days."
   :version "24.4"
   :package-version '(Org . "8.0")
   :type '(list
-	  (string :tag "Deadline today   ")
-	  (choice :tag "Deadline relative"
-		  (string :tag "Format string")
-		  (function))))
+	  (string :tag "Deadline today          ")
+	  (string :tag "Deadline in the future  ")
+	  (string :tag "Deadline in the past    ")))
 
 (defcustom org-agenda-remove-times-when-in-prefix t
   "Non-nil means remove duplicate time specifications in agenda items.
@@ -4583,7 +4583,7 @@ in `org-agenda-text-search-extra-files'."
 		    (goto-char (max (point-min) (1- (point))))
 		    (while (re-search-forward regexp nil t)
 		      (org-back-to-heading t)
-		      (while (and org-agenda-search-view-max-outline-level
+		      (while (and (not (zerop org-agenda-search-view-max-outline-level))
 				  (> (org-reduced-level (org-outline-level))
 				     org-agenda-search-view-max-outline-level)
 				  (forward-line -1)
@@ -4593,7 +4593,7 @@ in `org-agenda-text-search-extra-files'."
 			    beg1 (point)
 			    end (progn
 				  (outline-next-heading)
-				  (while (and org-agenda-search-view-max-outline-level
+				  (while (and (not (zerop org-agenda-search-view-max-outline-level))
 					      (> (org-reduced-level (org-outline-level))
 						 org-agenda-search-view-max-outline-level)
 					      (forward-line 1)
@@ -5451,6 +5451,7 @@ This function is invoked if `org-agenda-todo-ignore-deadlines',
 	(>= days n)
       (<= days n))))
 
+;;;###autoload
 (defun org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item
   (&optional end)
   "Do we have a reason to ignore this TODO entry because it has a time stamp?"

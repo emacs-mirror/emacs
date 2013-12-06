@@ -556,7 +556,8 @@ returned as-is."
 
 ;;;; Drawers
 
-(defcustom org-latex-format-drawer-function nil
+(defcustom org-latex-format-drawer-function
+  (lambda (name contents) contents)
   "Function called to format a drawer in LaTeX code.
 
 The function must accept two parameters:
@@ -565,19 +566,16 @@ The function must accept two parameters:
 
 The function should return the string to be exported.
 
-For example, the variable could be set to the following function
-in order to mimic default behaviour:
-
-\(defun org-latex-format-drawer-default \(name contents\)
-  \"Format a drawer element for LaTeX export.\"
-  contents\)"
+The default function simply returns the value of CONTENTS."
   :group 'org-export-latex
+  :version "24.4"
+  :package-version '(Org . "8.3")
   :type 'function)
 
 
 ;;;; Inlinetasks
 
-(defcustom org-latex-format-inlinetask-function nil
+(defcustom org-latex-format-inlinetask-function 'ignore
   "Function called to format an inlinetask in LaTeX code.
 
 The function must accept six parameters:
@@ -1212,12 +1210,8 @@ channel."
 CONTENTS holds the contents of the block.  INFO is a plist
 holding contextual information."
   (let* ((name (org-element-property :drawer-name drawer))
-	 (output (if (functionp org-latex-format-drawer-function)
-		     (funcall org-latex-format-drawer-function
-			      name contents)
-		   ;; If there's no user defined function: simply
-		   ;; display contents of the drawer.
-		   contents)))
+	 (output (funcall org-latex-format-drawer-function
+			  name contents)))
     (org-latex--wrap-label drawer output)))
 
 
@@ -1502,7 +1496,7 @@ holding contextual information."
 		       (org-element-property :priority inlinetask))))
     ;; If `org-latex-format-inlinetask-function' is provided, call it
     ;; with appropriate arguments.
-    (if (functionp org-latex-format-inlinetask-function)
+    (if (not (eq org-latex-format-inlinetask-function 'ignore))
 	(funcall org-latex-format-inlinetask-function
 		 todo todo-type priority title tags contents)
       ;; Otherwise, use a default template.

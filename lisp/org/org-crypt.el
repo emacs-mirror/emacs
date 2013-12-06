@@ -73,6 +73,8 @@
 			     compress-algorithm))
 (declare-function epg-encrypt-string "epg"
 		  (context plain recipients &optional sign always-trust))
+(defvar epg-context)
+
 
 (defgroup org-crypt nil
   "Org Crypt."
@@ -161,8 +163,8 @@ See `org-crypt-disable-auto-save'."
   (if (and (string= crypt-key (get-text-property 0 'org-crypt-key str))
 	   (string= (sha1 str) (get-text-property 0 'org-crypt-checksum str)))
       (get-text-property 0 'org-crypt-text str)
-    (let ((epg-context (epg-make-context nil t t)))
-      (epg-encrypt-string epg-context str (epg-list-keys epg-context crypt-key)))))
+    (set (make-local-variable 'epg-context) (epg-make-context nil t t))
+    (epg-encrypt-string epg-context str (epg-list-keys epg-context crypt-key))))
 
 (defun org-encrypt-entry ()
   "Encrypt the content of the current headline."
@@ -170,11 +172,11 @@ See `org-crypt-disable-auto-save'."
   (require 'epg)
   (save-excursion
     (org-back-to-heading t)
+    (set (make-local-variable 'epg-context) (epg-make-context nil t t))
     (let ((start-heading (point)))
       (forward-line)
       (when (not (looking-at "-----BEGIN PGP MESSAGE-----"))
         (let ((folded (outline-invisible-p))
-              (epg-context (epg-make-context nil t t))
               (crypt-key (org-crypt-key-for-heading))
               (beg (point))
               end encrypted-text)
@@ -206,11 +208,11 @@ See `org-crypt-disable-auto-save'."
 	(forward-line)
 	(when (looking-at "-----BEGIN PGP MESSAGE-----")
 	  (org-crypt-check-auto-save)
+          (set (make-local-variable 'epg-context) (epg-make-context nil t t))
 	  (let* ((end (save-excursion
 			(search-forward "-----END PGP MESSAGE-----")
 			(forward-line)
 			(point)))
-		 (epg-context (epg-make-context nil t t))
 		 (encrypted-text (buffer-substring-no-properties (point) end))
 		 (decrypted-text
 		  (decode-coding-string

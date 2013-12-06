@@ -1225,8 +1225,9 @@ Returns value on success, else nil."
   (let ((attr (file-attributes
 	       (expand-file-name (or (file-symlink-p file) file)
 				 (file-name-directory file)))))
-    (+ (lsh (car (nth 5 attr)) 16)
-       (cadr (nth 5 attr)))))
+    (if (not attr) (error "No such file: \"%s\"" file)
+      (+ (lsh (car (nth 5 attr)) 16)
+	 (cadr (nth 5 attr))))))
 
 
 (provide 'ox-publish)
