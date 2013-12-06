@@ -1,3 +1,11 @@
+2013-12-06  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-prompt): Use shy groups.
+	(inferior-octave-startup): Always use "octave> " for prompt.
+	(octave-goto-function-definition)
+	(octave-sync-function-file-names)
+	(octave-find-definition-default-filename): Remove redundant backquotes.
+
 2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-mode-syntax-table): Don't modify

@@ -444,7 +444,7 @@ Non-nil means always go to the next Octave code line after sending."
                              "unwind_protect_cleanup")
          (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.
-       ;; (if (smie-parent-p "switch") 4)
+       ;; (if (smie-rule-parent-p "switch") 4)
        nil))))
 
 (defun octave-indent-comment ()
@@ -599,7 +599,9 @@ definitions can also be stored in files and used in batch mode."
   :group 'octave)
 
 (defcustom inferior-octave-prompt
-  "\\(^octave\\(\\|.bin\\|.exe\\|-gui\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
+  ;; For Octave >= 3.8, default is always 'octave', see
+  ;; http://hg.savannah.gnu.org/hgweb/octave/rev/708173343c50
+  "\\(?:^octave\\(?:.bin\\|.exe\\)?\\(?:-[.0-9]+\\)?\\(?::[0-9]+\\)?\\|^debug\\|^\\)>+ "
   "Regexp to match prompts for the inferior Octave process."
   :type 'regexp
   :group 'octave)
@@ -821,7 +823,8 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-send-list-and-digest
      (list "more off;\n"
            (unless (equal inferior-octave-output-string ">> ")
-             "PS1 ('\\s> ');\n")
+             ;; See http://hg.savannah.gnu.org/hgweb/octave/rev/708173343c50
+             "PS1 ('octave> ');\n")
            (when (and inferior-octave-startup-file
                       (file-exists-p inferior-octave-startup-file))
              (format "source ('%s');\n" inferior-octave-startup-file))))
@@ -1030,8 +1033,8 @@ directory and makes this the current buffer's default directory."
              (unless found (goto-char orig))
              found))))
     (pcase (and buffer-file-name (file-name-extension buffer-file-name))
-      (`"cc" (funcall search
-                      "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
+      ("cc" (funcall search
+                     "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
       (t (funcall search octave-function-header-regexp 3)))))
 
 (defun octave-function-file-p ()
@@ -1100,19 +1103,19 @@ q: Don't fix\n" func file))
                       (read-char-choice
                        "Which name to use? (a/b/q) " '(?a ?b ?q))))))
           (pcase c
-            (`?a (let ((newname (expand-file-name
-                                 (concat func (file-name-extension
-                                               buffer-file-name t)))))
-                   (when (or (not (file-exists-p newname))
-                             (yes-or-no-p
-                              (format "Target file %s exists; proceed? " newname)))
-                     (when (file-exists-p buffer-file-name)
-                       (rename-file buffer-file-name newname t))
-                     (set-visited-file-name newname))))
-            (`?b (save-excursion
-                   (goto-char name-start)
-                   (delete-region name-start name-end)
-                   (insert file)))))))))
+            (?a (let ((newname (expand-file-name
+                                (concat func (file-name-extension
+                                              buffer-file-name t)))))
+                  (when (or (not (file-exists-p newname))
+                            (yes-or-no-p
+                             (format "Target file %s exists; proceed? " newname)))
+                    (when (file-exists-p buffer-file-name)
+                      (rename-file buffer-file-name newname t))
+                    (set-visited-file-name newname))))
+            (?b (save-excursion
+                  (goto-char name-start)
+                  (delete-region name-start name-end)
+                  (insert file)))))))))
 
 (defun octave-update-function-file-comment (beg end)
   "Query replace function names in function file comment."
@@ -1771,19 +1774,19 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
 (defun octave-find-definition-default-filename (name)
   "Default value for `octave-find-definition-filename-function'."
   (pcase (file-name-extension name)
-    (`"oct"
+    ("oct"
      (octave-find-definition-default-filename
       (concat "libinterp/dldfcn/"
               (file-name-sans-extension (file-name-nondirectory name))
               ".cc")))
-    (`"cc"
+    ("cc"
      (let ((file (or (locate-file name (octave-source-directories))
                      (locate-file (file-name-nondirectory name)
                                   (octave-source-directories)))))
        (or (and file (file-exists-p file))
            (error "File `%s' not found" name))
        file))
-    (`"mex"
+    ("mex"
      (if (yes-or-no-p (format "File `%s' may be binary; open? "
                               (file-name-nondirectory name)))
          name
