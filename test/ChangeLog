@@ -1,3 +1,7 @@
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/dbus-tests.el: New file.
+
 2013-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/regexp-tests.el: New file.
