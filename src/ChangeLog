@@ -1,5 +1,6 @@
 2013-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
+	Pixel resize changes for NS (Bug#16049).
 	* nsterm.m (x_set_window_size): Change parameters rows/cols to
 	height/width.  row/cols are locals.
 	Pass pixelwise to check_frame_size.  Don't set FRAME_PIXEL_WIDTH/HEIGHT.
