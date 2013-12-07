@@ -1237,6 +1237,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   init_frame_faces (f);
 
+  /* Read comment about this code in corresponding place in xfns.c.  */
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
+
   /* The resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
      variables; ignore them here.  */
@@ -1301,12 +1308,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
-  width = FRAME_COLS (f);
-  height = FRAME_LINES (f);
-
-  SET_FRAME_COLS (f, 0);
-  FRAME_LINES (f) = 0;
-  change_frame_size (f, width, height, 1, 0, 0, 0);
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
 
   if (! f->output_data.ns->explicit_parent)
     {
