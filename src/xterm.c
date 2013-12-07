@@ -248,6 +248,9 @@ static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *,
 			      const XEvent *, int *,
 			      struct input_event *);
+#if ! (defined USE_X_TOOLKIT || defined USE_MOTIF)
+static int x_dispatch_event (XEvent *, Display *);
+#endif
 /* Don't declare this _Noreturn because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);

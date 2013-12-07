@@ -1,3 +1,13 @@
+2013-12-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* keyboard.c (poll_for_input_1, input_polling_used):
+	Define only if HAVE_NTGUI.
+	* xmenu.c (popup_activate_callback): Omit unnecessary
+	check against USE_X_TOOLKIT, which must be defined here anyway.
+	* xterm.c, xterm.h (x_dispatch_event) [! (USE_X_TOOLKIT || USE_MOTIF)]:
+	Now static.
+
 2013-12-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (w32_read_socket): Fix int/Lisp_Object type mixup.
