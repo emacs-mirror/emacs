@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <mbstring.h>
 #include "w32.h"
 #include "w32heap.h"
 #endif
@@ -2205,8 +2206,36 @@ decode_env_path (const char *evarname, const char *defalt)
       char *path_copy;
 
 #ifdef WINDOWSNT
-      path_copy = alloca (MAX_UTF8_PATH);
-      filename_from_ansi (path, path_copy);
+      char *path_utf8, *q, *d;
+      int cnv_result;
+
+      /* Convert each element of PATH to UTF-8.  */
+      p = path_copy = alloca (strlen (path) + 1);
+      strcpy (path_copy, path);
+      d = path_utf8 = alloca (4 * strlen (path) + 1);
+      *d = '\0';
+      do {
+	q = _mbschr (p, SEPCHAR);
+	if (q)
+	  *q = '\0';
+	cnv_result = filename_from_ansi (p, d);
+	if (q)
+	  {
+	    *q++ = SEPCHAR;
+	    p = q;
+	    /* If conversion of this PATH elements fails, make sure
+	       destination pointer will stay put, thus effectively
+	       ignoring the offending element.  */
+	    if (cnv_result == 0)
+	      {
+		d += strlen (d);
+		*d++ = SEPCHAR;
+	      }
+	  }
+	else if (cnv_result != 0 && d > path_utf8)
+	  d[-1] = '\0';	/* remove last semi-colon and null-terminate PATH */
+      } while (q);
+      path_copy = path_utf8;
 #else  /* MSDOS */
       path_copy = alloca (strlen (path) + 1);
       strcpy (path_copy, path);

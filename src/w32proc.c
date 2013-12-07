@@ -1619,7 +1619,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       return -1;
     }
   /* From here on, CMDNAME is an ANSI-encoded string.  */
-  cmdname = cmdname_a
+  cmdname = cmdname_a;
   argv[0] = cmdname;
 
   /* Determine whether program is a 16-bit DOS executable, or a 32-bit Windows

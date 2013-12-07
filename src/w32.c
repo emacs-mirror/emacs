@@ -2020,7 +2020,7 @@ normalize_filename (register char *fp, char path_sep)
 
   while (*fp)
     {
-      if (*fp == '/' || *fp == '\\')
+      if ((*fp == '/' || *fp == '\\') && *fp != path_sep)
 	*fp = path_sep;
       fp++;
     }
