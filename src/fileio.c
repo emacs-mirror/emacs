@@ -1164,7 +1164,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  nm++;
 	  /* `egetenv' may return a unibyte string, which will bite us since
 	     we expect the directory to be multibyte.  */
-	  tem = build_string (newdir);
+#ifdef WINDOWSNT
+	  if (newdir[0])
+	    {
+	      char newdir_utf8[MAX_UTF8_PATH];
+
+	      filename_from_ansi (newdir, newdir_utf8);
+	      tem = build_string (newdir_utf8);
+	    }
+	  else
+#else
+	    tem = build_string (newdir);
+#endif
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
 	      hdir = DECODE_FILE (tem);
