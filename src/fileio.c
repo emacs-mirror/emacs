@@ -5852,7 +5852,8 @@ syms_of_fileio (void)
 If it is nil, `default-file-name-coding-system' (which see) is used.
 
 On MS-Windows, the value of this variable is largely ignored if
-\`w32-unicode-filenames' (which see) is non-nil.  */);
+\`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
+behaves as if file names were encoded in `utf-8'.  */);
   Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("default-file-name-coding-system",
@@ -5866,7 +5867,8 @@ instead use `file-name-coding-system' to get a constant encoding
 of file names regardless of the current language environment.
 
 On MS-Windows, the value of this variable is largely ignored if
-\`w32-unicode-filenames' (which see) is non-nil.  */);
+\`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
+behaves as if file names were encoded in `utf-8'.  */);
   Vdefault_file_name_coding_system = Qnil;
 
   DEFSYM (Qformat_decode, "format-decode");
