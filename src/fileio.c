@@ -5849,7 +5849,10 @@ syms_of_fileio (void)
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* Coding system for encoding file names.
-If it is nil, `default-file-name-coding-system' (which see) is used.  */);
+If it is nil, `default-file-name-coding-system' (which see) is used.
+
+On MS-Windows, the value of this variable is largely ignored if
+\`w32-unicode-filenames' (which see) is non-nil.  */);
   Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("default-file-name-coding-system",
@@ -5860,7 +5863,10 @@ This variable is used only when `file-name-coding-system' is nil.
 This variable is set/changed by the command `set-language-environment'.
 User should not set this variable manually,
 instead use `file-name-coding-system' to get a constant encoding
-of file names regardless of the current language environment.  */);
+of file names regardless of the current language environment.
+
+On MS-Windows, the value of this variable is largely ignored if
+\`w32-unicode-filenames' (which see) is non-nil.  */);
   Vdefault_file_name_coding_system = Qnil;
 
   DEFSYM (Qformat_decode, "format-decode");

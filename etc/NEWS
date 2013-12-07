@@ -931,6 +931,14 @@ directories and will find the files in there automatically; there's no
 need to set any variables due to this change.)
 
 +++
+** Emacs on Windows 2000 and later can now access files and directories
+whose names cannot be encoded in the current system codepage.
+
+The new variable `w32-unicode-filenames' controls this feature: if it
+is t, Emacs uses Unicode APIs to pass file names to system calls,
+which lifts the limitation of file names to the current locale.
+
++++
 ** The "generate a backtrace on fatal error" feature now works on MS Windows.
 The backtrace is written to the 'emacs_backtrace.txt' file in the
 directory where Emacs was running.
