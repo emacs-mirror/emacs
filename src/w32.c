@@ -1333,7 +1333,8 @@ w32_valid_pointer_p (void *p, int size)
    encoding when w32-unicode-filenames is t; this is similar to
    selection-coding-system.
 
-   This arrangement works very well, but it has a few gotchas:
+   This arrangement works very well, but it has a few gotchas and
+   limitations:
 
    . Lisp code that encodes or decodes file names manually should
      normally use 'utf-8' as the coding-system on Windows,
@@ -1350,6 +1351,12 @@ w32_valid_pointer_p (void *p, int size)
      directly in Emacs sources, without either converting the file
      name sfrom UTF-8 to either UTF-16 or ANSI codepage, or going
      through some shadowing function defined here.
+
+   . Environment variables stored in Vprocess_environment are encoded
+     in the ANSI codepage, so if getenv/egetenv is used for a variable
+     whose value is a file name or a list of directories, it needs to
+     be converted to UTF-8, before it is used as argument to functions
+     or decoded into a Lisp string.
 
    . File names passed to external libraries, like the image libraries
      and GnuTLS, need special handling.  These libraries generally
@@ -1378,7 +1385,12 @@ w32_valid_pointer_p (void *p, int size)
    . For similar reasons, server.el and emacsclient are also limited
      to the current ANSI codepage for now.
 
-*/
+   . Emacs itself can only handle command-line arguments encoded in
+     the current codepage.
+
+   . Turning on w32-unicode-filename on Windows 9X (if it at all
+     works) requires UNICOWS.DLL, which is currently loaded only in a
+     GUI session.  */
 
 
 
@@ -2365,6 +2377,8 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
   return (NULL);
 }
 
+/* The argv[] array holds ANSI-encoded strings, and so this function
+   works with ANS_encoded strings.  */
 void
 init_environment (char ** argv)
 {
@@ -2508,7 +2522,7 @@ init_environment (char ** argv)
       char *p;
       char modname[MAX_PATH];
 
-      if (!GetModuleFileName (NULL, modname, MAX_PATH))
+      if (!GetModuleFileNameA (NULL, modname, MAX_PATH))
 	emacs_abort ();
       if ((p = _mbsrchr (modname, '\\')) == NULL)
 	emacs_abort ();
@@ -2672,7 +2686,7 @@ init_environment (char ** argv)
   {
     static char modname[MAX_PATH];
 
-    if (!GetModuleFileName (NULL, modname, MAX_PATH))
+    if (!GetModuleFileNameA (NULL, modname, MAX_PATH))
       emacs_abort ();
     argv[0] = modname;
   }
@@ -8434,10 +8448,10 @@ check_windows_init_file (void)
 
       /* Implementation note: this function runs early during Emacs
 	 startup, before startup.el is run.  So Vload_path is still in
-	 its initial unibyte form, holding ANSI-encoded file names.
-	 That is why we never bother to ENCODE_FILE here, nor use wide
-	 APIs for file names: we will never get UTF-8 encoded file
-	 names here.  */
+	 its initial unibyte form, but it holds UTF-8 encoded file
+	 names, since init_callproc was already called.  So we do not
+	 need to ENCODE_FILE here, but we do need to convert the file
+	 names from UTF-8 to ANSI.  */
       init_file = build_string ("term/w32-win");
       fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil);
       if (fd < 0)
@@ -8448,6 +8462,8 @@ check_windows_init_file (void)
 	  char *buffer = alloca (1024
 				 + strlen (init_file_name)
 				 + strlen (load_path));
+	  char *msg = buffer;
+	  int needed;
 
 	  sprintf (buffer,
 		   "The Emacs Windows initialization file \"%s.el\" "
@@ -8459,8 +8475,27 @@ check_windows_init_file (void)
 		   "not unpacked properly.\nSee the README.W32 file in the "
 		   "top-level Emacs directory for more information.",
 		   init_file_name, load_path);
+	  needed = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer,
+					-1, NULL, 0);
+	  if (needed > 0)
+	    {
+	      wchar_t *msg_w = alloca ((needed + 1) * sizeof (wchar_t));
+
+	      MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer, -1,
+				   msg_w, needed);
+	      needed = WideCharToMultiByte (CP_ACP, 0, msg_w, -1,
+					    NULL, 0, NULL, NULL);
+	      if (needed > 0)
+		{
+		  char *msg_a = alloca (needed + 1);
+
+		  WideCharToMultiByte (CP_ACP, 0, msg_w, -1, msg_a, needed,
+				       NULL, NULL);
+		  msg = msg_a;
+		}
+	    }
 	  MessageBox (NULL,
-		      buffer,
+		      msg,
 		      "Emacs Abort Dialog",
 		      MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
 	  /* Use the low-level system abort. */

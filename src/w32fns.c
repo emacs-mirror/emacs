@@ -7428,8 +7428,11 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
   static char pname_buf[256];
   int err;
   HANDLE hPrn;
-  PRINTER_INFO_2 *ppi2 = NULL;
+  PRINTER_INFO_2W *ppi2w = NULL;
+  PRINTER_INFO_2A *ppi2a = NULL;
   DWORD dwNeeded = 0, dwReturned = 0;
+  char server_name[MAX_UTF8_PATH], share_name[MAX_UTF8_PATH];
+  char port_name[MAX_UTF8_PATH];
 
   /* Retrieve the default string from Win.ini (the registry).
    * String will be in form "printername,drivername,portname".
@@ -7441,54 +7444,87 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
   /* We want to know more than the printer name */
   if (!OpenPrinter (pname_buf, &hPrn, NULL))
     return Qnil;
-  GetPrinter (hPrn, 2, NULL, 0, &dwNeeded);
+  /* GetPrinterW is not supported by unicows.dll.  */
+  if (w32_unicode_filenames && os_subtype != OS_9X)
+    GetPrinterW (hPrn, 2, NULL, 0, &dwNeeded);
+  else
+    GetPrinterA (hPrn, 2, NULL, 0, &dwNeeded);
   if (dwNeeded == 0)
     {
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Allocate memory for the PRINTER_INFO_2 struct */
-  ppi2 = xmalloc (dwNeeded);
-  if (!ppi2)
-    {
-      ClosePrinter (hPrn);
-      return Qnil;
-    }
   /* Call GetPrinter again with big enough memory block.  */
-  err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
-  ClosePrinter (hPrn);
-  if (!err)
+  if (w32_unicode_filenames && os_subtype != OS_9X)
     {
-      xfree (ppi2);
-      return Qnil;
-    }
+      /* Allocate memory for the PRINTER_INFO_2 struct.  */
+      ppi2w = xmalloc (dwNeeded);
+      err = GetPrinterW (hPrn, 2, (LPBYTE)ppi2w, dwNeeded, &dwReturned);
+      ClosePrinter (hPrn);
+      if (!err)
+	{
+	  xfree (ppi2w);
+	  return Qnil;
+	}
 
-  if (ppi2)
-    {
-      if (ppi2->Attributes & PRINTER_ATTRIBUTE_SHARED && ppi2->pServerName)
-        {
-	  /* a remote printer */
-	  if (*ppi2->pServerName == '\\')
-	    snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
-		       ppi2->pShareName);
-	  else
-	    snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
-		       ppi2->pShareName);
-	  pname_buf[sizeof (pname_buf) - 1] = '\0';
+      if ((ppi2w->Attributes & PRINTER_ATTRIBUTE_SHARED)
+	  && ppi2w->pServerName)
+	{
+	  filename_from_utf16 (ppi2w->pServerName, server_name);
+	  filename_from_utf16 (ppi2w->pShareName, share_name);
 	}
       else
-        {
-	  /* a local printer */
-	  strncpy (pname_buf, ppi2->pPortName, sizeof (pname_buf));
-	  pname_buf[sizeof (pname_buf) - 1] = '\0';
-	  /* `pPortName' can include several ports, delimited by ','.
-	   * we only use the first one. */
-	  strtok (pname_buf, ",");
+	{
+	  server_name[0] = '\0';
+	  filename_from_utf16 (ppi2w->pPortName, port_name);
 	}
-      xfree (ppi2);
+    }
+  else
+    {
+      ppi2a = xmalloc (dwNeeded);
+      err = GetPrinterA (hPrn, 2, (LPBYTE)ppi2a, dwNeeded, &dwReturned);
+      ClosePrinter (hPrn);
+      if (!err)
+	{
+	  xfree (ppi2a);
+	  return Qnil;
+	}
+
+      if ((ppi2a->Attributes & PRINTER_ATTRIBUTE_SHARED)
+	  && ppi2a->pServerName)
+	{
+	  filename_from_ansi (ppi2a->pServerName, server_name);
+	  filename_from_ansi (ppi2a->pShareName, share_name);
+	}
+      else
+	{
+	  server_name[0] = '\0';
+	  filename_from_ansi (ppi2a->pPortName, port_name);
+	}
     }
 
-  return build_string (pname_buf);
+  if (server_name[0])
+    {
+      /* a remote printer */
+      if (server_name[0] == '\\')
+	snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", server_name,
+		  share_name);
+      else
+	snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", server_name,
+		  share_name);
+      pname_buf[sizeof (pname_buf) - 1] = '\0';
+    }
+  else
+    {
+      /* a local printer */
+      strncpy (pname_buf, port_name, sizeof (pname_buf));
+      pname_buf[sizeof (pname_buf) - 1] = '\0';
+      /* `pPortName' can include several ports, delimited by ','.
+       * we only use the first one. */
+      strtok (pname_buf, ",");
+    }
+
+  return DECODE_FILE (build_unibyte_string (pname_buf));
 }
 
 

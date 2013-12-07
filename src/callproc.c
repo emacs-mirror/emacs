@@ -1606,17 +1606,24 @@ init_callproc (void)
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, tem1, srcdir;
+      Lisp_Object tem, tem1, tem2, srcdir;
+#ifdef WINDOWSNT
+      /* PATH_DUMPLOADSEARCH is in ANSI codepage; convert to UTF-8.  */
+      char dumpload_dir[MAX_UTF8_PATH];
 
-      srcdir = Fexpand_file_name (build_string ("../src/"),
-				  build_unibyte_string (PATH_DUMPLOADSEARCH));
+      filename_from_ansi (PATH_DUMPLOADSEARCH, dumpload_dir);
+      tem2 = build_unibyte_string (dumpload_dir);
+#else
+      tem2 = build_unibyte_string (PATH_DUMPLOADSEARCH);
+#endif
+
+      srcdir = Fexpand_file_name (build_string ("../src/"), tem2);
       tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
       tem1 = Ffile_exists_p (tem);
       if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
 	{
 	  Lisp_Object newdir;
-	  newdir = Fexpand_file_name (build_string ("../etc/"),
-				      build_unibyte_string (PATH_DUMPLOADSEARCH));
+	  newdir = Fexpand_file_name (build_string ("../etc/"), tem2);
 	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
 	  tem1 = Ffile_exists_p (tem);
 	  if (!NILP (tem1))

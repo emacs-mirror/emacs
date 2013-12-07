@@ -394,7 +394,20 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
   initial_argv = argv;
   initial_argc = argc;
 
+#ifdef WINDOWSNT
+  /* Must use argv[0] converted to UTF-8, as it begets many standard
+     file and directory names.  */
+  {
+    char argv0[MAX_UTF8_PATH];
+
+    if (filename_from_ansi (argv[0], argv0) == 0)
+      raw_name = build_unibyte_string (argv0);
+    else
+      raw_name = build_unibyte_string (argv[0]);
+  }
+#else
   raw_name = build_unibyte_string (argv[0]);
+#endif
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
@@ -796,6 +809,14 @@ main (int argc, char **argv)
 
   if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
     {
+#ifdef WINDOWSNT
+      /* argv[] array is kept in its original ANSI codepage encoding,
+	 we need to convert to UTF-8, for chdir to work.  */
+      char newdir[MAX_UTF8_PATH];
+
+      filename_from_ansi (ch_to_dir, newdir);
+      ch_to_dir = newdir;
+#endif
       original_pwd = get_current_dir_name ();
       if (chdir (ch_to_dir) != 0)
         {
@@ -1531,7 +1552,16 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       char *file;
       /* Handle -l loadup, args passed by Makefile.  */
       if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
-	Vtop_level = list2 (intern_c_string ("load"), build_string (file));
+	{
+#ifdef WINDOWSNT
+	  char file_utf8[MAX_UTF8_PATH];
+
+	  if (filename_from_ansi (file, file_utf8) == 0)
+	    file = file_utf8;
+#endif
+	  Vtop_level = list2 (intern_c_string ("load"),
+			      build_unibyte_string (file));
+	}
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
 	Vtop_level = list2 (intern_c_string ("load"),
