@@ -1,3 +1,7 @@
+2013-12-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_read_socket): Fix int/Lisp_Object type mixup.
+
 2013-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (tb_size_cb): Call xg_height_or_width_changed.
