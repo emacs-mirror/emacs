@@ -110,7 +110,7 @@ do
 	# The path exists, so just translate it
 	w32p=`cd "$p" && pwd -W`
     else
-	# The path does not exists.  So, try to guess the
+	# The path does not exist.  So, try to guess the
 	# Windows-native translation, by looking for the deepest
 	# existing directory in this path, and then translating the
 	# existing part and concatenating the remainder.
