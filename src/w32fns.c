@@ -7346,14 +7346,23 @@ If the underlying system call fails, value is nil.  */)
      added rather late on.  */
   {
     HMODULE hKernel = GetModuleHandle ("kernel32");
-    BOOL (*pfn_GetDiskFreeSpaceEx)
+    BOOL (*pfn_GetDiskFreeSpaceExW)
+      (wchar_t *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
+      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
+    BOOL (*pfn_GetDiskFreeSpaceExA)
       (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceEx");
+      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
+    bool have_pfn_GetDiskFreeSpaceEx =
+      (w32_unicode_filenames && pfn_GetDiskFreeSpaceExW
+       || !w32_unicode_filenames && pfn_GetDiskFreeSpaceExA);
 
     /* On Windows, we may need to specify the root directory of the
        volume holding FILENAME.  */
-    char rootname[MAX_PATH];
+    char rootname[MAX_UTF8_PATH];
+    wchar_t rootname_w[MAX_PATH];
+    char rootname_a[MAX_PATH];
     char *name = SDATA (encoded);
+    BOOL result;
 
     /* find the root name of the volume if given */
     if (isalpha (name[0]) && name[1] == ':')
@@ -7379,7 +7388,12 @@ If the underlying system call fails, value is nil.  */)
 	*str = 0;
       }
 
-    if (pfn_GetDiskFreeSpaceEx)
+    if (w32_unicode_filenames)
+      filename_to_utf16 (rootname, rootname_w);
+    else
+      filename_to_ansi (rootname, rootname_a);
+
+    if (have_pfn_GetDiskFreeSpaceEx)
       {
 	/* Unsigned large integers cannot be cast to double, so
 	   use signed ones instead.  */
@@ -7387,10 +7401,17 @@ If the underlying system call fails, value is nil.  */)
 	LARGE_INTEGER freebytes;
 	LARGE_INTEGER totalbytes;
 
-	if (pfn_GetDiskFreeSpaceEx (rootname,
-				    (ULARGE_INTEGER *)&availbytes,
-				    (ULARGE_INTEGER *)&totalbytes,
-				    (ULARGE_INTEGER *)&freebytes))
+	if (w32_unicode_filenames)
+	  result = pfn_GetDiskFreeSpaceExW (rootname_w,
+					    (ULARGE_INTEGER *)&availbytes,
+					    (ULARGE_INTEGER *)&totalbytes,
+					    (ULARGE_INTEGER *)&freebytes);
+	else
+	  result = pfn_GetDiskFreeSpaceExA (rootname_a,
+					    (ULARGE_INTEGER *)&availbytes,
+					    (ULARGE_INTEGER *)&totalbytes,
+					    (ULARGE_INTEGER *)&freebytes);
+	if (result)
 	  value = list3 (make_float ((double) totalbytes.QuadPart),
 			 make_float ((double) freebytes.QuadPart),
 			 make_float ((double) availbytes.QuadPart));
@@ -7402,11 +7423,19 @@ If the underlying system call fails, value is nil.  */)
 	DWORD free_clusters;
 	DWORD total_clusters;
 
-	if (GetDiskFreeSpace (rootname,
-			      &sectors_per_cluster,
-			      &bytes_per_sector,
-			      &free_clusters,
-			      &total_clusters))
+	if (w32_unicode_filenames)
+	  result = GetDiskFreeSpaceW (rootname_w,
+				      &sectors_per_cluster,
+				      &bytes_per_sector,
+				      &free_clusters,
+				      &total_clusters);
+	else
+	  result = GetDiskFreeSpaceA (rootname_a,
+				      &sectors_per_cluster,
+				      &bytes_per_sector,
+				      &free_clusters,
+				      &total_clusters);
+	if (result)
 	  value = list3 (make_float ((double) total_clusters
 				     * sectors_per_cluster * bytes_per_sector),
 			 make_float ((double) free_clusters
