@@ -1,5 +1,15 @@
 2013-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (x_set_window_size): Remove fprintf.
+	(init): Define always.  Set applicationDidFinishLaunchingCalled
+	for GNUStep.
+	(applicationDidFinishLaunching:): Set
+	applicationDidFinishLaunchingCalled,
+	(applicationDidBecomeActive:): Call applicationDidFinishLaunching if
+	not called.
+
+	* nsterm.h (EmacsApp): Add applicationDidFinishLaunchingCalled.
+
 	Pixel resize changes for NS (Bug#16049).
 	* nsterm.m (x_set_window_size): Change parameters rows/cols to
 	height/width.  row/cols are locals.
