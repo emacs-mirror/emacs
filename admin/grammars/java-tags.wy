@@ -25,6 +25,11 @@
 %package wisent-java-tags-wy
 %provide semantic/wisent/javat-wy
 
+%{
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
+}
+
 %languagemode  java-mode
 
 ;; The default start symbol

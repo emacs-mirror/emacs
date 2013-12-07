@@ -884,7 +884,7 @@ See also `tramp-file-name-regexp'.")
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
   (if (memq system-type '(cygwin windows-nt))
-      "\\`/[^/|:]\\{2,\\}[^/|]*:"
+      "\\`/\\(\\[.*\\]\\|[^/|:]\\{2,\\}[^/|]*\\):"
     "\\`/[^/|:][^/|]*:")
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and

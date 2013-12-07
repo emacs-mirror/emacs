@@ -461,8 +461,8 @@ each line."
   (let ((keywords (lm-keywords file)))
     (if keywords
 	(if (string-match-p "," keywords)
-	    (split-string keywords ",[ \t\n]*" t)
-	  (split-string keywords "[ \t\n]+" t)))))
+	    (split-string keywords ",[ \t\n]*" t "[ ]+")
+	  (split-string keywords "[ \t\n]+" t "[ ]+")))))
 
 (defvar finder-known-keywords)
 (defun lm-keywords-finder-p (&optional file)

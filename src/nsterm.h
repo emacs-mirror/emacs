@@ -654,6 +654,7 @@ struct ns_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
 
   /* NS-specific */
   Cursor current_pointer;
@@ -718,11 +719,6 @@ struct x_output
 #define NS_FACE_BACKGROUND(f) ((f)->background)
 #define FRAME_NS_TITLEBAR_HEIGHT(f) ((f)->output_data.ns->titlebar_height)
 #define FRAME_TOOLBAR_HEIGHT(f) ((f)->output_data.ns->toolbar_height)
-
-#define FONT_WIDTH(f)	((f)->max_width)
-#define FONT_HEIGHT(f)	((f)->height)
-#define FONT_BASE(f)    ((f)->ascent)
-#define FONT_DESCENT(f) ((f)->descent)
 
 #define FRAME_DEFAULT_FACE(f) FACE_FROM_ID (f, DEFAULT_FACE_ID)
 

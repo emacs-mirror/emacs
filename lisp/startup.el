@@ -499,18 +499,17 @@ It is the default value of the variable `top-level'."
     ;; available input methods.
     (let ((tail load-path)
           (lispdir (expand-file-name "../lisp" data-directory))
-	  ;; For out-of-tree builds, leim-list is generated in the build dir.
-;;;          (leimdir (expand-file-name "../leim" doc-directory))
           dir)
       (while tail
         (setq dir (car tail))
         (let ((default-directory dir))
           (load (expand-file-name "subdirs.el") t t t))
-	;; Do not scan standard directories that won't contain a leim-list.el.
-	;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
-	(or (string-match (concat "\\`" lispdir) dir)
-	    (let ((default-directory dir))
-	      (load (expand-file-name "leim-list.el") t t t)))
+        ;; Do not scan standard directories that won't contain a leim-list.el.
+        ;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
+        ;; (Except the preloaded one in lisp/leim.)
+        (or (string-prefix-p lispdir dir)
+            (let ((default-directory dir))
+              (load (expand-file-name "leim-list.el") t t t)))
         ;; We don't use a dolist loop and we put this "setq-cdr" command at
         ;; the end, because the subdirs.el files may add elements to the end
         ;; of load-path and we want to take it into account.
@@ -1290,6 +1289,29 @@ the `--debug-init' option to view a complete error backtrace."
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
 
+  ;; This is a problem because, e.g. if emacs.d/gnus.el exists,
+  ;; trying to load gnus could load the wrong file.
+  ;; OK, it would not matter if .emacs.d were at the end of load-path.
+  ;; but for the sake of simplicity, we discourage it full-stop.
+  ;; Ref eg http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00056.html
+  ;;
+  ;; A bad element could come from user-emacs-file, the command line,
+  ;; or EMACSLOADPATH, so we basically always have to check.
+  (let (warned)
+    (dolist (dir load-path)
+      (and (not warned)
+	   (string-match-p "/[._]emacs\\.d/?\\'" dir)
+	   (string-equal (file-name-as-directory (expand-file-name dir))
+			 (expand-file-name user-emacs-directory))
+	   (setq warned t)
+	   (display-warning 'initialization
+			    (format "Your `load-path' seems to contain
+your `.emacs.d' directory: %s\n\
+This is likely to cause problems...\n\
+Consider using a subdirectory instead, e.g.: %s" dir
+(expand-file-name "lisp" user-emacs-directory))
+			     :warning))))
+
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t))
 
@@ -1765,6 +1787,10 @@ Returning non-nil does not mean we should necessarily
 use the fancy splash screen, but if we do use it,
 we put it on this frame."
   (let (chosen-frame)
+    ;; MS-Windows needs this to have a chance to make the initial
+    ;; frame visible.
+    (if (eq system-type 'windows-nt)
+	(sit-for 0 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
@@ -1775,7 +1801,7 @@ we put it on this frame."
   "Return t if fancy splash screens should be used."
   (when (and (display-graphic-p)
              (or (and (display-color-p)
-		 (image-type-available-p 'xpm))
+		      (image-type-available-p 'xpm))
                  (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
@@ -2219,7 +2245,7 @@ A fancy display is used on graphic displays, normal otherwise."
 		   ;; -L :/foo adds /foo to the _end_ of load-path.
 		   (let (append)
 		     (if (string-match-p
-			  "\\`:"
+			  (format "\\`%s" path-separator)
 			  (setq tem (or argval (pop command-line-args-left))))
 			 (setq tem (substring tem 1)
 			       append t))

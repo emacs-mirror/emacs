@@ -190,6 +190,24 @@ that can be used as the COLLECTION argument to `try-completion' and
                                (current-buffer)))
         (complete-with-action action (funcall fun string) string pred)))))
 
+(defun completion-table-with-cache (fun &optional ignore-case)
+  "Create dynamic completion table from FUN, with cache.
+This wraps `completion-table-dynamic', but saves the last
+argument-result pair from FUN, so that several lookups with the
+same argument (or with an argument that starts with the first one)
+only need to call FUN once.  Most useful when FUN performs a relatively
+slow operation, such as calling an external process (see Bug#11906).
+When IGNORE-CASE is non-nil, FUN is expected to be case-insensitive."
+  (let* (last-arg last-result
+         (new-fun
+          (lambda (arg)
+            (if (and last-arg (string-prefix-p last-arg arg ignore-case))
+                last-result
+              (prog1
+                  (setq last-result (funcall fun arg))
+                (setq last-arg arg))))))
+    (completion-table-dynamic new-fun)))
+
 (defmacro lazy-completion-table (var fun)
   "Initialize variable VAR as a lazy completion table.
 If the completion table VAR is used for the first time (e.g., by passing VAR
@@ -1067,7 +1085,8 @@ scroll the window of possible completions."
             ;; If end is in view, scroll up to the beginning.
             (set-window-start window (point-min) nil)
           ;; Else scroll down one screen.
-          (scroll-other-window))
+          (with-selected-window window
+	    (scroll-up)))
         nil)))
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)

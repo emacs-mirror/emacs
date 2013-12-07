@@ -1,3 +1,30 @@
+2013-12-06  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi: Don't include Emacs version within Org's version.
+
+2013-12-06  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Creating one-off styles): Use new export snippet
+	syntax.
+
+	* org.texi (Export settings): documentation describing how text
+	above the first heading is ignored when an :export: tag is in a
+	file.
+
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Clarify unibyte-ness of strings.
+
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): Remove Makefile.
+
+2013-11-20  era eriksson  <era+emacsbugs@iki.fi>
+
+	* ses.texi (Quick Tutorial): New chapter.  (Bug#14748)
+	(The Basics, Formulas): Copyedits.
+	(Resizing, Printer functions): Add index entries.
+
 2013-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Customizing Calc): Mention new variable

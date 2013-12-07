@@ -412,7 +412,7 @@ set_frame_size (EmacsFrame ew)
 #if 0 /* This can run Lisp code, and it is dangerous to give
 	 out the frame to Lisp code before it officially exists.
 	 This is handled in Fx_create_frame so not needed here.  */
-    change_frame_size (f, h, w, 1, 0, 0);
+    change_frame_size (f, w, h, 1, 0, 0, 0);
 #endif
     char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
     ew->core.width = pixel_width;
@@ -467,7 +467,7 @@ update_wm_hints (EmacsFrame ew)
   if (! wmshell) return;
 
 #if 0
-  check_frame_size (ew->emacs_frame.frame, &min_rows, &min_cols);
+  check_frame_size (ew->emacs_frame.frame, &min_cols, &min_rows, 0);
 #endif
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height,
@@ -681,7 +681,7 @@ EmacsFrameResize (Widget widget)
       || ew->core.width != FRAME_PIXEL_WIDTH (f)
       || ew->core.height + x->menubar_height != FRAME_PIXEL_HEIGHT (f))
     {
-      change_frame_size (f, rows, columns, 0, 1, 0);
+      change_frame_size (f, columns, rows, 0, 1, 0, 0);
       update_wm_hints (ew);
       update_various_frame_slots (ew);
 
@@ -735,8 +735,8 @@ EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget, Ar
       new->core.width = pixel_width;
       new->core.height = pixel_height;
 
-      change_frame_size (new->emacs_frame.frame, char_height, char_width,
-			  1, 0, 0);
+      change_frame_size (new->emacs_frame.frame, char_width, char_height,
+			 1, 0, 0, 0);
       needs_a_refresh = True;
     }
 
@@ -798,7 +798,7 @@ EmacsFrameSetCharSize (Widget widget, int columns, int rows)
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
 
-  x_set_window_size (f, 0, columns, rows);
+  x_set_window_size (f, 0, columns, rows, 0);
 }
 
 

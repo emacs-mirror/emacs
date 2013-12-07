@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 8.2.3 (GNU Emacs 24.3)
+@set VERSION 8.2.4
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -10518,7 +10518,8 @@ clocktable.
 The tags that select a tree for export (@code{org-export-select-tags}).  The
 default value is @code{:export:}.  Within a subtree tagged with
 @code{:export:}, you can still exclude entries with @code{:noexport:} (see
-below).
+below).  When headlines are selectively exported with @code{:export:}
+anywhere in a file, text before the first headline is ignored.
 
 @item EXCLUDE_TAGS
 The tags that exclude a tree from export (@code{org-export-exclude-tags}).
@@ -12542,13 +12543,13 @@ file.  The use of this feature is better illustrated with couple of examples.
 @enumerate
 @item Embedding ODT tags as part of regular text
 
-You can include simple OpenDocument tags by prefixing them with
-@samp{@@}.  For example, to highlight a region of text do the following:
+You can inline OpenDocument syntax by enclosing it within
+@samp{@@@@odt:...@@@@} markup.  For example, to highlight a region of text do
+the following:
 
 @example
-@@<text:span text:style-name="Highlight">This is a
-highlighted text@@</text:span>.  But this is a
-regular text.
+@@@@odt:<text:span text:style-name="Highlight">This is a highlighted
+text</text:span>@@@@.  But this is a regular text.
 @end example
 
 @strong{Hint:} To see the above example in action, edit your

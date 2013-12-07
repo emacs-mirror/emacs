@@ -22,21 +22,28 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 VPATH = $(srcdir)
 
+SEPCHAR = @SEPCHAR@
+
+# Empty for all systems except MinGW, where xargs needs an explicit
+# limitation.
+XARGS_LIMIT = @XARGS_LIMIT@
+
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
 # directory, we can use emacs --chdir.
 EMACS = ../../src/emacs
 
 # Command line flags for Emacs.
-EMACSOPT = -batch --no-site-file --no-site-lisp -L :$(srcdir)
+# Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
+# but we might as well be explicit.
+EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)"
 
 # Extra flags to pass to the byte compiler.
 BYTE_COMPILE_EXTRA_FLAGS =
 
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = unset EMACSLOADPATH; \
-	LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH= LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=for file in `find $(srcdir) -type d -print`; do \
@@ -72,7 +79,7 @@ compile-main: compile-clean
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
 	  echo "$${el}c"; \
-	done | xargs echo | \
+	done | xargs $(XARGS_LIMIT) echo | \
 	while read chunk; do \
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done

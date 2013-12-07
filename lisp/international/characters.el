@@ -484,13 +484,16 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 ;; Bidi categories
 
-(map-char-table (lambda (key val)
-		  (cond
-		   ((memq val '(R AL RLO RLE))
-		    (modify-category-entry key ?R))
-		   ((memq val '(L LRE LRO))
-		    (modify-category-entry key ?L))))
-		(unicode-property-table-internal 'bidi-class))
+;; If bootstrapping without generated uni-*.el files, table not defined.
+(let ((table (unicode-property-table-internal 'bidi-class)))
+  (when table
+    (map-char-table (lambda (key val)
+		      (cond
+		       ((memq val '(R AL RLO RLE))
+			(modify-category-entry key ?R))
+		       ((memq val '(L LRE LRO))
+			(modify-category-entry key ?L))))
+		    table)))
 
 ;; Latin
 
@@ -1332,15 +1335,15 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 ;;; Setting unicode-category-table.
 
-(setq unicode-category-table
-      (unicode-property-table-internal 'general-category))
-(map-char-table #'(lambda (key val)
-		    (if (and val
-			     (or (and (/= (aref (symbol-name val) 0) ?M)
-				      (/= (aref (symbol-name val) 0) ?C))
-				 (eq val 'Zs)))
-			(modify-category-entry key ?.)))
-		unicode-category-table)
+(when (setq unicode-category-table
+	    (unicode-property-table-internal 'general-category))
+  (map-char-table #'(lambda (key val)
+		      (if (and val
+			       (or (and (/= (aref (symbol-name val) 0) ?M)
+					(/= (aref (symbol-name val) 0) ?C))
+				   (eq val 'Zs)))
+			  (modify-category-entry key ?.)))
+		  unicode-category-table))
 
 (optimize-char-table (standard-category-table))
 
@@ -1426,23 +1429,24 @@ This function updates the char-table `glyphless-char-display'."
 	     (glyphless-set-char-table-range glyphless-char-display
 					     #x80 #x9F method))
 	    ((eq target 'format-control)
-	     (map-char-table
-	      #'(lambda (char category)
-		  (if (eq category 'Cf)
-		      (let ((this-method method)
-			    from to)
-			(if (consp char)
-			    (setq from (car char) to (cdr char))
-			  (setq from char to char))
-			(while (<= from to)
-			  (when (/= from #xAD)
-			    (if (eq method 'acronym)
-				(setq this-method
-				      (aref char-acronym-table from)))
-			    (set-char-table-range glyphless-char-display
-						  from this-method))
-			  (setq from (1+ from))))))
-	      unicode-category-table))
+	     (when unicode-category-table
+	       (map-char-table
+		#'(lambda (char category)
+		    (if (eq category 'Cf)
+			(let ((this-method method)
+			      from to)
+			  (if (consp char)
+			      (setq from (car char) to (cdr char))
+			    (setq from char to char))
+			  (while (<= from to)
+			    (when (/= from #xAD)
+			      (if (eq method 'acronym)
+				  (setq this-method
+					(aref char-acronym-table from)))
+			      (set-char-table-range glyphless-char-display
+						    from this-method))
+			    (setq from (1+ from))))))
+		unicode-category-table)))
 	    ((eq target 'no-font)
 	     (set-char-table-extra-slot glyphless-char-display 0 method))
 	    (t

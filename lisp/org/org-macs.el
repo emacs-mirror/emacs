@@ -283,14 +283,6 @@ we turn off invisibility temporarily.  Use this in a `let' form."
        (<= (match-beginning n) pos)
        (>= (match-end n) pos)))
 
-(defun org-autoload (file functions)
-  "Establish autoload for all FUNCTIONS in FILE, if not bound already."
-  (let ((d (format "Documentation will be available after `%s.el' is loaded."
-		   file))
-	f)
-    (while (setq f (pop functions))
-      (or (fboundp f) (autoload f file d t)))))
-
 (defun org-match-line (re)
   "Looking-at at the beginning of the current line."
   (save-excursion

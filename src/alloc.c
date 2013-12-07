@@ -2066,20 +2066,20 @@ Lisp_Object
 make_uninit_bool_vector (EMACS_INT nbits)
 {
   Lisp_Object val;
-  struct Lisp_Bool_Vector *p;
-  EMACS_INT word_bytes, needed_elements;
-  word_bytes = bool_vector_words (nbits) * sizeof (bits_word);
-  needed_elements = ((bool_header_size - header_size + word_bytes
-		      + word_size - 1)
-		     / word_size);
-  p = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
+  EMACS_INT words = bool_vector_words (nbits);
+  EMACS_INT word_bytes = words * sizeof (bits_word);
+  EMACS_INT needed_elements = ((bool_header_size - header_size + word_bytes
+				+ word_size - 1)
+			       / word_size);
+  struct Lisp_Bool_Vector *p
+    = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
   XSETVECTOR (val, p);
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
   p->size = nbits;
 
   /* Clear padding at the end.  */
-  if (nbits)
-    p->data[bool_vector_words (nbits) - 1] = 0;
+  if (words)
+    p->data[words - 1] = 0;
 
   return val;
 }
@@ -3477,7 +3477,7 @@ make_save_ptr_int (void *a, ptrdiff_t b)
   return val;
 }
 
-#if defined HAVE_MENUS && ! (defined USE_X_TOOLKIT || defined USE_GTK)
+#if ! (defined USE_X_TOOLKIT || defined USE_GTK)
 Lisp_Object
 make_save_ptr_ptr (void *a, void *b)
 {
@@ -4317,7 +4317,7 @@ live_buffer_p (struct mem_node *m, void *p)
 void dump_zombies (void) EXTERNALLY_VISIBLE;
 
 /* Array of objects that are kept alive because the C stack contains
-   a pattern that looks like a reference to them .  */
+   a pattern that looks like a reference to them.  */
 
 #define MAX_ZOMBIES 10
 static Lisp_Object zombies[MAX_ZOMBIES];
@@ -6291,7 +6291,7 @@ survives_gc_p (Lisp_Object obj)
 
 
 
-/* Sweep: find all structures not marked, and free them. */
+/* Sweep: find all structures not marked, and free them.  */
 
 static void
 gc_sweep (void)
@@ -6303,7 +6303,7 @@ gc_sweep (void)
   sweep_strings ();
   check_string_bytes (!noninteractive);
 
-  /* Put all unmarked conses on free list */
+  /* Put all unmarked conses on free list.  */
   {
     register struct cons_block *cblk;
     struct cons_block **cprev = &cons_block;
@@ -6380,7 +6380,7 @@ gc_sweep (void)
     total_free_conses = num_free;
   }
 
-  /* Put all unmarked floats on free list */
+  /* Put all unmarked floats on free list.  */
   {
     register struct float_block *fblk;
     struct float_block **fprev = &float_block;
@@ -6426,7 +6426,7 @@ gc_sweep (void)
     total_free_floats = num_free;
   }
 
-  /* Put all unmarked intervals on free list */
+  /* Put all unmarked intervals on free list.  */
   {
     register struct interval_block *iblk;
     struct interval_block **iprev = &interval_block;
@@ -6475,7 +6475,7 @@ gc_sweep (void)
     total_free_intervals = num_free;
   }
 
-  /* Put all unmarked symbols on free list */
+  /* Put all unmarked symbols on free list.  */
   {
     register struct symbol_block *sblk;
     struct symbol_block **sprev = &symbol_block;
@@ -6512,7 +6512,7 @@ gc_sweep (void)
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (XSTRING (sym->s.name));
+		  eassert (!STRING_MARKED_P (XSTRING (sym->s.name)));
 		sym->s.gcmarkbit = 0;
 	      }
 	  }

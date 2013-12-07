@@ -1272,7 +1272,7 @@ uniprop_encode_value_run_length (Lisp_Object table, Lisp_Object value)
 
 
 /* Encode VALUE as an element of char-table TABLE which adopts RUN-LENGTH
-   compression and contains numbers as elements .  */
+   compression and contains numbers as elements.  */
 
 static Lisp_Object
 uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)

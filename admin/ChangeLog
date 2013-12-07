@@ -1,3 +1,51 @@
+2013-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Update bidi-class
+	to include the new isolate-related classes introduced with Unicode
+	v6.3.
+	(unidata-encode-val): Accept an additional optional argument, a
+	warning message to emit when UnicodeData.txt defines bidi-class
+	values that are not in unidata-prop-alist.  Add a comment
+	explaining what should maintainers do if/when such a warning ever
+	appears.
+	(unidata-gen-table): Call unidata-encode-val with 3rd arg non-nil
+	when generating uni-bidi.el.
+
+2013-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (${DSTDIR}/charprop.el):
+	Ensure output files are writable.
+
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* grammars/Makefile.in: Ensure output files are writable.
+
+2013-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* charsets/mule-charsets.el: Rewritten to work in Emacs 23 and
+	later.  (Bug#16007)
+
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	Stop keeping (most) generated cedet grammar files in the repository.
+	* grammars/README: Remove.
+	* grammars/Makefile.in: New file.
+	* grammars/c.by, grammars/java-tags.wy, grammars/js.wy:
+	* grammars/python.wy: Update declarations to match generated outputs.
+
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files):
+	Disable autoloads in generated files.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* unidata/Makefile.in (all, install, clean, bootstrap-clean)
+	(distclean, maintainer-clean): Declare as PHONY.
+	(compile, extraclean): New.
+	(${DSTDIR}/charprop.el): Depend on source files rather than
+	intermediate products.
+
 2013-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* unidata/BidiMirroring.txt, unidata/UnicodeData.txt: Update to 6.3.0.

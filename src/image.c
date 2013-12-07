@@ -8105,7 +8105,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	    {
 	      /* Sanity check.  This shouldn't happen, but apparently
 		 also does in some pictures.  */
-	      if (x + source_left > dest_width)
+	      if (x + source_left > dest_width - 1)
 		break;
 	      /* Normally we only copy over non-transparent pixels,
 		 but if the disposal method is "Background", then we
@@ -9517,7 +9517,7 @@ A cross is always drawn on black & white displays.  */);
 
   DEFVAR_LISP ("x-bitmap-file-path", Vx_bitmap_file_path,
     doc: /* List of directories to search for window system bitmap files.  */);
-  Vx_bitmap_file_path = decode_env_path (0, PATH_BITMAPS);
+  Vx_bitmap_file_path = decode_env_path (0, PATH_BITMAPS, 0);
 
   DEFVAR_LISP ("image-cache-eviction-delay", Vimage_cache_eviction_delay,
     doc: /* Maximum time after which images are removed from the cache.

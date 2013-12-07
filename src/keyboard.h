@@ -457,6 +457,7 @@ extern Lisp_Object Qhelp_echo;
 
 /* Symbols to use for non-text mouse positions.  */
 extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
+extern Lisp_Object Qright_divider, Qbottom_divider;
 
 /* True while doing kbd input.  */
 extern bool waiting_for_input;

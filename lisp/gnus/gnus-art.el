@@ -2665,7 +2665,7 @@ If READ-CHARSET, ask for a coding system."
 			    (string-match "quoted-printable" type))))
 	(article-goto-body)
 	(quoted-printable-decode-region
-	 (point) (point-max) (mm-charset-to-coding-system charset))))))
+	 (point) (point-max) (mm-charset-to-coding-system charset nil t))))))
 
 (defun article-de-base64-unreadable (&optional force read-charset)
   "Translate a base64 article.
@@ -2696,7 +2696,8 @@ If READ-CHARSET, ask for a coding system."
 	  (narrow-to-region (point) (point-max))
 	  (base64-decode-region (point-min) (point-max))
 	  (mm-decode-coding-region
-	   (point-min) (point-max) (mm-charset-to-coding-system charset)))))))
+	   (point-min) (point-max)
+	   (mm-charset-to-coding-system charset nil t)))))))
 
 (eval-when-compile
   (require 'rfc1843))
@@ -2794,6 +2795,9 @@ Return file name."
 	(dolist (handle handles)
 	  (cond
 	   ((not (listp handle)))
+	   ;; Exclude broken handles that `gnus-summary-enter-digest-group'
+	   ;; may create.
+	   ((not (or (bufferp (car handle)) (stringp (car handle)))))
 	   ((equal (mm-handle-media-supertype handle) "multipart")
 	    (when (setq file (gnus-article-browse-html-save-cid-content
 			      cid handle directory))
@@ -2801,11 +2805,12 @@ Return file name."
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
 	    (setq file
 		  (expand-file-name
-                   (or (mm-handle-filename handle)
-                       (concat
-                        (make-temp-name "cid")
-                        (car (rassoc (car (mm-handle-type handle)) mailcap-mime-extensions))))
-                   directory))
+		   (or (mm-handle-filename handle)
+		       (concat
+			(make-temp-name "cid")
+			(car (rassoc (car (mm-handle-type handle))
+				     mailcap-mime-extensions))))
+		   directory))
 	    (mm-save-part-to-file handle file)
 	    (throw 'found file))))))))
 
@@ -2891,6 +2896,13 @@ message header will be added to the bodies of the \"text/html\" parts."
 					  ((match-beginning 3) "&amp;")
 					  (t "<br>\n"))))
 		   (goto-char (point-min))
+		   (while (re-search-forward "^[\t ]+" nil t)
+		     (dotimes (i (prog1
+				     (current-column)
+				   (delete-region (match-beginning 0)
+						  (match-end 0))))
+		       (insert "&nbsp;")))
+		   (goto-char (point-min))
 		   (insert "<div align=\"left\">\n")
 		   (goto-char (point-max))
 		   (insert "</div>\n<hr>\n")
@@ -2908,7 +2920,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 		     (cond ((= (length hcharset) 1)
 			    (setq hcharset (car hcharset)
 				  coding (mm-charset-to-coding-system
-					  hcharset)))
+					  hcharset nil t)))
 			   ((> (length hcharset) 1)
 			    (setq hcharset 'utf-8
 				  coding hcharset)))
@@ -2916,7 +2928,8 @@ message header will be added to the bodies of the \"text/html\" parts."
 			 (if charset
 			     (progn
 			       (setq body
-				     (mm-charset-to-coding-system charset))
+				     (mm-charset-to-coding-system charset
+								  nil t))
 			       (if (eq coding body)
 				   (setq eheader (mm-encode-coding-string
 						  (buffer-string) coding)
@@ -5235,7 +5248,8 @@ are decompressed."
       (switch-to-buffer (generate-new-buffer filename))
       (if (or coding-system
 	      (and charset
-		   (setq coding-system (mm-charset-to-coding-system charset))
+		   (setq coding-system (mm-charset-to-coding-system
+					charset nil t))
 		   (not (eq coding-system 'ascii))))
 	  (progn
 	    (mm-enable-multibyte)

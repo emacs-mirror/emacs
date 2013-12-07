@@ -1,0 +1,16 @@
+# Generated Unicode files.
+charprop.el
+uni-bidi.el
+uni-category.el
+uni-combining.el
+uni-comment.el
+uni-decimal.el
+uni-decomposition.el
+uni-digit.el
+uni-lowercase.el
+uni-mirrored.el
+uni-name.el
+uni-numeric.el
+uni-old-name.el
+uni-titlecase.el
+uni-uppercase.el

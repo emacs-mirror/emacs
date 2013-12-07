@@ -396,7 +396,7 @@
 	Add eventhandler for expose to expose_cb.  Remove creation of xft_draw.
 	(create_pixmap_for_menu): New function.
 	(remap_menubar): Pop down menus that aren't the same as in old_stack.
-	Set width, heigh, x, y on widget with XtVaSetValues.
+	Set width, height, x, y on widget with XtVaSetValues.
 	Call create_pixmap_for_menu.
 	Replace XUnmapWindow with XtPopdown.
 	Remowe two last parameters to display_menu.

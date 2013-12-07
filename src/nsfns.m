@@ -703,7 +703,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
         }
     }
 
-  x_set_window_size (f, 0, f->text_cols, f->text_lines);
+  x_set_window_size (f, 0, f->text_cols, f->text_lines, 0);
 }
 
 
@@ -946,6 +946,8 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_icon_name,
   x_set_icon_type,
   x_set_internal_border_width, /* generic OK */
+  0, /* x_set_right_divider_width */
+  0, /* x_set_bottom_divider_width */
   x_set_menu_bar_lines,
   x_set_mouse_color,
   x_explicitly_set_name,
@@ -1235,6 +1237,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   init_frame_faces (f);
 
+  /* Read comment about this code in corresponding place in xfns.c.  */
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
+
   /* The resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
      variables; ignore them here.  */
@@ -1266,6 +1275,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.ns->hand_cursor = [NSCursor pointingHandCursor];
   f->output_data.ns->hourglass_cursor = [NSCursor disappearingItemCursor];
   f->output_data.ns->horizontal_drag_cursor = [NSCursor resizeLeftRightCursor];
+  f->output_data.ns->vertical_drag_cursor = [NSCursor resizeUpDownCursor];
   FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor
      = [NSCursor arrowCursor];
   f->output_data.ns->current_pointer = f->output_data.ns->text_cursor;
@@ -1298,12 +1308,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
-  width = FRAME_COLS (f);
-  height = FRAME_LINES (f);
-
-  SET_FRAME_COLS (f, 0);
-  FRAME_LINES (f) = 0;
-  change_frame_size (f, height, width, 1, 0, 0);
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
 
   if (! f->output_data.ns->explicit_parent)
     {

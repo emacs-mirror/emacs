@@ -92,10 +92,10 @@
          :accessor gnus-icalendar-event:rsvp
          :initform nil
          :type (or null boolean))
-   (participation-required :initarg :participation-required
-         :accessor gnus-icalendar-event:participation-required
-         :initform t
-         :type (or null boolean))
+   (participation-type :initarg :participation-type
+         :accessor gnus-icalendar-event:participation-type
+         :initform 'non-participant
+         :type (or null t))
    (req-participants :initarg :req-participants
          :accessor gnus-icalendar-event:req-participants
          :initform nil
@@ -196,15 +196,18 @@
          (attendee (when attendee-name-or-email
                      (gnus-icalendar-event--find-attendee ical attendee-name-or-email)))
          (attendee-names (gnus-icalendar-event--get-attendee-names ical))
+         (role (plist-get (cadr attendee) 'ROLE))
+         (participation-type (pcase role
+                              ("REQ-PARTICIPANT" 'required)
+                              ("OPT-PARTICIPANT" 'optional)
+                              (_                 'non-participant)))
          (args (list :method method
                      :organizer organizer
                      :start-time (gnus-icalendar-event--decode-datefield event 'DTSTART)
                      :end-time (gnus-icalendar-event--decode-datefield event 'DTEND)
-                     :rsvp (string= (plist-get (cadr attendee) 'RSVP)
-                                    "TRUE")
-                     :participation-required (string= (plist-get (cadr attendee) 'ROLE)
-                                                      "REQ-PARTICIPANT")
-                     :req-participants (cdar attendee-names)
+                     :rsvp (string= (plist-get (cadr attendee) 'RSVP) "TRUE")
+                     :participation-type participation-type
+                     :req-participants (car attendee-names)
                      :opt-participants (cadr attendee-names)))
          (event-class (cond
                        ((string= method "REQUEST") 'gnus-icalendar-event-request)
@@ -387,14 +390,46 @@ Return nil for non-recurring EVENT."
          (end (gnus-icalendar-event:end-time event))
          (start-date (format-time-string "%Y-%m-%d %a" start))
          (start-time (format-time-string "%H:%M" start))
+         (start-at-midnight (string= start-time "00:00"))
          (end-date (format-time-string "%Y-%m-%d %a" end))
          (end-time (format-time-string "%H:%M" end))
+         (end-at-midnight (string= end-time "00:00"))
+         (start-end-date-diff (/ (float-time (time-subtract
+                                        (date-to-time end-date)
+                                        (date-to-time start-date)))
+                                 86400))
          (org-repeat (gnus-icalendar-event:org-repeat event))
-         (repeat (if org-repeat (concat " " org-repeat) "")))
+         (repeat (if org-repeat (concat " " org-repeat) ""))
+         (time-1-day '(0 86400)))
 
-    (if (equal start-date end-date)
-        (format "<%s %s-%s%s>" start-date start-time end-time repeat)
-      (format "<%s %s>--<%s %s>" start-date start-time end-date end-time))))
+    ;; NOTE: special care is needed with appointments ending at midnight
+    ;; (typically all-day events): the end time has to be changed to 23:59 to
+    ;; prevent org agenda showing the event on one additional day
+    (cond
+     ;; start/end midnight
+     ;; A 0:0 - A+1 0:0 -> A
+     ;; A 0:0 - A+n 0:0 -> A - A+n-1
+     ((and start-at-midnight end-at-midnight) (if (> start-end-date-diff 1)
+                                                  (let ((end-ts (format-time-string "%Y-%m-%d %a" (time-subtract end time-1-day))))
+                                                    (format "<%s>--<%s>" start-date end-ts))
+                                                (format "<%s%s>" start-date repeat)))
+     ;; end midnight
+     ;; A .:. - A+1 0:0 -> A .:.-23:59
+     ;; A .:. - A+n 0:0 -> A .:. - A_n-1
+     (end-at-midnight (if (= start-end-date-diff 1)
+                          (format "<%s %s-23:59%s>" start-date start-time repeat)
+                        (let ((end-ts (format-time-string "%Y-%m-%d %a" (time-subtract end time-1-day))))
+                          (format "<%s %s>--<%s>" start-date start-time end-ts))))
+     ;; start midnight
+     ;; A 0:0 - A .:. -> A 0:0-.:. (default 1)
+     ;; A 0:0 - A+n .:. -> A - A+n .:.
+     ((and start-at-midnight
+           (plusp start-end-date-diff)) (format "<%s>--<%s %s>" start-date end-date end-time))
+     ;; default
+     ;; A .:. - A .:. -> A .:.-.:.
+     ;; A .:. - B .:.
+     ((zerop start-end-date-diff) (format "<%s %s-%s%s>" start-date start-time end-time repeat))
+     (t (format "<%s %s>--<%s %s>" start-date start-time end-date end-time)))))
 
 (defun gnus-icalendar--format-summary-line (summary &optional location)
   (if location
@@ -419,7 +454,7 @@ Return nil for non-recurring EVENT."
                       ("DT" . ,(gnus-icalendar-event:org-timestamp event))
                       ("ORGANIZER" . ,(gnus-icalendar-event:organizer event))
                       ("LOCATION" . ,(gnus-icalendar-event:location event))
-                      ("PARTICIPATION_REQUIRED" . ,(when (gnus-icalendar-event:participation-required event) "t"))
+                      ("PARTICIPATION_TYPE" . ,(symbol-name (gnus-icalendar-event:participation-type event)))
                       ("REQ_PARTICIPANTS" . ,(gnus-icalendar--format-participant-list (gnus-icalendar-event:req-participants event)))
                       ("OPT_PARTICIPANTS" . ,(gnus-icalendar--format-participant-list (gnus-icalendar-event:opt-participants event)))
                       ("RRULE" . ,(gnus-icalendar-event:recur event))
@@ -481,7 +516,7 @@ is searched."
     (when file
       (with-current-buffer (find-file-noselect file)
         (with-slots (uid summary description organizer location recur
-                         participation-required req-participants opt-participants) event
+                         participation-type req-participants opt-participants) event
           (let ((event-pos (org-find-entry-with-id uid)))
             (when event-pos
               (goto-char event-pos)
@@ -523,7 +558,7 @@ is searched."
                 (org-entry-put event-pos "DT" (gnus-icalendar-event:org-timestamp event))
                 (org-entry-put event-pos "ORGANIZER" organizer)
                 (org-entry-put event-pos "LOCATION" location)
-                (org-entry-put event-pos "PARTICIPATION_REQUIRED" (when participation-required "t"))
+                (org-entry-put event-pos "PARTICIPATION_TYPE" (symbol-name participation-type))
                 (org-entry-put event-pos "REQ_PARTICIPANTS" (gnus-icalendar--format-participant-list req-participants))
                 (org-entry-put event-pos "OPT_PARTICIPANTS" (gnus-icalendar--format-participant-list opt-participants))
                 (org-entry-put event-pos "RRULE" recur)
@@ -617,6 +652,22 @@ is searched."
   :type '(string)
   :group 'gnus-icalendar)
 
+(defcustom gnus-icalendar-additional-identities nil
+  "We need to know your identity to make replies to calendar requests work.
+
+Gnus will only offer you the Accept/Tentative/Decline buttons for
+calendar events if any of your identities matches at least one
+RSVP participant.
+
+Your identity is guessed automatically from the variables `user-full-name',
+`user-mail-address', and `gnus-ignored-from-addresses'.
+
+If you need even more aliases you can define them here.  It really
+only makes sense to define names or email addresses."
+
+  :type '(repeat string)
+  :group 'gnus-icalendar)
+
 (make-variable-buffer-local
  (defvar gnus-icalendar-reply-status nil))
 
@@ -630,8 +681,9 @@ is searched."
   (apply #'append
          (mapcar (lambda (x) (if (listp x) x (list x)))
                  (list user-full-name (regexp-quote user-mail-address)
-                       ; NOTE: this one can be a list
-                       gnus-ignored-from-addresses))))
+                       ; NOTE: these can be lists
+                       gnus-ignored-from-addresses ; already regexp-quoted
+                       (mapcar #'regexp-quote gnus-icalendar-additional-identities)))))
 
 ;; TODO: make the template customizable
 (defmethod gnus-icalendar-event->gnus-calendar ((event gnus-icalendar-event) &optional reply-status)
@@ -642,12 +694,14 @@ is searched."
                     (cadr x))))
 
     (with-slots (organizer summary description location recur uid
-                           method rsvp participation-required) event
+                           method rsvp participation-type) event
       (let ((headers `(("Summary" ,summary)
                       ("Location" ,(or location ""))
                       ("Time" ,(gnus-icalendar-event:org-timestamp event))
                       ("Organizer" ,organizer)
-                      ("Attendance" ,(if participation-required "Required" "Optional"))
+                      ("Attendance" ,(if (eq participation-type 'non-participant)
+                                         "You are not listed as an attendee"
+                                       (capitalize (symbol-name participation-type))))
                       ("Method" ,method))))
 
        (when (and (not (gnus-icalendar-event-reply-p event)) rsvp)

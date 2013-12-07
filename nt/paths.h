@@ -1,7 +1,6 @@
 /* paths.h file for MS Windows
 
-Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,7 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The default search path for Lisp function "load".
    Together with PATH_SITELOADSEARCH, this sets load-path.  */
 /* #define PATH_LOADSEARCH "/usr/local/lib/emacs/lisp" */
-#define PATH_LOADSEARCH "%emacs_dir%/lisp;%emacs_dir%/leim"
+#define PATH_LOADSEARCH "%emacs_dir%/lisp"
 
 /* Like PATH_LOADSEARCH, but contains the non-standard pieces.  */
 #define PATH_SITELOADSEARCH "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp"

@@ -143,10 +143,12 @@
           "$" "\\|"
 	  ;; Tables (any type).
 	  "\\(?:|\\|\\+-[-+]\\)" "\\|"
-          ;; Blocks (any type), Babel calls, drawers (any type),
-	  ;; fixed-width areas and keywords.  Note: this is only an
-	  ;; indication and need some thorough check.
-          "[#:]" "\\|"
+          ;; Blocks (any type), Babel calls and keywords.  Note: this
+	  ;; is only an indication and need some thorough check.
+          "#\\(?:[+ ]\\|$\\)" "\\|"
+	  ;; Drawers (any type) and fixed-width areas.  This is also
+	  ;; only an indication.
+	  ":" "\\|"
           ;; Horizontal rules.
           "-\\{5,\\}[ \t]*$" "\\|"
           ;; LaTeX environments.

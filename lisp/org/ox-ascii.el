@@ -336,7 +336,8 @@ Otherwise, place it right after it."
   :package-version '(Org . "8.0")
   :type 'string)
 
-(defcustom org-ascii-format-drawer-function nil
+(defcustom org-ascii-format-drawer-function
+  (lambda (name contents width) contents)
   "Function called to format a drawer in ASCII.
 
 The function must accept three parameters:
@@ -347,63 +348,32 @@ The function must accept three parameters:
 The function should return either the string to be exported or
 nil to ignore the drawer.
 
-For example, the variable could be set to the following function
-in order to mimic default behaviour:
-
-\(defun org-ascii-format-drawer-default (name contents width)
-  \"Format a drawer element for ASCII export.\"
-  contents)"
+The default value simply returns the value of CONTENTS."
   :group 'org-export-ascii
   :version "24.4"
   :package-version '(Org . "8.0")
   :type 'function)
 
-(defcustom org-ascii-format-inlinetask-function nil
+(defcustom org-ascii-format-inlinetask-function
+  'org-ascii-format-inlinetask-default
   "Function called to format an inlinetask in ASCII.
 
-The function must accept six parameters:
-  TODO      the todo keyword, as a string
-  TODO-TYPE the todo type, a symbol among `todo', `done' and nil.
-  PRIORITY  the inlinetask priority, as a string
-  NAME      the inlinetask name, as a string.
-  TAGS      the inlinetask tags, as a list of strings.
-  CONTENTS  the contents of the inlinetask, as a string.
+The function must accept nine parameters:
+  TODO       the todo keyword, as a string
+  TODO-TYPE  the todo type, a symbol among `todo', `done' and nil.
+  PRIORITY   the inlinetask priority, as a string
+  NAME       the inlinetask name, as a string.
+  TAGS       the inlinetask tags, as a list of strings.
+  CONTENTS   the contents of the inlinetask, as a string.
+  WIDTH      the width of the inlinetask, as a number.
+  INLINETASK the inlinetask itself.
+  INFO       the info channel.
 
 The function should return either the string to be exported or
-nil to ignore the inline task.
-
-For example, the variable could be set to the following function
-in order to mimic default behaviour:
-
-\(defun org-ascii-format-inlinetask-default
-  \(todo type priority name tags contents\)
-  \"Format an inline task element for ASCII export.\"
-  \(let* \(\(utf8p \(eq \(plist-get info :ascii-charset\) 'utf-8\)\)
-           \(width org-ascii-inlinetask-width\)
-    \(org-ascii--indent-string
-     \(concat
-      ;; Top line, with an additional blank line if not in UTF-8.
-      \(make-string width \(if utf8p ?━ ?_\)\)  \"\\n\"
-      \(unless utf8p \(concat \(make-string width ? \) \"\\n\"\)\)
-      ;; Add title.  Fill it if wider than inlinetask.
-      \(let \(\(title \(org-ascii--build-title inlinetask info width\)\)\)
-	\(if \(<= \(length title\) width\) title
-	  \(org-ascii--fill-string title width info\)\)\)
-      \"\\n\"
-      ;; If CONTENTS is not empty, insert it along with
-      ;; a separator.
-      \(when \(org-string-nw-p contents\)
-        \(concat \(make-string width \(if utf8p ?─ ?-\)\) \"\\n\" contents\)\)
-      ;; Bottom line.
-      \(make-string width \(if utf8p ?━ ?_\)\)\)
-     ;; Flush the inlinetask to the right.
-     \(- \(plist-get info :ascii-width\)
-        \(plist-get info :ascii-margin\)
-        \(plist-get info :ascii-inner-margin\)
-        \(org-ascii--current-text-width inlinetask info\)\)"
+nil to ignore the inline task."
   :group 'org-export-ascii
   :version "24.4"
-  :package-version '(Org . "8.0")
+  :package-version '(Org . "8.3")
   :type 'function)
 
 
@@ -1071,11 +1041,7 @@ CONTENTS holds the contents of the block.  INFO is a plist
 holding contextual information."
   (let ((name (org-element-property :drawer-name drawer))
 	(width (org-ascii--current-text-width drawer info)))
-    (if (functionp org-ascii-format-drawer-function)
-	(funcall org-ascii-format-drawer-function name contents width)
-      ;; If there's no user defined function: simply
-      ;; display contents of the drawer.
-      contents)))
+    (funcall org-ascii-format-drawer-function name contents width)))
 
 
 ;;;; Dynamic Block
@@ -1228,55 +1194,58 @@ contextual information."
 
 ;;;; Inlinetask
 
+(defun org-ascii-format-inlinetask-default
+    (todo type priority name tags contents width inlinetask info)
+  "Format an inline task element for ASCII export.
+See `org-ascii-format-inlinetask-function' for a description
+of the paramaters."
+  (let* ((utf8p (eq (plist-get info :ascii-charset) 'utf-8))
+	 (width (or width org-ascii-inlinetask-width)))
+    (org-ascii--indent-string
+     (concat
+      ;; Top line, with an additional blank line if not in UTF-8.
+      (make-string width (if utf8p ?━ ?_)) "\n"
+      (unless utf8p (concat (make-string width ? ) "\n"))
+      ;; Add title.  Fill it if wider than inlinetask.
+      (let ((title (org-ascii--build-title inlinetask info width)))
+	(if (<= (length title) width) title
+	  (org-ascii--fill-string title width info)))
+      "\n"
+      ;; If CONTENTS is not empty, insert it along with
+      ;; a separator.
+      (when (org-string-nw-p contents)
+        (concat (make-string width (if utf8p ?─ ?-)) "\n" contents))
+      ;; Bottom line.
+      (make-string width (if utf8p ?━ ?_)))
+     ;; Flush the inlinetask to the right.
+     (- org-ascii-text-width org-ascii-global-margin
+	(if (not (org-export-get-parent-headline inlinetask)) 0
+	  org-ascii-inner-margin)
+	(org-ascii--current-text-width inlinetask info)))))
+
 (defun org-ascii-inlinetask (inlinetask contents info)
   "Transcode an INLINETASK element from Org to ASCII.
 CONTENTS holds the contents of the block.  INFO is a plist
 holding contextual information."
   (let ((width (org-ascii--current-text-width inlinetask info)))
-    ;; If `org-ascii-format-inlinetask-function' is provided, call it
-    ;; with appropriate arguments.
-    (if (functionp org-ascii-format-inlinetask-function)
-	(funcall org-ascii-format-inlinetask-function
-		 ;; todo.
-		 (and (plist-get info :with-todo-keywords)
-		      (let ((todo (org-element-property
-				   :todo-keyword inlinetask)))
-			(and todo (org-export-data todo info))))
-		 ;; todo-type
-		 (org-element-property :todo-type inlinetask)
-		 ;; priority
-		 (and (plist-get info :with-priority)
-		      (org-element-property :priority inlinetask))
-		 ;; title
-		 (org-export-data (org-element-property :title inlinetask) info)
-		 ;; tags
-		 (and (plist-get info :with-tags)
-		      (org-element-property :tags inlinetask))
-		 ;; contents and width
-		 contents width)
-      ;; Otherwise, use a default template.
-      (let* ((utf8p (eq (plist-get info :ascii-charset) 'utf-8)))
-	(org-ascii--indent-string
-	 (concat
-	  ;; Top line, with an additional blank line if not in UTF-8.
-	  (make-string width (if utf8p ?━ ?_))  "\n"
-	  (unless utf8p (concat (make-string width ? ) "\n"))
-	  ;; Add title.  Fill it if wider than inlinetask.
-	  (let ((title (org-ascii--build-title inlinetask info width)))
-	    (if (<= (length title) width) title
-	      (org-ascii--fill-string title width info)))
-	  "\n"
-	  ;; If CONTENTS is not empty, insert it along with
-	  ;; a separator.
-	  (when (org-string-nw-p contents)
-	    (concat (make-string width (if utf8p ?─ ?-)) "\n" contents))
-	  ;; Bottom line.
-	  (make-string width (if utf8p ?━ ?_)))
-	 ;; Flush the inlinetask to the right.
-	 (- org-ascii-text-width org-ascii-global-margin
-	    (if (not (org-export-get-parent-headline inlinetask)) 0
-	      org-ascii-inner-margin)
-	    (org-ascii--current-text-width inlinetask info)))))))
+    (funcall org-ascii-format-inlinetask-function
+	     ;; todo.
+	     (and (plist-get info :with-todo-keywords)
+		  (let ((todo (org-element-property
+			       :todo-keyword inlinetask)))
+		    (and todo (org-export-data todo info))))
+	     ;; todo-type
+	     (org-element-property :todo-type inlinetask)
+	     ;; priority
+	     (and (plist-get info :with-priority)
+		  (org-element-property :priority inlinetask))
+	     ;; title
+	     (org-export-data (org-element-property :title inlinetask) info)
+	     ;; tags
+	     (and (plist-get info :with-tags)
+		  (org-element-property :tags inlinetask))
+	     ;; contents and width
+	     contents width inlinetask info)))
 
 
 ;;;; Italic

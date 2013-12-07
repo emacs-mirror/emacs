@@ -82,7 +82,7 @@ env_vars[] =
 {
 #ifdef OLD_PATHS
   {"emacs_dir", NULL},
-  {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
+  {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp"},
   {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
   {"EMACSDATA", "%emacs_dir%/etc"},
   {"EMACSPATH", "%emacs_dir%/bin"},

@@ -50,7 +50,7 @@
   '((:results . "latex") (:exports . "results"))
   "Default arguments to use when evaluating a LaTeX source block.")
 
-(defcustom org-babel-latex-htlatex nil
+(defcustom org-babel-latex-htlatex ""
   "The htlatex command to enable conversion of latex to SVG or HTML."
   :group 'org-babel
   :type 'string)
@@ -59,7 +59,7 @@
   '("[usenames]{color}" "{tikz}" "{color}" "{listings}" "{amsmath}")
   "Packages to use for htlatex export."
   :group 'org-babel
-  :type '(list string))
+  :type '(list (string)))
 
 (defun org-babel-expand-body:latex (body params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -141,7 +141,7 @@ This function is called by `org-babel-execute-src-block'."
 		(delete-file transient-pdf-file))))))
 	 ((and (or (string-match "\\.svg$" out-file)
 		   (string-match "\\.html$" out-file))
-	       org-babel-latex-htlatex)
+	       (not (string= "" org-babel-latex-htlatex)))
 	  (with-temp-file tex-file
 	    (insert (concat
 		     "\\documentclass[preview]{standalone}

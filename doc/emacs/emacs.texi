@@ -115,6 +115,7 @@ display editor.  This manual describes how to edit with Emacs and
 some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
 
+@c See `manual-html-mono' and `manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
 @html
 The homepage for GNU Emacs is at
@@ -501,7 +502,7 @@ Using Multiple Buffers
 Convenience Features and Customization of Buffer Handling
 
 * Uniquify::            Making buffer names unique with directory parts.
-* Iswitchb::            Switching between buffers with substrings.
+* Icomplete::           Fast minibuffer selection.
 * Buffer Menus::        Configurable buffer menu.
 
 Multiple Windows

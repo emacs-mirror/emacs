@@ -12,8 +12,7 @@
    the host system (e.g., i686-pc-mingw32), and @SRC@ by the root of
    the Emacs source tree used to build Emacs.  */
 /*
-Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,10 +34,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    load-path, which is the search path for the Lisp function "load".
    Configure (using "make epaths-force") sets this to
    ${standardlisppath}, which typically has a value like:
-   <datadir>/emacs/VERSION/lisp:<datadir>/emacs/VERSION/leim
-   where datadir is eg /usr/local/share.
+   <datadir>/emacs/VERSION/lisp where datadir is eg /usr/local/share.
 */
-#define PATH_LOADSEARCH "%emacs_dir%/share/emacs/@VER@/lisp;%emacs_dir%/share/emacs/@VER@/leim"
+#define PATH_LOADSEARCH "%emacs_dir%/share/emacs/@VER@/lisp"
 
 /* Like PATH_LOADSEARCH, but contains the non-standard pieces.
    These are the site-lisp directories.  Configure sets this to
@@ -51,7 +49,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PATH_SITELOADSEARCH "%emacs_dir%/share/emacs/@VER@/site-lisp;%emacs_dir%/share/emacs/site-lisp"
 
 /* Like PATH_LOADSEARCH, but used only during the build process
-   when Emacs is dumping.  Configure (using "make epaths-force") sets
+   when Emacs is dumping.  Configure (using "make epaths-force-w32") sets
    this to $buildlisppath, which normally has the value: <srcdir>/lisp.
 */
 #define PATH_DUMPLOADSEARCH "@SRC@/lisp"

@@ -1,3 +1,55 @@
+2013-12-03  Vitalie Spinu  <spinuvit@gmail.com>
+
+	* message.el (message-send-mail-with-sendmail):
+	Don't kill error buffer if sending fails.
+
+2013-11-28  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event-from-ical)
+	(gnus-icalendar-event->org-entry)
+	(gnus-icalendar--update-org-event)
+	(gnus-icalendar-event->gnus-calendar): Distinguish between
+	required/optional/non-participant attendee status. Fix bug causing
+	the first required event participant to be omitted.
+
+2013-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-de-quoted-unreadable)
+	(article-de-base64-unreadable, gnus-mime-copy-part)
+	* gnus-html.el (gnus-article-html)
+	* mm-view.el (mm-inline-text-html-render-with-w3)
+	(mm-inline-text-html-render-with-w3m-standalone)
+	* rfc2231.el (rfc2231-decode-encoded-string):
+	Allow overriding charset by mm-charset-override-alist.
+
+	* gnus-art.el (gnus-article-browse-html-parts):
+	Replace LWSPs with `&nbsp;'s in header.
+
+	Work for broken Chinese articles.
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content):
+	Exclude broken handles that gnus-summary-enter-digest-group may create.
+	(gnus-article-browse-html-parts):
+	Allow overriding charset by mm-charset-override-alist.
+
+2013-11-21  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-additional-identities): New.
+	(gnus-icalendar-identities): Support additional-identities.
+
+	* gnus-icalendar.el (gnus-icalendar-event:org-timestamp):
+	Fix org-timestamp for events ending at midnight.
+
+2013-11-21  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+
+	* nndoc.el (nndoc-type-alist, nndoc-debbugs-db-type-p):
+	Support debbugs .log files.
+
+2013-11-20  Dave Goldberg  <david.goldberg6@verizon.net>
+
+	* message.el (message-beginning-of-line):
+	Use beginning-of-visual-line when visual-line-mode is turned on.
+
 2013-11-15  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event->gnus-calendar)

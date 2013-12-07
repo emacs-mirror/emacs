@@ -2483,7 +2483,7 @@ Selecting a special element performs:
 A nested sub-alist element looks like this:
 
 @example
-(@var{menu-title} @var{sub-alist})
+(@var{menu-title} . @var{sub-alist})
 @end example
 
 It creates the submenu @var{menu-title} specified by @var{sub-alist}.

@@ -521,7 +521,7 @@ denoting the bus address.  SERVICE must be a known service name.
 The function returns a keyword, indicating the result of the
 operation.  One of the following keywords is returned:
 
-`:released': Service has become the primary owner of the name.
+`:released': We successfully released the service.
 
 `:non-existent': Service name does not exist on this bus.
 
@@ -530,12 +530,13 @@ queue of this service."
 
   (maphash
    (lambda (key value)
-     (dolist (elt value)
-       (ignore-errors
-	 (when (and (equal bus (cadr key)) (string-equal service (cadr elt)))
-	   (unless
-	       (puthash key (delete elt value) dbus-registered-objects-table)
-	     (remhash key dbus-registered-objects-table))))))
+     (unless (equal :serial (car key))
+       (dolist (elt value)
+	 (ignore-errors
+	   (when (and (equal bus (cadr key)) (string-equal service (cadr elt)))
+	     (unless
+		 (puthash key (delete elt value) dbus-registered-objects-table)
+	       (remhash key dbus-registered-objects-table)))))))
    dbus-registered-objects-table)
   (let ((reply (dbus-call-method
 		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
@@ -827,10 +828,18 @@ STRING shall be UTF8 coded."
       (dolist (elt (string-to-list string) (append '(:array) result))
 	(setq result (append result (list :byte elt)))))))
 
-(defun dbus-byte-array-to-string (byte-array)
+(defun dbus-byte-array-to-string (byte-array &optional multibyte)
   "Transforms BYTE-ARRAY into UTF8 coded string.
-BYTE-ARRAY must be a list of structure (c1 c2 ...)."
-  (apply 'string byte-array))
+BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte
+array as produced by `dbus-string-to-byte-array'.  The resulting
+string is unibyte encoded, unless MULTIBYTE is non-nil."
+  (apply
+   (if multibyte 'string 'unibyte-string)
+   (if (equal byte-array '(:array :signature "y"))
+       nil
+     (let (result)
+       (dolist (elt byte-array result)
+	 (when (characterp elt) (setq result (append result `(,elt)))))))))
 
 (defun dbus-escape-as-identifier (string)
   "Escape an arbitrary STRING so it follows the rules for a C identifier.
@@ -848,7 +857,7 @@ and a smaller allowed set. As a special case, \"\" is escaped to
 \"_\".
 
 Returns the escaped string.  Algorithm taken from
-telepathy-glib's `tp-escape-as-identifier'."
+telepathy-glib's `tp_escape_as_identifier'."
   (if (zerop (length string))
       "_"
     (replace-regexp-in-string
@@ -857,13 +866,13 @@ telepathy-glib's `tp-escape-as-identifier'."
      string)))
 
 (defun dbus-unescape-from-identifier (string)
-  "Retrieve the original string from the encoded STRING.
-STRING must have been coded with `dbus-escape-as-identifier'"
+  "Retrieve the original string from the encoded STRING as unibyte string.
+STRING must have been encoded with `dbus-escape-as-identifier'."
   (if (string-equal string "_")
       ""
     (replace-regexp-in-string
      "_.."
-     (lambda (x) (format "%c" (string-to-number (substring x 1) 16)))
+     (lambda (x) (byte-to-string (string-to-number (substring x 1) 16)))
      string)))
 
 

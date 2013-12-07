@@ -204,7 +204,7 @@ first will be printed into the backtrace buffer."
 			(window-resize
 			 debugger-window
 			 (- debugger-previous-window-height
-			    (window-total-size debugger-window)))
+			    (window-total-height debugger-window)))
 		      (error nil)))
 		(setq debugger-previous-window debugger-window))
 	      (debugger-mode)
@@ -236,7 +236,7 @@ first will be printed into the backtrace buffer."
 		     (eq (window-buffer debugger-window) debugger-buffer))
 	    ;; Record height of debugger window.
 	    (setq debugger-previous-window-height
-		  (window-total-size debugger-window)))
+		  (window-total-height debugger-window)))
 	  (if debugger-will-be-back
 	      ;; Restore previous window configuration (Bug#12623).
 	      (set-window-configuration window-configuration)
@@ -494,9 +494,13 @@ removes itself from that hook."
       (forward-line 1)
       (while (progn
 	       (forward-char 2)
-	       (if (= (following-char) ?\()
-		   (forward-sexp 1)
-		 (forward-sexp 2))
+	       (cond ((debugger--locals-visible-p)
+		      (goto-char (next-single-char-property-change
+				  (point) 'locals-visible)))
+		     ((= (following-char) ?\()
+		      (forward-sexp 1))
+		     (t
+		      (forward-sexp 2)))
 	       (forward-line 1)
 	       (<= (point) opoint))
 	(if (looking-at " *;;;")
@@ -541,6 +545,14 @@ Applies to the frame whose line point is on in the backtrace."
         (progn ,@body)
       (setq debugger-outer-match-data (match-data)))))
 
+(defun debugger--backtrace-base ()
+  "Return the function name that marks the top of the backtrace.
+See `backtrace-frame'."
+  (cond ((eq 'debug--implement-debug-on-entry
+	     (cadr (backtrace-frame 1 'debug)))
+	 'debug--implement-debug-on-entry)
+	(t 'debug)))
+
 (defun debugger-eval-expression (exp &optional nframe)
   "Eval an expression, in an environment like that outside the debugger.
 The environment used is the one when entering the activation frame at point."
@@ -549,15 +561,70 @@ The environment used is the one when entering the activation frame at point."
   (let ((nframe (or nframe
                     (condition-case nil (1+ (debugger-frame-number 'skip-base))
                       (error 0)))) ;; If on first line.
-         (base (if (eq 'debug--implement-debug-on-entry
-                      (cadr (backtrace-frame 1 'debug)))
-                  'debug--implement-debug-on-entry 'debug)))
+	(base (debugger--backtrace-base)))
     (debugger-env-macro
       (let ((val (backtrace-eval exp nframe base)))
         (prog1
             (prin1 val t)
           (let ((str (eval-expression-print-format val)))
             (if str (princ str t))))))))
+
+(defun debugger--locals-visible-p ()
+  "Are the local variables of the current stack frame visible?"
+  (save-excursion
+    (move-to-column 2)
+    (get-text-property (point) 'locals-visible)))
+
+(defun debugger--insert-locals (locals)
+  "Insert the local variables LOCALS at point."
+  (cond ((null locals)
+	 (insert "\n    [no locals]"))
+	(t
+	 (let ((print-escape-newlines t))
+	   (dolist (s+v locals)
+	     (let ((symbol (car s+v))
+		   (value (cdr s+v)))
+	       (insert "\n    ")
+	       (prin1 symbol (current-buffer))
+	       (insert " = ")
+	       (prin1 value (current-buffer))))))))
+
+(defun debugger--show-locals ()
+  "For the frame at point, insert locals and add text properties."
+  (let* ((nframe (1+ (debugger-frame-number 'skip-base)))
+	 (base (debugger--backtrace-base))
+	 (locals (backtrace--locals nframe base))
+	 (inhibit-read-only t))
+    (save-excursion
+      (let ((start (progn
+		     (move-to-column 2)
+		     (point))))
+	(end-of-line)
+	(debugger--insert-locals locals)
+	(add-text-properties start (point) '(locals-visible t))))))
+
+(defun debugger--hide-locals ()
+  "Delete local variables and remove the text property."
+  (let* ((col (current-column))
+	 (end (progn
+		(move-to-column 2)
+		(next-single-char-property-change (point) 'locals-visible)))
+	 (start (previous-single-char-property-change end 'locals-visible))
+	 (inhibit-read-only t))
+    (remove-text-properties start end '(locals-visible))
+    (goto-char start)
+    (end-of-line)
+    (delete-region (point) end)
+    (move-to-column col)))
+
+(defun debugger-toggle-locals ()
+  "Show or hide local variables of the current stack frame."
+  (interactive)
+  (cond ((debugger--locals-visible-p)
+	 (debugger--hide-locals))
+	(t
+	 (debugger--show-locals))))
+
 
 (defvar debugger-mode-map
   (let ((map (make-keymap))
@@ -575,6 +642,7 @@ The environment used is the one when entering the activation frame at point."
     (define-key map "h" 'describe-mode)
     (define-key map "q" 'top-level)
     (define-key map "e" 'debugger-eval-expression)
+    (define-key map "v" 'debugger-toggle-locals) ;"v" is for "v"ariables.
     (define-key map " " 'next-line)
     (define-key map "R" 'debugger-record-expression)
     (define-key map "\C-m" 'debug-help-follow)

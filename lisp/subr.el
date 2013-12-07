@@ -1885,9 +1885,11 @@ Signal an error if the program returns with a non-zero exit status."
 (defun process-live-p (process)
   "Returns non-nil if PROCESS is alive.
 A process is considered alive if its status is `run', `open',
-`listen', `connect' or `stop'."
-  (memq (process-status process)
-        '(run open listen connect stop)))
+`listen', `connect' or `stop'.  Value is nil if PROCESS is not a
+process."
+  (and (processp process)
+       (memq (process-status process)
+	     '(run open listen connect stop))))
 
 ;; compatibility
 
@@ -3634,6 +3636,15 @@ If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
+
+(defun string-suffix-p (suffix string  &optional ignore-case)
+  "Return non-nil if SUFFIX is a suffix of STRING.
+If IGNORE-CASE is non-nil, the comparison is done without paying
+attention to case differences."
+  (let ((start-pos (- (length string) (length suffix))))
+    (and (>= start-pos 0)
+         (eq t (compare-strings suffix nil nil
+                                string start-pos nil ignore-case)))))
 
 (defun bidi-string-mark-left-to-right (str)
   "Return a string that can be safely inserted in left-to-right text.

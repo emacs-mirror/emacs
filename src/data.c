@@ -1551,8 +1551,12 @@ Note that binding the variable with `let', or setting it while
 a `let'-style binding made in this buffer is in effect,
 does not make the variable buffer-local.  Return VARIABLE.
 
-In most cases it is better to use `make-local-variable',
-which makes a variable local in just one buffer.
+This globally affects all uses of this variable, so it belongs together with
+the variable declaration, rather than with its uses (if you just want to make
+a variable local to the current buffer for one particular use, use
+`make-local-variable').  Buffer-local bindings are normally cleared
+while setting up a new major mode, unless they have a `permanent-local'
+property.
 
 The function `default-value' gets the default value and `set-default' sets it.  */)
   (register Lisp_Object variable)
@@ -3018,64 +3022,103 @@ enum bool_vector_op { bool_vector_exclusive_or,
                       bool_vector_subsetp };
 
 static Lisp_Object
-bool_vector_binop_driver (Lisp_Object op1,
-                          Lisp_Object op2,
+bool_vector_binop_driver (Lisp_Object a,
+                          Lisp_Object b,
                           Lisp_Object dest,
                           enum bool_vector_op op)
 {
   EMACS_INT nr_bits;
-  bits_word *adata, *bdata, *cdata;
-  ptrdiff_t i;
-  bool changed = 0;
-  bits_word mword;
+  bits_word *adata, *bdata, *destdata;
+  ptrdiff_t i = 0;
   ptrdiff_t nr_words;
 
-  CHECK_BOOL_VECTOR (op1);
-  CHECK_BOOL_VECTOR (op2);
+  CHECK_BOOL_VECTOR (a);
+  CHECK_BOOL_VECTOR (b);
 
-  nr_bits = bool_vector_size (op1);
-  if (bool_vector_size (op2) != nr_bits)
-    wrong_length_argument (op1, op2, dest);
+  nr_bits = bool_vector_size (a);
+  if (bool_vector_size (b) != nr_bits)
+    wrong_length_argument (a, b, dest);
+
+  nr_words = bool_vector_words (nr_bits);
+  adata = bool_vector_data (a);
+  bdata = bool_vector_data (b);
 
   if (NILP (dest))
     {
       dest = make_uninit_bool_vector (nr_bits);
-      changed = 1;
+      destdata = bool_vector_data (dest);
     }
   else
     {
       CHECK_BOOL_VECTOR (dest);
+      destdata = bool_vector_data (dest);
       if (bool_vector_size (dest) != nr_bits)
-	wrong_length_argument (op1, op2, dest);
+	wrong_length_argument (a, b, dest);
+
+      switch (op)
+	{
+	case bool_vector_exclusive_or:
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] ^ bdata[i]))
+	      goto set_dest;
+	  break;
+
+	case bool_vector_subsetp:
+	  for (; i < nr_words; i++)
+	    if (adata[i] &~ bdata[i])
+	      return Qnil;
+	  return Qt;
+
+	case bool_vector_union:
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] | bdata[i]))
+	      goto set_dest;
+	  break;
+
+	case bool_vector_intersection:
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] & bdata[i]))
+	      goto set_dest;
+	  break;
+
+	case bool_vector_set_difference:
+	  for (; i < nr_words; i++)
+	    if (destdata[i] != (adata[i] &~ bdata[i]))
+	      goto set_dest;
+	  break;
+	}
+
+      return Qnil;
     }
 
-  nr_words = bool_vector_words (nr_bits);
-
-  adata = bool_vector_data (dest);
-  bdata = bool_vector_data (op1);
-  cdata = bool_vector_data (op2);
-
-  for (i = 0; i < nr_words; i++)
+ set_dest:
+  switch (op)
     {
-      if (op == bool_vector_exclusive_or)
-        mword = bdata[i] ^ cdata[i];
-      else if (op == bool_vector_union || op == bool_vector_subsetp)
-        mword = bdata[i] | cdata[i];
-      else if (op == bool_vector_intersection)
-        mword = bdata[i] & cdata[i];
-      else if (op == bool_vector_set_difference)
-        mword = bdata[i] &~ cdata[i];
-      else
-        abort ();
+    case bool_vector_exclusive_or:
+      for (; i < nr_words; i++)
+	destdata[i] = adata[i] ^ bdata[i];
+      break;
 
-      if (! changed)
-	changed = adata[i] != mword;
+    case bool_vector_union:
+      for (; i < nr_words; i++)
+	destdata[i] = adata[i] | bdata[i];
+      break;
 
-      if (op != bool_vector_subsetp)
-        adata[i] = mword;
+    case bool_vector_intersection:
+      for (; i < nr_words; i++)
+	destdata[i] = adata[i] & bdata[i];
+      break;
+
+    case bool_vector_set_difference:
+      for (; i < nr_words; i++)
+	destdata[i] = adata[i] &~ bdata[i];
+      break;
+
+    default:
+      eassume (0);
     }
 
-  return changed ? dest : Qnil;
+  return dest;
 }
 
 /* PRECONDITION must be true.  Return VALUE.  This odd construction
@@ -3199,11 +3242,11 @@ Return the destination vector if it changed or nil otherwise.  */)
 
 DEFUN ("bool-vector-subsetp", Fbool_vector_subsetp,
        Sbool_vector_subsetp, 2, 2, 0,
-       doc: )
+       doc: /* Return t if every t value in A is also t in B, nil otherwise.
+A and B must be bool vectors of the same length.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  /* Like bool_vector_union, but doesn't modify b.  */
-  return bool_vector_binop_driver (b, a, b, bool_vector_subsetp);
+  return bool_vector_binop_driver (a, b, b, bool_vector_subsetp);
 }
 
 DEFUN ("bool-vector-not", Fbool_vector_not,
@@ -3247,11 +3290,12 @@ Return the destination vector.  */)
   return b;
 }
 
-DEFUN ("bool-vector-count-matches", Fbool_vector_count_matches,
-       Sbool_vector_count_matches, 2, 2, 0,
-       doc: /* Count how many elements in A equal B.
-A must be a bool vector.  B is a generalized bool.  */)
-  (Lisp_Object a, Lisp_Object b)
+DEFUN ("bool-vector-count-population", Fbool_vector_count_population,
+       Sbool_vector_count_population, 1, 1, 0,
+       doc: /* Count how many elements in A are t.
+A is a bool vector.  To count A's nil elements, subtract the return
+value from A's length.  */)
+  (Lisp_Object a)
 {
   EMACS_INT count;
   EMACS_INT nr_bits;
@@ -3268,17 +3312,13 @@ A must be a bool vector.  B is a generalized bool.  */)
   for (i = 0; i < nwords; i++)
     count += count_one_bits_word (adata[i]);
 
-  if (NILP (b))
-    count = nr_bits - count;
   return make_number (count);
 }
 
-DEFUN ("bool-vector-count-matches-at",
-       Fbool_vector_count_matches_at,
-       Sbool_vector_count_matches_at, 3, 3, 0,
-       doc: /* Count how many consecutive elements in A equal B at i.
-A must be a bool vector.  B is a generalized boolean.  i is an
-index into the vector.  */)
+DEFUN ("bool-vector-count-consecutive", Fbool_vector_count_consecutive,
+       Sbool_vector_count_consecutive, 3, 3, 0,
+       doc: /* Count how many consecutive elements in A equal B starting at I.
+A is a bool vector, B is t or nil, and I is an index into A.  */)
   (Lisp_Object a, Lisp_Object b, Lisp_Object i)
 {
   EMACS_INT count;
@@ -3314,7 +3354,10 @@ index into the vector.  */)
       mword = bits_word_to_host_endian (adata[pos]);
       mword ^= twiddle;
       mword >>= offset;
+
+      /* Do not count the pad bits.  */
       mword |= (bits_word) 1 << (BITS_PER_BITS_WORD - offset);
+
       count = count_trailing_zero_bits (mword);
       pos++;
       if (count + offset < BITS_PER_BITS_WORD)
@@ -3622,8 +3665,8 @@ syms_of_data (void)
   defsubr (&Sbool_vector_set_difference);
   defsubr (&Sbool_vector_not);
   defsubr (&Sbool_vector_subsetp);
-  defsubr (&Sbool_vector_count_matches);
-  defsubr (&Sbool_vector_count_matches_at);
+  defsubr (&Sbool_vector_count_consecutive);
+  defsubr (&Sbool_vector_count_population);
 
   set_symbol_function (Qwholenump, XSYMBOL (Qnatnump)->function);
 

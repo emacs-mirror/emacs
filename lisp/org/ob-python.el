@@ -54,7 +54,7 @@ This will typically be either 'python or 'python-mode."
   :group 'org-babel
   :version "24.4"
   :package-version '(Org . "8.0")
-  :type 'function)
+  :type 'symbol)
 
 (defvar org-src-preserve-indentation)
 
@@ -70,7 +70,7 @@ This will typically be either 'python or 'python-mode."
   :group 'org-babel
   :version "24.4"
   :package-version '(Org . "8.0")
-  :type 'string)
+  :type 'symbol)
 
 (defun org-babel-execute:python (body params)
   "Execute a block of Python code with Babel.

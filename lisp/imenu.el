@@ -185,6 +185,13 @@ with name concatenation."
   :type 'string
   :group 'imenu)
 
+(defcustom imenu-generic-skip-comments-and-strings t
+  "When non-nil, ignore text inside comments and strings.
+Only affects `imenu--generic-function'."
+  :type 'boolean
+  :group 'imenu
+  :version "24.4")
+
 ;;;###autoload
 (defvar imenu-generic-expression nil
   "List of definition matchers for creating an Imenu index.
@@ -286,8 +293,10 @@ The function in this variable is called when selecting a normal index-item.")
 
 
 (defun imenu--subalist-p (item)
-  (and (consp (cdr item)) (listp (cadr item))
-       (not (eq (car (cadr item)) 'lambda))))
+  (and (consp item)
+       (consp (cdr item))
+       (listp (cadr item))
+       (not (functionp (cadr item)))))
 
 (defmacro imenu-progress-message (_prevpos &optional _relpos _reverse)
   "Macro to display a progress message.
@@ -454,7 +463,7 @@ Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
 To \"go to\" a special element means applying FUNCTION
 to INDEX-NAME, POSITION, and the ARGUMENTS.
 
-A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
+A nested sub-alist element looks like (INDEX-NAME . SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t
 if it is a sub-alist.
 
@@ -638,9 +647,11 @@ Non-nil arguments are in recursive calls."
       ;;   (INDEX-NAME (INDEX-NAME . INDEX-POSITION) ...)
       ;; while a bottom-level element looks like
       ;;   (INDEX-NAME . INDEX-POSITION)
+      ;; or
+      ;;   (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...)
       ;; We are only interested in the bottom-level elements, so we need to
-      ;; recurse if TAIL is a list.
-      (cond ((listp tail)
+      ;; recurse if TAIL is a nested ALIST.
+      (cond ((imenu--subalist-p elt)
 	     (if (setq res (imenu--in-alist str tail))
 		 (setq alist nil)))
 	    ((if imenu-name-lookup-function
@@ -796,7 +807,9 @@ depending on PATTERNS."
 		      ;; starting with its title (or nil).
 		      (menu (assoc menu-title index-alist)))
 		  ;; Insert the item unless it is already present.
-		  (unless (member item (cdr menu))
+		  (unless (or (member item (cdr menu))
+                              (and imenu-generic-skip-comments-and-strings
+                                   (nth 8 (syntax-ppss))))
 		    (setcdr menu
 			    (cons item (cdr menu)))))
 		;; Go to the start of the match, to make sure we
@@ -1024,8 +1037,8 @@ for more information."
 		(nth 2 index-item) imenu-default-goto-function))
 	   (position (if is-special-item
 			 (cadr index-item) (cdr index-item)))
-	   (rest (if is-special-item (cddr index-item))))
-      (apply function (car index-item) position rest))
+	   (args (if is-special-item (cdr (cddr index-item)))))
+      (apply function (car index-item) position args))
     (run-hooks 'imenu-after-jump-hook)))
 
 (provide 'imenu)

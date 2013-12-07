@@ -84,11 +84,6 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define WHITE_PIX_DEFAULT(f)					\
   WhitePixel (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f))
 
-#define FONT_WIDTH(f)	((f)->max_width)
-#define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
-#define FONT_BASE(f)    ((f)->ascent)
-#define FONT_DESCENT(f) ((f)->descent)
-
 /* The mask of events that text windows always want to receive.  This
    includes mouse movement events, since handling the mouse-font text property
    means that we must track mouse motion all the time.  */
@@ -549,6 +544,7 @@ struct x_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
   Cursor current_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
@@ -811,10 +807,6 @@ struct scroll_bar
   /* Last scroll bar part seen in xaw_jump_callback and xaw_scroll_callback.  */
   enum scroll_bar_part last_seen_part;
 #endif
-
-  /* 1 if the background of the fringe that is adjacent to a scroll
-     bar is extended to the gap between the fringe and the bar.  */
-  unsigned fringe_extended_p : 1;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
@@ -930,7 +922,7 @@ extern void x_check_errors (Display *, const char *)
 extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
-extern void x_set_window_size (struct frame *, int, int, int);
+extern void x_set_window_size (struct frame *, int, int, int, bool);
 extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void xembed_request_focus (struct frame *);
@@ -949,13 +941,11 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int);
-#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
-#ifdef USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
-#endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);
@@ -963,7 +953,7 @@ extern int x_display_pixel_width (struct x_display_info *);
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_wait_for_event (struct frame *, int);
 
-/* Defined in xselect.c */
+/* Defined in xselect.c.  */
 
 extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);

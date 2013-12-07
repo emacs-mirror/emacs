@@ -438,24 +438,28 @@ Return value is a frame-based (HPOS . VPOS) value that should be moved
 to.  DIR is one of `left', `up', `right', or `down'; an optional ARG
 is handled as by `windmove-reference-loc'; WINDOW is the window that
 movement is relative to."
-  (let ((edges (window-edges window))   ; edges: (x0, y0, x1, y1)
+  (let ((edges (window-pixel-edges window))   ; edges: (x0, y0, x1, y1)
         (refpoint (windmove-reference-loc arg window))) ; (x . y)
     (cond
      ((eq dir 'left)
-      (cons (- (nth 0 edges)
+      (cons (- (ceiling (nth 0 edges)
+			(frame-char-width (window-frame window)))
                windmove-window-distance-delta)
             (cdr refpoint)))            ; (x0-d, y)
      ((eq dir 'up)
       (cons (car refpoint)
-            (- (nth 1 edges)
+            (- (ceiling (nth 1 edges)
+			(frame-char-height (window-frame window)))
                windmove-window-distance-delta))) ; (x, y0-d)
      ((eq dir 'right)
-      (cons (+ (1- (nth 2 edges))	; -1 to get actual max x
+      (cons (+ (1- (ceiling (nth 2 edges)
+			    (frame-char-width (window-frame window))))	; -1 to get actual max x
                windmove-window-distance-delta)
             (cdr refpoint)))            ; (x1+d-1, y)
      ((eq dir 'down)			; -1 to get actual max y
       (cons (car refpoint)
-            (+ (1- (nth 3 edges))
+            (+ (1- (ceiling (nth 3 edges)
+			    (frame-char-height (window-frame window))))
                windmove-window-distance-delta))) ; (x, y1+d-1)
      (t (error "Invalid direction of movement: %s" dir)))))
 

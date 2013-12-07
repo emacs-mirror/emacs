@@ -59,6 +59,12 @@
 
 %package wisent-javascript-jv-wy
 %provide semantic/wisent/js-wy
+
+%{
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
+}
+
 ;; JAVE I prefere ecmascript-mode
 %languagemode ecmascript-mode javascript-mode
 

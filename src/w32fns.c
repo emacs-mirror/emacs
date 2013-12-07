@@ -1384,6 +1384,17 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     horizontal_drag_cursor
       = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
 
+  if (!NILP (Vx_window_vertical_drag_shape))
+    {
+      CHECK_NUMBER (Vx_window_vertical_drag_shape);
+      vertical_drag_cursor
+	= XCreateFontCursor (FRAME_X_DISPLAY (f),
+			     XINT (Vx_window_vertical_drag_shape));
+    }
+  else
+    vertical_drag_cursor
+      = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_v_double_arrow);
+
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
   x_uncatch_errors (FRAME_W32_DISPLAY (f), count);
@@ -1624,6 +1635,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   FRAME_MENU_BAR_LINES (f) = 0;
+  FRAME_MENU_BAR_HEIGHT (f) = 0;
   if (nlines)
     FRAME_EXTERNAL_MENU_BAR (f) = 1;
   else
@@ -1635,7 +1647,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       /* Adjust the frame size so that the client (text) dimensions
 	 remain the same.  This depends on FRAME_EXTERNAL_MENU_BAR being
 	 set correctly.  */
-      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+      x_set_window_size (f, 0, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 1);
       do_pending_window_change (0);
     }
   adjust_frame_glyphs (f);
@@ -1643,16 +1655,17 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 
 /* Set the number of lines used for the tool bar of frame F to VALUE.
-   VALUE not an integer, or < 0 means set the lines to zero.  OLDVAL
-   is the old number of tool bar lines.  This function changes the
-   height of all windows on frame F to match the new tool bar height.
-   The frame's height doesn't change.  */
+   VALUE not an integer, or < 0 means set the lines to zero.  OLDVAL is
+   the old number of tool bar lines (and is unused).  This function may
+   change the height of all windows on frame F to match the new tool bar
+   height.  By design, the frame's height doesn't change (but maybe it
+   should if we don't get enough space otherwise).  */
 
 void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int delta, nlines, root_height;
-  Lisp_Object root_window;
+  int unit = FRAME_LINE_HEIGHT (f);
 
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
@@ -1667,19 +1680,25 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   /* Make sure we redisplay all windows in this frame.  */
   windows_or_buffers_changed = 23;
 
-  delta = nlines - FRAME_TOOL_BAR_LINES (f);
+  /* DELTA is in pixels now.  */
+  delta = (nlines - FRAME_TOOL_BAR_LINES (f)) * unit;
 
-  /* Don't resize the tool-bar to more than we have room for.  */
-  root_window = FRAME_ROOT_WINDOW (f);
-  root_height = WINDOW_TOTAL_LINES (XWINDOW (root_window));
-  if (root_height - delta < 1)
+  /* Don't resize the tool-bar to more than we have room for.  FIXME:
+     This must use window_sizable eventually !!!!!!!!!!!!  */
+  if (delta > 0)
     {
-      delta = root_height - 1;
-      nlines = FRAME_TOOL_BAR_LINES (f) + delta;
+      root_height = WINDOW_PIXEL_HEIGHT (XWINDOW (FRAME_ROOT_WINDOW (f)));
+      if (root_height - delta < unit)
+	{
+	  delta = root_height - unit;
+	  nlines = (root_height / unit) + min (1, (root_height % unit));
+	}
     }
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  resize_frame_windows (f, FRAME_LINES (f), 0);
+  FRAME_TOOL_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
+  ++windows_or_buffers_changed;
+  resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
   adjust_frame_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
@@ -1688,7 +1707,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
      below the tool bar if one is displayed, but is below the menu bar
      if there isn't a tool bar.  The tool bar draws into the area
      below the menu bar.  */
-  if (FRAME_W32_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
+  if (FRAME_W32_WINDOW (f) && FRAME_TOOL_BAR_HEIGHT (f) == 0)
     {
       clear_frame (f);
       clear_current_matrices (f);
@@ -1701,7 +1720,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
-      int y = nlines * FRAME_LINE_HEIGHT (f);
+      int y = nlines * unit;
 
       block_input ();
       {
@@ -1949,7 +1968,7 @@ w32_createwindow (struct frame *f)
       SetWindowLong (hwnd, WND_FONTWIDTH_INDEX, FRAME_COLUMN_WIDTH (f));
       SetWindowLong (hwnd, WND_LINEHEIGHT_INDEX, FRAME_LINE_HEIGHT (f));
       SetWindowLong (hwnd, WND_BORDER_INDEX, FRAME_INTERNAL_BORDER_WIDTH (f));
-      SetWindowLong (hwnd, WND_SCROLLBAR_INDEX, f->scroll_bar_actual_width);
+      SetWindowLong (hwnd, WND_SCROLLBAR_INDEX, FRAME_SCROLL_BAR_AREA_WIDTH (f));
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
 
       /* Enable drag-n-drop.  */
@@ -3225,6 +3244,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			       - WINDOW_RIGHT_MARGIN_WIDTH (w)
 			       - WINDOW_RIGHT_FRINGE_WIDTH (w));
 	  form.rcArea.bottom = (WINDOW_BOTTOM_EDGE_Y (w)
+				- WINDOW_BOTTOM_DIVIDER_WIDTH (w)
 				- w32_system_caret_mode_height);
 
 	  /* Punt if the window was deleted behind our back.  */
@@ -3774,7 +3794,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_WINDOWPOSCHANGING:
       /* Don't restrict the sizing of tip frames.  */
-      if (hwnd == tip_window)
+      if (frame_resize_pixelwise || hwnd == tip_window)
 	return 0;
 
       /* Don't restrict the sizing of fullscreened frames, allowing them to be
@@ -4453,6 +4473,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Default internalBorderWidth to 0 on Windows to match other programs.  */
   x_default_parameter (f, parameters, Qinternal_border_width, make_number (0),
 		       "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
+  x_default_parameter (f, parameters, Qright_divider_width, make_number (0),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parameters, Qbottom_divider_width, make_number (0),
+		       NULL, NULL, RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qvertical_scroll_bars, Qright,
 		       "verticalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
 
@@ -4482,6 +4506,20 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
+  /* PXW: This is a duplicate from below.  We have to do it here since
+     otherwise x_set_tool_bar_lines will work with the character sizes
+     installed by init_frame_faces while the frame's pixel size is still
+     calculated from a character size of 1 and we subsequently hit the
+     eassert (height >= 0) assertion in window_box_height.  The
+     non-pixelwise code apparently worked around this because it had one
+     frame line vs one toolbar line which left us with a zero root
+     window height which was obviously wrong as well ...  */
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
+
   /* The X resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
      variables; ignore them here.  */
@@ -4510,6 +4548,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32->hand_cursor = w32_load_cursor (IDC_HAND);
   f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
   f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
+  f->output_data.w32->vertical_drag_cursor = w32_load_cursor (IDC_SIZENS);
 
   f->output_data.w32->current_cursor = f->output_data.w32->nontext_cursor;
 
@@ -4547,12 +4586,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
      FRAME_LINES (f).  */
-  width = FRAME_COLS (f);
-  height = FRAME_LINES (f);
-
-  FRAME_LINES (f) = 0;
-  SET_FRAME_COLS (f, 0);
-  change_frame_size (f, height, width, 1, 0, 0);
+  width = FRAME_TEXT_WIDTH (f);
+  height = FRAME_TEXT_HEIGHT (f);
+  FRAME_TEXT_HEIGHT (f) = 0;
+  SET_FRAME_WIDTH (f, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 1);
 
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
@@ -5690,6 +5728,10 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qright_divider_width, make_number (0),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qbottom_divider_width, make_number (0),
+		       NULL, NULL, RES_TYPE_NUMBER);
 
   /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
@@ -5734,14 +5776,14 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
 
-  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
-     Change will not be effected unless different from the current
-     FRAME_LINES (f).  */
+  /* Dimensions, especially FRAME_LINES (f), must be done via
+     change_frame_size.  Change will not be effected unless different
+     from the current FRAME_LINES (f).  */
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
   FRAME_LINES (f) = 0;
   SET_FRAME_COLS (f, 0);
-  change_frame_size (f, height, width, 1, 0, 0);
+  change_frame_size (f, width, height, 1, 0, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -5999,6 +6041,10 @@ Text larger than the specified size is clipped.  */)
     parms = Fcons (Fcons (Qname, build_string ("tooltip")), parms);
   if (NILP (Fassq (Qinternal_border_width, parms)))
     parms = Fcons (Fcons (Qinternal_border_width, make_number (3)), parms);
+  if (NILP (Fassq (Qright_divider_width, parms)))
+    parms = Fcons (Fcons (Qright_divider_width, make_number (0)), parms);
+  if (NILP (Fassq (Qbottom_divider_width, parms)))
+    parms = Fcons (Fcons (Qbottom_divider_width, make_number (0)), parms);
   if (NILP (Fassq (Qborder_width, parms)))
     parms = Fcons (Fcons (Qborder_width, make_number (1)), parms);
   if (NILP (Fassq (Qborder_color, parms)))
@@ -6020,6 +6066,8 @@ Text larger than the specified size is clipped.  */)
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left_col = 0;
   w->top_line = 0;
+  w->pixel_left = 0;
+  w->pixel_top = 0;
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -6035,6 +6083,9 @@ Text larger than the specified size is clipped.  */)
       w->total_cols = 80;
       w->total_lines = 40;
     }
+
+  w->pixel_width = w->total_cols * FRAME_COLUMN_WIDTH (f);
+  w->pixel_height = w->total_lines * FRAME_LINE_HEIGHT (f);
 
   FRAME_TOTAL_COLS (f) = WINDOW_TOTAL_COLS (w);
   adjust_frame_glyphs (f);
@@ -6101,11 +6152,17 @@ Text larger than the specified size is clipped.  */)
      width of the frame.  */
   if (seen_reversed_p)
     {
-      /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
+      /* PXW: Why do we do the pixel-to-cols conversion only if
+	 seen_reversed_p holds?  Don't we have to set other fields of
+	 the window/frame structure?
+
+	 w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
+      w->pixel_width = width;
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
       w->total_cols = width;
       FRAME_TOTAL_COLS (f) = width;
+      SET_FRAME_WIDTH (f, width);
       adjust_frame_glyphs (f);
       w->pseudo_window_p = 1;
       clear_glyph_matrix (w->desired_matrix);
@@ -6135,16 +6192,15 @@ Text larger than the specified size is clipped.  */)
 	}
     }
 
-  /* Round up the height to an integral multiple of FRAME_LINE_HEIGHT.  */
-  if (height % FRAME_LINE_HEIGHT (f) != 0)
-    height += FRAME_LINE_HEIGHT (f) - height % FRAME_LINE_HEIGHT (f);
   /* Add the frame's internal border to the width and height the w32
      window should have.  */
   height += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
   width += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
-     show it.  */
+     show it.
+
+     PXW: This should use the frame's pixel coordinates.  */
   compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
   {
@@ -7212,6 +7268,29 @@ This is a direct interface to the Windows API FindWindow function.  */)
   return Qt;
 }
 
+DEFUN ("w32-frame-rect", Fw32_frame_rect, Sw32_frame_rect, 0, 2, 0,
+       doc: /* Return boundary rectangle of FRAME in screen coordinates.
+FRAME must be a live frame and defaults to the selected one.
+
+The boundary rectangle is a list of four elements, specifying the left,
+top, right and bottom screen coordinates of FRAME including menu and
+title bar and decorations.  Optional argument CLIENT non-nil means to
+return the boundaries of the client rectangle which excludes menu and
+title bar and decorations.  */)
+  (Lisp_Object frame, Lisp_Object client)
+{
+  struct frame *f = decode_live_frame (frame);
+  RECT rect;
+
+  if (!NILP (client))
+    GetClientRect (FRAME_W32_WINDOW (f), &rect);
+  else
+    GetWindowRect (FRAME_W32_WINDOW (f), &rect);
+
+  return list4 (make_number (rect.left), make_number (rect.top),
+		make_number (rect.right), make_number (rect.bottom));
+}
+
 DEFUN ("w32-battery-status", Fw32_battery_status, Sw32_battery_status, 0, 0, 0,
        doc: /* Get power status information from Windows system.
 
@@ -7868,6 +7947,8 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_icon_name,
   x_set_icon_type,
   x_set_internal_border_width,
+  x_set_right_divider_width,
+  x_set_bottom_divider_width,
   x_set_menu_bar_lines,
   x_set_mouse_color,
   x_explicitly_set_name,
@@ -8119,6 +8200,13 @@ or when you set the mouse color.  */);
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_horizontal_drag_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-vertical-drag-cursor",
+	       Vx_window_vertical_drag_shape,
+	       doc: /* Pointer shape to use for indicating a window can be dragged vertically.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_vertical_drag_shape = Qnil;
 #endif
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
@@ -8211,6 +8299,7 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_window_exists_p);
+  defsubr (&Sw32_frame_rect);
   defsubr (&Sw32_battery_status);
 
 #ifdef WINDOWSNT
@@ -8238,61 +8327,35 @@ only be necessary if the default setting causes problems.  */);
 #endif
 }
 
+
 
-/*
-	globals_of_w32fns is used to initialize those global variables that
-	must always be initialized on startup even when the global variable
-	initialized is non zero (see the function main in emacs.c).
-	globals_of_w32fns is called from syms_of_w32fns when the global
-	variable initialized is 0 and directly from main when initialized
-	is non zero.
- */
-void
-globals_of_w32fns (void)
+/* Crashing and reporting backtrace.  */
+
+#ifndef CYGWIN
+static LONG CALLBACK my_exception_handler (EXCEPTION_POINTERS *);
+static LPTOP_LEVEL_EXCEPTION_FILTER prev_exception_handler;
+#endif
+static DWORD except_code;
+static PVOID except_addr;
+
+#ifndef CYGWIN
+/* This handler records the exception code and the address where it
+   was triggered so that this info could be included in the backtrace.
+   Without that, the backtrace in some cases has no information
+   whatsoever about the offending code, and looks as if the top-level
+   exception handler in the MinGW startup code di the one that
+   crashed.  */
+static LONG CALLBACK
+my_exception_handler (EXCEPTION_POINTERS * exception_data)
 {
-  HMODULE user32_lib = GetModuleHandle ("user32.dll");
-  /*
-    TrackMouseEvent not available in all versions of Windows, so must load
-    it dynamically.  Do it once, here, instead of every time it is used.
-  */
-  track_mouse_event_fn = (TrackMouseEvent_Proc)
-    GetProcAddress (user32_lib, "TrackMouseEvent");
+  except_code = exception_data->ExceptionRecord->ExceptionCode;
+  except_addr = exception_data->ExceptionRecord->ExceptionAddress;
 
-  monitor_from_point_fn = (MonitorFromPoint_Proc)
-    GetProcAddress (user32_lib, "MonitorFromPoint");
-  get_monitor_info_fn = (GetMonitorInfo_Proc)
-    GetProcAddress (user32_lib, "GetMonitorInfoA");
-  monitor_from_window_fn = (MonitorFromWindow_Proc)
-    GetProcAddress (user32_lib, "MonitorFromWindow");
-  enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
-    GetProcAddress (user32_lib, "EnumDisplayMonitors");
-
-  {
-    HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
-    get_composition_string_fn = (ImmGetCompositionString_Proc)
-      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
-    get_ime_context_fn = (ImmGetContext_Proc)
-      GetProcAddress (imm32_lib, "ImmGetContext");
-    release_ime_context_fn = (ImmReleaseContext_Proc)
-      GetProcAddress (imm32_lib, "ImmReleaseContext");
-    set_ime_composition_window_fn = (ImmSetCompositionWindow_Proc)
-      GetProcAddress (imm32_lib, "ImmSetCompositionWindow");
-  }
-  DEFVAR_INT ("w32-ansi-code-page",
-	      w32_ansi_code_page,
-	      doc: /* The ANSI code page used by the system.  */);
-  w32_ansi_code_page = GetACP ();
-
-  if (os_subtype == OS_NT)
-    w32_unicode_gui = 1;
-  else
-    w32_unicode_gui = 0;
-
-  /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
-  InitCommonControls ();
-
-  syms_of_w32uniscribe ();
+  if (prev_exception_handler)
+    return prev_exception_handler (exception_data);
+  return EXCEPTION_EXECUTE_HANDLER;
 }
+#endif
 
 typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
 						      PULONG);
@@ -8349,21 +8412,32 @@ emacs_abort (void)
 
 	if (i)
 	  {
+	    int errfile_fd = -1;
+	    int j;
+	    char buf[sizeof ("\r\nException  at this address:\r\n\r\n")
+		     + 2 * INT_BUFSIZE_BOUND (void *)];
 #ifdef CYGWIN
 	    int stderr_fd = 2;
 #else
 	    HANDLE errout = GetStdHandle (STD_ERROR_HANDLE);
 	    int stderr_fd = -1;
-#endif
-	    int errfile_fd = -1;
-	    int j;
 
-#ifndef CYGWIN
 	    if (errout && errout != INVALID_HANDLE_VALUE)
 	      stderr_fd = _open_osfhandle ((intptr_t)errout, O_APPEND | O_BINARY);
 #endif
+
+	    /* We use %p, not 0x%p, as %p produces a leading "0x" on XP,
+	       but not on Windows 7.  addr2line doesn't mind a missing
+	       "0x", but will be confused by an extra one.  */
+	    if (except_addr)
+	      sprintf (buf, "\r\nException 0x%lx at this address:\r\n%p\r\n",
+		       except_code, except_addr);
 	    if (stderr_fd >= 0)
-	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	      {
+		if (except_addr)
+		  write (stderr_fd, buf, strlen (buf));
+		write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	      }
 #ifdef CYGWIN
 #define _open open
 #endif
@@ -8371,17 +8445,17 @@ emacs_abort (void)
 	    if (errfile_fd >= 0)
 	      {
 		lseek (errfile_fd, 0L, SEEK_END);
+		if (except_addr)
+		  write (errfile_fd, buf, strlen (buf));
 		write (errfile_fd, "\r\nBacktrace:\r\n", 14);
 	      }
 
 	    for (j = 0; j < i; j++)
 	      {
-		char buf[INT_BUFSIZE_BOUND (void *)];
-
 		/* stack[] gives the return addresses, whereas we want
 		   the address of the call, so decrease each address
 		   by approximate size of 1 CALL instruction.  */
-		sprintf (buf, "0x%p\r\n", (char *)stack[j] - sizeof(void *));
+		sprintf (buf, "%p\r\n", (char *)stack[j] - sizeof(void *));
 		if (stderr_fd >= 0)
 		  write (stderr_fd, buf, strlen (buf));
 		if (errfile_fd >= 0)
@@ -8401,6 +8475,72 @@ emacs_abort (void)
 	break;
       }
     }
+}
+
+
+
+/* Initialization.  */
+
+/*
+	globals_of_w32fns is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+	globals_of_w32fns is called from syms_of_w32fns when the global
+	variable initialized is 0 and directly from main when initialized
+	is non zero.
+ */
+void
+globals_of_w32fns (void)
+{
+  HMODULE user32_lib = GetModuleHandle ("user32.dll");
+  /*
+    TrackMouseEvent not available in all versions of Windows, so must load
+    it dynamically.  Do it once, here, instead of every time it is used.
+  */
+  track_mouse_event_fn = (TrackMouseEvent_Proc)
+    GetProcAddress (user32_lib, "TrackMouseEvent");
+
+  monitor_from_point_fn = (MonitorFromPoint_Proc)
+    GetProcAddress (user32_lib, "MonitorFromPoint");
+  get_monitor_info_fn = (GetMonitorInfo_Proc)
+    GetProcAddress (user32_lib, "GetMonitorInfoA");
+  monitor_from_window_fn = (MonitorFromWindow_Proc)
+    GetProcAddress (user32_lib, "MonitorFromWindow");
+  enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
+    GetProcAddress (user32_lib, "EnumDisplayMonitors");
+
+  {
+    HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
+    get_composition_string_fn = (ImmGetCompositionString_Proc)
+      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
+    get_ime_context_fn = (ImmGetContext_Proc)
+      GetProcAddress (imm32_lib, "ImmGetContext");
+    release_ime_context_fn = (ImmReleaseContext_Proc)
+      GetProcAddress (imm32_lib, "ImmReleaseContext");
+    set_ime_composition_window_fn = (ImmSetCompositionWindow_Proc)
+      GetProcAddress (imm32_lib, "ImmSetCompositionWindow");
+  }
+
+  except_code = 0;
+  except_addr = 0;
+#ifndef CYGWIN
+  prev_exception_handler = SetUnhandledExceptionFilter (my_exception_handler);
+#endif
+
+  DEFVAR_INT ("w32-ansi-code-page",
+	      w32_ansi_code_page,
+	      doc: /* The ANSI code page used by the system.  */);
+  w32_ansi_code_page = GetACP ();
+
+  if (os_subtype == OS_NT)
+    w32_unicode_gui = 1;
+  else
+    w32_unicode_gui = 0;
+
+  /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
+  InitCommonControls ();
+
+  syms_of_w32uniscribe ();
 }
 
 #ifdef NTGUI_UNICODE

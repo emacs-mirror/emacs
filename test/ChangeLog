@@ -1,3 +1,95 @@
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/dbus-tests.el: New file.
+
+2013-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/regexp-tests.el: New file.
+
+2013-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/reftex-tests.el (reftex-parse-from-file-test):
+	Run temp-dir through file-truename, to make sure the temporary file
+	names are comparable as strings.
+
+	* automated/decoder-tests.el (ert-test-decoder-prefer-utf-8):
+	Force Unix EOLs by using 'utf-8-unix', since the default of
+	'utf-8' is system-dependent, while the test expects to see Unix EOLs.
+
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (SEPCHAR): Use in place of PATH_SEP.
+
+2013-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* automated/Makefile.in (PATH_SEP): Set this instead of PATH_SEPARATOR.
+	(EMACSOPT): Use $(PATH_SEP).
+
+2013-11-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (auto-revert-stop-on-user-input):
+	Set to nil.
+
+2013-11-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify-test-remote-temporary-file-directory):
+	Check $REMOTE_TEMPORARY_FILE_DIRECTORY.
+	(tramp-read-passwd): Check $REMOTE_ALLOW_PASSWORD.
+	(file-notify--deftest-remote): Cleanup connection initially.
+	(file-notify-test03-autorevert): Run also in batch mode.  Use a
+	larger timeout for remote files.  `sit-for' 1 second; 0.1 second
+	does not work on MS Windows.  Call `accept-process-output' for
+	remote files.  Apply `string-match' instead of `string-equal', the
+	messages are different on MS Windows.
+
+	* automated/tramp-tests.el (tramp-test-temporary-file-directory):
+	Use $REMOTE_TEMPORARY_FILE_DIRECTORY.
+	(tramp-read-passwd): Check $REMOTE_ALLOW_PASSWORD.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-shell-make-comint-1)
+	(python-shell-make-comint-2, python-shell-get-process-1):
+	Suppress creation of some temp-files.
+
+	* automated/python-tests.el (python-shell-parse-command-1)
+	(python-shell-make-comint-1, python-shell-make-comint-2)
+	(python-shell-get-process-1)
+	(python-shell-internal-get-or-create-process-1):
+	Skip rather than fail if prereqs not found.
+
+	* automated/Makefile.in (emacs):
+	Empty EMACSLOADPATH rather than unsetting.
+
+2013-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
+	Set expected-result.
+
+2013-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* automated/Makefile.in (XARGS_LIMIT): New, set by configure.
+	(compile-main): Pass XARGS_LIMIT to xargs.
+
+	* automated/Makefile.in (PATH_SEPARATOR): New, set by configure.
+	(EMACSOPT): Use PATH_SEPARATOR.
+
+2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
+
+	* test/automated/ruby-mode-tests.el (ruby-exit!-font-lock):
+	Add a failing test for Bug#15874.
+	* test/automated/ruby-mode-tests.el
+	(ruby--insert-coding-comment-ruby-style)
+	(ruby--insert-coding-comment-emacs-style)
+	(ruby--insert-coding-comment-custom-style):
+	Add a few tests for `ruby--insert-coding-comment'.
+
+2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve API of recently-added bool vector functions (Bug#15912).
+	* automated/data-tests.el: Adjust to API changes.
+
 2013-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/tramp-tests.el (tramp-test07-file-exists-p)
@@ -29,8 +121,7 @@
 	(tramp-test22-file-times, tramp-test23-visited-file-modtime)
 	(tramp-test24-file-name-completion, tramp-test25-load)
 	(tramp-test26-process-file, tramp-test27-start-file-process):
-	(tramp-test28-shell-command): Protect unwindforms with
-	`ignore-errors'.
+	(tramp-test28-shell-command): Protect unwindforms with `ignore-errors'.
 	(tramp-test29-utf8): New test.
 
 2013-11-13  Michael Albinus  <michael.albinus@gmx.de>

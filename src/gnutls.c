@@ -56,8 +56,10 @@ static Lisp_Object QCgnutls_bootprop_verify_hostname_error;
 static Lisp_Object QCgnutls_bootprop_callbacks_verify;
 
 static void gnutls_log_function (int, const char *);
-static void gnutls_audit_log_function (gnutls_session_t, const char *);
 static void gnutls_log_function2 (int, const char*, const char*);
+#ifdef HAVE_GNUTLS3
+static void gnutls_audit_log_function (gnutls_session_t, const char *);
+#endif
 
 
 #ifdef WINDOWSNT
@@ -262,6 +264,7 @@ init_gnutls_functions (void)
 #endif /* !WINDOWSNT */
 
 
+#ifdef HAVE_GNUTLS3
 /* Function to log a simple audit message.  */
 static void
 gnutls_audit_log_function (gnutls_session_t session, const char* string)
@@ -271,6 +274,7 @@ gnutls_audit_log_function (gnutls_session_t session, const char* string)
       message ("gnutls.c: [audit] %s", string);
     }
 }
+#endif
 
 /* Function to log a simple message.  */
 static void

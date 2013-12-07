@@ -915,6 +915,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
     (setq org-table-may-need-update nil)
     ))
 
+;;;###autoload
 (defun org-table-begin (&optional table-type)
   "Find the beginning of the table and return its position.
 With argument TABLE-TYPE, go to the beginning of a table.el-type table."
@@ -928,6 +929,7 @@ With argument TABLE-TYPE, go to the beginning of a table.el-type table."
       (beginning-of-line 2)
       (point))))
 
+;;;###autoload
 (defun org-table-end (&optional table-type)
   "Find the end of the table and return its position.
 With argument TABLE-TYPE, go to the end of a table.el-type table."
@@ -1199,6 +1201,7 @@ Return t when the line exists, nil if it does not exist."
 		(< (setq cnt (1+ cnt)) N)))
     (= cnt N)))
 
+;;;###autoload
 (defun org-table-blank-field ()
   "Blank the current table field or active region."
   (interactive)
@@ -4121,7 +4124,7 @@ to execute outside of tables."
 	 '(arg)
 	 (concat "In tables, run `" (symbol-name fun) "'.\n"
 		 "Outside of tables, run the binding of `"
-		 (mapconcat (lambda (x) (format "%s" x)) keys "' or `")
+		 (mapconcat #'key-description keys "' or `")
 		 "'.")
 	 '(interactive "p")
 	 (list 'if

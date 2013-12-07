@@ -475,7 +475,10 @@ struct buffer_text
     /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
        prevent Fgarbage_collect from shrinking the gap and losing
        not-yet-decoded bytes.  */
-    bool inhibit_shrinking;
+    unsigned inhibit_shrinking : 1;
+
+    /* True if it needs to be redisplayed.  */
+    unsigned redisplay : 1;
   };
 
 /* Most code should use this macro to access Lisp fields in struct buffer.  */
@@ -738,7 +741,7 @@ struct buffer
   Lisp_Object INTERNAL_FIELD (cursor_in_non_selected_windows);
 
   /* No more Lisp_Object beyond this point.  Except undo_list,
-     which is handled specially in Fgarbage_collect .  */
+     which is handled specially in Fgarbage_collect.  */
 
   /* This structure holds the coordinates of the buffer contents
      in ordinary buffers.  In indirect buffers, this is not used.  */

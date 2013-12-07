@@ -91,6 +91,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-no-heredoc-inside-quotes ()
   (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
 
+(ert-deftest ruby-exit!-font-lock ()
+  (ruby-assert-face "exit!" 5 font-lock-builtin-face))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))
@@ -615,6 +618,26 @@ VALUES-PLIST is a list with alternating index and value elements."
     (end-of-line)
     (ruby-backward-sexp)
     (should (= 2 (line-number-at-pos)))))
+
+(ert-deftest ruby--insert-coding-comment-ruby-style ()
+  (with-temp-buffer
+    (let ((ruby-encoding-magic-comment-style 'ruby))
+      (ruby--insert-coding-comment "utf-8")
+      (should (string= "# coding: utf-8\n" (buffer-string))))))
+
+(ert-deftest ruby--insert-coding-comment-emacs-style ()
+  (with-temp-buffer
+    (let ((ruby-encoding-magic-comment-style 'emacs))
+      (ruby--insert-coding-comment "utf-8")
+      (should (string= "# -*- coding: utf-8 -*-\n" (buffer-string))))))
+
+(ert-deftest ruby--insert-coding-comment-custom-style ()
+  (with-temp-buffer
+    (let ((ruby-encoding-magic-comment-style 'custom)
+          (ruby-custom-encoding-magic-comment-template "# encoding: %s\n"))
+      (ruby--insert-coding-comment "utf-8")
+      (should (string= "# encoding: utf-8\n\n" (buffer-string))))))
+
 
 (provide 'ruby-mode-tests)
 

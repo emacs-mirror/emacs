@@ -1,7 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation,
-Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1213,6 +1212,7 @@ struct Lisp_Bool_Vector
     /* This is the size in bits.  */
     EMACS_INT size;
     /* The actual bits, packed into bytes.
+       Zeros fill out the last word if needed.
        The bits are in little-endian order in the bytes, and
        the bytes are in little-endian order in the words.  */
     bits_word data[FLEXIBLE_ARRAY_MEMBER];
@@ -3523,7 +3523,7 @@ extern void pop_message_unwind (void);
 extern Lisp_Object restore_message_unwind (Lisp_Object);
 extern void restore_message (void);
 extern Lisp_Object current_message (void);
-extern void clear_message (int, int);
+extern void clear_message (bool, bool);
 extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
@@ -4042,6 +4042,7 @@ extern void syms_of_indent (void);
 /* Defined in frame.c.  */
 extern Lisp_Object Qonly, Qnone;
 extern Lisp_Object Qvisible;
+extern void set_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
 extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);
@@ -4057,7 +4058,7 @@ extern int initial_argc;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
 extern bool display_arg;
 #endif
-extern Lisp_Object decode_env_path (const char *, const char *);
+extern Lisp_Object decode_env_path (const char *, const char *, bool);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
 extern _Noreturn void terminate_due_to_signal (int, int);
@@ -4441,6 +4442,20 @@ extern void *record_xmalloc (size_t);
     else						       \
       memory_full (SIZE_MAX);				       \
   } while (0)
+
+/* Loop over all tails of a list, checking for cycles.
+   FIXME: Make tortoise and n internal declarations.
+   FIXME: Unroll the loop body so we don't need `n'.  */
+#define FOR_EACH_TAIL(hare, list, tortoise, n)	\
+  for (tortoise = hare = (list), n = true;			\
+       CONSP (hare);						\
+       (hare = XCDR (hare), n = !n,				\
+   	(n							\
+   	 ? ((EQ (hare, tortoise)				\
+	     && (xsignal1 (Qcircular_list, (list)), 0)))	\
+	 /* Move tortoise before the next iteration, in case */ \
+	 /* the next iteration does an Fsetcdr.  */		\
+   	 : (tortoise = XCDR (tortoise), 0))))
 
 /* Do a `for' loop over alist values.  */
 

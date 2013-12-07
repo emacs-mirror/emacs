@@ -559,6 +559,11 @@ or an empty string if none."
 	(propertize remote-url
 		    'face 'font-lock-variable-name-face)))
      "\n"
+     ;; For now just a heading, key bindings can be added later for various bisect actions
+     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root _dir)))
+       (propertize  "Bisect     : in progress\n" 'face 'font-lock-warning-face))
+     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root _dir)))
+       (propertize  "Rebase     : in progress\n" 'face 'font-lock-warning-face))
      (if stash
        (concat
 	(propertize "Stash      :\n" 'face 'font-lock-type-face
@@ -636,7 +641,17 @@ If toggling on, also insert its message into the buffer."
     (insert (with-output-to-string
               (vc-git-command
                standard-output 1 nil
-               "log" "--max-count=1" "--pretty=format:%B" "HEAD")))))
+               "log" "--max-count=1" "--pretty=format:%B" "HEAD")))
+    (save-excursion
+      (rfc822-goto-eoh)
+      (forward-line 1)
+      (let ((pt (point)))
+        (and (zerop (forward-line 1))
+             (looking-at "\n\\|\\'")
+             (let ((summary (buffer-substring-no-properties pt (1- (point)))))
+               (skip-chars-forward " \n")
+               (delete-region pt (point))
+               (log-edit-set-header "Summary" summary)))))))
 
 (defvar vc-git-log-edit-mode-map
   (let ((map (make-sparse-keymap "Git-Log-Edit")))
@@ -926,7 +941,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion
-    (move-beginning-of-line 1)
+    (beginning-of-line)
     (when (looking-at "\\([0-9a-f^][0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
       (let ((revision (match-string-no-properties 1)))
 	(if (match-beginning 2)

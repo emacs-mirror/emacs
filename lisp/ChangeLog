@@ -1,3 +1,678 @@
+2013-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-tag-img): Don't bug out on <img src="">
+	data.
+
+2013-12-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/compile.el (compilation-start):
+	* progmodes/grep.el (rgrep): Revert change of 2012-12-20 (r111276).
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Handle long command lines, lasting from "sh -c ...".  (Bug#16045)
+
+2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Touch
+	up the last change.
+
+2013-12-06  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-prompt): Use shy groups.
+	(inferior-octave-startup): Always use "octave> " for prompt.
+	(octave-goto-function-definition)
+	(octave-sync-function-file-names)
+	(octave-find-definition-default-filename): Remove redundant backquotes.
+
+2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-mode-syntax-table): Don't modify
+	syntax for `?'.
+	(ruby-expr-beg): Expect that `!' will have syntax class "symbol"
+	where appropriate already.
+	(ruby-syntax-propertize-function): Propertize `?' and `!' at the
+	end of method names (Bug#15874).
+
+2013-12-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch--saved-overriding-local-map):
+	New internal variable.
+	(isearch-mode): Set it to the initial value of
+	`overriding-terminal-local-map'.
+	(isearch-pre-command-hook): Compare `overriding-terminal-local-map'
+	with `isearch--saved-overriding-local-map'.  (Bug#16035)
+
+2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/octave.el (inferior-octave-completion-table): Turn
+	back into function, use `completion-table-with-cache'
+	(Bug#11906).  Update all references.
+
+	* minibuffer.el (completion-table-with-cache): New function.
+
+2013-12-05  Cameron Desautels  <camdez@gmail.com>  (tiny change)
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Fix ^ (bug#16046).
+
+2013-12-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/eww.el (eww-current-source): New variable to store page
+	source.
+	(eww-display-html, eww-mode, eww-save-history)
+	(eww-restore-history): Use it.
+	(eww-view-source): New command to view page source.
+	Opportunistically uses `html-mode' to highlight the buffer.
+	(eww-mode-map): Install it.
+
+2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-service)
+	(dbus-escape-as-identifier, dbus-unescape-from-identifier):
+	Fix docstring.
+	(dbus-unregister-service): Skip :serial entries in
+	`dbus-registered-objects-table'.
+	(dbus-byte-array-to-string): New optional arg MULTIBYTE.
+
+2013-12-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* emacs-lisp/lisp-mnt.el (lm-keywords-list): Trim whitespace
+	around keywords with extra `split-string' argument.
+
+2013-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* windmove.el (windmove-other-window-loc): Handle navigation
+	between windows (excluding the minibuffer window - Bug#16017).
+
+2013-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-byte-array-to-string): Accept also byte arrays
+	in D-Bus type syntax.
+	(dbus-unescape-from-identifier): Use `byte-to-string' in order to
+	preserve unibyte strings.  (Bug#16048)
+
+2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eldoc.el (eldoc-minibuffer-message):
+	Call force-mode-line-update is the proper buffer (bug#16042).
+
+2013-12-04  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-add-new-comment): Rename to
+	`log-edit-remember-comment', make argument optional.  Adjust all
+	callers.
+	(log-edit-mode): Add `log-edit-remember-comment' to
+	`kill-buffer-hook' locally.
+	(log-edit-kill-buffer): Don't remember comment explicitly since
+	the buffer is killed anyway.
+
+2013-12-04  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode, isearch-done): Don't set arg LOCAL in
+	add-hook and remove-hook for multi-buffer search.  (Bug#16035)
+
+2013-12-03  Tom Regner <tom@goochesa.de>  (tiny change)
+
+	* notifications.el (notifications-close-notification): Call the
+	D-Bus method with ID being a `:uint32'.  (Bug#16030)
+
+2013-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/eww.el (eww-render): Don't pass arg to eww-display-image.
+
+2013-12-03  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Rename window alist
+	entry `no-display-ok' to `allow-no-window'.
+
+	* simple.el (shell-command): Add window alist entry
+	`allow-no-window' to `display-buffer'.
+	(async-shell-command): Doc fix.
+
+	* window.el (display-buffer-no-window): New action function.
+	(display-buffer-alist, display-buffer): Doc fix.  (Bug#13594)
+
+2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-set-header): Extract from
+	`log-edit-toggle-header'.
+	(log-edit-extract-headers): Separate the summary, when extracted
+	from header, from the rest of the message with an empty line.
+
+	* vc/vc-git.el (vc-git-log-edit-toggle-amend): Move the summary
+	line, if present, to the Summary header.
+
+2013-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa-file.el (epa-file-insert-file-contents): Ensure we insert text
+	in current-buffer (bug#16029).
+
+2013-12-02  Helmut Eller  <eller.helmut@gmail.com>
+
+	* emacs-lisp/debug.el (debugger-toggle-locals): New command.
+	(debugger-mode-map): Bind it.
+	(debugger--backtrace-base): New function.
+	(debugger-eval-expression): Use it.
+	(debugger-frame-number): Skip local vars when present.
+	(debugger--locals-visible-p, debugger--insert-locals)
+	(debugger--show-locals, debugger--hide-locals): New functions.
+
+2013-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Do not set
+	"LC_ALL".
+	(tramp-get-remote-locale): New defun.
+	(tramp-open-connection-setup-interactive-shell): Use it.
+
+2013-12-02  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (process-live-p): Return nil for non-process.  (Bug#16023)
+
+	* progmodes/sh-script.el (sh-shell-process):
+	* progmodes/octave.el (inferior-octave-process-live-p):
+	* progmodes/gdb-mi.el (gdb-delchar-or-quit)
+	(gdb-inferior-io-sentinel):
+	* emacs-lock.el (emacs-lock-live-process-p): All uses changed.
+
+2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-kill-buffer): Move the use of
+	`save-selected-window' to `log-edit-hide-buf'.  This makes
+	`log-edit-show-files' idempotent.
+	(log-edit-show-files): Mark the new window as dedicated.
+
+2013-12-02  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-mode-map): Add binding for
+	`log-edit-kill-biffer'.
+	(log-edit-hide-buf): Add a FIXME comment.
+	(log-edit-add-new-comment): New function, extracted from
+	`log-edit-done'.
+	(log-edit-done, log-edit-add-to-changelog): Use it.
+	(log-edit-kill-buffer): New command.
+
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-mode-map): Have `q' do a normal `quit-window'
+	instead of killing the buffer.
+
+2013-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Mention `electric-indent-mode' (bug#16015).
+
+2013-12-01  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* net/eww.el (eww-form-checkbox-selected-symbol)
+	(eww-form-checkbox-symbol): New customizable variable.
+	(eww-form-checkbox, eww-toggle-checkbox):
+	Use `eww-form-checkbox-selected-symbol' and `eww-form-checkbox-symbol'.
+
+	* net/shr.el (shr-prefer-media-type-alist): : New customizable variable.
+	(shr--get-media-pref, shr--extract-best-source): New function.
+	(shr-tag-video, shr-tag-audio):  Use `shr--extract-best-source' when
+	no :src tag was specified.
+
+	* net/eww.el (eww-use-external-browser-for-content-type): New variable.
+	(eww-render): Handle `eww-use-external-browser-for-content-type'.
+	Use \\` to match beginning of string instead of ^.
+	(eww-browse-with-external-browser): Provide optional URL parameter.
+	(eww-render): Set `eww-current-title' back to "".
+
+	* net/shr.el (shr-tag-video): Display content for video if no
+	poster is available.
+	(shr-tag-audio): Add support for <audio> tag.
+
+	* net/eww.el (eww-text-input-types): : New const.
+	(eww-process-text-input): Treat input types in
+	`eww-text-input-types' as text.
+
+	* net/shr.el (shr-tag-table): Fix comment typo.
+
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-follow-link): New command to avoid reloading
+	pages when we follow #target links (bug#15243).
+	(eww-quit): Special mode buffers shouldn't query before exiting.
+
+2013-12-01  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
+
+	* net/eww.el (eww-tag-select): Support <optgroup> tags in <select>
+	forms.
+
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-restore-history): Update the window title after
+	moving in the history.
+	(eww-current-dom): New variable used to save the current DOM.
+
+2013-12-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-edit.el (log-edit-mode-map): Add binding for
+	`log-edit-beginning-of-line'.
+	(log-edit-setup-add-author): New user option.
+	(log-edit-beginning-of-line): New command.
+	(log-edit): Move major mode call above the contents setup so that
+	the local variable values are already applied.
+	(log-edit): Only insert "Author: " when
+	`log-edit-setup-add-author' is non-nil.
+	(log-edit): When SETUP is non-nil, position point after ": "
+	instead of point-min.
+
+2013-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line): Warn if ~/emacs.d is in load-path.
+
+2013-11-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (fancy-splash-frame): On MS-Windows, trigger
+	redisplay to make sure the initial frame gets a chance to become
+	visible.  (Bug#16014)
+
+2013-11-30  Martin Rudalics  <rudalics@gmx.at>
+
+	Support resizing frames and windows pixelwise.
+	* cus-start.el (frame-resize-pixelwise)
+	(window-resize-pixelwise): New entries.
+	* emacs-lisp/debug.el (debug): Use window-total-height instead
+	of window-total-size.
+	* frame.el (tool-bar-lines-needed): Defalias to tool-bar-height.
+	* help.el (describe-bindings-internal): Call help-buffer
+	(temp-buffer-max-width): New option.
+	(resize-temp-buffer-window, help-window-setup)
+	(with-help-window): Rewrite.
+	* mouse.el (mouse-drag-line): Rewrite.  Add key bindings for
+	dragging dividers.
+	* window.el (frame-char-size, window-min-pixel-height)
+	(window-safe-min-pixel-height, window-safe-min-pixel-width)
+	(window-min-pixel-width, window-safe-min-pixel-size)
+	(window-combination-p, window-safe-min-size)
+	(window-resizable-p, window--size-to-pixel)
+	(window--pixel-to-size, window--resize-apply-p): New functions.
+	(window-safe-min-height): Fix doc-string.
+	(window-size, window-min-size, window--min-size-1)
+	(window-sizable, window-sizable-p, window--min-delta-1)
+	(window-min-delta, window--max-delta-1, window-max-delta)
+	(window--resizable, window--resizable-p, window-resizable)
+	(window-full-height-p, window-full-width-p, window-at-side-p)
+	(window--in-direction-2, window-in-direction)
+	(window--resize-reset-1, window--resize-mini-window)
+	(window-resize, window-resize-no-error)
+	(window--resize-child-windows-normal)
+	(window--resize-child-windows, window--resize-siblings)
+	(window--resize-this-window, window--resize-root-window)
+	(window--resize-root-window-vertically)
+	(adjust-window-trailing-edge, enlarge-window, shrink-window)
+	(maximize-window, minimize-window, delete-window)
+	(quit-restore-window, window-split-min-size, split-window)
+	(balance-windows-2, balance-windows)
+	(balance-windows-area-adjust, balance-windows-area)
+	(window--state-get-1, window-state-get, window--state-put-1)
+	(window--state-put-2, window-state-put)
+	(display-buffer-record-window, window--display-buffer):
+	Make functions handle pixelwise sizing of windows.
+	(display-buffer--action-function-custom-type)
+	(display-buffer-fallback-action):
+	Add display-buffer-in-previous-window.
+	(display-buffer-use-some-window): Resize window to height it had
+	before.
+	(fit-window-to-buffer-horizontally): New option.
+	(fit-frame-to-buffer): Describe new values.
+	(fit-frame-to-buffer-bottom-margin): Replace with
+	fit-frame-to-buffer-margins.
+	(window--sanitize-margin): New function.
+	(fit-frame-to-buffer, fit-window-to-buffer): Rewrite completely
+	using window-text-pixel-size.
+
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-form):
+	Make the `interactive-only' warning like the `obsolete' one.
+	* comint.el (comint-run):
+	* files.el (insert-file-literally, insert-file):
+	* replace.el (replace-string, replace-regexp):
+	* simple.el (beginning-of-buffer, end-of-buffer, delete-backward-char)
+	(goto-line, insert-buffer, next-line, previous-line):
+	Tweak `interactive-only' spec.
+
+	Stop keeping (most) generated cedet grammar files in the repository.
+	* Makefile.in (semantic): New.
+	(compile-main): Depend on semantic.
+
+2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/newst-reader.el (newsticker-html-renderer): Default to SHR if
+	available.  Suggested by Clément B. <barthele1u@etu.univ-lorraine.fr>.
+
+	* uniquify.el (uniquify-buffer-name-style): Change default.
+
+	* loadup.el: Preload "uniquify".
+
+	* time.el (display-time-update): Update all mode lines (bug#15999).
+
+	* electric.el (electric-indent-mode): Enable by default.
+	* loadup.el: Preload "electric".
+
+2013-11-29  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/helpers.el (string-empty-p): New function.
+	(string-blank-p): New function.
+
+2013-11-29  Andreas Politz  <politza@hochschule-trier.de>
+
+	* imenu.el (imenu--index-alist): Add missing dot to the docstring
+	(Bug#14029).
+
+2013-11-29  Andreas Politz  <politza@fh-trier.de>
+	* imenu.el (imenu--subalist-p): Don't error on non-conses and
+	allow non-lambda lists as functions.
+	(imenu--in-alist): Don't recurse into non-subalists.
+	(imenu): Don't pass function itself as an argument (Bug#14029).
+
+2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode-map): Remove binding for ":".
+	(python-indent-electric-colon): Remove command.
+	(python-indent-post-self-insert-function): Integrate the previous code
+	of python-indent-electric-colon.  Make it conditional on
+	electric-indent-mode.
+	(python-mode): Add ?: to electric-indent-chars.
+	Move python-indent-post-self-insert-function to the end of
+	post-self-insert-hook.
+
+2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-goto-page): Update mode-line.
+
+	* vc/vc-dispatcher.el (vc-log-edit): Setup the Summary&Author headers.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* international/charprop.el, international/uni-bidi.el:
+	* international/uni-category.el, international/uni-combining.el:
+	* international/uni-comment.el, international/uni-decimal.el:
+	* international/uni-decomposition.el, international/uni-digit.el:
+	* international/uni-lowercase.el, international/uni-mirrored.el:
+	* international/uni-name.el, international/uni-numeric.el:
+	* international/uni-old-name.el, international/uni-titlecase.el:
+	* international/uni-uppercase.el:
+	Remove generated files from VCS repository.
+
+2013-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* filenotify.el (file-notify-add-watch): Don't special-case
+	w32notify when computing the directory to watch.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	Make bootstrap without generated uni-*.el files possible again.
+	* loadup.el: Update command-line-args checking for unidata-gen.
+	Add vc to load-path to allow loading vc-bzr when writing uni-*.el.
+	* composite.el, international/characters.el:
+	Handle unicode tables being undefined.
+
+	Move ja-dic, quail, leim-list.el from ../leim to a leim subdirectory.
+	* Makefile.in (setwins_for_subdirs): Skip leim/ directory.
+	(compile-main): Depend on leim rule.
+	(leim): New rule.
+	* loadup.el: Move leim-list.el to leim/ subdirectory.
+	* startup.el (normal-top-level): No more leim directory.
+	* international/ja-dic-cnv.el (skkdic-convert):
+	Disable version-control and autoloads in output files.
+	* international/titdic-cnv.el (titdic-convert, miscdic-convert):
+	Disable version-control and autoloads in output files.
+	* leim/quail: Move here from ../leim.
+	* leim/quail/hangul.el (hangul-input-method-activate):
+	Add autoload cookie.
+	(generated-autoload-load-name): Set file-local value.
+	* leim/quail/uni-input.el (ucs-input-activate): Add autoload cookie.
+	(generated-autoload-load-name): Set file-local value.
+
+2013-11-26  Kenjiro NAKAYAMA  <knakayam@redhat.com>  (tiny change)
+
+        * net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.
+        (eww-add-bookmark): ask confirmation when add to bookmarks
+        (eww-quit): ask confirmation before quitting eww
+
+2013-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/vc.el (vc-diff-internal): Use *-dos coding-system when
+	reading output from Diff on MS-Windows and MS-DOS.
+
+2013-11-26  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/helpers.el (string-reverse): New function.
+
+2013-11-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-regexp-unified): Support IPv6 host
+	names on MS Windows, like "/[::1]:".
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Accept nil
+	SWITCHES.
+
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el (python-indent-guess-indent-offset):
+	Avoid corner-case error.  (Bug#15975)
+
+	Preload leim-list.el.  (Bug#4789)
+	* loadup.el: Load leim-list.el when found.
+	* startup.el (normal-top-level): Skip re-loading leim/leim-list.el.
+
+2013-11-25  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-form): Fix a typo.
+
+	* emacs-lisp/helpers.el (string-join): New function.
+
+2013-11-25  Sebastian Wiesner  <lunaryorn@gmail.com>  (tiny change)
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Mark as obsolete and replace it with a symbol property.
+	(byte-compile-form): Use new 'interactive-only property.
+	* comint.el, files.el, replace.el, simple.el:
+	Apply new 'interactive-only properly.
+
+2013-11-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-at-bottom): Make sure that
+	split-window-sensibly creates the new window on bottom
+	(Bug#15961).
+
+2013-11-23  David Kastrup  <dak@gnu.org>
+
+	* vc/smerge-mode.el (smerge-ediff): Choose default buffer names based
+	on the conflict markers when available.
+	(smerge--get-marker): New function.
+	(smerge-end-re, smerge-base-re): Add subgroup.
+
+2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (handle-focus-in, handle-focus-out): Add missing
+	interactive spec.
+
+2013-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Clean up
+	`tramp-current-connection' only when KEEP-PASSWORD is non-nil.
+
+2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* play/gomoku.el: Don't use intangible property.  Use lexical-binding.
+	(gomoku--last-pos): New var.
+	(gomoku--intangible-chars): New const.
+	(gomoku--intangible): New function.
+	(gomoku-mode): Use it.  Derive from special-mode.
+	(gomoku-move-up): Adjust line count.
+	(gomoku-click, gomoku-point-y, gomoku-point-square, gomoku-goto-xy)
+	(gomoku-plot-square, gomoku-init-display, gomoku-cross-qtuple):
+	Simplify accordingly.
+
+	* frame.el (handle-focus-in, handle-focus-out): Move from frame.c.
+	Remove blink-cursor code.
+	(blink-cursor-timer-function, blink-cursor-suspend):
+	Don't special-case GUIs.
+	(blink-cursor-mode): Use focus-in/out-hook.
+
+2013-11-25  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-annotate-extract-revision-at-line): Make it
+	work when annotation is invisible (Bug#13886).
+
+2013-11-24  Simon Schubert  <2@0x2c.org>  (tiny change)
+
+	* json.el (json-alist-p): Only return non-nil if the alist has
+	simple keys (Bug#13518).
+
+2013-11-24  Mihir Rege  <mihirrege@gmail.com>  (tiny change)
+
+	* progmodes/js.el (js--ctrl-statement-indentation): Fix indent
+	when control-statement is the first statement in a buffer (Bug#15956).
+
+2013-11-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* imenu.el (imenu-generic-skip-comments-and-strings):
+	New option (Bug#15560).
+	(imenu--generic-function): Use it.
+
+2013-11-24  Jorgen Schaefer  <contact@jorgenschaefer.de>
+
+	* minibuffer.el (completion--in-region-1): Scroll the correct
+	window. (Bug#13898)
+
+2013-11-24  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/helpers.el: Add some string helpers.
+	(string-trim-left): Removes leading whitespace.
+	(string-trim-right): Removes trailing whitespace.
+	(string-trim): Removes leading and trailing whitespace.
+
+	* subr.el (string-suffix-p): New function.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el (python-shell-send-file):
+	Add option to delete file when done.  (Bug#15647)
+	(python-shell-send-string, python-shell-send-region): Use it.
+
+2013-11-23  Ivan Shmakov  <ivan@siamics.net>  (tiny change)
+
+	* vc/diff-mode.el (diff-mode): Only allow diff-default-read-only
+	to set buffer-read-only to t, never to nil.  (Bug#15938)
+
+	* textmodes/tex-mode.el (latex-noindent-environments):
+	Add safe-local-variable property.  (Bug#15936)
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/enriched.el (enriched-mode): Doc fix.
+	* emacs-lisp/authors.el (authors-renamed-files-alist):
+	Add enriched.doc -> enriched.txt.
+
+	* Makefile.in (emacs): Empty EMACSLOADPATH rather than unsetting.
+
+2013-11-22  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup): Spit out error
+	message.
+
+2013-11-22  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-custom-encoding-magic-comment-template):
+	Improve docstring.
+	Add :version.
+	(ruby-encoding-magic-comment-style): Add :version.
+
+2013-11-22  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-operator-regexp): Exclude newline.
+	(Bug#15076)
+	(octave-help-mode): Adapt to change to help-mode-finish to use
+	derived-mode-p on 2013-09-17.
+	(inferior-octave-prompt): Also match octave-gui.
+	(octave-kill-process): Don't ask twice.  (Bug#10564)
+
+2013-11-22  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-process-live-p): New helper.
+	(inferior-octave-startup, inferior-octave-check-process)
+	(inferior-octave-track-window-width-change)
+	(octave-completion-at-point, octave-eldoc-function): Use it.
+	(octave-kill-process): Provide confirmation.  (Bug#10564)
+
+2013-11-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-mode, inferior-octave-mode):
+	Fix obsolete variable comment-use-global-state.
+
+2013-11-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (octave-mode-map, octave-mode-menu):
+	Add `octave-source-file'.
+	(octave-source-file): New function.  (Bug#15935)
+
+2013-11-21  Kenjiro Nakayama  <nakayamakenjiro@gmail.com>  (tiny change)
+
+	* net/eww.el (eww-local-regex): New variable.
+	(eww): Use it to detect localhost and similar.
+
+2013-11-21  Leo Liu  <sdl.web@gmail.com>
+
+	Add completion for command `ag'.
+	* pcmpl-x.el (pcmpl-x-ag-options): New variable.
+	(pcomplete/ag): New function.
+	(pcmpl-x-ag-options): New function. Handle `[no]' in long options.
+
+2013-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (eval-when-compile): Fix edebug spec
+	(bug#14646).
+	(make-obsolete): Remove interactive spec.
+
+2013-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line-1): Use path-separator with -L.
+
+2013-11-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* emacs-lisp/package.el (describe-package-1): Add package archive
+	to shown fields.
+
+2013-11-20  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-custom-encoding-magic-comment-template):
+	Change default to "# encoding: %s" to differentiate it from the
+	default Ruby encoding comment template.
+
+2013-11-20  era eriksson  <era+emacsbugs@iki.fi>
+
+	* ses.el (ses-mode): Doc fix.  (Bug#14748)
+
+2013-11-20  Leo Liu  <sdl.web@gmail.com>
+
+	* window.el (display-buffer-alist): Doc fix.  (Bug#13594)
+
+2013-11-19  Dan Nicolaescu  <dann@gnu.org>
+
+	* vc/vc-git.el (vc-git-dir-extra-headers): Add headers
+	when rebase or bisect are in progress.
+
+2013-11-19  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* filenotify.el (file-notify-add-watch): Doc fix.
+
+2013-11-19  Leo Liu  <sdl.web@gmail.com>
+
+	* obsolete/rcompile.el: Mark obsolete.
+
+	* progmodes/compile.el (compilation-start)
+	(compilation-goto-locus, compilation-find-file):
+	Pass no-display-ok and handle nil value from display-buffer.
+	(Bug#13594)
+
+	* window.el (display-buffer-alist, display-buffer): Document the
+	new parameter no-display-ok.  Return either a window or nil
+	but never a non-window value.
+
 2013-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-mode-map): Remove.
@@ -84,9 +759,13 @@
 	* subr.el (version-regexp-alist):
 	Recognize hg, svn and darcs versions as snapshot versions.
 
-	* progmodes/ruby-mode.el (ruby-mode-set-encoding):
-	Add the ability to always insert an utf-8 encoding comment.
-	Fix and simplify coding comment update logic.
+	* progmodes/ruby-mode.el (ruby--detect-encoding): Make aware of
+	'always-utf8 value of `ruby-insert-encoding-magic-comment'.
+	(ruby--encoding-comment-required-p): Extract from
+	`ruby-mode-set-encoding'.
+	(ruby-mode-set-encoding): Add the ability to always insert an
+	utf-8 encoding comment.  Fix and simplify coding comment update
+	logic.
 
 2013-11-14  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -232,9 +911,13 @@
 
 2013-11-08  Bozhidar Batsov  <bozhidar@batsov.com>
 
-	* progmodes/ruby-mode.el (ruby-mode-set-encoding):
-	Use `ruby-encoding-magic-comment-style' to control the
-	style of the auto-inserted encoding comment.
+	* progmodes/ruby-mode.el: Improve encoding comment handling.
+	(ruby-encoding-magic-comment-style): New option.
+	(ruby-custom-encoding-magic-comment-template): New option.
+	(ruby--insert-coding-comment, ruby--detect-encoding):
+	New functions extracted from `ruby-mode-set-encoding'.
+	(ruby-mode-set-encoding): Use `ruby-encoding-magic-comment-style'
+	to control the style of the auto-inserted encoding comment.
 
 2013-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -1419,7 +2102,7 @@
 	of GIF DLLs for versions before and after 5.0.0 of giflib.
 	(Bug#15531)
 
-2013-10-10  João Távora <joaotavora@gmail.com>
+2013-10-10  João Távora  <joaotavora@gmail.com>
 
 	* vc/vc.el (vc-diff-build-argument-list-internal): If the file is
 	not locked, use last revision and current source as

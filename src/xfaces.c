@@ -323,6 +323,7 @@ Lisp_Object Qheader_line, Qscroll_bar, Qcursor;
 static Lisp_Object Qborder, Qmouse, Qmenu;
 Lisp_Object Qmode_line_inactive;
 static Lisp_Object Qvertical_border;
+static Lisp_Object Qwindow_divider;
 
 /* The symbol `face-alias'.  A symbols having that property is an
    alias for another face.  Value of the property is the name of
@@ -911,8 +912,6 @@ load_pixmap (struct frame *f, Lisp_Object name)
 				X Colors
  ***********************************************************************/
 
-#define NEAR_SAME_COLOR_THRESHOLD 30000
-
 /* Parse RGB_LIST, and fill in the RGB fields of COLOR.
    RGB_LIST should contain (at least) 3 lisp integers.
    Return 0 if there's a problem with RGB_LIST, otherwise return 1.  */
@@ -1263,6 +1262,8 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 
 
 #ifdef HAVE_WINDOW_SYSTEM
+
+#define NEAR_SAME_COLOR_THRESHOLD 30000
 
 /* Load colors for face FACE which is used on frame F.  Colors are
    specified by slots LFACE_BACKGROUND_INDEX and LFACE_FOREGROUND_INDEX
@@ -5246,6 +5247,7 @@ realize_basic_faces (struct frame *f)
       realize_named_face (f, Qmouse, MOUSE_FACE_ID);
       realize_named_face (f, Qmenu, MENU_FACE_ID);
       realize_named_face (f, Qvertical_border, VERTICAL_BORDER_FACE_ID);
+      realize_named_face (f, Qwindow_divider, WINDOW_DIVIDER_FACE_ID);
 
       /* Reflect changes in the `menu' face in menu bars.  */
       if (FRAME_FACE_CACHE (f)->menu_face_changed_p)
@@ -6448,6 +6450,7 @@ syms_of_xfaces (void)
   DEFSYM (Qmouse, "mouse");
   DEFSYM (Qmode_line_inactive, "mode-line-inactive");
   DEFSYM (Qvertical_border, "vertical-border");
+  DEFSYM (Qwindow_divider, "window-divider");
   DEFSYM (Qtty_color_desc, "tty-color-desc");
   DEFSYM (Qtty_color_standard_values, "tty-color-standard-values");
   DEFSYM (Qtty_color_by_index, "tty-color-by-index");

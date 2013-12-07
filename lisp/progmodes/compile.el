@@ -1623,16 +1623,12 @@ Returns the compilation buffer created."
 		(format "%s started at %s\n\n"
 			mode-name
 			(substring (current-time-string) 0 19))
-		;; The command could be split into several lines, see
-		;; `rgrep' for example.  We want to display it as one
-		;; line.
-		(apply 'concat (split-string command (regexp-quote "\\\n") t))
-		"\n")
+		command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.
     ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01638.html
-    (setq outwin (display-buffer outbuf))
+    (setq outwin (display-buffer outbuf '(nil (allow-no-window . t))))
     (with-current-buffer outbuf
       (let ((process-environment
 	     (append
@@ -1654,7 +1650,7 @@ Returns the compilation buffer created."
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)
 	     'compilation-revert-buffer)
-	(set-window-start outwin (point-min))
+	(and outwin (set-window-start outwin (point-min)))
 
 	;; Position point as the user will see it.
 	(let ((desired-visible-point
@@ -1663,15 +1659,15 @@ Returns the compilation buffer created."
 		   (point-max)
 		 ;; Normally put it at the top.
 		 (point-min))))
-	  (if (eq outwin (selected-window))
-	      (goto-char desired-visible-point)
+	  (goto-char desired-visible-point)
+	  (when (and outwin (not (eq outwin (selected-window))))
 	    (set-window-point outwin desired-visible-point)))
 
 	;; The setup function is called before compilation-set-window-height
 	;; so it can set the compilation-window-height buffer locally.
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
-	(compilation-set-window-height outwin)
+	(and outwin (compilation-set-window-height outwin))
 	;; Start the compilation.
 	(if (fboundp 'start-process)
 	    (let ((proc
@@ -2513,14 +2509,16 @@ and overlay is highlighted between MK and END-MK."
                 ;; the error location if the two buffers are in two
                 ;; different frames.  So don't do it if it's not necessary.
                 pre-existing
-	      (display-buffer (marker-buffer msg))))
+	      (display-buffer (marker-buffer msg) '(nil (allow-no-window . t)))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer
-			     (compilation-set-window w msg)
+			     (goto-char (marker-position msg))
+			     (and w (compilation-set-window w msg))
 			     compilation-highlight-regexp)))
     ;; Ideally, the window-size should be passed to `display-buffer'
     ;; so it's only used when creating a new window.
-    (unless pre-existing (compilation-set-window-height w))
+    (when (and (not pre-existing) w)
+      (compilation-set-window-height w))
 
     (if from-compilation-buffer
         ;; If the compilation buffer window was selected,
@@ -2631,9 +2629,12 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
     (while (null buffer)    ;Repeat until the user selects an existing file.
       ;; The file doesn't exist.  Ask the user where to find it.
       (save-excursion            ;This save-excursion is probably not right.
-        (let ((pop-up-windows t))
-          (compilation-set-window (display-buffer (marker-buffer marker))
-                                  marker)
+        (let ((w (let ((pop-up-windows t))
+		   (display-buffer (marker-buffer marker)
+				   '(nil (allow-no-window . t))))))
+          (with-current-buffer (marker-buffer marker)
+	    (goto-char marker)
+	    (and w (compilation-set-window w marker)))
           (let* ((name (read-file-name
                         (format "Find this %s in (default %s): "
                                 compilation-error filename)

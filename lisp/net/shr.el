@@ -849,7 +849,6 @@ START, and END.  Note that START and END should be markers."
   (shr-ensure-paragraph))
 
 (defun shr-urlify (start url &optional title)
-  (when (and title (string-match "ctx" title)) (debug))
   (shr-add-font start (point) 'shr-link)
   (add-text-properties
    start (point)
@@ -1097,17 +1096,84 @@ ones, in case fg and bg are nil."
       (shr-urlify start (shr-expand-url url)))
     (shr-generic cont)))
 
+(defcustom shr-prefer-media-type-alist '(("webm" . 1.0)
+                                         ("ogv"  . 1.0)
+                                         ("ogg"  . 1.0)
+                                         ("opus" . 1.0)
+                                         ("flac" . 0.9)
+                                         ("wav"  . 0.5))
+  "Preferences for media types.
+The key element should be a regexp matched against the type of the source or
+url if no type is specified.  The value should be a float in the range 0.0 to
+1.0.  Media elements with higher value are preferred."
+  :version "24.4"
+  :group 'shr
+  :type '(alist :key-type regexp :value-type float))
+
+(defun shr--get-media-pref (elem)
+  "Determine the preference for ELEM.
+The preference is a float determined from `shr-prefer-media-type'."
+  (let ((type (cdr (assq :type elem)))
+        (p 0.0))
+    (unless type
+      (setq type (cdr (assq :src elem))))
+    (when type
+      (dolist (pref shr-prefer-media-type-alist)
+        (when (and
+               (> (cdr pref) p)
+               (string-match-p (car pref) type))
+          (setq p (cdr pref)))))
+    p))
+
+(defun shr--extract-best-source (cont &optional url pref)
+  "Extract the best `:src' property from <source> blocks in CONT."
+  (setq pref (or pref -1.0))
+  (let (new-pref)
+    (dolist (elem cont)
+      (when (and (listp elem)
+                 (not (keywordp (car elem)))) ;; skip attributes
+        (when (and (eq (car elem) 'source)
+                   (< pref
+                      (setq new-pref
+                            (shr--get-media-pref elem))))
+          (setq pref new-pref
+                url (cdr (assq :src elem)))
+          (message "new %s %s" url pref))
+        ;; libxml's html parser isn't HTML5 compliant and non terminated
+        ;; source tags might end up as children.  So recursion it is...
+        (dolist (child (cdr elem))
+          (when (and (listp child)
+                     (not (keywordp (car child)))  ;; skip attributes
+                     (eq (car child) 'source))
+            (let ((ret (shr--extract-best-source (list child) url pref)))
+              (when (< pref (cdr ret))
+                (setq url (car ret)
+                      pref (cdr ret)))))))))
+  (cons url pref))
+
 (defun shr-tag-video (cont)
   (let ((image (cdr (assq :poster cont)))
-	(url (cdr (assq :src cont)))
-	(start (point)))
-    (shr-tag-img nil image)
+        (url (cdr (assq :src cont)))
+        (start (point)))
+    (unless url
+      (setq url (car (shr--extract-best-source cont))))
+    (if image
+        (shr-tag-img nil image)
+      (shr-insert " [video] "))
+    (shr-urlify start (shr-expand-url url))))
+
+(defun shr-tag-audio (cont)
+  (let ((url (cdr (assq :src cont)))
+        (start (point)))
+    (unless url
+      (setq url (car (shr--extract-best-source cont))))
+    (shr-insert " [audio] ")
     (shr-urlify start (shr-expand-url url))))
 
 (defun shr-tag-img (cont &optional url)
   (when (or url
 	    (and cont
-		 (cdr (assq :src cont))))
+		 (> (length (cdr (assq :src cont))) 0)))
     (when (and (> (current-column) 0)
 	       (not (eq shr-state 'image)))
       (insert "\n"))
@@ -1333,7 +1399,7 @@ ones, in case fg and bg are nil."
 	(if caption `((tr (td ,@caption))))
 	(if header
 	    (if footer
-		;; hader + body + footer
+		;; header + body + footer
 		(if (= nheader nbody)
 		    (if (= nbody nfooter)
 			`((tr (td (table (tbody ,@header ,@body ,@footer)))))

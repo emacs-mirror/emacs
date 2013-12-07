@@ -194,8 +194,8 @@ Property value is an integer."
      4 unidata-gen-table-symbol "uni-bidi.el"
      "Unicode bidi class.
 Property value is one of the following symbols:
-  L, LRE, LRO, R, AL, RLE, RLO, PDF, EN, ES, ET,
-  AN, CS, NSM, BN, B, S, WS, ON"
+  L, LRE, LRO, LRI, R, AL, RLE, RLO, RLI, FSI, PDF, PDI,
+  EN, ES, ET, AN, CS, NSM, BN, B, S, WS, ON"
      unidata-describe-bidi-class
      ;; The assignment of default values to blocks of code points
      ;; follows the file DerivedBidiClass.txt from the Unicode
@@ -205,7 +205,8 @@ Property value is one of the following symbols:
 	(#xFB1D #xFB4F R) (#x10800 #x10FFF R) (#x1E800 #x1EFFF R))
      ;; The order of elements must be in sync with bidi_type_t in
      ;; src/dispextern.h.
-     (L R EN AN BN B AL LRE LRO RLE RLO PDF ES ET CS NSM S WS ON))
+     (L R EN AN BN B AL LRE LRO RLE RLO PDF LRI RLI FSI PDI
+	ES ET CS NSM S WS ON))
     (decomposition
      5 unidata-gen-table-decomposition "uni-decomposition.el"
      "Unicode decomposition mapping.
@@ -397,12 +398,17 @@ is the character itself.")))
 ;; If VAL is one of VALn, just return n.
 ;; Otherwise, VAL-LIST is modified to this:
 ;;   ((nil . 0) (VAL1 . 1) (VAL2 . 2) ... (VAL . n+1))
+;;
+;; WARN is an optional warning to display when the value list is
+;; extended, for property values that need to be in sync with other
+;; parts of Emacs; currently only used for bidi-class.
 
-(defun unidata-encode-val (val-list val)
+(defun unidata-encode-val (val-list val &optional warn)
   (let ((slot (assoc val val-list))
 	val-code)
     (if slot
 	(cdr slot)
+      (if warn (message warn val))
       (setq val-code (length val-list))
       (nconc val-list (list (cons val val-code)))
       val-code)))
@@ -413,6 +419,16 @@ is the character itself.")))
   (let ((table (make-char-table 'char-code-property-table))
 	(prop-idx (unidata-prop-index prop))
 	(vec (make-vector 128 0))
+	;; When this warning is printed, there's a need to make the
+	;; following changes:
+	;; (1) update unidata-prop-alist with the new bidi-class values;
+	;; (2) extend bidi_type_t enumeration on src/dispextern.h to
+	;;     include the new classes;
+	;; (3) possibly update the assertion in bidi.c:bidi_check_type; and
+	;; (4) possibly update the switch cases in
+	;;     bidi.c:bidi_get_type and bidi.c:bidi_get_category.
+	(bidi-warning "\
+** Found new bidi-class '%s', please update bidi.c and dispextern.h")
 	tail elt range val val-code idx slot
 	prev-range-data)
     (setq val-list (cons nil (copy-sequence val-list)))
@@ -438,7 +454,9 @@ is the character itself.")))
       (setq elt (car tail) tail (cdr tail))
       (setq range (car elt)
 	    val (funcall val-func (nth prop-idx elt)))
-      (setq val-code (if val (unidata-encode-val val-list val)))
+      (setq val-code (if val (unidata-encode-val val-list val
+						 (and (eq prop 'bidi-class)
+						      bidi-warning))))
       (if (consp range)
 	  (when val-code
 	    (set-char-table-range table range val-code)
@@ -486,7 +504,9 @@ is the character itself.")))
 	    (setq new-val (funcall val-func (nth prop-idx elt)))
 	    (if (not (eq val new-val))
 		(setq val new-val
-		      val-code (if val (unidata-encode-val val-list val))))
+		      val-code (if val (unidata-encode-val
+					val-list val (and (eq prop 'bidi-class)
+							  bidi-warning)))))
 	    (if val-code
 		(aset vec (- range start) val-code))
 	    (setq tail (cdr tail)))
@@ -1241,6 +1261,7 @@ is the character itself.")))
 			";; coding: utf-8\n"
 			";; version-control: never\n"
 			";; no-byte-compile: t\n"
+			";; no-update-autoloads: t\n"
 			";; End:\n\n"
 			(format ";; %s ends here\n" basename)))
 	    (write-file file)
@@ -1250,6 +1271,7 @@ is the character itself.")))
 	      ";; coding: utf-8\n"
 	      ";; version-control: never\n"
 	      ";; no-byte-compile: t\n"
+	      ";; no-update-autoloads: t\n"
 	      ";; End:\n\n"
 	      (format ";; %s ends here\n"
 		      (file-name-nondirectory charprop-file))))))

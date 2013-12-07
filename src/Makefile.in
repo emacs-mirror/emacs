@@ -52,7 +52,7 @@ lispsource = $(srcdir)/../lisp
 lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
-leimdir = ../leim
+leimdir = ${lispsource}/leim
 oldXMenudir = ../oldXMenu
 lwlibdir = ../lwlib
 
@@ -179,30 +179,8 @@ LIBXTR6=@LIBXTR6@
 LIBXT_OTHER=@LIBXT_OTHER@
 
 ## If !HAVE_X11 || USE_GTK, empty.
-## Else if USE_X_TOOLKIT really-lwlib, else really-oldxmenu.
-OLDXMENU_TARGET=@OLDXMENU_TARGET@
-
-## If !HAVE_X11 || USE_GTK, empty.
 ## Else if USE_X_TOOLKIT, $(lwlibdir)/liblw.a.
 ## Else $(oldXMenudir)/libXMenu11.a.
-## (Actually, rather than being empty, it is set to "nothing".
-## It is never actually used for anything in this case.
-## This is done because there is a rule with target $(OLDXMENU) below,
-## and I think it might be a syntax error with some makes to have
-## an empty target, even if the associated rule is never run.
-## http://lists.gnu.org/archive/html/help-make/2010-05/msg00058.html
-## The alternative would be to put that rule in a makefile fragment.)
-OLDXMENU=@OLDXMENU@
-
-## If HAVE_X11 && !USE_GTK, $(OLDXMENU) ../src/$(OLDXMENU); else empty.
-## We use stamp-xmenu with these two deps to both ensure that lwlib
-## gets remade based on its dependencies in its own makefile,
-## and remake temacs if lwlib gets changed by this.
-OLDXMENU_DEPS=@OLDXMENU_DEPS@
-
-## If !HAVE_X11 && HAVE_X_WINDOWS, -lXMenu (this case no longer possible).
-## Else if !HAVE_X11 || USE_GTK, empty.
-## Else $(OLDXMENU).
 LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
@@ -222,7 +200,7 @@ LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 ## If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.
 LIBX_OTHER=@LIBX_OTHER@
 
-## LIBXMENU is nil if !HAVE_X_WINDOWS.
+## LIBXMENU is empty if !HAVE_X_WINDOWS.
 ## LD_SWITCH_X_SITE should not be used if not using X, but nothing
 ## sets it at present, and if something ever does, it should be
 ## configure, which should set it to nil in non-X builds.
@@ -437,7 +415,10 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	cd $(leimdir) && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
+	cd ../leim && $(MAKE) $(MFLAGS) leim-list.el EMACS="$(bootstrap_exe)"
+
+$(lispsource)/international/charprop.el: bootstrap-emacs$(EXEEXT)
+	cd ../admin/unidata && $(MAKE) $(MFLAGS) all EMACS="../$(bootstrap_exe)"
 
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
@@ -445,7 +426,8 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
 emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
-                $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
+                $(etc)/DOC $(lisp) $(leimdir)/leim-list.el \
+                $(lispsource)/international/charprop.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  rm -f emacs$(EXEEXT); \
 	  ln temacs$(EXEEXT) emacs$(EXEEXT); \
@@ -504,7 +486,7 @@ $(lib)/libgnu.a: $(config_h)
 ## existence when setting Vinstallation_directory (FIXME?).
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
-temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
+temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 	         $(lib)/libgnu.a $(EMACSRES)
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
@@ -514,29 +496,17 @@ temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
 ## The following oldxmenu-related rules are only (possibly) used if
-## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
-## (provided we take a little care that OLDXMENU is never empty).
-really-lwlib: globals.h
-	cd $(lwlibdir); $(MAKE) $(MFLAGS) \
-    CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)'
-	@true  # make -t should not create really-lwlib.
-.PHONY: really-lwlib
-
-really-oldXMenu:
-	cd $(oldXMenudir); $(MAKE) $(MFLAGS) \
-    CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)'
-	@true  # make -t should not create really-oldXMenu.
-.PHONY: really-oldXMenu
-
-## We do not really need this when OLDXMENU_DEPS is empty, but as
-## things stand we need something to satisfy the temacs dependency.
-stamp-oldxmenu: $(OLDXMENU_DEPS)
-	touch stamp-oldxmenu
-
-## Supply an ordering for parallel make.
-../src/$(OLDXMENU): $(OLDXMENU)
-
-$(OLDXMENU): $(OLDXMENU_TARGET)
+## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
+$(lwlibdir)/liblw.a: $(config_h) globals.h lisp.h FORCE
+	cd $(lwlibdir) && \
+	  $(MAKE) $(MFLAGS) CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)' \
+	    liblw.a
+$(oldXMenudir)/libXMenu11.a: FORCE
+	cd $(oldXMenudir) && \
+	  $(MAKE) $(MFLAGS) CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)' \
+	    libXMenu11.a
+FORCE:
+.PHONY: FORCE
 
 ../config.status: config.in epaths.in
 	@echo "The file ${?:.in=.h} needs to be set up from $?."
@@ -572,7 +542,7 @@ clean: mostlyclean
 ## It should remove all files generated during a compilation/bootstrap,
 ## but not things like config.status or TAGS.
 bootstrap-clean: clean
-	rm -f epaths.h config.h config.stamp stamp-h1 stamp-oldxmenu
+	rm -f epaths.h config.h config.stamp stamp-h1
 	if test -f ./.gdbinit; then \
 	  mv ./.gdbinit ./.gdbinit.save; \
 	  if test -f "$(srcdir)/.gdbinit"; then rm -f ./.gdbinit.save; \

@@ -419,8 +419,7 @@ as given in your `~/.profile'."
 
 ;;;###tramp-autoload
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0"
-    "LC_ALL=en_US.utf8" "LC_CTYPE=''"
+  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0" "LC_CTYPE=''"
     ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
     ,(format "INSIDE_EMACS='%s,tramp:%s'" emacs-version tramp-version)
@@ -2493,6 +2492,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
+  (unless switches (setq switches ""))
   (with-parsed-tramp-file-name filename nil
     (if (and (featurep 'ls-lisp)
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
@@ -2686,27 +2686,46 @@ the result will be a local, non-Tramp, filename."
 (defun tramp-sh-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    ;; When PROGRAM is nil, we just provide a tty.
-    (let ((command
-	   (when (stringp program)
-	     (format "cd %s; exec env PS1=%s %s"
-		     (tramp-shell-quote-argument localname)
-		     ;; Use a human-friendly prompt, for example for `shell'.
-		     (tramp-shell-quote-argument
-		      (format "%s %s"
-			      (file-remote-p default-directory)
-			      tramp-initial-end-of-output))
-		     (mapconcat 'tramp-shell-quote-argument
-				(cons program args) " "))))
-	  (tramp-process-connection-type
-	   (or (null program) tramp-process-connection-type))
-	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-	  (name1 name)
-	  (i 0)
-	  ;; We do not want to raise an error when
-	  ;; `start-file-process' has been started several time in
-	  ;; `eshell' and friends.
-	  (tramp-current-connection nil))
+    (let* (;; When PROGRAM matches "*sh", and the first arg is "-c",
+	   ;; it might be that the arguments exceed the command line
+	   ;; length.  Therefore, we modify the command.
+	   (heredoc (and (stringp program)
+			 (string-match "sh$" program)
+			 (string-equal "-c" (car args))
+			 (= (length args) 2)))
+	   ;; When PROGRAM is nil, we just provide a tty.
+	   (args (if (not heredoc) args
+		   (let ((i 250))
+		     (while (and (< i (length (cadr args)))
+				 (string-match " " (cadr args) i))
+		       (setcdr
+			args
+			(list (replace-match " \\\\\n" nil nil (cadr args))))
+		       (setq i (+ i 250))))
+		   (cdr args)))
+	   (command
+	    (when (stringp program)
+	      (format "cd %s; exec %s env PS1=%s %s"
+		      (tramp-shell-quote-argument localname)
+		      (if heredoc "<<EOF" "")
+		      ;; Use a human-friendly prompt, for example for `shell'.
+		      (tramp-shell-quote-argument
+		       (format "%s %s"
+			       (file-remote-p default-directory)
+			       tramp-initial-end-of-output))
+		      (if heredoc
+			  (format "%s\n%s\nEOF" program (car args))
+			(mapconcat 'tramp-shell-quote-argument
+				   (cons program args) " ")))))
+	   (tramp-process-connection-type
+	    (or (null program) tramp-process-connection-type))
+	   (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	   (name1 name)
+	   (i 0)
+	   ;; We do not want to raise an error when
+	   ;; `start-file-process' has been started several time in
+	   ;; `eshell' and friends.
+	   (tramp-current-connection nil))
 
       (unless buffer
 	;; BUFFER can be nil.  We use a temporary buffer.
@@ -3888,7 +3907,8 @@ process to set up.  VEC specifies the connection."
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
-  (let ((env (copy-sequence tramp-remote-process-environment))
+  (let ((env (append `(,(tramp-get-remote-locale vec))
+		     (copy-sequence tramp-remote-process-environment)))
 	unset item)
     (while env
       (setq item (tramp-compat-split-string (car env) "="))
@@ -4825,6 +4845,21 @@ Return ATTR."
 	     x))
 	   x))
 	remote-path)))))
+
+(defun tramp-get-remote-locale (vec)
+  (with-tramp-connection-property vec "locale"
+    (tramp-send-command vec "locale -a")
+    (let ((candidates '("en_US.utf8" "C.utf8" "C"))
+	  locale)
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(while candidates
+	  (goto-char (point-min))
+	  (if (string-match (concat "^" (car candidates) "$") (buffer-string))
+	      (setq locale (car candidates)
+		    candidates nil)
+	    (setq candidates (cdr candidates)))))
+      ;; Return value.
+      (when locale (format "LC_ALL=%s" locale)))))
 
 (defun tramp-get-ls-command (vec)
   (with-tramp-connection-property vec "ls"

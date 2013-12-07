@@ -272,6 +272,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (tool-bar-mode (frames mouse) boolean nil
 ;			    :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
+	     (frame-resize-pixelwise windows boolean "24.4")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
@@ -448,6 +449,7 @@ since it could result in memory overflow and make Emacs crash."
 			      :value display-buffer)
 		       (other :tag "Always (t)" :value t))
 	      "24.3")
+	     (window-resize-pixelwise windows boolean "24.4")
 	     ;; xdisp.c
 	     ;; The whitespace group is for whitespace.el.
 	     (show-trailing-whitespace editing-basics boolean nil

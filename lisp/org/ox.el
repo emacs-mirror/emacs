@@ -626,11 +626,20 @@ e.g. \"stat:nil\""
 (defcustom org-export-with-sub-superscripts t
   "Non-nil means interpret \"_\" and \"^\" for export.
 
+If you want to control how Org displays those characters, see
+`org-use-sub-superscripts'.  `org-export-with-sub-superscripts'
+used to be an alias for `org-use-sub-superscripts' in Org <8.0,
+it is not anymore.
+
 When this option is turned on, you can use TeX-like syntax for
-sub- and superscripts.  Several characters after \"_\" or \"^\"
-will be considered as a single item - so grouping with {} is
-normally not needed.  For example, the following things will be
-parsed as single sub- or superscripts.
+sub- and superscripts and see them exported correctly.
+
+You can also set the option with #+OPTIONS: ^:t
+
+Several characters after \"_\" or \"^\" will be considered as a
+single item - so grouping with {} is normally not needed.  For
+example, the following things will be parsed as single sub- or
+superscripts:
 
  10^24   or   10^tau     several digits will be considered 1 item.
  10^-12  or   10^-tau    a leading sign with digits or a word
@@ -638,15 +647,14 @@ parsed as single sub- or superscripts.
 			 terminated by almost any nonword/nondigit char.
  x_{i^2} or   x^(2-i)    braces or parenthesis do grouping.
 
-Still, ambiguity is possible - so when in doubt use {} to enclose
-the sub/superscript.  If you set this variable to the symbol
-`{}', the braces are *required* in order to trigger
-interpretations as sub/superscript.  This can be helpful in
-documents that need \"_\" frequently in plain text.
-
-This option can also be set with the OPTIONS keyword,
-e.g. \"^:nil\"."
+Still, ambiguity is possible.  So when in doubt, use {} to enclose
+the sub/superscript.  If you set this variable to the symbol `{}',
+the braces are *required* in order to trigger interpretations as
+sub/superscript.  This can be helpful in documents that need \"_\"
+frequently in plain text."
   :group 'org-export-general
+  :version "24.4"
+  :package-version '(Org . "8.0")
   :type '(choice
 	  (const :tag "Interpret them" t)
 	  (const :tag "Curly brackets only" {})

@@ -5907,7 +5907,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	    /* Here, we discard `const', making re_match non-reentrant.  */
 	    p2 = (unsigned char*) p + mcnt;
-	    /* Signedness doesn't matter since we only copy MCNT's bits .  */
+	    /* Signedness doesn't matter since we only copy MCNT's bits.  */
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	    DEBUG_PRINT ("  Setting %p to %d.\n", p2, mcnt);
 	    PUSH_NUMBER (p2, mcnt);

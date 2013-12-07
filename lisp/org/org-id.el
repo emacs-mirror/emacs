@@ -233,6 +233,7 @@ With optional argument FORCE, force the creation of a new ID."
     (org-entry-put (point) "ID" nil))
   (org-id-get (point) 'create))
 
+;;;###autoload
 (defun org-id-copy ()
   "Copy the ID of the entry at point to the kill ring.
 Create an ID if necessary."
@@ -258,6 +259,7 @@ In any case, the ID of the entry is returned."
 	(org-id-add-location id (buffer-file-name (buffer-base-buffer)))
 	id)))))
 
+;;;###autoload
 (defun org-id-get-with-outline-path-completion (&optional targets)
   "Use `outline-path-completion' to retrieve the ID of an entry.
 TARGETS may be a setting for `org-refile-targets' to define
@@ -274,6 +276,7 @@ If necessary, the ID is created."
     (prog1 (org-id-get pom 'create)
       (move-marker pom nil))))
 
+;;;###autoload
 (defun org-id-get-with-outline-drilling (&optional targets)
   "Use an outline-cycling interface to retrieve the ID of an entry.
 This only finds entries in the current buffer, using `org-get-location'.
@@ -320,6 +323,7 @@ With optional argument MARKERP, return the position as a new marker."
 
 ;; Creating new IDs
 
+;;;###autoload
 (defun org-id-new (&optional prefix)
   "Create a new globally unique ID.
 

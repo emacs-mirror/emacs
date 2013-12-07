@@ -26,22 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
-#define FONT_WIDTH(f)     ((f)->max_width)
-#define FONT_HEIGHT(f)    ((f)->height)
-#define FONT_BASE(f)      ((f)->ascent)
-#define FONT_DESCENT(f)   ((f)->descent)
-
 #define CP_DEFAULT 1004
-
-#define CHECK_W32_FRAME(f, frame)		\
-  if (NILP (frame))				\
-    f = SELECTED_FRAME ();			\
-  else						\
-    {						\
-      CHECK_LIVE_FRAME (frame, 0);		\
-      f = XFRAME (frame);			\
-    }						\
-  if (! FRAME_W32_P (f))
 
 /* Indicates whether we are in the readsocket call and the message we
    are processing in the current loop */
@@ -230,7 +215,7 @@ extern struct w32_display_info *w32_term_init (Lisp_Object,
 extern int w32_defined_color (struct frame *f, const char *color,
                               XColor *color_def, int alloc);
 extern void x_set_window_size (struct frame *f, int change_grav,
-                              int cols, int rows);
+			       int width, int height, bool pixelwise);
 extern int x_display_pixel_height (struct w32_display_info *);
 extern int x_display_pixel_width (struct w32_display_info *);
 extern Lisp_Object x_get_focus_frame (struct frame *);
@@ -349,6 +334,7 @@ struct w32_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor vertical_drag_cursor;
 
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
@@ -680,6 +666,7 @@ extern DWORD notifications_size;
 extern void *notifications_desc;
 extern Lisp_Object w32_get_watch_object (void *);
 extern Lisp_Object lispy_file_action (DWORD);
+extern int handle_file_notifications (struct input_event *);
 
 extern void w32_initialize_display_info (Lisp_Object);
 extern void initialize_w32_display (struct terminal *, int *, int *);

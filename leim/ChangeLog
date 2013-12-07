@@ -1,3 +1,37 @@
+2013-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (${leimdir}/leim-list.el):
+	* leim-ext.el: Change method for getting comments in the output
+	to one that does not fool lisp/compile-main's no-byte-compile test.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): No need to delete .elc,
+	lisp/ rules will do that.
+
+	* Makefile.in (extraclean): New.
+	(bootstrap-clean): Move ja-dic deletion to extraclean.
+
+	Move ja-dic, quail, leim-list.el to ../lisp/leim.
+	* Makefile.in (leimdir): New variable.
+	(TIT_GB, TIT_BIG5, MISC, changed.tit, changed.misc)
+	(${leimdir}/leim-list.el, ${leimdir}/ja-dic/ja-dic.el):
+	Generate in $leimdir.
+	(all): Remove compilation, add ja-dic.
+	(leim-list.el): Now PHONY.
+	(setwins, compile-targets, compile-main, clean, mostlyclean)
+	(extraclean): Remove.
+	(bootstrap-clean): Delete all generated files.
+	* README: Update for moved leim/ directory.
+	* leim-ext.el (ucs-input-activate, hangul-input-method-activate):
+	Remove manual autoloads; now in loaddefs.el.
+	Disable byte-compile, version-control, autoloads in the output.
+	* quail: Move to ../lisp/leim.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (RUN_EMACS): Empty EMACSLOADPATH rather than unsetting.
+
 2013-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (RUN_EMACS): Don't set LC_ALL=C.  (Bug#15260)

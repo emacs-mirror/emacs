@@ -598,7 +598,7 @@ convenient to switch between buffers.
 
 @menu
 * Uniquify::               Making buffer names unique with directory parts.
-* Iswitchb::               Switching between buffers with substrings.
+* Icomplete::              Fast minibuffer selection.
 * Buffer Menus::           Configurable buffer menu.
 @end menu
 
@@ -641,39 +641,31 @@ buffer names before you type one.  But as an experienced user, if you
 know the rule, you won't have to look.  And then you may find that one
 rule or another is easier for you to remember and apply quickly.
 
-@node Iswitchb
-@subsection Switching Between Buffers using Substrings
+@node Icomplete
+@subsection Fast minibuffer selection
 
-@findex iswitchb-mode
-@cindex Iswitchb mode
-@cindex mode, Iswitchb
-@kindex C-x b @r{(Iswitchb mode)}
-@kindex C-x 4 b @r{(Iswitchb mode)}
-@kindex C-x 5 b @r{(Iswitchb mode)}
-@kindex C-x 4 C-o @r{(Iswitchb mode)}
+@findex icomplete-mode
+@cindex Icomplete mode
 
-  Iswitchb global minor mode provides convenient switching between
-buffers using substrings of their names.  It replaces the normal
-definitions of @kbd{C-x b}, @kbd{C-x 4 b}, @kbd{C-x 5 b}, and @kbd{C-x
-4 C-o} with alternative commands that are somewhat ``smarter''.
+  Icomplete global minor mode provides a convenient way to quickly select an
+element among the possible completions in a minibuffer.  When enabled, typing
+in the minibuffer continuously displays a list of possible completions that
+match the string you have typed.
 
-  When one of these commands prompts you for a buffer name, you can
-type in just a substring of the name you want to choose.  As you enter
-the substring, Iswitchb mode continuously displays a list of buffers
-that match the substring you have typed.
-
-  At any time, you can type @key{RET} to select the first buffer in
-the list.  So the way to select a particular buffer is to make it the
+  At any time, you can type @key{C-j} to select the first completion in
+the list.  So the way to select a particular completion is to make it the
 first in the list.  There are two ways to do this.  You can type more
-of the buffer name and thus narrow down the list, excluding unwanted
-buffers above the desired one.  Alternatively, you can use @kbd{C-s}
-and @kbd{C-r} to rotate the list until the desired buffer is first.
+of the completion name and thus narrow down the list, excluding unwanted
+completions above the desired one.  Alternatively, you can use @kbd{C-.}
+and @kbd{C-,} to rotate the list until the desired buffer is first.
 
-  @key{TAB} while entering the buffer name performs completion on the
-string you have entered, based on the displayed list of buffers.
+  @key{M-TAB} will select the first completion in the list, like @key{C-j} but
+without exiting the minibuffer, so you can edit it further.  This is typically
+used when entering a file name, where @key{M-TAB} can be used a few times to
+descend in the hierarchy of directories.
 
-  To enable Iswitchb mode, type @kbd{M-x iswitchb-mode}, or customize
-the variable @code{iswitchb-mode} to @code{t} (@pxref{Easy
+  To enable Icomplete mode, type @kbd{M-x icomplete-mode}, or customize
+the variable @code{icomplete-mode} to @code{t} (@pxref{Easy
 Customization}).
 
 @node Buffer Menus

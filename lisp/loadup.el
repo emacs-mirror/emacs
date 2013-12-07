@@ -1,7 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -51,8 +51,9 @@
 ;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
-	(equal (nth 3 command-line-args) "unidata-gen.el")
-	(equal (nth 4 command-line-args) "unidata-gen-files")
+	;; FIXME this is irritatingly fragile.
+	(equal (nth 4 command-line-args) "unidata-gen.el")
+	(equal (nth 7 command-line-args) "unidata-gen-files")
 	;; In case CANNOT_DUMP.
 	(string-match "src/bootstrap-emacs" (nth 0 command-line-args)))
     (let ((dir (car load-path)))
@@ -62,7 +63,8 @@
 			    (expand-file-name "emacs-lisp" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)
-			    (expand-file-name "textmodes" dir)))))
+			    (expand-file-name "textmodes" dir)
+			    (expand-file-name "vc" dir)))))
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
@@ -98,6 +100,8 @@
 (load "env")
 (load "format")
 (load "bindings")
+;; This sets temporary-file-directory, used by eg
+;; auto-save-file-name-transforms in files.el.
 (load "cus-start")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
@@ -276,14 +280,20 @@
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
+(load "uniquify")
+(load "electric")
 (if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
-;If you want additional libraries to be preloaded and their
-;doc strings kept in the DOC file rather than in core,
-;you may load them with a "site-load.el" file.
-;But you must also cause them to be scanned when the DOC file
-;is generated.
-;For other systems, you must edit ../src/Makefile.in.
+;; This file doesn't exist when building a development version of Emacs
+;; from the repository.  It is generated just after temacs is built.
+(load "leim/leim-list.el" t)
+
+;; If you want additional libraries to be preloaded and their
+;; doc strings kept in the DOC file rather than in core,
+;; you may load them with a "site-load.el" file.
+;; But you must also cause them to be scanned when the DOC file
+;; is generated.
+;; For other systems, you must edit ../src/Makefile.in.
 (load "site-load" t)
 
 ;; Make sure default-directory is unibyte when dumping.  This is

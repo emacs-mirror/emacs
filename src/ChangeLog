@@ -1,10 +1,766 @@
+2013-12-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	Pixel resize changes for NS (Bug#16049).
+	* nsterm.m (x_set_window_size): Change parameters rows/cols to
+	height/width.  row/cols are locals.
+	Pass pixelwise to check_frame_size.  Don't set FRAME_PIXEL_WIDTH/HEIGHT.
+	(updateFrameSize:): Remove gsextra.  Adjust for pixelwise resize.
+	(windowWillResize): Remove gsextra.  Calculate extra as in
+	updateFrameSize.
+	(x_new_font): Don't change frame size if fullscreen.  Change
+	size pixelwise.
+
+	* nsfns.m (Fx_create_frame): Call change_frame_size twice as per
+	comment in xfns.c.  Change to pixelwise call.
+
+2013-12-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (Fset_buffer_multibyte): Invalidate buffer caches.
+	(Bug#16070)
+
+2013-12-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (input_signal_count): Remove.
+	(x_dispatch_event): Define unconditionally.
+	(x_make_frame_visible): Process X events until the frame
+	is really visible (Bug#16027).
+	* xterm.h (x_dispatch_event): Declare unconditionally.
+
+2013-12-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_frame_parm_handlers): Add right/bottom_divider_width.
+
+	* nsterm.m (x_set_window_size): Handle pixelwise.
+
+2013-12-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (x_new_font):
+	* xterm.c (x_new_font): Calculate new frame size from new font
+	size (Bug#16028).
+
+2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (FOR_EACH_TAIL): New macro.
+	* fns.c (Fdelq): Use it to avoid inf-loops; remove QUIT.
+
+	* window.c (select_window): Call second wset_redisplay before we change
+	selected_window (bug#16034).
+
+2013-12-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (LRM_CHAR, RLM_CHAR): Remove; no longer used.
+
+2013-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32xfns.c: Include window.h, to avoid a compiler warning.
+
+2013-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_scroll): Mark window for redisplay (bug#16034).
+	(scroll_command, Fscroll_other_window): Don't cause redisplay now that
+	window_scroll takes care of it.
+	(Fset_window_point, Fdelete_other_windows_internal)
+	(set_window_buffer, Fwindow_resize_apply, resize_frame_windows)
+	(Fsplit_window_internal, Fdelete_window_internal)
+	(Fresize_mini_window_internal, Fset_window_configuration)
+	(apply_window_adjustment): Use fset_redisplay and wset_redisplay to
+	cause redisplay instead of forcing a complete redisplay.
+	* xdisp.c (wset_redisplay): Don't set windows_or_buffers_changed if
+	we're only affecting the selected_window.
+
+2013-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type, bidi_get_category): Handle the isolate
+	directional control characters.  Update type and category
+	determination according to the UBA from Unicode v6.3.
+	(bidi_category_t): New category EXPLICIT_FORMATTING.
+
+	* dispextern.h (bidi_type_t): Update to include new bidirectional
+	properties introduced with Unicode v6.3.  (Bug#16043)
+
+2013-12-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* xterm.c (XTflash): Fix coordinate of bottom area to flash
+	(Bug#16044).
+
+2013-12-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_list_entities): Remove dummy assignment.
+	* font.h (struct font) [HAVE_WINDOW_SYSTEM]: Group members which are
+	used on graphic displays only.  Remove unused 'font_encoder' member.
+	(struct font_bitmap): Remove unused 'extra' member.
+	* nsfont.m (nsfont_open):
+	* w32font.c (w32font_open_internal):
+	* ftfont.c (ftfont_get_bitmap): Adjust users.
+
+2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean.
+	* tparam.c (tparam1):
+	* undo.c (record_point, record_property_change):
+	Use bool for boolean, for local vars that are always true or false.
+
+	Minor integer overflow fixes (Bug#16033).
+	* window.c (Fset_window_new_pixel): Don't let new_pixel go negative.
+	This improves on the previous fix to this function.
+	(window_resize_check): When summing up pixel counts, don't rely on
+	undefined behavior if the sum overflows.
+
+2013-12-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_new_pixel): Don't choke at negative
+	argument value (Bug#16033).
+
+	* xfns.c (Fx_create_frame): Add another call to change_frame_size
+	to avoid crash in window_box_height.
+
+	* gtkutil.h: Fix external declaration of xg_frame_set_char_size.
+	* gtkutil.c (xg_frame_set_char_size, style_changed_cb): Fix size
+	calculation.
+	* xterm.c (x_set_window_size): Fix size calculation (Bug#16013).
+
+2013-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor integer overflow fixes.
+	* window.c (Fset_window_new_pixel, grow_mini_window):
+	* xdisp.c (Fwindow_text_pixel_size):
+	Avoid undefined behavior on signed integer overflow.
+	* xfns.c (x_set_mouse_color):
+	Check that drag shape fits in 'unsigned', since that's what X wants.
+
+2013-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve reporting of fatal exception on MS-Windows.
+	* w32fns.c (my_exception_handler): New function.
+	(globals_of_w32fns): Set it up as the unhandled exception
+	handler.  Initialize exception code and address to zeros.
+	(emacs_abort): If the exception code and address are available,
+	print them at the beginning of the backtrace.  Fix the format of
+	printing addresses (was producing 0x0x12345678 on XP).
+	(Bug#15994)
+
+2013-12-02  Helmut Eller  <eller.helmut@gmail.com>
+
+	* eval.c (Fbacktrace__locals): New function.
+	(syms_of_eval): Defsubr it.
+
+2013-12-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.h (FONT_WIDTH, FONT_HEIGHT, FONT_BASE, FONT_DESCENT):
+	Define here to unify between...
+	* nsterm.h, w32term.h, xterm.h: ...port-specific headers.
+	* w32term.h (CHECK_W32_FRAME): Remove unused macro.
+
+2013-12-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.h (struct scroll_bar): Remove member `fringe_extended_p'.
+
+	* xterm.c (x_draw_fringe_bitmap, x_scroll_run): Remove code for
+	fringe background extension.
+	(x_scroll_bar_create): Remove variables `sb_left' and `sb_width',
+	because they are now always the same as `left' and `width',
+	respectively.  Remove code for the case that `width' and
+	`sb_width' are different.
+
+2013-12-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* dispextern.h, xdisp.c (x_draw_bottom_divider): Now static.
+	* frame.c (set_frame_param) [!HAVE_NTGUI]: Remove.
+	* xdisp.c (Ftool_bar_height) [USE_GTK || HAVE_NS]: Now const function.
+
+2013-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_compute_animated_image): Don't crash if we
+	have an animation with different-sized images (bug#15313).
+
+2013-11-30  Martin Rudalics  <rudalics@gmx.at>
+
+	Remove some unused items introduced during pixelwise change.
+	* window.c (window_resize_total_check): Remove unused function.
+	* xdisp.c (remember_mouse_glyph): Remove unused label.
+	(Ftool_bar_height): Move declaration inside #if.
+	* xterm.c (x_set_window_size): Don't use r and c.
+
+2013-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (Fwindow_text_pixel_size): Remove unused variables
+	`value' and `endp'.
+
+	* window.c (Fset_window_configuration): Comment out unused variables.
+
+	* w32term.c (w32_read_socket): Remove unused variable `buf'.
+
+2013-11-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (redisplay_internal): unrequest_sigio => request_sigio.
+
+	* xfaces.c (NEAR_SAME_COLOR_THRESHOLD): Move inside HAVE_WINDOW_SYSTEM.
+
+	* gnutls.c (gnutls_audit_log_function): Only declare and define if
+	HAVE_GNUTLS3 (Bug#16001).
+
+	* xdisp.c (redisplay_internal): Call request_sigio at end_of_redisplay
+	if interrupts are deferred (Bug#15801).
+
+2013-11-30  Martin Rudalics  <rudalics@gmx.at>
+
+	Support resizing frames and windows pixelwise.
+	* dispextern.h (enum window_part): Add ON_SCROLL_BAR,
+	ON_RIGHT_DIVIDER and ON_BOTTOM_DIVIDER.
+	(struct glyph_matrix): Replace window_left_col and
+	window_top_line by window_pixel_left and window_pixel_top.
+	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P): Minor
+	rewrite.
+	(enum face_id): Add WINDOW_DIVIDER_FACE_ID.
+	(draw_window_divider, move_it_to, x_draw_right_divider)
+	(x_draw_bottom_divider, change_frame_size): Add or fix
+	declarations.
+	* dispnew.c (change_frame_size_1): Change prototype.
+	(adjust_glyph_matrix, required_matrix_width)
+	(adjust_frame_glyphs_for_window_redisplay): Use pixel
+	values instead of lines and columns.
+	(marginal_area_string): Use WINDOW_FRINGES_WIDTH instead of
+	WINDOW_TOTAL_FRINGE_WIDTH.
+	(handle_window_change_signal, do_pending_window_change)
+	(init_display): Adjusts calls of change_frame_size.
+	(change_frame_size, change_frame_size_1): Handle pixelwise
+	changes.
+	* frame.c (Qright_divider_width, Qbottom_divider_width): New
+	Lisp objects.
+	(set_menu_bar_lines_1, set_menu_bar_lines, make_frame)
+	(make_terminal_frame, Fmake_terminal_frame, Fframe_parameters)
+	(x_set_internal_border_width, x_set_vertical_scroll_bars)
+	(x_set_scroll_bar_width, x_figure_window_size): Handle pixel
+	values.
+	(set_frame_param): New function.
+	(Fframe_text_cols, Fframe_text_lines, Fframe_total_cols)
+	(Fframe_text_width, Fframe_text_height, Fscroll_bar_width)
+	(Ffringe_width, Fborder_width, Fright_divider_width)
+	(Fbottom_divider_width): New functions, defsubr them.
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size): New
+	argument pixelwise.
+	(struct frame_parm_table): New members Qright_divider_width and
+	Qbottom_divider_width.
+	(x_set_frame_parameters): Handle parameters for pixelwise sizes.
+	(x_report_frame_params): Handle Qright_divider_width and
+	Qbottom_divider_width.
+	(x_set_right_divider_width, x_set_bottom_divider_width): New
+	functions.
+	(frame_resize_pixelwise): New option.
+	* frame.h (struct frame): Add tool_bar_height, menu_bar_height,
+	new_pixelwise, right_divider_width and bottom_divider_width;
+	remove total_lines; rename text_lines, text_cols, new_text_lines
+	and new_text_cols to text_height, text_width, new_height and
+	new_width respectively.
+	(FRAME_LINES, FRAME_COLS): Rename to FRAME_TEXT_HEIGHT and
+	FRAME_TEXT_WIDTH respectively.
+	(FRAME_MENU_BAR_HEIGHT, FRAME_TOOL_BAR_HEIGHT)
+	(FRAME_RIGHT_DIVIDER_WIDTH, FRAME_BOTTOM_DIVIDER_WIDTH)
+	(FRAME_TEXT_TO_PIXEL_WIDTH, FRAME_PIXEL_TO_TEXT_WIDTH): New
+	macros.
+	(FRAME_TOP_MARGIN_HEIGHT, FRAME_LEFT_SCROLL_BAR_AREA_WIDTH)
+	(FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH, FRAME_SCROLL_BAR_AREA_WIDTH)
+	(SET_FRAME_COLS, SET_FRAME_WIDTH, SET_FRAME_HEIGHT)
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH, FRAME_PIXEL_WIDTH_TO_TEXT_COLS)
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Rewrite macros.
+	(FRAME_TOTAL_COLS_ARG): Remove macro.
+	* fringe.c (draw_fringe_bitmap_1): Handle right divder.
+	* gtkutil.c (xg_frame_resized, xg_frame_set_char_size)
+	(x_wm_set_size_hint): Handle frame pixel sizes.
+	* indent.c (compute_motion, Fcompute_motion): Call
+	window_body_width instead of window_body_cols.
+	* keyboard.c (Qright_divider, Qbottom_divider): New symbols.
+	(make_lispy_position): Handle right and bottom dividers.
+	(Fsuspend_emacs): Pixelize call of change_frame_size.
+	* keyboard.h: Extern Qright_divider, Qbottom_divider.
+	* lisp.h: Extern set_frame_param.
+	* nsfns.m (x_set_tool_bar_lines): Pixelize call of
+	x_set_window_size.
+	(Fx_create_frame): Add entry for vertical_drag_cursor.  Pixelize
+	call of change_frame_size.
+	* nsterm.h (struct ns_output): Add vertical_drag_cursor.
+	* nsterm.m (ns_update_window_end): Optionally draw right
+	divider.
+	(x_set_window_size): Add argument pixelwise.  Call
+	check_frame_size and change_frame_size with pixelwise zero.
+	(ns_draw_window_divider): New function.
+	(ns_redisplay_interface): Add ns_draw_window_divider.
+	(updateFrameSize:): Call change_frame_size with pixelwise zero.
+	(x_new_font): Call x_set_window_size with pixelwise zero.
+	* print.c (print_object): For a window print its sequence
+	number again.
+	* term.c (Fresume_tty): Pixelize call of change_frame_size.
+	* w32fns.c (x_set_mouse_color): Handle vertical drag cursor.
+	(x_set_menu_bar_lines, x_set_tool_bar_lines): Calculate pixelwise.
+	(w32_createwindow): Use scroll bar area width.
+	(w32_wnd_proc): Handle bottom divider width.  For
+	WM_WINDOWPOSCHANGING return zero if we resize pixelwise.
+	(Fx_create_frame): Default divider width parameters.  Caclulate
+	sizes pixelwise.  Add vertical drag cursor support.
+	(x_create_tip_frame): Default divider widths to zero.  Pixelize
+	call to change_frame_size.
+	(Fx_show_tip): Add handling of divider widths.  Pixelize window
+	position and sizes.
+	(Fw32_frame_rect): New function.
+	(frame_parm_handler w32_frame_parm_handlers): Add divider
+	widths.
+	(Vx_window_vertical_drag_shape): Add variable.
+	* w32inevt.c (resize_event, maybe_generate_resize_event):
+	Pixelize change_frame_size calls.
+	* w32menu.c (set_frame_menubar): Pixelize x_set_window_size
+	call.
+	* w32term.c (w32_draw_window_divider): New function.
+	(x_update_window_end): Handle right divider.
+	(w32_draw_fringe_bitmap, x_scroll_run)
+	(w32_set_vertical_scroll_bar): Pixelize scrollbar widths.
+	(w32_read_socket): Handle SIZE_MAXIMIZED separately.  Calculate
+	new frame sizes pixelwise.
+	(x_new_font): Pixelize call to x_set_window_size.
+	(x_check_fullscreen): Pixelize call to change_frame_size.
+	(x_set_window_size_1, x_set_window_size): New argument
+	pixelwise.  Calculate pixelwise.
+	(x_wm_set_size_hint): Use scroll bar area width.
+	(w32_redisplay_interface): Add w32_draw_window_divider.
+	* w32term.h (struct w32_output): Add vertical drag cursor.
+	* widget.c (set_frame_size, update_wm_hints)
+	(EmacsFrameResize, EmacsFrameSetValues): Pixelize calls of
+	change_frame_size.
+	(EmacsFrameSetCharSize): Pixelize call of x_set_window_size.
+	* window.c (sequence_number): Restore.
+	(Fwindow_pixel_width, Fwindow_pixel_height)
+	(Fwindow_mode_line_height, Fwindow_header_line_height)
+	(window_pixel_to_total, Frun_window_scroll_functions)
+	(Fset_window_new_pixel, window_resize_apply_total)
+	(Fwindow_resize_apply_total): New functions.
+	(window_body_height, window_body_width): Rename from
+	window_body_lines.  New argument PIXELWISE.  Calculate
+	pixelwise.
+	(Fwindow_body_height, Fwindow_body_width): New argument
+	PIXELWISE.
+	(coordinates_in_window, window_relative_x_coord): Use window's
+	pixel width instead of total width.
+	(replace_window, recombine_windows): Initialize pixel values.
+	(resize_root_window, resize_frame_windows, grow_mini_window)
+	(shrink_mini_window): New argument PIXELWISE.  Calculate
+	pixelwise.
+	(Fdelete_other_windows_internal, adjust_window_margins)
+	(window_resize_check, window_resize_apply)
+	(Fdelete_window_internal, Fresize_mini_window_internal)
+	(Fwindow_text_width, Fwindow_text_height): Calculate pixelwise.
+	(check_frame_size): Rename arguments.  New argument PIXELWISE.
+	Calculate pixelwise.
+	(set_window_buffer): Make samebuf bool.  Run configuration change
+	hook only if buffer changed.
+	(Fset_window_buffer): Rewrite doc-string.
+	(make_window): Initialize new_pixel slot.
+	(Fwindow_resize_apply): Check pixel size of root window.
+	(Fsplit_window_internal): Call 2nd argument pixel_size.
+	Calculate pixelwise.
+	(Fscroll_left, Fscroll_right): Call window_body_width instead of
+	window_body_cols.
+	(save_window_data): New slots frame_text_width,
+	frame_text_height, frame_menu_bar_height, frame_tool_bar_height.
+	(saved_window): New slots pixel_left, pixel_top, pixel_height,
+	pixel_width.
+	(Fcurrent_window_configuration, Fset_window_configuration)
+	(save_window_save, compare_window_configurations): Handle new
+	slots in save_window_data and saved_window.
+	(Fset_window_scroll_bars): Fix doc-string.
+	(window_resize_pixelwise): New variable.
+	(coordinates_in_window, Fcoordinates_in_window_p): Handle
+	dividers.
+	(make_parent_window): Adjust sequence_number.
+	(Fwindow_right_divider_width, Fwindow_bottom_divider_width): New
+	functions.
+	* window.h (struct window): New members new_pixel, pixel_left,
+	pixel_top, pixel_width, pixel_height.  Restore sequence_number.
+	(wset_new_pixel): New function.
+	(WINDOW_PIXEL_WIDTH, WINDOW_PIXEL_HEIGHT)
+	(MIN_SAFE_WINDOW_PIXEL_WIDTH, MIN_SAFE_WINDOW_PIXEL_HEIGHT)
+	(WINDOW_LEFT_PIXEL_EDGE, WINDOW_RIGHT_PIXEL_EDGE)
+	(WINDOW_TOP_PIXEL_EDGE, WINDOW_BOTTOM_PIXEL_EDGE)
+	(WINDOW_BOTTOMMOST_P, WINDOW_BOX_LEFT_PIXEL_EDGE)
+	(WINDOW_BOX_RIGHT_PIXEL_EDGE, WINDOW_MARGINS_COLS)
+	(WINDOW_MARGINS_WIDTH, WINDOW_RIGHT_DIVIDER_WIDTH)
+	(WINDOW_BOTTOM_DIVIDER_WIDTH): New macros.
+	(WINDOW_TOTAL_FRINGE_WIDTH): Rename to WINDOW_FRINGES_WIDTH.
+	(WINDOW_TOTAL_WIDTH, WINDOW_TOTAL_HEIGHT): Remove macros.
+	(WINDOW_RIGHT_EDGE_X, WINDOW_LEFT_EDGE_X, WINDOW_TOP_EDGE_Y)
+	(WINDOW_BOTTOM_EDGE_Y, WINDOW_FULL_WIDTH_P, WINDOW_LEFTMOST_P)
+	(WINDOW_RIGHTMOST_P, WINDOW_BOX_LEFT_EDGE_X)
+	(WINDOW_BOX_RIGHT_EDGE_X, WINDOW_FRINGE_COLS)
+	(WINDOW_BOX_HEIGHT_NO_MODE_LINE, WINDOW_BOX_TEXT_HEIGHT):
+	Rewrite.
+	(resize_frame_windows, grow_mini_window, shrink_mini_window)
+	(window_body_width, check_frame_size): Adapt external declarations.
+	* xdisp.c (last_max_ascent): New integer.
+	(window_text_bottom_y): Handle bottom divider.
+	(window_box_width, window_box_height): Calculate pixelwise.
+	(get_glyph_string_clip_rects): Handle right divider.
+	(remember_mouse_glyph): When windows are resized pixelwise
+	proceed with width and height set to 1.
+	(init_iterator): Use WINDOW_PIXEL_WIDTH instead of
+	WINDOW_TOTAL_WIDTH.
+	(move_it_to): Calculate and return maximum x position
+	encountered.
+	(Fwindow_text_pixel_size): New function.
+	(resize_mini_window, update_tool_bar): Calculate pixelwise.
+	(tool_bar_lines_needed): Rename to tool_bar_height.  Calculate
+	pixelwise.
+	(Ftool_bar_lines_needed): Rename to Ftool_bar_height.  Calculate
+	pixelwise.
+	(redisplay_tool_bar): Calculate pixelwise.
+	(redisplay_window): Calculate pixelwise.  Handle dividers.
+	(draw_glyphs, x_clear_end_of_line, note_mouse_highlight)
+	(x_draw_vertical_border): Handle dividers.
+	(define_frame_cursor1): Handle vertical drag cursor.
+	(x_draw_right_divider, x_draw_bottom_divider): New functions.
+	(expose_window): Calculate pixelwise.  Handle dividers.
+	(init_xdisp): Initialize pixel values.
+	* xfaces.c (Qwindow_divider): New face.
+	(realize_basic_faces): Realize it.
+	* xfns.c (x_set_mouse_color): Handle vertical_drag_cursor.
+	(x_set_menu_bar_lines, x_set_tool_bar_lines): Calculate pixelwise.
+	(x_set_scroll_bar_default_width): Default actual width to 16.
+	(Fx_create_frame): Set sizes pixelwise.
+	(x_create_tip_frame): Default divider widths to zero.  Pixelize
+	call of change_frame_size.
+	(Fx_show_tip): Handle divider widths.  Initial pixel position
+	and sizes.
+	(frame_parm_handler x_frame_parm_handlers): Add divider widths.
+	(Vx_window_vertical_drag_shape): New option.
+	* xmenu.c (free_frame_menubar): Pixelize call of
+	x_set_window_size.
+	* xterm.c (x_draw_window_divider): New function.
+	(x_update_window_end): Optionally draw right divider.
+	(x_draw_fringe_bitmap, x_scroll_run, x_scroll_bar_create)
+	(XTset_vertical_scroll_bar): Use scroll bar pixel width.
+	(handle_one_xevent, x_new_font): Calculate pixelwise.
+	(x_set_window_size_1, x_set_window_size): New argument
+	pixelwise.  Calculate pixelwise.
+	(x_wm_set_size_hint): Pixelize call of check_frame_size.
+	(struct x_redisplay_interface): Add x_draw_window_divider.
+	* xterm.h (struct x_output): Add vertical_drag_cursor.
+
+2013-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_internal): Don't call set_window_update_flags.
+	Set invisible frames's `redisplay' when a full redisplay is requested.
+	(redisplay_window): Set must_be_updated_p instead (bug#15999).
+	(redisplay_mode_lines): Don't set must_be_updated_p any more.
+	(display_mode_lines): Set it here instead.
+
+	* dispnew.c (set_window_update_flags): Remove `b' argument; make static.
+
+	* dispextern.h (set_window_update_flags): Remove.
+
+2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (internal_equal): Add a hash_table argument to handle cycles.
+
+	* xdisp.c (REDISPLAY_SOME_P): New macro.
+	(redisplay_internal): Use it (bug#15999).
+	(prepare_menu_bars, redisplay_window): Use it as well.
+
+	* lisp.mk (lisp): Add electric.elc and uniquify.elc.
+
+2013-11-29  Tom Seddon  <emacs@tomseddon.plus.com>  (tiny change)
+
+	* w32font.c (g_b_init_get_char_width_32_w): New static var.
+	(globals_of_w32font): Zero it out.
+	(GetCharWidth32W_Proc): New function pointer.
+	(get_char_width_32_w): New function.
+	(compute_metrics): If get_glyph_outline_w returns an error, try
+	get_char_width_32_w before declaring a failure.  This avoids
+	punishing raster (a.k.a. "bitmap") fonts by slowing down
+	redisplay.  (Bug#6364).
+
+2013-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (clear_mouse_face): Don't invalidate the entire
+	mouse-highlight info, just signal frame_up_to_date_hook that mouse
+	highlight needs to be redisplayed.  (Bug#15913)
+
+2013-11-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* buffer.h (struct buffer_text, struct buffer):
+	* frame.h (struct frame):
+	* window.h (struct window):
+	Avoid 'bool foo : 1;', as it's not portable to pre-C99 compilers,
+	as described in ../lib/stdbool.in.h.  Use 'unsigned foo : 1;' instead.
+	* menu.c (syms_of_menu): Define x-popup-dialog, removing a
+	no-longer-valid use of HAVE_MENUS.
+	* xdisp.c (propagate_buffer_redisplay): Now static.
+
+2013-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xmenu.c (Fmenu_or_popup_active_p):
+	* window.c (Fset_window_configuration):
+	* menu.c (Fx_popup_menu, Fx_popup_dialog):
+	* keyboard.c (record_menu_key, read_char_x_menu_prompt):
+	* fns.c (Fyes_or_no_p):
+	* editfns.c (Fmessage_box, Fmessage_or_box):
+	* alloc.c (make_save_ptr_ptr):
+	* xdisp.c, w32menu.c, term.c, xterm.h, xterm.c: Remove HAVE_MENUS.
+
+	* window.c (Fset_window_configuration): Move select_window later.
+
+2013-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Refine redisplay optimizations to only redisplay *some* frames/windows
+	rather than all of them.
+	* xdisp.c (REDISPLAY_SOME): New constant.
+	(redisplay_other_windows, wset_redisplay, fset_redisplay)
+	(bset_redisplay, bset_update_mode_line): New functions.
+	(message_dolog): Use bset_redisplay.
+	(clear_garbaged_frames): Use fset_redisplay.
+	(echo_area_display): Use wset_redisplay.
+	(buffer_shared_and_changed): Remove.
+	(prepare_menu_bars): Call Vpre_redisplay_function before updating
+	frame titles.  Compute the actual set of windows redisplayed.
+	Don't update frame titles and menu bars for frames that don't need to
+	be redisplayed.
+	(propagate_buffer_redisplay): New function.
+	(AINC): New macro.
+	(redisplay_internal): Use it.  Be more selective in the set of windows
+	we redisplay.  Propagate windows_or_buffers_changed to
+	update_mode_lines a bit later to simplify the code.
+	(mark_window_display_accurate_1): Reset window and buffer's
+	`redisplay' flag.
+	(redisplay_window): Do nothing if neither the window nor the buffer nor
+	the frame needs redisplay.
+	* window.h (struct window): Add `redisplay' field.
+	(wset_redisplay, fset_redisplay, bset_redisplay, bset_update_mode_line)
+	(redisplay_other_windows, window_list): New declarations.
+	* window.c (select_window, Fset_window_start): Use wset_redisplay.
+	(window_list): Not static any more.
+	(grow_mini_window, shrink_mini_window): Use fset_redisplay.
+	* minibuf.c (read_minibuf_unwind): Don't redisplay everything.
+	* insdel.c (prepare_to_modify_buffer_1): Use bset_redisplay.
+	* frame.c (Fmake_frame_visible): Don't redisplay everything.
+	* frame.h (struct frame): Add `redisplay' field.
+	Move `external_menu_bar' bitfield next to other bit-fields.
+	(SET_FRAME_GARBAGED): Use fset_redisplay.
+	(SET_FRAME_VISIBLE): Don't garbage the frame;
+	Use redisplay_other_windows.
+	* buffer.h (struct buffer): Add `redisplay' field.
+	* buffer.c (Fforce_mode_line_update): Pay attention to the `all' flag.
+	(modify_overlay): Use bset_redisplay.
+	* alloc.c (gc_sweep): Don't unmark strings while sweeping symbols.
+
+2013-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Support w32 file notifications in batch mode.
+	* w32proc.c (sys_select): Don't wait on interrupt_handle if it is
+	invalid (which happens in batch mode).  If non-interactive, call
+	handle_file_notifications to store file notification events in the
+	input queue.  (Bug#15933)
+
+	* w32notify.c (send_notifications): Handle FRAME_INITIAL frames as well.
+
+	* w32inevt.c (handle_file_notifications): Now external, not static.
+
+	* w32term.h (handle_file_notifications): Provide prototype.
+
+	* emacs.c (main) [HAVE_W32NOTIFY]: When non-interactive, call
+	init_crit, since init_display, which does that otherwise, is not
+	called.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(lispsource)/international/charprop.el): New.
+	(emacs$(EXEEXT)): Depend on charprop.el.
+
+2013-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Invalidate buffer caches when
+	deleting portions of the buffer under non-nil REPLACE argument.
+	(Bug#15973)
+
+	* w32notify.c (Fw32notify_add_watch): If the argument FILE is a
+	directory, watch it and not its parent.
+	(add_watch): Allow empty string in FILE.
+
+2013-11-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_start, window_resize_apply)
+	(window_scroll): Reset window_end_valid (Bug#15957).
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (leimdir): Now in lisp source directory.
+	($(leimdir)/leim-list.el): Just use ../leim .
+	* epaths.in (PATH_DUMPLOADSEARCH):
+	* lread.c (load_path_default):
+	* nsterm.m (ns_load_path): No more leim directory.
+
+2013-11-26  Andreas Schwab  <schwab@suse.de>
+
+	* .gdbinit (xgettype): Add cast.
+
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	Preload leim-list.el.
+	* epaths.in (PATH_DUMPLOADSEARCH): Add leim/.
+	* callproc.c (init_callproc): Don't assume PATH_DUMPLOADSEARCH
+	is a single directory.
+
+2013-11-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	bool-vector-subsetp is now the normal direction (Bug#15912).
+	* data.c (Fbool_vector_subsetp): Test whether the first argument
+	is a subset of the second one, not the reverse.  Add doc string.
+
+	Fix minor problems found by static checking.
+	* lread.c (load_path_default): Now static.
+	* textprop.c (text_property_stickiness): Be consistent about the
+	test used when deciding whether to consider the previous character.
+	This simplifies the code a bit.
+
+2013-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textprop.c (text_property_stickiness): Fix front-stickiness at BOB.
+
+	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Move to frame.el.
+	(syms_of_frame): Don't defsubr them.
+
+2013-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (load_path_default): Change the sense of the argument.
+	(init_lread): When EMACSLOADPATH is set, do not ignore changes
+	from dump_path.  When it is not, avoid checking dump_path twice.
+
+	* lread.c (init_lread): Fix 2013-11-23 goof that was checking
+	uninstalled dump_path against installed Vload_path.  (Bug#15964)
+
+2013-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Export get_pos_property to Elisp.
+	* editfns.c (Fget_pos_property): Rename from get_pos_property.
+	(syms_of_editfns): Export it to Elisp.
+
+	* data.c (Fmake_variable_buffer_local): Mention `permanent-local'.
+
+2013-11-23  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (init_fileio): Move `write_region_inhibit_fsync'
+	initialization here ...
+	(syms_of_fileio): ... from here.
+
+2013-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (init_lread): Fix int/Lisp_Object mixup.
+	Please use --enable-check-lisp-object-type.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (get_process): Explicit error for dead buffers.
+
+2013-11-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (get_process): Check that OBJ is a live buffer.  (Bug#15923)
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	Empty elements in EMACSLOADPATH stand for the default.  (Bug#12100)
+	* lread.c (load_path_check): Take path to check as argument.
+	(load_path_default): New, split from init_lread.
+	(init_lread): Move calc of default load-path to load_path_default.
+	Empty elements in EMACSLOADPATH now stand for the default.
+	(load-path): Doc fix.
+	* emacs.c (decode_env_path): Add option to treat empty elements
+	as nil rather than ".".
+	* callproc.c (init_callproc_1, init_callproc):
+	* image.c (Vx_bitmap_file_path):
+	* lisp.h (decode_env_path):
+	* lread.c (Vsource_directory):
+	Update for new argument spec of decode_env_path.
+
+2013-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_find_paragraph_start): Limit the returned positions
+	to BEGV_BYTE..ZV_BYTE range.  (Bug#15951)
+
+2013-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some dependency problems that cause unnecessary recompiles.
+	Problem reported by RMS in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00421.html>.
+	* Makefile.in (OLDXMENU_TARGET, OLDXMENU, OLDXMENU_DEPS)
+	(really-lwlib, really-oldXMenu, stamp-oldxmenu)
+	(../src/$(OLDXMENU), $(OLDXMENU)): Remove.
+	(temacs$(EXEEXT)): Depend on $(LIBXMENU), not stamp-oldxmenu.
+	($(lwlibdir)/liblw.a, $(oldXMenudir)/libXMenu11.a, FORCE): New targets.
+	(boostrap-clean): No need to remove stamp-oldxmenu.
+
+	Fix recently introduced bool vector overrun.
+	This was due to an optimization that went awry.
+	Reported by Glenn Morris in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00622.html>.
+	* alloc.c (make_uninit_bool_vector): Don't allocate a dummy word
+	for empty vectors, undoing the 2013-11-18 change.
+	* data.c (bool_vector_binop_driver): Rely on this.
+	Fix bug that occasionally overran the destination.
+	* lisp.h (struct Lisp_Bool_vector): Document this.
+
+2013-11-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (init, run, stop:): Enable again. stop calls super stop
+	to handle dialogs.
+
+	* nsterm.m (init, run, stop:): Comment out for now, does not work
+	with dialogs.
+
+2013-11-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* charset.c (syms_of_charset): Don't read past end of string.
+
+2013-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Doc fixes.
+
+2013-11-19  Brian Jenkins  <brian@brianjenkins.org>  (tiny change)
+
+	Add hooks to run on gaining/losing focus.  (Bug#15029)
+	* frame.c (Qfocus_in_hook, Qfocus_out_hook): New static lisp objects.
+	(Fhandle_focus_in, Fhandle_focus_out): Run focus hooks.
+	(syms_of_frame): Add focus-in-hook, focus-out-hook.
+
+2013-11-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* data.c (bool_vector_binop_driver): Rename locals for sanity's sake.
+	The old names predated the API change that put destination at end.
+
+	Improve API of recently-added bool vector functions (Bug#15912).
+	The old API had (bool-vector-count-matches A B)
+	and (bool-vector-count-matches-at A B I), which gave the
+	misleading impression that the two functions were variants, one
+	with a location I.  The new API has (bool-vector-count-population A)
+	and (bool-vector-count-consecutive A B I) to make the distinction
+	clearer.  The first function no longer has a B argument, since the
+	caller can easily determine the number of nils if the length and
+	number of ts is known.
+	* data.c (Fbool_vector_count_population): Rename from
+	bool_vector_count_matches, and accept just 1 argument.
+	(Fbool_vector_count_consecutive): Rename from
+	Fbool_vector_count_matches_at.
+
+	Always allocate at least one bits_word per bool vector.
+	See Daniel Colascione in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00518.html
+	* alloc.c (make_uninit_bool_vector): Always allocate at least one word.
+	* data.c (bool_vector_binop_driver): Rely on this.  Tune.
+	* lisp.h (struct Lisp_Bool_vector): Document this.
+
 2013-11-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* insdel.c (invalidate_buffer_caches): New function, consolidated
 	from part of prepare_to_modify_buffer.
 	(insert_from_gap, prepare_to_modify_buffer):
-	* coding.c (code_convert_region, code_convert_string): Call
-	invalidate_buffer_caches.  (Bug#15841)
+	* coding.c (code_convert_region, code_convert_string):
+	Call invalidate_buffer_caches.  (Bug#15841)
 
 	* lisp.h (invalidate_buffer_caches): Add prototype.
 
@@ -141,7 +897,7 @@
 	"dumb loop", adjust C pointers into buffer text to follow suit.
 	(Bug#15841)
 
-2013-11-09  Łukasz Stelmach <stlman@poczta.fm> (tiny change)
+2013-11-09  Łukasz Stelmach  <stlman@poczta.fm>  (tiny change)
 
 	* gtkutil.c (xg_check_special_colors): Use rgb: instead of rgbi:
 	for conversion (Bug#15837).

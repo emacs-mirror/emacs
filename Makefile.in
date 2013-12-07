@@ -48,6 +48,8 @@
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
+#      Also generated files that do not normally change and can be slow
+#      to rebuild (eg leim/ja-dic).
 #
 # make bootstrap
 #      Removes all the compiled files to force a new bootstrap from a
@@ -190,15 +192,13 @@ iconsrcdir=$(srcdir)/etc/images/icons
 # These variables hold the values Emacs will actually use.  They are
 # based on the values of the standard Make variables above.
 
-# Where to install the lisp, leim files distributed with
-# Emacs.  This includes the Emacs version, so that the
-# lisp files for different versions of Emacs will install
-# themselves in separate directories.
+# Where to install the lisp files distributed with Emacs.
+# This includes the Emacs version, so that the lisp files for different
+# versions of Emacs will install themselves in separate directories.
 lispdir=@lispdir@
-leimdir=@leimdir@
 
 # Directories Emacs should search for standard lisp files.
-# The default is ${lispdir}:${leimdir}.
+# The default is ${lispdir}.
 standardlisppath=@standardlisppath@
 
 # Directories Emacs should search for lisp files specific to this
@@ -213,12 +213,13 @@ locallisppath=@locallisppath@
 # The default is ${locallisppath}:${standardlisppath}.
 lisppath=@lisppath@
 
-# Where Emacs will search for its lisp files while
-# building.  This is only used during the process of
-# compiling Emacs, to help Emacs find its lisp files
-# before they've been installed in their final location.
+# Where Emacs will search for its lisp files while building.
+# This is only used during the process of compiling Emacs,
+# to help Emacs find its lisp files before they've been installed
+# in their final location.
 # This should be a colon-separated list of directories.
 # Normally it points to the lisp/ directory in the sources.
+# NB lread.c relies on lisp/ being first here.
 buildlisppath=${abs_srcdir}/lisp
 
 # Where to install the other architecture-independent
@@ -274,7 +275,7 @@ EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
-SUBDIR = $(NTDIR) lib lib-src src lisp leim
+SUBDIR = $(NTDIR) lib lib-src src lisp
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
@@ -283,10 +284,9 @@ SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 # Subdirectories to install, and where they'll go.  lib-src's and nt's
 # makefiles know how to install them, so we don't do that here.
 # Directories that cannot simply be copied, eg info, are treated
-# separately.  quail appears twice because in out-of-tree builds, it
-# exists twice.
-COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/leim/ja-dic ${srcdir}/leim/quail leim/quail
-COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}" "$(DESTDIR)${leimdir}/ja-dic" "$(DESTDIR)${leimdir}/quail" "$(DESTDIR)${leimdir}/quail"
+# separately.
+COPYDIR = ${srcdir}/etc ${srcdir}/lisp
+COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
 all: ${SUBDIR}
 
@@ -317,22 +317,9 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-# Convert MSYS-style /x/foo or Windows-style x:\foo file names
-# into x:/foo that Windows can grok.
-msys_to_w32=sed -e 's,\\\\,/,g' -e 's,^/\([A-Za-z]\)/,\1:/,'
-
-# Transform directory search path and its components.  Original can
-# be MSYS or Windows style.  Set path separator to ";", directory
-# separator to "/" and transform MSYS-style "/c/" to "c:/".
-# Remove empty path components and escape semicolons.
-msys_lisppath_to_w32=sed -e 's,\\\\,/,g' 			\
-	-e 's,\(^\|[:;]\)\([A-Za-z]\):/,\1/\2/,g'		\
-	-e 's/:/;/g' -e 's,\(^\|;\)/\([A-Za-z]\)/,\1\2:/,g'	\
-	-e 's/;\+/;/g' -e 's/^;//' -e 's/;$$//' -e 's/;/\\\\;/g'
-
-# Replace "${prefix}" with '%emacs_dir%' (which expands to install
+# Replace "${w32prefix}" with '%emacs_dir%' (which expands to install
 # directory at runtime).
-msys_prefix_subst=sed -e 's!\(^\|;\)'"$${prefixpattern}"'\([;/]\|$$\)!\1%emacs_dir%\2!g'
+msys_w32prefix_subst=sed -e 's!\(^\|;\)'"$${w32prefixpattern}"'\([;/]\|$$\)!\1%emacs_dir%\2!g'
 
 # Quote Sed special characters (except backslash and newline) with
 # a double backslash.
@@ -340,22 +327,21 @@ msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 
 # The w32 build needs a slightly different editing, and it uses
 # nt/epaths.nt as the template.
+#
 # Use the value of ${locallisppath} supplied by `configure',
 # to support the --enable-locallisppath argument.
 #
-# When building with MinGW inside the MSYS tree, 'pwd' produces directories
-# relative to the root of the MSYS tree, e.g. '/home/user/foo' instead of
-# '/d/MSYS/home/user/foo'.  If such a value of srcdir is written to
-# src/epaths.h, that causes temacs to fail, because, being a MinGW
-# program that knows nothing of MSYS root substitution, it cannot find
-# the data directory.  "pwd -W" produces Windows-style 'd:/foo/bar'
-# absolute directory names, so we use it here to countermand that lossage.
+# In this case, the paths written to 'src/epaths.h' must be in native
+# MS-Windows format (e.g. 'c:/foo/bar'), because temacs is a MinGW
+# program that doesn't support MSYS-style paths (e.g. '/c/foo/bar' or
+# '/foo/bar').
 epaths-force-w32: FRC
-	@(w32srcdir=`cd "${srcdir}" && pwd -W` ; \
-	  prefixpattern=`echo '${prefix}' | ${msys_to_w32} | ${msys_sed_sh_escape}` ; \
-	  locallisppath=`echo '${locallisppath}' | ${msys_lisppath_to_w32} | ${msys_prefix_subst}` ; \
+	@(w32srcdir=`${srcdir}/build-aux/msys-to-w32 "${srcdir}"`; \
+	  w32prefix=`${srcdir}/build-aux/msys-to-w32 "${prefix}" N`; \
+	  w32prefixpattern=`echo "$${w32prefix}" | ${msys_sed_sh_escape}` ; \
+	  w32locallisppath=`${srcdir}/build-aux/msys-to-w32 "${locallisppath}" N ":" "\\;" | ${msys_w32prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
-	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${locallisppath}"'";' \
+	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${w32locallisppath}"'";' \
 	  -e '/^.*#/s/@VER@/${version}/g' 			\
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
@@ -369,12 +355,11 @@ lib-src src: $(NTDIR) lib
 
 src: lib-src
 
-# We need to build `emacs' in `src' to compile the *.elc files in `lisp'
-# and `leim'.
-lisp leim: src
+# We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
+lisp: src
 
 # These targets should be "${SUBDIR} without `src'".
-lib lib-src lisp leim nt: Makefile FRC
+lib lib-src lisp nt: Makefile FRC
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -561,9 +546,12 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
-## We used to create locallisppath, but if it points to non-standard
-## locations, is not really Emacs's job to create these directories,
-## so it is no longer done.
+## We always create the _default_ locallisppath directories, and
+## ensure that they contain a subdirs.el file (via write_subdir).
+## This is true even if locallisppath has a non-default value.
+## In case of non-default value, we used to create the specified directories,
+## but not add subdirs.el to them.  This was a strange halfway house.
+## Nowadays we do not create non-default directories.
 
 ## Note that we use tar instead of plain old cp -R/-r because the latter
 ## is apparently not portable (even in 2012!).
@@ -572,7 +560,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
-install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \
@@ -584,13 +572,8 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	    [ "$$exp_dest" = "`cd $${dir} && /bin/pwd`" ] && continue ; \
 	  else true; \
 	  fi; \
-	  if [ "$${dir}" = "leim/quail" ]; then \
-	    [ "`cd $${dir} && /bin/pwd`" = "`cd ${srcdir}/leim/quail && /bin/pwd`" ] && \
-	      continue ; \
-	  else \
-	    rm -rf "$${dest}" ; \
-	    umask 022; ${MKDIR_P} "$${dest}" ; \
-	  fi ; \
+	  rm -rf "$${dest}" ; \
+	  umask 022; ${MKDIR_P} "$${dest}" ; \
 	  echo "Copying $${dir} to $${dest}..." ; \
 	  (cd $${dir}; tar -chf - . ) \
 	    | (cd "$${dest}"; umask 022; \
@@ -617,8 +600,6 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	    done ); \
 	  find "$${dest}" -exec chown $${installuser} {} ';' ;\
 	done
-	-rm -f "$(DESTDIR)${leimdir}/leim-list.el"
-	${INSTALL_DATA} leim/leim-list.el "$(DESTDIR)${leimdir}/leim-list.el"
 	-rm -f "$(DESTDIR)${lispdir}/subdirs.el"
 	umask 022; $(srcdir)/build-aux/update-subdirs "$(DESTDIR)${lispdir}"
 	subdir="$(DESTDIR)${datadir}/emacs/${version}/site-lisp" ; \
@@ -629,7 +610,7 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	  ( echo "Compressing *.el ..." ; \
 	    unset CDPATH; \
 	    thisdir=`/bin/pwd`; \
-	    for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${leimdir}"; do \
+	    for dir in "$(DESTDIR)${lispdir}"; do \
 	      cd "$${thisdir}" ; \
 	      cd "$${dir}" || exit 1 ; \
 	      for f in `find . -name "*.elc" -print`; do \
@@ -826,7 +807,6 @@ mostlyclean: FRC
 	-cd doc/misc      && $(MAKE) $(MFLAGS) mostlyclean
 	-cd doc/lispref   && $(MAKE) $(MFLAGS) mostlyclean
 	-cd doc/lispintro && $(MAKE) $(MFLAGS) mostlyclean
-	cd leim     && $(MAKE) $(MFLAGS) mostlyclean
 
 ### `clean'
 ###      Delete all files from the current directory that are normally
@@ -848,7 +828,6 @@ clean: FRC
 	-cd doc/misc      && $(MAKE) $(MFLAGS) clean
 	-cd doc/lispref   && $(MAKE) $(MFLAGS) clean
 	-cd doc/lispintro && $(MAKE) $(MFLAGS) clean
-	cd leim     && $(MAKE) $(MFLAGS) clean
 	cd nextstep && $(MAKE) $(MFLAGS) clean
 
 ### `bootclean'
@@ -878,7 +857,7 @@ distclean: FRC
 	cd leim     && $(MAKE) $(MFLAGS) distclean
 	cd lisp     && $(MAKE) $(MFLAGS) distclean
 	cd nextstep && $(MAKE) $(MFLAGS) distclean
-	for dir in test/automated admin/unidata; do \
+	for dir in test/automated admin/grammars admin/unidata; do \
 	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) distclean); \
 	done
 	${top_distclean}
@@ -897,10 +876,10 @@ bootstrap-clean: FRC
 	-cd doc/misc      && $(MAKE) $(MFLAGS) maintainer-clean
 	-cd doc/lispref   && $(MAKE) $(MFLAGS) maintainer-clean
 	-cd doc/lispintro && $(MAKE) $(MFLAGS) maintainer-clean
-	cd leim     && $(MAKE) $(MFLAGS) maintainer-clean
+	cd leim     && $(MAKE) $(MFLAGS) bootstrap-clean
 	cd lisp     && $(MAKE) $(MFLAGS) bootstrap-clean
 	cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean
-	for dir in test/automated admin/unidata; do \
+	for dir in test/automated admin/grammars admin/unidata; do \
 	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) bootstrap-clean); \
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
@@ -922,8 +901,9 @@ top_maintainer_clean=\
 	rm -fr autom4te.cache
 maintainer-clean: bootstrap-clean FRC
 	cd src  && $(MAKE) $(MFLAGS) maintainer-clean
+	cd leim && $(MAKE) $(MFLAGS) maintainer-clean
 	cd lisp && $(MAKE) $(MFLAGS) maintainer-clean
-	for dir in test/automated admin/unidata; do \
+	for dir in test/automated admin/grammars admin/unidata; do \
 	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) maintainer-clean); \
 	done
 	${top_maintainer_clean}
@@ -1088,5 +1068,4 @@ check-declare:
 	  echo "You must build Emacs to use this command"; \
 	  exit 1; \
 	fi
-	cd leim && $(MAKE) $(MFLAGS) $@
 	cd lisp && $(MAKE) $(MFLAGS) $@

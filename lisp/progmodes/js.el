@@ -1749,8 +1749,8 @@ nil."
     (when (save-excursion
             (and (not (eq (point-at-bol) (point-min)))
                  (not (looking-at "[{]"))
+                 (js--re-search-backward "[[:graph:]]" nil t)
                  (progn
-                   (js--re-search-backward "[[:graph:]]" nil t)
                    (or (eobp) (forward-char))
                    (when (= (char-before) ?\)) (backward-list))
                    (skip-syntax-backward " ")

@@ -697,7 +697,7 @@ form."
   (interactive)
   (unless noninteractive
     (message "Saving tag summaries..."))
-  (let ((semanticdb--inhibit-make-directory nil))
+  (let ((semanticdb--inhibit-make-directory noninteractive))
     (mapc 'semanticdb-save-db semanticdb-database-list))
   (unless noninteractive
     (message "Saving tag summaries...done")))

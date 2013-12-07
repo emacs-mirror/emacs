@@ -1641,6 +1641,13 @@ Return t if the buffer had changes, nil otherwise."
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
+    ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style
+    ;; EOLs, which will look ugly if (car files) happens to have Unix
+    ;; EOLs.
+    (if (memq system-type '(windows-nt ms-dos))
+	(setq coding-system-for-read
+	      (coding-system-change-eol-conversion coding-system-for-read
+						   'dos)))
     (vc-setup-buffer buffer)
     (message "%s" (car messages))
     ;; Many backends don't handle well the case of a file that has been

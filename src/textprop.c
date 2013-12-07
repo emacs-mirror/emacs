@@ -1819,32 +1819,30 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
 int
 text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 {
-  Lisp_Object prev_pos, front_sticky;
-  bool is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
+  bool ignore_previous_character;
+  Lisp_Object prev_pos = make_number (XINT (pos) - 1);
+  Lisp_Object front_sticky;
+  bool is_rear_sticky = true, is_front_sticky = false; /* defaults */
   Lisp_Object defalt = Fassq (prop, Vtext_property_default_nonsticky);
 
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
 
-  if (CONSP (defalt) && !NILP (XCDR (defalt)))
-    is_rear_sticky = 0;
+  ignore_previous_character = XINT (pos) <= BUF_BEGV (XBUFFER (buffer));
 
-  if (XINT (pos) > BUF_BEGV (XBUFFER (buffer)))
-    /* Consider previous character.  */
+  if (ignore_previous_character || (CONSP (defalt) && !NILP (XCDR (defalt))))
+    is_rear_sticky = false;
+  else
     {
-      Lisp_Object rear_non_sticky;
-
-      prev_pos = make_number (XINT (pos) - 1);
-      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, buffer);
+      Lisp_Object rear_non_sticky
+	= Fget_text_property (prev_pos, Qrear_nonsticky, buffer);
 
       if (!NILP (CONSP (rear_non_sticky)
 		 ? Fmemq (prop, rear_non_sticky)
 		 : rear_non_sticky))
 	/* PROP is rear-non-sticky.  */
-	is_rear_sticky = 0;
+	is_rear_sticky = false;
     }
-  else
-    return 0;
 
   /* Consider following character.  */
   /* This signals an arg-out-of-range error if pos is outside the
@@ -1855,7 +1853,7 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
       || (CONSP (front_sticky)
 	  && !NILP (Fmemq (prop, front_sticky))))
     /* PROP is inherited from after.  */
-    is_front_sticky = 1;
+    is_front_sticky = true;
 
   /* Simple cases, where the properties are consistent.  */
   if (is_rear_sticky && !is_front_sticky)
@@ -1869,7 +1867,7 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
      disambiguate.  Basically, rear-sticky wins, _except_ if the
      property that would be inherited has a value of nil, in which case
      front-sticky wins.  */
-  if (XINT (pos) == BUF_BEGV (XBUFFER (buffer))
+  if (ignore_previous_character
       || NILP (Fget_text_property (prev_pos, prop, buffer)))
     return 1;
   else

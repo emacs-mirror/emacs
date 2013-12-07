@@ -10,6 +10,7 @@
 @cindex switches (command line)
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
+@c FIXME: Document `--smid'?  --xfq
 
   Emacs supports command line arguments to request various actions
 when invoking Emacs.  These are for compatibility with other editors
@@ -141,6 +142,8 @@ relative order; i.e., using @samp{-L /foo -L /bar} results in
 a @code{load-path} of the form @code{("/foo" "/bar" @dots{})}.
 If @var{dir} begins with @samp{:}, Emacs removes the @samp{:} and
 appends (rather than prepends) the remainder to @code{load-path}.
+(On MS Windows, use @samp{;} instead of @samp{:}; i.e., use
+the value of @code{path-separator}.)
 
 @item -f @var{function}
 @opindex -f
@@ -452,13 +455,16 @@ This is used to initialize the variable @code{data-directory}.
 Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
-A colon-separated list of directories@footnote{ Here and below,
+A colon-separated list of directories@footnote{Here and below,
 whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
 directories are separated by semi-colons instead, since DOS/Windows
-file names might include a colon after a drive letter.}  to search for
-Emacs Lisp files.  If set, it overrides the usual initial value of the
-@code{load-path} variable (@pxref{Lisp Libraries}).
+file names might include a colon after a drive letter.} to search for
+Emacs Lisp files.  If set, it modifies the usual initial value of the
+@code{load-path} variable (@pxref{Lisp Libraries}).  An empty element
+stands for the default value of @code{load-path}; e.g., using
+@samp{EMACSLOADPATH="/tmp:"} adds @file{/tmp} to the front of
+the default @code{load-path}.
 @item EMACSPATH
 A colon-separated list of directories to search for executable files.
 If set, Emacs uses this in addition to @env{PATH} (see below) when

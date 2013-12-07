@@ -1366,7 +1366,8 @@ a diff with \\[diff-reverse-direction].
 
   (diff-setup-whitespace)
 
-  (setq buffer-read-only diff-default-read-only)
+  (if diff-default-read-only
+      (setq buffer-read-only t))
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)

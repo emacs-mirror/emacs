@@ -207,7 +207,7 @@ include the following symbols:
                         permissions or modification time
 
 If FILE is a directory, 'change' watches for file creation or
-deletion in that directory.
+deletion in that directory.  This does not work recursively.
 
 When any event happens, Emacs will call the CALLBACK function passing
 it a single argument EVENT, which is of the form
@@ -237,8 +237,7 @@ FILE is the name of the file whose event is being reported."
 
   (let* ((handler (find-file-name-handler file 'file-notify-add-watch))
 	 (dir (directory-file-name
-	       (if (or (and (not handler) (eq file-notify--library 'w32notify))
-		       (file-directory-p file))
+	       (if (file-directory-p file)
 		   file
 		 (file-name-directory file))))
 	desc func l-flags)

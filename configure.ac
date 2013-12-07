@@ -80,8 +80,7 @@ dnl hence the single quotes.  This is per the GNU coding standards, see
 dnl (autoconf) Installation Directory Variables
 dnl See also epaths.h below.
 lispdir='${datadir}/emacs/${version}/lisp'
-leimdir='${datadir}/emacs/${version}/leim'
-standardlisppath='${lispdir}:${leimdir}'
+standardlisppath='${lispdir}'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${standardlisppath}'
@@ -1683,7 +1682,6 @@ if test "${HAVE_NS}" = yes; then
      infodir="\${ns_appresdir}/info"
      mandir="\${ns_appresdir}/man"
      lispdir="\${ns_appresdir}/lisp"
-     leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
 
@@ -1867,9 +1865,6 @@ If you are sure you want Emacs compiled without X window support, pass
 to configure.])
    fi
 fi
-
-### We always support menus.
-HAVE_MENUS=yes
 
 # Does the opsystem file prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
@@ -3837,12 +3832,22 @@ else
   AC_DEFINE(NULL_DEVICE, ["/dev/null"])
 fi
 
-AH_TEMPLATE(SEPCHAR, [Character that separates PATH elements.])
 if test "${opsys}" = "mingw32"; then
-  AC_DEFINE(SEPCHAR, [';'])
+  SEPCHAR=';'
 else
-  AC_DEFINE(SEPCHAR, [':'])
+  SEPCHAR=':'
 fi
+AC_DEFINE_UNQUOTED(SEPCHAR, ['$SEPCHAR'], [Character that separates PATH elements.])
+dnl This is for MinGW, and is used in test/automated/Makefile.in.
+dnl The MSYS Bash has heuristics for replacing ':' with ';' when it
+dnl decides that a command-line argument to be passed to a MinGW program
+dnl is a PATH-style list of directories.  But that heuristics plays it
+dnl safe, and only does the replacement when it is _absolutely_ sure it
+dnl sees a colon-separated list of file names; e.g. ":." is left alone,
+dnl which breaks in-tree builds.  So we do this manually instead.
+dnl Note that we cannot rely on PATH_SEPARATOR, as that one will always
+dnl be computed as ':' in MSYS Bash.
+AC_SUBST(SEPCHAR)
 
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE(subprocesses, 1, [Define to enable asynchronous subprocesses.])
@@ -4490,7 +4495,6 @@ AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
 AC_SUBST(lispdir)
-AC_SUBST(leimdir)
 AC_SUBST(standardlisppath)
 AC_SUBST(locallisppath)
 AC_SUBST(lisppath)
@@ -4598,61 +4602,29 @@ AC_SUBST(TOOLKIT_LIBW)
 if test "${opsys}" != "mingw32"; then
   if test "$USE_X_TOOLKIT" = "none"; then
     LIBXT_OTHER="\$(LIBXSM)"
-    OLDXMENU_TARGET="really-oldXMenu"
   else
     LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
-    OLDXMENU_TARGET="really-lwlib"
   fi
 fi
 AC_SUBST(LIBXT_OTHER)
 
-## The X Menu stuff is present in the X10 distribution, but missing
-## from X11.  If we have X10, just use the installed library;
-## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
-	    [Define to 1 if you want to use version 11 of X windows.
-	     Otherwise, Emacs expects to use version 10.])
-
-  if test "$USE_X_TOOLKIT" = "none"; then
-    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
-  else
-    OLDXMENU="\${lwlibdir}/liblw.a"
-  fi
-  LIBXMENU="\$(OLDXMENU)"
+	    [Define to 1 if you want to use version 11 of X windows.])
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
-  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  ## For a syntactically valid Makefile; not actually used for anything.
-  ## See comments in src/Makefile.in.
-  OLDXMENU=nothing
-  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
-  if test "${HAVE_X_WINDOWS}" = "yes"; then
-    LIBXMENU="-lXMenu"
-  else
-    LIBXMENU=
-  fi
   LIBX_OTHER=
-  OLDXMENU_DEPS=
 fi
-
-if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU_TARGET=
-  OLDXMENU=nothing
-  LIBXMENU=
-  OLDXMENU_DEPS=
-fi
-
-AC_SUBST(OLDXMENU_TARGET)
-AC_SUBST(OLDXMENU)
-AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
-AC_SUBST(OLDXMENU_DEPS)
 
-if test "${HAVE_MENUS}" = "yes" ; then
-  AC_DEFINE(HAVE_MENUS, 1,
-	    [Define to 1 if you have mouse menus.  (This is supported in all configurations, but the option to specify it remains.)])
+if test "$HAVE_GTK" = yes || test "$HAVE_X11" != yes; then
+  LIBXMENU=
+elif test "$USE_X_TOOLKIT" = none; then
+  LIBXMENU='$(oldXMenudir)/libXMenu11.a'
+else
+  LIBXMENU='$(lwlibdir)/liblw.a'
 fi
+AC_SUBST(LIBXMENU)
 
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC, 1,
@@ -4999,13 +4971,12 @@ if test -f "$srcdir/$opt_makefile.in"; then
 fi
 
 
-dnl admin/ may or may not be present.
-opt_makefile=admin/unidata/Makefile
-
-if test -f "$srcdir/$opt_makefile.in"; then
-  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+dnl The admin/ directory used to be excluded from tarfiles.
+if test -d $srcdir/admin; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES admin/unidata/Makefile admin/grammars/Makefile"
   AC_CONFIG_FILES([admin/unidata/Makefile])
-fi
+  AC_CONFIG_FILES([admin/grammars/Makefile])
+fi                              dnl -d admin
 
 
 SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`

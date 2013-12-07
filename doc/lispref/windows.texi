@@ -1842,7 +1842,10 @@ The constant @code{display-buffer-fallback-action}.
 @noindent
 Each action function is called in turn, passing the buffer as the
 first argument and the combined action alist as the second argument,
-until one of the functions returns non-@code{nil}.
+until one of the functions returns non-@code{nil}.  The caller can
+pass @code{(allow-no-window . t)} as an element of the action alist to
+indicate its readiness to handle the case of not displaying the
+buffer in a window.
 
 The argument @var{action} can also have a non-@code{nil}, non-list
 value.  This has the special meaning that the buffer should be

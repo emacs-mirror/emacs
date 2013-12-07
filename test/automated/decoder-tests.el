@@ -247,7 +247,7 @@
 					   'unix))
 	    (latin (decoder-tests-gen-file "utf-8.el"
 					   (decoder-tests-file-contents 'latin)
-					   'utf-8)))
+					   'utf-8-unix)))
 	(should-not (decoder-tests-prefer-utf-8-read
 		     ascii 'prefer-utf-8-unix nil))
 	(should-not (decoder-tests-prefer-utf-8-read

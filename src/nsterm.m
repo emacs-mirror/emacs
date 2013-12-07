@@ -1,7 +1,7 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2013 Free Software
-Foundation, Inc.
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2013
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -445,8 +445,8 @@ ns_exec_path (void)
 const char *
 ns_load_path (void)
 /* If running as a self-contained app bundle, return as a path string
-   the filenames of the site-lisp, lisp and leim directories.
-   Ie, site-lisp:lisp:leim.  Otherwise, return nil.  */
+   the filenames of the site-lisp and lisp directories.
+   Ie, site-lisp:lisp.  Otherwise, return nil.  */
 {
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
@@ -456,7 +456,7 @@ ns_load_path (void)
   BOOL isDir;
   NSArray *paths = [resourceDir stringsByAppendingPaths:
                               [NSArray arrayWithObjects:
-                                         @"site-lisp", @"lisp", @"leim", nil]];
+                                         @"site-lisp", @"lisp", nil]];
   NSEnumerator *pathEnum = [paths objectEnumerator];
   resourcePaths = @"";
 
@@ -771,7 +771,12 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
 				w->output_cursor.x, w->output_cursor.y);
 
       if (draw_window_fringes (w, 1))
-	x_draw_vertical_border (w);
+	{
+	  if (WINDOW_RIGHT_DIVIDER_WIDTH (w))
+	    x_draw_right_divider (w);
+	  else
+	    x_draw_vertical_border (w);
+	}
 
       unblock_input ();
     }
@@ -1235,7 +1240,11 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
 
 void
-x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
+x_set_window_size (struct frame *f,
+                   int change_grav,
+                   int width,
+                   int height,
+                   bool pixelwise)
 /* --------------------------------------------------------------------------
      Adjust window pixel size based on given character grid size
      Impl is a bit more complex than other terms, need to do some
@@ -1247,23 +1256,36 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   NSRect wr = [window frame];
   int tb = FRAME_EXTERNAL_TOOL_BAR (f);
   int pixelwidth, pixelheight;
+  int rows, cols;
 
   NSTRACE (x_set_window_size);
 
   if (view == nil)
     return;
 
-/*fprintf (stderr, "\tsetWindowSize: %d x %d, font size %d x %d\n", cols, rows, FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f)); */
+/*fprintf (stderr, "\tsetWindowSize: %d x %d, pixelwise %d, font size %d x %d\n", width, height, pixelwise, FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f));*/
 
   block_input ();
 
-  check_frame_size (f, &rows, &cols);
+  check_frame_size (f, &width, &height, pixelwise);
 
   f->scroll_bar_actual_width = NS_SCROLL_BAR_WIDTH (f);
   compute_fringe_widths (f, 0);
 
-  pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
-  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+  if (pixelwise)
+    {
+      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
+      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
+      cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
+    }
+  else
+    {
+      pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, width);
+      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
+      cols = width;
+      rows = height;
+    }
 
   /* If we have a toolbar, take its height into account. */
   if (tb && ! [view isFullscreen])
@@ -1298,7 +1320,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   [view setRows: rows andColumns: cols];
   [window setFrame: wr display: YES];
 
-/*fprintf (stderr, "\tx_set_window_size %d, %d\t%d, %d\n", cols, rows, pixelwidth, pixelheight); */
+  fprintf (stderr, "\tx_set_window_size %d, %d\t%d, %d\n", cols, rows, pixelwidth, pixelheight);
 
   /* This is a trick to compensate for Emacs' managing the scrollbar area
      as a fixed number of standard character columns.  Instead of leaving
@@ -1316,9 +1338,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     [view setBoundsOrigin: origin];
   }
 
-  change_frame_size (f, rows, cols, 0, 1, 0); /* pretend, delay, safe */
-  FRAME_PIXEL_WIDTH (f) = pixelwidth;
-  FRAME_PIXEL_HEIGHT (f) = pixelheight;
+  change_frame_size (f, width, height, 0, 1, 0, pixelwise);
 /*  SET_FRAME_GARBAGED (f); // this short-circuits expose call in drawRect */
 
   mark_window_cursors_off (XWINDOW (f->root_window));
@@ -1385,7 +1405,7 @@ ns_index_color (NSColor *color, struct frame *f)
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
 
-  /* do we already have this color ? */
+  /* Do we already have this color?  */
   for (i = 1; i < color_table->avail; i++)
     if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
       return i;
@@ -2495,6 +2515,28 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
   NSTRACE (ns_draw_vertical_window_border);
 
   face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+      [ns_lookup_indexed_color(face->foreground, f) set];
+
+  ns_focus (f, &r, 1);
+  NSRectFill(r);
+  ns_unfocus (f);
+}
+
+
+static void
+ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+/* --------------------------------------------------------------------------
+     External (RIF): Draw a window divider.
+   -------------------------------------------------------------------------- */
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
+  NSRect r = NSMakeRect (x0, y0, x1-x0, y1-y0);
+
+  NSTRACE (ns_draw_window_divider);
+
+  face = FACE_FROM_ID (f, WINDOW_DIVIDER_FACE_ID);
   if (face)
       [ns_lookup_indexed_color(face->foreground, f) set];
 
@@ -4017,6 +4059,7 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_clear_frame_area,
   ns_draw_window_cursor,
   ns_draw_vertical_window_border,
+  ns_draw_window_divider,
   ns_shift_glyphs_for_insert
 };
 
@@ -4385,7 +4428,7 @@ ns_term_shutdown (int sig)
 
     shouldKeepRunning = YES;
     do
-    {
+      {
         [pool release];
         pool = [[NSAutoreleasePool alloc] init];
 
@@ -4404,6 +4447,9 @@ ns_term_shutdown (int sig)
 - (void)stop: (id)sender
 {
     shouldKeepRunning = NO;
+    // Stop possible dialog also.  Noop if no dialog present.
+    // The file dialog still leaks 7k - 10k on 10.9 though.
+    [super stop:sender];
 }
 #endif
 
@@ -5617,34 +5663,28 @@ not_in_argv (NSString *arg)
   NSWindow *window = [self window];
   NSRect wr = [window frame];
   int extra = 0;
-  int gsextra = 0;
-#ifdef NS_IMPL_GNUSTEP
-  gsextra = 3;
-#endif
-
   int oldc = cols, oldr = rows;
   int oldw = FRAME_PIXEL_WIDTH (emacsframe),
     oldh = FRAME_PIXEL_HEIGHT (emacsframe);
   int neww, newh;
 
-  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, wr.size.width + gsextra);
+  if (! [self isFullscreen])
+    {
+      extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
+        + FRAME_TOOLBAR_HEIGHT (emacsframe);
+    }
+
+  neww = (int)wr.size.width - emacsframe->border_width;
+  newh = (int)wr.size.height - extra;
+
+  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, neww);
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, newh);
 
   if (cols < MINWIDTH)
     cols = MINWIDTH;
 
-  if (! [self isFullscreen])
-    {
-      extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        + FRAME_TOOLBAR_HEIGHT (emacsframe) - gsextra;
-    }
-
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, wr.size.height - extra);
-
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
-
-  neww = (int)wr.size.width - emacsframe->border_width;
-  newh = (int)wr.size.height - extra;
 
   if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
     {
@@ -5652,9 +5692,10 @@ not_in_argv (NSString *arg)
       NSWindow *win = [view window];
       NSSize sz = [win resizeIncrements];
 
-      FRAME_PIXEL_WIDTH (emacsframe) = neww;
-      FRAME_PIXEL_HEIGHT (emacsframe) = newh;
-      change_frame_size (emacsframe, rows, cols, 0, delay, 0);
+      change_frame_size (emacsframe,
+                         FRAME_PIXEL_TO_TEXT_WIDTH (emacsframe, neww),
+                         FRAME_PIXEL_TO_TEXT_HEIGHT (emacsframe, newh),
+                         0, delay, 0, 1);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
 
@@ -5676,10 +5717,6 @@ not_in_argv (NSString *arg)
 /* normalize frame to gridded text size */
 {
   int extra = 0;
-  int gsextra = 0;
-#ifdef NS_IMPL_GNUSTEP
-  gsextra = 3;
-#endif
 
   NSTRACE (windowWillResize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
@@ -5697,8 +5734,13 @@ not_in_argv (NSString *arg)
   if (fs_state == FULLSCREEN_NONE)
     maximized_width = maximized_height = -1;
 
-  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe,
-                                         frameSize.width + gsextra);
+  if (! [self isFullscreen])
+    {
+      extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
+        + FRAME_TOOLBAR_HEIGHT (emacsframe);
+    }
+
+  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, frameSize.width);
   if (cols < MINWIDTH)
     cols = MINWIDTH;
 
@@ -7294,6 +7336,7 @@ Lisp_Object
 x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
+  EmacsView *view = FRAME_NS_VIEW (f);
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -7326,8 +7369,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
     }
 
   /* Now make the frame display the given font.  */
-  if (FRAME_NS_WINDOW (f) != 0)
-	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+  if (FRAME_NS_WINDOW (f) != 0 && ! [view isFullscreen])
+    x_set_window_size (f, 0, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+                       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 1);
 
   return font_object;
 }
@@ -7554,5 +7598,5 @@ baseline level.  The default value is nil.  */);
 #else
   Fprovide (Qgnustep, Qnil);
 #endif
-  
+
 }

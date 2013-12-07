@@ -59,7 +59,7 @@ extern void unblock_input (void);
 extern void totally_unblock_input (void);
 extern void unblock_input_to (int);
 
-/* In critical section ? */
+/* In critical section?  */
 
 INLINE bool
 input_blocked_p (void)

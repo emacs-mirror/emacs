@@ -118,7 +118,9 @@ enum window_part
   ON_RIGHT_FRINGE,
   ON_LEFT_MARGIN,
   ON_RIGHT_MARGIN,
-  ON_SCROLL_BAR
+  ON_SCROLL_BAR,
+  ON_RIGHT_DIVIDER,
+  ON_BOTTOM_DIVIDER
 };
 
 /* Number of bits allocated to store fringe bitmap numbers.  */
@@ -667,7 +669,7 @@ struct glyph_pool
    glyph memory, which is allocated in the form of a glyph_pool structure.
    Glyph rows in such a window matrix are slices of frame matrix rows.
 
-   2. Free-standing window glyph matrices managing their own glyph
+   3. Free-standing window glyph matrices managing their own glyph
    storage.  This form is used in window-based redisplay which
    includes variable width and height fonts etc.
 
@@ -704,12 +706,12 @@ struct glyph_matrix
   int matrix_w, matrix_h;
 
   /* If this structure describes a window matrix of window W,
-     window_left_col is the value of W->left_col, window_top_line the
-     value of W->top_line, window_height and window_width are width and
-     height of W, as returned by window_box, and window_vscroll is the
-     value of W->vscroll at the time the matrix was last adjusted.
+     window_pixel_left is the value of W->pixel_left, window_pixel_top
+     the value of W->pixel_top, window_height and window_width are width
+     and height of W, as returned by window_box, and window_vscroll is
+     the value of W->vscroll at the time the matrix was last adjusted.
      Only set for window-based redisplay.  */
-  int window_left_col, window_top_line;
+  int window_pixel_left, window_pixel_top;
   int window_height, window_width;
   int window_vscroll;
 
@@ -722,7 +724,7 @@ struct glyph_matrix
      which do their own scrolling.  */
   unsigned no_scrolling_p : 1;
 
-  /* Non-zero means window displayed in this matrix has a top mode
+  /* Non-zero means window displayed in this matrix has a header
      line.  */
   unsigned header_line_p : 1;
 
@@ -1460,27 +1462,39 @@ struct glyph_string
 #define DESIRED_HEADER_LINE_HEIGHT(W) \
      MATRIX_HEADER_LINE_HEIGHT ((W)->desired_matrix)
 
-/* Value is non-zero if window W wants a mode line.  */
+/* PXW: The height checks below serve to show at least one text line
+   instead of a mode- and/or header line when a window gets very small.
+   But (1) the check fails when the mode- or header-line is taller than
+   the associated frame's line height and (2) we don't care much about
+   text visibility anyway when shrinking a frame containing a toolbar.
 
-#define WINDOW_WANTS_MODELINE_P(W)				\
-  (!MINI_WINDOW_P ((W))						\
-   && !(W)->pseudo_window_p					\
-   && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))	\
-   && BUFFERP ((W)->contents)					\
-   && !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format))	\
-   && WINDOW_TOTAL_LINES (W) > 1)
+   So maybe these checks should be removed and any clipping left to the
+   window manager.  */
 
-/* Value is true if window W wants a header line.  */
-
-#define WINDOW_WANTS_HEADER_LINE_P(W)					\
+/* Value is true if window W wants a mode line and is large enough
+   to accommodate it.  */
+#define WINDOW_WANTS_MODELINE_P(W)					\
   (BUFFERP ((W)->contents)						\
-   ? (!MINI_WINDOW_P ((W))						\
+   ? (!MINI_WINDOW_P (W)						\
       && !(W)->pseudo_window_p						\
-      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
-      && !NILP (BVAR (XBUFFER ((W)->contents), header_line_format))	\
-      && WINDOW_TOTAL_LINES (W) >					\
-          (1 + !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format)))) \
+      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
+      && !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format))	\
+      && WINDOW_PIXEL_HEIGHT (W) > WINDOW_FRAME_LINE_HEIGHT (W))	\
    : 0)
+
+/* Value is true if window W wants a header line and is large enough
+   to accommodate it.  */
+#define WINDOW_WANTS_HEADER_LINE_P(W)					\
+     (BUFFERP ((W)->contents)						\
+      ? (!MINI_WINDOW_P (W)						\
+	 && !(W)->pseudo_window_p					\
+	 && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
+	 && !NILP (BVAR (XBUFFER ((W)->contents), header_line_format))	\
+	 && (WINDOW_PIXEL_HEIGHT (W)					\
+	     > (WINDOW_WANTS_MODELINE_P (W)				\
+		? (2 * WINDOW_FRAME_LINE_HEIGHT (W))			\
+		: WINDOW_FRAME_LINE_HEIGHT (W))))			\
+      : 0)
 
 /* Return proper value to be used as baseline offset of font that has
    ASCENT and DESCENT to draw characters by the font at the vertical
@@ -1751,6 +1765,7 @@ enum face_id
   MOUSE_FACE_ID,
   MENU_FACE_ID,
   VERTICAL_BORDER_FACE_ID,
+  WINDOW_DIVIDER_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -1880,6 +1895,10 @@ typedef enum {
   RLE,		/* right-to-left embedding */
   RLO,		/* right-to-left override */
   PDF,		/* pop directional format */
+  LRI,		/* left-to-right isolate */
+  RLI,		/* right-to-left isolate */
+  FSI,		/* first strong isolate */
+  PDI,		/* pop directional isolate */
   WEAK_ES,	/* european number separator */
   WEAK_ET,	/* european number terminator */
   WEAK_CS,	/* common separator */
@@ -2850,6 +2869,10 @@ struct redisplay_interface
   void (*draw_vertical_window_border) (struct window *w,
                                        int x, int y_0, int y_1);
 
+/* Draw window divider for window W from (X_0, Y_0) to (X_1, ,Y_1).  */
+  void (*draw_window_divider) (struct window *w,
+			       int x_0, int x_1, int y_0, int y_1);
+
 /* Shift display of frame F to make room for inserted glyphs.
    The area at pixel (X,Y) of width WIDTH and height HEIGHT is
    shifted right by SHIFT_BY pixels.  */
@@ -3167,6 +3190,7 @@ int window_box_left_offset (struct window *, enum glyph_row_area);
 int window_box_right (struct window *, enum glyph_row_area);
 int window_box_right_offset (struct window *, enum glyph_row_area);
 int estimate_mode_line_height (struct frame *, enum face_id);
+int move_it_to (struct it *, ptrdiff_t, int, int, int, int);
 void pixel_to_glyph_coords (struct frame *, int, int, int *, int *,
                             NativeRectangle *, int);
 void remember_mouse_glyph (struct frame *, int, int, NativeRectangle *);
@@ -3178,7 +3202,6 @@ void init_iterator (struct it *, struct window *, ptrdiff_t,
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);
-void move_it_to (struct it *, ptrdiff_t, int, int, int, int);
 void move_it_vertically (struct it *, int);
 void move_it_vertically_backward (struct it *, int);
 void move_it_by_lines (struct it *, ptrdiff_t);
@@ -3235,6 +3258,7 @@ extern void display_and_set_cursor (struct window *, bool, int, int, int, int);
 extern void x_update_cursor (struct frame *, bool);
 extern void x_clear_cursor (struct window *);
 extern void x_draw_vertical_border (struct window *w);
+extern void x_draw_right_divider (struct window *w);
 
 extern int get_glyph_string_clip_rects (struct glyph_string *,
                                         NativeRectangle *, int);
@@ -3462,10 +3486,9 @@ void blank_row (struct window *, struct glyph_row *, int);
 void clear_glyph_matrix_rows (struct glyph_matrix *, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);
-void set_window_update_flags (struct window *, struct buffer *, bool);
 void update_single_window (struct window *, bool);
 void do_pending_window_change (bool);
-void change_frame_size (struct frame *, int, int, bool, bool, bool);
+void change_frame_size (struct frame *, int, int, bool, bool, bool, bool);
 void init_display (void);
 void syms_of_display (void);
 extern Lisp_Object Qredisplay_dont_pause;

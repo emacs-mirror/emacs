@@ -384,7 +384,8 @@ text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil.
-A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook',
+which by default will also indent the line (see `electric-indent-mode')."
   (interactive "*P\np")
   (barf-if-buffer-read-only)
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
@@ -888,6 +889,8 @@ Don't use this command in Lisp programs!
 			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
 		 (point-min))))
   (if (and arg (not (consp arg))) (forward-line 1)))
+(put 'beginning-of-buffer 'interactive-only
+     "use `(goto-char (point-min))' instead.")
 
 (defun end-of-buffer (&optional arg)
   "Move point to the end of the buffer.
@@ -920,6 +923,7 @@ Don't use this command in Lisp programs!
 	 ;; then scroll specially to put it near, but not at, the bottom.
 	 (overlay-recenter (point))
 	 (recenter -3))))
+(put 'end-of-buffer 'interactive-only "use `(goto-char (point-max))' instead.")
 
 (defcustom delete-active-region t
   "Whether single-char deletion commands delete an active region.
@@ -982,6 +986,7 @@ the end of the line."
 	     (insert-char ?\s (- ocol (current-column)) nil))))
 	;; Otherwise, do simple deletion.
 	(t (delete-char (- n) killflag))))
+(put 'delete-backward-char 'interactive-only 'delete-char)
 
 (defun delete-forward-char (n &optional killflag)
   "Delete the following N characters (previous if N is negative).
@@ -1079,6 +1084,7 @@ rather than line counts."
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
+(put 'goto-line 'interactive-only 'forward-line)
 
 (defun count-words-region (start end &optional arg)
   "Count the number of words in the region.
@@ -2634,6 +2640,12 @@ to execute it asynchronously.
 The output appears in the buffer `*Async Shell Command*'.
 That buffer is in shell mode.
 
+You can configure `async-shell-command-buffer' to specify what to do in
+case when `*Async Shell Command*' buffer is already taken by another
+running shell command.  To run COMMAND without displaying the output
+in a window you can configure `display-buffer-alist' to use the action
+`display-buffer-no-window' for the buffer `*Async Shell Command*'.
+
 In Elisp, you will often be better served by calling `start-process'
 directly, since it offers more control and does not impose the use of a
 shell (with its need to quote arguments)."
@@ -2820,7 +2832,7 @@ the use of a shell (with its need to quote arguments)."
 		  ;; which comint sometimes adds for prompts.
 		  (let ((inhibit-read-only t))
 		    (erase-buffer))
-		  (display-buffer buffer)
+		  (display-buffer buffer '(nil (allow-no-window . t)))
 		  (setq default-directory directory)
 		  (setq proc (start-process "Shell" buffer shell-file-name
 					    shell-command-switch command))
@@ -4165,6 +4177,7 @@ Don't call it from programs: use `insert-buffer-substring' instead!"
      (insert-buffer-substring (get-buffer buffer))
      (point)))
   nil)
+(put 'insert-buffer 'interactive-only 'insert-buffer-substring)
 
 (defun append-to-buffer (buffer start end)
   "Append to specified buffer the text of the region.
@@ -4763,6 +4776,7 @@ and more reliable (no dependence on goal column, etc.)."
 	   (signal (car err) (cdr err))))
       (line-move arg nil nil try-vscroll)))
   nil)
+(put 'next-line 'interactive-only 'forward-line)
 
 (defun previous-line (&optional arg try-vscroll)
   "Move cursor vertically up ARG lines.
@@ -4802,6 +4816,8 @@ to use and more reliable (no dependence on goal column, etc.)."
 	 (signal (car err) (cdr err))))
     (line-move (- arg) nil nil try-vscroll))
   nil)
+(put 'previous-line 'interactive-only
+     "use `forward-line' with negative argument instead.")
 
 (defcustom track-eol nil
   "Non-nil means vertical motion starting at end of line keeps to ends of lines.

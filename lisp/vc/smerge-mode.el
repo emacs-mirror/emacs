@@ -243,8 +243,8 @@ Used in `smerge-diff-base-mine' and related functions."
   "Font lock patterns for `smerge-mode'.")
 
 (defconst smerge-begin-re "^<<<<<<< \\(.*\\)\n")
-(defconst smerge-end-re "^>>>>>>> .*\n")
-(defconst smerge-base-re "^||||||| .*\n")
+(defconst smerge-end-re "^>>>>>>> \\(.*\\)\n")
+(defconst smerge-base-re "^||||||| \\(.*\\)\n")
 (defconst smerge-other-re "^=======\n")
 
 (defvar smerge-conflict-style nil
@@ -1182,6 +1182,14 @@ repeating the command will highlight other two parts."
 (defvar ediff-quit-hook)
 (declare-function ediff-cleanup-mess "ediff-util" nil)
 
+(defun smerge--get-marker (regexp default)
+  (save-excursion
+    (goto-char (point-min))
+    (if (and (search-forward-regexp regexp nil t)
+	     (> (match-end 1) (match-beginning 1)))
+	(concat default "=" (match-string-no-properties 1))
+      default)))
+
 ;;;###autoload
 (defun smerge-ediff (&optional name-mine name-other name-base)
   "Invoke ediff to resolve the conflicts.
@@ -1192,11 +1200,17 @@ buffer names."
 	 (mode major-mode)
 	 ;;(ediff-default-variant 'default-B)
 	 (config (current-window-configuration))
-	 (filename (file-name-nondirectory buffer-file-name))
+	 (filename (file-name-nondirectory (or buffer-file-name "-")))
 	 (mine (generate-new-buffer
-		(or name-mine (concat "*" filename " MINE*"))))
+		(or name-mine
+                    (concat "*" filename " "
+                            (smerge--get-marker smerge-begin-re "MINE")
+                            "*"))))
 	 (other (generate-new-buffer
-		 (or name-other (concat "*" filename " OTHER*"))))
+		 (or name-other
+                     (concat "*" filename " "
+                             (smerge--get-marker smerge-end-re "OTHER")
+                             "*"))))
 	 base)
     (with-current-buffer mine
       (buffer-disable-undo)
@@ -1221,7 +1235,10 @@ buffer names."
 
     (when base
       (setq base (generate-new-buffer
-		  (or name-base (concat "*" filename " BASE*"))))
+		  (or name-base
+                      (concat "*" filename " "
+                              (smerge--get-marker smerge-base-re "BASE")
+                              "*"))))
       (with-current-buffer base
 	(buffer-disable-undo)
 	(insert-buffer-substring buf)

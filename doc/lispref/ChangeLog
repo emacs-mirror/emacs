@@ -1,3 +1,60 @@
+2013-12-04  Juri Linkov  <juri@jurta.org>
+
+	* searching.texi (Search and Replace): Fix `unread-command-events'
+	and add ref.
+
+2013-12-03  Juri Linkov  <juri@jurta.org>
+
+	* windows.texi (Choosing Window): Rename `no-display-ok' to
+	`allow-no-window'.  (Bug#13594)
+
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): Remove Makefile.
+
+2013-11-29  Andreas Politz  <politza@fh-trier.de>
+
+	* modes.texi (Imenu): Make it clear that sub-alist is the cdr
+	(Bug#14029).
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search):
+	* os.texi (Startup Summary): No more leim directory.
+
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Startup Summary): Update for leim-list being preloaded.
+
+2013-11-23  Brian Jenkins  <brian@brianjenkins.org>  (tiny change)
+
+	* frames.texi (Input Focus):
+	* hooks.texi (Standard Hooks): Mention focus-in-hook, focus-out-hook.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search):
+	Empty elements in EMACSLOADPATH now mean the default load-path.
+
+2013-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Library Search): Minor clarification.
+
+2013-11-20  Leo Liu  <sdl.web@gmail.com>
+
+	* windows.texi (Choosing Window): Mention `no-display-ok'.  (Bug#13594)
+
+2013-11-19  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (File Notifications): Add an index.
+
+	* loading.texi (Loading): Add an cross-reference.
+
+2013-11-18  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* os.texi (Session Management, Desktop Notifications): Add some
+	indexes and a cross-reference.
+
 2013-11-17  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* os.texi (Time Parsing):

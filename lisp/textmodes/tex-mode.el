@@ -2680,6 +2680,8 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defvar tex-indent-item tex-indent-basic)
 (defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
 (defvar latex-noindent-environments '("document"))
+(put 'latex-noindent-environments 'safe-local-variable
+     (lambda (x) (null (delq t (mapcar 'stringp x)))))
 
 (defvar tex-latex-indent-syntax-table
   (let ((st (make-syntax-table tex-mode-syntax-table)))

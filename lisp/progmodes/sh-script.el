@@ -1478,7 +1478,7 @@ frequently editing existing scripts with different styles.")
 (defun sh-shell-process (force)
   "Get a shell process for interaction.
 If FORCE is non-nil and no process found, create one."
-  (if (and sh-shell-process (process-live-p sh-shell-process))
+  (if (process-live-p sh-shell-process)
       sh-shell-process
     (setq sh-shell-process
           (let ((found nil) proc

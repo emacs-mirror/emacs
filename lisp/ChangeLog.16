@@ -3730,7 +3730,8 @@
 2012-11-19  Daniel Colascione  <dancol@dancol.org>
 
 	* term/w32-win.el (cygwin-convert-path-from-windows):
-	Accomodate rename of cygwin_convert_path* to cygwin_convert_file_name*.
+	Accommodate rename of cygwin_convert_path* to
+	cygwin_convert_file_name*.
 
 2012-11-18  Chong Yidong  <cyd@gnu.org>
 

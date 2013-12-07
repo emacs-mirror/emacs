@@ -22,14 +22,14 @@
 ;; The tests require a recent ert.el from Emacs 24.4.
 
 ;; Some of the tests require access to a remote host files.  Set
-;; $TRAMP_TEST_TEMPORARY_FILE_DIRECTORY to a suitable value in order
+;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order
 ;; to overwrite the default value.  If you want to skip tests
 ;; accessing a remote host, set this environment variable to
 ;; "/dev/null" or whatever is appropriate on your system.
 
 ;; When running the tests in batch mode, it must NOT require an
 ;; interactive password prompt unless the environment variable
-;; $TRAMP_TEST_ALLOW_PASSWORD is set.
+;; $REMOTE_ALLOW_PASSWORD is set.
 
 ;; A whole test run can be performed calling the command `tramp-test-all'.
 
@@ -41,7 +41,7 @@
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst tramp-test-temporary-file-directory
   (cond
-   ((getenv "TRAMP_TEST_TEMPORARY_FILE_DIRECTORY"))
+   ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
    ((eq system-type 'windows-nt) null-device)
    (t (format "/ssh::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
@@ -50,7 +50,7 @@
       tramp-message-show-message nil)
 
 ;; Disable interactive passwords in batch mode.
-(when (and noninteractive (not (getenv "TRAMP_TEST_ALLOW_PASSWORD")))
+(when (and noninteractive (not (getenv "REMOTE_ALLOW_PASSWORD")))
   (defalias 'tramp-read-passwd 'ignore))
 
 ;; This shall happen on hydra only.
@@ -1192,6 +1192,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; * set-file-acl
 ;; * set-file-selinux-context
 ;; * vc-registered
+
+;; * Fix `tramp-test17-insert-directory' for
+;;   `ls-lisp-insert-directory' ("plink" and friends).
+;; * Fix `tramp-test27-start-file-process' on MS Windows
+;;   (`process-send-eof'?).
+;; * Fix `tramp-test29-utf8' on MS Windows.
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp]."

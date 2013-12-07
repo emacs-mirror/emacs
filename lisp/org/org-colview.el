@@ -323,6 +323,7 @@ for the duration of the command.")
 (defvar org-colview-initial-truncate-line-value nil
   "Remember the value of `truncate-lines' across colview.")
 
+;;;###autoload
 (defun org-columns-remove-overlays ()
   "Remove all currently active column overlays."
   (interactive)
@@ -670,6 +671,7 @@ around it."
   (let ((value (get-char-property (point) 'org-columns-value)))
     (org-open-link-from-string value arg)))
 
+;;;###autoload
 (defun org-columns-get-format-and-top-level ()
   (let ((fmt (org-columns-get-format)))
     (org-columns-goto-top-level)
@@ -951,6 +953,8 @@ display, or in the #+COLUMNS line of the current buffer."
 
 (defvar org-inlinetask-min-level
   (if (featurep 'org-inlinetask) org-inlinetask-min-level 15))
+
+;;;###autoload
 (defun org-columns-compute (property)
   "Sum the values of property PROPERTY hierarchically, for the entire buffer."
   (interactive)
@@ -1054,6 +1058,7 @@ display, or in the #+COLUMNS line of the current buffer."
 	(setq sum (+ (string-to-number (pop l)) (/ sum 60))))
       sum)))
 
+;;;###autoload
 (defun org-columns-number-to-string (n fmt &optional printf)
   "Convert a computed column number to a string value, according to FMT."
   (cond

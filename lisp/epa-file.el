@@ -132,6 +132,7 @@ encryption is used."
 	    (error)))
 	 (local-file (or local-copy file))
 	 (context (epg-make-context))
+         (buf (current-buffer))
 	 string length entry)
     (if visit
 	(setq buffer-file-name file))
@@ -157,16 +158,16 @@ encryption is used."
 	     ;; where `find-file-not-found-functions' are called in
 	     ;; `find-file-noselect-1'.
 	     (when (file-exists-p local-file)
-	       (make-local-variable 'epa-file-error)
-	       (setq epa-file-error error)
+	       (setq-local epa-file-error error)
 	       (add-hook 'find-file-not-found-functions
 			 'epa-file--find-file-not-found-function
 			 nil t))
 	     (signal 'file-error
 		     (cons "Opening input file" (cdr error)))))
-	  (make-local-variable 'epa-file-encrypt-to)
-	  (setq epa-file-encrypt-to
-		(mapcar #'car (epg-context-result-for context 'encrypted-to)))
+          (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
+	  (setq-local epa-file-encrypt-to
+                      (mapcar #'car (epg-context-result-for
+                                     context 'encrypted-to)))
 	  (if (or beg end)
 	      (setq string (substring string (or beg 0) end)))
 	  (save-excursion
@@ -268,14 +269,13 @@ If no one is selected, symmetric encryption will be performed.  "
 (defun epa-file-select-keys ()
   "Select recipients for encryption."
   (interactive)
-  (make-local-variable 'epa-file-encrypt-to)
-  (setq epa-file-encrypt-to
-	(mapcar
-	 (lambda (key)
-	   (epg-sub-key-id (car (epg-key-sub-key-list key))))
-	(epa-select-keys
-	 (epg-make-context)
-	 "Select recipients for encryption.
+  (setq-local epa-file-encrypt-to
+              (mapcar
+               (lambda (key)
+                 (epg-sub-key-id (car (epg-key-sub-key-list key))))
+               (epa-select-keys
+                (epg-make-context)
+                "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "))))
 
 ;;;###autoload

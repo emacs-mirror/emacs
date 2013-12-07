@@ -31,7 +31,7 @@
 ;; are supported except for <smaller> and <bigger>, which are currently not
 ;; possible to display.
 
-;; A separate file, enriched.doc, contains further documentation and other
+;; A separate file, enriched.txt, contains further documentation and other
 ;; important information about this code.  It also serves as an example
 ;; file in text/enriched format.  It should be in the etc directory of your
 ;; emacs distribution.
@@ -199,7 +199,7 @@ if ARG is omitted or nil.
 Turning the mode on or off runs `enriched-mode-hook'.
 
 More information about Enriched mode is available in the file
-etc/enriched.doc in the Emacs distribution directory.
+\"enriched.txt\" in `data-directory'.
 
 Commands:
 

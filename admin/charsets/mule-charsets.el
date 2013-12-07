@@ -19,20 +19,32 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-(if (not (or (and (= emacs-major-version 21) (= emacs-minor-version 4))
-	     (= emacs-major-version 22)))
-    (error "Use Emacs of version 21.4 or any of version 22"))
+;; For the record: the old, pre-v23 code was this:
+;; (if (not (or (and (= emacs-major-version 21) (= emacs-minor-version 4))
+;; 	     (= emacs-major-version 22)))
+;;     (error "Use Emacs of version 21.4 or any of version 22"))
+;;
+;; (defun func (start end)
+;;   (while (<= start end)
+;;     (let ((split (split-char start))
+;; 	  (unicode (encode-char start 'ucs)))
+;;       (if unicode
+;; 	  (if (nth 2 split)
+;; 	      (insert (format "0x%02X%02X 0x%04X\n"
+;; 			      (nth 1 split) (nth 2 split) unicode))
+;; 	    (insert (format "0x%02X 0x%04X\n" (nth 1 split) unicode)))))
+;;     (setq start (1+ start))))
 
-(defun func (start end)
-  (while (<= start end)
-    (let ((split (split-char start))
-	  (unicode (encode-char start 'ucs)))
-      (if unicode
-	  (if (nth 2 split)
-	      (insert (format "0x%02X%02X 0x%04X\n"
-			      (nth 1 split) (nth 2 split) unicode))
-	    (insert (format "0x%02X 0x%04X\n" (nth 1 split) unicode)))))
-    (setq start (1+ start))))
+(defun func (range charset)
+  (let ((start (car range))
+	(end (cdr range)))
+    (while (and (<= start end) (<= start #x10ffff))
+      (let ((ch (encode-char start charset)))
+	(if ch
+	    (if (> ch 256)
+		(insert (format "0x%04X 0x%04X\n" ch start))
+	      (insert (format "0x%02X 0x%04X\n" ch start)))))
+      (setq start (1+ start)))))
 
 (defconst charset-alist
   '(("MULE-ethiopic.map" . ethiopic)
@@ -51,6 +63,8 @@
 (dolist (elt charset-alist)
   (with-temp-buffer
     (insert header)
-    (map-charset-chars 'func (cdr elt))
-    (write-file (car elt))))
+    (map-charset-chars 'func (cdr elt) (cdr elt))
+    (sort-lines nil (point-min) (point-max))
+    (let ((coding-system-for-write 'unix))
+      (write-file (car elt)))))
 

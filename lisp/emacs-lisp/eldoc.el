@@ -216,6 +216,9 @@ expression point is on."
 Otherwise work like `message'."
   (if (minibufferp)
       (progn
+	(add-hook 'minibuffer-exit-hook
+		  (lambda () (setq eldoc-mode-line-string nil))
+		  nil t)
 	(with-current-buffer
 	    (window-buffer
 	     (or (window-in-direction 'above (minibuffer-window))
@@ -226,17 +229,11 @@ Otherwise work like `message'."
 	    (setq mode-line-format
 		  (list "" '(eldoc-mode-line-string
 			     (" " eldoc-mode-line-string " "))
-			mode-line-format))))
-	(add-hook 'minibuffer-exit-hook
-		  (lambda () (setq eldoc-mode-line-string nil))
-		  nil t)
-	(cond
-	 ((null format-string)
-	  (setq eldoc-mode-line-string nil))
-	 ((stringp format-string)
-	  (setq eldoc-mode-line-string
-		(apply 'format format-string args))))
-	(force-mode-line-update))
+			mode-line-format)))
+          (setq eldoc-mode-line-string
+                (when (stringp format-string)
+                  (apply 'format format-string args)))
+          (force-mode-line-update)))
     (apply 'message format-string args)))
 
 (defun eldoc-message (&rest args)

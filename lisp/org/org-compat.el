@@ -190,10 +190,12 @@ If DELETE is non-nil, delete all those overlays."
     found))
 
 (defun org-get-x-clipboard (value)
-  "Get the value of the x clipboard, compatible with XEmacs, and GNU Emacs 21."
-  (if (eq window-system 'x)
-      (let ((x (org-get-x-clipboard-compat value)))
-	(if x (org-no-properties x)))))
+  "Get the value of the x or Windows clipboard, compatible with XEmacs, and GNU Emacs 21."
+  (cond ((eq window-system 'x)
+	 (let ((x (org-get-x-clipboard-compat value)))
+	   (if x (org-no-properties x))))
+	((and (eq window-system 'w32) (fboundp 'w32-get-clipboard-data))
+	 (w32-get-clipboard-data))))
 
 (defsubst org-decompose-region (beg end)
   "Decompose from BEG to END."

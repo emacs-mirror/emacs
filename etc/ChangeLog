@@ -1,3 +1,17 @@
+2013-11-23  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* TODO: Minor update.
+
+2013-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* enriched.txt: Rename from enriched.doc.  (Bug#15947)
+	Misc small updates for this hardly being "new" any more.
+
+2013-11-20  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention new display action alist entry `no-display-ok'.
+	(Bug#13594)
+
 2013-11-18  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention new features for Octave mode.

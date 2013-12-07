@@ -1886,13 +1886,39 @@ Delete overlays, remove special text properties."
 ;;;###autoload
 (defun ses-mode ()
   "Major mode for Simple Emacs Spreadsheet.
-See \"ses-example.ses\" (in `data-directory') for more info.
 
-Key definitions:
+When you invoke SES in a new buffer, it is divided into cells
+that you can enter data into.  You can navigate the cells with
+the arrow keys and add more cells with the tab key.  The contents
+of these cells can be numbers, text, or Lisp expressions. (To
+enter text, enclose it in double quotes.)
+
+In an expression, you can use cell coordinates to refer to the
+contents of another cell.  For example, you can sum a range of
+cells with `(+ A1 A2 A3)'.  There are specialized functions like
+`ses+' (addition for ranges with empty cells), `ses-average' (for
+performing calculations on cells), and `ses-range' and `ses-select'
+\(for extracting ranges of cells).
+
+Each cell also has a print function that controls how it is
+displayed.
+
+Each SES buffer is divided into a print area and a data area.
+Normally, you can simply use SES to look at and manipulate the print
+area, and let SES manage the data area outside the visible region.
+
+See \"ses-example.ses\" (in `data-directory') for an example
+spreadsheet, and the Info node `(ses)Top.'
+
+In the following, note the separate keymaps for cell editing mode
+and print mode specifications.  Key definitions:
+
 \\{ses-mode-map}
-These key definitions are active only in the print area (the visible part):
+These key definitions are active only in the print area (the visible
+part):
 \\{ses-mode-print-map}
-These are active only in the minibuffer, when entering or editing a formula:
+These are active only in the minibuffer, when entering or editing a
+formula:
 \\{ses-mode-edit-map}"
   (interactive)
   (unless (and (boundp 'ses--deferred-narrow)

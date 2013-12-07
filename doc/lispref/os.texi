@@ -71,11 +71,12 @@ in their turn.  The files @file{subdirs.el} are normally generated
 automatically when Emacs is installed.
 
 @item
-If the library @file{leim-list.el} exists, Emacs loads it.  This
-optional library is intended for registering input methods; Emacs
-looks for it in @code{load-path} (@pxref{Library Search}), skipping
-those directories containing the standard Emacs libraries (since
-@file{leim-list.el} should not exist in those directories).
+It loads any @file{leim-list.el} that it finds in the @code{load-path}
+directories.  This file is intended for registering input methods.
+The search is only for any personal @file{leim-list.el} files that you
+may have created; it skips the directories containing the standard Emacs
+libraries (these should contain only a single @file{leim-list.el} file,
+which is compiled into the Emacs executable).
 
 @vindex before-init-time
 @item
@@ -2244,6 +2245,7 @@ saved session to restore.  For Emacs, this argument is @samp{--smid
 @var{session}}.
 
 @defvar emacs-save-session-functions
+@cindex session file
 Emacs supports saving state via a hook called
 @code{emacs-save-session-functions}.  Emacs runs this hook when the
 session manager tells it that the window system is shutting down.  The
@@ -2283,11 +2285,13 @@ Emacs is restarted by the session manager.
 @node Desktop Notifications
 @section Desktop Notifications
 @cindex desktop notifications
+@cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
 freedesktop.org Desktop Notifications Specification.  In order to use
 this functionality, Emacs must have been compiled with D-Bus support,
-and the @code{notifications} library must be loaded.
+and the @code{notifications} library must be loaded.  @xref{Top, ,
+D-Bus,dbus,D-Bus integration in Emacs}.
 
 @defun notifications-notify &rest params
 This function sends a notification to the desktop via D-Bus,
@@ -2523,6 +2527,7 @@ specification prior to @samp{"1.0"}.
 @node File Notifications
 @section Notifications on File Changes
 @cindex file notifications
+@cindex watch, for filesystem events
 
 Several operating systems support watching of filesystems for changes
 of files.  If configured properly, Emacs links a respective library

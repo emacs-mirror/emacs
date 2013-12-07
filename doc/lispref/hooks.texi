@@ -115,6 +115,12 @@ Function to call to ``quit'' the current buffer.
 @vindex delayed-warnings-hook
 The command loop runs this soon after @code{post-command-hook} (q.v.).
 
+@item focus-in-hook
+@vindex focus-in-hook
+@itemx focus-out-hook
+@vindex focus-out-hook
+@xref{Input Focus}.
+
 @item delete-frame-functions
 @xref{Deleting Frames}.
 

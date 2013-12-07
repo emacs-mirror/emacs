@@ -1146,7 +1146,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
   /* Negative width means use all available text columns.  */
   if (width < 0)
     {
-      width = window_body_cols (win);
+      width = window_body_width (win, 0);
       /* We must make room for continuation marks if we don't have fringes.  */
 #ifdef HAVE_WINDOW_SYSTEM
       if (!FRAME_WINDOW_P (XFRAME (win->frame)))
@@ -1756,7 +1756,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			 ? window_internal_height (w)
 			 : XINT (XCDR (topos))),
 			(NILP (topos)
-			 ? (window_body_cols (w)
+			 ? (window_body_width (w, 0)
 			    - (
 #ifdef HAVE_WINDOW_SYSTEM
 			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :

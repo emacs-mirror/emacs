@@ -113,6 +113,7 @@ clean: mostlyclean
 	rm -f emacs-lispintro-${version}.tar*
 
 distclean: clean
+	rm -f Makefile
 
 infoclean:
 	-cd $(buildinfodir) && rm -f eintr$(INFO_EXT) eintr$(INFO_EXT)-[1-9]

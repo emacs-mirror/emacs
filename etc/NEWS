@@ -63,8 +63,19 @@ To use the old backend by default, do on the command line:
 * Startup Changes in Emacs 24.4
 
 +++
+** When initializing `load-path', an empty element in the EMACSLOADPATH
+environment variable (either leading, e.g., ":/foo"; trailing, e.g.,
+"/foo:"; or embedded, e.g., "/foo::/bar") is replaced with the default
+load-path (the one that would have been used if EMACSLOADPATH was unset).
+This makes it easier to _extend_ the load-path via EMACSLOADPATH
+(previously, EMACSLOADPATH had to specify the complete load-path,
+including the defaults).  (In older versions of Emacs, an empty element
+was replaced by ".", so use an explicit "." now if that is what you want.)
+
++++
 ** The -L option, which normally prepends its argument to load-path,
-will instead append, if the argument begins with `:'.
+will instead append, if the argument begins with `:' (or `;' on MS Windows;
+i.e., `path-separator').
 
 
 * Changes in Emacs 24.4
@@ -160,9 +171,12 @@ monitor, use the new functions above.  Similar notes also apply to
 `x-display-pixel-width', `x-display-pixel-height', `display-mm-width',
 `display-mm-height', `x-display-mm-width', and `x-display-mm-height'.
 
-** New macro `alternatives-define' can be used to define generic commands.
+** New macro `define-alternatives' can be used to define generic commands.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
+
+** New hooks `focus-in-hook', `focus-out-hook'.
+These are normal hooks run when an Emacs frame gains or loses input focus.
 
 ** The blink cursor stops blinking after 10 blinks (default) on X and NS.
 You can change the default by customizing the variable blink-cursor-blinks.
@@ -188,6 +202,10 @@ Czech typography rules.  To globally enable this feature, evaluate:
 
 
 * Editing Changes in Emacs 24.4
+
+** `electric-indent-mode' is enabled by default.
+
+** Uniquify is enabled by default.
 
 ** Command `rectangle-mark-mode' bound to C-x SPC makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
@@ -228,6 +246,8 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** The backtrace debugger can display local vars with `v'.
 
 ** prolog-use-smie has been removed, along with the non-SMIE indentation code.
 
@@ -625,6 +645,22 @@ whether it is safe to use Bash's --noediting option.  These days
 +++
 ** There is a new macro `skip-unless' for skipping ERT tests.  See the manual.
 
+** Imenu
+
+*** New option `imenu-generic-skip-comments-and-strings'.
+
+** Ruby mode
+
+*** New option `ruby-encoding-magic-comment-style'.
+
+*** New option `ruby-custom-encoding-magic-comment-template'.
+
+*** New mode menu.
+
+*** Improved syntax highlighting and indentation.
+
+*** Add more Ruby file types to `auto-mode-alist'.
+
 
 * New Modes and Packages in Emacs 24.4
 
@@ -717,6 +753,8 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
+** New function get-pos-property.
+
 ** New hook `pre-redisplay-function'.
 
 +++
@@ -736,8 +774,8 @@ frame.
 *** `bool-vector-set-difference'
 *** `bool-vector-not'
 *** `bool-vector-subsetp'
-*** `bool-vector-count-matches'
-*** `bool-vector-count-matches-at'
+*** `bool-vector-count-consecutive'
+*** `bool-vector-count-population'
 
 ** Comparison functions =, <, >, <=, >= now take many arguments.
 
@@ -755,6 +793,13 @@ frame.
 ** New library helpers.el for misc helper functions
 *** `hash-table-keys'
 *** `hash-table-values'
+*** `string-blank-p`
+*** `string-empty-p`
+*** `string-join`
+*** `string-reverse`
+*** `string-trim-left'
+*** `string-trim-right'
+*** `string-trim'
 
 ** Obsoleted functions:
 *** `log10'
@@ -772,9 +817,14 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 *** `completion-in-region-function' obsoletes `completion-in-region-functions'.
 *** `filter-buffer-substring-function' obsoletes `filter-buffer-substring-functions'.
 
+** `byte-compile-interactive-only-functions' is now obsolete.
+It has been replaced by the symbol property 'interactive-only.
+
 ** `split-string' now takes an optional argument TRIM.
 The value, if non-nil, is a regexp that specifies what to trim from
 the start and end of each substring.
+
+** New function `string-suffix-p'.
 
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
@@ -1805,6 +1855,13 @@ reused.
 
 *** New option `switch-to-buffer-preserve-window-point' to restore a
 window's point when switching buffers.
+
+*** New display action function `display-buffer-no-window' to not
+display the buffer in a window.
+
+*** New display action alist entry `allow-no-window' to indicate the
+caller of `display-buffer' is ready to handle the case of not
+displaying the buffer in a window.
 
 *** New display action alist entries `window-height' and `window-width'
 specify the size of new windows created by `display-buffer'.

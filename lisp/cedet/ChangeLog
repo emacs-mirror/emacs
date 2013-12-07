@@ -1,3 +1,25 @@
+2013-11-30  Glenn Morris  <rgm@gnu.org>
+
+	Stop keeping (most) generated cedet grammar files in the repository.
+	* semantic/bovine/grammar.el (bovine--make-parser-1):
+	New function, split from bovine-make-parsers.
+	(bovine-make-parsers): Use bovine--make-parser-1.
+	(bovine-batch-make-parser): New function.
+	* semantic/wisent/grammar.el (wisent--make-parser-1):
+	New function, split from wisent-make-parsers.
+	(wisent-make-parsers): Use wisent--make-parser-1.
+	(wisent-batch-make-parser): New function.
+	* semantic/db.el (semanticdb-save-all-db):
+	Avoid prompting in batch mode.
+	* semantic/grammar.el (semantic-grammar-footer-template):
+	Disable version-control and autoloads in the output.
+	(semantic-grammar-create-package):
+	Add option to return nil if output is up-to-date.
+	* semantic/bovine/c-by.el, semantic/bovine/make-by.el:
+	* semantic/bovine/scm-by.el, semantic/wisent/javat-wy.el:
+	* semantic/wisent/js-wy.el, semantic/wisent/python-wy.el:
+	* srecode/srt-wy.el: Remove generated files from repository.
+
 2013-11-16  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	* semantic/fw.el (semantic-exit-on-input)

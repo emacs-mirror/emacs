@@ -112,10 +112,10 @@ to set this property.")
                          ''edebug-form-spec (list 'quote spec)))))
    defun-declarations-alist)
   "List associating properties of macros to their macro expansion.
-Each element of the list takes the form (PROP FUN) where FUN is
-a function.  For each (PROP . VALUES) in a macro's declaration,
-the FUN corresponding to PROP is called with the function name
-and the VALUES and should return the code to use to set this property.")
+Each element of the list takes the form (PROP FUN) where FUN is a function.
+For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
+to PROP is called with the macro name, the macro's arglist, and the VALUES
+and should return the code to use to set this property.")
 
 (put 'defmacro 'doc-string-elt 3)
 (put 'defmacro 'lisp-indent-function 2)
@@ -285,7 +285,6 @@ was first made obsolete, for example a date or a release number."
   (declare (advertised-calling-convention
             ;; New code should always provide the `when' argument.
             (obsolete-name current-name when) "23.1"))
-  (interactive "aMake function obsolete: \nxObsoletion replacement: ")
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
        ;; is not used any more nowadays.
@@ -392,7 +391,7 @@ If you think you need this, you're probably making a mistake somewhere."
   "Like `progn', but evaluates the body at compile time if you're compiling.
 Thus, the result of the body appears to the compiler as a quoted constant.
 In interpreted code, this is entirely equivalent to `progn'."
-  (declare (debug t) (indent 0))
+  (declare (debug (def-body)) (indent 0))
   (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)

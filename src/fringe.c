@@ -659,6 +659,10 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
 	{
 	  /* If W has a vertical border to its left, don't draw over it.  */
 	  wd -= ((!WINDOW_LEFTMOST_P (w)
+		  /* This could be wrong when we allow window local
+		     right dividers - but the window on the left is hard
+		     to get.  */
+		  && !FRAME_RIGHT_DIVIDER_WIDTH (f)
 		  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
 		  /* But don't reduce the fringe width if the window
 		     has a left margin, because that means we are not

@@ -149,6 +149,7 @@ static BOOL g_b_init_get_outline_metrics_w;
 static BOOL g_b_init_get_text_metrics_w;
 static BOOL g_b_init_get_glyph_outline_w;
 static BOOL g_b_init_get_glyph_outline_w;
+static BOOL g_b_init_get_char_width_32_w;
 
 typedef UINT (WINAPI * GetOutlineTextMetricsW_Proc) (
    HDC hdc,
@@ -165,6 +166,11 @@ typedef DWORD (WINAPI * GetGlyphOutlineW_Proc) (
    DWORD cbBuffer,
    LPVOID lpvBuffer,
    const MAT2 *lpmat2);
+typedef BOOL (WINAPI * GetCharWidth32W_Proc) (
+   HDC hdc,
+   UINT uFirstChar,
+   UINT uLastChar,
+   LPINT lpBuffer);
 
 /* Several "wide" functions we use to support the font backends are
    unavailable on Windows 9X, unless UNICOWS.DLL is installed (their
@@ -272,6 +278,23 @@ get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
   eassert (s_pfn_Get_Glyph_OutlineW != NULL);
   return s_pfn_Get_Glyph_OutlineW (hdc, uChar, uFormat, lpgm, cbBuffer,
 				   lpvBuffer, lpmat2);
+}
+
+static DWORD WINAPI get_char_width_32_w (HDC hdc, UINT uFirstChar,
+					 UINT uLastChar, LPINT lpBuffer)
+{
+  static GetCharWidth32W_Proc s_pfn_Get_Char_Width_32W = NULL;
+  HMODULE hm_unicows = NULL;
+  if (g_b_init_get_char_width_32_w == 0)
+    {
+      g_b_init_get_char_width_32_w = 1;
+      hm_unicows = w32_load_unicows_or_gdi32 ();
+      if (hm_unicows)
+	s_pfn_Get_Char_Width_32W = (GetCharWidth32W_Proc)
+	  GetProcAddress (hm_unicows, "GetCharWidth32W");
+    }
+  eassert (s_pfn_Get_Char_Width_32W != NULL);
+  return s_pfn_Get_Char_Width_32W (hdc, uFirstChar, uLastChar, lpBuffer);
 }
 
 static int
@@ -989,7 +1012,6 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
   font->baseline_offset = 0;
   font->relative_compose = 0;
   font->default_ascent = w32_font->metrics.tmAscent;
-  font->font_encoder = NULL;
   font->pixel_size = size;
   font->driver = &w32font_driver;
   /* Use format cached during list, as the information we have access to
@@ -2437,6 +2459,7 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
   GLYPHMETRICS gm;
   MAT2 transform;
   unsigned int options = GGO_METRICS;
+  INT width;
 
   if (w32_font->glyph_idx)
     options |= GGO_GLYPH_INDEX;
@@ -2451,6 +2474,13 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
       metrics->lbearing = gm.gmptGlyphOrigin.x;
       metrics->rbearing = gm.gmptGlyphOrigin.x + gm.gmBlackBoxX;
       metrics->width = gm.gmCellIncX;
+      metrics->status = W32METRIC_SUCCESS;
+    }
+  else if (get_char_width_32_w (dc, code, code, &width) != 0)
+    {
+      metrics->lbearing = 0;
+      metrics->rbearing = width;
+      metrics->width = width;
       metrics->status = W32METRIC_SUCCESS;
     }
   else
@@ -2727,4 +2757,5 @@ globals_of_w32font (void)
   g_b_init_get_outline_metrics_w = 0;
   g_b_init_get_text_metrics_w = 0;
   g_b_init_get_glyph_outline_w = 0;
+  g_b_init_get_char_width_32_w = 0;
 }

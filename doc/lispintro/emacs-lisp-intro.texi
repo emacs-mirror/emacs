@@ -13544,7 +13544,7 @@ regexps.  @xref{the-the, , @code{the-the} Duplicated Words Function}.
 @end itemize
 
 @node Counting Words
-@chapter Counting: Repetition and Regexps
+@chapter Counting via Repetition and Regexps
 @cindex Repetition for word counting
 @cindex Regular expressions for word counting
 
@@ -14428,7 +14428,7 @@ exclamation mark, and question mark.  Do the same using recursion.
 
 Our next project is to count the number of words in a function
 definition.  Clearly, this can be done using some variant of
-@code{@value{COUNT-WORDS}}.  @xref{Counting Words, , Counting Words:
+@code{@value{COUNT-WORDS}}.  @xref{Counting Words, , Counting via
 Repetition and Regexps}.  If we are just going to count the words in
 one definition, it is easy enough to mark the definition with the
 @kbd{C-M-h} (@code{mark-defun}) command, and then call
@@ -15602,7 +15602,7 @@ Let's write a function definition to do these tasks.  We will use a
 directory, checking what needs to be done; and we will use a recursive
 call to repeat the actions on each sub-directory.  The recursive
 pattern is `accumulate'
-(@pxref{Accumulate, , Recursive Pattern: @emph{accumulate}}),
+(@pxref{Accumulate}),
 using @code{append} as the combiner.
 
 @ignore
