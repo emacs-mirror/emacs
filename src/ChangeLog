@@ -1,5 +1,7 @@
 2013-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (tb_size_cb): Call xg_height_or_width_changed.
+
 	* nsterm.m (x_set_window_size): Remove fprintf.
 	(init): Define always.  Set applicationDidFinishLaunchingCalled
 	for GNUStep.

@@ -4350,7 +4350,7 @@ tb_size_cb (GtkWidget    *widget,
      size hints if tool bar size changes.  Seen on Fedora 18 at least.  */
   struct frame *f = user_data;
   if (xg_update_tool_bar_sizes (f))
-    x_wm_set_size_hint (f, 0, 0);
+    xg_height_or_width_changed (f);
 }
 
 /* Create a tool bar for frame F.  */
