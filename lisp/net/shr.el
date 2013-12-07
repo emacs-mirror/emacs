@@ -1173,7 +1173,7 @@ The preference is a float determined from `shr-prefer-media-type'."
 (defun shr-tag-img (cont &optional url)
   (when (or url
 	    (and cont
-		 (cdr (assq :src cont))))
+		 (> (length (cdr (assq :src cont))) 0)))
     (when (and (> (current-column) 0)
 	       (not (eq shr-state 'image)))
       (insert "\n"))

@@ -1,3 +1,8 @@
+2013-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-tag-img): Don't bug out on <img src="">
+	data.
+
 2013-12-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* progmodes/compile.el (compilation-start):
