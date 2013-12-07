@@ -2126,7 +2126,7 @@ get_long_basename (char * name, char * buf, int size)
   HANDLE dir_handle;
   char fname_utf8[MAX_UTF8_PATH];
   int len = 0;
-  int cstatus;
+  int cstatus = -1;
 
   /* Must be valid filename, no wild cards or other invalid characters.  */
   if (strpbrk (name, "*?|<>\""))
