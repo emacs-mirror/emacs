@@ -1,3 +1,7 @@
+2013-12-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): Call fixup_locale a second time for GNUStep.
+
 2013-12-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (x_set_font): Mark frame as garbaged (Bug#16028).
