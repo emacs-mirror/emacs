@@ -78,8 +78,8 @@ any selection."
   "Delete the active region.
 If KILLP in not-nil, the active region is killed instead of deleted."
   (if killp
-      (kill-region (point) (mark))
-    (delete-region (point) (mark)))
+      (kill-region (point) (mark) t)
+    (funcall region-extract-function 'delete-only))
   t)
 
 (defun delete-selection-helper (type)
@@ -197,9 +197,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
-  (dolist (sym '(self-insert-command self-insert-iso yank clipboard-yank
-		 insert-register delete-backward-char backward-delete-char-untabify
-		 delete-char newline-and-indent newline open-line))
+  (dolist (sym '(self-insert-command yank clipboard-yank
+		 insert-register
+                 newline-and-indent newline open-line))
     (put sym 'delete-selection nil))
   ;; continue standard unloading
   nil)

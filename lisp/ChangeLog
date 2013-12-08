@@ -1,3 +1,10 @@
+2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make registers and delete-selection-mode work on rectangles.
+	* register.el (describe-register-1): Don't modify the register's value.
+	(copy-to-register): Obey region-extract-function.
+	* delsel.el (delete-active-region): Obey region-extract-function.
+
 2013-12-08  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/flymake.el (flymake, flymake-error-bitmap)
@@ -29,8 +36,7 @@
 
 2013-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/shr.el (shr-tag-img): Don't bug out on <img src="">
-	data.
+	* net/shr.el (shr-tag-img): Don't bug out on <img src=""> data.
 
 2013-12-06  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -42,8 +48,8 @@
 
 2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Touch
-	up the last change.
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Touch up the last change.
 
 2013-12-06  Leo Liu  <sdl.web@gmail.com>
 
@@ -73,8 +79,8 @@
 
 2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/octave.el (inferior-octave-completion-table): Turn
-	back into function, use `completion-table-with-cache'
+	* progmodes/octave.el (inferior-octave-completion-table):
+	Turn back into function, use `completion-table-with-cache'
 	(Bug#11906).  Update all references.
 
 	* minibuffer.el (completion-table-with-cache): New function.
