@@ -1,5 +1,7 @@
 2013-12-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (updateFrameSize:): Fix GNUStep toolbar not updating.
+
 	* emacs.c (main): Call fixup_locale a second time for GNUStep.
 
 2013-12-08  Martin Rudalics  <rudalics@gmx.at>

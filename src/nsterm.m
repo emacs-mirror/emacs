@@ -5682,6 +5682,11 @@ not_in_argv (NSString *arg)
 
   if (! [self isFullscreen])
     {
+#ifdef NS_IMPL_GNUSTEP
+      // GNUStep does not always update the tool bar height.  Force it.
+      if (toolbar) update_frame_tool_bar (emacsframe);
+#endif
+
       extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
         + FRAME_TOOLBAR_HEIGHT (emacsframe);
     }
