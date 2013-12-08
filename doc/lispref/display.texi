@@ -439,7 +439,7 @@ that it prints a message in the echo area unconditionally.
 
 The first two arguments have the same meaning as for
 @code{progress-reporter-update}.  Optional @var{new-message} allows
-you to change the message of the @var{reporter}.  Since this functions
+you to change the message of the @var{reporter}.  Since this function
 always updates the echo area, such a change will be immediately
 presented to the user.
 @end defun
@@ -2683,7 +2683,7 @@ and @code{face-remap-reset-base} functions; it is intended for major
 modes to remap faces in the buffers they control.
 
 @defun face-remap-add-relative face &rest specs
-This functions adds the face spec in @var{specs} as relative
+This function adds the face spec in @var{specs} as relative
 remappings for face @var{face} in the current buffer.  The remaining
 arguments, @var{specs}, should form either a list of face names, or a
 property list of attribute/value pairs.

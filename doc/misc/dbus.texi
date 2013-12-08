@@ -760,7 +760,7 @@ If there are no properties, @code{nil} is returned.  Example:
 @end defun
 
 @defun dbus-get-all-managed-objects bus service path
-This functions returns all objects at @var{bus}, @var{service},
+This function returns all objects at @var{bus}, @var{service},
 @var{path}, and the children of @var{path}.  The result is a list of
 objects.  Every object is a cons of an existing path name, and the
 list of available interface objects.  An interface object is another
