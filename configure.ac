@@ -2185,8 +2185,10 @@ if test "${opsys}" != "mingw32"; then
        gtk_term_header=gtkutil.h
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
-       	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
-       	  GTK_CFLAGS="$GTK_CFLAGS -DGLIB_DISABLE_DEPRECATION_WARNINGS"
+	 AC_DEFINE([GDK_DISABLE_DEPRECATION_WARNINGS], [1],
+	   [Define to 1 to disable GTK+/GDK deprecation warnings.])
+	 AC_DEFINE([GLIB_DISABLE_DEPRECATION_WARNINGS], [1],
+	   [Define to 1 to disable Glib deprecation warnings.])
        fi
     else
        check_gtk2=yes
@@ -2212,7 +2214,6 @@ fi
 
 if test x"$pkg_check_gtk" = xyes; then
 
-  AC_SUBST(GTK_CFLAGS)
   AC_SUBST(GTK_LIBS)
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
   CFLAGS="$CFLAGS $GTK_CFLAGS"

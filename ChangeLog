@@ -1,5 +1,10 @@
 2013-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.ac: Simplify supression of GTK deprecation warning.
+	Move -DGDK_DISABLE_DEPRECATION_WARNINGS out of the command line
+	and into config.h, to shorten the command line when doing 'make'.
+	Don't AC_SUBST GTK_CFLAGS, as this is not needed.
+
 	Use libcrypto's checksum implementations if available, for speed.
 	On commonly used platform libcrypto uses architecture-specific
 	assembly code, which is significantly faster than the C code we
