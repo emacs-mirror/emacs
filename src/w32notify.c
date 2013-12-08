@@ -105,7 +105,7 @@ struct notification {
   OVERLAPPED *io_info;	/* the OVERLAPPED structure for async I/O */
   BOOL subtree;		/* whether to watch subdirectories */
   DWORD filter;		/* bit mask for events to watch */
-  char *watchee;	/* the file we are interested in */
+  char *watchee;	/* the file we are interested in, UTF-8 encoded */
   HANDLE dir;		/* handle to the watched directory */
   HANDLE thr;		/* handle to the thread that watches */
   volatile int terminate; /* if non-zero, request for the thread to terminate */
@@ -332,15 +332,43 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
   if (!file)
     return NULL;
 
-  hdir = CreateFile (parent_dir,
-		     FILE_LIST_DIRECTORY,
-		     /* FILE_SHARE_DELETE doesn't preclude other
-			processes from deleting files inside
-			parent_dir.  */
-		     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-		     NULL, OPEN_EXISTING,
-		     FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-		     NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t dir_w[MAX_PATH], file_w[MAX_PATH];
+
+      filename_to_utf16 (parent_dir, dir_w);
+      if (*file)
+	filename_to_utf16 (file, file_w);
+      else
+	file_w[0] = 0;
+
+      hdir = CreateFileW (dir_w,
+			  FILE_LIST_DIRECTORY,
+			  /* FILE_SHARE_DELETE doesn't preclude other
+			     processes from deleting files inside
+			     parent_dir.  */
+			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+			  NULL, OPEN_EXISTING,
+			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL);
+    }
+  else
+    {
+      char dir_a[MAX_PATH], file_a[MAX_PATH];
+
+      filename_to_ansi (parent_dir, dir_a);
+      if (*file)
+	filename_to_ansi (file, file_a);
+      else
+	file_a[0] = '\0';
+
+      hdir = CreateFileA (dir_a,
+			  FILE_LIST_DIRECTORY,
+			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+			  NULL, OPEN_EXISTING,
+			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL);
+    }
   if (hdir == INVALID_HANDLE_VALUE)
     return NULL;
 
@@ -490,9 +518,7 @@ will never come in.  Volumes shared from remote Windows machines do
 generate notifications correctly, though.  */)
   (Lisp_Object file, Lisp_Object filter, Lisp_Object callback)
 {
-  Lisp_Object encoded_file, watch_object, watch_descriptor;
-  char parent_dir[MAX_PATH], *basename;
-  size_t fn_len;
+  Lisp_Object dirfn, basefn, watch_object, watch_descriptor;
   DWORD flags;
   BOOL subdirs = FALSE;
   struct notification *dirwatch = NULL;
@@ -510,41 +536,24 @@ generate notifications correctly, though.  */)
 			 Qnil);
     }
 
-  /* We need a full absolute file name of FILE, and we need to remove
-     any trailing slashes from it, so that GetFullPathName below gets
-     the basename part correctly.  */
-  file = Fdirectory_file_name (Fexpand_file_name (file, Qnil));
-  encoded_file = ENCODE_FILE (file);
-
-  fn_len = GetFullPathName (SDATA (encoded_file), MAX_PATH, parent_dir,
-			    &basename);
-  if (!fn_len)
-    {
-      errstr = w32_strerror (0);
-      errno = EINVAL;
-      if (!NILP (Vlocale_coding_system))
-	lisp_errstr
-	  = code_convert_string_norecord (build_unibyte_string (errstr),
-					  Vlocale_coding_system, 0);
-      else
-	lisp_errstr = build_string (errstr);
-      report_file_error ("GetFullPathName failed",
-			 Fcons (lisp_errstr, Fcons (file, Qnil)));
-    }
   /* filenotify.el always passes us a directory, either the parent
      directory of a file to be watched, or the directory to be
      watched.  */
-  if (file_directory_p (parent_dir))
-    basename = "";
-  else
+  file = Fdirectory_file_name (Fexpand_file_name (file, Qnil));
+  if (NILP (Ffile_directory_p (file)))
     {
       /* This should only happen if we are called directly, not via
-	 filenotify.el.  If BASENAME is NULL, the argument was the
-	 root directory on its drive.  */
-      if (basename)
-	basename[-1] = '\0';
-      else
+	 filenotify.el.  If BASEFN is empty, the argument was the root
+	 directory on its drive.  */
+      dirfn = ENCODE_FILE (Ffile_name_directory (file));
+      basefn = ENCODE_FILE (Ffile_name_nondirectory (file));
+      if (*SDATA (basefn) == '\0')
 	subdirs = TRUE;
+    }
+  else
+    {
+      dirfn = ENCODE_FILE (file);
+      basefn = Qnil;
     }
 
   if (!NILP (Fmember (Qsubtree, filter)))
@@ -552,7 +561,8 @@ generate notifications correctly, though.  */)
 
   flags = filter_list_to_flags (filter);
 
-  dirwatch = add_watch (parent_dir, basename, subdirs, flags);
+  dirwatch = add_watch (SSDATA (dirfn), NILP (basefn) ? "" : SSDATA (basefn),
+			subdirs, flags);
   if (!dirwatch)
     {
       DWORD err = GetLastError ();
