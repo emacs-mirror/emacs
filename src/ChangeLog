@@ -1,3 +1,7 @@
+2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (set_window_buffer): Update mode line (bug#16084).
+
 2013-12-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
@@ -19,8 +23,8 @@
 	* nsterm.m (x_set_window_size): Remove fprintf.
 	(init): Define always.  Set applicationDidFinishLaunchingCalled
 	for GNUStep.
-	(applicationDidFinishLaunching:): Set
-	applicationDidFinishLaunchingCalled,
+	(applicationDidFinishLaunching:):
+	Set applicationDidFinishLaunchingCalled.
 	(applicationDidBecomeActive:): Call applicationDidFinishLaunching if
 	not called.
 
@@ -33,8 +37,8 @@
 	(updateFrameSize:): Remove gsextra.  Adjust for pixelwise resize.
 	(windowWillResize): Remove gsextra.  Calculate extra as in
 	updateFrameSize.
-	(x_new_font): Don't change frame size if fullscreen.  Change
-	size pixelwise.
+	(x_new_font): Don't change frame size if fullscreen.
+	Change size pixelwise.
 
 	* nsfns.m (Fx_create_frame): Call change_frame_size twice as per
 	comment in xfns.c.  Change to pixelwise call.
@@ -236,8 +240,8 @@
 	ON_RIGHT_DIVIDER and ON_BOTTOM_DIVIDER.
 	(struct glyph_matrix): Replace window_left_col and
 	window_top_line by window_pixel_left and window_pixel_top.
-	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P): Minor
-	rewrite.
+	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P):
+	Minor rewrite.
 	(enum face_id): Add WINDOW_DIVIDER_FACE_ID.
 	(draw_window_divider, move_it_to, x_draw_right_divider)
 	(x_draw_bottom_divider, change_frame_size): Add or fix
@@ -252,8 +256,8 @@
 	(init_display): Adjusts calls of change_frame_size.
 	(change_frame_size, change_frame_size_1): Handle pixelwise
 	changes.
-	* frame.c (Qright_divider_width, Qbottom_divider_width): New
-	Lisp objects.
+	* frame.c (Qright_divider_width, Qbottom_divider_width):
+	New Lisp objects.
 	(set_menu_bar_lines_1, set_menu_bar_lines, make_frame)
 	(make_terminal_frame, Fmake_terminal_frame, Fframe_parameters)
 	(x_set_internal_border_width, x_set_vertical_scroll_bars)
@@ -264,15 +268,15 @@
 	(Fframe_text_width, Fframe_text_height, Fscroll_bar_width)
 	(Ffringe_width, Fborder_width, Fright_divider_width)
 	(Fbottom_divider_width): New functions, defsubr them.
-	(Fset_frame_height, Fset_frame_width, Fset_frame_size): New
-	argument pixelwise.
+	(Fset_frame_height, Fset_frame_width, Fset_frame_size):
+	New argument pixelwise.
 	(struct frame_parm_table): New members Qright_divider_width and
 	Qbottom_divider_width.
 	(x_set_frame_parameters): Handle parameters for pixelwise sizes.
 	(x_report_frame_params): Handle Qright_divider_width and
 	Qbottom_divider_width.
-	(x_set_right_divider_width, x_set_bottom_divider_width): New
-	functions.
+	(x_set_right_divider_width, x_set_bottom_divider_width):
+	New functions.
 	(frame_resize_pixelwise): New option.
 	* frame.h (struct frame): Add tool_bar_height, menu_bar_height,
 	new_pixelwise, right_divider_width and bottom_divider_width;
@@ -283,8 +287,8 @@
 	FRAME_TEXT_WIDTH respectively.
 	(FRAME_MENU_BAR_HEIGHT, FRAME_TOOL_BAR_HEIGHT)
 	(FRAME_RIGHT_DIVIDER_WIDTH, FRAME_BOTTOM_DIVIDER_WIDTH)
-	(FRAME_TEXT_TO_PIXEL_WIDTH, FRAME_PIXEL_TO_TEXT_WIDTH): New
-	macros.
+	(FRAME_TEXT_TO_PIXEL_WIDTH, FRAME_PIXEL_TO_TEXT_WIDTH):
+	New macros.
 	(FRAME_TOP_MARGIN_HEIGHT, FRAME_LEFT_SCROLL_BAR_AREA_WIDTH)
 	(FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH, FRAME_SCROLL_BAR_AREA_WIDTH)
 	(SET_FRAME_COLS, SET_FRAME_WIDTH, SET_FRAME_HEIGHT)
@@ -294,8 +298,8 @@
 	* fringe.c (draw_fringe_bitmap_1): Handle right divder.
 	* gtkutil.c (xg_frame_resized, xg_frame_set_char_size)
 	(x_wm_set_size_hint): Handle frame pixel sizes.
-	* indent.c (compute_motion, Fcompute_motion): Call
-	window_body_width instead of window_body_cols.
+	* indent.c (compute_motion, Fcompute_motion):
+	Call window_body_width instead of window_body_cols.
 	* keyboard.c (Qright_divider, Qbottom_divider): New symbols.
 	(make_lispy_position): Handle right and bottom dividers.
 	(Fsuspend_emacs): Pixelize call of change_frame_size.
@@ -303,13 +307,13 @@
 	* lisp.h: Extern set_frame_param.
 	* nsfns.m (x_set_tool_bar_lines): Pixelize call of
 	x_set_window_size.
-	(Fx_create_frame): Add entry for vertical_drag_cursor.  Pixelize
-	call of change_frame_size.
+	(Fx_create_frame): Add entry for vertical_drag_cursor.
+	Pixelize call of change_frame_size.
 	* nsterm.h (struct ns_output): Add vertical_drag_cursor.
 	* nsterm.m (ns_update_window_end): Optionally draw right
 	divider.
-	(x_set_window_size): Add argument pixelwise.  Call
-	check_frame_size and change_frame_size with pixelwise zero.
+	(x_set_window_size): Add argument pixelwise.
+	Call check_frame_size and change_frame_size with pixelwise zero.
 	(ns_draw_window_divider): New function.
 	(ns_redisplay_interface): Add ns_draw_window_divider.
 	(updateFrameSize:): Call change_frame_size with pixelwise zero.
@@ -320,12 +324,12 @@
 	* w32fns.c (x_set_mouse_color): Handle vertical drag cursor.
 	(x_set_menu_bar_lines, x_set_tool_bar_lines): Calculate pixelwise.
 	(w32_createwindow): Use scroll bar area width.
-	(w32_wnd_proc): Handle bottom divider width.  For
-	WM_WINDOWPOSCHANGING return zero if we resize pixelwise.
-	(Fx_create_frame): Default divider width parameters.  Caclulate
-	sizes pixelwise.  Add vertical drag cursor support.
-	(x_create_tip_frame): Default divider widths to zero.  Pixelize
-	call to change_frame_size.
+	(w32_wnd_proc): Handle bottom divider width.
+	For WM_WINDOWPOSCHANGING return zero if we resize pixelwise.
+	(Fx_create_frame): Default divider width parameters.
+	Caclulate sizes pixelwise.  Add vertical drag cursor support.
+	(x_create_tip_frame): Default divider widths to zero.
+	Pixelize call to change_frame_size.
 	(Fx_show_tip): Add handling of divider widths.  Pixelize window
 	position and sizes.
 	(Fw32_frame_rect): New function.
@@ -340,8 +344,8 @@
 	(x_update_window_end): Handle right divider.
 	(w32_draw_fringe_bitmap, x_scroll_run)
 	(w32_set_vertical_scroll_bar): Pixelize scrollbar widths.
-	(w32_read_socket): Handle SIZE_MAXIMIZED separately.  Calculate
-	new frame sizes pixelwise.
+	(w32_read_socket): Handle SIZE_MAXIMIZED separately.
+	Calculate new frame sizes pixelwise.
 	(x_new_font): Pixelize call to x_set_window_size.
 	(x_check_fullscreen): Pixelize call to change_frame_size.
 	(x_set_window_size_1, x_set_window_size): New argument
@@ -360,16 +364,16 @@
 	(Fset_window_new_pixel, window_resize_apply_total)
 	(Fwindow_resize_apply_total): New functions.
 	(window_body_height, window_body_width): Rename from
-	window_body_lines.  New argument PIXELWISE.  Calculate
-	pixelwise.
+	window_body_lines.  New argument PIXELWISE.
+	Calculate pixelwise.
 	(Fwindow_body_height, Fwindow_body_width): New argument
 	PIXELWISE.
 	(coordinates_in_window, window_relative_x_coord): Use window's
 	pixel width instead of total width.
 	(replace_window, recombine_windows): Initialize pixel values.
 	(resize_root_window, resize_frame_windows, grow_mini_window)
-	(shrink_mini_window): New argument PIXELWISE.  Calculate
-	pixelwise.
+	(shrink_mini_window): New argument PIXELWISE.
+	Calculate pixelwise.
 	(Fdelete_other_windows_internal, adjust_window_margins)
 	(window_resize_check, window_resize_apply)
 	(Fdelete_window_internal, Fresize_mini_window_internal)
@@ -394,11 +398,11 @@
 	slots in save_window_data and saved_window.
 	(Fset_window_scroll_bars): Fix doc-string.
 	(window_resize_pixelwise): New variable.
-	(coordinates_in_window, Fcoordinates_in_window_p): Handle
-	dividers.
+	(coordinates_in_window, Fcoordinates_in_window_p):
+	Handle dividers.
 	(make_parent_window): Adjust sequence_number.
-	(Fwindow_right_divider_width, Fwindow_bottom_divider_width): New
-	functions.
+	(Fwindow_right_divider_width, Fwindow_bottom_divider_width):
+	New functions.
 	* window.h (struct window): New members new_pixel, pixel_left,
 	pixel_top, pixel_width, pixel_height.  Restore sequence_number.
 	(wset_new_pixel): New function.
@@ -432,10 +436,10 @@
 	encountered.
 	(Fwindow_text_pixel_size): New function.
 	(resize_mini_window, update_tool_bar): Calculate pixelwise.
-	(tool_bar_lines_needed): Rename to tool_bar_height.  Calculate
-	pixelwise.
-	(Ftool_bar_lines_needed): Rename to Ftool_bar_height.  Calculate
-	pixelwise.
+	(tool_bar_lines_needed): Rename to tool_bar_height.
+	Calculate pixelwise.
+	(Ftool_bar_lines_needed): Rename to Ftool_bar_height.
+	Calculate pixelwise.
 	(redisplay_tool_bar): Calculate pixelwise.
 	(redisplay_window): Calculate pixelwise.  Handle dividers.
 	(draw_glyphs, x_clear_end_of_line, note_mouse_highlight)
@@ -450,8 +454,8 @@
 	(x_set_menu_bar_lines, x_set_tool_bar_lines): Calculate pixelwise.
 	(x_set_scroll_bar_default_width): Default actual width to 16.
 	(Fx_create_frame): Set sizes pixelwise.
-	(x_create_tip_frame): Default divider widths to zero.  Pixelize
-	call of change_frame_size.
+	(x_create_tip_frame): Default divider widths to zero.
+	Pixelize call of change_frame_size.
 	(Fx_show_tip): Handle divider widths.  Initial pixel position
 	and sizes.
 	(frame_parm_handler x_frame_parm_handlers): Add divider widths.
