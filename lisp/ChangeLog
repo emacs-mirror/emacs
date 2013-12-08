@@ -1,3 +1,22 @@
+2013-12-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake, flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position)
+	(flymake-compilation-prevents-syntax-check)
+	(flymake-start-syntax-check-on-newline)
+	(flymake-no-changes-timeout, flymake-gui-warnings-enabled)
+	(flymake-start-syntax-check-on-find-file, flymake-log-level)
+	(flymake-xml-program, flymake-master-file-dirs)
+	(flymake-master-file-count-limit)
+	(flymake-allowed-file-name-masks): Relocate.
+	(flymake-makehash, flymake-float-time)
+	(flymake-replace-regexp-in-string, flymake-split-string)
+	(flymake-get-temp-dir): Remove.
+	(flymake-popup-menu, flymake-nop, flymake-make-xemacs-menu)
+	(flymake-current-row, flymake-selected-frame)
+	(flymake-get-point-pixel-pos): Remove xemacs compatibity and
+	related functions.  (Bug#16077)
+
 2013-12-07  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* emacs-lisp/helpers.el (string-blank-p): Use `string-match-p'.
