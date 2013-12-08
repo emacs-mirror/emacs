@@ -1,3 +1,7 @@
+2013-12-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_font): Mark frame as garbaged (Bug#16028).
+
 2013-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use libcrypto's checksum implementations if available, for speed.
