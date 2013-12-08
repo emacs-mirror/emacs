@@ -1,5 +1,9 @@
 2013-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use libcrypto's checksum implementations if available, for speed.
+	* Makefile.in (LIB_CRYPTO): New macro.
+	(LIBES): Use it.
+
 	* frame.h (SET_FRAME_VISIBLE): Now an inline function.
 	The macro didn't conform to C99 due to type mismatch,
 	which caused compilation failure with Sun C 5.12,

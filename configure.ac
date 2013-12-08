@@ -94,8 +94,9 @@ AC_ARG_WITH(all,
 [AS_HELP_STRING([--without-all],
 		[omit almost all features and build
 		small executable with minimal dependencies])],
-  with_features=$withval,
-  with_features=yes)
+  [with_features=$withval
+   with_openssl_default=$withval],
+  [with_features=yes])
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
@@ -4691,6 +4692,7 @@ CFLAGS=$pre_PKG_CONFIG_CFLAGS
 LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
 gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
+gl_SET_CRYPTO_CHECK_DEFAULT([auto])
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
@@ -4842,6 +4844,12 @@ else
   acl_summary=no
 fi
 
+if test -n "$LIB_CRYPTO"; then
+  HAVE_LIB_CRYPTO=yes
+else
+  HAVE_LIB_CRYPTO=no
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -4881,6 +4889,7 @@ echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
 echo "  Does Emacs use access control lists?                    ${acl_summary}"
+echo "  Does Emacs use a crypto library?                        ${HAVE_LIB_CRYPTO} $LIB_CRYPTO"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
