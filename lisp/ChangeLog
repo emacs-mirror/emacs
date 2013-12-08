@@ -1,3 +1,16 @@
+2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/js.el (js-auto-indent-flag): Remove, was unused.
+	(js-switch-indent-offset): New option.
+	(js--proper-indentation): Use it.  And handle the case when
+	"default" is actually a key in an object literal.
+	(js--same-line): New function.
+	(js--multi-line-declaration-indentation): Use it.
+	(js--indent-in-array-comp, js--array-comp-indentation): New
+	functions.
+	(js--proper-indentation): Use them, to handle array comprehension
+	continuations.
+
 2013-12-08  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/flymake.el (flymake-highlight-line): Re-write.
