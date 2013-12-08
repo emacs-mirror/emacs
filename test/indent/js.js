@@ -39,7 +39,11 @@ default:
   3;
 }
 
-var ;
+var p = {
+  case: 'zzzz',
+  default: 'donkey',
+  tee: 'ornery'
+};
 
 var evens = [e for each (e in range(0, 21))
                if (ed % 2 == 0)];
