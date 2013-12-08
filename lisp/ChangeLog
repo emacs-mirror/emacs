@@ -7,6 +7,11 @@
 
 2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* rect.el (rectangle-mark-mode): Activate mark even if
+	transient-mark-mode is off (bug#16066).
+	(rectangle--highlight-for-redisplay): Fix boundary condition when point
+	is > mark and at bolp.
+
 	* emulation/cua-rect.el (cua--rectangle-region-extract): New function.
 	(region-extract-function): Use it.
 	(cua-mouse-save-then-kill-rectangle): Use cua-copy-region.
