@@ -1,3 +1,10 @@
+2013-12-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-popup-current-error-menu): Rename
+	from flymake-display-err-menu-for-current-line. Reimplement.
+	(flymake-posn-at-point-as-event, flymake-popup-menu)
+	(flymake-make-emacs-menu): Remove.  (Bug#16077)
+
 2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/cua-rect.el (cua--rectangle-region-extract): New function.

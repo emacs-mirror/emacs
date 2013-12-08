@@ -192,55 +192,6 @@ NAME is the file name function to use, default `flymake-get-real-file-name'."
 (defvar-local flymake-new-err-info nil
   "Same as `flymake-err-info', effective when a syntax check is in progress.")
 
-(defun flymake-posn-at-point-as-event (&optional position window dx dy)
-  "Return pixel position of top left corner of glyph at POSITION.
-
-The position is relative to top left corner of WINDOW, as a
-mouse-1 click event (identical to the event that would be
-triggered by clicking mouse button 1 at the top left corner of
-the glyph).
-
-POSITION and WINDOW default to the position of point in the
-selected window.
-
-DX and DY specify optional offsets from the top left of the glyph."
-  (let* ((window (or window (selected-window)))
-	 (position (or position (window-point window)))
-	 (dx (or dx 0))
-	 (dy (or dy 0))
-	 (pos (posn-at-point position window))
-         (x-y (posn-x-y pos))
-         (edges (window-inside-pixel-edges window))
-         (win-x-y (window-pixel-edges window)))
-    ;; adjust for window edges
-    (setcar (nthcdr 2 pos)
-            (cons (+ (car x-y) (car  edges) (- (car win-x-y))  dx)
-                  (+ (cdr x-y) (cadr edges) (- (cadr win-x-y)) dy)))
-    (list 'mouse-1 pos)))
-
-;;; XXX: get rid of the following two functions
-
-(defun flymake-popup-menu (menu-data)
-  "Pop up the flymake menu at point, using the data MENU-DATA.
-POS is a list of the form ((X Y) WINDOW), where X and Y are
-pixels positions from the top left corner of WINDOW's frame.
-MENU-DATA is a list of error and warning messages returned by
-`flymake-make-err-menu-data'."
-  (x-popup-menu (flymake-posn-at-point-as-event)
-		(flymake-make-emacs-menu menu-data)))
-
-(defun flymake-make-emacs-menu (menu-data)
-  "Return a menu specifier using MENU-DATA.
-MENU-DATA is a list of error and warning messages returned by
-`flymake-make-err-menu-data'.
-See `x-popup-menu' for the menu specifier format."
-  (let* ((menu-title     (nth 0 menu-data))
-	 (menu-items     (nth 1 menu-data))
-	 (menu-commands  (mapcar (lambda (foo)
-                                   (cons (nth 0 foo) (nth 1 foo)))
-                                 menu-items)))
-    (list menu-title (cons "" menu-commands))))
-
 (defun flymake-log (level text &rest args)
   "Log a message at level LEVEL.
 If LEVEL is higher than `flymake-log-level', the message is
@@ -1223,45 +1174,36 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 	(flymake-log 3 "starting syntax check as more than 1 second passed since last change")
 	(flymake-start-syntax-check)))))
 
-(defun flymake-display-err-menu-for-current-line ()
-  "Display a menu with errors/warnings for current line if it has errors and/or warnings."
-  (interactive)
-  (let* ((line-no             (line-number-at-pos))
-	 (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-	 (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-	 (choice              nil))
-    (if menu-data
-	(progn
-	  (setq choice (flymake-popup-menu menu-data))
-	  (flymake-log 3 "choice=%s" choice)
-	  (when choice
-	    (eval choice)))
-      (flymake-log 1 "no errors for line %d" line-no))))
+(define-obsolete-function-alias 'flymake-display-err-menu-for-current-line
+  'flymake-popup-current-error-menu "24.4")
 
-(defun flymake-make-err-menu-data (line-no line-err-info-list)
-  "Make a (menu-title (item-title item-action)*) list with errors/warnings from LINE-ERR-INFO-LIST."
-  (let* ((menu-items  nil))
-    (when line-err-info-list
-      (let* ((count           (length line-err-info-list))
-	     (menu-item-text  nil))
-	(while (> count 0)
-	  (setq menu-item-text (flymake-ler-text (nth (1- count) line-err-info-list)))
-	  (let* ((file       (flymake-ler-file (nth (1- count) line-err-info-list)))
-		 (full-file  (flymake-ler-full-file (nth (1- count) line-err-info-list)))
-		 (line       (flymake-ler-line (nth (1- count) line-err-info-list))))
-	    (if file
-		(setq menu-item-text (concat menu-item-text " - " file "(" (format "%d" line) ")")))
-	    (setq menu-items (cons (list menu-item-text
-					 (if file (list 'flymake-goto-file-and-line full-file line) nil))
-				   menu-items)))
-	  (setq count (1- count)))
-	(flymake-log 3 "created menu-items with %d item(s)" (length menu-items))))
-    (if menu-items
-	(let* ((menu-title  (format "Line %d: %d error(s), %d warning(s)" line-no
-				    (flymake-get-line-err-count line-err-info-list "e")
-				    (flymake-get-line-err-count line-err-info-list "w"))))
-	  (list menu-title menu-items))
-      nil)))
+(defun flymake-popup-current-error-menu (&optional event)
+  "Pop up a menu with errors/warnings for current line."
+  (interactive (list last-nonmenu-event))
+  (let* ((line-no (line-number-at-pos))
+         (errors (or (car (flymake-find-err-info flymake-err-info line-no))
+                     (user-error "No errors for current line")))
+         (menu (mapcar (lambda (x)
+                         (if (flymake-ler-file x)
+                             (cons (format "%s - %s(%d)"
+                                           (flymake-ler-text x)
+                                           (flymake-ler-file x)
+                                           (flymake-ler-line x))
+                                   x)
+                           (list (flymake-ler-text x))))
+                       errors))
+         (event (if (mouse-event-p event)
+                    event
+                  (list 'mouse-1 (posn-at-point))))
+         (title (format "Line %d: %d error(s), %d warning(s)"
+                        line-no
+                        (flymake-get-line-err-count errors "e")
+                        (flymake-get-line-err-count errors "w")))
+         (choice (x-popup-menu event (list title (cons "" menu)))))
+    (flymake-log 3 "choice=%s" choice)
+    (when choice
+      (flymake-goto-file-and-line (flymake-ler-full-file choice)
+                                  (flymake-ler-line choice)))))
 
 (defun flymake-goto-file-and-line (file line)
   "Try to get buffer for FILE and goto line LINE in it."
