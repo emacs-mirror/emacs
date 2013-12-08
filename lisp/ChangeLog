@@ -1,7 +1,22 @@
+2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-rect.el (cua--rectangle-highlight-for-redisplay):
+	New function.
+	(redisplay-highlight-region-function): Use it.
+
+	* emulation/cua-base.el (cua--explicit-region-start)
+	(cua--last-region-shifted): Remove.
+	(cua--deactivate): Use deactivate-mark.
+	(cua--pre-command-handler-1): Don't handle shift-selection.
+	(cua--post-command-handler-1): Don't change transient-mark-mode.
+	(cua--select-keymaps): Use region-active-p rather than
+	cua--explicit-region-start or cua--last-region-shifted.
+	(cua-mode): Enable shift-select-mode.
+
 2013-12-08  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/flymake.el (flymake-popup-current-error-menu): Rename
-	from flymake-display-err-menu-for-current-line. Reimplement.
+	* progmodes/flymake.el (flymake-popup-current-error-menu):
+	Rename from flymake-display-err-menu-for-current-line.  Reimplement.
 	(flymake-posn-at-point-as-event, flymake-popup-menu)
 	(flymake-make-emacs-menu): Remove.  (Bug#16077)
 

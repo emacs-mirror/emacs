@@ -877,8 +877,7 @@ With prefix argument, activate previous rectangle if possible."
           (push-mark nil nil t)))
     (cua--activate-rectangle)
     (cua--rectangle-set-corners)
-    (setq mark-active t
-          cua--explicit-region-start t)
+    (setq mark-active t)
     (if cua-enable-rectangle-auto-help
         (cua-help-for-rectangle t))))
 
@@ -886,8 +885,7 @@ With prefix argument, activate previous rectangle if possible."
   "Cancel current rectangle."
   (interactive)
   (when cua--rectangle
-    (setq mark-active nil
-          cua--explicit-region-start nil)
+    (setq mark-active nil)
     (cua--deactivate-rectangle)))
 
 (defun cua-toggle-rectangle-mark ()
@@ -1378,6 +1376,14 @@ With prefix arg, indent to that column."
 
 (add-function :around region-extract-function
               #'cua--rectangle-region-extract)
+(add-function :around redisplay-highlight-region-function
+              #'cua--rectangle-highlight-for-redisplay)
+
+(defun cua--rectangle-highlight-for-redisplay (orig &rest args)
+  (if (not cua--rectangle) (apply orig args)
+    ;; When cua--rectangle is active, just don't highlight at all, since we
+    ;; already do it elsewhere.
+    ))
 
 (defun cua--rectangle-region-extract (orig &optional delete)
   (cond

@@ -625,13 +625,6 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 ;;; Aux. variables
 
-;; Current region was started using cua-set-mark.
-(defvar cua--explicit-region-start nil)
-(make-variable-buffer-local 'cua--explicit-region-start)
-
-;; Latest region was started using shifted movement command.
-(defvar cua--last-region-shifted nil)
-
 ;; buffer + point prior to current command when rectangle is active
 ;; checked in post-command hook to see if point was moved
 (defvar cua--buffer-and-point-before-command nil)
@@ -762,11 +755,9 @@ Repeating prefix key when region is active works as a single prefix key."
 	deactivate-mark nil))
 
 (defun cua--deactivate (&optional now)
-  (setq cua--explicit-region-start nil)
   (if (not now)
       (setq deactivate-mark t)
-    (setq mark-active nil)
-    (run-hooks 'deactivate-mark-hook)))
+    (deactivate-mark)))
 
 (defun cua--filter-buffer-noprops (start end)
   (let ((str (filter-buffer-substring start end)))
@@ -862,7 +853,6 @@ With numeric prefix arg, copy to register 0-9 instead."
   "Cancel the active region, rectangle, or global mark."
   (interactive)
   (setq mark-active nil)
-  (setq cua--explicit-region-start nil)
   (if (fboundp 'cua--cancel-rectangle)
       (cua--cancel-rectangle)))
 
@@ -1109,8 +1099,6 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     (message "Mark cleared"))
    (t
     (push-mark-command nil nil)
-    (setq cua--explicit-region-start t)
-    (setq cua--last-region-shifted nil)
     (if cua-enable-region-auto-help
 	(cua-help-for-region t)))))
 
@@ -1203,28 +1191,10 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    ((not (eq (get this-command 'CUA) 'move))
     nil)
 
-   ;; Handle shifted cursor keys and other movement commands.
-   ;; If region is not active, region is activated if key is shifted.
-   ;; If region is active, region is canceled if key is unshifted
-   ;;   (and region not started with C-SPC).
-   ;; If rectangle is active, expand rectangle in specified direction and
-   ;;   ignore the movement.
-   (this-command-keys-shift-translated
-    (unless mark-active
-      (push-mark-command nil t))
-    (setq cua--last-region-shifted t)
-    (setq cua--explicit-region-start nil))
-
    ;; Set mark if user explicitly said to do so
-   ((or cua--explicit-region-start cua--rectangle)
+   (cua--rectangle ;FIXME: ??
     (unless mark-active
-      (push-mark-command nil nil)))
-
-   ;; Else clear mark after this command.
-   (t
-    ;; If we set mark-active to nil here, the region highlight will not be
-    ;; removed by the direct_output_ commands.
-    (setq deactivate-mark t)))
+      (push-mark-command nil nil))))
 
   ;; Detect extension of rectangles by mouse or other movement
   (setq cua--buffer-and-point-before-command
@@ -1244,22 +1214,13 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (when (fboundp 'cua--rectangle-post-command)
     (cua--rectangle-post-command))
   (setq cua--buffer-and-point-before-command nil)
-  (if (or (not mark-active) deactivate-mark)
-      (setq cua--explicit-region-start nil))
 
   ;; Debugging
   (if cua--debug
       (cond
        (cua--rectangle (cua--rectangle-assert))
-       (mark-active (message "Mark=%d Point=%d Expl=%s"
-			     (mark t) (point) cua--explicit-region-start))))
+       (mark-active (message "Mark=%d Point=%d" (mark t) (point)))))
 
-  ;; Disable transient-mark-mode if rectangle active in current buffer.
-  (if (not (window-minibuffer-p))
-      (setq transient-mark-mode (and (not cua--rectangle)
-				     (if cua-highlight-region-shift-only
-					 (not cua--explicit-region-start)
-				       t))))
   (if cua-enable-cursor-indications
       (cua--update-indications))
 
@@ -1323,7 +1284,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	     cua-enable-cua-keys
 	     (not cua-inhibit-cua-keys)
 	     (or (eq cua-enable-cua-keys t)
-		 (not cua--explicit-region-start))
+		 (region-active-p))
 	     (not executing-kbd-macro)
 	     (not cua--prefix-override-timer)))
   (setq cua--ena-prefix-repeat-keymap
@@ -1334,7 +1295,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(and cua-enable-cua-keys
 	     (not cua-inhibit-cua-keys)
 	     (or (eq cua-enable-cua-keys t)
-		 cua--last-region-shifted)))
+		 (region-active-p))))
   (setq cua--ena-global-mark-keymap
 	(and cua--global-mark-active
 	     (not (window-minibuffer-p)))))
@@ -1546,11 +1507,8 @@ shifted movement key, set `cua-highlight-region-shift-only'."
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
 	(pc-selection-mode -1))
     (cua--deactivate)
-    (setq shift-select-mode nil)
-    (setq transient-mark-mode (and cua-mode
-				   (if cua-highlight-region-shift-only
-				       (not cua--explicit-region-start)
-				     t))))
+    (setq shift-select-mode t)
+    (transient-mark-mode (if cua-highlight-region-shift-only -1 1)))
    (cua--saved-state
     (setq transient-mark-mode (car cua--saved-state))
     (if (nth 1 cua--saved-state)
