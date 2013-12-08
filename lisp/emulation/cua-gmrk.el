@@ -362,7 +362,6 @@ With prefix argument, don't jump to global mark when canceling it."
   (define-key cua--global-mark-keymap [remap backward-delete-char]	'cua-delete-backward-char-at-global-mark)
   (define-key cua--global-mark-keymap [remap backward-delete-char-untabify] 'cua-delete-backward-char-at-global-mark)
   (define-key cua--global-mark-keymap [remap self-insert-command]	'cua-insert-char-at-global-mark)
-  (define-key cua--global-mark-keymap [remap self-insert-iso]		'cua-insert-char-at-global-mark)
 
   ;; Catch self-inserting characters which are "stolen" by other modes
   (define-key cua--global-mark-keymap [t]

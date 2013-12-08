@@ -96,10 +96,6 @@
 ;; This is done by highlighting the first occurrence of "redo"
 ;; and type "repeat" M-v M-v.
 
-;; Note: Since CUA-mode duplicates the functionality of the
-;; delete-selection-mode, that mode is automatically disabled when
-;; CUA-mode is enabled.
-
 
 ;; CUA mode indications
 ;; --------------------
@@ -601,8 +597,6 @@ a cons (TYPE . COLOR), then both properties are affected."
         cua--last-killed-rectangle nil))
 
 ;; All behind cua--rectangle tests.
-(declare-function cua-copy-rectangle    "cua-rect" (arg))
-(declare-function cua-cut-rectangle     "cua-rect" (arg))
 (declare-function cua--rectangle-left   "cua-rect" (&optional val))
 (declare-function cua--delete-rectangle "cua-rect" ())
 (declare-function cua--insert-rectangle "cua-rect"
@@ -733,9 +727,7 @@ Repeating prefix key when region is active works as a single prefix key."
 (defun cua--prefix-copy-handler (arg)
   "Copy region/rectangle, then replay last key."
   (interactive "P")
-  (if cua--rectangle
-      (cua-copy-rectangle arg)
-    (cua-copy-region arg))
+  (cua-copy-region arg)
   (let ((keys (this-single-command-keys)))
     (setq unread-command-events
 	  (cons (aref keys (1- (length keys))) unread-command-events))))
@@ -743,9 +735,7 @@ Repeating prefix key when region is active works as a single prefix key."
 (defun cua--prefix-cut-handler (arg)
   "Cut region/rectangle, then replay last key."
   (interactive "P")
-  (if cua--rectangle
-      (cua-cut-rectangle arg)
-    (cua-cut-region arg))
+  (cua-cut-region arg)
   (let ((keys (this-single-command-keys)))
     (setq unread-command-events
 	  (cons (aref keys (1- (length keys))) unread-command-events))))
@@ -815,27 +805,16 @@ Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
   (let ((start (mark)) (end (point)))
     (or (<= start end)
 	(setq start (prog1 end (setq end start))))
-    (setq cua--last-deleted-region-text (filter-buffer-substring start end))
+    (setq cua--last-deleted-region-text
+          (funcall region-extract-function t))
     (if cua-delete-copy-to-register-0
 	(set-register ?0 cua--last-deleted-region-text))
-    (delete-region start end)
     (setq cua--last-deleted-region-pos
 	  (cons (current-buffer)
 		(and (consp buffer-undo-list)
 		     (car buffer-undo-list))))
     (cua--deactivate)
     (/= start end)))
-
-(defun cua-replace-region ()
-  "Replace the active region with the character you type."
-  (interactive)
-  (let ((not-empty (and cua-delete-selection (cua-delete-region))))
-    (unless (eq this-original-command this-command)
-      (let ((overwrite-mode
-	     (and overwrite-mode
-		  not-empty
-		  (not (eq this-original-command 'self-insert-command)))))
-	(cua--fallback)))))
 
 (defun cua-copy-region (arg)
   "Copy the region to the kill ring.
@@ -848,11 +827,11 @@ With numeric prefix arg, copy to register 0-9 instead."
 	(setq start (prog1 end (setq end start))))
     (cond
      (cua--register
-      (copy-to-register cua--register start end nil))
+      (copy-to-register cua--register start end nil 'region))
      ((eq this-original-command 'clipboard-kill-ring-save)
-      (clipboard-kill-ring-save start end))
+      (clipboard-kill-ring-save start end 'region))
      (t
-      (copy-region-as-kill start end)))
+      (copy-region-as-kill start end 'region)))
     (if cua-keep-region-after-copy
 	(cua--keep-active)
       (cua--deactivate))))
@@ -870,11 +849,11 @@ With numeric prefix arg, copy to register 0-9 instead."
 	  (setq start (prog1 end (setq end start))))
       (cond
        (cua--register
-	(copy-to-register cua--register start end t))
+	(copy-to-register cua--register start end t 'region))
        ((eq this-original-command 'clipboard-kill-region)
-	(clipboard-kill-region start end))
+	(clipboard-kill-region start end 'region))
        (t
-	(kill-region start end))))
+	(kill-region start end 'region))))
     (cua--deactivate)))
 
 ;;; Generic commands for regions, rectangles, and global marks
@@ -1135,9 +1114,9 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
     (if cua-enable-region-auto-help
 	(cua-help-for-region t)))))
 
-;;; Scrolling commands which does not signal errors at top/bottom
-;;; of buffer at first key-press (instead moves to top/bottom
-;;; of buffer).
+;; Scrolling commands which do not signal errors at top/bottom
+;; of buffer at first key-press (instead moves to top/bottom
+;; of buffer).
 
 (defun cua-scroll-up (&optional arg)
   "Scroll text of current window upward ARG lines; or near full screen if no ARG.
@@ -1221,30 +1200,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    ((not (symbolp this-command))
     nil)
 
-   ;; Handle delete-selection property on non-movement commands
    ((not (eq (get this-command 'CUA) 'move))
-    (when (and mark-active (not deactivate-mark))
-      (let* ((ds (or (get this-command 'delete-selection)
-		     (get this-command 'pending-delete)))
-	     (nc (cond
-		  ((not ds) nil)
-		  ((eq ds 'yank)
-		   'cua-paste)
-		  ((eq ds 'kill)
-		   (if cua--rectangle
-		       'cua-copy-rectangle
-		     'cua-copy-region))
-		  ((eq ds 'supersede)
-		   (if cua--rectangle
-		       'cua-delete-rectangle
-		     'cua-delete-region))
-		  (t
-		   (if cua--rectangle
-		       'cua-delete-rectangle ;; replace?
-		     'cua-replace-region)))))
-	(if nc
-	    (setq this-original-command this-command
-		  this-command nc)))))
+    nil)
 
    ;; Handle shifted cursor keys and other movement commands.
    ;; If region is not active, region is activated if key is shifted.
@@ -1329,7 +1286,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   ;; Return DEF if current key sequence is self-inserting in
   ;; global-map.
   (if (memq (global-key-binding (this-single-command-keys))
-	    '(self-insert-command self-insert-iso))
+	    '(self-insert-command))
       def nil))
 
 (defvar cua-global-keymap (make-sparse-keymap)
@@ -1457,13 +1414,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [(shift control x)] 'cua--shift-control-x-prefix)
   (define-key cua--region-keymap [(shift control c)] 'cua--shift-control-c-prefix)
 
-  ;; replace current region
-  (define-key cua--region-keymap [remap self-insert-command]	'cua-replace-region)
-  (define-key cua--region-keymap [remap self-insert-iso]	'cua-replace-region)
-  (define-key cua--region-keymap [remap insert-register]	'cua-replace-region)
-  (define-key cua--region-keymap [remap newline-and-indent]	'cua-replace-region)
-  (define-key cua--region-keymap [remap newline]		'cua-replace-region)
-  (define-key cua--region-keymap [remap open-line]		'cua-replace-region)
   ;; delete current region
   (define-key cua--region-keymap [remap delete-backward-char]	'cua-delete-region)
   (define-key cua--region-keymap [remap backward-delete-char]	'cua-delete-region)
@@ -1589,8 +1539,10 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 	   (and (boundp 'delete-selection-mode) delete-selection-mode)
 	   (and (boundp 'pc-selection-mode) pc-selection-mode)
 	   shift-select-mode))
-    (if (and (boundp 'delete-selection-mode) delete-selection-mode)
-	(delete-selection-mode -1))
+    (if cua-delete-selection
+        (delete-selection-mode 1)
+      (if (and (boundp 'delete-selection-mode) delete-selection-mode)
+          (delete-selection-mode -1)))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
 	(pc-selection-mode -1))
     (cua--deactivate)
@@ -1602,7 +1554,9 @@ shifted movement key, set `cua-highlight-region-shift-only'."
    (cua--saved-state
     (setq transient-mark-mode (car cua--saved-state))
     (if (nth 1 cua--saved-state)
-	(delete-selection-mode 1))
+	(delete-selection-mode 1)
+      (if (and (boundp 'delete-selection-mode) delete-selection-mode)
+          (delete-selection-mode -1)))
     (if (nth 2 cua--saved-state)
 	(pc-selection-mode 1))
     (setq shift-select-mode (nth 3 cua--saved-state))

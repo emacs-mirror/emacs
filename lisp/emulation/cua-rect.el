@@ -461,7 +461,7 @@ If command is repeated at same position, delete the rectangle."
         (cua--deactivate))
     (cua-mouse-resize-rectangle event)
     (let ((cua-keep-region-after-copy t))
-      (cua-copy-rectangle arg)
+      (cua-copy-region arg)
       (setq cua--mouse-last-pos (cons (point) cua--last-killed-rectangle)))))
 
 (defun cua--mouse-ignore (_event)
@@ -945,32 +945,6 @@ With prefix argument, toggle restriction."
   (interactive)
   (cua--rectangle-move 'right))
 
-(defun cua-copy-rectangle (arg)
-  (interactive "P")
-  (setq arg (cua--prefix-arg arg))
-  (cua--copy-rectangle-as-kill arg)
-  (if cua-keep-region-after-copy
-      (cua--keep-active)
-    (cua--deactivate)))
-
-(defun cua-cut-rectangle (arg)
-  (interactive "P")
-  (if buffer-read-only
-      (cua-copy-rectangle arg)
-    (setq arg (cua--prefix-arg arg))
-    (goto-char (min (mark) (point)))
-    (cua--copy-rectangle-as-kill arg)
-    (cua--delete-rectangle))
-  (cua--deactivate))
-
-(defun cua-delete-rectangle ()
-  (interactive)
-  (goto-char (min (point) (mark)))
-  (if cua-delete-copy-to-register-0
-      (set-register ?0 (cua--extract-rectangle)))
-  (cua--delete-rectangle)
-  (cua--deactivate))
-
 (defun cua-rotate-rectangle ()
   (interactive)
   (cua--rectangle-corner (if (= (cua--rectangle-left) (cua--rectangle-right)) 0 1))
@@ -1402,6 +1376,30 @@ With prefix arg, indent to that column."
     (goto-char cua--rect-undo-set-point)
     (setq cua--rect-undo-set-point nil)))
 
+(add-function :around region-extract-function
+              #'cua--rectangle-region-extract)
+
+(defun cua--rectangle-region-extract (orig &optional delete)
+  (cond
+   ((not cua--rectangle) (funcall orig delete))
+   ((eq delete 'delete-only) (cua--delete-rectangle))
+   (t
+    (let* ((strs (cua--extract-rectangle))
+           (str (mapconcat #'identity strs "\n")))
+      (if delete (cua--delete-rectangle))
+      (setq killed-rectangle strs)
+      (setq cua--last-killed-rectangle
+            (cons (and kill-ring (car kill-ring)) killed-rectangle))
+      (when (eq last-command 'kill-region)
+        ;; Try to prevent kill-region from appending this to some
+        ;; earlier element.
+        (setq last-command 'kill-region-dont-append))
+      (when strs
+        (put-text-property 0 (length str) 'yank-handler
+                           `(rectangle--insert-for-yank ,strs t)
+                           str)
+        str)))))
+
 ;;; Initialization
 
 (defun cua--rect-M/H-key (key cmd)
@@ -1414,11 +1412,6 @@ With prefix arg, indent to that column."
     (cua--rect-M/H-key ?\s			       'cua-clear-rectangle-mark)
     (cua--M/H-key cua--region-keymap ?\s	       'cua-toggle-rectangle-mark))
 
-  (define-key cua--rectangle-keymap [remap copy-region-as-kill] 'cua-copy-rectangle)
-  (define-key cua--rectangle-keymap [remap kill-ring-save]      'cua-copy-rectangle)
-  (define-key cua--rectangle-keymap [remap kill-region]         'cua-cut-rectangle)
-  (define-key cua--rectangle-keymap [remap delete-char]         'cua-delete-rectangle)
-  (define-key cua--rectangle-keymap [remap delete-forward-char] 'cua-delete-rectangle)
   (define-key cua--rectangle-keymap [remap set-mark-command]    'cua-toggle-rectangle-mark)
 
   (define-key cua--rectangle-keymap [remap forward-char]        'cua-resize-rectangle-right)
@@ -1440,7 +1433,6 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap backward-delete-char] 'cua-delete-char-rectangle)
   (define-key cua--rectangle-keymap [remap backward-delete-char-untabify] 'cua-delete-char-rectangle)
   (define-key cua--rectangle-keymap [remap self-insert-command]	 'cua-insert-char-rectangle)
-  (define-key cua--rectangle-keymap [remap self-insert-iso]	 'cua-insert-char-rectangle)
 
   ;; Catch self-inserting characters which are "stolen" by other modes
   (define-key cua--rectangle-keymap [t]

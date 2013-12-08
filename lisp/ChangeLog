@@ -1,5 +1,32 @@
 2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/cua-rect.el (cua--rectangle-region-extract): New function.
+	(region-extract-function): Use it.
+	(cua-mouse-save-then-kill-rectangle): Use cua-copy-region.
+	(cua-copy-rectangle, cua-cut-rectangle, cua-delete-rectangle):
+	Delete functions.
+	(cua--init-rectangles): Don't re-remap copy-region-as-kill,
+	kill-ring-save, kill-region, delete-char, delete-forward-char.
+	Ignore self-insert-iso.
+
+	* emulation/cua-gmrk.el (cua--init-global-mark):
+	Ignore `self-insert-iso'.
+
+	* emulation/cua-base.el (cua--prefix-copy-handler)
+	(cua--prefix-cut-handler): Rely on region-extract-function rather than
+	checking cua--rectangle.
+	(cua-delete-region): Use region-extract-function.
+	(cua-replace-region): Delete function.
+	(cua-copy-region, cua-cut-region): Obey region-extract-function.
+	(cua--pre-command-handler-1): Don't do the delete-selection thing.
+	(cua--self-insert-char-p): Ignore `self-insert-iso'.
+	(cua--init-keymaps): Don't remap delete-selection commands.
+	(cua-mode): Use delete-selection-mode instead of rolling our own
+	(bug#16085).
+
+	* menu-bar.el (clipboard-kill-ring-save, clipboard-kill-region):
+	Obey region-extract-function.
+
 	Make registers and delete-selection-mode work on rectangles.
 	* register.el (describe-register-1): Don't modify the register's value.
 	(copy-to-register): Obey region-extract-function.
