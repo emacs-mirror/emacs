@@ -509,16 +509,6 @@ Create parent directories as needed."
   (write-region nil nil file-name nil 566)
   (flymake-log 3 "saved buffer %s in file %s" (buffer-name) file-name))
 
-(defun flymake-save-string-to-file (file-name data)
-  "Save string DATA to file FILE-NAME."
-  (write-region data nil file-name nil 566))
-
-(defun flymake-read-file-to-string (file-name)
-  "Read contents of file FILE-NAME and return as a string."
-  (with-temp-buffer
-    (insert-file-contents file-name)
-    (buffer-substring (point-min) (point-max))))
-
 (defun flymake-process-filter (process output)
   "Parse OUTPUT and highlight error lines.
 It's flymake process filter."
@@ -697,7 +687,7 @@ line number outside the file being compiled."
   "Determine whether overlay OV was created by flymake."
   (and (overlayp ov) (overlay-get ov 'flymake-overlay)))
 
-(defun flymake-make-overlay (beg end tooltip-text face bitmap mouse-face)
+(defun flymake-make-overlay (beg end tooltip-text face bitmap)
   "Allocate a flymake overlay in range BEG and END."
   (when (not (flymake-region-has-flymake-overlays beg end))
     (let ((ov (make-overlay beg end nil t t))
@@ -708,7 +698,6 @@ line number outside the file being compiled."
 					     bitmap
 					   (list bitmap)))))))
       (overlay-put ov 'face           face)
-      (overlay-put ov 'mouse-face     mouse-face)
       (overlay-put ov 'help-echo      tooltip-text)
       (overlay-put ov 'flymake-overlay  t)
       (overlay-put ov 'priority 100)
@@ -760,42 +749,19 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-char (point-min))
   (forward-line (1- line-no))
-  (let* ((line-beg (point-at-bol))
-	 (line-end (point-at-eol))
-	 (beg      line-beg)
-	 (end      line-end)
-	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
-	 (face     nil)
-	 (bitmap   nil))
-
-    (goto-char line-beg)
-    (while (looking-at "[ \t]")
-      (forward-char))
-
-    (setq beg (point))
-
-    (goto-char line-end)
-    (while (and (looking-at "[ \t\r\n]") (> (point) 1))
-      (backward-char))
-
-    (setq end (1+ (point)))
-
-    (when (<= end beg)
-      (setq beg line-beg)
-      (setq end line-end))
-
-    (when (= end beg)
-      (goto-char end)
-      (forward-line)
-      (setq end (point)))
-
-    (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-	(setq face 'flymake-errline
-	      bitmap flymake-error-bitmap)
-      (setq face 'flymake-warnline
-	    bitmap flymake-warning-bitmap))
-
-    (flymake-make-overlay beg end tooltip-text face bitmap nil)))
+  (pcase-let* ((beg (progn (back-to-indentation) (point)))
+               (end (progn
+                      (end-of-line)
+                      (skip-chars-backward " \t\f\t\n" beg)
+                      (if (eq (point) beg)
+                          (line-beginning-position 2)
+                        (point))))
+               (tooltip-text (mapconcat #'flymake-ler-text line-err-info-list "\n"))
+               (`(,face ,bitmap)
+                (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
+                    (list 'flymake-errline flymake-error-bitmap)
+                  (list 'flymake-warnline flymake-warning-bitmap))))
+    (flymake-make-overlay beg end tooltip-text face bitmap)))
 
 (defun flymake-parse-err-lines (err-info-list lines)
   "Parse err LINES, store info in ERR-INFO-LIST."
@@ -882,19 +848,6 @@ Convert it to flymake internal format."
 \(REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
 Use `flymake-reformat-err-line-patterns-from-compile-el' to add patterns
 from compile.el")
-
-;;(defcustom flymake-err-line-patterns
-;;  '(
-;;    ; MS Visual C++ 6.0
-;;    ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \: \\(\\(error\\|warning\\|fatal error\\) \\(C[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
-;;       1 3 4)
-;;   ; jikes
-;;   ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[0-9]+\:[0-9]+\:[0-9]+\: \\(\\(Error\\|Warning\\|Caution\\):[ \t\n]*\\(.+\\)\\)"
-;;       1 3 4))
-;;    "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx)"
-;;   :group 'flymake
-;;   :type '(repeat (string number number number))
-;;)
 
 (define-obsolete-variable-alias 'flymake-warning-re 'flymake-warning-predicate "24.4")
 (defvar flymake-warning-predicate "^[wW]arning"

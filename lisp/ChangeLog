@@ -1,3 +1,9 @@
+2013-12-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-highlight-line): Re-write.
+	(flymake-make-overlay): Remove arg MOUSE-FACE.
+	(flymake-save-string-to-file, flymake-read-file-to-string): Remove.
+
 2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/cua-rect.el (cua--rectangle-highlight-for-redisplay):
