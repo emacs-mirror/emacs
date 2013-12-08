@@ -2136,6 +2136,10 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
     if test $HAVE_RSVG = yes; then
       AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])
       CFLAGS="$CFLAGS $RSVG_CFLAGS"
+      # Windows loads librsvg dynamically
+      if test "${opsys}" = "mingw32"; then
+       	RSVG_LIBS=
+      fi
       LIBS="$RSVG_LIBS $LIBS"
     fi
   fi
