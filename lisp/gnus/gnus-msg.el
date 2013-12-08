@@ -433,12 +433,12 @@ Thank you for your help in stamping out bugs.
 	   (,buffer (buffer-name (current-buffer)))
 	   (,article (if (and (gnus-nnir-group-p gnus-newsgroup-name)
 			      gnus-article-reply)
-			 (nnir-article-number gnus-article-reply)
+			 (nnir-article-number (length gnus-article-reply))
 		       gnus-article-reply))
 	   (,yanked gnus-article-yanked-articles)
 	   (,group (if (and (gnus-nnir-group-p gnus-newsgroup-name)
 			    gnus-article-reply)
-		       (nnir-article-group gnus-article-reply)
+		       (nnir-article-group (length gnus-article-reply))
 		     gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
@@ -446,7 +446,7 @@ Thank you for your help in stamping out bugs.
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
        (add-hook 'message-header-setup-hook (lambda ()
-       					      (gnus-inews-insert-gcc ,group)))
+					      (gnus-inews-insert-gcc ,group)))
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
