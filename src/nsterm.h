@@ -90,6 +90,7 @@ typedef float EmacsCGFloat;
   BOOL isFirst;
 #endif
 #ifdef NS_IMPL_GNUSTEP
+  BOOL applicationDidFinishLaunchingCalled;
 @public
   int nextappdefined;
 #endif

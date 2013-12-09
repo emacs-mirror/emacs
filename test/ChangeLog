@@ -1,3 +1,7 @@
+2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/js.js: New file.
+
 2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/dbus-tests.el: New file.

@@ -661,6 +661,17 @@ whether it is safe to use Bash's --noediting option.  These days
 
 *** Add more Ruby file types to `auto-mode-alist'.
 
+** JS Mode
+
+*** Better indentation of multiple-variable declarations.
+If declaration spans several lines, variables on the following lines
+are lined up to the first one.
+
+*** We now recognize and better indent continuations in array
+comprehensions.
+
+*** New option `js-switch-indent-offset`.
+
 
 * New Modes and Packages in Emacs 24.4
 

@@ -22,6 +22,9 @@
 
 #include <config.h>
 
+#if HAVE_OPENSSL_SHA512
+# define GL_OPENSSL_INLINE _GL_EXTERN_INLINE
+#endif
 #include "sha512.h"
 
 #include <stdalign.h>
@@ -52,6 +55,7 @@
 # error "invalid BLOCKSIZE"
 #endif
 
+#if ! HAVE_OPENSSL_SHA512
 /* This array contains the bytes used to pad the buffer to the next
    128-byte boundary.  */
 static const unsigned char fillbuf[128] = { 0x80, 0 /* , 0, 0, ...  */ };
@@ -171,6 +175,7 @@ sha384_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
   sha512_conclude_ctx (ctx);
   return sha384_read_ctx (ctx, resbuf);
 }
+#endif
 
 /* Compute SHA512 message digest for bytes read from STREAM.  The
    resulting message digest number will be written into the 64 bytes
@@ -316,6 +321,7 @@ sha384_stream (FILE *stream, void *resblock)
   return 0;
 }
 
+#if ! HAVE_OPENSSL_SHA512
 /* Compute SHA512 message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
@@ -619,3 +625,4 @@ sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
       h = ctx->state[7] = u64plus (ctx->state[7], h);
     }
 }
+#endif

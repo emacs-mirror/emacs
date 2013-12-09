@@ -1,3 +1,9 @@
+2013-12-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Progress, Face Remapping):
+	* processes.texi (Serial Ports):
+	* windows.texi (Recombining Windows): Fix typos.  (Bug#16089)
+
 2013-12-04  Juri Linkov  <juri@jurta.org>
 
 	* searching.texi (Search and Replace): Fix `unread-command-events'

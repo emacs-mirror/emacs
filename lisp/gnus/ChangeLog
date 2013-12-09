@@ -1,3 +1,8 @@
+2013-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-setup-message): Fix the type of argument passed to
+	nnir-article-number and nnir-article-group.
+
 2013-12-03  Vitalie Spinu  <spinuvit@gmail.com>
 
 	* message.el (message-send-mail-with-sendmail):

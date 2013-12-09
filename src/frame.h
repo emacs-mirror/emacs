@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "dispextern.h"
 #include "termhooks.h"
+#include "window.h"
 
 INLINE_HEADER_BEGIN
 
@@ -956,10 +957,14 @@ default_pixels_per_inch_y (void)
    if some changes were applied to it while it wasn't visible (and hence
    wasn't redisplayed).  */
 
-#define SET_FRAME_VISIBLE(f, v)					\
-  (((f)->visible == 0 || ((f)->visible == 2)) && ((v) == 1)	\
-   ? redisplay_other_windows () : 0,				\
-   (f)->visible = (eassert (0 <= (v) && (v) <= 2), (v)))
+INLINE void
+SET_FRAME_VISIBLE (struct frame *f, int v)
+{
+  eassert (0 <= v && v <= 2);
+  if (v == 1 && f->visible != 1)
+    redisplay_other_windows ();
+  f->visible = v;
+}
 
 /* Set iconify of frame F.  */
 

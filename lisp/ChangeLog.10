@@ -5639,7 +5639,7 @@
 	add handling of entry attributes using diary-pull-attrs.
 	(mark-calendar-days-named, mark-calendar-days-named)
 	(mark-calendar-date-pattern, mark-calendar-month)
-	(add-to-diary-list): Add optional paramater `color' for passing
+	(add-to-diary-list): Add optional parameter `color' for passing
 	face attribute info through the callchain.  Pass this parameter around.
 
 2003-02-11  Stefan Monnier  <monnier@cs.yale.edu>

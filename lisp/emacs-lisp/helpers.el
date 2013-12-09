@@ -67,7 +67,7 @@
 
 (defsubst string-blank-p (string)
   "Check whether STRING is either empty or only whitespace."
-  (string-empty-p (string-trim string)))
+  (string-match-p "\\`[ \t\n\r]*\\'" string))
 
 (provide 'helpers)
 

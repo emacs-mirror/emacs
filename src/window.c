@@ -3365,6 +3365,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
   /* Maybe we could move this into the `if' but it's not obviously safe and
      I doubt it's worth the trouble.  */
   wset_redisplay (w);
+  w->update_mode_line = true;
 
   /* We must select BUFFER for running the window-scroll-functions.  */
   /* We can't check ! NILP (Vwindow_scroll_functions) here

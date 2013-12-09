@@ -510,9 +510,7 @@ static void
 popup_activate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   popup_activated_flag = 1;
-#ifdef USE_X_TOOLKIT
   x_activate_timeout_atimer ();
-#endif
 }
 #endif
 

@@ -362,8 +362,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
              (and (memq (char-before)
                         '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?%
                           ?~ ?^))
-                  ;; Make sure it's not the end of a regexp.
-                  (not (eq (car (syntax-after (1- (point)))) 7)))
+                  ;; Not the end of a regexp or a percent literal.
+                  (not (memq (car (syntax-after (1- (point)))) '(7 15))))
              (and (eq (char-before) ?\?)
                   (equal (save-excursion (ruby-smie--backward-token)) "?"))
              (and (eq (char-before) ?=)
@@ -614,11 +614,16 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (nreverse (ruby-imenu-create-index-in-block nil (point-min) nil)))
 
 (defun ruby-accurate-end-of-block (&optional end)
-  "TODO: document."
+  "Jump to the end of the current block or END, whichever is closer."
   (let (state
         (end (or end (point-max))))
-    (while (and (setq state (apply 'ruby-parse-partial end state))
-                (>= (nth 2 state) 0) (< (point) end)))))
+    (if ruby-use-smie
+        (save-restriction
+          (back-to-indentation)
+          (narrow-to-region (point) end)
+          (smie-forward-sexp))
+      (while (and (setq state (apply 'ruby-parse-partial end state))
+                    (>= (nth 2 state) 0) (< (point) end))))))
 
 (defun ruby-mode-variables ()
   "Set up initial buffer-local variables for Ruby mode."
@@ -790,11 +795,28 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                   (t nil)))))))))
 
 (defun ruby-forward-string (term &optional end no-error expand)
-  "TODO: document."
+  "Move forward across one balanced pair of string delimiters.
+Skips escaped delimiters. If EXPAND is non-nil, also ignores
+delimiters in interpolated strings.
+
+TERM should be a string containing either a single, self-matching
+delimiter (e.g. \"/\"), or a pair of matching delimiters with the
+close delimiter first (e.g. \"][\").
+
+When non-nil, search is bounded by position END.
+
+Throws an error if a balanced match is not found, unless NO-ERROR
+is non-nil, in which case nil will be returned.
+
+This command assumes the character after point is an opening
+delimiter."
   (let ((n 1) (c (string-to-char term))
-        (re (if expand
-                (concat "[^\\]\\(\\\\\\\\\\)*\\([" term "]\\|\\(#{\\)\\)")
-              (concat "[^\\]\\(\\\\\\\\\\)*[" term "]"))))
+        (re (concat "[^\\]\\(\\\\\\\\\\)*\\("
+                    (if (string= term "^") ;[^] is not a valid regexp
+                        "\\^"
+                      (concat "[" term "]"))
+                    (when expand "\\|\\(#{\\)")
+                    "\\)")))
     (while (and (re-search-forward re end no-error)
                 (if (match-beginning 3)
                     (ruby-forward-string "}{" end no-error nil)

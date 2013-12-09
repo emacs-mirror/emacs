@@ -1320,8 +1320,6 @@ x_set_window_size (struct frame *f,
   [view setRows: rows andColumns: cols];
   [window setFrame: wr display: YES];
 
-  fprintf (stderr, "\tx_set_window_size %d, %d\t%d, %d\n", cols, rows, pixelwidth, pixelheight);
-
   /* This is a trick to compensate for Emacs' managing the scrollbar area
      as a fixed number of standard character columns.  Instead of leaving
      blank space for the extra, we chopped it off above.  Now for
@@ -4410,15 +4408,22 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsApp
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
 - (id)init
 {
   if (self = [super init])
-    self->isFirst = YES;
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+      self->isFirst = YES;
+#endif
+#ifdef NS_IMPL_GNUSTEP
+      self->applicationDidFinishLaunchingCalled = NO;
+#endif
+    }
 
   return self;
 }
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
 - (void)run
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -4605,6 +4610,9 @@ ns_term_shutdown (int sig)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (applicationDidFinishLaunching);
+#ifdef NS_IMPL_GNUSTEP
+  ((EmacsApp *)self)->applicationDidFinishLaunchingCalled = YES;
+#endif
   [NSApp setServicesProvider: NSApp];
   ns_send_appdefined (-2);
 }
@@ -4732,6 +4740,10 @@ not_in_argv (NSString *arg)
 {
   NSTRACE (applicationDidBecomeActive);
 
+#ifdef NS_IMPL_GNUSTEP
+  if (! applicationDidFinishLaunchingCalled)
+    [self applicationDidFinishLaunching:notification];
+#endif
   //ns_app_active=YES;
 
   ns_update_auto_hide_menu_bar ();
@@ -5670,6 +5682,11 @@ not_in_argv (NSString *arg)
 
   if (! [self isFullscreen])
     {
+#ifdef NS_IMPL_GNUSTEP
+      // GNUStep does not always update the tool bar height.  Force it.
+      if (toolbar) update_frame_tool_bar (emacsframe);
+#endif
+
       extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
         + FRAME_TOOLBAR_HEIGHT (emacsframe);
     }

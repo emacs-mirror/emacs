@@ -364,6 +364,7 @@ The Lisp value REGISTER is a character."
 	(princ (car val))))
 
      ((stringp val)
+      (setq val (copy-sequence val))
       (if (eq yank-excluded-properties t)
 	  (set-text-properties 0 (length val) nil val)
 	(remove-list-of-text-properties 0 (length val)
@@ -417,19 +418,24 @@ Interactively, second arg is non-nil if prefix arg is supplied."
       (error "Register does not contain text"))))
   (if (not arg) (exchange-point-and-mark)))
 
-(defun copy-to-register (register start end &optional delete-flag)
+(defun copy-to-register (register start end &optional delete-flag region)
   "Copy region into register REGISTER.
 With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
-START and END are buffer positions indicating what to copy."
+START and END are buffer positions indicating what to copy.
+The optional argument REGION if non-nil, indicates that we're not just copying
+some text between START and END, but we're copying the region."
   (interactive (list (register-read-with-preview "Copy to register: ")
 		     (region-beginning)
 		     (region-end)
-		     current-prefix-arg))
-  (set-register register (filter-buffer-substring start end))
+		     current-prefix-arg
+		     t))
+  (set-register register (if region
+			     (funcall region-extract-function delete-flag)
+			   (prog1 (filter-buffer-substring start end)
+			     (if delete-flag (delete-region start end)))))
   (setq deactivate-mark t)
-  (cond (delete-flag
-	 (delete-region start end))
+  (cond (delete-flag)
 	((called-interactively-p 'interactive)
 	 (indicate-copied-region))))
 

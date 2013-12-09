@@ -545,17 +545,17 @@
   (let ((x-select-enable-clipboard t))
     (yank)))
 
-(defun clipboard-kill-ring-save (beg end)
+(defun clipboard-kill-ring-save (beg end &optional region)
   "Copy region to kill ring, and save in the X clipboard."
-  (interactive "r")
+  (interactive "r\np")
   (let ((x-select-enable-clipboard t))
-    (kill-ring-save beg end)))
+    (kill-ring-save beg end region)))
 
-(defun clipboard-kill-region (beg end)
+(defun clipboard-kill-region (beg end &optional region)
   "Kill the region, and save it in the X clipboard."
-  (interactive "r")
+  (interactive "r\np")
   (let ((x-select-enable-clipboard t))
-    (kill-region beg end)))
+    (kill-region beg end region)))
 
 (defun menu-bar-enable-clipboard ()
   "Make CUT, PASTE and COPY (keys and menu bar items) use the clipboard.

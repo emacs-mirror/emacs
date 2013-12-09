@@ -443,7 +443,9 @@ with a prefix argument, prompt for START-AT and FORMAT."
 Activates the region if needed.  Only lasts until the region is deactivated."
   nil nil nil
   (when rectangle-mark-mode
-    (unless (region-active-p) (push-mark-command t))))
+    (unless (region-active-p)
+      (push-mark)
+      (activate-mark))))
 
 (defun rectangle--extract-region (orig &optional delete)
   (if (not rectangle-mark-mode)
@@ -495,70 +497,72 @@ Activates the region if needed.  Only lasts until the region is deactivated."
              (leftcol  (min ptcol markcol))
              (rightcol (max ptcol markcol)))
         (goto-char start)
-        (while (< (point) end)
-          (let* ((mleft (move-to-column leftcol))
-                 (left (point))
-                 (mright (move-to-column rightcol))
-                 (right (point))
-                 (ol
-                  (if (not old)
-                      (let ((ol (make-overlay left right)))
-                        (overlay-put ol 'window window)
-                        (overlay-put ol 'face 'region)
-                        ol)
-                    (let ((ol (pop old)))
-                      (move-overlay ol left right (current-buffer))
-                      ol))))
-            ;; `move-to-column' may stop before the column (if bumping into
-            ;; EOL) or overshoot it a little, when column is in the middle
-            ;; of a char.
-            (cond
-             ((< mleft leftcol)         ;`leftcol' is past EOL.
-              (overlay-put ol 'before-string
-                           (spaces-string (- leftcol mleft)))
-              (setq mright (max mright leftcol)))
-             ((and (> mleft leftcol)    ;`leftcol' is in the middle of a char.
-                   (eq (char-before left) ?\t))
-              (setq left (1- left))
-              (move-overlay ol left right)
-              (goto-char left)
-              (overlay-put ol 'before-string
-                           (spaces-string (- leftcol (current-column)))))
-             ((overlay-get ol 'before-string)
-              (overlay-put ol 'before-string nil)))
-            (cond
-             ((< mright rightcol)       ;`rightcol' is past EOL.
-              (let ((str (make-string (- rightcol mright) ?\s)))
-                (put-text-property 0 (length str) 'face 'region str)
-                ;; If cursor happens to be here, draw it *before* rather than
-                ;; after this highlighted pseudo-text.
-                (put-text-property 0 1 'cursor t str)
-                (overlay-put ol 'after-string str)))
-             ((and (> mright rightcol)  ;`rightcol' is in the middle of a char.
-                   (eq (char-before right) ?\t))
-              (setq right (1- right))
-              (move-overlay ol left right)
-	      (if (= rightcol leftcol)
-		  (overlay-put ol 'after-string nil)
-		(goto-char right)
-		(let ((str (make-string
-			    (- rightcol (max leftcol (current-column))) ?\s)))
-		  (put-text-property 0 (length str) 'face 'region str)
-		  (when (= left right)
-		    ;; If cursor happens to be here, draw it *before* rather
-		    ;; than after this highlighted pseudo-text.
-		    (put-text-property 0 1 'cursor 1 str))
-		  (overlay-put ol 'after-string str))))
-             ((overlay-get ol 'after-string)
-              (overlay-put ol 'after-string nil)))
-            (when (= leftcol rightcol)
-              ;; Make zero-width rectangles visible!
-              (overlay-put ol 'after-string
-                           (concat (propertize " "
-                                               'face '(region (:height 0.2)))
-                                   (overlay-get ol 'after-string))))
-            (push ol nrol))
-          (forward-line 1))
+        (while
+            (let* ((mleft (move-to-column leftcol))
+                   (left (point))
+                   (mright (move-to-column rightcol))
+                   (right (point))
+                   (ol
+                    (if (not old)
+                        (let ((ol (make-overlay left right)))
+                          (overlay-put ol 'window window)
+                          (overlay-put ol 'face 'region)
+                          ol)
+                      (let ((ol (pop old)))
+                        (move-overlay ol left right (current-buffer))
+                        ol))))
+              ;; `move-to-column' may stop before the column (if bumping into
+              ;; EOL) or overshoot it a little, when column is in the middle
+              ;; of a char.
+              (cond
+               ((< mleft leftcol)       ;`leftcol' is past EOL.
+                (overlay-put ol 'before-string
+                             (spaces-string (- leftcol mleft)))
+                (setq mright (max mright leftcol)))
+               ((and (> mleft leftcol)  ;`leftcol' is in the middle of a char.
+                     (eq (char-before left) ?\t))
+                (setq left (1- left))
+                (move-overlay ol left right)
+                (goto-char left)
+                (overlay-put ol 'before-string
+                             (spaces-string (- leftcol (current-column)))))
+               ((overlay-get ol 'before-string)
+                (overlay-put ol 'before-string nil)))
+              (cond
+               ((< mright rightcol)     ;`rightcol' is past EOL.
+                (let ((str (make-string (- rightcol mright) ?\s)))
+                  (put-text-property 0 (length str) 'face 'region str)
+                  ;; If cursor happens to be here, draw it *before* rather than
+                  ;; after this highlighted pseudo-text.
+                  (put-text-property 0 1 'cursor t str)
+                  (overlay-put ol 'after-string str)))
+               ((and (> mright rightcol) ;`rightcol's in the middle of a char.
+                     (eq (char-before right) ?\t))
+                (setq right (1- right))
+                (move-overlay ol left right)
+                (if (= rightcol leftcol)
+                    (overlay-put ol 'after-string nil)
+                  (goto-char right)
+                  (let ((str (make-string
+                              (- rightcol (max leftcol (current-column)))
+                              ?\s)))
+                    (put-text-property 0 (length str) 'face 'region str)
+                    (when (= left right)
+                      ;; If cursor happens to be here, draw it *before* rather
+                      ;; than after this highlighted pseudo-text.
+                      (put-text-property 0 1 'cursor 1 str))
+                    (overlay-put ol 'after-string str))))
+               ((overlay-get ol 'after-string)
+                (overlay-put ol 'after-string nil)))
+              (when (= leftcol rightcol)
+                ;; Make zero-width rectangles visible!
+                (overlay-put ol 'after-string
+                             (concat (propertize " "
+                                                 'face '(region (:height 0.2)))
+                                     (overlay-get ol 'after-string))))
+              (push ol nrol)
+              (and (zerop (forward-line 1))
+                   (<= (point) end))))
         (mapc #'delete-overlay old)
         `(rectangle ,(buffer-chars-modified-tick) ,start ,end ,@nrol))))))
 

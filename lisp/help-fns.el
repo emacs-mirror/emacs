@@ -382,8 +382,6 @@ suitable file is found, return nil."
 			    (match-string 1 str))))
 	(and src-file (file-readable-p src-file) src-file))))))
 
-(declare-function ad-get-advice-info "advice" (function))
-
 (defun help-fns--key-bindings (function)
   (when (commandp function)
     (let ((pt2 (with-current-buffer standard-output (point)))
@@ -531,27 +529,34 @@ FILE is the file where FUNCTION was probably defined."
 
 ;;;###autoload
 (defun describe-function-1 (function)
-  (let* ((advised (and (symbolp function) (featurep 'advice)
-		       (ad-get-advice-info function)))
+  (let* ((advised (and (symbolp function)
+		       (featurep 'nadvice)
+		       (advice--p (advice--symbol-function function))))
 	 ;; If the function is advised, use the symbol that has the
 	 ;; real definition, if that symbol is already set up.
 	 (real-function
 	  (or (and advised
-		   (let ((origname (cdr (assq 'origname advised))))
-		     (and (fboundp origname) origname)))
+		   (let* ((advised-fn (advice--cdr
+				       (advice--symbol-function function))))
+		     (while (advice--p advised-fn)
+		       (setq advised-fn (advice--cdr advised-fn)))
+		     advised-fn))
 	      function))
 	 ;; Get the real definition.
 	 (def (if (symbolp real-function)
 		  (symbol-function real-function)
-		function))
-	 (aliased (symbolp def))
-	 (real-def (if aliased
-		       (let ((f def))
-			 (while (and (fboundp f)
-				     (symbolp (symbol-function f)))
-			   (setq f (symbol-function f)))
-			 f)
-		     def))
+		real-function))
+	 (aliased (or (symbolp def)
+		      ;; Advised & aliased function.
+		      (and advised (symbolp real-function))))
+	 (real-def (cond
+		    (aliased (let ((f real-function))
+			       (while (and (fboundp f)
+					   (symbolp (symbol-function f)))
+				 (setq f (symbol-function f)))
+			       f))
+		    ((subrp def) (intern (subr-name def)))
+		    (t def)))
 	 (file-name (find-lisp-object-file-name function def))
          (pt1 (with-current-buffer (help-buffer) (point)))
 	 (beg (if (and (or (byte-code-function-p def)
@@ -571,14 +576,20 @@ FILE is the file where FUNCTION was probably defined."
 		  (if (eq 'unevalled (cdr (subr-arity def)))
 		      (concat beg "special form")
 		    (concat beg "built-in function")))
-		 ((byte-code-function-p def)
-		  (concat beg "compiled Lisp function"))
+		 ;; Aliases are Lisp functions, so we need to check
+		 ;; aliases before functions.
 		 (aliased
 		  (format "an alias for `%s'" real-def))
+		 ((or (eq (car-safe def) 'macro)
+		      ;; For advised macros, def is a lambda
+		      ;; expression or a byte-code-function-p, so we
+		      ;; need to check macros before functions.
+		      (macrop function))
+		  (concat beg "Lisp macro"))
+		 ((byte-code-function-p def)
+		  (concat beg "compiled Lisp function"))
 		 ((eq (car-safe def) 'lambda)
 		  (concat beg "Lisp function"))
-		 ((eq (car-safe def) 'macro)
-		  (concat beg "Lisp macro"))
 		 ((eq (car-safe def) 'closure)
 		  (concat beg "Lisp closure"))
 		 ((autoloadp def)

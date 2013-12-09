@@ -1,7 +1,140 @@
+2013-12-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-add-watch): Do not handle
+	symlinked files.
+
+2013-12-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Return t
+	after the end of a percent literal.
+
+2013-12-09  Cameron Desautels  <camdez@gmail.com>  (tiny change)
+
+	* progmodes/ruby-mode.el (ruby-forward-string): Document.  Handle
+	caret-delimited strings (Bug#16079).
+
+2013-12-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-accurate-end-of-block): When
+	`ruby-use-smie' is t, use `smie-forward-sexp' instead of
+	`ruby-parse-partial' (Bug#16078).
+
+2013-12-09  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (read-passwd): Disable show-paren-mode.  (Bug#16091)
+
+2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/js.el (js-auto-indent-flag): Remove, was unused.
+	(js-switch-indent-offset): New option.
+	(js--proper-indentation): Use it.  And handle the case when
+	"default" is actually a key in an object literal.
+	(js--same-line): New function.
+	(js--multi-line-declaration-indentation): Use it.
+	(js--indent-in-array-comp, js--array-comp-indentation): New
+	functions.
+	(js--proper-indentation): Use them, to handle array comprehension
+	continuations.
+
+2013-12-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-highlight-line): Re-write.
+	(flymake-make-overlay): Remove arg MOUSE-FACE.
+	(flymake-save-string-to-file, flymake-read-file-to-string): Remove.
+
+2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-rect.el (cua--rectangle-highlight-for-redisplay):
+	New function.
+	(redisplay-highlight-region-function): Use it.
+
+	* emulation/cua-base.el (cua--explicit-region-start)
+	(cua--last-region-shifted): Remove.
+	(cua--deactivate): Use deactivate-mark.
+	(cua--pre-command-handler-1): Don't handle shift-selection.
+	(cua--post-command-handler-1): Don't change transient-mark-mode.
+	(cua--select-keymaps): Use region-active-p rather than
+	cua--explicit-region-start or cua--last-region-shifted.
+	(cua-mode): Enable shift-select-mode.
+
+2013-12-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake-popup-current-error-menu):
+	Rename from flymake-display-err-menu-for-current-line.  Reimplement.
+	(flymake-posn-at-point-as-event, flymake-popup-menu)
+	(flymake-make-emacs-menu): Remove.  (Bug#16077)
+
+2013-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rect.el (rectangle-mark-mode): Activate mark even if
+	transient-mark-mode is off (bug#16066).
+	(rectangle--highlight-for-redisplay): Fix boundary condition when point
+	is > mark and at bolp.
+
+	* emulation/cua-rect.el (cua--rectangle-region-extract): New function.
+	(region-extract-function): Use it.
+	(cua-mouse-save-then-kill-rectangle): Use cua-copy-region.
+	(cua-copy-rectangle, cua-cut-rectangle, cua-delete-rectangle):
+	Delete functions.
+	(cua--init-rectangles): Don't re-remap copy-region-as-kill,
+	kill-ring-save, kill-region, delete-char, delete-forward-char.
+	Ignore self-insert-iso.
+
+	* emulation/cua-gmrk.el (cua--init-global-mark):
+	Ignore `self-insert-iso'.
+
+	* emulation/cua-base.el (cua--prefix-copy-handler)
+	(cua--prefix-cut-handler): Rely on region-extract-function rather than
+	checking cua--rectangle.
+	(cua-delete-region): Use region-extract-function.
+	(cua-replace-region): Delete function.
+	(cua-copy-region, cua-cut-region): Obey region-extract-function.
+	(cua--pre-command-handler-1): Don't do the delete-selection thing.
+	(cua--self-insert-char-p): Ignore `self-insert-iso'.
+	(cua--init-keymaps): Don't remap delete-selection commands.
+	(cua-mode): Use delete-selection-mode instead of rolling our own
+	(bug#16085).
+
+	* menu-bar.el (clipboard-kill-ring-save, clipboard-kill-region):
+	Obey region-extract-function.
+
+	Make registers and delete-selection-mode work on rectangles.
+	* register.el (describe-register-1): Don't modify the register's value.
+	(copy-to-register): Obey region-extract-function.
+	* delsel.el (delete-active-region): Obey region-extract-function.
+
+2013-12-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/flymake.el (flymake, flymake-error-bitmap)
+	(flymake-warning-bitmap, flymake-fringe-indicator-position)
+	(flymake-compilation-prevents-syntax-check)
+	(flymake-start-syntax-check-on-newline)
+	(flymake-no-changes-timeout, flymake-gui-warnings-enabled)
+	(flymake-start-syntax-check-on-find-file, flymake-log-level)
+	(flymake-xml-program, flymake-master-file-dirs)
+	(flymake-master-file-count-limit)
+	(flymake-allowed-file-name-masks): Relocate.
+	(flymake-makehash, flymake-float-time)
+	(flymake-replace-regexp-in-string, flymake-split-string)
+	(flymake-get-temp-dir): Remove.
+	(flymake-popup-menu, flymake-nop, flymake-make-xemacs-menu)
+	(flymake-current-row, flymake-selected-frame)
+	(flymake-get-point-pixel-pos): Remove xemacs compatibity and
+	related functions.  (Bug#16077)
+
+2013-12-07  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/helpers.el (string-blank-p): Use `string-match-p'.
+
+2013-12-07  Tassilo Horn  <tsdh@gnu.org>
+
+	* help-fns.el (describe-function-1): Use new advice-* functions
+	rather than old ad-* functions.  Fix function type description and
+	source links for advised functions and subrs.
+
 2013-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/shr.el (shr-tag-img): Don't bug out on <img src="">
-	data.
+	* net/shr.el (shr-tag-img): Don't bug out on <img src=""> data.
 
 2013-12-06  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -13,8 +146,8 @@
 
 2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Touch
-	up the last change.
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Touch up the last change.
 
 2013-12-06  Leo Liu  <sdl.web@gmail.com>
 
@@ -44,8 +177,8 @@
 
 2013-12-06  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/octave.el (inferior-octave-completion-table): Turn
-	back into function, use `completion-table-with-cache'
+	* progmodes/octave.el (inferior-octave-completion-table):
+	Turn back into function, use `completion-table-with-cache'
 	(Bug#11906).  Update all references.
 
 	* minibuffer.el (completion-table-with-cache): New function.

@@ -33,6 +33,15 @@ libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
 EXTRA_libgnu_a_SOURCES =
 
+## begin gnulib module absolute-header
+
+# Use this preprocessor expression to decide whether #include_next works.
+# Do not rely on a 'configure'-time test for this, since the expression
+# might appear in an installed header, which is used by some other compiler.
+HAVE_INCLUDE_NEXT = (__GNUC__ || 60000000 <= __DECC_VER)
+
+## end   gnulib module absolute-header
+
 ## begin gnulib module alloca-opt
 
 BUILT_SOURCES += $(ALLOCA_H)
@@ -152,7 +161,7 @@ EXTRA_DIST += count-trailing-zeros.h
 
 libgnu_a_SOURCES += md5.c
 
-EXTRA_DIST += md5.h
+EXTRA_DIST += gl_openssl.h md5.h
 
 ## end   gnulib module crypto/md5
 
@@ -160,7 +169,7 @@ EXTRA_DIST += md5.h
 
 libgnu_a_SOURCES += sha1.c
 
-EXTRA_DIST += sha1.h
+EXTRA_DIST += gl_openssl.h sha1.h
 
 ## end   gnulib module crypto/sha1
 
@@ -168,7 +177,7 @@ EXTRA_DIST += sha1.h
 
 libgnu_a_SOURCES += sha256.c
 
-EXTRA_DIST += sha256.h
+EXTRA_DIST += gl_openssl.h sha256.h
 
 ## end   gnulib module crypto/sha256
 
@@ -176,7 +185,7 @@ EXTRA_DIST += sha256.h
 
 libgnu_a_SOURCES += sha512.c
 
-EXTRA_DIST += sha512.h
+EXTRA_DIST += gl_openssl.h sha512.h
 
 ## end   gnulib module crypto/sha512
 

@@ -4764,9 +4764,9 @@ w32_read_socket (struct terminal *terminal,
 		      record_asynch_buffer_change ();
 		  }
 
-		  if (get_frame_param (f, Qfullscreen) == Qnil)
+		  if (EQ (get_frame_param (f, Qfullscreen), Qnil))
 		    set_frame_param (f, Qfullscreen, Qmaximized);
-		  else if (get_frame_param (f, Qfullscreen) != Qmaximized)
+		  else if (! EQ (get_frame_param (f, Qfullscreen), Qmaximized))
 		    set_frame_param (f, Qmaximized, Qmaximized);
 
 		  break;
@@ -4803,9 +4803,9 @@ w32_read_socket (struct terminal *terminal,
 		      record_asynch_buffer_change ();
 		  }
 
-		  if (get_frame_param (f, Qfullscreen) == Qmaximized)
+		  if (EQ (get_frame_param (f, Qfullscreen), Qmaximized))
 		    set_frame_param (f, Qfullscreen, Qnil);
-		  else if (get_frame_param (f, Qmaximized) != Qnil)
+		  else if (! EQ (get_frame_param (f, Qmaximized), Qnil))
 		    set_frame_param (f, Qmaximized, Qnil);
 
 		  break;

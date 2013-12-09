@@ -3314,8 +3314,12 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #endif
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
+
   /* Ensure we redraw it.  */
   clear_current_matrices (f);
+
+  /* Attempt to hunt down bug#16028.  */
+  SET_FRAME_GARBAGED (f);
 
   recompute_basic_faces (f);
 

@@ -642,7 +642,7 @@ The environment used is the one when entering the activation frame at point."
     (define-key map "h" 'describe-mode)
     (define-key map "q" 'top-level)
     (define-key map "e" 'debugger-eval-expression)
-    (define-key map "v" 'debugger-toggle-locals) ;"v" is for "v"ariables.
+    (define-key map "v" 'debugger-toggle-locals) ; "v" is for "variables".
     (define-key map " " 'next-line)
     (define-key map "R" 'debugger-record-expression)
     (define-key map "\C-m" 'debug-help-follow)

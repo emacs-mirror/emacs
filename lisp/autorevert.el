@@ -504,13 +504,15 @@ will use an up-to-date value of `auto-revert-interval'"
 
 (defun auto-revert-notify-add-watch ()
   "Enable file notification for current buffer's associated file."
-  (when (string-match auto-revert-notify-exclude-dir-regexp
-		      (expand-file-name default-directory))
+  ;; We can assume that `buffer-file-name' and
+  ;; `auto-revert-use-notify' are non-nil.
+  (when (or (string-match auto-revert-notify-exclude-dir-regexp
+			  (expand-file-name default-directory))
+	    (not (file-symlink-p buffer-file-name)))
     ;; Fallback to file checks.
     (set (make-local-variable 'auto-revert-use-notify) nil))
 
-  (when (and buffer-file-name auto-revert-use-notify
-	     (not auto-revert-notify-watch-descriptor))
+  (when (not auto-revert-notify-watch-descriptor)
     (setq auto-revert-notify-watch-descriptor
 	  (ignore-errors
 	    (file-notify-add-watch

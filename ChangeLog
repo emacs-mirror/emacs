@@ -1,3 +1,38 @@
+2013-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_RSVG) [mingw32]: Don't link against librsvg
+	statically.
+
+2013-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Simplify supression of GTK deprecation warning.
+	Move -DGDK_DISABLE_DEPRECATION_WARNINGS out of the command line
+	and into config.h, to shorten the command line when doing 'make'.
+	Don't AC_SUBST GTK_CFLAGS, as this is not needed.
+
+	Use libcrypto's checksum implementations if available, for speed.
+	On commonly used platform libcrypto uses architecture-specific
+	assembly code, which is significantly faster than the C code we
+	were using.  See Pádraig Brady's note in
+	<http://lists.gnu.org/archive/html/bug-gnulib/2013-12/msg00000.html>.
+	Merge from gnulib, incorporating:
+	2013-12-07 md5, sha1, sha256, sha512: add gl_SET_CRYPTO_CHECK_DEFAULT
+	2013-12-07 md5, sha1, sha256, sha512: add 'auto', and set-default method
+	2013-12-04 include_next: minimize code duplication
+	2013-12-03 md5, sha1, sha256, sha512: support mandating use of openssl
+	2013-12-02 md5, sha1, sha256, sha512: use openssl routines if available
+	* configure.ac (--without-all): Set with_openssl_default too.
+	Use gl_SET_CRYPTO_CHECK_DEFAULT to default to 'auto'.
+	(HAVE_LIB_CRYPTO): New var.
+	Say whether Emacs is configured to use a crypto library.
+	* lib/gl_openssl.h, m4/absolute-header.m4, m4/gl-openssl.m4:
+	New files, copied from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/md5.c, lib/md5.h, lib/sha1.c, lib/sha1.h:
+	* lib/sha256.c, lib/sha256.h, lib/sha512.c, lib/sha512.h:
+	* m4/include_next.m4, m4/md5.m4, m4/sha1.m4, m4/sha256.m4, m4/sha512.m4:
+	Update from gnulib.
+
 2013-12-01  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* .dir-locals.el (log-edit-move): Add the "Author: " header.

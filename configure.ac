@@ -94,8 +94,9 @@ AC_ARG_WITH(all,
 [AS_HELP_STRING([--without-all],
 		[omit almost all features and build
 		small executable with minimal dependencies])],
-  with_features=$withval,
-  with_features=yes)
+  [with_features=$withval
+   with_openssl_default=$withval],
+  [with_features=yes])
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to being disabled.
@@ -2135,6 +2136,10 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
     if test $HAVE_RSVG = yes; then
       AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])
       CFLAGS="$CFLAGS $RSVG_CFLAGS"
+      # Windows loads librsvg dynamically
+      if test "${opsys}" = "mingw32"; then
+       	RSVG_LIBS=
+      fi
       LIBS="$RSVG_LIBS $LIBS"
     fi
   fi
@@ -2184,8 +2189,10 @@ if test "${opsys}" != "mingw32"; then
        gtk_term_header=gtkutil.h
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
-       	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
-       	  GTK_CFLAGS="$GTK_CFLAGS -DGLIB_DISABLE_DEPRECATION_WARNINGS"
+	 AC_DEFINE([GDK_DISABLE_DEPRECATION_WARNINGS], [1],
+	   [Define to 1 to disable GTK+/GDK deprecation warnings.])
+	 AC_DEFINE([GLIB_DISABLE_DEPRECATION_WARNINGS], [1],
+	   [Define to 1 to disable Glib deprecation warnings.])
        fi
     else
        check_gtk2=yes
@@ -2211,7 +2218,6 @@ fi
 
 if test x"$pkg_check_gtk" = xyes; then
 
-  AC_SUBST(GTK_CFLAGS)
   AC_SUBST(GTK_LIBS)
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
   CFLAGS="$CFLAGS $GTK_CFLAGS"
@@ -4691,6 +4697,7 @@ CFLAGS=$pre_PKG_CONFIG_CFLAGS
 LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
 gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
+gl_SET_CRYPTO_CHECK_DEFAULT([auto])
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
@@ -4842,6 +4849,12 @@ else
   acl_summary=no
 fi
 
+if test -n "$LIB_CRYPTO"; then
+  HAVE_LIB_CRYPTO=yes
+else
+  HAVE_LIB_CRYPTO=no
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -4881,6 +4894,7 @@ echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
 echo "  Does Emacs use access control lists?                    ${acl_summary}"
+echo "  Does Emacs use a crypto library?                        ${HAVE_LIB_CRYPTO} $LIB_CRYPTO"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
