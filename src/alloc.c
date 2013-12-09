@@ -6633,7 +6633,12 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 {
   Lisp_Object end;
 
+#ifdef HAVE_NS
+  /* Avoid warning.  sbrk has no relation to memory allocated anyway.  */
+  XSETINT (end, 0);
+#else
   XSETINT (end, (intptr_t) (char *) sbrk (0) / 1024);
+#endif
 
   return end;
 }
