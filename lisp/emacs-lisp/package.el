@@ -7,7 +7,7 @@
 ;; Created: 10 Mar 2007
 ;; Version: 1.0.1
 ;; Keywords: tools
-;; Package-Requires: ((tabulated-list "1.0"))
+;; Package-Requires: ((tabulated-list "1.0") (finder))
 
 ;; This file is part of GNU Emacs.
 
@@ -166,6 +166,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'tabulated-list)
+(require 'finder)
 
 (defgroup package nil
   "Manager for Emacs Lisp packages."
@@ -1353,7 +1354,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (reqs (if desc (package-desc-reqs desc)))
          (version (if desc (package-desc-version desc)))
          (archive (if desc (package-desc-archive desc)))
-         (homepage (if desc (cdr (assoc :url (package-desc-extras desc)))))
+         (extras (and desc (package-desc-extras desc)))
+         (homepage (cdr (assoc :url extras)))
+         (keywords (cdr (assoc :keywords extras)))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan"))
@@ -1392,15 +1395,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
            (insert (capitalize status))
 	   (insert " from " (format "%s" archive))
 	   (insert " -- ")
-	   (let ((button-text (if (display-graphic-p) "Install" "[Install]"))
-		 (button-face (if (display-graphic-p)
-				  '(:box (:line-width 2 :color "dark grey")
-					 :background "light grey"
-					 :foreground "black")
-				'link)))
-	     (insert-text-button button-text 'face button-face 'follow-link t
-				 'package-desc desc
-				 'action 'package-install-button-action)))
+           (package-make-button
+            "Install"
+            'action 'package-install-button-action
+            'package-desc desc))
 	  (t (insert (capitalize status) ".")))
     (insert "\n")
     (insert "    " (propertize "Archive" 'font-lock-face 'bold)
@@ -1432,6 +1430,15 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (when homepage
       (insert "   " (propertize "Homepage" 'font-lock-face 'bold) ": ")
       (help-insert-xref-button homepage 'help-url homepage)
+      (insert "\n"))
+    (when keywords
+      (insert "   " (propertize "Keywords" 'font-lock-face 'bold) ": ")
+      (dolist (k keywords)
+        (package-make-button
+         k
+         'package-keyword k
+         'action 'package-keyword-button-action)
+        (insert " "))
       (insert "\n"))
     (let* ((all-pkgs (append (cdr (assq name package-alist))
                              (cdr (assq name package-archive-contents))
@@ -1502,6 +1509,20 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       (package-install pkg-desc)
       (revert-buffer nil t)
       (goto-char (point-min)))))
+
+(defun package-keyword-button-action (button)
+  (let ((pkg-keyword (button-get button 'package-keyword)))
+    (finder-list-matches pkg-keyword)))
+
+(defun package-make-button (text &rest props)
+  (let ((button-text (if (display-graphic-p) text (concat "[" text "]")))
+        (button-face (if (display-graphic-p)
+                         '(:box (:line-width 2 :color "dark grey")
+                                :background "light grey"
+                                :foreground "black")
+                       'link)))
+    (apply 'insert-text-button button-text 'face button-face 'follow-link t
+           props)))
 
 
 ;;;; Package menu mode.
