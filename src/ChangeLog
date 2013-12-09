@@ -1,3 +1,8 @@
+2013-12-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.c (USE_NEW_GTK_FONT_CHOOSER) [HAVE_FREETYPE]:
+	Avoid unused macro warning if configured --without-xft.
+
 2013-12-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* alloc.c (Fmemory_limit): Avoid compiler warning.  Return 0 always.
