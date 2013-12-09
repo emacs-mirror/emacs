@@ -614,11 +614,16 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (nreverse (ruby-imenu-create-index-in-block nil (point-min) nil)))
 
 (defun ruby-accurate-end-of-block (&optional end)
-  "TODO: document."
+  "Jump to the end of the current block or END, whichever is closer."
   (let (state
         (end (or end (point-max))))
-    (while (and (setq state (apply 'ruby-parse-partial end state))
-                (>= (nth 2 state) 0) (< (point) end)))))
+    (if ruby-use-smie
+        (save-restriction
+          (back-to-indentation)
+          (narrow-to-region (point) end)
+          (smie-forward-sexp))
+      (while (and (setq state (apply 'ruby-parse-partial end state))
+                    (>= (nth 2 state) 0) (< (point) end))))))
 
 (defun ruby-mode-variables ()
   "Set up initial buffer-local variables for Ruby mode."

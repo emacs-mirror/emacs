@@ -1,3 +1,9 @@
+2013-12-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-accurate-end-of-block): When
+	`ruby-use-smie' is t, use `smie-forward-sexp' instead of
+	`ruby-parse-partial' (Bug#16078).
+
 2013-12-09  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (read-passwd): Disable show-paren-mode.  (Bug#16091)
