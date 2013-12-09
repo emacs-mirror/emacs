@@ -2123,7 +2123,7 @@ parse_root (const char * name, const char ** pPath)
 static int
 get_long_basename (char * name, char * buf, int size)
 {
-  HANDLE dir_handle;
+  HANDLE dir_handle = INVALID_HANDLE_VALUE;
   char fname_utf8[MAX_UTF8_PATH];
   int len = 0;
   int cstatus = -1;
@@ -2148,9 +2148,19 @@ get_long_basename (char * name, char * buf, int size)
       WIN32_FIND_DATAA find_data_ansi;
 
       filename_to_ansi (name, fname_ansi);
-      dir_handle = FindFirstFileA (fname_ansi, &find_data_ansi);
-      if (dir_handle != INVALID_HANDLE_VALUE)
-	cstatus = filename_from_ansi (find_data_ansi.cFileName, fname_utf8);
+      /* If the ANSI name includes ? characters, it is not encodable
+	 in the ANSI codepage.  In that case, we deliver the question
+	 marks to the caller; calling FindFirstFileA in this case
+	 could return some unrelated file name in the same
+	 directory.  */
+      if (_mbspbrk (fname_ansi, "?"))
+	cstatus = filename_from_ansi (fname_ansi, fname_utf8);
+      else
+	{
+	  dir_handle = FindFirstFileA (fname_ansi, &find_data_ansi);
+	  if (dir_handle != INVALID_HANDLE_VALUE)
+	    cstatus = filename_from_ansi (find_data_ansi.cFileName, fname_utf8);
+	}
     }
 
   if (cstatus == 0 && (len = strlen (fname_utf8)) < size)
