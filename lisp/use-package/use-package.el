@@ -574,7 +574,7 @@ For full documentation. please see commentary.
                      ,config-body
                      t))))))))
 
-(put 'use-package 'lisp-indent-function 1)
+(put 'use-package 'lisp-indent-function 'defun)
 
 (defconst use-package-font-lock-keywords
   '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
