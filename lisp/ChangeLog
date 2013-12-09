@@ -1,3 +1,7 @@
+2013-12-09  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (read-passwd): Disable show-paren-mode.  (Bug#16091)
+
 2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/js.el (js-auto-indent-flag): Remove, was unused.

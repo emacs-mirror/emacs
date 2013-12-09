@@ -2038,6 +2038,7 @@ by doing (clear-string STRING)."
             (setq-local select-active-regions nil)
             (use-local-map read-passwd-map)
             (setq-local inhibit-modification-hooks nil) ;bug#15501.
+	    (setq-local show-paren-mode nil)		;bug#16091.
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t))
