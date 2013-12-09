@@ -2154,7 +2154,16 @@ get_long_basename (char * name, char * buf, int size)
 	 could return some unrelated file name in the same
 	 directory.  */
       if (_mbspbrk (fname_ansi, "?"))
-	cstatus = filename_from_ansi (fname_ansi, fname_utf8);
+	{
+	  /* Find the basename of fname_ansi.  */
+	  char *p = strrchr (fname_ansi, '\\');
+
+	  if (!p)
+	    p = fname_ansi;
+	  else
+	    p++;
+	  cstatus = filename_from_ansi (p, fname_utf8);
+	}
       else
 	{
 	  dir_handle = FindFirstFileA (fname_ansi, &find_data_ansi);
