@@ -6674,9 +6674,7 @@ specified by `file-name-coding-system'.
 
 This variable is set to non-nil by default when Emacs runs on Windows
 systems of the NT family, including W2K, XP, Vista, Windows 7 and
-Windows 8.  It is set to nil on Windows 9X.
-
-Do NOT change the value of this variable, except for debugging purposes!  */);
+Windows 8.  It is set to nil on Windows 9X.  */);
   w32_unicode_filenames = 0;
 
   /* Tell Emacs about this window system.  */
