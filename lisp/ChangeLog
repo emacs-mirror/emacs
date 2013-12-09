@@ -1,3 +1,8 @@
+2013-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* autorevert.el (auto-revert-notify-add-watch): Fix a thinko in
+	last commit.
+
 2013-12-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-notify-add-watch): Do not handle
