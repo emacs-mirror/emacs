@@ -1,3 +1,10 @@
+2013-12-09  Ken Brown  <kbrown@cornell.edu>
+
+	* frame.c (get_frame_param): Make extern if HAVE_NTGUI.
+
+	* lisp.h (get_frame_param): Adjust conditions for prototype
+	declaration.
+
 2013-12-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* gtkutil.c (USE_NEW_GTK_FONT_CHOOSER) [HAVE_FREETYPE]:
