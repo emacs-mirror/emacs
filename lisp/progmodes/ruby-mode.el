@@ -795,11 +795,28 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                   (t nil)))))))))
 
 (defun ruby-forward-string (term &optional end no-error expand)
-  "TODO: document."
+  "Move forward across one balanced pair of string delimiters.
+Skips escaped delimiters. If EXPAND is non-nil, also ignores
+delimiters in interpolated strings.
+
+TERM should be a string containing either a single, self-matching
+delimiter (e.g. \"/\"), or a pair of matching delimiters with the
+close delimiter first (e.g. \"][\").
+
+When non-nil, search is bounded by position END.
+
+Throws an error if a balanced match is not found, unless NO-ERROR
+is non-nil, in which case nil will be returned.
+
+This command assumes the character after point is an opening
+delimiter."
   (let ((n 1) (c (string-to-char term))
-        (re (if expand
-                (concat "[^\\]\\(\\\\\\\\\\)*\\([" term "]\\|\\(#{\\)\\)")
-              (concat "[^\\]\\(\\\\\\\\\\)*[" term "]"))))
+        (re (concat "[^\\]\\(\\\\\\\\\\)*\\("
+                    (if (string= term "^") ;[^] is not a valid regexp
+                        "\\^"
+                      (concat "[" term "]"))
+                    (when expand "\\|\\(#{\\)")
+                    "\\)")))
     (while (and (re-search-forward re end no-error)
                 (if (match-beginning 3)
                     (ruby-forward-string "}{" end no-error nil)
