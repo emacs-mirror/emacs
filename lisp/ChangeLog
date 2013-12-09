@@ -1,3 +1,8 @@
+2013-12-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-add-watch): Do not handle
+	symlinked files.
+
 2013-12-09  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Return t
