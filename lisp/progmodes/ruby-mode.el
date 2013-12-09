@@ -362,8 +362,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
              (and (memq (char-before)
                         '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?%
                           ?~ ?^))
-                  ;; Make sure it's not the end of a regexp.
-                  (not (eq (car (syntax-after (1- (point)))) 7)))
+                  ;; Not the end of a regexp or a percent literal.
+                  (not (memq (car (syntax-after (1- (point)))) '(7 15))))
              (and (eq (char-before) ?\?)
                   (equal (save-excursion (ruby-smie--backward-token)) "?"))
              (and (eq (char-before) ?=)

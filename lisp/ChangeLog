@@ -1,3 +1,8 @@
+2013-12-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Return t
+	after the end of a percent literal.
+
 2013-12-09  Cameron Desautels  <camdez@gmail.com>  (tiny change)
 
 	* progmodes/ruby-mode.el (ruby-forward-string): Document.  Handle

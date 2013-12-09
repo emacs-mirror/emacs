@@ -299,3 +299,6 @@ def qux
     tee
   end
 end
+
+%^abc^
+ddd
