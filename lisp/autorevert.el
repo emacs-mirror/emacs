@@ -508,7 +508,7 @@ will use an up-to-date value of `auto-revert-interval'"
   ;; `auto-revert-use-notify' are non-nil.
   (when (or (string-match auto-revert-notify-exclude-dir-regexp
 			  (expand-file-name default-directory))
-	    (not (file-symlink-p buffer-file-name)))
+	    (file-symlink-p buffer-file-name))
     ;; Fallback to file checks.
     (set (make-local-variable 'auto-revert-use-notify) nil))
 
