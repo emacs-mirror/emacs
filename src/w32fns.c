@@ -6578,7 +6578,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	file_details_w->lpstrFilter = filter_w;
 #ifdef NTGUI_UNICODE
 	file_details_w->lpstrInitialDir = (wchar_t*) SDATA (dir);
-	file_details->lpstrTitle = (guichar_t*) SDATA (prompt);
+	file_details_w->lpstrTitle = (guichar_t*) SDATA (prompt);
 #else
 	file_details_w->lpstrInitialDir = dir_w;
 	file_details_w->lpstrTitle = prompt_w;
@@ -6595,6 +6595,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	      file_details_w->Flags |= OFN_FILEMUSTEXIST;
 	  }
       }
+#ifndef NTGUI_UNICODE
     else
       {
 	memset (&new_file_details_a, 0, sizeof (new_file_details_a));
@@ -6621,6 +6622,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	      file_details_a->Flags |= OFN_FILEMUSTEXIST;
 	  }
       }
+#endif	/* !NTGUI_UNICODE */
 
     {
       int count = SPECPDL_INDEX ();
@@ -6863,7 +6865,7 @@ an integer representing a ShowWindow flag:
   char *errstr;
   Lisp_Object current_dir = BVAR (current_buffer, directory);;
   wchar_t *doc_w = NULL, *params_w = NULL, *ops_w = NULL;
-  int result;
+  intptr_t result;
 #ifndef CYGWIN
   int use_unicode = w32_unicode_filenames;
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
@@ -6893,10 +6895,10 @@ an integer representing a ShowWindow flag:
       operation = GUI_ENCODE_SYSTEM (operation);
       ops_w = GUI_SDATA (operation);
     }
-  result = (int) ShellExecuteW (NULL, ops_w, doc_w, params_w,
-				GUI_SDATA (current_dir),
-				(INTEGERP (show_flag)
-				 ? XINT (show_flag) : SW_SHOWDEFAULT));
+  result = (intptr_t) ShellExecuteW (NULL, ops_w, doc_w, params_w,
+				     GUI_SDATA (current_dir),
+				     (INTEGERP (show_flag)
+				      ? XINT (show_flag) : SW_SHOWDEFAULT));
 #else  /* !CYGWIN */
   if (use_unicode)
     {
@@ -6939,10 +6941,10 @@ an integer representing a ShowWindow flag:
 	    *d++ = *s++;
 	  *d = 0;
 	}
-      result = (int) ShellExecuteW (NULL, ops_w, doc_w, params_w,
-				    current_dir_w,
-				    (INTEGERP (show_flag)
-				     ? XINT (show_flag) : SW_SHOWDEFAULT));
+      result = (intptr_t) ShellExecuteW (NULL, ops_w, doc_w, params_w,
+					 current_dir_w,
+					 (INTEGERP (show_flag)
+					  ? XINT (show_flag) : SW_SHOWDEFAULT));
     }
   else
     {
@@ -6968,10 +6970,10 @@ an integer representing a ShowWindow flag:
 	  /* Assume OPERATION is pure ASCII.  */
 	  ops_a = SSDATA (operation);
 	}
-      result = (int) ShellExecuteA (NULL, ops_a, doc_a, params_a,
-				    current_dir_a,
-				    (INTEGERP (show_flag)
-				     ? XINT (show_flag) : SW_SHOWDEFAULT));
+      result = (intptr_t) ShellExecuteA (NULL, ops_a, doc_a, params_a,
+					 current_dir_a,
+					 (INTEGERP (show_flag)
+					  ? XINT (show_flag) : SW_SHOWDEFAULT));
     }
 #endif /* !CYGWIN */
 
@@ -7529,6 +7531,7 @@ If the underlying system call fails, value is nil.  */)
 #endif /* WINDOWSNT */
 
 
+#ifdef WINDOWSNT
 DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
        0, 0, 0, doc: /* Return the name of Windows default printer device.  */)
   (void)
@@ -7634,6 +7637,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
 
   return DECODE_FILE (build_unibyte_string (pname_buf));
 }
+#endif	/* WINDOWSNT */
 
 
 /* Equivalent of strerror for W32 error codes.  */
@@ -8304,9 +8308,9 @@ only be necessary if the default setting causes problems.  */);
 
 #ifdef WINDOWSNT
   defsubr (&Sfile_system_info);
+  defsubr (&Sdefault_printer_name);
 #endif
 
-  defsubr (&Sdefault_printer_name);
   defsubr (&Sset_message_beep);
 
   hourglass_hwnd = NULL;
