@@ -2,6 +2,7 @@
 
 	* xdisp.c (display_tool_bar_line): Don't extend on a previously
 	drawn tool bar items (Bug#16058).
+	* font.c (font_find_for_lface): Ensure SAFE_FREE on return.
 
 2013-12-09  Ken Brown  <kbrown@cornell.edu>
 

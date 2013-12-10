@@ -3209,7 +3209,10 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 		      val = font_select_entity (f, entities,
 						attrs, pixel_size, c);
 		      if (! NILP (val))
-                        return val;
+			{
+			  SAFE_FREE ();
+			  return val;
+			}
 		    }
 		}
 	    }
