@@ -1,3 +1,8 @@
+2013-12-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (display_tool_bar_line): Don't extend on a previously
+	drawn tool bar items (Bug#16058).
+
 2013-12-09  Ken Brown  <kbrown@cornell.edu>
 
 	* frame.c (get_frame_param): Make extern if HAVE_NTGUI.
