@@ -1,3 +1,8 @@
+2013-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (autoloads): Run $(srcdir)/loaddefs.el through
+	unmsys--file-name.  (Bug#16099)
+
 2013-12-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-lisp/package.el (package-keyword-button-action): Remove
