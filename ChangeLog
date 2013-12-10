@@ -1,3 +1,11 @@
+2013-12-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Disable libcrypto by default.
+
+	Merge from gnulib, incorporating:
+	2013-12-07 md5, sha1, sha256, sha512: fix link error with partial lib
+	* m4/gl-openssl.m4: Update from gnulib.
+
 2013-12-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (HAVE_RSVG) [mingw32]: Don't link against librsvg

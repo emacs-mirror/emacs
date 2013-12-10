@@ -12,7 +12,11 @@ gl_SET_CRYPTO_CHECK_DEFAULT([no])
 
 AC_DEFUN([gl_CRYPTO_CHECK],
 [
+  dnl gnulib users set this before gl_INIT with gl_SET_CRYPTO_CHECK_DEFAULT()
   m4_divert_once([DEFAULTS], [with_openssl_default='gl_CRYPTO_CHECK_DEFAULT'])
+
+  dnl Only clear once, so crypto routines can be checked for individually
+  m4_divert_once([DEFAULTS], [LIB_CRYPTO=])
 
   AC_ARG_WITH([openssl],
     [AS_HELP_STRING([--with-openssl],
@@ -29,7 +33,6 @@ AC_DEFUN([gl_CRYPTO_CHECK],
     ALG_header=sha.h
   fi
 
-  LIB_CRYPTO=
   AC_SUBST([LIB_CRYPTO])
   if test "x$with_openssl" != xno; then
     AC_CHECK_LIB([crypto], [$1],
