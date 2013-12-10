@@ -11937,7 +11937,9 @@ display_tool_bar_line (struct it *it, int height)
   int max_x = it->last_visible_x;
   struct glyph *last;
 
-  prepare_desired_row (row);
+  /* Don't extend on a previously drawn tool bar items (Bug#16058).  */
+  clear_glyph_row (row);
+  row->enabled_p = 1;
   row->y = it->current_y;
 
   /* Note that this isn't made use of if the face hasn't a box,

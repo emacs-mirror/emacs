@@ -4046,7 +4046,7 @@ extern void set_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
 extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);
-#if HAVE_NS || defined WINDOWSNT
+#if HAVE_NS || HAVE_NTGUI
 extern Lisp_Object get_frame_param (struct frame *, Lisp_Object);
 #endif
 extern void frames_discard_buffer (Lisp_Object);

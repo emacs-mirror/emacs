@@ -1929,7 +1929,7 @@ If there is no window system support, this function does nothing.  */)
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
-#if !HAVE_NS && !defined (WINDOWSNT)
+#if !HAVE_NS && !HAVE_NTGUI
 static
 #endif
 Lisp_Object
