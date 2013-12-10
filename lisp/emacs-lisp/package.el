@@ -7,7 +7,7 @@
 ;; Created: 10 Mar 2007
 ;; Version: 1.0.1
 ;; Keywords: tools
-;; Package-Requires: ((tabulated-list "1.0") (finder))
+;; Package-Requires: ((tabulated-list "1.0"))
 
 ;; This file is part of GNU Emacs.
 
@@ -166,7 +166,6 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'tabulated-list)
-(require 'finder)
 
 (defgroup package nil
   "Manager for Emacs Lisp packages."
@@ -1510,6 +1509,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       (revert-buffer nil t)
       (goto-char (point-min)))))
 
+(declare-function finder-list-matches "finder" (keyword))
 (defun package-keyword-button-action (button)
   (let ((pkg-keyword (button-get button 'package-keyword)))
     (finder-list-matches pkg-keyword)))
