@@ -6635,12 +6635,14 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	  file_opened = GetOpenFileNameW (file_details_w);
 	}
+#ifndef NTGUI_UNICODE
       else
 	{
 	  file_details_a->lpfnHook = file_dialog_callback;
 
 	  file_opened = GetOpenFileNameA (file_details_a);
 	}
+#endif	/* !NTGUI_UNICODE */
       unblock_input ();
       unbind_to (count, Qnil);
     }
