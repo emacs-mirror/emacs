@@ -7435,7 +7435,7 @@ See also `normal-erase-is-backspace'."
 	     (if enabled
 		 (progn
 		   (define-key local-function-key-map [delete] [deletechar])
-		   (define-key local-function-key-map [kp-delete] [?\C-d])
+		   (define-key local-function-key-map [kp-delete] [deletechar])
 		   (define-key local-function-key-map [backspace] [?\C-?])
                    (dolist (b bindings)
                      ;; Not sure if input-decode-map is really right, but

@@ -1,3 +1,8 @@
+2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (normal-erase-is-backspace-mode): Map kp-delete identically
+	to `delete' (bug#16109).
+
 2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/octave.el (octave-mode, inferior-octave-mode): Link to
