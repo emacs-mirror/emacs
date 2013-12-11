@@ -418,7 +418,8 @@ word(s) will be searched for via `eww-search-prefix'."
 
     (easy-menu-define nil map ""
       '("Eww"
-	["Quit" eww-quit t]
+	["Exit" eww-quit t]
+	["Close browser" quit-window t]
 	["Reload" eww-reload t]
 	["Back to previous page" eww-back-url
 	 :active (not (zerop (length eww-history)))]
@@ -429,7 +430,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	["View page source" eww-view-source]
 	["Copy page URL" eww-copy-page-url t]
 	["Add bookmark" eww-add-bookmark t]
-	["List bookmarks" eww-copy-page-url t]
+	["List bookmarks" eww-list-bookmarks t]
 	["List cookies" url-cookie-list t]))
     map))
 
