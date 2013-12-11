@@ -247,7 +247,7 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
-** The backtrace debugger can display local vars with `v'.
+** `delete-selection-mode' can be used without transient-mark-mode.
 
 ** prolog-use-smie has been removed, along with the non-SMIE indentation code.
 
@@ -256,10 +256,6 @@ The customization can be guessed by Emacs by providing a sample indented
 file and letting SMIE learn from it.
 
 ** sh-script now uses its SMIE indentation algorithm by default.
-
-** The debugger's `e' command evaluates the code in the context at point.
-This includes using the lexical environment at point, which means that
-`e' now lets you access lexical variables as well.
 
 ** `eshell' now supports visual subcommands and options
 Eshell has been able to handle "visual" commands (interactive,
@@ -317,6 +313,12 @@ Use `electric-indent-mode' instead.
 
 ** completing-read-multiple's separator can now be a regexp.
 The default separator is changed to allow surrounding spaces around the comma.
+
+** The backtrace debugger and local variables:
+*** The debugger's `e' command evaluates the code in the context at point.
+This includes using the lexical environment at point, which means that
+`e' now lets you access lexical variables as well.
+*** The backtrace debugger can display local vars with `v'.
 
 ** Battery
 

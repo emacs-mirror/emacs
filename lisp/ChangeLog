@@ -1,5 +1,10 @@
 2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* delsel.el (delete-selection-mode): Don't enable transient-mark-mode.
+	(delete-selection-helper): Make sure yank starts at the top of the
+	deleted region.
+	(minibuffer-keyboard-quit): Use region-active-p.
+
 	* emacs-lisp/trace.el (trace-make-advice): Don't deactivate the mark.
 
 	* simple.el (normal-erase-is-backspace-mode): Map kp-delete identically

@@ -71,8 +71,7 @@ any selection."
   :global t :group 'editing-basics
   (if (not delete-selection-mode)
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
-    (add-hook 'pre-command-hook 'delete-selection-pre-hook)
-    (transient-mark-mode t)))
+    (add-hook 'pre-command-hook 'delete-selection-pre-hook)))
 
 (defun delete-active-region (&optional killp)
   "Delete the active region.
@@ -122,7 +121,11 @@ If KILLP in not-nil, the active region is killed instead of deleted."
 			(fboundp 'mouse-region-match)
 			(mouse-region-match))
 	       (current-kill 1))
-	     (delete-active-region))
+             (let ((pos (copy-marker (region-beginning))))
+               (delete-active-region)
+               ;; If the region was, say, rectangular, make sure we yank
+               ;; from the top, to "replace".
+               (goto-char pos)))
 	    ((eq type 'supersede)
 	     (let ((empty-region (= (point) (mark))))
 	       (delete-active-region)
@@ -192,7 +195,7 @@ See `delete-selection-helper'."
 In Delete Selection mode, if the mark is active, just deactivate it;
 then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
-  (if (and delete-selection-mode transient-mark-mode mark-active)
+  (if (and delete-selection-mode (region-active-p))
       (setq deactivate-mark t)
     (abort-recursive-edit)))
 
@@ -209,9 +212,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
-  (dolist (sym '(self-insert-command insert-char quoted-insert yank clipboard-yank
-		 insert-register
-                 reindent-then-newline-and-indent newline-and-indent newline open-line))
+  (dolist (sym '(self-insert-command insert-char quoted-insert yank
+                 clipboard-yank insert-register newline-and-indent
+                 reindent-then-newline-and-indent newline open-line))
     (put sym 'delete-selection nil))
   ;; continue standard unloading
   nil)
