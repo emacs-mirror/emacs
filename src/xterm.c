@@ -6622,8 +6622,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               cancel_mouse_face (f);
             }
 
-          FRAME_PIXEL_WIDTH (f) = event->xconfigure.width;
-          FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height;
+/**           FRAME_PIXEL_WIDTH (f) = event->xconfigure.width; **/
+/**           FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height; **/
 #endif /* not USE_GTK */
 #endif
 
@@ -7689,6 +7689,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_COLUMN_WIDTH (f) = font->average_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
+  FRAME_TOOL_BAR_HEIGHT (f) = FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
+  FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
+
   compute_fringe_widths (f, 1);
 
   /* Compute the scroll bar width in character columns.  */
@@ -8541,13 +8544,15 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth =
-    (pixelwise ? width : FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width))
-    + FRAME_TOOLBAR_WIDTH (f);
-  pixelheight =
-    (pixelwise ? height : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height))
-    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
-
+  pixelwidth = ((pixelwise
+		 ? FRAME_TEXT_TO_PIXEL_WIDTH (f, width)
+		 : FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width))
+		+ FRAME_TOOLBAR_WIDTH (f));
+  pixelheight = ((pixelwise
+		  ? FRAME_TEXT_TO_PIXEL_HEIGHT (f, height)
+		  : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height))
+		 + FRAME_MENUBAR_HEIGHT (f)
+		 + FRAME_TOOLBAR_HEIGHT (f));
   if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
   XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
@@ -8582,8 +8587,6 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
   else
     {
       change_frame_size (f, width, height, 0, 1, 0, 1);
-      FRAME_PIXEL_WIDTH (f) = pixelwidth;
-      FRAME_PIXEL_HEIGHT (f) = pixelheight;
       x_sync (f);
     }
 }

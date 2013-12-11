@@ -1,3 +1,17 @@
+2013-12-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (resize_frame_windows): Don't return immediately when
+	the root window's size doesn't change - the minibuffer window
+	may still have to be repositioned/resized.
+	* xfns.c (Fx_create_frame): Always change the frame size after
+	initializing the frame's faces.
+	* xterm.c (handle_one_xevent): Don't set pixel sizes here,
+	change_frame_size should already have done it.
+	(x_new_font): Assign new tool- and menu-bar heights.
+	(x_set_window_size_1): Account for tool- and menu-bar heights
+	(Bug#16013). Don't set pixel sizes since change_frame_size
+	should already have done it.
+
 2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove the option of using libcrypto.
