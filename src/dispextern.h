@@ -3251,7 +3251,7 @@ extern void draw_phys_cursor_glyph (struct window *,
                                     enum draw_glyphs_face);
 extern void get_phys_cursor_geometry (struct window *, struct glyph_row *,
                                       struct glyph *, int *, int *, int *);
-#ifdef WINDOWSNT
+#if HAVE_NTGUI
 extern void erase_phys_cursor (struct window *);
 #endif
 extern void display_and_set_cursor (struct window *, bool, int, int, int, int);

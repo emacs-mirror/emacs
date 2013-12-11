@@ -1,3 +1,21 @@
+2013-12-06  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* doc/misc/octave-mode.texi: Imported from GNU Octave
+	  (doc/interpreter/emacs.txi).
+	* doc/misc/Makefile.in: Add octave-mode.texi.
+
+2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove the option of using libcrypto.
+	This scorches the earth and waits for spring;
+	see Ted Zlatanov and Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00323.html>.
+	* configure.ac (with_openssl_default, HAVE_LIB_CRYPTO): Remove.
+	Do not say whether Emacs is configured to use a crypto library,
+	since it's no longer an option.
+	(gl_CRYPTO_CHECK): Define a dummy.
+	* lib/gl_openssl.h, m4/gl-openssl.m4: Remove.
+
 2013-12-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Disable libcrypto by default.

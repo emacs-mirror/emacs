@@ -1407,13 +1407,13 @@ If nil, Isearch operates on the whole comint buffer."
   "Search for a string backward in input history using Isearch."
   (interactive)
   (let ((comint-history-isearch t))
-    (isearch-backward)))
+    (isearch-backward nil t)))
 
 (defun comint-history-isearch-backward-regexp ()
   "Search for a regular expression backward in input history using Isearch."
   (interactive)
   (let ((comint-history-isearch t))
-    (isearch-backward-regexp)))
+    (isearch-backward-regexp nil t)))
 
 (defvar-local comint-history-isearch-message-overlay nil)
 

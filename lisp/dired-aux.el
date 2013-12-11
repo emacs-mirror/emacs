@@ -2526,24 +2526,22 @@ Intended to be added to `isearch-mode-hook'."
   "Test whether the current search hit is a file name.
 Return non-nil if the text from BEG to END is part of a file
 name (has the text property `dired-filename')."
-  (if dired-isearch-filenames
-      (text-property-not-all (min beg end) (max beg end)
-			     'dired-filename nil)
-    t))
+  (text-property-not-all (min beg end) (max beg end)
+			 'dired-filename nil))
 
 ;;;###autoload
 (defun dired-isearch-filenames ()
   "Search for a string using Isearch only in file names in the Dired buffer."
   (interactive)
   (let ((dired-isearch-filenames t))
-    (isearch-forward)))
+    (isearch-forward nil t)))
 
 ;;;###autoload
 (defun dired-isearch-filenames-regexp ()
   "Search for a regexp using Isearch only in file names in the Dired buffer."
   (interactive)
   (let ((dired-isearch-filenames t))
-    (isearch-forward-regexp)))
+    (isearch-forward-regexp nil t)))
 
 
 ;; Functions for searching in tags style among marked files.

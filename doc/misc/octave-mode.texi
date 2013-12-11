@@ -1,0 +1,477 @@
+\input texinfo                  @c -*-texinfo-*-
+@c %**start of header
+@setfilename ../../info/octave-mode
+@settitle Octave Mode
+@c %**end of header
+
+@copying
+Copyright @copyright{} 1996--2013 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
+
+@dircategory Emacs editing modes
+@direntry
+* Octave mode: (octave-mode).         Emacs mode for editing GNU Octave files.
+@end direntry
+
+@finalout
+
+@titlepage
+@title Octave Mode
+@subtitle An Emacs mode for programming in GNU Octave
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Octave Mode
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Overview::
+* Using Octave Mode::
+* Running Octave from Within Emacs::
+* GNU Free Documentation License::
+* Key Index::
+* Variable Index::
+* Lisp Function Index::
+* Concept Index::
+@end menu
+
+@node Overview
+@chapter Overview
+
+The development of Octave code can greatly be facilitated using Emacs
+with Octave mode, a major mode for editing Octave files which can
+e.g.@: automatically indent the code, do some of the typing (with
+Abbrev mode) and show keywords, comments, strings, etc.@: in different
+faces (with Font-lock mode on devices that support it).
+
+It is also possible to run Octave from within Emacs, either by
+directly entering commands at the prompt in a buffer in Inferior
+Octave mode, or by interacting with Octave from within a file with
+Octave code.  This is useful in particular for debugging Octave code.
+
+@node Using Octave Mode
+@chapter Using Octave Mode
+@cindex Using Octave Mode
+
+In Octave mode, the following special Emacs commands can be used in
+addition to the standard Emacs commands.
+
+@table @kbd
+@item C-M-j
+@kindex C-M-j
+@findex octave-indent-new-comment-line
+@vindex octave-continuation-string
+Break Octave line at point, continuing comment if within one.  Insert
+@code{octave-continuation-string} before breaking the line unless
+inside a list.  Signal an error if within a single-quoted string.
+
+@item C-c ;
+@kindex C-c ;
+@findex octave-update-function-file-comment
+Query replace function names in function file comment.
+
+@item C-c C-p
+@kindex C-c C-p
+@findex octave-previous-code-line
+Move one line of Octave code backward, skipping empty and comment
+lines (@code{octave-previous-code-line}).  With numeric prefix
+argument @var{n}, move that many code lines backward (forward if
+@var{n} is negative).
+
+@item C-c C-n
+@kindex C-c C-n
+@findex octave-next-code-line
+Move one line of Octave code forward, skipping empty and comment lines
+(@code{octave-next-code-line}).  With numeric prefix argument @var{n},
+move that many code lines forward (backward if @var{n} is negative).
+
+@item C-c C-a
+@kindex C-c C-a
+@findex octave-beginning-of-line
+Move to the beginning of the physical line
+(@code{octave-beginning-of-line}).  If point is in an empty or comment
+line, simply go to its beginning; otherwise, move backwards to the
+beginning of the first code line which is not inside a continuation
+statement, i.e., which does not follow a code line ending in
+@samp{...}  or @samp{\}, or is inside an open parenthesis list.
+
+@item C-c C-e
+@kindex C-c C-e
+@findex octave-end-of-line
+Move to the end of the physical line (@code{octave-end-of-line}).  If
+point is in a code line, move forward to the end of the first Octave
+code line which does not end in @samp{...} or @samp{\} or is inside an
+open parenthesis list.  Otherwise, simply go to the end of the current
+line.
+
+@item C-c M-C-h
+@kindex C-c M-C-h
+@findex octave-mark-block
+Put point at the beginning of this block, mark at the end
+(@code{octave-mark-block}).  The block marked is the one that contains
+point or follows point.
+
+@item C-c ]
+@kindex C-c ]
+Close the current block on a separate line (@code{smie-close-block}).
+An error is signaled if no block to close is found.
+
+@item C-c C-f
+@kindex C-c C-f
+@findex octave-insert-defun
+Insert a function skeleton, prompting for the function's name, arguments
+and return values which have to be entered without parentheses
+(@code{octave-insert-defun}).
+@noindent
+in one of your Emacs startup files.
+@end table
+
+A common problem is that the @key{RET} key does @emph{not} indent the
+line to where the new text should go after inserting the newline.  This
+is because the standard Emacs convention is that @key{RET} (aka
+@kbd{C-m}) just adds a newline, whereas @key{LFD} (aka @kbd{C-j}) adds a
+newline and indents it.  This is particularly inconvenient for users with
+keyboards which do not have a special @key{LFD} key at all; in such
+cases, it is typically more convenient to use @key{RET} as the @key{LFD}
+key (rather than typing @kbd{C-j}).
+
+You can make @key{RET} do this by adding
+@lisp
+(define-key octave-mode-map "\C-m"
+  'octave-reindent-then-newline-and-indent)
+@end lisp
+@noindent
+to one of your Emacs startup files.  Another, more generally applicable
+solution is
+@lisp
+(defun RET-behaves-as-LFD ()
+  (let ((x (key-binding "\C-j")))
+    (local-set-key "\C-m" x)))
+(add-hook 'octave-mode-hook 'RET-behaves-as-LFD)
+@end lisp
+@noindent
+(this works for all modes by adding to the startup hooks, without
+having to know the particular binding of @key{RET} in that mode!).
+Similar considerations apply for using @key{M-RET} as @key{M-LFD}.  As
+@email{bwarsaw@@cnri.reston.va.us, Barry A. Warsaw} says in the
+documentation for his @code{cc-mode}, ``This is a very common
+question.  @code{:-)} If you want this to be the default behavior,
+don't lobby me, lobby RMS!''
+
+The following variables can be used to customize Octave mode.
+
+@vtable @code
+@item octave-blink-matching-block
+Non-@code{nil} means show matching begin of block when inserting a space,
+newline or @samp{;} after an else or end keyword.  Default is @code{t}.
+This is an extremely useful feature for automatically verifying that the
+keywords match---if they don't, an error message is displayed.
+
+@item octave-block-offset
+Extra indentation applied to statements in block structures.
+Default is 2.
+
+@item octave-continuation-offset
+Extra indentation applied to Octave continuation lines.
+Default is 4.
+
+@item octave-font-lock-texinfo-comment
+Highlight texinfo comment blocks.  The default value is @code{t}.
+@end vtable
+
+If Font Lock mode is enabled, Octave mode will display
+
+@itemize @bullet
+@item
+strings in @code{font-lock-string-face}
+
+@item
+comments in @code{font-lock-comment-face}
+
+@item
+the Octave reserved words (such as all block keywords) and the text
+functions (such as @samp{cd} or @samp{who}) which are also reserved
+using @code{font-lock-keyword-face}
+
+@item
+the built-in operators (@samp{&&}, @samp{==}, @dots{}) using
+@code{font-lock-reference-face}
+
+@item
+and the function names in function declarations in
+@code{font-lock-function-name-face}.
+
+@item
+Function comments blocks in @code{octave-function-comment-block}
+@end itemize
+
+@cindex Imenu Support
+There is also rudimentary support for Imenu (@pxref{Imenu,,, emacs,
+The GNU Emacs Manual}).  Currently, function names can be indexed.
+
+@cindex ElDoc Mode Support
+@vindex octave-eldoc-message-style
+ElDoc mode (@pxref{Lisp Doc,,, emacs, The GNU Emacs Manual}) is
+supported.  By customizing @code{octave-eldoc-message-style} it can be
+changed from displaying one or multi line hints.
+
+@c @cindex TAGS
+@c @cindex Emacs TAGS files
+@c @cindex @file{octave-tags}
+@c You can generate TAGS files for Emacs from Octave @file{.m} files using
+@c the shell script @file{octave-tags} that is installed alongside your copy of
+@c Octave.
+@c
+@vindex octave-mode-hook
+Customization of Octave mode can be performed by modification of the
+variable @code{octave-mode-hook}.
+
+@node Running Octave from Within Emacs
+@chapter Running Octave from Within Emacs
+@cindex Inferior Octave Mode
+
+Octave mode provides commands for running an inferior
+Octave process in a special Emacs buffer.  Use
+@lisp
+M-x run-octave
+@end lisp
+@noindent
+to directly start an inferior Octave process.
+
+@vindex inferior-octave-buffer
+This will start Octave in a special buffer the name of which is
+specified by the variable @code{inferior-octave-buffer} and defaults
+to @file{*Inferior Octave*}.  From within this buffer, you can
+interact with the inferior Octave process `as usual', i.e., by
+entering Octave commands at the prompt.  The buffer is in Inferior
+Octave mode, which is derived from the standard Comint mode, a major
+mode for interacting with an inferior interpreter.  See the
+documentation for @code{comint-mode} for more details, and use
+@kbd{C-h b} to find out about available special keybindings.
+
+You can also communicate with an inferior Octave process from within
+files with Octave code (i.e., buffers in Octave mode), using the
+following commands.
+
+@table @kbd
+@item C-c C-i l
+@kindex C-c C-i l
+@findex octave-send-line
+@vindex octave-send-line-auto-forward
+Send the current line to the inferior Octave process
+(@code{octave-send-line}).  With positive prefix argument @var{n},
+send that many lines.  If @code{octave-send-line-auto-forward} is
+non-@code{nil}, go to the next unsent code line.
+
+@item C-c C-i b
+@kindex C-c C-i b
+@findex octave-send-block
+Send the current block to the inferior Octave process
+(@code{octave-send-block}).
+
+@item C-c C-i f
+@kindex C-c C-i f
+@findex octave-send-defun
+Send the current function to the inferior Octave process
+(@code{octave-send-defun}).
+
+@item C-c C-i r
+@kindex C-c C-i r
+@findex octave-send-region
+Send the region to the inferior Octave process
+(@code{octave-send-region}).
+
+@item C-c C-i a
+@kindex C-c C-i a
+@findex octave-send-buffer
+Send the entire buffer to the inferior Octave process
+(@code{octave-send-buffer}).  If the buffer is associated with a file
+then sourcing the buffer by using @kbd{C-c C-l}
+(@code{octave-source-file}) should be preferred.
+
+@item C-c C-i s
+@kindex C-c C-i s
+@findex octave-show-process-buffer
+Make sure that `inferior-octave-buffer' is displayed
+(@code{octave-show-process-buffer}).
+
+@item C-c C-i q
+@kindex C-c C-i q
+@findex octave-hide-process-buffer
+Delete all windows that display the inferior Octave buffer
+(@code{octave-hide-process-buffer}).
+
+@item C-c C-i k
+@kindex C-c C-i k
+@findex octave-kill-process
+Kill the inferior Octave process and its buffer
+(@code{octave-kill-process}).
+
+@item C-c C-l
+@kindex C-c C-l
+@findex octave-source-file
+Parse and execute the current file in the inferior Octave buffer
+(@code{octave-source-file}).  This is done using Octave's
+@code{source} function.
+
+@item M-.
+@kindex M-.
+@findex octave-find-definition
+@vindex octave-source-directories
+Find the definition of a function or variable.  Functions implemented
+in C++ can be found if variable @code{octave-source-directories} is
+set correctly (@code{octave-find-definition}).
+
+@item C-h d
+@kindex C-h d
+@findex octave-help
+@vindex octave-help-buffer
+Display the documentation for function (@code{octave-help}).  The
+buffer name can be changed by customizing @code{octave-help-buffer}.
+
+@item C-h a
+@kindex C-h a
+@findex octave-lookfor
+Search for a given string in all the first sentence of function help
+strings (@code{octave-lookfor}).  With a @code{universal-argument} the
+entire help string is searched.
+
+@end table
+
+The effect of the commands which send code to the Octave process can be
+customized by the following variables.
+
+@vtable @code
+@item octave-send-echo-input
+Non-@code{nil} means echo input sent to the inferior Octave process.
+Default is @code{t}.
+
+@item octave-send-show-buffer
+Non-@code{nil} means display the buffer running the Octave process after
+sending a command (but without selecting it).
+Default is @code{t}.
+@end vtable
+
+If you send code and there is no inferior Octave process yet, it will
+be started automatically.
+
+@vindex inferior-octave-startup-args
+The startup of the inferior Octave process is highly customizable.
+The variable @code{inferior-octave-startup-args} can be used for
+specifying command lines arguments to be passed to Octave on startup
+as a list of strings.  For example, to suppress the startup message
+and use `traditional' mode, set this to @code{("-q" "--traditional")}.
+You can also specify a startup file of Octave commands to be loaded on
+startup; note that these commands will not produce any visible output
+in the process buffer.  Which file to use is controlled by the
+variable @code{inferior-octave-startup-file}.  The default is
+@file{~/.emacs-octave} or if this file is not found
+@file{~/.emacs.d/init_octave.m}.
+
+@vindex inferior-octave-prompt-read-only
+By customizing @code{inferior-octave-prompt-read-only} the prompt can
+be changed to be read only.  The default value is the same as
+@code{comint-prompt-read-only}.
+
+@vindex inferior-octave-mode-hook
+And finally, @code{inferior-octave-mode-hook} is run after starting
+the process and putting its buffer into Inferior Octave mode.  Hence,
+if you like the up and down arrow keys to behave in the interaction
+buffer as in the shell, and you want this buffer to use nice colors,
+add
+@lisp
+(add-hook 'inferior-octave-mode-hook
+          (lambda ()
+            (define-key inferior-octave-mode-map [up]
+              'comint-previous-input)
+            (define-key inferior-octave-mode-map [down]
+              'comint-next-input)))
+@end lisp
+@noindent
+to your @file{.emacs} or @file{init.el} file.  You could also swap the
+roles of @kbd{C-a} (@code{beginning-of-line}) and @code{C-c C-a}
+(@code{comint-bol}) using this hook.
+
+@vindex inferior-octave-prompt
+@quotation
+@strong{Note} that if you set your Octave prompts to something different
+from the defaults, make sure that @code{inferior-octave-prompt} matches
+them.  Otherwise, @emph{nothing} will work, because Emacs will not know
+when Octave is waiting for input, or done sending output.
+@end quotation
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
+
+@node Key Index
+@unnumbered Key Index
+
+@printindex ky
+
+@node Variable Index
+@unnumbered Variable Index
+
+@printindex vr
+
+@node Lisp Function Index
+@unnumbered Function Index
+
+@printindex fn
+
+@node Concept Index
+@unnumbered Concept Index
+
+@printindex cp
+
+
+@bye
+
+@c TODO Update
+
+@c @node Using the Emacs Info Reader for Octave
+@c @chapter Using the Emacs Info Reader for Octave
+
+@c You may also use the Emacs Info reader with Octave's @code{doc} function.
+
+@c If @file{gnuserv} is installed, add the lines
+@c @lisp
+@c (autoload 'octave-help "octave-hlp" nil t)
+@c (require 'gnuserv)
+@c (gnuserv-start)
+@c @end lisp
+@c @noindent
+@c to your @file{.emacs} file.
+
+@c You can use either `plain' Emacs Info or the function @code{octave-help}
+@c as your Octave info reader (for @samp{help -i}).  In the former case,
+@c use @code{info_program ("info-emacs-info")}.
+@c The latter is perhaps more attractive because it allows to look up keys
+@c in the indices of @emph{several} info files related to Octave (provided
+@c that the Emacs variable @code{octave-help-files} is set correctly).  In
+@c this case, use @code{info_program ("info-emacs-octave-help")}.
+
+@c If you use Octave from within Emacs, it is best to add these settings to
+@c your @file{~/.emacs-octave} startup file (or the file pointed to by the
+@c Emacs variable @code{inferior-octave-startup-file}).

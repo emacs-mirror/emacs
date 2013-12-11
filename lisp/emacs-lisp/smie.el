@@ -1165,7 +1165,7 @@ the beginning of a line."
 		    (forward-char 1))
                (skip-chars-forward " \t")
                (or (eolp)
-                   (and (looking-at comment-start-skip)
+                   (and ;; (looking-at comment-start-skip) ;(bug#16041).
                         (forward-comment (point-max))))
                (point))))))
 

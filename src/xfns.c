@@ -3069,7 +3069,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-#ifdef USE_GTK
   /* PXW: This is a duplicate from below.  We have to do it here since
      otherwise x_set_tool_bar_lines will work with the character sizes
      installed by init_frame_faces while the frame's pixel size is still
@@ -3078,12 +3077,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
      non-pixelwise code apparently worked around this because it had one
      frame line vs one toolbar line which left us with a zero root
      window height which was obviously wrong as well ...  */
-  width = FRAME_TEXT_WIDTH (f);
-  height = FRAME_TEXT_HEIGHT (f);
-  FRAME_TEXT_HEIGHT (f) = 0;
-  SET_FRAME_WIDTH (f, 0);
-  change_frame_size (f, width, height, 1, 0, 0, 1);
-#endif /* USE_GTK */
+  change_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 1, 0, 0, 1);
 
   /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
      look up the X resources controlling the menu-bar and tool-bar

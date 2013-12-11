@@ -183,7 +183,7 @@ autoloads: $(LOADDEFS) doit
 	echo Directories: $$wins; \
 	$(emacs) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (expand-file-name "$(srcdir)/loaddefs.el"))' \
+	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so

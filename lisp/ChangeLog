@@ -1,3 +1,85 @@
+2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't bother matching
+	comment-start-skip, since it fails when that uses submatch 1 (bug#16041).
+
+	* emulation/cua-base.el (cua-paste): Add `delete-selection' property
+	instead of deleting the selection "by hand" (bug#16098).
+	Rely on insert-for-yank to yank rectangles.
+	(cua-highlight-region-shift-only): Mark obsolete.
+	(cua-mode): Don't enable/disable transient-mark-mode,
+	shift-select-mode (cua-mode works both with and without them), and
+	pc-selection-mode (obsolete).
+	* emulation/cua-rect.el (cua--activate-rectangle): Activate the mark.
+	(cua--deactivate-rectangle): Deactivate it.
+
+	* delsel.el (delete-selection-mode): Don't enable transient-mark-mode.
+	(delete-selection-helper): Make sure yank starts at the top of the
+	deleted region.
+	(minibuffer-keyboard-quit): Use region-active-p.
+
+	* emacs-lisp/trace.el (trace-make-advice): Don't deactivate the mark.
+
+	* simple.el (normal-erase-is-backspace-mode): Map kp-delete identically
+	to `delete' (bug#16109).
+
+2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (octave-mode, inferior-octave-mode): Link to
+	info manual and show keybindings and set `:group' keyword.
+
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
+	* delsel.el (delete-active-region): Let-bind `this-command'
+	to prevent `kill-region' from changing its original value.
+	(delete-selection-helper): Handle `overwrite-mode' for the type
+	`kill' exactly the same way as for the type `t'.
+	(insert-char, quoted-insert, reindent-then-newline-and-indent):
+	Support more commands.  (Bug#13312)
+
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el: Map kp keys to non-kp keys systematically
+	with basic modifiers control, meta and shift.  (Bug#14397)
+
+2013-12-11  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>  (tiny change)
+
+	* net/eww.el (eww-mode-map): Instead of "Quit" show "Exit" and
+	"Close browser" menu items.  Fix wrong function of "List
+	bookmarks".
+
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
+	* misearch.el (multi-isearch-buffers): Set the value of
+	`multi-isearch-buffer-list' globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward to t.
+	(multi-isearch-buffers-regexp): Set the value of
+	`multi-isearch-buffer-list' globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward-regexp to t.
+	(multi-isearch-files): Set the value of
+	`multi-isearch-file-list' globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward to t.
+	(multi-isearch-files-regexp): Set the value of
+	`multi-isearch-file-list globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward-regexp to t.  (Bug#16035)
+
+	* dired-aux.el (dired-isearch-filenames): Set NO-RECURSIVE-EDIT
+	arg of isearch-forward to t.
+	(dired-isearch-filenames-regexp): Set NO-RECURSIVE-EDIT
+	arg of isearch-forward-regexp to t.
+	(dired-isearch-filter-filenames): Remove unnecessary check for
+	`dired-isearch-filenames'.
+
+	* comint.el (comint-history-isearch-backward):
+	Set NO-RECURSIVE-EDIT arg of isearch-backward to t.
+	(comint-history-isearch-backward-regexp):
+	Set NO-RECURSIVE-EDIT arg of isearch-backward-regexp to t.
+
+2013-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (autoloads): Run $(srcdir)/loaddefs.el through
+	unmsys--file-name.  (Bug#16099)
+
 2013-12-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-lisp/package.el (package-keyword-button-action): Remove

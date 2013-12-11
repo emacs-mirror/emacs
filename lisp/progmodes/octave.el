@@ -528,8 +528,14 @@ Non-nil means always go to the next Octave code line after sending."
 Octave is a high-level language, primarily intended for numerical
 computations.  It provides a convenient command line interface
 for solving linear and nonlinear problems numerically.  Function
-definitions can also be stored in files and used in batch mode."
+definitions can also be stored in files and used in batch mode.
+
+See Info node `(octave-mode) Using Octave Mode' for more details.
+
+Key bindings:
+\\{octave-mode-map}"
   :abbrev-table octave-abbrev-table
+  :group 'octave
 
   (smie-setup octave-smie-grammar #'octave-smie-rules
               :forward-token  #'octave-smie-forward-token
@@ -705,8 +711,16 @@ in the Inferior Octave buffer.")
   (process-live-p inferior-octave-process))
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
-  "Major mode for interacting with an inferior Octave process."
+  "Major mode for interacting with an inferior Octave process.
+
+See Info node `(octave-mode) Running Octave from Within Emacs' for more
+details.
+
+Key bindings:
+\\{inferior-octave-mode-map}"
   :abbrev-table octave-abbrev-table
+  :group 'octave
+
   (setq comint-prompt-regexp inferior-octave-prompt)
 
   (setq-local comment-use-syntax t)

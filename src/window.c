@@ -4057,7 +4057,7 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
   r->pixel_top = FRAME_TOP_MARGIN_HEIGHT (f);
 
   if (new_pixel_size == old_pixel_size)
-    return;
+    ;
   else if (WINDOW_LEAF_P (r))
     /* For a leaf root window just set the size.  */
     if (horflag)
