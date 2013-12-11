@@ -1,5 +1,14 @@
 2013-12-11  Juri Linkov  <juri@jurta.org>
 
+	* delsel.el (delete-active-region): Let-bind `this-command'
+	to prevent `kill-region' from changing its original value.
+	(delete-selection-helper): Handle `overwrite-mode' for the type
+	`kill' exactly the same way as for the type `t'.
+	(insert-char, quoted-insert, reindent-then-newline-and-indent):
+	Support more commands.  (Bug#13312)
+
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
 	* bindings.el: Map kp keys to non-kp keys systematically
 	with basic modifiers control, meta and shift.  (Bug#14397)
 

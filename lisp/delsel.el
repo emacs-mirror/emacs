@@ -78,7 +78,9 @@ any selection."
   "Delete the active region.
 If KILLP in not-nil, the active region is killed instead of deleted."
   (if killp
-      (kill-region (point) (mark) t)
+      ;; Don't allow `kill-region' to change the value of `this-command'.
+      (let (this-command)
+	(kill-region (point) (mark) t))
     (funcall region-extract-function 'delete-only))
   t)
 
@@ -102,7 +104,13 @@ If KILLP in not-nil, the active region is killed instead of deleted."
      FUNCTION should take no argument and return one of the above values or nil."
   (condition-case data
       (cond ((eq type 'kill)
-	     (delete-active-region t))
+	     (delete-active-region t)
+	     (if (and overwrite-mode
+		      (eq this-command 'self-insert-command))
+		 (let ((overwrite-mode nil))
+		   (self-insert-command
+		    (prefix-numeric-value current-prefix-arg))
+		   (setq this-command 'ignore))))
 	    ((eq type 'yank)
 	     ;; Before a yank command, make sure we don't yank the
 	     ;; head of the kill-ring that really comes from the
@@ -165,10 +173,14 @@ See `delete-selection-helper'."
        (not (run-hook-with-args-until-success
              'self-insert-uses-region-functions))))
 
+(put 'insert-char 'delete-selection t)
+(put 'quoted-insert 'delete-selection t)
+
 (put 'yank 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
 
+(put 'reindent-then-newline-and-indent 'delete-selection t)
 (put 'newline-and-indent 'delete-selection t)
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection 'kill)
@@ -197,9 +209,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
-  (dolist (sym '(self-insert-command yank clipboard-yank
+  (dolist (sym '(self-insert-command insert-char quoted-insert yank clipboard-yank
 		 insert-register
-                 newline-and-indent newline open-line))
+                 reindent-then-newline-and-indent newline-and-indent newline open-line))
     (put sym 'delete-selection nil))
   ;; continue standard unloading
   nil)
