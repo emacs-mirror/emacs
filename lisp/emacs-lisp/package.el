@@ -1509,7 +1509,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       (revert-buffer nil t)
       (goto-char (point-min)))))
 
-(declare-function finder-list-matches "finder" (keyword))
+(autoload 'finder-list-matches "finder")
 (defun package-keyword-button-action (button)
   (let ((pkg-keyword (button-get button 'package-keyword)))
     (finder-list-matches pkg-keyword)))
