@@ -1,3 +1,8 @@
+2013-12-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (custom-deps, finder-data): Run output file names
+	through unmsys--file-name.  (Bug#16099)
+
 2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't bother matching

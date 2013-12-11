@@ -1,3 +1,12 @@
+2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* Makefile.in: Add octave-mode.texi.
+
+2013-12-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+	    Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* octave-mode.texi: Import from GNU Octave (doc/interpreter/emacs.txi).
+
 2013-12-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dbus.texi (Properties and Annotations): Fix typo.
