@@ -3833,10 +3833,7 @@ static void
 tty_free_frame_resources (struct frame *f)
 {
   eassert (FRAME_TERMCAP_P (f));
-
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
-
+  free_frame_faces (f);
   xfree (f->output_data.tty);
 }
 
@@ -3848,9 +3845,7 @@ static void
 tty_free_frame_resources (struct frame *f)
 {
   eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
-
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
+  free_frame_faces (f);
 }
 #endif	/* MSDOS */
 

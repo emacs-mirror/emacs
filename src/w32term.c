@@ -6080,16 +6080,12 @@ x_free_frame_resources (struct frame *f)
   /* We must free faces before destroying windows because some
      font-driver (e.g. xft) access a window while finishing a
      face.  */
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
+  free_frame_faces (f);
 
   if (FRAME_W32_WINDOW (f))
     my_destroy_window (f, FRAME_W32_WINDOW (f));
 
   free_frame_menubar (f);
-
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
 
   xfree (f->output_data.w32);
   f->output_data.w32 = NULL;

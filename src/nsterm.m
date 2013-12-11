@@ -1155,9 +1155,7 @@ x_free_frame_resources (struct frame *f)
   block_input ();
 
   free_frame_menubar (f);
-
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
+  free_frame_faces (f);
 
   if (f == dpyinfo->x_focus_frame)
     dpyinfo->x_focus_frame = 0;

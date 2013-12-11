@@ -1,3 +1,12 @@
+2013-12-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* nsterm.m (x_free_frame_resources):
+	* term.c (tty_free_frame_resources):
+	* xterm.c (x_free_frame_resources): Do not check for non-NULL
+	face cache because it's implied by free_frame_faces anyway.
+	* w32term.c (x_free_frame_resources): Likewise.  Do not call
+	free_frame_faces twice.
+
 2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* editfns.c (Fformat_time_string): Mention %F in the doc.
