@@ -1,3 +1,8 @@
+2013-12-11  Ken Brown  <kbrown@cornell.edu>
+
+	* dispextern.h (erase_phys_cursor):
+	* keyboard.h (make_ctrl_char): Declare prototypes if HAVE_NTGUI.
+
 2013-12-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* nsterm.m (x_free_frame_resources):
