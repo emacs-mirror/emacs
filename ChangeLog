@@ -1,3 +1,13 @@
+2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make 'configure' work out-of-the-box on Solaris.
+	* configure.ac: Work even if libgif etc. are missing.  Emacs works
+	without these libraries even if its default GUI is harmed, so they
+	are not strictly necessary.  Another possibility would be to
+	disable X11 if these libraries are missing.  The point is that a
+	plain 'configure' should not fail on platforms like Solaris 11
+	where one or more image libraries are not installed by default.
+
 2013-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Add octave-mode.
