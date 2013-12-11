@@ -718,7 +718,8 @@ If command is repeated at same position, delete the rectangle."
             (cdr (cdr cua--last-rectangle))
           (cua--rectangle-get-corners))
         cua--status-string (if (cua--rectangle-virtual-edges) " [R]" "")
-        cua--last-rectangle nil))
+        cua--last-rectangle nil)
+  (activate-mark))
 
 ;; (defvar cua-save-point nil)
 
@@ -731,7 +732,8 @@ If command is repeated at same position, delete the rectangle."
         cua--rectangle nil
         cua--rectangle-overlays nil
         cua--status-string nil
-        cua--mouse-last-pos nil))
+        cua--mouse-last-pos nil)
+  (deactivate-mark))
 
 (defun cua--highlight-rectangle ()
   ;; This function is used to highlight the rectangular region.

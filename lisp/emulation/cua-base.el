@@ -294,6 +294,8 @@ But when the mark was set using \\[cua-set-mark], Transient Mark mode
 is not turned on."
   :type 'boolean
   :group 'cua)
+(make-obsolete-variable 'cua-highlight-region-shift-only
+                        'transient-mark-mode "24.4")
 
 (defcustom cua-prefix-override-inhibit-delay 0.2
   "If non-nil, time in seconds to delay before overriding prefix key.
@@ -858,6 +860,7 @@ With numeric prefix arg, copy to register 0-9 instead."
 
 (declare-function x-clipboard-yank "../term/x-win" ())
 
+(put 'cua-paste 'delete-selection 'yank)
 (defun cua-paste (arg)
   "Paste last cut or copied region or rectangle.
 An active region is deleted before executing the command.
@@ -866,8 +869,7 @@ If global mark is active, copy from register or one character."
   (interactive "P")
   (setq arg (cua--prefix-arg arg))
   (let ((regtxt (and cua--register (get-register cua--register)))
-	(count (prefix-numeric-value arg))
-	paste-column paste-lines)
+	(count (prefix-numeric-value arg)))
     (cond
      ((and cua--register (not regtxt))
       (message "Nothing in register %c" cua--register))
@@ -875,30 +877,12 @@ If global mark is active, copy from register or one character."
       (if regtxt
 	  (cua--insert-at-global-mark regtxt)
 	(when (not (eobp))
-	  (cua--insert-at-global-mark (filter-buffer-substring (point) (+ (point) count)))
+	  (cua--insert-at-global-mark
+           (filter-buffer-substring (point) (+ (point) count)))
 	  (forward-char count))))
      (buffer-read-only
       (error "Cannot paste into a read-only buffer"))
      (t
-      ;; Must save register here, since delete may override reg 0.
-      (if mark-active
-	  (if cua--rectangle
-	      (progn
-		(goto-char (min (mark) (point)))
-		(setq paste-column (cua--rectangle-left))
-		(setq paste-lines (cua--delete-rectangle))
-		(if (= paste-lines 1)
-		    (setq paste-lines nil))) ;; paste all
-	    ;; Before a yank command, make sure we don't yank the
-	    ;; head of the kill-ring that really comes from the
-	    ;; currently active region we are going to delete.
-	    ;; That would make yank a no-op.
-	    (if (and (string= (filter-buffer-substring (point) (mark))
-			      (car kill-ring))
-		     (fboundp 'mouse-region-match)
-		     (mouse-region-match))
-		(current-kill 1))
-	    (cua-delete-region)))
       (cond
        (regtxt
 	(cond
@@ -906,16 +890,6 @@ If global mark is active, copy from register or one character."
 	 ((consp regtxt) (cua--insert-rectangle regtxt))
 	 ((stringp regtxt) (insert-for-yank regtxt))
 	 (t (message "Unknown data in register %c" cua--register))))
-       ((and cua--last-killed-rectangle
-	     (eq (and kill-ring (car kill-ring)) (car cua--last-killed-rectangle)))
-	(let ((pt (point)))
-	  (when (not (eq buffer-undo-list t))
-	    (setq this-command 'cua--paste-rectangle)
-	    (undo-boundary)
-	    (setq buffer-undo-list (cons pt buffer-undo-list)))
-	  (cua--insert-rectangle (cdr cua--last-killed-rectangle)
-				 nil paste-column paste-lines)
-	  (if arg (goto-char pt))))
        ((eq this-original-command 'clipboard-yank)
 	(clipboard-yank))
        ((eq this-original-command 'x-clipboard-yank)
@@ -1426,9 +1400,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:
-;;   transient-mark-mode
 ;;   delete-selection-mode
-;;   pc-selection-mode
 
 (defvar cua--saved-state nil)
 
@@ -1488,7 +1460,8 @@ shifted movement key, set `cua-highlight-region-shift-only'."
     (remove-hook 'post-command-hook 'cua--post-command-handler))
 
   (if (not cua-mode)
-      (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
+      (setq emulation-mode-map-alists
+            (delq 'cua--keymap-alist emulation-mode-map-alists))
     (add-to-ordered-list 'emulation-mode-map-alists 'cua--keymap-alist 400)
     (cua--select-keymaps))
 
@@ -1496,34 +1469,21 @@ shifted movement key, set `cua-highlight-region-shift-only'."
    (cua-mode
     (setq cua--saved-state
 	  (list
-	   transient-mark-mode
-	   (and (boundp 'delete-selection-mode) delete-selection-mode)
-	   (and (boundp 'pc-selection-mode) pc-selection-mode)
-	   shift-select-mode))
+	   (and (boundp 'delete-selection-mode) delete-selection-mode)))
     (if cua-delete-selection
         (delete-selection-mode 1)
       (if (and (boundp 'delete-selection-mode) delete-selection-mode)
           (delete-selection-mode -1)))
-    (if (and (boundp 'pc-selection-mode) pc-selection-mode)
-	(pc-selection-mode -1))
-    (cua--deactivate)
-    (setq shift-select-mode t)
-    (transient-mark-mode (if cua-highlight-region-shift-only -1 1)))
+    (if cua-highlight-region-shift-only (transient-mark-mode -1))
+    (cua--deactivate))
    (cua--saved-state
-    (setq transient-mark-mode (car cua--saved-state))
-    (if (nth 1 cua--saved-state)
+    (if (nth 0 cua--saved-state)
 	(delete-selection-mode 1)
       (if (and (boundp 'delete-selection-mode) delete-selection-mode)
           (delete-selection-mode -1)))
-    (if (nth 2 cua--saved-state)
-	(pc-selection-mode 1))
-    (setq shift-select-mode (nth 3 cua--saved-state))
     (if (called-interactively-p 'interactive)
-	(message "CUA mode disabled.%s%s%s%s"
-		 (if (nth 1 cua--saved-state) " Delete-Selection" "")
-		 (if (and (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " and" "")
-		 (if (nth 2 cua--saved-state) " PC-Selection" "")
-		 (if (or (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " enabled" "")))
+	(message "CUA mode disabled.%s"
+		 (if (nth 0 cua--saved-state) " Delete-Selection enabled" "")))
     (setq cua--saved-state nil))))
 
 

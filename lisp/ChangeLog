@@ -1,5 +1,15 @@
 2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/cua-base.el (cua-paste): Add `delete-selection' property
+	instead of deleting the selection "by hand" (bug#16098).
+	Rely on insert-for-yank to yank rectangles.
+	(cua-highlight-region-shift-only): Mark obsolete.
+	(cua-mode): Don't enable/disable transient-mark-mode,
+	shift-select-mode (cua-mode works both with and without them), and
+	pc-selection-mode (obsolete).
+	* emulation/cua-rect.el (cua--activate-rectangle): Activate the mark.
+	(cua--deactivate-rectangle): Deactivate it.
+
 	* delsel.el (delete-selection-mode): Don't enable transient-mark-mode.
 	(delete-selection-helper): Make sure yank starts at the top of the
 	deleted region.
