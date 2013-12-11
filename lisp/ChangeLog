@@ -1,3 +1,8 @@
+2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (octave-mode, inferior-octave-mode): Link to
+	info manual and show keybindings and set `:group' keyword.
+
 2013-12-11  Juri Linkov  <juri@jurta.org>
 
 	* delsel.el (delete-active-region): Let-bind `this-command'
