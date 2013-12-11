@@ -94,8 +94,7 @@ AC_ARG_WITH(all,
 [AS_HELP_STRING([--without-all],
 		[omit almost all features and build
 		small executable with minimal dependencies])],
-  [with_features=$withval
-   with_openssl_default=$withval],
+  [with_features=$withval],
   [with_features=yes])
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
@@ -640,6 +639,8 @@ dnl alternative to lib/gnulib.mk, so as to avoid generating header files
 dnl that clash with MinGW.
 AM_CONDITIONAL([BUILDING_FOR_WINDOWSNT], [test "x$opsys" = "xmingw32"])
 
+# Avoid gnulib's tests for -lcrypto, so that there's no static dependency on it.
+AC_DEFUN([gl_CRYPTO_CHECK])
 # Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
 # as we don't use them.
 AC_DEFUN([gl_FCNTL_O_FLAGS])
@@ -4848,12 +4849,6 @@ else
   acl_summary=no
 fi
 
-if test -n "$LIB_CRYPTO"; then
-  HAVE_LIB_CRYPTO=yes
-else
-  HAVE_LIB_CRYPTO=no
-fi
-
 echo "
 Configured for \`${canonical}'.
 
@@ -4893,7 +4888,6 @@ echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
 echo "  Does Emacs use access control lists?                    ${acl_summary}"
-echo "  Does Emacs use a crypto library?                        ${HAVE_LIB_CRYPTO} $LIB_CRYPTO"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

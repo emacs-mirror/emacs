@@ -1,3 +1,9 @@
+2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove the option of using libcrypto.
+	* Makefile.in (LIB_CRYPTO): Remove.
+	(LIBES): Don't use it.
+
 2013-12-11  Juri Linkov  <juri@jurta.org>
 
 	* term.c (term_get_fkeys_1): Remove non-standard IBM terminfo

@@ -1,3 +1,8 @@
+2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove the option of using libcrypto.
+	* merge-gnulib: Remove lib/gl_openssh.h and m4/gl-openssl.m4.
+
 2013-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-prop-alist): Update bidi-class
