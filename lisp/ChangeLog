@@ -1,3 +1,30 @@
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
+	* misearch.el (multi-isearch-buffers): Set the value of
+	`multi-isearch-buffer-list' globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward to t.
+	(multi-isearch-buffers-regexp): Set the value of
+	`multi-isearch-buffer-list' globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward-regexp to t.
+	(multi-isearch-files): Set the value of
+	`multi-isearch-file-list' globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward to t.
+	(multi-isearch-files-regexp): Set the value of
+	`multi-isearch-file-list globally.  Set NO-RECURSIVE-EDIT
+	arg of isearch-forward-regexp to t.  (Bug#16035)
+
+	* dired-aux.el (dired-isearch-filenames): Set NO-RECURSIVE-EDIT
+	arg of isearch-forward to t.
+	(dired-isearch-filenames-regexp): Set NO-RECURSIVE-EDIT
+	arg of isearch-forward-regexp to t.
+	(dired-isearch-filter-filenames): Remove unnecessary check for
+	`dired-isearch-filenames'.
+
+	* comint.el (comint-history-isearch-backward):
+	Set NO-RECURSIVE-EDIT arg of isearch-backward to t.
+	(comint-history-isearch-backward-regexp):
+	Set NO-RECURSIVE-EDIT arg of isearch-backward-regexp to t.
+
 2013-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (autoloads): Run $(srcdir)/loaddefs.el through
