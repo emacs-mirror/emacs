@@ -1,3 +1,8 @@
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
+	* term.c (term_get_fkeys_1): Remove non-standard IBM terminfo
+	as obsolete to avoid conflicts with <S-up>.  (Bug#13471)
+
 2013-12-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (display_tool_bar_line): Don't extend on a previously

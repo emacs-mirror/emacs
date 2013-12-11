@@ -1422,18 +1422,6 @@ term_get_fkeys_1 (void)
       CONDITIONAL_REASSIGN ("kD", "kI", "insert");
       /* if there's no key_end keycap, map key_ll to 'end' keysym */
       CONDITIONAL_REASSIGN ("@7", "kH", "end");
-
-      /* IBM has their own non-standard dialect of terminfo.
-	 If the standard name isn't found, try the IBM name.  */
-      CONDITIONAL_REASSIGN ("kB", "KO", "backtab");
-      CONDITIONAL_REASSIGN ("@4", "kJ", "execute"); /* actually "action" */
-      CONDITIONAL_REASSIGN ("@4", "kc", "execute"); /* actually "command" */
-      CONDITIONAL_REASSIGN ("%7", "ki", "menu");
-      CONDITIONAL_REASSIGN ("@7", "kw", "end");
-      CONDITIONAL_REASSIGN ("F1", "k<", "f11");
-      CONDITIONAL_REASSIGN ("F2", "k>", "f12");
-      CONDITIONAL_REASSIGN ("%1", "kq", "help");
-      CONDITIONAL_REASSIGN ("*6", "kU", "select");
 #undef CONDITIONAL_REASSIGN
   }
 
