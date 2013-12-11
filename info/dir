@@ -36,6 +36,7 @@ Emacs editing modes
                                   Java, Pike, AWK, and CORBA IDL code.
 * IDLWAVE: (idlwave).           Major mode and shell for IDL files.
 * nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
+* Octave mode: (octave-mode).   Emacs mode for editing GNU Octave files.
 * Org Mode: (org).              Outline-based notes management and organizer.
 
 Emacs network features
