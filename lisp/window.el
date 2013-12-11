@@ -807,13 +807,13 @@ SIDE.  Return the new window, nil if its creation window failed."
     (delete-window window)))
 
 (defun display-buffer-in-side-window (buffer alist)
-  "Display BUFFER in a window on side SIDE of the selected frame.
+  "Display BUFFER in a side window of the selected frame.
 ALIST is an association list of symbols and values.  The
-following symbols can be used:
+following special symbols can be used in ALIST.
 
-`side' denotes the side of the existing window where the new
-  window shall be located.  Valid values are `bottom', `right',
-  `top' and `left'.  The default is `bottom'.
+`side' denotes the side of the frame where the new window shall
+  be located.  Valid values are `bottom', `right', `top' and
+  `left'.  The default is `bottom'.
 
 `slot' if non-nil, specifies the window slot where to display
   BUFFER.  A value of zero or nil means use the middle slot on
