@@ -1,3 +1,7 @@
+2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* editfns.c (Fformat_time_string): Mention %F in the doc.
+
 2013-12-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (resize_frame_windows): Don't return immediately when
