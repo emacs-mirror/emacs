@@ -1,5 +1,7 @@
 2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/trace.el (trace-make-advice): Don't deactivate the mark.
+
 	* simple.el (normal-erase-is-backspace-mode): Map kp-delete identically
 	to `delete' (bug#16109).
 

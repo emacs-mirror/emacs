@@ -222,6 +222,7 @@ be printed along with the arguments in the trace."
   (lambda (body &rest args)
     (let ((trace-level (1+ trace-level))
           (trace-buffer (get-buffer-create buffer))
+          (deactivate-mark nil)         ;Protect deactivate-mark.
           (ctx (funcall context)))
       (unless inhibit-trace
         (with-current-buffer trace-buffer
