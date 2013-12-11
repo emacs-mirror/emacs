@@ -1,5 +1,8 @@
 2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't bother matching
+	comment-start-skip, since it fails when that uses submatch 1 (bug#16041).
+
 	* emulation/cua-base.el (cua-paste): Add `delete-selection' property
 	instead of deleting the selection "by hand" (bug#16098).
 	Rely on insert-for-yank to yank rectangles.

@@ -247,6 +247,13 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** CUA-mode
+CUA-mode was changed to make use of delete-selection-mode and
+shift-select-mode.  So you can now enable it independently from
+transient-mark-mode, delete-selection-mode, and shift-select-mode.
+As a result, cua-highlight-region-shift-only is obsolete
+(you can disable transient-mark-mode to get the same result).
+
 ** `delete-selection-mode' can be used without transient-mark-mode.
 
 ** prolog-use-smie has been removed, along with the non-SMIE indentation code.
