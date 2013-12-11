@@ -1,3 +1,8 @@
+2013-12-11  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el: Map kp keys to non-kp keys systematically
+	with basic modifiers control, meta and shift.  (Bug#14397)
+
 2013-12-11  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>  (tiny change)
 
 	* net/eww.el (eww-mode-map): Instead of "Quit" show "Exit" and
