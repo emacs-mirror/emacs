@@ -521,7 +521,7 @@ or an empty string if none."
 		  :help "Show the contents of the current stash"))
     map))
 
-(defun vc-git-dir-extra-headers (_dir)
+(defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
@@ -560,9 +560,9 @@ or an empty string if none."
 		    'face 'font-lock-variable-name-face)))
      "\n"
      ;; For now just a heading, key bindings can be added later for various bisect actions
-     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root _dir)))
+     (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root dir)))
        (propertize  "Bisect     : in progress\n" 'face 'font-lock-warning-face))
-     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root _dir)))
+     (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root dir)))
        (propertize  "Rebase     : in progress\n" 'face 'font-lock-warning-face))
      (if stash
        (concat
@@ -624,6 +624,7 @@ The car of the list is the current branch."
 (declare-function log-edit-mode "log-edit" ())
 (declare-function log-edit-toggle-header "log-edit" (header value))
 (declare-function log-edit-extract-headers "log-edit" (headers string))
+(declare-function log-edit-set-header "log-edit" (header value &optional toggle))
 
 (defun vc-git-log-edit-toggle-signoff ()
   "Toggle whether to add the \"Signed-off-by\" line at the end of

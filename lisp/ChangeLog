@@ -1,3 +1,9 @@
+2013-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-git.el: Silence byte-compiler warnings.
+	(vc-git-dir-extra-headers): Rename arg _dir which is no longer ignored.
+	(log-edit-set-header): Declare.
+
 2013-12-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (custom-deps, finder-data): Run output file names
