@@ -1,9 +1,3 @@
-2013-12-06  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
-
-	* doc/misc/octave-mode.texi: Imported from GNU Octave
-	  (doc/interpreter/emacs.txi).
-	* doc/misc/Makefile.in: Add octave-mode.texi.
-
 2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove the option of using libcrypto.
