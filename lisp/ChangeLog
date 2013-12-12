@@ -1,4 +1,4 @@
-2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
+2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
 	* progmodes/python.el (python-indent-calculate-indentation): When
 	determining indentation, don't treat "return", "pass", etc., as
