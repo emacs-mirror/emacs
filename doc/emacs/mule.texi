@@ -1130,6 +1130,21 @@ In the default language environment, non-@acronym{ASCII} characters in
 file names are not encoded specially; they appear in the file system
 using the internal Emacs representation.
 
+@cindex file-name encoding, MS-Windows
+@vindex w32-unicode-filenames
+  When Emacs runs on MS-Windows versions that are descendants of the
+NT family (Windows 2000, XP, Vista, Windows 7, and Windows 8), the
+value of @code{file-name-coding-system} is largely ignored, as Emacs
+by default uses APIs that allow to pass Unicode file names directly.
+By contrast, on Windows 9X, file names are encoded using
+@code{file-name-coding-system}, which should be set to the codepage
+(@pxref{Coding Systems, codepage}) pertinent for the current system
+locale.  The value of the variable @code{w32-unicode-filenames}
+controls whether Emacs uses the Unicode APIs when it calls OS
+functions that accept file names.  This variable is set by the startup
+code to @code{nil} on Windows 9X, and to @code{t} on newer versions of
+MS-Windows.
+
   @strong{Warning:} if you change @code{file-name-coding-system} (or the
 language environment) in the middle of an Emacs session, problems can
 result if you have already visited files whose names were encoded using

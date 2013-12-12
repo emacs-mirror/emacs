@@ -1,3 +1,12 @@
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (w32-handle-dropped-file):
+	* startup.el (normal-top-level):
+	* net/browse-url.el (browse-url-file-url):
+	* dnd.el (dnd-get-local-file-name): On MS-Windows, encode and
+	decode file names using 'utf-8' rather than
+	file-name-coding-system.
+
 2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-indent-context)

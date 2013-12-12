@@ -51,6 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include "w32heap.h"
+#include <mbstring.h>
 #endif /* WINDOWSNT */
 
 #if CYGWIN
@@ -6305,18 +6306,31 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
     {
+      OFNOTIFYW * notify_w = (OFNOTIFYW *)lParam;
+      OFNOTIFYA * notify_a = (OFNOTIFYA *)lParam;
+      int dropdown_changed;
+      int dir_index;
 #ifdef NTGUI_UNICODE
-      OFNOTIFYW * notify = (OFNOTIFYW *)lParam;
+      const int use_unicode = 1;
 #else /* !NTGUI_UNICODE */
-      OFNOTIFYA * notify = (OFNOTIFYA *)lParam;
+      int use_unicode = w32_unicode_filenames;
 #endif /* NTGUI_UNICODE */
+
       /* Detect when the Filter dropdown is changed.  */
-      if (notify->hdr.code == CDN_TYPECHANGE
-	  || notify->hdr.code == CDN_INITDONE)
+      if (use_unicode)
+	dropdown_changed =
+	  notify_w->hdr.code == CDN_TYPECHANGE
+	  || notify_w->hdr.code == CDN_INITDONE;
+      else
+	dropdown_changed =
+	  notify_a->hdr.code == CDN_TYPECHANGE
+	  || notify_a->hdr.code == CDN_INITDONE;
+      if (dropdown_changed)
 	{
 	  HWND dialog = GetParent (hwnd);
 	  HWND edit_control = GetDlgItem (dialog, FILE_NAME_TEXT_FIELD);
 	  HWND list = GetDlgItem (dialog, FILE_NAME_LIST);
+	  int hdr_code;
 
 	  /* At least on Windows 7, the above attempt to get the window handle
 	     to the File Name Text Field fails.	 The following code does the
@@ -6334,10 +6348,24 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	    }
 
 	  /* Directories is in index 2.	 */
-	  if (notify->lpOFN->nFilterIndex == 2)
+	  if (use_unicode)
 	    {
-	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
-					       GUISTR ("Current Directory"));
+	      dir_index = notify_w->lpOFN->nFilterIndex;
+	      hdr_code = notify_w->hdr.code;
+	    }
+	  else
+	    {
+	      dir_index = notify_a->lpOFN->nFilterIndex;
+	      hdr_code = notify_a->hdr.code;
+	    }
+	  if (dir_index == 2)
+	    {
+	      if (use_unicode)
+		SendMessageW (dialog, CDM_SETCONTROLTEXT, FILE_NAME_TEXT_FIELD,
+			      (LPARAM)L"Current Directory");
+	      else
+		SendMessageA (dialog, CDM_SETCONTROLTEXT, FILE_NAME_TEXT_FIELD,
+			      (LPARAM)"Current Directory");
 	      EnableWindow (edit_control, FALSE);
 	      /* Note that at least on Windows 7, the above call to EnableWindow
 		 disables the window that would ordinarily have focus.	If we
@@ -6345,16 +6373,21 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 no man's land and the user will be unable to tab through the
 		 dialog box (pressing tab will only result in a beep).
 		 Avoid that problem by setting focus to the list here.	*/
-	      if (notify->hdr.code == CDN_INITDONE)
+	      if (hdr_code == CDN_INITDONE)
 		SetFocus (list);
 	    }
 	  else
 	    {
 	      /* Don't override default filename on init done.  */
-	      if (notify->hdr.code == CDN_TYPECHANGE)
-		CommDlg_OpenSave_SetControlText (dialog,
-						 FILE_NAME_TEXT_FIELD,
-                                                 GUISTR (""));
+	      if (hdr_code == CDN_TYPECHANGE)
+		{
+		  if (use_unicode)
+		    SendMessageW (dialog, CDM_SETCONTROLTEXT,
+				  FILE_NAME_TEXT_FIELD, (LPARAM)L"");
+		  else
+		    SendMessageA (dialog, CDM_SETCONTROLTEXT,
+				  FILE_NAME_TEXT_FIELD, (LPARAM)"");
+		}
 	      EnableWindow (edit_control, TRUE);
 	    }
 	}
@@ -6374,8 +6407,8 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   /* Filter index: 1: All Files, 2: Directories only  */
-  static const guichar_t filter[] =
-    GUISTR ("All Files (*.*)\0*.*\0Directories\0*|*\0");
+  static const wchar_t filter_w[] = L"All Files (*.*)\0*.*\0Directories\0*|*\0";
+  static const char filter_a[] = "All Files (*.*)\0*.*\0Directories\0*|*\0";
 
   Lisp_Object filename = default_filename;
   struct frame *f = SELECTED_FRAME ();
@@ -6388,25 +6421,36 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
      enough struct for the new dialog to trick GetOpenFileName into
      giving us the new dialogs on newer versions of Windows.  */
   struct {
-#ifdef NTGUI_UNICODE
     OPENFILENAMEW details;
-#else /* !NTGUI_UNICODE */
-    OPENFILENAMEA details;
-#endif /* NTGUI_UNICODE */
-
 #if _WIN32_WINNT < 0x500 /* < win2k */
       PVOID pvReserved;
       DWORD dwReserved;
       DWORD FlagsEx;
 #endif /* < win2k */
-  } new_file_details;
+  } new_file_details_w;
 
 #ifdef NTGUI_UNICODE
-  wchar_t filename_buf[32*1024 + 1]; // NT kernel maximum
-  OPENFILENAMEW * file_details = &new_file_details.details;
+  wchar_t filename_buf_w[32*1024 + 1]; // NT kernel maximum
+  OPENFILENAMEW * file_details_w = &new_file_details_w.details;
+  const int use_unicode = 1;
 #else /* not NTGUI_UNICODE */
-  char filename_buf[MAX_PATH + 1];
-  OPENFILENAMEA * file_details = &new_file_details.details;
+  struct {
+    OPENFILENAMEA details;
+#if _WIN32_WINNT < 0x500 /* < win2k */
+      PVOID pvReserved;
+      DWORD dwReserved;
+      DWORD FlagsEx;
+#endif /* < win2k */
+  } new_file_details_a;
+  wchar_t filename_buf_w[MAX_PATH + 1], dir_w[MAX_PATH];
+  char filename_buf_a[MAX_PATH + 1], dir_a[MAX_PATH];
+  OPENFILENAMEW * file_details_w = &new_file_details_w.details;
+  OPENFILENAMEA * file_details_a = &new_file_details_a.details;
+  int use_unicode = w32_unicode_filenames;
+  wchar_t *prompt_w;
+  char *prompt_a;
+  int len;
+  char fname_ret[MAX_UTF8_PATH];
 #endif /* NTGUI_UNICODE */
 
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
@@ -6452,6 +6496,10 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     to_unicode (prompt, &prompt);
     to_unicode (dir, &dir);
     to_unicode (filename, &filename);
+    if (SBYTES (filename) + 1 > sizeof (filename_buf_w))
+      report_file_error ("filename too long", default_filename);
+
+    memcpy (filename_buf_w, SDATA (filename), SBYTES (filename) + 1);
 #else /* !NTGUI_UNICODE */
     prompt = ENCODE_FILE (prompt);
     dir = ENCODE_FILE (dir);
@@ -6462,6 +6510,49 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     unixtodos_filename (SDATA (dir));
     filename = Fcopy_sequence (filename);
     unixtodos_filename (SDATA (filename));
+    if (SBYTES (filename) >= MAX_UTF8_PATH)
+      report_file_error ("filename too long", default_filename);
+    if (w32_unicode_filenames)
+      {
+	filename_to_utf16 (SSDATA (dir), dir_w);
+	if (filename_to_utf16 (SSDATA (filename), filename_buf_w) != 0)
+	  {
+	    /* filename_to_utf16 sets errno to ENOENT when the file
+	       name is too long or cannot be converted to UTF-16.  */
+	    if (errno == ENOENT && filename_buf_w[MAX_PATH - 1] != 0)
+	      report_file_error ("filename too long", default_filename);
+	  }
+	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				   SSDATA (prompt), -1, NULL, 0);
+	if (len > 32768)
+	  len = 32768;
+	prompt_w = alloca (len * sizeof (wchar_t));
+	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			     SSDATA (prompt), -1, prompt_w, len);
+      }
+    else
+      {
+	filename_to_ansi (SSDATA (dir), dir_a);
+	if (filename_to_ansi (SSDATA (filename), filename_buf_a) != '\0')
+	  {
+	    /* filename_to_ansi sets errno to ENOENT when the file
+	       name is too long or cannot be converted to UTF-16.  */
+	    if (errno == ENOENT && filename_buf_a[MAX_PATH - 1] != 0)
+	      report_file_error ("filename too long", default_filename);
+	  }
+	len = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				   SSDATA (prompt), -1, NULL, 0);
+	if (len > 32768)
+	  len = 32768;
+	prompt_w = alloca (len * sizeof (wchar_t));
+	MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+			     SSDATA (prompt), -1, prompt_w, len);
+	len = WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, NULL, 0, NULL, NULL);
+	if (len > 32768)
+	  len = 32768;
+	prompt_a = alloca (len);
+	WideCharToMultiByte (CP_ACP, 0, prompt_w, -1, prompt_a, len, NULL, NULL);
+      }
 #endif /* NTGUI_UNICODE */
 
     /* Fill in the structure for the call to GetOpenFileName below.
@@ -6470,48 +6561,88 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
        builds, we tell the OS we're using an old version of the
        structure if the OS isn't new enough to support the newer
        version.  */
-    memset (&new_file_details, 0, sizeof (new_file_details));
-
-    if (w32_major_version > 4 && w32_major_version < 95)
-      file_details->lStructSize = sizeof (new_file_details);
-    else
-      file_details->lStructSize = sizeof (*file_details);
-
-    /* Set up the inout parameter for the selected file name.  */
-    if (SBYTES (filename) + 1 > sizeof (filename_buf))
-      report_file_error ("filename too long", default_filename);
-
-    memcpy (filename_buf, SDATA (filename), SBYTES (filename) + 1);
-    file_details->lpstrFile = filename_buf;
-    file_details->nMaxFile = sizeof (filename_buf) / sizeof (*filename_buf);
-
-    file_details->hwndOwner = FRAME_W32_WINDOW (f);
-    /* Undocumented Bug in Common File Dialog:
-       If a filter is not specified, shell links are not resolved.  */
-    file_details->lpstrFilter = filter;
-    file_details->lpstrInitialDir = (guichar_t*) SDATA (dir);
-    file_details->lpstrTitle = (guichar_t*) SDATA (prompt);
-    file_details->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
-    file_details->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
-                           | OFN_EXPLORER | OFN_ENABLEHOOK);
-
-    if (!NILP (mustmatch))
+    if (use_unicode)
       {
-        /* Require that the path to the parent directory exists.  */
-        file_details->Flags |= OFN_PATHMUSTEXIST;
-        /* If we are looking for a file, require that it exists.  */
-        if (NILP (only_dir_p))
-          file_details->Flags |= OFN_FILEMUSTEXIST;
+	memset (&new_file_details_w, 0, sizeof (new_file_details_w));
+	if (w32_major_version > 4 && w32_major_version < 95)
+	  file_details_w->lStructSize = sizeof (new_file_details_w);
+	else
+	  file_details_w->lStructSize = sizeof (*file_details_w);
+	/* Set up the inout parameter for the selected file name.  */
+	file_details_w->lpstrFile = filename_buf_w;
+	file_details_w->nMaxFile =
+	  sizeof (filename_buf_w) / sizeof (*filename_buf_w);
+	file_details_w->hwndOwner = FRAME_W32_WINDOW (f);
+	/* Undocumented Bug in Common File Dialog:
+	   If a filter is not specified, shell links are not resolved.  */
+	file_details_w->lpstrFilter = filter_w;
+#ifdef NTGUI_UNICODE
+	file_details_w->lpstrInitialDir = (wchar_t*) SDATA (dir);
+	file_details_w->lpstrTitle = (guichar_t*) SDATA (prompt);
+#else
+	file_details_w->lpstrInitialDir = dir_w;
+	file_details_w->lpstrTitle = prompt_w;
+#endif
+	file_details_w->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
+	file_details_w->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+				 | OFN_EXPLORER | OFN_ENABLEHOOK);
+	if (!NILP (mustmatch))
+	  {
+	    /* Require that the path to the parent directory exists.  */
+	    file_details_w->Flags |= OFN_PATHMUSTEXIST;
+	    /* If we are looking for a file, require that it exists.  */
+	    if (NILP (only_dir_p))
+	      file_details_w->Flags |= OFN_FILEMUSTEXIST;
+	  }
       }
+#ifndef NTGUI_UNICODE
+    else
+      {
+	memset (&new_file_details_a, 0, sizeof (new_file_details_a));
+	if (w32_major_version > 4 && w32_major_version < 95)
+	  file_details_a->lStructSize = sizeof (new_file_details_a);
+	else
+	  file_details_a->lStructSize = sizeof (*file_details_a);
+	file_details_a->lpstrFile = filename_buf_a;
+	file_details_a->nMaxFile =
+	  sizeof (filename_buf_a) / sizeof (*filename_buf_a);
+	file_details_a->hwndOwner = FRAME_W32_WINDOW (f);
+	file_details_a->lpstrFilter = filter_a;
+	file_details_a->lpstrInitialDir = dir_a;
+	file_details_a->lpstrTitle = prompt_a;
+	file_details_a->nFilterIndex = NILP (only_dir_p) ? 1 : 2;
+	file_details_a->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+				 | OFN_EXPLORER | OFN_ENABLEHOOK);
+	if (!NILP (mustmatch))
+	  {
+	    /* Require that the path to the parent directory exists.  */
+	    file_details_a->Flags |= OFN_PATHMUSTEXIST;
+	    /* If we are looking for a file, require that it exists.  */
+	    if (NILP (only_dir_p))
+	      file_details_a->Flags |= OFN_FILEMUSTEXIST;
+	  }
+      }
+#endif	/* !NTGUI_UNICODE */
 
     {
       int count = SPECPDL_INDEX ();
       /* Prevent redisplay.  */
       specbind (Qinhibit_redisplay, Qt);
       block_input ();
-      file_details->lpfnHook = file_dialog_callback;
+      if (use_unicode)
+	{
+	  file_details_w->lpfnHook = file_dialog_callback;
 
-      file_opened = GUI_FN (GetOpenFileName) (file_details);
+	  file_opened = GetOpenFileNameW (file_details_w);
+	}
+#ifndef NTGUI_UNICODE
+      else
+	{
+	  file_details_a->lpfnHook = file_dialog_callback;
+
+	  file_opened = GetOpenFileNameA (file_details_a);
+	}
+#endif	/* !NTGUI_UNICODE */
       unblock_input ();
       unbind_to (count, Qnil);
     }
@@ -6520,10 +6651,14 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       {
         /* Get an Emacs string from the value Windows gave us.  */
 #ifdef NTGUI_UNICODE
-        filename = from_unicode_buffer (filename_buf);
+        filename = from_unicode_buffer (filename_buf_w);
 #else /* !NTGUI_UNICODE */
-        dostounix_filename (filename_buf, 0);
-        filename = DECODE_FILE (build_string (filename_buf));
+	if (use_unicode)
+	  filename_from_utf16 (filename_buf_w, fname_ret);
+	else
+	  filename_from_ansi (filename_buf_a, fname_ret);
+	dostounix_filename (fname_ret);
+        filename = DECODE_FILE (build_unibyte_string (fname_ret));
 #endif /* NTGUI_UNICODE */
 
 #ifdef CYGWIN
@@ -6532,10 +6667,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
         /* Strip the dummy filename off the end of the string if we
            added it to select a directory.  */
-        if (file_details->nFilterIndex == 2)
-          {
-            filename = Ffile_name_directory (filename);
-          }
+        if (use_unicode && file_details_w->nFilterIndex == 2
+#ifndef NTGUI_UNICODE
+	    || !use_unicode && file_details_a->nFilterIndex == 2
+#endif
+	    )
+	  filename = Ffile_name_directory (filename);
       }
     /* User canceled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())
@@ -6582,38 +6719,80 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
       operation = intern ("delete-directory");
       filename = Fdirectory_file_name (filename);
     }
+
+  /* Must have fully qualified file names for moving files to Recycle
+     Bin. */
   filename = Fexpand_file_name (filename, Qnil);
 
   handler = Ffind_file_name_handler (filename, operation);
   if (!NILP (handler))
     return call2 (handler, operation, filename);
+  else
+    {
+      const char * path;
+      int result;
 
-  encoded_file = ENCODE_FILE (filename);
+      encoded_file = ENCODE_FILE (filename);
 
-  {
-    const char * path;
-    SHFILEOPSTRUCT file_op;
-    char tmp_path[MAX_PATH + 1];
+      path = map_w32_filename (SDATA (encoded_file), NULL);
 
-    path = map_w32_filename (SDATA (encoded_file), NULL);
+      /* The Unicode version of SHFileOperation is not supported on
+	 Windows 9X. */
+      if (w32_unicode_filenames && os_subtype != OS_9X)
+	{
+	  SHFILEOPSTRUCTW file_op_w;
+	  /* We need one more element beyond MAX_PATH because this is
+	     a list of file names, with the last element double-null
+	     terminated. */
+	  wchar_t tmp_path_w[MAX_PATH + 1];
 
-    /* On Windows, write permission is required to delete/move files.  */
-    _chmod (path, 0666);
+	  memset (tmp_path_w, 0, sizeof (tmp_path_w));
+	  filename_to_utf16 (path, tmp_path_w);
 
-    memset (tmp_path, 0, sizeof (tmp_path));
-    strcpy (tmp_path, path);
+	  /* On Windows, write permission is required to delete/move files.  */
+	  _wchmod (tmp_path_w, 0666);
 
-    memset (&file_op, 0, sizeof (file_op));
-    file_op.hwnd = HWND_DESKTOP;
-    file_op.wFunc = FO_DELETE;
-    file_op.pFrom = tmp_path;
-    file_op.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
-      | FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
-    file_op.fAnyOperationsAborted = FALSE;
+	  memset (&file_op_w, 0, sizeof (file_op_w));
+	  file_op_w.hwnd = HWND_DESKTOP;
+	  file_op_w.wFunc = FO_DELETE;
+	  file_op_w.pFrom = tmp_path_w;
+	  file_op_w.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
+	    | FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
+	  file_op_w.fAnyOperationsAborted = FALSE;
 
-    if (SHFileOperation (&file_op) != 0)
-      report_file_error ("Removing old name", list1 (filename));
-  }
+	  result = SHFileOperationW (&file_op_w);
+	}
+      else
+	{
+	  SHFILEOPSTRUCTA file_op_a;
+	  char tmp_path_a[MAX_PATH + 1];
+
+	  memset (tmp_path_a, 0, sizeof (tmp_path_a));
+	  filename_to_ansi (path, tmp_path_a);
+
+	  /* If a file cannot be represented in ANSI codepage, don't
+	     let them inadvertently delete other files because some
+	     characters are interpreted as a wildcards.  */
+	  if (_mbspbrk (tmp_path_a, "?*"))
+	    result = ERROR_FILE_NOT_FOUND;
+	  else
+	    {
+	      _chmod (tmp_path_a, 0666);
+
+	      memset (&file_op_a, 0, sizeof (file_op_a));
+	      file_op_a.hwnd = HWND_DESKTOP;
+	      file_op_a.wFunc = FO_DELETE;
+	      file_op_a.pFrom = tmp_path_a;
+	      file_op_a.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
+		| FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
+	      file_op_a.fAnyOperationsAborted = FALSE;
+
+	      result = SHFileOperationA (&file_op_a);
+	    }
+	}
+      if (result != 0)
+	report_file_error ("Removing old name", list1 (filename));
+    }
   return Qnil;
 }
 
@@ -6688,38 +6867,159 @@ an integer representing a ShowWindow flag:
   6 - start minimized  */)
   (Lisp_Object operation, Lisp_Object document, Lisp_Object parameters, Lisp_Object show_flag)
 {
-  Lisp_Object current_dir;
   char *errstr;
+  Lisp_Object current_dir = BVAR (current_buffer, directory);;
+  wchar_t *doc_w = NULL, *params_w = NULL, *ops_w = NULL;
+  intptr_t result;
+#ifndef CYGWIN
+  int use_unicode = w32_unicode_filenames;
+  char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
+#endif
 
   CHECK_STRING (document);
-
-  /* Encode filename, current directory and parameters.  */
-  current_dir = BVAR (current_buffer, directory);
 
 #ifdef CYGWIN
   current_dir = Fcygwin_convert_file_name_to_windows (current_dir, Qt);
   if (STRINGP (document))
     document = Fcygwin_convert_file_name_to_windows (document, Qt);
-#endif /* CYGWIN */
 
+  /* Encode filename, current directory and parameters.  */
   current_dir = GUI_ENCODE_FILE (current_dir);
   if (STRINGP (document))
-    document = GUI_ENCODE_FILE (document);
+    {
+      document = GUI_ENCODE_FILE (document);
+      doc_w = GUI_SDATA (document);
+    }
   if (STRINGP (parameters))
-    parameters = GUI_ENCODE_SYSTEM (parameters);
+    {
+      parameters = GUI_ENCODE_SYSTEM (parameters);
+      params_w = GUI_SDATA (parameters);
+    }
+  if (STRINGP (operation))
+    {
+      operation = GUI_ENCODE_SYSTEM (operation);
+      ops_w = GUI_SDATA (operation);
+    }
+  result = (intptr_t) ShellExecuteW (NULL, ops_w, doc_w, params_w,
+				     GUI_SDATA (current_dir),
+				     (INTEGERP (show_flag)
+				      ? XINT (show_flag) : SW_SHOWDEFAULT));
+#else  /* !CYGWIN */
+  if (use_unicode)
+    {
+      wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
 
-  if ((int) GUI_FN (ShellExecute) (NULL,
-                                   (STRINGP (operation) ?
-                                    GUI_SDATA (operation) : NULL),
-                                   GUI_SDATA (document),
-                                   (STRINGP (parameters) ?
-                                    GUI_SDATA (parameters) : NULL),
-                                   GUI_SDATA (current_dir),
-                                   (INTEGERP (show_flag) ?
-                                    XINT (show_flag) : SW_SHOWDEFAULT))
-      > 32)
+      /* Encode filename, current directory and parameters, and
+	 convert operation to UTF-16.  */
+      current_dir = ENCODE_FILE (current_dir);
+      filename_to_utf16 (SSDATA (current_dir), current_dir_w);
+      if (STRINGP (document))
+	{
+	  document = ENCODE_FILE (document);
+	  filename_to_utf16 (SSDATA (document), document_w);
+	  doc_w = document_w;
+	}
+      if (STRINGP (parameters))
+	{
+	  int len;
+
+	  parameters = ENCODE_SYSTEM (parameters);
+	  len = MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+				     SSDATA (parameters), -1, NULL, 0);
+	  if (len > 32768)
+	    len = 32768;
+	  params_w = alloca (len * sizeof (wchar_t));
+	  MultiByteToWideChar (CP_ACP, MB_ERR_INVALID_CHARS,
+			       SSDATA (parameters), -1, params_w, len);
+	}
+      if (STRINGP (operation))
+	{
+	  /* Assume OPERATION is pure ASCII.  */
+	  const char *s = SSDATA (operation);
+	  wchar_t *d;
+	  int len = SBYTES (operation) + 1;
+
+	  if (len > 32768)
+	    len = 32768;
+	  d = ops_w = alloca (len * sizeof (wchar_t));
+	  while (d < ops_w + len - 1)
+	    *d++ = *s++;
+	  *d = 0;
+	}
+      result = (intptr_t) ShellExecuteW (NULL, ops_w, doc_w, params_w,
+					 current_dir_w,
+					 (INTEGERP (show_flag)
+					  ? XINT (show_flag) : SW_SHOWDEFAULT));
+    }
+  else
+    {
+      char document_a[MAX_PATH], current_dir_a[MAX_PATH];
+
+      current_dir = ENCODE_FILE (current_dir);
+      filename_to_ansi (SSDATA (current_dir), current_dir_a);
+      if (STRINGP (document))
+	{
+	  ENCODE_FILE (document);
+	  filename_to_ansi (SSDATA (document), document_a);
+	  doc_a = document_a;
+	}
+      if (STRINGP (parameters))
+	{
+	  int len;
+
+	  parameters = ENCODE_SYSTEM (parameters);
+	  params_a = SSDATA (parameters);
+	}
+      if (STRINGP (operation))
+	{
+	  /* Assume OPERATION is pure ASCII.  */
+	  ops_a = SSDATA (operation);
+	}
+      result = (intptr_t) ShellExecuteA (NULL, ops_a, doc_a, params_a,
+					 current_dir_a,
+					 (INTEGERP (show_flag)
+					  ? XINT (show_flag) : SW_SHOWDEFAULT));
+    }
+#endif /* !CYGWIN */
+
+  if (result > 32)
     return Qt;
-  errstr = w32_strerror (0);
+
+  switch (result)
+    {
+    case SE_ERR_ACCESSDENIED:
+      errstr = w32_strerror (ERROR_ACCESS_DENIED);
+      break;
+    case SE_ERR_ASSOCINCOMPLETE:
+    case SE_ERR_NOASSOC:
+      errstr = w32_strerror (ERROR_NO_ASSOCIATION);
+      break;
+    case SE_ERR_DDEBUSY:
+    case SE_ERR_DDEFAIL:
+      errstr = w32_strerror (ERROR_DDE_FAIL);
+      break;
+    case SE_ERR_DDETIMEOUT:
+      errstr = w32_strerror (ERROR_TIMEOUT);
+      break;
+    case SE_ERR_DLLNOTFOUND:
+      errstr = w32_strerror (ERROR_DLL_NOT_FOUND);
+      break;
+    case SE_ERR_FNF:
+      errstr = w32_strerror (ERROR_FILE_NOT_FOUND);
+      break;
+    case SE_ERR_OOM:
+      errstr = w32_strerror (ERROR_NOT_ENOUGH_MEMORY);
+      break;
+    case SE_ERR_PNF:
+      errstr = w32_strerror (ERROR_PATH_NOT_FOUND);
+      break;
+    case SE_ERR_SHARE:
+      errstr = w32_strerror (ERROR_SHARING_VIOLATION);
+      break;
+    default:
+      errstr = w32_strerror (0);
+      break;
+    }
   /* The error string might be encoded in the locale's encoding.  */
   if (!NILP (Vlocale_coding_system))
     {
@@ -7132,14 +7432,23 @@ If the underlying system call fails, value is nil.  */)
      added rather late on.  */
   {
     HMODULE hKernel = GetModuleHandle ("kernel32");
-    BOOL (*pfn_GetDiskFreeSpaceEx)
+    BOOL (*pfn_GetDiskFreeSpaceExW)
+      (wchar_t *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
+      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
+    BOOL (*pfn_GetDiskFreeSpaceExA)
       (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceEx");
+      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
+    bool have_pfn_GetDiskFreeSpaceEx =
+      (w32_unicode_filenames && pfn_GetDiskFreeSpaceExW
+       || !w32_unicode_filenames && pfn_GetDiskFreeSpaceExA);
 
     /* On Windows, we may need to specify the root directory of the
        volume holding FILENAME.  */
-    char rootname[MAX_PATH];
+    char rootname[MAX_UTF8_PATH];
+    wchar_t rootname_w[MAX_PATH];
+    char rootname_a[MAX_PATH];
     char *name = SDATA (encoded);
+    BOOL result;
 
     /* find the root name of the volume if given */
     if (isalpha (name[0]) && name[1] == ':')
@@ -7165,7 +7474,12 @@ If the underlying system call fails, value is nil.  */)
 	*str = 0;
       }
 
-    if (pfn_GetDiskFreeSpaceEx)
+    if (w32_unicode_filenames)
+      filename_to_utf16 (rootname, rootname_w);
+    else
+      filename_to_ansi (rootname, rootname_a);
+
+    if (have_pfn_GetDiskFreeSpaceEx)
       {
 	/* Unsigned large integers cannot be cast to double, so
 	   use signed ones instead.  */
@@ -7173,10 +7487,17 @@ If the underlying system call fails, value is nil.  */)
 	LARGE_INTEGER freebytes;
 	LARGE_INTEGER totalbytes;
 
-	if (pfn_GetDiskFreeSpaceEx (rootname,
-				    (ULARGE_INTEGER *)&availbytes,
-				    (ULARGE_INTEGER *)&totalbytes,
-				    (ULARGE_INTEGER *)&freebytes))
+	if (w32_unicode_filenames)
+	  result = pfn_GetDiskFreeSpaceExW (rootname_w,
+					    (ULARGE_INTEGER *)&availbytes,
+					    (ULARGE_INTEGER *)&totalbytes,
+					    (ULARGE_INTEGER *)&freebytes);
+	else
+	  result = pfn_GetDiskFreeSpaceExA (rootname_a,
+					    (ULARGE_INTEGER *)&availbytes,
+					    (ULARGE_INTEGER *)&totalbytes,
+					    (ULARGE_INTEGER *)&freebytes);
+	if (result)
 	  value = list3 (make_float ((double) totalbytes.QuadPart),
 			 make_float ((double) freebytes.QuadPart),
 			 make_float ((double) availbytes.QuadPart));
@@ -7188,11 +7509,19 @@ If the underlying system call fails, value is nil.  */)
 	DWORD free_clusters;
 	DWORD total_clusters;
 
-	if (GetDiskFreeSpace (rootname,
-			      &sectors_per_cluster,
-			      &bytes_per_sector,
-			      &free_clusters,
-			      &total_clusters))
+	if (w32_unicode_filenames)
+	  result = GetDiskFreeSpaceW (rootname_w,
+				      &sectors_per_cluster,
+				      &bytes_per_sector,
+				      &free_clusters,
+				      &total_clusters);
+	else
+	  result = GetDiskFreeSpaceA (rootname_a,
+				      &sectors_per_cluster,
+				      &bytes_per_sector,
+				      &free_clusters,
+				      &total_clusters);
+	if (result)
 	  value = list3 (make_float ((double) total_clusters
 				     * sectors_per_cluster * bytes_per_sector),
 			 make_float ((double) free_clusters
@@ -7207,6 +7536,7 @@ If the underlying system call fails, value is nil.  */)
 #endif /* WINDOWSNT */
 
 
+#ifdef WINDOWSNT
 DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
        0, 0, 0, doc: /* Return the name of Windows default printer device.  */)
   (void)
@@ -7214,8 +7544,11 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
   static char pname_buf[256];
   int err;
   HANDLE hPrn;
-  PRINTER_INFO_2 *ppi2 = NULL;
+  PRINTER_INFO_2W *ppi2w = NULL;
+  PRINTER_INFO_2A *ppi2a = NULL;
   DWORD dwNeeded = 0, dwReturned = 0;
+  char server_name[MAX_UTF8_PATH], share_name[MAX_UTF8_PATH];
+  char port_name[MAX_UTF8_PATH];
 
   /* Retrieve the default string from Win.ini (the registry).
    * String will be in form "printername,drivername,portname".
@@ -7227,55 +7560,89 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
   /* We want to know more than the printer name */
   if (!OpenPrinter (pname_buf, &hPrn, NULL))
     return Qnil;
-  GetPrinter (hPrn, 2, NULL, 0, &dwNeeded);
+  /* GetPrinterW is not supported by unicows.dll.  */
+  if (w32_unicode_filenames && os_subtype != OS_9X)
+    GetPrinterW (hPrn, 2, NULL, 0, &dwNeeded);
+  else
+    GetPrinterA (hPrn, 2, NULL, 0, &dwNeeded);
   if (dwNeeded == 0)
     {
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Allocate memory for the PRINTER_INFO_2 struct */
-  ppi2 = xmalloc (dwNeeded);
-  if (!ppi2)
-    {
-      ClosePrinter (hPrn);
-      return Qnil;
-    }
   /* Call GetPrinter again with big enough memory block.  */
-  err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
-  ClosePrinter (hPrn);
-  if (!err)
+  if (w32_unicode_filenames && os_subtype != OS_9X)
     {
-      xfree (ppi2);
-      return Qnil;
-    }
+      /* Allocate memory for the PRINTER_INFO_2 struct.  */
+      ppi2w = xmalloc (dwNeeded);
+      err = GetPrinterW (hPrn, 2, (LPBYTE)ppi2w, dwNeeded, &dwReturned);
+      ClosePrinter (hPrn);
+      if (!err)
+	{
+	  xfree (ppi2w);
+	  return Qnil;
+	}
 
-  if (ppi2)
-    {
-      if (ppi2->Attributes & PRINTER_ATTRIBUTE_SHARED && ppi2->pServerName)
-        {
-	  /* a remote printer */
-	  if (*ppi2->pServerName == '\\')
-	    snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
-		       ppi2->pShareName);
-	  else
-	    snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
-		       ppi2->pShareName);
-	  pname_buf[sizeof (pname_buf) - 1] = '\0';
+      if ((ppi2w->Attributes & PRINTER_ATTRIBUTE_SHARED)
+	  && ppi2w->pServerName)
+	{
+	  filename_from_utf16 (ppi2w->pServerName, server_name);
+	  filename_from_utf16 (ppi2w->pShareName, share_name);
 	}
       else
-        {
-	  /* a local printer */
-	  strncpy (pname_buf, ppi2->pPortName, sizeof (pname_buf));
-	  pname_buf[sizeof (pname_buf) - 1] = '\0';
-	  /* `pPortName' can include several ports, delimited by ','.
-	   * we only use the first one. */
-	  strtok (pname_buf, ",");
+	{
+	  server_name[0] = '\0';
+	  filename_from_utf16 (ppi2w->pPortName, port_name);
 	}
-      xfree (ppi2);
+    }
+  else
+    {
+      ppi2a = xmalloc (dwNeeded);
+      err = GetPrinterA (hPrn, 2, (LPBYTE)ppi2a, dwNeeded, &dwReturned);
+      ClosePrinter (hPrn);
+      if (!err)
+	{
+	  xfree (ppi2a);
+	  return Qnil;
+	}
+
+      if ((ppi2a->Attributes & PRINTER_ATTRIBUTE_SHARED)
+	  && ppi2a->pServerName)
+	{
+	  filename_from_ansi (ppi2a->pServerName, server_name);
+	  filename_from_ansi (ppi2a->pShareName, share_name);
+	}
+      else
+	{
+	  server_name[0] = '\0';
+	  filename_from_ansi (ppi2a->pPortName, port_name);
+	}
     }
 
-  return build_string (pname_buf);
+  if (server_name[0])
+    {
+      /* a remote printer */
+      if (server_name[0] == '\\')
+	snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", server_name,
+		  share_name);
+      else
+	snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", server_name,
+		  share_name);
+      pname_buf[sizeof (pname_buf) - 1] = '\0';
+    }
+  else
+    {
+      /* a local printer */
+      strncpy (pname_buf, port_name, sizeof (pname_buf));
+      pname_buf[sizeof (pname_buf) - 1] = '\0';
+      /* `pPortName' can include several ports, delimited by ','.
+       * we only use the first one. */
+      strtok (pname_buf, ",");
+    }
+
+  return DECODE_FILE (build_unibyte_string (pname_buf));
 }
+#endif	/* WINDOWSNT */
 
 
 /* Equivalent of strerror for W32 error codes.  */
@@ -7946,9 +8313,9 @@ only be necessary if the default setting causes problems.  */);
 
 #ifdef WINDOWSNT
   defsubr (&Sfile_system_info);
+  defsubr (&Sdefault_printer_name);
 #endif
 
-  defsubr (&Sdefault_printer_name);
   defsubr (&Sset_message_beep);
 
   hourglass_hwnd = NULL;

@@ -1108,6 +1108,16 @@ visited file name, saving may use the wrong file name, or it may get
 an error.  If such a problem happens, use @kbd{C-x C-w} to specify a
 new file name for that buffer.
 
+@cindex file-name encoding, MS-Windows
+  On Windows 2000 and later, Emacs by default uses Unicode APIs to
+pass file names to the OS, so the value of
+@code{file-name-coding-system} is largely ignored.  Lisp applications
+that need to encode or decode file names on the Lisp level should use
+@code{utf-8} coding-system when @code{system-type} is
+@code{windows-nt}; the conversion of UTF-8 encoded file names to the
+encoding appropriate for communicating with the OS is performed
+internally by Emacs.
+
 @node Lisp and Coding Systems
 @subsection Coding Systems in Lisp
 

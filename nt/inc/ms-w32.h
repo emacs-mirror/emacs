@@ -152,6 +152,9 @@ extern char *getenv ();
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
+/* This is used to hold UTF-8 encoded file names.  */
+#define MAX_UTF8_PATH   (MAXPATHLEN * 4)
+
 #ifdef HAVE_NTGUI
 # ifndef HAVE_WINDOW_SYSTEM
 #  define HAVE_WINDOW_SYSTEM 1
@@ -218,6 +221,14 @@ extern struct tm * sys_localtime (const time_t *);
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+#undef opendir
+#define opendir sys_opendir
+#undef closedir
+#define closedir sys_closedir
+#undef readdir
+#define readdir sys_readdir
+#undef seekdir
+#define seekdir sys_seekdir
 /* This prototype is needed because some files include config.h
    _after_ the standard headers, so sys_unlink gets no prototype from
    stdio.h or io.h.  */

@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "process.h"
+#include "coding.h"
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
@@ -899,6 +900,13 @@ one trustfile (usually a CA bundle).  */)
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
 			   SSDATA (trustfile));
+	      trustfile = ENCODE_FILE (trustfile);
+#ifdef WINDOWSNT
+	      /* Since GnuTLS doesn't support UTF-8 or UTF-16 encoded
+		 file names on Windows, we need to re-encode the file
+		 name using the current ANSI codepage.  */
+	      trustfile = ansi_encode_filename (trustfile);
+#endif
 	      ret = fn_gnutls_certificate_set_x509_trust_file
 		(x509_cred,
 		 SSDATA (trustfile),
@@ -921,6 +929,10 @@ one trustfile (usually a CA bundle).  */)
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
 			   SSDATA (crlfile));
+	      crlfile = ENCODE_FILE (crlfile);
+#ifdef WINDOWSNT
+	      crlfile = ansi_encode_filename (crlfile);
+#endif
 	      ret = fn_gnutls_certificate_set_x509_crl_file
 		(x509_cred, SSDATA (crlfile), file_format);
 
@@ -944,6 +956,12 @@ one trustfile (usually a CA bundle).  */)
 			   SSDATA (keyfile));
 	      GNUTLS_LOG2 (1, max_log_level, "setting the client cert file: ",
 			   SSDATA (certfile));
+	      keyfile = ENCODE_FILE (keyfile);
+	      certfile = ENCODE_FILE (certfile);
+#ifdef WINDOWSNT
+	      keyfile = ansi_encode_filename (keyfile);
+	      certfile = ansi_encode_filename (certfile);
+#endif
 	      ret = fn_gnutls_certificate_set_x509_key_file
 		(x509_cred, SSDATA (certfile), SSDATA (keyfile), file_format);
 

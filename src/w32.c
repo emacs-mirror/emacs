@@ -248,7 +248,7 @@ static int enable_privilege (LPCTSTR, BOOL, TOKEN_PRIVILEGES *);
 static int restore_privilege (TOKEN_PRIVILEGES *);
 static BOOL WINAPI revert_to_self (void);
 
-extern int sys_access (const char *, int);
+static int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       struct timespec *, void *);
@@ -273,7 +273,8 @@ static BOOL g_b_init_lookup_account_sid;
 static BOOL g_b_init_get_sid_sub_authority;
 static BOOL g_b_init_get_sid_sub_authority_count;
 static BOOL g_b_init_get_security_info;
-static BOOL g_b_init_get_file_security;
+static BOOL g_b_init_get_file_security_w;
+static BOOL g_b_init_get_file_security_a;
 static BOOL g_b_init_get_security_descriptor_owner;
 static BOOL g_b_init_get_security_descriptor_group;
 static BOOL g_b_init_is_valid_sid;
@@ -292,12 +293,14 @@ static BOOL g_b_init_equal_sid;
 static BOOL g_b_init_copy_sid;
 static BOOL g_b_init_get_native_system_info;
 static BOOL g_b_init_get_system_times;
-static BOOL g_b_init_create_symbolic_link;
+static BOOL g_b_init_create_symbolic_link_w;
+static BOOL g_b_init_create_symbolic_link_a;
 static BOOL g_b_init_get_security_descriptor_dacl;
 static BOOL g_b_init_convert_sd_to_sddl;
 static BOOL g_b_init_convert_sddl_to_sd;
 static BOOL g_b_init_is_valid_security_descriptor;
-static BOOL g_b_init_set_file_security;
+static BOOL g_b_init_set_file_security_w;
+static BOOL g_b_init_set_file_security_a;
 static BOOL g_b_init_get_adapters_info;
 
 /*
@@ -327,12 +330,8 @@ GetProcessTimes_Proc get_process_times_fn = NULL;
 
 #ifdef _UNICODE
 const char * const LookupAccountSid_Name = "LookupAccountSidW";
-const char * const GetFileSecurity_Name =  "GetFileSecurityW";
-const char * const SetFileSecurity_Name =  "SetFileSecurityW";
 #else
 const char * const LookupAccountSid_Name = "LookupAccountSidA";
-const char * const GetFileSecurity_Name =  "GetFileSecurityA";
-const char * const SetFileSecurity_Name =  "SetFileSecurityA";
 #endif
 typedef BOOL (WINAPI * LookupAccountSid_Proc) (
     LPCTSTR lpSystemName,
@@ -356,14 +355,24 @@ typedef DWORD (WINAPI * GetSecurityInfo_Proc) (
     PACL *ppDacl,
     PACL *ppSacl,
     PSECURITY_DESCRIPTOR *ppSecurityDescriptor);
-typedef BOOL (WINAPI * GetFileSecurity_Proc) (
-    LPCTSTR lpFileName,
+typedef BOOL (WINAPI * GetFileSecurityW_Proc) (
+    LPCWSTR lpFileName,
     SECURITY_INFORMATION RequestedInformation,
     PSECURITY_DESCRIPTOR pSecurityDescriptor,
     DWORD nLength,
     LPDWORD lpnLengthNeeded);
-typedef BOOL (WINAPI *SetFileSecurity_Proc) (
-    LPCTSTR lpFileName,
+typedef BOOL (WINAPI * GetFileSecurityA_Proc) (
+    LPCSTR lpFileName,
+    SECURITY_INFORMATION RequestedInformation,
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    DWORD nLength,
+    LPDWORD lpnLengthNeeded);
+typedef BOOL (WINAPI *SetFileSecurityW_Proc) (
+    LPCWSTR lpFileName,
+    SECURITY_INFORMATION SecurityInformation,
+    PSECURITY_DESCRIPTOR pSecurityDescriptor);
+typedef BOOL (WINAPI *SetFileSecurityA_Proc) (
+    LPCSTR lpFileName,
     SECURITY_INFORMATION SecurityInformation,
     PSECURITY_DESCRIPTOR pSecurityDescriptor);
 typedef BOOL (WINAPI * GetSecurityDescriptorOwner_Proc) (
@@ -425,9 +434,13 @@ typedef BOOL (WINAPI * GetSystemTimes_Proc) (
     LPFILETIME lpIdleTime,
     LPFILETIME lpKernelTime,
     LPFILETIME lpUserTime);
-typedef BOOLEAN (WINAPI *CreateSymbolicLink_Proc) (
-    LPTSTR lpSymlinkFileName,
-    LPTSTR lpTargetFileName,
+typedef BOOLEAN (WINAPI *CreateSymbolicLinkW_Proc) (
+    LPCWSTR lpSymlinkFileName,
+    LPCWSTR lpTargetFileName,
+    DWORD  dwFlags);
+typedef BOOLEAN (WINAPI *CreateSymbolicLinkA_Proc) (
+    LPCSTR lpSymlinkFileName,
+    LPCSTR lpTargetFileName,
     DWORD  dwFlags);
 typedef BOOL (WINAPI *ConvertStringSecurityDescriptorToSecurityDescriptor_Proc) (
     LPCTSTR StringSecurityDescriptor,
@@ -679,64 +692,121 @@ get_security_info (HANDLE handle,
 }
 
 static BOOL WINAPI
-get_file_security (LPCTSTR lpFileName,
+get_file_security (const char *lpFileName,
 		   SECURITY_INFORMATION RequestedInformation,
 		   PSECURITY_DESCRIPTOR pSecurityDescriptor,
 		   DWORD nLength,
 		   LPDWORD lpnLengthNeeded)
 {
-  static GetFileSecurity_Proc s_pfn_Get_File_Security = NULL;
+  static GetFileSecurityA_Proc s_pfn_Get_File_SecurityA = NULL;
+  static GetFileSecurityW_Proc s_pfn_Get_File_SecurityW = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       errno = ENOTSUP;
       return FALSE;
     }
-  if (g_b_init_get_file_security == 0)
+  if (w32_unicode_filenames)
     {
-      g_b_init_get_file_security = 1;
-      hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_File_Security =
-        (GetFileSecurity_Proc) GetProcAddress (
-            hm_advapi32, GetFileSecurity_Name);
+      wchar_t filename_w[MAX_PATH];
+
+      if (g_b_init_get_file_security_w == 0)
+	{
+	  g_b_init_get_file_security_w = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Get_File_SecurityW =
+	    (GetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
+						   "GetFileSecurityW");
+	}
+      if (s_pfn_Get_File_SecurityW == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_utf16 (lpFileName, filename_w);
+      return (s_pfn_Get_File_SecurityW (filename_w, RequestedInformation,
+					pSecurityDescriptor, nLength,
+					lpnLengthNeeded));
     }
-  if (s_pfn_Get_File_Security == NULL)
+  else
     {
-      errno = ENOTSUP;
-      return FALSE;
+      char filename_a[MAX_PATH];
+
+      if (g_b_init_get_file_security_a == 0)
+	{
+	  g_b_init_get_file_security_a = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Get_File_SecurityA =
+	    (GetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
+						   "GetFileSecurityA");
+	}
+      if (s_pfn_Get_File_SecurityA == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_ansi (lpFileName, filename_a);
+      return (s_pfn_Get_File_SecurityA (filename_a, RequestedInformation,
+					pSecurityDescriptor, nLength,
+					lpnLengthNeeded));
     }
-  return (s_pfn_Get_File_Security (lpFileName, RequestedInformation,
-				   pSecurityDescriptor, nLength,
-				   lpnLengthNeeded));
 }
 
 static BOOL WINAPI
-set_file_security (LPCTSTR lpFileName,
+set_file_security (const char *lpFileName,
 		   SECURITY_INFORMATION SecurityInformation,
 		   PSECURITY_DESCRIPTOR pSecurityDescriptor)
 {
-  static SetFileSecurity_Proc s_pfn_Set_File_Security = NULL;
+  static SetFileSecurityW_Proc s_pfn_Set_File_SecurityW = NULL;
+  static SetFileSecurityA_Proc s_pfn_Set_File_SecurityA = NULL;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
       errno = ENOTSUP;
       return FALSE;
     }
-  if (g_b_init_set_file_security == 0)
+  if (w32_unicode_filenames)
     {
-      g_b_init_set_file_security = 1;
-      hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Set_File_Security =
-        (SetFileSecurity_Proc) GetProcAddress (
-            hm_advapi32, SetFileSecurity_Name);
+      wchar_t filename_w[MAX_PATH];
+
+      if (g_b_init_set_file_security_w == 0)
+	{
+	  g_b_init_set_file_security_w = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Set_File_SecurityW =
+	    (SetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
+						    "SetFileSecurityW");
+	}
+      if (s_pfn_Set_File_SecurityW == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_utf16 (lpFileName, filename_w);
+      return (s_pfn_Set_File_SecurityW (filename_w, SecurityInformation,
+					pSecurityDescriptor));
     }
-  if (s_pfn_Set_File_Security == NULL)
+  else
     {
-      errno = ENOTSUP;
-      return FALSE;
+      char filename_a[MAX_PATH];
+
+      if (g_b_init_set_file_security_a == 0)
+	{
+	  g_b_init_set_file_security_a = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Set_File_SecurityA =
+	    (SetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
+						    "SetFileSecurityA");
+	}
+      if (s_pfn_Set_File_SecurityA == NULL)
+	{
+	  errno = ENOTSUP;
+	  return FALSE;
+	}
+      filename_to_ansi (lpFileName, filename_a);
+      return (s_pfn_Set_File_SecurityA (filename_a, SecurityInformation,
+					pSecurityDescriptor));
     }
-  return (s_pfn_Set_File_Security (lpFileName, SecurityInformation,
-				   pSecurityDescriptor));
 }
 
 static BOOL WINAPI
@@ -973,11 +1043,12 @@ get_system_times (LPFILETIME lpIdleTime,
 }
 
 static BOOLEAN WINAPI
-create_symbolic_link (LPTSTR lpSymlinkFilename,
-		      LPTSTR lpTargetFileName,
+create_symbolic_link (LPCSTR lpSymlinkFilename,
+		      LPCSTR lpTargetFileName,
 		      DWORD dwFlags)
 {
-  static CreateSymbolicLink_Proc s_pfn_Create_Symbolic_Link = NULL;
+  static CreateSymbolicLinkW_Proc s_pfn_Create_Symbolic_LinkW = NULL;
+  static CreateSymbolicLinkA_Proc s_pfn_Create_Symbolic_LinkA = NULL;
   BOOLEAN retval;
 
   if (is_windows_9x () == TRUE)
@@ -985,39 +1056,74 @@ create_symbolic_link (LPTSTR lpSymlinkFilename,
       errno = ENOSYS;
       return 0;
     }
-  if (g_b_init_create_symbolic_link == 0)
+  if (w32_unicode_filenames)
     {
-      g_b_init_create_symbolic_link = 1;
-#ifdef _UNICODE
-      s_pfn_Create_Symbolic_Link =
-	(CreateSymbolicLink_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						 "CreateSymbolicLinkW");
-#else
-      s_pfn_Create_Symbolic_Link =
-	(CreateSymbolicLink_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						 "CreateSymbolicLinkA");
-#endif
-    }
-  if (s_pfn_Create_Symbolic_Link == NULL)
-    {
-      errno = ENOSYS;
-      return 0;
-    }
+      wchar_t symfn_w[MAX_PATH], tgtfn_w[MAX_PATH];
 
-  retval = s_pfn_Create_Symbolic_Link (lpSymlinkFilename, lpTargetFileName,
-				       dwFlags);
-  /* If we were denied creation of the symlink, try again after
-     enabling the SeCreateSymbolicLinkPrivilege for our process.  */
-  if (!retval)
-    {
-      TOKEN_PRIVILEGES priv_current;
-
-      if (enable_privilege (SE_CREATE_SYMBOLIC_LINK_NAME, TRUE, &priv_current))
+      if (g_b_init_create_symbolic_link_w == 0)
 	{
-	  retval = s_pfn_Create_Symbolic_Link (lpSymlinkFilename, lpTargetFileName,
-					       dwFlags);
-	  restore_privilege (&priv_current);
-	  revert_to_self ();
+	  g_b_init_create_symbolic_link_w = 1;
+	  s_pfn_Create_Symbolic_LinkW =
+	    (CreateSymbolicLinkW_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+						     "CreateSymbolicLinkW");
+	}
+      if (s_pfn_Create_Symbolic_LinkW == NULL)
+	{
+	  errno = ENOSYS;
+	  return 0;
+	}
+
+      filename_to_utf16 (lpSymlinkFilename, symfn_w);
+      filename_to_utf16 (lpTargetFileName, tgtfn_w);
+      retval = s_pfn_Create_Symbolic_LinkW (symfn_w, tgtfn_w, dwFlags);
+      /* If we were denied creation of the symlink, try again after
+	 enabling the SeCreateSymbolicLinkPrivilege for our process.  */
+      if (!retval)
+	{
+	  TOKEN_PRIVILEGES priv_current;
+
+	  if (enable_privilege (SE_CREATE_SYMBOLIC_LINK_NAME, TRUE,
+				&priv_current))
+	    {
+	      retval = s_pfn_Create_Symbolic_LinkW (symfn_w, tgtfn_w, dwFlags);
+	      restore_privilege (&priv_current);
+	      revert_to_self ();
+	    }
+	}
+    }
+  else
+    {
+      char symfn_a[MAX_PATH], tgtfn_a[MAX_PATH];
+
+      if (g_b_init_create_symbolic_link_a == 0)
+	{
+	  g_b_init_create_symbolic_link_a = 1;
+	  s_pfn_Create_Symbolic_LinkA =
+	    (CreateSymbolicLinkA_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+						     "CreateSymbolicLinkA");
+	}
+      if (s_pfn_Create_Symbolic_LinkA == NULL)
+	{
+	  errno = ENOSYS;
+	  return 0;
+	}
+
+      filename_to_ansi (lpSymlinkFilename, symfn_a);
+      filename_to_ansi (lpTargetFileName, tgtfn_a);
+      retval = s_pfn_Create_Symbolic_LinkA (symfn_a, tgtfn_a, dwFlags);
+      /* If we were denied creation of the symlink, try again after
+	 enabling the SeCreateSymbolicLinkPrivilege for our process.  */
+      if (!retval)
+	{
+	  TOKEN_PRIVILEGES priv_current;
+
+	  if (enable_privilege (SE_CREATE_SYMBOLIC_LINK_NAME, TRUE,
+				&priv_current))
+	    {
+	      retval = s_pfn_Create_Symbolic_LinkA (symfn_a, tgtfn_a, dwFlags);
+	      restore_privilege (&priv_current);
+	      revert_to_self ();
+	    }
 	}
     }
   return retval;
@@ -1182,7 +1288,297 @@ w32_valid_pointer_p (void *p, int size)
     return -1;
 }
 
-static char startup_dir[MAXPATHLEN];
+
+
+/* Here's an overview of how the Windows build supports file names
+   that cannot be encoded by the current system codepage.
+
+   From the POV of Lisp and layers of C code above the functions here,
+   Emacs on Windows pretends that its file names are encoded in UTF-8;
+   see encode_file and decode_file on coding.c.  Any file name that is
+   passed as a unibyte string to C functions defined here is assumed
+   to be in UTF-8 encoding.  Any file name returned by functions
+   defined here must be in UTF-8 encoding, with only a few exceptions
+   reserved for a couple of special cases.  (Be sure to use
+   MAX_UTF8_PATH for char arrays that store UTF-8 encoded file names,
+   as they can be much longer than MAX_PATH!)
+
+   The UTF-8 encoded file names cannot be passed to system APIs, as
+   Windows does not support that.  Therefore, they are converted
+   either to UTF-16 or to the ANSI codepage, depending on the value of
+   w32-unicode-filenames, before calling any system APIs or CRT library
+   functions.  The default value of that variable is determined by the
+   OS on which Emacs runs: nil on Windows 9X and t otherwise, but the
+   user can change that default (although I don't see why would she
+   want to).
+
+   The 4 functions defined below, filename_to_utf16, filename_to_ansi,
+   filename_from_utf16, and filename_from_ansi, are the workhorses of
+   these conversions.  They rely on Windows native APIs
+   MultiByteToWideChar and WideCharToMultiByte; we cannot use
+   functions from coding.c here, because they allocate memory, which
+   is a bad idea on the level of libc, which is what the functions
+   here emulate.  (If you worry about performance due to constant
+   conversion back and forth from UTF-8 to UTF-16, then don't: first,
+   it was measured to take only a few microseconds on a not-so-fast
+   machine, and second, that's exactly what the ANSI APIs we used
+   before do anyway, because they are just thin wrappers around the
+   Unicode APIs.)
+
+   The variables file-name-coding-system and default-file-name-coding-system
+   still exist, but are actually used only when a file name needs to
+   be converted to the ANSI codepage.  This happens all the time when
+   w32-unicode-filenames is nil, but can also happen from time to time
+   when it is t.  Otherwise, these variables have no effect on file-name
+   encoding when w32-unicode-filenames is t; this is similar to
+   selection-coding-system.
+
+   This arrangement works very well, but it has a few gotchas and
+   limitations:
+
+   . Lisp code that encodes or decodes file names manually should
+     normally use 'utf-8' as the coding-system on Windows,
+     disregarding file-name-coding-system.  This is a somewhat
+     unpleasant consequence, but it cannot be avoided.  Fortunately,
+     very few Lisp packages need to do that.
+
+     More generally, passing to library functions (e.g., fopen or
+     opendir) file names already encoded in the ANSI codepage is
+     explictly *verboten*, as all those functions, as shadowed and
+     emulated here, assume they will receive UTF-8 encoded file names.
+
+     For the same reasons, no CRT function or Win32 API can be called
+     directly in Emacs sources, without either converting the file
+     name sfrom UTF-8 to either UTF-16 or ANSI codepage, or going
+     through some shadowing function defined here.
+
+   . Environment variables stored in Vprocess_environment are encoded
+     in the ANSI codepage, so if getenv/egetenv is used for a variable
+     whose value is a file name or a list of directories, it needs to
+     be converted to UTF-8, before it is used as argument to functions
+     or decoded into a Lisp string.
+
+   . File names passed to external libraries, like the image libraries
+     and GnuTLS, need special handling.  These libraries generally
+     don't support UTF-16 or UTF-8 file names, so they must get file
+     names encoded in the ANSI codepage.  To facilitate using these
+     libraries with file names that are not encodable in the ANSI
+     codepage, use the function ansi_encode_filename, which will try
+     to use the short 8+3 alias of a file name if that file name is
+     not encodable in the ANSI codepage.  See image.c and gnutls.c for
+     examples of how this should be done.
+
+   . Running subprocesses in non-ASCII directories and with non-ASCII
+     file arguments is limited to the current codepage (even though
+     Emacs is perfectly capable of finding an executable program file
+     even in a directory whose name cannot be encoded in the curreent
+     codepage).  This is because the command-line arguments are
+     encoded _before_ they get to the w32-specific level, and the
+     encoding is not known in advance (it doesn't have to be the
+     current ANSI codepage), so w32proc.c functions cannot re-encode
+     them in UTF-16.  This should be fixed, but will also require
+     changes in cmdproxy.  The current limitation is not terribly bad
+     anyway, since very few, if any, Windows console programs that are
+     likely to be invoked by Emacs support UTF-16 encoded command
+     lines.
+
+   . For similar reasons, server.el and emacsclient are also limited
+     to the current ANSI codepage for now.
+
+   . Emacs itself can only handle command-line arguments encoded in
+     the current codepage.
+
+   . Turning on w32-unicode-filename on Windows 9X (if it at all
+     works) requires UNICOWS.DLL, which is currently loaded only in a
+     GUI session.  */
+
+
+
+/* Converting file names from UTF-8 to either UTF-16 or the ANSI
+   codepage defined by file-name-coding-system.  */
+
+/* Current codepage for encoding file names.  */
+static int file_name_codepage;
+
+/* Produce a Windows ANSI codepage suitable for encoding file names.
+   Return the information about that codepage in CP_INFO.  */
+static int
+codepage_for_filenames (CPINFO *cp_info)
+{
+  /* A simple cache to avoid calling GetCPInfo every time we need to
+     encode/decode a file name.  The file-name encoding is not
+     supposed to be changed too frequently, if ever.  */
+  static Lisp_Object last_file_name_encoding;
+  static CPINFO cp;
+  Lisp_Object current_encoding;
+
+  current_encoding = Vfile_name_coding_system;
+  if (NILP (current_encoding))
+    current_encoding = Vdefault_file_name_coding_system;
+
+  if (!EQ (last_file_name_encoding, current_encoding))
+    {
+      /* Default to the current ANSI codepage.  */
+      file_name_codepage = w32_ansi_code_page;
+
+      if (NILP (current_encoding))
+	{
+	  char *cpname = SDATA (SYMBOL_NAME (current_encoding));
+	  char *cp = NULL, *end;
+	  int cpnum;
+
+	  if (strncmp (cpname, "cp", 2) == 0)
+	    cp = cpname + 2;
+	  else if (strncmp (cpname, "windows-", 8) == 0)
+	    cp = cpname + 8;
+
+	  if (cp)
+	    {
+	      end = cp;
+	      cpnum = strtol (cp, &end, 10);
+	      if (cpnum && *end == '\0' && end - cp >= 2)
+		file_name_codepage = cpnum;
+	    }
+	}
+
+      if (!file_name_codepage)
+	file_name_codepage = CP_ACP; /* CP_ACP = 0, but let's not assume that */
+
+      if (!GetCPInfo (file_name_codepage, &cp))
+	{
+	  file_name_codepage = CP_ACP;
+	  if (!GetCPInfo (file_name_codepage, &cp))
+	    emacs_abort ();
+	}
+    }
+  if (cp_info)
+    *cp_info = cp;
+
+  return file_name_codepage;
+}
+
+int
+filename_to_utf16 (const char *fn_in, wchar_t *fn_out)
+{
+  int result = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, fn_in, -1,
+				    fn_out, MAX_PATH);
+
+  if (!result)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_FLAGS:
+	case ERROR_INVALID_PARAMETER:
+	  errno = EINVAL;
+	  break;
+	case ERROR_INSUFFICIENT_BUFFER:
+	case ERROR_NO_UNICODE_TRANSLATION:
+	default:
+	  errno = ENOENT;
+	  break;
+	}
+      return -1;
+    }
+  return 0;
+}
+
+int
+filename_from_utf16 (const wchar_t *fn_in, char *fn_out)
+{
+  int result = WideCharToMultiByte (CP_UTF8, 0, fn_in, -1,
+				    fn_out, MAX_UTF8_PATH, NULL, NULL);
+
+  if (!result)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_FLAGS:
+	case ERROR_INVALID_PARAMETER:
+	  errno = EINVAL;
+	  break;
+	case ERROR_INSUFFICIENT_BUFFER:
+	case ERROR_NO_UNICODE_TRANSLATION:
+	default:
+	  errno = ENOENT;
+	  break;
+	}
+      return -1;
+    }
+  return 0;
+}
+
+int
+filename_to_ansi (const char *fn_in, char *fn_out)
+{
+  wchar_t fn_utf16[MAX_PATH];
+
+  if (filename_to_utf16 (fn_in, fn_utf16) == 0)
+    {
+      int result;
+      int codepage = codepage_for_filenames (NULL);
+
+      result  = WideCharToMultiByte (codepage, 0, fn_utf16, -1,
+				     fn_out, MAX_PATH, NULL, NULL);
+      if (!result)
+	{
+	  DWORD err = GetLastError ();
+
+	  switch (err)
+	    {
+	    case ERROR_INVALID_FLAGS:
+	    case ERROR_INVALID_PARAMETER:
+	      errno = EINVAL;
+	      break;
+	    case ERROR_INSUFFICIENT_BUFFER:
+	    case ERROR_NO_UNICODE_TRANSLATION:
+	    default:
+	      errno = ENOENT;
+	      break;
+	    }
+	  return -1;
+	}
+      return 0;
+    }
+  return -1;
+}
+
+int
+filename_from_ansi (const char *fn_in, char *fn_out)
+{
+  wchar_t fn_utf16[MAX_PATH];
+  int codepage = codepage_for_filenames (NULL);
+  int result = MultiByteToWideChar (codepage, MB_ERR_INVALID_CHARS, fn_in, -1,
+				    fn_utf16, MAX_PATH);
+
+  if (!result)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_FLAGS:
+	case ERROR_INVALID_PARAMETER:
+	  errno = EINVAL;
+	  break;
+	case ERROR_INSUFFICIENT_BUFFER:
+	case ERROR_NO_UNICODE_TRANSLATION:
+	default:
+	  errno = ENOENT;
+	  break;
+	}
+      return -1;
+    }
+  return filename_from_utf16 (fn_utf16, fn_out);
+}
+
+
+
+/* The directory where we started, in UTF-8. */
+static char startup_dir[MAX_UTF8_PATH];
 
 /* Get the current working directory.  */
 char *
@@ -1374,8 +1770,8 @@ getloadavg (double loadavg[], int nelem)
 static char dflt_passwd_name[PASSWD_FIELD_SIZE];
 static char dflt_passwd_passwd[PASSWD_FIELD_SIZE];
 static char dflt_passwd_gecos[PASSWD_FIELD_SIZE];
-static char dflt_passwd_dir[PASSWD_FIELD_SIZE];
-static char dflt_passwd_shell[PASSWD_FIELD_SIZE];
+static char dflt_passwd_dir[MAX_UTF8_PATH];
+static char dflt_passwd_shell[MAX_UTF8_PATH];
 
 static struct passwd dflt_passwd =
 {
@@ -1556,15 +1952,32 @@ init_user_info (void)
     }
   dflt_group.gr_gid = dflt_passwd.pw_gid;
 
-  /* Ensure HOME and SHELL are defined. */
-  if (getenv ("HOME") == NULL)
-    emacs_abort ();
-  if (getenv ("SHELL") == NULL)
-    emacs_abort ();
-
   /* Set dir and shell from environment variables. */
-  strcpy (dflt_passwd.pw_dir, getenv ("HOME"));
-  strcpy (dflt_passwd.pw_shell, getenv ("SHELL"));
+  if (w32_unicode_filenames)
+    {
+      wchar_t *home = _wgetenv (L"HOME");
+      wchar_t *shell = _wgetenv (L"SHELL");
+
+      /* Ensure HOME and SHELL are defined. */
+      if (home == NULL)
+	emacs_abort ();
+      if (shell == NULL)
+	emacs_abort ();
+      filename_from_utf16 (home, dflt_passwd.pw_dir);
+      filename_from_utf16 (shell, dflt_passwd.pw_shell);
+    }
+  else
+    {
+      char *home = getenv ("HOME");
+      char *shell = getenv ("SHELL");
+
+      if (home == NULL)
+	emacs_abort ();
+      if (shell == NULL)
+	emacs_abort ();
+      filename_from_ansi (home, dflt_passwd.pw_dir);
+      filename_from_ansi (shell, dflt_passwd.pw_shell);
+    }
 
   xfree (buf);
   if (token)
@@ -1584,93 +1997,32 @@ srandom (int seed)
   srand (seed);
 }
 
-/* Current codepage for encoding file names.  */
-static int file_name_codepage;
-
 /* Return the maximum length in bytes of a multibyte character
    sequence encoded in the current ANSI codepage.  This is required to
    correctly walk the encoded file names one character at a time.  */
 static int
 max_filename_mbslen (void)
 {
-  /* A simple cache to avoid calling GetCPInfo every time we need to
-     normalize a file name.  The file-name encoding is not supposed to
-     be changed too frequently, if ever.  */
-  static Lisp_Object last_file_name_encoding;
-  static int last_max_mbslen;
-  Lisp_Object current_encoding;
+  CPINFO cp_info;
 
-  current_encoding = Vfile_name_coding_system;
-  if (NILP (current_encoding))
-    current_encoding = Vdefault_file_name_coding_system;
-
-  if (!EQ (last_file_name_encoding, current_encoding))
-    {
-      CPINFO cp_info;
-
-      last_file_name_encoding = current_encoding;
-      /* Default to the current ANSI codepage.  */
-      file_name_codepage = w32_ansi_code_page;
-      if (!NILP (current_encoding))
-	{
-	  char *cpname = SDATA (SYMBOL_NAME (current_encoding));
-	  char *cp = NULL, *end;
-	  int cpnum;
-
-	  if (strncmp (cpname, "cp", 2) == 0)
-	    cp = cpname + 2;
-	  else if (strncmp (cpname, "windows-", 8) == 0)
-	    cp = cpname + 8;
-
-	  if (cp)
-	    {
-	      end = cp;
-	      cpnum = strtol (cp, &end, 10);
-	      if (cpnum && *end == '\0' && end - cp >= 2)
-		file_name_codepage = cpnum;
-	    }
-	}
-
-      if (!file_name_codepage)
-	file_name_codepage = CP_ACP; /* CP_ACP = 0, but let's not assume that */
-
-      if (!GetCPInfo (file_name_codepage, &cp_info))
-	{
-	  file_name_codepage = CP_ACP;
-	  if (!GetCPInfo (file_name_codepage, &cp_info))
-	    emacs_abort ();
-	}
-      last_max_mbslen = cp_info.MaxCharSize;
-    }
-
-  return last_max_mbslen;
+  codepage_for_filenames (&cp_info);
+  return cp_info.MaxCharSize;
 }
 
-/* Normalize filename by converting all path separators to
-   the specified separator.  Also conditionally convert upper
-   case path name components to lower case.  */
+/* Normalize filename by converting in-place all of its path
+   separators to the separator specified by PATH_SEP.  */
 
 static void
-normalize_filename (register char *fp, char path_sep, int multibyte)
+normalize_filename (register char *fp, char path_sep)
 {
-  char sep;
-  char *elem, *p2;
-  int dbcs_p = max_filename_mbslen () > 1;
-
-  /* Multibyte file names are in the Emacs internal representation, so
-     we can traverse them by bytes with no problems.  */
-  if (multibyte)
-    dbcs_p = 0;
+  char *p2;
 
   /* Always lower-case drive letters a-z, even if the filesystem
      preserves case in filenames.
      This is so filenames can be compared by string comparison
      functions that are case-sensitive.  Even case-preserving filesystems
      do not distinguish case in drive letters.  */
-  if (dbcs_p)
-    p2 = CharNextExA (file_name_codepage, fp, 0);
-  else
-    p2 = fp + 1;
+  p2 = fp + 1;
 
   if (*p2 == ':' && *fp >= 'A' && *fp <= 'Z')
     {
@@ -1678,68 +2030,26 @@ normalize_filename (register char *fp, char path_sep, int multibyte)
       fp += 2;
     }
 
-  if (multibyte || NILP (Vw32_downcase_file_names))
+  while (*fp)
     {
-      while (*fp)
-	{
-	  if (*fp == '/' || *fp == '\\')
-	    *fp = path_sep;
-	  if (!dbcs_p)
-	    fp++;
-	  else
-	    fp = CharNextExA (file_name_codepage, fp, 0);
-	}
-      return;
+      if ((*fp == '/' || *fp == '\\') && *fp != path_sep)
+	*fp = path_sep;
+      fp++;
     }
-
-  sep = path_sep;		/* convert to this path separator */
-  elem = fp;			/* start of current path element */
-
-  do {
-    if (*fp >= 'a' && *fp <= 'z')
-      elem = 0;			/* don't convert this element */
-
-    if (*fp == 0 || *fp == ':')
-      {
-	sep = *fp;		/* restore current separator (or 0) */
-	*fp = '/';		/* after conversion of this element */
-      }
-
-    if (*fp == '/' || *fp == '\\')
-      {
-	if (elem && elem != fp)
-	  {
-	    *fp = 0;		/* temporary end of string */
-	    _mbslwr (elem);	/* while we convert to lower case */
-	  }
-	*fp = sep;		/* convert (or restore) path separator */
-	elem = fp + 1;		/* next element starts after separator */
-	sep = path_sep;
-      }
-    if (*fp)
-      {
-	if (!dbcs_p)
-	  fp++;
-	else
-	  fp = CharNextExA (file_name_codepage, fp, 0);
-      }
-  } while (*fp);
 }
 
-/* Destructively turn backslashes into slashes.  MULTIBYTE non-zero
-   means the file name is a multibyte string in Emacs's internal
-   representation.  */
+/* Destructively turn backslashes into slashes.  */
 void
-dostounix_filename (register char *p, int multibyte)
+dostounix_filename (register char *p)
 {
-  normalize_filename (p, '/', multibyte);
+  normalize_filename (p, '/');
 }
 
 /* Destructively turn slashes into backslashes.  */
 void
 unixtodos_filename (register char *p)
 {
-  normalize_filename (p, '\\', 0);
+  normalize_filename (p, '\\');
 }
 
 /* Remove all CR's that are followed by a LF.
@@ -1772,9 +2082,9 @@ crlf_to_lf (register int n, register unsigned char *buf)
 /* Parse the root part of file name, if present.  Return length and
     optionally store pointer to char after root.  */
 static int
-parse_root (char * name, char ** pPath)
+parse_root (const char * name, const char ** pPath)
 {
-  char * start = name;
+  const char * start = name;
 
   if (name == NULL)
     return 0;
@@ -1790,17 +2100,13 @@ parse_root (char * name, char ** pPath)
   else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
     {
       int slashes = 2;
-      int dbcs_p = max_filename_mbslen () > 1;
 
       name += 2;
       do
         {
 	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
 	    break;
-	  if (dbcs_p)
-	    name = CharNextExA (file_name_codepage, name, 0);
-	  else
-	    name++;
+	  name++;
 	}
       while ( *name );
       if (IS_DIRECTORY_SEP (name[0]))
@@ -1817,23 +2123,63 @@ parse_root (char * name, char ** pPath)
 static int
 get_long_basename (char * name, char * buf, int size)
 {
-  WIN32_FIND_DATA find_data;
-  HANDLE dir_handle;
+  HANDLE dir_handle = INVALID_HANDLE_VALUE;
+  char fname_utf8[MAX_UTF8_PATH];
   int len = 0;
+  int cstatus = -1;
 
-  /* must be valid filename, no wild cards or other invalid characters */
-  if (_mbspbrk (name, "*?|<>\""))
+  /* Must be valid filename, no wild cards or other invalid characters.  */
+  if (strpbrk (name, "*?|<>\""))
     return 0;
 
-  dir_handle = FindFirstFile (name, &find_data);
-  if (dir_handle != INVALID_HANDLE_VALUE)
+  if (w32_unicode_filenames)
     {
-      if ((len = strlen (find_data.cFileName)) < size)
-	memcpy (buf, find_data.cFileName, len + 1);
-      else
-	len = 0;
-      FindClose (dir_handle);
+      wchar_t fname_utf16[MAX_PATH];
+      WIN32_FIND_DATAW find_data_wide;
+
+      filename_to_utf16 (name, fname_utf16);
+      dir_handle = FindFirstFileW (fname_utf16, &find_data_wide);
+      if (dir_handle != INVALID_HANDLE_VALUE)
+	cstatus = filename_from_utf16 (find_data_wide.cFileName, fname_utf8);
     }
+  else
+    {
+      char fname_ansi[MAX_PATH];
+      WIN32_FIND_DATAA find_data_ansi;
+
+      filename_to_ansi (name, fname_ansi);
+      /* If the ANSI name includes ? characters, it is not encodable
+	 in the ANSI codepage.  In that case, we deliver the question
+	 marks to the caller; calling FindFirstFileA in this case
+	 could return some unrelated file name in the same
+	 directory.  */
+      if (_mbspbrk (fname_ansi, "?"))
+	{
+	  /* Find the basename of fname_ansi.  */
+	  char *p = strrchr (fname_ansi, '\\');
+
+	  if (!p)
+	    p = fname_ansi;
+	  else
+	    p++;
+	  cstatus = filename_from_ansi (p, fname_utf8);
+	}
+      else
+	{
+	  dir_handle = FindFirstFileA (fname_ansi, &find_data_ansi);
+	  if (dir_handle != INVALID_HANDLE_VALUE)
+	    cstatus = filename_from_ansi (find_data_ansi.cFileName, fname_utf8);
+	}
+    }
+
+  if (cstatus == 0 && (len = strlen (fname_utf8)) < size)
+    memcpy (buf, fname_utf8, len + 1);
+  else
+    len = 0;
+
+  if (dir_handle != INVALID_HANDLE_VALUE)
+    FindClose (dir_handle);
+
   return len;
 }
 
@@ -1843,12 +2189,12 @@ w32_get_long_filename (char * name, char * buf, int size)
 {
   char * o = buf;
   char * p;
-  char * q;
-  char full[ MAX_PATH ];
+  const char * q;
+  char full[ MAX_UTF8_PATH ];
   int len;
 
   len = strlen (name);
-  if (len >= MAX_PATH)
+  if (len >= MAX_UTF8_PATH)
     return FALSE;
 
   /* Use local copy for destructive modification.  */
@@ -1856,7 +2202,7 @@ w32_get_long_filename (char * name, char * buf, int size)
   unixtodos_filename (full);
 
   /* Copy root part verbatim.  */
-  len = parse_root (full, &p);
+  len = parse_root (full, (const char **)&p);
   memcpy (o, full, len);
   o += len;
   *o = '\0';
@@ -1865,7 +2211,7 @@ w32_get_long_filename (char * name, char * buf, int size)
   while (p != NULL && *p)
     {
       q = p;
-      p = _mbschr (q, '\\');
+      p = strchr (q, '\\');
       if (p) *p = '\0';
       len = get_long_basename (full, o, size);
       if (len > 0)
@@ -1889,6 +2235,59 @@ w32_get_long_filename (char * name, char * buf, int size)
   return TRUE;
 }
 
+unsigned int
+w32_get_short_filename (char * name, char * buf, int size)
+{
+  if (w32_unicode_filenames)
+    {
+      wchar_t name_utf16[MAX_PATH], short_name[MAX_PATH];
+      unsigned int retval;
+
+      filename_to_utf16 (name, name_utf16);
+      retval = GetShortPathNameW (name_utf16, short_name, size);
+      if (retval && retval < size)
+	filename_from_utf16 (short_name, buf);
+      return retval;
+    }
+  else
+    {
+      char name_ansi[MAX_PATH];
+
+      filename_to_ansi (name, name_ansi);
+      return GetShortPathNameA (name_ansi, buf, size);
+    }
+}
+
+/* Re-encode FILENAME, a UTF-8 encoded unibyte string, using the
+   MS-Windows ANSI codepage.  If FILENAME includes characters not
+   supported by the ANSI codepage, return the 8+3 alias of FILENAME,
+   if it exists.  This is needed because the w32 build wants to
+   support file names outside of the system locale, but image
+   libraries typically don't support wide (a.k.a. "Unicode") APIs
+   required for that.  */
+
+Lisp_Object
+ansi_encode_filename (Lisp_Object filename)
+{
+  Lisp_Object encoded_filename;
+  char fname[MAX_PATH];
+
+  filename_to_ansi (SSDATA (filename), fname);
+  if (_mbspbrk (fname, "?"))
+    {
+      char shortname[MAX_PATH];
+
+      if (w32_get_short_filename (SDATA (filename), shortname, MAX_PATH))
+	{
+	  dostounix_filename (shortname);
+	  encoded_filename = build_string (shortname);
+	}
+    }
+  else
+    encoded_filename = build_unibyte_string (fname);
+  return encoded_filename;
+}
+
 static int
 is_unc_volume (const char *filename)
 {
@@ -1897,7 +2296,7 @@ is_unc_volume (const char *filename)
   if (!IS_DIRECTORY_SEP (ptr[0]) || !IS_DIRECTORY_SEP (ptr[1]) || !ptr[2])
     return 0;
 
-  if (_mbspbrk (ptr + 2, "*?|<>\"\\/"))
+  if (strpbrk (ptr + 2, "*?|<>\"\\/"))
     return 0;
 
   return 1;
@@ -1997,8 +2396,8 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
   return (NULL);
 }
 
-char *get_emacs_configuration (void);
-
+/* The argv[] array holds ANSI-encoded strings, and so this function
+   works with ANS_encoded strings.  */
 void
 init_environment (char ** argv)
 {
@@ -2009,6 +2408,13 @@ init_environment (char ** argv)
   int i;
 
   const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
+
+  /* Implementation note: This function explicitly works with ANSI
+     file names, not with UTF-8 encoded file names.  This is because
+     this function pushes variables into the Emacs's environment, and
+     the environment variables are always assumed to be in the
+     locale-specific encoding.  Do NOT call any functions that accept
+     UTF-8 file names from this function!  */
 
   /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
      temporary files and assume "/tmp" if $TMPDIR is unset, which
@@ -2025,8 +2431,8 @@ init_environment (char ** argv)
 	 The only way to be really sure is to actually create a file and
 	 see if it succeeds.  But I think that's too much to ask.  */
 
-      /* MSVCRT's _access crashes with D_OK.  */
-      if (tmp && faccessat (AT_FDCWD, tmp, D_OK, AT_EACCESS) == 0)
+      /* MSVCRT's _access crashes with D_OK, so we use our replacement.  */
+      if (tmp && sys_access (tmp, D_OK) == 0)
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
@@ -2088,7 +2494,7 @@ init_environment (char ** argv)
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
-    if (faccessat (AT_FDCWD, "C:/.emacs", F_OK, AT_EACCESS) != 0)
+    if (sys_access ("C:/.emacs", F_OK) != 0)
       {
 	HRESULT profile_result;
 	/* Dynamically load ShGetFolderPath, as it won't exist on versions
@@ -2135,7 +2541,7 @@ init_environment (char ** argv)
       char *p;
       char modname[MAX_PATH];
 
-      if (!GetModuleFileName (NULL, modname, MAX_PATH))
+      if (!GetModuleFileNameA (NULL, modname, MAX_PATH))
 	emacs_abort ();
       if ((p = _mbsrchr (modname, '\\')) == NULL)
 	emacs_abort ();
@@ -2162,33 +2568,6 @@ init_environment (char ** argv)
 	      _snprintf (buf, sizeof (buf) - 1,
 			 "SHELL=%s/nt/cmdproxy.exe", modname);
 	      _putenv (strdup (buf));
-	    }
-	}
-      /* Handle running emacs from the build directory: src/oo-spd/i386/  */
-
-      /* FIXME: should use substring of get_emacs_configuration ().
-	 But I don't think the Windows build supports alpha, mips etc
-         anymore, so have taken the easy option for now.  */
-      else if (p && (xstrcasecmp (p, "\\i386") == 0
-                     || xstrcasecmp (p, "\\AMD64") == 0))
-	{
-	  *p = 0;
-	  p = _mbsrchr (modname, '\\');
-	  if (p != NULL)
-	    {
-	      *p = 0;
-	      p = _mbsrchr (modname, '\\');
-	      if (p && xstrcasecmp (p, "\\src") == 0)
-		{
-		  char buf[SET_ENV_BUF_SIZE];
-
-		  *p = 0;
-		  for (p = modname; *p; p = CharNext (p))
-		    if (*p == '\\') *p = '/';
-
-		  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
-		  _putenv (strdup (buf));
-		}
 	    }
 	}
     }
@@ -2226,8 +2605,7 @@ init_environment (char ** argv)
 			  strcpy (&fname[pend - pstart + 1], "cmdproxy.exe");
 			  ExpandEnvironmentStrings ((LPSTR) fname, bufc,
 						    sizeof (bufc));
-			  if (faccessat (AT_FDCWD, bufc, F_OK, AT_EACCESS)
-			      == 0)
+			  if (sys_access (bufc, F_OK) == 0)
 			    {
 			      lpval = bufc;
 			      dwType = REG_SZ;
@@ -2307,13 +2685,27 @@ init_environment (char ** argv)
   /* Remember the initial working directory for getcwd.  */
   /* FIXME: Do we need to resolve possible symlinks in startup_dir?
      Does it matter anywhere in Emacs?  */
-  if (!GetCurrentDirectory (MAXPATHLEN, startup_dir))
-    emacs_abort ();
+  if (w32_unicode_filenames)
+    {
+      wchar_t wstartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryW (MAX_PATH, wstartup_dir))
+	emacs_abort ();
+      filename_from_utf16 (wstartup_dir, startup_dir);
+    }
+  else
+    {
+      char astartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryA (MAX_PATH, astartup_dir))
+	emacs_abort ();
+      filename_from_ansi (astartup_dir, startup_dir);
+    }
 
   {
     static char modname[MAX_PATH];
 
-    if (!GetModuleFileName (NULL, modname, MAX_PATH))
+    if (!GetModuleFileNameA (NULL, modname, MAX_PATH))
       emacs_abort ();
     argv[0] = modname;
   }
@@ -2331,169 +2723,17 @@ init_environment (char ** argv)
 char *
 emacs_root_dir (void)
 {
-  static char root_dir[FILENAME_MAX];
+  static char root_dir[MAX_UTF8_PATH];
   const char *p;
 
   p = getenv ("emacs_dir");
   if (p == NULL)
     emacs_abort ();
-  strcpy (root_dir, p);
+  filename_from_ansi (p, root_dir);
   root_dir[parse_root (root_dir, NULL)] = '\0';
-  dostounix_filename (root_dir, 0);
+  dostounix_filename (root_dir);
   return root_dir;
 }
-
-/* We don't have scripts to automatically determine the system configuration
-   for Emacs before it's compiled, and we don't want to have to make the
-   user enter it, so we define EMACS_CONFIGURATION to invoke this runtime
-   routine.  */
-
-char *
-get_emacs_configuration (void)
-{
-  char *arch, *oem, *os;
-  int build_num;
-  static char configuration_buffer[32];
-
-  /* Determine the processor type.  */
-  switch (get_processor_type ())
-    {
-
-#ifdef PROCESSOR_INTEL_386
-    case PROCESSOR_INTEL_386:
-    case PROCESSOR_INTEL_486:
-    case PROCESSOR_INTEL_PENTIUM:
-#ifdef _WIN64
-      arch = "amd64";
-#else
-      arch = "i386";
-#endif
-      break;
-#endif
-#ifdef PROCESSOR_AMD_X8664
-    case PROCESSOR_AMD_X8664:
-      arch = "amd64";
-      break;
-#endif
-
-#ifdef PROCESSOR_MIPS_R2000
-    case PROCESSOR_MIPS_R2000:
-    case PROCESSOR_MIPS_R3000:
-    case PROCESSOR_MIPS_R4000:
-      arch = "mips";
-      break;
-#endif
-
-#ifdef PROCESSOR_ALPHA_21064
-    case PROCESSOR_ALPHA_21064:
-      arch = "alpha";
-      break;
-#endif
-
-    default:
-      arch = "unknown";
-      break;
-    }
-
-  /* Use the OEM field to reflect the compiler/library combination.  */
-#ifdef _MSC_VER
-#define COMPILER_NAME	"msvc"
-#else
-#ifdef __GNUC__
-#define COMPILER_NAME	"mingw"
-#else
-#define COMPILER_NAME	"unknown"
-#endif
-#endif
-  oem = COMPILER_NAME;
-
-  switch (osinfo_cache.dwPlatformId) {
-  case VER_PLATFORM_WIN32_NT:
-    os = "nt";
-    build_num = osinfo_cache.dwBuildNumber;
-    break;
-  case VER_PLATFORM_WIN32_WINDOWS:
-    if (osinfo_cache.dwMinorVersion == 0) {
-      os = "windows95";
-    } else {
-      os = "windows98";
-    }
-    build_num = LOWORD (osinfo_cache.dwBuildNumber);
-    break;
-  case VER_PLATFORM_WIN32s:
-    /* Not supported, should not happen. */
-    os = "windows32s";
-    build_num = LOWORD (osinfo_cache.dwBuildNumber);
-    break;
-  default:
-    os = "unknown";
-    build_num = 0;
-    break;
-  }
-
-  if (osinfo_cache.dwPlatformId == VER_PLATFORM_WIN32_NT) {
-    sprintf (configuration_buffer, "%s-%s-%s%d.%d.%d", arch, oem, os,
-	     get_w32_major_version (), get_w32_minor_version (), build_num);
-  } else {
-    sprintf (configuration_buffer, "%s-%s-%s.%d", arch, oem, os, build_num);
-  }
-
-  return configuration_buffer;
-}
-
-char *
-get_emacs_configuration_options (void)
-{
-  static char *options_buffer;
-  char cv[32];  /* Enough for COMPILER_VERSION.  */
-  char *options[] = {
-    cv,  /* To be filled later.  */
-#ifdef EMACSDEBUG
-    " --no-opt",
-#endif
-#ifdef ENABLE_CHECKING
-    " --enable-checking",
-#endif
-    /* configure.bat already sets USER_CFLAGS and USER_LDFLAGS
-       with a starting space to save work here.  */
-#ifdef USER_CFLAGS
-    " --cflags", USER_CFLAGS,
-#endif
-#ifdef USER_LDFLAGS
-    " --ldflags", USER_LDFLAGS,
-#endif
-    NULL
-  };
-  size_t size = 0;
-  int i;
-
-/* Work out the effective configure options for this build.  */
-#ifdef _MSC_VER
-#define COMPILER_VERSION	"--with-msvc (%d.%02d)", _MSC_VER / 100, _MSC_VER % 100
-#else
-#ifdef __GNUC__
-#define COMPILER_VERSION	"--with-gcc (%d.%d)", __GNUC__, __GNUC_MINOR__
-#else
-#define COMPILER_VERSION	""
-#endif
-#endif
-
-  if (_snprintf (cv, sizeof (cv) - 1, COMPILER_VERSION) < 0)
-    return "Error: not enough space for compiler version";
-  cv[sizeof (cv) - 1] = '\0';
-
-  for (i = 0; options[i]; i++)
-    size += strlen (options[i]);
-
-  options_buffer = xmalloc (size + 1);
-  options_buffer[0] = '\0';
-
-  for (i = 0; options[i]; i++)
-    strcat (options_buffer, options[i]);
-
-  return options_buffer;
-}
-
 
 #include <sys/timeb.h>
 
@@ -2649,6 +2889,7 @@ static void
 add_volume_info (char * root_dir, volume_info_data * info)
 {
   info->root_dir = xstrdup (root_dir);
+  unixtodos_filename (info->root_dir);
   info->next = volume_cache;
   volume_cache = info;
 }
@@ -2661,14 +2902,30 @@ static volume_info_data *
 GetCachedVolumeInformation (char * root_dir)
 {
   volume_info_data * info;
-  char default_root[ MAX_PATH ];
+  char default_root[ MAX_UTF8_PATH ];
+  char  name[MAX_PATH+1];
+  char  type[MAX_PATH+1];
 
   /* NULL for root_dir means use root from current directory.  */
   if (root_dir == NULL)
     {
-      if (GetCurrentDirectory (MAX_PATH, default_root) == 0)
-	return NULL;
-      parse_root (default_root, &root_dir);
+      if (w32_unicode_filenames)
+	{
+	  wchar_t curdirw[MAX_PATH];
+
+	  if (GetCurrentDirectoryW (MAX_PATH, curdirw) == 0)
+	    return NULL;
+	  filename_from_utf16 (curdirw, default_root);
+	}
+      else
+	{
+	  char curdira[MAX_PATH];
+
+	  if (GetCurrentDirectoryA (MAX_PATH, curdira) == 0)
+	    return NULL;
+	  filename_from_ansi (curdira, default_root);
+	}
+      parse_root (default_root, (const char **)&root_dir);
       *root_dir = 0;
       root_dir = default_root;
     }
@@ -2707,20 +2964,47 @@ GetCachedVolumeInformation (char * root_dir)
 
   if (info == NULL || ! VOLINFO_STILL_VALID (root_dir, info))
     {
-      char  name[ 256 ];
       DWORD serialnum;
       DWORD maxcomp;
       DWORD flags;
-      char  type[ 256 ];
 
       /* Info is not cached, or is stale. */
-      if (!GetVolumeInformation (root_dir,
-				 name, sizeof (name),
-				 &serialnum,
-				 &maxcomp,
-				 &flags,
-				 type, sizeof (type)))
-	return NULL;
+      if (w32_unicode_filenames)
+	{
+	  wchar_t root_w[MAX_PATH];
+	  wchar_t  name_w[MAX_PATH+1];
+	  wchar_t  type_w[MAX_PATH+1];
+
+	  filename_to_utf16 (root_dir, root_w);
+	  if (!GetVolumeInformationW (root_w,
+				     name_w, sizeof (name_w),
+				     &serialnum,
+				     &maxcomp,
+				     &flags,
+				     type_w, sizeof (type_w)))
+	    return NULL;
+	  /* Hmm... not really 100% correct, as these 2 are not file
+	     names...  */
+	  filename_from_utf16 (name_w, name);
+	  filename_from_utf16 (type_w, type);
+	}
+      else
+	{
+	  char root_a[MAX_PATH];
+	  char  name_a[MAX_PATH+1];
+	  char  type_a[MAX_PATH+1];
+
+	  filename_to_ansi (root_dir, root_a);
+	  if (!GetVolumeInformationA (root_a,
+				     name_a, sizeof (name_a),
+				     &serialnum,
+				     &maxcomp,
+				     &flags,
+				     type_a, sizeof (type_a)))
+	    return NULL;
+	  filename_from_ansi (name_a, name);
+	  filename_from_ansi (type_a, type);
+	}
 
       /* Cache the volume information for future use, overwriting existing
 	 entry if present.  */
@@ -2736,6 +3020,7 @@ GetCachedVolumeInformation (char * root_dir)
 	}
 
       info->name = xstrdup (name);
+      unixtodos_filename (info->name);
       info->serialnum = serialnum;
       info->maxcomp = maxcomp;
       info->flags = flags;
@@ -2758,52 +3043,22 @@ GetCachedVolumeInformation (char * root_dir)
 static int
 get_volume_info (const char * name, const char ** pPath)
 {
-  char temp[MAX_PATH];
+  char temp[MAX_UTF8_PATH];
   char *rootname = NULL;  /* default to current volume */
   volume_info_data * info;
+  int root_len = parse_root (name, pPath);
 
   if (name == NULL)
     return FALSE;
 
-  /* Find the root name of the volume if given.  */
-  if (isalpha (name[0]) && name[1] == ':')
+  /* Copy the root name of the volume, if given.  */
+  if (root_len)
     {
+      strncpy (temp, name, root_len);
+      temp[root_len] = '\0';
+      unixtodos_filename (temp);
       rootname = temp;
-      temp[0] = *name++;
-      temp[1] = *name++;
-      temp[2] = '\\';
-      temp[3] = 0;
     }
-  else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
-    {
-      char *str = temp;
-      int slashes = 4;
-      int dbcs_p = max_filename_mbslen () > 1;
-
-      rootname = temp;
-      do
-        {
-	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
-	    break;
-	  if (!dbcs_p)
-	    *str++ = *name++;
-	  else
-	    {
-	      const char *p = name;
-
-	      name = CharNextExA (file_name_codepage, name, 0);
-	      memcpy (str, p, name - p);
-	      str += name - p;
-	    }
-	}
-      while ( *name );
-
-      *str++ = '\\';
-      *str = 0;
-    }
-
-  if (pPath)
-    *pPath = name;
 
   info = GetCachedVolumeInformation (rootname);
   if (info != NULL)
@@ -2826,18 +3081,19 @@ is_fat_volume (const char * name, const char ** pPath)
   return FALSE;
 }
 
-/* Map filename to a valid 8.3 name if necessary.
-   The result is a pointer to a static buffer, so CAVEAT EMPTOR!  */
+/* Convert all slashes in a filename to backslashes, and map filename
+   to a valid 8.3 name if necessary.  The result is a pointer to a
+   static buffer, so CAVEAT EMPTOR!  */
 const char *
 map_w32_filename (const char * name, const char ** pPath)
 {
-  static char shortname[MAX_PATH];
+  static char shortname[MAX_UTF8_PATH];
   char * str = shortname;
   char c;
   char * path;
   const char * save_name = name;
 
-  if (strlen (name) >= MAX_PATH)
+  if (strlen (name) >= sizeof (shortname))
     {
       /* Return a filename which will cause callers to fail.  */
       strcpy (shortname, "?");
@@ -2904,7 +3160,7 @@ map_w32_filename (const char * name, const char ** pPath)
 		str[-1] = c;		/* replace last character of part */
 	      /* FALLTHRU */
 	    default:
-	      if ( left )
+	      if ( left && 'A' <= c && c <= 'Z' )
 	        {
 		  *str++ = tolower (c);	/* map to lower case (looks nicer) */
 		  left--;
@@ -2939,25 +3195,31 @@ is_exec (const char * name)
 	 xstrcasecmp (p, ".cmd") == 0));
 }
 
-/* Emulate the Unix directory procedures opendir, closedir,
-   and readdir.  We can't use the procedures supplied in sysdep.c,
-   so we provide them here.  */
+/* Emulate the Unix directory procedures opendir, closedir, and
+   readdir.  We rename them to sys_* names because some versions of
+   MinGW startup code call opendir and readdir to glob wildcards, and
+   the code that calls them doesn't grok UTF-8 encoded file names we
+   produce in dirent->d_name[].  */
 
 struct dirent dir_static;       /* simulated directory contents */
 static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
-static char   dir_pathname[MAXPATHLEN+1];
-static WIN32_FIND_DATA dir_find_data;
+static char   dir_pathname[MAX_UTF8_PATH];
+static WIN32_FIND_DATAW dir_find_data_w;
+static WIN32_FIND_DATAA dir_find_data_a;
+#define DIR_FIND_DATA_W 1
+#define DIR_FIND_DATA_A 2
+static int    last_dir_find_data = -1;
 
 /* Support shares on a network resource as subdirectories of a read-only
    root directory. */
 static HANDLE wnet_enum_handle = INVALID_HANDLE_VALUE;
 static HANDLE open_unc_volume (const char *);
-static char  *read_unc_volume (HANDLE, char *, int);
+static void  *read_unc_volume (HANDLE, wchar_t *, char *, int);
 static void   close_unc_volume (HANDLE);
 
 DIR *
-opendir (const char *filename)
+sys_opendir (const char *filename)
 {
   DIR *dirp;
 
@@ -2986,8 +3248,8 @@ opendir (const char *filename)
   dirp->dd_loc = 0;
   dirp->dd_size = 0;
 
-  strncpy (dir_pathname, map_w32_filename (filename, NULL), MAXPATHLEN);
-  dir_pathname[MAXPATHLEN] = '\0';
+  strncpy (dir_pathname, map_w32_filename (filename, NULL), MAX_UTF8_PATH - 1);
+  dir_pathname[MAX_UTF8_PATH - 1] = '\0';
   /* Note: We don't support symlinks to file names on FAT volumes.
      Doing so would mean punishing 99.99% of use cases by resolving
      all the possible symlinks in FILENAME, recursively.  */
@@ -2997,7 +3259,7 @@ opendir (const char *filename)
 }
 
 void
-closedir (DIR *dirp)
+sys_closedir (DIR *dirp)
 {
   /* If we have a find-handle open, close it.  */
   if (dir_find_handle != INVALID_HANDLE_VALUE)
@@ -3014,52 +3276,65 @@ closedir (DIR *dirp)
 }
 
 struct dirent *
-readdir (DIR *dirp)
+sys_readdir (DIR *dirp)
 {
   int downcase = !NILP (Vw32_downcase_file_names);
 
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
       if (!read_unc_volume (wnet_enum_handle,
-                            dir_find_data.cFileName,
+                            dir_find_data_w.cFileName,
+                            dir_find_data_a.cFileName,
                             MAX_PATH))
 	return NULL;
     }
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
   else if (dir_find_handle == INVALID_HANDLE_VALUE)
     {
-      char filename[MAXNAMLEN + 3];
+      char filename[MAX_UTF8_PATH + 2];
       int ln;
-      int dbcs_p = max_filename_mbslen () > 1;
 
       strcpy (filename, dir_pathname);
       ln = strlen (filename) - 1;
-      if (!dbcs_p)
-	{
-	  if (!IS_DIRECTORY_SEP (filename[ln]))
-	    strcat (filename, "\\");
-	}
-      else
-	{
-	  char *end = filename + ln + 1;
-	  char *last_char = CharPrevExA (file_name_codepage, filename, end, 0);
-
-	  if (!IS_DIRECTORY_SEP (*last_char))
-	    strcat (filename, "\\");
-	}
+      if (!IS_DIRECTORY_SEP (filename[ln]))
+	strcat (filename, "\\");
       strcat (filename, "*");
 
       /* Note: No need to resolve symlinks in FILENAME, because
 	 FindFirst opens the directory that is the target of a
 	 symlink.  */
-      dir_find_handle = FindFirstFile (filename, &dir_find_data);
+      if (w32_unicode_filenames)
+	{
+	  wchar_t fnw[MAX_PATH];
+
+	  filename_to_utf16 (filename, fnw);
+	  dir_find_handle = FindFirstFileW (fnw, &dir_find_data_w);
+	}
+      else
+	{
+	  char fna[MAX_PATH];
+
+	  filename_to_ansi (filename, fna);
+	  /* If FILENAME is not representable by the current ANSI
+	     codepage, we don't want FindFirstFileA to interpret the
+	     '?' characters as a wildcard.  */
+	  if (_mbspbrk (fna, "?"))
+	    dir_find_handle = INVALID_HANDLE_VALUE;
+	  else
+	    dir_find_handle = FindFirstFileA (fna, &dir_find_data_a);
+	}
 
       if (dir_find_handle == INVALID_HANDLE_VALUE)
 	return NULL;
     }
+  else if (w32_unicode_filenames)
+    {
+      if (!FindNextFileW (dir_find_handle, &dir_find_data_w))
+	return NULL;
+    }
   else
     {
-      if (!FindNextFile (dir_find_handle, &dir_find_data))
+      if (!FindNextFileA (dir_find_handle, &dir_find_data_a))
 	return NULL;
     }
 
@@ -3067,53 +3342,51 @@ readdir (DIR *dirp)
      value returned by stat().  */
   dir_static.d_ino = 1;
 
-  strcpy (dir_static.d_name, dir_find_data.cFileName);
-
-  /* If the file name in cFileName[] includes `?' characters, it means
-     the original file name used characters that cannot be represented
-     by the current ANSI codepage.  To avoid total lossage, retrieve
-     the short 8+3 alias of the long file name.  */
-  if (_mbspbrk (dir_static.d_name, "?"))
+  if (w32_unicode_filenames)
     {
-      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
-      downcase = 1;	/* 8+3 aliases are returned in all caps */
-    }
-  dir_static.d_namlen = strlen (dir_static.d_name);
-  dir_static.d_reclen = sizeof (struct dirent) - MAXNAMLEN + 3 +
-    dir_static.d_namlen - dir_static.d_namlen % 4;
+      if (downcase || dir_is_fat)
+	{
+	  wchar_t tem[MAX_PATH];
 
-  /* If the file name in cFileName[] includes `?' characters, it means
-     the original file name used characters that cannot be represented
-     by the current ANSI codepage.  To avoid total lossage, retrieve
-     the short 8+3 alias of the long file name.  */
-  if (_mbspbrk (dir_find_data.cFileName, "?"))
-    {
-      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
-      /* 8+3 aliases are returned in all caps, which could break
-	 various alists that look at filenames' extensions.  */
-      downcase = 1;
+	  wcscpy (tem, dir_find_data_w.cFileName);
+	  CharLowerW (tem);
+	  filename_from_utf16 (tem, dir_static.d_name);
+	}
+      else
+	filename_from_utf16 (dir_find_data_w.cFileName, dir_static.d_name);
+      last_dir_find_data = DIR_FIND_DATA_W;
     }
   else
-    strcpy (dir_static.d_name, dir_find_data.cFileName);
-  dir_static.d_namlen = strlen (dir_static.d_name);
-  if (dir_is_fat)
-    _mbslwr (dir_static.d_name);
-  else if (downcase)
     {
-      register char *p;
-      int dbcs_p = max_filename_mbslen () > 1;
-      for (p = dir_static.d_name; *p; )
+      char tem[MAX_PATH];
+
+      /* If the file name in cFileName[] includes `?' characters, it
+	 means the original file name used characters that cannot be
+	 represented by the current ANSI codepage.  To avoid total
+	 lossage, retrieve the short 8+3 alias of the long file
+	 name.  */
+      if (_mbspbrk (dir_find_data_a.cFileName, "?"))
 	{
-	  if (*p >= 'a' && *p <= 'z')
-	    break;
-	  if (dbcs_p)
-	    p = CharNextExA (file_name_codepage, p, 0);
-	  else
-	    p++;
+	  strcpy (tem, dir_find_data_a.cAlternateFileName);
+	  /* 8+3 aliases are returned in all caps, which could break
+	     various alists that look at filenames' extensions.  */
+	  downcase = 1;
 	}
-      if (!*p)
-	_mbslwr (dir_static.d_name);
+      else if (downcase || dir_is_fat)
+	strcpy (tem, dir_find_data_a.cFileName);
+      else
+	filename_from_ansi (dir_find_data_a.cFileName, dir_static.d_name);
+      if (downcase || dir_is_fat)
+	{
+	  _mbslwr (tem);
+	  filename_from_ansi (tem, dir_static.d_name);
+	}
+      last_dir_find_data = DIR_FIND_DATA_A;
     }
+
+  dir_static.d_namlen = strlen (dir_static.d_name);
+  dir_static.d_reclen = sizeof (struct dirent) - MAX_UTF8_PATH + 3 +
+    dir_static.d_namlen - dir_static.d_namlen % 4;
 
   return &dir_static;
 }
@@ -3121,58 +3394,103 @@ readdir (DIR *dirp)
 static HANDLE
 open_unc_volume (const char *path)
 {
-  NETRESOURCE nr;
+  const char *fn = map_w32_filename (path, NULL);
+  DWORD result;
   HANDLE henum;
-  int result;
 
-  nr.dwScope = RESOURCE_GLOBALNET;
-  nr.dwType = RESOURCETYPE_DISK;
-  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
-  nr.dwUsage = RESOURCEUSAGE_CONTAINER;
-  nr.lpLocalName = NULL;
-  nr.lpRemoteName = (LPSTR)map_w32_filename (path, NULL);
-  nr.lpComment = NULL;
-  nr.lpProvider = NULL;
+  if (w32_unicode_filenames)
+    {
+      NETRESOURCEW nrw;
+      wchar_t fnw[MAX_PATH];
 
-  result = WNetOpenEnum (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
-			 RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
+      nrw.dwScope = RESOURCE_GLOBALNET;
+      nrw.dwType = RESOURCETYPE_DISK;
+      nrw.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
+      nrw.dwUsage = RESOURCEUSAGE_CONTAINER;
+      nrw.lpLocalName = NULL;
+      filename_to_utf16 (fn, fnw);
+      nrw.lpRemoteName = fnw;
+      nrw.lpComment = NULL;
+      nrw.lpProvider = NULL;
 
+      result = WNetOpenEnumW (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			      RESOURCEUSAGE_CONNECTABLE, &nrw, &henum);
+    }
+  else
+    {
+      NETRESOURCEA nra;
+      char fna[MAX_PATH];
+
+      nra.dwScope = RESOURCE_GLOBALNET;
+      nra.dwType = RESOURCETYPE_DISK;
+      nra.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
+      nra.dwUsage = RESOURCEUSAGE_CONTAINER;
+      nra.lpLocalName = NULL;
+      filename_to_ansi (fn, fna);
+      nra.lpRemoteName = fna;
+      nra.lpComment = NULL;
+      nra.lpProvider = NULL;
+
+      result = WNetOpenEnumA (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			      RESOURCEUSAGE_CONNECTABLE, &nra, &henum);
+    }
   if (result == NO_ERROR)
     return henum;
   else
     return INVALID_HANDLE_VALUE;
 }
 
-static char *
-read_unc_volume (HANDLE henum, char *readbuf, int size)
+static void *
+read_unc_volume (HANDLE henum, wchar_t *fname_w, char *fname_a, int size)
 {
   DWORD count;
   int result;
-  DWORD bufsize = 512;
   char *buffer;
-  char *ptr;
-  int dbcs_p = max_filename_mbslen () > 1;
+  DWORD bufsize = 512;
+  void *retval;
 
   count = 1;
-  buffer = alloca (bufsize);
-  result = WNetEnumResource (henum, &count, buffer, &bufsize);
-  if (result != NO_ERROR)
-    return NULL;
+  if (w32_unicode_filenames)
+    {
+      wchar_t *ptrw;
 
-  /* WNetEnumResource returns \\resource\share...skip forward to "share". */
-  ptr = ((LPNETRESOURCE) buffer)->lpRemoteName;
-  ptr += 2;
-  if (!dbcs_p)
-    while (*ptr && !IS_DIRECTORY_SEP (*ptr)) ptr++;
+      bufsize *= 2;
+      buffer = alloca (bufsize);
+      result = WNetEnumResourceW (henum, &count, buffer, &bufsize);
+      if (result != NO_ERROR)
+	return NULL;
+      /* WNetEnumResource returns \\resource\share...skip forward to "share". */
+      ptrw = ((LPNETRESOURCEW) buffer)->lpRemoteName;
+      ptrw += 2;
+      while (*ptrw && *ptrw != L'/' && *ptrw != L'\\') ptrw++;
+      ptrw++;
+      wcsncpy (fname_w, ptrw, size);
+      retval = fname_w;
+    }
   else
     {
-      while (*ptr && !IS_DIRECTORY_SEP (*ptr))
-	ptr = CharNextExA (file_name_codepage, ptr, 0);
-    }
-  ptr++;
+      int dbcs_p = max_filename_mbslen () > 1;
+      char *ptra;
 
-  strncpy (readbuf, ptr, size);
-  return readbuf;
+      buffer = alloca (bufsize);
+      result = WNetEnumResourceA (henum, &count, buffer, &bufsize);
+      if (result != NO_ERROR)
+	return NULL;
+      ptra = ((LPNETRESOURCEA) buffer)->lpRemoteName;
+      ptra += 2;
+      if (!dbcs_p)
+	while (*ptra && !IS_DIRECTORY_SEP (*ptra)) ptra++;
+      else
+	{
+	  while (*ptra && !IS_DIRECTORY_SEP (*ptra))
+	    ptra = CharNextExA (file_name_codepage, ptra, 0);
+	}
+      ptra++;
+      strncpy (fname_a, ptra, size);
+      retval = fname_a;
+    }
+
+  return retval;
 }
 
 static void
@@ -3203,13 +3521,12 @@ unc_volume_file_attributes (const char *path)
 static void
 logon_network_drive (const char *path)
 {
-  NETRESOURCE resource;
-  char share[MAX_PATH];
+  char share[MAX_UTF8_PATH];
   int n_slashes;
   char drive[4];
   UINT drvtype;
   char *p;
-  int dbcs_p;
+  DWORD val;
 
   if (IS_DIRECTORY_SEP (path[0]) && IS_DIRECTORY_SEP (path[1]))
     drvtype = DRIVE_REMOTE;
@@ -3229,28 +3546,70 @@ logon_network_drive (const char *path)
     return;
 
   n_slashes = 2;
-  strncpy (share, path, MAX_PATH);
+  strncpy (share, path, MAX_UTF8_PATH);
   /* Truncate to just server and share name.  */
-  dbcs_p = max_filename_mbslen () > 1;
-  for (p = share + 2; *p && p < share + MAX_PATH; )
+  for (p = share + 2; *p && p < share + MAX_UTF8_PATH; p++)
     {
       if (IS_DIRECTORY_SEP (*p) && ++n_slashes > 3)
         {
           *p = '\0';
           break;
         }
-      if (dbcs_p)
-	p = CharNextExA (file_name_codepage, p, 0);
-      else
-	p++;
     }
 
-  resource.dwType = RESOURCETYPE_DISK;
-  resource.lpLocalName = NULL;
-  resource.lpRemoteName = share;
-  resource.lpProvider = NULL;
+  if (w32_unicode_filenames)
+    {
+      NETRESOURCEW resourcew;
+      wchar_t share_w[MAX_PATH];
 
-  WNetAddConnection2 (&resource, NULL, NULL, CONNECT_INTERACTIVE);
+      resourcew.dwScope = RESOURCE_GLOBALNET;
+      resourcew.dwType = RESOURCETYPE_DISK;
+      resourcew.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE;
+      resourcew.dwUsage = RESOURCEUSAGE_CONTAINER;
+      resourcew.lpLocalName = NULL;
+      filename_to_utf16 (share, share_w);
+      resourcew.lpRemoteName = share_w;
+      resourcew.lpProvider = NULL;
+
+      val = WNetAddConnection2W (&resourcew, NULL, NULL, CONNECT_INTERACTIVE);
+    }
+  else
+    {
+      NETRESOURCEA resourcea;
+      char share_a[MAX_PATH];
+
+      resourcea.dwScope = RESOURCE_GLOBALNET;
+      resourcea.dwType = RESOURCETYPE_DISK;
+      resourcea.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE;
+      resourcea.dwUsage = RESOURCEUSAGE_CONTAINER;
+      resourcea.lpLocalName = NULL;
+      filename_to_ansi (share, share_a);
+      resourcea.lpRemoteName = share_a;
+      resourcea.lpProvider = NULL;
+
+      val = WNetAddConnection2A (&resourcea, NULL, NULL, CONNECT_INTERACTIVE);
+    }
+
+  switch (val)
+    {
+    case NO_ERROR:
+    case ERROR_ALREADY_ASSIGNED:
+      break;
+    case ERROR_ACCESS_DENIED:
+    case ERROR_LOGON_FAILURE:
+      errno = EACCES;
+      break;
+    case ERROR_BUSY:
+      errno = EAGAIN;
+      break;
+    case ERROR_BAD_NET_NAME:
+    case ERROR_NO_NET_OR_BAD_PATH:
+    case ERROR_NO_NETWORK:
+    case ERROR_CANCELLED:
+    default:
+      errno = ENOENT;
+      break;
+    }
 }
 
 /* Emulate faccessat(2).  */
@@ -3278,7 +3637,22 @@ faccessat (int dirfd, const char * path, int mode, int flags)
       && (flags & AT_SYMLINK_NOFOLLOW) == 0)
     path = chase_symlinks (path);
 
-  if ((attributes = GetFileAttributes (path)) == -1)
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      attributes = GetFileAttributesW (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      attributes = GetFileAttributesA (path_a);
+    }
+
+  if (attributes == -1)
     {
       DWORD w32err = GetLastError ();
 
@@ -3326,6 +3700,62 @@ faccessat (int dirfd, const char * path, int mode, int flags)
   return 0;
 }
 
+/* A version of 'access' to be used locally with file names in
+   locale-specific encoding.  Does not resolve symlinks and does not
+   support file names on FAT12 and FAT16 volumes, but that's OK, since
+   we only invoke this function for files inside the Emacs source or
+   installation tree, on directories (so any symlinks should have the
+   directory bit set), and on short file names such as "C:/.emacs".  */
+static int
+sys_access (const char *fname, int mode)
+{
+  char fname_copy[MAX_PATH], *p;
+  DWORD attributes;
+
+  strcpy (fname_copy, fname);
+  /* Do the equivalent of unixtodos_filename.  */
+  for (p = fname_copy; *p; p = CharNext (p))
+    if (*p == '/')
+      *p = '\\';
+
+  if ((attributes = GetFileAttributesA (fname_copy)) == -1)
+    {
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_INVALID_NAME:
+	case ERROR_BAD_PATHNAME:
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_BAD_NETPATH:
+	  errno = ENOENT;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
+      return -1;
+    }
+  if ((mode & X_OK) != 0
+      && !(is_exec (fname_copy)
+	   || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
+    {
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & W_OK) != 0 && (attributes & FILE_ATTRIBUTE_READONLY) != 0)
+    {
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & D_OK) != 0 && (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+    {
+      errno = EACCES;
+      return -1;
+    }
+  return 0;
+}
+
 /* Shadow some MSVC runtime functions to map requests for long filenames
    to reasonable short names if necessary.  This was originally added to
    permit running Emacs on NT 3.1 on a FAT partition, which doesn't support
@@ -3334,20 +3764,63 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 int
 sys_chdir (const char * path)
 {
-  return _chdir (map_w32_filename (path, NULL));
+  path = map_w32_filename (path, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t newdir_w[MAX_PATH];
+
+      if (filename_to_utf16 (path, newdir_w) == 0)
+	return _wchdir (newdir_w);
+      return -1;
+    }
+  else
+    {
+      char newdir_a[MAX_PATH];
+
+      if (filename_to_ansi (path, newdir_a) == 0)
+	return _chdir (newdir_a);
+      return -1;
+    }
 }
 
 int
 sys_chmod (const char * path, int mode)
 {
   path = chase_symlinks (map_w32_filename (path, NULL));
-  return _chmod (path, mode);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wchmod (path_w, mode);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _chmod (path_a, mode);
+    }
 }
 
 int
 sys_creat (const char * path, int mode)
 {
-  return _creat (map_w32_filename (path, NULL), mode);
+  path = map_w32_filename (path, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wcreat (path_w, mode);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _creat (path_a, mode);
+    }
 }
 
 FILE *
@@ -3387,7 +3860,21 @@ sys_fopen (const char * path, const char * mode)
       }
     else break;
 
-  fd = _open (map_w32_filename (path, NULL), oflag | _O_NOINHERIT, 0644);
+  path = map_w32_filename (path, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      fd = _wopen (path_w, oflag | _O_NOINHERIT, 0644);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      fd = _open (path_a, oflag | _O_NOINHERIT, 0644);
+    }
   if (fd < 0)
     return NULL;
 
@@ -3400,7 +3887,9 @@ sys_link (const char * old, const char * new)
 {
   HANDLE fileh;
   int   result = -1;
-  char oldname[MAX_PATH], newname[MAX_PATH];
+  char oldname[MAX_UTF8_PATH], newname[MAX_UTF8_PATH];
+  wchar_t oldname_w[MAX_PATH];
+  char oldname_a[MAX_PATH];
 
   if (old == NULL || new == NULL)
     {
@@ -3411,8 +3900,18 @@ sys_link (const char * old, const char * new)
   strcpy (oldname, map_w32_filename (old, NULL));
   strcpy (newname, map_w32_filename (new, NULL));
 
-  fileh = CreateFile (oldname, 0, 0, NULL, OPEN_EXISTING,
-		      FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if (w32_unicode_filenames)
+    {
+      filename_to_utf16 (oldname, oldname_w);
+      fileh = CreateFileW (oldname_w, 0, 0, NULL, OPEN_EXISTING,
+			   FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
+  else
+    {
+      filename_to_ansi (oldname, oldname_a);
+      fileh = CreateFileA (oldname_a, 0, 0, NULL, OPEN_EXISTING,
+			   FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
   if (fileh != INVALID_HANDLE_VALUE)
     {
       int wlen;
@@ -3429,7 +3928,10 @@ sys_link (const char * old, const char * new)
 	WCHAR wbuffer[MAX_PATH];	/* extra space for link name */
       } data;
 
-      wlen = MultiByteToWideChar (CP_ACP, MB_PRECOMPOSED, newname, -1,
+      /* We used to pass MB_PRECOMPOSED as the 2nd arg here, but MSDN
+	 indicates that flag is unsupported for CP_UTF8, and OTOH says
+	 it is the default anyway.  */
+      wlen = MultiByteToWideChar (CP_UTF8, 0, newname, -1,
 				  data.wid.cStreamName, MAX_PATH);
       if (wlen > 0)
 	{
@@ -3453,9 +3955,40 @@ sys_link (const char * old, const char * new)
 	    }
 	  else
 	    {
-	      /* Should try mapping GetLastError to errno; for now just
-		 indicate a general error (eg. links not supported).  */
-	      errno = EINVAL;  // perhaps EMLINK?
+	      DWORD err = GetLastError ();
+	      DWORD attributes;
+
+	      switch (err)
+		{
+		case ERROR_ACCESS_DENIED:
+		  /* This is what happens when OLDNAME is a directory,
+		     since Windows doesn't support hard links to
+		     directories.  Posix says to set errno to EPERM in
+		     that case.  */
+		  if (w32_unicode_filenames)
+		    attributes = GetFileAttributesW (oldname_w);
+		  else
+		    attributes = GetFileAttributesA (oldname_a);
+		  if (attributes != -1
+		      && (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		    errno = EPERM;
+		  else if (attributes == -1
+			   && is_unc_volume (oldname)
+			   && unc_volume_file_attributes (oldname) != -1)
+		    errno = EPERM;
+		  else
+		    errno = EACCES;
+		  break;
+		case ERROR_TOO_MANY_LINKS:
+		  errno = EMLINK;
+		  break;
+		case ERROR_NOT_SAME_DEVICE:
+		  errno = EXDEV;
+		  break;
+		default:
+		  errno = EINVAL;
+		  break;
+		}
 	    }
 	}
 
@@ -3470,7 +4003,22 @@ sys_link (const char * old, const char * new)
 int
 sys_mkdir (const char * path)
 {
-  return _mkdir (map_w32_filename (path, NULL));
+  path = map_w32_filename (path, NULL);
+
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wmkdir (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _mkdir (path_a);
+    }
 }
 
 int
@@ -3479,13 +4027,29 @@ sys_open (const char * path, int oflag, int mode)
   const char* mpath = map_w32_filename (path, NULL);
   int res = -1;
 
-  /* If possible, try to open file without _O_CREAT, to be able to
-     write to existing hidden and system files.  Force all file
-     handles to be non-inheritable. */
-  if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
-    res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
-  if (res < 0)
-    res = _open (mpath, oflag | _O_NOINHERIT, mode);
+  if (w32_unicode_filenames)
+    {
+      wchar_t mpath_w[MAX_PATH];
+
+      filename_to_utf16 (mpath, mpath_w);
+      /* If possible, try to open file without _O_CREAT, to be able to
+	 write to existing hidden and system files.  Force all file
+	 handles to be non-inheritable. */
+      if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
+	res = _wopen (mpath_w, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
+      if (res < 0)
+	res = _wopen (mpath_w, oflag | _O_NOINHERIT, mode);
+    }
+  else
+    {
+      char mpath_a[MAX_PATH];
+
+      filename_to_ansi (mpath, mpath_a);
+      if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
+	res = _open (mpath_a, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
+      if (res < 0)
+	res = _open (mpath_a, oflag | _O_NOINHERIT, mode);
+    }
 
   return res;
 }
@@ -3555,9 +4119,10 @@ int
 sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 {
   BOOL result;
-  char temp[MAX_PATH];
+  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];;
   int newname_dev;
   int oldname_dev;
+  bool have_temp_a = false;
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -3582,17 +4147,20 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
       char * o;
       char * p;
       int    i = 0;
+      char oldname_a[MAX_PATH];
 
       oldname = map_w32_filename (oldname, NULL);
-      if ((o = strrchr (oldname, '\\')))
+      filename_to_ansi (oldname, oldname_a);
+      filename_to_ansi (temp, temp_a);
+      if ((o = strrchr (oldname_a, '\\')))
 	o++;
       else
-	o = (char *) oldname;
+	o = (char *) oldname_a;
 
-      if ((p = strrchr (temp, '\\')))
+      if ((p = strrchr (temp_a, '\\')))
 	p++;
       else
-	p = temp;
+	p = temp_a;
 
       do
 	{
@@ -3600,12 +4168,13 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	     seems to make the second rename work properly.  */
 	  sprintf (p, "_.%s.%u", o, i);
 	  i++;
-	  result = rename (oldname, temp);
+	  result = rename (oldname_a, temp_a);
 	}
       /* This loop must surely terminate!  */
       while (result < 0 && errno == EEXIST);
       if (result < 0)
 	return -1;
+      have_temp_a = true;
     }
 
   /* If FORCE, emulate Unix behavior - newname is deleted if it already exists
@@ -3624,41 +4193,81 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
   /* volume_info is set indirectly by map_w32_filename.  */
   newname_dev = volume_info.serialnum;
 
-  result = rename (temp, newname);
-
-  if (result < 0 && force)
+  if (w32_unicode_filenames)
     {
-      DWORD w32err = GetLastError ();
+      wchar_t temp_w[MAX_PATH], newname_w[MAX_PATH];
 
-      if (errno == EACCES
-	  && newname_dev != oldname_dev)
+      filename_to_utf16 (temp, temp_w);
+      filename_to_utf16 (newname, newname_w);
+      result = _wrename (temp_w, newname_w);
+      if (result < 0 && force)
 	{
-	  /* The implementation of `rename' on Windows does not return
-	     errno = EXDEV when you are moving a directory to a
-	     different storage device (ex. logical disk).  It returns
-	     EACCES instead.  So here we handle such situations and
-	     return EXDEV.  */
-	  DWORD attributes;
+	  DWORD w32err = GetLastError ();
 
-	  if ((attributes = GetFileAttributes (temp)) != -1
-	      && (attributes & FILE_ATTRIBUTE_DIRECTORY))
-	    errno = EXDEV;
+	  if (errno == EACCES
+	      && newname_dev != oldname_dev)
+	    {
+	      /* The implementation of `rename' on Windows does not return
+		 errno = EXDEV when you are moving a directory to a
+		 different storage device (ex. logical disk).  It returns
+		 EACCES instead.  So here we handle such situations and
+		 return EXDEV.  */
+	      DWORD attributes;
+
+	      if ((attributes = GetFileAttributesW (temp_w)) != -1
+		  && (attributes & FILE_ATTRIBUTE_DIRECTORY))
+		errno = EXDEV;
+	    }
+	  else if (errno == EEXIST)
+	    {
+	      if (_wchmod (newname_w, 0666) != 0)
+		return result;
+	      if (_wunlink (newname_w) != 0)
+		return result;
+	      result = _wrename (temp_w, newname_w);
+	    }
+	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
+		   && is_symlink (temp))
+	    {
+	      /* This is Windows prohibiting the user from creating a
+		 symlink in another place, since that requires
+		 privileges.  */
+	      errno = EPERM;
+	    }
 	}
-      else if (errno == EEXIST)
+    }
+  else
+    {
+      char newname_a[MAX_PATH];
+
+      if (!have_temp_a)
+	filename_to_ansi (temp, temp_a);
+      filename_to_ansi (newname, newname_a);
+      result = rename (temp_a, newname_a);
+      if (result < 0 && force)
 	{
-	  if (_chmod (newname, 0666) != 0)
-	    return result;
-	  if (_unlink (newname) != 0)
-	    return result;
-	  result = rename (temp, newname);
-	}
-      else if (w32err == ERROR_PRIVILEGE_NOT_HELD
-	       && is_symlink (temp))
-	{
-	  /* This is Windows prohibiting the user from creating a
-	     symlink in another place, since that requires
-	     privileges.  */
-	  errno = EPERM;
+	  DWORD w32err = GetLastError ();
+
+	  if (errno == EACCES
+	      && newname_dev != oldname_dev)
+	    {
+	      DWORD attributes;
+
+	      if ((attributes = GetFileAttributesA (temp_a)) != -1
+		  && (attributes & FILE_ATTRIBUTE_DIRECTORY))
+		errno = EXDEV;
+	    }
+	  else if (errno == EEXIST)
+	    {
+	      if (_chmod (newname_a, 0666) != 0)
+		return result;
+	      if (_unlink (newname_a) != 0)
+		return result;
+	      result = rename (temp_a, newname_a);
+	    }
+	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
+		   && is_symlink (temp))
+	    errno = EPERM;
 	}
     }
 
@@ -3674,7 +4283,22 @@ sys_rename (char const *old, char const *new)
 int
 sys_rmdir (const char * path)
 {
-  return _rmdir (map_w32_filename (path, NULL));
+  path = map_w32_filename (path, NULL);
+
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      return _wrmdir (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      return _rmdir (path_a);
+    }
 }
 
 int
@@ -3682,9 +4306,23 @@ sys_unlink (const char * path)
 {
   path = map_w32_filename (path, NULL);
 
-  /* On Unix, unlink works without write permission. */
-  _chmod (path, 0666);
-  return _unlink (path);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      /* On Unix, unlink works without write permission. */
+      _wchmod (path_w, 0666);
+      return _wunlink (path_w);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      _chmod (path_a, 0666);
+      return _unlink (path_a);
+    }
 }
 
 static FILETIME utc_base_ft;
@@ -3751,49 +4389,6 @@ convert_from_time_t (time_t time, FILETIME * pft)
   pft->dwHighDateTime = tmp.HighPart;
   pft->dwLowDateTime = tmp.LowPart;
 }
-
-#if 0
-/* No reason to keep this; faking inode values either by hashing or even
-   using the file index from GetInformationByHandle, is not perfect and
-   so by default Emacs doesn't use the inode values on Windows.
-   Instead, we now determine file-truename correctly (except for
-   possible drive aliasing etc).  */
-
-/*  Modified version of "PJW" algorithm (see the "Dragon" compiler book). */
-static unsigned
-hashval (const unsigned char * str)
-{
-  unsigned h = 0;
-  while (*str)
-    {
-      h = (h << 4) + *str++;
-      h ^= (h >> 28);
-    }
-  return h;
-}
-
-/* Return the hash value of the canonical pathname, excluding the
-   drive/UNC header, to get a hopefully unique inode number. */
-static DWORD
-generate_inode_val (const char * name)
-{
-  char fullname[ MAX_PATH ];
-  char * p;
-  unsigned hash;
-
-  /* Get the truly canonical filename, if it exists.  (Note: this
-     doesn't resolve aliasing due to subst commands, or recognize hard
-     links.  */
-  if (!w32_get_long_filename ((char *)name, fullname, MAX_PATH))
-    emacs_abort ();
-
-  parse_root (fullname, &p);
-  /* Normal W32 filesystems are still case insensitive. */
-  _strlwr (p);
-  return hashval (p);
-}
-
-#endif
 
 static PSECURITY_DESCRIPTOR
 get_file_security_desc_by_handle (HANDLE h)
@@ -4001,18 +4596,21 @@ is_slow_fs (const char *name)
 }
 
 /* If this is non-zero, the caller wants accurate information about
-   file's owner and group, which could be expensive to get.  */
+   file's owner and group, which could be expensive to get.  dired.c
+   uses this flag when needed for the job at hand.  */
 int w32_stat_get_owner_group;
 
 /* MSVC stat function can't cope with UNC names and has other bugs, so
    replace it with our own.  This also allows us to calculate consistent
-   inode values and owner/group without hacks in the main Emacs code. */
+   inode values and owner/group without hacks in the main Emacs code,
+   and support file names encoded in UTF-8. */
 
 static int
 stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 {
   char *name, *save_name, *r;
-  WIN32_FIND_DATA wfd;
+  WIN32_FIND_DATAW wfd_w;
+  WIN32_FIND_DATAA wfd_a;
   HANDLE fh;
   unsigned __int64 fake_inode = 0;
   int permission;
@@ -4024,7 +4622,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
   DWORD access_rights = 0;
   DWORD fattrs = 0, serialnum = 0, fs_high = 0, fs_low = 0, nlinks = 1;
   FILETIME ctime, atime, wtime;
-  int dbcs_p;
+  wchar_t name_w[MAX_PATH];
+  char name_a[MAX_PATH];
 
   if (path == NULL || buf == NULL)
     {
@@ -4034,11 +4633,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 
   save_name = name = (char *) map_w32_filename (path, &path);
   /* Must be valid filename, no wild cards or other invalid
-     characters.  We use _mbspbrk to support multibyte strings that
-     might look to strpbrk as if they included literal *, ?, and other
-     characters mentioned below that are disallowed by Windows
-     filesystems.  */
-  if (_mbspbrk (name, "*?|<>\""))
+     characters.  */
+  if (strpbrk (name, "*?|<>\""))
     {
       errno = ENOENT;
       return -1;
@@ -4089,13 +4685,26 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
       if (is_windows_9x () != TRUE)
 	access_rights |= READ_CONTROL;
 
-      fh = CreateFile (name, access_rights, 0, NULL, OPEN_EXISTING,
-		       file_flags, NULL);
-      /* If CreateFile fails with READ_CONTROL, try again with zero as
-	 access rights.  */
-      if (fh == INVALID_HANDLE_VALUE && access_rights)
-	fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
-			 file_flags, NULL);
+      if (w32_unicode_filenames)
+	{
+	  filename_to_utf16 (name, name_w);
+	  fh = CreateFileW (name_w, access_rights, 0, NULL, OPEN_EXISTING,
+			   file_flags, NULL);
+	  /* If CreateFile fails with READ_CONTROL, try again with
+	     zero as access rights.  */
+	  if (fh == INVALID_HANDLE_VALUE && access_rights)
+	    fh = CreateFileW (name_w, 0, 0, NULL, OPEN_EXISTING,
+			     file_flags, NULL);
+	}
+      else
+	{
+	  filename_to_ansi (name, name_a);
+	  fh = CreateFileA (name_a, access_rights, 0, NULL, OPEN_EXISTING,
+			   file_flags, NULL);
+	  if (fh == INVALID_HANDLE_VALUE && access_rights)
+	    fh = CreateFileA (name_a, 0, 0, NULL, OPEN_EXISTING,
+			     file_flags, NULL);
+	}
       if (fh == INVALID_HANDLE_VALUE)
 	goto no_true_file_attributes;
 
@@ -4222,7 +4831,6 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	 did not ask for extra precision, resolving symlinks will fly
 	 in the face of that request, since the user then wants the
 	 lightweight version of the code.  */
-      dbcs_p = max_filename_mbslen () > 1;
       rootdir = (path >= save_name + len - 1
 		 && (IS_DIRECTORY_SEP (*path) || *path == 0));
 
@@ -4250,19 +4858,8 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else if (rootdir)
 	{
-	  if (!dbcs_p)
-	    {
-	      if (!IS_DIRECTORY_SEP (name[len-1]))
-		strcat (name, "\\");
-	    }
-	  else
-	    {
-	      char *end = name + len;
-	      char *n = CharPrevExA (file_name_codepage, name, end, 0);
-
-	      if (!IS_DIRECTORY_SEP (*n))
-		strcat (name, "\\");
-	    }
+	  if (!IS_DIRECTORY_SEP (name[len-1]))
+	    strcat (name, "\\");
 	  if (GetDriveType (name) < 2)
 	    {
 	      errno = ENOENT;
@@ -4274,51 +4871,65 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else
 	{
-	  if (!dbcs_p)
-	    {
-	      if (IS_DIRECTORY_SEP (name[len-1]))
-		name[len - 1] = 0;
-	    }
-	  else
-	    {
-	      char *end = name + len;
-	      char *n = CharPrevExA (file_name_codepage, name, end, 0);
+	  int have_wfd = -1;
 
-	      if (IS_DIRECTORY_SEP (*n))
-		*n = 0;
-	    }
+	  if (IS_DIRECTORY_SEP (name[len-1]))
+	    name[len - 1] = 0;
 
 	  /* (This is hacky, but helps when doing file completions on
 	     network drives.)  Optimize by using information available from
 	     active readdir if possible.  */
 	  len = strlen (dir_pathname);
-	  if (!dbcs_p)
-	    {
-	      if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
-		len--;
-	    }
-	  else
-	    {
-	      char *end = dir_pathname + len;
-	      char *n = CharPrevExA (file_name_codepage, dir_pathname, end, 0);
-
-	      if (IS_DIRECTORY_SEP (*n))
-		len--;
-	    }
+	  if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
+	    len--;
 	  if (dir_find_handle != INVALID_HANDLE_VALUE
+	      && last_dir_find_data != -1
 	      && !(is_a_symlink && follow_symlinks)
-	      && strnicmp (save_name, dir_pathname, len) == 0
+	      /* The 2 file-name comparisons below support only ASCII
+		 characters, and will lose (compare not equal) when
+		 the file names include non-ASCII charcaters that are
+		 the same but for the case.  However, doing this
+		 properly involves: (a) converting both file names to
+		 UTF-16, (b) lower-casing both names using CharLowerW,
+		 and (c) comparing the results; this would be quite a
+		 bit slower, whereas Plan B is for users who want
+		 lightweight albeit inaccurate version of 'stat'.  */
+	      && c_strncasecmp (save_name, dir_pathname, len) == 0
 	      && IS_DIRECTORY_SEP (name[len])
 	      && xstrcasecmp (name + len + 1, dir_static.d_name) == 0)
 	    {
+	      have_wfd = last_dir_find_data;
 	      /* This was the last entry returned by readdir.  */
-	      wfd = dir_find_data;
+	      if (last_dir_find_data == DIR_FIND_DATA_W)
+		wfd_w = dir_find_data_w;
+	      else
+		wfd_a = dir_find_data_a;
 	    }
 	  else
 	    {
 	      logon_network_drive (name);
 
-	      fh = FindFirstFile (name, &wfd);
+	      if (w32_unicode_filenames)
+		{
+		  filename_to_utf16 (name, name_w);
+		  fh = FindFirstFileW (name_w, &wfd_w);
+		  have_wfd = DIR_FIND_DATA_W;
+		}
+	      else
+		{
+		  filename_to_ansi (name, name_a);
+		  /* If NAME includes characters not representable by
+		     the current ANSI codepage, filename_to_ansi
+		     usually replaces them with a '?'.  We don't want
+		     to let FindFirstFileA interpret those as widlcards,
+		     and "succeed", returning us data from some random
+		     file in the same directory.  */
+		  if (_mbspbrk (name_a, "?"))
+		    fh = INVALID_HANDLE_VALUE;
+		  else
+		    fh = FindFirstFileA (name_a, &wfd_a);
+		  have_wfd = DIR_FIND_DATA_A;
+		}
 	      if (fh == INVALID_HANDLE_VALUE)
 		{
 		  errno = ENOENT;
@@ -4328,12 +4939,24 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	    }
 	  /* Note: if NAME is a symlink, the information we get from
 	     FindFirstFile is for the symlink, not its target.  */
-	  fattrs = wfd.dwFileAttributes;
-	  ctime = wfd.ftCreationTime;
-	  atime = wfd.ftLastAccessTime;
-	  wtime = wfd.ftLastWriteTime;
-	  fs_high = wfd.nFileSizeHigh;
-	  fs_low = wfd.nFileSizeLow;
+	  if (have_wfd == DIR_FIND_DATA_W)
+	    {
+	      fattrs = wfd_w.dwFileAttributes;
+	      ctime = wfd_w.ftCreationTime;
+	      atime = wfd_w.ftLastAccessTime;
+	      wtime = wfd_w.ftLastWriteTime;
+	      fs_high = wfd_w.nFileSizeHigh;
+	      fs_low = wfd_w.nFileSizeLow;
+	    }
+	  else
+	    {
+	      fattrs = wfd_a.dwFileAttributes;
+	      ctime = wfd_a.ftCreationTime;
+	      atime = wfd_a.ftLastAccessTime;
+	      wtime = wfd_a.ftLastWriteTime;
+	      fs_high = wfd_a.nFileSizeHigh;
+	      fs_low = wfd_a.nFileSizeLow;
+	    }
 	  fake_inode = 0;
 	  nlinks = 1;
 	  serialnum = volume_info.serialnum;
@@ -4347,18 +4970,6 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 
       get_file_owner_and_group (NULL, buf);
     }
-
-#if 0
-  /* Not sure if there is any point in this.  */
-  if (!NILP (Vw32_generate_fake_inodes))
-    fake_inode = generate_inode_val (name);
-  else if (fake_inode == 0)
-    {
-      /* For want of something better, try to make everything unique.  */
-      static DWORD gen_num = 0;
-      fake_inode = ++gen_num;
-    }
-#endif
 
   buf->st_ino = fake_inode;
 
@@ -4418,7 +5029,7 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
 
      FIXME: Add proper support for fdopendir, fstatat, readlinkat.
      Gnulib does this and can serve as a model.  */
-  char fullname[MAX_PATH];
+  char fullname[MAX_UTF8_PATH];
 
   if (fd != AT_FDCWD)
     {
@@ -4563,13 +5174,32 @@ utime (const char *name, struct utimbuf *times)
       times = &deftime;
     }
 
-  /* Need write access to set times.  */
-  fh = CreateFile (name, FILE_WRITE_ATTRIBUTES,
-		   /* If NAME specifies a directory, FILE_SHARE_DELETE
-		      allows other processes to delete files inside it,
-		      while we have the directory open.  */
-		   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-		   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t name_utf16[MAX_PATH];
+
+      if (filename_to_utf16 (name, name_utf16) != 0)
+	return -1;	/* errno set by filename_to_utf16 */
+
+      /* Need write access to set times.  */
+      fh = CreateFileW (name_utf16, FILE_WRITE_ATTRIBUTES,
+			/* If NAME specifies a directory, FILE_SHARE_DELETE
+			   allows other processes to delete files inside it,
+			   while we have the directory open.  */
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
+  else
+    {
+      char name_ansi[MAX_PATH];
+
+      if (filename_to_ansi (name, name_ansi) != 0)
+	return -1;	/* errno set by filename_to_ansi */
+
+      fh = CreateFileA (name_ansi, FILE_WRITE_ATTRIBUTES,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    }
   if (fh != INVALID_HANDLE_VALUE)
     {
       convert_from_time_t (times->actime, &atime);
@@ -4584,7 +5214,31 @@ utime (const char *name, struct utimbuf *times)
     }
   else
     {
-      errno = EINVAL;
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_INVALID_DRIVE:
+	case ERROR_BAD_NETPATH:
+	case ERROR_DEV_NOT_EXIST:
+	  /* ERROR_INVALID_NAME is the error CreateFile sets when the
+	     file name includes ?s, i.e. translation to ANSI failed.  */
+	case ERROR_INVALID_NAME:
+	  errno = ENOENT;
+	  break;
+	case ERROR_TOO_MANY_OPEN_FILES:
+	  errno = ENFILE;
+	  break;
+	case ERROR_ACCESS_DENIED:
+	case ERROR_SHARING_VIOLATION:
+	  errno = EACCES;
+	  break;
+	default:
+	  errno = EINVAL;
+	  break;
+	}
       return -1;
     }
   return 0;
@@ -4599,10 +5253,9 @@ utime (const char *name, struct utimbuf *times)
 int
 symlink (char const *filename, char const *linkname)
 {
-  char linkfn[MAX_PATH], *tgtfn;
+  char linkfn[MAX_UTF8_PATH], *tgtfn;
   DWORD flags = 0;
   int dir_access, filename_ends_in_slash;
-  int dbcs_p;
 
   /* Diagnostics follows Posix as much as possible.  */
   if (filename == NULL || linkname == NULL)
@@ -4615,7 +5268,7 @@ symlink (char const *filename, char const *linkname)
       errno = ENOENT;
       return -1;
     }
-  if (strlen (filename) > MAX_PATH || strlen (linkname) > MAX_PATH)
+  if (strlen (filename) > MAX_UTF8_PATH || strlen (linkname) > MAX_UTF8_PATH)
     {
       errno = ENAMETOOLONG;
       return -1;
@@ -4628,8 +5281,6 @@ symlink (char const *filename, char const *linkname)
       return -1;
     }
 
-  dbcs_p = max_filename_mbslen () > 1;
-
   /* Note: since empty FILENAME was already rejected, we can safely
      refer to FILENAME[1].  */
   if (!(IS_DIRECTORY_SEP (filename[0]) || IS_DEVICE_SEP (filename[1])))
@@ -4641,24 +5292,11 @@ symlink (char const *filename, char const *linkname)
 	 directory where the Emacs process runs.  Note that
 	 make-symbolic-link always makes sure LINKNAME is a fully
 	 expanded file name.  */
-      char tem[MAX_PATH];
+      char tem[MAX_UTF8_PATH];
       char *p = linkfn + strlen (linkfn);
 
-      if (!dbcs_p)
-	{
-	  while (p > linkfn && !IS_ANY_SEP (p[-1]))
-	    p--;
-	}
-      else
-	{
-	  char *p1 = CharPrevExA (file_name_codepage, linkfn, p, 0);
-
-	  while (p > linkfn && !IS_ANY_SEP (*p1))
-	    {
-	      p = p1;
-	      p1 = CharPrevExA (file_name_codepage, linkfn, p1, 0);
-	    }
-	}
+      while (p > linkfn && !IS_ANY_SEP (p[-1]))
+	p--;
       if (p > linkfn)
 	strncpy (tem, linkfn, p - linkfn);
       tem[p - linkfn] = '\0';
@@ -4673,15 +5311,7 @@ symlink (char const *filename, char const *linkname)
      exist, but ends in a slash, we create a symlink to directory.  If
      FILENAME exists and is a directory, we always create a symlink to
      directory.  */
-  if (!dbcs_p)
-    filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
-  else
-    {
-      const char *end = filename + strlen (filename);
-      const char *n = CharPrevExA (file_name_codepage, filename, end, 0);
-
-      filename_ends_in_slash = IS_DIRECTORY_SEP (*n);
-    }
+  filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
   if (dir_access == 0 || filename_ends_in_slash)
     flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
 
@@ -4751,10 +5381,23 @@ static int
 is_symlink (const char *filename)
 {
   DWORD attrs;
-  WIN32_FIND_DATA wfd;
+  wchar_t filename_w[MAX_PATH];
+  char filename_a[MAX_PATH];
+  WIN32_FIND_DATAW wfdw;
+  WIN32_FIND_DATAA wfda;
   HANDLE fh;
+  int attrs_mean_symlink;
 
-  attrs = GetFileAttributes (filename);
+  if (w32_unicode_filenames)
+    {
+      filename_to_utf16 (filename, filename_w);
+      attrs = GetFileAttributesW (filename_w);
+    }
+  else
+    {
+      filename_to_ansi (filename, filename_a);
+      attrs = GetFileAttributesA (filename_a);
+    }
   if (attrs == -1)
     {
       DWORD w32err = GetLastError ();
@@ -4777,12 +5420,30 @@ is_symlink (const char *filename)
   if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
     return 0;
   logon_network_drive (filename);
-  fh = FindFirstFile (filename, &wfd);
+  if (w32_unicode_filenames)
+    {
+      fh = FindFirstFileW (filename_w, &wfdw);
+      attrs_mean_symlink =
+	(wfdw.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+	&& (wfdw.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+    }
+  else if (_mbspbrk (filename_a, "?"))
+    {
+      /* filename_to_ansi failed to convert the file name.  */
+      errno = ENOENT;
+      return 0;
+    }
+  else
+    {
+      fh = FindFirstFileA (filename_a, &wfda);
+      attrs_mean_symlink =
+	(wfda.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+	&& (wfda.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+    }
   if (fh == INVALID_HANDLE_VALUE)
     return 0;
   FindClose (fh);
-  return (wfd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
-    	  && (wfd.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+  return attrs_mean_symlink;
 }
 
 /* If NAME identifies a symbolic link, copy into BUF the file name of
@@ -4799,6 +5460,7 @@ readlink (const char *name, char *buf, size_t buf_size)
   int restore_privs = 0;
   HANDLE sh;
   ssize_t retval;
+  char resolved[MAX_UTF8_PATH];
 
   if (name == NULL)
     {
@@ -4813,7 +5475,7 @@ readlink (const char *name, char *buf, size_t buf_size)
 
   path = map_w32_filename (name, NULL);
 
-  if (strlen (path) > MAX_PATH)
+  if (strlen (path) > MAX_UTF8_PATH)
     {
       errno = ENAMETOOLONG;
       return -1;
@@ -4843,9 +5505,26 @@ readlink (const char *name, char *buf, size_t buf_size)
      e.g. 'C:\Users\All Users', GENERIC_READ fails with
      ERROR_ACCESS_DENIED.  Zero seems to work just fine, both for file
      and directory symlinks.  */
-  sh = CreateFile (path, 0, 0, NULL, OPEN_EXISTING,
-		   FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-		   NULL);
+  if (w32_unicode_filenames)
+    {
+      wchar_t path_w[MAX_PATH];
+
+      filename_to_utf16 (path, path_w);
+      sh = CreateFileW (path_w, 0, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_OPEN_REPARSE_POINT
+			| FILE_FLAG_BACKUP_SEMANTICS,
+			NULL);
+    }
+  else
+    {
+      char path_a[MAX_PATH];
+
+      filename_to_ansi (path, path_a);
+      sh = CreateFileA (path_a, 0, 0, NULL, OPEN_EXISTING,
+			FILE_FLAG_OPEN_REPARSE_POINT
+			| FILE_FLAG_BACKUP_SEMANTICS,
+			NULL);
+    }
   if (sh != INVALID_HANDLE_VALUE)
     {
       BYTE reparse_buf[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
@@ -4864,89 +5543,27 @@ readlink (const char *name, char *buf, size_t buf_size)
 	     reparse_data, then convert it to multibyte encoding in
 	     the current locale's codepage.  */
 	  WCHAR *lwname;
-	  BYTE  lname[MAX_PATH];
-	  USHORT lname_len;
+	  size_t lname_size;
 	  USHORT lwname_len =
 	    reparse_data->SymbolicLinkReparseBuffer.PrintNameLength;
 	  WCHAR *lwname_src =
 	    reparse_data->SymbolicLinkReparseBuffer.PathBuffer
 	    + reparse_data->SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(WCHAR);
-	  /* This updates file_name_codepage which we need below.  */
-	  int dbcs_p = max_filename_mbslen () > 1;
+	  size_t size_to_copy = buf_size;
 
 	  /* According to MSDN, PrintNameLength does not include the
 	     terminating null character.  */
 	  lwname = alloca ((lwname_len + 1) * sizeof(WCHAR));
 	  memcpy (lwname, lwname_src, lwname_len);
 	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* null-terminate */
-
-	  lname_len = WideCharToMultiByte (file_name_codepage, 0, lwname, -1,
-					   lname, MAX_PATH, NULL, NULL);
-	  if (!lname_len)
-	    {
-	      /* WideCharToMultiByte failed.  */
-	      DWORD w32err1 = GetLastError ();
-
-	      switch (w32err1)
-		{
-		case ERROR_INSUFFICIENT_BUFFER:
-		  errno = ENAMETOOLONG;
-		  break;
-		case ERROR_INVALID_PARAMETER:
-		  errno = EFAULT;
-		  break;
-		case ERROR_NO_UNICODE_TRANSLATION:
-		  errno = ENOENT;
-		  break;
-		default:
-		  errno = EINVAL;
-		  break;
-		}
-	    }
-	  else
-	    {
-	      size_t size_to_copy = buf_size;
-	      BYTE *p = lname, *p2;
-	      BYTE *pend = p + lname_len;
-
-	      /* Normalize like dostounix_filename does, but we don't
-		 want to assume that lname is null-terminated.  */
-	      if (dbcs_p)
-		p2 = CharNextExA (file_name_codepage, p, 0);
-	      else
-		p2 = p + 1;
-	      if (*p && *p2 == ':' && *p >= 'A' && *p <= 'Z')
-		{
-		  *p += 'a' - 'A';
-		  p += 2;
-		}
-	      while (p <= pend)
-		{
-		  if (*p == '\\')
-		    *p = '/';
-		  if (dbcs_p)
-		    {
-		      p = CharNextExA (file_name_codepage, p, 0);
-		      /* CharNextExA doesn't advance at null character.  */
-		      if (!*p)
-			break;
-		    }
-		  else
-		    ++p;
-		}
-	      /* Testing for null-terminated LNAME is paranoia:
-		 WideCharToMultiByte should always return a
-		 null-terminated string when its 4th argument is -1
-		 and its 3rd argument is null-terminated (which they
-		 are, see above).  */
-	      if (lname[lname_len - 1] == '\0')
-		lname_len--;
-	      if (lname_len <= buf_size)
-		size_to_copy = lname_len;
-	      strncpy (buf, lname, size_to_copy);
-	      /* Success!  */
-	      retval = size_to_copy;
-	    }
+	  filename_from_utf16 (lwname, resolved);
+	  dostounix_filename (resolved);
+	  lname_size = strlen (resolved) + 1;
+	  if (lname_size <= buf_size)
+	    size_to_copy = lname_size;
+	  strncpy (buf, resolved, size_to_copy);
+	  /* Success!  */
+	  retval = size_to_copy;
 	}
       CloseHandle (sh);
     }
@@ -4985,7 +5602,7 @@ readlinkat (int fd, char const *name, char *buffer,
 {
   /* Rely on a hack: an open directory is modeled as file descriptor 0,
      as in fstatat.  FIXME: Add proper support for readlinkat.  */
-  char fullname[MAX_PATH];
+  char fullname[MAX_UTF8_PATH];
 
   if (fd != AT_FDCWD)
     {
@@ -5024,41 +5641,45 @@ readlinkat (int fd, char const *name, char *buffer,
 static char *
 chase_symlinks (const char *file)
 {
-  static char target[MAX_PATH];
-  char link[MAX_PATH];
+  static char target[MAX_UTF8_PATH];
+  char link[MAX_UTF8_PATH];
+  wchar_t target_w[MAX_PATH], link_w[MAX_PATH];
+  char target_a[MAX_PATH], link_a[MAX_PATH];
   ssize_t res, link_len;
   int loop_count = 0;
-  int dbcs_p;
 
   if (is_windows_9x () == TRUE || !is_symlink (file))
     return (char *)file;
 
-  if ((link_len = GetFullPathName (file, MAX_PATH, link, NULL)) == 0)
-    return (char *)file;
+  if (w32_unicode_filenames)
+    {
+      wchar_t file_w[MAX_PATH];
 
-  dbcs_p = max_filename_mbslen () > 1;
+      filename_to_utf16 (file, file_w);
+      if (GetFullPathNameW (file_w, MAX_PATH, link_w, NULL) == 0)
+	return (char *)file;
+      filename_from_utf16 (link_w, link);
+    }
+  else
+    {
+      char file_a[MAX_PATH];
+
+      filename_to_ansi (file, file_a);
+      if (GetFullPathNameA (file_a, MAX_PATH, link_a, NULL) == 0)
+	return (char *)file;
+      filename_from_ansi (link_a, link);
+    }
+  link_len = strlen (link);
+
   target[0] = '\0';
   do {
 
     /* Remove trailing slashes, as we want to resolve the last
        non-trivial part of the link name.  */
-    if (!dbcs_p)
-      {
-	while (link_len > 3 && IS_DIRECTORY_SEP (link[link_len-1]))
-	  link[link_len--] = '\0';
-      }
-    else if (link_len > 3)
-      {
-	char *n = CharPrevExA (file_name_codepage, link, link + link_len, 0);
+    while (link_len > 3 && IS_DIRECTORY_SEP (link[link_len-1]))
+      link[link_len--] = '\0';
 
-	while (n >= link + 2 && IS_DIRECTORY_SEP (*n))
-	  {
-	    n[1] = '\0';
-	    n = CharPrevExA (file_name_codepage, link, n, 0);
-	  }
-      }
-
-    res = readlink (link, target, MAX_PATH);
+    res = readlink (link, target, MAX_UTF8_PATH);
     if (res > 0)
       {
 	target[res] = '\0';
@@ -5069,27 +5690,28 @@ chase_symlinks (const char *file)
 	       the symlink, then copy the result back to target.  */
 	    char *p = link + link_len;
 
-	    if (!dbcs_p)
-	      {
-		while (p > link && !IS_ANY_SEP (p[-1]))
-		  p--;
-	      }
-	    else
-	      {
-		char *p1 = CharPrevExA (file_name_codepage, link, p, 0);
-
-		while (p > link && !IS_ANY_SEP (*p1))
-		  {
-		    p = p1;
-		    p1 = CharPrevExA (file_name_codepage, link, p1, 0);
-		  }
-	      }
+	    while (p > link && !IS_ANY_SEP (p[-1]))
+	      p--;
 	    strcpy (p, target);
 	    strcpy (target, link);
 	  }
 	/* Resolve any "." and ".." to get a fully-qualified file name
 	   in link[] again. */
-	link_len = GetFullPathName (target, MAX_PATH, link, NULL);
+	if (w32_unicode_filenames)
+	  {
+	    filename_to_utf16 (target, target_w);
+	    link_len = GetFullPathNameW (target_w, MAX_PATH, link_w, NULL);
+	    if (link_len > 0)
+	      filename_from_utf16 (link_w, link);
+	  }
+	else
+	  {
+	    filename_to_ansi (target, target_a);
+	    link_len = GetFullPathNameA (target_a, MAX_PATH, link_a, NULL);
+	    if (link_len > 0)
+	      filename_from_ansi (link_a, link);
+	  }
+	link_len = strlen (link);
       }
   } while (res > 0 && link_len > 0 && ++loop_count <= 100);
 
@@ -5206,7 +5828,11 @@ acl_get_file (const char *fname, acl_type_t type)
 		}
 	    }
 	  else if (err == ERROR_FILE_NOT_FOUND
-		   || err == ERROR_PATH_NOT_FOUND)
+		   || err == ERROR_PATH_NOT_FOUND
+		   /* ERROR_INVALID_NAME is what we get if
+		      w32-unicode-filenames is nil and the file cannot
+		      be encoded in the current ANSI codepage. */
+		   || err == ERROR_INVALID_NAME)
 	    errno = ENOENT;
 	  else
 	    errno = EIO;
@@ -5284,7 +5910,7 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
 
   e = errno;
   errno = 0;
-  if (!set_file_security ((char *)fname, flags, (PSECURITY_DESCRIPTOR)acl))
+  if (!set_file_security (fname, flags, (PSECURITY_DESCRIPTOR)acl))
     {
       err = GetLastError ();
 
@@ -5317,7 +5943,12 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
 	      acl_free (current_acl);
 	    }
 	}
-      else if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND)
+      else if (err == ERROR_FILE_NOT_FOUND
+	       || err == ERROR_PATH_NOT_FOUND
+	       /* ERROR_INVALID_NAME is what we get if
+		  w32-unicode-filenames is nil and the file cannot be
+		  encoded in the current ANSI codepage. */
+	       || err == ERROR_INVALID_NAME)
 	errno = ENOENT;
       else
 	errno = EACCES;
@@ -5350,7 +5981,7 @@ careadlinkat (int fd, char const *filename,
               struct allocator const *alloc,
               ssize_t (*preadlinkat) (int, char const *, char *, size_t))
 {
-  char linkname[MAX_PATH];
+  char linkname[MAX_UTF8_PATH];
   ssize_t link_size;
 
   link_size = preadlinkat (fd, filename, linkname, sizeof(linkname));
@@ -7753,7 +8384,7 @@ sys_localtime (const time_t *t)
 HMODULE
 w32_delayed_load (Lisp_Object library_id)
 {
-  HMODULE library_dll = NULL;
+  HMODULE dll_handle = NULL;
 
   CHECK_SYMBOL (library_id);
 
@@ -7766,26 +8397,56 @@ w32_delayed_load (Lisp_Object library_id)
       if (CONSP (dlls))
         for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
           {
-            CHECK_STRING_CAR (dlls);
-            if ((library_dll = LoadLibrary (SDATA (XCAR (dlls)))))
-              {
-                char name[MAX_PATH];
-                DWORD len;
+	    Lisp_Object dll = XCAR (dlls);
+	    char name[MAX_UTF8_PATH];
+	    DWORD res = -1;
 
-                len = GetModuleFileNameA (library_dll, name, sizeof (name));
-                found = Fcons (XCAR (dlls),
-                               (len > 0)
-                               /* Possibly truncated */
-                               ? make_specified_string (name, -1, len, 1)
-                               : Qnil);
-                break;
-              }
-          }
+	    CHECK_STRING (dll);
+	    dll = ENCODE_FILE (dll);
+	    if (w32_unicode_filenames)
+	      {
+		wchar_t name_w[MAX_PATH];
+
+		filename_to_utf16 (SSDATA (dll), name_w);
+		dll_handle = LoadLibraryW (name_w);
+		if (dll_handle)
+		  {
+		    res = GetModuleFileNameW (dll_handle, name_w,
+					      sizeof (name_w));
+		    if (res > 0)
+		      filename_from_utf16 (name_w, name);
+		  }
+	      }
+	    else
+	      {
+		char name_a[MAX_PATH];
+
+		filename_to_ansi (SSDATA (dll), name_a);
+		dll_handle = LoadLibraryA (name_a);
+		if (dll_handle)
+		  {
+		    res = GetModuleFileNameA (dll_handle, name_a,
+					      sizeof (name_a));
+		    if (res > 0)
+		      filename_from_ansi (name_a, name);
+		  }
+	      }
+	    if (dll_handle)
+	      {
+		ptrdiff_t len = strlen (name);
+		found = Fcons (dll,
+			       (res > 0)
+			       /* Possibly truncated */
+			       ? make_specified_string (name, -1, len, 1)
+			       : Qnil);
+		break;
+	      }
+	  }
 
       Fput (library_id, QCloaded_from, found);
     }
 
-  return library_dll;
+  return dll_handle;
 }
 
 
@@ -7804,6 +8465,12 @@ check_windows_init_file (void)
       Lisp_Object init_file;
       int fd;
 
+      /* Implementation note: this function runs early during Emacs
+	 startup, before startup.el is run.  So Vload_path is still in
+	 its initial unibyte form, but it holds UTF-8 encoded file
+	 names, since init_callproc was already called.  So we do not
+	 need to ENCODE_FILE here, but we do need to convert the file
+	 names from UTF-8 to ANSI.  */
       init_file = build_string ("term/w32-win");
       fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil);
       if (fd < 0)
@@ -7814,6 +8481,8 @@ check_windows_init_file (void)
 	  char *buffer = alloca (1024
 				 + strlen (init_file_name)
 				 + strlen (load_path));
+	  char *msg = buffer;
+	  int needed;
 
 	  sprintf (buffer,
 		   "The Emacs Windows initialization file \"%s.el\" "
@@ -7825,8 +8494,27 @@ check_windows_init_file (void)
 		   "not unpacked properly.\nSee the README.W32 file in the "
 		   "top-level Emacs directory for more information.",
 		   init_file_name, load_path);
+	  needed = MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer,
+					-1, NULL, 0);
+	  if (needed > 0)
+	    {
+	      wchar_t *msg_w = alloca ((needed + 1) * sizeof (wchar_t));
+
+	      MultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, buffer, -1,
+				   msg_w, needed);
+	      needed = WideCharToMultiByte (CP_ACP, 0, msg_w, -1,
+					    NULL, 0, NULL, NULL);
+	      if (needed > 0)
+		{
+		  char *msg_a = alloca (needed + 1);
+
+		  WideCharToMultiByte (CP_ACP, 0, msg_w, -1, msg_a, needed,
+				       NULL, NULL);
+		  msg = msg_a;
+		}
+	    }
 	  MessageBox (NULL,
-		      buffer,
+		      msg,
 		      "Emacs Abort Dialog",
 		      MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
 	  /* Use the low-level system abort. */
@@ -8002,7 +8690,8 @@ globals_of_w32 (void)
   g_b_init_get_sid_sub_authority = 0;
   g_b_init_get_sid_sub_authority_count = 0;
   g_b_init_get_security_info = 0;
-  g_b_init_get_file_security = 0;
+  g_b_init_get_file_security_w = 0;
+  g_b_init_get_file_security_a = 0;
   g_b_init_get_security_descriptor_owner = 0;
   g_b_init_get_security_descriptor_group = 0;
   g_b_init_is_valid_sid = 0;
@@ -8021,12 +8710,14 @@ globals_of_w32 (void)
   g_b_init_get_length_sid = 0;
   g_b_init_get_native_system_info = 0;
   g_b_init_get_system_times = 0;
-  g_b_init_create_symbolic_link = 0;
+  g_b_init_create_symbolic_link_w = 0;
+  g_b_init_create_symbolic_link_a = 0;
   g_b_init_get_security_descriptor_dacl = 0;
   g_b_init_convert_sd_to_sddl = 0;
   g_b_init_convert_sddl_to_sd = 0;
   g_b_init_is_valid_security_descriptor = 0;
-  g_b_init_set_file_security = 0;
+  g_b_init_set_file_security_w = 0;
+  g_b_init_set_file_security_a = 0;
   g_b_init_get_adapters_info = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
@@ -8040,6 +8731,14 @@ globals_of_w32 (void)
 
   /* Reset, in case it has some value inherited from dump time.  */
   w32_stat_get_owner_group = 0;
+
+  /* If w32_unicode_filenames is non-zero, we will be using Unicode
+     (a.k.a. "wide") APIs to invoke functions that accept file
+     names.  */
+  if (is_windows_9x ())
+    w32_unicode_filenames = 0;
+  else
+    w32_unicode_filenames = 1;
 }
 
 /* For make-serial-process  */

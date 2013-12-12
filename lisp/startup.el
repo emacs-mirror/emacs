@@ -533,43 +533,45 @@ It is the default value of the variable `top-level'."
     ;; for many other file-name variables and directory lists, so it
     ;; is important to decode it ASAP.
     (when locale-coding-system
-      (save-excursion
-	(dolist (elt (buffer-list))
-	  (set-buffer elt)
-	  (if default-directory
-	      (setq default-directory
-		    (decode-coding-string default-directory
-					  locale-coding-system t)))))
+      (let ((coding (if (eq system-type 'windows-nt)
+			;; MS-Windows build converts all file names to
+			;; UTF-8 during startup.
+			'utf-8
+		      locale-coding-system)))
+	(save-excursion
+	  (dolist (elt (buffer-list))
+	    (set-buffer elt)
+	    (if default-directory
+		(setq default-directory
+		      (decode-coding-string default-directory coding t)))))
 
-      ;; Decode all the important variables and directory lists, now
-      ;; that we know the locale's encoding.  This is because the
-      ;; values of these variables are until here unibyte undecoded
-      ;; strings created by build_unibyte_string.  data-directory in
-      ;; particular is used to construct many other standard directory
-      ;; names, so it must be decoded ASAP.
-      ;; Note that charset-map-path cannot be decoded here, since we
-      ;; could then be trapped in infinite recursion below, when we
-      ;; load subdirs.el, because encoding a directory name might need
-      ;; to load a charset map, which will want to encode
-      ;; charset-map-path, which will want to load the same charset
-      ;; map...  So decoding of charset-map-path is delayed until
-      ;; further down below.
-      (dolist (pathsym '(load-path exec-path))
-	(let ((path (symbol-value pathsym)))
-	  (if (listp path)
-	      (set pathsym (mapcar (lambda (dir)
-				     (decode-coding-string
-				      dir
-				      locale-coding-system t))
-				path)))))
-      (dolist (filesym '(data-directory doc-directory exec-directory
-					installation-directory
-					invocation-directory invocation-name
-					source-directory
-					shared-game-score-directory))
-	(let ((file (symbol-value filesym)))
-	  (if (stringp file)
-	      (set filesym (decode-coding-string file locale-coding-system t))))))
+	;; Decode all the important variables and directory lists, now
+	;; that we know the locale's encoding.  This is because the
+	;; values of these variables are until here unibyte undecoded
+	;; strings created by build_unibyte_string.  data-directory in
+	;; particular is used to construct many other standard
+	;; directory names, so it must be decoded ASAP.  Note that
+	;; charset-map-path cannot be decoded here, since we could
+	;; then be trapped in infinite recursion below, when we load
+	;; subdirs.el, because encoding a directory name might need to
+	;; load a charset map, which will want to encode
+	;; charset-map-path, which will want to load the same charset
+	;; map...  So decoding of charset-map-path is delayed until
+	;; further down below.
+	(dolist (pathsym '(load-path exec-path))
+	  (let ((path (symbol-value pathsym)))
+	    (if (listp path)
+		(set pathsym (mapcar (lambda (dir)
+				       (decode-coding-string dir coding t))
+				     path)))))
+	(dolist (filesym '(data-directory doc-directory exec-directory
+					  installation-directory
+					  invocation-directory invocation-name
+					  source-directory
+					  shared-game-score-directory))
+	  (let ((file (symbol-value filesym)))
+	    (if (stringp file)
+		(set filesym (decode-coding-string file coding t)))))))
 
     (let ((dir default-directory))
       (with-current-buffer "*Messages*"
@@ -599,12 +601,13 @@ It is the default value of the variable `top-level'."
     ;; need for encoding them are already loaded, we are ready to
     ;; decode charset-map-path.
     (if (listp charset-map-path)
-	(setq charset-map-path
-	      (mapcar (lambda (dir)
-			(decode-coding-string
-			 dir
-			 locale-coding-system t))
-		      charset-map-path)))
+	(let ((coding (if (eq system-type 'windows-nt)
+			  'utf-8
+			locale-coding-system)))
+	  (setq charset-map-path
+		(mapcar (lambda (dir)
+			  (decode-coding-string dir coding t))
+			charset-map-path))))
     (setq default-directory (abbreviate-file-name default-directory))
     (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect

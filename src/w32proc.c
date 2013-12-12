@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/file.h>
+#include <mbstring.h>
 
 /* must include CRT headers *before* config.h */
 #include <config.h>
@@ -861,8 +862,6 @@ new_child (void)
   cp->pid = -1;
   cp->procinfo.hProcess = NULL;
   cp->status = STATUS_READ_ERROR;
-  cp->input_file = NULL;
-  cp->pending_deletion = 0;
 
   /* use manual reset event so that select() will function properly */
   cp->char_avail = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -910,21 +909,6 @@ delete_child (child_process *cp)
 
   if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
     return;
-
-  /* Delete the child's temporary input file, if any, that is pending
-     deletion.  */
-  if (cp->input_file)
-    {
-      if (cp->pending_deletion)
-	{
-	  if (unlink (cp->input_file))
-	    DebPrint (("delete_child.unlink (%s) failed, errno: %d\n",
-		       cp->input_file, errno));
-	  cp->pending_deletion = 0;
-	}
-      xfree (cp->input_file);
-      cp->input_file = NULL;
-    }
 
   /* reap thread if necessary */
   if (cp->thrd)
@@ -1073,9 +1057,10 @@ reader_thread (void *arg)
   return 0;
 }
 
-/* To avoid Emacs changing directory, we just record here the directory
-   the new process should start in.  This is set just before calling
-   sys_spawnve, and is not generally valid at any other time.  */
+/* To avoid Emacs changing directory, we just record here the
+   directory the new process should start in.  This is set just before
+   calling sys_spawnve, and is not generally valid at any other time.
+   Note that this directory's name is UTF-8 encoded.  */
 static char * process_dir;
 
 static BOOL
@@ -1088,7 +1073,8 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   SECURITY_DESCRIPTOR sec_desc;
 #endif
   DWORD flags;
-  char dir[ MAXPATHLEN ];
+  char dir[ MAX_PATH ];
+  char *p;
 
   if (cp == NULL) emacs_abort ();
 
@@ -1118,16 +1104,22 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   sec_attrs.lpSecurityDescriptor = NULL /* &sec_desc */;
   sec_attrs.bInheritHandle = FALSE;
 
-  strcpy (dir, process_dir);
-  unixtodos_filename (dir);
+  filename_to_ansi (process_dir, dir);
+  /* Can't use unixtodos_filename here, since that needs its file name
+     argument encoded in UTF-8.  OTOH, process_dir, which _is_ in
+     UTF-8, points, to the directory computed by our caller, and we
+     don't want to modify that, either.  */
+  for (p = dir; *p; p = CharNextA (p))
+    if (*p == '/')
+      *p = '\\';
 
   flags = (!NILP (Vw32_start_process_share_console)
 	   ? CREATE_NEW_PROCESS_GROUP
 	   : CREATE_NEW_CONSOLE);
   if (NILP (Vw32_start_process_inherit_error_mode))
     flags |= CREATE_DEFAULT_ERROR_MODE;
-  if (!CreateProcess (exe, cmdline, &sec_attrs, NULL, TRUE,
-		      flags, env, dir, &start, &cp->procinfo))
+  if (!CreateProcessA (exe, cmdline, &sec_attrs, NULL, TRUE,
+		       flags, env, dir, &start, &cp->procinfo))
     goto EH_Fail;
 
   cp->pid = (int) cp->procinfo.dwProcessId;
@@ -1180,45 +1172,6 @@ register_child (pid_t pid, int fd)
     }
 
   fd_info[fd].cp = cp;
-}
-
-/* Record INFILE as an input file for process PID.  */
-void
-record_infile (pid_t pid, char *infile)
-{
-  child_process *cp;
-
-  /* INFILE should never be NULL, since xstrdup would have signaled
-     memory full condition in that case, see callproc.c where this
-     function is called.  */
-  eassert (infile);
-
-  cp = find_child_pid ((DWORD)pid);
-  if (cp == NULL)
-    {
-      DebPrint (("record_infile is unable to find pid %lu\n", pid));
-      return;
-    }
-
-  cp->input_file = infile;
-}
-
-/* Mark the input file INFILE of the corresponding subprocess as
-   temporary, to be deleted when the subprocess exits.  */
-void
-record_pending_deletion (char *infile)
-{
-  child_process *cp;
-
-  eassert (infile);
-
-  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (CHILD_ACTIVE (cp)
-	&& cp->input_file && xstrcasecmp (cp->input_file, infile) == 0)
-      {
-	cp->pending_deletion = 1;
-	break;
-      }
 }
 
 /* Called from waitpid when a process exits.  */
@@ -1427,6 +1380,8 @@ waitpid (pid_t pid, int *status, int options)
 # define IMAGE_OPTIONAL_HEADER32 IMAGE_OPTIONAL_HEADER
 #endif
 
+/* Implementation note: This function works with file names encoded in
+   the current ANSI codepage.  */
 static void
 w32_executable_type (char * filename,
 		     int * is_dos_app,
@@ -1617,6 +1572,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   char *sepchars = " \t*?";
   /* This is for native w32 apps; modified below for Cygwin apps.  */
   char escape_char = '\\';
+  char cmdname_a[MAX_PATH];
 
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
@@ -1625,12 +1581,15 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       return -1;
     }
 
-  /* Handle executable names without an executable suffix.  */
-  program = build_string (cmdname);
-  if (NILP (Ffile_executable_p (program)))
+  /* Handle executable names without an executable suffix.  The caller
+     already searched exec-path and verified the file is executable,
+     but start-process doesn't do that for file names that are already
+     absolute.  So we double-check this here, just in case.  */
+  if (faccessat (AT_FDCWD, cmdname, X_OK, AT_EACCESS) != 0)
     {
       struct gcpro gcpro1;
 
+      program = build_string (cmdname);
       full = Qnil;
       GCPRO1 (program);
       openp (Vexec_path, program, Vexec_suffixes, &full, make_number (X_OK));
@@ -1640,12 +1599,27 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	  errno = EINVAL;
 	  return -1;
 	}
-      program = full;
+      program = ENCODE_FILE (full);
+      cmdname = SDATA (program);
     }
 
   /* make sure argv[0] and cmdname are both in DOS format */
-  cmdname = SDATA (program);
   unixtodos_filename (cmdname);
+  /* argv[0] was encoded by caller using ENCODE_FILE, so it is in
+     UTF-8.  All the other arguments are encoded by ENCODE_SYSTEM or
+     some such, and are in some ANSI codepage.  We need to have
+     argv[0] encoded in ANSI codepage.  */
+  filename_to_ansi (cmdname, cmdname_a);
+  /* We explicitly require that the command's file name be encodable
+     in the current ANSI codepage, because we will be invoking it via
+     the ANSI APIs.  */
+  if (_mbspbrk (cmdname_a, "?"))
+    {
+      errno = ENOENT;
+      return -1;
+    }
+  /* From here on, CMDNAME is an ANSI-encoded string.  */
+  cmdname = cmdname_a;
   argv[0] = cmdname;
 
   /* Determine whether program is a 16-bit DOS executable, or a 32-bit Windows
@@ -1663,7 +1637,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      while leaving the real app name as argv[0].  */
   if (is_dos_app)
     {
-      cmdname = alloca (MAXPATHLEN);
+      char *p;
+
+      cmdname = alloca (MAX_PATH);
       if (egetenv ("CMDPROXY"))
 	strcpy (cmdname, egetenv ("CMDPROXY"));
       else
@@ -1671,7 +1647,12 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	  strcpy (cmdname, SDATA (Vinvocation_directory));
 	  strcat (cmdname, "cmdproxy.exe");
 	}
-      unixtodos_filename (cmdname);
+
+      /* Can't use unixtodos_filename here, since that needs its file
+	 name argument encoded in UTF-8.  */
+      for (p = cmdname; *p; p = CharNextA (p))
+	if (*p == '/')
+	  *p = '\\';
     }
 
   /* we have to do some conjuring here to put argv and envp into the
@@ -2673,10 +2654,11 @@ All path elements in FILENAME are converted to their short names.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* luckily, this returns the short version of each element in the path.  */
-  if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
+  if (w32_get_short_filename (SDATA (ENCODE_FILE (filename)),
+			      shortname, MAX_PATH) == 0)
     return Qnil;
 
-  dostounix_filename (shortname, 0);
+  dostounix_filename (shortname);
 
   /* No need to DECODE_FILE, because 8.3 names are pure ASCII.   */
   return build_string (shortname);
@@ -2690,7 +2672,7 @@ If FILENAME does not exist, return nil.
 All path elements in FILENAME are converted to their long names.  */)
   (Lisp_Object filename)
 {
-  char longname[ MAX_PATH ];
+  char longname[ MAX_UTF8_PATH ];
   int drive_only = 0;
 
   CHECK_STRING (filename);
@@ -2702,10 +2684,11 @@ All path elements in FILENAME are converted to their long names.  */)
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
+  if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname,
+			      MAX_UTF8_PATH))
     return Qnil;
 
-  dostounix_filename (longname, 0);
+  dostounix_filename (longname);
 
   /* If we were passed only a drive, make sure that a slash is not appended
      for consistency with directories.  Allow for drive mapping via SUBST
@@ -2713,7 +2696,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (drive_only && longname[1] == ':' && longname[2] == '/' && !longname[3])
     longname[2] = '\0';
 
-  return DECODE_FILE (build_string (longname));
+  return DECODE_FILE (build_unibyte_string (longname));
 }
 
 DEFUN ("w32-set-process-priority", Fw32_set_process_priority,

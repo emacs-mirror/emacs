@@ -1,3 +1,8 @@
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention support on MS-Windows of file names outside of the
+	current locale.
+
 2013-11-23  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* TODO: Minor update.

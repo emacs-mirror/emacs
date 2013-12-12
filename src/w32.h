@@ -103,12 +103,6 @@ typedef struct _child_process
   OVERLAPPED          ovl_read;
   /* Used for async write operations on serial comm ports.  */
   OVERLAPPED          ovl_write;
-  /* Input file, if any, for this subprocess.  Should only be non-NULL
-     for async subprocesses.  */
-  char               *input_file;
-  /* If non-zero, the subprocess input file is temporary and should be
-     deleted when the subprocess exits.  */
-  int                 pending_deletion;
 } child_process;
 
 #define MAXDESC FD_SETSIZE
@@ -152,6 +146,9 @@ extern int w32_valid_pointer_p (void *, int);
 /* Get long (aka "true") form of file name, if it exists.  */
 extern BOOL w32_get_long_filename (char * name, char * buf, int size);
 
+/* Get the short (a.k.a. "8+3") form of a file name.  */
+extern unsigned int w32_get_short_filename (char *, char *, int);
+
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
 				      int err, HANDLE handles[4]);
@@ -181,8 +178,14 @@ extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
-extern void dostounix_filename (register char *, int);
+extern void dostounix_filename (register char *);
 extern void unixtodos_filename (register char *);
+extern int  filename_from_ansi (const char *, char *);
+extern int  filename_to_ansi (const char *, char *);
+extern int  filename_from_utf16 (const wchar_t *, char *);
+extern int  filename_to_utf16 (const char *, wchar_t *);
+extern Lisp_Object ansi_encode_filename (Lisp_Object);
+
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
 extern int random (void);
@@ -194,13 +197,9 @@ extern int pipe2 (int *, int);
 extern void set_process_dir (char *);
 extern int sys_spawnve (int, char *, char **, char **);
 extern void register_child (pid_t, int);
-extern void record_infile (pid_t, char *);
-extern void record_pending_deletion (char *);
 
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);
-
-
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

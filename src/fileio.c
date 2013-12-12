@@ -460,7 +460,8 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	    strcat (res, "/");
 	  beg = res;
 	  p = beg + strlen (beg);
-	  dostounix_filename (beg, 0);
+	  dostounix_filename (beg);
+	  /* FIXME: Figure out the multibyte vs unibyte stuff here.  */
 	  tem_fn = make_specified_string (beg, -1, p - beg,
 					  STRING_MULTIBYTE (filename));
 	}
@@ -471,7 +472,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   else if (STRING_MULTIBYTE (filename))
     {
       tem_fn = make_specified_string (beg, -1, p - beg, 1);
-      dostounix_filename (SSDATA (tem_fn), 1);
+      dostounix_filename (SSDATA (tem_fn));
 #ifdef WINDOWSNT
       if (!NILP (Vw32_downcase_file_names))
 	tem_fn = Fdowncase (tem_fn);
@@ -479,7 +480,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     }
   else
     {
-      dostounix_filename (beg, 0);
+      dostounix_filename (beg);
       tem_fn = make_specified_string (beg, -1, p - beg, 0);
     }
   return tem_fn;
@@ -583,7 +584,7 @@ file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen,
     dst[srclen++] = DIRECTORY_SEP;
   dst[srclen] = 0;
 #ifdef DOS_NT
-  dostounix_filename (dst, multibyte);
+  dostounix_filename (dst);
 #endif
   return srclen;
 }
@@ -652,7 +653,7 @@ directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
   memcpy (dst, src, srclen);
   dst[srclen] = 0;
 #ifdef DOS_NT
-  dostounix_filename (dst, multibyte);
+  dostounix_filename (dst);
 #endif
   return srclen;
 }
@@ -1101,7 +1102,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef DOS_NT
 	  /* Make sure directories are all separated with /, but
 	     avoid allocation of a new string when not required. */
-	  dostounix_filename (nm, multibyte);
+	  dostounix_filename (nm);
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
@@ -1162,7 +1163,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  nm++;
 	  /* `egetenv' may return a unibyte string, which will bite us since
 	     we expect the directory to be multibyte.  */
-	  tem = build_string (newdir);
+#ifdef WINDOWSNT
+	  if (newdir[0])
+	    {
+	      char newdir_utf8[MAX_UTF8_PATH];
+
+	      filename_from_ansi (newdir, newdir_utf8);
+	      tem = build_string (newdir_utf8);
+	    }
+	  else
+#else
+	    tem = build_string (newdir);
+#endif
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
 	      hdir = DECODE_FILE (tem);
@@ -1286,6 +1298,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     indirectly by prepending newdir to nm if necessary, and using
 	     cwd (or the wd of newdir's drive) as the new newdir.  */
 	  char *adir;
+#ifdef WINDOWSNT
+	  const int adir_size = MAX_UTF8_PATH;
+#else
+	  const int adir_size = MAXPATHLEN + 1;
+#endif
 
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
@@ -1301,14 +1318,14 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
-	  adir = alloca (MAXPATHLEN + 1);
+	  adir = alloca (adir_size);
 	  if (drive)
 	    {
 	      if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
 		strcpy (adir, "/");
 	    }
 	  else
-	    getcwd (adir, MAXPATHLEN + 1);
+	    getcwd (adir, adir_size);
 	  if (multibyte)
 	    {
 	      Lisp_Object tem = build_string (adir);
@@ -1479,7 +1496,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[1] = ':';
       }
     result = make_specified_string (target, -1, o - target, multibyte);
-    dostounix_filename (SSDATA (result), multibyte);
+    dostounix_filename (SSDATA (result));
 #ifdef WINDOWSNT
     if (!NILP (Vw32_downcase_file_names))
       result = Fdowncase (result);
@@ -1763,7 +1780,7 @@ those `/' is discarded.  */)
   nm = xlispstrdupa (filename);
 
 #ifdef DOS_NT
-  dostounix_filename (nm, multibyte);
+  dostounix_filename (nm);
   substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
 #endif
   endp = nm + SBYTES (filename);
@@ -2661,9 +2678,9 @@ emacs_readlinkat (int fd, char const *filename)
   if (!buf)
     return Qnil;
 
-  val = build_string (buf);
+  val = build_unibyte_string (buf);
   if (buf[0] == '/' && strchr (buf, ':'))
-    val = concat2 (build_string ("/:"), val);
+    val = concat2 (build_unibyte_string ("/:"), val);
   if (buf != readlink_buf)
     xfree (buf);
   val = DECODE_FILE (val);
@@ -5858,7 +5875,11 @@ syms_of_fileio (void)
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* Coding system for encoding file names.
-If it is nil, `default-file-name-coding-system' (which see) is used.  */);
+If it is nil, `default-file-name-coding-system' (which see) is used.
+
+On MS-Windows, the value of this variable is largely ignored if
+\`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
+behaves as if file names were encoded in `utf-8'.  */);
   Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("default-file-name-coding-system",
@@ -5869,7 +5890,11 @@ This variable is used only when `file-name-coding-system' is nil.
 This variable is set/changed by the command `set-language-environment'.
 User should not set this variable manually,
 instead use `file-name-coding-system' to get a constant encoding
-of file names regardless of the current language environment.  */);
+of file names regardless of the current language environment.
+
+On MS-Windows, the value of this variable is largely ignored if
+\`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
+behaves as if file names were encoded in `utf-8'.  */);
   Vdefault_file_name_coding_system = Qnil;
 
   DEFSYM (Qformat_decode, "format-decode");

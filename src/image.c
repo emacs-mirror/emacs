@@ -3590,6 +3590,12 @@ xpm_load (struct frame *f, struct image *img)
 	}
 
 #ifdef HAVE_NTGUI
+#ifdef WINDOWSNT
+      /* FILE is encoded in UTF-8, but image libraries on Windows
+	 support neither UTF-8 nor UTF-16 encoded file names.  So we
+	 need to re-encode it in ANSI.  */
+      file = ansi_encode_filename (file);
+#endif
       /* XpmReadFileToPixmap is not available in the Windows port of
 	 libxpm.  But XpmReadFileToImage almost does what we want.  */
       rc = fn_XpmReadFileToImage (&hdc, SDATA (file),
@@ -6968,6 +6974,9 @@ tiff_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  return 0;
 	}
+#ifdef WINDOWSNT
+      file = ansi_encode_filename (file);
+#endif
 
       /* Try to open the image file.  */
       tiff = fn_TIFFOpen (SSDATA (file), "r");
@@ -7353,6 +7362,9 @@ gif_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  return 0;
 	}
+#ifdef WINDOWSNT
+      file = ansi_encode_filename (file);
+#endif
 
       /* Open the GIF file.  */
 #if GIFLIB_MAJOR < 5
@@ -8479,6 +8491,9 @@ imagemagick_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", file_name, Qnil);
 	  return 0;
 	}
+#ifdef WINDOWSNT
+      file = ansi_encode_filename (file);
+#endif
       success_p = imagemagick_load_image (f, img, 0, 0, SSDATA (file));
     }
   /* Else its not a file, its a lisp object.  Load the image from a

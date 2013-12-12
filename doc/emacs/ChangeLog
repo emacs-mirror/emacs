@@ -1,3 +1,8 @@
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (File Name Coding): Document file-name encoding
+	peculiarities on MS-Windows.
+
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi: Sync direntry with info/dir version.

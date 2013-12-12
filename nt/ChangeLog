@@ -1,3 +1,10 @@
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (MAX_UTF8_PATH): New macro.
+	(opendir, closedir, readdir, seekdir): Redirect to replacement
+	functions.
+	* inc/dirent.h: Make d_name[] be MAXNAMELEN*4 characters long.
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* README.W32:

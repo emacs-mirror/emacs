@@ -40,7 +40,7 @@ struct dirent				/* data from readdir() */
 	__int64		d_time_write;
 	_fsize_t	d_size;
 #endif
-	char		d_name[MAXNAMLEN+1];	/* name of file */
+	char		d_name[MAXNAMLEN * 4 + 1];	/* name of file */
 	};
 
 typedef struct

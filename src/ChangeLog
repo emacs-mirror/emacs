@@ -1,3 +1,128 @@
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Support file names on MS-Windows that use characters outside of
+	the current system codepage.  (Bug#7100)
+
+	* w32.c (get_file_security, set_file_security)
+	(create_symbolic_link): Separate pointers and boolean flags for
+	ANSI and Unicode APIs.  Use the latter if w32_unicode_filenames is
+	non-zero, else the former.
+	(codepage_for_filenames, filename_to_utf16, )
+	(filename_from_utf16, filename_to_ansi, filename_from_ansi): New
+	functions.
+	(init_user_info): Allow $HOME and $SHELL to include non-ANSI
+	characters.
+	(normalize_filename): Lose the DBCS code, now works on UTF-8.
+	Accept only one argument; all callers changed.
+	(dostounix_filename): Remove the second argument, now works in
+	UTF-8.  All callers changed.
+	(parse_root): Lose DBCS code.
+	(get_long_basename, w32_get_short_filename, init_environment)
+	(GetCachedVolumeInformation, sys_readdir, open_unc_volume)
+	(read_unc_volume, logon_network_drive, faccessat, sys_chdir)
+	(sys_chmod, sys_creat, sys_fopen, sys_link, sys_mkdir, sys_open)
+	(sys_rename_replace, sys_rmdir, sys_unlink, stat_worker, utime)
+	(is_symlink, readlink, chase_symlinks, w32_delayed_load): Work in
+	Unicode mode if w32_unicode_filenames is non-zero, in ANSI mode
+	otherwise.
+	(ansi_encode_filename): New function.
+	(get_emacs_configuration, get_emacs_configuration_options):
+	Functions deleted.
+	(add_volume_info, GetCachedVolumeInformation): Run the input file
+	name through unixtodos_filename, to ensure it is stored and
+	referenced in canonical form.
+	(get_volume_info): Lose the DBCS code, now works in UTF-8.
+	(logon_network_drive, sys_link, utime): Improve error handling.
+	(sys_access): New function.
+	(hashval, generate_inode_val): Unused functions deleted.
+	(symlink, readlink, readlinkat): Lose DBCS code, now works in UTF-8.
+	(check_windows_init_file): Convert error message from UTF-8 to
+	ANSI codepage, for display in the message box.
+	(globals_of_w32): Set w32_unicode_filenames according to the OS
+	version.
+
+	* w32term.c (construct_drag_n_drop): Work in Unicode mode when
+	w32_unicode_filenames is non-zero, ANSI mode otherwise.
+	(syms_of_w32term): Declare w32-unicode-filenames.
+
+	* w32proc.c (new_child, delete_child): Remove code that handled
+	unused pending_deletion and input_file members of the child struct.
+	(create_child, sys_spawnve): Convert all file names to ANSI
+	codepage.  Use ANSI APIs explicitly; forcibly fail if any file
+	name cannot be encoded in ANSI codepage.  Don't use
+	unixtodos_filename, mirror slashes by hand.
+	(record_infile, record_pending_deletion): Functions deleted.
+	(Fw32_short_file_name): Call w32_get_short_filename instead of
+	GetShortPathName.
+
+	* w32notify.c (add_watch): Work in Unicode mode when
+	w32_unicode_filenames is non-zero, ANSI mode otherwise.
+	(Fw32notify_add_watch): Rewrite to avoid using GetFullPathName;
+	instead, do the same with Lisp primitives.
+
+	* w32fns.c (file_dialog_callback, Fx_file_dialog)
+	(Fsystem_move_file_to_trash, Fw32_shell_execute)
+	(Ffile_system_info, Fdefault_printer_name): Work in Unicode mode
+	when w32_unicode_filenames is non-zero, ANSI mode otherwise.
+	(Fw32_shell_execute): Improve error reporting.
+	(Fdefault_printer_name): Ifdef away for Cygwin.
+
+	* w32.h (struct _child_process): Remove input_file and
+	pending_deletion members that are no longer used.
+	(dostounix_filename, w32_get_short_filename, filename_from_ansi)
+	(filename_to_ansi, filename_from_utf16, filename_to_utf16)
+	(ansi_encode_filename): New and updated prototypes.
+
+	* unexw32.c (open_input_file, open_output_file, unexec): Use ANSI
+	APIs explicitly.
+	(unexec): Don't use dostounix_filename, it expects a file name in
+	UTF-8.  Instead, mirror backslashes by hand.  Convert NEW_NAME to
+	ANSI encoding.
+
+	* fileio.c (Ffile_name_directory, file_name_as_directory)
+	(directory_file_name, Fexpand_file_name)
+	(Fsubstitute_in_file_name) [WINDOWSNT]: Adapt to the change in
+	arguments of dostounix_filename.
+	(Fexpand_file_name) [WINDOWSNT]: Convert value of $HOME to UTF-8.
+	use MAX_UTF8_PATH for size of file-name strings.
+	(emacs_readlinkat): Build an explicitly unibyte string for file
+	names.
+	(syms_of_fileio) <file-name-coding-system>
+	default-file-name-coding-system>: Mention MS-Windows peculiarities.
+
+	* emacs.c (init_cmdargs) [WINDOWSNT]: Convert argv[0] to UTF-8.
+	(main) [WINDOWSNT]: Convert the argv[] elements that are files or
+	directories to UTF-8.
+	(decode_env_path) [WINDOWSNT]: Convert file names taken from the
+	environment, and each element of the input PATH, to UTF-8.
+
+	* dired.c (file_attributes): Use build_unibyte_string explicitly
+	to make Lisp strings from user and group names.
+
+	* coding.h (ENCODE_FILE, DECODE_FILE): Just call encode_file and
+	decode_file.
+
+	* coding.c (decode_file_name, encode_file_name): New functions.
+
+	* termcap.c (tgetent): Adapt to the change in arguments of
+	dostounix_filename.
+
+	* sysdep.c (sys_subshell) [WINDOWSNT]: Use MAX_UTF8_PATH for file
+	names.
+
+	* msdos.c (dostounix_filename, init_environment): Adapt to the
+	change in arguments of dostounix_filename.
+
+	* image.c (xpm_load, tiff_load, gif_load, imagemagick_load)
+	[WINDOWSNT]: Encode file names passed to the image libraries in
+	ANSI codepage.
+
+	* gnutls.c (Fgnutls_boot): Encode all file names passed to GnuTLS.
+	[WINDOWSNT]: Convert file names to the current ANSI codepage.
+
+	* filelock.c (lock_file) [WINDOWSNT]: Adapt to the change in
+	arguments of dostounix_filename.
+
 2013-12-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.h (struct font_entity) [HAVE_NS]: New field to record

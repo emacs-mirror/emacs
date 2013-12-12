@@ -958,11 +958,11 @@ file_attributes (int fd, char const *name, Lisp_Object id_format)
       unblock_input ();
     }
   if (uname)
-    values[2] = DECODE_SYSTEM (build_string (uname));
+    values[2] = DECODE_SYSTEM (build_unibyte_string (uname));
   else
     values[2] = make_fixnum_or_float (s.st_uid);
   if (gname)
-    values[3] = DECODE_SYSTEM (build_string (gname));
+    values[3] = DECODE_SYSTEM (build_unibyte_string (gname));
   else
     values[3] = make_fixnum_or_float (s.st_gid);
 

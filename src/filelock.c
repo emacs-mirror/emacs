@@ -689,7 +689,7 @@ lock_file (Lisp_Object fn)
   /* Ensure we have only '/' separators, to avoid problems with
      looking (inside fill_in_lock_file_name) for backslashes in file
      names encoded by some DBCS codepage.  */
-  dostounix_filename (SSDATA (fn), 1);
+  dostounix_filename (SSDATA (fn));
 #endif
   encoded_fn = ENCODE_FILE (fn);
 

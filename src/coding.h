@@ -670,27 +670,13 @@ struct coding_system
     (code) = (s1 << 8) | s2;				\
   } while (0)
 
-/* Encode the file name NAME using the specified coding system for
-   file names, if any.  If NAME is a unibyte string, return NAME.  */
-#define ENCODE_FILE(name)						\
-    (! STRING_MULTIBYTE (name)						\
-     ? name								\
-     : (! NILP (Vfile_name_coding_system)				\
-	? code_convert_string_norecord (name, Vfile_name_coding_system, 1) \
-	: (! NILP (Vdefault_file_name_coding_system)			\
-	   ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
-	   : name)))
-
+/* Encode the file name NAME using the specified coding system
+   for file names, if any.  */
+#define ENCODE_FILE(NAME)  encode_file_name (NAME)
 
 /* Decode the file name NAME using the specified coding system
    for file names, if any.  */
-#define DECODE_FILE(name)						   \
-  (! NILP (Vfile_name_coding_system)					   \
-   ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
-   : (! NILP (Vdefault_file_name_coding_system)				   \
-      ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
-      : name))
-
+#define DECODE_FILE(NAME)  decode_file_name (NAME)
 
 /* Encode the string STR using the specified coding system
    for system functions, if any.  */
@@ -718,6 +704,8 @@ extern Lisp_Object code_convert_string (Lisp_Object, Lisp_Object,
                                         Lisp_Object, bool, bool, bool);
 extern Lisp_Object code_convert_string_norecord (Lisp_Object, Lisp_Object,
                                                  bool);
+extern Lisp_Object encode_file_name (Lisp_Object);
+extern Lisp_Object decode_file_name (Lisp_Object);
 extern Lisp_Object raw_text_coding_system (Lisp_Object);
 extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
 extern Lisp_Object complement_process_encoding_system (Lisp_Object);
