@@ -40,16 +40,16 @@ Emacs editing modes
 * Org Mode: (org).              Outline-based notes management and organizer.
 
 Emacs network features
+* Emacs GnuTLS: (emacs-gnutls). The Emacs GnuTLS integration.
+* ERC: (erc).                   Powerful and extensible IRC client for Emacs.
 * EUDC: (eudc).                 Emacs client for directory servers (LDAP, PH).
 * Gnus: (gnus).                 The newsreader Gnus.
-* Emacs GnuTLS: (emacs-gnutls). The Emacs GnuTLS integration.
 * Mairix: (mairix-el).          Emacs interface to the Mairix mail indexer.
-* MH-E: (mh-e).                 Emacs interface to the MH mail system.
 * Message: (message).           Mail and news composition mode that
                                   goes with Gnus.
+* MH-E: (mh-e).                 Emacs interface to the MH mail system.
 * Newsticker: (newsticker).     A Newsticker for Emacs.
 * PGG: (pgg).                   Emacs interface to various PGP implementations.
-* ERC: (erc).                   Powerful and extensible IRC client for Emacs.
 * Rcirc: (rcirc).               Internet Relay Chat (IRC) client.
 * SASL: (sasl).                 The Emacs SASL library.
 * SC: (sc).                     Supercite lets you cite parts of messages
@@ -61,15 +61,16 @@ Emacs network features
 Emacs misc features
 * Autotype: (autotype).         Convenient features for text that you enter
                                   frequently in Emacs.
+* Bovine: (bovine).             Semantic bovine parser development.
 * Calc: (calc).                 Advanced desk calculator and mathematical tool.
 * Dired-X: (dired-x).           Dired Extra Features.
-* EasyPG Assistant: (epa).      An Emacs user interface to GNU Privacy Guard.
 * Ebrowse: (ebrowse).           A C++ class browser for Emacs.
 * EDE: (ede).                   The Emacs Development Environment.
 * Ediff: (ediff).               A visual interface for comparing and
                                   merging programs.
 * EDT: (edt).                   An Emacs emulation of the EDT editor.
 * EIEIO: (eieio).               An objects system for Emacs Lisp.
+* EasyPG Assistant: (epa).      An Emacs user interface to GNU Privacy Guard.
 * ERT: (ert).                   Emacs Lisp regression testing tool.
 * Eshell: (eshell).             A command shell implemented in Emacs Lisp.
 * Flymake: (flymake).           A universal on-the-fly syntax checker.
@@ -82,14 +83,13 @@ Emacs misc features
                                   and citations.
 * Remember: (remember).         Simple information manager for Emacs.
 * Semantic: (semantic).         Source code parser library and utilities.
-* Bovine: (bovine).             Semantic bovine parser development.
-* SRecode: (srecode).           Template code generator.
-* Wisent: (wisent).             Semantic Wisent parser development.
 * SES: (ses).                   Simple Emacs Spreadsheet.
 * Speedbar: (speedbar).         File/Tag summarizing utility.
+* SRecode: (srecode).           Semantic template code generator.
 * Todo Mode: (todo-mode).       Make and maintain todo lists.
 * VIP: (vip).                   An older VI-emulation for Emacs.
 * VIPER: (viper).               A VI-emulation mode for Emacs.
+* Wisent: (wisent).             Semantic Wisent parser development.
 * WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".
 
 Emacs lisp libraries
@@ -97,7 +97,7 @@ Emacs lisp libraries
 * CL: (cl).                     Partial Common Lisp support for Emacs Lisp.
 * D-Bus: (dbus).                Using D-Bus in Emacs.
 * Emacs MIME: (emacs-mime).     Emacs MIME de/composition library.
+* SMTP: (smtpmail).             Emacs library for sending mail via SMTP.
 * URL: (url).                   URL loading package.
 * Widget: (widget).             The "widget" package used by the Emacs
                                   Customization facility.
-* SMTP: (smtpmail).             Emacs library for sending mail via SMTP.
