@@ -1,3 +1,14 @@
+2013-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Add `depth' property to manage ordering.
+	(advice--make): Pay attention to `depth'.
+	(advice--make-1): Don't autoload commands eagerly.
+	* emacs-lisp/elp.el (elp-instrument-function):
+	* emacs-lisp/trace.el (trace-function-internal):
+	* emacs-lisp/debug.el (debug-on-entry): Keep them "first".
+
+	* iswitchb.el (iswitchb-mode): Don't belittle ido.
+
 2013-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (w32-handle-dropped-file):
@@ -15,8 +26,8 @@
 
 2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
-	* progmodes/python.el (python-indent-calculate-indentation): When
-	determining indentation, don't treat "return", "pass", etc., as
+	* progmodes/python.el (python-indent-calculate-indentation):
+	When determining indentation, don't treat "return", "pass", etc., as
 	operators when they are just string constituents.  (Bug#15812)
 
 2013-12-12  Juri Linkov  <juri@jurta.org>
@@ -56,7 +67,7 @@
 2013-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't bother matching
-	comment-start-skip, since it fails when that uses submatch 1 (bug#16041).
+	comment-start-skip, which fails when that uses submatch 1 (bug#16041).
 
 	* emulation/cua-base.el (cua-paste): Add `delete-selection' property
 	instead of deleting the selection "by hand" (bug#16098).
@@ -137,8 +148,8 @@
 
 2013-12-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* emacs-lisp/package.el (package-keyword-button-action): Remove
-	finder.el require dependency.
+	* emacs-lisp/package.el (package-keyword-button-action):
+	Remove finder.el require dependency.
 
 2013-12-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -165,13 +176,13 @@
 
 2013-12-09  Cameron Desautels  <camdez@gmail.com>  (tiny change)
 
-	* progmodes/ruby-mode.el (ruby-forward-string): Document.  Handle
-	caret-delimited strings (Bug#16079).
+	* progmodes/ruby-mode.el (ruby-forward-string): Document.
+	Handle caret-delimited strings (Bug#16079).
 
 2013-12-09  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-accurate-end-of-block): When
-	`ruby-use-smie' is t, use `smie-forward-sexp' instead of
+	* progmodes/ruby-mode.el (ruby-accurate-end-of-block):
+	When `ruby-use-smie' is t, use `smie-forward-sexp' instead of
 	`ruby-parse-partial' (Bug#16078).
 
 2013-12-09  Leo Liu  <sdl.web@gmail.com>
@@ -186,8 +197,8 @@
 	"default" is actually a key in an object literal.
 	(js--same-line): New function.
 	(js--multi-line-declaration-indentation): Use it.
-	(js--indent-in-array-comp, js--array-comp-indentation): New
-	functions.
+	(js--indent-in-array-comp, js--array-comp-indentation):
+	New functions.
 	(js--proper-indentation): Use them, to handle array comprehension
 	continuations.
 

@@ -798,7 +798,8 @@ Redefining FUNCTION also cancels it."
 			 (not (special-form-p symbol))))
 		t nil nil (symbol-name fn)))
      (list (if (equal val "") fn (intern val)))))
-  (advice-add function :before #'debug--implement-debug-on-entry)
+  (advice-add function :before #'debug--implement-debug-on-entry
+              '((depth . -100)))
   function)
 
 (defun debug--function-list ()

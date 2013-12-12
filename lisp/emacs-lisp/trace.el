@@ -256,7 +256,7 @@ be printed along with the arguments in the trace."
    function :around
    (trace-make-advice function (or buffer trace-buffer) background
                       (or context (lambda () "")))
-   `((name . ,trace-advice-name))))
+   `((name . ,trace-advice-name) (depth . -100))))
 
 (defun trace-is-traced (function)
   (advice-member-p trace-advice-name function))
