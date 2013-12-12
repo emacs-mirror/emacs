@@ -272,7 +272,7 @@ EOF
 
     done < $tempfile
 
-    commit "generated" $modified || die "bzr commit error"
+    commit "info/dir" $modified || die "bzr commit error"
 }                               # function info_dir
 
 
