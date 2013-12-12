@@ -1989,7 +1989,7 @@ struct range_table_work_area
 #endif /* emacs */
 
 /* Get the next unsigned number in the uncompiled pattern.  */
-#define GET_UNSIGNED_NUMBER(num)					\
+#define GET_INTERVAL_COUNT(num)					\
   do {									\
     if (p == pend)							\
       FREE_STACK_RETURN (REG_EBRACE);					\
@@ -1998,13 +1998,11 @@ struct range_table_work_area
 	PATFETCH (c);							\
 	while ('0' <= c && c <= '9')					\
 	  {								\
-	    int prev;							\
 	    if (num < 0)						\
 	      num = 0;							\
-	    prev = num;							\
-	    num = num * 10 + c - '0';					\
-	    if (num / 10 != prev)					\
+	    if (RE_DUP_MAX / 10 - (RE_DUP_MAX % 10 < c - '0') < num)	\
 	      FREE_STACK_RETURN (REG_BADBR);				\
+	    num = num * 10 + c - '0';					\
 	    if (p == pend)						\
 	      FREE_STACK_RETURN (REG_EBRACE);				\
 	    PATFETCH (c);						\
@@ -3310,17 +3308,17 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 
 		beg_interval = p;
 
-		GET_UNSIGNED_NUMBER (lower_bound);
+		GET_INTERVAL_COUNT (lower_bound);
 
 		if (c == ',')
-		  GET_UNSIGNED_NUMBER (upper_bound);
+		  {
+		    GET_INTERVAL_COUNT (upper_bound);
+		    if (upper_bound < lower_bound)
+		      FREE_STACK_RETURN (REG_BADBR);
+		  }
 		else
 		  /* Interval such as `{1}' => match exactly once. */
 		  upper_bound = lower_bound;
-
-		if (lower_bound < 0 || upper_bound > RE_DUP_MAX
-		    || (upper_bound >= 0 && lower_bound > upper_bound))
-		  FREE_STACK_RETURN (REG_BADBR);
 
 		if (!(syntax & RE_NO_BK_BRACES))
 		  {
