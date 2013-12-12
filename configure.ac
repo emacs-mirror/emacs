@@ -3106,8 +3106,7 @@ elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
 fi
 AC_SUBST(LIBGIF)
 
-dnl If using X11, warn if image libraries are missing.
-dnl It's not fatal if they're absent, though the UI may suffer.
+dnl Check for required libraries.
 if test "${HAVE_X11}" = "yes"; then
   MISSING=""
   WITH_NO=""
@@ -3123,12 +3122,12 @@ if test "${HAVE_X11}" = "yes"; then
     MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
 
   if test "X${MISSING}" != X; then
-    AC_MSG_WARN([X11 used, but the following libraries were not found:
+    AC_MSG_ERROR([The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
-Emacs will be built without them.  To silence this warning, give
+If you don't want to link with them give
     $WITH_NO
-as options to 'configure'.])
+as options to configure])
   fi
 fi
 
