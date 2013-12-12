@@ -686,6 +686,8 @@ Context information is returned with a cons with the form:
     \(STATUS . START)
 
 Where status can be any of the following symbols:
+
+ * after-comment: When current line might continue a comment block
  * inside-paren: If point in between (), {} or []
  * inside-string: If point is inside a string
  * after-backslash: Previous line ends in a backslash
@@ -704,6 +706,17 @@ START is the buffer position where the sexp starts."
            (goto-char (line-beginning-position))
            (bobp))
          'no-indent)
+        ;; Comment continuation
+        ((save-excursion
+           (when (and
+                  (or
+                   (python-info-current-line-comment-p)
+                   (python-info-current-line-empty-p))
+                  (progn
+                    (forward-comment -1)
+                    (python-info-current-line-comment-p)))
+             (setq start (point))
+             'after-comment)))
         ;; Inside string
         ((setq start (python-syntax-context 'string ppss))
          'inside-string)
@@ -755,6 +768,9 @@ START is the buffer position where the sexp starts."
       (save-excursion
         (pcase context-status
           (`no-indent 0)
+          (`after-comment
+           (goto-char context-start)
+           (current-indentation))
           ;; When point is after beginning of block just add one level
           ;; of indentation relative to the context-start
           (`after-beginning-of-block

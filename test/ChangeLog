@@ -1,3 +1,8 @@
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-after-comment-1)
+	(python-indent-after-comment-2): New tests.
+
 2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
 
 	* automated/python-test.el (python-indent-block-enders-1): Rename

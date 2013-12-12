@@ -199,6 +199,83 @@ foo = long_function_name(
    (should (eq (car (python-indent-context)) 'inside-paren))
    (should (= (python-indent-calculate-indentation) 4))))
 
+(ert-deftest python-indent-after-comment-1 ()
+  "The most simple after-comment case that shouldn't fail."
+  (python-tests-with-temp-buffer
+   "# Contents will be modified to correct indentation
+class Blag(object):
+    def _on_child_complete(self, child_future):
+        if self.in_terminal_state():
+            pass
+        # We only complete when all our async children have entered a
+    # terminal state. At that point, if any child failed, we fail
+# with the exception with which the first child failed.
+"
+   (python-tests-look-at "# We only complete")
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "# terminal state")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "# with the exception")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   ;; This one indents relative to previous block, even given the fact
+   ;; that it was under-indented.
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "# terminal state" -1)
+   ;; It doesn't hurt to check again.
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (python-indent-line)
+   (should (= (current-indentation) 8))
+   (python-tests-look-at "# with the exception")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   ;; Now everything should be lined up.
+   (should (= (python-indent-calculate-indentation) 8))))
+
+(ert-deftest python-indent-after-comment-2 ()
+  "Test after-comment in weird cases."
+  (python-tests-with-temp-buffer
+   "# Contents will be modified to correct indentation
+def func(arg):
+    # I don't do much
+    return arg
+    # This comment is badly indented just because.
+    # But we won't mess with the user in this line.
+
+now_we_do_mess_cause_this_is_not_a_comment = 1
+
+# yeah, that.
+"
+   (python-tests-look-at "# I don't do much")
+   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "return arg")
+   ;; Comment here just gets ignored, this line is not a comment so
+   ;; the rules won't apply here.
+   (should (eq (car (python-indent-context)) 'after-beginning-of-block))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "# This comment is badly")
+   (should (eq (car (python-indent-context)) 'after-line))
+   ;; The return keyword moves indentation backwards 4 spaces, but
+   ;; let's assume this comment was placed there because the user
+   ;; wanted to (manually adding spaces or whatever).
+   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "# but we won't mess")
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (should (= (python-indent-calculate-indentation) 4))
+   ;; Behave the same for blank lines: potentially a comment.
+   (forward-line 1)
+   (should (eq (car (python-indent-context)) 'after-comment))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "now_we_do_mess")
+   ;; Here is where comment indentation starts to get ignored and
+   ;; where the user can't freely indent anymore.
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "# yeah, that.")
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 0))))
+
 (ert-deftest python-indent-inside-paren-1 ()
   "The most simple inside-paren case that shouldn't fail."
   (python-tests-with-temp-buffer
