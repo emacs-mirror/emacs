@@ -461,7 +461,6 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	  beg = res;
 	  p = beg + strlen (beg);
 	  dostounix_filename (beg);
-	  /* FIXME: Figure out the multibyte vs unibyte stuff here.  */
 	  tem_fn = make_specified_string (beg, -1, p - beg,
 					  STRING_MULTIBYTE (filename));
 	}
