@@ -84,7 +84,7 @@ copy and modify this GNU manual.''
 @dircategory @value{emacsname} network features
 @direntry
 * TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
-                                  @value{emacsname} remote file access via rsh and rcp.
+                                  @value{emacsname} remote file access via ssh and scp.
 @end direntry
 
 @titlepage
@@ -239,6 +239,7 @@ How file names, directories and localnames are mangled and managed
 
 @end detailmenu
 @end menu
+
 
 @node Overview
 @chapter An overview of @value{tramp}
@@ -496,6 +497,7 @@ the first release including @value{tramp} was Emacs 22.1.
 @ifset installchapter
 @include trampinst.texi
 @end ifset
+
 
 @node Configuration
 @chapter Configuring @value{tramp} for use
@@ -1005,7 +1007,7 @@ This special method uses the Android Debug Bridge for accessing
 Android devices.  The Android Debug Bridge must be installed locally.
 Some GNU/Linux distributions offer it for installation, otherwise it
 can be installed as part of the Android SDK.  If the @command{adb}
-program is not found via the @code{$PATH} environment variable, the
+program is not found via the @env{PATH} environment variable, the
 variable @var{tramp-adb-program} must point to its absolute path.
 
 Tramp does not connect Android devices to @command{adb}.  This must be
@@ -2083,7 +2085,7 @@ You can instruct @value{tramp} by this form:
 with @samp{192.168.0.26} being the IP address of your Android device
 (@pxref{Predefined connection information}).
 
-The user settings for the @code{$PATH} environment variable must be
+The user settings for the @env{PATH} environment variable must be
 preserved.  It has also been reported, that the commands in
 @file{/system/xbin} are better suited than the ones in
 @file{/system/bin}.  Add these setting:
@@ -2917,6 +2919,13 @@ to send subscription requests to.
 Subscribing to the list is performed via
 @uref{http://lists.gnu.org/mailman/listinfo/tramp-devel/,
 the @value{tramp} Mail Subscription Page}.
+
+@ifset emacs
+@ifset installchapter
+Before sending a bug report, you could check whether @value{tramp}
+works at all.  Run the test suite on your local machine, @ref{Testing}.
+@end ifset
+@end ifset
 
 @findex tramp-bug
 To report a bug in @value{tramp}, you should execute @kbd{M-x
@@ -3917,17 +3926,21 @@ for @value{emacsothername}.
 @end ifset
 @end itemize
 
+
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
 
 @node Function Index
 @unnumbered Function Index
 @printindex fn
 
+
 @node Variable Index
 @unnumbered Variable Index
 @printindex vr
+
 
 @node Concept Index
 @unnumbered Concept Index
