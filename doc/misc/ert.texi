@@ -6,7 +6,7 @@
 
 @dircategory Emacs misc features
 @direntry
-* ERT: (ert).        Emacs Lisp regression testing tool.
+* ERT: (ert).                   Emacs Lisp regression testing tool.
 @end direntry
 
 @copying

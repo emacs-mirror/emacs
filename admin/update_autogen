@@ -51,7 +51,7 @@ cd ../
 usage ()
 {
     cat 1>&2 <<EOF
-Usage: ${PN} [-f] [-c] [-q] [-A dir] [-L] [-C] [-- make-flags]
+Usage: ${PN} [-f] [-c] [-q] [-A dir] [-I] [-L] [-C] [-- make-flags]
 Update some auto-generated files in the Emacs tree.
 By default, only does the versioned loaddefs-like files in lisp/.
 This requires a build.  Passes any non-option args to make (eg -- -j2).
@@ -61,6 +61,7 @@ Options:
     commit them (caution).
 -q: be quiet; only give error messages, not status messages.
 -A: only update autotools files, copying into specified dir.
+-I: also update info/dir.
 -L: also update ldefs-boot.el.
 -C: start from a clean state.  Slower, but more correct.
 EOF
@@ -77,6 +78,7 @@ clean=
 autogendir=                     # was "autogen"
 ldefs_flag=1
 lboot_flag=
+info_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
@@ -103,7 +105,7 @@ tempfile=/tmp/$PN.$$
 trap "rm -f $tempfile 2> /dev/null" EXIT
 
 
-while getopts ":hcfqA:CL" option ; do
+while getopts ":hcfqA:CIL" option ; do
     case $option in
         (h) usage ;;
 
@@ -118,6 +120,8 @@ while getopts ":hcfqA:CL" option ; do
             ;;
 
         (C) clean=1 ;;
+
+        (I) info_flag=1 ;;
 
         (L) lboot_flag=1 ;;
 
@@ -138,7 +142,8 @@ OPTIND=1
 
 echo "Running bzr status..."
 
-bzr status -S ${autogendir:+$sources} ${ldefs_flag:+lisp} >| $tempfile || \
+bzr status -S ${autogendir:+$sources} ${ldefs_flag:+lisp} \
+    ${info_flag:+doc} >| $tempfile || \
     die "bzr status error for input files"
 
 ## The lisp portion could be more permissive, eg only care about .el files.
@@ -207,6 +212,70 @@ commit ()
 }                               # function commit
 
 
+## FIXME use standard tools for this, generate info/dir at build time
+## if needed, stop keeping in the repo.
+info_dir ()
+{
+    local basefile=admin/dir_top outfile=info/dir
+
+    echo "Regenerating info/dir..."
+
+    ## Header contains non-printing characters, so this is more
+    ## reliable than using echo.
+    rm -f $outfile
+    cp $basefile $outfile
+
+    local topic file dircat dirent
+
+    ## FIXME inefficient looping.
+    for topic in "Texinfo documentation system" "Emacs" "GNU Emacs Lisp" \
+        "Emacs editing modes" "Emacs network features" "Emacs misc features" \
+        "Emacs lisp libraries"; do
+
+        cat - <<EOF >> $outfile
+
+$topic
+EOF
+        ## Bit faster than doc/*/*.texi.
+        for file in doc/emacs/emacs.texi doc/lispintro/*.texi \
+            doc/lispref/elisp.texi doc/misc/*.texi; do
+
+            ## FIXME do not ignore w32 if OS is w32.
+            case $file in
+                *-xtra.texi|*efaq-w32.texi) continue ;;
+            esac
+
+            dircat=`sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file`
+
+            ## TODO warn about unknown topics.
+            [ "$dircat" = "$topic" ] || continue
+
+            sed -n -e 's/@value{emacsname}/Emacs/' \
+                -e 's/@acronym{\([A-Z]*\)}/\1/' \
+                -e '/^@direntry/,/^@end direntry/ s/^\([^@]\)/\1/p' \
+                $file >> $outfile
+
+        done
+    done
+
+    bzr status -S $outfile >| $tempfile || \
+        die "bzr status error for generated $outfile"
+
+    local modified
+
+    while read stat file; do
+
+        [ "$stat" != "M" ] && \
+            die "Unexpected status ($stat) for generated $file"
+
+        modified="$modified $file"
+
+    done < $tempfile
+
+    commit "generated" $modified || die "bzr commit error"
+}                               # function info_dir
+
+
 [ "$autogendir" ] && {
 
     oldpwd=$PWD
@@ -237,6 +306,9 @@ commit ()
 
     exit 0
 }                               # $autogendir
+
+
+[ "$info_flag" ] && info_dir
 
 
 [ "$ldefs_flag" ] || exit 0

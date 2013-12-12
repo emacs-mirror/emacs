@@ -98,8 +98,7 @@
 
 @dircategory GNU Emacs Lisp
 @direntry
-* Emacs Lisp Intro: (eintr).
-                          A simple introduction to Emacs Lisp programming.
+* Emacs Lisp Intro: (eintr).    A simple introduction to Emacs Lisp programming.
 @end direntry
 
 @copying

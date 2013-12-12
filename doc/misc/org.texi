@@ -279,7 +279,7 @@ modify this GNU manual.''
 
 @dircategory Emacs editing modes
 @direntry
-* Org Mode: (org).      Outline-based notes management and organizer
+* Org Mode: (org).              Outline-based notes management and organizer.
 @end direntry
 
 @titlepage

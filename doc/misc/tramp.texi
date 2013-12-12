@@ -84,7 +84,7 @@ copy and modify this GNU manual.''
 @dircategory @value{emacsname} network features
 @direntry
 * TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
-                                @value{emacsname} remote file access via rsh and rcp.
+                                  @value{emacsname} remote file access via rsh and rcp.
 @end direntry
 
 @titlepage

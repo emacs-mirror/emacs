@@ -1,3 +1,7 @@
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Sync direntry with info/dir version.
+
 2013-12-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* display.texi (Progress, Face Remapping):

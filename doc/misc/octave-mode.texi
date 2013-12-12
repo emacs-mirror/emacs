@@ -22,7 +22,7 @@ modify this GNU manual.''
 
 @dircategory Emacs editing modes
 @direntry
-* Octave mode: (octave-mode).         Emacs mode for editing GNU Octave files.
+* Octave mode: (octave-mode).   Emacs mode for editing GNU Octave files.
 @end direntry
 
 @finalout

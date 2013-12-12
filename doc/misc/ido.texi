@@ -21,9 +21,9 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
-@dircategory Emacs lisp libraries
+@dircategory Emacs misc features
 @direntry
-* Ido: (ido).                     Interactively do things with buffers and files.
+* Ido: (ido).                   Interactively do things with buffers and files.
 @end direntry
 
 @finalout

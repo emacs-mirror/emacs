@@ -1,3 +1,10 @@
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi, cc-mode.texi, ediff.texi, ert.texi:
+	* htmlfontify.texi, ido.texi, octave-mode.texi, org.texi:
+	* srecode.texi, todo-mode.texi, tramp.texi:
+	Sync direntry with info/dir version.
+
 2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* Makefile.in: Add octave-mode.texi.

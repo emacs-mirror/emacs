@@ -119,7 +119,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory GNU Emacs Lisp
 @direntry
-* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+* Elisp: (elisp).               The Emacs Lisp Reference Manual.
 @end direntry
 
 @titlepage

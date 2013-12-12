@@ -28,8 +28,8 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* Autotype: (autotype).         Convenient features for text that you
-                                  enter frequently in Emacs.
+* Autotype: (autotype).         Convenient features for text that you enter
+                                  frequently in Emacs.
 @end direntry
 
 @titlepage

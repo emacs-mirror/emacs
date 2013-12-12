@@ -1,3 +1,13 @@
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen: Add option to generate info/dir.
+	(Usage): Add -I.
+	(info_flag): New variable.
+	(-I): New option.
+	(doc): Maybe check its status.
+	(info_dir): New function.
+	* dir_top: New file.
+
 2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove the option of using libcrypto.

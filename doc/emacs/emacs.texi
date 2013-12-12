@@ -48,7 +48,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Emacs: (emacs).       The extensible self-documenting text editor.
+* Emacs: (emacs).               The extensible self-documenting text editor.
 @end direntry
 
 @c in general, keep the following line commented out, unless doing a
