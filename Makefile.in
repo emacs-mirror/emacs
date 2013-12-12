@@ -964,10 +964,9 @@ info-dir: ${srcdir}/info/dir
 ## It would be much simpler if info/dir was only created in the
 ## installation location by the install-info rule, but we also
 ## need one in the source directory for people running uninstalled.
-## The dependency on *.texi is not essential, but it keeps
-## this rule from running needlessly when there are no changes.
-${srcdir}/info/dir: ${srcdir}/build-aux/dir_top ${srcdir}/doc/*/*.texi
-	${MAKE} ${MFLAGS} info-real
+## FIXME Change make-info-dir to use texi files rather than info-files,
+## depend on ${srcdir}/doc/*/*.texi here rather than info-real.
+${srcdir}/info/dir: info-real ${srcdir}/build-aux/dir_top
 	tempfile=info-dir.$$$$; \
 	rm -f $${tempfile}; \
 	thisdir=`pwd`; \
