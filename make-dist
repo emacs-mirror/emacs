@@ -340,10 +340,12 @@ echo "Making links to \`leim' and its subdirectories"
  ln Makefile.in ../${tempdir}/leim/Makefile.in
  ln leim-ext.el ../${tempdir}/leim/leim-ext.el)
 
+## FIXME Can we not just use the "find -type f" method for this one?
 echo "Making links to \`build-aux'"
 (cd build-aux
  ln compile config.guess config.sub depcomp msys-to-w32 ../${tempdir}/build-aux
- ln install-sh missing move-if-change update-subdirs ../${tempdir}/build-aux)
+ ln install-sh missing move-if-change update-subdirs ../${tempdir}/build-aux
+ ln dir_top make-info-dir ../${tempdir}/build-aux)
 
 echo "Making links to \`build-aux/snippet'"
 (cd build-aux/snippet

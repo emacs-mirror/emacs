@@ -12,6 +12,8 @@
 	Instead of info/dir entries, check @dircategory in info/*.info.
 	* make-dist: Use `info' rule rather than `info-real'.
 	No more info/COPYING (not even the right license for info/ files).
+	Distribute new build-aux files.
+
 	* info/: Remove from repository.
 
 2013-12-11  Glenn Morris  <rgm@gnu.org>
