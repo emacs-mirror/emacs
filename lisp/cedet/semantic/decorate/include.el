@@ -335,6 +335,9 @@ This mode provides a nice context menu on the include statements."
 (defun semantic-decoration-on-includes-highlight-default (tag)
   "Highlight the include TAG to show that semantic can't find it."
   (let* ((file (semantic-dependency-tag-file tag))
+	 ;; Don't actually load includes
+	 (semanticdb-find-default-throttle
+	  (remq 'unloaded semanticdb-find-default-throttle))
 	 (table (semanticdb-find-table-for-include tag (current-buffer)))
 	 (face nil)
 	 (map nil)
@@ -365,8 +368,8 @@ This mode provides a nice context menu on the include statements."
 	(semanticdb-cache-get
 	 table 'semantic-decoration-unparsed-include-cache)
 	;; Add a dependency.
-	(let ((table semanticdb-current-table))
-	  (semanticdb-add-reference table tag))
+	(let ((currenttable semanticdb-current-table))
+	  (semanticdb-add-reference currenttable tag))
 	)
       ))
 

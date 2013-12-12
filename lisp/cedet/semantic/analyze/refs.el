@@ -118,7 +118,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 		    (semantic-tag-similar-p tag aT
 					    :prototype-flag
 					    :parent
-					    :typemodifiers))
+					    :typemodifiers
+					    :default-value))
 	   (when in-buffer (save-excursion (semantic-go-to-tag aT aDB)))
 	   (push aT impl))))
      allhits)
@@ -141,7 +142,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 		    (semantic-tag-similar-p tag aT
 					    :prototype-flag
 					    :parent
-					    :typemodifiers))
+					    :typemodifiers
+					    :default-value))
 	   (when in-buffer (save-excursion (semantic-go-to-tag aT aDB)))
 	   (push aT proto))))
      allhits)

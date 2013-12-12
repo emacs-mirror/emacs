@@ -901,8 +901,8 @@ varname
 ;; I should store more in this def, but leave it simple for now.
 ;; Klaus Berndl: const and volatile can be written after the type!
 variablearg
-  : declmods typeformbase cv-declmods opt-ref variablearg-opt-name
-    ( VARIABLE-TAG (list $5) $2 nil
+  : declmods typeformbase cv-declmods opt-ref variablearg-opt-name opt-assign
+    ( VARIABLE-TAG (list (append $5 ,$6)) $2 nil
                    :constant-flag (if (member "const" (append $1 $3)) t nil)
                    :typemodifiers (delete "const" (append $1 $3))
                    :reference (car ,$4)
@@ -912,6 +912,8 @@ variablearg
 variablearg-opt-name
   : varname
     ( ,$1 )
+  | semantic-list arg-list
+    ( (car ( EXPAND $1 function-pointer )) $2)
  ;; Klaus Berndl: This allows variableargs without a arg-name being
  ;; parsed correct even if there several pointers (*)
   | opt-stars
@@ -926,9 +928,9 @@ varname-opt-initializer
 
 varnamelist
   : opt-ref varname varname-opt-initializer COMA varnamelist
-    ( ,(cons $2 $5) )
+    ( ,(cons (append $2 $3) $5) )
   | opt-ref varname varname-opt-initializer
-    ( $2 )
+    ( (append $2 $3) )
   ;
 
 ;; Klaus Berndl: Is necessary to parse stuff like
@@ -1152,16 +1154,15 @@ type-cast-list
   : open-paren typeformbase close-paren
   ;
 
-opt-stuff-after-symbol
+brackets-after-symbol
   : PAREN_BLCK
   | BRACK_BLCK
-  | ;; EMPTY
   ;
 
 multi-stage-dereference
-  : namespace-symbol opt-stuff-after-symbol PERIOD multi-stage-dereference ;; method call
-  | namespace-symbol opt-stuff-after-symbol MINUS GREATER multi-stage-dereference ;;method call
-  | namespace-symbol opt-stuff-after-symbol
+  : namespace-symbol brackets-after-symbol PERIOD multi-stage-dereference ;; method call
+  | namespace-symbol brackets-after-symbol MINUS GREATER multi-stage-dereference ;;method call
+  | namespace-symbol brackets-after-symbol
   ;
 
 string-seq
@@ -1187,6 +1188,7 @@ expr-binop
   | AMPERSAND
   | OR OR
   | OR
+  | MOD
  ;; There are more.
   ;
 
@@ -1204,8 +1206,7 @@ unaryexpression
   | multi-stage-dereference
   | NEW multi-stage-dereference
   | NEW builtintype-types semantic-list
- ;; Klaus Berndl: symbol -> namespace-symbol!
-  | namespace-symbol
+  | symbol
  ;; Klaus Berndl: C/C++ allows sequences of strings which are
  ;; concatenated by the precompiler to one string
   | string-seq

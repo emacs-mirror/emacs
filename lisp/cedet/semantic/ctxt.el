@@ -168,8 +168,7 @@ Uses the bovinator with the special top-symbol `bovine-inner-scope'
 to collect tags, such as local variables or prototypes."
   ;; This assumes a bovine parser.  Make sure we don't do
   ;; anything in that case.
-  (when (and semantic--parse-table (not (eq semantic--parse-table t))
-	     (not (semantic-parse-tree-unparseable-p)))
+  (when (and semantic--parse-table (not (eq semantic--parse-table t)))
     (let ((vars (semantic-get-cache-data 'get-local-variables)))
       (if vars
 	  (progn

@@ -275,7 +275,13 @@ minor mode is enabled."
                   'semantic-decorate-tags-after-full-reparse nil t)
         ;; Add decorations to available tags.  The above hooks ensure
         ;; that new tags will be decorated when they become available.
-        (semantic-decorate-add-decorations (semantic-fetch-available-tags)))
+        ;; However, don't do this immediately, because EDE will be
+        ;; activated later by find-file-hook, and includes might not
+        ;; be found yet.
+	(run-with-idle-timer
+	 0.1 nil
+	 (lambda ()
+	   (semantic-decorate-add-decorations (semantic-fetch-available-tags)))))
     ;; Remove decorations from available tags.
     (semantic-decorate-clear-decorations (semantic-fetch-available-tags))
     ;; Cleanup any leftover crap too.
