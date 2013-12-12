@@ -82,7 +82,7 @@ etc/emacs.tmpdesktop
 !etc/refcards/Makefile
 etc/refcards/*.aux
 etc/refcards/*.log
-# FIXME this ignore info and everything in it.
+# FIXME this ignores info and everything in it.
 # It would be better to only ignore:
 # info/ (i.e., just the directory) and info/*.info.
 info/
