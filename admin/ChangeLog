@@ -1,3 +1,18 @@
+2013-12-12  David Engster  <deng@randomsample.de>
+
+	* grammars/c.by (expr-binop): Add MOD.
+	(variablearg): Add 'opt-assign'.
+	(variablearg, varnamelist): Add default values so that it can be
+	later expanded into the tag.
+	(opt-stuff-after-symbol): Rename to 'brackets-after-symbol' and
+	remove empty match.
+	(multi-stage-dereference): Adapt to above rename.
+	(unaryexpression): Use 'symbol' instead of 'namespace-symbol',
+	since the latter also leads to an empty match at the end which
+	would make this too greedy.
+	(variablearg-opt-name): Support parsing of function pointers
+	inside an argument list.
+
 2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove the option of using libcrypto.

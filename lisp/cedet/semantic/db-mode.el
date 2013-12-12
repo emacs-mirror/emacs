@@ -105,7 +105,8 @@ Sets up the semanticdb environment."
       (oset ctbl major-mode major-mode)
       ;; Local state
       (setq semanticdb-current-table ctbl)
-      ;; Try to swap in saved tags
+      (oset ctbl buffer (current-buffer))
+        ;; Try to swap in saved tags
       (if (or (not (slot-boundp ctbl 'tags)) (not (oref ctbl tags))
 	      (/= (or (oref ctbl pointmax) 0) (point-max))
 	      )
@@ -133,7 +134,6 @@ Sets up the semanticdb environment."
 	(semantic--set-buffer-cache (oref ctbl tags))
 	;; Don't need it to be dirty.  Set dirty due to hooks from above.
 	(oset ctbl dirty nil) ;; Special case here.
-	(oset ctbl buffer (current-buffer))
 	;; Bind into the buffer.
 	(semantic--tag-link-cache-to-buffer)
 	)

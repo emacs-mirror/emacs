@@ -1,3 +1,128 @@
+2013-12-12  David Engster  <deng@randomsample.de>
+
+	* semantic/analyze.el
+	(semantic-analyze-find-tag-sequence-default): Always add scope to
+	the local miniscope for each type.  Otherwise, structure tags are
+	not analyzed correctly.  Also, always search the extended
+	miniscope even when not dealing with types.
+
+	* semantic/ctxt.el (semantic-get-local-variables-default): Also
+	try to parse local variables for buffers which are currently
+	marked as unparseable.  Otherwise, it is often impossible to
+	complete local variables.
+
+	* semantic/scope.el (semantic-analyze-scoped-types-default): If we
+	cannot find a type in the typecache, also look into the the types
+	we already found.  This is necessary since in C++, a 'using
+	namespace' can be dependend on a previous one.
+	(semantic-completable-tags-from-type): When creating the list of
+	completable types, pull in types which are referenced through
+	'using' statements, and also preserve their filenames.
+
+	* semanitc/bovine/c.el (semantic/analyze/refs): Require.
+	(semantic-analyze-tag-references): New override.  Mainly copied
+	from the default implementation, but if nothing could be found (or
+	just the tag itself), drop all namespaces from the scope and
+	search again.  This is necessary for implementations which are
+	defined outside of the namespace and only pull those in through
+	'using' statements.
+	(semantic-ctxt-scoped-types): Go through all tags around point and
+	search them for using statements.  In the case for using
+	statements outside of function scope, append them in the correct
+	order instead of using 'cons'.  This is important since using
+	statements may depend on previous ones.
+	(semantic-expand-c-tag-namelist): Do not try to parse struct
+	definitions as default values.  The grammar parser seems to return
+	the point positions slightly differently (as a cons instead of a
+	list).  Also, set parent for typedefs to 'nil'.  It does not
+	really make sense to set a parent class for typedefs, and it can
+	also lead to endless loops when calculating scope.
+	(semantic-c-reconstitute-token): Change handling of function
+	pointers; instead of seeing them as variables, handle them as
+	functions with a 'function-pointer' attribute.  Also, correctly
+	deal with function pointers as function arguments.
+	(semantic-c-reconstitute-function-arglist): New function to parse
+	function pointers inside an argument list.
+	(semantic-format-tag-name): Use 'function-pointer' attribute
+	instead of the old 'functionpointer-flag'.
+	(semantic-cpp-lexer): Use new `semantic-lex-spp-paren-or-list'.
+
+	* semantic/bovine/gcc.el (semantic-gcc-setup): Add 'features.h' to
+	the list of files whose preprocessor symbols are included.  This
+	pulls in things like __USE_POSIX and similar.
+
+	* semantic/format.el (semantic-format-tag-prototype-default):
+	Display default values if available.
+
+	* semantic/analyze/refs.el (semantic-analyze-refs-impl)
+	(semantic-analyze-refs-proto): Add 'default-value' as ignorable in
+	call to `semantic-tag-similar-p'.
+
+	* semantic/db-mode.el (semanticdb-semantic-init-hook-fcn): Always
+	set buffer for `semanticdb-current-table'.
+
+	* semantic/db.el (semanticdb-table::semanticdb-refresh-table): The
+	previous change turned up a bug in this method.  Since the current
+	table now correctly has a buffer set, the first clause in the
+	`cond' would be taken, but there was a `save-excursion' missing.
+
+	* semantic/lex-spp.el (semantic-c-end-of-macro): Declare.
+	(semantic-lex-spp-token-macro-to-macro-stream): Deal with macros
+	which open/close a scope.  For this, leave an overlay if we
+	encounter a single open paren and return a semantic-list in the
+	lexer.  When this list gets expanded, retrieve the old position
+	from the overlay.  See the comments in the function for further
+	details.
+	(semantic-lex-spp-find-closing-macro): New function to find the
+	next macro which closes scope (i.e., has a closing paren).
+	(semantic-lex-spp-replace-or-symbol-or-keyword): Go to end of
+	closing macro if necessary.
+	(semantic-lex-spp-paren-or-list): New lexer to specially deal with
+	parens in macro definitions.
+
+	* semantic/decorate/mode.el (semantic-decoration-mode): Do not
+	decorate available tags immediately but in an idle timer, since
+	EDE will usually not be activated yet, which will make it
+	impossible to find project includes.
+
+	* semantic/decorate/include.el
+	(semantic-decoration-on-includes-highlight-default): Remove
+	'unloaded' from throttle when decorating includes, otherwise all
+	would be loaded.  Rename 'table' to 'currenttable' to make things
+	clearer.
+
+	* ede/linux.el (cl): Require during compile.
+
+2013-12-12  Lluís Vilanova  <xscript@gmx.net>
+
+	* ede/linux.el (project-linux-build-directory-default)
+	(project-linux-architecture-default): Add customizable variables.
+	(ede-linux-project): Add additional slots to track Linux-specific
+	information (out-of-tree build directory and selected
+	architecture).
+	(ede-linux--get-build-directory, ede-linux--get-archs)
+	(ede-linux--detect-architecture, ede-linux--get-architecture)
+	(ede-linux--include-path): Added function to detect Linux-specific
+	information.
+	(ede-linux-load): Set new Linux-specific information when creating
+	a project.
+	(ede-expand-filename-impl): Use new and more accurate include
+	information.
+
+2013-12-12  Eric Ludlam  <zappo@gnu.org>
+
+	* semantic/scope.el (semantic-calculate-scope): Return a clone of
+	the scopecache, so that everyone is working with its own (shallow)
+	copy.  Otherwise, if one caller is resetting the scope, it would
+	be reset for all others working with the scope cache as well.
+
+2013-12-12  Alex Ott  <alexott@gmail.com>
+
+	* ede/generic.el (project-run-target): Remove incorrect require.
+
+	* semantic/format.el (semantic-format-tag-prototype-default): Use
+	concat only for strings.
+
 2013-11-30  Glenn Morris  <rgm@gnu.org>
 
 	Stop keeping (most) generated cedet grammar files in the repository.
