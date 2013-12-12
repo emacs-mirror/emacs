@@ -205,7 +205,7 @@ Czech typography rules.  To globally enable this feature, evaluate:
 
 ** `electric-indent-mode' is enabled by default.
 
-** Uniquify is enabled by default.
+** Uniquify is enabled by default with post-forward-angle-brackets style.
 
 ** Command `rectangle-mark-mode' bound to C-x SPC makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.

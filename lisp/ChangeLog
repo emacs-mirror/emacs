@@ -1,3 +1,11 @@
+2013-12-12  Juri Linkov  <juri@jurta.org>
+
+	* uniquify.el (uniquify-buffer-name-style): Change default to
+	`post-forward-angle-brackets'.
+
+	* menu-bar.el (menu-bar-options-menu): Don't require preloaded
+	`uniquify'.  Change default to `post-forward-angle-brackets'.
+
 2013-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (finder-list-matches):

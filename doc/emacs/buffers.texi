@@ -614,8 +614,7 @@ names (all but one of them).
 
 @vindex uniquify-buffer-name-style
   Other methods work by adding parts of each file's directory to the
-buffer name.  To select one, load the library @file{uniquify} (e.g.,
-using @code{(require 'uniquify)}), and customize the variable
+buffer name.  To select one, customize the variable
 @code{uniquify-buffer-name-style} (@pxref{Easy Customization}).
 
   To begin with, the @code{forward} naming method includes part of the
