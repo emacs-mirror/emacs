@@ -1954,7 +1954,6 @@ int poll_suppress_count;
 
 static struct atimer *poll_timer;
 
-#ifdef HAVE_NTGUI
 /* Poll for input, so that we catch a C-g if it comes in.  */
 void
 poll_for_input_1 (void)
@@ -1963,7 +1962,6 @@ poll_for_input_1 (void)
       && !waiting_for_input)
     gobble_input ();
 }
-#endif
 
 /* Timer callback function for poll_timer.  TIMER is equal to
    poll_timer.  */
@@ -2015,8 +2013,6 @@ start_polling (void)
 #endif
 }
 
-#ifdef HAVE_NTGUI
-
 /* True if we are using polling to handle input asynchronously.  */
 
 bool
@@ -2031,7 +2027,6 @@ input_polling_used (void)
   return 0;
 #endif
 }
-#endif
 
 /* Turn off polling.  */
 

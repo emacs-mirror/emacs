@@ -8923,6 +8923,27 @@ x_make_frame_visible (struct frame *f)
       {
 	/* Force processing of queued events.  */
 	x_sync (f);
+
+	/* This hack is still in use at least for Cygwin.  See
+	   http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
+
+	   Machines that do polling rather than SIGIO have been
+	   observed to go into a busy-wait here.  So we'll fake an
+	   alarm signal to let the handler know that there's something
+	   to be read.  We used to raise a real alarm, but it seems
+	   that the handler isn't always enabled here.  This is
+	   probably a bug.  */
+	if (input_polling_used ())
+	  {
+	    /* It could be confusing if a real alarm arrives while
+	       processing the fake one.  Turn it off and let the
+	       handler reset it.  */
+	    int old_poll_suppress_count = poll_suppress_count;
+	    poll_suppress_count = 1;
+	    poll_for_input_1 ();
+	    poll_suppress_count = old_poll_suppress_count;
+	  }
+
 	if (XPending (FRAME_X_DISPLAY (f)))
 	  {
 	    XEvent xev;
