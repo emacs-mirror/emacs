@@ -1,3 +1,7 @@
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Tweak dircategory.
+
 2013-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Encoding and I/O): Document file-name encoding

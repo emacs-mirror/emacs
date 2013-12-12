@@ -60,7 +60,13 @@ cp $basefile $outfile
 
 
 ## FIXME inefficient looping.
-for topic in "Texinfo documentation system" "Emacs" "GNU Emacs Lisp" \
+## What we should do is loop once over files, collecting topic and
+## direntry information for each.  Then loop over topics and write
+## out the results.  But that seems to require associative arrays,
+## and I do not know how to do that with portable sh.
+## Could use Emacs instead of sh, but till now info generation does
+## not require Emacs to have been built.
+for topic in "Texinfo documentation system" "Emacs" "Emacs lisp" \
     "Emacs editing modes" "Emacs network features" "Emacs misc features" \
     "Emacs lisp libraries"; do
 
@@ -68,19 +74,25 @@ for topic in "Texinfo documentation system" "Emacs" "GNU Emacs Lisp" \
 
 $topic
 EOF
-    for file in info/*.info; do
+    ## Bit faster than doc/*/*.texi.
+    for file in doc/emacs/emacs.texi doc/lispintro/emacs-lisp-intro.texi \
+        doc/lispref/elisp.texi doc/misc/*.texi; do
 
         ## FIXME do not ignore w32 if OS is w32.
         case $file in
-            *-xtra.info|*efaq-w32.info) continue ;;
+            *-xtra.texi|*efaq-w32.texi|*doclicense.texi) continue ;;
         esac
 
-        dircat=`sed -n -e 's/^INFO-DIR-SECTION //p' $file`
+        dircat=`sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file`
 
         ## TODO warn about unknown topics.
+        ## (check-info in top-level Makefile does that.)
         test "$dircat" = "$topic" || continue
 
-        sed -n -e '/^START-INFO-DIR-ENTRY/,/^END-INFO-DIR-ENTRY/ s/^\([^SE]\)/\1/p' \
+
+        sed -n -e 's/@value{emacsname}/Emacs/' \
+            -e 's/@acronym{\([A-Z]*\)}/\1/' \
+            -e '/^@direntry/,/^@end direntry/ s/^\([^@]\)/\1/p' \
             $file >> $outfile
 
     done

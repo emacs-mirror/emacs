@@ -1,5 +1,12 @@
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-info): Handle missing info/dir.
+	(info_dir_deps): New variable.
+	(${srcdir}/info/dir): Depend on .texi files rather than .info files.
+	(check-info): Update topics.
+	* build-aux/make-info-dir: Use .texi files rather than .info files.
+	Update topics.
+
 	* Makefile.in (install-info): Remove some useless subshells.
 
 	Stop keeping info/dir in the repository.

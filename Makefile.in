@@ -643,6 +643,9 @@ install-etcdoc: src install-arch-indep
 ## If info/dir is missing, but we have install-info, we should let
 ## that handle it.  If info/dir is present and we do not have install-info,
 ## we should check for missing entries and add them by hand.
+##
+## FIXME:
+## If HAVE_MAKEINFO = no and there are no info files, do not install info/dir.
 install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
@@ -652,6 +655,7 @@ install-info: info
 	  true; \
 	else \
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
+	      [ ! -f ${srcdir}/info/dir ] || \
 	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
 	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
 	   cd ${srcdir}/info ; \
@@ -961,12 +965,21 @@ ps: $(PSS)
 
 info-dir: ${srcdir}/info/dir
 
+## Not strictly necessary, but speeds things up a bit by stopping
+## the info-dir rule from running when not needed.
+## Hopefully doc/misc/*.texi is not too long for some systems?
+info_dir_deps = ${srcdir}/build-aux/dir_top \
+	${srcdir}/doc/emacs/emacs.texi \
+	${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
+	${srcdir}/doc/lispref/elisp.texi ${srcdir}/doc/misc/*.texi
+
 ## It would be much simpler if info/dir was only created in the
 ## installation location by the install-info rule, but we also
 ## need one in the source directory for people running uninstalled.
-## FIXME Change make-info-dir to use texi files rather than info-files,
-## depend on ${srcdir}/doc/*/*.texi here rather than info-real.
-${srcdir}/info/dir: info-real ${srcdir}/build-aux/dir_top
+## FIXME it would be faster to use the install-info program if we have it,
+## but then we would need to depend on info-real, which would
+## slow down parallelization.
+${srcdir}/info/dir: ${info_dir_deps}
 	tempfile=info-dir.$$$$; \
 	rm -f $${tempfile}; \
 	thisdir=`pwd`; \
@@ -1051,7 +1064,7 @@ check-info: info
 	  esac ; \
 	  cat=`sed -n 's/^INFO-DIR-SECTION //p' $${file}`; \
 	  case $${cat} in \
-	   "Texinfo documentation system" | "Emacs"| "GNU Emacs Lisp" | \
+	   "Texinfo documentation system" | "Emacs"| "Emacs lisp" | \
            "Emacs editing modes" | "Emacs network features" | \
 	   "Emacs misc features" | "Emacs lisp libraries" ) : ;; \
 	   *)  bad="$${bad} $${file}" ;; \

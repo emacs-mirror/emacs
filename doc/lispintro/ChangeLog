@@ -1,5 +1,7 @@
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp-intro.texi: Tweak dircategory.
+
 	* emacs-lisp-intro.texi: Sync direntry with info/dir version.
 
 2013-12-02  Paul Eggert  <eggert@cs.ucla.edu>

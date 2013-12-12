@@ -117,7 +117,7 @@ developing GNU and promoting software freedom.''
 
 @documentencoding UTF-8
 
-@dircategory GNU Emacs Lisp
+@dircategory Emacs lisp
 @direntry
 * Elisp: (elisp).               The Emacs Lisp Reference Manual.
 @end direntry
