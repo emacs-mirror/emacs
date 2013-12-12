@@ -1,3 +1,9 @@
+2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
+
+	* automated/python-test.el (python-indent-block-enders-1): Rename
+	from python-indent-block-enders.
+	(python-indent-block-enders-2): New test.
+
 2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/js.js: New file.

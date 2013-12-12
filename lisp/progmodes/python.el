@@ -774,7 +774,7 @@ START is the buffer position where the sexp starts."
                     (save-excursion
                       (python-util-forward-comment -1)
                       (python-nav-beginning-of-statement)
-                      (member (current-word) python-indent-block-enders)))
+                      (looking-at (regexp-opt python-indent-block-enders))))
                 python-indent-offset
               0)))
           ;; When inside of a string, do nothing. just use the current

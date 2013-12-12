@@ -1,3 +1,9 @@
+2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
+
+	* progmodes/python.el (python-indent-calculate-indentation): When
+	determining indentation, don't treat "return", "pass", etc., as
+	operators when they are just string constituents.  (Bug#15812)
+
 2013-12-12  Juri Linkov  <juri@jurta.org>
 
 	* uniquify.el (uniquify-buffer-name-style): Change default to

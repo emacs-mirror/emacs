@@ -447,7 +447,7 @@ objects = Thing.objects.all() \\\\
    (should (eq (car (python-indent-context)) 'after-line))
    (should (= (python-indent-calculate-indentation) 0))))
 
-(ert-deftest python-indent-block-enders ()
+(ert-deftest python-indent-block-enders-1 ()
   "Test `python-indent-block-enders' value honoring."
   (python-tests-with-temp-buffer
    "
@@ -467,6 +467,27 @@ Class foo(object):
    (should (= (python-indent-calculate-indentation) 8))
    (python-tests-look-at "pass")
    (forward-line 1)
+   (should (= (python-indent-calculate-indentation) 8))))
+
+(ert-deftest python-indent-block-enders-2 ()
+  "Test `python-indent-block-enders' value honoring."
+  (python-tests-with-temp-buffer
+   "
+Class foo(object):
+    '''raise lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+
+    eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    '''
+    def bar(self):
+        \"return (1, 2, 3).\"
+        if self.baz:
+            return (1,
+                    2,
+                    3)
+"
+   (python-tests-look-at "def")
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "if")
    (should (= (python-indent-calculate-indentation) 8))))
 
 
