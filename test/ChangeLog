@@ -621,7 +621,7 @@
 	* automated/add-log-tests.el, automated/advice-tests.el:
 	* automated/imenu-test.el, automated/package-x-test.el:
 	* automated/python-tests.el, automated/ruby-mode-tests.el:
-	* automated/xml-parse-tests.el: Explictly require ert.
+	* automated/xml-parse-tests.el: Explicitly require ert.
 
 2013-07-08  Kenichi Handa  <handa@gnu.org>
 

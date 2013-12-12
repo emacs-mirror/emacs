@@ -1344,7 +1344,7 @@ w32_valid_pointer_p (void *p, int size)
 
      More generally, passing to library functions (e.g., fopen or
      opendir) file names already encoded in the ANSI codepage is
-     explictly *verboten*, as all those functions, as shadowed and
+     explicitly *verboten*, as all those functions, as shadowed and
      emulated here, assume they will receive UTF-8 encoded file names.
 
      For the same reasons, no CRT function or Win32 API can be called
@@ -1371,7 +1371,7 @@ w32_valid_pointer_p (void *p, int size)
    . Running subprocesses in non-ASCII directories and with non-ASCII
      file arguments is limited to the current codepage (even though
      Emacs is perfectly capable of finding an executable program file
-     even in a directory whose name cannot be encoded in the curreent
+     even in a directory whose name cannot be encoded in the current
      codepage).  This is because the command-line arguments are
      encoded _before_ they get to the w32-specific level, and the
      encoding is not known in advance (it doesn't have to be the
@@ -4887,7 +4887,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	      && !(is_a_symlink && follow_symlinks)
 	      /* The 2 file-name comparisons below support only ASCII
 		 characters, and will lose (compare not equal) when
-		 the file names include non-ASCII charcaters that are
+		 the file names include non-ASCII characters that are
 		 the same but for the case.  However, doing this
 		 properly involves: (a) converting both file names to
 		 UTF-16, (b) lower-casing both names using CharLowerW,
@@ -4921,7 +4921,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 		  /* If NAME includes characters not representable by
 		     the current ANSI codepage, filename_to_ansi
 		     usually replaces them with a '?'.  We don't want
-		     to let FindFirstFileA interpret those as widlcards,
+		     to let FindFirstFileA interpret those as wildcards,
 		     and "succeed", returning us data from some random
 		     file in the same directory.  */
 		  if (_mbspbrk (name_a, "?"))
