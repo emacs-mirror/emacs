@@ -805,6 +805,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
       return Qnil; /* FIXME: other terms do, but return Qnil causes segfault */
     }
 
+  font->frame = f;
   font_info->glyphs = xzalloc (0x100 * sizeof *font_info->glyphs);
   font_info->metrics = xzalloc (0x100 * sizeof *font_info->metrics);
 

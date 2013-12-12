@@ -173,6 +173,9 @@ font_make_entity (void)
        allocate_pseudovector (VECSIZE (struct font_entity),
 			      FONT_ENTITY_MAX, PVEC_FONT));
   XSETFONT (font_entity, entity);
+#ifdef HAVE_NS
+  entity->driver = NULL;
+#endif
   return font_entity;
 }
 
@@ -2881,10 +2884,10 @@ font_open_entity (struct frame *f, Lisp_Object entity, int pixel_size)
 }
 
 
-/* Close FONT_OBJECT that is opened on frame F.  */
+/* Close FONT_OBJECT.  */
 
-static void
-font_close_object (struct frame *f, Lisp_Object font_object)
+void
+font_close_object (Lisp_Object font_object)
 {
   struct font *font = XFONT_OBJECT (font_object);
 
@@ -2894,8 +2897,9 @@ font_close_object (struct frame *f, Lisp_Object font_object)
   FONT_ADD_LOG ("close", font_object, Qnil);
   font->driver->close (font);
 #ifdef HAVE_WINDOW_SYSTEM
-  eassert (FRAME_DISPLAY_INFO (f)->n_fonts);
-  FRAME_DISPLAY_INFO (f)->n_fonts--;
+  eassert (font->frame);
+  eassert (FRAME_DISPLAY_INFO (font->frame)->n_fonts);
+  FRAME_DISPLAY_INFO (font->frame)->n_fonts--;
 #endif
 }
 
@@ -4548,11 +4552,11 @@ DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
 }
 
 DEFUN ("close-font", Fclose_font, Sclose_font, 1, 2, 0,
-       doc: /* Close FONT-OBJECT.  */)
+       doc: /* Close FONT-OBJECT.  Optional FRAME is unused.  */)
   (Lisp_Object font_object, Lisp_Object frame)
 {
   CHECK_FONT_OBJECT (font_object);
-  font_close_object (decode_live_frame (frame), font_object);
+  font_close_object (font_object);
   return Qnil;
 }
 
@@ -4887,7 +4891,7 @@ If the named font is not yet loaded, return nil.  */)
   /* As font_object is still in FONT_OBJLIST of the entity, we can't
      close it now.  Perhaps, we should manage font-objects
      by `reference-count'.  */
-  font_close_object (f, font_object);
+  font_close_object (font_object);
 #endif
   return info;
 }

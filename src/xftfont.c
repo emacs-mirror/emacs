@@ -365,6 +365,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   ASET (font_object, FONT_FORMAT_INDEX,
 	ftfont_font_format (xftfont->pattern, filename));
   font = XFONT_OBJECT (font_object);
+  font->frame = f;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
   font->encoding_charset = font->repertory_charset = -1;

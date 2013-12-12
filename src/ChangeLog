@@ -1,5 +1,29 @@
 2013-12-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* font.h (struct font_entity) [HAVE_NS]: New field to record
+	font driver which was used to create this entity.
+	(struct font) [HAVE_WINDOW_SYSTEM]: New field to record
+	frame where the font was opened.
+	(font_close_object): Add prototype.
+	* font.c (font_make_entity) [HAVE_NS]: Zero out driver field.
+	(font_close_object): Not static any more.  Lost frame arg.
+	Adjust comment and users.
+	* alloc.c (cleanup_vector): Call font_close_object to adjust
+	per-frame font counters correctly.  If HAVE_NS, also call
+	driver-specific cleanup for font-entity objects.
+	* ftfont.c (ftfont_open):
+	* nsfont.m (nsfont_open):
+	* w32font.c (w32font_open_internal):
+	* xfont.c (xfont_open):
+	* xftfont.c (xftfont_open): Save frame pointer in font object.
+	* macfont.m (macfont_open): Likewise.
+	(macfont_descriptor_entity): Save driver pointer to be able
+	to call its free_entity routine when font-entity is swept.
+	* ftxfont.c (ftxfont_open): Add eassert because frame
+	pointer should be saved by ftfont_driver.open.
+
+2013-12-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.c (x_make_frame_visible): Restore hack which is needed when
 	input polling is used.  This is still meaningful for Cygwin, see
 	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.

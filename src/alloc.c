@@ -2874,10 +2874,22 @@ vector_nbytes (struct Lisp_Vector *v)
 static void
 cleanup_vector (struct Lisp_Vector *vector)
 {
-  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT)
-      && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
-	  == FONT_OBJECT_MAX))
-    ((struct font *) vector)->driver->close ((struct font *) vector);
+  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT))
+    {
+      ptrdiff_t size = vector->header.size & PSEUDOVECTOR_SIZE_MASK;
+      Lisp_Object obj = make_lisp_ptr (vector, Lisp_Vectorlike);
+
+      if (size == FONT_OBJECT_MAX)
+	font_close_object (obj);
+#ifdef HAVE_NS
+      else if (size == FONT_ENTITY_MAX)
+	{
+	  struct font_entity *entity = (struct font_entity *) vector;
+	  if (entity->driver && entity->driver->free_entity)
+	    entity->driver->free_entity (obj);
+	}
+#endif /* HAVE_NS */
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */

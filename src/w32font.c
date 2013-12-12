@@ -999,6 +999,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
 	= DECODE_SYSTEM (build_string (logfont.lfFaceName));
   }
 
+  font->frame = f;
   font->max_width = w32_font->metrics.tmMaxCharWidth;
   /* Parts of Emacs display assume that height = ascent + descent...
      so height is defined later, after ascent and descent.

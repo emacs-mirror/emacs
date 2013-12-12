@@ -882,6 +882,7 @@ macfont_descriptor_entity (FontDescriptorRef desc, Lisp_Object extra,
   CFStringRef name;
 
   entity = font_make_entity ();
+  XFONT_ENTITY (entity)->driver = &macfont_driver;
 
   ASET (entity, FONT_TYPE_INDEX, macfont_driver.type);
   ASET (entity, FONT_REGISTRY_INDEX, Qiso10646_1);
@@ -2491,6 +2492,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
     ASET (font_object, FONT_FULLNAME_INDEX,
 	  AREF (font_object, FONT_NAME_INDEX));
   font = XFONT_OBJECT (font_object);
+  font->frame = f;
   font->pixel_size = size;
   font->driver = &macfont_driver;
   font->encoding_charset = font->repertory_charset = -1;
