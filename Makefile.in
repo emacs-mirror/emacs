@@ -651,10 +651,8 @@ install-info: info
 	if [ "`cd ${srcdir}/info && /bin/pwd`" = "$$exp_infodir" ]; then \
 	  true; \
 	else \
-	  (cd "$(DESTDIR)${infodir}"; \
-	   [ -f dir ] || \
-	     (cd "$${thisdir}"; \
-	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir") ); \
+	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
+	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
 	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \

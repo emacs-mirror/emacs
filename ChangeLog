@@ -1,5 +1,7 @@
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-info): Remove some useless subshells.
+
 	Stop keeping info/dir in the repository.
 	* build-aux/dir_top: Move here from admin/.
 	* build-aux/make-info-dir: New script.
