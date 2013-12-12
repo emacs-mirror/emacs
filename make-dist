@@ -251,7 +251,7 @@ if [ $update = yes ]; then
   echo timestamp > src/stamp-h.in
 
   echo "Updating Info files"
-  make info-real
+  make info
 
   echo "Updating finder, custom and autoload data"
   (cd lisp && make updates EMACS="$EMACS")
@@ -505,7 +505,7 @@ echo "Making links to \`doc/man'"
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
 echo "Making sure copying notices are all copies of \`COPYING'"
-for subdir in . etc info leim lib lib-src lisp lwlib msdos nt src; do
+for subdir in . etc leim lib lib-src lisp lwlib msdos nt src; do
   rm -f ${tempdir}/${subdir}/COPYING
   cp COPYING ${tempdir}/${subdir}
 done

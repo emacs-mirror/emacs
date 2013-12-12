@@ -143,8 +143,7 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
-## This seems pointless.  The info/ directory exists in both the
-## repository and the release tarfiles.
+## The info/ directory exists in release tarfiles but not the repository.
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
 .PHONY: info dvi html pdf ps

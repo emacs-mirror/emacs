@@ -639,6 +639,10 @@ install-etcdoc: src install-arch-indep
 	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
 	else true; fi
 
+## FIXME:
+## If info/dir is missing, but we have install-info, we should let
+## that handle it.  If info/dir is present and we do not have install-info,
+## we should check for missing entries and add them by hand.
 install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
@@ -883,6 +887,7 @@ bootstrap-clean: FRC
 	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) bootstrap-clean); \
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
+	rm -rf ${srcdir}/info
 	${top_bootclean}
 
 ### `maintainer-clean'
@@ -946,7 +951,7 @@ $(DOCS):
 	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check html info-real force-info check-info-dir
+.PHONY: info dvi dist check html info-real info-dir force-info check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
@@ -956,6 +961,20 @@ info-real: $(INFOS)
 pdf: $(PDFS)
 ps: $(PSS)
 
+info-dir: ${srcdir}/info/dir
+
+## It would be much simpler if info/dir was only created in the
+## installation location by the install-info rule, but we also
+## need one in the source directory for people running uninstalled.
+## The dependency on *.texi is not essential, but it keeps
+## this rule from running needlessly when there are no changes.
+${srcdir}/info/dir: ${srcdir}/build-aux/dir_top ${srcdir}/doc/*/*.texi
+	${MAKE} ${MFLAGS} info-real
+	tempfile=info-dir.$$$$; \
+	rm -f $${tempfile}; \
+	thisdir=`pwd`; \
+	(cd ${srcdir} && ./build-aux/make-info-dir $${thisdir}/$${tempfile}); \
+	${srcdir}/build-aux/move-if-change $${tempfile} ${srcdir}/info/dir
 
 INSTALL_DVI = install-emacs-dvi install-lispref-dvi \
 	install-lispintro-dvi install-misc-dvi
@@ -1021,28 +1040,31 @@ info: force-info
 	@if test "$(HAVE_MAKEINFO)" = "no"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
 	else \
-	  $(MAKE) $(MFLAGS) info-real ; \
+	  $(MAKE) $(MFLAGS) info-real info-dir; \
 	fi
 
-# The info/dir file must be updated by hand when new manuals are added.
-# Cannot add an info/dir entry for efaq-w32 since it is not installed
-# on all platforms.
-check-info-dir: info
+## build-aux/make-info-dir expects only certain dircategories.
+check-info: info
 	cd info ; \
-	missing= ; \
+	bad= ; \
 	for file in *; do \
 	  test -f "$${file}" || continue ; \
 	  case $${file} in \
-	    *-[0-9]*|COPYING|dir|efaq-w32*) continue ;; \
+	    *-[0-9]*|COPYING|dir) continue ;; \
 	  esac ; \
-	  file=`echo $${file} | sed 's/\.info//'` ; \
-	  grep -q -F ": ($${file})." dir || missing="$${missing} $${file}" ; \
+	  cat=`sed -n 's/^INFO-DIR-SECTION //p' $${file}`; \
+	  case $${cat} in \
+	   "Texinfo documentation system" | "Emacs"| "GNU Emacs Lisp" | \
+           "Emacs editing modes" | "Emacs network features" | \
+	   "Emacs misc features" | "Emacs lisp libraries" ) : ;; \
+	   *)  bad="$${bad} $${file}" ;; \
+	  esac; \
 	done ; \
-	if test -n "$${missing}"; then \
-	  echo "Missing info/dir entries: $${missing}" ; \
+	if test -n "$${bad}"; then \
+	  echo "Unexpected dircategory in: $${bad}" ; \
 	  exit 1 ; \
 	fi ; \
-	echo "info/dir is OK"
+	echo "info files are OK"
 
 #### Bootstrapping.
 

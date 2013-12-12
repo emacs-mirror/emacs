@@ -1,3 +1,17 @@
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	Stop keeping info/dir in the repository.
+	* build-aux/dir_top: Move here from admin/.
+	* build-aux/make-info-dir: New script.
+	* Makefile.in (bootstrap-clean): Delete info/.
+	(info-dir, ${srcdir}/info/dir): New rules.
+	(info): Also make info-dir.
+	(check-info): Rename from check-info-dir.
+	Instead of info/dir entries, check @dircategory in info/*.info.
+	* make-dist: Use `info' rule rather than `info-real'.
+	No more info/COPYING (not even the right license for info/ files).
+	* info/: Remove from repository.
+
 2013-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Add octave-mode.

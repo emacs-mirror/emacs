@@ -212,11 +212,11 @@ commit ()
 }                               # function commit
 
 
-## FIXME use standard tools for this, generate info/dir at build time
-## if needed, stop keeping in the repo.
+## No longer used since info/dir is now generated at install time if needed,
+## and is not in the repository any more.
 info_dir ()
 {
-    local basefile=admin/dir_top outfile=info/dir
+    local basefile=build-aux/dir_top outfile=info/dir
 
     echo "Regenerating info/dir..."
 
@@ -247,7 +247,8 @@ EOF
 
             dircat=`sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file`
 
-            ## TODO warn about unknown topics.
+            ## TODO warn about unknown topics (check-info in top-level
+            ## Makefile does this).
             [ "$dircat" = "$topic" ] || continue
 
             sed -n -e 's/@value{emacsname}/Emacs/' \

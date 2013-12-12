@@ -1,5 +1,8 @@
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
+	* update_autogen (info_dir):
+	Use dir_top from build-aux/ rather than admin/.
+
 	* update_autogen: Add option to generate info/dir.
 	(Usage): Add -I.
 	(info_flag): New variable.
