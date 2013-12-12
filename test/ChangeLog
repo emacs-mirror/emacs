@@ -1,5 +1,9 @@
 2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	* automated/python-tests.el (python-indent-dedenters-2): New test.
+
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	* automated/python-tests.el (python-indent-after-comment-1)
 	(python-indent-after-comment-2): New tests.
 

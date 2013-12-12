@@ -458,6 +458,28 @@ def foo(a, b, c):
    (should (eq (car (python-indent-context)) 'after-beginning-of-block))
    (should (= (python-indent-calculate-indentation) 12))))
 
+(ert-deftest python-indent-dedenters-2 ()
+  "Check one-liner block special case.."
+  (python-tests-with-temp-buffer
+   "
+cond = True
+if cond:
+
+    if cond: print 'True'
+else: print 'False'
+
+else:
+    return
+"
+   (python-tests-look-at "else: print 'False'")
+   ;; When a block has code after ":" it's just considered a simple
+   ;; line as that's a common thing to happen in one-liners.
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-tests-look-at "else:")
+   (should (eq (car (python-indent-context)) 'after-line))
+   (should (= (python-indent-calculate-indentation) 0))))
+
 (ert-deftest python-indent-after-backslash-1 ()
   "The most common case."
   (python-tests-with-temp-buffer

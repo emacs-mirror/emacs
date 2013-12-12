@@ -780,19 +780,31 @@ START is the buffer position where the sexp starts."
           ;; indentation, in the case current line starts with a
           ;; `python-indent-dedenters' de-indent one level.
           (`after-line
-           (-
-            (save-excursion
-              (goto-char context-start)
-              (current-indentation))
-            (if (or (save-excursion
-                      (back-to-indentation)
-                      (looking-at (regexp-opt python-indent-dedenters)))
-                    (save-excursion
-                      (python-util-forward-comment -1)
-                      (python-nav-beginning-of-statement)
-                      (looking-at (regexp-opt python-indent-block-enders))))
-                python-indent-offset
-              0)))
+           (let* ((pair (save-excursion
+                          (goto-char context-start)
+                          (cons
+                           (current-indentation)
+                           (python-info-beginning-of-block-p))))
+                  (context-indentation (car pair))
+                  (after-block-start-p (cdr pair))
+                  (adjustment
+                   (if (or (save-excursion
+                             (back-to-indentation)
+                             (and
+                              ;; De-indent only when dedenters are not
+                              ;; next to a block start. This allows
+                              ;; one-liner constructs such as:
+                              ;;     if condition: print "yay"
+                              ;;     else: print "wry"
+                              (not after-block-start-p)
+                              (looking-at (regexp-opt python-indent-dedenters))))
+                           (save-excursion
+                             (python-util-forward-comment -1)
+                             (python-nav-beginning-of-statement)
+                             (looking-at (regexp-opt python-indent-block-enders))))
+                       python-indent-offset
+                     0)))
+             (- context-indentation adjustment)))
           ;; When inside of a string, do nothing. just use the current
           ;; indentation.  XXX: perhaps it would be a good idea to
           ;; invoke standard text indentation here

@@ -1,3 +1,8 @@
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-calculate-indentation): Fix
+	de-denters cornercase. (Bug#15731)
+
 2013-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el: Add `depth' property to manage ordering.
