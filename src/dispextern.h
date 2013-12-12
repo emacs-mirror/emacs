@@ -1819,24 +1819,16 @@ struct face_cache
 #define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR)	\
   ((FACE) == (FACE)->ascii_face)
 
-#define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR)	\
-  (ASCII_CHAR_P (CHAR)				\
-   ? FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE)	\
-   : face_suitable_for_char_p ((FACE), (CHAR)))
-
 /* Return the id of the realized face on frame F that is like the face
    with id ID but is suitable for displaying character CHAR.
    This macro is only meaningful for multibyte character CHAR.  */
 
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT)	\
-  ((ASCII_CHAR_P (CHAR) || CHAR_BYTE8_P (CHAR))		\
-   ? (FACE)->ascii_face->id				\
-   : face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT)))
+  face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT))
 
 #else /* not HAVE_WINDOW_SYSTEM */
 
 #define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR) 1
-#define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR) 1
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
 
 #endif /* not HAVE_WINDOW_SYSTEM */

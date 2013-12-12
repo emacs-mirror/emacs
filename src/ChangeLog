@@ -5,6 +5,13 @@
 	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
 	* keyboard.c (poll_for_input_1, input_polling_used): Define
 	unconditionally.
+	* dispextern.h (FACE_SUITABLE_FOR_CHAR_P): Remove unused macro.
+	(FACE_FOR_CHAR): Simplify because face_for_char does the same.
+	* fontset.c (face_suitable_for_char_p) [0]: Remove unused function.
+	(font_for_char): Prefer ptrdiff_t to int for buffer position.
+	(face_for_char): Likewise.  Rearrange eassert and return ASCII
+	face for CHAR_BYTE8_P.
+	* fontset.h (font_for_char, face_for_char): Adjust prototypes.
 
 2013-12-11  Ken Brown  <kbrown@cornell.edu>
 

@@ -899,42 +899,21 @@ free_face_fontset (struct frame *f, struct face *face)
   face->fontset = -1;
 }
 
-
-#if 0
-/* Return true if FACE is suitable for displaying character C.
-   Called from the macro FACE_SUITABLE_FOR_CHAR_P
-   when C is not an ASCII character.  */
-
-bool
-face_suitable_for_char_p (struct face *face, int c)
-{
-  Lisp_Object fontset, rfont_def;
-
-  fontset = FONTSET_FROM_ID (face->fontset);
-  rfont_def = fontset_font (fontset, c, NULL, -1);
-  return (VECTORP (rfont_def)
-	  && INTEGERP (RFONT_DEF_FACE (rfont_def))
-	  && face->id == XINT (RFONT_DEF_FACE (rfont_def)));
-}
-#endif
-
-
-/* Return ID of face suitable for displaying character C on frame F.
-   FACE must be realized for ASCII characters in advance.  Called from
-   the macro FACE_FOR_CHAR.  */
+/* Return ID of face suitable for displaying character C at buffer position
+   POS on frame F.  FACE must be realized for ASCII characters in advance.
+   Called from the macro FACE_FOR_CHAR.  */
 
 int
-face_for_char (struct frame *f, struct face *face, int c, int pos, Lisp_Object object)
+face_for_char (struct frame *f, struct face *face, int c,
+	       ptrdiff_t pos, Lisp_Object object)
 {
   Lisp_Object fontset, rfont_def, charset;
   int face_id;
   int id;
 
-  /* If face->fontset is negative (that happens when no font is found
-     for face), just return face->ascii_face because we can't do
-     anything.  Perhaps, we should fix the callers to assure
-     that face->fontset is always valid.  */
-  if (ASCII_CHAR_P (c) || face->fontset < 0)
+  eassert (fontset_id_valid_p (face->fontset));
+
+  if (ASCII_CHAR_P (c) || CHAR_BYTE8_P (c))
     return face->ascii_face->id;
 
 #ifdef HAVE_NS
@@ -950,7 +929,6 @@ face_for_char (struct frame *f, struct face *face, int c, int pos, Lisp_Object o
     }
 #endif
 
-  eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
   eassert (!BASE_FONTSET_P (fontset));
 
@@ -1005,7 +983,7 @@ face_for_char (struct frame *f, struct face *face, int c, int pos, Lisp_Object o
 
 
 Lisp_Object
-font_for_char (struct face *face, int c, int pos, Lisp_Object object)
+font_for_char (struct face *face, int c, ptrdiff_t pos, Lisp_Object object)
 {
   Lisp_Object fontset, rfont_def, charset;
   int id;
