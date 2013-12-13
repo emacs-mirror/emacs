@@ -1,3 +1,20 @@
+2013-12-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-cf-promises): Add more default
+	locations for cf-promises.
+	(cfengine-mode-syntax-functions-regex): New caching variable.
+	(cfengine3-fallback-syntax): Fallback syntax for cases where
+	cf-promises doesn't run.
+	(cfengine3--current-word): Reimplement using
+	`cfengine-mode-syntax-functions-regex'.
+	(cfengine3-completion-function, cfengine3--current-function): Use
+	`cfengine3-make-syntax-cache' directly.
+	(cfengine3-clear-syntax-cache): New function.
+	(cfengine3-make-syntax-cache): Simplify and create
+	`cfengine-mode-syntax-functions-regex' on demand.
+	(cfengine3-format-function-docstring): Don't call
+	`cfengine3-make-syntax-cache' explicitly.
+
 2013-12-13  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix windmove-find-other-window broken after pixelwise resizing

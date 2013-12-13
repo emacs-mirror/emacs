@@ -55,6 +55,9 @@
 
 ;;; Code:
 
+(autoload 'json-read "json")
+(autoload 'regexp-opt "regexp-opt")
+
 (defgroup cfengine ()
   "Editing CFEngine files."
   :group 'languages)
@@ -68,11 +71,15 @@
   (or (executable-find "cf-promises")
       (executable-find "/var/cfengine/bin/cf-promises")
       (executable-find "/usr/bin/cf-promises")
+      (executable-find "/usr/sbin/cf-promises")
       (executable-find "/usr/local/bin/cf-promises")
-      (executable-find "~/bin/cf-promises"))
+      (executable-find "/usr/local/sbin/cf-promises")
+      (executable-find "~/bin/cf-promises")
+      (executable-find "~/sbin/cf-promises"))
   "The location of the cf-promises executable.
 Used for syntax discovery and checking.  Set to nil to disable
-the `compile-command' override and the ElDoc support."
+the `compile-command' override.  In that case, the ElDoc support
+will use a fallback syntax definition."
   :group 'cfengine
   :type 'file)
 
@@ -145,6 +152,640 @@ bundle agent rcfiles
 
 (defvar cfengine-mode-syntax-cache nil
   "Cache for `cfengine-mode' syntax trees obtained from 'cf-promises -s json'.")
+
+(defvar cfengine-mode-syntax-functions-regex nil)
+
+(defconst cfengine3-fallback-syntax
+  '((functions
+     (userexists
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (usemodule
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (unique
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (translatepath
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (sum
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "real") (status . "normal"))
+     (sublist
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "head,tail") (type . "option"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "slist") (status . "normal"))
+     (strftime
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "gmtime,localtime") (type . "option"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "string") (status . "normal"))
+     (strcmp
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (splitstring
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "slist") (status . "normal"))
+     (splayclass
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "daily,hourly") (type . "option"))])
+      (returnType . "context") (status . "normal"))
+     (sort
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "lex") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (some
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (shuffle
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (selectservers
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "@[(][a-zA-Z0-9]+[)]") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (reverse
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (rrange
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "-9.99999E100,9.99999E100") (type . "real"))
+                     ((range . "-9.99999E100,9.99999E100") (type . "real"))])
+      (returnType . "rrange") (status . "normal"))
+     (returnszero
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "useshell,noshell,powershell") (type . "option"))])
+      (returnType . "context") (status . "normal"))
+     (remoteclassesmatching
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "true,false,yes,no,on,off") (type . "option"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (remotescalar
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "true,false,yes,no,on,off") (type . "option"))])
+      (returnType . "string") (status . "normal"))
+     (regldap
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "subtree,onelevel,base") (type . "option"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "none,ssl,sasl") (type . "option"))])
+      (returnType . "context") (status . "normal"))
+     (reglist
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "@[(][a-zA-Z0-9]+[)]") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (regline
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (registryvalue
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (regextract
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (regcmp
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (regarray
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (readtcp
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "string") (status . "normal"))
+     (readstringlist
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "slist") (status . "normal"))
+     (readstringarrayidx
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (readstringarray
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (readreallist
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "rlist") (status . "normal"))
+     (readrealarray
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (readintlist
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "ilist") (status . "normal"))
+     (readintarray
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (readfile
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "string") (status . "normal"))
+     (randomint
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "-99999999999,9999999999") (type . "int"))
+                     ((range . "-99999999999,9999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (product
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "real") (status . "normal"))
+     (peerleaders
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "slist") (status . "normal"))
+     (peerleader
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "string") (status . "normal"))
+     (peers
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "slist") (status . "normal"))
+     (parsestringarrayidx
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (parsestringarray
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (parserealarray
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (parseintarray
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (or
+      (category . "data") (variadic . t)
+      (parameters . [])
+      (returnType . "string") (status . "normal"))
+     (on
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "1970,3000") (type . "int"))
+                     ((range . "1,12") (type . "int"))
+                     ((range . "1,31") (type . "int"))
+                     ((range . "0,23") (type . "int"))
+                     ((range . "0,59") (type . "int"))
+                     ((range . "0,59") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (nth
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "string") (status . "normal"))
+     (now
+      (category . "system") (variadic . :json-false)
+      (parameters . [])
+      (returnType . "int") (status . "normal"))
+     (not
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (none
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (maplist
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (maparray
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (lsdir
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . ".+") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "true,false,yes,no,on,off") (type . "option"))])
+      (returnType . "slist") (status . "normal"))
+     (length
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (ldapvalue
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "subtree,onelevel,base") (type . "option"))
+                     ((range . "none,ssl,sasl") (type . "option"))])
+      (returnType . "string") (status . "normal"))
+     (ldaplist
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "subtree,onelevel,base") (type . "option"))
+                     ((range . "none,ssl,sasl") (type . "option"))])
+      (returnType . "slist") (status . "normal"))
+     (ldaparray
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . "subtree,onelevel,base") (type . "option"))
+                     ((range . "none,ssl,sasl") (type . "option"))])
+      (returnType . "context") (status . "normal"))
+     (laterthan
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,40000") (type . "int"))])
+      (returnType . "context") (status . "normal"))
+     (lastnode
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (join
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (isvariable
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (isplain
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (isnewerthan
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (islink
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (islessthan
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (isgreaterthan
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (isexecutable
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (isdir
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (irange
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "-99999999999,9999999999") (type . "int"))
+                     ((range . "-99999999999,9999999999") (type . "int"))])
+      (returnType . "irange") (status . "normal"))
+     (iprange
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (intersection
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (ifelse
+      (category . "data") (variadic . t)
+      (parameters . [])
+      (returnType . "string") (status . "normal"))
+     (hubknowledge
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (hostswithclass
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_]+") (type . "string"))
+                     ((range . "name,address") (type . "option"))])
+      (returnType . "slist") (status . "normal"))
+     (hostsseen
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . "0,99999999999") (type . "int"))
+                     ((range . "lastseen,notseen") (type . "option"))
+                     ((range . "name,address") (type . "option"))])
+      (returnType . "slist") (status . "normal"))
+     (hostrange
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (hostinnetgroup
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (ip2host
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (host2ip
+      (category . "communication") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (hashmatch
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "md5,sha1,crypt,cf_sha224,cf_sha256,cf_sha384,cf_sha512") (type . "option"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (hash
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "md5,sha1,sha256,sha512,sha384,crypt") (type . "option"))])
+      (returnType . "string") (status . "normal"))
+     (groupexists
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (grep
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (getvalues
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (getusers
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (getuid
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (getindices
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (getgid
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (getfields
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))
+                     ((range . ".*") (type . "string"))
+                     ((range . ".*") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (getenv
+      (category . "system") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "string") (status . "normal"))
+     (format
+      (category . "data") (variadic . t)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (filter
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "true,false,yes,no,on,off") (type . "option"))
+                     ((range . "true,false,yes,no,on,off") (type . "option"))
+                     ((range . "0,99999999999") (type . "int"))])
+      (returnType . "slist") (status . "normal"))
+     (filestat
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "size,gid,uid,ino,nlink,ctime,atime,mtime,mode,modeoct,permstr,permoct,type,devno,dev_minor,dev_major,basename,dirname") (type . "option"))])
+      (returnType . "string") (status . "normal"))
+     (filesize
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (filesexist
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "@[(][a-zA-Z0-9]+[)]") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (fileexists
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (execresult
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . ".+") (type . "string"))
+                     ((range . "useshell,noshell,powershell") (type . "option"))])
+      (returnType . "string") (status . "normal"))
+     (every
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (escape
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (diskfree
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (dirname
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (difference
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))
+                     ((range . "[a-zA-Z0-9_$(){}\\[\\].:]+") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (countlinesmatching
+      (category . "io") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (countclassesmatching
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "int") (status . "normal"))
+     (classesmatching
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "slist") (status . "normal"))
+     (classmatch
+      (category . "utils") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (classify
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (changedbefore
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))
+     (concat
+      (category . "data") (variadic . t)
+      (parameters . [])
+      (returnType . "string") (status . "normal"))
+     (canonify
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . ".*") (type . "string"))])
+      (returnType . "string") (status . "normal"))
+     (and
+      (category . "data") (variadic . t)
+      (parameters . [])
+      (returnType . "string") (status . "normal"))
+     (ago
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,40000") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (accumulated
+      (category . "data") (variadic . :json-false)
+      (parameters . [((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,1000") (type . "int"))
+                     ((range . "0,40000") (type . "int"))])
+      (returnType . "int") (status . "normal"))
+     (accessedbefore
+      (category . "files") (variadic . :json-false)
+      (parameters . [((range . "\"?(/.*)") (type . "string"))
+                     ((range . "\"?(/.*)") (type . "string"))])
+      (returnType . "context") (status . "normal"))))
+  "Fallback CFEngine syntax, containing just function definitions.")
 
 (defcustom cfengine-mode-abbrevs nil
   "Abbrevs for CFEngine2 mode."
@@ -520,31 +1161,24 @@ Intended as the value of `indent-line-function'."
 ;; CLASS: [.|&!()a-zA-Z0-9_\200-\377]+::
 ;; CATEGORY: [a-zA-Z_]+:
 
-(defun cfengine3--current-word (&optional bounds)
+(defun cfengine3--current-word (flist &optional bounds)
   "Propose a word around point in the current CFEngine 3 buffer."
-  (let ((c (char-after (point)))
-        (s (syntax-ppss)))
-    (when (not (nth 3 s)) ; not inside a string
+  (save-excursion
+    (skip-syntax-forward "w_")
+    (when (search-backward-regexp
+           cfengine-mode-syntax-functions-regex
+           (point-at-bol)
+           t)
       (if bounds
-          (save-excursion
-            (let ((oldpoint (point))
-                  start end)
-              (skip-syntax-backward "w_") (setq start (point))
-              (goto-char oldpoint)
-              (skip-syntax-forward "w_") (setq end (point))
-              (when (not (and (eq start oldpoint)
-                              (eq end oldpoint)))
-                (list start (point)))))
-        (and c
-             (memq (char-syntax c) '(?_ ?w))
-             (current-word))))))
+          (list (point) (match-end 1))
+        (match-string 1)))))
 
 (defun cfengine3--current-function ()
   "Look up current CFEngine 3 function"
-  (let* ((syntax (assoc cfengine-cf-promises cfengine-mode-syntax-cache))
+  (let* ((syntax (cfengine3-make-syntax-cache))
          (flist (assoc 'functions syntax)))
     (when flist
-      (let ((w (cfengine3--current-word)))
+      (let ((w (cfengine3--current-word flist)))
         (and w (assq (intern w) flist))))))
 
 ;; format from "cf-promises -s json", e.g. "sort" function:
@@ -590,33 +1224,45 @@ Intended as the value of `indent-line-function'."
                 (if has-some-parameters ", ..." "...")
               ""))))
 
+(defun cfengine3-clear-syntax-cache ()
+  (interactive)
+  (setq cfengine-mode-syntax-functions-regex nil)
+  (setq cfengine-mode-syntax-cache nil))
+
 (defun cfengine3-make-syntax-cache ()
   "Build the CFEngine 3 syntax cache.
 Calls `cfengine-cf-promises' with \"-s json\""
-  (when cfengine-cf-promises
-    (let ((loaded-json-lib (require 'json nil t))
-          (syntax (assoc cfengine-cf-promises cfengine-mode-syntax-cache)))
-      (if (not loaded-json-lib)
-          (message "JSON library could not be loaded!")
-        (unless syntax
-          (with-demoted-errors
-              (with-temp-buffer
-                (call-process-shell-command cfengine-cf-promises
-                                            nil   ; no input
-                                            t     ; current buffer
-                                            nil   ; no redisplay
-                                            "-s" "json")
-                (goto-char (point-min))
-                (setq syntax (json-read))
-                (setq cfengine-mode-syntax-cache
-                      (cons (cons cfengine-cf-promises syntax)
-                            cfengine-mode-syntax-cache)))))))))
+  (let ((ret (if cfengine-cf-promises
+                 (let ((loaded-json-lib (require 'json nil t))
+                       (syntax (cfengine3-make-syntax-cache)))
+                   (if (not loaded-json-lib)
+                       (message "JSON library could not be loaded!")
+                     (unless syntax
+                       (with-demoted-errors
+                           (with-temp-buffer
+                             (call-process-shell-command cfengine-cf-promises
+                                                         nil   ; no input
+                                                         t     ; current buffer
+                                                         nil   ; no redisplay
+                                                         "-s" "json")
+                             (goto-char (point-min))
+                             (setq syntax (json-read))
+                             (setq cfengine-mode-syntax-cache
+                                   (cons (cons cfengine-cf-promises syntax)
+                                         cfengine-mode-syntax-cache)))))))
+               cfengine3-fallback-syntax)))
+    (unless cfengine-mode-syntax-functions-regex
+      (setq cfengine-mode-syntax-functions-regex
+            (regexp-opt (mapcar (lambda (def)
+                                  (format "%s" (car def)))
+                                (cdr (assoc 'functions ret)))
+                        'symbols)))
+    ret))
 
 (defun cfengine3-documentation-function ()
   "Document CFengine 3 functions around point.
 Intended as the value of `eldoc-documentation-function', which
 see.  Use it by executing `turn-on-eldoc-mode'."
-  (cfengine3-make-syntax-cache)
   (let ((fdef (cfengine3--current-function)))
     (when fdef
       (cfengine3-format-function-docstring fdef))))
@@ -625,7 +1271,7 @@ see.  Use it by executing `turn-on-eldoc-mode'."
   "Return completions for function name around or before point."
   (cfengine3-make-syntax-cache)
   (let* ((bounds (cfengine3--current-word t))
-         (syntax (assoc cfengine-cf-promises cfengine-mode-syntax-cache))
+         (syntax (cfengine3-make-syntax-cache))
          (flist (assoc 'functions syntax)))
     (when bounds
       (append bounds (list (cdr flist))))))
