@@ -3311,14 +3311,14 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 		GET_INTERVAL_COUNT (lower_bound);
 
 		if (c == ',')
-		  {
-		    GET_INTERVAL_COUNT (upper_bound);
-		    if (upper_bound < lower_bound)
-		      FREE_STACK_RETURN (REG_BADBR);
-		  }
+		  GET_INTERVAL_COUNT (upper_bound);
 		else
 		  /* Interval such as `{1}' => match exactly once. */
 		  upper_bound = lower_bound;
+
+		if (lower_bound < 0
+		    || (0 <= upper_bound && upper_bound < lower_bound))
+		  FREE_STACK_RETURN (REG_BADBR);
 
 		if (!(syntax & RE_NO_BK_BRACES))
 		  {
