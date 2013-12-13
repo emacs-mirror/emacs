@@ -1,3 +1,7 @@
+2013-12-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lread.c (load_path_default): Prototype.
+
 2013-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c: Unconditionally reset load-path after dumping.  (Bug#16107)

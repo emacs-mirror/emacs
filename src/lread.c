@@ -4159,7 +4159,7 @@ load_path_check (Lisp_Object lpath)
    check), then repeat the above steps for source-dir/lisp, site-lisp.  */
 
 static Lisp_Object
-load_path_default ()
+load_path_default (void)
 {
   Lisp_Object lpath = Qnil;
   const char *normal;
