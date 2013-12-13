@@ -7,6 +7,11 @@
 
 2013-12-13  Juri Linkov  <juri@jurta.org>
 
+	* simple.el <Keypad support>: Remove key bindings duplicated
+	with bindings.el.  (Bug#14397)
+
+2013-12-13  Juri Linkov  <juri@jurta.org>
+
 	* comint.el (comint-mode-map): Replace `delete-char' with
 	`delete-forward-char'.  (Bug#16109)
 

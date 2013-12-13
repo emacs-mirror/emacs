@@ -1069,7 +1069,7 @@ if `inhibit-field-text-motion' is non-nil."
 	      (kp-enter enter) (kp-decimal ?.)
 	      (kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
 	      (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
-	      (kp-add +) (kp-subtract -) (kp-multiply *) (kp-divide /))))
+	      (kp-add ?+) (kp-subtract ?-) (kp-multiply ?*) (kp-divide ?/))))
   (dolist (pair keys)
     (dolist (mod modifiers)
       (define-key function-key-map

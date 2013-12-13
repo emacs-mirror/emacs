@@ -7128,17 +7128,11 @@ PREFIX is the string that represents this modifier in an event type symbol."
 	 (normal (nth 1 keypad-normal)))
      (put keypad 'ascii-character normal)
      (define-key function-key-map (vector keypad) (vector normal))))
- '((kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
-   (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
-   (kp-space ?\s)
+ ;; See also kp-keys bound in bindings.el.
+ '((kp-space ?\s)
    (kp-tab ?\t)
    (kp-enter ?\r)
-   (kp-multiply ?*)
-   (kp-add ?+)
    (kp-separator ?,)
-   (kp-subtract ?-)
-   (kp-decimal ?.)
-   (kp-divide ?/)
    (kp-equal ?=)
    ;; Do the same for various keys that are represented as symbols under
    ;; GUIs but naturally correspond to characters.
