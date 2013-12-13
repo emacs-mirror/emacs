@@ -116,6 +116,11 @@ time.)
 expect in an ordinary unmodified Emacs.  If you feel you must override
 normal features for your site, do it with @file{default.el}, so that
 users can override your changes if they wish.  @xref{Startup Summary}.
+Note that if either @file{site-load.el} or @file{site-init.el} changes
+@code{load-path}, the changes will be lost after dumping.
+@xref{Library Search}.  To make a permanent change to
+@code{load-path}, use the @option{--enable-locallisppath} option
+of @command{configure}.
 
   In a package that can be preloaded, it is sometimes necessary (or
 useful) to delay certain evaluations until Emacs subsequently starts

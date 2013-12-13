@@ -1,3 +1,8 @@
+2013-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el (load-path): Warn if site-load or site-init changes it.
+	No more need to reset it when bootstrapping.
+
 2013-12-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el (cfengine-cf-promises): Add more default

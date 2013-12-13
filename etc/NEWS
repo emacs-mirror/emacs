@@ -77,6 +77,12 @@ was replaced by ".", so use an explicit "." now if that is what you want.)
 will instead append, if the argument begins with `:' (or `;' on MS Windows;
 i.e., `path-separator').
 
++++
+** If you use either site-load.el or site-init.el to customize the dumped
+Emacs executable, any changes to `load-path' that these files make
+will no longer be present after dumping.  To affect a permanent change
+to `load-path', use the `--enable-locallisppath' option of `configure'.
+
 
 * Changes in Emacs 24.4
 

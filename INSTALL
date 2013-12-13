@@ -468,10 +468,6 @@ variable gets by default!  Make sure you know what kind of value the
 variable should have.  If you don't pay attention to what you are
 doing, you'll make a mistake.
 
-If you set load-path to a different value in site-init.el or
-site-load.el, Emacs will use *precisely* that value when it starts up
-again.  If you do this, you are on your own!
-
 The `site-*.el' files are nonexistent in the distribution.  You do not
 need to create them if you have nothing to put in them.
 

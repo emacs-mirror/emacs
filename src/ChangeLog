@@ -1,3 +1,12 @@
+2013-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c: Unconditionally reset load-path after dumping.  (Bug#16107)
+	(dump_path): Remove.
+	(load-path-default): Remove `changed' argument.
+	Do not set dump_path permanently.  Simplify.
+	(init_lread): Simplify.
+	(syms_of_lread): Remove dump_path.
+
 2013-12-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c, font.c, font.h, ftfont.c, ftxfont.c, macfont.m,

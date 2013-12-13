@@ -361,12 +361,10 @@ add one or more directories to @code{load-path}.  For example:
 (push "~/.emacs.d/lisp" load-path)
 @end example
 
-  Dumping Emacs uses a special value of @code{load-path}.  If the
-value of @code{load-path} at the end of dumping is unchanged (that is,
-still the same special value), the dumped Emacs switches to the
-ordinary @code{load-path} value when it starts up, as described above.
-But if @code{load-path} has any other value at the end of dumping,
-that value is used for execution of the dumped Emacs also.
+  Dumping Emacs uses a special value of @code{load-path}.  If you use
+a @file{site-load.el} or @file{site-init.el} file to customize the
+dumped Emacs (@pxref{Building Emacs}), any changes to @code{load-path}
+that these files make will be lost after dumping.
 
 @deffn Command locate-library library &optional nosuffix path interactive-call
 This command finds the precise file name for library @var{library}.  It

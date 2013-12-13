@@ -1,3 +1,7 @@
+2013-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: No longer mention load-path and site-init/site-load.
+
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-info): Handle missing info/dir.

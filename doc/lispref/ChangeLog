@@ -1,3 +1,9 @@
+2013-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi (Building Emacs):
+	* loading.texi (Library Search): Mention that site-load,
+	site-init cannot change load-path.
+
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi: Tweak dircategory.
