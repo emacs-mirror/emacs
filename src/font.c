@@ -2898,8 +2898,12 @@ font_close_object (Lisp_Object font_object)
   font->driver->close (font);
 #ifdef HAVE_WINDOW_SYSTEM
   eassert (font->frame);
-  eassert (FRAME_DISPLAY_INFO (font->frame)->n_fonts);
-  FRAME_DISPLAY_INFO (font->frame)->n_fonts--;
+  /* If the frame is gone, we can't do anything (Bug#16128).  */
+  if (FRAME_LIVE_P (font->frame))
+    {
+      eassert (FRAME_DISPLAY_INFO (font->frame)->n_fonts);
+      FRAME_DISPLAY_INFO (font->frame)->n_fonts--;
+    }
 #endif
 }
 

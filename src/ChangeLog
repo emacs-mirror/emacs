@@ -1,3 +1,7 @@
+2013-12-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_close_object): Check for live frame (Bug#16128).
+
 2013-12-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gnutls.c, gnutls.h (emacs_gnutls_record_check_pending):
