@@ -1,3 +1,10 @@
+2013-12-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-pdbtrack-stacktrace-info-regexp):
+	Also match after beginning of line.
+	(python-pdbtrack-set-tracked-buffer): Fix logic for remote
+	files.  Thanks to Russell Sim. (Bug#15378)
+
 2013-12-13  Juri Linkov  <juri@jurta.org>
 
 	* comint.el (comint-mode-map): Replace `delete-char' with

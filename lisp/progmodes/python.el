@@ -2482,7 +2482,7 @@ to complete."
   :safe 'booleanp)
 
 (defcustom python-pdbtrack-stacktrace-info-regexp
-  "^> \\([^\"(<]+\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
+  "> \\([^\"(<]+\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular Expression matching stacktrace information.
 Used to extract the current line and module being inspected."
   :type 'string
@@ -2501,7 +2501,9 @@ Never set this variable directly, use
   "Set the buffer for FILE-NAME as the tracked buffer.
 Internally it uses the `python-pdbtrack-tracked-buffer' variable.
 Returns the tracked buffer."
-  (let ((file-buffer (get-file-buffer file-name)))
+  (let ((file-buffer (get-file-buffer
+                      (concat (file-remote-p default-directory)
+                              file-name))))
     (if file-buffer
         (setq python-pdbtrack-tracked-buffer file-buffer)
       (setq file-buffer (find-file-noselect file-name))
