@@ -628,6 +628,33 @@ display a `Homepage' header, if it's present.
 
 ** New term.el option `term-suppress-hard-newline'.
 
+** CEDET
+
+*** EDE
+
+**** The cpp-root project now supports executing a compile command.
+It can be set through the new :compile-command slot or the
+buffer-local variable `compile-command'.
+
+**** Better selection of include directories for the 'linux' project.
+Include directories now support out-of-tree build directories and
+target architecture auto-detection.
+
+*** Semantic
+
+**** Improved detection of used namespaces in current scope in C++.
+
+**** Parsing of default values for variables and function arguments in C/C++.
+They are also displayed by the summarize feature in the modeline.
+
+**** Improved parsing of function pointers in C/C++.
+This also includes parsing of function pointers as function arguments.
+
+**** Parsing of C/C++ preprocessor macros which open new scope.
+For example, this enables parsing of macros which open new namespaces.
+
+**** Support for 'this' pointer in inline member functions in C++.
+
 ** Obsolete packages:
 
 *** Iswitchb is made obsolete by icomplete-mode.
@@ -908,6 +935,28 @@ Emacs uses `image-default-frame-delay'.
 and setting the current frame of a multi-frame image.
 
 *** You can change the speed of animated images.
+
+** EIEIO
+
+*** Namespace cleanup by obsolete-aliasing functions to use `eieio-' prefix.
+**** object-name -> eieio-object-name
+**** object-class -> eieio-object-class
+**** object-class-fast -> eieio--object-class
+**** object-name-string -> eieio-object-name-string
+**** object-num-slots -> eieio--object-num-slots
+**** object-set-name-string -> eieio-object-set-name-string
+**** class-parent -> eieio-class-parent
+**** class-parents -> eieio-class-parents
+**** class-children -> eieio-class-children
+**** class-num-slots -> eieio--class-num-slots
+**** class-precedence-list -> eieio-class-precedence-list
+**** All generated class-* and object-* field accessors are now
+prefixed with `eieio-' as well.
+
+*** Obsoleted functions:
+**** class-of
+**** class-direct-subclasses
+**** class-direct-superclasses
 
 ** Changes in encoding and decoding of text
 
