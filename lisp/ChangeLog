@@ -1,6 +1,7 @@
 2013-12-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* progmodes/cfengine.el (cfengine-mode-syntax-functions-regex):
+	* progmodes/cfengine.el: Fix `add-hook' doc.
+	(cfengine-mode-syntax-functions-regex):
 	Initialize sensibly.
 	(cfengine3--current-word): Fix parameters.
 	(cfengine3-make-syntax-cache): Simplify further.

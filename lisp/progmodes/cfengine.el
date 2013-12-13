@@ -47,7 +47,7 @@
 
 ;; It's *highly* recommended that you enable the eldoc minor mode:
 
-;; (add-hook 'cfengine-mode-hook 'turn-on-eldoc-mode)
+;; (add-hook 'cfengine3-mode-hook 'turn-on-eldoc-mode)
 
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does
