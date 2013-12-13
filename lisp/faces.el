@@ -2573,6 +2573,30 @@ It is used for characters of no fonts too."
   "Face for displaying the currently selected item in TTY menus."
   :group 'basic-faces)
 
+(defgroup paren-showing-faces nil
+  "Faces used to highlight paren matches."
+  :group 'paren-showing
+  :group 'faces
+  :version "22.1")
+
+(defface show-paren-match
+  '((((class color) (background light))
+     :background "turquoise")		; looks OK on tty (becomes cyan)
+    (((class color) (background dark))
+     :background "steelblue3")		; looks OK on tty (becomes blue)
+    (((background dark))
+     :background "grey50")
+    (t
+     :background "gray"))
+  "Face used for a matching paren."
+  :group 'paren-showing-faces)
+
+(defface show-paren-mismatch
+  '((((class color)) (:foreground "white" :background "purple"))
+    (t (:inverse-video t)))
+  "Face used for a mismatching paren."
+  :group 'paren-showing-faces)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.

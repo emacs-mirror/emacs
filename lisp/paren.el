@@ -72,30 +72,8 @@ active, you must toggle the mode off and on again for this to take effect."
   :group 'paren-showing
   :version "20.3")
 
-(defgroup paren-showing-faces nil
-  "Group for faces of Show Paren mode."
-  :group 'paren-showing
-  :group 'faces
-  :version "22.1")
-
-(defface show-paren-match
-  '((((class color) (background light))
-     :background "turquoise")		; looks OK on tty (becomes cyan)
-    (((class color) (background dark))
-     :background "steelblue3")		; looks OK on tty (becomes blue)
-    (((background dark))
-     :background "grey50")
-    (t
-     :background "gray"))
-  "Show Paren mode face used for a matching paren."
-  :group 'paren-showing-faces)
 (define-obsolete-face-alias 'show-paren-match-face 'show-paren-match "22.1")
 
-(defface show-paren-mismatch
-  '((((class color)) (:foreground "white" :background "purple"))
-    (t (:inverse-video t)))
-  "Show Paren mode face used for a mismatching paren."
-  :group 'paren-showing-faces)
 (define-obsolete-face-alias 'show-paren-mismatch-face
   'show-paren-mismatch "22.1")
 

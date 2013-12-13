@@ -6308,8 +6308,15 @@ position just before the opening token and END is the position right after.
 START can be nil, if it was not found.
 The function should return non-nil if the two tokens do not match.")
 
+(defvar blink-matching--overlay
+  (let ((ol (make-overlay (point) (point) nil t)))
+    (overlay-put ol 'face 'show-paren-match)
+    (delete-overlay ol)
+    ol)
+  "Overlay used to highlight the matching paren.")
+
 (defun blink-matching-open ()
-  "Move cursor momentarily to the beginning of the sexp before point."
+  "Momentarily highlight the beginning of the sexp before point."
   (interactive)
   (when (and (not (bobp))
 	     blink-matching-paren)
@@ -6351,13 +6358,17 @@ The function should return non-nil if the two tokens do not match.")
             (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
-        ;; Matching open within window, temporarily move to blinkpos but only
-        ;; if `blink-matching-paren-on-screen' is non-nil.
+        ;; Matching open within window, temporarily highlight char
+        ;; after blinkpos but only if `blink-matching-paren-on-screen'
+        ;; is non-nil.
         (and blink-matching-paren-on-screen
              (not show-paren-mode)
-             (save-excursion
-               (goto-char blinkpos)
-               (sit-for blink-matching-delay))))
+             (unwind-protect
+                 (progn
+                   (move-overlay blink-matching--overlay blinkpos (1+ blinkpos)
+                                 (current-buffer))
+                   (sit-for blink-matching-delay))
+               (delete-overlay blink-matching--overlay))))
        (t
         (save-excursion
           (goto-char blinkpos)
