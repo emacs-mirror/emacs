@@ -153,8 +153,6 @@ bundle agent rcfiles
 (defvar cfengine-mode-syntax-cache nil
   "Cache for `cfengine-mode' syntax trees obtained from 'cf-promises -s json'.")
 
-(defvar cfengine-mode-syntax-functions-regex nil)
-
 (defconst cfengine3-fallback-syntax
   '((functions
      (userexists
@@ -787,6 +785,12 @@ bundle agent rcfiles
       (returnType . "context") (status . "normal"))))
   "Fallback CFEngine syntax, containing just function definitions.")
 
+(defvar cfengine-mode-syntax-functions-regex
+  (regexp-opt (mapcar (lambda (def)
+                        (format "%s" (car def)))
+                      (cdr (assq 'functions cfengine3-fallback-syntax)))
+              'symbols))
+
 (defcustom cfengine-mode-abbrevs nil
   "Abbrevs for CFEngine2 mode."
   :group 'cfengine
@@ -1161,7 +1165,7 @@ Intended as the value of `indent-line-function'."
 ;; CLASS: [.|&!()a-zA-Z0-9_\200-\377]+::
 ;; CATEGORY: [a-zA-Z_]+:
 
-(defun cfengine3--current-word (flist &optional bounds)
+(defun cfengine3--current-word (&optional bounds)
   "Propose a word around point in the current CFEngine 3 buffer."
   (save-excursion
     (skip-syntax-forward "w_")
@@ -1176,9 +1180,9 @@ Intended as the value of `indent-line-function'."
 (defun cfengine3--current-function ()
   "Look up current CFEngine 3 function"
   (let* ((syntax (cfengine3-make-syntax-cache))
-         (flist (assoc 'functions syntax)))
+         (flist (assq 'functions syntax)))
     (when flist
-      (let ((w (cfengine3--current-word flist)))
+      (let ((w (cfengine3--current-word)))
         (and w (assq (intern w) flist))))))
 
 ;; format from "cf-promises -s json", e.g. "sort" function:
@@ -1225,6 +1229,8 @@ Intended as the value of `indent-line-function'."
               ""))))
 
 (defun cfengine3-clear-syntax-cache ()
+  "Clear the internal syntax cache.
+Should not be necessary unless you reinstall CFEngine."
   (interactive)
   (setq cfengine-mode-syntax-functions-regex nil)
   (setq cfengine-mode-syntax-cache nil))
@@ -1232,32 +1238,27 @@ Intended as the value of `indent-line-function'."
 (defun cfengine3-make-syntax-cache ()
   "Build the CFEngine 3 syntax cache.
 Calls `cfengine-cf-promises' with \"-s json\""
-  (let ((ret (if cfengine-cf-promises
-                 (let ((loaded-json-lib (require 'json nil t))
-                       (syntax (cfengine3-make-syntax-cache)))
-                   (if (not loaded-json-lib)
-                       (message "JSON library could not be loaded!")
-                     (unless syntax
-                       (with-demoted-errors
-                           (with-temp-buffer
-                             (call-process-shell-command cfengine-cf-promises
-                                                         nil   ; no input
-                                                         t     ; current buffer
-                                                         nil   ; no redisplay
-                                                         "-s" "json")
-                             (goto-char (point-min))
-                             (setq syntax (json-read))
-                             (setq cfengine-mode-syntax-cache
-                                   (cons (cons cfengine-cf-promises syntax)
-                                         cfengine-mode-syntax-cache)))))))
-               cfengine3-fallback-syntax)))
-    (unless cfengine-mode-syntax-functions-regex
-      (setq cfengine-mode-syntax-functions-regex
-            (regexp-opt (mapcar (lambda (def)
-                                  (format "%s" (car def)))
-                                (cdr (assoc 'functions ret)))
-                        'symbols)))
-    ret))
+  (let ((syntax (cddr (assoc cfengine-cf-promises cfengine-mode-syntax-cache))))
+    (if cfengine-cf-promises
+        (or syntax
+            (with-demoted-errors
+                (with-temp-buffer
+                  (call-process-shell-command cfengine-cf-promises
+                                              nil   ; no input
+                                              t     ; current buffer
+                                              nil   ; no redisplay
+                                              "-s" "json")
+                  (goto-char (point-min))
+                  (setq syntax (json-read))
+                  (setq cfengine-mode-syntax-cache
+                        (cons (cons cfengine-cf-promises syntax)
+                              cfengine-mode-syntax-cache))
+                  (setq cfengine-mode-syntax-functions-regex
+                        (regexp-opt (mapcar (lambda (def)
+                                              (format "%s" (car def)))
+                                            (cdr (assq 'functions syntax)))
+                                    'symbols))))))
+    cfengine3-fallback-syntax))
 
 (defun cfengine3-documentation-function ()
   "Document CFengine 3 functions around point.
@@ -1272,7 +1273,7 @@ see.  Use it by executing `turn-on-eldoc-mode'."
   (cfengine3-make-syntax-cache)
   (let* ((bounds (cfengine3--current-word t))
          (syntax (cfengine3-make-syntax-cache))
-         (flist (assoc 'functions syntax)))
+         (flist (assq 'functions syntax)))
     (when bounds
       (append bounds (list (cdr flist))))))
 

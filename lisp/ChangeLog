@@ -1,3 +1,13 @@
+2013-12-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-mode-syntax-functions-regex):
+	Initialize sensibly.
+	(cfengine3--current-word): Fix parameters.
+	(cfengine3-make-syntax-cache): Simplify further.
+	(cfengine3-completion-function, cfengine3--current-function): Use
+	`assq' for symbols.
+	(cfengine3--current-function): Fix `cfengine3--current-word' call.
+
 2013-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el (load-path): Warn if site-load or site-init changes it.
