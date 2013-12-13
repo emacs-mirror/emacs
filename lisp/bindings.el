@@ -710,7 +710,7 @@ cursor movements produce identical results."
   :type '(choice (const :tag "Logical-order cursor movement" nil)
 		 (const :tag "Visual-order cursor movement" t))
   :group 'display
-  :version "24.5")
+  :version "24.4")
 
 (defun right-char (&optional n)
   "Move point N characters to the right (to the left if N is negative).

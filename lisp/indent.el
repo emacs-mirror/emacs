@@ -481,13 +481,14 @@ column to indent to; if it is nil, use one of the three methods above."
     (save-excursion
       (setq end (copy-marker end))
       (goto-char start)
-      (let ((pr (make-progress-reporter "Indenting region..." (point) end)))
-      (while (< (point) end)
-	(or (and (bolp) (eolp))
-	    (indent-according-to-mode))
+      (let ((pr (unless (minibufferp)
+		  (make-progress-reporter "Indenting region..." (point) end))))
+	(while (< (point) end)
+	  (or (and (bolp) (eolp))
+	      (indent-according-to-mode))
           (forward-line 1)
-          (progress-reporter-update pr (point)))
-        (progress-reporter-done pr)
+          (and pr (progress-reporter-update pr (point))))
+	(and pr (progress-reporter-done pr))
         (move-marker end nil)))))
   ;; In most cases, reindenting modifies the buffer, but it may also
   ;; leave it unmodified, in which case we have to deactivate the mark

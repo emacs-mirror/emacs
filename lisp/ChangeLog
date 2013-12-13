@@ -1,3 +1,10 @@
+2013-12-13  Leo Liu  <sdl.web@gmail.com>
+
+	* indent.el (indent-region): Disable progress reporter in
+	minibuffer.  (Bug#16108)
+
+	* bindings.el (visual-order-cursor-movement): Fix version.
+
 2013-12-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-pdbtrack-stacktrace-info-regexp):
