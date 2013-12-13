@@ -365,7 +365,7 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
   return ret;
 }
 
-int
+ptrdiff_t
 emacs_gnutls_record_check_pending (gnutls_session_t state)
 {
   return fn_gnutls_record_check_pending (state);
