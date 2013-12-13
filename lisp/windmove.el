@@ -438,49 +438,38 @@ Return value is a frame-based (HPOS . VPOS) value that should be moved
 to.  DIR is one of `left', `up', `right', or `down'; an optional ARG
 is handled as by `windmove-reference-loc'; WINDOW is the window that
 movement is relative to."
-  (let ((edges (window-pixel-edges window))   ; edges: (x0, y0, x1, y1)
+  (let ((edges (window-edges window))   ; edges: (x0, y0, x1, y1)
         (refpoint (windmove-reference-loc arg window))) ; (x . y)
     (cond
      ((eq dir 'left)
-      (cons (- (ceiling (nth 0 edges)
-			(frame-char-width (window-frame window)))
+      (cons (- (nth 0 edges)
                windmove-window-distance-delta)
             (cdr refpoint)))            ; (x0-d, y)
      ((eq dir 'up)
       (cons (car refpoint)
-            (- (ceiling (nth 1 edges)
-			(frame-char-height (window-frame window)))
+            (- (nth 1 edges)
                windmove-window-distance-delta))) ; (x, y0-d)
      ((eq dir 'right)
-      (cons (+ (1- (ceiling (nth 2 edges)
-			    (frame-char-width (window-frame window))))	; -1 to get actual max x
+      (cons (+ (1- (nth 2 edges))	; -1 to get actual max x
                windmove-window-distance-delta)
             (cdr refpoint)))            ; (x1+d-1, y)
      ((eq dir 'down)			; -1 to get actual max y
       (cons (car refpoint)
-            (+ (1- (ceiling (nth 3 edges)
-			    (frame-char-height (window-frame window))))
+            (+ (1- (nth 3 edges))
                windmove-window-distance-delta))) ; (x, y1+d-1)
      (t (error "Invalid direction of movement: %s" dir)))))
 
+;; Rewritten on 2013-12-13 using `window-in-direction'.  After the
+;; pixelwise change the old approach didn't work any more.  martin
 (defun windmove-find-other-window (dir &optional arg window)
   "Return the window object in direction DIR.
 DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'."
-  (let* ((actual-current-window (or window (selected-window)))
-         (raw-other-window-loc
-          (windmove-other-window-loc dir arg actual-current-window))
-         (constrained-other-window-loc
-          (windmove-constrain-loc-for-movement raw-other-window-loc
-                                               actual-current-window
-                                               dir))
-         (other-window-loc
-          (if windmove-wrap-around
-            (windmove-wrap-loc-for-movement constrained-other-window-loc
-                                            actual-current-window)
-            constrained-other-window-loc)))
-    (window-at (car other-window-loc)
-               (cdr other-window-loc))))
-
+  (window-in-direction
+   (cond
+    ((eq dir 'up) 'above)
+    ((eq dir 'down) 'below)
+    (t dir))
+   window nil arg windmove-wrap-around t))
 
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-other-window-loc', or screams if there's no window there.

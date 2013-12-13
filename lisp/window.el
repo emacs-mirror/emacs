@@ -1719,7 +1719,7 @@ SIDE can be any of the symbols `left', `top', `right' or
 ;; Neither of these allow to selectively ignore specific windows
 ;; (windows whose `no-other-window' parameter is non-nil) as targets of
 ;; the movement.
-(defun window-in-direction (direction &optional window ignore)
+(defun window-in-direction (direction &optional window ignore sign wrap mini)
   "Return window in DIRECTION as seen from WINDOW.
 More precisely, return the nearest window in direction DIRECTION
 as seen from the position of `window-point' in window WINDOW.
@@ -1732,6 +1732,22 @@ non-nil, try to find another window in the indicated direction.
 If, however, the optional argument IGNORE is non-nil, return that
 window even if its `no-other-window' parameter is non-nil.
 
+Optional argument SIGN a negative number means to use the right
+or bottom edge of WINDOW as reference position instead of
+`window-point'.  SIGN a positive number means to use the left or
+top edge of WINDOW as reference position.
+
+Optional argument WRAP non-nil means to wrap DIRECTION around
+frame borders.  This means to return for a WINDOW a the top of
+the frame and DIRECTION `above' to return the minibuffer window
+if the frame has one, and a window at the bottom of the frame
+otherwise.
+
+Optional argument MINI nil means to return the minibuffer window
+if and only if it is currently active.  MINI non-nil means to
+return the minibuffer window even when it's not active.  However,
+if WRAP non-nil, always act as if MINI were nil.
+
 Return nil if no suitable window can be found."
   (setq window (window-normalize-window window t))
   (unless (memq direction '(above below left right))
@@ -1742,12 +1758,22 @@ Return nil if no suitable window can be found."
 		    (window-pixel-left window)
 		  (window-pixel-top window)))
 	 (last (+ first (window-size window hor t)))
-	 (posn-cons (nth 2 (posn-at-point (window-point window) window)))
 	 ;; The column / row value of `posn-at-point' can be nil for the
 	 ;; mini-window, guard against that.
-	 (posn (if hor
-		   (+ (or (cdr posn-cons) 1) (window-pixel-top window))
-		 (+ (or (car posn-cons) 1) (window-pixel-left window))))
+	 (posn
+	  (cond
+	   ((and (numberp sign) (< sign 0))
+	    (if hor
+		(1- (+ (window-pixel-top window) (window-pixel-height window)))
+	      (1- (+ (window-pixel-left window) (window-pixel-width window)))))
+	   ((and (numberp sign) (> sign 0))
+	    (if hor
+		(window-pixel-top window)
+	      (window-pixel-left window)))
+	   ((let ((posn-cons (nth 2 (posn-at-point (window-point window) window))))
+	      (if hor
+		  (+ (or (cdr posn-cons) 1) (window-pixel-top window))
+		(+ (or (car posn-cons) 1) (window-pixel-left window)))))))
 	 (best-edge
 	  (cond
 	   ((eq direction 'below) (frame-pixel-height frame))
@@ -1772,9 +1798,15 @@ Return nil if no suitable window can be found."
 		  (< posn (+ w-top (window-pixel-height w))))
 	     ;; W is to the left or right of WINDOW and covers POSN.
 	     (when (or (and (eq direction 'left)
-			    (<= w-left first) (> w-left best-edge))
+			    (or (and (<= w-left first) (> w-left best-edge))
+				(and wrap
+				     (window-at-side-p window 'left)
+				     (window-at-side-p w 'right))))
 		       (and (eq direction 'right)
-			    (>= w-left last) (< w-left best-edge)))
+			    (or (and (>= w-left last) (< w-left best-edge))
+				(and wrap
+				     (window-at-side-p window 'right)
+				     (window-at-side-p w 'left)))))
 	       (setq best-edge w-left)
 	       (setq best w)))
 	    ((and (or (and (eq direction 'left)
@@ -1792,32 +1824,40 @@ Return nil if no suitable window can be found."
 	     (setq best-edge-2 w-left)
 	     (setq best-diff-2 best-diff-2-new)
 	     (setq best-2 w))))
-	  (t
-	   (cond
-	    ((and (<= w-left posn)
-		  (< posn (+ w-left (window-pixel-width w))))
-	     ;; W is above or below WINDOW and covers POSN.
-	     (when (or (and (eq direction 'above)
-			    (<= w-top first) (> w-top best-edge))
-		       (and (eq direction 'below)
-			    (>= w-top first) (< w-top best-edge)))
-	       (setq best-edge w-top)
-	       (setq best w)))
-	    ((and (or (and (eq direction 'above)
-			   (<= (+ w-top (window-pixel-height w)) first))
-		      (and (eq direction 'below) (<= last w-top)))
-		  ;; W is above or below WINDOW but does not cover POSN.
-		  (setq best-diff-2-new
-			(window--in-direction-2 w posn hor))
-		  (or (< best-diff-2-new best-diff-2)
-		      (and (= best-diff-2-new best-diff-2)
-			   (if (eq direction 'above)
-			       (> w-top best-edge-2)
-			     (< w-top best-edge-2)))))
-	     (setq best-edge-2 w-top)
-	     (setq best-diff-2 best-diff-2-new)
-	     (setq best-2 w)))))))
-     frame)
+	  ((and (<= w-left posn)
+		(< posn (+ w-left (window-pixel-width w))))
+	   ;; W is above or below WINDOW and covers POSN.
+	   (when (or (and (eq direction 'above)
+			  (or (and (<= w-top first) (> w-top best-edge))
+			      (and wrap
+				   (window-at-side-p window 'top)
+				   (if (active-minibuffer-window)
+				       (minibuffer-window-active-p w)
+				     (window-at-side-p w 'bottom)))))
+		     (and (eq direction 'below)
+			  (or (and (>= w-top first) (< w-top best-edge))
+			      (and wrap
+				   (if (active-minibuffer-window)
+				       (minibuffer-window-active-p window)
+				     (window-at-side-p window 'bottom))
+				   (window-at-side-p w 'top)))))
+	     (setq best-edge w-top)
+	     (setq best w)))
+	  ((and (or (and (eq direction 'above)
+			 (<= (+ w-top (window-pixel-height w)) first))
+		    (and (eq direction 'below) (<= last w-top)))
+		;; W is above or below WINDOW but does not cover POSN.
+		(setq best-diff-2-new
+		      (window--in-direction-2 w posn hor))
+		(or (< best-diff-2-new best-diff-2)
+		    (and (= best-diff-2-new best-diff-2)
+			 (if (eq direction 'above)
+			     (> w-top best-edge-2)
+			   (< w-top best-edge-2)))))
+	   (setq best-edge-2 w-top)
+	   (setq best-diff-2 best-diff-2-new)
+	   (setq best-2 w)))))
+     frame nil (and mini t))
     (or best best-2)))
 
 (defun get-window-with-predicate (predicate &optional minibuf all-frames default)

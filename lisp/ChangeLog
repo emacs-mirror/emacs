@@ -1,3 +1,13 @@
+2013-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix windmove-find-other-window broken after pixelwise resizing
+	(Bug#16017).
+	* windmove.el (windmove-other-window-loc): Revert change from
+	2013-12-04.
+	(windmove-find-other-window): Call window-in-direction.
+	* window.el (window-in-direction): New arguments SIGN, WRAP and
+	MINI to emulate original windmove-find-other-window behavior.
+
 2013-12-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* simple.el (blink-matching--overlay): New variable.
