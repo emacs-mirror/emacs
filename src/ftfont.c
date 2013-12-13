@@ -1236,7 +1236,6 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   ASET (font_object, FONT_FILE_INDEX, filename);
   ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (NULL, filename));
   font = XFONT_OBJECT (font_object);
-  font->frame = f;
   ftfont_info = (struct ftfont_info *) font;
   ftfont_info->ft_size = ft_face->size;
   ftfont_info->index = XINT (idx);

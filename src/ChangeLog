@@ -1,5 +1,12 @@
 2013-12-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c, font.c, font.h, ftfont.c, ftxfont.c, macfont.m,
+	* nsfont.m, w32font.c, xfont.c, xftfont.c: Revert last and
+	2013-12-12 font-related change to avoid Bug#16128, which
+	is quite hard to fix without even more substantial changes.
+
+2013-12-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* font.c (font_close_object): Check for live frame (Bug#16128).
 
 2013-12-13  Paul Eggert  <eggert@cs.ucla.edu>

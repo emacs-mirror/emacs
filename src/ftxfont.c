@@ -255,7 +255,6 @@ ftxfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   if (NILP (font_object))
     return Qnil;
   font = XFONT_OBJECT (font_object);
-  eassert (font->frame == f);
   font->driver = &ftxfont_driver;
   return font_object;
 }

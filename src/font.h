@@ -265,9 +265,6 @@ struct font_entity
 {
   struct vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
-#ifdef HAVE_NS
-  struct font_driver *driver;
-#endif
 };
 
 /* A value which may appear in the member `encoding' of struct font
@@ -318,9 +315,6 @@ struct font
   /* The following members makes sense on graphic displays only.  */
 
 #if defined (HAVE_WINDOW_SYSTEM)
-
-  /* The frame where the font was opened.  */
-  struct frame *frame;
 
   /* Vertical pixel width of the underline.  If is zero if that
      information is not in the font.  */
@@ -741,7 +735,6 @@ extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object font_make_entity (void);
 extern Lisp_Object font_make_object (int, Lisp_Object, int);
-extern void font_close_object (Lisp_Object);
 
 extern Lisp_Object find_font_encoding (Lisp_Object);
 extern int font_registry_charsets (Lisp_Object, struct charset **,
