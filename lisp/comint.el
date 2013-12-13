@@ -460,10 +460,10 @@ executed once when the buffer is created."
     (define-key map "\e\C-l" 	  'comint-show-output)
     (define-key map "\C-m" 	  'comint-send-input)
     (define-key map "\C-d" 	  'comint-delchar-or-maybe-eof)
-    ;; The following two are standardly aliased to C-d,
+    ;; The following two are standardly bound to delete-forward-char,
     ;; but they should never do EOF, just delete.
-    (define-key map [delete] 	  'delete-char)
-    (define-key map [kp-delete]	  'delete-char)
+    (define-key map [delete] 	  'delete-forward-char)
+    (define-key map [kp-delete]	  'delete-forward-char)
     (define-key map "\C-c " 	  'comint-accumulate)
     (define-key map "\C-c\C-x" 	  'comint-get-next-from-history)
     (define-key map "\C-c\C-a" 	  'comint-bol-or-process-mark)
