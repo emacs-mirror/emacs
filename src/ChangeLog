@@ -1,3 +1,10 @@
+2013-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c: Replace `:verify_hostname_error' with `:verify_error',
+	now a list of certificate validation checks that will abort a
+	connection with an error.
+	(Fgnutls_boot): Document it and use it.
+
 2013-12-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (w32_enable_frame_resize_hack): New variable.

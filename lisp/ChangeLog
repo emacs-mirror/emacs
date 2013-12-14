@@ -1,3 +1,10 @@
+2013-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-verify-error): New defcustom to control
+	the behavior when a certificate fails validation.  Defaults to
+	old behavior: never abort, just warn.
+	(gnutls-negotiate): Use it.
+
 2013-12-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-below-selected): Never split window

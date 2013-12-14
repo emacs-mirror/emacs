@@ -50,7 +50,7 @@ static Lisp_Object QCgnutls_bootprop_loglevel;
 static Lisp_Object QCgnutls_bootprop_hostname;
 static Lisp_Object QCgnutls_bootprop_min_prime_bits;
 static Lisp_Object QCgnutls_bootprop_verify_flags;
-static Lisp_Object QCgnutls_bootprop_verify_hostname_error;
+static Lisp_Object QCgnutls_bootprop_verify_error;
 
 /* Callback keys for `gnutls-boot'.  Unused currently.  */
 static Lisp_Object QCgnutls_bootprop_callbacks_verify;
@@ -754,8 +754,12 @@ certificates for `gnutls-x509pki'.
 :verify-flags is a bitset as per GnuTLS'
 gnutls_certificate_set_verify_flags.
 
-:verify-hostname-error, if non-nil, makes a hostname mismatch an
-error.  Otherwise it will be just a warning.
+:verify-hostname-error is ignored.  Pass :hostname in :verify-error
+instead.
+
+:verify-error is a list of symbols to express verification checks or
+`t' to do all checks.  Currently it can contain `:trustfiles' and
+`:hostname' to verify the certificate or the hostname respectively.
 
 :min-prime-bits is the minimum accepted number of bits the client will
 accept in Diffie-Hellman key exchange.
@@ -799,8 +803,7 @@ one trustfile (usually a CA bundle).  */)
   /* Lisp_Object callbacks; */
   Lisp_Object loglevel;
   Lisp_Object hostname;
-  /* Lisp_Object verify_error; */
-  Lisp_Object verify_hostname_error;
+  Lisp_Object verify_error;
   Lisp_Object prime_bits;
 
   CHECK_PROCESS (proc);
@@ -819,11 +822,14 @@ one trustfile (usually a CA bundle).  */)
   keylist               = Fplist_get (proplist, QCgnutls_bootprop_keylist);
   crlfiles              = Fplist_get (proplist, QCgnutls_bootprop_crlfiles);
   loglevel              = Fplist_get (proplist, QCgnutls_bootprop_loglevel);
-  verify_hostname_error = Fplist_get (proplist, QCgnutls_bootprop_verify_hostname_error);
+  verify_error          = Fplist_get (proplist, QCgnutls_bootprop_verify_error);
   prime_bits            = Fplist_get (proplist, QCgnutls_bootprop_min_prime_bits);
 
+  if (!Flistp (verify_error))
+    error ("gnutls-boot: invalid :verify_error parameter (not a list)");
+
   if (!STRINGP (hostname))
-    error ("gnutls-boot: invalid :hostname parameter");
+    error ("gnutls-boot: invalid :hostname parameter (not a string)");
   c_hostname = SSDATA (hostname);
 
   state = XPROCESS (proc)->gnutls_state;
@@ -1065,14 +1071,17 @@ one trustfile (usually a CA bundle).  */)
 
   if (peer_verification != 0)
     {
-      if (NILP (verify_hostname_error))
-	GNUTLS_LOG2 (1, max_log_level, "certificate validation failed:",
-		     c_hostname);
-      else
-	{
+      if (EQ (verify_error, Qt)
+          || !NILP (Fmember (QCgnutls_bootprop_trustfiles, verify_error)))
+        {
 	  emacs_gnutls_deinit (proc);
 	  error ("Certificate validation failed %s, verification code %d",
 		 c_hostname, peer_verification);
+        }
+      else
+	{
+          GNUTLS_LOG2 (1, max_log_level, "certificate validation failed:",
+                       c_hostname);
 	}
     }
 
@@ -1112,14 +1121,17 @@ one trustfile (usually a CA bundle).  */)
 
       if (!fn_gnutls_x509_crt_check_hostname (gnutls_verify_cert, c_hostname))
 	{
-	  if (NILP (verify_hostname_error))
-	    GNUTLS_LOG2 (1, max_log_level, "x509 certificate does not match:",
-			 c_hostname);
-	  else
-	    {
+          if (EQ (verify_error, Qt)
+              || !NILP (Fmember (QCgnutls_bootprop_hostname, verify_error)))
+            {
 	      fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
 	      emacs_gnutls_deinit (proc);
 	      error ("The x509 certificate does not match \"%s\"", c_hostname);
+            }
+	  else
+	    {
+              GNUTLS_LOG2 (1, max_log_level, "x509 certificate does not match:",
+                           c_hostname);
 	    }
 	}
       fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
@@ -1179,7 +1191,7 @@ syms_of_gnutls (void)
   DEFSYM (QCgnutls_bootprop_min_prime_bits, ":min-prime-bits");
   DEFSYM (QCgnutls_bootprop_loglevel, ":loglevel");
   DEFSYM (QCgnutls_bootprop_verify_flags, ":verify-flags");
-  DEFSYM (QCgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
+  DEFSYM (QCgnutls_bootprop_verify_error, ":verify-error");
 
   DEFSYM (Qgnutls_e_interrupted, "gnutls-e-interrupted");
   Fput (Qgnutls_e_interrupted, Qgnutls_code,
