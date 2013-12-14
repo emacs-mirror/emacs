@@ -45,10 +45,41 @@ foo = { a: b,
         a1: b1
       }
 
-foo({
-     a: b,
-     c: d
-   })
+foo({                           # bug#16118
+      a: b,
+      c: d
+    }
+   )                            # bug#16116
+
+bar = foo(
+        a, [
+          1,
+        ],
+        :qux => [
+          3
+        ]
+      )
+
+foo(
+  [
+    {
+      a: b
+    },
+  ],
+  {
+    c: d
+  }
+)
+
+foo([{
+       a: 2
+     },
+     {
+       b: 3
+     },
+     4
+    ]
+   )
 
 foo = [                         # ruby-deep-indent-disabled
   1

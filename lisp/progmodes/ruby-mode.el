@@ -549,10 +549,21 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (ruby-smie--indent-to-stmt))
       ((smie-rule-hanging-p)
        ;; Treat purely syntactic block-constructs as being part of their parent,
-       ;; when the opening statement is hanging.
+       ;; when the opening token is hanging and the parent is not an open-paren.
        (let ((state (smie-backward-sexp 'halfsexp)))
-         (when (eq t (car state)) (goto-char (cadr state))))
-       (cons 'column  (smie-indent-virtual)))))
+         (unless (and (eq t (car state))
+                      (not (eq (cadr state) (point-min))))
+           (cons 'column (smie-indent-virtual)))))))
+    (`(:after . ,(or `"(" "[" "{"))
+     ;; FIXME: Shouldn't this be the default behavior of
+     ;; `smie-indent-after-keyword'?
+     (save-excursion
+       (forward-char 1)
+       (skip-chars-forward " \t")
+       ;; `smie-rule-hanging-p' is not good enough here,
+       ;; because we want to accept hanging tokens at bol, too.
+       (unless (or (eolp) (forward-comment 1))
+         (cons 'column (current-column)))))
     (`(:after . " @ ") (smie-rule-parent))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
     (`(,(or :before :after) . ".")

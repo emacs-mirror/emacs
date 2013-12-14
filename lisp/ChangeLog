@@ -1,3 +1,11 @@
+2013-12-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Return nil before
+	open-paren tokens when preceded by a open-paren, too.
+	(ruby-smie-rules): Handle virtual indentation after open-paren
+	tokens specially.  If there is code between it and eol, return the
+	column where is starts (Bug#16118).
+
 2013-12-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el: Fix `add-hook' doc.
