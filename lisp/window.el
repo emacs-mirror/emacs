@@ -6245,7 +6245,8 @@ This either splits the selected window or reuses the window below
 the selected one."
   (let (window)
     (or (and (not (frame-parameter nil 'unsplittable))
-	     (setq window (window--try-to-split-window (selected-window) alist))
+	     (let (split-width-threshold)
+	       (setq window (window--try-to-split-window (selected-window) alist)))
 	     (window--display-buffer
 	      buffer window 'window alist display-buffer-mark-dedicated))
 	(and (setq window (window-in-direction 'below))
