@@ -1,5 +1,23 @@
 2013-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* emacs-lisp/package.el (package-built-in-p): Support both
+	built-in and the package.el converted package descriptions.
+	(package-show-package-list): Allow keywords.
+	(package-keyword-button-action): Use it instead of
+	`finder-list-matches'.
+	(package-menu-filter-interactive): Interactive filtering (by
+	keyword) function.
+	(package-menu--generate): Support keywords and change keymappings
+	and headers when they are given.
+	(package--has-keyword-p): Helper function.
+	(package-menu--refresh): Use it.
+	(package--mapc): Helper function.
+	(package-all-keywords): Use it.
+	(package-menu-mode-map): Set up menu items and keybindings to
+	provide a filtering UI.
+
+2013-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
 	* net/gnutls.el (gnutls-verify-error): New defcustom to control
 	the behavior when a certificate fails validation.  Defaults to
 	old behavior: never abort, just warn.
