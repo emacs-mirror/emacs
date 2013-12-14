@@ -26,16 +26,17 @@ AC_INIT(emacs, 24.3.50)
 
 if test "x$MSYSTEM" = "xMINGW32"
 then
-   . $srcdir/nt/mingw-cfg.site
+  . $srcdir/nt/mingw-cfg.site
 
-   if test ${srcdir:0:1} = "/" -o ${srcdir:1:1} = ":"
-   then
-       # srcdir is an absolute path.  In this case, force the format
-       # "/c/foo/bar", to simplify later conversions to native Windows
-       # format ("c:/foo/bar")
-       srcdir=`cd "${srcdir}" && pwd -W`
-       srcdir="/${srcdir:0:1}${srcdir:2}"
-   fi
+  case $srcdir in
+    /* | ?:*)
+      # srcdir is an absolute path.  In this case, force the format
+      # "/c/foo/bar", to simplify later conversions to native Windows
+      # format ("c:/foo/bar")
+      srcdir=`cd "${srcdir}" && pwd -W`
+      srcdir="/${srcdir:0:1}${srcdir:2}"
+      ;;
+  esac
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
