@@ -2877,12 +2877,7 @@ cleanup_vector (struct Lisp_Vector *vector)
   if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT)
       && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
 	  == FONT_OBJECT_MAX))
-    {
-      struct font *fnt = (struct font *) vector;
-
-      if (fnt->driver)
-	fnt->driver->close (fnt);
-    }
+    ((struct font *) vector)->driver->close ((struct font *) vector);
 }
 
 /* Reclaim space used by unmarked vectors.  */
