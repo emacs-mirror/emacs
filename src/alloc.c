@@ -2881,7 +2881,7 @@ cleanup_vector (struct Lisp_Vector *vector)
       struct font *fnt = (struct font *) vector;
 
       if (fnt->driver)
-	fnt->driver->close ((struct font *) vector);
+	fnt->driver->close (fnt);
     }
 }
 
