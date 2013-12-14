@@ -32,6 +32,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include config_opsysfile
 #endif
 
+#include <stdbool.h>
+
+/* The pre-C99 <stdbool.h> emulation doesn't work for bool bitfields.  */
+#if __STDC_VERSION__ < 199901
+typedef unsigned int bool_bf;
+#else
+typedef bool bool_bf;
+#endif
+
 #ifndef WINDOWSNT
 /* On AIX 3 this must be included before any other include file.  */
 #include <alloca.h>
@@ -41,7 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef __has_attribute
-# define __has_attribute(a) 0 /* non-clang */
+# define __has_attribute(a) false /* non-clang */
 #endif
 
 #ifdef DARWIN_OS

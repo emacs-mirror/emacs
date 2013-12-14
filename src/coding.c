@@ -5199,7 +5199,7 @@ decode_coding_ccl (struct coding_system *coding)
 	  source_charbuf[i++] = *p++;
 
       if (p == src_end && coding->mode & CODING_MODE_LAST_BLOCK)
-	ccl->last_block = 1;
+	ccl->last_block = true;
       /* As ccl_driver calls DECODE_CHAR, buffer may be relocated.  */
       charset_map_loaded = 0;
       ccl_driver (ccl, source_charbuf, charbuf, i, charbuf_end - charbuf,
@@ -5259,7 +5259,7 @@ encode_coding_ccl (struct coding_system *coding)
   CODING_GET_INFO (coding, attrs, charset_list);
   if (coding->consumed_char == coding->src_chars
       && coding->mode & CODING_MODE_LAST_BLOCK)
-    ccl->last_block = 1;
+    ccl->last_block = true;
 
   do
     {

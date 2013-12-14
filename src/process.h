@@ -138,23 +138,23 @@ struct Lisp_Process
        0 = nil, 1 = t, 2 = other.  */
     unsigned int adaptive_read_buffering : 2;
     /* Skip reading this process on next read.  */
-    unsigned int read_output_skip : 1;
-    /* Non-nil means kill silently if Emacs is exited.
+    bool_bf read_output_skip : 1;
+    /* True means kill silently if Emacs is exited.
        This is the inverse of the `query-on-exit' flag.  */
-    unsigned int kill_without_query : 1;
-    /* Non-nil if communicating through a pty.  */
-    unsigned int pty_flag : 1;
+    bool_bf kill_without_query : 1;
+    /* True if communicating through a pty.  */
+    bool_bf pty_flag : 1;
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
-    unsigned int inherit_coding_system_flag : 1;
+    bool_bf inherit_coding_system_flag : 1;
     /* Whether the process is alive, i.e., can be waited for.  Running
        processes can be waited for, but exited and fake processes cannot.  */
-    unsigned int alive : 1;
+    bool_bf alive : 1;
     /* Record the process status in the raw form in which it comes from `wait'.
        This is to avoid consing in a signal handler.  The `raw_status_new'
        flag indicates that `raw_status' contains a new status that still
        needs to be synced to `status'.  */
-    unsigned int raw_status_new : 1;
+    bool_bf raw_status_new : 1;
     int raw_status;
 
 #ifdef HAVE_GNUTLS
@@ -164,7 +164,7 @@ struct Lisp_Process
     gnutls_anon_client_credentials_t gnutls_anon_cred;
     int gnutls_log_level;
     int gnutls_handshakes_tried;
-    unsigned int gnutls_p : 1;
+    bool_bf gnutls_p : 1;
 #endif
 };
 

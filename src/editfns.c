@@ -3636,8 +3636,8 @@ usage: (format STRING &rest OBJECTS)  */)
   struct info
   {
     ptrdiff_t start, end;
-    unsigned converted_to_string : 1;
-    unsigned intervals : 1;
+    bool_bf converted_to_string : 1;
+    bool_bf intervals : 1;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -4214,7 +4214,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	if (buf == initial_buffer)
 	  {
 	    buf = xmalloc (bufsize);
-	    sa_must_free = 1;
+	    sa_must_free = true;
 	    buf_save_value_index = SPECPDL_INDEX ();
 	    record_unwind_protect_ptr (xfree, buf);
 	    memcpy (buf, initial_buffer, used);

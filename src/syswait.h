@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSWAIT_H
 #define EMACS_SYSWAIT_H
 
-#include <stdbool.h>
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */

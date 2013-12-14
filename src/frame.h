@@ -177,46 +177,46 @@ struct frame
   struct glyph_matrix *desired_matrix;
   struct glyph_matrix *current_matrix;
 
-  /* 1 means that glyphs on this frame have been initialized so it can
+  /* True means that glyphs on this frame have been initialized so it can
      be used for output.  */
-  unsigned glyphs_initialized_p : 1;
+  bool_bf glyphs_initialized_p : 1;
 
-  /* Set to non-zero in change_frame_size when size of frame changed
+  /* Set to true in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
-  unsigned resized_p : 1;
+  bool_bf resized_p : 1;
 
-  /* Set to non-zero if the default face for the frame has been
+  /* Set to true if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
-  unsigned default_face_done_p : 1;
+  bool_bf default_face_done_p : 1;
 
-  /* Set to non-zero if this frame has already been hscrolled during
+  /* Set to true if this frame has already been hscrolled during
      current redisplay.  */
-  unsigned already_hscrolled_p : 1;
+  bool_bf already_hscrolled_p : 1;
 
-  /* Set to non-zero when current redisplay has updated frame.  */
-  unsigned updated_p : 1;
+  /* Set to true when current redisplay has updated frame.  */
+  bool_bf updated_p : 1;
 
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
-  /* Set to non-zero to minimize tool-bar height even when
+  /* Set to true to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
-  unsigned minimize_tool_bar_window_p : 1;
+  bool_bf minimize_tool_bar_window_p : 1;
 #endif
 
 #if defined (USE_GTK) || defined (HAVE_NS)
-  /* Nonzero means using a tool bar that comes from the toolkit.  */
-  unsigned external_tool_bar : 1;
+  /* True means using a tool bar that comes from the toolkit.  */
+  bool_bf external_tool_bar : 1;
 #endif
 
-  /* Nonzero means that fonts have been loaded since the last glyph
+  /* True means that fonts have been loaded since the last glyph
      matrix adjustments.  */
-  unsigned fonts_changed : 1;
+  bool_bf fonts_changed : 1;
 
-  /* Nonzero means that cursor type has been changed.  */
-  unsigned cursor_type_changed : 1;
+  /* True means that cursor type has been changed.  */
+  bool_bf cursor_type_changed : 1;
 
   /* True if it needs to be redisplayed.  */
-  unsigned redisplay : 1;
+  bool_bf redisplay : 1;
 
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
@@ -353,8 +353,8 @@ struct frame
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
-  /* Nonzero means using a menu bar that comes from the X toolkit.  */
-  unsigned external_menu_bar : 1;
+  /* True means using a menu bar that comes from the X toolkit.  */
+  bool_bf external_menu_bar : 1;
 #endif
 
   /* Next two bitfields are mutually exclusive.  They might both be
@@ -371,45 +371,45 @@ struct frame
      updating it.  */
   unsigned visible : 2;
 
-  /* Nonzero if the frame is currently iconified.  Do not
+  /* True if the frame is currently iconified.  Do not
      set this directly, use SET_FRAME_ICONIFIED instead.  */
-  unsigned iconified : 1;
+  bool_bf iconified : 1;
 
-  /* Nonzero if this frame should be redrawn.  */
-  unsigned garbaged : 1;
+  /* True if this frame should be redrawn.  */
+  bool_bf garbaged : 1;
 
-  /* 0 means, if this frame has just one window,
+  /* False means, if this frame has just one window,
      show no modeline for that window.  */
-  unsigned wants_modeline : 1;
+  bool_bf wants_modeline : 1;
 
-  /* Non-0 means raise this frame to the top of the heap when selected.  */
-  unsigned auto_raise : 1;
+  /* True means raise this frame to the top of the heap when selected.  */
+  bool_bf auto_raise : 1;
 
-  /* Non-0 means lower this frame to the bottom of the stack when left.  */
-  unsigned auto_lower : 1;
+  /* True means lower this frame to the bottom of the stack when left.  */
+  bool_bf auto_lower : 1;
 
   /* True if frame's root window can't be split.  */
-  unsigned no_split : 1;
+  bool_bf no_split : 1;
 
   /* If this is set, then Emacs won't change the frame name to indicate
      the current buffer, etcetera.  If the user explicitly sets the frame
      name, this gets set.  If the user sets the name to Qnil, this is
      cleared.  */
-  unsigned explicit_name : 1;
+  bool_bf explicit_name : 1;
 
-  /* Nonzero if size of some window on this frame has changed.  */
-  unsigned window_sizes_changed : 1;
+  /* True if size of some window on this frame has changed.  */
+  bool_bf window_sizes_changed : 1;
 
-  /* Nonzero if the mouse has moved on this display device
+  /* True if the mouse has moved on this display device
      since the last time we checked.  */
-  unsigned mouse_moved : 1;
+  bool_bf mouse_moved : 1;
 
-  /* Nonzero means that the pointer is invisible.  */
-  unsigned pointer_invisible : 1;
+  /* True means that the pointer is invisible.  */
+  bool_bf pointer_invisible : 1;
 
-  /* Nonzero means that all windows except mini-window and
+  /* True means that all windows except mini-window and
      selected window on this frame have frozen window starts.  */
-  unsigned frozen_window_starts : 1;
+  bool_bf frozen_window_starts : 1;
 
   /* Nonzero if we should actually display the scroll bars on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
@@ -606,17 +606,17 @@ default_pixels_per_inch_y (void)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #ifndef HAVE_NTGUI
-#define FRAME_W32_P(f) (0)
+#define FRAME_W32_P(f) false
 #else
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
 #endif
 #ifndef MSDOS
-#define FRAME_MSDOS_P(f) (0)
+#define FRAME_MSDOS_P(f) false
 #else
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
 #endif
 #ifndef HAVE_NS
-#define FRAME_NS_P(f) (0)
+#define FRAME_NS_P(f) false
 #else
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
@@ -634,7 +634,7 @@ default_pixels_per_inch_y (void)
 #define FRAME_WINDOW_P(f) FRAME_NS_P(f)
 #endif
 #ifndef FRAME_WINDOW_P
-#define FRAME_WINDOW_P(f) ((void) (f), 0)
+#define FRAME_WINDOW_P(f) ((void) (f), false)
 #endif
 
 /* Dots per inch of the screen the frame F is on.  */
@@ -669,14 +669,14 @@ default_pixels_per_inch_y (void)
   (&(F)->output_data.tty->display_info->mouse_highlight)
 #endif
 
-/* Nonzero if frame F is still alive (not deleted).  */
+/* True if frame F is still alive (not deleted).  */
 #define FRAME_LIVE_P(f) ((f)->terminal != 0)
 
-/* Nonzero if frame F is a minibuffer-only frame.  */
+/* True if frame F is a minibuffer-only frame.  */
 #define FRAME_MINIBUF_ONLY_P(f) \
   EQ (FRAME_ROOT_WINDOW (f), FRAME_MINIBUF_WINDOW (f))
 
-/* Nonzero if frame F contains it's own minibuffer window.  Frame always has
+/* True if frame F contains it's own minibuffer window.  Frame always has
    minibuffer window, but it could use minibuffer window of another frame.  */
 #define FRAME_HAS_MINIBUF_P(f)					\
   (WINDOWP (f->minibuffer_window)				\
@@ -714,12 +714,12 @@ default_pixels_per_inch_y (void)
 /* Pixel height of frame F's menu bar.  */
 #define FRAME_MENU_BAR_HEIGHT(f) (f)->menu_bar_height
 
-/* Nonzero if this frame should display a tool bar
+/* True if this frame should display a tool bar
    in a way that does not use any text lines.  */
 #if defined (USE_GTK) || defined (HAVE_NS)
 #define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
 #else
-#define FRAME_EXTERNAL_TOOL_BAR(f) 0
+#define FRAME_EXTERNAL_TOOL_BAR(f) false
 #endif
 
 /* Number of lines of frame F used for the tool-bar.  */
@@ -736,40 +736,40 @@ default_pixels_per_inch_y (void)
 #define FRAME_TOP_MARGIN_HEIGHT(F)				\
   (FRAME_MENU_BAR_HEIGHT (F) + FRAME_TOOL_BAR_HEIGHT (F))
 
-/* Nonzero if this frame should display a menu bar
+/* True if this frame should display a menu bar
    in a way that does not use any text lines.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
      || defined (HAVE_NS) || defined (USE_GTK)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
-#define FRAME_EXTERNAL_MENU_BAR(f) 0
+#define FRAME_EXTERNAL_MENU_BAR(f) false
 #endif
 #define FRAME_VISIBLE_P(f) (f)->visible
 
-/* Nonzero if frame F is currently visible but hidden.  */
+/* True if frame F is currently visible but hidden.  */
 #define FRAME_OBSCURED_P(f) ((f)->visible > 1)
 
-/* Nonzero if frame F is currently iconified.  */
+/* True if frame F is currently iconified.  */
 #define FRAME_ICONIFIED_P(f) (f)->iconified
 
 /* Mark frame F as currently garbaged.  */
 #define SET_FRAME_GARBAGED(f)				\
   (frame_garbaged = true, fset_redisplay (f), f->garbaged = true)
 
-/* Nonzero if frame F is currently garbaged.  */
+/* True if frame F is currently garbaged.  */
 #define FRAME_GARBAGED_P(f) (f)->garbaged
 
-/* Nonzero means do not allow splitting this frame's window.  */
+/* True means do not allow splitting this frame's window.  */
 #define FRAME_NO_SPLIT_P(f) (f)->no_split
 
 /* Not really implemented.  */
 #define FRAME_WANTS_MODELINE_P(f) (f)->wants_modeline
 
-/* Nonzero if all windows except selected window and mini window
+/* True if all windows except selected window and mini window
    are frozen on frame F.  */
 #define FRAME_WINDOWS_FROZEN(f) (f)->frozen_window_starts
 
-/* Nonzero if a size change has been requested for frame F
+/* True if a size change has been requested for frame F
    but not yet really put into effect.  This can be true temporarily
    when an X event comes in at a bad time.  */
 #define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
@@ -888,8 +888,6 @@ default_pixels_per_inch_y (void)
 #define FRAME_CURSOR_X_LIMIT(f) \
   (FRAME_COLS (f) + FRAME_LEFT_SCROLL_BAR_COLS (f))
 
-/* Nonzero if frame F has scroll bars.  */
-
 #define FRAME_SCROLL_BARS(f) (f->scroll_bars)
 
 #define FRAME_CONDEMNED_SCROLL_BARS(f) (f->condemned_scroll_bars)
@@ -934,7 +932,7 @@ default_pixels_per_inch_y (void)
 #define FOR_EACH_FRAME(list_var, frame_var)	\
   for ((list_var) = Vframe_list;		\
        (CONSP (list_var)			\
-	&& (frame_var = XCAR (list_var), 1));	\
+	&& (frame_var = XCAR (list_var), true)); \
        list_var = XCDR (list_var))
 
 /* Reflect mouse movement when a complete frame update is performed.  */
@@ -950,7 +948,7 @@ default_pixels_per_inch_y (void)
 			      hlinfo->mouse_face_mouse_y);	\
 	unblock_input ();					\
       }								\
-  } while (0)
+  } while (true)
 
 /* Set visibility of frame F.
    We call redisplay_other_windows to make sure the frame gets redisplayed
@@ -978,7 +976,7 @@ extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Qterminal;
 extern Lisp_Object Qnoelisp;
 
-/* Nonzero means there is at least one garbaged frame.  */
+/* True means there is at least one garbaged frame.  */
 extern bool frame_garbaged;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);

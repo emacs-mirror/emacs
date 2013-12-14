@@ -264,7 +264,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 
 #ifdef HAVE_X_WINDOWS
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
-  dpyinfo->bitmaps[id - 1].have_mask = 0;
+  dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].depth = 1;
 #endif /* HAVE_X_WINDOWS */
 
@@ -339,7 +339,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
-  dpyinfo->bitmaps[id - 1].have_mask = 0;
+  dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
   dpyinfo->bitmaps[id - 1].depth = 1;
@@ -515,7 +515,7 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
 	     width, height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 
-  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].have_mask = true;
   dpyinfo->bitmaps[id - 1].mask = mask;
 
   XDestroyImage (ximg);
@@ -3446,7 +3446,7 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
-  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].have_mask = true;
   dpyinfo->bitmaps[id - 1].mask = mask;
   dpyinfo->bitmaps[id - 1].file = NULL;
   dpyinfo->bitmaps[id - 1].height = attrs.height;
@@ -3974,7 +3974,7 @@ xpm_load_image (struct frame *f,
   Lisp_Object (*get_color_table) (Lisp_Object, const unsigned char *, int);
   Lisp_Object frame, color_symbols, color_table;
   int best_key;
-  bool have_mask = 0;
+  bool have_mask = false;
   XImagePtr ximg = NULL, mask_img = NULL;
 
 #define match() \
@@ -4146,7 +4146,7 @@ xpm_load_image (struct frame *f,
 #ifndef HAVE_NS
 	  XPutPixel (mask_img, x, y,
 		     (!EQ (color_val, Qt) ? PIX_MASK_DRAW
-		      : (have_mask = 1, PIX_MASK_RETAIN)));
+		      : (have_mask = true, PIX_MASK_RETAIN)));
 #else
           if (EQ (color_val, Qt))
             ns_set_alpha (ximg, x, y, 0);

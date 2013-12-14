@@ -57,10 +57,10 @@ invalid_timespec (void)
   return make_timespec (0, -1);
 }
 
-/* Return 1 if TIME is a valid timespec.  This currently doesn't worry
+/* Return true if TIME is a valid timespec.  This currently doesn't worry
    about whether tv_nsec is less than TIMESPEC_RESOLUTION; leap seconds
    might cause a problem if it did.  */
-INLINE int
+INLINE bool
 timespec_valid_p (struct timespec t)
 {
   return t.tv_nsec >= 0;

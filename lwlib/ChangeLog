@@ -1,3 +1,8 @@
+2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean, focusing on headers.
+	* xlwmenuP.h (XlwMenu_part): Use bool_bf for boolean bit-fields.
+
 2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lwlib.c (safe_strdup): Prefer tail calls.

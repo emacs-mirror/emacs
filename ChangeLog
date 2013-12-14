@@ -1,3 +1,9 @@
+2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean, focusing on headers.
+	* configure.ac (PTY_OPEN, GC_MARK_SECONDARY_STACK):
+	Use bool for boolean.
+
 2013-12-14  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* configure.ac (srcdir) [MINGW32]: Convert to an absolute MSYS

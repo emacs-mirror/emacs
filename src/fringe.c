@@ -83,7 +83,7 @@ struct fringe_bitmap
   unsigned width : 8;
   unsigned period : 8;
   unsigned align : 2;
-  unsigned dynamic : 1;
+  bool_bf dynamic : 1;
 };
 
 
@@ -1664,7 +1664,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
       Fput (bitmap, Qfringe, make_number (n));
     }
 
-  fb.dynamic = 1;
+  fb.dynamic = true;
 
   xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);

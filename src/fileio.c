@@ -2114,7 +2114,7 @@ entries (depending on how Emacs was built).  */)
     {
       struct timespec atime = get_stat_atime (&st);
       struct timespec mtime = get_stat_mtime (&st);
-      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime))
+      if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime) != 0)
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
     }
@@ -3184,7 +3184,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
   encoded_absname = ENCODE_FILE (absname);
 
   {
-    if (set_file_times (-1, SSDATA (encoded_absname), t, t))
+    if (set_file_times (-1, SSDATA (encoded_absname), t, t) != 0)
       {
 #ifdef MSDOS
         /* Setting times on a directory always fails.  */

@@ -561,12 +561,12 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		w->window_end_valid = 0;
 
 	      while (i < matrix->nrows)
-		matrix->rows[i++].enabled_p = 0;
+		matrix->rows[i++].enabled_p = false;
 	    }
 	  else
 	    {
 	      for (i = 0; i < matrix->nrows; ++i)
-		matrix->rows[i].enabled_p = 0;
+		matrix->rows[i].enabled_p = false;
 	    }
 	}
       else if (matrix == w->desired_matrix)
@@ -576,7 +576,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	     had better be the case when we adjust matrices between
 	     redisplays.  */
 	  for (i = 0; i < matrix->nrows; ++i)
-	    matrix->rows[i].enabled_p = 0;
+	    matrix->rows[i].enabled_p = false;
 	}
     }
 
@@ -684,7 +684,7 @@ clear_glyph_matrix_rows (struct glyph_matrix *matrix, int start, int end)
   eassert (end >= 0 && end <= matrix->nrows);
 
   for (; start < end; ++start)
-    matrix->rows[start].enabled_p = 0;
+    matrix->rows[start].enabled_p = false;
 }
 
 
@@ -864,7 +864,7 @@ blank_row (struct window *w, struct glyph_row *row, int y)
   if (row->y + row->height > max_y)
     row->visible_height -= row->y + row->height - max_y;
 
-  row->enabled_p = 1;
+  row->enabled_p = true;
 }
 
 
@@ -1062,7 +1062,7 @@ prepare_desired_row (struct glyph_row *row)
       bool rp = row->reversed_p;
 
       clear_glyph_row (row);
-      row->enabled_p = 1;
+      row->enabled_p = true;
       row->reversed_p = rp;
     }
 }
@@ -2416,7 +2416,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 
 	  /* Only when a desired row has been displayed, we want
 	     the corresponding frame row to be updated.  */
-	  frame_row->enabled_p = 1;
+	  frame_row->enabled_p = true;
 
           /* Maybe insert a vertical border between horizontally adjacent
 	     windows.  */
@@ -2564,7 +2564,7 @@ make_current (struct glyph_matrix *desired_matrix, struct glyph_matrix *current_
   assign_row (current_row, desired_row);
 
   /* Enable current_row to mark it as valid.  */
-  current_row->enabled_p = 1;
+  current_row->enabled_p = true;
   current_row->mouse_face_p = mouse_face_p;
 
   /* If we are called on frame matrices, perform analogous operations
@@ -2606,7 +2606,7 @@ mirror_make_current (struct window *w, int frame_row)
 		assign_row (current_row, desired_row);
 	      else
 		swap_glyph_pointers (desired_row, current_row);
-	      current_row->enabled_p = 1;
+	      current_row->enabled_p = true;
 
 	      /* Set the Y coordinate of the mode/header line's row.
 		 It is needed in draw_row_with_mouse_face to find the
@@ -2661,7 +2661,7 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
 
       /* RETAINED_P is zero for empty lines.  */
       if (!retained_p[copy_from[i]])
-	new_rows[i].enabled_p = 0;
+	new_rows[i].enabled_p = false;
     }
 
   /* Do the same for window matrices, if MATRIX is a frame matrix.  */
@@ -2796,7 +2796,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 
 		  /* If frame line is empty, window line is empty, too.  */
 		  if (!retained_p[copy_from[i]])
-		    m->rows[window_to].enabled_p = 0;
+		    m->rows[window_to].enabled_p = false;
 		}
 	      else if (to_inside_window_p)
 		{
@@ -2821,7 +2821,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 
 		      /* If frame line is empty, window line is empty, too.  */
 		      if (!retained_p[copy_from[i]])
-			m->rows[window_to].enabled_p = 0;
+			m->rows[window_to].enabled_p = false;
 		    }
 		  sync_p = 1;
 		}
@@ -3432,7 +3432,7 @@ update_window (struct window *w, bool force_p)
 	       in the first redisplay.  */
 	    if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
 	      for (i = vpos + 1; i < w->current_matrix->nrows - 1; ++i)
-		MATRIX_ROW (w->current_matrix, i)->enabled_p = 0;
+		SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
 	  }
 
       /* Was display preempted?  */
@@ -4069,14 +4069,14 @@ scrolling_window (struct window *w, bool header_line_p)
 	  && row_equal_p (c, d, 1))
 	{
 	  assign_row (c, d);
-	  d->enabled_p = 0;
+	  d->enabled_p = false;
 	}
       else
 	break;
     }
 
   /* Give up if some rows in the desired matrix are not enabled.  */
-  if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
+  if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
     return -1;
 
   first_old = first_new = i;
@@ -4089,7 +4089,7 @@ scrolling_window (struct window *w, bool header_line_p)
     {
       int bottom;
 
-      if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
+      if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
 	return 0;
       bottom = MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i));
       if (bottom <= yb)
@@ -4121,7 +4121,7 @@ scrolling_window (struct window *w, bool header_line_p)
   j = last_old;
   while (i - 1 > first_new
          && j - 1 > first_old
-         && MATRIX_ROW (current_matrix, j - 1)->enabled_p
+         && MATRIX_ROW_ENABLED_P (current_matrix, j - 1)
 	 && (MATRIX_ROW (current_matrix, j - 1)->y
 	     == MATRIX_ROW (desired_matrix, i - 1)->y)
 	 && !MATRIX_ROW (desired_matrix, i - 1)->redraw_fringe_bitmaps_p
@@ -4198,7 +4198,7 @@ scrolling_window (struct window *w, bool header_line_p)
 
   for (i = first_old; i < last_old; ++i)
     {
-      if (MATRIX_ROW (current_matrix, i)->enabled_p)
+      if (MATRIX_ROW_ENABLED_P (current_matrix, i))
 	{
 	  entry = add_row_entry (MATRIX_ROW (current_matrix, i));
 	  old_lines[i] = entry;
@@ -4391,7 +4391,7 @@ scrolling_window (struct window *w, bool header_line_p)
 	       preceding for-loop, we no longer have such an overlap,
 	       and thus the assigned row should always be enabled.  */
 	    eassert (to->enabled_p);
-	    from->enabled_p = 0;
+	    from->enabled_p = false;
 	    to->overlapped_p = to_overlapped_p;
 	  }
       }
@@ -4761,7 +4761,7 @@ update_frame_line (struct frame *f, int vpos)
 	  olen--;
     }
 
-  current_row->enabled_p = 1;
+  current_row->enabled_p = true;
   current_row->used[TEXT_AREA] = desired_row->used[TEXT_AREA];
 
   /* If desired line is empty, just clear the line.  */

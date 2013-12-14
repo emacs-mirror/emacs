@@ -1,3 +1,21 @@
+2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean, focusing on headers.
+	* emacsclient.c, etags.c, hexl.c (FALSE, TRUE):
+	Remove.  All uses replaced with uncapitalized version.
+	* emacsclient.c (message):
+	* etags.c (make_tag, pfnote, consider_token, make_C_tag, lang_names):
+	* hexl.c (un_flag, iso_flag, endian):
+	* pop.c (pop_debug, pop_open, pop_multi_first, pop_multi_next)
+	(pop_trash):
+	Use bool for boolean.
+	* etags.c (bool): Remove.
+	* etags.c (globals, members, declarations, no_line_directive)
+	(no_duplicates): Use 'int' for boolean values that getopt requires
+	to be 'int'.  Formerly, these were 'bool' and 'bool' was 'int',
+	but we can no longer rely on this implementation.
+	* pop.h (struct _popserver): Use bool_bf for boolean bit-fields.
+
 2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* ebrowse.c (xstrdup):

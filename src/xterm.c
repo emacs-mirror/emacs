@@ -133,9 +133,9 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
-int use_xim = 1;
+bool use_xim = true;
 #else
-int use_xim = 0;  /* configure --without-xim */
+bool use_xim = false;  /* configure --without-xim */
 #endif
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
@@ -6172,7 +6172,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
           /* Don't pass keys to GTK.  A Tab will shift focus to the
              tool bar in GTK 2.4.  Keys will still go to menus and
-             dialogs because in that case popup_activated is TRUE
+             dialogs because in that case popup_activated is nonzero
              (see above).  */
           *finish = X_EVENT_DROP;
 #endif
@@ -10092,12 +10092,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "false")
 	    || !strcmp (SSDATA (value), "off")))
-      use_xim = 0;
+      use_xim = false;
 #else
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
-      use_xim = 1;
+      use_xim = true;
 #endif
   }
 

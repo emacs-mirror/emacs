@@ -169,7 +169,7 @@ struct kboard
     char kbd_queue_has_data;
 
     /* True means echo each character as typed.  */
-    unsigned immediate_echo : 1;
+    bool_bf immediate_echo : 1;
 
     /* If we have echoed a prompt string specified by the user,
        this is its length in characters.  Otherwise this is -1.  */

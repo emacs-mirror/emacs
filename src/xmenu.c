@@ -1647,7 +1647,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 #endif
 
       wv_title->name = SSDATA (title);
-      wv_title->enabled = TRUE;
+      wv_title->enabled = true;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
       wv_title->next = wv_sep1;

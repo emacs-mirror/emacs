@@ -57,19 +57,19 @@ typedef enum
   do {								\
     if ((level) <= (max))					\
       gnutls_log_function (level, "(Emacs) " string);		\
-  } while (0)
+  } while (false)
 
 #define GNUTLS_LOG2(level, max, string, extra)			\
   do {								\
     if ((level) <= (max))					\
       gnutls_log_function2 (level, "(Emacs) " string, extra);	\
-  } while (0)
+  } while (false)
 
 #define GNUTLS_LOG2i(level, max, string, extra)			\
   do {								\
     if ((level) <= (max))					\
       gnutls_log_function2i (level, "(Emacs) " string, extra);	\
-  } while (0)
+  } while (false)
 
 extern ptrdiff_t
 emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte);

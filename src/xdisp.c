@@ -984,7 +984,7 @@ static void append_stretch_glyph (struct it *, Lisp_Object,
 
 static void produce_special_glyphs (struct it *, enum display_element_type);
 static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
-static int coords_in_mouse_face_p (struct window *, int, int);
+static bool coords_in_mouse_face_p (struct window *, int, int);
 
 
 
@@ -9469,9 +9469,9 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
     }
 }
 
-/* Return 1 if IT points into the middle of a display vector.  */
+/* Return true if IT points into the middle of a display vector.  */
 
-int
+bool
 in_display_vector_p (struct it *it)
 {
   return (it->method == GET_FROM_DISPLAY_VECTOR
@@ -11939,7 +11939,7 @@ display_tool_bar_line (struct it *it, int height)
 
   /* Don't extend on a previously drawn tool bar items (Bug#16058).  */
   clear_glyph_row (row);
-  row->enabled_p = 1;
+  row->enabled_p = true;
   row->y = it->current_y;
 
   /* Note that this isn't made use of if the face hasn't a box,
@@ -12771,7 +12771,7 @@ static ptrdiff_t debug_delta, debug_delta_bytes;
 static ptrdiff_t debug_end_vpos;
 
 /* Append a string to W->desired_matrix->method.  FMT is a printf
-   format string.  If trace_redisplay_p is non-zero also printf the
+   format string.  If trace_redisplay_p is true also printf the
    resulting string to stderr.  */
 
 static void debug_method_add (struct window *, char const *, ...)
@@ -13556,7 +13556,7 @@ redisplay_internal (void)
 
     cancel:
       /* Text changed drastically or point moved off of line.  */
-      SET_MATRIX_ROW_ENABLED_P (w->desired_matrix, this_line_vpos, 0);
+      SET_MATRIX_ROW_ENABLED_P (w->desired_matrix, this_line_vpos, false);
     }
 
   CHARPOS (this_line_start_pos) = 0;
@@ -16742,7 +16742,7 @@ try_window_reusing_current_matrix (struct window *w)
 
 	  /* Disable lines that must be updated.  */
 	  for (i = 0; i < nrows_scrolled; ++i)
-	    (start_row + i)->enabled_p = 0;
+	    (start_row + i)->enabled_p = false;
 
 	  /* Re-compute Y positions.  */
 	  min_y = WINDOW_HEADER_LINE_HEIGHT (w);
@@ -16922,7 +16922,7 @@ try_window_reusing_current_matrix (struct window *w)
 
       /* Disable rows not reused.  */
       for (row -= nrows_scrolled; row < bottom_row; ++row)
-	row->enabled_p = 0;
+	row->enabled_p = false;
 
       /* Point may have moved to a different line, so we cannot assume that
 	 the previous cursor position is valid; locate the correct row.  */
@@ -17207,7 +17207,7 @@ sync_frame_with_window_matrix_rows (struct window *w)
       /* Disable frame rows whose corresponding window rows have
 	 been disabled in try_window_id.  */
       if (!window_row->enabled_p)
-	frame_row->enabled_p = 0;
+	frame_row->enabled_p = false;
 
       ++window_row, ++frame_row;
     }
@@ -17950,7 +17950,7 @@ try_window_id (struct window *w)
 	     the current matrix?  I don't think so, so we mark rows
 	     displayed invalid in the current matrix by setting their
 	     enabled_p flag to zero.  */
-	  MATRIX_ROW (w->current_matrix, it.vpos)->enabled_p = 0;
+	  SET_MATRIX_ROW_ENABLED_P (w->current_matrix, it.vpos, false);
 	  if (display_line (&it))
 	    last_text_row_at_end = it.glyph_row - 1;
 	}
@@ -20773,7 +20773,7 @@ display_menu_bar (struct window *w)
     {
       struct glyph_row *row = it.glyph_row + i;
       clear_glyph_row (row);
-      row->enabled_p = 1;
+      row->enabled_p = true;
       row->full_width_p = 1;
     }
 
@@ -20883,7 +20883,7 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   row->full_width_p = 1;
   saved_reversed = row->reversed_p;
   row->reversed_p = 0;
-  row->enabled_p = 1;
+  row->enabled_p = true;
 
   /* Arrange for the menu item glyphs to start at (X,Y) and have the
      desired face.  */
@@ -21049,7 +21049,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   init_iterator (&it, w, -1, -1, NULL, face_id);
   /* Don't extend on a previously drawn mode-line.
      This may happen if called from pos_visible_p.  */
-  it.glyph_row->enabled_p = 0;
+  it.glyph_row->enabled_p = false;
   prepare_desired_row (it.glyph_row);
 
   it.glyph_row->mode_line_p = 1;
@@ -27088,9 +27088,9 @@ clear_mouse_face (Mouse_HLInfo *hlinfo)
   return cleared;
 }
 
-/* Return non-zero if the coordinates HPOS and VPOS on windows W are
+/* Return true if the coordinates HPOS and VPOS on windows W are
    within the mouse face on that window.  */
-static int
+static bool
 coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
@@ -27098,48 +27098,48 @@ coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
   /* Quickly resolve the easy cases.  */
   if (!(WINDOWP (hlinfo->mouse_face_window)
 	&& XWINDOW (hlinfo->mouse_face_window) == w))
-    return 0;
+    return false;
   if (vpos < hlinfo->mouse_face_beg_row
       || vpos > hlinfo->mouse_face_end_row)
-    return 0;
+    return false;
   if (vpos > hlinfo->mouse_face_beg_row
       && vpos < hlinfo->mouse_face_end_row)
-    return 1;
+    return true;
 
   if (!MATRIX_ROW (w->current_matrix, vpos)->reversed_p)
     {
       if (hlinfo->mouse_face_beg_row == hlinfo->mouse_face_end_row)
 	{
 	  if (hlinfo->mouse_face_beg_col <= hpos && hpos < hlinfo->mouse_face_end_col)
-	    return 1;
+	    return true;
 	}
       else if ((vpos == hlinfo->mouse_face_beg_row
 		&& hpos >= hlinfo->mouse_face_beg_col)
 	       || (vpos == hlinfo->mouse_face_end_row
 		   && hpos < hlinfo->mouse_face_end_col))
-	return 1;
+	return true;
     }
   else
     {
        if (hlinfo->mouse_face_beg_row == hlinfo->mouse_face_end_row)
 	{
 	  if (hlinfo->mouse_face_end_col < hpos && hpos <= hlinfo->mouse_face_beg_col)
-	    return 1;
+	    return true;
 	}
       else if ((vpos == hlinfo->mouse_face_beg_row
 		&& hpos <= hlinfo->mouse_face_beg_col)
 	       || (vpos == hlinfo->mouse_face_end_row
 		   && hpos > hlinfo->mouse_face_end_col))
-	return 1;
+	return true;
     }
-  return 0;
+  return false;
 }
 
 
 /* EXPORT:
-   Non-zero if physical cursor of window W is within mouse face.  */
+   True if physical cursor of window W is within mouse face.  */
 
-int
+bool
 cursor_in_mouse_face_p (struct window *w)
 {
   int hpos = w->phys_cursor.hpos;

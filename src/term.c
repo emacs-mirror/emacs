@@ -3027,7 +3027,7 @@ save_and_enable_current_matrix (struct frame *f)
       /* Make sure every row is enabled, or else update_frame will not
 	 redraw them.  (Rows that are identical to what is already on
 	 screen will not be redrawn anyway.)  */
-      to->enabled_p = 1;
+      to->enabled_p = true;
       to->hash = from->hash;
     }
 

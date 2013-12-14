@@ -1,3 +1,133 @@
+2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean, focusing on headers.
+	* atimer.h, lisp.h, syssignal.h, syswait.h, unexelf.c:
+	No need to include <stdbool.h>, since conf_post.h does it now.
+	* buffer.h (BUF_COMPUTE_UNCHANGED, DECODE_POSITION)
+	(BUFFER_CHECK_INDIRECTION, GET_OVERLAYS_AT, PER_BUFFER_VALUE_P)
+	(SET_PER_BUFFER_VALUE_P):
+	* ccl.c, ccl.h (setup_ccl_program):
+	* ccl.h (CHECK_CCL_PROGRAM):
+	* character.h (MAKE_CHAR_UNIBYTE, CHECK_CHARACTER_CAR)
+	(CHECK_CHARACTER_CDR, CHAR_STRING_ADVANCE, NEXT_CHAR_BOUNDARY)
+	(PREV_CHAR_BOUNDARY, FETCH_STRING_CHAR_ADVANCE)
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE)
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK, FETCH_CHAR_ADVANCE)
+	(FETCH_CHAR_ADVANCE_NO_CHECK, INC_POS, DEC_POS, INC_BOTH)
+	(DEC_BOTH, BUF_INC_POS, BUF_DEC_POS):
+	* charset.h (CHECK_CHARSET, CHECK_CHARSET_GET_ID)
+	(CHECK_CHARSET_GET_ATTR, CHECK_CHARSET_GET_CHARSET)
+	(CHARSET_FAST_MAP_SET):
+	* coding.c (decode_coding_ccl, encode_coding_ccl):
+	* coding.h (CHECK_CODING_SYSTEM, CHECK_CODING_SYSTEM_GET_SPEC)
+	(CHECK_CODING_SYSTEM_GET_ID, SJIS_TO_JIS, SJIS_TO_JIS2)
+	(JIS_TO_SJIS, JIS_TO_SJIS2, ENCODE_FILE, DECODE_FILE)
+	(ENCODE_SYSTEM, DECODE_SYSTEM, ENCODE_UTF_8)
+	(decode_coding_c_string):
+	* composite.h (COMPOSITION_DECODE_REFS, COMPOSITION_DECODE_RULE):
+	* conf_post.h (has_attribute):
+	* dispextern.h (trace_redisplay_p):
+	(INC_TEXT_POS, DEC_TEXT_POS, SET_GLYPH_FROM_GLYPH_CODE)
+	(SET_CHAR_GLYPH, SET_CHAR_GLYPH_FROM_GLYPH)
+	(SET_GLYPH_FROM_CHAR_GLYPH):
+	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P)
+	(FACE_SUITABLE_FOR_ASCII_CHAR_P, FACE_SUITABLE_FOR_CHAR_P)
+	(PRODUCE_GLYPHS, reset_mouse_highlight, in_display_vector_p)
+	(cursor_in_mouse_face_p):
+	* dispnew.c (adjust_glyph_matrix, clear_glyph_matrix_rows)
+	(blank_row, prepare_desired_row)
+	(build_frame_matrix_from_leaf_window, make_current)
+	(mirror_make_current, mirrored_line_dance, mirror_line_dance)
+	(update_window, scrolling_window, update_frame_line):
+	* disptab.h (GLYPH_FOLLOW_ALIASES):
+	* editfns.c (Fformat):
+	* font.h (FONT_WEIGHT_SYMBOLIC, FONT_SLANT_SYMBOLIC)
+	(FONT_WIDTH_SYMBOLIC, FONT_WEIGHT_FOR_FACE, FONT_SLANT_FOR_FACE)
+	(FONT_WIDTH_FOR_FACE, FONT_WEIGHT_NAME_NUMERIC)
+	(FONT_SLANT_NAME_NUMERIC, FONT_WIDTH_NAME_NUMERIC)
+	(FONT_SET_STYLE, CHECK_FONT, CHECK_FONT_SPEC, CHECK_FONT_ENTITY)
+	(CHECK_FONT_OBJECT, CHECK_FONT_GET_OBJECT, FONT_ADD_LOG)
+	(FONT_DEFERRED_LOG):
+	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_WINDOW_P):
+	(FRAME_EXTERNAL_TOOL_BAR, FRAME_EXTERNAL_MENU_BAR, FOR_EACH_FRAME)
+	(FRAME_MOUSE_UPDATE):
+	* fringe.c (Fdefine_fringe_bitmap):
+	* image.c (x_create_bitmap_from_data, x_create_bitmap_mask)
+	(x_create_bitmap_from_xpm_data, xpm_load_image):
+	* intervals.h (INTERVAL_HAS_PARENT, INTERVAL_PARENT)
+	(set_interval_parent, RESET_INTERVAL, COPY_INTERVAL_CACHE)
+	(MERGE_INTERVAL_CACHE):
+	* keymap.h (KEYMAPP):
+	* lisp.h (eassert, USE_LSB_TAG, CHECK_LISP_OBJECT_TYPE)
+	(STRING_SET_UNIBYTE, STRING_SET_MULTIBYTE, DEFSYM, PSEUDOVECTORP)
+	(CHECK_RANGED_INTEGER, CHECK_TYPE_RANGED_INTEGER)
+	(CHECK_NUMBER_COERCE_MARKER, CHECK_NUMBER_OR_FLOAT_COERCE_MARKER)
+	(DEFVAR_LISP, DEFVAR_LISP_NOPRO, DEFVAR_BOOL, DEFVAR_INT)
+	(DEFVAR_BUFFER_DEFAULTS, DEFVAR_KBOARD, QUIT)
+	(RETURN_UNGCPRO, USE_SAFE_ALLOCA, SAFE_NALLOCA, SAFE_FREE)
+	(SAFE_ALLOCA_LISP, FOR_EACH_ALIST_VALUE, functionp):
+	* syntax.h (SYNTAX_ENTRY, SYNTAX_WITH_FLAGS, SYNTAX)
+	(UPDATE_SYNTAX_TABLE_FORWARD, UPDATE_SYNTAX_TABLE_BACKWARD)
+	(SETUP_BUFFER_SYNTAX_TABLE):
+	* systime.h (timespec_valid_p):
+	* term.c (save_and_enable_current_matrix):
+	* window.h (WINDOW_MENU_BAR_P, WINDOW_TOOL_BAR_P):
+	* xdisp.c (in_display_vector_p, display_tool_bar_line)
+	(redisplay_internal, try_window_reusing_current_matrix)
+	(sync_frame_with_window_matrix_rows, try_window_id)
+	(display_menu_bar, display_tty_menu_item, display_mode_line)
+	(coords_in_mouse_face_p, cursor_in_mouse_face_p):
+	* xmenu.c (xmenu_show):
+	* xterm.c (use_xim, x_term_init):
+	* xterm.h (XSync, GTK_CHECK_VERSION, use_xim, SET_SCROLL_BAR_X_WIDGET)
+	(struct x_bitmap_record):
+	Use bool for booleans.
+	* ccl.c (struct buffer_text):
+	* ccl.h (struct ccl_program):
+	* charset.h (struct charset):
+	* cm.h (struct cm):
+	* coding.h (struct iso_2022_spec, struct coding_system):
+	* dispextern.h (struct glyph, struct glyph_matrix, struct glyph_row)
+	(struct glyph_string, struct face, struct face_cache)
+	(struct bidi_string_data, struct bidi_it)
+	(struct draw_fringe_bitmap_params, struct it, Mouse_HLInfo)
+	(struct image):
+	* editfns.c (Fformat):
+	* frame.h (struct frame):
+	* fringe.c (struct fringe_bitmap):
+	* intervals.h (struct interval):
+	* keyboard.h (struct kboard):
+	* lisp.h (struct Lisp_Symbol, struct Lisp_Misc_Any, struct Lisp_Marker)
+	(struct Lisp_Overlay, struct Lisp_Save_Value, struct Lisp_Free)
+	(struct Lisp_Buffer_Local_Value, union specbinding):
+	* macfont.m (struct macfont_info):
+	* process.h (struct Lisp_Process):
+	* termchar.h (struct tty_display_info):
+	* window.h (struct window):
+	* xterm.h (struct x_output):
+	Use bool_bf for boolean bit-fields.
+	* ccl.c (setup_ccl_program): Now returns bool instead of -1 or 0.
+	All callers changed.
+	* ccl.h (struct ccl_program): Remove unused members private_state,
+	src_multibyte, dst_multibyte, cr_consumed, suppress_error,
+	eight_bit_control.
+	(struct ccl_spec): Remove unused members cr_carryover,
+	eight_bit_carryover.
+	* conf_post.h: Include <stdbool.h>.
+	(bool_bf): New type.
+	* dispextern.h (TRACE, PREPARE_FACE_FOR_DISPLAY):
+	* interval.h (RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE)
+	Surround statement macro with proper 'do { ... } while (false)' brackets.
+	(SET_MATRIX_ROW_ENABLED_P): Assume 2nd arg is bool.
+	(PRODUCE_GLYPHS): Simplify use of boolean.
+	* fileio.c (Fcopy_file):
+	If I is an integer, prefer 'if (I != 0)' to 'if (I)'.
+	* lisp.h (UNGCPRO): Return void, not int.
+	(FOR_EACH_TAIL): Use void expression, not int expression.
+	* region-cache.c: Reindent.
+	* region-cache.h: Copy comments from region-cache.c, to fix
+	incorrect remarks about booleans.
+
 2013-12-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fmove_point_visually): Expect overshoot in move_it_to

@@ -226,7 +226,7 @@ INLINE_HEADER_BEGIN
 	    BUF_BEG_UNCHANGED (buf) = (start) - BUF_BEG (buf);		\
 	}								\
     }									\
-  while (0)
+  while (false)
 
 
 /* Macros to set PT in the current buffer, or another buffer.  */
@@ -302,7 +302,7 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
       else								\
 	wrong_type_argument (Qinteger_or_marker_p, __pos);		\
     }									\
-  while (0)
+  while (false)
 
 /* Maximum number of bytes in a buffer.
    A buffer cannot contain more bytes than a 1-origin fixnum can represent,
@@ -472,13 +472,13 @@ struct buffer_text
        to move a marker within a buffer.  */
     struct Lisp_Marker *markers;
 
-    /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
+    /* Usually false.  Temporarily true in decode_coding_gap to
        prevent Fgarbage_collect from shrinking the gap and losing
        not-yet-decoded bytes.  */
-    unsigned inhibit_shrinking : 1;
+    bool_bf inhibit_shrinking : 1;
 
     /* True if it needs to be redisplayed.  */
-    unsigned redisplay : 1;
+    bool_bf redisplay : 1;
   };
 
 /* Most code should use this macro to access Lisp fields in struct buffer.  */
@@ -849,10 +849,10 @@ struct buffer
 
   /* Non-zero means don't use redisplay optimizations for
      displaying this buffer.  */
-  unsigned prevent_redisplay_optimizations_p : 1;
+  bool_bf prevent_redisplay_optimizations_p : 1;
 
   /* Non-zero whenever the narrowing is changed in this buffer.  */
-  unsigned clip_changed : 1;
+  bool_bf clip_changed : 1;
 
   /* List of overlays that end at or before the current center,
      in order of end-position.  */
@@ -1021,7 +1021,7 @@ bset_width_table (struct buffer *b, Lisp_Object val)
 	else						\
 	  eassert (b->indirections >= 0);		\
       }							\
-  } while (0)
+  } while (false)
 
 /* Chain of all buffers, including killed ones.  */
 
@@ -1119,16 +1119,16 @@ record_unwind_current_buffer (void)
   do {									\
     ptrdiff_t maxlen = 40;						\
     overlays = alloca (maxlen * sizeof *overlays);			\
-    noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
+    noverlays = overlays_at (posn, false, &overlays, &maxlen,		\
 			     nextp, NULL, chrq);			\
     if (noverlays > maxlen)						\
       {									\
 	maxlen = noverlays;						\
 	overlays = alloca (maxlen * sizeof *overlays);			\
-	noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
+	noverlays = overlays_at (posn, false, &overlays, &maxlen,	\
 				 nextp, NULL, chrq);			\
       }									\
-  } while (0)
+  } while (false)
 
 extern Lisp_Object Vbuffer_alist;
 extern Lisp_Object Qbefore_change_functions;
@@ -1267,12 +1267,12 @@ extern int last_per_buffer_idx;
 #define PER_BUFFER_VAR_IDX(VAR) \
     PER_BUFFER_IDX (PER_BUFFER_VAR_OFFSET (VAR))
 
-/* Value is non-zero if the variable with index IDX has a local value
+/* Value is true if the variable with index IDX has a local value
    in buffer B.  */
 
 #define PER_BUFFER_VALUE_P(B, IDX)		\
     (((IDX) < 0 || IDX >= last_per_buffer_idx)	\
-     ? (emacs_abort (), 0)			\
+     ? (emacs_abort (), false)			\
      : ((B)->local_flags[IDX] != 0))
 
 /* Set whether per-buffer variable with index IDX has a buffer-local
@@ -1283,7 +1283,7 @@ extern int last_per_buffer_idx;
        if ((IDX) < 0 || (IDX) >= last_per_buffer_idx)	\
 	 emacs_abort ();				\
        (B)->local_flags[IDX] = (VAL);			\
-     } while (0)
+     } while (false)
 
 /* Return the index value of the per-buffer variable at offset OFFSET
    in the buffer structure.
@@ -1348,7 +1348,7 @@ downcase (int c)
   return NATNUMP (down) ? XFASTINT (down) : c;
 }
 
-/* 1 if C is upper case.  */
+/* True if C is upper case.  */
 INLINE bool uppercasep (int c) { return downcase (c) != c; }
 
 /* Upcase a character C known to be not upper case.  */
@@ -1360,7 +1360,7 @@ upcase1 (int c)
   return NATNUMP (up) ? XFASTINT (up) : c;
 }
 
-/* 1 if C is lower case.  */
+/* True if C is lower case.  */
 INLINE bool
 lowercasep (int c)
 {

@@ -716,8 +716,9 @@ region_cache_forward (struct buffer *buf, struct region_cache *c,
    value is known, for the purposes of CACHE, and return zero
    otherwise.  If NEXT is non-zero, set *NEXT to the nearest
    position before POS where the knowledge changes.  */
-int region_cache_backward (struct buffer *buf, struct region_cache *c,
-			   ptrdiff_t pos, ptrdiff_t *next)
+int
+region_cache_backward (struct buffer *buf, struct region_cache *c,
+		       ptrdiff_t pos, ptrdiff_t *next)
 {
   revalidate_region_cache (buf, c);
 

@@ -99,7 +99,7 @@ syntax_property_entry (int c, bool via_property)
 INLINE Lisp_Object
 SYNTAX_ENTRY (int c)
 {
-  return syntax_property_entry (c, 0);
+  return syntax_property_entry (c, false);
 }
 
 /* Extract the information from the entry for character C
@@ -114,7 +114,7 @@ syntax_property_with_flags (int c, bool via_property)
 INLINE int
 SYNTAX_WITH_FLAGS (int c)
 {
-  return syntax_property_with_flags (c, 0);
+  return syntax_property_with_flags (c, false);
 }
 
 INLINE enum syntaxcode
@@ -125,7 +125,7 @@ syntax_property (int c, bool via_property)
 INLINE enum syntaxcode
 SYNTAX (int c)
 {
-  return syntax_property (c, 0);
+  return syntax_property (c, false);
 }
 
 
@@ -146,7 +146,8 @@ extern char const syntax_code_spec[16];
    for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.
 
    The value is meant for use in code that does nothing when
-   parse_sexp_lookup_properties is 0, so return 0 in that case, for speed.  */
+   parse_sexp_lookup_properties is false, so return 0 in that case,
+   for speed.  */
 
 INLINE ptrdiff_t
 SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
@@ -172,7 +173,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
-    update_syntax_table (charpos + gl_state.offset, 1, 0, gl_state.object);
+    update_syntax_table (charpos + gl_state.offset, 1, false, gl_state.object);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
@@ -182,7 +183,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos < gl_state.b_property)
-    update_syntax_table (charpos + gl_state.offset, -1, 0, gl_state.object);
+    update_syntax_table (charpos + gl_state.offset, -1, false, gl_state.object);
 }
 
 /* Make syntax table good for CHARPOS.  */
@@ -199,7 +200,7 @@ UPDATE_SYNTAX_TABLE (ptrdiff_t charpos)
 INLINE void
 SETUP_BUFFER_SYNTAX_TABLE (void)
 {
-  gl_state.use_global = 0;
+  gl_state.use_global = false;
   gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);
 }
 
