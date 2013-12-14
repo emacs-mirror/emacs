@@ -561,7 +561,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (forward-char 1)
        (skip-chars-forward " \t")
        ;; `smie-rule-hanging-p' is not good enough here,
-       ;; because we want to accept hanging tokens at bol, too.
+       ;; because we want to reject hanging tokens at bol, too.
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
     (`(:after . " @ ") (smie-rule-parent))
