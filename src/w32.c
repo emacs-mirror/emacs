@@ -140,6 +140,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #include <sddl.h>
 
 #include <sys/acl.h>
+#include <acl.h>
 
 /* This is not in MinGW's sddl.h (but they are in MSVC headers), so we
    define them by hand if not already defined.  */
@@ -5999,6 +6000,116 @@ careadlinkat (int fd, char const *filename,
       return retval;
     }
   return NULL;
+}
+
+int
+w32_copy_file (const char *from, const char *to,
+	       int keep_time, int preserve_ownership, int copy_acls)
+{
+  acl_t acl = NULL;
+  BOOL copy_result;
+  wchar_t from_w[MAX_PATH], to_w[MAX_PATH];
+  char from_a[MAX_PATH], to_a[MAX_PATH];
+
+  /* We ignore preserve_ownership for now.  */
+  preserve_ownership = preserve_ownership;
+
+  if (copy_acls)
+    {
+      acl = acl_get_file (from, ACL_TYPE_ACCESS);
+      if (acl == NULL && acl_errno_valid (errno))
+	return -2;
+    }
+  if (w32_unicode_filenames)
+    {
+      filename_to_utf16 (from, from_w);
+      filename_to_utf16 (to, to_w);
+      copy_result = CopyFileW (from_w, to_w, FALSE);
+    }
+  else
+    {
+      filename_to_ansi (from, from_a);
+      filename_to_ansi (to, to_a);
+      copy_result = CopyFileA (from_a, to_a, FALSE);
+    }
+  if (!copy_result)
+    {
+      /* CopyFile doesn't set errno when it fails.  By far the most
+	 "popular" reason is that the target is read-only.  */
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_FILE_NOT_FOUND:
+	  errno = ENOENT;
+	  break;
+	case ERROR_ACCESS_DENIED:
+	  errno = EACCES;
+	  break;
+	case ERROR_ENCRYPTION_FAILED:
+	  errno = EIO;
+	  break;
+	default:
+	  errno = EPERM;
+	  break;
+	}
+
+      if (acl)
+	acl_free (acl);
+      return -1;
+    }
+  /* CopyFile retains the timestamp by default.  However, see
+     "Community Additions" for CopyFile: it sounds like that is not
+     entirely true.  Testing on Windows XP confirms that modified time
+     is copied, but creation and last-access times are not.
+     FIXME?  */
+  else if (!keep_time)
+    {
+      struct timespec now;
+      DWORD attributes;
+
+      if (w32_unicode_filenames)
+	{
+	  /* Ensure file is writable while its times are set.  */
+	  attributes = GetFileAttributesW (to_w);
+	  SetFileAttributesW (to_w, attributes & ~FILE_ATTRIBUTE_READONLY);
+	  now = current_timespec ();
+	  if (set_file_times (-1, to, now, now))
+	    {
+	      /* Restore original attributes.  */
+	      SetFileAttributesW (to_w, attributes);
+	      if (acl)
+		acl_free (acl);
+	      return -3;
+	    }
+	  /* Restore original attributes.  */
+	  SetFileAttributesW (to_w, attributes);
+	}
+      else
+	{
+	  attributes = GetFileAttributesA (to_a);
+	  SetFileAttributesA (to_a, attributes & ~FILE_ATTRIBUTE_READONLY);
+	  now = current_timespec ();
+	  if (set_file_times (-1, to, now, now))
+	    {
+	      SetFileAttributesA (to_a, attributes);
+	      if (acl)
+		acl_free (acl);
+	      return -3;
+	    }
+	  SetFileAttributesA (to_a, attributes);
+	}
+    }
+  if (acl != NULL)
+    {
+      bool fail =
+	acl_set_file (to, ACL_TYPE_ACCESS, acl) != 0;
+      acl_free (acl);
+      if (fail && acl_errno_valid (errno))
+	return -4;
+    }
+
+  return 0;
 }
 
 

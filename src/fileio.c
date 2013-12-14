@@ -1959,7 +1959,7 @@ entries (depending on how Emacs was built).  */)
   int conlength = 0;
 #endif
 #ifdef WINDOWSNT
-  acl_t acl = NULL;
+  int result;
 #endif
 
   encoded_file = encoded_newname = Qnil;
@@ -1996,52 +1996,20 @@ entries (depending on how Emacs was built).  */)
     out_st.st_mode = 0;
 
 #ifdef WINDOWSNT
-  if (!NILP (preserve_extended_attributes))
+  result = w32_copy_file (SSDATA (encoded_file), SSDATA (encoded_newname),
+			  !NILP (keep_time), !NILP (preserve_uid_gid),
+			  !NILP (preserve_extended_attributes));
+  switch (result)
     {
-      acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
-      if (acl == NULL && acl_errno_valid (errno))
-	report_file_error ("Getting ACL", file);
-    }
-  if (!CopyFile (SDATA (encoded_file),
-		 SDATA (encoded_newname),
-		 FALSE))
-    {
-      /* CopyFile doesn't set errno when it fails.  By far the most
-	 "popular" reason is that the target is read-only.  */
-      report_file_errno ("Copying file", list2 (file, newname),
-			 GetLastError () == 5 ? EACCES : EPERM);
-    }
-  /* CopyFile retains the timestamp by default.  */
-  else if (NILP (keep_time))
-    {
-      struct timespec now;
-      DWORD attributes;
-      char * filename;
-
-      filename = SDATA (encoded_newname);
-
-      /* Ensure file is writable while its modified time is set.  */
-      attributes = GetFileAttributes (filename);
-      SetFileAttributes (filename, attributes & ~FILE_ATTRIBUTE_READONLY);
-      now = current_timespec ();
-      if (set_file_times (-1, filename, now, now))
-	{
-	  /* Restore original attributes.  */
-	  SetFileAttributes (filename, attributes);
-	  xsignal2 (Qfile_date_error,
-		    build_string ("Cannot set file date"), newname);
-	}
-      /* Restore original attributes.  */
-      SetFileAttributes (filename, attributes);
-    }
-  if (acl != NULL)
-    {
-      bool fail =
-	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
-      if (fail && acl_errno_valid (errno))
-	report_file_error ("Setting ACL", newname);
-
-      acl_free (acl);
+    case -1:
+      report_file_error ("Copying file", list2 (file, newname));
+    case -2:
+      report_file_error ("Copying permissions from", file);
+    case -3:
+      xsignal2 (Qfile_date_error,
+		build_string ("Resetting file times"), newname);
+    case -4:
+      report_file_error ("Copying permissions to", newname);
     }
 #else /* not WINDOWSNT */
   immediate_quit = 1;

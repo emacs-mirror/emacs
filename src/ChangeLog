@@ -1,3 +1,14 @@
+2013-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fcopy_file) [WINDOWSNT]: Move most of the
+	Windows-specific code to w32.c.  Change error message text to
+	match that of Posix platforms.
+
+	* w32.c (w32_copy_file): New function, most of the code copied and
+	reworked from Fcopy_file.  Improve error handling.  Plug memory
+	leak when errors are thrown.  Support file names outside of the
+	current codepage.  (Bug#7100)
+
 2013-12-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lread.c (load_path_default): Prototype.
