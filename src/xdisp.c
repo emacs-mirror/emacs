@@ -20505,11 +20505,12 @@ Value is the new character position of point.  */)
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
 
-      if (it.cmp_it.id < 0
-	  && it.method == GET_FROM_STRING
-	  && it.area == TEXT_AREA
-	  && it.string_from_display_prop_p
-	  && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER))
+      if ((it.cmp_it.id < 0
+	   && it.method == GET_FROM_STRING
+	   && it.area == TEXT_AREA
+	   && it.string_from_display_prop_p
+	   && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER))
+	  || it.method == GET_FROM_DISPLAY_VECTOR)
 	overshoot_expected = true;
 
       /* Find the X coordinate of point.  We start from the beginning
@@ -20553,7 +20554,12 @@ Value is the new character position of point.  */)
 	 glyph to the left of point, so we need to correct the X
 	 coordinate.  */
       if (overshoot_expected)
-	pt_x += pixel_width;
+	{
+	  if (it.bidi_p)
+	    pt_x += pixel_width * it.bidi_it.scan_dir;
+	  else
+	    pt_x += pixel_width;
+	}
 
       /* Compute target X coordinate, either to the left or to the
 	 right of point.  On TTY frames, all characters have the same

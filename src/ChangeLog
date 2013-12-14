@@ -1,3 +1,9 @@
+2013-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): Expect overshoot in move_it_to
+	when character at point is displayed from a display vector.
+	(Bug#16148)
+
 2013-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c: Replace `:verify_hostname_error' with `:verify_error',
