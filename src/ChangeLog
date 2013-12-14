@@ -1,3 +1,9 @@
+2013-12-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_enable_frame_resize_hack): New variable.
+	(x_set_window_size): Use it to hack frame resizing on Windows
+	(Bug#16028).
+
 2013-12-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fcopy_file) [WINDOWSNT]: Move most of the

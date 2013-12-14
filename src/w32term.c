@@ -5747,8 +5747,12 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 		       SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
   }
 
-#if 0
-  /* The following mirrors what is done in xterm.c. It appears to be
+  /* If w32_enable_frame_resize_hack is non-nil, immediately apply the
+     new pixel sizes to the frame and its subwindows.  See discussion
+     of Bug#16028 for why we need this.  */
+
+  if (w32_enable_frame_resize_hack)
+    /* The following mirrors what is done in xterm.c. It appears to be
      for informing lisp of the new size immediately, while the actual
      resize will happen asynchronously. But on Windows, the menu bar
      automatically wraps when the frame is too narrow to contain it,
@@ -5775,25 +5779,19 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
-  change_frame_size (f, width, height, 0, 1, 0, 0);
-  FRAME_PIXEL_WIDTH (f) = pixelwidth;
-  FRAME_PIXEL_HEIGHT (f) = pixelheight;
+    {
+      change_frame_size (f, width, height, 0, 1, 0, pixelwise);
+      SET_FRAME_GARBAGED (f);
 
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
-  SET_FRAME_GARBAGED (f);
+      /* If cursor was outside the new size, mark it as off.  */
+      mark_window_cursors_off (XWINDOW (f->root_window));
 
-  /* If cursor was outside the new size, mark it as off.  */
-  mark_window_cursors_off (XWINDOW (f->root_window));
-
-  /* Clear out any recollection of where the mouse highlighting was,
-     since it might be in a place that's outside the new frame size.
-     Actually checking whether it is outside is a pain in the neck,
-     so don't try--just let the highlighting be done afresh with new size.  */
-  cancel_mouse_face (f);
-#endif
+      /* Clear out any recollection of where the mouse highlighting was,
+	 since it might be in a place that's outside the new frame size.
+	 Actually checking whether it is outside is a pain in the neck,
+	 so don't try--just let the highlighting be done afresh with new size.  */
+      cancel_mouse_face (f);
+    }
 
   unblock_input ();
 }
@@ -6672,6 +6670,16 @@ This variable is set to non-nil by default when Emacs runs on Windows
 systems of the NT family, including W2K, XP, Vista, Windows 7 and
 Windows 8.  It is set to nil on Windows 9X.  */);
   w32_unicode_filenames = 0;
+
+  DEFVAR_BOOL ("w32-enable-frame-resize-hack",
+	       w32_enable_frame_resize_hack,
+     doc: /* Non-nil means enable hack for frame resizing on Windows.
+A value of nil means to resize frames by sending a corresponding request
+to the Windows API and changing the pixel sizes of the frame and its
+windows after the latter calls back.  If this is non-nil, Emacs changes
+the pixel sizes of the frame and its windows at the time it sends the
+resize request to the API.  */);
+  w32_enable_frame_resize_hack = 0;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qw32, Qnil);
