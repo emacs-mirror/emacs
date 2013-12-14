@@ -1,3 +1,8 @@
+2013-12-14  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* configure.ac (srcdir) [MINGW32]: Convert to an absolute MSYS
+	path of the form "/c/foo/bar" to simplify conversion of formats.
+
 2013-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: No longer mention load-path and site-init/site-load.

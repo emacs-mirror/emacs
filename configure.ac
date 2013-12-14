@@ -24,7 +24,16 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
-test "x$MSYSTEM" = "xMINGW32" && . $srcdir/nt/mingw-cfg.site
+if test "x$MSYSTEM" = "xMINGW32"
+then
+   . $srcdir/nt/mingw-cfg.site
+
+   # Convert srcdir to an absolute MSYS path of the form "/c/foo/bar"
+   # to simplify later conversions of paths to windows-native format
+   # "c:/foo/bar"
+   srcdir=`cd "${srcdir}" && pwd -W`
+   srcdir="/${srcdir:0:1}${srcdir:2}"
+fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
