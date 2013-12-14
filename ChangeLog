@@ -6,8 +6,9 @@
 
 2013-12-14  Dani Moncayo  <dmoncayo@gmail.com>
 
-	* configure.ac (srcdir) [MINGW32]: Convert to an absolute MSYS
-	path of the form "/c/foo/bar" to simplify conversion of formats.
+	* configure.ac (srcdir) [MINGW32]: If it is an absolute path,
+	force the format "/c/foo/bar" to simplify conversions to native
+	windows format.
 
 2013-12-13  Glenn Morris  <rgm@gnu.org>
 

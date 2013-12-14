@@ -28,11 +28,14 @@ if test "x$MSYSTEM" = "xMINGW32"
 then
    . $srcdir/nt/mingw-cfg.site
 
-   # Convert srcdir to an absolute MSYS path of the form "/c/foo/bar"
-   # to simplify later conversions of paths to windows-native format
-   # "c:/foo/bar"
-   srcdir=`cd "${srcdir}" && pwd -W`
-   srcdir="/${srcdir:0:1}${srcdir:2}"
+   if test ${srcdir:0:1} = "/" -o ${srcdir:1:1} = ":"
+   then
+       # srcdir is an absolute path.  In this case, force the format
+       # "/c/foo/bar", to simplify later conversions to native Windows
+       # format ("c:/foo/bar")
+       srcdir=`cd "${srcdir}" && pwd -W`
+       srcdir="/${srcdir:0:1}${srcdir:2}"
+   fi
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
