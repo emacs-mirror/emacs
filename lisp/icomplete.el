@@ -416,18 +416,22 @@ are exhibited within the square braces.)"
                     ;; one line, increase the allowable space accordingly.
                     (/ prospects-len (window-width)))
                  (window-width)))
+             ;; Find the common prefix among `comps'.
+             ;; We can't use the optimization below because its assumptions
+             ;; aren't always true, e.g. when completion-cycling (bug#10850):
+             ;; (if (eq t (compare-strings (car comps) nil (length most)
+             ;; 			 most nil nil completion-ignore-case))
+             ;;     ;; Common case.
+             ;;     (length most)
+             ;; Else, use try-completion.
 	     (prefix (when icomplete-hide-common-prefix
 		       (try-completion "" comps)))
              (prefix-len
-              ;; Find the common prefix among `comps'.
-	      ;; We can't use the optimization below because its assumptions
-	      ;; aren't always true, e.g. when completion-cycling (bug#10850):
-	      ;; (if (eq t (compare-strings (car comps) nil (length most)
-	      ;; 			 most nil nil completion-ignore-case))
-	      ;;     ;; Common case.
-	      ;;     (length most)
-	      ;; Else, use try-completion.
-	      (and (stringp prefix) (length prefix))) ;;)
+	      (and (stringp prefix)
+                   ;; Only hide the prefix if the corresponding info
+                   ;; is already displayed via `most'.
+                   (string-prefix-p prefix most t)
+                   (length prefix))) ;;)
 	     prospects comp limit)
 	(if (or (eq most-try t) (not (consp (cdr comps))))
 	    (setq prospects nil)

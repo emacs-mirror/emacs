@@ -1,3 +1,8 @@
+2013-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-completions): Make sure the prefix is already
+	displayed elsewhere before hiding it.
+
 2013-12-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Return nil before
@@ -9,12 +14,11 @@
 2013-12-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el: Fix `add-hook' doc.
-	(cfengine-mode-syntax-functions-regex):
-	Initialize sensibly.
+	(cfengine-mode-syntax-functions-regex): Initialize sensibly.
 	(cfengine3--current-word): Fix parameters.
 	(cfengine3-make-syntax-cache): Simplify further.
-	(cfengine3-completion-function, cfengine3--current-function): Use
-	`assq' for symbols.
+	(cfengine3-completion-function, cfengine3--current-function):
+	Use `assq' for symbols.
 	(cfengine3--current-function): Fix `cfengine3--current-word' call.
 
 2013-12-13  Glenn Morris  <rgm@gnu.org>
@@ -31,8 +35,8 @@
 	cf-promises doesn't run.
 	(cfengine3--current-word): Reimplement using
 	`cfengine-mode-syntax-functions-regex'.
-	(cfengine3-completion-function, cfengine3--current-function): Use
-	`cfengine3-make-syntax-cache' directly.
+	(cfengine3-completion-function, cfengine3--current-function):
+	Use `cfengine3-make-syntax-cache' directly.
 	(cfengine3-clear-syntax-cache): New function.
 	(cfengine3-make-syntax-cache): Simplify and create
 	`cfengine-mode-syntax-functions-regex' on demand.
@@ -85,8 +89,8 @@
 
 2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
-	* progmodes/python.el (python-indent-calculate-indentation): Fix
-	de-denters cornercase. (Bug#15731)
+	* progmodes/python.el (python-indent-calculate-indentation):
+	Fix de-denters cornercase. (Bug#15731)
 
 2013-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
