@@ -146,9 +146,6 @@ static Lisp_Object Qdelete_directory;
 
 static Lisp_Object Qsubstitute_env_in_file_name;
 
-#ifdef WINDOWSNT
-#endif
-
 Lisp_Object Qfile_error, Qfile_notify_error;
 static Lisp_Object Qfile_already_exists, Qfile_date_error;
 static Lisp_Object Qexcl;
