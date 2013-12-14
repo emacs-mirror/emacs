@@ -1,5 +1,8 @@
 2013-12-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* alloc.c (cleanup_vector): Don't call the font driver's 'close'
+	method if the 'driver' pointer is NULL.
+
 	* fileio.c (Fcopy_file) [WINDOWSNT]: Move most of the
 	Windows-specific code to w32.c.  Change error message text to
 	match that of Posix platforms.
