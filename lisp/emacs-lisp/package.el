@@ -1104,6 +1104,23 @@ Otherwise return nil."
 
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 
+(defun package--prepare-dependencies (deps)
+  "Turn DEPS into an acceptable list of dependencies.
+
+Any parts missing a version string get a default version string
+of \"0\" (meaning any version) and an appropriate level of lists
+is wrapped around any parts requiring it."
+  (cond
+   ((not (listp deps))
+    (error "Invalid requirement specifier: %S" deps))
+   (t (mapcar (lambda (dep)
+                (cond
+                 ((symbolp dep) `(,dep "0"))
+                 ((stringp dep)
+                  (error "Invalid requirement specifier: %S" dep))
+                 (t dep)))
+              deps))))
+
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
 
@@ -1135,7 +1152,9 @@ boundaries."
 	 "Package lacks a \"Version\" or \"Package-Version\" header"))
       (package-desc-from-define
        file-name pkg-version desc
-       (if requires-str (package-read-from-string requires-str))
+       (if requires-str
+           (package--prepare-dependencies
+            (package-read-from-string requires-str)))
        :kind 'single
        :url homepage))))
 
