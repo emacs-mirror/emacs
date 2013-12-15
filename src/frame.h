@@ -948,7 +948,7 @@ default_pixels_per_inch_y (void)
 			      hlinfo->mouse_face_mouse_y);	\
 	unblock_input ();					\
       }								\
-  } while (true)
+  } while (false)
 
 /* Set visibility of frame F.
    We call redisplay_other_windows to make sure the frame gets redisplayed

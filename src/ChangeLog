@@ -1,3 +1,8 @@
+2013-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.h (FRAME_MOUSE_UPDATE): Fix a typo that caused infloop at
+	startup.
+
 2013-12-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gnutls.c (Fgnutls_boot): Fix typo; "!" applied to a Lisp_Object.
