@@ -662,7 +662,7 @@ bset_update_mode_line (struct buffer *b)
 /* Non-zero means print traces of redisplay if compiled with
    GLYPH_DEBUG defined.  */
 
-int trace_redisplay_p;
+bool trace_redisplay_p;
 
 #endif /* GLYPH_DEBUG */
 
@@ -17723,7 +17723,7 @@ try_window_id (struct window *w)
 	= run.current_y = run.desired_y = run.height = 0;
       first_unchanged_at_end_row = NULL;
     }
-  IF_DEBUG (debug_dvpos = dvpos; debug_dy = dy);
+  IF_DEBUG ((debug_dvpos = dvpos, debug_dy = dy));
 
 
   /* Find the cursor if not already found.  We have to decide whether
@@ -18019,8 +18019,8 @@ try_window_id (struct window *w)
   else
     emacs_abort ();
 
-  IF_DEBUG (debug_end_pos = w->window_end_pos;
-	    debug_end_vpos = w->window_end_vpos);
+  IF_DEBUG ((debug_end_pos = w->window_end_pos,
+	     debug_end_vpos = w->window_end_vpos));
 
   /* Record that display has not been completed.  */
   w->window_end_valid = 0;

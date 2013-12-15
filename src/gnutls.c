@@ -825,8 +825,7 @@ one trustfile (usually a CA bundle).  */)
   verify_error          = Fplist_get (proplist, QCgnutls_bootprop_verify_error);
   prime_bits            = Fplist_get (proplist, QCgnutls_bootprop_min_prime_bits);
 
-  if (!Flistp (verify_error))
-    error ("gnutls-boot: invalid :verify_error parameter (not a list)");
+  CHECK_LIST_CONS (verify_error, verify_error);
 
   if (!STRINGP (hostname))
     error ("gnutls-boot: invalid :hostname parameter (not a string)");
@@ -1071,8 +1070,7 @@ one trustfile (usually a CA bundle).  */)
 
   if (peer_verification != 0)
     {
-      if (EQ (verify_error, Qt)
-          || !NILP (Fmember (QCgnutls_bootprop_trustfiles, verify_error)))
+      if (!NILP (Fmember (QCgnutls_bootprop_trustfiles, verify_error)))
         {
 	  emacs_gnutls_deinit (proc);
 	  error ("Certificate validation failed %s, verification code %d",
@@ -1121,8 +1119,7 @@ one trustfile (usually a CA bundle).  */)
 
       if (!fn_gnutls_x509_crt_check_hostname (gnutls_verify_cert, c_hostname))
 	{
-          if (EQ (verify_error, Qt)
-              || !NILP (Fmember (QCgnutls_bootprop_hostname, verify_error)))
+          if (!NILP (Fmember (QCgnutls_bootprop_hostname, verify_error)))
             {
 	      fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
 	      emacs_gnutls_deinit (proc);

@@ -139,7 +139,7 @@ enum window_part
 /* Macros to include code only if GLYPH_DEBUG is defined.  */
 
 #ifdef GLYPH_DEBUG
-#define IF_DEBUG(X)	(X)
+#define IF_DEBUG(X)	((void) (X))
 #else
 #define IF_DEBUG(X)	((void) 0)
 #endif

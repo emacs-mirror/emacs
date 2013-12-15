@@ -77,6 +77,7 @@
 	(sync_frame_with_window_matrix_rows, try_window_id)
 	(display_menu_bar, display_tty_menu_item, display_mode_line)
 	(coords_in_mouse_face_p, cursor_in_mouse_face_p):
+	* xdisp.c (trace_redisplay_p) [GLYPH_DEBUG]:
 	* xmenu.c (xmenu_show):
 	* xterm.c (use_xim, x_term_init):
 	* xterm.h (XSync, GTK_CHECK_VERSION, use_xim, SET_SCROLL_BAR_X_WIDGET)
@@ -118,6 +119,8 @@
 	* dispextern.h (TRACE, PREPARE_FACE_FOR_DISPLAY):
 	* interval.h (RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE)
 	Surround statement macro with proper 'do { ... } while (false)' brackets.
+	* dispextern.h (IF_DEBUG): Properly parenthesize and convert to void.
+	Args must now be expressions; all callers changed.
 	(SET_MATRIX_ROW_ENABLED_P): Assume 2nd arg is bool.
 	(PRODUCE_GLYPHS): Simplify use of boolean.
 	* fileio.c (Fcopy_file):
