@@ -3137,7 +3137,7 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
   char name_a[MAX_PATH];
   char file[MAX_UTF8_PATH];
 #endif
-  int i, len;
+  int i;
 
   result->kind = DRAG_N_DROP_EVENT;
   result->code = 0;

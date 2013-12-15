@@ -6667,9 +6667,9 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
         /* Strip the dummy filename off the end of the string if we
            added it to select a directory.  */
-        if (use_unicode && file_details_w->nFilterIndex == 2
+        if ((use_unicode && file_details_w->nFilterIndex == 2)
 #ifndef NTGUI_UNICODE
-	    || !use_unicode && file_details_a->nFilterIndex == 2
+	    || (!use_unicode && file_details_a->nFilterIndex == 2)
 #endif
 	    )
 	  filename = Ffile_name_directory (filename);
@@ -6965,8 +6965,6 @@ an integer representing a ShowWindow flag:
 	}
       if (STRINGP (parameters))
 	{
-	  int len;
-
 	  parameters = ENCODE_SYSTEM (parameters);
 	  params_a = SSDATA (parameters);
 	}

@@ -1,3 +1,10 @@
+2013-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_shell_execute): Remove unused local variable.
+	(Fx_file_dialog): Add parentheses around && to silence warning.
+
+	* w32term.c (construct_drag_n_drop): Remove unused local variable.
+
 2013-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (extend_face_to_end_of_line): Extend background of
