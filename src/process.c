@@ -6032,13 +6032,16 @@ process has been transmitted to the serial port.  */)
   (Lisp_Object process)
 {
   Lisp_Object proc;
-  struct coding_system *coding;
+  struct coding_system *coding = NULL;
+  int outfd;
 
   if (DATAGRAM_CONN_P (process))
     return process;
 
   proc = get_process (process);
-  coding = proc_encode_coding_system[XPROCESS (proc)->outfd];
+  outfd = XPROCESS (proc)->outfd;
+  if (outfd >= 0)
+    coding = proc_encode_coding_system[outfd];
 
   /* Make sure the process is really alive.  */
   if (XPROCESS (proc)->raw_status_new)
@@ -6046,7 +6049,7 @@ process has been transmitted to the serial port.  */)
   if (! EQ (XPROCESS (proc)->status, Qrun))
     error ("Process %s not running", SDATA (XPROCESS (proc)->name));
 
-  if (CODING_REQUIRE_FLUSHING (coding))
+  if (coding && CODING_REQUIRE_FLUSHING (coding))
     {
       coding->mode |= CODING_MODE_LAST_BLOCK;
       send_process (proc, "", 0, Qnil);
@@ -6064,7 +6067,8 @@ process has been transmitted to the serial port.  */)
     }
   else
     {
-      int old_outfd = XPROCESS (proc)->outfd;
+      struct Lisp_Process *p = XPROCESS (proc);
+      int old_outfd = p->outfd;
       int new_outfd;
 
 #ifdef HAVE_SHUTDOWN
@@ -6072,24 +6076,30 @@ process has been transmitted to the serial port.  */)
 	 for communication with the subprocess, call shutdown to cause EOF.
 	 (In some old system, shutdown to socketpair doesn't work.
 	 Then we just can't win.)  */
-      if (EQ (XPROCESS (proc)->type, Qnetwork)
-	  || XPROCESS (proc)->infd == old_outfd)
+      if (EQ (p->type, Qnetwork)
+	  || p->infd == old_outfd)
 	shutdown (old_outfd, 1);
 #endif
-      close_process_fd (&XPROCESS (proc)->open_fd[WRITE_TO_SUBPROCESS]);
+      close_process_fd (&p->open_fd[WRITE_TO_SUBPROCESS]);
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
       if (new_outfd < 0)
 	report_file_error ("Opening null device", Qnil);
-      XPROCESS (proc)->open_fd[WRITE_TO_SUBPROCESS] = new_outfd;
-      XPROCESS (proc)->outfd = new_outfd;
+      p->open_fd[WRITE_TO_SUBPROCESS] = new_outfd;
+      p->outfd = new_outfd;
 
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
 	  = xmalloc (sizeof (struct coding_system));
-      *proc_encode_coding_system[new_outfd]
-	= *proc_encode_coding_system[old_outfd];
-      memset (proc_encode_coding_system[old_outfd], 0,
-	      sizeof (struct coding_system));
+      if (old_outfd >= 0)
+	{
+	  *proc_encode_coding_system[new_outfd]
+	    = *proc_encode_coding_system[old_outfd];
+	  memset (proc_encode_coding_system[old_outfd], 0,
+		  sizeof (struct coding_system));
+	}
+      else
+	setup_coding_system (p->encode_coding_system,
+			     proc_encode_coding_system[new_outfd]);
     }
   return process;
 }

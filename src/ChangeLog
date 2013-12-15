@@ -1,5 +1,8 @@
 2013-12-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* process.c (Fprocess_send_eof): Don't crash if someone tries to
+	open a pty on MS-Windows.  (Bug#16152)
+
 	* emacs.c (decode_env_path): Fix bogus comparison against
 	emacs_dir.  Reported by Juanma Barranquero <lekktu@gmail.com>.
 
