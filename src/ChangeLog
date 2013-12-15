@@ -1,3 +1,8 @@
+2013-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (decode_env_path): Fix bogus comparison against
+	emacs_dir.  Reported by Juanma Barranquero <lekktu@gmail.com>.
+
 2013-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fw32_shell_execute): Remove unused local variable.

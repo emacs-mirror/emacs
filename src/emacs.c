@@ -2224,7 +2224,8 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
   /* egetenv looks in process-environment, which holds the variables
      in their original system-locale encoding.  We need emacs_dir to
      be in UTF-8.  */
-  filename_from_ansi (edir, emacs_dir);
+  if (edir)
+    filename_from_ansi (edir, emacs_dir);
 #endif
 
   /* It's okay to use getenv here, because this function is only used
@@ -2299,7 +2300,7 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
 #ifdef WINDOWSNT
           /* Relative file names in the default path are interpreted as
              being relative to $emacs_dir.  */
-          if (emacs_dir && defaulted
+          if (edir && defaulted
               && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
             element = Fexpand_file_name (Fsubstring
                                          (element,
