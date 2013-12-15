@@ -18808,10 +18808,14 @@ extend_face_to_end_of_line (struct it *it)
      1-``pixel'' wide, so they hit the equality too early.  This grace
      is needed only for R2L rows that are not continued, to produce
      one extra blank where we could display the cursor.  */
-  if (it->current_x >= it->last_visible_x
-      + (!FRAME_WINDOW_P (f)
-	 && it->glyph_row->reversed_p
-	 && !it->glyph_row->continued_p))
+  if ((it->current_x >= it->last_visible_x
+       + (!FRAME_WINDOW_P (f)
+	  && it->glyph_row->reversed_p
+	  && !it->glyph_row->continued_p))
+      /* If the window has display margins, we will need to extend
+	 their face even if the text area is filled.  */
+      && !(WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+	   || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0))
     return;
 
   /* The default face, possibly remapped. */
@@ -18858,6 +18862,20 @@ extend_face_to_end_of_line (struct it *it)
 	  it->glyph_row->glyphs[TEXT_AREA][0] = space_glyph;
 	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = face->id;
 	  it->glyph_row->used[TEXT_AREA] = 1;
+	}
+      if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+	  && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
+	{
+	  it->glyph_row->glyphs[LEFT_MARGIN_AREA][0] = space_glyph;
+	  it->glyph_row->glyphs[LEFT_MARGIN_AREA][0].face_id = face->id;
+	  it->glyph_row->used[LEFT_MARGIN_AREA] = 1;
+	}
+      if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
+	  && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)
+	{
+	  it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0] = space_glyph;
+	  it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0].face_id = face->id;
+	  it->glyph_row->used[RIGHT_MARGIN_AREA] = 1;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
       if (it->glyph_row->reversed_p)
@@ -18932,10 +18950,60 @@ extend_face_to_end_of_line (struct it *it)
       else
 	it->face_id = face->id;
 
+      face = FACE_FROM_ID (f, it->face_id);
+      if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+	  && (it->glyph_row->used[LEFT_MARGIN_AREA]
+	      < WINDOW_LEFT_MARGIN_WIDTH (it->w))
+	  && !it->glyph_row->mode_line_p
+	  && face && face->background != FRAME_BACKGROUND_PIXEL (f))
+	{
+	  struct glyph *g = it->glyph_row->glyphs[LEFT_MARGIN_AREA];
+	  struct glyph *e = g + it->glyph_row->used[LEFT_MARGIN_AREA];
+
+	  for (it->current_x = 0; g < e; g++)
+	    it->current_x += g->pixel_width;
+
+	  it->area = LEFT_MARGIN_AREA;
+	  while (it->glyph_row->used[LEFT_MARGIN_AREA]
+		 < WINDOW_LEFT_MARGIN_WIDTH (it->w))
+	    {
+	      PRODUCE_GLYPHS (it);
+	      /* term.c:produce_glyphs advances it->current_x only for
+		 TEXT_AREA.  */
+	      it->current_x += it->pixel_width;
+	    }
+
+	  it->current_x = saved_x;
+	  it->area = TEXT_AREA;
+	}
+
       PRODUCE_GLYPHS (it);
 
       while (it->current_x <= it->last_visible_x)
 	PRODUCE_GLYPHS (it);
+
+      if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
+	  && (it->glyph_row->used[RIGHT_MARGIN_AREA]
+	      < WINDOW_RIGHT_MARGIN_WIDTH (it->w))
+	  && !it->glyph_row->mode_line_p
+	  && face && face->background != FRAME_BACKGROUND_PIXEL (f))
+	{
+	  struct glyph *g = it->glyph_row->glyphs[RIGHT_MARGIN_AREA];
+	  struct glyph *e = g + it->glyph_row->used[RIGHT_MARGIN_AREA];
+
+	  for ( ; g < e; g++)
+	    it->current_x += g->pixel_width;
+
+	  it->area = RIGHT_MARGIN_AREA;
+	  while (it->glyph_row->used[RIGHT_MARGIN_AREA]
+		 < WINDOW_RIGHT_MARGIN_WIDTH (it->w))
+	    {
+	      PRODUCE_GLYPHS (it);
+	      it->current_x += it->pixel_width;
+	    }
+
+	  it->area = TEXT_AREA;
+	}
 
       /* Don't count these blanks really.  It would let us insert a left
 	 truncation glyph below and make us set the cursor on them, maybe.  */
@@ -19789,6 +19857,9 @@ display_line (struct it *it)
 			}
 		      else if (it->bidi_p)
 			RECORD_MAX_MIN_POS (it);
+		      if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+			  || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0)
+			extend_face_to_end_of_line (it);
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
 			   && !FRAME_WINDOW_P (it->f))
@@ -19817,6 +19888,9 @@ display_line (struct it *it)
 		      it->max_descent = descent;
 		      it->max_phys_ascent = phys_ascent;
 		      it->max_phys_descent = phys_descent;
+		      if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+			  || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0)
+			extend_face_to_end_of_line (it);
 		    }
 		  else if (wrap_row_used > 0)
 		    {
@@ -19861,6 +19935,9 @@ display_line (struct it *it)
 		      row->continued_p = 1;
 		      glyph->pixel_width = it->last_visible_x - x;
 		      it->starts_in_middle_of_char_p = 1;
+		      if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+			  || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0)
+			extend_face_to_end_of_line (it);
 		    }
 		  else
 		    {
@@ -23796,7 +23873,6 @@ set_glyph_string_background_width (struct glyph_string *s, int start, int last_x
      the drawing area, set S->extends_to_end_of_line_p.  */
 
   if (start == s->row->used[s->area]
-      && s->area == TEXT_AREA
       && ((s->row->fill_line_p
 	   && (s->hl == DRAW_NORMAL_TEXT
 	       || s->hl == DRAW_IMAGE_RAISED

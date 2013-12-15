@@ -1,5 +1,13 @@
 2013-12-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (extend_face_to_end_of_line): Extend background of
+	non-default face in margin areas as well.  (Bug#16151)
+	(display_line): Call extend_face_to_end_of_line for continued
+	lines as well, if the display margins have non-zero width.
+	(set_glyph_string_background_width): When needed, set the
+	extends_to_end_of_line_p flag on glyph strings to be drawn in
+	margin areas, not only in the text area.
+
 	* frame.h (FRAME_MOUSE_UPDATE): Fix a typo that caused infloop at
 	startup.
 
