@@ -1,5 +1,8 @@
 2013-12-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* fileio.c (Fexpand_file_name) [WINDOWSNT]: Fix conditionals.
+	Reported by Juanma Barranquero <lekktu@gmail.com>.
+
 	* process.c (Fprocess_send_eof): Don't crash if someone tries to
 	open a pty on MS-Windows.  (Bug#16152)
 

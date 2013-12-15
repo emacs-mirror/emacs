@@ -1168,9 +1168,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      tem = build_string (newdir_utf8);
 	    }
 	  else
-#else
-	    tem = build_string (newdir);
 #endif
+	    tem = build_string (newdir);
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
 	      hdir = DECODE_FILE (tem);
