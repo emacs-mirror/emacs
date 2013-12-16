@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
@@ -210,7 +210,7 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              t)
                             ;; if a list, look for hostname matches
                             ((listp gnutls-verify-error)
-                             (mapcan
+                             (cl-mapcan
                               (lambda (check)
                                 (when (string-match (car check) hostname)
                                   (cdr check)))

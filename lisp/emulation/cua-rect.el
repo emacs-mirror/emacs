@@ -78,7 +78,7 @@
       (push (list 'apply 0 s e
 		  'cua--rect-undo-handler
 		  (copy-sequence cua--rectangle) t s e)
-	  buffer-undo-list))))
+            buffer-undo-list))))
 
 (defun cua--rect-undo-handler (rect on s e)
   (if (setq on (not on))
@@ -88,6 +88,21 @@
   (push (list 'apply 0 s (if on e s)
 	      'cua--rect-undo-handler rect on s e)
 	buffer-undo-list))
+
+;;;###autoload
+(define-minor-mode cua-rectangle-mark-mode
+  "Toggle the region as rectangular.
+Activates the region if needed.  Only lasts until the region is deactivated."
+  :keymap cua--rectangle-keymap
+  (cond
+   (cua-rectangle-mark-mode
+    (add-hook 'deactivate-mark-hook
+              (lambda () (cua-rectangle-mark-mode -1)))
+    (add-hook 'post-command-hook #'cua--rectangle-post-command nil t)
+    (cua-set-rectangle-mark))
+   (t
+    (cua--deactivate-rectangle)
+    (remove-hook 'post-command-hook #'cua--rectangle-post-command t))))
 
 ;;; Rectangle geometry
 
@@ -708,8 +723,7 @@ If command is repeated at same position, delete the rectangle."
                    killed-rectangle "")))))
 
 (defun cua--activate-rectangle ()
-  ;; Turn on rectangular marking mode by disabling transient mark mode
-  ;; and manually handling highlighting from a post command hook.
+  ;; Set cua--rectangle to indicate we're marking a rectangle.
   ;; Be careful if we are already marking a rectangle.
   (setq cua--rectangle
         (if (and cua--last-rectangle
@@ -725,7 +739,7 @@ If command is repeated at same position, delete the rectangle."
 
 (defun cua--deactivate-rectangle ()
   ;; This is used to clean up after `cua--activate-rectangle'.
-  (mapc (function delete-overlay) cua--rectangle-overlays)
+  (mapc #'delete-overlay cua--rectangle-overlays)
   (setq cua--last-rectangle (cons (current-buffer)
                                   (cons (point) ;; cua-save-point
                                         cua--rectangle))
@@ -733,7 +747,10 @@ If command is repeated at same position, delete the rectangle."
         cua--rectangle-overlays nil
         cua--status-string nil
         cua--mouse-last-pos nil)
-  (deactivate-mark))
+  ;; FIXME: This call to cua-rectangle-mark-mode is a workaround.
+  ;; Deactivation can happen in various different ways, and we
+  ;; currently don't handle them all in a coherent way.
+  (if cua-rectangle-mark-mode (cua-rectangle-mark-mode -1)))
 
 (defun cua--highlight-rectangle ()
   ;; This function is used to highlight the rectangular region.
@@ -879,7 +896,6 @@ With prefix argument, activate previous rectangle if possible."
           (push-mark nil nil t)))
     (cua--activate-rectangle)
     (cua--rectangle-set-corners)
-    (setq mark-active t)
     (if cua-enable-rectangle-auto-help
         (cua-help-for-rectangle t))))
 
@@ -1385,7 +1401,7 @@ With prefix arg, indent to that column."
   (if (not cua--rectangle) (apply orig args)
     ;; When cua--rectangle is active, just don't highlight at all, since we
     ;; already do it elsewhere.
-    ))
+    (funcall redisplay-unhighlight-region-function (nth 3 args))))
 
 (defun cua--rectangle-region-extract (orig &optional delete)
   (cond

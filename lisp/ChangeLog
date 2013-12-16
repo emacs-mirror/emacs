@@ -1,3 +1,18 @@
+2013-12-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/cua-rect.el (cua-rectangle-mark-mode): New minor mode.
+	(cua--deactivate-rectangle): Don't deactivate the mark.
+	(cua-set-rectangle-mark): Don't set mark-active since
+	cua--activate-rectangle already does it for us.
+	(cua--rectangle-highlight-for-redisplay): Unhighlight a previous
+	non-rectangular region.
+
+	* emulation/cua-base.el (cua-repeat-replace-region):
+	Use with-current-buffer.
+
+	* net/gnutls.el: Use cl-lib.
+	(gnutls-negotiate): `mapcan' -> cl-mapcan.
+
 2013-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-lisp/package.el (package-built-in-p): Support both

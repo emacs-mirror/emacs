@@ -971,9 +971,8 @@ replaced by typing text over it and replaces it with the same stretch
 of text."
   (interactive "P")
   (when cua--last-deleted-region-pos
-    (save-excursion
+    (with-current-buffer (car cua--last-deleted-region-pos)
       (save-restriction
-	(set-buffer (car cua--last-deleted-region-pos))
 	(widen)
 	;; Find the text that replaced the region via the undo list.
 	(let ((ul buffer-undo-list)

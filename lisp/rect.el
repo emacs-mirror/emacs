@@ -418,9 +418,6 @@ with a prefix argument, prompt for START-AT and FORMAT."
 ;; - lots of commands handle the region without paying attention to its
 ;;   rectangular shape.
 
-(add-hook 'deactivate-mark-hook
-          (lambda () (rectangle-mark-mode -1)))
-
 (add-function :around redisplay-highlight-region-function
               #'rectangle--highlight-for-redisplay)
 (add-function :around redisplay-unhighlight-region-function
@@ -443,6 +440,8 @@ with a prefix argument, prompt for START-AT and FORMAT."
 Activates the region if needed.  Only lasts until the region is deactivated."
   nil nil nil
   (when rectangle-mark-mode
+    (add-hook 'deactivate-mark-hook
+              (lambda () (rectangle-mark-mode -1)))
     (unless (region-active-p)
       (push-mark)
       (activate-mark))))
