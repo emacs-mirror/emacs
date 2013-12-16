@@ -1,3 +1,7 @@
+2013-12-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32_enable_frame_resize_hack): Default to 1.
+
 2013-12-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (valid_font_driver) [ENABLE_CHECKING]: New function

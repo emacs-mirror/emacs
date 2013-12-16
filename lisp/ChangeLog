@@ -1,3 +1,8 @@
+2013-12-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-below-selected): Bind
+	split-height-threshold to 0 as suggested by Juri Linkov.
+
 2013-12-16  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/compile.el (compile-goto-error): Do not push-mark.

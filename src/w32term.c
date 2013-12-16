@@ -6679,7 +6679,7 @@ to the Windows API and changing the pixel sizes of the frame and its
 windows after the latter calls back.  If this is non-nil, Emacs changes
 the pixel sizes of the frame and its windows at the time it sends the
 resize request to the API.  */);
-  w32_enable_frame_resize_hack = 0;
+  w32_enable_frame_resize_hack = 1;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qw32, Qnil);
