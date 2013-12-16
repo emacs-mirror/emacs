@@ -1,3 +1,8 @@
+2013-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (Fgnutls_boot): Use `Flistp' instead of
+	`CHECK_LIST_CONS`.
+
 2013-12-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32term.c (w32_enable_frame_resize_hack): Default to 1.
