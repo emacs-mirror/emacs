@@ -1,3 +1,8 @@
+2013-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-display-html): If we can't find the anchor we're
+	looking for, then go to point-min.
+
 2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix problems with CANNOT_DUMP and EMACSLOADPATH.
