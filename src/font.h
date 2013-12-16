@@ -787,6 +787,9 @@ extern int font_unparse_fcname (Lisp_Object font, int pixel_size,
                                 char *name, int bytes);
 extern void register_font_driver (struct font_driver *driver, struct frame *f);
 extern void free_font_driver_list (struct frame *f);
+#ifdef ENABLE_CHECKING
+extern bool valid_font_driver (struct font_driver *);
+#endif
 extern Lisp_Object font_update_drivers (struct frame *f, Lisp_Object list);
 extern Lisp_Object font_range (ptrdiff_t, ptrdiff_t, ptrdiff_t *,
 			       struct window *, struct face *,

@@ -2877,7 +2877,11 @@ cleanup_vector (struct Lisp_Vector *vector)
   if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT)
       && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
 	  == FONT_OBJECT_MAX))
-    ((struct font *) vector)->driver->close ((struct font *) vector);
+    {
+      /* Attempt to catch subtle bugs like Bug#16140.  */
+      eassert (valid_font_driver (((struct font *) vector)->driver));
+      ((struct font *) vector)->driver->close ((struct font *) vector);
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -5299,6 +5303,10 @@ total_bytes_of_live_objects (void)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+/* This code has a few issues on MS-Windows, see Bug#15876 and Bug#16140.  */
+
+#if !defined (HAVE_NTGUI)
+
 /* Remove unmarked font-spec and font-entity objects from ENTRY, which is
    (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...), and return changed entry.  */
 
@@ -5337,6 +5345,8 @@ compact_font_cache_entry (Lisp_Object entry)
   return entry;
 }
 
+#endif /* not HAVE_NTGUI */
+
 /* Compact font caches on all terminals and mark
    everything which is still here after compaction.  */
 
@@ -5348,7 +5358,7 @@ compact_font_caches (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       Lisp_Object cache = TERMINAL_FONT_CACHE (t);
-
+#if !defined (HAVE_NTGUI)
       if (CONSP (cache))
 	{
 	  Lisp_Object entry;
@@ -5356,6 +5366,7 @@ compact_font_caches (void)
 	  for (entry = XCDR (cache); CONSP (entry); entry = XCDR (entry))
 	    XSETCAR (entry, compact_font_cache_entry (XCAR (entry)));
 	}
+#endif /* not HAVE_NTGUI */
       mark_object (cache);
     }
 }

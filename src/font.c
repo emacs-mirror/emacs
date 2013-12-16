@@ -148,7 +148,27 @@ static Lisp_Object font_charset_alist;
    here.  */
 static struct font_driver_list *font_driver_list;
 
-
+#ifdef ENABLE_CHECKING
+
+/* Used to catch bogus pointers in font objects.  */
+
+bool
+valid_font_driver (struct font_driver *drv)
+{
+  Lisp_Object tail, frame;
+  struct font_driver_list *fdl;
+
+  for (fdl = font_driver_list; fdl; fdl = fdl->next)
+    if (fdl->driver == drv)
+      return true;
+  FOR_EACH_FRAME (tail, frame)
+    for (fdl = XFRAME (frame)->font_driver_list; fdl; fdl = fdl->next)
+      if (fdl->driver == drv)
+	return true;
+  return false;
+}
+
+#endif /* ENABLE_CHECKING */
 
 /* Creators of font-related Lisp object.  */
 

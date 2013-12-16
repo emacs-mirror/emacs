@@ -894,7 +894,10 @@ xfont_close (struct font *font)
 {
   struct xfont_info *xfi = (struct xfont_info *) font;
 
-  if (xfi->xfont)
+  /* This function may be called from GC when X connection is gone
+     (Bug#16093), and an attempt to free font resourses on invalid
+     display may lead to X protocol errors or segfaults.  */
+  if (xfi->xfont && x_display_info_for_display (xfi->display))
     {
       block_input ();
       XFreeFont (xfi->display, xfi->xfont);

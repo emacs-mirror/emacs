@@ -1,3 +1,17 @@
+2013-12-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (valid_font_driver) [ENABLE_CHECKING]: New function
+	intended to find bogus pointers in font objects (Bug#16140).
+	* font.h (valid_font_driver) [ENABLE_CHECKING]: Add prototype.
+	* alloc.c (cleanup_vector): Use valid_font_driver in eassert.
+	(compact_font_cache_entry, compact_font_caches) [!HAVE_NTGUI]:
+	Disable for MS-Windows due to Bug#15876; apparently this
+	requires more or less substantial changes in fontset code.
+	* xfont.c (xfont_close):
+	* xftfont.c (xftfont_close): Call x_display_info_for_display
+	to check whether 'Display *' is valid (Bug#16093 and probably
+	Bug#16069).
+
 2013-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name) [WINDOWSNT]: Fix conditionals.
