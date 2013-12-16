@@ -825,7 +825,7 @@ one trustfile (usually a CA bundle).  */)
   verify_error          = Fplist_get (proplist, QCgnutls_bootprop_verify_error);
   prime_bits            = Fplist_get (proplist, QCgnutls_bootprop_min_prime_bits);
 
-  if (!Flistp (verify_error))
+  if (NILP (Flistp (verify_error)))
     error ("gnutls-boot: invalid :verify_error parameter (not a list)");
 
   if (!STRINGP (hostname))

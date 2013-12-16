@@ -1,3 +1,7 @@
+2013-12-16  Andreas Schwab  <schwab@suse.de>
+
+	* gnutls.c (Fgnutls_boot): Properly check Flistp return value.
+
 2013-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (Fgnutls_boot): Use `Flistp' instead of
