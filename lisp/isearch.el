@@ -435,8 +435,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; would be simpler to disable the global keymap, and/or have a
     ;; default local key binding for any key not otherwise bound.
     (let ((meta-map (make-sparse-keymap)))
-      (define-key map (char-to-string meta-prefix-char) meta-map)
-      (define-key map [escape] meta-map))
+      (define-key map (char-to-string meta-prefix-char) meta-map))
 
     ;; Several non-printing chars change the searching behavior.
     (define-key map "\C-s" 'isearch-repeat-forward)
@@ -453,7 +452,6 @@ This is like `describe-bindings', but displays only Isearch keys."
     (or (= ?\e meta-prefix-char)
 	(error "Inconsistency in isearch.el"))
     (define-key map "\e\e\e" 'isearch-cancel)
-    (define-key map  [escape escape escape] 'isearch-cancel)
 
     (define-key map "\C-q" 'isearch-quote-char)
 
@@ -2251,6 +2249,7 @@ before the command is executed globally with terminated Isearch."
 	       (memq this-command '(universal-argument
 				    digit-argument negative-argument)))
 	  (and isearch-allow-scroll
+	       (symbolp this-command)
 	       (or (eq (get this-command 'isearch-scroll) t)
 		   (eq (get this-command 'scroll-command) t))))
       (when isearch-allow-scroll

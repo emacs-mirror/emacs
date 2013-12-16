@@ -1,3 +1,9 @@
+2013-12-16  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Remove [escape] key bindinds.
+	(Bug#16035)
+	(isearch-pre-command-hook): Check `this-command' for symbolp.
+
 2013-12-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/gv.el (gv-ref): Mention lexbind restriction (bug#16153).
