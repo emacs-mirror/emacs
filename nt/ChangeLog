@@ -1,3 +1,13 @@
+2013-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-x64.manifest:
+	* emacs-x86.manifest: Declare that we target Windows 8.1 as well
+	as earlier versions.  This is so GetVersion and GetVersionEx APIs
+	used for bug reporting and other purposes return accurate version
+	number on Windows 8.1.  See the discussion on MSDN
+	http://msdn.microsoft.com/en-us/library/windows/desktop/dn302074.aspx
+	for more details.
+
 2013-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (MAX_UTF8_PATH): New macro.
