@@ -1,3 +1,12 @@
+2013-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine3--current-word): Remove.
+	(cfengine3--current-function): Bring in the current-function
+	functionality from `cfengine3--current-word'.
+	(cfengine3-completion-function): Bring in the
+	bounds-of-current-word functionality from
+	`cfengine3--current-word'.
+
 2013-12-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-below-selected): Bind
