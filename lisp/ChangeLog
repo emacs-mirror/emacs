@@ -1,3 +1,7 @@
+2013-12-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (gv-ref): Mention lexbind restriction (bug#16153).
+
 2013-12-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el (cfengine3--current-word): Remove.
@@ -9,8 +13,8 @@
 
 2013-12-16  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer-below-selected): Bind
-	split-height-threshold to 0 as suggested by Juri Linkov.
+	* window.el (display-buffer-below-selected):
+	Bind split-height-threshold to 0 as suggested by Juri Linkov.
 
 2013-12-16  Leo Liu  <sdl.web@gmail.com>
 
