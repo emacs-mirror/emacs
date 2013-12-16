@@ -62,9 +62,8 @@ sections if you need to.
      name, where to find various headers and libraries, etc.
      Refer to the section DETAILED BUILDING AND INSTALLATION below.
 
-     If `configure' didn't find some (optional) image support libraries,
-     such as Xpm, jpeg, etc., and you want to use them, refer to the
-     subsection "Image support libraries" below.
+     If `configure' didn't find some image support libraries, such as
+     Xpm and jpeg, refer to "Image support libraries" below.
 
      If the details printed by `configure' don't make any sense to
      you, but there are no obvious errors, assume that `configure' did
@@ -142,37 +141,40 @@ in the intlfonts/README file.
 
 * Image support libraries
 
-Emacs needs optional libraries to be able to display images (with the
-exception of PBM and XBM images whose support is built-in).
+Emacs needs libraries to display images, with the exception of PBM and
+XBM images whose support is built-in.
 
 On some systems, particularly on GNU/Linux, these libraries may
-already be present or available as additional packages.  Note that if
+already be present or available as additional packages.  If
 there is a separate `dev' or `devel' package, for use at compilation
 time rather than run time, you will need that as well as the
 corresponding run time package; typically the dev package will
 contain header files and a library archive.  Otherwise, you can
-download and build libraries from sources.  None of them are vital for
-running Emacs; however, note that Emacs will not be able to use
-colored icons in the toolbar if XPM support is not compiled in.
+download and build libraries from sources.  Although none of them are
+essential for running Emacs, some are important enough that
+'configure' will report an error if they are absent from a system that
+has X11 support, unless 'configure' is specifically told to omit them.
 
-Here's the list of some of these optional libraries, and the URLs
-where they can be found (in the unlikely event that your distribution
-does not provide them):
+Here's a list of some of these libraries, and the URLs where they
+can be found (in the unlikely event that your distribution does not
+provide them).  By default, libraries marked with an X are required if
+X11 is being used.
 
-  . libXaw3d          http://directory.fsf.org/project/xaw3d/
-  . libxpm for XPM:   http://www.x.org/releases/current/src/lib/
-  . libpng for PNG:   http://www.libpng.org/
-  . libz (for PNG):   http://www.zlib.net/
-  . libjpeg for JPEG: http://www.ijg.org/
-  . libtiff for TIFF: http://www.remotesensing.org/libtiff/
-  . libgif for GIF:   http://sourceforge.net/projects/giflib/
+    libXaw3d          http://directory.fsf.org/project/xaw3d/
+  X libxpm for XPM:   http://www.x.org/releases/current/src/lib/
+  X libpng for PNG:   http://www.libpng.org/
+    libz (for PNG):   http://www.zlib.net/
+  X libjpeg for JPEG: http://www.ijg.org/
+  X libtiff for TIFF: http://www.remotesensing.org/libtiff/
+  X libgif for GIF:   http://sourceforge.net/projects/giflib/
 
-Emacs will configure itself to build with these libraries if the
-`configure' script finds them on your system, unless you supply the
-appropriate --without-LIB option.  In some cases, older versions of
-these libraries won't work because some routines are missing, and
-configure should avoid such old versions.  If that happens, use the
---without-LIB options to `configure', if you need to.
+If you supply the appropriate --without-LIB option, 'configure' will
+omit the corresponding library from Emacs, even if that makes for a
+less-pleasant user interface.  Otherwise, Emacs will configure itself
+to build with these libraries if 'configure' finds them on your
+system, and 'configure' will complain and exit if a library marked 'X'
+is not found on a system that uses X11.  Use --without-LIB if your
+version of a library won't work because some routines are missing.
 
 * Extra fonts
 
@@ -280,7 +282,7 @@ individual users--see the Rmail chapter of the Emacs manual.
 
 For image support you may have to download, build, and install the
 appropriate image support libraries for image types other than XBM and
-PBM, see the list of URLs in "ADDITIONAL DISTRIBUTION FILES" above.
+PBM, see the list of URLs in "Image support libraries" above.
 (Note that PNG support requires libz in addition to libpng.)
 
 To disable individual types of image support in Emacs for some reason,

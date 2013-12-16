@@ -1,3 +1,7 @@
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* INSTALL: Clarify treatment of image libraries.
+
 2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use bool for boolean, focusing on headers.
