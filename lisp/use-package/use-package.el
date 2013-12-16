@@ -78,10 +78,16 @@
 ;;
 ;; Similar to `:bind', you can use `:mode' and `:interpreter' to establish a
 ;; deferred binding within `auto-mode-alist' and `interpreter-mode-alist'.
-;; The specifier to either keyword can be a single cons or a list:
+;; The specifier to either keyword can be a single cons, or a list, or just
+;; a string:
 ;;
-;;   (use-package python-mode
-;;     :mode ("\\.py$" . python-mode)
+;;   (use-package ruby-mode
+;;     :mode "\\.rb\\'"
+;;     :interpreter "ruby")
+;;
+;;   ;; The package is "python" but the mode is "python-mode":
+;;   (use-package python
+;;     :mode ("\\.py\\'" . python-mode)
 ;;     :interpreter ("python" . python-mode))
 ;;
 ;; If you aren't using `:commands', `:bind', `:mode', or `:interpreter' (all
@@ -421,8 +427,12 @@ For full documentation. please see commentary.
          (defines (plist-get-value args :defines))
          (idle-body (plist-get args :idle))
          (keybindings-alist (plist-get-value args :bind))
-         (mode-alist (plist-get-value args :mode))
-         (interpreter-alist (plist-get-value args :interpreter))
+         (mode (plist-get-value args :mode))
+         (mode-alist
+          (if (stringp mode) (cons mode name) mode))
+         (interpreter (plist-get-value args :interpreter))
+         (interpreter-alist
+          (if (stringp interpreter) (cons interpreter name) interpreter))
          (predicate (plist-get args :if))
          (pkg-load-path (plist-get-value args :load-path))
          (defines-eval (if (null defines)
