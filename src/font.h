@@ -25,6 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "ccl.h"
 #include "frame.h"
 
+INLINE_HEADER_BEGIN
+
 /* We have three types of Lisp objects related to font.
 
    FONT-SPEC
@@ -789,6 +791,12 @@ extern void register_font_driver (struct font_driver *driver, struct frame *f);
 extern void free_font_driver_list (struct frame *f);
 #ifdef ENABLE_CHECKING
 extern bool valid_font_driver (struct font_driver *);
+#else
+INLINE bool
+valid_font_driver (struct font_driver *d)
+{
+  return true;
+}
 #endif
 extern Lisp_Object font_update_drivers (struct frame *f, Lisp_Object list);
 extern Lisp_Object font_range (ptrdiff_t, ptrdiff_t, ptrdiff_t *,
@@ -861,5 +869,7 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
     if (! EQ (Vfont_log, Qt))				\
       font_deferred_log ((ACTION), (ARG), (RESULT));	\
   } while (false)
+
+INLINE_HEADER_END
 
 #endif	/* not EMACS_FONT_H */

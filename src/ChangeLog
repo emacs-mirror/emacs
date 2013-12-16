@@ -1,3 +1,11 @@
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* font.h (valid_font_driver) [!ENABLE_CHECKING]: Define a dummy.
+	This prevents a compilation error on C compilers that do not
+	default functions to return 'int' if not declared.  Also, add
+	INLINE_HEADER_BEGIN and INLINE_HEADER_END to this include file,
+	since it now uses inline functions.
+
 2013-12-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (extend_face_to_end_of_line): Don't fill background of
