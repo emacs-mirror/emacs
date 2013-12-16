@@ -269,11 +269,11 @@ word(s) will be searched for via `eww-search-prefix'."
        (point
 	(goto-char point))
        (shr-target-id
+	(goto-char (point-min))
 	(let ((point (next-single-property-change
 		      (point-min) 'shr-target-id)))
-	  (goto-char (if point
-			 (1+ point)
-		       (point-min)))))
+	  (when point
+	    (goto-char point))))
        (t
 	(goto-char (point-min)))))
     (setq eww-current-url url

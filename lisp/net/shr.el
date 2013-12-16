@@ -1078,6 +1078,14 @@ ones, in case fg and bg are nil."
 	(start (point))
 	shr-start)
     (shr-generic cont)
+    (when (and shr-target-id
+	       (equal (cdr (assq :name (cdr dom))) shr-target-id))
+      ;; We have a zero-length <a name="foo"> element, so just
+      ;; insert...  something.
+      (when (= start (point))
+	(shr-ensure-newline)
+	(insert " "))
+      (put-text-property start (1+ start) 'shr-target-id shr-target-id))
     (when (and url
 	       (not shr-inhibit-decoration))
       (shr-urlify (or shr-start start) (shr-expand-url url) title))))
