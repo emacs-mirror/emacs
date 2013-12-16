@@ -398,8 +398,8 @@ on the given date.
 
 ** Desktop
 
-*** `desktop-auto-save-timeout' defines the number of seconds between
-auto-saves of the desktop.
+*** `desktop-auto-save-timeout' defines the number of seconds idle time
+before auto-save of the desktop.
 
 *** `desktop-restore-frames', enabled by default, allows saving and
 restoring the frame/window configuration (frameset).  Additional options

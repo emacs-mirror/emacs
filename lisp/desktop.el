@@ -191,9 +191,9 @@ determine where the desktop is saved."
   :group 'desktop
   :version "22.1")
 
-(defcustom desktop-auto-save-timeout nil
-  "Number of seconds between auto-saves of the desktop.
-Zero or nil means disable timer-based auto-saving."
+(defcustom desktop-auto-save-timeout auto-save-timeout
+  "Number of seconds idle time before auto-save of the desktop.
+Zero or nil means disable auto-saving due to idleness."
   :type '(choice (const :tag "Off" nil)
                  (integer :tag "Seconds"))
   :set (lambda (symbol value)
@@ -992,12 +992,21 @@ and don't save the buffer if they are the same."
 		(insert ")\n\n"))))
 
 	  (setq default-directory desktop-dirname)
-	  ;; If auto-saving, avoid writing if nothing has changed since the last write.
-	  ;; Don't check 300 characters of the header that contains the timestamp.
-	  (let ((checksum (and auto-save (md5 (current-buffer)
-					      (+ (point-min) 300) (point-max)
-					      'emacs-mule))))
-	    (unless (and auto-save (equal checksum desktop-file-checksum))
+	  ;; When auto-saving, avoid writing if nothing has changed since the last write.
+	  (let* ((beg (and auto-save
+			   (save-excursion
+			     (goto-char (point-min))
+			     ;; Don't check the header with changing timestamp
+			     (and (search-forward "Global section" nil t)
+				  ;; Also skip the timestamp in desktop-saved-frameset
+				  ;; if it's saved in the first non-header line
+				  (search-forward "desktop-saved-frameset"
+						  (line-beginning-position 3) t)
+				  ;; This is saved after the timestamp
+				  (search-forward (format "%S" desktop--app-id) nil t))
+			     (point))))
+		 (checksum (and beg (md5 (current-buffer) beg (point-max) 'emacs-mule))))
+	    (unless (and checksum (equal checksum desktop-file-checksum))
 	      (let ((coding-system-for-write 'emacs-mule))
 		(write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	      (setq desktop-file-checksum checksum)
@@ -1199,21 +1208,21 @@ Called by the timer created in `desktop-auto-save-set-timer'."
 	     ;; Save only to own desktop file.
 	     (eq (emacs-pid) (desktop-owner))
 	     desktop-dirname)
-    (desktop-save desktop-dirname nil t))
-  (desktop-auto-save-set-timer))
+    (desktop-save desktop-dirname nil t)))
 
 (defun desktop-auto-save-set-timer ()
-  "Reset the auto-save timer.
+  "Set the auto-save timer.
 Cancel any previous timer.  When `desktop-auto-save-timeout' is a positive
-integer, start a new timer to call `desktop-auto-save' in that many seconds."
+integer, start a new idle timer to call `desktop-auto-save' repeatedly
+after that many seconds of idle time."
   (when desktop-auto-save-timer
     (cancel-timer desktop-auto-save-timer)
     (setq desktop-auto-save-timer nil))
   (when (and (integerp desktop-auto-save-timeout)
 	     (> desktop-auto-save-timeout 0))
     (setq desktop-auto-save-timer
-	  (run-with-timer desktop-auto-save-timeout nil
-			  'desktop-auto-save))))
+	  (run-with-idle-timer desktop-auto-save-timeout t
+			       'desktop-auto-save))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload

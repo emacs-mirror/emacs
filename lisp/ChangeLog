@@ -1,5 +1,17 @@
 2013-12-16  Juri Linkov  <juri@jurta.org>
 
+	* desktop.el (desktop-auto-save-timeout): Change default to
+	`auto-save-timeout'.  Doc fix.
+	(desktop-save): Skip the timestamp in desktop-saved-frameset
+	when checking for auto-save changes.
+	(desktop-auto-save): Don't call desktop-auto-save-set-timer since
+	`desktop-auto-save' is called repeatedly by the idle timer.
+	(desktop-auto-save-set-timer): Replace `run-with-timer' with
+	`run-with-idle-timer' and a non-nil arg REPEAT.  Doc fix.
+	(Bug#15331)
+
+2013-12-16  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-mode-map): Remove [escape] key bindinds.
 	(Bug#16035)
 	(isearch-pre-command-hook): Check `this-command' for symbolp.
