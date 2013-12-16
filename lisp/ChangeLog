@@ -1,3 +1,10 @@
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems with CANNOT_DUMP and EMACSLOADPATH.
+	* Makefile.in (emacs): Add lisp src to EMACSLOADPATH.
+	* loadup.el: Check for src/bootstrap-emacs only when Emacs can dump.
+	Expand dir too, in case it's relative.
+
 2013-12-16  Juri Linkov  <juri@jurta.org>
 
 	* desktop.el (desktop-auto-save-timeout): Change default to

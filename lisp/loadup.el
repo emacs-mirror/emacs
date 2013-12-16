@@ -51,12 +51,13 @@
 	;; FIXME this is irritatingly fragile.
 	(equal (nth 4 command-line-args) "unidata-gen.el")
 	(equal (nth 7 command-line-args) "unidata-gen-files")
-	;; In case CANNOT_DUMP.
-	(string-match "src/bootstrap-emacs" (nth 0 command-line-args)))
+	(if (fboundp 'dump-emacs)
+	    (string-match "src/bootstrap-emacs" (nth 0 command-line-args))
+	  t))
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
-      (setq load-path (list dir
+      (setq load-path (list (expand-file-name "." dir)
 			    (expand-file-name "emacs-lisp" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)

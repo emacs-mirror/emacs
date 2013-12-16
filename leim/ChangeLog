@@ -1,3 +1,8 @@
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems with CANNOT_DUMP and EMACSLOADPATH.
+	* Makefile.in (RUN_EMACS): Add lisp src to EMACSLOADPATH.
+
 2013-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (${leimdir}/leim-list.el):

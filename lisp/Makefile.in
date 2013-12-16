@@ -105,8 +105,7 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH='$(lisp)' '$(EMACS)' $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=for file in `find . -type d -print`; do \

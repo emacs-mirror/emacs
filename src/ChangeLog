@@ -1,3 +1,8 @@
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems with CANNOT_DUMP and EMACSLOADPATH.
+	* lread.c (init_lread): If CANNOT_DUMP, we can't be dumping.
+
 2013-12-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fmove_point_visually): Fix subtle bugs in the fallback

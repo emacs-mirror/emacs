@@ -4293,8 +4293,14 @@ init_lread (void)
 {
   /* First, set Vload_path.  */
 
-  /* We explicitly ignore EMACSLOADPATH when dumping.  */
-  if (NILP (Vpurify_flag) && egetenv ("EMACSLOADPATH"))
+  /* Ignore EMACSLOADPATH when dumping.  */
+#ifdef CANNOT_DUMP
+  bool use_loadpath = true;
+#else
+  bool use_loadpath = !NILP (Vpurify_flag);
+#endif
+
+  if (use_loadpath && egetenv ("EMACSLOADPATH"))
     {
       Vload_path = decode_env_path ("EMACSLOADPATH", 0, 1);
 
