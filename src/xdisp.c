@@ -18863,19 +18863,26 @@ extend_face_to_end_of_line (struct it *it)
 	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = face->id;
 	  it->glyph_row->used[TEXT_AREA] = 1;
 	}
-      if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
-	  && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
+      /* Mode line and the header line don't have margins, and
+	 likewise the frame's tool-bar window, if there is any.  */
+      if (!(it->glyph_row->mode_line_p
+	    || (WINDOWP (f->tool_bar_window)
+		&& it->w == XWINDOW (f->tool_bar_window))))
 	{
-	  it->glyph_row->glyphs[LEFT_MARGIN_AREA][0] = space_glyph;
-	  it->glyph_row->glyphs[LEFT_MARGIN_AREA][0].face_id = face->id;
-	  it->glyph_row->used[LEFT_MARGIN_AREA] = 1;
-	}
-      if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
-	  && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)
-	{
-	  it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0] = space_glyph;
-	  it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0].face_id = face->id;
-	  it->glyph_row->used[RIGHT_MARGIN_AREA] = 1;
+	  if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+	      && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
+	    {
+	      it->glyph_row->glyphs[LEFT_MARGIN_AREA][0] = space_glyph;
+	      it->glyph_row->glyphs[LEFT_MARGIN_AREA][0].face_id = face->id;
+	      it->glyph_row->used[LEFT_MARGIN_AREA] = 1;
+	    }
+	  if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
+	      && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)
+	    {
+	      it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0] = space_glyph;
+	      it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0].face_id = face->id;
+	      it->glyph_row->used[RIGHT_MARGIN_AREA] = 1;
+	    }
 	}
 #ifdef HAVE_WINDOW_SYSTEM
       if (it->glyph_row->reversed_p)
