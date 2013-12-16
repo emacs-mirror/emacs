@@ -20589,23 +20589,37 @@ Value is the new character position of point.  */)
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
 
-      if ((it.cmp_it.id < 0
-	   && it.method == GET_FROM_STRING
-	   && it.area == TEXT_AREA
-	   && it.string_from_display_prop_p
-	   && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER))
-	  || it.method == GET_FROM_DISPLAY_VECTOR)
+      if (it.cmp_it.id < 0
+	  && it.method == GET_FROM_STRING
+	  && it.area == TEXT_AREA
+	  && it.string_from_display_prop_p
+	  && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER))
 	overshoot_expected = true;
 
       /* Find the X coordinate of point.  We start from the beginning
 	 of this or previous line to make sure we are before point in
 	 the logical order (since the move_it_* functions can only
 	 move forward).  */
+    reseat:
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = it.current_y = it.vpos = 0;
       if (IT_CHARPOS (it) != PT)
-	move_it_to (&it, overshoot_expected ? PT - 1 : PT,
-		    -1, -1, -1, MOVE_TO_POS);
+	{
+	  move_it_to (&it, overshoot_expected ? PT - 1 : PT,
+		      -1, -1, -1, MOVE_TO_POS);
+	  /* If we missed point because the character there is
+	     displayed out of a display vector that has more than one
+	     glyph, retry expecting overshoot.  */
+	  if (it.method == GET_FROM_DISPLAY_VECTOR
+	      && it.current.dpvec_index > 0
+	      && !overshoot_expected)
+	    {
+	      overshoot_expected = true;
+	      goto reseat;
+	    }
+	  else if (IT_CHARPOS (it) != PT && !overshoot_expected)
+	    move_it_in_display_line (&it, PT, -1, MOVE_TO_POS);
+	}
       pt_x = it.current_x;
       pt_vpos = it.vpos;
       if (dir > 0 || overshoot_expected)
@@ -20634,9 +20648,9 @@ Value is the new character position of point.  */)
       else if (pixel_width <= 0)
 	pixel_width = 1;
 
-      /* If there's a display string at point, we are actually at the
-	 glyph to the left of point, so we need to correct the X
-	 coordinate.  */
+      /* If there's a display string (or something similar) at point,
+	 we are actually at the glyph to the left of point, so we need
+	 to correct the X coordinate.  */
       if (overshoot_expected)
 	{
 	  if (it.bidi_p)
@@ -20699,15 +20713,37 @@ Value is the new character position of point.  */)
 	 character at point.  */
       if (FRAME_WINDOW_P (it.f) && dir < 0)
 	{
-	  struct text_pos new_pos = it.current.pos;
+	  struct text_pos new_pos;
 	  enum move_it_result rc = MOVE_X_REACHED;
+
+	  if (it.current_x == 0)
+	    get_next_display_element (&it);
+	  if (it.what == IT_COMPOSITION)
+	    {
+	      new_pos.charpos = it.cmp_it.charpos;
+	      new_pos.bytepos = -1;
+	    }
+	  else
+	    new_pos = it.current.pos;
 
 	  while (it.current_x + it.pixel_width <= target_x
 		 && rc == MOVE_X_REACHED)
 	    {
 	      int new_x = it.current_x + it.pixel_width;
 
-	      new_pos = it.current.pos;
+	      /* For composed characters, we want the position of the
+		 first character in the grapheme cluster (usually, the
+		 composition's base character), whereas it.current
+		 might give us the position of the _last_ one, e.g. if
+		 the composition is rendered in reverse due to bidi
+		 reordering.  */
+	      if (it.what == IT_COMPOSITION)
+		{
+		  new_pos.charpos = it.cmp_it.charpos;
+		  new_pos.bytepos = -1;
+		}
+	      else
+		new_pos = it.current.pos;
 	      if (new_x == it.current_x)
 		new_x++;
 	      rc = move_it_in_display_line_to (&it, ZV, new_x,
@@ -20715,21 +20751,10 @@ Value is the new character position of point.  */)
 	      if (ITERATOR_AT_END_OF_LINE_P (&it) && !target_is_eol_p)
 		break;
 	    }
-	  /* If we ended up on a composed character inside
-	     bidi-reordered text (e.g., Hebrew text with diacritics),
-	     the iterator gives us the buffer position of the last (in
-	     logical order) character of the composed grapheme cluster,
-	     which is not what we want.  So we cheat: we compute the
-	     character position of the character that follows (in the
-	     logical order) the one where the above loop stopped.  That
-	     character will appear on display to the left of point.  */
-	  if (it.bidi_p
-	      && it.bidi_it.scan_dir == -1
-	      && new_pos.charpos - IT_CHARPOS (it) > 1)
-	    {
-	      new_pos.charpos = IT_CHARPOS (it) + 1;
-	      new_pos.bytepos = CHAR_TO_BYTE (new_pos.charpos);
-	    }
+	  /* The previous position we saw in the loop is the one we
+	     want.  */
+	  if (new_pos.bytepos == -1)
+	    new_pos.bytepos = CHAR_TO_BYTE (new_pos.charpos);
 	  it.current.pos = new_pos;
 	}
       else

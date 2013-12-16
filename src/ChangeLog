@@ -1,3 +1,12 @@
+2013-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): Fix subtle bugs in the fallback
+	code, revealed in presence of R2L characters, character
+	compositions, and display vectors.  A better fix for Bug#16148.
+
+	* dispextern.h (struct composition_it): Correct a comment for the
+	'width' member.
+
 2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* font.h (valid_font_driver) [!ENABLE_CHECKING]: Define a dummy.

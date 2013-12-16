@@ -2190,9 +2190,8 @@ struct composition_it
   int nchars, nbytes;
   /* Indices of the glyphs for the current grapheme cluster.  */
   int from, to;
-  /* Width of the current grapheme cluster in units of pixels on a
-     graphic display and in units of canonical characters on a
-     terminal display.  */
+  /* Width of the current grapheme cluster in units of columns it will
+     occupy on display; see CHAR_WIDTH.  */
   int width;
 };
 
