@@ -3,6 +3,8 @@
 	* xdisp.c (Fmove_point_visually): Fix subtle bugs in the fallback
 	code, revealed in presence of R2L characters, character
 	compositions, and display vectors.  A better fix for Bug#16148.
+	(extend_face_to_end_of_line): Don't reference tool_bar_window in
+	GTK and NS builds, they don't have this member of struct frame.
 
 	* dispextern.h (struct composition_it): Correct a comment for the
 	'width' member.

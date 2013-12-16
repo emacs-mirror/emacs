@@ -18866,8 +18866,11 @@ extend_face_to_end_of_line (struct it *it)
       /* Mode line and the header line don't have margins, and
 	 likewise the frame's tool-bar window, if there is any.  */
       if (!(it->glyph_row->mode_line_p
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    || (WINDOWP (f->tool_bar_window)
-		&& it->w == XWINDOW (f->tool_bar_window))))
+		&& it->w == XWINDOW (f->tool_bar_window))
+#endif
+	    ))
 	{
 	  if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
 	      && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
