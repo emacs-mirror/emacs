@@ -1,3 +1,7 @@
+2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie-rules): Indent ternary if.
+
 2013-12-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/shr.el (shr-insert-document): Remove unused var

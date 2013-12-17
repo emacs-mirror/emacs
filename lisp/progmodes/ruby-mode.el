@@ -577,6 +577,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                      "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^=" "|"
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
      (if (smie-rule-parent-p ";" nil) ruby-indent-level))
+    (`(:after . ,(or "?" ":")) ruby-indent-level)
     (`(:before . "begin")
      (unless (save-excursion (skip-chars-backward " \t") (bolp))
        (smie-rule-parent)))

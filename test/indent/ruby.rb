@@ -330,3 +330,7 @@ end
 
 %^abc^
 ddd
+
+qux = foo ?
+        bar :
+        tee
