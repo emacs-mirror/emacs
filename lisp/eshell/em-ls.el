@@ -919,7 +919,7 @@ to use, and each member of which is the width of that column
 		 value)))))
 	(if face
 	    (add-text-properties 0 (length (car file))
-				 (list 'face face)
+				 (list 'font-lock-face face)
 				 (car file)))))
   (car file))
 

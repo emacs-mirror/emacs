@@ -1,3 +1,10 @@
+2013-12-17  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-add-face):
+	* eshell/em-prompt.el (eshell-emit-prompt):
+	* eshell/em-ls.el (eshell-ls-decorated-name): Use font-lock-face.
+	(Bug#16167)
+
 2013-12-17  Chong Yidong  <cyd@gnu.org>
 
 	* files.el (break-hardlink-on-save): Doc fix (Bug#13801).
