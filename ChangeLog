@@ -1,3 +1,13 @@
+2013-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-12-17 gettimeofday: port recent C++ fix to Emacs
+	2013-12-17 gettimeofday: fix C++ crosscompilation
+	2013-12-17 qacl: port to Windows better
+	* lib/file-has-acl.c, lib/time.in.h, m4/gettimeofday.m4, m4/time_h.m4:
+	Update from gnulib.
+	* lib/gnulib.mk: Regenerate.
+
 2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* INSTALL: Clarify treatment of image libraries.
