@@ -1,3 +1,12 @@
+2013-12-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window--pixel-to-total): Remove unused `mini' var.
+	(maximize-window, minimize-window): Remove unused `pixelwise' arg.
+	(split-window): Remove unused `new' var.
+	(window--display-buffer): Remove unused `frame' and `delta' vars.
+	(fit-window-to-buffer): Remove unused vars `frame', `display-height',
+	and display-width'.
+
 2013-12-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-mark-pop-up):

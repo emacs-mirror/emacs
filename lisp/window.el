@@ -2143,8 +2143,7 @@ Optional argument HORIZONTAL non-nil means assign new total
 window widths from pixel widths."
   (setq frame (window-normalize-frame frame))
   (let ((root (frame-root-window))
-	(char-size (frame-char-size frame horizontal))
-	(mini (minibuffer-window frame)))
+	(char-size (frame-char-size frame horizontal)))
     (set-window-new-total
      root (window--pixel-to-size
 	   root (window-size root horizontal t) horizontal))
@@ -3040,7 +3039,7 @@ Also see the `window-min-height' variable."
 	     (window-max-delta nil horizontal))
        horizontal)))))
 
-(defun maximize-window (&optional window pixelwise)
+(defun maximize-window (&optional window)
   "Maximize WINDOW.
 Make WINDOW as large as possible without deleting any windows.
 WINDOW must be a valid window and defaults to the selected one.
@@ -3056,7 +3055,7 @@ WINDOW pixelwise."
    window (window-max-delta window t nil nil nil nil window-resize-pixelwise)
    t nil window-resize-pixelwise))
 
-(defun minimize-window (&optional window pixelwise)
+(defun minimize-window (&optional window)
   "Minimize WINDOW.
 Make WINDOW as small as possible without deleting any windows.
 WINDOW must be a valid window and defaults to the selected one.
@@ -4230,7 +4229,7 @@ frame.  The selected window is not changed by this function."
 	     (old-pixel-size (window-size window horizontal t))
 	     ;; `new-size' is the specified or calculated size of the
 	     ;; new window.
-	     new-pixel-size new new-parent new-normal)
+	     new-pixel-size new-parent new-normal)
 	(cond
 	 ((not pixel-size)
 	  (setq new-pixel-size
@@ -5758,8 +5757,7 @@ live."
 	(set-window-dedicated-p window dedicated))
       (when (memq type '(window frame))
 	(set-window-prev-buffers window nil)))
-    (let ((frame (window-frame window))
-	  (parameter (window-parameter window 'quit-restore))
+    (let ((parameter (window-parameter window 'quit-restore))
 	  (height (cdr (assq 'window-height alist)))
 	  (width (cdr (assq 'window-width alist)))
 	  (size (cdr (assq 'window-size alist))))
@@ -5773,8 +5771,7 @@ live."
 	 ((consp size)
 	  (let ((width (car size))
 		(height (cdr size))
-		(frame (window-frame window))
-		delta)
+		(frame (window-frame window)))
 	    (when (and (numberp width) (numberp height))
 	      (set-frame-height
 	       frame (+ (frame-height frame)
@@ -6379,7 +6376,7 @@ that frame."
 	(unless (cdr (assq 'inhibit-switch-frame alist))
 	  (window--maybe-raise-frame (window-frame window)))))))
 
-(defun display-buffer-no-window (buffer alist)
+(defun display-buffer-no-window (_buffer alist)
   "Display BUFFER in no window.
 If ALIST has a non-nil `allow-no-window' entry, then don't display
 a window at all.  This makes possible to override the default action
@@ -7073,10 +7070,8 @@ accessible position."
 	 max-height min-height max-width min-width))
     (with-selected-window window
       (let* ((pixelwise window-resize-pixelwise)
-	     (frame (window-frame))
 	     (char-height (frame-char-height))
 	     (char-width (frame-char-width))
-	     (display-height (display-pixel-height))
 	     (total-height (window-size window nil pixelwise))
 	     (body-height (window-body-height window pixelwise))
 	     (body-width (window-body-width window pixelwise))
@@ -7131,8 +7126,7 @@ accessible position."
 	 ((and fit-window-to-buffer-horizontally
 	       (not (window-size-fixed-p window t))
 	       (window-combined-p nil t))
-	  (let* ((display-width (display-pixel-width))
-		 (total-width (window-size window nil pixelwise))
+	  (let* ((total-width (window-size window nil pixelwise))
 		 (min-width
 		  ;; Sanitize MIN-WIDTH.
 		  (if (numberp min-width)
