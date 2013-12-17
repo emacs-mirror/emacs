@@ -6468,7 +6468,7 @@ static void
 w32_initialize (void)
 {
   HANDLE shell;
-  HRESULT (WINAPI * set_user_model) (wchar_t * id);
+  HRESULT (WINAPI * set_user_model) (const wchar_t * id);
 
   baud_rate = 19200;
 

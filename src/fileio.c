@@ -1942,10 +1942,7 @@ attributes of FILE to NEWNAME, such as its SELinux context and ACL
 entries (depending on how Emacs was built).  */)
   (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists, Lisp_Object keep_time, Lisp_Object preserve_uid_gid, Lisp_Object preserve_extended_attributes)
 {
-  int ifd, ofd;
-  int n;
-  char buf[16 * 1024];
-  struct stat st, out_st;
+  struct stat out_st;
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1956,6 +1953,11 @@ entries (depending on how Emacs was built).  */)
 #endif
 #ifdef WINDOWSNT
   int result;
+#else
+  int ifd, ofd;
+  int n;
+  char buf[16 * 1024];
+  struct stat st;
 #endif
 
   encoded_file = encoded_newname = Qnil;

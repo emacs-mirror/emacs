@@ -2807,7 +2807,9 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   Lisp_Object *values;
   ptrdiff_t i, p;
   bool left_no_change = 0, top_no_change = 0;
+#ifdef HAVE_X_WINDOWS
   bool icon_left_no_change = 0, icon_top_no_change = 0;
+#endif
   bool size_changed = 0;
   struct gcpro gcpro1, gcpro2;
 
@@ -2954,14 +2956,18 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* If one of the icon positions was not set, preserve or default it.  */
   if (! TYPE_RANGED_INTEGERP (int, icon_left))
     {
+#ifdef HAVE_X_WINDOWS
       icon_left_no_change = 1;
+#endif
       icon_left = Fcdr (Fassq (Qicon_left, f->param_alist));
       if (NILP (icon_left))
 	XSETINT (icon_left, 0);
     }
   if (! TYPE_RANGED_INTEGERP (int, icon_top))
     {
+#ifdef HAVE_X_WINDOWS
       icon_top_no_change = 1;
+#endif
       icon_top = Fcdr (Fassq (Qicon_top, f->param_alist));
       if (NILP (icon_top))
 	XSETINT (icon_top, 0);

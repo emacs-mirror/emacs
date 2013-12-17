@@ -964,7 +964,7 @@ font_table_error:
 
 struct font_driver uniscribe_font_driver =
   {
-    0, /* Quniscribe */
+    LISP_INITIALLY_ZERO, /* Quniscribe */
     0, /* case insensitive */
     w32font_get_cache,
     uniscribe_list,

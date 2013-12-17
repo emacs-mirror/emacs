@@ -1,3 +1,23 @@
+2013-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_initialize): Declare the argument of
+	set_user_model as const.
+
+	* w32menu.c <MessageBoxW_Proc>: Fix argument declarations.
+	(w32_menu_show): Constify some arguments passed to MessageBox.
+
+	* w32uniscribe.c (uniscribe_font_driver): Use LISP_INITIALLY_ZERO
+	to initialize Lisp objects.
+
+	* w32font.c (w32font_driver): Use LISP_INITIALLY_ZERO to
+	initialize Lisp objects.
+
+	* frame.c (x_set_frame_parameters) [HAVE_X_WINDOWS]: Declare and
+	use variables used only on X under that condition.
+
+	* fileio.c (Fcopy_file) [!WINDOWSNT]: Don't declare on Windows
+	variables not used there.
+
 2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix problems with CANNOT_DUMP and EMACSLOADPATH.
