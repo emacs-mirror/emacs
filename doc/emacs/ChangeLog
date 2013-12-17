@@ -1,3 +1,8 @@
+2013-12-17  Chong Yidong  <cyd@gnu.org>
+
+	* killing.texi (Appending Kills): Note that append-next-kill can
+	prepend the kill.
+
 2013-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (File Name Coding): Document file-name encoding
