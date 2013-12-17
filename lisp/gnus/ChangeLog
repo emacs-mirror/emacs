@@ -1,3 +1,8 @@
+2013-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-make-temp-file):
+	Alias to make-temp-file for modern Emacsen.
+
 2013-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-msg.el (gnus-setup-message): Fix the type of argument passed to

@@ -1382,13 +1382,12 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 ;; It is not a MIME function, but some MIME functions use it.
 (if (and (fboundp 'make-temp-file)
 	 (ignore-errors
-	   (let ((def (symbol-function 'make-temp-file)))
-	     (and (byte-code-function-p def)
-		  (setq def (if (fboundp 'compiled-function-arglist)
-				;; XEmacs
-				(eval (list 'compiled-function-arglist def))
-			      (aref def 0)))
-		  (>= (length def) 4)
+	   (let ((def (if (fboundp 'compiled-function-arglist) ;; XEmacs
+			  (eval (list 'compiled-function-arglist
+				      (symbol-function 'make-temp-file)))
+			(require 'help-fns)
+			(help-function-arglist 'make-temp-file t))))
+	     (and (>= (length def) 4)
 		  (eq (nth 3 def) 'suffix)))))
     (defalias 'mm-make-temp-file 'make-temp-file)
   ;; Stolen (and modified for XEmacs) from Emacs 22.
