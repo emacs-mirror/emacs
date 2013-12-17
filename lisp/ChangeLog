@@ -1,3 +1,10 @@
+2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/smie.el (smie-indent--rule): Extract `smie-indent--rule-1'.
+	(smie-indent-close): Call `smie-indent--rule-1' with METHOD
+	:close-all, to see which indentation method to use (Bug#16116).
+	(smie-rules-function): Document the method :close-all.
+
 2013-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-tag-a): Support zero-length <a name="foo"> elements.

@@ -1,3 +1,8 @@
+2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Update examples according to the change
+	in `smie-indent-close'.
+
 2013-12-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: New examples.

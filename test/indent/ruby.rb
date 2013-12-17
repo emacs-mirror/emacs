@@ -48,8 +48,7 @@ foo = { a: b,
 foo({                           # bug#16118
       a: b,
       c: d
-    }
-   )                            # bug#16116
+    })
 
 bar = foo(
         a, [
@@ -57,8 +56,7 @@ bar = foo(
         ],
         :qux => [
           3
-        ]
-      )
+        ])
 
 foo(
   [
@@ -78,8 +76,7 @@ foo([{
        b: 3
      },
      4
-    ]
-   )
+    ])
 
 foo = [                         # ruby-deep-indent-disabled
   1

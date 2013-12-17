@@ -1135,6 +1135,10 @@ METHOD can be:
 - :list-intro, in which case ARG is a token and the function should return
   non-nil if TOKEN is followed by a list of expressions (not separated by any
   token) rather than an expression.
+- :close-all, in which case ARG is a close-paren token at indentation and
+  the function should return non-nil if it should be aligned with the opener
+  of the last close-paren token on the same line, if there are multiple.
+  Otherwise, it will be aligned with its own opener.
 
 When ARG is a token, the function is called with point just before that token.
 A return value of nil always means to fallback on the default behavior, so the
@@ -1316,8 +1320,8 @@ Only meaningful when called from within `smie-rules-function'."
 (defun smie-indent--rule (method token
                           ;; FIXME: Too many parameters.
                           &optional after parent base-pos)
-  "Compute indentation column according to `indent-rule-functions'.
-METHOD and TOKEN are passed to `indent-rule-functions'.
+  "Compute indentation column according to `smie-rules-function'.
+METHOD and TOKEN are passed to `smie-rules-function'.
 AFTER is the position after TOKEN, if known.
 PARENT is the parent info returned by `smie-backward-sexp', if known.
 BASE-POS is the position relative to which offsets should be applied."
@@ -1330,11 +1334,7 @@ BASE-POS is the position relative to which offsets should be applied."
   ;; - :after tok, where
   ;;                  ; after is set; parent=nil; base-pos=point;
   (save-excursion
-    (let ((offset
-           (let ((smie--parent parent)
-                 (smie--token token)
-                 (smie--after after))
-             (funcall smie-rules-function method token))))
+    (let ((offset (smie-indent--rule-1 method token after parent)))
       (cond
        ((not offset) nil)
        ((eq (car-safe offset) 'column) (cdr offset))
@@ -1354,6 +1354,12 @@ BASE-POS is the position relative to which offsets should be applied."
                      (smie-indent--hanging-p))
                  (smie-indent-virtual) (current-column)))))
        (t (error "Unknown indentation offset %s" offset))))))
+
+(defun smie-indent--rule-1 (method token &optional after parent)
+  (let ((smie--parent parent)
+        (smie--token token)
+        (smie--after after))
+    (funcall smie-rules-function method token)))
 
 (defun smie-indent-forward-token ()
   "Skip token forward and return it, along with its levels."
@@ -1423,8 +1429,13 @@ in order to figure out the indentation of some other (further down) point."
   (save-excursion
     ;; (forward-comment (point-max))
     (when (looking-at "\\s)")
-      (while (not (zerop (skip-syntax-forward ")")))
-        (skip-chars-forward " \t"))
+      (if (smie-indent--rule-1 :close-all
+                               (buffer-substring-no-properties
+                                (point) (1+ (point)))
+                               (1+ (point)))
+          (while (not (zerop (skip-syntax-forward ")")))
+            (skip-chars-forward " \t"))
+        (forward-char 1))
       (condition-case nil
           (progn
             (backward-sexp 1)
