@@ -1,3 +1,10 @@
+2013-12-17  oblique  <psyberbits@gmail.com>  (tiny change)
+
+	* term/rxvt.el (rxvt-rgb-convert-to-16bit): Standardize with
+	xterm-rgb-convert-to-16bit.
+	(rxvt-register-default-colors): Standardize with
+	xterm-register-default-colors (Bug#14078).
+
 2013-12-17  Dima Kogan  <dima@secretsauce.net>  (tiny change)
 
 	* simple.el (kill-region): Pass mark first, then point, so that
