@@ -3079,24 +3079,23 @@ argument or confirmation)."
       (apply function args)
     (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*"))))
       (with-current-buffer buffer
-	(let ((split-height-threshold 0))
-	  (with-temp-buffer-window
-	   buffer
-	   (cons 'display-buffer-below-selected
-		 '((window-height . fit-window-to-buffer)))
-	   #'(lambda (window _value)
-	       (with-selected-window window
-		 (unwind-protect
-		     (apply function args)
-		   (when (window-live-p window)
-		     (quit-restore-window window 'kill)))))
-	   ;; Handle (t FILE) just like (FILE), here.  That value is
-	   ;; used (only in some cases), to mean just one file that was
-	   ;; marked, rather than the current line file.
-	   (dired-format-columns-of-files
-	    (if (eq (car files) t) (cdr files) files))
-	   (remove-text-properties (point-min) (point-max)
-				   '(mouse-face nil help-echo nil))))))))
+	(with-temp-buffer-window
+	 buffer
+	 (cons 'display-buffer-below-selected
+	       '((window-height . fit-window-to-buffer)))
+	 #'(lambda (window _value)
+	     (with-selected-window window
+	       (unwind-protect
+		   (apply function args)
+		 (when (window-live-p window)
+		   (quit-restore-window window 'kill)))))
+	 ;; Handle (t FILE) just like (FILE), here.  That value is
+	 ;; used (only in some cases), to mean just one file that was
+	 ;; marked, rather than the current line file.
+	 (dired-format-columns-of-files
+	  (if (eq (car files) t) (cdr files) files))
+	 (remove-text-properties (point-min) (point-max)
+				 '(mouse-face nil help-echo nil)))))))
 
 (defun dired-format-columns-of-files (files)
   (let ((beg (point)))

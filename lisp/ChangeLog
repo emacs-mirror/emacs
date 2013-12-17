@@ -1,3 +1,10 @@
+2013-12-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-mark-pop-up):
+	* register.el (register-preview): Don't bind
+	split-height-threshold here since it's now done in
+	display-buffer-below-selected.
+
 2013-12-17  oblique  <psyberbits@gmail.com>  (tiny change)
 
 	* term/rxvt.el (rxvt-rgb-convert-to-16bit): Standardize with
