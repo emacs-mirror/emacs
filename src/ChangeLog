@@ -1,5 +1,8 @@
 2013-12-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (getloadavg): Don't index samples[] array with negative
+	indices.  Recover from wall-clock time being set backwards.
+
 	* w32term.c (w32_initialize): Declare the argument of
 	set_user_model as const.
 

@@ -1732,9 +1732,28 @@ getloadavg (double loadavg[], int nelem)
   ULONGLONG idle, kernel, user;
   time_t now = time (NULL);
 
+  /* If system time jumped back for some reason, delete all samples
+     whose time is later than the current wall-clock time.  This
+     prevents load average figures from becoming frozen for prolonged
+     periods of time, when system time is reset backwards.  */
+  if (last_idx >= 0)
+    {
+      while (difftime (now, samples[last_idx].sample_time) < -1.0)
+	{
+	  if (last_idx == first_idx)
+	    {
+	      first_idx = last_idx = -1;
+	      break;
+	    }
+	  last_idx = buf_prev (last_idx);
+	}
+    }
+
   /* Store another sample.  We ignore samples that are less than 1 sec
      apart.  */
-  if (difftime (now, samples[last_idx].sample_time) >= 1.0 - 2*DBL_EPSILON*now)
+  if (last_idx < 0
+      || (difftime (now, samples[last_idx].sample_time)
+	  >= 1.0 - 2*DBL_EPSILON*now))
     {
       sample_system_load (&idle, &kernel, &user);
       last_idx = buf_next (last_idx);
