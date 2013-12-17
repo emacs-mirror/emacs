@@ -1,3 +1,11 @@
+2013-12-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/shr.el (shr-insert-document): Remove unused var
+	`shr-preliminary-table-render'.
+	(shr-rescale-image): Remove unused arg `force'.
+	(shr-put-image): Update calls accordingly.
+	(shr-tag-a): Use `cont' rather than dyn-bound `dom'.
+
 2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/smie.el (smie-indent--rule): Extract `smie-indent--rule-1'.
