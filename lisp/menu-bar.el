@@ -1418,6 +1418,8 @@ mail status in mode line"))
     (bindings--define-key menu [separator-net]
       menu-bar-separator)
 
+    (bindings--define-key menu [browse-web]
+      '(menu-item "Browse the Web..." browse-web))
     (bindings--define-key menu [directory-search]
       '(menu-item "Directory Search" eudc-tools-menu))
     (bindings--define-key menu [compose-mail]

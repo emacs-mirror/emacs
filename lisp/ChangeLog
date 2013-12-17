@@ -1,3 +1,19 @@
+2013-12-17  Juri Linkov  <juri@jurta.org>
+
+	* menu-bar.el (menu-bar-tools-menu): Add `browse-web'.
+	(Bug#14751)
+
+	* net/eww.el (browse-web): Add alias to `eww'.
+	(eww-mode-map): Bind "r" to `eww-forward-url' like in Info.
+	Bind "S-SPC" to `scroll-down-command'.  (Bug#16178)
+
+	* net/browse-url.el (browse-url-browser-function): Move `eww'
+	closer to similar functions.
+
+	* startup.el (fancy-startup-screen, fancy-about-screen):
+	Set browse-url-browser-function to eww-browse-url locally.
+	(Bug#14751)
+
 2013-12-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (window--pixel-to-total): Remove unused `mini' var.

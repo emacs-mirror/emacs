@@ -227,13 +227,13 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Emacs W3" :value  browse-url-w3)
 	  (function-item :tag "W3 in another Emacs via `gnudoit'"
 			 :value  browse-url-w3-gnudoit)
+	  (function-item :tag "eww" :value  eww-browse-url)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
 	  (function-item :tag "Firefox" :value browse-url-firefox)
 	  (function-item :tag "Chromium" :value browse-url-chromium)
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
 	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
-	  (function-item :tag "eww" :value  eww-browse-url)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
 	  (function-item :tag "Text browser in an xterm window"

@@ -159,6 +159,8 @@ word(s) will be searched for via `eww-search-prefix'."
                             (replace-regexp-in-string " " "+" url))))))
   (url-retrieve url 'eww-render (list url)))
 
+;;;###autoload (defalias 'browse-web 'eww)
+
 ;;;###autoload
 (defun eww-open-file (file)
   "Render a file using EWW."
@@ -399,10 +401,11 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
     (define-key map [delete] 'scroll-down-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177" 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
     (define-key map "l" 'eww-back-url)
-    (define-key map "f" 'eww-forward-url)
+    (define-key map "r" 'eww-forward-url)
     (define-key map "n" 'eww-next-url)
     (define-key map "p" 'eww-previous-url)
     (define-key map "u" 'eww-up-url)
