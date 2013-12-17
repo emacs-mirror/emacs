@@ -1,3 +1,9 @@
+2013-12-17  Dima Kogan  <dima@secretsauce.net>  (tiny change)
+
+	* simple.el (kill-region): Pass mark first, then point, so that
+	kill-append works right (Bug#12819).
+	(copy-region-as-kill, kill-ring-save): Likewise.
+
 2013-12-17  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-add-face):

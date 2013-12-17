@@ -3638,9 +3638,9 @@ to make one entry in the kill ring.
 
 The optional argument REGION if non-nil, indicates that we're not just killing
 some text between BEG and END, but we're killing the region."
-  ;; Pass point first, then mark, because the order matters
-  ;; when calling kill-append.
-  (interactive (list (point) (mark) 'region))
+  ;; Pass mark first, then point, because the order matters when
+  ;; calling `kill-append'.
+  (interactive (list (mark) (point) 'region))
   (unless (and beg end)
     (error "The mark is not set now, so there is no region"))
   (condition-case nil
@@ -3686,7 +3686,10 @@ The optional argument REGION if non-nil, indicates that we're not just copying
 some text between BEG and END, but we're copying the region.
 
 This command's old key binding has been given to `kill-ring-save'."
-  (interactive "r\np")
+  ;; Pass mark first, then point, because the order matters when
+  ;; calling `kill-append'.
+  (interactive (list (mark) (point)
+		     (prefix-numeric-value current-prefix-arg)))
   (let ((str (if region
                  (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
@@ -3710,7 +3713,10 @@ some text between BEG and END, but we're copying the region.
 
 This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
-  (interactive "r\np")
+  ;; Pass mark first, then point, because the order matters when
+  ;; calling `kill-append'.
+  (interactive (list (mark) (point)
+		     (prefix-numeric-value current-prefix-arg)))
   (copy-region-as-kill beg end region)
   ;; This use of called-interactively-p is correct because the code it
   ;; controls just gives the user visual feedback.
