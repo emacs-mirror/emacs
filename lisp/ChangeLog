@@ -1,5 +1,10 @@
 2013-12-17  Juri Linkov  <juri@jurta.org>
 
+	* arc-mode.el (archive-extract-by-file): Check if directory exists
+	before deletion to not show irrelevant errors if it doesn't exist.
+
+2013-12-17  Juri Linkov  <juri@jurta.org>
+
 	* menu-bar.el (menu-bar-tools-menu): Add `browse-web'.
 	(Bug#14751)
 
