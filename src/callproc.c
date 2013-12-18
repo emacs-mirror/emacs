@@ -465,7 +465,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     int ok;
 
     GCPRO3 (buffer, current_dir, error_file);
-    ok = openp (Vexec_path, args[0], Vexec_suffixes, &path, make_number (X_OK), 0);
+    ok = openp (Vexec_path, args[0], Vexec_suffixes, &path,
+		make_number (X_OK), false);
     UNGCPRO;
     if (ok < 0)
       report_file_error ("Searching for program", args[0]);

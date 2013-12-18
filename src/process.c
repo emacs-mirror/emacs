@@ -1530,7 +1530,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
 	  tem = Qnil;
 	  GCPRO4 (name, program, buffer, current_dir);
-	  openp (Vexec_path, program, Vexec_suffixes, &tem, make_number (X_OK), 0);
+	  openp (Vexec_path, program, Vexec_suffixes, &tem,
+		 make_number (X_OK), false);
 	  UNGCPRO;
 	  if (NILP (tem))
 	    report_file_error ("Searching for program", program);

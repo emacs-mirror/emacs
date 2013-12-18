@@ -424,7 +424,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
     {
       Lisp_Object found;
       int yes = openp (Vexec_path, Vinvocation_name,
-		       Vexec_suffixes, &found, make_number (X_OK), 0);
+		       Vexec_suffixes, &found, make_number (X_OK), false);
       if (yes == 1)
 	{
 	  /* Add /: to the front of the name

@@ -1420,7 +1420,7 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
-  int fd = openp (path, filename, suffixes, &file, predicate, 0);
+  int fd = openp (path, filename, suffixes, &file, predicate, false);
   if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
@@ -1455,20 +1455,20 @@ static Lisp_Object Qdir_ok;
 
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
-       Lisp_Object *storeptr, Lisp_Object predicate, int newer)
+       Lisp_Object *storeptr, Lisp_Object predicate, bool newer)
 {
   ptrdiff_t fn_size = 100;
   char buf[100];
   char *fn = buf;
-  bool absolute = 0;
+  bool absolute;
   ptrdiff_t want_length;
   Lisp_Object filename;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6, gcpro7;
   Lisp_Object string, tail, encoded_fn, save_string;
   ptrdiff_t max_suffix_len = 0;
   int last_errno = ENOENT;
-  struct timespec save_mtime;
-  int save_fd = 0;
+  struct timespec save_mtime = make_timespec (TYPE_MINIMUM (time_t), -1);
+  int save_fd = -1;
 
   CHECK_STRING (str);
 
@@ -1479,14 +1479,13 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 			    SBYTES (XCAR (tail)));
     }
 
-  string = filename = encoded_fn = Qnil;
-  GCPRO6 (str, string, filename, path, suffixes, encoded_fn);
+  string = filename = encoded_fn = save_string = Qnil;
+  GCPRO7 (str, string, save_string, filename, path, suffixes, encoded_fn);
 
   if (storeptr)
     *storeptr = Qnil;
 
-  if (complete_filename_p (str))
-    absolute = 1;
+  absolute = complete_filename_p (str);
 
   for (; CONSP (path); path = XCDR (path))
     {
@@ -1556,13 +1555,13 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		{
 		  Lisp_Object tmp = call1 (predicate, string);
 		  if (NILP (tmp))
-		    exists = 0;
+		    exists = false;
 		  else if (EQ (tmp, Qdir_ok)
 			   || NILP (Ffile_directory_p (string)))
-		    exists = 1;
+		    exists = true;
 		  else
 		    {
-		      exists = 0;
+		      exists = false;
 		      last_errno = EISDIR;
 		    }
 		}
@@ -1628,14 +1627,16 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                     {
                       struct timespec mtime = get_stat_mtime (&st);
 
-                      if (!save_fd || timespec_cmp (save_mtime, mtime) < 0)
+		      if (timespec_cmp (mtime, save_mtime) <= 0)
+			emacs_close (fd);
+		      else
                         {
-                          if (save_fd) emacs_close (save_fd);
+			  if (0 <= save_fd)
+			    emacs_close (save_fd);
                           save_fd = fd;
                           save_mtime = mtime;
                           save_string = string;
                         }
-                      else emacs_close (fd);
                     }
                   else
                     {
@@ -1648,7 +1649,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		}
 
               /* No more suffixes.  Return the newest.  */
-              if (newer && save_fd && ! CONSP (XCDR (tail)))
+	      if (0 <= save_fd && ! CONSP (XCDR (tail)))
                 {
                   if (storeptr)
                     *storeptr = save_string;

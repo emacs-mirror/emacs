@@ -1,3 +1,12 @@
+2013-12-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor fixes for recent openp changes.
+	* lisp.h (GCPRO7): New macro.
+	* lread.c (openp): Use bool for boolean; all callers changed.
+	Protect save_string from GC.  Don't assume that file descriptors
+	are nonzero.  Redo save_mtime comparison to avoid bogus GCC
+	warning about uninitialized variable.
+
 2013-12-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (emacs_abort): Use intptr_t as argument of
