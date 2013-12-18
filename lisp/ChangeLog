@@ -1,3 +1,7 @@
+2013-12-18  Leo Liu  <sdl.web@gmail.com>
+
+	* eshell/em-prompt.el (eshell-emit-prompt): Fix last change. (Bug#16186)
+
 2013-12-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-insert-directory): Don't modify %d and %f
