@@ -1300,7 +1300,8 @@ Fill comments, backslashed lines, and variable definitions specially."
                  (point))))
 	    (end
 	     (save-excursion
-	       (while (= (preceding-char) ?\\)
+	       (while (and (= (preceding-char) ?\\)
+			   (not (eobp)))
 		 (end-of-line 2))
 	       (point))))
 	(save-restriction

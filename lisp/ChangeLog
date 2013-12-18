@@ -1,3 +1,8 @@
+2013-12-18  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Fix infloop
+	(Bug#13914).
+
 2013-12-18  Shigeru Fukaya <shigeru.fukaya@gmail.com>
 
 	* apropos.el (apropos-words-to-regexp): Fix algorithm (Bug#13946).
