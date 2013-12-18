@@ -1,5 +1,16 @@
 2013-12-18  Juri Linkov  <juri@jurta.org>
 
+	* vc/log-edit.el (log-edit-hook): Add `log-edit-insert-message-template'
+	to the default list.  Move `log-edit-show-files' to the end.
+	Add more available functions to options.
+	(log-edit): Move default specific settings to
+	`log-edit-insert-message-template'.  Don't move point.
+	(log-edit-insert-message-template): New function.
+	(log-edit-insert-changelog): Add `save-excursion' and don't move point.
+	(Bug#16170)
+
+2013-12-18  Juri Linkov  <juri@jurta.org>
+
 	* help-mode.el (help-mode-map): Bind "l" to help-go-back,
 	and "r" to help-go-forward for compatibity with Info.  (Bug#16178)
 
