@@ -1,3 +1,7 @@
+2013-12-18  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (append-next-kill): Doc fix (Bug#15995, Bug#16016).
+
 2013-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug):

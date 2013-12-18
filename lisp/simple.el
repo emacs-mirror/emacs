@@ -3764,7 +3764,17 @@ of this sample text; it defaults to 40."
 		   (buffer-substring-no-properties mark (+ mark len))))))))
 
 (defun append-next-kill (&optional interactive)
-  "Cause following command, if it kills, to append to previous kill.
+  "Cause following command, if it kills, to add to previous kill.
+If the next command kills forward from point, the kill is
+appended to the previous killed text.  If the command kills
+backward, the kill is prepended.  Kill commands that act on the
+region, such as `kill-region', are regarded as killing forward if
+point is after mark, and killing backward if point is before
+mark.
+
+If the next command is not a kill command, `append-next-kill' has
+no effect.
+
 The argument is used for internal purposes; do not supply one."
   (interactive "p")
   ;; We don't use (interactive-p), since that breaks kbd macros.
