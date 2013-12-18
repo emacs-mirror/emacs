@@ -1428,6 +1428,17 @@ loaded into Emacs, whether or not the theme is enabled).  Otherwise,
 it returns @code{nil}.
 @end defun
 
+@defvar custom-known-themes
+The value of this variable is a list of themes loaded into Emacs.
+Each theme is represented by a Lisp symbol (the theme name).  The
+default value of this variable is a list containing two ``dummy''
+themes: @code{(user changed)}.  The @code{changed} theme stores
+settings made before any Custom themes are applied (e.g., variables
+set outside of Customize).  The @code{user} theme stores settings the
+user has customized and saved.  Any additional themes declared with
+the @code{deftheme} macro are added to the front of this list.
+@end defvar
+
 @deffn Command load-theme theme &optional no-confirm no-enable
 This function loads the Custom theme named @var{theme} from its source
 file, looking for the source file in the directories specified by the

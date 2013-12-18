@@ -1277,7 +1277,14 @@ NAME should be a symbol."
 		(eq name 'changed)))))
 
 (defun custom-available-themes ()
-  "Return a list of available Custom themes (symbols)."
+  "Return a list of Custom themes available for loading.
+Search the directories specified by `custom-theme-load-path' for
+files named FOO-theme.el, and return a list of FOO symbols.
+
+The returned symbols may not correspond to themes that have been
+loaded, and no effort is made to check that the files contain
+valid Custom themes.  For a list of loaded themes, check the
+variable `custom-known-themes'."
   (let (sym themes)
     (dolist (dir (custom-theme--load-path))
       (when (file-directory-p dir)
