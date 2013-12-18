@@ -8422,7 +8422,12 @@ emacs_abort (void)
 	    int errfile_fd = -1;
 	    int j;
 	    char buf[sizeof ("\r\nException  at this address:\r\n\r\n")
-		     + 2 * INT_BUFSIZE_BOUND (void *)];
+		     /* The type below should really be 'void *', but
+			INT_BUFSIZE_BOUND cannot handle that without
+			triggering compiler warnings (under certain
+			pedantic warning switches), it wants an
+			integer type.  */
+		     + 2 * INT_BUFSIZE_BOUND (intptr_t)];
 #ifdef CYGWIN
 	    int stderr_fd = 2;
 #else

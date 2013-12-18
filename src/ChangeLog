@@ -1,3 +1,8 @@
+2013-12-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (emacs_abort): Use intptr_t as argument of
+	INT_BUFSIZE_BOUND, to avoid compiler warnings.
+
 2013-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (Fload): Pass load_prefer_newer to openp.
