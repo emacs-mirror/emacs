@@ -1,5 +1,8 @@
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
+	* cus-edit.el (custom-magic-alist): Fix "themed" description
+	(Bug#14348).
+
 	* custom.el (custom-push-theme): If custom--inhibit-theme-enable
 	is non-nil, do not create a new entry in the symbol's theme-value
 	or theme-face property; update theme-settings only (Bug#14664).

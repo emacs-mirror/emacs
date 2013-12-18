@@ -1931,7 +1931,7 @@ SAVED and set." "\
 something in this group has been set and saved.")
     (themed "o" custom-themed "\
 THEMED." "\
-visible group members are all at standard values.")
+visible group members are set by enabled themes.")
     (rogue "@" custom-rogue "\
 NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
@@ -1961,6 +1961,8 @@ STATE is one of the following symbols:
    This item is marked for saving.
 `rogue'
    This item has no customization information.
+`themed'
+   This item was set by an enabled Custom theme.
 `standard'
    This item is unchanged from the standard setting.
 
