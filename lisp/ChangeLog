@@ -1,3 +1,8 @@
+2013-12-18  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Reference
+	tables with ~\ref{...} instead of only \ref{...}.
+
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
 	* cus-edit.el (custom-magic-alist): Fix "themed" description

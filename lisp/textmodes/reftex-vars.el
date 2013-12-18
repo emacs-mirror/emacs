@@ -89,7 +89,7 @@
      (("wrapfigure" ?f nil nil caption)))
 
     (ctable	"The ctable package"
-     (("\\ctable[]{}{}{}" ?t "tab:" "\\ref{%s}" 1 ("table" "Tabelle"))))
+     (("\\ctable[]{}{}{}" ?t "tab:" "~\\ref{%s}" 1 ("table" "Tabelle"))))
 
     (listings	"The listings package"
      (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
