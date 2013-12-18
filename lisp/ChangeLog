@@ -1,3 +1,8 @@
+2013-12-18  Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-mode-map): Bind "l" to help-go-back,
+	and "r" to help-go-forward for compatibity with Info.  (Bug#16178)
+
 2013-12-18  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/em-prompt.el (eshell-emit-prompt): Fix last change. (Bug#16186)
