@@ -677,7 +677,10 @@ only makes sense to define names or email addresses."
 (make-variable-buffer-local
  (defvar gnus-icalendar-handle nil))
 
-(defvar gnus-icalendar-identities
+(defun gnus-icalendar-identities ()
+  "Return list of regexp-quoted names and email addresses belonging to the user.
+
+These will be used to retrieve the RSVP information from ical events."
   (apply #'append
          (mapcar (lambda (x) (if (listp x) x (list x)))
                  (list user-full-name (regexp-quote user-mail-address)
@@ -766,7 +769,7 @@ only makes sense to define names or email addresses."
          (event (caddr data))
          (reply (gnus-icalendar-with-decoded-handle handle
                   (gnus-icalendar-event-reply-from-buffer
-                   (current-buffer) status gnus-icalendar-identities))))
+                   (current-buffer) status (gnus-icalendar-identities)))))
 
     (when reply
       (gmm-labels ((fold-icalendar-buffer ()
@@ -838,7 +841,7 @@ only makes sense to define names or email addresses."
 
 
 (defun gnus-icalendar-mm-inline (handle)
-  (let ((event (gnus-icalendar-event-from-handle handle gnus-icalendar-identities)))
+  (let ((event (gnus-icalendar-event-from-handle handle (gnus-icalendar-identities))))
 
     (setq gnus-icalendar-reply-status nil)
 
@@ -867,7 +870,7 @@ only makes sense to define names or email addresses."
 (defun gnus-icalendar-save-part (handle)
   (let (event)
     (when (and (equal (car (mm-handle-type handle)) "text/calendar")
-               (setq event (gnus-icalendar-event-from-handle handle gnus-icalendar-identities)))
+               (setq event (gnus-icalendar-event-from-handle handle (gnus-icalendar-identities))))
 
       (gnus-icalendar-event:sync-to-org event))))
 

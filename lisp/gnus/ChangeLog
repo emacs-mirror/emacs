@@ -1,3 +1,8 @@
+2013-12-18  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-identities): Make changing the
+	value of gnus-icalendar-additional-identities work without restart.
+
 2013-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-make-temp-file):
