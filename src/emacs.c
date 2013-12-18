@@ -1714,7 +1714,6 @@ static const struct standard_args standard_args[] =
 #ifdef HAVE_NS
   { "-NSAutoLaunch", 0, 5, 1 },
   { "-NXAutoLaunch", 0, 5, 1 },
-  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   { "-_NSMachLaunch", 0, 85, 1 },
   { "-MachLaunch", 0, 85, 1 },
   { "-macosx", 0, 85, 0 },

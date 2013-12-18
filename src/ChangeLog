@@ -1,3 +1,7 @@
+2013-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (standard_args) [HAVE_NS]: Remove -disable-font-backend.
+
 2013-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (getloadavg): Don't index samples[] array with negative
