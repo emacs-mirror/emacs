@@ -1457,7 +1457,9 @@ See also `multi-occur'."
 			    ;; so as to override faces copied from the buffer.
 			    `(face ,match-face)))
 			 curstring)
-			(setq start (match-end 0))))
+			;; Avoid infloop (Bug#7593).
+			(let ((end (match-end 0)))
+			  (setq start (if (= start end) (1+ start) end)))))
 		    ;; Generate the string to insert for this match
 		    (let* ((match-prefix
 			    ;; Using 7 digits aligns tabs properly.

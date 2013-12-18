@@ -1,3 +1,7 @@
+2013-12-18  Chong Yidong  <cyd@gnu.org>
+
+	* replace.el (occur-engine): Avoid infloop (Bug#7593).
+
 2013-12-18  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* progmodes/make-mode.el (makefile-fill-paragraph): Fix infloop
