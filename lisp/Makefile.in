@@ -88,7 +88,8 @@ AUTOGEN_VCS = \
 BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
-BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
+# Set load-prefer-newer for the benefit of the non-bootstrappers.
+BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use

@@ -807,6 +807,11 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
+** New option `load-prefer-newer', if non-nil, means that when both
+.el and .elc versions of a file exist, rather than `load' always
+choosing the .elc version, it will choose whichever is newer
+(unless you explicitly specify one or the other).
+
 ** New function get-pos-property.
 
 ** New hook `pre-redisplay-function'.

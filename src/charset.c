@@ -1,13 +1,15 @@
 /* Basic character set support.
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
-   Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010, 2011
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H14PRO021
 
-   Copyright (C) 2003, 2004
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H13PRO009
+Copyright (C) 2001-2013 Free Software Foundation, Inc.
+
+Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010, 2011
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H14PRO021
+
+Copyright (C) 2003, 2004
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -493,7 +495,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   count = SPECPDL_INDEX ();
   record_unwind_protect_nothing ();
   specbind (Qfile_name_handler_alist, Qnil);
-  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil);
+  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, 0);
   fp = fd < 0 ? 0 : fdopen (fd, "r");
   if (!fp)
     {

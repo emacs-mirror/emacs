@@ -312,6 +312,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			:format "%[Current dir?%] %v"
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
+	     (load-prefer-newer lisp boolean "24.4")
 	     ;; minibuf.c
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer

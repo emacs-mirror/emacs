@@ -327,7 +327,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     }
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  if (openp (Vx_bitmap_file_path, file, Qnil, &found, make_number (R_OK)) < 0)
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found, make_number (R_OK), 0) < 0)
     return -1;
 
   filename = SSDATA (found);
@@ -2242,7 +2242,7 @@ x_find_image_file (Lisp_Object file)
 		       Vx_bitmap_file_path);
 
   /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
-  fd = openp (search_path, file, Qnil, &file_found, Qnil);
+  fd = openp (search_path, file, Qnil, &file_found, Qnil, 0);
 
   if (fd == -1)
     file_found = Qnil;

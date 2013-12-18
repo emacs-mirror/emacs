@@ -3791,7 +3791,7 @@ LOADHIST_ATTACH (Lisp_Object x)
     Vcurrent_load_list = Fcons (x, Vcurrent_load_list);
 }
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
-                  Lisp_Object *, Lisp_Object);
+                  Lisp_Object *, Lisp_Object, int);
 extern Lisp_Object string_to_number (char const *, int, bool);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);

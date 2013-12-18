@@ -1,5 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994-1995, 2000-2013 Free Software Foundation, Inc.
+
+Copyright (C) 1994-1995, 2000-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8602,7 +8603,7 @@ check_windows_init_file (void)
 	 need to ENCODE_FILE here, but we do need to convert the file
 	 names from UTF-8 to ANSI.  */
       init_file = build_string ("term/w32-win");
-      fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil);
+      fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil, 0);
       if (fd < 0)
 	{
 	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);

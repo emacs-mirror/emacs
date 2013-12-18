@@ -1129,7 +1129,7 @@ Return t if the file exists and loads successfully.  */)
 	    }
 	}
 
-      fd = openp (Vload_path, file, suffixes, &found, Qnil);
+      fd = openp (Vload_path, file, suffixes, &found, Qnil, load_prefer_newer);
       UNGCPRO;
     }
 
@@ -1252,29 +1252,36 @@ Return t if the file exists and loads successfully.  */)
 #ifdef DOS_NT
 	  fmode = "rb";
 #endif /* DOS_NT */
-	  result = stat (SSDATA (efound), &s1);
-	  if (result == 0)
-	    {
-	      SSET (efound, SBYTES (efound) - 1, 0);
-	      result = stat (SSDATA (efound), &s2);
-	      SSET (efound, SBYTES (efound) - 1, 'c');
-	    }
 
-	  if (result == 0
-	      && timespec_cmp (get_stat_mtime (&s1), get_stat_mtime (&s2)) < 0)
-	    {
-	      /* Make the progress messages mention that source is newer.  */
-	      newer = 1;
+          /* openp already checked for newness, no point doing it again.
+             FIXME would be nice to get a message when openp
+             ignores suffix order due to load_prefer_newer.  */
+          if (!load_prefer_newer)
+            {
+              result = stat (SSDATA (efound), &s1);
+              if (result == 0)
+                {
+                  SSET (efound, SBYTES (efound) - 1, 0);
+                  result = stat (SSDATA (efound), &s2);
+                  SSET (efound, SBYTES (efound) - 1, 'c');
+                }
 
-	      /* If we won't print another message, mention this anyway.  */
-	      if (!NILP (nomessage) && !force_load_messages)
-		{
-		  Lisp_Object msg_file;
-		  msg_file = Fsubstring (found, make_number (0), make_number (-1));
-		  message_with_string ("Source file `%s' newer than byte-compiled file",
-				       msg_file, 1);
-		}
-	    }
+              if (result == 0
+                  && timespec_cmp (get_stat_mtime (&s1), get_stat_mtime (&s2)) < 0)
+                {
+                  /* Make the progress messages mention that source is newer.  */
+                  newer = 1;
+
+                  /* If we won't print another message, mention this anyway.  */
+                  if (!NILP (nomessage) && !force_load_messages)
+                    {
+                      Lisp_Object msg_file;
+                      msg_file = Fsubstring (found, make_number (0), make_number (-1));
+                      message_with_string ("Source file `%s' newer than byte-compiled file",
+                                           msg_file, 1);
+                    }
+                }
+            } /* !load_prefer_newer */
 	  UNGCPRO;
 	}
     }
@@ -1413,7 +1420,7 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
-  int fd = openp (path, filename, suffixes, &file, predicate);
+  int fd = openp (path, filename, suffixes, &file, predicate, 0);
   if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
@@ -1440,11 +1447,14 @@ static Lisp_Object Qdir_ok;
    nil is stored there on failure.
 
    If the file we find is remote, return -2
-   but store the found remote file name in *STOREPTR.  */
+   but store the found remote file name in *STOREPTR.
+
+   If NEWER is true, try all SUFFIXes and return the result for the
+   newest file that exists.  Does not apply to remote files.  */
 
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
-       Lisp_Object *storeptr, Lisp_Object predicate)
+       Lisp_Object *storeptr, Lisp_Object predicate, int newer)
 {
   ptrdiff_t fn_size = 100;
   char buf[100];
@@ -1453,9 +1463,11 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   ptrdiff_t want_length;
   Lisp_Object filename;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
-  Lisp_Object string, tail, encoded_fn;
+  Lisp_Object string, tail, encoded_fn, save_string;
   ptrdiff_t max_suffix_len = 0;
   int last_errno = ENOENT;
+  struct timespec save_mtime;
+  int save_fd = 0;
 
   CHECK_STRING (str);
 
@@ -1556,17 +1568,18 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 
 	      if (exists)
 		{
-		  /* We succeeded; return this descriptor and filename.  */
-		  if (storeptr)
-		    *storeptr = string;
-		  UNGCPRO;
-		  return -2;
+                  /* We succeeded; return this descriptor and filename.  */
+                  if (storeptr)
+                    *storeptr = string;
+                  UNGCPRO;
+                  return -2;
 		}
 	    }
 	  else
 	    {
 	      int fd;
 	      const char *pfn;
+	      struct stat st;
 
 	      encoded_fn = ENCODE_FILE (string);
 	      pfn = SSDATA (encoded_fn);
@@ -1597,7 +1610,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		    }
 		  else
 		    {
-		      struct stat st;
 		      int err = (fstat (fd, &st) != 0 ? errno
 				 : S_ISDIR (st.st_mode) ? EISDIR : 0);
 		      if (err)
@@ -1611,12 +1623,36 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 
 	      if (fd >= 0)
 		{
-		  /* We succeeded; return this descriptor and filename.  */
-		  if (storeptr)
-		    *storeptr = string;
-		  UNGCPRO;
-		  return fd;
+                  if (newer)
+                    {
+                      struct timespec mtime = get_stat_mtime (&st);
+
+                      if (!save_fd || timespec_cmp (save_mtime, mtime) < 0)
+                        {
+                          if (save_fd) emacs_close (save_fd);
+                          save_fd = fd;
+                          save_mtime = mtime;
+                          save_string = string;
+                        }
+                    }
+                  else
+                    {
+                      /* We succeeded; return this descriptor and filename.  */
+                      if (storeptr)
+                        *storeptr = string;
+                      UNGCPRO;
+                      return fd;
+                    }
 		}
+
+              /* No more suffixes.  Return the newest.  */
+              if (newer && save_fd && ! CONSP (XCDR (tail)))
+                {
+                  if (storeptr)
+                    *storeptr = save_string;
+                  UNGCPRO;
+                  return save_fd;
+                }
 	    }
 	}
       if (absolute)
@@ -4631,6 +4667,17 @@ variables, this must be set in the first line of a file.  */);
 	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
   Vold_style_backquotes = Qnil;
   DEFSYM (Qold_style_backquotes, "old-style-backquotes");
+
+  DEFVAR_BOOL ("load-prefer-newer", load_prefer_newer,
+               doc: /* Non-nil means `load' prefers the newest version of a file.
+This applies when a filename suffix is not explicitly specified and
+`load' is trying various possible suffixes (see `load-suffixes' and
+`load-file-rep-suffixes').  Normally, it stops at the first file
+that exists.  If this option is non-nil, it checks all suffixes and
+uses whichever file is newest.
+Note that if you customize this, obviously it will not affect files
+that are loaded before your customizations are read!  */);
+  load_prefer_newer = 0;
 
   /* Vsource_directory was initialized in init_lread.  */
 

@@ -1,3 +1,7 @@
+2013-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (BYTE_COMPILE_FLAGS): Set load-prefer-newer to t.
+
 2013-12-18  Le Wang  <l26wang@gmail.com>
 
 	* comint.el (comint-previous-matching-input-from-input): Retain
@@ -8,6 +12,8 @@
 	* simple.el (append-next-kill): Doc fix (Bug#15995, Bug#16016).
 
 2013-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (load-prefer-newer): New option.
 
 	* mail/emacsbug.el (report-emacs-bug):
 	Only mention enable-multibyte-characters if non-standard.

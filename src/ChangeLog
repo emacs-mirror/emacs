@@ -1,5 +1,21 @@
 2013-12-18  Glenn Morris  <rgm@gnu.org>
 
+	* lread.c (Fload): Pass load_prefer_newer to openp.
+	Don't bother checking mtime if openp already did it.
+	(openp): Add `newer' argument, to check all suffixes
+	and find the newest file.
+	(syms_of_lread) <load_prefer_newer>: New option.  (Bug#2061)
+	* callproc.c (call_process):
+	* charset.c (load_charset_map_from_file):
+	* emacs.c (init_cmdargs):
+	* image.c (x_create_bitmap_from_file, x_find_image_file):
+	* lisp.h (openp):
+	* lread.c (Flocate_file_internal):
+	* process.c (Fformat_network_address):
+	* sound.c (Fplay_sound_internal):
+	* w32.c (check_windows_init_file):
+	* w32proc.c (sys_spawnve): Update for new arg spec of openp.
+
 	* emacs.c (standard_args) [HAVE_NS]: Remove -disable-font-backend.
 
 2013-12-17  Eli Zaretskii  <eliz@gnu.org>
