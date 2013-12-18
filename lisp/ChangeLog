@@ -1,3 +1,8 @@
+2013-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug):
+	Only mention enable-multibyte-characters if non-standard.
+
 2013-12-17  Juri Linkov  <juri@jurta.org>
 
 	* arc-mode.el (archive-extract-by-file): Check if directory exists
