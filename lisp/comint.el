@@ -1210,8 +1210,9 @@ If N is negative, find the previous or Nth previous match."
 With prefix argument N, search for Nth previous match.
 If N is negative, search forwards for the -Nth following match."
   (interactive "p")
-  (if (not (memq last-command '(comint-previous-matching-input-from-input
-				comint-next-matching-input-from-input)))
+  (let ((opoint (point)))
+    (unless (memq last-command '(comint-previous-matching-input-from-input
+				 comint-next-matching-input-from-input))
       ;; Starting a new search
       (setq comint-matching-input-from-input-string
 	    (buffer-substring
@@ -1219,9 +1220,10 @@ If N is negative, search forwards for the -Nth following match."
 		 (process-mark (get-buffer-process (current-buffer))))
 	     (point))
 	    comint-input-ring-index nil))
-  (comint-previous-matching-input
-   (concat "^" (regexp-quote comint-matching-input-from-input-string))
-   n))
+    (comint-previous-matching-input
+     (concat "^" (regexp-quote comint-matching-input-from-input-string))
+     n)
+    (goto-char opoint)))
 
 (defun comint-next-matching-input-from-input (n)
   "Search forwards through input history for match for current input.

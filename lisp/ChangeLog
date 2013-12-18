@@ -1,3 +1,8 @@
+2013-12-18  Le Wang  <l26wang@gmail.com>
+
+	* comint.el (comint-previous-matching-input-from-input): Retain
+	point (Bug#13404).
+
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (append-next-kill): Doc fix (Bug#15995, Bug#16016).
