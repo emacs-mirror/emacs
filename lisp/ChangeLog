@@ -1,3 +1,7 @@
+2013-12-18  Shigeru Fukaya <shigeru.fukaya@gmail.com>
+
+	* apropos.el (apropos-words-to-regexp): Fix algorithm (Bug#13946).
+
 2013-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (BYTE_COMPILE_FLAGS): Set load-prefer-newer to t.

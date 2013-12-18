@@ -341,16 +341,21 @@ before finding a label."
 
 
 (defun apropos-words-to-regexp (words wild)
-  "Make regexp matching any two of the words in WORDS."
-  (concat "\\("
-	  (mapconcat 'identity words "\\|")
-	  "\\)"
-	  (if (cdr words)
-	      (concat wild
-		      "\\("
-		      (mapconcat 'identity words "\\|")
-		      "\\)")
-	    "")))
+  "Make regexp matching any two of the words in WORDS.
+WILD should be a subexpression matching wildcards between matches."
+  (setq words (delete-dups (copy-sequence words)))
+  (if (null (cdr words))
+      (car words)
+    (mapconcat
+     (lambda (w)
+       (concat "\\(?:" w "\\)" ;; parens for synonyms
+               wild "\\(?:"
+               (mapconcat 'identity
+			  (delq w (copy-sequence words))
+			  "\\|")
+               "\\)"))
+     words
+     "\\|")))
 
 ;;;###autoload
 (defun apropos-read-pattern (subject)
