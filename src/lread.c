@@ -1634,6 +1634,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
                           save_mtime = mtime;
                           save_string = string;
                         }
+                      else emacs_close (fd);
                     }
                   else
                     {
