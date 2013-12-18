@@ -1,3 +1,12 @@
+2013-12-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Don't modify %d and %f
+	formats for displaying file sizes when the -s switch is given.
+	Instead, compute a separate format for displaying the size in
+	blocks, which is displayed in addition to the "regular" size.
+	When -h is given in addition to -s, produce size in blocks in
+	human-readable form as well.  (Bug#16179)
+
 2013-12-18  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Reference

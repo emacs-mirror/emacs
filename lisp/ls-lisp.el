@@ -208,6 +208,8 @@ to fail to line up, e.g. if month names are not all of the same length."
   "Format to display integer file sizes.")
 (defvar ls-lisp-filesize-f-fmt "%.0f"
   "Format to display float file sizes.")
+(defvar ls-lisp-filesize-b-fmt "%.0f"
+  "Format to display file sizes in blocks (for the -s switch).")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -356,17 +358,15 @@ not contain `d', so that a full listing is expected."
 	  (setq ls-lisp-gid-d-fmt (format " %%-%dd" max-gid-len))
 	  (setq ls-lisp-gid-s-fmt (format " %%-%ds" max-gid-len))
 	  (setq ls-lisp-filesize-d-fmt
-		(format " %%%dd"
-			(if (memq ?s switches)
-			    (length (format "%.0f"
-					    (fceiling (/ max-file-size 1024.0))))
-			  (length (format "%.0f" max-file-size)))))
+		(format " %%%dd" (length (format "%.0f" max-file-size))))
 	  (setq ls-lisp-filesize-f-fmt
-		(format " %%%d.0f"
-			(if (memq ?s switches)
+		(format " %%%d.0f" (length (format "%.0f" max-file-size))))
+	  (if (memq ?s switches)
+	      (setq ls-lisp-filesize-b-fmt
+		    (format "%%%d.0f "
 			    (length (format "%.0f"
-					    (fceiling (/ max-file-size 1024.0))))
-			  (length (format "%.0f" max-file-size)))))
+					    (fceiling
+					     (/ max-file-size 1024.0)))))))
 	  (setq files file-alist)
 	  (while files			; long (-l) format
 	    (setq elt (car files)
@@ -653,9 +653,20 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 				   (cdr inode))))
 		    (format " %18d " inode))))
 	    ;; nil is treated like "" in concat
-	    (if (memq ?s switches)	; size in K
-		(format ls-lisp-filesize-f-fmt
-			(fceiling (/ file-size 1024.0))))
+	    (if (memq ?s switches)	; size in K, rounded up
+		;; In GNU ls, -h affects the size in blocks, displayed
+		;; by -s, as well.
+		(if (memq ?h switches)
+		    (format "%6s "
+			    (file-size-human-readable
+			     ;; We use 1K as "block size", although
+			     ;; most Windows volumes use 4KB to 8KB
+			     ;; clusters, and exFAT will usually have
+			     ;; clusters of 32KB or even 128KB.  See
+			     ;; KB article 140365 for the details.
+			     (* 1024.0 (fceiling (/ file-size 1024.0)))))
+		  (format ls-lisp-filesize-b-fmt
+			  (fceiling (/ file-size 1024.0)))))
 	    drwxrwxrwx			; attribute string
 	    (if (memq 'links ls-lisp-verbosity)
 		(format "%3d" (nth 1 file-attr))) ; link count
@@ -737,7 +748,7 @@ All ls time options, namely c, t and u, are handled."
 		  ls-lisp-filesize-f-fmt
 		ls-lisp-filesize-d-fmt)
 	      file-size)
-    (format " %7s" (file-size-human-readable file-size))))
+    (format " %6s" (file-size-human-readable file-size))))
 
 (provide 'ls-lisp)
 
