@@ -1450,7 +1450,8 @@ static Lisp_Object Qdir_ok;
    but store the found remote file name in *STOREPTR.
 
    If NEWER is true, try all SUFFIXes and return the result for the
-   newest file that exists.  Does not apply to remote files.  */
+   newest file that exists.  Does not apply to remote files,
+   or if PREDICATE is specified.  */
 
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
@@ -1623,7 +1624,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 
 	      if (fd >= 0)
 		{
-                  if (newer)
+                  if (newer && !NATNUMP (predicate))
                     {
                       struct timespec mtime = get_stat_mtime (&st);
 
