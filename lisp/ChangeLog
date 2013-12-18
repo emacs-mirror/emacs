@@ -1,5 +1,8 @@
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
+	* cus-theme.el (custom-new-theme-mode-map): Add bindings
+	(Bug#15674).
+
 	* replace.el (occur-engine): Avoid infloop (Bug#7593).
 
 2013-12-18  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
