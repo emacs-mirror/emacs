@@ -1,3 +1,8 @@
+2013-12-18  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Fix typo (Bug#14874).
+	(Keymaps and Minor Modes): Fix binding convention (Bug#11522).
+
 2013-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* internals.texi (Building Emacs):

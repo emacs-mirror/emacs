@@ -1506,9 +1506,11 @@ designed for abbrevs and Auto Fill mode.  Do not try substituting your
 own definition of @code{self-insert-command} for the standard one.  The
 editor command loop handles this function specially.)
 
-The key sequences bound in a minor mode should consist of @kbd{C-c}
-followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other
-punctuation characters are reserved for major modes.)
+Minor modes may bind commands to key sequences consisting of @kbd{C-c}
+followed by a punctuation character.  However, sequences consisting of
+@kbd{C-c} followed by one of @kbd{@{@}<>:;}, or a control character or
+digit, are reserved for major modes.  Also, @kbd{C-c @var{letter}} is
+reserved for users.  @xref{Key Binding Conventions}.
 
 @node Defining Minor Modes
 @subsection Defining Minor Modes
@@ -1683,7 +1685,7 @@ minor modes don't need any.
 This defines a global toggle named @var{global-mode} whose meaning is
 to enable or disable the buffer-local minor mode @var{mode} in all
 buffers.  To turn on the minor mode in a buffer, it uses the function
-@var{turn-on}; to turn off the minor mode, it calls @code{mode} with
+@var{turn-on}; to turn off the minor mode, it calls @var{mode} with
 @minus{}1 as argument.
 
 Globally enabling the mode also affects buffers subsequently created
