@@ -869,20 +869,21 @@ See `custom-known-themes' for a list of known themes."
 	(setcar (cdr setting) value)))
      ;; Add a new setting:
      (t
-      (unless old
-	;; If the user changed a variable outside of Customize, save
-	;; the value to a fake theme, `changed'.  If the theme is
-	;; later disabled, we use this to bring back the old value.
-	;;
-	;; For faces, we just use `face-new-frame-defaults' to
-	;; recompute when the theme is disabled.
-	(when (and (eq prop 'theme-value)
-		   (boundp symbol))
-	  (let ((sv  (get symbol 'standard-value))
-		(val (symbol-value symbol)))
-	    (unless (and sv (equal (eval (car sv)) val))
-	      (setq old `((changed ,(custom-quote val))))))))
-      (put symbol prop (cons (list theme value) old))
+      (unless custom--inhibit-theme-enable
+	(unless old
+	  ;; If the user changed a variable outside of Customize, save
+	  ;; the value to a fake theme, `changed'.  If the theme is
+	  ;; later disabled, we use this to bring back the old value.
+	  ;;
+	  ;; For faces, we just use `face-new-frame-defaults' to
+	  ;; recompute when the theme is disabled.
+	  (when (and (eq prop 'theme-value)
+		     (boundp symbol))
+	    (let ((sv  (get symbol 'standard-value))
+		  (val (symbol-value symbol)))
+	      (unless (and sv (equal (eval (car sv)) val))
+		(setq old `((changed ,(custom-quote val))))))))
+	(put symbol prop (cons (list theme value) old)))
       (put theme 'theme-settings
 	   (cons (list prop symbol theme value) theme-settings))))))
 
