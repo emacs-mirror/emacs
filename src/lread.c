@@ -1467,8 +1467,11 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   Lisp_Object string, tail, encoded_fn, save_string;
   ptrdiff_t max_suffix_len = 0;
   int last_errno = ENOENT;
-  struct timespec save_mtime = make_timespec (TYPE_MINIMUM (time_t), -1);
   int save_fd = -1;
+
+  /* The last-modified time of the newest matching file found.
+     Initialize it to something less than all valid timestamps.  */
+  struct timespec save_mtime = make_timespec (TYPE_MINIMUM (time_t), -1);
 
   CHECK_STRING (str);
 
