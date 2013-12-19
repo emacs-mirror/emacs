@@ -1,3 +1,13 @@
+2013-12-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el: Require dnd.
+	(global-map): Remove drag items.
+	(ns-insert-text, ns-set-foreground-at-mouse)
+	(ns-set-background-at-mouse): Remove
+	(ns-drag-n-drop, ns-drag-n-drop-other-frame)
+	(ns-drag-n-drop-as-text, ns-drag-n-drop-as-text-other-frame): New
+	functions.
+
 2013-12-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/ert.el (ert-select-tests):

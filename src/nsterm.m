@@ -80,7 +80,7 @@ int term_trace_num = 0;
 #endif
 
 /* Detailed tracing. "S" means "size" and "LL" stands for "lower left". */
-#if 1
+#if 0
 int term_trace_num = 0;
 #define NSTRACE_SIZE(str,size) fprintf (stderr,                         \
                                    "%s:%d: [%d]   " str                 \
@@ -196,6 +196,7 @@ extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
 static Lisp_Object Qcocoa, Qgnustep;
+static Lisp_Object Qfile, Qurl;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -278,31 +279,32 @@ static CGPoint menu_mouse_point;
 #define NSRightCommandKeyMask   (0x000010 | NSCommandKeyMask)
 #define NSLeftAlternateKeyMask  (0x000020 | NSAlternateKeyMask)
 #define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
-#define EV_MODIFIERS(e)                               \
-    ((([e modifierFlags] & NSHelpKeyMask) ?           \
+#define EV_MODIFIERS2(flags)                          \
+    (((flags & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
      | (!EQ (ns_right_alternate_modifier, Qleft) && \
-        (([e modifierFlags] & NSRightAlternateKeyMask) \
+        ((flags & NSRightAlternateKeyMask) \
          == NSRightAlternateKeyMask) ? \
            parse_solitary_modifier (ns_right_alternate_modifier) : 0) \
-     | (([e modifierFlags] & NSAlternateKeyMask) ?                 \
+     | ((flags & NSAlternateKeyMask) ?                 \
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
-     | (([e modifierFlags] & NSShiftKeyMask) ?     \
+     | ((flags & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
      | (!EQ (ns_right_control_modifier, Qleft) && \
-        (([e modifierFlags] & NSRightControlKeyMask) \
+        ((flags & NSRightControlKeyMask) \
          == NSRightControlKeyMask) ? \
            parse_solitary_modifier (ns_right_control_modifier) : 0) \
-     | (([e modifierFlags] & NSControlKeyMask) ?      \
+     | ((flags & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
-     | (([e modifierFlags] & NS_FUNCTION_KEY_MASK) ?  \
+     | ((flags & NS_FUNCTION_KEY_MASK) ?  \
            parse_solitary_modifier (ns_function_modifier) : 0)    \
      | (!EQ (ns_right_command_modifier, Qleft) && \
-        (([e modifierFlags] & NSRightCommandKeyMask) \
+        ((flags & NSRightCommandKeyMask) \
          == NSRightCommandKeyMask) ? \
            parse_solitary_modifier (ns_right_command_modifier) : 0) \
-     | (([e modifierFlags] & NSCommandKeyMask) ?      \
+     | ((flags & NSCommandKeyMask) ?      \
            parse_solitary_modifier (ns_command_modifier):0))
+#define EV_MODIFIERS(e) EV_MODIFIERS2 ([e modifierFlags])
 
 #define EV_UDMODIFIERS(e)                                      \
     ((([e type] == NSLeftMouseDown) ? down_modifier : 0)       \
@@ -4377,9 +4379,7 @@ ns_term_init (Lisp_Object display_name)
                             NSStringPboardType,
                             NSTabularTextPboardType,
                             NSFilenamesPboardType,
-                            NSURLPboardType,
-                            NSColorPboardType,
-                            NSFontPboardType, nil] retain];
+                            NSURLPboardType, nil] retain];
 
   /* If fullscreen is in init/default-frame-alist, focus isn't set
      right for fullscreen windows, so set this.  */
@@ -6647,6 +6647,8 @@ if (cols > 0 && rows > 0)
   NSString *type;
   NSEvent *theEvent = [[self window] currentEvent];
   NSPoint position;
+  NSDragOperation op = [sender draggingSourceOperationMask];
+  int modifiers = 0;
 
   NSTRACE (performDragOperation);
 
@@ -6658,6 +6660,20 @@ if (cols > 0 && rows > 0)
 
   pb = [sender draggingPasteboard];
   type = [pb availableTypeFromArray: ns_drag_types];
+
+  if (! (op & (NSDragOperationMove|NSDragOperationDelete)) &&
+      // URL drags contain all operations (0xf), don't allow all to be set.
+      (op & 0xf) != 0xf)
+    {
+      if (op & NSDragOperationLink)
+        modifiers |= NSControlKeyMask;
+      if (op & NSDragOperationCopy)
+        modifiers |= NSAlternateKeyMask;
+      if (op & NSDragOperationGeneric)
+        modifiers |= NSCommandKeyMask;
+    }
+
+  modifiers = EV_MODIFIERS2 (modifiers);
   if (type == 0)
     {
       return NO;
@@ -6674,34 +6690,37 @@ if (cols > 0 && rows > 0)
       fenum = [files objectEnumerator];
       while ( (file = [fenum nextObject]) )
         {
-          emacs_event->kind = NS_NONKEY_EVENT;
-          emacs_event->code = KEY_NS_DRAG_FILE;
+          emacs_event->kind = DRAG_N_DROP_EVENT;
           XSETINT (emacs_event->x, x);
           XSETINT (emacs_event->y, y);
           ns_input_file = append2 (ns_input_file,
                                    build_string ([file UTF8String]));
-          emacs_event->modifiers = EV_MODIFIERS (theEvent);
+          emacs_event->modifiers = modifiers;
+          emacs_event->arg =  list2 (Qfile, build_string ([file UTF8String]));
           EV_TRAILER (theEvent);
         }
       return YES;
     }
   else if ([type isEqualToString: NSURLPboardType])
     {
-      NSString *file;
-      NSURL *fileURL;
+      NSURL *url = [NSURL URLFromPasteboard: pb];
+      if (url == nil) return NO;
 
-      if (!(fileURL = [NSURL URLFromPasteboard: pb]) ||
-          [fileURL isFileURL] == NO)
-        return NO;
-
-      file = [fileURL path];
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_DRAG_FILE;
+      emacs_event->kind = DRAG_N_DROP_EVENT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
-      ns_input_file = append2 (ns_input_file, build_string ([file UTF8String]));
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
+      emacs_event->modifiers = modifiers;
+      emacs_event->arg =  list2 (Qurl,
+                                 build_string ([[url absoluteString]
+                                                 UTF8String]));
       EV_TRAILER (theEvent);
+
+      if ([url isFileURL] != NO)
+        {
+          NSString *file = [url path];
+          ns_input_file = append2 (ns_input_file,
+                                   build_string ([file UTF8String]));
+        }
       return YES;
     }
   else if ([type isEqualToString: NSStringPboardType]
@@ -6712,46 +6731,11 @@ if (cols > 0 && rows > 0)
       if (! (data = [pb stringForType: type]))
         return NO;
 
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_DRAG_TEXT;
+      emacs_event->kind = DRAG_N_DROP_EVENT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
-      ns_input_text = build_string ([data UTF8String]);
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
-      EV_TRAILER (theEvent);
-      return YES;
-    }
-  else if ([type isEqualToString: NSColorPboardType])
-    {
-      NSColor *c = [NSColor colorFromPasteboard: pb];
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_DRAG_COLOR;
-      XSETINT (emacs_event->x, x);
-      XSETINT (emacs_event->y, y);
-      ns_input_color = ns_color_to_lisp (c);
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
-      EV_TRAILER (theEvent);
-      return YES;
-    }
-  else if ([type isEqualToString: NSFontPboardType])
-    {
-      /* impl based on GNUstep NSTextView.m */
-      NSData *data = [pb dataForType: NSFontPboardType];
-      NSDictionary *dict = [NSUnarchiver unarchiveObjectWithData: data];
-      NSFont *font = [dict objectForKey: NSFontAttributeName];
-      char fontSize[10];
-
-      if (font == nil)
-        return NO;
-
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_CHANGE_FONT;
-      XSETINT (emacs_event->x, x);
-      XSETINT (emacs_event->y, y);
-      ns_input_font = build_string ([[font fontName] UTF8String]);
-      snprintf (fontSize, 10, "%f", [font pointSize]);
-      ns_input_fontsize = build_string (fontSize);
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
+      emacs_event->modifiers = modifiers;
+      emacs_event->arg =  list2 (Qnil, build_string ([data UTF8String]));
       EV_TRAILER (theEvent);
       return YES;
     }
@@ -7514,6 +7498,9 @@ syms_of_nsterm (void)
   DEFSYM (Qcontrol, "control");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
 
+  DEFSYM (Qfile, "file");
+  DEFSYM (Qurl, "url");
+
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
@@ -7523,10 +7510,6 @@ syms_of_nsterm (void)
   DEFVAR_LISP ("ns-input-file", ns_input_file,
               "The file specified in the last NS event.");
   ns_input_file =Qnil;
-
-  DEFVAR_LISP ("ns-input-text", ns_input_text,
-              "The data received in the last NS text drag event.");
-  ns_input_text =Qnil;
 
   DEFVAR_LISP ("ns-working-text", ns_working_text,
               "String for visualizing working composition sequence.");
@@ -7543,10 +7526,6 @@ syms_of_nsterm (void)
   DEFVAR_LISP ("ns-input-line", ns_input_line,
                "The line specified in the last NS event.");
   ns_input_line =Qnil;
-
-  DEFVAR_LISP ("ns-input-color", ns_input_color,
-               "The color specified in the last NS event.");
-  ns_input_color =Qnil;
 
   DEFVAR_LISP ("ns-input-spi-name", ns_input_spi_name,
                "The service name specified in the last NS event.");

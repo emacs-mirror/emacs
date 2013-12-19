@@ -1,3 +1,19 @@
+2013-12-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (KEY_NS_DRAG_FILE, KEY_NS_DRAG_COLOR, KEY_NS_DRAG_TEXT):
+	Remove.
+
+	* nsterm.m (Qfile, Qurl): New.
+	(EV_MODIFIERS2): New macro.
+	(EV_MODIFIERS): Use EV_MODIFIERS2.
+	(ns_term_init): Remove font and color from DND, does not work on
+	newer OSX, and other ports don't have them.
+	(performDragOperation:): Handle modifiers used during drag.
+	Use DRAG_N_DROP_EVENT instead of NS specific events (Bug#8051).
+	Remove global Lisp variables used to communicate with ns-win.el.
+	Remove font and color handling.
+	(syms_of_nsterm): Defsym Qfile and Qurl.
+
 2013-12-19  Anders Lindgren <andlind@gmail.com>
 
 	* nsterm.m (NSTRACE_SIZE, NSTRACE_RECT): New macros.
