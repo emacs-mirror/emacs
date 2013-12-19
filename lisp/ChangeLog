@@ -1,3 +1,8 @@
+2013-12-19  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/eww.el (eww-exit, eww-close, eww-mode-map): Revert change of
+	2013-12-11 (r115470).
+
 2013-12-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hl-line.el (hl-line-make-overlay): New fun.  Set priority (bug#16192).
