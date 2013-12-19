@@ -137,6 +137,7 @@ its SETUP argument is non-nil."
 			 log-edit-insert-cvs-template
 			 log-edit-insert-changelog
 			 log-edit-insert-filenames
+			 log-edit-insert-filenames-without-changelog
 			 log-edit-show-files)))
 
 (defcustom log-edit-mode-hook (if (boundp 'vc-log-mode-hook) vc-log-mode-hook)
@@ -663,6 +664,21 @@ can thus take some time."
   (interactive)
   (insert "Affected files:  \n"
           (mapconcat 'identity (log-edit-files) "  \n")))
+
+(defun log-edit-insert-filenames-without-changelog ()
+  "Insert the list of files that have no ChangeLog message."
+  (interactive)
+  (let ((files
+	 (delq nil
+	       (mapcar
+		(lambda (file)
+		  (unless (or (cdr-safe (log-edit-changelog-entries file))
+			      (equal (file-name-nondirectory file) "ChangeLog"))
+		    file))
+		(log-edit-files)))))
+    (when files
+      (goto-char (point-max))
+      (insert (mapconcat 'identity files ", ") ": "))))
 
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
