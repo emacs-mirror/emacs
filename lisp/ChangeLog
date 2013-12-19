@@ -1,12 +1,18 @@
+2013-12-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hl-line.el (hl-line-make-overlay): New fun.  Set priority (bug#16192).
+	(hl-line-highlight, global-hl-line-highlight): Use it.
+	(hl-line-overlay): Use defvar-local.
+
 2013-12-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el: Require dnd.
 	(global-map): Remove drag items.
 	(ns-insert-text, ns-set-foreground-at-mouse)
-	(ns-set-background-at-mouse): Remove
-	(ns-drag-n-drop, ns-drag-n-drop-other-frame)
-	(ns-drag-n-drop-as-text, ns-drag-n-drop-as-text-other-frame): New
-	functions.
+	(ns-set-background-at-mouse):
+	Remove (ns-drag-n-drop, ns-drag-n-drop-other-frame)
+	(ns-drag-n-drop-as-text, ns-drag-n-drop-as-text-other-frame):
+	New functions.
 
 2013-12-19  Glenn Morris  <rgm@gnu.org>
 
@@ -79,8 +85,8 @@
 
 2013-12-18  Tassilo Horn  <tsdh@gnu.org>
 
-	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Reference
-	tables with ~\ref{...} instead of only \ref{...}.
+	* textmodes/reftex-vars.el (reftex-label-alist-builtin):
+	Reference tables with ~\ref{...} instead of only \ref{...}.
 
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
@@ -113,8 +119,8 @@
 
 2013-12-18  Le Wang  <l26wang@gmail.com>
 
-	* comint.el (comint-previous-matching-input-from-input): Retain
-	point (Bug#13404).
+	* comint.el (comint-previous-matching-input-from-input):
+	Retain point (Bug#13404).
 
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
