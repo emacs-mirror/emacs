@@ -1365,13 +1365,12 @@ Return a formatted string which is displayed in the echo area
 in addition to the value printed by prin1 in functions which
 display the result of expression evaluation."
   (if (and (integerp value)
-           (or (not (memq this-command '(eval-last-sexp eval-print-last-sexp)))
-               (eq this-command last-command)
-               (if (boundp 'edebug-active) edebug-active)))
+	   (or (eq standard-output t)
+	       (zerop (prefix-numeric-value current-prefix-arg))))
       (let ((char-string
-             (if (or (if (boundp 'edebug-active) edebug-active)
-		     (memq this-command '(eval-last-sexp eval-print-last-sexp)))
-                 (prin1-char value))))
+	     (if (and (characterp value)
+		      (char-displayable-p value))
+		 (prin1-char value))))
         (if char-string
             (format " (#o%o, #x%x, %s)" value value char-string)
           (format " (#o%o, #x%x)" value value)))))
@@ -1399,8 +1398,11 @@ evaluate it.
 Value is also consed on to front of the variable `values'.
 Optional argument INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer
-instead of printing it in the echo area.  Truncates long output
-according to the value of the variables `eval-expression-print-length'
+instead of printing it in the echo area.  With a zero prefix arg,
+insert the result with no limit on the length and level of lists,
+and include additional formats for integers (octal, hexadecimal,
+and character).  Truncates long output according to the value
+of the variables `eval-expression-print-length'
 and `eval-expression-print-level'.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
@@ -1422,13 +1424,19 @@ this command arranges for all errors to enter the debugger."
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))))
 
-  (let ((print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
+  (let ((print-length (and (not (zerop (prefix-numeric-value insert-value)))
+			   eval-expression-print-length))
+	(print-level (and (not (zerop (prefix-numeric-value insert-value)))
+			  eval-expression-print-level))
         (deactivate-mark))
     (if insert-value
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
-	   (prin1 (car values))))
+	   (prog1
+	       (prin1 (car values))
+	     (when (zerop (prefix-numeric-value insert-value))
+	       (let ((str (eval-expression-print-format (car values))))
+		 (if str (princ str)))))))
       (prog1
           (prin1 (car values) t)
         (let ((str (eval-expression-print-format (car values))))

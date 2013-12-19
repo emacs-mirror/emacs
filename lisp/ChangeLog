@@ -1,3 +1,30 @@
+2013-12-19  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (eval-expression-print-format): Don't check for
+	command names and the last command.  Always display additional
+	formats of the integer result in the echo area, and insert them
+	to the current buffer only with a zero prefix arg.
+	Display character when char-displayable-p is non-nil.
+	(eval-expression): With a zero prefix arg, set `print-length' and
+	`print-level' to nil, and insert the integer values from
+	`eval-expression-print-format' at the end.  Doc fix.  (Bug#12985)
+
+	* emacs-lisp/lisp-mode.el (eval-print-last-sexp): Add arg
+	`eval-last-sexp-arg-internal'.  Doc fix.
+	(eval-last-sexp-1): Pass arg `eval-last-sexp-arg-internal' to
+	`eval-last-sexp-print-value'.  Doc fix.
+	(eval-last-sexp-print-value): Add arg `eval-last-sexp-arg-internal'.
+	Set `print-length' and `print-level' to nil when arg is zero.
+	(eval-last-sexp): Doc fix.
+	(eval-defun-2): Print the integer values from
+	`eval-expression-print-format' at the end.
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Print the integer
+	values from `eval-expression-print-format' at the end.
+
+	* ielm.el (ielm-eval-input): Print the integer
+	values from `eval-expression-print-format' at the end.
+
 2013-12-19  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/eww.el (eww-exit, eww-close, eww-mode-map): Revert change of

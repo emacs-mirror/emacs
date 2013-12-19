@@ -119,6 +119,12 @@ non-nil, they output the same results.
 ** `eval-defun' on an already defined defcustom calls the :set function,
 if there is one.
 
+** A zero prefix arg of `eval-last-sexp' (`C-x C-e'),
+`eval-expression' (`M-:') and `eval-print-last-sexp' (`C-j') inserts
+a list with no limit on its length and level (by using nil values of
+`print-length' and `print-level'), and inserts additional formats for
+integers (octal, hexadecimal, and character).
+
 ** If the new variable `enable-dir-local-variables' is nil,
 directory local variables are ignored.  May be useful for some modes
 that want to ignore directory-locals while still respecting file-locals.

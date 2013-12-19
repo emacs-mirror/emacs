@@ -858,7 +858,7 @@ Semicolons start comments.
 \\{lisp-interaction-mode-map}"
   :abbrev-table nil)
 
-(defun eval-print-last-sexp ()
+(defun eval-print-last-sexp (&optional eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value into current buffer.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
@@ -866,11 +866,13 @@ this command arranges for all errors to enter the debugger.
 
 Note that printing the result is controlled by the variables
 `eval-expression-print-length' and `eval-expression-print-level',
-which see."
-  (interactive)
+which see.  With a zero prefix arg, print output with no limit
+on the length and level of lists, and include additional formats
+for integers (octal, hexadecimal, and character)."
+  (interactive "P")
   (let ((standard-output (current-buffer)))
     (terpri)
-    (eval-last-sexp t)
+    (eval-last-sexp (or eval-last-sexp-arg-internal t))
     (terpri)))
 
 
@@ -1013,18 +1015,26 @@ If CHAR is not a character, return nil."
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
-With argument, print output into current buffer."
+With argument, print output into current buffer.
+With a zero prefix arg, print output with no limit on the length
+and level of lists, and include additional formats for integers
+\(octal, hexadecimal, and character)."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     ;; Setup the lexical environment if lexical-binding is enabled.
     (eval-last-sexp-print-value
-     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding))))
+     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding)
+     eval-last-sexp-arg-internal)))
 
 
-(defun eval-last-sexp-print-value (value)
+(defun eval-last-sexp-print-value (value &optional eval-last-sexp-arg-internal)
   (let ((unabbreviated (let ((print-length nil) (print-level nil))
 			 (prin1-to-string value)))
-	(print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
+	(print-length (and (not (zerop (prefix-numeric-value
+					eval-last-sexp-arg-internal)))
+			   eval-expression-print-length))
+	(print-level (and (not (zerop (prefix-numeric-value
+				       eval-last-sexp-arg-internal)))
+			  eval-expression-print-level))
 	(beg (point))
 	end)
     (prog1
@@ -1070,6 +1080,9 @@ POS specifies the starting position where EXP was found and defaults to point."
 Interactively, with prefix argument, print output into current buffer.
 Truncates long output according to the value of the variables
 `eval-expression-print-length' and `eval-expression-print-level'.
+With a zero prefix arg, print output with no limit on the length
+and level of lists, and include additional formats for integers
+\(octal, hexadecimal, and character).
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
@@ -1167,6 +1180,8 @@ Return the result of evaluation."
                          ;; will make eval-region return.
                          (goto-char end)
                          form))))))
+  (let ((str (eval-expression-print-format (car values))))
+    (if str (princ str)))
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
 
