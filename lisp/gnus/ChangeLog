@@ -1,3 +1,12 @@
+2013-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-uu.el (gnus-uu-decode-binhex, gnus-uu-decode-binhex-view):
+	Make sure work directory exists.
+	(gnus-uu-digest-mail-forward): Store temporary files in work directory
+	rather than tmp directory.
+	(gnus-summary-prepare-exit-hook): Replace gnus-exit-group-hook, that is
+	not necessarily always run, with it.
+
 2013-12-18  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-identities): Make changing the
