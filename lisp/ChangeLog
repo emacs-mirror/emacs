@@ -1,3 +1,17 @@
+2013-12-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-smie--args-separator-p): Allow the
+	first arg to be a string (fixed dead code), or an operator symbol.
+	(ruby-smie--forward-token): Tokenize ` @ ' before strings and
+	operator symbols.
+	(ruby-smie-rules): Remove parent token check in the `.' clause, it
+	did nothing.  Don't respond to `(:after ".")', it will be called
+	with :before anyway.  Remove the ` @ ' rule, it didn't seem to
+	change anything.  Only return indentation for binary operators
+	when they are hanging.  De-dent opening paren when its parent is
+	`.', otherwise it looks bad when the dot is not at bol or eol
+	(bug#16182).
+
 2013-12-19  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (query-replace-read-args): Split a non-negative arg

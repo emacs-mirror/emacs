@@ -51,12 +51,12 @@ foo({                           # bug#16118
     })
 
 bar = foo(
-        a, [
-          1,
-        ],
-        :qux => [
-          3
-        ])
+  a, [
+    1,
+  ],
+  :qux => [
+    3
+  ])
 
 foo(
   [
@@ -219,6 +219,9 @@ method (a + b),
        c, :d => :e,
        f: g
 
+desc "abc",
+     defg
+
 it "is a method call with block" do |asd|
   foo
 end
@@ -334,3 +337,11 @@ ddd
 qux = foo ?
         bar :
         tee
+
+zoo.keep.bar!(
+  {x: y,
+   z: t})
+
+zoo
+  .lose(
+  q, p)

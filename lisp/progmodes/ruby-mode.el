@@ -411,8 +411,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
               (not (looking-at (regexp-opt '("unless" "if" "while" "until" "or"
                                              "else" "elsif" "do" "end" "and")
                                            'symbols))))
-         (memq (syntax-after pos) '(7 15))
-         (looking-at "[([]\\|[-+!~:]\\sw")))))
+         (memq (car (syntax-after pos)) '(7 15))
+         (looking-at "[([]\\|[-+!~]\\sw\\|:\\(?:\\sw\\|\\s.\\)")))))
 
 (defun ruby-smie--at-dot-call ()
   (and (eq ?w (char-syntax (following-char)))
@@ -423,12 +423,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (let ((pos (point)))
     (skip-chars-forward " \t")
     (cond
-     ((looking-at "\\s\"") ;A heredoc or a string.
-      (if (not (looking-at "\n"))
-          ""
-        ;; Tokenize the whole heredoc as semicolon.
-        (goto-char (scan-sexps (point) 1))
-        ";"))
+     ((and (looking-at "\n") (looking-at "\\s\""))  ;A heredoc.
+      ;; Tokenize the whole heredoc as semicolon.
+      (goto-char (scan-sexps (point) 1))
+      ";")
      ((and (looking-at "[\n#]")
            (ruby-smie--implicit-semi-p)) ;Only add implicit ; when needed.
       (if (eolp) (forward-char 1) (forward-comment 1))
@@ -436,12 +434,13 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
      (t
       (forward-comment (point-max))
       (cond
-       ((looking-at ":\\s.+")
-        (goto-char (match-end 0)) (match-string 0)) ;; bug#15208.
        ((and (< pos (point))
              (save-excursion
                (ruby-smie--args-separator-p (prog1 (point) (goto-char pos)))))
         " @ ")
+       ((looking-at ":\\s.+")
+        (goto-char (match-end 0)) (match-string 0)) ;bug#15208.
+       ((looking-at "\\s\"") "")                    ;A string.
        (t
         (let ((dot (ruby-smie--at-dot-call))
               (tok (smie-default-forward-token)))
@@ -549,11 +548,15 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (ruby-smie--indent-to-stmt))
       ((smie-rule-hanging-p)
        ;; Treat purely syntactic block-constructs as being part of their parent,
-       ;; when the opening token is hanging and the parent is not an open-paren.
-       (let ((state (smie-backward-sexp 'halfsexp)))
-         (unless (and (eq t (car state))
-                      (not (eq (cadr state) (point-min))))
-           (cons 'column (smie-indent-virtual)))))))
+       ;; when the opening token is hanging and the parent is not an
+       ;; open-paren.
+       (cond
+        ((eq (car (smie-indent--parent)) t) nil)
+        ;; When after `.', let's always de-indent,
+        ;; because when `.' is inside the line, the
+        ;; additional indentation from it looks out of place.
+        ((smie-rule-parent-p ".") (smie-rule-parent (- ruby-indent-level)))
+        (t (smie-rule-parent))))))
     (`(:after . ,(or `"(" "[" "{"))
      ;; FIXME: Shouldn't this be the default behavior of
      ;; `smie-indent-after-keyword'?
@@ -564,11 +567,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        ;; because we want to reject hanging tokens at bol, too.
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
-    (`(:after . " @ ") (smie-rule-parent))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
-    (`(,(or :before :after) . ".")
-     (unless (smie-rule-parent-p ".")
-       (smie-rule-parent ruby-indent-level)))
+    (`(:before . ".") ruby-indent-level)
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
     (`(:before . ,(or `"when"))
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
@@ -576,7 +576,9 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                      "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"
                      "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^=" "|"
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
-     (if (smie-rule-parent-p ";" nil) ruby-indent-level))
+     (and (smie-rule-parent-p ";" nil)
+          (smie-indent--hanging-p)
+          ruby-indent-level))
     (`(:after . ,(or "?" ":")) ruby-indent-level)
     (`(:before . "begin")
      (unless (save-excursion (skip-chars-backward " \t") (bolp))
