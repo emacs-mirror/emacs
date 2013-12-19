@@ -17,3 +17,6 @@ TAGS
 /bin/
 /site-lisp/
 /leim/ja-dic/
+etc/refcards/*.aux
+etc/refcards/*.log
+info/*.info

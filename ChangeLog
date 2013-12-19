@@ -1,3 +1,7 @@
+2013-12-19  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* .gitignore: Ignore refcard temporaries and info/*.info files.
+
 2013-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
