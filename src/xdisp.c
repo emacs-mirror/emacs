@@ -18955,12 +18955,11 @@ extend_face_to_end_of_line (struct it *it)
       it->c = it->char_to_display = ' ';
       it->len = 1;
 
-      face = FACE_FROM_ID (f, default_face->id);
       if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
 	  && (it->glyph_row->used[LEFT_MARGIN_AREA]
 	      < WINDOW_LEFT_MARGIN_WIDTH (it->w))
 	  && !it->glyph_row->mode_line_p
-	  && face && face->background != FRAME_BACKGROUND_PIXEL (f))
+	  && default_face->background != FRAME_BACKGROUND_PIXEL (f))
 	{
 	  struct glyph *g = it->glyph_row->glyphs[LEFT_MARGIN_AREA];
 	  struct glyph *e = g + it->glyph_row->used[LEFT_MARGIN_AREA];
@@ -18990,18 +18989,16 @@ extend_face_to_end_of_line (struct it *it)
 	it->face_id = default_face->id;
       else
 	it->face_id = face->id;
-      face = FACE_FROM_ID (f, it->face_id);
       PRODUCE_GLYPHS (it);
 
       while (it->current_x <= it->last_visible_x)
 	PRODUCE_GLYPHS (it);
 
-      face = FACE_FROM_ID (f, default_face->id);
       if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
 	  && (it->glyph_row->used[RIGHT_MARGIN_AREA]
 	      < WINDOW_RIGHT_MARGIN_WIDTH (it->w))
 	  && !it->glyph_row->mode_line_p
-	  && face && face->background != FRAME_BACKGROUND_PIXEL (f))
+	  && default_face->background != FRAME_BACKGROUND_PIXEL (f))
 	{
 	  struct glyph *g = it->glyph_row->glyphs[RIGHT_MARGIN_AREA];
 	  struct glyph *e = g + it->glyph_row->used[RIGHT_MARGIN_AREA];
