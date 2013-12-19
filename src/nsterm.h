@@ -687,9 +687,6 @@ struct ns_output
   /* This is the Emacs structure for the NS display this frame is on.  */
   struct ns_display_info *display_info;
 
-  /* Non-zero if we want to constrain the frame to the screen.  */
-  int dont_constrain;
-
   /* Non-zero if we are zooming (maximizing) the frame.  */
   int zooming;
 };

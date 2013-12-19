@@ -1,5 +1,16 @@
 2013-12-19  Anders Lindgren <andlind@gmail.com>
 
+	* nsterm.m (NSTRACE_SIZE, NSTRACE_RECT): New macros.
+	(ns_constrain_all_frames, x_set_offset): Remove assignment to
+	dont_constrain.
+	(updateFrameSize:, windowWillResize:toSize:): Add trace.
+	(constrainFrameRect): Remove special case nr_screens == 1.
+	Don't constrain size to size of view.
+
+	* nsterm.h (ns_output): Remove dont_constrain.
+
+2013-12-19  Anders Lindgren <andlind@gmail.com>
+
 	* nsterm.m (mouseDown:): Generate HORIZ_WHEEL_EVENT.
 
 2013-12-18  Paul Eggert  <eggert@cs.ucla.edu>

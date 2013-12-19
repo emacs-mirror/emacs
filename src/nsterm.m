@@ -79,6 +79,28 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
+/* Detailed tracing. "S" means "size" and "LL" stands for "lower left". */
+#if 1
+int term_trace_num = 0;
+#define NSTRACE_SIZE(str,size) fprintf (stderr,                         \
+                                   "%s:%d: [%d]   " str                 \
+                                   " (S:%.0f x %.0f)\n", \
+                                   __FILE__, __LINE__, ++term_trace_num,\
+                                   size.height,                       \
+                                   size.width)
+#define NSTRACE_RECT(s,r) fprintf (stderr,                              \
+                                   "%s:%d: [%d]   " s                   \
+                                   " (LL:%.0f x %.0f -> S:%.0f x %.0f)\n", \
+                                   __FILE__, __LINE__, ++term_trace_num,\
+                                   r.origin.x,                          \
+                                   r.origin.y,                          \
+                                   r.size.height,                       \
+                                   r.size.width)
+#else
+#define NSTRACE_SIZE(str,size)
+#define NSTRACE_RECT(s,r)
+#endif
+
 extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
@@ -605,7 +627,6 @@ ns_constrain_all_frames (void)
           NSView *view = FRAME_NS_VIEW (f);
           /* This no-op will trigger the default window placing
            * constraint system. */
-          f->output_data.ns->dont_constrain = 0;
           [[view window] setFrameOrigin:[[view window] frame].origin];
         }
     }
@@ -1225,7 +1246,6 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 #endif
       /* Constrain the setFrameTopLeftPoint so we don't move behind the
          menu bar.  */
-      f->output_data.ns->dont_constrain = 0;
       [[view window] setFrameTopLeftPoint:
                        NSMakePoint (SCREENMAXBOUND (f->left_pos),
                                     SCREENMAXBOUND ([fscreen frame].size.height
@@ -5684,9 +5704,12 @@ not_in_argv (NSString *arg)
   NSRect wr = [window frame];
   int extra = 0;
   int oldc = cols, oldr = rows;
-  int oldw = FRAME_PIXEL_WIDTH (emacsframe),
-    oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+  int oldw = FRAME_PIXEL_WIDTH (emacsframe);
+  int oldh = FRAME_PIXEL_HEIGHT (emacsframe);
   int neww, newh;
+
+  NSTRACE (updateFrameSize);
+  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
 
   if (! [self isFullscreen])
     {
@@ -5731,6 +5754,8 @@ not_in_argv (NSString *arg)
           sz.width = FRAME_COLUMN_WIDTH (emacsframe);
           sz.height = FRAME_LINE_HEIGHT (emacsframe);
           [win setResizeIncrements: sz];
+
+          NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
         }
 
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
@@ -5744,6 +5769,7 @@ not_in_argv (NSString *arg)
   int extra = 0;
 
   NSTRACE (windowWillResize);
+  NSTRACE_SIZE ("Original size", frameSize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
 
   if (fs_state == FULLSCREEN_MAXIMIZED
@@ -6903,19 +6929,39 @@ if (cols > 0 && rows > 0)
   NSUInteger nr_screens = [[NSScreen screens] count];
   struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSTRACE (constrainFrameRect);
+  NSTRACE_RECT ("input", frameRect);
 
-  if (nr_screens == 1)
-    {
-      NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
-      return r;
-    }
-
-  if (f->output_data.ns->dont_constrain
-      || ns_menu_bar_should_be_hidden ())
+  if (ns_menu_bar_should_be_hidden ())
     return frameRect;
 
-  f->output_data.ns->dont_constrain = 1;
-  return [super constrainFrameRect:frameRect toScreen:screen];
+  /* The default implementation does two things 1) ensure that the top
+     of the rectangle is below the menu bar (or below the top of the
+     screen) and 2) resizes windows larger than the screen. As we
+     don't want the latter, a smaller rectangle is used. */
+#define FAKE_HEIGHT 64
+  float old_top = frameRect.origin.y + frameRect.size.height;
+  NSRect r;
+  r.size.height = FAKE_HEIGHT;
+  r.size.width = frameRect.size.width;
+  r.origin.x = frameRect.origin.x;
+  r.origin.y = old_top - FAKE_HEIGHT;
+
+  NSTRACE_RECT ("input to super", r);
+
+  r = [super constrainFrameRect:r toScreen:screen];
+
+  NSTRACE_RECT ("output from super", r);
+
+  float new_top = r.origin.y + FAKE_HEIGHT;
+  if (new_top < old_top)
+  {
+    frameRect.origin.y = new_top - frameRect.size.height;
+  }
+
+  NSTRACE_RECT ("output", frameRect);
+
+  return frameRect;
+#undef FAKE_HEIGHT
 }
 
 @end /* EmacsWindow */
