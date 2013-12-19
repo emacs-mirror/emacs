@@ -1,3 +1,8 @@
+2013-12-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/ert.el (ert-select-tests):
+	Fix string/symbol mixup.  (Bug#16121)
+
 2013-12-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie-rules): Indent middle-of-block
