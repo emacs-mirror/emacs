@@ -1,3 +1,19 @@
+2013-12-19  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-args): Split a non-negative arg
+	and a negative arg into separate elements.
+	(query-replace, query-replace-regexp, replace-string)
+	(replace-regexp): Add arg `backward'.  Doc fix.
+	(replace-match-maybe-edit): When new arg `backward' is non-nil,
+	move point to the beginning of the match.
+	(replace-search, replace-highlight): Use new arg `backward'
+	to set the value of `isearch-forward'.
+	(perform-replace): Add arg `backward' and use it to perform
+	replacement backward.  (Bug#14979)
+
+	* isearch.el (isearch-query-replace): Use a negative prefix arg
+	to call `perform-replace' with a non-nil arg `backward'.
+
 2013-12-18  Juri Linkov  <juri@jurta.org>
 
 	* vc/log-edit.el (log-edit-hook): Add `log-edit-insert-message-template'

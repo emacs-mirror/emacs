@@ -507,6 +507,10 @@ when it's nil).
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.
 
+*** A negative prefix arg of replacement commands replaces backward.
+`M-- M-%' replaces a string backward, `M-- C-M-%' replaces a regexp
+backward, `M-s w words M-- M-%' replaces a sequence of words backward.
+
 +++
 *** By default, prefix arguments do not now terminate Isearch mode.
 Set `isearch-allow-prefix' to nil to restore old behavior.

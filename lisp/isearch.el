@@ -1667,10 +1667,11 @@ the beginning or the end of the string need not match a symbol boundary."
     (re-search-backward regexp bound noerror count)))
 
 
-(defun isearch-query-replace (&optional delimited regexp-flag)
+(defun isearch-query-replace (&optional arg regexp-flag)
   "Start `query-replace' with string to replace from last search string.
-The arg DELIMITED (prefix arg if interactive), if non-nil, means replace
-only matches surrounded by word boundaries.  Note that using the prefix arg
+The ARG (prefix arg if interactive), if non-nil, means replace
+only matches surrounded by word boundaries.  A negative prefix
+arg means replace backward.  Note that using the prefix arg
 is possible only when `isearch-allow-scroll' is non-nil or
 `isearch-allow-prefix' is non-nil, and it doesn't always provide the
 correct matches for `query-replace', so the preferred way to run word
@@ -1688,6 +1689,8 @@ replacements from Isearch is `M-s w ... M-%'."
 	 isearch-lax-whitespace)
 	(replace-regexp-lax-whitespace
 	 isearch-regexp-lax-whitespace)
+	(delimited (and arg (not (eq arg '-))))
+	(backward (and arg (eq arg '-)))
 	;; Set `isearch-recursive-edit' to nil to prevent calling
 	;; `exit-recursive-edit' in `isearch-done' that terminates
 	;; the execution of this command when it is non-nil.
@@ -1696,9 +1699,13 @@ replacements from Isearch is `M-s w ... M-%'."
     (isearch-done nil t)
     (isearch-clean-overlays)
     (if (and isearch-other-end
-	     (< isearch-other-end (point))
+	     (if backward
+		 (> isearch-other-end (point))
+	       (< isearch-other-end (point)))
              (not (and transient-mark-mode mark-active
-                       (< (mark) (point)))))
+                       (if backward
+			   (> (mark) (point))
+			 (< (mark) (point))))))
         (goto-char isearch-other-end))
     (set query-replace-from-history-variable
          (cons isearch-string
@@ -1718,19 +1725,21 @@ replacements from Isearch is `M-s w ... M-%'."
 		      " word"))
 		"")
 	      (if isearch-regexp " regexp" "")
+	      (if backward " backward" "")
 	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
      t isearch-regexp (or delimited isearch-word) nil nil
      (if (and transient-mark-mode mark-active) (region-beginning))
-     (if (and transient-mark-mode mark-active) (region-end))))
+     (if (and transient-mark-mode mark-active) (region-end))
+     backward))
   (and isearch-recursive-edit (exit-recursive-edit)))
 
-(defun isearch-query-replace-regexp (&optional delimited)
+(defun isearch-query-replace-regexp (&optional arg)
   "Start `query-replace-regexp' with string to replace from last search string.
 See `isearch-query-replace' for more information."
   (interactive
    (list current-prefix-arg))
-  (isearch-query-replace delimited t))
+  (isearch-query-replace arg t))
 
 (defun isearch-occur (regexp &optional nlines)
   "Run `occur' using the last search string as the regexp.
