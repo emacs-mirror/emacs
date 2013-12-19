@@ -500,6 +500,11 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
+    (put 'isearch-toggle-case-fold :advertised-binding "\M-sc")
+    (put 'isearch-toggle-regexp    :advertised-binding "\M-sr")
+    (put 'isearch-edit-string      :advertised-binding "\M-se")
+
+    (define-key map "\M-se" 'isearch-edit-string)
     (define-key map "\M-sc" 'isearch-toggle-case-fold)
     (define-key map "\M-si" 'isearch-toggle-invisible)
     (define-key map "\M-sr" 'isearch-toggle-regexp)
@@ -1146,8 +1151,6 @@ nonincremental search instead via `isearch-edit-string'."
   (isearch-done)
   (isearch-clean-overlays))
 
-(defvar minibuffer-history-symbol) ;; from external package gmhist.el
-
 (defun isearch-fail-pos (&optional msg)
   "Return position of first mismatch in search string, or nil if none.
 If MSG is non-nil, use variable `isearch-message', otherwise `isearch-string'."
@@ -1299,6 +1302,8 @@ You can update the global isearch variables by setting new values to
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
+
+(defvar minibuffer-history-symbol) ;; from external package gmhist.el
 
 (defun isearch-edit-string ()
   "Edit the search string in the minibuffer.

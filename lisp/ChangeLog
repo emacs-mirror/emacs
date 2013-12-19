@@ -1,5 +1,15 @@
 2013-12-19  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-mode-map): Bind `M-s e' to `isearch-edit-string'.
+	Put :advertised-binding on `M-s c', `M-s r', `M-s e'.  (Bug#16035)
+	(minibuffer-history-symbol): Move variable declaration closer to
+	its usage.
+
+	* isearchb.el (isearchb): Add `event-basic-type' on `last-command-event'.
+	(Bug#14785)
+
+2013-12-19  Juri Linkov  <juri@jurta.org>
+
 	* vc/log-edit.el (log-edit-insert-filenames-without-changelog):
 	New function.
 	(log-edit-hook): Add it to :options.  (Bug#16170)

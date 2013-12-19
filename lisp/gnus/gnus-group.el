@@ -571,7 +571,6 @@ simple manner.")
   "p" gnus-group-prev-unread-group
   "\177" gnus-group-prev-unread-group
   [delete] gnus-group-prev-unread-group
-  [backspace] gnus-group-prev-unread-group
   "N" gnus-group-next-group
   "P" gnus-group-prev-group
   "\M-n" gnus-group-next-unread-group-same-level

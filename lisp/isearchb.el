@@ -139,7 +139,8 @@ Its purpose is to pass different call arguments to
   (if last-command-event
       (setq iswitchb-rescan t
 	    iswitchb-text (concat iswitchb-text
-				  (char-to-string last-command-event))))
+				  (char-to-string
+				   (event-basic-type last-command-event)))))
   (iswitchb-set-matches)
   (let* ((match (car iswitchb-matches))
 	 (buf (and match (get-buffer match))))

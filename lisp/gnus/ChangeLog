@@ -1,3 +1,13 @@
+2013-12-19  Juri Linkov  <juri@jurta.org>
+
+	* gnus.el (gnus-suppress-keymap):
+	* gnus-art.el (gnus-article-mode-map):
+	* gnus-group.el (gnus-group-mode-map):
+	* gnus-sum.el (gnus-summary-mode-map, gnus-summary-backend-map):
+	Remove [backspace] key binding because it shadows DEL (bug#16035).
+
+	* mm-decode.el (mm-viewer-completion-map): Remove duplicate definition.
+
 2013-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-uu.el (gnus-uu-decode-binhex, gnus-uu-decode-binhex-view):

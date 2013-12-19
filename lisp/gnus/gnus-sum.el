@@ -1850,7 +1850,6 @@ increase the score of each group you read."
   [?\S-\ ] gnus-summary-prev-page
   "\177" gnus-summary-prev-page
   [delete] gnus-summary-prev-page
-  [backspace] gnus-summary-prev-page
   "\r" gnus-summary-scroll-up
   "\M-\r" gnus-summary-scroll-down
   "n" gnus-summary-next-unread-article
@@ -2222,7 +2221,6 @@ increase the score of each group you read."
   "\M-\C-e" gnus-summary-expire-articles-now
   "\177" gnus-summary-delete-article
   [delete] gnus-summary-delete-article
-  [backspace] gnus-summary-delete-article
   "m" gnus-summary-move-article
   "r" gnus-summary-respool-article
   "w" gnus-summary-edit-article
