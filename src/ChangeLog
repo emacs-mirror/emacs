@@ -1,5 +1,9 @@
 2013-12-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (extend_face_to_end_of_line): Use default face, not the
+	current text face, for extending the face of the display margins.
+	(Bug#16192)
+
 	* casefiddle.c (Fupcase_word, Fdowncase_word, Fcapitalize_word):
 	Doc fix.  (Bug#16190)
 

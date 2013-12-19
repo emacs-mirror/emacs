@@ -18876,14 +18876,16 @@ extend_face_to_end_of_line (struct it *it)
 	      && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
 	    {
 	      it->glyph_row->glyphs[LEFT_MARGIN_AREA][0] = space_glyph;
-	      it->glyph_row->glyphs[LEFT_MARGIN_AREA][0].face_id = face->id;
+	      it->glyph_row->glyphs[LEFT_MARGIN_AREA][0].face_id =
+		default_face->id;
 	      it->glyph_row->used[LEFT_MARGIN_AREA] = 1;
 	    }
 	  if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
 	      && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)
 	    {
 	      it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0] = space_glyph;
-	      it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0].face_id = face->id;
+	      it->glyph_row->glyphs[RIGHT_MARGIN_AREA][0].face_id =
+		default_face->id;
 	      it->glyph_row->used[RIGHT_MARGIN_AREA] = 1;
 	    }
 	}
@@ -18952,15 +18954,8 @@ extend_face_to_end_of_line (struct it *it)
       it->object = make_number (0);
       it->c = it->char_to_display = ' ';
       it->len = 1;
-      /* The last row's blank glyphs should get the default face, to
-	 avoid painting the rest of the window with the region face,
-	 if the region ends at ZV.  */
-      if (it->glyph_row->ends_at_zv_p)
-	it->face_id = default_face->id;
-      else
-	it->face_id = face->id;
 
-      face = FACE_FROM_ID (f, it->face_id);
+      face = FACE_FROM_ID (f, default_face->id);
       if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
 	  && (it->glyph_row->used[LEFT_MARGIN_AREA]
 	      < WINDOW_LEFT_MARGIN_WIDTH (it->w))
@@ -18974,6 +18969,7 @@ extend_face_to_end_of_line (struct it *it)
 	    it->current_x += g->pixel_width;
 
 	  it->area = LEFT_MARGIN_AREA;
+	  it->face_id = default_face->id;
 	  while (it->glyph_row->used[LEFT_MARGIN_AREA]
 		 < WINDOW_LEFT_MARGIN_WIDTH (it->w))
 	    {
@@ -18987,11 +18983,20 @@ extend_face_to_end_of_line (struct it *it)
 	  it->area = TEXT_AREA;
 	}
 
+      /* The last row's blank glyphs should get the default face, to
+	 avoid painting the rest of the window with the region face,
+	 if the region ends at ZV.  */
+      if (it->glyph_row->ends_at_zv_p)
+	it->face_id = default_face->id;
+      else
+	it->face_id = face->id;
+      face = FACE_FROM_ID (f, it->face_id);
       PRODUCE_GLYPHS (it);
 
       while (it->current_x <= it->last_visible_x)
 	PRODUCE_GLYPHS (it);
 
+      face = FACE_FROM_ID (f, default_face->id);
       if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
 	  && (it->glyph_row->used[RIGHT_MARGIN_AREA]
 	      < WINDOW_RIGHT_MARGIN_WIDTH (it->w))
@@ -19005,6 +19010,7 @@ extend_face_to_end_of_line (struct it *it)
 	    it->current_x += g->pixel_width;
 
 	  it->area = RIGHT_MARGIN_AREA;
+	  it->face_id = default_face->id;
 	  while (it->glyph_row->used[RIGHT_MARGIN_AREA]
 		 < WINDOW_RIGHT_MARGIN_WIDTH (it->w))
 	    {
