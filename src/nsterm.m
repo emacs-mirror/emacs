@@ -5498,8 +5498,18 @@ not_in_argv (NSString *arg)
       CGFloat delta = [theEvent deltaY];
       /* Mac notebooks send wheel events w/delta =0 when trackpad scrolling */
       if (delta == 0)
-        return;
-      emacs_event->kind = WHEEL_EVENT;
+        {
+          delta = [theEvent deltaX];
+          if (delta == 0)
+            {
+              NSTRACE (deltaIsZero);
+              return;
+            }
+          emacs_event->kind = HORIZ_WHEEL_EVENT;
+        }
+      else
+        emacs_event->kind = WHEEL_EVENT;
+
       emacs_event->code = 0;
       emacs_event->modifiers = EV_MODIFIERS (theEvent) |
         ((delta > 0) ? up_modifier : down_modifier);
