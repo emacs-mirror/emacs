@@ -1,3 +1,8 @@
+2013-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* casefiddle.c (Fupcase_word, Fdowncase_word, Fcapitalize_word):
+	Doc fix.  (Bug#16190)
+
 2013-12-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (KEY_NS_DRAG_FILE, KEY_NS_DRAG_COLOR, KEY_NS_DRAG_TEXT):
