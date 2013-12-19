@@ -569,8 +569,9 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
          (cons 'column (current-column)))))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
     (`(:before . ".") ruby-indent-level)
-    (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure")) 0)
-    (`(:before . ,(or `"when"))
+    (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
+     (smie-rule-parent))
+    (`(:before . "when")
      (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
     (`(:after . ,(or "=" "iuwu-mod" "+" "-" "*" "/" "&&" "||" "%" "**" "^" "&"
                      "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"

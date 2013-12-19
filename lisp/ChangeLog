@@ -1,5 +1,10 @@
 2013-12-19  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (ruby-smie-rules): Indent middle-of-block
+	keywords to their parent.
+
+2013-12-19  Dmitry Gutov  <dgutov@yandex.ru>
+
 	* progmodes/ruby-mode.el (ruby-smie--args-separator-p): Allow the
 	first arg to be a string (fixed dead code), or an operator symbol.
 	(ruby-smie--forward-token): Tokenize ` @ ' before strings and
