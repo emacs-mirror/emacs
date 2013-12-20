@@ -1040,7 +1040,7 @@ empty line above the done items separator."
 (defun todo-toggle-item-highlighting ()
   "Highlight or unhighlight the todo item the cursor is on."
   (interactive)
-  (eval-when-compile (require 'hl-line))
+  (eval-and-compile (require 'hl-line))
   (when (memq major-mode
 	      '(todo-mode todo-archive-mode todo-filtered-items-mode))
     (if hl-line-mode
@@ -1360,8 +1360,9 @@ todo or done items."
 
 (defun todo-move-category ()
   "Move current category to a different todo file.
-If current category has archived items, also move those to the
-archive of the file moved to, creating it if it does not exist."
+If the todo file chosen does not exist, it is created.
+If the current category has archived items, also move those to
+the archive of the file moved to, creating it if it does not exist."
   (interactive)
   (when (or (> (length todo-categories) 1)
 	    (todo-y-or-n-p (concat "This is the only category in this file; "
@@ -1370,15 +1371,22 @@ archive of the file moved to, creating it if it does not exist."
     (let* ((ofile todo-current-todo-file)
 	   (cat (todo-current-category))
 	   (nfile (todo-read-file-name
-		   "Choose a todo file to move this category to: " nil t))
+		   "Todo file to move this category to: " nil))
 	   (archive (concat (file-name-sans-extension ofile) ".toda"))
 	   (buffers (append (list ofile)
 			    (unless (zerop (todo-get-count 'archived cat))
 			      (list archive))))
 	   new)
-      (while (equal (file-truename nfile) (file-truename ofile))
+      (while (equal nfile (file-truename ofile))
 	(setq nfile (todo-read-file-name
-		     "Choose a file distinct from this file: " nil t)))
+		     "Choose a file distinct from this file: " nil)))
+      (unless (member nfile todo-files)
+	(with-current-buffer (get-buffer-create nfile)
+	  (erase-buffer)
+	  (write-region (point-min) (point-max) nfile nil 'nomessage nil t)
+	  (kill-buffer nfile))
+	(setq todo-files (funcall todo-files-function))
+	(todo-reevaluate-filelist-defcustoms))
       (dolist (buf buffers)
 	(with-current-buffer (find-file-noselect buf)
 	  (widen)
@@ -1631,6 +1639,12 @@ current time, if nil, they include it."
 (defcustom todo-use-only-highlighted-region t
   "Non-nil to enable inserting only highlighted region as new item."
   :type 'boolean
+  :group 'todo-edit)
+
+(defcustom todo-default-priority 'first
+  "Default priority of new and moved items."
+  :type '(choice (const :tag "Highest priority" first)
+		 (const :tag "Lowest priority" last))
   :group 'todo-edit)
 
 (defcustom todo-item-mark "*"
@@ -2617,7 +2631,9 @@ meaning to raise or lower the item's priority by one."
 	;; todo item.
 	(when (> maxnum 1)
 	  (while (not priority)
-	    (setq candidate (read-number prompt))
+	    (setq candidate (read-number prompt
+					 (if (eq todo-default-priority 'first)
+					     1 maxnum)))
 	    (setq prompt (when (or (< candidate 1) (> candidate maxnum))
 			   (format "Priority must be an integer between 1 and %d.\n"
 				   maxnum)))
@@ -5263,6 +5279,22 @@ Overrides `diary-goto-entry'."
 
 (add-function :override diary-goto-entry-function #'todo-diary-goto-entry)
 
+(defun todo-desktop-save-buffer (_dir)
+  `((catnum . ,(todo-category-number (todo-current-category)))))
+
+(declare-function desktop-restore-file-buffer "desktop"
+                  (buffer-filename buffer-name buffer-misc))
+
+(defun todo-restore-desktop-buffer (file buffer misc)
+  (desktop-restore-file-buffer file buffer misc)
+  (with-current-buffer buffer
+    (widen)
+    (let ((todo-category-number (cdr (assq 'catnum misc))))
+      (todo-category-select))))
+
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(todo-mode . todo-restore-desktop-buffer))
+
 (defun todo-done-item-p ()
   "Return non-nil if item at point is a done item."
   (save-excursion
@@ -6480,6 +6512,8 @@ Added to `window-configuration-change-hook' in Todo mode."
   "Make some settings that apply to multiple Todo modes."
   (add-to-invisibility-spec 'todo)
   (setq buffer-read-only t)
+  (when (and (boundp 'desktop-save-mode) desktop-save-mode)
+    (setq-local desktop-save-buffer 'todo-desktop-save-buffer))
   (when (boundp 'hl-line-range-function)
     (setq-local hl-line-range-function
 		(lambda() (save-excursion
@@ -6495,6 +6529,7 @@ Added to `window-configuration-change-hook' in Todo mode."
 
 (put 'todo-mode 'mode-class 'special)
 
+;;;###autoload
 (define-derived-mode todo-mode special-mode "Todo"
   "Major mode for displaying, navigating and editing todo lists.
 
@@ -6521,6 +6556,7 @@ Added to `window-configuration-change-hook' in Todo mode."
 
 ;; If todo-mode is parent, all todo-mode key bindings appear to be
 ;; available in todo-archive-mode (e.g. shown by C-h m).
+;;;###autoload
 (define-derived-mode todo-archive-mode special-mode "Todo-Arch"
   "Major mode for archived todo categories.
 
@@ -6569,6 +6605,7 @@ Added to `window-configuration-change-hook' in Todo mode."
 
 (put 'todo-filtered-items-mode 'mode-class 'special)
 
+;;;###autoload
 (define-derived-mode todo-filtered-items-mode special-mode "Todo-Fltr"
   "Mode for displaying and reprioritizing top priority Todo.
 
@@ -6576,8 +6613,11 @@ Added to `window-configuration-change-hook' in Todo mode."
   (todo-modes-set-1)
   (todo-modes-set-2))
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.todo\\'" . todo-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.toda\\'" . todo-archive-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tod[tyr]\\'" . todo-filtered-items-mode))
 
 ;; -----------------------------------------------------------------------------

@@ -1,3 +1,20 @@
+2013-12-20  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Bug fixes and new features (bug#15225).
+	(todo-toggle-item-highlighting): Use eval-and-compile instead of
+	eval-when-compile.
+	(todo-move-category): Allow choosing a non-existing todo file to
+	move the category to, and create that file.
+	(todo-default-priority): New user option.
+	(todo-set-item-priority): Use it.
+	(todo-desktop-save-buffer, todo-restore-desktop-buffer): New functions.
+	(desktop-restore-file-buffer): Declare.
+	(desktop-buffer-mode-handlers): Add todo-restore-desktop-buffer.
+	(todo-modes-set-2): Locally set desktop-save-buffer to
+	todo-desktop-save-buffer.
+	(todo-mode, todo-archive-mode, todo-filtered-items-mode)
+	(auto-mode-alist): Add autoload cookie.
+
 2013-12-20  Bozhidar Batsov  <bozhidar@batsov.com>
 
 	* emacs-lisp/subr-x.el: Renamed from helpers.el.
