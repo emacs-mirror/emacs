@@ -330,6 +330,11 @@ shown in the Fancy Diary display."
 ;;; Faces
 ;; -----------------------------------------------------------------------------
 
+(defface todo-key-prompt
+  '((t (:weight bold)))
+  "Face for making keys in item insertion prompt stand out."
+  :group 'todo-faces)
+
 (defface todo-mark
   ;; '((t :inherit font-lock-warning-face))
   '((((class color)
@@ -1742,6 +1747,30 @@ marking of the next N items."
 
 (defvar todo-date-from-calendar nil
   "Helper variable for setting item date from the Emacs Calendar.")
+
+(defvar todo-insert-item--keys-so-far)
+(defvar todo-insert-item--parameters)
+
+(defun todo-insert-item (&optional arg)
+  "Insert a new todo item into a category.
+
+With no prefix argument ARG, add the item to the current
+category; with one prefix argument (`C-u'), prompt for a category
+from the current todo file; with two prefix arguments (`C-u
+C-u'), first prompt for a todo file, then a category in that
+file.  If a non-existing category is entered, ask whether to add
+it to the todo file; if answered affirmatively, add the category
+and insert the item there.
+
+There are a number of item insertion parameters which can be
+combined by entering specific keys to produce different insertion
+commands.  After entering each key, a message shows which have
+already been entered and which remain available.  See
+`todo-basic-insert-item' for details of the parameters and their
+effects."
+  (interactive "P")
+  (setq todo-insert-item--keys-so-far "i")
+  (todo-insert-item--next-param nil (list arg) todo-insert-item--parameters))
 
 (defun todo-basic-insert-item (&optional arg diary nonmarking date-type time
 				    region-or-here)
@@ -5425,131 +5454,173 @@ of each other."
 ;;; Utilities for generating item insertion commands and key bindings
 ;; -----------------------------------------------------------------------------
 
-;; Wolfgang Jenkner posted this powerset definition to emacs-devel
-;; (http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00423.html)
-;; and kindly gave me permission to use it.
+;; Thanks to Stefan Monnier for suggesting dynamically generating item
+;; insertion commands and their key bindings, and offering an elegant
+;; implementation, which, however, relies on lexical scoping and so
+;; cannot be used here until the Calendar code used by todo-mode.el is
+;; converted to lexical binding.  Hence, the following implementation
+;; uses dynamic binding.
 
-(defun todo-powerset (list)
-  "Return the powerset of LIST."
-  (let ((powerset (list nil)))
-    (dolist (elt list (mapcar 'reverse powerset))
-      (nconc powerset (mapcar (apply-partially 'cons elt) powerset)))))
+(defconst todo-insert-item--parameters
+  '((default copy) diary nonmarking (calendar date dayname) time (here region))
+  "List of all item insertion parameters.
+Passed by `todo-insert-item' to `todo-insert-item--next-param' to
+dynamically create item insertion commands.")
 
-(defun todo-gen-arglists (arglist)
-  "Return list of lists of non-nil atoms produced from ARGLIST.
-The elements of ARGLIST may be atoms or lists."
-  (let (arglists)
-    (while arglist
-      (let ((arg (pop arglist)))
-	(cond ((symbolp arg)
-	       (setq arglists (if arglists
-				  (mapcar (lambda (l) (push arg l)) arglists)
-				(list (push arg arglists)))))
-	      ((listp arg)
-	       (setq arglists
-		     (mapcar (lambda (a)
-			       (if (= 1 (length arglists))
-				   (apply (lambda (l) (push a l)) arglists)
-				 (mapcar (lambda (l) (push a l)) arglists)))
-			     arg))))))
-    (setq arglists (mapcar 'reverse (apply 'append (mapc 'car arglists))))))
+(defconst todo-insert-item--param-key-alist
+  '((default    . "i")
+    (copy       . "p")
+    (diary      . "y")
+    (nonmarking . "k")
+    (calendar   . "c")
+    (date       . "d")
+    (dayname    . "n")
+    (time       . "t")
+    (here       . "h")
+    (region     . "r"))
+  "List pairing item insertion parameters with their completion keys.")
 
-(defvar todo-insertion-commands-args-genlist
-  '(diary nonmarking (calendar date dayname) time (here region))
-  "Generator list for argument lists of item insertion commands.")
+(defsubst todo-insert-item--keyof (param)
+  "Return key paired with item insertion PARAM."
+  (cdr (assoc param todo-insert-item--param-key-alist)))
 
-(defvar todo-insertion-commands-args
-  (let ((arglist (todo-gen-arglists todo-insertion-commands-args-genlist))
-	res new)
-    (setq res (cl-remove-duplicates
-	       (apply 'append (mapcar 'todo-powerset arglist)) :test 'equal))
-    (dolist (l res)
-      (unless (= 5 (length l))
-	(let ((v (make-vector 5 nil)) elt)
-	  (while l
-	    (setq elt (pop l))
-	    (cond ((eq elt 'diary)
-		   (aset v 0 elt))
-		  ((eq elt 'nonmarking)
-		   (aset v 1 elt))
-		  ((or (eq elt 'calendar)
-		       (eq elt 'date)
-		       (eq elt 'dayname))
-		   (aset v 2 elt))
-		  ((eq elt 'time)
-		   (aset v 3 elt))
-		  ((or (eq elt 'here)
-		       (eq elt 'region))
-		   (aset v 4 elt))))
-	  (setq l (append v nil))))
-      (setq new (append new (list l))))
-    new)
-  "List of all argument lists for Todo mode item insertion commands.")
+(defun todo-insert-item--argsleft (key list)
+  "Return sublist of LIST whose first member corresponds to KEY."
+  (let (l sym)
+    (mapc (lambda (m)
+	    (when (consp m)
+	      (catch 'found1
+		(dolist (s m)
+		  (when (equal key (todo-insert-item--keyof s))
+		    (throw 'found1 (setq sym s))))))
+	    (if sym
+		(progn
+		  (push sym l)
+		  (setq sym nil))
+	      (push m l)))
+	  list)
+    (setq list (reverse l)))
+  (memq (catch 'found2
+	  (dolist (e todo-insert-item--param-key-alist)
+	    (when (equal key (cdr e))
+	      (throw 'found2 (car e)))))
+	list))
 
-(defun todo-insertion-command-name (arglist)
-  "Generate Todo mode item insertion command name from ARGLIST."
-  (replace-regexp-in-string
-   "-\\_>" ""
-   (replace-regexp-in-string
-    "-+" "-"
-    (concat "todo-insert-item-"
-	    (mapconcat (lambda (e) (if e (symbol-name e))) arglist "-")))))
+(defsubst todo-insert-item--this-key () (char-to-string last-command-event))
 
-(defvar todo-insertion-commands-names
-  (mapcar (lambda (l)
-	   (todo-insertion-command-name l))
-	  todo-insertion-commands-args)
-  "List of names of Todo mode item insertion commands.")
+(defvar todo-insert-item--keys-so-far ""
+  "String of item insertion keys so far entered for this command.")
 
-(defmacro todo-define-insertion-command (&rest args)
-  "Generate Todo mode item insertion command definitions from ARGS."
-  (let ((name (intern (todo-insertion-command-name args)))
-	(arg0 (nth 0 args))
-	(arg1 (nth 1 args))
-	(arg2 (nth 2 args))
-	(arg3 (nth 3 args))
-	(arg4 (nth 4 args)))
-    `(defun ,name (&optional arg &rest args)
-       "Todo mode item insertion command generated from ARGS.
-For descriptions of the individual arguments, their values, and
-their relation to key bindings, see `todo-basic-insert-item'."
-       (interactive (list current-prefix-arg))
-       (todo-basic-insert-item arg ',arg0 ',arg1 ',arg2 ',arg3 ',arg4))))
+(defvar todo-insert-item--args nil)
+(defvar todo-insert-item--argleft nil)
+(defvar todo-insert-item--argsleft nil)
+(defvar todo-insert-item--newargsleft nil)
 
-(defvar todo-insertion-commands
-  (mapcar (lambda (c)
-	    (eval `(todo-define-insertion-command ,@c)))
-	  todo-insertion-commands-args)
-  "List of Todo mode item insertion commands.")
+(defun todo-insert-item--apply-args ()
+  "Build list of arguments for item insertion and apply them.
+The list consists of item insertion parameters that can be passed
+as insertion command arguments in fixed positions.  If a position
+in the list is not occupied by the corresponding parameter, it is
+occupied by `nil'."
+  (let* ((arg (list (car todo-insert-item--args)))
+	 (args (nconc (cdr todo-insert-item--args)
+		      (list (car (todo-insert-item--argsleft
+				  (todo-insert-item--this-key)
+				  todo-insert-item--argsleft)))))
+	 (arglist (unless (= 5 (length args))
+		    (let ((v (make-vector 5 nil)) elt)
+		      (while args
+			(setq elt (pop args))
+			(cond ((eq elt 'diary)
+			       (aset v 0 elt))
+			      ((eq elt 'nonmarking)
+			       (aset v 1 elt))
+			      ((or (eq elt 'calendar)
+				   (eq elt 'date)
+				   (eq elt 'dayname))
+			       (aset v 2 elt))
+			      ((eq elt 'time)
+			       (aset v 3 elt))
+			      ((or (eq elt 'here)
+				   (eq elt 'region))
+			       (aset v 4 elt))))
+		      (append v nil)))))
+    (apply #'todo-basic-insert-item (nconc arg arglist))))
 
-(defvar todo-insertion-commands-arg-key-list
-  '(("diary" "y" "yy")
-    ("nonmarking" "k" "kk")
-    ("calendar" "c" "cc")
-    ("date" "d" "dd")
-    ("dayname" "n" "nn")
-    ("time" "t" "tt")
-    ("here" "h" "h")
-    ("region" "r" "r"))
-  "List of mappings of item insertion command arguments to key sequences.")
-
-(defun todo-insertion-key-bindings (map)
-  "Generate key binding definitions for item insertion keymap MAP."
-  (dolist (c todo-insertion-commands)
-    (let* ((key "")
-	   (cname (symbol-name c)))
-      (mapc (lambda (l)
-	      (let ((arg (nth 0 l))
-		    (key1 (nth 1 l))
-		    (key2 (nth 2 l)))
-		(if (string-match (concat (regexp-quote arg) "\\_>") cname)
-		    (setq key (concat key key2)))
-		(if (string-match (concat (regexp-quote arg) ".+") cname)
-		    (setq key (concat key key1)))))
-	    todo-insertion-commands-arg-key-list)
-      (if (string-match (concat (regexp-quote "todo-insert-item") "\\_>") cname)
-	  (setq key (concat key "i")))
-      (define-key map key c))))
+(defun todo-insert-item--next-param (last args argsleft)
+  "Build item insertion command from LAST, ARGS and ARGSLEFT and call it.
+Dynamically generate key bindings, prompting with the keys
+already entered and those still available."
+  (cl-assert argsleft)
+  (let* ((map (make-sparse-keymap))
+         (prompt nil)
+         (addprompt (lambda (k name)
+		      (setq prompt (concat prompt
+					   (format (concat
+						    (if (or (eq name 'default)
+							    (eq name 'calendar)
+							    (eq name 'here))
+							" { " " ") 
+						    "%s=>%s"
+						    (when (or (eq name 'copy)
+							      (eq name 'dayname)
+							      (eq name 'region))
+						      " }"))
+						   (propertize k 'face
+							       'todo-key-prompt)
+						   name))))))
+    (setq todo-insert-item--args args)
+    (setq todo-insert-item--argsleft argsleft)
+    (when last
+      (cond ((eq last 'default)
+	     (apply #'todo-basic-insert-item (car todo-insert-item--args))
+	     (setq todo-insert-item--argsleft nil))
+	    ((eq last 'copy)
+	     (todo-copy-item)
+	     (setq todo-insert-item--argsleft nil))
+	    (t (let ((k (todo-insert-item--keyof last)))
+		 (funcall addprompt k 'GO!)
+		 (define-key map (todo-insert-item--keyof last)
+		   (lambda () (interactive)
+		     (todo-insert-item--apply-args)))))))
+    (while todo-insert-item--argsleft
+      (let ((x (car todo-insert-item--argsleft)))
+	(setq todo-insert-item--newargsleft (cdr todo-insert-item--argsleft))
+        (dolist (argleft (if (consp x) x (list x)))
+	  (let ((k (todo-insert-item--keyof argleft)))
+	    (funcall addprompt k argleft)
+	    (define-key map k
+	      (if (null todo-insert-item--newargsleft)
+		  (lambda () (interactive)
+		    (todo-insert-item--apply-args))
+		(lambda () (interactive)
+		  (when (equal "k" (todo-insert-item--this-key))
+		    (unless (string-match "y" todo-insert-item--keys-so-far)
+		      (when (y-or-n-p (concat "`k' only takes effect with `y';"
+					      " add `y'? "))
+			(setq todo-insert-item--keys-so-far
+			      (concat todo-insert-item--keys-so-far " y"))
+			(setq todo-insert-item--args
+			      (nconc todo-insert-item--args (list 'diary))))))
+		  (setq todo-insert-item--keys-so-far
+			(concat todo-insert-item--keys-so-far " "
+				(todo-insert-item--this-key)))
+		  (todo-insert-item--next-param
+		   (car (todo-insert-item--argsleft
+			 (todo-insert-item--this-key)
+			 todo-insert-item--argsleft))
+		   (nconc todo-insert-item--args
+			  (list (car (todo-insert-item--argsleft
+				      (todo-insert-item--this-key)
+				      todo-insert-item--argsleft))))
+		   (cdr (todo-insert-item--argsleft
+			 (todo-insert-item--this-key)
+			 todo-insert-item--argsleft)))))))))
+      (setq todo-insert-item--argsleft todo-insert-item--newargsleft))
+    (when prompt (message "Enter a key (so far `%s'): %s"
+			  todo-insert-item--keys-so-far prompt))
+    (set-temporary-overlay-map map)
+    (setq todo-insert-item--argsleft argsleft)))
 
 ;; -----------------------------------------------------------------------------
 ;;; Todo minibuffer utilities
@@ -6224,13 +6295,6 @@ Filtered Items mode following todo (not done) items."
 ;;; Key binding
 ;; -----------------------------------------------------------------------------
 
-(defvar todo-insertion-map
-  (let ((map (make-keymap)))
-    (todo-insertion-key-bindings map)
-    (define-key map "p" 'todo-copy-item)
-    map)
-  "Keymap for Todo mode item insertion commands.")
-
 (defvar todo-key-bindings-t
   `(
     ("Af"	     todo-find-archive)
@@ -6272,7 +6336,7 @@ Filtered Items mode following todo (not done) items."
     ("eyk"	     todo-edit-item-diary-nonmarking)
     ("ec"	     todo-edit-done-item-comment)
     ("d"	     todo-item-done)
-    ("i"	     ,todo-insertion-map)
+    ("i"	     todo-insert-item)
     ("k"	     todo-delete-item)
     ("m"	     todo-move-item)
     ("u"	     todo-item-undone)

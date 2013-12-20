@@ -1,5 +1,28 @@
 2013-12-20  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todo-mode.el: New implementation of item insertion
+	commands and key bindings.
+	(todo-key-prompt): New face.
+	(todo-insert-item): New command.
+	(todo-insert-item--parameters): New defconst, replacing defvar
+	todo-insertion-commands-args-genlist.
+	(todo-insert-item--param-key-alist): New defconst, replacing
+	defvar todo-insertion-commands-arg-key-list.
+	(todo-insert-item--keyof, todo-insert-item--this-key): New defsubsts.
+	(todo-insert-item--argsleft, todo-insert-item--apply-args)
+	(todo-insert-item--next-param): New functions.
+	(todo-insert-item--args, todo-insert-item--argleft)
+	(todo-insert-item--argsleft, todo-insert-item--newargsleft):
+	New variables.
+	(todo-key-bindings-t): Change binding of "i" from
+	todo-insertion-map to todo-insert-item.
+	(todo-powerset, todo-gen-arglists, todo-insertion-commands-args)
+	(todo-insertion-command-name, todo-insertion-commands-names)
+	(todo-define-insertion-command, todo-insertion-commands)
+	(todo-insertion-key-bindings, todo-insertion-map): Remove.
+
+2013-12-20  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todo-mode.el: Bug fixes and new features (bug#15225).
 	(todo-toggle-item-highlighting): Use eval-and-compile instead of
 	eval-when-compile.
