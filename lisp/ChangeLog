@@ -1,3 +1,8 @@
+2013-12-20  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* emacs-lisp/subr-x.el: Renamed from helpers.el.
+	helpers.el was a poor choice of name.
+
 2013-12-20  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix assignment for new window total sizes.

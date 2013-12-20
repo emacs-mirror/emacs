@@ -1,4 +1,4 @@
-;;; helpers.el --- Some non-essential library extensions  -*- lexical-binding:t -*-
+;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Free Software Foundation, Inc.
 
@@ -22,6 +22,10 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Less commonly used functions that complement basic APIs, often implemented in
+;; C code (like hash-tables and strings), and are not eligible for inclusion
+;; in subr.el.
 
 ;;; Code:
 
@@ -69,6 +73,6 @@
   "Check whether STRING is either empty or only whitespace."
   (string-match-p "\\`[ \t\n\r]*\\'" string))
 
-(provide 'helpers)
+(provide 'subr-x)
 
-;;; helpers.el ends here
+;;; subr-x.el ends here

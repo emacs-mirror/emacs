@@ -875,7 +875,7 @@ frame.
 +++
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
 
-** New library helpers.el for misc helper functions
+** New library subr-x.el for misc helper functions
 *** `hash-table-keys'
 *** `hash-table-values'
 *** `string-blank-p`
