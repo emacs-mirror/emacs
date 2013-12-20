@@ -608,31 +608,37 @@ convenient to switch between buffers.
 @cindex unique buffer names
 @cindex directories in buffer names
   When several buffers visit identically-named files, Emacs must give
-the buffers distinct names.  The usual method for making buffer names
-unique adds @samp{<2>}, @samp{<3>}, etc. to the end of the buffer
-names (all but one of them).
+the buffers distinct names.  The default method
+(@code{uniquify-buffer-name-style} set to
+@code{post-forward-angle-brackets}) for making buffer names unique
+adds @samp{<dir1>}, @samp{<dir2>}, etc. to the end of the buffer
+names.
 
 @vindex uniquify-buffer-name-style
-  Other methods work by adding parts of each file's directory to the
-buffer name.  To select one, customize the variable
-@code{uniquify-buffer-name-style} (@pxref{Easy Customization}).
+  There are several styles to make buffer names unique.  To select
+one, customize the variable @code{uniquify-buffer-name-style}
+(@pxref{Easy Customization}).
 
-  To begin with, the @code{forward} naming method includes part of the
-file's directory name at the beginning of the buffer name; using this
-method, buffers visiting the files @file{/u/rms/tmp/Makefile} and
+  The @code{forward} naming method includes part of the file's
+directory name at the beginning of the buffer name; using this method,
+buffers visiting the files @file{/u/rms/tmp/Makefile} and
 @file{/usr/projects/zaphod/Makefile} would be named
-@samp{tmp/Makefile} and @samp{zaphod/Makefile}, respectively (instead
-of @samp{Makefile} and @samp{Makefile<2>}).
+@samp{tmp/Makefile} and @samp{zaphod/Makefile}.
 
   In contrast, the @code{post-forward} naming method would call the
-buffers @samp{Makefile|tmp} and @samp{Makefile|zaphod}, and the
+buffers @samp{Makefile|tmp} and @samp{Makefile|zaphod}.  The default
+method @code{post-forward-angle-brackets} is like @code{post-forward}
+except that it prepends the unique path in angle brackets.  The
 @code{reverse} naming method would call them @samp{Makefile\tmp} and
 @samp{Makefile\zaphod}.  The nontrivial difference between
 @code{post-forward} and @code{reverse} occurs when just one directory
 name is not enough to distinguish two files; then @code{reverse} puts
 the directory names in reverse order, so that @file{/top/middle/file}
 becomes @samp{file\middle\top}, while @code{post-forward} puts them in
-forward order after the file name, as in @samp{file|top/middle}.
+forward order after the file name, as in @samp{file|top/middle}.  If
+@code{uniquify-buffer-name-style} is set to @code{nil}, the buffer
+names simply get a @samp{<2>} etc. prepended.  This used to be the
+default behavior in Emacs versions up to 24.4.
 
   Which rule to follow for putting the directory names in the buffer
 name is not very important if you are going to @emph{look} at the
