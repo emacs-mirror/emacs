@@ -1,3 +1,9 @@
+2013-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Changing Properties): Improve documentation for
+	add-face-text-property.
+	(Special Properties): Mention add-face-text-property.
+
 2013-12-18  Chong Yidong  <cyd@gnu.org>
 
 	* customize.texi (Custom Themes): Document custom-known-themes

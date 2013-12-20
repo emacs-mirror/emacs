@@ -164,6 +164,7 @@ Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
++++
 ** New function `add-face-text-property' has been added, which can be
 used to conveniently prepend/append new face attributes to text.
 

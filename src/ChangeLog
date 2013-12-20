@@ -1,3 +1,8 @@
+2013-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* textprop.c (Fadd_face_text_property): Doc fix.  Rename `appendp'
+	argument to `append'.
+
 2013-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (extend_face_to_end_of_line): Use default face, not the

@@ -2825,29 +2825,37 @@ Do not rely on the return value of this function.
 @end defun
 
 @defun add-face-text-property start end face &optional appendp object
-@code{face} text attributes can be combined.  If you want to make a
-section both italic and green, you can either define a new face that
-have those attributes, or you can add both these attributes separately
-to text:
+This function acts on the text between @var{start} and @var{end},
+adding the face @var{face} to the @code{face} text property.
+@var{face} should be a valid value for the @code{face} property
+(@pxref{Special Properties}), such as a face name or an anonymous face
+(@pxref{Faces}).
+
+If any text in the region already has a non-nil @code{face} property,
+those face(s) are retained.  This function sets the @code{face}
+property to a list of faces, with @var{face} as the first element (by
+default) and the pre-existing faces as the remaining elements.  If the
+optional argument @var{append} is non-@code{nil}, @var{face} is
+appended to the end of the list instead.  Note that in a face list,
+the first occurring value for each attribute takes precedence.
+
+For example, the following code would assign a italicized green face
+to the text between @var{start} and @var{end}:
 
 @example
 (add-face-text-property @var{start} @var{end} 'italic)
-(add-face-text-property @var{start} @var{end} '(:foreground "#00ff00"))
+(add-face-text-property @var{start} @var{end} '(:foreground "red"))
+(add-face-text-property @var{start} @var{end} '(:foreground "green"))
 @end example
 
-The attribute is (by default) prepended to the list of face
-attributes, and the first attribute of the same type takes
-precedence.  So if you have two @code{:foreground} specifications, the
-first one will take effect.
-
-If you pass in @var{appendp}, the attribute will be appended instead
-of prepended, which means that it will have no effect if there is
-already an attribute of the same type.
-
+The optional argument @var{object}, if non-@code{nil}, specifies a
+buffer or string to act on, rather than the current buffer.  If
+@var{object} is a string, then @var{start} and @var{end} are
+zero-based indices into the string.
 @end defun
 
-  The easiest way to make a string with text properties
-is with @code{propertize}:
+  The easiest way to make a string with text properties is with
+@code{propertize}:
 
 @defun propertize string &rest properties
 This function returns a copy of @var{string} which has the text
@@ -3080,6 +3088,9 @@ avoided.
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by
 dynamically updating the @code{face} property of characters based on
 the context.
+
+The @code{add-face-text-property} function provides a convenient way
+to set this text property.  @xref{Changing Properties}.
 
 @item font-lock-face
 @kindex font-lock-face @r{(text property)}
