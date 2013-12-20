@@ -1,5 +1,8 @@
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
+	* numbers.texi (numbers): Document that =, <, <=, >, >= now accept
+	one or many arguments.
+
 	* display.texi: Document `messages-buffer'.
 
 	* os.texi: Document `initial-buffer-choice' changes.
