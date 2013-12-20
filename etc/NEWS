@@ -289,6 +289,7 @@ file and letting SMIE learn from it.
 
 ** sh-script now uses its SMIE indentation algorithm by default.
 
++++
 ** `eshell' now supports visual subcommands and options
 Eshell has been able to handle "visual" commands (interactive,
 non-line oriented commands such as top that require display
