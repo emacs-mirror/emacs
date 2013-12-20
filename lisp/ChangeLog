@@ -2,6 +2,8 @@
 
 	* emacs-lisp/subr-x.el: Renamed from helpers.el.
 	helpers.el was a poor choice of name.
+	(string-remove-prefix): New function.
+	(string-remove-suffix): New function.
 
 2013-12-20  Martin Rudalics  <rudalics@gmx.at>
 

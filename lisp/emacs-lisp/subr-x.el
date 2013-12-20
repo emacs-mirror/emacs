@@ -73,6 +73,18 @@
   "Check whether STRING is either empty or only whitespace."
   (string-match-p "\\`[ \t\n\r]*\\'" string))
 
+(defsubst string-remove-prefix (prefix string)
+  "Remove PREFIX from STRING if present."
+  (if (string-prefix-p prefix string)
+      (substring string (length prefix))
+    string))
+
+(defsubst string-remove-suffix (suffix string)
+  "Remove SUFFIX from STRING if present."
+  (if (string-suffix-p suffix string)
+      (substring string 0 (- (length string) (length suffix)))
+    string))
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here

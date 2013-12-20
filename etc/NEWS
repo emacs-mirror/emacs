@@ -885,6 +885,8 @@ frame.
 *** `string-trim-left'
 *** `string-trim-right'
 *** `string-trim'
+*** `string-remove-prefix'
+*** `string-remove-suffix'
 
 ** Obsoleted functions:
 *** `log10'
