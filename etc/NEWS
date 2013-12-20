@@ -450,7 +450,7 @@ This is useful to avoid a query when you have no key for that name.
 (setq icomplete-with-completion-tables '(internal-complete-buffer))
 will revert to the old behavior.
 
-
++++
 ** New features for Octave mode:
 *** Font locking for texinfo comments and new keywords
 *** Completion in Octave file buffers
