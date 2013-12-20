@@ -1,3 +1,10 @@
+2013-12-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* info.texi: Document `S-SPC' as alternative to `DEL' for
+	scrolling.
+
+	* woman.texi: Ditto.
+
 2013-12-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Stack Manipulation Commands): Mention using the variable

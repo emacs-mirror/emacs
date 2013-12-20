@@ -633,6 +633,11 @@ Scroll the man page up the window (@code{scroll-up}).
 @findex scroll-down
 Scroll the man page down the window (@code{scroll-down}).
 
+@item @key{S-SPC}
+@kindex S-SPC
+@findex scroll-down
+Scroll the man page down the window (@code{scroll-down}).
+
 @item n
 @kindex n
 @findex Man-next-section

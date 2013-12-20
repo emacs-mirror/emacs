@@ -112,8 +112,8 @@ Scroll to end of message (@code{rmail-end-of-message}).
 @kindex DEL @r{(Rmail)}
   Since the most common thing to do while reading a message is to
 scroll through it by screenfuls, Rmail makes @key{SPC} and @key{DEL}
-do the same as @kbd{C-v} (@code{scroll-up-command}) and @kbd{M-v}
-(@code{scroll-down-command}) respectively.
+or @key{S-SPC} do the same as @kbd{C-v} (@code{scroll-up-command}) and
+@kbd{M-v} (@code{scroll-down-command}) respectively.
 
 @kindex . @r{(Rmail)}
 @kindex / @r{(Rmail)}

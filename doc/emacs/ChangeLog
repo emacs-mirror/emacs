@@ -1,5 +1,14 @@
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
+	* rmail.texi: Document `S-SPC' as alternative to scrolling down
+	with `DEL'.
+
+	* help.texi: Ditto.
+
+	* display.texi: Ditto.
+
+	* calendar.texi: Ditto.
+
 	* frames.texi: Document `toggle-frame-maximized' and
 	`toggle-frame-fullscreen' with their respective keys.
 

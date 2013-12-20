@@ -377,8 +377,9 @@ alphabetical order, change the variable
 @section Help Mode Commands
 
   Help buffers provide the same commands as View mode (@pxref{View
-Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} scrolls
-backward.  A few special commands are also provided:
+Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} or
+@kbd{S-SPC} scrolls backward.  A few special commands are also
+provided:
 
 @table @kbd
 @item @key{RET}
