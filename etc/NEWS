@@ -331,8 +331,17 @@ Use `electric-indent-mode' instead.
 
 ** jit-lock-debug-mode lets you use the debuggers on code run via jit-lock.
 
-** completing-read-multiple's separator can now be a regexp.
+** Minibuffer
+
+*** completing-read-multiple's separator can now be a regexp.
 The default separator is changed to allow surrounding spaces around the comma.
+
+*** New option `read-regexp-defaults-function' defines the function
+that provides the default value for commands that ask for a regexp:
+`rgrep', `lgrep' `occur', `multi-occur', `multi-occur-in-matching-buffers',
+`highlight-regexp', `highlight-lines-matching-regexp', `highlight-phrase'.
+This option can be customized to values that provide a default value
+from the regexp last history element or from the symbol found at point.
 
 ** The backtrace debugger and local variables:
 *** The debugger's `e' command evaluates the code in the context at point.

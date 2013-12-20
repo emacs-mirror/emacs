@@ -626,6 +626,44 @@ of `history-length', which see.")
 (defvar occur-collect-regexp-history '("\\1")
   "History of regexp for occur's collect operation")
 
+(defcustom read-regexp-defaults-function nil
+  "Function that provides default regexp(s) for regexp reading commands.
+This function should take no arguments and return one of nil, a
+regexp or a list of regexps.  The return value of this function is used
+as DEFAULTS param of `read-regexp'.  This function is called only during
+interactive use.
+
+If you need different defaults for different commands,
+use `this-command' to identify the command under execution.
+
+You can customize `read-regexp-defaults-function' to the value
+`find-tag-default-as-regexp' to highlight a symbol at point."
+  :type '(choice
+	  (const :tag "No default regexp reading function" nil)
+	  (const :tag "Latest regexp history" regexp-history-last)
+	  (function-item :tag "Tag at point"
+			 find-tag-default)
+	  (function-item :tag "Tag at point as regexp"
+			 find-tag-default-as-regexp)
+	  (function-item :tag "Tag at point as symbol regexp"
+			 find-tag-default-as-symbol-regexp)
+	  (function :tag "Function to provide default for read-regexp"))
+  :group 'matching
+  :version "24.4")
+
+(defun read-regexp-suggestions ()
+  "Return a list of standard suggestions for `read-regexp'.
+By default, the list includes the tag at point, the last isearch regexp,
+the last isearch string, and the last replacement regexp.  `read-regexp'
+appends the list returned by this function to the end of values available
+via \\<minibuffer-local-map>\\[next-history-element]."
+  (list
+   (find-tag-default-as-regexp)
+   (find-tag-default-as-symbol-regexp)
+   (car regexp-search-ring)
+   (regexp-quote (or (car search-ring) ""))
+   (car (symbol-value query-replace-from-history-variable))))
+
 (defun read-regexp (prompt &optional defaults history)
   "Read and return a regular expression as a string.
 When PROMPT doesn't end with a colon and space, it adds a final \": \".
@@ -637,29 +675,31 @@ is returned as the default value when the user enters empty input.
 SUGGESTIONS is a list of strings that can be inserted into
 the minibuffer using \\<minibuffer-local-map>\\[next-history-element].  \
 The values supplied in SUGGESTIONS
-are prepended to the list of standard suggestions that include
-the tag at point, the last isearch regexp, the last isearch string,
-and the last replacement regexp.
+are prepended to the list of standard suggestions returned by
+`read-regexp-suggestions'.  The default values can be customized
+by `read-regexp-defaults-function'.
 
 Optional arg HISTORY is a symbol to use for the history list.
 If HISTORY is nil, `regexp-history' is used."
-  (let* ((default     (if (consp defaults) (car defaults) defaults))
+  (let* ((defaults
+	   (if (and defaults (symbolp defaults))
+	       (cond
+		((eq (or read-regexp-defaults-function defaults)
+		     'regexp-history-last)
+		 (car (symbol-value (or history 'regexp-history))))
+		((functionp (or read-regexp-defaults-function defaults))
+		 (funcall (or read-regexp-defaults-function defaults))))
+	     defaults))
+	 (default     (if (consp defaults) (car defaults) defaults))
 	 (suggestions (if (listp defaults) defaults (list defaults)))
-	 (suggestions
-	  (append
-	   suggestions
-	   (list
-	    (find-tag-default-as-regexp)
-	    (car regexp-search-ring)
-	    (regexp-quote (or (car search-ring) ""))
-	    (car (symbol-value query-replace-from-history-variable)))))
+	 (suggestions (append suggestions (read-regexp-suggestions)))
 	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
 		 (cond ((string-match-p ":[ \t]*\\'" prompt)
 			prompt)
-		       (default
+		       ((and default (> (length default) 0))
 			 (format "%s (default %s): " prompt
 				 (query-replace-descr default)))
 		       (t
@@ -667,7 +707,9 @@ If HISTORY is nil, `regexp-history' is used."
 		 nil nil nil (or history 'regexp-history) suggestions t)))
     (if (equal input "")
 	;; Return the default value when the user enters empty input.
-	(or default input)
+	(prog1 (or default input)
+	  (when default
+	    (add-to-history (or history 'regexp-history) default)))
       ;; Otherwise, add non-empty input to the history and return input.
       (prog1 input
 	(add-to-history (or history 'regexp-history) input)))))
@@ -1192,32 +1234,12 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
-(defvar occur-read-regexp-defaults-function
-  'occur-read-regexp-defaults
-  "Function that provides default regexp(s) for occur commands.
-This function should take no arguments and return one of nil, a
-regexp or a list of regexps for use with occur commands -
-`occur', `multi-occur' and `multi-occur-in-matching-buffers'.
-The return value of this function is used as DEFAULTS param of
-`read-regexp' while executing the occur command.  This function
-is called only during interactive use.
-
-For example, to check for occurrence of symbol at point use
-
-    (setq occur-read-regexp-defaults-function
-	  'find-tag-default-as-regexp).")
-
-(defun occur-read-regexp-defaults ()
-  "Return the latest regexp from `regexp-history'.
-See `occur-read-regexp-defaults-function' for details."
-  (car regexp-history))
-
 (defun occur-read-primary-args ()
   (let* ((perform-collect (consp current-prefix-arg))
          (regexp (read-regexp (if perform-collect
                                   "Collect strings matching regexp"
                                 "List lines matching regexp")
-                              (funcall occur-read-regexp-defaults-function))))
+                              'regexp-history-last)))
     (list regexp
 	  (if perform-collect
 	      ;; Perform collect operation

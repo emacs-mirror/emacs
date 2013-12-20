@@ -1,3 +1,30 @@
+2013-12-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (read-regexp-defaults-function): New defcustom (bug#14405).
+	(read-regexp-suggestions): New function.
+	(read-regexp): Use `read-regexp-defaults-function' to get default values.
+	Use `read-regexp-suggestions'.  Add non-empty default to history
+	for empty input.
+	(occur-read-regexp-defaults-function): Remove function.
+	(occur-read-primary-args): Use `regexp-history-last' instead of
+	`occur-read-regexp-defaults-function'.
+
+	* hi-lock.el (hi-lock-read-regexp-defaults-function): Remove function.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Use `regexp-history-last' instead of
+	`hi-lock-read-regexp-defaults-function'.  Doc fix.
+	(hi-lock-face-symbol-at-point): Replace `find-tag-default-as-regexp'
+	with `find-tag-default-as-symbol-regexp'.  Doc fix.
+	(hi-lock-read-regexp-defaults): Remove function.
+	(hi-lock-regexp-okay): Add check for null.
+
+	* progmodes/grep.el (grep-read-regexp): Use `grep-tag-default' for
+	the arg DEFAULTS.  Move formatting of the prompt to `read-regexp'.
+
+	* subr.el (find-tag-default-as-symbol-regexp): New function.
+	(find-tag-default-as-regexp): Move symbol regexp formatting to
+	`find-tag-default-as-symbol-regexp'.
+
 2013-12-20  E Sabof  <esabof@gmail.com>  (tiny change)
 
 	* hi-lock.el (hi-lock-set-pattern): Check for `font-lock-specified-p'.

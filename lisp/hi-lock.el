@@ -284,26 +284,6 @@ a library is being loaded.")
     map)
   "Key map for hi-lock.")
 
-(defvar hi-lock-read-regexp-defaults-function
-  'hi-lock-read-regexp-defaults
-  "Function that provides default regexp(s) for highlighting commands.
-This function should take no arguments and return one of nil, a
-regexp or a list of regexps for use with highlighting commands -
-`hi-lock-face-phrase-buffer', `hi-lock-line-face-buffer' and
-`hi-lock-face-buffer'.  The return value of this function is used
-as DEFAULTS param of `read-regexp' while executing the
-highlighting command.  This function is called only during
-interactive use.  
-
-For example, to highlight at symbol at point use
-
-    \(setq hi-lock-read-regexp-defaults-function 
-	  'find-tag-default-as-regexp\)
-
-If you need different defaults for different highlighting
-operations, use `this-command' to identify the command under
-execution.")
-
 ;; Visible Functions
 
 ;;;###autoload
@@ -431,7 +411,7 @@ versions before 22 use the following in your init file:
 (defun hi-lock-line-face-buffer (regexp &optional face)
   "Set face of all lines containing a match of REGEXP to FACE.
 Interactively, prompt for REGEXP then FACE.  Use
-`hi-lock-read-regexp-defaults-function' to retrieve default
+`read-regexp-defaults-function' to customize default
 value(s) of REGEXP.  Use the global history list for FACE.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
@@ -440,8 +420,7 @@ highlighting will not update as you type."
   (interactive
    (list
     (hi-lock-regexp-okay
-     (read-regexp "Regexp to highlight line"
-		  (funcall hi-lock-read-regexp-defaults-function)))
+     (read-regexp "Regexp to highlight line" 'regexp-history-last))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -457,8 +436,8 @@ highlighting will not update as you type."
 (defun hi-lock-face-buffer (regexp &optional face)
   "Set face of each match of REGEXP to FACE.
 Interactively, prompt for REGEXP then FACE.  Use
-`hi-lock-read-regexp-defaults-function' to retrieve default
-value(s) REGEXP.  Use the global history list for FACE.
+`read-regexp-defaults-function' to customize default
+value(s) of REGEXP.  Use the global history list for FACE.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -466,8 +445,7 @@ highlighting will not update as you type."
   (interactive
    (list
     (hi-lock-regexp-okay
-     (read-regexp "Regexp to highlight"
-		  (funcall hi-lock-read-regexp-defaults-function)))
+     (read-regexp "Regexp to highlight" 'regexp-history-last))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -479,7 +457,7 @@ highlighting will not update as you type."
 (defun hi-lock-face-phrase-buffer (regexp &optional face)
   "Set face of each match of phrase REGEXP to FACE.
 Interactively, prompt for REGEXP then FACE.  Use
-`hi-lock-read-regexp-defaults-function' to retrieve default
+`read-regexp-defaults-function' to customize default
 value(s) of REGEXP.  Use the global history list for FACE.  When
 called interactively, replace whitespace in user provided regexp
 with arbitrary whitespace and make initial lower-case letters
@@ -492,8 +470,7 @@ highlighting will not update as you type."
    (list
     (hi-lock-regexp-okay
      (hi-lock-process-phrase
-      (read-regexp "Phrase to highlight"
-		   (funcall hi-lock-read-regexp-defaults-function))))
+      (read-regexp "Phrase to highlight" 'regexp-history-last)))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -504,7 +481,7 @@ highlighting will not update as you type."
 ;;;###autoload
 (defun hi-lock-face-symbol-at-point ()
   "Set face of each match of the symbol at point.
-Use `find-tag-default-as-regexp' to retrieve the symbol at point.
+Use `find-tag-default-as-symbol-regexp' to retrieve the symbol at point.
 Use non-nil `hi-lock-auto-select-face' to retrieve the next face
 from `hi-lock-face-defaults' automatically.
 
@@ -513,7 +490,7 @@ Otherwise, use overlays for highlighting.  If overlays are used,
 the highlighting will not update as you type."
   (interactive)
   (let* ((regexp (hi-lock-regexp-okay
-		  (find-tag-default-as-regexp)))
+		  (find-tag-default-as-symbol-regexp)))
 	 (hi-lock-auto-select-face t)
 	 (face (hi-lock-read-face-name)))
     (or (facep face) (setq face 'hi-yellow))
@@ -676,14 +653,12 @@ and initial lower-case letters made case insensitive."
 
 Otherwise signal an error.  A pattern that matches the null string is
 not suitable."
-  (if (string-match regexp "")
-      (error "Regexp cannot match an empty string")
-    regexp))
-
-(defun hi-lock-read-regexp-defaults ()
-  "Return the latest regexp from `regexp-history'.
-See `hi-lock-read-regexp-defaults-function' for details."
-  (car regexp-history))
+  (cond
+   ((null regexp)
+    (error "Regexp cannot match nil"))
+   ((string-match regexp "")
+    (error "Regexp cannot match an empty string"))
+   (t regexp)))
 
 (defun hi-lock-read-face-name ()
   "Return face for interactive highlighting.

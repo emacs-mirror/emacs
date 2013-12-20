@@ -2540,14 +2540,26 @@ If there is no tag at point, return nil.
 When in a major mode that does not provide its own
 `find-tag-default-function', return a regexp that matches the
 symbol at point exactly."
-  (let* ((tagf (or find-tag-default-function
-		   (get major-mode 'find-tag-default-function)
-		   'find-tag-default))
-	 (tag (funcall tagf)))
-    (cond ((null tag) nil)
-	  ((eq tagf 'find-tag-default)
-	   (format "\\_<%s\\_>" (regexp-quote tag)))
-	  (t (regexp-quote tag)))))
+  (let ((tag (funcall (or find-tag-default-function
+			  (get major-mode 'find-tag-default-function)
+			  'find-tag-default))))
+    (if tag (regexp-quote tag))))
+
+(defun find-tag-default-as-symbol-regexp ()
+  "Return regexp that matches the default tag at point as symbol.
+If there is no tag at point, return nil.
+
+When in a major mode that does not provide its own
+`find-tag-default-function', return a regexp that matches the
+symbol at point exactly."
+  (let ((tag-regexp (find-tag-default-as-regexp)))
+    (if (and tag-regexp
+	     (eq (or find-tag-default-function
+		     (get major-mode 'find-tag-default-function)
+		     'find-tag-default)
+		 'find-tag-default))
+	(format "\\_<%s\\_>" tag-regexp)
+      tag-regexp)))
 
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
