@@ -130,6 +130,7 @@ integers (octal, hexadecimal, and character).
 directory local variables are ignored.  May be useful for some modes
 that want to ignore directory-locals while still respecting file-locals.
 
+---
 ** The option `set-mark-default-inactive' has been deleted.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
