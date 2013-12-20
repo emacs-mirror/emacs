@@ -1,3 +1,11 @@
+2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: Add tests for
+	`ruby-align-to-stmt-keywords'.
+
+	* indent/ruby.rb: Update examples to reflect the lack of change in
+	default indentation of `begin' blocks.
+
 2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* indent/ruby.rb: Update examples according to the change

@@ -114,17 +114,17 @@ def test2 (arg)
     puts "there"
   end
 
-  case a
-  when "a"
-    6
-  # Support for this syntax was removed in Ruby 1.9, so we
-  # probably don't need to handle it either.
-  # when "b" :
-  #   7
-  # when "c" : 2
-  when "d"  then 4
-  else 5
-  end
+  b = case a
+      when "a"
+        6
+      # Support for this syntax was removed in Ruby 1.9, so we
+      # probably don't need to handle it either.
+      # when "b" :
+      #   7
+      # when "c" : 2
+      when "d"  then 4
+      else 5
+      end
 end
 
 # Some Cucumber code:
@@ -321,18 +321,13 @@ end
 foo |
   bar
 
-foo ||
-  begin
-    bar
-  end
-
 def qux
   foo ||= begin
-    bar
-    tee
-  rescue
-    oomph
-  end
+            bar
+            tee
+          rescue
+            oomph
+          end
 end
 
 %^abc^

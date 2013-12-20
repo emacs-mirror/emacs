@@ -714,6 +714,8 @@ whether it is safe to use Bash's --noediting option.  These days
 
 *** Add more Ruby file types to `auto-mode-alist'.
 
+*** New option `ruby-align-to-stmt-keywords'.
+
 ** JS Mode
 
 *** Better indentation of multiple-variable declarations.

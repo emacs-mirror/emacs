@@ -1,3 +1,14 @@
+2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-align-to-stmt-keywords): New
+	option.  (Bug#16182)
+	(ruby-smie--indent-to-stmt-p): Use it.
+	(ruby-smie-rules): Revert the logic in the handling of `when'.
+	Expand the begin clause to handle `ruby-align-to-stmt-keywords'.
+	(ruby-deep-arglist, ruby-deep-indent-paren)
+	(ruby-deep-indent-paren-style): Update docstrings to note that the
+	vars don't have any effect with SMIE.
+
 2013-12-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-enter, calc-pop): Use the variable

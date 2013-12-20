@@ -226,9 +226,48 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   :group 'ruby
   :safe 'integerp)
 
+(defcustom ruby-align-to-stmt-keywords nil
+  "Keywords to align their expression body to statement.
+When nil, an expression that begins with one these keywords is
+indented to the column of the keyword.  Example:
+
+  tee = if foo
+          bar
+        else
+          qux
+        end
+
+If this value is t or contains a symbol with the name of given
+keyword, the expression is indented to align to the beginning of
+the statement:
+
+  tee = if foo
+    bar
+  else
+    qux
+  end
+
+Only has effect when `ruby-use-smie' is t.
+"
+  :type '(choice
+          (const :tag "None" nil)
+          (const :tag "All" t)
+          (repeat :tag "User defined"
+                  (choice (const if)
+                          (const while)
+                          (const unless)
+                          (const until)
+                          (const begin)
+                          (const case)
+                          (const for))))
+  :group 'ruby
+  :safe 'listp
+  :version "24.4")
+
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
-Also ignores spaces after parenthesis when 'space."
+Also ignores spaces after parenthesis when `space'.
+Only has effect when `ruby-use-smie' is nil."
   :type 'boolean
   :group 'ruby
   :safe 'booleanp)
@@ -236,11 +275,13 @@ Also ignores spaces after parenthesis when 'space."
 (defcustom ruby-deep-indent-paren '(?\( ?\[ ?\] t)
   "Deep indent lists in parenthesis when non-nil.
 The value t means continuous line.
-Also ignores spaces after parenthesis when 'space."
+Also ignores spaces after parenthesis when `space'.
+Only has effect when `ruby-use-smie' is nil."
   :group 'ruby)
 
 (defcustom ruby-deep-indent-paren-style 'space
-  "Default deep indent style."
+  "Default deep indent style.
+Only has effect when `ruby-use-smie' is nil."
   :options '(t nil space) :group 'ruby)
 
 (defcustom ruby-encoding-map
@@ -520,6 +561,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     (smie-backward-sexp ";")
     (cons 'column (smie-indent-virtual))))
 
+(defun ruby-smie--indent-to-stmt-p (keyword)
+  (or (eq t ruby-align-to-stmt-keywords)
+      (memq (intern keyword) ruby-align-to-stmt-keywords)))
+
 (defun ruby-smie-rules (kind token)
   (pcase (cons kind token)
     (`(:elem . basic) ruby-indent-level)
@@ -572,7 +617,9 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
      (smie-rule-parent))
     (`(:before . "when")
-     (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
+     ;; Align to the previous `when', but look up the virtual
+     ;; indentation of `case'.
+     (if (smie-rule-sibling-p) 0 (smie-rule-parent)))
     (`(:after . ,(or "=" "iuwu-mod" "+" "-" "*" "/" "&&" "||" "%" "**" "^" "&"
                      "<=>" ">" "<" ">=" "<=" "==" "===" "!=" "<<" ">>"
                      "+=" "-=" "*=" "/=" "%=" "**=" "&=" "|=" "^=" "|"
@@ -581,9 +628,11 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
           (smie-indent--hanging-p)
           ruby-indent-level))
     (`(:after . ,(or "?" ":")) ruby-indent-level)
-    (`(:before . "begin")
-     (unless (save-excursion (skip-chars-backward " \t") (bolp))
-       (smie-rule-parent)))
+    (`(:before . ,(or "if" "while" "unless" "until" "begin" "case" "for"))
+     (when (not (save-excursion (skip-chars-backward " \t") (bolp)))
+       (if (ruby-smie--indent-to-stmt-p token)
+           (ruby-smie--indent-to-stmt)
+         (cons 'column (current-column)))))
     ))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)
