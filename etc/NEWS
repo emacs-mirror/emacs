@@ -289,19 +289,6 @@ file and letting SMIE learn from it.
 
 ** sh-script now uses its SMIE indentation algorithm by default.
 
-+++
-** `eshell' now supports visual subcommands and options
-Eshell has been able to handle "visual" commands (interactive,
-non-line oriented commands such as top that require display
-capabilities not provided by eshell) by running them in an Emacs
-terminal emulator.  See `eshell-visual-commands'.
-
-This feature has been extended to subcommands and options that make a
-usually line-oriented command a visual command.  Typical examples are
-"git log" and "git <command> --help" which display their output in a
-pager by default.  See `eshell-visual-subcommands' and
-`eshell-visual-options'.
-
 ** If your Emacs is compiled with libxml2 support, you can use the new
 built-in web browser `eww'.
 
@@ -636,6 +623,20 @@ are obsolete.  Customize the `woman-*' faces instead.
 
 ** Eshell
 
++++
+*** `eshell' now supports visual subcommands and options
+Eshell has been able to handle "visual" commands (interactive,
+non-line oriented commands such as top that require display
+capabilities not provided by eshell) by running them in an Emacs
+terminal emulator.  See `eshell-visual-commands'.
+
+This feature has been extended to subcommands and options that make a
+usually line-oriented command a visual command.  Typical examples are
+"git log" and "git <command> --help" which display their output in a
+pager by default.  See `eshell-visual-subcommands' and
+`eshell-visual-options'.
+
+---
 *** Added Eshell-Tramp module
 External su and sudo commands are now the default; the internal,
 Tramp-using variants can still be used by enabling the eshell-tramp
