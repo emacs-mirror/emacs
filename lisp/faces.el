@@ -958,10 +958,11 @@ a single face name."
                   ;; If we only want one, and the default is more than one,
                   ;; discard the unwanted ones.
                   (t (symbol-name (car default))))))
-  (if (and default (not multiple))
-      ;; For compatibility with `completing-read-multiple' use `crm-separator'
-      ;; to define DEFAULT if MULTIPLE is nil.
-      (setq default (car (split-string default crm-separator t))))
+  (when (and default (not multiple))
+    (require 'crm)
+    ;; For compatibility with `completing-read-multiple' use `crm-separator'
+    ;; to define DEFAULT if MULTIPLE is nil.
+    (setq default (car (split-string default crm-separator t))))
 
   (let ((prompt (if default
                     (format "%s (default `%s'): " prompt default)

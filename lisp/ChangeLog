@@ -1,3 +1,7 @@
+2013-12-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (read-face-name): Require crm.el when using crm-separator.
+
 2013-12-20  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/sh-script.el (sh-mode): Tweak paragraph-separate
@@ -106,8 +110,8 @@
 
 	Fix assignment for new window total sizes.
 	* window.el (window--pixel-to-size): Remove function.
-	(window--pixel-to-total-1, window--pixel-to-total): Fix
-	calculation of new total sizes.
+	(window--pixel-to-total-1, window--pixel-to-total):
+	Fix calculation of new total sizes.
 
 2013-12-20  Vitalie Spinu  <spinuvit@gmail.com>
 
@@ -120,8 +124,8 @@
 
 2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-align-to-stmt-keywords): New
-	option.  (Bug#16182)
+	* progmodes/ruby-mode.el (ruby-align-to-stmt-keywords):
+	New option.  (Bug#16182)
 	(ruby-smie--indent-to-stmt-p): Use it.
 	(ruby-smie-rules): Revert the logic in the handling of `when'.
 	Expand the begin clause to handle `ruby-align-to-stmt-keywords'.
@@ -317,7 +321,7 @@
 	* progmodes/make-mode.el (makefile-fill-paragraph): Fix infloop
 	(Bug#13914).
 
-2013-12-18  Shigeru Fukaya <shigeru.fukaya@gmail.com>
+2013-12-18  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
 	* apropos.el (apropos-words-to-regexp): Fix algorithm (Bug#13946).
 
@@ -728,7 +732,7 @@
 	* bindings.el: Map kp keys to non-kp keys systematically
 	with basic modifiers control, meta and shift.  (Bug#14397)
 
-2013-12-11  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>  (tiny change)
+2013-12-11  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>  (tiny change)
 
 	* net/eww.el (eww-mode-map): Instead of "Quit" show "Exit" and
 	"Close browser" menu items.  Fix wrong function of "List
@@ -777,7 +781,7 @@
 	(describe-package-1): Add keyword buttons.
 	(package-make-button): New convenience function.
 	(package-keyword-button-action): Keyword button action using
-	`finder-list-matches'
+	`finder-list-matches'.
 
 2013-12-09  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1029,7 +1033,7 @@
 	* isearch.el (isearch-mode, isearch-done): Don't set arg LOCAL in
 	add-hook and remove-hook for multi-buffer search.  (Bug#16035)
 
-2013-12-03  Tom Regner <tom@goochesa.de>  (tiny change)
+2013-12-03  Tom Regner  <tom@goochesa.de>  (tiny change)
 
 	* notifications.el (notifications-close-notification): Call the
 	D-Bus method with ID being a `:uint32'.  (Bug#16030)
@@ -1125,9 +1129,9 @@
 	(eww-form-checkbox, eww-toggle-checkbox):
 	Use `eww-form-checkbox-selected-symbol' and `eww-form-checkbox-symbol'.
 
-	* net/shr.el (shr-prefer-media-type-alist): : New customizable variable.
+	* net/shr.el (shr-prefer-media-type-alist): New customizable variable.
 	(shr--get-media-pref, shr--extract-best-source): New function.
-	(shr-tag-video, shr-tag-audio):  Use `shr--extract-best-source' when
+	(shr-tag-video, shr-tag-audio): Use `shr--extract-best-source' when
 	no :src tag was specified.
 
 	* net/eww.el (eww-use-external-browser-for-content-type): New variable.
@@ -1140,7 +1144,7 @@
 	poster is available.
 	(shr-tag-audio): Add support for <audio> tag.
 
-	* net/eww.el (eww-text-input-types): : New const.
+	* net/eww.el (eww-text-input-types): New const.
 	(eww-process-text-input): Treat input types in
 	`eww-text-input-types' as text.
 
@@ -1347,9 +1351,9 @@
 
 2013-11-26  Kenjiro NAKAYAMA  <knakayam@redhat.com>  (tiny change)
 
-        * net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.
-        (eww-add-bookmark): ask confirmation when add to bookmarks
-        (eww-quit): ask confirmation before quitting eww
+	* net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.
+	(eww-add-bookmark): Ask confirmation when add to bookmarks
+	(eww-quit): Ask confirmation before quitting eww.
 
 2013-11-26  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2757,7 +2761,7 @@
 
 2013-10-18  Reuben Thomas  <rrt@sc3d.org>
 
-	* textmodes/remember.el (remember): set buffer-offer-save in
+	* textmodes/remember.el (remember): Set buffer-offer-save in
 	remember buffers (bug#13566).
 
 2013-10-18  Daniel Colascione  <dancol@dancol.org>
@@ -4235,7 +4239,7 @@
 
 2013-09-08  Kenichi Handa  <handa@gnu.org>
 
-	* international/characters.el: Set category "^"	(Combining) for
+	* international/characters.el: Set category "^" (Combining) for
 	more characters.
 
 2013-09-07  Alan Mackenzie  <acm@muc.de>
