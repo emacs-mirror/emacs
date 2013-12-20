@@ -1473,8 +1473,12 @@ pixels tall), or @code{nil} (no cursor at all).
 @findex blink-cursor-mode
 @cindex cursor, blinking
 @cindex blinking cursor
+@vindex blink-cursor-mode
+@vindex blink-cursor-blinks
 @vindex blink-cursor-alist
-  To disable cursor blinking, change the variable
+  By default, the cursor stops blinking after 10 blinks.  This can be
+changed by customizing the variable @code{blink-cursor-blinks}.  To
+disable cursor blinking altogether, change the variable
 @code{blink-cursor-mode} to @code{nil} (@pxref{Easy Customization}),
 or add the line @code{(blink-cursor-mode 0)} to your init file.
 Alternatively, you can change how the cursor looks when it ``blinks
