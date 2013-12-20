@@ -5488,6 +5488,8 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
     {
       new_text_width = (new_width == 0) ? FRAME_TEXT_WIDTH (f) : new_width;
       new_text_height = (new_height == 0) ? FRAME_TEXT_HEIGHT (f) : new_height;
+      /* Consider rounding here: Currently, the root window can be
+	 larger than the frame in terms of columns/lines.  */
       new_cols = new_text_width / FRAME_COLUMN_WIDTH (f);
       new_lines = new_text_height / FRAME_LINE_HEIGHT (f);
     }
@@ -5507,7 +5509,6 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
      fringe columns.  Do this after rounding - see discussion of
      bug#9723.  */
   new_root_width = (new_text_width
-		    /* PXM: Use the configured scrollbar width !??  */
 		    + FRAME_SCROLL_BAR_AREA_WIDTH (f)
 		    + FRAME_TOTAL_FRINGE_WIDTH (f));
   /* If we're not changing the frame size, quit now.  */

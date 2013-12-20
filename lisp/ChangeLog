@@ -1,3 +1,10 @@
+2013-12-20  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix assignment for new window total sizes.
+	* window.el (window--pixel-to-size): Remove function.
+	(window--pixel-to-total-1, window--pixel-to-total): Fix
+	calculation of new total sizes.
+
 2013-12-20  Vitalie Spinu  <spinuvit@gmail.com>
 
 	* comint.el (comint-output-filter): Fix rear-nonsticky property

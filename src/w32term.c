@@ -3451,9 +3451,7 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
               = x_window_to_scroll_bar (WindowFromPoint (pt));
 
 	    if (bar)
-	      {
-		f1 = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-	      }
+	      f1 = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 	  }
 
 	if (f1 == 0 && insist > 0)
@@ -3560,10 +3558,10 @@ w32_set_scroll_bar_thumb (struct scroll_bar *bar,
   /* We use the whole scroll-bar height in the calculations below, to
      avoid strange effects like scrolling backwards when just clicking
      on the handle (without moving it).  */
-  double range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height))
+  double range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height)
                  + VERTICAL_SCROLL_BAR_MIN_HANDLE;
   int sb_page, sb_pos;
-  BOOL draggingp = !NILP (bar->dragging) ? TRUE : FALSE;
+  BOOL draggingp = bar->dragging ? TRUE : FALSE;
   SCROLLINFO si;
 
   /* We used to change the nPage setting while dragging the handle,
@@ -3708,19 +3706,19 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   HWND hwnd;
   SCROLLINFO si;
   struct scroll_bar *bar
-    = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, fringe_extended_p, PVEC_OTHER);
+    = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, top, PVEC_OTHER);
   Lisp_Object barobj;
 
   block_input ();
 
   XSETWINDOW (bar->window, w);
-  XSETINT (bar->top, top);
-  XSETINT (bar->left, left);
-  XSETINT (bar->width, width);
-  XSETINT (bar->height, height);
-  XSETINT (bar->start, 0);
-  XSETINT (bar->end, 0);
-  bar->dragging = Qnil;
+  bar->top = top;
+  bar->left = left;
+  bar->width = width;
+  bar->height = height;
+  bar->start = 0;
+  bar->end = 0;
+  bar->dragging = 0;
   bar->fringe_extended_p = 0;
 
   /* Requires geometry to be set before call to create the real window */
@@ -3838,10 +3836,10 @@ w32_set_vertical_scroll_bar (struct window *w,
       hwnd = SCROLL_BAR_W32_WINDOW (bar);
 
       /* If already correctly positioned, do nothing.  */
-      if (XINT (bar->left) == sb_left
-	  && XINT (bar->top) == top
-	  && XINT (bar->width) == sb_width
-	  && XINT (bar->height) == height
+      if (bar->left == sb_left
+	  && bar->top == top
+	  && bar->width == sb_width
+	  && bar->height == height
 	  && bar->fringe_extended_p == fringe_extended_p)
         {
           /* Redraw after clear_frame. */
@@ -3883,10 +3881,10 @@ w32_set_vertical_scroll_bar (struct window *w,
           /* InvalidateRect (w, NULL, FALSE);  */
 
           /* Remember new settings.  */
-          XSETINT (bar->left, sb_left);
-          XSETINT (bar->top, top);
-          XSETINT (bar->width, sb_width);
-          XSETINT (bar->height, height);
+          bar->left = sb_left;
+          bar->top = top;
+          bar->width = sb_width;
+          bar->height = height;
 
           unblock_input ();
         }
@@ -4026,9 +4024,9 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
   emacs_event->timestamp = msg->msg.time;
 
   {
-    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
     int y;
-    int dragging = !NILP (bar->dragging);
+    int dragging = bar->dragging;
     SCROLLINFO si;
 
     si.cbSize = sizeof (si);
@@ -4037,7 +4035,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
     GetScrollInfo ((HWND) msg->msg.lParam, SB_CTL, &si);
     y = si.nPos;
 
-    bar->dragging = Qnil;
+    bar->dragging = 0;
     FRAME_DISPLAY_INFO (f)->last_mouse_scroll_bar_pos = msg->msg.wParam;
 
     switch (LOWORD (msg->msg.wParam))
@@ -4064,9 +4062,9 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	break;
       case SB_THUMBTRACK:
       case SB_THUMBPOSITION:
-	if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height)) <= 0xffff)
+	if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height) <= 0xffff)
           y = HIWORD (msg->msg.wParam);
-	bar->dragging = Qt;
+	bar->dragging = 1; /* ??????? */
 	emacs_event->part = scroll_bar_handle;
 
 	/* "Silently" update current position.  */
@@ -4090,8 +4088,8 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	if (dragging)
 	  {
 	    SCROLLINFO si;
-	    int start = XINT (bar->start);
-	    int end = XINT (bar->end);
+	    int start = bar->start;
+	    int end = bar->end;
 
 	    si.cbSize = sizeof (si);
 	    si.fMask = SIF_PAGE | SIF_POS;
@@ -4126,7 +4124,7 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   Window w = SCROLL_BAR_W32_WINDOW (bar);
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int pos;
-  int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+  int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
   SCROLLINFO si;
 
   block_input ();
@@ -4146,7 +4144,7 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
   case SB_THUMBPOSITION:
   case SB_THUMBTRACK:
       *part = scroll_bar_handle;
-      if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height)) <= 0xffff)
+      if (VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height) <= 0xffff)
 	pos = HIWORD (dpyinfo->last_mouse_scroll_bar_pos);
       break;
   case SB_LINEDOWN:
@@ -5710,8 +5708,6 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
   block_input ();
 
   check_frame_size (f, &width, &height, pixelwise);
-  f->scroll_bar_actual_width
-    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   compute_fringe_widths (f, 0);
 

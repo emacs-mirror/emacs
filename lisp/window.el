@@ -2079,30 +2079,16 @@ WINDOW's frame if the option `window-resize-pixelwise' is nil."
 	  size)
       (* size char-size))))
 
-(defun window--pixel-to-size (window size &optional horizontal round-up)
-  "For WINDOW convert SIZE pixels to lines.
-WINDOW must be a valid window and defaults to the selected one.
-Optional argument HORIZONTAL non-nil means convert SIZE pixels to
-columns.  Optional argument ROUND-UP means to round up the return
-value."
-  (let ((char-size (frame-char-size
-		    (window-normalize-window window) horizontal)))
-    (if round-up
-	(/ (+ size char-size -1) char-size)
-      (/ size char-size))))
-
 (defun window--pixel-to-total-1 (window horizontal char-size)
   "Subroutine of `window--pixel-to-total'."
   (let ((child (window-child window)))
     (if (window-combination-p window horizontal)
 	;; In an iso-combination distribute sizes proportionally.
 	(let ((remainder (window-new-total window))
-	      size best-child best-size)
+	      size best-child rem best-rem)
 	  ;; Initialize total sizes to each child's floor.
 	  (while child
-	    (setq size (window--pixel-to-size
-			child (window-size child horizontal t)
-			horizontal))
+	    (setq size (max (/ (window-size child horizontal t) char-size) 1))
 	    (set-window-new-total child size)
 	    (setq remainder (- remainder size))
 	    (setq child (window-next-sibling child)))
@@ -2110,15 +2096,15 @@ value."
 	  (while (> remainder 0)
 	    (setq child (window-last-child window))
 	    (setq best-child nil)
-	    (setq best-size 0)
-	    ;; We want those auxiliary fields in the window structure to
-	    ;; avoid this.
+	    (setq best-rem 0)
 	    (while child
-	      (setq size (- (/ (window-size child horizontal t) char-size)
-			    (window-new-total child)))
-	      (when (> size best-size)
-		(setq best-child child)
-		(setq best-size size))
+	      (when (and (<= (window-new-total child)
+			     (/ (window-size child horizontal t) char-size))
+			 (> (setq rem (% (window-size child horizontal t)
+					 char-size))
+			    best-rem))
+		   (setq best-child child)
+		   (setq best-rem rem))
 	      (setq child (window-prev-sibling child)))
 	    ;; We MUST have a best-child here.
 	    (set-window-new-total best-child 1 t)
@@ -2142,14 +2128,39 @@ FRAME must be a live frame and defaults to the selected frame.
 Optional argument HORIZONTAL non-nil means assign new total
 window widths from pixel widths."
   (setq frame (window-normalize-frame frame))
-  (let ((root (frame-root-window))
-	(char-size (frame-char-size frame horizontal)))
-    (set-window-new-total
-     root (window--pixel-to-size
-	   root (window-size root horizontal t) horizontal))
+  (let* ((char-size (frame-char-size frame horizontal))
+	 (root (frame-root-window))
+	 (root-size (window-size root horizontal t))
+	 ;; We have to care about the minibuffer window only if it
+	 ;; appears together with the root window on this frame.
+	 (mini (let ((mini (minibuffer-window frame)))
+		 (and (eq (window-frame mini) frame)
+		      (not (eq mini root)) mini)))
+	 (mini-size (and mini (window-size mini horizontal t))))
+    ;; We round the line/column sizes of windows here to the nearest
+    ;; integer.  In some cases this can make windows appear _larger_
+    ;; than the containing frame (line/column-wise) because the latter's
+    ;; sizes are not (yet) rounded.  We might eventually fix that.
+    (if (and mini (not horizontal))
+	(let (lines)
+	  (set-window-new-total root (max (/ root-size char-size) 1))
+	  (set-window-new-total mini (max (/ mini-size char-size) 1))
+	  (setq lines (- (round (+ root-size mini-size) char-size)
+			 (+ (window-new-total root) (window-new-total mini))))
+	  (while (> lines 0)
+	    (if (>= (% root-size (window-new-total root))
+		    (% mini-size (window-new-total mini)))
+		(set-window-new-total root 1 t)
+	      (set-window-new-total mini 1 t))
+	    (setq lines (1- lines))))
+      (set-window-new-total root (round root-size char-size))
+      (when mini
+	;; This is taken in the horizontal case only.
+	(set-window-new-total mini (round mini-size char-size))))
     (unless (window-buffer root)
-      (window--pixel-to-total-1 root horizontal char-size)))
-  (window-resize-apply-total frame horizontal))
+      (window--pixel-to-total-1 root horizontal char-size))
+    ;; Apply the new sizes.
+    (window-resize-apply-total frame horizontal)))
 
 (defun window--resize-reset (&optional frame horizontal)
   "Reset resize values for all windows on FRAME.

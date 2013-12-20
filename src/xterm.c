@@ -8537,10 +8537,6 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
   int pixelwidth, pixelheight;
 
   check_frame_size (f, &width, &height, pixelwise);
-  f->scroll_bar_actual_width
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-       : FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f));
 
   compute_fringe_widths (f, 0);
 
@@ -8623,10 +8619,7 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 #endif
       text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, FRAME_PIXEL_WIDTH (f));
       text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelh);
-      /* Update f->scroll_bar_actual_width because it is used in
-         FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
-      f->scroll_bar_actual_width
-        = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
+
       change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
     }
 

@@ -4001,6 +4001,20 @@ values.  */)
   r->left_col = 0;
   r->top_line = FRAME_TOP_MARGIN (f);
   window_resize_apply_total (r, !NILP (horizontal));
+  /* Handle the mini window.  */
+  if (FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
+    {
+      struct window *m = XWINDOW (f->minibuffer_window);
+
+      if (NILP (horizontal))
+	{
+	  m->top_line = r->top_line + r->total_lines;
+	  m->total_lines = XFASTINT (m->new_total);
+	}
+      else
+	m->total_cols = XFASTINT (m->new_total);
+    }
+
   unblock_input ();
 
   return Qt;

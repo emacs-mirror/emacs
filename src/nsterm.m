@@ -1289,7 +1289,6 @@ x_set_window_size (struct frame *f,
 
   check_frame_size (f, &width, &height, pixelwise);
 
-  f->scroll_bar_actual_width = NS_SCROLL_BAR_WIDTH (f);
   compute_fringe_widths (f, 0);
 
   if (pixelwise)

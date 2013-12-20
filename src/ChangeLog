@@ -1,3 +1,32 @@
+2013-12-20  Martin Rudalics  <rudalics@gmx.at>
+
+	Remove scroll_bar_actual_width from frames.
+	* frame.h (struct frame): Remove scroll_bar_actual_width slot.
+	* frame.c (Fscroll_bar_width): Return scroll bar area width.
+	(x_figure_window_size):
+	* nsterm.m (x_set_window_size):
+	* widget.c (set_frame_size):
+	* w32term.c (x_set_window_size):
+	* xterm.c (x_set_window_size, x_set_window_size_1): Don't set
+	scroll_bar_actual_width.
+
+	Convert scroll_bar members to integers on Windows.
+	* w32term.h (struct scroll_bar): Convert top, left, width,
+	height, start, end and dragging to integers.
+	* w32fns.c (w32_createscrollbar): Remove XINT conversions for
+	scroll_bar members.
+	* w32term.c (w32_set_scroll_bar_thumb)
+	(w32_scroll_bar_handle_click): Remove XINT conversions for
+	scroll_bar members.  Treat bar->dragging as integer.
+	(x_scroll_bar_create): Call ALLOCATE_PSEUDOVECTOR with "top" as
+	first element.  Remove XINT conversions for scroll_bar members.
+	(w32_set_vertical_scroll_bar, x_scroll_bar_report_motion):
+	Remove XINT conversions for scroll_bar members.
+
+	Fix assignment for new window total sizes.
+	* window.c (Fwindow_resize_apply_total): Assign values for
+	minibuffer window.
+
 2013-12-20  Chong Yidong  <cyd@gnu.org>
 
 	* textprop.c (Fadd_face_text_property): Doc fix.  Rename `appendp'

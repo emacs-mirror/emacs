@@ -436,10 +436,6 @@ struct frame
   int config_scroll_bar_width;
   int config_scroll_bar_cols;
 
-  /* The size of the extra width currently allotted for vertical
-     scroll bars in this frame, in pixels.  */
-  int scroll_bar_actual_width;
-
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 

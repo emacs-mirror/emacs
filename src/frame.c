@@ -2515,7 +2515,7 @@ DEFUN ("frame-scroll-bar-width", Fscroll_bar_width, Sscroll_bar_width, 0, 1, 0,
        doc: /* Return scroll bar width of FRAME in pixels.  */)
   (Lisp_Object frame)
 {
-  return make_number (decode_any_frame (frame)->scroll_bar_actual_width);
+  return make_number (FRAME_SCROLL_BAR_AREA_WIDTH (decode_any_frame (frame)));
 }
 
 DEFUN ("frame-fringe-width", Ffringe_width, Sfringe_width, 0, 1, 0,
@@ -4237,8 +4237,6 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, bool toolbar_p)
 	window_prompting |= PSize;
     }
 
-  f->scroll_bar_actual_width
-    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   /* This used to be done _before_ calling x_figure_window_size, but
      since the height is reset here, this was really a no-op.  I

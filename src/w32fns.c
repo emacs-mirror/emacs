@@ -1912,8 +1912,7 @@ w32_createscrollbar (struct frame *f, struct scroll_bar * bar)
 {
   return CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
 		       /* Position and size of scroll bar.  */
-		       XINT (bar->left), XINT (bar->top),
-		       XINT (bar->width), XINT (bar->height),
+		       bar->left, bar->top, bar->width, bar->height,
 		       FRAME_W32_WINDOW (f), NULL, hinst, NULL);
 }
 

@@ -429,7 +429,7 @@ struct scroll_bar {
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
-  Lisp_Object top, left, width, height;
+  int top, left, width, height;
 
   /* The starting and ending positions of the handle, relative to the
      handle area (i.e. zero is the top position, not
@@ -442,13 +442,13 @@ struct scroll_bar {
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
      different co-ordinate system.  */
-  Lisp_Object start, end;
+  int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
-  Lisp_Object dragging;
+  int dragging;
 
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
