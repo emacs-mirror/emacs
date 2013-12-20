@@ -1,5 +1,25 @@
 2013-12-20  Juri Linkov  <juri@jurta.org>
 
+	* saveplace.el (save-place-to-alist): Add `dired-filename' as
+	a position when `dired-directory' is non-nil.  Check integer
+	positions with `integerp'.
+	(toggle-save-place, save-places-to-alist): Add check for
+	`dired-directory'.
+	(save-place-find-file-hook): Check integer positions with
+	`integerp'.
+	(save-place-dired-hook): Use `dired-goto-file' when
+	`dired-filename' is found in the assoc list.  Check integer
+	positions with `integerp'.
+	(dired-initial-position-hook): Rename from `dired-initial-point-hook'.
+
+	* dired.el (dired-initial-position-hook): Rename back from
+	`dired-initial-point-hook'.
+	(dired-initial-position): Rename `dired-initial-point-hook' to
+	`dired-initial-position-hook'.
+	(dired-file-name-at-point): Doc fix.  (Bug#15329)
+
+2013-12-20  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (read-regexp-defaults-function): New defcustom (bug#14405).
 	(read-regexp-suggestions): New function.
 	(read-regexp): Use `read-regexp-defaults-function' to get default values.
@@ -3814,7 +3834,7 @@
 
 	* subr.el (eval-after-load): Preserve evaluation order (bug#15389).
 
-	* abbrev.el (abbrev--check-chars): Fix thinko (bug#15329).
+	* abbrev.el (abbrev--check-chars): Fix thinko (bug#15360).
 
 2013-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 

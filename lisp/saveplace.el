@@ -152,14 +152,16 @@ file:
 
 \(setq-default save-place t\)"
   (interactive "P")
-  (if (not buffer-file-name)
-      (message "Buffer `%s' not visiting a file" (buffer-name))
+  (if (not (or buffer-file-name dired-directory))
+      (message "Buffer `%s' not visiting a file or directory" (buffer-name))
     (if (and save-place (or (not parg) (<= parg 0)))
 	(progn
 	  (message "No place will be saved in this file")
 	  (setq save-place nil))
       (message "Place will be saved")
       (setq save-place t))))
+
+(declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
 (defun save-place-to-alist ()
   ;; put filename and point in a cons box and then cons that onto the
@@ -170,20 +172,29 @@ file:
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))
   (let ((item (or buffer-file-name
-                  (and dired-directory (expand-file-name dired-directory)))))
+                  (and dired-directory
+		       (if (consp dired-directory)
+			   (expand-file-name (car dired-directory))
+			 (expand-file-name dired-directory))))))
     (when (and item
                (or (not save-place-ignore-files-regexp)
                    (not (string-match save-place-ignore-files-regexp
                                       item))))
       (let ((cell (assoc item save-place-alist))
-            (position (if (not (eq major-mode 'hexl-mode))
-                          (point)
-                        (with-no-warnings
-                          (1+ (hexl-current-address))))))
+            (position (cond ((eq major-mode 'hexl-mode)
+			     (with-no-warnings
+			       (1+ (hexl-current-address))))
+			    (dired-directory
+			     (let ((filename (dired-get-filename nil t)))
+			       (if filename
+				   `((dired-filename . ,filename))
+				 (point))))
+			    (t (point)))))
         (if cell
             (setq save-place-alist (delq cell save-place-alist)))
         (if (and save-place
-                 (not (= position 1)))  ;; Optimize out the degenerate case.
+                 (not (and (integerp position)
+			   (= position 1)))) ;; Optimize out the degenerate case.
             (setq save-place-alist
                   (cons (cons item position)
                         save-place-alist)))))))
@@ -290,7 +301,8 @@ may have changed\) back to `save-place-alist'."
       (with-current-buffer (car buf-list)
 	;; save-place checks buffer-file-name too, but we can avoid
 	;; overhead of function call by checking here too.
-	(and buffer-file-name (save-place-to-alist))
+	(and (or buffer-file-name dired-directory)
+	     (save-place-to-alist))
 	(setq buf-list (cdr buf-list))))))
 
 (defun save-place-find-file-hook ()
@@ -299,18 +311,27 @@ may have changed\) back to `save-place-alist'."
     (if cell
 	(progn
 	  (or revert-buffer-in-progress-p
-	      (goto-char (cdr cell)))
+	      (and (integerp (cdr cell))
+		   (goto-char (cdr cell))))
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
+
+(declare-function dired-goto-file "dired" (file))
 
 (defun save-place-dired-hook ()
   "Position the point in a dired buffer."
   (or save-place-loaded (load-save-place-alist-from-file))
-  (let ((cell (assoc (expand-file-name dired-directory) save-place-alist)))
+  (let ((cell (assoc (if (consp dired-directory)
+			 (expand-file-name (car dired-directory))
+		       (expand-file-name dired-directory))
+		     save-place-alist)))
     (if cell
         (progn
           (or revert-buffer-in-progress-p
-              (goto-char (cdr cell)))
+              (if (integerp (cdr cell))
+		  (goto-char (cdr cell))
+		(and (assq 'dired-filename (cdr cell))
+		     (dired-goto-file (cdr (assq 'dired-filename (cdr cell)))))))
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
 
@@ -324,7 +345,8 @@ may have changed\) back to `save-place-alist'."
 
 (add-hook 'find-file-hook 'save-place-find-file-hook t)
 
-(add-hook 'dired-initial-point-hook 'save-place-dired-hook)
+(add-hook 'dired-initial-position-hook 'save-place-dired-hook)
+
 (unless noninteractive
   (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook))
 
