@@ -1542,9 +1542,9 @@ option, like the @samp{-t} option, creates a new frame in the server's
 current text terminal.  @xref{Windows Startup}.
 
 If you omit a filename argument while supplying the @samp{-c} option,
-the new frame displays the @file{*scratch*} buffer by default.  If
-@code{initial-buffer-choice} is a string (@pxref{Entering Emacs}), the
-new frame displays that file or directory instead.
+the new frame displays the @file{*scratch*} buffer by default.  This
+behavior can be customized using the variable
+@code{initial-buffer-choice} (@pxref{Entering Emacs}).
 
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}

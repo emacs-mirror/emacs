@@ -1,3 +1,7 @@
+2013-12-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* os.texi: Document `initial-buffer-choice' changes.
+
 2013-12-20  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Changing Properties): Improve documentation for

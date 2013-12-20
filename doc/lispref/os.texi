@@ -195,7 +195,9 @@ It now exits if the option @code{--batch} was specified.
 
 @item
 If @code{initial-buffer-choice} is a string, it visits the file with
-that name.  If the @file{*scratch*} buffer exists and is
+that name.  If it is a function, it calls the function and selects the
+buffer returned by the function.  It it is @code{t}, it selects the
+@file{*scratch*} buffer.  If the @file{*scratch*} buffer exists and is
 empty, it inserts @code{initial-scratch-message} into that buffer.
 
 @c To make things nice and confusing, the next three items can be
@@ -271,11 +273,9 @@ aliases for this variable.
 If non-@code{nil}, this variable is a string that specifies a file or
 directory for Emacs to display after starting up, instead of the
 startup screen.
-@ignore
-@c I do not think this should be mentioned.  AFAICS it is just a dodge
-@c around inhibit-startup-screen not being settable on a site-wide basis.
+If its value is a function, Emacs calls that function which must
+return a buffer which is then displayed.
 If its value is @code{t}, Emacs displays the @file{*scratch*} buffer.
-@end ignore
 @end defopt
 
 @defopt inhibit-startup-echo-area-message

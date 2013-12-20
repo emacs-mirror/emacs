@@ -1,5 +1,9 @@
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
+	* entering.texi: Document `initial-buffer-choice' changes.
+
+	* misc.texi (arguments): Document `initial-buffer-choice' changes.
+
 	* help.texi: Document that `?' now also shows subcommands of
 	prefix keys.
 
