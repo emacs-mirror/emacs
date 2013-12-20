@@ -152,6 +152,7 @@ and `remember-notes-buffer-name' to "*scratch*".  Without the second
 change, *scratch* buffer will still be there for notes that do not
 need to be preserved.
 
+---
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
 
 ** ACL support has been added.
