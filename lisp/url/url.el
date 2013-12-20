@@ -220,7 +220,7 @@ URL-encoded before it's used."
     buffer))
 
 ;;;###autoload
-(defun url-retrieve-synchronously (url)
+(defun url-retrieve-synchronously (url &optional silent inhibit-cookies)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
 associated with it (the case for dired, info, or mailto URLs that need
@@ -233,7 +233,8 @@ no further processing).  URL is either a string or a parsed URL."
 	  (url-retrieve url (lambda (&rest ignored)
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))
 			      (setq retrieval-done t
-				    asynch-buffer (current-buffer)))))
+				    asynch-buffer (current-buffer)))
+			nil silent inhibit-cookies))
     (if (null asynch-buffer)
         ;; We do not need to do anything, it was a mailto or something
         ;; similar that takes processing completely outside of the URL

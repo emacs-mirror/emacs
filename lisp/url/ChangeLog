@@ -1,3 +1,8 @@
+2013-12-20  Leo Liu  <sdl.web@gmail.com>
+
+	* url.el (url-retrieve-synchronously): Add optional arg SILENT and
+	INHIBIT-COOKIES.
+
 2013-09-29  Leo Liu  <sdl.web@gmail.com>
 
 	* url-util.el (url-pretty-length): Make obsolete and all uses
