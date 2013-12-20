@@ -1,3 +1,7 @@
+2013-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (read-color): Minor fix for completion function.
+
 2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-align-to-stmt-keywords): New

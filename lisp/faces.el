@@ -1836,7 +1836,7 @@ resulting color name in the echo area."
 			 (if (color-defined-p string)
 			     (list string))))
 		    ((eq flag 'lambda) ; Test completion.
-		     (or (memq string colors)
+		     (or (member string colors)
 			 (color-defined-p string)))))
 		 nil t)))
 
