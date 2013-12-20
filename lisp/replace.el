@@ -1471,13 +1471,12 @@ See also `multi-occur'."
 			(setq matches (1+ matches))
 			(add-text-properties
 			 (match-beginning 0) (match-end 0)
-			 (append
-			  `(occur-match t)
-			  (when match-face
-			    ;; Use `face' rather than `font-lock-face' here
-			    ;; so as to override faces copied from the buffer.
-			    `(face ,match-face)))
-			 curstring)
+			 '(occur-match t) curstring)
+			(when match-face
+			  ;; Add `match-face' to faces copied from the buffer.
+			  (add-face-text-property
+			   (match-beginning 0) (match-end 0)
+			   match-face nil curstring))
 			;; Avoid infloop (Bug#7593).
 			(let ((end (match-end 0)))
 			  (setq start (if (= start end) (1+ start) end)))))
@@ -1572,11 +1571,9 @@ See also `multi-occur'."
 				   (buffer-name buf))
 			   'read-only t))
 		  (setq end (point))
-		  (add-text-properties beg end
-				       (append
-					(when title-face
-					  `(font-lock-face ,title-face))
-					`(occur-title ,buf))))
+		  (add-text-properties beg end `(occur-title ,buf))
+		  (when title-face
+		    (add-face-text-property beg end title-face)))
 		(goto-char (point-min)))))))
       ;; Display total match count and regexp for multi-buffer.
       (when (and (not (zerop global-lines)) (> (length buffers) 1))
@@ -1592,8 +1589,8 @@ See also `multi-occur'."
 					 global-lines (if (= global-lines 1) "" "s")))
 			  (query-replace-descr regexp)))
 	  (setq end (point))
-	  (add-text-properties beg end (when title-face
-					 `(font-lock-face ,title-face))))
+	  (when title-face
+	    (add-face-text-property beg end title-face)))
 	(goto-char (point-min)))
       (if coding
 	  ;; CODING is buffer-file-coding-system of the first buffer

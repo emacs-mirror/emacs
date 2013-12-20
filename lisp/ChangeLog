@@ -1,3 +1,12 @@
+2013-12-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-engine): Use `add-face-text-property'
+	to add the face property to matches and titles.  (Bug#14645)
+
+	* hi-lock.el (hi-green): Use lighter color "light green" closer to
+	the palette of other hi-lock colors.
+	(hi-lock-set-pattern): Prepend hi-lock face to the existing face.
+
 2013-12-19  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind `M-s e' to `isearch-edit-string'.

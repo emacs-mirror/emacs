@@ -164,9 +164,9 @@ When non-nil, each hi-lock command will cycle through faces in
 
 (defface hi-green
   '((((min-colors 88) (background dark))
-     (:background "green1" :foreground "black"))
+     (:background "light green" :foreground "black"))
     (((background dark)) (:background "green" :foreground "black"))
-    (((min-colors 88)) (:background "green1"))
+    (((min-colors 88)) (:background "light green"))
     (t (:background "green")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
@@ -715,7 +715,7 @@ Otherwise, read face name from minibuffer with completion and history."
   "Highlight REGEXP with face FACE."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
-  (let ((pattern (list regexp (list 0 (list 'quote face) t))))
+  (let ((pattern (list regexp (list 0 (list 'quote face) 'prepend))))
     ;; Refuse to highlight a text that is already highlighted.
     (unless (assoc regexp hi-lock-interactive-patterns)
       (push pattern hi-lock-interactive-patterns)
