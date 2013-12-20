@@ -101,6 +101,7 @@ frequent that it deserves to be easier.
 @item @key{SPC}
 Scroll forward (@code{scroll-up-command}).
 @item @key{DEL}
+@item @key{S-SPC}
 Scroll backward (@code{scroll-down-command}).
 @item .
 Scroll to start of message (@code{rmail-beginning-of-message}).
@@ -110,10 +111,11 @@ Scroll to end of message (@code{rmail-end-of-message}).
 
 @kindex SPC @r{(Rmail)}
 @kindex DEL @r{(Rmail)}
+@kindex S-SPC @r{(Rmail)}
   Since the most common thing to do while reading a message is to
 scroll through it by screenfuls, Rmail makes @key{SPC} and @key{DEL}
-or @key{S-SPC} do the same as @kbd{C-v} (@code{scroll-up-command}) and
-@kbd{M-v} (@code{scroll-down-command}) respectively.
+(or @key{S-SPC}) do the same as @kbd{C-v} (@code{scroll-up-command})
+and @kbd{M-v} (@code{scroll-down-command}) respectively.
 
 @kindex . @r{(Rmail)}
 @kindex / @r{(Rmail)}
