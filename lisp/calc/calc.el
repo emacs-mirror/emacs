@@ -429,7 +429,8 @@ when converting units."
 
 (defcustom calc-context-sensitive-enter
   nil
-  "If non-nil, the stack element under the cursor will be copied by `calc-enter'."
+  "If non-nil, the stack element under the cursor will be copied by `calc-enter'
+and deleted by `calc-pop'."
   :group 'calc
   :version "24.4"
   :type 'boolean)
@@ -2259,41 +2260,47 @@ the United States."
 
 (defun calc-enter (n)
   (interactive "p")
-  (calc-wrapper
-   (cond ((< n 0)
-	  (calc-push-list (calc-top-list 1 (- n))))
-	 ((= n 0)
-	  (calc-push-list (calc-top-list (calc-stack-size))))
-	 (t
-          (if (not calc-context-sensitive-enter)
-              (calc-push-list (calc-top-list n))
-            (let ((num (max 1 (calc-locate-cursor-element (point)))))
-              (calc-push-list (calc-top-list n num))))))))
+  (let ((num (if calc-context-sensitive-enter (max 1 (calc-locate-cursor-element (point))))))
+    (calc-wrapper
+     (cond ((< n 0)
+            (calc-push-list (calc-top-list 1 (- n))))
+           ((= n 0)
+            (calc-push-list (calc-top-list (calc-stack-size))))
+           (num
+            (calc-push-list (calc-top-list n num)))
+           (t
+            (calc-push-list (calc-top-list n)))))
+    (if (and calc-context-sensitive-enter (> n 0)) (calc-cursor-stack-index (+ num n)))))
 
 (defun calc-pop (n)
   (interactive "P")
-  (calc-wrapper
-   (let* ((nn (prefix-numeric-value n))
-	  (top (and (null n) (calc-top 1))))
-     (cond ((and (null n)
-		 (eq (car-safe top) 'incomplete)
-		 (> (length top) (if (eq (nth 1 top) 'intv) 3 2)))
-	    (calc-pop-push-list 1 (let ((tt (copy-sequence top)))
-				    (setcdr (nthcdr (- (length tt) 2) tt) nil)
-				    (list tt))))
-	   ((< nn 0)
-	    (if (and calc-any-selections
-		     (calc-top-selected 1 (- nn)))
-		(calc-delete-selection (- nn))
-	      (calc-pop-stack 1 (- nn) t)))
-	   ((= nn 0)
-	    (calc-pop-stack (calc-stack-size) 1 t))
-	   (t
-	    (if (and calc-any-selections
-		     (= nn 1)
-		     (calc-top-selected 1 1))
-		(calc-delete-selection 1)
-	      (calc-pop-stack nn)))))))
+  (let ((num (if calc-context-sensitive-enter (max 1 (calc-locate-cursor-element (point))))))
+    (calc-wrapper
+     (let* ((nn (prefix-numeric-value n))
+            (top (and (null n) (calc-top 1))))
+       (cond ((and calc-context-sensitive-enter (> num 1))
+              (calc-pop-stack nn num))
+             ((and (null n)
+                   (eq (car-safe top) 'incomplete)
+                   (> (length top) (if (eq (nth 1 top) 'intv) 3 2)))
+              (calc-pop-push-list 1 (let ((tt (copy-sequence top)))
+                                      (setcdr (nthcdr (- (length tt) 2) tt) nil)
+                                      (list tt))))
+             ((< nn 0)
+              (if (and calc-any-selections
+                       (calc-top-selected 1 (- nn)))
+                  (calc-delete-selection (- nn))
+                (calc-pop-stack 1 (- nn) t)))
+             ((= nn 0)
+              (calc-pop-stack (calc-stack-size) 1 t))
+             (t
+              (if (and calc-any-selections
+                       (= nn 1)
+                       (calc-top-selected 1 1))
+                  (calc-delete-selection 1)
+                (calc-pop-stack nn))))))
+    (if calc-context-sensitive-enter (calc-cursor-stack-index (1- num)))))
+    
 
 
 
