@@ -1,3 +1,8 @@
+2013-12-20  Vitalie Spinu  <spinuvit@gmail.com>
+
+	* comint.el (comint-output-filter): Fix rear-nonsticky property
+	placement (Bug#16010).
+
 2013-12-20  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (read-color): Minor fix for completion function.

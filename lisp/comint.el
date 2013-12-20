@@ -2062,23 +2062,22 @@ Make backspaces delete the previous character."
 	    (let ((prompt-start (save-excursion (forward-line 0) (point)))
 		  (inhibit-read-only t))
 	      (when comint-prompt-read-only
-                (with-silent-modifications
-                  (or (= (point-min) prompt-start)
-                      (get-text-property (1- prompt-start) 'read-only)
-                      (put-text-property
-                       (1- prompt-start) prompt-start 'read-only 'fence))
-                  (add-text-properties
-                   prompt-start (point)
-                   '(read-only t rear-nonsticky t front-sticky (read-only)))))
+		(with-silent-modifications
+		  (or (= (point-min) prompt-start)
+		      (get-text-property (1- prompt-start) 'read-only)
+		      (put-text-property (1- prompt-start)
+					 prompt-start 'read-only 'fence))
+		  (add-text-properties prompt-start (point)
+				       '(read-only t front-sticky (read-only)))))
 	      (when comint-last-prompt
 		(remove-text-properties (car comint-last-prompt)
 					(cdr comint-last-prompt)
 					'(font-lock-face)))
 	      (setq comint-last-prompt
 		    (cons (copy-marker prompt-start) (point-marker)))
-	      (add-text-properties (car comint-last-prompt)
-				   (cdr comint-last-prompt)
-				   '(font-lock-face comint-highlight-prompt)))
+	      (add-text-properties prompt-start (point)
+				   '(rear-nonsticky t
+				     font-lock-face comint-highlight-prompt)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
