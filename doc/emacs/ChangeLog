@@ -1,5 +1,8 @@
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
+	* buffers.texi: Update list-buffers "screeshop" to show Messages
+	as major-mode.
+
 	* entering.texi: Document `initial-buffer-choice' changes.
 
 	* misc.texi (arguments): Document `initial-buffer-choice' changes.

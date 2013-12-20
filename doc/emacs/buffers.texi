@@ -194,7 +194,7 @@ CRM Buffer                Size  Mode              File
  %  HELLO                 1607  Fundamental       ~/cvs/emacs/etc/HELLO
  %  NEWS                481184  Outline           ~/cvs/emacs/etc/NEWS
     *scratch*              191  Lisp Interaction
-  * *Messages*            1554  Fundamental
+  * *Messages*            1554  Messages
 @end smallexample
 
 @noindent

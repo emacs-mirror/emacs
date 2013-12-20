@@ -139,6 +139,7 @@ simply disabling Transient Mark mode does the same thing.
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
 
++++
 ** The *Messages* buffer is created in a new major mode `messages-buffer-mode',
 and read-only.  Code that might create the *Messages* buffer should
 call the function `messages-buffer' to do so and set the mode.
