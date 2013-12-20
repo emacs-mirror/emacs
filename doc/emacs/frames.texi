@@ -453,6 +453,16 @@ cycles through all the frames on your terminal.
 @kindex C-x 5 1
 @findex delete-other-frames
 Delete all frames on the current terminal, except the selected one.
+
+@item M-<F10>
+@kindex M-<F10>
+@findex toggle-frame-maximized
+Toggle maximization state of the current frame.
+
+@item <F11>
+@kindex <F11>
+@findex toggle-frame-fullscreen
+Toggle fullscreen mode of the current frame.
 @end table
 
   The @kbd{C-x 5 0} (@code{delete-frame}) command deletes the selected

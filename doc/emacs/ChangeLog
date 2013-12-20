@@ -1,5 +1,8 @@
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
+	* frames.texi: Document `toggle-frame-maximized' and
+	`toggle-frame-fullscreen' with their respective keys.
+
 	* buffers.texi: Document buffer name uniquification changes.
 
 	* indent.texi: Document that `electric-indent-mode' is enabled by
