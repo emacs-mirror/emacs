@@ -1,3 +1,9 @@
+2013-12-20  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (octave): Add link to manual and octave
+	homepage.
+	(octave-mode-menu): Link to octave-mode manual.
+
 2013-12-20  Leo Liu  <sdl.web@gmail.com>
 
 	* skeleton.el (skeleton-pair-insert-maybe): Disable newline

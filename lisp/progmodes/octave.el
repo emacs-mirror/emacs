@@ -49,6 +49,8 @@
 
 (defgroup octave nil
   "Editing Octave code."
+  :link '(custom-manual "(octave-mode)Top")
+  :link '(url-link "http://www.gnu.org/s/octave")
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
@@ -180,6 +182,7 @@ parenthetical grouping.")
      ["Hide Process Buffer"     octave-hide-process-buffer t]
      ["Kill Process"            octave-kill-process t])
     "---"
+    ["Octave Mode Manual"       (info "(octave-mode)Top") t]
     ["Customize Octave"         (customize-group 'octave) t]
     ["Submit Bug Report"        report-emacs-bug t]))
 
