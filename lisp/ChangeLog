@@ -1,3 +1,8 @@
+2013-12-20  Leo Liu  <sdl.web@gmail.com>
+
+	* skeleton.el (skeleton-pair-insert-maybe): Disable newline
+	insertion using skeleton-end-newline.  (Bug#16138)
+
 2013-12-20  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (occur-engine): Use `add-face-text-property'
