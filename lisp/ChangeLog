@@ -1,3 +1,8 @@
+2013-12-20  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/sh-script.el (sh-mode): Tweak paragraph-separate
+	so that we don't reflow comments into the shebang line.
+
 2013-12-20  Juri Linkov  <juri@jurta.org>
 
 	* saveplace.el (save-place-to-alist): Add `dired-filename' as

@@ -1589,7 +1589,7 @@ with your script for an edit-interpret-debug cycle."
 	      (lambda () (or (eolp) (newline) (indent-relative))))
 
   (setq-local paragraph-start (concat page-delimiter "\\|$"))
-  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-separate (concat paragraph-start "\\|#!/"))
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+[\t ]*")
   (setq-local local-abbrev-table sh-mode-abbrev-table)
