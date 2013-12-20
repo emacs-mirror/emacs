@@ -719,7 +719,7 @@ Otherwise, read face name from minibuffer with completion and history."
     ;; Refuse to highlight a text that is already highlighted.
     (unless (assoc regexp hi-lock-interactive-patterns)
       (push pattern hi-lock-interactive-patterns)
-      (if font-lock-mode
+      (if (and font-lock-mode (font-lock-specified-p major-mode))
 	  (progn
 	    (font-lock-add-keywords nil (list pattern) t)
 	    (font-lock-fontify-buffer))

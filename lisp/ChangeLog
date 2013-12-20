@@ -1,3 +1,8 @@
+2013-12-20  E Sabof  <esabof@gmail.com>  (tiny change)
+
+	* hi-lock.el (hi-lock-set-pattern): Check for `font-lock-specified-p'.
+	(Bug#14179)
+
 2013-12-20  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: New implementation of item insertion
