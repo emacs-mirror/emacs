@@ -102,6 +102,7 @@ customize the option `tty-menu-open-use-tmm' to a non-nil value.
 (Typing M-` will always invoke `tmm-menubar', even if
 `tty-menu-open-use-tmm' is nil.)
 
++++
 ** Key ? also describes prefix bindings like C-h.
 
 +++

@@ -1,3 +1,8 @@
+2013-12-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* help.texi: Document that `?' now also shows subcommands of
+	prefix keys.
+
 2013-12-17  Chong Yidong  <cyd@gnu.org>
 
 	* killing.texi (Appending Kills): Note that append-next-kill can
