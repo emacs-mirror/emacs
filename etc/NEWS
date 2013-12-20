@@ -222,6 +222,7 @@ Czech typography rules.  To globally enable this feature, evaluate:
 
 * Editing Changes in Emacs 24.4
 
++++
 ** `electric-indent-mode' is enabled by default.
 
 ** Uniquify is enabled by default with post-forward-angle-brackets style.

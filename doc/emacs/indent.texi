@@ -236,5 +236,6 @@ indentation; otherwise, it inserts a tab character.
 @cindex mode, Electric Indent
 @findex electric-indent-mode
   Electric Indent mode is a global minor mode that automatically
-indents the line after every @key{RET} you type.  To toggle this minor
-mode, type @kbd{M-x electric-indent-mode}.
+indents the line after every @key{RET} you type.  This mode is enabled
+by default.  To toggle this minor mode, type @kbd{M-x
+electric-indent-mode}.

@@ -1,5 +1,8 @@
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
+	* indent.texi: Document that `electric-indent-mode' is enabled by
+	default.
+
 	* display.texi (Cursor Display): Document `blink-cursor-blinks'.
 
 	* buffers.texi: Update list-buffers "screeshop" to show Messages
