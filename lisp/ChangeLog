@@ -6,6 +6,7 @@
 	functions to list browser histories.
         (eww-form-text): Support text form with disabled
         and readonly attributes.
+        (eww-checkbox-map): Fix wrong key bind to `eww-toggle-checkbox'.
 
 2013-12-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 

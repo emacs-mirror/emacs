@@ -565,7 +565,7 @@ appears in a <link> or <a> tag."
 
 (defvar eww-checkbox-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [space] 'eww-toggle-checkbox)
+    (define-key map " " 'eww-toggle-checkbox)
     (define-key map "\r" 'eww-toggle-checkbox)
     (define-key map [(control c) (control c)] 'eww-submit)
     map))
