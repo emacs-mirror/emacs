@@ -382,10 +382,13 @@ Other major modes are defined by comparison with this one."
 If option `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
-Call `auto-fill-function' if the current column number is greater
+
+To turn off indentation by this command, disable Electric Indent mode
+\(see \\[electric-indent-mode]).
+
+Calls `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil.
-A non-nil INTERACTIVE argument means to run the `post-self-insert-hook',
-which by default will also indent the line (see `electric-indent-mode')."
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
   (interactive "*P\np")
   (barf-if-buffer-read-only)
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
