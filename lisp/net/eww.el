@@ -414,6 +414,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "w" 'eww-copy-page-url)
     (define-key map "C" 'url-cookie-list)
     (define-key map "v" 'eww-view-source)
+    (define-key map "H" 'eww-list-histories)
 
     (define-key map "b" 'eww-add-bookmark)
     (define-key map "B" 'eww-list-bookmarks)
@@ -433,6 +434,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	["Download" eww-download t]
 	["View page source" eww-view-source]
 	["Copy page URL" eww-copy-page-url t]
+	["List histories" eww-list-histories t]
 	["Add bookmark" eww-add-bookmark t]
 	["List bookmarks" eww-list-bookmarks t]
 	["List cookies" url-cookie-list t]))
@@ -470,15 +472,6 @@ word(s) will be searched for via `eww-search-prefix'."
   (buffer-disable-undo)
   ;;(setq buffer-read-only t)
   )
-
-(defun eww-save-history ()
-  (push (list :url eww-current-url
-	      :title eww-current-title
-	      :point (point)
-              :dom eww-current-dom
-              :source eww-current-source
-	      :text (buffer-string))
-	eww-history))
 
 ;;;###autoload
 (defun eww-browse-url (url &optional _new-window)
@@ -1258,6 +1251,98 @@ Differences in #targets are ignored."
   "Mode for listing bookmarks.
 
 \\{eww-bookmark-mode-map}"
+  (buffer-disable-undo)
+  (setq buffer-read-only t
+	truncate-lines t))
+
+;;; History code
+
+(defun eww-save-history ()
+  (push (list :url eww-current-url
+              :title eww-current-title
+              :point (point)
+              :dom eww-current-dom
+              :source eww-current-source
+              :text (buffer-string))
+        eww-history))
+
+(defun eww-list-histories ()
+  "List the eww-histories."
+  (interactive)
+  (when (null eww-history)
+    (error "No eww-histories are defined"))
+  (set-buffer (get-buffer-create "*eww history*"))
+  (eww-history-mode)
+  (let ((inhibit-read-only t)
+	(domain-length 0)
+	(title-length 0)
+	url title format start)
+    (erase-buffer)
+    (dolist (history eww-history)
+      (setq start (point))
+      (setq domain-length (max domain-length (length (plist-get history :url))))
+      (setq title-length (max title-length (length (plist-get history :title))))
+      )
+    (setq format (format "%%-%ds %%-%ds" title-length domain-length)
+	  header-line-format
+	  (concat " " (format format "Title" "URL")))
+
+    (dolist (history eww-history)
+      (setq url (plist-get history :url))
+      (setq title (plist-get history :title))
+      (insert (format format title url))
+      (insert "\n")
+      (put-text-property start (point) 'eww-history history)
+      )
+    (goto-char (point-min)))
+  (pop-to-buffer "*eww history*")
+  )
+
+(defun eww-history-browse ()
+  "Browse the history under point in eww."
+  (interactive)
+  (let ((history (get-text-property (line-beginning-position) 'eww-history)))
+    (unless history
+      (error "No history on the current line"))
+    (eww-history-quit)
+    (pop-to-buffer "*eww*")
+    (eww-browse-url (plist-get history :url))))
+
+(defun eww-history-quit ()
+  "Kill the current buffer."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defvar eww-history-kill-ring nil)
+
+(defun eww-history-kill ()
+  "Kill the current history."
+  (interactive)
+  (let* ((start (line-beginning-position))
+	 (history (get-text-property start 'eww-history))
+	 (inhibit-read-only t))
+    (unless history
+      (error "No history on the current line"))
+    (forward-line 1)
+    (push (buffer-substring start (point)) eww-history-kill-ring)
+    (delete-region start (point))
+    (setq eww-history (delq history eww-history))
+    ))
+
+(defvar eww-history-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'eww-history-quit)
+    (define-key map [(control k)] 'eww-history-kill)
+    (define-key map "\r" 'eww-history-browse)
+                (define-key map "n" 'next-error-no-select)
+                (define-key map "p" 'previous-error-no-select)
+    map))
+
+(define-derived-mode eww-history-mode nil "eww history"
+  "Mode for listing eww-histories.
+
+\\{eww-history-mode-map}"
   (buffer-disable-undo)
   (setq buffer-read-only t
 	truncate-lines t))

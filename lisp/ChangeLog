@@ -1,3 +1,10 @@
+2013-12-21  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>
+
+        * net/eww.el (eww-list-histories, eww-list-histories)
+	(eww-history-browse, eww-history-quit, eww-history-kill)
+	(eww-history-mode-map, eww-history-mode): New command and
+	functions to list browser histories.
+
 2013-12-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* net/eww.el (eww-back-url, eww-forward-url, eww-next-url)
