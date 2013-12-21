@@ -1,3 +1,9 @@
+2013-12-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (fn_png_longjmp) [WINDOWSNT]: Mark the function as
+	having the PNG_NORETURN attribute, to avoid compiler warning in
+	my_png_error.
+
 2013-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* w32term.h (struct scroll_bar): Remove member `fringe_extended_p'.
