@@ -105,6 +105,43 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
 
+   NSColor, EmacsColor category.
+
+   ========================================================================== */
+@implementation NSColor (EmacsColor)
++ (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
+                         blue:(CGFloat)blue alpha:(CGFloat)alpha
+{
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+  if (ns_use_srgb_colorspace)
+      return [NSColor colorWithSRGBRed: red
+                                 green: green
+                                  blue: blue
+                                 alpha: alpha];
+#endif
+#endif
+  return [NSColor colorWithCalibratedRed: red
+                                   green: green
+                                    blue: blue
+                                   alpha: alpha];
+}
+
+- (NSColor *)colorUsingDefaultColorSpace
+{
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+  if (ns_use_srgb_colorspace)
+    return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
+#endif
+#endif
+  return [self colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+}
+
+@end
+
+/* ==========================================================================
+
     Local declarations
 
    ========================================================================== */
@@ -1509,7 +1546,7 @@ ns_get_color (const char *name, NSColor **col)
 #endif
       if ((new = [NSColor selectedTextBackgroundColor]) != nil)
         {
-          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          *col = [new colorUsingDefaultColorSpace];
           unblock_input ();
           return 0;
         }
@@ -1525,7 +1562,7 @@ ns_get_color (const char *name, NSColor **col)
       */
       if ((new = [NSColor selectedTextColor]) != nil)
         {
-          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          *col = [new colorUsingDefaultColorSpace];
           unblock_input ();
           return 0;
         }
@@ -1572,7 +1609,7 @@ ns_get_color (const char *name, NSColor **col)
 
   if (r >= 0.0F)
     {
-      *col = [NSColor colorWithCalibratedRed: r green: g blue: b alpha: 1.0];
+      *col = [NSColor colorForEmacsRed: r green: g blue: b alpha: 1.0];
       unblock_input ();
       return 0;
     }
@@ -1604,7 +1641,7 @@ ns_get_color (const char *name, NSColor **col)
   }
 
   if (new)
-    *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+    *col = [new colorUsingDefaultColorSpace];
   unblock_input ();
   return new ? 0 : 1;
 }
@@ -1645,9 +1682,9 @@ ns_color_to_lisp (NSColor *col)
           return build_string ((char *)str);
         }
 
-    [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
+    [[col colorUsingDefaultColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  if (red ==green && red ==blue)
+  if (red == green && red == blue)
     {
       [[col colorUsingColorSpaceName: NSCalibratedWhiteColorSpace]
             getWhite: &gray alpha: &alpha];
@@ -4273,10 +4310,10 @@ ns_term_init (Lisp_Object display_name)
             name = SSDATA (XCAR (color));
             c = XINT (XCDR (color));
             [cl setColor:
-                  [NSColor colorWithCalibratedRed: RED_FROM_ULONG (c) / 255.0
-                                            green: GREEN_FROM_ULONG (c) / 255.0
-                                             blue: BLUE_FROM_ULONG (c) / 255.0
-                                            alpha: 1.0]
+                  [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
+                                      green: GREEN_FROM_ULONG (c) / 255.0
+                                       blue: BLUE_FROM_ULONG (c) / 255.0
+                                      alpha: 1.0]
                   forKey: [NSString stringWithUTF8String: name]];
           }
         [cl writeToFile: nil];
@@ -7606,6 +7643,12 @@ Default is t for OSX >= 10.7, nil otherwise. */);
   ns_use_native_fullscreen = NO;
 #endif
   ns_last_use_native_fullscreen = ns_use_native_fullscreen;
+
+  DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
+     doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
+Note that this does not apply to images.            
+This variable is ignored on OSX < 10.7 and GNUStep.  Default is nil. */);
+  ns_use_srgb_colorspace = NO;
 
   /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,

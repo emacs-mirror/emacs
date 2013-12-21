@@ -78,6 +78,18 @@ typedef float EmacsCGFloat;
 
 /* ==========================================================================
 
+   NSColor, EmacsColor category.
+
+   ========================================================================== */
+@interface NSColor (EmacsColor)
++ (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
+                         blue:(CGFloat)blue alpha:(CGFloat)alpha;
+- (NSColor *)colorUsingDefaultColorSpace;
+
+@end
+
+/* ==========================================================================
+
    The Emacs application
 
    ========================================================================== */
