@@ -1,3 +1,13 @@
+2013-12-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h: Declare EmacsColor category.
+
+	* nsterm.m (NSColor): Implement EmacsColor category.
+	(ns_get_color): Use colorUsingDefaultColorSpace.
+	(ns_get_color, ns_term_init): Use colorForEmacsRed.
+
+	* nsfns.m (Fxw_color_values): Use colorUsingDefaultColorSpace.
+
 2013-12-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (fn_png_longjmp) [WINDOWSNT]: Mark the function as
