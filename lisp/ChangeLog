@@ -1,3 +1,8 @@
+2013-12-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr--extract-best-source): Don't bug out on audio
+	elements with text inside.  Also remove debugging.
+
 2013-12-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add ns-use-srgb-colorspace.

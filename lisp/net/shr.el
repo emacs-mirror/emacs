@@ -1136,21 +1136,16 @@ The preference is a float determined from `shr-prefer-media-type'."
   (setq pref (or pref -1.0))
   (let (new-pref)
     (dolist (elem cont)
-      (when (and (listp elem)
-                 (not (keywordp (car elem)))) ;; skip attributes
-        (when (and (eq (car elem) 'source)
-                   (< pref
-                      (setq new-pref
-                            (shr--get-media-pref elem))))
-          (setq pref new-pref
-                url (cdr (assq :src elem)))
-          (message "new %s %s" url pref))
+      (when (and (eq (car elem) 'source)
+		 (< pref
+		    (setq new-pref
+			  (shr--get-media-pref elem))))
+	(setq pref new-pref
+	      url (cdr (assq :src elem)))
         ;; libxml's html parser isn't HTML5 compliant and non terminated
         ;; source tags might end up as children.  So recursion it is...
         (dolist (child (cdr elem))
-          (when (and (listp child)
-                     (not (keywordp (car child)))  ;; skip attributes
-                     (eq (car child) 'source))
+          (when (eq (car child) 'source)
             (let ((ret (shr--extract-best-source (list child) url pref)))
               (when (< pref (cdr ret))
                 (setq url (car ret)
