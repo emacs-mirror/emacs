@@ -680,18 +680,22 @@ appears in a <link> or <a> tag."
 	(value (or (cdr (assq :value cont)) ""))
 	(width (string-to-number
 		(or (cdr (assq :size cont))
-		    "40"))))
+		    "40")))
+        (readonly-property (if (or (cdr (assq :disabled cont))
+                                   (cdr (assq :readonly cont)))
+                               'read-only
+                             'inhibit-read-only)))
     (insert value)
     (when (< (length value) width)
       (insert (make-string (- width (length value)) ? )))
     (put-text-property start (point) 'face 'eww-form-text)
     (put-text-property start (point) 'local-map eww-text-map)
-    (put-text-property start (point) 'inhibit-read-only t)
+    (put-text-property start (point) readonly-property t)
     (put-text-property start (point) 'eww-form
-		       (list :eww-form eww-form
-			     :value value
-			     :type type
-			     :name (cdr (assq :name cont))))
+                       (list :eww-form eww-form
+                             :value value
+                             :type type
+                             :name (cdr (assq :name cont))))
     (insert " ")))
 
 (defconst eww-text-input-types '("text" "password" "textarea"

@@ -4,6 +4,8 @@
 	(eww-history-browse, eww-history-quit, eww-history-kill)
 	(eww-history-mode-map, eww-history-mode): New command and
 	functions to list browser histories.
+        (eww-form-text): Support text form with disabled
+        and readonly attributes.
 
 2013-12-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
