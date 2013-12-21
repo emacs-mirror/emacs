@@ -1,5 +1,11 @@
 2013-12-21  Chong Yidong  <cyd@gnu.org>
 
+	* faces.el (face-spec-set):
+	* cus-face.el (custom-theme-set-faces, custom-set-faces):
+	* custom.el (defface): Doc fixes (Bug#16203).
+
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
 	* indent.el (indent-rigidly-map): Add docstring, and move commands
 	into named functions.
 	(indent-rigidly-left, indent-rigidly-right)

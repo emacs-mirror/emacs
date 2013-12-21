@@ -1576,7 +1576,11 @@ See `defface' for the format of SPEC.
 
 The appearance of each face is controlled by its spec, and by the
 internal face attributes (which can be frame-specific and can be
-set via `set-face-attribute').
+set via `set-face-attribute').  This function sets the former.
+
+In addition to setting the face spec, this function defines FACE
+as a valid face name if it is not already one, and (re)calculates
+the face's attributes on existing frames.
 
 The argument SPEC-TYPE determines which spec to set:
   nil or `face-override-spec' means the override spec (which is
@@ -1589,11 +1593,7 @@ The argument SPEC-TYPE determines which spec to set:
   `reset' means to ignore SPEC, but clear the `customized-face'
     and `face-override-spec' specs;
 Any other value means not to set any spec, but to run the
-function for its other effects.
-
-In addition to setting the face spec, this function defines FACE
-as a valid face name if it is not already one, and (re)calculates
-the face's attributes on existing frames."
+function for its other effects."
   (if (get face 'face-alias)
       (setq face (get face 'face-alias)))
   ;; Save SPEC to the relevant symbol property.

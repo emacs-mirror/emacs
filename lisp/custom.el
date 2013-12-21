@@ -353,7 +353,7 @@ FACE does not need to be quoted.
 
 Third argument DOC is the face documentation.
 
-If FACE has been set with `custom-set-faces', set the face
+If FACE has been set with `custom-theme-set-faces', set the face
 attributes as specified by that function, otherwise set the face
 attributes according to SPEC.
 
@@ -361,7 +361,7 @@ The remaining arguments should have the form [KEYWORD VALUE]...
 For a list of valid keywords, see the common keywords listed in
 `defcustom'.
 
-SPEC should be an alist of the form
+SPEC should be a \"face spec\", i.e., an alist of the form
 
    ((DISPLAY . ATTS)...)
 
