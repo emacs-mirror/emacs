@@ -169,31 +169,28 @@ Blank lines are ignored."
 
 (defvar indent-rigidly-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [left]
-      (lambda (beg end) (interactive "r") (indent-rigidly beg end -1)))
-
-    (define-key map [right]
-      (lambda (beg end) (interactive "r") (indent-rigidly beg end 1)))
-
-    (define-key map [S-right]
-      (lambda (beg end) (interactive "r")
-        (let* ((current (indent-rigidly--current-indentation beg end))
-               (next (indent--next-tab-stop current)))
-          (indent-rigidly beg end (- next current)))))
-
-    (define-key map [S-left]
-      (lambda (beg end) (interactive "r")
-        (let* ((current (indent-rigidly--current-indentation beg end))
-               (next (indent--next-tab-stop current 'prev)))
-          (indent-rigidly beg end (- next current)))))
-    map))
+    (define-key map [left]  'indent-rigidly-left)
+    (define-key map [right] 'indent-rigidly-right)
+    (define-key map [S-left]  'indent-rigidly-left-to-tab-stop)
+    (define-key map [S-right] 'indent-rigidly-right-to-tab-stop)
+    map)
+  "Transient keymap for adjusting indentation interactively.
+It is activated by calling `indent-rigidly' interactively.")
 
 (defun indent-rigidly (start end arg &optional interactive)
-  "Indent all lines starting in the region sideways by ARG columns.
-Called from a program, takes three arguments, START, END and ARG.
-You can remove all indentation from a region by giving a large negative ARG.
-If used interactively and no prefix argument is given, use a transient
-mode that lets you move the text with cursor keys."
+  "Indent all lines starting in the region.
+If called interactively with no prefix argument, activate a
+transient mode in which the indentation can be adjusted interactively
+by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
+Typing any other key deactivates the transient mode.
+
+If called from a program, or interactively with prefix ARG,
+indent all lines starting in the region forward by ARG columns.
+If called from a program, START and END specify the beginning and
+end of the text to act on, in place of the region.
+
+Negative values of ARG indent backward, so you can remove all
+indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
       (progn
@@ -216,6 +213,48 @@ and <S-right>.")
           (delete-region (point) (progn (skip-chars-forward " \t") (point))))
         (forward-line 1))
       (move-marker end nil))))
+
+(defun indent-rigidly--pop-undo ()
+  (and (memq last-command '(indent-rigidly-left indent-rigidly-right
+			    indent-rigidly-left-to-tab-stop
+			    indent-rigidly-right-to-tab-stop))
+       (consp buffer-undo-list)
+       (eq (car buffer-undo-list) nil)
+       (pop buffer-undo-list)))
+
+(defun indent-rigidly-left (beg end)
+  "Indent all lines between BEG and END leftward by one space."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (indent-rigidly
+   beg end
+   (if (eq (current-bidi-paragraph-direction) 'right-to-left) 1 -1)))
+
+(defun indent-rigidly-right (beg end)
+  "Indent all lines between BEG and END rightward by one space."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (indent-rigidly
+   beg end
+   (if (eq (current-bidi-paragraph-direction) 'right-to-left) -1 1)))
+
+(defun indent-rigidly-left-to-tab-stop (beg end)
+  "Indent all lines between BEG and END leftward to a tab stop."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (let* ((current (indent-rigidly--current-indentation beg end))
+	 (rtl (eq (current-bidi-paragraph-direction) 'right-to-left))
+	 (next (indent--next-tab-stop current (if rtl nil 'prev))))
+    (indent-rigidly beg end (- next current))))
+
+(defun indent-rigidly-right-to-tab-stop (beg end)
+  "Indent all lines between BEG and END rightward to a tab stop."
+  (interactive "r")
+  (indent-rigidly--pop-undo)
+  (let* ((current (indent-rigidly--current-indentation beg end))
+	 (rtl (eq (current-bidi-paragraph-direction) 'right-to-left))
+	 (next (indent--next-tab-stop current (if rtl 'prev))))
+    (indent-rigidly beg end (- next current))))
 
 (defun indent-line-to (column)
   "Indent current line to COLUMN.

@@ -2344,21 +2344,19 @@ a different meaning and does not use this variable.
 @end defvar
 
 @deffn Command indent-rigidly start end count
-This command indents all lines starting between @var{start}
+This function indents all lines starting between @var{start}
 (inclusive) and @var{end} (exclusive) sideways by @var{count} columns.
 This ``preserves the shape'' of the affected region, moving it as a
-rigid unit.  Consequently, this command is useful not only for indenting
-regions of unindented text, but also for indenting regions of formatted
-code.
+rigid unit.
 
-For example, if @var{count} is 3, this command adds 3 columns of
-indentation to each of the lines beginning in the region specified.
+This is useful not only for indenting regions of unindented text, but
+also for indenting regions of formatted code.  For example, if
+@var{count} is 3, this command adds 3 columns of indentation to every
+line that begins in the specified region.
 
-@c FIXME: I suggest using message-indent-citation as the example, or
-@c just remove this paragraph.  --xfq
-In Mail mode, @kbd{C-c C-y} (@code{mail-yank-original}) uses
-@code{indent-rigidly} to indent the text copied from the message being
-replied to.
+If called interactively with no prefix argument, this command invokes
+a transient mode for adjusting indentation rigidly.  @xref{Indentation
+Commands,,, emacs, The GNU Emacs Manual}.
 @end deffn
 
 @deffn Command indent-code-rigidly start end columns &optional nochange-regexp

@@ -1,3 +1,7 @@
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* indent.texi (Indentation Commands): Document C-x TAB changes.
+
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
 	* rmail.texi: Document `S-SPC' as alternative to scrolling down

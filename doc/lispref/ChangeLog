@@ -1,3 +1,8 @@
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Region Indent): Note the new interactive behavior of
+	indent-rigidly.
+
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
 	* numbers.texi (numbers): Document that =, <, <=, >, >= now accept

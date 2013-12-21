@@ -1,3 +1,14 @@
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* indent.el (indent-rigidly-map): Add docstring, and move commands
+	into named functions.
+	(indent-rigidly-left, indent-rigidly-right)
+	(indent-rigidly-left-to-tab-stop)
+	(indent-rigidly-right-to-tab-stop): New functions.  Decide on
+	indentation direction based on bidi direction, and accumulate
+	sequential commands in a single undo boundary.
+	(indent-rigidly--pop-undo): New utility function.
+
 2013-12-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (read-face-name): Require crm.el when using crm-separator.
