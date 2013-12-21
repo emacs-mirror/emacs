@@ -1,3 +1,16 @@
+2013-12-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* net/eww.el (eww-back-url, eww-forward-url, eww-next-url)
+	(eww-previous-url, eww-up-url, eww-top-url, eww-add-bookmark)
+	(eww-bookmark-prepare, eww-bookmark-kill, eww-bookmark-yank)
+	(eww-bookmark-browse, eww-next-bookmark, eww-previous-bookmark):
+	Use `user-error'.
+	(eww-bookmark-mode-map): Add menu.
+	(eww-render, eww-mode): Use `setq-local'.
+	(eww-tool-bar-map): New variable.
+	(eww-mode): Set `tool-bar-map'.
+	(eww-view-source): Check for `html-mode' with `fboundp'.
+
 2013-12-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr--extract-best-source): Don't bug out on audio

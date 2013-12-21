@@ -171,12 +171,12 @@ word(s) will be searched for via `eww-search-prefix'."
   (let ((redirect (plist-get status :redirect)))
     (when redirect
       (setq url redirect)))
-  (set (make-local-variable 'eww-next-url) nil)
-  (set (make-local-variable 'eww-previous-url) nil)
-  (set (make-local-variable 'eww-up-url) nil)
-  (set (make-local-variable 'eww-home-url) nil)
-  (set (make-local-variable 'eww-start-url) nil)
-  (set (make-local-variable 'eww-contents-url) nil)
+  (setq-local eww-next-url nil)
+  (setq-local eww-previous-url nil)
+  (setq-local eww-up-url nil)
+  (setq-local eww-home-url nil)
+  (setq-local eww-start-url nil)
+  (setq-local eww-contents-url nil)
   (let* ((headers (eww-parse-headers))
 	 (content-type
 	  (mail-header-parse-content-type
@@ -388,7 +388,7 @@ word(s) will be searched for via `eww-search-prefix'."
       (delete-region (point-min) (point-max))
       (insert (or eww-current-source "no source"))
       (goto-char (point-min))
-      (when (featurep 'html-mode)
+      (when (fboundp 'html-mode)
         (html-mode)))
     (view-buffer buf)))
 
@@ -438,18 +438,35 @@ word(s) will be searched for via `eww-search-prefix'."
 	["List cookies" url-cookie-list t]))
     map))
 
+(defvar eww-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    (dolist (tool-bar-item
+             '((eww-quit . "close")
+               (eww-reload . "refresh")
+               (eww-back-url . "left-arrow")
+               (eww-forward-url . "right-arrow")
+               (eww-view-source . "show")
+               (eww-copy-page-url . "copy")
+               (eww-add-bookmark . "bookmark_add"))) ;; ...
+      (tool-bar-local-item-from-menu
+       (car tool-bar-item) (cdr tool-bar-item) map eww-mode-map))
+    map)
+  "Tool bar for `eww-mode'.")
+
 (define-derived-mode eww-mode nil "eww"
   "Mode for browsing the web.
 
 \\{eww-mode-map}"
   ;; FIXME?  This seems a strange default.
-  (set (make-local-variable 'eww-current-url) 'author)
-  (set (make-local-variable 'eww-current-dom) nil)
-  (set (make-local-variable 'eww-current-source) nil)
-  (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
-  (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
-  (set (make-local-variable 'eww-history) nil)
-  (set (make-local-variable 'eww-history-position) 0)
+  (setq-local eww-current-url 'author)
+  (setq-local eww-current-dom nil)
+  (setq-local eww-current-source nil)
+  (setq-local browse-url-browser-function 'eww-browse-url)
+  (setq-local after-change-functions 'eww-process-text-input)
+  (setq-local eww-history nil)
+  (setq-local eww-history-position 0)
+  (when (boundp 'tool-bar-map)
+   (setq-local tool-bar-map eww-tool-bar-map))
   (buffer-disable-undo)
   ;;(setq buffer-read-only t)
   )
@@ -474,7 +491,7 @@ word(s) will be searched for via `eww-search-prefix'."
   "Go to the previously displayed page."
   (interactive)
   (when (>= eww-history-position (length eww-history))
-    (error "No previous page"))
+    (user-error "No previous page"))
   (eww-save-history)
   (setq eww-history-position (+ eww-history-position 2))
   (eww-restore-history (elt eww-history (1- eww-history-position))))
@@ -483,7 +500,7 @@ word(s) will be searched for via `eww-search-prefix'."
   "Go to the next displayed page."
   (interactive)
   (when (zerop eww-history-position)
-    (error "No next page"))
+    (user-error "No next page"))
   (eww-save-history)
   (eww-restore-history (elt eww-history (1- eww-history-position))))
 
@@ -505,7 +522,7 @@ or <a> tag."
   (interactive)
   (if eww-next-url
       (eww-browse-url (shr-expand-url eww-next-url eww-current-url))
-    (error "No `next' on this page")))
+    (user-error "No `next' on this page")))
 
 (defun eww-previous-url ()
   "Go to the page marked `previous'.
@@ -514,7 +531,7 @@ or <a> tag."
   (interactive)
   (if eww-previous-url
       (eww-browse-url (shr-expand-url eww-previous-url eww-current-url))
-    (error "No `previous' on this page")))
+    (user-error "No `previous' on this page")))
 
 (defun eww-up-url ()
   "Go to the page marked `up'.
@@ -523,7 +540,7 @@ or <a> tag."
   (interactive)
   (if eww-up-url
       (eww-browse-url (shr-expand-url eww-up-url eww-current-url))
-    (error "No `up' on this page")))
+    (user-error "No `up' on this page")))
 
 (defun eww-top-url ()
   "Go to the page marked `top'.
@@ -535,7 +552,7 @@ appears in a <link> or <a> tag."
 		      eww-home-url)))
     (if best-url
 	(eww-browse-url (shr-expand-url best-url eww-current-url))
-      (error "No `top' for this page"))))
+      (user-error "No `top' for this page"))))
 
 (defun eww-reload ()
   "Reload the current page."
@@ -1073,7 +1090,7 @@ Differences in #targets are ignored."
   (dolist (bookmark eww-bookmarks)
     (when (equal eww-current-url
 		 (plist-get bookmark :url))
-      (error "Already bookmarked")))
+      (user-error "Already bookmarked")))
   (if (y-or-n-p "bookmark this page? ")
       (progn
 	(let ((title (replace-regexp-in-string "[\n\t\r]" " " eww-current-title)))
@@ -1106,8 +1123,8 @@ Differences in #targets are ignored."
 
 (defun eww-bookmark-prepare ()
   (eww-read-bookmarks)
-  (when (null eww-bookmarks)
-    (error "No bookmarks are defined"))
+  (unless eww-bookmarks
+    (user-error "No bookmarks are defined"))
   (set-buffer (get-buffer-create "*eww bookmarks*"))
   (eww-bookmark-mode)
   (let ((format "%-40s %s")
@@ -1135,7 +1152,7 @@ Differences in #targets are ignored."
 	 (bookmark (get-text-property start 'eww-bookmark))
 	 (inhibit-read-only t))
     (unless bookmark
-      (error "No bookmark on the current line"))
+      (user-error "No bookmark on the current line"))
     (forward-line 1)
     (push (buffer-substring start (point)) eww-bookmark-kill-ring)
     (delete-region start (point))
@@ -1146,7 +1163,7 @@ Differences in #targets are ignored."
   "Yank a previously killed bookmark to the current line."
   (interactive)
   (unless eww-bookmark-kill-ring
-    (error "No previously killed bookmark"))
+    (user-error "No previously killed bookmark"))
   (beginning-of-line)
   (let ((inhibit-read-only t)
 	(start (point))
@@ -1170,7 +1187,7 @@ Differences in #targets are ignored."
   (interactive)
   (let ((bookmark (get-text-property (line-beginning-position) 'eww-bookmark)))
     (unless bookmark
-      (error "No bookmark on the current line"))
+      (user-error "No bookmark on the current line"))
     ;; We wish to leave this window, but if it's the only window here,
     ;; just let it remain.
     (ignore-errors
@@ -1192,7 +1209,7 @@ Differences in #targets are ignored."
       (setq bookmark (get-text-property (line-beginning-position)
 					'eww-bookmark))
       (unless bookmark
-	(error "No next bookmark")))
+	(user-error "No next bookmark")))
     (eww-browse-url (plist-get bookmark :url))))
 
 (defun eww-previous-bookmark ()
@@ -1211,7 +1228,7 @@ Differences in #targets are ignored."
       (when (eolp)
 	(forward-line -1))
       (if (bobp)
-	  (error "No previous bookmark")
+	  (user-error "No previous bookmark")
 	(forward-line -1))
       (setq bookmark (get-text-property (line-beginning-position)
 					'eww-bookmark)))
@@ -1224,6 +1241,17 @@ Differences in #targets are ignored."
     (define-key map [(control k)] 'eww-bookmark-kill)
     (define-key map [(control y)] 'eww-bookmark-yank)
     (define-key map "\r" 'eww-bookmark-browse)
+
+    (easy-menu-define nil map
+      "Menu for `eww-bookmark-mode-map'."
+      '("Eww Bookmark"
+        ["Exit" eww-bookmark-quit t]
+        ["Browse" eww-bookmark-browse
+         :active (get-text-property (line-beginning-position) 'eww-bookmark)]
+        ["Kill" eww-bookmark-kill
+         :active (get-text-property (line-beginning-position) 'eww-bookmark)]
+        ["Yank" eww-bookmark-yank
+         :active eww-bookmark-kill-ring]))
     map))
 
 (define-derived-mode eww-bookmark-mode nil "eww bookmarks"
