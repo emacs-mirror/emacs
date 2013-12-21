@@ -23,32 +23,32 @@ otherwise leave it unmarked.
 
 * Installation Changes in Emacs 24.4
 
-** Emacs can be compiled with ACL support.
+** Emacs can now be compiled with ACL support.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
 
-** Emacs can be compiled with file notification support.
+** Emacs can now be compiled with file notification support.
 This happens by default if a suitable system library is found at
 build time.  To prevent this, use the configure option
 `--with-file-notification-no'.  See below for file-notify features.
 FIXME?  This feature is not available for the Nextstep port. (?)
 
-** The configure option `without-compress-info' has been generalized,
-and renamed to `without-compress-install'.  It now prevents compression
+** The configure option `--without-compress-info' has been generalized,
+and renamed to `--without-compress-install'.  It now prevents compression
 of _any_ files during installation.
 
-** The configure option --with-crt-dir has been removed.
+** The configure option `--with-crt-dir' has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
 
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
-** Emacs can be compiled with zlib support.  If this library is present
-(which it normally is on most systems), the function
-`zlib-decompress-region' becomes available, which can decompress gzip-
-and zlib-format compressed data.
+** Emacs can be compiled with zlib support.
+If this library is present (which it normally is on most systems), the
+function `zlib-decompress-region' becomes available, which can
+decompress gzip- and zlib-format compressed data.
 
 ---
 ** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.
@@ -83,6 +83,10 @@ Emacs executable, any changes to `load-path' that these files make
 will no longer be present after dumping.  To affect a permanent change
 to `load-path', use the `--enable-locallisppath' option of `configure'.
 
++++
+** The user option `initial-buffer-choice' can now specify a function
+to set up the initial buffer.
+
 
 * Changes in Emacs 24.4
 
@@ -103,59 +107,12 @@ customize the option `tty-menu-open-use-tmm' to a non-nil value.
 `tty-menu-open-use-tmm' is nil.)
 
 +++
-** Key ? also describes prefix bindings like C-h.
+** The *Messages* buffer is created in `messages-buffer-mode',
+a new major mode, with read-only status.  Any code that might create
+the *Messages* buffer should call the function `messages-buffer' to do
+so and set up the mode.
 
-+++
-** `cache-long-line-scans' has been renamed to `cache-long-scans'
-because it affects caching of paragraph scanning results as well.
-
-+++
-** `apropos-variable' is now `apropos-user-option'
-`apropos-user-option' shows all user options while `apropos-variable'
-shows all variables.  When called with a universal prefix argument,
-the two commands swap their behaviors.  When `apropos-do-all' is
-non-nil, they output the same results.
-
-+++
-** `eval-defun' on an already defined defcustom calls the :set function,
-if there is one.
-
-** A zero prefix arg of `eval-last-sexp' (`C-x C-e'),
-`eval-expression' (`M-:') and `eval-print-last-sexp' (`C-j') inserts
-a list with no limit on its length and level (by using nil values of
-`print-length' and `print-level'), and inserts additional formats for
-integers (octal, hexadecimal, and character).
-
-** If the new variable `enable-dir-local-variables' is nil,
-directory local variables are ignored.  May be useful for some modes
-that want to ignore directory-locals while still respecting file-locals.
-
----
-** The option `set-mark-default-inactive' has been deleted.
-This unfinished feature was introduced by accident in Emacs 23.1;
-simply disabling Transient Mark mode does the same thing.
-
-+++
-** `initial-buffer-choice' can now specify a function to set up the
-initial buffer.
-
-+++
-** The *Messages* buffer is created in a new major mode `messages-buffer-mode',
-and read-only.  Code that might create the *Messages* buffer should
-call the function `messages-buffer' to do so and set the mode.
-
-** `remember-notes' creates a buffer whose content is saved on kill-emacs.
-You may think of it as a *scratch* buffer whose content is preserved.
-In fact, it was designed as a replacement for *scratch* buffer and can
-be used that way by setting `initial-buffer-choice' to `remember-notes'
-and `remember-notes-buffer-name' to "*scratch*".  Without the second
-change, *scratch* buffer will still be there for notes that do not
-need to be preserved.
-
----
-** `write-region-inhibit-fsync' now defaults to t in batch mode.
-
-** ACL support has been added.
+** Emacs now supports ACLs (access control lists).
 +++
 *** Emacs preserves the ACL entries of files when backing up.
 +++
@@ -163,17 +120,6 @@ need to be preserved.
 entries of a file.  On GNU/Linux, the POSIX ACL interface is used via
 libacl.  On MS-Windows, the NT Security APIs are used to emulate the
 POSIX ACL interfaces.
-
-** New option `scroll-bar-adjust-thumb-portion'.
-Available only on X, this option allows to control over-scrolling
-using the scroll bar (i.e. dragging the thumb down even when the end
-of the buffer is visible).
-
-+++
-** New function `add-face-text-property' has been added, which can be
-used to conveniently prepend/append new face attributes to text.
-
-** In compiled Lisp files, the header no longer includes a timestamp.
 
 ** Multi-monitor support has been added.
 
@@ -189,68 +135,117 @@ monitor, use the new functions above.  Similar notes also apply to
 `x-display-pixel-width', `x-display-pixel-height', `display-mm-width',
 `display-mm-height', `x-display-mm-width', and `x-display-mm-height'.
 
-** New macro `define-alternatives' can be used to define generic commands.
-Generic commands are interactive functions whose implementation can be
-selected among several alternatives, as a matter of user preference.
-
-** New hooks `focus-in-hook', `focus-out-hook'.
-These are normal hooks run when an Emacs frame gains or loses input focus.
++++
+** The cursor stops blinking after 10 blinks (by default) on X and NS.
+You can change the default by customizing `blink-cursor-blinks'.
 
 +++
-** The blink cursor stops blinking after 10 blinks (default) on X and NS.
-You can change the default by customizing the variable blink-cursor-blinks.
-Also timers for blinking are stopped when no blinking is done, so Emacs does
-not consume CPU cycles.
+** In keymaps where SPC scrolls forward, S-SPC now scrolls backward.
+This affects View mode, etc.
 
-** New command `frameset-to-register' is now bound to `C-x r f', replacing
-`frame-configuration-to-register'.  It offers similar functionality, plus
-some enhancements, like the ability to restore deleted frames.  Command
-`frame-configuration-to-register' is still available, but unbound.
+** Help changes
 
-** The command `quail-help' is deleted.  Use `C-h C-\'
++++
+*** The command `apropos-variable' is renamed to `apropos-user-option'.
+`apropos-user-option' shows all user options while `apropos-variable'
+shows all variables.  When called with a universal prefix argument,
+the two commands swap their behaviors.  When `apropos-do-all' is
+non-nil, they output the same results.
+
++++
+*** The key `?' now describes prefix bindings, like `C-h'.
+
+*** The command `quail-help' is deleted.  Use `C-h C-\'
 (`describe-input-method') instead.
+
+** Frame and window changes
+
++++
+*** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
+bound to <f11> and M-<f10>, respectively.
+
+*** New command `frameset-to-register' is now bound to `C-x r f', replacing
+`frame-configuration-to-register'.  It offers similar functionality,
+plus enhancements like the ability to restore deleted frames.  The
+command `frame-configuration-to-register' still exists, but is unbound.
+
+*** New hooks `focus-in-hook', `focus-out-hook'.
+These are normal hooks run when an Emacs frame gains or loses input focus.
+
+---
+*** `split-window' is now a non-interactive function, not a command.
+As a command, it was a special case of `C-x 2' (`split-window-below'),
+and as such superfluous.  After being reimplemented in Lisp, its
+interactive form was mistakenly retained.
+
+*** New option `scroll-bar-adjust-thumb-portion'.
+Available only on X, this option allows to control over-scrolling
+using the scroll bar (i.e. dragging the thumb down even when the end
+of the buffer is visible).
+
+** Lisp evaluation changes
++++
+*** `eval-defun' on an already defined defcustom calls the :set function,
+if there is one.
+
+*** A zero prefix arg of `eval-last-sexp' (`C-x C-e'),
+`eval-expression' (`M-:') and `eval-print-last-sexp' (`C-j') inserts
+a list with no limit on its length and level (by using nil values of
+`print-length' and `print-level'), and inserts additional formats for
+integers (octal, hexadecimal, and character).
+
+---
+** `write-region-inhibit-fsync' now defaults to t in batch mode.
+
++++
+** `cache-long-line-scans' has been renamed to `cache-long-scans'
+because it affects caching of paragraph scanning results as well.
+
+---
+** The option `set-mark-default-inactive' has been deleted.
+This unfinished feature was introduced by accident in Emacs 23.1;
+simply disabling Transient Mark mode does the same thing.
 
 ** The default value of `comment-use-global-state' is changed to t,
 and this variable has been marked obsolete.
 
-** `fill-single-char-nobreak-p' prevents fill from breaking a line after
+
+* Editing Changes in Emacs 24.4
+
+** Indentation changes
+
++++
+*** The behavior of `C-x TAB' (`indent-rigidly') has changed.
+When invoked without a prefix argument, it now activates a transient
+mode in which typing <left>, <right>, <S-left>, and <S-right> adjusts
+the text indentation in the region.  Typing any other key resumes
+normal editing behavior.
+
++++
+*** `electric-indent-mode' is enabled by default.
+
+*** `tab-stop-list' is now implicitly extended to infinity by repeating
+the last step.  Its default value is changed to nil which means a tab
+stop every `tab-width' columns.
+
+** Filling changes
+
+*** New command `cycle-spacing' cycles between spacing conventions:
+having just one space, no spaces, or reverting to the original
+spacing.  Like `just-one-space', it can handle or ignore newlines and
+leave different number of spaces.
+
+*** `fill-single-char-nobreak-p' prevents fill from breaking a line after
 a 1-letter word, which is an error according to Polish and
 Czech typography rules.  To globally enable this feature, evaluate:
 
   (add-hook 'fill-nobreak-predicate 'fill-single-char-nobreak-p)
 
-
-* Editing Changes in Emacs 24.4
-
 +++
-** `electric-indent-mode' is enabled by default.
+** Uniquify is enabled by default with `post-forward-angle-brackets' style.
 
-+++
-** Uniquify is enabled by default with post-forward-angle-brackets style.
-
-** Command `rectangle-mark-mode' bound to C-x SPC makes a rectangular region.
+** New command `C-x SPC' (`rectangle-mark-mode') makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
-
-** C-x TAB enters a transient interactive mode.
-You can then use the left/right cursor keys to move the block of text.
-
-** `tab-stop-list' is now implicitly extended to infinity by repeating
-the last step.  Its default value is changed to nil which means a tab
-stop every `tab-width' columns.
-
----
-** `split-window' is no longer a command, just a non-interactive function.
-As a command it was a special case of `split-window-below', and as such
-superfluous.  After being reimplemented in Lisp, its interactive form
-was mistakenly retained.
-
-+++
-** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
-bound to <f11> and M-<f10>, respectively.
-
-+++
-** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
-Eg View mode, etc.
 
 +++
 ** New option `visual-order-cursor-movement'.
@@ -259,45 +254,24 @@ visual order of characters on the screen: <left> always moves to the
 left, <right> always moves to the right, disregarding the surrounding
 bidirectional context.
 
-** All register commands can now show help with preview.
+** Register changes
 
-** New command `kmacro-to-register' to store keyboard macros in registers.
+*** All register commands can now show help with preview.
 
-** Shell Script mode
+*** New command `kmacro-to-register' stores keyboard macros in registers.
 
-*** `sh-mode' now has the mode own `add-log-current-defun-function'.
-You can pick the name of the function and the variables with `C-x 4 a'.
+*** New command `C-x r f' (`frameset-to-register').
+See Changes in Emacs 24.4, above.
+
+** New command `delete-duplicate-lines'.
+When its arg ADJACENT is non-nil (when called interactively with C-u
+C-u) it works like the utility `uniq'.  Otherwise by default it
+deletes duplicate lines everywhere in the region without regard to
+adjacency.  When its arg KEEP-BLANKS is non-nil (when called
+interactively with C-u C-u C-u), duplicate blank lines are preserved.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
-
-** CUA-mode
-*** CUA-mode was changed to make use of delete-selection-mode and
-shift-select-mode.  So you can now enable it independently from
-transient-mark-mode, delete-selection-mode, and shift-select-mode.
-As a result, cua-highlight-region-shift-only is obsolete
-(you can disable transient-mark-mode to get the same result).
-*** CUA's rectangles can now be used via `cua-rectangle-mark-mode'.
-
-** `delete-selection-mode' can be used without transient-mark-mode.
-
-** prolog-use-smie has been removed, along with the non-SMIE indentation code.
-
-** SMIE indentation can be customized via `smie-config'.
-The customization can be guessed by Emacs by providing a sample indented
-file and letting SMIE learn from it.
-
-** sh-script now uses its SMIE indentation algorithm by default.
-
-** If your Emacs is compiled with libxml2 support, you can use the new
-built-in web browser `eww'.
-
-** `remember' can now store notes in separates files
-You can use the new function `remember-store-in-files' within the
-`remember-handler-functions' option.
-
-See `remember-data-directory' and `remember-directory-file-name-format'
-for new options related to this function.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
@@ -320,34 +294,16 @@ Also the following files used by the now obsolete otodo-mode.el:
 ~/.emacs.d/todo-done	replaces  ~/.todo-done
 ~/.emacs.d/todo-top	replaces  ~/.todo-top
 
+** Backtrace and debugger
 
-** Delphi mode is now called OPascal mode.
-*** All delphi-* variables and functions have been renamed to opascal-*.
-*** `delphi-newline-always-indents' is not supported any more.
-Use `electric-indent-mode' instead.
-*** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
+*** The Lisp debugger's `e' command now includes the lexical environment
+when evaluating the code in the context at point.  Hence, it now lets
+you access lexical variables.
 
-** Eldoc Mode works properly in the minibuffer.
+*** New command `v' (`debuger-toggle-locals) displays local vars.
 
-** jit-lock-debug-mode lets you use the debuggers on code run via jit-lock.
-
-** Minibuffer
-
-*** completing-read-multiple's separator can now be a regexp.
-The default separator is changed to allow surrounding spaces around the comma.
-
-*** New option `read-regexp-defaults-function' defines the function
-that provides the default value for commands that ask for a regexp:
-`rgrep', `lgrep' `occur', `multi-occur', `multi-occur-in-matching-buffers',
-`highlight-regexp', `highlight-lines-matching-regexp', `highlight-phrase'.
-This option can be customized to values that provide a default value
-from the regexp last history element or from the symbol found at point.
-
-** The backtrace debugger and local variables:
-*** The debugger's `e' command evaluates the code in the context at point.
-This includes using the lexical environment at point, which means that
-`e' now lets you access lexical variables as well.
-*** The backtrace debugger can display local vars with `v'.
+*** New minor mode `jit-lock-debug-mode' lets you use the debuggers on
+code run via JIT Lock.
 
 ** Battery
 
@@ -359,41 +315,16 @@ This includes using the lexical environment at point, which means that
 
 ** Calendar and Diary
 
-*** New faces: `calendar-weekday-header', `calendar-weekend-header',
-`calendar-month-header'.
+*** New faces `calendar-weekday-header', `calendar-weekend-header',
+and `calendar-month-header'.
 
 *** New option `calendar-day-header-array'.
-
-*** The variable `calendar-font-lock-keywords' is obsolete.
 
 +++
 *** New variable `diary-from-outlook-function', used by the command
 `diary-from-outlook'.
 
-** VC and related modes
-
-*** In VC directory mode, `D' displays diffs between VC-controlled
-whole tree revisions.
-
-*** In VC directory mode, `L' lists the change log for the current VC
-controlled tree in a window.
-
-*** In VC directory mode, `I' shows a log of changes that will be
-received with a pull operation.
-
-*** `C-x v G' (globally) and `G' (in VC directory mode) ignores a file
-under current version control system.  When called with a prefix
-argument, you can remove a file from the ignored file list.
-
-*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
-because it is moved to vc-cvs.el.
-
-** cl-lib
-
-*** New macro cl-tagbody.
-
-+++
-*** letf is now just an alias for cl-letf.
+*** The variable `calendar-font-lock-keywords' is obsolete.
 
 ** Calc
 
@@ -411,6 +342,52 @@ on the given date.
 
 *** Support for ISO 8601 dates.
 
+** CEDET
+
+*** EDE
+
+**** The cpp-root project now supports executing a compile command.
+It can be set through the new :compile-command slot or the
+buffer-local variable `compile-command'.
+
+**** Better selection of include directories for the 'linux' project.
+Include directories now support out-of-tree build directories and
+target architecture auto-detection.
+
+*** Semantic
+
+**** Improved detection of used namespaces in current scope in C++.
+
+**** Parsing of default values for variables and function arguments in C/C++.
+They are also displayed by the summarize feature in the modeline.
+
+**** Improved parsing of function pointers in C/C++.
+This also includes parsing of function pointers as function arguments.
+
+**** Parsing of C/C++ preprocessor macros which open new scope.
+For example, this enables parsing of macros which open new namespaces.
+
+**** Support for 'this' pointer in inline member functions in C++.
+
+** cl-lib
+
+*** New macro cl-tagbody.
+
++++
+*** letf is now just an alias for cl-letf.
+
+** CUA mode
+
+*** CUA mode was changed to make use of delete-selection-mode and
+shift-select-mode.  So you can now enable it independently from
+transient-mark-mode, delete-selection-mode, and shift-select-mode.
+As a result, cua-highlight-region-shift-only is obsolete
+(you can disable transient-mark-mode to get the same result).
+
+*** CUA's rectangles can now be used via `cua-rectangle-mark-mode'.
+
+** Delete Selection mode can now be used without `transient-mark-mode'.
+
 ** Desktop
 
 *** `desktop-auto-save-timeout' defines the number of seconds idle time
@@ -425,11 +402,7 @@ and `desktop-restore-forces-onscreen' offer further customization.
 
 *** New minor mode `dired-hide-details-mode' hides details.
 
-** ERC
-
-*** New option `erc-accidental-paste-threshold-seconds'.
-If set to a number, this can be used to avoid accidentally paste large
-amounts of data into the ERC input.
+** Eldoc Mode works properly in the minibuffer.
 
 ** EPA
 
@@ -447,8 +420,42 @@ that means: when one of the recipients of the message being encrypted
 is `foo@bar.com', ignore that name as regards encryption.
 This is useful to avoid a query when you have no key for that name.
 
+** ERC
+
+*** New option `erc-accidental-paste-threshold-seconds'.
+If set to a number, this can be used to avoid accidentally paste large
+amounts of data into the ERC input.
+
++++
+** ERT
+
+*** New macro `skip-unless' allows skipping ERT tests.
+See the ERT manual for details.
+
+** Eshell
+
++++
+*** `eshell' now supports visual subcommands and options
+Eshell has been able to handle "visual" commands (interactive,
+non-line oriented commands such as top that require display
+capabilities not provided by eshell) by running them in an Emacs
+terminal emulator.  See `eshell-visual-commands'.
+
+This feature has been extended to subcommands and options that make a
+usually line-oriented command a visual command.  Typical examples are
+"git log" and "git <command> --help" which display their output in a
+pager by default.  See `eshell-visual-subcommands' and
+`eshell-visual-options'.
+
 ---
-** New F90 mode option `f90-smart-end-names'.
+*** Added Eshell-Tramp module
+External su and sudo commands are now the default; the internal,
+Tramp-using variants can still be used by enabling the eshell-tramp
+module.
+
+** F90 mode
+---
+*** New option `f90-smart-end-names'.
 
 ** Icomplete is a bit more like Ido.
 *** key bindings to navigate through and select the completions.
@@ -457,15 +464,6 @@ This is useful to avoid a query when you have no key for that name.
 *** Icomplete-mode by defaults applies to all forms of minibuffer completion.
 (setq icomplete-with-completion-tables '(internal-complete-buffer))
 will revert to the old behavior.
-
-+++
-** New features for Octave mode:
-*** Font locking for texinfo comments and new keywords
-*** Completion in Octave file buffers
-*** Eldoc support
-*** Jump to definition
-*** Documentation lookup/search
-*** Code cleanup and various bug fixes
 
 ** Ido
 *** Ido has a manual now.
@@ -483,18 +481,11 @@ directory, respectively.
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
 *** New commands to speed up, slow down, or reverse animation.
-
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.
 It also has an optional frame argument, which can be used by Lisp
 callers to fit the image to a frame other than the selected frame.
-
-** Info
-
-*** New face `info-index-match' is used to highlight matches in index
-entries displayed by `Info-index-next', `Info-virtual-index' and
-`info-apropos'.
 
 ** Hi-Lock
 
@@ -505,6 +496,102 @@ will cycle through faces in `hi-lock-face-defaults' without prompting.
 *** New global command `M-s h .' (`highlight-symbol-at-point')
 highlights the symbol found near point without prompting,
 using the next face automatically.
+
+** Imenu
+
+*** New option `imenu-generic-skip-comments-and-strings'.
+
+** Info
+
+*** New face `info-index-match' is used to highlight matches in index
+entries displayed by `Info-index-next', `Info-virtual-index' and
+`info-apropos'.
+
+** JS Mode
+
+*** Better indentation of multiple-variable declarations.
+If declaration spans several lines, variables on the following lines
+are lined up to the first one.
+
+*** We now recognize and better indent continuations in array
+comprehensions.
+
+*** New option `js-switch-indent-offset`.
+
+** MH-E has been updated to MH-E version 8.5.
+See MH-E-NEWS for details.
+
++++
+** Octave mode
+*** Font locking for texinfo comments and new keywords
+*** Completion in Octave file buffers
+*** Eldoc support
+*** Jump to definition
+*** Documentation lookup/search
+*** Code cleanup and various bug fixes
+
+** OPascal mode is the new name for Delphi mode.
+
+*** All delphi-* variables and functions have been renamed to opascal-*.
+*** `delphi-newline-always-indents' is not supported any more.
+Use `electric-indent-mode' instead.
+*** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
+
+** Package
+
+*** The format of `archive-contents' files, generated by package
+repositories, has changed to allow a new (fifth) element in the data
+vectors, containing an associative list with extra properties.
+
+*** `describe-package' buffer uses the `:url' extra property to
+display a `Homepage' header, if it's present.
+
+** Prolog mode
+
+*** `prolog-use-smie' has been removed, along with the non-SMIE
+indentation code.
+
+** Remember
+
+*** The new command `remember-notes' creates a buffer which is saved
+on `kill-emacs'.
+
+You may think of it as a *scratch* buffer whose content is preserved.
+In fact, it was designed as a replacement for *scratch* buffer and can
+be used that way by setting `initial-buffer-choice' to
+`remember-notes' and `remember-notes-buffer-name' to "*scratch*".
+Without the second change, *scratch* buffer will still be there for
+notes that do not need to be preserved.
+
+*** The Remember package can now store notes in separates files.
+You can use the new function `remember-store-in-files' within the
+`remember-handler-functions' option.
+
+See `remember-data-directory' and `remember-directory-file-name-format'
+for new options related to this function.
+
+** Rmail
+
+*** Customize `rmail-mbox-format' to influence some minor aspects of
+how Rmail displays non-MIME messages.
+
+---
+*** The `unrmail' command now converts from BABYL to mboxrd format,
+rather than mboxo.  Customize `unrmail-mbox-format' to change this.
+
+** Ruby mode
+
+*** New option `ruby-encoding-magic-comment-style'.
+
+*** New option `ruby-custom-encoding-magic-comment-template'.
+
+*** New mode menu.
+
+*** Improved syntax highlighting and indentation.
+
+*** Add more Ruby file types to `auto-mode-alist'.
+
+*** New option `ruby-align-to-stmt-keywords'.
 
 ** Search and Replace
 
@@ -542,40 +629,32 @@ the first word (in addition to the lax matching of the last word).
 The same rules are now applied to the symbol search with the difference
 that it matches symbols, and non-symbol characters between symbols.
 
-** MH-E has been updated to MH-E version 8.5.
-See MH-E-NEWS for details.
-
----
-** The unrmail command converts from BABYL to mboxrd rather than mboxo.
-Customize `unrmail-mbox-format' to change this.
-
----
-** Similarly, customize `rmail-mbox-format' to influence some minor aspects
-of how Rmail displays non-MIME messages.
-
 +++
-** New function `ses-rename-cell' to give SES cells arbitrary names.
+** SES
 
-** trace-function was largely rewritten.
-New features include:
-- no prompting for the destination buffer, unless a prefix-arg was used.
-- additionally to prompting for a destination buffer, when a prefix-arg is
-  used, the user can enter a "context", i.e. Lisp expression whose value at the
-  time the function is entered/exited will be printed along with the function
-  name and arguments.  Useful to trace the value of (current-buffer) or
-  (point) when the function is invoked.
+*** New command `ses-rename-cell' allows assigning names to SES cells.
 
-** New command `delete-duplicate-lines' has new types of operation:
-When its arg ADJACENT is non-nil (when called interactively with C-u C-u)
-it works like the utility `uniq'.  Otherwise by default it deletes
-duplicate lines everywhere in the region without regard to adjacency.
-When its arg KEEP-BLANKS is non-nil (when called interactively with
-C-u C-u C-u), duplicate blank lines are preserved.
+** Shell
 
-** New `cycle-spacing' command allows cycling between having just one
-space, no spaces, or reverting to the original spacing.  Like
-`just-one-space' command it can handle or ignore newlines and
-leave different number of spaces.
+*** `explicit-bash-args' now always defaults to use --noediting.
+During initialization, Emacs no longer expends a process to decide
+whether it is safe to use Bash's --noediting option.  These days
+--noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
+
+*** The SMIE indentation engine is now used by default.
+
+** Shell Script mode
+
+*** `sh-mode' now has the mode own `add-log-current-defun-function'.
+You can pick the name of the function and the variables with `C-x 4 a'.
+
+** SMIE indentation can be customized via `smie-config'.
+The customization can be guessed by Emacs by providing a sample indented
+file and letting SMIE learn from it.
+
+** Term mode
+
+*** New option `term-suppress-hard-newline'.
 
 ** Todo mode has been rewritten and enhanced.
 New features include:
@@ -596,6 +675,15 @@ incompatible with the old format; however, you can convert old todo and done
 item files to the new format on initializing the first new todo file, or at any
 later time with the provided conversion command.  The old version of
 todo-mode.el has been made obsolete and renamed otodo-mode.el.
+
+** trace-function was largely rewritten.
+New features include:
+- no prompting for the destination buffer, unless a prefix-arg was used.
+- additionally to prompting for a destination buffer, when a prefix-arg is
+  used, the user can enter a "context", i.e. Lisp expression whose value at the
+  time the function is entered/exited will be printed along with the function
+  name and arguments.  Useful to trace the value of (current-buffer) or
+  (point) when the function is invoked.
 
 ** Tramp
 
@@ -619,6 +707,24 @@ which support POSIX ACLs.
 *** Handlers for `file-notify-add-watch' and `file-notify-rm-watch'
 for remote machines which support filesystem notifications.
 
+** VC and related modes
+
+*** In VC directory mode, `D' displays diffs between VC-controlled
+whole tree revisions.
+
+*** In VC directory mode, `L' lists the change log for the current VC
+controlled tree in a window.
+
+*** In VC directory mode, `I' shows a log of changes that will be
+received with a pull operation.
+
+*** `C-x v G' (globally) and `G' (in VC directory mode) ignores a file
+under current version control system.  When called with a prefix
+argument, you can remove a file from the ignored file list.
+
+*** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
+because it is moved to vc-cvs.el.
+
 ** VHDL mode
 
 *** New options: `vhdl-actual-generic-name', `vhdl-beautify-options'.
@@ -629,65 +735,6 @@ for remote machines which support filesystem notifications.
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-*' faces instead.
-
-** Eshell
-
-+++
-*** `eshell' now supports visual subcommands and options
-Eshell has been able to handle "visual" commands (interactive,
-non-line oriented commands such as top that require display
-capabilities not provided by eshell) by running them in an Emacs
-terminal emulator.  See `eshell-visual-commands'.
-
-This feature has been extended to subcommands and options that make a
-usually line-oriented command a visual command.  Typical examples are
-"git log" and "git <command> --help" which display their output in a
-pager by default.  See `eshell-visual-subcommands' and
-`eshell-visual-options'.
-
----
-*** Added Eshell-Tramp module
-External su and sudo commands are now the default; the internal,
-Tramp-using variants can still be used by enabling the eshell-tramp
-module.
-
-** Package
-
-*** The format of `archive-contents' files, generated by package
-repositories, has changed to allow a new (fifth) element in the data
-vectors, containing an associative list with extra properties.
-
-*** `describe-package' buffer uses the `:url' extra property to
-display a `Homepage' header, if it's present.
-
-** New term.el option `term-suppress-hard-newline'.
-
-** CEDET
-
-*** EDE
-
-**** The cpp-root project now supports executing a compile command.
-It can be set through the new :compile-command slot or the
-buffer-local variable `compile-command'.
-
-**** Better selection of include directories for the 'linux' project.
-Include directories now support out-of-tree build directories and
-target architecture auto-detection.
-
-*** Semantic
-
-**** Improved detection of used namespaces in current scope in C++.
-
-**** Parsing of default values for variables and function arguments in C/C++.
-They are also displayed by the summarize feature in the modeline.
-
-**** Improved parsing of function pointers in C/C++.
-This also includes parsing of function pointers as function arguments.
-
-**** Parsing of C/C++ preprocessor macros which open new scope.
-For example, this enables parsing of macros which open new namespaces.
-
-**** Support for 'this' pointer in inline member functions in C++.
 
 ** Obsolete packages:
 
@@ -711,69 +758,33 @@ For example, this enables parsing of macros which open new namespaces.
 *** The Info-edit command is obsolete.  Editing Info nodes by hand
 has not been relevant for some time.
 
-** Shell
-
-*** `explicit-bash-args' now always defaults to use --noediting.
-During initialization, Emacs no longer expends a process to decide
-whether it is safe to use Bash's --noediting option.  These days
---noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
-
-+++
-** There is a new macro `skip-unless' for skipping ERT tests.  See the manual.
-
-** Imenu
-
-*** New option `imenu-generic-skip-comments-and-strings'.
-
-** Ruby mode
-
-*** New option `ruby-encoding-magic-comment-style'.
-
-*** New option `ruby-custom-encoding-magic-comment-template'.
-
-*** New mode menu.
-
-*** Improved syntax highlighting and indentation.
-
-*** Add more Ruby file types to `auto-mode-alist'.
-
-*** New option `ruby-align-to-stmt-keywords'.
-
-** JS Mode
-
-*** Better indentation of multiple-variable declarations.
-If declaration spans several lines, variables on the following lines
-are lined up to the first one.
-
-*** We now recognize and better indent continuations in array
-comprehensions.
-
-*** New option `js-switch-indent-offset`.
-
 
 * New Modes and Packages in Emacs 24.4
 
-** New `superword-mode' in subword.el
+** New package `eww' is a built-in web browser.
+It is only available if Emacs is compiled with libxml2 support.
+
+** New minor mode `superword-mode', defined in subword.el
 `superword-mode' overrides the default word motion commands to treat
 symbol_words as a single word, similar to what `subword-mode' does and
 using the same internal functions.
 
-** New nadvice.el package offering lighter-weight advice facilities.
+** New package nadvice.el offers lighter-weight advice facilities.
 It is layered as:
 - add-function/remove-function which can be used to add/remove code on any
   function-carrying place, such as process-filters or `<foo>-function' hooks.
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
 
-** New frameset.el package.
+** New package frameset.el.
 It provides a set of operations to save a frameset (the state of all
 or a subset of the existing frames and windows, somewhat similar to a
 frame configuration), both in-session and persistently, and restore it
 at some point in the future.
 
 +++
-** The package filenotify.el provides an interface for file system
-notifications.  It requires, that Emacs is compiled with one of the
+** New package filenotify.el provides an interface for file system
+notifications.  It requires that Emacs be compiled with one of the
 low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 
@@ -789,13 +800,16 @@ run.  The new optional CHECK-TIMERS param allows for the prior behavior.
 ** The syntax of ?» and ?« is now punctuation instead of matched parens.
 Some languages match those as »...« and others as «...» so better stay neutral.
 
-** The default file coding for Emacs Lisp files is now utf-8.
-(See file-coding-system-alist.)  In most cases, this change is transparent, but
-files that contain unusual characters without specifying an explicit coding
-system may fail to load with obscure errors.
-You should either convert them to utf-8 or add an explicit `coding:' cookie.
+** In compiled Lisp files, the header no longer includes a timestamp.
 
-** overriding-terminal-local-map does not replace the local keymaps any more.
+** The default file coding for Emacs Lisp files is now utf-8.
+(See `file-coding-system-alist'.)  In most cases, this change is
+transparent, but files that contain unusual characters without
+specifying an explicit coding system may fail to load with obscure
+errors.  You should either convert them to utf-8 or add an explicit
+`coding:' cookie.
+
+** `overriding-terminal-local-map' no longer replaces the local keymaps.
 It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
 
@@ -842,12 +856,33 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
+** New variable `enable-dir-local-variables'.
+Directory-local variables are ignored if this is set to nil.  This may
+be useful for modes that want to ignore directory-locals while still
+respecting file-local variables.
+
+** New macro `define-alternatives' can be used to define generic commands.
+Generic commands are interactive functions whose implementation can be
+selected among several alternatives, as a matter of user preference.
+
+** New function `get-pos-property'.
+
+** Minibuffer changes
+
+*** completing-read-multiple's separator can now be a regexp.
+The default separator is changed to allow surrounding spaces around the comma.
+
+*** New option `read-regexp-defaults-function' defines the function
+that provides the default value for commands that ask for a regexp:
+`rgrep', `lgrep' `occur', `multi-occur', `multi-occur-in-matching-buffers',
+`highlight-regexp', `highlight-lines-matching-regexp', `highlight-phrase'.
+This option can be customized to values that provide a default value
+from the regexp last history element or from the symbol found at point.
+
 ** New option `load-prefer-newer', if non-nil, means that when both
 .el and .elc versions of a file exist, rather than `load' always
 choosing the .elc version, it will choose whichever is newer
 (unless you explicitly specify one or the other).
-
-** New function get-pos-property.
 
 ** New hook `pre-redisplay-function'.
 
@@ -925,12 +960,32 @@ the start and end of each substring.
 
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
-** Support for filesystem notifications.
+** File-handling changes
+
+*** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
 `glib' API, or the 'inotify' API (on GNU/Linux systems only).  On
 MS-Windows systems, this is supported for Windows XP and newer
 versions.
+
+*** The 9th element returned by `file-attributes' is now unspecified.
+Formerly, it was t if the file's gid would change if file were deleted
+and recreated.  This value has been inaccurate for years on many
+platforms, and nobody seems to have noticed or cared.
+
+*** The 6th argument to `copy-file' has been renamed to
+PRESERVE-EXTENDED-ATTRIBUTES as it now handles both SELinux context
+and ACL entries.
+
+*** The function `file-ownership-preserved-p' now has an optional
+argument GROUP which causes it check for file group too.  This can be
+used in place of the 9th element of `file-attributes'.
+
+
+*** The function `set-visited-file-modtime' now accepts a 0 or -1
+argument, with the same interpretation as the returned value of
+`visited-file-modtime'.
 
 ** Changes in autorevert.el
 
@@ -952,6 +1007,9 @@ of remote files when set to non-nil.
 Its third arg now accepts values specifying exactly which face spec to
 set (defface, custom, or user spec), and it directly sets the relevant
 property using the supplied face spec.
+
+*** New function `add-face-text-property', which can be used to
+conveniently prepend/append new face properties.
 
 *** Face specs set via Custom themes now replace the `defface' spec
 rather than inheriting from it (as do face specs set via Customize).
@@ -1031,11 +1089,10 @@ These attributes are only meaningful for coding-systems of type
 `:coding-type' attribute and can be accessed by calling the
 `coding-system-type' function.)
 
-** The function `set-visited-file-modtime' now accepts a 0 or -1 argument
-with the same interpretation as the returned value of `visited-file-modtime'.
+** `time-to-seconds' is not obsolete any more.
 
-** time-to-seconds is not obsolete any more.
-** New functions special-form-p and macrop.
+** New functions `special-form-p' and `macrop'.
+
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
 
@@ -1053,20 +1110,7 @@ Emacs now no longer locks DIR/FILE in that case.
 On file systems that do not support symbolic links, the lock is now a
 regular file with contents being what would have been in the symlink.
 
-** The 9th element returned by `file-attributes' is now unspecified.
-Formerly, it was t if the file's gid would change if file were deleted
-and recreated.  This value has been inaccurate for years on many
-platforms, and nobody seems to have noticed or cared.
-
-** The function `file-ownership-preserved-p' now has an optional
-argument GROUP which causes it check for file group too.  This can be
-used in place of the 9th element of `file-attributes'.
-
 ** New functions `group-gid' and `group-real-gid'.
-
-** The 6th argument to `copy-file' has been renamed to
-`preserve-extended-attributes' as it now handles both SELinux context
-and ACL entries.
 
 ** The `common-substring' argument of display-completion-list is obsolete.
 Either use `completion-all-completions' which already returns highlighted
