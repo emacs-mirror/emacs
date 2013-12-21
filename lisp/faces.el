@@ -1555,16 +1555,16 @@ If SPEC is nil, return nil."
 		:box nil :inverse-video nil :stipple nil :inherit nil)
 	      ;; `display-graphic-p' is unavailable when running
 	      ;; temacs, prior to loading frame.el.
-	      (unless (and (fboundp 'display-graphic-p)
-			   (display-graphic-p frame))
-		`(:family "default" :foundry "default" :width normal
-		  :height 1 :weight normal :slant normal
-		  :foreground ,(if (frame-parameter nil 'reverse)
-				   "unspecified-bg"
-				 "unspecified-fg")
-		  :background ,(if (frame-parameter nil 'reverse)
-				   "unspecified-fg"
-				 "unspecified-bg"))))
+	      (when (fboundp 'display-graphic-p)
+		(unless (display-graphic-p frame)
+		  `(:family "default" :foundry "default" :width normal
+		    :height 1 :weight normal :slant normal
+		    :foreground ,(if (frame-parameter nil 'reverse)
+				     "unspecified-bg"
+				   "unspecified-fg")
+		    :background ,(if (frame-parameter nil 'reverse)
+				     "unspecified-fg"
+				   "unspecified-bg")))))
 	   ;; For all other faces, unspecify all attributes.
 	   (apply 'append
 		  (mapcar (lambda (x) (list (car x) 'unspecified))
@@ -1574,13 +1574,13 @@ If SPEC is nil, return nil."
   "Set the face spec SPEC for FACE.
 See `defface' for the format of SPEC.
 
-The appearance of each face is controlled by its spec, and by the
-internal face attributes (which can be frame-specific and can be
-set via `set-face-attribute').  This function sets the former.
+The appearance of each face is controlled by its specs (set via
+this function), and by the internal frame-specific face
+attributes (set via `set-face-attribute').
 
-In addition to setting the face spec, this function defines FACE
-as a valid face name if it is not already one, and (re)calculates
-the face's attributes on existing frames.
+This function also defines FACE as a valid face name if it is not
+already one, and (re)calculates its attributes on existing
+frames.
 
 The argument SPEC-TYPE determines which spec to set:
   nil or `face-override-spec' means the override spec (which is
@@ -1612,20 +1612,10 @@ function for its other effects."
   ;; as far as Custom is concerned.
   (unless (eq face 'face-override-spec)
     (put face 'face-modified nil))
-  (if (facep face)
-      ;; If the face already exists, recalculate it.
-      (dolist (frame (frame-list))
-	(face-spec-recalc face frame))
-    ;; Otherwise, initialize it on all frames.
-    (make-empty-face face)
-    (let ((value (face-user-default-spec face))
-	  (have-window-system (memq initial-window-system '(x w32 ns))))
-      (dolist (frame (frame-list))
-	(face-spec-set-2 face frame value)
- 	(when (memq (window-system frame) '(x w32 ns))
- 	  (setq have-window-system t)))
-      (if have-window-system
- 	  (make-face-x-resource-internal face)))))
+  ;; Initialize the face if it does not exist, then recalculate.
+  (make-empty-face face)
+  (dolist (frame (frame-list))
+    (face-spec-recalc face frame)))
 
 (defun face-spec-recalc (face frame)
   "Reset the face attributes of FACE on FRAME according to its specs.
@@ -1642,7 +1632,8 @@ then the override spec."
 	(dolist (spec (reverse theme-faces))
 	  (face-spec-set-2 face frame (cadr spec)))
       (face-spec-set-2 face frame (face-default-spec face))))
-  (face-spec-set-2 face frame (get face 'face-override-spec)))
+  (face-spec-set-2 face frame (get face 'face-override-spec))
+  (make-face-x-resource-internal face frame))
 
 (defun face-spec-set-2 (face frame spec)
   "Set the face attributes of FACE on FRAME according to SPEC."

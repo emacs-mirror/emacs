@@ -1,10 +1,19 @@
 2013-12-21  Chong Yidong  <cyd@gnu.org>
 
+	* custom.el (custom-theme-recalc-face): Do nothing if the face is
+	undefined.  Thus, theme settings for undefined faces do not take
+	effect until the faces are defined with defface, the same as with
+	theme variables.
+
+	* faces.el (face-spec-set): Use face-spec-recalc in all cases.
+	(face-spec-reset-face): Don't assign extra properties in temacs.
+	(face-spec-recalc): Apply X resources too.
+
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
 	* faces.el (face-spec-set):
 	* cus-face.el (custom-theme-set-faces, custom-set-faces):
 	* custom.el (defface): Doc fixes (Bug#16203).
-
-2013-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* indent.el (indent-rigidly-map): Add docstring, and move commands
 	into named functions.

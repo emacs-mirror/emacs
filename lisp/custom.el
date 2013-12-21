@@ -1459,12 +1459,15 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
 		 (eval (car valspec))))))
 
 (defun custom-theme-recalc-face (face)
-  "Set FACE according to currently enabled custom themes."
+  "Set FACE according to currently enabled custom themes.
+If FACE is not initialized as a face, do nothing; otherwise call
+`face-spec-recalc' to recalculate the face on all frames."
   (if (get face 'face-alias)
       (setq face (get face 'face-alias)))
-  ;; Reset the faces for each frame.
-  (dolist (frame (frame-list))
-    (face-spec-recalc face frame)))
+  (if (facep face)
+      ;; Reset the faces for each frame.
+      (dolist (frame (frame-list))
+	(face-spec-recalc face frame))))
 
 
 ;;; XEmacs compatibility functions
