@@ -1,3 +1,7 @@
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* themes/tango-dark-theme.el: Minor color tweak.
+
 2013-12-13  David Engster  <deng@randomsample.de>
 
 	* NEWS: Add sections for CEDET and EIEIO.
