@@ -449,12 +449,6 @@ struct scroll_bar {
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
   int dragging;
-
-  /* 1 if the background of the fringe that is adjacent to a scroll
-     bar is extended to the gap between the fringe and the bar.  */
-  /* Note: this could be a bit field, but we need to take its address
-     in ALLOCATE_PSEUDOVECTOR (see x_scroll_bar_create).  */
-  bool fringe_extended_p;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */

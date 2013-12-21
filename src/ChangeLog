@@ -1,3 +1,14 @@
+2013-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.h (struct scroll_bar): Remove member `fringe_extended_p'.
+
+	* w32term.c (w32_draw_fringe_bitmap, x_scroll_run): Remove code for
+	fringe background extension.
+	(x_scroll_bar_create): Remove variables `sb_left' and `sb_width',
+	because they are now always the same as `left' and `width',
+	respectively.  Remove code for the case that `width' and
+	`sb_width' are different.
+
 2013-12-20  Martin Rudalics  <rudalics@gmx.at>
 
 	Remove scroll_bar_actual_width from frames.
