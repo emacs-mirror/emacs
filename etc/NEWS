@@ -304,7 +304,8 @@ Also the following files used by the now obsolete otodo-mode.el:
 when evaluating the code in the context at point.  Hence, it now lets
 you access lexical variables.
 
-*** New command `v' (`debuger-toggle-locals) displays local vars.
++++
+*** New command `v' (`debugger-toggle-locals') displays local vars.
 
 *** New minor mode `jit-lock-debug-mode' lets you use the debuggers on
 code run via JIT Lock.
