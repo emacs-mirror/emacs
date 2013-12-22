@@ -506,6 +506,9 @@ searching source code.
 If incremental search is active, toggle symbol search mode
 (@code{isearch-toggle-symbol}); otherwise, begin an incremental
 forward symbol search (@code{isearch-forward-symbol}).
+@item M-s .
+Start a symbol incremental search forward with the symbol found near
+point added to the search string initially.
 @item M-s _ @key{RET} @var{symbol} @key{RET}
 Search forward for @var{symbol}, nonincrementally.
 @item M-s _ C-r @key{RET} @var{symbol} @key{RET}
@@ -513,9 +516,12 @@ Search backward for @var{symbol}, nonincrementally.
 @end table
 
 @kindex M-s _
+@kindex M-s .
 @findex isearch-forward-symbol
-  To begin a forward incremental symbol search, type @kbd{M-s _}.  If
-incremental search is not already active, this runs the command
+@findex isearch-forward-symbol-at-point
+  To begin a forward incremental symbol search, type @kbd{M-s _} (or
+@kbd{M-s .} if the symbol to search is near point).  If incremental
+search is not already active, this runs the command
 @code{isearch-forward-symbol}.  If incremental search is already
 active, @kbd{M-s _} switches to a symbol search, preserving the
 direction of the search and the current search string; you can disable

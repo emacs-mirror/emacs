@@ -1,5 +1,7 @@
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* search.texi (Symbol Search): Document `isearch-forward-symbol-at-point'.
+
 	* files.texi (File Conveniences): Document `image-next-file' and `image-previous-file'.
 
 	* display.texi (Optional Mode Line): Fix an index.

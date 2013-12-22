@@ -612,6 +612,7 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 
 ** Search and Replace
 
++++
 *** New global command `M-s .' (`isearch-forward-symbol-at-point')
 starts a symbol (identifier) incremental search forward with the
 symbol found near point added to the search string initially.
