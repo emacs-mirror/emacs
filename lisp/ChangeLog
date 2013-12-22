@@ -1,3 +1,9 @@
+2013-12-22  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>
+
+	* net/eww.el (eww-tag-select): Add text-property to jump to next
+	select field.
+        (eww) : Add non-supported ftp error.
+
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby--electric-indent-p): Improve the
