@@ -1,5 +1,7 @@
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* files.texi (File Conveniences): Document `image-next-file' and `image-previous-file'.
+
 	* display.texi (Optional Mode Line): Fix an index.
 
 	* regs.texi (File Registers): Document `kmacro-to-register'.

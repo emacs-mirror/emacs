@@ -1944,6 +1944,8 @@ point.  Partial Completion mode offers other features extending
 @findex image-mode
 @findex image-toggle-display
 @findex image-toggle-animation
+@findex image-next-file
+@findex image-previous-file
 @cindex images, viewing
 @cindex image animation
 @cindex animated images
@@ -1955,7 +1957,11 @@ Displaying the file as an image works only if Emacs is compiled with
 support for displaying such images.  If the displayed image is wider
 or taller than the frame, the usual point motion keys (@kbd{C-f},
 @kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  If the image can be animated, the command @kbd{RET}
+displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+(@code{image-previous-file}) to visit the next image file and the
+previous image file in the same directory, respectively.
+
+If the image can be animated, the command @kbd{RET}
 (@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
 non-@code{nil}.

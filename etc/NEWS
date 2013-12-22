@@ -321,6 +321,7 @@ code run via JIT Lock.
 
 ** Calendar and Diary
 
+---
 *** New faces `calendar-weekday-header', `calendar-weekend-header',
 and `calendar-month-header'.
 
@@ -377,7 +378,7 @@ For example, this enables parsing of macros which open new namespaces.
 
 ** cl-lib
 
-*** New macro cl-tagbody.
+*** New macro `cl-tagbody'.
 
 +++
 *** letf is now just an alias for cl-letf.
@@ -464,20 +465,28 @@ module.
 *** New option `f90-smart-end-names'.
 
 ** Icomplete is a bit more like Ido.
+
 *** key bindings to navigate through and select the completions.
+
 *** The icomplete-separator is customizable, and its default has changed.
+
 *** Removed icomplete-show-key-bindings.
+
 *** Icomplete-mode by defaults applies to all forms of minibuffer completion.
 (setq icomplete-with-completion-tables '(internal-complete-buffer))
 will revert to the old behavior.
 
 ** Ido
+
 *** Ido has a manual now.
+
 *** `ido-use-virtual-buffers' takes a new value 'auto.
+
 *** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** Image mode
 
++++
 *** New commands `n' (`image-next-file') and `p' (`image-previous-file')
 visit the next image file and the previous image file in the same
 directory, respectively.
