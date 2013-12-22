@@ -1,3 +1,7 @@
+2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* lread.c (syms_of_lread) <load_prefer_newer>: Doc fix.
+
 2013-12-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h: Declare EmacsColor category.

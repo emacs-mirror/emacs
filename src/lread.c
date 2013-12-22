@@ -4679,8 +4679,9 @@ variables, this must be set in the first line of a file.  */);
 This applies when a filename suffix is not explicitly specified and
 `load' is trying various possible suffixes (see `load-suffixes' and
 `load-file-rep-suffixes').  Normally, it stops at the first file
-that exists.  If this option is non-nil, it checks all suffixes and
-uses whichever file is newest.
+that exists unless you explicitly specify one or the other.  If this
+option is non-nil, it checks all suffixes and uses whichever file is
+newest.
 Note that if you customize this, obviously it will not affect files
 that are loaded before your customizations are read!  */);
   load_prefer_newer = 0;
