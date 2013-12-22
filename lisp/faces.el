@@ -1625,20 +1625,28 @@ then the override spec."
     (setq face (get face 'face-alias)))
   (face-spec-reset-face face frame)
   ;; If FACE is customized or themed, set the custom spec from
-  ;; `theme-face' records, which completely replace the defface spec
-  ;; rather than inheriting from it.
-  (let ((theme-faces (get face 'theme-face)))
+  ;; `theme-face' records.
+  (let ((theme-faces (get face 'theme-face))
+	spec theme-face-applied)
     (if theme-faces
-	(dolist (spec (reverse theme-faces))
-	  (face-spec-set-2 face frame (cadr spec)))
-      (face-spec-set-2 face frame (face-default-spec face))))
-  (face-spec-set-2 face frame (get face 'face-override-spec))
+	(dolist (elt (reverse theme-faces))
+	  (setq spec (face-spec-choose (cadr elt) frame))
+	  (when spec
+	    (face-spec-set-2 face frame spec)
+	    (setq theme-face-applied t))))
+    ;; If there was a spec applicable to FRAME, that overrides the
+    ;; defface spec entirely (rather than inheriting from it).  If
+    ;; there was no spec applicable to FRAME, apply the defface spec.
+    (unless theme-face-applied
+      (setq spec (face-spec-choose (face-default-spec face) frame))
+      (face-spec-set-2 face frame spec))
+    (setq spec (face-spec-choose (get face 'face-override-spec) frame))
+    (face-spec-set-2 face frame spec))
   (make-face-x-resource-internal face frame))
 
 (defun face-spec-set-2 (face frame spec)
   "Set the face attributes of FACE on FRAME according to SPEC."
-  (let* ((spec (face-spec-choose spec frame))
-	 attrs)
+  (let (attrs)
     (while spec
       (when (assq (car spec) face-x-resources)
 	(push (car spec) attrs)

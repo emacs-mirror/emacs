@@ -1,3 +1,9 @@
+2013-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (face-spec-recalc): If the theme specs are not
+	applicable to a frame, fall back on the defface spec.  This
+	prevents themes from obliterating faces on low-color terminals.
+
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Return t
