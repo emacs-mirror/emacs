@@ -1,3 +1,9 @@
+2013-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-split-name): Don't give any NAME
+	to <control> characters: the Unicode Standard says they have no
+	name.  (Bug#16216)
+
 2013-12-12  David Engster  <deng@randomsample.de>
 
 	* grammars/c.by (expr-binop): Add MOD.

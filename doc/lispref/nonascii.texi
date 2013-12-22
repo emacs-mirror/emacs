@@ -440,7 +440,7 @@ properties that Emacs knows about:
 Corresponds to the @code{Name} Unicode property.  The value is a
 string consisting of upper-case Latin letters A to Z, digits, spaces,
 and hyphen @samp{-} characters.  For unassigned codepoints, the value
-is an empty string.
+is @code{nil}.
 
 @cindex unicode general category
 @item general-category
@@ -522,7 +522,8 @@ is @code{nil}.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
-is a string.  For unassigned codepoints, the value is an empty string.
+is a string.  Unassigned codepoints, and characters that have no value
+for this property, the value is @code{nil}.
 
 @item iso-10646-comment
 Corresponds to the Unicode @code{ISO_Comment} property.  The value is
