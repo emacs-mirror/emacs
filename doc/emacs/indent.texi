@@ -178,7 +178,8 @@ To install changes, type C-c C-c
 
 @noindent
 The first line contains a colon at each tab stop.  The numbers on the
-next two lines are present just to indicate where the colons are.
+next two lines are present just to indicate where the colons are.  It
+is implicitly extended to infinity by repeating the last step.
 
   You can edit this buffer to specify different tab stops by placing
 colons on the desired columns.  The buffer uses Overwrite mode
