@@ -1,5 +1,7 @@
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* regs.texi (File Registers): Document `kmacro-to-register'.
+
 	* indent.texi (Tab Stops): Mention recent changes about `tab-stop-list'.
 
 	* frames.texi (Scroll Bars): Document `scroll-bar-adjust-thumb-portion'.

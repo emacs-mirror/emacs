@@ -260,7 +260,9 @@ bidirectional context.
 
 *** All register commands can now show help with preview.
 
-*** New command `kmacro-to-register' stores keyboard macros in registers.
++++
+*** New command `C-x C-k x' (`kmacro-to-register') stores keyboard
+macros in registers.
 
 *** New command `C-x r f' (`frameset-to-register').
 See Changes in Emacs 24.4, above.

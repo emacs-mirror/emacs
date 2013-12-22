@@ -345,13 +345,14 @@ Yanking
 
 Registers
 
-* Position Registers::      Saving positions in registers.
-* Text Registers::          Saving text in registers.
-* Rectangle Registers::     Saving rectangles in registers.
-* Configuration Registers:: Saving window configurations in registers.
-* Number Registers::        Numbers in registers.
-* File Registers::          File names in registers.
-* Bookmarks::               Bookmarks are like registers, but persistent.
+* Position Registers::       Saving positions in registers.
+* Text Registers::           Saving text in registers.
+* Rectangle Registers::      Saving rectangles in registers.
+* Configuration Registers::  Saving window configurations in registers.
+* Number Registers::         Numbers in registers.
+* File Registers::           File names in registers.
+* Keyboard Macro Registers:: Keyboard macros in registers.
+* Bookmarks::                Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
