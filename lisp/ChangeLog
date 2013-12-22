@@ -1,5 +1,14 @@
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (ruby--at-indentation-p): New function,
+	extracted from `ruby-smie-rules'.
+	(ruby--electric-indent-chars): New variable.
+	(ruby--electric-indent-p): New function.
+	(ruby-mode): Use `electric-indent-functions' instead of
+	`electric-indent-chars'.
+
+2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
+
 	* progmodes/ruby-mode.el (ruby-align-to-stmt-keywords): Tweak the
 	docstring.
 	(ruby-smie-rules): Indent plus one level after `=>'.

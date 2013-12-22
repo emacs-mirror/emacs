@@ -599,6 +599,8 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 
 *** New option `ruby-align-to-stmt-keywords'.
 
+*** New `electric-indent-mode' integration.
+
 ** Search and Replace
 
 *** New global command `M-s .' (`isearch-forward-symbol-at-point')

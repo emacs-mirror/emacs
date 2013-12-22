@@ -631,11 +631,18 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
           ruby-indent-level))
     (`(:after . ,(or "?" ":")) ruby-indent-level)
     (`(:before . ,(or "if" "while" "unless" "until" "begin" "case" "for"))
-     (when (not (save-excursion (skip-chars-backward " \t") (bolp)))
+     (when (not (ruby--at-indentation-p))
        (if (ruby-smie--indent-to-stmt-p token)
            (ruby-smie--indent-to-stmt)
          (cons 'column (current-column)))))
     ))
+
+(defun ruby--at-indentation-p (&optional point)
+  (save-excursion
+    (unless point (setq point (point)))
+    (forward-line 0)
+    (skip-chars-forward " \t")
+    (eq (point) point)))
 
 (defun ruby-imenu-create-index-in-block (prefix beg end)
   "Create an imenu index of methods inside a block."
@@ -767,6 +774,29 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
           (when (buffer-modified-p)
             (basic-save-buffer-1)))))))
 
+(defvar ruby--electric-indent-chars '(?. ?\) ?} ?\]))
+
+(defun ruby--electric-indent-p (char)
+  (cond
+   ((memq char ruby--electric-indent-chars)
+    ;; Outdent after typing a closing paren.
+    (ruby--at-indentation-p (1- (point))))
+   ((memq (char-after) ruby--electric-indent-chars)
+    ;; Reindent after inserting something before a closing paren.
+    (ruby--at-indentation-p (1- (point))))
+   ((or (memq (char-syntax char) '(?w ?_)))
+    (let ((pt (point)))
+      (save-excursion
+        (skip-syntax-backward "w_")
+        (and (ruby--at-indentation-p)
+             (looking-at (regexp-opt (cons "end" ruby-block-mid-keywords)))
+             ;; Outdent after typing a keyword.
+             (or (eq (match-end 0) pt)
+                 ;; Reindent if it wasn't a keyword after all.
+                 (eq (match-end 0) (1- pt)))))))))
+
+;; FIXME: Remove this?  It's unused here, but some redefinitions of
+;; `ruby-calculate-indent' in user init files still call it.
 (defun ruby-current-indentation ()
   "Return the indentation level of current line."
   (save-excursion
@@ -2081,8 +2111,7 @@ See `font-lock-syntax-table'.")
   (setq-local end-of-defun-function 'ruby-end-of-defun)
 
   (add-hook 'after-save-hook 'ruby-mode-set-encoding nil 'local)
-
-  (setq-local electric-indent-chars (append '(?\{ ?\}) electric-indent-chars))
+  (add-hook 'electric-indent-functions 'ruby--electric-indent-p nil 'local)
 
   (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil))
   (setq-local font-lock-keywords ruby-font-lock-keywords)
