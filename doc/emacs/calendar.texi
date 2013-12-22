@@ -304,7 +304,7 @@ Regenerate the calendar window (@code{calendar-redraw}).
 @item SPC
 Scroll the next window up (@code{scroll-other-window}).
 @item DEL
-@item S-SPC
+@itemx S-SPC
 Scroll the next window down (@code{scroll-other-window-down}).
 @item q
 Exit from calendar (@code{calendar-exit}).

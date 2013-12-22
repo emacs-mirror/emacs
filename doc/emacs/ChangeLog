@@ -1,3 +1,10 @@
+2013-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* entering.texi (Entering Emacs): Typo fix.
+
+	* calendar.texi (General Calendar):
+	* rmail.texi (Rmail Scrolling): Use itemx where appropriate.
+
 2013-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* regs.texi (Keyboard Macro Registers): Fix last change.
@@ -26,14 +33,8 @@
 
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
-	* rmail.texi: Document `S-SPC' as alternative to scrolling down
-	with `DEL'.
-
-	* help.texi: Ditto.
-
-	* display.texi: Ditto.
-
-	* calendar.texi: Ditto.
+	* calendar.texi, display.texi, help.texi, rmail.texi:
+	Document `S-SPC' as alternative to scrolling down with `DEL'.
 
 	* frames.texi: Document `toggle-frame-maximized' and
 	`toggle-frame-fullscreen' with their respective keys.

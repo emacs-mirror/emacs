@@ -1,9 +1,11 @@
+2013-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* woman.texi (Navigation): Use itemx where appropriate.
+
 2013-12-20  Tassilo Horn  <tsdh@gnu.org>
 
-	* info.texi: Document `S-SPC' as alternative to `DEL' for
-	scrolling.
-
-	* woman.texi: Ditto.
+	* info.texi, woman.texi:
+	Document `S-SPC' as alternative to `DEL' for scrolling.
 
 2013-12-20  Jay Belanger  <jay.p.belanger@gmail.com>
 

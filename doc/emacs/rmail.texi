@@ -101,7 +101,7 @@ frequent that it deserves to be easier.
 @item @key{SPC}
 Scroll forward (@code{scroll-up-command}).
 @item @key{DEL}
-@item @key{S-SPC}
+@itemx @key{S-SPC}
 Scroll backward (@code{scroll-down-command}).
 @item .
 Scroll to start of message (@code{rmail-beginning-of-message}).

@@ -74,7 +74,7 @@ up before reading @file{site-start.el}.  @xref{Init File}, for
 information about @file{site-start.el}.}
 
   You can also force Emacs to display a file or directory at startup
-by setting the variable @code{initial-buffer-choice} to a a string
+by setting the variable @code{initial-buffer-choice} to a string
 naming that file or directory.  The value of
 @code{initial-buffer-choice} may also be a function which should
 return a buffer which is then displayed.  @code{initial-buffer-choice}

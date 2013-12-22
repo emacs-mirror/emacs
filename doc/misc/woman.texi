@@ -629,7 +629,7 @@ the @code{man} key bindings.
 Scroll the man page up the window (@code{scroll-up}).
 
 @item @key{DEL}
-@item @key{S-SPC}
+@itemx @key{S-SPC}
 @kindex DEL
 @kindex S-SPC
 @findex scroll-down
