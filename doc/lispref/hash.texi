@@ -353,3 +353,14 @@ This returns the rehash threshold of @var{table}.
 @defun hash-table-size table
 This returns the current nominal size of @var{table}.
 @end defun
+
+The following two functions are provided by the @file{subr-x} library.
+To use them, you need to load this library first.
+
+@defun hash-table-keys hash-table
+This returns a list of keys in @var{hash-table}.
+@end defun
+
+@defun hash-table-values hash-table
+This returns a list of values in @var{hash-table}.
+@end defun
