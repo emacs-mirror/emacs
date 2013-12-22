@@ -227,7 +227,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   :safe 'integerp)
 
 (defcustom ruby-align-to-stmt-keywords nil
-  "Keywords to align their expression body to statement.
+  "Keywords after which we align the expression body to statement.
+
 When nil, an expression that begins with one these keywords is
 indented to the column of the keyword.  Example:
 
@@ -614,6 +615,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
          (cons 'column (current-column)))))
     (`(:before . "do") (ruby-smie--indent-to-stmt))
     (`(:before . ".") ruby-indent-level)
+    (`(:after . "=>") ruby-indent-level)
     (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
      (smie-rule-parent))
     (`(:before . "when")

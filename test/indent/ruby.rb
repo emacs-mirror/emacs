@@ -344,3 +344,9 @@ zoo.keep.bar!(
 zoo
   .lose(
   q, p)
+
+foo(bar:
+      tee)
+
+foo(:bar =>
+      tee)

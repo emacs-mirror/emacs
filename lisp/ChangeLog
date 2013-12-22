@@ -1,3 +1,9 @@
+2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-align-to-stmt-keywords): Tweak the
+	docstring.
+	(ruby-smie-rules): Indent plus one level after `=>'.
+
 2013-12-21  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (newline): Doc fix.
