@@ -312,6 +312,7 @@ code run via JIT Lock.
 
 ** Battery
 
+---
 *** Battery information via the BSD `apm' utility is now supported.
 
 ** Buffer Menu

@@ -1325,7 +1325,7 @@ specify the mail file to check, or set
 for incoming mail (any nonempty regular file in the directory is
 considered as ``newly arrived mail'').
 
-@cindex mail (on mode line)
+@cindex battery status (on mode line)
 @findex display-battery-mode
 @vindex display-battery-mode
 @vindex battery-mode-line-format
