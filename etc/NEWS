@@ -169,6 +169,7 @@ bound to <f11> and M-<f10>, respectively.
 plus enhancements like the ability to restore deleted frames.  The
 command `frame-configuration-to-register' still exists, but is unbound.
 
++++
 *** New hooks `focus-in-hook', `focus-out-hook'.
 These are normal hooks run when an Emacs frame gains or loses input focus.
 
