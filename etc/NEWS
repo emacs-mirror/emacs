@@ -179,6 +179,7 @@ As a command, it was a special case of `C-x 2' (`split-window-below'),
 and as such superfluous.  After being reimplemented in Lisp, its
 interactive form was mistakenly retained.
 
++++
 *** New option `scroll-bar-adjust-thumb-portion'.
 Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end

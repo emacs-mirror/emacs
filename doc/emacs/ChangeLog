@@ -1,3 +1,7 @@
+2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* frames.texi (Scroll Bars): Document `scroll-bar-adjust-thumb-portion'.
+
 2013-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* indent.texi (Indentation Commands): Document C-x TAB changes.
