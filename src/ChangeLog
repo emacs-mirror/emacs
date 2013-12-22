@@ -1,3 +1,11 @@
+2013-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	Handle Bug#16207 by being more restrictive when running hooks.
+	* window.c (unwind_change_frame): New function.
+	(Fset_window_configuration): Don't run configuration change hook
+	while the frame configuration is unsafe.  Call select_window
+	twice.
+
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* lread.c (syms_of_lread) <load_prefer_newer>: Doc fix.

@@ -5917,6 +5917,13 @@ DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_config
   return XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
 }
 
+/* From Chong's unwind_create_frame_1.  */
+static void
+unwind_change_frame (Lisp_Object val)
+{
+  inhibit_lisp_code = val;
+}
+
 DEFUN ("set-window-configuration", Fset_window_configuration,
        Sset_window_configuration, 1, 1, 0,
        doc: /* Set the configuration of windows and buffers as specified by CONFIGURATION.
@@ -5996,7 +6003,7 @@ the return value is nil.  Otherwise the value is t.  */)
       int n_leaf_windows;
       ptrdiff_t k;
       int i, n;
-
+      ptrdiff_t count = SPECPDL_INDEX ();
       /* If the frame has been resized since this window configuration was
 	 made, we change the frame to the size specified in the
 	 configuration, restore the configuration, and then resize it
@@ -6025,6 +6032,10 @@ the return value is nil.  Otherwise the value is t.  */)
 	    call1 (Qrecord_window_buffer, window);
 	}
 
+      /* Don't run lisp in the following segment since the frame is in a
+	 completely inconsistent state.  See Bug#16207.  */
+      record_unwind_protect (unwind_change_frame, inhibit_lisp_code);
+      inhibit_lisp_code = Qt;
       /* The mouse highlighting code could get screwed up
 	 if it runs during this.  */
       block_input ();
@@ -6222,6 +6233,18 @@ the return value is nil.  Otherwise the value is t.  */)
 			       make_number (old_point),
 			       XWINDOW (data->current_window)->contents);
 
+      /* In the following call to `select-window', prevent "swapping out
+	 point" in the old selected window using the buffer that has
+	 been restored into it.  We already swapped out that point from
+	 that window's old buffer.
+
+	 Do not record the buffer here.  We do that in a separate call
+	 to select_window below.  See also Bug#16207.  */
+      select_window (data->current_window, Qt, 1);
+      BVAR (XBUFFER (XWINDOW (selected_window)->contents),
+	    last_selected_window)
+	= selected_window;
+
       if (NILP (data->focus_frame)
 	  || (FRAMEP (data->focus_frame)
 	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
@@ -6262,6 +6285,7 @@ the return value is nil.  Otherwise the value is t.  */)
 
       adjust_frame_glyphs (f);
       unblock_input ();
+      unbind_to (count, Qnil);
 
       /* Scan dead buffer windows.  */
       for (; CONSP (dead_windows); dead_windows = XCDR (dead_windows))
@@ -6271,19 +6295,9 @@ the return value is nil.  Otherwise the value is t.  */)
 	    delete_deletable_window (window);
 	}
 
-      /* In the following call to `select-window', prevent "swapping out
-	 point" in the old selected window using the buffer that has
-	 been restored into it.  We already swapped out that point from
-	 that window's old buffer.  */
-      /* This `select_window' calls record_buffer which calls Fdelq which
-	 invokes QUIT, so we do it here at the end rather than earlier,
-	 to minimize the risk of interrupting the Fset_window_configuration
-	 in an inconsistent state (e.g. before frame-focus redirection is
-	 canceled).  */
-      select_window (data->current_window, Qnil, 1);
-      BVAR (XBUFFER (XWINDOW (selected_window)->contents),
-	    last_selected_window)
-	= selected_window;
+      /* Record the selected window's buffer here.  The window should
+	 already be the selected one from the call above.  */
+      select_window (data->current_window, Qnil, 0);
 
       /* Fselect_window will have made f the selected frame, so we
 	 reselect the proper frame here.  Fhandle_switch_frame will change the
