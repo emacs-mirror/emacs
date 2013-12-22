@@ -3,6 +3,8 @@
 	* unidata/unidata-gen.el (unidata-split-name): Don't give any NAME
 	to <control> characters: the Unicode Standard says they have no
 	name.  (Bug#16216)
+	(unidata-describe-bidi-class): Add new "isolate" classes
+	introduced by Unicode 6.3.
 
 2013-12-12  David Engster  <deng@randomsample.de>
 
