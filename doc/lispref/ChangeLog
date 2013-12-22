@@ -2,6 +2,7 @@
 
 	* nonascii.texi (Character Properties): NAME or OLD-NAME
 	properties can be nil (there's no empty string).
+	(Character Properties): Update the reference to the UCD.
 
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
