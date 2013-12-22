@@ -1,5 +1,7 @@
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* sequences.texi (Bool-Vectors): Document new bool-vector set operation functions.
+
 	* text.texi (Examining Properties): Document `get-pos-property'.
 
 	* variables.texi (Directory Local Variables): Document `enable-dir-local-variables'.

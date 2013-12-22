@@ -923,6 +923,7 @@ The function `display-popup-menus-p' will now return non-nil for a
 display or frame whenever a mouse is supported on that display or
 frame.
 
++++
 ** New bool-vector set operation functions:
 *** `bool-vector-exclusive-or'
 *** `bool-vector-union'
