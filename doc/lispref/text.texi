@@ -2679,6 +2679,13 @@ followed by the text properties.  If @var{object} is a string, only
 text properties are considered, since strings never have overlays.
 @end defun
 
+@defun get-pos-property position prop &optional object
+This function is like @code{get-char-property}, except that it pays
+attention to properties' stickiness and overlays' advancement settings
+instead of the property of the character at (i.e. right after)
+@var{position}.
+@end defun
+
 @defun get-char-property-and-overlay position prop &optional object
 This is like @code{get-char-property}, but gives extra information
 about the overlay that the property value comes from.

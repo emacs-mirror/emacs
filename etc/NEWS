@@ -891,6 +891,7 @@ respecting file-local variables.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
 
++++
 ** New function `get-pos-property'.
 
 ** Minibuffer changes
