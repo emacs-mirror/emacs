@@ -660,12 +660,12 @@ During initialization, Emacs no longer expends a process to decide
 whether it is safe to use Bash's --noediting option.  These days
 --noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
 
-*** The SMIE indentation engine is now used by default.
-
 ** Shell Script mode
 
 *** `sh-mode' now has the mode own `add-log-current-defun-function'.
 You can pick the name of the function and the variables with `C-x 4 a'.
+
+*** The SMIE indentation engine is now used by default.
 
 ** SMIE indentation can be customized via `smie-config'.
 The customization can be guessed by Emacs by providing a sample indented
@@ -745,6 +745,7 @@ received with a pull operation.
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
 
+---
 *** `cvs-append-to-ignore' has been renamed to `vc-cvs-append-to-ignore'
 because it is moved to vc-cvs.el.
 
@@ -823,6 +824,7 @@ run.  The new optional CHECK-TIMERS param allows for the prior behavior.
 ** The syntax of ?» and ?« is now punctuation instead of matched parens.
 Some languages match those as »...« and others as «...» so better stay neutral.
 
+---
 ** In compiled Lisp files, the header no longer includes a timestamp.
 
 ** The default file coding for Emacs Lisp files is now utf-8.
@@ -879,6 +881,7 @@ for something (not just adding elements to it), it ought not to affect you.
 
 * Lisp Changes in Emacs 24.4
 
++++
 ** New variable `enable-dir-local-variables'.
 Directory-local variables are ignored if this is set to nil.  This may
 be useful for modes that want to ignore directory-locals while still

@@ -1834,6 +1834,12 @@ modification times of the associated directory local variables file
 updates this list.
 @end defvar
 
+@defvar enable-dir-local-variables
+If @code{nil}, directory-local variables are ignored.  This variable
+may be useful for modes that want to ignore directory-locals while
+still respecting file-local variables (@pxref{File Local Variables}).
+@end defvar
+
 @node Variable Aliases
 @section Variable Aliases
 @cindex variable aliases

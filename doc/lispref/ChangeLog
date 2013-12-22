@@ -1,5 +1,7 @@
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* variables.texi (Directory Local Variables): Document `enable-dir-local-variables'.
+
 	* debugging.texi (Debugger Commands): Document `debugger-toggle-locals'.
 
 2013-12-21  Chong Yidong  <cyd@gnu.org>
