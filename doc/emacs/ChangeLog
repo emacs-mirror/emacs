@@ -1,10 +1,15 @@
+2013-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* regs.texi (Keyboard Macro Registers): Fix last change.
+
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* search.texi (Special Isearch):
 	(Query Replace): Document negative argument of replacement commands.
 	(Symbol Search): Document `isearch-forward-symbol-at-point'.
 
-	* files.texi (File Conveniences): Document `image-next-file' and `image-previous-file'.
+	* files.texi (File Conveniences): Document `image-next-file' and
+	`image-previous-file'.
 
 	* display.texi (Optional Mode Line): Fix an index.
 
@@ -12,7 +17,8 @@
 
 	* indent.texi (Tab Stops): Mention recent changes about `tab-stop-list'.
 
-	* frames.texi (Scroll Bars): Document `scroll-bar-adjust-thumb-portion'.
+	* frames.texi (Scroll Bars): Document
+	`scroll-bar-adjust-thumb-portion'.
 
 2013-12-21  Chong Yidong  <cyd@gnu.org>
 

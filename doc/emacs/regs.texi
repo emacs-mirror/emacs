@@ -259,11 +259,11 @@ restore a frame configuration.)
 
 @kindex C-x C-k x
 @findex kmacro-to-register
-  If you execute certain keyboard macros (@pxref{Keyboard Macros})
-frequently, you can execute them more conveniently if putting them in
-registers or save them (@pxref{Save Keyboard Macro}).  @kbd{C-x C-k x
-@var{r}} (@code{kmacro-to-register}) stores the last keyboard macro in
-register @var{r}.
+  If you need to execute a keyboard macro (@pxref{Keyboard Macros})
+frequently, it is more convenient to put it in a register or save it
+(@pxref{Save Keyboard Macro}).  @kbd{C-x C-k x @var{r}}
+(@code{kmacro-to-register}) stores the last keyboard macro in register
+@var{r}.
 
   To execute the keyboard macro in register @var{r}, type @kbd{C-x r j
 @var{r}}.  (This is the same command used to jump to a position or
