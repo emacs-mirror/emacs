@@ -779,15 +779,15 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
 (defun ruby--electric-indent-p (char)
   (cond
    ((memq char ruby--electric-indent-chars)
-    ;; Outdent after typing a closing paren.
+    ;; Reindent after typing a char affecting indentation.
     (ruby--at-indentation-p (1- (point))))
    ((memq (char-after) ruby--electric-indent-chars)
-    ;; Reindent after inserting something before a closing paren.
+    ;; Reindent after inserting something in front of the above.
     (ruby--at-indentation-p (1- (point))))
-   ((or (memq (char-syntax char) '(?w ?_)))
+   ((or (and (>= char ?a) (<= char ?z)) (memq char '(?_ ?? ?! ?:)))
     (let ((pt (point)))
       (save-excursion
-        (skip-syntax-backward "w_")
+        (skip-chars-backward "[:alpha:]:_?!")
         (and (ruby--at-indentation-p)
              (looking-at (regexp-opt (cons "end" ruby-block-mid-keywords)))
              ;; Outdent after typing a keyword.

@@ -1,3 +1,8 @@
+2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby--electric-indent-p): Improve the
+	comments.  Handle electric indent after typing `?' and `!'.
+
 2013-12-22  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (face-spec-recalc): If the theme specs are not
