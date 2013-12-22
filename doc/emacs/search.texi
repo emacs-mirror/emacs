@@ -272,8 +272,8 @@ current buffer afterwards.
 @kindex M-% @r{(Incremental search)}
   Typing @kbd{M-%} in incremental search invokes @code{query-replace}
 or @code{query-replace-regexp} (depending on search mode) with the
-current search string used as the string to replace.  @xref{Query
-Replace}.
+current search string used as the string to replace.  A negative
+prefix argument means to replace backward.  @xref{Query Replace}.
 
 @kindex M-TAB @r{(Incremental search)}
   Typing @kbd{M-@key{TAB}} in incremental search invokes
@@ -1243,7 +1243,8 @@ occurrence and asks you whether to replace it.  Aside from querying,
 (@pxref{Unconditional Replace}).  In particular, it preserves case
 provided @code{case-replace} is non-@code{nil}, as it normally is
 (@pxref{Replacement and Case}).  A numeric argument means to consider
-only occurrences that are bounded by word-delimiter characters.
+only occurrences that are bounded by word-delimiter characters.  A
+negative prefix argument replaces backward.
 
 @kindex C-M-%
 @findex query-replace-regexp
