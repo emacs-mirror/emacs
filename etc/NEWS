@@ -709,15 +709,19 @@ for remote machines which support filesystem notifications.
 
 ** VC and related modes
 
++++
 *** In VC directory mode, `D' displays diffs between VC-controlled
 whole tree revisions.
 
++++
 *** In VC directory mode, `L' lists the change log for the current VC
 controlled tree in a window.
 
++++
 *** In VC directory mode, `I' shows a log of changes that will be
 received with a pull operation.
 
++++
 *** `C-x v G' (globally) and `G' (in VC directory mode) ignores a file
 under current version control system.  When called with a prefix
 argument, you can remove a file from the ignored file list.
