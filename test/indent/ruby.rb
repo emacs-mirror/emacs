@@ -228,6 +228,7 @@ end
 
 it("is too!") {
   bar
+    .qux
 }
 
 and_this_one(has) { |block, parameters|

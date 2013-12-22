@@ -1,5 +1,11 @@
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* progmodes/ruby-mode.el (ruby-smie--implicit-semi-p): Return t
+	after `{'.  We need it after block openers, and it doesn't seem
+	to hurt after hash openers.
+
+2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
+
 	* progmodes/ruby-mode.el (ruby--at-indentation-p): New function,
 	extracted from `ruby-smie-rules'.
 	(ruby--electric-indent-chars): New variable.

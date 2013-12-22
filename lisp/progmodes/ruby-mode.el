@@ -402,7 +402,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     (skip-chars-backward " \t")
     (not (or (bolp)
              (and (memq (char-before)
-                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\{ ?\\ ?& ?> ?< ?%
+                        '(?\; ?- ?+ ?* ?/ ?: ?. ?, ?\[ ?\( ?\\ ?& ?> ?< ?%
                           ?~ ?^))
                   ;; Not the end of a regexp or a percent literal.
                   (not (memq (car (syntax-after (1- (point)))) '(7 15))))
