@@ -1,3 +1,8 @@
+2013-12-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac: Replace obsolete macro AC_CONFIG_HEADER by
+	AC_CONFIG_HEADERS.
+
 2013-12-19  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* .gitignore: Ignore refcard temporaries and info/*.info files.

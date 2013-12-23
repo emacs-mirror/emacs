@@ -78,7 +78,7 @@ for opt in ${1+"$@"} CFLAGS CPPFLAGS LDFLAGS; do
   optsep=' '
 done
 
-AC_CONFIG_HEADER(src/config.h:src/config.in)
+AC_CONFIG_HEADERS(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
 dnl Fairly arbitrary, older versions might work too.
