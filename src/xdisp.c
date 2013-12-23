@@ -12289,18 +12289,35 @@ redisplay_tool_bar (struct frame *f)
 
 	  if (change_height_p)
 	    {
+	      /* Current size of the tool-bar window in canonical line
+		 units.  */
+	      int old_lines = WINDOW_TOTAL_LINES (w);
+	      /* Required size of the tool-bar window in canonical
+		 line units. */
 	      int new_lines = ((new_height + FRAME_LINE_HEIGHT (f) - 1)
 			       / FRAME_LINE_HEIGHT (f));
+	      /* Maximum size of the tool-bar window in canonical line
+		 units that this frame can allow. */
+	      int max_lines =
+		WINDOW_TOTAL_LINES (XWINDOW (FRAME_ROOT_WINDOW (f))) - 1;
 
-	      XSETFRAME (frame, f);
-	      Fmodify_frame_parameters (frame,
-					list1 (Fcons (Qtool_bar_lines,
-						      make_number (new_lines))));
-	      /* Always do that now.  */
-	      clear_glyph_matrix (w->desired_matrix);
-	      f->n_tool_bar_rows = nrows;
-	      f->fonts_changed = 1;
-	      return 1;
+	      /* Don't try to change the tool-bar window size and set
+		 the fonts_changed flag unless really necessary.  That
+		 flag causes redisplay to give up and retry
+		 redisplaying the frame from scratch, so setting it
+		 unnecessarily can lead to nasty redisplay loops.  */
+	      if (new_lines <= max_lines
+		  && eabs (new_lines - old_lines) >= 1)
+		{
+		  XSETFRAME (frame, f);
+		  Fmodify_frame_parameters (frame,
+					    list1 (Fcons (Qtool_bar_lines,
+							  make_number (new_lines))));
+		  clear_glyph_matrix (w->desired_matrix);
+		  f->n_tool_bar_rows = nrows;
+		  f->fonts_changed = 1;
+		  return 1;
+		}
 	    }
 	}
     }

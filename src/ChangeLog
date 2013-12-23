@@ -5,6 +5,9 @@
 	redisplay_tool_bar does.  Improve and fix commentary.
 	(hscroll_window_tree): Don't assume w->cursor.vpos is within the
 	limits of the glyph matrices.  (Bug#16051)
+	(redisplay_tool_bar): Modify the tool-bar-lines frame parameter
+	only when the new size is different from the old one, and the new
+	size can be achieved given the frame height.
 
 2013-12-23  Jan Djärv  <jan.h.d@swipnet.se>
 
