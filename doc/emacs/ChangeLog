@@ -1,3 +1,9 @@
+2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* misc.texi (Shell Mode): Add a cross-reference.
+
+	* building.texi (Lisp Eval): Add an index.
+
 2013-12-22  Glenn Morris  <rgm@gnu.org>
 
 	* entering.texi (Entering Emacs): Typo fix.

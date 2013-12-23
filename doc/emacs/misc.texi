@@ -810,8 +810,8 @@ echoing.  This is useful when a shell command runs a program that asks
 for a password.
 
 Please note that Emacs will not echo passwords by default.  If you
-really want them to be echoed, evaluate the following Lisp
-expression:
+really want them to be echoed, evaluate (@pxref{Lisp Eval}) the
+following Lisp expression:
 
 @example
 (remove-hook 'comint-output-filter-functions

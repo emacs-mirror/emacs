@@ -1422,6 +1422,7 @@ Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 @section Evaluating Emacs Lisp Expressions
 @cindex Emacs Lisp mode
 @cindex mode, Emacs Lisp
+@cindex evaluation, Emacs Lisp
 
 @findex emacs-lisp-mode
   Emacs Lisp mode is the major mode for editing Emacs Lisp.  Its mode
