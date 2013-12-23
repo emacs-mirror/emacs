@@ -223,7 +223,6 @@ mode in which typing <left>, <right>, <S-left>, and <S-right> adjusts
 the text indentation in the region.  Typing any other key resumes
 normal editing behavior.
 
-+++
 *** `electric-indent-mode' is enabled by default.
 
 *** `tab-stop-list' is now implicitly extended to infinity by repeating
