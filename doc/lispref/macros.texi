@@ -55,6 +55,11 @@ expansion, which is @code{(setq x (1+ x))}.  Once the macro definition
 returns this expansion, Lisp proceeds to evaluate it, thus incrementing
 @code{x}.
 
+@defun macrop object
+This predicate tests whether its argument is a macro, and returns
+@code{t} if so, @code{nil} otherwise.
+@end defun
+
 @node Expansion
 @section Expansion of a Macro Call
 @cindex expansion of macros

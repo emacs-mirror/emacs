@@ -440,6 +440,11 @@ begins with @code{lambda} but is not a well-formed @code{lambda}
 expression, so Emacs may signal an error, or may return 3 or 4 or
 @code{nil}, or may behave in other ways.
 
+@defun special-form-p object
+This predicate tests whether its argument is a special form, and
+returns @code{t} if so, @code{nil} otherwise.
+@end defun
+
   Here is a list, in alphabetical order, of all of the special forms in
 Emacs Lisp with a reference to where each is described.
 

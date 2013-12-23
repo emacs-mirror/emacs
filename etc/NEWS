@@ -1012,10 +1012,10 @@ platforms, and nobody seems to have noticed or cared.
 PRESERVE-EXTENDED-ATTRIBUTES as it now handles both SELinux context
 and ACL entries.
 
++++
 *** The function `file-ownership-preserved-p' now has an optional
 argument GROUP which causes it check for file group too.  This can be
 used in place of the 9th element of `file-attributes'.
-
 
 *** The function `set-visited-file-modtime' now accepts a 0 or -1
 argument, with the same interpretation as the returned value of
@@ -1042,6 +1042,7 @@ Its third arg now accepts values specifying exactly which face spec to
 set (defface, custom, or user spec), and it directly sets the relevant
 property using the supplied face spec.
 
++++
 *** New function `add-face-text-property', which can be used to
 conveniently prepend/append new face properties.
 
@@ -1051,6 +1052,7 @@ rather than inheriting from it (as do face specs set via Customize).
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
 
++++
 *** New face spec attribute :distant-foreground
 specifies foreground to use if background color is near the foreground
 color that would otherwise have been used.
@@ -1125,6 +1127,7 @@ These attributes are only meaningful for coding-systems of type
 
 ** `time-to-seconds' is not obsolete any more.
 
++++
 ** New functions `special-form-p' and `macrop'.
 
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
