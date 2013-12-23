@@ -1029,6 +1029,10 @@ in `load-file-rep-suffixes'.  If MUST-SUFFIX is non-nil, only the
 return value of `get-load-suffixes' is used, i.e. the file name is
 required to have a non-empty suffix.
 
+When searching suffixes, this function normally stops at the first
+one that exists.  If the option `load-prefer-newer' is non-nil,
+however, it tries all suffixes, and uses whichever file is the newest.
+
 Loading a file records its definitions, and its `provide' and
 `require' calls, in an element of `load-history' whose
 car is the file name loaded.  See `load-history'.

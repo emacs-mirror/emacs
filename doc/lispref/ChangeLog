@@ -1,6 +1,12 @@
+2013-12-23  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (How Programs Do Loading, Load Suffixes):
+	Mention `load-prefer-newer'.
+
 2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* hash.texi (Other Hash): Document `hash-table-keys and `hash-table-values'.
+	* hash.texi (Other Hash): Document `hash-table-keys'
+	and `hash-table-values'.
 
 2013-12-22  Eli Zaretskii  <eliz@gnu.org>
 
@@ -15,11 +21,11 @@
 
 	* text.texi (Examining Properties): Document `get-pos-property'.
 
-	* variables.texi (Directory Local Variables): Document
-	`enable-dir-local-variables'.
+	* variables.texi (Directory Local Variables):
+	Document `enable-dir-local-variables'.
 
-	* debugging.texi (Debugger Commands): Document
-	`debugger-toggle-locals'.
+	* debugging.texi (Debugger Commands):
+	Document `debugger-toggle-locals'.
 
 2013-12-21  Chong Yidong  <cyd@gnu.org>
 
