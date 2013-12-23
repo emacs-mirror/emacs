@@ -12057,8 +12057,8 @@ display_tool_bar_line (struct it *it, int height)
 #define MAX_FRAME_TOOL_BAR_HEIGHT(f) \
   ((FRAME_LINE_HEIGHT (f) * FRAME_LINES (f)))
 
-/* Value is the number of screen lines needed to make all tool-bar
-   items of frame F visible.  The number of actual rows needed is
+/* Value is the number of pixels needed to make all tool-bar items of
+   frame F visible.  The actual number of glyph rows needed is
    returned in *N_ROWS if non-NULL.  */
 
 static int
@@ -12075,8 +12075,7 @@ tool_bar_height (struct frame *f, int *n_rows, bool pixelwise)
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
   init_iterator (&it, w, -1, -1, temp_row, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
-  /* PXW: Use FRAME_PIXEL_WIDTH (f) here?  */
-  it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
+  it.last_visible_x = WINDOW_PIXEL_WIDTH (w);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
   it.paragraph_embedding = L2R;
 
@@ -12254,6 +12253,10 @@ redisplay_tool_bar (struct frame *f)
 	  && it.current_y < max_tool_bar_height)
 	change_height_p = 1;
 
+      /* We subtract 1 because display_tool_bar_line advances the
+	 glyph_row pointer before returning to its caller.  We want to
+	 examine the last glyph row produced by
+	 display_tool_bar_line.  */
       row = it.glyph_row - 1;
 
       /* If there are blank lines at the end, except for a partially
@@ -12607,15 +12610,25 @@ hscroll_window_tree (Lisp_Object window)
 	{
 	  int h_margin;
 	  int text_area_width;
-	  struct glyph_row *current_cursor_row
-	    = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
-	  struct glyph_row *desired_cursor_row
-	    = MATRIX_ROW (w->desired_matrix, w->cursor.vpos);
-	  struct glyph_row *cursor_row
-	    = (desired_cursor_row->enabled_p
-	       ? desired_cursor_row
-	       : current_cursor_row);
-	  int row_r2l_p = cursor_row->reversed_p;
+	  struct glyph_row *cursor_row;
+	  struct glyph_row *bottom_row;
+	  int row_r2l_p;
+
+	  bottom_row = MATRIX_BOTTOM_TEXT_ROW (w->desired_matrix, w);
+	  if (w->cursor.vpos < bottom_row - w->desired_matrix->rows)
+	    cursor_row = MATRIX_ROW (w->desired_matrix, w->cursor.vpos);
+	  else
+	    cursor_row = bottom_row - 1;
+
+	  if (!cursor_row->enabled_p)
+	    {
+	      bottom_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
+	      if (w->cursor.vpos < bottom_row - w->current_matrix->rows)
+		cursor_row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+	      else
+		cursor_row = bottom_row - 1;
+	    }
+	  row_r2l_p = cursor_row->reversed_p;
 
 	  text_area_width = window_box_width (w, TEXT_AREA);
 

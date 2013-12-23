@@ -1,3 +1,11 @@
+2013-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (tool_bar_height): Use WINDOW_PIXEL_WIDTH to set up the
+	iterator X limits, not FRAME_TOTAL_COLS, for consistency with what
+	redisplay_tool_bar does.  Improve and fix commentary.
+	(hscroll_window_tree): Don't assume w->cursor.vpos is within the
+	limits of the glyph matrices.  (Bug#16051)
+
 2013-12-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* conf_post.h: Use unsigned it for bool_bf if GNUSTEP (Bug#16210).
