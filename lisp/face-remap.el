@@ -326,7 +326,7 @@ a top-level keymap, `text-scale-increase' or
       (text-scale-increase step)
       ;; (unless (zerop step)
       (message "Use +,-,0 for further adjustment")
-      (set-temporary-overlay-map
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (dolist (mods '(() (control)))
            (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.

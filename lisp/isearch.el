@@ -2251,7 +2251,7 @@ before the command is executed globally with terminated Isearch."
 	 (main-event (aref key 0)))
     (cond
      ;; Don't exit Isearch if we're in the middle of some
-     ;; set-temporary-overlay-map thingy like universal-argument--mode.
+     ;; `set-transient-map' thingy like `universal-argument--mode'.
      ((not (eq overriding-terminal-local-map isearch--saved-overriding-local-map)))
      ;; Don't exit Isearch for isearch key bindings.
      ((commandp (lookup-key isearch-mode-map key nil)))

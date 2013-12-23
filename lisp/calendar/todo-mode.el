@@ -5619,7 +5619,7 @@ already entered and those still available."
       (setq todo-insert-item--argsleft todo-insert-item--newargsleft))
     (when prompt (message "Enter a key (so far `%s'): %s"
 			  todo-insert-item--keys-so-far prompt))
-    (set-temporary-overlay-map map)
+    (set-transient-map map)
     (setq todo-insert-item--argsleft argsleft)))
 
 ;; -----------------------------------------------------------------------------

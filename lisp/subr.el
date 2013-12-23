@@ -4266,33 +4266,35 @@ use `called-interactively-p'."
            (eq 'add-keymap-witness (nth 1 map))
            (set symbol tail)))))
 
-(defun set-temporary-overlay-map (map &optional keep-pred on-exit)
-  "Set MAP as a temporary keymap taking precedence over most other keymaps.
-Note that this does NOT take precedence over the \"overriding\" maps
-`overriding-terminal-local-map' and `overriding-local-map' (or the
-`keymap' text property).  Unlike those maps, if no match for a key is
-found in MAP, the normal key lookup sequence then continues.
+(defun set-transient-map (map &optional keep-pred on-exit)
+  "Set MAP as a temporary keymap taking precedence over other keymaps.
+Normally, MAP is used only once, to look up the very next key.
+However, if the optional argument KEEP-PRED is t, MAP stays
+active if a key from MAP is used.  KEEP-PRED can also be a
+function of no arguments: if it returns non-nil, then MAP stays
+active.
 
-Normally, MAP is used only once.  If the optional argument
-KEEP-PRED is t, MAP stays active if a key from MAP is used.
-KEEP-PRED can also be a function of no arguments: if it returns
-non-nil then MAP stays active.
+Optional arg ON-EXIT, if non-nil, specifies a function that is
+called, with no arguments, after MAP is deactivated.
 
-Optional ON-EXIT argument is a function that is called after the
-deactivation of MAP."
-  (let ((clearfun (make-symbol "clear-temporary-overlay-map")))
+Note that MAP will take precedence over the \"overriding\" maps
+`overriding-terminal-local-map' and `overriding-local-map' (and
+over the `keymap' text property).  Unlike those maps, if no match
+for a key is found in MAP, Emacs continues the normal key lookup
+sequence."
+  (let ((clearfun (make-symbol "clear-transient-map")))
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
     ;; in a cycle.
     (fset clearfun
           (lambda ()
-            ;; FIXME: Handle the case of multiple temporary-overlay-maps
-            ;; E.g. if isearch and C-u both use temporary-overlay-maps, Then
-            ;; the lifetime of the C-u should be nested within the isearch
-            ;; overlay, so the pre-command-hook of isearch should be
-            ;; suspended during the C-u one so we don't exit isearch just
-            ;; because we hit 1 after C-u and that 1 exits isearch whereas it
-            ;; doesn't exit C-u.
-            (with-demoted-errors "set-temporary-overlay-map PCH: %S"
+            ;; FIXME: Handle the case of multiple transient maps.  For
+            ;; example, if isearch and C-u both use transient maps,
+            ;; then the lifetime of the C-u should be nested within
+            ;; the isearch overlay, so the pre-command-hook of isearch
+            ;; should be suspended during the C-u one so we don't exit
+            ;; isearch just because we hit 1 after C-u and that 1
+            ;; exits isearch whereas it doesn't exit C-u.
+            (with-demoted-errors "set-transient-map PCH: %S"
               (unless (cond ((null keep-pred) nil)
                             ((eq t keep-pred)
                              (eq this-command

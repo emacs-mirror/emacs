@@ -1,3 +1,8 @@
+2013-12-23  Chong Yidong  <cyd@gnu.org>
+
+	* org.el (orgstruct-make-binding): Call set-transient-map instead
+	of old name set-temporary-overlay-map.
+
 2013-12-06  Achim Gratz  <Stromeko@Stromeko.DE>
 
 	* org-crypt.el: Declare `epg-context´.

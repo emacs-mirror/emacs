@@ -196,7 +196,7 @@ indentation by specifying a large negative ARG."
       (progn
         (message "Edit region indentation with <left>, <right>, <S-left> \
 and <S-right>.")
-        (set-temporary-overlay-map indent-rigidly-map t))
+        (set-transient-map indent-rigidly-map t))
     (save-excursion
       (goto-char end)
       (setq end (point-marker))

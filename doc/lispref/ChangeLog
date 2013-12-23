@@ -1,3 +1,9 @@
+2013-12-23  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Controlling Active Maps): Renamed
+	set-temporary-overlay-map to set-transient map.  Doc fixes.
+	(Searching Keymaps): The transient keymap takes precedence.
+
 2013-12-23  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (How Programs Do Loading, Load Suffixes):

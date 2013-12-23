@@ -3321,7 +3321,7 @@ see other processes running on the system, use `list-system-processes'."
   "Keymap used while processing \\[universal-argument].")
 
 (defun universal-argument--mode ()
-  (set-temporary-overlay-map universal-argument-map))
+  (set-transient-map universal-argument-map))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.

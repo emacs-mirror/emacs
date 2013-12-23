@@ -2149,8 +2149,8 @@ log, log10, sqrt, and mod.
 
 ** Miscellaneous new functions
 
-*** `set-temporary-overlay-map' sets up a temporary keymap that
-takes precedence over most other maps for a short while (normally one key).
+*** `set-transient-map' sets up a temporary keymap, active for one key
+(and optionally more).  This keymap takes precedence over other maps.
 
 *** `autoloadp' tests if its argument is an autoloaded object.
 

@@ -278,7 +278,7 @@ recently executed command not bound to an input event\"."
               (execute-kbd-macro last-repeatable-command))
           (call-interactively last-repeatable-command))))
     (when repeat-repeat-char
-      (set-temporary-overlay-map
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (define-key map (vector repeat-repeat-char)
            (if (null repeat-message-function) 'repeat

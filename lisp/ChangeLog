@@ -1,3 +1,17 @@
+2013-12-23  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (set-transient-map): Rename from
+	set-temporary-overlay-map.  Doc fix.
+
+	* face-remap.el (text-scale-adjust):
+	* indent.el (indent-rigidly):
+	* kmacro.el (kmacro-call-macro):
+	* minibuffer.el (minibuffer-force-complete):
+	* repeat.el (repeat):
+	* simple.el (universal-argument--mode):
+	* calendar/todo-mode.el (todo-insert-item--next-param):
+	* progmodes/f90.el (f90-abbrev-start): Callers changed.
+
 2013-12-22  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-tag-select): Add text-property to jump to next

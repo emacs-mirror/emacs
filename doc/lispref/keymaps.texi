@@ -747,13 +747,13 @@ pseudo-Lisp description of the order and conditions for searching
 them:
 
 @lisp
-(or (cond
+(or (@var{find-in} @var{transient-map})
+    (cond
      (overriding-terminal-local-map
       (@var{find-in} overriding-terminal-local-map))
      (overriding-local-map
       (@var{find-in} overriding-local-map))
      ((or (@var{find-in} (get-char-property (point) 'keymap))
-          (@var{find-in} @var{temp-map})
           (@var{find-in-any} emulation-mode-map-alists)
           (@var{find-in-any} minor-mode-overriding-map-alist)
           (@var{find-in-any} minor-mode-map-alist)
@@ -764,14 +764,17 @@ them:
 @end lisp
 
 @noindent
-@var{find-in} and @var{find-in-any} are pseudo functions that search
-in one keymap and in an alist of keymaps, respectively.  (Searching a
-single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  If the key sequence starts with a mouse event, that event's position
-is used instead of point and the current buffer.  Mouse events on an
-embedded string use non-@code{nil} text properties from that string
-instead of the buffer.  @var{temp-map} is a pseudo variable that
-represents the effect of a @code{set-temporary-overlay-map} call.
+Here, @var{find-in} and @var{find-in-any} are pseudo functions that
+search in one keymap and in an alist of keymaps, respectively.
+(Searching a single keymap for a binding is called @dfn{key lookup};
+see @ref{Key Lookup}.)  @var{transient-map} is a pseudo variable that
+represents the effect of a @code{set-transient-map} call
+(@pxref{Controlling Active Maps}).
+
+  In the above pseudo-code, if a key sequence starts with a mouse
+event, that event's position is used instead of point and the current
+buffer.  Mouse events on an embedded string use non-@code{nil} text
+properties from that string instead of the buffer.
 
   When a match is found (@pxref{Key Lookup}), if the binding in the
 keymap is a function, the search is over.  However if the keymap entry
@@ -951,19 +954,27 @@ are used before @code{minor-mode-map-alist} and
 @code{minor-mode-overriding-map-alist}.
 @end defvar
 
-@defun set-temporary-overlay-map keymap &optional keep
-This function adds @var{keymap} as a temporary keymap that takes
-precedence over most other keymaps.  It does not take precedence over
-the ``overriding'' maps (see above); and unlike them, if no match for
-a key is found in @var{keymap}, the search continues.
+@cindex transient keymap
+@defun set-transient-map keymap &optional keep
+This function adds @var{keymap} as a @dfn{transient} keymap, which
+takes precedence over other keymaps for one (or more) subsequent keys.
 
-Normally, @var{keymap} is used only once.  If the optional argument
-@var{pred} is @code{t}, the map stays active if a key from @var{keymap}
-is used.  @var{pred} can also be a function of no arguments: if it returns
-non-@code{nil} then @var{keymap} stays active.
+Normally, @var{keymap} is used just once, to look up the very next
+key.  If the optional argument @var{pred} is @code{t}, the map stays
+active as long as the user types keys defined in @var{keymap}; when
+the user types a key that is not in @var{keymap}, the transient keymap
+is deactivated and normal key lookup continues for that key.
 
-For a pseudo-Lisp description of exactly how and when this keymap applies,
-@pxref{Searching Keymaps}.
+The @var{pred} argument can also be a function.  In that case, the
+function is called with no arguments, prior to running each command,
+while @var{keymap} is active; it should return non-@code{nil} if
+@var{keymap} should stay active.
+
+The transient keymap takes precedence over the ``overriding'' maps
+(see above); and unlike them, if no match for a key is found in
+@var{keymap}, the key lookup process continues.  For a pseudo-Lisp
+description of exactly how and when this keymap applies,
+@xref{Searching Keymaps}.
 @end defun
 
 @node Key Lookup
