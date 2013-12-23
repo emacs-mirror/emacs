@@ -194,8 +194,9 @@ indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
       (progn
-        (message "Edit region indentation with <left>, <right>, <S-left> \
-and <S-right>.")
+        (message
+	 (substitute-command-keys
+	  "Indent region with \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop]."))
         (set-transient-map indent-rigidly-map t))
     (save-excursion
       (goto-char end)

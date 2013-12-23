@@ -12,6 +12,8 @@
 	* calendar/todo-mode.el (todo-insert-item--next-param):
 	* progmodes/f90.el (f90-abbrev-start): Callers changed.
 
+	* indent.el (indent-rigidly): Use substitute-command-keys.
+
 2013-12-22  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-tag-select): Add text-property to jump to next
