@@ -1,7 +1,3 @@
-2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
-
-	* MORE.STUFF: Mention RefTeX.
-
 2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* NEWS: Updated for `gnutls-verify-error', cfengine-mode, and
