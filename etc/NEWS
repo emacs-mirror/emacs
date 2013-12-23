@@ -993,6 +993,7 @@ the start and end of each substring.
 
 ** File-handling changes
 
++++
 *** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
@@ -1000,11 +1001,13 @@ creation, modification, and deletion of files.  This requires the
 MS-Windows systems, this is supported for Windows XP and newer
 versions.
 
++++
 *** The 9th element returned by `file-attributes' is now unspecified.
 Formerly, it was t if the file's gid would change if file were deleted
 and recreated.  This value has been inaccurate for years on many
 platforms, and nobody seems to have noticed or cared.
 
++++
 *** The 6th argument to `copy-file' has been renamed to
 PRESERVE-EXTENDED-ATTRIBUTES as it now handles both SELinux context
 and ACL entries.

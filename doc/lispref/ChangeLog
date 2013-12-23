@@ -1,5 +1,7 @@
 2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* files.texi (Changing Files): Fix an argument of `copy-file'.
+
 	* strings.texi (Creating Strings): Document TRIM in `split-string'.
 
 2013-12-23  Chong Yidong  <cyd@gnu.org>
