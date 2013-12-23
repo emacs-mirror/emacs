@@ -335,6 +335,10 @@ a number, says how many bookmark modifications should go by between
 saving.  If you set this variable to @code{nil}, Emacs only
 saves bookmarks if you explicitly use @kbd{M-x bookmark-save}.
 
+@vindex bookmark-default-file
+  The variable @code{bookmark-default-file} specifies the file in
+which to save bookmarks by default.
+
 @vindex bookmark-search-size
   Bookmark position values are saved with surrounding context, so that
 @code{bookmark-jump} can find the proper position even if the file is

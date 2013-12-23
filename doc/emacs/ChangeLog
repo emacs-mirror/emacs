@@ -1,5 +1,7 @@
 2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* regs.texi (Bookmarks): Document `bookmark-default-file'.
+
 	* misc.texi (Shell Mode): Add a cross-reference.
 
 	* building.texi (Lisp Eval): Add an index.
