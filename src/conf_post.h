@@ -34,8 +34,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
 
-/* The pre-C99 <stdbool.h> emulation doesn't work for bool bitfields.  */
-#if __STDC_VERSION__ < 199901
+/* The pre-C99 <stdbool.h> emulation doesn't work for bool bitfields.
+   Nor does compiling Objective-C with standard GCC.  */
+#if __STDC_VERSION__ < 199901 || NS_IMPL_GNUSTEP
 typedef unsigned int bool_bf;
 #else
 typedef bool bool_bf;

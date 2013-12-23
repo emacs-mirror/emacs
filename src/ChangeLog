@@ -1,3 +1,7 @@
+2013-12-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* conf_post.h: Use unsigned it for bool_bf if GNUSTEP (Bug#16210).
+
 2013-12-23  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (Fload): Mention load-prefer-newer in doc.
