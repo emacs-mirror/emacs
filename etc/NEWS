@@ -91,6 +91,12 @@ to set up the initial buffer.
 * Changes in Emacs 24.4
 
 +++
+** New option `gnutls-verify-error', if non-nil, means that Emacs
+should reject SSL/TLS certificates that GnuTLS determines as invalid.
+(This option defaults to nil at present, but this is expected to change
+in a future release.)
+
++++
 ** Emacs now supports menus on text-mode terminals.
 If the terminal supports a mouse, clicking on the menu bar, or on
 sensitive portions of the mode line or header line, will drop down the
@@ -392,6 +398,14 @@ As a result, cua-highlight-region-shift-only is obsolete
 
 *** CUA's rectangles can now be used via `cua-rectangle-mark-mode'.
 
+** CFEngine mode
+
+*** Support for completion, ElDoc, and Flycheck has been added.
+
+*** The current CFEngine syntax is parsed from "cf-promises -s json".
+There is a fallback syntax available if you don't have cf-promises or
+if it doesn't support that option.
+
 ** Delete Selection mode can now be used without `transient-mark-mode'.
 
 ** Desktop
@@ -559,6 +573,13 @@ vectors, containing an associative list with extra properties.
 
 *** `describe-package' buffer uses the `:url' extra property to
 display a `Homepage' header, if it's present.
+
+*** In the buffer produced by `describe-package', there are now buttons
+listing the keywords related to that package.  You can click on them
+to see other packages related to any given keyword.
+
+*** In the *Packages* buffer, `f' or the Package->Filter menu filters
+the packages by a keyword.
 
 ** Prolog mode
 
