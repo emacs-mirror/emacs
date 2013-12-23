@@ -1,3 +1,7 @@
+2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* emacs-gnutls.texi (Help For Users): Document `gnutls-verify-error'.
+
 2013-12-22  Glenn Morris  <rgm@gnu.org>
 
 	* woman.texi (Navigation): Use itemx where appropriate.
