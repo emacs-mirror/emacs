@@ -57,6 +57,8 @@ so you will find the latest version in Emacs.
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
+ * CEDET: <URL:http://cedet.sourceforge.net/>
+
  * Gnus: <URL:http://www.gnus.org/>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
@@ -65,7 +67,7 @@ so you will find the latest version in Emacs.
 
  * Org mode: <URL:http://orgmode.org/>
 
- * CEDET: <URL:http://cedet.sourceforge.net/>
+ * RefTeX: <URL:http://www.gnu.org/software/auctex/reftex.html>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>
