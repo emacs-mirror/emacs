@@ -1147,15 +1147,17 @@ Emacs now no longer locks DIR/FILE in that case.
 On file systems that do not support symbolic links, the lock is now a
 regular file with contents being what would have been in the symlink.
 
++++
 ** New functions `group-gid' and `group-real-gid'.
 
-** The `common-substring' argument of display-completion-list is obsolete.
+** The `common-substring' argument of `display-completion-list' is obsolete.
 Either use `completion-all-completions' which already returns highlighted
 strings (including for partial or substring completion) or call
 `completion-hilit-commonality' to add the highlight.
 
 ** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
 
++++
 *** The package descriptor and name of global variables, constants,
 and functions should be separated by two hyphens if the symbol is not
 meant to be used by other packages.
