@@ -58,10 +58,6 @@
 
 ;;; Code:
 
-;;;_* Provide
-(provide 'icomplete)
-
-
 (defgroup icomplete nil
   "Show completions dynamically in minibuffer."
   :prefix "icomplete-"
@@ -483,6 +479,9 @@ are exhibited within the square braces.)"
 		    (and limit (concat icomplete-separator "…"))
 		    "}")
 	  (concat determ " [Matched]"))))))
+
+;;;_* Provide
+(provide 'icomplete)
 
 ;;_* Local emacs vars.
 ;;Local variables:
