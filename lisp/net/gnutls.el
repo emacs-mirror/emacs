@@ -54,6 +54,7 @@ set this variable to \"normal:-dhe-rsa\"."
 (defcustom gnutls-verify-error nil
   "If non-nil, this should be a list of checks per hostname regex or t."
   :group 'gnutls
+  :version "24.4"
   :type '(choice
           (const t)
           (repeat :tag "List of hostname regexps with flags for each"

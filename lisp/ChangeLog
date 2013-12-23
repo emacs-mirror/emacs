@@ -1,3 +1,7 @@
+2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-verify-error): Add version tag.
+
 2013-12-23  Chong Yidong  <cyd@gnu.org>
 
 	* subr.el (set-transient-map): Rename from
