@@ -983,6 +983,7 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 ** `byte-compile-interactive-only-functions' is now obsolete.
 It has been replaced by the symbol property 'interactive-only.
 
++++
 ** `split-string' now takes an optional argument TRIM.
 The value, if non-nil, is a regexp that specifies what to trim from
 the start and end of each substring.

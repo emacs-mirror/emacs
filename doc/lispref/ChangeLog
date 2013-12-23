@@ -1,3 +1,7 @@
+2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* strings.texi (Creating Strings): Document TRIM in `split-string'.
+
 2013-12-23  Chong Yidong  <cyd@gnu.org>
 
 	* keymaps.texi (Controlling Active Maps): Renamed
