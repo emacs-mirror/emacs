@@ -1,3 +1,9 @@
+2013-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32:
+	* INSTALL: Update instructions for downloading and using image
+	libraries in general, and librsvg in particular.
+
 2013-12-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-x64.manifest:

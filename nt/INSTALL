@@ -534,7 +534,11 @@ Windows 9X as well).
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
   precompiled libraries and headers on the GTK download page for
-  Windows (http://www.gtk.org/download/win32.php).
+  Windows (http://www.gtk.org/download/win32.php for 32-bit builds and
+  http://www.gtk.org/download/win64.php for 64-bit builds).  The
+  ezwinports site, http://sourceforge.net/projects/ezwinports/files/
+  also offers PNG (as well as other image libraries), which are
+  usually newer.
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which
@@ -563,11 +567,98 @@ Windows 9X as well).
   libraries that are known to be compatible with the version given by
   `libgif-version'.
 
-  Binaries for the other image libraries can be found at the GnuWin32
-  project.  Note specifically that, due to some packaging snafus in
-  the GnuWin32-supplied image libraries, you will need to download
-  _source_ packages for some of the libraries in order to get the
-  header files necessary for building Emacs with image support.
+  Pre-built versions of librsvg and its dependencies can be found in
+  one of these places:
+
+  1. http://sourceforge.net/projects/ezwinports/files/
+
+     This site includes a minimal (as much as possible for librsvg)
+     build of the library and its dependencies; it is also more
+     up-to-date with the latest upstream versions.  However, it
+     currently only offers 32-bit builds.  For building Emacs, you
+     need to download from this site all of the following *-bin.zip
+     archives:
+
+       librsvg, gdk-pixbuf, cairo, glib
+
+     The 'bin' archives on this site include both header files and the
+     libraries needed for building with librsvg and for running Emacs.
+     The librsvg archive includes all the shared libraries needed to
+     run Emacs with SVG support; the other 3 packages are required
+     because the compiler needs to see their header files when
+     building Emacs.
+
+  2. GTK project download site for Windows (see above for 2 URLs,
+     either for 32-bit builds or 64-bit builds)
+
+     This is the official Windows download site of the GTK project.
+     Its builds of librsvg are fatter, but are currently the only
+     alternative for 64-bit builds.  The easiest way to obtain the
+     dependencies required for building from this site is to download
+     a pre-bundled GTK+ development environment for Windows.  If you
+     would nevertheless like to download only the packages that are
+     strictly required, then, as of the time of this writing, here's
+     the list of GTK+ packages you will need:
+
+        librsvg, pango, freetype-2.4.11, freetype-2.4.2, croco, cairo,
+        glib, gdk-pixbuf, fontconfig, libpng-1.4.x, libpng-1.5.x,
+        libffi, libxml2, zlib
+
+     The GTK download page provides 2 separate archives for each
+     package: a 'bin' (binary) archive with programs and DLLs, and a
+     'dev' (development) archive with header files, import libraries,
+     and pkg-config files; download and install both archives for each
+     package you need.  (Sources of each package are available in a
+     separate, 3rd archive.)
+
+     As you see, some libraries for using this site's librsvg are
+     needed in more than one version -- this is because librsvg and
+     some of its dependencies were linked against different versions
+     of those libraries, and will look only for those DLLs when you
+     invoke SVG function.  So there's a bit of "DLL hell" involved
+     here, but at least in theory this should work, as each library
+     will dynamically link only against its dependencies, even if
+     another version of the same library is already loaded.  In
+     particular, at least 2 different versions of libpng will have to
+     be installed on your machine.  When you install these libpng
+     versions, be sure to keep the header files and the pkg-config
+     files in sync, i.e. install both the 'bin' and 'dev' archives of
+     the same libpng version together.
+
+  To use librsvg at runtime, ensure that librsvg and its dependencies
+  are on your PATH, or in the same directory as the emacs.exe binary.
+  If you are downloading from the ezwinports site, you only need to
+  install a single archive, librsvg-X.Y.Z-w32-bin.zip, which includes
+  all the dependency DLLs.  For the GTK project site, download the
+  'bin' archives for each of the libraries mentioned above.
+
+  If you think you've got all the dependencies and SVG support is
+  still not working, check your PATH for other libraries that shadow
+  the ones you downloaded.  Libraries of the same name from different
+  sources may not be compatible, this problem was encountered in the
+  past, e.g., with libcroco from gnome.org.
+
+  If you can see etc/images/splash.svg, then you have managed to get
+  SVG support working.  Congratulations for making it through DLL hell
+  to this point.  For some SVG images, you'll probably see error
+  messages from Glib about failed assertions, or warnings from Pango
+  about failure to load fonts (installing the missing fonts should fix
+  the latter kind of problems).  Problems have been observed in some
+  images that contain text, they seem to be a problem in the Windows
+  port of Pango, or maybe a problem with the way Cairo or librsvg is
+  using it that doesn't show up on other platforms.  However, Emacs
+  should not crash due to these issues.  If you eventually find the
+  SVG support too unstable to your taste, you can rebuild Emacs
+  without it by specifying the --without-rsvg switch to the configure
+  script.
+
+  Binaries for the other image libraries can be found on the
+  ezwinports site or at the GnuWin32 project (the latter are generally
+  very old, so not recommended).  Note specifically that, due to some
+  packaging snafus in the GnuWin32-supplied image libraries, you will
+  need to download _source_ packages for some of the libraries in
+  order to get the header files necessary for building Emacs with
+  image support.
 
 * Optional GnuTLS support
 
