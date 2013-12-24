@@ -1,3 +1,13 @@
+2013-12-24  Daniel Colascione  <dancol@dancol.org>
+
+	* icomplete.el: Remove redundant :group arguments to `defcustom'
+	throughout.
+	(icomplete-show-matches-on-no-input): New customizable variable.
+	(icomplete-minibuffer-setup): Call `icomplete-exhibit' on setup if
+	we have something to show.
+	(icomplete-exhibit): Compute completions even if we have no user
+	input.
+
 2013-12-23  Daniel Colascione  <dancol@dancol.org>
 
 	* icomplete.el: Move `provide' to end of file.

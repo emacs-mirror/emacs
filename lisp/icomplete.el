@@ -76,13 +76,16 @@
   "When non-nil, hide common prefix from completion candidates.
 When nil, show candidates in full."
   :type 'boolean
-  :version "24.4"
-  :group 'icomplete)
+  :version "24.4")
+
+(defcustom icomplete-show-matches-on-no-input t
+  "When non-nil, show completions when first prompting for input."
+  :type 'boolean
+  :version "24.4")
 
 (defface icomplete-first-match  '((t :weight bold))
   "Face used by icomplete for highlighting first match."
-  :version "24.4"
-  :group 'icomplete)
+  :version "24.4")
 
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height
@@ -91,24 +94,20 @@ When nil, show candidates in full."
   (+ 1 (/ (+ icomplete-prospects-length 20) (window-width)))
   "Maximum number of lines to use in the minibuffer."
   :type 'integer
-  :group 'icomplete
   :version "23.1")
 
 (defcustom icomplete-compute-delay .3
   "Completions-computation stall, used only with large-number completions.
 See `icomplete-delay-completions-threshold'."
-  :type 'number
-  :group 'icomplete)
+  :type 'number)
 
 (defcustom icomplete-delay-completions-threshold 400
   "Pending-completions number over which to apply `icomplete-compute-delay'."
-  :type 'integer
-  :group 'icomplete)
+  :type 'integer)
 
 (defcustom icomplete-max-delay-chars 3
   "Maximum number of initial chars to apply icomplete compute delay."
-  :type 'integer
-  :group 'icomplete)
+  :type 'integer)
 
 (defvar icomplete-in-buffer nil
   "If non-nil, also use Icomplete when completing in non-mini buffers.")
@@ -256,7 +255,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
     					 (current-local-map)))
     (add-hook 'pre-command-hook  #'icomplete-pre-command-hook  nil t)
     (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
-    (run-hooks 'icomplete-minibuffer-setup-hook)))
+    (run-hooks 'icomplete-minibuffer-setup-hook)
+    (when icomplete-show-matches-on-no-input
+      (icomplete-exhibit))))
 
 (defvar icomplete--in-region-buffer nil)
 
@@ -304,8 +305,8 @@ and `minibuffer-setup-hook'."
     (save-excursion
       (goto-char (point-max))
                                         ; Insert the match-status information:
-      (if (and (> (icomplete--field-end) (icomplete--field-beg))
-               buffer-undo-list         ; Wait for some user input.
+      (if (and (or icomplete-show-matches-on-no-input
+                   (> (icomplete--field-end) (icomplete--field-beg)))
                (or
                 ;; Don't bother with delay after certain number of chars:
                 (> (- (point) (icomplete--field-beg))
