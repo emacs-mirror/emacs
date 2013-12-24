@@ -6844,6 +6844,8 @@ operations:
                specified DOCUMENT
  \"find\"    - initiate search starting from DOCUMENT which must specify
                a directory
+ \"runas\"   - run DOCUMENT, which must be an excutable file, with
+               elevated privileges (a.k.a. \"as Administrator\").
  nil       - invoke the default OPERATION, or \"open\" if default is
                not defined or unavailable
 
@@ -6879,16 +6881,12 @@ an integer representing a ShowWindow flag:
 
 #ifdef CYGWIN
   current_dir = Fcygwin_convert_file_name_to_windows (current_dir, Qt);
-  if (STRINGP (document))
-    document = Fcygwin_convert_file_name_to_windows (document, Qt);
+  document = Fcygwin_convert_file_name_to_windows (document, Qt);
 
   /* Encode filename, current directory and parameters.  */
   current_dir = GUI_ENCODE_FILE (current_dir);
-  if (STRINGP (document))
-    {
-      document = GUI_ENCODE_FILE (document);
-      doc_w = GUI_SDATA (document);
-    }
+  document = GUI_ENCODE_FILE (document);
+  doc_w = GUI_SDATA (document);
   if (STRINGP (parameters))
     {
       parameters = GUI_ENCODE_SYSTEM (parameters);
@@ -6904,20 +6902,17 @@ an integer representing a ShowWindow flag:
 				     (INTEGERP (show_flag)
 				      ? XINT (show_flag) : SW_SHOWDEFAULT));
 #else  /* !CYGWIN */
+  current_dir = ENCODE_FILE (current_dir);
+  document = ENCODE_FILE (Fexpand_file_name (document, Qnil));
   if (use_unicode)
     {
       wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
 
       /* Encode filename, current directory and parameters, and
 	 convert operation to UTF-16.  */
-      current_dir = ENCODE_FILE (current_dir);
       filename_to_utf16 (SSDATA (current_dir), current_dir_w);
-      if (STRINGP (document))
-	{
-	  document = ENCODE_FILE (document);
-	  filename_to_utf16 (SSDATA (document), document_w);
-	  doc_w = document_w;
-	}
+      filename_to_utf16 (SSDATA (document), document_w);
+      doc_w = document_w;
       if (STRINGP (parameters))
 	{
 	  int len;
@@ -6954,14 +6949,9 @@ an integer representing a ShowWindow flag:
     {
       char document_a[MAX_PATH], current_dir_a[MAX_PATH];
 
-      current_dir = ENCODE_FILE (current_dir);
       filename_to_ansi (SSDATA (current_dir), current_dir_a);
-      if (STRINGP (document))
-	{
-	  ENCODE_FILE (document);
-	  filename_to_ansi (SSDATA (document), document_a);
-	  doc_a = document_a;
-	}
+      filename_to_ansi (SSDATA (document), document_a);
+      doc_a = document_a;
       if (STRINGP (parameters))
 	{
 	  parameters = ENCODE_SYSTEM (parameters);
