@@ -1,3 +1,9 @@
+2013-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-bookmark-quit): Remove.
+	(eww-bookmark-browse): Restore the window configuration when you
+	choose a bookmark (bug#16144).
+
 2013-12-24  Daniel Colascione  <dancol@dancol.org>
 
 	* icomplete.el: Remove redundant :group arguments to `defcustom'

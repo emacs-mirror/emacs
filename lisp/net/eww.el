@@ -1083,6 +1083,8 @@ Differences in #targets are ignored."
 ;;; Bookmarks code
 
 (defvar eww-bookmarks nil)
+(defvar eww-previous-window-configuration nil)
+(make-variable-buffer-local 'eww-previous-window-configuration)
 
 (defun eww-add-bookmark ()
   "Add the current page to the bookmarks."
@@ -1127,6 +1129,7 @@ Differences in #targets are ignored."
   (unless eww-bookmarks
     (user-error "No bookmarks are defined"))
   (set-buffer (get-buffer-create "*eww bookmarks*"))
+  (setq eww-previous-window-configuration (current-window-configuration))
   (eww-bookmark-mode)
   (let ((format "%-40s %s")
 	(inhibit-read-only t)
@@ -1178,21 +1181,15 @@ Differences in #targets are ignored."
 		(cons bookmark (nthcdr line eww-bookmarks)))))
     (eww-write-bookmarks)))
 
-(defun eww-bookmark-quit ()
-  "Kill the current buffer."
-  (interactive)
-  (kill-buffer (current-buffer)))
-
 (defun eww-bookmark-browse ()
   "Browse the bookmark under point in eww."
   (interactive)
   (let ((bookmark (get-text-property (line-beginning-position) 'eww-bookmark)))
     (unless bookmark
       (user-error "No bookmark on the current line"))
-    ;; We wish to leave this window, but if it's the only window here,
-    ;; just let it remain.
-    (ignore-errors
-      (delete-window))
+    (quit-window)
+    (when eww-previous-window-configuration
+      (set-window-configuration eww-previous-window-configuration))
     (eww-browse-url (plist-get bookmark :url))))
 
 (defun eww-next-bookmark ()
@@ -1238,7 +1235,7 @@ Differences in #targets are ignored."
 (defvar eww-bookmark-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "q" 'eww-bookmark-quit)
+    (define-key map "q" 'quit-window)
     (define-key map [(control k)] 'eww-bookmark-kill)
     (define-key map [(control y)] 'eww-bookmark-yank)
     (define-key map "\r" 'eww-bookmark-browse)
@@ -1246,7 +1243,7 @@ Differences in #targets are ignored."
     (easy-menu-define nil map
       "Menu for `eww-bookmark-mode-map'."
       '("Eww Bookmark"
-        ["Exit" eww-bookmark-quit t]
+        ["Exit" quit-window t]
         ["Browse" eww-bookmark-browse
          :active (get-text-property (line-beginning-position) 'eww-bookmark)]
         ["Kill" eww-bookmark-kill
