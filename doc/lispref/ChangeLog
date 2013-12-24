@@ -1,3 +1,10 @@
+2013-12-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* control.texi (Pattern matching case statement): Fix missing
+	argument in simple expression language sample (Bug#16238).  Add
+	some sample programs written in that language.  Mention that
+	`pcase' requires lexical binding.
+
 2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* eval.texi (Special Forms): Document `special-form-p'.
