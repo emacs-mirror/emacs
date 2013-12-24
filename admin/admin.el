@@ -62,7 +62,7 @@ Optional argument DATE is the release date, default today."
       (insert entry))))
 
 (defun set-version-in-file (root file version rx)
-  "Subroutine of `set-version'."
+  "Subroutine of `set-version' and `set-copyright'."
   (find-file (expand-file-name file root))
   (goto-char (point-min))
   (unless (re-search-forward rx nil :noerror)
