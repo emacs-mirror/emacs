@@ -217,6 +217,20 @@ simply disabling Transient Mark mode does the same thing.
 ** The default value of `comment-use-global-state' is changed to t,
 and this variable has been marked obsolete.
 
+** New user options:
+
+*** `read-regexp-defaults-function' defines a function to read regexps,
+used by commands like `rgrep', `lgrep' `occur', `highlight-regexp',
+etc.  You can customize this to specify a function that provides a
+default value from the regexp last history element, or from the symbol
+found at point.
+
+*** `load-prefer-newer', affects how the `load' function chooses the
+file to load.  If this is non-nil, then when both .el and .elc
+versions of a file exist, and the caller did not explicitly specify
+which one to load, then the newer file is loaded.  The default, nil,
+means to always load the .elc file.
+
 
 * Editing Changes in Emacs 24.4
 
@@ -390,11 +404,12 @@ For example, this enables parsing of macros which open new namespaces.
 
 ** CUA mode
 
-*** CUA mode was changed to make use of delete-selection-mode and
-shift-select-mode.  So you can now enable it independently from
-transient-mark-mode, delete-selection-mode, and shift-select-mode.
-As a result, cua-highlight-region-shift-only is obsolete
-(you can disable transient-mark-mode to get the same result).
+*** CUA mode now uses `delete-selection-mode' and `shift-select-mode'.
+Hence, you can now enable it independently from `transient-mark-mode',
+`delete-selection-mode', and `shift-select-mode'.
+
+*** `cua-highlight-region-shift-only' is now obsolete.
+You can disable `transient-mark-mode' to get the same result.
 
 *** CUA's rectangles can now be used via `cua-rectangle-mark-mode'.
 
@@ -872,7 +887,7 @@ to that past, it is still done before input-decode-map/function-key-map/...
 More specifically, the redisplay does not bother to check for a frame-local
 value when looking up variables.
 
-** nil and "unbound" are indistinguishable in symbol-function.
+** nil and "unbound" are indistinguishable in `symbol-function'.
 `symbol-function' never signals `void-function' any more.
 `fboundp' returns non-nil if the symbol was `fset' to nil.
 
@@ -893,55 +908,63 @@ file using `set-file-extended-attributes'.
 Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
 in the presence of files with negative time stamps.
 
-** The cars of the elements in `interpreter-mode-alist' are now treated
-as regexps rather than literal strings.  Technically this is an
-incompatible change, but unless you are using interpreter-mode-alist
-for something (not just adding elements to it), it ought not to affect you.
+** The cars of the elements in `interpreter-mode-alist' are now
+treated as regexps rather than literal strings.  This change should
+not affect you unless you are using `interpreter-mode-alist' for
+something (not just adding elements to it).
 
 
 * Lisp Changes in Emacs 24.4
 
+** The second argument of `eval' can now specify a lexical environment.
+
 +++
-** New variable `enable-dir-local-variables'.
-Directory-local variables are ignored if this is set to nil.  This may
-be useful for modes that want to ignore directory-locals while still
-respecting file-local variables.
+** New functions `special-form-p' and `macrop'.
 
 ** New macro `define-alternatives' can be used to define generic commands.
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
 
+** The `defalias-fset-function' property lets you catch `defalias'
+calls, and redirect them to your own function, instead of `fset'.
+
+** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
+text-property on the first char.
+
++++
+** New variable `enable-dir-local-variables'.
+Directory-local variables are ignored if this is nil.  This may be
+useful for modes that want to ignore directory-locals while still
+respecting file-local variables.
+
 +++
 ** New function `get-pos-property'.
 
-** Minibuffer changes
+** Completion changes
 
-*** completing-read-multiple's separator can now be a regexp.
-The default separator is changed to allow surrounding spaces around the comma.
+*** The separator for `completing-read-multiple' can now be a regexp.
+The default separator has been changed to allow surrounding spaces
+around the comma.
 
-*** New option `read-regexp-defaults-function' defines the function
-that provides the default value for commands that ask for a regexp:
-`rgrep', `lgrep' `occur', `multi-occur', `multi-occur-in-matching-buffers',
-`highlight-regexp', `highlight-lines-matching-regexp', `highlight-phrase'.
-This option can be customized to values that provide a default value
-from the regexp last history element or from the symbol found at point.
+*** The `common-substring' arg of `display-completion-list' is obsolete.
+Either use `completion-all-completions', which returns highlighted
+strings (including for partial or substring completion), or call
+`completion-hilit-commonality' to add the highlight.
 
-** New option `load-prefer-newer', if non-nil, means that when both
-.el and .elc versions of a file exist, rather than `load' always
-choosing the .elc version, it will choose whichever is newer
-(unless you explicitly specify one or the other).
-
-** New hook `pre-redisplay-function'.
+** Terminal changes
 
 +++
-** Functions that pop up menus and dialogs now work on all terminal types,
-including TTYs.
-This includes `x-popup-menu', `x-popup-dialog', `message-box',
-`yes-or-no-p', etc.
+*** Functions to pop up menus and dialogs now work on all terminals,
+including TTYs.  This includes `x-popup-menu', `x-popup-dialog',
+`message-box', `yes-or-no-p', etc.
 
 The function `display-popup-menus-p' will now return non-nil for a
 display or frame whenever a mouse is supported on that display or
 frame.
+
+*** New hook `tty-setup-hook'.
+
+** New hook `pre-redisplay-function'.
 
 +++
 ** New bool-vector set operation functions:
@@ -957,13 +980,12 @@ frame.
 +++
 ** Comparison functions =, <, >, <=, >= now take many arguments.
 
-** The second argument of `eval' can now be a lexical-environment.
+** Error-handling changes
 
-** `with-demoted-errors' takes an additional argument `format'.
 +++
-** New function `define-error'.
+*** New function `define-error'.
 
-** New hook `tty-setup-hook'.
+*** `with-demoted-errors' takes an additional argument `format'.
 
 +++
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
@@ -993,6 +1015,7 @@ frame.
 *** `isearch-nonincremental-exit-minibuffer'
 *** `isearch-filter-visible'
 *** `generic-make-keywords-list'
+*** `get-upcase-table' (use `case-table-get-table' instead).
 
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:
@@ -1009,8 +1032,6 @@ The value, if non-nil, is a regexp that specifies what to trim from
 the start and end of each substring.
 
 ** New function `string-suffix-p'.
-
-** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
 ** File-handling changes
 
@@ -1058,10 +1079,9 @@ of remote files when set to non-nil.
 
 ** Face changes
 
-*** The function `face-spec-set' is now analogous to `setq' for face specs.
-Its third arg now accepts values specifying exactly which face spec to
-set (defface, custom, or user spec), and it directly sets the relevant
-property using the supplied face spec.
+*** The function `face-spec-set' is now like `setq' for face specs.
+Its third arg now accepts values specifying a face spec type (defface,
+custom, or override spec), and the relevant spec is set accordingly.
 
 +++
 *** New function `add-face-text-property', which can be used to
@@ -1086,14 +1106,12 @@ It returns non-nil for any image that contains multiple frames,
 whether or not it specifies a frame delay.
 
 +++
-*** When animating images that do not specify a frame delay,
-Emacs uses `image-default-frame-delay'.
+*** New variable `image-default-frame-delay' gives the frame delay for
+animated images which do not specify a frame delay.
 
 +++
 *** New functions `image-current-frame' and `image-show-frame' for getting
 and setting the current frame of a multi-frame image.
-
-*** You can change the speed of animated images.
 
 ** EIEIO
 
@@ -1148,15 +1166,6 @@ These attributes are only meaningful for coding-systems of type
 
 ** `time-to-seconds' is not obsolete any more.
 
-+++
-** New functions `special-form-p' and `macrop'.
-
-** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
-text-property on the first char.
-
-** The `defalias-fset-function' property lets you catch calls to defalias
-and redirect them to your own function instead of `fset'.
-
 ** The lock for 'DIR/FILE' is now 'DIR/.#FILE' and may be a regular file.
 When you edit DIR/FILE, Emacs normally creates a symbolic link
 DIR/.#FILE as a lock that warns other instances of Emacs that DIR/FILE
@@ -1170,11 +1179,6 @@ regular file with contents being what would have been in the symlink.
 
 +++
 ** New functions `group-gid' and `group-real-gid'.
-
-** The `common-substring' argument of `display-completion-list' is obsolete.
-Either use `completion-all-completions' which already returns highlighted
-strings (including for partial or substring completion) or call
-`completion-hilit-commonality' to add the highlight.
 
 ** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
 
