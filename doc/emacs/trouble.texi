@@ -852,9 +852,9 @@ To make a backtrace for the error, use @kbd{M-x toggle-debug-on-error}
 before the error happens (that is to say, you must give that command
 and then make the bug happen).  This causes the error to start the Lisp
 debugger, which shows you a backtrace.  Copy the text of the
-debugger's backtrace into the bug report.  @xref{Debugger,, The Lisp
-Debugger, elisp, the Emacs Lisp Reference Manual}, for information on
-debugging Emacs Lisp programs with the Edebug package.
+debugger's backtrace into the bug report.  @xref{Edebug,, Edebug,
+elisp, the Emacs Lisp Reference Manual}, for information on debugging
+Emacs Lisp programs with the Edebug package.
 
 This use of the debugger is possible only if you know how to make the
 bug happen again.  If you can't make it happen again, at least copy
