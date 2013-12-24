@@ -167,7 +167,10 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-open-file (file)
   "Render a file using EWW."
   (interactive "fFile: ")
-  (eww (concat "file://" (expand-file-name file))))
+  (eww (concat "file://"
+	       (and (memq system-type '(windows-nt ms-dos))
+		    "/")
+	       (expand-file-name file))))
 
 (defun eww-render (status url &optional point)
   (let ((redirect (plist-get status :redirect)))
