@@ -1,3 +1,8 @@
+2013-12-24  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-nav-beginning-of-statement): Speed
+	up (Bug#15295).
+
 2013-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-bookmark-browse): Use `quit-window' to restore

@@ -1279,15 +1279,21 @@ nested definitions."
 (defun python-nav-beginning-of-statement ()
   "Move to start of current statement."
   (interactive "^")
-  (while (and (or (back-to-indentation) t)
-              (not (bobp))
-              (when (or
-                     (save-excursion
-                       (forward-line -1)
-                       (python-info-line-ends-backslash-p))
-                     (python-syntax-context 'string)
-                     (python-syntax-context 'paren))
-                (forward-line -1))))
+  (back-to-indentation)
+  (let* ((ppss (syntax-ppss))
+         (context-point
+          (or
+           (python-syntax-context 'paren ppss)
+           (python-syntax-context 'string ppss))))
+    (cond ((bobp))
+          (context-point
+           (goto-char context-point)
+           (python-nav-beginning-of-statement))
+          ((save-excursion
+             (forward-line -1)
+             (python-info-line-ends-backslash-p))
+           (forward-line -1)
+           (python-nav-beginning-of-statement))))
   (point-marker))
 
 (defun python-nav-end-of-statement (&optional noend)
