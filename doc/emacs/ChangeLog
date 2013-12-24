@@ -1,3 +1,7 @@
+2013-12-24  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* trouble.texi (Understanding Bug Reporting): Minor update.
+
 2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* regs.texi (Bookmarks): Document `bookmark-default-file'.
