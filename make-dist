@@ -344,7 +344,8 @@ echo "Making links to \`leim' and its subdirectories"
 echo "Making links to \`build-aux'"
 (cd build-aux
  ln compile config.guess config.sub depcomp msys-to-w32 ../${tempdir}/build-aux
- ln install-sh missing move-if-change update-subdirs ../${tempdir}/build-aux
+ ln install-sh missing move-if-change ../${tempdir}/build-aux
+ ln update-copyright update-subdirs ../${tempdir}/build-aux
  ln dir_top make-info-dir ../${tempdir}/build-aux)
 
 echo "Making links to \`build-aux/snippet'"
