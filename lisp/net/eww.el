@@ -1086,8 +1086,6 @@ Differences in #targets are ignored."
 ;;; Bookmarks code
 
 (defvar eww-bookmarks nil)
-(defvar eww-previous-window-configuration nil)
-(make-variable-buffer-local 'eww-previous-window-configuration)
 
 (defun eww-add-bookmark ()
   "Add the current page to the bookmarks."
@@ -1132,7 +1130,6 @@ Differences in #targets are ignored."
   (unless eww-bookmarks
     (user-error "No bookmarks are defined"))
   (set-buffer (get-buffer-create "*eww bookmarks*"))
-  (setq eww-previous-window-configuration (current-window-configuration))
   (eww-bookmark-mode)
   (let ((format "%-40s %s")
 	(inhibit-read-only t)
@@ -1191,8 +1188,6 @@ Differences in #targets are ignored."
     (unless bookmark
       (user-error "No bookmark on the current line"))
     (quit-window)
-    (when eww-previous-window-configuration
-      (set-window-configuration eww-previous-window-configuration))
     (eww-browse-url (plist-get bookmark :url))))
 
 (defun eww-next-bookmark ()

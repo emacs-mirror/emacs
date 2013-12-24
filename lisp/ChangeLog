@@ -1,3 +1,8 @@
+2013-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-bookmark-browse): Use `quit-window' to restore
+	the window configuration.
+
 2013-12-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* net/eww.el (eww-open-file): Ensure 3 slashes after "file:" when
