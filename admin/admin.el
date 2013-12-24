@@ -21,7 +21,7 @@
 
 ;; add-release-logs	Add ``Version X released'' change log entries.
 ;; set-version		Change Emacs version number in source tree.
-;; set-copyright        Change emacs short copyright string (eg as
+;; set-copyright        Change Emacs short copyright string (eg as
 ;;                      printed by --version) in source tree.
 
 ;;; Code:
@@ -46,7 +46,7 @@ Optional argument DATE is the release date, default today."
 					   (funcall add-log-time-format))))))
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (require 'add-log)
   (or date (setq date (let ((add-log-time-zone-rule t))
 			(funcall add-log-time-format))))
@@ -62,10 +62,11 @@ Optional argument DATE is the release date, default today."
       (insert entry))))
 
 (defun set-version-in-file (root file version rx)
+  "Subroutine of `set-version'."
   (find-file (expand-file-name file root))
   (goto-char (point-min))
-  (unless (re-search-forward rx nil t)
-    (error "Version not found in %s" file))
+  (unless (re-search-forward rx nil :noerror)
+    (user-error "Version not found in %s" file))
   (replace-match (format "%s" version) nil nil nil 1))
 
 (defun set-version (root version)
@@ -73,7 +74,7 @@ Optional argument DATE is the release date, default today."
 Root must be the root of an Emacs source tree."
   (interactive "DEmacs root directory: \nsVersion number: ")
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (set-version-in-file root "README" version
 		       (rx (and "version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
@@ -167,7 +168,7 @@ Root must be the root of an Emacs source tree."
                  (format "Copyright (C) %s Free Software Foundation, Inc."
                          (format-time-string "%Y")))))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (set-version-in-file root "configure.ac" copyright
 		       (rx (and bol "copyright" (0+ (not (in ?\")))
         			?\" (submatch (1+ (not (in ?\")))) ?\")))
