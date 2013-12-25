@@ -1,3 +1,9 @@
+2013-12-25  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
+
+	* net/eww.el (eww-form-textarea): Use a different face for
+	textareas than text input since they have different keymaps
+	(bug#16142).
+
 2013-12-24  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-nav-beginning-of-statement): Speed

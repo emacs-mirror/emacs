@@ -115,6 +115,14 @@ See also `eww-form-checkbox-selected-symbol'."
   :version "24.4"
   :group 'eww)
 
+(defface eww-form-textarea
+  '((t (:background "#C0C0C0"
+		    :foreground "black"
+		    :box (:line-width 1))))
+  "Face for eww textarea inputs."
+  :version "24.4"
+  :group 'eww)
+
 (defvar eww-current-url nil)
 (defvar eww-current-dom nil)
 (defvar eww-current-source nil)
@@ -776,7 +784,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	(when (> pad 0)
 	  (insert (make-string pad ? ))))
       (add-face-text-property (line-beginning-position)
-			      (point) 'eww-form-text)
+			      (point) 'eww-form-textarea)
       (put-text-property (line-beginning-position) (point)
 			 'local-map eww-textarea-map)
       (forward-line 1))
