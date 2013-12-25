@@ -1,3 +1,14 @@
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* eval.texi (Eval): Document the LEXICAL arg to eval.
+
+	* variables.texi (Variables, Void Variables): Use "scoping rule"
+	terminology consistently.
+	(Variable Scoping): Add index entries, and use "dynamic scope"
+	terminology in place of "indefinite scope" to reduce confusion.
+	(Lexical Binding): Document lexical environment format.
+	(Using Lexical Binding): Add index entries for error messages.
+
 2013-12-24  Tassilo Horn  <tsdh@gnu.org>
 
 	* control.texi (Pattern matching case statement): Fix missing

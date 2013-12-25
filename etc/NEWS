@@ -916,6 +916,7 @@ something (not just adding elements to it).
 
 * Lisp Changes in Emacs 24.4
 
++++
 ** The second argument of `eval' can now specify a lexical environment.
 
 +++
