@@ -414,7 +414,9 @@ size, and full-buffer size."
 ;; of a line or the end of a line.
 (defmacro shr-char-kinsoku-bol-p (char)
   "Return non-nil if a line ought not to begin with CHAR."
-  `(aref (char-category-set ,char) ?>))
+  `(let ((char ,char))
+     (and (not (eq char ?'))
+	  (aref (char-category-set char) ?>))))
 (defmacro shr-char-kinsoku-eol-p (char)
   "Return non-nil if a line ought not to end with CHAR."
   `(aref (char-category-set ,char) ?<))
@@ -489,30 +491,19 @@ size, and full-buffer size."
 		    (eq (following-char) ? )
 		    (shr-char-breakable-p (preceding-char))
 		    (shr-char-breakable-p (following-char))
-		    (if (eq (preceding-char) ?')
-			(not (memq (char-after (- (point) 2))
-				   (list nil ?\n ? )))
-		      (and (shr-char-kinsoku-bol-p (preceding-char))
-			   (shr-char-breakable-p (following-char))
-			   (not (shr-char-kinsoku-bol-p (following-char)))))
+		    (and (shr-char-kinsoku-bol-p (preceding-char))
+			 (shr-char-breakable-p (following-char))
+			 (not (shr-char-kinsoku-bol-p (following-char))))
 		    (shr-char-kinsoku-eol-p (following-char))))
       (backward-char 1))
-    (if (and (not (or failed (eolp)))
-	     (eq (preceding-char) ?'))
-	(while (not (or (setq failed (eolp))
-			(eq (following-char) ? )
-			(shr-char-breakable-p (following-char))
-			(shr-char-kinsoku-eol-p (following-char))))
-	  (forward-char 1)))
     (if failed
 	;; There's no breakable point, so we give it up.
 	(let (found)
 	  (goto-char bp)
 	  (unless shr-kinsoku-shorten
-	    (while (and (setq found (re-search-forward
-				     "\\(\\c>\\)\\| \\|\\c<\\|\\c|"
-				     (line-end-position) 'move))
-			(eq (preceding-char) ?')))
+	    (while (setq found (re-search-forward
+				"\\(\\c>\\)\\| \\|\\c<\\|\\c|"
+				(line-end-position) 'move)))
 	    (if (and found (not (match-beginning 1)))
 		(goto-char (match-beginning 0)))))
       (or
@@ -550,8 +541,7 @@ size, and full-buffer size."
 	     (if (looking-at "\\(\\c<+\\)\\c<")
 		 (goto-char (match-end 1))
 	       (forward-char 1))))
-	((and (shr-char-kinsoku-bol-p (following-char))
-	      (not (eq (following-char) ?')))
+	((shr-char-kinsoku-bol-p (following-char))
 	 ;; Find forward the point where kinsoku-bol characters end.
 	 (let ((count 4))
 	   (while (progn
