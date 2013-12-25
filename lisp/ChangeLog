@@ -12,6 +12,8 @@
 2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-visit-file): Remove debugging function.
+	(shr-insert): Don't infloop if we can't find a good place to break
+	the line (bug#16256).
 
 2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
