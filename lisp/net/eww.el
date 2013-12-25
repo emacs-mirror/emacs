@@ -115,6 +115,14 @@ See also `eww-form-checkbox-selected-symbol'."
   :version "24.4"
   :group 'eww)
 
+(defface eww-form-textarea
+  '((t (:background "#C0C0C0"
+		    :foreground "black"
+		    :box (:line-width 1))))
+  "Face for eww textarea inputs."
+  :version "24.4"
+  :group 'eww)
+
 (defvar eww-current-url nil)
 (defvar eww-current-dom nil)
 (defvar eww-current-source nil)
@@ -167,7 +175,10 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-open-file (file)
   "Render a file using EWW."
   (interactive "fFile: ")
-  (eww (concat "file://" (expand-file-name file))))
+  (eww (concat "file://"
+	       (and (memq system-type '(windows-nt ms-dos))
+		    "/")
+	       (expand-file-name file))))
 
 (defun eww-render (status url &optional point)
   (let ((redirect (plist-get status :redirect)))
@@ -773,7 +784,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	(when (> pad 0)
 	  (insert (make-string pad ? ))))
       (add-face-text-property (line-beginning-position)
-			      (point) 'eww-form-text)
+			      (point) 'eww-form-textarea)
       (put-text-property (line-beginning-position) (point)
 			 'local-map eww-textarea-map)
       (forward-line 1))
@@ -1083,8 +1094,6 @@ Differences in #targets are ignored."
 ;;; Bookmarks code
 
 (defvar eww-bookmarks nil)
-(defvar eww-previous-window-configuration nil)
-(make-variable-buffer-local 'eww-previous-window-configuration)
 
 (defun eww-add-bookmark ()
   "Add the current page to the bookmarks."
@@ -1129,7 +1138,6 @@ Differences in #targets are ignored."
   (unless eww-bookmarks
     (user-error "No bookmarks are defined"))
   (set-buffer (get-buffer-create "*eww bookmarks*"))
-  (setq eww-previous-window-configuration (current-window-configuration))
   (eww-bookmark-mode)
   (let ((format "%-40s %s")
 	(inhibit-read-only t)
@@ -1188,8 +1196,6 @@ Differences in #targets are ignored."
     (unless bookmark
       (user-error "No bookmark on the current line"))
     (quit-window)
-    (when eww-previous-window-configuration
-      (set-window-configuration eww-previous-window-configuration))
     (eww-browse-url (plist-get bookmark :url))))
 
 (defun eww-next-bookmark ()

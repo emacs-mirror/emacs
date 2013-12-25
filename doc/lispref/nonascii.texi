@@ -1289,17 +1289,18 @@ Sets}) supported by @var{coding-system}.  Some coding systems that
 support too many character sets to list them all yield special values:
 @itemize @bullet
 @item
-If @var{coding-system} supports all the ISO-2022 charsets, the value
-is @code{iso-2022}.
-@item
 If @var{coding-system} supports all Emacs characters, the value is
 @code{(emacs)}.
 @item
-If @var{coding-system} supports all emacs-mule characters, the value
-is @code{emacs-mule}.
-@item
 If @var{coding-system} supports all Unicode characters, the value is
 @code{(unicode)}.
+@item
+If @var{coding-system} supports all ISO-2022 charsets, the value is
+@code{iso-2022}.
+@item
+If @var{coding-system} supports all the characters in the internal
+coding system used by Emacs version 21 (prior to the implementation of
+internal Unicode support), the value is @code{emacs-mule}.
 @end itemize
 @end defun
 
@@ -1617,8 +1618,7 @@ of the right way to use the variable:
 
 @example
 ;; @r{Read the file with no character code conversion.}
-;; @r{Assume @acronym{crlf} represents end-of-line.}
-(let ((coding-system-for-read 'emacs-mule-dos))
+(let ((coding-system-for-read 'no-conversion))
   (insert-file-contents filename))
 @end example
 

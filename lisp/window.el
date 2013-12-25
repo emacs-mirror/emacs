@@ -4681,12 +4681,12 @@ specific buffers."
         ;; (assert (eq next (or (cadr (member win wins)) (car wins))))
         (let* ((horiz
                 (< (car (window-pixel-edges win)) (car (window-pixel-edges next))))
-               (areadiff (/ (- (* (window-height next pixelwise)
-				  (window-width next pixelwise)
+               (areadiff (/ (- (* (window-size next nil pixelwise)
+				  (window-size next t pixelwise)
                                   (buffer-local-value 'window-area-factor
                                                       (window-buffer next)))
-                               (* (window-height win pixelwise)
-				  (window-width win pixelwise)
+                               (* (window-size win nil pixelwise)
+				  (window-size win t pixelwise)
                                   (buffer-local-value 'window-area-factor
                                                       (window-buffer win))))
                             (max (buffer-local-value 'window-area-factor
@@ -4694,10 +4694,10 @@ specific buffers."
                                  (buffer-local-value 'window-area-factor
                                                      (window-buffer next)))))
                (edgesize (if horiz
-                             (+ (window-height win pixelwise)
-				(window-height next pixelwise))
-                           (+ (window-width win pixelwise)
-			      (window-width next pixelwise))))
+                             (+ (window-size win nil pixelwise)
+				(window-size next nil pixelwise))
+                           (+ (window-size win t pixelwise)
+			      (window-size next t pixelwise))))
                (diff (/ areadiff edgesize)))
           (when (zerop diff)
             ;; Maybe diff is actually closer to 1 than to 0.

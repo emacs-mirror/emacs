@@ -1,3 +1,9 @@
+2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-nav-lisp-forward-sexp-safe-1): Remove test.
+	(python-nav-forward-sexp-safe-1): New test.
+
 2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el: Add tests for

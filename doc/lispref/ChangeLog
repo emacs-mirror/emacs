@@ -1,3 +1,46 @@
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Re-organize the text.
+	(Searching Keymaps): Rewrite the pseudo-code for 24.4 changes.
+	(Controlling Active Maps): Note that set-transient-map uses
+	overriding-terminal-local-map.
+
+	* tips.texi (Coding Conventions): Tweak the coding system tip;
+	Emacs now uses utf-8 by default for Emacs Lisp source files.
+
+	* display.texi (Font Selection): Tweak example.
+
+	* commands.texi (Event Input Misc): Document new arg to
+	input-pending-p.
+
+	* nonascii.texi (Specifying Coding Systems): Don't refer to
+	emacs-mule-dos.
+	(Lisp and Coding Systems): Describe emacs-mule return value in
+	modern terms.
+
+2013-12-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* control.texi (Pattern matching case statement): Rephrase lexical
+	binding requirement: the example needs it, not `pcase' itself.
+
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* eval.texi (Eval): Document the LEXICAL arg to eval.
+
+	* variables.texi (Variables, Void Variables): Use "scoping rule"
+	terminology consistently.
+	(Variable Scoping): Add index entries, and use "dynamic scope"
+	terminology in place of "indefinite scope" to reduce confusion.
+	(Lexical Binding): Document lexical environment format.
+	(Using Lexical Binding): Add index entries for error messages.
+
+2013-12-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* control.texi (Pattern matching case statement): Fix missing
+	argument in simple expression language sample (Bug#16238).  Add
+	some sample programs written in that language.  Mention that
+	`pcase' requires lexical binding.
+
 2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* eval.texi (Special Forms): Document `special-form-p'.

@@ -179,13 +179,6 @@ cid: URL as the argument.")
       (goto-char begin)
       (shr-insert-document dom))))
 
-(defun shr-visit-file (file)
-  "Parse FILE as an HTML document, and render it in a new buffer."
-  (interactive "fHTML file name: ")
-  (with-temp-buffer
-    (insert-file-contents file)
-    (shr-render-buffer (current-buffer))))
-
 ;;;###autoload
 (defun shr-insert-document (dom)
   "Render the parsed document DOM into the current buffer.
@@ -414,7 +407,9 @@ size, and full-buffer size."
 ;; of a line or the end of a line.
 (defmacro shr-char-kinsoku-bol-p (char)
   "Return non-nil if a line ought not to begin with CHAR."
-  `(aref (char-category-set ,char) ?>))
+  `(let ((char ,char))
+     (and (not (eq char ?'))
+	  (aref (char-category-set char) ?>))))
 (defmacro shr-char-kinsoku-eol-p (char)
   "Return non-nil if a line ought not to end with CHAR."
   `(aref (char-category-set ,char) ?<))
@@ -489,30 +484,19 @@ size, and full-buffer size."
 		    (eq (following-char) ? )
 		    (shr-char-breakable-p (preceding-char))
 		    (shr-char-breakable-p (following-char))
-		    (if (eq (preceding-char) ?')
-			(not (memq (char-after (- (point) 2))
-				   (list nil ?\n ? )))
-		      (and (shr-char-kinsoku-bol-p (preceding-char))
-			   (shr-char-breakable-p (following-char))
-			   (not (shr-char-kinsoku-bol-p (following-char)))))
+		    (and (shr-char-kinsoku-bol-p (preceding-char))
+			 (shr-char-breakable-p (following-char))
+			 (not (shr-char-kinsoku-bol-p (following-char))))
 		    (shr-char-kinsoku-eol-p (following-char))))
       (backward-char 1))
-    (if (and (not (or failed (eolp)))
-	     (eq (preceding-char) ?'))
-	(while (not (or (setq failed (eolp))
-			(eq (following-char) ? )
-			(shr-char-breakable-p (following-char))
-			(shr-char-kinsoku-eol-p (following-char))))
-	  (forward-char 1)))
     (if failed
 	;; There's no breakable point, so we give it up.
 	(let (found)
 	  (goto-char bp)
 	  (unless shr-kinsoku-shorten
-	    (while (and (setq found (re-search-forward
-				     "\\(\\c>\\)\\| \\|\\c<\\|\\c|"
-				     (line-end-position) 'move))
-			(eq (preceding-char) ?')))
+	    (while (setq found (re-search-forward
+				"\\(\\c>\\)\\| \\|\\c<\\|\\c|"
+				(line-end-position) 'move)))
 	    (if (and found (not (match-beginning 1)))
 		(goto-char (match-beginning 0)))))
       (or

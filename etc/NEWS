@@ -545,7 +545,7 @@ using the next face automatically.
 *** New option `imenu-generic-skip-comments-and-strings'.
 
 ** Info
-
+---
 *** New face `info-index-match' is used to highlight matches in index
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
@@ -849,19 +849,23 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+---
 ** `kill-region' lost its `yank-handler' optional argument.
 
++++
 ** `(input-pending-p)' no longer runs other timers which are ready to
 run.  The new optional CHECK-TIMERS param allows for the prior behavior.
 
 ** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
+---
 ** The syntax of ?» and ?« is now punctuation instead of matched parens.
 Some languages match those as »...« and others as «...» so better stay neutral.
 
 ---
 ** In compiled Lisp files, the header no longer includes a timestamp.
 
++++
 ** The default file coding for Emacs Lisp files is now utf-8.
 (See `file-coding-system-alist'.)  In most cases, this change is
 transparent, but files that contain unusual characters without
@@ -869,6 +873,7 @@ specifying an explicit coding system may fail to load with obscure
 errors.  You should either convert them to utf-8 or add an explicit
 `coding:' cookie.
 
++++
 ** `overriding-terminal-local-map' no longer replaces the local keymaps.
 It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
@@ -881,9 +886,11 @@ Just as was the case in Emacs-22 and before, decoding of tty input according to
 keyboard-coding-system is not performed in read-event any more.  But contrary
 to that past, it is still done before input-decode-map/function-key-map/...
 
-** Removed inhibit-local-menu-bar-menus.
+---
+** Removed `inhibit-local-menu-bar-menus'.
 
-** frame-local variables that affect redisplay do not work any more.
+---
+** Frame-local variables that affect redisplay do not work any more.
 More specifically, the redisplay does not bother to check for a frame-local
 value when looking up variables.
 
@@ -916,6 +923,7 @@ something (not just adding elements to it).
 
 * Lisp Changes in Emacs 24.4
 
++++
 ** The second argument of `eval' can now specify a lexical environment.
 
 +++

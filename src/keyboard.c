@@ -11415,18 +11415,19 @@ tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
 		 doc: /* Per-terminal keymap that takes precedence over all other keymaps.
-
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.
 
 `overriding-terminal-local-map' has a separate binding for each
-terminal device.
-See Info node `(elisp)Multiple Terminals'.  */);
+terminal device.  See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_LISP ("overriding-local-map", Voverriding_local_map,
-	       doc: /* Keymap that overrides almost all other local keymaps.
-If this variable is non-nil, it is used as a keymap--replacing the
-buffer's local map, the minor mode keymaps, and char property keymaps.  */);
+	       doc: /* Keymap that replaces (overrides) local keymaps.
+If this variable is non-nil, Emacs looks up key bindings in this
+keymap INSTEAD OF the keymap char property, minor mode maps, and the
+buffer's local map.  Hence, the only active keymaps would be
+`overriding-terminal-local-map', this keymap, and `global-keymap', in
+order of precedence.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", Voverriding_local_map_menu_flag,

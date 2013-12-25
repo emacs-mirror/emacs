@@ -676,6 +676,7 @@ find_interval (register INTERVAL tree, register ptrdiff_t position)
 
   while (1)
     {
+      eassert (tree);
       if (relative_position < LEFT_TOTAL_LENGTH (tree))
 	{
 	  tree = tree->left;

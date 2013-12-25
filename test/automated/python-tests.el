@@ -1339,28 +1339,6 @@ if request.user.is_authenticated():
               (python-tests-look-at
                "if request.user.is_authenticated():" -1)))))
 
-(ert-deftest python-nav-lisp-forward-sexp-safe-1 ()
-  (python-tests-with-temp-buffer
-   "
-profile = Profile.objects.create(user=request.user)
-profile.notify()
-"
-   (python-tests-look-at "profile =")
-   (python-nav-lisp-forward-sexp-safe 4)
-   (should (looking-at "(user=request.user)"))
-   (python-tests-look-at "user=request.user")
-   (python-nav-lisp-forward-sexp-safe -1)
-   (should (looking-at "(user=request.user)"))
-   (python-nav-lisp-forward-sexp-safe -4)
-   (should (looking-at "profile ="))
-   (python-tests-look-at "user=request.user")
-   (python-nav-lisp-forward-sexp-safe 3)
-   (should (looking-at ")"))
-   (python-nav-lisp-forward-sexp-safe 1)
-   (should (looking-at "$"))
-   (python-nav-lisp-forward-sexp-safe 1)
-   (should (looking-at ".notify()"))))
-
 (ert-deftest python-nav-forward-sexp-1 ()
   (python-tests-with-temp-buffer
    "
@@ -1476,6 +1454,29 @@ def another_statement():
    (should (looking-at "from another_module import another_sub_module"))
    (python-nav-forward-sexp -1)
    (should (looking-at "from some_module import some_sub_module"))))
+
+(ert-deftest python-nav-forward-sexp-safe-1 ()
+  (python-tests-with-temp-buffer
+   "
+profile = Profile.objects.create(user=request.user)
+profile.notify()
+"
+   (python-tests-look-at "profile =")
+   (python-nav-forward-sexp-safe 1)
+   (should (looking-at "$"))
+   (beginning-of-line 1)
+   (python-tests-look-at "user=request.user")
+   (python-nav-forward-sexp-safe -1)
+   (should (looking-at "(user=request.user)"))
+   (python-nav-forward-sexp-safe -4)
+   (should (looking-at "profile ="))
+   (python-tests-look-at "user=request.user")
+   (python-nav-forward-sexp-safe 3)
+   (should (looking-at ")"))
+   (python-nav-forward-sexp-safe 1)
+   (should (looking-at "$"))
+   (python-nav-forward-sexp-safe 1)
+   (should (looking-at "$"))))
 
 (ert-deftest python-nav-up-list-1 ()
   (python-tests-with-temp-buffer
