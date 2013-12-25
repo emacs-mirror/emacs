@@ -2962,11 +2962,11 @@ scalable font is enabled for use if its name matches any regular
 expression in the list.  For example,
 
 @example
-(setq scalable-fonts-allowed '("muleindian-2$"))
+(setq scalable-fonts-allowed '("iso10646-1$"))
 @end example
 
 @noindent
-allows the use of scalable fonts with registry @code{muleindian-2}.
+allows the use of scalable fonts with registry @code{iso10646-1}.
 @end defopt
 
 @defvar face-font-rescale-alist

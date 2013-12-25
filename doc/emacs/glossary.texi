@@ -953,9 +953,15 @@ another.  The usual way to move text is by killing (q.v.@:) it and then
 yanking (q.v.@:) it.  @xref{Killing}.
 
 @item MULE
-MULE refers to the Emacs features for editing multilingual
-non-@acronym{ASCII} text using multibyte characters (q.v.).
-@xref{International}.
+@cindex MULE
+Prior to Emacs 23, @acronym{MULE} was the name of a software package
+which provided a @dfn{MULtilingual Enhancement} to Emacs, by adding
+support for multiple character sets (q.v.).  @acronym{MULE} was later
+integrated into Emacs, and much of it was replaced when Emacs gained
+internal Unicode support in version 23.
+
+Some parts of Emacs that deal with character set support still use the
+@acronym{MULE} name.  @xref{International}.
 
 @item Multibyte Character
 A multibyte character is a character that takes up several bytes in a

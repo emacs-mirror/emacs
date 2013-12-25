@@ -1,3 +1,23 @@
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Re-organize the text.
+	(Searching Keymaps): Rewrite the pseudo-code for 24.4 changes.
+	(Controlling Active Maps): Note that set-transient-map uses
+	overriding-terminal-local-map.
+
+	* tips.texi (Coding Conventions): Tweak the coding system tip;
+	Emacs now uses utf-8 by default for Emacs Lisp source files.
+
+	* display.texi (Font Selection): Tweak example.
+
+	* commands.texi (Event Input Misc): Document new arg to
+	input-pending-p.
+
+	* nonascii.texi (Specifying Coding Systems): Don't refer to
+	emacs-mule-dos.
+	(Lisp and Coding Systems): Describe emacs-mule return value in
+	modern terms.
+
 2013-12-25  Tassilo Horn  <tsdh@gnu.org>
 
 	* control.texi (Pattern matching case statement): Rephrase lexical

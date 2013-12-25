@@ -223,17 +223,12 @@ only for special-purpose buffers.)  People will find Emacs more
 coherent if all libraries use the same conventions.
 
 @item
-If your program contains non-ASCII characters in string or character
-constants, you should make sure Emacs always decodes these characters
-the same way, regardless of the user's settings.  The easiest way to
-do this is to use the coding system @code{utf-8-emacs} (@pxref{Coding
-System Basics}), and specify that coding in the @samp{-*-} line or the
+The default file coding system for Emacs Lisp source files is UTF-8
+(@pxref{Text Representations}).  In the rare event that your program
+contains characters which are @emph{not} in UTF-8, you should specify
+an appropriate coding system in the source file's @samp{-*-} line or
 local variables list.  @xref{File Variables, , Local Variables in
 Files, emacs, The GNU Emacs Manual}.
-
-@example
-;; XXX.el  -*- coding: utf-8-emacs; -*-
-@end example
 
 @item
 Indent the file using the default indentation parameters.

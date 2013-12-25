@@ -1,3 +1,7 @@
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* glossary.texi (Glossary): Define MULE in modern terms.
+
 2013-12-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* files.texi (Diff Mode): Add an index.

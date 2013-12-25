@@ -5,7 +5,6 @@
 @chapter International Character Set Support
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
-@cindex MULE
 @cindex international scripts
 @cindex multibyte characters
 @cindex encoding of characters

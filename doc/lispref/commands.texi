@@ -2739,12 +2739,16 @@ This function converts the string or vector @var{key} to a list of
 individual events, which you can put in @code{unread-command-events}.
 @end defun
 
-@defun input-pending-p
+@defun input-pending-p &optional check-timers
 @cindex waiting for command key input
 This function determines whether any command input is currently
 available to be read.  It returns immediately, with value @code{t} if
 there is available input, @code{nil} otherwise.  On rare occasions it
 may return @code{t} when no input is available.
+
+If the optional argument @var{check-timers} is non-@code{nil}, then if
+no input is available, Emacs runs any timers which are ready.
+@xref{Timers}.
 @end defun
 
 @defvar last-input-event
