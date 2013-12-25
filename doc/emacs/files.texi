@@ -1419,6 +1419,7 @@ In a multi-file patch, kill the current file part.
 
 @item C-c C-a
 @findex diff-apply-hunk
+@cindex patches, applying
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk.
 

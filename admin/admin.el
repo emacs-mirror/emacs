@@ -75,6 +75,9 @@ Root must be the root of an Emacs source tree."
   (interactive "DEmacs root directory: \nsVersion number: ")
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  ;; There's also a "version 3" (standing for GPLv3) at the end of
+  ;; `README', but since `set-version-in-file' only replaces the first
+  ;; occurence, it won't be replaced.
   (set-version-in-file root "README" version
 		       (rx (and "version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
