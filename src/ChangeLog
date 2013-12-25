@@ -1,3 +1,8 @@
+2013-12-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Make DOCUMENT absolute only if it
+	is a file name.  (Bug#16252)
+
 2013-12-25  Chong Yidong  <cyd@gnu.org>
 
 	* keyboard.c (Voverriding_terminal_local_map):

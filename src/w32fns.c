@@ -6851,7 +6851,8 @@ operations:
 
 DOCUMENT is typically the name of a document file or a URL, but can
 also be a program executable to run, or a directory to open in the
-Windows Explorer.
+Windows Explorer.  If it is a file, it must be a local one; this
+function does not support remote file names.
 
 If DOCUMENT is a program executable, the optional third arg PARAMETERS
 can be a string containing command line parameters that will be passed
@@ -6875,6 +6876,7 @@ an integer representing a ShowWindow flag:
 #ifndef CYGWIN
   int use_unicode = w32_unicode_filenames;
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
+  Lisp_Object absdoc;
 #endif
 
   CHECK_STRING (document);
@@ -6903,7 +6905,16 @@ an integer representing a ShowWindow flag:
 				      ? XINT (show_flag) : SW_SHOWDEFAULT));
 #else  /* !CYGWIN */
   current_dir = ENCODE_FILE (current_dir);
-  document = ENCODE_FILE (Fexpand_file_name (document, Qnil));
+  /* We have a situation here.  If DOCUMENT is a relative file name,
+     and is not in CURRENT_DIR, ShellExecute below will fail to find
+     it.  So we need to make the file name absolute.  But DOCUMENT
+     does not have to be a file, it can be a URL, for example.  So we
+     make it absolute only if it is an existing file; if it is a file
+     that does not exist, tough.  */
+  absdoc = Fexpand_file_name (document, Qnil);
+  if (!NILP (Ffile_exists_p (absdoc)))
+    document = absdoc;
+  document = ENCODE_FILE (document);
   if (use_unicode)
     {
       wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];
