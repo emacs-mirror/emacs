@@ -342,18 +342,19 @@ third elements and binds them to the variables @code{x} and @code{y}.
 @code{(pred numberp)} is a pattern that simply checks that @code{exp}
 is a number, and @code{_} is the catch-all pattern that matches anything.
 
+Note that the the lambda being the result of the @code{fn} clause is a
+closure (@pxref{Closures}), so the file defining @code{evaluate} must
+have lexical binding enabled (@pxref{Using Lexical Binding}, for how
+to enable it).
+
 Here are some sample programs including their evaluation results:
 
 @example
 (evaluate '(add 1 2) nil)                 ;=> 3
 (evaluate '(add x y) '((x . 1) (y . 2)))  ;=> 3
 (evaluate '(call (fn x (add 1 x)) 2) nil) ;=> 3
-(evaluate '(sub 1 2) nil)                 ;=> (error "Unknown expression (sub 1 2)")
+(evaluate '(sub 1 2) nil)                 ;=> error
 @end example
-
-Note that (parts of) @code{pcase} only work as expected with lexical
-binding, so lisp files using @code{pcase} should have enable it
-(@pxref{Using Lexical Binding}, for how to enable lexical binding).
 
 There are two kinds of patterns involved in @code{pcase}, called
 @emph{U-patterns} and @emph{Q-patterns}.  The @var{upattern} mentioned above
