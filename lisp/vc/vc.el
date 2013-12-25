@@ -1343,23 +1343,33 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
-(defun vc-ignore (file &optional directory)
-  "Ignore FILE under the VCS of DIRECTORY (default is `default-directory').
-FILE is a file wildcard.
-When called interactively and with a prefix argument, remove FILE
-from ignored files.
-When called from Lisp code, if DIRECTORY is non-nil, the
-repository to use will be deduced by DIRECTORY."
+(defun vc-ignore (file &optional directory remove)
+  "Ignore FILE under the VCS of DIRECTORY.
+
+Normally, FILE is a wildcard specification that matches the files
+to be ignored.  When REMOVE is non-nil, remove FILE from the list
+of ignored files.
+
+DIRECTORY defaults to `default-directory' and is used to
+determine the responsible VC backend.
+
+When called interactively, prompt for a FILE to ignore, unless a
+prefix argument is given, in which case prompt for a file FILE to
+remove from the list of ignored files."
   (interactive
-   (list (read-file-name "The file to ignore: ")
-	 (completing-read
-	  "The file to remove: "
-	  (vc-call-backend
-	   (vc-backend default-directory)
-	   'ignore-completion-table default-directory))))
+   (list
+    (if (not current-prefix-arg)
+        (read-file-name "File to ignore: ")
+      (completing-read
+       "File to remove: "
+       (vc-call-backend
+        (or (vc-responsible-backend default-directory)
+            (error "Unknown backend"))
+        'ignore-completion-table default-directory)))
+    nil current-prefix-arg))
   (let* ((directory (or directory default-directory))
-	 (backend (vc-backend default-directory))
-	 (remove current-prefix-arg))
+	 (backend (or (vc-responsible-backend default-directory)
+                      (error "Unknown backend"))))
     (vc-call-backend backend 'ignore file directory remove)))
 
 (defun vc-default-ignore (backend file &optional directory remove)

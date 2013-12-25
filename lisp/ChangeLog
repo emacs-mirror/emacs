@@ -1,3 +1,8 @@
+2013-12-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc.el (vc-ignore): Use `vc-responsible-backend'.
+	Fix interactive spec.  Doc fix.  (Bug#15754)
+
 2013-12-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-lisp/byte-run.el (eval-when-compile):
