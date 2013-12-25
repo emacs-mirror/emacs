@@ -1,7 +1,7 @@
 2013-12-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-lisp/byte-run.el (eval-when-compile):
-	* lisp/progmodes/cc-defs.el (cc-eval-when-compile):
+	* progmodes/cc-defs.el (cc-eval-when-compile):
 	Fix edebug spec (bug#16184).
 
 2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
