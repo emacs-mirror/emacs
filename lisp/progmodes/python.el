@@ -1424,25 +1424,36 @@ backward to previous block."
         (and (goto-char starting-pos) nil)
       (and (not (= (point) starting-pos)) (point-marker)))))
 
-(defun python-nav-lisp-forward-sexp-safe (&optional arg)
-  "Safe version of standard `forward-sexp'.
-When ARG > 0 move forward, else if ARG is < 0."
-  (or arg (setq arg 1))
+(defun python-nav--lisp-forward-sexp (&optional arg)
+  "Standard version `forward-sexp'.
+It ignores completely the value of `forward-sexp-function' by
+setting it to nil before calling `forward-sexp'.  With positive
+ARG move forward only one sexp, else move backwards."
   (let ((forward-sexp-function)
-        (paren-regexp
-         (if (> arg 0) (python-rx close-paren) (python-rx open-paren)))
-        (search-fn
-         (if (> arg 0) #'re-search-forward #'re-search-backward)))
+        (arg (if (or (not arg) (> arg 0)) 1 -1)))
+    (forward-sexp arg)))
+
+(defun python-nav--lisp-forward-sexp-safe (&optional arg)
+  "Safe version of standard `forward-sexp'.
+When at end of sexp (i.e. looking at a opening/closing paren)
+skips it instead of throwing an error.  With positive ARG move
+forward only one sexp, else move backwards."
+  (let* ((arg (if (or (not arg) (> arg 0)) 1 -1))
+         (paren-regexp
+          (if (> arg 0) (python-rx close-paren) (python-rx open-paren)))
+         (search-fn
+          (if (> arg 0) #'re-search-forward #'re-search-backward)))
     (condition-case nil
-        (forward-sexp arg)
+        (python-nav--lisp-forward-sexp arg)
       (error
        (while (and (funcall search-fn paren-regexp nil t)
                    (python-syntax-context 'paren)))))))
 
-(defun python-nav--forward-sexp (&optional dir)
+(defun python-nav--forward-sexp (&optional dir safe)
   "Move to forward sexp.
-With positive Optional argument DIR direction move forward, else
-backwards."
+With positive optional argument DIR direction move forward, else
+backwards.  When optional argument SAFE is non-nil do not throw
+errors when at end of sexp, skip it instead."
   (setq dir (or dir 1))
   (unless (= dir 0)
     (let* ((forward-p (if (> dir 0)
@@ -1460,7 +1471,9 @@ backwards."
                  (eq (syntax-class (syntax-after (1- (point))))
                      (car (string-to-syntax ")")))))
         ;; Inside a paren or looking at it, lisp knows what to do.
-        (python-nav-lisp-forward-sexp-safe dir))
+        (if safe
+            (python-nav--lisp-forward-sexp-safe dir)
+          (python-nav--lisp-forward-sexp dir)))
        (t
         ;; This part handles the lispy feel of
         ;; `python-nav-forward-sexp'.  Knowing everything about the
@@ -1474,7 +1487,9 @@ backwards."
                  ((python-info-end-of-statement-p) 'statement-end)))
                (next-sexp-pos
                 (save-excursion
-                  (python-nav-lisp-forward-sexp-safe dir)
+                  (if safe
+                      (python-nav--lisp-forward-sexp-safe dir)
+                    (python-nav--lisp-forward-sexp dir))
                   (point)))
                (next-sexp-context
                 (save-excursion
@@ -1528,22 +1543,47 @@ backwards."
                    (python-nav-beginning-of-statement))
                   (t (goto-char next-sexp-pos))))))))))
 
-(defun python-nav--backward-sexp ()
-  "Move to backward sexp."
-  (python-nav--forward-sexp -1))
-
 (defun python-nav-forward-sexp (&optional arg)
-  "Move forward across one block of code.
-With ARG, do it that many times.  Negative arg -N means
-move backward N times."
+  "Move forward across expressions.
+With ARG, do it that many times.  Negative arg -N means move
+backward N times."
   (interactive "^p")
   (or arg (setq arg 1))
   (while (> arg 0)
-    (python-nav--forward-sexp)
+    (python-nav--forward-sexp 1)
     (setq arg (1- arg)))
   (while (< arg 0)
-    (python-nav--backward-sexp)
+    (python-nav--forward-sexp -1)
     (setq arg (1+ arg))))
+
+(defun python-nav-backward-sexp (&optional arg)
+  "Move backward across expressions.
+With ARG, do it that many times.  Negative arg -N means move
+backward N times."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (python-nav-forward-sexp (- arg)))
+
+(defun python-nav-forward-sexp-safe (&optional arg)
+  "Move forward safely across expressions.
+With ARG, do it that many times.  Negative arg -N means move
+backward N times."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (while (> arg 0)
+    (python-nav--forward-sexp 1 t)
+    (setq arg (1- arg)))
+  (while (< arg 0)
+    (python-nav--forward-sexp -1 t)
+    (setq arg (1+ arg))))
+
+(defun python-nav-backward-sexp-safe (&optional arg)
+  "Move backward safely across expressions.
+With ARG, do it that many times.  Negative arg -N means move
+backward N times."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (python-nav-forward-sexp-safe (- arg)))
 
 (defun python-nav--up-list (&optional dir)
   "Internal implementation of `python-nav-up-list'.
@@ -2212,7 +2252,7 @@ the python shell:
                      (save-excursion
                        (when (python-nav-if-name-main)
                          (cons (point)
-                               (progn (python-nav-forward-sexp)
+                               (progn (python-nav-forward-sexp-safe)
                                       (point)))))))
                ;; Oh destructuring bind, how I miss you.
                (if-name-main-start (car if-name-main-start-end))

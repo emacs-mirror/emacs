@@ -1,3 +1,18 @@
+2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el:
+	(python-nav--lisp-forward-sexp): New function.
+	(python-nav--lisp-forward-sexp-safe): Use it.  Rename from
+	python-nav-lisp-forward-sexp-safe.
+	(python-nav--forward-sexp): New argument SAFE allows switching
+	forward sexp movement behavior for parens.
+	(python-nav-forward-sexp): Throw errors on unterminated parens
+	(Bug#16191).
+	(python-nav-backward-sexp, python-nav-forward-sexp-safe)
+	(python-nav-backward-sexp-safe): New functions.
+	(python-shell-buffer-substring): Use
+	`python-nav-forward-sexp-safe'.
+
 2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-find-fill-point): Don't break lines before a
