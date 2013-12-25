@@ -1,3 +1,8 @@
+2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-find-fill-point): Don't break lines before a
+	quotation mark.
+
 2013-12-25  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-form-textarea): Use a different face for

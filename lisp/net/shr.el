@@ -550,7 +550,8 @@ size, and full-buffer size."
 	     (if (looking-at "\\(\\c<+\\)\\c<")
 		 (goto-char (match-end 1))
 	       (forward-char 1))))
-	((shr-char-kinsoku-bol-p (following-char))
+	((and (shr-char-kinsoku-bol-p (following-char))
+	      (not (eq (following-char) ?')))
 	 ;; Find forward the point where kinsoku-bol characters end.
 	 (let ((count 4))
 	   (while (progn
