@@ -179,13 +179,6 @@ cid: URL as the argument.")
       (goto-char begin)
       (shr-insert-document dom))))
 
-(defun shr-visit-file (file)
-  "Parse FILE as an HTML document, and render it in a new buffer."
-  (interactive "fHTML file name: ")
-  (with-temp-buffer
-    (insert-file-contents file)
-    (shr-render-buffer (current-buffer))))
-
 ;;;###autoload
 (defun shr-insert-document (dom)
   "Render the parsed document DOM into the current buffer.

@@ -1,3 +1,7 @@
+2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-visit-file): Removed debugging function.
+
 2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el:
