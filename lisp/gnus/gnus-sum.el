@@ -7278,6 +7278,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 		(not (string= group (gnus-group-group-name))))
       (gnus-group-next-unread-group 1))
     (setq group-point (point))
+    (gnus-article-stop-animations)
     (if temporary
 	nil				;Nothing to do.
       (set-buffer buf)
@@ -7368,6 +7369,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-group-update-group group nil t))
       (when (equal (gnus-group-group-name) group)
 	(gnus-group-next-unread-group 1))
+      (gnus-article-stop-animations)
       (when quit-config
 	(gnus-handle-ephemeral-exit quit-config)))))
 
