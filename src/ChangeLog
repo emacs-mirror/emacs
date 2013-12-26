@@ -1,3 +1,17 @@
+2013-12-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dumps with gcc -fsanitize=address and GNU/Linux.
+	On my Fedora 19 platform the core dumps were so big that
+	my desktop became nearly catatonic.
+	* alloc.c (no_sanitize_memcpy) [MAX_SAVE_STACK > 0]: New function.
+	(Fgarbage_collect) [MAX_SAVE_STACK > 0]: Use it.
+	(USE_ALIGNED_MALLOC): Do not define if addresses are sanitized.
+	(mark_memory): Use ATTRIBUTE_NO_SANITIZE_ADDRESS rather than
+	a clang-only syntax.
+	* conf_post.h (__has_feature): New macro, if not already defined.
+	(ADDRESS_SANITIZER, ADDRESS_SANITIZER_WORKAROUND)
+	(ATTRIBUTE_NO_SANITIZE_ADDRESS): New macros.
+
 2013-12-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (Fw32_shell_execute): Make DOCUMENT absolute only if it

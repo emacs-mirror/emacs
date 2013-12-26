@@ -1048,6 +1048,21 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
 
 LDFLAGS="$late_LDFLAGS"
 
+AC_CACHE_CHECK([whether addresses are sanitized],
+  [emacs_cv_sanitize_address],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM(
+	[[#ifndef __has_feature
+	  #define __has_feature(f) 0
+	  #endif
+	  #if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
+	  #else
+	   #error "Addresses are not sanitized."
+	  #endif
+	]])],
+     [emacs_cv_sanitize_address=yes],
+     [emacs_cv_sanitize_address=no])])
+
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
 test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
@@ -1055,8 +1070,11 @@ case "$opsys" in
   your-opsys-here) CANNOT_DUMP=yes ;;
 esac
 
-test "$CANNOT_DUMP" = "yes" && \
+if test "$CANNOT_DUMP" = "yes"; then
   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
+elif test "$emacs_cv_sanitize_address" = yes; then
+  AC_MSG_WARN([[Addresses are sanitized; suggest CANNOT_DUMP=yes]])
+fi
 
 AC_SUBST(CANNOT_DUMP)
 
@@ -1888,20 +1906,21 @@ GNU_MALLOC=yes
 AC_CACHE_CHECK(
   [whether malloc is Doug Lea style],
   [emacs_cv_var_doug_lea_malloc],
-  [AC_LINK_IFELSE(
-     [AC_LANG_PROGRAM(
-        [[#include <malloc.h>
-	  static void hook (void) {}]],
-        [[malloc_set_state (malloc_get_state ());
-	  __after_morecore_hook = hook;
-	  __malloc_initialize_hook = hook;]])],
-     [emacs_cv_var_doug_lea_malloc=yes],
-     [emacs_cv_var_doug_lea_malloc=no])])
+  [emacs_cv_var_doug_lea_malloc=no
+   dnl Hooks do not work with address sanitization.
+   if test "$emacs_cv_sanitize_address" != yes; then
+     AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+	  [[#include <malloc.h>
+	    static void hook (void) {}]],
+	  [[malloc_set_state (malloc_get_state ());
+	    __after_morecore_hook = hook;
+	    __malloc_initialize_hook = hook;]])],
+       [emacs_cv_var_doug_lea_malloc=yes])])
+   fi
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
-
-dnl See comments in aix4-2.h about maybe using system malloc there.
-system_malloc=no
+system_malloc=$emacs_cv_sanitize_address
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
   darwin|sol2-10) system_malloc=yes ;;

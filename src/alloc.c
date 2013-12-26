@@ -203,7 +203,27 @@ const char *pending_malloc_warning;
 #if MAX_SAVE_STACK > 0
 static char *stack_copy;
 static ptrdiff_t stack_copy_size;
-#endif
+
+/* Copy to DEST a block of memory from SRC of size SIZE bytes,
+   avoiding any address sanitization.  */
+
+static void * ATTRIBUTE_NO_SANITIZE_ADDRESS
+no_sanitize_memcpy (void *dest, void const *src, size_t size)
+{
+  if (! ADDRESS_SANITIZER)
+    return memcpy (dest, src, size);
+  else
+    {
+      size_t i;
+      char *d = dest;
+      char const *s = src;
+      for (i = 0; i < size; i++)
+	d[i] = s[i];
+      return dest;
+    }
+}
+
+#endif /* MAX_SAVE_STACK > 0 */
 
 static Lisp_Object Qconses;
 static Lisp_Object Qsymbols;
@@ -920,20 +940,26 @@ lisp_free (void *block)
 /* The entry point is lisp_align_malloc which returns blocks of at most
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
-#if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
-# define USE_ALIGNED_ALLOC 1
+/* Use aligned_alloc if it or a simple substitute is available.
+   Address sanitization breaks aligned allocation, as of gcc 4.8.2 and
+   clang 3.3 anyway.  */
+
+#if ! ADDRESS_SANITIZER
+# if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+#  define USE_ALIGNED_ALLOC 1
 /* Defined in gmalloc.c.  */
 void *aligned_alloc (size_t, size_t);
-#elif defined HAVE_ALIGNED_ALLOC
-# define USE_ALIGNED_ALLOC 1
-#elif defined HAVE_POSIX_MEMALIGN
-# define USE_ALIGNED_ALLOC 1
+# elif defined HAVE_ALIGNED_ALLOC
+#  define USE_ALIGNED_ALLOC 1
+# elif defined HAVE_POSIX_MEMALIGN
+#  define USE_ALIGNED_ALLOC 1
 static void *
 aligned_alloc (size_t alignment, size_t size)
 {
   void *p;
   return posix_memalign (&p, alignment, size) == 0 ? p : 0;
 }
+# endif
 #endif
 
 /* BLOCK_ALIGN has to be a power of 2.  */
@@ -4553,16 +4579,8 @@ mark_maybe_pointer (void *p)
 /* Mark Lisp objects referenced from the address range START+OFFSET..END
    or END+OFFSET..START. */
 
-static void
+static void ATTRIBUTE_NO_SANITIZE_ADDRESS
 mark_memory (void *start, void *end)
-#if defined (__clang__) && defined (__has_feature)
-#if __has_feature(address_sanitizer)
-  /* Do not allow -faddress-sanitizer to check this function, since it
-     crosses the function stack boundary, and thus would yield many
-     false positives. */
-  __attribute__((no_address_safety_analysis))
-#endif
-#endif
 {
   void **pp;
   int i;
@@ -5477,7 +5495,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 	      stack_copy = xrealloc (stack_copy, stack_size);
 	      stack_copy_size = stack_size;
 	    }
-	  memcpy (stack_copy, stack, stack_size);
+	  no_sanitize_memcpy (stack_copy, stack, stack_size);
 	}
     }
 #endif /* MAX_SAVE_STACK > 0 */

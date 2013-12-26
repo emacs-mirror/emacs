@@ -1,3 +1,11 @@
+2013-12-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dumps with gcc -fsanitize=address and GNU/Linux.
+	* configure.ac: Check whether addresses are sanitized.
+	(CANNOT_DUMP): Warn if addresses are sanitized and not CANNOT_DUMP.
+	(DOUG_LEA_MALLOC): Do not define if addresses are sanitized.
+	(SYSTEM_MALLOC): Define if addresses are sanitized.
+
 2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Automate the procedure for updating copyright year.

@@ -50,8 +50,19 @@ typedef bool bool_bf;
 #endif
 #endif
 
+/* When not using Clang, assume its attributes and features are absent.  */
 #ifndef __has_attribute
-# define __has_attribute(a) false /* non-clang */
+# define __has_attribute(a) false
+#endif
+#ifndef __has_feature
+# define __has_feature(a) false
+#endif
+
+/* True if addresses are being sanitized.  */
+#if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
+# define ADDRESS_SANITIZER true
+#else
+# define ADDRESS_SANITIZER false
 #endif
 
 #ifdef DARWIN_OS
@@ -203,6 +214,32 @@ extern void _DebPrint (const char *fmt, ...);
 #endif
 
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+
+/* Work around GCC bug 59600: when a function is inlined, the inlined
+   code may have its addresses sanitized even if the function has the
+   no_sanitize_address attribute.  This bug is present in GCC 4.8.2
+   and clang 3.3, the latest releases as of December 2013, and the
+   only platforms known to support address sanitization.  When the bug
+   is fixed the #if can be updated accordingly.  */
+#if ADDRESS_SANITIZER
+# define ADDRESS_SANITIZER_WORKAROUND NO_INLINE
+#else
+# define ADDRESS_SANITIZER_WORKAROUND
+#endif
+
+/* Attribute of functions whose code should not have addresses
+   sanitized.  */
+
+#if (__has_attribute (no_sanitize_address) \
+     || 4 < __GNUC__ + (8 <= __GNUC_MINOR__))
+# define ATTRIBUTE_NO_SANITIZE_ADDRESS \
+    __attribute__ ((no_sanitize_address)) ADDRESS_SANITIZER_WORKAROUND
+#elif __has_attribute (no_address_safety_analysis)
+# define ATTRIBUTE_NO_SANITIZE_ADDRESS \
+    __attribute__ ((no_address_safety_analysis)) ADDRESS_SANITIZER_WORKAROUND
+#else
+# define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
