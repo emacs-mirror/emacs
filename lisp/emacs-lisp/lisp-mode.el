@@ -472,7 +472,13 @@ font-lock keywords will not be case sensitive."
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function)))
-  (setq-local prettify-symbols-alist lisp--prettify-symbols-alist))
+  (setq-local prettify-symbols-alist lisp--prettify-symbols-alist)
+  ;; electric
+  (when elisp
+    (setq-local electric-pair-text-pairs
+                (cons '(?\` . ?\') electric-pair-text-pairs)))
+  (setq-local electric-pair-skip-whitespace 'chomp)
+  (setq-local electric-pair-open-newline-between-pairs nil))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."

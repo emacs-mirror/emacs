@@ -610,7 +610,7 @@ In some text modes, where TAB inserts a tab, this command indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
   (delete-horizontal-space t)
-  (newline)
+  (newline 1 t)
   (indent-according-to-mode))
 
 (defun reindent-then-newline-and-indent ()
@@ -6448,10 +6448,14 @@ More precisely, a char with closeparen syntax is self-inserted.")
 				 (point))))))
     (funcall blink-paren-function)))
 
+(put 'blink-paren-post-self-insert-function 'priority 100)
+
 (add-hook 'post-self-insert-hook #'blink-paren-post-self-insert-function
           ;; Most likely, this hook is nil, so this arg doesn't matter,
           ;; but I use it as a reminder that this function usually
-          ;; likes to be run after others since it does `sit-for'.
+          ;; likes to be run after others since it does
+          ;; `sit-for'. That's also the reason it get a `priority' prop
+          ;; of 100.
           'append)
 
 ;; This executes C-g typed while Emacs is waiting for a command.

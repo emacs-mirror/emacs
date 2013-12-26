@@ -1,3 +1,6 @@
+2013-12-26  João Távora <joaotavora@gmail.com>
+	* NEWS: Describe new features of Electric Pair mode.
+
 2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* NEWS: Updated for `gnutls-verify-error', cfengine-mode, and

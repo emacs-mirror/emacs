@@ -1,3 +1,7 @@
+2013-12-26  João Távora <joaotavora@gmail.com>
+	* emacs.texi (Matching): Describe new features of Electric Pair
+	mode.
+
 2013-12-25  Chong Yidong  <cyd@gnu.org>
 
 	* glossary.texi (Glossary): Define MULE in modern terms.

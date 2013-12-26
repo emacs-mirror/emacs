@@ -439,6 +439,42 @@ and `desktop-restore-forces-onscreen' offer further customization.
 
 ** Eldoc Mode works properly in the minibuffer.
 
+** Electric Pair mode
+*** New `electric-pair-preserve-balance' enabled by default.
+
+Pairing/skipping only kicks in when that help the balance of
+parentheses and quotes, i.e. the buffer should end up at least as
+balanced as before.
+
+You can further control this behaviour by adjusting the predicates
+stored in `electric-pair-inhibit-predicate' and
+`electric-pair-skip-self'.
+
+*** New `electric-pair-delete-adjacent-pairs' enabled by default.
+
+In `electric-pair-mode', the commands `backward-delete-char' and
+`backward-delete-char-untabify' are now bound to electric variants
+that delete the closer when invoked between adjacent pairs.
+
+*** New `electric-pair-open-newline-between-pairs' enabled by default.
+
+In `electric-pair-mode', inserting a newline between adjacent pairs
+opens an extra newline after point, which is indented if
+`electric-indent-mode' is also set.
+
+*** New `electric-pair-skip-whitespace' enabled by default.
+
+Controls if skipping over closing delimiters should jump over any
+whitespace slack. Setting it to `chomp' makes it delete this
+whitespace. See also the variable
+`electric-pair-skip-whitespace-chars'.
+
+*** New variables control the pairing in strings and comments.
+
+You can customize `electric-pair-text-pairs' and
+`electric-pair-text-syntax-table' to tweak pairing behaviour inside
+strings and comments.
+
 ** EPA
 
 *** New option `epa-mail-aliases'.

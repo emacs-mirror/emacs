@@ -1,3 +1,25 @@
+2013-12-26  João Távora <joaotavora@gmail.com>
+
+	* electric.el (electric-pair-mode): More flexible engine for skip-
+	and inhibit predicates, new options for pairing-related
+	functionality.
+	(electric-pair-preserve-balance): Pair/skip parentheses and quotes
+	if that keeps or improves their balance in buffers.
+	(electric-pair-delete-adjacent-pairs): Delete the pair when
+	backspacing over adjacent matched delimiters.
+	(electric-pair-open-extra-newline): Open extra newline when
+	inserting newlines between adjacent matched delimiters.
+	(electric--sort-post-self-insertion-hook): Sort
+	post-self-insert-hook according to priority values when
+	minor-modes are activated.
+	* simple.el (newline-and-indent): Call newline with interactive
+	set to t.
+	(blink-paren-post-self-insert-function): Set priority to 100.
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Use
+	electric-pair-text-pairs to pair backtick-and-quote in strings and
+	comments. Locally set electric-pair-skip-whitespace to 'chomp and
+	electric-pair-open-newline-between-pairs to nil.
+
 2013-12-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el: Use lexical-binding.
