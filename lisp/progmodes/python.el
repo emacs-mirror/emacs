@@ -1,4 +1,4 @@
-;;; python.el --- Python's flying circus support for Emacs
+;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
@@ -180,7 +180,7 @@
 ;; Imenu: There are two index building functions to be used as
 ;; `imenu-create-index-function': `python-imenu-create-index' (the
 ;; default one, builds the alist in form of a tree) and
-;; `python-imenu-create-flat-index'. See also
+;; `python-imenu-create-flat-index'.  See also
 ;; `python-imenu-format-item-label-function',
 ;; `python-imenu-format-parent-item-label-function',
 ;; `python-imenu-format-parent-item-jump-label-function' variables for
@@ -1183,13 +1183,13 @@ position.  Return non-nil if point is moved to
 `beginning-of-defun'."
   (when (or (null arg) (= arg 0)) (setq arg 1))
   (let ((found))
-    (cond ((and (eq this-command 'mark-defun)
-                (python-info-looking-at-beginning-of-defun)))
-          (t
-           (dotimes (i (if (> arg 0) arg (- arg)))
-             (when (and (python-nav--beginning-of-defun arg)
-                        (not found))
-               (setq found t)))))
+    (while (and (not (= arg 0))
+                (let ((keep-searching-p
+                       (python-nav--beginning-of-defun arg)))
+                  (when (and keep-searching-p (null found))
+                    (setq found t))
+                  keep-searching-p))
+      (setq arg (if (> arg 0) (1- arg) (1+ arg))))
     found))
 
 (defun python-nav-end-of-defun ()
