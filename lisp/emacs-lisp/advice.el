@@ -295,8 +295,8 @@
 ;;         {<after-K-1-body-form>}*
 ;;         ad-return-value))
 
-;; Macros and special forms will be redefined as macros, hence the optional
-;; [macro] in the beginning of the definition.
+;; Macros are redefined as macros, hence the optional [macro] in the
+;; beginning of the definition.
 
 ;; <arglist> is either the argument list of the original function or the
 ;; first argument list defined in the list of before/around/after advices.
@@ -698,6 +698,7 @@
 ;; problems because they get expanded at compile or load time, hence, they
 ;; might not have all the necessary runtime support and such advice cannot be
 ;; de/activated or changed as it is possible for functions.
+;;
 ;; Special forms cannot be advised.
 ;;
 ;; MORAL: - Only advise macros when you are absolutely sure what you are doing.
@@ -1563,29 +1564,6 @@
 ;; flexibility and effectiveness of the advice mechanism. Macros that were
 ;; compile-time expanded before the advice was activated will of course never
 ;; exhibit the advised behavior.
-;;
-;; @@ Advising special forms:
-;; ==========================
-;; Now for something that should be even more rare than advising macros:
-;; Advising special forms. Because special forms are irregular in their
-;; argument evaluation behavior (e.g., `setq' evaluates the second but not
-;; the first argument) they have to be advised into macros. A dangerous
-;; consequence of this is that the byte-compiler will not recognize them
-;; as special forms anymore (well, in most cases) and use their expansion
-;; rather than the proper byte-code. Also, because the original definition
-;; of a special form cannot be `funcall'ed, `eval' has to be used instead
-;; which is less efficient.
-;;
-;; MORAL: Do not advise special forms unless you are completely sure about
-;;        what you are doing (some of the forward advice behavior is
-;;        implemented via advice of the special forms `defun' and `defmacro').
-;;        As a safety measure one should always do `ad-deactivate-all' before
-;;        one byte-compiles a file to avoid any interference of advised
-;;        special forms.
-;;
-;; Apart from the safety concerns advising special forms is not any different
-;; from advising plain functions or subrs.
-
 
 ;;; Code:
 

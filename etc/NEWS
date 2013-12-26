@@ -901,9 +901,10 @@ value when looking up variables.
 ** `defadvice' does not honor the `freeze' flag and cannot advise
 special-forms any more.
 
-** `dolist' in lexical-binding mode does not bind VAR in RESULT any more.
-VAR was bound to nil which was not tremendously useful and just lead to
-spurious warnings about an unused var.
+---
+** `dolist' no longer binds VAR while evaluating the RESULT form,
+when lexical binding is enabled.  Previously, VAR was bound to nil,
+which often led to spurious unused-variable warnings.
 
 ** The return value of `backup-buffer' has changed.
 The second argument is no longer an SELinux context, instead it is an

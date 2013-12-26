@@ -1,3 +1,8 @@
+2013-12-26  Chong Yidong  <cyd@gnu.org>
+
+	* advice.texi (Advising Functions, Defining Advice): Special forms
+	can no longer be advised.
+
 2013-12-25  Chong Yidong  <cyd@gnu.org>
 
 	* keymaps.texi (Active Keymaps): Re-organize the text.

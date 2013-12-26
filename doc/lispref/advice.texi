@@ -6,41 +6,43 @@
 @chapter Advising Emacs Lisp Functions
 @cindex advising functions
 
-  The @dfn{advice} feature lets you add to the existing definition of
-a function, by @dfn{advising the function}.  This is a cleaner method
-for a library to customize functions defined within Emacs---cleaner
-than redefining the whole function.
-
 @cindex piece of advice
-  Each function can have multiple @dfn{pieces of advice}, each of
-which can be separately defined and then @dfn{enabled} or
-@dfn{disabled}.  All the enabled pieces of advice for any given
-function actually take effect when you @dfn{activate advice} for that
-function, or when you define or redefine the function.  Note that
-enabling a piece of advice and activating advice for a function are
-not the same thing.
+  The @dfn{advice} feature lets you add to the existing definition of
+a function, by @dfn{advising the function}.  A function can have
+multiple @dfn{pieces of advice}, each of which can be separately
+defined, and separately enabled or disabled (@pxref{Activation of
+Advice}).  Each piece of advice can alter almost anything about the
+function, including its argument list, what the function does when it
+runs, and the value it returns.
 
-  Advice is useful for altering the behavior of existing calls to an
-existing function.  If you want the new behavior for new function
-calls or new key bindings, you should define a new function or
-command, and have it use the existing function as a subroutine.
+  Advice can be useful for altering the behavior of an existing
+function without having to redefine the whole function.  However, it
+can be a source of bugs, since existing callers to the function may
+assume the old behavior, and work incorrectly when the behavior is
+changed by advice.  Advice can also cause confusion in debugging, if
+the person doing the debugging does not notice or remember that the
+function has been modified by advice.
 
-  Advising a function can cause confusion in debugging, since people
-who debug calls to the original function may not notice that it has
-been modified with advice.  Therefore, if you have the possibility to
-change the code of that function to run a hook, please solve the
-problem that way.  Advice should be reserved for the cases where you
-cannot get the function changed.  In particular, Emacs's own source
-files should not put advice on functions in Emacs.  There are
-currently a few exceptions to this convention, but we aim to correct
-them.
+  For these reasons, advice should be reserved for the cases where you
+cannot modify a function's behavior in any other way.  If it is
+possible to do the same thing via a hook, that is preferable
+(@pxref{Hooks}).  If you simply want to change what a particular key
+does, it may be better to write a new command, and remap the old
+command's key bindings to the new one (@pxref{Remapping Commands}).
+In particular, Emacs's own source files should not put advice on
+functions in Emacs.  (There are currently a few exceptions to this
+convention, but we aim to correct them.)
 
-  Unless you know what you are doing, do @emph{not} advise a primitive
-(@pxref{What Is a Function}).  Some primitives are used by the advice
-mechanism; advising them could cause an infinite recursion.  Also,
-many primitives are called directly from C code.  Calls to the
-primitive from Lisp code will take note of the advice, but calls from
-C code will ignore the advice.
+  Macros can also be advised, in much the same way as functions.
+However, special forms (@pxref{Special Forms}) cannot be advised.
+
+  It is possible to advise a primitive (@pxref{What Is a Function}),
+but one should typically @emph{not} do so, for two reasons.  Firstly,
+some primitives are used by the advice mechanism, and advising them
+could cause an infinite recursion.  Secondly, many primitives are
+called directly from C, and such calls ignore advice; hence, one ends
+up in a confusing situation where some calls (occurring from Lisp
+code) obey the advice and other calls (from C code) do not.
 
 @menu
 * Simple Advice::           A simple example to explain the basics of advice.
@@ -140,10 +142,9 @@ syntax of @code{defun} and @code{defmacro}, but adds more:
 @end example
 
 @noindent
-Here, @var{function} is the name of the function (or macro or special
-form) to be advised.  From now on, we will write just ``function'' when
-describing the entity being advised, but this always includes macros and
-special forms.
+Here, @var{function} is the name of the function (or macro) to be
+advised.  From now on, we will write just ``function'' when describing
+the entity being advised, but this always includes macros.
 
   In place of the argument list in an ordinary definition, an advice
 definition calls for several different pieces of information.
