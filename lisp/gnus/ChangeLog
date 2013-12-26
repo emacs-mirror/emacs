@@ -1,3 +1,8 @@
+2013-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-respool-query): Special-case nnimap so that
+	we get proper traces there, too.
+
 2013-12-26  Sean Connor  <sconnor005@allyinics.org>  (tiny change)
 
 	* gnus-sum.el (gnus-summary-enter-digest-group): Don't discard previous

@@ -10664,7 +10664,22 @@ groups."
   (let (gnus-mark-article-hook)
     (gnus-summary-select-article)
     (with-current-buffer gnus-original-article-buffer
-      (let ((groups (nnmail-article-group 'identity trace)))
+      (let ((groups
+	     (if (eq (car (gnus-find-method-for-group gnus-newsgroup-name))
+		     'nnimap)
+		 ;; nnimap has its own splitting variables.
+		 (let ((nnmail-split-methods
+			(cond
+			 ((eq nnimap-split-methods 'default)
+			  nnmail-split-methods)
+			 (nnimap-split-methods
+			  nnimap-split-methods)
+			 (nnimap-split-fancy
+			  'nnmail-split-fancy)))
+		       (nnmail-split-fancy (or nnimap-split-fancy
+					       nnmail-split-fancy)))
+		   (nnmail-article-group 'identity trace))
+	       (nnmail-article-group 'identity trace))))
 	(unless silent
 	  (if groups
 	      (message "This message would go to %s"
