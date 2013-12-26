@@ -9202,6 +9202,7 @@ To control what happens when you exit the group, see the
 				   (gnus-fetch-field "from")))
 	  (setq params
 		(append
+		 params
 		 (list (cons 'to-address
 			     (funcall gnus-decode-encoded-address-function
 				      to-address))))))

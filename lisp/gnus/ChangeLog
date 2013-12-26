@@ -1,3 +1,13 @@
+2013-12-26  Sean Connor  <sconnor005@allyinics.org>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-enter-digest-group): Don't discard previous
+	value of the parameters if the current article has a Reply-To or From
+	field.
+
+2013-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-group-buffer): Remove duplicate definition.
+
 2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-exit): Stop animations.

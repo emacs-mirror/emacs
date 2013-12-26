@@ -2688,7 +2688,6 @@ such as a mark that says whether an article is stored in the cache
     (gnus-tree-mode "(gnus)Tree Display"))
   "Alist of major modes and related Info nodes.")
 
-(defvar gnus-group-buffer "*Group*")
 (defvar gnus-summary-buffer "*Summary*")
 (defvar gnus-article-buffer "*Article*")
 (defvar gnus-server-buffer "*Server*")
