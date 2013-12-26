@@ -1683,15 +1683,19 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   /* DELTA is in pixels now.  */
   delta = (nlines - FRAME_TOOL_BAR_LINES (f)) * unit;
 
-  /* Don't resize the tool-bar to more than we have room for.  FIXME:
-     This must use window_sizable eventually !!!!!!!!!!!!  */
+  /* Don't resize the tool-bar to more than we have room for.  Note: The
+     calculations below and the subsequent call to resize_frame_windows
+     are inherently flawed because they can make the toolbar higher than
+     the containing frame.  */
   if (delta > 0)
     {
       root_height = WINDOW_PIXEL_HEIGHT (XWINDOW (FRAME_ROOT_WINDOW (f)));
       if (root_height - delta < unit)
 	{
 	  delta = root_height - unit;
-	  nlines = (root_height / unit) + min (1, (root_height % unit));
+	  /* When creating a new frame and toolbar mode is enabled, we
+	     need at least one toolbar line.  */
+	  nlines = max (FRAME_TOOL_BAR_LINES (f) + delta / unit, 1);
 	}
     }
 
@@ -4271,6 +4275,12 @@ do_unwind_create_frame (Lisp_Object frame)
 }
 
 static void
+unwind_create_frame_1 (Lisp_Object val)
+{
+  inhibit_lisp_code = val;
+}
+
+static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -4377,7 +4387,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   frame = Qnil;
   GCPRO4 (parameters, parent, name, frame);
   tem = x_get_arg (dpyinfo, parameters, Qminibuffer, "minibuffer", "Minibuffer",
-                     RES_TYPE_SYMBOL);
+		   RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
   else if (EQ (tem, Qonly))
@@ -4407,10 +4417,17 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (! STRINGP (f->icon_name))
     fset_icon_name (f, Qnil);
 
-/*  FRAME_DISPLAY_INFO (f) = dpyinfo; */
+  /*  FRAME_DISPLAY_INFO (f) = dpyinfo; */
 
   /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (do_unwind_create_frame, frame);
+
+  /* Avoid calling window-configuration-change-hook; otherwise we could
+     get into all kinds of nasty things like an infloop in next_frame or
+     violating a (height >= 0) assertion in window_box_height.  */
+  record_unwind_protect (unwind_create_frame_1, inhibit_lisp_code);
+  inhibit_lisp_code = Qt;
+
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
@@ -4464,7 +4481,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       Lisp_Object value;
 
       value = x_get_arg (dpyinfo, parameters, Qinternal_border_width,
-                           "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
+			 "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qinternal_border_width, value),
                             parameters);
@@ -4504,20 +4521,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
-
-  /* PXW: This is a duplicate from below.  We have to do it here since
-     otherwise x_set_tool_bar_lines will work with the character sizes
-     installed by init_frame_faces while the frame's pixel size is still
-     calculated from a character size of 1 and we subsequently hit the
-     eassert (height >= 0) assertion in window_box_height.  The
-     non-pixelwise code apparently worked around this because it had one
-     frame line vs one toolbar line which left us with a zero root
-     window height which was obviously wrong as well ...  */
-  width = FRAME_TEXT_WIDTH (f);
-  height = FRAME_TEXT_HEIGHT (f);
-  FRAME_TEXT_HEIGHT (f) = 0;
-  SET_FRAME_WIDTH (f, 0);
-  change_frame_size (f, width, height, 1, 0, 0, 1);
 
   /* The X resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode

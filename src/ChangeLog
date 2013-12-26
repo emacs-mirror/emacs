@@ -1,3 +1,20 @@
+2013-12-26  Martin Rudalics  <rudalics@gmx.at>
+
+	Some more tinkering with Bug#16051.
+	* window.c (resize_frame_windows): Don't let the size of the
+	root window drop below the frame's default character size.
+	Never ever delete any subwindows - let the window manager do the
+	clipping.
+
+	* w32fns.c (x_set_tool_bar_lines): Rewrite calculation of number
+	of toolbar lines needed when they exceed the height of the root
+	window.
+	(unwind_create_frame_1): New function.
+	(Fx_create_frame): Generally inhibit calling the window
+	configuration change hook here.  Remove extra call to
+	change_frame_size - it's not needed when we don't run the
+	configuration change hook.
+
 2013-12-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix core dumps with gcc -fsanitize=address and GNU/Linux.

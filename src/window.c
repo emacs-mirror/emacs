@@ -4040,31 +4040,34 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
   int old_pixel_size = horflag ? r->pixel_width : r->pixel_height;
   /* new_size is the new size of the frame's root window.  */
   int new_size, new_pixel_size;
+  int unit = horflag ? FRAME_COLUMN_WIDTH (f) : FRAME_LINE_HEIGHT (f);
 
+  /* Don't let the size drop below one unit.  This is more comforting
+     when we are called from x_set_tool_bar_lines since the latter may
+     have implicitly given us a zero or negative height.  */
   if (pixelwise)
     {
-      new_pixel_size
-	= (horflag
-	   ? size
-	   : (size
-	      - FRAME_TOP_MARGIN_HEIGHT (f)
-	      - ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
-		 ? FRAME_LINE_HEIGHT (f) : 0)));
-      new_size = new_pixel_size / (horflag
-				   ? FRAME_COLUMN_WIDTH (f)
-				   : FRAME_LINE_HEIGHT (f));
+      new_pixel_size = max (horflag
+			    ? size
+			    : (size
+			       - FRAME_TOP_MARGIN_HEIGHT (f)
+			       - ((FRAME_HAS_MINIBUF_P (f)
+				   && !FRAME_MINIBUF_ONLY_P (f))
+				  ? FRAME_LINE_HEIGHT (f) : 0)),
+			    unit);
+      new_size = new_pixel_size / unit;
     }
   else
     {
-      new_size= (horflag
-		 ? size
-		 : (size
-		    - FRAME_TOP_MARGIN (f)
-		    - ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
-		       ? 1 : 0)));
-      new_pixel_size = new_size * (horflag
-				   ? FRAME_COLUMN_WIDTH (f)
-				   : FRAME_LINE_HEIGHT (f));
+      new_size = max (horflag
+		      ? size
+		      : (size
+			 - FRAME_TOP_MARGIN (f)
+			 - ((FRAME_HAS_MINIBUF_P (f)
+			     && !FRAME_MINIBUF_ONLY_P (f))
+			    ? 1 : 0)),
+		      1);
+      new_pixel_size = new_size * unit;
     }
 
   r->top_line = FRAME_TOP_MARGIN (f);
@@ -4124,6 +4127,7 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
 		  window_resize_apply (r, horflag);
 		  window_pixel_to_total (r->frame, horflag ? Qt : Qnil);
 		}
+#if 0 /* Let's try without killing other windows.  */
 	      else
 		{
 		  /* We lost.  Delete all windows but the frame's
@@ -4141,6 +4145,7 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
 		      XWINDOW (root)->pixel_height = new_pixel_size;
 		    }
 		}
+#endif /* 0 */
 	    }
 	}
     }
