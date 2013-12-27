@@ -7647,8 +7647,8 @@ Default is t for OSX >= 10.7, nil otherwise. */);
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
 Note that this does not apply to images.            
-This variable is ignored on OSX < 10.7 and GNUStep.  Default is nil. */);
-  ns_use_srgb_colorspace = NO;
+This variable is ignored on OSX < 10.7 and GNUStep.  Default is t. */);
+  ns_use_srgb_colorspace = YES;
 
   /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,

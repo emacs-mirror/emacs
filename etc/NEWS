@@ -1288,7 +1288,7 @@ Customize `ns-use-native-fullscreen' to change style.  For >= 10.7
 native is the default.
 
 ** OSX >= 10.7 can use sRGB colorspace.
-Customize `ns-use-srgb-colorspace' to change style.  nil is the default.
+Customize `ns-use-srgb-colorspace' to change style.  t is the default.
 Note: This does not apply to images.
 
 

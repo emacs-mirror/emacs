@@ -1,3 +1,8 @@
+2013-12-27  Steve Purcell  <steve@sanityinc.com>  (tiny change)
+
+	* nsterm.m (syms_of_nsterm): Enable ns-use-srgb-colorspace by
+	default.
+
 2013-12-27  Chong Yidong  <cyd@gnu.org>
 
 	* data.c (Fsymbol_function): Doc fix.
