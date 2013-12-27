@@ -1,3 +1,11 @@
+2013-12-27  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* admin.el (manual-misc-manuals, make-manuals):
+	(manual-pdf, cusver-find-files):
+	(cusver-new-version, cusver-scan, cusver-goto-xref):
+	(cusver-check): Doc fix.
+	(manual-html-node, cusver-check): Use `user-error'.
+
 2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Automate the procedure for updating copyright year.
