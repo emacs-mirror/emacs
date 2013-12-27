@@ -1,3 +1,8 @@
+2013-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el: Move all electric-pair-* to elec-pair.el.
+	* elec-pair.el: New file, split from electric.el.
+
 2013-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-find-fill-point): Don't try to fill if the
@@ -8,26 +13,25 @@
 	(shr-find-fill-point): Off by one error in comparison with the
 	indentation.
 
-2013-12-26  João Távora <joaotavora@gmail.com>
+2013-12-26  João Távora  <joaotavora@gmail.com>
 
 	* electric.el (electric-pair-mode): More flexible engine for skip-
-	and inhibit predicates, new options for pairing-related
-	functionality.
+	and inhibit predicates, new options for pairing-related functionality.
 	(electric-pair-preserve-balance): Pair/skip parentheses and quotes
 	if that keeps or improves their balance in buffers.
 	(electric-pair-delete-adjacent-pairs): Delete the pair when
 	backspacing over adjacent matched delimiters.
 	(electric-pair-open-extra-newline): Open extra newline when
 	inserting newlines between adjacent matched delimiters.
-	(electric--sort-post-self-insertion-hook): Sort
-	post-self-insert-hook according to priority values when
+	(electric--sort-post-self-insertion-hook):
+	Sort post-self-insert-hook according to priority values when
 	minor-modes are activated.
 	* simple.el (newline-and-indent): Call newline with interactive
 	set to t.
 	(blink-paren-post-self-insert-function): Set priority to 100.
-	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Use
-	electric-pair-text-pairs to pair backtick-and-quote in strings and
-	comments. Locally set electric-pair-skip-whitespace to 'chomp and
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Use electric-pair-text-pairs to pair backtick-and-quote in strings and
+	comments.  Locally set electric-pair-skip-whitespace to 'chomp and
 	electric-pair-open-newline-between-pairs to nil.
 
 2013-12-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
@@ -64,8 +68,8 @@
 	(Bug#16191).
 	(python-nav-backward-sexp, python-nav-forward-sexp-safe)
 	(python-nav-backward-sexp-safe): New functions.
-	(python-shell-buffer-substring): Use
-	`python-nav-forward-sexp-safe'.
+	(python-shell-buffer-substring):
+	Use `python-nav-forward-sexp-safe'.
 
 2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -73,8 +77,7 @@
 	quotation mark.
 	(shr-char-kinsoku-bol-p): The quotation mark isn't a kinsoky BOL char.
 	(shr-find-fill-point): Remove the special checks for the quotation
-	mark, since `shr-char-kinsoku-bol-p' should now return the right
-	thing.
+	mark, since `shr-char-kinsoku-bol-p' should now return the right thing.
 
 2013-12-25  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
@@ -84,8 +87,8 @@
 
 2013-12-24  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
-	* progmodes/python.el (python-nav-beginning-of-statement): Speed
-	up (Bug#15295).
+	* progmodes/python.el (python-nav-beginning-of-statement):
+	Speed up (Bug#15295).
 
 2013-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -115,8 +118,7 @@
 	(icomplete-show-matches-on-no-input): New customizable variable.
 	(icomplete-minibuffer-setup): Call `icomplete-exhibit' on setup if
 	we have something to show.
-	(icomplete-exhibit): Compute completions even if we have no user
-	input.
+	(icomplete-exhibit): Compute completions even if we have no user input.
 
 2013-12-23  Daniel Colascione  <dancol@dancol.org>
 
@@ -146,7 +148,7 @@
 
 	* net/eww.el (eww-tag-select): Add text-property to jump to next
 	select field.
-        (eww) : Add non-supported ftp error.
+	(eww) : Add non-supported ftp error.
 
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -156,8 +158,8 @@
 2013-12-22  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (face-spec-recalc): If the theme specs are not
-	applicable to a frame, fall back on the defface spec.  This
-	prevents themes from obliterating faces on low-color terminals.
+	applicable to a frame, fall back on the defface spec.
+	This prevents themes from obliterating faces on low-color terminals.
 
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -774,8 +776,10 @@
 	* emacs-lisp/package.el (package--prepare-dependencies): New function.
 	(package-buffer-info): Use it (bug#15108).
 
+2013-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* icomplete.el (icomplete-completions): Make sure the prefix is already
-	displayed elsewhere before hiding it.
+	displayed elsewhere before hiding it (bug#16219).
 
 2013-12-14  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -976,7 +980,7 @@
 	* bindings.el: Map kp keys to non-kp keys systematically
 	with basic modifiers control, meta and shift.  (Bug#14397)
 
-2013-12-11  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>  (tiny change)
+2013-12-11  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-mode-map): Instead of "Quit" show "Exit" and
 	"Close browser" menu items.  Fix wrong function of "List
@@ -1593,10 +1597,10 @@
 	* leim/quail/uni-input.el (ucs-input-activate): Add autoload cookie.
 	(generated-autoload-load-name): Set file-local value.
 
-2013-11-26  Kenjiro NAKAYAMA  <knakayam@redhat.com>  (tiny change)
+2013-11-26  Kenjiro NAKAYAMA  <knakayam@redhat.com>
 
 	* net/eww.el (eww-bookmark-browse): Use 'eww-browse-url'.
-	(eww-add-bookmark): Ask confirmation when add to bookmarks
+	(eww-add-bookmark): Ask confirmation when add to bookmarks.
 	(eww-quit): Ask confirmation before quitting eww.
 
 2013-11-26  Eli Zaretskii  <eliz@gnu.org>
@@ -1777,7 +1781,7 @@
 	Add `octave-source-file'.
 	(octave-source-file): New function.  (Bug#15935)
 
-2013-11-21  Kenjiro Nakayama  <nakayamakenjiro@gmail.com>  (tiny change)
+2013-11-21  Kenjiro Nakayama  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-local-regex): New variable.
 	(eww): Use it to detect localhost and similar.
