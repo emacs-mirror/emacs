@@ -52,7 +52,8 @@
     (funcall mode)
     (insert fixture)
     (save-electric-modes
-      (let ((last-command-event char))
+      (let ((last-command-event char)
+            (transient-mark-mode 'lambda))
         (goto-char where)
         (funcall fixture-fn)
         (cl-progv
