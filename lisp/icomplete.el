@@ -78,7 +78,7 @@ When nil, show candidates in full."
   :type 'boolean
   :version "24.4")
 
-(defcustom icomplete-show-matches-on-no-input t
+(defcustom icomplete-show-matches-on-no-input nil
   "When non-nil, show completions when first prompting for input."
   :type 'boolean
   :version "24.4")

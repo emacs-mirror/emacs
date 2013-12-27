@@ -1,5 +1,8 @@
 2013-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* icomplete.el (icomplete-show-matches-on-no-input): Default to nil
+	(bug#16251).
+
 	* electric.el: Move all electric-pair-* to elec-pair.el.
 	* elec-pair.el: New file, split from electric.el.
 
