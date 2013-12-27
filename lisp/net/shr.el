@@ -478,7 +478,7 @@ size, and full-buffer size."
     (backward-char 1))
   (let ((bp (point))
 	failed)
-    (while (not (or (setq failed (< (current-column) shr-indentation))
+    (while (not (or (setq failed (<= (current-column) shr-indentation))
 		    (eq (preceding-char) ? )
 		    (eq (following-char) ? )
 		    (shr-char-breakable-p (preceding-char))
@@ -486,7 +486,8 @@ size, and full-buffer size."
 		    (and (shr-char-kinsoku-bol-p (preceding-char))
 			 (shr-char-breakable-p (following-char))
 			 (not (shr-char-kinsoku-bol-p (following-char))))
-		    (shr-char-kinsoku-eol-p (following-char))))
+		    (shr-char-kinsoku-eol-p (following-char))
+		    (bolp)))
       (backward-char 1))
     (if failed
 	;; There's no breakable point, so we give it up.
@@ -508,7 +509,7 @@ size, and full-buffer size."
 	 (while (and (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
 		     (shr-char-kinsoku-eol-p (preceding-char)))
 	   (backward-char 1))
-	 (when (setq failed (< (current-column) shr-indentation))
+	 (when (setq failed (<= (current-column) shr-indentation))
 	   ;; There's no breakable point that doesn't violate kinsoku,
 	   ;; so we look for the second best position.
 	   (while (and (progn
@@ -528,7 +529,7 @@ size, and full-buffer size."
 		      (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
 		      (or (shr-char-kinsoku-eol-p (preceding-char))
 			  (shr-char-kinsoku-bol-p (following-char)))))))
-	 (when (setq failed (< (current-column) shr-indentation))
+	 (when (setq failed (<= (current-column) shr-indentation))
 	   ;; There's no breakable point that doesn't violate kinsoku,
 	   ;; so we go to the second best position.
 	   (if (looking-at "\\(\\c<+\\)\\c<")

@@ -5,6 +5,8 @@
 	infloop.
 	(shr-insert): Fill repeatedly long texts, so that Japanese is
 	formatted correctly (bug#16263).
+	(shr-find-fill-point): Off by one error in comparison with the
+	indentation.
 
 2013-12-26  João Távora <joaotavora@gmail.com>
 
