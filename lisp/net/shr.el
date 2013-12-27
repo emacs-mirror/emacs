@@ -455,10 +455,10 @@ size, and full-buffer size."
       (insert elem)
       (setq shr-state nil)
       (let (found)
-	(when (and (> (current-column) shr-width)
-		   (progn
-		     (setq found (shr-find-fill-point))
-		     (not (eolp))))
+	(while (and (> (current-column) shr-width)
+		    (progn
+		      (setq found (shr-find-fill-point))
+		      (not (eolp))))
 	  (when (eq (preceding-char) ? )
 	    (delete-char -1))
 	  (insert "\n")
@@ -478,7 +478,7 @@ size, and full-buffer size."
     (backward-char 1))
   (let ((bp (point))
 	failed)
-    (while (not (or (setq failed (= (current-column) shr-indentation))
+    (while (not (or (setq failed (< (current-column) shr-indentation))
 		    (eq (preceding-char) ? )
 		    (eq (following-char) ? )
 		    (shr-char-breakable-p (preceding-char))
@@ -496,7 +496,8 @@ size, and full-buffer size."
 	    (while (setq found (re-search-forward
 				"\\(\\c>\\)\\| \\|\\c<\\|\\c|"
 				(line-end-position) 'move)))
-	    (if (and found (not (match-beginning 1)))
+	    (if (and found
+		     (not (match-beginning 1)))
 		(goto-char (match-beginning 0)))))
       (or
        (eolp)
@@ -507,7 +508,7 @@ size, and full-buffer size."
 	 (while (and (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
 		     (shr-char-kinsoku-eol-p (preceding-char)))
 	   (backward-char 1))
-	 (when (setq failed (= (current-column) shr-indentation))
+	 (when (setq failed (< (current-column) shr-indentation))
 	   ;; There's no breakable point that doesn't violate kinsoku,
 	   ;; so we look for the second best position.
 	   (while (and (progn
@@ -527,7 +528,7 @@ size, and full-buffer size."
 		      (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
 		      (or (shr-char-kinsoku-eol-p (preceding-char))
 			  (shr-char-kinsoku-bol-p (following-char)))))))
-	 (when (setq failed (= (current-column) shr-indentation))
+	 (when (setq failed (< (current-column) shr-indentation))
 	   ;; There's no breakable point that doesn't violate kinsoku,
 	   ;; so we go to the second best position.
 	   (if (looking-at "\\(\\c<+\\)\\c<")
