@@ -1,3 +1,14 @@
+2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port xcrun configuration to GNU/Linux.
+	* configure.ac (xcsdkdir): Default to empty.
+	(XCRUN): Don't require Darwin for xcrun.  Move xcrun checking to
+	just before AM_INIT_AUTOMAKE, to make the dependency between it
+	and automake clearer.
+	(CC): Don't use AC_PROG_CC twice; only the first use expands to the
+	shell code that is wanted, which breaks 'configure' on non-Darwin
+	platforms.  Instead, fix CC by hand if it's not found.
+
 2013-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac: Detect xcrun on OSX and use it for make, gcc and

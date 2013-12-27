@@ -39,18 +39,6 @@ then
   esac
 fi
 
-case "`uname 2>/dev/null`" in
- *Darwin*)
-  xcsdkdir=
-  AC_CHECK_PROGS(XCRUN, [xcrun])
-  if test x"$XCRUN" != x; then
-    AC_CHECK_PROGS(MAKE, [make "$XCRUN make"])
-    export MAKE
-    xcsdkdir="`$XCRUN --show-sdk-path 2>/dev/null`"
-  fi
-  ;;
-esac
-
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
 dnl Add some environment variables, if they were passed via the environment
@@ -93,6 +81,15 @@ done
 AC_CONFIG_HEADERS(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
+
+xcsdkdir=
+AC_CHECK_PROGS(XCRUN, [xcrun])
+if test -n "$XCRUN"; then
+  AC_CHECK_PROGS(MAKE, [make "$XCRUN make"])
+  test -n "$MAKE" && export MAKE
+  xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
+fi
+
 dnl Fairly arbitrary, older versions might work too.
 AM_INIT_AUTOMAKE(1.11)
 
@@ -650,12 +647,17 @@ fi
 #### Choose a compiler.
 
 dnl Sets GCC=yes if using gcc.
-if test x$opsys = xdarwin && test x"$XCRUN" != x; then
-  AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
+AC_PROG_CC
+if test -n "$XCRUN"; then
+  if test -z "$CC"; then
+    if $XCRUN gcc --version >/dev/null 2>&1; then
+      CC="$XCRUN gcc"
+    elif $XCRUN clang --version >/dev/null 2>&1; then
+      CC="$XCRUN clang"
+    fi
+  fi
   AC_CHECK_PROGS(AR, [ar "$XCRUN ar"])
-  test x"$AR" != x && export AR
-else
-  AC_PROG_CC
+  test -n "$AR" && export AR
 fi
 AM_PROG_CC_C_O
 
@@ -3293,7 +3295,7 @@ if test "${with_xml2}" != "no"; then
   # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
   if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS -I$xcsdkdir/usr/include/libxml2"
+    CPPFLAGS="$CPPFLAGS -I'$xcsdkdir/usr/include/libxml2'"
     AC_CHECK_HEADER(libxml/HTMLparser.h,
       [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
       		     [#include <libxml/HTMLparser.h>])])
