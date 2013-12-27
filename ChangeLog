@@ -1,3 +1,8 @@
+2013-12-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Detect xcrun on OSX and use it for make, gcc and
+	libxml.
+
 2013-12-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix core dumps with gcc -fsanitize=address and GNU/Linux.
