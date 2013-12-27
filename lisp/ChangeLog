@@ -1,3 +1,7 @@
+2013-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-insert): Don't infloop if the width is zero.
+
 2013-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* icomplete.el (icomplete-show-matches-on-no-input): Default to nil

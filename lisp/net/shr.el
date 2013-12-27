@@ -456,6 +456,7 @@ size, and full-buffer size."
       (setq shr-state nil)
       (let (found)
 	(while (and (> (current-column) shr-width)
+		    (> shr-width 0)
 		    (progn
 		      (setq found (shr-find-fill-point))
 		      (not (eolp))))
