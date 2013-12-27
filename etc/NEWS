@@ -917,10 +917,12 @@ whereas now it simply has higher precedence.
 ** Default process filters and sentinels are not nil any more.
 Instead they default to a function which does what the nil value used to do.
 
++++
 ** `read-event' does not return decoded chars in ttys any more.
-Just as was the case in Emacs-22 and before, decoding of tty input according to
-keyboard-coding-system is not performed in read-event any more.  But contrary
-to that past, it is still done before input-decode-map/function-key-map/...
+As was the case in Emacs 22 and before, the decoding of terminal
+input, according to `keyboard-coding-system', is not performed in
+`read-event' any more.  But unlike in Emacs 22, this decoding is still
+done before input-decode-map, function-key-map, etc.
 
 ---
 ** Removed `inhibit-local-menu-bar-menus'.
@@ -930,10 +932,12 @@ to that past, it is still done before input-decode-map/function-key-map/...
 More specifically, the redisplay does not bother to check for a frame-local
 value when looking up variables.
 
++++
 ** nil and "unbound" are indistinguishable in `symbol-function'.
-`symbol-function' never signals `void-function' any more.
-`fboundp' returns non-nil if the symbol was `fset' to nil.
+`symbol-function' does not signal a `void-function' error any more.
+To determine if a symbol's function definition is void, use `fboundp'.
 
++++
 ** `defadvice' does not honor the `freeze' flag and cannot advise
 special-forms any more.
 

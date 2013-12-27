@@ -1,3 +1,7 @@
+2013-12-27  Chong Yidong  <cyd@gnu.org>
+
+	* data.c (Fsymbol_function): Doc fix.
+
 2013-12-26  Martin Rudalics  <rudalics@gmx.at>
 
 	Some more tinkering with Bug#16051.
@@ -7649,7 +7653,7 @@
 
 	* keyboard.c: Apply keyboard decoding only to events that come directly
 	from the tty, not from unread-command-events (bug#14368).
-	(read_event_from_main_queue): New function, extracted from read_char).
+	(read_event_from_main_queue): New function, extracted from read_char.
 	(read_decoded_char): Remove.
 	(read_decoded_event_from_main_queue): New function to replace it.
 	(read_char): Use it.

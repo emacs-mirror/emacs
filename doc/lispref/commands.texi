@@ -2395,9 +2395,12 @@ and key sequences read from keyboard macros being executed.
 @code{read-char}, and @code{read-char-exclusive}.
 
 @defun read-event &optional prompt inherit-input-method seconds
-This function reads and returns the next event of command input, waiting
-if necessary until an event is available.  Events can come directly from
-the user or from a keyboard macro.
+This function reads and returns the next event of command input,
+waiting if necessary until an event is available.
+
+The returned event may come directly from the user, or from a keyboard
+macro.  It is not decoded by the keyboard's input coding system
+(@pxref{Terminal I/O Encoding}).
 
 If the optional argument @var{prompt} is non-@code{nil}, it should be a
 string to display in the echo area as a prompt.  Otherwise,

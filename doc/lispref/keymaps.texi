@@ -1551,32 +1551,36 @@ specifies a list of keymaps to search in.  This argument is ignored if
 
 @node Translation Keymaps
 @section Keymaps for Translating Sequences of Events
+@cindex translation keymap
 @cindex keymaps for translating events
 
-  This section describes keymaps that are used during reading a key
-sequence, to translate certain event sequences into others.
-@code{read-key-sequence} checks every subsequence of the key sequence
-being read, as it is read, against @code{input-decode-map}, then
-@code{local-function-key-map}, and then against @code{key-translation-map}.
+  When the @code{read-key-sequence} function reads a key sequence
+(@pxref{Key Sequence Input}), it uses @dfn{translation keymaps} to
+translate certain event sequences into others.  The translation
+keymaps are @code{input-decode-map}, @code{local-function-key-map},
+and @code{key-translation-map} (in order of priority).
 
-These keymaps have the same structure as other keymaps, but they are used
-differently: they specify translations to make while reading key sequences,
-rather than bindings for key sequences.
+  Translation keymaps have the same structure as other keymaps, but
+are used differently: they specify translations to make while reading
+key sequences, rather than bindings for complete key sequences.  As
+each key sequence is read, it is checked against each translation
+keymap.  If one of the translation keymaps ``binds'' @var{k} to a
+vector @var{v}, then whenever @var{k} appears as a sub-sequence
+@emph{anywhere} in a key sequence, that sub-sequence is replaced with
+the events in @var{v}.
 
-If one of these keymaps ``binds'' a key sequence @var{k} to a vector
-@var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
-key sequence, it is replaced with the events in @var{v}.
+  For example, VT100 terminals send @kbd{@key{ESC} O P} when the
+keypad key @key{PF1} is pressed.  On such terminals, Emacs must
+translate that sequence of events into a single event @code{pf1}.
+This is done by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
+@code{input-decode-map}.  Thus, when you type @kbd{C-c @key{PF1}} on
+the terminal, the terminal emits the character sequence @kbd{C-c
+@key{ESC} O P}, and @code{read-key-sequence} translates this back into
+@kbd{C-c @key{PF1}} and returns it as the vector @code{[?\C-c pf1]}.
 
-For example, VT100 terminals send @kbd{@key{ESC} O P} when the
-keypad @key{PF1} key is pressed.  Therefore, we want Emacs to translate
-that sequence of events into the single event @code{pf1}.  We accomplish
-this by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
-@code{input-decode-map}, when using a VT100.
-
-Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
-@key{ESC} O P}; later the function @code{read-key-sequence} translates
-this back into @kbd{C-c @key{PF1}}, which it returns as the vector
-@code{[?\C-c pf1]}.
+  Translation keymaps take effect only after Emacs has decoded the
+keyboard input (via the input coding system specified by
+@code{keyboard-coding-system}).  @xref{Terminal I/O Encoding}.
 
 @defvar input-decode-map
 This variable holds a keymap that describes the character sequences sent
@@ -1663,10 +1667,6 @@ to turn the character that follows into a Hyper character:
 (define-key local-function-key-map "\C-ch" 'hyperify)
 @end group
 @end example
-
-  If you have enabled keyboard character set decoding using
-@code{set-keyboard-coding-system}, decoding is done before the
-translations listed above.  @xref{Terminal I/O Encoding}.
 
 @subsection Interaction with normal keymaps
 

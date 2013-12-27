@@ -1,3 +1,14 @@
+2013-12-27  Chong Yidong  <cyd@gnu.org>
+
+	* functions.texi (Function Cells):
+	* eval.texi (Function Indirection): Update for the fact that
+	symbol-function no longer signals an error.
+
+	* commands.texi (Reading One Event): Mention keyboard coding.
+
+	* keymaps.texi (Translation Keymaps, Translation Keymaps):
+	* nonascii.texi (Terminal I/O Encoding): Copyedits.
+
 2013-12-26  Chong Yidong  <cyd@gnu.org>
 
 	* advice.texi (Advising Functions, Defining Advice): Special forms

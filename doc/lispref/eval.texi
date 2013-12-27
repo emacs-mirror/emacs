@@ -242,11 +242,9 @@ it obtains a non-symbol.  @xref{Function Names}, for more information
 about symbol function indirection.
 
   One possible consequence of this process is an infinite loop, in the
-event that a symbol's function cell refers to the same symbol.  Or a
-symbol may have a void function cell, in which case the subroutine
-@code{symbol-function} signals a @code{void-function} error.  But if
-neither of these things happens, we eventually obtain a non-symbol,
-which ought to be a function or other suitable object.
+event that a symbol's function cell refers to the same symbol.
+Otherwise, we eventually obtain a non-symbol, which ought to be a
+function or other suitable object.
 
 @kindex invalid-function
   More precisely, we should now have a Lisp function (a lambda
@@ -255,12 +253,12 @@ a special form, or an autoload object.  Each of these types is a case
 described in one of the following sections.  If the object is not one
 of these types, Emacs signals an @code{invalid-function} error.
 
-  The following example illustrates the symbol indirection process.  We
-use @code{fset} to set the function cell of a symbol and
+  The following example illustrates the symbol indirection process.
+We use @code{fset} to set the function cell of a symbol and
 @code{symbol-function} to get the function cell contents
-(@pxref{Function Cells}).  Specifically, we store the symbol @code{car}
-into the function cell of @code{first}, and the symbol @code{first} into
-the function cell of @code{erste}.
+(@pxref{Function Cells}).  Specifically, we store the symbol
+@code{car} into the function cell of @code{first}, and the symbol
+@code{first} into the function cell of @code{erste}.
 
 @example
 @group

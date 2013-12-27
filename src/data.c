@@ -686,7 +686,7 @@ Return SYMBOL.  */)
 }
 
 DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
-       doc: /* Return SYMBOL's function definition.  Error if that is void.  */)
+       doc: /* Return SYMBOL's function definition, or nil if that is void.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
