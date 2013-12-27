@@ -1,3 +1,11 @@
+2013-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-find-fill-point): Don't try to fill if the
+	indentation level is larger than the width, because that will
+	infloop.
+	(shr-insert): Fill repeatedly long texts, so that Japanese is
+	formatted correctly (bug#16263).
+
 2013-12-26  João Távora <joaotavora@gmail.com>
 
 	* electric.el (electric-pair-mode): More flexible engine for skip-
