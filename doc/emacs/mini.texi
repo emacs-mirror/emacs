@@ -550,6 +550,9 @@ previous example, @samp{foo.e} completes to @samp{foo.elc}.  Emacs
 disregards @code{completion-ignored-extensions} when showing
 completion alternatives in the completion list.
 
+  Shell completion is an extended version of filename completion,
+@pxref{Shell Options}.
+
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
 commands never display the completion list buffer; you must type

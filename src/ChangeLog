@@ -1,3 +1,7 @@
+2013-12-27  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	* callproc.c (Vexec_path): Document that exec-directory is in it.
+
 2013-12-27  Steve Purcell  <steve@sanityinc.com>  (tiny change)
 
 	* nsterm.m (syms_of_nsterm): Enable ns-use-srgb-colorspace by

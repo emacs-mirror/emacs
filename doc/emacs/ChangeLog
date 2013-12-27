@@ -1,3 +1,9 @@
+2013-12-27  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	* mini.texi (Completion Options): Add a link to Shell Options.
+	* misc.texi (Shell Mode): Move documentation of
+	shell-completion-fignore from Shell Mode to Shell Options.
+
 2013-12-26  João Távora <joaotavora@gmail.com>
 	* emacs.texi (Matching): Describe new features of Electric Pair
 	mode.

@@ -677,20 +677,13 @@ in the shell buffer to submit the current line as input.
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
 @findex completion-at-point
+@cindex shell completion
 Complete the command name or file name before point in the shell
 buffer (@code{completion-at-point}).  This uses the usual Emacs
 completion rules (@pxref{Completion}), with the completion
 alternatives being file names, environment variable names, the shell
 command history, and history references (@pxref{History References}).
-
-@vindex shell-completion-fignore
-@vindex comint-completion-fignore
-The variable @code{shell-completion-fignore} specifies a list of file
-name extensions to ignore in Shell mode completion.  The default
-setting is @code{nil}, but some users prefer @code{("~" "#" "%")} to
-ignore file names ending in @samp{~}, @samp{#} or @samp{%}.  Other
-related Comint modes use the variable @code{comint-completion-fignore}
-instead.
+For options controlling the completion, @pxref{Shell Options}.
 
 @item M-?
 @kindex M-? @r{(Shell mode)}
@@ -1178,6 +1171,20 @@ the possible completions whenever completion is not exact.
   Command completion normally considers only executable files.
 If you set @code{shell-completion-execonly} to @code{nil},
 it considers nonexecutable files as well.
+
+@vindex shell-completion-fignore
+@vindex comint-completion-fignore
+The variable @code{shell-completion-fignore} specifies a list of file
+name extensions to ignore in Shell mode completion.  The default
+setting is @code{nil}, but some users prefer @code{("~" "#" "%")} to
+ignore file names ending in @samp{~}, @samp{#} or @samp{%}.  Other
+related Comint modes use the variable @code{comint-completion-fignore}
+instead.
+
+@findex shell-dynamic-complete-command
+Some implementation details of the shell command completion may also be found
+in the lisp documentation of the @code{shell-dynamic-complete-command}
+function.
 
 @findex shell-pushd-tohome
 @findex shell-pushd-dextract

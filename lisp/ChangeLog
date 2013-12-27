@@ -1,3 +1,9 @@
+2013-12-27  Jarek Czekalski  <jarekczek@poczta.onet.pl>
+
+	* shell.el  Shell completion now matches executable filenames from
+	the current buffer's directory, on systems in which this behaviour
+	is the default (windows-nt, ms-dos).
+
 2013-12-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Unbreak bootstrap.

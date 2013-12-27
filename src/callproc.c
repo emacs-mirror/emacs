@@ -1686,7 +1686,11 @@ default if SHELL is not set.  */);
 
   DEFVAR_LISP ("exec-path", Vexec_path,
 	       doc: /* List of directories to search programs to run in subprocesses.
-Each element is a string (directory name) or nil (try default directory).  */);
+Each element is a string (directory name) or nil (try default directory).
+
+By default the last element of this list is `exec-directory'. The
+last element is not always used, for example in shell completion
+(`shell-dynamic-complete-command').  */);
 
   DEFVAR_LISP ("exec-suffixes", Vexec_suffixes,
 	       doc: /* List of suffixes to try to find executable file names.
