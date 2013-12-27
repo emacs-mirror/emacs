@@ -1,3 +1,20 @@
+2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Sync better from sources.
+	* CXTERM-DIC/ARRAY30.tit, CXTERM-DIC/4Corner.tit:
+	* CXTERM-DIC/QJ.tit, CXTERM-DIC/QJ-b5.tit:
+	Omit blank lines not present in the original.
+	* CXTERM-DIC/CCDOSPY.tit:
+	* CXTERM-DIC/PY-b5.tit:
+	* CXTERM-DIC/SW.tit, CXTERM-DIC/TONEPY.tit:
+	* MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin:
+	Clarify which header lines were added for Emacs.
+	* CXTERM-DIC/README:
+	Clarify what changes we made, and where the files came from.
+	* MISC-DIC/README, MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin:
+	Update URLs.
+	* SKK-DIC/SKK-JISYO.L: Update from upstream.
+
 2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix problems with CANNOT_DUMP and EMACSLOADPATH.

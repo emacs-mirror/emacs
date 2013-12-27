@@ -5,9 +5,10 @@ into these four groups.
 (1) QJ-b5.tit (renamed from .../cxterm/dict/big5/QJ.tit)
     QJ.tit (copied from .../cxterm/dict/gb/QJ.tit)
 
-They are verbatim copies of those included in the directory
-contrib/clients/cxterm of the distribution of X11R6.  Each file
-contains a license notice.
+They are copies of the files included in the directory
+contrib/clients/cxterm of the distribution of X11R6, except that a
+"-*- coding: " line was prepended to each file, and RCS Id lines were
+removed.  Each file contains a license notice.
 
 (2) CCDOSPY.tit (copied from .../cxterm/dict/gb/CCDOSPY.tit)
     PY-b5.tit (renamed from .../cxterm/dict/big5/PY.tit)
@@ -15,9 +16,10 @@ contains a license notice.
     TONEPY.tit (copied from .../cxterm/dict/gb/TONEPY.tit)
 
 They are copies of those included in the directory
-contrib/clients/cxterm of the distribution of X11R6.  As the original
-files don't contain copyright and license notices, a proper notice is
-extracted from .../cxterm/README and added at the head of each file.
+contrib/clients/cxterm of the distribution of X11R6.
+RCS Id lines were removed.  As the original files don't contain
+copyright and license notices, a proper notice was extracted from
+.../cxterm/README and prepended to each file.
 
 (3) 4Corner.tit
     ARRAY30.tit
@@ -25,8 +27,10 @@ extracted from .../cxterm/README and added at the head of each file.
     ZOZY.tit
 
 They are versions modified by the original authors from those
-distributed with X11R5 to include proper copyright notices.  Each file
-contains a license notice.
+distributed with X11R6 in .../cxterm/dict/big5, to include proper
+copyright and license notices.  ETZY.tit and ZOZY.tit were further
+modified from the X11R6 version.  Also, a "-*- coding: " line was
+prepended to each file, and RCS Id lines were removed.
 
 (4) ECDICT.tit, Punct-b5.tit, Punct.tit
 

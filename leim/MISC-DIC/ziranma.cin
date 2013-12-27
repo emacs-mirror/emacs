@@ -1,10 +1,9 @@
-% -*- coding: cn-gb-2312 -*-
-% Header added for Emacs
+% Header added for Emacs -*- coding: cn-gb-2312 -*-
 %
 % This file is included in the free package called CCE.  It is
-% available at:
-%	http://ftp.debian.org/debian/dists/potato/main
-%		/source/utils/cce_0.36.orig.tar.gz
+% available in:
+%
+% http://archive.debian.org/debian/pool/main/c/cce/cce_0.36.orig.tar.gz
 %
 % As the file itself doesn't contain copyright and license notices,
 % the following statements of the file cce/Copyright covers it.
