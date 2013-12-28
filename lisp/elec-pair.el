@@ -92,8 +92,8 @@ closer."
 
 The default values of `electric-pair-inhibit-predicate' and
 `electric-pair-skip-self' check this variable before delegating to other
-predicates reponsible for making decisions on whether to pair/skip some
-characters based on the actual state of the buffer's parenthesis and
+predicates responsible for making decisions on whether to pair/skip some
+characters based on the actual state of the buffer's parentheses and
 quotes."
   :version "24.4"
   :group 'electricity
@@ -274,17 +274,17 @@ when to fallback to `parse-partial-sexp'."
 ;; doesn't keep `electric-pair-mode' from balancing your ()'s and your
 ;; []'s.
 (defun electric-pair--balance-info (direction string-or-comment)
-  "Examine lists forward or backward according to DIRECTIONS's sign.
+  "Examine lists forward or backward according to DIRECTION's sign.
 
 STRING-OR-COMMENT is info suitable for running `parse-partial-sexp'.
 
-Return a cons of two descritions (MATCHED-P . PAIR) for the
+Return a cons of two descriptions (MATCHED-P . PAIR) for the
 innermost and outermost lists that enclose point. The outermost
 list enclosing point is either the first top-level or first
-mismatched list found by uplisting.
+mismatched list found by listing up.
 
 If the outermost list is matched, don't rely on its PAIR. If
-point is not enclosed by any lists, return ((T) (T))."
+point is not enclosed by any lists, return ((T) . (T))."
   (let* (innermost
          outermost
          (table (if string-or-comment

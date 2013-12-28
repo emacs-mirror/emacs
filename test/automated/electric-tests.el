@@ -186,7 +186,7 @@ Should %s \"%s\" and point at %d"
                    bindings
                    fixture-fn))))))
 
-;;; Basic pairings and skippings
+;;; Basic pairs and skips
 ;;;
 (define-electric-pair-test balanced-situation
   " (())  " "(((((((" :skip-pair-string "ppppppp"
@@ -237,7 +237,7 @@ Should %s \"%s\" and point at %d"
 (define-electric-pair-test find-matching-different-paren-type-inside-list
   "( ()]) " "-[-----" :skip-pair-string "-------")
 
-(define-electric-pair-test ignore-different-unmatching-paren-type
+(define-electric-pair-test ignore-different-nonmatching-paren-type
   "( ()]) " "-(-----" :skip-pair-string "-p-----")
 
 (define-electric-pair-test autopair-keep-least-amount-of-mixed-unbalance
