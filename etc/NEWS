@@ -952,14 +952,14 @@ alist of extended attributes as returned by the new function
 `file-extended-attributes'.  The attributes can be applied to another
 file using `set-file-extended-attributes'.
 
++++
 ** `visited-file-modtime' now returns -1 for nonexistent files.
 Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
 in the presence of files with negative time stamps.
 
++++
 ** The cars of the elements in `interpreter-mode-alist' are now
-treated as regexps rather than literal strings.  This change should
-not affect you unless you are using `interpreter-mode-alist' for
-something (not just adding elements to it).
+treated as regexps rather than literal strings.
 
 
 * Lisp Changes in Emacs 24.4

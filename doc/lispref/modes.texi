@@ -646,10 +646,10 @@ mode command.  The default value is @code{lisp-interaction-mode}.
 @defvar interpreter-mode-alist
 This variable specifies major modes to use for scripts that specify a
 command interpreter in a @samp{#!} line.  Its value is an alist with
-elements of the form @code{(@var{interpreter} . @var{mode})}; for
-example, @code{("perl" . perl-mode)} is one element present by
-default.  The element says to use mode @var{mode} if the file
-specifies an interpreter which matches @var{interpreter}.
+elements of the form @code{(@var{regexp} . @var{mode})}; this says to
+use mode @var{mode} if the file specifies an interpreter which matches
+@code{\\`@var{regexp}\\'}.  For example, one of the default elements
+is @code{("python[0-9.]*" . python-mode)}.
 @end defvar
 
 @defvar magic-mode-alist

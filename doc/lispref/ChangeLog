@@ -1,3 +1,11 @@
+2013-12-28  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Auto Major Mode): Document interpreter-mode-alist
+	change.
+
+	* buffers.texi (Modification Time): Document visited-file-modtime
+	change.
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* control.texi (Pattern matching case statement): Brevity.
