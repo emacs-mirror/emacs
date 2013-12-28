@@ -1,3 +1,8 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-ignored-files)
+	(authors-valid-file-names, authors-renamed-files-alist): Additions.
+
 2013-12-27  Jarek Czekalski  <jarekczek@poczta.onet.pl>
 
 	* shell.el (shell-dynamic-complete-command): Doc fix.
@@ -2415,7 +2420,7 @@
 
 2013-11-02  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el Use `syntax-propertize-function'
+	* progmodes/ruby-mode.el: Use `syntax-propertize-function'
 	unconditionally.  Remove now unnecessary forward declarations.
 	Remove XEmacs-specific setup.
 	(ruby-here-doc-end-re, ruby-here-doc-beg-match)

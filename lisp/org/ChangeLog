@@ -2826,7 +2826,7 @@
 
 2013-11-12  Craig Tanis  <craig-tanis@utc.edu>  (tiny change)
 
-	* ox-latex (org-latex-src-block): Change format string to position
+	* ox-latex.el (org-latex-src-block): Change format string to position
 	caption after figure content.
 
 2013-11-12  Eric Abrahamsen  <eric@ericabrahamsen.net>
@@ -3276,7 +3276,7 @@
 
 2013-11-12  Ilya Zonov  <izonov@gmail.com>  (tiny change)
 
-	* org-mode (org-mouse-context-menu): Add a correct newtext
+	* org-mouse.el (org-mouse-context-menu): Add a correct newtext
 	parameter for "All Set" and "All Clear" menu items.
 
 2013-11-12  Ingo Lohmar  <i.lohmar@gmail.com>  (tiny change)
