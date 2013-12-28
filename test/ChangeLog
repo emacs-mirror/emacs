@@ -1,10 +1,14 @@
-2013-12-26  João Távora  <joaotavora@gmail.com>
-	* automated/electric-tests.el (electric-pair-test-for): Fix
-	autowrapping tests in batch-mode by running with
-	`transient-mark-mode' set to `lambda'.
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/electric-tests.el: Require 'elec-pair.
 
 2013-12-26  João Távora  <joaotavora@gmail.com>
-	* automated/electric-tests.el: Add tests for Electric Pair mode.
+
+	* automated/electric-tests.el (electric-pair-test-for):
+	Fix autowrapping tests in batch-mode by running with
+	`transient-mark-mode' set to `lambda'.
+
+	* automated/electric-tests.el: New file.
 
 2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 

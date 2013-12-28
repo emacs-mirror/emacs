@@ -1,6 +1,6 @@
 ;;; electric-tests.el --- tests for electric.el
 
-;; Copyright (C) 2013  João Távora
+;; Copyright (C) 2013 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords:
@@ -18,15 +18,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary: Tests for Electric Pair mode.
-;;; TODO: Add tests for other Electric-* functionality
+;;; Commentary:
 
-;;
+;; Tests for Electric Pair mode.
+;; TODO: Add tests for other Electric-* functionality
 
 ;;; Code:
 (require 'ert)
 (require 'ert-x)
 (require 'electric)
+(require 'elec-pair)
 (require 'cl-lib)
 
 (defun call-with-saved-electric-modes (fn)
