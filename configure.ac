@@ -654,15 +654,12 @@ fi
 #### Choose a compiler.
 
 dnl Sets GCC=yes if using gcc.
+AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
 if test -n "$XCRUN"; then
-  if test -z "$CC"; then
-    AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
-  fi
   AC_CHECK_PROGS(AR, [ar "$XCRUN ar"])
   test -n "$AR" && export AR
-else
-  AC_PROG_CC
 fi
+
 AM_PROG_CC_C_O
 
 if test x$GCC = xyes; then
