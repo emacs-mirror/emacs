@@ -85,8 +85,15 @@ AC_CONFIG_AUX_DIR(build-aux)
 xcsdkdir=
 AC_CHECK_PROGS(XCRUN, [xcrun])
 if test -n "$XCRUN"; then
-  AC_CHECK_PROGS(MAKE, [make "$XCRUN make"])
-  test -n "$MAKE" && export MAKE
+  if test -z "$MAKE"; then
+    dnl Call the variable MAKE_PROG, not MAKE, to avoid confusion with
+    dnl SET_MAKE and with the usual MAKE variable that 'make' itself uses.
+    AC_CHECK_PROG([MAKE_PROG], [make], [yes])
+    if test -z "$MAKE_PROG"; then
+      MAKE="$XCRUN MAKE"
+      export MAKE
+    fi
+  fi
   xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
 fi
 

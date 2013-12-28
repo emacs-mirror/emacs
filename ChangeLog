@@ -1,3 +1,11 @@
+2013-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problem with MAKE and xcrun configuration.
+	* configure.ac: Don't set MAKE unless 'make' doesn't work.
+	Set it only in the environment, not in the makefile.
+	Problem reported by Glenn Morris in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00969.html
+
 2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port xcrun configuration to GNU/Linux.
