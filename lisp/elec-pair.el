@@ -513,7 +513,7 @@ happened."
                       (funcall electric-pair-open-newline-between-pairs)
                     electric-pair-open-newline-between-pairs)
                   (eq last-command-event ?\n)
-                  (not (eobp))
+                  (< (1+ (point-min)) (point) (point-max))
                   (eq (save-excursion
                         (skip-chars-backward "\t\s")
                         (char-before (1- (point))))
