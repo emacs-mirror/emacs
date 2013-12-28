@@ -633,8 +633,8 @@
 	use MAX_UTF8_PATH for size of file-name strings.
 	(emacs_readlinkat): Build an explicitly unibyte string for file
 	names.
-	(syms_of_fileio) <file-name-coding-system>
-	default-file-name-coding-system>: Mention MS-Windows peculiarities.
+	(syms_of_fileio) <file-name-coding-system>:
+	<default-file-name-coding-system>: Mention MS-Windows peculiarities.
 
 	* emacs.c (init_cmdargs) [WINDOWSNT]: Convert argv[0] to UTF-8.
 	(main) [WINDOWSNT]: Convert the argv[] elements that are files or
@@ -8126,7 +8126,7 @@
 
 2013-04-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>
+	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>:
 	<left-fringe-width, right-fringe-width, fringes-outside-margins>:
 	Mention in the doc string that setting these variables takes
 	effect only after a call to set-window-buffer.  (Bug#14200)
