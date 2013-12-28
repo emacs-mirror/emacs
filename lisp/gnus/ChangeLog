@@ -1,5 +1,9 @@
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-icalendar.el (gnus-icalendar-org, gnus-icalendar):
+	* gnus-sum.el (gnus-subthread-sort-functions): Add version.
+	* gnus-sync.el (gnus-sync-file-encrypt-to): Add type and version.
+
 	* auth-source.el (auth-sources):
 	* nnmairix.el (nnmairix-propagate-marks-upon-close):
 	Fix custom types.

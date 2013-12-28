@@ -90,6 +90,7 @@ used."
 Alternative suggestions are:
 - \"  \"
 - \"  \""
+  :version "24.4"
   :type 'string
   :group 'shr)
 

@@ -198,6 +198,7 @@ Higher values result in larger images."
 If nil, the document is re-rendered every time the scaling factor is modified.
 This only has an effect if the image libraries linked with Emacs support
 scaling."
+  :version "24.4"
   :type 'boolean)
 
 (defcustom doc-view-image-width 850

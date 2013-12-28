@@ -1923,6 +1923,11 @@ Each RULE element should be of the form (NEW KIND TOKEN NORMAL),
 where KIND and TOKEN are the elements passed to `smie-rules-function',
 NORMAL is the value returned by `smie-rules-function' and NEW is the
 value with which to replace it."
+  :version "24.4"
+  ;; FIXME improve value-type.
+  :type '(choice (const nil)
+                 (alist :key-type symbol))
+  :initialize 'custom-initialize-default
   :set #'smie-config--setter)
 
 (defun smie-config-local (rules)

@@ -120,8 +120,9 @@ If SETUP is 'force, this variable has no effect."
   :type 'boolean)
 
 (defcustom log-edit-setup-add-author nil
-  "Non-nil means `log-edit' should add the `Author:' header when
-its SETUP argument is non-nil."
+  "Non-nil means `log-edit' may add the `Author:' header.
+This applies when its SETUP argument is non-nil."
+  :version "24.4"
   :group 'log-edit
   :type 'boolean
   :safe 'booleanp)

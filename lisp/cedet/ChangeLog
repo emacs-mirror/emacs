@@ -1,7 +1,7 @@
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* ede/linux.el (project-linux-build-directory-default)
-	(project-linux-architecture-default): Fix custom types.
+	(project-linux-architecture-default): Fix custom types.  Add version.
 
 2013-12-12  David Engster  <deng@randomsample.de>
 

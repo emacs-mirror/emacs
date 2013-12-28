@@ -878,6 +878,7 @@ have to define it using \\(?1:...\\) when adding new regexps.
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
+  :version "24.4"
   :set (lambda (symbol value)
 	 (set symbol value)
 	 (when (fboundp 'reftex-compile-variables)

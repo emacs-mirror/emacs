@@ -80,6 +80,7 @@
 Used for syntax discovery and checking.  Set to nil to disable
 the `compile-command' override.  In that case, the ElDoc support
 will use a fallback syntax definition."
+  :version "24.4"
   :group 'cfengine
   :type '(choice file (const nil)))
 
@@ -138,7 +139,7 @@ bundle agent rcfiles
                 perms => mog(\"600\", \"tzz\", \"tzz\");
 }
 "
-
+  :version "24.4"
   :group 'cfengine
   :type '(list
           (choice (const :tag "Anchor at beginning of promise" promise)

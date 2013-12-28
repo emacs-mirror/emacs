@@ -1,7 +1,6 @@
 ;;; register.el --- register commands for Emacs      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1993-1994, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985, 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -91,6 +90,7 @@ text."
 
 (defcustom register-preview-delay 1
   "If non-nil delay in seconds to pop up the preview window."
+  :version "24.4"
   :type '(choice number (const :tag "Indefinitely" nil))
   :group 'register)
 

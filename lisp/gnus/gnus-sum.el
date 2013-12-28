@@ -897,6 +897,7 @@ subthreads, customize `gnus-subthread-sort-functions'."
   "*List of functions used for sorting subthreads in the summary buffer.
 By default, subthreads are sorted the same as threads, i.e.,
 according to the value of `gnus-thread-sort-functions'."
+  :version "24.4"
   :group 'gnus-summary-sort
   :type '(choice
 	  (const :tag "Sort subthreads like threads" gnus-thread-sort-functions)

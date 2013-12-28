@@ -651,6 +651,7 @@ mode, include \"-q\" and \"--traditional\"."
     ("warning:\\s-*\\([^:\n]+\\):.*at line \\([0-9]+\\), column \\([0-9]+\\)"
      1 2 3 1 1))
   "Value for `compilation-error-regexp-alist' in inferior octave."
+  :version "24.4"
   :type '(repeat (choice (symbol :tag "Predefined symbol")
                          (sexp :tag "Error specification")))
   :group 'octave)

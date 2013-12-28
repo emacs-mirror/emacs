@@ -1,6 +1,6 @@
 ;;; gnus-icalendar.el --- reply to iCalendar meeting requests
 
-;; Copyright (C) 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2013 Free Software Foundation, Inc.
 
 ;; Author: Jan Tatarik <Jan.Tatarik@gmail.com>
 ;; Keywords: mail, icalendar, org
@@ -344,6 +344,7 @@ on the IDENTITIES list."
 
 (defgroup gnus-icalendar-org nil
   "Settings for Calendar Event gnus/org integration."
+  :version "24.4"
   :group 'gnus-icalendar
   :prefix "gnus-icalendar-org-")
 
@@ -644,6 +645,7 @@ is searched."
 
 (defgroup gnus-icalendar nil
   "Settings for inline display of iCalendar invitations."
+  :version "24.4"
   :group 'gnus-article
   :prefix "gnus-icalendar-")
 

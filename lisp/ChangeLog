@@ -1,5 +1,17 @@
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/smie.el (smie-config): Add type, version, initialize.
+	* bookmark.el (bookmark-bmenu-use-header-line):
+	* doc-view.el (doc-view-scale-internally):
+	* pcmpl-x.el (pcmpl-x-tlmgr-program, pcmpl-x-ack-program):
+	* register.el (register-preview-delay):
+	* net/shr.el (shr-bullet):
+	* progmodes/cfengine.el (cfengine-cf-promises)
+	(cfengine-parameters-indent):
+	* progmodes/octave.el (inferior-octave-error-regexp-alist):
+	* textmodes/reftex-vars.el (reftex-label-regexps):
+	* vc/log-edit.el (log-edit-setup-add-author): Add version.
+
 	* net/tls.el (tls-certtool-program): Fix default value.
 
 	* desktop.el (desktop-restore-in-current-display):
