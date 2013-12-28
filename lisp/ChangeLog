@@ -1,8 +1,9 @@
 2013-12-27  Jarek Czekalski  <jarekczek@poczta.onet.pl>
 
-	* shell.el  Shell completion now matches executable filenames from
-	the current buffer's directory, on systems in which this behaviour
-	is the default (windows-nt, ms-dos).
+	* shell.el (shell-dynamic-complete-command): Doc fix.
+	(shell--command-completion-data): Shell completion now matches
+	executable filenames from the current buffer's directory, on
+	systems in which this behaviour is the default (windows-nt, ms-dos).
 
 2013-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -157,7 +158,7 @@
 
 	* indent.el (indent-rigidly): Use substitute-command-keys.
 
-2013-12-22  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>
+2013-12-22  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
 	* net/eww.el (eww-tag-select): Add text-property to jump to next
 	select field.
@@ -199,7 +200,7 @@
 
 	* simple.el (newline): Doc fix.
 
-2013-12-21  Kenjiro NAKAYAMA <nakayamakenjiro@gmail.com>
+2013-12-21  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
         * net/eww.el (eww-list-histories, eww-list-histories)
 	(eww-history-browse, eww-history-quit, eww-history-kill)
