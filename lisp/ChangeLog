@@ -1,5 +1,16 @@
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
+	* net/tls.el (tls-certtool-program): Fix default value.
+
+	* desktop.el (desktop-restore-in-current-display):
+	* newcomment.el (comment-empty-lines):
+	* progmodes/idlwave.el (idlwave-scan-all-buffers-for-routine-info)
+	(idlwave-pad-keyword):
+	* progmodes/tcl.el (tcl-tab-always-indent):
+	* textmodes/reftex-vars.el (reftex-index-default-tag):
+	* elec-pair.el (electric-pair-skip-whitespace):
+	* progmodes/cfengine.el (cfengine-cf-promises): Fix custom types.
+
 	* emacs-lisp/authors.el (authors-ignored-files)
 	(authors-valid-file-names, authors-renamed-files-alist): Additions.
 

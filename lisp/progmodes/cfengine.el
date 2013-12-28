@@ -81,10 +81,10 @@ Used for syntax discovery and checking.  Set to nil to disable
 the `compile-command' override.  In that case, the ElDoc support
 will use a fallback syntax definition."
   :group 'cfengine
-  :type 'file)
+  :type '(choice file (const nil)))
 
 (defcustom cfengine-parameters-indent '(promise pname 0)
-  "*Indentation of CFEngine3 promise parameters (hanging indent).
+  "Indentation of CFEngine3 promise parameters (hanging indent).
 
 For example, say you have this code:
 

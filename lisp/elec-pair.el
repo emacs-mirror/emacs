@@ -138,7 +138,7 @@ return value is considered instead."
   :group 'electricity
   :type '(choice
           (const :tag "Yes, jump over whitespace" t)
-          (const :tag "Yes, and delete whitespace" 'chomp)
+          (const :tag "Yes, and delete whitespace" chomp)
           (const :tag "No, no whitespace skipping" nil)
           function))
 

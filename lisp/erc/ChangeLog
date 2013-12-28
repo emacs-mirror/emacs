@@ -1,3 +1,7 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-alist): Fix custom type.
+
 2013-11-25  Glenn Morris  <rgm@gnu.org>
 
 	* erc-button.el (erc-nick-popup): Make `nick' available in the

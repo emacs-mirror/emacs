@@ -312,7 +312,7 @@ If `eol' it only comments out empty lines if comments are
 terminated by the end of line (i.e. `comment-end' is empty)."
   :type '(choice (const :tag "Never" nil)
 	  (const :tag "Always" t)
-	  (const :tag "EOl-terminated" 'eol))
+	  (const :tag "EOl-terminated" eol))
   :group 'comment)
 
 ;;;;

@@ -1,3 +1,8 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* url-history.el (url-history-track):
+	* url-vars.el (url-honor-refresh-requests): Fix custom types.
+
 2013-12-20  Leo Liu  <sdl.web@gmail.com>
 
 	* url.el (url-retrieve-synchronously): Add optional arg SILENT and

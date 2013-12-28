@@ -1,3 +1,9 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* auth-source.el (auth-sources):
+	* nnmairix.el (nnmairix-propagate-marks-upon-close):
+	Fix custom types.
+
 2013-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-respool-query): Special-case nnimap so that

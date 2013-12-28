@@ -1,10 +1,14 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* ede/linux.el (project-linux-build-directory-default)
+	(project-linux-architecture-default): Fix custom types.
+
 2013-12-12  David Engster  <deng@randomsample.de>
 
-	* semantic/analyze.el
-	(semantic-analyze-find-tag-sequence-default): Always add scope to
-	the local miniscope for each type.  Otherwise, structure tags are
-	not analyzed correctly.  Also, always search the extended
-	miniscope even when not dealing with types.
+	* semantic/analyze.el (semantic-analyze-find-tag-sequence-default):
+	Always add scope to the local miniscope for each type.  Otherwise,
+	structure tags are not analyzed correctly.  Also, always search
+	the extended miniscope even when not dealing with types.
 
 	* semantic/ctxt.el (semantic-get-local-variables-default): Also
 	try to parse local variables for buffers which are currently

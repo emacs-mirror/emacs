@@ -51,14 +51,14 @@
 (defcustom project-linux-build-directory-default 'ask
   "Build directory."
   :group 'project-linux
-  :type '(choice (const :tag "Same as source directory" 'same)
-                 (const :tag "Ask the user" 'ask)))
+  :type '(choice (const :tag "Same as source directory" same)
+                 (const :tag "Ask the user" ask)))
 
 (defcustom project-linux-architecture-default 'ask
   "Target architecture to assume when not auto-detected."
   :group 'project-linux
   :type '(choice (string :tag "Architecture name")
-                 (const :tag "Ask the user" 'ask)))
+                 (const :tag "Ask the user" ask)))
 
 
 (defcustom project-linux-compile-target-command (concat ede-make-command " -k -C %s SUBDIRS=%s")

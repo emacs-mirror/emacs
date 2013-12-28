@@ -383,7 +383,7 @@ If nil, frames are restored, if possible, in their original displays.
 If `delete', frames on other displays are deleted instead of restored."
   :type '(choice (const :tag "Restore in current display" t)
 		 (const :tag "Restore in original display" nil)
-		 (const :tag "Delete frames in other displays" 'delete))
+		 (const :tag "Delete frames in other displays" delete))
   :group 'desktop
   :version "24.4")
 

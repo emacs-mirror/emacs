@@ -1442,7 +1442,7 @@ last      The last used index tag will be offered as default."
   :group 'reftex-index-support
   :type '(choice
           (const :tag  "no default" nil)
-          (const :tag  "last used " 'last)
+          (const :tag  "last used " last)
           (string :tag "index tag " "idx")))
 
 (defcustom reftex-index-math-format "$%s$"

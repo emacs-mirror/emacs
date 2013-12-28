@@ -189,7 +189,7 @@ PAR is a number of a regexp grouping whose text will be passed to
                 (choice :tag "Matches"
                         regexp
                         (variable :tag "Variable containing regexp")
-                        (const :tag "Nicknames" 'nicknames))
+                        (const :tag "Nicknames" nicknames))
                 (integer :tag "Number of the regexp section that matches")
                 (choice :tag "When to buttonize"
                         (const :tag "Always" t)
