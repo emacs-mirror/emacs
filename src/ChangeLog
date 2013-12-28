@@ -178,7 +178,7 @@
 	Remove font and color handling.
 	(syms_of_nsterm): Defsym Qfile and Qurl.
 
-2013-12-19  Anders Lindgren <andlind@gmail.com>
+2013-12-19  Anders Lindgren  <andlind@gmail.com>
 
 	* nsterm.m (NSTRACE_SIZE, NSTRACE_RECT): New macros.
 	(ns_constrain_all_frames, x_set_offset): Remove assignment to
@@ -189,7 +189,7 @@
 
 	* nsterm.h (ns_output): Remove dont_constrain.
 
-2013-12-19  Anders Lindgren <andlind@gmail.com>
+2013-12-19  Anders Lindgren  <andlind@gmail.com>
 
 	* nsterm.m (mouseDown:): Generate HORIZ_WHEEL_EVENT.
 
@@ -540,7 +540,7 @@
 
 	Avoid undefined behavior with huge regexp interval counts.
 	* regex.c (GET_INTERVAL_COUNT): Rename from 'GET_UNSIGNED_NUMBER',
-	since it's now specialized to interval counts.	All uses changed.
+	since it's now specialized to interval counts.  All uses changed.
 	Do not assume wrapraound on signed integer overflow.
 	(regex_compile): Simplify based on the above changes.
 
@@ -737,7 +737,7 @@
 	change_frame_size should already have done it.
 	(x_new_font): Assign new tool- and menu-bar heights.
 	(x_set_window_size_1): Account for tool- and menu-bar heights
-	(Bug#16013). Don't set pixel sizes since change_frame_size
+	(Bug#16013).  Don't set pixel sizes since change_frame_size
 	should already have done it.
 
 2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1534,7 +1534,7 @@
 
 2013-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (init, run, stop:): Enable again. stop calls super stop
+	* nsterm.m (init, run, stop:): Enable again.  stop calls super stop
 	to handle dialogs.
 
 	* nsterm.m (init, run, stop:): Comment out for now, does not work
@@ -2319,7 +2319,7 @@
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
 	Don't run timers in input-pending-p.  Its new check-timers param
-	provides the prior behavior. (Bug#15045).
+	provides the prior behavior.  (Bug#15045).
 	* src/keyboard.c (Finput_pending_p): Accept optional check-timers
 	param.
 
@@ -3561,7 +3561,7 @@
 	(nsfont_open): Set font driver type.
 	Set font->ascent and font->descent.  Figure out font instead of
 	ns_tmp_font, and flags instead of ns_tmp_flags.
-	Fix indentation. Remove call to ns_draw_text_decoration,
+	Fix indentation.  Remove call to ns_draw_text_decoration,
 	moved to nsterm.
 
 	* nsfns.m: Include macfont.h.
@@ -4168,7 +4168,7 @@
 	* nsterm.m (last_window): New variable.
 	(EV_TRAILER2): New macro.
 	(EV_TRAILER): Call EV_TRAILER2.
-	(mouseMoved:):  Add support for mouse-autoselect-window
+	(mouseMoved:): Add support for mouse-autoselect-window
 	on nextstep (Bug#6888).
 
 2013-08-28  Andreas Schwab  <schwab@suse.de>
@@ -5486,7 +5486,7 @@
 	(handle_one_xevent, syms_of_xterm): Adjust users.
 	(x_flush): Call XFlush once per each X display, not frame.
 	This is better because this code always unconditionally skips
-	non-X frames in Vframe_list and issues the only	XFlush if we
+	non-X frames in Vframe_list and issues the only XFlush if we
 	have more than one X frame on the same X display.
 	(any_help_event_p, x_draw_glyph_string_background, x_display_ok):
 	Use bool for booleans.

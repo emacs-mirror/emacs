@@ -167,7 +167,7 @@
 
 	* net/eww.el (eww-tag-select): Add text-property to jump to next
 	select field.
-	(eww) : Add non-supported ftp error.
+	(eww): Add non-supported ftp error.
 
 2013-12-22  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -207,13 +207,13 @@
 
 2013-12-21  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
-        * net/eww.el (eww-list-histories, eww-list-histories)
+	* net/eww.el (eww-list-histories, eww-list-histories)
 	(eww-history-browse, eww-history-quit, eww-history-kill)
 	(eww-history-mode-map, eww-history-mode): New command and
 	functions to list browser histories.
-        (eww-form-text): Support text form with disabled
-        and readonly attributes.
-        (eww-checkbox-map): Fix wrong key bind to `eww-toggle-checkbox'.
+	(eww-form-text): Support text form with disabled
+	and readonly attributes.
+	(eww-checkbox-map): Fix wrong key bind to `eww-toggle-checkbox'.
 
 2013-12-21  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
@@ -550,7 +550,8 @@
 
 2013-12-18  Leo Liu  <sdl.web@gmail.com>
 
-	* eshell/em-prompt.el (eshell-emit-prompt): Fix last change. (Bug#16186)
+	* eshell/em-prompt.el (eshell-emit-prompt): Fix last change.
+	(Bug#16186)
 
 2013-12-18  Eli Zaretskii  <eliz@gnu.org>
 
@@ -872,7 +873,7 @@
 	* progmodes/python.el (python-pdbtrack-stacktrace-info-regexp):
 	Also match after beginning of line.
 	(python-pdbtrack-set-tracked-buffer): Fix logic for remote
-	files.  Thanks to Russell Sim. (Bug#15378)
+	files.  Thanks to Russell Sim.  (Bug#15378)
 
 2013-12-13  Juri Linkov  <juri@jurta.org>
 
@@ -887,7 +888,7 @@
 2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-indent-calculate-indentation):
-	Fix de-denters cornercase. (Bug#15731)
+	Fix de-denters cornercase.  (Bug#15731)
 
 2013-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -913,7 +914,7 @@
 
 	* progmodes/python.el (python-indent-context)
 	(python-indent-calculate-indentation): Fix auto-identation
-	behavior for comment blocks. (Bug#15916)
+	behavior for comment blocks.  (Bug#15916)
 
 2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
 
@@ -1726,8 +1727,8 @@
 
 2013-11-24  Jorgen Schaefer  <contact@jorgenschaefer.de>
 
-	* minibuffer.el (completion--in-region-1): Scroll the correct
-	window. (Bug#13898)
+	* minibuffer.el (completion--in-region-1): Scroll the correct window.
+	(Bug#13898)
 
 2013-11-24  Bozhidar Batsov  <bozhidar@batsov.com>
 
@@ -1810,7 +1811,7 @@
 	Add completion for command `ag'.
 	* pcmpl-x.el (pcmpl-x-ag-options): New variable.
 	(pcomplete/ag): New function.
-	(pcmpl-x-ag-options): New function. Handle `[no]' in long options.
+	(pcmpl-x-ag-options): New function.  Handle `[no]' in long options.
 
 2013-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2200,7 +2201,7 @@
 2013-11-06  Leo Liu  <sdl.web@gmail.com>
 
 	* thingatpt.el (thing-at-point-looking-at): Add optional arg
-	DISTANCE to bound the search. All uses changed.  (Bug#15808)
+	DISTANCE to bound the search.  All uses changed.  (Bug#15808)
 
 2013-11-06  Glenn Morris  <rgm@gnu.org>
 
@@ -2873,7 +2874,8 @@
 
 2013-10-21  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-smie-grammar): Add (almost) all infix operators.
+	* progmodes/ruby-mode.el (ruby-smie-grammar):
+	Add (almost) all infix operators.
 	(ruby-smie--implicit-semi-p): Add new operator chars.
 
 	* progmodes/ruby-mode.el (ruby-mode-map): Add binding for
