@@ -540,6 +540,12 @@ If optional argument OLD is non-nil, also scan for `defvar's."
 		 ;; Exclude macros, eg (defcustom ,varname ...).
 		 (symbolp var))
 	    (progn
+	      ;; FIXME It should be cus-test-apropos that does this.
+	      (and (not old)
+		   (equal "custom" (match-string 2))
+		   (not (memq :type form))
+		   (display-warning 'custom
+				    (format "Missing type in: `%s'" form)))
 	      (setq ver (car (cdr-safe (memq :version form))))
 	      (if (equal "group" (match-string 2))
 		  ;; Group :version could be old.
@@ -601,8 +607,8 @@ a :version bump.
 
 Note that a :version tag should also be added if the value of a defcustom
 changes (in a non-trivial way).  This function does not check for that."
-  (interactive (list (read-directory-name "New Lisp directory: ")
-		     (read-directory-name "Old Lisp directory: ")
+  (interactive (list (read-directory-name "New Lisp directory: " nil nil t)
+		     (read-directory-name "Old Lisp directory: " nil nil t)
 		     (number-to-string
 		      (read-number "New version number: "
 				   (string-to-number cusver-new-version)))))

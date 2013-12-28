@@ -187,6 +187,9 @@ The detected problematic options are stored in `cus-test-errors'."
      (message "Cus Test running...%s %s"
 	      (length cus-test-tested-variables) symbol)
      (condition-case alpha
+	 ;; FIXME This defaults to 'sexp if no type was specified.
+	 ;; Always report such instances as a type mismatch.
+	 ;; Currently abusing cusver-scan to do that.
 	 (let* ((type (custom-variable-type symbol))
 		(conv (widget-convert type))
 		(get (or (get symbol 'custom-get) 'default-value))
