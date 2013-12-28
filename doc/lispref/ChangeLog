@@ -1,3 +1,7 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* control.texi (Pattern matching case statement): Brevity.
+
 2013-12-27  Chong Yidong  <cyd@gnu.org>
 
 	* functions.texi (Function Cells):
