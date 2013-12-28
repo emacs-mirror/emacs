@@ -4346,7 +4346,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object parent;
   struct kboard *kb;
 
-  if (!FRAME_W32_P (SELECTED_FRAME ()))
+  if (!FRAME_W32_P (SELECTED_FRAME ())
+      && !FRAME_INITIAL_P (SELECTED_FRAME ()))
     error ("Cannot create a GUI frame in a -nw session");
 
   /* Make copy of frame parameters because the original is in pure
