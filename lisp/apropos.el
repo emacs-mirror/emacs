@@ -131,6 +131,7 @@ include key-binding information in its output."
   "Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the pattern; the part that matches gets displayed in this font."
+  :type '(choice (const nil) face)
   :group 'apropos
   :version "24.3")
 

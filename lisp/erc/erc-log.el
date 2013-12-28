@@ -202,6 +202,7 @@ If you set this to nil, you may want to enable both
 
 This should ideally, be a \"catch-all\" coding system, like
 `emacs-mule', or `iso-2022-7bit'."
+  :type 'coding-system
   :group 'erc-log)
 
 (defcustom erc-log-filter-function nil

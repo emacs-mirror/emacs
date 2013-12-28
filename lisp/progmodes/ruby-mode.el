@@ -273,17 +273,26 @@ Only has effect when `ruby-use-smie' is nil."
   :group 'ruby
   :safe 'booleanp)
 
+;; FIXME Woefully under documented.  What is the point of the last `t'?.
 (defcustom ruby-deep-indent-paren '(?\( ?\[ ?\] t)
   "Deep indent lists in parenthesis when non-nil.
 The value t means continuous line.
 Also ignores spaces after parenthesis when `space'.
 Only has effect when `ruby-use-smie' is nil."
+  :type '(choice (const nil)
+                 character
+                 (repeat (choice character
+                                 (cons character (choice (const nil)
+                                                         (const t)))
+                                 (const t) ; why?
+                                 )))
   :group 'ruby)
 
 (defcustom ruby-deep-indent-paren-style 'space
   "Default deep indent style.
 Only has effect when `ruby-use-smie' is nil."
-  :options '(t nil space) :group 'ruby)
+  :type '(choice (const t) (const nil) (const space))
+  :group 'ruby)
 
 (defcustom ruby-encoding-map
   '((us-ascii       . nil)       ;; Do not put coding: us-ascii

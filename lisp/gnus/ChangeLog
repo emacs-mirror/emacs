@@ -1,5 +1,12 @@
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-sieve.el (gnus-sieve-select-method):
+	* gravatar.el (gravatar-automatic-caching, gravatar-cache-ttl)
+	(gravatar-rating, gravatar-size):
+	* message.el (message-minibuffer-local-map):
+	* sieve-manage.el (sieve-manage-authenticators)
+	(sieve-manage-authenticator-alist): Specify custom types.
+
 	* gnus-icalendar.el (gnus-icalendar-org, gnus-icalendar):
 	* gnus-sum.el (gnus-subthread-sort-functions): Add version.
 	* gnus-sync.el (gnus-sync-file-encrypt-to): Add type and version.

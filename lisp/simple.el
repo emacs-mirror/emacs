@@ -3812,6 +3812,8 @@ end positions of the text.
 This is done prior to removing the properties specified by
 `yank-excluded-properties'."
   :group 'killing
+  :type '(repeat (cons (symbol :tag "property symbol")
+                       function))
   :version "24.3")
 
 ;; This is actually used in subr.el but defcustom does not work there.

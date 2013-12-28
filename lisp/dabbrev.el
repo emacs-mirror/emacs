@@ -285,6 +285,7 @@ A mode setting this variable should make it buffer local."
 If this variable is non-nil, dabbrev will only look in these buffers.
 It will not even look in the current buffer if it is not a member of
 this list."
+  :type '(choice (const nil) (repeat :tag "List of buffers" string))
   :group 'dabbrev)
 
 ;;----------------------------------------------------------------

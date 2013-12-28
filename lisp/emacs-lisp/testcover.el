@@ -146,7 +146,8 @@ call to one of the `testcover-1value-functions'."
   '(add-hook and beep or remove-hook unless when)
   "Functions that are potentially 1-valued.  No brown splotch if actually
 1-valued, no error if actually multi-valued."
-  :group 'testcover)
+  :group 'testcover
+  :type '(repeat symbol))
 
 (defface testcover-nohits
   '((t (:background "DeepPink2")))

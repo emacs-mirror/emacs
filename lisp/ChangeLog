@@ -1,5 +1,25 @@
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
+	* mail/hashcash.el (hashcash-program): Rename from hashcash-path.
+	Update callers.
+
+	* apropos.el (apropos-match-face):
+	* calculator.el (calculator-displayer):
+	* dabbrev.el (dabbrev-search-these-buffers-only):
+	* face-remap.el (buffer-face-mode-face):
+	* simple.el (yank-handled-properties):
+	* emacs-lisp/testcover.el (testcover-potentially-1value-functions):
+	* mail/footnote.el (footnote-mode-line-string, footnote-prefix):
+	* mail/hashcash.el (hashcash-accept-resources, hashcash-program)
+	(hashcash-double-spend-database):
+	* progmodes/ruby-mode.el (ruby-deep-indent-paren)
+	(ruby-deep-indent-paren-style):
+	* textmodes/flyspell.el (flyspell-auto-correct-binding):
+	* textmodes/rst.el (rst-toc-indent, rst-toc-insert-style)
+	(rst-toc-insert-number-separator, rst-toc-insert-max-level):
+	* vc/pcvs-defs.el (cvs-minor-mode-prefix):
+	Specify custom types.
+
 	* emacs-lisp/smie.el (smie-config): Add type, version, initialize.
 	* bookmark.el (bookmark-bmenu-use-header-line):
 	* doc-view.el (doc-view-scale-internally):

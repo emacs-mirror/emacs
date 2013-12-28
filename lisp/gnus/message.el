@@ -944,6 +944,8 @@ the signature is inserted."
     (set-keymap-parent map minibuffer-local-map)
     map)
   "Keymap for `message-read-from-minibuffer'."
+  ;; FIXME improve type.
+  :type '(restricted-sexp :match-alternatives (symbolp keymapp))
   :version "22.1"
   :group 'message-various)
 

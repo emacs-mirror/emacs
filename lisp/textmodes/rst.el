@@ -2296,6 +2296,7 @@ any."
 (defcustom rst-toc-indent 2
   "Indentation for table-of-contents display.
 Also used for formatting insertion, when numbering is disabled."
+  :type 'integer
   :group 'rst-toc)
 (rst-testcover-defcustom)
 
@@ -2307,11 +2308,16 @@ indentation style:
 - fixed: numbering, but fixed indentation
 - aligned: numbering, titles aligned under each other
 - listed: numbering, with dashes like list items (EXPERIMENTAL)"
+  :type '(choice (const plain)
+                 (const fixed)
+                 (const aligned)
+                 (const listed))
   :group 'rst-toc)
 (rst-testcover-defcustom)
 
 (defcustom rst-toc-insert-number-separator "  "
   "Separator that goes between the TOC number and the title."
+  :type 'string
   :group 'rst-toc)
 (rst-testcover-defcustom)
 
@@ -2324,6 +2330,7 @@ indentation style:
 
 (defcustom rst-toc-insert-max-level nil
   "If non-nil, maximum depth of the inserted TOC."
+  :type '(choice (const nil) integer)
   :group 'rst-toc)
 (rst-testcover-defcustom)
 

@@ -283,6 +283,7 @@ If this variable is nil, all regions are treated as small."
 (defcustom flyspell-auto-correct-binding
   [(control ?\;)]
   "The key binding for flyspell auto correction."
+  :type 'key-sequence
   :group 'flyspell)
 
 ;;*---------------------------------------------------------------------*/
