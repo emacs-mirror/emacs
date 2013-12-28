@@ -2,8 +2,6 @@
 
 	* erc-log.el (erc-log-file-coding-system): Specify custom type.
 
-	* erc-button.el (erc-button-alist): Fix custom type.
-
 2013-11-25  Glenn Morris  <rgm@gnu.org>
 
 	* erc-button.el (erc-nick-popup): Make `nick' available in the
