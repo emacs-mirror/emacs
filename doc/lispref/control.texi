@@ -323,7 +323,7 @@ was returned by @code{(get-return-code x)}.
 
 To give a more complex example, a simple interpreter for a little
 expression language could look like (note that this example requires
-lexical-binding):
+lexical binding):
 
 @example
 (defun evaluate (exp env)
