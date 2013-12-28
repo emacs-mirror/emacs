@@ -1099,6 +1099,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
             argv[skip_args] = fdStr;
 
+	    fcntl (daemon_pipe[0], F_SETFD, 0);
+	    fcntl (daemon_pipe[1], F_SETFD, 0);
             execvp (argv[0], argv);
 	    emacs_perror (argv[0]);
 	    exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
