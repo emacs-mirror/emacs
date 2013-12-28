@@ -631,12 +631,8 @@ easily reproducible at all.  In that case, you should report what you
 have---but, as before, please stick to the raw facts about what you
 did to trigger the bug the first time.
 
-  Please do not stack multiple issues into one report unless it is
-really necessary.  For example, jamming @code{electric-indent-mode}
-and @code{electric-pair-mode} into one report, reporting multiple key
-binding problems into one report (e.g., @kbd{C-i} doesn't indent the
-current line, @code{M-h} doesn't set mark, etc.).  Please make one
-report for each individual problem.
+  If you have multiple issues that you want to report, please make a
+separate bug report for each.
 
 @node Checklist
 @subsection Checklist for Bug Reports

@@ -1,3 +1,7 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Understanding Bug Reporting): Brevity.
+
 2013-12-27  Jarek Czekalski  <jarekczek@poczta.onet.pl>
 
 	* mini.texi (Completion Options): Add a link to Shell Options.
@@ -5,8 +9,8 @@
 	shell-completion-fignore from Shell Mode to Shell Options.
 
 2013-12-26  João Távora <joaotavora@gmail.com>
-	* emacs.texi (Matching): Describe new features of Electric Pair
-	mode.
+
+	* emacs.texi (Matching): Describe new features of Electric Pair mode.
 
 2013-12-25  Chong Yidong  <cyd@gnu.org>
 
