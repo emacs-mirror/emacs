@@ -92,9 +92,9 @@ if test -n "$XCRUN"; then
     if test -z "$MAKE_PROG"; then
       MAKE="$XCRUN MAKE"
       export MAKE
+      xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
     fi
   fi
-  xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
 fi
 
 dnl Fairly arbitrary, older versions might work too.

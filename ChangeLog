@@ -1,3 +1,7 @@
+2013-12-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (xcsdkdir): Only set if using xcrun.
+
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (LIBXML2_CFLAGS): Fix xcrun-related quoting problem.
