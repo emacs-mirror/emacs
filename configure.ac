@@ -3296,7 +3296,7 @@ if test "${with_xml2}" != "no"; then
   # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
   if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS=$CPPFLAGS' -I"$xcsdkdir"/usr/include/libxml2'
+    CPPFLAGS="$CPPFLAGS -I$xcsdkdir/usr/include/libxml2"
     AC_CHECK_HEADER(libxml/HTMLparser.h,
       [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
       		     [#include <libxml/HTMLparser.h>])])
