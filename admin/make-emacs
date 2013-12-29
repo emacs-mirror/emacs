@@ -21,6 +21,8 @@
 
 
 require 5;
+use strict;
+use warnings;
 use Getopt::Long;
 use File::Basename;
 use Cwd;

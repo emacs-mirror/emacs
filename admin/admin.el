@@ -69,6 +69,7 @@ Optional argument DATE is the release date, default today."
     (user-error "Version not found in %s" file))
   (replace-match (format "%s" version) nil nil nil 1))
 
+;; TODO report the progress
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -161,6 +162,7 @@ Root must be the root of an Emacs source tree."
 
 
 ;; Note this makes some assumptions about form of short copyright.
+;; TODO report the progress
 (defun set-copyright (root copyright)
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
