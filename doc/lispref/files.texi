@@ -1563,8 +1563,6 @@ some operating systems.)  If setting the time gets an error,
 interactive call, a prefix argument specifies a non-@code{nil} value
 for @var{time}.
 
-This function copies the file modes, too.
-
 If argument @var{preserve-uid-gid} is @code{nil}, we let the operating
 system decide the user and group ownership of the new file (this is
 usually set to the user running Emacs).  If @var{preserve-uid-gid} is
@@ -1572,10 +1570,11 @@ non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
 
-If the optional argument @var{preserve-extended-attributes} is
-non-@code{nil}, and Emacs has been built with the appropriate support,
-this function attempts to copy the file's extended attributes, such as
-its SELinux context and ACL entries (@pxref{File Attributes}).
+If the optional argument @var{preserve-permissions} is non-@code{nil},
+this function copies the file's permissions, such as its file modes,
+its SELinux context, and ACL entries (@pxref{File Attributes}).
+Otherwise, if the destination is created its file permission bits are
+those of the source, masked by the default file permissions.
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists

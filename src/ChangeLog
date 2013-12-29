@@ -1,3 +1,20 @@
+2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Plain copy-file no longer chmods an existing destination (Bug#16133).
+	* fileio.c (realmask): Now a static var, not a local.
+	(barf_or_query_if_file_exists): New arg KNOWN_TO_EXIST.
+	Remove arg STATPTR.  All uses changed.
+	(Fcopy_file): Do not alter permissions of existing destinations,
+	unless PRESERVE-PERMISSIONS (renamed from
+	PRESERVE-EXTENDED-ATTRIBUTES) is non-nil.
+	Avoid race when testing for existing destinations and for
+	when input and output files are the same.
+	If changing the group fails, adjust both default and
+	preserved permissions so that access is not granted to the
+	wrong group.
+	(Fset_default_file_modes, init_fileio): Update realmask.
+	(Fdefault_file_modes): Use realmask instead of calling umask.
+
 2013-12-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix pipe bug with OS X emacs --daemon (Bug#16262).

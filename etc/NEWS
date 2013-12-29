@@ -952,6 +952,12 @@ alist of extended attributes as returned by the new function
 `file-extended-attributes'.  The attributes can be applied to another
 file using `set-file-extended-attributes'.
 
+** By default `copy-file' no longer copies file permission bits to an
+existing destination; and it sets the file permission bits of a newly
+created destination to those of the source, masked by the default file
+permissions.  To copy the file permission bits, pass t as the
+PRESERVE-PERMISSIONS argument of `copy-file'.
+
 +++
 ** `visited-file-modtime' now returns -1 for nonexistent files.
 Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
@@ -1100,8 +1106,8 @@ platforms, and nobody seems to have noticed or cared.
 
 +++
 *** The 6th argument to `copy-file' has been renamed to
-PRESERVE-EXTENDED-ATTRIBUTES as it now handles both SELinux context
-and ACL entries.
+PRESERVE-PERMISSIONS as it now handles ACL entries and the traditional
+Unix file permission bits as well as SELinux context.
 
 +++
 *** The function `file-ownership-preserved-p' now has an optional
