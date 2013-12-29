@@ -1117,6 +1117,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
                 dname_arg2);
         dname_arg = *dname_arg2 ? dname_arg2 : NULL;
+	fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
       }
 #endif /* DAEMON_MUST_EXEC */
 
