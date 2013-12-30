@@ -395,20 +395,25 @@ the @import directive."
 
 (defun manual-html-fix-headers ()
   "Fix up HTML headers for the Emacs manual in the current buffer."
-  (let (opoint)
-    (insert manual-doctype-string)
+  (let ((texi5 (search-forward "<!DOCTYPE" nil t))
+	opoint)
+    ;; Texinfo 5 supplies a DOCTYPE.
+    (or texi5
+	(insert manual-doctype-string))
     (search-forward "<head>\n")
     (insert manual-meta-string)
     (search-forward "<meta")
     (setq opoint (match-beginning 0))
-    (re-search-forward "<!--")
+    (unless texi5
+      (search-forward "<!--")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
-    (insert manual-style-string)
     (search-forward "<meta http-equiv=\"Content-Style")
-    (setq opoint (match-beginning 0))
+      (setq opoint (match-beginning 0)))
     (search-forward "</head>")
-    (delete-region opoint (match-beginning 0))))
+    (goto-char (match-beginning 0))
+    (delete-region opoint (point))
+    (insert manual-style-string)))
 
 (defun manual-html-fix-node-div ()
   "Fix up HTML \"node\" divs in the current buffer."
@@ -426,7 +431,7 @@ the @import directive."
 
 (defun manual-html-fix-index-1 ()
   (let (opoint)
-    (re-search-forward "<body>\n")
+    (re-search-forward "<body.*>\n")
     (setq opoint (match-end 0))
     (search-forward "<h2 class=\"")
     (goto-char (match-beginning 0))
