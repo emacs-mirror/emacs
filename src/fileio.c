@@ -1943,8 +1943,6 @@ permissions.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object encoded_file, encoded_newname;
-  bool already_exists = false;
-  mode_t new_mask;
 #if HAVE_LIBSELINUX
   security_context_t con;
   int conlength = 0;
@@ -1952,6 +1950,8 @@ permissions.  */)
 #ifdef WINDOWSNT
   int result;
 #else
+  bool already_exists = false;
+  mode_t new_mask;
   int ifd, ofd;
   int n;
   char buf[16 * 1024];

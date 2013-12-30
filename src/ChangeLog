@@ -1,3 +1,8 @@
+2013-12-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fileio.c (Fcopy_file) [!WINDOWSNT]: Don't declare on Windows
+	variables not used there.
+
 2013-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_umask): New function.  (Bug#16299)
