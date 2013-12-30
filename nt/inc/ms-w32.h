@@ -235,6 +235,9 @@ extern struct tm * sys_localtime (const time_t *);
 extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
+#undef umask
+#define umask   sys_umask
+extern int sys_umask (int);
 
 /* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve
@@ -276,7 +279,6 @@ typedef int pid_t;
 #define lseek     _lseek
 #define popen     _popen
 #define pclose    _pclose
-#define umask	  _umask
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp

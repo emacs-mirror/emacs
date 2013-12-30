@@ -1,3 +1,7 @@
+2013-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_umask): New function.  (Bug#16299)
+
 2013-12-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispnew.c (change_frame_size_1): Take old width of root window
