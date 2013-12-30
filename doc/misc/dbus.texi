@@ -2,6 +2,8 @@
 @setfilename ../../info/dbus
 @c %**start of header
 @settitle Using of D-Bus
+@documentencoding UTF-8
+@documentlanguage en
 @c @setchapternewpage odd
 @c %**end of header
 

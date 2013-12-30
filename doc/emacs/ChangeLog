@@ -1,3 +1,8 @@
+2013-12-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify info encoding and language (Bug#16292).
+	* emacs.texi, emacs-xtra.texi: Add @documentlanguage directive.
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Understanding Bug Reporting): Brevity.

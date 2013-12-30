@@ -45,6 +45,7 @@ developing GNU and promoting software freedom.''
 @end copying
 
 @documentencoding UTF-8
+@documentlanguage en
 
 @dircategory Emacs
 @direntry

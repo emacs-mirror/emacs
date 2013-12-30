@@ -3,6 +3,8 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/sc
 @settitle Supercite User's Manual
+@documentencoding UTF-8
+@documentlanguage en
 @iftex
 @finalout
 @end iftex

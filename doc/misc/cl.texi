@@ -1,6 +1,8 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/cl
 @settitle Common Lisp Extensions
+@documentencoding UTF-8
+@documentlanguage en
 @include emacsver.texi
 
 @copying
@@ -1495,7 +1497,7 @@ simply returning @code{nil}.
 
 @node Blocks and Exits
 @section Blocks and Exits
-@cindex block 
+@cindex block
 
 @noindent
 Common Lisp @dfn{blocks} provide a non-local exit mechanism very

@@ -3,6 +3,8 @@
 @setfilename ../../info/remember
 @settitle Remember Manual
 @syncodeindex fn cp
+@documentencoding UTF-8
+@documentlanguage en
 @c %**end of header
 
 @copying

@@ -83,6 +83,8 @@ the second with them pointing to the XEmacs manuals.
 
 @setfilename  ../../info/ccmode
 @settitle     CC Mode Manual
+@documentencoding UTF-8
+@documentlanguage en
 @footnotestyle end
 
 @c The following four macros generate the filenames and titles of the

@@ -4,6 +4,8 @@
 @c setfilename emacs-lisp-intro.info
 @c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp
+@documentencoding UTF-8
+@documentlanguage en
 @syncodeindex vr cp
 @syncodeindex fn cp
 @finalout

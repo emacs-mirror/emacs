@@ -4,6 +4,7 @@
 @settitle Emacs Interface for Mairix
 
 @documentencoding UTF-8
+@documentlanguage en
 
 @copying
 Copyright @copyright{} 2008--2013 Free Software Foundation, Inc.

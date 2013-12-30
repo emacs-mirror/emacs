@@ -1,6 +1,8 @@
 \input texinfo
 @setfilename ../../info/ede
 @settitle Emacs Development Environment
+@documentencoding UTF-8
+@documentlanguage en
 
 @copying
 This file describes EDE, the Emacs Development Environment.

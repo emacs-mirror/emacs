@@ -2,6 +2,8 @@
 @c %**start of header
 @setfilename ../../info/rcirc
 @settitle rcirc Manual
+@documentencoding UTF-8
+@documentlanguage en
 @c %**end of header
 
 @copying

@@ -1,6 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename ../../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility
+@documentencoding UTF-8
+@documentlanguage en
 @syncodeindex fn cp
 
 @copying

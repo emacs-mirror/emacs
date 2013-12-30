@@ -1,3 +1,9 @@
+2013-12-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify info encoding and language (Bug#16292).
+	* back.texi, book-spine.texi, elisp.texi, lay-flat.texi:
+	Add @documentencoding, @documentlanguage as needed.
+
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Plain copy-file no longer chmods an existing destination (Bug#16133).
