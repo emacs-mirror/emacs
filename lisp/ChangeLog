@@ -1,5 +1,8 @@
 2013-12-30  Daniel Colascione  <dancol@dancol.org>
 
+	* term/x-win.el ([XF86WakeUp]): Ignore the XF86WakeUp key instead
+	of printing a useless when we resume from sleep.
+
 	* progmodes/sh-script.el
 	(sh-smie-sh-forward-token,sh-smie-rc-forward-token): Fix infloop
 	in indentation code.  (Bug#16233)
