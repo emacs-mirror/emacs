@@ -4,8 +4,6 @@
 
 @setfilename ../../info/sieve
 @settitle Emacs Sieve Manual
-@documentencoding UTF-8
-@documentlanguage en
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp

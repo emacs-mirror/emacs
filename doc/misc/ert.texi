@@ -2,8 +2,6 @@
 @c %**start of header
 @setfilename ../../info/ert
 @settitle Emacs Lisp Regression Testing
-@documentencoding UTF-8
-@documentlanguage en
 @c %**end of header
 
 @dircategory Emacs misc features

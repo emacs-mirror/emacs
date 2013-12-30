@@ -9,7 +9,6 @@
 @syncodeindex pg cp
 
 @documentencoding UTF-8
-@documentlanguage en
 
 @copying
 Copyright @copyright{} 1995--2013 Free Software Foundation, Inc.

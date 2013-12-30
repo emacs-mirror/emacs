@@ -5,8 +5,6 @@
 @c @node Autotypist, Picture, Abbrevs, Top
 @c @chapter Features for Automatic Typing
 @settitle Features for Automatic Typing
-@documentencoding UTF-8
-@documentlanguage en
 @c  @cindex text
 @c  @cindex selfinserting text
 @c  @cindex autotypist

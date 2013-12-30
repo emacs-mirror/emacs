@@ -2,9 +2,6 @@
 @setfilename ../../info/url
 @settitle URL Programmer's Manual
 
-@documentencoding UTF-8
-@documentlanguage en
-
 @iftex
 @c @finalout
 @end iftex

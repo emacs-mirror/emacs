@@ -1,8 +1,6 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/ido
 @settitle Interactive Do
-@documentencoding UTF-8
-@documentlanguage en
 @include emacsver.texi
 
 @copying

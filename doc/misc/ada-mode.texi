@@ -1,8 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename ../../info/ada-mode
 @settitle Ada Mode
-@documentencoding UTF-8
-@documentlanguage en
 
 @copying
 Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.

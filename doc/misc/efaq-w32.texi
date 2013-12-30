@@ -162,7 +162,7 @@ Pre-compiled versions are distributed from
 Emacs binaries are distributed as zip files, digitally
 signed by the developer who built them.  Generally most users will
 want the file @file{emacs-@value{EMACSVER}-bin-i386.zip}, which
-contains everything you need to get started.
+contains everything you need to get started. 
 
 @cindex where to get sources
 @cindex Emacs source code
@@ -286,7 +286,7 @@ Windows ports of the command line gzip and tar tools from multiple sources.
 
 The command to unpack a source distribution from the command line is:
 @example
-tar xzf emacs-@value{EMACSVER}.tar.gz
+tar xzf emacs-@value{EMACSVER}.tar.gz 
 @end example
 
 If this does not work with the versions of tar and gzip that you have,
@@ -573,9 +573,9 @@ Message-ID: <fawg21mm4hm.fsf@@mordor.rsn.hp.com>
 Subject: Re: Re[2]: problem with caps/ctrl swap on NT 4.0
 @end ignore
 @example
-It's a binary value that lets you map keystrokes in the low-level keyboard
-drivers in NT.  As a result you don't have to worry about applications
-bypassing mappings that you've done at a higher level (i.e. it just works).
+It's a binary value that lets you map keystrokes in the low-level keyboard 
+drivers in NT.  As a result you don't have to worry about applications 
+bypassing mappings that you've done at a higher level (i.e. it just works). 
 
 Here's the format of the value:
 
@@ -587,11 +587,11 @@ Here's the format of the value:
 	DWORD:	mapping n
 	DWORD:	0x00000000	terminating null DWORD
 
-Each mapping DWORD  has two parts: the input scancode, and an output
-scancode.  To map scancode 0x1d (left control) to scancode 0x3a (caps
-lock), you want a value of 0x003a001d.  Note that this does not swap the
-keys.  Using just this mapping value, both the left control and the caps
-lock key will behave as caps-lock.  To swap, you also need to map 0x3a to
+Each mapping DWORD  has two parts: the input scancode, and an output 
+scancode.  To map scancode 0x1d (left control) to scancode 0x3a (caps 
+lock), you want a value of 0x003a001d.  Note that this does not swap the 
+keys.  Using just this mapping value, both the left control and the caps 
+lock key will behave as caps-lock.  To swap, you also need to map 0x3a to 
 0x1d, using 0x001d003a.
 
 This registry value is system wide, and can't be made user-specific.  It
@@ -1426,7 +1426,7 @@ this discussion} for more details.
 You can start an interactive shell in Emacs by typing @kbd{M-x shell}.
 Emacs uses the @env{SHELL} environment variable to determine which
 program to use as the shell.  To instruct Emacs to use a non-default
-shell, you can either set this environment variable, or customize
+shell, you can either set this environment variable, or customize 
 @code{explicit-shell-file-name}.  You can also customize
 @code{shell-file-name} to change the shell that will be used by
 subprocesses that are started with @code{shell-command} and

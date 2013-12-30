@@ -5,8 +5,6 @@
 @c %**start of header
 @setfilename ../../info/mh-e
 @settitle The MH-E Manual
-@documentencoding UTF-8
-@documentlanguage en
 @c %**end of header
 
 @c Version of the software and manual.

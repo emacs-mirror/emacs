@@ -4,8 +4,6 @@
 
 @setfilename ../../info/message
 @settitle Message Manual
-@documentencoding UTF-8
-@documentlanguage en
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp

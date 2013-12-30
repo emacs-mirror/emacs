@@ -27,7 +27,6 @@ modify this GNU manual.''
 @end copying
 
 @documentencoding UTF-8
-@documentlanguage en
 
 @dircategory Emacs
 @direntry

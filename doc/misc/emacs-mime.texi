@@ -26,8 +26,8 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
+@c Node ``Interface Functions'' uses non-ASCII characters
 @documentencoding UTF-8
-@documentlanguage en
 
 @dircategory Emacs lisp libraries
 @direntry

@@ -1,21 +1,3 @@
-2013-12-30  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Specify info encoding and language (Bug#16292).
-	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
-	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
-	* ede.texi, ediff.texi, edt.texi, efaq-w32.texi, efaq.texi:
-	* eieio.texi, emacs-gnutls.texi, emacs-mime.texi, epa.texi, erc.texi:
-	* ert.texi, eshell.texi, eudc.texi, flymake.texi, forms.texi:
-	* gnus-coding.texi, gnus-faq.texi, gnus.texi, htmlfontify.texi:
-	* idlwave.texi, ido.texi, info.texi, mairix-el.texi, message.texi:
-	* mh-e.texi, newsticker.texi, nxml-mode.texi, octave-mode.texi:
-	* org.texi, pcl-cvs.texi, pgg.texi, rcirc.texi, reftex.texi:
-	* remember.texi, sasl.texi, sc.texi, semantic.texi, ses.texi:
-	* sieve.texi, smtpmail.texi, speedbar.texi, srecode.texi:
-	* todo-mode.texi, tramp.texi, url.texi, vip.texi, viper.texi:
-	* widget.texi, wisent.texi, woman.texi:
-	Add @documentencoding, @documentlanguage as needed.
-
 2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-gnutls.texi (Help For Users): Document `gnutls-verify-error'.

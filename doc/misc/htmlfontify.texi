@@ -3,8 +3,6 @@
 @setfilename ../../info/htmlfontify
 @settitle Htmlfontify User Manual
 @exampleindent 2
-@documentencoding UTF-8
-@documentlanguage en
 @comment %**end of header
 
 @copying

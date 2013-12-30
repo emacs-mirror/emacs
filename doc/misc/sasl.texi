@@ -7,9 +7,6 @@
 @set VERSION 0.2
 @settitle Emacs SASL Library @value{VERSION}
 
-@documentencoding UTF-8
-@documentlanguage en
-
 @copying
 This file describes the Emacs SASL library, version @value{VERSION}.
 

@@ -7,9 +7,6 @@
 @set VERSION 0.1
 @settitle PGG @value{VERSION}
 
-@documentencoding UTF-8
-@documentlanguage en
-
 @copying
 This file describes PGG @value{VERSION}, an Emacs interface to various
 PGP implementations.

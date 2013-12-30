@@ -6,9 +6,6 @@
 @comment @setfilename viper.info
 @setfilename ../../info/viper
 
-@documentencoding UTF-8
-@documentlanguage en
-
 @copying
 Copyright @copyright{} 1995--1997, 2001--2013 Free Software Foundation, Inc.
 
