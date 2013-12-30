@@ -5463,8 +5463,7 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
 		     bool pretend, bool delay, bool safe, bool pixelwise)
 {
   int new_text_width, new_text_height, new_root_width;
-  int old_root_width = (FRAME_PIXEL_WIDTH (f)
-			- 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+  int old_root_width = WINDOW_PIXEL_WIDTH (XWINDOW (FRAME_ROOT_WINDOW (f)));
   int new_cols, new_lines;
   ptrdiff_t count = SPECPDL_INDEX ();
 

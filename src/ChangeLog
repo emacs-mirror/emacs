@@ -1,3 +1,8 @@
+2013-12-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Take old width of root window
+	from that window's pixel width.  Bug#16284.
+
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Plain copy-file no longer chmods an existing destination (Bug#16133).
