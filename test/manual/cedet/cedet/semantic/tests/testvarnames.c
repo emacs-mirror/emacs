@@ -37,6 +37,17 @@ struct inline2struct {
 struct inlinestruct in_var1;
 struct inline2struct in_var2;
 
+/*
+ * Structures (or any types) could have the same name as a variable.
+ * Make sure we complete vars over types.
+ *
+ * See cedet-devel mailing list Dec 23, 2013 for details.
+ */
+struct varorstruct {};
+int varorstruct;
+
+int assigntovarorstruct;
+
 int test_1(int var_arg1) {
 
   var_// -1-
@@ -68,4 +79,7 @@ int test_1(int var_arg1) {
     ; // #10# ( "named_1" "named_2")
   in_var2.// -11-
     ; // #11# ( "named_3" "named_4")
+
+  varorstruct = assign// -12-
+    ; // #12# ( "assigntovarorstruct" )
 }
