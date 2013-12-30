@@ -1,3 +1,7 @@
+2013-12-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Use @quotation for license notice.
+
 2013-12-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi: Tweak dircategory.
