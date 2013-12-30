@@ -1844,7 +1844,7 @@ Does not preserve point."
             ";")
         (let ((semi (sh-smie--newline-semi-p)))
           (forward-line 1)
-          (if semi ";"
+          (if (or semi (eobp)) ";"
             (sh-smie-sh-forward-token))))
     (forward-comment (point-max))
     (cond
@@ -2070,7 +2070,7 @@ Point should be before the newline."
             ";")
         (let ((semi (sh-smie--rc-newline-semi-p)))
           (forward-line 1)
-          (if semi ";"
+          (if (or semi (eobp)) ";"
             (sh-smie-rc-forward-token))))
     (forward-comment (point-max))
     (cond
