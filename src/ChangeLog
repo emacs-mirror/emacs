@@ -1,3 +1,7 @@
+2013-12-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowDidResignKey:): Set mouse_moved to 0 (Bug#8421).
+
 2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
 	* w32term.c (w32_initialize): Use LCID and LOWORD.

@@ -5950,6 +5950,7 @@ if (cols > 0 && rows > 0)
   if (is_focus_frame)
     dpyinfo->x_focus_frame = 0;
 
+  emacsframe->mouse_moved = 0;
   ns_frame_rehighlight (emacsframe);
 
   /* FIXME: for some reason needed on second and subsequent clicks away
