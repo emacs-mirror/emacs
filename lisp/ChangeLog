@@ -1,3 +1,8 @@
+2013-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-conf.el: Unify the charset indian-is13194.
+	(indian-is13194): Specify unify-map.
+
 2013-12-31  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (set-temporary-overlay-map): Obsolete alias.  (Bug#16305)
