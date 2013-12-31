@@ -4266,6 +4266,9 @@ use `called-interactively-p'."
            (eq 'add-keymap-witness (nth 1 map))
            (set symbol tail)))))
 
+(define-obsolete-function-alias
+  'set-temporary-overlay-map 'set-transient-map "24.4")
+
 (defun set-transient-map (map &optional keep-pred on-exit)
   "Set MAP as a temporary keymap taking precedence over other keymaps.
 Normally, MAP is used only once, to look up the very next key.

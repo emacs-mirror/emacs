@@ -1,3 +1,7 @@
+2013-12-31  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (set-temporary-overlay-map): Obsolete alias.  (Bug#16305)
+
 2013-12-30  Daniel Colascione  <dancol@dancol.org>
 
 	* term/x-win.el ([XF86WakeUp]): Ignore the XF86WakeUp key instead
