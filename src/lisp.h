@@ -62,7 +62,7 @@ INLINE_HEADER_BEGIN
    pI - printf length modifier for EMACS_INT
    EMACS_UINT - unsigned variant of EMACS_INT */
 #ifndef EMACS_INT_MAX
-# if LONG_MAX < LLONG_MAX && defined WIDE_EMACS_INT
+# if LONG_MAX < LLONG_MAX && (defined(WIDE_EMACS_INT) || defined(_WIN64))
 typedef long long int EMACS_INT;
 typedef unsigned long long int EMACS_UINT;
 #  define EMACS_INT_MAX LLONG_MAX

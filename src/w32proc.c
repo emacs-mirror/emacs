@@ -43,8 +43,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef kill
 
 #include <windows.h>
-#ifdef __GNUC__
-/* This definition is missing from mingw32 headers. */
+#if defined(__GNUC__) && !defined(__MINGW64__)
+/* This definition is missing from mingw.org headers, but not MinGW64
+   headers. */
 extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 #endif
 
@@ -1066,7 +1067,7 @@ static char * process_dir;
 
 static BOOL
 create_child (char *exe, char *cmdline, char *env, int is_gui_app,
-	      int * pPid, child_process *cp)
+	      pid_t * pPid, child_process *cp)
 {
   STARTUPINFO start;
   SECURITY_ATTRIBUTES sec_attrs;
@@ -3084,10 +3085,10 @@ The return value is a list of pairs of language id and layout id.  */)
     {
       while (--num_layouts >= 0)
 	{
-	  DWORD kl = (DWORD) layouts[num_layouts];
+	  HKL kl = layouts[num_layouts];
 
-	  obj = Fcons (Fcons (make_number (kl & 0xffff),
-			      make_number ((kl >> 16) & 0xffff)),
+	  obj = Fcons (Fcons (make_number (LOWORD (kl)),
+			      make_number (HIWORD (kl))),
 		       obj);
 	}
     }
@@ -3102,10 +3103,10 @@ DEFUN ("w32-get-keyboard-layout", Fw32_get_keyboard_layout,
 The return value is the cons of the language id and the layout id.  */)
   (void)
 {
-  DWORD kl = (DWORD) GetKeyboardLayout (dwWindowsThreadId);
+  HKL kl = GetKeyboardLayout (dwWindowsThreadId);
 
-  return Fcons (make_number (kl & 0xffff),
-		make_number ((kl >> 16) & 0xffff));
+  return Fcons (make_number (LOWORD (kl)),
+		make_number (HIWORD (kl)));
 }
 
 
@@ -3116,14 +3117,14 @@ The keyboard layout setting affects interpretation of keyboard input.
 If successful, the new layout id is returned, otherwise nil.  */)
   (Lisp_Object layout)
 {
-  DWORD kl;
+  HKL kl;
 
   CHECK_CONS (layout);
   CHECK_NUMBER_CAR (layout);
   CHECK_NUMBER_CDR (layout);
 
-  kl = (XINT (XCAR (layout)) & 0xffff)
-    | (XINT (XCDR (layout)) << 16);
+ kl = (HKL) ((XINT (XCAR (layout)) & 0xffff)
+	     | (XINT (XCDR (layout)) << 16));
 
   /* Synchronize layout with input thread.  */
   if (dwWindowsThreadId)
@@ -3138,7 +3139,7 @@ If successful, the new layout id is returned, otherwise nil.  */)
 	    return Qnil;
 	}
     }
-  else if (!ActivateKeyboardLayout ((HKL) kl, 0))
+  else if (!ActivateKeyboardLayout (kl, 0))
     return Qnil;
 
   return Fw32_get_keyboard_layout ();

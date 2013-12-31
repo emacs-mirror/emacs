@@ -78,7 +78,7 @@ allocate_heap (void)
   while (!ptr && (base < end))
     {
 #ifdef _WIN64
-      reserved_heap_size = min(end - base, 0x4000000000i64); /* Limit to 256Gb */
+      reserved_heap_size = min(end - base, 0x4000000000ull); /* Limit to 256Gb */
 #else
       reserved_heap_size = end - base;
 #endif
@@ -96,7 +96,7 @@ static char *
 allocate_heap (void)
 {
 #ifdef _WIN64
-  size_t size = 0x4000000000i64; /* start by asking for 32GB */
+  size_t size = 0x4000000000ull; /* start by asking for 32GB */
 #else
   /* We used to start with 2GB here, but on Windows 7 that would leave
      too little room in the address space for threads started by

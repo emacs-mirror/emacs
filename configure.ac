@@ -622,6 +622,18 @@ case "${canonical}" in
     esac
   ;;
 
+  # MinGW64
+  x86_64-*-* )
+    case "${canonical}" in
+      *-mingw32 )
+		opsys=mingw32
+		# MinGW overrides and adds some system headers in nt/inc.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		;;
+      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
+    esac
+  ;;
+
   * )
     unported=yes
   ;;
@@ -1215,7 +1227,12 @@ C_SWITCH_SYSTEM=
 ## additional optimization.  --nils@exp-math.uni-essen.de
 test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
-test "$opsys" = "mingw32" && C_SWITCH_SYSTEM="-mtune=pentium4"
+if test "$opsys" = "mingw32"; then
+  case "$canonical" in
+    x86_64-*-mingw32) C_SWITCH_SYSTEM="-mtune=generic" ;;
+    *) C_SWITCH_SYSTEM="-mtune=pentium4" ;;
+  esac
+fi
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
 AC_SUBST(C_SWITCH_SYSTEM)
@@ -4802,7 +4819,7 @@ case "$opsys" in
    ## pass a different -entry switch to linker.  FIXME: It is better
    ## to make the entry points the same by changing unexw32.c.
    case "$canonical" in
-     x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,_start -Wl,-Map,./temacs.map" ;;
+     x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
      *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
    esac
    ;;

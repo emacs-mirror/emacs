@@ -1,3 +1,8 @@
+2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* configure.ac (canonical, C_SWITCH_SYSTEM): Support a 64-bit
+	MinGW64 build on MS-Windows.
+
 2013-12-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (xcsdkdir): Only set if using xcrun.

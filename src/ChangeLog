@@ -1,5 +1,17 @@
 2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
+	* w32term.c (w32_initialize): Use LCID and LOWORD.
+
+	* w32proc.c (create_child): Use pid_t for 5th argument.
+	(IsValidLocale): Don't provide prototype for MinGW64.
+	(Fw32_get_valid_keyboard_layouts, Fw32_get_keyboard_layout)
+	(Fw32_set_keyboard_layout): Use HKL and HIWORD/LOWORD.
+
+	* w32heap.c (allocate_heap) [_WIN64]: Use "ull", not "i64", which
+	MinGW64 doesn't support.
+
+	* lisp.h (EMACS_INT) [_WIN64]: Define for the MinGW64 build.
+
 	* w32.c (set_named_security_info): New function.
 	(acl_set_file): Fall back on set_named_security_info if
 	set_file_security fails.

@@ -1,3 +1,7 @@
+2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/ms-w32.h (sys_kill): Fix prototype.
+
 2013-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (umask) [emacs]: Redirect to sys_umask.  (Bug#16299)

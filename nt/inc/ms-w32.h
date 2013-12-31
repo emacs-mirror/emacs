@@ -394,7 +394,7 @@ extern int setpgrp (int, int);
 extern int sigaction (int, const struct sigaction *, struct sigaction *);
 extern int alarm (int);
 
-extern int sys_kill (int, int);
+extern int sys_kill (pid_t, int);
 
 
 /* For integration with MSDOS support.  */
