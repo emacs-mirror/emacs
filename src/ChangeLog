@@ -1,3 +1,35 @@
+2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* w32.c (set_named_security_info): New function.
+	(acl_set_file): Fall back on set_named_security_info if
+	set_file_security fails.
+	(g_b_init_set_named_security_info_w)
+	(g_b_init_set_named_security_info_a): New static variables.
+	(globals_of_w32): Initialize them to zero.
+	(set_named_security_info): Set them to non-zero if the
+	corresponding API is available.
+	(SetNamedSecurityInfoW_Proc, SetNamedSecurityInfoA_Proc): New
+	function typedefs.
+
+2013-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	Some more fixes following pixelwise resize changes including one
+	for Bug#16306.
+	* gtkutil.c (x_wm_set_size_hint): Have size hints respect value
+	of frame_resize_pixelwise.
+	* widget.c (pixel_to_text_size): New function.
+	(update_wm_hints): Have size hints respect value of
+	frame_resize_pixelwise.
+	(EmacsFrameResize): Alway process resize requests pixelwise.
+	* window.c (grow_mini_window): Make sure mini window is at least
+	one line tall.
+	* xdisp.c (display_menu_bar): Make sure menubar extends till
+	right end of frame.
+	* xfns.c (x_set_menu_bar_lines): Resize frame windows pixelwise.
+	(x_set_tool_bar_lines): Calculate pixelwise.
+	* xterm.c (x_wm_set_size_hint): Have size hints respect value of
+	frame_resize_pixelwise.
+
 2013-12-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fileio.c (Fcopy_file) [!WINDOWSNT]: Don't declare on Windows
@@ -10,7 +42,7 @@
 2013-12-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispnew.c (change_frame_size_1): Take old width of root window
-	from that window's pixel width.  Bug#16284.
+	from that window's pixel width.  (Bug#16284)
 
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 

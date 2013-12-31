@@ -20882,8 +20882,7 @@ display_menu_bar (struct window *w)
   eassert (!FRAME_WINDOW_P (f));
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
   it.first_visible_x = 0;
-  /* PXW: Use FRAME_PIXEL_WIDTH (f) here?  */
-  it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
+  it.last_visible_x = FRAME_PIXEL_WIDTH (f);
 #elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
   if (FRAME_WINDOW_P (f))
     {
@@ -20894,8 +20893,7 @@ display_menu_bar (struct window *w)
       init_iterator (&it, menu_w, -1, -1, menu_w->desired_matrix->rows,
 		     MENU_FACE_ID);
       it.first_visible_x = 0;
-      /* PXW: Use FRAME_PIXEL_WIDTH (f) here?  */
-      it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
+      it.last_visible_x = FRAME_PIXEL_WIDTH (f);
     }
   else
 #endif /* not USE_X_TOOLKIT and not USE_GTK */

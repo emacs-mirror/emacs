@@ -190,6 +190,14 @@ pixel_to_char_size (EmacsFrame ew, Dimension pixel_width, Dimension pixel_height
 }
 
 static void
+pixel_to_text_size (EmacsFrame ew, Dimension pixel_width, Dimension pixel_height, int *text_width, int *text_height)
+{
+  struct frame* f = ew->emacs_frame.frame;
+  *text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, (int) pixel_width);
+  *text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, (int) pixel_height);
+}
+
+static void
 char_to_pixel_size (EmacsFrame ew, int char_width, int char_height, Dimension *pixel_width, Dimension *pixel_height)
 {
   struct frame* f = ew->emacs_frame.frame;
@@ -487,8 +495,8 @@ update_wm_hints (EmacsFrame ew)
   XtVaSetValues (wmshell,
 		 XtNbaseWidth, (XtArgVal) base_width,
 		 XtNbaseHeight, (XtArgVal) base_height,
-		 XtNwidthInc, (XtArgVal) cw,
-		 XtNheightInc, (XtArgVal) ch,
+		 XtNwidthInc, (XtArgVal) (frame_resize_pixelwise ? 1 : cw),
+		 XtNheightInc, (XtArgVal) (frame_resize_pixelwise ? 1 : ch),
 		 XtNminWidth, (XtArgVal) (base_width + min_cols * cw),
 		 XtNminHeight, (XtArgVal) (base_height + min_rows * ch),
 		 NULL);
@@ -670,21 +678,41 @@ EmacsFrameResize (Widget widget)
   EmacsFrame ew = (EmacsFrame)widget;
   struct frame *f = ew->emacs_frame.frame;
   struct x_output *x = f->output_data.x;
-  int columns;
-  int rows;
 
-  pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
-  if (columns != FRAME_COLS (f)
-      || rows != FRAME_LINES (f)
-      || ew->core.width != FRAME_PIXEL_WIDTH (f)
-      || ew->core.height + x->menubar_height != FRAME_PIXEL_HEIGHT (f))
+#if 0  /* Always process resize requests pixelwise.  Frame maximizing
+	  should work even when frame_resize_pixelwise is nil.  */
+  if (frame_resize_pixelwise)
     {
-      change_frame_size (f, columns, rows, 0, 1, 0, 0);
+#endif /* 0 */
+      int width, height;
+
+      pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
+      change_frame_size (f, width, height, 0, 1, 0, 1);
+
       update_wm_hints (ew);
       update_various_frame_slots (ew);
 
       cancel_mouse_face (f);
+#if 0  /* See comment above.  */
     }
+  else
+    {
+      int columns, rows;
+
+      pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
+      if (columns != FRAME_COLS (f)
+	  || rows != FRAME_LINES (f)
+	  || ew->core.width != FRAME_PIXEL_WIDTH (f)
+	  || ew->core.height + x->menubar_height != FRAME_PIXEL_HEIGHT (f))
+	{
+	  change_frame_size (f, columns, rows, 0, 1, 0, 0);
+	  update_wm_hints (ew);
+	  update_various_frame_slots (ew);
+
+	  cancel_mouse_face (f);
+	}
+    }
+#endif /* 0 */
 }
 
 static Boolean
@@ -724,6 +752,7 @@ EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget, Ar
 
   if (has_to_recompute_size)
     {
+      /* Don't do this pixelwise, hopefully.  */
       pixel_width = new->core.width;
       pixel_height = new->core.height;
       pixel_to_char_size (new, pixel_width, pixel_height, &char_width,

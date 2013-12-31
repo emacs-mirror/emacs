@@ -303,6 +303,8 @@ static BOOL g_b_init_convert_sddl_to_sd;
 static BOOL g_b_init_is_valid_security_descriptor;
 static BOOL g_b_init_set_file_security_w;
 static BOOL g_b_init_set_file_security_a;
+static BOOL g_b_init_set_named_security_info_w;
+static BOOL g_b_init_set_named_security_info_a;
 static BOOL g_b_init_get_adapters_info;
 
 /*
@@ -377,6 +379,22 @@ typedef BOOL (WINAPI *SetFileSecurityA_Proc) (
     LPCSTR lpFileName,
     SECURITY_INFORMATION SecurityInformation,
     PSECURITY_DESCRIPTOR pSecurityDescriptor);
+typedef DWORD (WINAPI *SetNamedSecurityInfoW_Proc) (
+    LPCWSTR lpObjectName,
+    SE_OBJECT_TYPE ObjectType,
+    SECURITY_INFORMATION SecurityInformation,
+    PSID psidOwner,
+    PSID psidGroup,
+    PACL pDacl,
+    PACL pSacl);
+typedef DWORD (WINAPI *SetNamedSecurityInfoA_Proc) (
+    LPCSTR lpObjectName,
+    SE_OBJECT_TYPE ObjectType,
+    SECURITY_INFORMATION SecurityInformation,
+    PSID psidOwner,
+    PSID psidGroup,
+    PACL pDacl,
+    PACL pSacl);
 typedef BOOL (WINAPI * GetSecurityDescriptorOwner_Proc) (
     PSECURITY_DESCRIPTOR pSecurityDescriptor,
     PSID *pOwner,
@@ -808,6 +826,69 @@ set_file_security (const char *lpFileName,
       filename_to_ansi (lpFileName, filename_a);
       return (s_pfn_Set_File_SecurityA (filename_a, SecurityInformation,
 					pSecurityDescriptor));
+    }
+}
+
+static DWORD WINAPI
+set_named_security_info (LPCTSTR lpObjectName,
+			 SE_OBJECT_TYPE ObjectType,
+			 SECURITY_INFORMATION SecurityInformation,
+			 PSID psidOwner,
+			 PSID psidGroup,
+			 PACL pDacl,
+			 PACL pSacl)
+{
+  static SetNamedSecurityInfoW_Proc s_pfn_Set_Named_Security_InfoW = NULL;
+  static SetNamedSecurityInfoA_Proc s_pfn_Set_Named_Security_InfoA = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      errno = ENOTSUP;
+      return ENOTSUP;
+    }
+  if (w32_unicode_filenames)
+    {
+      wchar_t filename_w[MAX_PATH];
+
+      if (g_b_init_set_named_security_info_w == 0)
+	{
+	  g_b_init_set_named_security_info_w = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Set_Named_Security_InfoW =
+	    (SetNamedSecurityInfoW_Proc) GetProcAddress (hm_advapi32,
+							 "SetNamedSecurityInfoW");
+	}
+      if (s_pfn_Set_Named_Security_InfoW == NULL)
+	{
+	  errno = ENOTSUP;
+	  return ENOTSUP;
+	}
+      filename_to_utf16 (lpObjectName, filename_w);
+      return (s_pfn_Set_Named_Security_InfoW (filename_w, ObjectType,
+					      SecurityInformation, psidOwner,
+					      psidGroup, pDacl, pSacl));
+    }
+  else
+    {
+      char filename_a[MAX_PATH];
+
+      if (g_b_init_set_named_security_info_a == 0)
+	{
+	  g_b_init_set_named_security_info_a = 1;
+	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
+	  s_pfn_Set_Named_Security_InfoA =
+	    (SetNamedSecurityInfoA_Proc) GetProcAddress (hm_advapi32, 
+							 "SetNamedSecurityInfoA");
+	}
+      if (s_pfn_Set_Named_Security_InfoA == NULL)
+	{
+	  errno = ENOTSUP;
+	  return ENOTSUP;
+	}
+      filename_to_ansi (lpObjectName, filename_a);
+      return (s_pfn_Set_Named_Security_InfoA (filename_a, ObjectType,
+					      SecurityInformation, psidOwner,
+					      psidGroup, pDacl, pSacl));
     }
 }
 
@@ -5903,7 +5984,7 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
   DWORD err;
   int st = 0, retval = -1;
   SECURITY_INFORMATION flags = 0;
-  PSID psid;
+  PSID psidOwner, psidGroup;
   PACL pacl;
   BOOL dflt;
   BOOL dacl_present;
@@ -5929,11 +6010,13 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
   else
     fname = filename;
 
-  if (get_security_descriptor_owner ((PSECURITY_DESCRIPTOR)acl, &psid, &dflt)
-      && psid)
+  if (get_security_descriptor_owner ((PSECURITY_DESCRIPTOR)acl, &psidOwner,
+				     &dflt)
+      && psidOwner)
     flags |= OWNER_SECURITY_INFORMATION;
-  if (get_security_descriptor_group ((PSECURITY_DESCRIPTOR)acl, &psid, &dflt)
-      && psid)
+  if (get_security_descriptor_group ((PSECURITY_DESCRIPTOR)acl, &psidGroup,
+				     &dflt)
+      && psidGroup)
     flags |= GROUP_SECURITY_INFORMATION;
   if (get_security_descriptor_dacl ((PSECURITY_DESCRIPTOR)acl, &dacl_present,
 				    &pacl, &dflt)
@@ -5960,10 +6043,22 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
 
   e = errno;
   errno = 0;
+  /* SetFileSecurity is deprecated by MS, and sometimes fails when
+     DACL inheritance is involved, but it seems to preserve ownership
+     better than SetNamedSecurity, which is important e.g., in
+     copy-file.  */
   if (!set_file_security (fname, flags, (PSECURITY_DESCRIPTOR)acl))
     {
       err = GetLastError ();
 
+      if (errno != ENOTSUP)
+	err = set_named_security_info (fname, SE_FILE_OBJECT, flags,
+				       psidOwner, psidGroup, pacl, NULL);
+    }
+  else
+    err = ERROR_SUCCESS;
+  if (err != ERROR_SUCCESS)
+    {
       if (errno == ENOTSUP)
 	;
       else if (err == ERROR_INVALID_OWNER
@@ -8878,6 +8973,8 @@ globals_of_w32 (void)
   g_b_init_is_valid_security_descriptor = 0;
   g_b_init_set_file_security_w = 0;
   g_b_init_set_file_security_a = 0;
+  g_b_init_set_named_security_info_w = 0;
+  g_b_init_set_named_security_info_a = 0;
   g_b_init_get_adapters_info = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
