@@ -164,6 +164,15 @@ non-nil, they output the same results.
 *** The command `quail-help' is deleted.  Use `C-h C-\'
 (`describe-input-method') instead.
 
+** ImageMagick
+
+*** ImageMagick images now support the :max-width and :max-height
+keywords.
+
+*** Some data types aren't auto-detected by ImageMagick.  Adding
+:format to `create-image' may help if the content type is in the
+new variable `image-format-suffixes'.
+
 ** Frame and window changes
 
 +++
@@ -797,6 +806,9 @@ which support POSIX ACLs.
 *** Handlers for `file-notify-add-watch' and `file-notify-rm-watch'
 for remote machines which support filesystem notifications.
 
+** New command `url-cookie-list' displays all the current cookies, and
+allows deleting selected cookies.
+
 ** VC and related modes
 
 +++
@@ -1006,6 +1018,10 @@ Either use `completion-all-completions', which returns highlighted
 strings (including for partial or substring completion), or call
 `completion-hilit-commonality' to add the highlight.
 
+** New minor modes `prettify-symbols-mode' and `global-prettify-symbols-mode'
+let you enable symbol prettification (replacing a string like "lambda" with
+the Greek lambda character).
+
 ** Terminal changes
 
 +++
@@ -1018,6 +1034,15 @@ display or frame whenever a mouse is supported on that display or
 frame.
 
 *** New hook `tty-setup-hook'.
+
+** Window Handling
+
+*** New display action function `display-buffer-no-window' to not
+display the buffer in a window.
+
+*** New display action alist entry `allow-no-window' to indicate the
+caller of `display-buffer' is ready to handle the case of not
+displaying the buffer in a window.
 
 ** New hook `pre-redisplay-function'.
 
@@ -1389,13 +1414,6 @@ afterwards if you do not use customize to change this.)
 ImageMagick types are treated as images.  The function
 `imagemagick-filter-types' returns the list of types that will be
 treated as images.
-
-*** ImageMagick images now support the :max-width and :max-height
-keywords.
-
-*** Some data types aren't auto-detected by ImageMagick.  Adding
-:format to `create-image' may help if the content type is in the
-new variable `image-format-suffixes'.
 
 ** Minibuffer
 
@@ -1890,9 +1908,6 @@ and the `attributes' slot is always nil.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.
 
-*** New command `url-cookie-list' displays all the current cookies, and
-allows deleting selected cookies.
-
 ** notifications.el supports now version 1.2 of the Notifications API.
 The function `notifications-get-capabilities' returns the supported
 server properties.
@@ -2142,13 +2157,6 @@ reused.
 *** New option `switch-to-buffer-preserve-window-point' to restore a
 window's point when switching buffers.
 
-*** New display action function `display-buffer-no-window' to not
-display the buffer in a window.
-
-*** New display action alist entry `allow-no-window' to indicate the
-caller of `display-buffer' is ready to handle the case of not
-displaying the buffer in a window.
-
 *** New display action alist entries `window-height' and `window-width'
 specify the size of new windows created by `display-buffer'.
 
@@ -2237,8 +2245,8 @@ log, log10, sqrt, and mod.
 
 ** Miscellaneous new functions
 
-*** `set-transient-map' sets up a temporary keymap, active for one key
-(and optionally more).  This keymap takes precedence over other maps.
+*** `set-temporary-overlay-map' sets up a temporary keymap that
+takes precedence over most other maps for a short while (normally one key).
 
 *** `autoloadp' tests if its argument is an autoloaded object.
 
@@ -3585,11 +3593,6 @@ should be derived.
 **** `prog-mode-hook' can be used to enable features for programming
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
-
-**** New minor modes `prettify-symbols-mode' and
-`global-prettify-symbols-mode' let the user enable symbol
-prettification (replacing a string like "lambda" with the Greek lambda
-character).
 
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.
