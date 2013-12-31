@@ -713,6 +713,54 @@ This returns @code{t} if @var{object} is a bool-vector,
 and @code{nil} otherwise.
 @end defun
 
+There are also some bool-vector set operation functions, described below:
+
+@defun bool-vector-exclusive-or a b &optional c
+Return @dfn{bitwise exclusive or} of bool vectors @var{a} and @var{b}.
+If optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-union a b &optional c
+Return @dfn{bitwise or} of bool vectors @var{a} and @var{b}.  If
+optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-intersection a b &optional c
+Return @dfn{bitwise and} of bool vectors @var{a} and @var{b}.  If
+optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-set-difference a b &optional c
+Return @dfn{set difference} of bool vectors @var{a} and @var{b}.  If
+optional argument @var{c} is given, the result of this operation is
+stored into @var{c}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-not a &optional b
+Return @dfn{set complement} of bool vector @var{a}.  If optional
+argument @var{b} is given, the result of this operation is stored into
+@var{b}.  All arguments should be bool vectors of the same length.
+@end defun
+
+@defun bool-vector-subsetp a b
+Return @code{t} if every @code{t} value in @var{a} is also t in
+@var{b}, nil otherwise.  All arguments should be bool vectors of the
+same length.
+@end defun
+
+@defun bool-vector-count-consecutive a b i
+Return the number of consecutive elements in @var{a} equal @var{b}
+starting at @var{i}.  @code{a} is a bool vector, @var{b} is @code{t}
+or @code{nil}, and @var{i} is an index into @code{a}.
+@end defun
+
+@defun bool-vector-count-population a
+Return the number of elements that are @code{t} in bool vector @var{a}.
+@end defun
+
   Here is an example of creating, examining, and updating a
 bool-vector.  Note that the printed form represents up to 8 boolean
 values as a single character.

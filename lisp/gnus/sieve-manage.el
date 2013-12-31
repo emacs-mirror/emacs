@@ -115,6 +115,10 @@
 					 plain
 					 login)
   "Priority of authenticators to consider when authenticating to server."
+  ;; FIXME Improve this.  It's not `set'.
+  ;; It's like (repeat (choice (const ...))), where each choice can
+  ;; only appear once.
+  :type '(repeat symbol)
   :group 'sieve-manage)
 
 (defcustom sieve-manage-authenticator-alist
@@ -131,6 +135,8 @@
 NAME names the authenticator.  CHECK is a function returning non-nil if
 the server support the authenticator and AUTHENTICATE is a function
 for doing the actual authentication."
+  :type '(repeat (list (symbol :tag "Name") (function :tag "Check function")
+		       (function :tag "Authentication function")))
   :group 'sieve-manage)
 
 (defcustom sieve-manage-default-port "sieve"

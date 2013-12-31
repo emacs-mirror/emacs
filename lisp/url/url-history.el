@@ -44,7 +44,7 @@ session."
 		(url-history-setup-save-timer)))
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "within session" 'session))
+		 (other :tag "within session" session))
   :group 'url-history)
 
 (defcustom url-history-file nil

@@ -1,3 +1,47 @@
+2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* emacs-gnutls.texi (Help For Users): Document `gnutls-verify-error'.
+
+2013-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* woman.texi (Navigation): Use itemx where appropriate.
+
+2013-12-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* info.texi, woman.texi:
+	Document `S-SPC' as alternative to `DEL' for scrolling.
+
+2013-12-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Stack Manipulation Commands): Mention using the variable
+	`calc-context-sensitive-enter' for `calc-enter' and `calc-pop'.
+
+2013-12-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (direntry): Use ssh but rsh.
+	(all): Encode all environment variable names with @env{...}.
+	(Bug Reports): Refer to Testing node.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi, cc-mode.texi, ediff.texi, ert.texi:
+	* htmlfontify.texi, ido.texi, octave-mode.texi, org.texi:
+	* srecode.texi, todo-mode.texi, tramp.texi:
+	Sync direntry with info/dir version.
+
+2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* Makefile.in: Add octave-mode.texi.
+
+2013-12-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+	    Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* octave-mode.texi: Import from GNU Octave (doc/interpreter/emacs.txi).
+
+2013-12-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dbus.texi (Properties and Annotations): Fix typo.
+
 2013-12-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi: Don't include Emacs version within Org's version.
@@ -415,7 +459,7 @@
 
 2013-11-12  Kodi Arfer  <git@arfer.net>  (tiny change)
 
-	* org.text (CSS support): Mention .figure-number, .listing-number,
+	* org.texi (CSS support): Mention .figure-number, .listing-number,
 	and .table-number.
 
 2013-11-12  Michael Brand  <michael.ch.brand@gmail.com>

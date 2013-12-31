@@ -89,7 +89,7 @@
      (("wrapfigure" ?f nil nil caption)))
 
     (ctable	"The ctable package"
-     (("\\ctable[]{}{}{}" ?t "tab:" "\\ref{%s}" 1 ("table" "Tabelle"))))
+     (("\\ctable[]{}{}{}" ?t "tab:" "~\\ref{%s}" 1 ("table" "Tabelle"))))
 
     (listings	"The listings package"
      (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
@@ -878,6 +878,7 @@ have to define it using \\(?1:...\\) when adding new regexps.
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
+  :version "24.4"
   :set (lambda (symbol value)
 	 (set symbol value)
 	 (when (fboundp 'reftex-compile-variables)
@@ -1442,7 +1443,7 @@ last      The last used index tag will be offered as default."
   :group 'reftex-index-support
   :type '(choice
           (const :tag  "no default" nil)
-          (const :tag  "last used " 'last)
+          (const :tag  "last used " last)
           (string :tag "index tag " "idx")))
 
 (defcustom reftex-index-math-format "$%s$"

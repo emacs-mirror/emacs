@@ -169,7 +169,7 @@ struct kboard
     char kbd_queue_has_data;
 
     /* True means echo each character as typed.  */
-    unsigned immediate_echo : 1;
+    bool_bf immediate_echo : 1;
 
     /* If we have echoed a prompt string specified by the user,
        this is its length in characters.  Otherwise this is -1.  */
@@ -518,7 +518,7 @@ extern bool input_polling_used (void);
 extern void clear_input_pending (void);
 extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
-#ifdef WINDOWSNT
+#if HAVE_NTGUI
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
 #endif
 extern void stuff_buffered_input (Lisp_Object);

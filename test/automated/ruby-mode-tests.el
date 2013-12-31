@@ -282,6 +282,57 @@ VALUES-PLIST is a list with alternating index and value elements."
      |  3)
      |")))
 
+(ert-deftest ruby-align-to-stmt-keywords-t ()
+  (let ((ruby-align-to-stmt-keywords t))
+    (ruby-should-indent-buffer
+     "foo = if bar?
+     |  1
+     |else
+     |  2
+     |end
+     |
+     |foo || begin
+     |  bar
+     |end
+     |
+     |foo ||
+     |  begin
+     |    bar
+     |  end
+     |"
+     "foo = if bar?
+     |       1
+     |else
+     |  2
+     | end
+     |
+     | foo || begin
+     |    bar
+     |end
+     |
+     |  foo ||
+     | begin
+     |bar
+     |  end
+     |")
+    ))
+
+(ert-deftest ruby-align-to-stmt-keywords-case ()
+  (let ((ruby-align-to-stmt-keywords '(case)))
+    (ruby-should-indent-buffer
+     "b = case a
+     |when 13
+     |  6
+     |else
+     |  42
+     |end"
+     "b = case a
+     |    when 13
+     |  6
+     |    else
+     |      42
+     |    end")))
+
 (ert-deftest ruby-move-to-block-stops-at-indentation ()
   (ruby-with-temp-buffer "def f\nend"
     (beginning-of-line)

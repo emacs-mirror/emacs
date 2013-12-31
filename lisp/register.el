@@ -1,7 +1,6 @@
 ;;; register.el --- register commands for Emacs      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1993-1994, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985, 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -91,6 +90,7 @@ text."
 
 (defcustom register-preview-delay 1
   "If non-nil delay in seconds to pop up the preview window."
+  :version "24.4"
   :type '(choice number (const :tag "Indefinitely" nil))
   :group 'register)
 
@@ -122,22 +122,21 @@ See the documentation of the variable `register-alist' for possible VALUEs."
   "Pop up a window to show register preview in BUFFER.
 If SHOW-EMPTY is non-nil show the window even if no registers."
   (when (or show-empty (consp register-alist))
-    (let ((split-height-threshold 0))
-      (with-temp-buffer-window
-       buffer
-       (cons 'display-buffer-below-selected
-	     '((window-height . fit-window-to-buffer)))
-       nil
-       (with-current-buffer standard-output
-	 (setq cursor-in-non-selected-windows nil)
-	 (mapc
-	  (lambda (r)
-	    (insert (or (run-hook-with-args-until-success
-			 'register-preview-functions r)
-			(format "%s %s\n"
-				(concat (single-key-description (car r)) ":")
-				(register-describe-oneline (car r))))))
-	  register-alist))))))
+    (with-temp-buffer-window
+     buffer
+     (cons 'display-buffer-below-selected
+	   '((window-height . fit-window-to-buffer)))
+     nil
+     (with-current-buffer standard-output
+       (setq cursor-in-non-selected-windows nil)
+       (mapc
+	(lambda (r)
+	  (insert (or (run-hook-with-args-until-success
+		       'register-preview-functions r)
+		      (format "%s %s\n"
+			      (concat (single-key-description (car r)) ":")
+			      (register-describe-oneline (car r))))))
+	register-alist)))))
 
 (defun register-read-with-preview (prompt)
   "Read an event with register preview using PROMPT.

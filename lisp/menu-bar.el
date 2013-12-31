@@ -1223,10 +1223,9 @@ mail status in mode line"))
        "Use Directory Names in Buffer Names"
        "Directory name in buffer names (uniquify) %s"
        "Uniquify buffer names by adding parent directory names"
-       (require 'uniquify)
        (setq uniquify-buffer-name-style
 	     (if (not uniquify-buffer-name-style)
-		 'forward))))
+		 'post-forward-angle-brackets))))
 
     (bindings--define-key menu [edit-options-separator]
       menu-bar-separator)
@@ -1419,6 +1418,8 @@ mail status in mode line"))
     (bindings--define-key menu [separator-net]
       menu-bar-separator)
 
+    (bindings--define-key menu [browse-web]
+      '(menu-item "Browse the Web..." browse-web))
     (bindings--define-key menu [directory-search]
       '(menu-item "Directory Search" eudc-tools-menu))
     (bindings--define-key menu [compose-mail]

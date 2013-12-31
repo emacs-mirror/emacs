@@ -26,7 +26,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* Htmlfontify: (htmlfontify).    Convert source code to html.
+* Htmlfontify: (htmlfontify).   Convert source code to html.
 @end direntry
 
 @titlepage

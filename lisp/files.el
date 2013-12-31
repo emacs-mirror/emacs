@@ -248,10 +248,12 @@ See also: `break-hardlink-on-save'."
   :group 'backup)
 
 (defcustom break-hardlink-on-save nil
-  "Non-nil means when saving a file that exists under several names
-\(i.e., has multiple hardlinks), break the hardlink associated with
-`buffer-file-name' and write to a new file, so that the other
-instances of the file are not affected by the save.
+  "Whether to allow breaking hardlinks when saving files.
+If non-nil, then when saving a file that exists under several
+names \(i.e., has multiple hardlinks), break the hardlink
+associated with `buffer-file-name' and write to a new file, so
+that the other instances of the file are not affected by the
+save.
 
 If `buffer-file-name' refers to a symlink, do not break the symlink.
 

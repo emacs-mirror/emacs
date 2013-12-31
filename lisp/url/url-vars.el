@@ -1,7 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -72,7 +71,7 @@ requests will be honored.  If t, all refresh requests will be honored.
 If non-nil and not t, the user will be asked for each refresh request."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "ask" 'ask))
+		 (other :tag "ask" ask))
   :group 'url-hairy)
 
 (defcustom url-automatic-caching nil

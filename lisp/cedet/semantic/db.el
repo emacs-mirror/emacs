@@ -560,8 +560,9 @@ This will call `semantic-fetch-tags' if that file is in memory."
    ;;
    ;; Already in a buffer, just do it.
    ((semanticdb-in-buffer-p obj)
-    (semanticdb-set-buffer obj)
-    (semantic-fetch-tags))
+    (save-excursion
+      (semanticdb-set-buffer obj)
+      (semantic-fetch-tags)))
    ;;
    ;; Not in a buffer.  Forcing a load.
    (force

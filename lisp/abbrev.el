@@ -421,7 +421,7 @@ A prefix argument means don't query; expand all abbrevs."
 \(fn ABBREV PROP)")
 
 (defalias 'abbrev-put 'put
-  "Set the property PROP of abbrev ABREV to value VAL.
+  "Set the property PROP of abbrev ABBREV to value VAL.
 See `define-abbrev' for the effect of some special properties.
 
 \(fn ABBREV PROP VAL)")

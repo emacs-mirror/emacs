@@ -4395,7 +4395,6 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   [?\S-\ ] gnus-article-goto-prev-page
   "\177" gnus-article-goto-prev-page
   [delete] gnus-article-goto-prev-page
-  [backspace] gnus-article-goto-prev-page
   "\C-c^" gnus-article-refer-article
   "h" gnus-article-show-summary
   "s" gnus-article-show-summary

@@ -497,7 +497,10 @@ the minibuffer."
 			(put (nth 1 form) 'saved-face nil)))))
     (setq edebug-result (eval (eval-sexp-add-defvars form) lexical-binding))
     (if (not edebugging)
-	(princ edebug-result)
+	(prog1
+	    (princ edebug-result)
+	  (let ((str (eval-expression-print-format edebug-result)))
+	    (if str (princ str))))
       edebug-result)))
 
 

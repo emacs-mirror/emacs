@@ -287,78 +287,78 @@ struct window
     int header_line_height;
 
     /* Z - the buffer position of the last glyph in the current
-       matrix of W.  Only valid if window_end_valid is nonzero.  */
+       matrix of W.  Only valid if window_end_valid is true.  */
     ptrdiff_t window_end_pos;
 
     /* Glyph matrix row of the last glyph in the current matrix
-       of W.  Only valid if window_end_valid is nonzero.  */
+       of W.  Only valid if window_end_valid is true.  */
     int window_end_vpos;
 
-    /* Non-zero if this window is a minibuffer window.  */
-    unsigned mini : 1;
+    /* True if this window is a minibuffer window.  */
+    bool_bf mini : 1;
 
     /* Meaningful only if contents is a window, non-zero if this
        internal window is used in horizontal combination.  */
-    unsigned horizontal : 1;
+    bool_bf horizontal : 1;
 
-    /* Non-zero means must regenerate mode line of this window.  */
-    unsigned update_mode_line : 1;
+    /* True means must regenerate mode line of this window.  */
+    bool_bf update_mode_line : 1;
 
-    /* Non-nil if the buffer was "modified" when the window
+    /* True if the buffer was "modified" when the window
        was last updated.  */
-    unsigned last_had_star : 1;
+    bool_bf last_had_star : 1;
 
-    /* Non-zero means current value of `start'
+    /* True means current value of `start'
        was the beginning of a line when it was chosen.  */
-    unsigned start_at_line_beg : 1;
+    bool_bf start_at_line_beg : 1;
 
-    /* Non-zero means next redisplay must use the value of start
+    /* True means next redisplay must use the value of start
        set up for it in advance.  Set by scrolling commands.  */
-    unsigned force_start : 1;
+    bool_bf force_start : 1;
 
-    /* Non-zero means we have explicitly changed the value of start,
+    /* True means we have explicitly changed the value of start,
        but that the next redisplay is not obliged to use the new value.
        This is used in Fdelete_other_windows to force a call to
        Vwindow_scroll_functions; also by Frecenter with argument.  */
-    unsigned optional_new_start : 1;
+    bool_bf optional_new_start : 1;
 
-    /* Non-zero means the cursor is currently displayed.  This can be
+    /* True means the cursor is currently displayed.  This can be
        set to zero by functions overpainting the cursor image.  */
-    unsigned phys_cursor_on_p : 1;
+    bool_bf phys_cursor_on_p : 1;
 
-    /* 0 means cursor is logically on, 1 means it's off.  Used for
+    /* False means cursor is logically on, true means it's off.  Used for
        blinking cursor.  */
-    unsigned cursor_off_p : 1;
+    bool_bf cursor_off_p : 1;
 
     /* Value of cursor_off_p as of the last redisplay.  */
-    unsigned last_cursor_off_p : 1;
+    bool_bf last_cursor_off_p : 1;
 
-    /* 1 means desired matrix has been build and window must be
+    /* True means desired matrix has been build and window must be
        updated in update_frame.  */
-    unsigned must_be_updated_p : 1;
+    bool_bf must_be_updated_p : 1;
 
     /* Flag indicating that this window is not a real one.
        Currently only used for menu bar windows of frames.  */
-    unsigned pseudo_window_p : 1;
+    bool_bf pseudo_window_p : 1;
 
-    /* Non-zero means fringes are drawn outside display margins.
+    /* True means fringes are drawn outside display margins.
        Otherwise draw them between margin areas and text.  */
-    unsigned fringes_outside_margins : 1;
+    bool_bf fringes_outside_margins : 1;
 
-    /* Nonzero if window_end_pos and window_end_vpos are truly valid.
-       This is zero if nontrivial redisplay is preempted since in that case
+    /* True if window_end_pos and window_end_vpos are truly valid.
+       This is false if nontrivial redisplay is preempted since in that case
        the frame image that window_end_pos did not get onto the frame.  */
-    unsigned window_end_valid : 1;
+    bool_bf window_end_valid : 1;
 
     /* True if it needs to be redisplayed.  */
-    unsigned redisplay : 1;
+    bool_bf redisplay : 1;
 
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
 
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
-       Should be nonnegative, and only valid if window_end_valid is nonzero.  */
+       Should be nonnegative, and only valid if window_end_valid is true.  */
     ptrdiff_t window_end_bytepos;
   };
 
@@ -412,7 +412,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
   w->next_buffers = val;
 }
 
-/* 1 if W is a minibuffer window.  */
+/* True if W is a minibuffer window.  */
 
 #define MINI_WINDOW_P(W)	((W)->mini)
 
@@ -443,17 +443,17 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* A handy macro.  */
 
-/* Non-zero if W is leaf (carry the buffer).  */
+/* Non-nil if W is leaf (carry the buffer).  */
 
 #define WINDOW_LEAF_P(W) \
   (BUFFERP ((W)->contents))
 
-/* Non-zero if W is a member of horizontal combination.  */
+/* True if W is a member of horizontal combination.  */
 
 #define WINDOW_HORIZONTAL_COMBINATION_P(W) \
   (WINDOWP ((W)->contents) && (W)->horizontal)
 
-/* Non-zero if W is a member of vertical combination.  */
+/* True if W is a member of vertical combination.  */
 
 #define WINDOW_VERTICAL_COMBINATION_P(W) \
   (WINDOWP ((W)->contents) && !(W)->horizontal)
@@ -563,7 +563,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
   (FRAME_INTERNAL_BORDER_WIDTH (WINDOW_XFRAME (W)) \
    + WINDOW_RIGHT_PIXEL_EDGE (W))
 
-/* 1 if W is a menu bar window.  */
+/* True if W is a menu bar window.  */
 
 #if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #define WINDOW_MENU_BAR_P(W) \
@@ -571,16 +571,16 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    && (W) == XWINDOW (WINDOW_XFRAME (W)->menu_bar_window))
 #else
 /* No menu bar windows if X toolkit is in use.  */
-#define WINDOW_MENU_BAR_P(W) (0)
+#define WINDOW_MENU_BAR_P(W) false
 #endif
 
-/* 1 if W is a tool bar window.  */
+/* True if W is a tool bar window.  */
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 #define WINDOW_TOOL_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->tool_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->tool_bar_window))
 #else
-#define WINDOW_TOOL_BAR_P(W) (0)
+#define WINDOW_TOOL_BAR_P(W) false
 #endif
 
 /* Return the frame y-position at which window W starts.
@@ -600,24 +600,24 @@ wset_next_buffers (struct window *w, Lisp_Object val)
     ? 0 : FRAME_INTERNAL_BORDER_WIDTH (WINDOW_XFRAME (W))) \
    + WINDOW_BOTTOM_PIXEL_EDGE (W))
 
-/* 1 if window W takes up the full width of its frame.  */
+/* True if window W takes up the full width of its frame.  */
 #define WINDOW_FULL_WIDTH_P(W)					\
   (WINDOW_PIXEL_WIDTH (W)					\
    == (WINDOW_PIXEL_WIDTH					\
        (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))	\
 
-/* 1 if window W's has no other windows to its left in its frame.  */
+/* True if window W's has no other windows to its left in its frame.  */
 
 #define WINDOW_LEFTMOST_P(W) \
   (WINDOW_LEFT_PIXEL_EDGE (W) == 0)
 
-/* 1 if window W's has no other windows to its right in its frame.  */
+/* True if window W's has no other windows to its right in its frame.  */
 #define WINDOW_RIGHTMOST_P(W)					\
   (WINDOW_RIGHT_PIXEL_EDGE (W)					\
    == (WINDOW_RIGHT_PIXEL_EDGE					\
        (XWINDOW (FRAME_ROOT_WINDOW (WINDOW_XFRAME (W))))))	\
 
-/* 1 if window W's has no other windows below it in its frame
+/* True if window W's has no other windows below it in its frame
    (the minibuffer window is not counted in this respect).  */
 #define WINDOW_BOTTOMMOST_P(W)					\
   (WINDOW_BOTTOM_PIXEL_EDGE (W)					\
@@ -882,7 +882,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_TEXT_TO_FRAME_PIXEL_X(W, X)	\
   (window_box_left ((W), TEXT_AREA) + (X))
 
-/* Nonzero if the background of the window W's fringe that is adjacent to
+/* True if the background of the window W's fringe that is adjacent to
    a scroll bar is extended to the gap between the fringe and the bar.  */
 
 #define WINDOW_FRINGE_EXTENDED_P(w)			\

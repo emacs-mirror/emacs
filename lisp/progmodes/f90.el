@@ -2259,7 +2259,7 @@ Any other key combination is executed normally."
   (interactive "*")
   (self-insert-command 1)
   (when abbrev-mode
-    (set-temporary-overlay-map
+    (set-transient-map
      (let ((map (make-sparse-keymap)))
        (define-key map [??] 'f90-abbrev-help)
        (define-key map (vector help-char) 'f90-abbrev-help)

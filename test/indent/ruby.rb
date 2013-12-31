@@ -45,10 +45,38 @@ foo = { a: b,
         a1: b1
       }
 
-foo({
-     a: b,
-     c: d
-   })
+foo({                           # bug#16118
+      a: b,
+      c: d
+    })
+
+bar = foo(
+  a, [
+    1,
+  ],
+  :qux => [
+    3
+  ])
+
+foo(
+  [
+    {
+      a: b
+    },
+  ],
+  {
+    c: d
+  }
+)
+
+foo([{
+       a: 2
+     },
+     {
+       b: 3
+     },
+     4
+    ])
 
 foo = [                         # ruby-deep-indent-disabled
   1
@@ -86,17 +114,17 @@ def test2 (arg)
     puts "there"
   end
 
-  case a
-  when "a"
-    6
-  # Support for this syntax was removed in Ruby 1.9, so we
-  # probably don't need to handle it either.
-  # when "b" :
-  #   7
-  # when "c" : 2
-  when "d"  then 4
-  else 5
-  end
+  b = case a
+      when "a"
+        6
+      # Support for this syntax was removed in Ruby 1.9, so we
+      # probably don't need to handle it either.
+      # when "b" :
+      #   7
+      # when "c" : 2
+      when "d"  then 4
+      else 5
+      end
 end
 
 # Some Cucumber code:
@@ -191,12 +219,16 @@ method (a + b),
        c, :d => :e,
        f: g
 
+desc "abc",
+     defg
+
 it "is a method call with block" do |asd|
   foo
 end
 
 it("is too!") {
   bar
+    .qux
 }
 
 and_this_one(has) { |block, parameters|
@@ -241,6 +273,8 @@ end
 # http://stackoverflow.com/questions/17786563/emacs-ruby-mode-if-expressions-indentation
 tee = if foo
         bar
+      else
+        tee
       end
 
 a = b {
@@ -288,14 +322,32 @@ end
 foo |
   bar
 
-foo ||
-  begin
-    bar
-  end
-
 def qux
   foo ||= begin
-    bar
-    tee
-  end
+            bar
+            tee
+          rescue
+            oomph
+          end
 end
+
+%^abc^
+ddd
+
+qux = foo ?
+        bar :
+        tee
+
+zoo.keep.bar!(
+  {x: y,
+   z: t})
+
+zoo
+  .lose(
+  q, p)
+
+foo(bar:
+      tee)
+
+foo(:bar =>
+      tee)

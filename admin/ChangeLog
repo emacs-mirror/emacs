@@ -1,3 +1,80 @@
+2013-12-30  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-html-fix-headers, manual-html-fix-index-1):
+	Some updates for changes in Texinfo 5 output.
+
+2013-12-29  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* make-emacs:
+	* build-configs: Add the "use strict;" and "use warnings;" pragmas.
+
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (cusver-scan): Warn about missing :types.
+	(cusver-check): Interactively, require existing directories.
+
+2013-12-27  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* admin.el (manual-misc-manuals, make-manuals):
+	(manual-pdf, cusver-find-files):
+	(cusver-new-version, cusver-scan, cusver-goto-xref):
+	(cusver-check): Doc fix.
+	(manual-html-node, cusver-check): Use `user-error'.
+
+2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the procedure for updating copyright year.
+	* merge-gnulib (GNULIB_MODULES): Add update-copyright.
+	* notes/years: Mention admin/update-copyright.
+	* update-copyright: New file.
+
+2013-12-24  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* admin.el (add-release-logs):
+	(set-version-in-file, set-version, set-copyright):
+	Use `user-error'.
+
+2013-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-split-name): Don't give any NAME
+	to <control> characters: the Unicode Standard says they have no
+	name.  (Bug#16216)
+	(unidata-describe-bidi-class): Add new "isolate" classes
+	introduced by Unicode 6.3.
+
+2013-12-12  David Engster  <deng@randomsample.de>
+
+	* grammars/c.by (expr-binop): Add MOD.
+	(variablearg): Add 'opt-assign'.
+	(variablearg, varnamelist): Add default values so that it can be
+	later expanded into the tag.
+	(opt-stuff-after-symbol): Rename to 'brackets-after-symbol' and
+	remove empty match.
+	(multi-stage-dereference): Adapt to above rename.
+	(unaryexpression): Use 'symbol' instead of 'namespace-symbol',
+	since the latter also leads to an empty match at the end which
+	would make this too greedy.
+	(variablearg-opt-name): Support parsing of function pointers
+	inside an argument list.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen (info_dir):
+	Use dir_top from build-aux/ rather than admin/.
+
+	* update_autogen: Add option to generate info/dir.
+	(Usage): Add -I.
+	(info_flag): New variable.
+	(-I): New option.
+	(doc): Maybe check its status.
+	(info_dir): New function.
+	* dir_top: New file.
+
+2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove the option of using libcrypto.
+	* merge-gnulib: Remove lib/gl_openssh.h and m4/gl-openssl.m4.
+
 2013-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-prop-alist): Update bidi-class

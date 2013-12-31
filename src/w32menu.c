@@ -82,8 +82,8 @@ typedef BOOL (WINAPI * SetMenuItemInfoA_Proc) (
     IN LPCMENUITEMINFOA);
 typedef int (WINAPI * MessageBoxW_Proc) (
     IN HWND window,
-    IN WCHAR *text,
-    IN WCHAR *caption,
+    IN const WCHAR *text,
+    IN const WCHAR *caption,
     IN UINT type);
 
 #ifdef NTGUI_UNICODE
@@ -629,7 +629,7 @@ w32_menu_show (struct frame *f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 
@@ -1145,7 +1145,8 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   /* Use Unicode if possible, so any language can be displayed.  */
   if (unicode_message_box)
     {
-      WCHAR *text, *title;
+      WCHAR *text;
+      const WCHAR *title;
       USE_SAFE_ALLOCA;
 
       if (STRINGP (temp))
@@ -1180,7 +1181,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
     }
   else
     {
-      char *text, *title;
+      const char *text, *title;
 
       /* Fall back on ANSI message box, but at least use system
 	 encoding so questions representable by the system codepage

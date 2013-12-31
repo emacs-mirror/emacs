@@ -57,6 +57,8 @@ so you will find the latest version in Emacs.
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
+ * CEDET: <URL:http://cedet.sourceforge.net/>
+
  * Gnus: <URL:http://www.gnus.org/>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
@@ -64,8 +66,6 @@ so you will find the latest version in Emacs.
  * nXML: <URL:http://www.thaiopensource.com/nxml-mode/>
 
  * Org mode: <URL:http://orgmode.org/>
-
- * CEDET: <URL:http://cedet.sourceforge.net/>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>

@@ -78,6 +78,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
+#ifdef HAVE_FREETYPE
 #if GTK_CHECK_VERSION (3, 2, 0)
 #define USE_NEW_GTK_FONT_CHOOSER 1
 #else
@@ -89,6 +90,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define  gtk_font_chooser_set_font(x, y) \
   gtk_font_selection_dialog_set_font_name (x, y)
 #endif
+#endif /* HAVE_FREETYPE */
 
 #ifndef HAVE_GTK3
 #ifdef USE_GTK_TOOLTIP

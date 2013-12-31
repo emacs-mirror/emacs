@@ -1,3 +1,13 @@
+2013-12-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Use @quotation for license notice.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Tweak dircategory.
+
+	* emacs-lisp-intro.texi: Sync direntry with info/dir version.
+
 2013-12-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs-lisp-intro.texi (Counting Words): Don't use ':' in xref

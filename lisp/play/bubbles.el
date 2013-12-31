@@ -211,7 +211,7 @@ the number of colors, see `bubbles-colors'."
 Available modes are `shift-default' and `shift-always'."
   :type '(radio (const :tag "Default" default)
                 (const :tag "Shifter" always)
-                ;;(const :tag "Mega Shifter" 'mega)
+                ;;(const :tag "Mega Shifter" mega)
                 )
   :group 'bubbles)
 

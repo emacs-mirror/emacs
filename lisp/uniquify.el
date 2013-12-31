@@ -93,7 +93,7 @@
   :group 'files)
 
 
-(defcustom uniquify-buffer-name-style 'post-forward
+(defcustom uniquify-buffer-name-style 'post-forward-angle-brackets
   "If non-nil, buffer names are uniquified with parts of directory name.
 The value determines the buffer name style and is one of `forward',
 `reverse', `post-forward', or `post-forward-angle-brackets'.
@@ -111,6 +111,7 @@ of `uniquify-strip-common-suffix'."
 		(const post-forward)
 		(const post-forward-angle-brackets)
 		(const :tag "standard Emacs behavior (nil)" nil))
+  :version "24.4"
   :require 'uniquify
   :group 'uniquify)
 

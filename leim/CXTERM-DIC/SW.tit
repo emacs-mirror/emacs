@@ -1,5 +1,4 @@
-# -*- coding: euc-china -*-
-# Header added for Emacs
+# Header added for Emacs -*- coding: euc-china -*-
 #
 # This file is included in the directory contrib/clients/cxterm of the
 # distribution of X11R6.  As the file itself doesn't contain copyright
@@ -19,7 +18,6 @@
 # purpose.  It is provided "as is" without express or implied warranty.
 #
 # End of header added for Emacs
-#
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 2
@@ -749,4 +747,3 @@ zv	·±×ÏÙÛÙÜÙà
 zy	°±´Ôµª¶Ì·Õ·ú¸×º¤ºĞÂÈÄÊÆóÆøÇâÇèÉÏĞ©ĞéÑõÕ½Ö¹ÙÚÙİÙŞê¨
 zy	ë­ë®ë¯ë°ë±ë²ë³ë´ëµõºö´÷ª
 zz	´Ó¿¨ÁìÂ­ÆµÇêÈËÌ°Õ§ÕêÖÚêßì£ì¨ò¢ò¥
-

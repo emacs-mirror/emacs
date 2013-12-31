@@ -32,7 +32,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* SRecode: (srecode).           Template code generator.
+* SRecode: (srecode).           Semantic template code generator.
 @end direntry
 
 @titlepage

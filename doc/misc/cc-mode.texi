@@ -176,7 +176,7 @@ modify this GNU manual.''
 @dircategory Emacs editing modes
 @direntry
 * CC Mode: (ccmode).            Emacs mode for editing C, C++, Objective-C,
-                                Java, Pike, AWK, and CORBA IDL code.
+                                  Java, Pike, AWK, and CORBA IDL code.
 @end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -2038,6 +2038,7 @@ by doing (clear-string STRING)."
             (setq-local select-active-regions nil)
             (use-local-map read-passwd-map)
             (setq-local inhibit-modification-hooks nil) ;bug#15501.
+	    (setq-local show-paren-mode nil)		;bug#16091.
             (add-hook 'after-change-functions hide-chars-fun nil 'local))
         (unwind-protect
             (let ((enable-recursive-minibuffers t))
@@ -2539,14 +2540,26 @@ If there is no tag at point, return nil.
 When in a major mode that does not provide its own
 `find-tag-default-function', return a regexp that matches the
 symbol at point exactly."
-  (let* ((tagf (or find-tag-default-function
-		   (get major-mode 'find-tag-default-function)
-		   'find-tag-default))
-	 (tag (funcall tagf)))
-    (cond ((null tag) nil)
-	  ((eq tagf 'find-tag-default)
-	   (format "\\_<%s\\_>" (regexp-quote tag)))
-	  (t (regexp-quote tag)))))
+  (let ((tag (funcall (or find-tag-default-function
+			  (get major-mode 'find-tag-default-function)
+			  'find-tag-default))))
+    (if tag (regexp-quote tag))))
+
+(defun find-tag-default-as-symbol-regexp ()
+  "Return regexp that matches the default tag at point as symbol.
+If there is no tag at point, return nil.
+
+When in a major mode that does not provide its own
+`find-tag-default-function', return a regexp that matches the
+symbol at point exactly."
+  (let ((tag-regexp (find-tag-default-as-regexp)))
+    (if (and tag-regexp
+	     (eq (or find-tag-default-function
+		     (get major-mode 'find-tag-default-function)
+		     'find-tag-default)
+		 'find-tag-default))
+	(format "\\_<%s\\_>" tag-regexp)
+      tag-regexp)))
 
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
@@ -4253,33 +4266,38 @@ use `called-interactively-p'."
            (eq 'add-keymap-witness (nth 1 map))
            (set symbol tail)))))
 
-(defun set-temporary-overlay-map (map &optional keep-pred on-exit)
-  "Set MAP as a temporary keymap taking precedence over most other keymaps.
-Note that this does NOT take precedence over the \"overriding\" maps
-`overriding-terminal-local-map' and `overriding-local-map' (or the
-`keymap' text property).  Unlike those maps, if no match for a key is
-found in MAP, the normal key lookup sequence then continues.
+(define-obsolete-function-alias
+  'set-temporary-overlay-map 'set-transient-map "24.4")
 
-Normally, MAP is used only once.  If the optional argument
-KEEP-PRED is t, MAP stays active if a key from MAP is used.
-KEEP-PRED can also be a function of no arguments: if it returns
-non-nil then MAP stays active.
+(defun set-transient-map (map &optional keep-pred on-exit)
+  "Set MAP as a temporary keymap taking precedence over other keymaps.
+Normally, MAP is used only once, to look up the very next key.
+However, if the optional argument KEEP-PRED is t, MAP stays
+active if a key from MAP is used.  KEEP-PRED can also be a
+function of no arguments: if it returns non-nil, then MAP stays
+active.
 
-Optional ON-EXIT argument is a function that is called after the
-deactivation of MAP."
-  (let ((clearfun (make-symbol "clear-temporary-overlay-map")))
+Optional arg ON-EXIT, if non-nil, specifies a function that is
+called, with no arguments, after MAP is deactivated.
+
+Note that MAP will take precedence over the \"overriding\" maps
+`overriding-terminal-local-map' and `overriding-local-map' (and
+over the `keymap' text property).  Unlike those maps, if no match
+for a key is found in MAP, Emacs continues the normal key lookup
+sequence."
+  (let ((clearfun (make-symbol "clear-transient-map")))
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
     ;; in a cycle.
     (fset clearfun
           (lambda ()
-            ;; FIXME: Handle the case of multiple temporary-overlay-maps
-            ;; E.g. if isearch and C-u both use temporary-overlay-maps, Then
-            ;; the lifetime of the C-u should be nested within the isearch
-            ;; overlay, so the pre-command-hook of isearch should be
-            ;; suspended during the C-u one so we don't exit isearch just
-            ;; because we hit 1 after C-u and that 1 exits isearch whereas it
-            ;; doesn't exit C-u.
-            (with-demoted-errors "set-temporary-overlay-map PCH: %S"
+            ;; FIXME: Handle the case of multiple transient maps.  For
+            ;; example, if isearch and C-u both use transient maps,
+            ;; then the lifetime of the C-u should be nested within
+            ;; the isearch overlay, so the pre-command-hook of isearch
+            ;; should be suspended during the C-u one so we don't exit
+            ;; isearch just because we hit 1 after C-u and that 1
+            ;; exits isearch whereas it doesn't exit C-u.
+            (with-demoted-errors "set-transient-map PCH: %S"
               (unless (cond ((null keep-pred) nil)
                             ((eq t keep-pred)
                              (eq this-command

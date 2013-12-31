@@ -1595,6 +1595,8 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 	     (and value (cdr value))))
 	 x-gtk-stock-cache))))
 
+(global-set-key [XF86WakeUp] 'ignore)
+
 (provide 'x-win)
 
 ;;; x-win.el ends here

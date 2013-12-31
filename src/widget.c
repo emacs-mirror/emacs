@@ -404,8 +404,6 @@ set_frame_size (EmacsFrame ew)
        might end up with a frame width that is not a multiple of the
        frame's character width which is bad for vertically split
        windows.  */
-    f->scroll_bar_actual_width
-      = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
     compute_fringe_widths (f, 0);
 

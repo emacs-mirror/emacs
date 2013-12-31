@@ -25,7 +25,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* Todo Mode: (todo-mode).             Make and maintain todo lists.
+* Todo Mode: (todo-mode).       Make and maintain todo lists.
 @end direntry
 
 @titlepage

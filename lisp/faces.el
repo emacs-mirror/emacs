@@ -958,10 +958,11 @@ a single face name."
                   ;; If we only want one, and the default is more than one,
                   ;; discard the unwanted ones.
                   (t (symbol-name (car default))))))
-  (if (and default (not multiple))
-      ;; For compatibility with `completing-read-multiple' use `crm-separator'
-      ;; to define DEFAULT if MULTIPLE is nil.
-      (setq default (car (split-string default crm-separator t))))
+  (when (and default (not multiple))
+    (require 'crm)
+    ;; For compatibility with `completing-read-multiple' use `crm-separator'
+    ;; to define DEFAULT if MULTIPLE is nil.
+    (setq default (car (split-string default crm-separator t))))
 
   (let ((prompt (if default
                     (format "%s (default `%s'): " prompt default)
@@ -1554,16 +1555,16 @@ If SPEC is nil, return nil."
 		:box nil :inverse-video nil :stipple nil :inherit nil)
 	      ;; `display-graphic-p' is unavailable when running
 	      ;; temacs, prior to loading frame.el.
-	      (unless (and (fboundp 'display-graphic-p)
-			   (display-graphic-p frame))
-		`(:family "default" :foundry "default" :width normal
-		  :height 1 :weight normal :slant normal
-		  :foreground ,(if (frame-parameter nil 'reverse)
-				   "unspecified-bg"
-				 "unspecified-fg")
-		  :background ,(if (frame-parameter nil 'reverse)
-				   "unspecified-fg"
-				 "unspecified-bg"))))
+	      (when (fboundp 'display-graphic-p)
+		(unless (display-graphic-p frame)
+		  `(:family "default" :foundry "default" :width normal
+		    :height 1 :weight normal :slant normal
+		    :foreground ,(if (frame-parameter nil 'reverse)
+				     "unspecified-bg"
+				   "unspecified-fg")
+		    :background ,(if (frame-parameter nil 'reverse)
+				     "unspecified-fg"
+				   "unspecified-bg")))))
 	   ;; For all other faces, unspecify all attributes.
 	   (apply 'append
 		  (mapcar (lambda (x) (list (car x) 'unspecified))
@@ -1573,9 +1574,13 @@ If SPEC is nil, return nil."
   "Set the face spec SPEC for FACE.
 See `defface' for the format of SPEC.
 
-The appearance of each face is controlled by its spec, and by the
-internal face attributes (which can be frame-specific and can be
-set via `set-face-attribute').
+The appearance of each face is controlled by its specs (set via
+this function), and by the internal frame-specific face
+attributes (set via `set-face-attribute').
+
+This function also defines FACE as a valid face name if it is not
+already one, and (re)calculates its attributes on existing
+frames.
 
 The argument SPEC-TYPE determines which spec to set:
   nil or `face-override-spec' means the override spec (which is
@@ -1588,11 +1593,7 @@ The argument SPEC-TYPE determines which spec to set:
   `reset' means to ignore SPEC, but clear the `customized-face'
     and `face-override-spec' specs;
 Any other value means not to set any spec, but to run the
-function for its other effects.
-
-In addition to setting the face spec, this function defines FACE
-as a valid face name if it is not already one, and (re)calculates
-the face's attributes on existing frames."
+function for its other effects."
   (if (get face 'face-alias)
       (setq face (get face 'face-alias)))
   ;; Save SPEC to the relevant symbol property.
@@ -1611,20 +1612,10 @@ the face's attributes on existing frames."
   ;; as far as Custom is concerned.
   (unless (eq face 'face-override-spec)
     (put face 'face-modified nil))
-  (if (facep face)
-      ;; If the face already exists, recalculate it.
-      (dolist (frame (frame-list))
-	(face-spec-recalc face frame))
-    ;; Otherwise, initialize it on all frames.
-    (make-empty-face face)
-    (let ((value (face-user-default-spec face))
-	  (have-window-system (memq initial-window-system '(x w32 ns))))
-      (dolist (frame (frame-list))
-	(face-spec-set-2 face frame value)
- 	(when (memq (window-system frame) '(x w32 ns))
- 	  (setq have-window-system t)))
-      (if have-window-system
- 	  (make-face-x-resource-internal face)))))
+  ;; Initialize the face if it does not exist, then recalculate.
+  (make-empty-face face)
+  (dolist (frame (frame-list))
+    (face-spec-recalc face frame)))
 
 (defun face-spec-recalc (face frame)
   "Reset the face attributes of FACE on FRAME according to its specs.
@@ -1634,19 +1625,28 @@ then the override spec."
     (setq face (get face 'face-alias)))
   (face-spec-reset-face face frame)
   ;; If FACE is customized or themed, set the custom spec from
-  ;; `theme-face' records, which completely replace the defface spec
-  ;; rather than inheriting from it.
-  (let ((theme-faces (get face 'theme-face)))
+  ;; `theme-face' records.
+  (let ((theme-faces (get face 'theme-face))
+	spec theme-face-applied)
     (if theme-faces
-	(dolist (spec (reverse theme-faces))
-	  (face-spec-set-2 face frame (cadr spec)))
-      (face-spec-set-2 face frame (face-default-spec face))))
-  (face-spec-set-2 face frame (get face 'face-override-spec)))
+	(dolist (elt (reverse theme-faces))
+	  (setq spec (face-spec-choose (cadr elt) frame))
+	  (when spec
+	    (face-spec-set-2 face frame spec)
+	    (setq theme-face-applied t))))
+    ;; If there was a spec applicable to FRAME, that overrides the
+    ;; defface spec entirely (rather than inheriting from it).  If
+    ;; there was no spec applicable to FRAME, apply the defface spec.
+    (unless theme-face-applied
+      (setq spec (face-spec-choose (face-default-spec face) frame))
+      (face-spec-set-2 face frame spec))
+    (setq spec (face-spec-choose (get face 'face-override-spec) frame))
+    (face-spec-set-2 face frame spec))
+  (make-face-x-resource-internal face frame))
 
 (defun face-spec-set-2 (face frame spec)
   "Set the face attributes of FACE on FRAME according to SPEC."
-  (let* ((spec (face-spec-choose spec frame))
-	 attrs)
+  (let (attrs)
     (while spec
       (when (assq (car spec) face-x-resources)
 	(push (car spec) attrs)
@@ -1836,7 +1836,7 @@ resulting color name in the echo area."
 			 (if (color-defined-p string)
 			     (list string))))
 		    ((eq flag 'lambda) ; Test completion.
-		     (or (memq string colors)
+		     (or (member string colors)
 			 (color-defined-p string)))))
 		 nil t)))
 
@@ -2572,6 +2572,30 @@ It is used for characters of no fonts too."
   '((t :background "red"))
   "Face for displaying the currently selected item in TTY menus."
   :group 'basic-faces)
+
+(defgroup paren-showing-faces nil
+  "Faces used to highlight paren matches."
+  :group 'paren-showing
+  :group 'faces
+  :version "22.1")
+
+(defface show-paren-match
+  '((((class color) (background light))
+     :background "turquoise")		; looks OK on tty (becomes cyan)
+    (((class color) (background dark))
+     :background "steelblue3")		; looks OK on tty (becomes blue)
+    (((background dark))
+     :background "grey50")
+    (t
+     :background "gray"))
+  "Face used for a matching paren."
+  :group 'paren-showing-faces)
+
+(defface show-paren-mismatch
+  '((((class color)) (:foreground "white" :background "purple"))
+    (t (:inverse-video t)))
+  "Face used for a mismatching paren."
+  :group 'paren-showing-faces)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

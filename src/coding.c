@@ -5199,7 +5199,7 @@ decode_coding_ccl (struct coding_system *coding)
 	  source_charbuf[i++] = *p++;
 
       if (p == src_end && coding->mode & CODING_MODE_LAST_BLOCK)
-	ccl->last_block = 1;
+	ccl->last_block = true;
       /* As ccl_driver calls DECODE_CHAR, buffer may be relocated.  */
       charset_map_loaded = 0;
       ccl_driver (ccl, source_charbuf, charbuf, i, charbuf_end - charbuf,
@@ -5259,7 +5259,7 @@ encode_coding_ccl (struct coding_system *coding)
   CODING_GET_INFO (coding, attrs, charset_list);
   if (coding->consumed_char == coding->src_chars
       && coding->mode & CODING_MODE_LAST_BLOCK)
-    ccl->last_block = 1;
+    ccl->last_block = true;
 
   do
     {
@@ -9490,6 +9490,55 @@ code_convert_string_norecord (Lisp_Object string, Lisp_Object coding_system,
   return code_convert_string (string, coding_system, Qt, encodep, 0, 1);
 }
 
+/* Encode or decode a file name, to or from a unibyte string suitable
+   for passing to C library functions.  */
+Lisp_Object
+decode_file_name (Lisp_Object fname)
+{
+#ifdef WINDOWSNT
+  /* The w32 build pretends to use UTF-8 for file-name encoding, and
+     converts the file names either to UTF-16LE or to the system ANSI
+     codepage internally, depending on the underlying OS; see w32.c.  */
+  if (! NILP (Fcoding_system_p (Qutf_8)))
+    return code_convert_string_norecord (fname, Qutf_8, 0);
+  return fname;
+#else  /* !WINDOWSNT */
+  if (! NILP (Vfile_name_coding_system))
+    return code_convert_string_norecord (fname, Vfile_name_coding_system, 0);
+  else if (! NILP (Vdefault_file_name_coding_system))
+    return code_convert_string_norecord (fname,
+					 Vdefault_file_name_coding_system, 0);
+  else
+    return fname;
+#endif
+}
+
+Lisp_Object
+encode_file_name (Lisp_Object fname)
+{
+  /* This is especially important during bootstrap and dumping, when
+     file-name encoding is not yet known, and therefore any non-ASCII
+     file names are unibyte strings, and could only be thrashed if we
+     try to encode them.  */
+  if (!STRING_MULTIBYTE (fname))
+    return fname;
+#ifdef WINDOWSNT
+  /* The w32 build pretends to use UTF-8 for file-name encoding, and
+     converts the file names either to UTF-16LE or to the system ANSI
+     codepage internally, depending on the underlying OS; see w32.c.  */
+  if (! NILP (Fcoding_system_p (Qutf_8)))
+    return code_convert_string_norecord (fname, Qutf_8, 1);
+  return fname;
+#else  /* !WINDOWSNT */
+  if (! NILP (Vfile_name_coding_system))
+    return code_convert_string_norecord (fname, Vfile_name_coding_system, 1);
+  else if (! NILP (Vdefault_file_name_coding_system))
+    return code_convert_string_norecord (fname,
+					 Vdefault_file_name_coding_system, 1);
+  else
+    return fname;
+#endif
+}
 
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 4, 0,

@@ -129,8 +129,6 @@ Each element has the form (WHERE BYTECODE STACK) where:
   ;; TODO: make it so that interactive spec can be a constant which
   ;; dynamically checks the advice--car/cdr to do its job.
   ;; For that, advice-eval-interactive-spec needs to be more faithful.
-  ;; FIXME: The calls to interactive-form below load autoloaded functions
-  ;; too eagerly.
   (let ((fspec (cadr (interactive-form function))))
     (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
       (setq fspec (nth 1 fspec)))
@@ -147,19 +145,29 @@ Each element has the form (WHERE BYTECODE STACK) where:
          (apply #'make-byte-code 128 byte-code
                 (vector #'apply function main props) stack-depth
                 advice--docstring
-                (when (or (commandp function) (commandp main))
-                  (list (advice--make-interactive-form
-                         function main))))))
+                (and (or (commandp function) (commandp main))
+		     (not (and (symbolp main) ;; Don't autoload too eagerly!
+			       (autoloadp (symbol-function main))))
+                     (list (advice--make-interactive-form
+                            function main))))))
     (when adv-sig (puthash advice adv-sig advertised-signature-table))
     advice))
 
 (defun advice--make (where function main props)
   "Build a function value that adds FUNCTION to MAIN at WHERE.
 WHERE is a symbol to select an entry in `advice--where-alist'."
-  (let ((desc (assq where advice--where-alist)))
-    (unless desc (error "Unknown add-function location `%S'" where))
-    (advice--make-1 (nth 1 desc) (nth 2 desc)
-                    function main props)))
+  (let ((fd (or (cdr (assq 'depth props)) 0))
+        (md (if (advice--p main)
+                (or (cdr (assq 'depth (advice--props main))) 0))))
+    (if (and md (> fd md))
+        ;; `function' should go deeper.
+        (let ((rest (advice--make where function (advice--cdr main) props)))
+          (advice--make-1 (aref main 1) (aref main 3)
+                          (advice--car main) rest (advice--props main)))
+      (let ((desc (assq where advice--where-alist)))
+        (unless desc (error "Unknown add-function location `%S'" where))
+        (advice--make-1 (nth 1 desc) (nth 2 desc)
+                        function main props)))))
 
 (defun advice--member-p (function name definition)
   (let ((found nil))
@@ -216,8 +224,6 @@ different, but `function-equal' will hopefully ignore those differences.")
 ;;;###autoload
 (defmacro add-function (where place function &optional props)
   ;; TODO:
-  ;; - provide some kind of control over ordering.  E.g. debug-on-entry, ELP
-  ;;   and tracing want to stay first.
   ;; - maybe let `where' specify some kind of predicate and use it
   ;;   to implement things like mode-local or eieio-defmethod.
   ;;   Of course, that only makes sense if the predicates of all advices can
@@ -245,6 +251,10 @@ If FUNCTION was already added, do nothing.
 PROPS is an alist of additional properties, among which the following have
 a special meaning:
 - `name': a string or symbol.  It can be used to refer to this piece of advice.
+- `depth': a number indicating a preference w.r.t ordering.
+  The default depth is 0.  By convention, a depth of 100 means that
+  the advice  should be innermost (i.e. at the end of the list),
+  whereas a depth of -100 means that the advice should be outermost.
 
 If PLACE is a simple variable, only its global value will be affected.
 Use (local 'VAR) if you want to apply FUNCTION to VAR buffer-locally.

@@ -151,7 +151,7 @@ to take place:
   6. Move backward to start of comment, indenting if necessary."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Beginning only" nil)
-		 (const :tag "Maybe move or make or delete comment" 'tcl))
+		 (other :tag "Maybe move or make or delete comment" tcl))
   :group 'tcl)
 
 

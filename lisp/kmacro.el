@@ -650,10 +650,10 @@ others, use \\[kmacro-name-last-macro]."
 		 (if (and kmacro-call-repeat-with-arg
 			  arg (> arg 1))
 		     (format " %d times" arg) "")))
-      ;; Can't use the `keep-pred' arg because this overlay keymap needs to be
-      ;; removed during the next run of the kmacro (i.e. we need to add&remove
-      ;; this overlay-map at each repetition).
-      (set-temporary-overlay-map
+      ;; Can't use the `keep-pred' arg because this overlay keymap
+      ;; needs to be removed during the next run of the kmacro
+      ;; (i.e. we must add and remove this map at each repetition).
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (define-key map (vector repeat-key)
            `(lambda () (interactive)

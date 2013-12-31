@@ -133,9 +133,9 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
-int use_xim = 1;
+bool use_xim = true;
 #else
-int use_xim = 0;  /* configure --without-xim */
+bool use_xim = false;  /* configure --without-xim */
 #endif
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
@@ -6172,7 +6172,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
           /* Don't pass keys to GTK.  A Tab will shift focus to the
              tool bar in GTK 2.4.  Keys will still go to menus and
-             dialogs because in that case popup_activated is TRUE
+             dialogs because in that case popup_activated is nonzero
              (see above).  */
           *finish = X_EVENT_DROP;
 #endif
@@ -6622,8 +6622,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               cancel_mouse_face (f);
             }
 
-          FRAME_PIXEL_WIDTH (f) = event->xconfigure.width;
-          FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height;
+/**           FRAME_PIXEL_WIDTH (f) = event->xconfigure.width; **/
+/**           FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height; **/
 #endif /* not USE_GTK */
 #endif
 
@@ -7689,6 +7689,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_COLUMN_WIDTH (f) = font->average_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
+  FRAME_TOOL_BAR_HEIGHT (f) = FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
+  FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
+
   compute_fringe_widths (f, 1);
 
   /* Compute the scroll bar width in character columns.  */
@@ -8534,20 +8537,18 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
   int pixelwidth, pixelheight;
 
   check_frame_size (f, &width, &height, pixelwise);
-  f->scroll_bar_actual_width
-    = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-       ? 0
-       : FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f));
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth =
-    (pixelwise ? width : FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width))
-    + FRAME_TOOLBAR_WIDTH (f);
-  pixelheight =
-    (pixelwise ? height : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height))
-    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
-
+  pixelwidth = ((pixelwise
+		 ? FRAME_TEXT_TO_PIXEL_WIDTH (f, width)
+		 : FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width))
+		+ FRAME_TOOLBAR_WIDTH (f));
+  pixelheight = ((pixelwise
+		  ? FRAME_TEXT_TO_PIXEL_HEIGHT (f, height)
+		  : FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height))
+		 + FRAME_MENUBAR_HEIGHT (f)
+		 + FRAME_TOOLBAR_HEIGHT (f));
   if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
   XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
@@ -8582,8 +8583,6 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int width, int height,
   else
     {
       change_frame_size (f, width, height, 0, 1, 0, 1);
-      FRAME_PIXEL_WIDTH (f) = pixelwidth;
-      FRAME_PIXEL_HEIGHT (f) = pixelheight;
       x_sync (f);
     }
 }
@@ -8620,10 +8619,7 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 #endif
       text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, FRAME_PIXEL_WIDTH (f));
       text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelh);
-      /* Update f->scroll_bar_actual_width because it is used in
-         FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
-      f->scroll_bar_actual_width
-        = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
+
       change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
     }
 
@@ -8920,6 +8916,27 @@ x_make_frame_visible (struct frame *f)
       {
 	/* Force processing of queued events.  */
 	x_sync (f);
+
+	/* This hack is still in use at least for Cygwin.  See
+	   http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
+
+	   Machines that do polling rather than SIGIO have been
+	   observed to go into a busy-wait here.  So we'll fake an
+	   alarm signal to let the handler know that there's something
+	   to be read.  We used to raise a real alarm, but it seems
+	   that the handler isn't always enabled here.  This is
+	   probably a bug.  */
+	if (input_polling_used ())
+	  {
+	    /* It could be confusing if a real alarm arrives while
+	       processing the fake one.  Turn it off and let the
+	       handler reset it.  */
+	    int old_poll_suppress_count = poll_suppress_count;
+	    poll_suppress_count = 1;
+	    poll_for_input_1 ();
+	    poll_suppress_count = old_poll_suppress_count;
+	  }
+
 	if (XPending (FRAME_X_DISPLAY (f)))
 	  {
 	    XEvent xev;
@@ -9126,8 +9143,7 @@ x_free_frame_resources (struct frame *f)
       /* We must free faces before destroying windows because some
 	 font-driver (e.g. xft) access a window while finishing a
 	 face.  */
-      if (FRAME_FACE_CACHE (f))
-	free_frame_faces (f);
+      free_frame_faces (f);
 
       if (f->output_data.x->icon_desc)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
@@ -10069,12 +10085,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "false")
 	    || !strcmp (SSDATA (value), "off")))
-      use_xim = 0;
+      use_xim = false;
 #else
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
-      use_xim = 1;
+      use_xim = true;
 #endif
   }
 

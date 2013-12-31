@@ -251,7 +251,7 @@ can get pretty complex."
   :type `(repeat :tag "Authentication Sources"
                  (choice
                   (string :tag "Just a file")
-                  (const :tag "Default Secrets API Collection" 'default)
+                  (const :tag "Default Secrets API Collection" default)
                   (const :tag "Login Secrets API Collection" "secrets:Login")
                   (const :tag "Temp Secrets API Collection" "secrets:session")
 
@@ -270,7 +270,7 @@ can get pretty complex."
                                  (const :format "" :value :secrets)
                                  (choice :tag "Collection to use"
                                          (string :tag "Collection name")
-                                         (const :tag "Default" 'default)
+                                         (const :tag "Default" default)
                                          (const :tag "Login" "Login")
                                          (const
                                           :tag "Temporary" "session")))
@@ -280,14 +280,14 @@ can get pretty complex."
                                         :value :macos-keychain-internet)
                                  (choice :tag "Collection to use"
                                          (string :tag "internet Keychain path")
-                                         (const :tag "default" 'default)))
+                                         (const :tag "default" default)))
                                 (list
                                  :tag "Mac OS generic Keychain"
                                  (const :format ""
                                         :value :macos-keychain-generic)
                                  (choice :tag "Collection to use"
                                          (string :tag "generic Keychain path")
-                                         (const :tag "default" 'default))))
+                                         (const :tag "default" default))))
                         (repeat :tag "Extra Parameters" :inline t
                                 (choice :tag "Extra parameter"
                                         (list

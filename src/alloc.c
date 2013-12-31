@@ -203,7 +203,27 @@ const char *pending_malloc_warning;
 #if MAX_SAVE_STACK > 0
 static char *stack_copy;
 static ptrdiff_t stack_copy_size;
-#endif
+
+/* Copy to DEST a block of memory from SRC of size SIZE bytes,
+   avoiding any address sanitization.  */
+
+static void * ATTRIBUTE_NO_SANITIZE_ADDRESS
+no_sanitize_memcpy (void *dest, void const *src, size_t size)
+{
+  if (! ADDRESS_SANITIZER)
+    return memcpy (dest, src, size);
+  else
+    {
+      size_t i;
+      char *d = dest;
+      char const *s = src;
+      for (i = 0; i < size; i++)
+	d[i] = s[i];
+      return dest;
+    }
+}
+
+#endif /* MAX_SAVE_STACK > 0 */
 
 static Lisp_Object Qconses;
 static Lisp_Object Qsymbols;
@@ -920,20 +940,26 @@ lisp_free (void *block)
 /* The entry point is lisp_align_malloc which returns blocks of at most
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
-#if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
-# define USE_ALIGNED_ALLOC 1
+/* Use aligned_alloc if it or a simple substitute is available.
+   Address sanitization breaks aligned allocation, as of gcc 4.8.2 and
+   clang 3.3 anyway.  */
+
+#if ! ADDRESS_SANITIZER
+# if !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+#  define USE_ALIGNED_ALLOC 1
 /* Defined in gmalloc.c.  */
 void *aligned_alloc (size_t, size_t);
-#elif defined HAVE_ALIGNED_ALLOC
-# define USE_ALIGNED_ALLOC 1
-#elif defined HAVE_POSIX_MEMALIGN
-# define USE_ALIGNED_ALLOC 1
+# elif defined HAVE_ALIGNED_ALLOC
+#  define USE_ALIGNED_ALLOC 1
+# elif defined HAVE_POSIX_MEMALIGN
+#  define USE_ALIGNED_ALLOC 1
 static void *
 aligned_alloc (size_t alignment, size_t size)
 {
   void *p;
   return posix_memalign (&p, alignment, size) == 0 ? p : 0;
 }
+# endif
 #endif
 
 /* BLOCK_ALIGN has to be a power of 2.  */
@@ -2877,7 +2903,11 @@ cleanup_vector (struct Lisp_Vector *vector)
   if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT)
       && ((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
 	  == FONT_OBJECT_MAX))
-    ((struct font *) vector)->driver->close ((struct font *) vector);
+    {
+      /* Attempt to catch subtle bugs like Bug#16140.  */
+      eassert (valid_font_driver (((struct font *) vector)->driver));
+      ((struct font *) vector)->driver->close ((struct font *) vector);
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -4549,16 +4579,8 @@ mark_maybe_pointer (void *p)
 /* Mark Lisp objects referenced from the address range START+OFFSET..END
    or END+OFFSET..START. */
 
-static void
+static void ATTRIBUTE_NO_SANITIZE_ADDRESS
 mark_memory (void *start, void *end)
-#if defined (__clang__) && defined (__has_feature)
-#if __has_feature(address_sanitizer)
-  /* Do not allow -faddress-sanitizer to check this function, since it
-     crosses the function stack boundary, and thus would yield many
-     false positives. */
-  __attribute__((no_address_safety_analysis))
-#endif
-#endif
 {
   void **pp;
   int i;
@@ -5299,6 +5321,10 @@ total_bytes_of_live_objects (void)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+/* This code has a few issues on MS-Windows, see Bug#15876 and Bug#16140.  */
+
+#if !defined (HAVE_NTGUI)
+
 /* Remove unmarked font-spec and font-entity objects from ENTRY, which is
    (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...), and return changed entry.  */
 
@@ -5337,6 +5363,8 @@ compact_font_cache_entry (Lisp_Object entry)
   return entry;
 }
 
+#endif /* not HAVE_NTGUI */
+
 /* Compact font caches on all terminals and mark
    everything which is still here after compaction.  */
 
@@ -5348,7 +5376,7 @@ compact_font_caches (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       Lisp_Object cache = TERMINAL_FONT_CACHE (t);
-
+#if !defined (HAVE_NTGUI)
       if (CONSP (cache))
 	{
 	  Lisp_Object entry;
@@ -5356,6 +5384,7 @@ compact_font_caches (void)
 	  for (entry = XCDR (cache); CONSP (entry); entry = XCDR (entry))
 	    XSETCAR (entry, compact_font_cache_entry (XCAR (entry)));
 	}
+#endif /* not HAVE_NTGUI */
       mark_object (cache);
     }
 }
@@ -5466,7 +5495,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 	      stack_copy = xrealloc (stack_copy, stack_size);
 	      stack_copy_size = stack_size;
 	    }
-	  memcpy (stack_copy, stack, stack_size);
+	  no_sanitize_memcpy (stack_copy, stack, stack_size);
 	}
     }
 #endif /* MAX_SAVE_STACK > 0 */
@@ -6633,7 +6662,12 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 {
   Lisp_Object end;
 
+#ifdef HAVE_NS
+  /* Avoid warning.  sbrk has no relation to memory allocated anyway.  */
+  XSETINT (end, 0);
+#else
   XSETINT (end, (intptr_t) (char *) sbrk (0) / 1024);
+#endif
 
   return end;
 }

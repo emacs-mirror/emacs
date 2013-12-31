@@ -31,6 +31,7 @@
 
 (defcustom pcmpl-x-tlmgr-program "tlmgr"
   "Name of the tlmgr program."
+  :version "24.4"
   :type 'file
   :group 'pcomplete)
 
@@ -154,6 +155,7 @@
                               (executable-find "ack")
                               "ack"))
   "Name of the ack program."
+  :version "24.4"
   :type 'file
   :group 'pcomplete)
 

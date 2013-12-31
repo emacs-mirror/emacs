@@ -1,3 +1,30 @@
+2013-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (umask) [emacs]: Redirect to sys_umask.  (Bug#16299)
+
+2013-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32:
+	* INSTALL: Update instructions for downloading and using image
+	libraries in general, and librsvg in particular.
+
+2013-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-x64.manifest:
+	* emacs-x86.manifest: Declare that we target Windows 8.1 as well
+	as earlier versions.  This is so GetVersion and GetVersionEx APIs
+	used for bug reporting and other purposes return accurate version
+	number on Windows 8.1.  See the discussion on MSDN
+	http://msdn.microsoft.com/en-us/library/windows/desktop/dn302074.aspx
+	for more details.
+
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (MAX_UTF8_PATH): New macro.
+	(opendir, closedir, readdir, seekdir): Redirect to replacement
+	functions.
+	* inc/dirent.h: Make d_name[] be MAXNAMELEN*4 characters long.
+
 2013-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* README.W32:

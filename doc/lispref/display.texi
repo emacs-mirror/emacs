@@ -439,7 +439,7 @@ that it prints a message in the echo area unconditionally.
 
 The first two arguments have the same meaning as for
 @code{progress-reporter-update}.  Optional @var{new-message} allows
-you to change the message of the @var{reporter}.  Since this functions
+you to change the message of the @var{reporter}.  Since this function
 always updates the echo area, such a change will be immediately
 presented to the user.
 @end defun
@@ -478,7 +478,14 @@ this macro this way:
   Almost all the messages displayed in the echo area are also recorded
 in the @file{*Messages*} buffer so that the user can refer back to
 them.  This includes all the messages that are output with
-@code{message}.
+@code{message}.  This buffer is read-only and has the major-mode
+@code{messages-buffer-mode}.  The best way to retrieve that buffer is
+the function @code{messages-buffer}.
+
+@defun messages-buffer
+Return the @file{*Messages*} buffer.
+If it does not exist, create and it switch it to @code{messages-buffer-mode}.
+@end defun
 
 @defopt message-log-max
 This variable specifies how many lines to keep in the @file{*Messages*}
@@ -2683,7 +2690,7 @@ and @code{face-remap-reset-base} functions; it is intended for major
 modes to remap faces in the buffers they control.
 
 @defun face-remap-add-relative face &rest specs
-This functions adds the face spec in @var{specs} as relative
+This function adds the face spec in @var{specs} as relative
 remappings for face @var{face} in the current buffer.  The remaining
 arguments, @var{specs}, should form either a list of face names, or a
 property list of attribute/value pairs.
@@ -2955,11 +2962,11 @@ scalable font is enabled for use if its name matches any regular
 expression in the list.  For example,
 
 @example
-(setq scalable-fonts-allowed '("muleindian-2$"))
+(setq scalable-fonts-allowed '("iso10646-1$"))
 @end example
 
 @noindent
-allows the use of scalable fonts with registry @code{muleindian-2}.
+allows the use of scalable fonts with registry @code{iso10646-1}.
 @end defopt
 
 @defvar face-font-rescale-alist

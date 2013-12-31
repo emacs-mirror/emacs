@@ -365,7 +365,11 @@ operate_on_word (Lisp_Object arg, ptrdiff_t *newpoint)
 }
 
 DEFUN ("upcase-word", Fupcase_word, Supcase_word, 1, 1, "p",
-       doc: /* Convert following word (or ARG words) to upper case, moving over.
+       doc: /* Convert to upper case from point to end of word, moving over.
+
+If point is in the middle of a word, the part of that word before point
+is ignored when moving forward.
+
 With negative argument, convert previous words but do not move.
 See also `capitalize-word'.  */)
   (Lisp_Object arg)
@@ -380,7 +384,11 @@ See also `capitalize-word'.  */)
 }
 
 DEFUN ("downcase-word", Fdowncase_word, Sdowncase_word, 1, 1, "p",
-       doc: /* Convert following word (or ARG words) to lower case, moving over.
+       doc: /* Convert to lower case from point to end of word, moving over.
+
+If point is in the middle of a word, the part of that word before point
+is ignored when moving forward.
+
 With negative argument, convert previous words but do not move.  */)
   (Lisp_Object arg)
 {
@@ -394,9 +402,14 @@ With negative argument, convert previous words but do not move.  */)
 }
 
 DEFUN ("capitalize-word", Fcapitalize_word, Scapitalize_word, 1, 1, "p",
-       doc: /* Capitalize the following word (or ARG words), moving over.
+       doc: /* Capitalize from point to the end of word, moving over.
+With numerical argument ARG, capitalize the next ARG-1 words as well.
 This gives the word(s) a first character in upper case
 and the rest lower case.
+
+If point is in the middle of a word, the part of that word before point
+is ignored when moving forward.
+
 With negative argument, capitalize previous words but do not move.  */)
   (Lisp_Object arg)
 {

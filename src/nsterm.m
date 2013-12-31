@@ -79,7 +79,66 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
+/* Detailed tracing. "S" means "size" and "LL" stands for "lower left". */
+#if 0
+int term_trace_num = 0;
+#define NSTRACE_SIZE(str,size) fprintf (stderr,                         \
+                                   "%s:%d: [%d]   " str                 \
+                                   " (S:%.0f x %.0f)\n", \
+                                   __FILE__, __LINE__, ++term_trace_num,\
+                                   size.height,                       \
+                                   size.width)
+#define NSTRACE_RECT(s,r) fprintf (stderr,                              \
+                                   "%s:%d: [%d]   " s                   \
+                                   " (LL:%.0f x %.0f -> S:%.0f x %.0f)\n", \
+                                   __FILE__, __LINE__, ++term_trace_num,\
+                                   r.origin.x,                          \
+                                   r.origin.y,                          \
+                                   r.size.height,                       \
+                                   r.size.width)
+#else
+#define NSTRACE_SIZE(str,size)
+#define NSTRACE_RECT(s,r)
+#endif
+
 extern NSString *NSMenuDidBeginTrackingNotification;
+
+/* ==========================================================================
+
+   NSColor, EmacsColor category.
+
+   ========================================================================== */
+@implementation NSColor (EmacsColor)
++ (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
+                         blue:(CGFloat)blue alpha:(CGFloat)alpha
+{
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+  if (ns_use_srgb_colorspace)
+      return [NSColor colorWithSRGBRed: red
+                                 green: green
+                                  blue: blue
+                                 alpha: alpha];
+#endif
+#endif
+  return [NSColor colorWithCalibratedRed: red
+                                   green: green
+                                    blue: blue
+                                   alpha: alpha];
+}
+
+- (NSColor *)colorUsingDefaultColorSpace
+{
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+  if (ns_use_srgb_colorspace)
+    return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
+#endif
+#endif
+  return [self colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+}
+
+@end
 
 /* ==========================================================================
 
@@ -174,6 +233,7 @@ extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
 static Lisp_Object Qcocoa, Qgnustep;
+static Lisp_Object Qfile, Qurl;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -256,31 +316,32 @@ static CGPoint menu_mouse_point;
 #define NSRightCommandKeyMask   (0x000010 | NSCommandKeyMask)
 #define NSLeftAlternateKeyMask  (0x000020 | NSAlternateKeyMask)
 #define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
-#define EV_MODIFIERS(e)                               \
-    ((([e modifierFlags] & NSHelpKeyMask) ?           \
+#define EV_MODIFIERS2(flags)                          \
+    (((flags & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
      | (!EQ (ns_right_alternate_modifier, Qleft) && \
-        (([e modifierFlags] & NSRightAlternateKeyMask) \
+        ((flags & NSRightAlternateKeyMask) \
          == NSRightAlternateKeyMask) ? \
            parse_solitary_modifier (ns_right_alternate_modifier) : 0) \
-     | (([e modifierFlags] & NSAlternateKeyMask) ?                 \
+     | ((flags & NSAlternateKeyMask) ?                 \
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
-     | (([e modifierFlags] & NSShiftKeyMask) ?     \
+     | ((flags & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
      | (!EQ (ns_right_control_modifier, Qleft) && \
-        (([e modifierFlags] & NSRightControlKeyMask) \
+        ((flags & NSRightControlKeyMask) \
          == NSRightControlKeyMask) ? \
            parse_solitary_modifier (ns_right_control_modifier) : 0) \
-     | (([e modifierFlags] & NSControlKeyMask) ?      \
+     | ((flags & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
-     | (([e modifierFlags] & NS_FUNCTION_KEY_MASK) ?  \
+     | ((flags & NS_FUNCTION_KEY_MASK) ?  \
            parse_solitary_modifier (ns_function_modifier) : 0)    \
      | (!EQ (ns_right_command_modifier, Qleft) && \
-        (([e modifierFlags] & NSRightCommandKeyMask) \
+        ((flags & NSRightCommandKeyMask) \
          == NSRightCommandKeyMask) ? \
            parse_solitary_modifier (ns_right_command_modifier) : 0) \
-     | (([e modifierFlags] & NSCommandKeyMask) ?      \
+     | ((flags & NSCommandKeyMask) ?      \
            parse_solitary_modifier (ns_command_modifier):0))
+#define EV_MODIFIERS(e) EV_MODIFIERS2 ([e modifierFlags])
 
 #define EV_UDMODIFIERS(e)                                      \
     ((([e type] == NSLeftMouseDown) ? down_modifier : 0)       \
@@ -605,7 +666,6 @@ ns_constrain_all_frames (void)
           NSView *view = FRAME_NS_VIEW (f);
           /* This no-op will trigger the default window placing
            * constraint system. */
-          f->output_data.ns->dont_constrain = 0;
           [[view window] setFrameOrigin:[[view window] frame].origin];
         }
     }
@@ -1155,9 +1215,7 @@ x_free_frame_resources (struct frame *f)
   block_input ();
 
   free_frame_menubar (f);
-
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
+  free_frame_faces (f);
 
   if (f == dpyinfo->x_focus_frame)
     dpyinfo->x_focus_frame = 0;
@@ -1227,7 +1285,6 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 #endif
       /* Constrain the setFrameTopLeftPoint so we don't move behind the
          menu bar.  */
-      f->output_data.ns->dont_constrain = 0;
       [[view window] setFrameTopLeftPoint:
                        NSMakePoint (SCREENMAXBOUND (f->left_pos),
                                     SCREENMAXBOUND ([fscreen frame].size.height
@@ -1269,7 +1326,6 @@ x_set_window_size (struct frame *f,
 
   check_frame_size (f, &width, &height, pixelwise);
 
-  f->scroll_bar_actual_width = NS_SCROLL_BAR_WIDTH (f);
   compute_fringe_widths (f, 0);
 
   if (pixelwise)
@@ -1490,7 +1546,7 @@ ns_get_color (const char *name, NSColor **col)
 #endif
       if ((new = [NSColor selectedTextBackgroundColor]) != nil)
         {
-          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          *col = [new colorUsingDefaultColorSpace];
           unblock_input ();
           return 0;
         }
@@ -1506,7 +1562,7 @@ ns_get_color (const char *name, NSColor **col)
       */
       if ((new = [NSColor selectedTextColor]) != nil)
         {
-          *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+          *col = [new colorUsingDefaultColorSpace];
           unblock_input ();
           return 0;
         }
@@ -1553,7 +1609,7 @@ ns_get_color (const char *name, NSColor **col)
 
   if (r >= 0.0F)
     {
-      *col = [NSColor colorWithCalibratedRed: r green: g blue: b alpha: 1.0];
+      *col = [NSColor colorForEmacsRed: r green: g blue: b alpha: 1.0];
       unblock_input ();
       return 0;
     }
@@ -1585,7 +1641,7 @@ ns_get_color (const char *name, NSColor **col)
   }
 
   if (new)
-    *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
+    *col = [new colorUsingDefaultColorSpace];
   unblock_input ();
   return new ? 0 : 1;
 }
@@ -1626,9 +1682,9 @@ ns_color_to_lisp (NSColor *col)
           return build_string ((char *)str);
         }
 
-    [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
+    [[col colorUsingDefaultColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  if (red ==green && red ==blue)
+  if (red == green && red == blue)
     {
       [[col colorUsingColorSpaceName: NSCalibratedWhiteColorSpace]
             getWhite: &gray alpha: &alpha];
@@ -4254,10 +4310,10 @@ ns_term_init (Lisp_Object display_name)
             name = SSDATA (XCAR (color));
             c = XINT (XCDR (color));
             [cl setColor:
-                  [NSColor colorWithCalibratedRed: RED_FROM_ULONG (c) / 255.0
-                                            green: GREEN_FROM_ULONG (c) / 255.0
-                                             blue: BLUE_FROM_ULONG (c) / 255.0
-                                            alpha: 1.0]
+                  [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
+                                      green: GREEN_FROM_ULONG (c) / 255.0
+                                       blue: BLUE_FROM_ULONG (c) / 255.0
+                                      alpha: 1.0]
                   forKey: [NSString stringWithUTF8String: name]];
           }
         [cl writeToFile: nil];
@@ -4359,9 +4415,7 @@ ns_term_init (Lisp_Object display_name)
                             NSStringPboardType,
                             NSTabularTextPboardType,
                             NSFilenamesPboardType,
-                            NSURLPboardType,
-                            NSColorPboardType,
-                            NSFontPboardType, nil] retain];
+                            NSURLPboardType, nil] retain];
 
   /* If fullscreen is in init/default-frame-alist, focus isn't set
      right for fullscreen windows, so set this.  */
@@ -5500,8 +5554,18 @@ not_in_argv (NSString *arg)
       CGFloat delta = [theEvent deltaY];
       /* Mac notebooks send wheel events w/delta =0 when trackpad scrolling */
       if (delta == 0)
-        return;
-      emacs_event->kind = WHEEL_EVENT;
+        {
+          delta = [theEvent deltaX];
+          if (delta == 0)
+            {
+              NSTRACE (deltaIsZero);
+              return;
+            }
+          emacs_event->kind = HORIZ_WHEEL_EVENT;
+        }
+      else
+        emacs_event->kind = WHEEL_EVENT;
+
       emacs_event->code = 0;
       emacs_event->modifiers = EV_MODIFIERS (theEvent) |
         ((delta > 0) ? up_modifier : down_modifier);
@@ -5676,9 +5740,12 @@ not_in_argv (NSString *arg)
   NSRect wr = [window frame];
   int extra = 0;
   int oldc = cols, oldr = rows;
-  int oldw = FRAME_PIXEL_WIDTH (emacsframe),
-    oldh = FRAME_PIXEL_HEIGHT (emacsframe);
+  int oldw = FRAME_PIXEL_WIDTH (emacsframe);
+  int oldh = FRAME_PIXEL_HEIGHT (emacsframe);
   int neww, newh;
+
+  NSTRACE (updateFrameSize);
+  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
 
   if (! [self isFullscreen])
     {
@@ -5723,6 +5790,8 @@ not_in_argv (NSString *arg)
           sz.width = FRAME_COLUMN_WIDTH (emacsframe);
           sz.height = FRAME_LINE_HEIGHT (emacsframe);
           [win setResizeIncrements: sz];
+
+          NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
         }
 
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
@@ -5736,6 +5805,7 @@ not_in_argv (NSString *arg)
   int extra = 0;
 
   NSTRACE (windowWillResize);
+  NSTRACE_SIZE ("Original size", frameSize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
 
   if (fs_state == FULLSCREEN_MAXIMIZED
@@ -6613,6 +6683,8 @@ if (cols > 0 && rows > 0)
   NSString *type;
   NSEvent *theEvent = [[self window] currentEvent];
   NSPoint position;
+  NSDragOperation op = [sender draggingSourceOperationMask];
+  int modifiers = 0;
 
   NSTRACE (performDragOperation);
 
@@ -6624,6 +6696,20 @@ if (cols > 0 && rows > 0)
 
   pb = [sender draggingPasteboard];
   type = [pb availableTypeFromArray: ns_drag_types];
+
+  if (! (op & (NSDragOperationMove|NSDragOperationDelete)) &&
+      // URL drags contain all operations (0xf), don't allow all to be set.
+      (op & 0xf) != 0xf)
+    {
+      if (op & NSDragOperationLink)
+        modifiers |= NSControlKeyMask;
+      if (op & NSDragOperationCopy)
+        modifiers |= NSAlternateKeyMask;
+      if (op & NSDragOperationGeneric)
+        modifiers |= NSCommandKeyMask;
+    }
+
+  modifiers = EV_MODIFIERS2 (modifiers);
   if (type == 0)
     {
       return NO;
@@ -6640,34 +6726,37 @@ if (cols > 0 && rows > 0)
       fenum = [files objectEnumerator];
       while ( (file = [fenum nextObject]) )
         {
-          emacs_event->kind = NS_NONKEY_EVENT;
-          emacs_event->code = KEY_NS_DRAG_FILE;
+          emacs_event->kind = DRAG_N_DROP_EVENT;
           XSETINT (emacs_event->x, x);
           XSETINT (emacs_event->y, y);
           ns_input_file = append2 (ns_input_file,
                                    build_string ([file UTF8String]));
-          emacs_event->modifiers = EV_MODIFIERS (theEvent);
+          emacs_event->modifiers = modifiers;
+          emacs_event->arg =  list2 (Qfile, build_string ([file UTF8String]));
           EV_TRAILER (theEvent);
         }
       return YES;
     }
   else if ([type isEqualToString: NSURLPboardType])
     {
-      NSString *file;
-      NSURL *fileURL;
+      NSURL *url = [NSURL URLFromPasteboard: pb];
+      if (url == nil) return NO;
 
-      if (!(fileURL = [NSURL URLFromPasteboard: pb]) ||
-          [fileURL isFileURL] == NO)
-        return NO;
-
-      file = [fileURL path];
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_DRAG_FILE;
+      emacs_event->kind = DRAG_N_DROP_EVENT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
-      ns_input_file = append2 (ns_input_file, build_string ([file UTF8String]));
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
+      emacs_event->modifiers = modifiers;
+      emacs_event->arg =  list2 (Qurl,
+                                 build_string ([[url absoluteString]
+                                                 UTF8String]));
       EV_TRAILER (theEvent);
+
+      if ([url isFileURL] != NO)
+        {
+          NSString *file = [url path];
+          ns_input_file = append2 (ns_input_file,
+                                   build_string ([file UTF8String]));
+        }
       return YES;
     }
   else if ([type isEqualToString: NSStringPboardType]
@@ -6678,46 +6767,11 @@ if (cols > 0 && rows > 0)
       if (! (data = [pb stringForType: type]))
         return NO;
 
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_DRAG_TEXT;
+      emacs_event->kind = DRAG_N_DROP_EVENT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
-      ns_input_text = build_string ([data UTF8String]);
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
-      EV_TRAILER (theEvent);
-      return YES;
-    }
-  else if ([type isEqualToString: NSColorPboardType])
-    {
-      NSColor *c = [NSColor colorFromPasteboard: pb];
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_DRAG_COLOR;
-      XSETINT (emacs_event->x, x);
-      XSETINT (emacs_event->y, y);
-      ns_input_color = ns_color_to_lisp (c);
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
-      EV_TRAILER (theEvent);
-      return YES;
-    }
-  else if ([type isEqualToString: NSFontPboardType])
-    {
-      /* impl based on GNUstep NSTextView.m */
-      NSData *data = [pb dataForType: NSFontPboardType];
-      NSDictionary *dict = [NSUnarchiver unarchiveObjectWithData: data];
-      NSFont *font = [dict objectForKey: NSFontAttributeName];
-      char fontSize[10];
-
-      if (font == nil)
-        return NO;
-
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->code = KEY_NS_CHANGE_FONT;
-      XSETINT (emacs_event->x, x);
-      XSETINT (emacs_event->y, y);
-      ns_input_font = build_string ([[font fontName] UTF8String]);
-      snprintf (fontSize, 10, "%f", [font pointSize]);
-      ns_input_fontsize = build_string (fontSize);
-      emacs_event->modifiers = EV_MODIFIERS (theEvent);
+      emacs_event->modifiers = modifiers;
+      emacs_event->arg =  list2 (Qnil, build_string ([data UTF8String]));
       EV_TRAILER (theEvent);
       return YES;
     }
@@ -6895,19 +6949,39 @@ if (cols > 0 && rows > 0)
   NSUInteger nr_screens = [[NSScreen screens] count];
   struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSTRACE (constrainFrameRect);
+  NSTRACE_RECT ("input", frameRect);
 
-  if (nr_screens == 1)
-    {
-      NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
-      return r;
-    }
-
-  if (f->output_data.ns->dont_constrain
-      || ns_menu_bar_should_be_hidden ())
+  if (ns_menu_bar_should_be_hidden ())
     return frameRect;
 
-  f->output_data.ns->dont_constrain = 1;
-  return [super constrainFrameRect:frameRect toScreen:screen];
+  /* The default implementation does two things 1) ensure that the top
+     of the rectangle is below the menu bar (or below the top of the
+     screen) and 2) resizes windows larger than the screen. As we
+     don't want the latter, a smaller rectangle is used. */
+#define FAKE_HEIGHT 64
+  float old_top = frameRect.origin.y + frameRect.size.height;
+  NSRect r;
+  r.size.height = FAKE_HEIGHT;
+  r.size.width = frameRect.size.width;
+  r.origin.x = frameRect.origin.x;
+  r.origin.y = old_top - FAKE_HEIGHT;
+
+  NSTRACE_RECT ("input to super", r);
+
+  r = [super constrainFrameRect:r toScreen:screen];
+
+  NSTRACE_RECT ("output from super", r);
+
+  float new_top = r.origin.y + FAKE_HEIGHT;
+  if (new_top < old_top)
+  {
+    frameRect.origin.y = new_top - frameRect.size.height;
+  }
+
+  NSTRACE_RECT ("output", frameRect);
+
+  return frameRect;
+#undef FAKE_HEIGHT
 }
 
 @end /* EmacsWindow */
@@ -7460,6 +7534,9 @@ syms_of_nsterm (void)
   DEFSYM (Qcontrol, "control");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
 
+  DEFSYM (Qfile, "file");
+  DEFSYM (Qurl, "url");
+
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
@@ -7469,10 +7546,6 @@ syms_of_nsterm (void)
   DEFVAR_LISP ("ns-input-file", ns_input_file,
               "The file specified in the last NS event.");
   ns_input_file =Qnil;
-
-  DEFVAR_LISP ("ns-input-text", ns_input_text,
-              "The data received in the last NS text drag event.");
-  ns_input_text =Qnil;
 
   DEFVAR_LISP ("ns-working-text", ns_working_text,
               "String for visualizing working composition sequence.");
@@ -7489,10 +7562,6 @@ syms_of_nsterm (void)
   DEFVAR_LISP ("ns-input-line", ns_input_line,
                "The line specified in the last NS event.");
   ns_input_line =Qnil;
-
-  DEFVAR_LISP ("ns-input-color", ns_input_color,
-               "The color specified in the last NS event.");
-  ns_input_color =Qnil;
 
   DEFVAR_LISP ("ns-input-spi-name", ns_input_spi_name,
                "The service name specified in the last NS event.");
@@ -7574,6 +7643,12 @@ Default is t for OSX >= 10.7, nil otherwise. */);
   ns_use_native_fullscreen = NO;
 #endif
   ns_last_use_native_fullscreen = ns_use_native_fullscreen;
+
+  DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
+     doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
+Note that this does not apply to images.            
+This variable is ignored on OSX < 10.7 and GNUStep.  Default is t. */);
+  ns_use_srgb_colorspace = YES;
 
   /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,

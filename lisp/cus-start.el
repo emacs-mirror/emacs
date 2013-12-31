@@ -312,6 +312,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			:format "%[Current dir?%] %v"
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
+	     (load-prefer-newer lisp boolean "24.4")
 	     ;; minibuf.c
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
@@ -401,6 +402,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (ns-antialias-text ns boolean "23.1")
 	     (ns-auto-hide-menu-bar ns boolean "24.0")
 	     (ns-use-native-fullscreen ns boolean "24.4")
+	     (ns-use-srgb-colorspace ns boolean "24.4")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c

@@ -42,7 +42,8 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* Ediff: (ediff).       A visual interface for comparing and merging programs.
+* Ediff: (ediff).               A visual interface for comparing and
+                                  merging programs.
 @end direntry
 
 @titlepage

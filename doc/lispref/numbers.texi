@@ -354,9 +354,9 @@ can have just one integer object for any given value because it has a
 limited range of integer values.
 @end quotation
 
-@defun = number-or-marker1 number-or-marker2
-This function tests whether its arguments are numerically equal, and
-returns @code{t} if so, @code{nil} otherwise.
+@defun = number-or-marker &rest number-or-markers
+This function tests whether all its arguments are numerically equal,
+and returns @code{t} if so, @code{nil} otherwise.
 @end defun
 
 @defun eql value1 value2
@@ -371,26 +371,27 @@ This function tests whether its arguments are numerically equal, and
 returns @code{t} if they are not, and @code{nil} if they are.
 @end defun
 
-@defun <  number-or-marker1 number-or-marker2
-This function tests whether its first argument is strictly less than
-its second argument.  It returns @code{t} if so, @code{nil} otherwise.
-@end defun
-
-@defun <=  number-or-marker1 number-or-marker2
-This function tests whether its first argument is less than or equal
-to its second argument.  It returns @code{t} if so, @code{nil}
+@defun <  number-or-marker &rest number-or-markers
+This function tests whether every argument is strictly less than the
+respective next argument.  It returns @code{t} if so, @code{nil}
 otherwise.
 @end defun
 
-@defun >  number-or-marker1 number-or-marker2
-This function tests whether its first argument is strictly greater
-than its second argument.  It returns @code{t} if so, @code{nil}
+@defun <= number-or-marker &rest number-or-markers
+This function tests whether every argument is less than or equal to
+the respective next argument.  It returns @code{t} if so, @code{nil}
 otherwise.
 @end defun
 
-@defun >=  number-or-marker1 number-or-marker2
-This function tests whether its first argument is greater than or
-equal to its second argument.  It returns @code{t} if so, @code{nil}
+@defun > number-or-marker &rest number-or-markers
+This function tests whether every argument is strictly greater than
+the respective next argument.  It returns @code{t} if so, @code{nil}
+otherwise.
+@end defun
+
+@defun >= number-or-marker &rest number-or-markers
+This function tests whether every argument is greater than or equal to
+the respective next argument.  It returns @code{t} if so, @code{nil}
 otherwise.
 @end defun
 

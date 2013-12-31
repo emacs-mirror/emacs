@@ -32,9 +32,11 @@
 
 (defvar custom-new-theme-mode-map
   (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
+    (set-keymap-parent map (make-composed-keymap widget-keymap
+						 special-mode-map))
     (suppress-keymap map)
     (define-key map "\C-x\C-s" 'custom-theme-write)
+    (define-key map "q" 'Custom-buffer-done)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
     map)

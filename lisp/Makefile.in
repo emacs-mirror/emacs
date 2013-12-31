@@ -88,7 +88,8 @@ AUTOGEN_VCS = \
 BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
-BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
+# Set load-prefer-newer for the benefit of the non-bootstrappers.
+BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
@@ -105,8 +106,7 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH='$(lisp)' '$(EMACS)' $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=for file in `find . -type d -print`; do \
@@ -158,7 +158,7 @@ custom-deps: doit
 	$(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep \
-	  --eval '(setq generated-custom-dependencies-file "$(srcdir)/cus-load.el")' \
+	  --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(srcdir)/cus-load.el"))' \
 	  -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
@@ -167,7 +167,7 @@ finder-data: doit
 	$(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder \
-	  --eval '(setq generated-finder-keywords-file "$(srcdir)/finder-inf.el")' \
+	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
@@ -183,7 +183,7 @@ autoloads: $(LOADDEFS) doit
 	echo Directories: $$wins; \
 	$(emacs) -l autoload \
 	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (expand-file-name "$(srcdir)/loaddefs.el"))' \
+	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$(srcdir)/loaddefs.el")))' \
 	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so

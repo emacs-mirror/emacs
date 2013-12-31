@@ -540,10 +540,14 @@ is not considered (see `next-frame')."
 (defun window-system-for-display (display)
   "Return the window system for DISPLAY.
 Return nil if we don't know how to interpret DISPLAY."
-  (cl-loop for descriptor in display-format-alist
-           for pattern = (car descriptor)
-           for system = (cdr descriptor)
-           when (string-match-p pattern display) return system))
+  ;; MS-Windows doesn't know how to create a GUI frame in a -nw session.
+  (if (and (eq system-type 'windows-nt)
+	   (null (window-system)))
+      nil
+    (cl-loop for descriptor in display-format-alist
+	     for pattern = (car descriptor)
+	     for system = (cdr descriptor)
+	     when (string-match-p pattern display) return system)))
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on display DISPLAY.

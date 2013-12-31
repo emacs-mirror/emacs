@@ -95,11 +95,11 @@ struct macfont_info
   struct macfont_cache *cache;
   struct macfont_metrics **metrics;
   short metrics_nrows;
-  unsigned synthetic_italic_p : 1;
-  unsigned synthetic_bold_p : 1;
+  bool_bf synthetic_italic_p : 1;
+  bool_bf synthetic_bold_p : 1;
   unsigned spacing : 2;
   unsigned antialias : 2;
-  unsigned color_bitmap_p : 1;
+  bool_bf color_bitmap_p : 1;
 };
 
 /* Values for the `spacing' member in `struct macfont_info'.  */

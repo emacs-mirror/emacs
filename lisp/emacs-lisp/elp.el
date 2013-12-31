@@ -251,7 +251,7 @@ FUNSYM must be a symbol of a defined function."
     ;; Set the symbol's new profiling function definition to run
     ;; ELP wrapper.
     (advice-add funsym :around (elp--make-wrapper funsym)
-                `((name . ,elp--advice-name)))))
+                `((name . ,elp--advice-name) (depth . -99)))))
 
 (defun elp--instrumented-p (sym)
   (advice-member-p elp--advice-name sym))

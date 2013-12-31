@@ -639,6 +639,13 @@ install-etcdoc: src install-arch-indep
 	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
 	else true; fi
 
+## FIXME:
+## If info/dir is missing, but we have install-info, we should let
+## that handle it.  If info/dir is present and we do not have install-info,
+## we should check for missing entries and add them by hand.
+##
+## FIXME:
+## If HAVE_MAKEINFO = no and there are no info files, do not install info/dir.
 install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
@@ -647,10 +654,9 @@ install-info: info
 	if [ "`cd ${srcdir}/info && /bin/pwd`" = "$$exp_infodir" ]; then \
 	  true; \
 	else \
-	  (cd "$(DESTDIR)${infodir}"; \
-	   [ -f dir ] || \
-	     (cd "$${thisdir}"; \
-	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir") ); \
+	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
+	      [ ! -f ${srcdir}/info/dir ] || \
+	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
 	   info_misc=`cd doc/misc && $(QUIET_SUBMAKE) $(MAKE) -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
@@ -883,6 +889,7 @@ bootstrap-clean: FRC
 	  [ ! -d $$dir ] || (cd $$dir && $(MAKE) $(MFLAGS) bootstrap-clean); \
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
+	rm -rf ${srcdir}/info
 	${top_bootclean}
 
 ### `maintainer-clean'
@@ -946,7 +953,7 @@ $(DOCS):
 	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check html info-real force-info check-info-dir
+.PHONY: info dvi dist check html info-real info-dir force-info check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
@@ -956,6 +963,28 @@ info-real: $(INFOS)
 pdf: $(PDFS)
 ps: $(PSS)
 
+info-dir: ${srcdir}/info/dir
+
+## Not strictly necessary, but speeds things up a bit by stopping
+## the info-dir rule from running when not needed.
+## Hopefully doc/misc/*.texi is not too long for some systems?
+info_dir_deps = ${srcdir}/build-aux/dir_top \
+	${srcdir}/doc/emacs/emacs.texi \
+	${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
+	${srcdir}/doc/lispref/elisp.texi ${srcdir}/doc/misc/*.texi
+
+## It would be much simpler if info/dir was only created in the
+## installation location by the install-info rule, but we also
+## need one in the source directory for people running uninstalled.
+## FIXME it would be faster to use the install-info program if we have it,
+## but then we would need to depend on info-real, which would
+## slow down parallelization.
+${srcdir}/info/dir: ${info_dir_deps}
+	tempfile=info-dir.$$$$; \
+	rm -f $${tempfile}; \
+	thisdir=`pwd`; \
+	(cd ${srcdir} && ./build-aux/make-info-dir $${thisdir}/$${tempfile}); \
+	${srcdir}/build-aux/move-if-change $${tempfile} ${srcdir}/info/dir
 
 INSTALL_DVI = install-emacs-dvi install-lispref-dvi \
 	install-lispintro-dvi install-misc-dvi
@@ -1021,28 +1050,31 @@ info: force-info
 	@if test "$(HAVE_MAKEINFO)" = "no"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
 	else \
-	  $(MAKE) $(MFLAGS) info-real ; \
+	  $(MAKE) $(MFLAGS) info-real info-dir; \
 	fi
 
-# The info/dir file must be updated by hand when new manuals are added.
-# Cannot add an info/dir entry for efaq-w32 since it is not installed
-# on all platforms.
-check-info-dir: info
+## build-aux/make-info-dir expects only certain dircategories.
+check-info: info
 	cd info ; \
-	missing= ; \
+	bad= ; \
 	for file in *; do \
 	  test -f "$${file}" || continue ; \
 	  case $${file} in \
-	    *-[0-9]*|COPYING|dir|efaq-w32*) continue ;; \
+	    *-[0-9]*|COPYING|dir) continue ;; \
 	  esac ; \
-	  file=`echo $${file} | sed 's/\.info//'` ; \
-	  grep -q -F ": ($${file})." dir || missing="$${missing} $${file}" ; \
+	  cat=`sed -n 's/^INFO-DIR-SECTION //p' $${file}`; \
+	  case $${cat} in \
+	   "Texinfo documentation system" | "Emacs"| "Emacs lisp" | \
+           "Emacs editing modes" | "Emacs network features" | \
+	   "Emacs misc features" | "Emacs lisp libraries" ) : ;; \
+	   *)  bad="$${bad} $${file}" ;; \
+	  esac; \
 	done ; \
-	if test -n "$${missing}"; then \
-	  echo "Missing info/dir entries: $${missing}" ; \
+	if test -n "$${bad}"; then \
+	  echo "Unexpected dircategory in: $${bad}" ; \
 	  exit 1 ; \
 	fi ; \
-	echo "info/dir is OK"
+	echo "info files are OK"
 
 #### Bootstrapping.
 

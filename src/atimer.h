@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_ATIMER_H
 #define EMACS_ATIMER_H
 
-#include <stdbool.h>
 #include <time.h>
 
 /* Forward declaration.  */

@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <mbstring.h>
 #include "w32.h"
 #include "w32heap.h"
 #endif
@@ -393,7 +394,20 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
   initial_argv = argv;
   initial_argc = argc;
 
+#ifdef WINDOWSNT
+  /* Must use argv[0] converted to UTF-8, as it begets many standard
+     file and directory names.  */
+  {
+    char argv0[MAX_UTF8_PATH];
+
+    if (filename_from_ansi (argv[0], argv0) == 0)
+      raw_name = build_unibyte_string (argv0);
+    else
+      raw_name = build_unibyte_string (argv[0]);
+  }
+#else
   raw_name = build_unibyte_string (argv[0]);
+#endif
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
@@ -410,7 +424,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
     {
       Lisp_Object found;
       int yes = openp (Vexec_path, Vinvocation_name,
-		       Vexec_suffixes, &found, make_number (X_OK));
+		       Vexec_suffixes, &found, make_number (X_OK), false);
       if (yes == 1)
 	{
 	  /* Add /: to the front of the name
@@ -795,6 +809,14 @@ main (int argc, char **argv)
 
   if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
     {
+#ifdef WINDOWSNT
+      /* argv[] array is kept in its original ANSI codepage encoding,
+	 we need to convert to UTF-8, for chdir to work.  */
+      char newdir[MAX_UTF8_PATH];
+
+      filename_from_ansi (ch_to_dir, newdir);
+      ch_to_dir = newdir;
+#endif
       original_pwd = get_current_dir_name ();
       if (chdir (ch_to_dir) != 0)
         {
@@ -1077,6 +1099,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
             argv[skip_args] = fdStr;
 
+	    fcntl (daemon_pipe[0], F_SETFD, 0);
+	    fcntl (daemon_pipe[1], F_SETFD, 0);
             execvp (argv[0], argv);
 	    emacs_perror (argv[0]);
 	    exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
@@ -1093,6 +1117,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
                 dname_arg2);
         dname_arg = *dname_arg2 ? dname_arg2 : NULL;
+	fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
       }
 #endif /* DAEMON_MUST_EXEC */
 
@@ -1539,7 +1564,16 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       char *file;
       /* Handle -l loadup, args passed by Makefile.  */
       if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
-	Vtop_level = list2 (intern_c_string ("load"), build_string (file));
+	{
+#ifdef WINDOWSNT
+	  char file_utf8[MAX_UTF8_PATH];
+
+	  if (filename_from_ansi (file, file_utf8) == 0)
+	    file = file_utf8;
+#endif
+	  Vtop_level = list2 (intern_c_string ("load"),
+			      build_unibyte_string (file));
+	}
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
 	Vtop_level = list2 (intern_c_string ("load"),
@@ -1683,7 +1717,6 @@ static const struct standard_args standard_args[] =
 #ifdef HAVE_NS
   { "-NSAutoLaunch", 0, 5, 1 },
   { "-NXAutoLaunch", 0, 5, 1 },
-  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   { "-_NSMachLaunch", 0, 85, 1 },
   { "-MachLaunch", 0, 85, 1 },
   { "-macosx", 0, 85, 0 },
@@ -2185,9 +2218,16 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
   Lisp_Object empty_element = empty ? Qnil : build_string (".");
 #ifdef WINDOWSNT
   bool defaulted = 0;
-  const char *emacs_dir = egetenv ("emacs_dir");
   static const char *emacs_dir_env = "%emacs_dir%/";
   const size_t emacs_dir_len = strlen (emacs_dir_env);
+  const char *edir = egetenv ("emacs_dir");
+  char emacs_dir[MAX_UTF8_PATH];
+
+  /* egetenv looks in process-environment, which holds the variables
+     in their original system-locale encoding.  We need emacs_dir to
+     be in UTF-8.  */
+  if (edir)
+    filename_from_ansi (edir, emacs_dir);
 #endif
 
   /* It's okay to use getenv here, because this function is only used
@@ -2208,9 +2248,44 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
   /* Ensure values from the environment use the proper directory separator.  */
   if (path)
     {
-      char *path_copy = alloca (strlen (path) + 1);
+      char *path_copy;
+
+#ifdef WINDOWSNT
+      char *path_utf8, *q, *d;
+      int cnv_result;
+
+      /* Convert each element of PATH to UTF-8.  */
+      p = path_copy = alloca (strlen (path) + 1);
       strcpy (path_copy, path);
-      dostounix_filename (path_copy, 0);
+      d = path_utf8 = alloca (4 * strlen (path) + 1);
+      *d = '\0';
+      do {
+	q = _mbschr (p, SEPCHAR);
+	if (q)
+	  *q = '\0';
+	cnv_result = filename_from_ansi (p, d);
+	if (q)
+	  {
+	    *q++ = SEPCHAR;
+	    p = q;
+	    /* If conversion of this PATH elements fails, make sure
+	       destination pointer will stay put, thus effectively
+	       ignoring the offending element.  */
+	    if (cnv_result == 0)
+	      {
+		d += strlen (d);
+		*d++ = SEPCHAR;
+	      }
+	  }
+	else if (cnv_result != 0 && d > path_utf8)
+	  d[-1] = '\0';	/* remove last semi-colon and null-terminate PATH */
+      } while (q);
+      path_copy = path_utf8;
+#else  /* MSDOS */
+      path_copy = alloca (strlen (path) + 1);
+      strcpy (path_copy, path);
+#endif
+      dostounix_filename (path_copy);
       path = path_copy;
     }
 #endif
@@ -2227,7 +2302,7 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
 #ifdef WINDOWSNT
           /* Relative file names in the default path are interpreted as
              being relative to $emacs_dir.  */
-          if (emacs_dir && defaulted
+          if (edir && defaulted
               && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
             element = Fexpand_file_name (Fsubstring
                                          (element,

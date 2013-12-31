@@ -1,4 +1,4 @@
-;;; hl-line.el --- highlight the current line
+;;; hl-line.el --- highlight the current line  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
 
@@ -61,9 +61,8 @@
 
 ;;; Code:
 
-(defvar hl-line-overlay nil
+(defvar-local hl-line-overlay nil
   "Overlay used by Hl-Line mode to highlight the current line.")
-(make-variable-buffer-local 'hl-line-overlay)
 
 (defvar global-hl-line-overlay nil
   "Overlay used by Global-Hl-Line mode to highlight the current line.")
@@ -155,13 +154,18 @@ addition to `hl-line-highlight' on `post-command-hook'."
     (remove-hook 'change-major-mode-hook #'hl-line-unhighlight t)
     (remove-hook 'pre-command-hook #'hl-line-unhighlight t)))
 
+(defun hl-line-make-overlay ()
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'priority -50)           ;(bug#16192)
+    (overlay-put ol 'face hl-line-face)
+    ol))
+
 (defun hl-line-highlight ()
   "Activate the Hl-Line overlay on the current line."
   (if hl-line-mode	; Might be changed outside the mode function.
       (progn
         (unless hl-line-overlay
-          (setq hl-line-overlay (make-overlay 1 1)) ; to be moved
-          (overlay-put hl-line-overlay 'face hl-line-face))
+          (setq hl-line-overlay (hl-line-make-overlay))) ; To be moved.
         (overlay-put hl-line-overlay
                      'window (unless hl-line-sticky-flag (selected-window)))
 	(hl-line-move hl-line-overlay))
@@ -200,8 +204,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
   (when global-hl-line-mode	; Might be changed outside the mode function.
     (unless (window-minibuffer-p)
       (unless global-hl-line-overlay
-        (setq global-hl-line-overlay (make-overlay 1 1)) ; to be moved
-        (overlay-put global-hl-line-overlay 'face hl-line-face))
+        (setq global-hl-line-overlay (hl-line-make-overlay))) ; To be moved.
       (overlay-put global-hl-line-overlay 'window
 		   (unless global-hl-line-sticky-flag
 		     (selected-window)))

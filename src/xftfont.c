@@ -491,7 +491,9 @@ xftfont_close (struct font *font)
     }
 #endif
 
-  if (xftfont_info->xftfont)
+  /* See comment in xfont_close.  */
+  if (xftfont_info->xftfont
+      && x_display_info_for_display (xftfont_info->display))
     {
       block_input ();
       XftUnlockFace (xftfont_info->xftfont);

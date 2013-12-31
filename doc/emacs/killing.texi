@@ -417,13 +417,15 @@ killed it.
 @kindex C-M-w
 @findex append-next-kill
   If a kill command is separated from the last kill command by other
-commands (not just numeric arguments), it starts a new entry on the kill
-ring.  But you can force it to append by first typing the command
-@kbd{C-M-w} (@code{append-next-kill}) right before it.  The @kbd{C-M-w}
-tells the following command, if it is a kill command, to append the text
-it kills to the last killed text, instead of starting a new entry.  With
-@kbd{C-M-w}, you can kill several separated pieces of text and
-accumulate them to be yanked back in one place.
+commands (not just numeric arguments), it starts a new entry on the
+kill ring.  But you can force it to combine with the last killed text,
+by typing @kbd{C-M-w} (@code{append-next-kill}) right beforehand.  The
+@kbd{C-M-w} tells its following command, if it is a kill command, to
+treat the kill as part of the sequence of previous kills.  As usual,
+the kill is appended to the previous killed text if the command kills
+forward, and prepended if the command kills backward.  In this way,
+you can kill several separated pieces of text and accumulate them to
+be yanked back in one place.
 
   A kill command following @kbd{M-w} (@code{kill-ring-save}) does not
 append to the text that @kbd{M-w} copied into the kill ring.

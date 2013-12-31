@@ -1164,8 +1164,10 @@ using `make-temp-file', and the generated name is returned."
 	  (delete-file (expand-file-name name dest)))
       (while (file-name-directory name)
 	(setq name (directory-file-name (file-name-directory name)))
-	(delete-directory (expand-file-name name dest)))
-      (delete-directory dest))))
+	(when (file-directory-p (expand-file-name name dest))
+	  (delete-directory (expand-file-name name dest))))
+      (when (file-directory-p dest)
+	(delete-directory dest)))))
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."

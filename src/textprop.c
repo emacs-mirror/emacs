@@ -1338,20 +1338,27 @@ the designated part of OBJECT.  */)
 DEFUN ("add-face-text-property", Fadd_face_text_property,
        Sadd_face_text_property, 3, 5, 0,
        doc: /* Add the face property to the text from START to END.
-The third argument FACE specifies the face to add.
-If any text in the region already has any face properties, this new
-face property will be added to the front of the face property list.
-If the optional fourth argument APPENDP is non-nil, append to the end
-of the face property list instead.
-If the optional fifth argument OBJECT is a buffer (or nil, which means
-the current buffer), START and END are buffer positions (integers or
+FACE specifies the face to add.  It should be a valid value of the
+`face' property (typically a face name or a plist of face attributes
+and values).
+
+If any text in the region already has a non-nil `face' property, those
+face(s) are retained.  This is done by setting the `face' property to
+a list of faces, with FACE as the first element (by default) and the
+pre-existing faces as the remaining elements.
+
+If optional fourth argument APPEND is non-nil, append FACE to the end
+of the face list instead.
+
+If optional fifth argument OBJECT is a buffer (or nil, which means the
+current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices
 into it.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object face,
-   Lisp_Object appendp, Lisp_Object object)
+   Lisp_Object append, Lisp_Object object)
 {
   add_text_properties_1 (start, end, list2 (Qface, face), object,
-			 (NILP (appendp)
+			 (NILP (append)
 			  ? TEXT_PROPERTY_PREPEND
 			  : TEXT_PROPERTY_APPEND));
   return Qnil;

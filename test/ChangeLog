@@ -1,3 +1,57 @@
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* automated/electric-tests.el: Require 'elec-pair.
+
+2013-12-26  João Távora  <joaotavora@gmail.com>
+
+	* automated/electric-tests.el (electric-pair-test-for):
+	Fix autowrapping tests in batch-mode by running with
+	`transient-mark-mode' set to `lambda'.
+
+	* automated/electric-tests.el: New file.
+
+2013-12-25  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el
+	(python-nav-lisp-forward-sexp-safe-1): Remove test.
+	(python-nav-forward-sexp-safe-1): New test.
+
+2013-12-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: Add tests for
+	`ruby-align-to-stmt-keywords'.
+
+	* indent/ruby.rb: Update examples to reflect the lack of change in
+	default indentation of `begin' blocks.
+
+2013-12-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Update examples according to the change
+	in `smie-indent-close'.
+
+2013-12-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: New examples.
+
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-dedenters-2): New test.
+
+2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-indent-after-comment-1)
+	(python-indent-after-comment-2): New tests.
+
+2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
+
+	* automated/python-test.el (python-indent-block-enders-1): Rename
+	from python-indent-block-enders.
+	(python-indent-block-enders-2): New test.
+
+2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/js.js: New file.
+
 2013-12-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/dbus-tests.el: New file.
@@ -606,7 +660,7 @@
 	* automated/add-log-tests.el, automated/advice-tests.el:
 	* automated/imenu-test.el, automated/package-x-test.el:
 	* automated/python-tests.el, automated/ruby-mode-tests.el:
-	* automated/xml-parse-tests.el: Explictly require ert.
+	* automated/xml-parse-tests.el: Explicitly require ert.
 
 2013-07-08  Kenichi Handa  <handa@gnu.org>
 

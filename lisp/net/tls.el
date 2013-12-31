@@ -168,8 +168,8 @@ this to nil if you want to ignore host name mismatches."
   :version "23.1" ;; No Gnus
   :group 'tls)
 
-(defcustom tls-certtool-program (executable-find "certtool")
-  "Name of  GnuTLS certtool.
+(defcustom tls-certtool-program "certtool"
+  "Name of GnuTLS certtool.
 Used by `tls-certificate-information'."
   :version "22.1"
   :type 'string

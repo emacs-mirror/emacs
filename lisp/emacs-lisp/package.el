@@ -524,13 +524,15 @@ Return the max version (as a string) if the package is held at a lower version."
   "Return true if PACKAGE is built-in to Emacs.
 Optional arg MIN-VERSION, if non-nil, should be a version list
 specifying the minimum acceptable version."
-  (let ((bi (assq package package--builtin-versions)))
-    (cond
-     (bi (version-list-<= min-version (cdr bi)))
-     (min-version nil)
-     (t
-      (require 'finder-inf nil t) ; For `package--builtins'.
-      (assq package package--builtins)))))
+  (if (package-desc-p package) ;; was built-in and then was converted
+      (eq 'builtin (package-desc-dir package))
+    (let ((bi (assq package package--builtin-versions)))
+      (cond
+       (bi (version-list-<= min-version (cdr bi)))
+       (min-version nil)
+       (t
+        (require 'finder-inf nil t) ; For `package--builtins'.
+        (assq package package--builtins))))))
 
 (defun package--from-builtin (bi-desc)
   (package-desc-create :name (pop bi-desc)
@@ -1104,6 +1106,23 @@ Otherwise return nil."
 
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 
+(defun package--prepare-dependencies (deps)
+  "Turn DEPS into an acceptable list of dependencies.
+
+Any parts missing a version string get a default version string
+of \"0\" (meaning any version) and an appropriate level of lists
+is wrapped around any parts requiring it."
+  (cond
+   ((not (listp deps))
+    (error "Invalid requirement specifier: %S" deps))
+   (t (mapcar (lambda (dep)
+                (cond
+                 ((symbolp dep) `(,dep "0"))
+                 ((stringp dep)
+                  (error "Invalid requirement specifier: %S" dep))
+                 (t dep)))
+              deps))))
+
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
 
@@ -1135,7 +1154,9 @@ boundaries."
 	 "Package lacks a \"Version\" or \"Package-Version\" header"))
       (package-desc-from-define
        file-name pkg-version desc
-       (if requires-str (package-read-from-string requires-str))
+       (if requires-str
+           (package--prepare-dependencies
+            (package-read-from-string requires-str)))
        :kind 'single
        :url homepage))))
 
@@ -1353,7 +1374,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (reqs (if desc (package-desc-reqs desc)))
          (version (if desc (package-desc-version desc)))
          (archive (if desc (package-desc-archive desc)))
-         (homepage (if desc (cdr (assoc :url (package-desc-extras desc)))))
+         (extras (and desc (package-desc-extras desc)))
+         (homepage (cdr (assoc :url extras)))
+         (keywords (cdr (assoc :keywords extras)))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan"))
@@ -1392,15 +1415,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
            (insert (capitalize status))
 	   (insert " from " (format "%s" archive))
 	   (insert " -- ")
-	   (let ((button-text (if (display-graphic-p) "Install" "[Install]"))
-		 (button-face (if (display-graphic-p)
-				  '(:box (:line-width 2 :color "dark grey")
-					 :background "light grey"
-					 :foreground "black")
-				'link)))
-	     (insert-text-button button-text 'face button-face 'follow-link t
-				 'package-desc desc
-				 'action 'package-install-button-action)))
+           (package-make-button
+            "Install"
+            'action 'package-install-button-action
+            'package-desc desc))
 	  (t (insert (capitalize status) ".")))
     (insert "\n")
     (insert "    " (propertize "Archive" 'font-lock-face 'bold)
@@ -1432,6 +1450,15 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (when homepage
       (insert "   " (propertize "Homepage" 'font-lock-face 'bold) ": ")
       (help-insert-xref-button homepage 'help-url homepage)
+      (insert "\n"))
+    (when keywords
+      (insert "   " (propertize "Keywords" 'font-lock-face 'bold) ": ")
+      (dolist (k keywords)
+        (package-make-button
+         k
+         'package-keyword k
+         'action 'package-keyword-button-action)
+        (insert " "))
       (insert "\n"))
     (let* ((all-pkgs (append (cdr (assq name package-alist))
                              (cdr (assq name package-archive-contents))
@@ -1503,6 +1530,20 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       (revert-buffer nil t)
       (goto-char (point-min)))))
 
+(defun package-keyword-button-action (button)
+  (let ((pkg-keyword (button-get button 'package-keyword)))
+    (package-show-package-list t (list pkg-keyword))))
+
+(defun package-make-button (text &rest props)
+  (let ((button-text (if (display-graphic-p) text (concat "[" text "]")))
+        (button-face (if (display-graphic-p)
+                         '(:box (:line-width 2 :color "dark grey")
+                                :background "light grey"
+                                :foreground "black")
+                       'link)))
+    (apply 'insert-text-button button-text 'face button-face 'follow-link t
+           props)))
+
 
 ;;;; Package menu mode.
 
@@ -1517,6 +1558,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key map "i" 'package-menu-mark-install)
     (define-key map "U" 'package-menu-mark-upgrades)
     (define-key map "r" 'package-menu-refresh)
+    (define-key map "f" 'package-menu-filter-interactive)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
     (define-key map "h" 'package-menu-quick-help)
@@ -1525,6 +1567,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key menu-map [mq]
       '(menu-item "Quit" quit-window
 		  :help "Quit package selection"))
+    (define-key menu-map [mf]
+      '(menu-item "Filter" package-menu-filter-interactive
+		  :help "Filter package selection (q to go back)"))
     (define-key menu-map [s1] '("--"))
     (define-key menu-map [mn]
       '(menu-item "Next" next-line
@@ -1637,9 +1682,10 @@ package PKG-DESC, add one.  The alist is keyed with PKG-DESC."
 					     "installed"
 					   "unsigned"))))))))
 
-(defun package-menu--refresh (&optional packages)
+(defun package-menu--refresh (&optional packages keywords)
   "Re-populate the `tabulated-list-entries'.
-PACKAGES should be nil or t, which means to display all known packages."
+PACKAGES should be nil or t, which means to display all known packages.
+KEYWORDS should be nil or a list of keywords."
   ;; Construct list of (PKG-DESC . STATUS).
   (unless packages (setq packages t))
   (let (info-list name)
@@ -1648,12 +1694,14 @@ PACKAGES should be nil or t, which means to display all known packages."
       (setq name (car elt))
       (when (or (eq packages t) (memq name packages))
         (dolist (pkg (cdr elt))
-          (package--push pkg (package-desc-status pkg) info-list))))
+          (when (package--has-keyword-p pkg keywords)
+            (package--push pkg (package-desc-status pkg) info-list)))))
 
     ;; Built-in packages:
     (dolist (elt package--builtins)
       (setq name (car elt))
       (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
+                 (package--has-keyword-p (package--from-builtin elt) keywords)
                  (or package-list-unversioned
                      (package--bi-desc-version (cdr elt)))
 		 (or (eq packages t) (memq name packages)))
@@ -1665,20 +1713,89 @@ PACKAGES should be nil or t, which means to display all known packages."
       (when (or (eq packages t) (memq name packages))
         (dolist (pkg (cdr elt))
           ;; Hide obsolete packages.
-          (unless (package-installed-p (package-desc-name pkg)
-                                       (package-desc-version pkg))
+          (when (and (not (package-installed-p (package-desc-name pkg)
+                                               (package-desc-version pkg)))
+                     (package--has-keyword-p pkg keywords))
             (package--push pkg (package-desc-status pkg) info-list)))))
 
     ;; Print the result.
     (setq tabulated-list-entries
           (mapcar #'package-menu--print-info info-list))))
 
-(defun package-menu--generate (remember-pos packages)
+(defun package-all-keywords ()
+  "Collect all package keywords"
+  (let (keywords)
+    (package--mapc (lambda (desc)
+                     (let* ((extras (and desc (package-desc-extras desc)))
+                            (desc-keywords (cdr (assoc :keywords extras))))
+                       (setq keywords (append keywords desc-keywords)))))
+    keywords))
+
+(defun package--mapc (function &optional packages)
+  "Call FUNCTION for all known PACKAGES.
+PACKAGES can be nil or t, which means to display all known
+packages, or a list of packages.
+
+Built-in packages are converted with `package--from-builtin'."
+  (unless packages (setq packages t))
+  (let (name)
+    ;; Installed packages:
+    (dolist (elt package-alist)
+      (setq name (car elt))
+      (when (or (eq packages t) (memq name packages))
+        (mapc function (cdr elt))))
+
+    ;; Built-in packages:
+    (dolist (elt package--builtins)
+      (setq name (car elt))
+      (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
+                 (or package-list-unversioned
+                     (package--bi-desc-version (cdr elt)))
+		 (or (eq packages t) (memq name packages)))
+        (funcall function (package--from-builtin elt))))
+
+    ;; Available and disabled packages:
+    (dolist (elt package-archive-contents)
+      (setq name (car elt))
+      (when (or (eq packages t) (memq name packages))
+        (dolist (pkg (cdr elt))
+          ;; Hide obsolete packages.
+          (unless (package-installed-p (package-desc-name pkg)
+                                       (package-desc-version pkg))
+        (funcall function pkg)))))))
+
+(defun package--has-keyword-p (desc &optional keywords)
+  "Test if package DESC has any of the given KEYWORDS.
+When none are given, the package matches."
+  (if keywords
+      (let* ((extras (and desc (package-desc-extras desc)))
+             (desc-keywords (cdr (assoc :keywords extras)))
+             found)
+        (dolist (k keywords)
+          (when (and (not found)
+                     (member k desc-keywords))
+            (setq found t)))
+        found)
+    t))
+
+(defun package-menu--generate (remember-pos packages &optional keywords)
   "Populate the Package Menu.
  If REMEMBER-POS is non-nil, keep point on the same entry.
 PACKAGES should be t, which means to display all known packages,
-or a list of package names (symbols) to display."
-  (package-menu--refresh packages)
+or a list of package names (symbols) to display.
+
+With KEYWORDS given, only packages with those keywords are
+shown."
+  (package-menu--refresh packages keywords)
+  (setf (car (aref tabulated-list-format 0))
+        (if keywords
+            (let ((filters (mapconcat 'identity keywords ",")))
+              (concat "Package[" filters "]"))
+          "Package"))
+  (if keywords
+      (define-key package-menu-mode-map "q" 'package-show-package-list)
+    (define-key package-menu-mode-map "q" 'quit-window))
+  (tabulated-list-init-header)
   (tabulated-list-print remember-pos))
 
 (defun package-menu--print-info (pkg)
@@ -1974,17 +2091,26 @@ The list is displayed in a buffer named `*Packages*'."
 (defalias 'package-list-packages 'list-packages)
 
 ;; Used in finder.el
-(defun package-show-package-list (packages)
+(defun package-show-package-list (&optional packages keywords)
   "Display PACKAGES in a *Packages* buffer.
 This is similar to `list-packages', but it does not fetch the
 updated list of packages, and it only displays packages with
-names in PACKAGES (which should be a list of symbols)."
+names in PACKAGES (which should be a list of symbols).
+
+When KEYWORDS are given, only packages with those KEYWORDS are
+shown."
+  (interactive)
   (require 'finder-inf nil t)
   (let ((buf (get-buffer-create "*Packages*")))
     (with-current-buffer buf
       (package-menu-mode)
-      (package-menu--generate nil packages))
+      (package-menu--generate nil packages keywords))
     (switch-to-buffer buf)))
+
+(defun package-menu-filter-interactive (keyword)
+  "Filter the *Packages* buffer."
+  (interactive (list (completing-read "Keyword: " (package-all-keywords))))
+  (package-show-package-list t (list keyword)))
 
 (defun package-list-packages-no-fetch ()
   "Display a list of packages.

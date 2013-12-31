@@ -21,7 +21,7 @@
 
 ;; add-release-logs	Add ``Version X released'' change log entries.
 ;; set-version		Change Emacs version number in source tree.
-;; set-copyright        Change emacs short copyright string (eg as
+;; set-copyright        Change Emacs short copyright string (eg as
 ;;                      printed by --version) in source tree.
 
 ;;; Code:
@@ -46,7 +46,7 @@ Optional argument DATE is the release date, default today."
 					   (funcall add-log-time-format))))))
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (require 'add-log)
   (or date (setq date (let ((add-log-time-zone-rule t))
 			(funcall add-log-time-format))))
@@ -62,18 +62,23 @@ Optional argument DATE is the release date, default today."
       (insert entry))))
 
 (defun set-version-in-file (root file version rx)
+  "Subroutine of `set-version' and `set-copyright'."
   (find-file (expand-file-name file root))
   (goto-char (point-min))
-  (unless (re-search-forward rx nil t)
-    (error "Version not found in %s" file))
+  (unless (re-search-forward rx nil :noerror)
+    (user-error "Version not found in %s" file))
   (replace-match (format "%s" version) nil nil nil 1))
 
+;; TODO report the progress
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
   (interactive "DEmacs root directory: \nsVersion number: ")
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  ;; There's also a "version 3" (standing for GPLv3) at the end of
+  ;; `README', but since `set-version-in-file' only replaces the first
+  ;; occurence, it won't be replaced.
   (set-version-in-file root "README" version
 		       (rx (and "version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
@@ -104,7 +109,7 @@ Root must be the root of an Emacs source tree."
   ;; in two places those commas are followed by space, in two other
   ;; places they are not.
   (let* ((version-components (append (split-string version "\\.")
-				    '("0" "0")))
+				     '("0" "0")))
 	 (comma-version
 	  (concat (car version-components) ","
 		  (cadr version-components) ","
@@ -157,6 +162,7 @@ Root must be the root of an Emacs source tree."
 
 
 ;; Note this makes some assumptions about form of short copyright.
+;; TODO report the progress
 (defun set-copyright (root copyright)
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -167,7 +173,7 @@ Root must be the root of an Emacs source tree."
                  (format "Copyright (C) %s Free Software Foundation, Inc."
                          (format-time-string "%Y")))))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (error "%s doesn't seem to be the root of an Emacs source tree" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (set-version-in-file root "configure.ac" copyright
 		       (rx (and bol "copyright" (0+ (not (in ?\")))
         			?\" (submatch (1+ (not (in ?\")))) ?\")))
@@ -194,7 +200,8 @@ Root must be the root of an Emacs source tree."
 ;;; Various bits of magic for generating the web manuals
 
 (defun manual-misc-manuals (root)
-  "Return doc/misc manuals as list of strings."
+  "Return doc/misc manuals as list of strings.
+ROOT should be the root of an Emacs source tree."
   ;; Similar to `make -C doc/misc echo-info', but works if unconfigured,
   ;; and for INFO_TARGETS rather than INFO_INSTALL.
   (with-temp-buffer
@@ -213,6 +220,7 @@ Root must be the root of an Emacs source tree."
 
 (defun make-manuals (root &optional type)
   "Generate the web manuals for the Emacs webpage.
+ROOT should be the root of an Emacs source tree.
 Interactively with a prefix argument, prompt for TYPE.
 Optional argument TYPE is type of output (nil means all)."
   (interactive (let ((root (read-directory-name "Emacs root directory: "
@@ -328,7 +336,7 @@ This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (unless (file-exists-p texi-file)
-    (error "Manual file %s not found" texi-file))
+    (user-error "Manual file %s not found" texi-file))
   (make-directory dir t)
   (call-process "makeinfo" nil nil nil
 		"-D" "WWW_GNU_ORG"
@@ -365,7 +373,7 @@ the @import directive."
 	  (save-buffer))))))
 
 (defun manual-pdf (texi-file dest)
-  "Run texi2pdf on TEXI-FILE, emitting pdf output to DEST."
+  "Run texi2pdf on TEXI-FILE, emitting PDF output to DEST."
   (make-directory (or (file-name-directory dest) ".") t)
   (let ((default-directory (file-name-directory texi-file)))
     (call-process "texi2pdf" nil nil nil
@@ -377,6 +385,7 @@ the @import directive."
   (make-directory (or (file-name-directory dest) ".") t)
   (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi"))
 	(default-directory (file-name-directory texi-file)))
+    ;; FIXME: Use `texi2dvi --ps'?  --xfq
     (call-process "texi2dvi" nil nil nil
 		  "-I" "../emacs" "-I" "../misc"
 		  texi-file "-o" dvi-dest)
@@ -386,20 +395,25 @@ the @import directive."
 
 (defun manual-html-fix-headers ()
   "Fix up HTML headers for the Emacs manual in the current buffer."
-  (let (opoint)
-    (insert manual-doctype-string)
+  (let ((texi5 (search-forward "<!DOCTYPE" nil t))
+	opoint)
+    ;; Texinfo 5 supplies a DOCTYPE.
+    (or texi5
+	(insert manual-doctype-string))
     (search-forward "<head>\n")
     (insert manual-meta-string)
     (search-forward "<meta")
     (setq opoint (match-beginning 0))
-    (re-search-forward "<!--")
+    (unless texi5
+      (search-forward "<!--")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
-    (insert manual-style-string)
     (search-forward "<meta http-equiv=\"Content-Style")
-    (setq opoint (match-beginning 0))
+      (setq opoint (match-beginning 0)))
     (search-forward "</head>")
-    (delete-region opoint (match-beginning 0))))
+    (goto-char (match-beginning 0))
+    (delete-region opoint (point))
+    (insert manual-style-string)))
 
 (defun manual-html-fix-node-div ()
   "Fix up HTML \"node\" divs in the current buffer."
@@ -417,7 +431,7 @@ the @import directive."
 
 (defun manual-html-fix-index-1 ()
   (let (opoint)
-    (re-search-forward "<body>\n")
+    (re-search-forward "<body.*>\n")
     (setq opoint (match-end 0))
     (search-forward "<h2 class=\"")
     (goto-char (match-beginning 0))
@@ -493,12 +507,12 @@ the @import directive."
       (forward-line 1))))
 
 
-;; Stuff to check new defcustoms got :version tags.
+;; Stuff to check new `defcustom's got :version tags.
 ;; Adapted from check-declare.el.
 
 (defun cusver-find-files (root &optional old)
-  "Find .el files beneath directory ROOT that contain defcustoms.
-If optional OLD is non-nil, also include defvars."
+  "Find .el files beneath directory ROOT that contain `defcustom's.
+If optional OLD is non-nil, also include `defvar's."
   (process-lines find-program root
 		 "-name" "*.el"
 		 "-exec" grep-program
@@ -510,14 +524,14 @@ If optional OLD is non-nil, also include defvars."
 
 (defvar cusver-new-version (format "%s.%s" emacs-major-version
 				   (1+ emacs-minor-version))
-  "Version number that new defcustoms should have.")
+  "Version number that new `defcustom's should have.")
 
 (defun cusver-scan (file &optional old)
   "Scan FILE for `defcustom' calls.
 Return a list with elements of the form (VAR . VER),
 This means that FILE contains a defcustom for variable VAR, with
 a :version tag having value VER (may be nil).
-If optional argument OLD is non-nil, also scan for defvars."
+If optional argument OLD is non-nil, also scan for `defvar's."
   (let ((m (format "Scanning %s..." file))
 	(re (format "^[ \t]*\\((def%s\\)[ \t\n]"
 		    (if old "\\(custom\\|var\\)" "\\(custom\\|group\\)")))
@@ -526,13 +540,19 @@ If optional argument OLD is non-nil, also scan for defvars."
     (with-temp-buffer
       (insert-file-contents file)
       ;; FIXME we could theoretically be inside a string.
-      (while (re-search-forward re nil t)
+      (while (re-search-forward re nil :noerror)
         (goto-char (match-beginning 1))
         (if (and (setq form (ignore-errors (read (current-buffer))))
 		 (setq var (car-safe (cdr-safe form)))
 		 ;; Exclude macros, eg (defcustom ,varname ...).
 		 (symbolp var))
 	    (progn
+	      ;; FIXME It should be cus-test-apropos that does this.
+	      (and (not old)
+		   (equal "custom" (match-string 2))
+		   (not (memq :type form))
+		   (display-warning 'custom
+				    (format "Missing type in: `%s'" form)))
 	      (setq ver (car (cdr-safe (memq :version form))))
 	      (if (equal "group" (match-string 2))
 		  ;; Group :version could be old.
@@ -568,7 +588,7 @@ If optional argument OLD is non-nil, also scan for defvars."
 (define-button-type 'cusver-xref 'action #'cusver-goto-xref)
 
 (defun cusver-goto-xref (button)
-  "Jump to a lisp file for the BUTTON at point."
+  "Jump to a Lisp file for the BUTTON at point."
   (let ((file (button-get button 'file))
 	(var (button-get button 'var)))
     (if (not (file-readable-p file))
@@ -584,34 +604,36 @@ If optional argument OLD is non-nil, also scan for defvars."
 ;; TODO Check cus-start if something moved from C to Lisp.
 ;; TODO Handle renamed things with aliases to the old names.
 (defun cusver-check (newdir olddir version)
-  "Check that defcustoms have :version tags where needed.
-NEWDIR is the current lisp/ directory, OLDDIR is that from the previous
-release.  A defcustom that is only in NEWDIR should have a :version
-tag.  We exclude cases where a defvar exists in OLDDIR, since
-just converting a defvar to a defcustom does not require a :version bump.
+  "Check that `defcustom's have :version tags where needed.
+NEWDIR is the current lisp/ directory, OLDDIR is that from the
+previous release, VERSION is the new version number.  A
+`defcustom' that is only in NEWDIR should have a :version tag.
+We exclude cases where a `defvar' exists in OLDDIR, since just
+converting a `defvar' to a `defcustom' does not require
+a :version bump.
 
 Note that a :version tag should also be added if the value of a defcustom
 changes (in a non-trivial way).  This function does not check for that."
-  (interactive (list (read-directory-name "New Lisp directory: ")
-		     (read-directory-name "Old Lisp directory: ")
+  (interactive (list (read-directory-name "New Lisp directory: " nil nil t)
+		     (read-directory-name "Old Lisp directory: " nil nil t)
 		     (number-to-string
 		      (read-number "New version number: "
 				   (string-to-number cusver-new-version)))))
   (or (file-directory-p (setq newdir (expand-file-name newdir)))
-      (error "Directory `%s' not found" newdir))
+      (user-error "Directory `%s' not found" newdir))
   (or (file-directory-p (setq olddir (expand-file-name olddir)))
-      (error "Directory `%s' not found" olddir))
+      (user-error "Directory `%s' not found" olddir))
   (setq cusver-new-version version)
-  (let* ((newfiles (progn (message "Finding new files with defcustoms...")
+  (let* ((newfiles (progn (message "Finding new files with `defcustom's...")
 			  (cusver-find-files newdir)))
-	 (oldfiles (progn (message "Finding old files with defcustoms...")
+	 (oldfiles (progn (message "Finding old files with `defcustom's...")
 			  (cusver-find-files olddir t)))
-	 (newcus (progn (message "Reading new defcustoms...")
+	 (newcus (progn (message "Reading new `defcustom's...")
 			(mapcar
 			 (lambda (file)
 			   (cons file (cusver-scan file))) newfiles)))
 	 oldcus result thisfile file)
-    (message "Reading old defcustoms...")
+    (message "Reading old `defcustom's...")
     (dolist (file oldfiles)
       (setq oldcus (append oldcus (cusver-scan file t))))
     (setq oldcus (append oldcus (cusver-scan-cus-start
@@ -636,7 +658,7 @@ changes (in a non-trivial way).  This function does not check for that."
 	(message "No missing :version tags")
       (pop-to-buffer "*cusver*")
       (erase-buffer)
-      (insert "These defcustoms might be missing :version tags:\n\n")
+      (insert "These `defcustom's might be missing :version tags:\n\n")
       (dolist (elem result)
 	(let* ((str (file-relative-name (car elem) newdir))
 	       (strlen (length str)))

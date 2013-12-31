@@ -538,14 +538,6 @@ result of the verification."
     map)
   "Keymap for input viewer with completion.")
 
-(defvar mm-viewer-completion-map
-  (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))
-    (set-keymap-parent map minibuffer-local-completion-map)
-    ;; Should we bind other key to minibuffer-complete-word?
-    (define-key map " " 'self-insert-command)
-    map)
-  "Keymap for input viewer with completion.")
-
 ;;; The functions.
 
 (defun mm-alist-to-plist (alist)

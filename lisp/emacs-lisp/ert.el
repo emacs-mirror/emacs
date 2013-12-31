@@ -999,7 +999,8 @@ contained in UNIVERSE."
        (list (cl-remove-if-not (lambda (test)
                                    (and (ert-test-name test)
                                         (string-match selector
-                                                      (ert-test-name test))))
+                                                      (symbol-name
+                                                       (ert-test-name test)))))
                                  universe))))
     (ert-test (list selector))
     (symbol

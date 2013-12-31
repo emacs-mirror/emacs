@@ -9,7 +9,7 @@ AUTOSELECT:    NO
 PROMPT: ¤¤¤å¡i¦æ¦C¢²¢¯¡j\040
 #
 COMMENT Copyright (c) 1997 by  William Yeh <is80001@cis.nctu.edu.tw>
-COMMENT 
+COMMENT
 COMMENT Permission to copy and distribute both modified and unmodified
 COMMENT versions is granted without royalty provided this notice is preserved.
 COMMENT
@@ -13185,4 +13185,3 @@ rfk;	ùÙ			# ---> 4^4-8-0-   0
 napa	ùÚ			# ---> 6v1-0^1-   0
 ,nr\040	ùÛ			# ---> 8v6v4^     0
 weu\040	ùÜ			# ---> 2^3^7^     0
-

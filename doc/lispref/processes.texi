@@ -2613,7 +2613,7 @@ Here is an example:
 @cindex stopbits, in serial connections
 @cindex flowcontrol, in serial connections
 
-This functions configures a serial port connection.  Arguments are
+This function configures a serial port connection.  Arguments are
 specified as keyword/argument pairs.  Attributes that are not given
 are re-initialized from the process's current configuration (available
 via the function @code{process-contact}), or set to reasonable default

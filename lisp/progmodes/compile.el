@@ -1004,7 +1004,7 @@ POS and RES.")
     (let ((win (get-buffer-window buffer 0)))
       (if win (set-window-point win pos)))
     (if compilation-auto-jump-to-first-error
-	(compile-goto-error nil t))))
+	(compile-goto-error))))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
@@ -2325,9 +2325,9 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
 
 (defalias 'compile-mouse-goto-error 'compile-goto-error)
 
-(defun compile-goto-error (&optional event nomsg)
+(defun compile-goto-error (&optional event)
   "Visit the source for the error message at point.
-Use this command in a compilation log buffer.  Sets the mark at point there."
+Use this command in a compilation log buffer."
   (interactive (list last-input-event))
   (if event (posn-set-point (event-end event)))
   (or (compilation-buffer-p (current-buffer))
@@ -2336,7 +2336,6 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
   (if (get-text-property (point) 'compilation-directory)
       (dired-other-window
        (car (get-text-property (point) 'compilation-directory)))
-    (push-mark nil nomsg)
     (setq compilation-current-error (point))
     (next-error-internal)))
 

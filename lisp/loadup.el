@@ -46,20 +46,18 @@
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
-;; Note that we reset load-path below just before dumping,
-;; since lread.c:init_lread checks for changes to load-path
-;; in deciding whether to modify it.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
 	;; FIXME this is irritatingly fragile.
 	(equal (nth 4 command-line-args) "unidata-gen.el")
 	(equal (nth 7 command-line-args) "unidata-gen-files")
-	;; In case CANNOT_DUMP.
-	(string-match "src/bootstrap-emacs" (nth 0 command-line-args)))
+	(if (fboundp 'dump-emacs)
+	    (string-match "src/bootstrap-emacs" (nth 0 command-line-args))
+	  t))
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
-      (setq load-path (list dir
+      (setq load-path (list (expand-file-name "." dir)
 			    (expand-file-name "emacs-lisp" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)
@@ -293,8 +291,15 @@
 ;; you may load them with a "site-load.el" file.
 ;; But you must also cause them to be scanned when the DOC file
 ;; is generated.
-;; For other systems, you must edit ../src/Makefile.in.
-(load "site-load" t)
+(let ((lp load-path))
+  (load "site-load" t)
+  ;; We reset load-path after dumping.
+  ;; For a permanent change in load-path, use configure's
+  ;; --enable-locallisppath option.
+  ;; See http://debbugs.gnu.org/16107 for more details.
+  (or (equal lp load-path)
+      (message "Warning: Change in load-path due to site-load will be \
+lost after dumping")))
 
 ;; Make sure default-directory is unibyte when dumping.  This is
 ;; because we cannot decode and encode it correctly (since the locale
@@ -342,8 +347,13 @@
 
 ;; Note: You can cause additional libraries to be preloaded
 ;; by writing a site-init.el that loads them.
-;; See also "site-load" above.
-(load "site-init" t)
+;; See also "site-load" above
+(let ((lp load-path))
+  (load "site-init" t)
+  (or (equal lp load-path)
+      (message "Warning: Change in load-path due to site-init will be \
+lost after dumping")))
+
 (setq current-load-list nil)
 
 ;; We keep the load-history data in PURE space.
@@ -352,11 +362,6 @@
 (setq load-history (mapcar 'purecopy load-history))
 
 (set-buffer-modified-p nil)
-
-;; reset the load-path.  See lread.c:init_lread why.
-(if (or (equal (nth 3 command-line-args) "bootstrap")
-	(equal (nth 4 command-line-args) "bootstrap"))
-    (setcdr load-path nil))
 
 (remove-hook 'after-load-functions (lambda (f) (garbage-collect)))
 

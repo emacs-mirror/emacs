@@ -67,7 +67,7 @@ INFO_COMMON = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
-	mairix-el message mh-e newsticker nxml-mode \
+	mairix-el message mh-e newsticker nxml-mode octave-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode todo-mode tramp \
 	url vip viper widget wisent woman
@@ -563,6 +563,18 @@ nxml-mode.pdf: $(nxml_mode_deps)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/nxml-mode.texi
 nxml-mode.html: $(nxml_mode_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/nxml-mode.texi
+
+octave_mode_deps = ${srcdir}/octave-mode.texi ${gfdl}
+octave-mode : $(buildinfodir)/octave-mode$(INFO_EXT)
+$(buildinfodir)/octave-mode$(INFO_EXT): $(octave_mode_deps)
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/octave-mode.texi
+octave-mode.dvi: $(octave_mode_deps)
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/octave-mode.texi
+octave-mode.pdf: $(octave_mode_deps)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/octave-mode.texi
+octave-mode.html: $(octave_mode_deps)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/octave-mode.texi
 
 org_deps = ${srcdir}/org.texi ${gfdl}
 org : $(buildinfodir)/org$(INFO_EXT)

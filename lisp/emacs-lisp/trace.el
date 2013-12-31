@@ -222,6 +222,7 @@ be printed along with the arguments in the trace."
   (lambda (body &rest args)
     (let ((trace-level (1+ trace-level))
           (trace-buffer (get-buffer-create buffer))
+          (deactivate-mark nil)         ;Protect deactivate-mark.
           (ctx (funcall context)))
       (unless inhibit-trace
         (with-current-buffer trace-buffer
@@ -255,7 +256,7 @@ be printed along with the arguments in the trace."
    function :around
    (trace-make-advice function (or buffer trace-buffer) background
                       (or context (lambda () "")))
-   `((name . ,trace-advice-name))))
+   `((name . ,trace-advice-name) (depth . -100))))
 
 (defun trace-is-traced (function)
   (advice-member-p trace-advice-name function))

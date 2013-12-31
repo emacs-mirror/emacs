@@ -112,7 +112,7 @@ composition_registered_p (Lisp_Object prop)
     gref = (rule_code) / 12;						\
     if (gref > 12) gref = 11;						\
     nref = (rule_code) % 12;						\
-  } while (0)
+  } while (false)
 
 /* Like COMPOSITION_DECODE_REFS (RULE_CODE, GREF, NREF), but also
    decode RULE_CODE into XOFF and YOFF (vertical offset).  */
@@ -122,7 +122,7 @@ composition_registered_p (Lisp_Object prop)
     xoff = (rule_code) >> 16;						\
     yoff = ((rule_code) >> 8) & 0xFF;					\
     COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
-  } while (0)
+  } while (false)
 
 /* Nonzero if the global reference point GREF and new reference point NREF are
    valid.  */

@@ -632,13 +632,12 @@ exceptional places where the usual test to avoid overwriting a changed
 file should not be done.
 @end defun
 
-@c Emacs 19 feature
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
 modification time, as a list of the form @code{(@var{high} @var{low}
-@var{microsec} @var{picosec})}.
-(This is the same format that @code{file-attributes} uses to return
-time values; see @ref{File Attributes}.)
+@var{microsec} @var{picosec})}.  (This is the same format that
+@code{file-attributes} uses to return time values; @pxref{File
+Attributes}.)
 
 If the buffer has no recorded last modification time, this function
 returns zero.  This case occurs, for instance, if the buffer is not
@@ -648,17 +647,9 @@ visiting a file or if the time has been explicitly cleared by
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
-For a new buffer visiting a not yet existing file, @var{high} is
-@minus{}1 and @var{low} is 65535, that is,
-@ifnottex
-@w{2**16 @minus{} 1.}
-@end ifnottex
-@tex
-@math{2^{16}-1}.
-@end tex
+If the buffer is not visiting a file, this function returns -1.
 @end defun
 
-@c Emacs 19 feature
 @defun set-visited-file-modtime &optional time
 This function updates the buffer's record of the last modification time
 of the visited file, to the value specified by @var{time} if @var{time}

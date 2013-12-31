@@ -50,6 +50,7 @@
 (require 'faces)
 (require 'menu-bar)
 (require 'fontset)
+(require 'dnd)
 
 (defgroup ns nil
   "GNUstep/Mac OS X specific features."
@@ -160,10 +161,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
-(define-key global-map [ns-drag-file] 'ns-find-file)
-(define-key global-map [ns-drag-color] 'ns-set-foreground-at-mouse)
-(define-key global-map [S-ns-drag-color] 'ns-set-background-at-mouse)
-(define-key global-map [ns-drag-text] 'ns-insert-text)
 (define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
@@ -365,14 +362,6 @@ See `ns-insert-working-text'."
 
 ;;;; Inter-app communications support.
 
-(defvar ns-input-text)			; nsterm.m
-
-(defun ns-insert-text ()
-  "Insert contents of `ns-input-text' at point."
-  (interactive)
-  (insert ns-input-text)
-  (setq ns-input-text nil))
-
 (defun ns-insert-file ()
   "Insert contents of file `ns-input-file' like insert-file but with less
 prompting.  If file is a directory perform a `find-file' on it."
@@ -517,6 +506,50 @@ unless the current buffer is a scratch buffer."
      (t
       (ns-hide-emacs 'activate)
       (find-file f)))))
+
+
+(defun ns-drag-n-drop (event &optional new-frame force-text)
+  "Edit the files listed in the drag-n-drop EVENT.
+Switch to a buffer editing the last file dropped."
+  (interactive "e")
+  (let* ((window (posn-window (event-start event)))
+         (arg (car (cdr (cdr event))))
+         (type (car arg))
+         (data (car (cdr arg)))
+         (url-or-string (cond ((eq type 'file)
+                               (concat "file:" data))
+                              (t data))))
+    (set-frame-selected-window nil window)
+    (when new-frame
+      (select-frame (make-frame)))
+    (raise-frame)
+    (setq window (selected-window))
+    (if force-text
+        (dnd-insert-text window 'private data)
+      (dnd-handle-one-url window 'private url-or-string))))
+
+
+(defun ns-drag-n-drop-other-frame (event)
+  "Edit the files listed in the drag-n-drop EVENT, in other frames.
+May create new frames, or reuse existing ones.  The frame editing
+the last file dropped is selected."
+  (interactive "e")
+  (ns-drag-n-drop event t))
+
+(defun ns-drag-n-drop-as-text (event)
+  "Drop the data in EVENT as text."
+  (interactive "e")
+  (ns-drag-n-drop event nil t))
+
+(defun ns-drag-n-drop-as-text-other-frame (event)
+  "Drop the data in EVENT as text in a new frame."
+  (interactive "e")
+  (ns-drag-n-drop event t t))
+
+(global-set-key [drag-n-drop] 'ns-drag-n-drop)
+(global-set-key [C-drag-n-drop] 'ns-drag-n-drop-other-frame)
+(global-set-key [M-drag-n-drop] 'ns-drag-n-drop-as-text)
+(global-set-key [C-M-drag-n-drop] 'ns-drag-n-drop-as-text-other-frame)
 
 ;;;; Frame-related functions.
 
@@ -829,40 +862,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	      (if (consp faces) (car faces) faces)))))))
      (t
       nil))))
-
-(defvar ns-input-color)			; nsterm.m
-
-(defun ns-set-foreground-at-mouse ()
-  "Set the foreground color at the mouse location to `ns-input-color'."
-  (interactive)
-  (let* ((pos (mouse-position))
-         (frame (car pos))
-         (face (ns-face-at-pos pos)))
-    (cond
-     ((eq face 'cursor)
-      (modify-frame-parameters frame (list (cons 'cursor-color
-                                                 ns-input-color))))
-     ((not face)
-      (modify-frame-parameters frame (list (cons 'foreground-color
-                                                 ns-input-color))))
-     (t
-      (set-face-foreground face ns-input-color frame)))))
-
-(defun ns-set-background-at-mouse ()
-  "Set the background color at the mouse location to `ns-input-color'."
-  (interactive)
-  (let* ((pos (mouse-position))
-         (frame (car pos))
-         (face (ns-face-at-pos pos)))
-    (cond
-     ((eq face 'cursor)
-      (modify-frame-parameters frame (list (cons 'cursor-color
-                                                 ns-input-color))))
-     ((not face)
-      (modify-frame-parameters frame (list (cons 'background-color
-                                                 ns-input-color))))
-     (t
-      (set-face-background face ns-input-color frame)))))
 
 ;; Set some options to be as Nextstep-like as possible.
 (setq frame-title-format t

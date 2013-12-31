@@ -120,6 +120,8 @@ _start (void)
 
 /* File handling.  */
 
+/* Implementation note: this and the next functions work with ANSI
+   codepage encoded file names!  */
 int
 open_input_file (file_data *p_file, char *filename)
 {
@@ -128,8 +130,8 @@ open_input_file (file_data *p_file, char *filename)
   void  *file_base;
   unsigned long size, upper_size;
 
-  file = CreateFile (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
-		     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+  file = CreateFileA (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
+		      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (file == INVALID_HANDLE_VALUE)
     return FALSE;
 
@@ -166,9 +168,9 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
      creating it, all the emacs-XX.YY.ZZ.nn.exe end up being hard
      links to the same file, which defeats the purpose of these hard
      links: being able to run previous builds.  */
-  DeleteFile (filename);
-  file = CreateFile (filename, GENERIC_READ | GENERIC_WRITE, 0, NULL,
-		     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+  DeleteFileA (filename);
+  file = CreateFileA (filename, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+		      CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
   if (file == INVALID_HANDLE_VALUE)
     return FALSE;
 
@@ -722,23 +724,30 @@ void
 unexec (const char *new_name, const char *old_name)
 {
   file_data in_file, out_file;
-  char out_filename[MAX_PATH], in_filename[MAX_PATH];
+  char out_filename[MAX_PATH], in_filename[MAX_PATH], new_name_a[MAX_PATH];
   unsigned long size;
   char *p;
   char *q;
 
   /* Ignore old_name, and get our actual location from the OS.  */
-  if (!GetModuleFileName (NULL, in_filename, MAX_PATH))
+  if (!GetModuleFileNameA (NULL, in_filename, MAX_PATH))
     abort ();
-  dostounix_filename (in_filename, 0);
+
+  /* Can't use dostounix_filename here, since that needs its file name
+     argument encoded in UTF-8.  */
+  for (p = in_filename; *p; p = CharNextA (p))
+    if (*p == '\\')
+      *p = '/';
+
   strcpy (out_filename, in_filename);
+  filename_to_ansi (new_name, new_name_a);
 
   /* Change the base of the output filename to match the requested name.  */
   if ((p = strrchr (out_filename, '/')) == NULL)
     abort ();
   /* The filenames have already been expanded, and will be in Unix
      format, so it is safe to expect an absolute name.  */
-  if ((q = strrchr (new_name, '/')) == NULL)
+  if ((q = strrchr (new_name_a, '/')) == NULL)
     abort ();
   strcpy (p, q);
 

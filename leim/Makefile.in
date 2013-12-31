@@ -34,8 +34,8 @@ leimdir = ${srcdir}/../lisp/leim
 EMACS = ../src/emacs
 
 # How to run Emacs.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-RUN_EMACS = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
+RUN_EMACS = EMACSLOADPATH='$(srcdir)/../lisp' '$(EMACS)' \
+  -batch --no-site-file --no-site-lisp
 
 MKDIR_P = @MKDIR_P@
 

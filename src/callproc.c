@@ -465,7 +465,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     int ok;
 
     GCPRO3 (buffer, current_dir, error_file);
-    ok = openp (Vexec_path, args[0], Vexec_suffixes, &path, make_number (X_OK));
+    ok = openp (Vexec_path, args[0], Vexec_suffixes, &path,
+		make_number (X_OK), false);
     UNGCPRO;
     if (ok < 0)
       report_file_error ("Searching for program", args[0]);
@@ -1685,7 +1686,11 @@ default if SHELL is not set.  */);
 
   DEFVAR_LISP ("exec-path", Vexec_path,
 	       doc: /* List of directories to search programs to run in subprocesses.
-Each element is a string (directory name) or nil (try default directory).  */);
+Each element is a string (directory name) or nil (try default directory).
+
+By default the last element of this list is `exec-directory'. The
+last element is not always used, for example in shell completion
+(`shell-dynamic-complete-command').  */);
 
   DEFVAR_LISP ("exec-suffixes", Vexec_suffixes,
 	       doc: /* List of suffixes to try to find executable file names.

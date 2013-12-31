@@ -424,6 +424,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (defcustom cvs-minor-mode-prefix "\C-xc"
   "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
+  :type 'string
   :group 'pcl-cvs)
 
 (easy-mmode-defmap cvs-minor-mode-map

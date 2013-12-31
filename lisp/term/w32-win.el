@@ -110,8 +110,13 @@
   (let ((f (if (eq system-type 'cygwin)
                (cygwin-convert-file-name-from-windows file-name t)
              (subst-char-in-string ?\\ ?/ file-name)))
-        (coding (or file-name-coding-system
-                    default-file-name-coding-system)))
+        (coding (if (eq system-type 'windows-nt)
+		    ;; Native w32 build pretends that its file names
+		    ;; are encoded in UTF-8, and converts to the
+		    ;; appropriate encoding internally.
+		    'utf-8
+		  (or file-name-coding-system
+		      default-file-name-coding-system))))
 
     (setq file-name
           (mapconcat 'url-hexify-string

@@ -1,5 +1,4 @@
-# -*- coding: euc-china -*-
-# Header added for Emacs
+# Header added for Emacs -*- coding: euc-china -*-
 #
 # This file is included in the directory contrib/clients/cxterm of the
 # distribution of X11R6.  As the file itself doesn't contain copyright
@@ -8,7 +7,7 @@
 #
 # X11R6 CXTERM (C) 1994 BY YONGGUANG ZHANG.
 # X11R5 CXTERM (C) 1991 BY YONGGUANG ZHANG AND MAN-CHI PONG.
-# 
+#
 # Permission to use, copy, modify, and distribute this software and
 # its documentation for any purpose is hereby granted without fee,
 # provided that this entire copyright and permission notice appear
@@ -19,7 +18,6 @@
 # purpose.  It is provided "as is" without express or implied warranty.
 #
 # End of header added for Emacs
-#
 # HANZI input table for cxterm
 # To be used by cxterm, convert me to .cit format first
 # .cit version 2
@@ -564,4 +562,3 @@ zui	×ì×í×î×ïÞ©
 zuj	×ê×ëß¬çÚõò
 zun	×ð×ñß¤é×÷®
 zuo	×ò×ó×ô×õ×ö×÷×ø×ùßòàÜâôëÑìñ
-

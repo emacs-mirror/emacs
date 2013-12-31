@@ -139,6 +139,7 @@ of digits displayed).
 An exception to the above is the case of the list (std C) where C is a
 character, in this case the `calculator-standard-displayer' function
 will be used with this character for a format string."
+  :type '(choice (function) (string) (list (const std) character) (sexp))
   :group 'calculator)
 
 (defcustom calculator-displayers

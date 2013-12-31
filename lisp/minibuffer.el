@@ -1222,7 +1222,7 @@ Repeated uses step through the possible completions."
                 (interactive)
                 (let ((completion-extra-properties extra-prop))
                   (completion-in-region start (point) table pred)))))
-        (set-temporary-overlay-map
+        (set-transient-map
          (let ((map (make-sparse-keymap)))
            (define-key map [remap completion-at-point] cmd)
            (define-key map (vector last-command-event) cmd)

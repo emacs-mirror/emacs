@@ -78,6 +78,18 @@ typedef float EmacsCGFloat;
 
 /* ==========================================================================
 
+   NSColor, EmacsColor category.
+
+   ========================================================================== */
+@interface NSColor (EmacsColor)
++ (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
+                         blue:(CGFloat)blue alpha:(CGFloat)alpha;
+- (NSColor *)colorUsingDefaultColorSpace;
+
+@end
+
+/* ==========================================================================
+
    The Emacs application
 
    ========================================================================== */
@@ -458,9 +470,6 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 #define KEY_NS_POWER_OFF               ((1<<28)|(0<<16)|1)
 #define KEY_NS_OPEN_FILE               ((1<<28)|(0<<16)|2)
 #define KEY_NS_OPEN_TEMP_FILE          ((1<<28)|(0<<16)|3)
-#define KEY_NS_DRAG_FILE               ((1<<28)|(0<<16)|4)
-#define KEY_NS_DRAG_COLOR              ((1<<28)|(0<<16)|5)
-#define KEY_NS_DRAG_TEXT               ((1<<28)|(0<<16)|6)
 #define KEY_NS_CHANGE_FONT             ((1<<28)|(0<<16)|7)
 #define KEY_NS_OPEN_FILE_LINE          ((1<<28)|(0<<16)|8)
 #define KEY_NS_PUT_WORKING_TEXT        ((1<<28)|(0<<16)|9)
@@ -686,9 +695,6 @@ struct ns_output
 
   /* This is the Emacs structure for the NS display this frame is on.  */
   struct ns_display_info *display_info;
-
-  /* Non-zero if we want to constrain the frame to the screen.  */
-  int dont_constrain;
 
   /* Non-zero if we are zooming (maximizing) the frame.  */
   int zooming;

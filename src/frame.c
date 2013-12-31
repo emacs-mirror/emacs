@@ -1929,7 +1929,7 @@ If there is no window system support, this function does nothing.  */)
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
-#if !HAVE_NS && !defined (WINDOWSNT)
+#if !HAVE_NS && !HAVE_NTGUI
 static
 #endif
 Lisp_Object
@@ -2515,7 +2515,7 @@ DEFUN ("frame-scroll-bar-width", Fscroll_bar_width, Sscroll_bar_width, 0, 1, 0,
        doc: /* Return scroll bar width of FRAME in pixels.  */)
   (Lisp_Object frame)
 {
-  return make_number (decode_any_frame (frame)->scroll_bar_actual_width);
+  return make_number (FRAME_SCROLL_BAR_AREA_WIDTH (decode_any_frame (frame)));
 }
 
 DEFUN ("frame-fringe-width", Ffringe_width, Sfringe_width, 0, 1, 0,
@@ -2807,7 +2807,9 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   Lisp_Object *values;
   ptrdiff_t i, p;
   bool left_no_change = 0, top_no_change = 0;
+#ifdef HAVE_X_WINDOWS
   bool icon_left_no_change = 0, icon_top_no_change = 0;
+#endif
   bool size_changed = 0;
   struct gcpro gcpro1, gcpro2;
 
@@ -2954,14 +2956,18 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* If one of the icon positions was not set, preserve or default it.  */
   if (! TYPE_RANGED_INTEGERP (int, icon_left))
     {
+#ifdef HAVE_X_WINDOWS
       icon_left_no_change = 1;
+#endif
       icon_left = Fcdr (Fassq (Qicon_left, f->param_alist));
       if (NILP (icon_left))
 	XSETINT (icon_left, 0);
     }
   if (! TYPE_RANGED_INTEGERP (int, icon_top))
     {
+#ifdef HAVE_X_WINDOWS
       icon_top_no_change = 1;
+#endif
       icon_top = Fcdr (Fassq (Qicon_top, f->param_alist));
       if (NILP (icon_top))
 	XSETINT (icon_top, 0);
@@ -4231,8 +4237,6 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, bool toolbar_p)
 	window_prompting |= PSize;
     }
 
-  f->scroll_bar_actual_width
-    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
 
   /* This used to be done _before_ calling x_figure_window_size, but
      since the height is reset here, this was really a no-op.  I

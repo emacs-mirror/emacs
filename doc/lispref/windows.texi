@@ -1164,7 +1164,7 @@ vertical combination @var{W1}.
 
 @cindex window combination limit
 @defun set-window-combination-limit window limit
-This functions sets the @dfn{combination limit} of the window
+This function sets the @dfn{combination limit} of the window
 @var{window} to @var{limit}.  This value can be retrieved via the
 function @code{window-combination-limit}.  See below for its effects;
 note that it is only meaningful for internal windows.  The

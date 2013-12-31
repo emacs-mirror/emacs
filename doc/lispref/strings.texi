@@ -268,7 +268,7 @@ string to be used as a shell command, see @ref{Shell Arguments,
 combine-and-quote-strings}.
 @end defun
 
-@defun split-string string &optional separators omit-nulls
+@defun split-string string &optional separators omit-nulls trim
 This function splits @var{string} into substrings based on the regular
 expression @var{separators} (@pxref{Regular Expressions}).  Each match
 for @var{separators} defines a splitting point; the substrings between
@@ -349,6 +349,11 @@ practice:
 (split-string "ooo" "\\|o+" t)
      @result{} ("o" "o" "o")
 @end example
+
+If the optional argument @var{trim} is non-@code{nil}, it should be a
+regular expression to match text to trim from the beginning and end of
+each substring.  If trimming makes the substring empty, it is treated
+as null.
 
 If you need to split a string into a list of individual command-line
 arguments suitable for @code{call-process} or @code{start-process},
