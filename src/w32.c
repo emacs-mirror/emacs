@@ -6045,7 +6045,7 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
   errno = 0;
   /* SetFileSecurity is deprecated by MS, and sometimes fails when
      DACL inheritance is involved, but it seems to preserve ownership
-     better than SetNamedSecurity, which is important e.g., in
+     better than SetNamedSecurityInfo, which is important e.g., in
      copy-file.  */
   if (!set_file_security (fname, flags, (PSECURITY_DESCRIPTOR)acl))
     {
