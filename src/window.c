@@ -4582,14 +4582,16 @@ grow_mini_window (struct window *w, int delta, bool pixelwise)
 
 	  if (pixelwise)
 	    {
-	      pixel_height = min (-XINT (height), INT_MAX - w->pixel_height);
+	      pixel_height = max (min (-XINT (height), INT_MAX - w->pixel_height),
+				  FRAME_LINE_HEIGHT (f));
 	      line_height = pixel_height / FRAME_LINE_HEIGHT (f);
 	    }
 	  else
 	    {
-	      line_height = min (-XINT (height),
-				 ((INT_MAX - w->pixel_height)
-				  / FRAME_LINE_HEIGHT (f)));
+	      line_height = max (min (-XINT (height),
+				      ((INT_MAX - w->pixel_height)
+				       / FRAME_LINE_HEIGHT (f))),
+				 1);
 	      pixel_height = line_height * FRAME_LINE_HEIGHT (f);
 	    }
 
