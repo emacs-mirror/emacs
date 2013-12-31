@@ -4582,24 +4582,24 @@ grow_mini_window (struct window *w, int delta, bool pixelwise)
 
 	  if (pixelwise)
 	    {
-	      pixel_height = max (min (-XINT (height), INT_MAX - w->pixel_height),
-				  FRAME_LINE_HEIGHT (f));
+	      pixel_height = min (-XINT (height), INT_MAX - w->pixel_height);
 	      line_height = pixel_height / FRAME_LINE_HEIGHT (f);
 	    }
 	  else
 	    {
-	      line_height = max (min (-XINT (height),
-				      ((INT_MAX - w->pixel_height)
-				       / FRAME_LINE_HEIGHT (f))),
-				 1);
+	      line_height = min (-XINT (height),
+				 ((INT_MAX - w->pixel_height)
+				  / FRAME_LINE_HEIGHT (f)));
 	      pixel_height = line_height * FRAME_LINE_HEIGHT (f);
 	    }
 
 	  /* Grow the mini-window.  */
 	  w->pixel_top = r->pixel_top + r->pixel_height;
 	  w->top_line = r->top_line + r->total_lines;
-	  w->pixel_height += pixel_height;
-	  w->total_lines += line_height;
+	  /* Make sure the mini-window has always at least one line.  */
+	  w->pixel_height = max (w->pixel_height + pixel_height,
+				 FRAME_LINE_HEIGHT (f));
+	  w->total_lines = max (w->total_lines + line_height, 1);
 
 	  /* Enforce full redisplay of the frame.  */
 	  /* FIXME: Shouldn't window--resize-root-window-vertically do it?  */

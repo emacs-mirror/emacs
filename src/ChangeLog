@@ -1,3 +1,7 @@
+2013-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (grow_mini_window): Fix last change.
+
 2013-12-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (windowDidResignKey:): Set mouse_moved to 0 (Bug#8421).
