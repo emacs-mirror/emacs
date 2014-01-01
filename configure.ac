@@ -4551,7 +4551,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2013 Free Software Foundation, Inc."
+copyright="Copyright (C) 2014 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST(copyright)
@@ -4868,7 +4868,7 @@ AC_SUBST(WINDOW_SYSTEM_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2013
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2014
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

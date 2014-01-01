@@ -915,7 +915,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2013 Your Name
+;; Copyright (C) 2010-2014 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
