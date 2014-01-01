@@ -1100,20 +1100,44 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
 static struct region_cache *
 bidi_paragraph_cache_on_off (void)
 {
+  struct buffer *cache_buffer = current_buffer;
+  bool indirect_p = false;
+
+  /* For indirect buffers, make sure to use the cache of their base
+     buffer.  */
+  if (cache_buffer->base_buffer)
+    {
+      cache_buffer = cache_buffer->base_buffer;
+      indirect_p = true;
+    }
+
+  /* Don't turn on or off the cache in the base buffer, if the value
+     of cache-long-scans of the base buffer is inconsistent with that.
+     This is because doing so will just make the cache pure overhead,
+     since if we turn it on via indirect buffer, it will be
+     immediately turned off by its base buffer.  */
   if (NILP (BVAR (current_buffer, cache_long_scans)))
     {
-      if (current_buffer->bidi_paragraph_cache)
+      if (!indirect_p
+	  || NILP (BVAR (cache_buffer, cache_long_scans)))
 	{
-	  free_region_cache (current_buffer->bidi_paragraph_cache);
-	  current_buffer->bidi_paragraph_cache = 0;
+	  if (cache_buffer->bidi_paragraph_cache)
+	    {
+	      free_region_cache (cache_buffer->bidi_paragraph_cache);
+	      cache_buffer->bidi_paragraph_cache = 0;
+	    }
 	}
       return NULL;
     }
   else
     {
-      if (!current_buffer->bidi_paragraph_cache)
-	current_buffer->bidi_paragraph_cache = new_region_cache ();
-      return current_buffer->bidi_paragraph_cache;
+      if (!indirect_p
+	  || !NILP (BVAR (cache_buffer, cache_long_scans)))
+	{
+	  if (!cache_buffer->bidi_paragraph_cache)
+	    cache_buffer->bidi_paragraph_cache = new_region_cache ();
+	}
+      return cache_buffer->bidi_paragraph_cache;
     }
 }
 
@@ -1134,6 +1158,10 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   ptrdiff_t limit = ZV, limit_byte = ZV_BYTE;
   struct region_cache *bpc = bidi_paragraph_cache_on_off ();
   ptrdiff_t n = 0, oldpos = pos, next;
+  struct buffer *cache_buffer = current_buffer;
+
+  if (cache_buffer->base_buffer)
+    cache_buffer = cache_buffer->base_buffer;
 
   while (pos_byte > BEGV_BYTE
 	 && n++ < MAX_PARAGRAPH_SEARCH
@@ -1144,7 +1172,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 	 of the text over which we scan back includes
 	 paragraph_start_re?  */
       DEC_BOTH (pos, pos_byte);
-      if (bpc && region_cache_backward (current_buffer, bpc, pos, &next))
+      if (bpc && region_cache_backward (cache_buffer, bpc, pos, &next))
 	{
 	  pos = next, pos_byte = CHAR_TO_BYTE (pos);
 	  break;
@@ -1155,7 +1183,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   if (n >= MAX_PARAGRAPH_SEARCH)
     pos = BEGV, pos_byte = BEGV_BYTE;
   if (bpc)
-    know_region_cache (current_buffer, bpc, pos, oldpos);
+    know_region_cache (cache_buffer, bpc, pos, oldpos);
   /* Positions returned by the region cache are not limited to
      BEGV..ZV range, so we limit them here.  */
   pos_byte = clip_to_bounds (BEGV_BYTE, pos_byte, ZV_BYTE);

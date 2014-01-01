@@ -15767,16 +15767,20 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
      this may be a bit late to catch such changes, but the rest of
      redisplay goes (non-fatally) haywire when the display table is
      changed, so why should we worry about doing any better?  */
-  if (current_buffer->width_run_cache)
+  if (current_buffer->width_run_cache
+      || (current_buffer->base_buffer
+	  && current_buffer->base_buffer->width_run_cache))
     {
       struct Lisp_Char_Table *disptab = buffer_display_table ();
 
       if (! disptab_matches_widthtab
 	  (disptab, XVECTOR (BVAR (current_buffer, width_table))))
         {
-          invalidate_region_cache (current_buffer,
-                                   current_buffer->width_run_cache,
-                                   BEG, Z);
+	  struct buffer *buf = current_buffer;
+
+	  if (buf->base_buffer)
+	    buf = buf->base_buffer;
+          invalidate_region_cache (buf, buf->width_run_cache, BEG, Z);
           recompute_width_table (current_buffer, disptab);
         }
     }

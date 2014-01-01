@@ -602,23 +602,47 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
    Otherwise, make sure it's off.
    This is our cheezy way of associating an action with the change of
    state of a buffer-local variable.  */
-static void
+static struct region_cache *
 newline_cache_on_off (struct buffer *buf)
 {
+  struct buffer *base_buf = buf;
+  bool indirect_p = false;
+
+  if (buf->base_buffer)
+    {
+      base_buf = buf->base_buffer;
+      indirect_p = true;
+    }
+
+  /* Don't turn on or off the cache in the base buffer, if the value
+     of cache-long-scans of the base buffer is inconsistent with that.
+     This is because doing so will just make the cache pure overhead,
+     since if we turn it on via indirect buffer, it will be
+     immediately turned off by its base buffer.  */
   if (NILP (BVAR (buf, cache_long_scans)))
     {
-      /* It should be off.  */
-      if (buf->newline_cache)
-        {
-          free_region_cache (buf->newline_cache);
-          buf->newline_cache = 0;
-        }
+      if (!indirect_p
+	  || NILP (BVAR (base_buf, cache_long_scans)))
+	{
+	  /* It should be off.  */
+	  if (base_buf->newline_cache)
+	    {
+	      free_region_cache (base_buf->newline_cache);
+	      base_buf->newline_cache = 0;
+	    }
+	}
+      return NULL;
     }
   else
     {
-      /* It should be on.  */
-      if (buf->newline_cache == 0)
-        buf->newline_cache = new_region_cache ();
+      if (!indirect_p
+	  || !NILP (BVAR (base_buf, cache_long_scans)))
+	{
+	  /* It should be on.  */
+	  if (base_buf->newline_cache == 0)
+	    base_buf->newline_cache = new_region_cache ();
+	}
+      return base_buf->newline_cache;
     }
 }
 
@@ -653,6 +677,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 {
   struct region_cache *newline_cache;
   int direction;
+  struct buffer *cache_buffer;
 
   if (count > 0)
     {
@@ -669,8 +694,11 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   if (end_byte == -1)
     end_byte = CHAR_TO_BYTE (end);
 
-  newline_cache_on_off (current_buffer);
-  newline_cache = current_buffer->newline_cache;
+  newline_cache = newline_cache_on_off (current_buffer);
+  if (current_buffer->base_buffer)
+    cache_buffer = current_buffer->base_buffer;
+  else
+    cache_buffer = current_buffer;
 
   if (shortage != 0)
     *shortage = 0;
@@ -694,7 +722,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_forward
-                   (current_buffer, newline_cache, start, &next_change))
+                   (cache_buffer, newline_cache, start, &next_change))
               start = next_change;
             immediate_quit = allow_quit;
 
@@ -738,7 +766,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
                  this line's region is free of them. */
               if (newline_cache)
 		{
-		  know_region_cache (current_buffer, newline_cache,
+		  know_region_cache (cache_buffer, newline_cache,
 				     BYTE_TO_CHAR (lim_byte + cursor),
 				     BYTE_TO_CHAR (lim_byte + next));
 		  /* know_region_cache can relocate buffer text.  */
@@ -774,7 +802,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
             ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_backward
-                   (current_buffer, newline_cache, start, &next_change))
+                   (cache_buffer, newline_cache, start, &next_change))
               start = next_change;
             immediate_quit = allow_quit;
 
@@ -814,7 +842,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
                  this line's region is free of them. */
               if (newline_cache)
 		{
-		  know_region_cache (current_buffer, newline_cache,
+		  know_region_cache (cache_buffer, newline_cache,
 				     BYTE_TO_CHAR (ceiling_byte + prev + 1),
 				     BYTE_TO_CHAR (ceiling_byte + cursor));
 		  /* know_region_cache can relocate buffer text.  */

@@ -1878,6 +1878,10 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 void
 invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 {
+  /* Indirect buffers usually have their caches set to NULL, but we
+     need to consider the caches of their base buffer.  */
+  if (buf->base_buffer)
+    buf = buf->base_buffer;
   if (buf->newline_cache)
     invalidate_region_cache (buf,
                              buf->newline_cache,

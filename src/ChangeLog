@@ -1,3 +1,25 @@
+2014-01-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (newline_cache_on_off, find_newline): In indirect
+	buffers, use the newline cache of the base buffer.
+
+	* insdel.c (invalidate_buffer_caches): If BUF is an indirect
+	buffer, invalidate the caches of its base buffer.  (Bug#16265)
+
+	* indent.c (width_run_cache_on_off, compute_motion): In indirect
+	buffers, use the width-run cache of the base buffer.
+
+	* xdisp.c (redisplay_window): When the window displays an indirect
+	buffer, and the character widths in the display table have
+	changed, invalidate the width-run cache of the corresponding base
+	buffer.
+
+	* fileio.c (Finsert_file_contents): When invalidating the newline
+	cache, consider the case of inserting into indirect buffer.
+
+	* bidi.c (bidi_paragraph_cache_on_off, bidi_find_paragraph_start):
+	In indirect buffers, use the paragraph cache of the base buffer.
+
 2013-12-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (grow_mini_window): Fix last change.

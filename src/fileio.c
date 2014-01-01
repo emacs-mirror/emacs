@@ -4496,7 +4496,11 @@ by calling `format-decode', which see.  */)
   /* We made a lot of deletions and insertions above, so invalidate
      the newline cache for the entire region of the inserted
      characters.  */
-  if (current_buffer->newline_cache)
+  if (current_buffer->base_buffer && current_buffer->base_buffer->newline_cache)
+    invalidate_region_cache (current_buffer->base_buffer,
+                             current_buffer->base_buffer->newline_cache,
+                             PT - BEG, Z - PT - inserted);
+  else if (current_buffer->newline_cache)
     invalidate_region_cache (current_buffer,
                              current_buffer->newline_cache,
                              PT - BEG, Z - PT - inserted);
