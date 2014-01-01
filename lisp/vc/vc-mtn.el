@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc

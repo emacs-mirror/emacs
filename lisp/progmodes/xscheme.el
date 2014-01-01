@@ -1,6 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2013 Free Software
+;; Copyright (C) 1986-1987, 1989-1990, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF

@@ -9,7 +9,8 @@
 This manual documents Htmlfontify, a source code -> crosslinked +
 formatted + syntax colorized html transformer.
 
-Copyright @copyright{} 2002, 2003, 2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2002-2003, 2013-2014 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

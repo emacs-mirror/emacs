@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2013 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

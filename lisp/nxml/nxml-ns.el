@@ -1,6 +1,6 @@
 ;;; nxml-ns.el --- XML namespace processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML

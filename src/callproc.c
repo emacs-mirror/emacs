@@ -1,6 +1,7 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2013 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1995, 1999-2014 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 

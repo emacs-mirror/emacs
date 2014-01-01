@@ -1,6 +1,7 @@
 ;;; mh-comp.el --- MH-E functions for composing and sending messages
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2014 Free Software Foundation,
+;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

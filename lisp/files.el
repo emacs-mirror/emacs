@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs

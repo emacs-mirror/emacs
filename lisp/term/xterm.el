@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals

@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2013 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF

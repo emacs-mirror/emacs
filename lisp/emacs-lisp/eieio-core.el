@@ -1,6 +1,6 @@
 ;;; eieio-core.el --- Core implementation for eieio
 
-;; Copyright (C) 1995-1996, 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4

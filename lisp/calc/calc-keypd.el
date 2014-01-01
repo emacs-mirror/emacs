@@ -1,6 +1,6 @@
 ;;; calc-keypd.el --- mouse-capable keypad input for Calc
 
-;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>

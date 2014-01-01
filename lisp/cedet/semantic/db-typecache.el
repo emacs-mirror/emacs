@@ -1,6 +1,6 @@
 ;;; semantic/db-typecache.el --- Manage Datatypes
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

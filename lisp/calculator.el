@@ -1,6 +1,6 @@
 ;;; calculator.el --- a [not so] simple calculator for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience

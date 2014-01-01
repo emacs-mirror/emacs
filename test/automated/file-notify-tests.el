@@ -1,6 +1,6 @@
 ;;; file-notify-tests.el --- Tests of file notifications
 
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

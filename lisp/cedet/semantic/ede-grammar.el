@@ -1,6 +1,6 @@
 ;;; semantic/ede-grammar.el --- EDE support for Semantic Grammar Files
 
-;; Copyright (C) 2003-2004, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make

@@ -1,6 +1,6 @@
 ;;; version.el --- record version number of Emacs
 
-;; Copyright (C) 1985, 1992, 1994-1995, 1999-2013 Free Software
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF
