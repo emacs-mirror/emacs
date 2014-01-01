@@ -576,7 +576,7 @@ enable it:
 
 Now you can customize @code{completion-ignored-extensions} as well.
 Go ahead and add all the useless object files, backup files, shared
-library files and other computing flotsam you don’t want Ido to show.
+library files and other computing flotsam you don't want Ido to show.
 
 @strong{Please notice:} Ido will still complete the ignored elements
 if it would otherwise not show any other matches.  So if you type out

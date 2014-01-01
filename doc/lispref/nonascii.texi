@@ -550,15 +550,13 @@ is @code{nil}, which means the character itself.
 @defun get-char-code-property char propname
 This function returns the value of @var{char}'s @var{propname} property.
 
-@c FIXME: Use ‘?\s’ instead of ‘? ’ for the space character in the
-@c first example?  --xfq
 @example
 @group
-(get-char-code-property ?  'general-category)
+(get-char-code-property ?\s 'general-category)
      @result{} Zs
 @end group
 @group
-(get-char-code-property ?1  'general-category)
+(get-char-code-property ?1 'general-category)
      @result{} Nd
 @end group
 @group
@@ -688,7 +686,7 @@ which case the returned charset must be supported by that coding
 system (@pxref{Coding Systems}).
 @end defun
 
-@c TODO: Explain the properties here and add indexes such as ‘charset property’.
+@c TODO: Explain the properties here and add indexes such as 'charset property'.
 @defun charset-plist charset
 This function returns the property list of the character set
 @var{charset}.  Although @var{charset} is a symbol, this is not the

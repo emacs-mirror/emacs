@@ -2053,7 +2053,7 @@ STREAM or the value of `standard-input' may be:
   if (EQ (stream, Qt))
     stream = Qread_char;
   if (EQ (stream, Qread_char))
-    /* FIXME: ¿¡ When is this used !?  */
+    /* FIXME: ?! When is this used !?  */
     return call1 (intern ("read-minibuffer"),
 		  build_string ("Lisp expression: "));
 

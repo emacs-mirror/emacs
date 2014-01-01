@@ -13071,7 +13071,7 @@ channel."
 @end lisp
 
 The @code{my-ascii-src-block} function looks at the attribute above the
-element.  If it isn’t true, it gives hand to the @code{ascii} back-end.
+element.  If it isn't true, it gives hand to the @code{ascii} back-end.
 Otherwise, it creates a box around the code, leaving room for the language.
 A new back-end is then created.  It only changes its behaviour when
 translating @code{src-block} type element.  Now, all it takes to use the new
@@ -13778,7 +13778,7 @@ ensure that no code blocks are evaluated as part of the export process.  This
 can be useful in situations where potentially untrusted Org mode files are
 exported in an automated fashion, for example when Org mode is used as the
 markup language for a wiki.  It is also possible to set this variable to
-@code{‘inline-only}.  In that case, only inline code blocks will be
+@code{'inline-only}.  In that case, only inline code blocks will be
 evaluated, in order to insert their results.  Non-inline code blocks are
 assumed to have their results already inserted in the buffer by manual
 evaluation.  This setting is useful to avoid expensive recalculations during

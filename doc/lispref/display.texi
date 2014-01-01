@@ -615,8 +615,8 @@ program signals a Lisp error and then handles it with
 @code{condition-case}, the user won't see the error message; it could
 show the message to the user by reporting it as a warning.)
 
-@c FIXME: Why use ‘(bytecomp)’ instead of ‘'bytecomp’ or simply
-@c ‘bytecomp’ here?  The parens are part of ‘warning-type-format’ but
+@c FIXME: Why use "(bytecomp)" instead of "'bytecomp" or simply
+@c "bytecomp" here?  The parens are part of warning-type-format but
 @c not part of the warning type. --xfq
 @cindex warning type
   Each warning has a @dfn{warning type} to classify it.  The type is a
@@ -2044,7 +2044,7 @@ stipple patterns.
 Alternative foreground color, a string.  This is like @code{:foreground}
 but the color is only used as a foreground when the background color is
 near to the foreground that would have been used.  This is useful for
-example when marking text (i.e. the region face).  If the text has a foreground 
+example when marking text (i.e. the region face).  If the text has a foreground
 that is visible with the region face, that foreground is used.
 If the foreground is near the region face background,
 @code{:distant-foreground} is used instead so the text is readable.
@@ -3589,8 +3589,8 @@ See the next subsection for details.
 @xref{Fringe Bitmaps}.
 @end ifnottex
 
-@c FIXME: I can't find the ‘fringes-indicator-alist’ variable.  Maybe
-@c it should be ‘fringe-indicator-alist’ or ‘fringe-cursor-alist’?  --xfq
+@c FIXME: I can't find the fringes-indicator-alist variable.  Maybe
+@c it should be fringe-indicator-alist or fringe-cursor-alist?  --xfq
 When @code{fringe-cursor-alist} has a buffer-local value, and there is
 no bitmap defined for a cursor type, the corresponding value from the
 default value of @code{fringes-indicator-alist} is used.
@@ -4712,7 +4712,7 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
-@c FIXME: ‘:format-type’ or ‘:format’?  --xfq
+@c FIXME: ':format-type' or ':format'?  --xfq
 @item :format
 ImageMagick tries to auto-detect the image type, but it isn't always
 able to.  By using @code{:format-type}, we can give ImageMagick a hint
@@ -4793,7 +4793,7 @@ from the file's name.
 The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
-@c ‘:heuristic-mask’ is not documented?
+@c ':heuristic-mask' is not documented?
 @example
 (create-image "foo.xpm" 'xpm nil :heuristic-mask t)
 @end example
