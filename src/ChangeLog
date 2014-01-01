@@ -1,3 +1,9 @@
+2014-01-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (EMACS_INT): Configure based on INTPTR_MAX, not LONG_MAX.
+	This is a cleaner way to fix the MinGW-w64 porting problem.
+	Check for INTPTR_MAX misconfiguration.
+
 2014-01-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (newline_cache_on_off, find_newline): In indirect
