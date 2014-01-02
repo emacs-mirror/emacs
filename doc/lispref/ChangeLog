@@ -1,3 +1,7 @@
+2014-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* numbers.texi (Numeric Conversions): Fix a typo.
+
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Plain copy-file no longer chmods an existing destination (Bug#16133).
@@ -1355,14 +1359,16 @@
 	Tweak markup.  Remove domain-error and friends, which seem to be
 	unused after the floating-point code revamp.
 
-	* functions.texi (Obsolete Functions): Obsolescence also affects
+	* functions.texi (Defining Functions): defun is now a macro.
+	(Obsolete Functions): Obsolescence also affects
 	documentation commands.  Various clarifications.
 	(Declare Form): New node.
 
 	* strings.texi (String Basics): Copyedits.
 
-	* os.texi (Idle Timers): Minor clarifications.
+	* os.texi (Startup Summary): Document leim-list.el change.
 	(User Identification): Add system-users and system-groups.
+	(Idle Timers): Minor clarifications.
 
 	* macros.texi (Defining Macros): Move description of `declare' to
 	Declare Form node.
@@ -1377,14 +1383,6 @@
 	(Arithmetic Operations): Clarify division by zero.  Don't mention
 	the machine-independence of negative division since it does not
 	happen in practice.
-
-2012-09-28  Chong Yidong  <cyd@gnu.org>
-
-	* os.texi (Startup Summary): Document leim-list.el change.
-
-2012-09-25  Chong Yidong  <cyd@gnu.org>
-
-	* functions.texi (Defining Functions): defun is now a macro.
 
 2012-09-28  Leo Liu  <sdl.web@gmail.com>
 

@@ -447,7 +447,7 @@ may be integers or floating point numbers.  @var{divisor} may also be
 functions convert @var{number} to an integer, or return it unchanged
 if it already is an integer.  If @var{divisor} is non-@code{nil}, they
 divide @var{number} by @var{divisor} and convert the result to an
-integer.  integer.  If @var{divisor} is zero (whether integer or
+integer.  If @var{divisor} is zero (whether integer or
 floating-point), Emacs signals an @code{arith-error} error.
 
 @defun truncate number &optional divisor
