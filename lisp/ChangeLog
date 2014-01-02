@@ -1,5 +1,7 @@
 2014-01-02  Richard Stallman  <rms@gnu.org>
 
+	* dired-aux.el (dired-do-print): Handle printer-name.
+
 	* mail/rmailmm.el (rmail-mime-message-p): Moved to rmail.el.
 	* mail/rmail.el (rmail-mime-message-p): Moved from rmailmm.el.
 	(rmail-epa-decrypt): Turn off mime processing.

@@ -415,6 +415,12 @@ Uses the shell command coming from variables `lpr-command' and
 `lpr-switches' as default."
   (interactive "P")
   (let* ((file-list (dired-get-marked-files t arg))
+	 (lpr-switches
+	  (if (and (stringp printer-name)
+		   (string< "" printer-name))
+	      (cons (concat lpr-printer-switch printer-name)
+		    lpr-switches)
+	    lpr-switches))
 	 (command (dired-mark-read-string
 		   "Print %s with: "
  		   (mapconcat 'identity
