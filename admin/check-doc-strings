@@ -1,11 +1,12 @@
 : #-*- Perl -*-
-eval 'exec perl -w -S $0 ${1+"$@"}' # Portability kludge
+eval 'exec perl -S $0 ${1+"$@"}' # Portability kludge
     if 0;
 
 # Author: Martin Buchholz
 # This program is in the public domain.
 
 use strict;
+use warnings;
 use POSIX;
 
 (my $myName = $0) =~ s@.*/@@; my $usage="

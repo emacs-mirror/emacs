@@ -218,6 +218,7 @@ ROOT should be the root of an Emacs source tree."
 			     (buffer-substring start (point))))
 	      '("efaq-w32")))))
 
+;; TODO report the progress
 (defun make-manuals (root &optional type)
   "Generate the web manuals for the Emacs webpage.
 ROOT should be the root of an Emacs source tree.

@@ -1,3 +1,7 @@
+2014-01-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* check-doc-strings: Replace `perl -w' with `use warnings;'.
+
 2013-12-30  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (manual-html-fix-headers, manual-html-fix-index-1):
