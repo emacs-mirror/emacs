@@ -1860,7 +1860,7 @@ Does not execute cell formulas or print functions."
 	(insert "(ses-header-row 0)\n")
 	(ses-set-parameter 'ses--file-format 3)
 	(message "Upgrading from SES-1 file format")))
-    (or (> ses--file-format 3)
+    (or (<= ses--file-format 3)
 	(error "This file needs a newer version of the SES library code"))
     ;; Initialize cell array.
     (setq ses--cells (make-vector ses--numrows nil))
