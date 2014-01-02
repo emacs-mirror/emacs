@@ -1,3 +1,7 @@
+2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.text (top): Fix incorrect info filename in an xref.
+
 2014-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (cc_mode_deps): Rename from (typo) ccmode_deps.
