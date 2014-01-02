@@ -3716,7 +3716,7 @@ w32_set_vertical_scroll_bar (struct window *w,
 
   /* Compute the left edge and the width of the scroll bar area.  */
   left = WINDOW_SCROLL_BAR_AREA_X (w);
-  width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+  width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
 
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
@@ -5361,6 +5361,7 @@ Lisp_Object
 x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
+  int unit;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -5372,22 +5373,21 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
-  FRAME_COLUMN_WIDTH (f) = font->average_width;
+  FRAME_COLUMN_WIDTH (f) = unit = font->average_width;
   FRAME_LINE_HEIGHT (f) = font->height;
 
   compute_fringe_widths (f, 1);
 
-  /* Compute the scroll bar width in character columns.  */
+  /* Compute number of scrollbar columns.  */
+  unit = FRAME_COLUMN_WIDTH (f);
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f)
-	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid - 1) / wid;
-    }
+    FRAME_CONFIG_SCROLL_BAR_COLS (f)
+      = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
   else
     {
-      int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
+      FRAME_CONFIG_SCROLL_BAR_WIDTH (f) =
+	FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
     }
 
   /* Now make the frame display the given font.  */

@@ -3584,6 +3584,8 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       do_pending_window_change (0);
     }
 
+  /* Eventually remove the following call.  It should have been done by
+     x_set_window_size already.  */
   change_frame_size (f, 0, 0, 0, 0, 0, 1);
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.hpos = 0;
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.x = 0;

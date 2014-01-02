@@ -1488,7 +1488,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 void
 x_set_scroll_bar_default_width (struct frame *f)
 {
-  int wid = FRAME_COLUMN_WIDTH (f);
+  int unit = FRAME_COLUMN_WIDTH (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
   int minw = xg_get_default_scrollbar_width ();
@@ -1496,16 +1496,14 @@ x_set_scroll_bar_default_width (struct frame *f)
   int minw = 16;
 #endif
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (minw + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (minw + unit - 1) / unit;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = minw;
 #else
-  /* Make the actual width 16 pixels and a multiple of a
-     character width.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (16 + wid - 1) / wid;
-
-  /* Use all of that space (aside from required margins) for the
-     scroll bar.  */
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 16;
+  /* The width of a non-toolkit scrollbar is at least 14 pixels and a
+     multiple of the frame's character width.  */
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
+    = FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
 #endif
 }
 

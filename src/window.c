@@ -6631,6 +6631,7 @@ apply_window_adjustment (struct window *w)
   adjust_window_margins (w);
   clear_glyph_matrix (w->current_matrix);
   w->window_end_valid = 0;
+  windows_or_buffers_changed = 30;
   wset_redisplay (w);
   adjust_frame_glyphs (XFRAME (WINDOW_FRAME (w)));
 }
@@ -6834,9 +6835,7 @@ value.  */)
 {
   struct window *w = decode_live_window (window);
 
-  return list4 (make_number ((WINDOW_CONFIG_SCROLL_BAR_WIDTH (w)
-			      ? WINDOW_CONFIG_SCROLL_BAR_WIDTH (w)
-			      : WINDOW_SCROLL_BAR_AREA_WIDTH (w))),
+  return list4 (make_number (WINDOW_SCROLL_BAR_AREA_WIDTH (w)),
 		make_number (WINDOW_SCROLL_BAR_COLS (w)),
 		w->vertical_scroll_bar_type, Qnil);
 }

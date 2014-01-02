@@ -1851,11 +1851,11 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 void
 x_set_scroll_bar_default_width (struct frame *f)
 {
-  int wid = FRAME_COLUMN_WIDTH (f);
+  int unit = FRAME_COLUMN_WIDTH (f);
 
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) +
-				      wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f)
+    = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
 }
 
 
@@ -4407,7 +4407,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   XSETFRAME (frame, f);
 
   /* By default, make scrollbars the system standard width. */
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
+  x_set_scroll_bar_default_width (f);
 
   f->terminal = dpyinfo->terminal;
 

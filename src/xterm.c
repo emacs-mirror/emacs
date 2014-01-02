@@ -5096,7 +5096,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 
   /* Compute the left edge and the width of the scroll bar area.  */
   left = WINDOW_SCROLL_BAR_AREA_X (w);
-  width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+  width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
 
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
@@ -7675,6 +7675,7 @@ Lisp_Object
 x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
+  int unit;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -7694,21 +7695,20 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   compute_fringe_widths (f, 1);
 
-  /* Compute the scroll bar width in character columns.  */
-  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-
-      FRAME_CONFIG_SCROLL_BAR_COLS (f)
-	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
-    }
-  else
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-
-      FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 14;
-      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
-    }
+  unit = FRAME_COLUMN_WIDTH (f);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  /* The width of a toolkit scrollbar does not change with the new
+     font but we have to calculate the number of columns it occupies
+     anew.  */
+  FRAME_CONFIG_SCROLL_BAR_COLS (f)
+    = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
+#else
+  /* The width of a non-toolkit scrollbar is at least 14 pixels and a
+     multiple of the frame's character width.  */
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
+    = FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
+#endif  
 
   if (FRAME_X_WINDOW (f) != 0)
     {

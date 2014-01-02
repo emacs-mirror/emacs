@@ -1,3 +1,24 @@
+2014-01-02  Martin Rudalics  <rudalics@gmx.at>
+
+	Further adjust frame/window scrollbar width calculations.
+	* window.c (apply_window_adjustment): Set
+	windows_or_buffers_changed.
+	(Fwindow_scroll_bars): Return actual scrollbar width.
+	* xfns.c (x_set_scroll_bar_default_width): Rename wid to unit.
+	For non-toolkit builds again use 14 as minimum width and set
+	FRAME_CONFIG_SCROLL_BAR_WIDTH accordingly.
+	* xterm.c (XTset_vertical_scroll_bar): Take width from
+	WINDOW_SCROLL_BAR_AREA_WIDTH.
+	(x_new_font): Rename wid to unit.  Base calculation of new
+	scrollbar width on toolkit used and make it analogous to that of
+	x_set_scroll_bar_default_width.
+	* w32fns.c (x_set_scroll_bar_default_width): Rename wid to unit.
+	(Fx_create_frame): Call x_set_scroll_bar_default_width instead
+	of GetSystemMetrics.
+	* w32term.c (w32_set_vertical_scroll_bar): Take width from
+	WINDOW_SCROLL_BAR_AREA_WIDTH.
+	(x_new_font): Make it correspond to changes in xterm.c.
+
 2014-01-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (EMACS_INT): Configure based on INTPTR_MAX, not LONG_MAX.
