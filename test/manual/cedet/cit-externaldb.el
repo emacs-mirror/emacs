@@ -1,6 +1,6 @@
 ;;; cit-global.el ---
 ;;
-;; Copyright (C) 2010 Eric M. Ludlam
+;; Copyright (C) 2010, 2013, 2014 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;;
@@ -87,7 +87,7 @@
     ;; Check the tool
     (if (not (funcall (nth 2 TOOL) t))
 	(progn
-	  (message "Skipping %s test." (nth 0 TOOL))
+	  (message "Skipping %s test -- tool not installed." (nth 0 TOOL))
 	  (sit-for 1))
 
       ;; Call to test this instance.
@@ -165,7 +165,7 @@
 
 	      (kill-buffer killme))))
       ;; else, message
-      (message "Skipping %s database test : Nothing to test." symrefsym))
+      (message "Skipping %s database test : No database implemented." symrefsym))
 
     ;; 4) Symref symbol lookup via our external tool
     (setq semantic-symref-tool 'detect)
