@@ -1,3 +1,7 @@
+2014-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (cc_mode_deps): Rename from (typo) ccmode_deps.
+
 2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell.text (Command Basics): Removed `Command basics' chapter.

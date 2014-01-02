@@ -193,7 +193,7 @@ calc.pdf: $(calc_deps)
 calc.html: $(calc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/calc.texi
 
-ccmode_deps = ${srcdir}/cc-mode.texi ${gfdl}
+cc_mode_deps = ${srcdir}/cc-mode.texi ${gfdl}
 ccmode : $(buildinfodir)/ccmode$(INFO_EXT)
 $(buildinfodir)/ccmode$(INFO_EXT): $(cc_mode_deps)
 	$(mkinfodir)
