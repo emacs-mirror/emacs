@@ -74,7 +74,6 @@ Emacs @emph{and} with an interface similar to command shells such as
 
 @menu
 * Introduction::             A brief introduction to the Emacs Shell.
-* Command basics::              The basics of command usage.
 * Commands::
 * Expansion::
 * Input/Output::
@@ -201,98 +200,6 @@ Sudish Joseph helped with some XEmacs compatibility issues.
 Apart from these, a lot of people have sent suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of Eshell.
-
-@node Command basics
-@chapter Basic overview
-
-A command shell is a means of entering verbally-formed commands.  This
-is really all that it does, and every feature described in this manual
-is a means to that end.  Therefore, it's important to take firm hold on
-exactly what a command is, and how it fits in the overall picture of
-things.
-
-@menu
-* Commands verbs::              Commands always begin with a verb.
-* Command arguments::           Some verbs require arguments.
-@end menu
-
-@node Commands verbs
-@section Commands verbs
-
-Commands are expressed using @dfn{script}, a special shorthand language
-computers can understand with no trouble.  Script is an extremely simple
-language; oddly enough, this is what makes it look so complicated!
-Whereas normal languages use a variety of embellishments, the form of a
-script command is always:
-
-@example
-@var{verb} [@var{arguments}]
-@end example
-
-The verb expresses what you want your computer to do.  There are a fixed
-number of verbs, although this number is usually quite large.  On the
-author's computer, it reaches almost 1400 in number.  But of course,
-only a handful of these are really necessary.
-
-Sometimes, the verb is all that's written.  A verb is always a single
-word, usually related to the task it performs.  @command{reboot} is a
-good example.  Entering that on GNU/Linux will reboot the
-computer---assuming you have sufficient privileges.
-
-Other verbs require more information.  These are usually very capable
-verbs, and must be told specifically what to do.  The extra information
-is given in the form of @dfn{arguments}.  For example, the
-@command{echo} verb prints back whatever arguments you type.  It
-requires these arguments to know what to echo.  A proper use of
-@command{echo} looks like this:
-
-@example
-echo This is an example of using echo!
-@end example
-
-This script command causes the computer to echo back: ``This is an
-example of using echo!''
-
-Although command verbs are always simple words, like @command{reboot} or
-@command{echo}, arguments may have a wide variety of forms.  There are
-textual arguments, numerical arguments---even Lisp arguments.
-Distinguishing these different types of arguments requires special
-typing, for the computer to know exactly what you mean.
-
-@node Command arguments
-@section Command arguments
-
-Eshell recognizes several different kinds of command arguments:
-
-@enumerate
-@item Strings (also called textual arguments)
-@item Numbers (floating point or integer)
-@item Lisp lists
-@item Lisp symbols
-@item Emacs buffers
-@item Emacs process handles
-@end enumerate
-
-Most users need to worry only about the first two.  The third, Lisp lists,
-occur very frequently, but almost always behind the scenes.
-
-Strings are the most common type of argument, and consist of nearly any
-character.  Special characters---those used by Eshell
-specifically---must be preceded by a backslash (@samp{\}).  When in doubt, it
-is safe to add backslashes anywhere and everywhere.
-
-Here is a more complicated @command{echo} example:
-
-@example
-echo A\ Multi-word\ Argument\ With\ A\ \$\ dollar
-@end example
-
-Beyond this, things get a bit more complicated.  While not beyond the
-reach of someone wishing to learn, it is definitely beyond the scope of
-this manual to present it all in a simplistic manner.  Get comfortable
-with Eshell as a basic command invocation tool, and learn more about the
-commands on your system; then come back when it all sits more familiarly
-on your mind.  Have fun!
 
 @node Commands
 @chapter Commands
