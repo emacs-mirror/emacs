@@ -230,11 +230,6 @@ TRUNCATED is non-nil if the text of this entity was truncated."
 (defsubst rmail-mime-entity-set-truncated (entity truncated)
   (aset entity 9 truncated))
 
-(defsubst rmail-mime-message-p ()
-  "Non-nil if and only if the current message is a MIME."
-  (or (get-text-property (point) 'rmail-mime-entity)
-      (get-text-property (point-min) 'rmail-mime-entity)))
-
 ;;; Buttons
 
 (defun rmail-mime-save (button)

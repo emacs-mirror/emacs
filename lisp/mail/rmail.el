@@ -104,6 +104,11 @@ its character representation and its display representation.")
   "Non-nil if message has been processed by `rmail-show-mime-function'.")
 (put 'rmail-mime-decoded 'permanent-local t) ; for rmail-edit
 
+(defsubst rmail-mime-message-p ()
+  "Non-nil if and only if the current message is a MIME."
+  (or (get-text-property (point) 'rmail-mime-entity)
+      (get-text-property (point-min) 'rmail-mime-entity)))
+
 (defgroup rmail nil
   "Mail reader for Emacs."
   :group 'mail)
@@ -686,6 +691,12 @@ Element N specifies the summary line for message N+1.")
 
 This is set to nil by default.")
 
+(defcustom rmail-get-coding-function nil
+  "Function of no args to try to determine coding system for a message."
+  :type 'function
+  :group 'rmail
+  :version "24.4")
+
 (defcustom rmail-enable-mime t
   "If non-nil, RMAIL automatically displays decoded MIME messages.
 For this to work, the feature specified by `rmail-mime-feature' must
@@ -1029,9 +1040,10 @@ This function also reinitializes local variables used by Rmail."
 The buffer is expected to be narrowed to just the header of the message."
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward rmail-mime-charset-pattern nil t)
-	(coding-system-from-name (match-string 1))
-      'undecided)))
+    (or (funcall rmail-get-coding-function)
+	(if (re-search-forward rmail-mime-charset-pattern nil t)
+	    (coding-system-from-name (match-string 1))
+	  'undecided))))
 
 ;;; Set up Rmail mode keymaps
 
@@ -3863,16 +3875,18 @@ which is an element of rmail-msgref-vector."
 			message-id))
                    ;; missing From, or Message-ID is sufficiently informative
                    message-id
-                   (concat message-id " (" tem ")"))
+		 (concat message-id " (" tem ")"))
+	     ;; Message has no Message-ID field.
 	     ;; Copy TEM, discarding text properties.
 	     (setq tem (copy-sequence tem))
 	     (set-text-properties 0 (length tem) nil tem)
 	     (setq tem (copy-sequence tem))
 	     ;; Use prin1 to fake RFC822 quoting
 	     (let ((field (prin1-to-string tem)))
+	       ;; Wrap it in parens to make it a comment according to RFC822
 	       (if date
-		   (concat field "'s message of " date)
-		   field)))))
+		   (concat "(" field "'s message of " date ")")
+		 (concat "(" field ")"))))))
         ((let* ((foo "[^][\000-\037()<>@,;:\\\" ]+")
                 (bar "[^][\000-\037()<>@,;:\\\"]+"))
 	   ;; These strings both match all non-ASCII characters.
@@ -3898,7 +3912,8 @@ which is an element of rmail-msgref-vector."
              (if message-id
                  ;; "<AA259@bar.edu> (message from Unix Loser on 1-Apr-89)"
                  (concat message-id " (" field ")")
-                 field))))
+	       ;; Wrap in parens to make it a comment, for RFC822.
+	       (concat "(" field ")")))))
         (t
          ;; If we can't kludge it simply, do it correctly
          (let ((mail-use-rfc822 t))
@@ -4483,7 +4498,7 @@ encoded string (and the same mask) will decode the string."
 ;; There doesn't really seem to be an appropriate menu.
 ;; Eg the edit command is not in a menu either.
 (defun rmail-epa-decrypt ()
-  "Decrypt OpenPGP armors in current message."
+  "Decrypt GnuPG or OpenPGP armors in current message."
   (interactive)
 
   ;; Save the current buffer here for cleanliness, in case we
@@ -4493,14 +4508,10 @@ encoded string (and the same mask) will decode the string."
     (let (decrypts)
       (goto-char (point-min))
 
-      ;; In case the encrypted data is inside a mime attachment,
-      ;; show it.  This is a kludge; to be clean, it should not
-      ;; modify the buffer, but I don't see how to do that.
-      (when (search-forward "octet-stream" nil t)
-	(beginning-of-line)
-	(forward-button 1)
-	(if (looking-at "Show")
-	    (rmail-mime-toggle-hidden)))
+      ;; Turn off mime processing.
+      (when (and (rmail-mime-message-p)
+		 (not (get-text-property (point-min) 'rmail-mime-hidden)))
+	(rmail-mime))
 
       ;; Now find all armored messages in the buffer
       ;; and decrypt them one by one.
@@ -4560,6 +4571,7 @@ encoded string (and the same mask) will decode the string."
 		      (when armor-end
 			(delete-region armor-start armor-end)
 			(insert-buffer-substring from-buffer (nth 0 d) (nth 1 d)))))))))))))
+ 
 
 ;;;;  Desktop support
 

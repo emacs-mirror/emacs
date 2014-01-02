@@ -1,3 +1,15 @@
+2014-01-02  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-message-p): Moved to rmail.el.
+	* mail/rmail.el (rmail-mime-message-p): Moved from rmailmm.el.
+	(rmail-epa-decrypt): Turn off mime processing.
+
+	* mail/rmail.el	(rmail-make-in-reply-to-field):
+	Add parens in message-id.
+
+	* mail/rmail.el (rmail-get-coding-function): Variable.
+	(rmail-get-coding-system): Use it.
+
 2014-01-02  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-initial-global-parameters-re): New defconst, a
