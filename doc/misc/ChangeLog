@@ -1,3 +1,8 @@
+2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.text (What is Eshell?): Add section about what not to use
+	Eshell for.
+
 2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* emacs-gnutls.texi (Help For Users): Document `gnutls-verify-error'.

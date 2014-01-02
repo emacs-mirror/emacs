@@ -61,19 +61,19 @@ modify this GNU manual.''
 @node Top
 @top Eshell
 
-Eshell is a shell-like command interpreter
-implemented in Emacs Lisp.  It invokes no external processes except for
-those requested by the user.  It is intended to be a functional
-replacement for command shells such as @command{bash}, @command{zsh},
-@command{rc}, or @command{4dos}; since Emacs itself is capable of
-handling the sort of tasks accomplished by those tools.
+Eshell is a shell-like command interpreter implemented in Emacs Lisp.
+It invokes no external processes except for those requested by the
+user.  It is intended to be an alternative to the @xref{Lisp
+Interaction, IELM, , elisp, The Emacs Lisp Reference Manual} REPL for
+Emacs @emph{and} with an interface similar to command shells such as
+@command{bash}, @command{zsh}, @command{rc}, or @command{4dos}.
 @c This manual is updated to release 2.4 of Eshell.
 
 @insertcopying
 @end ifnottex
 
 @menu
-* What is Eshell?::             A brief introduction to the Emacs Shell.
+* Introduction::             A brief introduction to the Emacs Shell.
 * Command basics::              The basics of command usage.
 * Commands::
 * Expansion::
@@ -87,8 +87,9 @@ handling the sort of tasks accomplished by those tools.
 * Key Index::
 @end menu
 
-@node What is Eshell?
-@chapter What is Eshell?
+@node Introduction
+@chapter Introduction
+@section What is Eshell?
 @cindex what is Eshell?
 @cindex Eshell, what it is
 
@@ -138,6 +139,24 @@ Any tool you use often deserves the time spent learning to master it.
 @footnote{For the understandably curious, here is what that command
 looks like: But don't let it fool you; once you know what's going on,
 it's easier than it looks: @code{ls -lt **/*.doc(Lk+50aM+5)}.}
+
+@section What Eshell is not
+@cindex Eshell, what it is not
+@cindex what Eshell is not
+@cindex what isn't Eshell?
+
+Eshell is @emph{not} a replacement for system shells such as
+@command{bash} or @command{zsh}.  Use Eshell when you want to move
+text between Emacs and external processes; if you only want to pipe
+output from one external process to another, to another, use a system
+shell, because Emacs's IO system is buffer oriented, not stream
+oriented, and is very inefficient at such tasks.  If you want to write
+shell scripts in Eshell, don't; either write an elisp library or use a
+system shell.
+
+Some things Eshell just doesn't do well.  It fills the niche between
+IELM and your system shell, where the peculiar use-cases lie, and it
+is less than ideal outside that niche.
 
 @menu
 * Contributors to Eshell::      People who have helped out!
