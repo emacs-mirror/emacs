@@ -2,6 +2,10 @@
 
 	* eshell.text (top): Fix incorrect info filename in an xref.
 
+2014-01-02  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.texi: Add documentation for local printer functions.
+
 2014-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (cc_mode_deps): Rename from (typo) ccmode_deps.

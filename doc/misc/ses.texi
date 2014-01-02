@@ -434,6 +434,13 @@ Centering with dashes and spill-over.
 Centering with tildes (~) and spill-over.
 @end table
 
+You can define printer function local to a sheet with command
+@code{ses-define-local-printer}. For instance define printer
+@samp{foo} to @code{"%.2f"} and then use symbol @samp{foo} as a
+printer function. Then, if you call again
+@code{ses-define-local-printer} on @samp{foo} to redefine it as
+@code{"%.3f"} all the cells using printer @samp{foo} will be reprinted
+accordingly.
 
 @node Clearing cells
 @section Clearing cells
