@@ -45,34 +45,6 @@
 	* mail/rmail.el (rmail-get-coding-function): Variable.
 	(rmail-get-coding-system): Use it.
 
-2014-01-02  Vincent Belaïche  <vincentb1@users.sourceforge.net>
-
-	* ses.el (ses-initial-global-parameters-re): New defconst, a
-	specific regexp is needed now that ses.el can handle both
-	file-format 2 (no local printers) and 3 (may have local printers).
-	(silence compiler): Add local variables needed for local printer
-	handling.
-	(ses-set-localvars): Handle hashmap initialisation.
-	(ses-paramlines-plist): Add param-line for number of local printers.
-	(ses-paramfmt-plist): New defconst, needed for code factorization
-	between functions `ses-set-parameter' and
-	`ses-file-format-extend-paramter-list'
-	(ses-make-local-printer-info): New defsubst.
-	(ses-locprn-get-compiled, ses-locprn-compiled-aset)
-	(ses-locprn-get-def, ses-locprn-def-aset, ses-locprn-get-number)
-	(ses-cell-printer-aset): New defmacro.
-	(ses-local-printer-compile): New defun.
-	(ses-local-printer): New defmacro.
-	(ses-printer-validate, ses-call-printer): Add support for local
-	printer functions.
-	(ses-file-format-extend-paramter-list): New defun.
-	(ses-set-parameter): Use const `ses-paramfmt-plist' for code factorization.
-	(ses-load): Add support for local
-	printer functions.
-	(ses-read-printer): Update docstring and add support for local printer functions.
-	(ses-refresh-local-printer, ses-define-local-printer): New defun.
-	(ses-safe-printer): Add support for local printer functions.
-
 2013-12-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-conf.el: Unify the charset indian-is13194.
