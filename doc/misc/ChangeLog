@@ -1,3 +1,7 @@
+2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (What Eshell is not): Clean up confusing clause.
+
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* efaq-w32.texi, reftex.texi: Use @insertcopying in non-TeX.

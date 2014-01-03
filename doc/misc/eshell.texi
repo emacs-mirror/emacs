@@ -147,11 +147,11 @@ it's easier than it looks: @code{ls -lt **/*.doc(Lk+50aM+5)}.}
 Eshell is @emph{not} a replacement for system shells such as
 @command{bash} or @command{zsh}.  Use Eshell when you want to move
 text between Emacs and external processes; if you only want to pipe
-output from one external process to another, to another, use a system
-shell, because Emacs's IO system is buffer oriented, not stream
-oriented, and is very inefficient at such tasks.  If you want to write
-shell scripts in Eshell, don't; either write an elisp library or use a
-system shell.
+output from one external process to another (and then another, and so
+on), use a system shell, because Emacs's IO system is buffer oriented,
+not stream oriented, and is very inefficient at such tasks.  If you
+want to write shell scripts in Eshell, don't; either write an elisp
+library or use a system shell.
 
 Some things Eshell just doesn't do well.  It fills the niche between
 IELM and your system shell, where the peculiar use-cases lie, and it
