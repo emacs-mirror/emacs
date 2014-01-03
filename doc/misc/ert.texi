@@ -25,8 +25,20 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
+@titlepage
+@title Emacs Lisp Regression Testing
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
 @node Top
 @top ERT: Emacs Lisp Regression Testing
+
+@insertcopying
 
 ERT is a tool for automated testing in Emacs Lisp.  Its main features
 are facilities for defining tests, running them and reporting the
@@ -85,6 +97,7 @@ Appendix
 
 @end detailmenu
 @end menu
+@end ifnottex
 
 @node Introduction
 @chapter Introduction

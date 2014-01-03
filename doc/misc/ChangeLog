@@ -1,5 +1,7 @@
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* ert.texi: Add a titlepage.  Use @insertcopying.
+
 	* calc.texi (Top): Use @top rather than @chapter.
 
 2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
