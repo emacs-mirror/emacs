@@ -63,7 +63,7 @@ modify this GNU manual.''
 
 Eshell is a shell-like command interpreter implemented in Emacs Lisp.
 It invokes no external processes except for those requested by the
-user.  It is intended to be an alternative to the @xref{Lisp Interaction, IELM, , emacs, The Emacs Lisp Reference Manual}
+user.  It is intended to be an alternative to the IELM (@pxref{Lisp Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
 REPL for Emacs @emph{and} with an interface similar to command shells
 such as @command{bash}, @command{zsh}, @command{rc}, or
 @command{4dos}.
