@@ -1,3 +1,11 @@
+2014-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el: More Texinfo 5 updates.
+	(manual-html-fix-headers): Tweak Texinfo 5 body.
+	(manual-html-fix-node-div): Treat "header" like "node".
+	(manual-html-fix-index-1): Handle Texinfo 5 top heading.
+	(manual-html-fix-index-2): Tweak Texinfo 5 listing tables.
+
 2014-01-02  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* check-doc-strings: Replace `perl -w' with `use warnings;'.

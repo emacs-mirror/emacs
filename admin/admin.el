@@ -328,6 +328,7 @@ the @import directive."
     (manual-html-fix-node-div)
     (goto-char (point-max))
     (re-search-backward "</body>[\n \t]*</html>")
+    ;; Close the div id="content" that fix-index-1 added.
     (insert "</div>\n\n")
     (save-buffer)))
 
@@ -368,6 +369,7 @@ the @import directive."
 		(manual-html-fix-index-2)
 		(if copyright-text
 		    (insert copyright-text))
+		;; Close the div id="content" that fix-index-1 added.
 		(insert "\n</div>\n"))
 	    ;; For normal nodes, give the header div a blue bg.
 	    (manual-html-fix-node-div))
@@ -407,22 +409,28 @@ the @import directive."
     (setq opoint (match-beginning 0))
     (unless texi5
       (search-forward "<!--")
-    (goto-char (match-beginning 0))
-    (delete-region opoint (point))
-    (search-forward "<meta http-equiv=\"Content-Style")
+      (goto-char (match-beginning 0))
+      (delete-region opoint (point))
+      (search-forward "<meta http-equiv=\"Content-Style")
       (setq opoint (match-beginning 0)))
     (search-forward "</head>")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
-    (insert manual-style-string)))
+    (insert manual-style-string)
+    ;; Remove Texinfo 5 hard-coding bgcolor, text, link, vlink, alink.
+    (when (re-search-forward "<body lang=\"[^\"]+\"" nil t)
+      (setq opoint (point))
+      (search-forward ">")
+      (if (> (point) (1+ opoint))
+	  (delete-region opoint (1- (point))))
+      (search-backward "</head"))))
 
+;; Texinfo 5 changed these from class = "node" to "header", yay.
 (defun manual-html-fix-node-div ()
   "Fix up HTML \"node\" divs in the current buffer."
   (let (opoint div-end)
-    (while (search-forward "<div class=\"node\">" nil t)
-      (replace-match
-       "<div class=\"node\" style=\"background-color:#DDDDFF\">"
-       t t)
+    (while (re-search-forward "<div class=\"\\(node\\|header\\)\"\\(>\\)" nil t)
+      (replace-match " style=\"background-color:#DDDDFF\">" t t nil 2)
       (setq opoint (point))
       (re-search-forward "</div>")
       (setq div-end (match-beginning 0))
@@ -431,81 +439,124 @@ the @import directive."
 	  (replace-match "" t t)))))
 
 (defun manual-html-fix-index-1 ()
+  "Remove the h1 header, and the short and long contents lists.
+Also start a \"content\" div."
   (let (opoint)
     (re-search-forward "<body.*>\n")
     (setq opoint (match-end 0))
-    (search-forward "<h2 class=\"")
+    ;; FIXME?  Fragile if a Texinfo 5 document does not use @top.
+    (or (re-search-forward "<h1 class=\"top\"" nil t) ; Texinfo 5
+	(search-forward "<h2 class=\""))
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
+    ;; NB caller must close this div.
     (insert "<div id=\"content\" class=\"inner\">\n\n")))
 
 (defun manual-html-fix-index-2 (&optional table-workaround)
   "Replace the index list in the current buffer with a HTML table."
-  (let (done open-td tag desc)
-    ;; Convert the list that Makeinfo made into a table.
-    (or (search-forward "<ul class=\"menu\">" nil t)
-	(search-forward "<ul>"))
-    (replace-match "<table style=\"float:left\" width=\"100%\">")
-    (forward-line 1)
-    (while (not done)
-      (cond
-       ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
-	    (looking-at "<li>\\(<a.+</a>\\)$"))
-	(setq tag (match-string 1))
-	(setq desc (match-string 2))
-	(replace-match "" t t)
-	(when open-td
-	  (save-excursion
-	    (forward-char -1)
-	    (skip-chars-backward " ")
-	    (delete-region (point) (line-end-position))
-	    (insert "</td>\n  </tr>")))
-	(insert "  <tr>\n    ")
-	(if table-workaround
-	    ;; This works around a Firefox bug in the mono file.
-	    (insert "<td bgcolor=\"white\">")
-	  (insert "<td>"))
-	(insert tag "</td>\n    <td>" (or desc ""))
-	(setq open-td t))
-       ((eq (char-after) ?\n)
-	(delete-char 1)
-	;; Negate the following `forward-line'.
-	(forward-line -1))
-       ((looking-at "<!-- ")
-	(search-forward "-->"))
-       ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
-	(replace-match "  </td></tr></table>\n
+  (if (re-search-forward "<table class=\"menu\"\\(.*\\)>" nil t)
+      ;; It seems that Texinfo 5 already uses a table.
+      ;; Tweak it a bit.  TODO is this worth it?
+      (let (opoint done)
+	(replace-match " style=\"float:left\" width=\"100%\"" nil t nil 1)
+	;; Not all manuals have the detailed menu.
+	;; If it is there, split it into a separate table.
+	(when (re-search-forward "<tr>.*The Detailed Node Listing *" nil t)
+	  (setq opoint (match-beginning 0))
+	  (while (and (looking-at " *&mdash;")
+		      (zerop (forward-line 1))))
+	  (delete-region opoint (point))
+	  (insert "</table>\n\n\
+<h3>Detailed Node Listing</h3>\n")
+	  (search-forward "</pre></th></tr>")
+	  (delete-region (match-beginning 0) (match-end 0))
+	  (forward-line -1)
+	  (or (looking-at "^$") (error "Parse error 1"))
+	  (forward-line -1)
+	  (if (looking-at "^$") (error "Parse error 2"))
+	  (forward-line -1)
+	  (or (looking-at "^$") (error "Parse error 3"))
+	  (forward-line 1)
+	  (insert "<table class=\"menu\" style=\"float:left\" width=\"100%\">\n\
+<tr><th colspan=\"3\" align=\"left\" valign=\"top\">\n\
+")
+	  (forward-line 1)
+	  (insert "</th></tr>")
+	  ;; Get rid of ugly <pre> formatting of chapter headings.
+	  (while (and (not done)
+		      (re-search-forward "\\(<pre class=\"menu-comment\">\n\\|\
+\n</pre>\\|</table\\)"))
+	    (if (equal (match-string 1) "</table")
+		(setq done t)
+	      (replace-match "")))))
+    (let (done open-td tag desc)
+      ;; Convert the list that Makeinfo made into a table.
+      (or (search-forward "<ul class=\"menu\">" nil t)
+	  ;; FIXME?  The following search seems dangerously lax.
+	  (search-forward "<ul>"))
+      (replace-match "<table style=\"float:left\" width=\"100%\">")
+      (forward-line 1)
+      (while (not done)
+	(cond
+	 ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
+	      (looking-at "<li>\\(<a.+</a>\\)$"))
+	  (setq tag (match-string 1))
+	  (setq desc (match-string 2))
+	  (replace-match "" t t)
+	  (when open-td
+	    (save-excursion
+	      (forward-char -1)
+	      (skip-chars-backward " ")
+	      (delete-region (point) (line-end-position))
+	      (insert "</td>\n  </tr>")))
+	  (insert "  <tr>\n    ")
+	  (if table-workaround
+	      ;; This works around a Firefox bug in the mono file.
+	      ;; FIXME Is this still needed?
+	      ;; If so, the Texinfo 5 branch needs to add it too.
+	      (insert "<td bgcolor=\"white\">")
+	    (insert "<td>"))
+	  (insert tag "</td>\n    <td>" (or desc ""))
+	  (setq open-td t))
+	 ((eq (char-after) ?\n)
+	  (delete-char 1)
+	  ;; Negate the following `forward-line'.
+	  (forward-line -1))
+	 ((looking-at "<!-- ")
+	  (search-forward "-->"))
+	 ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
+	  (replace-match "  </td></tr></table>\n
 <h3>Detailed Node Listing</h3>\n\n" t t)
-	(search-forward "<p>")
-	(search-forward "<p>" nil t)
-	(goto-char (match-beginning 0))
-	(skip-chars-backward "\n ")
-	(setq open-td nil)
-	(insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
-       ((looking-at "</li></ul>")
-	(replace-match "" t t))
-       ((looking-at "<p>")
-	(replace-match "" t t)
-	(when open-td
-	  (insert "  </td></tr>")
-	  (setq open-td nil))
-	(insert "  <tr>
+	  (search-forward "<p>")
+	  (search-forward "<p>" nil t)
+	  (goto-char (match-beginning 0))
+	  (skip-chars-backward "\n ")
+	  (setq open-td nil)
+	  (insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
+	 ((looking-at "</li></ul>")
+	  (replace-match "" t t))
+	 ((looking-at "<p>")
+	  (replace-match "" t t)
+	  (when open-td
+	    (insert "  </td></tr>")
+	    (setq open-td nil))
+	  (insert "  <tr>
     <th colspan=\"2\" align=\"left\" style=\"text-align:left\">")
-	(if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
-	    (replace-match "  </th></tr>")))
-       ((looking-at "[ \t]*</ul>[ \t]*$")
-	(replace-match
-	 (if open-td
-	     "  </td></tr>\n</table>"
-	   "</table>") t t)
-	(setq done t))
-       (t
-	(if (eobp)
-	    (error "Parse error in %s"
-		   (file-name-nondirectory buffer-file-name)))
-	(unless open-td
-	  (setq done t))))
-      (forward-line 1))))
+	  (if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
+	      (replace-match "  </th></tr>")))
+	 ((looking-at "[ \t]*</ul>[ \t]*$")
+	  (replace-match
+	   (if open-td
+	       "  </td></tr>\n</table>"
+	     "</table>") t t)
+	  (setq done t))
+	 (t
+	  (if (eobp)
+	      (error "Parse error in %s"
+		     (file-name-nondirectory buffer-file-name)))
+	  (unless open-td
+	    (setq done t))))
+	(forward-line 1)))))
 
 
 ;; Stuff to check new `defcustom's got :version tags.
