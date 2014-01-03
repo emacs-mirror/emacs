@@ -140,7 +140,7 @@ modify this GNU manual.''
 @c [begin]
 @ifnottex
 @node Top, Getting Started, (dir), (dir)
-@chapter The GNU Emacs Calculator
+@top The GNU Emacs Calculator
 
 @noindent
 @dfn{Calc} is an advanced desk calculator and mathematical tool

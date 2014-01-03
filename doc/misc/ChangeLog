@@ -1,3 +1,7 @@
+2014-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Top): Use @top rather than @chapter.
+
 2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell.text (top): Fix incorrect use of xref.
