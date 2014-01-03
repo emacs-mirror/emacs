@@ -1,5 +1,12 @@
 2014-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ielm.el (ielm-tab): Retarget.
+	(ielm-map): Use ielm-tab for tab.
+	(ielm-complete-filename): Use comint-filename-completion.
+	(ielm-complete-symbol): Remove.
+	(inferior-emacs-lisp-mode): Use lisp-completion-at-point instead and
+	remove ielm-tab from completion-at-point-functions (bug#16224).
+
 	* emacs-lisp/pcase.el (pcase--split-equal, pcase--split-member):
 	Beware signals raised by predicates (bug#16201).
 

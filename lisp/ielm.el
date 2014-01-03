@@ -168,7 +168,7 @@ This variable is buffer-local.")
 
 (defvar ielm-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'completion-at-point)
+    (define-key map "\t" 'ielm-tab)
     (define-key map "\C-m" 'ielm-return)
     (define-key map "\e\C-m" 'ielm-return-for-effect)
     (define-key map "\C-j" 'ielm-send-input)
@@ -201,36 +201,19 @@ This variable is buffer-local.")
 
 ;;; Completion stuff
 
-(defun ielm-tab nil
-  "Possibly indent the current line as Lisp code."
+(defun ielm-tab ()
+  "Indent or complete."
   (interactive)
-  (when (or (eq (preceding-char) ?\n)
-            (eq (char-syntax (preceding-char)) ?\s))
-    (ielm-indent-line)
-    t))
+  (if (or (eq (preceding-char) ?\n)
+          (eq (char-syntax (preceding-char)) ?\s))
+      (ielm-indent-line)
+    (completion-at-point)))
 
-(defun ielm-complete-symbol nil
-  "Complete the Lisp symbol before point."
-  ;; A wrapper for completion-at-point that returns non-nil if
-  ;; completion has occurred
-  (let* ((btick (buffer-modified-tick))
-         (cbuffer (get-buffer "*Completions*"))
-         (ctick (and cbuffer (buffer-modified-tick cbuffer)))
-         (completion-at-point-functions '(lisp-completion-at-point)))
-    (completion-at-point)
-     ;; completion has occurred if:
-    (or
-     ;; the buffer has been modified
-     (not (= btick (buffer-modified-tick)))
-     ;; a completions buffer has been modified or created
-     (if cbuffer
-         (not (= ctick (buffer-modified-tick cbuffer)))
-       (get-buffer "*Completions*")))))
 
 (defun ielm-complete-filename nil
   "Dynamically complete filename before point, if in a string."
   (when (nth 3 (parse-partial-sexp comint-last-input-start (point)))
-    (comint-dynamic-complete-filename)))
+    (comint-filename-completion)))
 
 (defun ielm-indent-line nil
   "Indent the current line as Lisp code if it is not a prompt line."
@@ -557,8 +540,8 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
   (set (make-local-variable 'completion-at-point-functions)
-       '(ielm-tab comint-replace-by-expanded-history
-         ielm-complete-filename ielm-complete-symbol))
+       '(comint-replace-by-expanded-history
+         ielm-complete-filename lisp-completion-at-point))
   (set (make-local-variable 'ielm-prompt-internal) ielm-prompt)
   (set (make-local-variable 'comint-prompt-read-only) ielm-prompt-read-only)
   (setq comint-get-old-input 'ielm-get-old-input)
