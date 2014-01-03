@@ -1,3 +1,14 @@
+2014-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Documentation, Accessing Documentation): Copyedits.
+	(Documentation Basics): Rewrite, avoiding a repeat discussion of
+	docstring conventions.
+
+	* tips.texi (Documentation Tips): Move discussion of
+	emacs-lisp-docstring-fill-column here from Documentation Basics.
+
+	* compile.texi (Docs and Compilation): Copyedits.
+
 2014-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* numbers.texi (Numeric Conversions): Fix a typo.

@@ -240,59 +240,49 @@ $ emacs -batch -f batch-byte-compile *.el
 @section Documentation Strings and Compilation
 @cindex dynamic loading of documentation
 
-  Functions and variables loaded from a byte-compiled file access their
-documentation strings dynamically from the file whenever needed.  This
-saves space within Emacs, and makes loading faster because the
-documentation strings themselves need not be processed while loading the
-file.  Actual access to the documentation strings becomes slower as a
-result, but this normally is not enough to bother users.
+  When Emacs loads functions and variables from a byte-compiled file,
+it normally does not load their documentation strings into memory.
+Each documentation string is ``dynamically'' loaded from the
+byte-compiled file only when needed.  This saves memory, and speeds up
+loading by skipping the processing of the documentation strings.
 
-  Dynamic access to documentation strings does have drawbacks:
+  This feature has a drawback: if you delete, move, or alter the
+compiled file (such as by compiling a new version), Emacs may no
+longer be able to access the documentation string of previously-loaded
+functions or variables.  Such a problem normally only occurs if you
+build Emacs yourself, and happen to edit and/or recompile the Lisp
+source files.  To solve it, just reload each file after recompilation.
 
-@itemize @bullet
-@item
-If you delete or move the compiled file after loading it, Emacs can no
-longer access the documentation strings for the functions and variables
-in the file.
-
-@item
-If you alter the compiled file (such as by compiling a new version),
-then further access to documentation strings in this file will
-probably give nonsense results.
-@end itemize
-
-@noindent
-These problems normally occur only if you build Emacs yourself and use
-it from the directory where you built it, and you happen to edit
-and/or recompile the Lisp source files.  They can be easily cured by
-reloading each file after recompiling it.
-
-@cindex @samp{#@@@var{count}}
-@cindex @samp{#$}
-  The dynamic documentation string feature writes compiled files that
-use a special Lisp reader construct, @samp{#@@@var{count}}.  This
-construct skips the next @var{count} characters.  It also uses the
-@samp{#$} construct, which stands for ``the name of this file, as a
-string''.  It is usually best not to use these constructs in Lisp source
-files, since they are not designed to be clear to humans reading the
-file.
-
-  You can disable the dynamic documentation string feature at compile
-time by setting @code{byte-compile-dynamic-docstrings} to @code{nil};
-this is useful mainly if you expect to change the file, and you want
-Emacs processes that have already loaded it to keep working when the
-file changes.  You can do this globally, or for one source file by
-specifying a file-local binding for the variable.  One way to do that
-is by adding this string to the file's first line:
-
-@example
--*-byte-compile-dynamic-docstrings: nil;-*-
-@end example
+  Dynamic loading of documentation strings from byte-compiled files is
+determined, at compile time, for each byte-compiled file.  It can be
+disabled via the option @code{byte-compile-dynamic-docstrings}.
 
 @defopt byte-compile-dynamic-docstrings
 If this is non-@code{nil}, the byte compiler generates compiled files
 that are set up for dynamic loading of documentation strings.
+
+To disable the dynamic loading feature for a specific file, set this
+option to @code{nil} in its header line (@pxref{File Variables, ,
+Local Variables in Files, emacs, The GNU Emacs Manual}), like this:
+
+@smallexample
+-*-byte-compile-dynamic-docstrings: nil;-*-
+@end smallexample
+
+This is useful mainly if you expect to change the file, and you want
+Emacs sessions that have already loaded it to keep working when the
+file changes.
 @end defopt
+
+@cindex @samp{#@@@var{count}}
+@cindex @samp{#$}
+Internally, the dynamic loading of documentation strings is
+accomplished by writing compiled files with a special Lisp reader
+construct, @samp{#@@@var{count}}.  This construct skips the next
+@var{count} characters.  It also uses the @samp{#$} construct, which
+stands for ``the name of this file, as a string''.  Do not use these
+constructs in Lisp source files; they are not designed to be clear to
+humans reading the file.
 
 @node Dynamic Loading
 @section Dynamic Loading of Individual Functions

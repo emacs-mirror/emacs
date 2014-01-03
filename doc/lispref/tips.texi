@@ -573,10 +573,13 @@ Format the documentation string so that it fits in an Emacs window on an
 60 characters.  The first line should not be wider than 67 characters
 or it will look bad in the output of @code{apropos}.
 
-You can fill the text if that looks good.  However, rather than blindly
-filling the entire documentation string, you can often make it much more
-readable by choosing certain line breaks with care.  Use blank lines
-between sections if the documentation string is long.
+@vindex emacs-lisp-docstring-fill-column
+You can fill the text if that looks good.  Emacs Lisp mode fills
+documentation strings to the width specified by
+@code{emacs-lisp-docstring-fill-column}.  However, you can sometimes
+make a documentation string much more readable by adjusting its line
+breaks with care.  Use blank lines between sections if the
+documentation string is long.
 
 @item
 The first line of the documentation string should consist of one or two
