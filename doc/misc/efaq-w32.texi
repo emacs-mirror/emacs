@@ -71,6 +71,10 @@ At time of writing, the latest version of GNU Emacs is version @value{EMACSVER}.
 @c Links to ftp.gnu.org are given as http links, since Windows ftp clients
 @c are notoriously bad at handling firewalls etc.
 
+@ifnottex
+@insertcopying
+@end ifnottex
+
 @contents
 
 @menu

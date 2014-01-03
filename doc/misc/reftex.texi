@@ -98,6 +98,8 @@ modify this GNU manual.''
 @node Top
 @top @RefTeX{}
 
+@insertcopying
+
 @RefTeX{} is a package for managing Labels, References, Citations and
 index entries with GNU Emacs.
 

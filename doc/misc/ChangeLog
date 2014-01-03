@@ -1,5 +1,7 @@
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* efaq-w32.texi, reftex.texi: Use @insertcopying in non-TeX.
+
 	* ede.texi, eieio.texi, semantic.texi, srecode.texi:
 	Add copyright notice to titlepage.
 
