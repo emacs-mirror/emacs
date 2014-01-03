@@ -460,7 +460,7 @@ font-lock keywords will not be case sensitive."
   (setq-local comment-use-global-state t)
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
-  (setq-local syntax-begin-function 'beginning-of-defun)
+  ;; (setq-local syntax-begin-function 'beginning-of-defun)  ;;Bug#16247.
   (setq font-lock-defaults
 	`(,(if elisp '(lisp-el-font-lock-keywords
                        lisp-el-font-lock-keywords-1
