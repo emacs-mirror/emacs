@@ -1,5 +1,7 @@
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* dbus.texi, nxml-mode.texi, widget.texi: Add titlepage.
+
 	* ert.texi: Add a titlepage.  Use @insertcopying.
 
 	* calc.texi (Top): Use @top rather than @chapter.

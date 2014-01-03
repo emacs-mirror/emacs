@@ -28,6 +28,17 @@ modify this GNU manual.''
 * nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
 @end direntry
 
+
+@titlepage
+@title nXML mode
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+
 @node Top
 @top nXML Mode
 
