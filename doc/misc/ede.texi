@@ -30,6 +30,9 @@ modify this GNU manual.''
 @center @titlefont{EDE (The Emacs Development Environment)}
 @sp 4
 @center by Eric Ludlam
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 @page
 

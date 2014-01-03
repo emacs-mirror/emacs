@@ -1,5 +1,8 @@
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* ede.texi, eieio.texi, semantic.texi, srecode.texi:
+	Add copyright notice to titlepage.
+
 	* dbus.texi, nxml-mode.texi, widget.texi: Add titlepage.
 
 	* ert.texi: Add a titlepage.  Use @insertcopying.

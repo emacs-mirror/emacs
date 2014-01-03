@@ -35,15 +35,16 @@ modify this GNU manual.''
 @center @titlefont{@value{TITLE}}
 @sp 4
 @center by @value{AUTHOR}
-@end titlepage
 @page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
 
 @macro eieio{}
 @i{EIEIO}
 @end macro
 
-@node Top, Quick Start, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@node Top
 @top EIEIO
 
 @eieio{} (``Enhanced Implementation of Emacs Interpreted Objects'')
@@ -173,7 +174,6 @@ some other data type, Emacs signals a @code{no-method-definition}
 error.  @ref{Signals}.
 
 @node Introduction
-@comment  node-name,  next,  previous,  up
 @chapter Introduction
 
 Due to restrictions in the Emacs Lisp language, CLOS cannot be
@@ -245,7 +245,6 @@ should use a deep copy but currently does not.
 @end table
 
 @node Building Classes
-@comment  node-name,  next,  previous,  up
 @chapter Building Classes
 
 First off, please note that this manual cannot serve as a complete
@@ -632,7 +631,6 @@ function of @code{:initform}.
 @eieio{}-specific tags.
 
 @node Making New Objects
-@comment  node-name,  next,  previous,  up
 @chapter Making New Objects
 
 Suppose we have a simple class is defined, such as:
@@ -702,7 +700,6 @@ a string.
 @end defun
 
 @node Accessing Slots
-@comment  node-name,  next,  previous,  up
 @chapter Accessing Slots
 
 There are several ways to access slot values in an object.  The naming
@@ -819,7 +816,6 @@ variable name of the same name as the slot.
 @end defun
 
 @node Writing Methods
-@comment  node-name,  next,  previous,  up
 @chapter Writing Methods
 
 Writing a method in @eieio{} is similar to writing a function.  The
@@ -1036,7 +1032,6 @@ Retrieved from: http://192.220.96.201/dylan/linearization-oopsla96.html
 @end table
 
 @node Predicates
-@comment  node-name,  next,  previous,  up
 @chapter Predicates and Utilities
 
 Now that we know how to create classes, access slots, and define
@@ -1197,7 +1192,6 @@ all its subclasses.
 @end defun
 
 @node Customizing
-@comment node-name, next, previous, up
 @chapter Customizing Objects
 
 @eieio{} supports the Custom facility through two new widget types.
@@ -1279,7 +1273,6 @@ nil.
 @end defun
 
 @node Base Classes
-@comment  node-name,  next,  previous,  up
 @chapter Base Classes
 
 All defined classes, if created with no specified parent class,
@@ -1301,7 +1294,6 @@ even inherit from more than one of these classes at once.)
 @end menu
 
 @node eieio-instance-inheritor
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-instance-inheritor}
 
 This class is defined in the package @file{eieio-base}.
@@ -1366,7 +1358,6 @@ list of objects to be searched.
 @end deffn
 
 @node eieio-singleton
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-singleton}
 
 This class is defined in the package @file{eieio-base}.
@@ -1378,7 +1369,6 @@ only ever be one instance of this class.  Multiple calls to
 @end deftp
 
 @node eieio-persistent
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-persistent}
 
 This class is defined in the package @file{eieio-base}.
@@ -1430,7 +1420,6 @@ being pedantic.
 @end defun
 
 @node eieio-named
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-named}
 
 This class is defined in the package @file{eieio-base}.
@@ -1442,7 +1431,6 @@ access to it.
 @end deftp
 
 @node eieio-speedbar
-@comment  node-name,  next,  previous,  up
 @section @code{eieio-speedbar}
 
 This class is in package @file{eieio-speedbar}.
@@ -1537,7 +1525,6 @@ on how speedbar modes work
 @end deffn
 
 @node Browsing
-@comment  node-name,  next,  previous,  up
 @chapter Browsing class trees
 
 The command @kbd{M-x eieio-browse} displays a buffer listing all the
@@ -1560,7 +1547,6 @@ Note: new classes are consed into the inheritance lists, so the tree
 comes out upside-down.
 
 @node Class Values
-@comment  node-name,  next,  previous,  up
 @chapter Class Values
 
 Details about any class or object can be retrieved using the function
@@ -1573,7 +1559,6 @@ Additionally, all methods defined to have functionality on this class is
 displayed.
 
 @node Documentation
-@comment  node-name,  next,  previous,  up
 @chapter Documentation
 
 It is possible to automatically create documentation for your classes in
@@ -1616,7 +1601,6 @@ definitions have been loaded in this Emacs session.
 @end deffn
 
 @node Default Superclass
-@comment  node-name,  next,  previous,  up
 @chapter Default Superclass
 
 All defined classes, if created with no specified parent class, will
@@ -1792,7 +1776,6 @@ return value of @dfn{call-next-method}.
 @end defun
 
 @node Signals
-@comment  node-name,  next,  previous,  up
 @chapter Signals
 
 There are new condition names (signals) that can be caught when using
@@ -1837,7 +1820,6 @@ This signal is called when an attempt to reference @var{slot} in
 @end deffn
 
 @node Naming Conventions
-@comment  node-name,  next,  previous,  up
 @chapter Naming Conventions
 
 @xref{Tips,,Tips and Conventions,elisp,GNU Emacs Lisp Reference
@@ -1866,7 +1848,6 @@ must ``require'' that library with the @code{require} command.
 @end itemize
 
 @node CLOS compatibility
-@comment  node-name,  next,  previous,  up
 @chapter CLOS compatibility
 
 Currently, the following functions should behave almost as expected from

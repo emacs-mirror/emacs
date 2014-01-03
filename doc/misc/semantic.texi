@@ -49,6 +49,9 @@ modify this GNU manual.''
 @center @titlefont{Semantic}
 @sp 4
 @center by @value{AUTHOR}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 @page
 
