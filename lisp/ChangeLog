@@ -1,9 +1,14 @@
+2014-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--split-equal, pcase--split-member):
+	Beware signals raised by predicates (bug#16201).
+
 2014-01-02  Richard Stallman  <rms@gnu.org>
 
 	* dired-aux.el (dired-do-print): Handle printer-name.
 
-	* mail/rmailmm.el (rmail-mime-message-p): Moved to rmail.el.
-	* mail/rmail.el (rmail-mime-message-p): Moved from rmailmm.el.
+	* mail/rmailmm.el (rmail-mime-message-p): Move to rmail.el.
+	* mail/rmail.el (rmail-mime-message-p): Move from rmailmm.el.
 	(rmail-epa-decrypt): Turn off mime processing.
 
 	* mail/rmail.el	(rmail-make-in-reply-to-field):
@@ -65,8 +70,8 @@
 
 2013-12-28  João Távora  <joaotavora@gmail.com>
 
-	* elec-pair.el (electric-pair-post-self-insert-function): Don't
-	open extra newlines at beginning of buffer.  (Bug#16272)
+	* elec-pair.el (electric-pair-post-self-insert-function):
+	Don't open extra newlines at beginning of buffer.  (Bug#16272)
 
 2013-12-28  Eli Zaretskii  <eliz@gnu.org>
 
