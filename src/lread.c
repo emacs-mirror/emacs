@@ -2654,9 +2654,10 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  /* Accept compiled functions at read-time so that we don't have to
 	     build them using function calls.  */
 	  Lisp_Object tmp;
+	  struct Lisp_Vector *vec;
 	  tmp = read_vector (readcharfun, 1);
-	  struct Lisp_Vector* vec = XVECTOR (tmp);
-	  if (vec->header.size==0)
+	  vec = XVECTOR (tmp);
+	  if (vec->header.size == 0)
 	    invalid_syntax ("Empty byte-code object");
 	  make_byte_code (vec);
 	  return tmp;

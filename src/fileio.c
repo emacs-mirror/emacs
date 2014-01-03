@@ -5053,7 +5053,9 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
        doc: /* Return t if (car A) is numerically less than (car B).  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  Lisp_Object args[2] = { Fcar (a), Fcar (b), };
+  Lisp_Object args[2];
+  args[0] = Fcar (a);
+  args[1] = Fcar (b);
   return Flss (2, args);
 }
 

@@ -2320,7 +2320,8 @@ static Lisp_Object
 arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
                      enum Arith_Comparison comparison)
 {
-  for (ptrdiff_t argnum = 1; argnum < nargs; ++argnum)
+  ptrdiff_t argnum;
+  for (argnum = 1; argnum < nargs; ++argnum)
     {
       if (EQ (Qnil, arithcompare (args[argnum-1], args[argnum], comparison)))
         return Qnil;
@@ -2979,10 +2980,12 @@ bool_vector_spare_mask (EMACS_INT nr_bits)
 
 #if HAVE_UNSIGNED_LONG_LONG_INT
 enum { BITS_PER_ULL = CHAR_BIT * sizeof (unsigned long long) };
+# define ULL_MAX ULLONG_MAX
 #else
 enum { BITS_PER_ULL = CHAR_BIT * sizeof (unsigned long) };
-# define ULLONG_MAX ULONG_MAX
+# define ULL_MAX ULONG_MAX
 # define count_one_bits_ll count_one_bits_l
+# define count_trailing_zeros_ll count_trailing_zeros_l
 #endif
 
 /* Shift VAL right by the width of an unsigned long long.
@@ -3140,7 +3143,7 @@ count_trailing_zero_bits (bits_word val)
     return count_trailing_zeros (val);
   if (BITS_WORD_MAX == ULONG_MAX)
     return count_trailing_zeros_l (val);
-  if (BITS_WORD_MAX == ULLONG_MAX)
+  if (BITS_WORD_MAX == ULL_MAX)
     return count_trailing_zeros_ll (val);
 
   /* The rest of this code is for the unlikely platform where bits_word differs
@@ -3157,7 +3160,7 @@ count_trailing_zero_bits (bits_word val)
 	   count < BITS_PER_BITS_WORD - BITS_PER_ULL;
 	   count += BITS_PER_ULL)
 	{
-	  if (val & ULLONG_MAX)
+	  if (val & ULL_MAX)
 	    return count + count_trailing_zeros_ll (val);
 	  val = shift_right_ull (val);
 	}

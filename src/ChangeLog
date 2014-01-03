@@ -1,3 +1,17 @@
+2014-01-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C89.
+	* data.c (arithcompare_driver):
+	* fileio.c (Fcar_less_than_car):
+	* fns.c (internal_equal):
+	* frame.c (delete_frame):
+	* lisp.h (enum More_Lisp_Bits):
+	* lread.c (read1):
+	Avoid C99 constructs that don't work in C89.
+	* data.c (ULL_MAX, count_trailing_zeros_ll): New macros,
+	to port to C89, which doesn't have 'long long'.
+	(count_trailing_zero_bits): Use them.
+
 2014-01-03  Chong Yidong  <cyd@gnu.org>
 
 	* doc.c (Fdocumentation): Remove dynamic-docstring-function.

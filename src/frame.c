@@ -1372,10 +1372,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
 
   {
+    struct terminal *terminal;
     block_input ();
     if (FRAME_TERMINAL (f)->delete_frame_hook)
       (*FRAME_TERMINAL (f)->delete_frame_hook) (f);
-    struct terminal *terminal = FRAME_TERMINAL (f);
+    terminal = FRAME_TERMINAL (f);
     f->output_data.nothing = 0;
     f->terminal = 0;             /* Now the frame is dead.  */
     unblock_input ();

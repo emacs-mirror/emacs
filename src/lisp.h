@@ -633,7 +633,7 @@ enum More_Lisp_Bits
 
     /* Used to extract pseudovector subtype information.  */
     PSEUDOVECTOR_AREA_BITS = PSEUDOVECTOR_SIZE_BITS + PSEUDOVECTOR_REST_BITS,
-    PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS,
+    PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS
   };
 
 /* These functions extract various sorts of values from a Lisp_Object.

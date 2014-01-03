@@ -1996,7 +1996,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props,
 	error ("Stack overflow in equal");
       if (NILP (ht))
 	{
-	  Lisp_Object args[2] = { QCtest, Qeq };
+	  Lisp_Object args[2];
+	  args[0] = QCtest;
+	  args[1] = Qeq;
 	  ht = Fmake_hash_table (2, args);
 	}
       switch (XTYPE (o1))
