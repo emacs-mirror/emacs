@@ -146,7 +146,6 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wmissing-include-dirs \
     -Wmissing-parameter-type \
     -Wmissing-prototypes \
-    -Wmudflap \
     -Wmultichar \
     -Wnarrowing \
     -Wnested-externs \

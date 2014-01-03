@@ -1,3 +1,9 @@
+2014-01-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-01-02 manywarnings: remove -Wmudflap
+	This ports better to GCC 4.9-to-be.
+
 2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
 	* configure.ac (canonical, C_SWITCH_SYSTEM): Support a 64-bit
