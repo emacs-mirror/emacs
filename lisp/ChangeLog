@@ -47,11 +47,6 @@
 
 2014-01-02  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
-	* ses.el (ses-load): Correct handling for ses--file-format
-	checking.
-
-2014-01-02  Vincent Belaïche  <vincentb1@users.sourceforge.net>
-
 	* ses.el (ses-initial-global-parameters-re): New defconst, a
 	specific regexp is needed now that ses.el can handle both
 	file-format 2 (no local printers) and 3 (may have local printers).
