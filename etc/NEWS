@@ -995,9 +995,6 @@ selected among several alternatives, as a matter of user preference.
 ** The `defalias-fset-function' property lets you catch `defalias'
 calls, and redirect them to your own function, instead of `fset'.
 
-** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
-text-property on the first char.
-
 +++
 ** New variable `enable-dir-local-variables'.
 Directory-local variables are ignored if this is nil.  This may be

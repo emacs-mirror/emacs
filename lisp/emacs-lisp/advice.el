@@ -2185,26 +2185,6 @@ Like `interactive-form', but also works on pieces of advice."
 		    (if (ad-interactive-form definition) 1 0))
 		 (cdr (cdr (ad-lambda-expression definition)))))))
 
-(defun ad-make-advised-definition-docstring (_function)
-  "Make an identifying docstring for the advised definition of FUNCTION.
-Put function name into the documentation string so we can infer
-the name of the advised function from the docstring.  This is needed
-to generate a proper advised docstring even if we are just given a
-definition (see the code for `documentation')."
-  (eval-when-compile
-    (propertize "Advice function assembled by advice.el."
-                'dynamic-docstring-function
-                #'ad--make-advised-docstring)))
-
-(defun ad-advised-definition-p (definition)
-  "Return non-nil if DEFINITION was generated from advice information."
-  (if (or (ad-lambda-p definition)
-	  (macrop definition)
-	  (ad-compiled-p definition))
-      (let ((docstring (ad-docstring definition)))
-	(and (stringp docstring)
-	     (get-text-property 0 'dynamic-docstring-function docstring)))))
-
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
   ;; These symbols are only ever used to check a cache entry's validity.
@@ -2498,36 +2478,39 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 
 (require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
 
-(defun ad--make-advised-docstring (origdoc function &optional style)
+(defun ad--make-advised-docstring (function &optional style)
   "Construct a documentation string for the advised FUNCTION.
-It concatenates the original documentation with the documentation
-strings of the individual pieces of advice which will be formatted
-according to STYLE.  STYLE can be `plain', everything else
-will be interpreted as `default'.  The order of the advice documentation
-strings corresponds to before/around/after and the individual ordering
-in any of these classes."
-  (if (and (symbolp function)
-           (string-match "\\`ad-+Advice-" (symbol-name function)))
-      (setq function
-            (intern (substring (symbol-name function) (match-end 0)))))
-  (let* ((usage (help-split-fundoc origdoc function))
-	 paragraphs advice-docstring)
-    (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
-    (if origdoc (setq paragraphs (list origdoc)))
-    (dolist (class ad-advice-classes)
-      (dolist (advice (ad-get-enabled-advices function class))
-	(setq advice-docstring
-	      (ad-make-single-advice-docstring advice class style))
-	(if advice-docstring
-	    (push advice-docstring paragraphs))))
-    (setq origdoc (if paragraphs
-		      (propertize
-		       ;; separate paragraphs with blank lines:
-		       (mapconcat 'identity (nreverse paragraphs) "\n\n")
-                       ;; FIXME: what is this for?
-		       'dynamic-docstring-function
-                       #'ad--make-advised-docstring)))
-    (help-add-fundoc-usage origdoc usage)))
+Concatenate the original documentation with the documentation
+strings of the individual pieces of advice.  Optional argument
+STYLE specifies how to format the pieces of advice; it can be
+`plain', or any other value which means the default formatting.
+
+The advice documentation is shown in order of before/around/after
+advice type, obeying the priority in each of these types."
+  ;; Retrieve the original function documentation
+  (let* ((fun (get function 'function-documentation))
+	 (origdoc (unwind-protect
+		      (progn (put function 'function-documentation nil)
+			     (documentation function t))
+		    (put function 'function-documentation fun))))
+    (if (and (symbolp function)
+	     (string-match "\\`ad-+Advice-" (symbol-name function)))
+	(setq function
+	      (intern (substring (symbol-name function) (match-end 0)))))
+    (let* ((usage (help-split-fundoc origdoc function))
+	   paragraphs advice-docstring)
+      (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
+      (if origdoc (setq paragraphs (list origdoc)))
+      (dolist (class ad-advice-classes)
+	(dolist (advice (ad-get-enabled-advices function class))
+	  (setq advice-docstring
+		(ad-make-single-advice-docstring advice class style))
+	  (if advice-docstring
+	      (push advice-docstring paragraphs))))
+      (setq origdoc (if paragraphs
+			(mapconcat 'identity (nreverse paragraphs)
+				   "\n\n")))
+      (help-add-fundoc-usage origdoc usage))))
 
 
 ;; @@@ Accessing overriding arglists and interactive forms:
@@ -2575,7 +2558,7 @@ in any of these classes."
 	;; Finally, build the sucker:
 	(ad-assemble-advised-definition
 	 advised-arglist
-         (ad-make-advised-definition-docstring function)
+	 nil
 	 interactive-form
 	 orig-form
 	 (ad-get-enabled-advices function 'before)
@@ -2889,6 +2872,8 @@ The current definition and its cache-id will be put into the cache."
     (fset advicefunname
           (or verified-cached-definition
               (ad-make-advised-definition function)))
+    (put advicefunname 'function-documentation
+	 `(ad--make-advised-docstring ',advicefunname))
     (unless (equal (interactive-form advicefunname) old-ispec)
       ;; If the interactive-spec of advicefunname has changed, force nadvice to
       ;; refresh its copy.

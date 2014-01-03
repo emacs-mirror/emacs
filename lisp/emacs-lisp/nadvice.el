@@ -67,8 +67,8 @@ Each element has the form (WHERE BYTECODE STACK) where:
 (defsubst advice--cdr   (f) (aref (aref f 2) 2))
 (defsubst advice--props (f) (aref (aref f 2) 3))
 
-(defun advice--make-docstring (_string function)
-  "Build the raw doc-string of SYMBOL, presumably advised."
+(defun advice--make-docstring (function)
+  "Build the raw docstring for FUNCTION, presumably advised."
   (let ((flist (indirect-function function))
         (docstring nil))
     (if (eq 'macro (car-safe flist)) (setq flist (cdr flist)))
@@ -105,13 +105,6 @@ Each element has the form (WHERE BYTECODE STACK) where:
                     (setq origdoc (cdr usage)) (car usage)))
       (help-add-fundoc-usage (concat docstring origdoc) usage))))
 
-(defvar advice--docstring
-  ;; Can't eval-when-compile nor use defconst because it then gets pure-copied,
-  ;; which drops the text-properties.
-  ;;(eval-when-compile
-  (propertize "Advised function"
-              'dynamic-docstring-function #'advice--make-docstring)) ;; )
-
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."
   (cond
@@ -144,7 +137,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
         (advice
          (apply #'make-byte-code 128 byte-code
                 (vector #'apply function main props) stack-depth
-                advice--docstring
+                nil
                 (and (or (commandp function) (commandp main))
 		     (not (and (symbolp main) ;; Don't autoload too eagerly!
 			       (autoloadp (symbol-function main))))
@@ -370,7 +363,6 @@ of the piece of advice."
       (unless (eq oldadv (get symbol 'advice--pending))
         (put symbol 'advice--pending (advice--subst-main oldadv nil)))
       (funcall fsetfun symbol newdef))))
-    
 
 ;;;###autoload
 (defun advice-add (symbol where function &optional props)
@@ -398,6 +390,7 @@ is defined as a macro, alias, command, ..."
                           (get symbol 'advice--pending))
                          (t (symbol-function symbol)))
                   function props)
+    (put symbol 'function-documentation `(advice--make-docstring ',symbol))
     (add-function :around (get symbol 'defalias-fset-function)
                   #'advice--defalias-fset))
   nil)

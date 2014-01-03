@@ -2826,14 +2826,14 @@ each line with INDENT."
 		      "]\n"))))
     doc))
 
-;;;###autoload
-(eval
- ;; FIXME: This dynamic-docstring-function trick doesn't work for byte-compiled
- ;; functions, because of the lazy-loading of docstrings, which strips away
- ;; text properties.
- '(defun sql-help ()
-  #("Show short help for the SQL modes.
+(defun sql-help ()
+  "Show short help for the SQL modes."
+  (interactive)
+  (describe-function 'sql-help))
+(put 'sql-help 'function-documentation '(sql--make-help-docstring))
 
+(defvar sql--help-docstring
+  "Show short help for the SQL modes.
 Use an entry function to open an interactive SQL buffer.  This buffer is
 usually named `*SQL*'.  The name of the major mode is SQLi.
 
@@ -2862,24 +2862,20 @@ anything.  The name of the major mode is SQL.
 
 In this SQL buffer (SQL mode), you can send the region or the entire
 buffer to the interactive SQL buffer (SQLi mode).  The results are
-appended to the SQLi buffer without disturbing your SQL buffer."
-    0 1 (dynamic-docstring-function sql--make-help-docstring))
-  (interactive)
-  (describe-function 'sql-help)))
+appended to the SQLi buffer without disturbing your SQL buffer.")
 
-(defun sql--make-help-docstring (doc _fun)
-  "Insert references to loaded products into the help buffer string."
-
-  ;; Insert FREE software list
-  (when (string-match "^\\(\\s-*\\)[\\\\][\\\\]FREE\\s-*\n" doc 0)
-    (setq doc (replace-match (sql-help-list-products (match-string 1 doc) t)
-                             t t doc 0)))
-
-  ;; Insert non-FREE software list
-  (when (string-match "^\\(\\s-*\\)[\\\\][\\\\]NONFREE\\s-*\n" doc 0)
-    (setq doc (replace-match (sql-help-list-products (match-string 1 doc) nil)
-                             t t doc 0)))
-  doc)
+(defun sql--make-help-docstring ()
+  "Return a docstring for `sql-help' listing loaded SQL products."
+  (let ((doc sql--help-docstring))
+    ;; Insert FREE software list
+    (when (string-match "^\\(\\s-*\\)[\\\\][\\\\]FREE\\s-*$" doc 0)
+      (setq doc (replace-match (sql-help-list-products (match-string 1 doc) t)
+			       t t doc 0)))
+    ;; Insert non-FREE software list
+    (when (string-match "^\\(\\s-*\\)[\\\\][\\\\]NONFREE\\s-*$" doc 0)
+      (setq doc (replace-match (sql-help-list-products (match-string 1 doc) nil)
+			       t t doc 0)))
+    doc))
 
 (defun sql-default-value (var)
   "Fetch the value of a variable.

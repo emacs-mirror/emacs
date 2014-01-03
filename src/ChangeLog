@@ -1,3 +1,7 @@
+2014-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* doc.c (Fdocumentation): Remove dynamic-docstring-function.
+
 2014-01-02  Martin Rudalics  <rudalics@gmx.at>
 
 	Further adjust frame/window scrollbar width calculations.

@@ -1,3 +1,24 @@
+2014-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/nadvice.el (advice--make-docstring): Change args.
+	(advice--docstring): Delete variable.
+	(advice--make-1): Leave the docstring empty.
+	(advice-add): Use function-documentation for advised docstring.
+
+	* emacs-lisp/advice.el (ad--make-advised-docstring): Change args.
+	Ignore function-documentation property when getting documentation.
+	(ad-activate-advised-definition): Use function-documentation
+	generate the docstring.
+	(ad-make-advised-definition): Don't call
+	ad-make-advised-definition-docstring.
+	(ad-make-advised-definition-docstring, ad-advised-definition-p):
+	Delete functions.
+
+	* progmodes/sql.el (sql-help): Use function-documentation instead
+	of dynamic-docstring-function property.  No need to autoload now.
+	(sql--help-docstring): New variable.
+	(sql--make-help-docstring): Use it.
+
 2014-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ielm.el (ielm-tab): Retarget.

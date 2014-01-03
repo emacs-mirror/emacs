@@ -416,21 +416,6 @@ string is passed through `substitute-command-keys'.  */)
       xsignal1 (Qinvalid_function, fun);
     }
 
-  /* Check for a dynamic docstring.  These come with
-     a dynamic-docstring-function text property.  */
-  if (STRINGP (doc))
-    {
-      Lisp_Object func
-	= Fget_text_property (make_number (0),
-			      intern ("dynamic-docstring-function"),
-				      doc);
-      if (!NILP (func))
-	/* Pass both `doc' and `function' since `function' can be needed, and
-	   finding `doc' can be annoying: calling `documentation' is not an
-	   option because it would infloop.  */
-	doc = call2 (func, doc, function);
-    }
-
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
   if (EQ (doc, make_number (0)))
