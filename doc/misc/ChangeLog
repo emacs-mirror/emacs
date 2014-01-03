@@ -13,11 +13,11 @@
 
 2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell.text (top): Fix incorrect use of xref.
+	* eshell.texi (top): Fix incorrect use of xref.
 
 2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell.text (top): Fix incorrect info filename in an xref.
+	* eshell.texi (top): Fix incorrect info filename in an xref.
 
 2014-01-02  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
@@ -29,11 +29,11 @@
 
 2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell.text (Command Basics): Removed `Command basics' chapter.
+	* eshell.texi (Command Basics): Removed `Command basics' chapter.
 
 2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell.text (What is Eshell?): Add section about what not to use
+	* eshell.texi (What is Eshell?): Add section about what not to use
 	Eshell for.
 
 2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
