@@ -483,7 +483,7 @@ Leave point after the table."
 	(forward-line 1)
 	(while (not done)
 	  (cond ((re-search-forward "<tr><td.*&bull; \\(<a.*</a>\\)\
-:</td><td>&nbsp;&nbsp;</td><td.*>\\(.*\\)" (line-end-position) t)
+:</td><td>&nbsp;&nbsp;</td><td[^>]*>\\(.*\\)" (line-end-position) t)
 		 (replace-match (format "<tr><td%s>\\1</td>\n<td>\\2"
 					(if table-workaround
 					    " bgcolor=\"white\"" "")))
