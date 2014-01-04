@@ -5564,18 +5564,22 @@ w32fullscreen_hook (struct frame *f)
       if (FRAME_PREV_FSMODE (f) == FULLSCREEN_BOTH)
         {
           SetWindowLong (hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
-          SetWindowPos (hwnd, NULL, 0, 0, 0, 0,
-                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-                        SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-        }
+	  SetWindowPlacement (hwnd, &FRAME_NORMAL_PLACEMENT (f));
+	}
+      else if (FRAME_PREV_FSMODE (f) == FULLSCREEN_HEIGHT
+	       || FRAME_PREV_FSMODE (f) == FULLSCREEN_WIDTH)
+	SetWindowPlacement (hwnd, &FRAME_NORMAL_PLACEMENT (f));
 
-      w32_fullscreen_rect (hwnd, f->want_fullscreen,
-                           FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
       FRAME_PREV_FSMODE (f) = f->want_fullscreen;
-      if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
-	PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, 0xf030, 0);
+
+      if (f->want_fullscreen == FULLSCREEN_NONE)
+	ShowWindow (hwnd, SW_SHOWNORMAL);
+      else if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
+	ShowWindow (hwnd, SW_MAXIMIZE);
       else if (f->want_fullscreen == FULLSCREEN_BOTH)
         {
+	  w32_fullscreen_rect (hwnd, f->want_fullscreen,
+			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
           SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top,
@@ -5583,6 +5587,9 @@ w32fullscreen_hook (struct frame *f)
         }
       else
         {
+	  ShowWindow (hwnd, SW_SHOWNORMAL);
+	  w32_fullscreen_rect (hwnd, f->want_fullscreen,
+			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top, 0);
         }

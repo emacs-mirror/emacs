@@ -402,12 +402,6 @@ w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal, RECT *rect)
       rect->right = mi.rcMonitor.right;
       rect->bottom = mi.rcMonitor.bottom;
       break;
-    case FULLSCREEN_MAXIMIZED:
-      rect->left = mi.rcWork.left;
-      rect->top = mi.rcWork.top;
-      rect->right = mi.rcWork.right;
-      rect->bottom = mi.rcWork.bottom;
-      break;
     case FULLSCREEN_WIDTH:
       rect->left = mi.rcWork.left;
       rect->top = normal.top;
@@ -420,7 +414,6 @@ w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal, RECT *rect)
       rect->right = normal.right;
       rect->bottom = mi.rcWork.bottom;
       break;
-    case FULLSCREEN_NONE:
     default:
       *rect = normal;
       break;
