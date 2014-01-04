@@ -1,3 +1,8 @@
+2014-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-html-fix-node-div): Handle Texinfo 5's movable <hr>.
+	(manual-html-fix-index-2): Tweak Texinfo 5 table format.
+
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el: More Texinfo 5 updates.

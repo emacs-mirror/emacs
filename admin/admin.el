@@ -372,7 +372,7 @@ the @import directive."
 		;; Close the div id="content" that fix-index-1 added.
 		(insert "\n</div>\n"))
 	    ;; For normal nodes, give the header div a blue bg.
-	    (manual-html-fix-node-div))
+	    (manual-html-fix-node-div t))
 	  (save-buffer))))))
 
 (defun manual-pdf (texi-file dest)
@@ -426,17 +426,38 @@ the @import directive."
       (search-backward "</head"))))
 
 ;; Texinfo 5 changed these from class = "node" to "header", yay.
-(defun manual-html-fix-node-div ()
+(defun manual-html-fix-node-div (&optional split)
   "Fix up HTML \"node\" divs in the current buffer."
-  (let (opoint div-end)
+  (let (opoint div-end type)
     (while (re-search-forward "<div class=\"\\(node\\|header\\)\"\\(>\\)" nil t)
+      (setq type (match-string 1))
+      ;; NB it is this that makes the bg of non-header cells in the
+      ;; index tables be blue.  Is that intended?
+      ;; Also, if you don't remove the <hr>, the color of the first
+      ;; row in the table will be wrong.
+      ;; This all seems rather odd to me...
       (replace-match " style=\"background-color:#DDDDFF\">" t t nil 2)
       (setq opoint (point))
-      (re-search-forward "</div>")
-      (setq div-end (match-beginning 0))
-      (goto-char opoint)
-      (if (search-forward "<hr>" div-end 'move)
-	  (replace-match "" t t)))))
+      (when (or split (equal type "node"))
+	;; In Texinfo 4, the <hr> (and anchor) comes after the <div>.
+	(re-search-forward "</div>")
+	(setq div-end (if (equal type "node")
+			  (match-beginning 0)
+			(line-end-position 2)))
+	(goto-char opoint)
+	(if (search-forward "<hr>" div-end 'move)
+		(replace-match "" t t)
+	  (if split (forward-line -1))))
+      ;; In Texinfo 5, the <hr> (and anchor) comes before the <div> (?).
+      ;; Except in split output, where it comes on the line after
+      ;; the <div>.  But only sometimes.  I have no clue what the
+      ;; logic of where it goes is.
+      (when (equal type "header")
+	(goto-char opoint)
+	(when (re-search-backward "^<hr>$" (line-beginning-position -3) t)
+	  (replace-match "")
+	  (goto-char opoint))))))
+
 
 (defun manual-html-fix-index-1 ()
   "Remove the h1 header, and the short and long contents lists.
@@ -453,42 +474,63 @@ Also start a \"content\" div."
     (insert "<div id=\"content\" class=\"inner\">\n\n")))
 
 (defun manual-html-fix-index-2 (&optional table-workaround)
-  "Replace the index list in the current buffer with a HTML table."
+  "Replace the index list in the current buffer with a HTML table.
+Leave point after the table."
   (if (re-search-forward "<table class=\"menu\"\\(.*\\)>" nil t)
-      ;; It seems that Texinfo 5 already uses a table.
-      ;; Tweak it a bit.  TODO is this worth it?
+      ;; Texinfo 5 already uses a table.  Tweak it a bit.
       (let (opoint done)
 	(replace-match " style=\"float:left\" width=\"100%\"" nil t nil 1)
-	;; Not all manuals have the detailed menu.
-	;; If it is there, split it into a separate table.
-	(when (re-search-forward "<tr>.*The Detailed Node Listing *" nil t)
-	  (setq opoint (match-beginning 0))
-	  (while (and (looking-at " *&mdash;")
-		      (zerop (forward-line 1))))
-	  (delete-region opoint (point))
-	  (insert "</table>\n\n\
-<h3>Detailed Node Listing</h3>\n")
-	  (search-forward "</pre></th></tr>")
-	  (delete-region (match-beginning 0) (match-end 0))
-	  (forward-line -1)
-	  (or (looking-at "^$") (error "Parse error 1"))
-	  (forward-line -1)
-	  (if (looking-at "^$") (error "Parse error 2"))
-	  (forward-line -1)
-	  (or (looking-at "^$") (error "Parse error 3"))
-	  (forward-line 1)
-	  (insert "<table class=\"menu\" style=\"float:left\" width=\"100%\">\n\
-<tr><th colspan=\"3\" align=\"left\" valign=\"top\">\n\
-")
-	  (forward-line 1)
-	  (insert "</th></tr>")
-	  ;; Get rid of ugly <pre> formatting of chapter headings.
-	  (while (and (not done)
-		      (re-search-forward "\\(<pre class=\"menu-comment\">\n\\|\
-\n</pre>\\|</table\\)"))
-	    (if (equal (match-string 1) "</table")
-		(setq done t)
-	      (replace-match "")))))
+	(forward-line 1)
+	(while (not done)
+	  (cond ((re-search-forward "<tr><td.*&bull; \\(<a.*</a>\\)\
+:</td><td>&nbsp;&nbsp;</td><td.*>\\(.*\\)" (line-end-position) t)
+		 (replace-match (format "<tr><td%s>\\1</td>\n<td>\\2"
+					(if table-workaround
+					    " bgcolor=\"white\"" "")))
+		 (search-forward "</td></tr>")
+		 (forward-line 1))
+		((looking-at "<tr><th.*<pre class=\"menu-comment\">\n")
+		 (replace-match "<tr><th colspan=\"2\" align=\"left\" \
+style=\"text-align:left\">")
+		 (search-forward "</pre></th></tr>")
+		 (replace-match "</th></tr>\n"))
+		;; Not all manuals have the detailed menu.
+		;; If it is there, split it into a separate table.
+		((re-search-forward "<tr>.*The Detailed Node Listing *"
+				    (line-end-position) t)
+		 (setq opoint (match-beginning 0))
+		 (while (and (looking-at " *&mdash;")
+			     (zerop (forward-line 1))))
+		 (delete-region opoint (point))
+		 (insert "</table>\n\n\
+<h2>Detailed Node Listing</h2>\n\n<p>")
+		 ;; FIXME Fragile!
+		 ;; The Emacs and Elisp manual have some text at the
+		 ;; start of the detailed menu that is not part of the menu.
+		 ;; Other manuals do not.
+		 ;; FIXME Texinfo 4 branch does not handle this correctly.
+		 ;; See eg s/emacs/manual/html_node/eintr/index.html
+		 ;; start of "Detailed Node Listing".
+		 (if (re-search-forward "in one step:" (line-end-position 3) t)
+		     (forward-line 1))
+		 (insert "</p>\n")
+		 (search-forward "</pre></th></tr>")
+		 (delete-region (match-beginning 0) (match-end 0))
+		 (forward-line -1)
+		 (or (looking-at "^$") (error "Parse error 1"))
+		 (forward-line -1)
+		 (if (looking-at "^$") (error "Parse error 2"))
+		 (forward-line -1)
+		 (or (looking-at "^$") (error "Parse error 3"))
+		 (forward-line 1)
+		 (insert "<table class=\"menu\" style=\"float:left\" width=\"100%\">\n\
+<tr><th colspan=\"2\" align=\"left\" style=\"text-align:left\">\n")
+		 (forward-line 1)
+		 (insert "</th></tr>")
+		 (forward-line 1))
+		((looking-at ".*</table")
+		 (forward-line 1)
+		 (setq done t)))))
     (let (done open-td tag desc)
       ;; Convert the list that Makeinfo made into a table.
       (or (search-forward "<ul class=\"menu\">" nil t)
@@ -512,8 +554,6 @@ Also start a \"content\" div."
 	  (insert "  <tr>\n    ")
 	  (if table-workaround
 	      ;; This works around a Firefox bug in the mono file.
-	      ;; FIXME Is this still needed?
-	      ;; If so, the Texinfo 5 branch needs to add it too.
 	      (insert "<td bgcolor=\"white\">")
 	    (insert "<td>"))
 	  (insert tag "</td>\n    <td>" (or desc ""))
