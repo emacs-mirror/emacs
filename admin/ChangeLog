@@ -2,6 +2,7 @@
 
 	* admin.el (manual-html-fix-node-div): Handle Texinfo 5's movable <hr>.
 	(manual-html-fix-index-2): Tweak Texinfo 5 table format.
+	Fix minor Texinfo 4 issue with start of detailed menu.
 
 2014-01-03  Glenn Morris  <rgm@gnu.org>
 

@@ -508,9 +508,6 @@ style=\"text-align:left\">")
 		 ;; The Emacs and Elisp manual have some text at the
 		 ;; start of the detailed menu that is not part of the menu.
 		 ;; Other manuals do not.
-		 ;; FIXME Texinfo 4 branch does not handle this correctly.
-		 ;; See eg s/emacs/manual/html_node/eintr/index.html
-		 ;; start of "Detailed Node Listing".
 		 (if (re-search-forward "in one step:" (line-end-position 3) t)
 		     (forward-line 1))
 		 (insert "</p>\n")
@@ -568,7 +565,12 @@ style=\"text-align:left\">")
 	  (replace-match "  </td></tr></table>\n
 <h3>Detailed Node Listing</h3>\n\n" t t)
 	  (search-forward "<p>")
-	  (search-forward "<p>" nil t)
+	  ;; FIXME Fragile!
+	  ;; The Emacs and Elisp manual have some text at the
+	  ;; start of the detailed menu that is not part of the menu.
+	  ;; Other manuals do not.
+	  (if (looking-at "Here are some other nodes")
+	      (search-forward "<p>"))
 	  (goto-char (match-beginning 0))
 	  (skip-chars-backward "\n ")
 	  (setq open-td nil)
