@@ -4608,7 +4608,7 @@ window."
     (window--resize-reset (window-frame window) t)
     (balance-windows-1 window t)
     (when (window--resize-apply-p frame t)
-      (window-resize-apply frame)
+      (window-resize-apply frame t)
       (window--pixel-to-total frame t)
       (run-window-configuration-change-hook frame))))
 

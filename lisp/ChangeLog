@@ -1,3 +1,7 @@
+2014-01-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (balance-windows): Add mising t to fix Bug#16351.
+
 2014-01-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-descend): Don't bug out if the anchor is empty
