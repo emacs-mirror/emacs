@@ -93,11 +93,11 @@
 (defvar subword-backward-function 'subword-backward-internal
   "Function to call for backward subword movement.")
 
-(defconst subword-forward-regexp
+(defvar subword-forward-regexp
   "\\W*\\(\\([[:upper:]]*\\(\\W\\)?\\)[[:lower:][:digit:]]*\\)"
   "Regexp used by `subword-forward-internal'.")
 
-(defconst subword-backward-regexp
+(defvar subword-backward-regexp
   "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)\\|\\W\\w+\\)"
   "Regexp used by `subword-backward-internal'.")
 

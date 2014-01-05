@@ -1,3 +1,9 @@
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Change subword regexps back to vars (Bug#16296).
+	* progmodes/subword.el (subword-forward-regexp)
+	(subword-backward-regexp): Change these back to variables.
+
 2014-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't bother with
