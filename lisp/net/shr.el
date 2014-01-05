@@ -380,6 +380,10 @@ size, and full-buffer size."
 	(shr-generic (cdr dom)))
       (when (and shr-target-id
 		 (equal (cdr (assq :id (cdr dom))) shr-target-id))
+	;; If the element was empty, we don't have anything to put the
+	;; anchor on.  So just insert a dummy character.
+	(when (= start (point))
+	  (insert "*"))
 	(put-text-property start (1+ start) 'shr-target-id shr-target-id))
       ;; If style is set, then this node has set the color.
       (when style
