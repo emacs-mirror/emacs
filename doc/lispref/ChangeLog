@@ -1,3 +1,9 @@
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Document behavior of (string-to-number "+@") (Bug#16293).
+	* strings.texi (String Conversion): Document behavior of
+	string-to-number on invalid strings that begin with "+", too.
+
 2014-01-03  Chong Yidong  <cyd@gnu.org>
 
 	* help.texi (Documentation, Accessing Documentation): Copyedits.

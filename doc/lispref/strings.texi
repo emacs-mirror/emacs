@@ -622,10 +622,8 @@ but its value is too large to fit into a Lisp integer,
 The parsing skips spaces and tabs at the beginning of @var{string},
 then reads as much of @var{string} as it can interpret as a number in
 the given base.  (On some systems it ignores other whitespace at the
-beginning, not just spaces and tabs.)  If the first character after
-the ignored whitespace is neither a digit in the given base, nor a
-plus or minus sign, nor the leading dot of a floating point number,
-this function returns 0.
+beginning, not just spaces and tabs.)  If @var{string} cannot be
+interpreted as a number, this function returns 0.
 
 @example
 (string-to-number "256")
