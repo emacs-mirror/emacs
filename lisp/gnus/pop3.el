@@ -107,7 +107,7 @@ days since you first checked new mails.  If this is nil, mails will be
 deleted on the server right after fetching.
 
 Gnus users should use the `:leave' keyword in a mail source to direct
-the behaviour per server, rather than directly modifying this value.
+the behavior per server, rather than directly modifying this value.
 
 Note that POP servers maintain no state information between sessions,
 so what the client believes is there and what is actually there may

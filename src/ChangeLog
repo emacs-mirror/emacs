@@ -1,5 +1,9 @@
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Spelling fixes.
+	* nsterm.h (updateCollectionBehavior): Rename from
+	updateCollectionBehaviour.  All uses changed.
+
 	Port to GNU/Linux with recent grsecurity/PaX patches (Bug#16343).
 	* Makefile.in (SETFATTR): New macro.
 	(temacs$(EXEEXT)): Use it.

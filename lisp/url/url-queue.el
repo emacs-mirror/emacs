@@ -69,7 +69,7 @@ The variable `url-queue-timeout' sets a timeout."
 				      :inhibit-cookiesp inhibit-cookies))))
   (url-queue-setup-runners))
 
-;; To ensure asynch behaviour, we start the required number of queue
+;; To ensure asynch behavior, we start the required number of queue
 ;; runners from `run-with-idle-timer'.  So we're basically going
 ;; through the queue in two ways: 1) synchronously when a program
 ;; calls `url-queue-retrieve' (which will then start the required

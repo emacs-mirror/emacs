@@ -49,7 +49,7 @@
 ;;      The normal case: delete the active region prior to executing
 ;;      the command which will insert replacement text.
 ;;  <function>
-;;      For commands which need to dynamically determine this behaviour.
+;;      For commands which need to dynamically determine this behavior.
 ;;      The function should return one of the above values or nil.
 
 ;;; Code:
@@ -99,7 +99,7 @@ If KILLP in not-nil, the active region is killed instead of deleted."
      The normal case: delete the active region prior to executing
      the command which will insert replacement text.
  FUNCTION
-     For commands which need to dynamically determine this behaviour.
+     For commands which need to dynamically determine this behavior.
      FUNCTION should take no argument and return one of the above values or nil."
   (condition-case data
       (cond ((eq type 'kill)

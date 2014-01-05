@@ -281,7 +281,7 @@ sudo is an alias, defined as "*sudo $*"
 If you would prefer to use the built-in commands instead of the external
 commands, set @code{eshell-prefer-lisp-functions} to @code{t}.
 
-Some of the built-in commands have different behaviour from their
+Some of the built-in commands have different behavior from their
 external counterparts, and some have no external counterpart.  Most of
 these will print a usage message when given the @code{--help} option.
 
@@ -627,7 +627,7 @@ from Bash can still use Bash-style globbing, as there are no
 incompatibilities.  Most globbing is pattern-based expansion, but there
 is also predicate-based expansion.  See
 @ref{Filename Generation, , , zsh, The Z Shell Manual}
-for full syntax.  To customize the syntax and behaviour of globbing in
+for full syntax.  To customize the syntax and behavior of globbing in
 Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
 The GNU Emacs Manual}.}
 groups ``eshell-glob'' and ``eshell-pred''.

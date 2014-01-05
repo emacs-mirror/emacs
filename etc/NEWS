@@ -455,7 +455,7 @@ Pairing/skipping only kicks in when that help the balance of
 parentheses and quotes, i.e. the buffer should end up at least as
 balanced as before.
 
-You can further control this behaviour by adjusting the predicates
+You can further control this behavior by adjusting the predicates
 stored in `electric-pair-inhibit-predicate' and
 `electric-pair-skip-self'.
 
@@ -481,7 +481,7 @@ whitespace. See also the variable
 *** New variables control the pairing in strings and comments.
 
 You can customize `electric-pair-text-pairs' and
-`electric-pair-text-syntax-table' to tweak pairing behaviour inside
+`electric-pair-text-syntax-table' to tweak pairing behavior inside
 strings and comments.
 
 ** EPA

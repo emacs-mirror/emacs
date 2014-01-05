@@ -983,7 +983,7 @@ If your symbol should be in the scope, but you cannot find it, then
 you may have found a language support bug in the local-variable
 parser, or using statement parser.
 
-Calling @kbd{M-x bovinte} should force a reset on the scope in case
+Calling @kbd{M-x bovinate} should force a reset on the scope in case
 there is merely some bad state.
 
 @example
@@ -1014,7 +1014,7 @@ fully qualified names.  You can examine the typecache with
 @kbd{M-x semanticdb-typecache-dump}.
 
 If your data types are not in the typecache, there may be some parsing
-error or other bug.  Calling @kbd{M-x bovinte} should force a reset on
+error or other bug.  Calling @kbd{M-x bovinate} should force a reset on
 the typecache in case there is merely some bad state.
 
 @example

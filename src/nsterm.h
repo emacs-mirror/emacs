@@ -183,7 +183,7 @@ typedef float EmacsCGFloat;
 - (BOOL) fsIsNative;
 - (BOOL) isFullscreen;
 #ifdef HAVE_NATIVE_FS
-- (void) updateCollectionBehaviour;
+- (void) updateCollectionBehavior;
 #endif
 
 #ifdef NS_IMPL_GNUSTEP

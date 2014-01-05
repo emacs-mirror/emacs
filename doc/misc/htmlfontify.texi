@@ -57,7 +57,7 @@ modify this GNU manual.''
 @menu
 * Introduction::                   About Htmlfontify.
 * Usage & Examples::               How to use Htmlfontify.
-* Customization::                  Fine-tuning Htmlfontify's behaviour.
+* Customization::                  Fine-tuning Htmlfontify's behavior.
 * Requirements::                   External programs used by Htmlfontify.
 * GNU Free Documentation License:: The license for this documentation.
 * Index::                          Index of contents.
@@ -820,7 +820,7 @@ which @emph{didn't} clash with @var{class} was returned.  In versions
 from 0.18 onwards, each font attribute list is scored, and the
 non-conflicting list with the highest score is returned.  (A specification
 with a class of @code{t} is considered to match any class you specify.
-This matches Emacs's behaviour when deciding on which face attributes to
+This matches Emacs's behavior when deciding on which face attributes to
 use, to the best of my understanding ).
 
 If @var{class} is nil, then you just get get whatever

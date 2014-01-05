@@ -9952,7 +9952,7 @@ processed normally.
 
 Contents of the included file will belong to the same structure (headline,
 item) containing the @code{INCLUDE} keyword.  In particular, headlines within
-the file will become children of the current section.  That behaviour can be
+the file will become children of the current section.  That behavior can be
 changed by providing an additional keyword parameter, @code{:minlevel}.  In
 that case, all headlines in the included file will be shifted so the one with
 the lowest level reaches that specified level.  For example, to make a file
@@ -10398,7 +10398,7 @@ can be reached by calling the dispatcher with a double @kbd{C-u} prefix
 argument, or with @kbd{&} key from the dispatcher.
 
 @vindex org-export-in-background
-To make this behaviour the default, customize the variable
+To make this behavior the default, customize the variable
 @code{org-export-in-background}.
 
 @item C-b
@@ -13073,7 +13073,7 @@ channel."
 The @code{my-ascii-src-block} function looks at the attribute above the
 element.  If it isn't true, it gives hand to the @code{ascii} back-end.
 Otherwise, it creates a box around the code, leaving room for the language.
-A new back-end is then created.  It only changes its behaviour when
+A new back-end is then created.  It only changes its behavior when
 translating @code{src-block} type element.  Now, all it takes to use the new
 back-end is calling the following from an Org buffer:
 
@@ -14102,7 +14102,7 @@ looked up with inheritance, regardless of the value of
 outermost call or source block.@footnote{The deprecated syntax for default
 header argument properties, using the name of the header argument as a
 property name directly, evaluates the property as seen by the corresponding
-source block definition.  This behaviour has been kept for backwards
+source block definition.  This behavior has been kept for backwards
 compatibility.}
 
 In the following example the value of

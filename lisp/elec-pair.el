@@ -169,7 +169,7 @@ be considered.")
 (defun electric-pair-backward-delete-char (n &optional killflag untabify)
   "Delete characters backward, and maybe also two adjacent paired delimiters.
 
-Remaining behaviour is given by `backward-delete-char' or, if UNTABIFY is
+Remaining behavior is given by `backward-delete-char' or, if UNTABIFY is
 non-nil, `backward-delete-char-untabify'."
   (interactive "*p\nP")
   (let* ((prev (char-before))
@@ -191,7 +191,7 @@ non-nil, `backward-delete-char-untabify'."
 (defun electric-pair-backward-delete-char-untabify (n &optional killflag)
   "Delete characters backward, and maybe also two adjacent paired delimiters.
 
-Remaining behaviour is given by `backward-delete-char-untabify'."
+Remaining behavior is given by `backward-delete-char-untabify'."
   (interactive "*p\nP")
   (electric-pair-backward-delete-char n killflag t))
 

@@ -1619,7 +1619,7 @@ span also begins a invisible portion of text.
 
 An implementation can use TEXT-BLOCK, TEXT-ID,
 TEXT-BEGINS-BLOCK-P to implement fold/unfold-on-mouse-click like
-behaviour.
+behavior.
 
 The default handler is `hfy-begin-span'.")
 

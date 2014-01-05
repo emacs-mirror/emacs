@@ -143,7 +143,7 @@
   "Alist between export properties and ways to set them.
 
 The CAR of the alist is the property name, and the CDR is a list
-like (KEYWORD OPTION DEFAULT BEHAVIOUR) where:
+like (KEYWORD OPTION DEFAULT BEHAVIOR) where:
 
 KEYWORD is a string representing a buffer keyword, or nil.  Each
   property defined this way can also be set, during subtree
@@ -152,7 +152,7 @@ KEYWORD is a string representing a buffer keyword, or nil.  Each
   property).
 OPTION is a string that could be found in an #+OPTIONS: line.
 DEFAULT is the default value for the property.
-BEHAVIOUR determines how Org should handle multiple keywords for
+BEHAVIOR determines how Org should handle multiple keywords for
   the same property.  It is a symbol among:
   nil       Keep old value and discard the new one.
   t         Replace old value with the new one.
@@ -493,7 +493,7 @@ t           Allow export of math snippets."
   "The last level which is still exported as a headline.
 
 Inferior levels will usually produce itemize or enumerate lists
-when exported, but back-end behaviour may differ.
+when exported, but back-end behavior may differ.
 
 This option can also be set with the OPTIONS keyword,
 e.g. \"H:2\"."
@@ -1649,7 +1649,7 @@ for export.  Return options as a plist."
 			  ((member keyword org-element-document-properties)
 			   (org-element-parse-secondary-string
 			    value (org-element-restriction 'keyword)))
-			  ;; If BEHAVIOUR is `split' expected value is
+			  ;; If BEHAVIOR is `split' expected value is
 			  ;; a list of strings, not a string.
 			  ((eq (nth 4 option) 'split) (org-split-string value))
 			  (t value)))))))))
@@ -1726,13 +1726,13 @@ Assume buffer is in Org mode.  Narrowing, if any, is ignored."
 		      (t
 		       ;; Options in `org-export-options-alist'.
 		       (dolist (property (funcall find-properties key))
-			 (let ((behaviour (nth 4 (assq property options))))
+			 (let ((behavior (nth 4 (assq property options))))
 			   (setq plist
 				 (plist-put
 				  plist property
 				  ;; Handle value depending on specified
-				  ;; BEHAVIOUR.
-				  (case behaviour
+				  ;; BEHAVIOR.
+				  (case behavior
 				    (space
 				     (if (not (plist-get plist property))
 					 (org-trim val)

@@ -580,7 +580,7 @@ The function must accept two parameters:
 The function should return the string to be exported.
 
 For example, the variable could be set to the following function
-in order to mimic default behaviour:
+in order to mimic default behavior:
 
 The default value simply returns the value of CONTENTS."
   :group 'org-export-html

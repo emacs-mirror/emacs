@@ -1714,7 +1714,7 @@
 	* org.el (org-previous-line-empty-p): New parameter to allow
 	checking next line.  Add a docstring.
 	(org-insert-heading): Handle two universal prefix arguments as
-	advertized in the docstring.  Don't insert new lines when
+	advertised in the docstring.  Don't insert new lines when
 	creating a heading after the first heading in the current
 	subtree.
 	(org-insert-heading-respect-content): New optional argument
@@ -3522,7 +3522,7 @@
 	parsing.
 
 	* org.el (org-adaptive-fill-function): Do not handle
-	`adaptive-fill-regexp' in comments as the behaviour is not
+	`adaptive-fill-regexp' in comments as the behavior is not
 	satisfying.
 
 	* org-list.el (org-list-struct-apply-struct): Do not move item's
@@ -3677,7 +3677,7 @@
 	"wrong-type-argument" error in template insertion.
 
 	* org.el (org-fill-paragraph): Use empty commented lines as
-	separators when filling comments.  This mimics default behaviour
+	separators when filling comments.  This mimics default behavior
 	from "newcomment.el", which is not used in Org.
 
 	* ox-html.el (org-html-link): Add image attributes to "img" tag,
@@ -3984,7 +3984,7 @@
 	* ox.el (org-export-with-timestamps): Only applies to isolated
 	timestamps, i.e. timestamps in a paragraph containing only
 	timestamps and empty strings.
-	(org-export--skip-p): Skip timestamps according to new behaviour.
+	(org-export--skip-p): Skip timestamps according to new behavior.
 
 	* ox-latex.el (org-latex--script-size): Handle consecutive
 	alterning sub and superscript.
@@ -4313,7 +4313,7 @@
 	* ox.el (org-export-as): Store export options in :export-options
 	porperty within communication channel.
 
-	* ox-latex.el (org-latex-item): Fix wrong behaviour when a counter
+	* ox-latex.el (org-latex-item): Fix wrong behavior when a counter
 	is set in an ordered list while its parent is not ordered.
 
 	* ox.el (org-export-format-code-default): Handle empty source
@@ -4942,7 +4942,7 @@
 	timestamps ranges with repeaters.
 
 	* org.el (org-edit-special): Rewrite `org-edit-special' using Org
-	Elements tools.  Behaviour should be unchanged.
+	Elements tools.  Behavior should be unchanged.
 
 	* org-element.el (org-element-context): Add an optional argument
 	so that (org-element-context) and (org-element-context
@@ -6383,7 +6383,7 @@
 	* org.el: Make `org-closest-date' aware of hours repeaters.
 
 	* org.el (org-end-of-line): Do not call `end-of-visual-line' when
-	moving to the end of line.  Also improve behaviour on elements that
+	moving to the end of line.  Also improve behavior on elements that
 	can be hidden.
 
 	* org.el (org-sparse-tree): Allow to call `org-show-todo-tree'
@@ -10565,7 +10565,7 @@
 2012-04-01  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.el (org-beginning-of-line, org-end-of-line): Fix special C-a
-	and C-e behaviour with visual lines.
+	and C-e behavior with visual lines.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -11105,7 +11105,7 @@
 
 	* ob-emacs-lisp.el: A comment on the last line of an emacs-lisp
 	code block would cause an error when the block is was executed.
-	This fix cures this behaviour.
+	This fix cures this behavior.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -12994,7 +12994,7 @@
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-separating-blank-lines-number):
-	The behaviour of `org-back-over-empty-lines' depends on the
+	The behavior of `org-back-over-empty-lines' depends on the
 	associated value of `headline' in
 	`org-blank-before-new-entry', which is out of context in a
 	list.

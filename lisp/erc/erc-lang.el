@@ -32,6 +32,9 @@
 
 (require 'erc)
 
+;; FIXME: It's ISO 639-1, not ISO 638.  ISO 638 is for paper, board and pulps.
+;; The Lisp variable should be renamed.
+
 (defvar iso-638-languages
   '(("aa" . "Afar")
     ("ab" . "Abkhazian")
@@ -42,7 +45,7 @@
     ("ay" . "Aymara")
     ("az" . "Azerbaijani")
     ("ba" . "Bashkir")
-    ("be" . "Byelorussian")
+    ("be" . "Belarusian")
     ("bg" . "Bulgarian")
     ("bh" . "Bihari")
     ("bi" . "Bislama")

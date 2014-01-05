@@ -2744,7 +2744,7 @@ You will see the buffer @file{*Async Shell Command*}, containing the
 continuous output of the @command{tail} command.
 
 @ifset emacs
-A similar behaviour can be reached by @kbd{M-x auto-revert-tail-mode},
+A similar behavior can be reached by @kbd{M-x auto-revert-tail-mode},
 if available.
 @end ifset
 

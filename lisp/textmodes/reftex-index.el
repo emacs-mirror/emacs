@@ -896,7 +896,7 @@ When index is restricted, select the previous section as restriction criterion."
   ;; If FINAL is t, stay there
   ;; If FINAL is 'hide, hide the *Index* window.
   ;; Otherwise, move cursor back into *Index* window.
-  ;; NO-REVISIT means don't visit files, just use live biffers.
+  ;; NO-REVISIT means don't visit files, just use live buffers.
 
   (let* ((data (get-text-property (point) :data))
          (index-window (selected-window))

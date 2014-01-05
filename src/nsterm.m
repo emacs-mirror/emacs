@@ -3497,7 +3497,7 @@ check_native_fs ()
       if (FRAME_NS_P (f))
         {
           EmacsView *view = FRAME_NS_VIEW (f);
-          [view updateCollectionBehaviour];
+          [view updateCollectionBehavior];
         }
     }
 }
@@ -6317,7 +6317,7 @@ if (cols > 0 && rows > 0)
   [self setFSValue: fs_before_fs];
   fs_before_fs = -1;
 #ifdef HAVE_NATIVE_FS
-  [self updateCollectionBehaviour];
+  [self updateCollectionBehavior];
 #endif
   if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
     {
@@ -6349,7 +6349,7 @@ if (cols > 0 && rows > 0)
 }
 
 #ifdef HAVE_NATIVE_FS
-- (void)updateCollectionBehaviour
+- (void)updateCollectionBehavior
 {
   if (! [self isFullscreen])
     {
@@ -7647,7 +7647,7 @@ Default is t for OSX >= 10.7, nil otherwise. */);
 
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
-Note that this does not apply to images.            
+Note that this does not apply to images.
 This variable is ignored on OSX < 10.7 and GNUStep.  Default is t. */);
   ns_use_srgb_colorspace = YES;
 

@@ -315,8 +315,7 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	cd ../lib && $(MAKE) libgnu.a
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
-	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
-	  ${srcdir}/../src/regex.c
+	${CC} -c ${CPP_CFLAGS} ${srcdir}/../src/regex.c
 
 etags${EXEEXT}: ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
