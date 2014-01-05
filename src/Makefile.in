@@ -110,7 +110,7 @@ TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
 ## If available, the names of the paxctl and setfattr programs.
 ## On grsecurity/PaX systems, unexec will fail due to a gap between
-## the bss section and the heap.  Older versions nee paxctl to work
+## the bss section and the heap.  Older versions need paxctl to work
 ## around this, newer ones setfattr.  See Bug#11398 and Bug#16343.
 PAXCTL = @PAXCTL@
 SETFATTR = @SETFATTR@
