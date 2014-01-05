@@ -7216,6 +7216,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
     (gnus-dribble-save)))
 
 (declare-function gnus-cache-write-active "gnus-cache" (&optional force))
+(declare-function gnus-article-stop-animations "gnus-art" ())
 
 (defun gnus-summary-exit (&optional temporary leave-hidden)
   "Exit reading current newsgroup, and then return to group selection mode.
@@ -7320,7 +7321,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
 
-(declare-function gnus-article-stop-animations "gnus-art" ())
 (declare-function gnus-stop-downloads "gnus-art" ())
 
 (defalias 'gnus-summary-quit 'gnus-summary-exit-no-update)
@@ -10658,6 +10658,9 @@ groups."
   (gnus-article-edit-done))
 
 ;;; Respooling
+
+(defvar nnimap-split-fancy)
+(defvar nnimap-split-methods)
 
 (defun gnus-summary-respool-query (&optional silent trace)
   "Query where the respool algorithm would put this article."
