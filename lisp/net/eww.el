@@ -1283,32 +1283,30 @@ Differences in #targets are ignored."
   (interactive)
   (when (null eww-history)
     (error "No eww-histories are defined"))
-  (set-buffer (get-buffer-create "*eww history*"))
-  (eww-history-mode)
-  (let ((inhibit-read-only t)
-	(domain-length 0)
-	(title-length 0)
-	url title format start)
-    (erase-buffer)
-    (dolist (history eww-history)
-      (setq start (point))
-      (setq domain-length (max domain-length (length (plist-get history :url))))
-      (setq title-length (max title-length (length (plist-get history :title))))
-      )
-    (setq format (format "%%-%ds %%-%ds" title-length domain-length)
-	  header-line-format
-	  (concat " " (format format "Title" "URL")))
-
-    (dolist (history eww-history)
-      (setq url (plist-get history :url))
-      (setq title (plist-get history :title))
-      (insert (format format title url))
-      (insert "\n")
-      (put-text-property start (point) 'eww-history history)
-      )
-    (goto-char (point-min)))
-  (pop-to-buffer "*eww history*")
-  )
+  (let ((eww-history-trans eww-history))
+    (set-buffer (get-buffer-create "*eww history*"))
+    (eww-history-mode)
+    (let ((inhibit-read-only t)
+	  (domain-length 0)
+	  (title-length 0)
+	  url title format start)
+      (erase-buffer)
+      (dolist (history eww-history-trans)
+	(setq start (point))
+	(setq domain-length (max domain-length (length (plist-get history :url))))
+	(setq title-length (max title-length (length (plist-get history :title)))))
+      (setq format (format "%%-%ds %%-%ds" title-length domain-length)
+	    header-line-format
+	    (concat " " (format format "Title" "URL")))
+      (dolist (history eww-history-trans)
+	(setq start (point))
+	(setq url (plist-get history :url))
+	(setq title (plist-get history :title))
+	(insert (format format title url))
+	(insert "\n")
+	(put-text-property start (1+ start) 'eww-history history))
+      (goto-char (point-min)))
+    (pop-to-buffer "*eww history*")))
 
 (defun eww-history-browse ()
   "Browse the history under point in eww."
@@ -1316,39 +1314,23 @@ Differences in #targets are ignored."
   (let ((history (get-text-property (line-beginning-position) 'eww-history)))
     (unless history
       (error "No history on the current line"))
-    (eww-history-quit)
-    (pop-to-buffer "*eww*")
-    (eww-browse-url (plist-get history :url))))
-
-(defun eww-history-quit ()
-  "Kill the current buffer."
-  (interactive)
-  (kill-buffer (current-buffer)))
-
-(defvar eww-history-kill-ring nil)
-
-(defun eww-history-kill ()
-  "Kill the current history."
-  (interactive)
-  (let* ((start (line-beginning-position))
-	 (history (get-text-property start 'eww-history))
-	 (inhibit-read-only t))
-    (unless history
-      (error "No history on the current line"))
-    (forward-line 1)
-    (push (buffer-substring start (point)) eww-history-kill-ring)
-    (delete-region start (point))
-    (setq eww-history (delq history eww-history))
-    ))
+    (quit-window)
+    (eww-restore-history history)))
 
 (defvar eww-history-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "q" 'eww-history-quit)
-    (define-key map [(control k)] 'eww-history-kill)
+    (define-key map "q" 'quit-window)
     (define-key map "\r" 'eww-history-browse)
-                (define-key map "n" 'next-error-no-select)
-                (define-key map "p" 'previous-error-no-select)
+;;    (define-key map "n" 'next-error-no-select)
+;;    (define-key map "p" 'previous-error-no-select)
+
+    (easy-menu-define nil map
+      "Menu for `eww-history-mode-map'."
+      '("Eww History"
+        ["Exit" quit-window t]
+        ["Browse" eww-history-browse
+         :active (get-text-property (line-beginning-position) 'eww-history)]))
     map))
 
 (define-derived-mode eww-history-mode nil "eww history"

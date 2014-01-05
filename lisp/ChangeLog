@@ -1,6 +1,11 @@
 2014-01-05  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
-        * net/eww.el (eww):  Support single/double quote for search.
+	* net/eww.el (eww):  Support single/double quote for search.
+	* net/eww.el (eww-list-histories,eww-history-browse): Fixup.
+	(eww-history-quit): Delete and use quit-window.
+	(eww-history-kill): Delete, because it doesn't work well and
+	not necessary.
+	(eww-history-mode-map): Delete some keys and add easy-menu.
 
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
