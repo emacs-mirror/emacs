@@ -1,3 +1,10 @@
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to GNU/Linux with recent grsecurity/PaX patches (Bug#16343).
+	Problem and proposed patch reported by Ulrich Mueller;
+	this patch uses a somewhat-different approach.
+	* configure.ac (SETFATTR): New variable.
+
 2014-01-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

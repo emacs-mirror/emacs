@@ -1,3 +1,9 @@
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to GNU/Linux with recent grsecurity/PaX patches (Bug#16343).
+	* Makefile.in (SETFATTR): New macro.
+	(temacs$(EXEEXT)): Use it.
+
 2014-01-04  Martin Rudalics  <rudalics@gmx.at>
 
 	Fix maximization behavior on Windows (Bug#16300).

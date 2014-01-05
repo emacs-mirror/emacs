@@ -108,11 +108,12 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
-## If available, the full path to the paxctl program.
+## If available, the names of the paxctl and setfattr programs.
 ## On grsecurity/PaX systems, unexec will fail due to a gap between
-## the bss section and the heap.  This can be prevented by disabling
-## memory randomization in temacs with "paxctl -r".  See bug#11398.
+## the bss section and the heap.  Older versions nee paxctl to work
+## around this, newer ones setfattr.  See Bug#11398 and Bug#16343.
 PAXCTL = @PAXCTL@
+SETFATTR = @SETFATTR@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
@@ -494,6 +495,8 @@ temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
 	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
+	test "$(CANNOT_DUMP)" = "yes" || test -z "$(SETFATTR)" || \
+	  $(SETFATTR) -n user.pax.flags -v r $@
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.

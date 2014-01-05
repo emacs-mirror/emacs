@@ -988,6 +988,24 @@ if test $opsys = gnu-linux; then
       [if $PAXCTL -v conftest$EXEEXT >/dev/null 2>&1; then AC_MSG_RESULT(yes)
       else AC_MSG_RESULT(no); PAXCTL=""; fi])
   fi
+
+  if test "${SETFATTR+set}" != set; then
+    AC_CACHE_CHECK([for setfattr],
+      [emacs_cv_prog_setfattr],
+      [touch conftest.tmp
+       if (setfattr -n user.pax.flags conftest.tmp) >/dev/null 2>&1; then
+	 emacs_cv_prog_setfattr=yes
+       else
+	 emacs_cv_prog_setfattr=no
+       fi])
+    if test "$emacs_cv_prog_setfattr" = yes; then
+      SETFATTR=setfattr
+    else
+      SETFATTR=no
+    fi
+    rm -f conftest.tmp
+    AC_SUBST([SETFATTR])
+  fi
 fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
