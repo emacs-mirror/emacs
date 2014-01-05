@@ -1257,6 +1257,9 @@ regular file with contents being what would have been in the symlink.
 +++
 ** New functions `group-gid' and `group-real-gid'.
 
+** The spelling of the rx.el category `chinese-two-byte' has been
+corrected (the first 'e' was missing).
+
 ** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
 
 +++

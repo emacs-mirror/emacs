@@ -1,5 +1,9 @@
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix misspelling of 'chinese' in rx (Bug#16237).
+	* emacs-lisp/rx.el (rx-categories): Correct spelling of
+	chinese-two-byte.
+
 	Change subword regexps back to vars (Bug#16296).
 	* progmodes/subword.el (subword-forward-regexp)
 	(subword-backward-regexp): Change these back to variables.
