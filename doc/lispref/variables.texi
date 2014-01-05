@@ -416,17 +416,22 @@ explicitly in the @code{defvar} form.  The variable is marked as
 @dfn{special}, meaning that it should always be dynamically bound
 (@pxref{Variable Scoping}).
 
-If @var{symbol} is void and @var{value} is specified, @code{defvar}
-evaluates @var{value} and sets @var{symbol} to the result.  But if
-@var{symbol} already has a value (i.e., it is not void), @var{value}
-is not even evaluated, and @var{symbol}'s value remains unchanged.  If
-@var{value} is omitted, the value of @var{symbol} is not changed in
-any case.
+If @var{value} is specified, and @var{symbol} is void (i.e., it has no
+dynamically bound value; @pxref{Void Variables}), then @var{value} is
+evaluated and @var{symbol} is set to the result.  But if @var{symbol}
+is not void, @var{value} is not evaluated, and @var{symbol}'s value is
+left unchanged.  If @var{value} is omitted, the value of @var{symbol}
+is not changed in any case.
 
 If @var{symbol} has a buffer-local binding in the current buffer,
-@code{defvar} operates on the default value, which is buffer-independent,
-not the current (buffer-local) binding.  It sets the default value if
+@code{defvar} acts on the default value, which is buffer-independent,
+rather than the buffer-local binding.  It sets the default value if
 the default value is void.  @xref{Buffer-Local Variables}.
+
+If @var{symbol} is already lexically bound (e.g., if the @code{defvar}
+form occurs in a @code{let} form with lexical binding enabled), then
+@code{defvar} sets the dynamic value.  The lexical binding remains in
+effect until its binding construct exits.  @xref{Variable Scoping}.
 
 When you evaluate a top-level @code{defvar} form with @kbd{C-M-x} in
 Emacs Lisp mode (@code{eval-defun}), a special feature of

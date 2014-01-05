@@ -951,7 +951,8 @@ Information about Files
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
 * Truenames::               Eliminating symbolic links from a file name.
-* File Attributes::         How large is it?  Any other names?  Etc.
+* File Attributes::         File sizes, modification times, etc.
+* Extended Attributes::     Extended file attributes for access control.
 * Locating Files::          How to find a file in standard places.
 
 File Names

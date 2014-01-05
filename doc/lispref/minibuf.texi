@@ -2224,12 +2224,6 @@ This is like @code{minibuffer-contents}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
-@defun minibuffer-completion-contents
-This is like @code{minibuffer-contents}, except that it returns only
-the contents before point.  That is the part that completion commands
-operate on.  @xref{Minibuffer Completion}.
-@end defun
-
 @defun delete-minibuffer-contents
 This function erases the editable contents of the minibuffer (that is,
 everything except the prompt), if a minibuffer is current.  Otherwise,

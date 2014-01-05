@@ -1,3 +1,30 @@
+2014-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* backups.texi (Making Backups): Document backup-buffer change.
+
+	* files.texi (Visiting Files): Copyedits.
+	(Testing Accessibility): Mention ACLs.  Move file-modes here from
+	File Attributes.
+	(Truenames): Move file-equal-p here from Kinds of Files.
+	(File Attributes): Move file-newer-than-file-p here from Testing
+	Accessibility.
+	(Extended Attributes): New node.  Add file-extended-attributes.
+	(Changing Files): Document set-file-extended-attributes.
+
+	* commands.texi (Defining Commands): Document the interactive-form
+	property more carefully.  Document interactive-only.
+
+	* compile.texi (Compiler Errors): Copyedits.  Note that the
+	details for byte-compile-warnings are in its docstring.
+
+	* minibuf.texi (Minibuffer Contents): Remove obsolete function
+	minibuffer-completion-contents.
+
+	* variables.texi (Defining Variables): Note that defvar acts
+	always on the dynamic value.
+
+	* customize.texi (Variable Definitions): Likewise.
+
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Document vconcat and the empty vector (Bug#16246).

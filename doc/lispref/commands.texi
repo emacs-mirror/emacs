@@ -108,13 +108,26 @@ command does.
 
   The special form @code{interactive} turns a Lisp function into a
 command.  The @code{interactive} form must be located at top-level in
-the function body (usually as the first form in the body), or in the
-@code{interactive-form} property of the function symbol.  When the
-@code{interactive} form is located in the function body, it does
-nothing when actually executed.  Its presence serves as a flag, which
-tells the Emacs command loop that the function can be called
-interactively.  The argument of the @code{interactive} form controls
-the reading of arguments for an interactive call.
+the function body, usually as the first form in the body; this applies
+to both lambda expressions (@pxref{Lambda Expressions}) and
+@code{defun} forms (@pxref{Defining Functions}).  This form does
+nothing during the actual execution of the function; its presence
+serves as a flag, telling the Emacs command loop that the function can
+be called interactively.  The argument of the @code{interactive} form
+specifies how the arguments for an interactive call should be read.
+
+@cindex @code{interactive-form} property
+  Alternatively, an @code{interactive} form may be specified in a
+function symbol's @code{interactive-form} property.  A non-@code{nil}
+value for this property takes precedence over any @code{interactive}
+form in the function body itself.  This feature is seldom used.
+
+@cindex @code{interactive-only} property
+  Sometimes, a named command is only intended to be called
+interactively, never directly from Lisp.  In that case, give it a
+non-@code{nil} @code{interactive-only} property.  In that case, the
+byte compiler will print a warning message if the command is called
+from Lisp.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.

@@ -287,13 +287,17 @@ customizable variable).  You should not quote @var{option}.
 
 The argument @var{standard} is an expression that specifies the
 standard value for @var{option}.  Evaluating the @code{defcustom} form
-evaluates @var{standard}, but does not necessarily install the
-standard value.  If @var{option} already has a default value,
-@code{defcustom} does not change it.  If the user has saved a
-customization for @var{option}, @code{defcustom} installs the user's
-customized value as @var{option}'s default value.  If neither of those
-cases applies, @code{defcustom} installs the result of evaluating
-@var{standard} as the default value.
+evaluates @var{standard}, but does not necessarily bind the option to
+that value.  If @var{option} already has a default value, it is left
+unchanged.  If the user has already saved a customization for
+@var{option}, the user's customized value is installed as the default
+value.  Otherwise, the result of evaluating @var{standard} is
+installed as the default value.
+
+Like @code{defvar}, this macro marks @code{option} as a special
+variable, meaning that it should always be dynamically bound.  If
+@var{option} is already lexically bound, that lexical binding remains
+in effect until the binding construct exits.  @xref{Variable Scoping}.
 
 The expression @var{standard} can be evaluated at various other times,
 too---whenever the customization facility needs to know @var{option}'s
