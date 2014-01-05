@@ -475,7 +475,13 @@ size, and full-buffer size."
 	  (when (> shr-indentation 0)
 	    (shr-indent))
 	  (end-of-line))
-	(insert " ")))
+	(if (<= (current-column) shr-width)
+	    (insert " ")
+	  ;; In case we couldn't get a valid break point (because of a
+	  ;; word that's longer than `shr-width'), just break anyway.
+	  (insert "\n")
+	  (when (> shr-indentation 0)
+	    (shr-indent)))))
     (unless (string-match "[ \t\r\n ]\\'" text)
       (delete-char -1)))))
 

@@ -2,6 +2,9 @@
 
 	* net/shr.el (shr-descend): Don't bug out if the anchor is empty
 	(bug#16285).
+	(shr-insert): If we have a word that's longer than `shr-width',
+	break after it anyway.  Otherwise we'll do no breaking once we get
+	such a long word.
 
 2014-01-05  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
 
