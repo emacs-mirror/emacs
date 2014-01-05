@@ -1001,7 +1001,7 @@ if test $opsys = gnu-linux; then
     if test "$emacs_cv_prog_setfattr" = yes; then
       SETFATTR=setfattr
     else
-      SETFATTR=no
+      SETFATTR=
     fi
     rm -f conftest.tmp
     AC_SUBST([SETFATTR])
