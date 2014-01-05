@@ -1,3 +1,7 @@
+2014-01-05  Kenjiro NAKAYAMA  <nakayamakenjiro@gmail.com>
+
+        * net/eww.el (eww):  Support single/double quote for search.
+
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix misspelling of 'chinese' in rx (Bug#16237).
