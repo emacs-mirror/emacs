@@ -471,11 +471,11 @@ each initialized to @var{object}.
 @cindex copying vectors
 This function returns a new vector containing all the elements of
 @var{sequences}.  The arguments @var{sequences} may be true lists,
-vectors, strings or bool-vectors.  If no @var{sequences} are given, an
-empty vector is returned.
+vectors, strings or bool-vectors.  If no @var{sequences} are given,
+the empty vector is returned.
 
-The value is a newly constructed vector that is not @code{eq} to any
-existing vector.
+The value is either the empty vector, or is a newly constructed
+nonempty vector that is not @code{eq} to any existing vector.
 
 @example
 @group

@@ -1,5 +1,9 @@
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Document vconcat and the empty vector (Bug#16246).
+	* sequences.texi (Vector Functions):
+	Document behavior better when the result is empty.
+
 	Document behavior of (string-to-number "+@") (Bug#16293).
 	* strings.texi (String Conversion): Document behavior of
 	string-to-number on invalid strings that begin with "+", too.
