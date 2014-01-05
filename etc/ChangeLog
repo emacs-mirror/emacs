@@ -1,3 +1,8 @@
+2014-01-05  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-light-theme.el (tsdh-light): Define org-level-*
+	faces.
+
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Plain copy-file no longer chmods an existing destination (Bug#16133).
