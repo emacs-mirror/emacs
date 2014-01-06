@@ -864,7 +864,10 @@ highlighting.
   (add-hook 'font-lock-extend-region-functions 'rst-font-lock-extend-region t)
 
   ;; Text after a changed line may need new fontification.
-  (set (make-local-variable 'jit-lock-contextually) t))
+  (set (make-local-variable 'jit-lock-contextually) t)
+
+  ;; Indentation is not deterministic.
+  (setq electric-indent-inhibit t))
 
 ;;;###autoload
 (define-minor-mode rst-minor-mode

@@ -1,3 +1,8 @@
+2014-01-06  Daniel Colascione  <dancol@dancol.org>
+
+	* textmodes/rst.el (rst-mode): Set electric-indent-inhibit for
+	rst-mode.
+
 2014-01-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (balance-windows): Add mising t to fix Bug#16351.
