@@ -241,7 +241,7 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 
 ;;; KEY BINDINGS.
 
-(define-key dired-mode-map "\M-o" 'dired-omit-mode)
+(define-key dired-mode-map "\C-c\M-o" 'dired-omit-mode)
 (define-key dired-mode-map "*O" 'dired-mark-omitted)
 (define-key dired-mode-map "\M-(" 'dired-mark-sexp)
 (define-key dired-mode-map "*(" 'dired-mark-sexp)
