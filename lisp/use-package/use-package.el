@@ -58,7 +58,7 @@
   :type 'number
   :group 'use-package)
 
-(defmacro with-elapsed-timer (text &rest forms)
+(defmacro use-package-with-elapsed-timer (text &rest forms)
   (let ((body `(progn ,@forms)))
     (if use-package-verbose
         (let ((nowvar (make-symbol "now")))
@@ -72,7 +72,7 @@
                    (message "%s...done" ,text))))))
       body)))
 
-(put 'with-elapsed-timer 'lisp-indent-function 1)
+(put 'use-package-with-elapsed-timer 'lisp-indent-function 1)
 
 (defvar use-package-idle-timer nil)
 (defvar use-package-idle-forms nil)
@@ -341,13 +341,13 @@ For full documentation. please see commentary.
                       `(eval-after-load ,(if (stringp name) name `',name)
                          `(,(lambda ()
                               (if ,requires-test
-                                  (with-elapsed-timer
+                                  (use-package-with-elapsed-timer
                                       ,(format "Configuring package %s" name-string)
                                     ,config-body))))))
                    t))
             `(if (and ,(or predicate t)
                       ,requires-test)
-                 (with-elapsed-timer
+                 (use-package-with-elapsed-timer
                      ,(format "Loading package %s" name-string)
                    (if (not ,(if (stringp name)
                                  `(load ,name t)
