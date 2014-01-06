@@ -127,7 +127,10 @@
 
       ;; The label macro is hard coded, but it *could* be defined like this:
       ;;("\\label{*}" nil nil nil nil)
-      )))
+      ))
+
+    ;; Texinfo
+    (Texinfo "Texinfo default environments" nil))
   "The default label environment descriptions.
 Lower-case symbols correspond to a style file of the same name in the LaTeX
 distribution.  Mixed-case symbols are convenience aliases.")
