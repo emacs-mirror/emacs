@@ -1,3 +1,15 @@
+2014-01-06  Bastien Guerry  <bzg@gnu.org>
+
+	* hl-line.el (global-hl-line-overlay): Make a local variable.
+	(global-hl-line-overlays): New variable to store all overlays.
+	(global-hl-line-mode): Don't delete overlays from the current
+	buffer when `global-hl-line-sticky-flag' is non-nil.
+	(global-hl-line-highlight): Add new overlays to
+	`global-hl-line-overlays'.
+	(global-hl-line-unhighlight-all): New function to delete all
+	overlays when turning off `global-hl-line-mode'.
+	This fixes Bug#16183.
+
 2014-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (set-transient-map): Fix nested case and docstring.
