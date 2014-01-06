@@ -1810,7 +1810,7 @@ If TYPE is nil, then any kind of definition is acceptable.  If
 TYPE is `defun', `defvar', or `defface', that specifies function
 definition, variable definition, or face definition only."
   (if (and (or (null type) (eq type 'defun))
-	   (symbolp symbol) (fboundp symbol)
+	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
       (nth 1 (symbol-function symbol))
     (let ((files load-history)

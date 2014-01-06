@@ -1145,8 +1145,8 @@ Marks the function with their arguments, and returns a list of variables."
 (defun elint-find-builtins ()
   "Return a list of all built-in functions."
   (let (subrs)
-    (mapatoms (lambda (s) (and (fboundp s) (subrp (symbol-function s))
-			       (setq subrs (cons s subrs)))))
+    (mapatoms (lambda (s) (and (subrp (symbol-function s))
+                          (push s subrs))))
     subrs))
 
 (defun elint-find-builtin-args (&optional list)

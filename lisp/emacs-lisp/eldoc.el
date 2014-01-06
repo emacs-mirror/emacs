@@ -512,8 +512,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 
 ;; Do indirect function resolution if possible.
 (defun eldoc-symbol-function (fsym)
-  (let ((defn (and (fboundp fsym)
-                   (symbol-function fsym))))
+  (let ((defn (symbol-function fsym)))
     (and (symbolp defn)
          (condition-case _
              (setq defn (indirect-function fsym))

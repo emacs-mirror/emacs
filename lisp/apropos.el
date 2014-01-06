@@ -1006,8 +1006,7 @@ Returns list of symbols and documentation found."
   "Like `documentation', except it avoids calling `get_doc_string'.
 Will return nil instead."
   (while (and function (symbolp function))
-    (setq function (if (fboundp function)
-		       (symbol-function function))))
+    (setq function (symbol-function function)))
   (if (eq (car-safe function) 'macro)
       (setq function (cdr function)))
   (setq function (if (byte-code-function-p function)

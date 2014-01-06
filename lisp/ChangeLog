@@ -1,3 +1,15 @@
+2014-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (define-abbrev): Beware new meaning of fboundp.
+	* emacs-lisp/elint.el (elint-find-builtins):
+	* emacs-lisp/eldoc.el (eldoc-symbol-function):
+	* emacs-lisp/bytecomp.el (byte-compile-callargs-warn)
+	(byte-compile-file-form-defmumble, byte-compile, byte-compile-form):
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
+	* apropos.el (apropos-safe-documentation):
+	* subr.el (symbol-file): Remove redundant fboundp.
+	* progmodes/idlw-shell.el (idlwave-shell-comint-filter): Use defalias.
+
 2014-01-06  Bastien Guerry  <bzg@gnu.org>
 
 	* hl-line.el (global-hl-line-overlay): Make a local variable.

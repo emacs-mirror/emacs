@@ -588,7 +588,7 @@ An obsolete but still supported calling form is:
                  (boundp sym) (symbol-value sym)
                  (not (abbrev-get sym :system)))
       (unless (or system-flag
-                  (and (boundp sym) (fboundp sym)
+                  (and (boundp sym)
                        ;; load-file-name
                        (equal (symbol-value sym) expansion)
                        (equal (symbol-function sym) hook)))
