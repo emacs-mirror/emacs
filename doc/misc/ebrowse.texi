@@ -3,6 +3,7 @@
 @comment %**start of header
 @setfilename ../../info/ebrowse
 @settitle A Class Browser for C++
+@documentencoding UTF-8
 @setchapternewpage odd
 @syncodeindex fn cp
 @comment %**end of header

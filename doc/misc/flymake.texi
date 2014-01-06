@@ -5,6 +5,7 @@
 @set UPDATED April 2004
 @settitle GNU Flymake @value{VERSION}
 @syncodeindex pg cp
+@documentencoding UTF-8
 @comment %**end of header
 
 @copying

@@ -1,6 +1,7 @@
 \input texinfo
 @setfilename ../../info/edt
 @settitle EDT Emulation for Emacs
+@documentencoding UTF-8
 
 @copying
 This file documents the EDT emulation package for Emacs.

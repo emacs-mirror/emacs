@@ -2,6 +2,7 @@
 
 @setfilename gnus-coding
 @settitle Gnus Coding Style and Maintenance Guide
+@documentencoding UTF-8
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex pg cp

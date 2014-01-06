@@ -3,6 +3,7 @@
 @setfilename ../../info/pcl-cvs
 @settitle PCL-CVS---Emacs Front-End to CVS
 @syncodeindex vr fn
+@documentencoding UTF-8
 @c %**end of header
 
 @copying

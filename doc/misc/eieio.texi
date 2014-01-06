@@ -3,6 +3,7 @@
 @set TITLE Enhanced Implementation of Emacs Interpreted Objects
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
+@documentencoding UTF-8
 
 @c *************************************************************************
 @c @ Header

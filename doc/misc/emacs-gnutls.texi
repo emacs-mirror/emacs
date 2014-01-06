@@ -4,6 +4,7 @@
 
 @setfilename ../../info/emacs-gnutls
 @settitle Emacs GnuTLS Integration @value{VERSION}
+@documentencoding UTF-8
 
 @copying
 This file describes the Emacs GnuTLS integration.

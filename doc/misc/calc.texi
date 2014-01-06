@@ -4,6 +4,7 @@
 @setfilename ../../info/calc
 @c [title]
 @settitle GNU Emacs Calc Manual
+@documentencoding UTF-8
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 

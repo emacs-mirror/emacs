@@ -8,6 +8,7 @@
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
+@documentencoding UTF-8
 @comment %**end of header
 
 @copying

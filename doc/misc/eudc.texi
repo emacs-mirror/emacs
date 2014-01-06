@@ -3,6 +3,7 @@
 @setfilename ../../info/eudc
 @settitle Emacs Unified Directory Client (EUDC) Manual
 @afourpaper
+@documentencoding UTF-8
 @c %**end of header
 
 @copying

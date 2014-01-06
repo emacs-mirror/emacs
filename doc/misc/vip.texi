@@ -2,6 +2,8 @@
 @setfilename ../../info/vip
 @settitle VIP
 
+@documentencoding UTF-8
+
 @copying
 Copyright @copyright{} 1987, 2001--2014 Free Software Foundation, Inc.
 

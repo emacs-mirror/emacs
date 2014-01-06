@@ -1,3 +1,20 @@
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify .texi encoding (Bug#16292).
+	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
+	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
+	* ede.texi, ediff.texi, edt.texi, efaq.texi, eieio.texi:
+	* emacs-gnutls.texi, epa.texi, erc.texi, ert.texi:
+	* eshell.texi, eudc.texi, flymake.texi, forms.texi, gnus-coding.texi:
+	* gnus-faq.texi, htmlfontify.texi, idlwave.texi, ido.texi, info.texi:
+	* message.texi, mh-e.texi, newsticker.texi, nxml-mode.texi:
+	* octave-mode.texi, org.texi, pcl-cvs.texi, pgg.texi, rcirc.texi:
+	* reftex.texi, remember.texi, sasl.texi, sc.texi, semantic.texi:
+	* ses.texi, sieve.texi, smtpmail.texi, speedbar.texi, srecode.texi:
+	* todo-mode.texi, tramp.texi, url.texi, vip.texi, viper.texi:
+	* widget.texi, wisent.texi, woman.texi:
+	Add @documentencoding.
+
 2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell.texi (What Eshell is not): Clean up confusing clause.

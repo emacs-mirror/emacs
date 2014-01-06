@@ -7,6 +7,7 @@
 @setfilename inner-covers.info
 @settitle Inner Covers
 @smallbook
+@documentencoding UTF-8
 @comment %**end of header
 
 @headings off

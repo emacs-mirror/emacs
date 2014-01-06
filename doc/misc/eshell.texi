@@ -4,6 +4,7 @@
 @settitle Eshell: The Emacs Shell
 @defindex cm
 @synindex vr fn
+@documentencoding UTF-8
 @c %**end of header
 
 @copying

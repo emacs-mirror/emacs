@@ -20,6 +20,7 @@
 @c @footnotestyle separate
 @c @paragraphindent 2
 @c @@smallbook
+@documentencoding UTF-8
 @c %**end of header
 
 @copying

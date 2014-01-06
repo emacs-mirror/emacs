@@ -2,6 +2,7 @@
 @setfilename ../../info/tramp
 @c %**start of header
 @settitle TRAMP User Manual
+@documentencoding UTF-8
 @c %**end of header
 
 @c This is *so* much nicer :)

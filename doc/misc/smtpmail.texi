@@ -1,6 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename ../../info/smtpmail
 @settitle Emacs SMTP Library
+@documentencoding UTF-8
 @syncodeindex vr fn
 @copying
 Copyright @copyright{} 2003--2014 Free Software Foundation, Inc.

@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/reftex
 @settitle RefTeX User Manual
+@documentencoding UTF-8
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp

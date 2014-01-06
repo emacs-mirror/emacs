@@ -6,6 +6,7 @@
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
