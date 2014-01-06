@@ -205,8 +205,8 @@
                 (if (or (null was-command)
                         (string= command-desc was-command-desc))
                     ""
-                  (format "(%s)" was-command-desc))
-              (format "[now: %s]" at-present)))))
+                  (format "was `%s\'" was-command-desc))
+              (format "[now: `%s\']" at-present)))))
 
         (setq last-binding binding)))))
 
