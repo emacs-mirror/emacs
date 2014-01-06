@@ -15621,7 +15621,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       && REDISPLAY_SOME_P ()
       && !w->redisplay
       && !f->redisplay
-      && !buffer->text->redisplay)
+      && !buffer->text->redisplay
+      && BUF_PT (buffer) == w->last_point)
     return;
 
   /* Make sure that both W's markers are valid.  */
