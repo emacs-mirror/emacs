@@ -19902,7 +19902,7 @@
 	now, but we want to make other targets possible.
 	* lisp.h: Include <inttypes.h>, for INTPTR_MAX, UINTPTR_MAX.
 	(EMACS_INTPTR, EMACS_UINTPTR): New macros.
-	In the rest of the code, change types of integers that hold casted
+	In the rest of the code, change types of integers that hold casts of
 	pointers to EMACS_INTPTR and EMACS_UINTPTR, systematically
 	replacing EMACS_INT, long, EMACS_UINT, and unsigned long.
 	(XTYPE): Don't cast arg to EMACS_UINT; normally is not needed.

@@ -588,7 +588,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (add-hook 'kill-buffer-hook (lambda ()
                                   (let ((calc-edit-handler nil))
                                     (calc-edit-finish t))
-                                  (message "(Cancelled)")) t t)
+                                  (message "(Canceled)")) t t)
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
@@ -669,7 +669,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
   (interactive)
   (let ((calc-edit-handler nil))
     (calc-edit-finish))
-  (message "(Cancelled)"))
+  (message "(Canceled)"))
 
 (defun calc-finish-stack-edit (num)
   (let ((buf (current-buffer))

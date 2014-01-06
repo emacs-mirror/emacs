@@ -559,7 +559,7 @@
 ;; Todo: (in the order of priority, some are just possibility)
 ;; -----
 ;;
-;; Fix compatibilities with other input method than quail
+;; Fix incompatibilities with input methods other than quail
 ;; Resolve conflict with flyspell
 ;; Use mouse for resizing cells
 ;; A mechanism to link cells internally

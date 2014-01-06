@@ -1,3 +1,20 @@
+2014-01-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* calc/calc-yank.el (calc-edit-mode, calc-edit-cancel):
+	* emacs-lisp/debug.el (cancel-debug-on-entry):
+	* epg.el (epg-error-to-string):
+	* files.el (recover-file):
+	* lpr.el (lpr-buffer, print-buffer, lpr-region, print-region):
+	* mail/emacsbug.el (report-emacs-bug-hook):
+	* mail/sendmail.el (mail-recover):
+	* ses.el (ses-yank-resize):
+	* term/ns-win.el (ns-print-buffer):
+	Spelling fixes in diagnostics, mostly for "canceled" with one L.
+	* epg.el (epg-key-capability-alist): Rename from misspelled version.
+	All uses changed.
+	* obsolete/xesam.el (xesam-all-fields): Fix misspelled field name.
+
 2014-01-06  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.el (dired-mode-map): Rebind dired-omit-mode to C-x M-o
@@ -7148,7 +7165,7 @@
 2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* files.el (write-file): Do not display confirm dialog for NS,
-	it does its own dialog, which can't be cancelled (Bug#14578).
+	it does its own dialog, which can't be canceled (Bug#14578).
 
 2013-07-06  Eli Zaretskii  <eliz@gnu.org>
 

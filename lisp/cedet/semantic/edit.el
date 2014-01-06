@@ -907,11 +907,11 @@ pre-positioned to a convenient location."
 
 (defun semantic-edits-splice-insert (newtags parent cachelist)
   "Insert NEWTAGS into PARENT using CACHELIST.
-PARENT could be nil, in which case CACHLIST is the buffer cache
+PARENT could be nil, in which case CACHELIST is the buffer cache
 which must be updated.
 CACHELIST must be searched to find where NEWTAGS are to be inserted.
 The positions of NEWTAGS must be synchronized with those in
-CACHELIST for this to work.  Some routines pre-position CACHLIST at a
+CACHELIST for this to work.  Some routines pre-position CACHELIST at a
 convenient location, so use that."
   (let* ((start (semantic-tag-start (car newtags)))
 	 (newtagendcell (nthcdr (1- (length newtags)) newtags))

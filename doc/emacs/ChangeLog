@@ -1236,7 +1236,7 @@
 	\\`info- no longer handled specially.
 	Update for rmail-enable-mime-composing.
 	Don't mention 'm' for replies.
-	Don't mention rmail-mail-new-frame and cancelling, since it does
+	Don't mention rmail-mail-new-frame and canceling, since it does
 	not work for Message at the moment.
 
 	* cal-xtra.texi: Copyedits.

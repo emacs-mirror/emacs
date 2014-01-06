@@ -54,7 +54,7 @@ static Lisp_Object freetype_font_cache;
 /* Cache for FT_Face and FcCharSet. */
 static Lisp_Object ft_face_cache;
 
-/* The actual structure for FreeType font that can be casted to struct
+/* The actual structure for FreeType font that can be cast to struct
    font.  */
 
 struct ftfont_info

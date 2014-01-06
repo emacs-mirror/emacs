@@ -344,7 +344,7 @@
 ;; Thanks to Andreas Roehler <andreas.roehler@easy-emacs.de> for
 ;; indicating defface byte-compilation warnings.
 ;;
-;; Thanks to TimOCallaghan (EmacsWiki) for the idea about highlight
+;; Thanks to Tim O'Callaghan (EmacsWiki) for the idea about highlight
 ;; "long" lines.  See EightyColumnRule (EmacsWiki).
 ;;
 ;; Thanks to Yanghui Bian <yanghuibian@gmail.com> for indicating a new

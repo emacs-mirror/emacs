@@ -399,7 +399,7 @@ and send the mail again%s."
                             (format " using \\[%s]"
                                     report-emacs-bug-send-command)
                           "")))))
-      (error "M-x report-emacs-bug was cancelled, please read *Bug Help* buffer"))
+      (error "M-x report-emacs-bug was canceled, please read *Bug Help* buffer"))
     ;; Query the user for the SMTP method, so that we can skip
     ;; questions about From header validity if the user is going to
     ;; use mailclient, anyway.

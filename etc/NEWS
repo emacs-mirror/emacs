@@ -856,7 +856,7 @@ are obsolete.  Customize the `woman-*' faces instead.
 
 *** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.
 
-*** xesam.el is obsolete, because the XESAM project has been cancelled.
+*** xesam.el is obsolete, because the XESAM project has been canceled.
 
 +++
 *** yow.el is obsolete; use fortune.el or cookie1.el instead.

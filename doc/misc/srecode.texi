@@ -342,7 +342,7 @@ area will modify the other linked areas.  Pressing TAB will move
 between editable fields in the template.
 
 Once the cursor moves out of the are inserted by the template, all the
-fields are cancelled.
+fields are canceled.
 
 @b{NOTE}: Some conveniences in templates, such as completion, or
 character restrictions are lost when using field editing mode.

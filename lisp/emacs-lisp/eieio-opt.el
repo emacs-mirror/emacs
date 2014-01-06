@@ -749,7 +749,7 @@ DIR-OR-OBJECT is the object to expand, or nil, and DEPTH is the
 current expansion depth."
   (when (eq (point-min) (point-max))
     ;; This function is only called once, to start the whole deal.
-    ;; Ceate, and expand the default object.
+    ;; Create and expand the default object.
     (eieio-class-button eieio-default-superclass 0)
     (forward-line -1)
     (speedbar-expand-line)))

@@ -1968,7 +1968,7 @@ completion works."
 	 (complst nil))
     (when (and thissym (or (not (string= thissym ""))
 			   nextsym))
-      ;; Do a quick calcuation of completions.
+      ;; Do a quick calculation of completions.
       (semantic-collector-calculate-completions
        collector thissym nil)
       ;; Get the master list
@@ -2048,7 +2048,7 @@ completion works."
 	 (complst nil))
     (when (and thissym (or (not (string= thissym ""))
 			   nextsym))
-      ;; Do a quick calcuation of completions.
+      ;; Do a quick calculation of completions.
       (semantic-collector-calculate-completions
        collector thissym nil)
       ;; Get the master list

@@ -881,7 +881,7 @@ displayed."
         (progn
           (image-dired-display-thumbs)
           (pop-to-buffer image-dired-thumbnail-buffer))
-      (message "Cancelled."))))
+      (message "Canceled."))))
 
 ;;;###autoload
 (defalias 'image-dired 'image-dired-show-all-from-dir)

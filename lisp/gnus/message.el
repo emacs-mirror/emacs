@@ -7214,7 +7214,7 @@ header line with the old Message-ID."
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)))
-	  (t (error "message-recover cancelled")))))
+	  (t (error "message-recover canceled")))))
 
 ;;; Washing Subject:
 

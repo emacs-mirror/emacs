@@ -37,7 +37,7 @@ how it will be used.  The prompt is highlighted using the
   The simplest way to enter a minibuffer argument is to type the text,
 then @key{RET} to submit the argument and exit the minibuffer.
 Alternatively, you can type @kbd{C-g} to exit the minibuffer by
-cancelling the command asking for the argument (@pxref{Quitting}).
+canceling the command asking for the argument (@pxref{Quitting}).
 
 @cindex default argument
   Sometimes, the prompt shows a @dfn{default argument}, inside

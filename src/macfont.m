@@ -84,7 +84,7 @@ static Lisp_Object QCminspace;
 
 struct macfont_metrics;
 
-/* The actual structure for Mac font that can be casted to struct font.  */
+/* The actual structure for Mac font that can be cast to struct font.  */
 
 struct macfont_info
 {

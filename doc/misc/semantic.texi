@@ -607,7 +607,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: backquote bnf bovinate bovinates LALR
 @c LocalWords: bovinating bovination bovinator bucketize
 @c LocalWords: cb cdr charquote checkcache cindex CLOS
-@c LocalWords: concat concocting const constantness ctxt Decl defcustom
+@c LocalWords: concat concocting const ctxt Decl defcustom
 @c LocalWords: deffn deffnx defun defvar destructor's dfn diff dir
 @c LocalWords: doc docstring EDE EIEIO elisp emacsman emph enum
 @c LocalWords: eq Exp EXPANDFULL expression fn foo func funcall

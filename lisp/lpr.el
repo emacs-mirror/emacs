@@ -161,7 +161,7 @@ See the variables `lpr-switches' and `lpr-command'
 for customization of the printer command."
   (interactive
    (unless (y-or-n-p "Send current buffer to default printer? ")
-     (error "Cancelled")))
+     (error "Canceled")))
   (print-region-1 (point-min) (point-max) lpr-switches nil))
 
 ;;;###autoload
@@ -180,7 +180,7 @@ See the variables `lpr-switches' and `lpr-command'
 for further customization of the printer command."
   (interactive
    (unless (y-or-n-p "Send current buffer to default printer? ")
-     (error "Cancelled")))
+     (error "Canceled")))
   (print-region-1 (point-min) (point-max) lpr-switches t))
 
 ;;;###autoload
@@ -191,7 +191,7 @@ for customization of the printer command."
   (interactive
    (if (y-or-n-p "Send selected text to default printer? ")
        (list (region-beginning) (region-end))
-     (error "Cancelled")))
+     (error "Canceled")))
   (print-region-1 start end lpr-switches nil))
 
 ;;;###autoload
@@ -211,7 +211,7 @@ for further customization of the printer command."
   (interactive
    (if (y-or-n-p "Send selected text to default printer? ")
        (list (region-beginning) (region-end))
-     (error "Cancelled")))
+     (error "Canceled")))
   (print-region-1 start end lpr-switches t))
 
 (defun print-region-1 (start end switches page-headers)

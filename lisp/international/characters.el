@@ -1094,7 +1094,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 ;;   (LOCALE TABLE (CHARSET (FROM-CODE . TO-CODE) ...) ...)
 ;; LOCALE: locale symbol
 ;; TABLE: char-table used for char-width-table, initially nil.
-;; CAHRSET: character set
+;; CHARSET: character set
 ;; FROM-CODE, TO-CODE: range of code-points in CHARSET
 
 (defvar cjk-char-width-table-list

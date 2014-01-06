@@ -135,7 +135,7 @@
     (?f . full)
     (?u . ultimate)))
 
-(defvar epg-key-capablity-alist
+(defvar epg-key-capability-alist
   '((?e . encrypt)
     (?s . sign)
     (?c . certify)
@@ -1124,7 +1124,7 @@ This function is for internal use only."
    ((eq (car error) 'exit)
     "Exit")
    ((eq (car error) 'quit)
-    "Cancelled")
+    "Canceled")
    ((eq (car error) 'no-data)
     (let ((entry (assq (cdr error) epg-no-data-reason-alist)))
       (if entry
@@ -1922,7 +1922,7 @@ This function is for internal use only."
    (if (aref line 1)
        (cdr (assq (string-to-char (aref line 1)) epg-key-validity-alist)))
    (delq nil
-	 (mapcar (lambda (char) (cdr (assq char epg-key-capablity-alist)))
+	 (mapcar (lambda (char) (cdr (assq char epg-key-capability-alist)))
 		 (aref line 11)))
    (member (aref line 0) '("sec" "ssb"))
    (string-to-number (aref line 3))

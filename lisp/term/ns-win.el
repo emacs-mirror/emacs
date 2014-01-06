@@ -626,7 +626,7 @@ the last file dropped is selected."
                                   `(mouse-1 POSITION 1))))
         (if (y-or-n-p (format "Print buffer %s? " (buffer-name)))
             (print-buffer)
-	  (error "Cancelled")))
+	  (error "Canceled")))
     (print-buffer)))
 
 ;;;; Font support.

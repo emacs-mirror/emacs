@@ -829,7 +829,7 @@ To specify a nil argument interactively, exit with an empty minibuffer."
       (progn
         (advice-remove function #'debug--implement-debug-on-entry)
 	function)
-    (message "Cancelling debug-on-entry for all functions")
+    (message "Canceling debug-on-entry for all functions")
     (mapcar #'cancel-debug-on-entry (debug--function-list))))
 
 (defun debugger-list-functions ()
