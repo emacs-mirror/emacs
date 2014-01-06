@@ -4280,29 +4280,33 @@ active.
 Optional arg ON-EXIT, if non-nil, specifies a function that is
 called, with no arguments, after MAP is deactivated.
 
-Note that MAP will take precedence over the \"overriding\" maps
-`overriding-terminal-local-map' and `overriding-local-map' (and
-over the `keymap' text property).  Unlike those maps, if no match
-for a key is found in MAP, Emacs continues the normal key lookup
-sequence."
+This uses `overriding-terminal-local-map' which takes precedence over all other
+keymaps.  As usual, if no match for a key is found in MAP, the normal key
+lookup sequence then continues."
   (let ((clearfun (make-symbol "clear-transient-map")))
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
     ;; in a cycle.
     (fset clearfun
           (lambda ()
-            ;; FIXME: Handle the case of multiple transient maps.  For
-            ;; example, if isearch and C-u both use transient maps,
-            ;; then the lifetime of the C-u should be nested within
-            ;; the isearch overlay, so the pre-command-hook of isearch
-            ;; should be suspended during the C-u one so we don't exit
-            ;; isearch just because we hit 1 after C-u and that 1
-            ;; exits isearch whereas it doesn't exit C-u.
             (with-demoted-errors "set-transient-map PCH: %S"
-              (unless (cond ((null keep-pred) nil)
-                            ((eq t keep-pred)
-                             (eq this-command
-                                 (lookup-key map (this-command-keys-vector))))
-                            (t (funcall keep-pred)))
+              (unless (cond
+                       ((not (eq map (cadr overriding-terminal-local-map)))
+                        ;; There's presumably some other transient-map in
+                        ;; effect.  Wait for that one to terminate before we
+                        ;; remove ourselves.
+                        ;; For example, if isearch and C-u both use transient
+                        ;; maps, then the lifetime of the C-u should be nested
+                        ;; within isearch's, so the pre-command-hook of
+                        ;; isearch should be suspended during the C-u one so
+                        ;; we don't exit isearch just because we hit 1 after
+                        ;; C-u and that 1 exits isearch whereas it doesn't
+                        ;; exit C-u.
+                        t)
+                       ((null keep-pred) nil)
+                       ((eq t keep-pred)
+                        (eq this-command
+                            (lookup-key map (this-command-keys-vector))))
+                       (t (funcall keep-pred)))
                 (internal-pop-keymap map 'overriding-terminal-local-map)
                 (remove-hook 'pre-command-hook clearfun)
                 (when on-exit (funcall on-exit))))))
