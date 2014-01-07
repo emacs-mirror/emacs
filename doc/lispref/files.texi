@@ -1205,7 +1205,7 @@ An unspecified value, present for backward compatibility.
 @item
 The file's inode number.  If possible, this is an integer.  If the
 inode number is too large to be represented as an integer in Emacs
-Lisp but dividing it by @math{2^16} yields a representable integer,
+Lisp but dividing it by @math{2^{16}} yields a representable integer,
 then the value has the
 form @code{(@var{high} . @var{low})}, where @var{low} holds the low 16
 bits.  If the inode number is too wide for even that, the value is of the form
