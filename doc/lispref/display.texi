@@ -483,7 +483,7 @@ mode @code{messages-buffer-mode}.  Nothing prevents the user from
 killing the @file{*Messages*} buffer, but the next display of a message
 recreates it.  Any Lisp code that needs to access the
 @file{*Messages*} buffer directly and wants to ensure that it exists
-exists should use the function @code{messages-buffer}.
+should use the function @code{messages-buffer}.
 
 @defun messages-buffer
 This function returns the @file{*Messages*} buffer.  If it does not
