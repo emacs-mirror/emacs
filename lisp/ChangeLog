@@ -1,3 +1,8 @@
+2014-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* emacs-lisp/package.el (package-delete): Also delete the package
+	name from `package-alist', not its description only.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* help.el (view-external-packages):

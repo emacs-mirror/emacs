@@ -1231,7 +1231,7 @@ The file can either be a tar file or an Emacs Lisp file."
 	    (delete-file signed-file)))
       ;; Update package-alist.
       (let* ((name (package-desc-name pkg-desc)))
-        (delete pkg-desc (assq name package-alist)))
+	(delete (delete pkg-desc (assq name package-alist)) package-alist))
       (message "Package `%s' deleted." (package-desc-full-name pkg-desc)))))
 
 (defun package-archive-base (desc)
