@@ -431,6 +431,9 @@ It assumes that a log entry starts with a line matching
 `log-view-message-re'."
   (when (null arg) (setf arg 1))
   (if (< arg 0)
+      ;; In log view, the end of one defun is the beginning of the
+      ;; next, so punting to log-view-end-of-defun is safe in this
+      ;; context.
       (log-view-end-of-defun (- arg))
     (let ((found t))
       (while (> arg 0)

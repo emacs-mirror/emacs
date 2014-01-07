@@ -1,3 +1,8 @@
+2014-01-07  Daniel Colascione  <dancol@dancol.org>
+
+	* vc/log-view.el (log-view-beginning-of-defun): Add comment
+	explaining why we call `log-view-end-of-defun'.
+
 2014-01-07  Chong Yidong  <cyd@gnu.org>
 
 	* isearch.el (isearch-yank-char, isearch-yank-word)
