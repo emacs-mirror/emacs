@@ -1,7 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2014 Free Software Foundation,
-Inc.
+Copyright (C) 1987-1989, 1993-1999, 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -112,7 +111,7 @@ load-path.
 ** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
 This version of GCC is buggy: see
 
-  http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6031
+  http://debbugs.gnu.org/6031
   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
 
 You can work around this error in gcc-4.5 by omitting sibling call
@@ -156,8 +155,8 @@ If your tar has this problem, install GNU tar--if you can manage to
 untar it :-).
 
 ** Emacs can crash when displaying PNG images with transparency.
-This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug
-should be fixed in ImageMagick 6.8.3-10.  Please see Bug#13867.
+This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
+be fixed in ImageMagick 6.8.3-10.  See <URL:http://debbugs.gnu.org/13867>.
 
 ** Crashes when displaying GIF images in Emacs built with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
@@ -309,17 +308,6 @@ them to two different keys.
 You are probably using a shell that doesn't support job control, even
 though the system itself is capable of it.  Either use a different shell,
 or set the variable `cannot-suspend' to a non-nil value.
-
-*** With M-x enable-flow-control, you need to type C-\ twice
-to do incremental search--a single C-\ gets no response.
-
-This has been traced to communicating with your machine via kermit,
-with C-\ as the kermit escape character.  One solution is to use
-another escape character in kermit.  One user did
-
-   set escape-character 17
-
-in his .kermrc file, to make C-q the kermit escape character.
 
 ** Mailers and other helper programs
 
@@ -991,7 +979,7 @@ to happen in *.UTF-8 locales; zh_CN.GB2312 and zh_CN.GBK locales, for
 example, work fine.  A bug report has been filed in the Gnome
 bugzilla: http://bugzilla.gnome.org/show_bug.cgi?id=357032
 
-*** Gnome: Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
+*** Gnome: Emacs's xterm-mouse-mode doesn't work on the Gnome terminal.
 
 A symptom of this bug is that double-clicks insert a control sequence
 into the buffer.  The reason this happens is an apparent
@@ -1153,7 +1141,7 @@ be carried out at the same time:
 1) If you don't need X Input Methods (XIM) for entering text in some
    language you use, you can improve performance on WAN links by using
    the X resource useXIM to turn off use of XIM.  This does not affect
-   the use of Emacs' own input methods, which are part of the Leim
+   the use of Emacs's own input methods, which are part of the Leim
    package.
 
 2) If the connection is very slow, you might also want to consider
@@ -1619,7 +1607,7 @@ global-font-lock-mode RET" or by customizing the variable
 `global-font-lock-mode'.
 
 ** Unexpected characters inserted into the buffer when you start Emacs.
-See eg http://debbugs.gnu.org/11129
+See e.g. <URL:http://debbugs.gnu.org/11129>
 
 This can happen when you start Emacs in -nw mode in an Xterm.
 For example, in the *scratch* buffer, you might see something like:
@@ -1658,7 +1646,7 @@ exec 2> >(exec cat >&2 2>/dev/null)
 exec ssh "$@"
 
 *** GNU/Linux: Truncated svn annotate output with SSH.
-http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7791
+http://debbugs.gnu.org/7791
 
 The symptoms are: you are accessing a svn repository over SSH.
 You use vc-annotate on a large (several thousand line) file, and the
@@ -1669,13 +1657,6 @@ This may be a similar libc/SSH issue to the one mentioned above for CVS.
 A similar workaround seems to be effective: create a script with the
 same contents as the one used above for CVS_RSH, and set the SVN_SSH
 environment variable to point to it.
-
-*** GNU/Linux: On Linux-based GNU systems using libc versions 5.4.19 through
-5.4.22, Emacs crashes at startup with a segmentation fault.
-
-This problem happens if libc defines the symbol __malloc_initialized.
-One known solution is to upgrade to a newer libc version.  5.4.33 is
-known to work.
 
 *** GNU/Linux: After upgrading to a newer version of Emacs,
 the Meta key stops working.
@@ -1773,15 +1754,6 @@ produce a modified terminfo entry.
 
 Alternatively, if you want a blinking underscore as your Emacs cursor,
 change the "cvvis" capability to send the "\E[?25h\E[?0c" command.
-
-*** GNU/Linux: Error messages `internal facep []' happen on GNU/Linux systems.
-
-There is a report that replacing libc.so.5.0.9 with libc.so.5.2.16
-caused this to start happening.  People are not sure why, but the
-problem seems unlikely to be in Emacs itself.  Some suspect that it
-is actually Xlib which won't work with libc.so.5.2.16.
-
-Using the old library version is a workaround.
 
 ** FreeBSD
 
@@ -2039,7 +2011,7 @@ To support server sockets, Emacs 22.1 loads ws2_32.dll.  If this file
 is missing, all Emacs networking features are disabled.
 
 Old versions of Windows 95 may not have the required DLL.  To use
-Emacs' networking features on Windows 95, you must install the
+Emacs's networking features on Windows 95, you must install the
 "Windows Socket 2" update available from MicroSoft's support Web.
 
 ** Emacs exits with "X protocol error" when run with an X server for MS-Windows.
@@ -2247,7 +2219,7 @@ combination, whenever it sees Right-Alt and Left-Ctrl it assumes that
 AltGr has been pressed.  The variable `w32-recognize-altgr' can be set
 to nil to tell Emacs that AltGr is really Ctrl and Alt.
 
-** Under some X-servers running on MS-Windows, Emacs' display is incorrect.
+** Under some X-servers running on MS-Windows, Emacs's display is incorrect.
 
 The symptoms are that Emacs does not completely erase blank areas of the
 screen during scrolling or some other screen operations (e.g., selective
@@ -2270,19 +2242,6 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 * Build-time problems
 
 ** Configuration
-
-*** The `configure' script doesn't find the jpeg library.
-
-There are reports that this happens on some systems because the linker
-by default only looks for shared libraries, but jpeg distribution by
-default only installs a nonshared version of the library, `libjpeg.a'.
-
-If this is the problem, you can configure the jpeg library with the
-`--enable-shared' option and then rebuild libjpeg.  This produces a
-shared version of libjpeg, which you need to install.  Finally, rerun
-the Emacs configure script, which should now find the jpeg library.
-Alternatively, modify the generated src/Makefile to link the .a file
-explicitly, and edit src/config.h to define HAVE_JPEG.
 
 *** `configure' warns ``accepted by the compiler, rejected by the preprocessor''.
 
@@ -2494,10 +2453,6 @@ and you need to add -lansi just before -lc.
 The precise file names depend on the compiler version, so we
 cannot easily arrange to supply them.
 
-*** Linking says that the functions insque and remque are undefined.
-
-Change oldXMenu/Makefile by adding insque.o to the variable OBJS.
-
 *** `tparam' reported as a multiply-defined symbol when linking with ncurses.
 
 This problem results from an incompatible change in ncurses, in
@@ -2518,7 +2473,8 @@ with development builds, since the .elc files are pre-compiled in releases.
 Compiling the lisp files fails at random places, complaining:
 "No rule to make target `/path/to/some/lisp.elc'".
 The causes of this problem are not understood.  Using GNU make 3.81 compiled
-from source, rather than the Ubuntu version, worked. See Bug#327,821.
+from source, rather than the Ubuntu version, worked.
+See <URL:http://debbugs.gnu.org/327, <URL:http://debbugs.gnu.org/821>.
 
 ** Dumping
 
