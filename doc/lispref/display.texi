@@ -481,8 +481,9 @@ them.  This includes all the messages that are output with
 @code{message}.  By default, this buffer is read-only and uses the major
 mode @code{messages-buffer-mode}.  Nothing prevents the user from
 killing the @file{*Messages*} buffer, but the next display of a message
-recreates it.  Any Lisp code that needs to ensure the @file{*Messages*}
-buffer exists should use the function @code{messages-buffer}.
+recreates it.  Any Lisp code that needs to access the
+@file{*Messages*} buffer directly and wants to ensure that it exists
+exists should use the function @code{messages-buffer}.
 
 @defun messages-buffer
 This function returns the @file{*Messages*} buffer.  If it does not
