@@ -2760,26 +2760,6 @@ It is/will be fixed in an openSUSE update.
 
 ** Installation
 
-*** Installing Emacs gets an error running `install-info'.
-
-You need to install a recent version of Texinfo; that package
-supplies the `install-info' command.
-
-*** Installing to a directory with spaces in the name fails.
-
-For example, if you call configure with a directory-related option
-with spaces in the value, eg --enable-locallisppath='/path/with\ spaces'.
-Using directory paths with spaces is not supported at this time: you
-must re-configure without using spaces.
-
-*** Installing to a directory with non-ASCII characters in the name fails.
-
-Installation may fail, or the Emacs executable may not start
-correctly, if a directory name containing non-ASCII characters is used
-as a `configure' argument (e.g. `--prefix').  The problem can also
-occur if a non-ASCII directory is specified in the EMACSLOADPATH
-envvar.
-
 *** On Solaris, use GNU Make when installing an out-of-tree build
 
 The Emacs configuration process allows you to configure the
