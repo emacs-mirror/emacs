@@ -400,7 +400,7 @@ You need to configure your machine with a fully qualified domain name,
 If you cannot fix the configuration, you can set the Lisp variable
 mail-host-address to the value you want.
 
-** NFS and RFS
+** NFS
 
 *** Emacs says it has saved a file, but the file does not actually
 appear on disk.
@@ -411,55 +411,6 @@ implementations), and there is apparently nothing Emacs can do to
 detect the problem.  Emacs checks the failure codes of all the system
 calls involved in writing a file, including `close'; but in the case
 where the problem occurs, none of those system calls fails.
-
-*** Editing files through RFS gives spurious "file has changed" warnings.
-It is possible that a change in Emacs 18.37 gets around this problem,
-but in case not, here is a description of how to fix the RFS bug that
-causes it.
-
-    There was a serious pair of bugs in the handling of the fsync() system
-    call in the RFS server.
-
-    The first is that the fsync() call is handled as another name for the
-    close() system call (!!).  It appears that fsync() is not used by very
-    many programs; Emacs version 18 does an fsync() before closing files
-    to make sure that the bits are on the disk.
-
-    This is fixed by the enclosed patch to the RFS server.
-
-    The second, more serious problem, is that fsync() is treated as a
-    non-blocking system call (i.e., it's implemented as a message that
-    gets sent to the remote system without waiting for a reply).  Fsync is
-    a useful tool for building atomic file transactions.  Implementing it
-    as a non-blocking RPC call (when the local call blocks until the sync
-    is done) is a bad idea; unfortunately, changing it will break the RFS
-    protocol.  No fix was supplied for this problem.
-
-    (as always, your line numbers may vary)
-
-    % rcsdiff -c -r1.2 serversyscall.c
-    RCS file: RCS/serversyscall.c,v
-    retrieving revision 1.2
-    diff -c -r1.2 serversyscall.c
-    *** /tmp/,RCSt1003677   Wed Jan 28 15:15:02 1987
-    --- serversyscall.c     Wed Jan 28 15:14:48 1987
-    ***************
-    *** 163,169 ****
-            /*
-             * No return sent for close or fsync!
-             */
-    !       if (syscall == RSYS_close || syscall == RSYS_fsync)
-                    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
-            else
-            {
-    --- 166,172 ----
-            /*
-             * No return sent for close or fsync!
-             */
-    !       if (syscall == RSYS_close)
-                    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
-            else
-            {
 
 ** PSGML conflicts with sgml-mode.
 
@@ -495,9 +446,10 @@ This is a known limitation of Emacs with no solution at this time.
 
 *** Emacs uses 100% of CPU time
 
-This is a known problem with some versions of the Semantic package.
-The solution is to upgrade Semantic to version 2.0pre4 (distributed
-with CEDET 1.0pre4) or later.
+This was a known problem with some old versions of the Semantic package.
+The solution was to upgrade Semantic to version 2.0pre4 (distributed
+with CEDET 1.0pre4) or later.  Note that Emacs includes Semantic since
+23.2, and this issue does not apply to the included version.
 
 *** Self-documentation messages are garbled.
 
