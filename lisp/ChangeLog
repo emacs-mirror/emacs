@@ -1,3 +1,11 @@
+2014-01-07  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind [return] and [backspace] to
+	isearch-exit and isearch-delete-char resp.  (Bug#16342, bug#16035)
+
+	* progmodes/ps-mode.el (ps-mode-map): Remove [return] key binding
+	that shadows RET.  (Bug#16342)
+
 2014-01-07  Daniel Colascione  <dancol@dancol.org>
 
 	* vc/log-view.el (log-view-beginning-of-defun): Add comment

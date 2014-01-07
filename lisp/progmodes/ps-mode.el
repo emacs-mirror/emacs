@@ -427,7 +427,6 @@ If nil, use `temporary-file-directory'."
   (define-key ps-mode-map "\177" 'ps-mode-backward-delete-char)
   (define-key ps-mode-map "\t" 'ps-mode-tabkey)
   (define-key ps-mode-map "\r" 'ps-mode-newline)
-  (define-key ps-mode-map [return] 'ps-mode-newline)
   (easy-menu-define ps-mode-main ps-mode-map "PostScript" ps-mode-menu-main))
 
 (unless ps-run-mode-map

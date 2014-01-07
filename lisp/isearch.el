@@ -446,6 +446,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\C-s" 'isearch-repeat-forward)
     (define-key map "\M-\C-r" 'isearch-repeat-backward)
     (define-key map "\177" 'isearch-delete-char)
+    (define-key map [backspace] 'isearch-delete-char)
     (define-key map "\C-g" 'isearch-abort)
 
     ;; This assumes \e is the meta-prefix-char.
@@ -456,6 +457,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\C-q" 'isearch-quote-char)
 
     (define-key map "\r" 'isearch-exit)
+    (define-key map [return] 'isearch-exit)
     (define-key map "\C-j" 'isearch-printing-char)
     (define-key map "\t" 'isearch-printing-char)
     (define-key map [?\S-\ ] 'isearch-printing-char)
