@@ -1,3 +1,8 @@
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-help-extra-packages): Remove.
+	(menu-bar-help-menu): Use view-external-packages instead.
+
 2014-01-07  Bastien Guerry  <bzg@gnu.org>
 
 	* emacs-lisp/package.el (package-delete): Also delete the package

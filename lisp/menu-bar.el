@@ -1635,12 +1635,6 @@ key, a click, or a menu-item"))
                   :help "Read the Introduction to Emacs Lisp Programming"))
     menu))
 
-;; This used to visit MORE.STUFF; maybe it should just be removed.
-(defun menu-bar-help-extra-packages ()
-  "Display help about some additional packages available for Emacs."
-  (interactive)
-  (info "(efaq)Packages that do not come with Emacs"))
-
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."
   (interactive)
@@ -1668,8 +1662,8 @@ key, a click, or a menu-item"))
     (bindings--define-key menu [sep2]
       menu-bar-separator)
     (bindings--define-key menu [external-packages]
-      '(menu-item "Finding Extra Packages" menu-bar-help-extra-packages
-                  :help "Lisp packages distributed separately for use in Emacs"))
+      '(menu-item "Finding Extra Packages" view-external-packages
+                  :help "How to get more Lisp packages for use in Emacs"))
     (bindings--define-key menu [find-emacs-packages]
       '(menu-item "Search Built-in Packages" finder-by-keyword
                   :help "Find built-in packages and features by keyword"))

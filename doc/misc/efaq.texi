@@ -3299,6 +3299,7 @@ the constituent Emacs packages.
 For advice on how to find extra packages that are not part of Emacs,
 see @ref{Packages that do not come with Emacs}.
 
+@c Note that M-x view-external-packages references this node.
 @node Packages that do not come with Emacs
 @section Where can I get Emacs Lisp packages that don't come with Emacs?
 @cindex Unbundled packages
