@@ -12,7 +12,7 @@ Outline mode.)  Information about systems that are no longer supported,
 and old Emacs releases, has been removed.  Consult older versions of
 this file if you are interested in that information.
 
-* Mule-UCS doesn't work in Emacs 23.
+* Mule-UCS doesn't work in Emacs 23 onwards
 
 It's completely redundant now, as far as we know.
 
@@ -106,57 +106,6 @@ present in load-path:
 If this command prints any file names, some of these files are stale,
 and should be deleted or their directories removed from your
 load-path.
-
-** With X11R6.4, public-patch-3, Emacs crashes at startup.
-
-Reportedly this patch in X fixes the problem.
-
-    --- xc/lib/X11/imInt.c~	Wed Jun 30 13:31:56 1999
-    +++ xc/lib/X11/imInt.c	Thu Jul  1 15:10:27 1999
-    @@ -1,4 +1,4 @@
-    -/* $TOG: imInt.c /main/5 1998/05/30 21:11:16 kaleb $ */
-    +/* $TOG: imInt.c /main/5 1998/05/30 21:11:16 kaleb $  */
-     /******************************************************************
-
-                Copyright 1992, 1993, 1994 by FUJITSU LIMITED
-    @@ -166,8 +166,8 @@
-     _XimMakeImName(lcd)
-         XLCd      lcd;
-     {
-    -    char* begin;
-    -    char* end;
-    +    char* begin = NULL;
-    +    char* end = NULL;
-         char* ret;
-         int	i = 0;
-         char* ximmodifier = XIMMODIFIER;
-    @@ -182,7 +182,11 @@
-         }
-         ret = Xmalloc(end - begin + 2);
-         if (ret != NULL) {
-    -           (void)strncpy(ret, begin, end - begin + 1);
-    +	if (begin != NULL) {
-    +             (void)strncpy(ret, begin, end - begin + 1);
-    +        } else {
-    +     ret[0] = '\0';
-    +	}
-            ret[end - begin + 1] = '\0';
-         }
-         return ret;
-
-** Emacs crashes on startup after a glibc upgrade.
-
-This is caused by a binary incompatible change to the malloc
-implementation in glibc 2.5.90-22.  As a result, Emacs binaries built
-using prior versions of glibc crash when run under 2.5.90-22.
-
-This problem was first seen in pre-release versions of Fedora 7, and
-may be fixed in the final Fedora 7 release.  To stop the crash from
-happening, first try upgrading to the newest version of glibc; if this
-does not work, rebuild Emacs with the same version of glibc that you
-will run it under.  For details, see
-
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344
 
 * Crash bugs
 
@@ -280,7 +229,7 @@ normally in the ld search path, but if you want to use OpenMPI,
 you must issue the command "module load openmpi".  This adds
 /usr/lib/openmpi/lib to LD_LIBRARY_PATH.  If you then start Emacs from
 the same shell, you will encounter this crash.
-Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=806031>
+Ref: <URL:https://bugzilla.redhat.com/show_bug.cgi?id=844776>
 
 There is no good solution to this problem if you need to use both
 OpenMPI and Emacs with libotf support.  The best you can do is use a
@@ -300,17 +249,18 @@ Then the old .elc files will be loaded, and your changes
 will not be seen.  To fix this, do M-x byte-recompile-directory
 and specify the directory that contains the Lisp files.
 
-Emacs should print a warning when loading a .elc file which is older
+Emacs prints a warning when loading a .elc file which is older
 than the corresponding .el file.
 
-*** Watch out for .emacs files and EMACSLOADPATH environment vars.
+Alternatively, if you set the option `load-prefer-newer' non-nil,
+Emacs will load whichever version of a file is the newest.
 
-These control the actions of Emacs.
-~/.emacs is your Emacs init file.
+*** Watch out for the EMACSLOADPATH environment variable
+
 EMACSLOADPATH overrides which directories the function "load" will search.
 
-If you observe strange problems, check for these and get rid
-of them, then try again.
+If you observe strange problems, check for this variable in your
+environment.
 
 *** Using epop3.el package causes Emacs to signal an error.
 
