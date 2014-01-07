@@ -1,3 +1,9 @@
+2014-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* minibuffer.el (completion--try-word-completion): When both a
+	hyphen and a space are possible candidates for the character
+	following a word, display both candidates.  (Bug#15980)
+
 2014-01-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (balance-windows-2): While rounding don't give a
