@@ -43,9 +43,9 @@ variables}---variables that can have a different value in each buffer.
   A buffer's size cannot be larger than some maximum, which is defined
 by the largest buffer position representable by @dfn{Emacs integers}.
 This is because Emacs tracks buffer positions using that data type.
-For typical 64-bit machines, this maximum buffer size is @math{2^61 -
-2} bytes, or about 2 EiB@.  For typical 32-bit machines, the maximum is
-usually @math{2^29 - 2} bytes, or about 512 MiB@.  Buffer sizes are
+For typical 64-bit machines, this maximum buffer size is @math{2^{61} - 2}
+bytes, or about 2 EiB@.  For typical 32-bit machines, the maximum is
+usually @math{2^{29} - 2} bytes, or about 512 MiB@.  Buffer sizes are
 also limited by the amount of memory in the system.
 
 @menu

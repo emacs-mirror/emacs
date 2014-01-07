@@ -1,3 +1,8 @@
+2014-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* buffers.texi (Buffers): Fix display of @math content by using
+	nested braces.  (Bug#16389)
+
 2014-01-07  Chong Yidong  <cyd@gnu.org>
 
 	* search.texi (Special Isearch): Document C-x 8 RET in isearch.
