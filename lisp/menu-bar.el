@@ -1635,13 +1635,11 @@ key, a click, or a menu-item"))
                   :help "Read the Introduction to Emacs Lisp Programming"))
     menu))
 
+;; This used to visit MORE.STUFF; maybe it should just be removed.
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)
-  (let (enable-local-variables)
-    (view-file (expand-file-name "MORE.STUFF"
-				 data-directory))
-    (goto-address-mode 1)))
+  (info "(efaq)Packages that do not come with Emacs"))
 
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."

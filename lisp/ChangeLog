@@ -1,3 +1,9 @@
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (view-external-packages):
+	* menu-bar.el (menu-bar-help-extra-packages):
+	Visit efaq.info rather than etc/MORE.STUFF.
+
 2014-01-07  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind [return] and [backspace] to
@@ -5,11 +11,6 @@
 
 	* progmodes/ps-mode.el (ps-mode-map): Remove [return] key binding
 	that shadows RET.  (Bug#16342)
-
-2014-01-07  Daniel Colascione  <dancol@dancol.org>
-
-	* vc/log-view.el (log-view-beginning-of-defun): Add comment
-	explaining why we call `log-view-end-of-defun'.
 
 2014-01-07  Chong Yidong  <cyd@gnu.org>
 

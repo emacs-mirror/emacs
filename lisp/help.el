@@ -437,10 +437,11 @@ is specified by the variable `message-log-max'."
   (interactive)
   (view-help-file "DEBUG"))
 
+;; This used to visit MORE.STUFF; maybe it should just be removed.
 (defun view-external-packages ()
-  "Display external packages and information about Emacs."
+  "Display info on where to get more Emacs packages."
   (interactive)
-  (view-help-file "MORE.STUFF"))
+  (info "(efaq)Packages that do not come with Emacs"))
 
 (defun view-lossage ()
   "Display last 300 input keystrokes.
