@@ -11738,15 +11738,12 @@
 
 2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
-	* lispref/anti.texi, lispref/backups.texi, lispref/commands.texi
-	lispref/customize.texi, lispref/display.texi, lispref/files.texi,
-	lispref/internals.texi, lispref/keymaps.texi, lispref/loading.texi,
-	lispref/modes.texi, lispref/nonascii.texi, lispref/numbers.texi,
-	lispref/objects.texi, lispref/os.texi, lispref/positions.texi,
-	lispref/processes.texi, lispref/searching.texi,
-	lispref/sequences.texi, lispref/streams.texi, lispref/strings.texi,
-	lispref/syntax.texi, lispref/text.texi: Replace @sc{foo} with
-	@acronym{FOO}.
+	* anti.texi, backups.texi, commands.texi, customize.texi:
+	* display.texi, files.texi, internals.texi, keymaps.texi:
+	* loading.texi, modes.texi, nonascii.texi, numbers.texi:
+	* objects.texi, os.texi, positions.texi, processes.texi:
+	* searching.texi, sequences.texi, streams.texi, strings.texi:
+	* syntax.texi, text.texi: Replace @sc{foo} with @acronym{FOO}.
 
 2003-10-27  Luc Teirlinck  <teirllm@auburn.edu>
 

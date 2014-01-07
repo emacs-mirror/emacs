@@ -1,10 +1,10 @@
 2013-01-07  Rasmus  <w530@pank.eu>
 
-	* misc/org.texi (Global and local cycling): Fix missing '@'.
+	* org.texi (Global and local cycling): Fix missing '@'.
 
 2013-01-07 Bastien Guerry <bzg@gnu.org>
 
-	* misc/org.texi (Global and local cycling): Mention C-u C-u TAB.
+	* org.texi (Global and local cycling): Mention C-u C-u TAB.
 	(Include files, The Export Dispatcher)
 	(Advanced configuration)
 	(Header arguments in Org mode properties): Spelling fixes.
@@ -14,7 +14,7 @@
 
 2013-01-07  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* misc/org.texi (Org export): New section.
+	* org.texi (Org export): New section.
 	(HTML doctypes): Fix whitespace error.  Fix display.
 	(Publishing options): Add missing html publishing options.
 
@@ -1211,7 +1211,7 @@
 
 2013-02-07  Eric Ludlam  <zappo@gnu.org>
 
-	* doc/misc/ede.texi (Creating a project): Make ede-new doc less
+	* ede.texi (Creating a project): Make ede-new doc less
 	specific, and only about items it supports, indicating that there
 	might be more.  Remove refs to simple project and direct automake
 	from ede new.
@@ -1543,7 +1543,7 @@
 
 2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* doc/misc/calc.texi (Date Forms): Mention the customizable
+	* calc.texi (Date Forms): Mention the customizable
 	Gregorian-Julian switch.
 	(Customizing Calc): Mention the variable `calc-gregorian-switch'.
 
@@ -2208,7 +2208,7 @@
 
 2012-05-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* doc/misc/calc.texi (Basic Operations on Units, Customizing Calc):
+	* calc.texi (Basic Operations on Units, Customizing Calc):
 	Mention `calc-ensure-consistent-units'.
 
 2012-05-14  Andreas Schwab  <schwab@linux-m68k.org>
