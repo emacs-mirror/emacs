@@ -1,3 +1,8 @@
+2014-01-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (balance-windows-2): While rounding don't give a
+	window more than the remainder.  Bug#16351, Bug#16383.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-help-extra-packages): Remove.

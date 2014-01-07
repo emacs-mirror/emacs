@@ -4541,7 +4541,7 @@ is non-nil)."
     (setq sub first)
     (while (and sub (> rest 0))
       (unless (window--resize-child-windows-skip-p window)
-	(set-window-new-pixel sub char-size t)
+	(set-window-new-pixel sub (min rest char-size) t)
 	(setq rest (- rest char-size)))
       (setq sub (window-right sub)))
 
@@ -4550,7 +4550,7 @@ is non-nil)."
     (setq sub first)
     (while (and sub (> rest 0))
       (unless (eq (window-new-normal sub) 'ignore)
-	(set-window-new-pixel sub char-size t)
+	(set-window-new-pixel sub (min rest char-size) t)
 	(setq rest (- rest char-size)))
       (setq sub (window-right sub)))
 
