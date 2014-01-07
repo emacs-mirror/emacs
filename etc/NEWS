@@ -34,14 +34,17 @@ build time.  To prevent this, use the configure option
 `--with-file-notification-no'.  See below for file-notify features.
 FIXME?  This feature is not available for the Nextstep port. (?)
 
+---
 ** The configure option `--without-compress-info' has been generalized,
 and renamed to `--without-compress-install'.  It now prevents compression
 of _any_ files during installation.
 
+---
 ** The configure option `--with-crt-dir' has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
 
+---
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
 
