@@ -1,3 +1,7 @@
+2014-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Changing Files): Document copy-file changes.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Logging Messages): Copyedits re messages-buffer.

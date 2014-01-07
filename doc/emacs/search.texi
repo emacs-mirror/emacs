@@ -229,12 +229,14 @@ spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
 @samp{foo  bar}, @samp{foo   bar}, and so on (but not @samp{foobar}).
 More precisely, Emacs matches each sequence of space characters in the
 search string to a regular expression specified by the variable
-@code{search-whitespace-regexp}.  For example, set it to
-@samp{"[[:space:]\n]+"} to make spaces match sequences of newlines as
-well as spaces.  To toggle lax space matching, type @kbd{M-s SPC}
+@code{search-whitespace-regexp}.  For example, to make spaces match
+sequences of newlines as well as spaces, set it to
+@samp{"[[:space:]\n]+"}.
+
+  To toggle lax space matching, type @kbd{M-s SPC}
 (@code{isearch-toggle-lax-whitespace}).  To disable this feature
 entirely, change @code{search-whitespace-regexp} to @code{nil}; then
-each space in the search string matches exactly one space
+each space in the search string matches exactly one space.
 
   If the search string you entered contains only lower-case letters,
 the search is case-insensitive; as long as an upper-case letter exists
@@ -244,15 +246,29 @@ have this effect.  @xref{Search Case}.
 
   To search for a newline character, type @kbd{C-j}.
 
-  To search for other control characters, such as @key{control-S},
-quote it by typing @kbd{C-q} first (@pxref{Inserting Text}).  To
-search for non-@acronym{ASCII} characters, you can either use
-@kbd{C-q} and enter its octal code, or use an input method
-(@pxref{Input Methods}).  If an input method is enabled in the current
-buffer when you start the search, you can use it in the search string
-also.  While typing the search string, you can toggle the input method
-with the command @kbd{C-\} (@code{isearch-toggle-input-method}).  You
-can also turn on a non-default input method with @kbd{C-^}
+  To search for non-@acronym{ASCII} characters, use one of the
+following methods:
+
+@itemize @bullet
+@item
+Type @kbd{C-q}, followed by a non-graphic character or a sequence of
+octal digits.  This adds a character to the search string, similar to
+inserting into a buffer using @kbd{C-q} (@pxref{Inserting Text}).  For
+example, @kbd{C-q C-s} during incremental search adds the
+@key{control-S} character to the search string.
+
+@item
+Type @kbd{C-x 8 @key{RET}}, followed by a Unicode name or code-point.
+This adds the specified character into the search string, similar to
+the usual @code{insert-char} command (@pxref{Inserting Text}).
+
+@item
+Use an input method (@pxref{Input Methods}).  If an input method is
+enabled in the current buffer when you start the search, you can use
+it in the search string also.  While typing the search string, you can
+toggle the input method with @kbd{C-\}
+(@code{isearch-toggle-input-method}).  You can also turn on a
+non-default input method with @kbd{C-^}
 (@code{isearch-toggle-specified-input-method}), which prompts for the
 name of the input method.  When an input method is active during
 incremental search, the search prompt includes the input method
@@ -268,6 +284,7 @@ I-search [@var{im}]:
 where @var{im} is the mnemonic of the active input method.  Any input
 method you enable during incremental search remains enabled in the
 current buffer afterwards.
+@end itemize
 
 @kindex M-% @r{(Incremental search)}
   Typing @kbd{M-%} in incremental search invokes @code{query-replace}
@@ -315,7 +332,8 @@ of whether to copy a character or a word is heuristic.)
 @findex isearch-yank-line
   Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
 of the current line to the search string.  If point is already at the
-end of a line, it appends the next line.
+end of a line, it appends the next line.  With a prefix argument
+@var{n}, it appends the next @var{n} lines.
 
   If the search is currently case-insensitive, both @kbd{C-w} and
 @kbd{M-s C-e} convert the text they copy to lower case, so that the
@@ -481,12 +499,13 @@ These run the commands @code{word-search-forward} and
 @code{word-search-backward} respectively.
 
   Incremental and nonincremental word searches differ slightly in the
-way they find a match.  In a nonincremental word search, the last word
-in the search string must exactly match a whole word.  In an
-incremental word search, the matching is more lax: the last word in
-the search string can match part of a word, so that the matching
-proceeds incrementally as you type.  This additional laxity does not
-apply to the lazy highlight, which always matches whole words.
+way they find a match.  In a nonincremental word search, each word in
+the search string must exactly match a whole word.  In an incremental
+word search, the matching is more lax: while you are typing the search
+string, its first and last words need not match whole words.  This is
+so that the matching can proceed incrementally as you type.  This
+additional laxity does not apply to the lazy highlight, which always
+matches whole words.
 
 @node Symbol Search
 @section Symbol Search

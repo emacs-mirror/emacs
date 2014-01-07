@@ -1,3 +1,8 @@
+2014-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* isearch.el (isearch-yank-char, isearch-yank-word)
+	(isearch-yank-line): Doc fix.
+
 2014-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (define-abbrev): Beware new meaning of fboundp.

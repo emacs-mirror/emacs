@@ -1946,7 +1946,8 @@ or it might return the position of the end of the line."
     (forward-char arg)))
 
 (defun isearch-yank-char (&optional arg)
-  "Pull next character from buffer into search string."
+  "Pull next character from buffer into search string.
+If optional ARG is non-nil, pull in the next ARG characters."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-char arg) (point))))
 
@@ -1965,12 +1966,14 @@ Subword is used when `subword-mode' is activated. "
        (forward-char 1)) (point))))
 
 (defun isearch-yank-word (&optional arg)
-  "Pull next word from buffer into search string."
+  "Pull next word from buffer into search string.
+If optional ARG is non-nil, pull in the next ARG words."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-word arg) (point))))
 
 (defun isearch-yank-line (&optional arg)
-  "Pull rest of line from buffer into search string."
+  "Pull rest of line from buffer into search string.
+If optional ARG is non-nil, yank the next ARG lines."
   (interactive "p")
   (isearch-yank-internal
    (lambda () (let ((inhibit-field-text-motion t))

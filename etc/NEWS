@@ -702,6 +702,7 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 starts a symbol (identifier) incremental search forward with the
 symbol found near point added to the search string initially.
 
++++
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
 
@@ -721,10 +722,12 @@ backward, `M-s w words M-- M-%' replaces a sequence of words backward.
 *** By default, prefix arguments do not now terminate Isearch mode.
 Set `isearch-allow-prefix' to nil to restore old behavior.
 
++++
 *** More Isearch commands accept prefix arguments, namely
 `isearch-printing-char', `isearch-quote-char', `isearch-yank-word',
 `isearch-yank-line'.
 
++++
 *** Word search now matches whitespace at the beginning/end
 of the search string if it contains leading/trailing whitespace.
 In an incremental word search or when using a non-nil LAX argument
@@ -739,7 +742,7 @@ that it matches symbols, and non-symbol characters between symbols.
 *** New command `ses-rename-cell' allows assigning names to SES cells.
 
 ** Shell
-
+---
 *** `explicit-bash-args' now always defaults to use --noediting.
 During initialization, Emacs no longer expends a process to decide
 whether it is safe to use Bash's --noediting option.  These days
@@ -971,6 +974,7 @@ alist of extended attributes as returned by the new function
 `file-extended-attributes'.  The attributes can be applied to another
 file using `set-file-extended-attributes'.
 
++++
 ** By default `copy-file' no longer copies file permission bits to an
 existing destination; and it sets the file permission bits of a newly
 created destination to those of the source, masked by the default file
@@ -1146,6 +1150,7 @@ Unix file permission bits as well as SELinux context.
 argument GROUP which causes it check for file group too.  This can be
 used in place of the 9th element of `file-attributes'.
 
+---
 *** The function `set-visited-file-modtime' now accepts a 0 or -1
 argument, with the same interpretation as the returned value of
 `visited-file-modtime'.
