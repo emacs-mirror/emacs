@@ -2,8 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-
-@include org-version.inc
+@set VERSION 8.2.5c
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -281,7 +280,7 @@ modify this GNU manual.''
 
 @dircategory Emacs editing modes
 @direntry
-* Org Mode: (org).      Outline-based notes management and organizer
+* Org Mode: (org).              Outline-based notes management and organizer.
 @end direntry
 
 @titlepage
