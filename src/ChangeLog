@@ -1,3 +1,9 @@
+2014-01-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix misdisplay of interlaced GIFs with libgif5 (Bug#16372).
+	* image.c (gif_load): libgif5 deinterlaces for us, so don't do
+	it again.
+
 2014-01-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): Don't skip window redisplay if the

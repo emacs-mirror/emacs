@@ -7586,7 +7586,7 @@ gif_load (struct frame *f, struct image *img)
 	  }
 
       /* Apply the pixel values.  */
-      if (gif->SavedImages[j].ImageDesc.Interlace)
+      if (GIFLIB_MAJOR < 5 && gif->SavedImages[j].ImageDesc.Interlace)
 	{
 	  int row, pass;
 
