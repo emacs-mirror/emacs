@@ -998,7 +998,9 @@ See `org-odt--build-date-styles' for implementation details."
 	  (if width (format " svg:width=\"%0.2fcm\"" width) "")
 	  (if height (format " svg:height=\"%0.2fcm\"" height) "")
 	  extra
-	  (format " text:anchor-type=\"%s\"" (or anchor-type "paragraph")))))
+	  (format " text:anchor-type=\"%s\"" (or anchor-type "paragraph"))
+	  (format " draw:name=\"%s\""
+		  (car (org-odt-add-automatic-style "Frame"))))))
     (format
      "\n<draw:frame draw:style-name=\"%s\"%s>\n%s\n</draw:frame>"
      style frame-attrs
@@ -2120,45 +2122,9 @@ SHORT-CAPTION are strings."
 	 ;; Get label and caption.
 	 (label (org-element-property :name caption-from))
 	 (caption (org-export-get-caption caption-from))
-	 (short-caption (org-export-get-caption caption-from t))
-	 ;; Transcode captions.
 	 (caption (and caption (org-export-data caption info)))
-	 ;; Currently short caption are sneaked in as object names.
-	 ;;
-	 ;; The advantages are:
-	 ;;
-	 ;; - Table Of Contents: Currently, there is no support for
-	 ;;   building TOC for figures, listings and tables.  See
-	 ;;   `org-odt-keyword'.  User instead has to rely on
-	 ;;   external application for building such indices.  Within
-	 ;;   LibreOffice, building an "Illustration Index" or "Index
-	 ;;   of Tables" will create a table with long captions (only)
-	 ;;   and building a table with "Object names" will create a
-	 ;;   table with short captions.
-	 ;;
-	 ;; - Easy navigation: In LibreOffice, object names are
-	 ;;   offered via the navigation bar.  This way one can
-	 ;;   quickly locate and jump to object of his choice in the
-	 ;;   exported document.
-	 ;;
-	 ;; The main disadvantage is that there cannot be any markups
-	 ;; within object names i.e., one cannot embolden, italicize
-	 ;; or underline text within short caption.  So suppress
-	 ;; generation of <text:span >...</text:span> and other
-	 ;; markups by overriding the default translators.  We
-	 ;; probably shouldn't be suppressing translators for all
-	 ;; elements in `org-element-all-objects', but for now this
-	 ;; will do.
-	 (short-caption
-	  (let ((short-caption (or short-caption caption))
-		(backend (org-export-create-backend
-			  :parent (org-export-backend-name
-				   (plist-get info :back-end))
-			  :transcoders
-			  (mapcar (lambda (type) (cons type (lambda (o c i) c)))
-				  org-element-all-objects))))
-	    (when short-caption
-	      (org-export-data-with-backend short-caption backend info)))))
+	 ;; FIXME: We don't use short-caption for now
+	 (short-caption nil))
     (when (or label caption)
       (let* ((default-category
 	       (case (org-element-type element)

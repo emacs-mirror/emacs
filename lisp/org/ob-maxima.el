@@ -43,7 +43,8 @@
 (defcustom org-babel-maxima-command
   (if (boundp 'maxima-command) maxima-command "maxima")
   "Command used to call maxima on the shell."
-  :group 'org-babel)
+  :group 'org-babel
+  :type 'string)
 
 (defun org-babel-maxima-expand (body params)
   "Expand a block of Maxima code according to its header arguments."

@@ -103,7 +103,8 @@ the value of this variable."
   "Non-nil means display the first star of an inline task as additional marker.
 When nil, the first star is not shown."
   :tag "Org Inline Tasks"
-  :group 'org-structure)
+  :group 'org-structure
+  :type 'boolean)
 
 (defvar org-odd-levels-only)
 (defvar org-keyword-time-regexp)

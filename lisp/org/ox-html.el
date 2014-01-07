@@ -279,6 +279,8 @@ for the JavaScript code in this tag.
   pre.src-sql:before   { content: 'SQL'; }
 
   table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
   td, th { vertical-align:top;  }
   th.right  { text-align: center;  }
   th.left   { text-align: center;   }
@@ -580,7 +582,7 @@ The function must accept two parameters:
 The function should return the string to be exported.
 
 For example, the variable could be set to the following function
-in order to mimic default behavior:
+in order to mimic default behaviour:
 
 The default value simply returns the value of CONTENTS."
   :group 'org-export-html
@@ -3255,8 +3257,8 @@ contextual information."
 	       (if (equal attributes "") "" (concat " " attributes))
 	       (if (not caption) ""
 		 (format (if org-html-table-caption-above
-			     "<caption align=\"above\">%s</caption>"
-			   "<caption align=\"bottom\">%s</caption>")
+			     "<caption class=\"t-above\">%s</caption>"
+			   "<caption class=\"t-bottom\">%s</caption>")
 			 (concat
 			  "<span class=\"table-number\">"
                           (format (org-html--translate "Table %d:" info) number)
@@ -3438,21 +3440,6 @@ Return output file name."
 				      org-html-extension "html"))
 		      plist pub-dir))
 
-
-;;; FIXME
-
-;;;; org-format-table-html
-;;;; org-format-org-table-html
-;;;; org-format-table-table-html
-;;;; org-table-number-fraction
-;;;; org-table-number-regexp
-;;;; org-html-inline-image-extensions
-;;;; org-export-preferred-target-alist
-;;;; class for anchors
-;;;; org-export-mark-todo-in-toc
-;;;; org-html-format-org-link
-;;;; (caption (and caption (org-xml-encode-org-text caption)))
-;;;; alt = (file-name-nondirectory path)
 
 (provide 'ox-html)
 

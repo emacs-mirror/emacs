@@ -41,8 +41,7 @@
   (require 'cl))
 (require 'org-id)
 (require 'org)
-
-(declare-function vc-git-root "vc-git" (file))
+(require 'vc-git)
 
 (defgroup org-attach nil
   "Options concerning entry attachments in Org-mode."
@@ -266,7 +265,7 @@ This checks for the existence of a \".git\" directory in that directory."
   (let* ((dir (expand-file-name org-attach-directory))
 	 (git-dir (vc-git-root dir))
 	 (changes 0))
-    (when git-dir
+    (when (and git-dir (executable-find "git"))
       (with-temp-buffer
 	(cd dir)
 	(let ((have-annex

@@ -239,19 +239,6 @@ application to open them.")
 By default, all keywords setting attributes (i.e. \"ATTR_LATEX\")
 are affiliated keywords and need not to be in this list.")
 
-(defconst org-element--affiliated-re
-  (format "[ \t]*#\\+%s:"
-	  ;; Regular affiliated keywords.
-	  (format "\\(%s\\|ATTR_[-_A-Za-z0-9]+\\)\\(?:\\[\\(.*\\)\\]\\)?"
-		  (regexp-opt org-element-affiliated-keywords)))
-  "Regexp matching any affiliated keyword.
-
-Keyword name is put in match group 1.  Moreover, if keyword
-belongs to `org-element-dual-keywords', put the dual value in
-match group 2.
-
-Don't modify it, set `org-element-affiliated-keywords' instead.")
-
 (defconst org-element-keyword-translation-alist
   '(("DATA" . "NAME")  ("LABEL" . "NAME") ("RESNAME" . "NAME")
     ("SOURCE" . "NAME") ("SRCNAME" . "NAME") ("TBLNAME" . "NAME")
@@ -297,6 +284,31 @@ This list is checked after translations have been applied.  See
   "List of properties associated to the whole document.
 Any keyword in this list will have its value parsed and stored as
 a secondary string.")
+
+(defconst org-element--affiliated-re
+  (format "[ \t]*#\\+\\(?:%s\\):\\(?: \\|$\\)"
+	  (concat
+	   ;; Dual affiliated keywords.
+	   (format "\\(?1:%s\\)\\(?:\\[\\(.*\\)\\]\\)?"
+		   (regexp-opt org-element-dual-keywords))
+	   "\\|"
+	   ;; Regular affiliated keywords.
+	   (format "\\(?1:%s\\)"
+		   (regexp-opt
+		    (org-remove-if
+		     #'(lambda (keyword)
+			 (member keyword org-element-dual-keywords))
+		     org-element-affiliated-keywords)))
+	   "\\|"
+	   ;; Export attributes.
+	   "\\(?1:ATTR_[-_A-Za-z0-9]+\\)"))
+  "Regexp matching any affiliated keyword.
+
+Keyword name is put in match group 1.  Moreover, if keyword
+belongs to `org-element-dual-keywords', put the dual value in
+match group 2.
+
+Don't modify it, set `org-element-affiliated-keywords' instead.")
 
 (defconst org-element-object-restrictions
   (let* ((standard-set
@@ -2906,12 +2918,8 @@ CONTENTS is nil."
 Return value is a cons cell whose CAR is `inline-babel-call' and
 CDR is beginning position."
   (save-excursion
-    ;; Use a simplified version of
-    ;; `org-babel-inline-lob-one-liner-regexp'.
-    (when (re-search-forward
-	   "call_\\([^()\n]+?\\)\\(?:\\[.*?\\]\\)?([^\n]*?)\\(\\[.*?\\]\\)?"
-	   nil t)
-      (cons 'inline-babel-call (match-beginning 0)))))
+    (when (re-search-forward org-babel-inline-lob-one-liner-regexp nil t)
+      (cons 'inline-babel-call (match-end 1)))))
 
 
 ;;;; Inline Src Block

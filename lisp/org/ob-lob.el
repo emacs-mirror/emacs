@@ -40,14 +40,13 @@ files to `org-babel-lob-files'.")
 To add files to this list use the `org-babel-lob-ingest' command."
   :group 'org-babel
   :version "24.1"
-  :type 'list)
+  :type '(repeat file))
 
 (defvar org-babel-default-lob-header-args '((:exports . "results"))
   "Default header arguments to use when exporting #+lob/call lines.")
 
 (defun org-babel-lob-ingest (&optional file)
-  "Add all named source-blocks defined in FILE to
-`org-babel-library-of-babel'."
+  "Add all named source blocks defined in FILE to `org-babel-library-of-babel'."
   (interactive "fFile: ")
   (let ((lob-ingest-count 0))
     (org-babel-map-src-blocks file

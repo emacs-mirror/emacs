@@ -59,7 +59,7 @@
   '("[usenames]{color}" "{tikz}" "{color}" "{listings}" "{amsmath}")
   "Packages to use for htlatex export."
   :group 'org-babel
-  :type '(list (string)))
+  :type '(repeat (string)))
 
 (defun org-babel-expand-body:latex (body params)
   "Expand BODY according to PARAMS, return the expanded body."

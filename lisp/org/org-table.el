@@ -2274,33 +2274,35 @@ KEY is \"@\" or \"$\".  REPLACE is an alist of numbers to replace.
 For all numbers larger than LIMIT, shift them by DELTA."
   (save-excursion
     (goto-char (org-table-end))
-    (when (let ((case-fold-search t)) (looking-at "[ \t]*#\\+tblfm:"))
-      (let ((msg "The formulas in #+TBLFM have been updated")
-	    (re (concat key "\\([0-9]+\\)"))
-	    (re2
-	     (when remove
-	       (if (or (equal key "$") (equal key "$LR"))
-		   (format "\\(@[0-9]+\\)?%s%d=.*?\\(::\\|$\\)"
-			   (regexp-quote key) remove)
-		 (format "@%d\\$[0-9]+=.*?\\(::\\|$\\)" remove))))
-	    s n a)
-	(when remove
-	  (while (re-search-forward re2 (point-at-eol) t)
+    (let ((case-fold-search t)
+	  (s-end (save-excursion (re-search-forward "^\\S-*$\\|\\'" nil t))))
+      (while (re-search-forward "[ \t]*#\\+tblfm:" s-end t)
+	(let ((msg "The formulas in #+TBLFM have been updated")
+	      (re (concat key "\\([0-9]+\\)"))
+	      (re2
+	       (when remove
+		 (if (or (equal key "$") (equal key "$LR"))
+		     (format "\\(@[0-9]+\\)?%s%d=.*?\\(::\\|$\\)"
+			     (regexp-quote key) remove)
+		   (format "@%d\\$[0-9]+=.*?\\(::\\|$\\)" remove))))
+	      s n a)
+	  (when remove
+	    (while (re-search-forward re2 (point-at-eol) t)
+	      (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
+		(if (equal (char-before (match-beginning 0)) ?.)
+		    (user-error "Change makes TBLFM term %s invalid, use undo to recover"
+				(match-string 0))
+		  (replace-match "")))))
+	  (while (re-search-forward re (point-at-eol) t)
 	    (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
-	      (if (equal (char-before (match-beginning 0)) ?.)
-		  (user-error "Change makes TBLFM term %s invalid, use undo to recover"
-			 (match-string 0))
-		(replace-match "")))))
-	(while (re-search-forward re (point-at-eol) t)
-	  (unless (save-match-data (org-in-regexp "remote([^)]+?)"))
-	    (setq s (match-string 1) n (string-to-number s))
-	    (cond
-	     ((setq a (assoc s replace))
-	      (replace-match (concat key (cdr a)) t t)
-	      (message msg))
-	     ((and limit (> n limit))
-	      (replace-match (concat key (int-to-string (+ n delta))) t t)
-	      (message msg)))))))))
+	      (setq s (match-string 1) n (string-to-number s))
+	      (cond
+	       ((setq a (assoc s replace))
+		(replace-match (concat key (cdr a)) t t)
+		(message msg))
+	       ((and limit (> n limit))
+		(replace-match (concat key (int-to-string (+ n delta))) t t)
+		(message msg))))))))))
 
 (defun org-table-get-specials ()
   "Get the column names and local parameters for this table."

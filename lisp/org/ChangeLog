@@ -1,3 +1,107 @@
+2013-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-cancel-hook)
+	(org-clock-leftover-time): Fix typo in docstring.
+
+	* ox-odt.el (org-odt--frame): Add a draw:name property to the
+	draw:frame tag.
+	(org-odt-format-label): Don't use short-caption at all.
+
+	* org-rmail.el (org-rmail-follow-link): Don't raise an error when
+	no article is matched.
+
+	* org.el (org-set-tags): Ignore invisible text when restoring
+	cursor position.
+	(org-refile-get-location): Check for a refile position when the
+	position is not nil, otherwise allow to create the parent node if
+	the user requests it.
+	(org-refile-allow-creating-parent-nodes): Fix typo in
+	docstring.
+	(org-entry-get): Minor docstring enhancement.
+	(org-set-startup-visibility): Bugfix.
+	(org-shiftcontrolup, org-shiftcontroldown): When
+	`org-support-shift-select' is not `nil', let-bind it to nil if
+	point is on a clock log.  Otherwise throw an error.
+
+	* ob-lob.el (org-babel-lob-files): Fix custom type.
+	(org-babel-lob-ingest): Small docstring fix.
+
+	* org-agenda.el (org-cmp-ts): Fix bug: interpret `late' as
+	`later than any date' instead of `later than today'.
+
+	* org.el (org-do-emphasis-faces): Handle false positives by
+	restarting the re-search one char after the beginning of the
+	match, not one char before its ending.
+	(org-entry-put): Check that the value provided is a string.  If it
+	is nil, convert it to the empty string.
+
+	* ob-latex.el (org-babel-latex-htlatex-packages): Use repeat
+	instead of list as the defcustom type.
+
+	* ox.el (org-export-with-creator):
+	* org.el (org-loop-over-headlines-in-active-region)
+	(org-mouse-1-follows-link, org-provide-todo-statistics):
+	* org-agenda.el (org-agenda-custom-commands-local-options)
+	(org-agenda-start-with-log-mode)
+	(org-agenda-show-inherited-tags): Don't quote const values.
+
+	* ox-texinfo.el (org-texinfo-def-table-markup):
+	* org-inlinetask.el (org-inlinetask-show-first-star):
+	* ob-maxima.el (org-babel-maxima-command): Add type.
+
+	* org-table.el (org-table-fix-formulas): Handle multiple
+	#+tblfm: lines.
+
+	* ox.el (org-export-to-file): Fix typo in docstring.
+
+	* org.el (org-self-insert-command)
+	(orgtbl-self-insert-command): Change the value of the
+	`delete-selection' property to allow other commands like
+	`electric-pair-will-use-region' to be run before deletion.
+
+	* org-attach.el (vc-git): Require.
+	(org-attach-commit): Check whether git is installed.
+
+2013-01-07  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* ox-icalendar.el (org-icalendar--combine-files): Make sure
+	anniversaries do not end up in *Message* buffer instead of the ICS
+	file.
+
+	* ox-html.el: Clean up "FIXME" comments.
+
+	* ox-publish.el (org-publish-resolve-external-fuzzy-link): Fix
+	docstring.
+
+	* ox.el (org-export-smart-quotes-regexps): Fix smart quote
+	detection when it is followed by an open parenthesis syntax class.
+
+	* org-element.el (org-element-inline-babel-call-successor): Use
+	original regexp to stay up-to-date with Babel changes.
+	(org-element--affiliated-re): Fix affiliated keyword regexp.
+
+	* ox-org.el (org-org-identity): Since back-end specific keywords
+	are stripped from output, also remove attr_backend keywords.
+	(org-babel-exp-process-buffer): Fix duplicate evaluation with
+	:wrap src.
+	(org-babel-exp-non-block-elements): Removed function.
+
+2013-01-07  Ted Wiles  <thewiles@wharton.upenn.edu>  (tiny change)
+
+	* org-habit.el (org-habit-parse-todo): Match all TODO keywords,
+	not just "TODO".
+
+2013-01-07  U-usuario  <rbenit68@yahoo.es>  (tiny change)
+
+	* ob-gnuplot.el (org-babel-gnuplot-quote-tsv-field): Fix code
+	typo.
+
+2013-01-07  Vladimir Lomov  <lomov.vl@gmail.com>  (tiny change)
+
+	* ox-html.el (org-html-style-default): New classes caption.t-above
+	and caption.t-bottom.
+	(org-html-table): Use new classes.
+
 2013-12-23  Chong Yidong  <cyd@gnu.org>
 
 	* org.el (orgstruct-make-binding): Call set-transient-map instead

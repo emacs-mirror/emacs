@@ -200,7 +200,9 @@ This list represents a \"habit\" for the rest of this module."
 	     (count 0))
 	(unless reversed (goto-char end))
 	(while (and (< count maxdays)
-		    (funcall search "- State \"DONE\".*\\[\\([^]]+\\)\\]" limit t))
+		    (funcall search (format "- State \"%s\".*\\[\\([^]]+\\)\\]"
+					    (regexp-opt org-done-keywords))
+			     limit t))
 	  (push (time-to-days
 		 (org-time-string-to-time (match-string-no-properties 1)))
 		closed-dates)

@@ -288,7 +288,9 @@ When nil, no transformation is made."
 	  (const :tag "No formatting")))
 
 (defcustom org-texinfo-def-table-markup "@samp"
-  "Default setting for @table environments.")
+  "Default setting for @table environments."
+  :group 'org-export-texinfo
+  :type 'string)
 
 ;;; Text markup
 

@@ -2,7 +2,8 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 8.2.4
+
+@include org-version.inc
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -280,7 +281,7 @@ modify this GNU manual.''
 
 @dircategory Emacs editing modes
 @direntry
-* Org Mode: (org).              Outline-based notes management and organizer.
+* Org Mode: (org).      Outline-based notes management and organizer
 @end direntry
 
 @titlepage
@@ -588,6 +589,7 @@ Exporting
 * @LaTeX{} and PDF export::     Exporting to @LaTeX{}, and processing to PDF
 * Markdown export::             Exporting to Markdown
 * OpenDocument Text export::    Exporting to OpenDocument Text
+* Org export::                  Exporting to Org
 * iCalendar export::            Exporting to iCalendar
 * Other built-in back-ends::    Exporting to @code{Texinfo}, a man page, or Org
 * Export in foreign buffers::   Author tables in lists in Org syntax
@@ -1283,6 +1285,9 @@ When @kbd{S-@key{TAB}} is called with a numeric prefix argument N, the
 CONTENTS view up to headlines of level N will be shown.  Note that inside
 tables, @kbd{S-@key{TAB}} jumps to the previous field.
 
+@cindex set startup visibility, command
+@orgcmd{C-u C-u @key{TAB},org-set-startup-visibility}
+Switch back to the startup visibility of the buffer (@pxref{Initial visibility}).
 @cindex show all, command
 @orgcmd{C-u C-u C-u @key{TAB},show-all}
 Show all, including drawers.
@@ -10313,12 +10318,19 @@ Org syntax includes pre-defined blocks (@pxref{Paragraphs} and @ref{Literal
 examples}).  It is also possible to create blocks containing raw code
 targeted at a specific back-ends (e.g., @samp{#+BEGIN_LATEX}).
 
-Any other block is a @emph{special block}.  Each export back-end decides if
-they should be exported, and how.  When the block is ignored, its contents
-are still exported, as if the block were not there.  For example, when
-exporting a @samp{#+BEGIN_TEST} block, HTML back-end wraps its contents
-within @samp{<div name="test">} tag.  Refer to back-end specific
-documentation for more information.
+Any other block is a @emph{special block}.
+
+For example, @samp{#+BEGIN_ABSTRACT} and @samp{#+BEGIN_VIDEO} are special
+blocks.  The first one is useful when exporting to @LaTeX{}, the second one
+when exporting to HTML5.
+
+Each export back-end decides if they should be exported, and how.  When the
+block is ignored, its contents are still exported, as if the opening and
+closing block lines were not there.  For example, when exporting a
+@samp{#+BEGIN_TEST} block, HTML back-end wraps its contents within a
+@samp{<div name="test">} tag.
+
+Refer to back-end specific documentation for more information.
 
 @node Exporting, Publishing, Markup, Top
 @chapter Exporting
@@ -10350,6 +10362,7 @@ in the iCalendar format.
 * @LaTeX{} and PDF export::     Exporting to @LaTeX{}, and processing to PDF
 * Markdown export::             Exporting to Markdown
 * OpenDocument Text export::    Exporting to OpenDocument Text
+* Org export::                  Exporting to Org
 * iCalendar export::            Exporting to iCalendar
 * Other built-in back-ends::    Exporting to @code{Texinfo}, a man page, or Org
 * Export in foreign buffers::   Author tables in lists in Org syntax
@@ -10449,6 +10462,7 @@ Built-in back-ends include:
 @item man (Man page format)
 @item md (Markdown format)
 @item odt (OpenDocument Text format)
+@item org (Org format)
 @item texinfo (Texinfo format)
 @end itemize
 
@@ -11107,12 +11121,12 @@ Becomes:
 @end example
 
 Special blocks that do not correspond to HTML5 elements (see
-@code{org-html-html5-elements}) will revert to the usual behavior,
-i.e. #+BEGIN_LEDERHOSEN will still export to <div class=''lederhosen''>.
+@code{org-html-html5-elements}) will revert to the usual behavior, i.e.,
+@code{#+BEGIN_LEDERHOSEN} will still export to @samp{<div class="lederhosen">}.
 
 Headlines cannot appear within special blocks.  To wrap a headline and its
-contents in e.g. <section> or <article> tags, set the @code{HTML_CONTAINER}
-property on the headline itself.
+contents in e.g., @samp{<section>} or @samp{<article>} tags, set the
+@code{HTML_CONTAINER} property on the headline itself.
 
 @node HTML preamble and postamble, Quoting HTML tags, HTML doctypes, HTML export
 @subsection HTML preamble and postamble
@@ -11791,12 +11805,18 @@ Code that may not fit in a single page.
 
 @subsubheading Special blocks in @LaTeX{} export
 @cindex special blocks, in @LaTeX{} export
+@cindex abstract, in @LaTeX{} export
+@cindex proof, in @LaTeX{} export
 
 In @LaTeX{} back-end, special blocks become environments of the same name.
 Value of @code{:options} attribute will be appended as-is to that
 environment's opening string.  For example:
 
 @example
+#+BEGIN_ABSTRACT
+We demonstrate how to solve the Syracuse problem.
+#+END_ABSTRACT
+
 #+ATTR_LATEX: :options [Proof of important theorem]
 #+BEGIN_PROOF
 ...
@@ -11808,6 +11828,10 @@ Therefore, any even number greater than 2 is the sum of two primes.
 becomes
 
 @example
+\begin@{abstract@}
+We demonstrate how to solve the Syracuse problem.
+\end@{abstract@}
+
 \begin@{proof@}[Proof of important theorem]
 ...
 Therefore, any even number greater than 2 is the sum of two primes.
@@ -11872,7 +11896,7 @@ that one (@pxref{Export settings}).
 
 @c begin opendocument
 
-@node OpenDocument Text export, iCalendar export, Markdown export, Exporting
+@node OpenDocument Text export, Org export, Markdown export, Exporting
 @section OpenDocument Text export
 @cindex ODT
 @cindex OpenDocument
@@ -12789,7 +12813,28 @@ will take care of updating the @code{rng-schema-locating-files} for you.
 
 @c end opendocument
 
-@node iCalendar export, Other built-in back-ends, OpenDocument Text export, Exporting
+@node Org export
+@section Org export
+@cindex Org export
+
+@code{org} export back-end creates a normalized version of the Org document
+in current buffer.  In particular, it evaluates Babel code (@pxref{Evaluating
+code blocks}) and removes other back-ends specific contents.
+
+@subheading Org export commands
+
+@table @kbd
+@orgcmd{C-c C-e O o,org-org-export-to-org}
+Export as an Org document.  For an Org file, @file{myfile.org}, the resulting
+file will be @file{myfile.org.org}.  The file will be overwritten without
+warning.
+@orgcmd{C-c C-e O O,org-org-export-as-org}
+Export to a temporary buffer.  Do not create a file.
+@item C-c C-e O v
+Export to an Org file, then open it.
+@end table
+
+@node iCalendar export, Other built-in back-ends, Org export, Exporting
 @section iCalendar export
 @cindex iCalendar export
 
@@ -12868,7 +12913,6 @@ On top of the aforementioned back-ends, Org comes with other built-in ones:
 @itemize
 @item @file{ox-man.el}: export to a man page.
 @item @file{ox-texinfo.el}: export to @code{Texinfo} format.
-@item @file{ox-org.el}: export to an Org document.
 @end itemize
 
 To activate these export back-end, customize @code{org-export-backends} or
@@ -13314,10 +13358,13 @@ string of these options for details.
 @end multitable
 
 @vindex org-html-doctype
+@vindex org-html-container-element
+@vindex org-html-html5-fancy
 @vindex org-html-xml-declaration
 @vindex org-html-link-up
 @vindex org-html-link-home
 @vindex org-html-link-org-files-as-html
+@vindex org-html-link-use-abs-url
 @vindex org-html-head
 @vindex org-html-head-extra
 @vindex org-html-inline-images
@@ -13325,21 +13372,26 @@ string of these options for details.
 @vindex org-html-preamble
 @vindex org-html-postamble
 @vindex org-html-table-default-attributes
+@vindex org-html-table-row-tags
 @vindex org-html-head-include-default-style
 @vindex org-html-head-include-scripts
 @multitable @columnfractions 0.32 0.68
 @item @code{:html-doctype}          @tab @code{org-html-doctype}
+@item @code{:html-container}        @tab @code{org-html-container-element}
+@item @code{:html-html5-fancy}      @tab @code{org-html-html5-fancy}
 @item @code{:html-xml-declaration}  @tab @code{org-html-xml-declaration}
 @item @code{:html-link-up}          @tab @code{org-html-link-up}
 @item @code{:html-link-home}        @tab @code{org-html-link-home}
 @item @code{:html-link-org-as-html} @tab @code{org-html-link-org-files-as-html}
+@item @code{:html-link-use-abs-url} @tab @code{org-html-link-use-abs-url}
 @item @code{:html-head}             @tab @code{org-html-head}
 @item @code{:html-head-extra}       @tab @code{org-html-head-extra}
 @item @code{:html-inline-images}    @tab @code{org-html-inline-images}
 @item @code{:html-extension}        @tab @code{org-html-extension}
 @item @code{:html-preamble}         @tab @code{org-html-preamble}
 @item @code{:html-postamble}        @tab @code{org-html-postamble}
-@item @code{:html-table-attributes}        @tab @code{org-html-table-default-attributes}
+@item @code{:html-table-attributes} @tab @code{org-html-table-default-attributes}
+@item @code{:html-table-row-tags}   @tab @code{org-html-table-row-tags}
 @item @code{:html-head-include-default-style} @tab @code{org-html-head-include-default-style}
 @item @code{:html-head-include-scripts} @tab @code{org-html-head-include-scripts}
 @end multitable

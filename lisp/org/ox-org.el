@@ -22,15 +22,8 @@
 
 ;;; Commentary:
 
-;; This library implements an Org back-end for Org exporter.
-;;
-;; It introduces two interactive functions, `org-org-export-as-org'
-;; and `org-org-export-to-org', which export, respectively, to
-;; a temporary buffer and to a file.
-;;
-;; A publishing function is also provided: `org-org-publish-to-org'.
-
 ;;; Code:
+
 (require 'ox)
 (declare-function htmlize-buffer "htmlize" (&optional buffer))
 
@@ -121,7 +114,10 @@ setting of `org-html-htmlize-output-type' is 'css."
 (defun org-org-identity (blob contents info)
   "Transcode BLOB element or object back into Org syntax.
 CONTENTS is its contents, as a string or nil.  INFO is ignored."
-  (org-export-expand blob contents t))
+  (let ((case-fold-search t))
+    (replace-regexp-in-string
+     "^[ \t]*#\\+ATTR_[-_A-Za-z0-9]+:\\(?: .*\\)?\n" ""
+     (org-export-expand blob contents t))))
 
 (defun org-org-headline (headline contents info)
   "Transcode HEADLINE element back into Org syntax.

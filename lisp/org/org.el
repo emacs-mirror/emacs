@@ -602,7 +602,7 @@ The list of commands is: `org-schedule', `org-deadline',
 already archived entries."
   :type '(choice (const :tag "Don't loop" nil)
 		 (const :tag "All headlines in active region" t)
-		 (const :tag "In active region, headlines at the same level than the first one" 'start-level)
+		 (const :tag "In active region, headlines at the same level than the first one" start-level)
 		 (string :tag "Tags/Property/Todo matcher"))
   :version "24.1"
   :group 'org-todo
@@ -1741,7 +1741,7 @@ Needs to be set before org.el is loaded."
   :version "24.4"
   :package-version '(Org . "8.3")
   :type '(choice
-	  (const :tag "A double click follows the link" 'double)
+	  (const :tag "A double click follows the link" double)
 	  (const :tag "Unconditionally follow the link with mouse-1" t)
 	  (integer :tag "mouse-1 click does not follow the link if longer than N ms" 450)))
 
@@ -2246,7 +2246,7 @@ fast, while still showing the whole path to the entry."
   "Non-nil means allow to create new nodes as refile targets.
 New nodes are then created by adding \"/new node name\" to the completion
 of an existing node.  When the value of this variable is `confirm',
-new node creation must be confirmed by the user (recommended)
+new node creation must be confirmed by the user (recommended).
 When nil, the completion must match an existing entry.
 
 Note that, if the new heading is not seen by the criteria
@@ -2428,7 +2428,7 @@ current entry each time a todo state is changed."
   :group 'org-todo
   :type '(choice
 	  (const :tag "Yes, only for TODO entries" t)
-	  (const :tag "Yes, including all entries" 'all-headlines)
+	  (const :tag "Yes, including all entries" all-headlines)
 	  (repeat :tag "Yes, for TODOs in this list"
 		  (string :tag "TODO keyword"))
 	  (other :tag "No TODO statistics" nil)))
@@ -5693,7 +5693,7 @@ The time stamps may be either active or inactive.")
 				   '(invisible org-link))
 	      (add-text-properties (match-beginning 3) (match-end 3)
 				   '(invisible org-link)))))
-      (backward-char 1))
+      (goto-char (1+ (match-beginning 0))))
     rtn))
 
 (defun org-emphasize (&optional char)
@@ -6827,10 +6827,12 @@ With a numeric prefix, show all headlines up to that level."
   "Set the visibility required by startup options and properties."
   (cond
    ((eq org-startup-folded t)
-    (org-cycle '(4)))
+    (org-overview))
    ((eq org-startup-folded 'content)
-    (let ((this-command 'org-cycle) (last-command 'org-cycle))
-      (org-cycle '(4)) (org-cycle '(4)))))
+    (org-content))
+   ((or (eq org-startup-folded 'showeverything)
+	(eq org-startup-folded nil))
+    (show-all)))
   (unless (eq org-startup-folded 'showeverything)
     (if org-hide-block-startup (org-hide-block-all))
     (org-set-visibility-according-to-property 'no-cleanup)
@@ -6909,7 +6911,6 @@ With numerical argument N, show content up to level N."
 	    (show-children (1- arg))
 	  (show-branches))
 	(if (bobp) (throw 'exit nil))))))
-
 
 (defun org-optimize-window-after-visibility-change (state)
   "Adjust the window after a change in outline visibility.
@@ -11704,9 +11705,9 @@ this is used for the GOTO interface."
     (setq answ (funcall cfunc prompt tbl nil (not new-nodes)
 			nil 'org-refile-history (or cdef (car org-refile-history))))
     (setq pa (or (assoc answ tbl) (assoc (concat answ "/") tbl)))
-    (org-refile-check-position pa)
     (if pa
 	(progn
+	  (org-refile-check-position pa)
 	  (when (or (not org-refile-history)
 		    (not (eq old-hist org-refile-history))
 		    (not (equal (car pa) (car org-refile-history))))
@@ -14556,7 +14557,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
 	  (and (not (featurep 'xemacs)) c0 indent-tabs-mode (tabify p0 (point)))
 	  tags)
 	 (t (error "Tags alignment failed")))
-	(org-move-to-column col)
+	(org-move-to-column col nil nil t)
 	(unless just-align
 	  (run-hooks 'org-after-tags-change-hook))))))
 
@@ -15289,6 +15290,8 @@ in `org-use-property-inheritance' selects PROPERTY for inheritance.
 If the property is present but empty, the return value is the empty string.
 If the property is not present at all, nil is returned.
 
+Return the value as a string.
+
 If LITERAL-NIL is set, return the string value \"nil\" as a string,
 do not interpret it as the list atom nil.  This is used for inheritance
 when a \"nil\" value can supersede a non-nil value higher up the hierarchy."
@@ -15454,14 +15457,19 @@ Each hook function should accept two arguments, the name of the property
 and the new value.")
 
 (defun org-entry-put (pom property value)
-  "Set PROPERTY to VALUE for entry at point-or-marker POM."
+  "Set PROPERTY to VALUE for entry at point-or-marker POM.
+If the value is `nil', it is converted to the empty string.
+If it is not a string, an error is raised."
+  (cond ((null value) (setq value ""))
+	((not (stringp value))
+	 (error "Properties values should be strings.")))
   (org-with-point-at pom
     (org-back-to-heading t)
     (let ((beg (point)) (end (save-excursion (outline-next-heading) (point)))
 	  range)
       (cond
        ((equal property "TODO")
-	(when (and (stringp value) (string-match "\\S-" value)
+	(when (and (string-match "\\S-" value)
 		   (not (member value org-todo-keywords-1)))
 	  (user-error "\"%s\" is not a valid TODO state" value))
 	(if (or (not value)
@@ -15470,7 +15478,7 @@ and the new value.")
 	(org-todo value)
 	(org-set-tags nil 'align))
        ((equal property "PRIORITY")
-	(org-priority (if (and value (stringp value) (string-match "\\S-" value))
+	(org-priority (if (and value (string-match "\\S-" value))
 			  (string-to-char value) ?\ ))
 	(org-set-tags nil 'align))
        ((equal property "CLOCKSUM")
@@ -19489,8 +19497,14 @@ because, in this case the deletion might narrow the column."
       (org-fix-tags-on-the-fly))))
 
 ;; Make `delete-selection-mode' work with org-mode and orgtbl-mode
-(put 'org-self-insert-command 'delete-selection t)
-(put 'orgtbl-self-insert-command 'delete-selection t)
+(put 'org-self-insert-command 'delete-selection
+     (lambda ()
+       (not (run-hook-with-args-until-success
+             'self-insert-uses-region-functions))))
+(put 'orgtbl-self-insert-command 'delete-selection
+     (lambda ()
+       (not (run-hook-with-args-until-success
+             'self-insert-uses-region-functions))))
 (put 'org-delete-char 'delete-selection 'supersede)
 (put 'org-delete-backward-char 'delete-selection 'supersede)
 (put 'org-yank 'delete-selection 'yank)
@@ -20025,21 +20039,19 @@ Depending on context, this does one of the following:
   "Change timestamps synchronously up in CLOCK log lines.
 Optional argument N tells to change by that many units."
   (interactive "P")
-  (cond ((and (not org-support-shift-select)
-	      (org-at-clock-log-p)
-	      (org-at-timestamp-p t))
-	 (org-clock-timestamps-up n))
-	(t (org-shiftselect-error))))
+  (if (and (org-at-clock-log-p) (org-at-timestamp-p t))
+      (let (org-support-shift-select)
+	(org-clock-timestamps-up n))
+    (user-error "Not at a clock log")))
 
 (defun org-shiftcontroldown (&optional n)
   "Change timestamps synchronously down in CLOCK log lines.
 Optional argument N tells to change by that many units."
   (interactive "P")
-  (cond ((and (not org-support-shift-select)
-	      (org-at-clock-log-p)
-	      (org-at-timestamp-p t))
-	 (org-clock-timestamps-down n))
-	(t (org-shiftselect-error))))
+  (if (and (org-at-clock-log-p) (org-at-timestamp-p t))
+      (let (org-support-shift-select)
+	(org-clock-timestamps-down n))
+    (user-error "Not at a clock log")))
 
 (defun org-ctrl-c-ret ()
   "Call `org-table-hline-and-move' or `org-insert-heading' dep. on context."

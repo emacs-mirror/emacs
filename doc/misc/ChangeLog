@@ -1,3 +1,23 @@
+2013-01-07  Rasmus  <w530@pank.eu>
+
+	* misc/org.texi (Global and local cycling): Fix missing '@'.
+
+2013-01-07 Bastien Guerry <bzg@gnu.org>
+
+	* misc/org.texi (Global and local cycling): Mention C-u C-u TAB.
+	(Include files, The Export Dispatcher)
+	(Advanced configuration)
+	(Header arguments in Org mode properties): Spelling fixes.
+	(Special blocks): Add #+BEGIN_ABSTRACT as another example.
+	(@LaTeX{} specific attributes): New index entries.  Use
+	#+BEGIN_ABSTRACT in the example.
+
+2013-01-07  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* misc/org.texi (Org export): New section.
+	(HTML doctypes): Fix whitespace error.  Fix display.
+	(Publishing options): Add missing html publishing options.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Basic editing, Packages that do not come with Emacs):

@@ -228,7 +228,7 @@ If you create a site-map file, adjust the sorting like this:
   `:sitemap-sort-files'
 
     The site map is normally sorted alphabetically.  You can
-    change this behavior setting this to `anti-chronologically',
+    change this behaviour setting this to `anti-chronologically',
     `chronologically', or nil.
 
   `:sitemap-ignore-case'
@@ -1072,7 +1072,7 @@ publishing directory."
 Return value is a list of numbers, or nil.  This function allows
 to resolve external fuzzy links like:
 
-  [[file.org::*fuzzy][description]"
+  [[file.org::*fuzzy][description]]"
   (when org-publish-cache
     (cdr (assoc (org-split-string
 		 (if (eq (aref fuzzy 0) ?*) (substring fuzzy 1) fuzzy))
