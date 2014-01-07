@@ -43,9 +43,12 @@ customize the variables @code{calendar-intermonth-header} and
 @code{calendar-intermonth-text} as described in their documentation.
 
 @vindex calendar-month-header
+@vindex calendar-day-header-array
   The variable @code{calendar-month-header} controls the text that
 appears above each month in the calendar.  By default, it shows the
-month and year.
+month and year.  The variable @code{calendar-day-header-array}
+controls the text that appears above each day's column in every month.
+By default, it shows the first two letters of each day's name.
 
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker

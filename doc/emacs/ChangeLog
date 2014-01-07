@@ -1,3 +1,8 @@
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Calendar Customizing):
+	Mention calendar-day-header-array.
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Understanding Bug Reporting): Brevity.

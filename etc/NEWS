@@ -353,12 +353,14 @@ code run via JIT Lock.
 *** New faces `calendar-weekday-header', `calendar-weekend-header',
 and `calendar-month-header'.
 
++++
 *** New option `calendar-day-header-array'.
 
 +++
 *** New variable `diary-from-outlook-function', used by the command
 `diary-from-outlook'.
 
+---
 *** The variable `calendar-font-lock-keywords' is obsolete.
 
 ** Calc
