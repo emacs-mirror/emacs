@@ -1,3 +1,12 @@
+2014-01-07  David Engster  <deng@randomsample.de>
+
+	* help-fns.el (help-fns-describe-function-functions): New
+	variable to call functions for augmenting help buffers.
+	(describe-function-1): Remove explicit calls to
+	`help-fns--compiler-macro', `help-fns--parent-mode' and
+	`help-fns--obsolete'.  Put them in above new variable instead.
+	Call all of them through `run-hook-with-args'.
+
 2014-01-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (balance-windows-2): While rounding don't give a

@@ -32,6 +32,12 @@
 
 ;;; Code:
 
+(defvar help-fns-describe-function-functions nil
+  "List of functions to run in help buffer in `describe-function'.
+Those functions will be run after the header line and argument
+list was inserted, and before the documentation will be inserted.
+The functions will receive the function name as argument.")
+
 ;; Functions
 
 ;;;###autoload
@@ -649,13 +655,14 @@ FILE is the file where FUNCTION was probably defined."
         (help-fns--key-bindings function)
         (with-current-buffer standard-output
           (setq doc (help-fns--signature function doc real-def real-function))
-
-          (help-fns--compiler-macro function)
-          (help-fns--parent-mode function)
-          (help-fns--obsolete function)
-
+	  (run-hook-with-args 'help-fns-describe-function-functions function)
           (insert "\n"
                   (or doc "Not documented.")))))))
+
+;; Add defaults to `help-fns-describe-function-functions'.
+(add-hook 'help-fns-describe-function-functions 'help-fns--obsolete)
+(add-hook 'help-fns-describe-function-functions 'help-fns--parent-mode)
+(add-hook 'help-fns-describe-function-functions 'help-fns--compiler-macro)
 
 
 ;; Variables
