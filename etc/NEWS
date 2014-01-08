@@ -62,6 +62,10 @@ For GNUStep and OSX 10.4 the old backend is used.
 To use the old backend by default, do on the command line:
 % defaults write org.gnu.Emacs FontBackend ns
 
+** If your Emacs was built from a repository checkout, the new variable
+`emacs-repository-version' contains information about the bzr revision used.
+In 24.3 this variable was `emacs-bzr-version`.
+
 
 * Startup Changes in Emacs 24.4
 
@@ -1472,7 +1476,7 @@ respectively, without exiting from the prompt.
 and sorted above the other "available" packages by default.
 
 ** If your Emacs was built from a repository checkout, the new variable
-`emacs-repository-version' contains information about the bzr revision used.
+`emacs-bzr-version' contains information about the bzr revision used.
 
 ** New option `create-lockfiles' specifies usage of lockfiles.
 It defaults to t.  Changing it to nil inhibits the creation of lock
