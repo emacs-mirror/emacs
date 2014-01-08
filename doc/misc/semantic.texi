@@ -355,7 +355,7 @@ tags are @emph{saved} while a buffer is not in memory.
 
 The database and tables both also provide applicable cache information,
 and cache flushing system.  The semanticdb search routines use caches
-to save datastructures that are complex to calculate.
+to save data structures that are complex to calculate.
 
 Lastly, it provides the concept of @dfn{project root}.  It is a system
 by which a file can be associated with the root of a project, so if

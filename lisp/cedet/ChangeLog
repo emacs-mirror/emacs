@@ -1,3 +1,9 @@
+2014-01-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* semantic/decorate/include.el (semantic-decoration-mouse-3):
+	Rename from semantic-decoratiton-mouse-3.  All uses changed.
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* ede/linux.el (project-linux-build-directory-default)

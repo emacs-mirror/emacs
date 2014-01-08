@@ -937,7 +937,7 @@ Otherwise, return the value."
       'previous-extent-change 'previous-char-property-change))
 
 ;;; Protected and atomic operations.  dmoore@ucsd.edu 21.11.1996
-;; The primary idea here is to try to protect internal datastructures
+;; The primary idea here is to try to protect internal data structures
 ;; from becoming corrupted when the user hits C-g, or if a hook or
 ;; similar blows up.  Often in Gnus multiple tables/lists need to be
 ;; updated at the same time, or information can be lost.

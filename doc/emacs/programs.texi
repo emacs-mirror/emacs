@@ -1220,7 +1220,7 @@ variables that you want to use.  @xref{Name Help}.
 @cindex Eldoc mode
 @findex eldoc-mode
   Eldoc is a buffer-local minor mode that helps with looking up Lisp
-documention.  When it is enabled, the echo area displays some useful
+documentation.  When it is enabled, the echo area displays some useful
 information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To

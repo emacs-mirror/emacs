@@ -1,3 +1,11 @@
+2014-01-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* language/china-util.el (hz-ascii-designation):
+	Rename from hz-ascii-designnation.
+	(hz-ascii-designation): Rename from hz-ascii-designnation.
+	All uses changed.
+
 2014-01-08  Bastien Guerry  <bzg@gnu.org>
 
 	* emacs-lisp/package.el (package-installed-p): Fix my previous

@@ -468,7 +468,7 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 	  (setq par-text-beg (point))
 	  ;; Start of the first line of the paragraph.
 	  ;; We use this as the search limit
-	  ;; to allow s1entence-end to match if it is anchored at
+	  ;; to allow sentence-end to match if it is anchored at
 	  ;; BOL and the paragraph starts indented.
 	  (beginning-of-line)
 	  (setq par-beg (point)))

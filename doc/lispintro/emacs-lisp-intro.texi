@@ -11912,7 +11912,6 @@ more steps.
 @node No deferment solution
 @subsection No Deferment Solution
 @cindex No deferment solution
-@cindex Defermentless solution
 @cindex Solution without deferment
 
 The solution to the problem of deferred operations is to write in a

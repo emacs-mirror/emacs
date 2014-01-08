@@ -374,7 +374,7 @@ messages will be shown to indicate the current status."
                  (number :tag "count")))
 
 (define-widget 'nnmail-lazy 'default
-  "Base widget for recursive datastructures.
+  "Base widget for recursive data structures.
 
 This is copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
   :format "%{%t%}: %v"

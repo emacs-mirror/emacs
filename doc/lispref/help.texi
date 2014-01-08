@@ -59,7 +59,7 @@ Documentation}.  You can also put function documentation in the
 (@pxref{Accessing Documentation}).
 
 @cindex @code{variable-documentation} property
-  In a variable definition (a @code{defvar} form), the documention
+  In a variable definition (a @code{defvar} form), the documentation
 string is specified after the initial value.  @xref{Defining
 Variables}.  The string is stored in the variable's
 @code{variable-documentation} property.
