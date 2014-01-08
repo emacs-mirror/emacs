@@ -881,13 +881,14 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
 MIN-VERSION should be a version list."
   (unless package--initialized (error "package.el is not yet initialized!"))
+  (when (assq package package-alist)
     (or
      (let ((pkg-descs (cdr (assq package package-alist))))
        (and pkg-descs
             (version-list-<= min-version
                              (package-desc-version (car pkg-descs)))))
      ;; Also check built-in packages.
-     (package-built-in-p package min-version)))
+     (package-built-in-p package min-version))))
 
 (defun package-compute-transaction (packages requirements)
   "Return a list of packages to be installed, including PACKAGES.
@@ -1232,7 +1233,7 @@ The file can either be a tar file or an Emacs Lisp file."
 	    (delete-file signed-file)))
       ;; Update package-alist.
       (let* ((name (package-desc-name pkg-desc)))
-	(delete (delete pkg-desc (assq name package-alist)) package-alist))
+	(setq package-alist (delete (assq name package-alist) package-alist)))
       (message "Package `%s' deleted." (package-desc-full-name pkg-desc)))))
 
 (defun package-archive-base (desc)

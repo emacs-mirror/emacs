@@ -1,3 +1,9 @@
+2014-01-08  Bastien Guerry  <bzg@gnu.org>
+
+	* emacs-lisp/package.el (package-installed-p): First check if the
+	package name is in package-alist.
+	(package-delete): Correctly delete the package from package-alist.
+
 2014-01-08  Daiki Ueno  <ueno@gnu.org>
 
 	* emacs-lisp/package.el (url-recreate-url): Declare.
