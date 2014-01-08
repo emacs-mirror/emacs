@@ -6,11 +6,6 @@
 	(hz-ascii-designation): Rename from hz-ascii-designnation.
 	All uses changed.
 
-2014-01-08  Bastien Guerry  <bzg@gnu.org>
-
-	* emacs-lisp/package.el (package-installed-p): Fix my previous
-	commit (revno 115918).
-
 2014-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-delete): Only remove pkg-desc from
@@ -18,16 +13,14 @@
 
 2014-01-08  Bastien Guerry  <bzg@gnu.org>
 
-	* emacs-lisp/package.el (package-installed-p): First check if the
-	package name is in package-alist.
-	(package-delete): Correctly delete the package from package-alist.
+	* emacs-lisp/package.el (package-delete):
+	Correctly delete the package from package-alist.
 
 2014-01-08  Daiki Ueno  <ueno@gnu.org>
 
 	* emacs-lisp/package.el (url-recreate-url): Declare.
 	(url-http-target-url): Declare.
-	(package-handle-response): Include requested URL in the error
-	message.
+	(package-handle-response): Include requested URL in the error message.
 	(package--check-signature): Don't re-signal errors from
 	package--with-work-buffer.  Suggested by Stefan Monnier.
 
