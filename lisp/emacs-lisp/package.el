@@ -818,28 +818,26 @@ It will move point to somewhere in the headers."
 (defun package--check-signature (location file)
   "Check signature of the current buffer.
 GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
-  (let ((context (epg-make-context 'OpenPGP))
-	(homedir (expand-file-name "gnupg" package-user-dir))
-	(sig-file (concat file ".sig"))
-	sig-content
-	good-signatures)
-    (setq sig-content (package--with-work-buffer location sig-file
-			(buffer-string)))
+  (let* ((context (epg-make-context 'OpenPGP))
+         (homedir (expand-file-name "gnupg" package-user-dir))
+         (sig-file (concat file ".sig"))
+         (sig-content (package--with-work-buffer location sig-file
+			(buffer-string))))
     (epg-context-set-home-directory context homedir)
     (epg-verify-string context sig-content (buffer-string))
     ;; The .sig file may contain multiple signatures.  Success if one
     ;; of the signatures is good.
-    (setq good-signatures
-	  (delq nil (mapcar (lambda (sig)
-			      (if (eq (epg-signature-status sig) 'good)
-				  sig))
-			    (epg-context-result-for context 'verify))))
-    (if (null good-signatures)
-	(error "Failed to verify signature %s: %S"
-	       sig-file
-	       (mapcar #'epg-signature-to-string
-		       (epg-context-result-for context 'verify)))
-      good-signatures)))
+    (let ((good-signatures
+           (delq nil (mapcar (lambda (sig)
+                               (if (eq (epg-signature-status sig) 'good)
+                                   sig))
+                             (epg-context-result-for context 'verify)))))
+      (if (null good-signatures)
+          (error "Failed to verify signature %s: %S"
+                 sig-file
+                 (mapcar #'epg-signature-to-string
+                         (epg-context-result-for context 'verify)))
+        good-signatures))))
 
 (defun package-install-from-archive (pkg-desc)
   "Download and install a tar package."
@@ -1232,8 +1230,11 @@ The file can either be a tar file or an Emacs Lisp file."
 	(if (file-exists-p signed-file)
 	    (delete-file signed-file)))
       ;; Update package-alist.
-      (let* ((name (package-desc-name pkg-desc)))
-	(setq package-alist (delete (assq name package-alist) package-alist)))
+      (let* ((name (package-desc-name pkg-desc))
+             (pkgs (assq name package-alist)))
+        (delete pkg-desc pkgs)
+        (unless (cdr pkgs)
+          (setq package-alist (delq pkgs package-alist))))
       (message "Package `%s' deleted." (package-desc-full-name pkg-desc)))))
 
 (defun package-archive-base (desc)
