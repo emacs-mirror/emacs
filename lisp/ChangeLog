@@ -1,3 +1,12 @@
+2014-01-08  Daiki Ueno  <ueno@gnu.org>
+
+	* emacs-lisp/package.el (url-recreate-url): Declare.
+	(url-http-target-url): Declare.
+	(package-handle-response): Include requested URL in the error
+	message.
+	(package--check-signature): Don't re-signal errors from
+	package--with-work-buffer.  Suggested by Stefan Monnier.
+
 2014-01-07  Bastien Guerry  <bzg@gnu.org>
 
 	* minibuffer.el (completion--try-word-completion): When both a

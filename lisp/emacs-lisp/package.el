@@ -210,6 +210,8 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 (defvar url-http-end-of-headers)
+(declare-function url-recreate-url "url" (urlobj))
+(defvar url-http-target-url)
 
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
   "An alist of archives from which to fetch.
@@ -789,7 +791,8 @@ It will move point to somewhere in the headers."
   (require 'url-http)
   (let ((response (url-http-parse-response)))
     (when (or (< response 200) (>= response 300))
-      (error "Error during download request:%s"
+      (error "Error downloading %s:%s"
+	     (url-recreate-url url-http-target-url)
 	     (buffer-substring-no-properties (point) (line-end-position))))))
 
 (defun package--archive-file-exists-p (location file)
@@ -820,10 +823,8 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 	(sig-file (concat file ".sig"))
 	sig-content
 	good-signatures)
-    (condition-case-unless-debug error
-	(setq sig-content (package--with-work-buffer location sig-file
-			    (buffer-string)))
-      (error "Failed to download %s: %S" sig-file (cdr error)))
+    (setq sig-content (package--with-work-buffer location sig-file
+			(buffer-string)))
     (epg-context-set-home-directory context homedir)
     (epg-verify-string context sig-content (buffer-string))
     ;; The .sig file may contain multiple signatures.  Success if one
