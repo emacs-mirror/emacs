@@ -85,7 +85,7 @@ to the system configuration; look at `system-configuration' instead."
 (defalias 'version 'emacs-version)
 
 ;; Set during dumping, this is a defvar so that it can be setq'd.
-(defvar emacs-bzr-version nil
+(defvar emacs-repository-version nil
   "String giving the bzr revision from which this Emacs was built.
 The format is: [revno] revision_id, where revno may be absent.
 Value is nil if Emacs was not built from a bzr checkout, or if we could
@@ -126,7 +126,7 @@ Returns nil if unable to find this information."
                        "dir"))
         (buffer-string))))
 
-(defun emacs-bzr-get-version (&optional dir external)
+(defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the bzr revision of the Emacs sources.
 The format is: [revno] revision_id, where revno may be absent.
 Value is nil if the sources do not seem to be under bzr, or if we could

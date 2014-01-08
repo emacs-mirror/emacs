@@ -328,7 +328,7 @@ lost after dumping")))
 				(string-to-number
 				 (substring name (length base) exelen))))
 			     files)))
-      (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
+      (setq emacs-repository-version (condition-case nil (emacs-repository-get-version)
                               (error nil)))
       ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
       (defconst emacs-version

@@ -1,3 +1,14 @@
+2014-01-08  Eric S. Raymond  <esr@thyrsus.com>
+
+	In preparation for the move to git, sanitize out some
+	Bazaar-specific names.
+
+	* version.el (emacs-bzr-version): Name changed to
+	emacs-repository-version.
+	* loadup.el: Follow through on this name change.
+	* lisp/mail/emacsbug.el (report-emacs-bug): Factor out any
+	assumption about the version control system in use.
+
 2014-01-08  David Engster  <deng@randomsample.de>
 
 	* help-fns.el (help-fns-describe-function-functions): New

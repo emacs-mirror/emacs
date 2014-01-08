@@ -1471,8 +1471,8 @@ respectively, without exiting from the prompt.
 ** In the Package Menu, newly-available packages are listed as "new",
 and sorted above the other "available" packages by default.
 
-** If your Emacs was built from a bzr checkout, the new variable
-`emacs-bzr-version' contains information about the bzr revision used.
+** If your Emacs was built from a repository checkout, the new variable
+`emacs-repository-version' contains information about the bzr revision used.
 
 ** New option `create-lockfiles' specifies usage of lockfiles.
 It defaults to t.  Changing it to nil inhibits the creation of lock
