@@ -865,6 +865,10 @@ This may create or delete slots, but does not affect the return value
 of `eq'."
   (error "EIEIO: `change-class' is unimplemented"))
 
+;; Hook ourselves into help system for describing classes and methods.
+(add-hook 'help-fns-describe-function-functions 'eieio-help-generic)
+(add-hook 'help-fns-describe-function-functions 'eieio-help-constructor)
+
 ;;; Interfacing with edebug
 ;;
 (defun eieio-edebug-prin1-to-string (object &optional noescape)
