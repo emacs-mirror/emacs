@@ -292,7 +292,7 @@ Windows 9X as well).
 
      $ ./autogen.sh
      Checking whether you have the necessary tools...
-     (Read INSTALL.BZR for more details on building Emacs)
+     (Read INSTALL.REPO for more details on building Emacs)
 
      Checking for autoconf (need at least version 2.65)...
      ok

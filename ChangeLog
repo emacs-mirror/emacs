@@ -1,3 +1,11 @@
+2014-01-08  Eric S. Raymond  <esr@thyrsus.com>
+
+	* INSTALL.BZR: Renamed to INSTALL.REPO
+	* INSTALL, autogen.sh, etc/AUTHORS, etc/CONTRIBUTE,
+	lisp/emacs-lisp/authors.el, nt/INSTALL: Carry through the
+	above renaming.
+	* INSTALL.REPO: remove all references to any specific VCS.
+
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to GNU/Linux with recent grsecurity/PaX patches (Bug#16343).

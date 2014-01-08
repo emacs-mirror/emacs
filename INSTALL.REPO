@@ -2,10 +2,10 @@ Copyright (C) 2002-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-	      Building and Installing Emacs from Bazaar
+	     Building and Installing Emacs from the Repository
 
-Building Emacs from Bazaar requires some tools that are not needed
-when building from a release.  You will need:
+Building Emacs from the source-code repository requires some tools
+that are not needed when building from a release.  You will need:
 
 autoconf  - at least the version specified near the start of
   configure.ac (in the AC_PREREQ command).
@@ -34,14 +34,14 @@ doing the wrong thing if you update the build procedure, you can
 invoke "./configure -C" instead.
 
 Some of the files that are included in the Emacs tarball, such as
-byte-compiled Lisp files, are not stored in Bazaar.  Therefore, to
-build from Bazaar you must run "make bootstrap" instead of just "make":
+byte-compiled Lisp files, are not stored in the repository.  Therefore, to
+build from the repository you must run "make bootstrap" instead of
+just "make":
 
-  $ bzr pull
   $ make bootstrap
 
 Normally, it is not necessary to use "make bootstrap" after every
-update from Bazaar.  "make" should work in 90% of the cases and be
+update from the repository.  "make" should work in 90% of the cases and be
 much quicker.
 
   $ make
@@ -72,7 +72,7 @@ platform-specific configuration scripts (nt/configure.bat, config.bat,
 etc.) before "make bootstrap" or "make"; the rest of the procedure is
 applicable to those systems as well.
 
-Because the Bazaar version of Emacs is a work in progress, it will
+Because the repository version of Emacs is a work in progress, it will
 sometimes fail to build.  Please wait a day or so (and check the
 archives of the emacs-buildstatus, emacs-devel, and bug-gnu-emacs
 mailing lists) before reporting such problems.  In most cases, the

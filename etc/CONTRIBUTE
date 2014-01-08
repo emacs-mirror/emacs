@@ -77,8 +77,8 @@ latest version.  If you start from an older version, your patch may be
 outdated (so that maintainers will have a hard time applying it), or
 changes in Emacs may have made your patch unnecessary.
 
-After you have downloaded the Bazaar source, you should read the file
-INSTALL.BZR for build instructions (they differ to some extent from a
+After you have downloaded the repository source, you should read the file
+INSTALL.REPO for build instructions (they differ to some extent from a
 normal build).
 
 Ref: http://savannah.gnu.org/projects/emacs

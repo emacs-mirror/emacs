@@ -648,6 +648,7 @@ in the repository.")
     ;; INSTALL-CVS -> .CVS -> .BZR
     ("INSTALL-CVS" . "INSTALL.BZR")
     ("INSTALL.CVS" . "INSTALL.BZR")
+    ("INSTALL.BZR" . "INSTALL.REPO")
     ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
     ("gnus-logo.eps" . "refcards/gnus-logo.eps")
     ("build-install" . "build-ins.in")

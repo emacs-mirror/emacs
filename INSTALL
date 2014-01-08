@@ -8,7 +8,7 @@ This file contains general information on building GNU Emacs.
 For more information specific to the MS-Windows, GNUstep/Mac OS X, and
 MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
 msdos/INSTALL.  For information about building from a Bazaar checkout
-(rather than a release), also read the file INSTALL.BZR.
+(rather than a release), also read the file INSTALL.REPO.
 
 
 BASIC INSTALLATION
