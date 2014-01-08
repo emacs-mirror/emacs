@@ -1,3 +1,8 @@
+2014-01-08  Jarosław Rzeszótko  <sztywny@gmail.com>
+
+	* url-http.el (url-http-create-request): Don't add extra \r\n after
+	http data (bug#16220).
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* url-history.el (url-history-track):
