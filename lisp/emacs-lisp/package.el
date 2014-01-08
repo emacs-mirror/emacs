@@ -879,14 +879,13 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
 MIN-VERSION should be a version list."
   (unless package--initialized (error "package.el is not yet initialized!"))
-  (when (assq package package-alist)
-    (or
-     (let ((pkg-descs (cdr (assq package package-alist))))
-       (and pkg-descs
-            (version-list-<= min-version
-                             (package-desc-version (car pkg-descs)))))
-     ;; Also check built-in packages.
-     (package-built-in-p package min-version))))
+  (or
+   (let ((pkg-descs (cdr (assq package package-alist))))
+     (and pkg-descs
+	  (version-list-<= min-version
+			   (package-desc-version (car pkg-descs)))))
+   ;; Also check built-in packages.
+   (package-built-in-p package min-version)))
 
 (defun package-compute-transaction (packages requirements)
   "Return a list of packages to be installed, including PACKAGES.
