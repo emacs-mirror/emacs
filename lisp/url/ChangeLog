@@ -1,4 +1,4 @@
-2014-01-08  Jarosław Rzeszótko  <sztywny@gmail.com>
+2014-01-08  Jarosław Rzeszótko  <sztywny@gmail.com>  (tiny change)
 
 	* url-http.el (url-http-create-request): Don't add extra \r\n after
 	http data (bug#16220).
