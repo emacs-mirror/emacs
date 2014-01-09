@@ -1,3 +1,8 @@
+2014-01-09  Ken Olum <kdo@cosmos.phy.tufts.edu>  (tiny change)
+
+	* message.el (message-bury): Call bury-buffer with no argument
+	in the message-return-action case too.
+
 2014-01-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-article-stop-animations): Declare it before using.
