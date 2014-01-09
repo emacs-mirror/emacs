@@ -168,6 +168,13 @@ non-nil, they output the same results.
 +++
 *** The key `?' now describes prefix bindings, like `C-h'.
 
+*** The command `describe-function' was extended for EIEIO.
+Running it on constructors will show a full description of the
+generated class.  For generic functions, if will show all
+implementations together with links to the source.  The old commands
+`describe-class', `describe-constructor' and `describe-generic' were
+removed.
+
 *** The command `quail-help' is deleted.  Use `C-h C-\'
 (`describe-input-method') instead.
 
