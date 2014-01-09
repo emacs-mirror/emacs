@@ -170,7 +170,7 @@ non-nil, they output the same results.
 
 *** The command `describe-function' was extended for EIEIO.
 Running it on constructors will show a full description of the
-generated class.  For generic functions, if will show all
+generated class.  For generic functions, it will show all
 implementations together with links to the source.  The old commands
 `describe-class', `describe-constructor' and `describe-generic' were
 removed.
