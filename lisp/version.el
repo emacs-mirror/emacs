@@ -86,10 +86,12 @@ to the system configuration; look at `system-configuration' instead."
 
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-repository-version nil
-  "String giving the bzr revision from which this Emacs was built.
-The format is: [revno] revision_id, where revno may be absent.
-Value is nil if Emacs was not built from a bzr checkout, or if we could
-not determine the revision.")
+  "String giving the repository revision from which this Emacs was built.
+Value is nil if Emacs was not built from a repository checkout,
+or if we could not determine the revision.")
+
+(define-obsolete-variable-alias 'emacs-bzr-version
+                                'emacs-repository-version "24.4")
 
 (defun emacs-bzr-version-dirstate (dir)
   "Try to return as a string the bzr revision ID of directory DIR.
@@ -127,16 +129,18 @@ Returns nil if unable to find this information."
         (buffer-string))))
 
 (defun emacs-repository-get-version (&optional dir external)
-  "Try to return as a string the bzr revision of the Emacs sources.
-The format is: [revno] revision_id, where revno may be absent.
-Value is nil if the sources do not seem to be under bzr, or if we could
-not determine the revision.  Note that this reports on the current state
-of the sources, which may not correspond to the running Emacs.
+  "Try to return as a string the repository revision of the Emacs sources.
+The format of the returned string is dependent on the VCS in use.
+Value is nil if the sources do not seem to be under version
+control, or if we could not determine the revision.  Note that
+this reports on the current state of the sources, which may not
+correspond to the running Emacs.
 
-Optional argument DIR is a directory to use instead of `source-directory'.
-Optional argument EXTERNAL non-nil means to maybe ask `bzr' itself,
-if the sources appear to be under bzr.  If `force', always ask bzr.
-Otherwise only ask bzr if we cannot find any information ourselves."
+Optional argument DIR is a directory to use instead of
+`source-directory'.  Optional argument EXTERNAL non-nil means to
+maybe ask the VCS itself, if the sources appear to be under
+version control.  If `force', always ask.  the VCS. Otherwise
+only ask the VCS if we cannot find any information ourselves."
   (or dir (setq dir source-directory))
   (when (file-directory-p (expand-file-name ".bzr/branch" dir))
     (if (eq external 'force)
