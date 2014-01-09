@@ -1,5 +1,7 @@
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* text.texi (Parsing HTML/XML): Document `shr-insert-document'.
+
 	* strings.texi (Text Comparison): Document `string-suffix-p'.
 
 2014-01-07  Glenn Morris  <rgm@gnu.org>
