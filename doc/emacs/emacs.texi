@@ -190,6 +190,7 @@ Advanced Features
 * Rmail::               Reading mail in Emacs.
 * Gnus::                A flexible mail and news reader.
 * Document View::       Viewing PDF, PS and DVI files.
+* EWW::                 A web browser in Emacs.
 * Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.

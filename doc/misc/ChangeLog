@@ -1,3 +1,8 @@
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* Makefile.in: Add eww.texi.
+	* eww.texi: New file.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Problems with very large files): Fix superscript typo.

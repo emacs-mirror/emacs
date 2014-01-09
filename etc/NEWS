@@ -895,6 +895,7 @@ has not been relevant for some time.
 
 * New Modes and Packages in Emacs 24.4
 
++++
 ** New package `eww' is a built-in web browser.
 It is only available if Emacs is compiled with libxml2 support.
 

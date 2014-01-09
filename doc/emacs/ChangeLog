@@ -1,3 +1,9 @@
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* emacs.texi: Add EWW.
+
+	* misc.texi (EWW): Document EWW.
+
 2014-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Service): Refer to online service directory

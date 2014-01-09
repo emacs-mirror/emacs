@@ -65,7 +65,7 @@ DOCMISC_W32 = @DOCMISC_W32@
 ## Info files to build and install on all platforms.
 INFO_COMMON = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
-	emacs-mime epa erc ert eshell eudc efaq \
+	emacs-mime epa erc ert eshell eudc efaq eww \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
 	mairix-el message mh-e newsticker nxml-mode octave-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
@@ -409,6 +409,18 @@ eudc.pdf: $(eudc_deps)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/eudc.texi
 eudc.html: $(eudc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eudc.texi
+
+eww_deps = ${srcdir}/eww.texi $(emacsdir)/emacsver.texi ${gfdl}
+eww : $(buildinfodir)/eww$(INFO_EXT)
+$(buildinfodir)/eww$(INFO_EXT): $(eww_deps)
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/eww.texi
+eww.dvi: $(eww_deps)
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/eww.texi
+eww.pdf: $(eww_deps)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/eww.texi
+eww.html: $(eww_deps)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eww.texi
 
 flymake_deps = ${srcdir}/flymake.texi ${gfdl}
 flymake : $(buildinfodir)/flymake$(INFO_EXT)
