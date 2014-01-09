@@ -1,3 +1,7 @@
+2014-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* MORE.STUFF: Replace contents with pointer to efaq.info.
+
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* NEWS: Better document the speed up, slow down, or reverse
@@ -5,8 +9,7 @@
 
 2014-01-05  Tassilo Horn  <tsdh@gnu.org>
 
-	* themes/tsdh-light-theme.el (tsdh-light): Define org-level-*
-	faces.
+	* themes/tsdh-light-theme.el (tsdh-light): Define org-level-* faces.
 
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
