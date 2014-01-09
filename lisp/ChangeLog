@@ -1,7 +1,7 @@
 2014-01-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-git.el (vc-git-print-log): Add --follow option to command,
-	following renames and addressing Debian bug 8756.
+	following renames.  (Bug#8756)
 
 2014-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
