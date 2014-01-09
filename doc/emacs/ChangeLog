@@ -1,3 +1,8 @@
+2014-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Service): Refer to online service directory
+	rather than etc/SERVICE.
+
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* building.texi (Lisp Libraries): Document `load-prefer-newer'.

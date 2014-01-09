@@ -1,5 +1,7 @@
 2014-01-09  Glenn Morris  <rgm@gnu.org>
 
+	* SERVICE: Mark as obsolete.
+
 	* MORE.STUFF: Replace contents with pointer to efaq.info.
 
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
