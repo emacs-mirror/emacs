@@ -1,5 +1,7 @@
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* building.texi (Lisp Libraries): Document `load-prefer-newer'.
+
 	* files.texi (File Conveniences): Document `image-next-frame',
 	`image-previous-frame', `image-goto-frame',
 	`image-increase-speed', `image-decrease-speed',

@@ -242,6 +242,7 @@ etc.  You can customize this to specify a function that provides a
 default value from the regexp last history element, or from the symbol
 found at point.
 
++++
 *** `load-prefer-newer', affects how the `load' function chooses the
 file to load.  If this is non-nil, then when both .el and .elc
 versions of a file exist, and the caller did not explicitly specify
