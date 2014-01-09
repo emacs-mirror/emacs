@@ -525,7 +525,7 @@ comparison ignores case differences.
 This function returns non-@code{nil} if @var{suffix} is a suffix of
 @var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
 optional argument @var{ignore-case} is non-@code{nil}, the comparison
-ignorescase differences.
+ignores case differences.
 @end defun
 
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
