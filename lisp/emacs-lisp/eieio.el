@@ -913,14 +913,10 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 	    )
 	  )
 
-;;; Autoloading some external symbols, and hooking into the help system
-;;
-
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
-;;;;;;  "928623502e8bf40454822355388542b5")
+;;;### (autoloads nil "eieio-custom" "eieio-custom.el" "5b0e7b1beea11f9e9de6887279f75d61")
 ;;; Generated autoloads from eieio-custom.el
 
 (autoload 'customize-object "eieio-custom" "\
@@ -931,9 +927,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;***
 
-;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
-;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
-;;;;;;  "eieio-opt" "eieio-opt.el" "d808328f9c0156ecbd412d77ba8c569e")
+;;;### (autoloads nil "eieio-opt" "eieio-opt.el" "c7a7173e78edd280eb4289bd2a0376c5")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\
@@ -942,33 +936,22 @@ If optional ROOT-CLASS, then start with that, otherwise start with
 variable `eieio-default-superclass'.
 
 \(fn &optional ROOT-CLASS)" t nil)
-(defalias 'describe-class 'eieio-describe-class)
 
-(autoload 'eieio-describe-class "eieio-opt" "\
-Describe a CLASS defined by a string or symbol.
+(autoload 'eieio-help-class "eieio-opt" "\
+Print help description for CLASS.
 If CLASS is actually an object, then also display current values of that object.
-Optional HEADERFCN should be called to insert a few bits of info first.
 
-\(fn CLASS &optional HEADERFCN)" t nil)
+\(fn CLASS)" nil nil)
 
-(autoload 'eieio-describe-constructor "eieio-opt" "\
-Describe the constructor function FCN.
-Uses `eieio-describe-class' to describe the class being constructed.
+(autoload 'eieio-help-constructor "eieio-opt" "\
+Describe CTR if it is a class constructor.
 
-\(fn FCN)" t nil)
-(defalias 'describe-generic 'eieio-describe-generic)
+\(fn CTR)" nil nil)
 
-(autoload 'eieio-describe-generic "eieio-opt" "\
-Describe the generic function GENERIC.
-Also extracts information about all methods specific to this generic.
+(autoload 'eieio-help-generic "eieio-opt" "\
+Describe GENERIC if it is a generic function.
 
-\(fn GENERIC)" t nil)
-
-(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "\
-For buffers thrown into help mode, augment for EIEIO.
-Arguments UNUSED are not used.
-
-\(fn &rest UNUSED)" nil nil)
+\(fn GENERIC)" nil nil)
 
 ;;;***
 
