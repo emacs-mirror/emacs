@@ -87,6 +87,9 @@ Memory Management Glossary: I
             :c:macro:`MPS_KEY_FMT_HEADER_SIZE` :term:`keyword
             argument` to :c:func:`mps_fmt_create_k`.
 
+            A pointer to the first word after the in-band header is
+            called a :term:`client pointer`.
+
     in parameter
 
         A function parameter that supplies data from the caller to the
