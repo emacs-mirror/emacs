@@ -574,11 +574,17 @@ will revert to the old behavior.
 visit the next image file and the previous image file in the same
 directory, respectively.
 
++++
 *** New commands to show specific frames of multi-frame images.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
++++
 *** New commands to speed up, slow down, or reverse animation.
+`a +' (`image-increase-speed') and `a -' (`image-decrease-speed') to
+speed up and slow down the animation.  `a r' (`image-reverse-speed')
+to reverse it and `a 0' (`image-reset-speed') to reset it.
+
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.

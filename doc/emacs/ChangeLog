@@ -1,3 +1,10 @@
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* files.texi (File Conveniences): Document `image-next-frame',
+	`image-previous-frame', `image-goto-frame',
+	`image-increase-speed', `image-decrease-speed',
+	`image-reverse-speed', and `image-reset-speed'.
+
 2014-01-07  Bastien Guerry  <bzg@gnu.org>
 
 	* buffers.texi (Buffers): Fix display of @math content by using

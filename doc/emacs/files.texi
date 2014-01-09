@@ -1944,12 +1944,9 @@ point.  Partial Completion mode offers other features extending
 
 @findex image-mode
 @findex image-toggle-display
-@findex image-toggle-animation
 @findex image-next-file
 @findex image-previous-file
 @cindex images, viewing
-@cindex image animation
-@cindex animated images
   Visiting image files automatically selects Image mode.  In this
 major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
 to toggle between displaying the file as an image in the Emacs buffer,
@@ -1962,10 +1959,29 @@ displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
 (@code{image-previous-file}) to visit the next image file and the
 previous image file in the same directory, respectively.
 
-If the image can be animated, the command @kbd{RET}
+@findex image-toggle-animation
+@findex image-next-frame
+@findex image-previous-frame
+@findex image-goto-frame
+@findex image-increase-speed
+@findex image-decrease-speed
+@findex image-reset-speed
+@findex image-reverse-speed
+@vindex image-animate-loop
+@cindex image animation
+@cindex animated images
+  If the image can be animated, the command @kbd{RET}
 (@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
-non-@code{nil}.
+non-@code{nil}.  With @kbd{f} (@code{image-next-frame}) and @kbd{b}
+(@code{image-previous-frame}) you can step through the individual
+frames.  Both commands accept a numeric prefix to step through several
+frames at once.  You can go to a specific frame with @kbd{F}
+(@code{image-goto-frame}).  The speed of the animation can be
+increased by pressing @kbd{a +} (@code{image-increase-speed}) and
+decreased by pressing @kbd{a -} (@code{image-decrease-speed}).  With
+@kbd{a r} (@code{image-reverse-speed}) the speed is reversed.  You can
+reset the speed with @kbd{a 0} (@code{image-reset-speed}).
 
 @cindex ImageMagick support
 @vindex imagemagick-enabled-types
