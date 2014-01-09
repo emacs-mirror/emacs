@@ -92,6 +92,14 @@ Memory Management Glossary: B
 
         .. opposite:: :term:`derived pointer`.
 
+        .. mps:specific::
+
+            For objects with :term:`in-band headers`, the MPS
+            distinguishes between the base pointer, which points to
+            the start of the header, and the :term:`client pointer`,
+            which points to the first word after the end of the
+            header.
+
     best fit
 
         The :term:`allocation policy` that always allocates from the

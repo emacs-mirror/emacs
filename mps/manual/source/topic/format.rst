@@ -155,14 +155,16 @@ relation to the memory block.
 If you have one of these use cases, you should pass the
 :c:macro:`MPS_KEY_FMT_HEADER_SIZE` :term:`keyword argument` to
 :c:func:`mps_fmt_create_k`, specifying the size of the header: that
-is, the offset of a client pointer from the base of the memory block.
+is, the offset of a :term:`client pointer` from the base of the memory
+block.
 
 There are some cautions to be observed when using in-band headers:
 
 1. The format methods (other than the :term:`padding method`) receive
-   *client pointers* (that is, pointers past the header) but all other
-   MPS functions expect to receive and return *base pointers* (that
-   is, pointers to the base of the block where the header is stored).
+   :term:`client pointers` (that is, pointers past the header) but all
+   other MPS functions expect to receive and return :term:`base
+   pointers` (that is, pointers to the base of the block where the
+   header is stored).
 
    In particular, :c:func:`mps_reserve` and :c:func:`mps_alloc` always
    hand out base pointers, and :c:func:`mps_free` expects to receive

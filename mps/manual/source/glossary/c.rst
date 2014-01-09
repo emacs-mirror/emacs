@@ -219,6 +219,16 @@ Memory Management Glossary: C
             objects, the other two being :term:`forwarding objects`
             and :term:`padding objects`.
 
+    client pointer
+
+        .. mps:specific::
+
+            A pointer to the first word in an object that's not part
+            of the :term:`in-band header`. See
+            :ref:`topic-format-headers`.
+
+        .. seealso:: :term:`base pointer`.
+
     client program
 
         .. see:: :term:`mutator`
