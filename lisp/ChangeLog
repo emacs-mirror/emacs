@@ -1,3 +1,10 @@
+2014-01-09  David Engster  <deng@randomsample.de>
+
+	* emacs-lisp/eieio-custom.el:
+	* emacs-lisp/eieio-opt.el: Set generated autoload file to
+	'eieio.el'.  This was accidentally removed in rev. 110325.
+	* emacs-lisp/eieio.el: Regenerate autoloads.
+
 2014-01-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-git.el (vc-git-print-log): Add --follow option to command,

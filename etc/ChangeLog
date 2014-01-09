@@ -1,3 +1,7 @@
+2014-01-09  David Engster  <deng@randomsample.de>
+
+	* NEWS: Added new `describe-function' EIEIO support.
+
 2014-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* SERVICE: Mark as obsolete.
