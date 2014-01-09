@@ -1365,9 +1365,10 @@ than @file{@var{lib}.elc}, it issues a warning, in case someone made
 changes to the @file{.el} file and forgot to recompile it, but loads
 the @file{.elc} file anyway.  (Due to this behavior, you can save
 unfinished edits to Emacs Lisp source files, and not recompile until
-your changes are ready for use.)  However setting
-@code{load-prefer-newer} to a non-@code{nil} value will Emacs load the
-newest version of the file found.
+your changes are ready for use.)  If you set the option
+@code{load-prefer-newer} to a non-@code{nil} value, however, then
+rather than the procedure described above, Emacs loads whichever
+version of the file is newest.
 
   Emacs Lisp programs usually load Emacs Lisp files using the
 @code{load} function.  This is similar to @code{load-library}, but is
