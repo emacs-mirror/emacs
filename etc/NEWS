@@ -173,6 +173,7 @@ non-nil, they output the same results.
 
 ** ImageMagick
 
++++
 *** ImageMagick images now support the :max-width and :max-height
 keywords.
 
