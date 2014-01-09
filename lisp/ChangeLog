@@ -1,3 +1,11 @@
+2014-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (deactivate-mark, activate-mark): Force-mode-line-update
+	(bug#16382).
+	(activate-mark): Add `no-tmm' argument.
+	(set-mark, push-mark-command): Use it instead of running
+	activate-mark-hook by hand.
+
 2014-01-08  Eric S. Raymond  <esr@thyrsus.com>
 
 	In preparation for the move to git, sanitize out some
@@ -11,8 +19,8 @@
 
 2014-01-08  David Engster  <deng@randomsample.de>
 
-	* help-fns.el (help-fns-describe-function-functions): New
-	variable to call functions for augmenting help buffers.
+	* help-fns.el (help-fns-describe-function-functions):
+	New variable to call functions for augmenting help buffers.
 	(describe-function-1): Remove explicit calls to
 	`help-fns--compiler-macro', `help-fns--parent-mode' and
 	`help-fns--obsolete'.  Put them in above new variable instead, and
@@ -20,13 +28,13 @@
 	* emacs-lisp/eieio-opt.el (eieio-help-class): Rename from
 	`eieio-describe-class'.  Not meant for interactive use anymore,
 	but to augment existing help buffers.  Remove optional second
-	argument.  Create proper button for file location.  Rewrite
-	function to use `insert' instead of `princ' and `prin1' where
+	argument.  Create proper button for file location.
+	Rewrite function to use `insert' instead of `princ' and `prin1' where
 	possible.
 	(eieio-help-class-slots): Rename from `eieio-describe-class-slots'.
 	(eieio-method-def, eieio-class-def): Move further up.
-	(describe-method, describe-generic, eieio-describe-method): Remove
-	aliases.
+	(describe-method, describe-generic, eieio-describe-method):
+	Remove aliases.
 	(eieio-help-constructor, eieio-help-generic): Rename from
 	`eieio-describe-constructor' and `eieio-describe-generic', resp.
 	Rewrite to use `insert' in the current buffer and use proper help
@@ -36,8 +44,8 @@
 	arguments.
 	(eieio-help-mode-augmentation-maybee): Remove.
 	(eieio-describe-class-sb): Use `describe-function'.
-	* emacs-lisp/eieio.el (help-fns-describe-function-functions): Add
-	`eieio-help-generic' and `eieio-help-constructor'.
+	* emacs-lisp/eieio.el (help-fns-describe-function-functions):
+	Add `eieio-help-generic' and `eieio-help-constructor'.
 
 2014-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 

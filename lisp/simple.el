@@ -4322,6 +4322,7 @@ run `deactivate-mark-hook'."
 		      (null (x-selection-exists-p 'PRIMARY))))
 	     (x-set-selection 'PRIMARY
                               (funcall region-extract-function nil)))))
+    (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
@@ -4334,11 +4335,14 @@ run `deactivate-mark-hook'."
       (setq mark-active nil)
       (run-hooks 'deactivate-mark-hook))))
 
-(defun activate-mark ()
-  "Activate the mark."
+(defun activate-mark (&optional no-tmm)
+  "Activate the mark.
+If NO-TMM is non-nil, leave `transient-mark-mode' alone."
   (when (mark t)
+    (unless (and mark-active transient-mark-mode)
+      (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (setq mark-active t)
-    (unless transient-mark-mode
+    (unless (or transient-mark-mode no-tmm)
       (setq transient-mark-mode 'lambda))
     (run-hooks 'activate-mark-hook)))
 
@@ -4359,16 +4363,13 @@ store it in a Lisp variable.  Example:
 
    (let ((beg (point))) (forward-line 1) (delete-region beg (point)))."
 
+  (set-marker (mark-marker) pos (current-buffer))
   (if pos
-      (progn
-	(setq mark-active t)
-	(run-hooks 'activate-mark-hook)
-	(set-marker (mark-marker) pos (current-buffer)))
+      (activate-mark 'no-tmm)
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
     ;; clear mark-active in any mode.
-    (deactivate-mark t)
-    (set-marker (mark-marker) nil)))
+    (deactivate-mark t)))
 
 (defcustom use-empty-active-region nil
   "Whether \"region-aware\" commands should act on empty regions.
@@ -4492,11 +4493,10 @@ Start discarding off end if gets this big."
 If no prefix ARG and mark is already set there, just activate it.
 Display `Mark set' unless the optional second arg NOMSG is non-nil."
   (interactive "P")
-  (let ((mark (marker-position (mark-marker))))
+  (let ((mark (mark t)))
     (if (or arg (null mark) (/= mark (point)))
 	(push-mark nil nomsg t)
-      (setq mark-active t)
-      (run-hooks 'activate-mark-hook)
+      (activate-mark 'no-tmm)
       (unless nomsg
 	(message "Mark activated")))))
 
