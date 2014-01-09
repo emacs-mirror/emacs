@@ -1025,11 +1025,11 @@ fi
 ## pre-built, and not deleted by the normal clean rules.  makeinfo is
 ## therefore in the category of "special tools" not normally required, which
 ## configure does not have to check for (eg autoconf itself).
-## In a Bazaar checkout on the other hand, the manuals are not included.
-## So makeinfo is a requirement to build from Bazaar, and configure
+## In a repository checkout on the other hand, the manuals are not included.
+## So makeinfo is a requirement to build from the repository, and configure
 ## should test for it as it does for any other build requirement.
 ## We use the presence of $srcdir/info/emacs to distinguish a release,
-## with pre-built manuals, from a Bazaar checkout.
+## with pre-built manuals, from a repository checkout.
 HAVE_MAKEINFO=yes
 
 if test "$MAKEINFO" = "no"; then

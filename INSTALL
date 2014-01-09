@@ -7,7 +7,7 @@ See the end of the file for license conditions.
 This file contains general information on building GNU Emacs.
 For more information specific to the MS-Windows, GNUstep/Mac OS X, and
 MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
-msdos/INSTALL.  For information about building from a Bazaar checkout
+msdos/INSTALL.  For information about building from a repository checkout
 (rather than a release), also read the file INSTALL.REPO.
 
 

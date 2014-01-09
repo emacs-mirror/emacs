@@ -1,3 +1,9 @@
+2014-01-09  Eric S. Raymond  <esr@thyrsus.com>
+
+	* INSTALL, configure.ac, etc/CONTRIBUTE, nt/INSTALL: Remove
+	unnecessarily specific references to Bazaar that could better
+	simply be to the repository.
+
 2014-01-08  Eric S. Raymond  <esr@thyrsus.com>
 
 	* INSTALL.BZR: Renamed to INSTALL.REPO

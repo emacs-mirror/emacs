@@ -122,7 +122,7 @@ Windows 9X as well).
   optional libraries near the end of this document, before you start
   the build.  Also, consider installing additional MinGW packages that
   are required/recommended, especially if you are building from the
-  Bazaar repository, as described in the next section.
+  repository, as described in the next section.
 
 ** Installing MinGW and MSYS manually
 
@@ -166,7 +166,7 @@ Windows 9X as well).
   been warned!
 
   Additional MinGW packages are required/recommended, especially if
-  you are building from the Bazaar repository:
+  you are building from the repository:
 
    . Texinfo (needed to produce the Info manuals when building from
      bzr, and for "make install")
@@ -218,9 +218,9 @@ Windows 9X as well).
       - mktemp
 
      These should only be needed if you intend to build development
-     versions of Emacs from the Bazaar repository.
+     versions of Emacs from the repository.
 
-   . Additional packages (needed only if building from the Bazaar
+   . Additional packages (needed only if building from the
      repository): Automake and Autoconf.  They are available from
      here:
 
@@ -279,7 +279,7 @@ Windows 9X as well).
   If you are building a release or pretest tarball, skip this section,
   because the configure script is already present in the tarball.
 
-  To build a development snapshot from the Emacs Bazaar repository,
+  To build a development snapshot from the Emacs repository,
   you will first need to generate the configure script and a few other
   auto-generated files.
 
@@ -449,7 +449,7 @@ Windows 9X as well).
 * Make targets
 
   The following make targets may be used by users building the source
-  distribution, or users who have checked out of Bazaar after
+  distribution, or users who have checked out of the repository after
   an initial bootstrapping.
 
   make
@@ -471,7 +471,8 @@ Windows 9X as well).
   necessary to run the configure script followed by "make", in order
   to rebuild.
 
-  The following targets are intended only for use with the Bazaar sources.
+  The following targets are intended only for use with the repository
+  sources.
 
   make bootstrap
   Removes all the auto-generated files and all the *.elc byte-compiled
@@ -481,7 +482,7 @@ Windows 9X as well).
 
   make maintainer-clean
   Removes everything that can be recreated, including compiled Lisp
-  files, to get back to the state of a fresh Bazaar tree.  After make
+  files, to get back to the state of a fresh repository tree.  After make
   maintainer-clean, it is necessary to run configure and "make" or
   "make bootstrap" to rebuild.  Occasionally it may be necessary to
   run this target after an update.
