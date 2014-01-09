@@ -357,25 +357,6 @@ The solution is to use gawk (GNU awk).
 
 ** Problems with hostname resolution
 
-*** Emacs fails to understand most Internet host names, even though
-the names work properly with other programs on the same system.
-*** Emacs won't work with X-windows if the value of DISPLAY is HOSTNAME:0.
-*** Gnus can't make contact with the specified host for nntp.
-
-This typically happens on Suns and other systems that use shared
-libraries.  The cause is that the site has installed a version of the
-shared library which uses a name server--but has not installed a
-similar version of the unshared library which Emacs uses.
-
-The result is that most programs, using the shared library, work with
-the nameserver, but Emacs does not.
-
-The fix is to install an unshared library that corresponds to what you
-installed in the shared library, and then relink Emacs.
-
-If you have already installed the name resolver in the file libresolv.a,
-then you need to compile Emacs to use that library.
-
 *** Emacs does not know your host's fully-qualified domain name.
 
 For example, (system-name) returns some variation on
@@ -499,13 +480,6 @@ ftp client.  On a Debian system, type
 
 and then choose /usr/bin/netkit-ftp.
 
-*** JPEG images aren't displayed.
-
-This has been reported when Emacs is built with jpeg-6a library.
-Upgrading to jpeg-6b solves the problem.  Configure checks for the
-correct version, but this problem could occur if a binary built
-against a shared libjpeg is run on a system with an older version.
-
 *** Dired is very slow.
 
 This could happen if invocation of the `df' program takes a long
@@ -569,13 +543,6 @@ forces the dynamic linker to bind all shared objects early on) seems
 to work around the problem.
 
 Please refer to the documentation of your dynamic linker for details.
-
-*** You request inverse video, and the first Emacs frame is in inverse
-video, but later frames are not in inverse video.
-
-This can happen if you have an old version of the custom library in
-your search path for Lisp packages.  Use M-x list-load-path-shadows to
-check whether this is true.  If it is, delete the old custom library.
 
 *** When you run Ispell from Emacs, it reports a "misalignment" error.
 
@@ -673,20 +640,6 @@ Emacs.font: DejaVu Sans Mono 12
 This is because these fonts contain characters a little taller than
 the font's nominal height.  Emacs needs to make sure that lines do not
 overlap.
-
-** Loading fonts is very slow.
-
-You might be getting scalable fonts instead of precomputed bitmaps.
-Known scalable font directories are "Type1" and "Speedo".  A font
-directory contains scalable fonts if it contains the file
-"fonts.scale".
-
-If this is so, re-order your X windows font path to put the scalable
-font directories last.  See the documentation of `xset' for details.
-
-With some X servers, it may be necessary to take the scalable font
-directories out of your path entirely, at least for Emacs 19.26.
-Changes in the future may make this unnecessary.
 
 ** Font Lock displays portions of the buffer in incorrect faces.
 
