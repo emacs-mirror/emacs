@@ -1,4 +1,3 @@
-<<<<<<< TREE
 2014-01-09  Eric S. Raymond  <esr@thyrsus.com>
 
 	* vc/vc-git.el (vc-git-print-log): Add --follow option to command,
