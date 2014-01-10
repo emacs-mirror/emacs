@@ -1,5 +1,8 @@
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
+	* info.el (info-initialize): If running uninstalled, ensure our
+	own info files are always found first, even if INFOPATH is set.
+
 	* help.el (view-order-manuals): Open emacs.info rather than ORDERS.
 
 2014-01-09  David Engster  <deng@randomsample.de>
