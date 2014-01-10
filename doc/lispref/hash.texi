@@ -354,7 +354,6 @@ This returns the rehash threshold of @var{table}.
 This returns the current nominal size of @var{table}.
 @end defun
 
-@cindex Hash table functions in subr-x.
 The following two functions are provided by the @file{subr-x} library.
 To use them, you need to load this library first.
 

@@ -1,11 +1,3 @@
-2014-01-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
-
-	* hash.texi (Hash Tables): Add cindex entry for `subr-x'
-	functions.
-
-	* strings.texi (Creating Strings, Text Comparison): Document
-	functions from `subr-x'.
-
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* text.texi (Parsing HTML/XML): Document `shr-insert-document'.

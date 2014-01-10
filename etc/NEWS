@@ -1099,10 +1099,12 @@ displaying the buffer in a window.
 +++
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
 
-+++
 ** New library subr-x.el for misc helper functions
++++
 *** `hash-table-keys'
++++
 *** `hash-table-values'
+---
 *** `string-blank-p`
 *** `string-empty-p`
 *** `string-join`
