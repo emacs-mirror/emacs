@@ -94,3 +94,14 @@ Other changes
    :program:`mpseventsql` to crash. See job003507_.
 
    .. _job003507: https://www.ravenbrook.com/project/mps/issue/job003507/
+
+#. On Windows, telemetry files now have correct clock values.
+   Previously the top 32 bits were incorrectly output as zero. See
+   job003519_.
+
+   .. _job003519: https://www.ravenbrook.com/project/mps/issue/job003519/
+
+#. On 64-bit Windows, it's no longer possible to get a stack overflow
+   exception while the MPS is holding the arena lock. See job003640_.
+
+   .. _job003640: https://www.ravenbrook.com/project/mps/issue/job003640/
