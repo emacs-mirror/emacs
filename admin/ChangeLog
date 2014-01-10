@@ -1,3 +1,7 @@
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen: Fix sed bug that was losing the last AUTOGEN_VCS.
+
 2014-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (manual-html-fix-node-div): Handle Texinfo 5's movable <hr>.

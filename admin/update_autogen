@@ -317,8 +317,9 @@ EOF
 
 echo "Finding loaddef targets..."
 
-sed -n -e '/^AUTOGEN_VCS/,/^$/ s/\\//p' lisp/Makefile.in | \
-    sed '/AUTOGEN_VCS/d' >| $tempfile || die "sed error"
+sed -n -e '/^AUTOGEN_VCS/,/^$/p' lisp/Makefile.in | \
+    sed -e '/AUTOGEN_VCS/d' -e '/^$/d' -e 's/\\//' \
+    >| $tempfile || die "sed error"
 
 genfiles=
 
