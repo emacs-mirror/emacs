@@ -1,12 +1,13 @@
-/* spi3.c: STACK PROBE
+/* spw3i3mv.c: STACK PROBE FOR 32-BIT WINDOWS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
- *  This function reads a location that is probeDepth words beyond
- *  the current stack pointer.  On intel platforms the stack grows
- *  downwards so this means reading from a location with a lesser address.
+ * This function reads a location that is depth words beyond the
+ * current stack pointer. On Intel platforms, the stack grows
+ * downwards, so this means reading from a location with a lesser
+ * address.
  */
 
 
@@ -25,7 +26,7 @@ void StackProbe(Size depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
