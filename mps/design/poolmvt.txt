@@ -770,8 +770,10 @@ this happen MVT fails over to an address-ordered singly linked free
 list. This uses in-band storage and so cannot run out of memory, but
 it has much worse performance than the CBS. Therefore MVT eagerly
 attempts to flush blocks from the free list back to the CBS. See
-design.mps.freelist for the design and implementation of the free
+design.mps.freelist_ for the design and implementation of the free
 list.
+
+.. _design.mps.freelist: freelist.txt
 
 
 Available Block Queue
@@ -783,7 +785,9 @@ support creation and destruction of an empty queue. Must support
 insertion at the head or tail of the queue (failing if full), peeking
 at the head of the queue, and removal of the head (failing if empty)
 or any element of the queue (found by a search). Standard checking and
-description should be provided. See design.mps.abq.
+description should be provided. See design.mps.abq_.
+
+.. _design.mps.abq: abq.txt
 
 
 Pool implementation
