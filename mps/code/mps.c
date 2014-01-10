@@ -1,7 +1,7 @@
 /* mps.c: MEMORY POOL SYSTEM ALL-IN-ONE TRANSLATION UNIT
  *
  * $Id$
- * Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2012-2014 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This file can be compiled to create the complete MPS library in
  * a single compilation, allowing the compiler to apply global optimizations
@@ -193,7 +193,7 @@
 #include "proti3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3mv.c"   /* Windows on 32-bit stack scan for Microsoft C */
-#include "spi3.c"       /* Intel stack probe */
+#include "spw3i3mv.c"   /* Windows on 32-bit stack probe for Microsoft C */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 /* Windows on 64-bit Intel with Microsoft Visual Studio */
@@ -222,7 +222,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
