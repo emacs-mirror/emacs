@@ -1,3 +1,8 @@
+2014-01-10  K. Handa  <handa@gnu.org>
+
+	* mail/rmail.el (rmail-get-coding-system): Check
+	rmail-get-coding-function before "funcall"ing it.
+
 2014-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (deactivate-mark, activate-mark): Force-mode-line-update

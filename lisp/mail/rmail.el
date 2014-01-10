@@ -1040,7 +1040,8 @@ This function also reinitializes local variables used by Rmail."
 The buffer is expected to be narrowed to just the header of the message."
   (save-excursion
     (goto-char (point-min))
-    (or (funcall rmail-get-coding-function)
+    (or (if rmail-get-coding-function
+	    (funcall rmail-get-coding-function))
 	(if (re-search-forward rmail-mime-charset-pattern nil t)
 	    (coding-system-from-name (match-string 1))
 	  'undecided))))
