@@ -364,3 +364,37 @@ works), or by adding an entry to ~/.bazaar/locations.conf:
 
 You have to use locations.conf rather than bazaar.conf because the
 latter has a lower priority than branch.conf.
+
+* Using git-bzr
+
+** initially
+
+You can use Git locally to talk to the Bazaar repo as a "remote" repo
+via git-bzr (aka git-remote-bzr).  Initial clone:
+
+ git clone bzr::bzr+ssh://USER@bzr.sv.gnu.org/emacs/trunk e
+
+This creates the working dir e/ (with subdir .git, etc).  Disk usage
+is 13G (as of early 2014), so you will probably want to repack:
+
+ git repack -a -d -f --window=250 --depth=250 --window-memory=N
+
+where N is chosen to avoid swapping.  E.g., given 512MB RAM, N="200m"
+results in "du -sh .git" => 559M, about double the smallest reported
+value (obtained with "deprecated" command "git gc --aggressive").
+
+** steady-state
+
+Use "fetch", "pull" and other remote-to-local commands as usual.
+
+For "push", the Emacs Bazaar repo is configured with
+
+ append_revisions_only = True
+
+so some versions of git-remote-bzr may raise AppendRevisionsOnlyViolation
+(in func do_export) instead of displaying a "non fast-forward" message
+and skipping the branch.  See:
+
+ http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg00436.html
+
+which includes a provisional patch to git-remote-bzr to do that.
