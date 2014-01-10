@@ -1,3 +1,7 @@
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (view-order-manuals): Open emacs.info rather than ORDERS.
+
 2014-01-09  David Engster  <deng@randomsample.de>
 
 	* emacs-lisp/eieio-custom.el:
