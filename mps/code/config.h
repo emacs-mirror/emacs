@@ -322,9 +322,11 @@
  */
 #if defined(MPS_ARCH_I3) && defined(MPS_BUILD_MV)
 #define StackProbeDEPTH ((Size)500)
+#elif defined(MPS_PF_W3I6MV)
+#define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)
-#endif /* MPS_ARCH_I3 */
+#endif
 
 
 /* Shield Configuration -- see <code/shield.c> */

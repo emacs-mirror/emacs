@@ -143,6 +143,7 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->framePush = PoolNoFramePush;
   class->framePop = PoolNoFramePop;
   class->framePopPending = PoolNoFramePopPending;
+  class->addrObject = PoolNoAddrObject;
   class->walk = PoolNoWalk;
   class->freewalk = PoolNoFreeWalk;
   class->bufferClass = PoolNoBufferClass;
@@ -630,6 +631,16 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
   return ResOK;
 }
 
+
+Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+{
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegPool(seg) == pool);
+  AVER(SegBase(seg) <= addr && addr < SegLimit(seg));
+  return ResUNIMPL;
+}
 
 void PoolNoWalk(Pool pool, Seg seg,
                 FormattedObjectsStepMethod f, void *p, size_t s)

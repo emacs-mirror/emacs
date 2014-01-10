@@ -421,6 +421,8 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
     } while (SegNext(&seg, arena, base));
   }
 
+  EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
+
   /* The trace's white set must be a subset of the condemned set */
   AVER(ZoneSetSuper(condemnedSet, trace->white));
 

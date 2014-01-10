@@ -22,7 +22,8 @@
  * .trans.mod: There are several instances where pool structures are
  * directly accessed by this module because <code/pool.c> does not provide
  * an adequate (or adequately documented) interface.  They bear this
- * tag.  */
+ * tag.
+ */
 
 #include "mpm.h"
 
@@ -1283,7 +1284,7 @@ static Res segBufInit(Buffer buffer, Pool pool, ArgList args)
   segbuf->seg = NULL;
   segbuf->sig = SegBufSig;
   segbuf->rankSet = RankSetEMPTY;
-
+  
   AVERT(SegBuf, segbuf);
   EVENT3(BufferInitSeg, buffer, pool, buffer->isMutator);
   return ResOK;
@@ -1485,7 +1486,6 @@ static void rankBufVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[1].key = MPS_KEY_ARGS_END;
   AVER(ArgListCheck(args));
 }
-
 
 /* rankBufInit -- RankBufClass init method */
 

@@ -154,12 +154,14 @@ static void testInArena(mps_arena_t arena)
   int i;
 
   die(mps_pool_create(&hipool, arena, mps_class_mvff(),
-                      chunkSize, chunkSize, 1024,
+                      chunkSize, chunkSize,
+                      (mps_align_t)1024,
                       TRUE, TRUE, TRUE),
       "Create HI MFFV");
 
   die(mps_pool_create(&lopool, arena, mps_class_mvff(),
-                      chunkSize, chunkSize, 1024,
+                      chunkSize, chunkSize,
+                      (mps_align_t)1024,
                       FALSE, FALSE, TRUE),
       "Create LO MFFV");
 
