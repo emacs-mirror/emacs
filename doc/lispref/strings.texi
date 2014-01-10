@@ -365,6 +365,83 @@ The default value of @var{separators} for @code{split-string}.  Its
 usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
+@cindex String creation functions in subr-x
+  The following functions are provided by the @file{subr-x} library.
+To use them, you need to load this library first.
+
+@defun string-join strings &optional separator
+This joins all strings in @var{strings}.  If the optional argument
+@var{separator} is non-@code{nil} then its value is added between each
+string.
+
+@example
+(string-join '("foo" "bar"))
+    @result{} "foobar"
+(string-join '("foo" "bar") ", ")
+    @result{} "foo, bar"
+@end example
+@end defun
+
+@defun string-reverse string
+This function returns the reversed value of @var{string}.
+
+@example
+(string-reverse "ung olleh")
+    @result{} "hello gnu"
+@end example
+@end defun
+
+@defun string-trim-left string
+This function returns a string with all the leading whitespace removed
+from @var{string}.  Trailing whitespace are left.
+
+@example
+(string-trim-left "\r\n\t abc ")
+    @result{} "abc "
+@end example
+@end defun
+
+@defun string-trim-right string
+This function returns a string with all the trailing whitespace
+removed from @var{string}.  Leading whitespace are left.
+
+@example
+(string-trim-left " abc ")
+    @result{} " abc"
+@end example
+@end defun
+
+@defun string-trim string
+This function returns a string with all leading and trailing
+whitespace from @var{string} removed.  This has the same effect as
+calling @code{string-trim-left} and @code{string-trim-right} on
+@var{string}.
+@end defun
+
+@defun string-remove-prefix prefix string
+This removes the string @var{prefix} from the beginning of
+@var{string} if present.
+
+@example
+(string-remove-prefix "foo" "foobar")
+    @result{} "bar"
+(string-remove-prefix "not" "foobar")
+    @result{} "foobar"
+@end example
+@end defun
+
+@defun string-remove-suffix suffix string
+This removes the string @var{suffix} from the end of @var{string} if
+present.
+
+@example
+(string-remove-suffix "bar" "foobar")
+    @result{} "foo"
+(string-remove-suffix "not" "foobar")
+    @result{} "foobar"
+@end example
+@end defun
+
 @node Modifying Strings
 @section Modifying Strings
 
@@ -570,6 +647,20 @@ be a list of strings or symbols rather than an actual alist.
 function @code{string-match}, which matches a regular expression
 against a string, can be used for a kind of string comparison; see
 @ref{Regexp Search}.
+
+@cindex String comparisson functions in subr-x
+  The following functions are provided by the @file{subr-x} library.
+To use them, you need to load this library first.
+
+@defun string-empty-p string
+This function returns non-@code{nil} if @var{string} is an empty
+string.
+@end defun
+
+@defun string-blank-p string
+This function returns non-@code{nil} if @var{string} is either empty
+or only whitespace.
+@end defun
 
 @node String Conversion
 @section Conversion of Characters and Strings
