@@ -311,7 +311,7 @@ are \" Fw\", or simply \"\"."
 	 (set-default symbol value)))
 
 (defvar follow-cache-command-list
-  '(next-line previous-line forward-char backward-char)
+  '(next-line previous-line forward-char backward-char right-char left-char)
   "List of commands that don't require recalculation.
 
 In order to be able to use the cache, a command should not change the

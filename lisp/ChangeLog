@@ -1,3 +1,8 @@
+2014-01-10  Anders Lindgren  <andlind@gmail.com>
+
+	* follow.el (follow-cache-command-list): Include right-char and
+	left-char.
+
 2014-01-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.
