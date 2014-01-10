@@ -770,10 +770,10 @@ them.)
 
 When there are no more strong references to a symbol:
 
-1. the reference to the symbol from the "values" array may be splatted;
-2. that's detected by the buckets scan method, which deletes the
+#. the reference to the symbol from the "values" array may be splatted;
+#. that's detected by the buckets scan method, which deletes the
    corresponding entry in the "keys" array;
-3. which may in turn cause the symbol name to die, unless there are
+#. which may in turn cause the symbol name to die, unless there are
    other strong references keeping it alive.
 
 Here's the new symbol structure::

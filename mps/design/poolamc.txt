@@ -269,19 +269,19 @@ Retained pages
 
 The reasons why a segment and its pages might be retained are:
 
-1. ambiguous reference to first-obj: unavoidable page retention (only
+#. ambiguous reference to first-obj: unavoidable page retention (only
    the mutator can reduce this, if they so wish, by nulling out ambig
    referencess);
-2. ambiguous reference to rest-obj: tuning MPS LSP policy could
+#. ambiguous reference to rest-obj: tuning MPS LSP policy could
    mitigate this, reducing the likelihood of rest-objs being
    co-located with large first-objs;
-3. ambiguous reference to final pad: implementing
+#. ambiguous reference to final pad: implementing
    `.large.lsp-no-retain`_ could mitigate this;
-4. ambiguous reference to other (NMR) pad: hard to mitigate, as pads
+#. ambiguous reference to other (NMR) pad: hard to mitigate, as pads
    are indistinguishable from client objects;
-5. emergency trace;
-6. non-object-aligned ambiguous ref: fixed by job001809_;
-7. other reason (for example, buffered at flip): not expected to be a
+#. emergency trace;
+#. non-object-aligned ambiguous ref: fixed by job001809_;
+#. other reason (for example, buffered at flip): not expected to be a
    problem.
 
 This list puts the reasons that are more "obvious" to the client
@@ -387,7 +387,7 @@ were marked.
 _`.nailboard.emergency`: During emergency tracing two things relating
 to nail boards happen that don't normally:
 
-1. _`.nailboard.emergency.nonew`: Nail boards aren't allocated when we
+#. _`.nailboard.emergency.nonew`: Nail boards aren't allocated when we
    have new ambiguous references to segments.
 
    _`.nailboard.emergency.nonew.justify`: We could try and allocate a
@@ -395,7 +395,7 @@ to nail boards happen that don't normally:
    unlikely to succeed, and there would be additional code for yet
    another error path which complicates things.
 
-2. _`.nailboard.emergency.exact`: nail boards are used to record exact
+#. _`.nailboard.emergency.exact`: nail boards are used to record exact
    references in order to avoid copying the objects.
 
    _`.nailboard.hyper-conservative`: Not creating new nail boards
@@ -405,10 +405,10 @@ to nail boards happen that don't normally:
 
 _`.fix.nail.states`: Partition the segment states into four sets:
 
-1. white segment and not nailed (and has no nail board);
-2. white segment and nailed and has no nail board;
-3. white segment and nailed and has nail board;
-4. the rest.
+#. white segment and not nailed (and has no nail board);
+#. white segment and nailed and has no nail board;
+#. white segment and nailed and has nail board;
+#. the rest.
 
 _`.fix.nail.why`: A segment is recorded as being nailed when either
 there is an ambiguous reference to it, or there is an exact reference
@@ -450,9 +450,9 @@ _`.emergency.fix`: ``AMCFixEmergency()`` is at the core of AMC's
 emergency tracing policy (unsurprisingly). ``AMCFixEmergency()``
 chooses exactly one of three options:
 
-1. use the existing nail board structure to record the fix;
-2. preserve and nail the segment in its entirety;
-3. snapout an exact (or high rank) pointer to a broken heart to the
+#. use the existing nail board structure to record the fix;
+#. preserve and nail the segment in its entirety;
+#. snapout an exact (or high rank) pointer to a broken heart to the
    broken heart's forwarding pointer.
 
 If the rank of the reference is ``RankAMBIG`` then it either does (1)
@@ -821,7 +821,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -829,14 +829,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than

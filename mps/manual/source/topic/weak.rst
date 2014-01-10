@@ -15,10 +15,10 @@ block it refers to :term:`alive <live>`.
 
 The open source MPS supports weak references only:
 
-1. in :term:`roots` that are registered with :term:`rank`
+#. in :term:`roots` that are registered with :term:`rank`
    :c:func:`mps_rank_weak`;
 
-2. in objects allocated on an :term:`allocation point` in a pool of
+#. in objects allocated on an :term:`allocation point` in a pool of
    class :ref:`pool-awl` that was created with :term:`rank`
    :c:func:`mps_rank_weak`.
 

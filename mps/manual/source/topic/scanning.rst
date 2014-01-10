@@ -40,32 +40,32 @@ root scanning functions of various types) but all take a :term:`scan
 state` argument of type :c:type:`mps_ss_t`, and a description of a
 region to be scanned. They must carry out the following steps:
 
-1. Call the macro :c:func:`MPS_SCAN_BEGIN` on the scan state.
+#. Call the macro :c:func:`MPS_SCAN_BEGIN` on the scan state.
 
-2. For each reference in the region:
+#. For each reference in the region:
 
-   1. Call :c:func:`MPS_FIX1`, passing the scan state and the
+   #. Call :c:func:`MPS_FIX1`, passing the scan state and the
       reference.
 
-   2. If :c:func:`MPS_FIX1` returns false, the reference is not of
+   #. If :c:func:`MPS_FIX1` returns false, the reference is not of
       interest to the MPS. Proceed to the next reference in the
       region.
 
-   3. If :c:func:`MPS_FIX1` returns true, the reference is of interest
+   #. If :c:func:`MPS_FIX1` returns true, the reference is of interest
       to the MPS. Call :c:func:`MPS_FIX2`, passing the scan state and
       a pointer to a location containing the reference.
 
-   4. If :c:func:`MPS_FIX2` returns a :term:`result code` other than
+   #. If :c:func:`MPS_FIX2` returns a :term:`result code` other than
       :c:func:`MPS_RES_OK`, return this result code from the scanning
       function as soon as practicable.
 
-   5. If :c:func:`MPS_FIX2` returns :c:macro:`MPS_RES_OK`, it may have
+   #. If :c:func:`MPS_FIX2` returns :c:macro:`MPS_RES_OK`, it may have
       updated the reference. If necessary, make sure that the updated
       reference is stored back to the region being scanned.
 
-3. Call the macro :c:func:`MPS_SCAN_END` on the scan state.
+#. Call the macro :c:func:`MPS_SCAN_END` on the scan state.
 
-4. Return :c:macro:`MPS_RES_OK`.
+#. Return :c:macro:`MPS_RES_OK`.
 
 This description of the protocol simplifies a number of important
 details, which are covered in the following sections.
@@ -198,13 +198,13 @@ Unfixed references
 
 The MPS does not require you to :term:`fix` all your :term:`references`. But if a reference is not fixed:
 
-1. it does not keep its target alive (this might be acceptable if you
+#. it does not keep its target alive (this might be acceptable if you
    know that the target is being kept alive for another reason, for
    example if it is in a :term:`manually managed <manual memory
    management>` pool, or if there is always another reference to the
    target that *is* fixed);
 
-2. it does not get updated if the target moves (this might be
+#. it does not get updated if the target moves (this might be
    acceptable if you know that the target cannot move, for example if
    it is in a :term:`non-moving <non-moving memory manager>` pool, or
    if it is :term:`pinned <pinning>` by an :term:`ambiguous
