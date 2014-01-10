@@ -1,6 +1,7 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2013 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1999-2014 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -3597,7 +3598,7 @@ NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  
   /* The specpdl entries normally contain the symbol being bound along with its
      `old_value', so it can be restored.  The new value to which it is bound is
      available in one of two places: either in the current value of the
-     variable (if it hasn't been rebount yet) or in the `old_value' slot of the
+     variable (if it hasn't been rebound yet) or in the `old_value' slot of the
      next specpdl entry for it.
      `backtrace_eval_unrewind' happens to swap the role of `old_value'
      and "new value", so we abuse it here, to fetch the new value.

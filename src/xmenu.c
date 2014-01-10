@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2013 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2014 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1647,7 +1647,7 @@ xmenu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 #endif
 
       wv_title->name = SSDATA (title);
-      wv_title->enabled = TRUE;
+      wv_title->enabled = true;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
       wv_title->next = wv_sep1;

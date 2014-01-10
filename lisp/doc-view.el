@@ -1,6 +1,6 @@
 ;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
 ;; Maintainer: Tassilo Horn <tsdh@gnu.org>
@@ -198,6 +198,7 @@ Higher values result in larger images."
 If nil, the document is re-rendered every time the scaling factor is modified.
 This only has an effect if the image libraries linked with Emacs support
 scaling."
+  :version "24.4"
   :type 'boolean)
 
 (defcustom doc-view-image-width 850

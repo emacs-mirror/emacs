@@ -1,6 +1,6 @@
 ;;; core-elisp-tests.el --- Testing some core Elisp rules
 
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:

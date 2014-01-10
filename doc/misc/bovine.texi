@@ -4,6 +4,7 @@
 @set TITLE  Bovine parser development
 @set AUTHOR Eric M. Ludlam, David Ponce, and Richard Y. Kim
 @settitle @value{TITLE}
+@documentencoding UTF-8
 
 @c *************************************************************************
 @c @ Header
@@ -23,7 +24,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1999--2004, 2012--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2004, 2012--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

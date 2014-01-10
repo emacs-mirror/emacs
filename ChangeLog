@@ -1,3 +1,182 @@
+2014-01-09  Eric S. Raymond  <esr@thyrsus.com>
+
+	* INSTALL, configure.ac, etc/CONTRIBUTE, nt/INSTALL: Remove
+	unnecessarily specific references to Bazaar that could better
+	simply be to the repository.
+
+2014-01-08  Eric S. Raymond  <esr@thyrsus.com>
+
+	* INSTALL.BZR: Renamed to INSTALL.REPO
+	* INSTALL, autogen.sh, etc/AUTHORS, etc/CONTRIBUTE,
+	lisp/emacs-lisp/authors.el, nt/INSTALL: Carry through the
+	above renaming.
+	* INSTALL.REPO: remove all references to any specific VCS.
+
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to GNU/Linux with recent grsecurity/PaX patches (Bug#16343).
+	Problem and proposed patch reported by Ulrich Mueller;
+	this patch uses a somewhat-different approach.
+	* configure.ac (SETFATTR): New variable.
+
+2014-01-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-01-02 manywarnings: remove -Wmudflap
+	This ports better to GCC 4.9-to-be.
+
+2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* configure.ac (canonical, C_SWITCH_SYSTEM): Support a 64-bit
+	MinGW64 build on MS-Windows.
+
+2013-12-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (xcsdkdir): Only set if using xcrun.
+
+2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (LIBXML2_CFLAGS): Fix xcrun-related quoting problem.
+	Reported by YAMAMOTO Mitsuharu in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00995.html
+
+2013-12-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Fix CC detection for xcrun case.
+
+2013-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problem with MAKE and xcrun configuration.
+	* configure.ac: Don't set MAKE unless 'make' doesn't work.
+	Set it only in the environment, not in the makefile.
+	Problem reported by Glenn Morris in:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00969.html
+
+2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port xcrun configuration to GNU/Linux.
+	* configure.ac (xcsdkdir): Default to empty.
+	(XCRUN): Don't require Darwin for xcrun.  Move xcrun checking to
+	just before AM_INIT_AUTOMAKE, to make the dependency between it
+	and automake clearer.
+	(CC): Don't use AC_PROG_CC twice; only the first use expands to the
+	shell code that is wanted, which breaks 'configure' on non-Darwin
+	platforms.  Instead, fix CC by hand if it's not found.
+
+2013-12-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Detect xcrun on OSX and use it for make, gcc and
+	libxml.
+
+2013-12-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix core dumps with gcc -fsanitize=address and GNU/Linux.
+	* configure.ac: Check whether addresses are sanitized.
+	(CANNOT_DUMP): Warn if addresses are sanitized and not CANNOT_DUMP.
+	(DOUG_LEA_MALLOC): Do not define if addresses are sanitized.
+	(SYSTEM_MALLOC): Define if addresses are sanitized.
+
+2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the procedure for updating copyright year.
+	* build-aux/update-copyright: New file.
+	* make-dist: Distribute it.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* msdos/autogen/Makefile.in: Update copyright year.
+
+2013-12-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac: Replace obsolete macro AC_CONFIG_HEADER by
+	AC_CONFIG_HEADERS.
+
+2013-12-19  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* .gitignore: Ignore refcard temporaries and info/*.info files.
+
+2013-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-12-17 gettimeofday: port recent C++ fix to Emacs
+	2013-12-17 gettimeofday: fix C++ crosscompilation
+	2013-12-17 qacl: port to Windows better
+	* lib/file-has-acl.c, lib/time.in.h, m4/gettimeofday.m4, m4/time_h.m4:
+	Update from gnulib.
+	* lib/gnulib.mk: Regenerate.
+
+2013-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* INSTALL: Clarify treatment of image libraries.
+
+2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean, focusing on headers.
+	* configure.ac (PTY_OPEN, GC_MARK_SECONDARY_STACK):
+	Use bool for boolean.
+
+2013-12-14  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* configure.ac (srcdir) [MINGW32]: If it is an absolute path,
+	force the format "/c/foo/bar" to simplify conversions to native
+	windows format.
+
+2013-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: No longer mention load-path and site-init/site-load.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-info): Handle missing info/dir.
+	(info_dir_deps): New variable.
+	(${srcdir}/info/dir): Depend on .texi files rather than .info files.
+	(check-info): Update topics.
+	* build-aux/make-info-dir: Use .texi files rather than .info files.
+	Update topics.
+
+	* Makefile.in (install-info): Remove some useless subshells.
+
+	Stop keeping info/dir in the repository.
+	* build-aux/dir_top: Move here from admin/.
+	* build-aux/make-info-dir: New script.
+	* Makefile.in (bootstrap-clean): Delete info/.
+	(info-dir, ${srcdir}/info/dir): New rules.
+	(info): Also make info-dir.
+	(check-info): Rename from check-info-dir.
+	Instead of info/dir entries, check @dircategory in info/*.info.
+	* make-dist: Use `info' rule rather than `info-real'.
+	No more info/COPYING (not even the right license for info/ files).
+	Distribute new build-aux files.
+
+	* info/: Remove from repository.
+
+2013-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add octave-mode.
+
+2013-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove the option of using libcrypto.
+	This scorches the earth and waits for spring;
+	see Ted Zlatanov and Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00323.html>.
+	* configure.ac (with_openssl_default, HAVE_LIB_CRYPTO): Remove.
+	Do not say whether Emacs is configured to use a crypto library,
+	since it's no longer an option.
+	(gl_CRYPTO_CHECK): Define a dummy.
+	* lib/gl_openssl.h, m4/gl-openssl.m4: Remove.
+
+2013-12-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Disable libcrypto by default.
+
+	Merge from gnulib, incorporating:
+	2013-12-07 md5, sha1, sha256, sha512: fix link error with partial lib
+	* m4/gl-openssl.m4: Update from gnulib.
+
+2013-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_RSVG) [mingw32]: Don't link against librsvg
+	statically.
+
 2013-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Simplify supression of GTK deprecation warning.
@@ -164,7 +343,7 @@
 	config.status computes it.
 	* Makefile.in (epaths-force-w32): Move srcdir tweak here.
 
-	* autogen: Remove directory.  Move update_autogen to admin/.
+	* autogen/: Remove directory.  Move update_autogen to admin/.
 	* autogen.sh: Remove reference to copy_autogen.
 	* GNUmakefile (configure):
 	* Makefile.in (bootstrap): Do not try to run copy_autogen.
@@ -13060,7 +13239,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -560,8 +560,9 @@ This will call `semantic-fetch-tags' if that file is in memory."
    ;;
    ;; Already in a buffer, just do it.
    ((semanticdb-in-buffer-p obj)
-    (semanticdb-set-buffer obj)
-    (semantic-fetch-tags))
+    (save-excursion
+      (semanticdb-set-buffer obj)
+      (semantic-fetch-tags)))
    ;;
    ;; Not in a buffer.  Forcing a load.
    (force

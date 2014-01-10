@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -461,9 +461,10 @@ MATCH is the pattern that needs to be matched, of the form:
    ((and (eq (car-safe pat) 'pred)
          (symbolp (cadr pat))
          (get (cadr pat) 'side-effect-free))
-    (if (funcall (cadr pat) elem)
-        '(:pcase--succeed . nil)
-      '(:pcase--fail . nil)))))
+    (ignore-errors
+      (if (funcall (cadr pat) elem)
+	  '(:pcase--succeed . nil)
+	'(:pcase--fail . nil))))))
 
 (defun pcase--split-member (elems pat)
   ;; Based on pcase--split-equal.
@@ -484,10 +485,11 @@ MATCH is the pattern that needs to be matched, of the form:
    ((and (eq (car-safe pat) 'pred)
          (symbolp (cadr pat))
          (get (cadr pat) 'side-effect-free)
-         (let ((p (cadr pat)) (all t))
-           (dolist (elem elems)
-             (unless (funcall p elem) (setq all nil)))
-           all))
+	 (ignore-errors
+	   (let ((p (cadr pat)) (all t))
+	     (dolist (elem elems)
+	       (unless (funcall p elem) (setq all nil)))
+	     all)))
     '(:pcase--succeed . nil))))
 
 (defun pcase--split-pred (vars upat pat)
@@ -761,14 +763,14 @@ Otherwise, it defers to REST which is a list of branches of the form
        ;; `then-body', but only within some sub-branch).
        (macroexp-let*
         `(,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
-              ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
+          ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
         then-body)
        (pcase--u else-rest))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
-      (let* ((splitrest (pcase--split-rest
-                         sym (lambda (pat) (pcase--split-equal qpat pat)) rest))
-             (then-rest (car splitrest))
-             (else-rest (cdr splitrest)))
+    (let* ((splitrest (pcase--split-rest
+                       sym (lambda (pat) (pcase--split-equal qpat pat)) rest))
+           (then-rest (car splitrest))
+           (else-rest (cdr splitrest)))
       (pcase--if (cond
                   ((stringp qpat) `(equal ,sym ,qpat))
                   ((null qpat) `(null ,sym))

@@ -1,6 +1,6 @@
 ;;; elide-head.el --- hide headers in files
 
-;; Copyright (C) 1999, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: outlines tools

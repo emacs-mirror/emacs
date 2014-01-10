@@ -1,6 +1,6 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file
 
-;; Copyright (C) 1985, 1987, 1993-1994, 2001-2013 Free Software
+;; Copyright (C) 1985, 1987, 1993-1994, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF

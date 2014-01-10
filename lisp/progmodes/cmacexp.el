@@ -1,6 +1,7 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2000-2014 Free Software Foundation,
+;; Inc.
 
 ;; Author: Francesco Potortì <pot@gnu.org>
 ;; Adapted-By: ESR

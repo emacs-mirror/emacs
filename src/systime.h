@@ -1,5 +1,5 @@
 /* systime.h - System-dependent definitions for time manipulations.
-   Copyright (C) 1993-1994, 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2002-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -57,10 +57,10 @@ invalid_timespec (void)
   return make_timespec (0, -1);
 }
 
-/* Return 1 if TIME is a valid timespec.  This currently doesn't worry
+/* Return true if TIME is a valid timespec.  This currently doesn't worry
    about whether tv_nsec is less than TIMESPEC_RESOLUTION; leap seconds
    might cause a problem if it did.  */
-INLINE int
+INLINE bool
 timespec_valid_p (struct timespec t)
 {
   return t.tv_nsec >= 0;

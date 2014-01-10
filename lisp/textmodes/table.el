@@ -1,6 +1,6 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -559,7 +559,7 @@
 ;; Todo: (in the order of priority, some are just possibility)
 ;; -----
 ;;
-;; Fix compatibilities with other input method than quail
+;; Fix incompatibilities with input methods other than quail
 ;; Resolve conflict with flyspell
 ;; Use mouse for resizing cells
 ;; A mechanism to link cells internally

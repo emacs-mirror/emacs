@@ -2,7 +2,7 @@
 # Build Emacs with various options for profiling, debugging,
 # with and without warnings enabled etc.
 
-# Copyright (C) 2001-2013 Free Software Foundation, Inc.
+# Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -21,6 +21,8 @@
 
 
 require 5;
+use strict;
+use warnings;
 use Getopt::Long;
 use File::Basename;
 use Cwd;

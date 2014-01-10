@@ -1,6 +1,6 @@
 ;;; ede-proj-info.el --- EDE Generic Project texinfo support
 
-;;; Copyright (C) 1998-2001, 2004, 2007-2013 Free Software Foundation,
+;;; Copyright (C) 1998-2001, 2004, 2007-2014 Free Software Foundation,
 ;;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

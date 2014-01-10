@@ -1,3 +1,18 @@
+2014-01-08  Jarosław Rzeszótko  <sztywny@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-create-request): Don't add extra \r\n after
+	http data (bug#16220).
+
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* url-history.el (url-history-track):
+	* url-vars.el (url-honor-refresh-requests): Fix custom types.
+
+2013-12-20  Leo Liu  <sdl.web@gmail.com>
+
+	* url.el (url-retrieve-synchronously): Add optional arg SILENT and
+	INHIBIT-COOKIES.
+
 2013-09-29  Leo Liu  <sdl.web@gmail.com>
 
 	* url-util.el (url-pretty-length): Make obsolete and all uses
@@ -2899,7 +2914,7 @@
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1999, 2001-2002, 2004-2013 Free Software
+	Copyright (C) 1999, 2001-2002, 2004-2014 Free Software
 	Foundation, Inc.
 
   This file is part of GNU Emacs.

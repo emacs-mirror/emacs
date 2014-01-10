@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -844,8 +844,34 @@ show-paren-mode}.
   Electric Pair mode, a global minor mode, provides a way to easily
 insert matching delimiters.  Whenever you insert an opening delimiter,
 the matching closing delimiter is automatically inserted as well,
-leaving point between the two.  To toggle Electric Pair mode, type
-@kbd{M-x electric-pair-mode}.
+leaving point between the two. Conversely, when you insert a closing
+delimiter over an existing one, no inserting takes places and that
+position is simply skipped over. These variables control additional
+features of Electric Pair mode:
+
+@itemize @bullet
+@item
+@code{electric-pair-preserve-balance}, when non-@code{nil}, makes the
+default pairing logic balance out the number of opening and closing
+delimiters.
+
+@item
+@code{electric-pair-delete-adjacent-pairs}, when non-@code{nil}, makes
+backspacing between two adjacent delimiters also automatically delete
+the closing delimiter.
+
+@item
+@code{electric-pair-open-newline-between-pairs}, when non-@code{nil},
+makes inserting inserting a newline between two adjacent pairs also
+automatically open and extra newline after point.
+
+@item
+@code{electric-skip-whitespace}, when non-@code{nil}, causes the minor
+mode to skip whitespace forward before deciding whether to skip over
+the closing delimiter.
+@end itemize
+
+To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.
 
 @node Comments
 @section Manipulating Comments
@@ -1194,7 +1220,7 @@ variables that you want to use.  @xref{Name Help}.
 @cindex Eldoc mode
 @findex eldoc-mode
   Eldoc is a buffer-local minor mode that helps with looking up Lisp
-documention.  When it is enabled, the echo area displays some useful
+documentation.  When it is enabled, the echo area displays some useful
 information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To

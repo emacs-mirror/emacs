@@ -1,6 +1,6 @@
 ;;; erc-log.el --- Logging facilities for ERC.
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Maintainer: FSF
@@ -202,6 +202,7 @@ If you set this to nil, you may want to enable both
 
 This should ideally, be a \"catch-all\" coding system, like
 `emacs-mule', or `iso-2022-7bit'."
+  :type 'coding-system
   :group 'erc-log)
 
 (defcustom erc-log-filter-function nil

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -322,13 +322,14 @@ In the last clause, @code{code} is a variable that gets bound to the value that
 was returned by @code{(get-return-code x)}.
 
 To give a more complex example, a simple interpreter for a little
-expression language could look like:
+expression language could look like (note that this example requires
+lexical binding):
 
 @example
 (defun evaluate (exp env)
   (pcase exp
     (`(add ,x ,y)         (+ (evaluate x env) (evaluate y env)))
-    (`(call ,fun ,arg)    (funcall (evaluate fun) (evaluate arg env)))
+    (`(call ,fun ,arg)    (funcall (evaluate fun env) (evaluate arg env)))
     (`(fn ,arg ,body)     (lambda (val)
                             (evaluate body (cons (cons arg val) env))))
     ((pred numberp)       exp)
@@ -341,6 +342,15 @@ element list starting with the symbol @code{add}, then extracts the second and
 third elements and binds them to the variables @code{x} and @code{y}.
 @code{(pred numberp)} is a pattern that simply checks that @code{exp}
 is a number, and @code{_} is the catch-all pattern that matches anything.
+
+Here are some sample programs including their evaluation results:
+
+@example
+(evaluate '(add 1 2) nil)                 ;=> 3
+(evaluate '(add x y) '((x . 1) (y . 2)))  ;=> 3
+(evaluate '(call (fn x (add 1 x)) 2) nil) ;=> 3
+(evaluate '(sub 1 2) nil)                 ;=> error
+@end example
 
 There are two kinds of patterns involved in @code{pcase}, called
 @emph{U-patterns} and @emph{Q-patterns}.  The @var{upattern} mentioned above

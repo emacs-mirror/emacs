@@ -1,6 +1,6 @@
 /* test-distrib.c --- testing distribution of nonprinting chars
 
-Copyright (C) 1987, 1993-1995, 1999, 2001-2013 Free Software Foundation,
+Copyright (C) 1987, 1993-1995, 1999, 2001-2014 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.

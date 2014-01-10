@@ -1,6 +1,6 @@
 ;;; ox-ascii.el --- ASCII Back-End for Org Export Engine
 
-;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1198,7 +1198,7 @@ contextual information."
     (todo type priority name tags contents width inlinetask info)
   "Format an inline task element for ASCII export.
 See `org-ascii-format-inlinetask-function' for a description
-of the paramaters."
+of the parameters."
   (let* ((utf8p (eq (plist-get info :ascii-charset) 'utf-8))
 	 (width (or width org-ascii-inlinetask-width)))
     (org-ascii--indent-string

@@ -1,6 +1,6 @@
 ;;; url-history.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2014 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -44,7 +44,7 @@ session."
 		(url-history-setup-save-timer)))
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "within session" 'session))
+		 (other :tag "within session" session))
   :group 'url-history)
 
 (defcustom url-history-file nil

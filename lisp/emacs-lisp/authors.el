@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -288,6 +288,11 @@ Changes to files matching one of the regexps in this list are not listed.")
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el"
     "compile" "config.guess" "config.sub" "depcomp"
+    "autogen/compile" "autogen/config.guess" "autogen/config.in"
+    "autogen/config.sub" "autogen/depcomp" "autogen/install-sh"
+    "autogen/missing" "autogen"
+    "autogen/copy_autogen" ; not generated, but trivial and now removed
+    "dir_top"
     ;; Only existed briefly, then renamed:
     "images/icons/allout-widgets-dark-bg"
     "images/icons/allout-widgets-light-bg"
@@ -572,6 +577,7 @@ Changes to files in this list are not listed.")
     "alloca.s"
     "make-delta"
     "config.w95"
+    "msysconfig.sh"
     "emacstool.1"
     "align.umax"
     "cxux-crt0.s"
@@ -642,6 +648,7 @@ in the repository.")
     ;; INSTALL-CVS -> .CVS -> .BZR
     ("INSTALL-CVS" . "INSTALL.BZR")
     ("INSTALL.CVS" . "INSTALL.BZR")
+    ("INSTALL.BZR" . "INSTALL.REPO")
     ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
     ("gnus-logo.eps" . "refcards/gnus-logo.eps")
     ("build-install" . "build-ins.in")
@@ -675,6 +682,12 @@ in the repository.")
     ("emacs.1" . "emacs.1")
     ("emacsclient.1" . "emacsclient.1")
     ("icons/emacs21.ico" . "emacs21.ico")
+    ("ja-dic" . "leim/ja-dic")
+    ("quail" . "leim/quail")
+    ;; Moved from autogen/ to admin/.
+    ("autogen/update_autogen" . "update_autogen")
+    ;; Moved from etc/ to admin/.
+    ("grammars" . "grammars")
     ;; Moved from admin/nt/ to nt/.
     ("nt/README.W32" . "README.W32")
     )

@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -1300,7 +1300,8 @@ Fill comments, backslashed lines, and variable definitions specially."
                  (point))))
 	    (end
 	     (save-excursion
-	       (while (= (preceding-char) ?\\)
+	       (while (and (= (preceding-char) ?\\)
+			   (not (eobp)))
 		 (end-of-line 2))
 	       (point))))
 	(save-restriction

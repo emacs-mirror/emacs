@@ -1,6 +1,6 @@
 ;;; org-gnus.el --- Support for links to Gnus groups and messages from within Org-mode
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>

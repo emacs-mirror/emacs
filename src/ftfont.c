@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006-2014 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -54,7 +54,7 @@ static Lisp_Object freetype_font_cache;
 /* Cache for FT_Face and FcCharSet. */
 static Lisp_Object ft_face_cache;
 
-/* The actual structure for FreeType font that can be casted to struct
+/* The actual structure for FreeType font that can be cast to struct
    font.  */
 
 struct ftfont_info

@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2013 Free Software Foundation, Inc.
+# Copyright (C) 2002-2014 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -150,6 +150,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module u64:
   # Code from module unistd:
   # Code from module unsetenv:
+  # Code from module update-copyright:
   # Code from module utimens:
   # Code from module verify:
   # Code from module warnings:
@@ -791,6 +792,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/snippet/arg-nonnull.h
   build-aux/snippet/c++defs.h
   build-aux/snippet/warn-on-use.h
+  build-aux/update-copyright
   lib/acl-errno-valid.c
   lib/acl-internal.h
   lib/acl.h

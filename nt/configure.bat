@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows operating systems
-rem   Copyright (C) 1999-2013 Free Software Foundation, Inc.
+rem   Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -972,4 +972,3 @@ set HAVE_XPM=
 set dbginfo=
 endlocal
 set use_extensions=
-

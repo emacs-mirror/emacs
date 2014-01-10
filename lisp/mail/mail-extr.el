@@ -1,6 +1,6 @@
 ;;; mail-extr.el --- extract full name and address from RFC 822 mail header -*- coding: utf-8 -*-
 
-;; Copyright (C) 1991-1994, 1997, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1991-1994, 1997, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>

@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: FSF
@@ -421,7 +421,7 @@ A prefix argument means don't query; expand all abbrevs."
 \(fn ABBREV PROP)")
 
 (defalias 'abbrev-put 'put
-  "Set the property PROP of abbrev ABREV to value VAL.
+  "Set the property PROP of abbrev ABBREV to value VAL.
 See `define-abbrev' for the effect of some special properties.
 
 \(fn ABBREV PROP VAL)")
@@ -588,7 +588,7 @@ An obsolete but still supported calling form is:
                  (boundp sym) (symbol-value sym)
                  (not (abbrev-get sym :system)))
       (unless (or system-flag
-                  (and (boundp sym) (fboundp sym)
+                  (and (boundp sym)
                        ;; load-file-name
                        (equal (symbol-value sym) expansion)
                        (equal (symbol-function sym) hook)))

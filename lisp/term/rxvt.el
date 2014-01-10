@@ -1,6 +1,6 @@
 ;;; rxvt.el --- define function key sequences and standard colors for rxvt
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Keywords: terminals
@@ -201,7 +201,7 @@
 
 (defun rxvt-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
-  (min 65535 (round (* (/ prim 255.0) 65535.0))))
+  (logior prim (lsh prim 8)))
 
 (defun rxvt-register-default-colors ()
   "Register the default set of colors for rxvt or compatible emulator.
@@ -233,9 +233,9 @@ for the currently selected frame."
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)
 			      (mapcar 'rxvt-rgb-convert-to-16bit
-				      (list (round (* r 42.5))
-					    (round (* g 42.5))
-					    (round (* b 42.5)))))
+				      (list (if (zerop r) 0 (+ (* r 40) 55))
+					    (if (zerop g) 0 (+ (* g 40) 55))
+					    (if (zerop b) 0 (+ (* b 40) 55)))))
 	    (setq b (1+ b))
 	    (if (> b 5)
 		(setq g (1+ g)

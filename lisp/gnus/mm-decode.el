@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -529,14 +529,6 @@ result of the verification."
 		 (item :tag "only known protocols" known)
 		 (item :tag "ask" nil))
   :group 'mime-security)
-
-(defvar mm-viewer-completion-map
-  (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))
-    (set-keymap-parent map minibuffer-local-completion-map)
-    ;; Should we bind other key to minibuffer-complete-word?
-    (define-key map " " 'self-insert-command)
-    map)
-  "Keymap for input viewer with completion.")
 
 (defvar mm-viewer-completion-map
   (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))

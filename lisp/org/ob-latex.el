@@ -1,6 +1,6 @@
 ;;; ob-latex.el --- org-babel functions for latex "evaluation"
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -59,7 +59,7 @@
   '("[usenames]{color}" "{tikz}" "{color}" "{listings}" "{amsmath}")
   "Packages to use for htlatex export."
   :group 'org-babel
-  :type '(list (string)))
+  :type '(repeat (string)))
 
 (defun org-babel-expand-body:latex (body params)
   "Expand BODY according to PARAMS, return the expanded body."

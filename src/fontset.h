@@ -1,5 +1,5 @@
 /* Header for fontset handler.
-   Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -28,8 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern void free_face_fontset (struct frame *, struct face *);
 extern int face_for_char (struct frame *, struct face *, int,
-                          int, Lisp_Object);
-extern Lisp_Object font_for_char (struct face *, int, int, Lisp_Object);
+                          ptrdiff_t, Lisp_Object);
+extern Lisp_Object font_for_char (struct face *, int, ptrdiff_t, Lisp_Object);
 
 extern int make_fontset_for_ascii_face (struct frame *, int, struct face *);
 extern int fontset_from_font (Lisp_Object);

@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -864,6 +864,10 @@ this object."
 This may create or delete slots, but does not affect the return value
 of `eq'."
   (error "EIEIO: `change-class' is unimplemented"))
+
+;; Hook ourselves into help system for describing classes and methods.
+(add-hook 'help-fns-describe-function-functions 'eieio-help-generic)
+(add-hook 'help-fns-describe-function-functions 'eieio-help-constructor)
 
 ;;; Interfacing with edebug
 ;;

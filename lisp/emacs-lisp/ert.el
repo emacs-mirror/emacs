@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -999,7 +999,8 @@ contained in UNIVERSE."
        (list (cl-remove-if-not (lambda (test)
                                    (and (ert-test-name test)
                                         (string-match selector
-                                                      (ert-test-name test))))
+                                                      (symbol-name
+                                                       (ert-test-name test)))))
                                  universe))))
     (ert-test (list selector))
     (symbol

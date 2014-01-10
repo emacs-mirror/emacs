@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.  -*- coding: utf-8 -*-
-@c Copyright (C) 2004-2013 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2014 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -43,9 +43,12 @@ customize the variables @code{calendar-intermonth-header} and
 @code{calendar-intermonth-text} as described in their documentation.
 
 @vindex calendar-month-header
+@vindex calendar-day-header-array
   The variable @code{calendar-month-header} controls the text that
 appears above each month in the calendar.  By default, it shows the
-month and year.
+month and year.  The variable @code{calendar-day-header-array}
+controls the text that appears above each day's column in every month.
+By default, it shows the first two letters of each day's name.
 
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker

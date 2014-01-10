@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998, 2001-2013 Free Software Foundation,
+@c Copyright (C) 1990-1995, 1998, 2001-2014 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Macros
@@ -54,6 +54,11 @@ be in a function.  The body of the macro uses this to construct the
 expansion, which is @code{(setq x (1+ x))}.  Once the macro definition
 returns this expansion, Lisp proceeds to evaluate it, thus incrementing
 @code{x}.
+
+@defun macrop object
+This predicate tests whether its argument is a macro, and returns
+@code{t} if so, @code{nil} otherwise.
+@end defun
 
 @node Expansion
 @section Expansion of a Macro Call

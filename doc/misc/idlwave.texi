@@ -12,6 +12,7 @@
 @set DATE April, 2007
 @set AUTHOR J.D. Smith & Carsten Dominik
 @set MAINTAINER J.D. Smith
+@documentencoding UTF-8
 @c %**end of header
 @finalout
 
@@ -22,7 +23,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}.
 
-Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

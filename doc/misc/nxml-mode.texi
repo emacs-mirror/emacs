@@ -2,13 +2,14 @@
 @c %**start of header
 @setfilename ../../info/nxml-mode
 @settitle nXML Mode
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
 This manual documents nXML mode, an Emacs major mode for editing
 XML with RELAX NG support.
 
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -27,6 +28,17 @@ modify this GNU manual.''
 @direntry
 * nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
 @end direntry
+
+
+@titlepage
+@title nXML mode
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
 
 @node Top
 @top nXML Mode

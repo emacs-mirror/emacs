@@ -1,6 +1,6 @@
 ;;; ob-maxima.el --- org-babel functions for maxima evaluation
 
-;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;;	Eric Schulte
@@ -43,7 +43,8 @@
 (defcustom org-babel-maxima-command
   (if (boundp 'maxima-command) maxima-command "maxima")
   "Command used to call maxima on the shell."
-  :group 'org-babel)
+  :group 'org-babel
+  :type 'string)
 
 (defun org-babel-maxima-expand (body params)
   "Expand a block of Maxima code according to its header arguments."

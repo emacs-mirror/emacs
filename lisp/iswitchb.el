@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996-1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -1427,7 +1427,8 @@ between buffers using substrings.  See `iswitchb' for details."
       (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
     (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))
 
-(make-obsolete 'iswitchb-mode 'icomplete-mode "24.4")
+(make-obsolete 'iswitchb-mode
+               "use icomplete-mode or ido-mode instead" "24.4")
 
 (provide 'iswitchb)
 

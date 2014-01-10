@@ -1,3 +1,131 @@
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Problems with very large files): Fix superscript typo.
+
+2013-01-07  Rasmus  <w530@pank.eu>
+
+	* org.texi (Global and local cycling): Fix missing '@'.
+
+2013-01-07 Bastien Guerry <bzg@gnu.org>
+
+	* org.texi (Global and local cycling): Mention C-u C-u TAB.
+	(Include files, The Export Dispatcher)
+	(Advanced configuration)
+	(Header arguments in Org mode properties): Spelling fixes.
+	(Special blocks): Add #+BEGIN_ABSTRACT as another example.
+	(@LaTeX{} specific attributes): New index entries.  Use
+	#+BEGIN_ABSTRACT in the example.
+
+2013-01-07  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.texi (Org export): New section.
+	(HTML doctypes): Fix whitespace error.  Fix display.
+	(Publishing options): Add missing html publishing options.
+
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Basic editing, Packages that do not come with Emacs):
+	Merge in some info from etc/MORE.STUFF.
+
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify .texi encoding (Bug#16292).
+	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
+	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
+	* ede.texi, ediff.texi, edt.texi, efaq.texi, eieio.texi:
+	* emacs-gnutls.texi, epa.texi, erc.texi, ert.texi:
+	* eshell.texi, eudc.texi, flymake.texi, forms.texi, gnus-coding.texi:
+	* gnus-faq.texi, htmlfontify.texi, idlwave.texi, ido.texi, info.texi:
+	* message.texi, mh-e.texi, newsticker.texi, nxml-mode.texi:
+	* octave-mode.texi, org.texi, pcl-cvs.texi, pgg.texi, rcirc.texi:
+	* reftex.texi, remember.texi, sasl.texi, sc.texi, semantic.texi:
+	* ses.texi, sieve.texi, smtpmail.texi, speedbar.texi, srecode.texi:
+	* todo-mode.texi, tramp.texi, url.texi, vip.texi, viper.texi:
+	* widget.texi, wisent.texi, woman.texi:
+	Add @documentencoding.
+
+2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (What Eshell is not): Clean up confusing clause.
+
+2014-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* efaq-w32.texi, reftex.texi: Use @insertcopying in non-TeX.
+
+	* ede.texi, eieio.texi, semantic.texi, srecode.texi:
+	Add copyright notice to titlepage.
+
+	* dbus.texi, nxml-mode.texi, widget.texi: Add titlepage.
+
+	* ert.texi: Add a titlepage.  Use @insertcopying.
+
+	* calc.texi (Top): Use @top rather than @chapter.
+
+2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (top): Fix incorrect use of xref.
+
+2014-01-03  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (top): Fix incorrect info filename in an xref.
+
+2014-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (cc_mode_deps): Rename from (typo) ccmode_deps.
+
+2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (Command Basics): Removed `Command basics' chapter.
+
+2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (What is Eshell?): Add section about what not to use
+	Eshell for.
+
+2013-12-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* emacs-gnutls.texi (Help For Users): Document `gnutls-verify-error'.
+
+2013-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* woman.texi (Navigation): Use itemx where appropriate.
+
+2013-12-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* info.texi, woman.texi:
+	Document `S-SPC' as alternative to `DEL' for scrolling.
+
+2013-12-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Stack Manipulation Commands): Mention using the variable
+	`calc-context-sensitive-enter' for `calc-enter' and `calc-pop'.
+
+2013-12-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (direntry): Use ssh but rsh.
+	(all): Encode all environment variable names with @env{...}.
+	(Bug Reports): Refer to Testing node.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi, cc-mode.texi, ediff.texi, ert.texi:
+	* htmlfontify.texi, ido.texi, octave-mode.texi, org.texi:
+	* srecode.texi, todo-mode.texi, tramp.texi:
+	Sync direntry with info/dir version.
+
+2013-12-11  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* Makefile.in: Add octave-mode.texi.
+
+2013-12-11  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+	    Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* octave-mode.texi: Import from GNU Octave (doc/interpreter/emacs.txi).
+
+2013-12-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dbus.texi (Properties and Annotations): Fix typo.
+
 2013-12-06  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi: Don't include Emacs version within Org's version.
@@ -415,7 +543,7 @@
 
 2013-11-12  Kodi Arfer  <git@arfer.net>  (tiny change)
 
-	* org.text (CSS support): Mention .figure-number, .listing-number,
+	* org.texi (CSS support): Mention .figure-number, .listing-number,
 	and .table-number.
 
 2013-11-12  Michael Brand  <michael.ch.brand@gmail.com>
@@ -1087,7 +1215,7 @@
 
 2013-02-07  Eric Ludlam  <zappo@gnu.org>
 
-	* doc/misc/ede.texi (Creating a project): Make ede-new doc less
+	* ede.texi (Creating a project): Make ede-new doc less
 	specific, and only about items it supports, indicating that there
 	might be more.  Remove refs to simple project and direct automake
 	from ede new.
@@ -1419,7 +1547,7 @@
 
 2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* doc/misc/calc.texi (Date Forms): Mention the customizable
+	* calc.texi (Date Forms): Mention the customizable
 	Gregorian-Julian switch.
 	(Customizing Calc): Mention the variable `calc-gregorian-switch'.
 
@@ -2084,7 +2212,7 @@
 
 2012-05-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* doc/misc/calc.texi (Basic Operations on Units, Customizing Calc):
+	* calc.texi (Basic Operations on Units, Customizing Calc):
 	Mention `calc-ensure-consistent-units'.
 
 2012-05-14  Andreas Schwab  <schwab@linux-m68k.org>
@@ -11114,7 +11242,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

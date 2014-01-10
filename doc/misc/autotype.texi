@@ -5,12 +5,13 @@
 @c @node Autotypist, Picture, Abbrevs, Top
 @c @chapter Features for Automatic Typing
 @settitle Features for Automatic Typing
+@documentencoding UTF-8
 @c  @cindex text
 @c  @cindex selfinserting text
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2013
+Copyright @copyright{} 1994--1995, 1999, 2001--2014
 Free Software Foundation, Inc.
 
 @quotation
@@ -28,8 +29,8 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* Autotype: (autotype).         Convenient features for text that you
-                                  enter frequently in Emacs.
+* Autotype: (autotype).         Convenient features for text that you enter
+                                  frequently in Emacs.
 @end direntry
 
 @titlepage

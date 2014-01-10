@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -69,6 +69,8 @@
 
 (require 'semantic)
 (require 'semantic/lex)
+
+(declare-function semantic-c-end-of-macro "semantic/bovine/c")
 
 ;;; Code:
 (defvar semantic-lex-spp-macro-symbol-obarray nil
@@ -527,16 +529,54 @@ and what valid VAL values are."
   ;;
   ;; Nested token FOO shows up in the table of macros, and gets replace
   ;; inline.  This is the same as case 2.
+  ;;
+  ;; CASE 5: Macros which open a scope without closing it
+  ;;
+  ;; #define __NAMESPACE_STD namespace std {
+  ;; #define __NAMESPACE_END }
+  ;;  ==>
+  ;; ((NAMESPACE "namespace" 140 . 149)
+  ;;  (symbol "std" 150 . 153)
+  ;;  (open-paren "{" 154 . 155))
+  ;;
+  ;; Note that we get a single 'open-paren' instead of a
+  ;; 'semantic-list', which is because we use
+  ;; 'semantic-lex-spp-paren-or-list' instead of
+  ;; 'semantic-lex-paren-or-list' in our spp-lexer.  To keep things
+  ;; reasonably simple, we assume that such an open scope will always
+  ;; be closed by another macro (see
+  ;; `semantic-lex-spp-find-closing-macro'). We generate a
+  ;; 'semantic-list' to this closing macro, and we leave an overlay
+  ;; which contains information how far we got into the macro's
+  ;; stream (since it might open several scopes).
 
-  (let ((arglist (semantic-lex-spp-macro-with-args val))
-	(argalist nil)
-	(val-tmp nil)
-	(v nil)
-	)
+  (let* ((arglist (semantic-lex-spp-macro-with-args val))
+	 (argalist nil)
+	 (val-tmp nil)
+	 (v nil)
+	 (sppov (semantic-lex-spp-get-overlay beg))
+	 (sppinfo (when sppov (overlay-get sppov 'semantic-spp))))
+
+    ;; First, check if we were already here and left information
+    (when sppinfo
+      ;; Advance in the tokens as far as we got last time
+      (when (numberp (car sppinfo))
+	(while (and val
+		    (>= (car sppinfo) (car (last (car val)))))
+	    (setq val (cdr val))))
+      ;; And push an open paren
+      (semantic-lex-push-token
+       (semantic-lex-token 'open-paren beg (1+ beg) "{"))
+      (setq semantic-lex-current-depth (1+ semantic-lex-current-depth))
+      (unless val
+	;; We reached the end of this macro, so delete overlay
+	(delete-overlay sppov)))
+
     ;; CASE 2: Dealing with the arg list.
-    (when arglist
+    (when (and val arglist)
       ;;  Skip the arg list.
-      (setq val (cdr val))
+      (when (eq (caar val) 'spp-arg-list)
+	(setq val (cdr val)))
 
       ;; Push args into the replacement list.
       (let ((AV argvalues))
@@ -616,7 +656,32 @@ and what valid VAL values are."
 	  (semantic-lex-push-token
 	   (semantic-lex-token (semantic-lex-token-class v) beg end txt))
 	  )
-
+	 ;; CASE 5: Macro which opens a scope
+	 ((eq (semantic-lex-token-class v) 'open-paren)
+	  ;; We assume that the scope will be closed by another macro.
+	  ;; (Everything else would be a terrible idea anyway.)
+	  (let* ((endpoint (semantic-lex-spp-find-closing-macro))
+		 (ov (when endpoint
+		       (or sppov
+			   (make-overlay beg end)))))
+	    (when ov
+	      ;; Generate a semantic-list which spans to the end of
+	      ;; the closing macro
+	      (semantic-lex-push-token
+	       (semantic-lex-token 'semantic-list beg endpoint))
+	      ;; The rest of the current macro's stream will be parsed
+	      ;; next time.
+	      (setq val-tmp nil)
+	      ;; Store our current state were we are in the macro and
+	      ;; the endpoint.
+	      (overlay-put ov 'semantic-spp
+			   (cons (car (last v)) endpoint)))))
+	 ((eq (semantic-lex-token-class v) 'close-paren)
+	  ;; Macro which closes a scope
+	  ;; Just push the close paren, but also decrease depth
+	  (semantic-lex-push-token
+	   (semantic-lex-token 'close-paren beg end txt))
+	  (setq semantic-lex-current-depth (1- semantic-lex-current-depth)))
 	 ;; CASE 1: Just another token in the stream.
 	 (t
 	  ;; Nothing new.
@@ -651,6 +716,37 @@ will return empty string instead.")
 		 "")))
 	     txt
 	     ""))
+
+(defun semantic-lex-spp-find-closing-macro ()
+  "Find next macro which closes a scope through a close-paren.
+Returns position with the end of that macro."
+  (let ((macros (semantic-lex-spp-macros))
+	(cmacro-regexp "\\(")
+	(case-fold-search nil))
+    ;; Build a regexp which search for all macros with a closing
+    ;; paren, and search for it.
+    (dolist (cur macros)
+      (let ((stream (symbol-value cur)))
+	(when (and (listp stream) (listp (car stream)))
+	  (while stream
+	    (if (and (eq (caar stream) 'close-paren)
+		     (string= (nth 1 (car stream)) "}"))
+		(setq cmacro-regexp (concat cmacro-regexp (symbol-name cur) "\\|")
+		      stream nil)
+	      (setq stream (cdr-safe stream)))))))
+    (when cmacro-regexp
+      (save-excursion
+	(when (re-search-forward
+	       (concat (substring cmacro-regexp 0 -2) "\\)[^0-9a-zA-Z_]") nil t)
+	  (point))))))
+
+(defun semantic-lex-spp-get-overlay (&optional point)
+  "Return first overlay which has a 'semantic-spp property."
+  (let ((overlays (overlays-at (or point (point)))))
+    (while (and overlays
+		(null (overlay-get (car overlays) 'semantic-spp)))
+      (setq overlays (cdr overlays)))
+    (car-safe overlays)))
 
 ;;; Macro Merging
 ;;
@@ -824,8 +920,46 @@ STR occurs in the current buffer between BEG and END."
   "\\(\\sw\\|\\s_\\)+"
   (let ((str (match-string 0))
 	(beg (match-beginning 0))
-	(end (match-end 0)))
-    (semantic-lex-spp-analyzer-push-tokens-for-symbol str beg end)))
+	(end (match-end 0))
+	sppov)
+      (semantic-lex-spp-analyzer-push-tokens-for-symbol str beg end)
+      (when (setq sppov (semantic-lex-spp-get-overlay beg))
+	(setq semantic-lex-end-point (cdr (overlay-get sppov 'semantic-spp))))))
+
+(define-lex-regex-analyzer semantic-lex-spp-paren-or-list
+  "Detect open parenthesis.
+Contrary to `semantic-lex-paren-or-list', this will push a single
+open-paren onto the stream if no closing paren can be found.
+This is important for macros which open a scope which is closed
+by another macro."
+  "\\s("
+  (if (or (not semantic-lex-maximum-depth)
+	  (< semantic-lex-current-depth semantic-lex-maximum-depth))
+      (progn
+	(setq semantic-lex-current-depth (1+ semantic-lex-current-depth))
+	(semantic-lex-push-token
+	 (semantic-lex-token
+	  'open-paren (match-beginning 0) (match-end 0))))
+    (save-excursion
+      (let ((start (match-beginning 0))
+	    (end (match-end 0))
+	    (peom (save-excursion (semantic-c-end-of-macro) (point))))
+	(condition-case nil
+	   (progn
+	     ;; This will throw an error if no closing paren can be found.
+	     (forward-list 1)
+	     (when (> (point) peom)
+	       ;; If we have left the macro, this is the wrong closing
+	       ;; paren, so error out as well.
+	       (error ""))
+	     (semantic-lex-push-token
+	      (semantic-lex-token
+	       'semantic-list start (point))))
+	  (error
+	   ;; Only push a single open-paren.
+	   (semantic-lex-push-token
+	    (semantic-lex-token
+	     'open-paren start end))))))))
 
 ;;; ANALYZERS FOR NEW MACROS
 ;;

@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images
 ;;
-;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2014 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.11
 ;; Keywords: multimedia
@@ -881,7 +881,7 @@ displayed."
         (progn
           (image-dired-display-thumbs)
           (pop-to-buffer image-dired-thumbnail-buffer))
-      (message "Cancelled."))))
+      (message "Canceled."))))
 
 ;;;###autoload
 (defalias 'image-dired 'image-dired-show-all-from-dir)

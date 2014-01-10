@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/reftex
 @settitle RefTeX User Manual
+@documentencoding UTF-8
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -45,7 +46,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -97,6 +98,8 @@ modify this GNU manual.''
 @ifnottex
 @node Top
 @top @RefTeX{}
+
+@insertcopying
 
 @RefTeX{} is a package for managing Labels, References, Citations and
 index entries with GNU Emacs.

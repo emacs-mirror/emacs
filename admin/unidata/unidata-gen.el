@@ -1,6 +1,6 @@
 ;; unidata-gen.el -- Create files containing character property data.
 
-;; Copyright 2008-2013 (C) Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -984,7 +984,14 @@ is the character itself.")))
 	  (l nil)
 	  (idx 0)
 	  c)
-      (if (= len 0)
+      (if (or (= len 0)
+	      ;; Unicode Standard, paragraph 4.8: "For all other
+	      ;; Unicode code points of all other types (Control,
+	      ;; Private-Use, Surrogate, Noncharacter, and Reserved),
+	      ;; the value of the Name property is the null string."
+	      ;; We already handle elsewhere all the characters except
+	      ;; Cc, Control characters, which are handled here.
+	      (string= str "<control>"))
 	  nil
 	(dotimes (i len)
 	  (setq c (aref str i))
@@ -1127,6 +1134,10 @@ is the character itself.")))
 	       (RLE . "Right-to-Left Embedding")
 	       (RLO . "Right-to-Left Override")
 	       (PDF . "Pop Directional Format")
+	       (LRI . "Left-to-Right Isolate")
+	       (RLI . "Right-to-Left Isolate")
+	       (FSI . "First Strong Isolate")
+	       (PDI . "Pop Directional Isolate")
 	       (EN . "European Number")
 	       (ES . "European Number Separator")
 	       (ET . "European Number Terminator")

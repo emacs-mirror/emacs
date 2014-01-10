@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2013 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -2688,7 +2688,6 @@ such as a mark that says whether an article is stored in the cache
     (gnus-tree-mode "(gnus)Tree Display"))
   "Alist of major modes and related Info nodes.")
 
-(defvar gnus-group-buffer "*Group*")
 (defvar gnus-summary-buffer "*Summary*")
 (defvar gnus-article-buffer "*Article*")
 (defvar gnus-server-buffer "*Server*")
@@ -3035,7 +3034,7 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-suppress-keymap (keymap)
   (suppress-keymap keymap)
-  (let ((keys `([backspace] [delete] "\177" "\M-u"))) ;gnus-mouse-2
+  (let ((keys `([delete] "\177" "\M-u"))) ;gnus-mouse-2
     (while keys
       (define-key keymap (pop keys) 'undefined))))
 

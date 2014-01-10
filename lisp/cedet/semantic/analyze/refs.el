@@ -1,6 +1,6 @@
 ;;; semantic/analyze/refs.el --- Analysis of the references between tags.
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -118,7 +118,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 		    (semantic-tag-similar-p tag aT
 					    :prototype-flag
 					    :parent
-					    :typemodifiers))
+					    :typemodifiers
+					    :default-value))
 	   (when in-buffer (save-excursion (semantic-go-to-tag aT aDB)))
 	   (push aT impl))))
      allhits)
@@ -141,7 +142,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 		    (semantic-tag-similar-p tag aT
 					    :prototype-flag
 					    :parent
-					    :typemodifiers))
+					    :typemodifiers
+					    :default-value))
 	   (when in-buffer (save-excursion (semantic-go-to-tag aT aDB)))
 	   (push aT proto))))
      allhits)

@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -2259,7 +2259,7 @@ Any other key combination is executed normally."
   (interactive "*")
   (self-insert-command 1)
   (when abbrev-mode
-    (set-temporary-overlay-map
+    (set-transient-map
      (let ((map (make-sparse-keymap)))
        (define-key map [??] 'f90-abbrev-help)
        (define-key map (vector help-char) 'f90-abbrev-help)

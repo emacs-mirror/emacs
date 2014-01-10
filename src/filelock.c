@@ -1,5 +1,5 @@
 /* Lock files for editing.
-   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2013 Free Software
+   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -689,7 +689,7 @@ lock_file (Lisp_Object fn)
   /* Ensure we have only '/' separators, to avoid problems with
      looking (inside fill_in_lock_file_name) for backslashes in file
      names encoded by some DBCS codepage.  */
-  dostounix_filename (SSDATA (fn), 1);
+  dostounix_filename (SSDATA (fn));
 #endif
   encoded_fn = ENCODE_FILE (fn);
 

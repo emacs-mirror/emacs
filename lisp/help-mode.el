@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -37,6 +37,8 @@
     (set-keymap-parent map (make-composed-keymap button-buffer-map
                                                  special-mode-map))
     (define-key map [mouse-2] 'help-follow-mouse)
+    (define-key map "l" 'help-go-back)
+    (define-key map "r" 'help-go-forward)
     (define-key map "\C-c\C-b" 'help-go-back)
     (define-key map "\C-c\C-f" 'help-go-forward)
     (define-key map [XF86Back] 'help-go-back)

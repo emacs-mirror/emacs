@@ -1,6 +1,6 @@
 /* syssignal.h - System-dependent definitions for signals.
 
-Copyright (C) 1993, 1999, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1993, 1999, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
-#include <stdbool.h>
 
 extern void init_signals (bool);
 

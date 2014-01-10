@@ -4,6 +4,7 @@
 @set TITLE SRecoder Manual
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
+@documentencoding UTF-8
 
 @c Merge all indexes into a single index for now.
 @c We can always separate them later into two or more as needed.
@@ -15,7 +16,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -32,7 +33,7 @@ modify this GNU manual.''
 
 @dircategory Emacs misc features
 @direntry
-* SRecode: (srecode).           Template code generator.
+* SRecode: (srecode).           Semantic template code generator.
 @end direntry
 
 @titlepage
@@ -40,6 +41,9 @@ modify this GNU manual.''
 @center @titlefont{SRecode}
 @vskip 0pt plus 1 fill
 @center by @value{AUTHOR}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
 
 @macro semantic{}
@@ -338,7 +342,7 @@ area will modify the other linked areas.  Pressing TAB will move
 between editable fields in the template.
 
 Once the cursor moves out of the are inserted by the template, all the
-fields are cancelled.
+fields are canceled.
 
 @b{NOTE}: Some conveniences in templates, such as completion, or
 character restrictions are lost when using field editing mode.

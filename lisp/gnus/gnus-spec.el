@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -81,7 +81,6 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
 (defvar gnus-tmp-unread-and-unselected)
 (defvar gnus-tmp-news-method)
 (defvar gnus-tmp-news-server)
-(defvar gnus-tmp-article-number)
 (defvar gnus-mouse-face)
 (defvar gnus-mouse-face-prop)
 (defvar gnus-tmp-header)

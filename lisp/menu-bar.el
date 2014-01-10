@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -1223,10 +1223,9 @@ mail status in mode line"))
        "Use Directory Names in Buffer Names"
        "Directory name in buffer names (uniquify) %s"
        "Uniquify buffer names by adding parent directory names"
-       (require 'uniquify)
        (setq uniquify-buffer-name-style
 	     (if (not uniquify-buffer-name-style)
-		 'forward))))
+		 'post-forward-angle-brackets))))
 
     (bindings--define-key menu [edit-options-separator]
       menu-bar-separator)
@@ -1419,6 +1418,8 @@ mail status in mode line"))
     (bindings--define-key menu [separator-net]
       menu-bar-separator)
 
+    (bindings--define-key menu [browse-web]
+      '(menu-item "Browse the Web..." browse-web))
     (bindings--define-key menu [directory-search]
       '(menu-item "Directory Search" eudc-tools-menu))
     (bindings--define-key menu [compose-mail]
@@ -1634,14 +1635,6 @@ key, a click, or a menu-item"))
                   :help "Read the Introduction to Emacs Lisp Programming"))
     menu))
 
-(defun menu-bar-help-extra-packages ()
-  "Display help about some additional packages available for Emacs."
-  (interactive)
-  (let (enable-local-variables)
-    (view-file (expand-file-name "MORE.STUFF"
-				 data-directory))
-    (goto-address-mode 1)))
-
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."
   (interactive)
@@ -1669,8 +1662,8 @@ key, a click, or a menu-item"))
     (bindings--define-key menu [sep2]
       menu-bar-separator)
     (bindings--define-key menu [external-packages]
-      '(menu-item "Finding Extra Packages" menu-bar-help-extra-packages
-                  :help "Lisp packages distributed separately for use in Emacs"))
+      '(menu-item "Finding Extra Packages" view-external-packages
+                  :help "How to get more Lisp packages for use in Emacs"))
     (bindings--define-key menu [find-emacs-packages]
       '(menu-item "Search Built-in Packages" finder-by-keyword
                   :help "Find built-in packages and features by keyword"))

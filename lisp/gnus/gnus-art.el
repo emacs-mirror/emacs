@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -4395,7 +4395,6 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   [?\S-\ ] gnus-article-goto-prev-page
   "\177" gnus-article-goto-prev-page
   [delete] gnus-article-goto-prev-page
-  [backspace] gnus-article-goto-prev-page
   "\C-c^" gnus-article-refer-article
   "h" gnus-article-show-summary
   "s" gnus-article-show-summary

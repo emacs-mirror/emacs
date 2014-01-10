@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2013 Free Software Foundation, Inc.
+Copyright (C) 2006-2014 Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -148,7 +148,27 @@ static Lisp_Object font_charset_alist;
    here.  */
 static struct font_driver_list *font_driver_list;
 
-
+#ifdef ENABLE_CHECKING
+
+/* Used to catch bogus pointers in font objects.  */
+
+bool
+valid_font_driver (struct font_driver *drv)
+{
+  Lisp_Object tail, frame;
+  struct font_driver_list *fdl;
+
+  for (fdl = font_driver_list; fdl; fdl = fdl->next)
+    if (fdl->driver == drv)
+      return true;
+  FOR_EACH_FRAME (tail, frame)
+    for (fdl = XFRAME (frame)->font_driver_list; fdl; fdl = fdl->next)
+      if (fdl->driver == drv)
+	return true;
+  return false;
+}
+
+#endif /* ENABLE_CHECKING */
 
 /* Creators of font-related Lisp object.  */
 
@@ -3209,7 +3229,10 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 		      val = font_select_entity (f, entities,
 						attrs, pixel_size, c);
 		      if (! NILP (val))
-                        return val;
+			{
+			  SAFE_FREE ();
+			  return val;
+			}
 		    }
 		}
 	    }

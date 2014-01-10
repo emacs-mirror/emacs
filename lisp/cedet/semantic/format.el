@@ -1,6 +1,6 @@
 ;;; semantic/format.el --- Routines for formatting tags
 
-;; Copyright (C) 1999-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -499,7 +499,12 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
  			(setq r (concat r "[]")
  			      deref (1- deref)))
  		      r)))
- 	 )
+	 (default (when (eq class 'variable)
+		    (let ((defval
+			    (semantic-tag-get-attribute tag :default-value)))
+		      (when (and defval (stringp defval))
+			(concat "[=" defval "]")))))
+	 )
     (if args
 	(setq args
 	      (concat " "
@@ -512,7 +517,8 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 	    (if type (concat type " "))
 	    name
 	    (or args "")
-	    (or array ""))))
+	    (or array "")
+	    (or default ""))))
 
 ;;;###autoload
 (define-overloadable-function semantic-format-tag-concise-prototype (tag &optional parent color)

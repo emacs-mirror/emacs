@@ -1,6 +1,6 @@
 ;;; china-util.el --- utilities for Chinese  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -52,16 +52,16 @@
 ;; ISO-2022 escape sequence to designate GB2312.
 (defvar iso2022-gb-designation "\e$A")
 ;; HZ escape sequence to designate GB2312.
-(defvar hz-gb-designnation "~{")
+(defvar hz-gb-designation "~{")
 ;; ISO-2022 escape sequence to designate ASCII.
 (defvar iso2022-ascii-designation "\e(B")
 ;; HZ escape sequence to designate ASCII.
-(defvar hz-ascii-designnation "~}")
+(defvar hz-ascii-designation "~}")
 ;; Regexp of ZW sequence to start GB2312.
 (defvar zw-start-gb "^zW")
 ;; Regexp for start of GB2312 in an encoding mixture of HZ and ZW.
 (defvar hz/zw-start-gb
-  (concat hz-gb-designnation "\\|" zw-start-gb "\\|[^\0-\177]"))
+  (concat hz-gb-designation "\\|" zw-start-gb "\\|[^\0-\177]"))
 
 (defvar decode-hz-line-continuation nil
   "Flag to tell if we should care line continuation convention of Hz.")
@@ -117,7 +117,7 @@ Return the length of resulting text."
 		(progn
 		  (translate-region (point) end hz-set-msb-table)
 		  (goto-char end))
-	      (if (search-forward hz-ascii-designnation
+	      (if (search-forward hz-ascii-designation
 				  (if decode-hz-line-continuation nil end)
 				  t)
 		  (delete-char -2))
@@ -155,11 +155,11 @@ Return the length of resulting text."
 	    (goto-char pos)
 	    (while (search-forward iso2022-gb-designation nil t)
 	      (delete-char -3)
-	      (insert hz-gb-designnation))
+	      (insert hz-gb-designation))
 	    (goto-char pos)
 	    (while (search-forward iso2022-ascii-designation nil t)
 	      (delete-char -3)
-	      (insert hz-ascii-designnation))))
+	      (insert hz-ascii-designation))))
       (- (point-max) (point-min)))))
 
 ;;;###autoload

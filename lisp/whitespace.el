@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
 
-;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2014 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -344,7 +344,7 @@
 ;; Thanks to Andreas Roehler <andreas.roehler@easy-emacs.de> for
 ;; indicating defface byte-compilation warnings.
 ;;
-;; Thanks to TimOCallaghan (EmacsWiki) for the idea about highlight
+;; Thanks to Tim O'Callaghan (EmacsWiki) for the idea about highlight
 ;; "long" lines.  See EightyColumnRule (EmacsWiki).
 ;;
 ;; Thanks to Yanghui Bian <yanghuibian@gmail.com> for indicating a new

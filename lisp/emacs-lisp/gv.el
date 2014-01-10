@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -454,7 +454,10 @@ The return value is the last VAL in the list.
 ;;;###autoload
 (defmacro gv-ref (place)
   "Return a reference to PLACE.
-This is like the `&' operator of the C language."
+This is like the `&' operator of the C language.
+Note: this only works reliably with lexical binding mode, except for very
+simple PLACEs such as (function-symbol 'foo) which will also work in dynamic
+binding mode."
   (gv-letplace (getter setter) place
     `(cons (lambda () ,getter)
            (lambda (gv--val) ,(funcall setter 'gv--val)))))

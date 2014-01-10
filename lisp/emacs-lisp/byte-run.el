@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -391,7 +391,7 @@ If you think you need this, you're probably making a mistake somewhere."
   "Like `progn', but evaluates the body at compile time if you're compiling.
 Thus, the result of the body appears to the compiler as a quoted constant.
 In interpreted code, this is entirely equivalent to `progn'."
-  (declare (debug (def-body)) (indent 0))
+  (declare (debug (&rest def-form)) (indent 0))
   (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)

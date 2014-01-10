@@ -1,6 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email
 
-;; Copyright (C) 2003-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: Paul Foley <mycroft@actrix.gen.nz>
@@ -89,20 +89,25 @@ present, is the string to be hashed; if not present ADDR will be used."
 Resources named here are to be accepted in incoming payments.  If the
 corresponding AMOUNT is NIL, the value of `hashcash-default-accept-payment'
 is used instead."
+  :type 'alist
   :group 'hashcash)
 
-(defcustom hashcash-path (executable-find "hashcash")
-  "The path to the hashcash binary."
+(define-obsolete-variable-alias 'hashcash-path 'hashcash-program "24.4")
+(defcustom hashcash-program "hashcash"
+  "The name of the hashcash executable.
+If this is not in your PATH, specify an absolute file name."
+  :type '(choice (const nil) file)
   :group 'hashcash)
 
 (defcustom hashcash-extra-generate-parameters nil
-  "A list of parameter strings passed to `hashcash-path' when minting.
+  "A list of parameter strings passed to `hashcash-program' when minting.
 For example, you may want to set this to '(\"-Z2\") to reduce header length."
   :type '(repeat string)
   :group 'hashcash)
 
 (defcustom hashcash-double-spend-database "hashcash.db"
-  "The path to the double-spending database."
+  "The name of the double-spending database file."
+  :type 'file
   :group 'hashcash)
 
 (defcustom hashcash-in-news nil
@@ -159,10 +164,10 @@ For example, you may want to set this to '(\"-Z2\") to reduce header length."
 (defun hashcash-generate-payment (str val)
   "Generate a hashcash payment by finding a VAL-bit collison on STR."
   (if (and (> val 0)
-	   hashcash-path)
+	   hashcash-program)
       (with-current-buffer (get-buffer-create " *hashcash*")
 	(erase-buffer)
-	(apply 'call-process hashcash-path nil t nil
+	(apply 'call-process hashcash-program nil t nil
 	       "-m" "-q" "-b" (number-to-string val) str
 	       hashcash-extra-generate-parameters)
 	(goto-char (point-min))
@@ -173,9 +178,9 @@ For example, you may want to set this to '(\"-Z2\") to reduce header length."
   "Generate a hashcash payment by finding a VAL-bit collison on STR.
 Return immediately.  Call CALLBACK with process and result when ready."
   (if (and (> val 0)
-	   hashcash-path)
+	   hashcash-program)
       (let ((process (apply 'start-process "hashcash" nil
-			    hashcash-path "-m" "-q"
+			    hashcash-program "-m" "-q"
 			    "-b" (number-to-string val) str
 			    hashcash-extra-generate-parameters)))
 	(setq hashcash-process-alist (cons
@@ -187,8 +192,8 @@ Return immediately.  Call CALLBACK with process and result when ready."
 
 (defun hashcash-check-payment (token str val)
   "Check the validity of a hashcash payment."
-  (if hashcash-path
-      (zerop (call-process hashcash-path nil nil nil "-c"
+  (if hashcash-program
+      (zerop (call-process hashcash-program nil nil nil "-c"
 			   "-d" "-f" hashcash-double-spend-database
 			   "-b" (number-to-string val)
 			   "-r" str

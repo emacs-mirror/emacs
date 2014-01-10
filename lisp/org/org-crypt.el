@@ -1,6 +1,6 @@
 ;;; org-crypt.el --- Public key encryption for org-mode entries
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-crypt.el

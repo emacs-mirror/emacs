@@ -82,7 +82,10 @@ etc/emacs.tmpdesktop
 !etc/refcards/Makefile
 etc/refcards/*.aux
 etc/refcards/*.log
-info/*.info
+# FIXME this ignores info and everything in it.
+# It would be better to only ignore:
+# info/ (i.e., just the directory) and info/*.info.
+info/
 admin/unidata/unidata.txt
 build-aux/compile
 build-aux/config.guess

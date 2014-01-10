@@ -1,6 +1,6 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -1446,10 +1446,10 @@ Otherwise just move the line.  Move down unless UP is non-nil."
 
 ;; Newer versions of comint.el changed the name of comint-filter to
 ;; comint-output-filter.
-(defun idlwave-shell-comint-filter (process string) nil)
-(if (fboundp 'comint-output-filter)
-    (fset 'idlwave-shell-comint-filter (symbol-function 'comint-output-filter))
-  (fset 'idlwave-shell-comint-filter (symbol-function 'comint-filter)))
+(defalias 'idlwave-shell-comint-filter
+  (if (fboundp 'comint-output-filter)
+      #'comint-output-filter
+    #'comint-filter))
 
 (defun idlwave-shell-is-running ()
   "Return t if the shell process is running."

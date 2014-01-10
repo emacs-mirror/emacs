@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/epa
 @settitle EasyPG Assistant User's Manual
+@documentencoding UTF-8
 @c %**end of header
 
 @set VERSION 1.0.0
@@ -9,7 +10,7 @@
 @copying
 This file describes EasyPG Assistant @value{VERSION}.
 
-Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

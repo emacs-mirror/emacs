@@ -1,6 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2014 Free Software Foundation,
+;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -1589,7 +1590,7 @@ with your script for an edit-interpret-debug cycle."
 	      (lambda () (or (eolp) (newline) (indent-relative))))
 
   (setq-local paragraph-start (concat page-delimiter "\\|$"))
-  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-separate (concat paragraph-start "\\|#!/"))
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+[\t ]*")
   (setq-local local-abbrev-table sh-mode-abbrev-table)
@@ -1844,7 +1845,7 @@ Does not preserve point."
             ";")
         (let ((semi (sh-smie--newline-semi-p)))
           (forward-line 1)
-          (if semi ";"
+          (if (or semi (eobp)) ";"
             (sh-smie-sh-forward-token))))
     (forward-comment (point-max))
     (cond
@@ -2070,7 +2071,7 @@ Point should be before the newline."
             ";")
         (let ((semi (sh-smie--rc-newline-semi-p)))
           (forward-line 1)
-          (if semi ";"
+          (if (or semi (eobp)) ";"
             (sh-smie-rc-forward-token))))
     (forward-comment (point-max))
     (cond

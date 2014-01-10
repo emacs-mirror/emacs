@@ -2,6 +2,8 @@ HOW TO MAINTAIN COPYRIGHT YEARS FOR GNU EMACS
 
 Maintaining copyright years is now very simple: every time a new year
 rolls around, add that year to every FSF (and AIST) copyright notice.
+Do this by running the 'admin/update-copyright' script on a fresh bzr
+checkout.  Inspect the results for plausibility, then commit them.
 
 There's no need to worry about whether an individual file has changed
 in a given year - it's sufficient that Emacs as a whole has changed.
@@ -28,10 +30,10 @@ but should keep the full list in a comment in the source.
  since Emacs 21 came out in 2001, all the subsequent years[1].  We don't
  need to check whether *that file* was changed in those years.
  It's sufficient that *Emacs* was changed in those years (and it was!).
-  
+
  For those files that have been added since then, we should add
  the year it was added to Emacs, and all subsequent years."
-  
+
  --RMS, 2005-07-13
 
 [1] Note that this includes 2001 - see

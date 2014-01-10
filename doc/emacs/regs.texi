@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -41,6 +41,7 @@ this chapter.
 * Configuration Registers::  Saving window configurations in registers.
 * Number Registers::         Numbers in registers.
 * File Registers::           File names in registers.
+* Keyboard Macro Registers:: Keyboard macros in registers.
 * Bookmarks::                Bookmarks are like registers, but persistent.
 @end menu
 
@@ -251,6 +252,23 @@ puts the file name shown in register @samp{z}.
 @var{r}}.  (This is the same command used to jump to a position or
 restore a frame configuration.)
 
+@node Keyboard Macro Registers
+@section Keyboard Macro Registers
+@cindex saving keyboard macro in a register
+@cindex keyboard macros, in registers
+
+@kindex C-x C-k x
+@findex kmacro-to-register
+  If you need to execute a keyboard macro (@pxref{Keyboard Macros})
+frequently, it is more convenient to put it in a register or save it
+(@pxref{Save Keyboard Macro}).  @kbd{C-x C-k x @var{r}}
+(@code{kmacro-to-register}) stores the last keyboard macro in register
+@var{r}.
+
+  To execute the keyboard macro in register @var{r}, type @kbd{C-x r j
+@var{r}}.  (This is the same command used to jump to a position or
+restore a frameset.)
+
 @node Bookmarks
 @section Bookmarks
 @cindex bookmarks
@@ -316,6 +334,10 @@ don't lose any bookmark values even if Emacs crashes.  The value, if
 a number, says how many bookmark modifications should go by between
 saving.  If you set this variable to @code{nil}, Emacs only
 saves bookmarks if you explicitly use @kbd{M-x bookmark-save}.
+
+@vindex bookmark-default-file
+  The variable @code{bookmark-default-file} specifies the file in
+which to save bookmarks by default.
 
 @vindex bookmark-search-size
   Bookmark position values are saved with surrounding context, so that

@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2013 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -819,12 +819,7 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
-  (let ((default (grep-tag-default)))
-    (read-regexp
-     (concat "Search for"
-	     (if (and default (> (length default) 0))
-		 (format " (default \"%s\"): " default) ": "))
-     default 'grep-regexp-history)))
+  (read-regexp "Search for" 'grep-tag-default 'grep-regexp-history))
 
 (defun grep-read-files (regexp)
   "Read files arg for interactive grep."

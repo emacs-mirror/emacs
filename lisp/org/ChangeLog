@@ -1,3 +1,118 @@
+2014-01-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* org-irc.el (org-irc-ellipsify-description): Rename from
+	org-irc-elipsify-description.  All uses changed.
+
+2013-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-cancel-hook)
+	(org-clock-leftover-time): Fix typo in docstring.
+
+	* ox-odt.el (org-odt--frame): Add a draw:name property to the
+	draw:frame tag.
+	(org-odt-format-label): Don't use short-caption at all.
+
+	* org-rmail.el (org-rmail-follow-link): Don't raise an error when
+	no article is matched.
+
+	* org.el (org-set-tags): Ignore invisible text when restoring
+	cursor position.
+	(org-refile-get-location): Check for a refile position when the
+	position is not nil, otherwise allow to create the parent node if
+	the user requests it.
+	(org-refile-allow-creating-parent-nodes): Fix typo in
+	docstring.
+	(org-entry-get): Minor docstring enhancement.
+	(org-set-startup-visibility): Bugfix.
+	(org-shiftcontrolup, org-shiftcontroldown): When
+	`org-support-shift-select' is not `nil', let-bind it to nil if
+	point is on a clock log.  Otherwise throw an error.
+
+	* ob-lob.el (org-babel-lob-files): Fix custom type.
+	(org-babel-lob-ingest): Small docstring fix.
+
+	* org-agenda.el (org-cmp-ts): Fix bug: interpret `late' as
+	`later than any date' instead of `later than today'.
+
+	* org.el (org-do-emphasis-faces): Handle false positives by
+	restarting the re-search one char after the beginning of the
+	match, not one char before its ending.
+	(org-entry-put): Check that the value provided is a string.  If it
+	is nil, convert it to the empty string.
+
+	* ob-latex.el (org-babel-latex-htlatex-packages): Use repeat
+	instead of list as the defcustom type.
+
+	* ox.el (org-export-with-creator):
+	* org.el (org-loop-over-headlines-in-active-region)
+	(org-mouse-1-follows-link, org-provide-todo-statistics):
+	* org-agenda.el (org-agenda-custom-commands-local-options)
+	(org-agenda-start-with-log-mode)
+	(org-agenda-show-inherited-tags): Don't quote const values.
+
+	* ox-texinfo.el (org-texinfo-def-table-markup):
+	* org-inlinetask.el (org-inlinetask-show-first-star):
+	* ob-maxima.el (org-babel-maxima-command): Add type.
+
+	* org-table.el (org-table-fix-formulas): Handle multiple
+	#+tblfm: lines.
+
+	* ox.el (org-export-to-file): Fix typo in docstring.
+
+	* org.el (org-self-insert-command)
+	(orgtbl-self-insert-command): Change the value of the
+	`delete-selection' property to allow other commands like
+	`electric-pair-will-use-region' to be run before deletion.
+
+	* org-attach.el (vc-git): Require.
+	(org-attach-commit): Check whether git is installed.
+
+2013-01-07  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* ox-icalendar.el (org-icalendar--combine-files): Make sure
+	anniversaries do not end up in *Message* buffer instead of the ICS
+	file.
+
+	* ox-html.el: Clean up "FIXME" comments.
+
+	* ox-publish.el (org-publish-resolve-external-fuzzy-link): Fix
+	docstring.
+
+	* ox.el (org-export-smart-quotes-regexps): Fix smart quote
+	detection when it is followed by an open parenthesis syntax class.
+
+	* org-element.el (org-element-inline-babel-call-successor): Use
+	original regexp to stay up-to-date with Babel changes.
+	(org-element--affiliated-re): Fix affiliated keyword regexp.
+
+	* ox-org.el (org-org-identity): Since back-end specific keywords
+	are stripped from output, also remove attr_backend keywords.
+	(org-babel-exp-process-buffer): Fix duplicate evaluation with
+	:wrap src.
+	(org-babel-exp-non-block-elements): Removed function.
+
+2013-01-07  Ted Wiles  <thewiles@wharton.upenn.edu>  (tiny change)
+
+	* org-habit.el (org-habit-parse-todo): Match all TODO keywords,
+	not just "TODO".
+
+2013-01-07  U-usuario  <rbenit68@yahoo.es>  (tiny change)
+
+	* ob-gnuplot.el (org-babel-gnuplot-quote-tsv-field): Fix code
+	typo.
+
+2013-01-07  Vladimir Lomov  <lomov.vl@gmail.com>  (tiny change)
+
+	* ox-html.el (org-html-style-default): New classes caption.t-above
+	and caption.t-bottom.
+	(org-html-table): Use new classes.
+
+2013-12-23  Chong Yidong  <cyd@gnu.org>
+
+	* org.el (orgstruct-make-binding): Call set-transient-map instead
+	of old name set-temporary-overlay-map.
+
 2013-12-06  Achim Gratz  <Stromeko@Stromeko.DE>
 
 	* org-crypt.el: Declare `epg-context´.
@@ -1709,7 +1824,7 @@
 	* org.el (org-previous-line-empty-p): New parameter to allow
 	checking next line.  Add a docstring.
 	(org-insert-heading): Handle two universal prefix arguments as
-	advertized in the docstring.  Don't insert new lines when
+	advertised in the docstring.  Don't insert new lines when
 	creating a heading after the first heading in the current
 	subtree.
 	(org-insert-heading-respect-content): New optional argument
@@ -2821,7 +2936,7 @@
 
 2013-11-12  Craig Tanis  <craig-tanis@utc.edu>  (tiny change)
 
-	* ox-latex (org-latex-src-block): Change format string to position
+	* ox-latex.el (org-latex-src-block): Change format string to position
 	caption after figure content.
 
 2013-11-12  Eric Abrahamsen  <eric@ericabrahamsen.net>
@@ -3271,7 +3386,7 @@
 
 2013-11-12  Ilya Zonov  <izonov@gmail.com>  (tiny change)
 
-	* org-mode (org-mouse-context-menu): Add a correct newtext
+	* org-mouse.el (org-mouse-context-menu): Add a correct newtext
 	parameter for "All Set" and "All Clear" menu items.
 
 2013-11-12  Ingo Lohmar  <i.lohmar@gmail.com>  (tiny change)
@@ -3517,7 +3632,7 @@
 	parsing.
 
 	* org.el (org-adaptive-fill-function): Do not handle
-	`adaptive-fill-regexp' in comments as the behaviour is not
+	`adaptive-fill-regexp' in comments as the behavior is not
 	satisfying.
 
 	* org-list.el (org-list-struct-apply-struct): Do not move item's
@@ -3672,7 +3787,7 @@
 	"wrong-type-argument" error in template insertion.
 
 	* org.el (org-fill-paragraph): Use empty commented lines as
-	separators when filling comments.  This mimics default behaviour
+	separators when filling comments.  This mimics default behavior
 	from "newcomment.el", which is not used in Org.
 
 	* ox-html.el (org-html-link): Add image attributes to "img" tag,
@@ -3979,7 +4094,7 @@
 	* ox.el (org-export-with-timestamps): Only applies to isolated
 	timestamps, i.e. timestamps in a paragraph containing only
 	timestamps and empty strings.
-	(org-export--skip-p): Skip timestamps according to new behaviour.
+	(org-export--skip-p): Skip timestamps according to new behavior.
 
 	* ox-latex.el (org-latex--script-size): Handle consecutive
 	alterning sub and superscript.
@@ -4308,7 +4423,7 @@
 	* ox.el (org-export-as): Store export options in :export-options
 	porperty within communication channel.
 
-	* ox-latex.el (org-latex-item): Fix wrong behaviour when a counter
+	* ox-latex.el (org-latex-item): Fix wrong behavior when a counter
 	is set in an ordered list while its parent is not ordered.
 
 	* ox.el (org-export-format-code-default): Handle empty source
@@ -4937,7 +5052,7 @@
 	timestamps ranges with repeaters.
 
 	* org.el (org-edit-special): Rewrite `org-edit-special' using Org
-	Elements tools.  Behaviour should be unchanged.
+	Elements tools.  Behavior should be unchanged.
 
 	* org-element.el (org-element-context): Add an optional argument
 	so that (org-element-context) and (org-element-context
@@ -6378,7 +6493,7 @@
 	* org.el: Make `org-closest-date' aware of hours repeaters.
 
 	* org.el (org-end-of-line): Do not call `end-of-visual-line' when
-	moving to the end of line.  Also improve behaviour on elements that
+	moving to the end of line.  Also improve behavior on elements that
 	can be hidden.
 
 	* org.el (org-sparse-tree): Allow to call `org-show-todo-tree'
@@ -10560,7 +10675,7 @@
 2012-04-01  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.el (org-beginning-of-line, org-end-of-line): Fix special C-a
-	and C-e behaviour with visual lines.
+	and C-e behavior with visual lines.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -11100,7 +11215,7 @@
 
 	* ob-emacs-lisp.el: A comment on the last line of an emacs-lisp
 	code block would cause an error when the block is was executed.
-	This fix cures this behaviour.
+	This fix cures this behavior.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -12989,7 +13104,7 @@
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-separating-blank-lines-number):
-	The behaviour of `org-back-over-empty-lines' depends on the
+	The behavior of `org-back-over-empty-lines' depends on the
 	associated value of `headline' in
 	`org-blank-before-new-entry', which is out of context in a
 	list.
@@ -31550,7 +31665,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-	Copyright (C) 2008-2013 Free Software Foundation, Inc.
+	Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

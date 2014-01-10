@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- macros used in MH-E
 
-;; Copyright (C) 2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

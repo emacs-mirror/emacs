@@ -1,5 +1,5 @@
 /* Pre-process emacs.exe for profiling by MSVC.
-   Copyright (C) 1999, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

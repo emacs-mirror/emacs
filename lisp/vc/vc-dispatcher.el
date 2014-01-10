@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el -- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Eric S. Raymond <esr@thyrsus.com>

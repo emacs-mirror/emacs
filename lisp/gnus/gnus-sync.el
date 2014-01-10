@@ -1,6 +1,6 @@
 ;;; gnus-sync.el --- synchronization facility for Gnus
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news synchronization nntp nnrss
@@ -139,8 +139,9 @@ and `gnus-topic-alist'.  Also see `gnus-variable-list'."
   "Carrier for newsrc data")
 
 (defcustom gnus-sync-file-encrypt-to nil
-  "If non-nil, `epa-file-encrypt-to' is set from this for encrypting the Sync
-  file."
+  "If non-nil, set `epa-file-encrypt-to' from this for encrypting the Sync file."
+  :version "24.4"
+  :type '(choice string (repeat string))
   :group 'gnus-sync)
 
 (defcustom gnus-sync-lesync-name (system-name)

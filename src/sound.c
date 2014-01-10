@@ -1,6 +1,6 @@
 /* sound.c -- sound support.
 
-Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1998-1999, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1332,7 +1332,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       /* Open the sound file.  */
       current_sound->fd = openp (list1 (Vdata_directory),
-				 attrs[SOUND_FILE], Qnil, &file, Qnil);
+				 attrs[SOUND_FILE], Qnil, &file, Qnil, false);
       if (current_sound->fd < 0)
 	sound_perror ("Could not open sound file");
 

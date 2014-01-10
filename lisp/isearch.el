@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992-1997, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -435,8 +435,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; would be simpler to disable the global keymap, and/or have a
     ;; default local key binding for any key not otherwise bound.
     (let ((meta-map (make-sparse-keymap)))
-      (define-key map (char-to-string meta-prefix-char) meta-map)
-      (define-key map [escape] meta-map))
+      (define-key map (char-to-string meta-prefix-char) meta-map))
 
     ;; Several non-printing chars change the searching behavior.
     (define-key map "\C-s" 'isearch-repeat-forward)
@@ -447,17 +446,18 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\C-s" 'isearch-repeat-forward)
     (define-key map "\M-\C-r" 'isearch-repeat-backward)
     (define-key map "\177" 'isearch-delete-char)
+    (define-key map [backspace] 'isearch-delete-char)
     (define-key map "\C-g" 'isearch-abort)
 
     ;; This assumes \e is the meta-prefix-char.
     (or (= ?\e meta-prefix-char)
 	(error "Inconsistency in isearch.el"))
     (define-key map "\e\e\e" 'isearch-cancel)
-    (define-key map  [escape escape escape] 'isearch-cancel)
 
     (define-key map "\C-q" 'isearch-quote-char)
 
     (define-key map "\r" 'isearch-exit)
+    (define-key map [return] 'isearch-exit)
     (define-key map "\C-j" 'isearch-printing-char)
     (define-key map "\t" 'isearch-printing-char)
     (define-key map [?\S-\ ] 'isearch-printing-char)
@@ -502,6 +502,11 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
+    (put 'isearch-toggle-case-fold :advertised-binding "\M-sc")
+    (put 'isearch-toggle-regexp    :advertised-binding "\M-sr")
+    (put 'isearch-edit-string      :advertised-binding "\M-se")
+
+    (define-key map "\M-se" 'isearch-edit-string)
     (define-key map "\M-sc" 'isearch-toggle-case-fold)
     (define-key map "\M-si" 'isearch-toggle-invisible)
     (define-key map "\M-sr" 'isearch-toggle-regexp)
@@ -1148,8 +1153,6 @@ nonincremental search instead via `isearch-edit-string'."
   (isearch-done)
   (isearch-clean-overlays))
 
-(defvar minibuffer-history-symbol) ;; from external package gmhist.el
-
 (defun isearch-fail-pos (&optional msg)
   "Return position of first mismatch in search string, or nil if none.
 If MSG is non-nil, use variable `isearch-message', otherwise `isearch-string'."
@@ -1301,6 +1304,8 @@ You can update the global isearch variables by setting new values to
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
+
+(defvar minibuffer-history-symbol) ;; from external package gmhist.el
 
 (defun isearch-edit-string ()
   "Edit the search string in the minibuffer.
@@ -1669,10 +1674,11 @@ the beginning or the end of the string need not match a symbol boundary."
     (re-search-backward regexp bound noerror count)))
 
 
-(defun isearch-query-replace (&optional delimited regexp-flag)
+(defun isearch-query-replace (&optional arg regexp-flag)
   "Start `query-replace' with string to replace from last search string.
-The arg DELIMITED (prefix arg if interactive), if non-nil, means replace
-only matches surrounded by word boundaries.  Note that using the prefix arg
+The ARG (prefix arg if interactive), if non-nil, means replace
+only matches surrounded by word boundaries.  A negative prefix
+arg means replace backward.  Note that using the prefix arg
 is possible only when `isearch-allow-scroll' is non-nil or
 `isearch-allow-prefix' is non-nil, and it doesn't always provide the
 correct matches for `query-replace', so the preferred way to run word
@@ -1690,6 +1696,8 @@ replacements from Isearch is `M-s w ... M-%'."
 	 isearch-lax-whitespace)
 	(replace-regexp-lax-whitespace
 	 isearch-regexp-lax-whitespace)
+	(delimited (and arg (not (eq arg '-))))
+	(backward (and arg (eq arg '-)))
 	;; Set `isearch-recursive-edit' to nil to prevent calling
 	;; `exit-recursive-edit' in `isearch-done' that terminates
 	;; the execution of this command when it is non-nil.
@@ -1698,9 +1706,13 @@ replacements from Isearch is `M-s w ... M-%'."
     (isearch-done nil t)
     (isearch-clean-overlays)
     (if (and isearch-other-end
-	     (< isearch-other-end (point))
+	     (if backward
+		 (> isearch-other-end (point))
+	       (< isearch-other-end (point)))
              (not (and transient-mark-mode mark-active
-                       (< (mark) (point)))))
+                       (if backward
+			   (> (mark) (point))
+			 (< (mark) (point))))))
         (goto-char isearch-other-end))
     (set query-replace-from-history-variable
          (cons isearch-string
@@ -1720,19 +1732,21 @@ replacements from Isearch is `M-s w ... M-%'."
 		      " word"))
 		"")
 	      (if isearch-regexp " regexp" "")
+	      (if backward " backward" "")
 	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
      t isearch-regexp (or delimited isearch-word) nil nil
      (if (and transient-mark-mode mark-active) (region-beginning))
-     (if (and transient-mark-mode mark-active) (region-end))))
+     (if (and transient-mark-mode mark-active) (region-end))
+     backward))
   (and isearch-recursive-edit (exit-recursive-edit)))
 
-(defun isearch-query-replace-regexp (&optional delimited)
+(defun isearch-query-replace-regexp (&optional arg)
   "Start `query-replace-regexp' with string to replace from last search string.
 See `isearch-query-replace' for more information."
   (interactive
    (list current-prefix-arg))
-  (isearch-query-replace delimited t))
+  (isearch-query-replace arg t))
 
 (defun isearch-occur (regexp &optional nlines)
   "Run `occur' using the last search string as the regexp.
@@ -1934,7 +1948,8 @@ or it might return the position of the end of the line."
     (forward-char arg)))
 
 (defun isearch-yank-char (&optional arg)
-  "Pull next character from buffer into search string."
+  "Pull next character from buffer into search string.
+If optional ARG is non-nil, pull in the next ARG characters."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-char arg) (point))))
 
@@ -1953,12 +1968,14 @@ Subword is used when `subword-mode' is activated. "
        (forward-char 1)) (point))))
 
 (defun isearch-yank-word (&optional arg)
-  "Pull next word from buffer into search string."
+  "Pull next word from buffer into search string.
+If optional ARG is non-nil, pull in the next ARG words."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-word arg) (point))))
 
 (defun isearch-yank-line (&optional arg)
-  "Pull rest of line from buffer into search string."
+  "Pull rest of line from buffer into search string.
+If optional ARG is non-nil, yank the next ARG lines."
   (interactive "p")
   (isearch-yank-internal
    (lambda () (let ((inhibit-field-text-motion t))
@@ -2239,7 +2256,7 @@ before the command is executed globally with terminated Isearch."
 	 (main-event (aref key 0)))
     (cond
      ;; Don't exit Isearch if we're in the middle of some
-     ;; set-temporary-overlay-map thingy like universal-argument--mode.
+     ;; `set-transient-map' thingy like `universal-argument--mode'.
      ((not (eq overriding-terminal-local-map isearch--saved-overriding-local-map)))
      ;; Don't exit Isearch for isearch key bindings.
      ((commandp (lookup-key isearch-mode-map key nil)))
@@ -2251,6 +2268,7 @@ before the command is executed globally with terminated Isearch."
 	       (memq this-command '(universal-argument
 				    digit-argument negative-argument)))
 	  (and isearch-allow-scroll
+	       (symbolp this-command)
 	       (or (eq (get this-command 'isearch-scroll) t)
 		   (eq (get this-command 'scroll-command) t))))
       (when isearch-allow-scroll

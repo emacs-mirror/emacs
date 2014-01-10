@@ -8,13 +8,14 @@
 @c Look for @page and @need commands.
 @setchapternewpage off
 @paragraphindent 0
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -629,7 +630,9 @@ the @code{man} key bindings.
 Scroll the man page up the window (@code{scroll-up}).
 
 @item @key{DEL}
+@itemx @key{S-SPC}
 @kindex DEL
+@kindex S-SPC
 @findex scroll-down
 Scroll the man page down the window (@code{scroll-down}).
 

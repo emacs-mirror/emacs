@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents.
 
-;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Merten <smerten@oekonux.de>
 ;; Author: Stefan Merten <smerten@oekonux.de>,
@@ -864,7 +864,10 @@ highlighting.
   (add-hook 'font-lock-extend-region-functions 'rst-font-lock-extend-region t)
 
   ;; Text after a changed line may need new fontification.
-  (set (make-local-variable 'jit-lock-contextually) t))
+  (set (make-local-variable 'jit-lock-contextually) t)
+
+  ;; Indentation is not deterministic.
+  (setq electric-indent-inhibit t))
 
 ;;;###autoload
 (define-minor-mode rst-minor-mode
@@ -2296,6 +2299,7 @@ any."
 (defcustom rst-toc-indent 2
   "Indentation for table-of-contents display.
 Also used for formatting insertion, when numbering is disabled."
+  :type 'integer
   :group 'rst-toc)
 (rst-testcover-defcustom)
 
@@ -2307,11 +2311,16 @@ indentation style:
 - fixed: numbering, but fixed indentation
 - aligned: numbering, titles aligned under each other
 - listed: numbering, with dashes like list items (EXPERIMENTAL)"
+  :type '(choice (const plain)
+                 (const fixed)
+                 (const aligned)
+                 (const listed))
   :group 'rst-toc)
 (rst-testcover-defcustom)
 
 (defcustom rst-toc-insert-number-separator "  "
   "Separator that goes between the TOC number and the title."
+  :type 'string
   :group 'rst-toc)
 (rst-testcover-defcustom)
 
@@ -2324,6 +2333,7 @@ indentation style:
 
 (defcustom rst-toc-insert-max-level nil
   "If non-nil, maximum depth of the inserted TOC."
+  :type '(choice (const nil) integer)
   :group 'rst-toc)
 (rst-testcover-defcustom)
 

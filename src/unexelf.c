@@ -1,4 +1,4 @@
-/* Copyright (C) 1985-1988, 1990, 1992, 1999-2013 Free Software
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -393,7 +393,6 @@ temacs:
 #include <fcntl.h>
 #include <limits.h>
 #include <memory.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>

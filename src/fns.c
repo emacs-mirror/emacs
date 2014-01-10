@@ -1,6 +1,7 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-2014 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -1995,7 +1996,9 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, int depth, bool props,
 	error ("Stack overflow in equal");
       if (NILP (ht))
 	{
-	  Lisp_Object args[2] = { QCtest, Qeq };
+	  Lisp_Object args[2];
+	  args[0] = QCtest;
+	  args[1] = Qeq;
 	  ht = Fmake_hash_table (2, args);
 	}
       switch (XTYPE (o1))

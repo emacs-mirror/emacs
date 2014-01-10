@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
@@ -3025,7 +3025,7 @@ spot, or error signal if user requests cancel."
 			    (if rowbool (format "%d rows" needrows) "")
 			    (if (and rowbool colbool) " and " "")
 			    (if colbool (format "%d columns" needcols) "")))
-	  (error "Cancelled"))
+	  (error "Canceled"))
       (when rowbool
 	(let (ses--curcell)
 	  (save-excursion

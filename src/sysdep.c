@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2013 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -464,7 +464,11 @@ sys_subshell (void)
 {
 #ifdef DOS_NT	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   int st;
+#ifdef MSDOS
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
+#else
+  char oldwd[MAX_UTF8_PATH];
+#endif
 #endif
   pid_t pid;
   int status;

@@ -1,6 +1,6 @@
 ;;; gmm-utils.el --- Utility functions for Gnus, Message and MML
 
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Reiner Steib <reiner.steib@gmx.de>
 ;; Keywords: news
@@ -99,7 +99,7 @@ ARGS are passed to `message'."
 
 ;; Copy of the `nnmail-lazy' code from `nnmail.el':
 (define-widget 'gmm-lazy 'default
-  "Base widget for recursive datastructures.
+  "Base widget for recursive data structures.
 
 This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
   :format "%{%t%}: %v"

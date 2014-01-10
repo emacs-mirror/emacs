@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -326,7 +326,7 @@ a top-level keymap, `text-scale-increase' or
       (text-scale-increase step)
       ;; (unless (zerop step)
       (message "Use +,-,0 for further adjustment")
-      (set-temporary-overlay-map
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (dolist (mods '(() (control)))
            (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.
@@ -343,6 +343,9 @@ a top-level keymap, `text-scale-increase' or
 It may contain any value suitable for a `face' text property,
 including a face name, a list of face names, a face-attribute
 plist, etc."
+  :type '(choice (face)
+		 (repeat :tag "List of faces" face)
+		 (plist :tag "Face property list"))
   :group 'display
   :version "23.1")
 

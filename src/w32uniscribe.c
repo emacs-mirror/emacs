@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -964,7 +964,7 @@ font_table_error:
 
 struct font_driver uniscribe_font_driver =
   {
-    0, /* Quniscribe */
+    LISP_INITIALLY_ZERO, /* Quniscribe */
     0, /* case insensitive */
     w32font_get_cache,
     uniscribe_list,

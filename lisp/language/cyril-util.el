@@ -1,6 +1,6 @@
 ;;; cyril-util.el --- utilities for Cyrillic scripts
 
-;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, Cyrillic
 
@@ -41,7 +41,7 @@
 ;; Written by Valery Alexeev <valery@math.uga.edu>.
 
 (defvar cyrillic-language-alist
-      (list '("Belorussian") '("Bulgarian") '("Macedonian")
+      (list '("Belarusian") '("Bulgarian") '("Macedonian")
 	    '("Russian") '("Serbo-Croatian") '("Ukrainian"))
       "List of known cyrillic languages.")
 

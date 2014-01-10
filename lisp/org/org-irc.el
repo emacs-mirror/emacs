@@ -1,6 +1,6 @@
 ;;; org-irc.el --- Store links to IRC sessions
 ;;
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
@@ -105,7 +105,7 @@ attributes that are found."
    ((eq major-mode 'erc-mode)
     (org-irc-erc-store-link))))
 
-(defun org-irc-elipsify-description (string &optional after)
+(defun org-irc-ellipsify-description (string &optional after)
   "Remove unnecessary white space from STRING and add ellipses if necessary.
 Strip starting and ending white space from STRING and replace any
 chars that the value AFTER with '...'"
@@ -158,7 +158,7 @@ the session itself."
 	    (progn
 	      (org-store-link-props
 	       :type "file"
-	       :description (concat "'" (org-irc-elipsify-description
+	       :description (concat "'" (org-irc-ellipsify-description
 					 (cadr parsed-line) 20)
 				    "' from an IRC conversation")
 	       :link (concat "file:" (car parsed-line) "::"

@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985-1988, 1993-1995, 1998-2013 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3753,7 +3753,7 @@ it is provided for major modes to bind locally.  */);
   Vminor_mode_overriding_map_alist = Qnil;
 
   DEFVAR_LISP ("emulation-mode-map-alists", Vemulation_mode_map_alists,
-	       doc: /* List of keymap alists to use for emulations modes.
+	       doc: /* List of keymap alists to use for emulation modes.
 It is intended for modes or packages using multiple minor-mode keymaps.
 Each element is a keymap alist just like `minor-mode-map-alist', or a
 symbol with a variable binding which is a keymap alist, and it is used

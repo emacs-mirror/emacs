@@ -1,6 +1,6 @@
 More Neat Stuff for your Emacs
 
-Copyright (C) 1993, 1999, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1993, 1999, 2001-2014 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 The easiest way to add more features to your Emacs is to use the command
@@ -57,6 +57,8 @@ so you will find the latest version in Emacs.
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
+ * CEDET: <URL:http://cedet.sourceforge.net/>
+
  * Gnus: <URL:http://www.gnus.org/>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
@@ -64,8 +66,6 @@ so you will find the latest version in Emacs.
  * nXML: <URL:http://www.thaiopensource.com/nxml-mode/>
 
  * Org mode: <URL:http://orgmode.org/>
-
- * CEDET: <URL:http://cedet.sourceforge.net/>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>

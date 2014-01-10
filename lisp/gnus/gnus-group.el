@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -571,7 +571,6 @@ simple manner.")
   "p" gnus-group-prev-unread-group
   "\177" gnus-group-prev-unread-group
   [delete] gnus-group-prev-unread-group
-  [backspace] gnus-group-prev-unread-group
   "N" gnus-group-next-group
   "P" gnus-group-prev-group
   "\M-n" gnus-group-next-unread-group-same-level

@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
 
-;; Copyright (C) 1993-1996, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: FSF
@@ -509,7 +509,6 @@ symmetrical ones, and the same character twice for the others."
     (let* ((mark (and skeleton-autowrap
 		      (or (eq last-command 'mouse-drag-region)
 			  (and transient-mark-mode mark-active))))
-	   (skeleton-end-hook)
 	   (char last-command-event)
 	   (skeleton (or (assq char skeleton-pair-alist)
 			 (assq char skeleton-pair-default-alist)
@@ -520,7 +519,9 @@ symmetrical ones, and the same character twice for the others."
 		       (if (not skeleton-pair-on-word) (looking-at "\\w"))
 		       (funcall skeleton-pair-filter-function))))
 	  (self-insert-command (prefix-numeric-value arg))
-	(skeleton-insert (cons nil skeleton) (if mark -1))))))
+	;; Newlines not desirable for inserting pairs.  See bug#16138.
+	(let ((skeleton-end-newline nil))
+	  (skeleton-insert (cons nil skeleton) (if mark -1)))))))
 
 
 ;; A more serious example can be found in sh-script.el

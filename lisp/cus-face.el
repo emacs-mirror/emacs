@@ -1,6 +1,6 @@
 ;;; cus-face.el --- customization support for faces
 ;;
-;; Copyright (C) 1996-1997, 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -285,47 +285,48 @@ If FRAME is nil, use the global defaults for FACE."
 ;;; Initializing.
 
 (defun custom-set-faces (&rest args)
-  "Initialize faces according to user preferences.
-This associates the settings with the `user' theme.
+  "Apply a list of face specs for user customizations.
+This works by calling `custom-theme-set-faces' for the `user'
+theme, a special theme referring to settings made via Customize.
 The arguments should be a list where each entry has the form:
 
   (FACE SPEC [NOW [COMMENT]])
 
-SPEC is stored as the saved value for FACE, as well as the value for the
-`user' theme.  The `user' theme is one of the default themes known to Emacs.
-See `custom-known-themes' for more information on the known themes.
-See `custom-theme-set-faces' for more information on the interplay
-between themes and faces.
-See `defface' for the format of SPEC.
-
-If NOW is present and non-nil, FACE is created now, according to SPEC.
-COMMENT is a string comment about FACE."
+See the documentation of `custom-theme-set-faces' for details."
   (apply 'custom-theme-set-faces 'user args))
 
 (defun custom-theme-set-faces (theme &rest args)
-  "Initialize faces for theme THEME.
-The arguments should be a list where each entry has the form:
+  "Apply a list of face specs associated with theme THEME.
+THEME should be a theme name (a symbol).  The special theme named
+`user' refers to user settings applied via Customize.
+
+The remaining ARGS should be a list where each entry is a list of
+the form:
 
   (FACE SPEC [NOW [COMMENT]])
 
-SPEC is stored as the saved value for FACE, as well as the value for the
-`user' theme.  The `user' theme is one of the default themes known to Emacs.
-See `custom-known-themes' for more information on the known themes.
-See `custom-theme-set-faces' for more information on the interplay
-between themes and faces.
-See `defface' for the format of SPEC.
+FACE should be a face name (a symbol).  If FACE is a face alias,
+the setting refers to the parent face.
 
-If NOW is present and non-nil, FACE is created now, according to SPEC.
+SPEC should be a face spec.  For details, see `defface'.
+
+NOW, if present and non-nil, forces the face settings to take
+immediate effect in the Emacs display; in particular, FACE is
+initialized as a face if it is not yet one.  If NOW is omitted or
+nil, the caller is responsible for making the settings take
+effect later, by calling `custom-theme-recalc-face' or
+`face-spec-recalc'.
+
 COMMENT is a string comment about FACE.
 
-Several properties of THEME and FACE are used in the process:
+This function works by calling `custom-push-theme' to record each
+SPEC in each FACE's `theme-face' property, and in THEME's
+`theme-settings' property.  If FACE has not already been
+customized, it also stores SPEC in the `saved-face' property.
 
-If THEME property `theme-immediate' is non-nil, this is equivalent of
-providing the NOW argument to all faces in the argument list: FACE is
-created now.
-
-SPEC itself is saved in FACE property `saved-face' and it is stored in
-FACE's list property `theme-face' \(using `custom-push-theme')."
+If THEME has a non-nil `theme-immediate' property, this is
+equivalent to providing the NOW argument to all faces in the
+argument list."
   (custom-check-theme theme)
   (let ((immediate (get theme 'theme-immediate)))
     (dolist (entry args)

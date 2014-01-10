@@ -1,6 +1,6 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; Copyright (C) 1990-1991, 1993-1994, 2001-2013 Free Software
+;; Copyright (C) 1990-1991, 1993-1994, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>

@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1137,7 +1137,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 ;; Make edebug understand the macros.
 ;(eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
 ;  '(progn
-(def-edebug-spec cc-eval-when-compile t)
+(def-edebug-spec cc-eval-when-compile (&rest def-form))
 (def-edebug-spec c-point t)
 (def-edebug-spec c-set-region-active t)
 (def-edebug-spec c-safe t)

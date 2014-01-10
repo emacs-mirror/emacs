@@ -1,6 +1,6 @@
 ;;; em-prompt.el --- command prompts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -124,9 +124,9 @@ arriving, or after."
       (and eshell-highlight-prompt
 	   (add-text-properties 0 (length prompt)
 				'(read-only t
-				  face eshell-prompt
-				  front-sticky (face read-only)
-				  rear-nonsticky (face read-only))
+				  font-lock-face eshell-prompt
+				  front-sticky (font-lock-face read-only)
+				  rear-nonsticky (font-lock-face read-only))
 				prompt))
       (eshell-interactive-print prompt)))
   (run-hooks 'eshell-after-prompt-hook))

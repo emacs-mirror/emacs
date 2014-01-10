@@ -1,3 +1,247 @@
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Attributes): Fix superscipt typo.
+
+2014-01-07  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Changing Files): Document copy-file changes.
+
+2014-01-07  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Logging Messages): Copyedits re messages-buffer.
+
+2014-01-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify .texi encoding (Bug#16292).
+	* back.texi, book-spine.texi, lay-flat.texi:
+	Add @documentencoding.
+
+2014-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* backups.texi (Making Backups): Document backup-buffer change.
+
+	* files.texi (Visiting Files): Copyedits.
+	(Testing Accessibility): Mention ACLs.  Move file-modes here from
+	File Attributes.
+	(Truenames): Move file-equal-p here from Kinds of Files.
+	(File Attributes): Move file-newer-than-file-p here from Testing
+	Accessibility.
+	(Extended Attributes): New node.  Add file-extended-attributes.
+	(Changing Files): Document set-file-extended-attributes.
+
+	* commands.texi (Defining Commands): Document the interactive-form
+	property more carefully.  Document interactive-only.
+
+	* compile.texi (Compiler Errors): Copyedits.  Note that the
+	details for byte-compile-warnings are in its docstring.
+
+	* minibuf.texi (Minibuffer Contents): Remove obsolete function
+	minibuffer-completion-contents.
+
+	* variables.texi (Defining Variables): Note that defvar acts
+	always on the dynamic value.
+
+	* customize.texi (Variable Definitions): Likewise.
+
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Document vconcat and the empty vector (Bug#16246).
+	* sequences.texi (Vector Functions):
+	Document behavior better when the result is empty.
+
+	Document behavior of (string-to-number "+@") (Bug#16293).
+	* strings.texi (String Conversion): Document behavior of
+	string-to-number on invalid strings that begin with "+", too.
+
+2014-01-03  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Documentation, Accessing Documentation): Copyedits.
+	(Documentation Basics): Rewrite, avoiding a repeat discussion of
+	docstring conventions.
+
+	* tips.texi (Documentation Tips): Move discussion of
+	emacs-lisp-docstring-fill-column here from Documentation Basics.
+
+	* compile.texi (Docs and Compilation): Copyedits.
+
+2014-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* numbers.texi (Numeric Conversions): Fix a typo.
+
+2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Plain copy-file no longer chmods an existing destination (Bug#16133).
+	* files.texi (Changing Files): Document this.
+
+2013-12-28  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Auto Major Mode): Document interpreter-mode-alist
+	change.
+
+	* buffers.texi (Modification Time): Document visited-file-modtime
+	change.
+
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* control.texi (Pattern matching case statement): Brevity.
+
+2013-12-27  Chong Yidong  <cyd@gnu.org>
+
+	* functions.texi (Function Cells):
+	* eval.texi (Function Indirection): Update for the fact that
+	symbol-function no longer signals an error.
+
+	* commands.texi (Reading One Event): Mention keyboard coding.
+
+	* keymaps.texi (Translation Keymaps, Translation Keymaps):
+	* nonascii.texi (Terminal I/O Encoding): Copyedits.
+
+2013-12-26  Chong Yidong  <cyd@gnu.org>
+
+	* advice.texi (Advising Functions, Defining Advice): Special forms
+	can no longer be advised.
+
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Re-organize the text.
+	(Searching Keymaps): Rewrite the pseudo-code for 24.4 changes.
+	(Controlling Active Maps): Note that set-transient-map uses
+	overriding-terminal-local-map.
+
+	* tips.texi (Coding Conventions): Tweak the coding system tip;
+	Emacs now uses utf-8 by default for Emacs Lisp source files.
+
+	* display.texi (Font Selection): Tweak example.
+
+	* commands.texi (Event Input Misc): Document new arg to
+	input-pending-p.
+
+	* nonascii.texi (Specifying Coding Systems): Don't refer to
+	emacs-mule-dos.
+	(Lisp and Coding Systems): Describe emacs-mule return value in
+	modern terms.
+
+2013-12-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* control.texi (Pattern matching case statement): Rephrase lexical
+	binding requirement: the example needs it, not `pcase' itself.
+
+2013-12-25  Chong Yidong  <cyd@gnu.org>
+
+	* eval.texi (Eval): Document the LEXICAL arg to eval.
+
+	* variables.texi (Variables, Void Variables): Use "scoping rule"
+	terminology consistently.
+	(Variable Scoping): Add index entries, and use "dynamic scope"
+	terminology in place of "indefinite scope" to reduce confusion.
+	(Lexical Binding): Document lexical environment format.
+	(Using Lexical Binding): Add index entries for error messages.
+
+2013-12-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* control.texi (Pattern matching case statement): Fix missing
+	argument in simple expression language sample (Bug#16238).  Add
+	some sample programs written in that language.  Mention that
+	`pcase' requires lexical binding.
+
+2013-12-23  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* eval.texi (Special Forms): Document `special-form-p'.
+
+	* macros.texi (Simple Macro): Document `macrop'.
+
+	* files.texi (Changing Files): Fix an argument of `copy-file'.
+
+	* strings.texi (Creating Strings): Document TRIM in `split-string'.
+
+2013-12-23  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Controlling Active Maps): Renamed
+	set-temporary-overlay-map to set-transient map.  Doc fixes.
+	(Searching Keymaps): The transient keymap takes precedence.
+
+2013-12-23  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (How Programs Do Loading, Load Suffixes):
+	Mention `load-prefer-newer'.
+
+2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* hash.texi (Other Hash): Document `hash-table-keys'
+	and `hash-table-values'.
+
+2013-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): NAME or OLD-NAME
+	properties can be nil (there's no empty string).
+	(Character Properties): Update the reference to the UCD.
+
+2013-12-22  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* sequences.texi (Bool-Vectors): Document new bool-vector set
+	operation functions.
+
+	* text.texi (Examining Properties): Document `get-pos-property'.
+
+	* variables.texi (Directory Local Variables):
+	Document `enable-dir-local-variables'.
+
+	* debugging.texi (Debugger Commands):
+	Document `debugger-toggle-locals'.
+
+2013-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Region Indent): Note the new interactive behavior of
+	indent-rigidly.
+
+2013-12-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* numbers.texi (numbers): Document that =, <, <=, >, >= now accept
+	one or many arguments.
+
+	* display.texi: Document `messages-buffer'.
+
+	* os.texi: Document `initial-buffer-choice' changes.
+
+2013-12-20  Chong Yidong  <cyd@gnu.org>
+
+	* text.texi (Changing Properties): Improve documentation for
+	add-face-text-property.
+	(Special Properties): Mention add-face-text-property.
+
+2013-12-18  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Custom Themes): Document custom-known-themes
+	(Bug#15717).
+
+	* modes.texi (Defining Minor Modes): Fix typo (Bug#14874).
+	(Keymaps and Minor Modes): Fix binding convention (Bug#11522).
+
+2013-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi (Building Emacs):
+	* loading.texi (Library Search): Mention that site-load,
+	site-init cannot change load-path.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Tweak dircategory.
+
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Encoding and I/O): Document file-name encoding
+	peculiarities on MS-Windows.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Sync direntry with info/dir version.
+
+2013-12-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Progress, Face Remapping):
+	* processes.texi (Serial Ports):
+	* windows.texi (Recombining Windows): Fix typos.  (Bug#16089)
+
 2013-12-04  Juri Linkov  <juri@jurta.org>
 
 	* searching.texi (Search and Replace): Fix `unread-command-events'
@@ -1181,14 +1425,16 @@
 	Tweak markup.  Remove domain-error and friends, which seem to be
 	unused after the floating-point code revamp.
 
-	* functions.texi (Obsolete Functions): Obsolescence also affects
+	* functions.texi (Defining Functions): defun is now a macro.
+	(Obsolete Functions): Obsolescence also affects
 	documentation commands.  Various clarifications.
 	(Declare Form): New node.
 
 	* strings.texi (String Basics): Copyedits.
 
-	* os.texi (Idle Timers): Minor clarifications.
+	* os.texi (Startup Summary): Document leim-list.el change.
 	(User Identification): Add system-users and system-groups.
+	(Idle Timers): Minor clarifications.
 
 	* macros.texi (Defining Macros): Move description of `declare' to
 	Declare Form node.
@@ -1203,14 +1449,6 @@
 	(Arithmetic Operations): Clarify division by zero.  Don't mention
 	the machine-independence of negative division since it does not
 	happen in practice.
-
-2012-09-28  Chong Yidong  <cyd@gnu.org>
-
-	* os.texi (Startup Summary): Document leim-list.el change.
-
-2012-09-25  Chong Yidong  <cyd@gnu.org>
-
-	* functions.texi (Defining Functions): defun is now a macro.
 
 2012-09-28  Leo Liu  <sdl.web@gmail.com>
 
@@ -11504,15 +11742,12 @@
 
 2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
-	* lispref/anti.texi, lispref/backups.texi, lispref/commands.texi
-	lispref/customize.texi, lispref/display.texi, lispref/files.texi,
-	lispref/internals.texi, lispref/keymaps.texi, lispref/loading.texi,
-	lispref/modes.texi, lispref/nonascii.texi, lispref/numbers.texi,
-	lispref/objects.texi, lispref/os.texi, lispref/positions.texi,
-	lispref/processes.texi, lispref/searching.texi,
-	lispref/sequences.texi, lispref/streams.texi, lispref/strings.texi,
-	lispref/syntax.texi, lispref/text.texi: Replace @sc{foo} with
-	@acronym{FOO}.
+	* anti.texi, backups.texi, commands.texi, customize.texi:
+	* display.texi, files.texi, internals.texi, keymaps.texi:
+	* loading.texi, modes.texi, nonascii.texi, numbers.texi:
+	* objects.texi, os.texi, positions.texi, processes.texi:
+	* searching.texi, sequences.texi, streams.texi, strings.texi:
+	* syntax.texi, text.texi: Replace @sc{foo} with @acronym{FOO}.
 
 2003-10-27  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -12621,7 +12856,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998-2013 Free Software Foundation, Inc.
+  Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

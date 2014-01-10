@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -151,7 +151,7 @@ to take place:
   6. Move backward to start of comment, indenting if necessary."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Beginning only" nil)
-		 (const :tag "Maybe move or make or delete comment" 'tcl))
+		 (other :tag "Maybe move or make or delete comment" tcl))
   :group 'tcl)
 
 

@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2013 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -220,7 +220,7 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
-(defcustom dired-initial-point-hook nil
+(defcustom dired-initial-position-hook nil
   "This hook is used to position the point.
 It is run the function `dired-initial-position'."
   :group 'dired
@@ -733,7 +733,9 @@ Don't use that together with FILTER."
 
 (defun dired-file-name-at-point ()
   "Try to get a file name at point in the current dired buffer.
-This hook is intended to be put in `file-name-at-point-functions'."
+This hook is intended to be put in `file-name-at-point-functions'.
+Note that it returns an abbreviated name that can't be used
+as an argument to `dired-goto-file'."
   (let ((filename (dired-get-filename nil t)))
     (when filename
       (if (file-directory-p filename)
@@ -2763,7 +2765,7 @@ It runs the hook `dired-initial-position-hook'."
   (and (featurep 'dired-x) dired-find-subdir
        (dired-goto-subdir dirname))
   (if dired-trivial-filenames (dired-goto-next-nontrivial-file))
-  (run-hooks 'dired-initial-point-hook))
+  (run-hooks 'dired-initial-position-hook))
 
 ;; These are hooks which make tree dired work.
 ;; They are in this file because other parts of dired need to call them.
@@ -3079,24 +3081,23 @@ argument or confirmation)."
       (apply function args)
     (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*"))))
       (with-current-buffer buffer
-	(let ((split-height-threshold 0))
-	  (with-temp-buffer-window
-	   buffer
-	   (cons 'display-buffer-below-selected
-		 '((window-height . fit-window-to-buffer)))
-	   #'(lambda (window _value)
-	       (with-selected-window window
-		 (unwind-protect
-		     (apply function args)
-		   (when (window-live-p window)
-		     (quit-restore-window window 'kill)))))
-	   ;; Handle (t FILE) just like (FILE), here.  That value is
-	   ;; used (only in some cases), to mean just one file that was
-	   ;; marked, rather than the current line file.
-	   (dired-format-columns-of-files
-	    (if (eq (car files) t) (cdr files) files))
-	   (remove-text-properties (point-min) (point-max)
-				   '(mouse-face nil help-echo nil))))))))
+	(with-temp-buffer-window
+	 buffer
+	 (cons 'display-buffer-below-selected
+	       '((window-height . fit-window-to-buffer)))
+	 #'(lambda (window _value)
+	     (with-selected-window window
+	       (unwind-protect
+		   (apply function args)
+		 (when (window-live-p window)
+		   (quit-restore-window window 'kill)))))
+	 ;; Handle (t FILE) just like (FILE), here.  That value is
+	 ;; used (only in some cases), to mean just one file that was
+	 ;; marked, rather than the current line file.
+	 (dired-format-columns-of-files
+	  (if (eq (car files) t) (cdr files) files))
+	 (remove-text-properties (point-min) (point-max)
+				 '(mouse-face nil help-echo nil)))))))
 
 (defun dired-format-columns-of-files (files)
   (let ((beg (point)))
@@ -3849,7 +3850,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "dired-aux" "dired-aux.el" "04b4cb6bde3220f55574eb1d99ac0d29")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "8861a67d8b72a1110007fba0be161c86")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4352,7 +4353,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "732d08c173295dd14a0736fa222f532a")
+;;;### (autoloads nil "dired-x" "dired-x.el" "fe5dbf515419da3b9907f32e5d4311fa")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

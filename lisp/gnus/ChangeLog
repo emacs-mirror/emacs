@@ -1,3 +1,80 @@
+2014-01-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-article-stop-animations): Declare it before using.
+	(nnimap-split-fancy, nnimap-split-methods): Declare.
+
+	* mm-util.el (help-function-arglist): Declare.
+
+2013-12-28  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sieve.el (gnus-sieve-select-method):
+	* gravatar.el (gravatar-automatic-caching, gravatar-cache-ttl)
+	(gravatar-rating, gravatar-size):
+	* message.el (message-minibuffer-local-map):
+	* sieve-manage.el (sieve-manage-authenticators)
+	(sieve-manage-authenticator-alist): Specify custom types.
+
+	* gnus-icalendar.el (gnus-icalendar-org, gnus-icalendar):
+	* gnus-sum.el (gnus-subthread-sort-functions): Add version.
+	* gnus-sync.el (gnus-sync-file-encrypt-to): Add type and version.
+
+	* auth-source.el (auth-sources):
+	* nnmairix.el (nnmairix-propagate-marks-upon-close):
+	Fix custom types.
+
+2013-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-respool-query): Special-case nnimap so that
+	we get proper traces there, too.
+
+2013-12-26  Sean Connor  <sconnor005@allyinics.org>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-enter-digest-group): Don't discard previous
+	value of the parameters if the current article has a Reply-To or From
+	field.
+
+2013-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-group-buffer): Remove duplicate definition.
+
+2013-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-exit): Stop animations.
+
+2013-12-19  Juri Linkov  <juri@jurta.org>
+
+	* gnus.el (gnus-suppress-keymap):
+	* gnus-art.el (gnus-article-mode-map):
+	* gnus-group.el (gnus-group-mode-map):
+	* gnus-sum.el (gnus-summary-mode-map, gnus-summary-backend-map):
+	Remove [backspace] key binding because it shadows DEL (bug#16035).
+
+	* mm-decode.el (mm-viewer-completion-map): Remove duplicate definition.
+
+2013-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-uu.el (gnus-uu-decode-binhex, gnus-uu-decode-binhex-view):
+	Make sure work directory exists.
+	(gnus-uu-digest-mail-forward): Store temporary files in work directory
+	rather than tmp directory.
+	(gnus-summary-prepare-exit-hook): Replace gnus-exit-group-hook, that is
+	not necessarily always run, with it.
+
+2013-12-18  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-identities): Make changing the
+	value of gnus-icalendar-additional-identities work without restart.
+
+2013-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-make-temp-file):
+	Alias to make-temp-file for modern Emacsen.
+
+2013-12-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-setup-message): Fix the type of argument passed to
+	nnir-article-number and nnir-article-group.
+
 2013-12-03  Vitalie Spinu  <spinuvit@gmail.com>
 
 	* message.el (message-send-mail-with-sendmail):
@@ -25278,7 +25355,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2013 Free Software Foundation, Inc.
+  Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

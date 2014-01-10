@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -919,7 +919,7 @@ to use, and each member of which is the width of that column
 		 value)))))
 	(if face
 	    (add-text-properties 0 (length (car file))
-				 (list 'face face)
+				 (list 'font-lock-face face)
 				 (car file)))))
   (car file))
 

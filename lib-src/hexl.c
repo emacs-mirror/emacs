@@ -1,5 +1,5 @@
 /* Convert files for Emacs Hexl mode.
-   Copyright (C) 1989, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1989, 2001-2014 Free Software Foundation, Inc.
 
 Author: Keith Gabryelski
 (according to authors.el)
@@ -37,12 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DEFAULT_GROUPING	0x01
 #define DEFAULT_BASE		16
 
-#undef TRUE
-#undef FALSE
-#define TRUE  (1)
-#define FALSE (0)
-
-int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
+int base = DEFAULT_BASE;
+bool un_flag = false, iso_flag = false, endian = true;
 int group_by = DEFAULT_GROUPING;
 char *progname;
 
@@ -83,7 +79,7 @@ main (int argc, char **argv)
 	}
       else if (!strcmp (*argv, "-un") || !strcmp (*argv, "-de"))
 	{
-	  un_flag = TRUE;
+	  un_flag = true;
 	  --argc; argv++;
 	}
       else if (!strcmp (*argv, "-hex"))
@@ -93,7 +89,7 @@ main (int argc, char **argv)
 	}
       else if (!strcmp (*argv, "-iso"))
 	{
-	  iso_flag = TRUE;
+	  iso_flag = true;
 	  --argc; argv++;
 	}
       else if (!strcmp (*argv, "-oct"))
@@ -103,12 +99,12 @@ main (int argc, char **argv)
 	}
       else if (!strcmp (*argv, "-big-endian"))
 	{
-	  endian = 1;
+	  endian = true;
 	  --argc; argv++;
 	}
       else if (!strcmp (*argv, "-little-endian"))
 	{
-	  endian = 0;
+	  endian = false;
 	  --argc; argv++;
 	}
       else if (!strcmp (*argv, "-group-by-8-bits"))
@@ -129,7 +125,7 @@ main (int argc, char **argv)
       else if (!strcmp (*argv, "-group-by-64-bits"))
 	{
 	  group_by = 0x07;
-	  endian = 0;
+	  endian = false;
 	  --argc; argv++;
 	}
       else

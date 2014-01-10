@@ -1,6 +1,6 @@
 ;;; tls.el --- TLS/SSL support via wrapper around GnuTLS
 
-;; Copyright (C) 1996-1999, 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: comm, tls, gnutls, ssl
@@ -168,8 +168,8 @@ this to nil if you want to ignore host name mismatches."
   :version "23.1" ;; No Gnus
   :group 'tls)
 
-(defcustom tls-certtool-program (executable-find "certtool")
-  "Name of  GnuTLS certtool.
+(defcustom tls-certtool-program "certtool"
+  "Name of GnuTLS certtool.
 Used by `tls-certificate-information'."
   :version "22.1"
   :type 'string

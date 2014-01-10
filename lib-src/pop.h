@@ -1,5 +1,5 @@
 /* pop.h: Header file for the "pop.c" client POP3 protocol.
-   Copyright (C) 1991, 1993, 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 2001-2014 Free Software Foundation, Inc.
 
 Author:  Jonathan Kamens <jik@security.ov.com>
 
@@ -27,15 +27,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 				/* size when it needs to grow */
 
 extern char pop_error[];
-extern int pop_debug;
+extern bool pop_debug;
 
 struct _popserver
 {
   int file, data;
   char *buffer;
   int buffer_size, buffer_index;
-  int in_multi;
-  int trash_started;
+  bool_bf in_multi : 1;
+  bool_bf trash_started : 1;
 };
 
 typedef struct _popserver *popserver;
@@ -73,4 +73,3 @@ extern int pop_last (popserver server);
 extern int pop_reset (popserver server);
 extern int pop_quit (popserver server);
 extern void pop_close (popserver);
-

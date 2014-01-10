@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2014 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -2613,7 +2613,7 @@ Here is an example:
 @cindex stopbits, in serial connections
 @cindex flowcontrol, in serial connections
 
-This functions configures a serial port connection.  Arguments are
+This function configures a serial port connection.  Arguments are
 specified as keyword/argument pairs.  Attributes that are not given
 are re-initialized from the process's current configuration (available
 via the function @code{process-contact}), or set to reasonable default

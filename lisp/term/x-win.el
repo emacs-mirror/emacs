@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -1594,6 +1594,8 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 		     icon-map (cdr icon-map)))
 	     (and value (cdr value))))
 	 x-gtk-stock-cache))))
+
+(global-set-key [XF86WakeUp] 'ignore)
 
 (provide 'x-win)
 

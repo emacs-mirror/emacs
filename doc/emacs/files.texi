@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -1419,6 +1419,7 @@ In a multi-file patch, kill the current file part.
 
 @item C-c C-a
 @findex diff-apply-hunk
+@cindex patches, applying
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk.
 
@@ -1944,6 +1945,8 @@ point.  Partial Completion mode offers other features extending
 @findex image-mode
 @findex image-toggle-display
 @findex image-toggle-animation
+@findex image-next-file
+@findex image-previous-file
 @cindex images, viewing
 @cindex image animation
 @cindex animated images
@@ -1955,7 +1958,11 @@ Displaying the file as an image works only if Emacs is compiled with
 support for displaying such images.  If the displayed image is wider
 or taller than the frame, the usual point motion keys (@kbd{C-f},
 @kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  If the image can be animated, the command @kbd{RET}
+displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+(@code{image-previous-file}) to visit the next image file and the
+previous image file in the same directory, respectively.
+
+If the image can be animated, the command @kbd{RET}
 (@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
 non-@code{nil}.

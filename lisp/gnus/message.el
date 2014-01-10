@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -944,6 +944,8 @@ the signature is inserted."
     (set-keymap-parent map minibuffer-local-map)
     map)
   "Keymap for `message-read-from-minibuffer'."
+  ;; FIXME improve type.
+  :type '(restricted-sexp :match-alternatives (symbolp keymapp))
   :version "22.1"
   :group 'message-various)
 
@@ -7212,7 +7214,7 @@ header line with the old Message-ID."
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)))
-	  (t (error "message-recover cancelled")))))
+	  (t (error "message-recover canceled")))))
 
 ;;; Washing Subject:
 

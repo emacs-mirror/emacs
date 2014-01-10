@@ -1,6 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2013 Free Software
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2014 Free Software
 Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
@@ -124,7 +124,7 @@ static char *find_crlf (char *, int);
 #endif
 
 char pop_error[ERROR_MAX];
-int pop_debug = 0;
+bool pop_debug = false;
 
 /*
  * Function: pop_open (char *host, char *username, char *password,
@@ -269,8 +269,8 @@ pop_open (char *host, char *username, char *password, int flags)
   server->data = 0;
   server->buffer_index = 0;
   server->buffer_size = GETLINE_MIN;
-  server->in_multi = 0;
-  server->trash_started = 0;
+  server->in_multi = false;
+  server->trash_started = false;
 
   if (getok (server))
     return (0);
@@ -686,7 +686,7 @@ pop_multi_first (popserver server, const char *command, char **response)
   else if (0 == strncmp (*response, "+OK", 3))
     {
       for (*response += 3; **response == ' '; (*response)++) /* empty */;
-      server->in_multi = 1;
+      server->in_multi = true;
       return (0);
     }
   else
@@ -728,7 +728,7 @@ pop_multi_next (popserver server, char **line)
       if (! fromserver[1])
 	{
 	  *line = 0;
-	  server->in_multi = 0;
+	  server->in_multi = false;
 	  return (0);
 	}
       else
@@ -1546,7 +1546,7 @@ pop_trash (popserver server)
       /* avoid recursion; sendline can call pop_trash */
       if (server->trash_started)
 	return;
-      server->trash_started = 1;
+      server->trash_started = true;
 
       sendline (server, "RSET");
       sendline (server, "QUIT");

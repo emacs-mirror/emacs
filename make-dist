@@ -1,7 +1,8 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2013 Free Software Foundation, Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2014 Free Software Foundation,
+## Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -251,7 +252,7 @@ if [ $update = yes ]; then
   echo timestamp > src/stamp-h.in
 
   echo "Updating Info files"
-  make info-real
+  make info
 
   echo "Updating finder, custom and autoload data"
   (cd lisp && make updates EMACS="$EMACS")
@@ -340,10 +341,13 @@ echo "Making links to \`leim' and its subdirectories"
  ln Makefile.in ../${tempdir}/leim/Makefile.in
  ln leim-ext.el ../${tempdir}/leim/leim-ext.el)
 
+## FIXME Can we not just use the "find -type f" method for this one?
 echo "Making links to \`build-aux'"
 (cd build-aux
  ln compile config.guess config.sub depcomp msys-to-w32 ../${tempdir}/build-aux
- ln install-sh missing move-if-change update-subdirs ../${tempdir}/build-aux)
+ ln install-sh missing move-if-change ../${tempdir}/build-aux
+ ln update-copyright update-subdirs ../${tempdir}/build-aux
+ ln dir_top make-info-dir ../${tempdir}/build-aux)
 
 echo "Making links to \`build-aux/snippet'"
 (cd build-aux/snippet
@@ -505,7 +509,7 @@ echo "Making links to \`doc/man'"
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
 echo "Making sure copying notices are all copies of \`COPYING'"
-for subdir in . etc info leim lib lib-src lisp lwlib msdos nt src; do
+for subdir in . etc leim lib lib-src lisp lwlib msdos nt src; do
   rm -f ${tempdir}/${subdir}/COPYING
   cp COPYING ${tempdir}/${subdir}
 done

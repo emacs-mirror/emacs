@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013 Free
+   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2014 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
@@ -393,7 +393,7 @@ tgetent (char *bp, const char *name)
   if (termcap_name && (*termcap_name == '\\'
 		       || *termcap_name == '/'
 		       || termcap_name[1] == ':'))
-    dostounix_filename (termcap_name, 0);
+    dostounix_filename (termcap_name);
 #endif
 
   filep = termcap_name && valid_filename_p (termcap_name);

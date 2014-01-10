@@ -1,6 +1,6 @@
 ;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2004, 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: FSF
@@ -189,6 +189,8 @@ PAR is a number of a regexp grouping whose text will be passed to
                 (choice :tag "Matches"
                         regexp
                         (variable :tag "Variable containing regexp")
+                        ;; FIXME It really does mean 'nicknames
+                        ;; rather than just nicknames.
                         (const :tag "Nicknames" 'nicknames))
                 (integer :tag "Number of the regexp section that matches")
                 (choice :tag "When to buttonize"

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -1422,6 +1422,7 @@ Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 @section Evaluating Emacs Lisp Expressions
 @cindex Emacs Lisp mode
 @cindex mode, Emacs Lisp
+@cindex evaluation, Emacs Lisp
 
 @findex emacs-lisp-mode
   Emacs Lisp mode is the major mode for editing Emacs Lisp.  Its mode

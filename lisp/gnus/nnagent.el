@@ -1,6 +1,6 @@
 ;;; nnagent.el --- offline backend for Gnus
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail

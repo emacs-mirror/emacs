@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access
 
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

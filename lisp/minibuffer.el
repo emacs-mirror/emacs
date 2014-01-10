@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -1222,7 +1222,7 @@ Repeated uses step through the possible completions."
                 (interactive)
                 (let ((completion-extra-properties extra-prop))
                   (completion-in-region start (point) table pred)))))
-        (set-temporary-overlay-map
+        (set-transient-map
          (let ((map (make-sparse-keymap)))
            (define-key map [remap completion-at-point] cmd)
            (define-key map (vector last-command-event) cmd)
@@ -1334,16 +1334,19 @@ appear to be a match."
         ;; instead, but it was too blunt, leading to situations where SPC
         ;; was the only insertable char at point but minibuffer-complete-word
         ;; refused inserting it.
-        (let ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
-                            '(" " "-")))
-              (before (substring string 0 point))
-              (after (substring string point))
-	      tem)
-	  (while (and exts (not (consp tem)))
-            (setq tem (completion-try-completion
-		       (concat before (pop exts) after)
-		       table predicate (1+ point) md)))
-	  (if (consp tem) (setq comp tem))))
+        (let* ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
+			     '(" " "-")))
+	       (before (substring string 0 point))
+	       (after (substring string point))
+	       (comps
+		(delete nil
+			(mapcar (lambda (ext)
+				  (completion-try-completion
+				   (concat before ext after)
+				   table predicate (1+ point) md))
+				exts))))
+	  (when (and (= 1 (length comps) (consp (car comps))))
+	    (setq comp (car comps)))))
 
       ;; Completing a single word is actually more difficult than completing
       ;; as much as possible, because we first have to find the "current

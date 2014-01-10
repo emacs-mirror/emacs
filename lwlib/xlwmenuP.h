@@ -1,6 +1,6 @@
 /* Internals of a lightweight menubar widget.
 
-Copyright (C) 2002-2013 Free Software Foundation, Inc.
+Copyright (C) 2002-2014 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -83,8 +83,8 @@ typedef struct _XlwMenu_part
   int		horizontal;
 
   /* True means top_shadow_color and/or bottom_shadow_color must be freed.  */
-  unsigned free_top_shadow_color_p : 1;
-  unsigned free_bottom_shadow_color_p : 1;
+  bool_bf free_top_shadow_color_p : 1;
+  bool_bf free_bottom_shadow_color_p : 1;
 
   /* State of the XlwMenu */
   int                   top_depth;

@@ -1,5 +1,5 @@
 /* Functions to manipulate keymaps.
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    We need one more byte for string terminator `\0'.  */
 #define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
 
-#define KEYMAPP(m) (!NILP (get_keymap (m, 0, 0)))
+#define KEYMAPP(m) (!NILP (get_keymap (m, false, false)))
 extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object Qremap;
 extern Lisp_Object Qmenu_item;

@@ -1,6 +1,6 @@
 ;;; semantic/decorate/include.el --- Decoration modes for include statements
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -42,8 +42,8 @@
 ;;; Code:
 
 ;;; FACES AND KEYMAPS
-(defvar semantic-decoratiton-mouse-3 (if (featurep 'xemacs) [ button3 ] [ mouse-3 ])
-  "The keybinding lisp object to use for binding the right mouse button.")
+(defvar semantic-decoration-mouse-3 (if (featurep 'xemacs) [ button3 ] [ mouse-3 ])
+  "The keybinding Lisp object to use for binding the right mouse button.")
 
 ;;; Includes that are in a happy state!
 ;;
@@ -55,7 +55,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
 
 (defvar semantic-decoration-on-include-map
   (let ((km (make-sparse-keymap)))
-    (define-key km semantic-decoratiton-mouse-3 'semantic-decoration-include-menu)
+    (define-key km semantic-decoration-mouse-3 'semantic-decoration-include-menu)
     km)
   "Keymap used on includes.")
 
@@ -126,7 +126,7 @@ Used by the decoration style: `semantic-decoration-on-unknown-includes'."
 (defvar semantic-decoration-on-unknown-include-map
   (let ((km (make-sparse-keymap)))
     ;(define-key km [ mouse-2 ] 'semantic-decoration-unknown-include-describe)
-    (define-key km semantic-decoratiton-mouse-3 'semantic-decoration-unknown-include-menu)
+    (define-key km semantic-decoration-mouse-3 'semantic-decoration-unknown-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -189,7 +189,7 @@ Used by the decoration style: `semantic-decoration-on-fileless-includes'."
 (defvar semantic-decoration-on-fileless-include-map
   (let ((km (make-sparse-keymap)))
     ;(define-key km [ mouse-2 ] 'semantic-decoration-fileless-include-describe)
-    (define-key km semantic-decoratiton-mouse-3 'semantic-decoration-fileless-include-menu)
+    (define-key km semantic-decoration-mouse-3 'semantic-decoration-fileless-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -251,7 +251,7 @@ Used by the decoration style: `semantic-decoration-on-unparsed-includes'."
 
 (defvar semantic-decoration-on-unparsed-include-map
   (let ((km (make-sparse-keymap)))
-    (define-key km semantic-decoratiton-mouse-3 'semantic-decoration-unparsed-include-menu)
+    (define-key km semantic-decoration-mouse-3 'semantic-decoration-unparsed-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -335,6 +335,9 @@ This mode provides a nice context menu on the include statements."
 (defun semantic-decoration-on-includes-highlight-default (tag)
   "Highlight the include TAG to show that semantic can't find it."
   (let* ((file (semantic-dependency-tag-file tag))
+	 ;; Don't actually load includes
+	 (semanticdb-find-default-throttle
+	  (remq 'unloaded semanticdb-find-default-throttle))
 	 (table (semanticdb-find-table-for-include tag (current-buffer)))
 	 (face nil)
 	 (map nil)
@@ -365,8 +368,8 @@ This mode provides a nice context menu on the include statements."
 	(semanticdb-cache-get
 	 table 'semantic-decoration-unparsed-include-cache)
 	;; Add a dependency.
-	(let ((table semanticdb-current-table))
-	  (semanticdb-add-reference table tag))
+	(let ((currenttable semanticdb-current-table))
+	  (semanticdb-add-reference currenttable tag))
 	)
       ))
 

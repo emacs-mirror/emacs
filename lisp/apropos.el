@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994-1995, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1989, 1994-1995, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
@@ -131,6 +131,7 @@ include key-binding information in its output."
   "Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the pattern; the part that matches gets displayed in this font."
+  :type '(choice (const nil) face)
   :group 'apropos
   :version "24.3")
 
@@ -341,16 +342,21 @@ before finding a label."
 
 
 (defun apropos-words-to-regexp (words wild)
-  "Make regexp matching any two of the words in WORDS."
-  (concat "\\("
-	  (mapconcat 'identity words "\\|")
-	  "\\)"
-	  (if (cdr words)
-	      (concat wild
-		      "\\("
-		      (mapconcat 'identity words "\\|")
-		      "\\)")
-	    "")))
+  "Make regexp matching any two of the words in WORDS.
+WILD should be a subexpression matching wildcards between matches."
+  (setq words (delete-dups (copy-sequence words)))
+  (if (null (cdr words))
+      (car words)
+    (mapconcat
+     (lambda (w)
+       (concat "\\(?:" w "\\)" ;; parens for synonyms
+               wild "\\(?:"
+               (mapconcat 'identity
+			  (delq w (copy-sequence words))
+			  "\\|")
+               "\\)"))
+     words
+     "\\|")))
 
 ;;;###autoload
 (defun apropos-read-pattern (subject)
@@ -1000,8 +1006,7 @@ Returns list of symbols and documentation found."
   "Like `documentation', except it avoids calling `get_doc_string'.
 Will return nil instead."
   (while (and function (symbolp function))
-    (setq function (if (fboundp function)
-		       (symbol-function function))))
+    (setq function (symbol-function function)))
   (if (eq (car-safe function) 'macro)
       (setq function (cdr function)))
   (setq function (if (byte-code-function-p function)

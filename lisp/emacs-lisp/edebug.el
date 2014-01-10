@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2013 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 1999-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -497,7 +497,10 @@ the minibuffer."
 			(put (nth 1 form) 'saved-face nil)))))
     (setq edebug-result (eval (eval-sexp-add-defvars form) lexical-binding))
     (if (not edebugging)
-	(princ edebug-result)
+	(prog1
+	    (princ edebug-result)
+	  (let ((str (eval-expression-print-format edebug-result)))
+	    (if str (princ str))))
       edebug-result)))
 
 

@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -382,10 +382,13 @@ Other major modes are defined by comparison with this one."
 If option `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
-Call `auto-fill-function' if the current column number is greater
+
+To turn off indentation by this command, disable Electric Indent mode
+\(see \\[electric-indent-mode]).
+
+Calls `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil.
-A non-nil INTERACTIVE argument means to run the `post-self-insert-hook',
-which by default will also indent the line (see `electric-indent-mode')."
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
   (interactive "*P\np")
   (barf-if-buffer-read-only)
   ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
@@ -607,7 +610,7 @@ In some text modes, where TAB inserts a tab, this command indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
   (delete-horizontal-space t)
-  (newline)
+  (newline 1 t)
   (indent-according-to-mode))
 
 (defun reindent-then-newline-and-indent ()
@@ -1365,13 +1368,12 @@ Return a formatted string which is displayed in the echo area
 in addition to the value printed by prin1 in functions which
 display the result of expression evaluation."
   (if (and (integerp value)
-           (or (not (memq this-command '(eval-last-sexp eval-print-last-sexp)))
-               (eq this-command last-command)
-               (if (boundp 'edebug-active) edebug-active)))
+	   (or (eq standard-output t)
+	       (zerop (prefix-numeric-value current-prefix-arg))))
       (let ((char-string
-             (if (or (if (boundp 'edebug-active) edebug-active)
-		     (memq this-command '(eval-last-sexp eval-print-last-sexp)))
-                 (prin1-char value))))
+	     (if (and (characterp value)
+		      (char-displayable-p value))
+		 (prin1-char value))))
         (if char-string
             (format " (#o%o, #x%x, %s)" value value char-string)
           (format " (#o%o, #x%x)" value value)))))
@@ -1399,8 +1401,11 @@ evaluate it.
 Value is also consed on to front of the variable `values'.
 Optional argument INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer
-instead of printing it in the echo area.  Truncates long output
-according to the value of the variables `eval-expression-print-length'
+instead of printing it in the echo area.  With a zero prefix arg,
+insert the result with no limit on the length and level of lists,
+and include additional formats for integers (octal, hexadecimal,
+and character).  Truncates long output according to the value
+of the variables `eval-expression-print-length'
 and `eval-expression-print-level'.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
@@ -1422,13 +1427,19 @@ this command arranges for all errors to enter the debugger."
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))))
 
-  (let ((print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
+  (let ((print-length (and (not (zerop (prefix-numeric-value insert-value)))
+			   eval-expression-print-length))
+	(print-level (and (not (zerop (prefix-numeric-value insert-value)))
+			  eval-expression-print-level))
         (deactivate-mark))
     (if insert-value
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
-	   (prin1 (car values))))
+	   (prog1
+	       (prin1 (car values))
+	     (when (zerop (prefix-numeric-value insert-value))
+	       (let ((str (eval-expression-print-format (car values))))
+		 (if str (princ str)))))))
       (prog1
           (prin1 (car values) t)
         (let ((str (eval-expression-print-format (car values))))
@@ -3310,7 +3321,7 @@ see other processes running on the system, use `list-system-processes'."
   "Keymap used while processing \\[universal-argument].")
 
 (defun universal-argument--mode ()
-  (set-temporary-overlay-map universal-argument-map))
+  (set-transient-map universal-argument-map))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
@@ -3638,9 +3649,9 @@ to make one entry in the kill ring.
 
 The optional argument REGION if non-nil, indicates that we're not just killing
 some text between BEG and END, but we're killing the region."
-  ;; Pass point first, then mark, because the order matters
-  ;; when calling kill-append.
-  (interactive (list (point) (mark) 'region))
+  ;; Pass mark first, then point, because the order matters when
+  ;; calling `kill-append'.
+  (interactive (list (mark) (point) 'region))
   (unless (and beg end)
     (error "The mark is not set now, so there is no region"))
   (condition-case nil
@@ -3686,7 +3697,10 @@ The optional argument REGION if non-nil, indicates that we're not just copying
 some text between BEG and END, but we're copying the region.
 
 This command's old key binding has been given to `kill-ring-save'."
-  (interactive "r\np")
+  ;; Pass mark first, then point, because the order matters when
+  ;; calling `kill-append'.
+  (interactive (list (mark) (point)
+		     (prefix-numeric-value current-prefix-arg)))
   (let ((str (if region
                  (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
@@ -3710,7 +3724,10 @@ some text between BEG and END, but we're copying the region.
 
 This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
-  (interactive "r\np")
+  ;; Pass mark first, then point, because the order matters when
+  ;; calling `kill-append'.
+  (interactive (list (mark) (point)
+		     (prefix-numeric-value current-prefix-arg)))
   (copy-region-as-kill beg end region)
   ;; This use of called-interactively-p is correct because the code it
   ;; controls just gives the user visual feedback.
@@ -3758,7 +3775,17 @@ of this sample text; it defaults to 40."
 		   (buffer-substring-no-properties mark (+ mark len))))))))
 
 (defun append-next-kill (&optional interactive)
-  "Cause following command, if it kills, to append to previous kill.
+  "Cause following command, if it kills, to add to previous kill.
+If the next command kills forward from point, the kill is
+appended to the previous killed text.  If the command kills
+backward, the kill is prepended.  Kill commands that act on the
+region, such as `kill-region', are regarded as killing forward if
+point is after mark, and killing backward if point is before
+mark.
+
+If the next command is not a kill command, `append-next-kill' has
+no effect.
+
 The argument is used for internal purposes; do not supply one."
   (interactive "p")
   ;; We don't use (interactive-p), since that breaks kbd macros.
@@ -3785,6 +3812,8 @@ end positions of the text.
 This is done prior to removing the properties specified by
 `yank-excluded-properties'."
   :group 'killing
+  :type '(repeat (cons (symbol :tag "property symbol")
+                       function))
   :version "24.3")
 
 ;; This is actually used in subr.el but defcustom does not work there.
@@ -4293,6 +4322,7 @@ run `deactivate-mark-hook'."
 		      (null (x-selection-exists-p 'PRIMARY))))
 	     (x-set-selection 'PRIMARY
                               (funcall region-extract-function nil)))))
+    (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
@@ -4305,11 +4335,14 @@ run `deactivate-mark-hook'."
       (setq mark-active nil)
       (run-hooks 'deactivate-mark-hook))))
 
-(defun activate-mark ()
-  "Activate the mark."
+(defun activate-mark (&optional no-tmm)
+  "Activate the mark.
+If NO-TMM is non-nil, leave `transient-mark-mode' alone."
   (when (mark t)
+    (unless (and mark-active transient-mark-mode)
+      (force-mode-line-update)) ;Refresh toolbar (bug#16382).
     (setq mark-active t)
-    (unless transient-mark-mode
+    (unless (or transient-mark-mode no-tmm)
       (setq transient-mark-mode 'lambda))
     (run-hooks 'activate-mark-hook)))
 
@@ -4330,16 +4363,13 @@ store it in a Lisp variable.  Example:
 
    (let ((beg (point))) (forward-line 1) (delete-region beg (point)))."
 
+  (set-marker (mark-marker) pos (current-buffer))
   (if pos
-      (progn
-	(setq mark-active t)
-	(run-hooks 'activate-mark-hook)
-	(set-marker (mark-marker) pos (current-buffer)))
+      (activate-mark 'no-tmm)
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
     ;; clear mark-active in any mode.
-    (deactivate-mark t)
-    (set-marker (mark-marker) nil)))
+    (deactivate-mark t)))
 
 (defcustom use-empty-active-region nil
   "Whether \"region-aware\" commands should act on empty regions.
@@ -4463,11 +4493,10 @@ Start discarding off end if gets this big."
 If no prefix ARG and mark is already set there, just activate it.
 Display `Mark set' unless the optional second arg NOMSG is non-nil."
   (interactive "P")
-  (let ((mark (marker-position (mark-marker))))
+  (let ((mark (mark t)))
     (if (or arg (null mark) (/= mark (point)))
 	(push-mark nil nomsg t)
-      (setq mark-active t)
-      (run-hooks 'activate-mark-hook)
+      (activate-mark 'no-tmm)
       (unless nomsg
 	(message "Mark activated")))))
 
@@ -6308,8 +6337,15 @@ position just before the opening token and END is the position right after.
 START can be nil, if it was not found.
 The function should return non-nil if the two tokens do not match.")
 
+(defvar blink-matching--overlay
+  (let ((ol (make-overlay (point) (point) nil t)))
+    (overlay-put ol 'face 'show-paren-match)
+    (delete-overlay ol)
+    ol)
+  "Overlay used to highlight the matching paren.")
+
 (defun blink-matching-open ()
-  "Move cursor momentarily to the beginning of the sexp before point."
+  "Momentarily highlight the beginning of the sexp before point."
   (interactive)
   (when (and (not (bobp))
 	     blink-matching-paren)
@@ -6351,13 +6387,17 @@ The function should return non-nil if the two tokens do not match.")
             (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
-        ;; Matching open within window, temporarily move to blinkpos but only
-        ;; if `blink-matching-paren-on-screen' is non-nil.
+        ;; Matching open within window, temporarily highlight char
+        ;; after blinkpos but only if `blink-matching-paren-on-screen'
+        ;; is non-nil.
         (and blink-matching-paren-on-screen
              (not show-paren-mode)
-             (save-excursion
-               (goto-char blinkpos)
-               (sit-for blink-matching-delay))))
+             (unwind-protect
+                 (progn
+                   (move-overlay blink-matching--overlay blinkpos (1+ blinkpos)
+                                 (current-buffer))
+                   (sit-for blink-matching-delay))
+               (delete-overlay blink-matching--overlay))))
        (t
         (save-excursion
           (goto-char blinkpos)
@@ -6410,10 +6450,14 @@ More precisely, a char with closeparen syntax is self-inserted.")
 				 (point))))))
     (funcall blink-paren-function)))
 
+(put 'blink-paren-post-self-insert-function 'priority 100)
+
 (add-hook 'post-self-insert-hook #'blink-paren-post-self-insert-function
           ;; Most likely, this hook is nil, so this arg doesn't matter,
           ;; but I use it as a reminder that this function usually
-          ;; likes to be run after others since it does `sit-for'.
+          ;; likes to be run after others since it does
+          ;; `sit-for'. That's also the reason it get a `priority' prop
+          ;; of 100.
           'append)
 
 ;; This executes C-g typed while Emacs is waiting for a command.
@@ -7128,17 +7172,11 @@ PREFIX is the string that represents this modifier in an event type symbol."
 	 (normal (nth 1 keypad-normal)))
      (put keypad 'ascii-character normal)
      (define-key function-key-map (vector keypad) (vector normal))))
- '((kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
-   (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
-   (kp-space ?\s)
+ ;; See also kp-keys bound in bindings.el.
+ '((kp-space ?\s)
    (kp-tab ?\t)
    (kp-enter ?\r)
-   (kp-multiply ?*)
-   (kp-add ?+)
    (kp-separator ?,)
-   (kp-subtract ?-)
-   (kp-decimal ?.)
-   (kp-divide ?/)
    (kp-equal ?=)
    ;; Do the same for various keys that are represented as symbols under
    ;; GUIs but naturally correspond to characters.
@@ -7435,7 +7473,7 @@ See also `normal-erase-is-backspace'."
 	     (if enabled
 		 (progn
 		   (define-key local-function-key-map [delete] [deletechar])
-		   (define-key local-function-key-map [kp-delete] [?\C-d])
+		   (define-key local-function-key-map [kp-delete] [deletechar])
 		   (define-key local-function-key-map [backspace] [?\C-?])
                    (dolist (b bindings)
                      ;; Not sure if input-decode-map is really right, but

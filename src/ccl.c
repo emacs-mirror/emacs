@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2014 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -628,7 +628,7 @@ do								\
   {								\
     struct ccl_program called_ccl;				\
     if (stack_idx >= 256					\
-	|| (setup_ccl_program (&called_ccl, (symbol)) != 0))	\
+	|| ! setup_ccl_program (&called_ccl, (symbol)))		\
       {								\
 	if (stack_idx > 0)					\
 	  {							\
@@ -1712,9 +1712,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
     }
 
  ccl_error_handler:
-  /* The suppress_error member is set when e.g. a CCL-based coding
-     system is used for terminal output.  */
-  if (!ccl->suppress_error && destination)
+  if (destination)
     {
       /* We can insert an error message only if DESTINATION is
          specified and we still have a room to store the message
@@ -1919,10 +1917,10 @@ ccl_get_compiled_code (Lisp_Object ccl_prog, ptrdiff_t *idx)
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of CCL program CCL_PROG.  CCL_PROG is the name (symbol)
    of the CCL program or the already compiled code (vector).
-   Return 0 if we succeed this setup, else return -1.
+   Return true iff successful.
 
-   If CCL_PROG is nil, we just reset the structure pointed by CCL.  */
-int
+   If CCL_PROG is nil, just reset the structure pointed by CCL.  */
+bool
 setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 {
   int i;
@@ -1933,7 +1931,7 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 
       ccl_prog = ccl_get_compiled_code (ccl_prog, &ccl->idx);
       if (! VECTORP (ccl_prog))
-	return -1;
+	return false;
       vp = XVECTOR (ccl_prog);
       ccl->size = vp->header.size;
       ccl->prog = vp->contents;
@@ -1950,14 +1948,11 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
   ccl->ic = CCL_HEADER_MAIN;
   for (i = 0; i < 8; i++)
     ccl->reg[i] = 0;
-  ccl->last_block = 0;
-  ccl->private_state = 0;
+  ccl->last_block = false;
   ccl->status = 0;
   ccl->stack_idx = 0;
-  ccl->suppress_error = 0;
-  ccl->eight_bit_control = 0;
-  ccl->quit_silently = 0;
-  return 0;
+  ccl->quit_silently = false;
+  return true;
 }
 
 
@@ -2003,7 +1998,7 @@ programs.  */)
   struct ccl_program ccl;
   int i;
 
-  if (setup_ccl_program (&ccl, ccl_prog) < 0)
+  if (! setup_ccl_program (&ccl, ccl_prog))
     error ("Invalid CCL program");
 
   CHECK_VECTOR (reg);
@@ -2065,7 +2060,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   ptrdiff_t consumed_chars, consumed_bytes, produced_chars;
   int buf_magnification;
 
-  if (setup_ccl_program (&ccl, ccl_prog) < 0)
+  if (! setup_ccl_program (&ccl, ccl_prog))
     error ("Invalid CCL program");
 
   CHECK_VECTOR (status);

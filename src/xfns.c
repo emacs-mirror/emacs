@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -997,7 +997,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
   FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  resize_frame_windows (f, FRAME_LINES (f), 0, 0);
+  resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
 
   /* If the menu bar height gets changed, the internal border below
      the top margin has to be cleared.  Also, if the menu bar gets
@@ -1052,7 +1052,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   int nlines;
 #if ! defined (USE_GTK)
   int delta, root_height;
-  Lisp_Object root_window;
+  int unit = FRAME_LINE_HEIGHT (f);
 #endif
 
   /* Treat tool bars like menu bars.  */
@@ -1089,20 +1089,29 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   /* Make sure we redisplay all windows in this frame.  */
   windows_or_buffers_changed = 60;
 
-  delta = nlines - FRAME_TOOL_BAR_LINES (f);
+  /* DELTA is in pixels now.  */
+  delta = (nlines - FRAME_TOOL_BAR_LINES (f)) * unit;
 
-  /* Don't resize the tool-bar to more than we have room for.  */
-  root_window = FRAME_ROOT_WINDOW (f);
-  root_height = WINDOW_TOTAL_LINES (XWINDOW (root_window));
-  if (root_height - delta < 1)
+  /* Don't resize the tool-bar to more than we have room for.  Note: The
+     calculations below and the subsequent call to resize_frame_windows
+     are inherently flawed because they can make the toolbar higher than
+     the containing frame.  */
+  if (delta > 0)
     {
-      delta = root_height - 1;
-      nlines = FRAME_TOOL_BAR_LINES (f) + delta;
+      root_height = WINDOW_PIXEL_HEIGHT (XWINDOW (FRAME_ROOT_WINDOW (f)));
+      if (root_height - delta < unit)
+	{
+	  delta = root_height - unit;
+	  /* When creating a new frame and toolbar mode is enabled, we
+	     need at least one toolbar line.  */
+	  nlines = max (FRAME_TOOL_BAR_LINES (f) + delta / unit, 1);
+	}
     }
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
   FRAME_TOOL_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  resize_frame_windows (f, FRAME_LINES (f), 0, 0);
+  ++windows_or_buffers_changed;
+  resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
   adjust_frame_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
@@ -1124,7 +1133,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
-      int y = (FRAME_MENU_BAR_LINES (f) + nlines) * FRAME_LINE_HEIGHT (f);
+      int y = nlines * unit;
 
       /* height can be zero here. */
       if (height > 0 && width > 0)
@@ -1139,7 +1148,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
 
-    run_window_configuration_change_hook (f);
+  run_window_configuration_change_hook (f);
 #endif /* USE_GTK */
 }
 
@@ -1479,7 +1488,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 void
 x_set_scroll_bar_default_width (struct frame *f)
 {
-  int wid = FRAME_COLUMN_WIDTH (f);
+  int unit = FRAME_COLUMN_WIDTH (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
   int minw = xg_get_default_scrollbar_width ();
@@ -1487,16 +1496,14 @@ x_set_scroll_bar_default_width (struct frame *f)
   int minw = 16;
 #endif
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (minw + wid - 1) / wid;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (minw + unit - 1) / unit;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = minw;
 #else
-  /* Make the actual width 16 pixels and a multiple of a
-     character width.  */
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (16 + wid - 1) / wid;
-
-  /* Use all of that space (aside from required margins) for the
-     scroll bar.  */
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = 16;
+  /* The width of a non-toolkit scrollbar is at least 14 pixels and a
+     multiple of the frame's character width.  */
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
+    = FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
 #endif
 }
 
@@ -3069,7 +3076,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-#ifdef USE_GTK
   /* PXW: This is a duplicate from below.  We have to do it here since
      otherwise x_set_tool_bar_lines will work with the character sizes
      installed by init_frame_faces while the frame's pixel size is still
@@ -3078,12 +3084,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
      non-pixelwise code apparently worked around this because it had one
      frame line vs one toolbar line which left us with a zero root
      window height which was obviously wrong as well ...  */
-  width = FRAME_TEXT_WIDTH (f);
-  height = FRAME_TEXT_HEIGHT (f);
-  FRAME_TEXT_HEIGHT (f) = 0;
-  SET_FRAME_WIDTH (f, 0);
-  change_frame_size (f, width, height, 1, 0, 0, 1);
-#endif /* USE_GTK */
+  change_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 1, 0, 0, 1);
 
   /* Set the menu-bar-lines and tool-bar-lines parameters.  We don't
      look up the X resources controlling the menu-bar and tool-bar

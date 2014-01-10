@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986-1987, 1994-1995, 2001-2013 Free Software
+;; Copyright (C) 1986-1987, 1994-1995, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Howie Kaye

@@ -1,5 +1,5 @@
 /* Font driver on Mac OSX Core text.
-   Copyright (C) 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,7 +84,7 @@ static Lisp_Object QCminspace;
 
 struct macfont_metrics;
 
-/* The actual structure for Mac font that can be casted to struct font.  */
+/* The actual structure for Mac font that can be cast to struct font.  */
 
 struct macfont_info
 {
@@ -95,11 +95,11 @@ struct macfont_info
   struct macfont_cache *cache;
   struct macfont_metrics **metrics;
   short metrics_nrows;
-  unsigned synthetic_italic_p : 1;
-  unsigned synthetic_bold_p : 1;
+  bool_bf synthetic_italic_p : 1;
+  bool_bf synthetic_bold_p : 1;
   unsigned spacing : 2;
   unsigned antialias : 2;
-  unsigned color_bitmap_p : 1;
+  bool_bf color_bitmap_p : 1;
 };
 
 /* Values for the `spacing' member in `struct macfont_info'.  */

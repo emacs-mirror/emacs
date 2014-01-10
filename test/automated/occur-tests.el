@@ -1,6 +1,6 @@
 ;;; occur-tests.el --- Test suite for occur.
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching, internal

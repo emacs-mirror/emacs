@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2014 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -248,10 +248,12 @@ See also: `break-hardlink-on-save'."
   :group 'backup)
 
 (defcustom break-hardlink-on-save nil
-  "Non-nil means when saving a file that exists under several names
-\(i.e., has multiple hardlinks), break the hardlink associated with
-`buffer-file-name' and write to a new file, so that the other
-instances of the file are not affected by the save.
+  "Whether to allow breaking hardlinks when saving files.
+If non-nil, then when saving a file that exists under several
+names \(i.e., has multiple hardlinks), break the hardlink
+associated with `buffer-file-name' and write to a new file, so
+that the other instances of the file are not affected by the
+save.
 
 If `buffer-file-name' refers to a symlink, do not break the symlink.
 
@@ -5568,7 +5570,7 @@ non-nil, it is called instead of rereading visited file contents."
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))
 	   (after-find-file nil nil t))
-	  (t (user-error "Recover-file cancelled")))))
+	  (t (user-error "Recover-file canceled")))))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.

@@ -7,11 +7,13 @@
 @set VERSION 0.1
 @settitle PGG @value{VERSION}
 
+@documentencoding UTF-8
+
 @copying
 This file describes PGG @value{VERSION}, an Emacs interface to various
 PGP implementations.
 
-Copyright @copyright{} 2001, 2003--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2003--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

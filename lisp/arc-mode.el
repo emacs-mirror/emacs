@@ -1,6 +1,7 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2014 Free Software Foundation,
+;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -1164,8 +1165,10 @@ using `make-temp-file', and the generated name is returned."
 	  (delete-file (expand-file-name name dest)))
       (while (file-name-directory name)
 	(setq name (directory-file-name (file-name-directory name)))
-	(delete-directory (expand-file-name name dest)))
-      (delete-directory dest))))
+	(when (file-directory-p (expand-file-name name dest))
+	  (delete-directory (expand-file-name name dest))))
+      (when (file-directory-p dest)
+	(delete-directory dest)))))
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."

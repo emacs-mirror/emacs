@@ -6,12 +6,13 @@
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
+@documentencoding UTF-8
 @c %**end of header
 
 @copying
 This file documents @acronym{SES}: the Simple Emacs Spreadsheet.
 
-Copyright @copyright{} 2002--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2002--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

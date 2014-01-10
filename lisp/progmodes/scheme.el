@@ -1,6 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode
 
-;; Copyright (C) 1986-1988, 1997-1998, 2001-2013 Free Software
+;; Copyright (C) 1986-1988, 1997-1998, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>

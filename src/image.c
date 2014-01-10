@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -264,7 +264,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 
 #ifdef HAVE_X_WINDOWS
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
-  dpyinfo->bitmaps[id - 1].have_mask = 0;
+  dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].depth = 1;
 #endif /* HAVE_X_WINDOWS */
 
@@ -327,7 +327,9 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     }
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  if (openp (Vx_bitmap_file_path, file, Qnil, &found, make_number (R_OK)) < 0)
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
+	     make_number (R_OK), false)
+      < 0)
     return -1;
 
   filename = SSDATA (found);
@@ -339,7 +341,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
-  dpyinfo->bitmaps[id - 1].have_mask = 0;
+  dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
   dpyinfo->bitmaps[id - 1].depth = 1;
@@ -515,7 +517,7 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
 	     width, height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 
-  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].have_mask = true;
   dpyinfo->bitmaps[id - 1].mask = mask;
 
   XDestroyImage (ximg);
@@ -2242,7 +2244,7 @@ x_find_image_file (Lisp_Object file)
 		       Vx_bitmap_file_path);
 
   /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
-  fd = openp (search_path, file, Qnil, &file_found, Qnil);
+  fd = openp (search_path, file, Qnil, &file_found, Qnil, false);
 
   if (fd == -1)
     file_found = Qnil;
@@ -3446,7 +3448,7 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 
   id = x_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
-  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].have_mask = true;
   dpyinfo->bitmaps[id - 1].mask = mask;
   dpyinfo->bitmaps[id - 1].file = NULL;
   dpyinfo->bitmaps[id - 1].height = attrs.height;
@@ -3590,6 +3592,12 @@ xpm_load (struct frame *f, struct image *img)
 	}
 
 #ifdef HAVE_NTGUI
+#ifdef WINDOWSNT
+      /* FILE is encoded in UTF-8, but image libraries on Windows
+	 support neither UTF-8 nor UTF-16 encoded file names.  So we
+	 need to re-encode it in ANSI.  */
+      file = ansi_encode_filename (file);
+#endif
       /* XpmReadFileToPixmap is not available in the Windows port of
 	 libxpm.  But XpmReadFileToImage almost does what we want.  */
       rc = fn_XpmReadFileToImage (&hdc, SDATA (file),
@@ -3968,7 +3976,7 @@ xpm_load_image (struct frame *f,
   Lisp_Object (*get_color_table) (Lisp_Object, const unsigned char *, int);
   Lisp_Object frame, color_symbols, color_table;
   int best_key;
-  bool have_mask = 0;
+  bool have_mask = false;
   XImagePtr ximg = NULL, mask_img = NULL;
 
 #define match() \
@@ -4140,7 +4148,7 @@ xpm_load_image (struct frame *f,
 #ifndef HAVE_NS
 	  XPutPixel (mask_img, x, y,
 		     (!EQ (color_val, Qt) ? PIX_MASK_DRAW
-		      : (have_mask = 1, PIX_MASK_RETAIN)));
+		      : (have_mask = true, PIX_MASK_RETAIN)));
 #else
           if (EQ (color_val, Qt))
             ns_set_alpha (ximg, x, y, 0);
@@ -5528,7 +5536,7 @@ DEF_IMGLIB_FN (void, png_read_end, (png_structp, png_infop));
 DEF_IMGLIB_FN (void, png_error, (png_structp, png_const_charp));
 
 #if (PNG_LIBPNG_VER >= 10500)
-DEF_IMGLIB_FN (void, png_longjmp, (png_structp, int));
+DEF_IMGLIB_FN (void, png_longjmp, (png_structp, int)) PNG_NORETURN;
 DEF_IMGLIB_FN (jmp_buf *, png_set_longjmp_fn, (png_structp, png_longjmp_ptr, size_t));
 #endif /* libpng version >= 1.5 */
 
@@ -6968,6 +6976,9 @@ tiff_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  return 0;
 	}
+#ifdef WINDOWSNT
+      file = ansi_encode_filename (file);
+#endif
 
       /* Try to open the image file.  */
       tiff = fn_TIFFOpen (SSDATA (file), "r");
@@ -7353,6 +7364,9 @@ gif_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
 	  return 0;
 	}
+#ifdef WINDOWSNT
+      file = ansi_encode_filename (file);
+#endif
 
       /* Open the GIF file.  */
 #if GIFLIB_MAJOR < 5
@@ -7572,7 +7586,7 @@ gif_load (struct frame *f, struct image *img)
 	  }
 
       /* Apply the pixel values.  */
-      if (gif->SavedImages[j].ImageDesc.Interlace)
+      if (GIFLIB_MAJOR < 5 && gif->SavedImages[j].ImageDesc.Interlace)
 	{
 	  int row, pass;
 
@@ -8479,6 +8493,9 @@ imagemagick_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", file_name, Qnil);
 	  return 0;
 	}
+#ifdef WINDOWSNT
+      file = ansi_encode_filename (file);
+#endif
       success_p = imagemagick_load_image (f, img, 0, 0, SSDATA (file));
     }
   /* Else its not a file, its a lisp object.  Load the image from a

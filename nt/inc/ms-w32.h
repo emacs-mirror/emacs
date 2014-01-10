@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -152,6 +152,9 @@ extern char *getenv ();
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
+/* This is used to hold UTF-8 encoded file names.  */
+#define MAX_UTF8_PATH   (MAXPATHLEN * 4)
+
 #ifdef HAVE_NTGUI
 # ifndef HAVE_WINDOW_SYSTEM
 #  define HAVE_WINDOW_SYSTEM 1
@@ -218,12 +221,23 @@ extern struct tm * sys_localtime (const time_t *);
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+#undef opendir
+#define opendir sys_opendir
+#undef closedir
+#define closedir sys_closedir
+#undef readdir
+#define readdir sys_readdir
+#undef seekdir
+#define seekdir sys_seekdir
 /* This prototype is needed because some files include config.h
    _after_ the standard headers, so sys_unlink gets no prototype from
    stdio.h or io.h.  */
 extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
+#undef umask
+#define umask   sys_umask
+extern int sys_umask (int);
 
 /* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve
@@ -265,7 +279,6 @@ typedef int pid_t;
 #define lseek     _lseek
 #define popen     _popen
 #define pclose    _pclose
-#define umask	  _umask
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp
@@ -381,7 +394,7 @@ extern int setpgrp (int, int);
 extern int sigaction (int, const struct sigaction *, struct sigaction *);
 extern int alarm (int);
 
-extern int sys_kill (int, int);
+extern int sys_kill (pid_t, int);
 
 
 /* For integration with MSDOS support.  */

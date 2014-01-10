@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/efaq
 @settitle GNU Emacs FAQ
+@documentencoding UTF-8
 @c %**end of header
 
 @include emacsver.texi
@@ -11,7 +12,7 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright @copyright{} 2001--2013 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2014 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*
@@ -560,6 +561,9 @@ common) invokes help.
 
 Emacs help works best if it is invoked by a single key whose value
 should be stored in the variable @code{help-char}.
+
+Some Emacs slides and tutorials can be found at
+@uref{http://web.psung.name/emacs/}.
 
 @node Learning how to do something
 @section How do I find out how to do something in Emacs?
@@ -2746,7 +2750,7 @@ type @kbd{C-h C-p} to read it.
 
 Old versions (i.e., anything before 19.29) of Emacs had problems editing
 files larger than 8 megabytes.  In versions 19.29 and later, the maximum
-buffer size is at least 2^27@minus{}1, or 134,217,727 bytes, or 132 MBytes.
+buffer size is at least @math{2^{27}-1}, or 134,217,727 bytes, or 132 MBytes.
 The maximum buffer size on 32-bit machines increased to 256 MBytes in
 Emacs 22, and again to 512 MBytes in Emacs 23.2.
 
@@ -3295,6 +3299,7 @@ the constituent Emacs packages.
 For advice on how to find extra packages that are not part of Emacs,
 see @ref{Packages that do not come with Emacs}.
 
+@c Note that M-x view-external-packages references this node.
 @node Packages that do not come with Emacs
 @section Where can I get Emacs Lisp packages that don't come with Emacs?
 @cindex Unbundled packages
@@ -3304,31 +3309,41 @@ see @ref{Packages that do not come with Emacs}.
 @cindex Emacs Lisp List
 @cindex Emacs Lisp Archive
 
-Your first port of call should be the @kbd{M-x list-packages} command.
-This connects to the @uref{http:///elpa.gnu.org, GNU ELPA} (``Emacs
-Lisp Package Archive'') server and fetches the list of additional
-packages that it offers.  These are GNU packages that are available
-for use with Emacs, but are distributed separately.  Select a package
-to get more details about the features that it offers, and then if you
-wish, Emacs can download and automatically install it for you.
+The easiest way to add more features to your Emacs is to use the
+command @kbd{M-x list-packages}.  This contacts the
+@uref{http:///elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
+server and fetches the list of additional packages that it offers.
+These are GNU packages that are available for use with Emacs, but are
+distributed separately from Emacs itself, for reasons of space, etc.
+You can browse the resulting @file{*Packages*} buffer to see what is
+available, and then Emacs can automatically download and install the
+packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
 
-@uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs Lisp
-List (ELL)}, maintained by Stephen Eglen,
-aims to provide one compact list with links to all of the current Emacs
-Lisp files on the Internet.  The ELL can be browsed over the web, or
-from Emacs with @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.el,
-the @file{ell} package}.
+There are other, non-GNU, Emacs Lisp package servers, including:
+@uref{http://melpa.milkbox.net, MELPA}; and
+@uref{http://marmalade-repo.org, Marmalade}.  To use additional
+package servers, customize the @code{package-archives} variable.
+Be aware that installing a package can run arbitrary code, so only add
+sources that you trust.
 
-Many authors post their packages to the @uref{news:gnu.emacs.sources,
-Emacs sources newsgroup}.  You can search the archives of this
-group with @uref{http://groups.google.com/group/gnu.emacs.sources, Google},
-or @uref{http://dir.gmane.org/gmane.emacs.sources, Gmane}, for example.
+The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
+GNU Emacs sources mailing list}, which is gatewayed to the
+@uref{news:gnu.emacs.sources, Emacs sources newsgroup} (although the
+connection between the two can be unreliable) is an official place
+where people can post or announce their extensions to Emacs.
 
-Several packages are stored in
-@uref{http://emacswiki.org/elisp/, the Lisp area of the Emacs Wiki}.
+The @uref{http://emacswiki.org, Emacs Wiki} contains pointers to some
+additional extensions.  @uref{http://wikemacs.org, WikEmacs} is an
+alternative wiki for Emacs.
 
-Read the file @file{etc/MORE.STUFF} for more information about
-external packages.
+@uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs
+Lisp List (ELL)}, has pointers to many Emacs Lisp files, but at time
+of writing it is no longer being updated.
+
+It is impossible for us to list here all the sites that offer Emacs
+Lisp packages.  If you are interested in a specific feature, then
+after checking Emacs itself and GNU ELPA, a web search is often the
+best way to find results.
 
 @node Spell-checkers
 @section Spell-checkers

@@ -1,6 +1,6 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -374,7 +374,7 @@ messages will be shown to indicate the current status."
                  (number :tag "count")))
 
 (define-widget 'nnmail-lazy 'default
-  "Base widget for recursive datastructures.
+  "Base widget for recursive data structures.
 
 This is copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
   :format "%{%t%}: %v"

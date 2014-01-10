@@ -1,6 +1,6 @@
 ;;; calc-yank.el --- kill-ring functionality for Calc
 
-;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -588,7 +588,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (add-hook 'kill-buffer-hook (lambda ()
                                   (let ((calc-edit-handler nil))
                                     (calc-edit-finish t))
-                                  (message "(Cancelled)")) t t)
+                                  (message "(Canceled)")) t t)
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
@@ -669,7 +669,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
   (interactive)
   (let ((calc-edit-handler nil))
     (calc-edit-finish))
-  (message "(Cancelled)"))
+  (message "(Canceled)"))
 
 (defun calc-finish-stack-edit (num)
   (let ((buf (current-buffer))

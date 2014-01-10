@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993-1995, 1997-1998, 2001-2013 Free Software
+   Copyright (C) 1993-1995, 1997-1998, 2001-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -676,6 +676,7 @@ find_interval (register INTERVAL tree, register ptrdiff_t position)
 
   while (1)
     {
+      eassert (tree);
       if (relative_position < LEFT_TOTAL_LENGTH (tree))
 	{
 	  tree = tree->left;

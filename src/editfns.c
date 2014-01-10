@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.
 
-Copyright (C) 1985-1987, 1989, 1993-2013 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1723,6 +1723,7 @@ by text that describes the specified date and time in TIME:
 %c is the locale's date and time format.
 %x is the locale's "preferred" date format.
 %D is like "%m/%d/%y".
+%F is the ISO 8601 date format (like "%Y-%m-%d").
 
 %R is like "%H:%M", %T is like "%H:%M:%S", %r is like "%I:%M:%S %p".
 %X is the locale's "preferred" time format.
@@ -1741,7 +1742,7 @@ The modifiers are `E' and `O'.  For certain characters X,
 %EX is a locale's alternative version of %X;
 %OX is like %X, but uses the locale's number symbols.
 
-For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
+For example, to produce full ISO 8601 format, use "%FT%T%z".
 
 usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
@@ -3635,8 +3636,8 @@ usage: (format STRING &rest OBJECTS)  */)
   struct info
   {
     ptrdiff_t start, end;
-    unsigned converted_to_string : 1;
-    unsigned intervals : 1;
+    bool_bf converted_to_string : 1;
+    bool_bf intervals : 1;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -4213,7 +4214,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	if (buf == initial_buffer)
 	  {
 	    buf = xmalloc (bufsize);
-	    sa_must_free = 1;
+	    sa_must_free = true;
 	    buf_save_value_index = SPECPDL_INDEX ();
 	    record_unwind_protect_ptr (xfree, buf);
 	    memcpy (buf, initial_buffer, used);

@@ -2,6 +2,8 @@
 @setfilename ../../info/url
 @settitle URL Programmer's Manual
 
+@documentencoding UTF-8
+
 @iftex
 @c @finalout
 @end iftex
@@ -20,7 +22,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2013 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2014 Free Software
 Foundation, Inc.
 
 @quotation

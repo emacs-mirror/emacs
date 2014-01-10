@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2014 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -2361,10 +2361,11 @@ keywords when no KEYWORD is given."
     (let ((pos start)
 	  next prop)
       (while (< pos end)
-	(setq prop (get-text-property pos 'face object)
-	      next (next-single-property-change pos 'face object end))
-	(unless (member name (get-text-property pos 'face object))
-	  (add-text-properties pos next (list 'face (cons name prop)) object))
+	(setq prop (get-text-property pos 'font-lock-face object)
+	      next (next-single-property-change pos 'font-lock-face object end))
+	(unless (member name (get-text-property pos 'font-lock-face object))
+	  (add-text-properties pos next
+			       (list 'font-lock-face (cons name prop)) object))
 	(setq pos next)))))
 
 (defun rcirc-facify (string face)

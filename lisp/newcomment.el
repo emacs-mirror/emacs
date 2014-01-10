@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -312,7 +312,7 @@ If `eol' it only comments out empty lines if comments are
 terminated by the end of line (i.e. `comment-end' is empty)."
   :type '(choice (const :tag "Never" nil)
 	  (const :tag "Always" t)
-	  (const :tag "EOl-terminated" 'eol))
+	  (const :tag "EOl-terminated" eol))
   :group 'comment)
 
 ;;;;

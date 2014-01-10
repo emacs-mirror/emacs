@@ -1,6 +1,6 @@
 ;;; shr-color.el --- Simple HTML Renderer color management
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: html

@@ -1,6 +1,6 @@
 ;;; ede/generic.el --- Base Support for generic build systems
 
-;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -360,7 +360,6 @@ Argument COMMAND is the command to use for compiling the target."
 
 (defmethod project-run-target ((target ede-generic-target))
   "Run the current project derived from TARGET."
-  (require 'ede-shell)
   (let* ((proj (ede-target-parent target))
 	 (config (ede-generic-get-configuration proj))
 	 (run (concat "./" (oref config :run-command)))

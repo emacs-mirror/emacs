@@ -1,3 +1,18 @@
+2013-12-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Specify .texi encoding (Bug#16292).
+	* emacs-lisp-intro.texi: Add @documentencoding.
+
+2013-12-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Use @quotation for license notice.
+
+2013-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Tweak dircategory.
+
+	* emacs-lisp-intro.texi: Sync direntry with info/dir version.
+
 2013-12-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs-lisp-intro.texi (Counting Words): Don't use ':' in xref
@@ -689,7 +704,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

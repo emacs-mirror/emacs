@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2013 Free Software Foundation, Inc.
+# Copyright 2012-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -37,7 +37,8 @@ GNULIB_MODULES='
   pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat
   sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
-  sys_time time timer-time timespec-add timespec-sub unsetenv utimens
+  sys_time time timer-time timespec-add timespec-sub
+  unsetenv update-copyright utimens
   warnings
 '
 
@@ -91,7 +92,8 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 }
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
-rm -- "$src"m4/fcntl-o.m4 "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
+rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 "$src"m4/gl-openssl.m4 \
+      "$src"m4/gnulib-cache.m4"$src" m4/warn-on-use.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
 autoreconf -i -I m4 -- ${src:+"$src"}

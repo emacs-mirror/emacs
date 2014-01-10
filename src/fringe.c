@@ -1,5 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1997-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -83,7 +83,7 @@ struct fringe_bitmap
   unsigned width : 8;
   unsigned period : 8;
   unsigned align : 2;
-  unsigned dynamic : 1;
+  bool_bf dynamic : 1;
 };
 
 
@@ -1664,7 +1664,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
       Fput (bitmap, Qfringe, make_number (n));
     }
 
-  fb.dynamic = 1;
+  fb.dynamic = true;
 
   xfb = xmalloc (sizeof fb + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);

@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: FSF
@@ -227,13 +227,13 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Emacs W3" :value  browse-url-w3)
 	  (function-item :tag "W3 in another Emacs via `gnudoit'"
 			 :value  browse-url-w3-gnudoit)
+	  (function-item :tag "eww" :value  eww-browse-url)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
 	  (function-item :tag "Firefox" :value browse-url-firefox)
 	  (function-item :tag "Chromium" :value browse-url-chromium)
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
 	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
-	  (function-item :tag "eww" :value  eww-browse-url)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
 	  (function-item :tag "Text browser in an xterm window"
@@ -723,9 +723,12 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
-  (let ((coding (and (default-value 'enable-multibyte-characters)
-		     (or file-name-coding-system
-			 default-file-name-coding-system))))
+  (let ((coding (if (equal system-type 'windows-nt)
+		    ;; W32 pretends that file names are UTF-8 encoded.
+		    'utf-8
+		  (and (default-value 'enable-multibyte-characters)
+		       (or file-name-coding-system
+			   default-file-name-coding-system)))))
     (if coding (setq file (encode-coding-string file coding))))
   (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
   (dolist (map browse-url-filename-alist)

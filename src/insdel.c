@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2013 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2014 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1878,6 +1878,10 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 void
 invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 {
+  /* Indirect buffers usually have their caches set to NULL, but we
+     need to consider the caches of their base buffer.  */
+  if (buf->base_buffer)
+    buf = buf->base_buffer;
   if (buf->newline_cache)
     invalidate_region_cache (buf,
                              buf->newline_cache,

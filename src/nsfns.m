@@ -1,6 +1,6 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2013 Free Software
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2014 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2289,7 +2289,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   if (ns_lisp_to_color (color, &col))
     return Qnil;
 
-  [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
+  [[col colorUsingDefaultColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
   return list3i (lrint (red * 65280), lrint (green * 65280),
 		 lrint (blue * 65280));

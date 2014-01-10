@@ -1,6 +1,6 @@
-# serial 20
+# serial 21
 
-# Copyright (C) 2001-2003, 2005, 2007, 2009-2013 Free Software Foundation, Inc.
+# Copyright (C) 2001-2003, 2005, 2007, 2009-2014 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -127,10 +127,8 @@ AC_DEFUN([gl_FUNC_GETTIMEOFDAY_CLOBBER],
 ])
 
 AC_DEFUN([gl_GETTIMEOFDAY_REPLACE_LOCALTIME], [
-  AC_DEFINE([gmtime], [rpl_gmtime],
-    [Define to rpl_gmtime if the replacement function should be used.])
-  AC_DEFINE([localtime], [rpl_localtime],
-    [Define to rpl_localtime if the replacement function should be used.])
+  REPLACE_GMTIME=1
+  REPLACE_LOCALTIME=1
 ])
 
 # Prerequisites of lib/gettimeofday.c.

@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -120,21 +120,26 @@ If SETUP is 'force, this variable has no effect."
   :type 'boolean)
 
 (defcustom log-edit-setup-add-author nil
-  "Non-nil means `log-edit' should add the `Author:' header when
-its SETUP argument is non-nil."
+  "Non-nil means `log-edit' may add the `Author:' header.
+This applies when its SETUP argument is non-nil."
+  :version "24.4"
   :group 'log-edit
   :type 'boolean
   :safe 'booleanp)
 
-(defcustom log-edit-hook '(log-edit-insert-cvs-template
-                           log-edit-show-files
-			   log-edit-insert-changelog)
+(defcustom log-edit-hook '(log-edit-insert-message-template
+			   log-edit-insert-cvs-template
+			   log-edit-insert-changelog
+			   log-edit-show-files)
   "Hook run at the end of `log-edit'."
   :group 'log-edit
-  :type '(hook :options (log-edit-insert-changelog
-                         log-edit-insert-cvs-rcstemplate
-                         log-edit-insert-cvs-template
-			 log-edit-insert-filenames)))
+  :type '(hook :options (log-edit-insert-message-template
+			 log-edit-insert-cvs-rcstemplate
+			 log-edit-insert-cvs-template
+			 log-edit-insert-changelog
+			 log-edit-insert-filenames
+			 log-edit-insert-filenames-without-changelog
+			 log-edit-show-files)))
 
 (defcustom log-edit-mode-hook (if (boundp 'vc-log-mode-hook) vc-log-mode-hook)
   "Hook run when entering `log-edit-mode'."
@@ -440,12 +445,6 @@ done.  Otherwise, it uses the current buffer."
     (if mode
 	(funcall mode)
       (log-edit-mode))
-    (when setup
-      (erase-buffer)
-      (insert "Summary: ")
-      (when log-edit-setup-add-author
-        (insert "\nAuthor: "))
-      (insert "\n\n"))
     (set (make-local-variable 'log-edit-callback) callback)
     (if (listp params)
 	(dolist (crt params)
@@ -456,10 +455,9 @@ done.  Otherwise, it uses the current buffer."
 
     (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
     (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
-    (when setup (run-hooks 'log-edit-hook))
-    (if setup
-        (message-position-point)
-      (goto-char (point-min)))
+    (when setup
+      (erase-buffer)
+      (run-hooks 'log-edit-hook))
     (push-mark (point-max))
     (message "%s" (substitute-command-keys
 	      "Press \\[log-edit-done] when you are done editing."))))
@@ -626,6 +624,17 @@ different header separator appropriate for `log-edit-mode'."
                     (zerop (forward-line 1))))
         (eobp))))
 
+(defun log-edit-insert-message-template ()
+  "Insert the default template with Summary and Author."
+  (interactive)
+  (when (or (called-interactively-p 'interactive)
+            (log-edit-empty-buffer-p))
+    (insert "Summary: ")
+    (when log-edit-setup-add-author
+      (insert "\nAuthor: "))
+    (insert "\n\n")
+    (message-position-point)))
+
 (defun log-edit-insert-cvs-template ()
   "Insert the template specified by the CVS administrator, if any.
 This simply uses the local CVS/Template file."
@@ -656,6 +665,21 @@ can thus take some time."
   (interactive)
   (insert "Affected files:  \n"
           (mapconcat 'identity (log-edit-files) "  \n")))
+
+(defun log-edit-insert-filenames-without-changelog ()
+  "Insert the list of files that have no ChangeLog message."
+  (interactive)
+  (let ((files
+	 (delq nil
+	       (mapcar
+		(lambda (file)
+		  (unless (or (cdr-safe (log-edit-changelog-entries file))
+			      (equal (file-name-nondirectory file) "ChangeLog"))
+		    file))
+		(log-edit-files)))))
+    (when files
+      (goto-char (point-max))
+      (insert (mapconcat 'identity files ", ") ": "))))
 
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
@@ -701,39 +725,39 @@ If the optional prefix arg USE-FIRST is given (via \\[universal-argument]),
 or if the command is repeated a second time in a row, use the first log entry
 regardless of user name or time."
   (interactive "P")
-  (let ((eoh (save-excursion (rfc822-goto-eoh) (point))))
-    (when (<= (point) eoh)
-      (goto-char eoh)
-      (if (looking-at "\n") (forward-char 1))))
-  (let ((author
-         (let ((log-edit-changelog-use-first
-                (or use-first (eq last-command 'log-edit-insert-changelog))))
-           (log-edit-insert-changelog-entries (log-edit-files)))))
-    (log-edit-set-common-indentation)
-    ;; Add an Author: field if appropriate.
-    (when author (log-edit-add-field "Author" author))
-    ;; Add a Fixes: field if applicable.
-    (when (consp log-edit-rewrite-fixes)
-      (rfc822-goto-eoh)
-      (when (re-search-forward (car log-edit-rewrite-fixes) nil t)
-        (let ((start (match-beginning 0))
-              (end (match-end 0))
-              (fixes (match-substitute-replacement
-                      (cdr log-edit-rewrite-fixes))))
-          (delete-region start end)
-          (log-edit-add-field "Fixes" fixes))))
-    (and log-edit-strip-single-file-name
-         (progn (rfc822-goto-eoh)
-                (if (looking-at "\n") (forward-char 1))
-                (looking-at "\\*\\s-+"))
-         (let ((start (point)))
-           (forward-line 1)
-           (when (not (re-search-forward "^\\*\\s-+" nil t))
-             (goto-char start)
-             (skip-chars-forward "^():")
-             (skip-chars-forward ": ")
-             (delete-region start (point)))))
-    (goto-char (point-min))))
+  (save-excursion
+    (let ((eoh (save-excursion (rfc822-goto-eoh) (point))))
+      (when (<= (point) eoh)
+	(goto-char eoh)
+	(if (looking-at "\n") (forward-char 1))))
+    (let ((author
+	   (let ((log-edit-changelog-use-first
+		  (or use-first (eq last-command 'log-edit-insert-changelog))))
+	     (log-edit-insert-changelog-entries (log-edit-files)))))
+      (log-edit-set-common-indentation)
+      ;; Add an Author: field if appropriate.
+      (when author (log-edit-add-field "Author" author))
+      ;; Add a Fixes: field if applicable.
+      (when (consp log-edit-rewrite-fixes)
+	(rfc822-goto-eoh)
+	(when (re-search-forward (car log-edit-rewrite-fixes) nil t)
+	  (let ((start (match-beginning 0))
+		(end (match-end 0))
+		(fixes (match-substitute-replacement
+			(cdr log-edit-rewrite-fixes))))
+	    (delete-region start end)
+	    (log-edit-add-field "Fixes" fixes))))
+      (and log-edit-strip-single-file-name
+	   (progn (rfc822-goto-eoh)
+		  (if (looking-at "\n") (forward-char 1))
+		  (looking-at "\\*\\s-+"))
+	   (let ((start (point)))
+	     (forward-line 1)
+	     (when (not (re-search-forward "^\\*\\s-+" nil t))
+	       (goto-char start)
+	       (skip-chars-forward "^():")
+	       (skip-chars-forward ": ")
+	       (delete-region start (point))))))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...

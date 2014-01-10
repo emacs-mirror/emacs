@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2013 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2014 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: FSF
@@ -642,7 +642,7 @@ The environment used is the one when entering the activation frame at point."
     (define-key map "h" 'describe-mode)
     (define-key map "q" 'top-level)
     (define-key map "e" 'debugger-eval-expression)
-    (define-key map "v" 'debugger-toggle-locals) ;"v" is for "v"ariables.
+    (define-key map "v" 'debugger-toggle-locals) ; "v" is for "variables".
     (define-key map " " 'next-line)
     (define-key map "R" 'debugger-record-expression)
     (define-key map "\C-m" 'debug-help-follow)
@@ -798,7 +798,8 @@ Redefining FUNCTION also cancels it."
 			 (not (special-form-p symbol))))
 		t nil nil (symbol-name fn)))
      (list (if (equal val "") fn (intern val)))))
-  (advice-add function :before #'debug--implement-debug-on-entry)
+  (advice-add function :before #'debug--implement-debug-on-entry
+              '((depth . -100)))
   function)
 
 (defun debug--function-list ()
@@ -828,7 +829,7 @@ To specify a nil argument interactively, exit with an empty minibuffer."
       (progn
         (advice-remove function #'debug--implement-debug-on-entry)
 	function)
-    (message "Cancelling debug-on-entry for all functions")
+    (message "Canceling debug-on-entry for all functions")
     (mapcar #'cancel-debug-on-entry (debug--function-list))))
 
 (defun debugger-list-functions ()

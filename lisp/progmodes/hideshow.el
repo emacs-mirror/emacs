@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks -*- coding: utf-8 -*-
 
-;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2014 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>

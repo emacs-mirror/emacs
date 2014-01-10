@@ -1,6 +1,6 @@
 ;;; eieio-base.el --- Base classes for EIEIO.
 
-;;; Copyright (C) 2000-2002, 2004-2005, 2007-2013 Free Software
+;;; Copyright (C) 2000-2002, 2004-2005, 2007-2014 Free Software
 ;;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>

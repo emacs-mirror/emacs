@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -439,7 +439,7 @@ that it prints a message in the echo area unconditionally.
 
 The first two arguments have the same meaning as for
 @code{progress-reporter-update}.  Optional @var{new-message} allows
-you to change the message of the @var{reporter}.  Since this functions
+you to change the message of the @var{reporter}.  Since this function
 always updates the echo area, such a change will be immediately
 presented to the user.
 @end defun
@@ -478,7 +478,17 @@ this macro this way:
   Almost all the messages displayed in the echo area are also recorded
 in the @file{*Messages*} buffer so that the user can refer back to
 them.  This includes all the messages that are output with
-@code{message}.
+@code{message}.  By default, this buffer is read-only and uses the major
+mode @code{messages-buffer-mode}.  Nothing prevents the user from
+killing the @file{*Messages*} buffer, but the next display of a message
+recreates it.  Any Lisp code that needs to access the
+@file{*Messages*} buffer directly and wants to ensure that it exists
+should use the function @code{messages-buffer}.
+
+@defun messages-buffer
+This function returns the @file{*Messages*} buffer.  If it does not
+exist, it creates it, and switches it to @code{messages-buffer-mode}.
+@end defun
 
 @defopt message-log-max
 This variable specifies how many lines to keep in the @file{*Messages*}
@@ -608,8 +618,8 @@ program signals a Lisp error and then handles it with
 @code{condition-case}, the user won't see the error message; it could
 show the message to the user by reporting it as a warning.)
 
-@c FIXME: Why use ‘(bytecomp)’ instead of ‘'bytecomp’ or simply
-@c ‘bytecomp’ here?  The parens are part of ‘warning-type-format’ but
+@c FIXME: Why use "(bytecomp)" instead of "'bytecomp" or simply
+@c "bytecomp" here?  The parens are part of warning-type-format but
 @c not part of the warning type. --xfq
 @cindex warning type
   Each warning has a @dfn{warning type} to classify it.  The type is a
@@ -2037,7 +2047,7 @@ stipple patterns.
 Alternative foreground color, a string.  This is like @code{:foreground}
 but the color is only used as a foreground when the background color is
 near to the foreground that would have been used.  This is useful for
-example when marking text (i.e. the region face).  If the text has a foreground 
+example when marking text (i.e. the region face).  If the text has a foreground
 that is visible with the region face, that foreground is used.
 If the foreground is near the region face background,
 @code{:distant-foreground} is used instead so the text is readable.
@@ -2683,7 +2693,7 @@ and @code{face-remap-reset-base} functions; it is intended for major
 modes to remap faces in the buffers they control.
 
 @defun face-remap-add-relative face &rest specs
-This functions adds the face spec in @var{specs} as relative
+This function adds the face spec in @var{specs} as relative
 remappings for face @var{face} in the current buffer.  The remaining
 arguments, @var{specs}, should form either a list of face names, or a
 property list of attribute/value pairs.
@@ -2955,11 +2965,11 @@ scalable font is enabled for use if its name matches any regular
 expression in the list.  For example,
 
 @example
-(setq scalable-fonts-allowed '("muleindian-2$"))
+(setq scalable-fonts-allowed '("iso10646-1$"))
 @end example
 
 @noindent
-allows the use of scalable fonts with registry @code{muleindian-2}.
+allows the use of scalable fonts with registry @code{iso10646-1}.
 @end defopt
 
 @defvar face-font-rescale-alist
@@ -3582,8 +3592,8 @@ See the next subsection for details.
 @xref{Fringe Bitmaps}.
 @end ifnottex
 
-@c FIXME: I can't find the ‘fringes-indicator-alist’ variable.  Maybe
-@c it should be ‘fringe-indicator-alist’ or ‘fringe-cursor-alist’?  --xfq
+@c FIXME: I can't find the fringes-indicator-alist variable.  Maybe
+@c it should be fringe-indicator-alist or fringe-cursor-alist?  --xfq
 When @code{fringe-cursor-alist} has a buffer-local value, and there is
 no bitmap defined for a cursor type, the corresponding value from the
 default value of @code{fringes-indicator-alist} is used.
@@ -4705,7 +4715,7 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
-@c FIXME: ‘:format-type’ or ‘:format’?  --xfq
+@c FIXME: ':format-type' or ':format'?  --xfq
 @item :format
 ImageMagick tries to auto-detect the image type, but it isn't always
 able to.  By using @code{:format-type}, we can give ImageMagick a hint
@@ -4786,7 +4796,7 @@ from the file's name.
 The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
-@c ‘:heuristic-mask’ is not documented?
+@c ':heuristic-mask' is not documented?
 @example
 (create-image "foo.xpm" 'xpm nil :heuristic-mask t)
 @end example

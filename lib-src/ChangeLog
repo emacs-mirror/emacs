@@ -1,3 +1,28 @@
+2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* Makefile.in (regex.o): Remove reference to no-longer-used macros
+	CONFIG_BROKETS and INHIBIT_STRING_HEADER.  "BROKETS" was a
+	misspelling anyway....
+
+2013-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool for boolean, focusing on headers.
+	* emacsclient.c, etags.c, hexl.c (FALSE, TRUE):
+	Remove.  All uses replaced with uncapitalized version.
+	* emacsclient.c (message):
+	* etags.c (make_tag, pfnote, consider_token, make_C_tag, lang_names):
+	* hexl.c (un_flag, iso_flag, endian):
+	* pop.c (pop_debug, pop_open, pop_multi_first, pop_multi_next)
+	(pop_trash):
+	Use bool for boolean.
+	* etags.c (bool): Remove.
+	* etags.c (globals, members, declarations, no_line_directive)
+	(no_duplicates): Use 'int' for boolean values that getopt requires
+	to be 'int'.  Formerly, these were 'bool' and 'bool' was 'int',
+	but we can no longer rely on this implementation.
+	* pop.h (struct _popserver): Use bool_bf for boolean bit-fields.
+
 2013-11-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* ebrowse.c (xstrdup):
@@ -8682,7 +8707,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1988-1999, 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 1988-1999, 2001-2014 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

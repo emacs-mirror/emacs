@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs
 
-;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2013 Free Software
+;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1977,7 +1977,7 @@ you can move to one of them and type C-c C-c to recover that one."
 	     (if (not (yes-or-no-p
 		       (format "Recover mail draft from auto save file %s? "
 			       file-name)))
-		 (error "mail-recover cancelled")
+		 (error "mail-recover canceled")
 	       (let ((buffer-read-only nil)
 		     (buffer-coding buffer-file-coding-system)
 		     ;; Auto-save files are written in internal

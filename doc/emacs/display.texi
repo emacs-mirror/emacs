@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2014 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -428,8 +428,8 @@ it.  @xref{Disabling}.
 screenfuls.  It provides commands for scrolling through the buffer
 conveniently but not for changing it.  Apart from the usual Emacs
 cursor motion commands, you can type @key{SPC} to scroll forward one
-windowful, @key{DEL} to scroll backward, and @kbd{s} to start an
-incremental search.
+windowful, @key{S-SPC} or @key{DEL} to scroll backward, and @kbd{s} to
+start an incremental search.
 
 @kindex q @r{(View mode)}
 @kindex e @r{(View mode)}
@@ -1325,7 +1325,7 @@ specify the mail file to check, or set
 for incoming mail (any nonempty regular file in the directory is
 considered as ``newly arrived mail'').
 
-@cindex mail (on mode line)
+@cindex battery status (on mode line)
 @findex display-battery-mode
 @vindex display-battery-mode
 @vindex battery-mode-line-format
@@ -1473,8 +1473,12 @@ pixels tall), or @code{nil} (no cursor at all).
 @findex blink-cursor-mode
 @cindex cursor, blinking
 @cindex blinking cursor
+@vindex blink-cursor-mode
+@vindex blink-cursor-blinks
 @vindex blink-cursor-alist
-  To disable cursor blinking, change the variable
+  By default, the cursor stops blinking after 10 blinks.  This can be
+changed by customizing the variable @code{blink-cursor-blinks}.  To
+disable cursor blinking altogether, change the variable
 @code{blink-cursor-mode} to @code{nil} (@pxref{Easy Customization}),
 or add the line @code{(blink-cursor-mode 0)} to your init file.
 Alternatively, you can change how the cursor looks when it ``blinks

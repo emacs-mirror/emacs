@@ -1,6 +1,6 @@
 ;;; bubbles.el --- Puzzle game for Emacs -*- coding: utf-8 -*-
 
-;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2014 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -211,7 +211,7 @@ the number of colors, see `bubbles-colors'."
 Available modes are `shift-default' and `shift-always'."
   :type '(radio (const :tag "Default" default)
                 (const :tag "Shifter" always)
-                ;;(const :tag "Mega Shifter" 'mega)
+                ;;(const :tag "Mega Shifter" mega)
                 )
   :group 'bubbles)
 

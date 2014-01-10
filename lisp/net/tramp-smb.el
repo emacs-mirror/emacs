@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes

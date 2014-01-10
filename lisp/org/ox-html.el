@@ -1,6 +1,6 @@
 ;;; ox-html.el --- HTML Back-End for Org Export Engine
 
-;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;      Jambunathan K <kjambunathan at gmail dot com>
@@ -188,7 +188,7 @@ the headline itself.")
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012-2013 Free Software Foundation, Inc.
+Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -279,6 +279,8 @@ for the JavaScript code in this tag.
   pre.src-sql:before   { content: 'SQL'; }
 
   table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
   td, th { vertical-align:top;  }
   th.right  { text-align: center;  }
   th.left   { text-align: center;   }
@@ -385,7 +387,7 @@ means to use the maximum value consistent with other options."
  * @licstart  The following is the entire license notice for the
  *  JavaScript code in %SCRIPT_PATH.
  *
- * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ * Copyright (C) 2012-2014 Free Software Foundation, Inc.
  *
  *
  * The JavaScript code in this tag is free software: you can
@@ -414,7 +416,7 @@ means to use the maximum value consistent with other options."
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012-2013 Free Software Foundation, Inc.
+Copyright (C) 2012-2014 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -3255,8 +3257,8 @@ contextual information."
 	       (if (equal attributes "") "" (concat " " attributes))
 	       (if (not caption) ""
 		 (format (if org-html-table-caption-above
-			     "<caption align=\"above\">%s</caption>"
-			   "<caption align=\"bottom\">%s</caption>")
+			     "<caption class=\"t-above\">%s</caption>"
+			   "<caption class=\"t-bottom\">%s</caption>")
 			 (concat
 			  "<span class=\"table-number\">"
                           (format (org-html--translate "Table %d:" info) number)
@@ -3438,21 +3440,6 @@ Return output file name."
 				      org-html-extension "html"))
 		      plist pub-dir))
 
-
-;;; FIXME
-
-;;;; org-format-table-html
-;;;; org-format-org-table-html
-;;;; org-format-table-table-html
-;;;; org-table-number-fraction
-;;;; org-table-number-regexp
-;;;; org-html-inline-image-extensions
-;;;; org-export-preferred-target-alist
-;;;; class for anchors
-;;;; org-export-mark-todo-in-toc
-;;;; org-html-format-org-link
-;;;; (caption (and caption (org-xml-encode-org-text caption)))
-;;;; alt = (file-name-nondirectory path)
 
 (provide 'ox-html)
 

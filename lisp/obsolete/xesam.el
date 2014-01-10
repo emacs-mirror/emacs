@@ -1,6 +1,6 @@
 ;;; xesam.el --- Xesam interface to search engines.
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: tools, hypermedia
@@ -198,7 +198,7 @@ be different at least in one face property not set in that face."
     "xesam:colorCount" "xesam:colorSpace" "xesam:columnCount" "xesam:comment"
     "xesam:commentCharacterCount" "xesam:conflicts" "xesam:contactMedium"
     "xesam:contactName" "xesam:contactNick" "xesam:contactPhoto"
-    "xesam:contactURL" "xesam:contains" "xesam:contenKeyword"
+    "xesam:contactURL" "xesam:contains" "xesam:contentKeyword"
     "xesam:contentComment" "xesam:contentCreated" "xesam:contentModified"
     "xesam:contentType" "xesam:contributor" "xesam:copyright" "xesam:creator"
     "xesam:definesClass" "xesam:definesFunction" "xesam:definesGlobalVariable"

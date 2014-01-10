@@ -1,6 +1,6 @@
 ;;; ox-icalendar.el --- iCalendar Back-End for Org Export Engine
 
-;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;      Nicolas Goaziou <n dot goaziou at gmail dot com>
@@ -964,9 +964,7 @@ files to build the calendar from."
 	     ;; BBDB anniversaries.
 	     (when (and org-icalendar-include-bbdb-anniversaries
 			(require 'org-bbdb nil t))
-	       (with-temp-buffer
-		 (org-bbdb-anniv-export-ical)
-		 (buffer-string)))))))
+	       (with-output-to-string (org-bbdb-anniv-export-ical)))))))
 	(run-hook-with-args 'org-icalendar-after-save-hook
 			    org-icalendar-combined-agenda-file))
     (org-release-buffers org-agenda-new-buffers)))

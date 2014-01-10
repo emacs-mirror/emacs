@@ -1,6 +1,6 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;; Copyright (C) 2000-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -295,18 +295,10 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	      ;; In some cases the found TMP is a type,
 	      ;; and we can use it directly.
 	      (cond ((semantic-tag-of-class-p tmp 'type)
-		     ;; update the miniscope when we need to analyze types directly.
-		     (when miniscope
-		       (let ((rawscope
-			      (apply 'append
-				     (mapcar 'semantic-tag-type-members
-					     tagtype))))
-			 (oset miniscope fullscope rawscope)))
-		     ;; Now analyze the type to remove metatypes.
 		     (or (semantic-analyze-type tmp miniscope)
 			 tmp))
 		    (t
-		     (semantic-analyze-tag-type tmp scope))))
+		     (semantic-analyze-tag-type tmp miniscope))))
 	     (typefile
 	      (when tmptype
 		(semantic-tag-file-name tmptype)))
@@ -336,6 +328,11 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	  (semantic--tag-put-property tmp :filename fname))
 	(setq tag (cons tmp tag))
 	(setq tagtype (cons tmptype tagtype))
+	(when miniscope
+	  (let ((rawscope
+		 (apply 'append
+			(mapcar 'semantic-tag-type-members tagtype))))
+	    (oset miniscope fullscope rawscope)))
 	)
       (setq s (cdr s)))
 

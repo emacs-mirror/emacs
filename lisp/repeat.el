@@ -1,6 +1,6 @@
 ;;; repeat.el --- convenient way to repeat the previous command  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
@@ -278,7 +278,7 @@ recently executed command not bound to an input event\"."
               (execute-kbd-macro last-repeatable-command))
           (call-interactively last-repeatable-command))))
     (when repeat-repeat-char
-      (set-temporary-overlay-map
+      (set-transient-map
        (let ((map (make-sparse-keymap)))
          (define-key map (vector repeat-repeat-char)
            (if (null repeat-message-function) 'repeat

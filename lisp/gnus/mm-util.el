@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -1378,17 +1378,18 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
     (write-region start end filename append visit lockname)))
 
 (autoload 'gmm-write-region "gmm-utils")
+(declare-function help-function-arglist "help-fns"
+		  (def &optional preserve-names))
 
 ;; It is not a MIME function, but some MIME functions use it.
 (if (and (fboundp 'make-temp-file)
 	 (ignore-errors
-	   (let ((def (symbol-function 'make-temp-file)))
-	     (and (byte-code-function-p def)
-		  (setq def (if (fboundp 'compiled-function-arglist)
-				;; XEmacs
-				(eval (list 'compiled-function-arglist def))
-			      (aref def 0)))
-		  (>= (length def) 4)
+	   (let ((def (if (fboundp 'compiled-function-arglist) ;; XEmacs
+			  (eval (list 'compiled-function-arglist
+				      (symbol-function 'make-temp-file)))
+			(require 'help-fns)
+			(help-function-arglist 'make-temp-file t))))
+	     (and (>= (length def) 4)
 		  (eq (nth 3 def) 'suffix)))))
     (defalias 'mm-make-temp-file 'make-temp-file)
   ;; Stolen (and modified for XEmacs) from Emacs 22.

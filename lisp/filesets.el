@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: FSF
@@ -1767,7 +1767,7 @@ Use LOOKUP-NAME for searching additional data if provided."
 				    n name)))
 	      (dolist (this files nil)
 		(filesets-file-open open-function this))
-	    (message "Filesets: cancelled")))
+	    (message "Filesets: canceled")))
       (filesets-error 'error "Filesets: Unknown fileset: " name))))
 
 (defun filesets-close (&optional mode name lookup-name)

@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2013 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2014 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1954,7 +1954,6 @@ int poll_suppress_count;
 
 static struct atimer *poll_timer;
 
-#ifdef HAVE_NTGUI
 /* Poll for input, so that we catch a C-g if it comes in.  */
 void
 poll_for_input_1 (void)
@@ -1963,7 +1962,6 @@ poll_for_input_1 (void)
       && !waiting_for_input)
     gobble_input ();
 }
-#endif
 
 /* Timer callback function for poll_timer.  TIMER is equal to
    poll_timer.  */
@@ -2015,8 +2013,6 @@ start_polling (void)
 #endif
 }
 
-#ifdef HAVE_NTGUI
-
 /* True if we are using polling to handle input asynchronously.  */
 
 bool
@@ -2031,7 +2027,6 @@ input_polling_used (void)
   return 0;
 #endif
 }
-#endif
 
 /* Turn off polling.  */
 
@@ -11420,18 +11415,19 @@ tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
 		 doc: /* Per-terminal keymap that takes precedence over all other keymaps.
-
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.
 
 `overriding-terminal-local-map' has a separate binding for each
-terminal device.
-See Info node `(elisp)Multiple Terminals'.  */);
+terminal device.  See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_LISP ("overriding-local-map", Voverriding_local_map,
-	       doc: /* Keymap that overrides almost all other local keymaps.
-If this variable is non-nil, it is used as a keymap--replacing the
-buffer's local map, the minor mode keymaps, and char property keymaps.  */);
+	       doc: /* Keymap that replaces (overrides) local keymaps.
+If this variable is non-nil, Emacs looks up key bindings in this
+keymap INSTEAD OF the keymap char property, minor mode maps, and the
+buffer's local map.  Hence, the only active keymaps would be
+`overriding-terminal-local-map', this keymap, and `global-keymap', in
+order of precedence.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", Voverriding_local_map_menu_flag,

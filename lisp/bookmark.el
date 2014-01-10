@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -130,8 +130,9 @@ recently set ones come first, oldest ones come last)."
   :group 'bookmark)
 
 (defcustom bookmark-bmenu-use-header-line t
-  "Non-nil means to use an immovable header line, as opposed to inline
-text at the top of the buffer."
+  "Non-nil means to use an immovable header line.
+This is as opposed to inline text at the top of the buffer."
+  :version "24.4"
   :type 'boolean
   :group 'bookmark)
 

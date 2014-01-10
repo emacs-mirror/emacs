@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -897,6 +897,7 @@ subthreads, customize `gnus-subthread-sort-functions'."
   "*List of functions used for sorting subthreads in the summary buffer.
 By default, subthreads are sorted the same as threads, i.e.,
 according to the value of `gnus-thread-sort-functions'."
+  :version "24.4"
   :group 'gnus-summary-sort
   :type '(choice
 	  (const :tag "Sort subthreads like threads" gnus-thread-sort-functions)
@@ -1850,7 +1851,6 @@ increase the score of each group you read."
   [?\S-\ ] gnus-summary-prev-page
   "\177" gnus-summary-prev-page
   [delete] gnus-summary-prev-page
-  [backspace] gnus-summary-prev-page
   "\r" gnus-summary-scroll-up
   "\M-\r" gnus-summary-scroll-down
   "n" gnus-summary-next-unread-article
@@ -2222,7 +2222,6 @@ increase the score of each group you read."
   "\M-\C-e" gnus-summary-expire-articles-now
   "\177" gnus-summary-delete-article
   [delete] gnus-summary-delete-article
-  [backspace] gnus-summary-delete-article
   "m" gnus-summary-move-article
   "r" gnus-summary-respool-article
   "w" gnus-summary-edit-article
@@ -7217,6 +7216,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
     (gnus-dribble-save)))
 
 (declare-function gnus-cache-write-active "gnus-cache" (&optional force))
+(declare-function gnus-article-stop-animations "gnus-art" ())
 
 (defun gnus-summary-exit (&optional temporary leave-hidden)
   "Exit reading current newsgroup, and then return to group selection mode.
@@ -7280,6 +7280,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 		(not (string= group (gnus-group-group-name))))
       (gnus-group-next-unread-group 1))
     (setq group-point (point))
+    (gnus-article-stop-animations)
     (if temporary
 	nil				;Nothing to do.
       (set-buffer buf)
@@ -7320,7 +7321,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
 
-(declare-function gnus-article-stop-animations "gnus-art" ())
 (declare-function gnus-stop-downloads "gnus-art" ())
 
 (defalias 'gnus-summary-quit 'gnus-summary-exit-no-update)
@@ -7370,6 +7370,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-group-update-group group nil t))
       (when (equal (gnus-group-group-name) group)
 	(gnus-group-next-unread-group 1))
+      (gnus-article-stop-animations)
       (when quit-config
 	(gnus-handle-ephemeral-exit quit-config)))))
 
@@ -9202,6 +9203,7 @@ To control what happens when you exit the group, see the
 				   (gnus-fetch-field "from")))
 	  (setq params
 		(append
+		 params
 		 (list (cons 'to-address
 			     (funcall gnus-decode-encoded-address-function
 				      to-address))))))
@@ -10657,13 +10659,31 @@ groups."
 
 ;;; Respooling
 
+(defvar nnimap-split-fancy)
+(defvar nnimap-split-methods)
+
 (defun gnus-summary-respool-query (&optional silent trace)
   "Query where the respool algorithm would put this article."
   (interactive)
   (let (gnus-mark-article-hook)
     (gnus-summary-select-article)
     (with-current-buffer gnus-original-article-buffer
-      (let ((groups (nnmail-article-group 'identity trace)))
+      (let ((groups
+	     (if (eq (car (gnus-find-method-for-group gnus-newsgroup-name))
+		     'nnimap)
+		 ;; nnimap has its own splitting variables.
+		 (let ((nnmail-split-methods
+			(cond
+			 ((eq nnimap-split-methods 'default)
+			  nnmail-split-methods)
+			 (nnimap-split-methods
+			  nnimap-split-methods)
+			 (nnimap-split-fancy
+			  'nnmail-split-fancy)))
+		       (nnmail-split-fancy (or nnimap-split-fancy
+					       nnmail-split-fancy)))
+		   (nnmail-article-group 'identity trace))
+	       (nnmail-article-group 'identity trace))))
 	(unless silent
 	  (if groups
 	      (message "This message would go to %s"

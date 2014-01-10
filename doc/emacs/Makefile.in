@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2013 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2014 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -143,8 +143,7 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
-## This seems pointless.  The info/ directory exists in both the
-## repository and the release tarfiles.
+## The info/ directory exists in release tarfiles but not the repository.
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
 .PHONY: info dvi html pdf ps

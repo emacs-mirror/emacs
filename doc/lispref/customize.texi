@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2013 Free Software Foundation, Inc.
+@c Copyright (C) 1997-2014 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
@@ -287,13 +287,17 @@ customizable variable).  You should not quote @var{option}.
 
 The argument @var{standard} is an expression that specifies the
 standard value for @var{option}.  Evaluating the @code{defcustom} form
-evaluates @var{standard}, but does not necessarily install the
-standard value.  If @var{option} already has a default value,
-@code{defcustom} does not change it.  If the user has saved a
-customization for @var{option}, @code{defcustom} installs the user's
-customized value as @var{option}'s default value.  If neither of those
-cases applies, @code{defcustom} installs the result of evaluating
-@var{standard} as the default value.
+evaluates @var{standard}, but does not necessarily bind the option to
+that value.  If @var{option} already has a default value, it is left
+unchanged.  If the user has already saved a customization for
+@var{option}, the user's customized value is installed as the default
+value.  Otherwise, the result of evaluating @var{standard} is
+installed as the default value.
+
+Like @code{defvar}, this macro marks @code{option} as a special
+variable, meaning that it should always be dynamically bound.  If
+@var{option} is already lexically bound, that lexical binding remains
+in effect until the binding construct exits.  @xref{Variable Scoping}.
 
 The expression @var{standard} can be evaluated at various other times,
 too---whenever the customization facility needs to know @var{option}'s
@@ -1427,6 +1431,17 @@ is the name of a Custom theme (i.e., a Custom theme which has been
 loaded into Emacs, whether or not the theme is enabled).  Otherwise,
 it returns @code{nil}.
 @end defun
+
+@defvar custom-known-themes
+The value of this variable is a list of themes loaded into Emacs.
+Each theme is represented by a Lisp symbol (the theme name).  The
+default value of this variable is a list containing two ``dummy''
+themes: @code{(user changed)}.  The @code{changed} theme stores
+settings made before any Custom themes are applied (e.g., variables
+set outside of Customize).  The @code{user} theme stores settings the
+user has customized and saved.  Any additional themes declared with
+the @code{deftheme} macro are added to the front of this list.
+@end defvar
 
 @deffn Command load-theme theme &optional no-confirm no-enable
 This function loads the Custom theme named @var{theme} from its source

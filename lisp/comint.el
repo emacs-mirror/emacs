@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2014 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -460,10 +460,10 @@ executed once when the buffer is created."
     (define-key map "\e\C-l" 	  'comint-show-output)
     (define-key map "\C-m" 	  'comint-send-input)
     (define-key map "\C-d" 	  'comint-delchar-or-maybe-eof)
-    ;; The following two are standardly aliased to C-d,
+    ;; The following two are standardly bound to delete-forward-char,
     ;; but they should never do EOF, just delete.
-    (define-key map [delete] 	  'delete-char)
-    (define-key map [kp-delete]	  'delete-char)
+    (define-key map [delete] 	  'delete-forward-char)
+    (define-key map [kp-delete]	  'delete-forward-char)
     (define-key map "\C-c " 	  'comint-accumulate)
     (define-key map "\C-c\C-x" 	  'comint-get-next-from-history)
     (define-key map "\C-c\C-a" 	  'comint-bol-or-process-mark)
@@ -1210,8 +1210,9 @@ If N is negative, find the previous or Nth previous match."
 With prefix argument N, search for Nth previous match.
 If N is negative, search forwards for the -Nth following match."
   (interactive "p")
-  (if (not (memq last-command '(comint-previous-matching-input-from-input
-				comint-next-matching-input-from-input)))
+  (let ((opoint (point)))
+    (unless (memq last-command '(comint-previous-matching-input-from-input
+				 comint-next-matching-input-from-input))
       ;; Starting a new search
       (setq comint-matching-input-from-input-string
 	    (buffer-substring
@@ -1219,9 +1220,10 @@ If N is negative, search forwards for the -Nth following match."
 		 (process-mark (get-buffer-process (current-buffer))))
 	     (point))
 	    comint-input-ring-index nil))
-  (comint-previous-matching-input
-   (concat "^" (regexp-quote comint-matching-input-from-input-string))
-   n))
+    (comint-previous-matching-input
+     (concat "^" (regexp-quote comint-matching-input-from-input-string))
+     n)
+    (goto-char opoint)))
 
 (defun comint-next-matching-input-from-input (n)
   "Search forwards through input history for match for current input.
@@ -1407,13 +1409,13 @@ If nil, Isearch operates on the whole comint buffer."
   "Search for a string backward in input history using Isearch."
   (interactive)
   (let ((comint-history-isearch t))
-    (isearch-backward)))
+    (isearch-backward nil t)))
 
 (defun comint-history-isearch-backward-regexp ()
   "Search for a regular expression backward in input history using Isearch."
   (interactive)
   (let ((comint-history-isearch t))
-    (isearch-backward-regexp)))
+    (isearch-backward-regexp nil t)))
 
 (defvar-local comint-history-isearch-message-overlay nil)
 
@@ -2060,23 +2062,22 @@ Make backspaces delete the previous character."
 	    (let ((prompt-start (save-excursion (forward-line 0) (point)))
 		  (inhibit-read-only t))
 	      (when comint-prompt-read-only
-                (with-silent-modifications
-                  (or (= (point-min) prompt-start)
-                      (get-text-property (1- prompt-start) 'read-only)
-                      (put-text-property
-                       (1- prompt-start) prompt-start 'read-only 'fence))
-                  (add-text-properties
-                   prompt-start (point)
-                   '(read-only t rear-nonsticky t front-sticky (read-only)))))
+		(with-silent-modifications
+		  (or (= (point-min) prompt-start)
+		      (get-text-property (1- prompt-start) 'read-only)
+		      (put-text-property (1- prompt-start)
+					 prompt-start 'read-only 'fence))
+		  (add-text-properties prompt-start (point)
+				       '(read-only t front-sticky (read-only)))))
 	      (when comint-last-prompt
 		(remove-text-properties (car comint-last-prompt)
 					(cdr comint-last-prompt)
 					'(font-lock-face)))
 	      (setq comint-last-prompt
 		    (cons (copy-marker prompt-start) (point-marker)))
-	      (add-text-properties (car comint-last-prompt)
-				   (cdr comint-last-prompt)
-				   '(font-lock-face comint-highlight-prompt)))
+	      (add-text-properties prompt-start (point)
+				   '(rear-nonsticky t
+				     font-lock-face comint-highlight-prompt)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()

@@ -98,7 +98,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -117,9 +117,9 @@ developing GNU and promoting software freedom.''
 
 @documentencoding UTF-8
 
-@dircategory GNU Emacs Lisp
+@dircategory Emacs lisp
 @direntry
-* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+* Elisp: (elisp).               The Emacs Lisp Reference Manual.
 @end direntry
 
 @titlepage
@@ -951,7 +951,8 @@ Information about Files
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
 * Truenames::               Eliminating symbolic links from a file name.
-* File Attributes::         How large is it?  Any other names?  Etc.
+* File Attributes::         File sizes, modification times, etc.
+* Extended Attributes::     Extended file attributes for access control.
 * Locating Files::          How to find a file in standard places.
 
 File Names

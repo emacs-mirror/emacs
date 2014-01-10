@@ -1,6 +1,6 @@
 ;;; cus-test.el --- tests for custom types and load problems
 
-;; Copyright (C) 1998, 2000, 2002-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002-2014 Free Software Foundation, Inc.
 
 ;; Author: Markus Rost <markus.rost@mathematik.uni-regensburg.de>
 ;; Maintainer: Markus Rost <rost@math.ohio-state.edu>
@@ -187,6 +187,9 @@ The detected problematic options are stored in `cus-test-errors'."
      (message "Cus Test running...%s %s"
 	      (length cus-test-tested-variables) symbol)
      (condition-case alpha
+	 ;; FIXME This defaults to 'sexp if no type was specified.
+	 ;; Always report such instances as a type mismatch.
+	 ;; Currently abusing cusver-scan to do that.
 	 (let* ((type (custom-variable-type symbol))
 		(conv (widget-convert type))
 		(get (or (get symbol 'custom-get) 'default-value))

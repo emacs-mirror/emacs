@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2014 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -356,9 +356,7 @@ request.")
              ;; End request
              "\r\n"
              ;; Any data
-             url-http-data
-	     ;; If `url-http-data' is nil, avoid two CRLFs (Bug#8931).
-	     (if url-http-data "\r\n")))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))

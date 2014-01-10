@@ -1,6 +1,6 @@
 ;;; bytecomp-testsuite.el
 
-;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2014 Free Software Foundation, Inc.
 
 ;; Author:         Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Created:        November 2008

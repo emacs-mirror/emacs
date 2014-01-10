@@ -1,6 +1,6 @@
 ;;; ox-texinfo.el --- Texinfo Back-End for Org Export Engine
 
-;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2014 Free Software Foundation, Inc.
 ;; Author: Jonathan Leech-Pepin <jonathan.leechpepin at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 
@@ -288,7 +288,9 @@ When nil, no transformation is made."
 	  (const :tag "No formatting")))
 
 (defcustom org-texinfo-def-table-markup "@samp"
-  "Default setting for @table environments.")
+  "Default setting for @table environments."
+  :group 'org-export-texinfo
+  :type 'string)
 
 ;;; Text markup
 
@@ -348,7 +350,7 @@ The function must accept six parameters:
 The function should return the string to be exported.
 
 For example, the variable could be set to the following function
-in order to mimic default behaviour:
+in order to mimic default behavior:
 
 \(defun org-texinfo-format-inlinetask \(todo type priority name tags contents\)
 \"Format an inline task element for Texinfo export.\"

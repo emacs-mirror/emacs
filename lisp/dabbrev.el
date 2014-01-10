@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2013 Free
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2014 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -285,6 +285,7 @@ A mode setting this variable should make it buffer local."
 If this variable is non-nil, dabbrev will only look in these buffers.
 It will not even look in the current buffer if it is not a member of
 this list."
+  :type '(choice (const nil) (repeat :tag "List of buffers" string))
   :group 'dabbrev)
 
 ;;----------------------------------------------------------------

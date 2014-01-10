@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2013 Free Software Foundation, Inc.
+Copyright (C) 2003-2014 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -78,6 +78,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
+#ifdef HAVE_FREETYPE
 #if GTK_CHECK_VERSION (3, 2, 0)
 #define USE_NEW_GTK_FONT_CHOOSER 1
 #else
@@ -89,6 +90,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define  gtk_font_chooser_set_font(x, y) \
   gtk_font_selection_dialog_set_font_name (x, y)
 #endif
+#endif /* HAVE_FREETYPE */
 
 #ifndef HAVE_GTK3
 #ifdef USE_GTK_TOOLTIP
@@ -1352,8 +1354,8 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   hint_flags = f->output_data.x->hint_flags;
 
   hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
-  size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
-  size_hints.height_inc = FRAME_LINE_HEIGHT (f);
+  size_hints.width_inc = frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f);
+  size_hints.height_inc = frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f);
 
   hint_flags |= GDK_HINT_BASE_SIZE;
   /* Use one row/col here so base_height/width does not become zero.
@@ -1368,8 +1370,8 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   size_hints.base_width = base_width;
   size_hints.base_height = base_height;
-  size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
-  size_hints.min_height = base_height + min_rows * size_hints.height_inc;
+  size_hints.min_width  = base_width + min_cols * FRAME_COLUMN_WIDTH (f);;
+  size_hints.min_height = base_height + min_rows * FRAME_LINE_HEIGHT (f);
 
   /* These currently have a one to one mapping with the X values, but I
      don't think we should rely on that.  */

@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2013 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2014 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -24,7 +24,20 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
-test "x$MSYSTEM" = "xMINGW32" && . $srcdir/nt/mingw-cfg.site
+if test "x$MSYSTEM" = "xMINGW32"
+then
+  . $srcdir/nt/mingw-cfg.site
+
+  case $srcdir in
+    /* | ?:*)
+      # srcdir is an absolute path.  In this case, force the format
+      # "/c/foo/bar", to simplify later conversions to native Windows
+      # format ("c:/foo/bar")
+      srcdir=`cd "${srcdir}" && pwd -W`
+      srcdir="/${srcdir:0:1}${srcdir:2}"
+      ;;
+  esac
+fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
@@ -65,9 +78,25 @@ for opt in ${1+"$@"} CFLAGS CPPFLAGS LDFLAGS; do
   optsep=' '
 done
 
-AC_CONFIG_HEADER(src/config.h:src/config.in)
+AC_CONFIG_HEADERS(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
+
+xcsdkdir=
+AC_CHECK_PROGS(XCRUN, [xcrun])
+if test -n "$XCRUN"; then
+  if test -z "$MAKE"; then
+    dnl Call the variable MAKE_PROG, not MAKE, to avoid confusion with
+    dnl SET_MAKE and with the usual MAKE variable that 'make' itself uses.
+    AC_CHECK_PROG([MAKE_PROG], [make], [yes])
+    if test -z "$MAKE_PROG"; then
+      MAKE="$XCRUN MAKE"
+      export MAKE
+      xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
+    fi
+  fi
+fi
+
 dnl Fairly arbitrary, older versions might work too.
 AM_INIT_AUTOMAKE(1.11)
 
@@ -94,8 +123,7 @@ AC_ARG_WITH(all,
 [AS_HELP_STRING([--without-all],
 		[omit almost all features and build
 		small executable with minimal dependencies])],
-  [with_features=$withval
-   with_openssl_default=$withval],
+  [with_features=$withval],
   [with_features=yes])
 
 dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
@@ -594,6 +622,18 @@ case "${canonical}" in
     esac
   ;;
 
+  # MinGW64
+  x86_64-*-* )
+    case "${canonical}" in
+      *-mingw32 )
+		opsys=mingw32
+		# MinGW overrides and adds some system headers in nt/inc.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		;;
+      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
+    esac
+  ;;
+
   * )
     unported=yes
   ;;
@@ -626,7 +666,12 @@ fi
 #### Choose a compiler.
 
 dnl Sets GCC=yes if using gcc.
-AC_PROG_CC
+AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
+if test -n "$XCRUN"; then
+  AC_CHECK_PROGS(AR, [ar "$XCRUN ar"])
+  test -n "$AR" && export AR
+fi
+
 AM_PROG_CC_C_O
 
 if test x$GCC = xyes; then
@@ -640,6 +685,8 @@ dnl alternative to lib/gnulib.mk, so as to avoid generating header files
 dnl that clash with MinGW.
 AM_CONDITIONAL([BUILDING_FOR_WINDOWSNT], [test "x$opsys" = "xmingw32"])
 
+# Avoid gnulib's tests for -lcrypto, so that there's no static dependency on it.
+AC_DEFUN([gl_CRYPTO_CHECK])
 # Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
 # as we don't use them.
 AC_DEFUN([gl_FCNTL_O_FLAGS])
@@ -941,6 +988,24 @@ if test $opsys = gnu-linux; then
       [if $PAXCTL -v conftest$EXEEXT >/dev/null 2>&1; then AC_MSG_RESULT(yes)
       else AC_MSG_RESULT(no); PAXCTL=""; fi])
   fi
+
+  if test "${SETFATTR+set}" != set; then
+    AC_CACHE_CHECK([for setfattr],
+      [emacs_cv_prog_setfattr],
+      [touch conftest.tmp
+       if (setfattr -n user.pax.flags conftest.tmp) >/dev/null 2>&1; then
+	 emacs_cv_prog_setfattr=yes
+       else
+	 emacs_cv_prog_setfattr=no
+       fi])
+    if test "$emacs_cv_prog_setfattr" = yes; then
+      SETFATTR=setfattr
+    else
+      SETFATTR=
+    fi
+    rm -f conftest.tmp
+    AC_SUBST([SETFATTR])
+  fi
 fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
@@ -960,11 +1025,11 @@ fi
 ## pre-built, and not deleted by the normal clean rules.  makeinfo is
 ## therefore in the category of "special tools" not normally required, which
 ## configure does not have to check for (eg autoconf itself).
-## In a Bazaar checkout on the other hand, the manuals are not included.
-## So makeinfo is a requirement to build from Bazaar, and configure
+## In a repository checkout on the other hand, the manuals are not included.
+## So makeinfo is a requirement to build from the repository, and configure
 ## should test for it as it does for any other build requirement.
 ## We use the presence of $srcdir/info/emacs to distinguish a release,
-## with pre-built manuals, from a Bazaar checkout.
+## with pre-built manuals, from a repository checkout.
 HAVE_MAKEINFO=yes
 
 if test "$MAKEINFO" = "no"; then
@@ -1034,6 +1099,21 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
 
 LDFLAGS="$late_LDFLAGS"
 
+AC_CACHE_CHECK([whether addresses are sanitized],
+  [emacs_cv_sanitize_address],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM(
+	[[#ifndef __has_feature
+	  #define __has_feature(f) 0
+	  #endif
+	  #if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
+	  #else
+	   #error "Addresses are not sanitized."
+	  #endif
+	]])],
+     [emacs_cv_sanitize_address=yes],
+     [emacs_cv_sanitize_address=no])])
+
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
 test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
@@ -1041,8 +1121,11 @@ case "$opsys" in
   your-opsys-here) CANNOT_DUMP=yes ;;
 esac
 
-test "$CANNOT_DUMP" = "yes" && \
+if test "$CANNOT_DUMP" = "yes"; then
   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
+elif test "$emacs_cv_sanitize_address" = yes; then
+  AC_MSG_WARN([[Addresses are sanitized; suggest CANNOT_DUMP=yes]])
+fi
 
 AC_SUBST(CANNOT_DUMP)
 
@@ -1162,7 +1245,12 @@ C_SWITCH_SYSTEM=
 ## additional optimization.  --nils@exp-math.uni-essen.de
 test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
-test "$opsys" = "mingw32" && C_SWITCH_SYSTEM="-mtune=pentium4"
+if test "$opsys" = "mingw32"; then
+  case "$canonical" in
+    x86_64-*-mingw32) C_SWITCH_SYSTEM="-mtune=generic" ;;
+    *) C_SWITCH_SYSTEM="-mtune=pentium4" ;;
+  esac
+fi
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
 AC_SUBST(C_SWITCH_SYSTEM)
@@ -1874,20 +1962,21 @@ GNU_MALLOC=yes
 AC_CACHE_CHECK(
   [whether malloc is Doug Lea style],
   [emacs_cv_var_doug_lea_malloc],
-  [AC_LINK_IFELSE(
-     [AC_LANG_PROGRAM(
-        [[#include <malloc.h>
-	  static void hook (void) {}]],
-        [[malloc_set_state (malloc_get_state ());
-	  __after_morecore_hook = hook;
-	  __malloc_initialize_hook = hook;]])],
-     [emacs_cv_var_doug_lea_malloc=yes],
-     [emacs_cv_var_doug_lea_malloc=no])])
+  [emacs_cv_var_doug_lea_malloc=no
+   dnl Hooks do not work with address sanitization.
+   if test "$emacs_cv_sanitize_address" != yes; then
+     AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+	  [[#include <malloc.h>
+	    static void hook (void) {}]],
+	  [[malloc_set_state (malloc_get_state ());
+	    __after_morecore_hook = hook;
+	    __malloc_initialize_hook = hook;]])],
+       [emacs_cv_var_doug_lea_malloc=yes])])
+   fi
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
-
-dnl See comments in aix4-2.h about maybe using system malloc there.
-system_malloc=no
+system_malloc=$emacs_cv_sanitize_address
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
   darwin|sol2-10) system_malloc=yes ;;
@@ -2136,6 +2225,10 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
     if test $HAVE_RSVG = yes; then
       AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])
       CFLAGS="$CFLAGS $RSVG_CFLAGS"
+      # Windows loads librsvg dynamically
+      if test "${opsys}" = "mingw32"; then
+       	RSVG_LIBS=
+      fi
       LIBS="$RSVG_LIBS $LIBS"
     fi
   fi
@@ -3238,14 +3331,14 @@ if test "${with_xml2}" != "no"; then
   # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
   if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
+    CPPFLAGS="$CPPFLAGS -I$xcsdkdir/usr/include/libxml2"
     AC_CHECK_HEADER(libxml/HTMLparser.h,
       [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
       		     [#include <libxml/HTMLparser.h>])])
     CPPFLAGS="$SAVE_CPPFLAGS"
     if test "${HAVE_LIBXML2}" = "yes"; then
+      LIBXML2_CFLAGS="-I'$xcsdkdir/usr/include/libxml2'"
       LIBXML2_LIBS="-lxml2"
-      LIBXML2_CFLAGS="-I/usr/include/libxml2"
     fi
   fi
   if test "${HAVE_LIBXML2}" = "yes"; then
@@ -4053,7 +4146,7 @@ case $opsys in
   cygwin )
     AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)])
     dnl multi-line AC_DEFINEs are hard. :(
-    AC_DEFINE(PTY_OPEN, [ do { int dummy; sigset_t blocked, procmask; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, &procmask); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; pthread_sigmask (SIG_SETMASK, &procmask, 0); if (fd >= 0) emacs_close (dummy); } while (0)])
+    AC_DEFINE(PTY_OPEN, [ do { int dummy; sigset_t blocked, procmask; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, &procmask); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; pthread_sigmask (SIG_SETMASK, &procmask, 0); if (fd >= 0) emacs_close (dummy); } while (false)])
     AC_DEFINE(PTY_NAME_SPRINTF, [])
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [])
     ;;
@@ -4066,7 +4159,7 @@ case $opsys in
     dnl Note that openpty may fork via grantpt on Mac OS X 10.4/Darwin 8.
     dnl But we don't have to block SIGCHLD because it is blocked in the
     dnl implementation of grantpt.
-    AC_DEFINE(PTY_OPEN, [ do { int slave; if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1) fd = -1; else emacs_close (slave); } while (0)])
+    AC_DEFINE(PTY_OPEN, [ do { int slave; if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1) fd = -1; else emacs_close (slave); } while (false)])
     AC_DEFINE(PTY_NAME_SPRINTF, [])
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [])
     ;;
@@ -4085,7 +4178,7 @@ case $opsys in
       AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
       dnl if HAVE_POSIX_OPENPT
       if test "x$ac_cv_func_posix_openpt" = xyes; then
-        AC_DEFINE(PTY_OPEN, [do { fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY); if (fd < 0 && errno == EINVAL) fd = posix_openpt (O_RDWR | O_NOCTTY); } while (0)])
+        AC_DEFINE(PTY_OPEN, [do { fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY); if (fd < 0 && errno == EINVAL) fd = posix_openpt (O_RDWR | O_NOCTTY); } while (false)])
         AC_DEFINE(PTY_NAME_SPRINTF, [])
       dnl if HAVE_GETPT
       elif test "x$ac_cv_func_getpt" = xyes; then
@@ -4218,7 +4311,7 @@ case $opsys in
 # error "not ia64"
 #endif
       ]], [[]])], AC_DEFINE(GC_MARK_SECONDARY_STACK(),
-        [do { extern void *__libc_ia64_register_backing_store_base; __builtin_ia64_flushrs (); mark_memory (__libc_ia64_register_backing_store_base, __builtin_ia64_bsp ());} while (0)],
+        [do { extern void *__libc_ia64_register_backing_store_base; __builtin_ia64_flushrs (); mark_memory (__libc_ia64_register_backing_store_base, __builtin_ia64_bsp ());} while (false)],
         [Mark a secondary stack, like the register stack on the ia64.]), [])
     ;;
 
@@ -4476,7 +4569,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2013 Free Software Foundation, Inc."
+copyright="Copyright (C) 2014 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST(copyright)
@@ -4693,7 +4786,6 @@ CFLAGS=$pre_PKG_CONFIG_CFLAGS
 LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
 gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
-gl_SET_CRYPTO_CHECK_DEFAULT([auto])
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
@@ -4745,7 +4837,7 @@ case "$opsys" in
    ## pass a different -entry switch to linker.  FIXME: It is better
    ## to make the entry points the same by changing unexw32.c.
    case "$canonical" in
-     x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,_start -Wl,-Map,./temacs.map" ;;
+     x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
      *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
    esac
    ;;
@@ -4794,7 +4886,7 @@ AC_SUBST(WINDOW_SYSTEM_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2013
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2014
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4845,12 +4937,6 @@ else
   acl_summary=no
 fi
 
-if test -n "$LIB_CRYPTO"; then
-  HAVE_LIB_CRYPTO=yes
-else
-  HAVE_LIB_CRYPTO=no
-fi
-
 echo "
 Configured for \`${canonical}'.
 
@@ -4890,7 +4976,6 @@ echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
 echo "  Does Emacs use access control lists?                    ${acl_summary}"
-echo "  Does Emacs use a crypto library?                        ${HAVE_LIB_CRYPTO} $LIB_CRYPTO"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

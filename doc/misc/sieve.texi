@@ -4,6 +4,7 @@
 
 @setfilename ../../info/sieve
 @settitle Emacs Sieve Manual
+@documentencoding UTF-8
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp
@@ -11,7 +12,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

@@ -1,6 +1,6 @@
 ;;; viper-mous.el --- mouse support for Viper
 
-;; Copyright (C) 1994-1997, 2001-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper

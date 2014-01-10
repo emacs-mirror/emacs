@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
-;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -229,11 +229,6 @@ TRUNCATED is non-nil if the text of this entity was truncated."
 (defsubst rmail-mime-entity-truncated (entity) (aref entity 9))
 (defsubst rmail-mime-entity-set-truncated (entity truncated)
   (aset entity 9 truncated))
-
-(defsubst rmail-mime-message-p ()
-  "Non-nil if and only if the current message is a MIME."
-  (or (get-text-property (point) 'rmail-mime-entity)
-      (get-text-property (point-min) 'rmail-mime-entity)))
 
 ;;; Buttons
 

@@ -1,6 +1,6 @@
 ;;; semantic/complete.el --- Routines for performing tag completion
 
-;; Copyright (C) 2003-2005, 2007-2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2014 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -1968,7 +1968,7 @@ completion works."
 	 (complst nil))
     (when (and thissym (or (not (string= thissym ""))
 			   nextsym))
-      ;; Do a quick calcuation of completions.
+      ;; Do a quick calculation of completions.
       (semantic-collector-calculate-completions
        collector thissym nil)
       ;; Get the master list
@@ -2048,7 +2048,7 @@ completion works."
 	 (complst nil))
     (when (and thissym (or (not (string= thissym ""))
 			   nextsym))
-      ;; Do a quick calcuation of completions.
+      ;; Do a quick calculation of completions.
       (semantic-collector-calculate-completions
        collector thissym nil)
       ;; Get the master list

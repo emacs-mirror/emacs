@@ -1,4 +1,4 @@
-Copyright (C) 2006-2013 Free Software Foundation, Inc.
+Copyright (C) 2006-2014 Free Software Foundation, Inc.
 See end for license conditions.
 
 
@@ -77,8 +77,8 @@ latest version.  If you start from an older version, your patch may be
 outdated (so that maintainers will have a hard time applying it), or
 changes in Emacs may have made your patch unnecessary.
 
-After you have downloaded the Bazaar source, you should read the file
-INSTALL.BZR for build instructions (they differ to some extent from a
+After you have downloaded the repository source, you should read the file
+INSTALL.REPO for build instructions (they differ to some extent from a
 normal build).
 
 Ref: http://savannah.gnu.org/projects/emacs
@@ -159,7 +159,7 @@ included in Emacs.
 ** Write access to the Emacs repository.
 
 Once you become a frequent contributor to Emacs, we can consider
-giving you write access to the Bazaar repository.
+giving you write access to the version-control repository.
 
 
 ** Emacs Mailing lists.

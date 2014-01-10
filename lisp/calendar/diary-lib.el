@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2013 Free Software
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2014 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

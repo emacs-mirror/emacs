@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment
 
-;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2014 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -888,14 +888,15 @@
 ;; script which IS-13194 supports.
 
 (define-charset 'indian-is13194
-  "Generic Indian charset for data exchange with IS 13194"
-  :short-name "IS 13194"
-  :long-name "Indian IS 13194"
+  "7-bit representation of IS 13194 (ISCII) for Devanagari"
+  :short-name "IS 13194 (DEV)"
+  :long-name "Indian IS 13194 (DEV)"
   :iso-final-char ?5
   :emacs-mule-id 225
   :supplementary-p t
   :code-space [33 126]
-  :code-offset #x180000)
+  :code-offset #x180000
+  :unify-map "MULE-is13194")
 
 (let ((code-offset #x180100))
   (dolist (script '(devanagari sanskrit bengali tamil telugu assamese
@@ -1192,6 +1193,7 @@
 (unify-charset 'ipa)
 (unify-charset 'tibetan)
 (unify-charset 'ethiopic)
+(unify-charset 'indian-is13194)
 (unify-charset 'japanese-jisx0208-1978)
 (unify-charset 'japanese-jisx0208)
 (unify-charset 'japanese-jisx0212)

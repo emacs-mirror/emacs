@@ -1,6 +1,6 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -512,8 +512,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 
 ;; Do indirect function resolution if possible.
 (defun eldoc-symbol-function (fsym)
-  (let ((defn (and (fboundp fsym)
-                   (symbol-function fsym))))
+  (let ((defn (symbol-function fsym)))
     (and (symbolp defn)
          (condition-case _
              (setq defn (indirect-function fsym))
