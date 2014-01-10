@@ -1,7 +1,12 @@
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries):
+	Update for files that no longer exist.
+
 2014-01-10  Eric S. Raymond  <esr@thyrsus.com>
 
 	* version.el (emacs-bzr-get-version): Restore compatibilty with
-	23.1 (Tested).
+	24.3 (Tested).
 
 2014-01-10  Bozhidar Batsov  <bozhidar@batsov.com>
 
