@@ -460,6 +460,7 @@ restoring the frame/window configuration (frameset).  Additional options
 `desktop-restore-in-current-display', `desktop-restore-reuses-frames'
 and `desktop-restore-forces-onscreen' offer further customization.
 
++++
 ** Dired
 
 *** New minor mode `dired-hide-details-mode' hides details.

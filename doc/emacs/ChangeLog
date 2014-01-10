@@ -1,3 +1,10 @@
+2014-01-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* dired.texi (Misc Dired Features): Document
+	`dired-hide-details-mode',
+	`dired-hide-details-hide-symlink-targets', and
+	`dired-hide-details-hide-information-lines'.
+
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* emacs.texi: Add EWW.
