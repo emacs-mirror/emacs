@@ -44,9 +44,9 @@ of its versions:
 This simple interpreter allocates two kinds of objects on the
 :term:`heap`:
 
-1. All Scheme objects (there are no :term:`unboxed` objects).
+#. All Scheme objects (there are no :term:`unboxed` objects).
 
-2. The global symbol table: a hash table consisting of a vector of
+#. The global symbol table: a hash table consisting of a vector of
    pointers to strings.
 
 A Scheme object (whose type is not necessarily known) is represented by
@@ -274,11 +274,11 @@ alignment is hard to do portably, because it depends on the target
 architecture and on the way the compiler lays out its structures in
 memory. Here are some things you might try:
 
-1. Some modern compilers support the ``alignof`` operator::
+#. Some modern compilers support the ``alignof`` operator::
 
         #define ALIGNMENT alignof(obj_s)
 
-2. On older compilers you may be able to use this trick::
+#. On older compilers you may be able to use this trick::
 
         #define ALIGNMENT offsetof(struct {char c; obj_s obj;}, obj)
 
@@ -287,7 +287,7 @@ memory. Here are some things you might try:
    circumstances (for example, GCC if the ``-fstruct-pack`` option is
    specified).
 
-3. The MPS interface provides the type :c:type:`mps_word_t`, which is
+#. The MPS interface provides the type :c:type:`mps_word_t`, which is
    an unsigned integral type that is the same size as the platform's
    :term:`object pointer` types.
 
@@ -477,13 +477,13 @@ object, and its task is to replace the old object with a
 
 The forwarding object must satisfy these properties:
 
-1. It must be scannable and skippable, and so it will need to have a
+#. It must be scannable and skippable, and so it will need to have a
    type field to distinguish it from other Scheme objects.
 
-2. It must contain a pointer to the new location of the object (a
+#. It must contain a pointer to the new location of the object (a
    :term:`forwarding pointer`).
 
-3. It must be the same size as the old object. This means that the
+#. It must be the same size as the old object. This means that the
    :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
    <guide-lang-skip>` will both need to know the length of the
    forwarding object. This can be arbitrarily long (in the case of
@@ -863,11 +863,11 @@ The third argument (here :c:func:`mps_rank_exact`) is the :term:`rank`
 of references in the root. ":term:`Exact <exact reference>`" means
 that:
 
-1. each reference in the root is a genuine pointer to another object
+#. each reference in the root is a genuine pointer to another object
    managed by the MPS, or else a null pointer (unlike :term:`ambiguous
    references`); and
 
-2. each reference keeps the target of the reference alive (unlike
+#. each reference keeps the target of the reference alive (unlike
    :term:`weak references (1)`).
 
 The fourth argument is the :term:`root mode`, which tells the MPS
@@ -995,10 +995,10 @@ Even in a single-threaded environment (like the toy Scheme
 interpreter) it may also be necessary to register the (only) thread if
 either of these conditions apply:
 
-1. you are using :term:`moving garbage collection <moving garbage
+#. you are using :term:`moving garbage collection <moving garbage
    collector>` (as with the :ref:`pool-amc` pool);
 
-2. the thread's :term:`registers` and :term:`control stack`
+#. the thread's :term:`registers` and :term:`control stack`
    constitute a :term:`root` (that is, objects may be kept alive via
    references in local variables: this is almost always the case for
    programs written in :term:`C`).
@@ -1168,20 +1168,20 @@ point in time (potentially, between any pair of instructions in your
 program). So you must make sure that your data structures always obey
 these rules:
 
-1. A :term:`root` must be scannable by its root scanning function as
+#. A :term:`root` must be scannable by its root scanning function as
    soon as it has been registered.
 
    See the discussion of the :ref:`global symbol table
    <guide-lang-roots-rehash>` in the toy Scheme interpreter.
 
-2. A :term:`formatted object` must be scannable by the :term:`scan
+#. A :term:`formatted object` must be scannable by the :term:`scan
    method` as soon as it has been :term:`committed (2)` by calling
    :c:func:`mps_commit`.
 
    See the discussion of the :ref:`pair constructor
    <guide-lang-allocation>` in the toy Scheme interpreter.
 
-3. All objects in automatically managed pools that are
+#. All objects in automatically managed pools that are
    :term:`reachable` by your code must always be provably reachable
    from a root via a chain of :term:`references` that are
    :term:`fixed <fix>` by a scanning function.
@@ -1189,7 +1189,7 @@ these rules:
    See the discussion of the :ref:`global symbol table
    <guide-lang-roots-rehash>` in the toy Scheme interpreter.
 
-4. Formatted objects must remain scannable throughout their
+#. Formatted objects must remain scannable throughout their
    :term:`lifetime`.
 
    .. fixme: refer to example here when written.
