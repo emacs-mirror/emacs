@@ -905,6 +905,7 @@ It is only available if Emacs is compiled with libxml2 support.
 symbol_words as a single word, similar to what `subword-mode' does and
 using the same internal functions.
 
++++
 ** New package nadvice.el offers lighter-weight advice facilities.
 It is layered as:
 - add-function/remove-function which can be used to add/remove code on any

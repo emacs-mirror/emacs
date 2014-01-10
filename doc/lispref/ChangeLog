@@ -1,3 +1,14 @@
+2014-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Advising Functions): New section.
+	* modes.texi (Running Hooks): Don't document with-wrapper-hook and
+	run-hook-wrapped any more.
+	(Hooks): Link to the new Advising Functions node.
+	* elisp.texi (Top): Don't include advice.texi.
+	* advice.texi: Remove.
+	* makefile.w32-in (srcs):
+	* Makefile.in (srcs): Adjust accordingly.
+
 2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* text.texi (Parsing HTML/XML): Document `shr-insert-document'.

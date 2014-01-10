@@ -1282,13 +1282,8 @@ cells of symbols rather than on the value cells.  Each @var{binding}
 must be a list of the form @samp{(@var{name} @var{arglist}
 @var{forms}@dots{})}, which defines a function exactly as if
 it were a @code{cl-defun} form.  The function @var{name} is defined
-accordingly for the duration of the body of the @code{cl-flet}; then
-the old function definition, or lack thereof, is restored.
-
-You can use @code{cl-flet} to disable or modify the behavior of
-functions (including Emacs primitives) in a temporary, localized fashion.
-(Compare this with the idea of advising functions.
-@xref{Advising Functions,,,elisp,GNU Emacs Lisp Reference Manual}.)
+accordingly but only within the body of the @code{cl-flet}, hiding any external
+definition if applicable.
 
 The bindings are lexical in scope.  This means that all references to
 the named functions must appear physically within the body of the

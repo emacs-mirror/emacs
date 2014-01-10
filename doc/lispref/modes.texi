@@ -69,11 +69,13 @@ functions are called with arguments, or their return values are used
 in some way.  The hook's documentation says how the functions are
 called.  You can use @code{add-hook} to add a function to an abnormal
 hook, but you must write the function to follow the hook's calling
-convention.
+convention.  By convention, abnormal hook names end in @samp{-functions}.
 
-  By convention, abnormal hook names end in @samp{-functions}.  If the
-variable's name ends in @samp{-function}, then its value is just a single
-function, not a list of functions.
+@cindex single-function hook
+If the variable's name ends in @samp{-function}, then its value is
+just a single function, not a list of functions.  @code{add-hook} cannot be
+used to modify such a @emph{single function hook}, and you have to use
+@code{add-function} instead (@pxref{Advising Functions}).
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -127,47 +129,6 @@ value.  Each hook function is passed the arguments @var{args}.  If this
 function stops because one of the hook functions returns a
 non-@code{nil} value, it returns that value; otherwise it returns
 @code{nil}.
-@end defun
-
-@defmac with-wrapper-hook hook args &rest body
-This macro runs the abnormal hook @code{hook} as a series of nested
-``wrapper functions'' around the @var{body} forms.  The effect is
-similar to nested @code{around} advices (@pxref{Around-Advice}).
-
-Each hook function should accept an argument list consisting of a function
-@var{fun}, followed by the additional arguments listed in @var{args}.
-The first hook function is passed a function @var{fun} that, if it is
-called with arguments @var{args}, performs @var{body} (i.e., the default
-operation).  The @var{fun} passed to each successive hook function is
-constructed from all the preceding hook functions (and @var{body}); if
-this @var{fun} is called with arguments @var{args}, it does what the
-@code{with-wrapper-hook} call would if the preceding hook functions were
-the only ones in @var{hook}.
-
-Each hook function may call its @var{fun} argument as many times as it
-wishes, including never.  In that case, such a hook function acts to
-replace the default definition altogether, and any preceding hook
-functions.  Of course, a subsequent hook function may do the same thing.
-
-Each hook function definition is used to construct the @var{fun} passed
-to the next hook function in @var{hook}, if any.  The last or
-``outermost'' @var{fun} is called once to produce the overall effect.
-
-When might you want to use a wrapper hook?  The function
-@code{filter-buffer-substring} illustrates a common case.  There is a
-basic functionality, performed by @var{body}---in this case, to extract
-a buffer-substring.  Then any number of hook functions can act in
-sequence to modify that string, before returning the final result.
-A wrapper-hook also allows for a hook function to completely replace the
-default definition (by not calling @var{fun}).
-@end defmac
-
-@defun run-hook-wrapped hook wrap-function &rest args
-This function is similar to @code{run-hook-with-args-until-success}.
-Like that function, it runs the functions on the abnormal hook
-@code{hook}, stopping at the first one that returns non-@code{nil}.
-Instead of calling the hook functions directly, though, it actually
-calls @code{wrap-function} with arguments @code{fun} and @code{args}.
 @end defun
 
 @node Setting Hooks
