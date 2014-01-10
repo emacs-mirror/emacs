@@ -98,25 +98,25 @@ void ABQFinish(Arena arena, ABQ abq)
 
 
 /* ABQPush -- push an element onto the tail of the ABQ */
-Res ABQPush(ABQ abq, void *element)
+Bool ABQPush(ABQ abq, void *element)
 {
   AVERT(ABQ, abq);
 
   METER_ACC(abq->push, ABQDepth(abq));
 
   if (ABQIsFull(abq))
-    return ResFAIL;
+    return FALSE;
  
   mps_lib_memcpy(ABQElement(abq, abq->in), element, abq->elementSize);
   abq->in = ABQNextIndex(abq, abq->in);
 
   AVERT(ABQ, abq);
-  return ResOK;
+  return TRUE;
 }
 
 
 /* ABQPop -- pop an element from the head of the ABQ */
-Res ABQPop(ABQ abq, void *elementReturn)
+Bool ABQPop(ABQ abq, void *elementReturn)
 {
   AVER(elementReturn != NULL);
   AVERT(ABQ, abq);
@@ -124,19 +124,19 @@ Res ABQPop(ABQ abq, void *elementReturn)
   METER_ACC(abq->pop, ABQDepth(abq));
  
   if (ABQIsEmpty(abq))
-    return ResFAIL;
+    return FALSE;
 
   mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   abq->out = ABQNextIndex(abq, abq->out);
  
   AVERT(ABQ, abq);
-  return ResOK;
+  return TRUE;
 }
 
 
 /* ABQPeek -- peek at the head of the ABQ */
-Res ABQPeek(ABQ abq, void *elementReturn)
+Bool ABQPeek(ABQ abq, void *elementReturn)
 {
   AVER(elementReturn != NULL);
   AVERT(ABQ, abq);
@@ -144,14 +144,14 @@ Res ABQPeek(ABQ abq, void *elementReturn)
   METER_ACC(abq->peek, ABQDepth(abq));
 
   if (ABQIsEmpty(abq))
-    return ResFAIL;
+    return FALSE;
 
   mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   /* Identical to pop, but don't increment out */
 
   AVERT(ABQ, abq);
-  return ResOK;
+  return TRUE;
 }
 
 

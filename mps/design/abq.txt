@@ -62,22 +62,22 @@ the queue; and ``elementSize`` is the size of each element.
 
 Finish ``abq`` and free all resources associated with it.
 
-``Res ABQPush(ABQ abq, void *element)``
+``Bool ABQPush(ABQ abq, void *element)``
 
-If the queue is full, leave it unchanged and return ``ResFAIL``.
-Otherwise, push ``element`` on to the queue and return ``ResOK``.
+If the queue is full, leave it unchanged and return ``FALSE``.
+Otherwise, push ``element`` on to the queue and return ``TRUE``.
 
-``Res ABQPop(ABQ abq, void *elementReturn)``
+``Bool ABQPop(ABQ abq, void *elementReturn)``
 
-If the queue is empty, return ``ResFAIL``. Othwreise, copy the first
+If the queue is empty, return ``FALSE``. Otherwise, copy the first
 element on the queue into the memory pointed to by ``elementReturn``,
-remove the element from the queue, and return ``ResOK``.
+remove the element from the queue, and return ``TRUE``.
 
-``Res ABQPeek(ABQ abq, void *elementReturn)``
+``Bool ABQPeek(ABQ abq, void *elementReturn)``
 
-If the queue is empty, return ``ResFAIL``. Otherwise, copy the first
+If the queue is empty, return ``FALSE``. Otherwise, copy the first
 element on the queue into the memory pointed to by ``elementReturn``
-and return ``ResOK``. (This is the same as ``ABQPop()`` except that
+and return ``TRUE``. (This is the same as ``ABQPop()`` except that
 the queue is unchanged.)
 
 ``Bool ABQIsEmpty(ABQ abq)``

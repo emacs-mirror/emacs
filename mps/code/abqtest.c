@@ -105,23 +105,20 @@ static Bool TestDeleteCallback(Bool *deleteReturn, void *element,
 
 static void step(void)
 {
-  Res res;
   TestBlock a;
 
   switch (abqRnd(9)) {
     case 0: case 1: case 2: case 3:
   push:
       a = CreateTestBlock(pushee);
-      res = ABQPush(&abq, &a);
-      if (res != ResOK) {
+      if (!ABQPush(&abq, &a)) {
         goto pop;
       }
       pushee++;
       break;
     case 5: case 6: case 7: case 8:
   pop:
-      res = ABQPop(&abq, &a);
-      if (res != ResOK){
+      if (!ABQPop(&abq, &a)) {
         goto push;
       }
       if (popee == deleted) {
