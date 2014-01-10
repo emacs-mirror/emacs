@@ -244,14 +244,14 @@ manuals for days.
 Emulation of accesses to protected objects happens when all of the
 following are true:
 
-1. The object is a weak object allocated in an AWL pool.
+#. The object is a weak object allocated in an AWL pool.
 
-2. The MPS is running on Linux/IA-32 or Windows/IA-32. Extending this
+#. The MPS is running on Linux/IA-32 or Windows/IA-32. Extending this
    list to new (reasonable) operating systems should be tolerable (for
    example, OS X/IA-32). Extending this to new processor architectures
    requires more work.
 
-3. The processor instruction that is accessing the object is of a
+#. The processor instruction that is accessing the object is of a
    suitable simple form. The MPS doesn't contain an emulator for all
    possible instructions that might access memory, so currently it
    only recognizes and emulates a simple ``MOV`` from memory to a

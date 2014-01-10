@@ -135,10 +135,10 @@ required: the operation can proceed as usual.
 
 But if the operation fails, you might be in one of two cases:
 
-1. the location of the block has not been depended on before (for
+#. the location of the block has not been depended on before (for
    example, the key has never been added to the hash table);
 
-2. the location of the block has been depended on before (for example,
+#. the location of the block has been depended on before (for example,
    the key was added to the hash table), but the block has moved and
    the dependency has become stale.
 
@@ -151,12 +151,12 @@ either case (1) or case (2). All :c:func:`mps_ld_isstale` tells you is
 that the block *might* have moved, not whether the block *has* moved.
 At this point you must:
 
-1. reset the location dependency;
+#. reset the location dependency;
 
-2. repeat the computation in some way that doesn't depend on the old
+#. repeat the computation in some way that doesn't depend on the old
    locations of all the blocks that were added to that dependency; and
 
-3. re-add a dependency on each block.
+#. re-add a dependency on each block.
 
 For example, in the case of a hash table you should rehash based on
 the new locations of the blocks.

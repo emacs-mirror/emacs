@@ -21,14 +21,14 @@ Plinth
 The :dfn:`plinth` is a program module that provides the MPS with the
 support it needs from the execution environment. The MPS uses the plinth instead of (say) the Standard C Library because:
 
-1. The MPS is designed to be portable to systems that have only a
+#. The MPS is designed to be portable to systems that have only a
    *conforming freestanding implementation* of the C language: that
    is, systems which potentially lack some of the facilities of the
    Standard C Library, such as standard I/O. The plinth provides a way
    to map MPS requirements to the facilities provided on the platform,
    whatever they are.
 
-2. The plinth gives the :term:`client program` complete control of
+#. The plinth gives the :term:`client program` complete control of
    interaction between the MPS and the user, including
    :ref:`assertions <topic-error-assertion>` and :ref:`telemetry
    <topic-telemetry>`.
@@ -47,10 +47,10 @@ convenient window in the user interface.
 
 The plinth is divided into two parts:
 
-1. The :ref:`topic-plinth-io` enables the MPS to write binary messages
+#. The :ref:`topic-plinth-io` enables the MPS to write binary messages
    to an output stream.
 
-2. The :ref:`topic-plinth-lib` provides miscellaneous functionality
+#. The :ref:`topic-plinth-lib` provides miscellaneous functionality
    that would be available via the Standard C Library on a hosted
    platform, including functions for reporting errors and accessing
    a processor clock.

@@ -27,10 +27,10 @@ re-allocated for some time.
 General debugging advice
 ------------------------
 
-1. Compile with debugging information turned on (``-g`` on the GCC or
+#. Compile with debugging information turned on (``-g`` on the GCC or
    Clang command line).
 
-2. .. index::
+#. .. index::
       single: cool variety
       single: variety; cool
 
@@ -42,7 +42,7 @@ General debugging advice
    in production), and can generate profiling output in the form of
    the :term:`telemetry stream`.
 
-3. .. index::
+#. .. index::
       single: ASLR
       single: address space layout randomization
 
@@ -68,7 +68,7 @@ General debugging advice
    :c:func:`mps_arena_release`), perhaps as frequently as every
    allocation.
 
-4. .. index::
+#. .. index::
       single: debugger
       single: abort
       single: barrier; handling in debugger

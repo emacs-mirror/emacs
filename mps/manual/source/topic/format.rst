@@ -160,7 +160,7 @@ block.
 
 There are some cautions to be observed when using in-band headers:
 
-1. The format methods (other than the :term:`padding method`) receive
+#. The format methods (other than the :term:`padding method`) receive
    :term:`client pointers` (that is, pointers past the header) but all
    other MPS functions expect to receive and return :term:`base
    pointers` (that is, pointers to the base of the block where the
@@ -170,14 +170,14 @@ There are some cautions to be observed when using in-band headers:
    hand out base pointers, and :c:func:`mps_free` expects to receive
    one.
 
-2. Formatted objects must be longer than the header. In other words,
+#. Formatted objects must be longer than the header. In other words,
    objects consisting of only a header are not supported.
 
-3. Even if the header size is larger than or equal to
+#. Even if the header size is larger than or equal to
    :term:`alignment`, the :term:`padding method` must still be able to
    create :term:`padding objects` down to the alignment size.
 
-4. Not all :term:`pool classes` support objects with in-band headers.
+#. Not all :term:`pool classes` support objects with in-band headers.
    See the documentation for the pool class.
 
 
@@ -189,13 +189,13 @@ There are some cautions to be observed when using in-band headers:
 Cautions
 --------
 
-1. The MPS guarantees that format methods have exclusive access to the
+#. The MPS guarantees that format methods have exclusive access to the
    object for the duration of the call. This guarantee may entail
    suspending arbitrary threads. The methods that manipulate the
    object must not perform any sort of inter-thread locking or
    communication.
 
-2. The MPS may call format methods in the context of an exception
+#. The MPS may call format methods in the context of an exception
    handler or a signal handler. For example, the following sequence of
    events is common:
 
@@ -217,9 +217,9 @@ Cautions
    including asynchronously or in parallel with the rest of the
    program.
 
-3. Format methods must be re-entrant.
+#. Format methods must be re-entrant.
 
-4. Format methods must not:
+#. Format methods must not:
 
    a. call library code;
 
@@ -233,7 +233,7 @@ Cautions
    see :c:func:`MPS_FIX_CALL` for a restriction on passing the
    :term:`scan state`.
 
-5. Subject to the above constraints, format methods can freely access:
+#. Subject to the above constraints, format methods can freely access:
 
    a. memory inside the object or block that they have been asked to
       look at;

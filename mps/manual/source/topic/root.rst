@@ -37,17 +37,17 @@ You can register a root at any time by calling one of the
 no two roots may overlap (that is, each reference is :term:`fixed` by
 at most one root). Roots may be:
 
-1. in :term:`registers`;
+#. in :term:`registers`;
 
-2. on the program's :term:`control stack`;
+#. on the program's :term:`control stack`;
 
-3. in the program's static data;
+#. in the program's static data;
 
-4. in :term:`heap` not managed by the MPS (provided that you destroy
+#. in :term:`heap` not managed by the MPS (provided that you destroy
    the root before freeing it; see :ref:`the Scheme interpreter's
    global symbol table <guide-lang-roots-rehash>` for an example);
 
-5. in :term:`manually managed <manual memory management>` pools
+#. in :term:`manually managed <manual memory management>` pools
    (provided that you remove the root before freeing it).
 
 Roots must not be in memory that is subject to :term:`garbage
@@ -86,21 +86,21 @@ must be deregistered before the arena is destroyed.
 There are five ways to register a root, depending on how you need to
 scan it for references:
 
-1. :c:func:`mps_root_create` if you need a custom root scanning
+#. :c:func:`mps_root_create` if you need a custom root scanning
    function (of type :c:type:`mps_root_scan_t`);
 
-2. :c:func:`mps_root_create_fmt` if the root consists of a block of
+#. :c:func:`mps_root_create_fmt` if the root consists of a block of
    objects belonging to an :term:`object format`, which can be scanned
    by the format's :term:`scan method` (of type
    :c:type:`mps_fmt_scan_t`);
 
-3. :c:func:`mps_root_create_table` if the root consists of a table of
+#. :c:func:`mps_root_create_table` if the root consists of a table of
    references;
 
-4. :c:func:`mps_root_create_table_masked` if the root consists of a
+#. :c:func:`mps_root_create_table_masked` if the root consists of a
    table of :term:`tagged references`;
 
-5. :c:func:`mps_root_create_reg` if the root consists of the
+#. :c:func:`mps_root_create_reg` if the root consists of the
    :term:`registers` and :term:`control stack` of a thread. See
    :ref:`topic-root-thread` below.
 
@@ -116,25 +116,25 @@ and then committing it (in the
 :ref:`topic-allocation-point-protocol`), and similar :ref:`cautions
 <topic-allocation-cautions>` apply. Before registering a root:
 
-1. The root must be valid (that is, the appropriate root scanning
+#. The root must be valid (that is, the appropriate root scanning
    function can scan it).
 
-2. All :term:`exact references` in the root (references that are
+#. All :term:`exact references` in the root (references that are
    :term:`fixed` by the root scanning function) must contain valid
    references or null pointers.
 
-3. You must not store a reference in the root to a block in an
+#. You must not store a reference in the root to a block in an
    automatically managed pool (such a reference is hidden from the MPS
    until you register the root, and may become invalid).
 
 So the typical sequence of operations when creating a root is:
 
-1. Initialize references in the root with null pointers or other safe
+#. Initialize references in the root with null pointers or other safe
    values.
 
-2. Register the root.
+#. Register the root.
 
-3. Fill in the references in the root.
+#. Fill in the references in the root.
 
 
 .. index::

@@ -104,7 +104,7 @@ Where to find the critical path
 -------------------------------
 Very briefly, the critical path consists of five stages:
 
-1. The scanner, which iterates over pointers in objects.  The MPS has
+#. The scanner, which iterates over pointers in objects.  The MPS has
    several internal scanners, but the most important ones will be format
    scanners in client code registered through ``mps_format_create()``
    functions.
@@ -114,21 +114,21 @@ Very briefly, the critical path consists of five stages:
        There needs to be a chapter in the manual explaining how to
        write a good scanner. Then that could be linked from here.
 
-2. The first-stage fix, which filters out pointers inline in the
+#. The first-stage fix, which filters out pointers inline in the
    scanner.  This is implemented in ``MPS_FIX()`` macros in
    mps.h_.
 
 .. _mps.h: ../code/mps.h
 
-3. The second-stage fix, which filters out pointers using general
+#. The second-stage fix, which filters out pointers using general
    information about segments.  This is ``_mps_fix2`` in
    `trace.c <../code/trace.c>`_.
 
-4. The third-stage fix, which filters out pointers using pool-specific
+#. The third-stage fix, which filters out pointers using pool-specific
    information.  Implemented in pool class functions called ``AMCFix()``,
    ``LOFix()``, etc. in pool*.c.
    
-5. Preserving the object, which might entail
+#. Preserving the object, which might entail
 
    - marking_ it to prevent it being recycled; and/or
 
@@ -371,7 +371,8 @@ Document History
 
 Copyright and License
 ---------------------
-Copyright © 2012-2013 Ravenbrook Limited. All rights reserved. 
+
+Copyright © 2012-2014 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -379,14 +380,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than

@@ -27,7 +27,7 @@ appear throughout the interface.
 Support policy
 --------------
 
-1.  We support the documented behaviour of public symbols in the MPS
+#.  We support the documented behaviour of public symbols in the MPS
     interface. We will only remove these symbols or change their
     behaviour in a new version, and not in a patch release. Normally
     we will give one version's notice before removing a symbol or
@@ -41,7 +41,7 @@ Support policy
         deprecated, please :ref:`contact us <contact>`. It makes a
         difference if we know that someone is using a feature.
 
-2.  Behaviour that is not documented in the :ref:`guide`,
+#.  Behaviour that is not documented in the :ref:`guide`,
     :ref:`reference`, or :ref:`pool` is not supported and may change
     without notice in future releases. In particular, private
     identifiers may disappear or their behaviour be changed without
@@ -54,7 +54,7 @@ Support policy
 Language
 --------
 
-1.  The MPS public interface conforms to :ref:`ANSI/ISO Standard C (IEC
+#.  The MPS public interface conforms to :ref:`ANSI/ISO Standard C (IEC
     9899:1990) <C1990>`.
 
 
@@ -64,18 +64,18 @@ Language
 Headers
 -------
 
-1.  The main interface is in the header ``mps.h``. This header
+#.  The main interface is in the header ``mps.h``. This header
     contains all the core MPS interfaces. In practice, you always need
     at least one arena class and one pool class header file as well.
 
-2.  We will always prefix public header file names with ``mps`` to
+#.  We will always prefix public header file names with ``mps`` to
     avoid clashes. We reserve the right to create new headers
     with names beginning with ``mps`` in future versions.
 
-3.  :term:`Pool class` headers have names beginning with ``mpsc``. For
+#.  :term:`Pool class` headers have names beginning with ``mpsc``. For
     example, the header for :ref:`pool-amc` is ``mpscamc.h``.
 
-4.  :term:`Arena class` headers have names beginning with ``mpsa``. For
+#.  :term:`Arena class` headers have names beginning with ``mpsa``. For
     example, the header for the :term:`virtual memory arena` class is
     ``mpsavm.h``.
 
@@ -86,23 +86,23 @@ Headers
 Identifiers
 -----------
 
-1.  Identifiers are in lower case, except for preprocessor constants
+#.  Identifiers are in lower case, except for preprocessor constants
     and macros that do not behave like functions, which are in upper
     case. Words are joined by underscores.
 
-2.  All identifiers are either *public* or *private*.
+#.  All identifiers are either *public* or *private*.
 
-3.  The names of public types, functions, variables, and macros start
+#.  The names of public types, functions, variables, and macros start
     with ``mps_`` or ``MPS_``. The names of public structure members
     start with any letter.
 
-4.  Private identifiers start with an underscore ``_``.
+#.  Private identifiers start with an underscore ``_``.
 
-5.  Type names end with ``_t``, except for structure and union types.
+#.  Type names end with ``_t``, except for structure and union types.
 
-6.  The names of structure types and tags end with ``_s``.
+#.  The names of structure types and tags end with ``_s``.
 
-7.  The names of union types and tags end with ``_u``.
+#.  The names of union types and tags end with ``_u``.
 
 
 .. index::
@@ -114,14 +114,14 @@ Types
 There are three kinds of types declared in the MPS interface:
 *transparent types*, *opaque types*, and *derived types*.
 
-1.  A *transparent type* is an alias defined using ``typedef``, and this
+#.  A *transparent type* is an alias defined using ``typedef``, and this
     is documented so that the :term:`client program` can rely on that
     fact. For example, :c:type:`mps_addr_t` is a transparent alias for
     ``void *``. Transparent types express intentions in the interface:
     in the case of :c:type:`mps_addr_t` it represents a pointer that
     is under the control of the MPS.
 
-2.  An *opaque type* is a pointer to an incomplete structure type. The
+#.  An *opaque type* is a pointer to an incomplete structure type. The
     client program must not rely on details of its implementation. For
     example, the type :c:type:`mps_arena_t` is an alias for ``struct
     mps_arena_s *``, but the implementation of ``struct mps_arena_s``
@@ -134,7 +134,7 @@ There are three kinds of types declared in the MPS interface:
     scanning macros such as :c:func:`MPS_SCAN_BEGIN` and
     :c:func:`MPS_FIX12`.
 
-3.  A *derived type* is a structure or function type based on
+#.  A *derived type* is a structure or function type based on
     transparent and opaque types and on built-in C types. The degree
     to which you may or must depend upon the implementation of a
     derived type is covered by the documentation for the type. For
@@ -148,30 +148,30 @@ There are three kinds of types declared in the MPS interface:
 Functions
 ---------
 
-1.  Operations that might fail return a :term:`result code`, rather
+#.  Operations that might fail return a :term:`result code`, rather
     than a "special value" of the return type. See :ref:`topic-error`.
 
-2.  A function that needs to return a value as well as a result code
+#.  A function that needs to return a value as well as a result code
     returns the value via an :term:`out parameter`, a parameter that
     points to a location to store the result.
 
-3.  A function that stores a result in the location pointed to by an
+#.  A function that stores a result in the location pointed to by an
     out parameter only does so if the function is successful (that is,
     if the function returns :c:macro:`MPS_RES_OK`).
 
-4.  The value in the location pointed to by an out parameter is not
+#.  The value in the location pointed to by an out parameter is not
     read by the function.
 
-5.  Out parameters have names ending with ``_o``.
+#.  Out parameters have names ending with ``_o``.
 
-6.  A function that both needs to read a value stored in a location and
+#.  A function that both needs to read a value stored in a location and
     update the value does so via an :term:`in/out parameter`, which is
     the same as an out parameter except that the location it points to
     is read by the function. See for example :c:func:`MPS_FIX12`.
 
-7.  In/out parameters have names ending with ``_io``.
+#.  In/out parameters have names ending with ``_io``.
 
-8.  A function that takes optional arguments does so in the form of an
+#.  A function that takes optional arguments does so in the form of an
     array of keyword argument structures. These functions have names
     ending with ``_k``. See :ref:`topic-keyword`.
 
@@ -218,7 +218,7 @@ This is portable because conversion from ``void *`` to any other
 Macros
 ------
 
-1.  For function-like macros, the MPS follows the same convention as
+#.  For function-like macros, the MPS follows the same convention as
     the Standard C library. To quote :ref:`ISO/IEC 9899:1990 <ISO90>`
     §7.1.7:
 
@@ -235,12 +235,12 @@ Macros
         necessary, so it is generally safe to use arbitrary
         expressions as arguments.
 
-2.  Some function-like macros evaluate an argument more than once, so
+#.  Some function-like macros evaluate an argument more than once, so
     it is not safe to have a side effect in an argument of such a
     method. These special cases are documented. For example,
     :c:func:`mps_reserve`.
 
-3.  If you need the function rather than the macro, there are two
+#.  If you need the function rather than the macro, there are two
     approaches. You can undefine the macro::
 
           #undef mps_reserve
@@ -250,13 +250,13 @@ Macros
 
           res = (mps_reserve)(...);  /* calls function */
 
-4.  Statement-like macros have names in uppercase, for example
+#.  Statement-like macros have names in uppercase, for example
     :c:func:`MPS_RESERVE_BLOCK`. These macros behave like statements
     rather than expressions, so that you cannot write::
 
         (MPS_RESERVE_BLOCK(res, p, ap, size), 0)
 
-5.  Details of the macro expansion, although visible in the header
+#.  Details of the macro expansion, although visible in the header
     file, are not part of the MPS interface, and might change between
     releases. Don't rely on them, unless they are documented
     separately.

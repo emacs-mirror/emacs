@@ -58,13 +58,13 @@ Architecture
 
 _`.arch.structure`: The design consists of three components:
 
-1. _`.arch.string`: A string embedded into any delivered library
+#. _`.arch.string`: A string embedded into any delivered library
    binaries (which will encode the necessary information).
 
-2. _`.arch.proc`: A process by which the string is modified
+#. _`.arch.proc`: A process by which the string is modified
    appropriately whenever releases are made.
 
-3. _`.arch.tool`: A tool and its documentation (it is expected that
+#. _`.arch.tool`: A tool and its documentation (it is expected that
    standard tools can be used). The tool will be used to extract the
    version string from a delivered library or an executable linked
    with the library.
@@ -75,13 +75,13 @@ components are described elsewhere. (where?)
 
 The string will contain information to identify the following items:
 
-1. _`.arch.string.platform`: the platform being used.
+#. _`.arch.string.platform`: the platform being used.
 
-2. _`.arch.string.product`: the name of the product.
+#. _`.arch.string.product`: the name of the product.
 
-3. _`.arch.string.variety`: the variety of the product.
+#. _`.arch.string.variety`: the variety of the product.
 
-4. _`.arch.string.version`: the version and release of the product.
+#. _`.arch.string.version`: the version and release of the product.
 
 
 Implementation
@@ -133,7 +133,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -141,14 +141,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than

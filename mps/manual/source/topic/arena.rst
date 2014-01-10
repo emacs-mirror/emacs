@@ -500,7 +500,7 @@ Arena states
 
 An arena is always in one of three states.
 
-1. .. index::
+#. .. index::
       single: arena; unclamped state
       single: unclamped state
 
@@ -510,7 +510,7 @@ An arena is always in one of three states.
    be requested from or return to the operating system, and other
    kinds of background activity may occur. This is the normal state.
 
-2. .. index::
+#. .. index::
       single: arena; clamped state
       single: clamped state
 
@@ -523,7 +523,7 @@ An arena is always in one of three states.
    incremental collection may still occur, but it will not be visible
    to the :term:`client program` and no new collections will begin.
 
-3. .. index::
+#. .. index::
       single: arena; parked state
       single: parked state
 

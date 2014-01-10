@@ -218,18 +218,18 @@ _`.guardian.state.enum`: The states are Free, Prefinal, Final,
 PostFinal (referred to as MRGGuardianFree, etc. in the
 implementation).
 
-1. _`.guardian.state.free`: The guardian is free, meaning that it is
+#. _`.guardian.state.free`: The guardian is free, meaning that it is
    on the free list for the pool and available for allocation.
 
-2. _`.guardian.state.prefinal`: The guardian is allocated, and refers
+#. _`.guardian.state.prefinal`: The guardian is allocated, and refers
    to an object that has not yet been discovered to be finalizable. It
    is on the entry list for the pool.
 
-3. _`.guardian.state.final`: The guardian is allocated, and refers to
+#. _`.guardian.state.final`: The guardian is allocated, and refers to
    an object that has been shown to be finalizable; this state
    corresponds to the existence of a message.
 
-4. _`.guardian.state.postfinal`: This state is only used briefly and
+#. _`.guardian.state.postfinal`: This state is only used briefly and
    is entirely internal to the pool; the guardian enters this state
    just after the associated message has been destroyed (which happens
    when the client receives the message) and will be freed immediately
@@ -675,7 +675,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -683,14 +683,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-1. Redistributions of source code must retain the above copyright
+#. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright
+#. Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how
+#. Redistributions in any form must be accompanied by information on how
    to obtain complete source code for this software and any
    accompanying software that uses this software.  The source code must
    either be included in the distribution or be available for no more than
