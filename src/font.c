@@ -4429,7 +4429,7 @@ where
   LANGSYS is a symbol specifying a langsys tag of OpenType,
   GSUB and GPOS, if non-nil, are lists of symbols specifying feature tags.
 
-If LANGYS is nil, the default langsys is selected.
+If LANGSYS is nil, the default langsys is selected.
 
 The features are applied in the order they appear in the list.  The
 symbol `*' means to apply all available features not present in this

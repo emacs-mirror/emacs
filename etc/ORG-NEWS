@@ -1062,7 +1062,7 @@ See http://orgmode.org/elpa/
    | =k=             |        | [[doc::org-agenda-capture][org-agenda-capture]]          |
    | C-c ,           | ,      | [[doc::org-priority][org-priority]]                |
 
-** New package and Babel langage
+** New package and Babel language
 
 *** =org-eshell.el= by Konrad Hinsen is now in Org
 

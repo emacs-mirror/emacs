@@ -10509,8 +10509,8 @@ DIFFPT.  This function is called via `verilog-diff-function'."
 
 (defun verilog-diff-auto ()
   "Expand AUTOs in a temporary buffer and indicate any change.
-Whitespace differences are ignored to determine identicalness, but
-once a difference is detected, whitespace differences may be shown.
+Whitespace is ignored when detecting differences, but once a
+difference is detected, whitespace differences may be shown.
 
 To call this from the command line, see \\[verilog-batch-diff-auto].
 

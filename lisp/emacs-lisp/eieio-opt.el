@@ -124,7 +124,7 @@ If CLASS is actually an object, then also display current values of that object.
   ;; Describe all the methods specific to this class.
   (let ((methods (eieio-all-generic-functions class))
 	(type [":STATIC" ":BEFORE" ":PRIMARY" ":AFTER"])
-	counter doc argshl dochl)
+	counter doc)
     (when methods
       (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
       (while methods

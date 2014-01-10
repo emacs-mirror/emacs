@@ -591,7 +591,7 @@ slightly from the margin and use only 3 spaces as indentation between
 
 Restart Emacs, and re-indent the program we developed in the first part
 of this tutorial with @kbd{C-c h} and @kbd{C-M-\}.  You may want to keep
-these lines in @file{.emacs}, with values adjusted to your likings.  If
+these lines in @file{.emacs}, with values adjusted to your liking.  If
 you want to get more information about any of these variables, type,
 e.g., @kbd{C-h v idlwave-main-block-indent @key{RET}}.  To find which
 variables can be customized, look for items marked @samp{User Option:}

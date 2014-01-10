@@ -10229,8 +10229,8 @@ summary buffer, point will just move to this article.
 If given a positive numerical prefix, fetch that many articles back into
 the ancestry.  If given a negative numerical prefix, fetch just that
 ancestor.  So if you say @kbd{3 ^}, Gnus will fetch the parent, the
-grandparent and the grandgrandparent of the current article.  If you say
-@kbd{-3 ^}, Gnus will only fetch the grandgrandparent of the current
+grandparent and the great-grandparent of the current article.  If you say
+@kbd{-3 ^}, Gnus will only fetch the great-grandparent of the current
 article.
 
 @item A R (Summary)
