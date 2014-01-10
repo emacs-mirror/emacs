@@ -100,12 +100,12 @@ typedef struct amcNailboardStruct {
  * additional parameter (the address of the segment's generation) to 
  * SegAlloc.  See <design/poolamc/#fix.nail.distinguish>.
  *
- * .seg-ramp-new: "new" (if true) means this segment was allocated by 
- * AMCBufferFill while amc->rampMode == RampRAMPING, and therefore 
- * (I think) the contribution it *should* make to gen->pgen.newSize
- * is being deferred until the ramping is over.  "new" is set to FALSE
- * in all other (ie. normal) circumstances.  (The original comment for 
- * this struct member was "allocated since last GC").  RHSK 2009-04-15.
+ * .seg-ramp-new: The "new" flag is usually true, and indicates that the
+ * segment has been counted towards the pool generation's newSize.  It is
+ * set to FALSE otherwise.  This is used by both ramping and hash array
+ * allocations.  TODO: The code for this is scrappy and needs refactoring,
+ * and the *reasons* for setting these flags need properly documenting.
+ * RB 2013-07-17
  */
 
 typedef struct amcSegStruct *amcSeg;
@@ -563,13 +563,20 @@ typedef struct amcBufStruct *amcBuf;
 typedef struct amcBufStruct {
   SegBufStruct segbufStruct;    /* superclass fields must come first */
   amcGen gen;                   /* The AMC generation */
+  Bool forHashArrays;           /* allocates hash table arrays, see AMCBufferFill */
   Sig sig;                      /* <design/sig/> */
 } amcBufStruct;
 
 
 /* Buffer2amcBuf -- convert generic Buffer to an amcBuf */
 
-#define Buffer2amcBuf(buffer) ((amcBuf)(buffer))
+#define Buffer2amcBuf(buffer) \
+  PARENT(amcBufStruct, segbufStruct, \
+         PARENT(SegBufStruct, bufferStruct, buffer))
+
+/* amcBuf2Buffer -- convert amcBuf to generic Buffer */
+
+#define amcBuf2Buffer(amcbuf) (&(amcbuf)->segbufStruct.bufferStruct)
 
 
 
@@ -577,13 +584,13 @@ typedef struct amcBufStruct {
 
 static Bool amcBufCheck(amcBuf amcbuf)
 {
-  SegBuf segbuf;
-
   CHECKS(amcBuf, amcbuf);
-  segbuf = &amcbuf->segbufStruct;
-  CHECKL(SegBufCheck(segbuf));
+  CHECKL(SegBufCheck(&amcbuf->segbufStruct));
   if(amcbuf->gen != NULL)
     CHECKD(amcGen, amcbuf->gen);
+  CHECKL(BoolCheck(amcbuf->forHashArrays));
+  /* hash array buffers only created by mutator */
+  CHECKL(BufferIsMutator(amcBuf2Buffer(amcbuf)) || !amcbuf->forHashArrays);
   return TRUE;
 }
 
@@ -609,6 +616,10 @@ static void amcBufSetGen(Buffer buffer, amcGen gen)
 }
 
 
+ARG_DEFINE_KEY(ap_hash_arrays, Bool);
+
+#define amcKeyAPHashArrays (&_mps_key_ap_hash_arrays)
+
 /* AMCBufInit -- Initialize an amcBuf */
 
 static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
@@ -617,11 +628,16 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
   amcBuf amcbuf;
   BufferClass superclass;
   Res res;
+  Bool forHashArrays = FALSE;
+  ArgStruct arg;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
+
+  if (ArgPick(&arg, args, amcKeyAPHashArrays))
+    forHashArrays = arg.val.b;
 
   /* call next method */
   superclass = BUFFER_SUPERCLASS(amcBufClass);
@@ -637,6 +653,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
     /* No gen yet -- see <design/poolamc/#gen.forward>. */
     amcbuf->gen = NULL;
   }
+  amcbuf->forHashArrays = forHashArrays;
   amcbuf->sig = amcBufSig;
   AVERT(amcBuf, amcbuf);
 
@@ -1147,6 +1164,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   Serial genNr;
   SegPrefStruct segPrefStruct;
   PoolGen pgen;
+  amcBuf amcbuf;
+  Bool isRamping;
 
   AVERT(Pool, pool);
   amc = Pool2AMC(pool);
@@ -1163,6 +1182,9 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(amcGen, gen);
 
   pgen = &gen->pgen;
+
+  amcbuf = Buffer2amcBuf(buffer);
+  AVERT(amcBuf, amcbuf);
 
   /* Create and attach segment.  The location of this segment is */
   /* expressed as a generation number.  We rely on the arena to */
@@ -1193,21 +1215,15 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   ++gen->segs;
   pgen->totalSize += alignedSize;
 
-  /* If ramping, or if the buffer is a large proportion of the
-   * generation size, don't count it towards newSize. */
-
-  /* TODO: Find a better hack for this, which is really a work-around
-   * for a nasty problem in the collection scheduling strategy.
-   * See job003435. NB 2013-03-07. */
-
-  if((size < (pgen->chain->gens[genNr].capacity * 1024.0 / 4.0)) &&
-     (amc->rampMode != RampRAMPING
-      || buffer != amc->rampGen->forward
-      || gen != amc->rampGen))
-  {
-    pgen->newSize += alignedSize;
-  } else {
+  /* If ramping, or if the buffer is intended for allocating
+     hash table arrays, don't count it towards newSize. */
+  isRamping = (amc->rampMode == RampRAMPING &&
+               buffer == amc->rampGen->forward &&
+               gen == amc->rampGen);
+  if (isRamping || amcbuf->forHashArrays) {
     Seg2amcSeg(seg)->new = FALSE;
+  } else {
+    pgen->newSize += alignedSize;
   }
   PoolGenUpdateZones(pgen, seg);
 
@@ -2319,6 +2335,85 @@ static void amcWalkAll(Pool pool, FormattedObjectsStepMethod f,
 }
 
 
+/* amcAddrObjectSearch -- skip over objects (belonging to pool)
+ * starting at objBase until we reach one of the following cases:
+ * 1. addr is found (and not moved): set *pReturn to the client
+ * pointer to the object containing addr and return ResOK;
+ * 2. addr is found, but it moved: return ResFAIL;
+ * 3. we reach searchLimit: return ResFAIL.
+ */
+static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
+                               Addr searchLimit, Addr addr)
+{
+  Format format;
+  Size hdrSize;
+
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVER(objBase <= searchLimit);
+
+  format = pool->format;
+  hdrSize = format->headerSize;
+  while (objBase < searchLimit) {
+    Addr objRef = AddrAdd(objBase, hdrSize);
+    Addr objLimit = AddrSub((*format->skip)(objRef), hdrSize);
+    AVER(objBase < objLimit);
+    if (addr < objLimit) {
+      AVER(objBase <= addr && addr < objLimit); /* the point */
+      if (!(*format->isMoved)(objRef)) {
+        *pReturn = objRef;
+        return ResOK;
+      }
+      break;
+    }
+    objBase = objLimit;
+  }
+  return ResFAIL;
+}
+
+
+/* AMCAddrObject -- find client pointer to object containing addr.
+ * addr is known to belong to seg, which belongs to pool.
+ * See job003589.
+ */
+static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+{
+  Res res;
+  Arena arena;
+  Addr base, limit;    /* range of objects on segment */
+
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegPool(seg) == pool);
+  AVER(SegBase(seg) <= addr && addr < SegLimit(seg));
+
+  arena = PoolArena(pool);
+  base = SegBase(seg);
+  if (SegBuffer(seg) != NULL) {
+    /* We use BufferGetInit here (and not BufferScanLimit) because we
+     * want to be able to find objects that have been allocated and
+     * committed since the last flip. These objects lie between the
+     * addresses returned by BufferScanLimit (which returns the value
+     * of init at the last flip) and BufferGetInit.
+     *
+     * Strictly speaking we only need a limit that is at least the
+     * maximum of the objects on the segments. This is because addr
+     * *must* point inside a live object and we stop skipping once we
+     * have found it. The init pointer serves this purpose.
+     */
+    limit = BufferGetInit(SegBuffer(seg));
+  } else {
+    limit = SegLimit(seg);
+  }
+
+  ShieldExpose(arena, seg);
+  res = amcAddrObjectSearch(pReturn, pool, base, limit, addr);
+  ShieldCover(arena, seg);
+  return res;
+}
+
+
 /* AMCDescribe -- describe the contents of the AMC pool
  *
  * See <design/poolamc/#describe>.
@@ -2415,6 +2510,7 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->traceEnd = AMCTraceEnd;
   this->rampBegin = AMCRampBegin;
   this->rampEnd = AMCRampEnd;
+  this->addrObject = AMCAddrObject;
   this->walk = AMCWalk;
   this->bufferClass = amcBufClassGet;
   this->describe = AMCDescribe;

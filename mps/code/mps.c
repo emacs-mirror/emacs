@@ -209,7 +209,7 @@
 #include "proti6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
 #include "ssw3i6mv.c"   /* Windows on 64-bit stack scan for Microsoft C */
-#include "span.c"       /* generic stack probe FIXME: Is this correct? */
+#include "spw3i6mv.c"   /* Windows on 64-bit stack probe for Microsoft C */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
 #else

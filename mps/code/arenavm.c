@@ -568,6 +568,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
     nono.l = -1;
     vmArena->blacklist = ZoneSetAdd(arena, vmArena->blacklist, nono.addr);
   }
+  EVENT2(ArenaBlacklistZone, vmArena, vmArena->blacklist);
   
   for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
     vmArena->genZoneSet[gen] = ZoneSetEMPTY;
@@ -1473,9 +1474,19 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
 
   if (pref->isGen) {
     Serial gen = vmGenOfSegPref(vmArena, pref);
+    if (!ZoneSetSuper(vmArena->genZoneSet[gen], zones)) {
+      /* Tracking the whole zoneset for each generation number gives
+       * more understandable telemetry than just reporting the added
+       * zones. */
+      EVENT3(ArenaGenZoneAdd, arena, gen, ZoneSetUnion(vmArena->genZoneSet[gen], zones));
+    }
+            
     vmArena->genZoneSet[gen] = ZoneSetUnion(vmArena->genZoneSet[gen], zones);
   }
 
+  if (ZoneSetInter(vmArena->freeSet, zones) != ZoneSetEMPTY) {
+      EVENT2(ArenaUseFreeZone, arena, ZoneSetInter(vmArena->freeSet, zones));
+  }
   vmArena->freeSet = ZoneSetDiff(vmArena->freeSet, zones);
  
   *baseReturn = base;
