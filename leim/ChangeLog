@@ -770,10 +770,10 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* latin-post.el: Recode to utf-8.
+	* quail/latin-post.el: Recode to utf-8.
 	("latin-postfix"): New method.
 
-	* latin-alt.el: Recode to utf-8.
+	* quail/latin-alt.el: Recode to utf-8.
 	("latin-alt-postfix"): New method.
 
 	* quail/latin-pre.el: Recode to utf-8.
@@ -2167,11 +2167,11 @@
 	* Makefile.in: Prepend ${srcdir} to all non-TIT lisp file names.
 	(leim-list.el): Depend on ${WORLD}.
 
-	* latin-alt.el (latin-2-alt-postfix): Doc fix.
+	* quail/latin-alt.el (latin-2-alt-postfix): Doc fix.
 
 1998-04-08  Karl Heuer  <kwzh@mescaline.gnu.org>
 
-	* czech.el, slovak.el: Correct starting commentary.
+	* quail/czech.el, quail/slovak.el: Correct starting commentary.
 
 1998-04-07  Milan Zamazal  <pdm@fi.muni.cz>
 
@@ -2179,7 +2179,7 @@
 
 1998-04-06  Andreas Schwab  <schwab@gnu.org>
 
-	* lrt.el (lrt-composing-pattern-double-c): Change chars-in-string
+	* quail/lrt.el (lrt-composing-pattern-double-c): Change chars-in-string
 	to length.
 	(lrt-generate-quail-map): Change sref to aref, and make second
 	argument of substring a character index.

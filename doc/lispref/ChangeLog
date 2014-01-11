@@ -9395,7 +9395,7 @@
 
 	* variables.texi (Variable Aliases): Simplify.
 
-	* anti.texi, backups.texi, compile.texi, customization.texi:
+	* anti.texi, backups.texi, compile.texi, customize.texi:
 	* debugging.texi, display.texi, edebug.texi, errors.texi, frames.texi:
 	* functions.texi, help.texi, keymaps.texi, modes.texi, nonascii.texi:
 	* os.texi, processes.texi, searching.texi, strings.texi, text.texi:

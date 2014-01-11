@@ -5097,9 +5097,6 @@
 	* org-agenda.el (org-agenda-show-clocking-issues)
 	(org-agenda-format-item): Silence byte compiler.
 
-	* org-colview-xemacs.el (org-agenda-columns): Silence byte
-	compiler.
-
 	* org-colview.el (org-agenda-columns): Silence byte compiler.
 
 	* org.el (org-properties-postprocess-alist): Silence byte
@@ -13446,10 +13443,6 @@
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
-	* org-mw.el (org-mw-export-lists): Fix list export.
-
-2012-01-03  Bastien Guerry  <bzg@gnu.org>
-
 	* org-list.el (org-list-item-trim-br): New function.
 	(org-list-to-generic): New parameter :nobr to use the new
 	function.
@@ -14069,11 +14062,6 @@
 	surprising place when the user is being asked to choose a new
 	description term to insert in the list.  Point should stay where
 	the user called the command.
-
-2011-07-28  Bastien Guerry  <bzg@gnu.org>
-
-	* org-toc.el (org-toc-before-first-heading-p, org-toc-show)
-	(org-toc-get-headlines-status): Use `org-outline-regexp-bol'.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -18539,21 +18527,9 @@
 	* ob-ref.el (org-babel-ref-parse): Allow passing empty strings
 	into code blocks.
 
-2011-07-28  David Maus  <dmaus@ictsoc.de>
-
-	* test-org-table.el
-	(test-org-table/org-table-convert-refs-to-rc/3)
-	(test-org-table/org-table-convert-refs-to-rc/2)
-	(test-org-table/org-table-convert-refs-to-rc/1)
-	(test-org-table/org-table-convert-refs-to-an/3)
-	(test-org-table/org-table-convert-refs-to-an/2)
-	(test-org-table/org-table-convert-refs-to-an/1): Provide tests for
-	table formular format conversion.
-
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-sort-entries): Fix sorting with a bold emphasis at
-	bol.
+	* org.el (org-sort-entries): Fix sorting with a bold emphasis at bol.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 

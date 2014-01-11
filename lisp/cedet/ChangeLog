@@ -29,7 +29,7 @@
 	completable types, pull in types which are referenced through
 	'using' statements, and also preserve their filenames.
 
-	* semanitc/bovine/c.el (semantic/analyze/refs): Require.
+	* semantic/bovine/c.el (semantic/analyze/refs): Require.
 	(semantic-analyze-tag-references): New override.  Mainly copied
 	from the default implementation, but if nothing could be found (or
 	just the tag itself), drop all namespaces from the scope and
@@ -245,7 +245,7 @@
 
 2013-07-29  David Engster  <deng@randomsample.de>
 
-	* lisp/cedet/cedet.el (cedet-packages): Remove speedbar since its
+	* cedet.el (cedet-packages): Remove speedbar since its
 	development does no longer happens in CEDET upstream but in Emacs
 	proper.  Also remove cedet-contrib and cogre since those are only
 	in upstream.
@@ -262,7 +262,7 @@
 
 2013-07-27  Eric Ludlam  <zappo@gnu.org>
 
-	* lisp/cedet/semantic/edit.el (semantic-edits-splice-remove):
+	* semantic/edit.el (semantic-edits-splice-remove):
 	Wrap debug message removing middle tag in semantic-edits-verbose-flag
 	check.
 
@@ -552,18 +552,15 @@
 
 	* srecode/srt-mode.el:
 	* srecode/compile.el:
-	* semantic/elp.el:
 	* semantic/db-el.el:
 	* semantic/complete.el:
 	* ede.el:
-	* cogre.el:
 	* srecode/table.el:
 	* srecode/mode.el:
 	* srecode/insert.el:
 	* srecode/compile.el:
 	* semantic/decorate/include.el:
 	* semantic/db.el:
-	* semantic/adebug.el:
 	* ede/auto.el:
 	* srecode/dictionary.el:
 	* semantic/ede-grammar.el:
@@ -2784,8 +2781,6 @@
 	srecode/insert.
 
 	* srecode/srt-mode.el (srecode-template-mode): Doc fix.
-
-	* files.el (auto-mode-alist): Add .srt and Project.ede.
 
 	* semantic.el (semantic-mode):
 	Handle srecode-template-mode-hook as well.

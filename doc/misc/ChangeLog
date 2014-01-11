@@ -664,7 +664,7 @@
 
 2013-10-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.el (Data Type Formats): Don't specify the size at
+	* calc.texi (Data Type Formats): Don't specify the size at
 	which integers begin to be represented by lists.
 
 2013-10-14  Xue Fuqiao  <xfq.free@gmail.com>
@@ -6293,6 +6293,12 @@
 
 	* org.texi: Massive changes, in many parts of the file.
 
+2008-04-27  Jason Riedy  <jason@acm.org>
+
+	* org.texi (A LaTeX example): Note that fmt may be a
+	one-argument function, and efmt may be a two-argument function.
+	(Radio tables): Document multiple destinations.
+
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Oort Gnus): Add message-fill-column.
@@ -6525,6 +6531,10 @@
 
 	* tramp.texi (Remote processes): Add `shell-command'.
 
+2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use new FSF's Back-Cover Text.
+
 2008-01-28  Michael Sperber  <sperber@deinprogramm.de>
 
 	* gnus.texi (Mail Source Specifiers): Document `group' specifier.
@@ -6625,7 +6635,7 @@
 
 2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.tex (Yacas Language, Maxima Language, Giac Language):
+	* calc.texi (Yacas Language, Maxima Language, Giac Language):
 	New sections.
 
 2007-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -6642,6 +6652,10 @@
 	Sync with Tramp 2.1.12.
 
 	* trampver.texi: Update release number.
+
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* cc-mode.texi (Getting Started): Change @ref to @pxref.
 
 2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -7904,11 +7918,6 @@
 	* gnus.texi (Batching Agents): Fix example.  Reported by Tassilo Horn
 	<tassilo@member.fsf.org>.
 
-2007-01-27  Eli Zaretskii  <eliz@gnu.org>
-
-	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
-	ls-lisp-use-localized-time-format.
-
 2007-01-20  Markus Triska  <markus.triska@gmx.at>
 
 	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.
@@ -8204,7 +8213,6 @@
 	* faq.texi (Escape sequences in shell output): EMACS is now set
 	to Emacs's absolute file name, not to "t".
 	(^M in the shell buffer): Likewise.
-	* misc.texi (Interactive Shell): Likewise.
 
 2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -8221,6 +8229,10 @@
 2006-09-06  Simon Josefsson  <jas@extundo.com>
 
 	* smtpmail.texi (Authentication): Mention SSL.
+
+2006-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.texi (Getting Started, Connecting): Change erc-select to erc.
 
 2006-09-01  Eli Zaretskii  <eliz@gnu.org>
 

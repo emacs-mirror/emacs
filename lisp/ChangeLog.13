@@ -541,7 +541,7 @@
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.ps: Fix background height.
+	* ps-print.el: Fix background height.
 	(ps-print-version): New version 7.2.1.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>

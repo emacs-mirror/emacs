@@ -69,7 +69,7 @@
 	* version.el (emacs-bzr-version): Name changed to
 	emacs-repository-version. Obsolete-variable alias made.
 	* loadup.el: Follow through on this name change.
-	* lisp/mail/emacsbug.el (report-emacs-bug): Factor out any
+	* mail/emacsbug.el (report-emacs-bug): Factor out any
 	assumption about the version control system in use.
 
 2014-01-08  David Engster  <deng@randomsample.de>
@@ -3421,7 +3421,7 @@
 
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
-	* lisp/subr.el (sit-for): Call (input-pending-p t) so as to behave
+	* subr.el (sit-for): Call (input-pending-p t) so as to behave
 	as before.
 
 2013-10-18  Reuben Thomas  <rrt@sc3d.org>
@@ -4194,13 +4194,13 @@
 
 2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
+	* progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
 	(octave-mode-menu): Add octave-send-buffer.
 	(octave-send-buffer): New function.
 
 2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/progmodes/octave.el (octave-mode-map): Add key binding for
+	* progmodes/octave.el (octave-mode-map): Add key binding for
 	octave-lookfor.
 	(octave-mode-menu): Add octave-lookfor.
 	(inferior-octave-mode-map, octave-help-mode-map): Bind C-ha to
@@ -6202,7 +6202,7 @@
 	* isearch.el (isearch-done):
 	* jit-lock.el (jit-lock-stealth-fontify):
 	* mail/rmailsum.el (rmail-summary-scroll-msg-up):
-	* lisp/mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
 	* mpc.el (mpc-tagbrowser, mpc):
 	* net/rcirc.el (rcirc-any-buffer):
 	* play/gomoku.el (gomoku-max-width, gomoku-max-height):
@@ -7573,12 +7573,12 @@
 
 	* files.el (find-file-noselect): Simplify conditional expression.
 
-	* remember.el (remember-append-to-file):
+	* textmodes/remember.el (remember-append-to-file):
 	Don't mix `find-buffer-visiting' and `get-file-buffer'.
 
 	Add `remember-notes' function to store random notes across Emacs
 	restarts.
-	* remember.el (remember-data-file): Add :set callback to affect
+	* textmodes/remember.el (remember-data-file): Add :set callback to affect
 	notes buffer (if any).
 	(remember-notes): New command.
 	(remember-notes-buffer-name, bury-remember-notes-on-kill):
@@ -9156,7 +9156,7 @@
 
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* lisp/subr.el: Convert to lexical binding.
+	* subr.el: Convert to lexical binding.
 	(overriding-local-map): Make obsolete.
 	(add-to-list): Doc fix.  Add compiler macro.
 	(read-key): Swap values of local maps.
@@ -9811,16 +9811,16 @@
 
 2013-05-23  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/textmodes/reftex.el (reftex-ref-style-toggle):
+	* textmodes/reftex.el (reftex-ref-style-toggle):
 	Fix deactivate action.
 
-	* lisp/textmodes/reftex-vars.el (reftex-ref-style-alist):
+	* textmodes/reftex-vars.el (reftex-ref-style-alist):
 	Add cleveref macros.
 
-	* lisp/textmodes/reftex-parse.el
+	* textmodes/reftex-parse.el
 	(reftex-locate-bibliography-files): Accept options for
 	bibliography commands.
-	* lisp/textmodes/reftex-vars.el (reftex-bibliography-commands):
+	* textmodes/reftex-vars.el (reftex-bibliography-commands):
 	Add addbibresource.  Basic Biblatex support.
 
 2013-05-23  Michael Albinus  <michael.albinus@gmx.de>

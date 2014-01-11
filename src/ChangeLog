@@ -654,7 +654,7 @@
 	* conf_post.h: Include <stdbool.h>.
 	(bool_bf): New type.
 	* dispextern.h (TRACE, PREPARE_FACE_FOR_DISPLAY):
-	* interval.h (RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE)
+	* intervals.h (RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE)
 	Surround statement macro with proper 'do { ... } while (false)' brackets.
 	* dispextern.h (IF_DEBUG): Properly parenthesize and convert to void.
 	Args must now be expressions; all callers changed.
@@ -3447,7 +3447,7 @@
 	(Qbool_vector_p): Declare.
 	(CHECK_BOOL_VECTOR, ROUNDUP, BITS_PER_SIZE_T): New macros.
 	(swap16, swap32, swap64): New inline functions.
-	* macfont.c (macfont_shape): Change lint_assume to assume.
+	* macfont.m (macfont_shape): Change lint_assume to assume.
 	* ralloc.c: Rename ROUNDUP to PAGE_ROUNDUP throughout.
 	* xsettings.c (parse_settings): Use new swap16 and
 	swap32 from lisp.h instead of file-specific macros.
@@ -3511,7 +3511,7 @@
 	* process.h, process.c (PROCESS_INLINE):
 	* syntax.h, syntax.c (SYNTAX_INLINE):
 	* systime.h, sysdep.c (SYSTIME_INLINE):
-	* termhooks.h, terminal.h (TERMHOOKS_INLINE):
+	* termhooks.h, terminal.c (TERMHOOKS_INLINE):
 	* window.h, window.c (WINDOW_INLINE):
 	Remove.  All uses replaced with INLINE.
 
@@ -3718,7 +3718,7 @@
 	(x_handle_dnd_message):
 	* xsettings.c (xft_settings_event):
 	Use 'const XEvent * const' where appropriate.
-	* xterm.h, gtkutil.h, xsettngs.h: Adjust related prototypes.
+	* xterm.h, gtkutil.h, xsettings.h: Adjust related prototypes.
 
 2013-09-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -3760,7 +3760,7 @@
 	(Fx_create_frame): Register macfont driver, make a better default font.
 	(Fns_popup_font_panel): Get font from macfont driver, if used.
 
-	* macfont.m, macfont.h, maccuvs.h: New files.
+	* macfont.m, macfont.h, macuvs.h: New files.
 
 	* font.h: Declare syms_of_macfont.
 
@@ -6065,7 +6065,7 @@
 	New unwind-protect flavors to better type-check C callbacks.
 	This also lessens the need to write wrappers for callbacks,
 	and the need for make_save_pointer.
-	* alloca.c (free_save_value):
+	* alloc.c (free_save_value):
 	* atimer.c (run_all_atimers):
 	Now extern.
 	* alloc.c (safe_alloca_unwind):
@@ -6074,13 +6074,13 @@
 	* menu.c (cleanup_popup_menu) [HAVE_NS]:
 	* minibuf.c (choose_minibuf_frame_1):
 	* process.c (make_serial_process_unwind):
-	* xdisp.h (pop_message_unwind):
+	* xdisp.c (pop_message_unwind):
 	* xselect.c (queue_selection_requests_unwind):
 	Remove no-longer-needed wrapper.  All uses replaced by the wrappee.
-	* alloca.c (record_xmalloc):
+	* alloc.c (record_xmalloc):
 	Prefer record_unwind_protect_ptr to record_unwind_protect with
 	make_save_pointer.
-	* alloca.c (Fgarbage_collect):
+	* alloc.c (Fgarbage_collect):
 	Prefer record_unwind_protect_void to passing a dummy.
 	* buffer.c (restore_buffer):
 	* window.c (restore_window_configuration):
@@ -6686,8 +6686,8 @@
 	Use emacs_open more consistently when opening files.
 	This handles EINTR more consistently now, and makes it easier
 	to introduce other uniform changes to file descriptor handling.
-	* src/systdio.h: New file.
-	* src/buffer.c (mmap_init):
+	* sysstdio.h: New file.
+	* buffer.c (mmap_init):
 	* cygw32.c (chdir_to_default_directory):
 	* dispnew.c (Fopen_termscript):
 	* emacs.c (Fdaemon_initialized):
