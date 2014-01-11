@@ -145,40 +145,52 @@ maybe ask the VCS itself, if the sources appear to be under
 version control.  If `force', always ask.  the VCS. Otherwise
 only ask the VCS if we cannot find any information ourselves."
   (or dir (setq dir source-directory))
-  (when (file-directory-p (expand-file-name ".bzr/branch" dir))
-    (if (eq external 'force)
-        (emacs-bzr-version-bzr dir)
-      (let (file loc rev)
-        (cond ((file-readable-p
-                (setq file (expand-file-name ".bzr/branch/last-revision" dir)))
-               (with-temp-buffer
-                 (insert-file-contents file)
-                 (goto-char (point-max))
-                 (if (looking-back "\n")
-                     (delete-char -1))
-                 (buffer-string)))
-              ;; OK, no last-revision.  Is it a lightweight checkout?
-              ((file-readable-p
-                (setq file (expand-file-name ".bzr/branch/location" dir)))
-               (setq rev (emacs-bzr-version-dirstate dir))
-               ;; If the parent branch is local, try looking there for the rev.
-               ;; Note: there is no guarantee that the parent branch's rev
-               ;; corresponds to this branch.  This branch could have
-               ;; been made with a specific -r revno argument, or the
-               ;; parent could have been updated since this branch was created.
-               ;; To try and detect this, we check the dirstate revids
-               ;; to see if they match.
-               (if (and (setq loc (with-temp-buffer
-                                    (insert-file-contents file)
-                                    (if (looking-at "file://\\(.*\\)")
-                                        (match-string 1))))
-                        (equal rev (emacs-bzr-version-dirstate loc)))
-                   (emacs-bzr-get-version loc)
-                 ;; If parent does not match, the best we can do without
-                 ;; calling external commands is to use the dirstate rev.
-                 rev))
-              (external
-               (emacs-bzr-version-bzr dir)))))))
+  (or 
+   ;; Bazaar case -- to be removed after transition
+   (when (file-directory-p (expand-file-name ".bzr/branch" dir))
+     (if (eq external 'force)
+	 (emacs-bzr-version-bzr dir)
+       (let (file loc rev)
+	 (cond ((file-readable-p
+		 (setq file (expand-file-name ".bzr/branch/last-revision" dir)))
+		(with-temp-buffer
+		  (insert-file-contents file)
+		  (goto-char (point-max))
+		  (if (looking-back "\n")
+		      (delete-char -1))
+		  (buffer-string)))
+	       ;; OK, no last-revision.  Is it a lightweight checkout?
+	       ((file-readable-p
+		 (setq file (expand-file-name ".bzr/branch/location" dir)))
+		(setq rev (emacs-bzr-version-dirstate dir))
+		;; If the parent branch is local, try looking there for the rev.
+		;; Note: there is no guarantee that the parent branch's rev
+		;; corresponds to this branch.  This branch could have
+		;; been made with a specific -r revno argument, or the
+		;; parent could have been updated since this branch was created.
+		;; To try and detect this, we check the dirstate revids
+		;; to see if they match.
+		(if (and (setq loc (with-temp-buffer
+				     (insert-file-contents file)
+				     (if (looking-at "file://\\(.*\\)")
+					 (match-string 1))))
+			 (equal rev (emacs-bzr-version-dirstate loc)))
+		    (emacs-bzr-get-version loc)
+		  ;; If parent does not match, the best we can do without
+		  ;; calling external commands is to use the dirstate rev.
+		  rev))
+	       (external
+		(emacs-bzr-version-bzr dir))))))
+   ;; Git case
+  (when (file-directory-p (expand-file-name ".git" dir))
+    (message "Waiting for git...")
+    (with-temp-buffer
+      (if (zerop
+	   (call-process "git" nil '(t nil) nil "log"
+			 "-1"
+			 "--pretty=format:%N"))
+	  (replace-regexp-in-string "\n" "" (buffer-string)))))
+   ))
 
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

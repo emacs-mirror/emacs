@@ -1,5 +1,9 @@
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
 
+	* version.el (emacs-repository-get-version): Enhancee so the
+	function works correctly in either a Bazaar or Git repo. The
+	Bazaar case can be discarded  after the repo transition.
+
 	* play/meese.el: It's 2014 and Ed Meese is justly forgotten. Goes
 	with removal of the joke manpages from /etc.
 
