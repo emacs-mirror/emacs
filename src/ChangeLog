@@ -1,3 +1,10 @@
+2014-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_id): Don't use this function's optimizations
+	if overlays in the buffer displayed by the window have changed
+	since last redisplay.  (Bug#16347)
+	(message_dolog): Fix indentation.
+
 2014-01-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (frame_resize_pixelwise): Fix doc-string.

@@ -9854,7 +9854,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 	 incrementing windows_or_buffers_changed even if *Messages* is
 	 shown in some window.  So we must manually set
 	 windows_or_buffers_changed here to make up for that.  */
-	windows_or_buffers_changed = old_windows_or_buffers_changed;
+      windows_or_buffers_changed = old_windows_or_buffers_changed;
       bset_redisplay (current_buffer);
 
       set_buffer_internal (oldbuf);
@@ -17416,6 +17416,12 @@ try_window_id (struct window *w)
   /* This flag is used to prevent redisplay optimizations.  */
   if (windows_or_buffers_changed || f->cursor_type_changed)
     GIVE_UP (2);
+
+  /* This function's optimizations cannot be used if overlays have
+     changed in the buffer displayed by the window, so give up if they
+     have.  */
+  if (w->last_overlay_modified != OVERLAY_MODIFF)
+    GIVE_UP (21);
 
   /* Verify that narrowing has not changed.
      Also verify that we were not told to prevent redisplay optimizations.
