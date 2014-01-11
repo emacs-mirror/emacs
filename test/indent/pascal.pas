@@ -688,7 +688,7 @@ var
       NoSound;
       RestoreTerminalClearCRT;
       WriteLn (StdErr, 'You''re trying to kill me. Since I have break checking turned off,');
-      WriteLn (StdErr, 'I''m not dying, but I''ll do you a favour and terminate now.');
+      WriteLn (StdErr, 'I''m not dying, but I''ll do you a favor and terminate now.');
       Halt (3)
    end;
 

@@ -1,4 +1,4 @@
-/* Replacement inntypes.h file for building GNU Emacs on MS-DOS with DJGPP.
+/* Replacement inttypes.h file for building GNU Emacs on MS-DOS with DJGPP.
 
 Copyright (C) 2011-2014 Free Software Foundation, Inc.
 

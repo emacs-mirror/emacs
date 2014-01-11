@@ -190,6 +190,7 @@ Advanced Features
 * Rmail::               Reading mail in Emacs.
 * Gnus::                A flexible mail and news reader.
 * Document View::       Viewing PDF, PS and DVI files.
+* EWW::                 A web browser in Emacs.
 * Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
@@ -1338,9 +1339,12 @@ If you find GNU Emacs useful, please @strong{send a donation} to the
 Free Software Foundation to support our work.  Donations to the Free
 Software Foundation are tax deductible in the US@.  If you use GNU Emacs
 at your workplace, please suggest that the company make a donation.
-For more information on how you can help, see
+To donate, see @url{https://my.fsf.org/donate/}.
+For other ways in which you can help, see
 @url{http://www.gnu.org/help/help.html}.
 
+@c The command view-order-manuals uses this anchor.
+@anchor{Printed Books}
 We also sell hardcopy versions of this manual and @cite{An
 Introduction to Programming in Emacs Lisp}, by Robert J. Chassell.
 You can visit our online store at @url{http://shop.fsf.org/}.

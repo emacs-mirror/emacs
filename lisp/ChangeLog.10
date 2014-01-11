@@ -67,8 +67,8 @@
 	* progmodes/cc-awk.el: New file that implements AWK support,
 	superseding the old separate derived mode in awk-mode.el.
 
-	* progmodes/cc-vars.el, cc-mode-19.el, progmodes/cc-langs.el,
-	* progmodes/cc-mode.el, progmodes/cc-defs.el,
+	* progmodes/cc-vars.el, progmodes/cc-mode-19.el, progmodes/cc-langs.el:
+	* progmodes/cc-mode.el, progmodes/cc-defs.el:
 	* progmodes/cc-engine.el, progmodes/cc-fonts.el:
 	Changes for the new AWK support.
 
@@ -4486,7 +4486,7 @@
 
 2003-03-26  Steve Youngs  <youngs@xemacs.org>
 
-	* em-unix.el (eshell-plain-locate-behavior): Make the default
+	* eshell/em-unix.el (eshell-plain-locate-behavior): Make the default
 	nil on Emacs, t on XEmacs.
 
 2003-03-25  Stefan Monnier  <monnier@cs.yale.edu>
@@ -6354,11 +6354,11 @@
 	* mh-e: Created directory.  ChangeLog will appear in a week when we
 	release version 7.2.
 
-	* mail/mh-alias.el, mail/mh-comp.el, mail/mh-customize.el, mail/mh-e.el,
-	mail/mh-funcs.el, mail/mh-identity.el, mail/mh-index.el,
-	mail/mh-loaddefs.el, mail/mh-mime.el, mail/mh-pick.el,
-	mail/mh-seq.el, mail/mh-speed.el, mail/mh-utils.el,
-	mail/mh-xemacs-compat.el: Moved to mh-e directory.
+	* mail/mh-alias.el, mail/mh-comp.el, mail/mh-customize.el, mail/mh-e.el:
+	* mail/mh-funcs.el, mail/mh-identity.el, mail/mh-index.el:
+	* mail/mh-loaddefs.el, mail/mh-mime.el, mail/mh-pick.el:
+	* mail/mh-seq.el, mail/mh-speed.el, mail/mh-utils.el:
+	* mail/mh-xemacs-compat.el: Move to mh-e directory.
 	Note that reply2.pbm and reply2.xpm, which were created by the
 	MH-E package, were left in mail since they can probably be used by
 	other mail packages.
@@ -10676,7 +10676,7 @@
 
 2002-09-18  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-hooks.el: Put back the autoloads (for XEmacs compatibility).
+	* ediff-hook.el: Put back the autoloads (for XEmacs compatibility).
 
 	* ediff-init.el: Use defalias instead of fset.
 
@@ -11693,32 +11693,32 @@
 
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
-	* textfile/reftex-ref.el (reftex-goto-label): New command.
+	* textmodes/reftex-ref.el (reftex-goto-label): New command.
 
-	* textfile/reftex-vars.el (reftex-part-resets-chapter): New option.
+	* textmodes/reftex-vars.el (reftex-part-resets-chapter): New option.
 
-	* textfile/reftex-parse.el (reftex-roman-number): New function.
+	* textmodes/reftex-parse.el (reftex-roman-number): New function.
 	(reftex-section-number): Better handling of parts: No chapter
 	counter resets.
 
-	* textfile/reftex.el (reftex-highlight-overlays): Added a third
+	* textmodes/reftex.el (reftex-highlight-overlays): Added a third
 	overlay.
 	(reftex-mode-menu): Added entry for `reftex-toc-recenter.
 	Also moved `reftex-reset-mode' to top level.
 
-	* textfile/reftex-toc.el (reftex-toc-recenter): New command.
+	* textmodes/reftex-toc.el (reftex-toc-recenter): New command.
 	(reftex-toc-pre-command-hook): Don't remove highlight overlay.
 	(reftex-toc-post-command-hook): Use overlay no 2 for highlighting.
 
-	* textfile/reftex-sel.el (reftex-get-offset): Get offset of
+	* textmodes/reftex-sel.el (reftex-get-offset): Get offset of
 	document pointer *before* position, not after.
 	(reftex-insert-docstruct): Get offset of document pointer *before*
 	position, not after.
 
-	* textfiles/reftex-parse.el (reftex-where-am-I): Prefer marker
+	* textmodes/reftex-parse.el (reftex-where-am-I): Prefer marker
 	match over section title match.
 
-	* textfiles/reftex-cite.el (reftex-bib-or-thebib): New function
+	* textmodes/reftex-cite.el (reftex-bib-or-thebib): New function
 	which determines on a per-file-basis if BibTeX is being used
 	locally for citations.
 	(reftex-offer-bib-menu): Use `reftex-bib-or-thebib' for better
@@ -11726,7 +11726,7 @@
 	(reftex-bibtex-selection-callback): Use `reftex-bib-or-thebib' for
 	better cooperation with chapterbib.
 
-	* textfiles/reftex-dcr.el (reftex-view-cr-cite):
+	* textmodes/reftex-dcr.el (reftex-view-cr-cite):
 	Use `reftex-bib-or-thebib' for better cooperation with chapterbib.
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
@@ -11891,7 +11891,7 @@
 
 2002-08-20  Carsten Dominik  <dominik@astro.uva.nl>
 
-	* textfiles/reftex-cite.el (reftex-bib-or-thebib): New function
+	* textmodes/reftex-cite.el (reftex-bib-or-thebib): New function
 	which determines on a per-file-basis if BibTeX is being used
 	locally for citations.
 	(reftex-offer-bib-menu): Use `reftex-bib-or-thebib' for better
@@ -11899,7 +11899,7 @@
 	(reftex-bibtex-selection-callback): Use `reftex-bib-or-thebib' for
 	better cooperation with chapterbib.
 
-	* textfiles/reftex-dcr.el (reftex-view-cr-cite):
+	* textmodes/reftex-dcr.el (reftex-view-cr-cite):
 	Use `reftex-bib-or-thebib' for better cooperation with chapterbib.
 
 2002-08-20  Kim F. Storm  <storm@cua.dk>
@@ -11909,7 +11909,7 @@
 	with keyboard macro related commands.  The original binding on
 	C-x C-k is moved to C-x C-k e.
 
-	* binding.el: Remove macro related bindings (now in kmacro.el).
+	* bindings.el: Remove macro related bindings (now in kmacro.el).
 
 	* edmacro.el: Remove C-x C-k binding (now in kmacro.el).
 
@@ -12099,12 +12099,12 @@
 
 2002-04-09  John Wiegley  <johnw@gnu.org>
 
-	* esh-util.el: Removed eshell-under-cygwin-p, and all uses of it.
-	* em-cmpl.el (eshell-cmpl-ignore-case): Ditto.
-	* em-dirs.el (eshell/cd): Ditto.
-	* em-glob.el (eshell-glob-case-insensitive): Ditto.
-	* em-hist.el (eshell-previous-matching-input-string-position): Ditto.
-	* esh-ext.el (eshell-binary-suffixes): Ditto.
+	* eshell/em-cmpl.el (eshell-cmpl-ignore-case):
+	* eshell/em-dirs.el (eshell/cd):
+	* eshell/em-glob.el (eshell-glob-case-insensitive):
+	* eshell/em-hist.el (eshell-previous-matching-input-string-position):
+	* eshell/esh-ext.el (eshell-binary-suffixes):
+	* eshell/esh-util.el: Remove eshell-under-cygwin-p, and all uses of it.
 
 2002-08-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -12197,12 +12197,12 @@
 
 2002-04-09  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* esh-util.el (eshell-under-cygwin-p): New function.
-	* em-cmpl.el (eshell-cmpl-ignore-case): Use it.
-	* em-dirs.el (eshell/cd): Ditto.
-	* em-glob.el (eshell-glob-case-insensitive): Ditto.
-	* em-hist.el (eshell-previous-matching-input-string-position): Ditto.
-	* esh-ext.el (eshell-binary-suffixes): Ditto.
+	* eshell/esh-util.el (eshell-under-cygwin-p): New function.
+	* eshell/em-cmpl.el (eshell-cmpl-ignore-case):
+	* eshell/em-dirs.el (eshell/cd):
+	* eshell/em-glob.el (eshell-glob-case-insensitive):
+	* eshell/em-hist.el (eshell-previous-matching-input-string-position):
+	* eshell/esh-ext.el (eshell-binary-suffixes): Use it.
 
 2002-08-05  Richard M. Stallman  <rms@gnu.org>
 
@@ -14192,7 +14192,7 @@
 
 2002-06-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-style.el (c-set-style, c-set-style-1):
+	* progmodes/cc-styles.el (c-set-style, c-set-style-1):
 	Add another state for the `dont-override' flag where it only keeps
 	globally set variables.
 
@@ -15640,7 +15640,7 @@
 
 2002-04-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-hooks.el: Put back the autoloads.
+	* ediff-hook.el: Put back the autoloads.
 
 2002-04-25  Colin Walters  <walters@verbum.org>
 
@@ -16457,8 +16457,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-align.el, progmodes/cc-defs.el,
-	progmodes/cc-cmds.el, progmodes/cc-engine.el, cc-vars.el:
+	* progmodes/cc-align.el, progmodes/cc-defs.el:
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el, progmodes/cc-vars.el:
 	Several fixes to treat macros as code and not literals and to
 	handle line continuations transparently.
 
@@ -17484,7 +17484,7 @@
 
 2002-04-01  Ville Skyttä  <ville.skytta@xemacs.org>
 
-	* tcl.el (tcl-imenu-generic-expression): New value.
+	* progmodes/tcl.el (tcl-imenu-generic-expression): New value.
 	(tcl-imenu-create-index-function): Function deleted.
 	(tcl-mode): Check for filladapt-mode.
 	Use tcl-imenu-generic-expression instead of
@@ -22092,25 +22092,29 @@
 	(calc-do-keypad): Use it.
 	(calc-keypad-map): Move into `calc-keypad-mode'.
 
-	* calc-math.el (calcFunc-sqrt, calcFunc-hypot): Add missing quote
+	* calc/calc-math.el (calcFunc-sqrt, calcFunc-hypot): Add missing quote
 	to defalias argument.
 
-	* calc-misc.el (math-fixnump, math-fixnatnump, calcFunc-trunc)
+	* calc/calc-misc.el (math-fixnump, math-fixnatnump, calcFunc-trunc)
 	(calcFunc-floor): Ditto.
 
-	* calc-units.el (calcFunc-usimplify): Ditto.
+	* calc/calc-units.el (calcFunc-usimplify): Ditto.
 
-	* calc-aent.el, calc-ext.el, calc-incom.el, calc-misc.el
-	* calc-sel.el, calc-vec.el, calc-alg.el, calc-fin.el
-	* calc-keypd.el, calc-mode.el, calc-stat.el, calc-yank.el
-	* calc-arith.el, calc-forms.el, calc-lang.el, calc-mtx.el
-	* calc-store.el, calc.el, calc-bin.el, calc-frac.el, calc-macs.el
-	* calc-poly.el, calc-stuff.el, calcalg2.el, calc-comb.el
-	* calc-funcs.el, calc-maint.el, calc-prog.el, calc-trail.el
-	* calcalg3.el, calc-cplx.el, calc-graph.el, calc-map.el
-	* calc-rewr.el, calc-undo.el, calccomp.el, calc-embed.el
-	* calc-help.el, calc-math.el, calc-rules.el, calc-units.el
-	* calcsel2.el: Change all toplevel `setq' forms to `defvar' forms,
+	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-incom.el:
+	* calc/calc-misc.el, calc/calc-sel.el, calc/calc-vec.el:
+	* calc/calc-alg.el, calc/calc-fin.el, calc/calc-keypd.el:
+	* calc/calc-mode.el, calc/calc-stat.el, calc/calc-yank.el:
+	* calc/calc-arith.el, calc/calc-forms.el, calc/calc-lang.el:
+	* calc/calc-mtx.el, calc/calc-store.el, calc/calc.el:
+	* calc/calc-bin.el, calc/calc-frac.el, calc/calc-macs.el:
+	* calc/calc-poly.el, calc/calc-stuff.el, calc/calcalg2.el:
+	* calc/calc-comb.el, calc/calc-funcs.el, calc/calc-maint.el:
+	* calc/calc-prog.el, calc/calc-trail.el, calc/calcalg3.el:
+	* calc/calc-cplx.el, calc/calc-graph.el, calc/calc-map.el:
+	* calc/calc-rewr.el, calc/calc-undo.el, calc/calccomp.el:
+	* calc/calc-embed.el, calc/calc-help.el, calc/calc-math.el:
+	* calc/calc-rules.el, calc/calc-units.el, calc/calcsel2.el:
+	Change all toplevel `setq' forms to `defvar' forms,
 	and move them before their first use.  Use `when', `unless'.
 	Remove trailing periods from error forms.  Add description and
 	headers suggested by Emacs Lisp coding conventions.
@@ -22360,21 +22364,24 @@
 
 	* calc/calc-units.el (calcFunc-unsimplify): Ditto.
 
-	* calc-aent.el, calc-ext.el, calc-incom.el, calc-misc.el
-	* calc-sel.el, calc-vec.el, calc-alg.el, calc-fin.el
-	* calc-keypd.el, calc-mode.el, calc-stat.el, calc-yank.el
-	* calc-arith.el, calc-forms.el, calc-lang.el, calc-mtx.el
-	* calc-store.el, calc.el, calc-bin.el, calc-frac.el, calc-macs.el
-	* calc-poly.el, calc-stuff.el, calcalg2.el, calc-comb.el
-	* calc-funcs.el, calc-maint.el, calc-prog.el, calc-trail.el
-	* calcalg3.el, calc-cplx.el, calc-graph.el, calc-map.el
-	* calc-rewr.el, calc-undo.el, calccomp.el, calc-embed.el
-	* calc-help.el, calc-math.el, calc-rules.el, calc-units.el
-	* calcsel2.el: Style cleanup; don't put closing parens on their
-	own line, add "foo.el ends here" to each file, and update
-	copyright date.
+	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-incom.el:
+	* calc/calc-misc.el, calc/calc-sel.el, calc/calc-vec.el:
+	* calc/calc-alg.el, calc/calc-fin.el, calc/calc-keypd.el:
+	* calc/calc-mode.el, calc/calc-stat.el, calc/calc-yank.el:
+	* calc/calc-arith.el, calc/calc-forms.el, calc/calc-lang.el:
+	* calc/calc-mtx.el, calc/calc-store.el, calc/calc.el, calc/calc-bin.el:
+	* calc/calc-frac.el, calc/calc-macs.el, calc/calc-poly.el:
+	* calc/calc-stuff.el, calc/calcalg2.el, calc/calc-comb.el:
+	* calc/calc-funcs.el, calc/calc-maint.el, calc/calc-prog.el:
+	* calc/calc-trail.el, calcalg3.el, calc/calc-cplx.el:
+	* calc/calc-graph.el, calc/calc-map.el, calc/calc-rewr.el:
+	* calc/calc-undo.el, calc/calccomp.el, calc/calc-embed.el:
+	* calc/calc-help.el, calc/calc-math.el, calc/calc-rules.el:
+	* calc/calc-units.el, calc/calcsel2.el: Style cleanup;
+	don't put closing parens on their own line,
+	add "foo.el ends here" to each file, and update copyright date.
 
-	* README: Update maintainer.
+	* calc/README: Update maintainer.
 
 2001-11-13  Richard M. Stallman  <rms@gnu.org>
 

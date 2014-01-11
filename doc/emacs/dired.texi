@@ -1440,3 +1440,18 @@ it onto a Dired buffer; this either moves, copies, or creates a link
 to the file in that directory.  Precisely which action is taken is
 determined by the originating program.  Dragging files out of a Dired
 buffer is currently not supported.
+
+@kindex ( @r{(Dired)}
+@c )
+@findex dired-hide-details-mode
+@vindex dired-hide-details-hide-symlink-targets
+@vindex dired-hide-details-hide-information-lines
+@cindex Hide details in Dired.
+  The command @kbd{(} (@code{dired-hide-details-mode}) toggles whether
+details, such as ownership or file permissions, are hidden.  If the
+variable @code{dired-hide-details-hide-symlink-targets} is
+non-@code{nil} then targets of symbolic links are hidden as well.  A
+non-@code{nil} value for the variable
+@code{dired-hide-details-hide-information-lines} means that all lines
+other than the header and lines containing files and directories are
+hidden.

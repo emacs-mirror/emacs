@@ -504,7 +504,7 @@ code to parse."
     (let ((eval-form (eval parsedtokelist)))
       (if (or (not eval-form)
               (and (numberp eval-form)
-                   (equal eval-form 0)));; ifdefline resulted in false
+                   (equal eval-form 0)));; ifdef line resulted in false
 
 	;; The if indicates to skip this preprocessor section
 	(let ((pt nil))
@@ -1242,7 +1242,7 @@ Use `semantic-analyze-current-tag' to debug this fcn."
       (setq scope (semantic-calculate-scope))
 
       (setq allhits (semantic--analyze-refs-full-lookup tag scope t))
-      
+
       (when (or (zerop (semanticdb-find-result-length allhits))
 		(and (= (semanticdb-find-result-length allhits) 1)
 		     (eq (car (semanticdb-find-result-nth allhits 0)) tag)))

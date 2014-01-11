@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2013-09-11.11}
+\def\texinfoversion{2014-01-06.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -1138,10 +1138,12 @@ output) for that.)}
 
 \ifpdf
   %
-  % Color manipulation macros based on pdfcolor.tex,
+  % Color manipulation macros using ideas from pdfcolor.tex,
   % except using rgb instead of cmyk; the latter is said to render as a
   % very dark gray on-screen and a very dark halftone in print, instead
-  % of actual black.
+  % of actual black. The dark red here is dark enough to print on paper as
+  % nearly black, but still distinguishable for online viewing.  We use
+  % black by default, though.
   \def\rgbDarkRed{0.50 0.09 0.12}
   \def\rgbBlack{0 0 0}
   %
@@ -1251,10 +1253,9 @@ output) for that.)}
   % used to mark target names; must be expandable.
   \def\pdfmkpgn#1{#1}
   %
-  % by default, use a color that is dark enough to print on paper as
-  % nearly black, but still distinguishable for online viewing.
-  \def\urlcolor{\rgbDarkRed}
-  \def\linkcolor{\rgbDarkRed}
+  % by default, use black for everything.
+  \def\urlcolor{\rgbBlack}
+  \def\linkcolor{\rgbBlack}
   \def\endlink{\setcolor{\maincolor}\pdfendlink}
   %
   % Adding outlines to PDF; macros for calculating structure of outlines
@@ -2574,37 +2575,21 @@ end
 \let\file=\code
 \let\option=\code
 
-% @uref (abbreviation for `urlref') takes an optional (comma-separated)
-% second argument specifying the text to display and an optional third
-% arg as text to display instead of (rather than in addition to) the url
-% itself.  First (mandatory) arg is the url.
-% (This \urefnobreak definition isn't used now, leaving it for a while
-% for comparison.)
-\def\urefnobreak#1{\dourefnobreak #1,,,\finish}
-\def\dourefnobreak#1,#2,#3,#4\finish{\begingroup
-  \unsepspaces
-  \pdfurl{#1}%
-  \setbox0 = \hbox{\ignorespaces #3}%
-  \ifdim\wd0 > 0pt
-    \unhbox0 % third arg given, show only that
-  \else
-    \setbox0 = \hbox{\ignorespaces #2}%
-    \ifdim\wd0 > 0pt
-      \ifpdf
-        \unhbox0             % PDF: 2nd arg given, show only it
-      \else
-        \unhbox0\ (\code{#1})% DVI: 2nd arg given, show both it and url
-      \fi
-    \else
-      \code{#1}% only url given, so show it
-    \fi
-  \fi
-  \endlink
-\endgroup}
+% @uref (abbreviation for `urlref') aka @url takes an optional
+% (comma-separated) second argument specifying the text to display and
+% an optional third arg as text to display instead of (rather than in
+% addition to) the url itself.  First (mandatory) arg is the url.
 
-% This \urefbreak definition is the active one.
+% TeX-only option to allow changing PDF output to show only the second
+% arg (if given), and not the url (which is then just the link target).
+\newif\ifurefurlonlylink
+
+% The main macro is \urefbreak, which allows breaking at expected
+% places within the url.  (There used to be another version, which
+% didn't support automatic breaking.)
 \def\urefbreak{\begingroup \urefcatcodes \dourefbreak}
 \let\uref=\urefbreak
+%
 \def\dourefbreak#1{\urefbreakfinish #1,,,\finish}
 \def\urefbreakfinish#1,#2,#3,#4\finish{% doesn't work in @example
   \unsepspaces
@@ -2613,12 +2598,19 @@ end
   \ifdim\wd0 > 0pt
     \unhbox0 % third arg given, show only that
   \else
-    \setbox0 = \hbox{\ignorespaces #2}%
+    \setbox0 = \hbox{\ignorespaces #2}% look for second arg
     \ifdim\wd0 > 0pt
       \ifpdf
-        \unhbox0             % PDF: 2nd arg given, show only it
+        \ifurefurlonlylink
+          % PDF plus option to not display url, show just arg
+          \unhbox0             
+        \else
+          % PDF, normally display both arg and url for consistency,
+          % visibility, if the pdf is eventually used to print, etc.
+          \unhbox0\ (\urefcode{#1})%
+        \fi
       \else
-        \unhbox0\ (\urefcode{#1})% DVI: 2nd arg given, show both it and url
+        \unhbox0\ (\urefcode{#1})% DVI, always show arg and url
       \fi
     \else
       \urefcode{#1}% only url given, so show it
@@ -3691,7 +3683,7 @@ end
   \parskip=\smallskipamount
   \ifdim\parskip=0pt \parskip=2pt \fi
   %
-  % Try typesetting the item mark that if the document erroneously says
+  % Try typesetting the item mark so that if the document erroneously says
   % something like @itemize @samp (intending @table), there's an error
   % right away at the @itemize.  It's not the best error message in the
   % world, but it's better than leaving it to the @item.  This means if
@@ -8342,8 +8334,8 @@ end
 %
 % Auto-number footnotes.  Otherwise like plain.
 \gdef\footnote{%
-  \let\indent=\ptexindent
-  \let\noindent=\ptexnoindent
+  %\let\indent=\ptexindent
+  %\let\noindent=\ptexnoindent
   \global\advance\footnoteno by \@ne
   \edef\thisfootno{$^{\the\footnoteno}$}%
   %

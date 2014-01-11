@@ -2803,7 +2803,7 @@ There might be text before point."
 	  (t
 	   (let ((col (current-column)))
 	     (if (or (not (eq (char-syntax (or (char-after pos) ?\s)) ?\())
-		     ;; Can't be an arg if there's an empty line inbetween.
+		     ;; Can't be an arg if there's an empty line in between.
 		     (save-excursion (re-search-forward "^[ \t]*$" pos t)))
 		 ;; If the first char was not an open-paren, there's
 		 ;; a risk that this is really not an argument to the

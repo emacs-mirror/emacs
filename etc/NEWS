@@ -168,11 +168,19 @@ non-nil, they output the same results.
 +++
 *** The key `?' now describes prefix bindings, like `C-h'.
 
+*** The command `describe-function' was extended for EIEIO.
+Running it on constructors will show a full description of the
+generated class.  For generic functions, it will show all
+implementations together with links to the source.  The old commands
+`describe-class', `describe-constructor' and `describe-generic' were
+removed.
+
 *** The command `quail-help' is deleted.  Use `C-h C-\'
 (`describe-input-method') instead.
 
 ** ImageMagick
 
++++
 *** ImageMagick images now support the :max-width and :max-height
 keywords.
 
@@ -241,6 +249,7 @@ etc.  You can customize this to specify a function that provides a
 default value from the regexp last history element, or from the symbol
 found at point.
 
++++
 *** `load-prefer-newer', affects how the `load' function chooses the
 file to load.  If this is non-nil, then when both .el and .elc
 versions of a file exist, and the caller did not explicitly specify
@@ -451,6 +460,7 @@ restoring the frame/window configuration (frameset).  Additional options
 `desktop-restore-in-current-display', `desktop-restore-reuses-frames'
 and `desktop-restore-forces-onscreen' offer further customization.
 
++++
 ** Dired
 
 *** New minor mode `dired-hide-details-mode' hides details.
@@ -573,11 +583,17 @@ will revert to the old behavior.
 visit the next image file and the previous image file in the same
 directory, respectively.
 
++++
 *** New commands to show specific frames of multi-frame images.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
++++
 *** New commands to speed up, slow down, or reverse animation.
+`a +' (`image-increase-speed') and `a -' (`image-decrease-speed') to
+speed up and slow down the animation.  `a r' (`image-reverse-speed')
+to reverse it and `a 0' (`image-reset-speed') to reset it.
+
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.
@@ -880,6 +896,7 @@ has not been relevant for some time.
 
 * New Modes and Packages in Emacs 24.4
 
++++
 ** New package `eww' is a built-in web browser.
 It is only available if Emacs is compiled with libxml2 support.
 
@@ -888,6 +905,7 @@ It is only available if Emacs is compiled with libxml2 support.
 symbol_words as a single word, similar to what `subword-mode' does and
 using the same internal functions.
 
++++
 ** New package nadvice.el offers lighter-weight advice facilities.
 It is layered as:
 - add-function/remove-function which can be used to add/remove code on any
@@ -1087,7 +1105,7 @@ displaying the buffer in a window.
 *** `hash-table-keys'
 +++
 *** `hash-table-values'
-
+---
 *** `string-blank-p`
 *** `string-empty-p`
 *** `string-join`
@@ -1126,6 +1144,7 @@ a non-nil `interactive-only' property.
 The value, if non-nil, is a regexp that specifies what to trim from
 the start and end of each substring.
 
++++
 ** New function `string-suffix-p'.
 
 ** File-handling changes

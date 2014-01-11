@@ -417,9 +417,10 @@ is specified by the variable `message-log-max'."
     (display-buffer (current-buffer))))
 
 (defun view-order-manuals ()
-  "Display the Emacs ORDERS file."
+  "Display information on how to buy printed copies of Emacs manuals."
   (interactive)
-  (view-help-file "ORDERS"))
+;;  (view-help-file "ORDERS")
+  (info "(emacs)Printed Books"))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."

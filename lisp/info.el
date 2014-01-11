@@ -732,6 +732,14 @@ in `Info-file-supports-index-cookies-list'."
 			     (Info-default-dirs))
 		   (split-string path sep))
 	       (Info-default-dirs))))
+      ;; If we are running uninstalled, our own Info files should
+      ;; always come first.  If INFOPATH was set, they might not.
+      (and path
+	   installation-directory
+	   (let ((dir (expand-file-name "info/" installation-directory)))
+	     (when (file-directory-p dir)
+	       (setq Info-directory-list (delete dir Info-directory-list))
+	       (push dir Info-directory-list))))
       ;; For a self-contained (ie relocatable) NS build, AFAICS we
       ;; always want the included info directory to be at the head of
       ;; the search path, unless it's already in INFOPATH somewhere.

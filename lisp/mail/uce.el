@@ -279,7 +279,7 @@ You might need to set `uce-mail-reader' before using this."
 	(goto-char (point-min)))
       ;; Now find the mail hub that first accepted this message.
       ;; This should try to find the last Received: header.
-      ;; Sometimes there may be other headers inbetween Received: headers.
+      ;; Sometimes there may be other headers in between Received: headers.
       (cond ((eq uce-mail-reader 'gnus)
 	     ;; Does Gnus always have Lines: in the end?
 	     (re-search-forward "^Lines:")

@@ -52,12 +52,12 @@ Therefore any lines in the message bodies that start with \"From \"
 must be quoted.  The `mboxo' format just prepends a \">\" to such lines.
 This is not reversible, because given a line starting with \">From \" in
 an mboxo file, it is not possible to know whether the original had a \">\"
-or not.  The `mxbord' format avoids this by also quoting \">From \" as
+or not.  The `mboxrd' format avoids this by also quoting \">From \" as
 \">>From \", and so on.  For this reason, mboxrd is recommended.
 
 See also `rmail-mbox-format'."
   :type '(choice (const mboxrd)
-		 (const mboxro))
+		 (const mboxo))
   :version "24.4"
   :group 'rmail-files)
 

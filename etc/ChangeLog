@@ -1,7 +1,27 @@
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* ORDERS: Replace contents with pointer to emacs.info, mark obsolete.
+
+	* FTP: Mark as obsolete.
+
+2014-01-09  David Engster  <deng@randomsample.de>
+
+	* NEWS: Added new `describe-function' EIEIO support.
+
+2014-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* SERVICE: Mark as obsolete.
+
+	* MORE.STUFF: Replace contents with pointer to efaq.info.
+
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* NEWS: Better document the speed up, slow down, or reverse
+	animation in Image Mode.
+
 2014-01-05  Tassilo Horn  <tsdh@gnu.org>
 
-	* themes/tsdh-light-theme.el (tsdh-light): Define org-level-*
-	faces.
+	* themes/tsdh-light-theme.el (tsdh-light): Define org-level-* faces.
 
 2013-12-29  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -2567,7 +2587,7 @@
 	* refcards/calccard.ps, refcards/cs-dired-ref.ps:
 	* refcards/cs-refcard.ps, refcards/de-refcard.ps, refcards/dired-ref.ps:
 	* refcards/fr-drdref.ps, refcards/fr-refcard.ps:
-	* refcards/gnus-booklet.ps, refcards/gnus-logo.ps:
+	* refcards/gnus-booklet.ps:
 	* refcards/gnus-refcard.ps, refcards/orgcard.ps, refcards/pl-refcard.ps:
 	* refcards/pt-br-refcard.ps, refcards/refcard.ps:
 	* refcards/ru-refcard.ps, refcards/sk-dired-ref.ps:
@@ -3107,7 +3127,7 @@
 
 2007-01-20  Glenn Morris  <rgm@gnu.org>
 
-	* cd-dired-ref.tex (versionemacs): New def.
+	* cs-dired-ref.tex (versionemacs): New def.
 	* cs-refcard.tex (versionemacs, versionyear): New defs.
 	* cs-survival.tex (versionemacs, versiondate): New defs.
 	* de-refcard.tex (versionemacs, versionyear): New defs.
@@ -3285,10 +3305,6 @@
 
 	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a
 	display (x-close-connection).
-
-2006-09-03  Diane Murray  <disumu@x3y2z1.net>
-
-	* erc.texi (Getting Started, Connecting): Change erc-select to erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 

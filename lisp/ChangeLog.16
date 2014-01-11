@@ -965,7 +965,7 @@
 
 2013-02-13  Yves Baumes  <ybaumes@gmail.com>  (tiny change)
 
-	* lisp/emacs-lisp/package.el (package-menu-execute):
+	* emacs-lisp/package.el (package-menu-execute):
 	Add optional noquery argument.  (Bug#13625)
 
 2013-02-13  Michael Albinus  <michael.albinus@gmx.de>
@@ -1408,7 +1408,7 @@
 
 2013-01-30  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-units.el (math-default-units-table): Remove initial value.
+	* calc/calc-units.el (math-default-units-table): Remove initial value.
 	(calc-convert-units): Treat expressions where all the units cancel as
 	if they didn't have units.
 
@@ -1437,9 +1437,9 @@
 2013-01-29  Alan Mackenzie  <acm@muc.de>
 
 	Amend to fontify /regexp/s in actions correctly.
-	* cc-awk.el (c-awk-harmless-char-re, c-awk-harmless-string*-re):
-	(c-awk-harmless-string*-here-re): Braces, parens and semicolons
-	are no longer included.
+	* progmodes/cc-awk.el (c-awk-harmless-char-re)
+	(c-awk-harmless-string*-re, c-awk-harmless-string*-here-re):
+	Braces, parens and semicolons are no longer included.
 	(c-awk-harmless-line-char-re, c-awk-harmless-line-string*-re):
 	What used to be these variables without "-line" in the name.
 	(c-awk-neutral-re): { is no longer neutral.  Escaped newlines now are.
@@ -2813,7 +2813,7 @@
 
 2012-12-12  Jonas Bernoulli  <jonas@bernoul.li>
 
-	* lisp/emacs-lisp/eieio.el: Prettier object pretty-printing (bug#13115).
+	* emacs-lisp/eieio.el: Prettier object pretty-printing (bug#13115).
 	(eieio-override-prin1): Don't quote kewords and booleans.
 	(object-write) <eieio-default-superclass>: Don't put closing parens
 	on new line, avoid needless empty lines, align values that are objects
@@ -5041,13 +5041,13 @@
 	* startup.el (command-line): Mark window system is initialized
 	after we've done it.
 
-	* common-win.el (x-select-text): Look for w32, not windows-nt.
+	* term/common-win.el (x-select-text): Look for w32, not windows-nt.
 
-	* ns-win.el: Require cl-lib.  Add ourselves to
+	* term/ns-win.el: Require cl-lib.  Add ourselves to
 	display-format-alist.
 	(ns-initialize-window-system): Assert we're not initialized twice.
 
-	* w32-win.el: Enable lexical binding; require cl-lib; add
+	* term/w32-win.el: Enable lexical binding; require cl-lib; add
 	ourselves to display-format-alist.
 	(w32-handle-dropped-file): Convert incoming dropped files from
 	Windows paths to Cygwin ones before passing them on to the rest of
@@ -5055,7 +5055,7 @@
 	(w32-drag-n-drop): New paramter new-frame.  Simplify logic.
 	(w32-initialize-window-system): Assert we're not initialized twice.
 
-	* x-win.el: Require cl-lib; add ourselves to display-format-alist.
+	* term/x-win.el: Require cl-lib; add ourselves to display-format-alist.
 	(x-initialize-window-system): Assert we're not initialized twice.
 
 	* w32-common-fns.el: New File.
@@ -5894,8 +5894,8 @@
 
 2012-09-25  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-auto-ascii-enum, verilog-auto-inout)
-	(verilog-auto-input, verilog-auto-insert-lisp)
+	* progmodes/verilog-mode.el (verilog-auto-ascii-enum)
+	(verilog-auto-inout, verilog-auto-input, verilog-auto-insert-lisp)
 	(verilog-auto-output, verilog-auto-output-every, verilog-auto-reg)
 	(verilog-auto-reg-input, verilog-auto-tieoff, verilog-auto-undef)
 	(verilog-auto-unused, verilog-auto-wire)
@@ -8101,7 +8101,7 @@
 
 2012-08-04  Michal Nazarewicz  <mina86@mina86.com>
 
-	* lisp/mpc.el: Support password in host argument.
+	* mpc.el: Support password in host argument.
 	(mpc--proc-connect): Parse and use new password element.
 	Set mpc-proc variable instead of returning process.
 	(mpc-proc): Adjust accordingly.
@@ -8204,17 +8204,17 @@
 
 2012-07-31  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-mode.el (calc-basic-simplification-mode): Rename from
+	* calc/calc-mode.el (calc-basic-simplification-mode): Rename from
 	`calc-limited-simplification-mode'.
 	(calc-alg-simplification-mode): New function.
 	(calc-set-simplify-mode): Adjust message.
 
-	* calc.el (calc-set-mode-line): Adjust mode line display for
+	* calc/calc.el (calc-set-mode-line): Adjust mode line display for
 	basic simplification mode.
 
-	* calc-help.el (calc-m-prefix-help): Update help message.
+	* calc/calc-help.el (calc-m-prefix-help): Update help message.
 
-	* calc-ext.el (calc-init-extensions): Add bindings and autoloads
+	* calc/calc-ext.el (calc-init-extensions): Add bindings and autoloads
 	for `calc-basic-simplify-mode' and `calc-alg-simplify-mode'.
 
 2012-07-31  Bastien Guerry  <bzg@gnu.org>

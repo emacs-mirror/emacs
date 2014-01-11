@@ -998,6 +998,8 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   FRAME_MENU_BAR_LINES (f) = nlines;
   FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
   resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
+  if (FRAME_X_WINDOW (f))
+    x_clear_under_internal_border (f);
 
   /* If the menu bar height gets changed, the internal border below
      the top margin has to be cleared.  Also, if the menu bar gets
@@ -1110,8 +1112,11 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
   FRAME_TOOL_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  ++windows_or_buffers_changed;
   resize_frame_windows (f, FRAME_TEXT_HEIGHT (f), 0, 1);
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+  if (FRAME_X_WINDOW (f))
+    x_clear_under_internal_border (f);
+#endif
   adjust_frame_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of

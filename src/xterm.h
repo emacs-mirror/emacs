@@ -1049,6 +1049,10 @@ extern void x_session_close (void);
 
 extern Lisp_Object Qx_gtk_map_stock;
 
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+extern void x_clear_under_internal_border (struct frame *f);
+#endif
+
 /* Is the frame embedded into another application? */
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)

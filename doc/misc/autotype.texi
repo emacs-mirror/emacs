@@ -302,7 +302,7 @@ of the same name as the command and can thus be overridden from your
   Various characters usually appear in pairs.  When, for example, you insert
 an open parenthesis, no matter whether you are programming or writing prose,
 you will surely enter a closing one later.  By entering both at the same time
-and leaving the cursor inbetween, Emacs can guarantee you that such
+and leaving the cursor in between, Emacs can guarantee you that such
 parentheses are always balanced.  And if you have a non-qwerty keyboard, where
 typing some of the stranger programming language symbols makes you bend your
 fingers backwards, this can be quite relieving too.

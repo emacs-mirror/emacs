@@ -3,6 +3,61 @@
 	* mail/rmail.el (rmail-get-coding-system): Check
 	rmail-get-coding-function before "funcall"ing it.
 
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries):
+	Update for files that no longer exist.
+
+2014-01-10  Eric S. Raymond  <esr@thyrsus.com>
+
+	* version.el (emacs-bzr-get-version): Restore compatibilty with
+	24.3 (Tested).
+
+2014-01-10  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (auto-mode-alist): Add .podspec
+	and Podfile.
+
+2014-01-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Update my entry.
+
+2014-01-10  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/octave.el (octave-mode-menu): Don't assume eldoc is
+	loaded.
+
+2014-01-10  Anders Lindgren  <andlind@gmail.com>
+
+	* follow.el (follow-cache-command-list): Include right-char and
+	left-char.
+
+2014-01-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* mail/unrmail.el (unrmail-mbox-format): Choice is mboxo, not mboxro.
+	* woman.el (woman-mark-horizontal-position):
+	Rename from woman-mark-horizonal-position.  Use changed.
+
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (info-initialize): If running uninstalled, ensure our
+	own info files are always found first, even if INFOPATH is set.
+
+	* help.el (view-order-manuals): Open emacs.info rather than ORDERS.
+
+2014-01-09  David Engster  <deng@randomsample.de>
+
+	* emacs-lisp/eieio-custom.el:
+	* emacs-lisp/eieio-opt.el: Set generated autoload file to
+	'eieio.el'.  This was accidentally removed in rev. 110325.
+	* emacs-lisp/eieio.el: Regenerate autoloads.
+
+2014-01-09  Eric S. Raymond  <esr@thyrsus.com>
+
+	* vc/vc-git.el (vc-git-print-log): Add --follow option to command,
+	following renames.  (Bug#8756)
+
 2014-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (deactivate-mark, activate-mark): Force-mode-line-update
@@ -19,7 +74,7 @@
 	* version.el (emacs-bzr-version): Name changed to
 	emacs-repository-version. Obsolete-variable alias made.
 	* loadup.el: Follow through on this name change.
-	* lisp/mail/emacsbug.el (report-emacs-bug): Factor out any
+	* mail/emacsbug.el (report-emacs-bug): Factor out any
 	assumption about the version control system in use.
 
 2014-01-08  David Engster  <deng@randomsample.de>
@@ -3371,7 +3426,7 @@
 
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
-	* lisp/subr.el (sit-for): Call (input-pending-p t) so as to behave
+	* subr.el (sit-for): Call (input-pending-p t) so as to behave
 	as before.
 
 2013-10-18  Reuben Thomas  <rrt@sc3d.org>
@@ -4144,13 +4199,13 @@
 
 2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
+	* progmodes/octave.el (octave-mode-map): Bind octave-send-buffer.
 	(octave-mode-menu): Add octave-send-buffer.
 	(octave-send-buffer): New function.
 
 2013-09-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/progmodes/octave.el (octave-mode-map): Add key binding for
+	* progmodes/octave.el (octave-mode-map): Add key binding for
 	octave-lookfor.
 	(octave-mode-menu): Add octave-lookfor.
 	(inferior-octave-mode-map, octave-help-mode-map): Bind C-ha to
@@ -6152,7 +6207,7 @@
 	* isearch.el (isearch-done):
 	* jit-lock.el (jit-lock-stealth-fontify):
 	* mail/rmailsum.el (rmail-summary-scroll-msg-up):
-	* lisp/mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
 	* mpc.el (mpc-tagbrowser, mpc):
 	* net/rcirc.el (rcirc-any-buffer):
 	* play/gomoku.el (gomoku-max-width, gomoku-max-height):
@@ -7523,12 +7578,12 @@
 
 	* files.el (find-file-noselect): Simplify conditional expression.
 
-	* remember.el (remember-append-to-file):
+	* textmodes/remember.el (remember-append-to-file):
 	Don't mix `find-buffer-visiting' and `get-file-buffer'.
 
 	Add `remember-notes' function to store random notes across Emacs
 	restarts.
-	* remember.el (remember-data-file): Add :set callback to affect
+	* textmodes/remember.el (remember-data-file): Add :set callback to affect
 	notes buffer (if any).
 	(remember-notes): New command.
 	(remember-notes-buffer-name, bury-remember-notes-on-kill):
@@ -9106,7 +9161,7 @@
 
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* lisp/subr.el: Convert to lexical binding.
+	* subr.el: Convert to lexical binding.
 	(overriding-local-map): Make obsolete.
 	(add-to-list): Doc fix.  Add compiler macro.
 	(read-key): Swap values of local maps.
@@ -9761,16 +9816,16 @@
 
 2013-05-23  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/textmodes/reftex.el (reftex-ref-style-toggle):
+	* textmodes/reftex.el (reftex-ref-style-toggle):
 	Fix deactivate action.
 
-	* lisp/textmodes/reftex-vars.el (reftex-ref-style-alist):
+	* textmodes/reftex-vars.el (reftex-ref-style-alist):
 	Add cleveref macros.
 
-	* lisp/textmodes/reftex-parse.el
+	* textmodes/reftex-parse.el
 	(reftex-locate-bibliography-files): Accept options for
 	bibliography commands.
-	* lisp/textmodes/reftex-vars.el (reftex-bibliography-commands):
+	* textmodes/reftex-vars.el (reftex-bibliography-commands):
 	Add addbibresource.  Basic Biblatex support.
 
 2013-05-23  Michael Albinus  <michael.albinus@gmx.de>

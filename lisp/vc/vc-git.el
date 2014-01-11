@@ -791,7 +791,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	(apply 'vc-git-command buffer
 	       'async files
 	       (append
-		'("log" "--no-color")
+		'("log" "--no-color" "--follow")
 		(when shortlog
 		  `("--graph" "--decorate" "--date=short"
                     ,(format "--pretty=tformat:%s"

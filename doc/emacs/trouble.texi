@@ -1198,9 +1198,8 @@ mailing list and newsgroup interconnect, so it does not matter which
 one you use.)
 
 @item
-Look in the service directory for someone who might help you for a fee.
-The service directory is found in the file named @file{etc/SERVICE} in the
-Emacs distribution.
+Look in the @uref{http://www.fsf.org/resources/service/, service
+directory} for someone who might help you for a fee.
 @end itemize
 
 @ifnottex

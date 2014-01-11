@@ -80,7 +80,7 @@ Each app keys to an alist of files and modes (as above.)")
     ans))
 
 (defmethod srecode-map-entry-for-app ((map srecode-map) app)
-  "Return the entry in MAP for APP'lication."
+  "Return the entry in MAP for APP."
   (assoc app (oref map apps))
   )
 
@@ -137,7 +137,7 @@ Return non-nil if the MAP was changed."
     dirty))
 
 (defmethod srecode-map-delete-file-entry-from-app ((map srecode-map) file app)
-  "Delete from MAP the FILE entry within the APP'lication."
+  "Delete from MAP the FILE entry within the APP."
   (let* ((appe (srecode-map-entry-for-app map app))
 	 (fentry (assoc file (cdr appe))))
     (setcdr appe (delete fentry (cdr appe))))

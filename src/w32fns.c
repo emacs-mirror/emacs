@@ -1713,26 +1713,23 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   /* If the tool bar gets smaller, the internal border below it
      has to be cleared.  It was formerly part of the display
      of the larger tool bar, and updating windows won't clear it.  */
-  if (delta < 0)
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) != 0)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
       int y = nlines * unit;
+      HDC hdc = get_frame_dc (f);
 
       block_input ();
-      {
-        HDC hdc = get_frame_dc (f);
-        w32_clear_area (f, hdc, 0, y, width, height);
-        release_frame_dc (f, hdc);
-      }
+      w32_clear_area (f, hdc, 0, y, width, height);
+      release_frame_dc (f, hdc);
       unblock_input ();
-
-      if (WINDOWP (f->tool_bar_window))
-	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
 
-  run_window_configuration_change_hook (f);
+  if (delta < 0 && WINDOWP (f->tool_bar_window))
+    clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
 
+  run_window_configuration_change_hook (f);
 }
 
 

@@ -1,12 +1,8 @@
-Printed copies of the GNU Emacs Manual, the Emacs Lisp Reference
-Manual, "Programming in Emacs Lisp: An Introduction", and other
-materials can be ordered directly from the Free Software Foundation.
+Printed copies of Emacs manuals
 
-For more information, see the online store at <http://shop.fsf.org/>.
+Note added January 2014:
 
-Your purchases will help support further development of Emacs and
-other free software programs.
-
-You can also make tax-deductible donations to the Free Software
-Foundation, a not-for-profit organization (assuming you pay US taxes)
-- see <https://my.fsf.org/donate/>.
+This file is obsolete and will be removed in future.
+Please update any links to use
+  info node `(emacs)Printed Books'
+instead.

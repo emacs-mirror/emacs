@@ -2300,7 +2300,7 @@ Currently set only from '\" t in the first line of the source file.")
 
     ;; Process \k escapes BEFORE changing tab width (?):
     (goto-char from)
-    (woman-mark-horizonal-position)
+    (woman-mark-horizontal-position)
 
     ;; Set buffer-local variables:
     (setq fill-column woman-fill-column
@@ -3452,7 +3452,7 @@ Format paragraphs upto TO.  Supports special chars.
 Each element has the form (KEY VALUE . INC) -- inc may be nil.
 Also bound locally in `woman2-roff-buffer'.")
 
-(defun woman-mark-horizonal-position ()
+(defun woman-mark-horizontal-position ()
   "\\kx -- Store current horizontal position in INPUT LINE in register x."
   (while (re-search-forward "\\\\k\\(.\\)" nil t)
     (goto-char (match-beginning 0))

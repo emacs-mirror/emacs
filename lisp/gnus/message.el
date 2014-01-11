@@ -4099,11 +4099,12 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
+  ;; Note that this is not quite the same as (bury-buffer buffer),
+  ;; since bury-buffer does extra stuff with a nil argument.
+  ;; Eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg00539.html
+  (with-current-buffer buffer (bury-buffer))
   (if message-return-action
-      (progn
-        (bury-buffer buffer)
-        (apply (car message-return-action) (cdr message-return-action)))
-    (with-current-buffer buffer (bury-buffer))))
+      (apply (car message-return-action) (cdr message-return-action))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.

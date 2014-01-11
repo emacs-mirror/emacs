@@ -1,3 +1,12 @@
+2014-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cl.texi (Function Bindings): Fix incorrect description of cl-let.
+
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* Makefile.in: Add eww.texi.
+	* eww.texi: New file.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Problems with very large files): Fix superscript typo.
@@ -13,8 +22,8 @@
 	(Advanced configuration)
 	(Header arguments in Org mode properties): Spelling fixes.
 	(Special blocks): Add #+BEGIN_ABSTRACT as another example.
-	(@LaTeX{} specific attributes): New index entries.  Use
-	#+BEGIN_ABSTRACT in the example.
+	(@LaTeX{} specific attributes): New index entries.
+	Use #+BEGIN_ABSTRACT in the example.
 
 2013-01-07  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -75,7 +84,7 @@
 
 2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell.texi (Command Basics): Removed `Command basics' chapter.
+	* eshell.texi (Command Basics): Remove `Command basics' chapter.
 
 2014-01-02  Aidan Gauland  <aidalgol@amuri.net>
 
@@ -195,8 +204,8 @@
 	* org.texi (Orgstruct mode): Fix suggested setting of
 	`orgstruct-heading-prefix-regexp'.
 
-	* org.texi (Export settings): Document
-	`org-export-allow-bind-keywords'.
+	* org.texi (Export settings):
+	Document `org-export-allow-bind-keywords'.
 
 	* org.texi (History and Acknowledgments): Small rephrasing.
 
@@ -204,8 +213,8 @@
 	in a year datetree.
 
 	* org.texi (Beamer export, @LaTeX{} and PDF export)
-	(Header and sectioning, @LaTeX{} specific attributes): Enhance
-	style.
+	(Header and sectioning, @LaTeX{} specific attributes):
+	Enhance style.
 
 	* org.texi (Agenda commands): Add a footnote about dragging agenda
 	lines: it does not persist and it does not change the .org files.
@@ -224,15 +233,15 @@
 
 	* org.texi (Other built-in back-ends): New section.
 
-	* org.texi (Editing source code): Document
-	`org-edit-src-auto-save-idle-delay' and
+	* org.texi (Editing source code):
+	Document `org-edit-src-auto-save-idle-delay' and
 	`org-edit-src-turn-on-auto-save'.
 
 	* org.texi (External links): Document contributed link types
 	separately.
 
-	* org.texi (Closing items): Document
-	`org-closed-keep-when-no-todo'.
+	* org.texi (Closing items):
+	Document `org-closed-keep-when-no-todo'.
 
 	* org.texi (Export back-ends): Rename from "Export formats".
 	(The Export Dispatcher): Remove reference to
@@ -268,8 +277,8 @@
 	(Agenda commands): Move details about filtering commands to
 	the new section, only include a summary here.
 	(Customizing tables in ODT export)
-	(System-wide header arguments, Conflicts, Dynamic blocks): Use
-	spaces for indentation.
+	(System-wide header arguments, Conflicts, Dynamic blocks):
+	Use spaces for indentation.
 
 	* org.texi (Emphasis and monospace): Mention `org-emphasis-alist'.
 
@@ -326,8 +335,8 @@
 	(In-buffer settings): Update to reflect changes from the new
 	export engine.
 
-	* org.texi (Matching tags and properties): More examples.  Explain
-	group tags expansion as regular expressions.
+	* org.texi (Matching tags and properties): More examples.
+	Explain group tags expansion as regular expressions.
 
 	* org.texi (Tag groups): New section.
 
@@ -352,8 +361,8 @@
 
 	* org.texi (Org syntax): New section.
 
-	* org.texi (Orgstruct mode): Document
-	`orgstruct-heading-prefix-regexp'.
+	* org.texi (Orgstruct mode):
+	Document `orgstruct-heading-prefix-regexp'.
 
 	* org.texi (Speeding up your agendas): New section.
 
@@ -377,8 +386,8 @@
 	* org.texi: Update the list contributions.
 
 	* org.texi (Agenda commands): Exporting the agenda to an .org file
-	will not copy the subtrees and the inherited tags.  Document
-	`org-agenda-filter-by-regexp'.
+	will not copy the subtrees and the inherited tags.
+	Document `org-agenda-filter-by-regexp'.
 
 	* org.texi (Publishing action, Complex example): Fix names of
 	publishing functions.
@@ -392,8 +401,8 @@
 	* org.texi (Capture): Mention that org-remember.el is not
 	supported anymore.
 
-	* org.texi (Top, Exporting, Beamer class export): Delete
-	references to the TaskJuggler export.
+	* org.texi (Top, Exporting, Beamer class export):
+	Delete references to the TaskJuggler export.
 	(History and Acknowledgments): Mention that the TaskJuggler has
 	been rewritten by Nicolas and now lives in the contrib/ directory
 	of Org's distribution.  Mention that Jambunathan rewrote the HTML
@@ -410,16 +419,16 @@
 	(@LaTeX{} and PDF export, Header and sectioning)
 	(Publishing options): Fix LaTeX options names.
 
-	* org.texi (Export options, CSS support, In-buffer settings): Fix
-	references to HTML_LINK_* and HTML_STYLE keywords.
+	* org.texi (Export options, CSS support, In-buffer settings):
+	Fix references to HTML_LINK_* and HTML_STYLE keywords.
 
 	* org.texi (Export options, In-buffer settings): Fix references to
 	#+SELECT_TAGS and #+EXCLUDE_TAGS and remove reference to #+XSLT.
 
 	* org.texi (Top, Markup, Initial text, Images and tables)
 	(@LaTeX{} fragments, @LaTeX{} fragments, Exporting)
-	(Export options, JavaScript support, Beamer class export): Remove
-	references to the DocBook export, which has been deleted.
+	(Export options, JavaScript support, Beamer class export):
+	Remove references to the DocBook export, which has been deleted.
 	(History and Acknowledgments): Mention that DocBook has been
 	deleted, suggest to use the Texinfo exporter instead, then to
 	convert the .texi to DocBook with makeinfo.
@@ -428,8 +437,8 @@
 	* org.texi (Deadlines and scheduling): Add a variable to the
 	index.  Add documentation about delays for scheduled tasks.
 
-	* org.texi (Emphasis and monospace): Mention
-	`org-fontify-emphasized-text' and
+	* org.texi (Emphasis and monospace):
+	Mention `org-fontify-emphasized-text' and
 	`org-emphasis-regexp-components'.
 
 	* org.texi (References): Small enhancement.
@@ -486,7 +495,7 @@
 
 	* org.texi (Extracting source code): Mention the prefix argument
 	to org-babel-tangle.
-	(noweb): Removed erroneous negative.
+	(noweb): Remove erroneous negative.
 	(Specific header arguments): Document new header arguments.
 	Documentation for new tangle-mode header argument.
 	(Top): Documentation for new tangle-mode header argument.
@@ -590,8 +599,8 @@
 	* org.texi (Header and sectioning): Add a footnote about the
 	different between LATEX_HEADER_EXTRA and LATEX_HEADER.
 
-	* org.texi (The Export Dispatcher): Document
-	`org-export-in-background'.
+	* org.texi (The Export Dispatcher):
+	Document `org-export-in-background'.
 
 	* org.texi (Footnotes): Export back-ends do not use
 	`org-footnote-normalize' anymore.
@@ -613,19 +622,19 @@
 	* org.texi (Include files): Remove reference to :prefix1
 	and :prefix.  Give more details for :minlevel.
 
-	* org.texi (Macro replacement): Fix macro name.  Update
-	documentation about possible locations and escaping mechanism.
+	* org.texi (Macro replacement): Fix macro name.
+	Update documentation about possible locations and escaping mechanism.
 
-	* org.texi (Table of contents): Update documentation.  Document
-	lists of listings and lists of tables.  Add documentation for
+	* org.texi (Table of contents): Update documentation.
+	Document lists of listings and lists of tables.  Add documentation for
 	optional title and #+TOC: keyword.
 
 2013-11-12  Rick Frankel  <rick@rickster.com>
 
 	* org.texi (results): Add Format section, broken out of Type
 	section to match code.
-	(hlines, colnames): Remove incorrect Emacs Lisp exception.  Note
-	that the actual default handling (at least for python and
+	(hlines, colnames): Remove incorrect Emacs Lisp exception.
+	Note that the actual default handling (at least for python and
 	emacs-lisp) does not seem to match the description.
 
 2013-11-12  Sacha Chua  <sacha@sachachua.com>  (tiny change)
@@ -635,8 +644,8 @@
 
 2013-11-12  Yasushi Shoji  <yashi@atmark-techno.com>
 
-	* org.texi (Resolving idle time): Document
-	`org-clock-x11idle-program-name'.
+	* org.texi (Resolving idle time):
+	Document `org-clock-x11idle-program-name'.
 
 2013-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -655,7 +664,7 @@
 
 2013-10-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.el (Data Type Formats): Don't specify the size at
+	* calc.texi (Data Type Formats): Don't specify the size at
 	which integers begin to be represented by lists.
 
 2013-10-14  Xue Fuqiao  <xfq.free@gmail.com>
@@ -877,8 +886,8 @@
 
 2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.texi (Frequently Asked Questions): Mention
-	`tramp-use-ssh-controlmaster-options'.
+	* tramp.texi (Frequently Asked Questions):
+	Mention `tramp-use-ssh-controlmaster-options'.
 
 2013-07-26  Tassilo Horn  <tsdh@gnu.org>
 
@@ -922,8 +931,8 @@
 2013-07-08  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (lines): Correct description of
-	`gnus-registry-track-extra's default value.  Mention
-	`gnus-registry-remove-extra-data'.
+	`gnus-registry-track-extra's default value.
+	Mention `gnus-registry-remove-extra-data'.
 
 2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -6284,6 +6293,12 @@
 
 	* org.texi: Massive changes, in many parts of the file.
 
+2008-04-27  Jason Riedy  <jason@acm.org>
+
+	* org.texi (A LaTeX example): Note that fmt may be a
+	one-argument function, and efmt may be a two-argument function.
+	(Radio tables): Document multiple destinations.
+
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Oort Gnus): Add message-fill-column.
@@ -6516,6 +6531,10 @@
 
 	* tramp.texi (Remote processes): Add `shell-command'.
 
+2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use new FSF's Back-Cover Text.
+
 2008-01-28  Michael Sperber  <sperber@deinprogramm.de>
 
 	* gnus.texi (Mail Source Specifiers): Document `group' specifier.
@@ -6616,7 +6635,7 @@
 
 2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.tex (Yacas Language, Maxima Language, Giac Language):
+	* calc.texi (Yacas Language, Maxima Language, Giac Language):
 	New sections.
 
 2007-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -6633,6 +6652,10 @@
 	Sync with Tramp 2.1.12.
 
 	* trampver.texi: Update release number.
+
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* cc-mode.texi (Getting Started): Change @ref to @pxref.
 
 2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -7895,11 +7918,6 @@
 	* gnus.texi (Batching Agents): Fix example.  Reported by Tassilo Horn
 	<tassilo@member.fsf.org>.
 
-2007-01-27  Eli Zaretskii  <eliz@gnu.org>
-
-	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
-	ls-lisp-use-localized-time-format.
-
 2007-01-20  Markus Triska  <markus.triska@gmx.at>
 
 	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.
@@ -8195,7 +8213,6 @@
 	* faq.texi (Escape sequences in shell output): EMACS is now set
 	to Emacs's absolute file name, not to "t".
 	(^M in the shell buffer): Likewise.
-	* misc.texi (Interactive Shell): Likewise.
 
 2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -8212,6 +8229,10 @@
 2006-09-06  Simon Josefsson  <jas@extundo.com>
 
 	* smtpmail.texi (Authentication): Mention SSL.
+
+2006-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.texi (Getting Started, Connecting): Change erc-select to erc.
 
 2006-09-01  Eli Zaretskii  <eliz@gnu.org>
 

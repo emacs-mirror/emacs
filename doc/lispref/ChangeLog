@@ -1,3 +1,20 @@
+2014-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Advising Functions): New section.
+	* modes.texi (Running Hooks): Don't document with-wrapper-hook and
+	run-hook-wrapped any more.
+	(Hooks): Link to the new Advising Functions node.
+	* elisp.texi (Top): Don't include advice.texi.
+	* advice.texi: Remove.
+	* makefile.w32-in (srcs):
+	* Makefile.in (srcs): Adjust accordingly.
+
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* text.texi (Parsing HTML/XML): Document `shr-insert-document'.
+
+	* strings.texi (Text Comparison): Document `string-suffix-p'.
+
 2014-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (File Attributes): Fix superscipt typo.
@@ -9378,7 +9395,7 @@
 
 	* variables.texi (Variable Aliases): Simplify.
 
-	* anti.texi, backups.texi, compile.texi, customization.texi:
+	* anti.texi, backups.texi, compile.texi, customize.texi:
 	* debugging.texi, display.texi, edebug.texi, errors.texi, frames.texi:
 	* functions.texi, help.texi, keymaps.texi, modes.texi, nonascii.texi:
 	* os.texi, processes.texi, searching.texi, strings.texi, text.texi:

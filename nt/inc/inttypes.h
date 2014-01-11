@@ -1,4 +1,4 @@
-/* Replacement inntypes.h file for building GNU Emacs on Windows with MSVC.
+/* Replacement inttypes.h file for building GNU Emacs on Windows with MSVC.
 
 Copyright (C) 2011-2014 Free Software Foundation, Inc.
 

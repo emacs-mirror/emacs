@@ -194,7 +194,6 @@ To view this manual in other formats, click
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
-* Advising Functions::      Adding to the definition of a function.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
 * Read and Print::          Converting Lisp objects to text and back.
@@ -613,19 +612,6 @@ Byte Compilation
 * Compiler Errors::         Handling compiler error messages.
 * Byte-Code Objects::       The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
-
-Advising Emacs Lisp Functions
-
-* Simple Advice::           A simple example to explain the basics of advice.
-* Defining Advice::         Detailed description of @code{defadvice}.
-* Around-Advice::           Wrapping advice around a function's definition.
-* Computed Advice::         ...is to @code{defadvice} as @code{fset} is to @code{defun}.
-* Activation of Advice::    Advice doesn't do anything until you activate it.
-* Enabling Advice::         You can enable or disable each piece of advice.
-* Preactivation::           Preactivation is a way of speeding up the
-                              loading of compiled advice.
-* Argument Access in Advice:: How advice can access the function's arguments.
-* Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
 
@@ -1561,7 +1547,6 @@ Object Internals
 @include customize.texi
 @include loading.texi
 @include compile.texi
-@include advice.texi
 
 @c This includes edebug.texi.
 @include debugging.texi

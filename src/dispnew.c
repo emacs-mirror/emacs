@@ -2055,7 +2055,8 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     w->left_col = 0;
     w->pixel_top = 0;
     w->top_line = 0;
-    w->pixel_width = FRAME_PIXEL_WIDTH (f);
+    w->pixel_width = (FRAME_PIXEL_WIDTH (f)
+		      - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_height = FRAME_MENU_BAR_HEIGHT (f);
     w->total_lines = FRAME_MENU_BAR_LINES (f);
@@ -5515,7 +5516,11 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
      example, fullscreen and remove/add scroll bar.  */
   if (new_text_height == FRAME_TEXT_HEIGHT (f)
       && new_text_width == FRAME_TEXT_WIDTH (f)
-      && new_root_width == old_root_width)
+      && new_root_width == old_root_width
+      && (FRAME_PIXEL_HEIGHT (f) ==
+	  FRAME_TEXT_TO_PIXEL_HEIGHT (f, new_text_height))
+      && (FRAME_PIXEL_WIDTH (f) ==
+	  FRAME_TEXT_TO_PIXEL_WIDTH (f, new_text_width)))
     return;
 
   block_input ();

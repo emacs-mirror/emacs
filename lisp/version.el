@@ -128,6 +128,9 @@ Returns nil if unable to find this information."
                        "dir"))
         (buffer-string))))
 
+(define-obsolete-function-alias 'emacs-bzr-get-version
+                                'emacs-repository-get-version "24.4")
+
 (defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.

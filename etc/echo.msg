@@ -69,7 +69,7 @@ DESCRIPTION
 
      -i	  emulate IBM OS/VU (recursive universes not supported)
 
-     -I	  emulate IBM VTOS 3.7.6 (chronosynclastic infundibulae
+     -I	  emulate IBM VTOS 3.7.6 (chronosynclastic infundibula
 	  supported with restrictions documented in IBM	VTOS
 
 
@@ -207,4 +207,3 @@ AUTHOR
 
 
 Printed	10/28/85	 18 January 1983			3
-

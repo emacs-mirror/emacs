@@ -124,7 +124,7 @@ If CLASS is actually an object, then also display current values of that object.
   ;; Describe all the methods specific to this class.
   (let ((methods (eieio-all-generic-functions class))
 	(type [":STATIC" ":BEFORE" ":PRIMARY" ":AFTER"])
-	counter doc argshl dochl)
+	counter doc)
     (when methods
       (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
       (while methods
@@ -691,5 +691,9 @@ INDENT is the current indentation level."
   (dframe-maybee-jump-to-attached-frame))
 
 (provide 'eieio-opt)
+
+;; Local variables:
+;; generated-autoload-file: "eieio.el"
+;; End:
 
 ;;; eieio-opt.el ends here

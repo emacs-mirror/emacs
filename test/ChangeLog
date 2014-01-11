@@ -44,8 +44,8 @@
 
 2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>
 
-	* automated/python-test.el (python-indent-block-enders-1): Rename
-	from python-indent-block-enders.
+	* automated/python-tests.el (python-indent-block-enders-1):
+	Rename from python-indent-block-enders.
 	(python-indent-block-enders-2): New test.
 
 2013-12-08  Dmitry Gutov  <dgutov@yandex.ru>
@@ -131,9 +131,8 @@
 
 2013-11-20  Bozhidar Batsov <bozhidar@batsov.com>
 
-	* test/automated/ruby-mode-tests.el (ruby-exit!-font-lock):
+	* automated/ruby-mode-tests.el (ruby-exit!-font-lock):
 	Add a failing test for Bug#15874.
-	* test/automated/ruby-mode-tests.el
 	(ruby--insert-coding-comment-ruby-style)
 	(ruby--insert-coding-comment-emacs-style)
 	(ruby--insert-coding-comment-custom-style):
@@ -353,7 +352,7 @@
 
 2013-10-17  Barry O'Reilly  <gundaetiapo@gmail.com>
 
-	* test/automated/timer-tests.el: New file.  Tests that (sit-for 0)
+	* automated/timer-tests.el: New file.  Tests that (sit-for 0)
 	allows another timer to run.
 
 2013-10-14  Dmitry Gutov  <dgutov@yandex.ru>
@@ -449,7 +448,7 @@
 
 2013-09-22  Daniel Colascione  <dancol@dancol.org>
 
-	* automated/data-test.el:
+	* automated/data-tests.el:
 	(bool-vector-count-matches-all-0-nil)
 	(bool-vector-count-matches-all-0-t)
 	(bool-vector-count-matches-1-il, bool-vector-count-matches-1-t)
@@ -523,8 +522,8 @@
 
 2013-08-14  Daniel Hackney  <dan@haxney.org>
 
-	* package-test.el: Remove tar-package-building functions.  Tar file
-	used for testing is included in the repository.
+	* automated/package-test.el: Remove tar-package-building functions.
+	Tar file used for testing is included in the repository.
 	(package-test-install-texinfo, package-test-cleanup-built-files):
 	Remove.
 
@@ -772,7 +771,7 @@
 
 2013-05-26  Aidan Gauland  <aidalgol@amuri.net>
 
-	* tests/eshell.el: Rewrite tests using ERT.
+	* eshell.el: Rewrite tests using ERT.
 
 2013-05-25  Leo Liu  <sdl.web@gmail.com>
 
@@ -802,7 +801,7 @@
 
 2013-04-01  Masatake YAMATO  <yamato@redhat.com>
 
-	* automated/imenu-tests.el: New file.  (Bug#14112)
+	* automated/imenu-test.el: New file.  (Bug#14112)
 
 2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
@@ -1161,7 +1160,7 @@
 	* automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Use fset instead of flet.
 
-	* trunk/test/automated/newsticker-tests.el
+	* automated/newsticker-tests.el
 	(newsticker--group-manage-orphan-feeds): Prevent updating
 	newsticker treeview. Fixed bug#9763.
 

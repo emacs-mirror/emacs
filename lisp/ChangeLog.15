@@ -5790,18 +5790,18 @@
 	Enhance fontification of declarators to take account of the
 	presence/absence of "typedef".
 
-	* cc-engine.el (c-forward-type): New &optional param
+	* progmodes/cc-engine.el (c-forward-type): New &optional param
 	"brace-block-too".
 	(c-forward-decl-or-cast-1): cdr of return value now indicates the
 	presence of either or both of a "struct"-like keyword and "typedef".
 
-	* cc-fonts.el (c-complex-decl-matchers): Remove the heuristic
+	* progmodes/cc-fonts.el (c-complex-decl-matchers): Remove the heuristic
 	fontification of declarators which follow a "}".
 	(c-font-lock-declarations): Fontify declarators according to the
 	presence/absence of "typedef".
 
-	* cc-langs.el (c-typedef-kwds c-typedef-key): New lang variable
-	for "typedef".
+	* progmodes/cc-langs.el (c-typedef-kwds c-typedef-key):
+	New lang variable for "typedef".
 	(c-typedef-decl-key): New lang variable built from
 	c-typedef-decl-kwds.
 
@@ -18134,6 +18134,10 @@
 2009-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-full-height-p): New function.  (Bug#4543)
+
+2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Add .srt and Project.ede.
 
 2009-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 

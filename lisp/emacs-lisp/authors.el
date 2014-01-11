@@ -421,11 +421,15 @@ Changes to files in this list are not listed.")
     ("David M. Brown" :wrote "array.el")
     ;; No longer distributed.
 ;;;    ("Gary Byers" :changed "xenix.h")
-    ("Shawn M. Carey" :wrote "freebsd.h")
+    ;; No longer distributed: freebsd.h
+    ;; Only trivial pieces remain, merged into configure.ac.
+    ("Shawn M. Carey" :wrote "[some early FreeBSD support]")
     ;; hp800.h renamed from hp9000s800.h, hpux.h merged into hpux10-20.h.
     ;; FIXME overwritten by Author:.
     ("Satyaki Das" :cowrote "mh-search.el")
-    ("Eric Decker" :changed "hp800.h" "hpux10-20.h" "sysdep.c")
+    ;; No longer distributed: hp800.h, hpux10-20.h.
+    ;; Only trivial pieces remain, merged into configure.ac.
+    ("Eric Decker" :changed "sysdep.c (and other files for HP-UX support)")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
@@ -456,15 +460,16 @@ Changes to files in this list are not listed.")
      "process.c" "sysdep.c" "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
-    ;; ymakefile no longer distributed.
-    ("Michael K. Johnson" :changed "configure.ac" "emacs.c" "intel386.h"
-     "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
-     "systty.h" "unexcoff.c" "linux.h")
+    ;; No longer distributed: ymakefile, intel386.h, mem-limits.h, template.h,
+    ;; linux.h (was renamed to lignux.h, then to gnu-linux.h, then removed)
+    ("Michael K. Johnson" :changed "configure.ac" "emacs.c"
+     "process.c" "sysdep.c" "syssignal.h" "systty.h" "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Kyle Jones" :wrote "mldrag.el")
     ("Henry Kautz" :wrote "bib-mode.el")
-    ;; No longer distributed: vms-pwd.h, vmsfns.c, uaf.h.
-    ("Joseph M. Kelsey" :changed "fileio.c" "dir.h")
+    ;; No longer distributed: vms-pwd.h, vmsfns.c, uaf.h,
+    ;; dir.h (was renamed to vmsdir.h, then removed)
+    ("Joseph M. Kelsey" :changed "fileio.c")
     ("Sam Kendall" :changed "etags.c" "etags.el")
     ;; ack.texi: "We're not using his backquote.el any more."
     ("Richard King" :wrote "userlock.el" "filelock.c")
@@ -503,7 +508,7 @@ Changes to files in this list are not listed.")
     ("Mark Neale" :changed "fortran.el")
     ;; Renamed from sc.el.
     ("Martin Neitzel" :changed "supercite.el")
-    ("Andrew Oram" :changed "calendar.texi (and other files in man/)")
+    ("Andrew Oram" :changed "calendar.texi (and other doc files)")
     ("Frederic Pierresteguy" :wrote "widget.c")
     ("Michael D. Prange" :changed "tex-mode.el")
     ;; No longer distributed (dgux5-4r3.h was renamed to dgux5-4-3.h).
@@ -516,8 +521,9 @@ Changes to files in this list are not listed.")
 ;;;    ("Guillermo J. Rozas" :wrote "fakemail.c")
     ("Wolfgang Rupprecht" :changed "lisp-mode.el" "loadup.el"
      "sort.el" "alloc.c" "callint.c"
-     ;; config.in renamed from config.h.in; ecrt0.c from crt0.c.
-     "config.in" "ecrt0.c" "data.c" "fns.c"
+     ;; config.in renamed from config.h.in, now a generated file.
+     ;; ecrt0.c renamed from crt0.c, then removed.
+     "data.c" "fns.c"
      "lisp.h" "lread.c" ; "sun3.h" "ymakefile" - no longer distributed
      "print.c" :wrote "float-sup.el" "floatfns.c")
     ("Schlumberger Technology Corporation" :changed "gud.el")
@@ -543,7 +549,8 @@ Changes to files in this list are not listed.")
     ("Spencer Thomas" :changed "emacsclient.c" "server.el"
      "dabbrev.el" "unexcoff.c" "gnus.texi")
     ("Jonathan Vail" :changed "vc.el")
-    ("James Van Artsdalen" :changed "usg5-4.h" "unexcoff.c")
+    ;; No longer distributed: usg5-4.h
+    ("James Van Artsdalen" :changed "unexcoff.c")
     ;; No longer distributed: src/makefile.nt, lisp/makefile.nt
     ;; winnt.el renamed to w32-fns.el; nt.[ch] to w32.[ch];
     ;; ntheap.[ch] to w32heap.[ch]; ntinevt.c to w32inevt.c;
@@ -552,7 +559,8 @@ Changes to files in this list are not listed.")
     ("Geoff Voelker" :wrote "w32-fns.el" "w32.c" "w32.h" "w32heap.c"
      "w32heap.h" "w32inevt.c" "w32proc.c" "w32term.c" "ms-w32.h")
     ("Morten Welinder" :wrote "dosfns.c" "[many MS-DOS files]" "msdos.h")
-    ("Eli Zaretskii" :wrote "bidi.c" "[bidirectional display in xdisp.c]")
+    ("Eli Zaretskii" :wrote "bidi.c" "[bidirectional display in xdisp.c]"
+     "[tty menus in term.c]")
     ;; Not using this version any more.
 ;;;    ("Pace Willisson" :wrote "ispell.el")
     ;; FIXME overwritten by Author:.

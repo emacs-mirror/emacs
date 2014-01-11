@@ -49,7 +49,6 @@ texinputdir = $(srcdir)\..\..\nt\envadd.bat \
 srcs = \
   $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
-  $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
   $(srcdir)/backups.texi \
   $(srcdir)/buffers.texi \

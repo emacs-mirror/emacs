@@ -9854,7 +9854,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 	 incrementing windows_or_buffers_changed even if *Messages* is
 	 shown in some window.  So we must manually set
 	 windows_or_buffers_changed here to make up for that.  */
-	windows_or_buffers_changed = old_windows_or_buffers_changed;
+      windows_or_buffers_changed = old_windows_or_buffers_changed;
       bset_redisplay (current_buffer);
 
       set_buffer_internal (oldbuf);
@@ -12109,7 +12109,7 @@ DEFUN ("tool-bar-height", Ftool_bar_height, Stool_bar_height,
        0, 2, 0,
        doc: /* Return the number of lines occupied by the tool bar of FRAME.
 If FRAME is nil or omitted, use the selected frame.  Optional argument
-PIXELWISE non-nil means return the height of the tool bar inpixels.  */)
+PIXELWISE non-nil means return the height of the tool bar in pixels.  */)
   (Lisp_Object frame, Lisp_Object pixelwise)
 {
   int height = 0;
@@ -17333,9 +17333,16 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
 
    Value is
 
-   1	if display has been updated
-   0	if otherwise unsuccessful
+   >= 1	if successful, i.e. display has been updated
+         specifically:
+         1 means the changes were in front of a newline that precedes
+           the window start, and the whole current matrix was reused
+         2 means the changes were after the last position displayed
+           in the window, and the whole current matrix was reused
+         3 means portions of the current matrix were reused, while
+           some of the screen lines were redrawn
    -1	if redisplay with same window start is known not to succeed
+   0	if otherwise unsuccessful
 
    The following steps are performed:
 
@@ -17409,6 +17416,12 @@ try_window_id (struct window *w)
   /* This flag is used to prevent redisplay optimizations.  */
   if (windows_or_buffers_changed || f->cursor_type_changed)
     GIVE_UP (2);
+
+  /* This function's optimizations cannot be used if overlays have
+     changed in the buffer displayed by the window, so give up if they
+     have.  */
+  if (w->last_overlay_modified != OVERLAY_MODIFF)
+    GIVE_UP (21);
 
   /* Verify that narrowing has not changed.
      Also verify that we were not told to prevent redisplay optimizations.

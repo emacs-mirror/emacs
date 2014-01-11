@@ -1,3 +1,32 @@
+2014-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Distrib): Add donate URL.  Add anchor.
+
+2014-01-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* dired.texi (Misc Dired Features): Document `dired-hide-details-mode',
+	`dired-hide-details-hide-symlink-targets', and
+	`dired-hide-details-hide-information-lines'.
+
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* emacs.texi: Add EWW.
+	* misc.texi (EWW): Document EWW.
+
+2014-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Service): Refer to online service directory
+	rather than etc/SERVICE.
+
+2014-01-09  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* building.texi (Lisp Libraries): Document `load-prefer-newer'.
+
+	* files.texi (File Conveniences): Document `image-next-frame',
+	`image-previous-frame', `image-goto-frame',
+	`image-increase-speed', `image-decrease-speed',
+	`image-reverse-speed', and `image-reset-speed'.
+
 2014-01-07  Bastien Guerry  <bzg@gnu.org>
 
 	* buffers.texi (Buffers): Fix display of @math content by using
@@ -5088,10 +5117,6 @@
 
 	* maintaining.texi (Tags): Fix last change.
 
-2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
-
-	* tramp.texi: Use new FSF's Back-Cover Text.
-
 2008-01-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* trouble.texi (Checklist): Direct users to emacs-devel@gnu.org.
@@ -5133,8 +5158,6 @@
 
 	* search.texi (Query Replace): Make exp of query-replace more
 	self-contained, and clarify.
-
-	* cc-mode.texi (Getting Started): Change @ref to @pxref.
 
 2007-12-15  Richard Stallman  <rms@gnu.org>
 
@@ -5687,6 +5710,11 @@
 	* frames.texi (Secondary Selection): Window clicked does not matter
 	when mouse-yank-at-point is non-nil.
 
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
+	ls-lisp-use-localized-time-format.
+
 2007-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi (Editing Abbrevs): Describe how to disable a
@@ -6013,6 +6041,11 @@
 	* emacs.texi (GNU GENERAL PUBLIC LICENSE):
 	Change "Library Public License" to "Lesser Public License"
 	throughout.  Use "yyyy" to represent year.
+
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* misc.texi (Interactive Shell): EMACS is now set
+	to Emacs's absolute file name, not to "t".
 
 2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
