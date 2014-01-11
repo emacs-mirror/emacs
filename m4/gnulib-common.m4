@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 33
+# gnulib-common.m4 serial 34
 dnl Copyright (C) 2007-2014 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -375,3 +375,7 @@ AC_DEFUN([gl_CACHE_VAL_SILENT],
   AC_CACHE_VAL([$1], [$2])
   as_echo_n="$saved_as_echo_n"
 ])
+
+# AS_VAR_COPY was added in autoconf 2.63b
+m4_define_default([AS_VAR_COPY],
+[AS_LITERAL_IF([$1[]$2], [$1=$$2], [eval $1=\$$2])])
