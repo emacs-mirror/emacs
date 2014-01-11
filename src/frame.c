@@ -4709,7 +4709,6 @@ or call the function `tool-bar-mode'.  */);
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.
-
 Emacs cannot create minibufferless frames unless this is set to an
 appropriate surrogate.
 
@@ -4730,9 +4729,15 @@ automatically.  See also `mouse-autoselect-window'.  */);
   focus_follows_mouse = 0;
 
   DEFVAR_BOOL ("frame-resize-pixelwise", frame_resize_pixelwise,
-	       doc: /* Non-nil means frames are resized pixelwise.
-If this is nil, resizing a frame will round sizes to the frame's
-current values of `frame-char-height' and `frame-char-width'.  */);
+	       doc: /* Non-nil means resize frames pixelwise.
+If this option is nil, resizing a frame rounds its sizes to the frame's
+current values of `frame-char-height' and `frame-char-width'.  If this
+is non-nil, no rounding occurs, hence frame sizes can increase/decrease
+by one pixel.
+
+With some window managers you have to set this to non-nil in order to
+fully maximize frames.  The default of this option is nil.  To resize
+your initial frame pixelwise, set this option in your init file.  */);
   frame_resize_pixelwise = 0;
 
   staticpro (&Vframe_list);
