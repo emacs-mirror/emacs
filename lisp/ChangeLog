@@ -1,3 +1,8 @@
+2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
+
+	* play/meese.el: It's 2014 and Ed Meese is justly forgotten. Goes
+	with removal of the joke manpages from /etc.
+
 2014-01-10  K. Handa  <handa@gnu.org>
 
 	* mail/rmail.el (rmail-get-coding-system): Check
