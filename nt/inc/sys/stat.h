@@ -141,6 +141,13 @@ extern int w32_stat_get_owner_group;
 
 /* Prevent redefinition by other headers, e.g. wchar.h.  */
 #define _STAT_DEFINED
+/* This prevents definition in MinGW's wchar.h of inline functions
+   that use struct _stat64i32 etc., which we don't define and don't
+   support in our implementation of 'stat' and 'fstat'.  If we don't
+   prevent definition of those inline functions, any program (e.g.,
+   test programs run by configure) that includes both wchar.h and
+   sys/stat.h will fail to compile.  */
+#define _WSTAT_DEFINED
 
 int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
 int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
