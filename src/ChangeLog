@@ -1,3 +1,7 @@
+2014-01-11  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* unexw32.c (_start) [__MINGW64__]: Define to __start.
+
 2014-01-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_window_id): Don't use this function's optimizations
