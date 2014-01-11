@@ -1,3 +1,8 @@
+2014-01-10  K. Handa  <handa@gnu.org>
+
+	* mail/rmail.el (rmail-get-coding-system): Check
+	rmail-get-coding-function before "funcall"ing it.
+
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries):
