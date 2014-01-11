@@ -388,6 +388,11 @@ extern int sigemptyset (sigset_t *);
 extern int sigaddset (sigset_t *, int);
 extern int sigfillset (sigset_t *);
 extern int sigprocmask (int, const sigset_t *, sigset_t *);
+/* MinGW64 defines pthread_sigmask as zero in its pthread_signal.h
+   header, but we have an implementation for that function in w32proc.c.  */
+#ifdef pthread_sigmask
+#undef pthread_sigmask
+#endif
 extern int pthread_sigmask (int, const sigset_t *, sigset_t *);
 extern int sigismember (const sigset_t *, int);
 extern int setpgrp (int, int);

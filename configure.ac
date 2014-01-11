@@ -24,7 +24,8 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
-if test "x$MSYSTEM" = "xMINGW32"
+dnl We get MINGW64 with MSYS2
+if test "x$MSYSTEM" = "xMINGW32" -o "x$MSYSTEM" = "xMINGW64"
 then
   . $srcdir/nt/mingw-cfg.site
 
