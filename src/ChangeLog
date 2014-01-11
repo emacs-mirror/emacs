@@ -1,3 +1,26 @@
+2014-01-10  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix handling of internal borders (Bug#16348).
+	* dispnew.c (adjust_frame_glyphs_for_window_redisplay): Remove
+	internal border width from pixel width of windows.
+	(change_frame_size_1): Don't return early when frame's pixel
+	size changes - we still have to record the new sizes in the
+	frame structure.
+	* w32fns.c (x_set_tool_bar_lines): Clear internal border width
+	also when toolbar gets larger.
+	* window.c (check_frame_size): Include internal_border_width in
+	check.
+	* xdisp.c (Ftool_bar_height): Fix doc-string typo.
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): In
+	non-toolkit/non-GTK version clear internal border.
+	* xterm.c (x_clear_under_internal_border): New function for
+	non-toolkit/non-GTK version.
+	(x_after_update_window_line): In non-toolkit/non-GTK version
+	don't do that.
+	(handle_one_xevent, x_set_window_size): Call
+	x_clear_under_internal_border in non-toolkit/non-GTK version.
+	* xterm.h (x_clear_under_internal_border): Extern it.
+
 2014-01-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix misdisplay of interlaced GIFs with libgif5 (Bug#16372).

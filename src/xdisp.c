@@ -12109,7 +12109,7 @@ DEFUN ("tool-bar-height", Ftool_bar_height, Stool_bar_height,
        0, 2, 0,
        doc: /* Return the number of lines occupied by the tool bar of FRAME.
 If FRAME is nil or omitted, use the selected frame.  Optional argument
-PIXELWISE non-nil means return the height of the tool bar inpixels.  */)
+PIXELWISE non-nil means return the height of the tool bar in pixels.  */)
   (Lisp_Object frame, Lisp_Object pixelwise)
 {
   int height = 0;

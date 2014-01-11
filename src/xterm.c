@@ -593,6 +593,32 @@ XTframe_up_to_date (struct frame *f)
 }
 
 
+/* Clear under internal border if any for non-toolkit builds. */
+
+
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+void
+x_clear_under_internal_border (struct frame *f)
+{
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+    {
+      Display *display = FRAME_X_DISPLAY (f);
+      Window window = FRAME_X_WINDOW (f);
+      int border = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int height = FRAME_PIXEL_HEIGHT (f);
+      int margin = FRAME_TOP_MARGIN_HEIGHT (f);
+
+      block_input ();
+      x_clear_area (display, window, 0, 0, border, height);
+      x_clear_area (display, window, 0, margin, width, border);
+      x_clear_area (display, window, width - border, 0, border, height);
+      x_clear_area (display, window, 0, height - border, width, border);
+      unblock_input ();
+    }
+}
+#endif
+
 /* Draw truncation mark bitmaps, continuation mark bitmaps, overlay
    arrow bitmaps, or clear the fringes if no bitmaps are required
    before DESIRED_ROW is made current.  This function is called from
@@ -602,38 +628,42 @@ XTframe_up_to_date (struct frame *f)
 static void
 x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 {
-  struct frame *f;
-  int width, height;
-
   eassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     desired_row->redraw_fringe_bitmaps_p = 1;
 
+#ifdef USE_X_TOOLKIT
   /* When a window has disappeared, make sure that no rest of
      full-width rows stays visible in the internal border.  Could
      check here if updated window is the leftmost/rightmost window,
      but I guess it's not worth doing since vertically split windows
      are almost never used, internal border is rarely set, and the
      overhead is very small.  */
-  if (windows_or_buffers_changed
-      && desired_row->full_width_p
-      && (f = XFRAME (w->frame),
-	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
-	  width != 0)
-      && (height = desired_row->visible_height,
-	  height > 0))
-    {
-      int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+  {
+    struct frame *f;
+    int width, height;
 
-      block_input ();
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height);
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    FRAME_PIXEL_WIDTH (f) - width,
-		    y, width, height);
-      unblock_input ();
-    }
+    if (windows_or_buffers_changed
+	&& desired_row->full_width_p
+	&& (f = XFRAME (w->frame),
+	    width = FRAME_INTERNAL_BORDER_WIDTH (f),
+	    width != 0)
+	&& (height = desired_row->visible_height,
+	    height > 0))
+      {
+	int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+
+	block_input ();
+	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      0, y, width, height);
+	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      FRAME_PIXEL_WIDTH (f) - width,
+		      y, width, height);
+	unblock_input ();
+      }
+  }
+#endif
 }
 
 static void
@@ -6618,7 +6648,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               || event->xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
               change_frame_size (f, width, height, 0, 1, 0, 1);
-              SET_FRAME_GARBAGED (f);
+	      x_clear_under_internal_border (f);
+	      SET_FRAME_GARBAGED (f);
               cancel_mouse_face (f);
             }
 
@@ -8635,6 +8666,9 @@ x_set_window_size (struct frame *f, int change_gravity, int width, int height, b
 #else /* not USE_GTK */
 
   x_set_window_size_1 (f, change_gravity, width, height, pixelwise);
+#if !defined USE_X_TOOLKIT
+  x_clear_under_internal_border (f);
+#endif
 
 #endif /* not USE_GTK */
 

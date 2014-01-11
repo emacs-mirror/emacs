@@ -3155,6 +3155,7 @@ check_frame_size (struct frame *frame, int *width, int *height, bool pixelwise)
 	min_height = 2 * min_height;
 
       min_height += FRAME_TOP_MARGIN_HEIGHT (frame);
+      min_height += FRAME_INTERNAL_BORDER_WIDTH (frame);
 
       if (*height < min_height)
 	*height = min_height;
@@ -4047,6 +4048,8 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
      have implicitly given us a zero or negative height.  */
   if (pixelwise)
     {
+      /* Note: This does not include the size for internal borders
+	 since these are not part of the frame's text area.  */
       new_pixel_size = max (horflag
 			    ? size
 			    : (size
