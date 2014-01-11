@@ -17333,9 +17333,16 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
 
    Value is
 
-   1	if display has been updated
-   0	if otherwise unsuccessful
+   >= 1	if successful, i.e. display has been updated
+         specifically:
+         1 means the changes were in front of a newline that precedes
+           the window start, and the whole current matrix was reused
+         2 means the changes were after the last position displayed
+           in the window, and the whole current matrix was reused
+         3 means portions of the current matrix were reused, while
+           some of the screen lines were redrawn
    -1	if redisplay with same window start is known not to succeed
+   0	if otherwise unsuccessful
 
    The following steps are performed:
 
