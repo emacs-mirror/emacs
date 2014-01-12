@@ -1,3 +1,9 @@
+2014-01-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (all): Doc fix according to GNU Coding Standards.
+	Use "file name" instead of "filename" or "path".  Use "host"
+	instead of "machine".
+
 2014-01-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* eww.texi (Basics): Use "directory" instead of "path" (Bug#16419).
