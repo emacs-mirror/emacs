@@ -223,10 +223,9 @@ first argument, and this one must be an @eieio{} type.
 @item Support for metaclasses
 There is just one default metaclass, @code{eieio-default-superclass},
 and you cannot define your own.  The @code{:metaclass} tag in
-@code{defclass} is ignored.  Also, functions like `class-of' and
-`find-class', which should return instances of the metaclass, behave
-differently in @eieio{} in that they return symbols or plain structures
-instead.
+@code{defclass} is ignored.  Also, functions like `find-class', which
+should return instances of the metaclass, behave differently in
+@eieio{} in that they return symbols or plain structures instead.
 
 @item EQL specialization
 EIEIO does not support it.
@@ -1065,7 +1064,7 @@ make a slot unbound.
 @var{object} can be an instance or a class.
 @end defun
 
-@defun class-name class
+@defun eieio-class-name class
 Return a string of the form @samp{#<class myclassname>} which should look
 similar to other Lisp objects like buffers and processes.  Printing a
 class results only in a symbol.
@@ -1089,7 +1088,7 @@ constructor is a function used to create new instances of
 without knowing what it is.  This is not a part of CLOS.
 @end defun
 
-@defun object-name obj
+@defun eieio-object-name obj
 Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
 This should look like Lisp symbols from other parts of Emacs such as
 buffers and processes, and is shorter and cleaner than printing the
@@ -1098,43 +1097,39 @@ and object's print form, as this allows the object to add extra display
 information into the symbol.
 @end defun
 
-@defun object-class obj
+@defun eieio-object-class obj
 Returns the class symbol from @var{obj}.
 @end defun
 
-@defun class-of obj
-CLOS symbol which does the same thing as @code{object-class}
-@end defun
-
-@defun object-class-fast obj
-Same as @code{object-class} except this is a macro, and no
+@defun eieio--object-class obj
+Same as @code{eieio-object-class} except this is a macro, and no
 type-checking is performed.
 @end defun
 
-@defun object-class-name obj
+@defun eieio-object-class-name obj
 Returns the symbol of @var{obj}'s class.
 @end defun
 
-@defun class-parents class
+@defun eieio-class-parents class
 Returns the direct parents class of @var{class}.  Returns @code{nil} if
 it is a superclass.
 @end defun
 
-@defun class-parents-fast class
-Just like @code{class-parent} except it is a macro and no type checking
+@defun eieio-class-parents-fast class
+Just like @code{eieio-class-parents} except it is a macro and no type checking
 is performed.
 @end defun
 
-@defun class-parent class
+@defun eieio-class-parent class
 Deprecated function which returns the first parent of @var{class}.
 @end defun
 
-@defun class-children class
+@defun eieio-class-children class
 Return the list of classes inheriting from @var{class}.
 @end defun
 
-@defun class-children-fast class
-Just like @code{class-children}, but with no checks.
+@defun eieio-class-children-fast class
+Just like @code{eieio-class-children}, but with no checks.
 @end defun
 
 @defun same-class-p obj class
@@ -1676,9 +1671,9 @@ sure to call @dfn{call-next-method} first and modify the returned object.
 
 @defun object-print this &rest strings
 @anchor{object-print}
-Pretty printer for object @var{this}.  Call function @dfn{object-name} with @var{strings}.
+Pretty printer for object @var{this}.  Call function @dfn{eieio-object-name} with @var{strings}.
 The default method for printing object @var{this} is to use the
-function @dfn{object-name}.
+function @dfn{eieio-object-name}.
 
 It is sometimes useful to put a summary of the object into the
 default #<notation> string when using eieio browsing tools.

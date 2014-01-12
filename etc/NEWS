@@ -1230,25 +1230,25 @@ and setting the current frame of a multi-frame image.
 
 ** EIEIO
 
++++
 *** Namespace cleanup by obsolete-aliasing functions to use `eieio-' prefix.
 **** object-name -> eieio-object-name
 **** object-class -> eieio-object-class
 **** object-class-fast -> eieio--object-class
+**** object-class-name -> eieio-object-class-name
 **** object-name-string -> eieio-object-name-string
 **** object-num-slots -> eieio--object-num-slots
 **** object-set-name-string -> eieio-object-set-name-string
+**** class-of -> eieio-object-class
+**** class-name -> eieio-class-name
 **** class-parent -> eieio-class-parent
 **** class-parents -> eieio-class-parents
+**** class-parents-fast -> eieio-class-parents-fast
 **** class-children -> eieio-class-children
 **** class-num-slots -> eieio--class-num-slots
 **** class-precedence-list -> eieio-class-precedence-list
-**** All generated class-* and object-* field accessors are now
-prefixed with `eieio-' as well.
-
-*** Obsoleted functions:
-**** class-of
-**** class-direct-subclasses
-**** class-direct-superclasses
+**** class-direct-subclasses -> eieio-class-children
+**** class-direct-superclasses -> eieio-class-parents
 
 ** Changes in encoding and decoding of text
 

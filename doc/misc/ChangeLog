@@ -4,6 +4,12 @@
 	Use "file name" instead of "filename" or "path".  Use "host"
 	instead of "machine".
 
+2014-01-12  David Engster  <deng@randomsample.de>
+
+	* eieio.texi (Introduction): `class-of' is obsolete.
+	(Predicates, Basic Methods): Adapt function names to namespace
+	cleanup.
+
 2014-01-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* eww.texi (Basics): Use "directory" instead of "path" (Bug#16419).

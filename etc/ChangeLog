@@ -1,3 +1,9 @@
+2014-01-12  David Engster  <deng@randomsample.de>
+
+	* NEWS: Add missing renames to EIEIO section.  Also, no functions
+	were removed but only made obsolete.  Class field accessors were
+	always purely internal, so remove that remark.  Add markup.
+
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* celibacy.1, sex.6, condom.1, echo.msg: Deleted at RMS's
