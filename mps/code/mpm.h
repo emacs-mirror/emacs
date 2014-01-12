@@ -1,12 +1,13 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the
- * accessor BufferGetInit. */
+ * accessor BufferGetInit.
+ */
 
 #ifndef mpm_h
 #define mpm_h
@@ -499,8 +500,6 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaGlobals(arena) (&(arena)->globals)
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
-#define ArenaRootRing(arena)    (&(arena)->rootRing)
-#define ArenaTraceRing(arena)   (&(arena)->traceRing)
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
@@ -1020,7 +1019,7 @@ extern void StackProbe(Size depth);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
