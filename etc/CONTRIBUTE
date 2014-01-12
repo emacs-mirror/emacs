@@ -71,12 +71,11 @@ patches) over all your contributions.
 
 * Getting the Source Code
 
-The latest version of Emacs can be fetched from the version-control
-repository on the Savannah web site.  It is important to write your
-patch based on the latest version.  If you start from an older
-version, your patch may be outdated (so that maintainers will have a
-hard time applying it), or changes in Emacs may have made your patch
-unnecessary.
+The latest version of Emacs can be downloaded using Bazaar from the
+Savannah web site.  It is important to write your patch based on the
+latest version.  If you start from an older version, your patch may be
+outdated (so that maintainers will have a hard time applying it), or
+changes in Emacs may have made your patch unnecessary.
 
 After you have downloaded the repository source, you should read the file
 INSTALL.REPO for build instructions (they differ to some extent from a
