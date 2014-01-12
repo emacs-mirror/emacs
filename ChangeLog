@@ -1,8 +1,6 @@
-2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
+2014-01-12  Glenn Morris  <rgm@gnu.org>
 
-	* celibacy.1, sex.6, condom.1, echo.msg: Deleted at RMS's
-	suggestion. Not lost to posterity as they are part of the
-	widely distributed funny-manpages collection.
+	* README: Replace reference to etc/MAILINGLISTS.
 
 2014-01-11  Fabrice Popineau  <fabrice.popineau@gmail.com>
 

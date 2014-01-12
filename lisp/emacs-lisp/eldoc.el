@@ -1,4 +1,4 @@
-;;; eldoc.el --- show function arglist or variable docstring in echo area
+;;; eldoc.el --- show function arglist or variable docstring in echo area  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
@@ -60,6 +60,12 @@ last input, no documentation will be printed.
 
 If this variable is set to 0, no idle time is required."
   :type 'number
+  :group 'eldoc)
+
+(defcustom eldoc-print-after-edit nil
+  "If non-nil eldoc info is only shown when editing.
+Changing the value requires toggling `eldoc-mode'."
+  :type 'boolean
   :group 'eldoc)
 
 ;;;###autoload
@@ -150,6 +156,16 @@ This is used to determine if `eldoc-idle-delay' is changed by the user.")
   "The function used by `eldoc-message' to display messages.
 It should receive the same arguments as `message'.")
 
+(defun eldoc-edit-message-commands ()
+  (let ((cmds (make-vector 31 0))
+	(re (regexp-opt '("delete" "insert" "edit" "electric" "newline"))))
+    (mapatoms (lambda (s)
+		(and (commandp s)
+		     (string-match-p re (symbol-name s))
+		     (intern (symbol-name s) cmds)))
+	      obarray)
+    cmds))
+
 
 ;;;###autoload
 (define-minor-mode eldoc-mode
@@ -168,25 +184,13 @@ expression point is on."
   (setq eldoc-last-message nil)
   (if eldoc-mode
       (progn
+	(when eldoc-print-after-edit
+	  (setq-local eldoc-message-commands (eldoc-edit-message-commands)))
 	(add-hook 'post-command-hook 'eldoc-schedule-timer nil t)
-	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t))
-   (remove-hook 'post-command-hook 'eldoc-schedule-timer)
-   (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area)))
-
-;;;###autoload
-(define-minor-mode eldoc-post-insert-mode nil
-  :group 'eldoc :lighter (:eval (if eldoc-mode ""
-				  (concat eldoc-minor-mode-string "|i")))
-  (setq eldoc-last-message nil)
-  (let ((prn-info (lambda ()
-		    (unless eldoc-mode
-		      (eldoc-print-current-symbol-info)))))
-    (if eldoc-post-insert-mode
-	(add-hook 'post-self-insert-hook prn-info nil t)
-      (remove-hook 'post-self-insert-hook prn-info t))))
-
-;; FIXME: This changes Emacs's behavior when the file is loaded!
-(add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-post-insert-mode)
+	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area nil t))
+    (kill-local-variable 'eldoc-message-commands)
+    (remove-hook 'post-command-hook 'eldoc-schedule-timer t)
+    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t)))
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()
@@ -264,8 +268,10 @@ Otherwise work like `message'."
 ;; This doesn't seem to be required for Emacs 19.28 and earlier.
 (defun eldoc-pre-command-refresh-echo-area ()
   (and eldoc-last-message
-       (if (eldoc-display-message-no-interference-p)
-           (eldoc-message eldoc-last-message)
+       (if (and (eldoc-display-message-no-interference-p)
+		(symbolp this-command)
+		(intern-soft (symbol-name this-command) eldoc-message-commands))
+	   (eldoc-message eldoc-last-message)
          (setq eldoc-last-message nil))))
 
 ;; Decide whether now is a good time to display a message.
@@ -283,9 +289,7 @@ Otherwise work like `message'."
 ;; Check various conditions about the current environment that might make
 ;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
-  (and eldoc-mode
-       (not executing-kbd-macro)
-       (not (and (boundp 'edebug-active) edebug-active))))
+  (not (or executing-kbd-macro (bound-and-true-p edebug-active))))
 
 
 ;;;###autoload
@@ -309,7 +313,7 @@ Emacs Lisp mode) that support ElDoc.")
   ;; This is run from post-command-hook or some idle timer thing,
   ;; so we need to be careful that errors aren't ignored.
   (with-demoted-errors "eldoc error: %s"
-    (and (or (eldoc-display-message-p) eldoc-post-insert-mode)
+    (and (eldoc-display-message-p)
 	 (if eldoc-documentation-function
 	     (eldoc-message (funcall eldoc-documentation-function))
 	   (let* ((current-symbol (eldoc-current-symbol))

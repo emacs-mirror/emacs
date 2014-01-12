@@ -1,4 +1,44 @@
+2014-01-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* net/eww.el (eww-download-directory): Rename from
+	`eww-download-path' (Bug#16419).
+
+2014-01-12  Leo Liu  <sdl.web@gmail.com>
+
+	* dired-x.el (dired-mode-map): Fix last change.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Add hook locally.
+
+2014-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* emacs-lisp/generic.el (generic--normalize-comments):
+	Rename from generic--normalise-comments.  All uses changed.
+	* play/bubbles.el (bubbles--neighborhood-score):
+	(bubbles--mark-direct-neighbors, bubbles--mark-neighborhood)
+	(bubbles--neighborhood-available)
+	(bubbles--update-neighborhood-score):
+	Rename from names with 'neighbourhood'.  All uses changed.
+
+2014-01-12  Leo Liu  <sdl.web@gmail.com>
+
+	Re-implement the feature of showing eldoc info after editing.
+	* emacs-lisp/eldoc.el (eldoc-post-insert-mode): Remove.
+	(eldoc-edit-message-commands): New function.
+	(eldoc-print-after-edit): New variable.
+	(eldoc-pre-command-refresh-echo-area): Emit message only by
+	eldoc-message-commands.
+	(eldoc-mode): Restrict eldoc-message-commands to editing commands
+	if eldoc-print-after-edit is set.  (Bug#16346)
+
+	* progmodes/octave.el (octave-mode-menu): Adapt to change in
+	eldoc.
+
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
+
+	* version.el (emacs-repository-get-version): Enhance so the
+	function works correctly in either a Bazaar or Git repo. The
+	Bazaar case can be discarded  after the repo transition.
 
 	* play/meese.el: It's 2014 and Ed Meese is justly forgotten. Goes
 	with removal of the joke manpages from /etc.
@@ -243,7 +283,7 @@
 2014-01-06  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.el (dired-mode-map): Rebind dired-omit-mode to C-x M-o
-	to avoid shadowning global key.  (Bug#16354)
+	to avoid shadowing global key.  (Bug#16354)
 
 2014-01-06  Daniel Colascione  <dancol@dancol.org>
 

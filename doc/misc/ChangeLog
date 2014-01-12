@@ -1,3 +1,25 @@
+2014-01-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (all): Doc fix according to GNU Coding Standards.
+	Use "file name" instead of "filename" or "path".  Use "host"
+	instead of "machine".
+
+2014-01-12  David Engster  <deng@randomsample.de>
+
+	* eieio.texi (Introduction): `class-of' is obsolete.
+	(Predicates, Basic Methods): Adapt function names to namespace
+	cleanup.
+
+2014-01-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* eww.texi (Basics): Use "directory" instead of "path" (Bug#16419).
+
+2014-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Guidelines for newsgroup postings)
+	(Informational files for Emacs):
+	Remove references to etc/MAILINGLISTS, etc/INTERVIEW.
+
 2014-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cl.texi (Function Bindings): Fix incorrect description of cl-let.

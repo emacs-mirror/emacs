@@ -392,12 +392,9 @@ recipients the same freedom that you enjoyed.
 @cindex Posting messages to newsgroups
 
 @cindex GNU mailing lists
-The file @file{etc/MAILINGLISTS} describes the purpose of each GNU
-mailing list (@pxref{Informational files for Emacs}).  For those lists
-which are gatewayed with newsgroups, it lists both the newsgroup name
-and the mailing list address.  The Emacs mailing lists are also
-described at @uref{http://savannah.gnu.org/mail/?group=emacs, the Emacs
-Savannah page}.
+The Emacs mailing lists are described at
+@uref{http://savannah.gnu.org/mail/?group=emacs, the Emacs Savannah
+page}. Some of them are gatewayed to newsgroups.
 
 The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
 in general.  The newsgroup @uref{news:gnu.emacs.help} is specifically
@@ -865,9 +862,7 @@ You can get Tkinfo at
 @cindex @file{COPYING}, description of file
 @cindex @file{DISTRIB}, description of file
 @cindex @file{GNU}, description of file
-@cindex @file{INTERVIEW}, description of file
 @cindex @file{MACHINES}, description of file
-@cindex @file{MAILINGLISTS}, description of file
 @cindex @file{NEWS}, description of file
 
 This isn't a frequently asked question, but it should be!  A variety of
@@ -891,15 +886,8 @@ Emacs Availability Information
 @item GNU
 The GNU Manifesto
 
-@item INTERVIEW
-Richard Stallman discusses his public-domain UNIX-compatible software
-system with BYTE editors
-
 @item MACHINES
 Status of Emacs on Various Machines and Systems
-
-@item MAILINGLISTS
-GNU Project Electronic Mailing Lists
 
 @item NEWS
 Emacs news, a history of recent user-visible changes
