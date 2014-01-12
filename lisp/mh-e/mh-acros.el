@@ -25,16 +25,16 @@
 ;;; Commentary:
 
 ;; This file contains all macros that are used in more than one file.
-;; If you run "make recompile" in Bazaar Emacs and see the message
+;; If you run "make recompile" in the Emacs repository and see the message
 ;; "Source is newer than compiled," it is a sign that macro probably
 ;; needs to be moved here.
 
 ;; Historically, it was so named with a silent "m" so that it would be
-;; compiled first. Otherwise, "make recompile" in Bazaar Emacs would use
-;; compiled files with stale macro definitions. Later, no-byte-compile
-;; was added to the Local Variables section to avoid this problem and
-;; because it's pointless to compile a file full of macros. But we
-;; kept the name.
+;; compiled first. Otherwise, "make recompile" in the Emacs repository
+;; would use compiled files with stale macro definitions. Later,
+;; no-byte-compile was added to the Local Variables section to avoid
+;; this problem and because it's pointless to compile a file full of
+;; macros. But we kept the name.
 
 ;;; Change Log:
 

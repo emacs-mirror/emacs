@@ -1,5 +1,8 @@
 2014-01-12  Eric S. Raymond  <esr@thyrsus.com>
 
+	* doc/misc/efaq.texi, etc/CONTRIBUTE, lisp/mh-e/mh-acros.el:
+	Remove more references unnecessarily specific to VCS.
+
 	* Makefile, src/Makefile, etc/PROBLEMS: Remove broken VCSWITNESS
 	code, and explain the problem.
 

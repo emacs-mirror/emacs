@@ -978,7 +978,6 @@ conventions}).
 @cindex Latest version of Emacs
 @cindex Development, Emacs
 @cindex Repository, Emacs
-@cindex Bazaar repository, Emacs
 
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
 number with two components (e.g., @samp{22.1}) indicates a released
@@ -989,7 +988,6 @@ Emacs is under active development, hosted at
 @uref{http://savannah.gnu.org/projects/emacs/, Savannah}.  The source
 code can be retrieved anonymously following the
 @uref{http://savannah.gnu.org/bzr/?group=emacs, instructions}.
-The repository is GNU Bazaar.
 
 Because Emacs undergoes many changes before a release, the version
 number of a development version is not especially meaningful.  It is
