@@ -629,12 +629,10 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## Since the .el.elc rule cannot specify an extra dependency, we do it here.
 $(lisp): $(BOOTSTRAPEMACS)
 
-## VCSWITNESS points to the file that holds info about the current checkout.
-## We use it as a heuristic to decide when to rebuild loaddefs.el.
-## If empty it is ignored; the parent makefile can set it to some other value.
-VCSWITNESS =
+## This ought to depend on every Lisp file that contains an autoload cookie.
+## A task for the future...
 
-$(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
+$(lispsource)/loaddefs.el: $(BOOTSTRAPEMACS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the

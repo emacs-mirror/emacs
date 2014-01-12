@@ -36,7 +36,7 @@
 
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
 
-	* version.el (emacs-repository-get-version): Enhancee so the
+	* version.el (emacs-repository-get-version): Enhance so the
 	function works correctly in either a Bazaar or Git repo. The
 	Bazaar case can be discarded  after the repo transition.
 
