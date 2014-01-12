@@ -1,7 +1,3 @@
-2014-01-12  Eli Zaretskii  <eliz@gnu.org>
-
-	* Makefile.in (src): Fix the computation of $vcswitness.
-
 2014-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* README: Replace reference to etc/MAILINGLISTS.
