@@ -50,8 +50,8 @@
   :group 'eww
   :type 'string)
 
-(defcustom eww-download-path "~/Downloads/"
-  "Path where files will downloaded."
+(defcustom eww-download-directory "~/Downloads/"
+  "Directory where files will downloaded."
   :version "24.4"
   :group 'eww
   :type 'string)

@@ -83,8 +83,8 @@ However a GNU Emacs with @code{libxml2} support is required.
 If the input doesn't look like a URL or domain name the web will be
 searched via @code{eww-search-prefix}.  The default search engine is
 @url{https://duckduckgo.com, DuckDuckGo}.  If you want to open a file
-either prefix the path with @code{file://} or use the command @kbd{M-x
-eww-open-file}.
+either prefix the file name with @code{file://} or use the command
+@kbd{M-x eww-open-file}.
 
 @findex eww-quit
 @findex eww-reload
@@ -99,12 +99,12 @@ web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
 (@code{eww-copy-page-url}) will copy the current URL to the kill ring.
 
 @findex eww-download
-@vindex eww-download-path
+@vindex eww-download-directory
 @kindex d
 @cindex Download
   A URL under the point can be downloaded with @kbd{d}
 (@code{eww-download}).  The file will be written to the directory
-specified in @code{eww-download-path} (Default: @file{~/Downloads/}).
+specified in @code{eww-download-directory} (Default: @file{~/Downloads/}).
 
 @findex eww-back-url
 @findex eww-forward-url

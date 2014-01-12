@@ -1,3 +1,7 @@
+2014-01-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* eww.texi (Basics): Use "directory" instead of "path" (Bug#16419).
+
 2014-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Guidelines for newsgroup postings)
