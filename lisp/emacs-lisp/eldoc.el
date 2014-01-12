@@ -187,7 +187,7 @@ expression point is on."
 	(when eldoc-print-after-edit
 	  (setq-local eldoc-message-commands (eldoc-edit-message-commands)))
 	(add-hook 'post-command-hook 'eldoc-schedule-timer nil t)
-	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t))
+	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area nil t))
     (kill-local-variable 'eldoc-message-commands)
     (remove-hook 'post-command-hook 'eldoc-schedule-timer t)
     (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t)))

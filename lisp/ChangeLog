@@ -1,3 +1,9 @@
+2014-01-12  Leo Liu  <sdl.web@gmail.com>
+
+	* dired-x.el (dired-mode-map): Fix last change.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Add hook locally.
+
 2014-01-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.
@@ -272,7 +278,7 @@
 2014-01-06  Leo Liu  <sdl.web@gmail.com>
 
 	* dired-x.el (dired-mode-map): Rebind dired-omit-mode to C-x M-o
-	to avoid shadowning global key.  (Bug#16354)
+	to avoid shadowing global key.  (Bug#16354)
 
 2014-01-06  Daniel Colascione  <dancol@dancol.org>
 
