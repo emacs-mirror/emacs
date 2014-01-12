@@ -1,7 +1,7 @@
 /* mpsliban.c: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: The purpose of this code is
@@ -27,12 +27,7 @@
 #include "mpstd.h"
 #include "event.h"
 
-#ifdef MPS_OS_XC
-#include "osxc.h"
-#endif
-
 #include <time.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -207,7 +202,7 @@ unsigned long mps_lib_telemetry_control(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
