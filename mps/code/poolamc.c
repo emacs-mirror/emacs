@@ -1,7 +1,7 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
@@ -2097,23 +2097,26 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   while(p < limit) {
     Addr q;
     Size length;
+    Bool preserve;
     q = (*format->skip)(p);
     length = AddrOffset(p, q);
-    if(amcSegHasNailboard(seg)
-        ? !amcNailGetMark(seg, p)
-        /* If there's no mark table, retain all that hasn't been */
-        /* forwarded.  In this case, preservedInPlace* become */
-        /* somewhat overstated. */
-        : (*format->isMoved)(p) != NULL)
-    {
-      /* Replace forwarding pointer / unreachable object with pad */
-      (*format->pad)(AddrSub(p, headerSize), length);
-      bytesReclaimed += length;
+    if(amcSegHasNailboard(seg)) {
+      preserve = amcNailGetMark(seg, p);
     } else {
+      /* There's no nailboard, so preserve everything that hasn't been
+       * forwarded. In this case, preservedInPlace* become somewhat
+       * overstated. */
+      preserve = !(*format->isMoved)(p);
+    }
+    if(preserve) {
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
       if(p == p1)
         obj1pip = TRUE;
+    } else {
+      /* Replace forwarding pointer / unreachable object with pad. */
+      (*format->pad)(AddrSub(p, headerSize), length);
+      bytesReclaimed += length;
     }
     
     AVER(p < q);
@@ -2631,7 +2634,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
