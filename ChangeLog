@@ -1,3 +1,7 @@
+2014-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* README: Replace reference to etc/MAILINGLISTS.
+
 2014-01-11  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* configure.ac: Read $srcdir/nt/mingw-cfg.site when $MSYSTEM is

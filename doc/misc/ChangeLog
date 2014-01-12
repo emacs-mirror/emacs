@@ -1,3 +1,9 @@
+2014-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* efaq.texi (Guidelines for newsgroup postings)
+	(Informational files for Emacs):
+	Remove references to etc/MAILINGLISTS, etc/INTERVIEW.
+
 2014-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cl.texi (Function Bindings): Fix incorrect description of cl-let.

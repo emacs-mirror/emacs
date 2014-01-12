@@ -24,8 +24,9 @@ list bug-gnu-emacs@gnu.org.  If possible, use M-x report-emacs-bug.
 See the "Bugs" section of the Emacs manual for more information on how
 to report bugs.  (The file `BUGS' in this directory explains how you
 can find and read that section using the Info files that come with
-Emacs.)  See `etc/MAILINGLISTS' for more information on mailing lists
-relating to GNU packages.
+Emacs.)  For a list of mailing lists related to Emacs, see
+<http://savannah.gnu.org/mail/?group=emacs>.  For the complete
+list of GNU mailing lists, see <http://lists.gnu.org/>.
 
 The `etc' subdirectory contains several other files, named in capital
 letters, which you might consider looking at when installing GNU

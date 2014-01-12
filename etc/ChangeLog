@@ -1,11 +1,11 @@
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* celibacy.1, sex.6, condom.1, echo.msg: Deleted at RMS's
-	suggestion. Not lost to posterity as they are part of the
+	suggestion.  Not lost to posterity as they are part of the
 	widely distributed funny-manpages collection.
 
 	* COOKIES, copying.paper, INTERVIEW, MAILINGLISTS, MOTIVATION,
-	SERVICE: More deletions suggested by RMS.
+	* SERVICE: More deletions suggested by RMS.
 
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
