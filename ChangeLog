@@ -1,7 +1,6 @@
-2014-01-12  Eric S. Raymond  <esr@thyrsus.com>
+2014-01-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile, src/Makefile, etc/PROBLEMS: Remove broken VCSWITNESS
-	code, and explain the problem.
+	* Makefile.in (src): Fix the computation of $vcswitness.
 
 2014-01-12  Glenn Morris  <rgm@gnu.org>
 

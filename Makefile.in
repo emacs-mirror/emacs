@@ -374,12 +374,16 @@ lib lib-src lisp nt: Makefile FRC
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
 src: Makefile FRC
+	dirstate='.bzr/checkout/dirstate';				\
+	vcswitness='$(srcdir)/../'$$dirstate;				\
+	[ -r "$(srcdir)/$$dirstate" ] || vcswitness='';			\
 	cd $@ || exit;							\
 	boot=bootstrap-emacs$(EXEEXT);					\
 	[ ! -x "$$boot" ] || boot='';					\
 	$(MAKE) all $(MFLAGS)						\
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'		\
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"	\
+	  VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src FRC
 	cd lib-src && $(MAKE) maybe-blessmail $(MFLAGS) \

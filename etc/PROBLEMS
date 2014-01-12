@@ -2429,12 +2429,6 @@ The causes of this problem are not understood.  Using GNU make 3.81 compiled
 from source, rather than the Ubuntu version, worked.
 See <URL:http://debbugs.gnu.org/327, <URL:http://debbugs.gnu.org/821>.
 
-*** Rebuild of loaddefs.el is not always done after Lisp changes
-
-The rebuild production should depend on all Lisp files with #autoload
-cookies.  It doesn't yet.  This needs a configure-time improvement to
-the nuild system.
-
 ** Dumping
 
 *** Linux: Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
