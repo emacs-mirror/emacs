@@ -1,3 +1,7 @@
+2014-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/shr.el (shr-render-region): Autoload.
+
 2014-01-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* net/eww.el (eww-download-directory): Rename from
@@ -31,22 +35,20 @@
 	(eldoc-mode): Restrict eldoc-message-commands to editing commands
 	if eldoc-print-after-edit is set.  (Bug#16346)
 
-	* progmodes/octave.el (octave-mode-menu): Adapt to change in
-	eldoc.
+	* progmodes/octave.el (octave-mode-menu): Adapt to change in eldoc.
 
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* version.el (emacs-repository-get-version): Enhance so the
-	function works correctly in either a Bazaar or Git repo. The
-	Bazaar case can be discarded  after the repo transition.
+	function works correctly in either a Bazaar or Git repo.
 
-	* play/meese.el: It's 2014 and Ed Meese is justly forgotten. Goes
-	with removal of the joke manpages from /etc.
+	* play/meese.el: It's 2014 and Ed Meese is justly forgotten.
+	Goes with removal of the joke manpages from /etc.
 
 2014-01-10  K. Handa  <handa@gnu.org>
 
-	* mail/rmail.el (rmail-get-coding-system): Check
-	rmail-get-coding-function before "funcall"ing it.
+	* mail/rmail.el (rmail-get-coding-system):
+	Check rmail-get-coding-function before "funcall"ing it.
 
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
@@ -69,8 +71,7 @@
 
 2014-01-10  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/octave.el (octave-mode-menu): Don't assume eldoc is
-	loaded.
+	* progmodes/octave.el (octave-mode-menu): Don't assume eldoc is loaded.
 
 2014-01-10  Anders Lindgren  <andlind@gmail.com>
 

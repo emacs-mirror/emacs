@@ -169,6 +169,7 @@ cid: URL as the argument.")
      (libxml-parse-html-region (point-min) (point-max))))
   (goto-char (point-min)))
 
+;;;###autoload
 (defun shr-render-region (begin end &optional buffer)
   "Display the HTML rendering of the region between BEGIN and END."
   (interactive "r")
