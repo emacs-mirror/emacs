@@ -375,7 +375,7 @@ lib lib-src lisp nt: Makefile FRC
 # is not wrong, but is overkill in 99.99% of the cases.
 src: Makefile FRC
 	dirstate='.bzr/checkout/dirstate';				\
-	vcswitness='$(srcdir)/../'$$dirstate;				\
+	vcswitness='$$(srcdir)/../'$$dirstate;				\
 	[ -r "$(srcdir)/$$dirstate" ] || vcswitness='';			\
 	cd $@ || exit;							\
 	boot=bootstrap-emacs$(EXEEXT);					\
