@@ -1,3 +1,14 @@
+2014-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* emacs-lisp/generic.el (generic--normalize-comments):
+	Rename from generic--normalise-comments.  All uses changed.
+	* play/bubbles.el (bubbles--neighborhood-score):
+	(bubbles--mark-direct-neighbors, bubbles--mark-neighborhood)
+	(bubbles--neighborhood-available)
+	(bubbles--update-neighborhood-score):
+	Rename from names with 'neighbourhood'.  All uses changed.
+
 2014-01-12  Leo Liu  <sdl.web@gmail.com>
 
 	Re-implement the feature of showing eldoc info after editing.

@@ -291,7 +291,7 @@ To test this function, evaluate:
 	       (or (mouse-movement-p event)
 		   (eq (car-safe event) 'switch-frame)))
 	;; Scroll if see if we're on the edge.
-	;; NEEDSWORK: should handle mouse-in-other window.
+	;; FIXME: should handle mouse-in-other window.
 	(cond
 	 ((not (eq start-window (posn-window end)))
 	  t) ; wait for return to original window

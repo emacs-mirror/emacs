@@ -3504,7 +3504,7 @@ so that `occur-next' and `occur-prev' will work."
 
 ;; Originally this was sh-learn-region-indent (beg end)
 ;; However, in practice this was awkward so I changed it to
-;; use the whole buffer.  Use narrowing if needbe.
+;; use the whole buffer.  Use narrowing if need be.
 (defun sh-learn-buffer-indent (&optional arg)
   "Learn how to indent the buffer the way it currently is.
 
