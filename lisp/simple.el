@@ -1387,6 +1387,7 @@ display the result of expression evaluation."
         (lambda ()
           (add-hook 'completion-at-point-functions
                     #'lisp-completion-at-point nil t)
+	  (eldoc-mode 1)
           (run-hooks 'eval-expression-minibuffer-setup-hook))
       (read-from-minibuffer prompt initial-contents
                             read-expression-map t

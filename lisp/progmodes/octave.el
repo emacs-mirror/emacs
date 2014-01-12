@@ -154,12 +154,8 @@ parenthetical grouping.")
     ["Insert Function"              octave-insert-defun t]
     ["Update Function File Comment" octave-update-function-file-comment t]
     "---"
-    ["Function Syntax Hints" (call-interactively
-                              (if (fboundp 'eldoc-post-insert-mode)
-                                  'eldoc-post-insert-mode
-                                'eldoc-mode))
-     :style toggle :selected (or (bound-and-true-p eldoc-post-insert-mode)
-				 (bound-and-true-p eldoc-mode))
+    ["Function Syntax Hints" (eldoc-mode 'toggle)
+     :style toggle :selected (bound-and-true-p eldoc-mode)
      :help "Display function signatures after typing `SPC' or `('"]
     ["Delimiter Matching"           show-paren-mode
      :style toggle :selected show-paren-mode
