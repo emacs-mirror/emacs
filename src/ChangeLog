@@ -1,5 +1,10 @@
 2014-01-13  Daniel Colascione  <dancol@dancol.org>
 
+	* textprop.c (Fremove_list_of_text_properties): Correctly
+	handle reaching the end of the interval tree. (Bug#15344)
+
+2014-01-13  Daniel Colascione  <dancol@dancol.org>
+
 	Fix menu item updating in the presence of the Unity global menu
 	GTK+ module.
 
