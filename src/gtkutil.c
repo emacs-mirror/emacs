@@ -2414,9 +2414,12 @@ static int xg_detached_menus;
 /* Return true if there are detached menus.  */
 
 bool
-xg_have_tear_offs (void)
+xg_have_tear_offs (struct frame *f)
 {
-  return xg_detached_menus > 0;
+  /* If the frame's menubar height is zero, the menu bar is probably
+     being redirected outside the window to some kind of global menu;
+     this situation is the moral equivalent of a tear-off.  */
+  return FRAME_MENUBAR_HEIGHT (f) == 0 || xg_detached_menus > 0;
 }
 
 /* Callback invoked when a detached menu window is removed.  Here we
@@ -2449,9 +2452,9 @@ tearoff_activate (GtkWidget *widget, gpointer client_data)
 }
 #else /* ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW */
 bool
-xg_have_tear_offs (void)
+xg_have_tear_offs (struct frame *f)
 {
-  return false;
+  return FRAME_MENUBAR_HEIGHT (f) == 0;
 }
 #endif /* ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW */
 
@@ -2897,7 +2900,13 @@ xg_update_menubar (GtkWidget *menubar,
           char *utf8_label = get_utf8_string (val->name);
           GtkWidget *submenu = gtk_menu_item_get_submenu (witem);
 
+          /* GTK menu items don't notice when their labels have been
+             changed from underneath them, so we have to explicitly
+             use g_object_notify to tell listeners (e.g., a GMenuModel
+             bridge that might be loaded) that the item's label has
+             changed.  */
           gtk_label_set_text (wlabel, utf8_label);
+          g_object_notify (G_OBJECT (witem), "label");
 
 #ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
           /* If this item has a submenu that has been detached, change
@@ -2934,6 +2943,7 @@ xg_update_menubar (GtkWidget *menubar,
                                              select_cb, deactivate_cb,
                                              highlight_cb,
                                              0, 0, 0, 0, cl_data, 0);
+
           gtk_widget_set_name (w, MENU_ITEM_NAME);
           gtk_menu_shell_insert (GTK_MENU_SHELL (menubar), w, pos);
           gtk_menu_item_set_submenu (GTK_MENU_ITEM (w), submenu);
@@ -2993,6 +3003,7 @@ xg_update_menu_item (widget_value *val,
   const char *old_label = 0;
   const char *old_key = 0;
   xg_menu_item_cb_data *cb_data;
+  bool label_changed = false;
 
   wchild = XG_BIN_CHILD (w);
   utf8_label = get_utf8_string (val->name);
@@ -3037,15 +3048,20 @@ xg_update_menu_item (widget_value *val,
         }
     }
 
-
   if (wkey) old_key = gtk_label_get_label (wkey);
   if (wlbl) old_label = gtk_label_get_label (wlbl);
 
   if (wkey && utf8_key && (! old_key || strcmp (utf8_key, old_key) != 0))
-    gtk_label_set_text (wkey, utf8_key);
+    {
+      label_changed = true;
+      gtk_label_set_text (wkey, utf8_key);
+    }
 
   if (! old_label || strcmp (utf8_label, old_label) != 0)
-    gtk_label_set_text (wlbl, utf8_label);
+    {
+      label_changed = true;
+      gtk_label_set_text (wlbl, utf8_label);
+    }
 
   if (utf8_key) g_free (utf8_key);
   if (utf8_label) g_free (utf8_label);
@@ -3077,6 +3093,9 @@ xg_update_menu_item (widget_value *val,
           cb_data->select_id = 0;
         }
     }
+
+  if (label_changed) /* See comment in xg_update_menubar.  */
+    g_object_notify (G_OBJECT (w), "label");
 }
 
 /* Update the toggle menu item W so it corresponds to VAL.  */
@@ -3358,11 +3377,6 @@ xg_update_frame_menubar (struct frame *f)
   g_signal_connect (x->menubar_widget, "map", G_CALLBACK (menubar_map_cb), f);
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
-
-  /* If menu bar doesn't know its height yet, cheat a little so the frame
-     doesn't jump so much when resized later in menubar_map_cb.  */
-  if (req.height == 0)
-    req.height = 23;
 
   if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
