@@ -27,7 +27,7 @@ This document is not confidential.
 -------------
 
 ==================      ==================================================
-`branch_merge`_         Branching and merging for development.
+`branch-merge`_         Branching and merging for development.
 `release-build`_        Build product releases from the sources.
 `version-create`_       Create a new MPS version branch.
 ==================      ==================================================
