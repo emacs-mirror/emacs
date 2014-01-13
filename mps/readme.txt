@@ -74,13 +74,12 @@ The MPS is currently supported for deployment on:
 
 - Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
 
-- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32 and
-  x86-64, using GCC;
+- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32
+  using GCC and on x86-64 using GCC or Clang/LLVM;
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
-- Mac OS X 10.4 or later, on IA-32 and x86-64 (single threaded only),
-  using Clang/LLVM.
+- Mac OS X 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
 
 The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
 Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
@@ -110,30 +109,38 @@ visit http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion .
 Document History
 ----------------
 
-- 2002-05-20  RB    Original author: Richard Brooksby, Ravenbrook Limited.
-- 2002-05-20  RB    Created based on template from P4DTI project.
-- 2002-06-18  NB    Minor updates and corrections.
-- 2002-06-18  RB    Removed obsolete requirement for MASM.
-- 2002-06-19  NB    Added note on self-extracting archive
-- 2006-01-30  RHSK  Update from "1.100.1" to "1.106.1".
-- 2006-03-30  RHSK  Add section 2: What's new.
-- 2006-04-11  RHSK  Update from "1.106.1" to "1.106.2".
-- 2006-04-14  RHSK  Merge updates from version/1.106 back to master.
-- 2006-06-29  RHSK  Note fixed job001421, job001455.
-- 2006-12-13  RHSK  Release 1.107.0
-- 2007-07-05  RHSK  Release 1.108.0
-- 2007-12-21  RHSK  Release 1.108.1
-- 2008-05-01  RHSK  Release 1.108.2
-- 2010-03-03  RHSK  Release 1.109.0
-- 2012-08-14  RB    Updating build instructions for new platforms.
-- 2012-09-05  RB    Considerably reduced ready for version 1.110.  Now
-  brought to you in glorious reStructuredText.
+==========  =====  ======================================================
+2002-05-20  RB_    Original author: Richard Brooksby, Ravenbrook Limited.
+2002-05-20  RB_    Created based on template from P4DTI project.
+2002-06-18  NB_    Minor updates and corrections.
+2002-06-18  RB_    Removed obsolete requirement for MASM.
+2002-06-19  NB_    Added note on self-extracting archive
+2006-01-30  RHSK_  Update from "1.100.1" to "1.106.1".
+2006-03-30  RHSK_  Add section 2: What's new.
+2006-04-11  RHSK_  Update from "1.106.1" to "1.106.2".
+2006-04-14  RHSK_  Merge updates from version/1.106 back to master.
+2006-06-29  RHSK_  Note fixed job001421, job001455.
+2006-12-13  RHSK_  Release 1.107.0
+2007-07-05  RHSK_  Release 1.108.0
+2007-12-21  RHSK_  Release 1.108.1
+2008-05-01  RHSK_  Release 1.108.2
+2010-03-03  RHSK_  Release 1.109.0
+2012-08-14  RB_    Updating build instructions for new platforms.
+2012-09-05  RB_    Considerably reduced ready for version 1.110.  Now 
+                   brought to you in glorious reStructuredText.
+2014-01-13  GDR_   Updated supported platforms.
+==========  =====  ======================================================
+
+.. _GDR: mailto:gdr@ravenbrook.com
+.. _NB: mailto:nb@ravenbrook.com
+.. _RB: mailto:rb@ravenbrook.com
+.. _RHSK: mailto:rhsk@ravenbrook.com
 
 
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2001-2013 Ravenbrook Limited. All rights reserved. 
+Copyright (C) 2001-2014 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
