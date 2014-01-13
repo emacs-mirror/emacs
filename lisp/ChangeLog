@@ -1,3 +1,12 @@
+2014-01-13  Bastien Guerry  <bzg@gnu.org>
+
+	* rect.el (rectangle-mark-mode): When the region is not active,
+	display a message saying that the mark as been set and that
+	rectangle mode is in use.
+	(rectangle--highlight-for-redisplay): Only put an overlay with a
+	visible vertical bar when (display-graphic-p) is non-nil.
+	This partially fixes Bug#16403.
+
 2014-01-13  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-find-file): Go to DIR before displaying the error
