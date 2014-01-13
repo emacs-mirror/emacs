@@ -8,6 +8,9 @@
 	tear-off.
 	(xg_update_menubar,xg_update_menu_item): Call g_object_notify when
 	updating menus; explain why.
+	(xg_update_frame_menubar): Remove the 23px hack: I can't repro the
+	problem it's supposed to solve and it interferes with detecting
+	the presence of a global menu.
 	* xmenu.c (set_frame_menubar): Call xg_have_tear_offs with new
 	parameter.
 
