@@ -1,3 +1,15 @@
+2014-01-13  Eric Ludlam  <zappo@gnu.org>
+
+	* semantic/analyze/refs.el (semantic-analyze-refs-impl): Fix Typo
+	in a doc string.
+	* semantic/ia.el (semantic-ia-complete-symbol): Ignore case if
+	prefix is all lower case.
+	(semantic-ia-fast-jump): Push mark before jumping to an include
+	file.
+	* semantic/complete.el (semantic-displayor-point-position):
+	Calculate if the toolbar is on the left when calculating point
+	position.
+
 2014-01-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.
