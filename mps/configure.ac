@@ -16,7 +16,7 @@
 AC_PREREQ([2.50])
 # http://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.69/html_node/Initializing-configure.html#Initializing-configure
 AC_INIT([Memory Pool System Kit],
-        [version 1.112],
+        [release 1.112.0],
         [mps-questions@ravenbrook.com],
         [mps-kit],
         [http://www.ravenbrook.com/project/mps/])
