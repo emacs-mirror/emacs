@@ -1,3 +1,13 @@
+2014-01-13  Martin Rudalics  <rudalics@gmx.at>
+
+	fit-frame/window-to-buffer code fixes including one for Bug#14096.
+	* window.el (fit-frame-to-buffer): Fix doc-string.  Respect
+	window-min-height/-width.  Fit pixelwise when
+	frame-resize-pixelwise is non-nil.  Adjust right/bottom edge
+	when avoiding that frame goes partially off-screen.
+	(fit-window-to-buffer): Respect window-min-height/-width
+	(Bug#14096).
+
 2014-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent.el (indent-according-to-mode): Flush to column 0 in text-mode
