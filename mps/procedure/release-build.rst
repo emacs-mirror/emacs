@@ -50,7 +50,7 @@ All relative paths are relative to
    description of the release you intend to build and the correct
    release name.
 
-#. Ensure that ``version/$VERSION/manual/source/release.txt`` contains
+#. Ensure that ``version/$VERSION/manual/source/release.rst`` contains
    a section with an up-to-date description of significant
    user-visible changes since the previous release.
 
@@ -58,13 +58,16 @@ All relative paths are relative to
    correct value (see the rules in the comments), and check strings that
    contain copyright dates, etc.
 
-#. In ``configure.ac`` edit the second argument of ``AC_INIT`` to be
-   "``release $RELEASE``\ ", then open ``configure`` for edit and run
-   ``autoreconf -vif`` to bring the configure script up to date.
+#. In ``version/$VERSION/configure.ac`` edit the second argument of
+   ``AC_INIT`` to be ``[release $RELEASE]``, then open
+   ``version/$VERSION/configure`` for edit and run ``autoreconf -vif``
+   to bring the configure script up to date.
 
-#. Submit ``readme.txt``, ``manual/source/release.txt``,
-   ``version.c``, ``configure.ac``, ``configure``, and other changed
-   files to Perforce before you continue.
+#. Submit ``readme.txt``, ``manual/source/release.rst``,
+   ``version.c``, ``configure.ac`` and ``configure`` (if changed) to
+   Perforce::
+
+        p4 submit -d "Updated files preparatory to release $RELEASE."
 
 #. Determine the *CHANGELEVEL* at which you’re going to make the
    release. This will usually be the latest submitted changelevel on the
@@ -80,7 +83,8 @@ All relative paths are relative to
    determined above, with no extraneous files, by using the following
    procedure::
 
-        p4 opened version/$VERSION/... # should output nothing
+        p4 opened version/$VERSION/...
+        # should output "version/$VERSION/... - file(s) not opened on this client."
         p4 revert version/$VERSION/...
         rm -rf version/$VERSION
         p4 sync -f version/$VERSION/...@$CHANGELEVEL
@@ -113,47 +117,59 @@ All relative paths are relative to
    release name according to the variant, for example,
    ``mps-cet-1.110.0.zip``
 
-On a Unix box:
+On a Unix (including OS X) machine:
 
-#. Create a fresh Perforce client workspace containing the following::
+#. Create a fresh Perforce client workspace::
 
-        LineEnd:	local
-
+        CLIENT=mps-release-$RELEASE
+        p4 client -i <<END
+        Client: $CLIENT
+        Root: /tmp/$CLIENT
+        Description: Temporary client for making MPS Kit release $RELEASE
+        LineEnd: local
         View:
-                //info.ravenbrook.com/project/mps/version/VERSION/... //CLIENT/mps-kit-RELEASE/...
-                //info.ravenbrook.com/project/mps/release/RELEASE/... //CLIENT/release/RELEASE/...
+                //info.ravenbrook.com/project/mps/version/$VERSION/... //$CLIENT/mps-kit-$RELEASE/...
+                //info.ravenbrook.com/project/mps/release/$RELEASE/... //$CLIENT/release/$RELEASE/...
+	END
 
-#. Ensure the Perforce client workspace is set for Unix (LF) line
-   endings.
+#. Sync this client to *CHANGELEVEL*::
 
-#. Sync the version sources to *CHANGELEVEL* by repeating the procedure
-   from step 4.1::
-
-        rm -rf mps-kit-RELEASE
-        p4 sync -f @CHANGELEVEL
+        p4 -c $CLIENT sync -f @$CHANGELEVEL
 
 #. Create a tarball containing the MPS sources, and open it for add::
 
-        mkdir -p release/RELEASE
-        tar czf release/RELEASE/mps-kit-RELEASE.tar.gz mps-kit-RELEASE
-        p4 add release/RELEASE/mps-kit-RELEASE.tar.gz
+        pushd /tmp/$CLIENT
+        mkdir -p release/$RELEASE
+        tar czf release/$RELEASE/mps-kit-$RELEASE.tar.gz mps-kit-$RELEASE
+        popd
+        p4 -c $CLIENT add /tmp/$CLIENT/release/$RELEASE/mps-kit-$RELEASE.tar.gz
 
-#. Ensure the Perforce client workspace is set for Windows (CRLF) line
-   endings.
+#. Switch the Perforce client workspace to Windows (CRLF) line
+   endings::
 
-#. Sync the version sources again.
+        p4 -c $CLIENT client -o | sed "s/^LineEnd:.local/LineEnd: win/" | p4 client -i
+
+#. Sync the version sources again::
+
+        rm -rf /tmp/$CLIENT/version/$VERSION
+	p4 -c $CLIENT sync -f @$CHANGELEVEL
 
 #. Create a zip file containing the MPS sources, and open it for add::
 
-        mkdir -p release/RELEASE
-        zip -r release/RELEASE/mps-kit-RELEASE.zip mps-kit-RELEASE
-        p4 add release/RELEASE/mps-kit-RELEASE.zip
+        pushd /tmp/$CLIENT
+        mkdir -p release/$RELEASE
+        zip -r release/$RELEASE/mps-kit-$RELEASE.zip mps-kit-$RELEASE
+        popd
+        p4 -c $CLIENT add /tmp/$CLIENT/release/$RELEASE/mps-kit-$RELEASE.zip
 
-#. Revert any changes to your Perforce client line endings. (You
-   probably want them set to local.)
+#. Submit the release files to Perforce::
 
-#. Submit the release files to Perforce with the comment "MPS: adding
-   the MPS Kit tarball and zip file for release RELEASE."
+        p4 -c $CLIENT submit -d "MPS: adding the MPS Kit tarball and zip file for release $RELEASE."
+
+#. Delete the temporary Perforce client::
+
+        p4 -c $CLIENT client -d $CLIENT
+        rm -rf /tmp/$CLIENT
 
 
 6. Registering the release
@@ -166,14 +182,20 @@ On a Unix box:
    release to the list of releases for *VERSION*, in a manner consistent
    with previous releases.
 
-#. Submit these changes with the comment “MPS: registered release
-   *RELEASE*.”
+#. Edit the main MPS Project index page (``index.rst``), updating the
+   "Download the latest release" link.
 
-#. Edit the main MPS Project index page (``index.html``), to refer to
-   the new release:
+#. Submit these changes to Perforce:
 
-   -  update links to “the latest release” or “download” (important);
-   -  consider updating the “project status” section.
+        p4 submit -d "MPS: registered release $RELEASE."
+
+#. Integrate the changes you made on the version branch back to the
+   master sources, ignoring changes that don't apply to the master
+   sources::
+
+        p4 integrate -r -b $BRANCH
+        p4 resolve
+        p4 submit -d "Merging updates preparatory to release $RELEASE."
 
 #. Visit the `project
    updater <http://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,
@@ -211,6 +233,7 @@ B. Document History
 2013-03-08  GDR_   Add testing step.
 2012‑09‑24  RB_    Make sure ZIP files contain files with Windows line endings. Use a fresh Perforce client to avoid any possibility of a clash with working files. Different archive name for custom variants.
 2013-03-20  GDR_   Ensure that manual HTML is up to date before making a release.
+2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of release 1.112.0.
 ==========  =====  ==========================================================
 
 .. _RB: mailto:rb@ravenbrook.com
