@@ -17,8 +17,7 @@ releases 1.105.0 and 1.105.1, this document tells you how to abandon the
 1.105 lineage and take a new clone from the master sources to create
 version 1.106).
 
-Background: refer to PQTCM ("Product Quality Through Change Management",
-`http://www.ravenbrook.com/doc/1999/05/20/pqtcm/ <http://www.ravenbrook.com/doc/1999/05/20/pqtcm/>`__)
+Refer to "Product Quality Through Change Management" [RB_1999-05-20]
 for background, terminology, rationale, and usage guidance. This tells
 you what "a version" actually is.
 
@@ -26,121 +25,123 @@ you what "a version" actually is.
 2. Preamble
 -----------
 
-Do I need this procedure?
-~~~~~~~~~~~~~~~~~~~~~~~~~
+2.1. Do I need this procedure?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You might not need to create a new version. An alternative is to create
-a further 'point release' on the existing version. Refer to PQTCM when
-deciding. (Summary: am I changing the specification?).
+You might not need to create a new version. An alternative is to
+create a further "point release" on the existing version. Refer to
+[RB_1999-05-20] when deciding. (Summary: if changing the
+specification, make a new version; if improving the product against an
+unchanged specification, make a point release.)
 
-What is a version?
-~~~~~~~~~~~~~~~~~~
 
-A version is a ‘clone’ of all the master source files, that then has its
-own evolution. A version has these parts:
+2.2. What is a version?
+~~~~~~~~~~~~~~~~~~~~~~~
 
--  Perforce branch, defining the mapping used to integrate from master
-   to version. By convention, the name of the branch is
-   "mps/version/A.BBB": note that we make the branch name exactly match
-   the pathname of that version's sub-tree. For example::
+A version is a clone of all the master sources, that has its own
+evolution. A version has these parts:
 
-      $ p4 branch -o mps/version/1.105
-      ...
-      View:
-              //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
-      ...
+#. The **version branch specification**, which defines the mapping used
+   to integrate from the master sources to the version sources. By
+   convention, the name of the branch specification is
+   ``mps/version/A.BBB`` so that it exactly matches the path name of
+   the version's sub-tree. For example::
 
--  Cloned (integrated) and submitted files, in the ``version/A.BBB/...``
-   sub-tree. Usually this is a clone of the entire ``master`` subtree
-   and all its files. These were created in a single change with ``p4
-   integrate -b <branchspec>``. This initial integrate is what
-   populates the version branch with files; before that it was empty.
-   For each of these files, Perforce reports the first action as
-   "branch". Some files may then be further modified.
+        $ p4 branch -o mps/version/1.105
+        ...
+        View:
+                //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
+        ...
 
--  Origin: The point in time that the initial integrate was performed,
-   expressed as its changelevel minus one, defines the ‘Origin’ of the
-   version. The Origin is the last change on the master sources that
-   also made it into the version sources by virtue of the initial
-   integrate command.
+#. The **version sources**, in the ``version/A.BBB/...`` sub-tree.
+   Usually these are clones of the master sources, and were created in
+   a single change with ``p4 integrate -b BRANCH``. Some files may
+   then be further modified.
 
--  Entry in the table at
-   `http://info.ravenbrook.com/project/mps/version/ <http://info.ravenbrook.com/project/mps/version/>`__.
+#. The **version origin**, the last change on the master sources that
+   made it into the version sources by virtue of the initial integrate
+   command.
+
+#. An entry in the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
+
 
 3. Procedure: How to make a new version
 ---------------------------------------
 
-0. Some files contain an MPS version-name. What version-name do the
-   *master* copies of these files contain? It depends. Some contain
-   the pseudo-version-name ``master``: you will leave these files
-   unchanged in the master source, and only update them on the version
-   branch (see step 6 below). Others, even in the master sources,
-   refer to the expected next version-name: you should update these
-   files before making the branch. Make these files contain the
-   expected new version-name, and/or information pertinent to the new
-   version:
+#. Update the following files in the master sources that contain a
+   version number, so that they refer to the version that you are
+   about to create::
 
-   - ``master/code/version.c``
-   - ``master/manual/source/release.rst``
+        code/version.c
 
-   Submit these files before you continue.
+   Submit these files to Perforce.
 
-1. Make the branch by running ``p4 branch mps/version/A.BBB``. Specify::
+   (If there are other files that need updating, update this procedure
+   and add them here. But it is better to parse the information out of
+   ``code/version.c`` so that the version number is mentioned just
+   once. See for example ``manual/source/conf.py``.)
 
-       Description: Branching master sources for version A.BBB.
+#. Create the version branch specification by running::
+
+        VERSION=A.BBB
+        BRANCH=mps/version/$VERSION
+        p4 branch $BRANCH
+
+   The branch specification should contain the description::
+
+        Description: Branching master sources for version $VERSION.
 
    Always branch the whole of the master sources::
 
-       View:
-               //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/A.BBB/...
+        View:
+                //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/$BRANCH/...
 
-2. Make sure you have no unsubmitted files, and then::
+#. Make sure you have no unsubmitted files, and then::
 
-    p4 integrate -b mps/version/A.BBB
+        p4 integrate -b $BRANCH
+        p4 submit
 
-3. ``p4 submit``
-
-4. Determine the Origin of the new version: do ``p4 changes -m 5`` on
+#. Determine the origin of the new version: run ``p4 changes -m 5`` on
    the master sources, and note the latest change that was in before
    the integrate.
 
-   .. Note: it's better to do it this way -- do the integrate from the
-      *implicit* tip of the master, and then check back to see what
-      happened -- because it's hard to get wrong. Also, then the
-      integrate has the changelevel origin+1.  Clashes with master
-      submits could theoretically occur, and could be avoided by
-      determining the origin first and specifying it to the initial
-      integrate, but in practice this never happens.
+#. Update the table at <https://info.ravenbrook.com/project/mps/version/>.
 
-5. Update the table at <http://info.ravenbrook.com/project/mps/version/>.
+#. Edit ``configure.ac`` on the version branch, replacing ``[master]``
+   with ``[version A.BBB]``.
 
-6. Edit Master->Version in documents that erroneously say "Master".
-   Always edit version/A.BBB/index.html, e.g. (case-sensitive)::
+   (If there are other files that need updating, update this procedure
+   and add them here. But it is better to organize the sources so that
+   this is not necessary.)
 
-       "of the Master version"  ->  "of Version A.BBB"
-       "Master"  ->  "Version A.BBB"
+#. Do an empty integrate of this change back on to the masters, so
+   Perforce knows that it's not wanted::
 
-   Less importantly, edit various other files. See change 30260.
-
-7. Do an empty-integrate of this change back on to the masters, so P4
-   thinks it's done and doesn't keep suggesting it::
-
-       p4 integrate -r -b mps/version/A.BBB <Files Edited Master->Version>
-       p4 resolve -ay <Files Edited Master->Version>
+        p4 integrate -r -b $BRANCH
+        p4 resolve -ay
+        p4 submit -d 'Ignoring update of "master" to "version 1.111" from version branch'
 
 
 A. References
 -------------
 
+.. [RB_1995-05-20] Richard Brooksby; "Product Quality Through Change
+   Management"; Ravenbrook Limited; 1999-05-20;
+   http://www.ravenbrook.com/doc/1999/05/20/pqtcm/
+
 
 B. Document History
 -------------------
 
-- 2005-10-03  RHSK  Created.
-- 2006-12-27  RHSK  Step 0: edit some files on master before making version branch
-- 2007-07-05  RHSK  Releasename now also in w3build.bat.  Make sure all submitted before integ.
-- 2008-10-29  RHSK  Convert from text to html.
-- 2010-11-06  RHSK  Correctly format example of p4 branch -o mps/version/1.105
+==========  =====  ========================================================
+2005-10-03  RHSK_  Created.
+2006-12-27  RHSK_  Step 0: edit some files on master before making version branch
+2007-07-05  RHSK_  Releasename now also in w3build.bat.  Make sure all submitted before integ.
+2008-10-29  RHSK_  Convert from text to html.
+2010-11-06  RHSK_  Correctly format example of p4 branch -o mps/version/1.105
+==========  =====  ========================================================
+
+.. _RHSK: mailto:rhsk@ravenbrook.com
 
 
 C. Copyright and License

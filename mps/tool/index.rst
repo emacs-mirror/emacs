@@ -1,5 +1,5 @@
-Memory Pool System Product Procedures
-=====================================
+Memory Pool System Product Tools
+================================
 :author: Richard Brooksby
 :organization: Ravenbrook Limited
 :date: 2002-06-18
@@ -11,11 +11,10 @@ Memory Pool System Product Procedures
 1. Introduction
 ---------------
 
-This document lists the procedures which are applied to the product
-sources of the Memory Pool System project. (Compare with the `procedures
-which govern the *project* </project/mps/procedure/>`__.)
+This document lists the tools which have been written to develop the
+Memory Pool System product.
 
-This document will be updated as new procedures are created.
+This document will be updated as new tools are created.
 
 The readership of this document is anyone developing or extending the
 product sources.
@@ -23,18 +22,22 @@ product sources.
 This document is not confidential.
 
 
-2. Procedures
--------------
+2. Tools
+--------
 
-==================      ==================================================
-`branch_merge`_         Branching and merging for development.
-`release-build`_        Build product releases from the sources.
-`version-create`_       Create a new MPS version branch.
-==================      ==================================================
+=================  =========================================================
+`gcovfmt.py`_      Formats the output of the ``gcov`` coverage tool into a
+                   summary table. It runs only on OS X, where it is invoked
+                   from the Xcode project after running the test suite for
+                   the “Debug” configuration.
+`testrun.bat`_     Implements the ``testrun`` make target on Windows, where
+                   it is invoked from ``commpost.nmk``.
+`testrun.sh`_      Implements the ``testrun`` make target on FreeBSD and
+                   Linux, it is invoked from ``comm.gmk``, and on OS X,
+                   where it is invoked from the Xcode project.
+`test-runner.py`_  Builds and runs tests. As of 2013-05-24 it is not used.
+=================  =========================================================
 
-.. _branch-merge: branch-merge
-.. _release-build: release-build
-.. _version-create: version-create
 
 
 A. References
@@ -44,14 +47,13 @@ A. References
 B. Document History
 -------------------
 
-==========    =======   ==================================================
-2002-06-18    RB_       Created based on P4DTI document.
-2005-09-30    RHSK_     Added version-create and release-configura.
-2008-01-07    RHSK_     Added release-experimental.
-2012-09-05    RB_       Removed release-experimental, no longer needed to work with Configura.
-2012-09-13    RB_       Removed release-configura, now maintained on a custom mainline.
-2014-01-13    GDR_      Added branch-merge.
-==========    =======   ==================================================
+==========  ======  ========================================================
+2002-06-18  RB_     Created based on P4DTI document.
+2005-09-30  RHSK_   Added ``test-runner.py``.
+2013-05-24  GDR_    Added ``gcovfmt.py`` and ``testrun.sh``. 
+                    ``test-runner.py`` is no longer used.
+2014-01-13  GDR_    Converted to reStructuredText. Added ``testrun.bat``.
+==========  ======  ========================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
 .. _RB: mailto:rb@ravenbrook.com
