@@ -1,3 +1,10 @@
+2014-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/log-edit.el: Fix highlighting of summary when it's the first line.
+	(log-edit--match-first-line): New function.
+	(log-edit-font-lock-keywords): Use it.
+	(log-edit-mode): Make jit-lock-defer-multiline work.
+
 2014-01-13  Bastien Guerry  <bzg@gnu.org>
 
 	* rect.el (rectangle-mark-mode): When the region is not active,
@@ -19,8 +26,8 @@
 2014-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	fit-frame/window-to-buffer code fixes including one for Bug#14096.
-	* window.el (fit-frame-to-buffer): Fix doc-string.  Respect
-	window-min-height/-width.  Fit pixelwise when
+	* window.el (fit-frame-to-buffer): Fix doc-string.
+	Respect window-min-height/-width.  Fit pixelwise when
 	frame-resize-pixelwise is non-nil.  Adjust right/bottom edge
 	when avoiding that frame goes partially off-screen.
 	(fit-window-to-buffer): Respect window-min-height/-width
