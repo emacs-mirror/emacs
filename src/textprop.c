@@ -1741,6 +1741,19 @@ Return t if any property was actually removed, nil otherwise.  */)
 	}
       len -= LENGTH (i);
       i = next_interval (i);
+      if(!i)
+        {
+          if (modified)
+            {
+              if (BUFFERP (object))
+                signal_after_change (XINT (start),
+                                     XINT (end) - XINT (start),
+                                     XINT (end) - XINT (start));
+              return Qt;
+            }
+          else
+            return Qnil;
+        }
     }
 }
 
