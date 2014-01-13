@@ -140,24 +140,36 @@ OPTIND=1
 [ "$quiet" ] && exec 1> /dev/null
 
 
-echo "Running bzr status..."
+## Run status on inputs, list modified files on stdout.
+status ()
+{
+    bzr status -S "$@" >| $tempfile || die "bzr status error for $@"
 
-bzr status -S ${autogendir:+$sources} ${ldefs_flag:+lisp} \
-    ${info_flag:+doc} >| $tempfile || \
-    die "bzr status error for input files"
+    local stat file modified
+
+    while read stat file; do
+
+        [ "$stat" != "M" ] && \
+            die "Unexpected status ($stat) for generated $file"
+        modified="$modified $file"
+
+    done < $tempfile
+
+    echo "$modified"
+
+    return 0
+}                               # function status
+
+
+echo "Checking input file status..."
 
 ## The lisp portion could be more permissive, eg only care about .el files.
-while read stat file; do
+modified=$(status ${autogendir:+$sources} ${ldefs_flag:+lisp} ${info_flag:+doc}) || die
 
-    case $stat in
-        M)
-            echo "Locally modified: $file"
-            [ "$force" ] || die "There are local modifications"
-            ;;
-
-        *) die "Unexpected status ($stat) for $file" ;;
-    esac
-done < $tempfile
+[ "$modified" ] && {
+    echo "Locally modified: $modified"
+    [ "$force" ] || die "There are local modifications"
+}
 
 
 ## Probably this is overkill, and there's no need to "bootstrap" just
@@ -259,21 +271,11 @@ EOF
         done
     done
 
-    bzr status -S $outfile >| $tempfile || \
-        die "bzr status error for generated $outfile"
-
     local modified
 
-    while read stat file; do
+    modified=$(status $outfile) || die
 
-        [ "$stat" != "M" ] && \
-            die "Unexpected status ($stat) for generated $file"
-
-        modified="$modified $file"
-
-    done < $tempfile
-
-    commit "info/dir" $modified || die "bzr commit error"
+    commit "info/dir" $modified || die "commit error"
 }                               # function info_dir
 
 
@@ -287,23 +289,11 @@ EOF
 
     echo "Checking status of generated files..."
 
-    bzr status -S $basegen >| $tempfile || \
-        die "bzr status error for generated files"
-
-    modified=
-
-    while read stat file; do
-
-        [ "$stat" != "M" ] && \
-            die "Unexpected status ($stat) for generated $file"
-
-        modified="$modified $file"
-
-    done < $tempfile
+    modified=$(status $basegen) || die
 
     cd $oldpwd
 
-    commit "generated" $modified || die "bzr commit error"
+    commit "generated" $modified || die "commit error"
 
     exit 0
 }                               # $autogendir
@@ -371,24 +361,13 @@ echo "Checking status of loaddef files..."
 ## It probably would be fine to just check+commit lisp/, since
 ## making autoloads should not effect any other files.  But better
 ## safe than sorry.
-bzr status -S $genfiles ${ldefs_out#lisp/} >| $tempfile || \
-    die "bzr status error for generated files"
-
-
-modified=
-
-while read stat file; do
-
-    [ "$stat" != "M" ] && die "Unexpected status ($stat) for generated $file"
-    modified="$modified $file"
-
-done < $tempfile
+modified=$(status $genfiles ${ldefs_out#lisp/}) || die
 
 
 cd ../
 
 
-commit "loaddefs" $modified || die "bzr commit error"
+commit "loaddefs" $modified || die "commit error"
 
 
 exit 0
