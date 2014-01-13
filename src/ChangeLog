@@ -1,3 +1,13 @@
+2014-01-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* macfont.m: Include termchar.h.
+	(CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND)
+	(CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND)
+	(CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND): Modified from
+	*_WITH_GC_* to take face and f as parameters.
+	(macfont_draw): Check for DRAW_MOUSE_FACE and set face accordingly.
+	Use *_WITH_FACE_*, and pass face as parameter (Bug#16425).
+
 2014-01-13  Daniel Colascione  <dancol@dancol.org>
 
 	Fix menu item updating in the presence of the Unity global menu
