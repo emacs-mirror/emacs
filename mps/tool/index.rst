@@ -38,6 +38,10 @@ This document is not confidential.
 `test-runner.py`_  Builds and runs tests. As of 2013-05-24 it is not used.
 =================  =========================================================
 
+.. _gcovfmt.py: gcovfmt.py
+.. _testrun.bat: testrun.bat
+.. _testrun.sh: testrun.sh
+.. _test-runner.py: test-runner.py
 
 
 A. References
