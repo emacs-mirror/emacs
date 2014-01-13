@@ -1,3 +1,8 @@
+2014-01-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-record-backtrace): Reenable
+	test case with adapted test string.  (Bug#13064)
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* automated/electric-tests.el: Require 'elec-pair.
