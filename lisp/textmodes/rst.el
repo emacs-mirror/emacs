@@ -611,17 +611,28 @@ KEYMAP, KEY, and DEF are as in `define-key'.  DEPRECATED key
 definitions should be in vector notation.  These are defined as
 well but give an additional message."
   (define-key keymap key def)
-  (dolist (dep-key deprecated)
-    (define-key keymap dep-key
-      `(lambda ()
-         ,(format "Deprecated binding for %s, use \\[%s] instead." def def)
-	 (interactive)
-	 (call-interactively ',def)
-	 (message "[Deprecated use of key %s; use key %s instead]"
-		  (key-description (this-command-keys))
-		  (key-description ,key))))))
-
-;; Key bindings.
+  (when deprecated
+    (let* ((command-name (symbol-name def))
+           (forwarder-function-name
+            (if (string-match "^rst-\\(.*\\)$" command-name)
+                (concat "rst-deprecated-"
+                        (match-string 1 command-name))
+              (error "not an RST command: %s" command-name)))
+           (forwarder-function (intern forwarder-function-name)))
+      (unless (fboundp forwarder-function)
+        (defalias forwarder-function
+          (lexical-let ((key key) (def def))
+            (lambda ()
+              (interactive)
+              (call-interactively def)
+              (message "[Deprecated use of key %s; use key %s instead]"
+          (key-description (this-command-keys))
+          (key-description key))))
+          (format "Deprecated binding for %s, use \\[%s] instead."
+                  def def)))
+      (dolist (dep-key deprecated)
+        (define-key keymap dep-key forwarder-function)))))
+ ;; Key bindings.
 (defvar rst-mode-map
   (let ((map (make-sparse-keymap)))
 

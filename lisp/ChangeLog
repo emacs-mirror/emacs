@@ -1,3 +1,9 @@
+2014-01-13  Daniel Colascione  <dancol@dancol.org>
+
+	* textmodes/rst.el (rst-define-key): Provide deprecated
+	keybindings through named functions instead of anonymous ones so
+	that "??" doesn't appear in describe-mode output.
+
 2014-01-13  Bastien Guerry  <bzg@gnu.org>
 
 	* simple.el (define-alternatives): Call the selected command
