@@ -796,7 +796,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 #ifdef USE_GTK
   /* If we have detached menus, we must update deep so detached menus
      also gets updated.  */
-  deep_p = deep_p || xg_have_tear_offs ();
+  deep_p = deep_p || xg_have_tear_offs (f);
 #endif
 
   if (deep_p)
