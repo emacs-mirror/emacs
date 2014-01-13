@@ -2969,7 +2969,7 @@ that will occur on your system."
    (run-hook-with-args 'speedbar-vc-in-control-hook directory name)
    ))
 
-;; Objet File scanning
+;; Object File scanning
 (defun speedbar-check-objects ()
   "Scan all files in a directory, and for each see if there is an object.
 See `speedbar-check-obj-this-line' and `speedbar-obj-alist' for how

@@ -583,7 +583,7 @@
 
 	* automated/file-notify-tests.el
 	(file-notify--test-local-enabled): New defconst.  Replaces all
-	`file-notify-support' occurences.
+	`file-notify-support' occurrences.
 	(file-notify--test-remote-enabled): New defun.
 	(file-notify--deftest-remote): Use it.
 	(file-notify-test00-availability): Rewrite.

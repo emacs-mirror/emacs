@@ -1314,6 +1314,8 @@ all.  This may very well take some time.")
        res))
     (sort res 'time-less-p)))
 
+;; FIXME: "occurrence" is misspelled in this function name.
+
 (defun nndiary-last-occurence (sched)
   ;; Returns the last occurrence of schedule SCHED as an Emacs time struct, or
   ;; nil for permanent schedule or errors.
@@ -1393,6 +1395,8 @@ all.  This may very well take some time.")
 	   (nnheader-report 'nndiary "Undecidable schedule")
 	   nil))
 	))))
+
+;; FIXME: "occurrence" is misspelled in this function name.
 
 (defun nndiary-next-occurence (sched now)
   ;; Returns the next occurrence of schedule SCHED, starting from time NOW.
