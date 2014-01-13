@@ -68,6 +68,9 @@ evolution. A version has these parts:
 3. Procedure: How to make a new version
 ---------------------------------------
 
+#. Make sure that the sources for the version you are about to create,
+   and for the table of versions, are mapped in your Perforce client.
+
 #. Update the following files in the master sources that contain a
    version number, so that they refer to the version that you are
    about to create::
@@ -85,30 +88,34 @@ evolution. A version has these parts:
 
         VERSION=A.BBB
         BRANCH=mps/version/$VERSION
-        p4 branch $BRANCH
-
-   The branch specification should contain the description::
-
+        p4 branch -i <<END
+        Branch: $BRANCH
         Description: Branching master sources for version $VERSION.
+        View: //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/$BRANCH/...
+        END
 
-   Always branch the whole of the master sources::
+#. Make sure you have no unsubmitted files::
 
-        View:
-                //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/$BRANCH/...
+        $ p4 opened
+        File(s) not opened on this client.
 
-#. Make sure you have no unsubmitted files, and then::
+   and then::
 
         p4 integrate -b $BRANCH
-        p4 submit
+        p4 submit -d "Branching master sources for version $VERSION."
 
-#. Determine the origin of the new version: run ``p4 changes -m 5`` on
-   the master sources, and note the latest change that was in before
-   the integrate.
+#. Determine the origin of the new version::
 
-#. Update the table at <https://info.ravenbrook.com/project/mps/version/>.
+        p4 changes -m 5 //info.ravenbrook.com/project/mps/master/...
+
+   Note the latest change that was in before the integrate.
+
+#. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
 
 #. Edit ``configure.ac`` on the version branch, replacing ``[master]``
-   with ``[version A.BBB]``.
+   with ``[version A.BBB]``, and then submit it::
+
+        p4 submit -d "Update 'master' to 'version $VERSION'"
 
    (If there are other files that need updating, update this procedure
    and add them here. But it is better to organize the sources so that
@@ -119,7 +126,7 @@ evolution. A version has these parts:
 
         p4 integrate -r -b $BRANCH
         p4 resolve -ay
-        p4 submit -d 'Ignoring update of "master" to "version 1.111" from version branch'
+        p4 submit -d "Ignoring update of 'master' to 'version $VERSION' from version branch"
 
 
 A. References
@@ -147,10 +154,9 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-This document is copyright © 2002, 2005-2008, 2010 `Ravenbrook
-Limited <http://www.ravenbrook.com/>`__. All rights reserved. This is an
-open source license. Contact Ravenbrook for commercial licensing
-options.
+Copyright © 2002-2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
