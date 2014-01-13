@@ -8,8 +8,8 @@ Memory Pool System branching and merging procedures
 :readership: MPS developers
 
 
-Introduction
-------------
+1. Introduction
+---------------
 
 This document contains procedures and checklists for branching and merging during the ordinary course of development. For making version branches, see `version-create`_, and for making releases, see `release-build`_.
 
@@ -17,15 +17,15 @@ This document contains procedures and checklists for branching and merging durin
 .. _release-build: release-build
 
 
-Creating a development branch
------------------------------
+2. Creating a development branch
+--------------------------------
 
 #. If you are creating a development branch to fix a problem, make
    sure that there's a job recording the problem.
 
 #. Create a branch specification.
 
-        $ p4 branch mps/branch/2013-08-21/lii6ll
+        p4 branch mps/branch/2013-08-21/lii6ll
 
    The specification should look something like this::
 
@@ -51,13 +51,13 @@ Creating a development branch
 
 #. Edit the branch index::
 
-        $ p4 edit //info.ravenbrook.com/project/mps/branch/index.html
+        p4 edit //info.ravenbrook.com/project/mps/branch/index.html
 
    and add an entry to the "Active branches" section.
 
 
-Pre-merge checklist
--------------------
+3. Pre-merge checklist
+----------------------
 
 #. Have you solved the problem?
 
@@ -79,23 +79,22 @@ Pre-merge checklist
 #. Has there been a code review?
 
 
-Merging a development branch
-----------------------------
+4. Merging a development branch
+-------------------------------
 
 #. Do a catch-up merge from the master sources (or the appropriate
    customer-specific mainline)::
 
-         $ BRANCH=mps/branch/2013-08-21/lii6ll
-         $ cd $BRANCH
-         $ p4 integ -b $BRANCH ...
-         $ p4 resolve -as ...
-         $ p4 resolve
+         BRANCH=mps/branch/2013-08-21/lii6ll
+         p4 integrate -b $BRANCH
+         p4 resolve -as
+         p4 resolve
 
 #. Check that the test suite passes on the branch.
 
 #. Submit the merged files::
 
-         $ p4 submit -d "Catch-up merge from the master sources to $BRANCH" ...
+         p4 submit -d "Catch-up merge from the master sources to $BRANCH"
 
 #. Update the branch on other platforms and check that the test suite
    passes.
@@ -103,10 +102,9 @@ Merging a development branch
 #. Backward merge into the master sources (or the appropriate
    customer-specific mainline)::
 
-         $ cd ../../../master
-         $ p4 integ -r -b $BRANCH ...
-         $ p4 resolve -as ...
-         $ p4 resolve
+         p4 integrate -r -b $BRANCH
+         p4 resolve -as
+         p4 resolve
 
    Note: don't cherry-pick individual lines from files, if at all
    possible. (It may not be possible in the case of makefiles.) Try to
@@ -117,11 +115,11 @@ Merging a development branch
 
 #. Submit the merged files::
 
-         $ p4 submit -d "Merge $BRANCH into the master sources" ...
+         p4 submit -d "Merge $BRANCH into the master sources"
 
 #. Create a fix record for the change you just submitted::
 
-         $ p4 fix -c CHANGE JOB
+         p4 fix -c CHANGE JOB
 
 #. Edit the branch index, moving the development branch from the
    "Active branches" to "Dormant branches" section and linking the
