@@ -7654,10 +7654,20 @@ warning using STRING as the message.")
 ;; ;;;###autoload (push '("My impl name" . my-impl-symbol) COMMAND-alternatives
 
 (defmacro define-alternatives (command &rest customizations)
-  "Define new command `COMMAND'.
-The variable `COMMAND-alternatives' will contain alternative
-implementations of COMMAND, so that running `C-u M-x COMMAND'
-will allow the user to chose among them.
+  "Define the new command `COMMAND'.
+
+The argument `COMMAND' should be a symbol.
+
+Running `M-x COMMAND RET' for the first time prompts for which
+alternative to use and record the selected command as a custom
+variable.
+
+Running `C-u M-x COMMAND RET' prompts again and overwrite the
+previous choice.
+
+The variable `COMMAND-alternatives' contains an alist with
+alternative implementations of COMMAND.
+
 CUSTOMIZATIONS, if non-nil, should be composed of alternating
 `defcustom' keywords and values to add to the declaration of
 `COMMAND-alternatives' (typically :group and :version)."
@@ -7688,13 +7698,19 @@ contains the list of implementations currently supported for this command."
          (interactive "P")
          (when (or arg (null ,varimp-sym))
            (let ((val (completing-read
-                       ,(format "Select implementation for command `%s': " command-name)
-                       ,varalt-sym nil t)))
+		       ,(format "Select implementation for command `%s': "
+				command-name)
+		       ,varalt-sym nil t)))
              (unless (string-equal val "")
-               (customize-save-variable ',varimp-sym
-                                        (cdr (assoc-string val ,varalt-sym))))))
+	       (when (null ,varimp-sym)
+		 (message
+		  "Use `C-u M-x %s RET' to select another implementation"
+		  ,command-name)
+		 (sit-for 3))
+	       (customize-save-variable ',varimp-sym
+					(cdr (assoc-string val ,varalt-sym))))))
          (if ,varimp-sym
-             (funcall ,varimp-sym)
+             (call-interactively ,varimp-sym)
            (message ,(format "No implementation selected for command `%s'"
                              command-name)))))))
 

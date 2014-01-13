@@ -1,3 +1,10 @@
+2014-01-13  Bastien Guerry  <bzg@gnu.org>
+
+	* simple.el (define-alternatives): Call the selected command
+	interactively.  When setting `COMMAND--implementation' for the
+	first time, tell the user how to chose another implementation.
+	Enhance the docstring.
+
 2014-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/log-edit.el: Fix highlighting of summary when it's the first line.
