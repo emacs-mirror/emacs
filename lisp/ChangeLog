@@ -1,3 +1,8 @@
+2014-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.el (indent-according-to-mode): Flush to column 0 in text-mode
+	after an empty line.
+
 2014-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/shr.el (shr-render-region): Autoload.
