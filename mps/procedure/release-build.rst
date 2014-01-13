@@ -24,20 +24,26 @@ All relative paths are relative to
 ``//info.ravenbrook.com/project/mps/``.
 
 
-2. Procedure
-------------
+2. Creating a version branch
+----------------------------
+
+#. Make sure you have a version branch from which to make the release.
+   If not, follow the `version creation procedure <version-create>`_
+   first.
+
+   .. _version-create: version-create
 
 
-2.1. Setting up for release
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. Setting up for release
+-------------------------
 
-#. Choose a *RELEASE* name of the form *VERSION.N* (for example, 0.3.0),
-   where *VERSION* is the number of the version you’re releasing, and
-   *N* is the first unused release number (starting at zero). Look in
-   the index of releases (``release/index.html``) for existing release
-   numbers for your version::
+#. Choose a *RELEASE* name of the form *VERSION.N* (for example,
+   1.111.0), where *VERSION* is the number of the version you’re
+   releasing, and *N* is the first unused release number (starting at
+   zero). Look in the index of releases (``release/index.html``) for
+   existing release numbers for your version::
 
-        VERSION=VERSION
+        VERSION=A.BBB
         RELEASE=$VERSION.N
 
 #. Ensure that ``version/$VERSION/readme.txt`` contains an up-to-date
@@ -57,30 +63,31 @@ All relative paths are relative to
    ``autoreconf -vif`` to bring the configure script up to date.
 
 #. Submit ``readme.txt``, ``manual/source/release.txt``,
-   ``version.c``, ``configure.ac``, and other changed files to
-   Perforce before you continue.
+   ``version.c``, ``configure.ac``, ``configure``, and other changed
+   files to Perforce before you continue.
 
 #. Determine the *CHANGELEVEL* at which you’re going to make the
    release. This will usually be the latest submitted changelevel on the
-   version branch; to get it, use ``p4 changes`` with a max of 1 (one)::
+   version branch; to get it, use ``p4 changes -m 1``::
 
         CHANGELEVEL=$(p4 changes -m 1 version/$VERSION/... | cut -d' ' -f2)
 
 
-2.2. Pre-release testing
-~~~~~~~~~~~~~~~~~~~~~~~~
+4. Pre-release testing
+----------------------
 
 #. Sync the version sources to precisely the *CHANGELEVEL* you
-   determined in step 2.1.1, with no extraneous files, by using the
-   following procedure::
+   determined above, with no extraneous files, by using the following
+   procedure::
 
-       # (you may wish to check for opened files first)
-       p4 revert version/$VERSION/...
-       rm -rf version/$VERSION
-       p4 sync -f version/$VERSION/...@$CHANGELEVEL
+        p4 opened version/$VERSION/... # should output nothing
+        p4 revert version/$VERSION/...
+        rm -rf version/$VERSION
+        p4 sync -f version/$VERSION/...@$CHANGELEVEL
 
-   Note: ``revert`` and ``sync -f`` are required, otherwise p4-opened or
-   forced-writeable files may remain or be omitted; see [RHSK_2008-10-16]_.
+   Note that the ``revert`` and ``sync -f`` are necessary, otherwise
+   opened files may be left in place, or writeable-on-client files may
+   be omitted; see [RHSK_2008-10-16]_.
 
 #. Run the test suite::
 
@@ -88,27 +95,39 @@ All relative paths are relative to
 
    Check that the test suite passes.
 
+#. Repeat for all supported platforms. On Windows the sequence of
+   commands to run the test suite are::
 
-2.3. MPS Kit Tarball and Zip file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        cd version\$VERSION\code
+        nmake /f w3i6mv.nmk testrun
+
+   On other platforms they are as shown above.
+
+
+5. MPS Kit Tarball and Zip file
+-------------------------------
 
 .. note::
 
-   If you are creating a custom variant then vary the release name
-   according to the variant, e.g. ``mps-cet-1.110.0.zip``
+   If you are creating a customer-specific variant then vary the
+   release name according to the variant, for example,
+   ``mps-cet-1.110.0.zip``
 
 On a Unix box:
 
-#. Create a Perforce client workspace that maps:
+#. Create a fresh Perforce client workspace containing the following::
 
-   -  ``version/VERSION/...`` to ``mps-kit-RELEASE/...``
-   -  ``release/RELEASE/...`` to ``release/RELEASE/...``
+        LineEnd:	local
+
+        View:
+                //info.ravenbrook.com/project/mps/version/VERSION/... //CLIENT/mps-kit-RELEASE/...
+                //info.ravenbrook.com/project/mps/release/RELEASE/... //CLIENT/release/RELEASE/...
 
 #. Ensure the Perforce client workspace is set for Unix (LF) line
    endings.
 
 #. Sync the version sources to *CHANGELEVEL* by repeating the procedure
-   from step 2.2.1::
+   from step 4.1::
 
         rm -rf mps-kit-RELEASE
         p4 sync -f @CHANGELEVEL
@@ -122,12 +141,12 @@ On a Unix box:
 #. Ensure the Perforce client workspace is set for Windows (CRLF) line
    endings.
 
-#. Sync the version sources again as in step (2) above.
+#. Sync the version sources again.
 
 #. Create a zip file containing the MPS sources, and open it for add::
 
         mkdir -p release/RELEASE
-        zip -r release/RELEASE/mps-kit-RELEASE.zip mps-cet-kit-RELEASE
+        zip -r release/RELEASE/mps-kit-RELEASE.zip mps-kit-RELEASE
         p4 add release/RELEASE/mps-kit-RELEASE.zip
 
 #. Revert any changes to your Perforce client line endings. (You
@@ -137,8 +156,8 @@ On a Unix box:
    the MPS Kit tarball and zip file for release RELEASE."
 
 
-2.4. Registering the release
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6. Registering the release
+--------------------------
 
 #. Edit the index of releases (``release/index.html``) and add the
    release to the table, in a manner consistent with previous releases.
@@ -168,7 +187,7 @@ On a Unix box:
 A. References
 -------------
 
-.. [RHSK_2008-10-16] "revert ; rm ; sync -f"; Richard Kistruck;
+.. [RHSK_2008-10-16] Richard Kistruck; "revert ; rm ; sync -f";
    Ravenbrook Limited; 2008-10-16;
    http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt
 
@@ -178,37 +197,21 @@ A. References
 B. Document History
 -------------------
 
-- 2002-06-17 RB_ Created based on P4DTI procedure.
-
-- 2002-06-19 NB_ Fixed up based on experience of release 1.100.0.
-
-- 2004-03-03 RB_ Fixed the way we determine the release changelevel to avoid possible pending changelists.
-
-- 2005-10-06 RHSK_ Clarify this procedure is for general MPS Kit releases; correct ``cp -r`` to ``-R``. Add: check ``version.c``.
-
-- 2006-01-19 RHSK_ Correct readership statement, and direct MPS users to the mps-kit readme.
-
-- 2006-02-16 RHSK_  Use Info-ZIP (free) for Windows archives, not WinZip.
-
-- 2007-07-05 RHSK_ Releasename now also in ``w3build.bat``.
-
-- 2008-01-07 RHSK_ Release changelevel was in ``issue.cgi``, now in ``data.py``.
-
-- 2010‑10‑06 GDR_ Use the project updater to register new releases.
-
-- 2012‑09‑13 RB_ Don’t copy the readme.txt to the release directory,
-  since it no longer has that dual role; make the zip file on a Unix box
-  with the zip utility, since compatibility has improved.
-
-- 2013-03-08 GDR_ Add testing step (§2.2).
-
-- 2012‑09‑24 RB_
-
-  -  Make sure zip files contain files with Windows line endings.
-  -  Use a fresh Perforce client to avoid any possibility of a clash with working files.
-  -  Different archive name for custom variants.
-
-- 2013-03-20 GDR_ Ensure that manual HTML is up to date before making a release.
+==========  =====  ==========================================================
+2002-06-17  RB_    Created based on P4DTI procedure.
+2002-06-19  NB_    Fixed up based on experience of release 1.100.0.
+2004-03-03  RB_    Fixed the way we determine the release changelevel to avoid possible pending changelists.
+2005-10-06  RHSK_  Clarify this procedure is for general MPS Kit releases; correct ``cp -r`` to ``-R``. Add: check ``version.c``.
+2006-01-19  RHSK_  Correct readership statement, and direct MPS users to the mps-kit readme.
+2006-02-16  RHSK_  Use Info-ZIP (free) for Windows archives, not WinZip.
+2007-07-05  RHSK_  Releasename now also in ``w3build.bat``.
+2008-01-07  RHSK_  Release changelevel was in ``issue.cgi``, now in ``data.py``.
+2010‑10‑06  GDR_   Use the project updater to register new releases.
+2012‑09‑13  RB_    Don’t copy the ``readme.txt`` to the release directory, since it no longer has that dual role; make the ZIP file on a Unix box with the zip utility, since compatibility has improved.
+2013-03-08  GDR_   Add testing step.
+2012‑09‑24  RB_    Make sure ZIP files contain files with Windows line endings. Use a fresh Perforce client to avoid any possibility of a clash with working files. Different archive name for custom variants.
+2013-03-20  GDR_   Ensure that manual HTML is up to date before making a release.
+==========  =====  ==========================================================
 
 .. _RB: mailto:rb@ravenbrook.com
 .. _NB: mailto:nb@ravenbrook.com
