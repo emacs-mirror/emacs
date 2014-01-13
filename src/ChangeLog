@@ -1,3 +1,9 @@
+2014-01-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (resize_mini_window): Round height to a multiple of
+	frame's line height.  Fix bug in calculation of window start
+	position (Bug#16424).
+
 2014-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macfont.m: Include termchar.h.
