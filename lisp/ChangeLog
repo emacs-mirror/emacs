@@ -1,3 +1,12 @@
+2014-01-13  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-file): Go to DIR before displaying the error
+	about a nonexistent file if no previous Info file is visited.
+	Use `user-error' instead of `error' for "Info file %s does not exist".
+	(Info-find-node-2): In case of a nonexistent node in unwind forms
+	go to the Top node if there is no previous node to revert to.
+	(Bug#16405)
+
 2014-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	fit-frame/window-to-buffer code fixes including one for Bug#14096.
