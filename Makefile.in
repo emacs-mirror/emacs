@@ -373,6 +373,11 @@ lib lib-src lisp nt: Makefile FRC
 # file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
+#
+# Note the use of single quotes in the value of vcswitness.
+# This passes an unexpanded $scrdir to src's Makefile, which then
+# expands it using its own value of srcdir (which points to the
+# source directory of src/).
 src: Makefile FRC
 	dirstate='.bzr/checkout/dirstate';				\
 	vcswitness='$$(srcdir)/../'$$dirstate;				\
