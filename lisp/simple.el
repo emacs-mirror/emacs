@@ -7659,14 +7659,15 @@ warning using STRING as the message.")
 The argument `COMMAND' should be a symbol.
 
 Running `M-x COMMAND RET' for the first time prompts for which
-alternative to use and record the selected command as a custom
+alternative to use and records the selected command as a custom
 variable.
 
-Running `C-u M-x COMMAND RET' prompts again and overwrite the
-previous choice.
+Running `C-u M-x COMMAND RET' prompts again for an alternative
+and overwrites the previous choice.
 
 The variable `COMMAND-alternatives' contains an alist with
-alternative implementations of COMMAND.
+alternative implementations of COMMAND.  `define-alternatives'
+does not have any effect until this variable is set.
 
 CUSTOMIZATIONS, if non-nil, should be composed of alternating
 `defcustom' keywords and values to add to the declaration of
