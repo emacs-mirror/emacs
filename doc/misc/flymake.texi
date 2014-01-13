@@ -87,7 +87,7 @@ messages also contain a filename and a line number.  Selecting such a
 menu item will automatically open the file and jump to the line with
 error.
 
-Syntax check is done 'on-the-fly'.  It is started whenever
+Syntax check is done ``on-the-fly''.  It is started whenever
 
 @itemize @bullet
 @item buffer is loaded
