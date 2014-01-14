@@ -504,7 +504,7 @@ application and tuning the allocator according to those profiles.
 Although we intend to support such tuning, we do not want to require
 it.
 
-_`.anal.policy.reallocate`: For reallocation, `.sol.mech.suballocate`_
+_`.anal.policy.reallocate`: For reallocation, `.req.fun.suballocate`_
 can be used to free the remainder if a block is made smaller. Doing so
 will cause the freed block to obey `.sol.policy.allocate`_ (that is,
 the freed block will not be treated specially, it will be subject to
