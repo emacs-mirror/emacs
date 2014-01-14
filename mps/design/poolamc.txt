@@ -304,6 +304,9 @@ and behaviour are acceptable.
 Initial design
 ~~~~~~~~~~~~~~
 
+_`.initial-design`: This section contains the original design for the
+AMC Pool Class.
+
 
 Introduction
 ------------

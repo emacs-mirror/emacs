@@ -161,6 +161,7 @@ Document History
   list, so MVFF handles the fail-over from its CBS to a Freelist.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License

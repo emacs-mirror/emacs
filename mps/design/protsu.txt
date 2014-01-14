@@ -77,10 +77,10 @@ Functions
 
 _`.fun.setup`: ``ProtSetup()``. The setup involves installing a signal
 handler for the signal ``SIGSEGV`` to catch and handle protection
-faults (this handler is the function ``sigHandle()``, see
-`.fun.sighandle`_). The previous handler is recorded (in the variable
-``sigNext``, see `.data.signext`_) so that it can be reached from
-``sigHandle()`` if it fails to handle the fault.
+faults (this handler is the function ``sigHandle()``). The previous
+handler is recorded (in the variable ``sigNext``, see
+`.data.signext`_) so that it can be reached from ``sigHandle()`` if it
+fails to handle the fault.
 
 The problem with this approach is that we can't honor the wishes of the 
 ``sigvec(2)`` entry for the previous handler (in terms of masks in particular).

@@ -483,6 +483,7 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
+.. _NB: http://www.ravenbrook.com/consultants/nb/
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 

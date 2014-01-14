@@ -248,7 +248,7 @@ allocation, which may use the reservoir if ``withReservoirPermit`` is
 
 _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
-design.mps.protocol `.overview.next-method`_).
+design.mps.protocol.overview.next-method).
 
 ``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit, Bool withReservoirPermit)``
 
