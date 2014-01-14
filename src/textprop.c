@@ -1741,7 +1741,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	}
       len -= LENGTH (i);
       i = next_interval (i);
-      if(!i)
+      if (!i)
         {
           if (modified)
             {
