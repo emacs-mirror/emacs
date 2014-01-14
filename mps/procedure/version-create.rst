@@ -68,8 +68,26 @@ evolution. A version has these parts:
 3. Procedure: How to make a new version
 ---------------------------------------
 
+
+3.1. Prerequisites
+~~~~~~~~~~~~~~~~~~
+
+#. Make sure that you are an authenticated Git Fusion user (follow the
+   git-fusion_ procedure if not).
+
+   .. _git-fusion: /procedure/git-fusion
+
 #. Make sure that the sources for the version you are about to create,
-   and for the table of versions, are mapped in your Perforce client.
+   for the table of versions, and for the table of Git Fusion pushes,
+   are mapped in your Perforce client::
+
+        //info.ravenbrook.com/project/mps/version/$VERSION/...
+        //info.ravenbrook.com/project/mps/branch/index.html
+        //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes
+
+
+3.2. Create the version branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Update the following files in the master sources that contain a
    version number, so that they refer to the version that you are
@@ -110,8 +128,6 @@ evolution. A version has these parts:
 
    Note the latest change that was in before the integrate.
 
-#. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
-
 #. Edit ``configure.ac`` on the version branch, replacing ``[master]``
    with ``[version A.BBB]``, and then submit it::
 
@@ -127,6 +143,28 @@ evolution. A version has these parts:
         p4 integrate -r -b $BRANCH
         p4 resolve -ay
         p4 submit -d "Ignoring update of 'master' to 'version $VERSION' from version branch"
+
+
+3.3. Register the new version branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Update the `table of versions <https://info.ravenbrook.com/project/mps/version/>`_.
+
+#. Make a client specification that can be used by the `git-fusion robot <https://info.ravenbrook.com/infosys/robots>`_ to sync the version:
+
+        p4 client -i <<END
+        Client: git-fusion-mps-version-$VERSION
+	Description: Git-fusion client for syncing MPS version $VERSION
+	Root: /home/git-fusion/.git-fusion/views/mps-version-$VERSION/p4
+        View: //info.ravenbrook.com/project/mps/version/$VERSION/... //git-fusion-mps-version-$VERSION/...
+        END
+
+   Add an entry to the `list of repositories to push to GitHub <https://info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes>`_:
+
+        PUSHES=$(p4 have //info.ravenbrook.com/infosys/robots/git-fusion/etc/pushes | cut -d' ' -f3)
+        p4 edit $PUSHES
+        printf "mps-version-$VERSION\tgit@github.com:Ravenbrook/mps-temporary.git\tversion/$VERSION" >> $PUSHES
+        p4 submit -d "Arranging for MPS version $VERSION to be pushed to GitHub by Git Fusion" $PUSHES
 
 
 A. References
@@ -146,8 +184,11 @@ B. Document History
 2007-07-05  RHSK_  Releasename now also in w3build.bat.  Make sure all submitted before integ.
 2008-10-29  RHSK_  Convert from text to html.
 2010-11-06  RHSK_  Correctly format example of p4 branch -o mps/version/1.105
+2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of version 1.112.
+2014-01-14  GDR_   Step for adding to Git Fusion.
 ==========  =====  ========================================================
 
+.. _GDR: mailto:gdr@ravenbrook.com
 .. _RHSK: mailto:rhsk@ravenbrook.com
 
 
