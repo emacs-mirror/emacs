@@ -1,3 +1,8 @@
+2014-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug--display): Move protective let-binding
+	so it applies in the right buffer (bug#16410).
+
 2014-01-13  Daniel Colascione  <dancol@dancol.org>
 
 	* textmodes/rst.el (rst-define-key): Provide deprecated
