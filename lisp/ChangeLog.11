@@ -13106,10 +13106,10 @@
 
 2003-08-29  Thierry Emery  <thierry.emery@club-internet.fr>  (tiny change)
 
-	* kinsoku.el (kinsoku-longer, kinsoku-shorter): Do not choose a
-	line break position in the middle of a non-kinsoku (e.g. latin)
-	word, making it skip until either a space or a character with
-	category "|".
+	* international/kinsoku.el (kinsoku-longer, kinsoku-shorter):
+	Do not choose a line break position in the middle of a
+	non-kinsoku (e.g. latin) word, making it skip until either
+	a space or a character with category "|".
 	(kinsoku-longer): Test for end of buffer.
 
 2003-08-28  Eli Zaretskii  <eliz@gnu.org>
@@ -13630,10 +13630,10 @@
 	* calendar/cal-tex.el (cal-tex-day-name-format): Doc fix.
 	(cal-tex-LaTeX-hourbox): Move definition before use.
 
-	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el
-	* cal-julian.el, cal-menu.el, cal-move.el, holidays.el
-	* lunar.el, solar.el (displayed-month, displayed-year):
-	Define for compiler.
+	* calendar/cal-china.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
+	* calendar/cal-julian.el, calendar/cal-menu.el, calendar/cal-move.el:
+	* calendar/holidays.el, calendar/lunar.el, calendar/solar.el:
+	(displayed-month, displayed-year): Define for compiler.
 
 2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 

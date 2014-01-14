@@ -1092,9 +1092,9 @@
 	North American rule.  Replace "daylight savings" with "daylight
 	saving" in doc.
 
-	* calendar/cal-china.el, cal-dst.el, calendar.el, diary-lib.el:
-	* calendar/lunar.el, solar.el: Replace "daylight savings" with
-	"daylight saving" in text.
+	* calendar/cal-china.el, calendar/cal-dst.el, calendar/calendar.el:
+	* calendar/diary-lib.el, calendar/lunar.el, calendar/solar.el:
+	Replace "daylight savings" with "daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
 	woman-request-regexp rather than "^\\.".
@@ -5113,7 +5113,7 @@
 
 	* version.el (emacs-version): Use mac-carbon-version-string.
 
-	* term/macterm.el (res-geometry): Apply 2006-10-18 change for x-win.el.
+	* term/mac-win.el (res-geometry): Apply 2006-10-18 change for x-win.el.
 
 2006-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 

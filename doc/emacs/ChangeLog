@@ -6808,8 +6808,6 @@
 
 	* sending.texi (Mail Sending): pxref to Top needs five args.
 
-	* texinfo.tex: Update to current version (2006-03-21.13).
-
 2006-03-31  Richard Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Update subnode menu.

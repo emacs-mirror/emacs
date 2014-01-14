@@ -176,7 +176,7 @@
 	Bazaar-specific names.
 
 	* version.el (emacs-bzr-version): Name changed to
-	emacs-repository-version. Obsolete-variable alias made.
+	emacs-repository-version.  Obsolete-variable alias made.
 	* loadup.el: Follow through on this name change.
 	* mail/emacsbug.el (report-emacs-bug): Factor out any
 	assumption about the version control system in use.

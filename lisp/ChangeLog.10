@@ -6076,7 +6076,7 @@
 
 2003-01-31  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Bug fixes, miscellaneous.
+	* progmodes/antlr-mode.el: Bug fixes, miscellaneous.
 	(antlr-mode): Make major mode work with cc-mode-5.29 or higher,
 	make it more robust against changes in cc-mode's style variables
 	by using `boundp' and function `c-init-language-vars' if defined.
@@ -6085,7 +6085,7 @@
 	(antlr-run-tool-interactive): New function.
 	(antlr-run-tool): Use it for `interactive' specification.
 
-	* antlr-mode.el: Simplify Emacs/XEmacs compatibility.
+	* progmodes/antlr-mode.el: Simplify Emacs/XEmacs compatibility.
 	(cond-emacs-xemacs): New compile-time macro.
 	(defunx): New compile-time macro.
 	(ignore-errors-x): New compile-time macro.
@@ -6116,7 +6116,8 @@
 	(antlr-hide-actions): Ditto.
 	(antlr-option-kind): Ditto.
 
-	* antlr-mode.el: In Emacs, use face attribute :weight, not :bold.
+	* progmodes/antlr-mode.el: In Emacs, use face attribute
+	:weight, not :bold.
 	(antlr-font-lock-keyword-face): Use new macros.
 	(antlr-font-lock-syntax-face): Ditto.
 	(antlr-font-lock-ruledef-face): Ditto.
@@ -6125,12 +6126,12 @@
 
 	Changes from 2002-05-24:
 
-	* antlr-mode.el: Version 2.2a.
+	* progmodes/antlr-mode.el: Version 2.2a.
 
 	Changes from 2002-05-03:
 
-	* antlr-mode.el: Make context parsing faster on Emacs, for faster
-	syntax highlighting, indentation and imenu support.
+	* progmodes/antlr-mode.el: Make context parsing faster on Emacs,
+	for faster syntax highlighting, indentation and imenu support.
 	Suggested by Aaron Davies <adavies42@users.sourceforge.net>.
 	(antlr-slow-context-cache): New variable.
 	(antlr-slow-syntactic-context): Use cache.
@@ -6140,8 +6141,8 @@
 	antlr-xemacs-bug-workaround.
 	(antlr-imenu-create-index-function): Search from beginning.
 
-	* antlr-mode.el: More sophisticated indentation, i.e., use the
-	indentation engine of cc-mode for most actions.
+	* progmodes/antlr-mode.el: More sophisticated indentation, i.e.,
+	use the indentation engine of cc-mode for most actions.
 	(antlr-c-common-init): Allow nil for `antlr-indent-style'.
 	(antlr-indent-line): Use indentation engine of cc-mode more often.
 	(antlr-indent-at-bol-alist): Only used for header actions.
@@ -6150,7 +6151,7 @@
 	(antlr-indent-at-bol-alist): With language "Java", indent
 	"package" and "import" at column 0 in header part.
 
-	* antlr-mode.el (antlr-simple-default-directory): Define.
+	* progmodes/antlr-mode.el (antlr-simple-default-directory): Define.
 	(antlr-simple-read-shell-command): Define.
 	(antlr-simple-with-displaying-help-buffer): Define.
 	(antlr-simple-scan-sexps, antlr-simple-scan-lists):
@@ -6158,11 +6159,12 @@
 
 	Changes from 2002-02-28:
 
-	* antlr-mode.el: Version 2.2 is released.
+	* progmodes/antlr-mode.el: Version 2.2 is released.
 
-	* antlr-mode.el (antlr): Moved to SourceForge.net
+	* progmodes/antlr-mode.el (antlr): Moved to SourceForge.net
 
-	* antlr-mode.el: Minor bug fixes: insert options and indentation.
+	* progmodes/antlr-mode.el: Minor bug fixes: insert options
+	and indentation.
 	(antlr-option-location): Don't use point as position where to
 	insert options if point is in comment.
 	(antlr-mode): Don't set style here.
@@ -6173,7 +6175,7 @@
 
 	Changes from 2002-01-31:
 
-	* antlr-mode.el (antlr-font-lock-additional-keywords):
+	* progmodes/antlr-mode.el (antlr-font-lock-additional-keywords):
 	Also highlight `~' with `antlr-font-lock-syntax-face'.
 	Suggested by Helmut Neukirchen <neukirchen@itm.mu-luebeck.de>.
 
@@ -16171,8 +16173,8 @@
 
 2002-04-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-align.el, progmodes/cc-mode.texi,
-	progmodes/cc-vars.el: Added two new lineup functions:
+	* progmodes/cc-align.el, progmodes/cc-mode.el:
+	* progmodes/cc-vars.el: Added two new lineup functions:
 
 	(c-lineup-knr-region-comment): A new lineup function to get
 	(what most people think is) better indentation of comments in
@@ -20703,20 +20705,21 @@
 
 2001-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: More sophisticated indentation of cpp directive.
+	* progmodes/antlr-mode.el: More sophisticated indentation
+	of cpp directive.
 	(antlr-indent-at-bol-alist): New user option.
 	(antlr-indent-line): Use it.
 	(antlr-indent-style): New user option.
 	(antlr-mode): Use it.
 	(antlr-indent-item-regexp): Customize.
 
-	* antlr-mode.el: Syntax highlighting changes.
+	* progmodes/antlr-mode.el: Syntax highlighting changes.
 	(antlr-font-lock-literal-regexp): New user option.
 	(antlr-font-lock-syntax-face): New face used for :, |, ....
 	(antlr-font-lock-default-face): New face.
 	(antlr-font-lock-additional-keywords): Use them.
 
-	* antlr-mode.el: New command to insert options -- variables.
+	* progmodes/antlr-mode.el: New command to insert options -- variables.
 	(antlr-mode-map): New binding [C-c C-o].
 	(antlr-mode-menu): New submenus.
 	(antlr-options-use-submenus): New user option.
@@ -20727,7 +20730,7 @@
 	(antlr-options-assign-string): New user option.
 	(antlr-options-headings): New variable.
 
-	* antlr-mode.el: New command to insert options -- specific.
+	* progmodes/antlr-mode.el: New command to insert options -- specific.
 	(antlr-options-alists): New variable.
 	(antlr-read-value): New function.
 	(antlr-read-boolean): New function.
@@ -20737,7 +20740,7 @@
 	(antlr-grammar-tokens): New function.
 	(antlr-imenu-create-index-function): New optional argument.
 
-	* antlr-mode.el: New command to insert options -- functions.
+	* progmodes/antlr-mode.el: New command to insert options -- functions.
 	(antlr-insert-option): New command.
 	(antlr-insert-option-interactive): New function.
 	(antlr-options-menu-filter): New function.
@@ -20755,7 +20758,7 @@
 	(antlr-insert-option-space): New function.
 	(antlr-insert-option-area): New function.
 
-	* antlr-mode.el: New electric keys ":;|&(){}", TAB works better
+	* progmodes/antlr-mode.el: New electric keys ":;|&(){}", TAB works better
 	with narrowing.  Menu change.  Miscellaneous.
 	(antlr-mode-menu): Include "Indent Region" and "Customize Antlr".
 	(antlr-mode-map): New bindings for characters in ":;|&(){}".
@@ -22373,7 +22376,7 @@
 	* calc/calc-frac.el, calc/calc-macs.el, calc/calc-poly.el:
 	* calc/calc-stuff.el, calc/calcalg2.el, calc/calc-comb.el:
 	* calc/calc-funcs.el, calc/calc-maint.el, calc/calc-prog.el:
-	* calc/calc-trail.el, calcalg3.el, calc/calc-cplx.el:
+	* calc/calc-trail.el, calc/calcalg3.el, calc/calc-cplx.el:
 	* calc/calc-graph.el, calc/calc-map.el, calc/calc-rewr.el:
 	* calc/calc-undo.el, calc/calccomp.el, calc/calc-embed.el:
 	* calc/calc-help.el, calc/calc-math.el, calc/calc-rules.el:

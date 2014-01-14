@@ -8702,6 +8702,10 @@
 
 	* gnus.texi (Security): Improve.
 
+2006-04-02  Karl Berry  <karl@gnu.org>
+
+	* texinfo.tex: Update to current version (2006-03-21.13).
+
 2006-04-02  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Getting Started, Junk, Bug Reports)
@@ -10866,6 +10870,12 @@
 
 	* Makefile.in (mostlyclean, maintainer-clean): Delete more files.
 
+2001-02-12  Michael Kifer  <kifer@cs.sunysb.edu>
+
+	* ediff.texi: Added ediff-coding-system-for-read.
+
+	* viper.texi: Fix typos.
+
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (../info/idlwave): Use --no-split.
@@ -11257,7 +11267,7 @@
 
 1990-05-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
+	* texindex.c: If USG, include sys/types.h and sys/fcntl.h.
 
 1989-01-17  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 

@@ -2055,11 +2055,11 @@
 
 1998-10-13  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
-	* latin-alt.el ("latin-1-alt-postfix"): Add a method to enter the
+	* quail/latin-alt.el ("latin-1-alt-postfix"): Add a method to enter the
 	small superscript underlined o and a.
 	("italian-alt-postfix"): Change it to something useful and
 	different from italian-postfix.
-	* latin-post.el ("latin-1-postfix"): Add a method to enter the
+	* quail/latin-post.el ("latin-1-postfix"): Add a method to enter the
 	small superscript underlined o and a.
 	("italian-postfix"): Same as above.
 	("italian-postfix"): Add methods to enter e with acute accent and
