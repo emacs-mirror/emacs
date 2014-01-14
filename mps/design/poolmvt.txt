@@ -981,7 +981,7 @@ B. Document History
 - 1998-04-01 PTW Revised in response to e-mail request for comments.
   See thread starting with mail.ptw.1998-03-23.20-43(0).
 
-_ 1998-04-15 PTW Revised in response to e-mail request for comments.
+- 1998-04-15 PTW Revised in response to e-mail request for comments.
   See thread starting with mail.ptw.1998-04-13.21-40(0).
 
 - 1998-05-06 PTW Revised in response to review
