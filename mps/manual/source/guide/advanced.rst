@@ -336,7 +336,7 @@ If you look up a key in an address-based hash table and fail to find it
 there, that might be because the table's dependency on the location of
 the key is stale: that is, if the garbage collector moved the key. The
 function :c:func:`mps_ld_isstale` tells you if a block whose
-locations you depended upon since the last call to
+location you depended upon since the last call to
 :c:func:`mps_ld_reset` might have moved.
 
 .. code-block:: c
