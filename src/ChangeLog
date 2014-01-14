@@ -1,3 +1,11 @@
+2014-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix MinGW64 porting problem with _setjmp.
+	Reported by Eli Zaretskii in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01297.html
+	* image.c (FAST_SETJMP, FAST_LONGJMP): New macros, replacing
+	the old _setjmp and _longjmp.  All uses changed.
+
 2014-01-13  Daniel Colascione  <dancol@dancol.org>
 
 	* textprop.c (Fremove_list_of_text_properties): Correctly
