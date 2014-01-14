@@ -24,14 +24,20 @@ All relative paths are relative to
 ``//info.ravenbrook.com/project/mps/``.
 
 
-2. Creating a version branch
-----------------------------
+2. Prerequisites
+----------------
 
 #. Make sure you have a version branch from which to make the release.
    If not, follow the `version creation procedure <version-create>`_
    first.
 
    .. _version-create: version-create
+
+#. Make sure that you have rights to push to the ``mps-temporary``
+   repository on GitHub. If not, follow the `Becoming a Ravenbrook
+   team member procedure <git-fusion>`_ first.
+
+   .. _git-fusion: https://info.ravenbrook.com/procedure/git-fusion
 
 
 3. Setting up for release
@@ -201,9 +207,22 @@ On a Unix (including OS X) machine:
    updater <http://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,
    select “mps” from the dropdown, and hit “Find releases”.
 
+#. Make a git tag for the release::
+
+        git clone git-fusion@raven.ravenbrook.com:mps-version-$VERSION
+        cd mps-version-$VERSION
+        git tag -a release-$RELEASE -F - <<END
+        Memory Pool System Kit release $RELEASE.
+        See <http://www.ravenbrook.com/project/mps/release/>.
+        END
+        git push --tags git@github.com:Ravenbrook/mps-temporary.git
+
 #. Inform the project manager and staff by e-mail to
-   mps-staff@ravenbrook.com.  Consider announcing the new release by
-   e-mail to mps-discussion@ravenbrook.com.
+   mps-staff@ravenbrook.com.
+
+#. Announce the new release by e-mail to
+   mps-discussion@ravenbrook.com. Include a summary of the release
+   notes.
 
 
 A. References
