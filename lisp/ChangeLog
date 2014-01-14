@@ -1,3 +1,9 @@
+2014-01-14  Daiki Ueno  <ueno@gnu.org>
+
+	* epa-file.el (epa-file-write-region): Encode the region according
+	to `buffer-file-format'.  Problem reported at:
+	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=32917>.
+
 2014-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug--display): Move protective let-binding
