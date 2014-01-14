@@ -201,8 +201,8 @@ when in a suspended state. Otherwise it is ``NULL``.
 
 _`.impl.field.threadring`: The ``threadRing`` field is used to chain
 the object onto the suspend ring when it is in the suspended state
-(see `.impl.suspend-ring`_). When not in a suspended state, this ring
-is single.
+(see `.impl.global.suspend-ring`_). When not in a suspended state,
+this ring is single.
 
 _`.impl.field.idring`: The ``idRing`` field is used to group the
 object with other objects corresponding to the same PThread (same
