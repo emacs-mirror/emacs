@@ -106,8 +106,8 @@ entries.
 
 _`.idea.table.figure`: [missing figure]
 
-_`.idea.map`: Store the pointers (`.req.fun.trans`_) in the table
-directly for every grain.
+_`.idea.map`: Store the pointers (design.arena.req.fun.trans) in the
+table directly for every grain.
 
 _`.idea.zones`: Partition the managed address space into zones (see
 idea.zones) and provide the set approximation as a reference
@@ -141,8 +141,8 @@ overhead, and with 1 MiB active, it is a 300% overhead! The address
 space for the table should be reserved, but the pages for it mapped
 and unmapped on demand. By storing the table in a tract, the status of
 the table's pages can be determined by looking at it's own entries in
-itself, and thus the translation lookup (`.req.fun.trans`_) is slowed
-to two lookups rather than one.
+itself, and thus the translation lookup (design.arena.req.fun.trans)
+is slowed to two lookups rather than one.
 
 _`.idea.pool`: Make the Arena Manager a pool class. Arena
 initialization becomes pool creation. Tract allocation becomes

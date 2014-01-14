@@ -45,12 +45,11 @@ communications channel available to signal handlers.
 Functions
 ---------
 
-_`.fun.setup`: ``ProtSetup()`` installs a signal handler for the signal
-``SIGSEGV`` to catch and handle protection faults (this handler is the
-function ``sigHandle()``, see `.fun.sighandle`_). The previous handler
-is recorded (in the variable ``sigNext``, see `.data.signext`_) so
-that it can be reached from ``sigHandle()`` if it fails to handle the
-fault.
+_`.fun.setup`: ``ProtSetup()`` installs a signal handler for the
+signal ``SIGSEGV`` to catch and handle protection faults (this handler
+is the function ``sigHandle()``). The previous handler is recorded (in
+the variable ``sigNext``, see `.data.signext`_) so that it can be
+reached from ``sigHandle()`` if it fails to handle the fault.
 
 _`.fun.setup.problem`: The problem with this approach is that we can't
 honour the wishes of the ``sigvec(2)`` entry for the previous handler

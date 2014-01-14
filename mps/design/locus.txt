@@ -477,10 +477,11 @@ _`.arch.locus.attr.exceptional`: The client can define a typical large
 allocation for the locus. Requests substantially larger than that are
 deemed exceptional.
 
-_`.arch.zone-group`: To satisfy `.req.condemn`_, we offer zone groups.
-Each locus can be a member of a zone group, and the locus manager will
-attempt to place allocations in this locus in different zones from all
-the other zone groups. A zone-group is represented as @@@@.
+_`.arch.zone-group`: To satisfy `.req.differentiable`_, we offer zone
+groups. Each locus can be a member of a zone group, and the locus
+manager will attempt to place allocations in this locus in different
+zones from all the other zone groups. A zone-group is represented as
+@@@@.
 
 _`.arch.page-table`: A page table is maintained by the arena, as usual
 to track association between tracts, pools and segments, and mapping

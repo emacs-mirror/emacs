@@ -186,7 +186,8 @@ changed.
 
 _`.class.method`: Buffer classes provide the following methods (these
 should not be confused with the pool class methods related to the
-buffer protocol, described in `.method`_):
+buffer protocol, described in `.method.create`_ and following
+sections):
 
 ``typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, ArgList args)``
 
@@ -706,7 +707,7 @@ Document History
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
-- 2007-03-22 RHSK_ Created Guide.
+- 2007-03-22 RHSK Created Guide.
 
 - 2013-05-24 GDR_ Converted to reStructuredText; some tidying and
   modernizing (``BufferInit()`` takes keyword arguments;

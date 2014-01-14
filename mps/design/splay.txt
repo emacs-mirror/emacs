@@ -546,8 +546,9 @@ _`.usage.test.node`: Test node function (see
       return freeNode->size >= size;
     }
 
-    _`.usage.initialization`: Client's initialization function (see 
-    `.function.splay.tree.init`_):
+_`.usage.initialization`: Client's initialization function (see
+`.function.splay.tree.init`_)::
+
     void FreeTreeInit(FreeTree tree) {
       /* Initialize the embedded splay tree. */
       SplayTreeInit(&tree->splayTree, FreeBlockCompare, FreeBlockUpdateNode);
