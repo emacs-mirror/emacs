@@ -5,7 +5,7 @@ Collection framework
 
 :Tag: design.mps.collection
 :Author: Pekka P. Pirinen
-:Date: 1998-01
+:Date: 1998-01-01
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
@@ -392,7 +392,7 @@ Software barriers
 Document History
 ----------------
 
-- 1998-01 Pekka P. Pirinen. Initial draft based on the current
+- 1998-01-01 Pekka P. Pirinen. Initial draft based on the current
   implementation of the MPS, analysis.async-gc, [that note on the
   independence of collections] and analysis.tracer.
 
