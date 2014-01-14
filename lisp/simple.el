@@ -7688,6 +7688,7 @@ ALTFUN  - The function called to implement this alternative."
          :type '(alist :key-type string :value-type function)
          ,@customizations)
 
+       (put ',varalt-sym 'definition-name ',command)
        (defvar ,varimp-sym nil "Internal use only.")
 
        (defun ,command (&optional arg)

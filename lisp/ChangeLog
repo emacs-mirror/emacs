@@ -1,3 +1,9 @@
+2014-01-14  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
+
+	* simple.el (define-alternatives): When creating the
+	COMMAND-alternatives variable, assign COMMAND as its definition
+	name so that `describe-variable' can relocate it.
+
 2014-01-14  Matthew Leach  <matthew@mattleach.net>  (tiny change)
 
 	* font-lock.el (font-lock-keywords): Fix typo in docstring
