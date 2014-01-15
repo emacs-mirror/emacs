@@ -74,6 +74,11 @@ number of bytes covered by each nail.
 
 Destroy the nailboard and reclaim the associated space.
 
+``Align NailboardAlignment(Nailboard board)``
+
+Return the granularity of the nailboard (the ``alignment`` value that
+was originally passed to ``NailboardCreate``).
+
 ``Bool NailboardGet(Nailboard board, Addr addr)``
 
 Return the nail in the nailboard corresponding to the address

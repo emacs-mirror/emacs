@@ -96,6 +96,11 @@ void NailboardDestroy(Nailboard board)
   ControlFree(arena, board, sizeof(NailboardStruct));
 }
 
+Align NailboardAlignment(Nailboard board)
+{
+  return 1 << board->markShift;
+}
+
 /* nailboardIndex -- return the index of the nail corresponding to addr */
 
 static Index nailboardIndex(Nailboard board, Addr addr)

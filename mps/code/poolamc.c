@@ -99,7 +99,7 @@ static Bool amcSegCheck(amcSeg amcseg)
   if (amcseg->board) {
     CHECKD(Nailboard, amcseg->board);
     CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
-    CHECKL((Align)1 << amcseg->board->markShift
+    CHECKL(NailboardAlignment(amcseg->board)
            == PoolAlignment(amcGenPool(amcseg->gen)));
   }
   CHECKL(BoolCheck(amcseg->new));
