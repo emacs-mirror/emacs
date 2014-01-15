@@ -7223,7 +7223,7 @@
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnusref.tex: Mention `gnus-summary-limit-to-recipient' and
+	* gnus.texi: Mention `gnus-summary-limit-to-recipient' and
 	`gnus-summary-sort-by-recipient'.
 
 2007-10-28  Romain Francoise  <romain@orebokech.com>

@@ -842,8 +842,8 @@
 	* lwlib.h (_widget_value): `help' has type Lisp_Object.
 
 	* xlwmenu.c, lwlib-Xaw.c, lwlib-Xlw.c: Include ../src/lisp.h.
-	* lwlib-Xm.c, lwlib-Xol.c, lwlib/lwlib-Xolmb.c: Include ../src/lisp.h.
-	* lwlib/lwlib-utils.c: Include ../src/lisp.h.
+	* lwlib-Xm.c, lwlib-Xol.c, lwlib-Xolmb.c: Include ../src/lisp.h.
+	* lwlib-utils.c: Include ../src/lisp.h.
 
 	* lwlib.c: Include ../src/lisp.h.  Don't declare xmalloc.
 	(free_widget_value_tree): Don't free `help' field.

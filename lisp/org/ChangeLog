@@ -252,9 +252,6 @@
 
 	* org-agenda.el (org-agenda-set-restriction-lock): Autoload.
 
-	* ob-abc.el (org-babel-expand-body:abc): Use dolist.
-	(org-babel-execute:abc): Fix regexp quoting.
-
 	* ob-calc.el (org--var-syms): Rename from `var-syms'.
 
 	* ob-lilypond.el (ly-compile-lilyfile): Remove redundant
@@ -312,8 +309,6 @@
 2013-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Address some byte-compiler warnings.
-	* ob-abc.el (org-babel-expand-body:abc): Use dolist.
-	(org-babel-execute:abc): Fix regexp quoting.
 	* ob-calc.el (org--var-syms): Rename from `var-syms'.
 	* ob-lilypond.el (ly-compile-lilyfile): Remove redundant let-binding.
 	* ob-table.el (sbe): Move debug declaration.
@@ -367,7 +362,6 @@
 	* ob-clojure.el (org-babel-execute:clojure):
 	* ob-calc.el (org-babel-execute:calc):
 	* ob-awk.el (org-babel-execute:awk):
-	* ob-abc.el (org-babel-execute:abc):
 	* ob-R.el (org-babel-expand-body:R):
 	* ob-C.el (org-babel-C-execute): Avoid deprecated ((lambda) ...).
 
@@ -1788,7 +1782,7 @@
 	* org.el (org-modules): Do not include org-mew.el, org-vm.el,
 	org-w3m.el, org-wl.el as these files are now part of contrib/.
 
-	* org-w3m.el:
+	* org-mew.el:
 	* org-vm.el:
 	* org-w3m.el:
 	* org-wl.el: Delete (moved to Org's contrib/ directory.)
@@ -1975,9 +1969,9 @@
 	(org-html-use-infojs, org-html-infojs-options)
 	(org-html-infojs-template): Move from ox-jsinfo.el.  Rename using
 	the org-html- prefix.
-	(org-html-infojs-install-script): Move from ox-infojs.el.
+	(org-html-infojs-install-script): Move from ox-jsinfo.el.
 
-	* ox-infojs.el: Delete.
+	* ox-jsinfo.el: Delete.
 
 	* ox-html.el (org-html-section): Fix indentation.
 	(org-html-inner-template): Add the document title here, within the
@@ -6347,9 +6341,6 @@
 	(org-export-odt-schema-dir, org-odt-styles-dir): Infer the
 	correct directories without requiring other variables.
 
-	* org-fixup.el (org-make-org-version, org-make-autoloads):
-	Don't define `org-odt-data-dir' in org-version.el.
-
 	* org-loaddefs.el: New file.
 
 	* org.el ("org-loaddefs.el"): Don't throw an error if the file
@@ -7153,8 +7144,6 @@
 
 	* org-clock.el (org-dblock-write:clocktable)
 	(org-dblock-write:clocktable): Ditto.
-
-	* org2rem.el (org2rem): Ditto.
 
 	* org-agenda.el (org-agenda): In sticky agendas, use the current
 	command's match to set the buffer name.  This gives more
@@ -8296,7 +8285,7 @@
 
 	* org-macs.el (orgstruct++-ignore-org-filling): New macro.
 
-	* org-exp-block.el: Use `org-find-library-name' instead of
+	* org-exp-blocks.el: Use `org-find-library-name' instead of
 	`find-library-name'.
 
 	* org-compat.el (org-find-library-name): Convert into a macro to
@@ -9916,11 +9905,6 @@
 	* org.el (org-set-tags): Include `org-tag-alist' in the list of
 	possible completions, even when there are tags defined in the
 	buffer.
-
-2012-04-01  Bastien Guerry  <bzg@gnu.org>
-
-	* org-mime.el (org-mime-htmlize):
-	Set `org-export-with-LaTeX-fragments' correctly.
 
 2012-04-01  Bastien Guerry  <bzg@gnu.org>
 
@@ -16872,11 +16856,6 @@
 	* org-html.el (org-export-html-postamble-format)
 	(org-export-html-preamble-format): Explain how to escape the
 	`%' character.
-
-2011-07-28  Bastien Guerry  <bzg@gnu.org>
-
-	* org-exp-bibtex.el (org-export-bibtex-preprocess):
-	Use `org-export-current-backend'.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 

@@ -3103,7 +3103,7 @@
 
 1997-06-19  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefile.def, emacs.bat: Use windows95 and windowsnt instead
+	* makefile.def, emacs.bat.in: Use windows95 and windowsnt instead
 	of win95 and winnt, respectively.
 
 1997-01-04  Geoff Voelker  <voelker@cs.washington.edu>
@@ -3285,10 +3285,10 @@
 
 1995-05-09  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* _emacs, config.h, ebuild.bat, emacs.bat, emacs.rc,
-	fast-install.bat, install.bat, makefile.def, makefile.nt, paths.h,
-	inc/pwd.h, inc/sys/dir.h, inc/sys/file.h, inc/sys/ioctl.h,
-	inc/sys/param.h: Removed carriage-returns.
+	* _emacs, config.h, ebuild.bat, emacs.bat, emacs.rc:
+	* fast-install.bat, install.bat, makefile.def, makefile.nt, paths.h:
+	* inc/pwd.h, inc/sys/dir.h, inc/sys/file.h, inc/sys/ioctl.h:
+	* inc/sys/param.h: Removed carriage-returns.
 
 1995-05-06  Geoff Voelker  <voelker@cs.washington.edu>
 
