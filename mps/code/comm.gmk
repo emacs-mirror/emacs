@@ -165,8 +165,8 @@ FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c table.c
 MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
-    buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c         \
-    freelist.c global.c ld.c locus.c message.c meter.c mpm.c mpsi.c     \
+    buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c freelist.c     \
+    global.c ld.c locus.c message.c meter.c mpm.c mpsi.c nailboard.c    \
     pool.c poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c range.c    \
     ref.c reserv.c ring.c root.c sac.c seg.c shield.c splay.c ss.c      \
     table.c trace.c traceanc.c tract.c walk.c

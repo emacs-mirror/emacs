@@ -53,12 +53,12 @@ LIB_TARGETS=mps.lib
 # If it is suitable for running regularly (for example, after every
 # build) as an automated test case, add it to AUTO_TEST_TARGETS.
 
-AUTO_TEST_TARGETS=abqtest.exe amcss.exe amcsshe.exe amsss.exe		\
-    amssshe.exe apss.exe arenacv.exe awlut.exe awluthe.exe btcv.exe	\
-    exposet0.exe expt825.exe fbmtest.exe finalcv.exe finaltest.exe	\
-    fotest.exe locbwcss.exe lockcov.exe lockutw3.exe locusss.exe	\
-    locv.exe messtest.exe mpmss.exe mpsicv.exe mv2test.exe		\
-    poolncv.exe qs.exe sacss.exe segsmss.exe steptest.exe walkt0.exe	\
+AUTO_TEST_TARGETS=abqtest.exe amcss.exe amcsshe.exe amsss.exe           \
+    amssshe.exe apss.exe arenacv.exe awlut.exe awluthe.exe btcv.exe     \
+    exposet0.exe expt825.exe fbmtest.exe finalcv.exe finaltest.exe      \
+    fotest.exe locbwcss.exe lockcov.exe lockutw3.exe locusss.exe        \
+    locv.exe messtest.exe mpmss.exe mpsicv.exe mv2test.exe              \
+    poolncv.exe qs.exe sacss.exe segsmss.exe steptest.exe walkt0.exe    \
     zmess.exe
 
 # If it is not runnable as an automated test case, but is buildable,
@@ -90,13 +90,13 @@ ALL_TARGETS=$(LIB_TARGETS) $(AUTO_TEST_TARGETS) $(OTHER_TEST_TARGETS) $(EXTRA_TA
 #
 # %%PART: When adding a new part, add the sources for the new part here.
 
-MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>		\
-    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format>		\
-    <freelist> <global> <ld> <lockw3> <locus> <message> <meter> <mpm>	\
-    <mpsi> <mpsiw3> <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2>	\
-    <poolmv> <protocol> <protw3> <range> <ref> <reserv> <ring> <root>	\
-    <sac> <seg> <shield> <splay> <ss> <table> <thw3> <trace>		\
-    <traceanc> <tract> <vmw3> <walk>
+MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>         \
+    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format>                \
+    <freelist> <global> <ld> <lockw3> <locus> <message> <meter> <mpm>   \
+    <mpsi> <mpsiw3> <nailboard> <pool> <poolabs> <poolmfs> <poolmrg>    \
+    <poolmv2> <poolmv> <protocol> <protw3> <range> <ref> <reserv>       \
+    <ring> <root> <sac> <seg> <shield> <splay> <ss> <table> <thw3>      \
+    <trace> <traceanc> <tract> <vmw3> <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>

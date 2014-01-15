@@ -35,6 +35,12 @@ void RangeInit(Range range, Addr base, Addr limit)
   AVERT(Range, range);
 }
 
+void RangeInitCopy(Range dest, Range src)
+{
+  AVERT(Range, src);
+  RangeInit(dest, RangeBase(src), RangeLimit(src));
+}
+
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
@@ -94,19 +100,34 @@ Bool RangeIsAligned(Range range, Align alignment)
       && AddrIsAligned(RangeLimit(range), alignment);
 }
 
-Addr (RangeBase)(Range range) {
+Addr (RangeBase)(Range range)
+{
   AVERT(Range, range);
   return RangeBase(range);
 }
 
-Addr (RangeLimit)(Range range) {
+Addr (RangeLimit)(Range range)
+{
   AVERT(Range, range);
   return RangeLimit(range);
 }
 
-Size (RangeSize)(Range range) {
+Size (RangeSize)(Range range)
+{
   AVERT(Range, range);
   return RangeSize(range);
+}
+
+Bool (RangeContains)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  return RangeContains(range, addr);
+}
+
+Bool (RangeIsEmpty)(Range range)
+{
+  AVERT(Range, range);
+  return RangeIsEmpty(range);
 }
 
 

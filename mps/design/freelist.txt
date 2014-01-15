@@ -9,6 +9,7 @@ Free list allocator
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: free list allocator; design
 
 
 Introduction

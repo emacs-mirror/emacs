@@ -1,0 +1,148 @@
+.. mode: -*- rst -*-
+
+Nailboard
+=========
+
+:Tag: design.mps.nailboard
+:Author: Gareth Rees
+:Date: 2014-01-15
+:Status: incomplete design
+:Revision: $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/design/freelist.txt#1 $
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: nailboard; design
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the nailboard design for the Memory
+Pool System.
+
+_`.readership`: Any MPS developer.
+
+_`.overview`: A nailboard is a specialized bit table. It maps
+addresses within a range to *nails* (that is, bits in a table). The
+mapping has granularity, so that all addresses within a word, say,
+will map to the same nail.
+
+_`.purpose`: Nailboards are used by the AMC pool class to record
+ambiguous references to grains within a segment. See
+design.mps.poolamc.nailboard.
+
+
+Requirements
+------------
+
+_`.req.granularity`: A nailboard must be able to set nails for
+addresses down to the grain size of the segment. (Because individual
+objects may be this small, and we must be able to preserve or reclaim
+individual objects.)
+
+_`.req.set`: A nailboard must be able set a nail corresponding to any
+address in the range covered. (Because ambiguous references may have
+arbitrary values.)
+
+_`.req.get`: A nailboard must be able to determine if any nail is set
+in a continguous range. (Because we must preserve the whole object if
+there is any ambiguous reference to it.)
+
+_`.req.get.cost`: Determining if any nail is set in a continuous range
+must be cheap. That is, it must take time that is no more than
+logarithmic in the size of the range. (Because scanning overhead must
+be proportional to the number of objects, not to their size.)
+
+
+Interface
+---------
+
+``typedef NailboardStruct *Nailboard``
+
+``Nailboard`` is the type of a nailboard. It is an alias for
+``NailboardStruct *``.
+
+``Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range)``
+
+Allocate a nailboard in the control pool for ``arena``, to cover the
+given range of addresses, which must be non-empty. If successful, set
+``*boardReturn`` to point to the nailboard and return ``ResOK``.
+Otherwise, return a result code to indicate failure.
+
+``alignment`` specifies the granularity of the nails: that is, the
+number of bytes covered by each nail.
+
+``void NailboardDestroy(Nailboard board)``
+
+Destroy the nailboard and reclaim the associated space.
+
+``Bool NailboardGet(Nailboard board, Addr addr)``
+
+Return the nail in the nailboard corresponding to the address
+``addr``. It is an error if ``addr`` does not lie in the range covered
+by the nailboard.
+
+``Bool NailboardGet(Nailboard board, Addr addr)``
+
+Set the nail in the nailboard corresponding to the address ``addr``.
+Return the old nail at that position. It is an error if ``addr`` does
+not lie in the range covered by the nailboard.
+
+``void NailboardSetRange(Nailboard board, Range range)``
+
+Set all nails in the nailboard corresponding to the given range. It is
+an error if any nail in the range is set.
+
+``Bool NailboardIsSetRange(Nailboard board, Range range)``
+
+Return ``TRUE`` if all nails are set in the given range, or ``FALSE``
+if any nail is unset.
+
+
+Document History
+----------------
+
+- 2014-01-15 GDR_ Initial draft.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2014 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

@@ -1,64 +1,32 @@
-/* range.h: ADDRESS RANGE INTERFACE
+/* nailboard.h: NAILBOARD INTERFACE
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: Representation of address ranges.
- *
- * .design: <design/range/>
+ * .source: <design/nailboard/>.
  */
 
-#ifndef range_h
-#define range_h
+#ifndef nailboard_h
+#define nailboard_h
 
 #include "mpmtypes.h"
 
+typedef struct NailboardStruct *Nailboard;
 
-/* Signatures */
+extern Bool NailboardCheck(Nailboard board);
+extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range);
+extern void NailboardDestroy(Nailboard board);
+extern Bool NailboardGet(Nailboard board, Addr addr);
+extern Bool NailboardSet(Nailboard board, Addr addr);
+extern void NailboardSetRange(Nailboard board, Range range);
+extern Bool NailboardIsSetRange(Nailboard board, Range range);
 
-#define RangeSig ((Sig)0x5196A493) /* SIGnature RANGE */
-
-
-/* Prototypes */
-
-typedef struct RangeStruct *Range;
-
-#define RangeBase(range) ((range)->base)
-#define RangeLimit(range) ((range)->limit)
-#define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
-#define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
-#define RangeIsEmpty(range) (RangeSize(range) == 0)
-
-extern void RangeInit(Range range, Addr base, Addr limit);
-extern void RangeInitCopy(Range dest, Range src);
-extern void RangeFinish(Range range);
-extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
-extern Bool RangeCheck(Range range);
-extern Bool RangeIsAligned(Range range, Align align);
-extern Bool RangesOverlap(Range range1, Range range2);
-extern Bool RangesNest(Range outer, Range inner);
-extern Bool RangesEqual(Range range1, Range range2);
-extern Addr (RangeBase)(Range range);
-extern Addr (RangeLimit)(Range range);
-extern Size (RangeSize)(Range range);
-extern Bool (RangeContains)(Range range, Addr addr);
-extern Bool (RangeIsEmpty)(Range range);
-
-
-/* Types */
-
-typedef struct RangeStruct {
-  Sig sig;
-  Addr base;
-  Addr limit;
-} RangeStruct;
-
-#endif /* range_h */
+#endif /* nailboard.h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
