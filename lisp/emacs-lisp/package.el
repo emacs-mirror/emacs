@@ -332,7 +332,10 @@ contrast, `package-user-dir' contains packages for personal use."
                              (unless (memq (car rest-plist) '(:kind :archive))
                                (let ((value (cadr rest-plist)))
                                  (when value
-                                   (push (cons (car rest-plist) value)
+                                   (push (cons (car rest-plist)
+                                               (if (eq (car-safe value) 'quote)
+                                                   (cdr value)
+                                                 value))
                                          alist))))
                              (setq rest-plist (cddr rest-plist)))
                            alist)))))
@@ -383,6 +386,12 @@ Slots:
     (`single ".el")
     (`tar ".tar")
     (kind (error "Unknown package kind: %s" kind))))
+
+(defun package-desc-keywords (pkg-desc)
+  (let ((keywords (assoc :keywords (package-desc-extras pkg-desc))))
+    (if (eq (car-safe keywords) 'quote)
+        (cdr keywords)
+      keywords)))
 
 ;; Package descriptor format used in finder-inf.el and package--builtins.
 (cl-defstruct (package--bi-desc
@@ -1378,7 +1387,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (archive (if desc (package-desc-archive desc)))
          (extras (and desc (package-desc-extras desc)))
          (homepage (cdr (assoc :url extras)))
-         (keywords (cdr (assoc :keywords extras)))
+         (keywords (if desc (package-desc-keywords desc)))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan"))
@@ -1729,7 +1738,7 @@ KEYWORDS should be nil or a list of keywords."
   (let (keywords)
     (package--mapc (lambda (desc)
                      (let* ((extras (and desc (package-desc-extras desc)))
-                            (desc-keywords (cdr (assoc :keywords extras))))
+                            (desc-keywords (and desc (package-desc-keywords desc))))
                        (setq keywords (append keywords desc-keywords)))))
     keywords))
 
@@ -1771,7 +1780,7 @@ Built-in packages are converted with `package--from-builtin'."
 When none are given, the package matches."
   (if keywords
       (let* ((extras (and desc (package-desc-extras desc)))
-             (desc-keywords (cdr (assoc :keywords extras)))
+             (desc-keywords (and desc (package-desc-keywords desc)))
              found)
         (dolist (k keywords)
           (when (and (not found)

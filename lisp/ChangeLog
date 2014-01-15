@@ -1,3 +1,10 @@
+2014-01-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-desc-keywords): New function
+	(Bug#16222).
+	(describe-package-1, package-all-keywords)
+	(package--has-keyword-p): Use it.
+
 2014-01-14  Nicolas Richard  <theonewiththeevillook@yahoo.fr>
 
 	* simple.el (define-alternatives): When creating the
