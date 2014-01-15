@@ -1,3 +1,8 @@
+2014-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Conveniences):
+	* misc.texi (EWW): Copyedits.
+
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Distrib): Add donate URL.  Add anchor.

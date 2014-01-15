@@ -3,7 +3,6 @@
 @setfilename ../../info/eww
 @settitle Emacs Web Wowser
 @documentencoding UTF-8
-@c @include emacsver.texi
 @c %**end of header
 
 @copying

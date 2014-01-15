@@ -446,10 +446,10 @@ the DocView buffer.
 @findex eww-open-file
   @dfn{EWW}, the Emacs Web Wowser, is a web browser package for Emacs.
 It allows browsing URLs within an Emacs buffer.  The command @kbd{M-x
-eww} can be used to open a URL or search the web.  A file can be
-opened using the command @kbd{M-x eww-open-file}.  EWW can be used as
-web browser for @code{browse-url}, see @ref{Browse-URL}.  For full
-details, see @ref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
+eww} will open a URL or search the web.  You can open a file
+using the command @kbd{M-x eww-open-file}.  You can use EWW as the
+web browser for @code{browse-url}, @pxref{Browse-URL}.  For full
+details, @pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
 
 @node Shell
 @section Running Shell Commands from Emacs

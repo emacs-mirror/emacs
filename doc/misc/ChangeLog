@@ -1,3 +1,7 @@
+2014-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (eww_deps): Does not depend on emacsver.texi.
+
 2014-01-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (all): Doc fix according to GNU Coding Standards.
