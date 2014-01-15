@@ -1,3 +1,13 @@
+2014-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix copyright license notices for Adobe Unicode mapping files.
+	* charsets/mapfiles/README: The copied files are not compressed.
+	Check for copies as of today.
+	* charsets/mapfiles/stdenc.txt, charsets/mapfiles/symbol.txt:
+	Update from table version 0.2 (1999-03-30) to 1.0 (2011-07-12).
+	This doesn't change the table data, just copyright license notice.
+	The new notices are compatible with the GPL, the old ones were not.
+
 2014-01-13  Glenn Morris  <rgm@gnu.org>
 
 	* update_autogen (status): New function.  Use throughout.
