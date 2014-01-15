@@ -16,6 +16,7 @@ typedef struct NailboardStruct *Nailboard;
 extern Bool NailboardCheck(Nailboard board);
 extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range);
 extern void NailboardDestroy(Nailboard board);
+extern Align NailboardAlignment(Nailboard board);
 extern Bool NailboardGet(Nailboard board, Addr addr);
 extern Bool NailboardSet(Nailboard board, Addr addr);
 extern void NailboardSetRange(Nailboard board, Range range);
