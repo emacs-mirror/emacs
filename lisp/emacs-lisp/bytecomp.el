@@ -1714,7 +1714,7 @@ The value is non-nil if there were no errors, nil if errors."
      (list (read-file-name (if current-prefix-arg
 			       "Byte compile and load file: "
 			     "Byte compile file: ")
-			   file-dir file-name nil)
+			   file-dir buffer-file-name nil)
 	   current-prefix-arg)))
   ;; Expand now so we get the current buffer's defaults
   (setq filename (expand-file-name filename))

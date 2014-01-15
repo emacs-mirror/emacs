@@ -1,3 +1,9 @@
+2014-01-15  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Use whole
+	`buffer-file-name' in interactive-form so that we don't leave
+	pathless file names in `file-name-history'.
+
 2014-01-15  Juri Linkov  <juri@jurta.org>
 
 	* indent.el (indent-rigidly): Set deactivate-mark to nil
