@@ -8648,10 +8648,10 @@
 2013-03-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Replace hchild, vchild and buffer slots
-	with the only contents slot.  This is possible because each valid
+	with a single slot 'contents'.  This is possible because each valid
 	window may have either the child window (in vertical or horizontal
 	combination) or buffer to display (for the leaf window).  Using that,
-	a lof of operations to traverse and/or change window hierarchies may
+	a lot of operations to traverse and/or change window hierarchies may
 	be simplified.  New member horizontal is used to distinguish between
 	horizontal and vertical combinations of internal windows.
 	(WINDOW_LEAF_P, WINDOW_HORIZONTAL_COMBINATION_P)
