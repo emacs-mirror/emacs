@@ -73,6 +73,7 @@
 #include "abq.c"
 #include "range.c"
 #include "freelist.c"
+#include "nailboard.c"
 
 /* Additional pool classes */
 
