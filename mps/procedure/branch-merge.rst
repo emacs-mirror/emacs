@@ -51,12 +51,12 @@ This document contains procedures and checklists for branching and merging durin
 
 #. Ensure that the branch is mapped in your client specification.
 
-#. Make the branch::
+#. Integrate and submit::
 
-        p4 branch -b mps/branch/2013-08-21/lii6ll
+        p4 integrate -b mps/branch/2013-08-21/lii6ll
         p4 submit -d "Branching to add new supported platform lii6ll (job003596)."
 
-#. Edit the branch index::
+#. Edit the index of branches::
 
         p4 edit //info.ravenbrook.com/project/mps/branch/index.html
 
