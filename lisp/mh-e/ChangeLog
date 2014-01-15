@@ -3624,6 +3624,10 @@
 	* mh-customize.el: Call mh-image-load-path just before
 	mh-tool-bar-define so that the toolbar images can be found.
 
+2005-10-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-loaddefs.el: Remove.  Now generated automatically.
+
 2005-10-04  Bill Wohler  <wohler@newt.com>
 
 	* ChangeLog: Move contents into ChangeLog.1 and trim.

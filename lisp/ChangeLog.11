@@ -3142,7 +3142,7 @@
 
 	* subr.el (read-passwd): Move back from password.el.
 
-	* password.el: Remove, not ready yet.
+	* net/password.el: Remove, not ready yet.
 
 2004-10-29  Andreas Schwab  <schwab@suse.de>
 
@@ -8082,8 +8082,6 @@
 
 	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
 
-	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
-
 2004-04-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/gud.el (gud-pdb-command-name): Change default to "pydb".
@@ -8229,7 +8227,6 @@
 2004-04-22  Lars Hansen  <larsh@math.ku.dk>
 
 	* info.el (Info-restore-desktop-buffer): Delete with-no-warnings.
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
 
 2004-04-22  Kim F. Storm  <storm@cua.dk>
 
@@ -8338,9 +8335,6 @@
 	(Info-mode): Bind desktop-buffer-misc-data-function.
 
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
-	Add Parameters.
-
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 
 2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>

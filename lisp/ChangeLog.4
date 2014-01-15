@@ -2871,7 +2871,7 @@
 
 1994-02-18  Paul Eggert  (eggert@twinsun.com)
 
-	* (vc-lookup-triple): Yield nil, not "", if version name is nil.
+	* vc.el (vc-lookup-triple): Yield nil, not "", if version name is nil.
 
 1994-02-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -2953,10 +2953,6 @@
 	* perl-mode.el (perl-mode): Set parse-sexp-ignore-comments.
 
 1994-02-11  Paul Eggert  (eggert@twinsun.com)
-
-	* editfns.c (init_editfns): Look at LOGNAME before USER.
-	* fileio.c (Fsubstitute_in_file_name): Remove long-dead code
-	that looked at USER before LOGNAME.
 
 	* time.el (display-time-filter): Remove unnecessary (getenv "LOGNAME")
 	and (getenv "USER"), since (user-login-name) already does this.
@@ -6780,7 +6776,7 @@
 
 1993-07-29  Paul Eggert  (eggert@twinsun.com)
 
-	* (vc-mode-line): Set vc-mode to nil if FILE no longer is
+	* vc-hooks.el (vc-mode-line): Set vc-mode to nil if FILE no longer is
 	version-controlled.
 
 1993-07-29  Richard Stallman  (rms@mole.gnu.ai.mit.edu)

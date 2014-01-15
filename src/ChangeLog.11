@@ -8971,7 +8971,7 @@
 	* Makefile.in (DBUS_CFLAGS, DBUS_LIBS, GCONF_CFLAGS, GCONF_LIBS)
 	(LIBSOUND, CFLAGS_SOUND, RSVG_LIBS, RSVG_CFLAGS, INTERVALS_H)
 	(GETLOADAVG_LIBS, RUN_TEMACS): Move to the autoconf section.
-	(ORDINARY_LINK): Remove, defined in src/s/gnu.h.
+	(ORDINARY_LINK): Remove, defined in s/gnu.h.
 	(CRT0_COMPILE): Remove, inline it in the only user.
 
 2010-04-14  Juri Linkov  <juri@jurta.org>
@@ -16939,7 +16939,7 @@
 	* xdisp.c (redisplay_internal, note_mouse_highlight): Under NS,
 	shortcircuit if popup_activated like GTK and X toolkit.
 
-	* m/inter386.h: Change DARWIN to DARWIN_OS.
+	* m/intel386.h: Change DARWIN to DARWIN_OS.
 
 	* s/darwin.h: Add #define DARWIN_OS.  Get rid of C_SWITCH_SYSTEM def.
 	Change LIBS_MACGUI to LIBS_NSGUI.  Move temacs-conditionalized defs

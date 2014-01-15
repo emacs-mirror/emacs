@@ -10812,11 +10812,12 @@
 
 2002-10-02  Karl Berry  <karl@gnu.org>
 
-	* (ada-mode.texi autotype.texi calc.texi cc-mode.texi cl.texi
-	dired-x.texi ebrowse.texi ediff.texi emacs-mime.texi
-	eshell.texi eudc.texi faq.texi forms.texi idlwave.texi info.texi
-	message.texi mh-e.texi pcl-cvs.texi reftex.texi sc.texi ses.texi
-	speedbar.texi vip.texi viper.texi widget.texi woman.texi):
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi:
+	* eshell.texi, eudc.texi, faq.texi, forms.texi, idlwave.texi:
+	* info.texi, message.texi, mh-e.texi, pcl-cvs.texi, reftex.texi:
+	* sc.texi, ses.texi, speedbar.texi, vip.texi, viper.texi:
+	* widget.texi, woman.texi:
 	Per rms, update all manuals to use @copying instead of @ifinfo.
 	Also use @ifnottex instead of @ifinfo around the top node, where
 	needed for the sake of the HTML output.
@@ -10994,6 +10995,10 @@
 1997-07-10  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Makefile (../info/viper, viper.dvi): Delete viper-cmd.texi dep.
+
+1997-04-12  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* widget.texi (push-button): Document it.
 
 1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 

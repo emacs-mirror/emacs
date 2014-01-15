@@ -432,7 +432,7 @@
 	current-time-string and current-time-zone.  Adjust to new format
 	returned by current-time-zone.
 
-	* xfaces.el (face-equal): Doc fix.
+	* faces.el (face-equal): Doc fix.
 
 1993-05-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -768,7 +768,7 @@
 	(x-initialize-frame-faces): Use the NOERROR argument to the
 	font manipulation functions to avoid errors while starting up.
 	Remove initialization of isearch font.
-	* xfaces.c (internal-x-complain-about-font): Add new frame
+	(internal-x-complain-about-font): Add new frame
 	argument, so we can check the frame parameters to find the
 	default font.  Callers changed.
 
@@ -2120,11 +2120,6 @@
 	A boatload of changes to terminal support and terminal capability
 	initialization that make it a lot smarter, with a more uniform
 	and featureful interface across many different keyboard types.
-
-	* term.c (fkey_table): Has been expanded to handle the entire
-	intersection of the capability sets defined by X keysyms and
-	terminfo.  That is, every keysym for which there is a natural
-	equivalent in terminfo is now bound to that by the startup code.
 
 	* loaddefs.el (global-map): Natural default keybindings set up for
 	almost all supported keysyms other than function keys.  All

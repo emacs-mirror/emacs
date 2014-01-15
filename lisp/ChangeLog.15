@@ -1416,7 +1416,6 @@
 	`special-mode-map'.
 	(package-menu-mode): Define using `define-derived-mode'
 	inheriting from `special-mode'.
-	* erc/erc-list.el (erc-list-menu-mode): Inherit from `special-mode'.
 	* net/xesam.el (xesam-mode): Inherit from `special-mode'.
 	(xesam-mode-map): Define separately.
 	* play/solitaire.el (solitaire-mode): Inherit from `special-mode'.
@@ -5755,7 +5754,6 @@
 	* emacs-lisp/edebug.el (edebug-eval-mode-map):
 	* emacs-lisp/chart.el (chart-map):
 	* edmacro.el (edmacro-mode-map):
-	* erc/erc-list.el (erc-list-menu-mode-map):
 	* array.el (array-mode-map): Declare and define in one step.
 
 	* vc/log-view.el (log-view-mode-map): Bind revert-buffer.

@@ -7763,7 +7763,7 @@
 
 	* international/mule.el (make-char): Fix last change.
 
-	* textmode/texinfo.el (texinfo-open-quote, texinfo-close-quote):
+	* textmodes/texinfo.el (texinfo-open-quote, texinfo-close-quote):
 	New defcustoms.
 	(texinfo-insert-quote): Don't call tex-insert-quote, to avoid
 	autoloading tex-mode; instead, do the same manually.
@@ -12987,7 +12987,7 @@
 	`vc-locking-user' semantics.
 	(vc-backend-merge): Remove.
 
-	* vc-rcs.el, vc-scc.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
+	* vc-rcs.el, vc-sccs.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
 	rather than 'vc-locking-user.
 
 	* vc-rcs-hooks.el (vc-rcs-consult-headers): Adapt to new `vc-state'.
@@ -15573,7 +15573,7 @@
 	(ada-xemacs): Evaluate it at compile time too, so that ada-mode.el
 	can be batch-compiled from the command line.
 
-	* ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
+	* progmodes/ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
 	Add to the menu when the file is loaded, not in ada-mode-hook.
 	Add -toolbar to the default ddd command Switches moved from
 	ada-prj-default-comp-cmd and ada-prj-default-make-cmd to
@@ -15646,7 +15646,7 @@
 	cd to the build directory.  New field: main_unit Provide a default
 	file name even if the current buffer has no prj file.
 
-	* ada-prj.el:
+	* progmodes/ada-prj.el:
 	Rewritten to show a tabbed-dialog.
 	(ada-prj-add-ada-menu): Remove the map and name parameters.
 	(ada-prj-display-page, ada-prj-field, ada-prj-initialize-values):
@@ -15656,7 +15656,7 @@
 	(ada-prj-save): Always save fields that depend on the current buffer.
 	(ada-prj-show-value): New function
 
-	* ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
+	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
 	Ada mode. This will allow us to display the Ada menu in any buffer
 	we want (for project items).
 	(ada-header-tmpl): Use ada-fill-comment-prefix to put the correct
@@ -16403,7 +16403,7 @@
 	Support for bibentry.
 	(reftex-compile-variables): Fixed problem with end of section-re.
 
-	* texmodes/reftex-dcr.el (reftex-view-crossref,
+	* textmodes/reftex-dcr.el (reftex-view-crossref,
 	reftex-view-crossref-from-bibtex):
 	Deal with changed `reftex-find-citation-regexp-format'.
 	(reftex-view-regexp-match, reftex-view-crossref-from-bibtex):

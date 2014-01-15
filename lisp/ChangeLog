@@ -12024,7 +12024,7 @@
 
 2013-03-21  Eric Ludlam  <zappo@gnu.org>
 
-	* eieio/eieio-datadebug.el (data-debug/eieio-insert-slots):
+	* emacs-lisp/eieio-datadebug.el (data-debug/eieio-insert-slots):
 	Inhibit read only while inserting objects.
 
 2013-03-22  Teodor Zlatanov  <tzz@lifelogs.com>

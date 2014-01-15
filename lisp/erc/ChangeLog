@@ -434,6 +434,10 @@
 	(erc-modified-channels-update): Remove
 	erc-modified-channels-update from post-command-hook after update.
 
+2011-02-01  Sam Steingold  <sds@gnu.org>
+
+	* erc-list.el (erc-list-menu-mode): Inherit from `special-mode'.
+
 2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
 
 	* erc-track.el (track): Don't reset erc-modified-channels-object
