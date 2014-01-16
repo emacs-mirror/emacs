@@ -10,8 +10,23 @@
 #define nailboard_h
 
 #include "mpmtypes.h"
+#include "range.h"
 
 typedef struct NailboardStruct *Nailboard;
+
+typedef struct NailboardStruct {
+  Sig sig;
+  Arena arena;
+  RangeStruct range; /* range covered by nailboard */
+  Shift markShift;  /* to convert offset into bit index for mark */
+  BT mark;          /* mark table used to record ambiguous fixes */
+
+  Count nails;      /* no. of ambigFixes, not necessarily distinct */
+  Count distinctNails; /* number of distinct ambigFixes */
+  Bool newMarks;    /* set to TRUE if a new mark bit is added */
+} NailboardStruct;
+
+#define NailboardSig ((Sig)0x5194A11B) /* SIGnature NAILBoard */
 
 extern Bool NailboardCheck(Nailboard board);
 extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range);
