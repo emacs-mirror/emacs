@@ -6,7 +6,7 @@ See <http://sphinx-doc.org/extensions.html>
 from collections import defaultdict
 from inspect import isabstract, isclass
 import re
-import designs
+from . import designs
 
 from docutils import nodes, transforms
 from sphinx import addnodes
@@ -295,7 +295,7 @@ class GlossaryTransform(transforms.Transform):
             ('e', 'ed'),
             ('', 'ed'),
             ])
-        for (name, fullname), value in objects.items():
+        for (name, fullname), value in list(objects.items()):
             if name != 'term':
                 continue
             m = self.sense_re.match(fullname)
@@ -338,6 +338,6 @@ def setup(app):
     app.add_role_to_domain('mps', 'ref', mps_ref_role)
     app.add_transform(GlossaryTransform)
     app.connect('build-finished', GlossaryTransform.warn_indirect_terms)
-    for g in globals().itervalues():
+    for g in globals().values():
         if isclass(g) and issubclass(g, MpsDirective):
             g.add_to_app(app)
