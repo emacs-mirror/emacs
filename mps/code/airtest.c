@@ -17,31 +17,30 @@
 
 void test_main(void)
 {
-  extern mps_arena_t arena;
   size_t size = 1u << 8;
   size_t i, j;
   char *s[10];
   for (j = 0; j < 10; ++j) {
     obj_t obj = scheme_make_string(size, NULL);
     mps_addr_t ref = obj;
-    mps_finalize(arena, &ref);
+    mps_finalize(scheme_arena, &ref);
     s[j] = obj->string.string;
     sprintf(s[j], "%lu", (unsigned long)j);
     ++ s[j];
   }
-  mps_message_type_enable(arena, mps_message_type_finalization());
+  mps_message_type_enable(scheme_arena, mps_message_type_finalization());
   for (i = 0; i + 3 < size; ++i) {
     mps_message_t msg;
     for (j = 0; j < 10; ++j) {
       *s[j]++ = '0';
       *s[j] = '\0';
     }
-    mps_arena_collect(arena);
-    mps_arena_release(arena);
-    if (mps_message_get(&msg, arena, mps_message_type_finalization())) {
+    mps_arena_collect(scheme_arena);
+    mps_arena_release(scheme_arena);
+    if (mps_message_get(&msg, scheme_arena, mps_message_type_finalization())) {
       mps_addr_t ref;
       obj_t o;
-      mps_message_finalization_ref(&ref, arena, msg);
+      mps_message_finalization_ref(&ref, scheme_arena, msg);
       o = ref;
       error("wrongly finalized '%s' at %p", o->string.string, o);
     }
