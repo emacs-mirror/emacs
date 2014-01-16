@@ -1,3 +1,7 @@
+2014-01-16  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: Updates.  (Bug#16442)
+
 2014-01-12  David Engster  <deng@randomsample.de>
 
 	* NEWS: Add missing renames to EIEIO section.  Also, no functions
