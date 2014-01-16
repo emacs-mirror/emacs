@@ -330,7 +330,7 @@ packages to be loaded, add these packages to `org-latex-packages-alist'."
     ("infin" "\\propto" t "&infin;" "[infinity]" "[infinity]" "∞")
     ("infty" "\\infty" t "&infin;" "[infinity]" "[infinity]" "∞")
     ("prop" "\\propto" t "&prop;" "[proportional to]" "[proportional to]" "∝")
-    ("proptp" "\\propto" t "&prop;" "[proportional to]" "[proportional to]" "∝")
+    ("propto" "\\propto" t "&prop;" "[proportional to]" "[proportional to]" "∝")
     ("not" "\\textlnot{}" nil "&not;" "[angled dash]" "¬" "¬")
     ("neg" "\\neg{}" t "&not;" "[angled dash]" "¬" "¬")
     ("land" "\\land" t "&and;" "[logical and]" "[logical and]" "∧")

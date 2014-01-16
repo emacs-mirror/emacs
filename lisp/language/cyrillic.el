@@ -215,7 +215,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
   :charset-list '(mik))
 
 (define-coding-system 'pt154
-  "Parattype Asian Cyrillic codepage"
+  "ParaType Asian Cyrillic codepage"
   :coding-type 'charset
   :mnemonic ?D
   :charset-list '(pt154))

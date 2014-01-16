@@ -2110,7 +2110,7 @@ FILE is the specific file we are rendering."
 ;; functionality easier to implement.
 ;; ( tar file functionality not merged here because it requires a
 ;;   hacked copy of etags capable of tagging stdin: if Francesco
-;;   Potorti accepts a patch, or otherwise implements stdin tagging,
+;;   Potortì accepts a patch, or otherwise implements stdin tagging,
 ;;   then I will provide a `htmlfontify-tar-file' defun )
 (defun hfy-parse-tags-buffer (srcdir buffer)
   "Parse a BUFFER containing etags formatted output, loading the

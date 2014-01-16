@@ -5009,7 +5009,7 @@
 1999-06-23  Dave Love  <fx@gnu.org>
 
 	* etags.c (erlang_attribute): Fix undefined variable usage (after
-	Potorti).
+	Potortì).
 
 1999-05-02  Andrew Innes  <andrewi@gnu.org>
 

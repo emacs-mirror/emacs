@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This is a new input method for IPA characters and diacritics, which follows
-;; the conventions of Praat, a GPLed program for phonetical analysis.
+;; the conventions of Praat, a GPLed program for phonetic analysis.
 ;;
 ;; This input method is much more complete than the current ipa.el.
 
@@ -34,7 +34,7 @@
 (quail-define-package
  "ipa-praat" "IPA" "IPAP" t
  "International Phonetic Alphabet input method.
-This follows the input method of the phonetical analysis program
+This follows the input method of the phonetic analysis program
 Praat (http://www.fon.hum.uva.nl/praat/).
 
 

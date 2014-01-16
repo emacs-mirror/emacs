@@ -3124,7 +3124,7 @@ and closing parentheses and brackets."
 	  (+ (if (or (memq (elt i 2) (append "}])" nil)) ; char-after
                      (eq 'continuation ; do not stagger continuations
                          (elt (cperl-sniff-for-indent parse-data) 0)))
-		 0 ; Closing parenth or continuation of a continuation
+		 0 ; Closing parenthesis or continuation of a continuation
 	       cperl-continued-statement-offset)
 	     (if (or (elt i 3)		; is-block
 		     (not (elt i 4))		; is-brace
@@ -5145,7 +5145,7 @@ Returns some position at the last line."
 	      (if (eq (following-char) ?\( )
 		  (progn
 		    (forward-sexp 1)
-		    (setq pp (point)))	; past parenth-group
+		    (setq pp (point)))	; past parenthesis-group
 		;; after `else' or nothing
 		(if ml			; after `else'
 		    (skip-chars-backward " \t\n")

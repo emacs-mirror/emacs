@@ -440,7 +440,7 @@ displays them, incorrectly, as separate from the modified glyphs.")
  (">\\" "ʡ")	;; Epiglottal plosive			U+02A1
  ("^" "↑")	;; Upstep				U+2191
  ("!" "↓")	;; Downstep				U+2193
- ("!\\" "ǃ")	;; Postalveolal click			U+01C3
+ ("!\\" "ǃ")	;; Postalveolar click			U+01C3
  ("\\" "ǀ")	;; Dental click				U+01C0
  ("\\|\\" "ǁ")	;; Lateral alveolar click		U+01C1
  ("=\\" "ǂ")	;; Palatal click			U+01C2

@@ -822,7 +822,7 @@ from the name, like this:
 @node Contexts
 @section Context
 
-Each template belongs to a context.  When promting for a template by
+Each template belongs to a context.  When prompting for a template by
 name, such as with @kbd{C-c / /}, the name is prefixed by the current
 context.  If there is no context, it defaults to @code{declaration}.
 
