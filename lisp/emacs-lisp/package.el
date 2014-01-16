@@ -387,8 +387,8 @@ Slots:
     (`tar ".tar")
     (kind (error "Unknown package kind: %s" kind))))
 
-(defun package-desc-keywords (pkg-desc)
-  (let ((keywords (assoc :keywords (package-desc-extras pkg-desc))))
+(defun package-desc--keywords (pkg-desc)
+  (let ((keywords (cdr (assoc :keywords (package-desc-extras pkg-desc)))))
     (if (eq (car-safe keywords) 'quote)
         (cdr keywords)
       keywords)))
@@ -1387,7 +1387,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
          (archive (if desc (package-desc-archive desc)))
          (extras (and desc (package-desc-extras desc)))
          (homepage (cdr (assoc :url extras)))
-         (keywords (if desc (package-desc-keywords desc)))
+         (keywords (if desc (package-desc--keywords desc)))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
          (status (if desc (package-desc-status desc) "orphan"))
@@ -1738,7 +1738,7 @@ KEYWORDS should be nil or a list of keywords."
   (let (keywords)
     (package--mapc (lambda (desc)
                      (let* ((extras (and desc (package-desc-extras desc)))
-                            (desc-keywords (and desc (package-desc-keywords desc))))
+                            (desc-keywords (and desc (package-desc--keywords desc))))
                        (setq keywords (append keywords desc-keywords)))))
     keywords))
 
@@ -1780,7 +1780,7 @@ Built-in packages are converted with `package--from-builtin'."
 When none are given, the package matches."
   (if keywords
       (let* ((extras (and desc (package-desc-extras desc)))
-             (desc-keywords (and desc (package-desc-keywords desc)))
+             (desc-keywords (and desc (package-desc--keywords desc)))
              found)
         (dolist (k keywords)
           (when (and (not found)
