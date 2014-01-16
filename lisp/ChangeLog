@@ -1,7 +1,8 @@
 2014-01-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-desc--keywords): Use `cdr' with
-	`assoc'.  Make private.  Update all callers.
+	`assoc'.  Use `nth' instead of `cdr'.  Make private.  Update all
+	callers.
 
 2014-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 

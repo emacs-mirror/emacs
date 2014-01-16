@@ -390,7 +390,7 @@ Slots:
 (defun package-desc--keywords (pkg-desc)
   (let ((keywords (cdr (assoc :keywords (package-desc-extras pkg-desc)))))
     (if (eq (car-safe keywords) 'quote)
-        (cdr keywords)
+        (nth 1 keywords)
       keywords)))
 
 ;; Package descriptor format used in finder-inf.el and package--builtins.
