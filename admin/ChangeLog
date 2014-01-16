@@ -1,3 +1,8 @@
+2014-01-16  Eric S. Raymond  <esr@thyrsus.com>
+
+	* notes/commits: Add a 'graph on VCS-independent ways of
+	identifying commits and the desirability thereof.
+
 2014-01-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix copyright license notices for Adobe Unicode mapping files.

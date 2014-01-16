@@ -385,6 +385,7 @@ src: Makefile FRC
 	cd $@ || exit;							\
 	boot=bootstrap-emacs$(EXEEXT);					\
 	[ ! -x "$$boot" ] || boot='';					\
+	echo "VCSWITNESS: $$vcswitness";\
 	$(MAKE) all $(MFLAGS)						\
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'		\
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"	\
