@@ -182,6 +182,7 @@ extern obj_t scheme_make_buckets(size_t length);
 extern obj_t scheme_make_table(size_t length, hash_t hashf, cmp_t cmpf);
 extern void scheme_fmt(mps_fmt_t *fmt);
 
+extern mps_arena_t scheme_arena;
 extern void test_main(void);
 
 #endif /* fmtscheme_h */

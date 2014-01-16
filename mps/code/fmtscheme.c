@@ -28,7 +28,7 @@ obj_t obj_deleted;       /* deleted key in hashtable */
 
 /* MPS globals */
 
-mps_arena_t arena;       /* the arena */
+mps_arena_t scheme_arena; /* the arena */
 mps_pool_t obj_pool;     /* pool for ordinary Scheme objects */
 mps_ap_t obj_ap;         /* allocation point used to allocate objects */
 
@@ -170,7 +170,7 @@ obj_t scheme_make_port(obj_t name, FILE *stream)
     obj->port.stream = stream;
   } while(!mps_commit(obj_ap, addr, size));
   port_ref = obj;
-  mps_finalize(arena, &port_ref);
+  mps_finalize(scheme_arena, &port_ref);
   return obj;
 }
 
@@ -246,7 +246,7 @@ obj_t scheme_make_table(size_t length, hash_t hashf, cmp_t cmpf)
   /* round up to next power of 2 */
   for(l = 1; l < length; l *= 2);
   obj->table.buckets = scheme_make_buckets(l);
-  mps_ld_reset(&obj->table.ld, arena);
+  mps_ld_reset(&obj->table.ld, scheme_arena);
   return obj;
 }
 
@@ -462,7 +462,7 @@ void scheme_fmt(mps_fmt_t *fmt)
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
     MPS_ARGS_DONE(args);
-    res = mps_fmt_create_k(fmt, arena, args);
+    res = mps_fmt_create_k(fmt, scheme_arena, args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
 }
@@ -487,11 +487,11 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1 << 20);
     MPS_ARGS_DONE(args);
-    res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+    res = mps_arena_create_k(&scheme_arena, mps_arena_class_vm(), args);
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
-  res = mps_chain_create(&obj_chain, arena,
+  res = mps_chain_create(&obj_chain, scheme_arena,
                          sizeof(obj_gen_params) / sizeof(*obj_gen_params),
                          obj_gen_params);
   if (res != MPS_RES_OK) error("Couldn't create obj chain");
@@ -502,30 +502,30 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
     MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
     MPS_ARGS_DONE(args);
-    die(mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args),
+    die(mps_pool_create_k(&obj_pool, scheme_arena, mps_class_amc(), args),
         "mps_pool_create_k");
   } MPS_ARGS_END(args);
 
   res = mps_ap_create_k(&obj_ap, obj_pool, mps_args_none);
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
 
-  res = mps_thread_reg(&thread, arena);
+  res = mps_thread_reg(&thread, scheme_arena);
   if (res != MPS_RES_OK) error("Couldn't register thread");
 
-  res = mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0,
+  res = mps_root_create_reg(&reg_root, scheme_arena, mps_rank_ambig(), 0,
                             thread, mps_stack_scan_ambig, marker, 0);
   if (res != MPS_RES_OK) error("Couldn't create root");
   
   test_main();
 
-  mps_arena_park(arena);
+  mps_arena_park(scheme_arena);
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
   mps_chain_destroy(obj_chain);
   mps_fmt_destroy(obj_fmt);
-  mps_arena_destroy(arena);
+  mps_arena_destroy(scheme_arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
