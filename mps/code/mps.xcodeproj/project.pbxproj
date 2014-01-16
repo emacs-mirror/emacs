@@ -27,6 +27,7 @@
 			dependencies = (
 				3104AFF6156D37BC000A585A /* PBXTargetDependency */,
 				3114A644156E94FB001E0AA3 /* PBXTargetDependency */,
+				22FACEF1188809B5000FDBC1 /* PBXTargetDependency */,
 				3104AFF8156D37BE000A585A /* PBXTargetDependency */,
 				3104B004156D37CD000A585A /* PBXTargetDependency */,
 				22FA177916E8DB0C0098B23F /* PBXTargetDependency */,
@@ -101,6 +102,10 @@
 		22FA176D16E8D6FC0098B23F /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		22FA176F16E8D6FC0098B23F /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		22FA177716E8D7A80098B23F /* amcssth.c in Sources */ = {isa = PBXBuildFile; fileRef = 22FA177616E8D7A80098B23F /* amcssth.c */; };
+		22FACEE518880983000FDBC1 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		22FACEE718880983000FDBC1 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		22FACEEE188809A3000FDBC1 /* fmtscheme.c in Sources */ = {isa = PBXBuildFile; fileRef = 22FACED6188807FF000FDBC1 /* fmtscheme.c */; };
+		22FACEEF188809A7000FDBC1 /* airtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 22FACED1188807FF000FDBC1 /* airtest.c */; };
 		2D07B97A1636FCCE00DB751B /* eventsql.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D07B96C1636FC7200DB751B /* eventsql.c */; };
 		2D07B97C163705E400DB751B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D07B97B163705E400DB751B /* libsqlite3.dylib */; };
 		2D53F2E716515A63009A1829 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -329,6 +334,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 22FA176416E8D6FC0098B23F;
 			remoteInfo = amcssth;
+		};
+		22FACEE218880983000FDBC1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 31EEABFA156AAF9D00714D05;
+			remoteInfo = mps;
+		};
+		22FACEF0188809B5000FDBC1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 22FACEE018880983000FDBC1;
+			remoteInfo = airtest;
 		};
 		2D07B9781636FCBD00DB751B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -812,6 +831,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		22FACEE818880983000FDBC1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		2D07B96F1636FC9900DB751B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1132,6 +1160,22 @@
 		22E30E831886FF1400D98EA9 /* nailboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nailboard.h; sourceTree = "<group>"; };
 		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FA177616E8D7A80098B23F /* amcssth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcssth.c; sourceTree = "<group>"; };
+		22FACED1188807FF000FDBC1 /* airtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = airtest.c; sourceTree = "<group>"; };
+		22FACED2188807FF000FDBC1 /* fmtdy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmtdy.h; sourceTree = "<group>"; };
+		22FACED3188807FF000FDBC1 /* fmtdytst.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmtdytst.h; sourceTree = "<group>"; };
+		22FACED4188807FF000FDBC1 /* fmthe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmthe.h; sourceTree = "<group>"; };
+		22FACED5188807FF000FDBC1 /* fmtno.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmtno.h; sourceTree = "<group>"; };
+		22FACED6188807FF000FDBC1 /* fmtscheme.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmtscheme.c; sourceTree = "<group>"; };
+		22FACED7188807FF000FDBC1 /* fmtscheme.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmtscheme.h; sourceTree = "<group>"; };
+		22FACED8188807FF000FDBC1 /* locbwcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locbwcss.c; sourceTree = "<group>"; };
+		22FACED9188807FF000FDBC1 /* locusss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locusss.c; sourceTree = "<group>"; };
+		22FACEDA1888088A000FDBC1 /* ss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ss.c; sourceTree = "<group>"; };
+		22FACEDB188808D5000FDBC1 /* mpscmfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpscmfs.h; sourceTree = "<group>"; };
+		22FACEDC18880933000FDBC1 /* poolmfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poolmfs.h; sourceTree = "<group>"; };
+		22FACEDD18880933000FDBC1 /* poolmrg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poolmrg.h; sourceTree = "<group>"; };
+		22FACEDE18880933000FDBC1 /* pooln.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pooln.c; sourceTree = "<group>"; };
+		22FACEDF18880933000FDBC1 /* pooln.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pooln.h; sourceTree = "<group>"; };
+		22FACEED18880983000FDBC1 /* airtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = airtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D07B96C1636FC7200DB751B /* eventsql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = eventsql.c; sourceTree = "<group>"; };
 		2D07B9711636FC9900DB751B /* mpseventsql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventsql; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D07B97B163705E400DB751B /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
@@ -1358,6 +1402,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				22FA176F16E8D6FC0098B23F /* libmps.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22FACEE618880983000FDBC1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FACEE718880983000FDBC1 /* libmps.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1672,6 +1724,7 @@
 			isa = PBXGroup;
 			children = (
 				3114A63D156E94EA001E0AA3 /* abqtest.c */,
+				22FACED1188807FF000FDBC1 /* airtest.c */,
 				3124CAF5156BE81100753214 /* amcss.c */,
 				3104AFEB156D36A5000A585A /* amcsshe.c */,
 				22FA177616E8D7A80098B23F /* amcssth.c */,
@@ -1690,11 +1743,19 @@
 				3114A5CD156E9369001E0AA3 /* finalcv.c */,
 				3114A5E5156E93B9001E0AA3 /* finaltest.c */,
 				3124CAC6156BE48D00753214 /* fmtdy.c */,
+				22FACED2188807FF000FDBC1 /* fmtdy.h */,
 				3124CAC7156BE48D00753214 /* fmtdytst.c */,
+				22FACED3188807FF000FDBC1 /* fmtdytst.h */,
 				3124CAE4156BE6D500753214 /* fmthe.c */,
+				22FACED4188807FF000FDBC1 /* fmthe.h */,
 				3124CACC156BE4C200753214 /* fmtno.c */,
+				22FACED5188807FF000FDBC1 /* fmtno.h */,
+				22FACED6188807FF000FDBC1 /* fmtscheme.c */,
+				22FACED7188807FF000FDBC1 /* fmtscheme.h */,
 				224CC79E175E3202002FF81B /* fotest.c */,
+				22FACED8188807FF000FDBC1 /* locbwcss.c */,
 				31D60036156D3E0200337B26 /* lockcov.c */,
+				22FACED9188807FF000FDBC1 /* locusss.c */,
 				3114A5A1156E9168001E0AA3 /* locv.c */,
 				3114A69F156E9725001E0AA3 /* messtest.c */,
 				31EEAC74156AB58E00714D05 /* mpmss.c */,
@@ -1706,8 +1767,8 @@
 				31D60006156D3C5F00337B26 /* segsmss.c */,
 				31D60098156D403C00337B26 /* steptest.c */,
 				3114A628156E949A001E0AA3 /* teletest.c */,
-				2291A5F0175CB7A4001D4920 /* testlib.h */,
 				31EEAC9E156AB73400714D05 /* testlib.c */,
+				2291A5F0175CB7A4001D4920 /* testlib.h */,
 				3114A6BA156E9768001E0AA3 /* walkt0.c */,
 				31D6005E156D3F4A00337B26 /* zcoll.c */,
 				31D6007B156D3FCC00337B26 /* zmess.c */,
@@ -1781,6 +1842,7 @@
 				2291A5E3175CB05F001D4920 /* exposet0 */,
 				224CC799175E1821002FF81B /* fotest */,
 				31FCAE0A17692403008C034C /* scheme */,
+				22FACEED18880983000FDBC1 /* airtest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1832,6 +1894,7 @@
 				311F2F6417398B1A00C15B6A /* mps.h */,
 				311F2F6517398B3B00C15B6A /* mpsacl.h */,
 				311F2F6617398B3B00C15B6A /* mpsavm.h */,
+				22FACEDB188808D5000FDBC1 /* mpscmfs.h */,
 				311F2F7C17398E9A00C15B6A /* mpscmv.h */,
 				31EEABF5156AAF7C00714D05 /* mpsi.c */,
 				311F2F6717398B3B00C15B6A /* mpsio.h */,
@@ -1844,9 +1907,13 @@
 				31EEAC09156AB27B00714D05 /* pool.c */,
 				31EEAC0A156AB27B00714D05 /* poolabs.c */,
 				31EEAC2D156AB2F200714D05 /* poolmfs.c */,
+				22FACEDC18880933000FDBC1 /* poolmfs.h */,
 				31EEAC2E156AB2F200714D05 /* poolmrg.c */,
+				22FACEDD18880933000FDBC1 /* poolmrg.h */,
 				31EEAC2F156AB2F200714D05 /* poolmv.c */,
 				311F2F7B17398E7600C15B6A /* poolmv.h */,
+				22FACEDE18880933000FDBC1 /* pooln.c */,
+				22FACEDF18880933000FDBC1 /* pooln.h */,
 				311F2F6D17398B6300C15B6A /* prmci3.h */,
 				311F2F6E17398B6300C15B6A /* prmci6.h */,
 				311F2F6F17398B6300C15B6A /* prmcix.h */,
@@ -1868,6 +1935,7 @@
 				31EEAC32156AB2F200714D05 /* shield.c */,
 				31EEAC43156AB32500714D05 /* splay.c */,
 				311F2F7617398B8E00C15B6A /* splay.h */,
+				22FACEDA1888088A000FDBC1 /* ss.c */,
 				311F2F7717398B8E00C15B6A /* ss.h */,
 				311F2F7817398B8E00C15B6A /* th.h */,
 				311F2F7917398B8E00C15B6A /* thw3.h */,
@@ -2043,6 +2111,24 @@
 			name = amcssth;
 			productName = amcssth;
 			productReference = 22FA177516E8D6FC0098B23F /* amcssth */;
+			productType = "com.apple.product-type.tool";
+		};
+		22FACEE018880983000FDBC1 /* airtest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22FACEE918880983000FDBC1 /* Build configuration list for PBXNativeTarget "airtest" */;
+			buildPhases = (
+				22FACEE318880983000FDBC1 /* Sources */,
+				22FACEE618880983000FDBC1 /* Frameworks */,
+				22FACEE818880983000FDBC1 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				22FACEE118880983000FDBC1 /* PBXTargetDependency */,
+			);
+			name = airtest;
+			productName = mv2test;
+			productReference = 22FACEED18880983000FDBC1 /* airtest */;
 			productType = "com.apple.product-type.tool";
 		};
 		2D07B9701636FC9900DB751B /* mpseventsql */ = {
@@ -2676,6 +2762,7 @@
 				3104AFF1156D37A0000A585A /* all */,
 				31EEABFA156AAF9D00714D05 /* mps */,
 				3114A632156E94DB001E0AA3 /* abqtest */,
+				22FACEE018880983000FDBC1 /* airtest */,
 				3124CAEA156BE7F300753214 /* amcss */,
 				3104AFDC156D3681000A585A /* amcsshe */,
 				22FA176416E8D6FC0098B23F /* amcssth */,
@@ -2730,7 +2817,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# awlutth -- fails (job003506).\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awlutth awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest lockcov locv messtest mpmss mpsicv mv2test \\\n           poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
+			shellScript = "# Not listed here:\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\n\nTESTCASES=\"abqtest airtest amcss amcsshe amcssth amsss amssshe apss \\\n           arenacv awlut awlutth awluthe btcv expt825 exposet0 fbmtest \\\n           finalcv finaltest fotest lockcov locv messtest mpmss mpsicv \\\n           mv2test poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n    gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -2792,6 +2879,16 @@
 				22FA176B16E8D6FC0098B23F /* fmthe.c in Sources */,
 				22FA176C16E8D6FC0098B23F /* fmtno.c in Sources */,
 				22FA176D16E8D6FC0098B23F /* testlib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22FACEE318880983000FDBC1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FACEEF188809A7000FDBC1 /* airtest.c in Sources */,
+				22FACEEE188809A3000FDBC1 /* fmtscheme.c in Sources */,
+				22FACEE518880983000FDBC1 /* testlib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3207,6 +3304,16 @@
 			isa = PBXTargetDependency;
 			target = 22FA176416E8D6FC0098B23F /* amcssth */;
 			targetProxy = 22FA177816E8DB0C0098B23F /* PBXContainerItemProxy */;
+		};
+		22FACEE118880983000FDBC1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31EEABFA156AAF9D00714D05 /* mps */;
+			targetProxy = 22FACEE218880983000FDBC1 /* PBXContainerItemProxy */;
+		};
+		22FACEF1188809B5000FDBC1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 22FACEE018880983000FDBC1 /* airtest */;
+			targetProxy = 22FACEF0188809B5000FDBC1 /* PBXContainerItemProxy */;
 		};
 		2D07B9791636FCBD00DB751B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3674,6 +3781,33 @@
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
+		22FACEEA18880983000FDBC1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
+				PRODUCT_NAME = airtest;
+			};
+			name = Debug;
+		};
+		22FACEEB18880983000FDBC1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = airtest;
+			};
+			name = Release;
+		};
+		22FACEEC18880983000FDBC1 /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = airtest;
 			};
 			name = WE;
 		};
@@ -4846,6 +4980,16 @@
 				22FA177216E8D6FC0098B23F /* Debug */,
 				22FA177316E8D6FC0098B23F /* Release */,
 				22FA177416E8D6FC0098B23F /* WE */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		22FACEE918880983000FDBC1 /* Build configuration list for PBXNativeTarget "airtest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22FACEEA18880983000FDBC1 /* Debug */,
+				22FACEEB18880983000FDBC1 /* Release */,
+				22FACEEC18880983000FDBC1 /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

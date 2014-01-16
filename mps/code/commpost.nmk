@@ -118,6 +118,9 @@ $(PFM)\cool\mps.lib: \
 $(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\airtest.exe: $(PFM)\$(VARIETY)\airtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTSCHEMEOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
