@@ -91,7 +91,7 @@ def index_sub(m):
     return s
 
 def convert_file(name, source, dest):
-    s = open(source, encoding='utf-8').read()
+    s = open(source, 'rb').read().decode('utf-8')
     # We want the index directive to go right at the start, so that it leads
     # to the whole document.
     m = index.search(s)
@@ -115,8 +115,8 @@ def convert_file(name, source, dest):
         os.makedirs(os.path.dirname(dest))
     except:
         pass
-    with open(dest, mode='w', encoding='utf-8') as out:
-        out.write(s)
+    with open(dest, 'wb') as out:
+        out.write(s.encode('utf-8'))
 
 # Mini-make
 def convert_updated(app):
