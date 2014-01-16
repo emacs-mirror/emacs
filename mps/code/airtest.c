@@ -25,14 +25,14 @@ void test_main(void)
     mps_addr_t ref = obj;
     mps_finalize(scheme_arena, &ref);
     s[j] = obj->string.string;
-    sprintf(s[j], "%lu", (unsigned long)j);
-    ++ s[j];
+    *s[j]++ = '0' + (char)j;
+    *s[j] = '\0';
   }
   mps_message_type_enable(scheme_arena, mps_message_type_finalization());
   for (i = 0; i + 3 < size; ++i) {
     mps_message_t msg;
     for (j = 0; j < 10; ++j) {
-      *s[j]++ = '0';
+      *s[j]++ = '.';
       *s[j] = '\0';
     }
     mps_arena_collect(scheme_arena);

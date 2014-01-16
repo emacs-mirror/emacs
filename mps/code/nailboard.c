@@ -82,7 +82,7 @@ void NailboardDestroy(Nailboard board)
 
 Align NailboardAlignment(Nailboard board)
 {
-  return 1 << board->markShift;
+    return (Align)1 << board->markShift;
 }
 
 /* nailboardIndex -- return the index of the nail corresponding to addr */
