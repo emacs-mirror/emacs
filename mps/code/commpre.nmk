@@ -53,13 +53,13 @@ LIB_TARGETS=mps.lib
 # If it is suitable for running regularly (for example, after every
 # build) as an automated test case, add it to AUTO_TEST_TARGETS.
 
-AUTO_TEST_TARGETS=abqtest.exe amcss.exe amcsshe.exe amsss.exe           \
-    amssshe.exe apss.exe arenacv.exe awlut.exe awluthe.exe btcv.exe     \
-    exposet0.exe expt825.exe fbmtest.exe finalcv.exe finaltest.exe      \
-    fotest.exe locbwcss.exe lockcov.exe lockutw3.exe locusss.exe        \
-    locv.exe messtest.exe mpmss.exe mpsicv.exe mv2test.exe              \
-    poolncv.exe qs.exe sacss.exe segsmss.exe steptest.exe walkt0.exe    \
-    zmess.exe
+AUTO_TEST_TARGETS=abqtest.exe airtest.exe amcss.exe amcsshe.exe         \
+    amsss.exe amssshe.exe apss.exe arenacv.exe awlut.exe awluthe.exe    \
+    btcv.exe exposet0.exe expt825.exe fbmtest.exe finalcv.exe           \
+    finaltest.exe fotest.exe locbwcss.exe lockcov.exe lockutw3.exe      \
+    locusss.exe locv.exe messtest.exe mpmss.exe mpsicv.exe              \
+    mv2test.exe poolncv.exe qs.exe sacss.exe segsmss.exe steptest.exe   \
+    walkt0.exe zmess.exe
 
 # If it is not runnable as an automated test case, but is buildable,
 # add it to OTHER_TEST_TARGETS with a note.
@@ -107,6 +107,7 @@ POOLN = <pooln>
 SNC = <poolsnc>
 DW = <fmtdy> <fmtno>
 FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
+FMTSCHEME = <fmtscheme>
 TESTLIB = <testlib>
 
 
