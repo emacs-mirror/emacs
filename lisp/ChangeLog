@@ -1,3 +1,12 @@
+2014-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* follow.el (follow-adjust-window): Remove `dest' argument (bug#16426).
+	Assume we're already in the proper buffer.
+	Inspired by Anders Lindgren <andlind@gmail.com>.
+	(follow-post-command-hook): Call it from the right buffer.
+	(follow-comint-scroll-to-bottom): Adjust call.
+	(follow-all-followers): Use get-buffer-window-list.
+
 2014-01-15  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Use whole
