@@ -200,7 +200,7 @@
 
 2012-10-04  Julien Danjou  <julien@danjou.info>
 
-	* erc-desktop-notifications.el: Rename from erc-notifications to
+	* erc-desktop-notifications.el: Rename from erc-notifications.el to
 	avoid clash with 8+3 filename format and erc-notify.el.
 
 2012-09-25  Chong Yidong  <cyd@gnu.org>

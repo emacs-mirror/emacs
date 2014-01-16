@@ -3298,9 +3298,7 @@
 
 1995-04-10  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* src: Remove directory.
-
-	* src/config.h, src/paths.h: Moved to parent dir, src removed.
+	* src/config.h, src/paths.h: Moved to parent dir, src/ removed.
 
 1995-04-09  Geoff Voelker  <voelker@cs.washington.edu>
 

@@ -1248,8 +1248,7 @@
 	sequences (each with optional trailing space).
 
 	* net/tramp-uu.el:
-	* net/tramp-util.el:
-	* net/tramp-efs.el: Use iso-2022-7bit encoding with coding cookie
+	* net/tramp-util.el: Use iso-2022-7bit encoding with coding cookie
 	for XEmacs compatibility.
 
 2003-06-17  Kenichi Handa  <handa@m17n.org>
@@ -2242,8 +2241,6 @@
 	(tramp-shell-prompt-pattern): Allow ANSI escapes at
 	end of prompt.  (ANSI escapes elsewhere in the prompt are
 	recognized properly already.)
-
-	* net/tramp-efs.el: New file.
 
 2003-05-24  Michael Albinus  <Michael.Albinus@alcatel.de>
 

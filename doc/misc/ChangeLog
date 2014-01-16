@@ -3517,7 +3517,8 @@
 
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* eshell.texi (Input/Output): Document insert output redirection operator, >>>.
+	* eshell.texi (Input/Output):
+	Document insert output redirection operator, >>>.
 
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
@@ -10795,6 +10796,11 @@
 	`tramp-set-completion-function', because parsing of ssh config
 	files looks more natural.
 
+2003-01-15  Kevin Ryde  <user42@zip.com.au>
+
+	* gnus.texi (Using MIME): Mention auto-compression-mode with
+	gnus-mime-copy-part.
+
 2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.texi: Do not use `path' in several locations.
@@ -10842,6 +10848,12 @@
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
 	* reftex.texi: Update to RefTeX 4.19.
+
+2002-07-21  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus.texi (Sorting Groups): Add key bindings for
+	gnus-group-sort-groups-by-real-name and
+	gnus-group-sort-selected-groups-by-real-name.
 
 2002-06-17  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -10977,6 +10989,12 @@
 1998-03-11  Carsten Dominik  <cd@delysid.gnu.org>
 
 	* reftex.texi: Update for RefTeX version 3.22.
+
+1998-03-01  Kim-Minh Kaplan  <KimMinh.Kaplan@utopia.eunet.fr>
+
+	* gnus.texi (Easy Picons): Removed references to
+	`gnus-group-display-picons'.
+	(Hard Picons): Ditto.
 
 1998-02-08  Richard Stallman  <rms@psilocin.gnu.org>
 
@@ -11184,9 +11202,6 @@
 
 	* forms.texi: Fix forms.texi so that it will format correctly.
 	Add missing `@end iftex', fix bad reference.
-
-	* info.texi, info-stn.texi: New files implement texinfo version of
-	`info' file.
 
 1993-10-20  Brian J. Fox  (bfox@ai.mit.edu)
 

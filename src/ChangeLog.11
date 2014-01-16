@@ -28495,7 +28495,7 @@
 
 2007-11-09  Jason Rumney  <jasonr@gnu.org>
 
-	* s/ms-w32.c (USE_TOOLKIT_SCROLL_BARS): Define.
+	* s/ms-w32.h (USE_TOOLKIT_SCROLL_BARS): Define.
 
 	* w32term.c (w32_scroll_bar_handle_click): Use SCROLL_BAR_CLICK_EVENT.
 

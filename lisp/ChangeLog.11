@@ -6642,7 +6642,7 @@
 
 2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
-	* flymake.el: New file.
+	* progmodes/flymake.el: New file.
 
 2004-05-28  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -6730,17 +6730,6 @@
 
 	* mail/smtpmail.el (smtpmail-open-stream):
 	Bind starttls-extra-arguments too, if starttls.el uses GnuTLS.
-
-2004-05-26  Simon Josefsson  <jas@extundo.com>
-
-	* starttls.el: Merge with my GnuTLS based starttls.el.
-	(starttls-gnutls-program, starttls-use-gnutls)
-	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): New variables.
-	(starttls-program, starttls-extra-args): Doc fix.
-	(starttls-negotiate-gnutls, starttls-open-stream-gnutls): New funs.
-	(starttls-negotiate, starttls-open-stream): Check `starttls-use-gnutls'
-	and pass on to corresponding *-gnutls function if it is set.
 
 2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
 

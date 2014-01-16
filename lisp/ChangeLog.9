@@ -919,18 +919,18 @@
 
 2001-09-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
+	* progmodes/ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
 	(ebnf-version): New version (3.6.1).
 
-	* ebnf-bnf.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-bnf.el: Fix character range regexp.  Doc fix.
 	(ebnf-bnf-non-terminal-chars): New internal const.
 	(ebnf-bnf-lex): Fix code.
 
-	* ebnf-iso.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-iso.el: Fix character range regexp.  Doc fix.
 	(ebnf-iso-non-terminal-chars): New internal const.
 	(ebnf-iso-lex): Fix code.
 
-	* ebnf-yac.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-yac.el: Fix character range regexp.  Doc fix.
 	(ebnf-yac-skip-chars): New internal const.
 	(ebnf-yac-skip-code): Fix code.
 
@@ -1006,16 +1006,17 @@
 
 2001-09-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
+	* progmodes/ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
 	programming.  Doc fix.
 	(ebnf-version): New version (3.6).
 	(ebnf-eps-begin): Data fix.
 	(ebnf-begin-file): Code fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-bnf-lex): Fix regexp for non-terminal and terminal tokens.
 
-	* ebnf-iso.el, ebnf-otz.el, ebnf-yac.el: Doc fix.
+	* progmodes/ebnf-iso.el, progmodes/ebnf-otz.el, progmodes/ebnf-yac.el:
+	Doc fix.
 
 2001-09-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -5745,7 +5746,7 @@
 
 2001-02-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Eliminate time-stamp functions.
+	* progmodes/ebnf2ps.el: Eliminate time-stamp functions.
 	(ebnf-version): New version (3.5).
 	(ebnf-eps-finish-and-write): Replace time-stamp functions by
 	format-time-string.
@@ -7072,27 +7073,27 @@
 
 2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Fix a problem with skip-chars-forward: it doesn't accept
-	ranges like \177-\237, but accepts the character sequence from \177 to
-	\237.  Doc fix.
+	* progmodes/ebnf2ps.el: Fix a problem with skip-chars-forward:
+	it doesn't accept ranges like \177-\237, but accepts the character
+	sequence from \177 to \237.  Doc fix.
 	(ebnf-version): New version (3.4).
 	(ebnf-setup): Code fix.
 	(ebnf-range-regexp): New fun.
 	(ebnf-8-bit-chars): Const fix.
 
-	* ebnf-bnf.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-bnf.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-bnf-lex): Code fix.
 	(ebnf-bnf-comment-chars): Const fix.
 
-	* ebnf-iso.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-iso.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-iso-comment-chars): Const fix.
 
-	* ebnf-otz.el: Doc fix.
+	* progmodes/ebnf-otz.el: Doc fix.
 
-	* ebnf-yac.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-yac.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-yac-skip-code): Code fix.
 	(ebnf-yac-comment-chars): Const fix.
 
@@ -10183,7 +10184,7 @@
 	* eshell/em-unix.el, eshell/em-term.el, eshell/em-smart.el,
 	* eshell/em-script.el, eshell/em-rebind.el, eshell/em-prompt.el,
 	* eshell/em-pred.el, eshell/em-ls.el, eshell/em-hist.el,
-	* eshell/em-glob.el, shell/em-dirs.el, eshell/em-cmpl.el,
+	* eshell/em-glob.el, eshell/em-dirs.el, eshell/em-cmpl.el,
 	* eshell/em-basic.el, eshell/em-banner.el, eshell/em-alias.el:
 	Add author information.
 
@@ -15035,7 +15036,7 @@
 
 2000-07-30  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el (glasses-make-readable): Fix uncapitalization of
+	* progmodes/glasses.el (glasses-make-readable): Fix uncapitalization of
 	identifiers like `myXMLDocument'.
 
 2000-07-28  Karl Fogel  <kfogel@red-bean.com>
@@ -17835,10 +17836,13 @@
 
 	* faces.el: Declare more functions obsolete.
 
-	* viet-util.el, thai-util.el, tibet-util.el, slovak.el
-	* misc-lang.el, romanian.el, korea-util.el, lao-util.el
-	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
-	* english.el, czech.el, devan-util.el, cyril-util.el, china-util.el:
+	* language/viet-util.el, language/thai-util.el, language/tibet-util.el:
+	* language/slovak.el, language/misc-lang.el, language/romanian.el:
+	* language/korea-util.el, language/lao-util.el, language/japan-util.el:
+	* language/greek.el, language/hebrew.el, language/european.el:
+	* language/ethio-util.el, language/english.el, language/czech.el:
+	* language/devan-util.el, language/cyril-util.el:
+	* language/china-util.el:
 	Remove all the setup-...-environment functions.
 
 2000-05-13  Eric M. Ludlam  <zappo@ultranet.com>
@@ -18077,7 +18081,7 @@
 
 2000-05-04  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el (glasses-convert-to-unreadable): Use
+	* progmodes/glasses.el (glasses-convert-to-unreadable): Use
 	`glasses-separator' instead of the hard-wired "_".
 	(glasses-mode): Call `glasses-make-unreadable' only in a single
 	place.
@@ -18596,7 +18600,7 @@
 
 2000-04-04  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el: Provide facilities for inserting space before left
+	* progmodes/glasses.el: Provide facilities for inserting space before left
 	parentheses and uncapitalization of identifiers.
 	(glasses-mode): Try to remove old overlays in all cases.
 
@@ -20092,9 +20096,9 @@
 
 	* windmove.el: New file.
 
-	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
-	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
-	progmodes/ebnf-yac.el: Update copyright and license info.
+	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el:
+	* progmodes/ebnf-iso.el, progmodes/ebnf-otz.el:
+	* progmodes/ebnf-yac.el: Update copyright and license info.
 
 	* jit-lock.el (jit-lock-function): Widen before calculating
 	end position.

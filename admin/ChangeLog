@@ -574,10 +574,10 @@
 	(cusver-scan): Check if containing group has a :version.
 	(cusver-check): Add VERSION argument.
 
-2012-10-01  David Engster  <deng@randomsample.de>
+2012-10-06  David Engster  <deng@randomsample.de>
 
 	* grammars/bovine-grammar.el:
-	* grammars/wisent-grammar.el: Move to lisp directory.
+	* grammars/wisent-grammar.el: Move to lisp/cedet/semantic directory.
 
 2012-10-01  David Engster  <deng@randomsample.de>
 
@@ -1992,8 +1992,6 @@
 	* nt/makedist.bat: Fix multi-file .zip distribution, by splitting
 	emacs.exe before zipping, and including batch file to recreate
 	after unpacking.
-
-	* nt/stitch.bat: New file.
 
 	* nt/README-ftp-server: Update wording and version number etc.
 	Add extra instructions for installing multi-file .zip

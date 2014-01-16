@@ -10226,7 +10226,7 @@
 
 1990-05-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
+	* texindex.c: If USG, include sys/types.h and sys/fcntl.h.
 
 1990-03-21  Jim Kingdon  (kingdon@pogo.ai.mit.edu)
 
