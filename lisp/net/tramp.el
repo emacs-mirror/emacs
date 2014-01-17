@@ -566,7 +566,10 @@ This regexp must match both `tramp-initial-end-of-output' and
   :type 'regexp)
 
 (defcustom tramp-password-prompt-regexp
-  "^.*\\([pP]assword\\|[pP]assphrase\\).*:\^@? *"
+  (format "^.*\\(%s\\).*:\^@? *"
+	  (if (boundp 'password-word-equivalents)
+	      (regexp-opt (symbol-value 'password-word-equivalents))
+	    "password\\|passphrase"))
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
@@ -3352,7 +3355,8 @@ of."
 (defun tramp-action-password (proc vec)
   "Query the user for a password."
   (with-current-buffer (process-buffer proc)
-    (let ((enable-recursive-minibuffers t))
+    (let ((enable-recursive-minibuffers t)
+	  (case-fold-search t))
       (tramp-check-for-regexp proc tramp-password-prompt-regexp)
       (tramp-message vec 3 "Sending %s" (match-string 1))
       ;; We don't call `tramp-send-string' in order to hide the
@@ -3438,7 +3442,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 
 (defun tramp-process-one-action (proc vec actions)
   "Wait for output from the shell and perform one action."
-  (let (found todo item pattern action)
+  (let ((case-fold-search t)
+	found todo item pattern action)
     (while (not found)
       ;; Reread output once all actions have been performed.
       ;; Obviously, the output was not complete.
@@ -4039,7 +4044,8 @@ Furthermore, traces are written with verbosity of 6."
   "Read a password from user (compat function).
 Consults the auth-source package.
 Invokes `password-read' if available, `read-passwd' else."
-  (let* ((key (tramp-make-tramp-file-name
+  (let* ((case-fold-search t)
+	 (key (tramp-make-tramp-file-name
 	       tramp-current-method tramp-current-user
 	       tramp-current-host ""))
 	 (pw-prompt
@@ -4259,11 +4265,6 @@ Only works for Bourne-like shells."
 ;;   tramp-server-local-variable-alist) to define any such variables
 ;;   that they need to, which would then be let bound as appropriate
 ;;   in tramp functions.  (Jason Rumney)
-;; * IMHO, it's a drawback that currently Tramp doesn't support
-;;   Unicode in Dired file names by default.  Is it possible to
-;;   improve Tramp to set LC_ALL to "C" only for commands where Tramp
-;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
-;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
 ;; * I was wondering if it would be possible to use tramp even if I'm
 ;;   actually using sshfs.  But when I launch a command I would like

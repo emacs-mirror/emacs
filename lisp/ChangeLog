@@ -1,3 +1,10 @@
+2014-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-password-prompt-regexp): Use
+	`password-word-equivalents' if available.
+	(tramp-action-password, tramp-process-one-action)
+	(tramp-read-passwd): Let-bind `case-fold-search' to t.  (Bug#13124)
+
 2014-01-17  Chong Yidong  <cyd@gnu.org>
 
 	* simple.el (password-word-equivalents): New defcustom.
