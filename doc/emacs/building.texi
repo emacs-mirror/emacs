@@ -618,12 +618,12 @@ associated with an identifier when the program is not executing.
 selecting stack frames, and stepping through the program.
 
 @table @kbd
-@item C-x @key{SPC}
-@kindex C-x SPC
+@item C-x C-a C-b
+@kindex C-x C-a C-b
 Set a breakpoint on the source line that point is on.
 @end table
 
-  @kbd{C-x @key{SPC}} (@code{gud-break}), when called in a source
+  @kbd{C-x C-a C-b} (@code{gud-break}), when called in a source
 buffer, sets a debugger breakpoint on the current source line.  This
 command is available only after starting GUD@.  If you call it in a
 buffer that is not associated with any debugger subprocess, it signals
