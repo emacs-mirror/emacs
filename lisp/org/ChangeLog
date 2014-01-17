@@ -21092,7 +21092,7 @@
 2010-11-11  aaa bbb  <dominik@powerbook-g4-12-van-aaa-bbb.local>
 
 	* org-archive.el (org-get-local-archive-location):
-	Use `org-carchive-location' as default.
+	Use `org-archive-location' as default.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 

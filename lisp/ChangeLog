@@ -1,5 +1,7 @@
 2014-01-17  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/authors.el (authors-aliases): Remove unnecessary entries.
+
 	Make M-x authors return zero *Authors Errors* from current logs.
 	* emacs-lisp/authors.el (authors-obsolete-files-regexps):
 	(authors-ignored-files): Add some entries, remove others.
