@@ -7666,8 +7666,10 @@ Running `C-u M-x COMMAND RET' prompts again for an alternative
 and overwrites the previous choice.
 
 The variable `COMMAND-alternatives' contains an alist with
-alternative implementations of COMMAND.  `define-alternatives'
-does not have any effect until this variable is set.
+alternative implementations of COMMAND.  Developers should
+use (defvar COMMAND-alternatives) to declare this variable
+after they write (define-alternatives COMMAND), otherwise
+the variable will not be handled by programs like etags.
 
 CUSTOMIZATIONS, if non-nil, should be composed of alternating
 `defcustom' keywords and values to add to the declaration of
