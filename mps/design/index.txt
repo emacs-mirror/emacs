@@ -39,12 +39,13 @@ Designs
 .. class:: index
 
 ======================  ================================================
+abq_                    Fixed-length queues
 alloc-frame_            Design of the MPS allocation frame protocol
 arena_                  The design of the MPS arena
 arenavm_                Virtual memory arena
 bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
-cbs_                    Design for coalescing block structure
+cbs_                    Coalescing block structures
 check_                  Design of checking in MPS
 class-interface_        Design of the pool class interface
 collection_             The collection framework
@@ -64,6 +65,7 @@ lock_                   The design of the lock module
 locus_                  The design for the locus manager
 message_                MPS to client message protocol
 message-gc_             Messages sent when garbage collection begins or ends
+nailboard_              Nailboards for ambiguously referenced segments
 object-debug_           Debugging Features for Client Objects
 pool_                   The design of the pool and pool class mechanisms
 poolamc_                The design of the automatic mostly-copying memory pool class
@@ -81,6 +83,7 @@ protli_                 Linux implementation of protection module
 protocol_               The design for protocol inheritance in MPS
 protsu_                 SunOS 4 implementation of protection module
 pthreadext_             Design of the Posix thread extensions for MPS
+range_                  Ranges of addresses
 reservoir_              The design of the low-memory reservoir
 ring_                   The design of the ring data structure
 root_                   The design of the root manager

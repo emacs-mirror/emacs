@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Queue design
-============
+Fixed-length queues
+===================
 
 :Tag: design.mps.abq
 :Author: Gareth Rees

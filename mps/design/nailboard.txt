@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Nailboard
-=========
+Nailboards for ambiguously referenced segments
+==============================================
 
 :Tag: design.mps.nailboard
 :Author: Gareth Rees
@@ -100,6 +100,11 @@ an error if any nail in the range is set.
 
 Return ``TRUE`` if all nails are set in the given range, or ``FALSE``
 if any nail is unset.
+
+``Bool NailboardIsResetRange(Nailboard board, Range range)``
+
+Return ``TRUE`` if no nails are set in the given range, or ``FALSE``
+if any nail is set.
 
 
 Document History

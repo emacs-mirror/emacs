@@ -134,12 +134,6 @@ void NailboardSetRange(Nailboard board, Range range)
   board->distinctNails += ilimit - ibase;
 }
 
-
-/* amcNailRangeIsMarked -- check that a range in the board is marked
- *
- * Like amcNailMarkRange, we take the arguments as referring to base
- * pointers and look at the bits of the corresponding client pointers.
- */
 Bool NailboardIsSetRange(Nailboard board, Range range)
 {
   Index ibase, ilimit;
@@ -152,6 +146,19 @@ Bool NailboardIsSetRange(Nailboard board, Range range)
   ilimit = nailboardIndex(board, RangeLimit(range));
   return board->distinctNails >= ilimit - ibase
     && BTIsSetRange(board->mark, ibase, ilimit);
+}
+
+Bool NailboardIsResetRange(Nailboard board, Range range)
+{
+  Index ibase, ilimit;
+
+  AVERT(Nailboard, board);
+  AVERT(Range, range);
+  AVER(RangesNest(&board->range, range));
+
+  ibase = nailboardIndex(board, RangeBase(range));
+  ilimit = nailboardIndex(board, RangeLimit(range));
+  return BTIsResetRange(board->mark, ibase, ilimit);
 }
 
 
