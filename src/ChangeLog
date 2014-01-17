@@ -1,3 +1,10 @@
+2014-01-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu): When invoking tty_menu_show, temporarily
+	switch to single keyboard.  Prevents daemon crashes when a new
+	client connects while we show a TTY menu in an existing client.
+	(Bug#16479)
+
 2014-01-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix MinGW64 porting problem with _setjmp.
