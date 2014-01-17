@@ -2555,6 +2555,64 @@ which is defined in the `warnings' library.\n")
     (setq buffer-undo-list nil)
     t))
 
+(defcustom password-word-equivalents
+  '("password" "passphrase" "pass phrase"
+    "كلمة السر"    ; ar
+    "গুপ্তশব্দ"        ; as
+    "পাসওয়ার্ড"       ; bn_IN
+    "contrasenya"  ; ca
+    "heslo"        ; cs
+    "adgangskode"  ; da
+    "passwort"     ; de
+    "pasvorto"     ; eo
+    "contraseña"   ; es
+    "pasahitza"    ; eu
+    "salasana"     ; fi
+    "mot de passe" ; fr
+    "પાસવર્ડ"       ; gu
+    "ססמה"         ; he
+    "शब्दकूट"        ; hi
+    "lozinka"      ; hr
+    "Jelszó: "     ; hu
+    "パスワード"     ; ja
+    "Пароль"       ; kk
+    "ಗುಪ್ತಪದ"      ; kn
+    "암호"         ; ko
+    "ពាក្យសម្ងាត់" ; km
+    "slaptažodis"  ; lt
+    "അടയാളവാക്ക്"   ; ml
+    "गुप्तशब्द"       ; mr
+    "passord"      ; nb
+    "wachtwoord"   ; nl
+    "ପ୍ରବେଶ ସଙ୍କେତ" ; or
+    "ਪਾਸਵਰਡ"       ; pa
+    "hasło"        ; pl
+    "senha"        ; pt
+    "Пароль"       ; ru
+    "රහස්පදය"      ; si
+    "Heslo"        ; sk
+    "geslo"        ; sl
+    "lozinka"      ; sr
+    "Лозинка"      ; sr
+    "lösenord"     ; sv
+    "கடவுச்சொல்"    ; ta
+    "సంకేతపదము"     ; te
+    "parola"       ; tr
+    "Пароль"       ; uk
+    "Mật khẩu"     ; vi
+    "密码"          ; zh_CN
+    "密碼"          ; zh_TW
+    "iphasiwedi"   ; zu
+    )
+  "List of words equivalent to \"password\".
+This is used by Shell mode and other parts of Emacs to recognize
+password prompts, including prompts in languages other than
+English.  Different case choices should not be assumed to be
+included; callers should bind `case-fold-search' to t."
+  :type '(repeat string)
+  :version "24.4"
+  :group 'processes)
+
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.
 
