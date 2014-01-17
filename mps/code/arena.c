@@ -8,6 +8,8 @@
 #include "tract.h"
 #include "poolmv.h"
 #include "mpm.h"
+#include "cbs.h"
+
 
 SRCID(arena, "$Id$");
 
@@ -142,6 +144,9 @@ Bool ArenaCheck(Arena arena)
   CHECKL(RingCheck(&arena->chunkRing));
   /* nothing to check for chunkSerial */
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
+  
+  /* FIXME: Can't check freeCBS until it's initialised */
+  /* CHECKD(CBS, &arena->freeCBS); */
 
   CHECKL(LocusCheck(arena));
   
@@ -183,7 +188,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
   RingInit(&arena->chunkRing);
   arena->chunkSerial = (Serial)0;
   ChunkCacheEntryInit(&arena->chunkCache);
-
+  
   LocusInit(arena);
   
   res = GlobalsInit(ArenaGlobals(arena));
@@ -191,6 +196,14 @@ Res ArenaInit(Arena arena, ArenaClass class)
     goto failGlobalsInit;
 
   arena->sig = ArenaSig;
+
+  MPS_ARGS_BEGIN(cbsiArgs) {
+    MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, 0); /* FIXME: explain why we never extend */
+    MPS_ARGS_DONE(cbsiArgs);
+    res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
+  } MPS_ARGS_END(cbsiArgs);
+  if (res != ResOK)
+    goto failCBSInit;
 
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
@@ -201,6 +214,8 @@ Res ArenaInit(Arena arena, ArenaClass class)
   return ResOK;
 
 failReservoirInit:
+  CBSFinish(&arena->freeCBS);
+failCBSInit:
   GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
   return res;
@@ -278,6 +293,7 @@ failInit:
 void ArenaFinish(Arena arena)
 {
   ReservoirFinish(ArenaReservoir(arena));
+  CBSFinish(&arena->freeCBS);
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
