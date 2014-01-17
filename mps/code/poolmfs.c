@@ -111,7 +111,7 @@ static Res MFSInit(Pool pool, ArgList args)
       extendBy = unitSize;
   }
 
-  AVER(extendBy >= unitSize);
+  AVER(extendBy == 0 || extendBy >= unitSize);
  
   mfs = PoolPoolMFS(pool);
   arena = PoolArena(pool);
@@ -189,6 +189,9 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
     Size unitSize;
     Addr base;
     Header header = NULL, next;
+    
+    if (mfs->extendBy == 0)
+      return ResLIMIT;
 
     /* Create a new region and attach it to the pool. */
     res = ArenaAlloc(&base, SegPrefDefault(), mfs->extendBy, pool,
@@ -322,7 +325,7 @@ Bool MFSCheck(MFS mfs)
   CHECKD(Pool, &mfs->poolStruct);
   CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
   CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
-  CHECKL(mfs->extendBy >= UNIT_MIN);
+  CHECKL(mfs->extendBy == 0 || mfs->extendBy >= UNIT_MIN);
   arena = PoolArena(&mfs->poolStruct);
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==

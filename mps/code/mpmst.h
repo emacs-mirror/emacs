@@ -27,6 +27,8 @@
 #include "protocol.h"
 #include "ring.h"
 #include "chain.h"
+#include "splay.h"
+#include "meter.h"
 
 
 /* PoolClassStruct -- pool class structure
@@ -600,6 +602,26 @@ typedef struct GlobalsStruct {
 } GlobalsStruct;
 
 
+/* CBSStruct -- coalescing block structure
+ *
+ * See <code/cbs.c>.
+ */
+
+#define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
+
+typedef struct CBSStruct {
+  SplayTreeStruct splayTree;
+  Count splayTreeSize;
+  MFSStruct blockPoolStruct;    /* FIXME: ref to why this is inlined */
+  Align alignment;
+  Bool fastFind;
+  Bool inCBS;                   /* prevent reentrance */
+  /* meters for sizes of search structures at each op */
+  METER_DECL(splaySearch);
+  Sig sig; /* sig at end because embeded */
+} CBSStruct;
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.  */
@@ -633,6 +655,8 @@ typedef struct mps_arena_s {
   RingStruct chunkRing;         /* all the chunks */
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
+  
+  CBSStruct freeCBS;            /* CBS of free address space */
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */

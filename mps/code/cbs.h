@@ -10,7 +10,6 @@
 #define cbs_h
 
 #include "arg.h"
-#include "meter.h"
 #include "mpmtypes.h"
 #include "mpmst.h"
 #include "range.h"
@@ -20,21 +19,6 @@
 typedef struct CBSStruct *CBS;
 typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
                                  void *closureP, Size closureS);
-
-
-#define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
-
-typedef struct CBSStruct {
-  SplayTreeStruct splayTree;
-  Count splayTreeSize;
-  MFSStruct blockPoolStruct;    /* FIXME: ref to why this is inlined */
-  Align alignment;
-  Bool fastFind;
-  Bool inCBS;                   /* prevent reentrance */
-  /* meters for sizes of search structures at each op */
-  METER_DECL(splaySearch);
-  Sig sig; /* sig at end because embeded */
-} CBSStruct;
 
 extern Bool CBSCheck(CBS cbs);
 
