@@ -1,3 +1,13 @@
+2014-01-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-alignable-keywords): New constant.
+	(ruby-align-to-stmt-keywords): Change the default value.  Use
+	`ruby-alignable-keywords' to generate the possible customization
+	choices.
+	(ruby-smie-rules): Instead of using a hardcoded list of alignable
+	keywords, check against the value of `ruby-alignable-keywords'
+	(http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01439.html).
+
 2014-01-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Remove unnecessary entries.

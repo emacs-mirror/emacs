@@ -226,7 +226,10 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
   :group 'ruby
   :safe 'integerp)
 
-(defcustom ruby-align-to-stmt-keywords nil
+(defconst ruby-alignable-keywords '(if while unless until begin case for def)
+  "Keywords that can be used in `ruby-align-to-stmt-keywords'.")
+
+(defcustom ruby-align-to-stmt-keywords '(def)
   "Keywords after which we align the expression body to statement.
 
 When nil, an expression that begins with one these keywords is
@@ -250,17 +253,13 @@ the statement:
 
 Only has effect when `ruby-use-smie' is t.
 "
-  :type '(choice
+  :type `(choice
           (const :tag "None" nil)
           (const :tag "All" t)
           (repeat :tag "User defined"
-                  (choice (const if)
-                          (const while)
-                          (const unless)
-                          (const until)
-                          (const begin)
-                          (const case)
-                          (const for))))
+                  (choice ,@(mapcar
+                             (lambda (kw) (list 'const kw))
+                             ruby-alignable-keywords))))
   :group 'ruby
   :safe 'listp
   :version "24.4")
@@ -639,7 +638,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
           (smie-indent--hanging-p)
           ruby-indent-level))
     (`(:after . ,(or "?" ":")) ruby-indent-level)
-    (`(:before . ,(or "if" "while" "unless" "until" "begin" "case" "for"))
+    (`(:before . ,(guard (memq (intern-soft token) ruby-alignable-keywords)))
      (when (not (ruby--at-indentation-p))
        (if (ruby-smie--indent-to-stmt-p token)
            (ruby-smie--indent-to-stmt)
