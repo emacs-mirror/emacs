@@ -1,3 +1,20 @@
+2014-01-17  Glenn Morris  <rgm@gnu.org>
+
+	Make M-x authors return zero *Authors Errors* from current logs.
+	* emacs-lisp/authors.el (authors-obsolete-files-regexps):
+	(authors-ignored-files): Add some entries, remove others.
+	(authors-ambiguous-files, authors-valid-file-names):
+	Add some entries.
+	(authors-renamed-files-alist): Add, remove, and adjust entries.
+	(authors-renamed-files-regexps): Add some entries.
+	Remove some very broad ones.  Make some entries `lax'.
+	(authors-lax-changelogs): New constant.
+	(authors-disambiguate-file-name): Treat top-level specially.
+	(authors-lax-changelog-p): New function.
+	(authors-canonical-file-name): Check file as written against
+	authors-valid-file-names.  Do not special-case etc/.
+	Handle `lax' logs and authors-renamed-files-regexps elements.
+
 2014-01-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-desc--keywords): Use `cdr' with

@@ -28,14 +28,10 @@ General steps (for each step, check for possible errors):
       M-: (require 'authors) RET
       M-x authors RET
 
-    There is almost guaranteed to be an "*Authors Errors*" buffer with
-    problems caused by certain bad ChangeLog entries.  You can ignore
-    the very old ones (eg lisp/erc has a lot).  If there are errors
-    related to new entries (especially entries that are new since the
-    last pretest), see if you can fix them.  If there was a ChangeLog
-    typo, fix it.  If a file was deleted or renamed, consider adding
-    an appropriate entry to authors-ignored-files, authors-valid-file-names,
-    or authors-renamed-files-alist.
+    If there is an "*Authors Errors*" buffer, address the issues.
+    If there was a ChangeLog typo, fix it.  If a file was deleted or
+    renamed, consider adding an appropriate entry to authors-ignored-files,
+    authors-valid-file-names, or authors-renamed-files-alist.
 
     If necessary, repeat M-x authors after making those changes.
     Save the "*Authors*" buffer as etc/AUTHORS.
