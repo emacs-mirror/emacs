@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Ranges
-======
+Ranges of addresses
+===================
 
 :Tag: design.mps.range
 :Author: Gareth Rees
