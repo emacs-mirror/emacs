@@ -26,7 +26,7 @@ typedef struct NailboardStruct {
   Bool newMarks;    /* set to TRUE if a new mark bit is added */
 } NailboardStruct;
 
-#define NailboardSig ((Sig)0x5194A11B) /* SIGnature NAILBoard */
+#define NailboardSig ((Sig)0x5194A17B) /* SIGnature NAILBoard */
 
 extern Bool NailboardCheck(Nailboard board);
 extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range);
@@ -36,6 +36,7 @@ extern Bool NailboardGet(Nailboard board, Addr addr);
 extern Bool NailboardSet(Nailboard board, Addr addr);
 extern void NailboardSetRange(Nailboard board, Range range);
 extern Bool NailboardIsSetRange(Nailboard board, Range range);
+extern Bool NailboardIsResetRange(Nailboard board, Range range);
 
 #endif /* nailboard.h */
 
