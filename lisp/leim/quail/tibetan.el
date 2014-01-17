@@ -23,7 +23,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Author: Toru TOMABECHI, <Toru.Tomabechi@orient.unil.ch>
+;; Author: Toru TOMABECHI <Toru.Tomabechi@orient.unil.ch>
 
 ;; Created: Feb. 17. 1997
 
