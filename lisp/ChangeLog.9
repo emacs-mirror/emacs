@@ -12434,8 +12434,8 @@
 	(vc-cvs-merge-news): Set workfile version to nil if not known.
 	(vc-cvs-latest-on-branch-p): Recommented.  Candidate for removal.
 
-	* vc-*.el (vc-*-checkout): Switch off coding systems for checkout
-	via stdout. (Merge from main line.)
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el (vc-*-checkout): Switch off
+	coding systems for checkout via stdout. (Merge from main line.)
 
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -12695,21 +12695,22 @@
 	(vc-backend): Reintroduce the test for `file = nil' now that I
 	know why it was there (and added a comment to better remember).
 
-	* vc-sccs-hooks.el: Merge into vc-sccs.el * vc-sccs.el: Merge in
-	code from vc-sccs-hooks.el.
+	* vc-sccs-hooks.el: Merge into vc-sccs.el
+	* vc-sccs.el: Merge in code from vc-sccs-hooks.el.
 	(vc-sccs-release, vc-sccs-system-release): Remove.  Don't require
 	'vc anymore.
 	(vc-sccs-responsible-p): Use expand-file-name instead of concat
 	and file-directory-p instead of file-exists-p.
 	(vc-sccs-check-headers): Simplify the regexp.
 
-	* vc-rcs-hooks.el: Merge into vc-rcs.el * vc-rcs.el: Merge in code
-	from vc-rcs-hooks.el.  Don't require 'vc anymore.
+	* vc-rcs-hooks.el: Merge into vc-rcs.el
+	* vc-rcs.el: Merge in code from vc-rcs-hooks.el.
+	Don't require 'vc anymore.
 	(vc-rcs-responsible-p): Use expand-file-name instead of concat and
 	file-directory-p instead of file-exists-p.
 
-	* vc-cvs-hooks.el: Merge into vc-cvs.el * vc-cvs.el: Merge in code
-	from vc-cvs-hooks.el.
+	* vc-cvs-hooks.el: Merge into vc-cvs.el
+	* vc-cvs.el: Merge in code from vc-cvs-hooks.el.
 	(proto vc-cvs-registered): Require 'vc-cvs instead of
 	'vc-cvs-hooks.  Don't require 'vc anymore.
 	(vc-cvs-responsible-p): Use expand-file-name instead of concat and
