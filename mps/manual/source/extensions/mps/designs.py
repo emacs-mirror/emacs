@@ -7,6 +7,7 @@
 # designs here still seems like a good idea, though.
 #
 
+from __future__ import unicode_literals
 import os
 import os.path
 import glob
