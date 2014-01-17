@@ -574,6 +574,7 @@ This regexp must match both `tramp-initial-end-of-output' and
 The regexp should match at end of buffer.
 
 The `sudo' program appears to insert a `^@' character into the prompt."
+  :version "24.4"
   :group 'tramp
   :type 'regexp)
 
