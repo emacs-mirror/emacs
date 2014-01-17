@@ -40,6 +40,8 @@ typedef struct CBSBlockStruct {
 #define splayNodeOfCBSBlock(block) (&((block)->splayNode))
 #define keyOfCBSBlock(block) ((void *)&((block)->base))
 
+#define cbsBlockPool(cbs) MFSPool(&(cbs)->blockPoolStruct)
+
 
 /* cbsEnter, cbsLeave -- Avoid re-entrance
  *
@@ -75,7 +77,7 @@ Bool CBSCheck(CBS cbs)
   CHECKL(cbs != NULL);
   CHECKL(SplayTreeCheck(splayTreeOfCBS(cbs)));
   /* nothing to check about splayTreeSize */
-  CHECKD(Pool, cbs->blockPool);
+  CHECKD(MFS, &cbs->blockPoolStruct);
   CHECKL(BoolCheck(cbs->fastFind));
   CHECKL(BoolCheck(cbs->inCBS));
   /* No MeterCheck */
@@ -220,12 +222,12 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
 
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
-  MPS_ARGS_BEGIN(pcArgs) {
-    MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-    MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
-    MPS_ARGS_DONE(pcArgs);
-    res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), pcArgs);
-  } MPS_ARGS_END(pcArgs);
+  MPS_ARGS_BEGIN(piArgs) {
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, extendBy);
+    MPS_ARGS_DONE(piArgs);
+    res = PoolInit(&cbs->blockPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
+  } MPS_ARGS_END(piArgs);
   if (res != ResOK)
     return res;
   cbs->splayTreeSize = 0;
@@ -260,7 +262,7 @@ void CBSFinish(CBS cbs)
   cbs->sig = SigInvalid;
 
   SplayTreeFinish(splayTreeOfCBS(cbs));
-  PoolDestroy(cbs->blockPool);
+  PoolFinish(cbsBlockPool(cbs));
 }
 
 
@@ -287,7 +289,7 @@ static void cbsBlockDelete(CBS cbs, CBSBlock block)
   /* make invalid */
   block->limit = block->base;
 
-  PoolFree(cbs->blockPool, (Addr)block, sizeof(CBSBlockStruct));
+  PoolFree(cbsBlockPool(cbs), (Addr)block, sizeof(CBSBlockStruct));
 
   return;
 }
@@ -339,7 +341,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
   AVERT(CBS, cbs);
   AVERT(Range, range);
 
-  res = PoolAlloc(&p, cbs->blockPool, sizeof(CBSBlockStruct),
+  res = PoolAlloc(&p, cbsBlockPool(cbs), sizeof(CBSBlockStruct),
                   /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     goto failPoolAlloc;
@@ -864,7 +866,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
                "  alignment: $U\n", (WriteFU)cbs->alignment,
-               "  blockPool: $P\n", (WriteFP)cbs->blockPool,
+               "  blockPool: $P\n", (WriteFP)cbsBlockPool(cbs),
                "  fastFind: $U\n", (WriteFU)cbs->fastFind,
                "  inCBS: $U\n", (WriteFU)cbs->inCBS,
                "  splayTreeSize: $U\n", (WriteFU)cbs->splayTreeSize,
