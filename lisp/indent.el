@@ -76,9 +76,10 @@ that case, indent by aligning to the previous non-blank line."
       ;; indenting.  Replace with something ad-hoc.
       (let ((column (save-excursion
 		      (beginning-of-line)
-		      (skip-chars-backward "\n \t")
-		      (beginning-of-line)
-		      (current-indentation))))
+		      (if (bobp) 0
+                        (beginning-of-line 0)
+                        (if (looking-at "[ \t]*$") 0
+                          (current-indentation))))))
 	(if (<= (current-column) (current-indentation))
 	    (indent-line-to column)
 	  (save-excursion (indent-line-to column))))

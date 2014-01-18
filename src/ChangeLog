@@ -1,3 +1,19 @@
+2014-01-13  Daniel Colascione  <dancol@dancol.org>
+
+	Fix menu item updating in the presence of the Unity global menu
+	GTK+ module.
+
+	* gtkutil.h (xg_have_tear_offs): Add frame parameter
+	* gtkutil.c (xg_have_tear_offs): Count the global menu as a
+	tear-off.
+	(xg_update_menubar,xg_update_menu_item): Call g_object_notify when
+	updating menus; explain why.
+	(xg_update_frame_menubar): Remove the 23px hack: I can't repro the
+	problem it's supposed to solve and it interferes with detecting
+	the presence of a global menu.
+	* xmenu.c (set_frame_menubar): Call xg_have_tear_offs with new
+	parameter.
+
 2014-01-11  K. Handa  <handa@gnu.org>
 
 	* composite.c (composition_update_it): Fix indexing of
