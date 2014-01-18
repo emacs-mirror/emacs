@@ -1,3 +1,8 @@
+2014-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases)
+	(authors-renamed-files-alist): Add some entries.
+
 2014-01-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-password-prompt-regexp): Use
