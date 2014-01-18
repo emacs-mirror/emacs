@@ -128,6 +128,10 @@ typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
+typedef Res (*ArenaPagesMarkAllocatedMethod)(Arena arena, Chunk chunk,
+                                             Index baseIndex, Count pages,
+                                             Pool pool);
+
 
 /* These are not generally exposed and public, but are part of a commercial
    extension to the MPS. */

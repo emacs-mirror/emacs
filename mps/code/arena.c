@@ -73,6 +73,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->chunkFinish = NULL;
   class->compact = ArenaTrivCompact;
   class->describe = ArenaTrivDescribe;
+  class->pagesMarkAllocated = NULL;
   class->sig = ArenaClassSig;
 }
 
@@ -100,6 +101,7 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->chunkFinish));
   CHECKL(FUNCHECK(class->compact));
   CHECKL(FUNCHECK(class->describe));
+  CHECKL(FUNCHECK(class->pagesMarkAllocated));
   CHECKS(ArenaClass, class);
   return TRUE;
 }
@@ -115,6 +117,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
+    CHECKD(CBS, &arena->freeCBS);
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
@@ -145,9 +148,6 @@ Bool ArenaCheck(Arena arena)
   /* nothing to check for chunkSerial */
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
   
-  /* FIXME: Can't check freeCBS until it's initialised */
-  /* CHECKD(CBS, &arena->freeCBS); */
-
   CHECKL(LocusCheck(arena));
   
   return TRUE;
@@ -196,14 +196,8 @@ Res ArenaInit(Arena arena, ArenaClass class)
     goto failGlobalsInit;
 
   arena->sig = ArenaSig;
-
-  MPS_ARGS_BEGIN(cbsiArgs) {
-    MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, 0); /* FIXME: explain why we never extend */
-    MPS_ARGS_DONE(cbsiArgs);
-    res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
-  } MPS_ARGS_END(cbsiArgs);
-  if (res != ResOK)
-    goto failCBSInit;
+  
+  /* freeCBS initialisation is deferred to ArenaCreate */
 
   /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
@@ -215,8 +209,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
 
 failReservoirInit:
   CBSFinish(&arena->freeCBS);
-failCBSInit:
-  GlobalsFinish(ArenaGlobals(arena));
+ GlobalsFinish(ArenaGlobals(arena));
 failGlobalsInit:
   return res;
 }
@@ -262,6 +255,55 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failStripeSize;
   }
 
+  /* Add the chunk's free address space to the arena's freeCBS.  FIXME: This
+     needs to happen for every chunk extension, not just the first chunk. */
+  {
+    Pool pool = &arena->freeCBS.blockPoolStruct.poolStruct;
+    RangeStruct range;
+    Chunk chunk = arena->primary;
+
+    MPS_ARGS_BEGIN(cbsiArgs) {
+      MPS_ARGS_ADD(cbsiArgs, MPS_KEY_CBS_EXTEND_BY, chunk->pageSize);
+      MPS_ARGS_ADD(cbsiArgs, MFSExtendSelf, FALSE); /* FIXME: Explain why */
+      MPS_ARGS_DONE(cbsiArgs);
+      res = CBSInit(arena, &arena->freeCBS, arena, arena->alignment, TRUE, cbsiArgs);
+    } MPS_ARGS_END(cbsiArgs);
+    if (res != ResOK)
+      goto failCBSInit;
+
+    /* FIXME: Arena alignment is global and should be queried from tract,
+       not per-chunk. */
+    arena->freeCBS.alignment = chunk->pageSize;
+
+    RangeInit(&range, PageIndexBase(chunk, chunk->allocBase), chunk->limit);
+    res = CBSInsert(&range, &arena->freeCBS, &range);
+
+    if (res == ResLIMIT) {
+      Addr freeBase;
+
+      /* Hand-allocate a page for the CBS block structures so that we can
+         insert into the freeCBS.  FIXME: Since this CBS is shared, this
+         will cause fragmentation of the CBS blocks across chunks, making it
+         nearly impossible to remove chunks.  Maybe only allocate these
+         pages from the primary chunk. */
+      res = (*class->pagesMarkAllocated)(arena, chunk, chunk->allocBase, 1, pool);
+      if (res != ResOK)
+        goto failCBSInsert;
+      MFSExtend(pool, PageIndexBase(chunk, chunk->allocBase), chunk->pageSize);
+
+      /* Don't include the page we just allocated to the freeCBS. */
+      freeBase = AddrAdd(PageIndexBase(chunk, chunk->allocBase), chunk->pageSize);
+      RangeInit(&range, freeBase, chunk->limit);
+      res = CBSInsert(&range, &arena->freeCBS, &range);
+    }
+
+    /* There's no reason for CBSInsert to fail if there is memory in the
+       CBS' MFS pool. */
+    AVER(res == ResOK);
+    if (res != ResOK)
+      goto failCBSInsert;
+  }
+
   res = ControlInit(arena);
   if (res != ResOK)
     goto failControlInit;
@@ -277,6 +319,8 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
+failCBSInit:
+failCBSInsert:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -293,7 +337,6 @@ failInit:
 void ArenaFinish(Arena arena)
 {
   ReservoirFinish(ArenaReservoir(arena));
-  CBSFinish(&arena->freeCBS);
   arena->sig = SigInvalid;
   GlobalsFinish(ArenaGlobals(arena));
   LocusFinish(arena);
@@ -314,6 +357,7 @@ void ArenaDestroy(Arena arena)
 
   arena->poolReady = FALSE;
   ControlFinish(arena);
+  CBSFinish(&arena->freeCBS);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
