@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2010-2014 Free Software Foundation, Inc.
 
-;; Authors: Eric Schulte, Michael Gauland
+;; Authors: Eric Schulte
+;;	    Michael Gauland
 ;; Keywords: literate programming, reproducible research, scheme
 ;; Homepage: http://orgmode.org
 

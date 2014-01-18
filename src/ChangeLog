@@ -8607,7 +8607,7 @@
 	(FRAME_SCROLL_BOTTOM_VPOS): Remove.
 	* xdisp.c (redisplay_internal): Adjust user.
 
-2013-03-30  Darren Ho  <darren.hoo@gmail.com>  (tiny change)
+2013-03-30  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
 
 	* nsmenu.m (showAtX:Y:for:): setLevel to
 	NSPopUpMenuWindowLevel (Bug#13998).
