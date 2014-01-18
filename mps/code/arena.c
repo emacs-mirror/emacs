@@ -592,11 +592,13 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   reservoir = ArenaReservoir(arena);
   AVERT(Reservoir, reservoir);
 
-  res = ReservoirEnsureFull(reservoir);
-  if (res != ResOK) {
-    AVER(ResIsAllocFailure(res));
-    if (!withReservoirPermit)
-      return res;
+  if (pool != ReservoirPool(reservoir)) {
+    res = ReservoirEnsureFull(reservoir);
+    if (res != ResOK) {
+      AVER(ResIsAllocFailure(res));
+      if (!withReservoirPermit)
+        return res;
+    }
   }
   
   {
@@ -690,12 +692,14 @@ void ArenaFree(Addr base, Size size, Pool pool)
     arena->lastTractBase = (Addr)0;
   }
 
-  res = ReservoirEnsureFull(reservoir);
-  if (res == ResOK) {
-    (*arena->class->free)(base, size, pool);
-  } else {
-    AVER(ResIsAllocFailure(res));
-    ReservoirDeposit(reservoir, base, size);
+  if (pool != ReservoirPool(reservoir)) {
+    res = ReservoirEnsureFull(reservoir);
+    if (res == ResOK) {
+      (*arena->class->free)(base, size, pool);
+    } else {
+      AVER(ResIsAllocFailure(res));
+      ReservoirDeposit(reservoir, base, size);
+    }
   }
 
   EVENT3(ArenaFree, arena, base, size);
