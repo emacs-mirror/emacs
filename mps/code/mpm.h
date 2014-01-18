@@ -611,7 +611,7 @@ extern Size ReservoirLimit(Reservoir reservoir);
 extern void ReservoirSetLimit(Reservoir reservoir, Size size);
 extern Size ReservoirAvailable(Reservoir reservoir);
 extern Res ReservoirEnsureFull(Reservoir reservoir);
-extern void ReservoirDeposit(Reservoir reservoir, Addr base, Size size);
+extern Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO);
 extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
                              Reservoir reservoir, Size size, Pool pool);
 
