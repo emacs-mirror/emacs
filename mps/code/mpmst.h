@@ -134,7 +134,6 @@ typedef struct MFSStruct {      /* MFS outer structure */
   Size unroundedUnitSize;       /* the unit size requested */
   Size extendBy;                /* arena alloc size rounded using unitSize */
   Size unitSize;                /* rounded for management purposes */
-  Word unitsPerExtent;          /* number of units per arena alloc */
   struct MFSHeaderStruct *freeList; /* head of the free list */
   Tract tractList;              /* the first tract */
   Sig sig;                      /* <design/sig/> */
