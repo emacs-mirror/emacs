@@ -602,6 +602,7 @@ extern Res ArenaDefinalize(Arena arena, Ref obj);
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
 #define ArenaReservoir(arena) (&(arena)->reservoirStruct)
+#define ReservoirPool(reservoir) (&(reservoir)->poolStruct)
 
 extern Bool ReservoirCheck(Reservoir reservoir);
 extern Res ReservoirInit(Reservoir reservoir, Arena arena);
