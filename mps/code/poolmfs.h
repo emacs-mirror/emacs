@@ -47,6 +47,8 @@ struct MFSInfoStruct {
 
 extern MFSInfo MFSGetInfo(void);
 
+extern void MFSExtend(Pool pool, Addr base, Size size);
+
 #endif /* poolmfs_h */
 
 
