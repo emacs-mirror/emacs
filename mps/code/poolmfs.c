@@ -90,10 +90,12 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 }
 
 ARG_DEFINE_KEY(mfs_unit_size, Size);
+ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
 static Res MFSInit(Pool pool, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
+  Bool extendSelf = TRUE;
   Size unitSize;
   MFS mfs;
   Arena arena;
@@ -110,8 +112,11 @@ static Res MFSInit(Pool pool, ArgList args)
     if (extendBy < unitSize)
       extendBy = unitSize;
   }
+  if (ArgPick(&arg, args, MFSExtendSelf))
+    extendSelf = arg.val.b;
 
-  AVER(extendBy == 0 || extendBy >= unitSize);
+  AVER(extendBy >= unitSize);
+  AVER(BoolCheck(extendSelf));
  
   mfs = PoolPoolMFS(pool);
   arena = PoolArena(pool);
@@ -124,13 +129,14 @@ static Res MFSInit(Pool pool, ArgList args)
   extendBy = SizeAlignUp(extendBy, ArenaAlign(arena));
 
   mfs->extendBy = extendBy;
+  mfs->extendSelf = extendSelf;
   mfs->unitSize = unitSize;
   mfs->freeList = NULL;
   mfs->tractList = NULL;
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
-  EVENT4(PoolInitMFS, pool, arena, extendBy, unitSize);
+  EVENT5(PoolInitMFS, pool, arena, extendBy, extendSelf, unitSize);
   return ResOK;
 }
 
@@ -166,6 +172,7 @@ void MFSExtend(Pool pool, Addr base, Size size)
   AVERT(Pool, pool);
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
+  AVER(size == mfs->extendBy);
   
   /* .tract.chain: chain first tracts through TractP(tract) */
   tract = TractOfBaseAddr(PoolArena(pool), base);
@@ -233,7 +240,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
   {
     Addr base;
     
-    if (mfs->extendBy == 0)
+    if (!mfs->extendSelf)
       return ResLIMIT;
 
     /* Create a new region and attach it to the pool. */
@@ -343,7 +350,8 @@ Bool MFSCheck(MFS mfs)
   CHECKD(Pool, &mfs->poolStruct);
   CHECKL(mfs->poolStruct.class == EnsureMFSPoolClass());
   CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
-  CHECKL(mfs->extendBy == 0 || mfs->extendBy >= UNIT_MIN);
+  CHECKL(mfs->extendBy >= UNIT_MIN);
+  CHECKL(BoolCheck(mfs->extendSelf));
   arena = PoolArena(&mfs->poolStruct);
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==

@@ -133,6 +133,7 @@ typedef struct MFSStruct {      /* MFS outer structure */
   PoolStruct poolStruct;        /* generic structure */
   Size unroundedUnitSize;       /* the unit size requested */
   Size extendBy;                /* arena alloc size rounded using unitSize */
+  Bool extendSelf;              /* whether to allocate tracts */
   Size unitSize;                /* rounded for management purposes */
   struct MFSHeaderStruct *freeList; /* head of the free list */
   Tract tractList;              /* the first tract */
@@ -549,6 +550,7 @@ typedef struct mps_arena_class_s {
   ArenaChunkFinishMethod chunkFinish;
   ArenaCompactMethod compact;
   ArenaDescribeMethod describe;
+  ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
   Sig sig;
 } ArenaClassStruct;
 

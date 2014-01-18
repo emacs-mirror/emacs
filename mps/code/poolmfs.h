@@ -47,6 +47,10 @@ struct MFSInfoStruct {
 
 extern MFSInfo MFSGetInfo(void);
 
+extern const struct mps_key_s _mps_key_MFSExtendSelf;
+#define MFSExtendSelf (&_mps_key_MFSExtendSelf)
+#define MFSExtendSelf_FIELD b
+
 extern void MFSExtend(Pool pool, Addr base, Size size);
 
 #endif /* poolmfs_h */

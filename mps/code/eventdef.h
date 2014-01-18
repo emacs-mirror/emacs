@@ -505,7 +505,8 @@
   PARAM(X,  0, P, pool) \
   PARAM(X,  1, P, arena) \
   PARAM(X,  2, W, extendBy) \
-  PARAM(X,  3, W, unitSize)
+  PARAM(X,  3, B, extendSelf) \
+  PARAM(X,  4, W, unitSize)
 
 #define EVENT_PoolInitAMS_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pool) \

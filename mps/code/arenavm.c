@@ -26,6 +26,8 @@
 #include "bt.h"
 #include "mpm.h"
 #include "mpsavm.h"
+#include "cbs.h"
+#include "poolmfs.h"
 
 SRCID(arenavm, "$Id$");
 
@@ -1395,6 +1397,17 @@ failTableMap:
   return res;
 }
 
+static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
+                                Index baseIndex, Count pages, Pool pool)
+{
+  return pagesMarkAllocated(Arena2VMArena(arena),
+                            Chunk2VMChunk(chunk),
+                            baseIndex,
+                            pages,
+                            pool);
+}
+
+
 
 /* vmAllocComm -- allocate a region from the arena
  *
@@ -1810,6 +1823,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->chunkFinish = VMChunkFinish;
   this->compact = VMCompact;
   this->describe = VMArenaDescribe;
+  this->pagesMarkAllocated = VMPagesMarkAllocated;
 }
 
 
