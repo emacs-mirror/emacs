@@ -1,3 +1,9 @@
+2014-01-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* simple.el (password-word-equivalents): Remove duplicates.
+	Sort, to make this easier next time.
+	Downcase.  Omit ": " after "jelszó".
+
 2014-01-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/common-win.el (saved-region-selection): Defvar it.
