@@ -212,6 +212,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
             Bool fastFind, ArgList args)
 {
   Size extendBy = CBS_EXTEND_BY_DEFAULT;
+  Bool extendSelf = TRUE;
   ArgStruct arg;
   Res res;
 
@@ -219,12 +220,15 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
 
   if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
     extendBy = arg.val.size;
+  if (ArgPick(&arg, args, MFSExtendSelf))
+    extendSelf = arg.val.b;
 
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
   MPS_ARGS_BEGIN(piArgs) {
     MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
     MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, extendBy);
+    MPS_ARGS_ADD(piArgs, MFSExtendSelf, extendSelf);
     MPS_ARGS_DONE(piArgs);
     res = PoolInit(&cbs->blockPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);

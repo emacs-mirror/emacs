@@ -598,7 +598,48 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
     if (!withReservoirPermit)
       return res;
   }
+  
+  {
+    RangeStruct rangeStruct, oldRangeStruct;
+    if (CBSFindFirst(&rangeStruct, &oldRangeStruct,
+                     &arena->freeCBS, size, FindDeleteLOW)) {
+      Chunk chunk;
+      Bool b;
+      Index baseIndex;
+      Count pages;
+      b = CHUNK_OF_ADDR(&chunk, arena, rangeStruct.base);
+      AVER(b);
+      AVER(RangeIsAligned(&rangeStruct, ChunkPageSize(chunk)));
+      /* FIXME: What about a range that crosses chunks?! Every chunk has
+         some unallocated space at the beginning with page tables in it.
+         This assumption needs documenting and asserting! */
+      baseIndex = INDEX_OF_ADDR(chunk, rangeStruct.base);
+      pages = ChunkSizeToPages(chunk, RangeSize(&rangeStruct));
+      res = (*arena->class->pagesMarkAllocated)(arena, chunk, baseIndex, pages, pool);
+      if (res != ResOK) {
+         Res insertRes = CBSInsert(&oldRangeStruct, &arena->freeCBS, &rangeStruct);
+         AVER(insertRes == ResOK); /* FIXME: Is this true? We just deleted it. */
+         /* If the insert does fail, we lose some address space permanently. */
+         EVENT3(ArenaAllocFail, arena, size, pool); /* FIXME: Should have res? */
+         return res;
+      }
 
+      baseTract = PageTract(&chunk->pageTable[baseIndex]); /* FIXME: method for this? */
+      base = RangeBase(&rangeStruct);
+
+      /* cache the tract - <design/arena/#tract.cache> */
+      arena->lastTract = baseTract;
+      arena->lastTractBase = base;
+
+      EVENT5(ArenaAlloc, arena, baseTract, base, size, pool);
+      *baseReturn = base;
+      return ResOK;
+    }
+    /* FIXME: Extend arena? */
+    return ResUNIMPL;
+  }
+
+#if 0
   res = (*arena->class->alloc)(&base, &baseTract, pref, size, pool);
   if (res == ResOK) {
     goto goodAlloc;
@@ -619,6 +660,7 @@ goodAlloc:
   EVENT5(ArenaAlloc, arena, baseTract, base, size, pool);
   *baseReturn = base;
   return ResOK;
+#endif
 }
 
 
