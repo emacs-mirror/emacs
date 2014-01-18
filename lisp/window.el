@@ -6824,7 +6824,8 @@ See also `fit-frame-to-buffer-margins'."
 FRAME can be any live frame and defaults to the selected one.
 Fit only if FRAME's root window is live.  MAX-HEIGHT, MIN-HEIGHT,
 MAX-WIDTH and MIN-WIDTH specify bounds on the new total size of
-FRAME's root window.
+FRAME's root window.  MIN-HEIGHT and MIN-WIDTH default to the values of
+`window-min-height' and `window-min-width' respectively.
 
 The option `fit-frame-to-buffer' controls whether this function
 has any effect.  New position and size of FRAME are additionally
@@ -6832,8 +6833,10 @@ determined by the options `fit-frame-to-buffer-sizes' and
 `fit-frame-to-buffer-margins' or the corresponding parameters of
 FRAME."
   (interactive)
-  (or (fboundp 'x-display-pixel-height)
-      (user-error "Cannot resize frame in non-graphic Emacs"))
+  (unless (and (fboundp 'x-display-pixel-height)
+	       ;; We need the respective sizes now.
+	       (fboundp 'display-monitor-attributes-list))
+    (user-error "Cannot resize frame in non-graphic Emacs"))
   (setq frame (window-normalize-frame frame))
   (when (and (window-live-p (frame-root-window frame))
 	     fit-frame-to-buffer
@@ -6938,7 +6941,8 @@ FRAME."
 	     (min-height
 	      (cond
 	       ((numberp (nth 1 sizes)) (* (nth 1 sizes) char-height))
-	       ((numberp min-height) (* min-height char-height))))
+	       ((numberp min-height) (* min-height char-height))
+	       (t (* window-min-height char-height))))
 	     (max-width
 	      (cond
 	       ((numberp (nth 2 sizes))
@@ -6950,7 +6954,8 @@ FRAME."
 	       ((numberp (nth 3 sizes))
 		(- (* (nth 3 sizes) char-width) window-extra-width))
 	       ((numberp min-width)
-		(- (* min-width char-width) window-extra-width))))
+		(- (* min-width char-width) window-extra-width))
+	       (t (* window-min-width char-width))))
 	     ;; Note: Currently, for a new frame the sizes of the header
 	     ;; and mode line may be estimated incorrectly
 	     (value (window-text-pixel-size
@@ -6958,7 +6963,7 @@ FRAME."
 	     (width (+ (car value) (window-right-divider-width)))
 	     (height (+ (cdr value) (window-bottom-divider-width)))
 	     remainder)
-	(unless window-resize-pixelwise
+	(unless frame-resize-pixelwise
 	  ;; Round sizes to character sizes.
 	  (setq remainder (% width char-width))
 	  (unless (zerop remainder)
@@ -6987,12 +6992,11 @@ FRAME."
 	  ;; Add extra width.
 	  (setq width (+ width extra-width))
 	  ;; Preserve right margin.
-	  (let ((right (+ left width extra-width))
-		(max-right (- workarea-width right-margin)))
+	  (let ((right (+ left width extra-width)))
 	    (cond
-	     ((> right max-right)
-	      ;; Move FRAME to left.
-	      (setq left (max 0 (- left (- right max-right)))))
+	     ((> right right-margin)
+	      ;; Move frame to left (we don't know its real width).
+	      (setq left (min (- right-margin display-width) -1)))
 	     ((< left left-margin)
 	      ;; Move frame to right.
 	      (setq left left-margin)))))
@@ -7005,12 +7009,11 @@ FRAME."
 	  ;; Add extra height.
 	  (setq height (+ height extra-height))
 	  ;; Preserve bottom and top margins.
-	  (let ((bottom (+ top height extra-height))
-		(max-bottom (- workarea-height bottom-margin)))
+	  (let ((bottom (+ top height extra-height)))
 	    (cond
-	     ((> bottom max-bottom)
-	      ;; Move FRAME to left.
-	      (setq top (max 0 (- top (- bottom max-bottom)))))
+	     ((> bottom bottom-margin)
+	      ;; Move frame up (we don't know its real height).
+	      (setq top (min (- bottom-margin display-height) -1)))
 	     ((< top top-margin)
 	      ;; Move frame down.
 	      (setq top top-margin)))))
@@ -7027,16 +7030,16 @@ FRAME."
 	(set-frame-size
 	 frame
 	 (if width
-	     (if window-resize-pixelwise
+	     (if frame-resize-pixelwise
 		 width
 	       (/ width char-width))
 	   (frame-text-width))
 	 (if height
-	     (if window-resize-pixelwise
+	     (if frame-resize-pixelwise
 		 height
 	       (/ height char-height))
 	   (frame-text-height))
-	 window-resize-pixelwise)))))
+	 frame-resize-pixelwise)))))
 
 (defun fit-window-to-buffer (&optional window max-height min-height max-width min-width)
   "Adjust size of WINDOW to display its buffer's contents exactly.
@@ -7098,7 +7101,10 @@ accessible position."
 			   (window-safe-min-pixel-height window)
 			 window-safe-min-height))
 		;; Preserve header and mode line if present.
-		(window-min-size nil nil t pixelwise)))
+		(max (if pixelwise
+			 (* char-height window-min-height)
+		       window-min-height)
+		     (window-min-size nil nil t pixelwise))))
 	     (max-height
 	      ;; Sanitize MAX-HEIGHT.
 	      (if (numberp max-height)
@@ -7150,7 +7156,10 @@ accessible position."
 			       (window-safe-min-pixel-width)
 			     window-safe-min-width))
 		    ;; Preserve fringes, margins, scrollbars if present.
-		    (window-min-size nil nil t pixelwise)))
+		    (max (if pixelwise
+			     (* char-width window-min-width)
+			   window-min-width)
+			 (window-min-size nil nil t pixelwise))))
 		 (max-width
 		  ;; Sanitize MAX-WIDTH.
 		  (if (numberp max-width)

@@ -131,7 +131,7 @@ June 1985, Report No. UCB/CSD 85/251.
 
 @item
 For generating the lookahead sets, Wisent uses the well-known
-technique of F. DeRemer and A. Pennello described in:
+technique of F. DeRemer and T. Pennello described in:
 @quotation
 @cite{Efficient Computation of LALR(1) Look-Ahead Sets}@*
 October 1982, ACM TOPLAS Vol 4 No 4, 615--49,

@@ -25,7 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 
-#ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
+#ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXish definitions.  */
 #include <sys/wait.h>
 #endif  /* !HAVE_SYS_WAIT_H */
 

@@ -1092,9 +1092,9 @@
 	North American rule.  Replace "daylight savings" with "daylight
 	saving" in doc.
 
-	* calendar/cal-china.el, cal-dst.el, calendar.el, diary-lib.el:
-	* calendar/lunar.el, solar.el: Replace "daylight savings" with
-	"daylight saving" in text.
+	* calendar/cal-china.el, calendar/cal-dst.el, calendar/calendar.el:
+	* calendar/diary-lib.el, calendar/lunar.el, calendar/solar.el:
+	Replace "daylight savings" with "daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
 	woman-request-regexp rather than "^\\.".
@@ -5113,7 +5113,7 @@
 
 	* version.el (emacs-version): Use mac-carbon-version-string.
 
-	* term/macterm.el (res-geometry): Apply 2006-10-18 change for x-win.el.
+	* term/mac-win.el (res-geometry): Apply 2006-10-18 change for x-win.el.
 
 2006-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -13529,7 +13529,7 @@
 	(last-arg): Add defvar.
 
 	* makefile.w32-in (WINS): Add erc.
-	(MH_E_SRC): Update (copied from lisp/Makefile.in).
+	(MH_E_SRC): Update (copied from Makefile.in).
 
 2006-01-29  Bill Wohler  <wohler@newt.com>
 
@@ -20681,8 +20681,6 @@
 
 2005-10-06  Bill Wohler  <wohler@newt.com>
 
-	* mh-e/mh-loaddefs.el: Remove.  Now generated automatically.
-
 	* Makefile.in (AUTOGENEL): Add mh-e/mh-loaddefs.el.
 	(MH-E-SRC): New.  Used by mh-autoloads.
 	(mh-autoloads): New.  Builds mh-e/mh-loaddefs.el.  Rebuilds if any
@@ -22928,10 +22926,6 @@
 	* info.el: Add handler to desktop-buffer-mode-handlers.
 	(Info-restore-desktop-buffer): Remove autoload cookie.
 	(Info-mode): Add autoload cookie.
-
-	* mh-e/mh-e.el: Add handler to desktop-buffer-mode-handlers.
-	(mh-restore-desktop-buffer): Remove autoload cookie.
-	(mh-folder-mode): Add autoload cookie.
 
 	* mail/rmail.el: Add handler to desktop-buffer-mode-handlers.
 	(rmail-restore-desktop-buffer): Remove autoload cookie.

@@ -331,6 +331,10 @@ def qux
           end
 end
 
+private def foo
+  bar
+end
+
 %^abc^
 ddd
 

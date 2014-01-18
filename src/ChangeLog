@@ -1,3 +1,39 @@
+2014-01-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu): When invoking tty_menu_show, temporarily
+	switch to single keyboard.  Prevents daemon crashes when a new
+	client connects while we show a TTY menu in an existing client.
+	(Bug#16479)
+
+2014-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix MinGW64 porting problem with _setjmp.
+	Reported by Eli Zaretskii in:
+	http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01297.html
+	* image.c (FAST_SETJMP, FAST_LONGJMP): New macros, replacing
+	the old _setjmp and _longjmp.  All uses changed.
+
+2014-01-13  Daniel Colascione  <dancol@dancol.org>
+
+	* textprop.c (Fremove_list_of_text_properties): Correctly
+	handle reaching the end of the interval tree. (Bug#15344)
+
+2014-01-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (resize_mini_window): Round height to a multiple of
+	frame's line height.  Fix bug in calculation of window start
+	position (Bug#16424).
+
+2014-01-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* macfont.m: Include termchar.h.
+	(CG_SET_FILL_COLOR_WITH_FACE_FOREGROUND)
+	(CG_SET_FILL_COLOR_WITH_FACE_BACKGROUND)
+	(CG_SET_STROKE_COLOR_WITH_FACE_FOREGROUND): Modified from
+	*_WITH_GC_* to take face and f as parameters.
+	(macfont_draw): Check for DRAW_MOUSE_FACE and set face accordingly.
+	Use *_WITH_FACE_*, and pass face as parameter (Bug#16425).
+
 2014-01-13  Daniel Colascione  <dancol@dancol.org>
 
 	Fix menu item updating in the presence of the Unity global menu
@@ -2571,8 +2607,7 @@
 
 	Don't run timers in input-pending-p.  Its new check-timers param
 	provides the prior behavior.  (Bug#15045).
-	* src/keyboard.c (Finput_pending_p): Accept optional check-timers
-	param.
+	* keyboard.c (Finput_pending_p): Accept optional check-timers param.
 
 2013-10-17  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -8620,10 +8655,10 @@
 2013-03-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Replace hchild, vchild and buffer slots
-	with the only contents slot.  This is possible because each valid
+	with a single slot 'contents'.  This is possible because each valid
 	window may have either the child window (in vertical or horizontal
 	combination) or buffer to display (for the leaf window).  Using that,
-	a lof of operations to traverse and/or change window hierarchies may
+	a lot of operations to traverse and/or change window hierarchies may
 	be simplified.  New member horizontal is used to distinguish between
 	horizontal and vertical combinations of internal windows.
 	(WINDOW_LEAF_P, WINDOW_HORIZONTAL_COMBINATION_P)

@@ -443,7 +443,7 @@ This command also kill the buffers visiting the deleted files.
 @item F e
 This command (@code{todo-edit-file}) changes the buffer's major mode to
 Todo Edit mode.  In this mode the entire file is visible, the buffer is
-writeable and you can use the self-insertion keys and standard Emacs
+writable and you can use the self-insertion keys and standard Emacs
 editing commands to make changes.  To return to Todo mode, type @kbd{C-x
 C-q} (@code{todo-edit-quit}).
 

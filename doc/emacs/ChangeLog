@@ -1,3 +1,12 @@
+2014-01-17  Bastien Guerry  <bzg@gnu.org>
+
+	* building.texi (Commands of GUD): Fix keybinding for `gud-break'.
+
+2014-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Conveniences):
+	* misc.texi (EWW): Copyedits.
+
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Distrib): Add donate URL.  Add anchor.
@@ -6808,8 +6817,6 @@
 
 	* sending.texi (Mail Sending): pxref to Top needs five args.
 
-	* texinfo.tex: Update to current version (2006-03-21.13).
-
 2006-03-31  Richard Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Update subnode menu.
@@ -10223,7 +10230,7 @@
 
 1990-05-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
+	* texindex.c: If USG, include sys/types.h and sys/fcntl.h.
 
 1990-03-21  Jim Kingdon  (kingdon@pogo.ai.mit.edu)
 

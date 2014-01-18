@@ -1,3 +1,22 @@
+2014-01-16  Eric S. Raymond  <esr@thyrsus.com>
+
+	* notes/commits: Add a 'graph on VCS-independent ways of
+	identifying commits and the desirability thereof.
+
+2014-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix copyright license notices for Adobe Unicode mapping files.
+	* charsets/mapfiles/README: The copied files are not compressed.
+	Check for copies as of today.
+	* charsets/mapfiles/stdenc.txt, charsets/mapfiles/symbol.txt:
+	Update from table version 0.2 (1999-03-30) to 1.0 (2011-07-12).
+	This doesn't change the table data, just copyright license notice.
+	The new notices are compatible with the GPL, the old ones were not.
+
+2014-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen (status): New function.  Use throughout.
+
 2014-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* update_autogen: Fix sed bug that was losing the last AUTOGEN_VCS.
@@ -555,10 +574,10 @@
 	(cusver-scan): Check if containing group has a :version.
 	(cusver-check): Add VERSION argument.
 
-2012-10-01  David Engster  <deng@randomsample.de>
+2012-10-06  David Engster  <deng@randomsample.de>
 
 	* grammars/bovine-grammar.el:
-	* grammars/wisent-grammar.el: Move to lisp directory.
+	* grammars/wisent-grammar.el: Move to lisp/cedet/semantic directory.
 
 2012-10-01  David Engster  <deng@randomsample.de>
 
@@ -1973,8 +1992,6 @@
 	* nt/makedist.bat: Fix multi-file .zip distribution, by splitting
 	emacs.exe before zipping, and including batch file to recreate
 	after unpacking.
-
-	* nt/stitch.bat: New file.
 
 	* nt/README-ftp-server: Update wording and version number etc.
 	Add extra instructions for installing multi-file .zip

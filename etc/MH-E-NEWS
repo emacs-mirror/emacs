@@ -3205,7 +3205,7 @@ current folder.
 *** New function `mh-version' displays version information about MH
 and mh-e. Please use the output in bug reports.
 
-*** `mh-quit' now burys the folder buffer and show buffer.
+*** `mh-quit' now buries the folder buffer and show buffer.
 
 
 ** New hooks and customization variables in mh-e 4.0

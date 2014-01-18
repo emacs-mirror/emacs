@@ -214,7 +214,10 @@ indentation by specifying a large negative ARG."
               (indent-to (max 0 (+ indent (prefix-numeric-value arg))) 0))
           (delete-region (point) (progn (skip-chars-forward " \t") (point))))
         (forward-line 1))
-      (move-marker end nil))))
+      (move-marker end nil)
+      ;; Keep the active region in transient mode.
+      (when (eq (cadr overriding-terminal-local-map) indent-rigidly-map)
+	(setq deactivate-mark nil)))))
 
 (defun indent-rigidly--pop-undo ()
   (and (memq last-command '(indent-rigidly-left indent-rigidly-right

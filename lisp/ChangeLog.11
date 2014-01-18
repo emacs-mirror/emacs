@@ -3142,7 +3142,7 @@
 
 	* subr.el (read-passwd): Move back from password.el.
 
-	* password.el: Remove, not ready yet.
+	* net/password.el: Remove, not ready yet.
 
 2004-10-29  Andreas Schwab  <schwab@suse.de>
 
@@ -6642,7 +6642,7 @@
 
 2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
-	* flymake.el: New file.
+	* progmodes/flymake.el: New file.
 
 2004-05-28  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -6730,17 +6730,6 @@
 
 	* mail/smtpmail.el (smtpmail-open-stream):
 	Bind starttls-extra-arguments too, if starttls.el uses GnuTLS.
-
-2004-05-26  Simon Josefsson  <jas@extundo.com>
-
-	* starttls.el: Merge with my GnuTLS based starttls.el.
-	(starttls-gnutls-program, starttls-use-gnutls)
-	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): New variables.
-	(starttls-program, starttls-extra-args): Doc fix.
-	(starttls-negotiate-gnutls, starttls-open-stream-gnutls): New funs.
-	(starttls-negotiate, starttls-open-stream): Check `starttls-use-gnutls'
-	and pass on to corresponding *-gnutls function if it is set.
 
 2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -8082,8 +8071,6 @@
 
 	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
 
-	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
-
 2004-04-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/gud.el (gud-pdb-command-name): Change default to "pydb".
@@ -8229,7 +8216,6 @@
 2004-04-22  Lars Hansen  <larsh@math.ku.dk>
 
 	* info.el (Info-restore-desktop-buffer): Delete with-no-warnings.
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
 
 2004-04-22  Kim F. Storm  <storm@cua.dk>
 
@@ -8338,9 +8324,6 @@
 	(Info-mode): Bind desktop-buffer-misc-data-function.
 
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
-	Add Parameters.
-
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 
 2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>
@@ -13106,10 +13089,10 @@
 
 2003-08-29  Thierry Emery  <thierry.emery@club-internet.fr>  (tiny change)
 
-	* kinsoku.el (kinsoku-longer, kinsoku-shorter): Do not choose a
-	line break position in the middle of a non-kinsoku (e.g. latin)
-	word, making it skip until either a space or a character with
-	category "|".
+	* international/kinsoku.el (kinsoku-longer, kinsoku-shorter):
+	Do not choose a line break position in the middle of a
+	non-kinsoku (e.g. latin) word, making it skip until either
+	a space or a character with category "|".
 	(kinsoku-longer): Test for end of buffer.
 
 2003-08-28  Eli Zaretskii  <eliz@gnu.org>
@@ -13630,10 +13613,10 @@
 	* calendar/cal-tex.el (cal-tex-day-name-format): Doc fix.
 	(cal-tex-LaTeX-hourbox): Move definition before use.
 
-	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el
-	* cal-julian.el, cal-menu.el, cal-move.el, holidays.el
-	* lunar.el, solar.el (displayed-month, displayed-year):
-	Define for compiler.
+	* calendar/cal-china.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
+	* calendar/cal-julian.el, calendar/cal-menu.el, calendar/cal-move.el:
+	* calendar/holidays.el, calendar/lunar.el, calendar/solar.el:
+	(displayed-month, displayed-year): Define for compiler.
 
 2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 

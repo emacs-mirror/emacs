@@ -6121,7 +6121,7 @@ to the equivalent Latin-1 characters.")
     (goto-char from)
 
     ;; ...break the region up into chunks separated by tabs, linefeeds,
-    ;; pagefeeds, control characters, and plot each chunk.
+    ;; formfeeds, control characters, and plot each chunk.
     (while (< from to)
       ;; skip lines between cut markers
       (and ps-begin-cut-regexp ps-end-cut-regexp

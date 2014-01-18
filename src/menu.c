@@ -1443,8 +1443,16 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   else
 #endif
   if (FRAME_TERMCAP_P (f))
-    selection = tty_menu_show (f, xpos, ypos, for_click, keymaps, title,
-			       kbd_menu_navigation, &error_name);
+    {
+      ptrdiff_t count1 = SPECPDL_INDEX ();
+
+      /* Avoid crashes if, e.g., another client will connect while we
+	 are in a menu.  */
+      temporarily_switch_to_single_kboard (f);
+      selection = tty_menu_show (f, xpos, ypos, for_click, keymaps, title,
+				 kbd_menu_navigation, &error_name);
+      unbind_to (count1, Qnil);
+    }
 
 #ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);

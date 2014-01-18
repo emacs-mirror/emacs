@@ -3697,7 +3697,7 @@ comment at the start of cc-engine.el for more info."
 	  (while (let ((pos (or (and (looking-at c-nonsymbol-token-regexp)
 				     (match-end 0))
 				;; `c-nonsymbol-token-regexp' should always match
-				;; since we've skipped backward over punctuator
+				;; since we've skipped backward over punctuation
 				;; or paren syntax, but consume one char in case
 				;; it doesn't so that we don't leave point before
 				;; some earlier incorrect token.
@@ -3721,7 +3721,7 @@ comment at the start of cc-engine.el for more info."
 		    (if (looking-at c-nonsymbol-token-regexp)
 			(goto-char (match-end 0))
 		      ;; `c-nonsymbol-token-regexp' should always match since
-		      ;; we've skipped backward over punctuator or paren
+		      ;; we've skipped backward over punctuation or paren
 		      ;; syntax, but move forward in case it doesn't so that
 		      ;; we don't leave point earlier than we started with.
 		      (forward-char))

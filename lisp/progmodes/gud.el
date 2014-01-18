@@ -1368,7 +1368,7 @@ and source-file directory for your debugger."
   )
 
 ;; ======================================================================
-;; xdb (HP PARISC debugger) functions
+;; xdb (HP PA-RISC debugger) functions
 
 ;; History of argument lists passed to xdb.
 (defvar gud-xdb-history nil)

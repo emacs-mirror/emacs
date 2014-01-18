@@ -94,7 +94,7 @@
 %token <open-paren>  LBRACE      "{"
 %token <close-paren> RBRACE      "}"
 
-;; Punctuations
+;; Punctuation
 %type  <punctuation>
 %token <punctuation> COLON       ":"
 %token <punctuation> SEMI        ";"

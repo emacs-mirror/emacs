@@ -919,18 +919,18 @@
 
 2001-09-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
+	* progmodes/ebnf2ps.el: Eliminate make-local-hook calls.  Doc fix.
 	(ebnf-version): New version (3.6.1).
 
-	* ebnf-bnf.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-bnf.el: Fix character range regexp.  Doc fix.
 	(ebnf-bnf-non-terminal-chars): New internal const.
 	(ebnf-bnf-lex): Fix code.
 
-	* ebnf-iso.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-iso.el: Fix character range regexp.  Doc fix.
 	(ebnf-iso-non-terminal-chars): New internal const.
 	(ebnf-iso-lex): Fix code.
 
-	* ebnf-yac.el: Fix character range regexp.  Doc fix.
+	* progmodes/ebnf-yac.el: Fix character range regexp.  Doc fix.
 	(ebnf-yac-skip-chars): New internal const.
 	(ebnf-yac-skip-code): Fix code.
 
@@ -1006,16 +1006,17 @@
 
 2001-09-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
+	* progmodes/ebnf2ps.el: Replace "Prologue" by "Prolog" in PostScript
 	programming.  Doc fix.
 	(ebnf-version): New version (3.6).
 	(ebnf-eps-begin): Data fix.
 	(ebnf-begin-file): Code fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-bnf-lex): Fix regexp for non-terminal and terminal tokens.
 
-	* ebnf-iso.el, ebnf-otz.el, ebnf-yac.el: Doc fix.
+	* progmodes/ebnf-iso.el, progmodes/ebnf-otz.el, progmodes/ebnf-yac.el:
+	Doc fix.
 
 2001-09-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -2846,8 +2847,9 @@
 	* international/quail.el (quail-start-conversion):
 	Reset quail-translating to nil.
 
-	* antlr-mode.el (antlr-mode): Check that `c-Java-access-key' is
-	bound.  Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
+	* progmodes/antlr-mode.el (antlr-mode):
+	Check that `c-Java-access-key' is bound.
+	Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
 
 2001-06-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -5565,10 +5567,6 @@
 	* ediff-util.el (ediff-compute-custom-diffs-maybe):
 	Better handling of the diff mode.
 
-	* ediff.texi: Added ediff-coding-system-for-read.
-
-	* viper.texi: Fix typos.
-
 2001-02-11  Dave Love  <fx@gnu.org>
 
 	* shadowfile.el: Doc fixes.
@@ -5748,7 +5746,7 @@
 
 2001-02-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Eliminate time-stamp functions.
+	* progmodes/ebnf2ps.el: Eliminate time-stamp functions.
 	(ebnf-version): New version (3.5).
 	(ebnf-eps-finish-and-write): Replace time-stamp functions by
 	format-time-string.
@@ -7075,27 +7073,27 @@
 
 2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ebnf2ps.el: Fix a problem with skip-chars-forward: it doesn't accept
-	ranges like \177-\237, but accepts the character sequence from \177 to
-	\237.  Doc fix.
+	* progmodes/ebnf2ps.el: Fix a problem with skip-chars-forward:
+	it doesn't accept ranges like \177-\237, but accepts the character
+	sequence from \177 to \237.  Doc fix.
 	(ebnf-version): New version (3.4).
 	(ebnf-setup): Code fix.
 	(ebnf-range-regexp): New fun.
 	(ebnf-8-bit-chars): Const fix.
 
-	* ebnf-bnf.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-bnf.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-bnf-lex): Code fix.
 	(ebnf-bnf-comment-chars): Const fix.
 
-	* ebnf-iso.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-iso.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-iso-comment-chars): Const fix.
 
-	* ebnf-otz.el: Doc fix.
+	* progmodes/ebnf-otz.el: Doc fix.
 
-	* ebnf-yac.el: Fix the same problem as described on ebnf2ps.el log
-	entry.  Doc fix.
+	* progmodes/ebnf-yac.el: Fix the same problem as described
+	on ebnf2ps.el log entry.  Doc fix.
 	(ebnf-yac-skip-code): Code fix.
 	(ebnf-yac-comment-chars): Const fix.
 
@@ -7766,7 +7764,7 @@
 
 	* international/mule.el (make-char): Fix last change.
 
-	* textmode/texinfo.el (texinfo-open-quote, texinfo-close-quote):
+	* textmodes/texinfo.el (texinfo-open-quote, texinfo-close-quote):
 	New defcustoms.
 	(texinfo-insert-quote): Don't call tex-insert-quote, to avoid
 	autoloading tex-mode; instead, do the same manually.
@@ -7922,8 +7920,8 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: New commands to run ANTLR from within Emacs and
-	to create Makefile rules.
+	* progmodes/antlr-mode.el: New commands to run ANTLR from within
+	Emacs and to create Makefile rules.
 	(antlr-tool-command): New user option.
 	(antlr-ask-about-save): New user option.
 	(antlr-makefile-specification): New user option.
@@ -7942,7 +7940,7 @@
 	(antlr-insert-makefile-rules): New function.
 	(antlr-show-makefile-rules): New command.
 
-	* antlr-mode.el: More Emacs/XEmacs stuff.
+	* progmodes/antlr-mode.el: More Emacs/XEmacs stuff.
 	(antlr-no-action-keywords): New constant with value nil.
 	(antlr-font-lock-keywords-alist): Use it.  Old value would break
 	syntax highlighting in Emacs-21.0.
@@ -7952,7 +7950,7 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: imenu, parsing and highlighting changes.
+	* progmodes/antlr-mode.el: imenu, parsing and highlighting changes.
 	(antlr-imenu-create-index-function): Don't create extra submenus
 	for definitions in different grammar classes.  It is not necessary
 	for the menu and would make command `imenu' awkward to use.
@@ -7967,7 +7965,7 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Minor changes: language setting.
+	* progmodes/antlr-mode.el: Minor changes: language setting.
 	(antlr-language-alist): The value for file option "language" can
 	be both an identifier and a string.
 	Reported by Rajesh Radhakrishnan <radhakrs@email.uc.edu>.
@@ -7975,7 +7973,7 @@
 
 2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: Minor changes: tabs, hiding.
+	* progmodes/antlr-mode.el: Minor changes: tabs, hiding.
 	(antlr-tab-offset-alist): Set `indent-tabs-mode' to nil instead t.
 	(antlr-action-visibility): Also allow value nil to also hide the
 	braces.  Renamed from `antlr-tiny-action-length'.
@@ -10186,7 +10184,7 @@
 	* eshell/em-unix.el, eshell/em-term.el, eshell/em-smart.el,
 	* eshell/em-script.el, eshell/em-rebind.el, eshell/em-prompt.el,
 	* eshell/em-pred.el, eshell/em-ls.el, eshell/em-hist.el,
-	* eshell/em-glob.el, shell/em-dirs.el, eshell/em-cmpl.el,
+	* eshell/em-glob.el, eshell/em-dirs.el, eshell/em-cmpl.el,
 	* eshell/em-basic.el, eshell/em-banner.el, eshell/em-alias.el:
 	Add author information.
 
@@ -12436,8 +12434,8 @@
 	(vc-cvs-merge-news): Set workfile version to nil if not known.
 	(vc-cvs-latest-on-branch-p): Recommented.  Candidate for removal.
 
-	* vc-*.el (vc-*-checkout): Switch off coding systems for checkout
-	via stdout. (Merge from main line.)
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el (vc-*-checkout): Switch off
+	coding systems for checkout via stdout. (Merge from main line.)
 
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -12697,21 +12695,22 @@
 	(vc-backend): Reintroduce the test for `file = nil' now that I
 	know why it was there (and added a comment to better remember).
 
-	* vc-sccs-hooks.el: Merge into vc-sccs.el * vc-sccs.el: Merge in
-	code from vc-sccs-hooks.el.
+	* vc-sccs-hooks.el: Merge into vc-sccs.el
+	* vc-sccs.el: Merge in code from vc-sccs-hooks.el.
 	(vc-sccs-release, vc-sccs-system-release): Remove.  Don't require
 	'vc anymore.
 	(vc-sccs-responsible-p): Use expand-file-name instead of concat
 	and file-directory-p instead of file-exists-p.
 	(vc-sccs-check-headers): Simplify the regexp.
 
-	* vc-rcs-hooks.el: Merge into vc-rcs.el * vc-rcs.el: Merge in code
-	from vc-rcs-hooks.el.  Don't require 'vc anymore.
+	* vc-rcs-hooks.el: Merge into vc-rcs.el
+	* vc-rcs.el: Merge in code from vc-rcs-hooks.el.
+	Don't require 'vc anymore.
 	(vc-rcs-responsible-p): Use expand-file-name instead of concat and
 	file-directory-p instead of file-exists-p.
 
-	* vc-cvs-hooks.el: Merge into vc-cvs.el * vc-cvs.el: Merge in code
-	from vc-cvs-hooks.el.
+	* vc-cvs-hooks.el: Merge into vc-cvs.el
+	* vc-cvs.el: Merge in code from vc-cvs-hooks.el.
 	(proto vc-cvs-registered): Require 'vc-cvs instead of
 	'vc-cvs-hooks.  Don't require 'vc anymore.
 	(vc-cvs-responsible-p): Use expand-file-name instead of concat and
@@ -12990,7 +12989,7 @@
 	`vc-locking-user' semantics.
 	(vc-backend-merge): Remove.
 
-	* vc-rcs.el, vc-scc.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
+	* vc-rcs.el, vc-sccs.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
 	rather than 'vc-locking-user.
 
 	* vc-rcs-hooks.el (vc-rcs-consult-headers): Adapt to new `vc-state'.
@@ -15038,7 +15037,7 @@
 
 2000-07-30  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el (glasses-make-readable): Fix uncapitalization of
+	* progmodes/glasses.el (glasses-make-readable): Fix uncapitalization of
 	identifiers like `myXMLDocument'.
 
 2000-07-28  Karl Fogel  <kfogel@red-bean.com>
@@ -15576,7 +15575,7 @@
 	(ada-xemacs): Evaluate it at compile time too, so that ada-mode.el
 	can be batch-compiled from the command line.
 
-	* ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
+	* progmodes/ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
 	Add to the menu when the file is loaded, not in ada-mode-hook.
 	Add -toolbar to the default ddd command Switches moved from
 	ada-prj-default-comp-cmd and ada-prj-default-make-cmd to
@@ -15649,7 +15648,7 @@
 	cd to the build directory.  New field: main_unit Provide a default
 	file name even if the current buffer has no prj file.
 
-	* ada-prj.el:
+	* progmodes/ada-prj.el:
 	Rewritten to show a tabbed-dialog.
 	(ada-prj-add-ada-menu): Remove the map and name parameters.
 	(ada-prj-display-page, ada-prj-field, ada-prj-initialize-values):
@@ -15659,7 +15658,7 @@
 	(ada-prj-save): Always save fields that depend on the current buffer.
 	(ada-prj-show-value): New function
 
-	* ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
+	* progmodes/ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
 	Ada mode. This will allow us to display the Ada menu in any buffer
 	we want (for project items).
 	(ada-header-tmpl): Use ada-fill-comment-prefix to put the correct
@@ -16406,7 +16405,7 @@
 	Support for bibentry.
 	(reftex-compile-variables): Fixed problem with end of section-re.
 
-	* texmodes/reftex-dcr.el (reftex-view-crossref,
+	* textmodes/reftex-dcr.el (reftex-view-crossref,
 	reftex-view-crossref-from-bibtex):
 	Deal with changed `reftex-find-citation-regexp-format'.
 	(reftex-view-regexp-match, reftex-view-crossref-from-bibtex):
@@ -17227,7 +17226,7 @@
 
 2000-05-29  Christoph Wedler  <Christoph.Wedler@sap.com>
 
-	* antlr-mode.el: New commands: hide/unhide actions,
+	* progmodes/antlr-mode.el: New commands: hide/unhide actions,
 	upcase/downcase literals.
 	(antlr-tiny-action-length): New user option.
 	(antlr-hide-actions): New command.  Suggested by
@@ -17237,11 +17236,11 @@
 	(antlr-downcase-literals): New command.
 	(antlr-upcase-literals): Ditto.
 
-	* antlr-mode.el: Minor changes: indentation, mode-name.
+	* progmodes/antlr-mode.el: Minor changes: indentation, mode-name.
 	(antlr-indent-line): Indent cpp directive at column 0.
 	(antlr-mode): Use mode-name prefix "Antlr." instead of "Antlr/".
 
-	* antlr-mode.el: XEmacs bug workaround, XEmacs hint.
+	* progmodes/antlr-mode.el: XEmacs bug workaround, XEmacs hint.
 	(antlr-font-lock-additional-keywords): Workaround for intentional
 	bug in XEmacs version of font-lock.
 	(antlr-mode): Set symbol property `mode-name' to "Antlr".  Could
@@ -17838,10 +17837,13 @@
 
 	* faces.el: Declare more functions obsolete.
 
-	* viet-util.el, thai-util.el, tibet-util.el, slovak.el
-	* misc-lang.el, romanian.el, korea-util.el, lao-util.el
-	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
-	* english.el, czech.el, devan-util.el, cyril-util.el, china-util.el:
+	* language/viet-util.el, language/thai-util.el, language/tibet-util.el:
+	* language/slovak.el, language/misc-lang.el, language/romanian.el:
+	* language/korea-util.el, language/lao-util.el, language/japan-util.el:
+	* language/greek.el, language/hebrew.el, language/european.el:
+	* language/ethio-util.el, language/english.el, language/czech.el:
+	* language/devan-util.el, language/cyril-util.el:
+	* language/china-util.el:
 	Remove all the setup-...-environment functions.
 
 2000-05-13  Eric M. Ludlam  <zappo@ultranet.com>
@@ -18080,7 +18082,7 @@
 
 2000-05-04  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el (glasses-convert-to-unreadable): Use
+	* progmodes/glasses.el (glasses-convert-to-unreadable): Use
 	`glasses-separator' instead of the hard-wired "_".
 	(glasses-mode): Call `glasses-make-unreadable' only in a single
 	place.
@@ -18599,7 +18601,7 @@
 
 2000-04-04  Milan Zamazal  <pdm@freesoft.cz>
 
-	* glasses.el: Provide facilities for inserting space before left
+	* progmodes/glasses.el: Provide facilities for inserting space before left
 	parentheses and uncapitalization of identifiers.
 	(glasses-mode): Try to remove old overlays in all cases.
 
@@ -20095,9 +20097,9 @@
 
 	* windmove.el: New file.
 
-	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
-	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
-	progmodes/ebnf-yac.el: Update copyright and license info.
+	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el:
+	* progmodes/ebnf-iso.el, progmodes/ebnf-otz.el:
+	* progmodes/ebnf-yac.el: Update copyright and license info.
 
 	* jit-lock.el (jit-lock-function): Widen before calculating
 	end position.

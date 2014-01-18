@@ -491,7 +491,7 @@
 	members has been made some time ago.  Clean up the various tries to
 	do this in the past.
 
-	erc-macs.el: Removed.  erc-members.el: Removed.
+	* erc-macs.el, erc-members.el: Removed.
 
 2004-08-10  Jorgen Schaefer  <forcer@users.sourceforge.net>
 

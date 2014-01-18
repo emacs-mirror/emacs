@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1999-2014 Free Software Foundation, Inc.
 
-;; Author: Christoph.Wedler@sap.com
+;; Author: Christoph Wedler <Christoph.Wedler@sap.com>
 ;; Keywords: languages, ANTLR, code generator
 ;; Version: 2.2c
 ;; X-URL: http://antlr-mode.sourceforge.net/

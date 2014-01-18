@@ -10658,9 +10658,9 @@ resize_mini_window (struct window *w, int exact_p)
       /* Compute a suitable window start.  */
       if (height > max_height)
 	{
-	  height = max_height;
+	  height = (max_height / unit) * unit;
 	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
-	  move_it_vertically_backward (&it, height);
+	  move_it_vertically_backward (&it, height - unit);
 	  start = it.current.pos;
 	}
       else

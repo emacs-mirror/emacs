@@ -5608,24 +5608,26 @@ init_png_functions (void)
 
 #endif /* WINDOWSNT */
 
-/* Possibly inefficient/inexact substitutes for _setjmp and _longjmp.
-   Do not use sys_setjmp, as PNG supports only jmp_buf.  The _longjmp
-   substitute may munge the signal mask, but that should be OK here.
-   MinGW (MS-Windows) uses _setjmp and defines setjmp to _setjmp in
-   the system header setjmp.h; don't mess up that.  */
-#ifndef HAVE__SETJMP
-# define _setjmp(j) setjmp (j)
-# define _longjmp longjmp
+/* Fast implementations of setjmp and longjmp.  Although setjmp and longjmp
+   will do, POSIX _setjmp and _longjmp (if available) are often faster.
+   Do not use sys_setjmp, as PNG supports only jmp_buf.
+   It's OK if the longjmp substitute restores the signal mask.  */
+#ifdef HAVE__SETJMP
+# define FAST_SETJMP(j) _setjmp (j)
+# define FAST_LONGJMP _longjmp
+#else
+# define FAST_SETJMP(j) setjmp (j)
+# define FAST_LONGJMP longjmp
 #endif
 
-#if (PNG_LIBPNG_VER < 10500)
-#define PNG_LONGJMP(ptr) (_longjmp ((ptr)->jmpbuf, 1))
+#if PNG_LIBPNG_VER < 10500
+#define PNG_LONGJMP(ptr) FAST_LONGJMP ((ptr)->jmpbuf, 1)
 #define PNG_JMPBUF(ptr) ((ptr)->jmpbuf)
 #else
 /* In libpng version 1.5, the jmpbuf member is hidden. (Bug#7908)  */
-#define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
+#define PNG_LONGJMP(ptr) fn_png_longjmp (ptr, 1)
 #define PNG_JMPBUF(ptr) \
-  (*fn_png_set_longjmp_fn ((ptr), _longjmp, sizeof (jmp_buf)))
+  (*fn_png_set_longjmp_fn (ptr, FAST_LONGJMP, sizeof (jmp_buf)))
 #endif
 
 /* Error and warning handlers installed when the PNG library
@@ -5810,7 +5812,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
-  if (_setjmp (PNG_JMPBUF (png_ptr)))
+  if (FAST_SETJMP (PNG_JMPBUF (png_ptr)))
     {
     error:
       if (c->png_ptr)

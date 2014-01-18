@@ -355,6 +355,21 @@ The first subexpression is the actual text of the field.")
       (set-match-data (list start (point)))
       (point))))
 
+(defun log-edit--match-first-line (limit)
+  (let ((start (point)))
+    (rfc822-goto-eoh)
+    (skip-chars-forward "\n")
+    (and (< start (line-end-position))
+         (< (point) limit)
+         (save-excursion
+           (not (re-search-backward "^Summary:[ \t]*[^ \t\n]" nil t)))
+         (looking-at ".+")
+         (progn
+           (goto-char (match-end 0))
+           (put-text-property (point-min) (point)
+                              'jit-lock-defer-multiline t)
+           (point)))))
+
 (defvar log-edit-font-lock-keywords
   ;; Copied/inspired by message-font-lock-keywords.
   `((log-edit-match-to-eoh
@@ -370,7 +385,8 @@ The first subexpression is the actual text of the field.")
          nil lax))
      ("^\n"
       (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(:height 0.1 :inverse-video t))))))
+      (0 '(:height 0.1 :inverse-video t))))
+    (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
   "If non-nil, highlight common failures to follow the GNU coding standards.")
@@ -473,6 +489,7 @@ commands (under C-x v for VC, for example).
 \\{log-edit-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
        '(log-edit-font-lock-keywords t))
+  (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
   (hack-dir-local-variables-non-file-buffer))

@@ -1,3 +1,7 @@
+2014-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (eww_deps): Does not depend on emacsver.texi.
+
 2014-01-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (all): Doc fix according to GNU Coding Standards.
@@ -3513,7 +3517,8 @@
 
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* eshell.texi (Input/Output): Document insert output redirection operator, >>>.
+	* eshell.texi (Input/Output):
+	Document insert output redirection operator, >>>.
 
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
@@ -7223,7 +7228,7 @@
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnusref.tex: Mention `gnus-summary-limit-to-recipient' and
+	* gnus.texi: Mention `gnus-summary-limit-to-recipient' and
 	`gnus-summary-sort-by-recipient'.
 
 2007-10-28  Romain Francoise  <romain@orebokech.com>
@@ -8701,6 +8706,10 @@
 2006-04-04  Simon Josefsson  <jas@extundo.com>
 
 	* gnus.texi (Security): Improve.
+
+2006-04-02  Karl Berry  <karl@gnu.org>
+
+	* texinfo.tex: Update to current version (2006-03-21.13).
 
 2006-04-02  Bill Wohler  <wohler@newt.com>
 
@@ -10787,6 +10796,11 @@
 	`tramp-set-completion-function', because parsing of ssh config
 	files looks more natural.
 
+2003-01-15  Kevin Ryde  <user42@zip.com.au>
+
+	* gnus.texi (Using MIME): Mention auto-compression-mode with
+	gnus-mime-copy-part.
+
 2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.texi: Do not use `path' in several locations.
@@ -10808,11 +10822,12 @@
 
 2002-10-02  Karl Berry  <karl@gnu.org>
 
-	* (ada-mode.texi autotype.texi calc.texi cc-mode.texi cl.texi
-	dired-x.texi ebrowse.texi ediff.texi emacs-mime.texi
-	eshell.texi eudc.texi faq.texi forms.texi idlwave.texi info.texi
-	message.texi mh-e.texi pcl-cvs.texi reftex.texi sc.texi ses.texi
-	speedbar.texi vip.texi viper.texi widget.texi woman.texi):
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi:
+	* eshell.texi, eudc.texi, faq.texi, forms.texi, idlwave.texi:
+	* info.texi, message.texi, mh-e.texi, pcl-cvs.texi, reftex.texi:
+	* sc.texi, ses.texi, speedbar.texi, vip.texi, viper.texi:
+	* widget.texi, woman.texi:
 	Per rms, update all manuals to use @copying instead of @ifinfo.
 	Also use @ifnottex instead of @ifinfo around the top node, where
 	needed for the sake of the HTML output.
@@ -10833,6 +10848,12 @@
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
 	* reftex.texi: Update to RefTeX 4.19.
+
+2002-07-21  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus.texi (Sorting Groups): Add key bindings for
+	gnus-group-sort-groups-by-real-name and
+	gnus-group-sort-selected-groups-by-real-name.
 
 2002-06-17  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -10865,6 +10886,12 @@
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (mostlyclean, maintainer-clean): Delete more files.
+
+2001-02-12  Michael Kifer  <kifer@cs.sunysb.edu>
+
+	* ediff.texi: Added ediff-coding-system-for-read.
+
+	* viper.texi: Fix typos.
 
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -10963,6 +10990,12 @@
 
 	* reftex.texi: Update for RefTeX version 3.22.
 
+1998-03-01  Kim-Minh Kaplan  <KimMinh.Kaplan@utopia.eunet.fr>
+
+	* gnus.texi (Easy Picons): Removed references to
+	`gnus-group-display-picons'.
+	(Hard Picons): Ditto.
+
 1998-02-08  Richard Stallman  <rms@psilocin.gnu.org>
 
 	* Makefile.in (reftex.dvi, ../info/reftex): New targets.
@@ -10984,6 +11017,10 @@
 1997-07-10  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Makefile (../info/viper, viper.dvi): Delete viper-cmd.texi dep.
+
+1997-04-12  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* widget.texi (push-button): Document it.
 
 1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -11166,9 +11203,6 @@
 	* forms.texi: Fix forms.texi so that it will format correctly.
 	Add missing `@end iftex', fix bad reference.
 
-	* info.texi, info-stn.texi: New files implement texinfo version of
-	`info' file.
-
 1993-10-20  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile: Fix targets for texindex, new info.texi files.
@@ -11257,7 +11291,7 @@
 
 1990-05-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
+	* texindex.c: If USG, include sys/types.h and sys/fcntl.h.
 
 1989-01-17  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 

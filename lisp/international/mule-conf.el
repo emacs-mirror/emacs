@@ -1110,7 +1110,7 @@
   :map "MIK")
 
 (define-charset 'ptcp154
-  "`Paratype' codepage (Asian Cyrillic)"
+  "ParaType codepage (Asian Cyrillic)"
   :short-name "PT154"
   :ascii-compatible-p t
   :code-space [0 255]

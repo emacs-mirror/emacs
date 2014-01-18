@@ -123,7 +123,8 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	      ;; the smart completion engine sometimes fails.
 	      (semantic-complete-symbol))
 	;; Use try completion to seek a common substring.
-	(let ((tc (try-completion (or pre "")  syms)))
+	(let* ((completion-ignore-case (string= (downcase pre) pre))
+	       (tc (try-completion (or pre "")  syms)))
 	  (if (and (stringp tc) (not (string= tc (or pre ""))))
 	      (let ((tok (semantic-find-first-tag-by-name
 			  tc syms)))
@@ -376,6 +377,13 @@ origin of the code at point."
      ((semantic-tag-of-class-p (semantic-current-tag) 'include)
       ;; Just borrow this cool fcn.
       (require 'semantic/decorate/include)
+
+      ;; Push the mark, so you can pop global mark back, or
+      ;; use semantic-mru-bookmark mode to do so.
+      (push-mark)
+      (when (fboundp 'push-tag-mark)
+	(push-tag-mark))
+
       (semantic-decoration-include-visit)
       )
 

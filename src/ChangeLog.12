@@ -1680,7 +1680,7 @@
 
 2012-12-30  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* src/Makefile.in (TEMACS_LDFLAGS2): Remove.
+	* Makefile.in (TEMACS_LDFLAGS2): Remove.
 	(LIBS_GNUSTEP): Define.
 	(LIBES): Add $(LIBS_GNUSTEP).
 	(temacs$(EXEEXT)): Use $(LDFLAGS) instead of $(TEMACS_LDFLAGS2).
@@ -8360,7 +8360,7 @@
 
 	* lisp.h (SWITCH_ENUM_CAST): Remove.  All uses removed.
 	This no-op macro hasn't been needed for many years.
-	* src/regex.c (SWITCH_ENUM_CAST) [!emacs]: Likewise.
+	* regex.c (SWITCH_ENUM_CAST) [!emacs]: Likewise.
 
 	Export DIRECTORY_SEP, TYPEMASK, VALMASK to GDB.
 	* alloc.c (gdb_make_enums_visible) [USE_LSB_TAG]: Add lsb_bits.
@@ -9075,7 +9075,7 @@
 	(adjust_intervals_for_insertion, make_new_interval):
 	Remove obsolete and unused code.
 	* intervals.h (struct interval): Remove obsolete comment.
-	* textprotp.c (erase_properties): Remove unused code.
+	* textprop.c (erase_properties): Remove unused code.
 	(Fadd_text_properties, set_text_properties_1, Fremove_text_properties)
 	(Fremove_list_of_text_properties): Convert to eassert.
 
@@ -9393,9 +9393,9 @@
 
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
-	* src/s/aix4-2.h, src/s/cygwin.h, src/s/darwin.h:
-	* src/s/gnu-linux.h, src/s/hpux10-20.h, src/s/irix6-5.h:
-	* src/s/sol2-6.h, src/s/unixware.h, src/s/usg5-4-common.h:
+	* s/aix4-2.h, s/cygwin.h, s/darwin.h:
+	* s/gnu-linux.h, s/hpux10-20.h, s/irix6-5.h:
+	* s/sol2-6.h, s/unixware.h, s/usg5-4-common.h:
 	Move PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF to configure.
 
 	* s/cygwin.h, s/darwin.h, s/gnu-linux.h, s/irix6-5.h:
@@ -11202,7 +11202,7 @@
 
 2012-06-13  Glenn Morris  <rgm@gnu.org>
 
-	* s/usg5-4-common.h, src/s/unixware.h:
+	* s/usg5-4-common.h, s/unixware.h:
 	Remove define/undef of HAVE_SYSV_SIGPAUSE (not used since 2010-05-04).
 
 	* s/gnu.h (POSIX_SIGNALS): Remove (not used since 2010-05-04).
@@ -12496,7 +12496,7 @@
 
 2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Remove src/m/*.
+	Remove m/*.
 	This directory predates autoconf and is no longer needed nowadays.
 	Move its few remaining bits of functionality to where they're needed.
 	* m/README, m/alpha.h, m/amdx86-64.h, m/ia64.h, m/ibmrs6000.h:
@@ -22159,7 +22159,7 @@
 2011-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Vcompleting_read_function): Don't declare, global variables
-	are now in src/globals.h.
+	are now in globals.h.
 	(syms_of_minibuf): Remove spurious & from previous change.
 
 2011-03-20  Leo Liu  <sdl.web@gmail.com>

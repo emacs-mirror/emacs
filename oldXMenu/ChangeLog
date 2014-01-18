@@ -654,6 +654,9 @@
 
 	* Internal.c: Declare argument `display' in some functions.
 
+1989-08-09  Joseph Arceneaux  (jla@spiff)
+
+	* Makefile: Removed all the unnecessary X stuff.
 
 ;; Local Variables:
 ;; coding: utf-8

@@ -218,7 +218,7 @@ This will prevent rules from creating duplicate variables or rules."
 	    (def-edebug-spec ede-pmake-insert-variable-shared (form def-body))
 	    ))
 
-;;; Querys
+;;; Queries
 (defun ede-proj-find-compiler (compilers sourcetype)
   "Return a compiler from the list COMPILERS that will compile SOURCETYPE."
   (while (and compilers

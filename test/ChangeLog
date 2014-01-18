@@ -1,3 +1,14 @@
+2014-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/inotify-test.el (inotify-file-watch-simple): Skip test
+	case if inotify is not linked with Emacs.  Use `read-event' rather
+	than `sit-for' in order to process events.  (Bug#13662)
+
+2014-01-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/ert-tests.el (ert-test-record-backtrace): Reenable
+	test case with adapted test string.  (Bug#13064)
+
 2013-12-28  Glenn Morris  <rgm@gnu.org>
 
 	* automated/electric-tests.el: Require 'elec-pair.
@@ -578,7 +589,7 @@
 
 	* automated/file-notify-tests.el
 	(file-notify--test-local-enabled): New defconst.  Replaces all
-	`file-notify-support' occurences.
+	`file-notify-support' occurrences.
 	(file-notify--test-remote-enabled): New defun.
 	(file-notify--deftest-remote): Use it.
 	(file-notify-test00-availability): Rewrite.

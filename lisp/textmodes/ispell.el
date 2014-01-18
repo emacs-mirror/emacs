@@ -3305,7 +3305,8 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
                    ispell-start ispell-end (point-at-eol) in-comment add-comment string)
 		  (if add-comment		; account for comment chars added
 		      (setq ispell-start (- ispell-start (length add-comment))
-			    add-comment nil))
+			    ;; Reset `in-comment' (and indirectly `add-comment') for new line
+			    in-comment nil))
 		  (setq ispell-end (point)) ; "end" tracks region retrieved.
 		  (if string		; there is something to spell check!
 		      ;; (special start end)

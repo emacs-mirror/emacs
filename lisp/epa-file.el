@@ -211,7 +211,8 @@ encryption is used."
 	 (recipients
 	  (cond
 	   ((listp epa-file-encrypt-to) epa-file-encrypt-to)
-	   ((stringp epa-file-encrypt-to) (list epa-file-encrypt-to)))))
+	   ((stringp epa-file-encrypt-to) (list epa-file-encrypt-to))))
+	 buffer)
     (epg-context-set-passphrase-callback
      context
      (cons #'epa-file-passphrase-callback-function
@@ -230,8 +231,18 @@ encryption is used."
 		 (unless start
 		   (setq start (point-min)
 			 end (point-max)))
-		 (epa-file--encode-coding-string (buffer-substring start end)
-						 coding-system))
+		 (setq buffer (current-buffer))
+		 (with-temp-buffer
+		   (insert-buffer-substring buffer start end)
+		   ;; Translate the region according to
+		   ;; `buffer-file-format', as `write-region' would.
+		   ;; We can't simply do `write-region' (into a
+		   ;; temporary file) here, since it writes out
+		   ;; decrypted contents.
+		   (format-encode-buffer (with-current-buffer buffer
+					   buffer-file-format))
+		   (epa-file--encode-coding-string (buffer-string)
+						   coding-system)))
 	       (if (or (eq epa-file-select-keys t)
 		       (and (null epa-file-select-keys)
 			    (not (local-variable-p 'epa-file-encrypt-to

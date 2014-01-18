@@ -1204,7 +1204,7 @@ visiting the deleted files."
 
 (defun todo-edit-file ()
   "Put current buffer in `todo-edit-mode'.
-This makes the entire file visible and the buffer writeable and
+This makes the entire file visible and the buffer writable and
 you can use the self-insertion keys and standard Emacs editing
 commands to make changes.  To return to Todo mode, type
 \\[todo-edit-quit].  This runs a file format check, signaling
@@ -5560,7 +5560,7 @@ already entered and those still available."
 						    (if (or (eq name 'default)
 							    (eq name 'calendar)
 							    (eq name 'here))
-							" { " " ") 
+							" { " " ")
 						    "%s=>%s"
 						    (when (or (eq name 'copy)
 							      (eq name 'dayname)

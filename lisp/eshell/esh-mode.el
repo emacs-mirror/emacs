@@ -482,7 +482,7 @@ and the hook `eshell-exit-hook'."
 (declare-function find-tag-interactive "etags" (prompt &optional no-default))
 
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
-  "A special version of `find-tag' that ignores read-onlyness."
+  "A special version of `find-tag' that ignores whether the text is read-only."
   (interactive)
   (require 'etags)
   (let ((inhibit-read-only t)

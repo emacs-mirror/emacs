@@ -444,7 +444,8 @@ Activates the region if needed.  Only lasts until the region is deactivated."
               (lambda () (rectangle-mark-mode -1)))
     (unless (region-active-p)
       (push-mark)
-      (activate-mark))))
+      (activate-mark)
+      (message "Mark set (rectangle mode)"))))
 
 (defun rectangle--extract-region (orig &optional delete)
   (if (not rectangle-mark-mode)
@@ -553,10 +554,10 @@ Activates the region if needed.  Only lasts until the region is deactivated."
                     (overlay-put ol 'after-string str))))
                ((overlay-get ol 'after-string)
                 (overlay-put ol 'after-string nil)))
-              (when (= leftcol rightcol)
+              (when (and (= leftcol rightcol) (display-graphic-p))
                 ;; Make zero-width rectangles visible!
-                (overlay-put ol 'after-string
-                             (concat (propertize " "
+		(overlay-put ol 'after-string
+			     (concat (propertize " "
                                                  'face '(region (:height 0.2)))
                                      (overlay-get ol 'after-string))))
               (push ol nrol)

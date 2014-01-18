@@ -925,7 +925,10 @@ just return nil (no error)."
 	  (setq filename found)
 	(if noerror
 	    (setq filename nil)
-	  (error "Info file %s does not exist" filename)))
+	  ;; If there is no previous Info file, go to the directory.
+	  (unless Info-current-file
+	    (Info-directory))
+	  (user-error "Info file %s does not exist" filename)))
       filename))))
 
 (defun Info-find-node (filename nodename &optional no-going-back strict-case)
@@ -1245,12 +1248,14 @@ is non-nil)."
 		   (Info-find-index-name Info-point-loc)
 		   (setq Info-point-loc nil))))))
     ;; If we did not finish finding the specified node,
-    ;; go back to the previous one.
-    (or Info-current-node no-going-back (null Info-history)
-        (let ((hist (car Info-history)))
-          (setq Info-history (cdr Info-history))
-          (Info-find-node (nth 0 hist) (nth 1 hist) t)
-          (goto-char (nth 2 hist))))))
+    ;; go back to the previous one or to the Top node.
+    (unless (or Info-current-node no-going-back)
+      (if Info-history
+	  (let ((hist (car Info-history)))
+	    (setq Info-history (cdr Info-history))
+	    (Info-find-node (nth 0 hist) (nth 1 hist) t)
+	    (goto-char (nth 2 hist)))
+	(Info-find-node Info-current-file "Top" t)))))
 
 ;; Cache the contents of the (virtual) dir file, once we have merged
 ;; it for the first time, so we can save time subsequently.

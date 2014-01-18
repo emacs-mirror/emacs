@@ -51,7 +51,7 @@ also limited by the amount of memory in the system.
 @menu
 * Select Buffer::       Creating a new buffer or reselecting an old one.
 * List Buffers::        Getting a list of buffers that exist.
-* Misc Buffer::         Renaming; changing read-onlyness; copying text.
+* Misc Buffer::         Renaming; changing read-only status; copying text.
 * Kill Buffer::         Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
                           and operate variously on several of them.

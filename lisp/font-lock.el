@@ -458,7 +458,7 @@ This variable is set by major modes via the variable `font-lock-defaults'.
 Be careful when composing regexps for this list; a poorly written pattern can
 dramatically slow things down!
 
-A compiled keywords list starts with t.  It is produced internal
+A compiled keywords list starts with t.  It is produced internally
 by `font-lock-compile-keywords' from a user-level keywords list.
 Its second element is the user-level keywords list that was
 compiled.  The remaining elements have the same form as

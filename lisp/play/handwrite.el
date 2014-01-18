@@ -244,7 +244,7 @@ Variables: `handwrite-linespace'     (default 12)
     (insert "showpage exec Hwsave restore\n\n")
     (insert "%%Pages " (number-to-string ipage) " 0\n")
     (insert "%%EOF\n")
-    ;;To avoid cumbersome code we simply ignore pagefeeds
+    ;;To avoid cumbersome code we simply ignore formfeeds
     (goto-char textp)
     (while (search-forward "\f" nil t)
       (replace-match "" nil t) )

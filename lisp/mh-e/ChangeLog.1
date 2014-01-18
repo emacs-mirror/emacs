@@ -145,6 +145,12 @@
 	(xemacs): Depend on autoloads instead of deleted loaddefs-xemacs.
 	(loaddefs-xemacs): Deleted.
 
+2005-08-10  Lars Hansen  <larsh@soem.dk>
+
+	* mh-e.el: Add handler to desktop-buffer-mode-handlers.
+	(mh-restore-desktop-buffer): Remove autoload cookie.
+	(mh-folder-mode): Add autoload cookie.
+
 2005-07-19  Bill Wohler  <wohler@newt.com>
 
 	* README (INSTALL): Added info for Mac users.
@@ -902,6 +908,19 @@
 	* mh-utils.el (mh-mail-header-end): Replace call to
 	rfc822-goto-eoh with something that allows From_ lines in the mail
 	header.
+
+2004-04-26  Lars Hansen  <larsh@math.ku.dk>
+
+	* mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
+
+2004-04-22  Lars Hansen  <larsh@math.ku.dk>
+
+	* mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
+
+2004-04-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
 
 2004-04-14  Bill Wohler  <wohler@newt.com>
 
@@ -9946,7 +9965,7 @@
 	bug that I accidentally introduced by adding an extra line when
 	cut and pasting my changes.
 
-	* mh-func.el (compilation): Code rearrangement to remove compiler
+	* mh-funcs.el (compilation): Code rearrangement to remove compiler
 	warnings.
 
 	* mh-mime.el (compilation): Code rearrangement to remove compiler

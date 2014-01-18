@@ -45,6 +45,15 @@ Date: 	 Tue, 31 Mar 2009 12:21:20 +0900
     for modern source-control systems with a global log, it's better to
     have something like "Regenerate configure".
 
+(4) (Added in 2014) In commit comments, and ChangeLog files, it is best
+    to use ways of identifying revisions that are not dependent on a
+    particular version control system.  (At time of writing Emacs is
+    about to move to its fourth VCS and another move in the future is
+    not impossible.)  An excellent way to identify commits is by
+    quoting their summary line.  Another is with an action stamp - an
+    RFC3339 date followed by ! followed by the committer's email - for
+    example, "2014-01-16T05:43:35Z!esr@thyrsus.com". Often, "my
+    previous commit" will suffice.
 
 Followup discussion:
 http://lists.gnu.org/archive/html/emacs-devel/2010-01/msg00897.html
