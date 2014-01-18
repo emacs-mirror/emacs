@@ -1,3 +1,8 @@
+2014-01-18  Steinar Bang  <sb@dod.no>
+
+	* gnus-setup.el (gnus-use-sendmail): We never use sendmail for mail
+	reading.
+
 2014-01-09  Ken Olum  <kdo@cosmos.phy.tufts.edu>  (tiny change)
 
 	* message.el (message-bury): Call bury-buffer with no argument
