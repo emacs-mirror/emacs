@@ -674,6 +674,8 @@ void ArenaFree(Addr base, Size size, Pool pool)
   Addr limit;
   Reservoir reservoir;
   Res res;
+  Addr wholeBase;
+  Size wholeSize;
 
   AVERT(Pool, pool);
   AVER(base != NULL);
@@ -691,18 +693,53 @@ void ArenaFree(Addr base, Size size, Pool pool)
     arena->lastTract = NULL;
     arena->lastTractBase = (Addr)0;
   }
+  
+  wholeBase = base;
+  wholeSize = size;
 
   if (pool != ReservoirPool(reservoir)) {
     res = ReservoirEnsureFull(reservoir);
-    if (res == ResOK) {
-      (*arena->class->free)(base, size, pool);
-    } else {
+    if (res != ResOK) {
       AVER(ResIsAllocFailure(res));
-      ReservoirDeposit(reservoir, base, size);
+      /* FIXME: This appears to deposit the whole area into the reservoir
+         no matter how big it is, possibly making the reservoir huge. */
+      if (!ReservoirDeposit(reservoir, &base, &size))
+        goto allDeposited;
     }
   }
 
-  EVENT3(ArenaFree, arena, base, size);
+  /* Just in case the shenanigans with the reservoir mucked this up. */
+  AVER(limit == AddrAdd(base, size));
+
+  /* Add the freed address space back into the freeCBS so that ArenaAlloc
+     can find it again. */
+  {
+    RangeStruct rangeStruct;
+    RangeInit(&rangeStruct, base, limit);
+    res = CBSInsert(&rangeStruct, &arena->freeCBS, &rangeStruct);
+    if (res != ResOK) {
+      AVER(size >= ArenaAlign(arena));
+      /* The CBS's MFS doesn't have enough space to describe the free memory.
+         Give it some of the memory we're about to free and try again. */
+      MFSExtend(&arena->freeCBS.blockPoolStruct.poolStruct, base, ArenaAlign(arena));
+      base = AddrAdd(base, ArenaAlign(arena)); /* FIXME: = all chunk's pagesizes */
+      size -= ArenaAlign(arena);
+      if (size == 0)
+        goto allTransferred;
+      RangeInit(&rangeStruct, base, limit);
+      res = CBSInsert(&rangeStruct, &arena->freeCBS, &rangeStruct);
+      AVER(res == ResOK);
+      /* If this fails, we lose some address space forever. */
+    }
+  }
+
+  AVER(limit == AddrAdd(base, size));
+
+  (*arena->class->free)(base, size, pool);
+
+allTransferred:
+allDeposited:
+  EVENT3(ArenaFree, arena, wholeBase, wholeSize);
   return;
 }
 

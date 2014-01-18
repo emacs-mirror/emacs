@@ -255,19 +255,25 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
 
 /* ReservoirDeposit -- Top up the reservoir */
 
-void ReservoirDeposit(Reservoir reservoir, Addr base, Size size)
+Bool ReservoirDeposit(Reservoir reservoir, Addr *baseIO, Size *sizeIO)
 {
   Pool respool;
   Addr addr, limit;
   Size reslimit, alignment;
   Arena arena;
   Tract tract;
+  Addr base;
+  Size size;
 
   AVERT(Reservoir, reservoir);
   arena = reservoirArena(reservoir);
   AVERT(Arena, arena);
   respool = ReservoirPool(reservoir);
   alignment = ArenaAlign(arena);
+  AVER(baseIO != NULL);
+  AVER(sizeIO != NULL);
+  base = *baseIO;
+  size = *sizeIO;
   AVER(AddrIsAligned(base, alignment));
   AVER(SizeIsAligned(size, alignment));
   limit = AddrAdd(base, size);
@@ -284,12 +290,15 @@ void ReservoirDeposit(Reservoir reservoir, Addr base, Size size)
       resTractSetNext(tract, reservoir->reserve);
       reservoir->reserve = tract;
     } else {
-      /* free the tract */
-      (*arena->class->free)(addr, alignment, TractPool(tract));
+      *baseIO = addr;
+      *sizeIO = AddrOffset(base, limit);
+      AVER(reservoirIsConsistent(reservoir));
+      return TRUE;
     }
   }
   AVER(addr == limit);
   AVER(reservoirIsConsistent(reservoir));
+  return FALSE;
 }
 
 
