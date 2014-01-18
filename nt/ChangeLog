@@ -1,3 +1,9 @@
+2014-01-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (ensure_unicows_dll): Don't tell in the message box
+	that "emacs -nw" can do without UNICOWS.DLL on Windows 9X.  See
+	w32.c:maybe_load_unicows_dll and its callers for the reason.
+
 2014-01-11  Claudio Bley  <claudio.bley@googlemail.com>
 
 	* inc/sys/stat.h (_WSTAT_DEFINED): Define, to avoid compilation

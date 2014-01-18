@@ -1,3 +1,20 @@
+2014-01-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix file name handling on MS-Windows 9X.
+	* w32.c (maybe_load_unicows_dll): New function.
+
+	* emacs.c (main) [WINDOWSNT]: Call maybe_load_unicows_dll early
+	on, to make sure we can convert file names to and from UTF-8 on
+	Windows 9X.  This fixes a failure to start up because Emacs cannot
+	find term/w32-win.el.  Reported by oslsachem <oslsachem@gmail.com>.
+
+	* w32font.c [WINDOWSNT]: Include w32.h.
+	(w32_load_unicows_or_gdi32): Call maybe_load_unicows_dll, instead
+	of implementing the same stuff.
+	Remove now unused g_b_init_is_windows_9x.
+
+	* w32.h (maybe_load_unicows_dll): Add prototype.
+
 2014-01-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu.c (Fx_popup_menu): When invoking tty_menu_show, temporarily

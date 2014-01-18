@@ -33,6 +33,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "font.h"
 #include "w32font.h"
+#ifdef WINDOWSNT
+#include "w32.h"
+#endif
 
 /* Cleartype available on Windows XP, cleartype_natural from XP SP1.
    The latter does not try to fit cleartype smoothed fonts into the
@@ -144,7 +147,6 @@ struct font_callback_data
    style variations if the font name is not specified.  */
 static void list_all_matching_fonts (struct font_callback_data *);
 
-static BOOL g_b_init_is_w9x;
 static BOOL g_b_init_get_outline_metrics_w;
 static BOOL g_b_init_get_text_metrics_w;
 static BOOL g_b_init_get_glyph_outline_w;
@@ -183,45 +185,7 @@ typedef BOOL (WINAPI * GetCharWidth32W_Proc) (
 static HMODULE
 w32_load_unicows_or_gdi32 (void)
 {
-  static BOOL is_9x = 0;
-  OSVERSIONINFO os_ver;
-  HMODULE ret;
-  if (g_b_init_is_w9x == 0)
-    {
-      g_b_init_is_w9x = 1;
-      ZeroMemory (&os_ver, sizeof (OSVERSIONINFO));
-      os_ver.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-      if (GetVersionEx (&os_ver))
-	is_9x = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
-    }
-  if (is_9x)
-    {
-      ret = LoadLibrary ("Unicows.dll");
-      if (!ret)
-	{
-	  int button;
-
-	  button = MessageBox (NULL,
-			       "Emacs cannot load the UNICOWS.DLL library.\n"
-			       "This library is essential for using Emacs\n"
-			       "on this system.  You need to install it.\n\n"
-			       "However, you can still use Emacs by invoking\n"
-			       "it with the '-nw' command-line option.\n\n"
-			       "Emacs will exit when you click OK.",
-			       "Emacs cannot load UNICOWS.DLL",
-			       MB_ICONERROR | MB_TASKMODAL
-			       | MB_SETFOREGROUND | MB_OK);
-	  switch (button)
-	    {
-	    case IDOK:
-	    default:
-	      exit (1);
-	    }
-	}
-    }
-  else
-    ret = LoadLibrary ("Gdi32.dll");
-  return ret;
+  return maybe_load_unicows_dll ();
 }
 
 /* The following 3 functions call the problematic "wide" APIs via
@@ -2753,7 +2717,6 @@ versions of Windows) characters.  */);
 void
 globals_of_w32font (void)
 {
-  g_b_init_is_w9x = 0;
   g_b_init_get_outline_metrics_w = 0;
   g_b_init_get_text_metrics_w = 0;
   g_b_init_get_glyph_outline_w = 0;
