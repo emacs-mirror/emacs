@@ -1,3 +1,8 @@
+2014-01-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/common-win.el (saved-region-selection): Defvar it.
+	(x-select-text): Set saved-region-selection (Bug#16382).
+
 2014-01-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases)
