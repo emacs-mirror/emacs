@@ -1,9 +1,8 @@
 ;;; eieio-testsinvoke.el -- eieio tests for method invocation
 
-;; Copyright (C) 2005, 2008, 2010, 2013-2014 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 2005, 2008, 2010, 2013-2014 Free Software Foundation, Inc.
 
-;; Author: Eric. M. Ludlam <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

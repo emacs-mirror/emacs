@@ -47,6 +47,7 @@ This variable is not used by the Nextstep port."
 (defvar x-select-enable-primary)	; x-win.el
 (defvar x-last-selected-text-primary)
 (defvar x-last-selected-text-clipboard)
+(defvar saved-region-selection) 	; simple.el
 
 (defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
@@ -77,6 +78,10 @@ is not used)."
 	     (x-set-selection 'PRIMARY text)
 	     (setq x-last-selected-text-primary text))
 	   (when x-select-enable-clipboard
+	     ;; When cutting, the selection is cleared and PRIMARY set to
+	     ;; the empty string.  Prevent that, PRIMARY should not be reset
+	     ;; by cut (Bug#16382).
+	     (setq saved-region-selection text)
 	     (x-set-selection 'CLIPBOARD text)
 	     (setq x-last-selected-text-clipboard text))))))
 

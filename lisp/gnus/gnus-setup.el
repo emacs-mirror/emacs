@@ -59,7 +59,7 @@
   "Set this if you want to use MH-E for mail reading.")
 (defvar gnus-use-rmail nil
   "Set this if you want to use RMAIL for mail reading.")
-(defvar gnus-use-sendmail t
+(defvar gnus-use-sendmail nil
   "Set this if you want to use SENDMAIL for mail reading.")
 (defvar gnus-use-vm nil
   "Set this if you want to use the VM package for mail reading.")

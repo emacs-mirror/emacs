@@ -749,6 +749,12 @@ main (int argc, char **argv)
      early as possible.  (unexw32.c calls this function as well, but
      the additional call here is harmless.) */
   cache_system_info ();
+#ifdef WINDOWSNT
+  /* On Windows 9X, we have to load UNICOWS.DLL as early as possible,
+     to have non-stub implementations of APIs we need to convert file
+     names between UTF-8 and the system's ANSI codepage.  */
+  maybe_load_unicows_dll ();
+#endif
 #endif
 
 #ifdef RUN_TIME_REMAP

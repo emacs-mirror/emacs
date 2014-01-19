@@ -8923,6 +8923,40 @@ shutdown_handler (DWORD type)
   return FALSE;
 }
 
+/* On Windows 9X, load UNICOWS.DLL and return its handle, or die.  On
+   NT, return a handle to GDI32.DLL.  */
+HANDLE
+maybe_load_unicows_dll (void)
+{
+  if (os_subtype == OS_9X)
+    {
+      HANDLE ret = LoadLibrary ("Unicows.dll");
+      if (ret)
+	return ret;
+      else
+	{
+	  int button;
+
+	  button = MessageBox (NULL,
+			       "Emacs cannot load the UNICOWS.DLL library.\n"
+			       "This library is essential for using Emacs\n"
+			       "on this system.  You need to install it.\n\n"
+			       "Emacs will exit when you click OK.",
+			       "Emacs cannot load UNICOWS.DLL",
+			       MB_ICONERROR | MB_TASKMODAL
+			       | MB_SETFOREGROUND | MB_OK);
+	  switch (button)
+	    {
+	    case IDOK:
+	    default:
+	      exit (1);
+	    }
+	}
+    }
+  else
+    return LoadLibrary ("Gdi32.dll");
+}
+
 /*
 	globals_of_w32 is used to initialize those global variables that
 	must always be initialized on startup even when the global variable

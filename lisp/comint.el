@@ -347,14 +347,12 @@ This variable is buffer-local."
       "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad") t)
    " +\\)"
-   (regexp-opt
-    '("password" "Password" "passphrase" "Passphrase"
-      "pass phrase" "Pass phrase" "Response"))
+   "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
-\\(?: for .+\\)?:\\s *\\'")
+\\(?: for [^:：៖]+\\)?[:：៖]\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "24.1"
+  :version "24.4"
   :type 'regexp
   :group 'comint)
 
@@ -2318,7 +2316,8 @@ process if STRING contains a password prompt defined by
 `comint-password-prompt-regexp'.
 
 This function could be in the list `comint-output-filter-functions'."
-  (when (string-match comint-password-prompt-regexp string)
+  (when (let ((case-fold-search t))
+	  (string-match comint-password-prompt-regexp string))
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
     (send-invisible string)))
@@ -3631,8 +3630,8 @@ This function does not need to be invoked by the end user."
     ;; If we see the prompt, tidy up
     ;; We'll look for the prompt in the original string, so nobody can
     ;; clobber it
-    (and (string-match comint-redirect-finished-regexp 
-                       (concat comint-redirect-previous-input-string 
+    (and (string-match comint-redirect-finished-regexp
+                       (concat comint-redirect-previous-input-string
                                input-string))
 	 (progn
 	   (and comint-redirect-verbose

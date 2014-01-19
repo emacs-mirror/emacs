@@ -975,7 +975,8 @@ is buffer-local."
 	   (display-graphic-p)
 	   overflow-newline-into-fringe
 	   (/= (frame-parameter nil 'right-fringe) 0))
-      (window-width)
+      ;; Call window-text-width instead of window-width (Bug#16470).
+      (window-text-width)
     (1- (window-width))))
 
 

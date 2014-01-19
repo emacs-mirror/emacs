@@ -1,3 +1,39 @@
+2014-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* term.el (term-window-width): Call window-text-width instead of
+	window-width (Bug#16470).
+
+2014-01-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* simple.el (password-word-equivalents): Remove duplicates.
+	Sort, to make this easier next time.
+	Downcase.  Omit ": " after "jelszó".
+
+2014-01-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/common-win.el (saved-region-selection): Defvar it.
+	(x-select-text): Set saved-region-selection (Bug#16382).
+
+2014-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases)
+	(authors-renamed-files-alist): Add some entries.
+
+2014-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-password-prompt-regexp): Use
+	`password-word-equivalents' if available.
+	(tramp-action-password, tramp-process-one-action)
+	(tramp-read-passwd): Let-bind `case-fold-search' to t.  (Bug#13124)
+
+2014-01-17  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (password-word-equivalents): New defcustom.
+	* comint.el (comint-password-prompt-regexp): Use it.  Bump version
+	to 24.4.
+	(comint-watch-for-password-prompt): Let-bind `case-fold-search'
+	to t.  (Bug#13124)
+
 2014-01-17  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-alignable-keywords): New constant.
