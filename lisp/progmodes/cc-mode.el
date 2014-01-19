@@ -1032,15 +1032,16 @@ Note that the style variables are always made local to the buffer."
 		      (list type marked-id
 			    type-pos term-pos
 			    (buffer-substring-no-properties type-pos term-pos)
-			    (buffer-substring-no-properties beg end)))))))
+			      (buffer-substring-no-properties beg end)))))))
 
-	(if c-get-state-before-change-functions
-	    (mapc (lambda (fn)
-		    (funcall fn beg end))
-		  c-get-state-before-change-functions))
-	)))
-  ;; The following must be done here rather than in `c-after-change' because
-  ;; newly inserted parens would foul up the invalidation algorithm.
+	  (if c-get-state-before-change-functions
+	      (let (open-paren-in-column-0-is-defun-start)
+		(mapc (lambda (fn)
+			(funcall fn beg end))
+		      c-get-state-before-change-functions)))
+	  )))
+    ;; The following must be done here rather than in `c-after-change' because
+    ;; newly inserted parens would foul up the invalidation algorithm.
   (c-invalidate-state-cache beg))
 
 (defvar c-in-after-change-fontification nil)
@@ -1062,7 +1063,7 @@ Note that the style variables are always made local to the buffer."
   ;; This calls the language variable c-before-font-lock-functions, if non nil.
   ;; This typically sets `syntax-table' properties.
 
-  (c-save-buffer-state (case-fold-search)
+  (c-save-buffer-state (case-fold-search open-paren-in-column-0-is-defun-start)
     ;; When `combine-after-change-calls' is used we might get calls
     ;; with regions outside the current narrowing.  This has been
     ;; observed in Emacs 20.7.
@@ -1178,7 +1179,8 @@ Note that the style variables are always made local to the buffer."
   ;; 
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
-  (let ((new-beg beg) (new-end end) new-region case-fold-search)
+  (let ((new-beg beg) (new-end end) new-region case-fold-search
+	open-paren-in-column-0-is-defun-start)
     (if c-in-after-change-fontification
 	(setq c-in-after-change-fontification nil)
       (save-restriction
