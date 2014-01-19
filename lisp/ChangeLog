@@ -1,3 +1,8 @@
+2014-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* term.el (term-window-width): Call window-text-width instead of
+	window-width (Bug#16470).
+
 2014-01-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* simple.el (password-word-equivalents): Remove duplicates.
