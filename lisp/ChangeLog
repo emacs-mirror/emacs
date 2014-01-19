@@ -1,3 +1,12 @@
+2014-01-19  Alan Mackenzie  <acm@muc.de>
+
+	Bind open-paren-in-column-0-is-defun-start to nil at some entry
+	points.
+	* progmodes/cc-engine.el (c-invalidate-state-cache-1)
+	(c-parse-state-1, c-guess-basic-syntax):  Bind it here.
+	* progmodes/cc-mode.el (c-before-change, c-after-change)
+	(c-font-lock-fontify-region): Bind it here.
+
 2014-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* term.el (term-window-width): Call window-text-width instead of

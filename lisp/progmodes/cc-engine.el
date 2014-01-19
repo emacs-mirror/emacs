@@ -3183,7 +3183,8 @@ comment at the start of cc-engine.el for more info."
     ;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value
     ;; below `here'.  To maintain its consistency, we may need to insert a new
     ;; brace pair.
-    (let ((here-bol (c-point 'bol here))
+    (let (open-paren-in-column-0-is-defun-start
+	  (here-bol (c-point 'bol here))
 	  too-high-pa		  ; recorded {/(/[ next above here, or nil.
 	  dropped-cons		  ; was the last removed element a brace pair?
 	  pa)
@@ -3254,6 +3255,7 @@ comment at the start of cc-engine.el for more info."
   ;; This function might do hidden buffer changes.
   (let* ((here (point))
 	 (here-bopl (c-point 'bopl))
+	 open-paren-in-column-0-is-defun-start
 	 strategy	     ; 'forward, 'backward etc..
 	 ;; Candidate positions to start scanning from:
 	 cache-pos	     ; highest position below HERE already existing in
@@ -9370,7 +9372,8 @@ comment at the start of cc-engine.el for more info."
     (c-save-buffer-state
 	((indent-point (point))
 	 (case-fold-search nil)
-	 ;; A whole ugly bunch of various temporary variables.  Have
+	 open-paren-in-column-0-is-defun-start
+	 ;; A whole ugly bunch of various temporary variables.	Have
 	 ;; to declare them here since it's not possible to declare
 	 ;; a variable with only the scope of a cond test and the
 	 ;; following result clauses, and most of this function is a
