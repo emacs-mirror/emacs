@@ -182,7 +182,7 @@ inserted.  They return the string as it should be inserted."
   :group 'eshell-mode)
 
 (defcustom eshell-password-prompt-regexp
-  "[Pp]ass\\(word\\|phrase\\).*:\\s *\\'"
+  (format "\\(%s\\).*:\\s *\\'" (regexp-opt password-word-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
@@ -947,11 +947,12 @@ buffer's process if STRING contains a password prompt defined by
 This function could be in the list `eshell-output-filter-functions'."
   (when (eshell-interactive-process)
     (save-excursion
-      (goto-char eshell-last-output-block-begin)
-      (beginning-of-line)
-      (if (re-search-forward eshell-password-prompt-regexp
-			     eshell-last-output-end t)
-	  (eshell-send-invisible)))))
+      (let ((case-fold-search t))
+	(goto-char eshell-last-output-block-begin)
+	(beginning-of-line)
+	(if (re-search-forward eshell-password-prompt-regexp
+			       eshell-last-output-end t)
+	    (eshell-send-invisible))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)
