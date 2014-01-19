@@ -1,3 +1,13 @@
+2014-01-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32font.c (w32_load_unicows_or_gdi32, get_outline_metrics_w)
+	(get_text_metrics_w, get_glyph_outline_w, get_char_width_32_w)
+	[!WINDOWSNT]: These functions are no longer compiled on Cygwin;
+	they are replaced by macros that expand into direct calls to the
+	corresponding functions from GDI32.DLL.
+	(globals_of_w32font) [WINDOWSNT]: Don't initialize g_b_* static
+	variables in the Cygwin build, they are unused.
+
 2014-01-19  K. Handa  <handa@gnu.org>
 
 	* composite.c (composition_update_it): Fix previous change.

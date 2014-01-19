@@ -147,6 +147,8 @@ struct font_callback_data
    style variations if the font name is not specified.  */
 static void list_all_matching_fonts (struct font_callback_data *);
 
+#ifdef WINDOWSNT
+
 static BOOL g_b_init_get_outline_metrics_w;
 static BOOL g_b_init_get_text_metrics_w;
 static BOOL g_b_init_get_glyph_outline_w;
@@ -244,8 +246,8 @@ get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
 				   lpvBuffer, lpmat2);
 }
 
-static DWORD WINAPI get_char_width_32_w (HDC hdc, UINT uFirstChar,
-					 UINT uLastChar, LPINT lpBuffer)
+static DWORD WINAPI
+get_char_width_32_w (HDC hdc, UINT uFirstChar, UINT uLastChar, LPINT lpBuffer)
 {
   static GetCharWidth32W_Proc s_pfn_Get_Char_Width_32W = NULL;
   HMODULE hm_unicows = NULL;
@@ -260,6 +262,18 @@ static DWORD WINAPI get_char_width_32_w (HDC hdc, UINT uFirstChar,
   eassert (s_pfn_Get_Char_Width_32W != NULL);
   return s_pfn_Get_Char_Width_32W (hdc, uFirstChar, uLastChar, lpBuffer);
 }
+
+#else  /* Cygwin */
+
+/* Cygwin doesn't support Windows 9X, and links against GDI32.DLL, so
+   it can just call these functions directly.  */
+#define get_outline_metrics_w(h,d,o)   GetOutlineTextMetricsW(h,d,o)
+#define get_text_metrics_w(h,t)        GetTextMetricsW(h,t)
+#define get_glyph_outline_w(h,uc,f,gm,b,v,m) \
+                                       GetGlyphOutlineW(h,uc,f,gm,b,v,m)
+#define get_char_width_32_w(h,fc,lc,b) GetCharWidth32W(h,fc,lc,b)
+
+#endif	/* Cygwin */
 
 static int
 memq_no_quit (Lisp_Object elt, Lisp_Object list)
@@ -2717,8 +2731,10 @@ versions of Windows) characters.  */);
 void
 globals_of_w32font (void)
 {
+#ifdef WINDOWSNT
   g_b_init_get_outline_metrics_w = 0;
   g_b_init_get_text_metrics_w = 0;
   g_b_init_get_glyph_outline_w = 0;
   g_b_init_get_char_width_32_w = 0;
+#endif
 }
