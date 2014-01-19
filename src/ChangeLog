@@ -1,3 +1,7 @@
+2014-01-19  K. Handa  <handa@gnu.org>
+
+	* composite.c (composition_update_it): Fix previous change.
+
 2014-01-18  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix file name handling on MS-Windows 9X.
