@@ -1,3 +1,36 @@
+2014-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	update-game-score fixes for -m and integer overflow (Bug#16428)
+	* update-game-score.c: Include inttypes.h, stdbool.h.
+	(min): New macro, if not already defined.
+	(MAX_SCORES, main): Limit the maximum number of scores only from
+	limits imposed by the underyling platform, instead of the
+	arbitrary value 200.
+	(struct score_entry, main, read_score, write_score):
+	Scores are now intmax_t, not long.
+	(get_user_id): Reject user names containing spaces or newlines,
+	as they would mess up the score file.
+	Allow uids that don't fit in 'long'.
+	Increase the size of the buffer, to avoid overrun in weird cases.
+	(get_prefix, main): Use bool for boolean.
+	(main): Rewrite expr to avoid possibility of signed integer
+	overflow.  Don't allow newlines in data, as this would mess up
+	the score file.  Check for memory allocation failure when adding
+	the new score, or when unlockint the file.  Implement -m.
+	(read_score): Check for integer overflow when reading a score.
+	(read_score) [!HAVE_GETDELIM]: Check for integer overflow when
+	data gets very long.  Check only for space to delimit names,
+	since that's what's done in the HAVE_GETDELIM case.
+	(read_scores): New parameter ALLOC.  Change counts to ptrdiff_t.
+	All uses changed.  Use push_score to add individual scores;
+	that's simpler than repeating its contents.
+	(score_compare_reverse): Simplify.
+	(push_score): New parameter SIZE.  Change counts to ptrdiff_t.
+	All uses changed.  Check for integer overflow of size calculation.
+	(sort_scores, write_scores): Change counts to ptrdiff_t.
+	(unlock_file): Preserve errno on success, so that storage
+	exhaustion is diagnosed correctly.
+
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Spelling fixes.
