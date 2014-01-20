@@ -57,11 +57,6 @@ decompress gzip- and zlib-format compressed data.
 ** Emacs for NS (Mac OS X, GNUstep) can be built with ImageMagick support.
 This requires pkg-config to be available at configure time.
 
-** New Core Text based font backend for Mac OS X 10.5 and newer.
-GNUstep and Mac OS X 10.4 use the old font backend.
-To use the old backend by default, do on the command line:
-% defaults write org.gnu.Emacs FontBackend ns
-
 
 * Startup Changes in Emacs 24.4
 
@@ -765,32 +760,34 @@ with an indented sample file.
 
 ** Todo mode has been rewritten and enhanced.
 New features include:
-- support for multiple todo files and archive files of done items;
-- renaming, reordering, moving, merging, and deleting categories;
-- sortable tabular summaries of categories and the types of items they contain;
-- cross-category lists of items filtered by specific criteria;
-- more fine-grained interaction with the Emacs diary, by being able to decide
-  for each todo item whether it appears in the Fancy Diary display;
-- highly flexible new item insertion and item editing;
-- moving items between categories, storing done items in their category or in
-  archive files, undoing or unarchiving done items;
-- reprioritizing items by inputting a numerical priority;
-- extensive customizability of operation and display, including numerous faces.
-The Todo mode user manual describes all commands and most user options.
-To support some of these features, a new file format is used, which is
-incompatible with the old format; however, you can convert old todo and done
-item files to the new format on initializing the first new todo file, or at any
-later time with the provided conversion command.  The old version of
-todo-mode.el has been made obsolete and renamed otodo-mode.el.
+*** Support for multiple todo files and archive files of done items
+*** Renaming, reordering, moving, merging, and deleting categories
+*** Sortable tabular summaries of categories and the types of items they contain
+*** Cross-category lists of items filtered by specific criteria
+*** More fine-grained interaction with the Emacs diary, by being able to decide
+  for each todo item whether it appears in the Fancy Diary display
+*** Highly flexible new item insertion and item editing
+*** Moving items between categories, storing done items in their category or in
+  archive files, undoing or unarchiving done items
+*** Reprioritizing items by inputting a numerical priority
+*** Extensive customizability of operation and display, including numerous faces
 
-** trace-function was largely rewritten.
-New features include:
-- no prompting for the destination buffer, unless a prefix-arg was used.
-- additionally to prompting for a destination buffer, when a prefix-arg is
-  used, the user can enter a "context", i.e. Lisp expression whose value at the
-  time the function is entered/exited will be printed along with the function
-  name and arguments.  Useful to trace the value of (current-buffer) or
-  (point) when the function is invoked.
+The Todo mode user manual describes all commands and most user
+options.  To support some of these features, a new file format is
+used, which is incompatible with the old format; however, you can
+convert old todo and done item files to the new format on initializing
+the first new todo file, or at any later time with the provided
+conversion command.  The previous version of todo-mode.el has been
+renamed to otodo-mode.el and is now obsolete.
+
+** trace-function
+
+*** No prompting for the destination buffer, unless a prefix argument is used.
+
+*** With a prefix argument, you can enter a "context"; i.e., a Lisp
+expression whose value at the time the function is entered/exited will
+be printed along with the function name and arguments.  For example,
+you can use this to trace the value of current-buffer or point.
 
 ** Tramp
 
@@ -887,10 +884,12 @@ as a single word, similar to what `subword-mode' does.
 +++
 ** New package nadvice.el offers lighter-weight advice facilities.
 It is layered as:
-- add-function/remove-function which can be used to add/remove code on any
-  function-carrying place, such as process-filters or `<foo>-function' hooks.
-- advice-add/advice-remove to add/remove a piece of advice on a named function,
-  much like `defadvice' does.
+
+*** add-function/remove-function, which can be used to add/remove code on any
+function-carrying place, such as process-filters or `<foo>-function' hooks.
+
+*** advice-add/advice-remove to add/remove a piece of advice on a named
+function,much like `defadvice' does.
 
 ** New package frameset.el.
 It provides a set of operations to save a frameset (the state of all
@@ -1331,14 +1330,19 @@ edited in another Emacs session or by another user.  See the node
 "Interlocking" in the Emacs User Manual for the details.  To disable
 file locking, customize `create-lockfiles' to nil.
 
-** Improved fullscreen support on Mac OS X.
-Both native (>= Mac OS X 10.7) and "old style" fullscreen are supported.
-Customize `ns-use-native-fullscreen' to change style.  For >= 10.7
-native is the default.
+** New Core Text based font backend for Mac OS X 10.5 and newer.
+GNUstep and Mac OS X 10.4 use the old font backend.
+To use the old backend by default, do on the command line:
+% defaults write org.gnu.Emacs FontBackend ns
 
-** Mac OS X >= 10.7 can use sRGB colorspace.
-Customize `ns-use-srgb-colorspace' to change style.  t is the default.
-Note: This does not apply to images.
+** Improved fullscreen support on Mac OS X.
+Emacs supports both native (Mac OS X 10.7 and newer) and "old style" fullscreen.
+Customize `ns-use-native-fullscreen' to change the style.
+For Mac OS X 10.7 and newer, native is the default.
+
+** On Mac OS X 10.7 and newer, Emacs uses sRGB colorspace by default.
+Customize `ns-use-srgb-colorspace' to disable this.  Note that this
+does not apply to images.
 
 
 * Installation Changes in Emacs 24.3
