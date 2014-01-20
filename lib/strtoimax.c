@@ -28,20 +28,24 @@
 #include "verify.h"
 
 #ifdef UNSIGNED
-# ifndef HAVE_DECL_STRTOULL
+# if HAVE_UNSIGNED_LONG_LONG_INT
+#  ifndef HAVE_DECL_STRTOULL
 "this configure-time declaration test was not run"
-# endif
-# if !HAVE_DECL_STRTOULL && HAVE_UNSIGNED_LONG_LONG_INT
+#  endif
+#  if !HAVE_DECL_STRTOULL
 unsigned long long int strtoull (char const *, char **, int);
+#  endif
 # endif
 
 #else
 
-# ifndef HAVE_DECL_STRTOLL
+# if HAVE_LONG_LONG_INT
+#  ifndef HAVE_DECL_STRTOLL
 "this configure-time declaration test was not run"
-# endif
-# if !HAVE_DECL_STRTOLL && HAVE_LONG_LONG_INT
+#  endif
+#  if !HAVE_DECL_STRTOLL
 long long int strtoll (char const *, char **, int);
+#  endif
 # endif
 #endif
 

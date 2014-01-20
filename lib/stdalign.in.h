@@ -95,7 +95,8 @@
 #if !defined __STDC_VERSION__ || __STDC_VERSION__ < 201112
 # if defined __cplusplus && 201103 <= __cplusplus
 #  define _Alignas(a) alignas (a)
-# elif __GNUC__ || __IBMC__ || __IBMCPP__ || __ICC || 0x5110 <= __SUNPRO_C
+# elif (__GNUC__ || __HP_cc || __HP_aCC || __IBMC__ || __IBMCPP__ \
+        || __ICC || 0x5110 <= __SUNPRO_C)
 #  define _Alignas(a) __attribute__ ((__aligned__ (a)))
 # elif 1300 <= _MSC_VER
 #  define _Alignas(a) __declspec (align (a))

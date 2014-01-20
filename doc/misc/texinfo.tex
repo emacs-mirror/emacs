@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2014-01-06.16}
+\def\texinfoversion{2014-01-16.10}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -8334,8 +8334,9 @@ end
 %
 % Auto-number footnotes.  Otherwise like plain.
 \gdef\footnote{%
-  %\let\indent=\ptexindent
-  %\let\noindent=\ptexnoindent
+  \let\indent=\ptexindent
+  \let\noindent=\ptexnoindent
+  %
   \global\advance\footnoteno by \@ne
   \edef\thisfootno{$^{\the\footnoteno}$}%
   %
@@ -8359,6 +8360,11 @@ end
 %
 \gdef\dofootnote{%
   \insert\footins\bgroup
+  %
+  % Nested footnotes are not supported in TeX, that would take a lot
+  % more work.  (\startsavinginserts does not suffice.)
+  \let\footnote=\errfootnote
+  %
   % We want to typeset this text as a normal paragraph, even if the
   % footnote reference occurs in (for example) a display environment.
   % So reset some parameters.
@@ -8396,13 +8402,19 @@ end
 }
 }%end \catcode `\@=11
 
+\def\errfootnote{%
+  \errhelp=\EMsimple
+  \errmessage{Nested footnotes not supported in texinfo.tex,
+    even though they work in makeinfo; sorry}
+}
+
 % In case a @footnote appears in a vbox, save the footnote text and create
 % the real \insert just after the vbox finished.  Otherwise, the insertion
 % would be lost.
 % Similarly, if a @footnote appears inside an alignment, save the footnote
 % text to a box and make the \insert when a row of the table is finished.
 % And the same can be done for other insert classes.  --kasal, 16nov03.
-
+%
 % Replace the \insert primitive by a cheating macro.
 % Deeper inside, just make sure that the saved insertions are not spilled
 % out prematurely.

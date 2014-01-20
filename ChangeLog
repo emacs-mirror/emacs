@@ -1,3 +1,12 @@
+2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-01-20 stdalign: port to HP-UX compilers
+	2014-01-16 strtoimax: port to platforms lacking 'long long'
+	2014-01-16 update from texinfo
+	* doc/misc/texinfo.tex, lib/stdalign.in.h, lib/strtoimax.c:
+	Update from gnulib.
+
 2014-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* README: Replace reference to etc/MAILINGLISTS.
