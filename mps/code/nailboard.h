@@ -20,23 +20,24 @@ typedef struct NailboardStruct {
   RangeStruct range; /* range covered by nailboard */
   Shift markShift;  /* to convert offset into bit index for mark */
   BT mark;          /* mark table used to record ambiguous fixes */
-
   Count nails;      /* no. of ambigFixes, not necessarily distinct */
   Count distinctNails; /* number of distinct ambigFixes */
-  Bool newMarks;    /* set to TRUE if a new mark bit is added */
+  Bool newNails;    /* set to TRUE if a new nail is set */
 } NailboardStruct;
 
 #define NailboardSig ((Sig)0x5194A17B) /* SIGnature NAILBoard */
 
 extern Bool NailboardCheck(Nailboard board);
-extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range);
+extern Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit);
 extern void NailboardDestroy(Nailboard board);
 extern Align NailboardAlignment(Nailboard board);
+extern void NailboardClearNewNails(Nailboard board);
+extern Bool NailboardNewNails(Nailboard board);
 extern Bool NailboardGet(Nailboard board, Addr addr);
 extern Bool NailboardSet(Nailboard board, Addr addr);
-extern void NailboardSetRange(Nailboard board, Range range);
-extern Bool NailboardIsSetRange(Nailboard board, Range range);
-extern Bool NailboardIsResetRange(Nailboard board, Range range);
+extern void NailboardSetRange(Nailboard board, Addr base, Addr limit);
+extern Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit);
+extern Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit);
 
 #endif /* nailboard.h */
 
