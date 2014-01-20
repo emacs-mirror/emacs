@@ -1,3 +1,8 @@
+2014-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (move-beginning-of-line): Make sure we don't move forward
+	(bug#16497).
+
 2014-01-20  Juri Linkov  <juri@jurta.org>
 
 	* saveplace.el (toggle-save-place, save-place-to-alist)

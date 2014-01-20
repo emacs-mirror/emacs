@@ -5534,9 +5534,9 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
       (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
 
-    ;; Now find first visible char in the line
-    (while (and (not (eobp)) (invisible-p (point)))
-      (goto-char (next-char-property-change (point))))
+    ;; Now find first visible char in the line.
+    (while (and (< (point) orig) (invisible-p (point)))
+      (goto-char (next-char-property-change (point) orig)))
     (setq first-vis (point))
 
     ;; See if fields would stop us from reaching FIRST-VIS.
