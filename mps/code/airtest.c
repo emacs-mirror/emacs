@@ -15,25 +15,26 @@
 #include "fmtscheme.h"
 #include "testlib.h"
 
+#define OBJ_LEN (1u << 4)
+#define OBJ_COUNT 10
+
 void test_main(void)
 {
-  size_t size = 1u << 8;
   size_t i, j;
-  char *s[10];
-  for (j = 0; j < 10; ++j) {
-    obj_t obj = scheme_make_string(size, NULL);
+  obj_t *s[OBJ_COUNT];
+  mps_message_type_enable(scheme_arena, mps_message_type_finalization());
+  for (j = 0; j < OBJ_COUNT; ++j) {
+    obj_t n = scheme_make_integer((long)j);
+    obj_t obj = scheme_make_vector(OBJ_LEN, n);
     mps_addr_t ref = obj;
     mps_finalize(scheme_arena, &ref);
-    s[j] = obj->string.string;
-    *s[j]++ = '0' + (char)j;
-    *s[j] = '\0';
+    s[j] = obj->vector.vector;
   }
-  mps_message_type_enable(scheme_arena, mps_message_type_finalization());
-  for (i = 0; i + 3 < size; ++i) {
+  for (i = 1; i < OBJ_LEN; ++i) {
+    obj_t n = scheme_make_integer((long)i);
     mps_message_t msg;
-    for (j = 0; j < 10; ++j) {
-      *s[j]++ = '.';
-      *s[j] = '\0';
+    for (j = 0; j + 1 < OBJ_COUNT; ++j) {
+      *++s[j] = n;
     }
     mps_arena_collect(scheme_arena);
     mps_arena_release(scheme_arena);
@@ -42,7 +43,7 @@ void test_main(void)
       obj_t o;
       mps_message_finalization_ref(&ref, scheme_arena, msg);
       o = ref;
-      error("wrongly finalized '%s' at %p", o->string.string, o);
+      error("wrongly finalized vector %ld at %p", o->vector.vector[0]->integer.integer, o);
     }
   }
 }
