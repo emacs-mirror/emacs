@@ -89,7 +89,8 @@ BIG_STACK_DEPTH = 2200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
-BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
+BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) \
+  --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
@@ -106,7 +107,8 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
-emacs = EMACSLOADPATH='$(lisp)' '$(EMACS)' $(EMACSOPT)
+# Prevent any setting of EMACSLOADPATH in user environment causing problems.
+emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)
 
 # Common command to find subdirectories
 setwins=for file in `find . -type d -print`; do \

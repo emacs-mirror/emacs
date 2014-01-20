@@ -4345,7 +4345,7 @@ init_lread (void)
 #ifdef CANNOT_DUMP
   bool use_loadpath = true;
 #else
-  bool use_loadpath = !NILP (Vpurify_flag);
+  bool use_loadpath = NILP (Vpurify_flag);
 #endif
 
   if (use_loadpath && egetenv ("EMACSLOADPATH"))
@@ -4388,7 +4388,7 @@ init_lread (void)
             }
         }                       /* Fmemq (Qnil, Vload_path) */
     }
-  else                          /* Vpurify_flag || !EMACSLOADPATH */
+  else
     {
       Vload_path = load_path_default ();
 
@@ -4405,7 +4405,7 @@ init_lread (void)
           sitelisp = decode_env_path (0, PATH_SITELOADSEARCH, 0);
           if (! NILP (sitelisp)) Vload_path = nconc2 (sitelisp, Vload_path);
         }
-    }                           /* !Vpurify_flag && EMACSLOADPATH */
+    }
 
   Vvalues = Qnil;
 

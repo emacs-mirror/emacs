@@ -1,3 +1,10 @@
+2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert some of the CANNOT_DUMP fix (Bug#16494).
+	Because of this, "make bootstrap" won't work if CANNOT_DUMP=yes,
+	but fixing this can wait until after the next release.
+	* Makefile.in (emacs): Keep EMACSLOADPATH empty.
+
 2014-01-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/esh-mode.el (eshell-password-prompt-regexp):

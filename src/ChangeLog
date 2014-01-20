@@ -1,3 +1,8 @@
+2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert some of the CANNOT_DUMP fix (Bug#16494).
+	* lread.c (init_lread): Fix typo: NILP, not !NILP.
+
 2014-01-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32font.c (w32_load_unicows_or_gdi32, get_outline_metrics_w)

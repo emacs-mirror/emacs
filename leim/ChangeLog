@@ -1,3 +1,8 @@
+2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert some of the CANNOT_DUMP fix (Bug#16494).
+	* Makefile.in (RUN_EMACS): Keep EMACSLOADPATH empty.
+
 2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Sync better from sources.
