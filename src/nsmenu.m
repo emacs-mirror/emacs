@@ -1096,7 +1096,7 @@ update_frame_tool_bar (struct frame *f)
       /* Check if this is a separator.  */
       if (EQ (TOOLPROP (TOOL_BAR_ITEM_TYPE), Qt))
         {
-          /* Skip separators.  Newer OSX don't show them, and on GNUStep they
+          /* Skip separators.  Newer OSX don't show them, and on GNUstep they
              are wide as a button, thus overflowing the toolbar most of
              the time.  */
           continue;
@@ -1936,7 +1936,7 @@ void
 syms_of_nsmenu (void)
 {
 #ifndef NS_IMPL_COCOA
-  /* Don't know how to keep track of this in Next/Open/Gnustep.  Always
+  /* Don't know how to keep track of this in Next/Open/GNUstep.  Always
      update menus there.  */
   trackingMenu = 1;
 #endif

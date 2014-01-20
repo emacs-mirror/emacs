@@ -51,7 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef __OBJC__
 
-/* CGFloat on GNUStep may be 4 or 8 byte, but functions expect float* for some
+/* CGFloat on GNUstep may be 4 or 8 byte, but functions expect float* for some
    versions.
    On Cocoa >= 10.5, functions expect CGFloat*. Make compatible type.  */
 #ifdef NS_IMPL_COCOA

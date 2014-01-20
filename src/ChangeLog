@@ -1103,9 +1103,9 @@
 
 2013-12-08  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsterm.m (updateFrameSize:): Fix GNUStep toolbar not updating.
+	* nsterm.m (updateFrameSize:): Fix GNUstep toolbar not updating.
 
-	* emacs.c (main): Call fixup_locale a second time for GNUStep.
+	* emacs.c (main): Call fixup_locale a second time for GNUstep.
 
 2013-12-08  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1147,7 +1147,7 @@
 
 	* nsterm.m (x_set_window_size): Remove fprintf.
 	(init): Define always.  Set applicationDidFinishLaunchingCalled
-	for GNUStep.
+	for GNUstep.
 	(applicationDidFinishLaunching:):
 	Set applicationDidFinishLaunchingCalled.
 	(applicationDidBecomeActive:): Call applicationDidFinishLaunching if
@@ -2610,7 +2610,7 @@
 
 	* nsterm.m (Qcocoa, Qgnustep): New variables.
 	(syms_of_nsterm): Defsym Qcocoa, Qgnustep.  Fprovide appropriate one.
-	(ns_get_color): Make selection color work for GNUStep also.
+	(ns_get_color): Make selection color work for GNUstep also.
 
 2013-10-18  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3868,7 +3868,7 @@
 2013-09-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fx_create_frame): Fix font driver registration for
-	GNUStep.
+	GNUstep.
 
 	* font.c (syms_of_font): Check MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
 	for syms_of_macfont.
@@ -7120,7 +7120,7 @@
 	init_process_emacs, undoing 06-22 change.  If CYGWIN, do not
 	tickle glib, as that causes Cygwin bootstrap to fail.  Do not
 	set lib_child_handler if it's already initialized, which may
-	help avoid problems on GNUStep.
+	help avoid problems on GNUstep.
 
 2013-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -7828,7 +7828,7 @@
 	NS_IMPL_COCOA.
 	(x_set_cursor_type): Remove declaration.
 	(ns_update_begin): Only use r and bp if NS_IMPL_COCOA.
-	(ns_update_end, ns_focus, ns_unfocus): Remove GNUStep specific code.
+	(ns_update_end, ns_focus, ns_unfocus): Remove GNUstep specific code.
 	(x_set_window_size): Remove 3 pixels from toolbar if NS_IMPL_GNUSTEP.
 	(ns_get_color): Use F suffix on float.
 	(ns_color_to_lisp, ns_query_color): Use EmacsCGFloat.
@@ -7850,7 +7850,7 @@
 	(changeFont:): size is CGFloat.
 	(keyDown:): Check for Delete when NS_IMPL_GNUSTEP.
 	Disable warning about permanent text.
-	(characterIndexForPoint:): Adjust return type depending on GNUStep
+	(characterIndexForPoint:): Adjust return type depending on GNUstep
 	version.
 	(mouseDown:): delta is CGFloat.
 	(updateFrameSize): Remove unised variable f.
@@ -7868,7 +7868,7 @@
 	(mouseDragged:): Remove unised variable edge.
 	(EmacsDocument): Implement for NS_IMPL_GNUSTEP.
 
-	* nsterm.h (EmacsCGFloat): Typedef for OSX and GNUStep when the size
+	* nsterm.h (EmacsCGFloat): Typedef for OSX and GNUstep when the size
 	of CGFloat differs.
 	(EmacsApp): New variable nextappdefined.  Declare sendFromMainThread
 	when NS_IMPL_GNUSTEP.
@@ -7884,7 +7884,7 @@
 	(x_activate_menubar): Surround with ifdef NS_IMPL_COCOA
 	(fillWithWidgetValue:): Add cast to SEL for setAction.
 	(addSubmenuWithTitle:forFrame:): Add cast to SEL for action.
-	(update_frame_tool_bar): Update code for GNUStep.
+	(update_frame_tool_bar): Update code for GNUstep.
 	(clearAll): New method.
 	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
 	argument.  Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
@@ -7913,8 +7913,8 @@
 	(Fns_read_file_name): Keep track if panel is for save.
 	Use ns_filename_from_panel/ns_directory_from_panel.
 	(Fns_list_services): delegate only used for COCOA.
-	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.
-	Just return the input if GNUStep.
+	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUstep.
+	Just return the input if GNUstep.
 	(x_screen_planes): Remove.
 	(Fxw_color_values): Use EmacsCGFloat
 	(Fns_display_monitor_attributes_list): Only get screen number for

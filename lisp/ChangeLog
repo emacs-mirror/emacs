@@ -3571,7 +3571,7 @@
 	* term/ns-win.el (ns-initialize-window-system): Rename Help to Info
 	in menu bar.
 
-	* menu-bar.el: Move GNUStep specific menus...
+	* menu-bar.el: Move GNUstep specific menus...
 
 	* term/ns-win.el (ns-initialize-window-system): ... to here.
 

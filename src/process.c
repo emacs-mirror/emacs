@@ -6232,7 +6232,7 @@ handle_child_signal (int sig)
 
   lib_child_handler (sig);
 #ifdef NS_IMPL_GNUSTEP
-  /* NSTask in GNUStep sets its child handler each time it is called.
+  /* NSTask in GNUstep sets its child handler each time it is called.
      So we must re-set ours.  */
   catch_child_signal();
 #endif

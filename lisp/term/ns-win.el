@@ -898,7 +898,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
   (x-open-connection (system-name) nil t)
 
-  ;; Add GNUStep menu items Services, Hide and Quit.  Rename Help to Info
+  ;; Add GNUstep menu items Services, Hide and Quit.  Rename Help to Info
   ;; and put it first (i.e. omit from menu-bar-final-items.
   (if (featurep 'gnustep)
       (progn

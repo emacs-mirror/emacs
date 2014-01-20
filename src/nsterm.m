@@ -3433,7 +3433,7 @@ ns_send_appdefined (int value)
   /*NSTRACE (ns_send_appdefined); */
 
 #ifdef NS_IMPL_GNUSTEP
-  // GNUStep needs postEvent to happen on the main thread.
+  // GNUstep needs postEvent to happen on the main thread.
   if (! [[NSThread currentThread] isMainThread])
     {
       EmacsApp *app = (EmacsApp *)NSApp;
@@ -3503,7 +3503,7 @@ check_native_fs ()
 }
 #endif
 
-/* GNUStep and OSX <= 10.4 does not have cancelTracking.  */
+/* GNUstep and OSX <= 10.4 does not have cancelTracking.  */
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
 /* Check if menu open should be canceled or continued as normal.  */
@@ -5750,7 +5750,7 @@ not_in_argv (NSString *arg)
   if (! [self isFullscreen])
     {
 #ifdef NS_IMPL_GNUSTEP
-      // GNUStep does not always update the tool bar height.  Force it.
+      // GNUstep does not always update the tool bar height.  Force it.
       if (toolbar) update_frame_tool_bar (emacsframe);
 #endif
 
@@ -7648,7 +7648,7 @@ Default is t for OSX >= 10.7, nil otherwise. */);
   DEFVAR_BOOL ("ns-use-srgb-colorspace", ns_use_srgb_colorspace,
      doc: /*Non-nil means to use sRGB colorspace on OSX >= 10.7.
 Note that this does not apply to images.
-This variable is ignored on OSX < 10.7 and GNUStep.  Default is t. */);
+This variable is ignored on OSX < 10.7 and GNUstep.  Default is t. */);
   ns_use_srgb_colorspace = YES;
 
   /* TODO: move to common code */

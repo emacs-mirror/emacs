@@ -1227,7 +1227,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_NS
   ns_pool = ns_alloc_autorelease_pool ();
 #ifdef NS_IMPL_GNUSTEP
-  /* GNUStep stupidly resets our locale settings after we made them.  */
+  /* GNUstep stupidly resets our locale settings after we made them.  */
   fixup_locale ();
 #endif
 
