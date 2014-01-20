@@ -7,7 +7,7 @@ Nailboards for ambiguously referenced segments
 :Author: Gareth Rees
 :Date: 2014-01-15
 :Status: incomplete design
-:Revision: $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/design/freelist.txt#1 $
+:Revision: $Id$
 :Copyright: See section `Copyright and License`_.
 :Index terms: pair: nailboard; design
 
@@ -42,12 +42,12 @@ _`.req.set`: A nailboard must be able set a nail corresponding to any
 address in the range covered. (Because ambiguous references may have
 arbitrary values.)
 
-_`.req.get`: A nailboard must be able to determine if any nail is set
-in a continguous range. (Because we must preserve the whole object if
-there is any ambiguous reference to it.)
+_`.req.range`: A nailboard must be able to determine if any nail is
+set in a continguous range. (Because we must preserve the whole object
+if there is any ambiguous reference to it.)
 
-_`.req.get.cost`: Determining if any nail is set in a continuous range
-must be cheap. That is, it must take time that is no more than
+_`.req.range.cost`: Determining if any nail is set in a continuous
+range must be cheap. That is, it must take time that is no more than
 logarithmic in the size of the range. (Because scanning overhead must
 be proportional to the number of objects, not to their size.)
 
@@ -60,7 +60,7 @@ Interface
 ``Nailboard`` is the type of a nailboard. It is an alias for
 ``NailboardStruct *``.
 
-``Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Range range)``
+``Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment, Addr base, Addr limit)``
 
 Allocate a nailboard in the control pool for ``arena``, to cover the
 given range of addresses, which must be non-empty. If successful, set
@@ -79,29 +79,40 @@ Destroy the nailboard and reclaim the associated space.
 Return the granularity of the nailboard (the ``alignment`` value that
 was originally passed to ``NailboardCreate``).
 
+``void NailboardClearNewNails(Nailboard board)``
+
+Clear the "new nails" flag in the nailboard.
+
+``Bool NailboardNewNails(Nailboard board)``
+
+Return ``TRUE`` if any new nails have been set in the nailboard since
+the last call to ``NailboardClearNewNails`` (or since the nailboard
+was created, if there have never been any such calls), ``FALSE``
+otherwise.
+
 ``Bool NailboardGet(Nailboard board, Addr addr)``
 
 Return the nail in the nailboard corresponding to the address
 ``addr``. It is an error if ``addr`` does not lie in the range covered
 by the nailboard.
 
-``Bool NailboardGet(Nailboard board, Addr addr)``
+``Bool NailboardSet(Nailboard board, Addr addr)``
 
 Set the nail in the nailboard corresponding to the address ``addr``.
 Return the old nail at that position. It is an error if ``addr`` does
 not lie in the range covered by the nailboard.
 
-``void NailboardSetRange(Nailboard board, Range range)``
+``void NailboardSetRange(Nailboard board, Addr base, Addr limit)``
 
 Set all nails in the nailboard corresponding to the given range. It is
 an error if any nail in the range is set.
 
-``Bool NailboardIsSetRange(Nailboard board, Range range)``
+``Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)``
 
 Return ``TRUE`` if all nails are set in the given range, or ``FALSE``
 if any nail is unset.
 
-``Bool NailboardIsResetRange(Nailboard board, Range range)``
+``Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)``
 
 Return ``TRUE`` if no nails are set in the given range, or ``FALSE``
 if any nail is set.

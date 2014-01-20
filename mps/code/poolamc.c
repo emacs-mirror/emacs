@@ -24,6 +24,7 @@ typedef struct amcGenStruct *amcGen;
 /* forward declarations */
 
 static Bool amcSegHasNailboard(Seg seg);
+static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
@@ -275,7 +276,7 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
   if(res != ResOK)
     return res;
 
-  res = WriteF(stream, "  Map:  *===:object  bbbb:buffer\n", NULL);
+  res = WriteF(stream, "  Map:  *===:object  @+++:nails  bbbb:buffer\n", NULL);
   if(res != ResOK)
     return res;
 
@@ -292,18 +293,21 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     if(res != ResOK)
       return res;
 
-    /* @@@@ This needs to describe nailboards as well */
     /* @@@@ This misses a header-sized pad at the end. */
     for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
       if(j >= limit)
         c = ' ';  /* if seg is not a whole number of print rows */
       else if(j >= init)
         c = 'b';
-      else if(j == p) {
-        c = '*';
-        p = (pool->format->skip)(p);
-      } else {
-        c = '=';
+      else {
+        Bool nailed = amcSegHasNailboard(seg)
+          && NailboardGet(amcSegNailboard(seg), j);
+        if(j == p) {
+          c = (nailed ? '@' : '*');
+          p = (pool->format->skip)(p);
+        } else {
+          c = (nailed ? '+' : '=');
+        }
       }
       res = WriteF(stream, "$C", c, NULL);
       if(res != ResOK)
@@ -728,18 +732,14 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
   amcSeg amcseg;
   Nailboard board;
   Arena arena;
-  RangeStruct range;
   Res res;
 
   amcseg = Seg2amcSeg(seg);
   AVER(!amcSegHasNailboard(seg));
   arena = PoolArena(pool);
 
-  /* [I wonder what this comment is referring to?  2007-07-11 DRJ] */
-  /* See d.m.p.Nailboard.size. */
-  RangeInit(&range, SegBase(seg),
-            AddrAdd(SegLimit(seg), pool->format->headerSize));
-  res = NailboardCreate(&board, arena, pool->alignment, &range);
+  res = NailboardCreate(&board, arena, pool->alignment, 
+                        SegBase(seg), SegLimit(seg));
   if (res != ResOK)
     return res;
   amcseg->board = board;
@@ -1166,24 +1166,6 @@ static void AMCRampEnd(Pool pool, Buffer buf)
 }
 
 
-/* amcBufferUnusedRange -- initialize range to contain the unused
- * range of client addresses in the buffer attached to seg. */
-static void amcSegBufferUnusedRange(Range range, Seg seg)
-{
-  Buffer buffer;
-  Size headerSize;
-
-  AVER(range != NULL);
-  AVERT(Seg, seg);
-
-  buffer = SegBuffer(seg);
-  headerSize = SegPool(seg)->format->headerSize;
-  RangeInit(range,
-            AddrAdd(BufferScanLimit(buffer), headerSize),
-            AddrAdd(BufferLimit(buffer), headerSize));
-}
-
-
 /* AMCWhiten -- condemn the segment for the trace
  *
  * If the segment has a mutator buffer on it, we nail the buffer,
@@ -1230,9 +1212,9 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
               return ResOK;
             }
             if(BufferScanLimit(buffer) != BufferLimit(buffer)) {
-              RangeStruct range;
-              amcSegBufferUnusedRange(&range, seg);
-              NailboardSetRange(amcSegNailboard(seg), &range);
+              NailboardSetRange(amcSegNailboard(seg),
+                                BufferScanLimit(buffer),
+                                BufferLimit(buffer));
             }
             ++trace->nailCount;
             SegSetNailed(seg, TraceSetSingle(trace));
@@ -1243,10 +1225,10 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
           }
         } else {
           /* We have a nailboard, the buffer must be nailed already. */
-          RangeStruct range;
-          amcSegBufferUnusedRange(&range, seg);
-          AVER((BufferScanLimit(buffer) == BufferLimit(buffer))
-               || NailboardIsSetRange(amcSegNailboard(seg), &range));
+          AVER(BufferScanLimit(buffer) == BufferLimit(buffer)
+               || NailboardIsSetRange(amcSegNailboard(seg), 
+                                      BufferScanLimit(buffer),
+                                      BufferLimit(buffer)));
           /* Nail it for this trace as well. */
           SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace));
         }
@@ -1309,10 +1291,49 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* amcScanNailedRange -- make one scanning pass over a range of
+ * addresses in a nailed segment.
+ */
+static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
+                              Size *bytesScanned, ScanState ss,
+                              Pool pool, Nailboard board,
+                              Addr base, Addr limit)
+{
+  Format format;
+  Size headerSize;
+  Addr p;
+  format = pool->format;
+  headerSize = format->headerSize;
+  p = base;
+  while (p < limit) {
+    Addr clientP, q, clientQ;
+    clientP = AddrAdd(p, headerSize);
+    clientQ = (*format->skip)(clientP);
+    q = AddrSub(clientQ, headerSize);
+    if (!NailboardIsResRange(board, p, q)) {
+      Res res;
+      res = (*format->scan)(&ss->ss_s, clientP, clientQ);
+      if(res != ResOK) {
+        *totalReturn = FALSE;
+        *moreReturn = TRUE;
+        return res;
+      }
+      *bytesScanned += AddrOffset(p, q);
+    } else {
+      *totalReturn = FALSE;
+    }
+    AVER(p < q);
+    p = q;
+  }
+  AVER(p == limit);
+  return ResOK;
+}
+
+
 /* amcScanNailedOnce -- make one scanning pass over a nailed segment
  *
- * *totalReturn set to TRUE iff all objects in segment scanned.
- * *moreReturn set to FALSE only if there are no more objects
+ * *totalReturn is set to TRUE iff all objects in segment scanned.
+ * *moreReturn is set to FALSE only if there are no more objects
  * on the segment that need scanning (which is normally the case).
  * It is set to TRUE if scanning had to be abandoned early on, and
  * also if during emergency fixing any new marks got added to the
@@ -1322,72 +1343,43 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
                              ScanState ss, Pool pool, Seg seg, AMC amc)
 {
   Addr p, limit;
-  Format format;
-  Res res;
-  Bool total = TRUE;
   Size bytesScanned = 0;
+  Nailboard board;
+  Res res;
 
   EVENT3(AMCScanBegin, amc, seg, ss); /* TODO: consider using own event */
 
-  format = pool->format;
-  amcSegNailboard(seg)->newMarks = FALSE;
+  *totalReturn = TRUE;
+  board = amcSegNailboard(seg);
+  NailboardClearNewNails(board);
 
-  p = AddrAdd(SegBase(seg), format->headerSize);
+  p = SegBase(seg);
   while(SegBuffer(seg) != NULL) {
-    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
-                    format->headerSize);
+    limit = BufferScanLimit(SegBuffer(seg));
     if(p >= limit) {
       AVER(p == limit);
       goto returnGood;
     }
-    while(p < limit) {
-      Addr q;
-      q = (*format->skip)(p);
-      if(NailboardGet(amcSegNailboard(seg), p)) {
-        res = (*format->scan)(&ss->ss_s, p, q);
-        if(res != ResOK) {
-          *totalReturn = FALSE;
-          *moreReturn = TRUE;
-          return res;
-        }
-        bytesScanned += AddrOffset(p, q);
-      } else {
-        total = FALSE;
-      }
-      p = q;
-    }
-    AVER(p == limit);
+    res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned, 
+                             ss, pool, board, p, limit);
+    if (res != ResOK)
+      return res;
+    p = limit;
   }
 
-  /* Should have a ScanMarkedRange or something like that @@@@ */
-  /* to abstract common code. */
-  limit = AddrAdd(SegLimit(seg), format->headerSize);
+  limit = SegLimit(seg);
   /* @@@@ Shouldn't p be set to BufferLimit here?! */
-  while(p < limit) {
-    Addr q;
-    q = (*format->skip)(p);
-    if(NailboardGet(amcSegNailboard(seg), p)) {
-      res = (*format->scan)(&ss->ss_s, p, q);
-      if(res != ResOK) {
-        *totalReturn = FALSE;
-        *moreReturn = TRUE;
-        return res;
-      }
-      bytesScanned += AddrOffset(p, q);
-    } else {
-      total = FALSE;
-    }
-    p = q;
-  }
-  AVER(p == limit);
+  res = amcScanNailedRange(totalReturn, moreReturn, &bytesScanned,
+                           ss, pool, board, p, limit);
+  if (res != ResOK)
+    return res;
 
 returnGood:
   EVENT3(AMCScanEnd, amc, seg, ss); /* TODO: consider using own event */
 
   AVER(bytesScanned <= SegSize(seg));
   ss->scannedSize += bytesScanned;
-  *totalReturn = total;
-  *moreReturn = amcSegNailboard(seg)->newMarks;
+  *moreReturn = NailboardNewNails(board);
   return ResOK;
 }
 
@@ -1657,9 +1649,14 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   newRef = (*format->isMoved)(ref);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
+    Addr clientQ;
+    clientQ = (*format->skip)(ref);
+
     /* If object is nailed already then we mustn't copy it: */
-    if(SegNailed(seg) != TraceSetEMPTY
-       && (!amcSegHasNailboard(seg) || NailboardGet(amcSegNailboard(seg), ref))) {
+    if (SegNailed(seg) != TraceSetEMPTY
+        && !(amcSegHasNailboard(seg)
+             && NailboardIsResRange(amcSegNailboard(seg), ref, clientQ)))
+    {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
@@ -1685,7 +1682,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     buffer = gen->forward;
     AVER_CRITICAL(buffer != NULL);
 
-    length = AddrOffset(ref, (*format->skip)(ref));  /* .exposed.seg */
+    length = AddrOffset(ref, clientQ);  /* .exposed.seg */
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
@@ -1740,6 +1737,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AMC amc;
   Res res;
   Format format;       /* cache of pool->format */
+  Size headerSize;     /* cache of pool->format->headerSize */
   Ref ref;             /* reference to be fixed */
   Ref newRef;          /* new location, if moved */
   Addr newBase;        /* base address of new copy */
@@ -1786,9 +1784,9 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   amc = Pool2AMC(pool);
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
+  headerSize = format->headerSize;
   ref = *refIO;
-  AVER_CRITICAL(AddrAdd(SegBase(seg), pool->format->headerSize)
-                <= ref);
+  AVER_CRITICAL(AddrAdd(SegBase(seg), headerSize) <= ref);
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
@@ -1798,9 +1796,16 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   newRef = (*format->isMoved)(ref);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
+    Addr clientQ;
+    clientQ = (*format->skip)(ref);
+
     /* If object is nailed already then we mustn't copy it: */
-    if(SegNailed(seg) != TraceSetEMPTY
-       && (!amcSegHasNailboard(seg) || NailboardGet(amcSegNailboard(seg), ref))) {
+    if (SegNailed(seg) != TraceSetEMPTY
+        && !(amcSegHasNailboard(seg)
+             && NailboardIsResRange(amcSegNailboard(seg),
+                                    AddrSub(ref, headerSize),
+                                    AddrSub(clientQ, headerSize))))
+    {
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
@@ -1826,12 +1831,10 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     buffer = gen->forward;
     AVER_CRITICAL(buffer != NULL);
 
-    length = AddrOffset(ref, (*format->skip)(ref));  /* .exposed.seg */
+    length = AddrOffset(ref, clientQ);  /* .exposed.seg */
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
-      Size headerSize = format->headerSize;
-
       res = BUFFER_RESERVE(&newBase, buffer, length, FALSE);
       if (res != ResOK)
         goto returnRes;
@@ -1901,27 +1904,28 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   /* see <design/poolamc/#nailboard.limitations> for improvements */
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
-  p = AddrAdd(SegBase(seg), headerSize);
+  p = SegBase(seg);
   if(SegBuffer(seg) != NULL) {
     limit = BufferScanLimit(SegBuffer(seg));
   } else {
     limit = SegLimit(seg);
   }
-  limit = AddrAdd(limit, headerSize);
   p1 = p;
   while(p < limit) {
-    Addr q;
+    Addr clientP, q, clientQ;
     Size length;
     Bool preserve;
-    q = (*format->skip)(p);
+    clientP = AddrAdd(p, headerSize);
+    clientQ = (*format->skip)(clientP);
+    q = AddrSub(clientQ, headerSize);
     length = AddrOffset(p, q);
     if(amcSegHasNailboard(seg)) {
-      preserve = NailboardGet(amcSegNailboard(seg), p);
+      preserve = !NailboardIsResRange(amcSegNailboard(seg), p, q);
     } else {
       /* There's no nailboard, so preserve everything that hasn't been
        * forwarded. In this case, preservedInPlace* become somewhat
        * overstated. */
-      preserve = !(*format->isMoved)(p);
+      preserve = !(*format->isMoved)(clientP);
     }
     if(preserve) {
       ++preservedInPlaceCount;
@@ -1930,7 +1934,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         obj1pip = TRUE;
     } else {
       /* Replace forwarding pointer / unreachable object with pad. */
-      (*format->pad)(AddrSub(p, headerSize), length);
+      (*format->pad)(p, length);
       bytesReclaimed += length;
     }
     

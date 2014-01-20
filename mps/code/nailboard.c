@@ -20,7 +20,7 @@ Bool NailboardCheck(Nailboard board)
   CHECKL(RangeCheck(&board->range));
   /* nails is >= number of set bits in mark, but we can't check this */
   /* We know that shift corresponds to pool->align. */
-  CHECKL(BoolCheck(board->newMarks));
+  CHECKL(BoolCheck(board->newNails));
   CHECKL(board->distinctNails <= board->nails);
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
@@ -28,7 +28,7 @@ Bool NailboardCheck(Nailboard board)
 }
 
 Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
-                    Range range)
+                    Addr base, Addr limit)
 {
   void *p;
   Nailboard board;
@@ -37,7 +37,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
 
   AVER(boardReturn != NULL);
   AVERT(Arena, arena);
-  AVERT(Range, range);
+  AVER(base < limit);
 
   res = ControlAlloc(&p, arena, sizeof(NailboardStruct), FALSE);
   if(res != ResOK)
@@ -46,9 +46,9 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   board->arena = arena;
   board->nails = (Count)0;
   board->distinctNails = (Count)0;
-  board->newMarks = FALSE;
+  board->newNails = FALSE;
   board->markShift = SizeLog2((Size)alignment);
-  RangeInitCopy(&board->range, range);
+  RangeInit(&board->range, base, limit);
   bits = RangeSize(&board->range) >> board->markShift;
   res = ControlAlloc(&p, arena, BTSize(bits), FALSE);
   if(res != ResOK)
@@ -82,7 +82,17 @@ void NailboardDestroy(Nailboard board)
 
 Align NailboardAlignment(Nailboard board)
 {
-    return (Align)1 << board->markShift;
+  return (Align)1 << board->markShift;
+}
+
+void NailboardClearNewNails(Nailboard board)
+{
+  board->newNails = FALSE;
+}
+
+Bool NailboardNewNails(Nailboard board)
+{
+  return board->newNails;
 }
 
 /* nailboardIndex -- return the index of the nail corresponding to addr */
@@ -90,6 +100,22 @@ Align NailboardAlignment(Nailboard board)
 static Index nailboardIndex(Nailboard board, Addr addr)
 {
   return AddrOffset(RangeBase(&board->range), addr) >> board->markShift;
+}
+
+/* nailboardIndexRange -- update *ibaseReturn and *ilimitReturn to be
+ * the indexes of the nail corresponding to base and limit
+ * respectively.
+ */
+static void nailboardIndexRange(Index *ibaseReturn, Index *ilimitReturn,
+                                Nailboard board, Addr base, Addr limit)
+{
+  AVERT(Nailboard, board);
+  AVER(RangeBase(&board->range) <= base);
+  AVER(base <= limit);
+  AVER(limit <= RangeLimit(&board->range));
+
+  *ibaseReturn = nailboardIndex(board, base);
+  *ilimitReturn = nailboardIndex(board, limit);
 }
 
 Bool NailboardGet(Nailboard board, Addr addr)
@@ -110,55 +136,36 @@ Bool NailboardSet(Nailboard board, Addr addr)
   i = nailboardIndex(board, addr);
   if (!BTGet(board->mark, i)) {
     BTSet(board->mark, i);
-    board->newMarks = TRUE;
+    board->newNails = TRUE;
     ++ board->distinctNails;
     return FALSE;
   }
   return TRUE;
 }
 
-void NailboardSetRange(Nailboard board, Range range)
+void NailboardSetRange(Nailboard board, Addr base, Addr limit)
 {
   Index ibase, ilimit;
-
-  AVERT(Nailboard, board);
-  AVERT(Range, range);
-  AVER(RangesNest(&board->range, range));
-
-  ibase = nailboardIndex(board, RangeBase(range));
-  ilimit = nailboardIndex(board, RangeLimit(range));
-
+  nailboardIndexRange(&ibase, &ilimit, board, base, limit);
   AVER(BTIsResRange(board->mark, ibase, ilimit));
   BTSetRange(board->mark, ibase, ilimit);
   board->nails += ilimit - ibase;
   board->distinctNails += ilimit - ibase;
 }
 
-Bool NailboardIsSetRange(Nailboard board, Range range)
+Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
 {
   Index ibase, ilimit;
-
-  AVERT(Nailboard, board);
-  AVERT(Range, range);
-  AVER(RangesNest(&board->range, range));
-
-  ibase = nailboardIndex(board, RangeBase(range));
-  ilimit = nailboardIndex(board, RangeLimit(range));
+  nailboardIndexRange(&ibase, &ilimit, board, base, limit);
   return board->distinctNails >= ilimit - ibase
     && BTIsSetRange(board->mark, ibase, ilimit);
 }
 
-Bool NailboardIsResetRange(Nailboard board, Range range)
+Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
 {
   Index ibase, ilimit;
-
-  AVERT(Nailboard, board);
-  AVERT(Range, range);
-  AVER(RangesNest(&board->range, range));
-
-  ibase = nailboardIndex(board, RangeBase(range));
-  ilimit = nailboardIndex(board, RangeLimit(range));
-  return BTIsResetRange(board->mark, ibase, ilimit);
+  nailboardIndexRange(&ibase, &ilimit, board, base, limit);
+  return BTIsResRange(board->mark, ibase, ilimit);
 }
 
 
