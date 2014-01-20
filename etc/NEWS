@@ -62,10 +62,6 @@ For GNUStep and OSX 10.4 the old backend is used.
 To use the old backend by default, do on the command line:
 % defaults write org.gnu.Emacs FontBackend ns
 
-** If your Emacs was built from a repository checkout, the new variable
-`emacs-repository-version' contains information about the bzr revision used.
-In 24.3 this variable was `emacs-bzr-version`.
-
 
 * Startup Changes in Emacs 24.4
 
@@ -255,6 +251,10 @@ file to load.  If this is non-nil, then when both .el and .elc
 versions of a file exist, and the caller did not explicitly specify
 which one to load, then the newer file is loaded.  The default, nil,
 means to always load the .elc file.
+
+---
+** `emacs-bzr-version' has been renamed to `emacs-repository-version',
+and works for git too.
 
 
 * Editing Changes in Emacs 24.4
@@ -522,7 +522,7 @@ This is useful to avoid a query when you have no key for that name.
 ** ERC
 
 *** New option `erc-accidental-paste-threshold-seconds'.
-If set to a number, this can be used to avoid accidentally paste large
+If set to a number, this can be used to avoid accidentally pasting large
 amounts of data into the ERC input.
 
 +++
@@ -770,14 +770,13 @@ whether it is safe to use Bash's --noediting option.  These days
 
 ** Shell Script mode
 
-*** `sh-mode' now has the mode own `add-log-current-defun-function'.
-You can pick the name of the function and the variables with `C-x 4 a'.
+*** `sh-mode' now has its own setting for `add-log-current-defun-function'.
 
 *** The SMIE indentation engine is now used by default.
 
 ** SMIE indentation can be customized via `smie-config'.
-The customization can be guessed by Emacs by providing a sample indented
-file and letting SMIE learn from it.
+Emacs can learn the appropriate indentation settings if you provide it
+with an indented sample file.
 
 ** Term mode
 
@@ -814,7 +813,7 @@ New features include:
 
 ** Tramp
 
-*** The experimental url syntax for remote file names is withdrawn.
+*** The experimental url syntax for remote file names has been removed.
 
 +++
 *** New connection method "adb", which allows to access Android
@@ -862,8 +861,10 @@ because it is moved to vc-cvs.el.
 
 ** VHDL mode
 
+---
 *** New options: `vhdl-actual-generic-name', `vhdl-beautify-options'.
 
+---
 *** New commands: `vhdl-fix-statement-region', `vhdl-fix-statement-buffer'.
 
 ** Woman
@@ -900,10 +901,9 @@ has not been relevant for some time.
 ** New package `eww' is a built-in web browser.
 It is only available if Emacs is compiled with libxml2 support.
 
-** New minor mode `superword-mode', defined in subword.el
-`superword-mode' overrides the default word motion commands to treat
-symbol_words as a single word, similar to what `subword-mode' does and
-using the same internal functions.
+** New minor mode `superword-mode'.
+This overrides the default word motion commands to treat "symbol_words"
+as a single word, similar to what `subword-mode' does.
 
 +++
 ** New package nadvice.el offers lighter-weight advice facilities.
@@ -928,18 +928,19 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 * Incompatible Lisp Changes in Emacs 24.4
 
 ---
-** `kill-region' lost its `yank-handler' optional argument.
+** `kill-region' has lost its `yank-handler' optional argument.
 
 +++
-** `(input-pending-p)' no longer runs other timers which are ready to
-run.  The new optional CHECK-TIMERS param allows for the prior behavior.
+** `(input-pending-p)' no longer runs other timers that are ready to run.
+The new optional CHECK-TIMERS parameter allows for the prior behavior.
 
 +++
 ** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
 ---
-** The syntax of ?» and ?« is now punctuation instead of matched parens.
-Some languages match those as »...« and others as «...» so better stay neutral.
+** The syntax of ?Â» and ?Â« is now punctuation instead of matched parens.
+Some languages match those as Â»...Â«, and others as Â«...Â», so it is
+better for Emacs to stay neutral by default.
 
 ---
 ** In compiled Lisp files, the header no longer includes a timestamp.
@@ -958,7 +959,7 @@ It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
 
 ** Default process filters and sentinels are not nil any more.
-Instead they default to a function which does what the nil value used to do.
+Instead they default to a function that does what the nil value used to do.
 
 +++
 ** `read-event' does not return decoded chars in ttys any more.
@@ -968,11 +969,11 @@ input, according to `keyboard-coding-system', is not performed in
 done before input-decode-map, function-key-map, etc.
 
 ---
-** Removed `inhibit-local-menu-bar-menus'.
+** The option `inhibit-local-menu-bar-menus' has been removed.
 
 ---
 ** Frame-local variables that affect redisplay do not work any more.
-More specifically, the redisplay does not bother to check for a frame-local
+More specifically, redisplay does not bother to check for a frame-local
 value when looking up variables.
 
 +++
@@ -1088,7 +1089,7 @@ displaying the buffer in a window.
 *** `bool-vector-count-population'
 
 +++
-** Comparison functions =, <, >, <=, >= now take many arguments.
+** Comparison functions =, <, >, <=, >= can now take many arguments.
 
 ** Error-handling changes
 
@@ -1098,7 +1099,8 @@ displaying the buffer in a window.
 *** `with-demoted-errors' takes an additional argument `format'.
 
 +++
-** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
+** New macro `with-eval-after-load'.
+This is like the old `eval-after-load', but better behaved.
 
 ** New library subr-x.el for misc helper functions
 +++
@@ -1178,7 +1180,7 @@ used in place of the 9th element of `file-attributes'.
 argument, with the same interpretation as the returned value of
 `visited-file-modtime'.
 
-** Changes in autorevert.el
+** Autorevert changes
 
 ---
 *** If Emacs is compiled with file notification support, notifications
