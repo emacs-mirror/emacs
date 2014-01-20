@@ -748,7 +748,7 @@ that it matches symbols, and non-symbol characters between symbols.
 ** New SES command `ses-rename-cell' allows assigning names to SES cells.
 
 ---
-** The shell.el option `explcit-bash-args' includes --noediting by default.
+** The shell.el option `explicit-bash-args' includes --noediting by default.
 All non-ancient Bash versions support this option.
 
 ** Shell Script mode
