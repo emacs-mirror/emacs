@@ -27,6 +27,9 @@
 ;; C code (like hash-tables and strings), and are not eligible for inclusion
 ;; in subr.el.
 
+;; Do not document these functions in the lispref.
+;; http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01006.html
+
 ;;; Code:
 
 (defsubst hash-table-keys (hash-table)

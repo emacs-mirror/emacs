@@ -1,3 +1,8 @@
+2014-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* hash.texi (Other Hash): Do not mention subr-x.el functions;
+	reverts 2013-12-22 change.
+
 2014-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Advising Functions): New section.
