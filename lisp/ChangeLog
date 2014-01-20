@@ -1,5 +1,11 @@
 2014-01-20  Juri Linkov  <juri@jurta.org>
 
+	* saveplace.el (toggle-save-place, save-place-to-alist)
+	(save-places-to-alist, save-place-dired-hook): Add (derived-mode-p
+	'dired-mode) before checking for dired-directory.  (Bug#16477)
+
+2014-01-20  Juri Linkov  <juri@jurta.org>
+
 	* indent.el (indent-line-to): Use backward-to-indentation
 	instead of back-to-indentation.  (Bug#16461)
 

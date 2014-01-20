@@ -152,7 +152,8 @@ file:
 
 \(setq-default save-place t\)"
   (interactive "P")
-  (if (not (or buffer-file-name dired-directory))
+  (if (not (or buffer-file-name (and (derived-mode-p 'dired-mode)
+				     dired-directory)))
       (message "Buffer `%s' not visiting a file or directory" (buffer-name))
     (if (and save-place (or (not parg) (<= parg 0)))
 	(progn
@@ -172,10 +173,11 @@ file:
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))
   (let ((item (or buffer-file-name
-                  (and dired-directory
-		       (if (consp dired-directory)
-			   (expand-file-name (car dired-directory))
-			 (expand-file-name dired-directory))))))
+                  (and (derived-mode-p 'dired-mode)
+		       dired-directory
+		       (expand-file-name (if (consp dired-directory)
+					     (car dired-directory)
+					   dired-directory))))))
     (when (and item
                (or (not save-place-ignore-files-regexp)
                    (not (string-match save-place-ignore-files-regexp
@@ -184,7 +186,8 @@ file:
             (position (cond ((eq major-mode 'hexl-mode)
 			     (with-no-warnings
 			       (1+ (hexl-current-address))))
-			    (dired-directory
+			    ((and (derived-mode-p 'dired-mode)
+				  dired-directory)
 			     (let ((filename (dired-get-filename nil t)))
 			       (if filename
 				   `((dired-filename . ,filename))
@@ -301,7 +304,8 @@ may have changed\) back to `save-place-alist'."
       (with-current-buffer (car buf-list)
 	;; save-place checks buffer-file-name too, but we can avoid
 	;; overhead of function call by checking here too.
-	(and (or buffer-file-name dired-directory)
+	(and (or buffer-file-name (and (derived-mode-p 'dired-mode)
+				       dired-directory))
 	     (save-place-to-alist))
 	(setq buf-list (cdr buf-list))))))
 
@@ -321,9 +325,11 @@ may have changed\) back to `save-place-alist'."
 (defun save-place-dired-hook ()
   "Position the point in a dired buffer."
   (or save-place-loaded (load-save-place-alist-from-file))
-  (let ((cell (assoc (if (consp dired-directory)
-			 (expand-file-name (car dired-directory))
-		       (expand-file-name dired-directory))
+  (let ((cell (assoc (and (derived-mode-p 'dired-mode)
+			  dired-directory
+			  (expand-file-name (if (consp dired-directory)
+						(car dired-directory)
+					      dired-directory)))
 		     save-place-alist)))
     (if cell
         (progn
