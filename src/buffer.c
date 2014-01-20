@@ -573,7 +573,9 @@ even if it is dead.  The return value is never nil.  */)
   BUF_END_UNCHANGED (b) = 0;
   BUF_BEG_UNCHANGED (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
-  b->text->inhibit_shrinking = 0;
+  b->text->inhibit_shrinking = false;
+  if (USE_VALGRIND)
+    b->text->redisplay = false;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;

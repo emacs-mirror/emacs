@@ -65,6 +65,15 @@ typedef bool bool_bf;
 # define ADDRESS_SANITIZER false
 #endif
 
+/* True if Emacs might be run under valgrind.  */
+#ifndef USE_VALGRIND
+# if defined ENABLE_CHECKING && defined HAVE_VALGRIND_VALGRIND_H
+#  define USE_VALGRIND true
+# else
+#  define USE_VALGRIND false
+# endif
+#endif
+
 #ifdef DARWIN_OS
 #ifdef emacs
 #define malloc unexec_malloc
