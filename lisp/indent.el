@@ -265,7 +265,7 @@ indentation by specifying a large negative ARG."
   "Indent current line to COLUMN.
 This function removes or adds spaces and tabs at beginning of line
 only if necessary.  It leaves point at end of indentation."
-  (back-to-indentation)
+  (backward-to-indentation 0)
   (let ((cur-col (current-column)))
     (cond ((< cur-col column)
 	   (if (>= (- column (* (/ cur-col tab-width) tab-width)) tab-width)
@@ -274,7 +274,7 @@ only if necessary.  It leaves point at end of indentation."
 	   (indent-to column))
 	  ((> cur-col column) ; too far right (after tab?)
 	   (delete-region (progn (move-to-column column t) (point))
-			  (progn (back-to-indentation) (point)))))))
+			  (progn (backward-to-indentation 0) (point)))))))
 
 (defun current-left-margin ()
   "Return the left margin to use for this line.

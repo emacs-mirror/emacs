@@ -1,3 +1,8 @@
+2014-01-20  Juri Linkov  <juri@jurta.org>
+
+	* indent.el (indent-line-to): Use backward-to-indentation
+	instead of back-to-indentation.  (Bug#16461)
+
 2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert some of the CANNOT_DUMP fix (Bug#16494).
