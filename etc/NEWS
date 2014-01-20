@@ -54,11 +54,11 @@ function `zlib-decompress-region' becomes available, which can
 decompress gzip- and zlib-format compressed data.
 
 ---
-** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.
-pkg-config is required to find ImageMagick libraries.
+** Emacs for NS (Mac OS X, GNUstep) can be built with ImageMagick support.
+This requires pkg-config to be available at configure time.
 
-** For OSX >= 10.5, the Core text based font backend from the Mac port is used.
-For GNUStep and OSX 10.4 the old backend is used.
+** New Core Text based font backend for Mac OS X 10.5 and newer.
+GNUstep and Mac OS X 10.4 use the old font backend.
 To use the old backend by default, do on the command line:
 % defaults write org.gnu.Emacs FontBackend ns
 
@@ -164,25 +164,24 @@ non-nil, they output the same results.
 +++
 *** The key `?' now describes prefix bindings, like `C-h'.
 
-*** The command `describe-function' was extended for EIEIO.
+*** The command `describe-function' has been extended for EIEIO.
 Running it on constructors will show a full description of the
 generated class.  For generic functions, it will show all
 implementations together with links to the source.  The old commands
 `describe-class', `describe-constructor' and `describe-generic' were
 removed.
 
-*** The command `quail-help' is deleted.  Use `C-h C-\'
-(`describe-input-method') instead.
+*** The command `quail-help' has been removed.
+Use `C-h C-\' (`describe-input-method') instead.
 
 ** ImageMagick
 
 +++
-*** ImageMagick images now support the :max-width and :max-height
-keywords.
+*** ImageMagick images now support the :max-width and :max-height keywords.
 
-*** Some data types aren't auto-detected by ImageMagick.  Adding
-:format to `create-image' may help if the content type is in the
-new variable `image-format-suffixes'.
+*** Some data types aren't auto-detected by ImageMagick.
+Adding :format to `create-image' may help if the content type is in
+the new variable `image-format-suffixes'.
 
 ** Frame and window changes
 
@@ -228,22 +227,27 @@ integers (octal, hexadecimal, and character).
 +++
 ** `cache-long-line-scans' has been renamed to `cache-long-scans'
 because it affects caching of paragraph scanning results as well.
+Also, it is now enabled by default.
 
 ---
 ** The option `set-mark-default-inactive' has been deleted.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
 
-** The default value of `comment-use-global-state' is changed to t,
+** The default value of `comment-use-global-state' is now t,
 and this variable has been marked obsolete.
+
+---
+** `emacs-bzr-version' has been renamed to `emacs-repository-version',
+and works for git too.
 
 ** New user options:
 
 *** `read-regexp-defaults-function' defines a function to read regexps,
-used by commands like `rgrep', `lgrep' `occur', `highlight-regexp',
-etc.  You can customize this to specify a function that provides a
-default value from the regexp last history element, or from the symbol
-found at point.
+used by commands like `rgrep', `lgrep' `occur', `highlight-regexp', etc.
+You can customize this to specify a function that provides a default
+value from the regexp last history element, or from the symbol found
+at point.
 
 +++
 *** `load-prefer-newer', affects how the `load' function chooses the
@@ -251,10 +255,6 @@ file to load.  If this is non-nil, then when both .el and .elc
 versions of a file exist, and the caller did not explicitly specify
 which one to load, then the newer file is loaded.  The default, nil,
 means to always load the .elc file.
-
----
-** `emacs-bzr-version' has been renamed to `emacs-repository-version',
-and works for git too.
 
 
 * Editing Changes in Emacs 24.4
@@ -271,7 +271,7 @@ normal editing behavior.
 *** `electric-indent-mode' is enabled by default.
 
 *** `tab-stop-list' is now implicitly extended to infinity by repeating
-the last step.  Its default value is changed to nil which means a tab
+the last step.  Its default value is changed to nil, which means a tab
 stop every `tab-width' columns.
 
 ** Filling changes
@@ -288,7 +288,7 @@ Czech typography rules.  To globally enable this feature, evaluate:
   (add-hook 'fill-nobreak-predicate 'fill-single-char-nobreak-p)
 
 +++
-** Uniquify is enabled by default with `post-forward-angle-brackets' style.
+** Uniquify is enabled by default, with `post-forward-angle-brackets' style.
 
 ** New command `C-x SPC' (`rectangle-mark-mode') makes a rectangular region.
 Most commands are still unaware of it, but kill/yank do work on the rectangle.
@@ -468,37 +468,31 @@ and `desktop-restore-forces-onscreen' offer further customization.
 ** Eldoc Mode works properly in the minibuffer.
 
 ** Electric Pair mode
-*** New `electric-pair-preserve-balance' enabled by default.
 
-Pairing/skipping only kicks in when that help the balance of
-parentheses and quotes, i.e. the buffer should end up at least as
+*** New option `electric-pair-preserve-balance', enabled by default.
+If non-nil, pairing/skipping only kicks in when that help the balance
+of parentheses and quotes, i.e. the buffer should end up at least as
 balanced as before.
 
 You can further control this behavior by adjusting the predicates
-stored in `electric-pair-inhibit-predicate' and
-`electric-pair-skip-self'.
+stored in `electric-pair-inhibit-predicate' and `electric-pair-skip-self'.
 
-*** New `electric-pair-delete-adjacent-pairs' enabled by default.
-
+*** New option `electric-pair-delete-adjacent-pairs', enabled by default.
 In `electric-pair-mode', the commands `backward-delete-char' and
 `backward-delete-char-untabify' are now bound to electric variants
 that delete the closer when invoked between adjacent pairs.
 
-*** New `electric-pair-open-newline-between-pairs' enabled by default.
-
+*** New option `electric-pair-open-newline-between-pairs', enabled by default.
 In `electric-pair-mode', inserting a newline between adjacent pairs
 opens an extra newline after point, which is indented if
 `electric-indent-mode' is also set.
 
-*** New `electric-pair-skip-whitespace' enabled by default.
-
-Controls if skipping over closing delimiters should jump over any
-whitespace slack. Setting it to `chomp' makes it delete this
-whitespace. See also the variable
-`electric-pair-skip-whitespace-chars'.
+*** New option `electric-pair-skip-whitespace', enabled by default.
+This controls if skipping over closing delimiters should jump over any
+whitespace slack.  Setting it to `chomp' makes it delete this
+whitespace.  See also the variable `electric-pair-skip-whitespace-chars'.
 
 *** New variables control the pairing in strings and comments.
-
 You can customize `electric-pair-text-pairs' and
 `electric-pair-text-syntax-table' to tweak pairing behavior inside
 strings and comments.
@@ -506,7 +500,6 @@ strings and comments.
 ** EPA
 
 *** New option `epa-mail-aliases'.
-
 You can set this to a list of alias expansions for keys to use
 in `epa-mail-encrypt'.
 
@@ -526,15 +519,13 @@ If set to a number, this can be used to avoid accidentally pasting large
 amounts of data into the ERC input.
 
 +++
-** ERT
-
-*** New macro `skip-unless' allows skipping ERT tests.
+** New ERT macro `skip-unless' allows skipping ERT tests.
 See the ERT manual for details.
 
 ** Eshell
 
 +++
-*** `eshell' now supports visual subcommands and options
+*** `eshell' now supports visual subcommands and options.
 Eshell has been able to handle "visual" commands (interactive,
 non-line oriented commands such as top that require display
 capabilities not provided by eshell) by running them in an Emacs
@@ -542,12 +533,12 @@ terminal emulator.  See `eshell-visual-commands'.
 
 This feature has been extended to subcommands and options that make a
 usually line-oriented command a visual command.  Typical examples are
-"git log" and "git <command> --help" which display their output in a
+"git log" and "git <command> --help", which display their output in a
 pager by default.  See `eshell-visual-subcommands' and
 `eshell-visual-options'.
 
 ---
-*** Added Eshell-Tramp module
+*** New Eshell-Tramp module.
 External su and sudo commands are now the default; the internal,
 Tramp-using variants can still be used by enabling the eshell-tramp
 module.
@@ -558,11 +549,11 @@ module.
 
 ** Icomplete is a bit more like Ido.
 
-*** key bindings to navigate through and select the completions.
+*** Key bindings to navigate through and select the completions.
 
 *** The icomplete-separator is customizable, and its default has changed.
 
-*** Removed icomplete-show-key-bindings.
+*** Removed `icomplete-show-key-bindings'.
 
 *** Icomplete-mode by defaults applies to all forms of minibuffer completion.
 (setq icomplete-with-completion-tables '(internal-complete-buffer))
@@ -610,13 +601,10 @@ will cycle through faces in `hi-lock-face-defaults' without prompting.
 highlights the symbol found near point without prompting,
 using the next face automatically.
 
-** Imenu
+** New Imenu option `imenu-generic-skip-comments-and-strings'.
 
-*** New option `imenu-generic-skip-comments-and-strings'.
-
-** Info
 ---
-*** New face `info-index-match' is used to highlight matches in index
+** New Info face `info-index-match', used to highlight matches in index
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
 
@@ -636,18 +624,24 @@ See MH-E-NEWS for details.
 
 +++
 ** Octave mode
-*** Font locking for texinfo comments and new keywords
-*** Completion in Octave file buffers
-*** Eldoc support
-*** Jump to definition
-*** Documentation lookup/search
-*** Code cleanup and various bug fixes
+
+*** Font locking for texinfo comments and new keywords.
+
+*** Completion in Octave file buffers.
+
+*** Eldoc support.
+
+*** Jump to definition.
+
+*** Documentation lookup/search.
 
 ** OPascal mode is the new name for Delphi mode.
 
 *** All delphi-* variables and functions have been renamed to opascal-*.
+
 *** `delphi-newline-always-indents' is not supported any more.
 Use `electric-indent-mode' instead.
+
 *** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
 
 ** Package
@@ -666,29 +660,25 @@ to see other packages related to any given keyword.
 *** In the *Packages* buffer, `f' or the Package->Filter menu filters
 the packages by a keyword.
 
-** Prolog mode
-
-*** `prolog-use-smie' has been removed, along with the non-SMIE
-indentation code.
+---
+** In Prolog mode, `prolog-use-smie' has been removed,
+along with the non-SMIE indentation code.
 
 ** Remember
 
-*** The new command `remember-notes' creates a buffer which is saved
-on `kill-emacs'.
-
-You may think of it as a *scratch* buffer whose content is preserved.
-In fact, it was designed as a replacement for *scratch* buffer and can
-be used that way by setting `initial-buffer-choice' to
+*** The new command `remember-notes' creates a buffer that is saved on
+`kill-emacs'.  You can think of it as a *scratch* buffer whose content
+is preserved.  In fact, it was designed as a replacement for *scratch*
+buffer and can be used that way by setting `initial-buffer-choice' to
 `remember-notes' and `remember-notes-buffer-name' to "*scratch*".
-Without the second change, *scratch* buffer will still be there for
-notes that do not need to be preserved.
+Without the second change, the *scratch* buffer will still be there
+for notes that do not need to be preserved.
 
 *** The Remember package can now store notes in separates files.
 You can use the new function `remember-store-in-files' within the
-`remember-handler-functions' option.
-
-See `remember-data-directory' and `remember-directory-file-name-format'
-for new options related to this function.
+`remember-handler-functions' option.  See `remember-data-directory'
+and `remember-directory-file-name-format' for new options related to
+this function.
 
 ** Rmail
 
@@ -705,11 +695,9 @@ rather than mboxo.  Customize `unrmail-mbox-format' to change this.
 
 *** New option `ruby-custom-encoding-magic-comment-template'.
 
-*** New mode menu.
-
 *** Improved syntax highlighting and indentation.
 
-*** Add more Ruby file types to `auto-mode-alist'.
+*** More Ruby file types have been added to `auto-mode-alist'.
 
 *** New option `ruby-align-to-stmt-keywords'.
 
@@ -757,16 +745,11 @@ The same rules are now applied to the symbol search with the difference
 that it matches symbols, and non-symbol characters between symbols.
 
 +++
-** SES
+** New SES command `ses-rename-cell' allows assigning names to SES cells.
 
-*** New command `ses-rename-cell' allows assigning names to SES cells.
-
-** Shell
 ---
-*** `explicit-bash-args' now always defaults to use --noediting.
-During initialization, Emacs no longer expends a process to decide
-whether it is safe to use Bash's --noediting option.  These days
---noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
+** The shell.el option `explcit-bash-args' includes --noediting by default.
+All non-ancient Bash versions support this option.
 
 ** Shell Script mode
 
@@ -778,9 +761,7 @@ whether it is safe to use Bash's --noediting option.  These days
 Emacs can learn the appropriate indentation settings if you provide it
 with an indented sample file.
 
-** Term mode
-
-*** New option `term-suppress-hard-newline'.
+** New Term mode option `term-suppress-hard-newline'.
 
 ** Todo mode has been rewritten and enhanced.
 New features include:
@@ -867,9 +848,7 @@ because it is moved to vc-cvs.el.
 ---
 *** New commands: `vhdl-fix-statement-region', `vhdl-fix-statement-buffer'.
 
-** Woman
-
-*** The commands `woman-default-faces' and `woman-monochrome-faces'
+** The Woman commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-*' faces instead.
 
 ** Obsolete packages:
@@ -1355,11 +1334,11 @@ edited in another Emacs session or by another user.  See the node
 file locking, customize `create-lockfiles' to nil.
 
 ** Improved fullscreen support on Mac OS X.
-Both native (>= OSX 10.7) and "old style" fullscreen are supported.
+Both native (>= Mac OS X 10.7) and "old style" fullscreen are supported.
 Customize `ns-use-native-fullscreen' to change style.  For >= 10.7
 native is the default.
 
-** OSX >= 10.7 can use sRGB colorspace.
+** Mac OS X >= 10.7 can use sRGB colorspace.
 Customize `ns-use-srgb-colorspace' to change style.  t is the default.
 Note: This does not apply to images.
 
