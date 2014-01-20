@@ -1,12 +1,9 @@
 2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Pacify valgrind by initializing buffer redisplay bit.
+	Avoid undefined behavior by initializing buffer redisplay bit.
 	Problem reported by Dmitry Antipov in
 	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01756.html>.
-	* alloc.c (USE_VALGRIND): Move this to ...
-	* conf_post.h (USE_VALGRIND): ... here.  Use booleans.
-	* buffer.c (Fget_buffer_create): Initialize redisplay bit
-	to pacify valgrind.
+	* buffer.c (Fget_buffer_create): Initialize redisplay bit.
 
 	Revert some of the CANNOT_DUMP fix (Bug#16494).
 	* lread.c (init_lread): Fix typo: NILP, not !NILP.
