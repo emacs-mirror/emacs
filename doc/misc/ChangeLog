@@ -1,3 +1,7 @@
+2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
 2014-01-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (eww_deps): Does not depend on emacsver.texi.
@@ -761,6 +765,10 @@
 	(efaq-w32.pdf, efaq-w32.html): New rules.
 	(clean): Remove efaq-w32 products.
 
+2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
 2013-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-mime.texi (Encoding Customization): Exclude iso-2022-jp-2 and
@@ -901,6 +909,10 @@
 	* gnus.texi (Sorting the Summary Buffer): Document new defcustom
 	`gnus-subthread-sort-functions' and remove the obsolete documentation
 	of `gnus-sort-threads-recursively'.
+
+2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to 2012-07-29.17 version.
 
 2013-07-29  David Engster  <deng@randomsample.de>
 
@@ -2245,6 +2257,10 @@
 
 	* org.texi (Durations and time values): Fix typo.
 
+2012-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update from gnulib.
+
 2012-05-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Basic Operations on Units, Customizing Calc):
@@ -2876,6 +2892,10 @@
 
 	* gnus.texi (Gnus Utility Functions): Add more references and
 	explanations (bug#9683).
+
+2011-09-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
 
 2011-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
