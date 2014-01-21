@@ -1,3 +1,8 @@
+2014-01-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (unwind_create_frame): Avoid crashing inside assertion
+	when the image cache is not yet allocated.  (Bug#16509)
+
 2014-01-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.c (Fkill_buffer): When killing an indirect buffer,
