@@ -1,3 +1,12 @@
+2014-01-21  Daniel Colascione  <dancol@dancol.org>
+
+	* progmodes/sh-script.el (sh--inside-noncommand-expression):
+	Correctly detect when we're inside an arithmetic expansion form
+	containing nested parenthesis.
+	(sh--maybe-here-document): Use `sh--inside-noncommand-expression`
+	to detect cases where we shouldn't expand "<<" to a heredoc
+	skeleton.
+
 2014-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eldoc.el: Properly remove message in minibuffer case.

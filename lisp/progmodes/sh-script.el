@@ -975,11 +975,14 @@ See `sh-feature'.")
     (let ((ppss (syntax-ppss pos)))
       (when (nth 1 ppss)
         (goto-char (nth 1 ppss))
-        (pcase (char-after)
-          ;; $((...)) or $[...] or ${...}.
-          (`?\( (and (eq ?\( (char-before))
-                     (eq ?\$ (char-before (1- (point))))))
-          ((or `?\{ `?\[) (eq ?\$ (char-before))))))))
+        (or
+         (pcase (char-after)
+           ;; ((...)) or $((...)) or $[...] or ${...}. Nested
+           ;; parenthesis can occur inside the first of these forms, so
+           ;; parse backward recursively.
+           (`?\( (eq ?\( (char-before)))
+           ((or `?\{ `?\[) (eq ?\$ (char-before))))
+         (sh--inside-noncommand-expression (1- (point))))))))
 
 (defun sh-font-lock-open-heredoc (start string eol)
   "Determine the syntax of the \\n after a <<EOF.
@@ -4265,7 +4268,8 @@ The document is bounded by `sh-here-document-word'."
   (or (not (looking-back "[^<]<<"))
       (save-excursion
 	(backward-char 2)
-	(sh-quoted-p))
+        (or (sh-quoted-p)
+            (sh--inside-noncommand-expression (point))))
       (nth 8 (syntax-ppss))
       (let ((tabs (if (string-match "\\`-" sh-here-document-word)
                       (make-string (/ (current-indentation) tab-width) ?\t)
