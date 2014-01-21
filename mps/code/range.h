@@ -39,6 +39,8 @@ extern Addr (RangeBase)(Range range);
 extern Addr (RangeLimit)(Range range);
 extern Size (RangeSize)(Range range);
 
+#define RangeCopy(to, from) mps_lib_memcpy(to, from, sizeof(RangeStruct))
+
 
 /* Types */
 
