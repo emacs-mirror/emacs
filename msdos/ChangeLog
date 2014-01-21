@@ -44,7 +44,7 @@
 2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
-	* msdos/sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
+	* sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
 
 2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
 

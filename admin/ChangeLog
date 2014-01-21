@@ -1036,6 +1036,10 @@
 
 	* notes/bugtracker (bugtracker_debbugs_url): Fix typo.
 
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/copyright: Remove src/md5.c and src/md5.h as special cases.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* admin.el (set-version): Add msdos/sed2v2.inp.
@@ -1045,6 +1049,7 @@
 	Remove no-longer needed getloadavg symbols.
 	* CPP-DEFINES (LOAD_AVE_CVT, LOAD_AVE_TYPE, FSCALE, KERNEL_FILE):
 	(LDAV_SYMBOL): Remove.
+	* notes/copyright: Remove src/getloadavg.c as a special case.
 
 2011-02-12  Glenn Morris  <rgm@gnu.org>
 
@@ -1567,7 +1572,7 @@
 	Sub-directory `unidata' is for codes to generate charprop.el and
 	many other uni-*.el files from `UnicodeData.txt'.
 
-	* Unidata/README: New file.
+	* unidata/README: New file.
 
 	* unidata/Makefile: New file.
 

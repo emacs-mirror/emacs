@@ -347,6 +347,8 @@
 	In preparation for the move to git, sanitize out some
 	Bazaar-specific names.
 
+	* emacs-lisp/authors.el: INSTALL.BZR renamed to INSTALL.REPO.
+
 	* version.el (emacs-bzr-version): Name changed to
 	emacs-repository-version.  Obsolete-variable alias made.
 	* loadup.el: Follow through on this name change.

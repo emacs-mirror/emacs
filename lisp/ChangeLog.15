@@ -578,6 +578,10 @@
 	* net/tramp.el (tramp-rfn-eshadow-setup-minibuffer): Do not use
 	`field' property of `rfn-eshadow-overlay'.
 
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-lisp/find-gc.el (find-gc-source-files): Remove filemode.c.
+
 2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/netrc.el (netrc-parse): Comment fix.
@@ -2032,6 +2036,10 @@
 	* electric.el (electric-indent-post-self-insert-function):
 	Don't auto-indent for indent-to-left-margin, it's too often
 	counter-productive.
+
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.el: Regenerate.
 
 2011-01-16  Tassilo Horn  <tassilo@member.fsf.org>
 

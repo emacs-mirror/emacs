@@ -739,6 +739,11 @@
 
 	* MORE.STUFF: General update.  Mention list-packages.
 	Remove many old/outdated URLs.
+
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Mention --enable-gcc-warnings.
+
 2012-04-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* publicsuffix.txt: New file (bug#1401).

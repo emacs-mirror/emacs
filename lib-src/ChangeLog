@@ -725,7 +725,7 @@
 
 2012-05-05  Jim Meyering  <meyering@redhat.com>
 
-	* lib-src/pop.c (pop_stat, pop_list, pop_multi_first, pop_last):
+	* pop.c (pop_stat, pop_list, pop_multi_first, pop_last):
 	NUL-terminate the error buffer (Bug#11372).
 
 2012-05-02  Juanma Barranquero  <lekktu@gmail.com>

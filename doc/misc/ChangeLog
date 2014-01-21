@@ -4835,7 +4835,7 @@
 
 2009-12-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.texi (Radix Modes): Clarify two's complement notation.
+	* calc.texi (Radix Modes): Clarify two's complement notation.
 
 2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -10593,8 +10593,8 @@
 
 2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
-	* man/ediff.texi, man/tramp.texi, man/vip.texi, man/viper.texi:
-	* man/widget.texi, man/woman.texi: Replace @sc{ascii} and ASCII with
+	* ediff.texi, tramp.texi, vip.texi, viper.texi:
+	* widget.texi, woman.texi: Replace @sc{ascii} and ASCII with
 	@acronym{ASCII}.
 
 2003-10-26  Karl Berry  <karl@gnu.org>
@@ -11207,7 +11207,7 @@
 
 1993-11-15  Paul Eggert  (eggert@twinsun.com)
 
-	* man/Makefile (../info/cl.info): Rename from ../info/cl.
+	* Makefile (../info/cl.info): Rename from ../info/cl.
 
 1993-11-15  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 

@@ -29,11 +29,8 @@
 
 2014-01-08  Eric S. Raymond  <esr@thyrsus.com>
 
-	* INSTALL.BZR: Renamed to INSTALL.REPO
-	* INSTALL, autogen.sh, etc/AUTHORS, etc/CONTRIBUTE,
-	lisp/emacs-lisp/authors.el, nt/INSTALL: Carry through the
-	above renaming.
-	* INSTALL.REPO: remove all references to any specific VCS.
+	* INSTALL.BZR: Rename to INSTALL.REPO.  Remove refs to specific VCS.
+	* INSTALL, autogen.sh: Update for above change.
 
 2014-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -2079,9 +2076,8 @@
 	All uses changed to waitpid and WEXITSTATUS.
 
 	Avoid needless autoheader after autogen.sh.
-	* src/stamp-h.in: Remove from bzr repository; no longer needed there.
-	* .bzrignore: Add it.
-	* autogen.sh: Create it.
+	* .bzrignore: Add src/stamp-h.in.
+	* autogen.sh: Create src/stamp-h.in.
 
 2012-08-01  Glenn Morris  <rgm@gnu.org>
 
@@ -3056,7 +3052,6 @@
 	(WARN_CFLAGS, GNULIB_WARN_CFLAGS): New variable.
 	(PKG_CHECK_MODULES, C_SWITCH_X_SITE): Use -isystem rather than -I,
 	when including system files with GCC.
-	* etc/NEWS: Mention --enable-gcc-warnings.
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Likewise.
 	* lib/Makefile.am (AM_CFLAGS): New macro.
 	* m4/manywarnings.m4, m4/warnings.m4: New files, from gnulib.
@@ -3998,7 +3993,7 @@
 	src/makefile.w32-in and adapt.  Depend on stamp_BLD.
 	(GNULIBOBJS): Add $(BLD)/filemode.$(O).
 
-2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import filemode module from gnulib.
 	* .bzrignore: Add lib/sys/.
@@ -4007,7 +4002,6 @@
 	* lib/filemode.c: Renamed from src/filemode.c and regenerated
 	from gnulib.  This adds support for some more file types, e.g.,
 	Cray DMF migrated files.
-	* lisp/emacs-lisp/find-gc.el (find-gc-source-files): Remove filemode.c.
 	* lib/filemode.h, lib/sys_stat.in.h, m4/filemode.m4, m4/st_dm_mode.m4:
 	* m4/sys_stat_h.m4: New files, generated from gnulib.
 	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
@@ -4044,8 +4038,6 @@
 	* lib/stdint.in.h, m4/longlong.m4, m4/stdint.m4, m4/md5.m4: New files,
 	imported from gnulib.
 	* Makefile.in (MAKEFILE_MODULES): Add crypto/md5.
-	* admin/notes/copyright: Remove src/md5.c and src/md5.h as
-	special cases.
 
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
@@ -4065,7 +4057,6 @@
 	Import getloadavg module from gnulib.
 	* .bzrignore: Add lib/stdlib.h.
 	* Makefile.in (GNULIB_MODULES): Add getloadavg.
-	* admin/notes/copyright: Remove src/getloadavg.c as a special case.
 	* configure.in (LIBS_SYSTEM): Omit -lkstat on sol2*; gnulib does this.
 	(AC_CONFIG_LIBOBJ_DIR, AC_FUNC_GETLOADAVG, GETLOADAVG_FILES):
 	Remove; gnulib does this now.
@@ -4079,7 +4070,7 @@
 	* lib/stdlib.in.h, m4/getloadavg.m4, m4/stdlib_h.m4: New files,
 	from gnulib.
 	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
-	* src/config.in: Regenerate.
+	Regenerate.
 
 2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -4506,7 +4497,7 @@
 	* m4/gnulib-common.m4, m4/gnulib-comp.m4, m4/gnulib-tool.m4, missing:
 	New files, generated automatically, with 'make sync-from-gnulib'
 	followed by 'make'.
-	* configure, lisp/dired.el, src/config.in: Regenerate.
+	* configure: Regenerate.
 
 	Automate syncing from gnulib.
 	* INSTALL, README: Document new subdirectory 'lib'.

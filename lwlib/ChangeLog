@@ -1234,7 +1234,7 @@
 
 1998-07-30  Paul Eggert  <eggert@twinsun.com>
 
-	* lwlib/Makefile.in (lwlib-utils.o, lwlib.o, lwlib-Xlw.o)
+	* Makefile.in (lwlib-utils.o, lwlib.o, lwlib-Xlw.o)
 	(lwlib-Xaw.o, lwlib-Xm.o, lwlib-Xol.o, lwlib-Xolmb.o):
 	Add dependencies to corresponding .c files for Solaris 2.x VPATH make.
 

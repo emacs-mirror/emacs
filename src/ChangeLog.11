@@ -1837,6 +1837,8 @@
 	(float_to_string): Use dtoastr rather than rolling our own code,
 	which had an off-by-one bug on non-IEEE hosts.
 
+	* config.in: Regenerate.
+
 	Automate syncing from gnulib.
 	* Makefile.in (lib): New macro.
 	(ALL_CFLAGS): Add -I$(lib) -I$(srcdir)/../lib.
