@@ -156,8 +156,12 @@ static Bool cbsTestTree(SplayTree tree, SplayNode node,
 
   AVERT(SplayTree, tree);
   AVERT(SplayNode, node);
+#if 0
   AVER(closureP == NULL);
   AVER(size > 0);
+#endif
+  UNUSED(closureP);
+  UNUSED(size);
   AVER(cbsOfSplayTree(tree)->fastFind);
 
   block = cbsBlockOfSplayNode(node);
@@ -767,6 +771,100 @@ Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
     AVER(RangeSize(&range) >= size);
     cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
                        size, findDelete);
+  }
+
+  cbsLeave(cbs);
+  return found;
+}
+
+/* CBSFindFirstInZones -- find the first block of at least the given size
+   that lies entirely within a zone set */
+
+typedef struct cbsTestNodeInZonesClosureStruct {
+  Size size;
+  Arena arena;
+  ZoneSet zoneSet;
+  Addr base;
+  Addr limit;
+} cbsTestNodeInZonesClosureStruct, *cbsTestNodeInZonesClosure;
+
+static Bool cbsTestNodeInZones(SplayTree tree, SplayNode node,
+                               void *closureP, Size closureSize)
+{
+  CBSBlock block = cbsBlockOfSplayNode(node);
+  cbsTestNodeInZonesClosure closure = closureP;
+  
+  UNUSED(tree);
+  AVER(closureSize == sizeof(cbsTestNodeInZonesClosureStruct));
+  UNUSED(closureSize);
+  
+  return CBSBlockSize(block) >= closure->size &&
+         RangeInZoneSet(&closure->base, &closure->limit,
+                        CBSBlockBase(block), CBSBlockLimit(block),
+                        closure->arena, closure->zoneSet, closure->size);
+}
+
+Bool CBSFindFirstInZones(Range rangeReturn, Range oldRangeReturn,
+                         CBS cbs, Size size,
+                         Arena arena, ZoneSet zoneSet)
+{
+  SplayNode node;
+  cbsTestNodeInZonesClosureStruct closure;
+  Bool found;
+  
+  /* Check whether the size will fit in the zoneSet at all. */
+  /* FIXME: Perhaps this should be a function in ref.c */
+  if (zoneSet == ZoneSetEMPTY)
+    return FALSE;
+  if (zoneSet == ZoneSetUNIV)
+    return CBSFindFirst(rangeReturn, oldRangeReturn, cbs, size, FindDeleteLOW);
+  if (ZoneSetIsSingle(zoneSet)) {
+    if (size > ArenaStripeSize(arena))
+      return FALSE;
+  } else {
+    /* Check whether any run of bits in zoneSet can accommodate the size. */
+#if 0
+    ZoneSet mask = ((ZoneSet)1 << SizeAlignUp(size, ArenaStripeSize(arena))) - 1;
+    /* mask == ZoneSetUNIV case very unlikely, so don't bother testing for it */
+    for (i = 0; i < ZONE_SET_WIDTH; ++i) {
+      if (ZoneSetSub(BS_ROTATE_LEFT(ZoneSet, mask, i), zoneSet))
+        goto found;
+    }
+    return FALSE;
+  found:;
+#endif
+  }
+  
+  /* It would be nice if there were a neat way to eliminate all runs of
+     zones in zoneSet too small for size.*/
+
+  cbsEnter(cbs);
+
+  closure.arena = arena;
+  closure.zoneSet = zoneSet;
+  closure.size = size;
+  found = SplayFindFirst(&node, splayTreeOfCBS(cbs),
+                         &cbsTestNodeInZones,
+                         &cbsTestTree,
+                         &closure, sizeof(closure));
+  if (found) {
+    CBSBlock block = cbsBlockOfSplayNode(node);
+    RangeStruct rangeStruct, oldRangeStruct;
+    Res res;
+
+    AVER(CBSBlockBase(block) <= closure.base);
+    AVER(AddrOffset(closure.base, closure.limit) >= size);
+    AVER(ZoneSetSub(ZoneSetOfRange(arena, closure.base, closure.limit), zoneSet));
+    AVER(closure.limit <= CBSBlockLimit(block));
+
+    RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));
+    res = cbsDeleteFromTree(&oldRangeStruct, cbs, &rangeStruct);
+    if (res != ResOK)  /* not enough memory to split block FIXME: Think about this! */
+      found = FALSE;
+    else {
+      RangeCopy(rangeReturn, &rangeStruct);
+      RangeCopy(oldRangeReturn, &oldRangeStruct);
+    }
   }
 
   cbsLeave(cbs);
