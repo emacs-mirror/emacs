@@ -134,6 +134,14 @@ struct interval
    or pointer slots of struct interval.  */
 
 INLINE void
+set_interval_object (INTERVAL i, Lisp_Object obj)
+{
+  eassert (BUFFERP (obj) || STRINGP (obj));
+  i->up_obj = 1;
+  i->up.obj = obj;
+}
+
+INLINE void
 set_interval_parent (INTERVAL i, INTERVAL parent)
 {
   i->up_obj = false;

@@ -1,3 +1,10 @@
+2014-01-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Fkill_buffer): When killing an indirect buffer,
+	re-attach intervals to its base buffer (Bug#16502).
+	* intervals.c (set_interval_object): Move from here...
+	* intervals.h (set_interval_object): ... to here.  Fix comments.
+
 2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid undefined behavior by initializing buffer redisplay bit.

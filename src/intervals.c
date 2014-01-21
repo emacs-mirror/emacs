@@ -60,16 +60,7 @@ static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
 
 /* Utility functions for intervals.  */
 
-/* Use these functions to set Lisp_Object
-   or pointer slots of struct interval.  */
-
-static void
-set_interval_object (INTERVAL i, Lisp_Object obj)
-{
-  eassert (BUFFERP (obj) || STRINGP (obj));
-  i->up_obj = 1;
-  i->up.obj = obj;
-}
+/* Use these functions to set pointer slots of struct interval.  */
 
 static void
 set_interval_left (INTERVAL i, INTERVAL left)

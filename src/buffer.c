@@ -1868,6 +1868,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 
   if (b->base_buffer)
     {
+      INTERVAL i;
       /* Unchain all markers that belong to this indirect buffer.
 	 Don't unchain the markers that belong to the base buffer
 	 or its other indirect buffers.  */
@@ -1881,6 +1882,14 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	    }
 	  else
 	    mp = &m->next;
+	}
+      /* Intervals should be owned by the base buffer (Bug#16502).  */
+      i = buffer_intervals (b);
+      if (i)
+	{
+	  Lisp_Object owner;
+	  XSETBUFFER (owner, b->base_buffer);
+	  set_interval_object (i, owner);
 	}
     }
   else
