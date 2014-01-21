@@ -135,7 +135,9 @@
  "Make a citation using BibTeX database files." t)
 (autoload 'reftex-default-bibliography "reftex-cite")
 (autoload 'reftex-bib-or-thebib "reftex-cite")
-(autoload 'reftex-create-bibtex-file "reftex-cite")
+(autoload 'reftex-create-bibtex-file "reftex-cite"
+  "Create a new BibTeX database BIBFILE with all entries referenced in document."
+  t)
 
 ;; Selection
 (autoload 'reftex-select-label-mode "reftex-sel")
