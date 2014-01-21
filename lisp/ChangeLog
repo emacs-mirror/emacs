@@ -1,10 +1,19 @@
+2014-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eldoc.el: Properly remove message in minibuffer case.
+	(eldoc--message-command-p): New function.
+	(eldoc-display-message-p): Use it.
+	(eldoc-pre-command-refresh-echo-area): In the minibuffer case, the
+	message is not automatically erased for us.
+	(eldoc-print-current-symbol-info): Erase previous message, if any.
+
 2014-01-21  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex.el (reftex-create-bibtex-file): Fix autoload to
 	specify it's an interactive function.
 
-	* textmodes/reftex-cite.el (reftex-all-used-citation-keys): Fix
-	regex used for scanning for citation keys which failed for
+	* textmodes/reftex-cite.el (reftex-all-used-citation-keys):
+	Fix regex used for scanning for citation keys which failed for
 	citations with optional arguments.
 
 2014-01-21  Leo Liu  <sdl.web@gmail.com>
@@ -89,8 +98,8 @@
 2014-01-17  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-alignable-keywords): New constant.
-	(ruby-align-to-stmt-keywords): Change the default value.  Use
-	`ruby-alignable-keywords' to generate the possible customization
+	(ruby-align-to-stmt-keywords): Change the default value.
+	Use `ruby-alignable-keywords' to generate the possible customization
 	choices.
 	(ruby-smie-rules): Instead of using a hardcoded list of alignable
 	keywords, check against the value of `ruby-alignable-keywords'

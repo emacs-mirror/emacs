@@ -152,7 +152,7 @@ directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
   "Idle time delay currently in use by timer.
 This is used to determine if `eldoc-idle-delay' is changed by the user.")
 
-(defvar eldoc-message-function 'eldoc-minibuffer-message
+(defvar eldoc-message-function #'eldoc-minibuffer-message
   "The function used by `eldoc-message' to display messages.
 It should receive the same arguments as `message'.")
 
@@ -193,10 +193,7 @@ expression point is on."
     (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t)))
 
 ;;;###autoload
-(defun turn-on-eldoc-mode ()
-  "Unequivocally turn on ElDoc mode (see command `eldoc-mode')."
-  (interactive)
-  (eldoc-mode 1))
+(define-obsolete-function-alias 'turn-on-eldoc-mode 'eldoc-mode "24.4")
 
 
 (defun eldoc-schedule-timer ()
@@ -260,6 +257,10 @@ Otherwise work like `message'."
 	    (omessage (funcall eldoc-message-function nil)))))
   eldoc-last-message)
 
+(defun eldoc--message-command-p (command)
+  (and (symbolp command)
+       (intern-soft (symbol-name command) eldoc-message-commands)))
+
 ;; This function goes on pre-command-hook for XEmacs or when using idle
 ;; timers in Emacs.  Motion commands clear the echo area for some reason,
 ;; which make eldoc messages flicker or disappear just before motion
@@ -268,10 +269,12 @@ Otherwise work like `message'."
 ;; This doesn't seem to be required for Emacs 19.28 and earlier.
 (defun eldoc-pre-command-refresh-echo-area ()
   (and eldoc-last-message
+       (not (minibufferp))      ;We don't use the echo area when in minibuffer.
        (if (and (eldoc-display-message-no-interference-p)
-		(symbolp this-command)
-		(intern-soft (symbol-name this-command) eldoc-message-commands))
+		(eldoc--message-command-p this-command))
 	   (eldoc-message eldoc-last-message)
+         ;; No need to call eldoc-message since the echo area will be cleared
+         ;; for us, but do note that the last-message will be gone.
          (setq eldoc-last-message nil))))
 
 ;; Decide whether now is a good time to display a message.
@@ -281,10 +284,9 @@ Otherwise work like `message'."
        ;; timer, we're still in the middle of executing a command,
        ;; e.g. a query-replace where it would be annoying to
        ;; overwrite the echo area.
-       (and (not this-command)
-	    (symbolp last-command)
-	    (intern-soft (symbol-name last-command)
-			 eldoc-message-commands))))
+       (not this-command)
+       (eldoc--message-command-p last-command)))
+
 
 ;; Check various conditions about the current environment that might make
 ;; it undesirable to print eldoc messages right this instant.
@@ -313,7 +315,11 @@ Emacs Lisp mode) that support ElDoc.")
   ;; This is run from post-command-hook or some idle timer thing,
   ;; so we need to be careful that errors aren't ignored.
   (with-demoted-errors "eldoc error: %s"
-    (and (eldoc-display-message-p)
+    (and (or (eldoc-display-message-p)
+             ;; Erase the last message if we won't display a new one.
+             (when eldoc-last-message
+               (eldoc-message nil)
+               nil))
 	 (if eldoc-documentation-function
 	     (eldoc-message (funcall eldoc-documentation-function))
 	   (let* ((current-symbol (eldoc-current-symbol))
