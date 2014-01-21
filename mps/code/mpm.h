@@ -504,6 +504,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
+#define ArenaStripeSize(arena)  ((Size)1 << ArenaZoneShift(arena))
 #define ArenaAlign(arena)       ((arena)->alignment)
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 
@@ -844,12 +845,16 @@ extern Bool RankSetCheck(RankSet rankSet);
   BS_ADD(ZoneSet, zs, AddrZone(arena, addr))
 #define ZoneSetIsMember(arena, zs, addr) \
   BS_IS_MEMBER(zs, AddrZone(arena, addr))
+#define ZoneSetIsSingle(zs)    BS_IS_SINGLE(zs)
 #define ZoneSetSub(zs1, zs2)   BS_SUB(zs1, zs2)
 #define ZoneSetSuper(zs1, zs2) BS_SUPER(zs1, zs2)
 #define ZoneSetComp(zs)        BS_COMP(zs)
 
 extern ZoneSet ZoneSetOfRange(Arena arena, Addr base, Addr limit);
 extern ZoneSet ZoneSetOfSeg(Arena arena, Seg seg);
+extern Bool RangeInZoneSet(Addr *baseReturn, Addr *limitReturn,
+                           Addr base, Addr limit,
+                           Arena arena, ZoneSet zoneSet, Size size);
 
 
 /* Shield Interface -- see <code/shield.c> */
