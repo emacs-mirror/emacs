@@ -273,7 +273,7 @@
 	eldoc-message-commands.
 	(eldoc-mode): Restrict eldoc-message-commands to editing commands
 	if eldoc-print-after-edit is set.  (Bug#16346)
-
+	* simple.el (read--expression): Enable eldoc-mode.
 	* progmodes/octave.el (octave-mode-menu): Adapt to change in eldoc.
 
 2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
