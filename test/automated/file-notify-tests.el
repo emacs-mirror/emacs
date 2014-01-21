@@ -67,7 +67,7 @@
 This is needed for local `temporary-file-directory' only, in the
 remote case we return always `t'."
   (or file-notify--library
-      (not (file-remote-p temporary-file-directory))))
+      (file-remote-p temporary-file-directory)))
 
 (defvar file-notify--test-remote-enabled-checked nil
   "Cached result of `file-notify--test-remote-enabled'.
@@ -187,6 +187,16 @@ Save the result in `file-notify--test-results', for later analysis."
   (expand-file-name
    (make-temp-name "file-notify-test") temporary-file-directory))
 
+(defmacro file-notify--wait-for-events (timeout until)
+  "Wait for file notification events until form UNTIL is true.
+TIMEOUT is the maximum time to wait for."
+  `(with-timeout (,timeout (ignore))
+     (while (null ,until)
+       ;; glib events, and remote events.
+       (accept-process-output nil 0.1)
+       ;; inotify events.
+       (read-event nil nil 0.1))))
+
 (ert-deftest file-notify-test02-events ()
   "Check file creation/removal notifications."
   (skip-unless (file-notify--test-local-enabled))
@@ -205,6 +215,7 @@ Save the result in `file-notify--test-results', for later analysis."
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (delete-file file-notify--test-tmpfile)
+	  (sit-for 0.1 'nodisplay)
 
 	  ;; Check copy and rename.
 	  (write-region
@@ -212,18 +223,21 @@ Save the result in `file-notify--test-results', for later analysis."
 	  (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  (delete-file file-notify--test-tmpfile)
 	  (delete-file file-notify--test-tmpfile1)
+	  (sit-for 0.1 'nodisplay)
 
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
-	  (delete-file file-notify--test-tmpfile1))
+	  (delete-file file-notify--test-tmpfile1)
+	  (sit-for 0.1 'nodisplay))
 
       ;; Wait for events, and exit.
-      (sit-for 5 'nodisplay)
+      (file-notify--wait-for-events 5 file-notify--test-results)
       (file-notify-rm-watch desc)
       (ignore-errors (delete-file file-notify--test-tmpfile))
       (ignore-errors (delete-file file-notify--test-tmpfile1))))
 
+  (should file-notify--test-results)
   (dolist (result file-notify--test-results)
     ;(message "%s" (ert-test-result-messages result))
     (when (ert-test-failed-p result)
@@ -278,14 +292,10 @@ This test is skipped in batch mode."
 
 	    ;; Check, that the buffer has been reverted.
 	    (with-current-buffer (get-buffer-create "*Messages*")
-	      (with-timeout (timeout (ignore))
-		(while
-		    (null (string-match
-			   (format "Reverting buffer `%s'." (buffer-name buf))
-			   (buffer-string)))
-		  ;; We must trigger the process filter to run.
-		  (when remote (accept-process-output nil 1))
-		  (sit-for 1 'nodisplay))))
+	      (file-notify--wait-for-events
+	       timeout
+	       (string-match (format "Reverting buffer `%s'." (buffer-name buf))
+			     (buffer-string))))
 	    (should (string-match "another text" (buffer-string)))))
 
       ;; Exit.
