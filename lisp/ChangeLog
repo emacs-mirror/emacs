@@ -1,3 +1,9 @@
+2014-01-21  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-cite.el (reftex-all-used-citation-keys): Fix
+	regex used for scanning for citation keys which failed for
+	citations with optional arguments.
+
 2014-01-21  Leo Liu  <sdl.web@gmail.com>
 
 	* simple.el (read--expression): Don't enable eldoc-mode.

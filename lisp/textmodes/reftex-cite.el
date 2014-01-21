@@ -1130,7 +1130,7 @@ recommended for follow mode.  It works OK for individual lookups."
           (save-restriction
             (widen)
             (goto-char (point-min))
-            (while (re-search-forward "\\(?:^\\|\\=\\)[^%\n\r]*?\\\\\\(bibentry\\|[a-zA-Z]*cite[a-zA-Z]*\\)\\(\\[[^\\]]*\\]\\)?{\\([^}]+\\)}" nil t)
+            (while (re-search-forward "\\(?:^\\|\\=\\)[^%\n\r]*?\\\\\\(bibentry\\|[a-zA-Z]*cite[a-zA-Z]*\\)\\(\\[[^]]*\\]\\)?{\\([^}]+\\)}" nil t)
               (setq kk (match-string-no-properties 3))
               (while (string-match "%.*\n?" kk)
                 (setq kk (replace-match "" t t kk)))
