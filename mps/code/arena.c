@@ -357,6 +357,22 @@ void ArenaDestroy(Arena arena)
 
   arena->poolReady = FALSE;
   ControlFinish(arena);
+  
+  /* FIXME: The CBS MFS can't free via ArenaFree because that'll use the CBS,
+     so manually get rid of all its tracts first.  Ought to reset the
+     CBS tree first, so that there are no dangling pointers. */
+  {
+    Pool pool = &arena->freeCBS.blockPoolStruct.poolStruct;
+    Tract tract = arena->freeCBS.blockPoolStruct.tractList;
+    Size size = ArenaAlign(arena);
+    while(tract != NULL) {
+      Tract nextTract = (Tract)TractP(tract);   /* .tract.chain */
+      (*arena->class->free)(TractBase(tract), size, pool);
+      tract = nextTract;
+    }
+    arena->freeCBS.blockPoolStruct.tractList = NULL;
+  }
+
   CBSFinish(&arena->freeCBS);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
@@ -603,8 +619,10 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   
   {
     RangeStruct rangeStruct, oldRangeStruct;
-    if (CBSFindFirst(&rangeStruct, &oldRangeStruct,
-                     &arena->freeCBS, size, FindDeleteLOW)) {
+    /* FIXME: Needs to fall back if nothing is available in the right zones */
+    if (CBSFindFirstInZones(&rangeStruct, &oldRangeStruct,
+                            &arena->freeCBS, size,
+                            arena, pref->zones)) {
       Chunk chunk;
       Bool b;
       Index baseIndex;
@@ -718,10 +736,14 @@ void ArenaFree(Addr base, Size size, Pool pool)
     RangeInit(&rangeStruct, base, limit);
     res = CBSInsert(&rangeStruct, &arena->freeCBS, &rangeStruct);
     if (res != ResOK) {
-      AVER(size >= ArenaAlign(arena));
       /* The CBS's MFS doesn't have enough space to describe the free memory.
          Give it some of the memory we're about to free and try again. */
-      MFSExtend(&arena->freeCBS.blockPoolStruct.poolStruct, base, ArenaAlign(arena));
+      Tract tract = TractOfBaseAddr(arena, base);
+      Pool mfs = &arena->freeCBS.blockPoolStruct.poolStruct;
+      AVER(size >= ArenaAlign(arena));
+      TractFinish(tract);
+      TractInit(tract, mfs, base);
+      MFSExtend(mfs, base, ArenaAlign(arena));
       base = AddrAdd(base, ArenaAlign(arena)); /* FIXME: = all chunk's pagesizes */
       size -= ArenaAlign(arena);
       if (size == 0)
