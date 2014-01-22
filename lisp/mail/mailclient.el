@@ -99,7 +99,8 @@ supported.  Defaults to non-nil on Windows, nil otherwise."
 	      (mail-strip-quoted-names field) "\, *"))
 	    result)))))
 
-(declare-function clipboard-kill-ring-save "menu-bar.el" (beg end))
+(declare-function clipboard-kill-ring-save "menu-bar.el"
+		  (beg end &optional region))
 
 ;;;###autoload
 (defun mailclient-send-it ()

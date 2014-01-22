@@ -30,7 +30,8 @@
 (require 'calc-macs)
 
 ;; Declare functions which are defined elsewhere.
-(declare-function thing-at-point-looking-at "thingatpt" (regexp))
+(declare-function thing-at-point-looking-at "thingatpt"
+		  (regexp &optional distance))
 
 
 (defun calc-show-plain (n)

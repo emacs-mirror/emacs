@@ -4121,7 +4121,6 @@ The message should be narrowed to just the headers."
 
 (autoload 'mail-position-on-field "sendmail")
 
-(declare-function rmail-mime-message-p "rmailmm" ())
 (declare-function rmail-mime-toggle-raw "rmailmm" (&optional state))
 
 (defun rmail-retry-failure ()

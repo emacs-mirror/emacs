@@ -210,7 +210,7 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 (defvar url-http-end-of-headers)
-(declare-function url-recreate-url "url" (urlobj))
+(declare-function url-recreate-url "url-parse" (urlobj))
 (defvar url-http-target-url)
 
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))

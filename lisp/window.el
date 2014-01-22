@@ -6811,7 +6811,6 @@ See also `fit-frame-to-buffer-margins'."
   :group 'help)
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
-(declare-function tool-bar-lines-needed "xdisp.c" (&optional frame))
 
 (defun window--sanitize-margin (margin left right)
   "Return MARGIN if it's a number between LEFT and RIGHT."

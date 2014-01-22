@@ -1,3 +1,14 @@
+2014-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* calc/calc-embed.el (thing-at-point-looking-at):
+	* emacs-lisp/map-ynp.el (x-popup-dialog):
+	* obsolete/lmenu.el (x-popup-dialog):
+	* emacs-lisp/package.el (url-recreate-url):
+	* mail/mailclient.el (clipboard-kill-ring-save):
+	* subr.el (x-popup-dialog): Update declaration.
+	* mail/rmail.el (rmail-mime-message-p):
+	* window.el (tool-bar-lines-needed): Remove unnecessary declaration.
+
 2014-01-21  Daniel Colascione  <dancol@dancol.org>
 
 	* progmodes/sh-script.el (sh--inside-noncommand-expression):
