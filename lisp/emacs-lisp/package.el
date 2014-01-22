@@ -641,7 +641,7 @@ EXTRA-PROPERTIES is currently unused."
 	     ";; End:\n"
 	     ";;; " (file-name-nondirectory file)
 	     " ends here\n")
-     nil file))
+     nil file nil 'silent))
   file)
 
 (defvar generated-autoload-file)
@@ -709,8 +709,7 @@ untar into a directory named DIR; otherwise, signal an error."
           (package--alist-to-plist
            (package-desc-extras pkg-desc))))
         "\n")
-       nil
-       pkg-file))))
+       nil pkg-file nil 'silent))))
 
 (defun package--alist-to-plist (alist)
   (apply #'nconc (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist)))
@@ -759,7 +758,7 @@ untar into a directory named DIR; otherwise, signal an error."
 
 (defun package--write-file-no-coding (file-name)
   (let ((buffer-file-coding-system 'no-conversion))
-    (write-region (point-min) (point-max) file-name)))
+    (write-region (point-min) (point-max) file-name nil 'silent)))
 
 (defmacro package--with-work-buffer (location file &rest body)
   "Run BODY in a buffer containing the contents of FILE at LOCATION.
@@ -874,7 +873,8 @@ GnuPG keyring is located under \"gnupg\" in `package-user-dir'."
 		    (expand-file-name
 		     (concat (package-desc-full-name pkg-desc)
 			     ".signed")
-		     package-user-dir))
+		     package-user-dir)
+                    nil 'silent)
       ;; Update the old pkg-desc which will be shown on the description buffer.
       (setf (package-desc-signed pkg-desc) t)
       ;; Update the new (activated) pkg-desc as well.
@@ -1280,7 +1280,8 @@ similar to an entry in `package-alist'.  Save the cached copy to
       ;; Write out good signatures into archive-contents.signed file.
       (write-region (mapconcat #'epg-signature-to-string good-signatures "\n")
 		    nil
-		    (expand-file-name (concat file ".signed") dir)))))
+		    (expand-file-name (concat file ".signed") dir)
+                    nil 'silent))))
 
 (declare-function epg-check-configuration "epg-config"
 		  (config &optional minimum-version))
@@ -1636,11 +1637,13 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 Letters do not insert themselves; instead, they are commands.
 \\<package-menu-mode-map>
 \\{package-menu-mode-map}"
-  (setq tabulated-list-format [("Package" 18 package-menu--name-predicate)
-			       ("Version" 12 nil)
-			       ("Status"  10 package-menu--status-predicate)
-			       ("Archive" 10 package-menu--archive-predicate)
-			       ("Description" 0 nil)])
+  (setq tabulated-list-format
+        `[("Package" 18 package-menu--name-predicate)
+          ("Version" 12 nil)
+          ("Status"  10 package-menu--status-predicate)
+          ,@(if (cdr package-archives)
+                '(("Archive" 10 package-menu--archive-predicate)))
+          ("Description" 0 nil)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Status" nil))
   (add-hook 'tabulated-list-revert-hook 'package-menu--refresh nil t)
@@ -1737,8 +1740,7 @@ KEYWORDS should be nil or a list of keywords."
   "Collect all package keywords"
   (let (keywords)
     (package--mapc (lambda (desc)
-                     (let* ((extras (and desc (package-desc-extras desc)))
-                            (desc-keywords (and desc (package-desc--keywords desc))))
+                     (let* ((desc-keywords (and desc (package-desc--keywords desc))))
                        (setq keywords (append keywords desc-keywords)))))
     keywords))
 
@@ -1779,8 +1781,7 @@ Built-in packages are converted with `package--from-builtin'."
   "Test if package DESC has any of the given KEYWORDS.
 When none are given, the package matches."
   (if keywords
-      (let* ((extras (and desc (package-desc-extras desc)))
-             (desc-keywords (and desc (package-desc--keywords desc)))
+      (let* ((desc-keywords (and desc (package-desc--keywords desc)))
              found)
         (dolist (k keywords)
           (when (and (not found)
@@ -1816,28 +1817,29 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
   (let* ((pkg-desc (car pkg))
 	 (status  (cdr pkg))
 	 (face (pcase status
-		(`"built-in"  'font-lock-builtin-face)
-		(`"available" 'default)
-		(`"new"       'bold)
-		(`"held"      'font-lock-constant-face)
-		(`"disabled"  'font-lock-warning-face)
-		(`"installed" 'font-lock-comment-face)
-		(`"unsigned"  'font-lock-warning-face)
-		(_            'font-lock-warning-face)))) ; obsolete.
+                 (`"built-in"  'font-lock-builtin-face)
+                 (`"available" 'default)
+                 (`"new"       'bold)
+                 (`"held"      'font-lock-constant-face)
+                 (`"disabled"  'font-lock-warning-face)
+                 (`"installed" 'font-lock-comment-face)
+                 (`"unsigned"  'font-lock-warning-face)
+                 (_            'font-lock-warning-face)))) ; obsolete.
     (list pkg-desc
-	  (vector (list (symbol-name (package-desc-name pkg-desc))
-			'face 'link
-			'follow-link t
-			'package-desc pkg-desc
-			'action 'package-menu-describe-package)
-		  (propertize (package-version-join
-                               (package-desc-version pkg-desc))
-			      'font-lock-face face)
-		  (propertize status 'font-lock-face face)
-		  (propertize (or (package-desc-archive pkg-desc) "")
-                              'font-lock-face face)
-		  (propertize (package-desc-summary pkg-desc)
-                              'font-lock-face face)))))
+	  `[,(list (symbol-name (package-desc-name pkg-desc))
+                   'face 'link
+                   'follow-link t
+                   'package-desc pkg-desc
+                   'action 'package-menu-describe-package)
+            ,(propertize (package-version-join
+                          (package-desc-version pkg-desc))
+                         'font-lock-face face)
+            ,(propertize status 'font-lock-face face)
+            ,@(if (cdr package-archives)
+                  (list (propertize (or (package-desc-archive pkg-desc) "")
+                                    'font-lock-face face)))
+            ,(propertize (package-desc-summary pkg-desc)
+                         'font-lock-face face)])))
 
 (defun package-menu-refresh ()
   "Download the Emacs Lisp package archive.

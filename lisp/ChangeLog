@@ -1,3 +1,13 @@
+2014-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el: Write files silently.
+	(package-autoload-ensure-default-file, package--write-file-no-coding)
+	(package-generate-description-file, package--download-one-archive)
+	(package-install-from-archive): Tell `write-region' to stay quiet.
+	(package-menu-mode, package-menu--print-info): Omit the Archive column
+	if there's only one archive.
+	(package-all-keywords, package--has-keyword-p): Remove dead code.
+
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-bzr-version-bzr): Fix typo.
@@ -11,10 +21,9 @@
 2014-01-22  Martin Rudalics  <rudalics@gmx.at>
 
 	Fixes in window size functions around Bug#16430 and Bug#16470.
-	* window.el (window-total-size, window-size): New argument
-	ROUND.
-	(window--min-delta-1, window-min-delta, window--max-delta-1): Be
-	more conservative when calculating the numbers of lines or
+	* window.el (window-total-size, window-size): New argument ROUND.
+	(window--min-delta-1, window-min-delta, window--max-delta-1):
+	Be more conservative when calculating the numbers of lines or
 	columns a window can shrink (Bug#16430).
 	(fit-window-to-buffer): Simplify code.
 	* term.el (term-window-width): Call window-body-width again.
