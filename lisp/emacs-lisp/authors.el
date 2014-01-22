@@ -668,6 +668,7 @@ Changes to files in this list are not listed.")
     "yow.c"
     ;; etc/
     "emacsclient.c" "etags.c" "hexl.c" "make-docfile.c" "movemail.c"
+    "test-distrib.c" "testfile"
     "tpu-doc.el"			; FIXME? renamed to something?
     )
   "File names which are valid, but no longer exist (or cannot be found)

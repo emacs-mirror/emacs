@@ -5784,19 +5784,17 @@
 
 	* COPYING: Got June 1991 version of the GPL here.
 
-	* ChangeLog: Since the old etc contents have been split into etc
-	and lib-src, the old etc's ChangeLog has been duplicated in the
-	new etc and lib-src.  That means that each contains complete and
-	coherent information, although each contains extraneous
-	information.
-
 1992-04-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* lib-src/etags.c: "--no-warning" option renamed to "--no-warn",
-	to be consistent with other GNU programs, like makeinfo.
-
-	* lib-src/Makefile: Renamed to Makefile.in; the configure script
-	will edit this to produce Makefile.
+	Move some files to new ../lib-src directory.  [approximate date]
+	* Makefile: Copy to new ../lib-src directory.
+	* aixcc.lex, b2m.c, cvtmail.c, digest-doc.c:
+	* emacsclient.c, emacsserver.c, emacstool.c, env.c:
+	* etags-vmslib.c, etags.c, fakemail.c, getdate.c, getdate.y:
+	* getopt.c, getopt.h, getopt1.c, hexl.c, leditcfns.c:
+	* make-docfile.c, movemail.c, qsort.c, sorted-doc.c:
+	* test-distrib.c, testfile, timer.c, wakeup.c, yow.c:
+	Move to new ../lib-src directory.
 
 1992-04-07  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -5846,11 +5844,10 @@
 
 1992-03-31  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* lib-src/Makefile, etc/MACHINES, etc/NEWS: Changed references to
+	* Makefile, MACHINES, NEWS: Changed references to
 	`config.emacs' to `configure'.
 
-	* lib-src/Makefile: Adjusted for renaming of share-lib to etc.
-	* etc/MACHINES: Same.
+	* Makefile, MACHINES: Adjusted for renaming of share-lib to etc.
 
 1992-03-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
