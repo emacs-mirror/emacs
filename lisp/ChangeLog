@@ -4,6 +4,7 @@
 	Check either .bzr or .git, but not both.
 	Make the git case actually use the DIR argument, and return nil
 	rather than the empty string.
+	Avoid error if .git exists but the git executable is not found.
 
 2014-01-22  Martin Rudalics  <rudalics@gmx.at>
 

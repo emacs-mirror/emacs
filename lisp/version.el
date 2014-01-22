@@ -185,8 +185,10 @@ only ask the VCS if we cannot find any information ourselves."
 	 (message "Waiting for git...")
 	 (with-temp-buffer
 	   (let ((default-directory (file-name-as-directory dir)))
-	     (and (zerop (call-process "git" nil '(t nil) nil "log"
-				       "-1" "--pretty=format:%N"))
+	     (and (eq 0
+		      (ignore-errors
+			(call-process "git" nil '(t nil) nil "log"
+				      "-1" "--pretty=format:%N")))
 		  (not (zerop (buffer-size)))
 		  (replace-regexp-in-string "\n" "" (buffer-string))))))))
 
