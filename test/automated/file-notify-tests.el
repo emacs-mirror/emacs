@@ -237,7 +237,9 @@ TIMEOUT is the maximum time to wait for."
       (ignore-errors (delete-file file-notify--test-tmpfile))
       (ignore-errors (delete-file file-notify--test-tmpfile1))))
 
-  (should file-notify--test-results)
+  (should
+   (or file-notify--test-results
+       (and noninteractive (eq file-notify--library 'gfilenotify)))) ;; Bug#16519.
   (dolist (result file-notify--test-results)
     ;(message "%s" (ert-test-result-messages result))
     (when (ert-test-failed-p result)

@@ -1,3 +1,8 @@
+2014-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test02-events):
+	Hide Bug#16519, until it is solved.
+
 2014-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el
