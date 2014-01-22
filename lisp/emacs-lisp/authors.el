@@ -503,6 +503,7 @@ Changes to files in this list are not listed.")
     ("Michael D. Prange" :changed "tex-mode.el")
     ;; No longer distributed (dgux5-4r3.h was renamed to dgux5-4-3.h).
 ;;;    ("Paul Reilly" :wrote "gux5-4r2.h" "dgux5-4-3.h")
+    ("Rob Riepel" :wrote "tpu-edt.doc")
     ("Roland B. Roberts" :changed "files.el" "sort.el"
      "buffer.h" "callproc.c" "dired.c" "process.c" "sysdep.c" "systty.h")
      ;; No longer distributed.
