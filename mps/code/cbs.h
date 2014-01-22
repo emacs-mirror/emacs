@@ -24,14 +24,14 @@ typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
 
 typedef struct CBSStruct {
-  SplayTreeStruct splayTree;
-  Count splayTreeSize;
+  SplayTreeStruct tree;
+  Count treeSize;
   Pool blockPool;
   Align alignment;
   Bool fastFind;
   Bool inCBS; /* prevent reentrance */
   /* meters for sizes of search structures at each op */
-  METER_DECL(splaySearch);
+  METER_DECL(treeSearch);
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
