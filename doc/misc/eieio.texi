@@ -72,7 +72,6 @@ framework for writing object-oriented applications in Emacs.
 * Base Classes::          Additional classes you can inherit from.
 * Browsing::              Browsing your class lists.
 * Class Values::          Displaying information about a class or object.
-* Documentation::         Automatically creating texinfo documentation.
 * Default Superclass::    The root superclasses.
 * Signals::               When you make errors.
 * Naming Conventions::    Name your objects in an Emacs friendly way.
@@ -177,9 +176,17 @@ error.  @ref{Signals}.
 @node Introduction
 @chapter Introduction
 
-Due to restrictions in the Emacs Lisp language, CLOS cannot be
-completely supported, and a few functions have been added in place of
-setf.
+First off, please note that this manual cannot serve as a complete
+introduction to object oriented programming and generic functions in
+LISP.  Although EIEIO is not a complete implementation of the Common
+Lisp Object System (CLOS) and also differs from it in several aspects,
+it follows the same basic concepts.  Therefore, it is highly
+recommended to learn those from a textbook or tutorial first,
+especially if you only know OOP from languages like C++ or Java.  If
+on the other hand you are already familiar with CLOS, you should be
+aware that @eieio{} does not implement the full CLOS specification and
+also differs in some other aspects (@xref{Introduction}, and @ref{CLOS
+compatibility}).
 
 @eieio{} supports the following features:
 
@@ -211,7 +218,10 @@ Public and private classifications for slots (extensions to CLOS)
 Customization support in a class (extension to CLOS)
 @end enumerate
 
-Here are some important CLOS features that @eieio{} presently lacks:
+Due to restrictions in the Emacs Lisp language, CLOS cannot be
+completely supported, and a few functions have been added in place of
+setf.  Here are some important CLOS features that @eieio{} presently
+lacks:
 
 @table @asis
 
@@ -246,17 +256,6 @@ should use a deep copy but currently does not.
 
 @node Building Classes
 @chapter Building Classes
-
-First off, please note that this manual cannot serve as a complete
-introduction to object oriented programming and generic functions in
-LISP.  Although EIEIO is not a complete CLOS implementation and also
-differs from CLOS in several aspects, it follows the same basic
-concepts.  Therefore, it is highly recommended to learn these from a
-textbook or tutorial first, especially if you only know OOP from
-languages like C++ or Java.  If on the other hand you are already
-familiar with CLOS, you should be aware that @eieio{} does not implement
-the full CLOS specification and also differs in some other aspects
-(@xref{Introduction}, and @ref{CLOS compatibility}).
 
 A @dfn{class} is a definition for organizing data and methods
 together.  An @eieio{} class has structures similar to the classes
@@ -1546,55 +1545,18 @@ comes out upside-down.
 @chapter Class Values
 
 Details about any class or object can be retrieved using the function
-@code{eieio-describe-class}.  Interactively, type in the name of
-a class.  In a program, pass it a string with the name of a class, a
-class symbol, or an object.  The resulting buffer will display all slot
-names.
+@code{eieio-describe-class}.  Interactively, type in the name of a
+class.  In a program, pass it a string with the name of a class, a
+class symbol, or an object.  The resulting buffer will display all
+slot names.  Additionally, all methods defined to have functionality
+on this class is displayed.
 
-Additionally, all methods defined to have functionality on this class is
-displayed.
-
-@node Documentation
-@chapter Documentation
-
-It is possible to automatically create documentation for your classes in
-texinfo format by using the tools in the file @file{eieio-doc.el}
-
-@deffn Command eieiodoc-class class indexstring &optional skiplist
-
-This will start at the current point, and create an indented menu of
-all the child classes of, and including @var{class}, but skipping any
-classes that might be in @var{skiplist}.  It will then create nodes for
-all these classes, subsection headings, and indexes.
-
-Each class will be indexed using the texinfo labeled index
-@var{indexstring} which is a two letter description.
-@xref{New Indices,,,texinfo,Texinfo manual}.
-
-To use this command, the texinfo macro
-
-@example
-@@defindex @@var @{ indexstring @}
-@end example
-
-@noindent
-where @var{indexstring} is replaced with the two letter code.
-
-Next, an inheritance tree will be created listing all parents of that
-section's class.
-
-Then, all the slots will be expanded in tables, and described
-using the documentation strings from the code.  Default values will also
-be displayed.  Only those slots with @code{:initarg} specified will be
-expanded, others will be hidden.  If a slot is inherited from a parent,
-that slot will also be skipped unless the default value is different.
-If there is a change, then the documentation part of the slot will be
-replace with an @@xref back to the parent.
-
-This command can only display documentation for classes whose
-definitions have been loaded in this Emacs session.
-
-@end deffn
+You can also use the normal @code{describe-function} to retrieve
+information about a class.  If you call it on a constructor function,
+it will also display the class information.  If you call it on a
+generic function, all implementations of that generic function will be
+listet, together with links through which you can directly jump to the
+source.
 
 @node Default Superclass
 @chapter Default Superclass
@@ -1903,9 +1865,9 @@ work.
 @end table
 
 CLOS supports the @code{describe} command, but @eieio{} only provides
-@code{eieio-describe-class}, and @code{eieio-describe-generic}.  These
-functions are adviced into @code{describe-variable}, and
-@code{describe-function}.
+@code{eieio-describe-class}, and @code{eieio-describe-generic}.  Those
+are automatically called by @code{describe-function} when called on a
+constructor or generic function.
 
 When creating a new class (@pxref{Building Classes}) there are several
 new keywords supported by @eieio{}.

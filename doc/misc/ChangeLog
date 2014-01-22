@@ -1,3 +1,11 @@
+2014-01-22  David Engster  <deng@randomsample.de>
+
+	* eieio.texi (Introduction): Move introductory paragraph about
+	EIEIO and CLOS from 'Building Classes' to here.
+	(Documentation): Remove, since eieio-doc is not part of Emacs.
+	(Class Values, CLOS compatibility): Mention that
+	`describe-function' will also give information about classes.
+
 2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update from gnulib.
