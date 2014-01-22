@@ -59,11 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MAX_ATTEMPTS 5
 #define MAX_DATA_LEN 1024
 
-#ifndef HAVE_DIFFTIME
-/* OK on POSIX (time_t is arithmetic type) modulo overflow in subtraction.  */
-#define difftime(t1, t0) (double)((t1) - (t0))
-#endif
-
 static _Noreturn void
 usage (int err)
 {
@@ -275,6 +270,7 @@ read_score (FILE *f, struct score_entry *score)
 #ifdef HAVE_GETDELIM
   {
     size_t count = 0;
+    score->username = 0;
     if (getdelim (&score->username, &count, ' ', f) < 1
 	|| score->username == NULL)
       return -1;
@@ -371,14 +367,13 @@ read_scores (const char *filename, struct score_entry **scores,
   while ((readval = read_score (f, &entry)) == 0)
     if (push_score (&ret, &scorecount, &cursize, &entry) < 0)
       return -1;
-  if (readval > 0)
+  if (readval > 0 && fclose (f) == 0)
     {
       *count = scorecount;
       *alloc = cursize;
       *scores = ret;
       retval = 0;
     }
-  fclose (f);
   return retval;
 }
 
@@ -448,6 +443,8 @@ write_scores (const char *filename, const struct score_entry *scores,
   fd = mkostemp (tempfile, 0);
   if (fd < 0)
     return -1;
+  if (fchmod (fd, 0644) != 0)
+    return -1;
   f = fdopen (fd, "w");
   if (! f)
     return -1;
@@ -456,10 +453,9 @@ write_scores (const char *filename, const struct score_entry *scores,
 		 scores[i].score, scores[i].username, scores[i].data)
 	< 0)
       return -1;
-  fclose (f);
-  if (rename (tempfile, filename) < 0)
+  if (fclose (f) != 0)
     return -1;
-  if (chmod (filename, 0644) < 0)
+  if (rename (tempfile, filename) != 0)
     return -1;
   return 0;
 }
@@ -479,9 +475,9 @@ lock_file (const char *filename, void **state)
   *state = lockpath;
  trylock:
   attempts++;
-  /* If the lock is over an hour old, delete it. */
+  /* If the lock is over an hour old, delete it.  */
   if (stat (lockpath, &buf) == 0
-      && (difftime (buf.st_ctime, time (NULL) > 60*60)))
+      && 60 * 60 < time (0) - buf.st_ctime)
     unlink (lockpath);
   fd = open (lockpath, O_CREAT | O_EXCL, 0600);
   if (fd < 0)

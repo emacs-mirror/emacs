@@ -1,3 +1,8 @@
+2014-01-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix miscellaneous update-game-score bugs.
+	* configure.ac (difftime): Remove.
+
 2014-01-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

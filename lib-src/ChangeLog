@@ -1,3 +1,15 @@
+2014-01-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix miscellaneous update-game-score bugs.
+	* update-game-score.c (difftime) [!HAVE_DIFFTIME]: Remove.
+	(read_score) [HAVE_GETDELIM]: Don't access uninitialized storage.
+	(read_scores, write_scores): Check for fclose failure.
+	(write_scores): Use fchmod, not chmod, to avoid a race.
+	(lock_file): Fix test for out-of-date lock file; it was reversed.
+	Use ordinary subtraction rather than difftime; since we're already
+	assuming POSIX we don't need to worry about the possibility of
+	time_t being a magic cookie.
+
 2014-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	update-game-score fixes for -m and integer overflow (Bug#16428)
