@@ -1,5 +1,7 @@
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
+	* version.el (emacs-bzr-version-bzr): Fix typo.
+
 	* version.el (emacs-repository-get-version):
 	Check either .bzr or .git, but not both.
 	Make the git case actually use the DIR argument, and return nil
