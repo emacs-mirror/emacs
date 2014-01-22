@@ -186,9 +186,10 @@ only ask the VCS if we cannot find any information ourselves."
 	 (with-temp-buffer
 	   (let ((default-directory (file-name-as-directory dir)))
 	     (and (eq 0
-		      (ignore-errors
-			(call-process "git" nil '(t nil) nil "log"
-				      "-1" "--pretty=format:%N")))
+		      (condition-case nil
+			  (call-process "git" nil '(t nil) nil "log"
+					"-1" "--pretty=format:%N")
+			(error nil)))
 		  (not (zerop (buffer-size)))
 		  (replace-regexp-in-string "\n" "" (buffer-string))))))))
 
