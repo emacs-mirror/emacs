@@ -669,7 +669,7 @@ Changes to files in this list are not listed.")
     ;; etc/
     "emacsclient.c" "etags.c" "hexl.c" "make-docfile.c" "movemail.c"
     "test-distrib.c" "testfile"
-    "tpu-doc.el"			; FIXME? renamed to something?
+    "tpu-edt.doc"			; see below
     )
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
@@ -723,6 +723,10 @@ in the repository.")
     ("DIFF" . "OTHER.EMACSES")
     ("CCADIFF" . "OTHER.EMACSES")
     ("GOSDIFF" . "OTHER.EMACSES")
+    ;; Moved from lisp/tpu-doc.el to etc/tpu-edt.doc in Emacs 19.29.
+    ;; Removed in Emacs 19.30, replaced by new file etc/edt-user.doc
+    ;; (no associated ChangeLog entry).
+    ("tpu-doc.el" . "tpu-edt.doc")
     ("Makefile.in.in" . "Makefile.in")
     ("leim-Makefile" . "leim/Makefile")
     ("leim-Makefile.in" . "leim/Makefile.in")

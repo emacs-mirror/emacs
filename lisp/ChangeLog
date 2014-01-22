@@ -1,6 +1,7 @@
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/authors.el (authors-valid-file-names): Additions.
+	* emacs-lisp/authors.el (authors-valid-file-names):
+	(authors-renamed-files-alist): Additions.
 
 	* vc/vc-git.el (vc-git-print-log): Remove --follow;
 	reverts 2014-01-09 change.  (Bug#16422)

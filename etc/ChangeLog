@@ -5533,7 +5533,7 @@
 
 1995-04-09  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* tpu-doc.el: File moved to etc dir and renamed.
+	* tpu-edt.doc: Move here from ../lisp/tpu-doc.el.
 
 1995-04-07  Boris Goldowsky  <boris@cs.rochester.edu>
 
