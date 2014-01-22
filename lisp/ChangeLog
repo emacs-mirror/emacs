@@ -1,5 +1,8 @@
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-git.el (vc-git-print-log): Remove --follow;
+	reverts 2014-01-09 change.  (Bug#16422)
+
 	* calc/calc-embed.el (thing-at-point-looking-at):
 	* emacs-lisp/map-ynp.el (x-popup-dialog):
 	* obsolete/lmenu.el (x-popup-dialog):
