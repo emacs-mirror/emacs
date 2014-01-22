@@ -236,8 +236,7 @@ simply disabling Transient Mark mode does the same thing.
 and this variable has been marked obsolete.
 
 ---
-** `emacs-bzr-version' has been renamed to `emacs-repository-version',
-and works for git too.
+** `emacs-bzr-version' has been renamed to `emacs-repository-version'.
 
 ** New user options:
 

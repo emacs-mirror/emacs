@@ -1,3 +1,10 @@
+2014-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-repository-get-version):
+	Check either .bzr or .git, but not both.
+	Make the git case actually use the DIR argument, and return nil
+	rather than the empty string.
+
 2014-01-22  Martin Rudalics  <rudalics@gmx.at>
 
 	Fixes in window size functions around Bug#16430 and Bug#16470.
