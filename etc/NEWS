@@ -166,7 +166,8 @@ implementations together with links to the source.  The old commands
 `describe-class', `describe-constructor' and `describe-generic' were
 removed.
 
-*** The command `quail-help' has been removed.
+---
+*** The function `quail-help' is no longer an interactive command.
 Use `C-h C-\' (`describe-input-method') instead.
 
 ** ImageMagick

@@ -445,10 +445,11 @@ user's keyboard layout to the standard keyboard layout.  See the
 documentation of `quail-keyboard-layout' and
 `quail-keyboard-layout-standard' for more detail.
 
-SHOW-LAYOUT non-nil means the `quail-help' command should show
-the user's keyboard layout visually with translated characters.
-If KBD-TRANSLATE is set, it is desirable to set also this flag unless
-this package defines no translations for single character keys.
+SHOW-LAYOUT non-nil means the function `quail-help' (as used by
+the command `describe-input-method') should show the user's keyboard
+layout visually with translated characters.  If KBD-TRANSLATE is
+set, it is desirable to also set this flag, unless this package
+defines no translations for single character keys.
 
 CREATE-DECODE-MAP non-nil means decode map is also created.  A decode
 map is an alist of translations and corresponding original keys.

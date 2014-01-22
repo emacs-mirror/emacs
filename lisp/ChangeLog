@@ -1,5 +1,7 @@
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
+	* international/quail.el (quail-define-package): Doc fix.
+
 	* emacs-lisp/authors.el (authors-valid-file-names):
 	(authors-renamed-files-alist): Additions.
 
