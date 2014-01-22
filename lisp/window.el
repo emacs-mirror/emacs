@@ -1013,18 +1013,21 @@ FRAME defaults to the selected frame."
   (window--atom-check frame))
 
 ;;; Window sizes.
-(defun window-total-size (&optional window horizontal)
+(defun window-total-size (&optional window horizontal round)
   "Return the total height or width of WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 
 If HORIZONTAL is omitted or nil, return the total height of
 WINDOW, in lines, like `window-total-height'.  Otherwise return
-the total width, in columns, like `window-total-width'."
-  (if horizontal
-      (window-total-width window)
-    (window-total-height window)))
+the total width, in columns, like `window-total-width'.
 
-(defun window-size (&optional window horizontal pixelwise)
+Optional argument ROUND is handled as for `window-total-height'
+and `window-total-width'."
+  (if horizontal
+      (window-total-width window round)
+    (window-total-height window round)))
+
+(defun window-size (&optional window horizontal pixelwise round)
   "Return the height or width of WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 
@@ -1033,14 +1036,18 @@ WINDOW, in lines, like `window-total-height'.  Otherwise return
 the total width, in columns, like `window-total-width'.
 
 Optional argument PIXELWISE means return the pixel size of WINDOW
-like `window-pixel-height' and `window-pixel-width'."
+like `window-pixel-height' and `window-pixel-width'.
+
+Optional argument ROUND is ignored if PIXELWISE is non-nil and
+handled as for `window-total-height' and `window-total-width'
+otherwise."
   (if horizontal
       (if pixelwise
 	  (window-pixel-width window)
-	(window-total-width window))
+	(window-total-width window round))
     (if pixelwise
 	(window-pixel-height window)
-      (window-total-height window))))
+      (window-total-height window round))))
 
 (defvar window-size-fixed nil
   "Non-nil in a buffer means windows displaying the buffer are fixed-size.
@@ -1316,7 +1323,7 @@ WINDOW can be resized in the desired direction.  The function
 	    (unless (eq sub window)
 	      (setq delta
 		    (min delta
-			 (- (window-size sub horizontal pixelwise)
+			 (- (window-size sub horizontal pixelwise 'floor)
 			    (window-min-size
 			     sub horizontal ignore pixelwise)))))
 	    (setq sub (window-right sub))))
@@ -1356,7 +1363,7 @@ at least one other window can be enlarged appropriately.
 Optional argument PIXELWISE non-nil means return number of pixels
 by which WINDOW can be shrunk."
   (setq window (window-normalize-window window))
-  (let ((size (window-size window horizontal pixelwise))
+  (let ((size (window-size window horizontal pixelwise 'floor))
 	(minimum (window-min-size window horizontal ignore pixelwise)))
     (cond
      (nodown
@@ -1393,7 +1400,7 @@ by which WINDOW can be shrunk."
 		 (t
 		  (setq delta
 			(+ delta
-			   (- (window-size sub horizontal pixelwise)
+			   (- (window-size sub horizontal pixelwise 'floor)
 			      (window-min-size
 			       sub horizontal ignore pixelwise))))))
 		(setq sub (window-right sub))))
@@ -7131,8 +7138,7 @@ accessible position."
 			  (window-bottom-divider-width)))
 	  ;; Round height.
 	  (unless pixelwise
-	    (setq height (+ (/ height char-height)
-			    (if (zerop (% height char-height)) 0 1))))
+	    (setq height (/ (+ height char-height -1) char-height)))
 	  (unless (= height total-height)
 	    (window-resize-no-error
 	     window
@@ -7185,8 +7191,7 @@ accessible position."
 				    (if pixelwise char-height 1))))
 			   (window-right-divider-width))))
 	    (unless pixelwise
-	      (setq width (+ (/ width char-width)
-			     (if (zerop (% width char-width)) 0 1))))
+	      (setq width (/ (+ width char-width -1) char-width)))
 	    (unless (= width body-width)
 	      (window-resize-no-error
 	       window

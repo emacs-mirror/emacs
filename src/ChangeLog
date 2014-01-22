@@ -1,3 +1,16 @@
+2014-01-22  Martin Rudalics  <rudalics@gmx.at>
+
+	Fixes in window size functions around Bug#16430 and Bug#16470.
+	* window.c (Fwindow_pixel_width, Fwindow_pixel_height)
+	(Fwindow_mode_line_height, Fwindow_header_line_height)
+	(Fwindow_right_divider_width, Fwindow_bottom_divider_width):
+	Minor doc-string adjustments.
+	(Fwindow_total_height, Fwindow_total_width): New argument ROUND.
+	Rewrite doc-strings.
+	(window_body_height, window_body_width): Do not count partially
+	visible lines/columns when PIXELWISE is nil (Bug#16470).
+	(Qfloor, Qceiling): New symbols.
+
 2014-01-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (unwind_create_frame): Avoid crashing inside assertion
