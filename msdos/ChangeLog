@@ -1,3 +1,7 @@
+2013-12-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* autogen/Makefile.in: Update copyright year.
+
 2013-11-05  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/config.in:

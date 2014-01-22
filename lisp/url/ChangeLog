@@ -1609,6 +1609,16 @@
 
 	* url-cookie.el (url-cookie-multiple-line): Fix spelling in docstring.
 
+2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-chunked-encoding-after-change-function):
+	Use `url-http-debug' instead of `message'.
+
+2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
+
+	* url-http.el (url-http-parse-headers): Pass redirected URL
+	as a callback argument.
+
 2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-cookie.el (url-cookie-multiple-line):
@@ -1631,6 +1641,11 @@
 
 	* url.el (url-retrieve-synchronously): Work around the fact that
 	url-http sometimes doesn't call the callback.
+
+2005-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-ldap.el (url-ldap): Add docstring.  Fix call to
+	`ldap-search-internal'.
 
 2005-04-04  Lute Kamstra  <lute@gnu.org>
 

@@ -2117,7 +2117,7 @@
 
 2001-09-04  Andrew Innes  <andrewi@gnu.org>
 
-	* admin/nt/makedist.bat: Remove reference to obsolete file
+	* nt/makedist.bat: Remove reference to obsolete file
 	GETTING.GNU.SOFTWARE.  Remove outdated comments.  Explain about
 	version of tar used.
 

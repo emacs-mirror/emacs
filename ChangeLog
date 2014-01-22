@@ -102,7 +102,6 @@
 	* build-aux/update-copyright: New file.
 	* make-dist: Distribute it.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
-	* msdos/autogen/Makefile.in: Update copyright year.
 
 2013-12-23  Andreas Schwab  <schwab@linux-m68k.org>
 

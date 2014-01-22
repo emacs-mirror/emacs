@@ -48,8 +48,8 @@
 
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
-	* erc/erc-autoaway.el, erc/erc-ibuffer.el, erc/erc-menu.el:
-	* erc/erc-stamp.el, erc/erc.el: Remove unnecessary eval-when-compiles.
+	* erc-autoaway.el, erc-ibuffer.el, erc-menu.el:
+	* erc-stamp.el, erc.el: Remove unnecessary eval-when-compiles.
 
 2008-05-30  Diane Murray  <disumu@x3y2z1.net>
 

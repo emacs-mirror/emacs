@@ -26778,16 +26778,6 @@
 	(iswitchb-common-match-inserted): New variable.
 	(iswitchb-complete, iswitchb-completion-help): Use it.
 
-2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
-
-	* url/url-http.el (url-http-chunked-encoding-after-change-function):
-	Use `url-http-debug' instead of `message'.
-
-2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
-
-	* url/url-http.el (url-http-parse-headers): Pass redirected URL
-	as a callback argument.
-
 2005-06-04  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move): Only call sit-for when moving backwards.
@@ -29696,11 +29686,6 @@
 	* abbrev.el (define-abbrevs): Read system abbrevs properly.
 
 	* emacs-lisp/map-ynp.el (map-y-or-n-p): Clarify RET/q in help message.
-
-2005-04-10  Chong Yidong  <cyd@stupidchicken.com>
-
-	* url/url-ldap.el (url-ldap): Add docstring.  Fix call to
-	`ldap-search-internal'.
 
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
