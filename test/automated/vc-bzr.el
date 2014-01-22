@@ -3,6 +3,7 @@
 ;; Copyright (C) 2011-2014 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

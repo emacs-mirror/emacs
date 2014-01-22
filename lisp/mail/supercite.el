@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1997, 2001-2014 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
-;; Maintainer:    Glenn Morris <rgm@gnu.org>
-;; Created:       February 1993
+;; Maintainer: FSF
+;; Created: February 1993
 ;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.
