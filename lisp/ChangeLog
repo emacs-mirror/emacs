@@ -1,5 +1,7 @@
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-format-suffixes): Doc fix.
+
 	* international/quail.el (quail-define-package): Doc fix.
 
 	* emacs-lisp/authors.el (authors-valid-file-names):

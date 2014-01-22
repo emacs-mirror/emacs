@@ -175,9 +175,11 @@ Use `C-h C-\' (`describe-input-method') instead.
 +++
 *** ImageMagick images now support the :max-width and :max-height keywords.
 
-*** Some data types aren't auto-detected by ImageMagick.
-Adding :format to `create-image' may help if the content type is in
-the new variable `image-format-suffixes'.
++++
+*** When using `create-image' with image data, you can pass a :format
+attribute (via the property-list argument) in order to help
+ImageMagick detect the image type.  The value should be a MIME
+content-type that is found in the new variable `image-format-suffixes'.
 
 ** Frame and window changes
 

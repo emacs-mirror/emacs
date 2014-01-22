@@ -1,3 +1,7 @@
+2014-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images): Expand on image-format-suffixes.
+
 2014-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* hash.texi (Other Hash): Do not mention subr-x.el functions;

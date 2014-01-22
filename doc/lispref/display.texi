@@ -4690,6 +4690,16 @@ should never be rendered using ImageMagick, regardless of the value of
 ImageMagick entirely.
 @end defopt
 
+@defvar image-format-suffixes
+This variable is an alist mapping image types to file name extensions.
+Emacs uses this in conjunction with the @code{:format} image property
+(see below) to give a hint to the ImageMagick library as to the type
+of an image.  Each element has the form @code{(@var{type}
+@var{extension})}, where @var{type} is a symbol specifying an image
+content-type, and @var{extension} is a string that specifies the
+associated file name extension.
+@end defvar
+
   Images loaded with ImageMagick support the following additional
 image descriptor properties:
 
@@ -4700,13 +4710,13 @@ color, which is used as the image's background color if the image
 supports transparency.  If the value is @code{nil}, it defaults to the
 frame's background color.
 
-@item :width, :height
+@item :width @var{width}, :height @var{height}
 The @code{:width} and @code{:height} keywords are used for scaling the
 image.  If only one of them is specified, the other one will be
 calculated so as to preserve the aspect ratio.  If both are specified,
 aspect ratio may not be preserved.
 
-@item :max-width, :max-height
+@item :max-width @var{max-width}, :max-height @var{max-height}
 The @code{:max-width} and @code{:max-height} keywords are used for
 scaling if the size of the image of the image exceeds these values.
 If @code{:width} is set it will have precedence over @code{max-width},
@@ -4715,19 +4725,16 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
-@c FIXME: ':format-type' or ':format'?  --xfq
-@item :format
-ImageMagick tries to auto-detect the image type, but it isn't always
-able to.  By using @code{:format-type}, we can give ImageMagick a hint
-to try to help it.  It's used in conjunction with the
-@code{image-format-suffixes} variable, which provides a mapping from
-content types to file name suffixes.  This is then given to
-ImageMagick as a file name hint.
+@item :format @var{type}
+The value, @var{type}, should be a symbol specifying the type of the
+image data, as found in @code{image-format-suffixes}.  This is used
+when the image does not have an associated file name, to provide a
+hint to ImageMagick to help it detect the image type.
 
-@item :rotation
+@item :rotation @var{angle}
 Specifies a rotation angle in degrees.
 
-@item :index
+@item :index @var{frame}
 @c Doesn't work: http://debbugs.gnu.org/7978
 @xref{Multi-Frame Images}.
 @end table

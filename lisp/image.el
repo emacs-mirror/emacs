@@ -104,11 +104,13 @@ AUTODETECT can be
 
 (defvar image-format-suffixes
   '((image/x-icon "ico"))
-  "Alist of MIME Content-Type headers to file name suffixes.
+  "An alist associating image types with file name suffixes.
 This is used as a hint by the ImageMagick library when detecting
-image types.  If `create-image' is called with a :format
-matching found in this alist, the ImageMagick library will be
-told that the data would have this suffix if saved to a file.")
+the type of image data (that does not have an associated file name).
+Each element has the form (MIME-CONTENT-TYPE EXTENSION).
+If `create-image' is called with a :format attribute whose value
+equals a content-type found in this list, the ImageMagick library is
+told that the data would have the associated suffix if saved to a file.")
 
 (defcustom image-load-path
   (list (file-name-as-directory (expand-file-name "images" data-directory))
