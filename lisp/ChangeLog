@@ -336,10 +336,13 @@
 	* simple.el (read--expression): Enable eldoc-mode.
 	* progmodes/octave.el (octave-mode-menu): Adapt to change in eldoc.
 
-2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
+2014-01-11  Dani Moncayo  <dmoncayo@gmail.com>
+	    Eric S. Raymond  <esr@thyrsus.com>
 
 	* version.el (emacs-repository-get-version): Enhance so the
 	function works correctly in either a Bazaar or Git repo.
+
+2014-01-11  Eric S. Raymond  <esr@thyrsus.com>
 
 	* play/meese.el: It's 2014 and Ed Meese is justly forgotten.
 	Goes with removal of the joke manpages from /etc.
