@@ -1396,17 +1396,18 @@ display the result of expression evaluation."
 ;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (exp &optional insert-value)
   "Evaluate EXP and print value in the echo area.
-When called interactively, read an Emacs Lisp expression and
-evaluate it.
+When called interactively, read an Emacs Lisp expression and evaluate it.
 Value is also consed on to front of the variable `values'.
-Optional argument INSERT-VALUE non-nil (interactively,
-with prefix argument) means insert the result into the current buffer
-instead of printing it in the echo area.  With a zero prefix arg,
-insert the result with no limit on the length and level of lists,
-and include additional formats for integers (octal, hexadecimal,
-and character).  Truncates long output according to the value
-of the variables `eval-expression-print-length'
-and `eval-expression-print-level'.
+Optional argument INSERT-VALUE non-nil (interactively, with prefix
+argument) means insert the result into the current buffer instead of
+printing it in the echo area.
+
+Normally, this function truncates long output according to the value
+of the variables `eval-expression-print-length' and
+`eval-expression-print-level'.  With a prefix argument of zero,
+however, there is no such truncation.  Such a prefix argument
+also causes integers to be printed in several additional formats
+\(octal, hexadecimal, and character).
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."

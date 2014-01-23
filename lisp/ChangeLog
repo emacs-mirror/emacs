@@ -1,3 +1,8 @@
+2014-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-print-last-sexp, eval-last-sexp):
+	* simple.el (eval-expression): Doc fixes.
+
 2014-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries): Addition.

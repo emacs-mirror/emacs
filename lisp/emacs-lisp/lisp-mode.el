@@ -867,14 +867,15 @@ Semicolons start comments.
 (defun eval-print-last-sexp (&optional eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value into current buffer.
 
-If `eval-expression-debug-on-error' is non-nil, which is the default,
-this command arranges for all errors to enter the debugger.
+Normally, this function truncates long output according to the value
+of the variables `eval-expression-print-length' and
+`eval-expression-print-level'.  With a prefix argument of zero,
+however, there is no such truncation.  Such a prefix argument
+also causes integers to be printed in several additional formats
+\(octal, hexadecimal, and character).
 
-Note that printing the result is controlled by the variables
-`eval-expression-print-length' and `eval-expression-print-level',
-which see.  With a zero prefix arg, print output with no limit
-on the length and level of lists, and include additional formats
-for integers (octal, hexadecimal, and character)."
+If `eval-expression-debug-on-error' is non-nil, which is the default,
+this command arranges for all errors to enter the debugger."
   (interactive "P")
   (let ((standard-output (current-buffer)))
     (terpri)
@@ -1084,10 +1085,12 @@ POS specifies the starting position where EXP was found and defaults to point."
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
 Interactively, with prefix argument, print output into current buffer.
-Truncates long output according to the value of the variables
-`eval-expression-print-length' and `eval-expression-print-level'.
-With a zero prefix arg, print output with no limit on the length
-and level of lists, and include additional formats for integers
+
+Normally, this function truncates long output according to the value
+of the variables `eval-expression-print-length' and
+`eval-expression-print-level'.  With a prefix argument of zero,
+however, there is no such truncation.  Such a prefix argument
+also causes integers to be printed in several additional formats
 \(octal, hexadecimal, and character).
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
