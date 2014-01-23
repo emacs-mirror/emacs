@@ -7,13 +7,27 @@
 
 	Fix miscellaneous update-game-score bugs.
 	* update-game-score.c (difftime) [!HAVE_DIFFTIME]: Remove.
-	(read_score) [HAVE_GETDELIM]: Don't access uninitialized storage.
-	(read_scores, write_scores): Check for fclose failure.
+	(read_score) [HAVE_GETDELIM]: Don't access uninitialized storage,
+	as that leads to undefined behavior, which is a bad thing
+	particularly in a setuid program.
+	(read_scores, write_scores): Check for fclose failure; on some
+	systems, I/O errors are not reported by primitives like getc and
+	putc, but instead are delayed until fclose, so fclose failures
+	should be diagnosed like other read and write errors.
 	(write_scores): Use fchmod, not chmod, to avoid a race.
+	Otherwise, if the lock is broken by some other process,
+	update-game-score might try to change the permission on someone
+	else's file or on a nonexistent file, and incorrectly report an
+	error when this fails.
 	(lock_file): Fix test for out-of-date lock file; it was reversed.
-	Use ordinary subtraction rather than difftime; since we're already
-	assuming POSIX we don't need to worry about the possibility of
-	time_t being a magic cookie.
+	That is, it incorrectly broke locks when they were more than an
+	hour into the future, instead of when they were more than an hour
+	in the past.  Use ordinary subtraction rather than difftime; since
+	we're already assuming POSIX we don't need to worry about the
+	possibility of time_t being a magic cookie, and since timestamps
+	are positive we don't need to worry about integer overflow when
+	subtracting them.  Put two spaces, not just one, after a sentence
+	end in a comment.
 
 2014-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
