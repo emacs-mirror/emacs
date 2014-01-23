@@ -1,3 +1,9 @@
+2014-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2014-01-22 qacl: check for fchmod
+	* m4/acl.m4: Update from gnulib.
+
 2014-01-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix miscellaneous update-game-score bugs.

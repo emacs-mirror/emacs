@@ -1,5 +1,5 @@
 # acl.m4 - check for access control list (ACL) primitives
-# serial 16
+# serial 17
 
 # Copyright (C) 2002, 2004-2014 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -14,6 +14,7 @@ AC_DEFUN([gl_FUNC_ACL],
     AS_HELP_STRING([--disable-acl], [do not support ACLs]),
     , [enable_acl=auto])
 
+  AC_CHECK_FUNCS_ONCE([fchmod])
   LIB_ACL=
   use_acl=0
   if test "x$enable_acl" != "xno"; then
