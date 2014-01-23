@@ -254,14 +254,11 @@ accept a list of directories, separated with colons.
 To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
 TOOLKIT is `gtk' (the default), `athena', or `motif' (`yes' and
-`lucid' are synonyms for `athena').  On some systems, it does not work
-to use a toolkit with shared libraries.  A free implementation of
-Motif, called LessTif, is available from <http://www.lesstif.org>.
-Compiling with LessTif or Motif causes a standard File Selection
-Dialog to pop up when you invoke file commands with the mouse.  You
-can get fancy 3D-style scroll bars, even without Gtk or LessTif/Motif,
-if you have the Xaw3d library installed (see "Image support libraries"
-above for Xaw3d availability).
+`lucid' are synonyms for `athena').  Compiling with Motif causes a
+standard File Selection Dialog to pop up when you invoke file commands
+with the mouse.  You can get fancy 3D-style scroll bars, even without
+Gtk or Motif, if you have the Xaw3d library installed (see
+"Image support libraries" above for Xaw3d availability).
 
 You can tell configure where to search for GTK by specifying
 `--with-pkg-config-prog=PATH' where PATH is the pathname to
@@ -295,8 +292,7 @@ or more of these options:
   --without-gif        for GIF image support
   --without-png        for PNG image support
 
-Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
-scroll bars.
+Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.

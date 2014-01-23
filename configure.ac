@@ -1947,7 +1947,7 @@ if test "$window_system" = none && test "X$with_x" != "Xno"; then
       test "`echo /usr/lib/libX11.*`" != "/usr/lib/libX11.*"; then
         AC_MSG_ERROR([You seem to be running X, but no X development libraries
 were found.  You should install the relevant development files for X
-and for the toolkit you want, such as Gtk+, Lesstif or Motif.  Also make
+and for the toolkit you want, such as Gtk+ or Motif.  Also make
 sure you have development files for image handling, i.e.
 tiff, gif, jpeg, png and xpm.
 If you are sure you want Emacs compiled without X window support, pass
