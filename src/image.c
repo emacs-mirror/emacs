@@ -7908,7 +7908,7 @@ imagemagick_error (MagickWand *wand)
   image_error ("ImageMagick error: %s",
 	       build_string (description),
 	       Qnil);
-  description = (char *) MagickRelinquishMemory (description);
+  MagickRelinquishMemory (description);
 }
 
 /* Possibly give ImageMagick some extra help to determine the image
@@ -8546,10 +8546,10 @@ and `imagemagick-types-inhibit'.  */)
     {
       Qimagemagicktype = intern (imtypes[i]);
       typelist = Fcons (Qimagemagicktype, typelist);
-      imtypes[i] = (char *) MagickRelinquishMemory (imtypes[i]);
+      imtypes[i] = MagickRelinquishMemory (imtypes[i]);
     }
 
-  imtypes = (char **) MagickRelinquishMemory (imtypes);
+  MagickRelinquishMemory (imtypes);
   return Fnreverse (typelist);
 }
 

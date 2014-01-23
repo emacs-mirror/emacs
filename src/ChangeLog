@@ -1,3 +1,9 @@
+2014-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor cleanup of previous change.
+	* image.c (imagemagick_error, Fimagemagick_types):
+	Omit some recently-introduced and unnecessary casts and assignments.
+
 2014-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix two memory leaks discovered with Valgrind.
