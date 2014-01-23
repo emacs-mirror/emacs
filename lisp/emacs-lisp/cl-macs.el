@@ -2588,6 +2588,17 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
      (put ',name 'cl-deftype-handler
           (cl-function (lambda (&cl-defs '('*) ,@arglist) ,@body)))))
 
+(defvar byte-compile-function-environment)
+(defvar byte-compile-macro-environment)
+
+(defun cl--macroexp-fboundp (sym)
+  "Return non-nil if SYM will be bound when we run the code.
+Of course, we really can't know that for sure, so it's just a heuristic."
+  (or (fboundp sym)
+      (and (cl--compiling-file)
+           (or (cdr (assq sym byte-compile-function-environment))
+               (cdr (assq sym byte-compile-macro-environment))))))
+
 (defun cl--make-type-test (val type)
   (if (symbolp type)
       (cond ((get type 'cl-deftype-handler)
@@ -2603,8 +2614,12 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 	    (t
 	     (let* ((name (symbol-name type))
 		    (namep (intern (concat name "p"))))
-	       (if (fboundp namep) (list namep val)
-		 (list (intern (concat name "-p")) val)))))
+	       (cond
+                ((cl--macroexp-fboundp namep) (list namep val))
+                ((cl--macroexp-fboundp
+                  (setq namep (intern (concat name "-p"))))
+                 (list namep val))
+                (t (list type val))))))
     (cond ((get (car type) 'cl-deftype-handler)
 	   (cl--make-type-test val (apply (get (car type) 'cl-deftype-handler)
 					 (cdr type))))
