@@ -214,12 +214,13 @@ of the buffer is visible).
 *** `eval-defun' on an already defined defcustom calls the :set function,
 if there is one.
 
++++
 *** The commands `eval-expression' (`M-:'), `eval-last-sexp' (`C-x C-e'),
-and `eval-print-last-sexp' (`C-j') can take a zero prefix argument.
-This disables truncation of lists in the output, equivalent to
-setting `(eval-expression-)print-length' and `(eval-expression-)print-limit'
-to nil.  Additionally, it causes integers to be printed in multiple
-formats (octal, hexadecimal, and character).
+and `eval-print-last-sexp' (`C-j' in Lisp Interaction mode) can take a
+zero prefix argument.  This disables truncation of lists in the output,
+equivalent to setting `(eval-expression-)print-length' and
+`(eval-expression-)print-limit' to nil.  Additionally, it causes integers
+to be printed in other formats (octal, hexadecimal, and character).
 
 ---
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.

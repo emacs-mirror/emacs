@@ -1,3 +1,8 @@
+2014-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* building.texi (Lisp Eval): Update prefix argument behavior
+	of eval-expression, eval-last-sexp.
+
 2014-01-17  Bastien Guerry  <bzg@gnu.org>
 
 	* building.texi (Commands of GUD): Fix keybinding for `gud-break'.

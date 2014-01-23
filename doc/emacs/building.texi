@@ -1476,13 +1476,17 @@ expression.)
   The command @kbd{C-x C-e} (@code{eval-last-sexp}) evaluates the
 Emacs Lisp expression preceding point in the buffer, and displays the
 value in the echo area.  When the result of an evaluation is an
-integer, you can type @kbd{C-x C-e} a second time to display the value
-of the integer result in additional formats (octal, hexadecimal, and
-character).
+integer, it is displayed together with the value in other formats
+(octal, hexadecimal, and character).
 
   If @kbd{M-:} or @kbd{C-x C-e} is given a prefix argument, it inserts
 the value into the current buffer at point, rather than displaying it
-in the echo area.  The argument's value does not matter.
+in the echo area.  If the prefix argument is zero, any integer output
+is inserted together with its value in other formats (octal,
+hexadecimal, and character).  Such a prefix argument also prevents
+abbreviation of the output according to the variables
+@code{eval-expression-print-level} and @code{eval-expression-print-length}
+(see below).
 
 @kindex C-M-x @r{(Emacs Lisp mode)}
 @findex eval-defun
@@ -1516,9 +1520,11 @@ eval-buffer} is similar but evaluates the entire buffer.
   The options @code{eval-expression-print-level} and
 @code{eval-expression-print-length} control the maximum depth and
 length of lists to print in the result of the evaluation commands
-before abbreviating them.  @code{eval-expression-debug-on-error}
-controls whether evaluation errors invoke the debugger when these
-commands are used; its default is @code{t}.
+before abbreviating them.  Supplying a zero prefix argument to
+@code{eval-expression} or @code{eval-last-sexp} causes lists to be
+printed in full.  @code{eval-expression-debug-on-error} controls
+whether evaluation errors invoke the debugger when these commands are
+used; its default is @code{t}.
 
 @node Lisp Interaction
 @section Lisp Interaction Buffers
