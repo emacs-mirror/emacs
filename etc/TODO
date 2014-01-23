@@ -232,6 +232,9 @@ Perspectives also need to interact with the tabs.
 ** FFI (foreign function interface)
 See eg http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00246.html
 
+** Replace unexec with a more portable form of dumping
+See eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01034.html
+
 ** Imenu could be extended into a file-structure browsing mechanism
 using code like that of customize-groups.
 
