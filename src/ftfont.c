@@ -1011,6 +1011,7 @@ ftfont_list (struct frame *f, Lisp_Object spec)
       if (otspec)
 	{
 	  FcChar8 *file;
+	  bool passed;
 	  OTF *otf;
 
 	  if (FcPatternGetString (fontset->fonts[i], FC_FILE, 0, &file)
@@ -1019,14 +1020,16 @@ ftfont_list (struct frame *f, Lisp_Object spec)
 	  otf = OTF_open ((char *) file);
 	  if (! otf)
 	    continue;
-	  if (OTF_check_features (otf, 1,
-				  otspec->script_tag, otspec->langsys_tag,
-				  otspec->features[0],
-				  otspec->nfeatures[0]) != 1
-	      || OTF_check_features (otf, 0,
-				     otspec->script_tag, otspec->langsys_tag,
-				     otspec->features[1],
-				     otspec->nfeatures[1]) != 1)
+	  passed = (OTF_check_features (otf, 1, otspec->script_tag,
+					otspec->langsys_tag,
+					otspec->features[0],
+					otspec->nfeatures[0]) == 1
+		    && OTF_check_features (otf, 0, otspec->script_tag,
+					   otspec->langsys_tag,
+					   otspec->features[1],
+					   otspec->nfeatures[1]) == 1);
+	  OTF_close (otf);
+	  if (!passed)
 	    continue;
 	}
 #endif	/* HAVE_LIBOTF */

@@ -8546,7 +8546,10 @@ and `imagemagick-types-inhibit'.  */)
     {
       Qimagemagicktype = intern (imtypes[i]);
       typelist = Fcons (Qimagemagicktype, typelist);
+      imtypes[i] = (char *) MagickRelinquishMemory (imtypes[i]);
     }
+
+  imtypes = (char **) MagickRelinquishMemory (imtypes);
   return Fnreverse (typelist);
 }
 

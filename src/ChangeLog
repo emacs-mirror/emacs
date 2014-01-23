@@ -1,3 +1,9 @@
+2014-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix two memory leaks discovered with Valgrind.
+	* ftfont.c (ftfont_list) [HAVE_LIBOTF]: Call OTF_close.
+	* image.c (Fimagemagick_types): Call MagickRelinquishMemory.
+
 2014-01-22  Martin Rudalics  <rudalics@gmx.at>
 
 	Fixes in window size functions around Bug#16430 and Bug#16470.
