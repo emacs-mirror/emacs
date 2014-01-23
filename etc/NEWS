@@ -15,9 +15,10 @@ You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
 Temporary note:
-+++ indicates that all necessary updates to the manuals in doc/ are complete.
++++ indicates that all necessary documentation updates are complete.
+    (This means all relevant manuals in doc/ AND lisp doc-strings.)
 --- means no change in the manuals is needed.
-When you add a new item, use the appropriate mark if you know it applies,
+When you add a new item, use the appropriate mark if you are sure it applies,
 otherwise leave it unmarked.
 
 
@@ -213,11 +214,12 @@ of the buffer is visible).
 *** `eval-defun' on an already defined defcustom calls the :set function,
 if there is one.
 
-*** A zero prefix arg of `eval-last-sexp' (`C-x C-e'),
-`eval-expression' (`M-:') and `eval-print-last-sexp' (`C-j') inserts
-a list with no limit on its length and level (by using nil values of
-`print-length' and `print-level'), and inserts additional formats for
-integers (octal, hexadecimal, and character).
+*** The commands `eval-expression' (`M-:'), `eval-last-sexp' (`C-x C-e'),
+and `eval-print-last-sexp' (`C-j') can take a zero prefix argument.
+This disables truncation of lists in the output, equivalent to
+setting `(eval-expression-)print-length' and `(eval-expression-)print-limit'
+to nil.  Additionally, it causes integers to be printed in multiple
+formats (octal, hexadecimal, and character).
 
 ---
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
