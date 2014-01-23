@@ -15061,18 +15061,19 @@ C-e} (@code{eval-last-sexp}).
 @c !!! 22.1.1 lisp sources location here
 @smallexample
 (lengths-list-file
- "/usr/local/share/emacs/22.1.1/lisp/emacs-lisp/debug.el")
+ "/usr/local/share/emacs/22.1/lisp/emacs-lisp/debug.el")
 @end smallexample
 
 @noindent
-(You may need to change the pathname of the file; the one here is for
-GNU Emacs version 22.1.1.  To change the expression, copy it to
+You may need to change the pathname of the file; the one here is for
+GNU Emacs version 22.1.  To change the expression, copy it to
 the @file{*scratch*} buffer and edit it.
 
 @need 1200
 @noindent
-(Also, to see the full length of the list, rather than a truncated
+Also, to see the full length of the list, rather than a truncated
 version, you may have to evaluate the following:
+@c We do not want to insert, so do not mention the zero prefix argument.
 
 @smallexample
 (custom-set-variables '(eval-expression-print-length nil))
@@ -15098,7 +15099,8 @@ took seven seconds to produce and looked like this:
 (75 41 80 62 20 45 44 68 45 12 34 235)
 @end smallexample
 
-(The newer version of @file{debug.el} contains more defuns than the
+@noindent
+The newer version of @file{debug.el} contains more defuns than the
 earlier one; and my new machine is much faster than the old one.)
 
 Note that the length of the last definition in the file is first in
