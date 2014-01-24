@@ -676,11 +676,12 @@ with-temp-buffer,, The Current Buffer}.
   When two users edit the same file at the same time, they are likely
 to interfere with each other.  Emacs tries to prevent this situation
 from arising by recording a @dfn{file lock} when a file is being
-modified.  (File locks are not implemented on Microsoft systems.)
+modified.
 Emacs can then detect the first attempt to modify a buffer visiting a
 file that is locked by another Emacs job, and ask the user what to do.
 The file lock is really a file, a symbolic link with a special name,
-stored in the same directory as the file you are editing.
+stored in the same directory as the file you are editing.  (On file
+systems that do not support symbolic links, a regular file is used.)
 
   When you access files using NFS, there may be a small probability that
 you and another user will both lock the same file ``simultaneously''.
@@ -719,11 +720,6 @@ does nothing if the current buffer is not visiting a file, or if the
 system does not support locking.
 @end defun
 
-  File locking is not supported on some systems.  On systems that do not
-support it, the functions @code{lock-buffer}, @code{unlock-buffer} and
-@code{file-locked-p} do nothing and return @code{nil}.  It is also
-possible to disable locking, by setting the variable @code{create-lockfiles}.
-
 @defopt create-lockfiles
 If this variable is @code{nil}, Emacs does not lock files.
 @end defopt
@@ -760,8 +756,7 @@ name of the user who has locked the file.
 @end itemize
 
 If you wish, you can replace the @code{ask-user-about-lock} function
-with your own version that makes the decision in another way.  The code
-for its usual definition is in @file{userlock.el}.
+with your own version that makes the decision in another way.
 @end defun
 
 @node Information about Files
