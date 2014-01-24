@@ -11,6 +11,8 @@
  * This test can be iterated.
  */
 
+#include "mps.c"
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,10 +21,8 @@
 #include "getopt.h"
 #include "testlib.h"
 
-#include "mps.c"
 
-
-#define MUST(expr) \
+#define DJMUST(expr) \
   do { \
     mps_res_t res = (expr); \
     if (res != MPS_RES_OK) { \
@@ -93,7 +93,7 @@ static unsigned rmax = 10;        /* maximum recursion depth */
     unsigned i; \
     mps_ap_t ap = NULL; \
     if (pool != NULL) \
-      MUST(mps_ap_create_k(&ap, pool, mps_args_none)); \
+      DJMUST(mps_ap_create_k(&ap, pool, mps_args_none)); \
     for (i = 0; i < niter; ++i) \
       (void)fname##_inner(ap, rmax, 0); \
     if (ap != NULL) \
@@ -188,9 +188,9 @@ static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 256ul * 1024 * 1024); /* FIXME: Why is there no default? */
     MPS_ARGS_DONE(args);
-    MUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
+    DJMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
-  MUST(mps_pool_create_k(&pool, arena, pool_class, mps_args_none));
+  DJMUST(mps_pool_create_k(&pool, arena, pool_class, mps_args_none));
   watch(dj, name);
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
