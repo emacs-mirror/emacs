@@ -1,3 +1,7 @@
+2014-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Interlocking): Copyedit.
+
 2014-01-23  Glenn Morris  <rgm@gnu.org>
 
 	* building.texi (Lisp Eval): Update prefix argument behavior

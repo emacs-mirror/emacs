@@ -1265,23 +1265,21 @@ These attributes are only meaningful for coding-systems of type
 
 ** `time-to-seconds' is not obsolete any more.
 
-** The lock for 'DIR/FILE' is now 'DIR/.#FILE' and may be a regular file.
-When you edit DIR/FILE, Emacs normally creates a symbolic link
-DIR/.#FILE as a lock that warns other instances of Emacs that DIR/FILE
-is being edited.  Formerly, if there was already a non-symlink file
-named DIR/.#FILE, Emacs fell back on the lock names DIR/.#FILE.0
-through DIR/.#FILE.9.  These fallbacks have been removed, so that
-Emacs now no longer locks DIR/FILE in that case.
-
-On file systems that do not support symbolic links, the lock is now a
-regular file with contents being what would have been in the symlink.
-
 +++
 ** New functions `group-gid' and `group-real-gid'.
 
 ---
 ** The spelling of the rx.el category `chinese-two-byte' has been
 corrected (the first 'e' was missing).
+
+---
+** Minor internal changes to the details of lock files.
+The lock for DIR/FILE is now _always_ DIR/.#FILE.
+If DIR/.#FILE already exists and is not an Emacs lock file,
+Emacs makes no attempt to lock DIR/FILE.  (Previously, it fell back to
+numbered lock files DIR/.#FILE.0...).
+On file systems that do not support symbolic links, the lock is now a
+regular file with contents being what would have been in the symlink.
 
 ** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
 
@@ -1331,7 +1329,7 @@ modifying it has no effect.
 
 ---
 ** Lock files now work on MS-Windows.
-This allows to avoid losing your edits if the same file is being
+This helps to prevent losing your edits if the same file is being
 edited in another Emacs session or by another user.  See the node
 "Interlocking" in the Emacs User Manual for the details.  To disable
 file locking, customize `create-lockfiles' to nil.

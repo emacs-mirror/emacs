@@ -752,9 +752,10 @@ file.
 @cindex locking files
   When you make the first modification in an Emacs buffer that is
 visiting a file, Emacs records that the file is @dfn{locked} by you.
-(It does this by creating a specially-named symbolic link or regular
-file with special contents in the same directory.)  Emacs removes the
-lock when you save the changes.  The idea is that the file is locked
+(It does this by creating a specially-named symbolic link@footnote{If
+your file system does not support symbolic links, a regular file is
+used.} with special contents in the same directory.)  Emacs removes the lock
+when you save the changes.  The idea is that the file is locked
 whenever an Emacs buffer visiting it has unsaved changes.
 
 @vindex create-lockfiles
