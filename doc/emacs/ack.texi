@@ -823,7 +823,7 @@ used in mail messages and news articles.
 @ignore
 @c Obsolete since 24.4
 ; and @file{terminal.el}, a terminal emulator for Emacs subprocesses.
-@end ignore.
+@end ignore
 
 @item
 Gerd Möllmann was the Emacs maintainer from the beginning of Emacs 21
