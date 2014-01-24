@@ -1263,7 +1263,8 @@ These attributes are only meaningful for coding-systems of type
 `:coding-type' attribute and can be accessed by calling the
 `coding-system-type' function.)
 
-** `time-to-seconds' is not obsolete any more.
+---
+** The `time-to-seconds' alias to `float-time' is no longer marked obsolete.
 
 +++
 ** New functions `group-gid' and `group-real-gid'.

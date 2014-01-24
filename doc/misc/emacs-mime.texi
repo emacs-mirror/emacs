@@ -1511,7 +1511,7 @@ Here's a bunch of time/date/second/day examples:
 (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
 @result{} (13818 19266)
 
-(time-to-seconds '(13818 19266))
+(float-time '(13818 19266))
 @result{} 905595714.0
 
 (seconds-to-time 905595714.0)
@@ -1583,9 +1583,8 @@ These are the functions available:
 @item date-to-time
 Take a date and return a time.
 
-@item time-to-seconds
-Take a time and return seconds.  Note that Emacs has a built-in
-function, @code{float-time}, that does this.
+@item float-time
+Take a time and return seconds.  (This is a built-in function.)
 
 @item seconds-to-time
 Take seconds and return a time.
