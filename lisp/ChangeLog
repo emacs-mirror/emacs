@@ -1,5 +1,8 @@
 2014-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* net/eww.el (eww-download-callback):
+	Fix reference to eww-download-directory.
+
 	* emacs-lisp/bytecomp.el (byte-compile-file):
 	Remove unused local variable `file-name'.
 

@@ -1072,7 +1072,7 @@ Differences in #targets are ignored."
     (let* ((obj (url-generic-parse-url url))
            (path (car (url-path-and-query obj)))
            (file (eww-make-unique-file-name (file-name-nondirectory path)
-					    eww-download-path)))
+					    eww-download-directory)))
       (write-file file)
       (message "Saved %s" file))))
 
