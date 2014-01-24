@@ -1705,12 +1705,10 @@ The value is non-nil if there were no errors, nil if errors."
 ;;  (interactive "fByte compile file: \nP")
   (interactive
    (let ((file buffer-file-name)
-	 (file-name nil)
 	 (file-dir nil))
      (and file
 	  (derived-mode-p 'emacs-lisp-mode)
-	  (setq file-name (file-name-nondirectory file)
-		file-dir (file-name-directory file)))
+	  (setq file-dir (file-name-directory file)))
      (list (read-file-name (if current-prefix-arg
 			       "Byte compile and load file: "
 			     "Byte compile file: ")

@@ -1,3 +1,8 @@
+2014-01-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file):
+	Remove unused local variable `file-name'.
+
 2014-01-24  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (with-demoted-errors): Doc fix.
