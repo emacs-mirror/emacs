@@ -3246,9 +3246,13 @@ even if this catches the signal."
 
 (defmacro with-demoted-errors (format &rest body)
   "Run BODY and demote any errors to simple messages.
+FORMAT is a string passed to `message' to format any error message.
+It should contain a single %-sequence; e.g., \"Error: %S\".
+
 If `debug-on-error' is non-nil, run BODY without catching its errors.
 This is to be used around code which is not expected to signal an error
 but which should be robust in the unexpected case that an error is signaled.
+
 For backward compatibility, if FORMAT is not a constant string, it
 is assumed to be part of BODY, in which case the message format
 used is \"Error: %S\"."

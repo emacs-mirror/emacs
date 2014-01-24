@@ -1080,6 +1080,7 @@ displaying the buffer in a window.
 +++
 *** New function `define-error'.
 
++++
 *** `with-demoted-errors' takes an additional argument `format'.
 
 +++

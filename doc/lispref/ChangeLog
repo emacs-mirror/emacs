@@ -1,5 +1,7 @@
 2014-01-24  Glenn Morris  <rgm@gnu.org>
 
+	* control.texi (Handling Errors): Update with-demoted-errors.
+
 	* files.texi (File Locks): Every platform supports locking now.
 
 2014-01-22  Glenn Morris  <rgm@gnu.org>

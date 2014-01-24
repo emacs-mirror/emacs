@@ -1252,10 +1252,13 @@ Here's the example at the beginning of this subsection rewritten using
 @end example
 @end defmac
 
-@defmac with-demoted-errors body@dots{}
+@defmac with-demoted-errors format body@dots{}
 This macro is like a milder version of @code{ignore-errors}.  Rather
 than suppressing errors altogether, it converts them into messages.
-Use this form around code that is not expected to signal errors, but
+It uses the string @var{format} to format the message.
+@var{format} should contain a single @samp{%}-sequence; e.g.,
+@code{"Error: %S"}.  Use @code{with-demoted-errors} around code
+that is not expected to signal errors, but
 should be robust if one does occur.  Note that this macro uses
 @code{condition-case-unless-debug} rather than @code{condition-case}.
 @end defmac
