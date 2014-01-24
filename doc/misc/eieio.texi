@@ -1555,7 +1555,7 @@ You can also use the normal @code{describe-function} to retrieve
 information about a class.  If you call it on a constructor function,
 it will also display the class information.  If you call it on a
 generic function, all implementations of that generic function will be
-listet, together with links through which you can directly jump to the
+listed, together with links through which you can directly jump to the
 source.
 
 @node Default Superclass
