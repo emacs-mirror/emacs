@@ -197,6 +197,7 @@ typedef unsigned long rnd_state_t;
 extern rnd_state_t rnd_state(void);
 extern void rnd_state_set(rnd_state_t state_v3);
 extern void rnd_state_set_v2(rnd_state_t seed0_v2);  /* legacy */
+extern rnd_state_t rnd_seed(void);
 
 
 /* rnd_verify() -- checks behaviour of rnd() */
