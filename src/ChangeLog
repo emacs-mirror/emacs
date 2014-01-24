@@ -1,3 +1,9 @@
+2014-01-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bool-vector-count-population bug on MinGW64 (Bug#16535).
+	* data.c (count_one_bits_word): Fix bug (negated comparison)
+	when BITS_PER_ULL < BITS_PER_BITS_WORD.
+
 2014-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (reseat_1, Fcurrent_bidi_paragraph_direction): Avoid

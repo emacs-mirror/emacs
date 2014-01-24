@@ -3012,7 +3012,7 @@ count_one_bits_word (bits_word w)
     {
       int i = 0, count = 0;
       while (count += count_one_bits_ll (w),
-	     BITS_PER_BITS_WORD <= (i += BITS_PER_ULL))
+	     (i += BITS_PER_ULL) < BITS_PER_BITS_WORD)
 	w = shift_right_ull (w);
       return count;
     }
