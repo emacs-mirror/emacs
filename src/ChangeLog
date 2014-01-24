@@ -1,3 +1,10 @@
+2014-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (reseat_1, Fcurrent_bidi_paragraph_direction): Avoid
+	undefined behavior by initializing display property bit of a
+	string processed by the bidirectional iterator.  For details, see
+	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01920.html>.
+
 2014-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor cleanup of previous change.

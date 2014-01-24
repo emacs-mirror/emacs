@@ -6409,6 +6409,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->bidi_it.string.s = NULL;
       it->bidi_it.string.lstring = Qnil;
       it->bidi_it.string.bufpos = 0;
+      it->bidi_it.string.from_disp_str = 0;
       it->bidi_it.string.unibyte = 0;
       it->bidi_it.w = it->w;
     }
@@ -20411,6 +20412,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.string.s = NULL;
       itb.string.lstring = Qnil;
       itb.string.bufpos = 0;
+      itb.string.from_disp_str = 0;
       itb.string.unibyte = 0;
       /* We have no window to use here for ignoring window-specific
 	 overlays.  Using NULL for window pointer will cause
